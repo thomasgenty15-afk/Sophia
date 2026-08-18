@@ -61,14 +61,29 @@
  * serait fausse dès le premier jour. Une date fausse est pire qu'une absence de
  * date.
  *
- * ⚠️ ET SUR UNE PRISE, CET INVARIANT EST OUVERT DEPUIS LE 2026-08-18, EN
- * CONNAISSANCE DE CAUSE. La bande `muscle_gain` plafonne à +10 %
- * (`MAX_SURPLUS_FRACTION`), soit ~0,23 kg/sem sur 2 500 kcal d'entretien, alors
- * que le slider monte désormais jusqu'à la borne dure. Une date d'arrivée en
- * prise au-delà de +10 % est donc OPTIMISTE. C'est le prix, assumé, de ne pas
- * refuser à quelqu'un un rythme qu'il a le droit de choisir — et c'est à L8 de
- * refermer l'écart, en élargissant la bande ou en disant la date sur le rythme
- * EXÉCUTÉ. Tant que ces lignes sont là, l'écart n'est pas refermé.
+ * ⚠️ ET SUR UNE PRISE, LE SLIDER MONTE PLUS HAUT QUE CE QUE L'ENVELOPPE
+ * EXÉCUTE — DEPUIS LE 2026-08-18, EN CONNAISSANCE DE CAUSE. La bande
+ * `muscle_gain` plafonne à +10 % (`MAX_SURPLUS_FRACTION`), soit ~0,23 kg/sem
+ * sur 2 500 kcal d'entretien, alors que le slider monte jusqu'à la borne dure.
+ * C'est le prix, assumé, de ne pas refuser à quelqu'un un rythme qu'il a le
+ * droit de choisir.
+ *
+ * ⛔ L'ÉCART EST REFERMÉ DEPUIS LE 2026-08-18 (lot L8), ET IL L'EST PAR LA
+ * SECONDE SORTIE, PAS PAR LA PREMIÈRE. On n'a PAS élargi la bande de prise —
+ * `MAX_SURPLUS_FRACTION` est dérivé de `ENERGY_BANDS.muscle_gain` (Helms 2023)
+ * et l'élargir pour faire tenir une promesse d'interface aurait fait exécuter
+ * au moteur un surplus que la littérature ne porte pas. On dit la date sur le
+ * rythme **EXÉCUTÉ**: `executedPaceFor` ci-dessous rend ce que la composition
+ * sait réellement livrer, et c'est LUI que la date d'arrivée et les grammages
+ * doivent lire. `paceCeilingFor` continue de rendre ce que le curseur AUTORISE
+ * — les deux nombres sont différents et le restent, ce qui est le fait, pas un
+ * défaut.
+ *
+ * ⚠️ CE QUI RESTE OUVERT, ET IL FAUT LE SAVOIR: l'écran ne lit pas encore
+ * `executedPaceFor` pour composer sa phrase de date (`weeksToTarget` y est
+ * appelé sur le cran CHOISI). Tant que c'est vrai, la date affichée sur une
+ * prise au-delà de +10 % reste optimiste — mais le moteur, lui, ne l'est plus:
+ * les grammages sont dimensionnés sur l'exécuté.
  *
  * ── CE QUE CE MODULE NE FAIT PAS ──────────────────────────────────────────
  * Il ne pose aucune cible dans le générateur (c'est le lot L8, et il attend la
@@ -593,6 +608,130 @@ export function targetWeightRefusal(
     }
   }
   return null;
+}
+
+// ---------------------------------------------------------------------------
+// L8 — LE RYTHME EXÉCUTÉ, par opposition au rythme AUTORISÉ
+// ---------------------------------------------------------------------------
+
+/** Qui a décidé du rythme exécuté. Nommé: un nombre nu ne se répare nulle part. */
+export const EXECUTED_PACE_CLAMPS = [
+  /** Le cran choisi passe tel quel: le moteur l'exécute en entier. */
+  "chosen",
+  /** La bande `muscle_gain` (+10 %) — une PRISE d'adulte, et elle seule. */
+  "surplus_band",
+  /** A1, `MAX_DAILY_DEFICIT_KCAL` — une PERTE d'adulte. */
+  "deficit_cap",
+  /** Le plancher d'énergie de ce corps — une PERTE d'adulte. */
+  "energy_floor",
+  /** La fraction du besoin d'un MINEUR, dans les deux sens. */
+  "minor_fraction",
+] as const;
+export type ExecutedPaceClamp = (typeof EXECUTED_PACE_CLAMPS)[number];
+
+export interface ExecutedPace {
+  /**
+   * kg/semaine que la composition sait RÉELLEMENT livrer. ≤ le cran choisi,
+   * toujours.
+   *
+   * ⚠️ NON ARRONDI, ET C'EST VOULU. `roundPace` est le pas du CURSEUR (0,05) et
+   * il arrondit vers le bas; l'appliquer ici ferait passer 0,23 à 0,20, soit
+   * 15 % de pessimisme fabriqué sur une date d'arrivée. Le rythme exécuté n'est
+   * pas un cran qu'on montre au doigt, c'est une grandeur qu'on divise.
+   */
+  kgPerWeek: number;
+  /** L'écart quotidien EXÉCUTÉ, en kcal, toujours ≥ 0. */
+  dailyDeltaKcal: number;
+  /** L'entretien estimé de ce corps, en kcal/jour. Le dénominateur du facteur. */
+  maintenanceKcal: number;
+  /** Laquelle des quatre bornes a décidé, ou `chosen`. */
+  clampedBy: ExecutedPaceClamp;
+}
+
+/**
+ * CE QUE LE MOTEUR EXÉCUTE VRAIMENT AU RYTHME CHOISI.
+ *
+ * ── POURQUOI CETTE FONCTION EXISTE, ET CE QU'ELLE N'EST PAS ───────────────
+ * `paceCeilingFor` répond « jusqu'où le curseur a le droit de monter ».
+ * Celle-ci répond « et une fois monté là, qu'est-ce que la casserole fait ».
+ * Sur une PERTE les deux coïncident (les trois bornes du curseur incluent déjà
+ * A1 et le plancher). Sur une PRISE elles divergent de construction depuis
+ * l'ouverture du §Bloc 2, et c'est précisément l'écart que ce module annonçait
+ * à refermer.
+ *
+ * ⛔ ELLE NE REND AUCUN NOMBRE DESTINÉ À ÊTRE LU. `dailyDeltaKcal` et
+ * `maintenanceKcal` sont des grandeurs de CALCUL: elles servent à dériver un
+ * facteur de grammage (`household_portions.ts`, lot L8) et une durée. Les
+ * afficher serait la cible chiffrée que `energy_target.ts` refuse de servir à
+ * qui n'a pas traversé les cinq portes.
+ *
+ * `null` — jamais un repli — quand le corps ne suffit pas à estimer un besoin,
+ * exactement comme `paceCeilingFor`: un facteur deviné dimensionnerait la
+ * boîte de quelqu'un qui n'existe pas.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function executedPaceFor(
+  direction: ScaleDirection,
+  subject: PaceSubject,
+  chosenKgPerWeek: number,
+): ExecutedPace | null {
+  const { body, isMinor } = subject;
+  const weightKg = body.weightKg;
+  if (!weightKg || weightKg <= 0) return null;
+  if (!Number.isFinite(chosenKgPerWeek) || chosenKgPerWeek <= 0) return null;
+
+  const maintenance = isMinor
+    ? estimatedChildMaintenanceKcal({
+      weightKg,
+      ageYears: body.ageYears,
+      gender: body.gender,
+      activityLevel: body.activityLevel,
+    })
+    : estimatedMaintenanceKcal({
+      weightKg,
+      heightCm: body.heightCm,
+      ageBand: ageBandOf(body.ageYears),
+      gender: body.gender,
+      activityLevel: body.activityLevel,
+    });
+  if (maintenance === null || maintenance <= 0) return null;
+
+  // ⚠️ L'ORDRE EST CELUI DE `paceCeilingFor`, ET POUR LA MÊME RAISON: `isMinor`
+  // passe DEVANT `direction`. Un mineur en prise recevrait sinon la bande de
+  // l'adulte, c'est-à-dire, depuis l'ouverture du 2026-08-18, un surplus calculé
+  // sur autre chose que son propre besoin.
+  const cap: { kcal: number; clamp: ExecutedPaceClamp } = isMinor
+    ? {
+      kcal: maintenance * MINOR_MAX_DAILY_DELTA_FRACTION,
+      clamp: "minor_fraction",
+    }
+    : direction === "up"
+    ? { kcal: maintenance * MAX_SURPLUS_FRACTION, clamp: "surplus_band" }
+    // Sur une PERTE, deux plafonds, et on nomme celui qui gagne. A1 est
+    // non débrayable; le plancher est propre à ce corps. À égalité stricte, on
+    // nomme le PLANCHER — même règle que `ceilingFromBounds`: la borne la plus
+    // protectrice d'abord, parce qu'elle dit « c'est ton corps », pas « c'est
+    // une décision produit ».
+    : (() => {
+      const floorRoom = maintenance - energyFloorFor(body.gender);
+      return floorRoom <= MAX_DAILY_DEFICIT_KCAL
+        ? { kcal: floorRoom, clamp: "energy_floor" as ExecutedPaceClamp }
+        : { kcal: MAX_DAILY_DEFICIT_KCAL, clamp: "deficit_cap" as ExecutedPaceClamp };
+    })();
+
+  const wantedDailyKcal = (chosenKgPerWeek * KCAL_PER_KG_BODY_MASS) / 7;
+  // Un corps déjà sous son propre plancher rend `0`, jamais un négatif: le
+  // moteur n'exécute alors AUCUN écart, ce qui est la lecture juste. Même
+  // arbitrage que `energyFloorKg` dans `paceCeilingFor`.
+  const capped = Math.max(0, cap.kcal);
+  const dailyDeltaKcal = Math.min(wantedDailyKcal, capped);
+  return {
+    kgPerWeek: (dailyDeltaKcal * 7) / KCAL_PER_KG_BODY_MASS,
+    dailyDeltaKcal: Math.round(dailyDeltaKcal),
+    maintenanceKcal: Math.round(maintenance),
+    clampedBy: wantedDailyKcal <= capped ? "chosen" : cap.clamp,
+  };
 }
 
 /**

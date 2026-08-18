@@ -141,6 +141,66 @@ la seule façon de rater ce chantier en ayant écrit tout le reste correctement.
 
 ---
 
+## 7. LE RENVERSEMENT DU 2026-08-18 — la cible entre dans le générateur
+
+> **Autorité : décision produit de l'utilisateur, 2026-08-18.** Conception :
+> [`scratchpad/2026-08-18-FORMULAIRE-PERSONNE-ET-PLANNING.md`](../../scratchpad/2026-08-18-FORMULAIRE-PERSONNE-ET-PLANNING.md) §3.
+> Lot qui l'exécute : **L8**, `_shared/keel/household_portions.ts`, section « LA CIBLE
+> DIMENSIONNE LES GRAMMAGES ».
+>
+> ### La cible contraint les **GRAMMAGES**, pas le choix des plats.
+
+**Ce qui est renversé, mot pour mot.** `energy_target.ts` disait :
+
+> « Elle n'entre pas dans le générateur. Un plan qui vise un chiffre est un régime chiffré, et
+> ce n'est pas ce produit. »
+
+Cette phrase a porté une vraie protection pendant douze jours. Elle est **barrée, pas
+supprimée**, à l'endroit exact où elle vivait — un lecteur qui ne la trouve plus croirait
+qu'elle n'a jamais existé, et la réécrirait.
+
+**Ce qui change, exactement.** Les plats restent choisis librement : aucun aliment n'est retenu
+ni écarté pour atteindre un nombre. Ce qui s'ajuste par personne est la **quantité pesée** — les
+boîtes du protocole de pesée livré le 2026-08-17 (« Boîte Theo 560 g · Zoe 520 g · Lou 280 g »,
+mesuré sur un run réel).
+
+**Le raisonnement, et il a déjà été corrigé une fois.** Ce n'est *pas* « parce qu'il n'y a qu'une
+cuisson » — c'est faux, `COOKING_SHAPES` a trois valeurs et le champ est à l'écran depuis le
+2026-08-15. C'est parce que **le gramme est le bon niveau de précision** : « une poignée » ne veut
+rien dire, peser à chaque repas est intenable, donc on pèse **une fois** à la session dans des
+boîtes nommées et le jour J on **cite la boîte**. Le mode de cuisson et le grammage sont deux
+leviers qui se composent ; ils ne se remplacent pas.
+
+### Ce que le renversement n'ouvre pas
+
+| Reste vrai | Où c'est tenu |
+|---|---|
+| `maintenanceRange` ne connaît **aucun objectif**, ne soustrait rien, rend une fourchette | `energy_target_test.ts` — trois gardes de source, inchangées |
+| **Aucun kcal** dans le texte du plan, ni par bouche en base, ni dans le prompt (C5) | ce qui entre est un **facteur sans unité**, ce qui sort est un **gramme d'aliment** |
+| La porte du dimensionnement ne lit **ni ④ ni ⑤** | `energy_gate_mouth_test.ts`, test de source sur le corps de `canSizeFromTarget` |
+| Le « pourquoi » reste **les trois dernières lignes** de `buildPortionBrief` | le bloc L8 est déterministe et **n'écrit pas une ligne de prompt** |
+| **Aucun reste, aucun solde** | le conseil du midi est une *consigne* ; il ne lit aucun consommé, et ne peut pas en lire |
+
+### Ce qui est **renforcé** par ce lot, et pas seulement préservé
+
+La porte ② (mineur) est désormais évaluée **par bouche**, depuis
+`keel_household_member_age(member_id)` — jumelée côté TypeScript par `ageStateFromVerdict`, et
+déjà lue par `mouthEnvelope`. **Avant L8, la chaîne se fermait au niveau du foyer sur le verdict
+du compte maître : une cible aurait dimensionné les grammages d'un enfant de douze ans parce que
+son parent est adulte.** C'est le trou mesuré par L4-B (§4 et §7, clause C8 réécrite), et il est
+fermé ici.
+
+### La règle C9, et pourquoi elle est neuve
+
+C1–C8 gardent qui a le droit de **voir** ou de **calculer**. Aucune ne disait qu'un **état
+d'entrée** doit être valide avant de *déclencher* un nombre. « Dehors » est le premier de ces
+états : `keel_household_set_member_away` ne consulte **aucun âge**, et le vocabulaire de présence
+est fermé côté maître mais **ouvert côté personne**. Le conseil chiffré du midi passe donc devant
+la porte **avec le verdict d'âge de la bouche concernée**, et un vocabulaire hors liste fermée
+vaut « on ne sait pas » ⇒ **pas de chiffre, jamais de repli**.
+
+---
+
 ## Ce qui ne change pas
 
 - **Personne n'est noté.** Un chiffre n'est pas une cible, pas un budget, pas un score.

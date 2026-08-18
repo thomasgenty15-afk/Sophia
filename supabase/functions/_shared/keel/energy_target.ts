@@ -20,8 +20,57 @@
  *   · AUCUN VERDICT. Pas de « au-dessus », pas de « en dessous », pas de
  *     couleur, pas de barre. Le nombre du jour et la fourchette se posent
  *     côte à côte, et c'est l'élève qui lit;
- *   · ELLE N'ENTRE PAS DANS LE GÉNÉRATEUR (R6). Un plan qui vise un chiffre
- *     est un régime chiffré, et ce n'est pas ce produit.
+ *   · ~~ELLE N'ENTRE PAS DANS LE GÉNÉRATEUR (R6). Un plan qui vise un chiffre
+ *     est un régime chiffré, et ce n'est pas ce produit.~~
+ *     ⛔ **RENVERSÉ LE 2026-08-18** — voir l'encadré ci-dessous. La phrase est
+ *     laissée barrée plutôt que supprimée: elle a porté une vraie protection
+ *     pendant douze jours, et un lecteur qui ne la trouve plus croira qu'elle
+ *     n'a jamais existé.
+ *
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⛔ LE RENVERSEMENT DU 2026-08-18 — LA CIBLE ENTRE DANS LE GÉNÉRATEUR, ET
+ *    ELLE N'Y CONTRAINT QUE LES GRAMMAGES.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * **Autorité: décision produit de l'utilisateur, 2026-08-18.** Écrite dans
+ * `scratchpad/2026-08-18-FORMULAIRE-PERSONNE-ET-PLANNING.md` §3, et développée
+ * dans `docs/keel/CALORIE_REVERSAL.md` §7. Le lot qui l'exécute est L8
+ * (`_shared/keel/household_portions.ts`, section « LA CIBLE DIMENSIONNE LES
+ * GRAMMAGES »).
+ *
+ *     « La cible contraint les GRAMMAGES, pas le choix des plats. »
+ *
+ * ── CE QUI CHANGE, EXACTEMENT ─────────────────────────────────────────────
+ * Les plats restent choisis librement — aucun aliment n'est retenu ou écarté
+ * pour atteindre un nombre. Ce qui s'ajuste par personne est la QUANTITÉ PESÉE:
+ * les boîtes du protocole de pesée (« Boîte Theo 560 g · Zoe 520 g · Lou
+ * 280 g », mesuré sur un run réel le 2026-08-17). On pèse une fois à la session,
+ * et le jour J on cite la boîte.
+ *
+ * ── LE RAISONNEMENT, ET IL A ÉTÉ CORRIGÉ UNE FOIS ─────────────────────────
+ * Ce n'est PAS « parce qu'il n'y a qu'une cuisson »: c'est faux, le mode de
+ * cuisson est un choix à trois valeurs (`COOKING_SHAPES`) exposé à l'écran
+ * depuis le 2026-08-15. C'est parce que **le gramme est le bon niveau de
+ * précision**: « une poignée » ne veut rien dire, et peser à chaque repas est
+ * intenable.
+ *
+ * ── CE QUE LE RENVERSEMENT N'OUVRE PAS, ET C'EST LA MOITIÉ QUI COMPTE ─────
+ *   · **CE module ne bouge pas d'un octet de comportement.** `maintenanceRange`
+ *     ne connaît toujours aucun objectif, ne soustrait toujours rien, et rend
+ *     toujours une fourchette. Le renversement porte sur ce que le GÉNÉRATEUR a
+ *     le droit de faire, pas sur ce que cette fonction-ci calcule.
+ *   · **La chaîne de gardes est renforcée, pas contournée.** Le dimensionnement
+ *     passe par `canSizeFromTarget`, et depuis L8 la porte ② est évaluée **par
+ *     bouche** (`keel_household_member_age`) — avant L8, une cible aurait
+ *     dimensionné les grammages d'un enfant de douze ans parce que son parent
+ *     est adulte.
+ *   · **Aucun kcal n'entre dans le plan.** Ce qui entre est un FACTEUR sans
+ *     unité; ce qui sort est un gramme d'ALIMENT. Les chiffres de corps et les
+ *     kcal par bouche restent interdits en sortie (clause C5).
+ *
+ * ⚠️ SI TU LIS CECI DANS SIX MOIS EN TE DISANT « quelqu'un a oublié de refermer
+ * la vanne »: non. C'est daté, c'est signé, et la protection d'origine a été
+ * déplacée dans `energy_gate.ts` plutôt que retirée. Ne « répare » pas.
  *
  * ── POURQUOI UNE FOURCHETTE PAR KG, ET PAS MIFFLIN-ST JEOR ─────────────────
  * `estimatedMaintenanceKcal` existe déjà dans `meal_envelope.ts` et rendrait un
@@ -48,6 +97,33 @@
  * comme la RAISON de la fourchette large. Ce n'est plus vrai: quatre crans
  * lisibles sont posés à l'inscription (`ACTIVITY_LEVELS`), et le trou nommé
  * par la fiche est fermé.
+ *
+ * ⚠️ CETTE PHRASE A ÉTÉ FAUSSE PENDANT UNE DEMI-JOURNÉE, ET LE DIRE EST LA
+ * MOITIÉ UTILE DU PARAGRAPHE. Le matin du 2026-08-18, les colonnes, le CHECK,
+ * les facteurs et cette fourchette-ci existaient — et RIEN N'ÉCRIVAIT LA
+ * COLONNE. `activity_level` n'apparaissait pas une seule fois dans
+ * `frontend/src`. Un lecteur sans écrivain rend `null` à tout le monde, et
+ * `null` est ici exactement le comportement d'avant: le lot ressemblait donc,
+ * de bout en bout, à un lot qui marche. Ce qui rend la phrase vraie est le
+ * lot L0 de l'après-midi, et il tient en trois endroits nommables:
+ *
+ *   · `frontend/src/keel/api/onboarding.ts` — `own_activity_level` et
+ *     `member_activity_level` dans `FUNNEL_QUESTIONS` (étape « people », à
+ *     côté de taille/poids/sexe), et les deux écritures `saveOwnProfile` /
+ *     `saveMouthBody`;
+ *   · `frontend/src/keel/pages/SetupPage.tsx` — `ActivityTiles`, quatre
+ *     tuiles et jamais un nombre, montées sur ma fiche et sur celle de chaque
+ *     autre bouche;
+ *   · `supabase/migrations/20260818160000_the_funnel_writes_the_activity_level.sql`
+ *     — `keel_household_set_member_body` gagne `p_activity_level` (la bouche
+ *     sans compte n'a pas d'autre porte), et `keel_household_member_bodies`
+ *     le rend pour que l'écran puisse montrer la réponse déjà donnée.
+ *
+ * ⚠️ ET CE QUI RESTE VRAI SI TU LIS CECI PLUS TARD: le cran n'est pas EXIGÉ.
+ * `canGenerate` ne refuse aucune composition pour son absence, parce que
+ * « personne n'est obligé de répondre » (`tokens.ts`) et qu'un cinquième jeton
+ * d'ignorance est refusé. La majorité des lignes de la base porteront `null`
+ * longtemps, et c'est le cas nominal — pas une migration en retard.
  *
  * Ce qui change, et ce qui ne change PAS:
  *

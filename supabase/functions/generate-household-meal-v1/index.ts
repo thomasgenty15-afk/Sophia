@@ -97,6 +97,13 @@ import {
   parseEatingRhythm,
   parseGeneratedMeal,
   usableBudget,
+  // L8 — CE QUE LA CASSEROLE PRODUIT VRAIMENT, et la tolerance de somme du
+  // parseur. Les DEUX sont importees plutot que recopiees: le redimensionnement
+  // des boites doit comparer a la MEME production et avec la MEME bande
+  // d'incertitude que la verification de somme du parseur, sinon l'un accepte ce
+  // que l'autre refuse sur le meme plan.
+  BOX_SUM_TOLERANCE_RATIO,
+  preparationReadyGrams,
 } from "../_shared/keel/meal_generation.ts";
 import {
   appendContentLanguageBlock,
@@ -210,7 +217,25 @@ import {
   asksForASecondDish,
   capCookingShape,
   readCookingShape,
+  // ══════════════════════════════════════════════════════════════════════════
+  // L8 — LA CIBLE DIMENSIONNE LES GRAMMAGES. Renversement du 2026-08-18,
+  // `docs/keel/CALORIE_REVERSAL.md` §7.
+  //
+  // ⛔ LA PORTE N'EST PAS ICI, ET C'EST LE POINT. Ce fichier n'importe NI
+  // `energySafetyGates` NI `canSizeFromTarget`: la chaine s'assemble dans le
+  // module PUR, par bouche, avec l'age de CETTE bouche. Un generateur qui
+  // assemblerait la chaine lui-meme choisirait de quel age et de quel plancher
+  // il se sert — et la propriete R6 (retournee) le refuse par un test de source.
+  // ══════════════════════════════════════════════════════════════════════════
+  BOX_SIZING_REASONS,
+  type BoxSizingReason,
+  memberTargetFactor,
+  sizeBoxesFromTarget,
 } from "../_shared/keel/household_portions.ts";
+// L8 — LA POSITION DU COACH SUR `counting`, REDUITE. C'est une LECTURE de
+// doctrine, pas la porte: elle ne decide rien seule, elle rend l'un des trois
+// etats que le module pur fera passer par `energySafetyGates`.
+import { countingStanceFrom } from "../_shared/keel/energy_gate.ts";
 // G4 — CE QUE CHAQUE BOUCHE MANGE QUAND ELLE NE MANGE PAS LE PLAT DE LA MAISON.
 // La garde de texte n'est PAS ici: `gateMemberHabits` délègue à
 // `plan_draft_note.ts::readDraftNote`, la même porte que la note de reprise.
@@ -3980,6 +4005,131 @@ Deno.serve(async (req) => {
     // ⚠️ UNE SEULE EXPRESSION POUR LES DEUX CHEMINS: l'aperçu et l'écriture
     // lisent le même objet. Deux comptages divergeraient au premier champ
     // ajouté, et la mesure d'un aperçu cesserait de prédire celle d'un plan.
+    // ══════════════════════════════════════════════════════════════════════
+    // L8 — LA CIBLE DIMENSIONNE LES GRAMMAGES DES BOÎTES.
+    //
+    // Renversement du 2026-08-18 (`docs/keel/CALORIE_REVERSAL.md` §7): la cible
+    // entre dans le générateur, et elle n'y contraint QUE la quantité pesée.
+    // Aucune ligne de prompt n'est ajoutée, aucune version n'est bumpée: la
+    // population qui voit une consigne différente est VIDE, à l'octet près.
+    //
+    // ⛔ LA DÉCISION EST DANS LE MODULE PUR. Ce bloc ne fait que trois choses:
+    // lire l'état, appeler la porte par bouche, et appliquer des grammes. Il ne
+    // porte aucune règle — pas d'âge, pas de plancher, pas de facteur.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ── ① LE RYTHME RÉGLÉ AU CURSEUR, DEUX SOURCES ET UNE PRÉCÉDENCE ──────
+    // Même règle que `goal` et que `eating_rhythm`: pour une bouche qui a
+    // réclamé son compte, ce qui fait foi est son « about you »
+    // (`student_goals`); pour une bouche sans compte, c'est sa ligne de roster.
+    // La différence avec `goal` est que le roster ne rend PAS encore ce champ —
+    // il est neuf (`20260818190000`) — donc les deux lectures sont faites ici,
+    // et dans cet ordre.
+    //
+    // ⚠️ LA POPULATION EST VIDE AU 2026-08-18: aucun écran n'écrit encore ce
+    // curseur (le port d'écriture a été livré le matin même). Tous les facteurs
+    // valent donc `1`, et le plan produit est byte-identique à celui d'hier.
+    // C'est le cas NOMINAL de ce lot le jour de sa livraison, pas une panne —
+    // et c'est très exactement pourquoi les compteurs ci-dessous existent.
+    const paceByMember = new Map<string, number>();
+    {
+      const linePaces = await admin
+        .from("household_members")
+        .select("member_id, target_pace_kg_per_week")
+        .eq("household_id", householdId);
+      // Une lecture EN ÉCHEC ne fait pas tomber un dîner: elle laisse la table
+      // vide, donc tous les facteurs à 1, donc le plan d'hier. Se fermer rend le
+      // produit d'avant; lever ferait perdre la cuisson du samedi soir pour un
+      // curseur que personne n'a réglé.
+      for (const row of (linePaces.data ?? []) as Array<Record<string, unknown>>) {
+        const id = String(row.member_id ?? "").trim();
+        const pace = Number(row.target_pace_kg_per_week);
+        if (id && Number.isFinite(pace) && pace > 0) paceByMember.set(id, pace);
+      }
+      const accountIdsForPace = members
+        .map((m) => m.userId)
+        .filter((id): id is string => typeof id === "string" && id.length > 0);
+      if (accountIdsForPace.length > 0) {
+        const goalPaces = await admin
+          .from("student_goals")
+          .select("user_id, target_pace_kg_per_week")
+          .in("user_id", accountIdsForPace);
+        for (const row of (goalPaces.data ?? []) as Array<Record<string, unknown>>) {
+          const uid = String(row.user_id ?? "").trim();
+          const member = members.find((m) => m.userId === uid);
+          if (!member) continue;
+          const pace = Number(row.target_pace_kg_per_week);
+          // ⚠️ UN `null` CÔTÉ COMPTE N'EFFACE PAS LA LIGNE. « Cette personne n'a
+          // rien réglé dans son about you » et « elle a réglé zéro » ne sont pas
+          // la même phrase; seule une valeur utilisable prend la main.
+          if (Number.isFinite(pace) && pace > 0) paceByMember.set(member.memberId, pace);
+        }
+      }
+    }
+
+    // ── ③ LA POSITION DU COACH, RÉDUITE ──────────────────────────────────
+    // Le foyer suit UNE méthode, celle du compte maître (c'est déjà la règle du
+    // verrou de doctrine, cent lignes plus haut). `doctrine.coachId` est non nul
+    // ici — la fonction a rendu 409 sinon. Une doctrine ILLISIBLE vaut
+    // `no_counting`: fail-closed, exactement comme `countingStanceFrom` le
+    // documente.
+    const coachCounting = countingStanceFrom({
+      hasCoach: true,
+      doctrineReadable: doctrine.doctrine !== null,
+      forbiddenTokens: (doctrine.doctrine?.forbidden ?? [])
+        .map((f) => String(f.token ?? "").trim())
+        .filter(Boolean),
+    });
+
+    // ── LE FACTEUR DE CHAQUE BOUCHE, ET LE MOTIF DE CHACUNE ───────────────
+    // ⚠️ TOUTES LES BOUCHES, MOTIF COMPRIS — y compris celles à `1`. Un compteur
+    // qui ne nommerait que les refus ne distingue pas « la porte a laissé
+    // passer » de « la porte n'a pas tourné », et c'est la confusion que ce
+    // chantier paie en boucle.
+    const sizingFactors = new Map<string, number>();
+    const sizingReasons: Record<string, number> = {};
+    for (const reason of BOX_SIZING_REASONS) sizingReasons[reason] = 0;
+    for (const m of members) {
+      const sizing = memberTargetFactor(m, {
+        coachCounting,
+        paceKgPerWeek: paceByMember.get(m.memberId) ?? null,
+        // Le corps de SA fiche. `mouthEnvelope` lit déjà le même objet pour
+        // servir une maintenance pédiatrique par bouche; on ne fabrique pas une
+        // seconde lecture de corps.
+        body: lineBodies.get(m.memberId) ?? null,
+      });
+      sizingReasons[sizing.reason] = (sizingReasons[sizing.reason] ?? 0) + 1;
+      if (sizing.factor !== 1) sizingFactors.set(m.memberId, sizing.factor);
+    }
+
+    // ── LES BOÎTES, REDIMENSIONNÉES ──────────────────────────────────────
+    // ⚠️ APRÈS LA RELANCE D'ANCRE PROTÉIQUE, PAS AVANT. `meal` est remplacé par
+    // le plan de la SECONDE réponse quand la relance est acceptée; redimensionner
+    // plus haut écrirait des grammes sur des boîtes que personne ne garde. C'est
+    // la cicatrice du `current` périmé, mesurée sur dix-huit parts orphelines le
+    // 2026-08-17, et elle vaut ici mot pour mot.
+    const boxSizing = sizeBoxesFromTarget(
+      meal.preparations.map((prep) => ({
+        id: prep.id,
+        boxes: prep.boxes,
+        // `null` quand un ingrédient n'est pas convertible: on redimensionne
+        // sans pouvoir vérifier la somme, et on le compte. C'est le patron des
+        // trois cas de `gramsRaw`, un cran plus haut.
+        readyGrams: composition
+          ? preparationReadyGrams(prep.ingredients, composition)
+          : null,
+      })),
+      sizingFactors,
+      BOX_SUM_TOLERANCE_RATIO,
+    );
+    for (const prep of meal.preparations) {
+      for (const box of prep.boxes) {
+        const next = boxSizing.grams.get(box.id);
+        if (next !== undefined) box.grams = next;
+      }
+    }
+    issues.push(...boxSizing.issues);
+
     const dishOwnersTrace = {
       asked: eaterBudget?.dedicatedDishesAsked ?? 0,
       declared: meal.dish_owner_counts.declared,
@@ -4012,6 +4162,30 @@ Deno.serve(async (req) => {
       // bouche ne s'affiche pas » n'est visible qu'en relisant le `jsonb` à la
       // main — c'est-à-dire pas.
       shares: portionShareCounts,
+      // ══════════════════════════════════════════════════════════════════════
+      // L8 — CE QUE LA CIBLE A RÉELLEMENT DIMENSIONNÉ.
+      // ══════════════════════════════════════════════════════════════════════
+      //
+      // ⛔ RENDU SUR L'APERÇU PAR LA MÊME EXPRESSION QUE SUR LA LIGNE ÉCRITE,
+      // comme les cinq du dessus. Sans ça, la seule façon de savoir si ce lot
+      // est armé serait d'écrire un plan.
+      //
+      // ⚠️ TROIS NOMBRES SUR LES BOÎTES (`boxes` / `sized` / `unchanged`), et
+      // leur somme avec `shared_mixed` est une propriété TESTÉE. Deux nombres
+      // rendraient le même zéro pour « aucune cible réglée » et pour « une cible
+      // qu'on n'a pas su appliquer » — le zéro ambigu qui a coûté un diagnostic
+      // entier le 2026-08-17.
+      //
+      // ⚠️ `mouths` PORTE LE MOTIF DE CHAQUE BOUCHE, PAS UN COMPTE DE REFUS. Un
+      // foyer où trois bouches sortent `no_pace` et une `minor` ne se répare pas
+      // du tout de la même façon qu'un foyer où quatre sortent `no_body`.
+      // ⛔ ET IL NE PORTE AUCUN `member_id`: c'est un HISTOGRAMME de motifs. Une
+      // ligne « membre X: minor » dans `generated_from` désignerait un enfant
+      // dans une colonne lisible par tout le foyer.
+      box_sizing: {
+        ...boxSizing.counts,
+        mouths: sizingReasons,
+      },
     } as const;
 
     // ══════════════════════════════════════════════════════════════════════

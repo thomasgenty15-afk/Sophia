@@ -47,6 +47,28 @@
 
 import { goalApplies, type MemberAgeState } from "./household.ts";
 import { GOAL_TOKENS, type GoalToken } from "./tokens.ts";
+// ⛔ L8 — LA PORTE TCA EST IMPORTÉE, JAMAIS RÉÉCRITE. `energy_gate.ts` est en
+// LECTURE SEULE pour ce lot: il porte la seule écriture de la chaîne ①②③, et ce
+// fichier s'inscrit à la main dans son allowlist d'appelants
+// (`energy_gate_mouth_test.ts`, clause C3). Recopier les trois `if` ici ferait
+// les deux points de décision que le module interdit en toutes lettres.
+import {
+  canSizeFromTarget,
+  type CountingStance,
+  energySafetyGates,
+} from "./energy_gate.ts";
+import { KEEL_MINOR_AGE, type BirthDateVerdict } from "./student_age.ts";
+import type { MouthBody } from "./meal_envelope.ts";
+// L8 — LE RYTHME **EXÉCUTÉ**, pas celui que le curseur autorise. Voir
+// `mouthTargetFactor`: c'est toute la différence entre un grammage tenable et
+// une promesse que la casserole ne livre pas.
+import {
+  executedPaceFor,
+  type ExecutedPace,
+  type PaceSubject,
+  type ScaleDirection,
+  scaleDirectionOf,
+} from "./weight_pace.ts";
 import { findForbiddenMatches, type ForbiddenTerm } from "./forbidden_matcher.ts";
 import { householdBodyFacts, type MealBodyContext } from "./meal_body.ts";
 // G4 — LE MODULE DES HABITUDES EST IMPORTÉ, JAMAIS RECOPIÉ. Le fragment de
@@ -63,7 +85,7 @@ import {
 // seconde union `"small" | "medium" | "large"` écrite dans ce fichier
 // divergerait de `MEAL_SIZES` au premier ajustement, et c'est ce fichier-là qui
 // écrit la ligne du prompt — donc c'est lui qui aurait tort en silence.
-import type { EatingOccasionSlot } from "./meal_generation.ts";
+import type { EatingOccasion, EatingOccasionSlot } from "./meal_generation.ts";
 
 /**
  * Reflet du CHECK `household_members_goal_check`, lui-même aligné sur
@@ -1236,6 +1258,854 @@ export function boxingOrderLines(
     "thing this plan exists to prevent.",
     "",
   ];
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LOT L8 — LA CIBLE DIMENSIONNE LES GRAMMAGES, ET RIEN D'AUTRE.
+//
+// Décision produit de l'utilisateur, 2026-08-18, écrite dans
+// `scratchpad/2026-08-18-FORMULAIRE-PERSONNE-ET-PLANNING.md` §3 et reprise à la
+// source dans `energy_target.ts` et `docs/keel/CALORIE_REVERSAL.md` §7:
+//
+//     « La cible contraint les GRAMMAGES, pas le choix des plats. »
+//
+// ⛔ C'EST UN RENVERSEMENT, ET IL EST ÉCRIT COMME TEL. `energy_target.ts` disait,
+// en toutes lettres: « Elle n'entre pas dans le générateur. Un plan qui vise un
+// chiffre est un régime chiffré, et ce n'est pas ce produit. » Cette phrase
+// portait une vraie protection, elle a été renversée par une décision humaine
+// datée, et le renversement est nommé aux trois endroits qui portaient
+// l'ancienne règle. Si tu lis ceci en te disant « quelqu'un a oublié de refermer
+// la vanne »: non. Va lire `CALORIE_REVERSAL.md` §7 avant de « réparer ».
+//
+// ── LE RAISONNEMENT, CORRIGÉ ───────────────────────────────────────────────
+// Ce n'est PAS « parce qu'il n'y a qu'une cuisson »: c'est faux, le mode de
+// cuisson est un choix à trois valeurs (`COOKING_SHAPES`, plus haut dans ce
+// fichier). C'est parce que **le gramme est le bon niveau de précision**: « une
+// poignée » ne veut rien dire, peser à chaque repas est intenable, donc on pèse
+// UNE fois à la session dans des boîtes nommées et le jour J on cite la boîte.
+// Les deux leviers — le grammage et le mode de cuisson — se composent; ils ne
+// se remplacent pas.
+//
+// ── CE QUE ÇA N'OUVRE PAS ──────────────────────────────────────────────────
+// Aucun kcal ne sort d'ici. Ce bloc rend des FACTEURS (sans unité) et des
+// GRAMMES D'ALIMENT, du même côté de la frontière que « 400 g de cuisses de
+// poulet » sur une liste de courses. Le seul nombre en kcal qu'il produit est le
+// conseil du midi (② ci-dessous), et il ne sort que pour la bouche QUI LE
+// DEMANDE, après les cinq portes.
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * LE VERDICT D'ÂGE D'UNE BOUCHE, DEPUIS SON ÉTAT À TROIS VALEURS.
+ *
+ * ── POURQUOI CETTE FONCTION EXISTE, ET CE QU'ELLE COÛTE ───────────────────
+ * `energySafetyGates` prend un `BirthDateVerdict` — le verdict riche que
+ * `assessBirthDate` construit depuis une DATE. La lane foyer ne voit jamais de
+ * date: `keel_household_member_age(member_id)` résout `profiles.birth_date` puis
+ * `household_members.birth_date` **en base** et ne rend que trois valeurs, qui
+ * arrivent ici dans `PortionMember.ageState`. Il faut donc un pont, et il vaut
+ * mieux qu'il soit nommé, exporté et testé qu'écrit trois fois en ligne.
+ *
+ * ⚠️ LES CHAMPS AUTRES QUE `status` SONT DES SENTINELLES, PAS DES DONNÉES. Le
+ * verdict exige un `isoDate` et un `age` pour ses deux statuts datés; on n'a ni
+ * l'un ni l'autre. `MOUTH_AGE_SENTINEL_ISO` est délibérément une date
+ * impossible à confondre avec une naissance, et l'âge est la borne elle-même
+ * (`KEEL_MINOR_AGE`), c'est-à-dire le seul entier qui soit COHÉRENT avec le
+ * statut plutôt qu'inventé. Aucun de ces deux champs n'est lu par la chaîne:
+ * `energySafetyGates` passe par `weekPlanAgeGate`, qui ne teste que `status`.
+ * Si un jour la chaîne se met à lire `age`, ce commentaire est le premier
+ * endroit où il faut revenir.
+ *
+ * ⚠️ LA PROPRIÉTÉ QUI TIENT CE PONT est le ROND-TRIP:
+ * `ageStateFromVerdict(mouthAgeVerdict(s)) === s` pour les trois états. Elle est
+ * testée. Sans elle, `unknown` pourrait dériver vers `adult` — c'est-à-dire vers
+ * la porte ouverte — sans qu'aucun test ne bouge.
+ */
+export const MOUTH_AGE_SENTINEL_ISO = "0001-01-01";
+
+export function mouthAgeVerdict(ageState: MemberAgeState): BirthDateVerdict {
+  switch (ageState) {
+    case "minor":
+      return {
+        status: "minor",
+        isoDate: MOUTH_AGE_SENTINEL_ISO,
+        age: KEEL_MINOR_AGE - 1,
+      };
+    case "adult":
+      return {
+        status: "adult",
+        isoDate: MOUTH_AGE_SENTINEL_ISO,
+        age: KEEL_MINOR_AGE,
+      };
+    // `absent` et non `unreadable`: les deux se réduisent à `unknown` chez
+    // `ageStateFromVerdict`, et `absent` est le seul des deux qui ne mente pas
+    // sur l'existence d'une saisie illisible.
+    case "unknown":
+      return { status: "absent" };
+  }
+}
+
+/**
+ * POURQUOI CETTE BOUCHE EST — OU N'EST PAS — DIMENSIONNÉE SUR SA CIBLE.
+ *
+ * Liste FERMÉE, et `sized` en fait partie: un journal qui ne nomme que les refus
+ * ne distingue pas « la porte a laissé passer » de « la porte n'a pas tourné ».
+ * Les quatre premiers refus sont ceux de la chaîne de sécurité, repris tels
+ * quels — le motif de la PREMIÈRE porte fermée survit, comme partout ailleurs.
+ */
+export const BOX_SIZING_REASONS = Object.freeze(
+  [
+    /** Le facteur a été calculé et il s'applique. */
+    "sized",
+    /** ① le plancher TCA de CETTE bouche. */
+    "restriction_floor",
+    /** ② la ceinture d'âge de CETTE bouche — clause C8, réécrite par L4-B. */
+    "minor",
+    /** ③ la méthode du coach. */
+    "doctrine_no_counting",
+    /**
+     * L'âge de cette bouche est inconnu. `weekPlanAgeGate` laisse passer
+     * « absent » — c'est sa règle, et elle est juste pour un plan de semaine.
+     * Elle ne l'est PAS pour un grammage: « je ne sais pas » et « c'est un
+     * adulte » ne sont pas la même phrase, et la seconde ouvre un déficit.
+     */
+    "age_unknown",
+    /** Ni perte ni prise: la balance ne bouge pas, il n'y a rien à viser. */
+    "no_direction",
+    /** Personne n'a réglé le curseur. C'est le cas de TOUTE la base au 18/08. */
+    "no_pace",
+    /** Pas de corps exploitable ⇒ pas d'entretien ⇒ pas de facteur. */
+    "no_body",
+    /**
+     * Le facteur est sorti des bornes de plausibilité. ⚠️ CE MOTIF NE PEUT PAS
+     * SORTIR D'UN CORPS RÉEL passé par `executedPaceFor` — voir
+     * `BOX_FACTOR_MIN`. Il existe pour l'appelant qui court-circuiterait le
+     * rythme exécuté, et c'est le seul chemin par lequel un grammage absurde
+     * pourrait atteindre une assiette.
+     */
+    "implausible_factor",
+  ] as const,
+);
+export type BoxSizingReason = (typeof BOX_SIZING_REASONS)[number];
+
+/**
+ * LES BORNES DE PLAUSIBILITÉ D'UN FACTEUR DE BOÎTE.
+ *
+ * ── ELLES NE SONT PAS LA BORNE OPÉRANTE, ET C'EST IMPORTANT ───────────────
+ * Ce qui borne réellement un facteur est `executedPaceFor`. Le minimum
+ * STRUCTUREL se calcule, il ne se devine pas — sur une PERTE d'adulte:
+ *
+ *     facteur ≥ max( 1 − 500/entretien , plancher/entretien )
+ *
+ * parce que l'écart est le MIN d'A1 (500 kcal/j) et de la marge au-dessus du
+ * plancher. Les deux branches se croisent à `entretien = 500 + plancher`, et
+ * c'est là que le facteur est le plus bas. Avec le plancher le plus bas du
+ * dépôt (1 200 kcal, `ENERGY_FLOOR_KCAL.female`): 1 700 kcal d'entretien ⇒
+ * **0,7059**. Aucun corps ne descend en dessous, quel que soit son gabarit.
+ * Sur un mineur, la fraction de 10 % donne exactement 0,90.
+ *
+ * ⚠️ ET `0,75` ÉTAIT TROP SERRÉ — MESURÉ, PAS SUPPOSÉ. Un corps de 30 kg pour
+ * 195 cm (aberrant mais constructible) rend un entretien de ~1 774 kcal et donc
+ * un facteur de **0,718**: la première rédaction de cette borne REFUSAIT un
+ * dimensionnement parfaitement légitime, dont la journée reste au-dessus du
+ * plancher (1 274 ≥ 1 200). Une ceinture qui mord sur du juste se fait désarmer
+ * dans la semaine. `0,70` passe donc sous le minimum structurel, et le
+ * balayage de `target_grams_test.ts` le prouve sur des centaines de corps.
+ *
+ * ⛔ ELLES NE SONT PAS DORMANTES POUR AUTANT: elles mordent sur un appelant qui
+ * fabriquerait un écart quotidien à la main, sans passer par `executedPaceFor`.
+ * C'est la seule porte par laquelle « 600 kcal/jour » pourrait redevenir un
+ * grammage.
+ *
+ * ⚠️ UN FACTEUR HORS BORNES NE SE RABOTE PAS, IL SE REFUSE. Ramener 0,4 à 0,70
+ * servirait un déficit que personne n'a validé en ayant l'air d'avoir protégé
+ * quelqu'un; rendre 1 et nommer le motif laisse l'assiette telle que le modèle
+ * l'a écrite, ce qui est le produit d'hier.
+ */
+export const BOX_FACTOR_MIN = 0.70;
+export const BOX_FACTOR_MAX = 1.25;
+
+export interface MouthSizing {
+  /** Sans unité. `1` = la boîte que le modèle a écrite, inchangée. */
+  factor: number;
+  reason: BoxSizingReason;
+}
+
+/** `1`, avec son motif. Jamais un `1` nu: un facteur neutre a une raison. */
+function noSizing(reason: BoxSizingReason): MouthSizing {
+  return { factor: 1, reason };
+}
+
+/**
+ * LE FACTEUR DE GRAMMAGE D'UNE BOUCHE — LA SEULE PORTE VERS LE DIMENSIONNEMENT.
+ *
+ * ── LA CHAÎNE, DANS L'ORDRE, ET ELLE EST **PAR BOUCHE** (clause C8) ────────
+ * L4-B a mesuré et corrigé l'erreur qui rendait cette clause fausse: il est FAUX
+ * que « la seule ceinture qui existe appartient au compte maître ». L'âge de
+ * CHAQUE bouche est connu par `member_id` (`keel_household_member_age`), son
+ * jumeau TypeScript est `ageStateFromVerdict`, et `mouthEnvelope` le lit DÉJÀ
+ * pour servir une maintenance pédiatrique. Ce qui ne le lisait pas, c'était la
+ * chaîne de portes. Sans ce paramètre, **une cible dimensionnerait les
+ * grammages d'un enfant de douze ans parce que son parent est adulte** — c'est
+ * le trou exact que L4-B a nommé, et c'est ici qu'il se ferme.
+ *
+ * ⛔ `canSizeFromTarget` EST LA PORTE, ET ELLE EST UNIQUE. Elle ne lit NI ④ NI
+ * ⑤ — masquer un chiffre à l'écran ne change pas le dîner — et un test de source
+ * de `energy_gate_mouth_test.ts` empêche de « réparer » ça. Ce fichier est
+ * inscrit À LA MAIN dans l'allowlist d'appelants de ce test (clause C3): tant
+ * qu'il n'y était pas, le banc rougissait, et c'est voulu.
+ *
+ * ── TOUS LES PARAMÈTRES SONT REQUIS, ET C'EST LA CICATRICE ────────────────
+ * « Un paramètre de garde optionnel est une garde désarmée » (`safetyBand:
+ * null`). Les cinq champs sont requis et validés à l'exécution: une entrée
+ * incomplète LÈVE, elle ne rend jamais un facteur.
+ */
+export function mouthTargetFactor(args: {
+  /**
+   * ② L'ÂGE DE **CETTE** BOUCHE, jamais celui du compte maître. REQUIS.
+   * Vient de `keel_household_member_age(member_id)` par `PortionMember.ageState`.
+   */
+  ageState: MemberAgeState;
+  /**
+   * ① LE PLANCHER TCA DE CETTE BOUCHE. REQUIS.
+   *
+   * ⚠️ FAIL-CLOSED CHEZ L'APPELANT: une lecture en échec, et une bouche sans
+   * compte dont on ne peut rien évaluer, valent `true`. Se fermer rend le
+   * produit d'hier (la boîte que le modèle a écrite); s'ouvrir dimensionne
+   * l'assiette de quelqu'un qu'on n'a pas su évaluer. Même arbitrage que
+   * `MealBodyContext.restrictionFlag` (FF-030 R6).
+   */
+  restrictionFlag: boolean;
+  /** ③ La position du coach, telle que `countingStanceFrom` l'a réduite. REQUIS. */
+  coachCounting: CountingStance;
+  /**
+   * La direction de la balance de cette bouche, dérivée de son objectif.
+   * `null` = `maintenance` ou aucun objectif ⇒ rien à viser.
+   */
+  direction: ScaleDirection | null;
+  /**
+   * Le cran du curseur, en kg/semaine — `household_members.target_pace_kg_per_week`
+   * ou `student_goals.target_pace_kg_per_week`. `null` = personne n'a réglé.
+   */
+  paceKgPerWeek: number | null;
+  /** Le corps de cette bouche, pour estimer son entretien. */
+  subject: PaceSubject;
+}): MouthSizing {
+  if (args === null || typeof args !== "object") {
+    throw new Error("[keel/household_portions] mouthTargetFactor requires an input object");
+  }
+  for (
+    const key of [
+      "ageState",
+      "restrictionFlag",
+      "coachCounting",
+      "direction",
+      "paceKgPerWeek",
+      "subject",
+    ]
+  ) {
+    const bag = args as unknown as Record<string, unknown>;
+    if (!Object.hasOwn(bag, key) || bag[key] === undefined) {
+      throw new Error(
+        `[keel/household_portions] missing required sizing input: ${key} — ` +
+          `an absent gate is a disarmed gate`,
+      );
+    }
+  }
+
+  // ── ①②③ — LA CHAÎNE DE SÉCURITÉ, PAR BOUCHE, PUIS LA PORTE ──────────────
+  const gate = canSizeFromTarget({
+    safety: energySafetyGates({
+      restrictionFlag: args.restrictionFlag,
+      ageVerdict: mouthAgeVerdict(args.ageState),
+      coachCounting: args.coachCounting,
+    }),
+  });
+  if (!gate.size) {
+    // Le motif de la première porte fermée survit tel quel. `student_off` et
+    // `target_off` ne peuvent pas sortir de cette chaîne — elle ne lit aucun
+    // interrupteur — donc la coercition ci-dessous est totale, et un test le
+    // tient sur la table de vérité entière.
+    return noSizing(gate.reason as BoxSizingReason);
+  }
+  // ── LA PORTE QUE `weekPlanAgeGate` NE FERME PAS, ET QU'IL FAUT FERMER ICI ──
+  // « absent » passe la chaîne (c'est sa règle, et elle est juste pour un plan
+  // de semaine: on ne bloque pas quelqu'un dont la date manque). Un GRAMMAGE
+  // n'est pas un plan: dimensionner sur une cible demande de savoir si le corps
+  // qui la porte est en croissance.
+  if (args.ageState === "unknown") return noSizing("age_unknown");
+
+  if (args.direction === null) return noSizing("no_direction");
+  const pace = Number(args.paceKgPerWeek);
+  if (args.paceKgPerWeek === null || !Number.isFinite(pace) || pace <= 0) {
+    return noSizing("no_pace");
+  }
+
+  // ── LE RYTHME **EXÉCUTÉ**, JAMAIS LE CRAN CHOISI ────────────────────────
+  // Le curseur d'une PRISE monte plus haut que ce que `envelopeCore` exécute
+  // (+10 %, `MAX_SURPLUS_FRACTION`) depuis l'ouverture du §Bloc 2. Dimensionner
+  // une boîte sur le cran choisi promettrait un rythme que la casserole ne
+  // livre pas — et la date d'arrivée calculée dessus serait fausse dès le
+  // premier jour. C'est l'écart que `weight_pace.ts` annonçait à refermer.
+  const executed: ExecutedPace | null = executedPaceFor(
+    args.direction,
+    args.subject,
+    pace,
+  );
+  if (executed === null || executed.maintenanceKcal <= 0) return noSizing("no_body");
+
+  const sign = args.direction === "down" ? -1 : 1;
+  // ⚠️ LE DÉNOMINATEUR EST L'ENTRETIEN, PAS LA CIBLE. Le facteur dit « de
+  // combien la boîte que le modèle a écrite pour un jour ordinaire doit
+  // bouger », et le modèle écrit sur les enveloppes de MAINTENANCE (le tronc est
+  // le MIN de celles-ci, les add-ons rendent le reste). Diviser par la cible
+  // ferait porter au grammage un écart qu'il a déjà.
+  const factor = (executed.maintenanceKcal + sign * executed.dailyDeltaKcal) /
+    executed.maintenanceKcal;
+  if (
+    !Number.isFinite(factor) || factor < BOX_FACTOR_MIN || factor > BOX_FACTOR_MAX
+  ) {
+    return noSizing("implausible_factor");
+  }
+  // Un écart exécuté NUL (un corps déjà sous son plancher) rend exactement 1.
+  // On le nomme `no_pace` plutôt que `sized`: rendre « dimensionné, facteur 1 »
+  // ferait lire à un compteur qu'une cible a mordu là où elle n'a rien pu faire.
+  if (executed.dailyDeltaKcal === 0) return noSizing("no_pace");
+  return { factor, reason: "sized" };
+}
+
+/**
+ * LE FACTEUR D'UNE BOUCHE, DEPUIS SA LIGNE DE FOYER — le raccourci d'appel.
+ *
+ * ⚠️ IL NE PORTE AUCUNE DÉCISION. Il lit `goalApplies` (la règle du mineur et de
+ * l'âge inconnu, écrite une seule fois dans `household.ts`) et `scaleDirectionOf`
+ * (la règle des trois directions, écrite une seule fois dans `weight_pace.ts`),
+ * puis passe la main. Deux lectures d'une même règle finiraient par diverger, et
+ * celle-ci gouverne des grammes dans une assiette.
+ */
+export function memberTargetFactor(
+  member: PortionMember,
+  args: {
+    coachCounting: CountingStance;
+    paceKgPerWeek: number | null;
+    /** Le corps de la FICHE de cette bouche. `null` = rien à estimer. */
+    body: MouthBody | null;
+  },
+): MouthSizing {
+  if (args.body === null) {
+    // ⚠️ ON NE SAUTE PAS LA PORTE POUR AUTANT. Un corps absent est une raison de
+    // ne rien dimensionner, pas une raison de ne pas évaluer la ceinture: le
+    // motif rendu doit rester celui de la première porte fermée, sans quoi un
+    // journal dirait « pas de corps » d'un enfant que la porte ② protège.
+    const gate = canSizeFromTarget({
+      safety: energySafetyGates({
+        restrictionFlag: member.body?.restrictionFlag ?? true,
+        ageVerdict: mouthAgeVerdict(member.ageState),
+        coachCounting: args.coachCounting,
+      }),
+    });
+    if (!gate.size) return noSizing(gate.reason as BoxSizingReason);
+    if (member.ageState === "unknown") return noSizing("age_unknown");
+    return noSizing("no_body");
+  }
+  const goal = goalApplies(member) && member.goal ? member.goal : null;
+  return mouthTargetFactor({
+    ageState: member.ageState,
+    // FAIL-CLOSED: pas de contexte de corps lu ⇒ on se ferme. Une bouche sans
+    // compte n'a jamais de `MealBodyContext` (les mesures restent clées sur
+    // `auth.users`), donc c'est le cas NOMINAL d'un enfant — et c'est très
+    // exactement la personne pour qui se fermer est juste.
+    restrictionFlag: member.body?.restrictionFlag ?? true,
+    coachCounting: args.coachCounting,
+    direction: goal === null ? null : scaleDirectionOf(goal),
+    paceKgPerWeek: args.paceKgPerWeek,
+    subject: { body: args.body, isMinor: member.ageState === "minor" },
+  });
+}
+
+// ---------------------------------------------------------------------------
+// ① LES BOÎTES, REDIMENSIONNÉES — déterministe, après le parseur
+// ---------------------------------------------------------------------------
+
+/** Une boîte, réduite à ce que le redimensionnement lit. */
+export interface SizableBox {
+  id: string;
+  memberIds: readonly string[];
+  grams: number;
+}
+
+export interface SizablePreparation {
+  id: string;
+  boxes: readonly SizableBox[];
+  /**
+   * CE QUE LA CASSEROLE PRODUIT VRAIMENT, en grammes de PRÊT
+   * (`preparationReadyGrams`). `null` = non reconstructible.
+   *
+   * ⚠️ C'EST LA PART **FIXE**, et c'est toute la leçon de
+   * `scaling-factor-applies-only-to-the-mobile-part`: un facteur qui ignore ce
+   * que le récipient contient fait grossir un plan sans rien lui donner à
+   * manger. Ici la nourriture existante ne bouge pas d'un gramme — seul son
+   * PARTAGE bouge — et le plafond du récipient est ce qui le garantit.
+   */
+  readyGrams: number | null;
+}
+
+export interface BoxSizingResult {
+  /**
+   * Les nouveaux grammages, par ID de boîte. Une boîte absente de cette table
+   * n'a pas bougé — on ne rend PAS la boîte entière, pour que l'appelant ne
+   * puisse pas reconstruire une préparation en perdant ses autres champs.
+   */
+  grams: Map<string, number>;
+  /**
+   * ⚠️ TROIS NOMBRES, ET LEUR SOMME EST UNE PROPRIÉTÉ TESTÉE:
+   * `sized + unchanged + shared_mixed === boxes`. Un compteur à deux nombres
+   * rendrait le même zéro pour « aucune cible » et pour « une cible qu'on n'a
+   * pas su appliquer », et c'est le zéro ambigu que ce dépôt paie en boucle.
+   *
+   *   · `boxes`        — le dénominateur: toutes les boîtes gardées du plan.
+   *   · `sized`        — celles dont les grammes ont bougé.
+   *   · `unchanged`    — facteur 1 sur toutes leurs bouches. Le cas NOMINAL.
+   *   · `shared_mixed` — une boîte partagée dont les bouches n'ont PAS le même
+   *                      facteur. Laissée telle quelle, et comptée: on ne peut
+   *                      pas la couper en deux sans inventer un identifiant de
+   *                      boîte que rien ne cite.
+   *   · `capped_by_pot`— les préparations dont la somme redimensionnée dépassait
+   *                      ce que la casserole produit, ramenées au plafond.
+   *   · `unverifiable` — les préparations dont la production n'est pas
+   *                      reconstructible (`readyGrams === null`): on
+   *                      redimensionne, on ne peut pas vérifier la somme.
+   */
+  counts: {
+    boxes: number;
+    sized: number;
+    unchanged: number;
+    shared_mixed: number;
+    capped_by_pot: number;
+    unverifiable: number;
+  };
+  issues: string[];
+}
+
+/**
+ * LE PLANCHER D'UNE BOÎTE, en grammes. Une boîte à zéro n'est pas une part,
+ * c'est une consigne qui dit « rien » — et l'écran l'imprimerait telle quelle.
+ */
+export const BOX_MIN_SIZED_GRAMS = 1;
+
+/**
+ * LES BOÎTES, REDIMENSIONNÉES SUR LA CIBLE DE CHAQUE BOUCHE.
+ *
+ * ── POURQUOI C'EST DÉTERMINISTE ET APRÈS LE PARSEUR ───────────────────────
+ * L'autre sortie était de demander les grammages au modèle, en lui donnant la
+ * cible dans le prompt. Elle est écartée, et pour trois raisons mesurées:
+ *
+ *   1. **Le prompt de la lane foyer expire à quatre minutes** (mesuré par 3C,
+ *      reconfirmé par L7). Ce lot n'ajoute pas une ligne au prompt et ne bumpe
+ *      aucune version: la population qui voit une consigne différente est
+ *      VIDE, et c'est vérifiable à l'octet.
+ *   2. Un facteur de grammage dit dans le prompt est un nombre que le modèle
+ *      RECOPIE. Mesuré au LOT E: il a écrit `box_prep_chicken_shared` dans une
+ *      note lue à voix haute à table. « Zoé: 0,85 de la part de Marc » lu à
+ *      table est un verdict comparatif sur deux corps.
+ *   3. Un grammage déclaré par le modèle ne peut être que COMPTÉ, jamais
+ *      garanti; un grammage calculé ici est exact et rejouable.
+ *
+ * ── CE QU'ELLE NE FAIT PAS ────────────────────────────────────────────────
+ * Elle ne crée aucune boîte, n'en supprime aucune, ne change aucun `member_id`,
+ * ne touche à aucun ingrédient et n'écrit aucun texte. Elle ne fait que
+ * multiplier des grammes par un facteur sans unité — et elle refuse de le faire
+ * quand la casserole ne suivrait pas.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function sizeBoxesFromTarget(
+  preparations: readonly SizablePreparation[],
+  /**
+   * Le facteur de CHAQUE bouche, par `member_id`. Une bouche absente de la table
+   * vaut `1` — c'est-à-dire « on n'a rien à lui appliquer », le cas nominal.
+   *
+   * ⚠️ REQUIS, JAMAIS `?`. Un paramètre facultatif ferait de « aucune cible » le
+   * défaut silencieux de tous les appelants, et le lot serait construit,
+   * branché, désarmé — le mode d'échec n°1 de ce fichier.
+   */
+  factors: ReadonlyMap<string, number>,
+  /** La tolérance de somme, reprise du parseur. REQUISE pour la même raison. */
+  sumToleranceRatio: number,
+): BoxSizingResult {
+  const grams = new Map<string, number>();
+  const issues: string[] = [];
+  const counts = {
+    boxes: 0,
+    sized: 0,
+    unchanged: 0,
+    shared_mixed: 0,
+    capped_by_pot: 0,
+    unverifiable: 0,
+  };
+
+  for (const prep of preparations) {
+    // Les grammes CANDIDATS de cette préparation, avant le plafond du récipient.
+    const candidate = new Map<string, number>();
+    let anySized = false;
+    for (const box of prep.boxes) {
+      counts.boxes++;
+      const mouthFactors = box.memberIds.map((id) => factors.get(id) ?? 1);
+      const first = mouthFactors[0] ?? 1;
+      const uniform = mouthFactors.every((f) => Math.abs(f - first) < 1e-9);
+      if (!uniform) {
+        // ⛔ ON NE COUPE PAS UNE BOÎTE EN DEUX. Fabriquer un second identifiant
+        // laisserait `dishes[].uses[].box_id` pointer sur une boîte qui n'a plus
+        // le bon contenu, et l'écran citerait une boîte que personne n'a pesée.
+        // La consigne du prompt dit déjà « when their shares differ they get one
+        // box each »: une boîte partagée à facteurs divergents est le modèle qui
+        // ne l'a pas suivie, et c'est une MESURE, pas une réparation.
+        counts.shared_mixed++;
+        issues.push(
+          `preparations[${prep.id}].boxes[${box.id}]: shared by mouths whose ` +
+            `targets differ, grams left as written`,
+        );
+        candidate.set(box.id, box.grams);
+        continue;
+      }
+      if (first === 1) {
+        counts.unchanged++;
+        candidate.set(box.id, box.grams);
+        continue;
+      }
+      anySized = true;
+      candidate.set(
+        box.id,
+        Math.max(BOX_MIN_SIZED_GRAMS, Math.round(box.grams * first)),
+      );
+    }
+
+    // ── LE PLAFOND DU RÉCIPIENT — ET IL NE TOURNE QUE SI ON A TOUCHÉ QUELQUE
+    //    CHOSE ────────────────────────────────────────────────────────────
+    // ⚠️ LA CONDITION `anySized` EST LA GARANTIE DE BYTE-IDENTITÉ. Sans elle, ce
+    // bloc « réparerait » au passage les plans où le modèle a sur-rempli ses
+    // boîtes — c'est-à-dire changerait le produit pour la population qui n'a
+    // AUCUNE cible, qui est aujourd'hui la population entière. Le parseur a déjà
+    // sa propre `issue` pour ce cas-là; ce n'est pas à ce lot de la doubler.
+    if (!anySized) continue;
+    if (prep.readyGrams === null) {
+      counts.unverifiable++;
+      for (const [id, g] of candidate) grams.set(id, g);
+      counts.sized += countSized(prep, candidate);
+      continue;
+    }
+    const ceiling = prep.readyGrams * sumToleranceRatio;
+    let sum = 0;
+    for (const g of candidate.values()) sum += g;
+    if (sum > ceiling && sum > 0) {
+      // ⚠️ ON RABOTE **PROPORTIONNELLEMENT**, ET SUR TOUTE LA PRÉPARATION. Ce
+      // qu'une cible achète est le RAPPORT entre les parts; le préserver est la
+      // seule façon de ne pas retirer sa part à quelqu'un pour l'arithmétique
+      // d'un autre. La quantité de nourriture, elle, est fixe: c'est le point de
+      // `scaling-factor-applies-only-to-the-mobile-part`, et ici la part fixe
+      // est le contenu de la casserole.
+      const shrink = ceiling / sum;
+      for (const [id, g] of candidate) {
+        candidate.set(id, Math.max(BOX_MIN_SIZED_GRAMS, Math.round(g * shrink)));
+      }
+      counts.capped_by_pot++;
+      issues.push(
+        `preparations[${prep.id}]: sized boxes would hold ${Math.round(sum)} g ` +
+          `but the batch makes about ${Math.round(prep.readyGrams)} g, all boxes ` +
+          `scaled back to fit`,
+      );
+    }
+    for (const [id, g] of candidate) grams.set(id, g);
+    counts.sized += countSized(prep, candidate);
+  }
+
+  // ⚠️ `sized` SE COMPTE SUR CE QUI A RÉELLEMENT BOUGÉ, jamais par soustraction.
+  // Une boîte dont le facteur ≠ 1 mais dont l'arrondi rend le MÊME nombre n'a
+  // pas bougé, et la compter dirait qu'une cible a mordu là où l'assiette est
+  // identique. Cicatrice `withheld`/`over_cap`, écrite trois fois dans
+  // `meal_generation.ts`.
+  counts.unchanged = counts.boxes - counts.sized - counts.shared_mixed;
+  return { grams, counts, issues };
+}
+
+/** Combien de boîtes de CETTE préparation portent un grammage différent. */
+function countSized(
+  prep: SizablePreparation,
+  candidate: ReadonlyMap<string, number>,
+): number {
+  let n = 0;
+  for (const box of prep.boxes) {
+    const next = candidate.get(box.id);
+    if (next !== undefined && next !== box.grams) n++;
+  }
+  return n;
+}
+
+// ---------------------------------------------------------------------------
+// ② LE CONSEIL CHIFFRÉ DU MIDI — une consigne, JAMAIS un solde
+// ---------------------------------------------------------------------------
+
+/**
+ * ⛔ CE QUE CE BLOC N'ÉCRIRA JAMAIS, ET LA PHRASE EXACTE QUI EST INTERDITE.
+ *
+ *     « Il te reste 680 kcal. »
+ *
+ * C'est LA phrase d'un tracker, et elle n'existe sur aucun chemin de ce produit
+ * (`energy_target.ts`, en toutes lettres). Un conseil du midi est une CONSIGNE:
+ * il ne soustrait rien de ce qui a été mangé, il ne connaît pas ce qui a été
+ * mangé, et il ne peut pas le connaître — aucune de ses entrées ne porte un
+ * consommé. Pas de reste, pas de verdict, pas de couleur, pas de barre.
+ *
+ * ⚠️ ET C'EST POURQUOI IL SE CALCULE SUR LA JOURNÉE DÉCLARÉE, PAS SUR LE PLAN.
+ * « Vise 700 au déjeuner » est vrai que la personne ait pris son petit-déjeuner
+ * ou non. Le dériver de ce que le plan a composé le rendrait dépendant du reste
+ * de la journée, c'est-à-dire un solde déguisé.
+ */
+export const EATING_OUT_ADVICE_REASONS = Object.freeze(
+  [
+    "advised",
+    /** ① ② ③ — la chaîne de sécurité du LECTEUR, motifs repris tels quels. */
+    "restriction_floor",
+    "minor",
+    "doctrine_no_counting",
+    /** ④ l'interrupteur d'affichage, ⑤ celui de la cible. */
+    "student_off",
+    "target_off",
+    /** La bouche n'est pas le lecteur — FF-059 §11 n°4, `canEmitMouthEnergy`. */
+    "other_mouth",
+    /** C9.a — l'âge de CETTE bouche. */
+    "mouth_minor",
+    "mouth_age_unknown",
+    /** C9.b — le vocabulaire de présence n'est pas dans la liste fermée. */
+    "unknown_state",
+    /** Cette case n'est pas un « dehors »: il n'y a rien à conseiller. */
+    "not_eating_out",
+    /** Pas de journée déclarée, ou pas de corps: rien à répartir. */
+    "no_rhythm",
+    "no_body",
+  ] as const,
+);
+export type EatingOutAdviceReason = (typeof EATING_OUT_ADVICE_REASONS)[number];
+
+/**
+ * LE VOCABULAIRE DE PRÉSENCE, RECOPIÉ — ET LE POURQUOI DE LA RECOPIE.
+ *
+ * ⛔ CE N'EST PAS UN OUBLI D'IMPORT. `PRESENCE_STATES` vit dans
+ * `household_presence.ts`, qui importe `meal_generation.ts`, qui importe CE
+ * fichier: en importer une VALEUR ferait un cycle d'exécution
+ * (`household_portions` → `household_presence` → `meal_generation` →
+ * `household_portions`). Les seuls imports que ce fichier prend de cette
+ * branche-là sont des TYPES, effacés à la compilation.
+ *
+ * ⚠️ ET C'EST DONC UNE SECONDE COPIE D'UNE ÉNUMÉRATION FERMÉE, le mode d'échec
+ * que `tokens.ts` documente en tête. Ce qui l'empêche de dériver est un test
+ * d'égalité stricte avec `PRESENCE_STATES` — un test peut importer les deux
+ * modules sans créer de cycle de production. Sans ce test, un quatrième état
+ * ajouté là-bas serait lu « inconnu » ici, donc muet, et le lot ressemblerait à
+ * un lot qui marche.
+ */
+export const KNOWN_PRESENCE_STATES = Object.freeze(
+  ["at_table", "eating_out", "away"] as const,
+);
+
+/**
+ * LE POIDS D'UN MOMENT DANS LA JOURNÉE DE CETTE PERSONNE.
+ *
+ * ── CE N'EST PAS UNE TABLE DE RÉPARTITION UNIVERSELLE ─────────────────────
+ * Les poids ne sont lus que RELATIVEMENT aux moments que CETTE bouche a
+ * déclarés: quelqu'un qui ne prend que déjeuner et dîner répartit sa journée en
+ * deux, pas en six. Une table de pourcentages absolus (« le déjeuner vaut 35 %
+ * d'une journée ») serait fausse pour tout le monde sauf pour la journée type
+ * qu'elle décrit.
+ *
+ * ⚠️ LA TAILLE DÉCLARÉE GAGNE SUR LE DÉFAUT DU MOMENT, et c'est le seul
+ * arbitrage de cette table: `EatingOccasionSlot.size` est ce que la personne a
+ * dit de SON repas (« gros dîner »), le défaut n'est que ce qu'un moment pèse
+ * quand personne n'a rien dit. Trois repas principaux à `medium`, trois
+ * collations à `small`: c'est la lecture la plus plate possible, et elle est
+ * délibérément grossière — le nombre sort arrondi aux 50 kcal, exactement comme
+ * `maintenanceRange`, parce qu'un « 683 » se lirait comme une mesure.
+ */
+export const MEAL_SIZE_WEIGHT: Readonly<Record<"small" | "medium" | "large", number>> =
+  Object.freeze({ small: 1, medium: 2, large: 3 });
+
+const DEFAULT_SLOT_WEIGHT: Readonly<Record<EatingOccasion, number>> = Object.freeze({
+  breakfast: MEAL_SIZE_WEIGHT.medium,
+  snack_am: MEAL_SIZE_WEIGHT.small,
+  lunch: MEAL_SIZE_WEIGHT.medium,
+  snack_pm: MEAL_SIZE_WEIGHT.small,
+  dinner: MEAL_SIZE_WEIGHT.medium,
+  before_bed: MEAL_SIZE_WEIGHT.small,
+});
+
+function slotWeight(occasion: EatingOccasionSlot): number {
+  return occasion.size
+    ? MEAL_SIZE_WEIGHT[occasion.size]
+    : DEFAULT_SLOT_WEIGHT[occasion.slot];
+}
+
+export interface EatingOutAdvice {
+  /**
+   * kcal, arrondis aux 50. `null` dès que le motif n'est pas `advised` — jamais
+   * un `0`, qui se lirait « ne mange rien », le sens exactement inverse.
+   */
+  kcal: number | null;
+  reason: EatingOutAdviceReason;
+}
+
+/**
+ * LE CONSEIL CHIFFRÉ D'UNE CASE « DEHORS », OU LE MOTIF NOMMÉ DE SON ABSENCE.
+ *
+ * ── LA CLAUSE C9, ARMÉE ICI ET AVANT LA PREMIÈRE MULTIPLICATION ───────────
+ * C9 (L4-B §7) dit: *la porte est traversée par ce qui PRODUIT le nombre, pas
+ * seulement par ce qui l'affiche; l'état de présence « dehors » en est une
+ * entrée.* Deux trous mesurés le motivent, et aucun des deux n'est réparable
+ * ici:
+ *
+ *   · `keel_household_set_member_away` **ne consulte aucun âge** — reconfirmé
+ *     sur `prosrc`. « Dehors » est donc posable sur un mineur;
+ *   · le vocabulaire de présence est fermé côté maître et **ouvert côté
+ *     personne** — un `.update()` PostgREST direct passe sans contrainte.
+ *
+ * D'où les deux gardes ci-dessous, dans cet ordre:
+ *
+ *   **C9.b** — `presenceState` est typé `string`, PAS `PresenceState`, et c'est
+ *   délibéré. Un jeton hors liste fermée vaut « on ne sait pas » ⇒ AUCUN
+ *   chiffre, et **jamais un repli sur `at_table`**. Même règle que
+ *   `parseGoalToken`, qui lève plutôt que de deviner. Si le type était
+ *   `PresenceState`, le compilateur donnerait une garantie que PostgREST ne
+ *   donne pas, et la garde naîtrait désarmée.
+ *
+ *   **C9.a** — le verdict d'âge de CETTE bouche, avant tout chiffre. Un mineur
+ *   ou un âge inconnu ⇒ pas de chiffre, motif nommé. La part, elle, reste
+ *   dimensionnée sur les enveloppes de maintenance, comme aujourd'hui.
+ *
+ * ── ET LE LECTEUR, PARCE QU'UN CHIFFRE QUI SORT EST UN CHIFFRE AFFICHÉ ────
+ * Contrairement au dimensionnement (①), ce conseil-ci se LIT. Il traverse donc
+ * les cinq portes, interrupteurs compris, et il ne sort que pour la bouche QUI
+ * LE DEMANDE (`other_mouth`). Une bouche sans compte n'a aucun interrupteur:
+ * lui adresser un chiffre serait un tracker qu'elle ne peut pas éteindre. C'est
+ * exactement le manque que le levier d'invitation du §2.2 ⓒ existe pour nommer
+ * — « invite-la, elle pourra les déclarer elle-même ».
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function eatingOutAdvice(args: {
+  /**
+   * L'ÉTAT DE PRÉSENCE DE CETTE CASE, BRUT. REQUIS, et typé `string` — C9.b.
+   */
+  presenceState: string;
+  /**
+   * LA CHAÎNE DU LECTEUR, telle que `canShowTarget` l'a rendue. REQUISE: c'est
+   * la seule porte d'entrée des interrupteurs ④ et ⑤.
+   */
+  reader: { show: boolean; reason: string };
+  /** Cette bouche EST-ELLE le lecteur ? REQUIS. */
+  mouthIsReader: boolean;
+  /** ② L'âge de CETTE bouche — C9.a. REQUIS. */
+  mouthAgeState: MemberAgeState;
+  /** La journée déclarée de cette bouche. `[]` ⇒ rien à répartir. */
+  slots: readonly EatingOccasionSlot[];
+  /** La case dont on parle. */
+  occasion: EatingOccasionSlot;
+  /**
+   * L'entretien de cette bouche, en kcal/jour, et l'écart exécuté de sa cible.
+   * `null` ⇒ pas de corps ⇒ pas de conseil.
+   */
+  executed: ExecutedPace | null;
+  /** La direction de sa balance. `null` = maintenance: la cible EST l'entretien. */
+  direction: ScaleDirection | null;
+}): EatingOutAdvice {
+  const refuse = (reason: EatingOutAdviceReason): EatingOutAdvice => ({
+    kcal: null,
+    reason,
+  });
+  // ── C9.b — LE VOCABULAIRE, AVANT TOUT ───────────────────────────────────
+  if (!(KNOWN_PRESENCE_STATES as readonly string[]).includes(args.presenceState)) {
+    return refuse("unknown_state");
+  }
+  if (args.presenceState !== "eating_out") return refuse("not_eating_out");
+
+  // ── LA CHAÎNE DU LECTEUR, ET SON MOTIF SURVIT TEL QUEL ──────────────────
+  if (!args.reader.show) {
+    return refuse(
+      (EATING_OUT_ADVICE_REASONS as readonly string[]).includes(args.reader.reason)
+        ? args.reader.reason as EatingOutAdviceReason
+        // Un motif que ce vocabulaire ne porte pas est un refus qu'on ne sait
+        // pas dire: on refuse quand même, et on le range dans le motif le plus
+        // fermé. Jamais un `advised` par défaut.
+        : "unknown_state",
+    );
+  }
+  if (!args.mouthIsReader) return refuse("other_mouth");
+
+  // ── C9.a — L'ÂGE DE CETTE BOUCHE ────────────────────────────────────────
+  if (args.mouthAgeState === "minor") return refuse("mouth_minor");
+  if (args.mouthAgeState === "unknown") return refuse("mouth_age_unknown");
+
+  if (args.executed === null || args.executed.maintenanceKcal <= 0) {
+    return refuse("no_body");
+  }
+  const weights = args.slots.map(slotWeight);
+  const total = weights.reduce((a, b) => a + b, 0);
+  if (args.slots.length === 0 || total <= 0) return refuse("no_rhythm");
+  const here = args.slots.findIndex((s) => s.slot === args.occasion.slot);
+  if (here < 0) return refuse("no_rhythm");
+
+  const sign = args.direction === "down" ? -1 : args.direction === "up" ? 1 : 0;
+  const dayKcal = args.executed.maintenanceKcal +
+    sign * args.executed.dailyDeltaKcal;
+  const share = (dayKcal * weights[here]) / total;
+  // ARRONDI AUX 50, MÊME ARBITRAGE QUE `maintenanceRange`: « 700 » se lit comme
+  // un ordre de grandeur, « 683 » comme une mesure — et une mesure invite à
+  // viser le chiffre exact, ce qui est précisément le geste d'un tracker.
+  const kcal = Math.round(share / 50) * 50;
+  // Un conseil à zéro n'est pas un conseil. On préfère se taire.
+  if (!(kcal > 0)) return refuse("no_body");
+  return { kcal, reason: "advised" };
+}
+
+/**
+ * LA PHRASE, DANS LES DEUX LANGUES.
+ *
+ * Elle vit ICI et pas dans un pack i18n du front, pour la même raison que
+ * `PACE_WARNING_LABELS` (`weight_pace.ts`) et `QUESTION_LABELS`
+ * (`plan_feedback.ts`): le nombre et le mot qui l'encadre sont une seule
+ * décision, et les séparer laisse l'un bouger sans l'autre.
+ *
+ * ⚠️ « AUTOUR DE » EST LOAD-BEARING, DANS LES DEUX LANGUES. « Vise 700 » est une
+ * cible qu'on rate; « vise autour de 700 » est un ordre de grandeur. C'est la
+ * même décision que la fourchette de `energy_target.ts` — « personne ne rate un
+ * intervalle ».
+ *
+ * ⚠️ LE LABEL PORTE SA PRÉPOSITION, ET C'EST UNE LEÇON DE CE DÉPÔT. Une phrase
+ * assemblée en `Au ${label}` rend « Au ta collation du matin »: la préposition
+ * française se contracte avec le genre du mot, et un gabarit qui l'ignore
+ * fabrique une faute dans une langue sur deux — invisible à qui teste en
+ * anglais (cicatrice « garde testée dans une seule langue »).
+ */
+export const EATING_OUT_SLOT_LABELS: Readonly<
+  Record<EatingOccasion, { en: string; fr: string }>
+> = Object.freeze({
+  breakfast: { en: "At breakfast", fr: "Au petit-déjeuner" },
+  snack_am: { en: "At your morning snack", fr: "À ta collation du matin" },
+  lunch: { en: "At lunch", fr: "Au déjeuner" },
+  snack_pm: {
+    en: "At your afternoon snack",
+    fr: "À ta collation de l'après-midi",
+  },
+  dinner: { en: "At dinner", fr: "Au dîner" },
+  before_bed: { en: "At your evening snack", fr: "À ta collation du soir" },
+});
+
+export function eatingOutAdviceSentence(
+  locale: "en" | "fr",
+  occasion: EatingOccasion,
+  kcal: number,
+): string {
+  const label = EATING_OUT_SLOT_LABELS[occasion][locale];
+  return locale === "fr"
+    ? `${label}, vise autour de ${kcal}.`
+    : `${label}, aim for around ${kcal}.`;
 }
 
 /**

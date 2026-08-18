@@ -512,13 +512,32 @@ Deno.test("L4 — les trois portes neuves n'ont QUE les appelants qu'on a relus"
   // `no_calorie_to_student_property_test.ts`: chaque appelant supplémentaire est
   // un endroit de plus où la chaîne peut être assemblée de travers.
   //
-  // ⚠️ LA LISTE EST VIDE AUJOURD'HUI, ET C'EST LE POINT. Le chantier de la
-  // cible (L8) doit s'y inscrire À LA MAIN pour compiler vert — c'est-à-dire
-  // qu'il ne peut pas se brancher sur cette garde sans qu'un humain relise
-  // l'endroit exact où il l'appelle.
+  // ⚠️ LA LISTE ÉTAIT VIDE JUSQU'AU 2026-08-18, ET C'ÉTAIT LE POINT. Le chantier
+  // de la cible (L8) s'y est inscrit À LA MAIN — le banc était rouge tant qu'il
+  // ne l'avait pas fait, et il l'a été (`AssertionError: appelant non relu de
+  // energySafetyGates(`). C'est-à-dire qu'aucun lot ne peut se brancher sur
+  // cette garde sans qu'un humain relise l'endroit exact où il l'appelle.
+  //
+  // ── L'ENDROIT RELU, ET CE QU'ON Y A VÉRIFIÉ ────────────────────────────
+  // `_shared/keel/household_portions.ts`, deux fonctions et deux seulement:
+  //
+  //   · `mouthTargetFactor` — la porte du dimensionnement, appelée UNE fois par
+  //     bouche, avec l'âge de CETTE bouche (`mouthAgeVerdict(member.ageState)`,
+  //     jumeau de `keel_household_member_age`) et son plancher TCA à elle,
+  //     fail-closed. C'est la clause C8 réécrite par L4-B: sans l'âge par
+  //     bouche, une cible dimensionnerait les grammages d'un enfant de douze ans
+  //     parce que son parent est adulte.
+  //   · `memberTargetFactor` — le raccourci d'appel; il évalue la MÊME chaîne
+  //     avant de renoncer pour absence de corps, pour que le motif rendu reste
+  //     celui de la première porte fermée.
+  //
+  // Ni l'une ni l'autre ne lit ④ ou ⑤ — le test de source ci-dessus le tient sur
+  // `canSizeFromTarget`, et le conseil chiffré du midi (②), qui LUI se lit et
+  // traverse donc les interrupteurs, entre par `canShowTarget` chez son
+  // appelant, jamais par cette chaîne-ci.
   const ALLOWED: Record<string, string[]> = {
-    "energySafetyGates(": [],
-    "canSizeFromTarget(": [],
+    "energySafetyGates(": ["keel/household_portions.ts"],
+    "canSizeFromTarget(": ["keel/household_portions.ts"],
     "canEmitMouthEnergy(": [],
   };
 

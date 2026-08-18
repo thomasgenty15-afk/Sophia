@@ -14,6 +14,7 @@ import {
   type EnergyGateReason,
 } from "../_shared/keel/energy_gate.ts";
 import { maintenanceRange } from "../_shared/keel/energy_target.ts";
+import { ACTIVITY_LEVELS, type ActivityLevel } from "../_shared/keel/tokens.ts";
 import { latest, loadStudentBody } from "../_shared/keel/student_body_io.ts";
 import { evaluateRestrictionForStudent } from "../_shared/keel/restriction_runtime.ts";
 import { loadPublishedDoctrine } from "../_shared/keel/doctrine_loader.ts";
@@ -32,6 +33,10 @@ import {
   PLAN_ENERGY_BASIS,
   planEnergy,
 } from "../_shared/keel/plan_energy.ts";
+// L8 ③ — LES SIX MOMENTS, POUR TRADUIRE « toute la journée » EN NOMBRE DE
+// REPAS. Importés, jamais recopiés: un septième moment ajouté là-bas et un `6`
+// figé ici feraient dire au sujet du chiffre une chose fausse, en silence.
+import { EATING_OCCASIONS } from "../_shared/keel/meal_generation.ts";
 
 /**
  * `meal-energy-v1` — FF-059, LE CHIFFRE AFFICHÉ.
@@ -274,6 +279,65 @@ function readViewerAddons(
   return out;
 }
 
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * L8 ③ — LES REPAS QUE **CE LECTEUR** PREND DEHORS, PAR JOUR.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ POURQUOI CE NOMBRE EXISTE. Si un repas sur trois est pris dehors, « ta
+ * journée : 1 400 · ta fourchette : 1 900–2 200 » est FAUX, et faux dans le sens
+ * qui décourage: la personne lit un déficit alors qu'elle a peut-être mangé un
+ * burger. Le total ne change pas de valeur, il change de SUJET — il parle de ce
+ * que le plan a produit, et il le dit.
+ *
+ * ── LA SOURCE, ET C'EST LA MÊME QUE `member_deltas` ───────────────────────
+ * `generated_from.household.presence.members[].eating_out`, filtré sur la bouche
+ * DU LECTEUR. C'est l'arbitrage déjà fait entre la déclaration de la personne et
+ * la marque du maître (`presenceStateFor`); relire `away_days` ici ferait un
+ * second avis sur qui est dehors.
+ *
+ * ⚠️ CEUX DU LECTEUR, ET D'EUX SEULS — même règle que les add-ons. Le jeudi midi
+ * de sa mère ne change rien à ce que SON assiette a reçu, et le compter ferait
+ * lire à table la semaine de quelqu'un d'autre.
+ *
+ * ⚠️ `slots: []` VEUT DIRE « TOUTE LA JOURNÉE » (FF-002 §5), et on le compte
+ * comme les six moments. Le compter `0` dirait « rien ne manque » sur la journée
+ * où TOUT manque — l'erreur exactement inverse, et silencieuse.
+ *
+ * ⚠️ UN PLAN D'AVANT CETTE TRACE REND UNE TABLE VIDE, donc `subject: "the_day"`,
+ * c'est-à-dire EXACTEMENT le comportement d'hier. C'est une dégradation
+ * gracieuse assumée: la trace de présence existe depuis le pivot foyer, mais la
+ * clé `eating_out` n'y est que depuis le 2026-08-18.
+ */
+function readViewerMealsOut(
+  row: PlanRow,
+  viewerMemberId: string | null,
+): Map<string | null, number> {
+  const out = new Map<string | null, number>();
+  if (row.plan_kind !== "household" || !viewerMemberId) return out;
+  const gf = (row.generated_from ?? {}) as Record<string, unknown>;
+  const household = (gf.household ?? {}) as Record<string, unknown>;
+  const presence = (household.presence ?? {}) as Record<string, unknown>;
+  const members = presence.members;
+  if (!Array.isArray(members)) return out;
+  for (const entry of members) {
+    if (!entry || typeof entry !== "object") continue;
+    const m = entry as Record<string, unknown>;
+    if (String(m.member_id ?? "").trim() !== viewerMemberId) continue;
+    const cells = m.eating_out;
+    if (!Array.isArray(cells)) continue;
+    for (const cell of cells) {
+      if (!cell || typeof cell !== "object") continue;
+      const c = cell as Record<string, unknown>;
+      const day = String(c.day ?? "").trim();
+      if (!day) continue;
+      const slots = Array.isArray(c.slots) ? c.slots.length : 0;
+      out.set(day, (out.get(day) ?? 0) + (slots > 0 ? slots : EATING_OCCASIONS.length));
+    }
+  }
+  return out;
+}
+
 Deno.serve(async (req) => {
   const requestId = getRequestId(req);
   if (req.method === "OPTIONS") return handleCorsOptions(req);
@@ -459,6 +523,9 @@ Deno.serve(async (req) => {
         preparations: readPreparations(row.preparations),
         servings,
         addons: addons ?? [],
+        // L8 ③ — REQUIS, jamais optionnel. Une table vide est une valeur PLEINE
+        // (« cette personne mange tous ses repas ici »), pas une ignorance.
+        mealsOutByDay: readViewerMealsOut(row, viewerMemberId),
       });
       return {
         plan_id: row.id,
@@ -478,6 +545,12 @@ Deno.serve(async (req) => {
           complete: d.complete,
           dishes_counted: d.dishesCounted,
           dishes_total: d.dishesTotal,
+          // L8 ③ — DE QUOI CE NOMBRE PARLE. `the_day` = la journée entière;
+          // `what_the_plan_made` = ce que le plan a composé, et l'écran doit le
+          // DIRE (« sur les 2 repas que j'ai composés »). Les deux champs
+          // partent ensemble: un sujet sans son compte ne se rend pas.
+          meals_out: d.mealsOut,
+          subject: d.subject,
           // ⚠️ CE SONT LES ADD-ONS DU LECTEUR. Ceux des autres bouches ont
           // servi à composer la casserole et ne sortent d'ici sous aucune
           // forme, pas même agrégée.
@@ -497,9 +570,33 @@ Deno.serve(async (req) => {
       try {
         const body = await loadStudentBody(admin as never, userId, today);
         const last = latest(body.weights);
+        // ⚠️ CE PARAMÈTRE MANQUAIT, ET LE FICHIER NE COMPILAIT PLUS. Le lot L0
+        // du 2026-08-18 a rendu `activityLevel` REQUIS dans `maintenanceRange`
+        // (c'est le point: le compilateur recense les lecteurs) et a livré les
+        // deux ÉCRIVAINS — `profiles.activity_level` et la porte de la fiche —
+        // sans reprendre ce lecteur-ci. `deno check` de cette fonction était
+        // donc rouge à HEAD, et `agent-gate` ne le voit pas: il ne vérifie que
+        // trois points d'entrée de `sophia-brain`.
+        //
+        // ⛔ ON LIT LA COLONNE PLUTÔT QUE DE PASSER `null`. `null` aurait
+        // recompilé en servant 28-33 à quelqu'un qui a répondu — c'est-à-dire un
+        // écrivain sans lecteur, la moitié débranchée que ce dépôt paie en
+        // boucle. La lecture est fail-soft: en panne ou hors vocabulaire, on
+        // retombe sur `null`, qui est EXACTEMENT le comportement d'avant L0.
+        const activityRes = await admin
+          .from("profiles")
+          .select("activity_level")
+          .eq("id", userId)
+          .maybeSingle();
+        const rawActivity = String(
+          (activityRes.data as Record<string, unknown> | null)?.activity_level ?? "",
+        ).trim();
         const range = maintenanceRange({
           weightKg: last?.value ?? null,
           weightWeekStart: last?.weekStart ?? null,
+          activityLevel: (ACTIVITY_LEVELS as readonly string[]).includes(rawActivity)
+            ? (rawActivity as ActivityLevel)
+            : null,
         });
         target = {
           // ⚠️ UNE FOURCHETTE, JAMAIS UN POINT — c'est la forme qui décide si

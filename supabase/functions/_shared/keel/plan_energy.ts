@@ -117,6 +117,38 @@ export interface DayEnergy {
   dishesCounted: number;
   dishesTotal: number;
   /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * L8 ③ — COMBIEN DE REPAS DE CE JOUR ÉCHAPPENT AU PLAN.
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * Les cases où CETTE bouche mange dehors (`presenceStateFor` ⇒ `eating_out`).
+   * `0` = le plan a composé toute sa journée, le cas nominal.
+   *
+   * ⛔ POURQUOI CE CHAMP EXISTE, ET CE QU'IL CORRIGE. Si un repas sur trois est
+   * pris dehors, « ta journée : 1 400 · ta fourchette : 1 900–2 200 » est FAUX,
+   * et faux dans le sens qui décourage: la personne lit un déficit alors qu'elle
+   * a peut-être mangé un burger. Le nombre ne change pas de VALEUR — il change
+   * de SUJET. Il ne parle plus de la journée mais de ce que le plan a produit,
+   * et il le dit: « sur les 2 repas que j'ai composés ».
+   *
+   * ⚠️ ET C'EST POURQUOI IL EST ICI ET PAS À L'ÉCRAN. `dishesCounted` /
+   * `dishesTotal` disent déjà « je n'ai pas su lire tous les plats »; ce champ-ci
+   * dit « il manquait des plats à lire ». Les deux incomplétudes ne se réparent
+   * pas au même endroit (l'une par le référentiel, l'autre par personne — c'est
+   * la vie de quelqu'un), et un écran qui n'en verrait qu'une nommerait la
+   * mauvaise.
+   */
+  mealsOut: number;
+  /**
+   * DE QUOI CE NOMBRE PARLE. Nommé, jamais dérivé à l'écran: deux surfaces qui
+   * calculeraient `mealsOut > 0` finiraient par ne plus dire la même chose du
+   * même jour.
+   *
+   *   `the_day`         — la journée entière. `mealsOut === 0`.
+   *   `what_the_plan_made` — ce que le plan a composé, et rien d'autre.
+   */
+  subject: "the_day" | "what_the_plan_made";
+  /**
    * FF-059 — CE QUI S'AJOUTE À L'ASSIETTE DE CETTE BOUCHE, ce jour-là.
    *
    * `0` dans le cas nominal (plan personnel, ou bouche dont le besoin EST le
@@ -326,6 +358,26 @@ export function planEnergy(args: {
    * est déjà la règle du domaine, et c'est ici qu'elle se tient.
    */
   addons: readonly MemberAddon[];
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * L8 ③ — LES REPAS QUE **CE LECTEUR** PREND DEHORS, par jour.
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * `{ mon: 1 }` = un midi hors du plan le lundi. Un jour absent de la table
+   * vaut zéro. Le jeton de jour est le même que `EnergyDish.day` — `null` inclus,
+   * pour un plat sans jour.
+   *
+   * ⚠️ REQUIS, JAMAIS OPTIONNEL, et `new Map()` est une valeur PLEINE qui veut
+   * dire « cette personne mange tous ses repas ici » — pas « on ne sait pas ».
+   * Un `?` aurait laissé les appelants continuer d'annoncer une JOURNÉE là où le
+   * plan n'a fait que deux repas sur trois, sans qu'aucun compilateur ne les
+   * recense. C'est la cicatrice `optional-gate-params-are-disarmed-gates`, et
+   * elle a déjà coûté `servings` et `addons` dans cette même signature.
+   *
+   * ⚠️ CEUX DU LECTEUR, ET D'EUX SEULS — même règle qu'`addons` juste au-dessus.
+   * Le jeudi midi de sa mère ne change pas ce que SON assiette a reçu.
+   */
+  mealsOutByDay: ReadonlyMap<string | null, number>;
 }): PlanEnergy {
   const { index, dishes, preparations, servings } = args;
   if (!Number.isInteger(servings) || servings < 1) {
@@ -335,6 +387,11 @@ export function planEnergy(args: {
   }
   if (!Array.isArray(args.addons)) {
     throw new Error("[keel/plan_energy] addons is required (pass [] for none)");
+  }
+  if (!(args.mealsOutByDay instanceof Map)) {
+    throw new Error(
+      "[keel/plan_energy] mealsOutByDay is required (pass an empty Map for none)",
+    );
   }
   const addon = memberAddonEnergy(index, args.addons);
 
@@ -384,6 +441,8 @@ export function planEnergy(args: {
         complete: true,
         dishesCounted: 0,
         dishesTotal: 0,
+        mealsOut: 0,
+        subject: "the_day",
         addonKcal: 0,
       };
       byDay.set(day, entry);
@@ -412,6 +471,16 @@ export function planEnergy(args: {
     entry.addonKcal = addon.kcal ?? 0;
     if (!addon.complete) entry.complete = false;
     if (entry.kcal !== null && addon.kcal !== null) entry.kcal += addon.kcal;
+    // ── L8 ③ · LE SUJET DU NOMBRE ─────────────────────────────────────────
+    // ⚠️ IL NE TOUCHE NI `kcal`, NI `complete`, NI `dishesCounted`. Un repas
+    // pris dehors n'est pas un plat qu'on n'a pas su lire: le total du plan
+    // reste exact sur ce qu'il couvre, et `complete` continue de parler de la
+    // LECTURE. Les confondre ferait dire « journée illisible » à un plan
+    // parfaitement lisible, et le seul geste qu'on proposerait alors — curer le
+    // référentiel — ne réparerait rien.
+    const out = Math.max(0, Math.round(Number(args.mealsOutByDay.get(entry.day) ?? 0)));
+    entry.mealsOut = Number.isFinite(out) ? out : 0;
+    entry.subject = entry.mealsOut > 0 ? "what_the_plan_made" : "the_day";
   }
 
   return {

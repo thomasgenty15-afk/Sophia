@@ -620,10 +620,30 @@ Deno.test("PROPERTY: a closed gate sends no number at all", () => {
   assertStringIncludes(body, "reason");
 });
 
-Deno.test("PROPERTY: the daily target never reaches a meal generator (R6)", () => {
-  // FF-059 LOT 3, ET C'EST L'INTERDIT LE PLUS FACILE À FRANCHIR PAR ACCIDENT.
-  // « Un plan qui vise un chiffre est un régime chiffré, et ce n'est pas ce
-  // produit. » La cible informe l'élève; elle ne pilote rien.
+Deno.test("PROPERTY: the target reaches a generator ONLY through the gate, and only as grams (R6, retourné le 2026-08-18)", () => {
+  // ══════════════════════════════════════════════════════════════════════════
+  // R6 — RETOURNÉ, PAS SUPPRIMÉ. Décision produit de l'utilisateur, 2026-08-18,
+  // écrite dans `docs/keel/CALORIE_REVERSAL.md` §7.
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // L'invariant d'origine était: « aucune cible n'atteint un générateur ». Il
+  // portait la phrase de `energy_target.ts` — « un plan qui vise un chiffre est
+  // un régime chiffré ». Cette phrase est renversée: la cible contraint
+  // désormais les GRAMMAGES, et rien d'autre.
+  //
+  // L'invariant devient donc, et c'est plus étroit, pas plus large:
+  //
+  //   ① la cible n'atteint un générateur QUE par la porte `canSizeFromTarget`,
+  //      qui n'a qu'un seul appelant relu (`_shared/keel/household_portions.ts`);
+  //   ② aucun générateur ne touche à la FOURCHETTE affichée (`maintenanceRange`)
+  //      ni aux INTERRUPTEURS d'affichage (`canShowTarget`) — masquer un chiffre
+  //      ne doit pas changer le dîner, et une fourchette est une surface de
+  //      lecture, pas une entrée de composition;
+  //   ③ la cible elle-même ne connaît toujours aucun objectif.
+  //
+  // ⚠️ ET LE CAS QUI PASSE EST ASSERTÉ (dernier bloc). Sans lui, ce test
+  // resterait vert sur un lot L8 entièrement débranché — c'est-à-dire qu'il
+  // ressemblerait trait pour trait à une garde qui marche.
   //
   // Cherché sur les TROIS générateurs, parce qu'un seul oublié suffit.
   for (
@@ -638,23 +658,58 @@ Deno.test("PROPERTY: the daily target never reaches a meal generator (R6)", () =
         fromFileUrl(new URL(`../../../${fn}/index.ts`, import.meta.url)),
       ),
     );
-    for (const banned of ["energy_target", "maintenanceRange", "canShowTarget"]) {
+    for (
+      const banned of [
+        "energy_target",
+        "maintenanceRange",
+        "canShowTarget",
+        // ⛔ LA PORTE NE S'ASSEMBLE PAS DANS UN GÉNÉRATEUR. Un générateur qui
+        // appellerait la chaîne lui-même en choisirait les entrées — c'est-à-dire
+        // qu'il choisirait de quel ÂGE et de quel PLANCHER il se sert. La porte a
+        // UN appelant relu, et il est pur.
+        "canSizeFromTarget",
+        "energySafetyGates",
+      ]
+    ) {
       assertEquals(
         source.includes(banned),
         false,
-        `${fn} touche à "${banned}" — la cible informe, elle ne pilote pas ` +
-          `(FF-059 R6). Un plan composé pour atteindre un nombre est un régime ` +
-          `chiffré prescrit par un logiciel.`,
+        `${fn} touche à "${banned}" — depuis le renversement du 2026-08-18 la ` +
+          `cible dimensionne les GRAMMAGES, et elle le fait par ` +
+          `\`memberTargetFactor\` / \`sizeBoxesFromTarget\` (purs, gardés), ` +
+          `jamais en assemblant la chaîne ni en lisant la fourchette affichée.`,
       );
     }
   }
   // Et la cible elle-même ne connaît aucun objectif: c'est une MAINTENANCE, pas
   // un déficit. Un déficit dérivé serait une prescription à quelqu'un que
-  // personne n'a examiné.
+  // personne n'a examiné. ⚠️ CE BLOC N'EST PAS RENVERSÉ: ce qui a changé est ce
+  // que le GÉNÉRATEUR a le droit de faire, pas ce que cette fonction calcule.
   const target = stripComments(keelSource("energy_target.ts"));
   for (const banned of ["fat_loss", "muscle_gain", "deficit", "remaining"]) {
     assertEquals(target.includes(banned), false, `energy_target.ts: "${banned}"`);
   }
+
+  // ── LE CAS QUI PASSE — la porte EST franchie, et à un seul endroit ───────
+  // ⚠️ SANS CE BLOC, LES DEUX PRÉCÉDENTS SONT VERTS SUR UN LOT MORT. Un test qui
+  // n'énumère que des interdits reste vert quand le lot qu'il encadre n'existe
+  // plus: c'est la forme la plus chère du défaut, mesurée deux fois cette
+  // semaine sur ce chantier.
+  const sizing = stripComments(keelSource("household_portions.ts"));
+  assertEquals(
+    sizing.includes("canSizeFromTarget("),
+    true,
+    "le dimensionnement par la cible ne passe plus par la porte — soit le lot " +
+      "L8 a été débranché, soit quelqu'un a déplacé l'appel hors du module pur.",
+  );
+  assertEquals(
+    sizing.includes("energySafetyGates("),
+    true,
+    "la chaîne ①②③ n'est plus évaluée par bouche dans le module de portions " +
+      "(clause C8): sans elle, la porte ② se referme sur le verdict du compte " +
+      "maître, et un enfant de douze ans est dimensionné parce que son parent " +
+      "est adulte.",
+  );
 });
 
 Deno.test("PROPERTY: the gate chain is the only door, and gate ① has no key", () => {

@@ -237,6 +237,7 @@ Deno.test("FF-059 — la préparation entre au PRORATA, pas en entier", () => {
       ingredients: [{ term: "chicken breast", amount: 1000, unit: "g", state: "raw" }],
     }],
     addons: [],
+    mealsOutByDay: new Map<string | null, number>(),
   });
   assertEquals(plan.dishes[0].kcal, 555);
   assertEquals(plan.dishes[0].complete, true);
@@ -260,6 +261,7 @@ Deno.test("FF-059 — une préparation ILLISIBLE contamine le plat qui y puise",
       ingredients: [{ term: "wagyu tri-tip", amount: 900, unit: "g", state: "raw" }],
     }],
     addons: [],
+    mealsOutByDay: new Map<string | null, number>(),
   });
   assertEquals(plan.dishes[0].kcal, null);
   assertEquals(plan.dishes[0].gaps, ["unknown_ingredient"]);
@@ -287,6 +289,7 @@ Deno.test("FF-059 — un ingrédient DENSE non pesé dans une préparation absti
       ],
     }],
     addons: [],
+    mealsOutByDay: new Map<string | null, number>(),
   });
   assertEquals(plan.dishes[0].kcal, null);
   assertEquals(plan.dishes[0].gaps, ["missing_quantity"]);
@@ -324,6 +327,7 @@ Deno.test("FF-059 — la journée porte SA somme, plat par plat", () => {
     dishes: THREE_DISHES,
     preparations: [],
     addons: [],
+    mealsOutByDay: new Map<string | null, number>(),
   });
   assertEquals(plan.dishes.map((d) => d.kcal), [280, 165, 60]);
   assertEquals(plan.days, [
@@ -334,6 +338,8 @@ Deno.test("FF-059 — la journée porte SA somme, plat par plat", () => {
       complete: true,
       dishesCounted: 2,
       dishesTotal: 2,
+      mealsOut: 0,
+      subject: "the_day",
       addonKcal: 0,
     },
     {
@@ -343,6 +349,8 @@ Deno.test("FF-059 — la journée porte SA somme, plat par plat", () => {
       complete: true,
       dishesCounted: 1,
       dishesTotal: 1,
+      mealsOut: 0,
+      subject: "the_day",
       addonKcal: 0,
     },
   ]);
@@ -363,6 +371,7 @@ Deno.test("FF-059 — UN plat non calculable ⇒ la journée DIT qu'elle est inc
     ],
     preparations: [],
     addons: [],
+    mealsOutByDay: new Map<string | null, number>(),
   });
   const monday = plan.days[0];
   assertEquals(monday.complete, false);
@@ -390,6 +399,7 @@ Deno.test("FF-059 — une journée dont AUCUN plat n'est lisible ne vaut pas 0",
     }],
     preparations: [],
     addons: [],
+    mealsOutByDay: new Map<string | null, number>(),
   });
   assertEquals(plan.days[0].kcal, null);
   assertEquals(plan.days[0].complete, false);
@@ -407,6 +417,7 @@ Deno.test("FF-059 — les jours sortent dans l'ORDRE D'ENTRÉE, pas triés", () 
     ],
     preparations: [],
     addons: [],
+    mealsOutByDay: new Map<string | null, number>(),
   });
   assertEquals(plan.days.map((d) => d.day), ["thu", "fri", null]);
 });
@@ -422,13 +433,20 @@ Deno.test("FF-059 — `servings` divise: la quantité écrite est pour LA TABLE"
     dishes: THREE_DISHES,
     preparations: [],
     addons: [],
+    mealsOutByDay: new Map<string | null, number>(),
   });
   assertEquals(four.dishes.map((d) => d.kcal), [70, 41, 15]);
   assertEquals(four.days[0].kcal, 111);
 });
 
 Deno.test("FF-059 — un `servings` absent ou absurde LÈVE, il ne vaut pas 1", () => {
-  const base = { index: INDEX, dishes: THREE_DISHES, preparations: [], addons: [] };
+  const base = {
+    index: INDEX,
+    dishes: THREE_DISHES,
+    preparations: [],
+    addons: [],
+    mealsOutByDay: new Map<string | null, number>(),
+  };
   for (const servings of [0, -1, 1.5, Number.NaN, Number.POSITIVE_INFINITY]) {
     assertThrows(() => planEnergy({ ...base, servings }), Error, "servings");
   }
@@ -452,7 +470,11 @@ Deno.test("FF-059 — `addons` absent LÈVE: `[]` et « on ne sait pas » ne se 
     "addons",
   );
   // Prémisse fausse: `[]` passe, et c'est le cas nominal d'un plan personnel.
-  assertEquals(planEnergy({ ...base, addons: [] }).days[0].addonKcal, 0);
+  assertEquals(
+    planEnergy({ ...base, addons: [], mealsOutByDay: new Map<string | null, number>() })
+      .days[0].addonKcal,
+    0,
+  );
 });
 
 // ---------------------------------------------------------------------------
@@ -467,6 +489,7 @@ Deno.test("FF-059 — l'add-on du lecteur s'ajoute AU JOUR, jamais au plat", () 
     dishes: THREE_DISHES,
     preparations: [],
     addons: [{ foodRef: "white_rice", grams: 120 }],
+    mealsOutByDay: new Map<string | null, number>(),
   });
   // LES PLATS N'ONT PAS BOUGÉ. Deux personnes autour de la même casserole
   // doivent lire le MÊME chiffre pour le même plat — c'est ce qui rend
@@ -501,6 +524,7 @@ Deno.test("FF-059 — un add-on ILLISIBLE rend la journée incomplète, pas faus
     dishes: THREE_DISHES,
     preparations: [],
     addons: [{ foodRef: "quinoa_flakes", grams: 60 }],
+    mealsOutByDay: new Map<string | null, number>(),
   });
   // Les plats restent justes; c'est la JOURNÉE qui perd sa complétude, parce
   // que c'est elle qui aurait dû porter l'add-on.
@@ -523,6 +547,7 @@ Deno.test("FF-059 — un add-on ne fabrique PAS un total sur un jour illisible",
     }],
     preparations: [],
     addons: [{ foodRef: "white_rice", grams: 120 }],
+    mealsOutByDay: new Map<string | null, number>(),
   });
   assertEquals(plan.days[0].kcal, null);
   assertEquals(plan.days[0].complete, false);
@@ -579,6 +604,7 @@ Deno.test("FF-059 — TOUTE sortie porte sa base, y compris les abstentions", ()
     dishes: THREE_DISHES,
     preparations: [],
     addons: [],
+    mealsOutByDay: new Map<string | null, number>(),
   });
   assertEquals(plan.basis, PLAN_ENERGY_BASIS);
   for (const d of plan.dishes) assertEquals(d.basis, PLAN_ENERGY_BASIS);
@@ -595,6 +621,7 @@ Deno.test("FF-059 — R5: le chiffre se RECALCULE, il n'y a rien de périmé", (
     dishes: THREE_DISHES,
     preparations: [],
     addons: [],
+    mealsOutByDay: new Map<string | null, number>(),
   });
   const again = planEnergy({
     index: INDEX,
@@ -602,6 +629,7 @@ Deno.test("FF-059 — R5: le chiffre se RECALCULE, il n'y a rien de périmé", (
     dishes: THREE_DISHES,
     preparations: [],
     addons: [],
+    mealsOutByDay: new Map<string | null, number>(),
   });
   assertEquals(before, again);
 
@@ -615,6 +643,7 @@ Deno.test("FF-059 — R5: le chiffre se RECALCULE, il n'y a rien de périmé", (
     ],
     preparations: [],
     addons: [],
+    mealsOutByDay: new Map<string | null, number>(),
   });
   assertEquals(changed.dishes[0].kcal, 560);
   assertEquals(changed.days[0].kcal, 725);
@@ -630,5 +659,97 @@ Deno.test("FF-059 — le module est PUR: ni horloge, ni hasard, ni I/O", () => {
     .replace(/\/\/[^\n]*/g, "");
   for (const banned of ["Date.now", "Math.random", "new Date", "fetch(", "await "]) {
     assert(!source.includes(banned), `« ${banned} » dans plan_energy.ts`);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// L8 ③ — LE CHIFFRE DU JOUR CHANGE DE SUJET QUAND UN REPAS LUI ÉCHAPPE
+// ---------------------------------------------------------------------------
+
+Deno.test("⛔ L8 ③ — un repas pris DEHORS change le SUJET du nombre, jamais sa valeur", () => {
+  // « Ta journée : 1 400 · ta fourchette : 1 900–2 200 » est FAUX quand un repas
+  // sur trois est pris dehors, et faux dans le sens qui décourage: la personne
+  // lit un déficit alors qu'elle a peut-être mangé un burger.
+  const base = {
+    index: INDEX,
+    dishes: THREE_DISHES,
+    preparations: [],
+    servings: 1,
+    addons: [],
+  };
+  const home = planEnergy({ ...base, mealsOutByDay: new Map<string | null, number>() });
+  const out = planEnergy({ ...base, mealsOutByDay: new Map<string | null, number>([["mon", 1]]) });
+
+  const homeMon = home.days.find((d) => d.day === "mon")!;
+  const outMon = out.days.find((d) => d.day === "mon")!;
+
+  // ⚠️ LA VALEUR NE BOUGE PAS. Le total du plan reste exact sur ce qu'il couvre.
+  assertEquals(outMon.kcal, homeMon.kcal);
+  assertEquals(outMon.dishesCounted, homeMon.dishesCounted);
+  assertEquals(outMon.dishesTotal, homeMon.dishesTotal);
+  // ⚠️ ET `complete` NE BOUGE PAS NON PLUS. Un repas pris dehors n'est pas un
+  // plat qu'on n'a pas su lire: les confondre ferait proposer la curation du
+  // référentiel pour réparer la vie de quelqu'un.
+  assertEquals(outMon.complete, homeMon.complete);
+
+  assertEquals(homeMon.mealsOut, 0);
+  assertEquals(homeMon.subject, "the_day");
+  assertEquals(outMon.mealsOut, 1);
+  assertEquals(outMon.subject, "what_the_plan_made");
+
+  // Les autres jours ne bougent pas: le sujet est PAR JOUR.
+  const outTue = out.days.find((d) => d.day === "tue")!;
+  assertEquals(outTue.mealsOut, 0);
+  assertEquals(outTue.subject, "the_day");
+});
+
+Deno.test("L8 ③ — `mealsOutByDay` est REQUIS, et une table vide est une valeur PLEINE", () => {
+  const base = {
+    index: INDEX,
+    dishes: THREE_DISHES,
+    preparations: [],
+    servings: 1,
+    addons: [],
+  };
+  // Prémisse fausse d'abord: la table vide passe, et c'est le cas nominal.
+  assertEquals(
+    planEnergy({ ...base, mealsOutByDay: new Map<string | null, number>() })
+      .days[0].subject,
+    "the_day",
+  );
+  assertThrows(
+    () => planEnergy({ ...base } as unknown as Parameters<typeof planEnergy>[0]),
+    Error,
+    "mealsOutByDay",
+  );
+  assertThrows(
+    () =>
+      planEnergy(
+        { ...base, mealsOutByDay: {} } as unknown as Parameters<typeof planEnergy>[0],
+      ),
+    Error,
+    "mealsOutByDay",
+  );
+});
+
+Deno.test("L8 ③ — un nombre de repas dehors aberrant ne fabrique pas un sujet aberrant", () => {
+  const base = {
+    index: INDEX,
+    dishes: THREE_DISHES,
+    preparations: [],
+    servings: 1,
+    addons: [],
+  };
+  // La table vient d'un `jsonb` relu: elle peut porter n'importe quoi. Un
+  // négatif ou un NaN vaut zéro — « on ne sait pas » ne doit pas se lire « il
+  // manque des repas », ce qui ferait changer de sujet un chiffre juste.
+  for (const bad of [-3, Number.NaN, Number.POSITIVE_INFINITY]) {
+    const plan = planEnergy({
+      ...base,
+      mealsOutByDay: new Map<string | null, number>([["mon", bad]]),
+    });
+    const mon = plan.days.find((d) => d.day === "mon")!;
+    assertEquals(mon.mealsOut, 0, String(bad));
+    assertEquals(mon.subject, "the_day", String(bad));
   }
 });
