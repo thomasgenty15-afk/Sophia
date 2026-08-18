@@ -78,26 +78,32 @@ const NO_MARGIN_BODY: Partial<MouthFormDraft> = {
 
 describe("les six blocs, et lesquels retiennent", () => {
   it("six blocs, dont exactement trois obligatoires", () => {
+    // ⚠️ `body` AVANT `direction` DEPUIS LE 2026-08-18, sur une mesure au
+    // navigateur: le curseur de rythme est retenu tant que le corps manque, et
+    // il était demandé AVANT lui — « ni poids visé ni rythme », rapporté par
+    // l'utilisateur. Voir la note de `MOUTH_FORM_BLOCKS`.
     expect([...MOUTH_FORM_BLOCKS]).toEqual([
       "identity",
-      "direction",
       "body",
+      "direction",
       "habits",
       "allergies",
       "tastes",
     ]);
     expect([...REQUIRED_MOUTH_FORM_BLOCKS]).toEqual([
       "identity",
-      "direction",
       "body",
+      "direction",
     ]);
   });
 
   it("un brouillon vide retient les trois obligatoires, et eux seuls", () => {
+    // ET DANS L'ORDRE DE L'ÉCRAN: la phrase « il manque… » les nomme dans
+    // l'ordre où ils sont posés, sinon elle envoie chercher au mauvais endroit.
     expect([...missingRequiredBlocks(emptyMouthDraft())]).toEqual([
       "identity",
-      "direction",
       "body",
+      "direction",
     ]);
   });
 

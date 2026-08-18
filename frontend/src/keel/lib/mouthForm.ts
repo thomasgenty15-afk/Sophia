@@ -68,20 +68,35 @@ import type { ShakerToWrite } from "../api/mouthProfile";
 // ---------------------------------------------------------------------------
 
 /**
- * L'ORDRE EST CELUI DE LA CONCEPTION, ET IL N'EST PAS INTERCHANGEABLE.
+ * ── ⚠️ `body` EST PASSÉ AVANT `direction` LE 2026-08-18, SUR UNE MESURE ────
  *
- * `direction` vient AVANT `body` alors que le curseur de `direction` a besoin
- * du corps. C'est voulu: on demande d'abord ce que la personne veut, puis ce
- * qu'il faut pour le calculer. L'inversion ferait commencer un formulaire
- * d'accueil par « taille, poids, sexe », c'est-à-dire par la question la plus
- * intime avant d'avoir dit à quoi elle sert. Le prix est que le bloc 2 doit
- * savoir dire « je n'ai pas encore ton corps » — c'est `needs_body`, et c'est
- * exactement ce que `paceCeilingFor` rend par `null`.
+ * L'ordre d'origine était `direction` puis `body`, et sa raison était bonne:
+ * « on demande d'abord ce que la personne veut, puis ce qu'il faut pour le
+ * calculer », plutôt que d'ouvrir un formulaire d'accueil par « taille, poids,
+ * sexe » — la question la plus intime avant d'avoir dit à quoi elle sert.
+ *
+ * CE QUE ÇA A DONNÉ À L'ÉCRAN, mesuré au navigateur sur la fiche du maître, qui
+ * s'ouvre avec un corps VIDE: on clique « perdre », le poids visé s'ouvre, et à
+ * la place du curseur il y a une phrase qui demande d'aller remplir un bloc
+ * situé PLUS BAS. L'utilisateur a rapporté ne voir « ni le poids visé ni le
+ * rythme ». La cause n'est pas le calcul — il a été éprouvé sur sept corps —,
+ * c'est l'ORDRE: on demandait un rythme avant d'avoir demandé le corps qui le
+ * borne, et un contrôle muet se lit comme une fonctionnalité absente.
+ *
+ * Le corps vient donc en deuxième. Ce qui reste vrai de la raison d'origine est
+ * gardé autrement: le bloc du corps dit à quoi il sert AVANT de le demander
+ * (`household.mouth.body_hint`), et l'identité reste la première question.
+ *
+ * ⛔ NE PAS EN CONCLURE QUE `needs_body` EST MORT. Il reste le seul écran juste
+ * quand quelqu'un saute le bloc du corps et descend choisir sa direction — et
+ * il ne se confond pas avec `no_margin`: `null` veut dire « je ne connais pas
+ * ce corps », `0` veut dire « je le connais, il n'a pas de marge ». Deux
+ * phrases, deux écrans.
  */
 export const MOUTH_FORM_BLOCKS = [
   "identity",
-  "direction",
   "body",
+  "direction",
   "habits",
   "allergies",
   "tastes",
@@ -91,8 +106,8 @@ export type MouthFormBlock = (typeof MOUTH_FORM_BLOCKS)[number];
 /** Les trois qui retiennent le bouton d'inscription. */
 export const REQUIRED_MOUTH_FORM_BLOCKS = [
   "identity",
-  "direction",
   "body",
+  "direction",
 ] as const satisfies readonly MouthFormBlock[];
 
 // ---------------------------------------------------------------------------
@@ -673,7 +688,10 @@ export function missingRequiredBlocks(
   if (draft.firstName.trim() === "" || draft.birthDate.trim() === "") {
     out.push("identity");
   }
-  if (draft.goal === "") out.push("direction");
+  // ⚠️ L'ORDRE DE CES DEUX-LÀ SUIT L'ÉCRAN DEPUIS LE 2026-08-18 (voir
+  // `MOUTH_FORM_BLOCKS`). Une phrase « il manque: la direction, le corps » qui
+  // nomme les blocs dans un ordre différent de celui où ils sont posés fait
+  // chercher le premier manque au mauvais endroit.
   if (
     numberOrNull(draft.heightCm) === null ||
     numberOrNull(draft.weightKg) === null ||
@@ -682,6 +700,7 @@ export function missingRequiredBlocks(
   ) {
     out.push("body");
   }
+  if (draft.goal === "") out.push("direction");
   return out;
 }
 

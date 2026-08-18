@@ -782,14 +782,18 @@ describe("la fenêtre se ferme, et ce qui retient est NOMMÉ", () => {
     // la garde de parité l'a rougie. `Intl.ListFormat` fait mieux: il connaît
     // la conjonction des deux langues, là où un `join(", ")` rend « a, b, c »
     // dans une phrase qui se lit à voix haute.
+    // ⚠️ L'ORDRE DES DEUX DERNIERS A CHANGÉ LE 2026-08-18 — `body` avant
+    // `direction`, comme à l'écran. La phrase nomme les manques dans l'ordre où
+    // ils sont posés: l'inverse enverrait chercher le premier au mauvais
+    // endroit, et c'est exactement le défaut qui a coûté le curseur muet.
     expect(text(html({}))).toContain(
-      `${decode(en["household.mouth.block_direction"])} and ${
-        decode(en["household.mouth.block_body"])
+      `${decode(en["household.mouth.block_body"])} and ${
+        decode(en["household.mouth.block_direction"])
       }`,
     );
     expect(text(html({ locale: "fr" }))).toContain(
-      `${decode(fr["household.mouth.block_direction"])} et ${
-        decode(fr["household.mouth.block_body"])
+      `${decode(fr["household.mouth.block_body"])} et ${
+        decode(fr["household.mouth.block_direction"])
       }`,
     );
   });
@@ -1056,5 +1060,79 @@ describe("la cloison entre les deux surfaces", () => {
     const body = text(coreHtml({ draft: { allergiesNone: true } }));
     expect(body).not.toContain(decode(en["household.mouth.preferences_empty"]));
     expect(body).toContain(decode(en["household.mouth.block_allergies"]));
+  });
+});
+
+// ===========================================================================
+// D6 (2026-08-18) — LE CORPS AVANT LA DIRECTION, ET LE SILENCE QUI EN VENAIT
+//
+// Mesuré au navigateur: la fiche du maître s'ouvre avec un corps VIDE. On
+// clique « perdre », le poids visé s'ouvre, et à la place du curseur il y a une
+// phrase qui renvoie vers un bloc situé PLUS BAS. Rapporté par l'utilisateur
+// comme « je ne vois ni le poids visé ni le rythme ».
+//
+// Ce n'est PAS l'état « pas de marge » (celui-là est prouvé plus haut, sur un
+// corps de 25 kg, et il rend sa propre phrase). C'est un défaut d'ORDRE.
+// ===========================================================================
+
+describe("le corps est demandé AVANT le rythme qu'il borne", () => {
+  it("à l'écran, le bloc du corps précède celui de la direction", () => {
+    const body = text(coreHtml({}));
+    const atBody = body.indexOf(decode(en["household.mouth.body"]));
+    const atDirection = body.indexOf(decode(en["household.mouth.direction"]));
+    expect(atBody, "le bloc du corps n'est plus rendu").toBeGreaterThan(-1);
+    expect(atDirection, "le bloc de la direction n'est plus rendu")
+      .toBeGreaterThan(-1);
+    expect(atBody, "la direction est repassée devant le corps")
+      .toBeLessThan(atDirection);
+  });
+
+  it("et les champs suivent: taille avant poids visé, taille avant curseur", () => {
+    const markup = coreHtml({
+      draft: {
+        goal: "fat_loss",
+        birthDate: ADULT_BIRTH,
+        heightCm: "178",
+        weightKg: "85",
+        gender: "male",
+      },
+    });
+    const atHeight = markup.indexOf('id="mouth-height"');
+    const atTarget = markup.indexOf('id="mouth-target-weight"');
+    const atPace = markup.indexOf('id="mouth-pace"');
+    expect(atPace, "le curseur n'est pas rendu sur ce corps").toBeGreaterThan(-1);
+    expect(atHeight).toBeLessThan(atTarget);
+    expect(atHeight).toBeLessThan(atPace);
+  });
+
+  /**
+   * ⚠️ LE CAS QUI PASSE, ET IL EST OBLIGATOIRE. Rien n'empêche quelqu'un de
+   * sauter le bloc du corps: `needs_body` reste donc le seul écran juste, et
+   * il ne doit pas devenir un dépliage VIDE — un contrôle muet se lit comme
+   * une fonctionnalité absente, et c'est précisément le défaut d'origine.
+   */
+  it("sauter le corps laisse une PHRASE, jamais un blanc", () => {
+    const markup = coreHtml({
+      draft: { goal: "fat_loss", birthDate: ADULT_BIRTH },
+    });
+    expect(markup).not.toContain('id="mouth-pace"');
+    expect(text(markup)).toContain(
+      decode(en["household.mouth.pace_needs_body"]),
+    );
+    // ET LE POIDS VISÉ, LUI, EST BIEN LÀ: il ne dépend pas du corps, et
+    // l'utilisateur a rapporté ne pas le voir alors qu'il s'affichait.
+    expect(markup).toContain('id="mouth-target-weight"');
+  });
+
+  /**
+   * LA PHRASE NE RENVOIE PLUS VERS LE BAS. Elle disait « ci-dessous » quand le
+   * bloc du corps était sous elle; il est au-dessus depuis ce lot, et une
+   * consigne qui pointe dans la mauvaise direction est pire qu'aucune.
+   */
+  it("et elle ne renvoie plus vers un bloc situé plus bas", () => {
+    expect(decode(en["household.mouth.pace_needs_body"]).toLowerCase())
+      .not.toContain("below");
+    expect(decode(fr["household.mouth.pace_needs_body"]).toLowerCase())
+      .not.toContain("ci-dessous");
   });
 });

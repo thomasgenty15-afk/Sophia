@@ -377,7 +377,131 @@ export function MouthCoreFields(
           ) : null}
         </RequiredBlock>
 
-        {/* ── BLOC 2 · LA DIRECTION ──────────────────────────────────────── */}
+        {/* ── BLOC 2 · LE CORPS ───────────────────────────────────────────
+            ⚠️ IL EST PASSÉ DEVANT LA DIRECTION LE 2026-08-18, SUR UNE MESURE.
+            Le curseur de rythme est BORNÉ par ce corps: tant qu'il manque, le
+            bloc de la direction ne peut rendre qu'une phrase (`needs_body`) —
+            et cette phrase renvoyait vers un bloc situé PLUS BAS dans la même
+            fenêtre. Mesuré au navigateur sur la fiche du maître, qui s'ouvre
+            avec un corps vide; rapporté par l'utilisateur comme « je ne vois ni
+            le poids visé ni le rythme ». La cause du silence n'était pas le
+            calcul, c'était l'ordre. Voir `MOUTH_FORM_BLOCKS`. */}
+        <RequiredBlock
+          title={t("household.mouth.body")}
+          hint={t("household.mouth.body_hint")}
+        >
+          <div className="grid gap-3 sm:grid-cols-3">
+            {/* Bornes de `keel_household_set_member_body` (30–260 cm, 2–400 kg)
+                et pas celles de `profiles`: une bouche peut être un enfant de
+                trois ans, que les bornes adultes refuseraient. */}
+            <input
+              id="mouth-height"
+              type="number"
+              inputMode="numeric"
+              min={30}
+              max={260}
+              placeholder={t("setup.people.height")}
+              aria-label={t("setup.people.height")}
+              value={draft.heightCm}
+              onChange={(e) => set({ heightCm: e.target.value })}
+              className={`${inputClass} min-w-0`}
+            />
+            <input
+              id="mouth-weight"
+              type="number"
+              inputMode="decimal"
+              step="0.1"
+              min={2}
+              max={400}
+              placeholder={t("setup.people.weight")}
+              aria-label={t("setup.people.weight")}
+              value={draft.weightKg}
+              onChange={(e) => set({ weightKg: e.target.value })}
+              className={`${inputClass} min-w-0`}
+            />
+            <select
+              id="mouth-gender"
+              aria-label={t("setup.people.gender")}
+              value={draft.gender}
+              onChange={(e) =>
+                set({ gender: e.target.value as MemberGender | "" })}
+              className={`${inputClass} min-w-0`}
+            >
+              <option value="">{t("setup.people.gender")}</option>
+              {MEMBER_GENDERS.map((g) => (
+                <option key={g} value={g}>
+                  {t(
+                    `household.body.gender_${g}` as "household.body.gender_female",
+                  )}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* ── LE NIVEAU D'ACTIVITÉ — le champ neuf ────────────────────────
+              `energy_target.ts` servait une fourchette de 28 à 33 kcal/kg parce
+              que « rien ne collecte le niveau d'activité », et multiplier un
+              métabolisme de base par une constante devinée « produit une cible
+              fausse avec l'aplomb d'un tableau ».
+
+              ⛔ QUATRE CRANS ET PAS CINQ: aucun « je ne sais pas ». `null` (ne
+              pas répondre) est déjà cette réponse, et il vit dans la colonne;
+              un cinquième bouton en ferait une réponse cochée, c'est-à-dire un
+              fait que personne n'a dit.
+
+              ⛔ ET JAMAIS UN NOMBRE. Un nombre demandé est un nombre inventé, et
+              l'inventé entre ensuite dans un calcul avec l'autorité d'une
+              mesure.
+
+              ── ⚠️ RÉCLAMÉ SEULEMENT SOUS UNE DIRECTION QUI BOUGE ────────────
+              Décision du 2026-08-18. Le champ reste MONTRÉ à tout le monde —
+              « facultatif » n'est pas « absent », et quelqu'un qui maintient
+              peut très bien répondre —, mais il ne retient le bouton que si la
+              balance doit bouger. La décision vit dans `activityIsRequired`, et
+              elle est rendue ICI par `aria-required`: sans cet attribut, la
+              seule trace de la règle serait la ligne « il manque… », c'est-à-dire
+              une différence qu'on ne voit qu'APRÈS avoir essayé de sortir.
+
+              ⚠️ ET LE BLOCAGE SUIT PAR LE MÊME CHEMIN: `missingRequiredBlocks`
+              lit `activityIsRequired`, `submitIsHeld` lit `missingRequired
+              Blocks`, et le bouton lit `submitIsHeld`. Un `aria-required` qui
+              dirait « facultatif » au-dessus d'un bouton qui retient quand même
+              serait une garde désarmée doublée d'un mensonge. */}
+          <Field
+            label={t("household.mouth.activity")}
+            hint={t("household.mouth.activity_hint")}
+          >
+            <div
+              className="flex flex-col gap-2"
+              role="radiogroup"
+              aria-label={t("household.mouth.activity")}
+              aria-required={activityIsRequired(draft.goal)}
+            >
+              {ACTIVITY_LEVELS.map((level) => (
+                <label
+                  key={level}
+                  className="flex cursor-pointer items-center gap-3 rounded-card border border-line-strong bg-paper px-3 py-2.5 text-sm text-ink"
+                >
+                  <input
+                    type="radio"
+                    name="mouth-activity"
+                    value={level}
+                    checked={draft.activityLevel === level}
+                    onChange={() =>
+                      set({ activityLevel: level as ActivityLevel })}
+                  />
+                  <span>
+                    {t(
+                      `household.mouth.activity_${level}` as "household.mouth.activity_sedentary",
+                    )}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </Field>
+        </RequiredBlock>
+
+        {/* ── BLOC 3 · LA DIRECTION — ET SES DEUX CHAMPS DÉPLIABLES ─────── */}
         <RequiredBlock
           title={t("household.mouth.direction")}
           hint={t("household.mouth.direction_hint")}
@@ -540,122 +664,6 @@ export function MouthCoreFields(
               ) : null}
             </div>
           )}
-        </RequiredBlock>
-
-        {/* ── BLOC 3 · LE CORPS ──────────────────────────────────────────── */}
-        <RequiredBlock
-          title={t("household.mouth.body")}
-          hint={t("household.mouth.body_hint")}
-        >
-          <div className="grid gap-3 sm:grid-cols-3">
-            {/* Bornes de `keel_household_set_member_body` (30–260 cm, 2–400 kg)
-                et pas celles de `profiles`: une bouche peut être un enfant de
-                trois ans, que les bornes adultes refuseraient. */}
-            <input
-              id="mouth-height"
-              type="number"
-              inputMode="numeric"
-              min={30}
-              max={260}
-              placeholder={t("setup.people.height")}
-              aria-label={t("setup.people.height")}
-              value={draft.heightCm}
-              onChange={(e) => set({ heightCm: e.target.value })}
-              className={`${inputClass} min-w-0`}
-            />
-            <input
-              id="mouth-weight"
-              type="number"
-              inputMode="decimal"
-              step="0.1"
-              min={2}
-              max={400}
-              placeholder={t("setup.people.weight")}
-              aria-label={t("setup.people.weight")}
-              value={draft.weightKg}
-              onChange={(e) => set({ weightKg: e.target.value })}
-              className={`${inputClass} min-w-0`}
-            />
-            <select
-              id="mouth-gender"
-              aria-label={t("setup.people.gender")}
-              value={draft.gender}
-              onChange={(e) =>
-                set({ gender: e.target.value as MemberGender | "" })}
-              className={`${inputClass} min-w-0`}
-            >
-              <option value="">{t("setup.people.gender")}</option>
-              {MEMBER_GENDERS.map((g) => (
-                <option key={g} value={g}>
-                  {t(
-                    `household.body.gender_${g}` as "household.body.gender_female",
-                  )}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* ── LE NIVEAU D'ACTIVITÉ — le champ neuf ────────────────────────
-              `energy_target.ts` servait une fourchette de 28 à 33 kcal/kg parce
-              que « rien ne collecte le niveau d'activité », et multiplier un
-              métabolisme de base par une constante devinée « produit une cible
-              fausse avec l'aplomb d'un tableau ».
-
-              ⛔ QUATRE CRANS ET PAS CINQ: aucun « je ne sais pas ». `null` (ne
-              pas répondre) est déjà cette réponse, et il vit dans la colonne;
-              un cinquième bouton en ferait une réponse cochée, c'est-à-dire un
-              fait que personne n'a dit.
-
-              ⛔ ET JAMAIS UN NOMBRE. Un nombre demandé est un nombre inventé, et
-              l'inventé entre ensuite dans un calcul avec l'autorité d'une
-              mesure.
-
-              ── ⚠️ RÉCLAMÉ SEULEMENT SOUS UNE DIRECTION QUI BOUGE ────────────
-              Décision du 2026-08-18. Le champ reste MONTRÉ à tout le monde —
-              « facultatif » n'est pas « absent », et quelqu'un qui maintient
-              peut très bien répondre —, mais il ne retient le bouton que si la
-              balance doit bouger. La décision vit dans `activityIsRequired`, et
-              elle est rendue ICI par `aria-required`: sans cet attribut, la
-              seule trace de la règle serait la ligne « il manque… », c'est-à-dire
-              une différence qu'on ne voit qu'APRÈS avoir essayé de sortir.
-
-              ⚠️ ET LE BLOCAGE SUIT PAR LE MÊME CHEMIN: `missingRequiredBlocks`
-              lit `activityIsRequired`, `submitIsHeld` lit `missingRequired
-              Blocks`, et le bouton lit `submitIsHeld`. Un `aria-required` qui
-              dirait « facultatif » au-dessus d'un bouton qui retient quand même
-              serait une garde désarmée doublée d'un mensonge. */}
-          <Field
-            label={t("household.mouth.activity")}
-            hint={t("household.mouth.activity_hint")}
-          >
-            <div
-              className="flex flex-col gap-2"
-              role="radiogroup"
-              aria-label={t("household.mouth.activity")}
-              aria-required={activityIsRequired(draft.goal)}
-            >
-              {ACTIVITY_LEVELS.map((level) => (
-                <label
-                  key={level}
-                  className="flex cursor-pointer items-center gap-3 rounded-card border border-line-strong bg-paper px-3 py-2.5 text-sm text-ink"
-                >
-                  <input
-                    type="radio"
-                    name="mouth-activity"
-                    value={level}
-                    checked={draft.activityLevel === level}
-                    onChange={() =>
-                      set({ activityLevel: level as ActivityLevel })}
-                  />
-                  <span>
-                    {t(
-                      `household.mouth.activity_${level}` as "household.mouth.activity_sedentary",
-                    )}
-                  </span>
-                </label>
-              ))}
-            </div>
-          </Field>
         </RequiredBlock>
 
         {/* ── LE BOUTON QUI OUVRE LES PRÉFÉRENCES ─────────────────────────
