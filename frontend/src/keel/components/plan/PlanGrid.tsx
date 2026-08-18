@@ -44,6 +44,29 @@ function occasionLabel(slot: EatingOccasion): string {
   return mealCopy(`meals.slot.${slot}` as Parameters<typeof mealCopy>[0]);
 }
 
+/**
+ * Les titres en collision sur ce moment, pour le survol du badge.
+ *
+ * ⚠️ RENDU `undefined` QUAND IL N'Y A RIEN À DIRE, jamais la chaîne vide: un
+ * `title=""` est un attribut présent, et le survol produirait une infobulle
+ * vide — un cadre gris qui s'ouvre sur rien.
+ *
+ * ⚠️ CE REPLI N'EST PAS ATTEIGNABLE DEPUIS LE BADGE, dit franchement. Le badge
+ * ne se rend que si `extraTableDishes > 0`, et ce compte comme `issues`
+ * sortent des MÊMES `groups`: quand l'un est non nul, l'autre a sa ligne. Sa
+ * mutation ne mord donc sur aucun test, et le prétendre gardé serait faux. Il
+ * est là parce que la fonction est totale, pas parce qu'un rouge le tient.
+ */
+function issueTitles(
+  grid: PlanGridModel,
+  day: string | undefined,
+  slot: EatingOccasion,
+): string | undefined {
+  if (!day) return undefined;
+  const found = grid.issues.find((i) => i.day === day && i.slot === slot);
+  return found ? found.titles.join(" · ") : undefined;
+}
+
 export default function PlanGrid(props: PlanGridProps) {
   if (props.grid.days.length === 0 || props.grid.rows.length === 0) return null;
 
@@ -170,9 +193,17 @@ export default function PlanGrid(props: PlanGridProps) {
                         )}
                         {/* Le second plat de TABLE du même moment. Compté et
                             nommé, jamais jeté: le moteur a peut-être raison,
-                            et c'est à l'humain de trancher. */}
+                            et c'est à l'humain de trancher.
+                            ⚠️ LE SURVOL NOMME LES PLATS EN COLLISION, et c'est
+                            ce qui donne un LECTEUR à `grid.issues`. Sans lui,
+                            l'écran ne dirait QUE le nombre, et la liste des
+                            titres serait un champ calculé que personne
+                            n'affiche — le defaut d'à côté. */}
                         {cell.extraTableDishes > 0 && (
-                          <span className="mt-0.5 block text-[10px] uppercase tracking-wide text-ink-soft">
+                          <span
+                            className="mt-0.5 block text-[10px] uppercase tracking-wide text-ink-soft"
+                            title={issueTitles(props.grid, props.grid.days[i], row.slot)}
+                          >
                             {cell.extraTableDishes === 1
                               ? mealCopy("meals.grid.extra_one")
                               : mealCopy("meals.grid.extra_many", {

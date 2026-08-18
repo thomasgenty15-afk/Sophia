@@ -291,6 +291,27 @@ describe("D3b · l'écran: ce que la case AFFICHE", () => {
     expect(html).toContain(en["meals.grid.extra_one"]);
   });
 
+  it("⚠️ `issues` A UN LECTEUR — le survol NOMME les plats en collision", () => {
+    // Sans ce chemin, `grid.issues` serait un champ calculé que personne
+    // n'affiche: l'écran ne dirait que le NOMBRE, jamais lesquels.
+    const markup = markupOf([
+      dish({ title: "Prawn and tomato rice bowls" }),
+      dish({ title: "Tomato lentil soup with bread" }),
+    ]);
+    expect(markup).toContain(
+      'title="Prawn and tomato rice bowls · Tomato lentil soup with bread"',
+    );
+  });
+
+  it("⚠️ LE SURVOL NOMME TOUS LES PLATS, pas les deux premiers", () => {
+    const markup = markupOf([
+      dish({ title: "A" }),
+      dish({ title: "B" }),
+      dish({ title: "C" }),
+    ]);
+    expect(markup).toContain('title="A · B · C"');
+  });
+
   it("deux plats en trop se disent au pluriel", () => {
     const html = textOf([
       dish({ title: "A" }),
