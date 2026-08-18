@@ -89,7 +89,11 @@ import {
   type MouthFormDraft,
   targetPayloadOf,
 } from "../lib/mouthForm";
-import { loadOwnMouth, setOwnTarget } from "../api/mouthProfile";
+import {
+  loadOwnMouth,
+  setMemberTarget,
+  setOwnTarget,
+} from "../api/mouthProfile";
 import { chooseGenerator } from "../api/planRouting";
 import { addDays, daysBetween } from "../api/dates";
 import { MAX_WINDOW_DAYS, windowDayOrder } from "../api/mealWindow";
@@ -207,17 +211,21 @@ interface SelfDraft {
  * ⛔ NE PAS LE RÉINTRODUIRE. Ce que `MouthFormDialog` dit déjà de son côté vaut
  * ici mot pour mot: « on ne demande jamais adulte ou enfant ».
  */
-interface MouthDraft {
-  firstName: string;
-  birthDate: string;
-  /** Tout-ou-rien, comme la base: les trois ou aucun. */
-  heightCm: string;
-  weightKg: string;
-  gender: MemberGender | "";
-  goal: MemberGoal | "";
-  allergies: string[];
-  allergiesNone: boolean;
-}
+/**
+ * ── ⚠️ C'EST `MouthFormDraft`, ET PLUS UNE FORME LOCALE (2026-08-18) ──────
+ *
+ * Ce brouillon portait ses neuf champs à lui. Il en manquait cinq — le poids
+ * visé, le rythme, les habitudes, les dégoûts, le régime — et les cinq
+ * existaient déjà, nommés et testés, dans `lib/mouthForm.ts`. Les recopier ici
+ * aurait fait une SECONDE forme de la même personne: deux `emptyMouthDraft`,
+ * deux parseurs, et le jour du premier correctif un seul des deux corrigé.
+ *
+ * ⚠️ `activityLevel` CHANGE DE VOCABULAIRE AU PASSAGE: `null` devient `""`.
+ * Les deux disent « personne n'a répondu » — `tokens.ts` refuse un jeton
+ * d'ignorance des deux côtés —, mais `ActivityTiles` parle en `null`, d'où les
+ * deux traductions au point de montage. Une seule, ici, et pas une par champ.
+ */
+type MouthDraft = MouthFormDraft;
 
 /**
  * CE BROUILLON PORTE-T-IL QUELQUE CHOSE ?
@@ -238,22 +246,29 @@ function mouthDraftHasContent(d: MouthDraft): boolean {
     d.heightCm !== "" ||
     d.weightKg !== "" ||
     d.gender !== "" ||
+    // Un cran coché EST du contenu: sans lui, quelqu'un qui n'a cliqué que sur
+    // une tuile ne verrait pas le bouton « Effacer », et le brouillon
+    // partirait en silence au geste d'à côté.
+    d.activityLevel !== "" ||
     d.goal !== "" ||
+    // ── ET CE QUI SE SAISIT DERRIÈRE LE BOUTON COMPTE AUTANT ────────────────
+    // Les préférences vivent dans une fenêtre depuis le 2026-08-18. Les
+    // oublier ici ferait disparaître « Effacer » sous une fiche où quelqu'un
+    // vient de déclarer trois allergies — le brouillon partirait alors en
+    // silence au geste d'à côté, ce que cette fonction existe pour empêcher.
+    d.targetWeightKg !== "" ||
+    d.paceKgPerWeek !== "" ||
+    Object.values(d.habits).some((v) => v.trim() !== "") ||
+    d.shaker !== null ||
+    d.dislikes.length > 0 ||
+    d.diet !== "" ||
     d.allergies.length > 0 ||
     d.allergiesNone;
 }
 
+/** Le vide vient de la SEULE source — voir `MouthDraft` juste au-dessus. */
 function emptyMouthDraft(): MouthDraft {
-  return {
-    firstName: "",
-    birthDate: "",
-    heightCm: "",
-    weightKg: "",
-    gender: "",
-    goal: "",
-    allergies: [],
-    allergiesNone: false,
-  };
+  return emptyMouthFormDraft();
 }
 
 // ── LES TROIS TABLES DE LIBELLÉS, ET CE QUI A CHANGÉ ───────────────────────
@@ -924,6 +939,31 @@ export default function SetupPage() {
             gender: draft.gender,
           });
         }
+        // ── SA CIBLE ET SON RYTHME, JUSTE APRÈS SON CORPS ─────────────────
+        //
+        // ⚠️ APRÈS LE CORPS, ET C'EST L'ORDRE DE `persistMouth`: le plafond du
+        // curseur se calcule sur ce corps-là, et la ligne membre doit le porter
+        // avant qu'on y pose une cible qui en dépend.
+        //
+        // ⚠️ AUTRE PORTE QUE CELLE DU TITULAIRE. `setMemberTarget` écrit sur la
+        // LIGNE MEMBRE; `setOwnTarget` écrit dans `student_goals`. Les deux
+        // colonnes portent le même CHECK « pas de cible sans direction », et
+        // `targetPayloadOf` est le miroir des deux: rien ne part sur une
+        // direction qui ne bouge pas, rien ne part à moitié.
+        //
+        // ⛔ ON NE SAUTE PAS L'APPEL QUAND LE PAYLOAD EST VIDE, et ce n'est pas
+        // du zèle: c'est ce qui distingue « on ne m'a rien demandé » de « j'ai
+        // effacé ». La bouche vient d'être créée, la colonne est propre —
+        // `(null, null)` est donc un no-op qui coûte un aller-retour et évite
+        // une branche qui, elle, se périmerait le jour où cette fonction
+        // servira aussi à REPRENDRE une fiche.
+        const targetPayload = targetPayloadOf(draft, browserLocalDate());
+        const aimed = await setMemberTarget(
+          memberId,
+          targetPayload.targetWeightKg,
+          targetPayload.paceKgPerWeek,
+        );
+        if (!aimed.ok) throw new Error(aimed.reason);
       // ⚠️ L'ACCUSÉ EST ÉCRIT MÊME QUAND LA LISTE EST VIDE. « Aucune » est une
       // réponse: sans elle, la reprise relit « jamais demandé » et l'entonnoir
       // se bloque sur une question à laquelle la ligne n'offre pas de champ.
@@ -2329,11 +2369,35 @@ export function MouthsStep(props: {
               </select>
           </Field>
 
+          {/* ── OÙ VA SA BALANCE, ET À QUELLE VITESSE ─────────────────────
+              LES MÊMES DEUX CHAMPS QUE POUR LE TITULAIRE, au même endroit
+              relatif: juste sous la direction qui les débloque. Une bouche
+              n'est pas une personne au rabais — « le maître serait sinon le
+              seul dont on sait quelque chose ».
+
+              ⚠️ SON CORPS EST DEMANDÉ AU-DESSUS (le bloc `setup.mouths.body`,
+              puis son cran d'activité), et c'est ce qui borne le curseur.
+
+              ⚠️ ET SON ÉCRIVAIN N'EST PAS CELUI DU TITULAIRE: la cible d'une
+              bouche sans compte vit sur la LIGNE MEMBRE
+              (`keel_household_set_member_target`), celle du titulaire dans
+              `student_goals`. `addMouth` appelle la première. */}
+          <TargetAndPaceFields
+            draft={draft}
+            onChange={props.onDraftChange}
+            todayLocalIso={browserLocalDate()}
+            // ⚠️ PRÉFIXE DISTINCT DE CELUI DU TITULAIRE. Les deux jeux de
+            // contrôles sont sur LA MÊME PAGE — sa carte est juste au-dessus:
+            // deux `id` identiques feraient qu'un libellé désigne le curseur de
+            // quelqu'un d'autre.
+            idPrefix="setup-mouth"
+          />
+
           <AllergyPicker
             label={t("setup.mouths.allergies")}
             hint={t("setup.people.allergies_hint")}
             idPrefix="setup-mouth"
-            allergies={draft.allergies}
+            allergies={[...draft.allergies]}
             none={draft.allergiesNone}
             onChange={(allergies, none) => set({ allergies, allergiesNone: none })}
           />

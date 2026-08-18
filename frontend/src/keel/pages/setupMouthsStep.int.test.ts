@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import { MouthsStep } from "./SetupPage";
+import { emptyMouthDraft } from "../lib/mouthForm";
 import { en } from "../i18n/en";
 import { setChosenUiLocaleForTest } from "../i18n/runtime";
 import { GOAL_TOKENS } from "../../../../supabase/functions/_shared/keel/tokens.ts";
@@ -43,20 +44,18 @@ const PATH = "/app/setup";
 const MINOR_BIRTH = "2016-05-04";
 const ADULT_BIRTH = "1990-05-04";
 
-/** Le brouillon d'ajout, dans sa forme rendue. */
+/**
+ * Le brouillon d'ajout, dans sa forme rendue.
+ *
+ * ⚠️ IL VIENT DE `lib/mouthForm.ts` DEPUIS LE 2026-08-18, et pas d'un littéral
+ * recopié ici. Le formulaire d'ajout porte désormais les mêmes champs qu'une
+ * fiche de personne (le poids visé, le rythme, les préférences); un littéral
+ * local aurait rendu ce fichier vert sur un brouillon qui n'existe plus, puis
+ * rouge d'un `undefined.trim()` au premier champ ajouté ailleurs — ce qui vient
+ * d'arriver.
+ */
 function draft(patch: Record<string, unknown> = {}) {
-  return {
-    firstName: "",
-    birthDate: "",
-    heightCm: "",
-    weightKg: "",
-    gender: "" as const,
-    activityLevel: null,
-    goal: "" as const,
-    allergies: [] as string[],
-    allergiesNone: false,
-    ...patch,
-  };
+  return { ...emptyMouthDraft(), ...patch };
 }
 
 function html(patch: Record<string, unknown> = {}): string {
@@ -208,5 +207,70 @@ describe("plus aucun geste n'efface l'objectif d'un brouillon", () => {
   it("un enfant qui a un compte n'est plus muet sur sa direction", () => {
     expect(src, "le blanc réservé aux mineurs inscrits est revenu")
       .not.toContain('m.claimed && m.kind === "child"');
+  });
+});
+
+// ===========================================================================
+// D7 (2026-08-18) — UNE AUTRE BOUCHE PORTE AUSSI SON POIDS VISÉ ET SON RYTHME
+//
+// « Le maître serait sinon le seul dont on sait quelque chose. » Les deux
+// champs vivaient uniquement sur sa fiche à lui; ici ils étaient absents, et le
+// commentaire qui l'expliquait invoquait un écrivain manquant
+// (`setMemberTarget`) — la porte existait depuis le début.
+// ===========================================================================
+describe("le formulaire d'ajout porte le poids visé et le curseur", () => {
+  /** Un corps connu, et une direction qui bouge. */
+  const LOSING = {
+    firstName: "Léa",
+    birthDate: ADULT_BIRTH,
+    goal: "fat_loss",
+    heightCm: "170",
+    weightKg: "72",
+    gender: "female",
+  };
+
+  it("direction qui bouge + corps connu: les deux contrôles", () => {
+    const markup = html(LOSING);
+    expect(markup).toContain('id="setup-mouth-target-weight"');
+    expect(markup).toContain('id="setup-mouth-pace"');
+  });
+
+  /**
+   * ⚠️ ET LEURS `id` NE SONT PAS CEUX DU TITULAIRE. Les deux fiches sont sur LA
+   * MÊME PAGE (sa carte est juste au-dessus): deux `id` identiques feraient
+   * qu'un `<label for>` désigne le curseur de quelqu'un d'autre.
+   */
+  it("les `id` sont préfixés, donc ils ne collisionnent pas", () => {
+    const markup = html(LOSING);
+    expect(markup).not.toContain('id="mouth-target-weight"');
+    expect(markup).not.toContain('id="setup-self-pace"');
+  });
+
+  it("direction qui ne bouge pas: rien ne se déplie", () => {
+    const markup = html({ ...LOSING, goal: "maintenance" });
+    expect(markup).not.toContain('id="setup-mouth-target-weight"');
+    expect(markup).not.toContain('id="setup-mouth-pace"');
+  });
+
+  /** Corps inconnu: une PHRASE, jamais un blanc. */
+  it("corps inconnu: la phrase, pas le curseur", () => {
+    const markup = html({ firstName: "Léa", goal: "fat_loss", birthDate: ADULT_BIRTH });
+    expect(markup).not.toContain('id="setup-mouth-pace"');
+    expect(markup).toContain(en["household.mouth.pace_needs_body"]);
+  });
+});
+
+/**
+ * ET CE QUI EST COLLECTÉ PART EN BASE — par l'AUTRE porte que celle du
+ * titulaire. Un champ qu'on remplit et qui ne part nulle part est pire qu'un
+ * champ absent, parce qu'il promet.
+ */
+describe("et la cible d'une bouche a son écrivain", () => {
+  const src = code("./SetupPage.tsx");
+
+  it("`addMouth` appelle `setMemberTarget`", () => {
+    expect(src, "la cible d'une bouche ne part nulle part").toContain(
+      "setMemberTarget(",
+    );
   });
 });
