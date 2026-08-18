@@ -4,6 +4,7 @@ import type { HouseholdMealView, HouseholdMemberView } from "../api/household";
 import { divergenceLines, hasDivergence } from "../api/householdPlanTrace";
 import { windowDayOrder } from "../api/mealWindow";
 import { groupDishListByDay } from "../lib/dishListByDay";
+import { dishIsFor } from "../lib/planByPersonModel";
 import { t } from "../i18n/t";
 import { Card, SectionLabel } from "./ui/Card";
 import DishListByDay from "./plan/DishListByDay";
@@ -54,6 +55,20 @@ export default function HouseholdPlanCard(
   const excluded = meMemberId !== null &&
     meal.trace.taken.some((e) => e.memberId === meMemberId);
   const showDishes = !isOwner;
+  /**
+   * ⛔ LE PLAT DÉDIÉ D'UN AUTRE N'ENTRE PAS DANS CETTE LISTE (D3, 2026-08-18).
+   *
+   * Mesuré: cette carte recevait `meal.dishes` NUES et `groupDishListByDay` ne
+   * filtre rien par contrat, donc le petit-déjeuner composé pour Zoé se lisait
+   * dans la liste de Kid — le défaut exact que le LOT C avait fermé dans
+   * `buildPersonWeek`, resté ouvert sur ce chemin-ci. La règle n'est pas
+   * réécrite: c'est `dishIsFor`, celle de `buildPersonWeek`, appelée.
+   *
+   * ⚠️ LE FILTRE EST AVANT LE TEST DE VIDE, ET C'EST LA MOITIÉ QUI COMPTE. Un
+   * plan qui ne porterait QUE des plats dédiés à d'autres doit dire « rien à
+   * cuisiner pour toi », pas rendre une liste vide sous un titre.
+   */
+  const myDishes = meal.dishes.filter((d) => dishIsFor(d, meMemberId));
   // RIEN À DIRE ⇒ RIEN À L'ÉCRAN. Le cas majoritaire est un foyer où tout le
   // monde mange le même plan: lui servir un titre, une phrase pédagogique et
   // une liste vide ferait du bruit là où il n'y a pas de sujet.
@@ -75,7 +90,7 @@ export default function HouseholdPlanCard(
                 </p>
               )
               : null}
-            {meal.dishes.length === 0
+            {myDishes.length === 0
               ? <p className="text-sm text-ink-soft">{t("household.plan.no_dishes")}</p>
               : (
                 // LOT 1 — la liste plate devient PAR JOUR, sans rien gagner
@@ -86,7 +101,7 @@ export default function HouseholdPlanCard(
                 <DishListByDay
                   groups={groupDishListByDay({
                     order: windowDayOrder(meal.startsOn, meal.durationDays),
-                    dishes: meal.dishes,
+                    dishes: myDishes,
                   })}
                 />
               )}

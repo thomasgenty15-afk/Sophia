@@ -100,6 +100,7 @@ import React from "react";
 import type { HouseholdDishView, MemberPortionView } from "../../api/household";
 import { sharePresentedTo } from "../../api/myShare";
 import { groupDishListByDay } from "../../lib/dishListByDay";
+import { dishIsFor } from "../../lib/planByPersonModel";
 import { t } from "../../i18n/t";
 import { Button } from "../ui/Button";
 import { Card, SectionLabel } from "../ui/Card";
@@ -155,6 +156,23 @@ export default function MyShareCard(props: MyShareCardProps): React.ReactElement
   // `api/myShare.ts` avec la sélection qui la partage: la règle « jamais la
   // part d'un autre » est écrite à UN endroit.
   const share = sharePresentedTo({ mine, meMemberId });
+  /**
+   * ⛔ LE PLAT DÉDIÉ D'UN AUTRE N'ENTRE PAS DANS CETTE LISTE (D3, 2026-08-18).
+   *
+   * Même défaut, même règle et même appel que dans `HouseholdPlanCard`:
+   * `groupDishListByDay` ne filtre RIEN par contrat, donc les plats du foyer
+   * arrivaient ici NUS et cette carte affichait à un secondaire le plat composé
+   * pour une AUTRE bouche. La règle est celle de `buildPersonWeek`
+   * (`dishIsFor`), appelée — pas un second filtre écrit à côté.
+   *
+   * ⚠️ L'IDENTITÉ VIENT DE `share`, PAS DE `meMemberId`. `sharePresentedTo` est
+   * la garde d'identité de cette carte: elle a déjà vérifié que la ligne tenue
+   * est bien la mienne. Repartir de la prop brute ferait deux sources pour la
+   * même question, et c'est celle qu'on ne relit pas qui gagnerait.
+   */
+  const myDishes = householdDishes.filter((d) =>
+    dishIsFor(d, share?.memberId ?? null)
+  );
   // SANS PART, PAS DE CARTE — et pas de phrase qui explique l'absence. Une
   // carte « tu n'as pas encore de part » apprendrait à lire un vide, et « pas
   // de part » n'est pas « une part ordinaire ». C'est aussi le comportement du
@@ -197,7 +215,10 @@ export default function MyShareCard(props: MyShareCardProps): React.ReactElement
           `loadMealPlans` est scopé sur son `user_id` et ne lui rend rien.
           `border-line` (décoratif) et non `border-line-strong`: c'est une
           division À L'INTÉRIEUR d'une carte, pas un second cadre. */}
-      {householdDishes.length > 0
+      {/* ⚠️ LE TEST DE VIDE PORTE SUR LA LISTE FILTRÉE. Un plan qui ne
+          porterait que des plats dédiés à d'autres n'ouvre plus une section
+          vide sous son titre: il n'ouvre pas de section du tout. */}
+      {myDishes.length > 0
         ? (
           <div className="mt-4 border-t border-line pt-3">
             <SectionLabel className="mb-2">{t("plan.mine.household_dishes")}</SectionLabel>
@@ -208,7 +229,7 @@ export default function MyShareCard(props: MyShareCardProps): React.ReactElement
             <DishListByDay
               groups={groupDishListByDay({
                 order: dishDayOrder,
-                dishes: householdDishes,
+                dishes: myDishes,
               })}
             />
           </div>

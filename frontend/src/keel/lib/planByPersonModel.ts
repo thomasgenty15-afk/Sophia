@@ -249,6 +249,41 @@ export function shareFor(
 }
 
 /**
+ * ══════════════════════════════════════════════════════════════════════════
+ * CE PLAT EST-IL DANS L'ASSIETTE DE CETTE BOUCHE ?
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * `memberId === null` = le plat de la TABLE, donc il est à elle aussi. Un plat
+ * attribué à quelqu'un d'autre n'y est pas.
+ *
+ * ── ⛔ POURQUOI CETTE LIGNE EST SORTIE DE `buildPersonWeek` (D3, 2026-08-18) ─
+ * Elle y était juste, et elle y était SEULE. Les deux listes plates du foyer —
+ * « ce que la maison cuisine » (`HouseholdPlanCard`) et les plats communs de
+ * « ta part » (`MyShareCard`) — passent par `groupDishListByDay`, qui ne
+ * filtre RIEN par contrat (voir son en-tête: « le filtrage par personne
+ * appartient à `buildPersonWeek` »). Personne n'appliquait donc la règle sur ce
+ * chemin: un secondaire lisait le petit-déjeuner DÉDIÉ d'une autre bouche dans
+ * sa propre liste, exactement le défaut que le LOT C avait mesuré et fermé
+ * ailleurs.
+ *
+ * ⚠️ UNE SEULE RÈGLE, APPELÉE TROIS FOIS. Un second filtre écrit à la main
+ * chez chaque monteur aurait divergé au premier correctif — c'est la phrase
+ * que ce dépôt a déjà payée. `buildPersonWeek` appelle celle-ci, comme les
+ * cartes.
+ *
+ * ⚠️ `memberId: null` EN ENTRÉE (« on ne sait pas quelle bouche je suis ») ne
+ * rend QUE les plats de la table. C'est le seul repli sûr: rendre les plats
+ * dédiés de tout le monde à un lecteur qu'on n'a pas identifié est précisément
+ * le défaut qu'on ferme.
+ */
+export function dishIsFor(
+  dish: Pick<HouseholdDishView, "memberId">,
+  memberId: string | null,
+): boolean {
+  return dish.memberId === null || dish.memberId === memberId;
+}
+
+/**
  * LA VUE INDIVIDUELLE — la semaine d'UNE bouche, jour par jour.
  *
  * ── POURQUOI ELLE N'EST PAS UN FILTRE DE LA PRÉCÉDENTE ────────────────────
@@ -311,7 +346,10 @@ export function buildPersonWeek(args: {
       //
       // `memberId === null` = le plat de la table, donc il est à elle aussi.
       // Un plat attribué à quelqu'un d'autre sort de sa semaine.
-      .filter((d) => d.memberId === null || d.memberId === args.person.memberId)
+      // ⚠️ LA RÈGLE EST APPELÉE, PLUS ÉCRITE ICI (D3, 2026-08-18): les deux
+      // listes plates du foyer avaient besoin de la MÊME, et deux copies
+      // auraient divergé au premier correctif.
+      .filter((d) => dishIsFor(d, args.person.memberId))
       // C4 — le plat de la table sort de SON assiette au moment où elle a le
       // sien. Les autres moments ne bougent pas: le plat commun y reste le
       // sien aussi.
