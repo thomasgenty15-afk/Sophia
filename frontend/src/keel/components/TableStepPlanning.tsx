@@ -4,7 +4,7 @@ import { t } from "../i18n/t";
 import type { PracticalConstraints } from "../api/practicalConstraints";
 import { loadWorkLunch, setMemberWorkLunch } from "../api/workLunch";
 import type { WorkLunch } from "../lib/presenceMarks";
-import { commitWorkLunch } from "../lib/workLunchCommit";
+import { commitWorkLunch, readWorkLunchAnswers } from "../lib/workLunchCommit";
 import type { WorkLunchPerson } from "../lib/workLunchForm";
 import KitchenEquipmentCard from "./KitchenEquipmentCard";
 import WorkLunchCard from "./WorkLunchCard";
@@ -96,15 +96,19 @@ export default function TableStepPlanning(props: TableStepPlanningProps) {
   const [readError, setReadError] = React.useState<string | null>(null);
 
   const refresh = React.useCallback(async () => {
-    try {
-      setAnswers(await loadWorkLunch());
-      setReadError(null);
-    } catch (e) {
-      // ⛔ ON NE RETOMBE PAS SUR UNE `Map` VIDE. Une lecture ratée rendue « vide »
-      // se lirait « personne n'a répondu », et le premier clic écrirait par-
-      // dessus la réponse de quelqu'un. `answers` reste `null`.
-      setReadError(e instanceof Error ? e.message : String(e));
-    }
+    // ⛔ LE REPLI D'UNE LECTURE RATÉE EST DANS `readWorkLunchAnswers`, ET PAS
+    // ICI, PARCE QU'UN `catch` POSÉ DANS CE FICHIER N'EST MESURABLE PAR AUCUN
+    // TEST DE CE DÉPÔT. `renderToStaticMarkup` ne joue aucun effet: y remplacer
+    // `null` par `new Map()` — c'est-à-dire dire « personne n'a répondu » à un
+    // foyer qui a répondu, et laisser le premier clic l'écraser — passait les
+    // neuf tests sans en faire tomber un. Mutation jouée, 0 rouge, extraction
+    // faite. Même geste que `commitWorkLunch`, pour la même raison.
+    const read = await readWorkLunchAnswers(loadWorkLunch);
+    // On ne remet PAS `answers` à `null` sur un échec: ce qui a déjà été lu
+    // reste vrai, et l'erreur se dit à côté. C'est `read.answers === null` qui
+    // porte le refus de fabriquer du vide, pas cette ligne.
+    if (read.answers !== null) setAnswers(read.answers);
+    setReadError(read.error);
   }, []);
 
   // LE SEUL EFFET DU FICHIER, ET IL LIT. Voir le pavé de l'en-tête.

@@ -3,7 +3,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import TableStepPlanning from "./TableStepPlanning";
-import { commitWorkLunch } from "../lib/workLunchCommit";
+import { commitWorkLunch, readWorkLunchAnswers } from "../lib/workLunchCommit";
 import type { PracticalConstraints } from "../api/practicalConstraints";
 import type { WorkLunch } from "../lib/presenceMarks";
 import type { WorkLunchPerson } from "../lib/workLunchForm";
@@ -203,5 +203,75 @@ describe("⛔ enregistrer une réponse RELIT ce qui est enregistré", () => {
       onSaved: () => {},
     });
     expect(save).toHaveBeenCalledWith("own", ANSWER);
+  });
+});
+
+describe("⛔ une lecture RATÉE ne fabrique pas de réponses vides", () => {
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CE BLOC EXISTE PARCE QUE LA MUTATION SURVIVAIT.
+  //
+  // Le repli était écrit en `catch` dans `TableStepPlanning`, sous un pavé qui
+  // l'interdisait — et y remplacer `null` par `new Map()` passait les NEUF
+  // tests de ce fichier sans en faire tomber un: `renderToStaticMarkup` ne joue
+  // aucun effet, donc ce `catch` n'était atteignable par aucun test du dépôt.
+  // Le commentaire était la seule garde. `readWorkLunchAnswers` a été sorti
+  // pour ça, exactement comme `commitWorkLunch` avant lui.
+  //
+  // CE QUE ÇA COÛTE QUAND ÇA CASSE: `null` = « la lecture n'a pas eu lieu »
+  // (la carte ne pose aucune question), une `Map` vide = « lu, personne n'a
+  // répondu » (la carte pose ses sept questions, vierges). Un réseau qui tombe
+  // sur un foyer QUI A RÉPONDU afficherait donc des questions vierges, et le
+  // premier clic écrirait par-dessus la réponse de quelqu'un en croyant la
+  // créer — et cette écriture-là ré-applique le pré-remplissage des cinq midis.
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  it("elle rend `null`, PAS une `Map` vide", async () => {
+    const read = await readWorkLunchAnswers(() => {
+      throw new Error("réseau tombé");
+    });
+    expect(read.answers).toBeNull();
+    // Et le motif est là: une erreur avalée serait un « chargement… » éternel.
+    expect(read.error).toBe("réseau tombé");
+    // ⚠️ ET ON LE DIT UNE SECONDE FOIS, PAR L'AUTRE BOUT. `toBeNull` seul
+    // suffit à faire tomber la mutation, mais il ne NOMME pas ce qui est
+    // interdit. Cette ligne-là dit la règle telle qu'elle se viole: aucune
+    // `Map` — même vide — ne sort d'une lecture ratée.
+    expect(read.answers instanceof Map).toBe(false);
+  });
+
+  it("un rejet ASYNCHRONE est attrapé aussi, pas seulement un jet immédiat", async () => {
+    // `loadWorkLunch` est une fonction `async`: son échec arrive en promesse
+    // rejetée, pas en exception synchrone. Un `try` posé autour d'un appel
+    // sans `await` ne l'attraperait pas — et le composant, lui, n'aurait
+    // affiché ni réponses ni motif.
+    const read = await readWorkLunchAnswers(async () => {
+      await Promise.resolve();
+      throw new Error("401");
+    });
+    expect(read.answers).toBeNull();
+    expect(read.error).toBe("401");
+  });
+
+  it("une lecture RÉUSSIE rend la Map telle quelle, sans motif", async () => {
+    // LA GARDE A BESOIN D'UN CAS QUI PASSE: cassée, une fonction qui rendrait
+    // `null` à tout le monde ferait passer les deux tests ci-dessus et
+    // ressemblerait à une garde qui marche.
+    const saved = new Map<string, WorkLunch | null>([
+      ["own", { atWork: true, mode: "outside", microwave: null }],
+    ]);
+    const read = await readWorkLunchAnswers(async () => saved);
+    expect(read.answers).toBe(saved);
+    expect(read.error).toBeNull();
+  });
+
+  it("une Map VIDE lue pour de vrai passe telle quelle — ce n'est pas la même chose", async () => {
+    // « lu, personne n'a répondu » est une réponse légitime, et elle ne doit
+    // pas être confondue avec l'échec. Sans ce test, une fonction qui rendrait
+    // `null` dès que la Map est vide passerait les trois autres.
+    const read = await readWorkLunchAnswers(async () =>
+      new Map<string, WorkLunch | null>()
+    );
+    expect(read.answers).toEqual(new Map());
+    expect(read.error).toBeNull();
   });
 });

@@ -51,3 +51,40 @@ export async function commitWorkLunch(args: {
   await args.onSaved();
   return result;
 }
+
+/**
+ * LIT LES RÉPONSES ENREGISTRÉES — ET RATE EN DISANT `null`, JAMAIS EN VIDE.
+ *
+ * ═══════════════════════════════════════════════════════════════════════════
+ * ⛔ UNE LECTURE RATÉE RENDUE « VIDE » SE LIT « PERSONNE N'A RÉPONDU ».
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Les deux valeurs ne disent pas la même chose, et c'est toute la garde de
+ * `WorkLunchCard`: `null` = la lecture n'a pas eu lieu (la carte ne rend aucune
+ * question), une `Map` vide = elle a eu lieu et personne n'a répondu (la carte
+ * pose ses questions, vierges). Retomber sur une `Map` vide quand le réseau
+ * tombe affiche donc sept questions vierges à un foyer qui a répondu — et le
+ * premier clic écrit par-dessus la réponse de quelqu'un, en croyant la créer.
+ *
+ * ⚠️ CETTE FONCTION EXISTE POUR ÊTRE MESURÉE, ET LA RAISON EST LA MÊME QUE
+ * POUR `commitWorkLunch`. Écrit en `catch` dans le composant, le repli est
+ * inatteignable: `renderToStaticMarkup` ne joue aucun effet, donc y remplacer
+ * `null` par `new Map()` n'aurait fait tomber aucun test de ce dépôt. Mutation
+ * jouée avant l'extraction: **0 rouge sur 9 tests** — le pavé de commentaire
+ * qui l'interdisait était la seule chose qui la retenait.
+ *
+ * ⚠️ AUCUN RÉSEAU ICI NON PLUS: le lecteur lui est PASSÉ. C'est ce qui permet
+ * de lui faire jeter une exception dans un test sans base ni serveur.
+ */
+export async function readWorkLunchAnswers(
+  load: () => Promise<Map<string, WorkLunch | null>>,
+): Promise<
+  | { answers: Map<string, WorkLunch | null>; error: null }
+  | { answers: null; error: string }
+> {
+  try {
+    return { answers: await load(), error: null };
+  } catch (e) {
+    return { answers: null, error: e instanceof Error ? e.message : String(e) };
+  }
+}
