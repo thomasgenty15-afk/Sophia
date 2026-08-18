@@ -6,7 +6,9 @@ import {
   MAX_KG_PER_WEEK,
   MAX_WEEKLY_BODY_FRACTION,
   MINOR_MAX_DAILY_DELTA_FRACTION,
+  estimatedMaintenanceFor,
   executedPaceFor,
+  maintenancePaceFor,
   PACE_SATURATION_LABELS,
   PACE_SATURATIONS,
   PACE_WARN_UP_KG_PER_WEEK,
@@ -259,6 +261,58 @@ Deno.test("la phrase existe DANS LES DEUX LANGUES, et elle dit un fait", () => {
     // les deux côtés sont identiques est une traduction oubliée.
     assert(label.en !== label.fr, `${warning} n'est pas traduit`);
   }
+});
+
+// ---------------------------------------------------------------------------
+// ① — L'ENTRETIEN NU, POUR QUI NE VISE RIEN
+// ---------------------------------------------------------------------------
+
+Deno.test("① `maintenancePaceFor` rend l'entretien SANS écart, et c'est le même que celui du curseur", () => {
+  // ⚠️ L'ASSERTION QUI TIENT L'EXTRACTION. `estimatedMaintenanceFor` a remplacé
+  // deux copies du choix « équation adulte ou équation pédiatrique »; si les
+  // trois lectures divergeaient, un conseil du midi et un grammage
+  // dimensionneraient la même journée sur deux entretiens différents.
+  const her = adult({ weightKg: 60, heightCm: 165, gender: "female", ageYears: 28 });
+  const nothing = maintenancePaceFor(her);
+  const chosen = executedPaceFor("down", her, 0.2);
+  assert(nothing !== null && chosen !== null);
+  assertEquals(nothing.maintenanceKcal, chosen.maintenanceKcal);
+  assertEquals(nothing.dailyDeltaKcal, 0);
+  assertEquals(nothing.kgPerWeek, 0);
+  assertEquals(nothing.clampedBy, "chosen");
+});
+
+Deno.test("① un MINEUR reçoit l'équation pédiatrique, ici aussi", () => {
+  // Le choix se fait sur `isMinor`, jamais sur `ageYears` — un corps de douze
+  // ans dont la date manque est `unknown`, pas mineur. Deux sujets de MÊME
+  // corps et d'`isMinor` différents doivent donc rendre deux entretiens
+  // différents, sans quoi l'extraction aurait perdu l'arbitrage.
+  const body = { weightKg: 45, heightCm: 155, gender: "male" as const, ageYears: 13 };
+  const child = maintenancePaceFor(minor(body));
+  assert(child !== null);
+  assertEquals(
+    child.maintenanceKcal,
+    Math.round(estimatedChildMaintenanceKcal({
+      weightKg: 45,
+      ageYears: 13,
+      gender: "male",
+      activityLevel: null,
+    })!),
+  );
+  // ⚠️ ET LE MÊME CORPS SOUS `isMinor: false` NE REND RIEN. L'équation adulte
+  // refuse un âge de treize ans, et c'est la preuve que la branche se choisit
+  // sur `isMinor` — pas sur `ageYears`, qui donnerait le même verdict par
+  // hasard tant qu'une date est présente, puis le mauvais le jour où elle
+  // manque.
+  assertEquals(maintenancePaceFor(adult(body)), null);
+});
+
+Deno.test("① pas de corps, pas d'entretien — jamais un repli", () => {
+  // Un entretien deviné répartirait la journée de quelqu'un qui n'existe pas.
+  assertEquals(maintenancePaceFor(adult({ weightKg: null })), null);
+  assertEquals(maintenancePaceFor(adult({ weightKg: 0 })), null);
+  assertEquals(maintenancePaceFor(adult({ heightCm: null })), null);
+  assertEquals(estimatedMaintenanceFor(adult({ weightKg: null })), null);
 });
 
 // ---------------------------------------------------------------------------

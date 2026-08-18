@@ -6,6 +6,12 @@ import type {
 import { dayEnergySubjectClause } from "../../api/mealEnergy";
 import { mealCopy } from "../../api/mealLabels";
 import { uiLocale } from "../../i18n/runtime";
+// ① — LA PHRASE DU CONSEIL DU MIDI, IMPORTÉE, JAMAIS RÉÉCRITE ICI. Elle vit
+// avec le nombre (`household_portions.ts`) pour la raison exacte de
+// `PACE_WARNING_LABELS`: « autour de » est load-bearing dans les deux langues,
+// et le libellé de chaque moment porte sa préposition — un gabarit `Au ${label}`
+// rendrait « Au ta collation du matin ».
+import { eatingOutAdviceSentence } from "../../../../../supabase/functions/_shared/keel/household_portions.ts";
 
 // FF-059 — LE CHIFFRE, RENDU UNE SEULE FOIS.
 //
@@ -84,12 +90,37 @@ export function DishEnergyLine({ energy }: { energy: DishEnergyView | null }) {
  */
 export function DayEnergyLine({ energy }: { energy: DayEnergyView | null }) {
   if (!energy) return null;
+  const locale = uiLocale() === "fr" ? "fr" : "en";
+  // ══ ① · LE CONSEIL DU MIDI ═══════════════════════════════════════════════
+  //
+  // « Au déjeuner, vise autour de 700. » Décision produit §2.2 ⓑ: le repas
+  // sort du plan, il ne sort pas du calcul.
+  //
+  // ⛔ UNE CONSIGNE, JAMAIS UN SOLDE. Aucun reste, aucun verdict, aucune
+  // couleur, aucune barre. La phrase vient du module (« autour de » est
+  // load-bearing) et le ton reste celui d'un repère, pas d'un score.
+  //
+  // ⚠️ IL SURVIT À UNE JOURNÉE ILLISIBLE, et c'est le point. « Vise 700 au
+  // déjeuner » est vrai que le référentiel ait su lire les autres plats ou
+  // non: il se calcule sur la journée DÉCLARÉE, pas sur ce que le plan a
+  // composé. Le taire là serait perdre le conseil très exactement le jour où
+  // l'écran n'a rien d'autre à offrir.
+  const advice = energy.eatingOutAdvice.length === 0 ? null : (
+    <span className="text-xs font-normal text-ink-soft">
+      {energy.eatingOutAdvice
+        .map((a) => eatingOutAdviceSentence(locale, a.slot, a.kcal))
+        .join(" ")}
+    </span>
+  );
   if (energy.kcal === null) {
     // Aucun plat lisible. On ne rend PAS « 0 kcal », qui se lirait « cette
     // journée ne nourrit pas » — le sens exactement inverse.
     return (
-      <span className="text-xs font-normal text-ink-soft">
-        {mealCopy("meals.energy.day_unreadable")}
+      <span className="inline-flex flex-col items-end gap-0.5">
+        <span className="text-xs font-normal text-ink-soft">
+          {mealCopy("meals.energy.day_unreadable")}
+        </span>
+        {advice}
       </span>
     );
   }
@@ -111,7 +142,7 @@ export function DayEnergyLine({ energy }: { energy: DayEnergyView | null }) {
   // chiffre ne survit pas à `complete: false` des deux côtés.
   const subject = energy.subject === "what_the_plan_made" && energy.mealsOut > 0 &&
       energy.dishesTotal > 0
-    ? dayEnergySubjectClause(uiLocale() === "fr" ? "fr" : "en", {
+    ? dayEnergySubjectClause(locale, {
       dishes: energy.dishesTotal,
       mealsOut: energy.mealsOut,
     })
@@ -154,13 +185,27 @@ export function DayEnergyLine({ energy }: { energy: DayEnergyView | null }) {
     : subject !== null
     ? `${mealCopy("meals.energy.dish").replace("{n}", String(energy.kcal))} ${subject}`
     : mealCopy("meals.energy.day").replace("{n}", String(energy.kcal));
+  if (advice === null) {
+    return (
+      <span
+        className={`text-xs font-normal tabular-nums ${
+          energy.complete ? "text-ink-soft" : "text-amber-700"
+        }`}
+      >
+        {text}
+      </span>
+    );
+  }
   return (
-    <span
-      className={`text-xs font-normal tabular-nums ${
-        energy.complete ? "text-ink-soft" : "text-amber-700"
-      }`}
-    >
-      {text}
+    <span className="inline-flex flex-col items-end gap-0.5">
+      <span
+        className={`text-xs font-normal tabular-nums ${
+          energy.complete ? "text-ink-soft" : "text-amber-700"
+        }`}
+      >
+        {text}
+      </span>
+      {advice}
     </span>
   );
 }

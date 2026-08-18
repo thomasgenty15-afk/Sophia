@@ -406,6 +406,48 @@ export interface PaceSubject {
 }
 
 /**
+ * L'ENTRETIEN ESTIMÉ DE CE CORPS, en kcal/jour — LE DÉNOMINATEUR DE TOUT LE
+ * MODULE, écrit une seule fois.
+ *
+ * ⚠️ EXTRAIT PLUTÔT QUE RECOPIÉ, ET C'EST L'INTÉRÊT. Le choix entre l'équation
+ * ADULTE et l'équation PÉDIATRIQUE tient à `isMinor`, jamais à `ageYears` — un
+ * corps de douze ans dont la date manque est `unknown`, pas mineur, et la
+ * confusion se paierait sur l'assiette d'un enfant. Cette règle vivait en deux
+ * exemplaires (`paceCeilingFor`, `executedPaceFor`); un troisième était sur le
+ * point de naître chez le conseil du midi, qui a besoin de l'entretien SANS
+ * rythme. Trois copies d'un même arbitrage divergent, et c'est celle qu'on
+ * regarde le moins qui garde l'ancienne.
+ *
+ * `null` — jamais un repli — quand le corps ne suffit pas: un entretien deviné
+ * dimensionnerait la journée de quelqu'un qui n'existe pas.
+ *
+ * ⚠️ NON ARRONDI. C'est un dénominateur, pas un nombre à montrer; l'arrondir
+ * ici déplacerait tous les facteurs qui en descendent.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function estimatedMaintenanceFor(subject: PaceSubject): number | null {
+  const { body, isMinor } = subject;
+  const weightKg = body.weightKg;
+  if (!weightKg || weightKg <= 0) return null;
+  const maintenance = isMinor
+    ? estimatedChildMaintenanceKcal({
+      weightKg,
+      ageYears: body.ageYears,
+      gender: body.gender,
+      activityLevel: body.activityLevel,
+    })
+    : estimatedMaintenanceKcal({
+      weightKg,
+      heightCm: body.heightCm,
+      ageBand: ageBandOf(body.ageYears),
+      gender: body.gender,
+      activityLevel: body.activityLevel,
+    });
+  return maintenance !== null && maintenance > 0 ? maintenance : null;
+}
+
+/**
  * LE PLAFOND DU SLIDER, OU `null`.
  *
  * `null` — jamais un plafond de secours — quand le corps ne suffit pas à
@@ -421,20 +463,7 @@ export function paceCeilingFor(
   const weightKg = body.weightKg;
   if (!weightKg || weightKg <= 0) return null;
 
-  const maintenance = isMinor
-    ? estimatedChildMaintenanceKcal({
-      weightKg,
-      ageYears: body.ageYears,
-      gender: body.gender,
-      activityLevel: body.activityLevel,
-    })
-    : estimatedMaintenanceKcal({
-      weightKg,
-      heightCm: body.heightCm,
-      ageBand: ageBandOf(body.ageYears),
-      gender: body.gender,
-      activityLevel: body.activityLevel,
-    });
+  const maintenance = estimatedMaintenanceFor(subject);
   if (maintenance === null || maintenance <= 0) return null;
 
   // ── LA TROISIÈME BORNE, EN kcal/jour ────────────────────────────────────
@@ -681,20 +710,7 @@ export function executedPaceFor(
   if (!weightKg || weightKg <= 0) return null;
   if (!Number.isFinite(chosenKgPerWeek) || chosenKgPerWeek <= 0) return null;
 
-  const maintenance = isMinor
-    ? estimatedChildMaintenanceKcal({
-      weightKg,
-      ageYears: body.ageYears,
-      gender: body.gender,
-      activityLevel: body.activityLevel,
-    })
-    : estimatedMaintenanceKcal({
-      weightKg,
-      heightCm: body.heightCm,
-      ageBand: ageBandOf(body.ageYears),
-      gender: body.gender,
-      activityLevel: body.activityLevel,
-    });
+  const maintenance = estimatedMaintenanceFor(subject);
   if (maintenance === null || maintenance <= 0) return null;
 
   // ⚠️ L'ORDRE EST CELUI DE `paceCeilingFor`, ET POUR LA MÊME RAISON: `isMinor`
@@ -731,6 +747,38 @@ export function executedPaceFor(
     dailyDeltaKcal: Math.round(dailyDeltaKcal),
     maintenanceKcal: Math.round(maintenance),
     clampedBy: wantedDailyKcal <= capped ? "chosen" : cap.clamp,
+  };
+}
+
+/**
+ * ① — LE RYTHME EXÉCUTÉ DE QUELQU'UN QUI NE VISE RIEN. Zéro écart, et son
+ * entretien.
+ *
+ * ── POURQUOI CETTE FONCTION EXISTE, ET CE QU'ELLE N'AUTORISE PAS ──────────
+ * `eatingOutAdvice` accepte `direction: null` en toutes lettres — « `null` =
+ * maintenance: la cible EST l'entretien » — mais il exige un `ExecutedPace`, et
+ * `executedPaceFor` ne peut pas en produire un sans direction NI cran. Sans ce
+ * chemin-ci, le conseil du midi ne parlerait qu'aux gens qui ont un objectif ET
+ * un rythme réglé: la majorité de la base ne recevrait jamais rien, et le lot
+ * ressemblerait trait pour trait à un lot qui marche.
+ *
+ * ⛔ ELLE NE DIMENSIONNE AUCUN GRAMMAGE. `clampedBy: "chosen"` avec un écart
+ * NUL veut dire « le moteur n'exécute rien »: `mouthTargetFactor` nomme déjà ce
+ * cas `no_pace` et refuse d'en tirer un facteur. Cette fonction sert à
+ * RÉPARTIR un entretien sur une journée déclarée, jamais à le déplacer.
+ *
+ * `null` quand le corps ne suffit pas — même règle que ses deux voisines.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function maintenancePaceFor(subject: PaceSubject): ExecutedPace | null {
+  const maintenance = estimatedMaintenanceFor(subject);
+  if (maintenance === null || maintenance <= 0) return null;
+  return {
+    kgPerWeek: 0,
+    dailyDeltaKcal: 0,
+    maintenanceKcal: Math.round(maintenance),
+    clampedBy: "chosen",
   };
 }
 

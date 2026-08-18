@@ -1,4 +1,5 @@
 import { supabase } from "../../lib/supabase";
+import { EATING_OCCASIONS, type EatingOccasion } from "./mealGeneration";
 
 // FF-059 — LE CHIFFRE AFFICHÉ, CÔTÉ CLIENT.
 //
@@ -127,6 +128,42 @@ export interface DayEnergyView {
    * la mauvaise.
    */
   mealsOut: number;
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * ① — LE CONSEIL DU MIDI, POUR CE JOUR-LÀ. « Au déjeuner, vise autour de 700. »
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * Décision produit §2.2 ⓑ: quand quelqu'un mange dehors, le plan ne compose
+   * pas ce repas **mais en fait la place**. Le repas sort du plan, il ne sort
+   * pas du calcul.
+   *
+   * `[]` est le cas nominal, et il couvre trois situations qui ne se
+   * distinguent pas ici, parce qu'elles ne se distinguent pas à l'écran: rien
+   * n'est pris dehors, une porte est fermée, ou le corps manque. Le serveur ne
+   * dit JAMAIS pourquoi il se tait sur ce champ — un motif de refus voyageant à
+   * côté d'un chiffre absent serait encore parler du sujet à quelqu'un qu'une
+   * porte protège.
+   *
+   * ⛔ UNE CONSIGNE, JAMAIS UN SOLDE. « Il te reste 680 kcal » est LA phrase
+   * d'un tracker. Ce chiffre-ci ne soustrait rien, ne connaît pas ce qui a été
+   * mangé, et se calcule sur la journée DÉCLARÉE — pas sur ce que le plan a
+   * composé. Aucun reste, aucun verdict, aucune couleur, aucune barre.
+   */
+  eatingOutAdvice: EatingOutAdviceView[];
+}
+
+/**
+ * UNE CASE « DEHORS » ET SON ORDRE DE GRANDEUR.
+ *
+ * Le `slot` est un jeton du vocabulaire FERMÉ des six moments; un jeton inconnu
+ * fait tomber l'entrée entière, jamais un libellé brut sous les yeux de
+ * quelqu'un.
+ */
+export interface EatingOutAdviceView {
+  slot: EatingOccasion;
+  /** kcal, arrondis aux 50 par le serveur. Toujours > 0 — jamais un `0`, qui
+   * se lirait « ne mange rien », le sens exactement inverse. */
+  kcal: number;
 }
 
 /** Ce qu'un plan rend, quand les quatre portes sont ouvertes. */
@@ -296,6 +333,11 @@ export function readDay(raw: unknown): DayEnergyView {
     dishesCounted: Number(d.dishes_counted) || 0,
     dishesTotal,
     addonKcal: Number(d.addon_kcal) || 0,
+    // ① — REMPLI PAR `attachEatingOutAdvice`, jamais par ce lecteur-ci: le
+    // serveur rend les conseils À CÔTÉ des jours (un jour peut n'en avoir
+    // aucun, et un conseil peut porter sur un jour que le plan n'a pas
+    // composé). `[]` est donc l'état de départ, pas une ignorance.
+    eatingOutAdvice: [],
     subject: restricted ? "what_the_plan_made" : "the_day",
     // ⚠️ REMIS À ZÉRO AVEC LE SUJET. Les deux champs partent ensemble ou pas du
     // tout: un `mealsOut` non nul sous `subject: "the_day"` inviterait le
@@ -342,6 +384,50 @@ export function readDay(raw: unknown): DayEnergyView {
  * est une faute dans une langue sur deux, et invisible à qui teste dans
  * l'autre — cicatrice « garde testée dans une seule langue ».
  */
+/**
+ * ① — LES CONSEILS DU MIDI, RANGÉS SUR LEURS JOURS.
+ *
+ * ── POURQUOI UNE FONCTION SÉPARÉE, ET PAS UNE LIGNE DANS `readDay` ────────
+ * Parce que les deux tableaux du serveur ne sont pas alignés: un jour peut
+ * n'avoir aucun conseil, et un conseil peut porter sur un jour dont le plan n'a
+ * composé aucun plat. Les lire ensemble par index serait la façon la plus
+ * discrète de servir à quelqu'un l'ordre de grandeur d'un autre midi.
+ *
+ * ⚠️ TOUT-OU-RIEN PAR ENTRÉE, comme partout dans ce module. Une entrée dont le
+ * jour est vide, dont le moment n'est PAS dans le vocabulaire fermé, ou dont le
+ * chiffre n'est pas un vrai nombre strictement positif, TOMBE — elle n'est
+ * jamais réparée. `finiteEnergyNumber` et pas `Number()`: `Number(null)` vaut
+ * `0`, et « au déjeuner, vise autour de 0 » se lirait « ne mange rien », le
+ * sens exactement inverse.
+ *
+ * Un jeton de moment inconnu ferait sinon `EATING_OUT_SLOT_LABELS[slot]` =
+ * `undefined`, et la phrase sortirait avec « undefined » dedans.
+ */
+export function attachEatingOutAdvice(
+  days: readonly DayEnergyView[],
+  raw: unknown,
+): DayEnergyView[] {
+  if (!Array.isArray(raw) || raw.length === 0) return [...days];
+  const byDay = new Map<string, EatingOutAdviceView[]>();
+  for (const entry of raw) {
+    if (!entry || typeof entry !== "object") continue;
+    const a = entry as Record<string, unknown>;
+    const day = String(a.day ?? "").trim();
+    const slot = String(a.slot ?? "").trim();
+    const kcal = finiteEnergyNumber(a.kcal);
+    if (!day) continue;
+    if (!(EATING_OCCASIONS as readonly string[]).includes(slot)) continue;
+    if (kcal === null || !(kcal > 0)) continue;
+    const list = byDay.get(day) ?? [];
+    list.push({ slot: slot as EatingOccasion, kcal });
+    byDay.set(day, list);
+  }
+  return days.map((d) => ({
+    ...d,
+    eatingOutAdvice: d.day === null ? [] : byDay.get(d.day) ?? [],
+  }));
+}
+
 export function dayEnergySubjectClause(
   locale: "en" | "fr",
   args: { dishes: number; mealsOut: number },
@@ -447,7 +533,13 @@ export async function loadMealEnergy(
         computable,
         abstention: computable ? null : String(p.abstention ?? "") || null,
         dishes: computable && Array.isArray(p.dishes) ? p.dishes.map(readDish) : [],
-        days: computable && Array.isArray(p.days) ? p.days.map(readDay) : [],
+        // ① LES CONSEILS SE RANGENT SUR LEURS JOURS ICI, et jamais sur un plan
+        // qu'on vient de déclarer incalculable: un ordre de grandeur posé sur
+        // une journée dont on refuse de dire le total serait le seul chiffre de
+        // l'écran, et il aurait l'air de la remplacer.
+        days: computable && Array.isArray(p.days)
+          ? attachEatingOutAdvice(p.days.map(readDay), p.eating_out_advice)
+          : [],
       };
     }).filter((p) => p.planId !== ""),
   };

@@ -36,7 +36,30 @@ import {
 // L8 ③ — LES SIX MOMENTS, POUR TRADUIRE « toute la journée » EN NOMBRE DE
 // REPAS. Importés, jamais recopiés: un septième moment ajouté là-bas et un `6`
 // figé ici feraient dire au sujet du chiffre une chose fausse, en silence.
-import { EATING_OCCASIONS } from "../_shared/keel/meal_generation.ts";
+import {
+  DEFAULT_EATING_RHYTHM,
+  EATING_OCCASIONS,
+  type EatingOccasionSlot,
+  parseAwayDays,
+  parseEatingRhythm,
+} from "../_shared/keel/meal_generation.ts";
+// ① — LE CONSEIL DU MIDI. La fonction et ses gardes existent depuis L8-B et
+// n'avaient AUCUN appelant. Les cinq portes vivent DANS le module, jamais ici.
+import { eatingOutAdvice } from "../_shared/keel/household_portions.ts";
+import {
+  type MemberAway,
+  presenceStateFor,
+} from "../_shared/keel/household_presence.ts";
+import { ageStateFromVerdict } from "../_shared/keel/household.ts";
+import type { MouthBody } from "../_shared/keel/meal_envelope.ts";
+import { effectiveRhythm } from "../_shared/keel/daily_recommendation.ts";
+import {
+  executedPaceFor,
+  maintenancePaceFor,
+  scaleDirectionOf,
+} from "../_shared/keel/weight_pace.ts";
+import { type BirthDateVerdict, usableAge } from "../_shared/keel/student_age.ts";
+import { GOAL_TOKENS } from "../_shared/keel/tokens.ts";
 
 /**
  * `meal-energy-v1` — FF-059, LE CHIFFRE AFFICHÉ.
@@ -338,6 +361,139 @@ function readViewerMealsOut(
   return out;
 }
 
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ① — LA PRÉSENCE DU LECTEUR, RECONSTRUITE POUR ÊTRE ARBITRÉE.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⚠️ ON NE LIT PAS `eating_out` DIRECTEMENT POUR DÉCIDER, et c'est la
+ * consigne de `MemberAway.eatingOut` mot pour mot: « `presenceStateFor` est la
+ * lecture, parce qu'elle porte l'arbitrage entre les deux sources; lire ce
+ * champ seul ferait un second avis sur qui est dehors. »
+ *
+ * Concrètement, l'arbitrage qu'on récupère est celui-ci: une case n'est
+ * « dehors » que si elle est D'ABORD absente de `effective`. Une case marquée
+ * dehors que le moteur ne compte pas absente serait un conseil chiffré sur un
+ * repas que le plan compose QUAND MÊME — deux nourritures pour un seul midi.
+ *
+ * `self` et `household` restent vides: `presenceStateFor` ne les lit pas, et
+ * les remplir ici donnerait l'illusion qu'une décision s'y prend.
+ *
+ * `null` = ce lecteur n'a aucune trace de présence dans ce plan (plan
+ * personnel, bouche introuvable, ou plan composé avant la trace). Pas de
+ * trace, pas de « dehors », donc pas de conseil — jamais un repli sur
+ * `at_table` inventé, qui serait le même geste dans l'autre sens.
+ */
+function readViewerAway(
+  row: PlanRow,
+  viewerMemberId: string | null,
+): MemberAway | null {
+  if (row.plan_kind !== "household" || !viewerMemberId) return null;
+  const gf = (row.generated_from ?? {}) as Record<string, unknown>;
+  const household = (gf.household ?? {}) as Record<string, unknown>;
+  const presence = (household.presence ?? {}) as Record<string, unknown>;
+  const members = presence.members;
+  if (!Array.isArray(members)) return null;
+  for (const entry of members) {
+    if (!entry || typeof entry !== "object") continue;
+    const m = entry as Record<string, unknown>;
+    if (String(m.member_id ?? "").trim() !== viewerMemberId) continue;
+    return {
+      effective: parseAwayDays(m.away),
+      self: [],
+      household: [],
+      eatingOut: parseAwayDays(m.eating_out),
+    };
+  }
+  return null;
+}
+
+/**
+ * CE QUE LE CONSEIL DU MIDI A BESOIN DE SAVOIR DU LECTEUR, une fois pour tous
+ * ses plans. Tout est REQUIS: une entrée absente n'est jamais devinée.
+ */
+interface AdviceContext {
+  reader: { show: boolean; reason: string };
+  ageVerdict: BirthDateVerdict;
+  slots: readonly EatingOccasionSlot[];
+  executed: ReturnType<typeof executedPaceFor>;
+  direction: ReturnType<typeof scaleDirectionOf>;
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ① — LE CONSEIL DU MIDI, POUR UN PLAN. « Au déjeuner, vise autour de 700. »
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * Décision produit §2.2 ⓑ: quand quelqu'un mange dehors, **le plan ne compose
+ * pas ce repas mais en fait la place**. Le repas sort du plan; il ne sort pas
+ * du calcul.
+ *
+ * ⛔ UNE CONSIGNE, JAMAIS UN SOLDE. « Il te reste 680 kcal » est LA phrase d'un
+ * tracker, et elle n'existe sur aucun chemin de ce produit. Ce conseil ne
+ * soustrait rien, ne connaît pas ce qui a été mangé, et ne PEUT pas le
+ * connaître — aucune de ses entrées ne porte un consommé. Il se calcule sur la
+ * journée DÉCLARÉE, pas sur ce que le plan a composé: « vise 700 au déjeuner »
+ * est vrai que la personne ait pris son petit-déjeuner ou non, et le dériver du
+ * reste de la journée en ferait un solde déguisé.
+ *
+ * ── ⛔ CE QUI NE SE STOCKE PAS, ET C'EST LA CLAUSE C5 ─────────────────────
+ * Un kcal par bouche ne peut pas entrer dans une colonne. C'est très
+ * exactement pour ça que ce conseil naît ICI, à la lecture, dans une fonction
+ * qui ne fait AUCUNE écriture (R5) — le patron du reste du module: **on
+ * décide, on n'archive pas la valeur par personne.** Le chiffre vit le temps
+ * d'une réponse et meurt avec elle; un plan modifié en rend un autre au tour
+ * suivant, sans cache à invalider et sans ligne à purger.
+ *
+ * ── LES PORTES SONT DANS LE MODULE, PAS ICI ──────────────────────────────
+ * `eatingOutAdvice` évalue C9.b (le vocabulaire de présence), la chaîne du
+ * lecteur ①②③④⑤, `mouthIsReader`, puis C9.a (l'âge de CETTE bouche) — dans cet
+ * ordre, et AVANT la première multiplication. On ne recopie aucune de ces
+ * conditions ici: deux points de décision finissent par diverger, et celui-ci
+ * porte la garde la plus sensible du produit.
+ *
+ * ⚠️ ON ITÈRE SUR LE RYTHME DÉCLARÉ, PAS SUR LES CASES DE LA TRACE. Un
+ * `slots: []` veut dire « toute la journée » (FF-002 §5): parcourir les cases
+ * obligerait à rouvrir cette règle ici, alors que `presenceStateFor` la porte
+ * déjà. On demande donc l'état de CHAQUE moment déclaré, et on laisse
+ * l'arbitre répondre.
+ */
+function adviceForPlan(
+  row: PlanRow,
+  viewerMemberId: string | null,
+  ctx: AdviceContext | null,
+  days: readonly (string | null)[],
+): Array<{ day: string; slot: string; kcal: number }> {
+  if (ctx === null) return [];
+  const away = readViewerAway(row, viewerMemberId);
+  if (away === null) return [];
+  const out: Array<{ day: string; slot: string; kcal: number }> = [];
+  for (const day of days) {
+    if (!day) continue;
+    for (const occasion of ctx.slots) {
+      const advice = eatingOutAdvice({
+        // C9.b — LE JETON BRUT, jamais un littéral `"eating_out"` écrit ici.
+        // La garde est typée `string` exprès: si l'arbitre rendait un jour un
+        // quatrième état, ce chemin s'abstiendrait au lieu de deviner.
+        presenceState: presenceStateFor(away, day, occasion.slot),
+        reader: ctx.reader,
+        // Ce chemin ne calcule QUE pour la bouche du compte qui demande. Les
+        // chiffres des autres bouches ne franchissent pas le fil, pas même
+        // agrégés (FF-059 §11 n°4).
+        mouthIsReader: true,
+        mouthAgeState: ageStateFromVerdict(ctx.ageVerdict),
+        slots: ctx.slots,
+        occasion,
+        executed: ctx.executed,
+        direction: ctx.direction,
+      });
+      if (advice.reason !== "advised" || advice.kcal === null) continue;
+      out.push({ day, slot: occasion.slot, kcal: advice.kcal });
+    }
+  }
+  return out;
+}
+
 Deno.serve(async (req) => {
   const requestId = getRequestId(req);
   if (req.method === "OPTIONS") return handleCorsOptions(req);
@@ -383,6 +539,11 @@ Deno.serve(async (req) => {
     // par la cible plus bas. Jamais l'UTC du serveur: à Auckland, la garde
     // mineur se tromperait de jour pendant douze heures.
     let today = "";
+    // ① — LE VERDICT D'ÂGE DU LECTEUR, résolu UNE FOIS pour la porte ② et
+    // réutilisé par le conseil du midi (C9.a). Le redériver plus bas ferait une
+    // seconde définition de « mineur » dans le même fichier — celle qui, un
+    // jour, ne serait pas ajustée.
+    let ageVerdict: BirthDateVerdict | null = null;
     try {
       const [profileRes, loaded] = await Promise.all([
         admin
@@ -428,9 +589,10 @@ Deno.serve(async (req) => {
           forbiddenTokens: (loaded.doctrine?.forbidden ?? []).map((f) => f.token),
         });
 
+      ageVerdict = assessBirthDate(profile.birth_date, today);
       gate = canShowEnergy({
         restrictionFlag: floor.restriction_flag === true,
-        ageVerdict: assessBirthDate(profile.birth_date, today),
+        ageVerdict,
         coachCounting,
         // La colonne est `not null default false`; le `=== true` couvre la
         // ligne qu'un backfill futur laisserait nulle, et il se ferme dans le
@@ -500,6 +662,143 @@ Deno.serve(async (req) => {
 
     const index = await loadCompositionIndex(admin);
 
+    // ── ⑤ LA CIBLE (niveau C) ET ① LE CONSEIL DU MIDI ─────────────────────
+    //
+    // ⚠️ LE POIDS N'EST LU QUE SI LA PORTE ⑤ EST OUVERTE. Ce n'est pas une
+    // économie de requête: c'est la garde. Un élève qui n'a pas demandé de
+    // cible ne voit pas son poids voyager pour en produire une, et le corps de
+    // la réponse ne porte alors littéralement aucun champ dérivé de lui.
+    //
+    // ⛔ ET C'EST AUSSI LA GARDE DU CONSEIL DU MIDI, POUR LA MÊME RAISON. La
+    // décision ① du 2026-08-18 dit: « LA GARDE NE PRODUIT JAMAIS LE CHIFFRE.
+    // Elle ne le supprime pas après coup. » Le contexte ci-dessous — corps,
+    // objectif, rythme — n'est donc lu QUE derrière la porte ⑤. Quand elle est
+    // fermée, aucun kcal n'est calculé, et il n'y a rien à filtrer en aval.
+    let target: Record<string, unknown> | null = null;
+    let advice: AdviceContext | null = null;
+    if (targetGate?.show === true && ageVerdict !== null) {
+      try {
+        const body = await loadStudentBody(admin as never, userId, today);
+        const last = latest(body.weights);
+        // ⚠️ CE PARAMÈTRE MANQUAIT, ET LE FICHIER NE COMPILAIT PLUS. Le lot L0
+        // du 2026-08-18 a rendu `activityLevel` REQUIS dans `maintenanceRange`
+        // (c'est le point: le compilateur recense les lecteurs) et a livré les
+        // deux ÉCRIVAINS — `profiles.activity_level` et la porte de la fiche —
+        // sans reprendre ce lecteur-ci. `deno check` de cette fonction était
+        // donc rouge à HEAD, et `agent-gate` ne le voit pas: il ne vérifie que
+        // trois points d'entrée de `sophia-brain`.
+        //
+        // ⛔ ON LIT LA COLONNE PLUTÔT QUE DE PASSER `null`. `null` aurait
+        // recompilé en servant 28-33 à quelqu'un qui a répondu — c'est-à-dire un
+        // écrivain sans lecteur, la moitié débranchée que ce dépôt paie en
+        // boucle. La lecture est fail-soft: en panne ou hors vocabulaire, on
+        // retombe sur `null`, qui est EXACTEMENT le comportement d'avant L0.
+        const activityRes = await admin
+          .from("profiles")
+          .select("activity_level")
+          .eq("id", userId)
+          .maybeSingle();
+        const rawActivity = String(
+          (activityRes.data as Record<string, unknown> | null)?.activity_level ?? "",
+        ).trim();
+        const activityLevel: ActivityLevel | null =
+          (ACTIVITY_LEVELS as readonly string[]).includes(rawActivity)
+            ? (rawActivity as ActivityLevel)
+            : null;
+        const range = maintenanceRange({
+          weightKg: last?.value ?? null,
+          weightWeekStart: last?.weekStart ?? null,
+          activityLevel,
+        });
+        target = {
+          // ⚠️ UNE FOURCHETTE, JAMAIS UN POINT — c'est la forme qui décide si
+          // ce chiffre devient un objectif. Et AUCUN RESTE: la fonction ne
+          // soustrait rien du total du jour, et l'écran non plus. « Il te reste
+          // 680 kcal » est la phrase d'un tracker, et elle n'existe sur aucun
+          // chemin de ce produit.
+          low: range.range?.low ?? null,
+          high: range.range?.high ?? null,
+          basis: range.basis,
+          gap: range.gap,
+          // La date de la pesée, pour que l'élève sache sur QUAND la fourchette
+          // est posée. Aucune fraîcheur n'est calculée: ce serait un verdict de
+          // plus sur son corps.
+          weight_week_start: range.weightWeekStart,
+        };
+
+        // ── ① LE CONTEXTE DU CONSEIL DU MIDI ─────────────────────────────
+        //
+        // UNE SEULE REQUÊTE POUR TROIS COLONNES de `student_goals`: l'objectif,
+        // le cran du curseur, et le rythme déclaré. Deux lectures de la même
+        // table divergent, et c'est celle qu'on regarde le moins qui garde
+        // l'ancien comportement.
+        const goalsRes = await admin
+          .from("student_goals")
+          .select("goal, target_pace_kg_per_week, practical_constraints")
+          .eq("user_id", userId)
+          .maybeSingle();
+        if (goalsRes.error) throw goalsRes.error;
+        const goals = (goalsRes.data ?? null) as Record<string, unknown> | null;
+        const pc = (goals?.practical_constraints ?? null) as
+          | Record<string, unknown>
+          | null;
+        const goal = String(goals?.goal ?? "").trim();
+        // ⚠️ LA DIRECTION VIENT DE `scaleDirectionOf`, jamais d'une table
+        // réécrite ici: la règle des trois directions est écrite une seule fois
+        // dans `weight_pace.ts`, et `maintenance` y rend `null`.
+        const direction = (GOAL_TOKENS as readonly string[]).includes(goal)
+          ? scaleDirectionOf(goal as (typeof GOAL_TOKENS)[number])
+          : null;
+        const mouthBody: MouthBody = {
+          heightCm: body.heightCm,
+          weightKg: last?.value ?? null,
+          gender: body.gender,
+          // ⚠️ L'ÂGE VIENT DU VERDICT, PAS D'UNE SOUSTRACTION DE DATES ÉCRITE
+          // ICI. `usableAge` rend `null` sur tout ce qui n'est pas un âge
+          // lisible, et l'équation pédiatrique ne se choisit PAS dessus — elle
+          // se choisit sur `isMinor`, juste en dessous.
+          ageYears: usableAge(ageVerdict),
+          activityLevel,
+        };
+        const subject = {
+          body: mouthBody,
+          isMinor: ageVerdict.status === "minor",
+        };
+        const pace = Number(goals?.target_pace_kg_per_week);
+        advice = {
+          // LA CHAÎNE DU LECTEUR, TELLE QUELLE. `canShowTarget` a déjà tranché
+          // les cinq portes; la repasser ici en ferait un second point de
+          // décision sur la garde la plus sensible du produit.
+          reader: targetGate,
+          ageVerdict,
+          // Le rythme EFFECTIF: celui contre lequel le plan a été composé. Une
+          // journée non déclarée reçoit le défaut du produit, pas un silence —
+          // sinon on répartirait une journée sur zéro repas.
+          slots: effectiveRhythm(parseEatingRhythm(pc?.eating_rhythm)),
+          // ⚠️ LE RYTHME **EXÉCUTÉ**, JAMAIS LE CRAN CHOISI (cicatrice L8): le
+          // curseur d'une prise monte plus haut que ce que la casserole livre.
+          // Et sans direction ni cran, c'est l'entretien NU — « la cible EST
+          // l'entretien », le cas de la majorité de la base.
+          executed: direction !== null && Number.isFinite(pace) && pace > 0
+            ? executedPaceFor(direction, subject, pace)
+            : maintenancePaceFor(subject),
+          direction,
+        };
+      } catch (error) {
+        // FAIL-CLOSED, comme partout ici: pas de cible plutôt qu'une cible sur
+        // un poids qu'on n'a pas su lire, et pas de conseil plutôt qu'un
+        // conseil sur une journée qu'on n'a pas su lire.
+        await logEdgeFunctionError({
+          functionName: FN_NAME,
+          requestId,
+          error,
+          metadata: { source: "target" },
+        });
+        target = null;
+        advice = null;
+      }
+    }
+
     const plans = rows.map((row) => {
       const servings = Math.min(12, Math.max(1, Math.round(Number(row.servings) || 1)));
 
@@ -556,75 +855,25 @@ Deno.serve(async (req) => {
           // forme, pas même agrégée.
           addon_kcal: d.addonKcal,
         })),
+        // ══ ① · LE CONSEIL DU MIDI ══════════════════════════════════════
+        //
+        // « Au déjeuner, vise autour de 700. » Une CONSIGNE, jamais un solde:
+        // rien n'est soustrait, rien n'est archivé, et la phrase se compose à
+        // l'écran par `eatingOutAdviceSentence`, qui vit avec le nombre.
+        //
+        // ⚠️ INDEXÉ PAR JOUR ET PAR MOMENT, et lié aux jours QUE LE PLAN A
+        // PRODUITS. Un jour dont le plan n'a composé AUCUN plat n'a pas
+        // d'entrée ici — parce qu'il n'a pas non plus de bloc à l'écran où la
+        // poser. C'est un trou connu, structurel, et pas une abstention: il se
+        // refermera avec l'écran qui montrera une journée entièrement dehors.
+        eating_out_advice: adviceForPlan(
+          row,
+          viewerMemberId,
+          advice,
+          energy.days.map((d) => d.day),
+        ),
       };
     });
-
-    // ── ⑤ LA CIBLE (niveau C) ─────────────────────────────────────────────
-    //
-    // ⚠️ LE POIDS N'EST LU QUE SI LA PORTE ⑤ EST OUVERTE. Ce n'est pas une
-    // économie de requête: c'est la garde. Un élève qui n'a pas demandé de
-    // cible ne voit pas son poids voyager pour en produire une, et le corps de
-    // la réponse ne porte alors littéralement aucun champ dérivé de lui.
-    let target: Record<string, unknown> | null = null;
-    if (targetGate?.show === true) {
-      try {
-        const body = await loadStudentBody(admin as never, userId, today);
-        const last = latest(body.weights);
-        // ⚠️ CE PARAMÈTRE MANQUAIT, ET LE FICHIER NE COMPILAIT PLUS. Le lot L0
-        // du 2026-08-18 a rendu `activityLevel` REQUIS dans `maintenanceRange`
-        // (c'est le point: le compilateur recense les lecteurs) et a livré les
-        // deux ÉCRIVAINS — `profiles.activity_level` et la porte de la fiche —
-        // sans reprendre ce lecteur-ci. `deno check` de cette fonction était
-        // donc rouge à HEAD, et `agent-gate` ne le voit pas: il ne vérifie que
-        // trois points d'entrée de `sophia-brain`.
-        //
-        // ⛔ ON LIT LA COLONNE PLUTÔT QUE DE PASSER `null`. `null` aurait
-        // recompilé en servant 28-33 à quelqu'un qui a répondu — c'est-à-dire un
-        // écrivain sans lecteur, la moitié débranchée que ce dépôt paie en
-        // boucle. La lecture est fail-soft: en panne ou hors vocabulaire, on
-        // retombe sur `null`, qui est EXACTEMENT le comportement d'avant L0.
-        const activityRes = await admin
-          .from("profiles")
-          .select("activity_level")
-          .eq("id", userId)
-          .maybeSingle();
-        const rawActivity = String(
-          (activityRes.data as Record<string, unknown> | null)?.activity_level ?? "",
-        ).trim();
-        const range = maintenanceRange({
-          weightKg: last?.value ?? null,
-          weightWeekStart: last?.weekStart ?? null,
-          activityLevel: (ACTIVITY_LEVELS as readonly string[]).includes(rawActivity)
-            ? (rawActivity as ActivityLevel)
-            : null,
-        });
-        target = {
-          // ⚠️ UNE FOURCHETTE, JAMAIS UN POINT — c'est la forme qui décide si
-          // ce chiffre devient un objectif. Et AUCUN RESTE: la fonction ne
-          // soustrait rien du total du jour, et l'écran non plus. « Il te reste
-          // 680 kcal » est la phrase d'un tracker, et elle n'existe sur aucun
-          // chemin de ce produit.
-          low: range.range?.low ?? null,
-          high: range.range?.high ?? null,
-          basis: range.basis,
-          gap: range.gap,
-          // La date de la pesée, pour que l'élève sache sur QUAND la fourchette
-          // est posée. Aucune fraîcheur n'est calculée: ce serait un verdict de
-          // plus sur son corps.
-          weight_week_start: range.weightWeekStart,
-        };
-      } catch (error) {
-        // FAIL-CLOSED, comme partout ici: pas de cible plutôt qu'une cible sur
-        // un poids qu'on n'a pas su lire.
-        await logEdgeFunctionError({
-          functionName: FN_NAME,
-          requestId,
-          error,
-          metadata: { source: "target" },
-        });
-        target = null;
-      }
-    }
 
     return jsonResponse(req, {
       show: true,

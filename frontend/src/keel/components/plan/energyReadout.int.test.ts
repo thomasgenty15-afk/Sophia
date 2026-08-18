@@ -3,7 +3,12 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
 import { DayEnergyLine } from "./EnergyReadout";
-import { type DayEnergyView, readDay } from "../../api/mealEnergy";
+import {
+  attachEatingOutAdvice,
+  type DayEnergyView,
+  readDay,
+} from "../../api/mealEnergy";
+import { eatingOutAdviceSentence } from "../../../../../supabase/functions/_shared/keel/household_portions.ts";
 import { en } from "../../i18n/en";
 import { fr } from "../../i18n/fr";
 import { setChosenUiLocaleForTest } from "../../i18n/runtime";
@@ -183,7 +188,7 @@ describe("② le total d'un jour dit de quoi il parle", () => {
     expect(body).toBe(en["meals.energy.day_unreadable"]);
   });
 
-  it("⛔ AUCUN SOLDE, AUCUN VERDICT, AUCUNE COULEUR NEUVE", () => {
+  it("⛔ AUCUN SOLDE, AUCUN VERDICT, AUCUNE COULEUR NEUVE (②)", () => {
     // Le total d'un jour tronqué est le point du produit où « il te reste 680
     // kcal » serait le plus tentant. Il n'existe nulle part, et la teinte reste
     // celle du total — décidée par `complete`, pas par le nombre de repas
@@ -195,5 +200,75 @@ describe("② le total d'un jour dit de quoi il parle", () => {
     expect(markup).toContain("text-ink-soft");
     expect(markup).not.toContain("text-amber-700");
     expect(markup).not.toContain("text-red");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// ① — LE CONSEIL DU MIDI, SUR LA VALEUR RENDUE
+// ---------------------------------------------------------------------------
+
+/** Un midi dehors, avec son ordre de grandeur. */
+const WITH_ADVICE = attachEatingOutAdvice(
+  [readDay({
+    day: "tue",
+    kcal: 1400,
+    basis: "plan_quantities",
+    complete: true,
+    dishes_counted: 2,
+    dishes_total: 2,
+    addon_kcal: 0,
+    meals_out: 1,
+    subject: "what_the_plan_made",
+  })],
+  [{ day: "tue", slot: "lunch", kcal: 700 }],
+)[0];
+
+describe("① le conseil du midi atteint enfin quelqu'un", () => {
+  it("⛔ LA PHRASE DU MODULE, EN ANGLAIS — et « around » est load-bearing", () => {
+    // `eatingOutAdvice` était écrit, gardé et testé depuis L8-B, et n'avait
+    // AUCUN APPELANT: la garde existait, la phrase n'atteignait personne.
+    const body = text(html(WITH_ADVICE));
+    expect(body).toContain(eatingOutAdviceSentence("en", "lunch", 700));
+    expect(body).toContain("aim for around 700");
+  });
+
+  it("… ET EN FRANÇAIS, avec la préposition du libellé", () => {
+    // ⚠️ « Au déjeuner » et « À ta collation du matin »: la préposition
+    // française se contracte avec le genre du mot, et un gabarit `Au ${label}`
+    // fabrique une faute dans une langue sur deux.
+    const body = text(html(WITH_ADVICE, "fr"));
+    expect(body).toContain(eatingOutAdviceSentence("fr", "lunch", 700));
+    expect(body).toContain("Au déjeuner, vise autour de 700.");
+    expect(body).not.toContain("aim for around");
+  });
+
+  it("LE CAS QUI PASSE À L'ENVERS: aucune case dehors, aucune phrase", () => {
+    const body = text(html(WHOLE_DAY));
+    expect(body).not.toContain("aim for around");
+  });
+
+  it("⚠️ IL SURVIT À UNE JOURNÉE ILLISIBLE", () => {
+    // « Vise 700 au déjeuner » est vrai que le référentiel ait su lire les
+    // autres plats ou non: le conseil se calcule sur la journée DÉCLARÉE. Le
+    // taire ici serait le perdre très exactement le jour où l'écran n'a rien
+    // d'autre à offrir.
+    const unreadable = attachEatingOutAdvice(
+      [readDay({ day: "tue", kcal: null, complete: false, dishes_counted: 0, dishes_total: 2 })],
+      [{ day: "tue", slot: "lunch", kcal: 700 }],
+    )[0];
+    const body = text(html(unreadable));
+    expect(body).toContain(en["meals.energy.day_unreadable"]);
+    expect(body).toContain("aim for around 700");
+  });
+
+  it("⛔ UNE CONSIGNE, JAMAIS UN SOLDE — et jamais un « autour de 0 »", () => {
+    const body = text(html(WITH_ADVICE)).toLowerCase();
+    for (const word of ["left", "remaining", "you have", "deficit", "over"]) {
+      expect(body).not.toContain(word);
+    }
+    expect(body).not.toContain("around 0");
+    // Aucune couleur d'alerte: c'est un repère, pas un score.
+    expect(html(WITH_ADVICE)).not.toContain("text-amber");
+    expect(html(WITH_ADVICE)).not.toContain("text-red");
   });
 });

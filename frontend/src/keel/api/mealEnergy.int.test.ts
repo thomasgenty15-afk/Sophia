@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  attachEatingOutAdvice,
   dayEnergySubjectClause,
   finiteEnergyNumber,
   readDay,
@@ -234,6 +235,65 @@ describe("readDay — de quoi ce nombre parle", () => {
   it("le compte est un ENTIER: un fil bavard ne rend pas « 1,4 repas dehors »", () => {
     expect(readDay({ ...OUT_DAY, meals_out: 1.4 }).mealsOut).toBe(1);
     expect(readDay({ ...OUT_DAY, meals_out: "3" }).mealsOut).toBe(3);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// ① — LE CONSEIL DU MIDI, LU SANS RIEN RÉPARER
+// ---------------------------------------------------------------------------
+
+describe("attachEatingOutAdvice — l'ordre de grandeur d'une case « dehors »", () => {
+  const days = [
+    readDay({ day: "mon", kcal: 1400, complete: true, dishes_total: 2, dishes_counted: 2 }),
+    readDay({ day: "tue", kcal: 1900, complete: true, dishes_total: 3, dishes_counted: 3 }),
+  ];
+
+  it("LE CAS QUI PASSE: le conseil se range sur SON jour, et sur lui seul", () => {
+    const out = attachEatingOutAdvice(days, [
+      { day: "mon", slot: "lunch", kcal: 700 },
+    ]);
+    expect(out[0].eatingOutAdvice).toEqual([{ slot: "lunch", kcal: 700 }]);
+    // ⚠️ ET PAS SUR L'AUTRE JOUR. Lire les deux tableaux par index servirait à
+    // quelqu'un l'ordre de grandeur d'un autre midi — les deux ne sont pas
+    // alignés: un jour peut n'avoir aucun conseil.
+    expect(out[1].eatingOutAdvice).toEqual([]);
+  });
+
+  it("plusieurs cases du même jour tiennent ensemble", () => {
+    const out = attachEatingOutAdvice(days, [
+      { day: "tue", slot: "lunch", kcal: 700 },
+      { day: "tue", slot: "dinner", kcal: 900 },
+    ]);
+    expect(out[1].eatingOutAdvice).toEqual([
+      { slot: "lunch", kcal: 700 },
+      { slot: "dinner", kcal: 900 },
+    ]);
+  });
+
+  it("⛔ UN MOMENT HORS VOCABULAIRE TOMBE, il n'est jamais rendu brut", () => {
+    // Sinon `EATING_OUT_SLOT_LABELS[slot]` vaut `undefined` et la phrase sort
+    // avec « undefined » dedans, sous les yeux de quelqu'un.
+    for (const slot of ["brunch", "", "LUNCH", null, 3]) {
+      const out = attachEatingOutAdvice(days, [{ day: "mon", slot, kcal: 700 }]);
+      expect(out[0].eatingOutAdvice).toEqual([]);
+    }
+  });
+
+  it("⛔ « VISE AUTOUR DE 0 » N'EXISTE PAS: `Number(null)` ne devient pas un conseil", () => {
+    // Le piège du 0–0, troisième forme. « Au déjeuner, vise autour de 0 » se
+    // lirait « ne mange rien » — le sens exactement inverse, et sur la phrase
+    // la plus directive du produit.
+    for (const kcal of [null, undefined, "", 0, -50]) {
+      const out = attachEatingOutAdvice(days, [{ day: "mon", slot: "lunch", kcal }]);
+      expect(out[0].eatingOutAdvice).toEqual([]);
+    }
+  });
+
+  it("un serveur muet laisse les jours intacts", () => {
+    for (const raw of [null, undefined, [], "nope", {}]) {
+      const out = attachEatingOutAdvice(days, raw);
+      expect(out.map((d) => d.eatingOutAdvice)).toEqual([[], []]);
+    }
   });
 });
 
