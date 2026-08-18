@@ -1,0 +1,36 @@
+le commentaire qui interdisait le repli vide etait sa seule garde
+
+Mutation jouee sur `TableStepPlanning`: remplacer `null` par `new Map()` dans le
+`catch` de la lecture — c'est-a-dire dire « personne n'a repondu » a un foyer qui
+a repondu — passait les NEUF tests du fichier sans en faire tomber un.
+
+La cause est celle qui a deja sorti `commitWorkLunch` du JSX:
+`renderToStaticMarkup` ne joue AUCUN effet, donc ce `catch` n'etait atteignable
+par aucun test de ce depot. Le pave de commentaire qui l'interdisait etait, a la
+lettre, la seule chose qui le retenait.
+
+CE QUE ÇA COUTE QUAND ÇA CASSE, ET CE N'EST PAS UN AFFICHAGE. `null` veut dire
+« la lecture n'a pas eu lieu »: la carte ne pose aucune question. Une `Map` vide
+veut dire « lu, personne n'a repondu »: la carte pose ses sept questions,
+vierges. Un reseau qui tombe sur un foyer qui a repondu afficherait donc des
+questions vierges — et le premier clic ecrirait par-dessus la reponse de
+quelqu'un en croyant la creer. Cette ecriture-la re-applique le pre-remplissage
+des cinq midis « dehors », y compris celui qui venait d'etre decoche a la main.
+
+`readWorkLunchAnswers` prend son lecteur en argument: aucun reseau, donc on peut
+lui faire jeter. Quatre mutations, quatre rouges:
+
+  · le repli rend `new Map()`            -> 2 rouges
+  · le motif de l'erreur est avale       -> 2 rouges
+  · la fonction rend `null` a tout le monde (garde cassee) -> 2 rouges
+  · une Map vide LUE est prise pour un echec               -> 1 rouge
+
+Les deux derniers sont la parce qu'une garde a besoin d'un cas qui passe: cassee,
+elle bloquerait tout et ressemblerait a une garde qui marche. Et « lu, personne
+n'a repondu » est une reponse legitime, pas une panne.
+
+Le composant ne remet PAS `answers` a `null` sur un echec: ce qui a deja ete lu
+reste vrai, et le motif se dit a cote. C'est le refus de FABRIQUER du vide qui
+est la garde, pas l'effacement de ce qu'on avait.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>

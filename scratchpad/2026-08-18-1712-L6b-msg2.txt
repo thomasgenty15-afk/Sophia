@@ -1,0 +1,40 @@
+l'etape `table` demandait QUAND on cuisine sans avoir demande AVEC QUOI
+
+`KitchenEquipmentCard` (L2-A) et `WorkLunchCard` (L3-A) etaient ecrites,
+testees, commitees — et montees NULLE PART. Une donnee sans lecteur est une
+dette; une CARTE sans montage en est une autre, prise par l'autre bout: le
+tunnel posait ses questions de disponibilite au-dessus d'un four dont il
+ignorait l'existence.
+
+`TableStepPlanning` est monte EN TETE de l'etape, avant `TableStep` qui porte
+les moments. L'ordre n'est pas cosmetique: planifier une cuisson qu'aucun
+appareil de la maison ne peut faire, puis demander a quelqu'un de trouver le
+temps de la faire, est l'ordre inverse.
+
+UN BLOC A PART, PAS UN FRAGMENT AUTOUR DE `TableStep`, ET C'EST UN CHOIX DE
+COHABITATION. Ce fichier de 3 844 lignes est partage par trois lanes
+aujourd'hui (479 lignes non commitees dans l'arbre au moment de ce commit):
+re-indenter les quarante lignes de `TableStep` pour les envelopper aurait fait
+un diff que personne ne peut relire a cote du sien. Deux blocs sur la meme
+condition rendent la meme chose, dans le meme ordre.
+
+Le titulaire est la PREMIERE bouche du roster, et sans lui la question du
+dejeuner ne se poserait jamais a celui qui remplit le formulaire:
+`readFunnelFacts` le retire de `mouths`, il vit dans `state.self`. Sa date a lui
+est une vraie date (`profiles.birth_date`); celle des autres bouches est une
+marque de presence — `workLunchRoster` sait laquelle est laquelle, et c'est
+pourquoi on ne lui passe pas `kind` seul.
+
+`onSaved` relit la page APRES le dejeuner aussi, pas seulement apres
+l'equipement: la porte SQL ecrit `away_days` en meme temps que `work_lunch`, et
+sans cette relecture l'etape 4 monterait sa grille sur les absences d'AVANT le
+pre-remplissage.
+
+⚠️ CE COMMIT NE PORTE QUE MES DEUX HUNKS. Il a ete fabrique dans un index prive
+(`GIT_INDEX_FILE`) rempli depuis HEAD puis complete par `git apply --cached`:
+l'index partage n'a pas ete touche, et le travail non commite des lanes
+voisines sur ce fichier reste exactement ou il etait, dans l'arbre. Le patch de
+ces deux hunks est aussi depose en clair dans
+`scratchpad/2026-08-18-1710-L6b-montage-SetupPage.patch`.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>
