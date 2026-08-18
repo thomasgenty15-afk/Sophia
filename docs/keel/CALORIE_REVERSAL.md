@@ -32,6 +32,27 @@ un nombre peut voyager sans sa base, donc c'est la seule forme qui ne doit jamai
 
 ### 0. LA GARDE TCA — avant tout le reste
 
+> ✅ **TRANCHÉE LE 2026-08-18.** Les trois réponses sont écrites, le code est posé et éprouvé.
+> Rapport : [`scratchpad/2026-08-18-1100-L4A-garde-tca.md`](../../scratchpad/2026-08-18-1100-L4A-garde-tca.md).
+> Code : `_shared/keel/energy_gate.ts` (`energySafetyGates`, `canSizeFromTarget`,
+> `canEmitMouthEnergy`) et `energy_gate_mouth_test.ts`.
+>
+> 1. **La garde ne PRODUIT jamais le chiffre** — elle ne le supprime pas après coup (décision de
+>    l'utilisateur). Rien à filtrer, donc rien qui puisse fuir par un chemin d'affichage oublié.
+>    **L'état se lit AVANT le calcul, jamais entre le calcul et l'écran.**
+> 2. **L'état est celui qui existe déjà, et il devient REQUIS.** Aucune colonne neuve : les cinq
+>    états (plancher dérivé, `profiles.birth_date`, jeton `count_calories`,
+>    `energy_display_enabled`, `energy_target_enabled`) sont **tous clés sur `auth.users`, aucun
+>    sur `member_id`** — un foyer de quatre bouches n'a qu'UNE ceinture. Un appelant qui oublie
+>    une porte échoue à la compilation ET à l'exécution.
+> 3. **Oui, et là où on rencontre le chiffre.** Les deux interrupteurs couvraient l'EFFET partout
+>    et la PORTÉE nulle part : l'unique bascule vivait sur `/app/plan`, alors que `/app/today`
+>    affichait les chiffres sans aucun contrôle. Réparé. Et **aucun chiffre attribué à une autre
+>    bouche ne sort** (`other_mouth`) — ce qu'on ne peut pas faire taire n'existe pas.
+>
+> ⚠️ Ce que L8 doit respecter pour ne pas contourner cette garde : §8 du rapport (C1 à C8), dont
+> le retournement de la propriété R6 de `no_calorie_to_student_property_test.ts`.
+
 **L'élève est le destinataire de ce chiffre** (décision du 2026-08-06). C'est ce qui rend cette
 étape bloquante plutôt que consultative.
 
@@ -49,7 +70,8 @@ une erreur de citation. Ne pas la propager.)
   de garde optionnel est une garde désarmée.)
 - L'élève peut-il éteindre l'affichage ? Un chiffre qu'on ne peut pas faire taire est un tracker.
 
-Tant que ces trois réponses ne sont pas écrites, les étapes 1 à 6 restent fermées.
+~~Tant que ces trois réponses ne sont pas écrites, les étapes 1 à 6 restent fermées.~~
+**Écrites le 2026-08-18** (encadré ci-dessus). Les étapes 1 à 6 sont ouvertes.
 
 ### 1. Le type
 
