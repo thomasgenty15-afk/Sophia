@@ -56,10 +56,53 @@
  * Réécrite ici plutôt qu'importée, pour la raison que `safety_constraint_floor`
  * donne déjà: on ne couple pas un plancher d'intake à une ceinture de sortie.
  * Les deux planchers restent indépendamment supprimables.
+ *
+ * ── LES LIGATURES SONT DÉPLIÉES, PAS SUPPRIMÉES (2026-08-22, lot S1c) ───────
+ * TROISIÈME copie de la même normalisation, et elle portait la même blessure
+ * que `safety_constraint_floor.ts` — corrigée quelques minutes plus tôt par le
+ * lot S1, d'où celui-ci est recopié. `œ` et `æ` ne sont PAS des accents
+ * composés: ils survivent à `NFD`, et le filtre `[^a-z0-9\s]` juste en dessous
+ * les remplaçait donc par une espace au lieu de les ramener à leurs deux
+ * lettres.
+ *
+ * ⛔ ET C'EST PIRE ICI QUE POUR L'ALLERGIE. Dans le catalogue d'allergènes la
+ * ligature était une VARIANTE — le digramme « oeuf » y figurait déjà. Ici,
+ * `cœliaque` EST la graphie normale du mot, et `coeliac_disease` est le seul
+ * jeton de la table qui en porte une. Mesuré le 2026-08-22 à 01:39:44 CEST,
+ * avant toute ligne de correctif:
+ *
+ *     « j'ai une maladie cœliaque »  ⇒ null
+ *     « j'ai une maladie coeliaque » ⇒ coeliac_disease
+ *
+ * soit 4 des 6 formes de `coeliac_disease` mortes sous ligature — 4/4 des
+ * formes concernées, 0/4 d'accord entre les deux graphies. Sur une garde dont
+ * l'en-tête dit qu'elle est « le SEUL défaut de toute la campagne qui peut
+ * blesser quelqu'un », la déclaration retombait sur le tirage du dispatcher.
+ *
+ * ⚠️ Le dépliage aligne AUSSI les désarmements, et c'est voulu: `soeur`
+ * (« ma sœur est diabétique ») est le second et dernier littéral de ce module
+ * à porter un digramme. Avant, `ma sœur` ne désarmait pas là où `ma soeur`
+ * désarmait — deux graphies, deux verdicts. Le critère du lot est
+ * l'ÉQUIVALENCE des deux graphies, dans les deux sens.
+ *
+ * C'est le repli déjà posé le 2026-08-19 dans `allergen_catalog.ts` et le
+ * 2026-08-22 dans `safety_constraint_floor.ts`. ⛔ Les modules ne sont PAS
+ * fusionnés: le découplage est délibéré et écrit juste au-dessus. La règle est
+ * recopiée, pas importée, et les commentaires se citent.
+ *
+ * ⚠️ Écrit en séquences d'échappement (`\u0153`, `\u00e6`), comme les deux
+ * modules frères: ce dépôt a déjà produit du mojibake qu'aucun `tsc` ni test
+ * de parité n'attrape. Les caractères littéraux `œ` et `æ` n'apparaissent que
+ * dans ce commentaire — jamais dans le chemin exécuté.
+ *
+ * ⚠️ Le dépliage vient APRÈS `toLowerCase()`, pour que `Œ` et `Æ` passent
+ * aussi.
  */
 function normalize(text: string): string {
   return String(text ?? "")
     .toLowerCase()
+    .replace(/\u0153/g, "oe")
+    .replace(/\u00e6/g, "ae")
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "")
     .replace(/['’]/g, " ")

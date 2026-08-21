@@ -16,6 +16,7 @@ import { assert, assertEquals } from "jsr:@std/assert@1";
 import {
   CLINICAL_DEFERRAL_BLOCK,
   detectDeclaredMedicalCondition,
+  MEDICAL_CONDITION_SURFACE_FORMS,
 } from "./medical_condition_floor.ts";
 
 // ---------------------------------------------------------------------------
@@ -287,4 +288,192 @@ Deno.test("le bloc n'est pas une phrase relisible à l'élève", () => {
   // Le lot A1 a mesuré qu'un en-tête RÉDIGÉ ressort verbatim dans la bouche de
   // l'agent (3/3). Celui-ci est une étiquette, comme les blocs de doctrine.
   assert(CLINICAL_DEFERRAL_BLOCK.startsWith("== HOW YOU ANSWER THIS TURN =="));
+});
+
+// ---------------------------------------------------------------------------
+// LES LIGATURES (lot S1c, 2026-08-22) — le JUMEAU CLINIQUE de S1
+// ---------------------------------------------------------------------------
+//
+// MESURE AVANT, 2026-08-22 01:39:44 CEST, avant toute ligne de correctif:
+//   « j'ai une maladie cœliaque »  ⇒ null           ← la graphie NORMALE du mot
+//   « j'ai une maladie coeliaque » ⇒ coeliac_disease
+// 4 des 6 formes de `coeliac_disease` sont concernées, et les 4 étaient mortes
+// sous ligature: accord entre les deux graphies 0/4 = 0 %.
+//
+// ⛔ C'est PIRE que pour l'allergie. Dans le catalogue d'allergènes la ligature
+// était une VARIANTE — le digramme « oeuf » y figurait déjà. Ici `cœliaque` EST
+// l'orthographe normale, et `coeliac_disease` est le seul jeton de la table à
+// en porter une. Sur la garde dont l'en-tête dit qu'elle est « le SEUL défaut
+// de toute la campagne qui peut blesser quelqu'un ».
+//
+// ⚠️ Ces quatre tests forment le trépied de S1, recopié, et se lisent ensemble:
+// un qui MORD (la ligature), un qui NE MORD PAS (sans lui, une `normalize()`
+// cassée ferait tout mordre et ressemblerait trait pour trait à une garde qui
+// marche), un BALAYAGE qui compte ses propres cas (un balayage vide est vert
+// pour rien: cicatrice `V0-B-bis`), et un qui DIT UNE ABSENCE (le dépliage `æ`
+// n'a aucune cible dans cette table).
+//
+// ⛔ LE CRITÈRE N'EST PAS « rend ce ref », C'EST « les deux graphies rendent le
+// MÊME verdict ». S1 a d'abord rougi pour la mauvaise raison en l'ignorant.
+
+/** La graphie en digramme d'une chaîne à ligature. */
+function digraphe(s: string): string {
+  return s.replace(/œ/g, "oe").replace(/æ/g, "ae");
+}
+
+Deno.test("LIGATURE — les 6 formulations françaises mordent dans les DEUX graphies", () => {
+  const formulations = [
+    "j'ai une maladie cœliaque",
+    "je suis cœliaque",
+    "on m'a diagnostiqué une maladie cœliaque",
+    "je souffre d'une maladie cœliaque",
+    "je vis avec une maladie cœliaque",
+    "on m'a détecté une maladie cœliaque",
+  ];
+  assertEquals(formulations.length, 6, "la grille doit porter ses 6 formulations");
+
+  for (const ligature of formulations) {
+    const digramme = digraphe(ligature);
+    assert(
+      ligature !== digramme,
+      `cas dégénéré, la ligature a disparu du littéral: ${ligature}`,
+    );
+
+    const hitLig = detectDeclaredMedicalCondition(ligature);
+    assert(hitLig, `doit mordre sous ligature: ${ligature}`);
+    assertEquals(hitLig!.condition_ref, "coeliac_disease", ligature);
+
+    // ⚠️ AUCUNE RÉGRESSION SUR LE DIGRAMME: c'est la moitié qui marchait déjà.
+    const hitDig = detectDeclaredMedicalCondition(digramme);
+    assert(hitDig, `doit mordre sous digramme: ${digramme}`);
+    assertEquals(hitDig!.condition_ref, "coeliac_disease", digramme);
+
+    // Et les deux graphies rendent le MÊME verdict, terme mordu compris.
+    assertEquals(hitLig!.matched, hitDig!.matched, ligature);
+    // `notes` porte les mots de l'élève TELS QUELS — la ligature n'est dépliée
+    // que pour reconnaître, jamais pour réécrire ce qu'il a tapé.
+    assertEquals(hitLig!.notes, ligature, ligature);
+  }
+});
+
+Deno.test("LIGATURE — BALAYAGE: toute forme concernée de la table est couverte", () => {
+  // MESURÉ le 2026-08-22: la table ne porte AUCUNE ligature littérale (0 sur
+  // 76 formes, 11 jetons). Ce qu'elle porte, ce sont des DIGRAMMES qu'un
+  // francophone écrit normalement avec une ligature — aujourd'hui les 4 formes
+  // de `coeliac_disease`, et rien d'autre.
+  //
+  // Le balayage est écrit sur la TABLE et non sur une liste recopiée: le jour
+  // où quelqu'un ajoute « oedeme », « caecum » ou « nævus », il entre ici tout
+  // seul, et ce test rougit s'il n'est pas couvert.
+  const concernees: Array<{ ref: string; form: string }> = [];
+  for (const [ref, forms] of Object.entries(MEDICAL_CONDITION_SURFACE_FORMS)) {
+    for (const form of forms) {
+      if (/(oe|ae)/.test(form.toLowerCase()) || /[œæ]/.test(form)) {
+        concernees.push({ ref, form });
+      }
+    }
+  }
+
+  // ⛔ L'ASSERTION DE CARDINALITÉ, et elle n'est pas décorative: une boucle sur
+  // zéro cas est verte sans rien avoir prouvé.
+  assert(
+    concernees.length >= 1,
+    "balayage vide — un balayage qui ne couvre rien n'est pas une preuve",
+  );
+
+  for (const { ref, form } of concernees) {
+    const ligature = form.replace(/oe/g, "œ").replace(/ae/g, "æ");
+    assert(ligature !== form, `${ref}: aucune ligature à produire pour ${form}`);
+
+    const hitLig = detectDeclaredMedicalCondition(`j'ai une ${ligature}`);
+    const hitDig = detectDeclaredMedicalCondition(`j'ai une ${form}`);
+
+    // Le critère est l'ÉQUIVALENCE des deux graphies, pas « rend ce ref »: une
+    // forme peut être listée sous deux clés, et l'index n'en résout qu'une.
+    assert(hitDig, `${ref}: le digramme ${form} ne mord pas — prémisse cassée`);
+    assert(hitLig, `${ref}: la ligature ${ligature} ne mord pas`);
+    assertEquals(hitLig!.condition_ref, hitDig!.condition_ref, form);
+    assertEquals(hitLig!.matched, hitDig!.matched, form);
+  }
+});
+
+Deno.test("LIGATURE — LE CAS QUI PASSE: le dépliage n'ouvre aucune porte", () => {
+  // Sans ces cas, une `normalize()` cassée — qui ferait mordre tout — aurait
+  // exactement la tête d'une garde qui marche.
+  for (
+    const message of [
+      // Le témoin neutre.
+      "j'aime bien les pâtes",
+      // Une ligature dans une phrase qui ne déclare aucune maladie.
+      "j'ai mangé des œufs à midi",
+      // Les désarmements tiennent SOUS ligature. Avant le correctif ils
+      // rendaient `null` pour la MAUVAISE raison — le terme ne se résolvait
+      // pas; maintenant c'est bien le désarmement qui parle.
+      "je ne suis pas cœliaque",
+      "est-ce que je suis cœliaque ?",
+      "j'ai peur de devenir cœliaque",
+      "ma sœur est cœliaque",
+      // R7 — la ligature ne doit pas inventer un jeton: « cœur » se déplie en
+      // « coeur », qui n'est dans aucune table. On ne rapproche jamais du plus
+      // proche, même quand `heart_disease` est à un mot de là.
+      "j'ai une maladie de cœur",
+    ]
+  ) {
+    assertEquals(
+      detectDeclaredMedicalCondition(message),
+      null,
+      `ne doit PAS mordre: ${message}`,
+    );
+  }
+});
+
+Deno.test("LIGATURE — le désarmement « quelqu'un d'autre » vaut dans les DEUX graphies", () => {
+  // ⛔ CE TEST DIT UN CHANGEMENT DE COMPORTEMENT, et il faut le lire comme tel.
+  // `soeur` est le SECOND et dernier littéral à digramme de ce module (l'autre
+  // est `coeliaque`, dans le désarmement de négation). Mesuré le 2026-08-22 à
+  // 01:39:44, AVANT le correctif:
+  //   « ma sœur est diabétique et j'ai un diabète de type 2 »  ⇒ diabetes
+  //   « ma soeur est diabétique et j'ai un diabète de type 2 » ⇒ null
+  // Deux graphies, deux verdicts — sur un désarmement, donc dans l'autre sens
+  // que la maladie cœliaque: le plancher SUR-déclenchait sous ligature.
+  //
+  // Le dépliage aligne les deux sur le comportement du digramme, qui est celui
+  // que l'auteur a écrit et testé. Ce qui reste vrai des deux côtés: c'est la
+  // maladie de quelqu'un d'autre qui est nommée en tête, et le désarmement
+  // « autrui » est ABSOLU par construction (il NIE la déclaration).
+  for (
+    const phrase of [
+      "ma sœur est diabétique et j'ai un diabète de type 2",
+      "ma sœur est cœliaque",
+    ]
+  ) {
+    assertEquals(
+      detectDeclaredMedicalCondition(phrase),
+      detectDeclaredMedicalCondition(digraphe(phrase)),
+      `les deux graphies doivent rendre le même verdict: ${phrase}`,
+    );
+    assertEquals(detectDeclaredMedicalCondition(phrase), null, phrase);
+  }
+});
+
+Deno.test("LIGATURE — æ est déplié par SYMÉTRIE, et n'a aucune cible aujourd'hui", () => {
+  // ⛔ CE TEST DIT UNE ABSENCE, et il faut le lire comme tel: le dépliage
+  // `æ → ae` de `medical_condition_floor.ts` n'est exercé de bout en bout par
+  // AUCUNE maladie — zéro forme de la table ne contient « ae ». Il est posé
+  // parce que les deux modules frères (`allergen_catalog.ts`,
+  // `safety_constraint_floor.ts`) le portent, et que deux normalisations qui
+  // divergent sont exactement la facture que S1 puis S1c viennent de payer.
+  //
+  // Le jour où une forme en « ae » entre dans la table, le BALAYAGE ci-dessus
+  // la prend automatiquement — et ce test-ci rougit pour prévenir que
+  // l'affirmation d'absence a cessé d'être vraie. Sans lui, un dépliage jamais
+  // exercé ressemble TRAIT POUR TRAIT à un dépliage qui marche.
+  const avecAe = Object.entries(MEDICAL_CONDITION_SURFACE_FORMS)
+    .flatMap(([ref, forms]) => forms.map((form) => ({ ref, form })))
+    .filter(({ form }) => /ae/.test(form.toLowerCase()) || /æ/.test(form));
+  assertEquals(
+    avecAe.map(({ ref, form }) => `${ref}:${form}`),
+    [],
+    "une forme en « ae » est apparue — vérifier qu'elle est couverte sous « æ »",
+  );
 });
