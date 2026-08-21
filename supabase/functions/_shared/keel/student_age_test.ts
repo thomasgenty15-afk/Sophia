@@ -117,6 +117,63 @@ Deno.test("weekPlanAgeGate: une date inexploitable ne bloque pas non plus", () =
   }
 });
 
+Deno.test("⟳ S3 — SERVIR et CHIFFRER sont deux questions, et elles divergent", () => {
+  // LE test du lot `S3`, et il est écrit comme une TABLE parce que c'est la
+  // divergence qui est le fait: sur quatre statuts d'âge sur six, `allowed` et
+  // `numberAllowed` ne disent PAS la même chose. Un booléen unique — celui que
+  // ce module a retiré une première fois pour ne plus confondre « on ne sait
+  // pas » et « c'est un enfant » — les confondrait à nouveau, et le prix serait
+  // 91 % de la base (1 193 profils sur 1 313 au 2026-08-22).
+  const table: ReadonlyArray<[string, boolean, boolean]> = [
+    //  date               allowed  numberAllowed
+    ["1990-01-01", /*    */ true, /*  */ true], // adulte avéré: LE CAS QUI PASSE
+    ["2014-01-01", /*    */ false, /* */ false], // mineur avéré: les deux ferment
+    ["", /*              */ true, /*  */ false], // absente
+    ["n'importe quoi", /**/ true, /*  */ false], // illisible
+    ["2026-08-05", /*    */ true, /*  */ false], // future
+    ["1900-01-01", /*    */ true, /*  */ false], // aberrante
+  ];
+  let diverged = 0;
+  for (const [raw, allowed, numberAllowed] of table) {
+    const gate = weekPlanAgeGate(assessBirthDate(raw, TODAY));
+    assertEquals(gate.allowed, allowed, `allowed sur ${JSON.stringify(raw)}`);
+    assertEquals(
+      gate.numberAllowed,
+      numberAllowed,
+      `numberAllowed sur ${JSON.stringify(raw)}`,
+    );
+    if (gate.allowed !== gate.numberAllowed) diverged++;
+  }
+  // ⛔ LA PRÉMISSE DE LA GARDE, AVANT LA GARDE. Si les deux champs finissaient
+  // par valoir la même chose partout, la table ci-dessus resterait verte en ne
+  // prouvant plus rien — et `numberAllowed` serait un alias d'`allowed`, donc
+  // une garde qu'on croit avoir. Quatre lignes DOIVENT diverger.
+  assertEquals(diverged, 4, "SERVIR et CHIFFRER ont cessé de diverger");
+});
+
+Deno.test("⟳ S3 — `numberAllowed` est vrai POUR LE SEUL adulte avéré", () => {
+  // Le complément du test ci-dessus, écrit sur les six statuts nommés plutôt
+  // que sur six dates: si `assessBirthDate` gagne un septième statut, il tombe
+  // dans le `default` de `weekPlanAgeGate` et ce test le voit fermé — la
+  // direction sûre, sans que personne ait à y penser.
+  for (const [raw, status] of Object.entries({
+    "1990-01-01": "adult",
+    "2014-01-01": "minor",
+    "": "absent",
+    "n'importe quoi": "unreadable",
+    "2026-08-05": "future",
+    "1900-01-01": "implausible",
+  })) {
+    const verdict = assessBirthDate(raw, TODAY);
+    assertEquals(verdict.status, status, raw);
+    assertEquals(
+      weekPlanAgeGate(verdict).numberAllowed,
+      status === "adult",
+      `${status}: le chiffre`,
+    );
+  }
+});
+
 Deno.test("weekPlanAgeGate: CONTRE-FACTUEL — le même élève, un jour plus tard", () => {
   // La veille de ses 18 ans: bloqué. Le jour même: passe. Rien d'autre n'a
   // changé, ce qui est la seule façon de prouver que c'est bien l'âge qui décide.

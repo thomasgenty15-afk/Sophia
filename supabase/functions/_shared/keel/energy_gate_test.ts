@@ -78,6 +78,11 @@ function expectedReason(
 ): EnergyGateReason {
   if (restrictionFlag) return "restriction_floor";
   if (ageLabel === "minor") return "minor";
+  // ⟳ S3 — LA PORTE ②bis, RÉÉCRITE ICI EN TOUTES LETTRES. Seul un ADULTE
+  // AVÉRÉ passe l'âge. Les quatre autres statuts (absente, illisible, future,
+  // aberrante) sont quatre façons de ne pas savoir, et « on ne sait pas »
+  // n'ouvre pas un déficit sur un corps peut-être en croissance.
+  if (ageLabel !== "adult") return "age_unknown";
   if (coachCounting === "no_counting") return "doctrine_no_counting";
   if (!studentSwitch) return "student_off";
   return "open";
@@ -117,12 +122,15 @@ Deno.test("FF-059 — table de vérité EXHAUSTIVE des quatre portes", () => {
   }
 
   assertEquals(rows, 2 * 6 * 2 * 2);
-  // Les cinq motifs sont atteignables. Un motif jamais produit est une branche
+  // Les SIX motifs sont atteignables. Un motif jamais produit est une branche
   // morte, et une branche morte dans une garde est une garde qu'on croit avoir.
   assertEquals([...seen].sort(), [...ENERGY_GATE_REASONS].sort());
-  // Cinq verdicts d'âge non-mineurs × un coach sans position × interrupteur
-  // allumé × plancher baissé. Un seul chemin ouvre, et il est étroit.
-  assertEquals(opened, 5);
+  // ⟳ S3 — ~~Cinq verdicts d'âge non-mineurs~~ **UN SEUL**: l'adulte avéré ×
+  // un coach sans position × interrupteur allumé × plancher baissé. Le chemin
+  // n'est plus étroit, il est unique. ⚠️ CE NOMBRE EST LA MESURE DU LOT: il est
+  // passé de 5 à 1 parce que quatre statuts d'âge ont cessé de produire un
+  // chiffre — et c'est 1 193 profils sur 1 313 qui vivent dans ces quatre-là.
+  assertEquals(opened, 1);
 });
 
 Deno.test("FF-059 — porte ① : le plancher gagne contre les TROIS autres", () => {
@@ -159,13 +167,29 @@ Deno.test("FF-059 — porte ② : un mineur ne voit rien, même tout ouvert par 
   );
 });
 
-Deno.test("FF-059 — un âge INCONNU n'est pas un mineur (désarmement, et il est voulu)", () => {
-  // HYPOTHÈSE ÉCRITE AVANT LE TEST: la porte ② reprend `weekPlanAgeGate`, dont
-  // la seule condition de morsure est `status === "minor"`. Une date absente
-  // — le cas de TOUS les élèves d'avant le chantier des dates — laisse donc
-  // passer. C'est un arbitrage, pas un oubli: le durcir éteindrait le chiffre
-  // pour la quasi-totalité de la base, ce qui serait indiscernable d'une panne.
-  // Consigné au rapport §11 pour que l'humain puisse le renverser en une ligne.
+Deno.test("FF-059 ⟳ S3 — un âge INCONNU ferme le chiffre, et ne s'appelle PAS `minor`", () => {
+  // ⟳ ── L'HYPOTHÈSE D'ORIGINE, GARDÉE PARCE QU'ELLE A ÉTÉ RÉFUTÉE ─────────
+  // ~~« la porte ② reprend `weekPlanAgeGate`, dont la seule condition de
+  // morsure est `status === "minor"`. Une date absente laisse donc passer.
+  // C'est un arbitrage, pas un oubli: le durcir éteindrait le chiffre pour la
+  // quasi-totalité de la base, ce qui serait indiscernable d'une panne. »~~
+  //
+  // ⛔ **RÉFUTÉE le 2026-08-22 par le lot `S3`, et la moitié fausse est la
+  // conclusion, pas la prémisse.** Le raisonnement confondait deux choses que
+  // ce module sépare exprès (voir sa coupure ①②③ / ④): éteindre le CHIFFRE
+  // n'est pas éteindre le SERVICE. `weekPlanAgeGate().allowed` reste `true` sur
+  // une date absente — le plan sort, le repas sort, la conversation continue —
+  // et seul `numberAllowed` se ferme. Rien ici n'est « indiscernable d'une
+  // panne »: c'est le comportement que la lane FOYER a depuis toujours
+  // (`noSizing("age_unknown")`), et la lane solo en était la seule exception.
+  //
+  // CE QUE ÇA COÛTAIT, MESURÉ LE 2026-08-22: `{open:true, reason:"open"}` sur
+  // **1 193 profils de 1 313** (90,9 %), dont **17 mineurs avérés** — et tous
+  // ceux que l'absence de date cache.
+  //
+  // ⚠️ LE MOTIF EST LA MOITIÉ DU TEST. Rendre `minor` ici dirait à 91 % de la
+  // base qu'on les a pris pour des enfants, et enverrait chercher la
+  // réparation du côté du coach au lieu du côté de la date manquante.
   for (const label of ["absent", "unreadable", "future", "implausible"]) {
     const age = AGE_VERDICTS.find((a) => a.label === label)!;
     assertEquals(
@@ -175,10 +199,26 @@ Deno.test("FF-059 — un âge INCONNU n'est pas un mineur (désarmement, et il e
         coachCounting: "no_position",
         studentSwitch: true,
       }),
-      { show: true, reason: "open" },
+      { show: false, reason: "age_unknown" },
       label,
     );
   }
+});
+
+Deno.test("FF-059 ⟳ S3 — LE CAS QUI PASSE: l'adulte avéré reçoit son chiffre", () => {
+  // ⛔ SANS CE CAS, LE LOT SERAIT UNE GARDE QUI BLOQUE TOUT ET QUI RESSEMBLE À
+  // UNE GARDE QUI MARCHE. `S3` ferme quatre statuts d'âge sur six; la preuve
+  // qu'il n'a pas fermé les six est ici, et elle est le seul chemin ouvert de
+  // la table de vérité (`opened === 1`).
+  assertEquals(
+    canShowEnergy({
+      restrictionFlag: false,
+      ageVerdict: assessBirthDate("1990-01-01", TODAY),
+      coachCounting: "no_position",
+      studentSwitch: true,
+    }),
+    { show: true, reason: "open" },
+  );
 });
 
 // ---------------------------------------------------------------------------

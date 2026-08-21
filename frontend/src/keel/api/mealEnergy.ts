@@ -39,6 +39,16 @@ export const ENERGY_REASONS = [
   "open",
   "restriction_floor",
   "minor",
+  /**
+   * ⟳ S3 (2026-08-22) — la porte ②bis du back. Elle rejoint la famille des
+   * refus qui NE SE RACONTENT PAS: « on ne connaît pas ta date de naissance,
+   * donc pas de chiffre » se lit comme un marchandage — donne ta date, reçois
+   * des calories — et il concernerait 91 % des comptes. L'écran se tait,
+   * exactement comme sur `minor` et `restriction_floor`. Le jour où la date se
+   * redemande, elle se redemandera depuis « about you », pas depuis un chiffre
+   * absent.
+   */
+  "age_unknown",
   "doctrine_no_counting",
   "student_off",
   "unavailable",

@@ -46,6 +46,19 @@
  * protéger des enfants. « On ne sait pas » n'est pas « c'est un enfant ». Le
  * premier passage (P4) est ce qui comble le trou, pas un refus de service.
  *
+ * ── ⟳ S3 (2026-08-22) · CE QUE LE DÉSARMEMENT NE COUVRE PAS ────────────────
+ * Le paragraphe ci-dessus reste vrai POUR LE SERVICE, et il a été reconfirmé
+ * par la mesure: **1 193 profils sur 1 313** (90,9 %) n'ont pas de date. Il
+ * était FAUX pour le CHIFFRE, et c'est le défaut que `S3` a refermé: tant que
+ * `energySafetyGates` ne lisait que `status === "minor"`, une date absente
+ * rendait `{open:true, reason:"open"}` — un chiffre produit pour 1 193 comptes,
+ * dont **17 mineurs avérés** en base et un nombre inconnu que l'absence cache.
+ *
+ * D'où DEUX réponses, et pas une: `allowed` (servir) et `numberAllowed`
+ * (chiffrer). Voir `WeekPlanAgeGate`. ⛔ **Ne pas « réparer » en fermant
+ * `allowed` sur `absent`**: ça ferait échouer 91 % des comptes et ressemblerait
+ * à une garde qui marche.
+ *
  * PURE MODULE : no I/O, no clock (le caller passe la date locale du jour).
  */
 
@@ -186,6 +199,36 @@ export interface WeekPlanAgeGate {
     | "unusable_birth_date"
     | "minor";
   age: number | null;
+  /**
+   * ── S3 · LE CHIFFRE PEUT-IL ÊTRE PRODUIT POUR CETTE PERSONNE ? ──────────
+   *
+   * ⛔ CE N'EST PAS `allowed`, ET LES DEUX NE DOIVENT JAMAIS FUSIONNER. Ils
+   * répondent à deux questions dont les réponses divergent sur exactement la
+   * population qui compte:
+   *
+   *   `allowed`       — « a-t-on le droit de SERVIR quelque chose à cette
+   *                     personne ? »  Elle ne mord que sur un mineur avéré, et
+   *                     c'est la condition de désarmement décrite en en-tête:
+   *                     **1 193 profils sur 1 313 n'ont pas de date** (mesuré
+   *                     le 2026-08-22). La fermer sur « absent » enfermerait
+   *                     **91 %** des comptes dehors — une garde qui bloque tout
+   *                     ressemble à une garde qui marche.
+   *   `numberAllowed` — « a-t-on le droit de produire un CHIFFRE pour elle ? »
+   *                     `true` pour un **adulte avéré**, et pour lui seul.
+   *
+   * « On ne sait pas » et « c'est un adulte » ne sont pas la même phrase, et la
+   * seconde ouvre un déficit sur un corps en croissance. Le lot `S3` a mesuré
+   * ce que ça coûtait tant que la chaîne du chiffre lisait `allowed`: avec une
+   * date absente, `energySafetyGates` rendait `{open:true, reason:"open"}` —
+   * dont **17 mineurs connus** en base, plus tous ceux que l'absence cache.
+   *
+   * ⚠️ C'EST DÉJÀ LA RÈGLE DE LA LANE FOYER, ET ELLE N'EST PAS RÉÉCRITE ICI:
+   * `ageStateFromVerdict` projette les six statuts sur trois états, et
+   * `household_portions.ts` refuse de dimensionner sur `unknown`
+   * (`noSizing("age_unknown")`). `numberAllowed` est cette même règle, portée
+   * par le verdict lui-même, pour que la lane solo cesse d'en être l'exception.
+   */
+  numberAllowed: boolean;
 }
 
 /**
@@ -195,17 +238,43 @@ export interface WeekPlanAgeGate {
  * `status === "minor"`. Tout le reste passe. Voir l'en-tête pour pourquoi
  * « absent » ne bloque pas — c'est la condition de désarmement, et elle a son
  * test.
+ *
+ * ⚠️ `numberAllowed` NE SUIT PAS `allowed`, et le tableau ci-dessous est la
+ * seule écriture de la différence. Voir `WeekPlanAgeGate.numberAllowed`.
  */
 export function weekPlanAgeGate(verdict: BirthDateVerdict): WeekPlanAgeGate {
   switch (verdict.status) {
     case "minor":
-      return { allowed: false, reason: "minor", age: verdict.age };
+      return {
+        allowed: false,
+        reason: "minor",
+        age: verdict.age,
+        numberAllowed: false,
+      };
     case "adult":
-      return { allowed: true, reason: "adult", age: verdict.age };
+      return {
+        allowed: true,
+        reason: "adult",
+        age: verdict.age,
+        numberAllowed: true,
+      };
     case "absent":
-      return { allowed: true, reason: "unknown_birth_date", age: null };
+      return {
+        allowed: true,
+        reason: "unknown_birth_date",
+        age: null,
+        // Le plan sort; le chiffre non. C'est la moitié que `S3` a rebranchée.
+        numberAllowed: false,
+      };
     default:
-      return { allowed: true, reason: "unusable_birth_date", age: null };
+      return {
+        allowed: true,
+        reason: "unusable_birth_date",
+        age: null,
+        // Illisible, future, aberrante: trois façons de ne pas savoir. La lane
+        // foyer les range déjà toutes les trois sous `unknown`.
+        numberAllowed: false,
+      };
   }
 }
 

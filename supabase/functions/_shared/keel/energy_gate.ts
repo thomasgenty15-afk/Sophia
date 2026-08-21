@@ -12,9 +12,15 @@
  * ── LES QUATRE PORTES, ET L'ORDRE EST LE CONTRAT ───────────────────────────
  *
  *   ① `restrictionFlag`  — le plancher TCA.       Rouvrable par PERSONNE.
- *   ② mineur             — verdict d'âge.         Rouvrable par personne.
+ *   ② mineur OU ÂGE INCONNU — verdict d'âge.      ② par personne; ②bis en
+ *                                                 renseignant sa date.
  *   ③ doctrine `counting`— la méthode du coach.   Rouvrable par le coach.
  *   ④ interrupteur élève — son choix.             Rouvrable par l'élève.
+ *
+ * ⟳ **② A DEUX MOITIÉS DEPUIS `S3` (2026-08-22), et la seconde est celle qui
+ * couvre 91 % de la base.** `minor` est un fait su; `age_unknown` est un fait
+ * qu'on n'a pas. Les deux ferment le CHIFFRE et ne ferment RIEN d'autre — le
+ * plan sort, la conversation continue. Voir `energySafetyGates`.
  *
  * ⚠️ ── LA PORTE ① N'EST PAS L'EXCEPTION DONT PARLE LA DÉCISION ─────────────
  * La décision du 2026-08-12 dit « les calories s'affichent, sauf si le coach
@@ -63,6 +69,18 @@ export const ENERGY_GATE_REASONS = Object.freeze(
     "open",
     "restriction_floor",
     "minor",
+    /**
+     * ⟳ S3 (2026-08-22) — L'ÂGE QU'ON NE SAIT PAS, ET IL EST DISTINCT DE
+     * `minor`. Les deux ferment la même porte et ne se réparent pas pareil:
+     * `minor` est un FAIT (le coach est prévenu, `escalateMinorStudent`),
+     * `age_unknown` est un TROU (la date se demande, et 1 193 profils sur
+     * 1 313 l'ont). Les confondre dirait à 91 % de la base qu'on les a pris
+     * pour des enfants.
+     *
+     * ⚠️ Même jeton que la lane foyer (`BoxSizingReason`, `AnchorReason`,
+     * `BodyShareReason`) — pas un synonyme neuf.
+     */
+    "age_unknown",
     "doctrine_no_counting",
     "student_off",
   ] as const,
@@ -119,8 +137,10 @@ export interface EnergyGateInput {
    *
    * Le verdict entier, pas un booléen `isMinor`: la définition de « mineur »
    * vit dans `student_age.ts` et une seconde définition ici divergerait au
-   * premier fuseau horaire. La porte se ferme sur `status === "minor"` et rien
-   * d'autre — voir `weekPlanAgeGate`, dont c'est exactement la règle.
+   * premier fuseau horaire. ⟳ **La porte se ferme sur `status === "minor"` ET
+   * sur tout statut qui n'est pas `adult`** — voir `weekPlanAgeGate`, dont
+   * `numberAllowed` est exactement cette règle. Le verdict entier est ce qui
+   * permet de NOMMER laquelle des deux moitiés a mordu.
    */
   ageVerdict: BirthDateVerdict;
   /** ③ La position du coach, telle que `countingStanceFrom` l'a réduite. */
@@ -235,7 +255,15 @@ export const ENERGY_SAFETY_INPUT_KEYS = Object.freeze(
  * produire n'a pas à figurer dans son vocabulaire.
  */
 export const ENERGY_SAFETY_REASONS = Object.freeze(
-  ["open", "restriction_floor", "minor", "doctrine_no_counting"] as const,
+  [
+    "open",
+    "restriction_floor",
+    "minor",
+    // ⟳ S3 — la porte ②bis. Elle appartient bien à la chaîne de SÉCURITÉ et pas
+    // aux interrupteurs: elle décide qu'un chiffre ne doit pas être PRODUIT.
+    "age_unknown",
+    "doctrine_no_counting",
+  ] as const,
 );
 
 export function energySafetyGates(input: EnergySafetyInput): EnergySafetyResult {
@@ -272,8 +300,38 @@ export function energySafetyGates(input: EnergySafetyInput): EnergySafetyResult 
   // ② LE MINEUR. La règle vient de `weekPlanAgeGate`, pas d'une comparaison
   //    d'âge réécrite ici: une seconde définition de « mineur » diverge, et
   //    celle-ci porterait la garde la plus sensible du produit.
-  if (weekPlanAgeGate(input.ageVerdict).reason === "minor") {
+  const age = weekPlanAgeGate(input.ageVerdict);
+  if (age.reason === "minor") {
     return { open: false, reason: "minor" };
+  }
+
+  // ②bis L'ÂGE QU'ON NE SAIT PAS — ⟳ AJOUTÉ PAR `S3` LE 2026-08-22.
+  //
+  //    ⛔ CE N'EST PAS « FERMER SUR ABSENT ». La porte ② se ferme sur l'âge
+  //    inconnu POUR LE CHIFFRE, et pour lui seul: `weekPlanAgeGate().allowed`
+  //    reste `true`, donc le plan sort, la conversation continue, et rien ne
+  //    refuse le dîner de personne. C'est le sens exact de la coupure ①②③ / ④
+  //    décrite plus haut: cette chaîne dit « ce chiffre ne doit pas être
+  //    PRODUIT », jamais « cette personne ne doit rien recevoir ».
+  //
+  //    CE QUE ÇA RÉPARE, MESURÉ: `absent` rendait `{open:true, reason:"open"}`
+  //    sur **1 193 profils de 1 313** (90,9 %, 2026-08-22), dont **17 mineurs
+  //    avérés** — et tous ceux que l'absence cache. Le déficit d'un objectif
+  //    de perte se posait donc sur un corps dont on ignore s'il grandit.
+  //
+  //    ⚠️ CE N'EST PAS UNE RÈGLE NEUVE — C'EST CELLE DE LA LANE FOYER, ENFIN
+  //    PARTAGÉE. `household_portions.ts` fait déjà exactement ça, trois fois
+  //    (`if (ageState === "unknown") return noSizing("age_unknown")`), et
+  //    `mouth_anchor.ts` une quatrième. Ces quatre `if` survivent délibérément:
+  //    ils lisent `MemberAgeState`, pas un verdict, et deux ceintures ne
+  //    divergent pas — elles se doublent. Ce qui change est que la lane SOLO
+  //    cesse d'être l'exception.
+  //
+  //    ⛔ NE PAS « SIMPLIFIER » EN LISANT `age.allowed` ICI. `allowed` répond à
+  //    « peut-on servir », et le lire ici rouvrirait le chiffre à 91 % de la
+  //    base au premier refactor.
+  if (!age.numberAllowed) {
+    return { open: false, reason: "age_unknown" };
   }
 
   // ③ LA MÉTHODE DU COACH.

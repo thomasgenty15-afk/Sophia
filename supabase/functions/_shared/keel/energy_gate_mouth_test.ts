@@ -87,6 +87,12 @@ function expectedSafetyReason(
 ): EnergyGateReason {
   if (restrictionFlag) return "restriction_floor";
   if (ageLabel === "minor") return "minor";
+  // ⟳ S3 (2026-08-22) — LA PORTE ②bis. Seul un ADULTE AVÉRÉ passe l'âge: les
+  // quatre autres statuts sont quatre façons de ne pas savoir, et « on ne sait
+  // pas » n'ouvre pas un déficit sur un corps peut-être en croissance. C'est
+  // la règle que `household_portions.ts` applique depuis toujours par bouche
+  // (`noSizing("age_unknown")`); elle vit désormais dans la chaîne elle-même.
+  if (ageLabel !== "adult") return "age_unknown";
   if (coachCounting === "no_counting") return "doctrine_no_counting";
   return "open";
 }
@@ -117,11 +123,13 @@ Deno.test("L4 — table de vérité EXHAUSTIVE de la chaîne de sécurité (2 ×
   }
 
   assertEquals(rows, 2 * 6 * 2);
-  // Les QUATRE motifs de cette chaîne sont atteignables, et `student_off` n'en
-  // fait pas partie: elle ne lit aucun interrupteur.
+  // ⟳ S3 — les CINQ motifs de cette chaîne sont atteignables, et `student_off`
+  // n'en fait toujours pas partie: elle ne lit aucun interrupteur.
   assertEquals([...seen].sort(), [...ENERGY_SAFETY_REASONS].sort());
-  // Cinq verdicts non-mineurs × un coach sans position × plancher baissé.
-  assertEquals(opened, 5);
+  // ⟳ S3 — ~~Cinq verdicts non-mineurs~~ **UN SEUL**: l'adulte avéré × un
+  // coach sans position × plancher baissé. Le passage de 5 à 1 EST la mesure
+  // du lot: quatre statuts d'âge ont cessé de produire un chiffre.
+  assertEquals(opened, 1);
 });
 
 Deno.test("L4 — la chaîne de sécurité ne rend JAMAIS `student_off` ni `target_off`", () => {
@@ -535,9 +543,42 @@ Deno.test("L4 — les trois portes neuves n'ont QUE les appelants qu'on a relus"
   // `canSizeFromTarget`, et le conseil chiffré du midi (②), qui LUI se lit et
   // traverse donc les interrupteurs, entre par `canShowTarget` chez son
   // appelant, jamais par cette chaîne-ci.
+  // ── LE SECOND ENDROIT RELU (2026-08-20, LOT 2 du chantier grammage) ────
+  // `_shared/keel/mouth_anchor.ts`, une fonction et une seule:
+  // `mouthTargetKcal`, qui rend une cible en kcal/jour au lieu d'un facteur
+  // sans unité. Ce qui a été vérifié à l'endroit exact de l'appel:
+  //
+  //   · DEUX PASSES, ET LA SECONDE NE DESSERRE QUE ② ET ③. La première évalue
+  //     la chaîne entière avec l'âge de CETTE bouche et la position du coach;
+  //     la seconde la rejoue avec `ageVerdict: "adult"` et
+  //     `coachCounting: "no_position"` LITTÉRAUX. C'est le geste exact de
+  //     `bodyShareFactors`, copié dans sa forme (rejouer la chaîne) et pas dans
+  //     son contenu (aucun `if` de `energy_gate.ts` n'est recopié).
+  //   · ① GAGNE DANS LES DEUX PASSES, et c'est ce qui rend le dépassement sûr:
+  //     `restrictionFlag` est passé INCHANGÉ aux deux appels, donc un plancher
+  //     levé sort `restriction_floor` à la première ET à la seconde. Une
+  //     mutation qui désarme ce refus fait rougir `mouth_anchor_test.ts`
+  //     (« ① le plancher TCA ferme TOUT, et il gagne contre ② et ③ »).
+  //   · CE QUE CHAQUE PASSE ACHÈTE, ET C'EST LA FINESSE DU LOT: la seconde
+  //     n'ouvre QUE l'entretien — ce que ce corps dépense, qui n'est pas une
+  //     cible. L'ÉCART (déficit/surplus) reste gouverné par la PREMIÈRE passe,
+  //     donc par ② et ③ en entier. Un coach qui ne compte pas garde exactement
+  //     ce qu'il a demandé; ce qu'il perd est seulement le droit de faire
+  //     manger à un enfant la part d'un adulte.
+  //   · NI ④ NI ⑤ ne sont lus, comme chez `household_portions.ts`.
+  //
+  // ⚠️ `pot_demand.ts` et `mouth_energy.ts` du même chantier n'appellent AUCUNE
+  // de ces trois portes — ils ne produisent pas de cible — et n'ont donc rien à
+  // faire dans cette liste.
   const ALLOWED: Record<string, string[]> = {
-    "energySafetyGates(": ["keel/household_portions.ts"],
-    "canSizeFromTarget(": ["keel/household_portions.ts"],
+    "energySafetyGates(": [
+      "keel/household_portions.ts",
+      "keel/mouth_anchor.ts",
+    ],
+    "canSizeFromTarget(": [
+      "keel/household_portions.ts",
+      "keel/mouth_anchor.ts",
+    ],
     "canEmitMouthEnergy(": [],
   };
 
