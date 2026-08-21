@@ -1009,9 +1009,27 @@ commitée** :
 | **mesure AVANT** | ⟳ **exécutée le 2026-08-21 à 23:06:30 CEST.** ① vue mutée ⇒ `ÉCHEC ⑤ … plans=ABSENTE` **et** `NOTICE: tous les cas passent`, **`rc=0`** ; test non muté au même moment : **6/6, rc=0**. ② ⛔ **`git show HEAD:` ne rend RIEN** — `compositionFill`, `composition_unknowns` et `repairPlanComposition` ont **0 occurrence** à HEAD dans les deux lanes *(3 001 et 5 331 lignes contre 3 239 et 6 539 au disque)* : **toute la chaîne du lot 18 est non commitée**. `prosrc` réel l. 186-187 : `greatest(0, coalesce((p_payload ->> 'composition_unknowns')::int, 0))` et `coalesce(p_payload -> 'composition_energy_sources', '{}'::jsonb)`. Plans à `composition_unknowns = 0` sans remplissage : **0** *(les 180 sont à `∅` depuis `V0-B` — le « avant » est propre, **et c'est exactement ce que `V0-D` allait salir**)* |
 | **direction** | *(écrite avant de coder)* Les **trois** porteurs laissent passer le `null` ; les trois chemins écrivent **un nombre / `null` / `null`** ; le chemin nominal est **inchangé** ; `greatest(0, …)` **reste** sur une valeur présente ; le `catch` cesse d'être muet et l'échec est **compté**. |
 | **mesure APRÈS** | ⟳ **exécutée le 2026-08-21 à 23:22 CEST — LES TROIS SEUILS ATTEINTS.** **①** même mutation → **`rc=3`** *(`1 cas en échec, dont 1 non évaluables`)* ; test non muté → **10/10 verts, rc=0**. **②** trois chemins prouvés : nominal **7** · index absent **`null`/`null`**, `attempt` **0 appel** · remplissage qui lève **`null`/`null`**, index de base **intact**. Côté base : ⑥ absence → `NULL` · ⑦ `null` explicite → `NULL` · ⑧ `-1` → **`0`** *(la garde tient)* · ⑨ `0` mesuré → **`0`**. **③** vue → **0** · `reloptions` → **`{security_invoker=true}`** · 180 lignes `∅`/`∅` · trigger `tgenabled='O'` · disque = registre = **229** |
-| **armé par** | **10 cas SQL** *(les 6 de `V0-B` + ⑥⑦⑧⑨ sur la RPC)* et **5 cas Deno**. ⛔ **LES CAS QUI DISCRIMINENT sont Deno ④ et SQL ⑨** : un zéro **réellement mesuré** doit rester `0` — **sans eux, « rendre `null` partout » serait vert** et détruirait la seule mesure qui dit que le sas a réussi. **Trois morsures prouvées** : vue mutée → `rc=3` · ancienne RPC réinjectée → `⑥ unknowns=0 sources={}`, `⑦ sources=null`, `rc=3` · littéral `{ unknowns: 0, … }` remis dans une lane → 1 test rouge, fichier restauré **sha256 identique**. Plus une **assertion de CARDINALITÉ** *(10 cas attendus)* |
+| **armé par** | **10 cas SQL** *(les 6 de `V0-B` + ⑥⑦⑧⑨ sur la RPC)* et **5 cas Deno**. ⛔ **LES CAS QUI DISCRIMINENT sont Deno ④ et SQL ⑨** : un zéro **réellement mesuré** doit rester `0` — **sans eux, « rendre `null` partout » serait vert** et détruirait la seule mesure qui dit que le sas a réussi. **Trois morsures prouvées** : vue mutée → `rc=3` · ancienne RPC réinjectée → `⑥ unknowns=0 sources={}`, `⑦ sources=null`, `rc=3` · littéral `{ unknowns: 0, … }` remis dans une lane → 1 test rouge, fichier restauré **sha256 identique**. Plus une **assertion de CARDINALITÉ** *(10 cas attendus)* 
+
+> ⟳ ✅ **VÉRIFIÉ FINI — et le vérificateur adversarial a ajouté TROIS morsures que le lot n'avait pas faites :**
+> ① **le correctif NAÏF `outcome.unknowns || null` est attrapé par le SEUL cas ④** — ①②③ restaient verts. C'est la preuve la plus forte
+>   que ④ n'est pas décoratif : sans lui, la réparation « évidente » passait.
+> ② **les deux sondes ÉVAPORÉES** *(casser leur `where`)* rendent un tableau à **9 lignes toutes vertes**, puis
+>   `ERROR: 9 cas rendus, 10 attendus — une sonde a DISPARU`, **rc=3**. **Le troisième visage du `null` est bien fermé.**
+> ③ ⛔ **ET LE LIEN ENTRE LES DEUX DÉFAUTS, que le lot n'avait pas énoncé** : la RPC mutée pour écrire `null` en dur fait tomber ⑧ et ⑨
+>   en **`null`**, pas en `false`. **Avec l'ancienne porte `where not ok`, cette mutation aurait rendu `rc=0`.** *La réparation ① est ce qui ARME ⑨.*
+>
+> ⚠️ **Deux limites déclarées, et ce ne sont pas des défauts du lot :**
+> · `expected_probes := 10` est **écrit en dur** : il attrape la sonde qui s'évapore, **pas celle qu'on retire en mettant le compteur à jour**.
+> · ⛔ **La sonde ⑥ est VERTEMENT VIDE sur l'histoire.** À HEAD, les deux lanes ont **0 occurrence** de `compositionFill` : étant une garde
+>   **négative**, elle ne distingue pas *« correctif posé »* de *« chantier lot 18 absent »*. **La seule preuve que `V0-D` exécutera le correctif
+>   est l'arbre de travail**, vérifié directement — pas le test commité.
+>
+> ⚠️ *Imprécision documentaire relevée et corrigée : le lot écrivait « trois sondes » de forme `insert … select … where …` ; il y en a **deux**.
+> La troisième occurrence comptée était la ligne d'exemple dans un commentaire.*
+
 | **coût** | **un petit lot** — 1 migration, 1 module partagé, 1 test neuf, 2 lanes recâblées sans les commiter. **0 génération dépensée** |
-| **risque** | ⛔ **Le correctif des lanes vit sur le disque, pas dans l'histoire.** Un `git checkout` de ces deux fichiers le perd — **et avec lui tout le lot 18**. Le lot qui commitera le chantier doit les emporter |
+| **risque** | ⛔ **Le correctif des lanes vit sur le disque, pas dans l'histoire.** Un `git checkout` de ces deux fichiers le perd — **et avec lui tout le lot 18**. Le lot qui commitera le chantier doit les emporter  ⟳ ⛔ **ET UN FAIT NEUF, DE LA FAMILLE `H1`/`H2`, TROUVÉ PAR LA VÉRIFICATION** : `check_typecheck` de `agent-gate.sh` ne lance `deno check` que sur **trois entrées `sophia-brain`**. ⇒ **les DEUX lanes de génération ne sont PAS typecheckées par le gate.** Le `deno check` vert de ce correctif est un geste **manuel**, et **rien ne le rejouera au prochain commit**. *C'est la même famille que « le gate ne lance pas vitest », un cran plus loin : le gate ne typecheck pas non plus le code le plus lourd du produit* |
 | ⟳ **ce que le lot a RÉVÉLÉ** | ⛔ **① Le `null` a un TROISIÈME visage : la sonde qui n'existe pas.** Trois cas s'écrivent `insert into t_probe select … from x where …` et posent **zéro ligne** si le `where` ne trouve rien : le cas **disparaît** du tableau — ni `OK`, ni `ÉCHEC` — et un tableau à 5 lignes vertes se lit exactement comme un tableau à 6. `is distinct from true` **ne le rattrape pas** ; seule une assertion de **cardinalité** le fait. ⛔ **② Ses propres sondes RPC sont d'abord passées pour la raison INVERSE de celle qu'elles testent** : `where id = (select meal_id from write_student_meal_plan(…))` **ne voit pas** la ligne insérée pendant la même instruction *(`CommandId` figé)*, donc `v_unknowns` valait `NULL`, et la sonde affirmait `is null` — **verte à cause du bug**. Corrigé en deux instructions + `into strict`. ⛔ **③ Retirer le `coalesce` seul n'aurait RIEN réparé : `greatest(0, null)` vaut `0`** — `greatest` ignore les `null`. Le correctif « évident » aurait été vert au `deno check` et faux en base. ⛔ **④ `coalesce(x, '{}')` sur un `null` JSON rend un jsonb `null`, pas `{}`** — que le `where … is not null` de la vue **ne filtre pas**. ⛔ **⑤ Une garde existante a mordu le correctif, et elle avait raison** : `household_freeze_test.ts` C5 ⑥ a refusé `error instanceof Error ? … : String(…)` — une `PostgrestError` rendrait `[object Object]`. Remplacé par `readableErrorMessage`. **⑥ Et `agent-gate` a BLOQUÉ le commit sur ce rouge** : ⚠️ **précision — la cicatrice du dépôt tient et ne dit pas le contraire.** `grep -c 'deno test' scripts/agent-gate.sh` → **1**, `grep -c vitest` → **0** : le gate lance bien les tests **Deno**, et toujours **pas** vitest. `H1`/`H2` restent entiers |
 
 
@@ -1034,7 +1052,27 @@ commitée** :
 | **mesure APRÈS** | ⟳ **exécutée — LE SEUIL EST ATTEINT.** ① les **dix** lignes sortent en **une seule commande** (`bash scripts/keel_v0e_tableau_de_bord_20260821.sh`) ② **#2 est rendu « ⛔ N'EXISTE PAS (ce n'est pas 0) »**, littéralement, avec son obstacle chiffré *(2 plans `fr*` sur 180, **0 en `fr-FR` foyer**)* ③ **rejouable** : trois exécutions, `diff` ne rapporte **que la ligne d'horodatage** — corps identique au bit près, y compris entre l'archive et une relance postérieure au commit |
 | **armé par** | ⟳ **RENFORCÉ — le script prouve désormais SES PROPRES gardes, au lieu de promettre qu'il les respecte.** ① la sortie est **datée et archivée** à côté du plan ② ⛔ **la preuve qu'il PLIE** : le même compteur est imprimé **sans** pliage — **43,2 %** contre **38,4 %** ; s'ils étaient égaux, le pliage ne ferait rien et **personne ne le verrait** ③ `grams_raw` n'est **ni extrait ni lu** ④ `coverage` et `resolved.length` sortent **séparés et nommés** |
 | **coût** | **un petit lot** · ⟳ **plus un lot à part pour le compteur #2**, qui n'existe pas |
-| **risque** | ⛔ **Trois pièges de mesure déjà payés** : jamais `grams_raw` en base (**figé à la génération**) ; toujours **après pliage** (le taux DESCEND : 37,8 % → 28,6 %) ; `coverage` et non `resolved.length` (96 % contre 69 %)  ⟳ ⛔ **ET UN QUATRIÈME, TROUVÉ PAR LE LOT : `\b` n'est PAS une frontière de mot en Postgres** *(c'est un backspace)*. Écrite avec `\b`, la définition « grammage » du compteur #8 rend **0 / 340** — **et un zéro a l'air d'une bonne nouvelle**. Avec `\y` : **181 / 340**. ⚠️ **Cinquième** : le dénominateur SQL (**9 810**) et celui du résolveur (**9 795**) ne sont pas le même — **15 lignes d'ingrédient ne portent aucun `term`** et `readIngredient` les jette |
+| **risque** | ⛔ **Trois pièges de mesure déjà payés** : jamais `grams_raw` en base (**figé à la génération**) ; toujours **après pliage** (le taux DESCEND : 37,8 % → 28,6 %) ; `coverage` et non `resolved.length` (96 % contre 69 %)  ⟳ ⛔ **ET UN QUATRIÈME, TROUVÉ PAR LE LOT : `\b` n'est PAS une frontière de mot en Postgres** *(c'est un backspace)*. Écrite avec `\b`, la définition « grammage » du compteur #8 rend **0 / 340** — **et un zéro a l'air d'une bonne nouvelle**. Avec `\y` : **181 / 340**. ⚠️ **Cinquième** : le dénominateur SQL (**9 810**) et celui du résolveur (**9 795**) ne sont pas le même — **15 lignes d'ingrédient ne portent aucun `term`** et `readIngredient` les jette 
+
+> ⟳ ✅ **VÉRIFIÉ FINI le 2026-08-21 — le compteur #3 a résisté aux quatre attaques.**
+> Rejoué au bit près six fois · le résolveur **est** celui des trois lanes edge · les trois lecteurs recopiés sont **identiques hors commentaires**
+> à leur original *(la divergence de §⑨ n° 14 est réelle mais **non réalisée**)* · **les deux dénominateurs (10 039 et 5 161) se retrouvent par un SQL
+> indépendant** · et ⛔ **le pliage est prouvé PAR MUTATION** : le neutraliser fait s'effondrer 700 → 787 plats et 93,6 → 90,9 %.
+>
+> ⛔ ⟳ **MAIS UNE RÉSERVE QUI DÉPLACE UN SEUIL DE LA VAGUE 2, et elle n'était dans aucun rapport :**
+> **le numérateur de #3 contient les pesées par CONVENTION** *(condiments, `condimentMassFor`)* :
+> ```
+> foyer  9 399/10 039 = 93,6 %   dont convention   779  (8,3 %)   hors convention  85,9 %
+> solo   1 880/ 5 161 = 36,4 %   dont convention   885 (47,1 %)   hors convention  19,3 %
+> ```
+> **Près de la MOITIÉ du « pesé » du solo n'est pas une quantité écrite par le modèle : c'est une masse conventionnelle de condiment.**
+> ⇒ ⛔ **Tout seuil de vague 2 qui parle de « le modèle écrit ses quantités » doit se caler sur 19,3 %, pas sur 36,4 %** — sinon on refait,
+> en plus petit, exactement l'erreur du 7,8 %. *(`L-1` et `L17` sont concernés.)*
+>
+> ⚠️ **Et la garde `grams_raw` se décrit mal** : ~~« n'est ni extrait ni lu »~~ — il **EST** extrait, **6 808 entrées portent la clé**,
+> à l'intérieur des JSONB `dishes`/`preparations` que le pilote extrait en entier. Ce n'est pas une colonne. **Il n'est simplement jamais LU.**
+> Un auditeur qui vérifierait la garde « en regardant l'extraction » conclurait à tort. Formulation juste : **« extrait avec la ligne, jamais lu »**.
+
 
 ### ⟳ Les dix compteurs — **RÉELS, mesurés le 2026-08-21 à 23:11 CEST** *(lot `V0-E′`, sortie archivée)*
 
@@ -1062,6 +1100,27 @@ commitée** :
 > plats calculables **43,2 % sans pliage → 38,4 % avec** *(la baisse que le plan connaissait)*, mais lignes résolues-et-pesées
 > **91,9 % → 93,6 %** (foyer) et **28,4 % → 36,4 %** (solo). **Les deux directions sont justes : elles ne portent pas sur le même objet.**
 > Les lignes de préparation sont mieux pesées, et le pliage les duplique chez chaque plat consommateur.
+
+## ⟳ V0-E′-bis — le tableau de bord ne compte pas ses propres lignes *(fiche NEUVE)*
+
+> ⟳ **Ouverte par la vérification adversariale de `V0-E′`.** C'est **la leçon de `V0-B-bis` non appliquée**, sur le fichier
+> où une perte muette coûterait le plus cher : celui qu'on relance **à la fin de chaque vague**.
+
+| | |
+|---|---|
+| **quoi** | Le pilote refuse de rendre neuf lignes en disant qu'il en a rendu dix. |
+| **pourquoi** | ⛔ **Prouvé par mutation, dans une copie hors dépôt.** Un compteur cassé pour ne rendre **aucune ligne** (`... from c6 where corps < 0`) donne : **`rc=0`**, **stderr vide**, **9 lignes** — `#1`…`#5` puis `#7`…`#10`, `#6` **disparu** — et un pied de page qui affirme littéralement *« dix lignes rendues »*. Le total est une **constante de chaîne**, jamais un compte : `grep -E '^[0-9]+\|' \| sort \| awk` imprime ce qui arrive. **C'est le troisième visage du `null` de `V0-B-bis` — la sonde qui n'existe pas — non corrigé ici.** |
+| **dépend de** | `V0-E′` |
+| **bloque** | rien — ⚠️ **mais il garde la clôture de CHAQUE vague**, puisque c'est la sortie de ce fichier qui la referme |
+| **fichiers** | `scripts/keel_v0e_tableau_de_bord_20260821.sh` |
+| **migration** | non |
+| **mesure AVANT** | ⟳ **exécutée** : compteur #6 neutralisé ⇒ **9 lignes, `rc=0`, pied de page « dix lignes rendues »**. Assertion de cardinalité dans le pilote : **absente** |
+| **direction** | le même sabotage rend **`rc<>0`** et nomme la ligne manquante. ⚠️ **Le tableau non saboté doit rester à 10 lignes et `rc=0`** |
+| **mesure APRÈS** | **Seuil : 2/2** — ① compteur neutralisé ⇒ `rc<>0` avec le numéro manquant nommé ② tableau intact ⇒ **10 lignes, `rc=0`**, corps **identique au bit près** à l'archive du 23:11 *(`md5` du corps : `dd6ea3420c25ec2b5120eee37f55a3be`)* |
+| **armé par** | ⛔ **La mutation elle-même** — pas la lecture du code. ⚠️ **Et il faut dire sa limite** : `expected_probes` écrit en dur attrape la ligne qui **s'évapore**, jamais celle qu'on retire **en mettant le compteur à jour** *(c'est la limite reconnue par `V0-B-bis`)* |
+| **coût** | **une constante** — une ligne de `bash` |
+| **risque** | ⚠️ **Le danger est LATENT, pas vivant** : les huit CTE SQL sont aujourd'hui des agrégats nus qui rendent **toujours** exactement une ligne, et une erreur SQL **dure** arrête bien le pilote (`ON_ERROR_STOP=1` + `set -euo pipefail`, testé : `rc=3`, zéro ligne). **Il mordra au premier `where`, `group by` ou `join` ajouté à un compteur** — c'est-à-dire au premier lot de vague 2 qui touchera ce fichier |
+
 
 ## V0-C — la fixture obligatoire  ✅ **LIVRÉ le 2026-08-21** *(commit `814c6243`)*
 
