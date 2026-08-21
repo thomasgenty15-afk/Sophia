@@ -286,3 +286,130 @@ export async function repairPlanComposition(args: {
     counts,
   };
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// V0-B-bis · « PAS MESURÉ » ET « MESURÉ À ZÉRO » CESSENT D'ÊTRE LE MÊME OCTET
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// ── LE DÉFAUT, TEL QU'IL ÉTAIT ÉCRIT DANS LES DEUX LANES ──────────────────
+//
+//   let compositionFill = { unknowns: 0, shares: {}, counts: {} };
+//   if (composition) {
+//     try { … compositionFill = { unknowns: repair.unknowns, … }; }
+//     catch (error) { console.warn(`[${FN_NAME}] composition fill failed`, error); }
+//   }
+//
+// DEUX chemins écrivaient `0` et `{}` — c'est-à-dire « mesuré, aucun inconnu »
+// — sur un plan que le sas n'a JAMAIS regardé: `composition` absent, et
+// `repairPlanComposition` qui lève. Ces deux valeurs sont exactement celles que
+// `V0-B` vient d'effacer de 180 lignes, et `composition_fill_weekly` les
+// compterait comme un sans-faute parfait.
+//
+// ⛔ ET LE `catch` ÉTAIT MUET. Un `console.warn` n'est pas un compteur: il ne se
+// groupe pas, il ne se compte pas, et un remplissage qui lève en boucle
+// ressemblerait à un remplissage qui marche. « Un lot désarmé ressemble à un lot
+// qui marche » — c'est le mode d'échec principal de ce dépôt.
+//
+// ── POURQUOI ICI, ET PAS DANS CHAQUE LANE ─────────────────────────────────
+// Le défaut était le MÊME, à la virgule près, dans les deux lanes. Le réparer
+// deux fois, c'est accepter que la troisième lane le réintroduise. Le seul
+// endroit qui décide si un plan a été mesuré vit désormais dans le module qui
+// porte déjà la promesse « cet appel ne peut pas faire tomber le plan ».
+//
+// ⚠️ LE CHEMIN NOMINAL EST INCHANGÉ, ET C'EST UNE CONTRAINTE, PAS UN HASARD:
+// quand le remplissage tourne, la valeur écrite est le MÊME nombre et le MÊME
+// objet qu'avant. Ce lot n'ajoute pas un état au succès, il en retire un au
+// silence.
+
+/** Pourquoi la composition de ce plan n'a PAS été mesurée. */
+export type CompositionFillMiss =
+  /** Aucun référentiel: `loadCompositionIndex` a échoué ou rendu `null`. */
+  | "no_index"
+  /**
+   * `repairPlanComposition` a levé. Le module promet de ne jamais lever — si
+   * cette valeur apparaît, c'est cette promesse qui a été cassée en amont, et
+   * elle doit se voir.
+   */
+  | "threw";
+
+export type CompositionFillOutcome =
+  | {
+    measured: true;
+    unknowns: number;
+    shares: Record<string, number>;
+    counts: Record<string, number>;
+  }
+  | { measured: false; reason: CompositionFillMiss };
+
+/**
+ * LES DEUX COLONNES DU PLAN, DEPUIS L'ISSUE DU REMPLISSAGE.
+ *
+ * ⛔ `null` VEUT DIRE « PERSONNE N'A MESURÉ », et ce n'est PAS zéro. La colonne
+ * accepte l'absence depuis `V0-B` (`drop default`, `drop not null`) et la RPC
+ * `write_student_meal_plan` la laisse passer depuis `V0-B-bis`. Les trois
+ * porteurs doivent tenir ensemble: si un seul refabrique un zéro, la vue
+ * `composition_fill_weekly` remonte un sans-faute imaginaire.
+ */
+export function compositionFillColumns(outcome: CompositionFillOutcome): {
+  composition_unknowns: number | null;
+  composition_energy_sources: Record<string, number> | null;
+} {
+  return outcome.measured
+    ? {
+      composition_unknowns: outcome.unknowns,
+      composition_energy_sources: outcome.shares,
+    }
+    : { composition_unknowns: null, composition_energy_sources: null };
+}
+
+/**
+ * LE REMPLISSAGE, AVEC SON ISSUE NOMMÉE — les trois chemins, au même endroit.
+ *
+ * ⚠️ L'INDEX RENDU EST TOUJOURS UTILISABLE: l'index réparé si l'appel a abouti,
+ * l'index de base s'il a levé, `null` s'il n'y en avait pas. Aucun appelant n'a
+ * à savoir lequel des trois il tient — c'est la même promesse que
+ * `repairPlanComposition`, un cran plus haut.
+ */
+export async function fillPlanComposition(args: {
+  baseIndex: CompositionIndex | null;
+  attempt: (baseIndex: CompositionIndex) => Promise<{
+    index: CompositionIndex;
+    unknowns: number;
+    shares: EnergySourceShares;
+    counts: Record<string, number>;
+  }>;
+  /**
+   * LE COMPTEUR DE L'ÉCHEC. Appelé une fois par plan NON mesuré, avec son
+   * motif. C'est ce qui remplace le `console.warn` muet: un appelant qui
+   * l'ignore choisit explicitement de ne pas compter, au lieu de ne pas compter
+   * par défaut.
+   */
+  onMiss?: (reason: CompositionFillMiss, error: unknown) => void;
+}): Promise<
+  { index: CompositionIndex | null; outcome: CompositionFillOutcome }
+> {
+  if (!args.baseIndex) {
+    args.onMiss?.("no_index", null);
+    return { index: null, outcome: { measured: false, reason: "no_index" } };
+  }
+  try {
+    const repair = await args.attempt(args.baseIndex);
+    return {
+      index: repair.index,
+      outcome: {
+        measured: true,
+        unknowns: repair.unknowns,
+        shares: repair.shares as unknown as Record<string, number>,
+        counts: repair.counts,
+      },
+    };
+  } catch (error) {
+    args.onMiss?.("threw", error);
+    // ⛔ L'INDEX DE BASE EST RENDU INTACT, exactement comme avant: le `catch`
+    // des deux lanes laissait `composition` à sa valeur d'avant l'appel.
+    return {
+      index: args.baseIndex,
+      outcome: { measured: false, reason: "threw" },
+    };
+  }
+}
