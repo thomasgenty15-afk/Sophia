@@ -205,7 +205,7 @@ Le détail est en **partie 6**, 17 entrées. Les cinq qui gouvernent le plan :
 | **24** | **A et B, selon la bouche** : une bouche **sans compte** n'a aucun moyen d'exporter, le maître les porte ; une bouche **avec compte** exporte les siennes — **règle R2 du roster, déjà en place** | `S5` : granularité fixée, plus une question ouverte |
 | **23** | **Répondu par `L38`** : la cible suit l'objectif. **1,8 est défendable comme PLAFOND en prise ; comme DÉFAUT pour tout le monde, non** | `L38` : ce n'est pas une réouverture de la valeur, c'est **la fin de son usage comme défaut universel** |
 
-## Ce qui reste ouvert — **sept**
+## Ce qui reste ouvert — ~~**sept**~~ ⟳ **CINQ** *(13 et 26 fermées le 2026-08-21 par `Q-G2` et `Q-S2`)*
 
 | # | question | pourquoi elle t'appartient |
 |---|---|---|
@@ -213,13 +213,15 @@ Le détail est en **partie 6**, 17 entrées. Les cinq qui gouvernent le plan :
 | **2** | **Un moteur d'ancrage, ou deux** *(porte G7)* | décision de **moyens**. Position retenue : **C maintenant** — retirer de l'écran solo ce que la lane solo ne lit pas, *« honnête et gratuit »* — **A quand le temps existe** |
 | **5** | **Régénérer est gratuit** | un plafond ajoute de la friction sur un geste légitime. **Arbitrage produit, pas technique** |
 | **20** | **1 311 comptes de test sur 1 320** | dépend d'un fait inconnu : **y a-t-il de vrais utilisateurs en prod ?** Si c'est 9, mesurer en prod n'apprend rien |
-| **13** | **Le bloc de déclaration de groupe devient-il inconditionnel ?** *(porte G2)* | tombe sous *« une garde à trou n'est pas une garde »* ⇒ penche vers **A** — mais **le coût du byte-identique n'a pas été mesuré** |
-| **26** | **Portée de la ceinture `strict`** | même famille ⇒ penche vers **A** — mais **le coût côté chat n'a pas été mesuré** |
+| ~~**13**~~ | ~~**Le bloc de déclaration de groupe devient-il inconditionnel ?** *(porte G2)*~~ ⟳ ✅ **FERMÉE le 2026-08-21** | ⟳ **le coût A ÉTÉ mesuré** *(lot `Q-G2`)* : **2 rouges sur 6 164**, ≈ 3-5 % d'un prompt réel et **dans le préfixe cachable**, 0 migration ⇒ **oui, inconditionnel** *(§⑨ n° 3)*. ⛔ **Mais la mesure a renversé le problème** : le modèle **obéit** déjà, et c'est `ingredientPayload()` qui jette la clé — fiche neuve **`L17-0`**, qui devient la vraie dépendance de `L17` |
+| ~~**26**~~ | ~~**Portée de la ceinture `strict`**~~ ⟳ ✅ **FERMÉE le 2026-08-21** | ⟳ **le coût côté chat A ÉTÉ mesuré** *(lot `Q-S2`)* : **0 tour de plus** sur 5 701, **0,12 %**, majorant **1,97 %**, contre un seuil écrit à **5 %** ⇒ **les trois points d'entrée** *(§⑨ n° 4)*. ⛔ **Mais le coût réel de `S2` est ailleurs** : il n'existe **qu'un seul texte de repli**, *« put it to a doctor »*, **faux 100 % des fois où il sortirait** pour une intolérance |
 | **19** | **Granularité du facteur d'ancrage** | demande de **lire ce que `anchorFactorFor` fait aujourd'hui**, ce qui n'a pas été fait |
 
-⇒ **Trois des sept (13, 19, 26) ne sont pas des décisions produit : ce sont des mesures
-qui manquent.** Elles se ferment par une lecture de code et un compteur, pas par un
-arbitrage — et elles sont donc **des lots de vague 0**, pas des portes.
+⇒ ~~**Trois des sept (13, 19, 26) ne sont pas des décisions produit : ce sont des mesures
+qui manquent.**~~ ⟳ ✅ **ET C'ÉTAIT VRAI : deux des trois sont tombées en une soirée**, par
+une lecture de code et un compteur, sans qu'un humain ait rien à arbitrer — `Q-G2` a fermé
+la **13**, `Q-S2` a fermé la **26**. **Reste la 19**, qui exige `V0-D` : sans boîtes,
+`anchorFactorFor` ne produit rien à observer.
 
 ---
 ---
@@ -283,6 +285,7 @@ engagement de processus : **il ne tient que s'il est écrit ici.**
 | 2026-08-21 | 0 · V0-A | 22:20:30 CEST — **144 `??`**, 168 `M`, 2 `D`, 2 `RM` ; 13 migrations `2026082*` non suivies | 22:23:58 CEST — **122 `??`** (−22), 22 `A`, 168 `M`, 2 `D`, 2 `RM` ; puis 22:25:53, cette fiche en index — 122 `??`, **23 `A`** ; `git ls-files --error-unmatch` → **22/22** | **les 2 seuils atteints, l'ARME à moitié manquée** — 22/22 et `M = 168` (≥ 168, aucun fichier d'une autre session emporté). Arbre tiers ne contenant que du commité : `deno check generate-household-meal-v1` **rc=0** ✅ ; `tsc -b --force tsconfig.app.json` **rc=1, 40 erreurs** ⛔ — 3 exports (`api/household.ts`, `M`) + 37 clés i18n (`en.ts`/`fr.ts`, `M`), **tous des fichiers suivis non commités**, aucun fichier neuf manquant | **le cœur du calcul du plan n'était pas versionné, et la fiche ne le voyait pas** : `mouth_anchor.ts` (ce que la journée VISE) et `mouth_energy.ts` (ce qu'elle LIVRE) étaient `??` alors que `generate-household-meal-v1/index.ts`, **suivi**, les importe. La fiche disait 18 fichiers ; il en fallait 22, et « 18 » ne comptait déjà pas sa propre énumération. **Second fait, plus dur : `armé par` et `risque` de cette même fiche se contredisent** — un `tsc` vert depuis un checkout propre est impossible tant qu'`en.ts`/`fr.ts` sont interdits de commit, parce que les fichiers neufs du front nomment des clés qui n'existent que dans leur modification. Troisième : `??` n'est **pas** un seuil reproductible — 142 → 144 en une nuit, et **+1 pendant les cinq minutes du lot** (316 → 317 lignes) |
 | 2026-08-21 | 0 · Q-G2 | longueur du bloc, part d'élèves sans régime, tests protégés : **les trois non mesurés** | `FOOD_GROUP_DECLARATION_BLOCK` (`dietary_regime.ts:757-775`) = **968 car. ≈ 242 tokens**, soit **4,8 %** de la médiane d'un prompt solo réel et **3,1 %** d'un foyer (`llm_usage_events.prompt_tokens`) · sans régime déclaré : **136 plans / 180 (75,6 %)**, 81 bouches / 88, 24 foyers / 31 · bloc rendu inconditionnel ⇒ **2 rouges sur 6 164**, `deno check` vert, 0 migration | **mesure faite, porte G2 fermée côté coût** (§⑨ n° 3) | ⛔ **« 0 sur 9 810 » ne mesure PAS la désobéissance du modèle, et rendre le bloc inconditionnel ne changerait RIEN.** Le bloc est arrivé avec `meal.en.v16` le 2026-08-19 : **1 seul plan sur 180** a été généré sous v16+. Sur cette unique fois **le modèle a obéi** — `regime_belt` porte `groups_declared: 25, groups_valid: 25, groups_refused: 0` — et **l'écriture a jeté sa réponse** : `ingredientPayload()` (`meal_generation.ts:6593-6603`) recopie sept clés sans `group`, alors que le parseur l'avait posée (`:4433`, `:5004`). ⇒ fiche neuve **`L17-0`**. Second fait : le test qui porte le nom de la byte-identité (`dietary_regime_solo_lane_test.ts:96-105`) **ne la tient pas** — il compare `""` à `"   \n "`, deux prompts sans régime entre eux, et **reste vert** sous la modification |
 | 2026-08-21 | 0 · Q-S2 | tours de chat qui mordraient si `strict` entrait sous `applyKeelOutputLocks` : **non mesurés** | rejeu à blanc important le code de production, fidélité prouvée (restreinte à `{medical}`, **0 écart** sur 5 701 tours) : `tours_total` **5 701** (et non 5 885) · `mordent_avec_medical` **7** · `mordent_si_strict` **7** ⇒ **0 nouveau mordu, 0,12 %**. Majorant si le porteur était celui qui parle : **73 / 3 708 = 1,97 %** | **seuil 5 % NON ATTEINT — 41× en dessous.** La porte reste ouverte sur les trois points d'entrée (§⑨ n° 4) | ⛔ **Le volume n'est pas le coût.** ① Sur les 14 `strict`, **6 seulement portent un jeton** : les 8 lignes `kind='diet'` n'entrent jamais sous la ceinture même élargie (`safetyConstraintTokens` ne rend pas `dietRef`) — et c'est **voulu**, c'est la cicatrice `diabetes`. ② Les morsures viennent **toutes des FORMES DE SURFACE** (`cheese` 19, `yogurt` 42, `couscous` 20) et **jamais du mot de la contrainte** (`gluten`, `lactose`, `dairy` : **0 occurrence** sur 5 701 tours). ③ L'exception de négation **n'en sauve aucune** (64/64, 23/23) alors qu'elle sauve `peanut` (23→12). ④ ⛔ **La ceinture n'a qu'UN repli**, `MEDICAL_BLOCK_FALLBACK_EN` — *« put it to a doctor »* — **faux 100 % des fois où il sortirait** pour une intolérance au lactose : **c'est là qu'est le coût de `S2`, pas dans le taux de refus**. ⑤ `allergen_bridge.ts:76` porte **déjà** `BLOCKING_SEVERITIES = {medical, strict}` : `S2` **referme une divergence existante**, il n'en crée pas une. ⑥ `:408` **n'est pas un filtre de ceinture** mais un booléen de prompt — il ne fait pas partie du geste. ⑦ Pour `S1b` : `surfaceFormsFor('fruits_de_mer')` rend bien `[]`, **mais le jeton lui-même matche** — la ceinture de ce ref est morte **en anglais seulement**, pas morte tout court |
+| 2026-08-21 | 0 · *budget & horloges* | la commande de comptage du §⑩ et la table des trois horloges, **prises telles quelles** | `operation_family = 'plan_generation'` : **56 lignes en tout, la dernière le 2026-08-13** ; les **107** appels des modèles de génération (`gpt-5.6-sol` 58, `gpt-5.6-luna` 49) sont sous `operation_family = 'other'`, la valeur **par défaut**. Latence réelle : luna **médiane 66 510 ms / max 210 365**, sol **médiane 133 463 / max 202 174**, contre **300 000 ms** en vigueur | **deux corrections écrites AVANT tout run** (§⑨ n° 6 et n° 7) | ⛔ **Le compteur de budget du plan était aveugle : il aurait rapporté « 0 génération dépensée » après en avoir dépensé dix.** La bonne clé est `source`, et elle sépare exactement l'unité demandée — `generate-*-v1` = **une GÉNÉRATION**, `generate-*-v1.<suffixe>` = une relance. `request_id` ne regroupe rien (48 appels = 48 `request_id`). ⛔ **Second fait : les 110 s de `GEMINI_HTTP_TIMEOUT_MS` ne contraignent PAS les générateurs** — `gemini.ts:248-251` les remplace dès que `meta.httpTimeoutMs` est passé, et les deux lanes passent `PLAN_HTTP_TIMEOUT_MS` (300 s) depuis le correctif du 2026-08-19. **Le plan portait un fait que ce correctif avait lui-même périmé**, et le commentaire du code aussi (« 164 s de médiane » ne se reproduit sur aucun des deux modèles). ⛔ **Troisième : `where status <> 'success'` rend zéro ligne, TOUJOURS** — `llm_usage_events` ne porte aucune ligne non-`success` : **un appel qui expire n'écrit pas d'événement.** Un résultat vide ne prouve pas l'absence d'expiration |
 | | | | | | |
 
 
@@ -330,6 +333,8 @@ commit de `V0-A`, le run réel `V0-D` *(dans le plafond)*, les `revoke` de `S6`
 | **3** | ⛔ **PORTE G2 FERMÉE : le bloc de déclaration de groupe devient inconditionnel.** Mais ⚠️ **ça ne suffit pas, et la fiche `L17` doit le savoir** — fiche neuve `L17-0` | `Q-G2` | Le coût a été **mesuré**, c'est ce qui manquait pour trancher : **2 rouges sur 6 164 tests**, les deux portant sur la conditionnalité elle-même et **aucun sur un comportement** · **968 car. ≈ 242 tokens**, soit 3 à 5 % d'un prompt réel, et **dans le préfixe cachable** (donc une invalidation de cache unique, pas 242 tokens par appel) · **0 migration**. La position écrite du dépôt — *« une garde à trou n'est pas une garde »* — penchait déjà vers oui. **Élargir une garde est délégué** | **un commit** — remettre le bloc sous `dietaryRegimePromptLine` et re-verdir 2 tests. Aucune migration, aucune donnée, aucun effet rétroactif sur les plans déjà persistés | |
 | **4** | ⛔ **La ceinture de sortie `strict` s'élargit aux TROIS points d'entrée**, chat compris — pas aux seuls générateurs. Et `S2` gagne une **contrainte d'implémentation** : un **second texte de repli** | `Q-S2` | Le seuil était **écrit d'avance dans la fiche** (*« si > 5 % des tours mordent, la porte se referme sur les générateurs seuls »*) : mesuré à **0,12 %**, majorant **1,97 %** — 41× sous le seuil. L'argument « ça ferait trop mordre le chat » **ne tient pas**. Et `allergen_bridge.ts:76` porte **déjà** `{medical, strict}` : refuser l'élargissement **laisserait deux copies diverger**. **Élargir une garde est délégué** | **un commit** — remettre `if (constraint.severity !== "medical") continue;` à `safety_constraints.ts:591`. ⚠️ **Mais le retour arrière n'est gratuit que TANT QUE le second repli n'a pas été vu par un utilisateur** : une fois qu'une intolérance a reçu une réponse adaptée, la lui retirer est visible | |
 | **5** | **L'orchestrateur tient seul §⑨ et §⑩.** Les sous-agents rendent leur ligne de journal et leur fiche ; ils n'écrivent pas dans le registre | *processus* | §⑦ demande que la fiche et le journal partent **dans le commit du code**. Mais **tout lot touche ce document**, donc sous une lecture stricte de « jamais deux lots sur un même fichier » **aucun lot ne peut être parallèle**. Les écritures du document sont donc **sérialisées par l'orchestrateur**, et le commit du code emporte la fiche | **gratuit** — une règle de conduite. Revenir dessus, c'est laisser chaque sous-agent écrire, au prix de conflits sur ce fichier | |
+| **6** | ⛔ **La commande de comptage du budget est REMPLACÉE.** Le plafond se compte sur `source`, pas sur `operation_family` | *orchestrateur, avant `V0-D`* | `operation_family = 'plan_generation'` **a cessé d'être écrit le 2026-08-13** ; les 107 appels des modèles de génération sont sous `'other'`, la valeur par défaut. La requête du plan **aurait rapporté « 0 génération dépensée » après dix générations réelles**. `source` sépare exactement l'unité que le budget demande : `generate-*-v1` = une GÉNÉRATION, `generate-*-v1.<suffixe>` = une relance | **gratuit** — c'est une requête de lecture, elle ne touche ni code ni base. Revenir dessus, c'est reprendre un compteur dont on a mesuré qu'il compte 1 sur 108. ⚠️ **Le vrai coût du retour arrière serait d'avoir dépensé sans le voir** | |
+| **7** | ⛔ **Le timeout n'est PAS relevé — parce qu'il a été mesuré et qu'il n'a pas besoin de l'être.** Les trois horloges du §⑩ sont corrigées | *orchestrateur, avant `V0-D`* | Le protocole imposé est : mesurer, comparer, relever **seulement si** la médiane dépasse. Fait, **avant** tout run. `gemini.ts:248-251` : les 110 s ne s'appliquent **que** si `meta.httpTimeoutMs` est absent — or les deux lanes passent `PLAN_HTTP_TIMEOUT_MS` = **300 s** depuis le correctif du 2026-08-19. Médiane mesurée **66 s** (foyer) et **133 s** (solo), max **210 s**. ⇒ **rien ne contraint, le geste n° 3 n'est pas déclenché.** Le plan et le commentaire du code portaient un fait que le correctif avait périmé | **gratuit** — aucune constante n'a été touchée, c'est une décision de **ne pas** agir. Si `V0-D` expire malgré tout, la cause est ailleurs (worker à 400 s, ou runtime edge), et **relever `GEMINI_HTTP_TIMEOUT_MS` ne réparerait rien** | |
 
 ⚠️ **Trois colonnes sont obligatoires, et la troisième est celle qu'on oublie** : sans
 **« ce que coûte le retour arrière »**, valider après coup est un pari — c'est le même
@@ -353,15 +358,50 @@ pratique** : personne ne saura qu'elle a été prise, ni sur quoi revenir.
 > ⇒ **L'unité est la GÉNÉRATION DE PLAN.** L'ordre de grandeur mesurable est le token :
 > **~13 000 par génération** sur ces modèles.
 
-## La commande qui compte
+## ⟳ La commande qui compte — ⛔ **CELLE DU PLAN ÉTAIT AVEUGLE, corrigée le 2026-08-21**
+
+> ⛔ ~~`where operation_family = 'plan_generation'`~~ **compte 1 appel sur 108.**
+> Mesuré à l'ouverture de la vague 0 : `operation_family = 'plan_generation'` **a cessé
+> d'être écrit le 2026-08-13** (56 lignes en tout, la dernière ce jour-là). Les **107**
+> appels des modèles de la lane de génération — `gpt-5.6-sol` 58, `gpt-5.6-luna` 49 —
+> sont **tous** rangés sous `operation_family = 'other'`, la valeur **par défaut** de la
+> colonne. Un budget mesuré par cette requête aurait rapporté **« 0 génération dépensée »**
+> après en avoir dépensé dix. *C'est le mode d'échec que ce plan combat partout ailleurs :
+> un compteur désarmé ressemble à un compteur qui marche.*
+
+**La bonne clé est `source`, et elle sépare exactement ce que le budget demande** — la
+GÉNÉRATION d'un côté, la relance et le secours de l'autre :
+
+```
+source                                            appels   ce que c'est
+generate-household-meal-v1                            48   ← 1 GÉNÉRATION foyer
+generate-meal-v1                                      48   ← 1 GÉNÉRATION solo
+generate-meal-v1.composition_retry                     9   relance
+generate-household-meal-v1.protein_anchor_retry        1   relance
+generate-meal-v1.protein_anchor_retry                  1   relance
+generate-week-plan-v1                                  1   la lane retirée
+```
+
+⇒ **une GÉNÉRATION = une ligne dont le `source` ne porte PAS de suffixe après un point.**
+Les relances et le secours (`composition_fill`) portent `source like '<lane>.%'` et **ne
+comptent pas au plafond** — ils se comptent à côté, parce qu'ils disent autre chose.
 
 ```sql
-select model, count(*) as appels, sum(total_tokens) as tokens
+select
+  case when source like '%.%' then 'relance / secours' else 'GÉNÉRATION' end as unite,
+  source, model, count(*) as appels, sum(total_tokens) as tokens
 from llm_usage_events
 where created_at > '<horodatage du lancement>'
-  and operation_family = 'plan_generation'
-group by 1;
+  and (source like 'generate-meal-v1%' or source like 'generate-household-meal-v1%')
+group by 1, 2, 3
+order by 1, 2;
 ```
+
+⚠️ **`request_id` ne regroupe rien** : les 48 appels foyer portent **48 `request_id`
+distincts**. Une relance n'est **pas** rattachable à sa génération par cette colonne —
+seul `source` les distingue.
+
+**Horodatage de lancement de la vague 0 : `2026-08-21 20:41:03+00`.**
 
 ⚠️ **Une génération de foyer = 1 appel principal + jusqu'à 1 relance + 1 appel court de
 secours** (`composition_fill`). **Compter les GÉNÉRATIONS, pas les appels.**
@@ -397,13 +437,38 @@ secours** (`composition_fill`). **Compter les GÉNÉRATIONS, pas les appels.**
 
 **Les trois horloges, et elles ne sont pas les mêmes :**
 
-| horloge | valeur | où |
-|---|---|---|
-| `GEMINI_HTTP_TIMEOUT_MS` | **110 s** par défaut — **sous la médiane mesurée** | l'appel modèle |
-| `PLAN_HTTP_TIMEOUT_MS` | **300 000 ms** (5 min) | la lane de plan |
-| le worker | coupe à **400 s** | au-dessus des deux |
+| horloge | valeur | où | ⟳ s'applique-t-elle aux générateurs ? |
+|---|---|---|---|
+| ~~`GEMINI_HTTP_TIMEOUT_MS`~~ | ~~**110 s** par défaut — **sous la médiane mesurée**~~ | l'appel modèle | ⛔ ⟳ **NON — et c'est le fait le plus important de cette section** |
+| `PLAN_HTTP_TIMEOUT_MS` | **300 000 ms** (5 min) | `generation_model.ts:107` | ✅ **c'est ELLE qui s'applique** |
+| le worker | coupe à **400 s** | au-dessus des deux | — |
 
-⇒ **La marge existe** : ce n'est pas le worker qui contraint, c'est le timeout de l'appel.
+⛔ ⟳ **CORRIGÉ le 2026-08-21, avant tout run — le plan et le commentaire du code portaient
+un fait que le correctif du 2026-08-19 a lui-même périmé.**
+
+`gemini.ts:248-251` : `GEMINI_HTTP_TIMEOUT_MS` n'est le défaut **que si `meta.httpTimeoutMs`
+est absent**. Or **les deux lanes de génération le passent** — `generate-household-meal-v1/index.ts:4324`
+et `:4548`, `generate-meal-v1/index.ts:1899`, `:2030`, `:2409` — toutes avec
+`httpTimeoutMs: PLAN_HTTP_TIMEOUT_MS`. **Les 110 s ne les ont jamais contraintes depuis ce
+correctif.** Elles contraignent le chat, qui ne passe rien.
+*(`GEMINI_HTTP_TIMEOUT_MS` n'est posé nulle part dans `supabase/.env` : c'est bien le défaut littéral qui vaut.)*
+
+**Et la latence mesurée ne reproduit pas non plus le « 164 s de MÉDIANE » du commentaire :**
+
+```
+gpt-5.6-luna  (foyer)   49 appels   médiane  66 510 ms   max 210 365 ms
+gpt-5.6-sol   (solo)    59 appels   médiane 133 463 ms   max 202 174 ms
+```
+
+⇒ **médiane 66 s côté foyer contre 300 s en vigueur : il n'y a rien à relever.** Le geste
+n° 3 (« relever le timeout ») **n'est pas déclenché**. Le max mesuré, 210 s, reste sous les
+300 s ; c'est le worker à 400 s qui devient la borne la plus proche, et il ne mord pas.
+
+⛔ ⟳ **ET UN PIÈGE DE MESURE À NE PAS RÉPÉTER** : la commande prescrite plus haut,
+`where status <> 'success'`, rend **zéro ligne — toujours**. `llm_usage_events` ne porte
+**aucune** ligne non-`success` : **un appel qui expire n'écrit pas d'événement du tout.**
+Un résultat vide ne prouve donc **pas** l'absence d'expiration ; il ne prouve rien.
+La latence des expirations se lit **dans les logs du runtime edge**, pas dans cette table.
 
 **Le geste, dans cet ordre :**
 
