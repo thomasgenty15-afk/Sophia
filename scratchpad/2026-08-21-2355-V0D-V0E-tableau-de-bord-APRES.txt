@@ -1,0 +1,106 @@
+═══════════════════════════════════════════════════════════════════════════
+V0-E′ — LE TABLEAU DE BORD, AVANT LE RUN
+exécuté le 2026-08-21 23:56:17 CEST · base supabase_db_Sophia_2
+═══════════════════════════════════════════════════════════════════════════
+
+  #1   plans portant dishes[].boxes (tableau NON VIDE) 1 / 181
+  #2   journées calculables PAR LANE ET PAR LANGUE   ⛔ N'EXISTE PAS (ce n'est pas 0) — lot L2-lang, vague 2
+  #3   lignes résolues ET pesées, APRÈS pliage     foyer 93.6 % (9671/10329) · solo 36.4 % (1880/5161)
+  #4   motifs d'abstention (plats pliés)             missing_quantity 533 · unknown_ingredient 458 · no_ingredients 144 sur 1857 plats
+  #5   inconnus par plan (médiane)                   ⛔ NON MESURÉ — 1 / 181 plans portent une valeur ; composition_fill_weekly rend 1 ligne(s)
+  #6   facteur d'activité crossed / legacy / assumed 5 / 24 / 18 sur 47 corps
+  #7   plans dont la ceinture a vu > 1 bouche         0 / 14 (refused: 0)
+  #8   portion_note portant un grammage               181 / 344
+  #9   contraintes actives non couvertes / couvertes  6 non couvertes · 35 couvertes sur 58 actives (35 medical · 14 strict · 9 preference)
+  #10  bouches sans birth_date · profils sans birth_date 25 / 92 · 1193 / 1313
+
+  source: sql = requête de lecture · deno = résolveur DE PRODUCTION importé
+          (food_composition.ts, meal_verdict.ts, plan_energy.ts — jamais une copie)
+CORPUS  181 plans (103 foyer · 78 solo) · 1857 plats · 650 préparations · référentiel 923 lignes / 2601 alias
+
+── #1 · CLÉ PRÉSENTE vs TABLEAU NON VIDE ───────────────────────────────────
+     dishes[].boxes         clé présente 1 · tableau non vide 1 (sur 181 plans)
+     preparations[].boxes   clé présente 56 · tableau non vide 50
+     ⚠️ l'écart 56 vs 50 sur les préparations est la raison pour laquelle
+        « clé présente » n'est PAS la définition retenue.
+
+── #2 · L'OBSTACLE, CHIFFRÉ ────────────────────────────────────────────────
+     plans en locale fr* : 3 / 181 — dont foyer : 2
+     ⇒ mesurer « par langue » sur ce corpus mesurerait UNE génération,
+       pas une langue. C'est pourquoi L2-lang exige dix générations.
+     ventilation des locales :
+     en       household  32
+     en       personal   32
+     en-GB    household  66
+     en-GB    personal   43
+     en-US    household  3
+     en-US    personal   2
+     fr-FR    household  1
+     fr-FR    personal   1
+     fr-US    household  1
+
+── #5 · POURQUOI « NON MESURÉ » ET PAS « 0 » ───────────────────────────────
+     plans 181 · portant une valeur 1 · médiane 3 · max 3
+     composition_fill_weekly : 1 ligne(s)
+     ⟳ V0-B a retiré le défaut de colonne le 2026-08-21. Le « 0 » annoncé
+       par le plan était ce défaut, jamais une mesure.
+
+── #8 · LES DEUX DÉFINITIONS COÏNCIDENT ────────────────────────────────────
+     entrées member_portions 344 · note avec un chiffre 181 · note avec un nombre + unité de masse 181
+     ⇒ toute note qui porte un chiffre porte un grammage. La définition
+       retenue est la seconde (nombre + unité), la plus stricte.
+
+── #9 · LA DÉFINITION, ET LES QUATRE POPULATIONS ───────────────────────────
+     COUVERTES      35  (active · medical · porte un jeton)
+     NON COUVERTES  6  (active · strict  · porte un jeton) ← la population de S2
+     HORS DE PORTÉE 8  (aucun jeton : safetyConstraintTokens ne rend pas dietRef)
+     PREFERENCE     9  (dont 9 portent un jeton) — hors sécurité, par décision
+     ventilation :
+     medical     allergy      jeton=t     31
+     medical     medical      jeton=t     4
+     preference  dislike      jeton=t     8
+     preference  intolerance  jeton=t     1
+     strict      allergy      jeton=t     1
+     strict      diet         jeton=f     8
+     strict      intolerance  jeton=t     5
+
+── #3 · LE DÉTAIL — trois grandeurs distinctes, jamais confondues ──────────
+   RÉSOLU = coverage (connus/total) · PESÉ = resolved.length/total (le compteur)
+
+   APRÈS PLIAGE — le compteur #3 (foldPreparationsIntoDishes, production)
+     foyer  lignes  10329 · RÉSOLU  96.9 % · RÉSOLU+PESÉ  93.6 % · dont pesés par convention 807
+     solo   lignes   5161 · RÉSOLU  94.1 % · RÉSOLU+PESÉ  36.4 % · dont pesés par convention 885
+     TOTAL  lignes  15490 · RÉSOLU+PESÉ 74.6 %
+
+   AVANT PLIAGE — ⛔ NE PAS CITER COMME LE COMPTEUR. Il raccorde le
+   dénominateur 9 810 du plan (6 661 lignes de plat + 3 149 de préparation).
+     foyer  plats  3830 (RÉSOLU 96.5 % · +PESÉ 90.7 %) · préparations  2397 (RÉSOLU 96.0 % · +PESÉ 93.6 %)
+            ensemble RÉSOLU 96.3 % · RÉSOLU+PESÉ 91.8 %
+     solo   plats  2922 (RÉSOLU 93.0 % · +PESÉ 21.0 %) · préparations   785 (RÉSOLU 95.0 % · +PESÉ 55.9 %)
+            ensemble RÉSOLU 93.4 % · RÉSOLU+PESÉ 28.4 %
+     TOTAL  9934 lignes NOMMÉES = 6752 (plats) + 3182 (préparations)
+     ⚠️ le SQL compte 9949 entrées JSON : 15 ne portent aucun "term" et readIngredient les JETTE.
+        Les deux dénominateurs ne sont pas le même — 9 810 est celui du SQL.
+
+── #4 · LE DÉTAIL ──────────────────────────────────────────────────────────
+     plats calculables 722 / 1857 (38.9 %)
+     unknown_ingredient     458
+     missing_quantity       533
+     no_ingredients         144
+
+   ⛔ LA PREUVE QUE CE SCRIPT PLIE — le même compteur sans pliage :
+     plats calculables SANS pliage 809 / 1857 (43.6 %)  ⇐ FAUX, et faux dans le sens flatteur
+     plats calculables APRÈS pliage 722 / 1857 (38.9 %)  ⇐ le chiffre retenu
+     ⚠️ SUR LES LIGNES, le pliage fait MONTER le taux (les lignes de
+        préparation sont mieux pesées et se dupliquent). La baisse annoncée
+        par la fiche porte sur le PLAT, pas sur la ligne. Les deux sont ici.
+
+── #2 · LA MOITIÉ QUI EXISTE (par lane), ⛔ ET QUI N'EST PAS LE COMPTEUR ────
+   Le compteur #2 est « par lane ET PAR LANGUE ». Voici la coupe par lane
+   seule, celle du lot 18 — la coupe par langue reste inexistante (L2-lang).
+     foyer  journées calculables 89 / 325 (27.4 %)
+     solo   journées calculables 42 / 318 (13.2 %)
+
+═══════════════════════════════════════════════════════════════════════════
+FIN — dix lignes rendues, dont #2 explicitement marqué inexistant.
+═══════════════════════════════════════════════════════════════════════════

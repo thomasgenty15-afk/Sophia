@@ -1,0 +1,112 @@
+serving the request with supabase/functions/process-llm-retry-jobs
+serving the request with supabase/functions/trigger-topic-compaction
+serving the request with supabase/functions/generate-household-meal-v1
+[Info] {"tag":"keel.household_meal.member_bodies","user_id":"53fb05ba-333a-4bf5-9e19-502103581ef7","household_id":"b1959752-92c8-4038-8c17-992a77d68d21","members":4,"accounts":1,"with_body":4,"reads":8}
+
+[Info] keel.doctrine.variant {
+  coach_id: [1mnull[22m,
+  variant: [32m"maintenance"[39m,
+  goal_source: [32m"student_goals"[39m,
+  cache_key: [1mnull[22m,
+  reason: [32m"no_coach"[39m,
+  doctrine_coach_id: [1mnull[22m,
+  delegated: [33mfalse[39m,
+  beliefs_kept: [33m0[39m,
+  beliefs_total: [33m0[39m,
+  arbitrations_kept: [33m0[39m,
+  arbitrations_total: [33m0[39m,
+  empty_for_goal: [33mfalse[39m,
+  table_goals: [33m0[39m,
+  table_scope_beliefs: [33m0[39m
+}
+
+serving the request with supabase/functions/process-llm-retry-jobs
+serving the request with supabase/functions/trigger-synthesizer-batch
+serving the request with supabase/functions/trigger-topic-compaction
+[Info] trigger-synthesizer-batch: Function initialized
+
+serving the request with supabase/functions/generate-household-meal-v1
+[Info] {"tag":"keel.household_meal.member_bodies","user_id":"53fb05ba-333a-4bf5-9e19-502103581ef7","household_id":"b1959752-92c8-4038-8c17-992a77d68d21","members":4,"accounts":1,"with_body":4,"reads":8}
+
+[Info] keel.doctrine.variant {
+  coach_id: [32m"00000000-0000-4000-8000-00000000d15c"[39m,
+  variant: [32m"maintenance"[39m,
+  goal_source: [32m"student_goals"[39m,
+  cache_key: [32m"d435193ded35d76b"[39m,
+  doctrine_coach_id: [32m"00000000-0000-4000-8000-00000000d15c"[39m,
+  delegated: [33mfalse[39m,
+  reason: [32m"loaded"[39m,
+  beliefs_kept: [33m6[39m,
+  beliefs_total: [33m6[39m,
+  arbitrations_kept: [33m2[39m,
+  arbitrations_total: [33m2[39m,
+  empty_for_goal: [33mfalse[39m,
+  table_goals: [33m1[39m,
+  table_scope_beliefs: [33m0[39m
+}
+
+[Info] {"tag":"keel.household_meal.member_allergies","user_id":"53fb05ba-333a-4bf5-9e19-502103581ef7","household_id":"b1959752-92c8-4038-8c17-992a77d68d21","rows":1,"refs":2}
+
+[Info] {"tag":"keel.household_meal.constraint_attribution","user_id":"53fb05ba-333a-4bf5-9e19-502103581ef7","household_id":"b1959752-92c8-4038-8c17-992a77d68d21","declared":2,"attributed":2,"unattributed":0}
+
+[Info] {"tag":"keel.household_meal.composition","user_id":"53fb05ba-333a-4bf5-9e19-502103581ef7","household_id":"b1959752-92c8-4038-8c17-992a77d68d21","mode":"per_portion","deltas":0,"family_service":true,"residual_gaps_count":0,"residual_gaps_max_band":"none"}
+
+[Info] {"tag":"keel.household_meal.retained_items","user_id":"53fb05ba-333a-4bf5-9e19-502103581ef7","household_id":"b1959752-92c8-4038-8c17-992a77d68d21","composition":0,"portion":0,"rhythm":0,"logistics":0,"craving":0,"unrouted":0,"portion_excluded":[],"refused":0,"legacy_notes":0,"other_subjects":0,"portion_applied":0}
+
+[Info] {"tag":"keel.household_meal.presence","user_id":"53fb05ba-333a-4bf5-9e19-502103581ef7","household_id":"b1959752-92c8-4038-8c17-992a77d68d21","members_away":1,"deserted_slots":0,"servings":4}
+
+[Info] {"tag":"keel.household_meal.cooking_shape","user_id":"53fb05ba-333a-4bf5-9e19-502103581ef7","household_id":"b1959752-92c8-4038-8c17-992a77d68d21","weekly_cooking_minutes":null,"time_allows_second_dish":true,"shape":"one_session","asked_shape":null,"computed_shape":"one_session","shape_capped":false,"shape_unused":false,"diverging":["fa68cbac-6874-4b65-8fe7-5f4b2e0a24c7"],"dish_bearing":["fa68cbac-6874-4b65-8fe7-5f4b2e0a24c7"],"from_merge":false,"strictest_regime":"vegan","regimes":1}
+
+[Info] {"tag":"keel.household_meal.member_voices","user_id":"53fb05ba-333a-4bf5-9e19-502103581ef7","household_id":"b1959752-92c8-4038-8c17-992a77d68d21","accounts_at_table":1,"with_lines":0,"lines_raw":0,"reads":0}
+
+[Info] {"tag":"keel.household_meal.voices_used","user_id":"53fb05ba-333a-4bf5-9e19-502103581ef7","household_id":"b1959752-92c8-4038-8c17-992a77d68d21","heard":0,"linesIn":0,"linesUsed":0,"linesWithheld":0,"linesOverCap":0,"linesTooLong":0,"perMember":[]}
+
+serving the request with supabase/functions/process-checkins
+serving the request with supabase/functions/process-llm-retry-jobs
+serving the request with supabase/functions/trigger-topic-compaction
+[Info] Process Checkins: Function initialized
+
+serving the request with supabase/functions/process-llm-retry-jobs
+serving the request with supabase/functions/trigger-topic-compaction
+wall clock duration warning: isolate: 1d42e45a-3be4-4985-a568-499d469915ae
+wall clock duration warning: isolate: d16c1b67-edb7-40e8-9893-0691e11ff134
+early termination has been triggered: isolate: d16c1b67-edb7-40e8-9893-0691e11ff134
+wall clock duration warning: isolate: 23160106-3fe6-4808-8289-0a392e437d2d
+early termination has been triggered: isolate: 23160106-3fe6-4808-8289-0a392e437d2d
+[Info] {"tag":"openai_http","request_id":"e6604956-d6dd-4741-a777-583e76ecbcaf","source":"generate-household-meal-v1","model":"gpt-5.6-luna","openai_api":"responses","openai_response_id":"resp_03c5a6f214c4e03d006a88c83fc8f487d2b06c05f381f0e7ed","status":200,"ok":true,"duration_ms":100059,"timeout_ms":300000,"attempt":1,"chain_index":0}
+
+[Info] {"tag":"openai_result","request_id":"e6604956-d6dd-4741-a777-583e76ecbcaf","source":"generate-household-meal-v1","model":"gpt-5.6-luna","json_mode":true,"tool_choice":"auto","has_tools":false,"outcome":"text","attempt":1,"chain_index":0}
+
+[Info] {"tag":"openai_http","request_id":"e6604956-d6dd-4741-a777-583e76ecbcaf","source":"generate-household-meal-v1.composition_fill","model":"gpt-5.4-nano","openai_api":"responses","openai_response_id":"resp_0c7b3972aa9ff6a0006a88c8a3162887d2824eeaf22fead3e9","status":200,"ok":true,"duration_ms":2219,"timeout_ms":12000,"attempt":1,"chain_index":0}
+
+[Info] {"tag":"openai_result","request_id":"e6604956-d6dd-4741-a777-583e76ecbcaf","source":"generate-household-meal-v1.composition_fill","model":"gpt-5.4-nano","json_mode":true,"tool_choice":"auto","has_tools":false,"outcome":"text","attempt":1,"chain_index":0}
+
+[Info] {"tag":"keel.household_meal.composition_fill","user_id":"53fb05ba-333a-4bf5-9e19-502103581ef7","household_id":"b1959752-92c8-4038-8c17-992a77d68d21","intent":"prepare_next","measured":true,"unknowns":3,"requested":3,"answered":3,"model":3,"group_bounds":0,"over_cap":0,"no_group":0,"no_band":0,"already_resolved":0,"unreachable":0,"implausible":0,"kept":3,"sas_written":3,"sas_failed":0,"shares":{"kcal":19282,"table":0.931,"promoted":0,"model":0.069,"group_bounds":0}}
+
+[Info] {"tag":"keel.household_meal.dietary_regime","user_id":"53fb05ba-333a-4bf5-9e19-502103581ef7","household_id":"b1959752-92c8-4038-8c17-992a77d68d21","lock":"clean","dishes":36,"mouths":1,"checked":12,"kept":12,"refused":0,"bites":0,"separated":0,"not_separated":0,"silenced":0,"unknown_mouth":0,"groups_declared":134,"groups_valid":124,"groups_refused":10,"group_excluded":0,"group_plant_only":84,"group_undecided":37}
+
+[Info] {"tag":"keel.household_meal.why_rule","user_id":"53fb05ba-333a-4bf5-9e19-502103581ef7","household_id":"b1959752-92c8-4038-8c17-992a77d68d21","holders":2,"dishes":36,"declared":0,"valid":0,"refused":0}
+
+[Info] {"tag":"keel.household_meal.table_appetite","user_id":"53fb05ba-333a-4bf5-9e19-502103581ef7","household_id":"b1959752-92c8-4038-8c17-992a77d68d21","servings_headcount":4,"appetite_equivalent":5.5,"bodies_known":4,"mouths":4,"steering":false}
+
+[Info] {"tag":"keel.household_meal.box_sizing","user_id":"53fb05ba-333a-4bf5-9e19-502103581ef7","household_id":"b1959752-92c8-4038-8c17-992a77d68d21","intent":"prepare_next","boxes":38,"common":12,"items":69,"sized":47,"unchanged":22,"capped_by_pot":0,"unverifiable":5,"mouths":{"sized":1,"sized_default_pace":0,"restriction_floor":0,"restriction_unknown":0,"minor":1,"doctrine_no_counting":0,"age_unknown":0,"no_direction":2,"no_pace":0,"no_body":0,"implausible_factor":0},"share":{"sized":4,"restriction_floor":0,"restriction_unknown":0,"age_unknown":0,"no_body":0,"no_reference":0},"share_clamped":0,"anchor":{"anchored":1,"day_incomplete":0,"no_delivery":17,"restriction_floor":0,"restriction_unknown":0,"no_body":0,"age_unknown":0,"clamped":6},"anchor_applied":2,"activity":{"answered":4,"partial":0,"not_answered":0,"not_asked":0},"activity_source":{"crossed":4,"legacy":0,"assumed":0},"meal_structure":{"answered":0,"partial":0,"not_answered":0,"not_asked":4},"appetite":{"declared":4,"not_answered":0,"not_asked":0}}
+
+[Info] {"tag":"keel.household_meal.traditions","user_id":"53fb05ba-333a-4bf5-9e19-502103581ef7","household_id":"b1959752-92c8-4038-8c17-992a77d68d21","intent":"prepare_next","declared":0,"honoured":0,"composed_without_label":0,"not_composed":0,"out_of_window":0}
+
+[Info] {"tag":"keel.household_meal.sized_shares_relinked","user_id":"53fb05ba-333a-4bf5-9e19-502103581ef7","household_id":"b1959752-92c8-4038-8c17-992a77d68d21","relinked":47,"boxes":38}
+
+[Info] {"tag":"keel.household_meal.box_counts","user_id":"53fb05ba-333a-4bf5-9e19-502103581ef7","household_id":"b1959752-92c8-4038-8c17-992a77d68d21","intent":"prepare_next","boxes":{"meals":24,"with_box":24,"boxes":38,"expected":72,"refused":0,"names":60,"names_refused":0,"items":69,"items_refused":0,"capped":0,"legacy_folded":0,"preparations":8,"sum_checked":3,"sum_over":0,"sum_unverifiable":5,"mouth_slots":48,"mouths_unboxed":0,"mouths_double":12,"mouths":4},"unquantified_dish_ingredients":{"ingredients":106,"unquantified":0},"vague_portions":{"notes":20,"vague":0,"quantified":0,"box_ids":0},"shares":{"shares":16,"unknown":0,"regime_refused":0},"regime_belt":{"mouths":1,"checked":12,"kept":12,"refused":0,"bites":0,"separated":0,"not_separated":0,"silenced":0,"unknown_mouth":0,"groups_declared":134,"groups_valid":124,"groups_refused":10,"group_excluded":0,"group_plant_only":84,"group_undecided":37},"box_sizing":{"boxes":38,"common":12,"items":69,"sized":47,"unchanged":22,"capped_by_pot":0,"unverifiable":5,"mouths":{"sized":1,"sized_default_pace":0,"restriction_floor":0,"restriction_unknown":0,"minor":1,"doctrine_no_counting":0,"age_unknown":0,"no_direction":2,"no_pace":0,"no_body":0,"implausible_factor":0},"share":{"sized":4,"restriction_floor":0,"restriction_unknown":0,"age_unknown":0,"no_body":0,"no_reference":0},"share_clamped":0,"anchor":{"anchored":1,"day_incomplete":0,"no_delivery":17,"restriction_floor":0,"restriction_unknown":0,"no_body":0,"age_unknown":0,"clamped":6},"anchor_applied":2,"activity":{"answered":4,"partial":0,"not_answered":0,"not_asked":0},"activity_source":{"crossed":4,"legacy":0,"assumed":0},"meal_structure":{"answered":0,"partial":0,"not_answered":0,"not_asked":4},"appetite":{"declared":4,"not_answered":0,"not_asked":0}},"traditions":{"declared":0,"honoured":0,"composed_without_label":0,"not_composed":0,"out_of_window":0},"portion_quantities":{"notes":4,"model_quantity":0,"model_size_word":0}}
+
+early termination has been triggered: isolate: 1d42e45a-3be4-4985-a568-499d469915ae
+serving the request with supabase/functions/process-llm-retry-jobs
+serving the request with supabase/functions/trigger-topic-compaction
+wall clock duration warning: isolate: 2b31bee9-bb62-4516-9ed2-10abc72cd1f5
+early termination has been triggered: isolate: 2b31bee9-bb62-4516-9ed2-10abc72cd1f5
+serving the request with supabase/functions/process-llm-retry-jobs
+serving the request with supabase/functions/process-checkins
+serving the request with supabase/functions/trigger-topic-compaction
+wall clock duration warning: isolate: cddd3a29-19d3-4d37-8bac-1e652a880002
+early termination has been triggered: isolate: cddd3a29-19d3-4d37-8bac-1e652a880002
+serving the request with supabase/functions/process-llm-retry-jobs
+serving the request with supabase/functions/trigger-topic-compaction
+serving the request with supabase/functions/keel-coach-broadcast-v1
