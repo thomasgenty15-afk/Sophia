@@ -63,10 +63,35 @@ export type SafetyConstraintFloorHit = {
  * Normalisation MINIMALE et partagée : casse, accents, ponctuation.
  * Les mêmes règles que `forbidden_matcher`, réécrites ici pour ne pas coupler
  * un plancher d'intake à une ceinture de sortie.
+ *
+ * ── LES LIGATURES SONT DÉPLIÉES, PAS SUPPRIMÉES (2026-08-22, lot S1) ────────
+ * `œ` et `æ` ne sont PAS des accents composés : ils survivent à `NFD`, et le
+ * filtre `[^a-z0-9\s]` juste en dessous les remplaçait donc par une espace au
+ * lieu de les ramener à leurs deux lettres. Sur un produit dont la locale par
+ * défaut est `fr-FR`, ça TUAIT le plancher sur la graphie normale du mot :
+ * mesuré le 2026-08-22, « je suis allergique aux œufs » ⇒ `null`, « …oeufs »
+ * ⇒ `{allergen_ref:"egg", severity:"medical"}`. Le plancher retombait alors
+ * sur le tirage du dispatcher — c'est-à-dire exactement ce qu'il existe pour
+ * fermer, sur une déclaration médicale.
+ *
+ * C'est le repli déjà posé le 2026-08-19 dans `allergen_catalog.ts`, dont ce
+ * module reste DÉLIBÉRÉMENT découplé (un plancher d'intake n'est pas une
+ * ceinture de sortie) : la règle est recopiée, pas importée, et les deux
+ * commentaires se citent.
+ *
+ * ⚠️ Écrit en séquences d'échappement (`\u0153`, `\u00e6`), comme le module
+ * frère : ce dépôt a déjà produit du mojibake qu'aucun `tsc` ni test de
+ * parité n'attrape. Les caractères littéraux `œ` et `æ` n'apparaissent que
+ * dans ce commentaire — jamais dans le chemin exécuté.
+ *
+ * ⚠️ Le dépliage vient APRÈS `toLowerCase()`, pour que `Œ` et `Æ` passent
+ * aussi.
  */
 function normalize(text: string): string {
   return String(text ?? "")
     .toLowerCase()
+    .replace(/\u0153/g, "oe")
+    .replace(/\u00e6/g, "ae")
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "")
     .replace(/['’]/g, " ")

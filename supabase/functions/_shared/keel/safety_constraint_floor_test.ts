@@ -12,6 +12,7 @@
  */
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import { detectDeclaredSafetyConstraint } from "./safety_constraint_floor.ts";
+import { ALLERGEN_SURFACE_FORMS } from "./allergen_surface_forms.ts";
 
 Deno.test("le message EXACT du run réel déclenche le plancher", () => {
   const hit = detectDeclaredSafetyConstraint("I'm allergic to peanuts, badly");
@@ -119,6 +120,148 @@ Deno.test("R7 — un allergène hors de la table fermée n'invente pas de slug",
   assertEquals(
     detectDeclaredSafetyConstraint("I'm allergic to kiwi"),
     null,
+  );
+});
+
+// ── LES LIGATURES (lot S1, 2026-08-22) ─────────────────────────────────────
+//
+// MESURE AVANT, 2026-08-22 01:18:51 CEST, avant toute ligne de correctif :
+//   « je suis allergique aux œufs »  ⇒ null          ← la graphie NORMALE
+//   « je suis allergique aux oeufs » ⇒ egg/medical
+// 0/6 ligature · 6/6 digramme · TOTAL 6/12. Sur un produit dont la locale par
+// défaut est `fr-FR`, le plancher médical était donc muet sur l'orthographe
+// que l'élève tape réellement, et retombait sur le tirage du dispatcher —
+// c'est-à-dire sur le défaut EXACT que ce module existe pour fermer.
+//
+// ⚠️ Ces trois tests forment un trépied et se lisent ensemble : un qui MORD
+// (la ligature), un qui NE MORD PAS (le message neutre — sans lui, une
+// `normalize()` cassée bloquerait tout en ressemblant à une garde qui marche),
+// et un BALAYAGE qui compte ses propres cas (un balayage vide est vert pour
+// rien : c'est la cicatrice de `V0-B-bis`).
+
+/** La graphie en digramme d'une chaîne à ligature. */
+function digraphe(s: string): string {
+  return s.replace(/œ/g, "oe").replace(/æ/g, "ae");
+}
+
+Deno.test("LIGATURE — les 6 formulations françaises mordent dans les DEUX graphies", () => {
+  const formulations = [
+    "je suis allergique aux œufs",
+    "je suis sévèrement allergique aux œufs",
+    "je suis allergique à l'œuf",
+    "j'ai une allergie aux œufs",
+    "je suis intolérant aux œufs",
+    "j'ai une intolérance aux œufs",
+  ];
+  assertEquals(formulations.length, 6, "la grille doit porter ses 6 formulations");
+
+  for (const ligature of formulations) {
+    const digramme = digraphe(ligature);
+    assert(
+      ligature !== digramme,
+      `cas dégénéré, la ligature a disparu du littéral: ${ligature}`,
+    );
+
+    const hitLig = detectDeclaredSafetyConstraint(ligature);
+    assert(hitLig, `doit mordre sous ligature: ${ligature}`);
+    assertEquals(hitLig!.allergen_ref, "egg", ligature);
+
+    // ⚠️ AUCUNE RÉGRESSION SUR LE DIGRAMME: c'est la moitié qui marchait déjà.
+    const hitDig = detectDeclaredSafetyConstraint(digramme);
+    assert(hitDig, `doit mordre sous digramme: ${digramme}`);
+    assertEquals(hitDig!.allergen_ref, "egg", digramme);
+
+    // Et les deux graphies rendent le MÊME verdict, sévérité comprise.
+    assertEquals(hitLig!.kind, hitDig!.kind, ligature);
+    assertEquals(hitLig!.severity, hitDig!.severity, ligature);
+  }
+});
+
+Deno.test("LIGATURE — BALAYAGE: toute forme de surface concernée du catalogue est couverte", () => {
+  // MESURÉ le 2026-08-22: le catalogue ne porte AUCUNE ligature littérale.
+  // Ce qu'il porte, ce sont des DIGRAMMES qu'un élève francophone écrit
+  // normalement avec une ligature — aujourd'hui « oeuf », listé sous `egg` ET
+  // sous `eggs`, et rien d'autre sur 100 formes distinctes.
+  //
+  // Le balayage est écrit sur le CATALOGUE et non sur une liste recopiée: le
+  // jour où quelqu'un ajoute « soeur », « caecum » ou « nævus », il entre ici
+  // tout seul, et ce test rougit s'il n'est pas couvert.
+  const concernees: Array<{ ref: string; form: string }> = [];
+  for (const [ref, forms] of Object.entries(ALLERGEN_SURFACE_FORMS)) {
+    for (const form of forms) {
+      if (/(oe|ae)/.test(form.toLowerCase()) || /[œæ]/.test(form)) {
+        concernees.push({ ref, form });
+      }
+    }
+  }
+
+  // ⛔ L'ASSERTION DE CARDINALITÉ, et elle n'est pas décorative: une boucle
+  // sur zéro cas est verte sans rien avoir prouvé.
+  assert(
+    concernees.length >= 1,
+    "balayage vide — un balayage qui ne couvre rien n'est pas une preuve",
+  );
+
+  for (const { ref, form } of concernees) {
+    const ligature = form.replace(/oe/g, "œ").replace(/ae/g, "æ");
+    assert(ligature !== form, `${ref}: aucune ligature à produire pour ${form}`);
+
+    const hitLig = detectDeclaredSafetyConstraint(`je suis allergique aux ${ligature}`);
+    const hitDig = detectDeclaredSafetyConstraint(`je suis allergique aux ${form}`);
+
+    // Le critère est l'ÉQUIVALENCE des deux graphies, pas « rend ce ref »:
+    // « oeuf » est listé sous deux clés et l'index n'en résout qu'une.
+    assert(hitDig, `${ref}: le digramme ${form} ne mord pas — prémisse cassée`);
+    assert(hitLig, `${ref}: la ligature ${ligature} ne mord pas`);
+    assertEquals(hitLig!.allergen_ref, hitDig!.allergen_ref, form);
+    assertEquals(hitLig!.matched, hitDig!.matched, form);
+  }
+});
+
+Deno.test("LIGATURE — LE CAS QUI PASSE: le dépliage n'ouvre aucune porte", () => {
+  // Sans ces cas, une `normalize()` cassée — qui ferait mordre tout — aurait
+  // exactement la tête d'une garde qui marche.
+  for (
+    const message of [
+      // Le témoin nommé par la fiche du lot.
+      "jaime bien les pates",
+      // Une ligature dans une phrase qui ne déclare rien.
+      "j'ai mangé des œufs à midi",
+      // Les conditions de désarmement tiennent SOUS ligature. Avant le
+      // correctif elles rendaient `null` pour la mauvaise raison — le terme ne
+      // se résolvait pas ; maintenant c'est bien le désarmement qui parle.
+      "je ne suis pas allergique aux œufs",
+      "mon fils est allergique aux œufs",
+      "est ce que je suis allergique aux œufs ?",
+      // R7 — la ligature ne doit pas inventer un slug: « nœud » se déplie en
+      // « noeud », qui n'est dans aucune table.
+      "je suis allergique aux nœuds papillon",
+    ]
+  ) {
+    assertEquals(
+      detectDeclaredSafetyConstraint(message),
+      null,
+      `ne doit PAS mordre: ${message}`,
+    );
+  }
+});
+
+Deno.test("LIGATURE — æ est déplié par SYMÉTRIE, et n'a aucune cible aujourd'hui", () => {
+  // ⛔ CE TEST DIT UNE ABSENCE, et il faut le lire comme tel: le dépliage
+  // `æ → ae` de `safety_constraint_floor.ts` n'est exercé de bout en bout par
+  // AUCUN allergène — zéro forme de surface du catalogue ne contient « ae ».
+  // Il est posé parce que le module frère `allergen_catalog.ts` le porte, et
+  // que deux normalisations qui divergent sont exactement ce que ce lot vient
+  // de payer. Le jour où une forme en « ae » entre au catalogue, le BALAYAGE
+  // ci-dessus la prend automatiquement — et ce test-ci rougit pour prévenir
+  // que l'affirmation d'absence a cessé d'être vraie.
+  const avecAe = Object.entries(ALLERGEN_SURFACE_FORMS)
+    .flatMap(([ref, forms]) => forms.map((form) => ({ ref, form })))
+    .filter(({ form }) => /ae/.test(form.toLowerCase()) || /æ/.test(form));
+  assertEquals(
+    avecAe.map(({ ref, form }) => `${ref}:${form}`),
+    [],
+    "une forme en « ae » est apparue — vérifier qu'elle est couverte sous « æ »",
   );
 });
 
