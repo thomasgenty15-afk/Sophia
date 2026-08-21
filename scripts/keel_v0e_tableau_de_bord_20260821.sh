@@ -82,6 +82,45 @@ RAW="$TMP/raw.txt"
 psql_q -f - < "$SQL_FILE" >> "$RAW"
 deno run --quiet --allow-read "$TS_FILE" "$TMP" >> "$RAW"
 
+# ── ⛔ L'ASSERTION DE CARDINALITÉ — LE PILOTE COMPTE SES PROPRES LIGNES ────
+# Lot `V0-E′-bis`. C'est le TROISIÈME VISAGE DU `null` de `V0-B-bis` — la
+# sonde qui n'existe pas — appliqué ici.
+#
+# Avant ce lot, un compteur cassé pour ne rendre AUCUNE ligne (mesuré par
+# mutation, `... from c6 where corps < 0`) donnait: `rc=0`, stderr VIDE, NEUF
+# lignes — #1…#5 puis #7…#10, #6 simplement disparu — et un pied de page qui
+# affirmait « dix lignes rendues ». Le total était une CONSTANTE DE CHAÎNE,
+# jamais un compte: `grep | sort | awk` imprime ce qui arrive, pas ce qui
+# manque. Une ligne qui s'évapore ne laisse aucune trace.
+#
+# Le danger est LATENT, pas vivant: les huit CTE du SQL sont aujourd'hui des
+# agrégats nus qui rendent TOUJOURS exactement une ligne, et une erreur SQL
+# dure arrête bien le pilote (`ON_ERROR_STOP=1` + `set -euo pipefail`). Il
+# mordra au premier `where`, `group by` ou `join` ajouté à un compteur.
+#
+# ⚠️ SA LIMITE, ET ELLE EST RÉELLE — il faut l'écrire ici, pas la découvrir:
+# la liste attendue est ÉCRITE EN DUR. Elle attrape la ligne qui S'ÉVAPORE;
+# elle n'attrape JAMAIS celle qu'on retire en mettant `ATTENDUS` à jour dans
+# le même geste. C'est exactement la limite que `V0-B-bis` a reconnue pour
+# `expected_probes`, et aucune assertion de cardinalité ne la ferme.
+ATTENDUS='1 2 3 4 5 6 7 8 9 10'
+RENDUS="$(grep -E '^[0-9]+\|' "$RAW" | cut -d'|' -f1 | sort -n -u || true)"
+N="$(printf '%s\n' "$RENDUS" | grep -c . || true)"
+MANQUANTS=""
+for numero in $ATTENDUS; do
+  printf '%s\n' "$RENDUS" | grep -qx "$numero" || MANQUANTS="$MANQUANTS #$numero"
+done
+if [ -n "$MANQUANTS" ] || [ "$N" -ne 10 ]; then
+  {
+    printf '⛔ CARDINALITÉ: %s/10 lignes rendues — MANQUANT(S):%s\n' \
+      "$N" "${MANQUANTS:- aucun numéro absent (doublon, ou numéro hors liste)}"
+    printf '   rendus : %s\n' "$(printf '%s' "$RENDUS" | tr '\n' ' ')"
+    printf '   ⇒ un compteur n'"'"'a rendu AUCUNE ligne. Le tableau est FAUX, pas incomplet:\n'
+    printf '     une ligne absente ne se voit pas, et le pied de page ne la compte pas.\n'
+  } >&2
+  exit 1
+fi
+
 printf '═══════════════════════════════════════════════════════════════════════════\n'
 printf 'V0-E′ — LE TABLEAU DE BORD, AVANT LE RUN\n'
 printf 'exécuté le %s · base %s\n' "$(date '+%Y-%m-%d %H:%M:%S %Z')" "$DB_CONTAINER"
@@ -97,5 +136,13 @@ printf '          (food_composition.ts, meal_verdict.ts, plan_energy.ts — jama
 grep -E '^DETAIL\|' "$RAW" | sed 's/^DETAIL|//'
 
 printf '\n═══════════════════════════════════════════════════════════════════════════\n'
+# ⚠️ « dix » n'est PLUS une affirmation non vérifiée: l'assertion de
+#    cardinalité ci-dessus a COMPTÉ les lignes, et ce point du script est
+#    INATTEIGNABLE si le compte n'est pas exactement 10 (`exit 1`).
+#    ⛔ Le libellé reste écrit en toutes lettres, au bit près, POUR UNE RAISON
+#    DE MESURE: le corps de cette sortie est comparé par `md5` à l'archive du
+#    2026-08-21 23:11 (`dd6ea3420c25ec2b5120eee37f55a3be`, `tail -n +4`), et
+#    c'est cette comparaison qui referme chaque vague. Interpoler « 10 » ici
+#    casserait ce hash — le correctif se verrait comme une dérive de mesure.
 printf 'FIN — dix lignes rendues, dont #2 explicitement marqué inexistant.\n'
 printf '═══════════════════════════════════════════════════════════════════════════\n'
