@@ -1,11 +1,19 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
 
-import type { ShoppingItem } from "./meal_generation.ts";
+// ⛔ CE TEST NE DÉPEND PAS DE `ShoppingItem`, ET C'EST DÉLIBÉRÉ. Le contrat de
+// `grocery_waves.ts` est `WaveItem` — la forme MINIMALE d'un article, celle que
+// satisfont aussi bien la ligne du serveur que le JSON de l'écran. Le tester
+// contre le type d'un autre module ferait rougir ce fichier chaque fois que ce
+// module bouge, sur des champs dont les vagues ne savent rien.
+type TestItem = WaveItem & { quantity: string | null };
+type TestAisle = "produce" | "protein" | "dairy" | "grains" | "pantry" | "frozen" | "other";
 import {
   MAX_FRIDGE_DAYS,
   planGroceryWaves,
+  rawWindowCounts,
   waveAssignments,
   waveItemCount,
+  type WaveItem,
   type WavePreparation,
   wavePreparationsFromRows,
   wavesAreMeaningful,
@@ -14,7 +22,7 @@ import {
 // Lundi 2026-08-03. Les jetons de jour suivent donc: mon=03 … sun=09.
 const MONDAY = "2026-08-03";
 
-function item(term: string, aisle: ShoppingItem["aisle"]): ShoppingItem {
+function item(term: string, aisle: TestAisle): TestItem {
   return { term, quantity: null, aisle };
 }
 
@@ -361,4 +369,113 @@ Deno.test("sans fenêtre, aucune affectation", () => {
     }),
     [],
   );
+});
+
+// ===========================================================================
+// ⟳ LOT `L0-a` — LA FENÊTRE CRUE, PAR GROUPE
+// ===========================================================================
+//
+// ⛔ LE DÉFAUT MESURÉ SUR LE CAS 04, REJOUÉ ICI. `MAX_FRIDGE_DAYS = 3`
+// accordait trois jours de frigo CRU à tout le monde, y compris à une volaille
+// fraîche qui en tient deux. Ces tests fixent la date d'achat par GROUPE, avec
+// des dates littérales — ce sont elles qui rougissent le jour où la fenêtre
+// d'un groupe change.
+
+function grouped(term: string, aisle: TestAisle, foodGroup: string | null): TestItem {
+  return { term, quantity: null, aisle, food_group: foodGroup };
+}
+
+Deno.test("le poulet du vendredi ne s'achète plus le mardi, mais le jeudi", () => {
+  // Vendredi 07. `poultry` tient 2 jours cru ⇒ au plus tôt mercredi 05.
+  // AVANT le lot: `MAX_FRIDGE_DAYS = 3` ⇒ mardi 04, et le poulet attendait
+  // trois jours. C'est exactement le cas 04.
+  const waves = planGroceryWaves({
+    startsOn: MONDAY,
+    durationDays: 7,
+    shoppingList: [grouped("sel", "pantry", "sauce_dressing"), grouped("poulet", "protein", "poultry")],
+    preparations: [{ id: "p1", cookOn: "fri", ingredientTerms: ["poulet"] }],
+  });
+  assertEquals(waves.length, 2);
+  assertEquals(waves[1].buyOn, "2026-08-05");
+  assertEquals(waves[1].items.map((i) => i.term), ["poulet"]);
+});
+
+Deno.test("le poisson se rapproche encore: un seul jour d'écart", () => {
+  const waves = planGroceryWaves({
+    startsOn: MONDAY,
+    durationDays: 7,
+    shoppingList: [grouped("cabillaud", "protein", "white_fish")],
+    preparations: [{ id: "p1", cookOn: "fri", ingredientTerms: ["cabillaud"] }],
+  });
+  assertEquals(waves.length, 1);
+  assertEquals(waves[0].buyOn, "2026-08-06", "jeudi, la veille de la cuisson");
+});
+
+Deno.test("la viande en pièce garde les trois jours historiques", () => {
+  const waves = planGroceryWaves({
+    startsOn: MONDAY,
+    durationDays: 7,
+    shoppingList: [grouped("boeuf", "protein", "red_meat")],
+    preparations: [{ id: "p1", cookOn: "fri", ingredientTerms: ["boeuf"] }],
+  });
+  assertEquals(waves[0].buyOn, "2026-08-04", "mardi, comme avant le lot");
+});
+
+Deno.test("les légumes frais ENTRENT dans la première vague, ils n'en sortent plus", () => {
+  // ⬇️ LE SENS INVERSE, ET IL EST VOULU. `non_starchy_veg` tient sept jours:
+  // les faire acheter en seconde vague coûtait un déplacement pour rien.
+  const waves = planGroceryWaves({
+    startsOn: MONDAY,
+    durationDays: 7,
+    shoppingList: [grouped("courgettes", "produce", "non_starchy_veg")],
+    preparations: [{ id: "p1", cookOn: "fri", ingredientTerms: ["courgettes"] }],
+  });
+  assertEquals(waves.length, 1);
+  assertEquals(waves[0].buyOn, MONDAY);
+});
+
+Deno.test("la salade reste fragile: trois jours, comme la viande en pièce", () => {
+  const waves = planGroceryWaves({
+    startsOn: MONDAY,
+    durationDays: 7,
+    shoppingList: [grouped("laitue", "produce", "leafy_greens")],
+    preparations: [{ id: "p1", cookOn: "fri", ingredientTerms: ["laitue"] }],
+  });
+  assertEquals(waves[0].buyOn, "2026-08-04");
+});
+
+Deno.test("MUTATION — sans groupe, on retombe sur MAX_FRIDGE_DAYS, et ça se COMPTE", () => {
+  // ⛔ C'EST L'ARME DE L'ABSTENTION. Les 181 plans déjà écrits n'ont pas de
+  // `food_group`: le repli doit être exactement le comportement d'avant, ET il
+  // doit être visible. Sans `unknown_group`, une liste sans aucun groupe rend
+  // la même chose qu'une liste parfaitement routée.
+  const sansGroupe = planGroceryWaves({
+    startsOn: MONDAY,
+    durationDays: 7,
+    shoppingList: [item("poulet", "protein")],
+    preparations: [{ id: "p1", cookOn: "fri", ingredientTerms: ["poulet"] }],
+  });
+  assertEquals(sansGroupe[0].buyOn, "2026-08-04", "le repli est l'ancien comportement");
+
+  assertEquals(
+    rawWindowCounts([
+      grouped("poulet", "protein", "poultry"),
+      grouped("sel", "pantry", null),
+      item("mystère", "other"),
+    ]),
+    { routed: 1, unknown_group: 2 },
+  );
+});
+
+Deno.test("un groupe non périssable au rayon périssable ne déplace rien", () => {
+  // `PERISHABLE_AISLES` reste la porte extérieure: ce lot change la LARGEUR de
+  // la fenêtre, pas la liste de ce qui en a une.
+  const waves = planGroceryWaves({
+    startsOn: MONDAY,
+    durationDays: 7,
+    shoppingList: [grouped("riz", "pantry", "white_fish")],
+    preparations: [{ id: "p1", cookOn: "fri", ingredientTerms: ["riz"] }],
+  });
+  assertEquals(waves.length, 1);
+  assertEquals(waves[0].buyOn, MONDAY, "le rayon `pantry` n'a pas de fenêtre");
 });

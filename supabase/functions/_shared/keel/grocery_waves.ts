@@ -47,16 +47,33 @@
  * physique posée à l'autre bout de la chaîne. Elle est RÉEXPORTÉE ici pour que
  * les consommateurs des vagues n'aient qu'un seul endroit où la lire.
  *
+ * ── ⟳ 2026-08-22, LOT `L0-a`: CE N'ÉTAIT PAS LA MÊME QUESTION ────────────
+ * Ce sont DEUX fenêtres, et elles se CHAÎNENT:
+ *
+ *     achat ──[ FENÊTRE CRUE ]──► cuisson ──[ FENÊTRE CUITE ]──► dernière part
+ *
+ * `MAX_FRIDGE_DAYS` est la SECONDE. Ce fichier posait la PREMIÈRE, et il
+ * l'écrivait avec le nombre de la seconde: trois jours pour TOUT. Mesuré sur
+ * le cas 04 — le poulet attendait trois jours cru, alors qu'une volaille
+ * fraîche en tient un à deux. La première fenêtre vit maintenant par GROUPE
+ * (`food_groups.raw_window_days`, miroir `RAW_WINDOW_DAYS` dans
+ * `fridge_window.ts`), et `MAX_FRIDGE_DAYS` n'est plus ici que le REPLI de
+ * l'article dont on ne connaît pas le groupe — repli qui se COMPTE
+ * (`rawWindowCounts`), sans quoi une liste sans aucun groupe rendrait
+ * exactement la même chose qu'une liste parfaitement routée.
+ *
  * ── LA PROPRIÉTÉ QUI COMPTE LE PLUS: RIEN NE DISPARAÎT ───────────────────
  * Un article dont on ne sait pas rattacher le terme à une préparation part en
  * PREMIÈRE vague. Jamais écarté. Une liste de courses qui perd un ingrédient
  * en silence est pire qu'une liste plate: on s'en aperçoit devant la casserole.
  */
 
+import { type RawWindowCounts, rawWindowDaysFor } from "./fridge_window.ts";
 import { MAX_FRIDGE_DAYS, type ShoppingAisle } from "./meal_generation.ts";
 import { addDays, windowDates } from "./meal_plan_window.ts";
 
 export { MAX_FRIDGE_DAYS };
+export { type RawWindowCounts, rawWindowDaysFor } from "./fridge_window.ts";
 
 /**
  * LES RAYONS QUI NE SE GARDENT PAS.
@@ -89,6 +106,22 @@ export const PERISHABLE_AISLES: ReadonlySet<string> = new Set<string>(PERISHABLE
 export interface WaveItem {
   term: string;
   aisle: string;
+  /**
+   * ⟳ LOT `L0-a` — LE GROUPE D'ALIMENT DE CET ARTICLE, quand on a su le
+   * résoudre. C'est lui qui porte la FENÊTRE CRUE, donc la date d'achat.
+   *
+   * ⚠️ FACULTATIF, ET C'EST UNE EXCEPTION ASSUMÉE à la règle « un paramètre de
+   * garde optionnel est une garde désarmée ». Ce n'est pas un paramètre de
+   * garde: c'est une DONNÉE portée par la ligne du plan. Les 181 plans déjà
+   * écrits ne l'ont pas, et rien ne peut la leur donner rétroactivement. Le
+   * repli est donc explicite (`MAX_FRIDGE_DAYS`, le comportement d'avant) et
+   * il est COMPTÉ par `rawWindowCounts` — l'abstention se compte, elle ne se
+   * déguise pas en résolution.
+   *
+   * Nommé comme la clé JSON persistée (`food_group`), pour la même raison que
+   * `term` et `aisle`: l'écran passe la ligne de base telle quelle.
+   */
+  food_group?: string | null;
 }
 
 /** Une préparation, réduite à ce dont ce module a besoin. */
@@ -206,9 +239,19 @@ export function planGroceryWaves<T extends WaveItem>(args: {
     let buyOn = startsOn;
     let serves: string | null = null;
     if (perishable && cookDate) {
-      // Au plus tôt `cuisson - MAX_FRIDGE_DAYS`, et jamais avant le début du
-      // plan: on n'envoie personne faire des courses la semaine d'avant.
-      const earliest = addDays(cookDate, -MAX_FRIDGE_DAYS);
+      // ⟳ LOT `L0-a` — LA FENÊTRE EST CELLE DU GROUPE, plus celle de tout le
+      // monde. Au plus tôt `cuisson - fenêtre crue`, et jamais avant le début
+      // du plan: on n'envoie personne faire des courses la semaine d'avant.
+      //
+      // ⛔ LE REPLI EST `MAX_FRIDGE_DAYS`, ET C'EST LE COMPORTEMENT D'AVANT,
+      // pas une valeur sûre. Prendre la fenêtre la plus COURTE pour un article
+      // non résolu enverrait faire les courses le jour de la cuisson pour un
+      // terme sur dix — une dégradation visible, contre un gain de fraîcheur
+      // qui n'a pas été mesuré. La fenêtre CUITE, elle, est fail-closed: c'est
+      // celle qui rend malade. Celle-ci ne décide qu'une date de magasin, et
+      // son abstention se COMPTE (`rawWindowCounts`).
+      const window = rawWindowDaysFor(item.food_group) ?? MAX_FRIDGE_DAYS;
+      const earliest = addDays(cookDate, -window);
       buyOn = earliest > startsOn ? earliest : startsOn;
       if (buyOn > startsOn) serves = cookDate;
     }
@@ -227,6 +270,24 @@ export function planGroceryWaves<T extends WaveItem>(args: {
       items: bucket.items,
       servesCookOn: bucket.serves,
     }));
+}
+
+/**
+ * ⟳ LOT `L0-a` — CE QUE LA FENÊTRE CRUE A RÉELLEMENT GOUVERNÉ.
+ *
+ * ⛔ SANS `unknown_group`, UNE LISTE DONT AUCUN ARTICLE N'A DE GROUPE REND
+ * EXACTEMENT LA MÊME CHOSE QU'UNE LISTE PARFAITEMENT ROUTÉE. C'est la même
+ * discipline que les trois populations de la fenêtre cuite: l'abstention se
+ * compte, elle ne se déguise pas en résolution.
+ */
+export function rawWindowCounts(items: readonly WaveItem[]): RawWindowCounts {
+  let routed = 0;
+  let unknown = 0;
+  for (const item of items) {
+    if (rawWindowDaysFor(item.food_group) === null) unknown++;
+    else routed++;
+  }
+  return { routed, unknown_group: unknown };
 }
 
 /**
