@@ -1,0 +1,48 @@
+# LES ERREURS DE TYPE TOLÉRÉES DANS LES FICHIERS DE TEST FRONT
+#
+# ⚠️ Mesuré le 2026-08-22 par le lot `H1`+`H2`, le jour où `tsconfig.test.json`
+#    est né. Avant lui, `tsconfig.app.json` excluait les tests: **0 des 112**
+#    fichiers de test était dans un programme TypeScript (449 fichiers lus,
+#    aucun test). Ces 92 erreurs sur 25 fichiers existaient donc déjà, sans que
+#    rien ne puisse les voir.
+#
+# ⛔ AUCUNE des 25 n'appartient à ce lot, et c'est mesuré:
+#    · 13 fichiers sont PROPRES à HEAD — c'est une source étrangère modifiée
+#      (`api/household.ts` +264, `tokens.ts`, `household_portions.ts`…) qui les
+#      casse;
+#    · 12 sont des fichiers de test en vol (`M` ou `??`) d'autres sessions.
+#      Les six `TS1117` de `setupMouthsStep.int.test.ts` (clés d'objet dupliquées)
+#      sont dans la part NON COMMITÉE d'un voisin: `git show HEAD:` du fichier
+#      n'en porte aucune. On les NOMME, on ne les répare pas à sa place.
+#
+# ⛔ Ce n'est pas un plafond global: c'est un compte PAR FICHIER. Un fichier
+#    absent de cette liste qui porte la moindre erreur fait échouer le gate, et
+#    un compte qui MONTE aussi. Un compte qui DESCEND s'annonce à chaque
+#    passage: abaisse la ligne, ou retire-la.
+#
+# Format: <chemin relatif à frontend/> <nombre d'erreurs tolérées>
+src/edge/internal-functions.int.test.ts 1
+src/edge/ultimate.int.test.ts 7
+src/keel/api/coachFoodItems.int.test.ts 1
+src/keel/api/household.int.test.ts 2
+src/keel/api/householdReference.int.test.ts 6
+src/keel/api/mealGeneration.int.test.ts 2
+src/keel/api/mealStretch.int.test.ts 1
+src/keel/api/mouthProfile.int.test.ts 6
+src/keel/api/myShare.int.test.ts 3
+src/keel/api/onboarding.int.test.ts 2
+src/keel/api/ownActivityLevel.int.test.ts 4
+src/keel/api/retainedItems.int.test.ts 2
+src/keel/api/weeklyCheckIn.int.test.ts 1
+src/keel/components/dishCardSameDay.int.test.ts 1
+src/keel/components/mealBoxes.int.test.ts 14
+src/keel/components/mouthFormDialog.int.test.ts 2
+src/keel/components/planDaySeparation.int.test.ts 1
+src/keel/components/planGridEatingOut.int.test.ts 1
+src/keel/lib/planByPersonModel.int.test.ts 6
+src/keel/lib/planDaySlots.int.test.ts 5
+src/keel/lib/planGridModel.int.test.ts 5
+src/keel/lib/presenceRoster.int.test.ts 1
+src/keel/pages/meCardSheet.int.test.ts 9
+src/keel/pages/setupMouthsStep.int.test.ts 6
+src/keel/pages/setupSituateStep.int.test.ts 3

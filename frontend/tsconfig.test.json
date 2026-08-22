@@ -1,0 +1,54 @@
+{
+  // ── LE PROJET QUI TYPECHECKE CE QUE `tsconfig.app.json` EXCLUT ───────────
+  //
+  // ⚠️ MESURÉ LE 2026-08-22. `tsconfig.app.json` exclut les fichiers de test,
+  // `src/edge` et `src/test` : sur 449 fichiers dans son programme, ZÉRO
+  // fichier de test. Les 112 fichiers / 1 788 tests vitest tournaient donc
+  // sans qu'aucun compilateur ne les lise — et une clé d'objet dupliquée
+  // (`setupMouthsStep.int.test.ts`, six clés en double) est passée à travers.
+  //
+  // Ce projet est référencé depuis `tsconfig.json`, donc `tsc -b` du gate le
+  // construit. Il ne change RIEN à la compilation de l'application :
+  // `tsconfig.app.json` garde ses exclusions mot pour mot.
+  //
+  // Les options sont celles de `tsconfig.app.json`, plus `types: ["node"]`
+  // (les tests lisent le dépôt via `node:fs`) et `jsx` (deux tests importent
+  // un `.tsx` : `pageFrontier.int.test.ts` et `bodyMeasures.int.test.ts`).
+  //
+  // ⛔ Ne pas écrire `/` suivi de `*` dans ce fichier : un commentaire de bloc
+  // contenant un glob de test se referme au milieu et rend 10 erreurs de
+  // syntaxe qui ressemblent à des erreurs de code. Mesuré ici même.
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.test.tsbuildinfo",
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "types": ["node", "vite/client"],
+    "skipLibCheck": true,
+
+    // Bundler mode
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    // Linting
+    "strict": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true
+  },
+  "include": [
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "src/**/*.spec.ts",
+    "src/**/*.spec.tsx",
+    "src/test/**/*.ts",
+    "src/edge/**/*.ts"
+  ]
+}

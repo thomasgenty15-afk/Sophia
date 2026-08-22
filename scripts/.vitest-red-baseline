@@ -1,0 +1,28 @@
+# LES ROUGES FRONT TOLÉRÉS — et à qui ils appartiennent
+#
+# ⚠️ Mesuré le 2026-08-22 par le lot `H1`+`H2`, trois runs identiques:
+#    1 788 tests, 112 fichiers, 4 rouges. AUCUN des quatre n’est de ce lot.
+#
+# ⛔ Cette liste n’est PAS une permission générale: c’est une liste NOMINATIVE.
+#    Tout rouge qui n’y figure pas fait échouer le gate, et un fichier qui ne
+#    se CHARGE pas échoue toujours, même listé.
+#
+# ⛔ On n’ajoute une ligne ici QUE pour un rouge qui n’est pas le sien, en
+#    nommant son propriétaire et sa date. Un rouge à soi se répare.
+#    Quand un rouge listé redevient vert, le gate le dit à CHAQUE passage:
+#    retire la ligne — une liste qui survit à sa cause redevient un silence.
+#
+# Format: <chemin relatif à frontend/> :: <fullName du test>
+
+# src/edge/coverage-guard.int.test.ts
+#    ⛔ PAS CE LOT. Une autre session a ajouté des fonctions edge et des triggers
+#    (`household_member_bodies_touch`, `student_daily_recommendations_set_updated_at`)
+#    sans les inscrire dans la liste connue. Le fichier est `M` dans l’arbre.
+src/edge/coverage-guard.int.test.ts :: coverage guard: new triggers/functions must be acknowledged all Edge Functions (supabase/functions/*/index.ts) are in the known list
+src/edge/coverage-guard.int.test.ts :: coverage guard: new triggers/functions must be acknowledged all DB triggers are in the known list (migrations + squashed_schema, excluding *_OLD.sql)
+
+# src/keel/api/household.int.test.ts
+#    ⛔ PAS CE LOT. Le fichier de test est PROPRE à HEAD; c’est `api/household.ts`
+#    (`M`, +264 lignes, lot D14/FF-002 en vol) qui ajoute une clé `kind` à `awayFrom`.
+src/keel/api/household.int.test.ts :: awayFrom — les deux sources d'une absence, séparées (D14) ne rend que la source demandée
+src/keel/api/household.int.test.ts :: awayFrom — les deux sources d'une absence, séparées (D14) un jour inconnu tombe sans emporter les autres (FF-002 §7)

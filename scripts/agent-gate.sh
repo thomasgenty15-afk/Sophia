@@ -8,6 +8,8 @@ cd "$ROOT"
 
 BASE_REF="${AGENT_GATE_BASE:-HEAD}"
 BASELINE_FILE="scripts/.test-count-baseline"
+FRONT_TEST_BASELINE="scripts/.vitest-red-baseline"
+FRONT_TYPES_BASELINE="scripts/.tsc-test-red-baseline"
 STAGED_ONLY="${AGENT_GATE_STAGED_ONLY:-0}"
 
 fail() {
@@ -147,6 +149,131 @@ check_tests() {
        les compter laissait passer un commit avec sept tests cassés."
 }
 
+# ── LE GATE VOIT ENFIN LE FRONT ─────────────────────────────────────────────
+#
+# ⚠️ MESURÉ LE 2026-08-22. `grep -c vitest scripts/agent-gate.sh` rendait **0**:
+# les 112 fichiers / 1 788 tests front se lançaient à la main, jamais ici. Un
+# rouge front passait donc le commit — la même cicatrice que les sept tests
+# Deno cassés du 2026-08-12, une lane plus loin.
+#
+# ⛔ CE N'EST PAS UN « rc != 0 ⇒ échec ». Le jour de sa pose, la suite portait
+# DÉJÀ 4 rouges (`coverage-guard.int.test.ts` ×2, `household.int.test.ts` ×2) et
+# aucun n'appartenait à ce lot. La liste `scripts/.vitest-red-baseline` les
+# nomme un par un, avec leur date et leur propriétaire; TOUT LE RESTE mord. Le
+# détail du juge est dans `scripts/agent-gate-front-tests.mjs`.
+check_front_tests() {
+  if [ ! -d frontend/node_modules ]; then
+    info "frontend/node_modules absent, skipping vitest run"
+    return 0
+  fi
+  [ -f frontend/vitest.config.ts ] || return 0
+  [ -f "$FRONT_TEST_BASELINE" ] || fail "missing $FRONT_TEST_BASELINE"
+
+  info "running frontend test suite (vitest)"
+  local report
+  report="$(mktemp -t agent-gate-vitest)"
+
+  # L'ENVIRONNEMENT EST PURGÉ, pour la même raison que la suite Deno: une
+  # variable SUPABASE_* héritée du shell bascule des dizaines de tests vers une
+  # vraie pile et rend des dizaines de faux rouges.
+  (
+    cd frontend
+    for v in $(env | grep -o '^SUPABASE_[A-Z_]*' || true); do unset "$v"; done
+    npm exec -- vitest --config vitest.config.ts run \
+      --reporter=json --outputFile="$report" >/dev/null 2>&1
+  ) || true
+
+  if [ ! -s "$report" ]; then
+    rm -f "$report"
+    fail "vitest n'a produit AUCUN rapport. Ce n'est pas « pas de rouge »:
+       c'est la suite qui n'a pas tourné. Relance à la main:
+       (cd frontend && npm exec -- vitest --config vitest.config.ts run)"
+  fi
+
+  if node scripts/agent-gate-front-tests.mjs "$report" "$FRONT_TEST_BASELINE"; then
+    rm -f "$report"
+  else
+    rm -f "$report"
+    fail "des tests front sont rouges hors de la liste $FRONT_TEST_BASELINE"
+  fi
+}
+
+# ── ET IL TYPECHECKE CE QU'IL LANCE ─────────────────────────────────────────
+#
+# ⚠️ MESURÉ LE 2026-08-22. `tsconfig.app.json` exclut les fichiers de test:
+# **0 des 112** était dans son programme (449 fichiers, aucun test). Six clés
+# d'objet dupliquées dormaient dans `setupMouthsStep.int.test.ts` sans que rien
+# ne les voie.
+#
+# ⛔ `frontend/tsconfig.test.json` n'est VOLONTAIREMENT PAS référencé depuis
+# `tsconfig.json`: `tsc -b` le construirait, et il portait **92 erreurs sur 25
+# fichiers** le jour de sa pose — dont 13 fichiers PROPRES à HEAD, cassés par
+# une source étrangère modifiée. Le brancher sur `tsc -b` aurait rendu le gate
+# rouge pour tout le monde. Il est donc lancé à part, borné par
+# `scripts/.tsc-test-red-baseline` (un fichier, un compte). Un fichier neuf en
+# erreur, ou un compte qui MONTE, fait échouer.
+check_front_test_typecheck() {
+  [ -f frontend/tsconfig.test.json ] || return 0
+  if [ ! -d frontend/node_modules ]; then
+    info "frontend/node_modules absent, skipping test typecheck"
+    return 0
+  fi
+  [ -f "$FRONT_TYPES_BASELINE" ] || fail "missing $FRONT_TYPES_BASELINE"
+
+  info "running typecheck on frontend test files"
+  local out expect
+  out="$(mktemp -t agent-gate-tsc-test)"
+  expect="$(mktemp -t agent-gate-tsc-list)"
+  # `--listFiles` sort la liste des fichiers ET les erreurs sur le même flux:
+  # une seule passe de tsc suffit pour les deux mesures.
+  (cd frontend && npm exec -- tsc -p tsconfig.test.json --noEmit --listFiles) >"$out" 2>&1 || true
+
+  # Un fichier de test doit être DANS le programme. S'il n'y en a aucun, la
+  # garde ne garde rien et ressemble pourtant à une garde qui marche — c'est
+  # exactement l'état d'AVANT ce lot, où tsc lisait 449 fichiers et zéro test.
+  local checked
+  checked="$(awk '/\.(int\.)?(test|spec)\.tsx?$/ {n++} END {print n+0}' "$out")"
+  if [ "$checked" -lt 1 ]; then
+    rm -f "$out" "$expect"
+    fail "tsconfig.test.json ne typecheck AUCUN fichier de test — son \`include\` ne mord plus"
+  fi
+
+  awk '!/^[[:space:]]*(#|$)/ {print}' "$FRONT_TYPES_BASELINE" >"$expect"
+
+  local current tolerated verdict
+  verdict=0
+  while read -r path count; do
+    [ -n "$path" ] || continue
+    # Comparaison de CHAÎNE, pas d'expression: un `.` de nom de fichier ne doit
+    # pas devenir un joker qui tolère les erreurs d'un fichier voisin.
+    current="$(awk -v p="${path}(" 'index($0, p) == 1 {n++} END {print n+0}' "$out")"
+    if [ "$current" -gt "$count" ]; then
+      printf 'agent-gate: %s — %s erreurs de type, la liste en tolère %s\n' \
+        "$path" "$current" "$count" >&2
+      verdict=1
+    elif [ "$current" -lt "$count" ]; then
+      info "⚠️ $path — ${current} erreurs (< ${count}) : ABAISSE sa ligne dans $FRONT_TYPES_BASELINE"
+    fi
+  done <"$expect"
+
+  # Un fichier en erreur que la liste ne nomme PAS: c'est un rouge neuf.
+  local unlisted
+  unlisted="$(awk -F'(' '/error TS/ && /^[^ ]/ {print $1}' "$out" | sort -u \
+    | grep -F -x -v -f <(awk '{print $1}' "$expect") || true)"
+  if [ -n "$unlisted" ]; then
+    printf 'agent-gate: des fichiers de test portent des erreurs de type HORS liste:\n' >&2
+    printf '%s\n' "$unlisted" | sed 's/^/    /' >&2
+    verdict=1
+  fi
+
+  tolerated="$(awk '{s+=$2} END {print s+0}' "$expect")"
+  current="$(awk '/error TS/ {n++} END {print n+0}' "$out")"
+  info "test typecheck: ${checked} fichiers lus, ${current} erreurs (liste: ${tolerated})"
+  rm -f "$out" "$expect"
+
+  [ "$verdict" -eq 0 ] || fail "le typecheck des tests front a régressé (voir ci-dessus)"
+}
+
 check_typecheck() {
   if [ -f frontend/tsconfig.json ]; then
     info "running frontend typecheck"
@@ -154,11 +281,18 @@ check_typecheck() {
   fi
 
   if command -v deno >/dev/null 2>&1; then
+    # ⚠️ MESURÉ LE 2026-08-22: cette liste ne portait que les TROIS entrées
+    # `sophia-brain`. Les DEUX lanes de génération — le code le plus lourd du
+    # produit, celui que `V0-B-bis` venait de corriger — n'étaient typecheckées
+    # par PERSONNE: leur `deno check` vert était un geste manuel que rien ne
+    # rejouait. Mesurées `rc=0` toutes les deux avant d'entrer ici; +3,7 s.
     info "running deno check on core entrypoints"
     deno check \
       supabase/functions/sophia-brain/index.ts \
       supabase/functions/sophia-brain/router/agent_exec.ts \
-      supabase/functions/sophia-brain/agents/companion.ts
+      supabase/functions/sophia-brain/agents/companion.ts \
+      supabase/functions/generate-meal-v1/index.ts \
+      supabase/functions/generate-household-meal-v1/index.ts
   else
     info "deno not found, skipping deno check"
   fi
@@ -178,6 +312,8 @@ check_lint() {
 check_forbidden_patterns
 check_test_count
 check_tests
+check_front_tests
+check_front_test_typecheck
 check_typecheck
 check_lint
 
