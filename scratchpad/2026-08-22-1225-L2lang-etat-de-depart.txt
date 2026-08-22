@@ -76,3 +76,32 @@ mode: ÉTAT DE DÉPART (aucun banc — `--since` absent)
 
 2|journées calculables PAR LANE ET PAR LANGUE|en 20.5 % (129/630, 178p) · fr 0.0 % (0/20, 4p)|deno
 ═══════════════════════════════════════════════════════════════════════════
+
+═══════════════════════════════════════════════════════════════════════════
+⛔ POST-SCRIPTUM DE PROVENANCE — ÉCRIT APRÈS COUP, LE 2026-08-22 À 12:40 CEST
+═══════════════════════════════════════════════════════════════════════════
+CES CHIFFRES N'ONT PAS ÉTÉ MESURÉS SUR `HEAD`. Ils l'ont été sur L'ARBRE DE
+TRAVAIL, qui porte `supabase/functions/_shared/keel/food_composition.ts` à
+**+404 lignes** de `HEAD` — c'est le **volet ① de `L19b`**, livré exprès dans
+l'arbre et NON commité (fiche `L19b`, registre §⑨ n° 36 pour le même mécanisme).
+
+⚠️ CE N'EST PAS UN DÉTAIL D'ENVIRONNEMENT: c'est le module qui RÉSOUT les
+ingrédients. Le volet ① retire `complet`/`complete`/`complets`/`completes` des
+réductions, et son propre commentaire l'écrit — « un terme en `complet` que la
+table d'alias n'énumère pas ne résout plus RIEN » au lieu d'atteindre le
+RAFFINÉ. C'est un progrès sur l'épreuve du nom nu: mieux vaut s'abstenir que
+servir `white_bread` pour du pain complet.
+
+⛔ MAIS SUR CE COMPTEUR-CI, IL COÛTE. La porte de `dishEnergy` est BINAIRE: un
+seul terme non résolu éteint le plat, et un seul plat éteint la journée. Les
+16 occurrences de `pain complet` (×9) et `pain complet grille` (×7) qui
+apparaissent en tête des termes BLOQUANTS français sont exactement ça — elles
+étaient, avant le volet ①, résolues (à tort) et donc CALCULABLES.
+
+⇒ DEUX CONSÉQUENCES, ET IL FAUT LES TENIR TOUTES LES DEUX:
+  ① la reproduction de ces chiffres exige le MÊME arbre de travail. Un clone
+     propre de `HEAD` rendrait d'autres nombres côté français;
+  ② au moment des dix générations, l'état de `food_composition.ts` doit être
+     LE MÊME pour les cinq `fr-FR` et les cinq `en` — sans quoi les deux bras
+     ne mesureraient pas le même résolveur, et la garde du `prompt_version` ne
+     verrait rien (elle garde la CONSIGNE, pas le RÉFÉRENTIEL).
