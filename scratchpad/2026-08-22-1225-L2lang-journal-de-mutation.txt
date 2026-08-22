@@ -1,0 +1,94 @@
+═══════════════════════════════════════════════════════════════════════════
+L2-lang — LE JOURNAL DE MUTATION
+═══════════════════════════════════════════════════════════════════════════
+2026-08-22, ~12:22 CEST · base locale supabase_db_Sophia_2
+
+⛔ POURQUOI CE FICHIER EXISTE. Un compteur vert ne prouve rien: un compteur
+   CASSÉ est vert lui aussi, et il ressemble parfaitement à un compteur qui
+   marche. Les gardes de `keel_l2lang_langue_20260822.ts` sont donc SABOTÉES
+   une à une, dans une copie HORS DU DÉPÔT, et on vérifie qu'elles rougissent.
+
+L'ATELIER (hors dépôt, jamais commité, ⛔ AUCUN node_modules copié):
+   .../scratchpad/L2lang-mut/
+     scripts/keel_l2lang_langue_20260822.ts   ← le fichier muté
+     scripts/keel_v0e_resolveur_20260821.ts   ← muté aussi (M3-bis)
+     supabase/functions/_shared/              ← rsync -a --exclude node_modules
+   Les données NDJSON sont celles de l'état de départ, identiques pour les
+   huit exécutions: le seul changement entre deux lignes est le SABOTAGE.
+
+⛔ LA COPIE NON MUTÉE EST VÉRIFIÉE EN PREMIER. Sans ça, un rouge ne prouve
+   rien: il peut venir de l'atelier et pas de la mutation.
+
+───────────────────────────────────────────────────────────────────────────
+ #        ce qu'on sabote                                     rc   ce qui rougit
+───────────────────────────────────────────────────────────────────────────
+ M0       RIEN — la copie telle quelle                        0    ✅ vert, et
+          `diff` contre la sortie du dépôt (hors ligne             sortie IDENTIQUE
+          d'horodatage): IDENTIQUE                                 au dépôt
+
+ M1       `languageOf` rend la LOCALE ENTIÈRE                  1   ⛔ GARDE ①
+          (`raw.split(...)[0]` → `raw`)                            « le regroupement
+                                                                   par langue est
+                                                                   faux: languageOf
+                                                                   ("en-GB") = "en-gb",
+                                                                   attendu "en" »
+
+ M1-bis   la MÊME mutation, PLUS la table d'attendus de la     1   ⛔ GARDE ①-bis
+          garde ① réécrite pour lui donner raison                  « une clé de langue
+          (le mutant « honnête », celui qui met le test             produite sur le
+          d'accord avec le code — le plus dangereux)                corpus n'est pas un
+                                                                   sous-tag: "en-gb" »
+          ⇒ DEUX FILETS INDÉPENDANTS: la table de cas, et les
+            clés RÉELLEMENT produites sur le corpus. Le second
+            ne peut pas être mis d'accord avec le code sans
+            réécrire la base.
+
+ M2       la garde de POPULATION MINCE désarmée                1   ⛔ GARDE ② DÉSARMÉE
+          (`if (fr.plans < minPlans || ...)` → `if (false       « le script a conclu
+          && (...))`)                                              sur 1 plan contre
+                                                                   178 »
+
+ M2-bis   la garde du MILLÉSIME de prompt désarmée             1   ⛔ GARDE ② DÉSARMÉE
+          (`if (!memeMillesime)` → `if (false && ...)`)            « deux millésimes de
+                                                                   prompt différents.
+                                                                   Il mesurerait une
+                                                                   consigne, pas une
+                                                                   langue (§⑨ n° 40) »
+
+ M3       le résolveur remplacé par une COPIE FIGÉE            1   ⛔ GARDE ③
+          `scripts/_fige/plan_energy.ts` qui RÉEXPORTE la          « RÉSOLVEUR NON DE
+          production — donc il charge parfaitement et rend         PRODUCTION: …
+          EXACTEMENT les mêmes chiffres. C'est tout le             importe
+          problème: rien dans la sortie ne le trahirait.           "plan_energy.ts"
+                                                                   depuis "./_fige/…" »
+
+ M3-bis   la copie figée posée non pas sur MON fichier mais    1   ⛔ GARDE ③, et elle
+          sur `keel_v0e_resolveur_20260821.ts`, dont ce lot        NOMME le fichier
+          réutilise les adaptateurs                                V0-E′
+          ⇒ la garde suit la RÉUTILISATION: figer le module
+            d'à côté ne passe pas non plus.
+
+ M0-bis   RIEN — retour à la copie non mutée après les six     0    ✅ vert
+          sabotages (preuve que l'atelier n'a pas dérivé)
+───────────────────────────────────────────────────────────────────────────
+ SIX MUTATIONS, SIX ROUGES · DEUX TÉMOINS, DEUX VERTS
+───────────────────────────────────────────────────────────────────────────
+
+⚠️ CE QUE CES GARDES N'ATTRAPENT PAS, écrit ici plutôt que découvert plus tard:
+
+ · LA GARDE ③ EST TEXTUELLE. Elle lit les spécificateurs d'import de deux
+   fichiers, pas le graphe de modules réellement chargé. Elle attrape le geste
+   qu'on craint — « je fige une copie dans scripts/ pour que la mesure ne bouge
+   plus » — et elle n'attraperait PAS une substitution par `import map`.
+
+ · LA GARDE ② NE JUGE QUE LA POPULATION ET LE MILLÉSIME. Elle ne sait rien de
+   la fixture, du corps des bouches, ni de la fenêtre de jours. Deux bras de
+   cinq plans chacun sur DEUX FIXTURES DIFFÉRENTES passeraient. C'est pour ça
+   que la consigne de lancement des dix générations est écrite dans la fiche:
+   la garde ne remplace pas le protocole, elle en garde une moitié.
+
+ · `--min-plans=<n>` ABAISSE LA GARDE ② À LA MAIN. C'est voulu (sonde de
+   plomberie), et la sortie le CRIE: bandeau « ⛔⛔ GARDE ② ABAISSÉE À LA MAIN »
+   dans la section des gardes, et « ⛔ SOUS SEUIL DE POPULATION ABAISSÉ —
+   INVALIDE » collé à chaque verdict. Sans ce bandeau, une sortie archivée
+   mentirait pour toujours.

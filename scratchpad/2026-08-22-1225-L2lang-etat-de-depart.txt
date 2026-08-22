@@ -1,0 +1,78 @@
+═══════════════════════════════════════════════════════════════════════════
+L2-lang — L'ÉTAT DE DÉPART, ARCHIVÉ. (la `mesure AVANT` de la fiche)
+commande : bash scripts/keel_l2lang_langue_20260822.sh
+machine  : base locale supabase_db_Sophia_2 · 2026-08-22 12:22:09 CEST
+⚠️ APRÈS le lot L19b (commit bd4bf452, alias corrigés à 11:34 CEST) : toute
+   mesure prise avant cet horodatage est périmée.
+═══════════════════════════════════════════════════════════════════════════
+
+═══════════════════════════════════════════════════════════════════════════
+L2-lang — COMPTEUR #2 : JOURNÉES CALCULABLES, PAR LANE ET PAR LANGUE
+exécuté le 2026-08-22T10:22:11.167Z · données /var/folders/yg/3ljjtd7n1pl8n9lwhypn3cwc0000gp/T//keel-l2lang-MahG0P
+mode: ÉTAT DE DÉPART (aucun banc — `--since` absent)
+═══════════════════════════════════════════════════════════════════════════
+
+── LES GARDES ──────────────────────────────────────────────────────────────
+   ① regroupement sur le SOUS-TAG de langue (en/en-GB/en-US → en · fr-US → fr) ✅
+   ② refus de conclure sous 5 plans par bras, ou sur deux millésimes ✅
+   ③ résolveur DE PRODUCTION, jamais une copie ✅
+        food_composition.ts ← ../supabase/functions/_shared/keel/food_composition.ts
+        food_composition_io.ts ← ../supabase/functions/_shared/keel/food_composition_io.ts
+        meal_verdict.ts ← ../supabase/functions/_shared/keel/meal_verdict.ts
+        plan_energy.ts ← ../supabase/functions/_shared/keel/plan_energy.ts
+
+── ① LE BANC — les deux bras GÉNÉRÉS CÔTE À CÔTE ───────────────────────────
+     (vide)
+     ⛔ AUCUN BANC. Les dix générations (5 fr-FR + 5 en, même prompt_version)
+        n'ont pas encore été produites — ou `--since` n'a pas été passé.
+
+── ② LE CORPUS EXISTANT — ⛔ TROISIÈME COLONNE, JAMAIS LE BRAS EN ──────────
+     en   foyer  plans  101 · journées   86/ 312 =  27.6 % · plats   598/ 1014 =  59.0 % · lignes pesées  93.7 %
+     en   solo   plans   77 · journées   43/ 318 =  13.5 % · plats    94/  786 =  12.0 % · lignes pesées  36.5 %
+     fr   foyer  plans    3 · journées    0/  20 =   0.0 % · plats    43/   85 =  50.6 % · lignes pesées  90.7 %
+     fr   solo   plans    1 · journées    0/   0 =     n/a · plats     0/    0 =     n/a · lignes pesées     n/a
+
+     ⚠️ POURQUOI CE CORPUS NE PEUT PAS SERVIR DE BRAS EN — les millésimes:
+        en    178 plans · 24 millésime(s) de prompt distinct(s) · 42 sans aucun prompt_version
+        fr      4 plans · 2 millésime(s) de prompt distinct(s) · 1 sans aucun prompt_version
+
+── ③ LE VERDICT — l'écart FR/EN sur le taux de JOURNÉES CALCULABLES ────────
+     les deux lanes fr 0/20 (0.0 %, 4 plans) · en 129/630 (20.5 %, 178 plans)
+                    ⇒ ⛔ REFUS DE CONCLURE — population trop mince — fr 4 plan(s) · en 178 plan(s), il en faut 5 par bras
+                      (l'écart brut vaudrait 20.5 points sur le corpus existant ; il ne mesure PAS une langue)
+     foyer          fr 0/20 (0.0 %, 3 plans) · en 86/312 (27.6 %, 101 plans)
+                    ⇒ ⛔ REFUS DE CONCLURE — population trop mince — fr 3 plan(s) · en 101 plan(s), il en faut 5 par bras
+                      (l'écart brut vaudrait 27.6 points sur le corpus existant ; il ne mesure PAS une langue)
+     solo           fr 0/0 (  n/a, 1 plans) · en 43/318 (13.5 %, 77 plans)
+                    ⇒ ⛔ REFUS DE CONCLURE — un bras n'a AUCUNE journée (fr 0 · en 318)
+                      (l'écart brut vaudrait n/a sur le corpus existant ; il ne mesure PAS une langue)
+
+── ④ L19c — LES DOUBLONS DU RÉFÉRENTIEL, MESURÉS SUR CE COMPTEUR-CI ───────
+     LE MÉCANISME D'ABORD, parce qu'il est plus étroit qu'on ne le croit:
+     `dishEnergy` s'abstient sur un terme INCONNU ou NON PESÉ — jamais sur la
+     VALEUR de l'énergie. Deux jumelles à 4 % d'énergie près rendent donc la
+     MÊME complétude, sauf si elles divergent sur `unit_grams` ou
+     `condiment_grams`. `yield_class` et `energy_kcal` déplacent des kcal, pas
+     une journée. ⇒ L19c mord BEAUCOUP moins ici que sur l'épreuve du nom nu.
+
+     LES DEUX COUPLES QUE `L19c` NOMME — leur sort sur CE compteur:
+        whole_eggs / egg  unit_grams 55/55 · condiment_grams ∅/∅ · 140/140 kcal ⇒ ✅ NE PEUT PAS faire basculer une journée
+        plain_yogurt / yoghurt  unit_grams ∅/∅ · condiment_grams ∅/∅ · 59/56.8 kcal ⇒ ✅ NE PEUT PAS faire basculer une journée
+
+     LA BORNE HAUTE — ⛔ ET CE N'EST PAS UN RECENSEMENT DE JUMELLES:
+        768 couple(s) « même groupe · énergie à 5 % près » dont une ligne au moins est ATTEINTE par le corpus,
+        dont 254 divergent sur unit_grams ou condiment_grams.
+        Le critère de la fiche capture aussi des aliments DIFFÉRENTS — vu ici:
+           apple / apricot_pitted [other_fruit] 47.6/45.9 kcal — unit_grams 150≠50
+           apple / peach [other_fruit] 47.6/46.3 kcal — unit_grams 150≠130
+           apple / peach_white_flesh_variety [other_fruit] 47.6/46.1 kcal — unit_grams 150≠∅
+        ⇒ la borne haute se lit « au plus », jamais « on en a trouvé tant ».
+
+── ⑤ POURQUOI UNE JOURNÉE N'EST PAS CALCULABLE — PAR LANGUE ───────────────
+     en   missing_quantity 560 · no_ingredients 144 · unknown_ingredient 404
+          termes qui BLOQUENT le plus: pepper ×163 · olive oil ×154 · garlic ×98 · greek yogurt ×95 · lemon ×94 · rolled oats ×54 · cucumber ×52 · eggs ×52
+     fr   missing_quantity 14 · unknown_ingredient 28
+          termes qui BLOQUENT le plus: tofu soyeux ×14 · yaourt de soja ×12 · pain complet ×9 · pain complet grille ×7 · figues ×5 · ail ×4 · citron ×2 · pate brisee ×1
+
+2|journées calculables PAR LANE ET PAR LANGUE|en 20.5 % (129/630, 178p) · fr 0.0 % (0/20, 4p)|deno
+═══════════════════════════════════════════════════════════════════════════

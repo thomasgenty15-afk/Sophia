@@ -87,8 +87,8 @@ import {
 
 const dir = Deno.args[0] ?? ".";
 
-function readNdjson(file: string): Record<string, unknown>[] {
-  const raw = Deno.readTextFileSync(`${dir}/${file}`);
+function readNdjson(file: string, baseDir: string = dir): Record<string, unknown>[] {
+  const raw = Deno.readTextFileSync(`${baseDir}/${file}`);
   const out: Record<string, unknown>[] = [];
   for (const line of raw.split("\n")) {
     const t = line.trim();
@@ -104,7 +104,7 @@ function readNdjson(file: string): Record<string, unknown>[] {
  * pagination, la garde de complétude et surtout `toRef` (la carte
  * colonne → champ, avec ses replis nommés) restent celles de la production.
  */
-function fileClient(): {
+export function fileClient(baseDir: string = dir): {
   // deno-lint-ignore no-explicit-any
   from(table: string): { select(columns: string): any };
 } {
@@ -112,7 +112,7 @@ function fileClient(): {
   const rowsOf = (table: string): Record<string, unknown>[] => {
     const hit = cache.get(table);
     if (hit) return hit;
-    const rows = readNdjson(`${table}.ndjson`);
+    const rows = readNdjson(`${table}.ndjson`, baseDir);
     cache.set(table, rows);
     return rows;
   };
@@ -139,7 +139,7 @@ function fileClient(): {
 // ---------------------------------------------------------------------------
 
 /** Une quantité structurée telle que la ligne de plan la porte (FF-038). */
-function readIngredient(raw: unknown): CompositionInput | null {
+export function readIngredient(raw: unknown): CompositionInput | null {
   if (!raw || typeof raw !== "object") return null;
   const i = raw as Record<string, unknown>;
   const term = String(i.term ?? "").trim();
@@ -159,7 +159,7 @@ function readIngredient(raw: unknown): CompositionInput | null {
   };
 }
 
-function readIngredients(raw: unknown): CompositionInput[] {
+export function readIngredients(raw: unknown): CompositionInput[] {
   if (!Array.isArray(raw)) return [];
   const out: CompositionInput[] = [];
   for (const entry of raw) {
@@ -169,7 +169,7 @@ function readIngredients(raw: unknown): CompositionInput[] {
   return out;
 }
 
-function readDishes(raw: unknown): EnergyDish[] {
+export function readDishes(raw: unknown): EnergyDish[] {
   if (!Array.isArray(raw)) return [];
   return raw.map((entry) => {
     const d = (entry ?? {}) as Record<string, unknown>;
@@ -190,7 +190,7 @@ function readDishes(raw: unknown): EnergyDish[] {
   });
 }
 
-function readPreparations(raw: unknown): EnergyPreparation[] {
+export function readPreparations(raw: unknown): EnergyPreparation[] {
   if (!Array.isArray(raw)) return [];
   return raw.map((entry) => {
     const p = (entry ?? {}) as Record<string, unknown>;
@@ -454,4 +454,11 @@ async function main() {
   for (const l of lines) console.log(`DETAIL|${l}`);
 }
 
-await main();
+// ⛔ `import.meta.main` ET PAS UN APPEL NU. Le lot `L2-lang` RÉUTILISE les
+// adaptateurs d'entrée ci-dessus (`fileClient`, `readDishes`,
+// `readPreparations`) au lieu d'en recopier une seconde version: une copie
+// diverge, et c'est celle qu'on regarde le moins qui garde l'ancienne valeur.
+// Sans cette garde, l'import lancerait le tableau de bord de V0-E′ au milieu
+// d'une autre mesure. Lancé directement, le comportement est INCHANGÉ — la
+// preuve est le md5 du corps de la sortie, identique avant et après ce geste.
+if (import.meta.main) await main();
