@@ -30,6 +30,7 @@ import { assertEquals } from "jsr:@std/assert@1";
 import {
   DENSITY_CEILING_DEFAULT,
   DENSITY_CEILING_FAT_LOSS,
+  MAX_SURPLUS_FRACTION,
 } from "./meal_envelope.ts";
 import { KEEL_MINOR_AGE } from "./student_age.ts";
 import { BOX_FACTOR_MAX, BOX_FACTOR_MIN } from "./household_portions.ts";
@@ -59,6 +60,27 @@ Deno.test("épinglage — DENSITY_CEILING_FAT_LOSS vaut 1,3 kcal/g", () => {
 
 Deno.test("épinglage — DENSITY_CEILING_DEFAULT vaut 1,8 kcal/g", () => {
   assertEquals(DENSITY_CEILING_DEFAULT, 1.8);
+});
+
+// ── ⛔ LA BANDE DE SURPLUS (`meal_envelope.ts`) — UN TROU DU SCANNER ─────────
+// ⛔ CELLE-CI, LE SCANNER DE `constant_pinning_gate_test.ts` NE LA VOIT PAS,
+// ET C'EST MESURÉ. Rejoué le 2026-08-22 à 18:47:41 CEST sur son propre
+// répertoire: **140 constantes vues, `MAX_SURPLUS_FRACTION` absente, et
+// `ENERGY_BANDS` absente aussi.** La cause est structurelle, pas un oubli:
+// `SCALAR_RE` n'accepte que `export const NOM = <littéral numérique>;`, et
+// cette constante-ci est DÉRIVÉE —
+// `Math.round((ENERGY_BANDS.muscle_gain.high - 1) * 1000) / 1000`.
+// ⇒ passer la bande `muscle_gain` de 1,10 à 1,20 ne faisait rougir AUCUN
+// épinglage. Cette ligne-ci est la seule qui rougisse. Le trou du scanner,
+// lui, reste ouvert: fiche `X2″`.
+//
+// ⚠️ ÉPINGLÉE, PAS DÉFENDUE — même statut que `KEEL_MINOR_AGE`. Le lot `L37`
+// a mesuré que l'élargir au-delà de **0,1055** ferait exécuter, à un adulte
+// ordinaire, un rythme que le produit décrit lui-même comme partant surtout en
+// gras (`surplus_band_bounds_test.ts`). C'est là que vit l'invariant; ici on
+// dit seulement qu'elle ne bouge pas en silence.
+Deno.test("épinglage — MAX_SURPLUS_FRACTION vaut 0,10 (bande `muscle_gain` à +10 %)", () => {
+  assertEquals(MAX_SURPLUS_FRACTION, 0.10);
 });
 
 // ── L'ÂGE DU MINEUR (`student_age.ts`) ───────────────────────────────────────
