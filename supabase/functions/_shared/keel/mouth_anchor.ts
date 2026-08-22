@@ -66,6 +66,10 @@ import {
   executedPaceFor,
   type ScaleDirection,
 } from "./weight_pace.ts";
+import {
+  conditionGatePopulationOf,
+  conditionGateReason,
+} from "./condition_energy_gate.ts";
 import type { MouthDayEnergy } from "./mouth_energy.ts";
 import type { MealComponent } from "./tokens.ts";
 
@@ -102,6 +106,21 @@ export const ANCHOR_REASONS = Object.freeze(
     "age_unknown",
     /** Le facteur est sorti des bornes de plausibilité, et il a été raboté. */
     "clamped",
+    /**
+     * L0bis — CETTE BOUCHE A DÉCLARÉ UNE GROSSESSE, et le moteur n'exécute
+     * donc AUCUN écart pour elle. Elle reçoit la boîte que le modèle a écrite.
+     *
+     * ⛔ ELLE NE S'ANCRE PAS NON PLUS SUR SA MAINTENANCE, ET C'EST L'ARBITRAGE.
+     * `estimatedMaintenanceKcal` est une équation pour un corps qui ne nourrit
+     * que lui-même: le besoin d'une grossesse la dépasse d'environ 340 kcal/j
+     * au 2ᵉ trimestre et 450 au 3ᵉ. L'ancrer sur cette maintenance-là lui
+     * PRESCRIRAIT une journée trop basse — le défaut même que ce lot ferme,
+     * portant le masque d'un correctif. Le dépôt n'a ni trimestre ni équation
+     * de grossesse; s'abstenir est la seule option honnête.
+     */
+    "pregnancy",
+    /** L0bis — même geste, même raison, pour un allaitement déclaré (~+500 kcal/j). */
+    "breastfeeding",
   ] as const,
 );
 export type AnchorReason = (typeof ANCHOR_REASONS)[number];
@@ -463,6 +482,23 @@ export interface AnchorMouth {
    * de « pas câblé ».
    */
   structure: MealStructure | null;
+  /**
+   * L0bis — LES `condition_ref` QUE CETTE BOUCHE A DÉCLARÉS.
+   *
+   * ⛔ REQUIS ET NON OPTIONNEL, jamais `?`. « Paramètre de garde optionnel =
+   * garde désarmée » est une leçon déjà payée par ce dépôt (`safetyBand: null`,
+   * jamais passé). Un `?` ici aurait laissé le tableau vide être la réponse
+   * SILENCIEUSE de tous les appelants: la garde de grossesse serait écrite,
+   * testée, branchée nulle part — et un lot désarmé ressemble trait pour trait
+   * à un lot qui marche. `[]` = cette bouche n'a rien déclaré, et il faut
+   * l'écrire.
+   *
+   * ⚠️ SOURCE: `student_safety_constraints.condition_ref`, et ELLE SEULE. Il
+   * n'existe pas de `household_member_conditions`, donc une bouche SANS COMPTE
+   * ne peut porter aucune condition aujourd'hui — c'est un trou nommé, pas un
+   * oubli. Voir la fiche `L0bis-a` du plan.
+   */
+  conditionRefs: readonly string[];
 }
 
 export interface AnchorFactor {
@@ -552,6 +588,23 @@ export function mouthTargetKcal(
   // n'est ouvert, et c'est exactement ce qu'un coach qui ne compte pas demande.
   if (mouth.direction === null || !full.size) {
     return { kcal: maintenance, reason: "anchored" };
+  }
+  // ── L0bis — LE GARDE DE GROSSESSE, POSÉ SUR LE DÉFICIT ET PAS SUR LA PERSONNE ──
+  //
+  // ⚠️ IL EST ICI ET PAS PLUS HAUT, ET LA POSITION EST L'ARBITRAGE. Placé en
+  // tête, il aurait effacé du journal `restriction_floor`, `age_unknown` et
+  // `no_body` de toute bouche enceinte — trois motifs qui disent chacun une
+  // chose vraie et différente. Placé ICI, à l'endroit exact où l'écart va se
+  // calculer, il ne change le verdict que des bouches qui allaient RECEVOIR un
+  // déficit. Toutes les autres restent octet pour octet celles d'hier.
+  //
+  // ⛔ `direction === "down"` ET RIEN D'AUTRE. Sur une PRISE, ce garde ne mord
+  // pas: rabattre un surplus retirerait de l'énergie à une femme enceinte qui
+  // en demande, sous le nom d'une protection. Ce module retire des déficits.
+  if (mouth.direction === "down") {
+    const population = conditionGatePopulationOf(mouth.conditionRefs);
+    const reason = conditionGateReason(population);
+    if (reason !== null) return { kcal: null, reason };
   }
   const pace = mouth.paceKgPerWeek !== null && Number.isFinite(mouth.paceKgPerWeek) &&
       mouth.paceKgPerWeek > 0

@@ -221,12 +221,30 @@ export const MEDICAL_CONDITION_SURFACE_FORMS: Record<string, readonly string[]> 
     "syndrome des ovaires polykystiques",
   ],
   gout: ["gout", "goutte"],
+  // ── DEUX JETONS, ET ILS ÉTAIENT UN SEUL JUSQU'AU 2026-08-22 (lot L0bis) ──
+  // « I'm breastfeeding » écrivait `condition_ref = 'pregnancy'`. Les deux
+  // états appellent la même déférence clinique, donc le bloc injecté ne changeait
+  // pas — c'est pour ça que personne ne l'avait vu. Mais ils n'ont PAS les mêmes
+  // conséquences en aval, et le lot L0bis en a besoin des deux:
+  //   · les deux annulent tout écart d'énergie (`condition_energy_gate.ts`);
+  //   · seule la GROSSESSE porte l'éviction listeria/toxoplasme.
+  // Sous un seul jeton, la seconde règle se serait appliquée à une femme qui
+  // allaite, et le compteur des quatre populations aurait eu une colonne
+  // structurellement à zéro — un compteur désarmé qui ressemble à un compteur
+  // qui marche.
+  //
+  // ⚠️ AUCUNE LIGNE EN BASE N'EN DÉPEND: `select count(*) from
+  // student_safety_constraints where condition_ref is not null` rendait **0**
+  // le 2026-08-22 à 03:14 CEST, sur 68 lignes. La bascule n'a donc rien à
+  // migrer, et c'est le seul moment où elle est gratuite.
   pregnancy: [
     "pregnant",
     "pregnancy",
-    "breastfeeding",
     "enceinte",
     "grossesse",
+  ],
+  breastfeeding: [
+    "breastfeeding",
     "allaite",
     "allaitement",
   ],
