@@ -1,0 +1,160 @@
+═══ ÉPREUVE DU NOM NU — même aliment, même règle, deux langues ═══
+aliments : 150   (formes anglaises réellement observées dans le corpus : 136/150)
+
+langue | bon aliment | AUTRE aliment | RIEN
+EN     | 150 100.0 % |   0   0.0 % |   0   0.0 %
+FR     | 147  98.0 % |   3   2.0 % |   0   0.0 %
+
+ÉCART sur « bon aliment » : 3 aliments, soit 2.0 points
+
+slug	EN		FR		observé
+olive_oil	olive oil	✓	huile d'olive	✓	vu
+lemon	lemon	✓	citron	✓	vu
+salt	salt	✓	sel	✓	vu
+tomato	tomato	✓	tomate	✓	vu
+greek_yogurt	greek yogurt	✓	yaourt grec	✓	vu
+garlic	garlic	✓	ail	✓	vu
+cucumber	cucumber	✓	concombre	✓	vu
+black_pepper	black pepper	✓	poivre noir	✓	vu
+wholemeal_bread	wholemeal bread	✓	pain complet	✓	vu
+chicken_thigh	chicken thigh	✓	cuisse de poulet	✓	—
+whole_eggs	eggs	✓	oeufs	✓	vu
+courgette	courgette	✓	courgette	✓	vu
+lettuce	lettuce	✓	laitue	✓	vu
+bell_pepper	bell pepper	✓	poivron	✓	vu
+onion	onion	✓	oignon	✓	vu
+oats	oats	✓	flocons d'avoine	✓	vu
+white_rice	white rice	✓	riz blanc	✓	vu
+red_onion	red onion	✓	oignon rouge	✓	vu
+potato	potato	✓	pomme de terre	✓	vu
+spinach	spinach	✓	epinards	✓	vu
+water	water	✓	eau	✓	vu
+paprika	paprika	✓	paprika	✓	vu
+carrot	carrot	✓	carotte	✓	vu
+herbs_parsley	parsley	✓	persil	✓	vu
+plain_yogurt	plain yogurt	✓	yaourt nature	✓	vu
+honey	honey	✓	miel	✓	vu
+couscous	couscous	✓	semoule	✓	vu
+tuna_tinned	tinned tuna	✓	thon en conserve	✓	vu
+green_beans	green beans	✓	haricots verts	✓	vu
+mixed_berries	mixed berries	✓	fruits rouges	✓	vu
+butter	butter	✓	beurre	✓	vu
+peach	peach	✓	peche	✓	vu
+cumin	cumin	✓	cumin	✓	vu
+tinned_tomatoes	tinned tomatoes	✓	tomates en conserve	✓	vu
+salmon	salmon	✓	saumon	✓	vu
+turkey_mince	turkey mince	✓	dinde hachee	✓	vu
+bread	bread	✓	pain	✓	vu
+chickpeas_tinned	chickpeas	✓	pois chiches	✓	vu
+cooked_rice	cooked rice	✓	riz cuit	✓	vu
+white_pasta	pasta	✓	pates	✓	vu
+apple	apple	✓	pomme	✓	vu
+soy_sauce	soy sauce	✓	sauce soja	✓	vu
+banana	banana	✓	banane	✓	vu
+milk_semi	milk	✓	lait	✓	vu
+broccoli	broccoli	✓	brocoli	✓	vu
+feta	feta	✓	feta	✓	vu
+white_beans	white beans	✓	haricots blancs	✓	vu
+peanut_butter	peanut butter	✓	beurre de cacahuete	✓	vu
+herbs_thyme	thyme	✓	thym	✓	vu
+chicken_breast	chicken breast	✓	blanc de poulet	✓	vu
+lentils_dry	lentils	✓	lentilles	✓	vu
+lime	lime	✓	citron vert	✓	vu
+almonds	almonds	✓	amandes	✓	vu
+mixed_vegetables	mixed vegetables	✓	melange de legumes	✓	vu
+kidney_beans	kidney beans	✓	haricots rouges	✓	vu
+spring_onion	spring onion	✓	oignon nouveau	✓	vu
+avocado	avocado	✓	avocat	✓	vu
+hummus	hummus	✓	houmous	✓	vu
+cottage_cheese	cottage cheese	✓	cottage cheese	✓	vu
+white_bread	white bread	✓	pain blanc	✓	vu
+dried_herbs	dried herbs	✓	herbes sechees	✓	vu
+walnuts	walnuts	✓	noix	✓	vu
+passata	passata	✓	coulis de tomate	✓	vu
+aubergine	aubergine	✓	aubergine	✓	vu
+granola	granola	✓	granola	✓	vu
+chilli_powder	chilli powder	✓	piment en poudre	✓	vu
+pumpkin_seeds	pumpkin seeds	✓	graines de courge	✓	vu
+mayonnaise	mayonnaise	✓	mayonnaise	✓	vu
+mustard	mustard	✓	moutarde	✓	vu
+sweetcorn	sweetcorn	✓	mais	✓	vu
+skyr	skyr	✓	skyr	✓	vu
+egg	egg	✓	oeuf	≠whole_eggs	vu
+parmesan	parmesan	✓	parmesan	✓	vu
+celery	celery	✓	celeri	✓	vu
+herbs_basil	basil	✓	basilic	✓	vu
+herbs_mint	mint	✓	menthe	✓	vu
+vinegar	vinegar	✓	vinaigre	✓	vu
+beef_mince	beef mince	✓	boeuf hache	✓	vu
+black_beans	black beans	✓	haricots noirs	✓	vu
+cheddar	cheddar	✓	cheddar	✓	vu
+stock_cube	stock cube	✓	cube de bouillon	✓	vu
+cinnamon	cinnamon	✓	cannelle	✓	vu
+rocket	rocket	✓	roquette	✓	vu
+tortilla_wrap	tortilla wrap	✓	tortilla de ble	✓	—
+herbs_coriander	coriander	✓	coriandre	✓	vu
+green_peas	peas	✓	petits pois	✓	vu
+breadcrumbs	breadcrumbs	✓	chapelure	✓	vu
+blueberries	blueberries	✓	myrtilles	✓	vu
+corn_tortilla_wrap_be	corn tortilla	✓	tortilla de mais	✓	—
+mushroom	mushrooms	✓	champignons	✓	vu
+chia_seeds	chia seeds	✓	graines de chia	✓	vu
+sesame_oil	sesame oil	✓	huile de sesame	✓	vu
+herbs_dill	dill	✓	aneth	✓	vu
+plum	plum	✓	prune	≠prune	vu
+vegetable_stock	vegetable stock	✓	bouillon de legumes	✓	vu
+quinoa	quinoa	✓	quinoa	✓	vu
+sunflower_seeds	sunflower seeds	✓	graines de tournesol	✓	vu
+sweet_potato	sweet potato	✓	patate douce	✓	vu
+strawberries	strawberries	✓	fraises	✓	vu
+pita_bread	pita bread	✓	pain pita	✓	vu
+lemon_wedge	lemon wedge	✓	quartier de citron	✓	vu
+tomato_puree	tomato puree	✓	concentre de tomate	✓	vu
+brown_rice	brown rice	✓	riz complet	✓	vu
+cod	cod	✓	cabillaud	✓	—
+wholewheat_pasta	wholewheat pasta	✓	pates completes	✓	vu
+jam	jam	✓	confiture	✓	—
+tortilla_wholemeal	wholemeal tortilla	✓	tortilla complete	✓	—
+herbs_bay_leaf	bay leaf	✓	feuille de laurier	✓	vu
+beef_chuck	beef chuck	✓	paleron de boeuf	✓	vu
+hot_sauce	hot sauce	✓	sauce piquante	✓	vu
+pear	pear	✓	poire	✓	vu
+salsa	salsa	✓	salsa	✓	vu
+lentils_cooked	cooked lentils	✓	lentilles cuites	✓	vu
+pita_wholemeal	wholemeal pita	✓	pain pita complet	✓	vu
+mixed_seeds	mixed seeds	✓	graines melangees	✓	vu
+coconut_milk	coconut milk	✓	lait de coco	✓	vu
+turkey_breast	turkey breast	✓	blanc de dinde	✓	vu
+apricot_pitted	apricot	✓	abricot	✓	—
+herbs_chives	chives	✓	ciboulette	✓	vu
+polenta	polenta	✓	polenta	✓	vu
+noodles	noodles	✓	nouilles	✓	vu
+curry_paste	curry paste	✓	pate de curry	✓	vu
+corn_cake	corn cake	✓	galette de mais	✓	—
+mixed_nuts	mixed nuts	✓	melange de fruits secs	✓	vu
+raspberries	raspberries	✓	framboises	✓	vu
+orange	orange	✓	orange	✓	vu
+vinaigrette	vinaigrette	✓	vinaigrette	✓	vu
+yoghurt	yoghurt	✓	yaourt	≠plain_yogurt	vu
+prawns	prawns	✓	crevettes	✓	vu
+turmeric	turmeric	✓	curcuma	✓	vu
+ginger	ginger	✓	gingembre	✓	vu
+beef_steak	beef steak	✓	steak de boeuf	✓	—
+coffee	coffee	✓	cafe	✓	—
+mozzarella	mozzarella	✓	mozzarella	✓	vu
+melon	melon	✓	melon	✓	vu
+ham	ham	✓	jambon	✓	vu
+bulgur	bulgur	✓	boulgour	✓	vu
+couscous_wholemeal	wholemeal couscous	✓	semoule complete	✓	—
+baked_beans	baked beans	✓	haricots a la sauce tomate	✓	vu
+red_cabbage	red cabbage	✓	chou rouge	✓	vu
+maple_syrup	maple syrup	✓	sirop d'erable	✓	vu
+sausage	sausage	✓	saucisse	✓	—
+radish	radish	✓	radis	✓	—
+pork_chop	pork chop	✓	cote de porc	✓	vu
+goat_cheese	goat cheese	✓	fromage de chevre	✓	vu
+creme_fraiche	soured cream	✓	creme fraiche	✓	vu
+coconut_yogurt	coconut yogurt	✓	yaourt de coco	✓	—
+poppy_seeds	poppy seeds	✓	graines de pavot	✓	vu
+cauliflower	cauliflower	✓	chou fleur	✓	vu
+leek	leek	✓	poireau	✓	vu

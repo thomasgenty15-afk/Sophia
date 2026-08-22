@@ -1,0 +1,831 @@
+# chaînes brutes distinctes : 827
+# résolues (distinctes)     : 637
+# occurrences               : 10038
+# occurrences résolues      : 9545
+1	2 boiled eggs	∅
+1	Almonds	almonds
+1	Banana	banana
+3	Basmati rice	white_rice
+3	Beef mince	beef_mince
+1	Beef stir-fry strips	∅
+1	Black beans	black_beans
+1	Black pepper	black_pepper
+2	Blueberries	blueberries
+7	Bread	bread
+1	British berries	∅
+1	British strawberries	strawberries
+3	Broccoli	broccoli
+1	Broccoli florets	broccoli
+1	Broccoli head	broccoli
+1	Brown rice	brown_rice
+2	Bulgur wheat	bulgur_wheat
+6	Butter	butter
+1	Chestnut mushrooms	mushroom
+1	Chicken breast	chicken_breast
+1	Chicken mini fillets	chicken_breast
+1	Chicken thighs	chicken_thigh
+4	Chicken thighs, bone-in	chicken_thigh
+1	Chicken thighs, bone-out	chicken_thigh
+1	Chopped tomatoes	tinned_tomatoes
+1	Cod fillets	cod
+3	Courgettes	courgette
+1	Cucumber	cucumber
+6	Dijon mustard	mustard
+4	Dried oregano	dried_herbs
+1	Dried rosemary	herbs_thyme
+6	Eggs	whole_eggs
+3	Extra virgin olive oil	olive_oil
+1	Flatbreads	pita_bread
+1	French green lentils	∅
+1	Fresh coriander	herbs_coriander
+4	Fresh parsley	herbs_parsley
+4	Fresh spinach	spinach
+1	Frozen peas	green_peas
+1	Garam masala	curry_paste
+3	Garlic	garlic
+3	Garlic clove	garlic
+1	Garlic cloves	garlic
+1	Giant couscous	couscous
+34	Greek yoghurt	greek_yogurt
+202	Greek yogurt	greek_yogurt
+4	Green beans	green_beans
+1	Green peppers	sweet_pepper_green
+1	Ground beef	beef_mince
+6	Honey	honey
+1	Hot sauce	hot_sauce
+2	Italian herbs	∅
+1	Kidney beans	kidney_beans
+1	Leek	leek
+6	Lemon	lemon
+6	Lemon juice	lemon
+1	Lemon zest	lemon
+3	Mixed berries	mixed_berries
+2	Mixed salad leaves	lettuce
+1	New potatoes	potato
+1	Oats	oats
+22	Olive oil	olive_oil
+1	Onion	onion
+3	Onions	onion
+1	Poppy seeds	poppy_seeds
+1	Potatoes	potato
+1	Pumpkin seeds	pumpkin_seeds
+2	Red lentils	lentils_dry
+2	Red peppers	bell_pepper
+1	Salmon	salmon
+1	Salmon fillet	salmon
+1	Sea bass fillets	∅
+2	Smoked paprika	paprika
+1	Smoked tofu	tofu
+2	Spinach	spinach
+5	Sunflower seeds	sunflower_seeds
+1	Sweet potato	sweet_potato
+3	Tinned chopped tomatoes	tomato
+1	Tinned green lentils	lentils_dry
+1	Tomato	tomato
+1	Tortilla wraps	tortilla_wrap
+2	Tortillas	tortilla_wrap
+2	Turkey bean chilli with rice	∅
+1	Turmeric	turmeric
+4	Vegetable stock	vegetable_stock
+2	White fish fillets	cod
+2	White rice	white_rice
+3	Wholemeal bread	wholemeal_bread
+1	Yellow peppers	bell_pepper
+1	abricot	apricot_pitted
+4	abricots	apricot_pitted
+1	ail	garlic
+44	almonds	almonds
+44	apple	apple
+2	apple sauce	apple_compote
+10	apples	apple
+1	applesauce	apple_compote
+10	apricots	apricot_pitted
+1	arborio rice	white_rice
+3	arugula	rocket
+19	aubergine	aubergine
+2	aubergine lentil stew	∅
+16	aubergines	aubergine
+34	avocado	avocado
+2	avocado, sliced	avocado
+8	avocados	avocado
+5	baby potatoes	potato
+19	baby spinach	spinach
+1	bagel	bagel
+1	bagged salad	mixed_leaves
+2	baguette	white_bread
+1	baguettes	white_bread
+5	baked beans	baked_beans
+2	baked potato	∅
+1	baking potato	∅
+8	balsamic vinegar	vinegar
+45	banana	banana
+7	bananas	banana
+23	basil	herbs_basil
+2	basil leaves	∅
+1	basil pesto	∅
+2	basilic	herbs_basil
+56	basmati rice	white_rice
+12	bay leaf	herbs_bay_leaf
+1	bay leaves	herbs_bay_leaf
+2	bean filling	∅
+1	beef and bean bowl	∅
+3	beef and bean chilli	∅
+11	beef chuck	beef_chuck
+1	beef chuck, diced	beef_chuck
+16	beef mince	beef_mince
+1	beef mince 15%	∅
+2	beef stew meat	∅
+1	beef stewing meat	beef_stewing_meat
+14	beef stock	stock_cube
+3	beef strips	∅
+10	bell pepper	bell_pepper
+20	bell peppers	bell_pepper
+1	bell peppers, sliced	bell_pepper
+57	berries	mixed_berries
+21	black beans	black_beans
+2	black beans, drained	black_beans
+1	black beans, tinned	black_beans
+6	black coffee	coffee
+1	black olives	olives
+217	black pepper	black_pepper
+1	blackberries	blackberry
+13	blackcurrant jam	jam
+21	blueberries	blueberries
+1	boeuf haché	beef_mince
+3	boiled rice	white_rice
+23	boiling water	water
+1	bok choy	pak_choi
+4	boneless chicken thighs	chicken_thigh
+4	boneless skinless chicken thighs	chicken_thigh
+1	boulgour cuit	bulgur
+11	braised beef	∅
+1	braised beef with peppers	∅
+50	bread	bread
+25	breadcrumbs	breadcrumbs
+43	broccoli	broccoli
+2	broccoli florets	broccoli
+1	broccoli heads	broccoli
+12	brown rice	brown_rice
+1	buckwheat flakes	buckwheat
+4	bulgur	bulgur
+2	bulgur wheat	bulgur_wheat
+1	burger buns	∅
+70	butter	butter
+4	butter or oil	∅
+5	butter or olive oil	∅
+1	cabbage	cabbage
+1	canned beans	∅
+4	canned chickpeas	chickpeas_tinned
+1	canned chickpeas, drained	chickpeas_tinned
+2	canned chopped tomatoes	tomato
+1	canned crushed tomatoes	tomato
+4	canned kidney beans	kidney_beans
+2	canned tomatoes	tinned_tomatoes
+14	canned tuna	tuna_tinned
+1	canned tuna, drained	tuna_tinned
+7	canned white beans	white_beans
+1	canned white beans, drained	white_beans
+15	cannelle	cinnamon
+19	cannellini beans	white_beans
+1	capers	∅
+1	carottes	carrot
+41	carrot	carrot
+73	carrots	carrot
+1	cauliflower	cauliflower
+2	cauliflower rice	∅
+2	cauliflower, in florets	cauliflower
+32	celery	celery
+1	celery stalks	celery_stalk
+1	celery sticks	celery_stalk
+21	cheddar	cheddar
+3	cheddar cheese	cheddar
+2	cheese	∅
+1	cherries	cherry_pitted
+86	cherry tomatoes	tomato
+1	cherry tomatoes, halved	∅
+1	cherry vine tomatoes	tomato_cherry
+22	chia seeds	chia_seeds
+2	chicken bowl portion	∅
+27	chicken breast	chicken_breast
+1	chicken curry	∅
+4	chicken stock	stock_cube
+1	chicken stock cube	∅
+1	chicken thigh fillets	∅
+120	chicken thighs	chicken_thigh
+4	chicken thighs, bone-in	chicken_thigh
+1	chicken thighs, bone-in skin-on	∅
+4	chicken thighs, boneless	chicken_thigh
+1	chicken thighs, boneless and skinless	∅
+2	chicken thighs, boneless/skinless	chicken_thigh
+1	chicken thighs, sliced	chicken_thigh
+1	chicken, beans, cucumber and herbs	∅
+2	chicken, courgettes, peppers and rice	∅
+1	chicken, lettuce, tomato and yoghurt wraps	∅
+1	chickpea salad	∅
+24	chickpeas	chickpeas_tinned
+1	chickpeas, drained	chickpeas_tinned
+1	chili flakes	∅
+7	chili powder	chilli_powder
+4	chilli flakes	chilli_powder
+24	chilli powder	chilli_powder
+1	chilli sauce	∅
+3	chipotle paste	∅
+2	chipotle paste (sesame-free)	∅
+8	chives	herbs_chives
+1	chopped parsley	herbs_parsley
+39	chopped tomatoes	tinned_tomatoes
+2	ciboulette	∅
+1	cilantro	herbs_coriander
+23	cinnamon	cinnamon
+5	citron	lemon
+2	citron vert	lime
+8	coconut milk	coconut_milk
+4	coconut yoghurt	coconut_yogurt
+3	cod fillet	cod
+6	cod fillets	cod
+1	comté or emmental cheese	∅
+8	concombre	cucumber
+1	cooked beef mince tomato sauce	∅
+1	cooked black beans	black_beans
+1	cooked bulgur	bulgur
+7	cooked chicken	chicken_breast
+11	cooked chicken breast	chicken_breast
+4	cooked chicken thigh and pepper batch	∅
+3	cooked chicken thigh batch	∅
+10	cooked chicken thigh meat	∅
+11	cooked chicken thighs	chicken_thigh
+4	cooked chicken thighs from preparation	∅
+1	cooked chicken thighs from the sheet pan	∅
+12	cooked chickpeas	chickpeas_tinned
+4	cooked couscous	couscous
+1	cooked farro	∅
+1	cooked green lentils	lentils_dry
+2	cooked lentil soup batch	∅
+11	cooked lentils	lentils_cooked
+8	cooked pasta	white_pasta
+4	cooked quinoa	quinoa
+55	cooked rice	cooked_rice
+2	cooked rice batch	∅
+2	cooked rice from preparation	∅
+3	cooked roast chicken thighs	chicken_thigh
+1	cooked roast turkey breast	turkey_breast
+1	cooked turkey breast	turkey_breast
+3	cooked turkey chilli	∅
+2	cooked turkey chilli batch	∅
+2	cooked turkey chilli from preparation	∅
+1	cooked turkey slices	turkey_ham_slices
+4	cooked white beans	white_beans
+3	coriander	herbs_coriander
+1	coriandre	herbs_coriander
+3	corn	sweetcorn
+8	corn cakes	corn_cake
+1	corn kernels	∅
+23	corn tortillas	corn_tortilla_wrap_be
+1	cornflour	∅
+39	cottage cheese	cottage_cheese
+3	cottage cheese, with allergy label checked	∅
+41	courgette	courgette
+2	courgette, coarsely grated	∅
+1	courgette, diced	courgette
+1	courgette, shaved into ribbons	∅
+129	courgettes	courgette
+1	courgettes, cut into thick half-moons	∅
+1	courgettes, sliced into half-moons	∅
+1	courgettes, sliced into rounds	courgette
+93	couscous	couscous
+1	couscous complet sec	couscous
+4	couscous cuit	couscous
+1	crackers	∅
+1	crushed tomatoes	tomato
+2	crusty baguette	white_bread
+2	crusty bread	∅
+223	cucumber	cucumber
+1	cucumber, chopped	cucumber
+1	cucumber, cut into sticks	∅
+1	cucumber, diced	cucumber
+1	cucumber, sliced	cucumber
+2	cucumbers	cucumber
+36	cumin	cumin
+4	curry paste	curry_paste
+2	curry powder	curry_paste
+19	dill	herbs_dill
+1	dill or parsley	∅
+1	dinde hachée	turkey_mince
+1	drained butter beans	white_beans
+4	drained chickpeas	chickpeas_tinned
+1	drained tuna	tuna_tinned
+1	dried brown rice	brown_rice
+1	dried chives	herbs_chives
+1	dried dill	herbs_dill
+2	dried green lentils	lentils_dry
+1	dried herbes de Provence	dried_herbs
+1	dried herbs	dried_herbs
+24	dried oregano	dried_herbs
+5	dried pasta	white_pasta
+3	dried thyme	herbs_thyme
+1	dry couscous	∅
+1	dry green lentils	∅
+2	dry lentils	lentils_dry
+4	dry pasta	white_pasta
+3	eau	water
+1	edamame	edamame
+32	egg	egg
+1	egg muffins	∅
+11	egg noodles	∅
+2	eggplant	aubergine
+184	eggs	whole_eggs
+1	extra grated cheese	∅
+1	extra-firm tofu, pressed and torn	∅
+3	fajita seasoning	∅
+1	falafel mix	∅
+3	farro	∅
+1	fennel	fennel
+51	feta	feta
+1	figs	fig
+5	figues	∅
+1	filets de saumon	salmon
+1	firm tofu	tofu
+11	flat-leaf parsley	herbs_parsley
+1	flatbread	pita_bread
+3	flatbreads	pita_bread
+1	flaxseed	flaxseed
+26	flocons d’avoine	oats
+1	flour tortillas (sesame-free)	∅
+1	fresh baby spinach	spinach
+9	fresh basil	herbs_basil
+1	fresh berries	mixed_berries
+20	fresh coriander	herbs_coriander
+2	fresh dill	herbs_dill
+1	fresh dill or parsley	∅
+4	fresh mint	herbs_mint
+1	fresh mint or parsley	∅
+19	fresh parsley	herbs_parsley
+1	fresh parsley, chopped	herbs_parsley
+1	fresh raspberries	raspberries
+12	fresh spinach	spinach
+3	fresh thyme	herbs_thyme
+1	fromage de chèvre	goat_cheese
+8	frozen berries	mixed_berries
+1	frozen mixed berries	mixed_berries
+8	frozen peas	green_peas
+1	frozen spinach	spinach
+3	fruit	fruit
+2	fruit salad	∅
+201	garlic	garlic
+6	garlic clove	garlic
+1	garlic clove, minced	garlic
+1	garlic clove, sliced	garlic
+13	garlic cloves	garlic
+4	garlic cloves, minced	garlic
+15	garlic powder	garlic
+3	garlic, minced	garlic
+1	garlic, sliced	garlic
+1	giant couscous	couscous
+6	ginger	ginger
+2	gluten-free ready tomato lentil soup	∅
+1	gluten-free vegetable stock	∅
+2	goat cheese	goat_cheese
+2	graines de courge	pumpkin_seeds
+2	graines de lin	flaxseed
+1	graines de tournesol	sunflower_seeds
+31	granola	granola
+2	grapes	grapes
+4	grated cheddar	cheddar
+4	grated cheese	∅
+3	grated parmesan	parmesan
+1	greek yoghurt	greek_yogurt
+4	greek yogurt	greek_yogurt
+78	green beans	green_beans
+1	green beans, trimmed	∅
+1	green bell peppers	bell_pepper
+16	green lentils	lentils_dry
+4	green or brown lentils	∅
+1	green or puy lentils	∅
+4	green salad	lettuce
+4	greens	∅
+2	grilled aubergine	aubergine
+2	ground cinnamon	cinnamon
+36	ground cumin	cumin
+4	ground turkey	turkey_mince
+1	ground turmeric	turmeric
+2	halloumi	halloumi
+5	ham	ham
+1	hard cheese	∅
+1	haricots blancs cuits	white_beans
+1	haricots rouges	kidney_beans
+1	haricots verts	green_beans
+1	harissa paste (sesame-free)	∅
+1	hauts de cuisse de poulet	chicken_thigh
+2	hazelnuts	hazelnuts
+2	herbes de Provence	dried_herbs
+93	honey	honey
+10	hot sauce	hot_sauce
+1	hot water	∅
+16	huile d’olive	olive_oil
+44	hummus	hummus
+1	ice	∅
+2	jasmine rice	white_rice
+10	jus de citron	lemon
+1	jus de citron vert	∅
+1	kale, shredded	kale
+34	kidney beans	kidney_beans
+1	lait	milk_semi
+1	lait de coco	coconut_milk
+4	lamb mince	∅
+2	lamb shoulder, diced	lamb_shoulder
+5	large potato	potato
+1	large potatoes	potato
+2	large tortilla wraps	tortilla_wrap
+1	large wholemeal wrap, with allergy label checked	∅
+6	lean beef mince	beef_mince
+2	lean beef strips	∅
+1	lean ground turkey	turkey_breast
+1	lean steak	beef_steak
+14	lean turkey mince	turkey_mince
+417	lemon	lemon
+48	lemon juice	lemon
+12	lemon wedge	lemon_wedge
+4	lemon wedges	lemon_wedge
+6	lemon zest	lemon
+2	lemons	lemon
+2	lentil soup	∅
+4	lentil tomato sauce	∅
+1	lentilles cuites	lentils_cooked
+1	lentilles vertes	lentils_dry
+1	lentilles vertes sèches	lentils_dry
+1	lentils	lentils_dry
+69	lettuce	lettuce
+2	lettuce leaves	∅
+2	light coconut milk	coconut_milk
+6	light mayonnaise	mayonnaise
+42	lime	lime
+3	lime juice	lime
+1	limes	lime
+1	liquid smoke (or extra smoked paprika)	∅
+3	long-grain rice	white_rice
+4	maple syrup	maple_syrup
+3	marinara sauce	∅
+1	mayo	mayonnaise
+27	mayonnaise	mayonnaise
+1	maïs	sweetcorn
+7	melon	melon
+3	menthe	herbs_mint
+1	mild curry powder	curry_paste
+50	milk	milk_semi
+1	minced beef	beef_mince
+27	mint	herbs_mint
+1	mint leaves	∅
+1	mixed beans	∅
+1	mixed bell peppers, sliced	bell_pepper
+8	mixed berries	mixed_berries
+2	mixed greens	∅
+2	mixed herbs	dried_herbs
+6	mixed nuts	mixed_nuts
+2	mixed peppers	bell_pepper
+2	mixed roast vegetables	∅
+2	mixed salad greens	∅
+66	mixed salad leaves	lettuce
+11	mixed seeds	mixed_seeds
+3	mixed stir-fry vegetables	peas_frozen
+46	mixed vegetables	mixed_vegetables
+5	mozzarella	mozzarella
+5	muesli	granola
+1	muffin cases	∅
+20	mushrooms	mushroom
+1	mushrooms, finely sliced	∅
+1	mushrooms, halved	∅
+1	mushrooms, sliced	mushroom
+28	mustard	mustard
+3	nectarine	peach
+3	nectarines	peach
+59	new potatoes	potato
+1	new potatoes, halved	∅
+8	noodles	noodles
+1	nuts	mixed_nuts
+1	oat flour	oats
+26	oats	oats
+2	oeufs	whole_eggs
+2	oignon	onion
+3	oignons	onion
+1	oignons rouges	red_onion
+24	oil	olive_oil
+789	olive oil	olive_oil
+2	olives	olives
+129	onion	onion
+1	onion, chopped	onion
+2	onion, diced	onion
+3	onion, finely chopped	onion
+1	onion, finely diced	onion
+1	onion, sliced	onion
+41	onions	onion
+7	orange	orange
+6	oregano	dried_herbs
+1	orzo	∅
+7	pain complet	wholemeal_bread
+7	pain complet grillé	white_bread
+2	pain pita complet	pita_bread
+1	pak choi	pak_choi
+52	paprika	paprika
+2	paprika fumé	paprika
+29	parmesan	parmesan
+71	parsley	herbs_parsley
+1	parsnips	parsnip
+33	passata	passata
+30	pasta	white_pasta
+18	peach	peach
+50	peaches	peach
+50	peanut butter	peanut_butter
+2	peanuts	peanuts
+8	pear	pear
+3	pears	pear
+16	peas	green_peas
+1	penne pasta	∅
+98	pepper	∅
+5	peppers	bell_pepper
+7	persil	herbs_parsley
+1	pesto	pesto
+3	pickle	∅
+1	pickled red onion	∅
+3	pita bread	pita_bread
+2	pita breads	pita_bread
+1	pitas	pita_bread
+2	pitta bread	pita_bread
+3	pitta breads	pita_bread
+1	pittas	white_bread
+4	plain Greek yoghurt	greek_yogurt
+10	plain Greek yogurt	greek_yogurt
+7	plain Greek yogurt, with allergy label checked	∅
+3	plain cottage cheese	cottage_cheese
+2	plain oatcakes without added sweetener	∅
+1	plain oatcakes without added sweetener, crushed	∅
+5	plain skyr	skyr
+2	plain skyr, with allergy label checked	∅
+1	plain smoked mackerel	∅
+3	plain unsweetened skyr	∅
+1	plain wholemeal wrap without added sweetener	∅
+1	plain wholemeal wrap without sweeteners	∅
+2	plain yoghurt	plain_yogurt
+63	plain yogurt	plain_yogurt
+3	plum	plum
+1	plum or peach	∅
+18	plums	plum
+2	poire	pear
+1	poireaux	leek
+1	pois chiches cuits	chickpeas_tinned
+1	pois chiches secs	chickpeas_dry
+7	poivre	black_pepper
+1	poivron	bell_pepper
+3	poivrons	bell_pepper
+9	polenta	polenta
+1	pommes de terre nouvelles	∅
+2	poppy seeds	poppy_seeds
+1	pork chop	pork_chop
+3	pork chops	pork_chop
+2	pork loin	pork_loin
+1	pork medallions	pork_filet_mignon
+3	pork mince	∅
+2	pork sausages	sausage
+1	pork tenderloin	pork_loin
+7	porridge oats	oats
+6	potato	potato
+46	potatoes	potato
+1	potatoes, cut into slim wedges	∅
+5	prawns	prawns
+1	pre-cooked rice	∅
+1	protein powder	∅
+4	prunes	prune
+34	pumpkin seeds	pumpkin_seeds
+2	pure smoked paprika	∅
+1	pâte brisée	∅
+7	pêche	peach
+15	quinoa	quinoa
+5	quinoa cuit	quinoa
+1	quinoa sec	quinoa
+4	radishes	radish
+6	raisin	raisin
+1	raisins	raisins
+1	ras el hanout	∅
+6	raspberries	raspberries
+5	red bell peppers	bell_pepper
+1	red bell peppers, sliced	bell_pepper
+2	red cabbage	red_cabbage
+2	red cabbage, finely sliced	∅
+21	red lentils	lentils_dry
+109	red onion	red_onion
+38	red onions	red_onion
+1	red onions, wedged	∅
+21	red pepper	bell_pepper
+105	red peppers	bell_pepper
+1	red peppers, sliced	bell_pepper
+1	red wine	wine
+10	red wine vinegar	vinegar
+82	rice	white_rice
+1	rice cakes	∅
+1	ricotta	∅
+2	ripe tomato	tomato
+3	ripe tomatoes, chopped	tomato
+1	ripe tomatoes, sliced	tomato
+1	riz basmati	white_rice
+1	riz cuit	cooked_rice
+1	roast chicken	chicken_breast
+30	roast chicken thighs	chicken_thigh
+4	roast vegetables	∅
+3	roasted carrots	carrot
+5	roasted chicken thighs	chicken_thigh
+1	roasted courgette	courgette
+4	roasted peppers	bell_pepper
+3	roasted red peppers	bell_pepper
+10	roasted vegetables	∅
+2	roasted zucchini	courgette
+23	rocket	rocket
+2	rocket or spinach	∅
+128	rolled oats	oats
+5	roquette	rocket
+5	rosemary	herbs_thyme
+2	rye bread	rye_bread
+1	rye crispbread	crispbread_rye
+1	rye crispbreads	crispbread_rye
+1	rye crispbreads confirmed safe for your allergy	∅
+1	rye toast	rye_bread
+1	sage	∅
+45	salad leaves	lettuce
+7	salade verte	lettuce
+14	salmon fillet	salmon
+44	salmon fillets	salmon
+2	salmon tray portion	∅
+10	salsa	salsa
+426	salt	salt
+6	salt and pepper	salt
+1	sandwich bread	∅
+1	sardines	sardines
+2	sausages	sausage
+1	seasonal berries	∅
+12	sel	salt
+1	self-raising flour	∅
+1	semoule complète cuite	couscous
+22	sesame oil	sesame_oil
+2	sesame oil or olive oil	∅
+3	sesame seeds	sesame_seeds
+4	sesame-free chipotle paste	∅
+2	shakshuka base	∅
+1	shallot	shallot
+1	shawarma spice mix	∅
+6	short pasta	white_pasta
+1	shredded cabbage slaw	∅
+2	shredded red cabbage	red_cabbage
+1	shrimp	prawns
+2	side salad	∅
+1	sirloin steak	beef_sirloin_steak
+28	skyr	skyr
+1	slaw	∅
+1	sliced bread	bread
+3	sliced turkey breast	turkey_breast
+1	small potatoes	potato
+2	small tortillas	tortilla_wrap
+1	smoked mackerel	∅
+66	smoked paprika	paprika
+2	smoked salmon	smoked_salmon
+1	soft goat cheese	goat_cheese
+10	sourdough bread	∅
+4	soured cream	creme_fraiche
+53	soy sauce	soy_sauce
+2	spaghetti	white_pasta
+84	spinach	spinach
+7	spring onion	spring_onion
+38	spring onions	spring_onion
+3	steak	beef_steak
+2	steaks	beef_steak
+4	stir-fry vegetables	peas_frozen
+7	stock	stock_cube
+2	stock cube	stock_cube
+16	strawberries	strawberries
+1	sub roll	∅
+1	sultanas	raisins
+2	sunflower oil	sunflower_oil
+3	sunflower seed butter	sunflower_seed_butter
+13	sunflower seeds	sunflower_seeds
+1	sweet paprika	paprika
+6	sweet potato	sweet_potato
+7	sweet potatoes	sweet_potato
+4	sweet potatoes, cubed	sweet_potato
+1	sweet potatoes, peeled and cubed	∅
+27	sweetcorn	sweetcorn
+1	taco seasoning	∅
+3	tahini	tahini
+1	tempeh	tempeh
+37	thyme	herbs_thyme
+2	tinned black beans	black_beans
+5	tinned cannellini beans	white_beans
+2	tinned chickpeas	chickpeas_tinned
+7	tinned chickpeas, drained	chickpeas_tinned
+22	tinned chopped tomatoes	tomato
+5	tinned kidney beans	kidney_beans
+1	tinned mackerel in olive oil	mackerel
+1	tinned sardines in spring water, drained	sardines
+2	tinned sweetcorn	sweetcorn
+18	tinned tomatoes	tinned_tomatoes
+19	tinned tuna	tuna_tinned
+1	tinned tuna in brine, drained	tuna_tinned
+2	tinned tuna in spring water	tuna_tinned
+1	tinned tuna in spring water, drained	tuna_tinned
+6	toast	white_bread
+1	toasted almonds	almonds
+2	tofu ferme	tofu
+14	tofu soyeux	∅
+2	tomate	tomato
+18	tomates	tomato
+1	tomates cerises	tomato
+4	tomates concassées	tinned_tomatoes
+57	tomato	tomato
+5	tomato passata	passata
+9	tomato paste	tomato_puree
+2	tomato puree	tomato_puree
+4	tomato purée	tomato_puree
+1	tomato salsa	salsa
+174	tomatoes	tomato
+2	tortilla complète	white_bread
+7	tortilla wraps	tortilla_wrap
+11	tortillas	tortilla_wrap
+1	trout fillets	∅
+38	tuna	tuna_tinned
+1	tuna cans	∅
+4	tuna in olive oil	tuna_tinned
+7	tuna in spring water	tuna_tinned
+1	tuna in spring water, drained	tuna_tinned
+2	tuna pasta	∅
+5	tuna tins	∅
+2	turkey and bean chilli batch	∅
+4	turkey breast	turkey_breast
+2	turkey breast slices	∅
+1	turkey chili	∅
+3	turkey chili from batch	∅
+5	turkey chilli	∅
+1	turkey meatballs	∅
+41	turkey mince	turkey_mince
+3	turkey pasta bake	∅
+2	turkey slices	turkey_ham_slices
+4	turmeric	turmeric
+1	turmeric, cumin, and garlic powder	∅
+1	turmeric, cumin, and ginger	∅
+3	tzatziki	∅
+3	unsweetened rye bread	∅
+2	unsweetened rye crispbreads	∅
+3	vegetable oil	rapeseed_oil
+16	vegetable stock	vegetable_stock
+2	vegetable stock cube	∅
+2	vinaigre	vinegar
+7	vinaigrette	vinaigrette
+12	vinegar	vinegar
+40	walnuts	walnuts
+99	water	water
+1	whey protein	∅
+13	white beans	white_beans
+2	white bread	white_bread
+1	white cabbage	white_cabbage
+2	white fish fillets	cod
+1	white potatoes	potato
+1	white rice	white_rice
+4	whole grain bread	wholemeal_bread
+1	whole grain crackers	∅
+1	whole grain toast	∅
+1	whole milk	milk_semi
+3	whole wheat wraps	tortilla_wholemeal
+5	whole-grain bread	wholemeal_bread
+1	whole-grain breadcrumbs	∅
+1	wholegrain baguette	wholemeal_bread
+1	wholegrain baguettes	wholemeal_bread
+50	wholegrain bread	wholemeal_bread
+3	wholegrain crackers	∅
+1	wholegrain toast	∅
+102	wholemeal bread	wholemeal_bread
+3	wholemeal bread confirmed safe for your allergy	∅
+3	wholemeal bread without added sweetener	∅
+4	wholemeal bread, with allergy label checked	∅
+2	wholemeal flatbread	pita_wholemeal
+2	wholemeal pasta	wholewheat_pasta
+2	wholemeal pita	pita_wholemeal
+2	wholemeal pitas	pita_wholemeal
+3	wholemeal pitta	pita_wholemeal
+1	wholemeal pitta breads	∅
+1	wholemeal tortilla confirmed safe for your allergy	∅
+1	wholemeal tortilla wrap	∅
+5	wholemeal tortillas	tortilla_wholemeal
+10	wholemeal wrap	wholemeal_bread
+18	wholemeal wraps	wholemeal_bread
+5	wholewheat couscous	couscous_wholemeal
+1	wholewheat fusilli	wholewheat_pasta
+11	wholewheat pasta	wholewheat_pasta
+1	wholewheat pita	pita_wholemeal
+1	wholewheat pitas	pita_wholemeal
+1	wholewheat wrap	tortilla_wholemeal
+4	wholewheat wraps	tortilla_wholemeal
+1	wrap	white_bread
+19	wraps	white_bread
+12	yaourt de soja	∅
+9	yaourt nature	plain_yogurt
+1	yellow onion	yellow_onion
+7	yoghurt	yoghurt
+34	yogurt	plain_yogurt
+1	yogurt dressing	∅
+18	zucchini	courgette
+2	épinards	spinach

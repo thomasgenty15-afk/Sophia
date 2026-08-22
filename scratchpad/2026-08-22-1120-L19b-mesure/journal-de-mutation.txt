@@ -1,0 +1,65 @@
+════════════════════════════════════════════════════════════════════════════
+ L19b — JOURNAL DE MUTATION.  2026-08-22, 11:37 → 11:41 CEST.
+════════════════════════════════════════════════════════════════════════════
+
+ ⛔ RÈGLE DE MÉTHODE, apprise par `V0-E′-bis`: LA COPIE NON MUTÉE SE VÉRIFIE
+ D'ABORD. Sinon un banc cassé ressemble à une garde qui marche, et chaque
+ rouge est imputé au sabotage au lieu de la copie.
+
+ Banc HORS DÉPÔT: /private/tmp/…/scratchpad/L19b-mut/  — 124 Kio, QUATRE
+ fichiers (food_composition.ts, forbidden_matcher.ts, tokens.ts, le test).
+ ⚠️ `node_modules` n'a JAMAIS été copié: le disque est à 5 Go.
+
+────────────────────────────────────────────────────────────────────────────
+ A. LE BANC DENO — supabase/functions/_shared/keel/lot19b_complet_test.ts
+────────────────────────────────────────────────────────────────────────────
+
+  ① copie NON MUTÉE, d'abord          6 passed | 0 failed      ✅
+  ─────────────────────────────────────────────────────────────────────────
+  mutation                            résultat            ce qu'elle prouve
+  ─────────────────────────────────────────────────────────────────────────
+  `complet` remis dans la liste       FAILED 4/2 rouges   le retrait tient
+  `complete` remis                    FAILED 5/1 rouge    la graphie fém. sg
+  `complets` remis                    FAILED 5/1 rouge    la graphie masc. pl
+  `completes` remis                   FAILED 5/1 rouge    la graphie fém. pl
+  `grille*` RETIRÉ de la liste        FAILED 3/3 rouges   la réduction LÉGITIME
+                                                          n'a pas été désarmée
+  `cuit` RETIRÉ de la liste           FAILED 4/2 rouges   idem, second témoin
+  byAlias interrogé AVANT bySlug      FAILED 5/1 rouge    la règle qui rend
+                                                          19 alias MORTS
+  ─────────────────────────────────────────────────────────────────────────
+  ② retour au banc non muté           6 passed | 0 failed      ✅
+
+  ⛔ CE QUE LA MUTATION A ÉCRIT DANS LE TEST. Au premier tour, le banc ne
+  portait que deux cas, et « remettre `completes` SEUL » passait VERT: trois
+  des quatre graphies n'étaient armées par RIEN. Un mot de la liste qu'aucun
+  cas ne touche est un mot qu'on peut réintroduire sans que le dépôt le dise.
+  Le cas « les QUATRE graphies » a été écrit PAR ce vert-là.
+
+────────────────────────────────────────────────────────────────────────────
+ B. LE BANC SQL — supabase/functions/_shared/keel/lot19b_aliases_test.sql
+────────────────────────────────────────────────────────────────────────────
+
+  ① copie NON MUTÉE, d'abord          rc=0 · « les 8 cas passent »      ✅
+     (et AVANT la migration, le même fichier rendait 5 ÉCHEC sur 8 —
+      la garde mord dans les deux sens, elle n'est pas vraie par défaut)
+  ─────────────────────────────────────────────────────────────────────────
+  sabotage                                       résultat
+  ─────────────────────────────────────────────────────────────────────────
+  A. réinsérer 1 alias mort (`red onion`)        rc=3 · 2 cas en échec
+  B. redépointer 1 correction (`wrap`)           rc=3 · 2 cas en échec
+  C. supprimer 1 des 86 (`curcuma`)              rc=3 · 1 cas en échec
+  D. retirer UN CAS du fichier de test           rc=3 · CARDINALITÉ 7/8 —
+                                                  un cas a DISPARU
+  ─────────────────────────────────────────────────────────────────────────
+  ② retour à la copie non mutée       rc=0 · « les 8 cas passent »      ✅
+
+  ⛔ LE SABOTAGE D. EST LE PLUS IMPORTANT: un `insert into t_probe … select`
+  qui ne rend AUCUNE ligne ne produit ni `OK` ni `ÉCHEC`, et la boucle des
+  `not ok` ne le voit jamais. Sans l'assertion de cardinalité, retirer un cas
+  aurait rendu le test PLUS VERT. C'est le défaut mesuré par `V0-B-bis`.
+
+────────────────────────────────────────────────────────────────────────────
+ TOTAL: 11 mutations, 11 rouges. Copie non mutée vérifiée AVANT et APRÈS,
+        sur les deux bancs.
+────────────────────────────────────────────────────────────────────────────

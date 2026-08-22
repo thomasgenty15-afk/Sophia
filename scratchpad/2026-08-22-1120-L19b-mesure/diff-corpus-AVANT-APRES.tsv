@@ -1,0 +1,26 @@
+Italian herbs	2	∅	dried_herbs
+baguette	2	white_bread	bread_french_bread_baguette
+baguettes	1	white_bread	bread_french_bread_baguette
+braised beef	11	∅	beef_braising
+chicken thigh fillets	1	∅	chicken_thigh
+chilli sauce	1	∅	hot_sauce
+ciboulette	2	∅	herbs_chives
+cooked chicken thigh meat	10	∅	chicken_thigh
+couscous complet sec	1	couscous	couscous_wholemeal
+crackers	1	∅	wheat_crackers
+crusty baguette	2	white_bread	bread_french_bread_baguette
+lamb mince	4	∅	lamb
+lettuce leaves	2	∅	lettuce
+mixed greens	2	∅	lettuce
+mixed salad greens	2	∅	lettuce
+pain complet grillé	7	white_bread	wholemeal_bread
+pain pita complet	2	pita_bread	pita_wholemeal
+pittas	1	white_bread	pita_bread
+pommes de terre nouvelles	1	∅	potato
+semoule complète cuite	1	couscous	couscous_wholemeal
+toast	6	white_bread	toasted_bread
+tortilla complète	2	white_bread	tortilla_wholemeal
+tuna cans	1	∅	tuna_tinned
+tuna tins	5	∅	tuna_tinned
+wrap	1	white_bread	tortilla_wrap
+wraps	19	white_bread	tortilla_wrap
