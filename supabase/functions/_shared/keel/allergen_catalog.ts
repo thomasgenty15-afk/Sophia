@@ -75,6 +75,27 @@ export const ALLERGEN_CATALOG: readonly AllergenCatalogEntry[] = [
   { slug: "soy", label: "Soy" },
   { slug: "pork", label: "Pork" },
   { slug: "alcohol", label: "Alcohol" },
+  // ── LES QUATRE MAJEURS RÉGLEMENTAIRES QUI MANQUAIENT (2026-08-19) ────────
+  //
+  // Le catalogue s'arrêtait à treize jetons et il manquait CÉLERI, MOUTARDE,
+  // SULFITES et LUPIN — quatre des quatorze allergènes majeurs UE/UK. Ce
+  // n'était pas un oubli cosmétique: hors catalogue, une allergie reste du
+  // texte libre reconnu SOUS SON SEUL MOT. Mesuré en run réel, sur trois
+  // lignes réelles de la base locale: la contrainte disait `celeriac`, le plan
+  // écrivait « celery », et la ceinture ne bronchait pas.
+  //
+  // ⚠️ AJOUTÉS EN QUEUE, PAS INSÉRÉS PAR FRÉQUENCE. L'ordre de cette liste est
+  // celui du formulaire, et le miroir navigateur (`copy/allergens.ts`) le
+  // compare position par position (`toEqual`, pas un ensemble). Les insérer au
+  // milieu aurait déplacé douze cases sous les doigts des élèves existants
+  // pour un gain de rangement.
+  { slug: "celery", label: "Celery" },
+  { slug: "mustard", label: "Mustard" },
+  // Graphie britannique: c'est celle de la liste réglementaire que ce produit
+  // sert, et le miroir américain (`sulfite`) reste couvert par la table des
+  // formes de surface — donc une saisie libre « sulfites » ne perd rien.
+  { slug: "sulphite", label: "Sulphites" },
+  { slug: "lupin", label: "Lupin" },
 ] as const;
 
 /**
@@ -122,9 +143,78 @@ export function hasSurfaceFormCoverage(slug: string): boolean {
  * et le fait tourner sur le même corpus que la copie du front — divergence de
  * comportement, test rouge.
  */
+/**
+ * LES NOMS FRANÇAIS RAMENÉS SUR LEUR JETON — table FERMÉE, jamais un appariement.
+ *
+ * ⛔ LE DÉFAUT QUE CETTE TABLE FERME, MESURÉ LE 2026-08-19. Replier les accents
+ * ne suffisait pas: « œuf » donnait un slug propre `oeuf` que le catalogue ne
+ * connaît pas, donc **0 forme de surface** — exactement la même absence de
+ * couverture qu'avant, avec un identifiant plus joli. Mesuré: `oeuf` 0 contre
+ * `egg` 4, `ble` 0 contre `wheat` 5, `moutarde` 0 contre `mustard` 3.
+ *
+ * La locale par défaut du produit est `fr-FR`, et la colonne reçoit du texte
+ * libre: `fruits_de_mer` y est DÉJÀ, sur deux lignes réelles, sans couverture.
+ *
+ * ⛔ UNE TABLE, PAS UNE HEURISTIQUE. La règle du dépôt est que rien n'est
+ * deviné sur une chaîne — « laitue » ≠ « lait », 12 faux positifs sur 12
+ * mesurés. Chaque ligne ci-dessous est un nom écrit à la main, ramené sur un
+ * jeton du catalogue. Un nom absent d'ici reste tel quel: il ne gagne pas de
+ * couverture, mais il n'en vole aucune.
+ */
+const ALLERGEN_REF_ALIASES: Readonly<Record<string, string>> = {
+  arachide: "peanut",
+  arachides: "peanut",
+  cacahuete: "peanut",
+  cacahuetes: "peanut",
+  fruits_a_coque: "tree_nut",
+  fruit_a_coque: "tree_nut",
+  noix: "tree_nut",
+  ble: "wheat",
+  froment: "wheat",
+  lait: "dairy",
+  produits_laitiers: "dairy",
+  lactose: "dairy",
+  oeuf: "egg",
+  oeufs: "egg",
+  poisson: "fish",
+  poissons: "fish",
+  crustaces: "shellfish",
+  fruits_de_mer: "shellfish",
+  mollusques: "mollusc",
+  soja: "soy",
+  celeri: "celery",
+  moutarde: "mustard",
+  sulfite: "sulphite",
+  sulfites: "sulphite",
+  anhydride_sulfureux: "sulphite",
+  porc: "pork",
+  alcool: "alcohol",
+};
+
 export function normalizeAllergenRef(value: unknown): string | null {
   const raw = String(value ?? "").trim().toLowerCase();
   if (!raw) return null;
-  const slug = raw.replace(/[\s-]+/g, "_").replace(/[^a-z0-9_]/g, "");
-  return slug || null;
+  // ── LES ACCENTS SONT REPLIÉS, PAS SUPPRIMÉS (2026-08-19) ─────────────────
+  // Le filtre `[^a-z0-9_]` SUPPRIMAIT le caractère accentué au lieu de le
+  // ramener à sa lettre. Sur un produit dont la locale par défaut est `fr-FR`,
+  // ça mutilait cinq des quatorze allergènes majeurs dès qu'ils étaient tapés
+  // en français — mesuré: « œuf » → `uf`, « blé » → `bl`, « céleri » → `cleri`,
+  // « crustacés » → `crustacs`, « fruits à coque » → `fruits__coque`. Aucun ne
+  // correspond à rien dans le catalogue, donc la contrainte tombait en texte
+  // libre apparié littéralement, et la ceinture ne mordait plus.
+  //
+  // ⚠️ SANS RISQUE POUR L'EXISTANT, vérifié avant d'écrire: les 53 lignes en
+  // base portent 14 identifiants, tous en ASCII propre (`peanut`, `celeriac`,
+  // `fruits_de_mer`…). Aucune ne porte un identifiant mutilé, donc replier
+  // n'orpheline rien.
+  //
+  // Les ligatures d'abord — `œ` et `æ` ne sont PAS des accents composés et
+  // survivent à `NFD`; sans cette ligne, « œuf » resterait `uf`.
+  const unligatured = raw
+    .replace(/\u0153/g, "oe")
+    .replace(/\u00e6/g, "ae");
+  const folded = unligatured.normalize("NFD").replace(/\p{M}+/gu, "");
+  const slug = folded.replace(/[\s-]+/g, "_").replace(/[^a-z0-9_]/g, "");
+  if (!slug) return null;
+  return ALLERGEN_REF_ALIASES[slug] ?? slug;
 }

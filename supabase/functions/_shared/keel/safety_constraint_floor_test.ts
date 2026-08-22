@@ -282,3 +282,67 @@ Deno.test("un message ordinaire ne déclenche jamais le plancher", () => {
     );
   }
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LOT `S1b` (2026-08-22) — L'INTAKE : LE MOT DE LA CATÉGORIE
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// ⛔ MESURÉ AVANT LA PREMIÈRE LIGNE DE CORRECTIF, le 2026-08-22:
+//
+//     « je suis allergique aux fruits de mer » -> null
+//     « I'm allergic to seafood »              -> null
+//     « I'm allergic to shellfish »            -> shellfish
+//     « je suis allergique aux crustaces »     -> shellfish
+//
+// Le plancher lit `ALLERGEN_SURFACE_FORMS`, et cette table portait neuf
+// ANIMAUX (« prawn », « crab », « moule »…) sans aucun des deux mots
+// COLLECTIFS sous lesquels une personne DÉCLARE cette allergie. La graphie
+// n'était pas en cause — contrairement à `S1`, où la ligature l'était: ici la
+// phrase est en ASCII pur des deux côtés, et c'est le VOCABULAIRE qui manquait.
+//
+// C'est la moitié « intake » du lot. La moitié « sortie » est dans
+// `allergen_catalog_test.ts`, sur la ceinture.
+
+Deno.test("S1b — « fruits de mer » et « seafood » déclenchent le plancher", () => {
+  const attendu: ReadonlyArray<readonly [string, "allergy" | "intolerance"]> = [
+    ["je suis allergique aux fruits de mer", "allergy"],
+    ["j'ai une allergie aux fruits de mer", "allergy"],
+    ["je suis intolérante aux fruits de mer", "intolerance"],
+    ["I'm allergic to seafood", "allergy"],
+    ["I have a seafood allergy", "allergy"],
+  ];
+  for (const [message, kind] of attendu) {
+    const hit = detectDeclaredSafetyConstraint(message);
+    assert(hit, `doit mordre: ${JSON.stringify(message)}`);
+    assertEquals(
+      hit!.allergen_ref,
+      "shellfish",
+      `${JSON.stringify(message)} doit se ramener sur le jeton du catalogue`,
+    );
+    assertEquals(hit!.kind, kind);
+    // R7 tenu: c'est bien le jeton CATALOGUÉ qui sort, pas un slug inventé à
+    // partir des mots de la personne.
+    assertEquals(hit!.severity, kind === "allergy" ? "medical" : "strict");
+  }
+});
+
+Deno.test("S1b — le mot du danger ne mord pas hors d'une déclaration", () => {
+  // ⛔ LE CAS QUI PASSE, et il est indispensable: sans lui, un plancher devenu
+  // « tout mord » serait vert sur le test du dessus. Chacun de ces messages
+  // contient le mot ajouté par ce lot, et aucun ne déclare une allergie.
+  for (
+    const message of [
+      "on a mangé des fruits de mer hier soir",
+      "I had a seafood platter yesterday",
+      "am I allergic to seafood?",
+      "je ne suis pas allergique aux fruits de mer",
+      "my son is allergic to seafood",
+    ]
+  ) {
+    assertEquals(
+      detectDeclaredSafetyConstraint(message),
+      null,
+      `ne doit PAS mordre: ${JSON.stringify(message)}`,
+    );
+  }
+});

@@ -52,6 +52,7 @@
 
 import {
   ALLERGEN_SURFACE_FORMS,
+  surfaceFormsFor,
 } from "./allergen_surface_forms.ts";
 import { normalizeForMatch, tokenPattern } from "./forbidden_matcher.ts";
 import type { StudentSafetyConstraint } from "./safety_constraints.ts";
@@ -90,6 +91,99 @@ function slugifyLabel(label: string): string {
 }
 
 /**
+ * ⛔ UNE ALLERGIE QUE LA CEINTURE DE SORTIE NE SAIT COUVRIR QUE PAR LE MOT TAPÉ.
+ *
+ * ── LE DÉFAUT, MESURÉ LE 2026-08-22 (lot S1b) ─────────────────────────────
+ * `householdAllergenRefs("fruits de mer")` rendait `["fruits_de_mer"]`, et
+ * `surfaceFormsFor("fruits_de_mer")` rendait `[]`. La ceinture partait donc
+ * chercher UNE CHAÎNE FRANÇAISE DANS UN TEXTE ANGLAIS. Mesuré, contrainte
+ * `fruits_de_mer` en `severity='medical'`:
+ *
+ *     « des fruits de mer ce soir »  -> 1 morsure
+ *     « seafood platter »            -> 0
+ *     « a shrimp and crab platter »  -> 0
+ *
+ * — c'est-à-dire une ceinture ARMÉE ET MORTE EN ANGLAIS, la langue par défaut
+ * de la génération. Et elle ne disait rien: aucun log, aucun compteur, aucun
+ * champ. Un lecteur voyait une contrainte de plus dans l'union et concluait
+ * qu'elle était tenue.
+ *
+ * ── POURQUOI ÇA LÈVE, ET CE QUE ÇA COÛTE ──────────────────────────────────
+ * Une ceinture qui échoue bruyamment sur une lane sans second essai REFUSE le
+ * plan. C'est le bon comportement pour une allergie — mais il faut le SAVOIR,
+ * parce qu'il se paie:
+ *
+ *   · `generate-household-meal-v1:2338` n'entoure PAS `householdHardConstraints`
+ *     d'un `try`: la levée remonte au `catch` de tête et sort en **HTTP 500**,
+ *     `{ok:false, error:<ce message>}`. `readEdgeRefusal` prend le champ
+ *     `error` pour un JETON, `edgeRefusalKey` ne le connaît pas, et
+ *     `MealBuilder.tsx:869` affiche donc CE MESSAGE TEL QUEL — une phrase
+ *     d'ingénieur en anglais, sous un code qui se lit comme une panne. Le refus
+ *     traduit qui conviendrait existe déjà (`safety_constraints_unreadable`,
+ *     503) et il n'est pas branché ici: fiche `S1b-c`.
+ *   · la lane de conversation, elle, l'attrape (`loadHouseholdTurnSafety`) et
+ *     dégrade comme prévu: aucune nourriture proposée, et elle le dit.
+ *
+ * ── CE QUE ÇA ÉCHANGE, ET COMMENT ON REVIENT EN ARRIÈRE ───────────────────
+ * ⛔ Ceci RETIRE une propriété écrite et testée du module: « un mot inconnu
+ * garde le mot, jamais rien », la propriété qui le rendait incapable de
+ * RÉDUIRE la couverture. Une allergie au kiwi ne compose plus AUCUN plan, là
+ * où elle recevait avant une couverture littérale sur son propre mot. C'est un
+ * échange assumé, pas un oubli: mesuré sur les libellés réellement en base
+ * (`household_member_allergies`: peanut, pistachio, gluten, celeriac,
+ * arachide, sesame — 6 lignes), la levée mord **0 fois sur 6**, et la fixture
+ * obligatoire (« arachide ») passe.
+ *
+ * LE RETOUR ARRIÈRE EST UNE LIGNE: supprimer le bloc `if` ci-dessous dans
+ * `householdAllergenRefs`. Il rend exactement le comportement d'avant, silence
+ * compris.
+ *
+ * ⚠️ ET LA VRAIE RÉPARATION N'EST PAS ICI: c'est d'écrire les formes de surface
+ * du mot dans `allergen_surface_forms.ts`. La levée n'est qu'un réveil.
+ */
+export class HouseholdAllergenWithoutSurfaceFormsError extends Error {
+  readonly refs: readonly string[];
+  constructor(refs: readonly string[]) {
+    super(
+      "[keel/household_safety] a household allergy resolves to no catalogued " +
+        `allergen (${refs.join(", ")}); the output belt would only match the ` +
+        "exact word that was typed, so no meal may be composed. Add its " +
+        "surface forms to ALLERGEN_SURFACE_FORMS.",
+    );
+    this.name = "HouseholdAllergenWithoutSurfaceFormsError";
+    this.refs = [...refs];
+  }
+}
+
+/**
+ * `belt_ref_without_forms` — LE COMPTEUR QUI DOIT RESTER À ZÉRO.
+ *
+ * Il compte les libellés dont AUCUN identifiant ne porte de forme de surface,
+ * c'est-à-dire exactement les cas où la ceinture de sortie n'a rien d'autre que
+ * le mot tapé. Il est incrémenté AVANT la levée, pour qu'un appelant qui
+ * l'attrape (la lane de conversation le fait) ne fasse pas disparaître le fait.
+ *
+ * ⛔ Un `console.error` ne se groupe pas et ne se compare pas d'un run à
+ * l'autre; c'est la cicatrice `V0-B-bis` (« un remplissage qui lève en boucle
+ * ressemblait à un remplissage qui marche »). Les deux sont donc écrits: le log
+ * structuré pour le runtime, le compteur pour le test.
+ */
+export const BELT_REF_WITHOUT_FORMS_TAG =
+  "keel.household_safety.belt_ref_without_forms";
+
+let beltRefWithoutForms = 0;
+
+/** La valeur du compteur. Seuil produit: **0**. */
+export function beltRefWithoutFormsCount(): number {
+  return beltRefWithoutForms;
+}
+
+/** Remise à zéro — pour les tests, jamais pour le runtime. */
+export function resetBeltRefWithoutFormsCount(): void {
+  beltRefWithoutForms = 0;
+}
+
+/**
  * LES IDENTIFIANTS QU'UN LIBELLÉ PORTE, du plus canonique au plus littéral.
  *
  * Trois crans, dans cet ordre, et l'ordre est la règle:
@@ -98,9 +192,16 @@ function slugifyLabel(label: string): string {
  *   2. sinon, il correspond à une FORME DE SURFACE (« arachide » -> `peanut`);
  *   3. et dans tous les cas on garde le mot de la personne, slugifié.
  *
- * Le cran 3 est ce qui rend cette fonction incapable de RÉDUIRE la couverture:
- * sans lui, un mot inconnu de la table ne serait porté par rien. Avec lui, le
- * pire cas est exactement ce qu'on aurait eu sans les crans 1 et 2.
+ * Le cran 3 garde le mot de la personne: sans lui, un mot inconnu de la table
+ * ne serait porté par rien.
+ *
+ * ⛔ ~~Le cran 3 rend cette fonction incapable de RÉDUIRE la couverture: le
+ * pire cas est exactement ce qu'on aurait eu sans les crans 1 et 2.~~ CE
+ * N'EST PLUS VRAI DEPUIS LE 2026-08-22 (lot S1b), et c'est délibéré. Il y a un
+ * CRAN 4: si aucun des identifiants rendus ne porte de forme de surface, la
+ * fonction LÈVE au lieu de rendre une couverture littérale muette. Le pourquoi,
+ * la mesure, ce que ça coûte et le geste du retour arrière sont écrits sur
+ * `HouseholdAllergenWithoutSurfaceFormsError`, juste au-dessus.
  *
  * ⚠️ UNE AMBIGUÏTÉ REND PLUSIEURS SLUGS, elle n'en choisit pas un. « nut
  * butter » est une forme de surface de `peanut` ET de `tree_nut`; en garder un
@@ -124,6 +225,22 @@ export function householdAllergenRefs(label: string): string[] {
   const refs = [...canonical];
   const literal = slugifyLabel(text);
   if (literal && !refs.includes(literal)) refs.push(literal);
+
+  // ⛔ LA CEINTURE NE PEUT PLUS SE TAIRE (2026-08-22, lot S1b).
+  // Voir `HouseholdAllergenWithoutSurfaceFormsError` pour la mesure, l'arbitrage
+  // et le geste EXACT du retour arrière.
+  if (!refs.some((ref) => surfaceFormsFor(ref).length > 0)) {
+    beltRefWithoutForms += 1;
+    console.error(JSON.stringify({
+      tag: BELT_REF_WITHOUT_FORMS_TAG,
+      // Le LIBELLÉ n'est pas journalisé: c'est la donnée de santé d'une bouche
+      // qui n'a pas de compte. Les identifiants qu'il produit suffisent à
+      // rouvrir le cas, et ils sont déjà des slugs.
+      refs,
+      count: beltRefWithoutForms,
+    }));
+    throw new HouseholdAllergenWithoutSurfaceFormsError(refs);
+  }
   return refs;
 }
 
@@ -166,9 +283,37 @@ export function householdAllergyConstraints(
   rows: readonly HouseholdAllergyRow[],
   contentLocale: string,
 ): StudentSafetyConstraint[] {
+  return householdAllergyConstraintsWithMouths(rows, contentLocale).constraints;
+}
+
+/**
+ * LES MÊMES CONTRAINTES, ET LA BOUCHE DE CHACUNE.
+ *
+ * ── POURQUOI L'APPARIEMENT SE FAIT ICI ET NULLE PART AILLEURS ─────────────
+ * L'`id` d'une contrainte de foyer est `${row.id}:${ref}`, et `ref` sort de
+ * `householdAllergenRefs` — un libellé en rend PLUSIEURS (« nut butter » est
+ * une forme de surface de `peanut` ET de `tree_nut`). Reconstruire la clé chez
+ * l'appelant demanderait de rappeler `householdAllergenRefs` et de refaire le
+ * même suffixage: deux copies d'une règle de clé, dont c'est celle qu'on
+ * regarde le moins qui garderait l'ancienne le jour où le format bouge. Ici la
+ * paire naît dans la MÊME boucle que la contrainte, donc elle ne peut pas en
+ * diverger.
+ *
+ * ⚠️ CE N'EST PAS UN `userId`. Une bouche sans compte n'en a pas, et y ranger
+ * son `member_id` ferait une donnée qui ment (voir le commentaire de
+ * `userId: ""` juste en dessous, inchangé). La bouche voyage dans une table à
+ * part, `constraintId → member_id`, que l'appelant résout en prénom avec le
+ * roster qu'il tient déjà.
+ */
+export function householdAllergyConstraintsWithMouths(
+  rows: readonly HouseholdAllergyRow[],
+  contentLocale: string,
+): { constraints: StudentSafetyConstraint[]; memberIdOf: Map<string, string> } {
   const out: StudentSafetyConstraint[] = [];
+  const memberIdOf = new Map<string, string>();
   for (const row of rows) {
     for (const ref of householdAllergenRefs(row.label)) {
+      memberIdOf.set(`${row.id}:${ref}`, row.memberId);
       out.push({
         id: `${row.id}:${ref}`,
         userId: "",
@@ -187,7 +332,7 @@ export function householdAllergyConstraints(
       });
     }
   }
-  return out;
+  return { constraints: out, memberIdOf };
 }
 
 /**
@@ -197,20 +342,90 @@ export function householdAllergyConstraints(
  * des règles de maison de l'autre. Les calculer séparément aux deux points
  * d'appel remettrait la question « et si on mélangeait ? » à chaque lecture; ici
  * elle est répondue une fois, et un test la mute pour le prouver.
+ *
+ * ── TROIS SORTIES DEPUIS LE 2026-08-19 ────────────────────────────────────
+ * `memberIdOf` est la troisième, et elle vient du même geste pour la même
+ * raison: elle est ce qui permet à la ligne de prompt de porter un prénom, et
+ * la reconstruire ailleurs ferait une seconde règle de clé.
  */
 export function householdHardConstraints(input: {
   allergies: readonly HouseholdAllergyRow[];
   houseRules: readonly HouseholdHouseRuleRow[];
   contentLocale: string;
-}): { safetyConstraints: StudentSafetyConstraint[]; houseRuleLabels: string[] } {
+}): {
+  safetyConstraints: StudentSafetyConstraint[];
+  houseRuleLabels: string[];
+  /** `constraint.id` → `member_id` de la bouche qui la porte. */
+  memberIdOf: Map<string, string>;
+} {
+  const allergies = householdAllergyConstraintsWithMouths(
+    input.allergies,
+    input.contentLocale,
+  );
   return {
-    safetyConstraints: householdAllergyConstraints(
-      input.allergies,
-      input.contentLocale,
-    ),
+    safetyConstraints: allergies.constraints,
+    memberIdOf: allergies.memberIdOf,
     houseRuleLabels: input.houseRules
       .map((r) => String(r.label ?? "").trim())
       .filter((label) => label !== ""),
+  };
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * LA TABLE D'ATTRIBUTION DU PROMPT — et son compteur à TROIS nombres.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * Elle unit les DEUX provenances d'une contrainte de foyer, qui ne se
+ * résolvent pas par la même clé:
+ *
+ *   · `student_safety_constraints` — la ligne d'un TITULAIRE. Sa bouche se
+ *     retrouve par `userId`;
+ *   · `household_member_allergies` — la ligne d'une bouche qui n'a peut-être
+ *     PAS de compte (c'est toute la raison d'être de la table). Sa bouche se
+ *     retrouve par `memberIdOf`, produit dans la même boucle que la contrainte.
+ *
+ * ⚠️ TROIS NOMBRES, JAMAIS DEUX. « demandé / attribué » rendrait le même zéro
+ * pour « aucune contrainte » et « quatre contraintes, aucune bouche
+ * retrouvée » — et c'est précisément le second état qu'on veut voir. Le
+ * compteur est donc `declared / attributed / unattributed`, et l'appelant le
+ * journalise: un lot désarmé doit être visible sans relire le prompt.
+ *
+ * PURE: aucune I/O, aucun ordre implicite. Une contrainte dont la bouche ne se
+ * résout pas N'EST PAS OMISE — elle est comptée `unattributed` et le bloc de
+ * prompt lui écrit `someone at this table`. L'omettre la retirerait du prompt,
+ * c'est-à-dire retirerait une allergie pour cause de prénom manquant.
+ */
+export function householdConstraintMouths(input: {
+  constraints: readonly StudentSafetyConstraint[];
+  /** `constraint.id` → `member_id`, tel que rendu par `householdHardConstraints`. */
+  memberIdOf: ReadonlyMap<string, string>;
+  /** `member_id` → prénom. Le roster, que l'appelant tient déjà. */
+  nameOfMember: ReadonlyMap<string, string>;
+  /** `user_id` → prénom. Le même roster, vu par son autre clé. */
+  nameOfAccount: ReadonlyMap<string, string>;
+}): {
+  nameOf: Map<string, string>;
+  declared: number;
+  attributed: number;
+  unattributed: number;
+} {
+  const nameOf = new Map<string, string>();
+  let attributed = 0;
+  for (const c of input.constraints) {
+    const byMember = input.memberIdOf.get(c.id);
+    const name = (byMember ? input.nameOfMember.get(byMember) : undefined) ??
+      (c.userId ? input.nameOfAccount.get(c.userId) : undefined);
+    const clean = String(name ?? "").trim();
+    if (clean === "") continue;
+    nameOf.set(c.id, clean);
+    attributed += 1;
+  }
+  return {
+    nameOf,
+    declared: input.constraints.length,
+    attributed,
+    unattributed: input.constraints.length - attributed,
   };
 }
 
