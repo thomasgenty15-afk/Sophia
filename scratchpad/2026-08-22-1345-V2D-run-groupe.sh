@@ -273,8 +273,19 @@ dit "   profiles.locale : ${LOCALE_AVANT}"
 dit "   → archivé dans ${ARCH}/01-avant.txt"
 
 if [ "${REF_RETIRED_AVANT}" != "NULL" ]; then
-  dit "⛔ ${PLAN_REF} est DÉJÀ retiré. Le script ne sait pas dans quel état le rendre."
-  exit 1
+  if [ "$((10#${DEPUIS}))" -gt 1 ]; then
+    dit "   ⚠️ ${PLAN_REF} est retiré — normal sur une REPRISE (--depuis=${DEPUIS})."
+    dit "      Le trap le rendra vivant à la fin, comme sur un lot complet."
+    REF_DUREE_AVANT="$(psql_t "select duration_days from student_generated_meals where id='${PLAN_REF}'")"
+  else
+    dit "⛔ ${PLAN_REF} est DÉJÀ retiré alors que le lot commence au run 01."
+    dit "   Un lot précédent est mort avant sa restauration. Rends-le d'abord :"
+    dit "     update student_generated_meals set retired_at = now()"
+    dit "       where user_id='${MASTER_UID}' and plan_kind='household' and retired_at is null"
+    dit "         and id <> '${PLAN_V0D}';"
+    dit "     update student_generated_meals set retired_at = null where id='${PLAN_REF}';"
+    exit 1
+  fi
 fi
 
 # ═══ LA RESTAURATION — POSÉE AVANT LE PREMIER RUN, PAR `trap` ═════════════
@@ -292,10 +303,17 @@ restaurer() {
   fi
   psql_t "update profiles set locale='${LOCALE_AVANT}' where id='${MASTER_UID}'" >/dev/null 2>&1
   dit "   profiles.locale rendu à « ${LOCALE_AVANT} »."
-  if [ -n "${DERNIER_FOYER}" ]; then
-    psql_t "update student_generated_meals set retired_at = now()
-              where id='${DERNIER_FOYER}' and retired_at is null" >/dev/null 2>&1
-    dit "   dernier plan du lot (${DERNIER_FOYER}) retiré — il libère la fenêtre."
+  # ⛔ RÉSOLU EN BASE, PAS DEPUIS UNE VARIABLE. Sur une REPRISE (`--depuis`) ou
+  # sur un lot tué, la variable serait vide et `66de9046` resterait retiré.
+  local retires
+  retires="$(psql_t "update student_generated_meals set retired_at = now()
+                       where user_id='${MASTER_UID}' and plan_kind='household'
+                         and retired_at is null and created_at >= '${T0}'
+                     returning left(id::text,8)" 2>/dev/null | tr '\n' ' ')"
+  if [ -n "${retires// /}" ]; then
+    dit "   plan(s) foyer du lot retiré(s) — ils libèrent la fenêtre : ${retires}"
+  else
+    dit "   aucun plan foyer du lot à retirer."
   fi
   psql_t "update student_generated_meals set retired_at = null
             where id='${PLAN_REF}' and retired_at is not null" >/dev/null 2>&1
@@ -461,9 +479,24 @@ for entree in "${RUNS[@]}"; do
   # ⇒ `3c781a71` [08-21, 08-22) ne chevauche jamais [08-22, 08-29): intouché.
   if [ "${LANE}" = "foyer" ]; then
     FN="generate-household-meal-v1"
-    if [ -z "${DERNIER_FOYER}" ]; then REPL="${PLAN_REF}"; else REPL="${DERNIER_FOYER}"; fi
-    INTENT="replace_current"
-    BODY="{\"operation\":\"compose\",\"window\":{\"kind\":\"days\",\"count\":7},\"intent\":\"${INTENT}\",\"replaces\":\"${REPL}\",\"context\":null,\"cooking_shape\":null,\"preferences\":null}"
+    # ⛔ LA LIGNE À REMPLACER EST RELUE EN BASE À CHAQUE RUN, jamais héritée
+    # d'une variable: sur une REPRISE (`--depuis`), la variable serait vide et
+    # le run viserait un plan déjà retiré ⇒ `plan_not_replaceable`.
+    # `order by starts_on desc` écarte `3c781a71` [08-21, 08-22), qui ne
+    # chevauche pas la fenêtre et n'a donc rien à céder.
+    REPL="$(psql_t "select coalesce((select id::text from student_generated_meals
+                       where user_id='${MASTER_UID}' and plan_kind='household'
+                         and retired_at is null
+                         and daterange(starts_on, starts_on + duration_days)
+                             && daterange(current_date, current_date + 7)
+                       order by starts_on desc, created_at desc limit 1), '')")"
+    if [ -n "${REPL}" ]; then
+      INTENT="replace_current"
+      BODY="{\"operation\":\"compose\",\"window\":{\"kind\":\"days\",\"count\":7},\"intent\":\"${INTENT}\",\"replaces\":\"${REPL}\",\"context\":null,\"cooking_shape\":null,\"preferences\":null}"
+    else
+      INTENT="prepare_next"; REPL="—"
+      BODY="{\"operation\":\"compose\",\"window\":{\"kind\":\"days\",\"count\":7},\"intent\":\"${INTENT}\",\"replaces\":null,\"context\":null,\"cooking_shape\":null,\"preferences\":null}"
+    fi
   else
     FN="generate-meal-v1"
     DERNIER_SOLO="$(psql_t "select coalesce(max(id::text),'') from student_generated_meals
