@@ -701,6 +701,48 @@ export const DISARM_CONDITION_BY_ID: Record<DisarmId, DisarmCondition> = Object
  * Lowercase, strip diacritics, unify apostrophes, collapse whitespace. Newlines
  * become sentence boundaries so a crisis line pasted under a shopping list is
  * not read inside the shopping list's clause.
+ *
+ * -- LIGATURES ARE UNFOLDED, NOT DROPPED (2026-08-22, lot S1d) --------------
+ * Same wound as `allergen_catalog.ts` (2026-08-19),
+ * `safety_constraint_floor.ts` (S1), `medical_condition_floor.ts` (S1c) and
+ * `body_measure_floor.ts` (S1d) -- BUT NOT THE SAME MECHANISM, and the
+ * difference is the reason this belt is fixed here and not by adding a spelling
+ * to the marker.
+ *
+ * Those four normalizers run a `[^a-z0-9\s]` filter, which DESTROYED the
+ * ligature into a space. This one has no such filter: measured, `ma soeur`
+ * written with the ligature comes out of this function UNCHANGED. `NFD` does
+ * not decompose it either (one code point, against two for `e`-acute). So the
+ * ligature reaches the regex engine intact, and it is the ASCII literal
+ * `soeur` inside `THIRD_PARTY_MARKERS` that fails to match it.
+ *
+ * The consequence is the OPPOSITE of the other four. There, the ligature killed
+ * a detection. Here it kills a DISARM -- and no lexicon pattern carries a
+ * digraph, so in this lane the ligature can only ever OVER-trigger, never
+ * under-trigger. Measured 2026-08-22, before any fix, over the whole table:
+ * 16 of 16 French entries disarmable by `third_party_referent` diverge under
+ * `ma soeur` written with the ligature.
+ *
+ *     "ma soeur je veux en finir" (digraph)  => disarmed, band none
+ *     "ma soeur je veux en finir" (ligature) => detected, band high
+ *
+ * Someone telling us about their SISTER was read as being in crisis themselves.
+ *
+ * WARNING -- THIS ALIGNS A DISARM, and that is the gesture, not a side effect.
+ * The digraph behaviour is the one the author wrote, tested and shipped
+ * (`third_party_referent` is a UNIVERSAL_DISARM); the ligature behaviour was an
+ * accident of normalization. We are not choosing between two behaviours, we are
+ * choosing between ONE and TWO. A test NAMES this change.
+ *
+ * WARNING -- written as escape sequences (see the executed line), like the four
+ * sibling modules: this repo has already produced mojibake that neither `tsc`
+ * nor the parity tests catch. Literal ligature characters live only in comments
+ * and tests, never on the executed path.
+ *
+ * WARNING -- the unfold comes AFTER `toLowerCase()` so the uppercase ligatures
+ * pass too. Indices are unaffected downstream: every offset in this lane
+ * (`quotedRanges`, `spanIndexInSentence`) is computed on the string this
+ * function returns, and nothing maps back to the raw message.
  */
 export function normalizeForSafety(text: string): string {
   return String(text ?? "")
@@ -709,6 +751,8 @@ export function normalizeForSafety(text: string): string {
     .replace(/[\u2018\u2019\u02bc`\u00b4]/g, "'")
     .replace(/[\u201c\u201d\u00ab\u00bb]/g, '"')
     .toLowerCase()
+    .replace(/\u0153/g, "oe")
+    .replace(/\u00e6/g, "ae")
     .replace(/[\r\n]+/g, " . ")
     .replace(/\s+/g, " ")
     .trim();

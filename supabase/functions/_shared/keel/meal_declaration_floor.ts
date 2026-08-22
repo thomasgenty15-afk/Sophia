@@ -87,9 +87,58 @@ export type MealDeclarationHit = {
   offPlanMatched: string | null;
 };
 
+/**
+ * ── LES LIGATURES SONT DÉPLIÉES, PAS SUPPRIMÉES (2026-08-22, lot S1d) ───────
+ * CINQUIÈME copie de la même blessure, après `allergen_catalog.ts`
+ * (2026-08-19), `safety_constraint_floor.ts` (S1), `medical_condition_floor.ts`
+ * (S1c) et `body_measure_floor.ts` (ce lot). `œ` et `æ` ne sont PAS des accents
+ * composés: ils survivent à `NFD` (un seul point de code, mesuré), et c'est le
+ * filtre `[^a-z0-9\s]` juste en dessous qui les remplaçait par une ESPACE au
+ * lieu de les ramener à leurs deux lettres — « des œufs » ⇒ `"des ufs"`.
+ *
+ * ⛔ ET ICI LA DÉCLARATION ENTIÈRE EST PERDUE, pas seulement un aliment.
+ * `oeuf`, `oeufs`, `oeufs brouilles` et `boeuf` sont les 4 littéraux à
+ * digramme du lexique, et ils portent des mots que personne n'écrit autrement
+ * qu'avec une ligature. Mesuré le 2026-08-22 à 03:52:20 CEST, avant toute
+ * ligne de correctif:
+ *
+ *     « j'ai mangé des œufs brouillés ce matin » ⇒ null
+ *     « j'ai mangé des oeufs brouillés ce matin » ⇒ ["eggs"]
+ *     « j'ai mangé une omelette et du bœuf »     ⇒ ["eggs"]
+ *     « j'ai mangé une omelette et du boeuf »    ⇒ ["eggs","red_meat"]
+ *
+ * 4 couples sur 4 divergents. Quand l'œuf est le SEUL aliment de la phrase, le
+ * plancher ne rend plus `null` sur un composant: il rend `null` tout court — la
+ * porte ne s'ouvre pas, le repas déclaré n'existe pas, et rien n'est écrit.
+ *
+ * ⛔ CE QUE LE DÉPLIAGE NE FAIT PAS, ET C'EST LA MOITIÉ QUI COMPTE: il déplie
+ * la LIGATURE vers le digramme, jamais l'inverse. Le lexique de ce module
+ * porte `moelleux au chocolat` (sucreries), `tomatoes` et `potatoes` — trois
+ * digrammes `oe`/`ae` que personne n'écrit avec une ligature. Une règle qui se
+ * déclencherait sur le DIGRAMME les casserait; celle-ci ne les touche pas.
+ *
+ * C'est le repli déjà posé dans les quatre modules frères. ⛔ Ils ne sont PAS
+ * fusionnés: le découplage est délibéré et écrit dans chaque en-tête. La règle
+ * est recopiée, pas importée, et les commentaires se citent.
+ *
+ * ⚠️ Écrit en séquences d'échappement — voir la ligne exécutée — comme les
+ * modules frères: ce dépôt a déjà produit du mojibake qu'aucun `tsc` ni test de
+ * parité n'attrape. Les caractères littéraux `œ` et `æ` n'apparaissent que dans
+ * ce commentaire et dans les tests, jamais dans le chemin exécuté.
+ *
+ * ⚠️ Le dépliage vient APRÈS `toLowerCase()` (pour que `Œ` et `Æ` passent) et
+ * AVANT le filtre `[^a-z0-9\s]`, qui est ce qui les détruisait.
+ *
+ * ⚠️ `normalizeKeepingAccents` juste en dessous n'en reçoit PAS, et c'est
+ * mesuré, pas oublié: sa classe `[^a-z0-9À-ɏ\s]` GARDE la ligature au lieu de
+ * la détruire, et aucun motif d'`AMBIGUOUS_TERMS` ne porte de digramme
+ * (`the`, `mais`, `bar`, `pain`, `mure`). Un test dit cette absence.
+ */
 function normalize(text: string): string {
   return String(text ?? "")
     .toLowerCase()
+    .replace(/\u0153/g, "oe")
+    .replace(/\u00e6/g, "ae")
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "")
     .replace(/['’]/g, " ")

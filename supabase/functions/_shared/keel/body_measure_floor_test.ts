@@ -12,7 +12,7 @@
  * qu'ailleurs: sur-déclarer un repas est corrigeable, sur-déclarer un poids
  * fausse une ceinture de sécurité.
  */
-import { assertEquals } from "jsr:@std/assert@1";
+import { assert, assertEquals } from "jsr:@std/assert@1";
 import {
   BODY_MEASURE_BOUNDS,
   detectDeclaredBodyMeasure,
@@ -325,4 +325,227 @@ Deno.test("le vide et le non-texte ne mordent pas", () => {
 Deno.test("les mots de l'élève sont gardés tels quels", () => {
   const found = hit("Je suis à 78 kg ce matin");
   assertEquals(found?.studentNote, "Je suis à 78 kg ce matin");
+});
+
+
+// ---------------------------------------------------------------------------
+// LES LIGATURES (lot S1d, 2026-08-22) — LE MODULE QUI ÉCRIT UN FAIT FAUX
+// ---------------------------------------------------------------------------
+//
+// MESURE AVANT, 2026-08-22 03:51:35 CEST, avant toute ligne de correctif:
+//   « je fais 78 kg comme ma sœur »  ⇒ weight 78 kg   ← ÉCRIT une mesure
+//   « je fais 78 kg comme ma soeur » ⇒ null           ← désarmé
+//
+// ⛔ C'est le SENS INVERSE de S1 et de S1c. Là-bas la ligature faisait PERDRE
+// une déclaration; ici elle en FABRIQUE une, sur le corps de quelqu'un, dans la
+// case que `restriction_guard` compare ensuite. L'en-tête de ce module dit
+// lui-même que c'est le pire des deux sorts.
+//
+// `soeur` est le SEUL littéral à digramme du module, et il vit dans le
+// désarmement « quelqu'un d'autre ». 2 couples sur 3 divergeaient.
+//
+// ⚠️ Ces cinq tests forment le trépied de S1, recopié, et se lisent ensemble:
+// un qui ALIGNE (la ligature), un qui NE MORD PAS (sans lui, une `normalize()`
+// cassée refuserait tout et ressemblerait trait pour trait à une garde qui
+// marche), un BALAYAGE qui compte ses propres cas (un balayage vide est vert
+// pour rien: cicatrice `V0-B-bis`), un qui DÉCLARE le changement de
+// comportement, et un qui DIT UNE ABSENCE.
+//
+// ⛔ LE CRITÈRE N'EST PAS « rend ce verdict », C'EST « les deux graphies
+// rendent le MÊME verdict ». S1 a d'abord rougi pour la mauvaise raison en
+// l'ignorant.
+
+/** La graphie en digramme d'une chaîne à ligature. */
+function digraphe(s: string): string {
+  return s.replace(/œ/g, "oe").replace(/æ/g, "ae");
+}
+
+/** La graphie à ligature d'une chaîne en digramme. */
+function ligature(s: string): string {
+  return s.replace(/oe/g, "œ").replace(/ae/g, "æ");
+}
+
+/**
+ * LE BALAYAGE EST ÉCRIT SUR LE SOURCE EXÉCUTÉ DU MODULE, pas sur une liste
+ * recopiée: `WEIGHT_GATES`, `WAIST_GATES`, `DISARM` et `UNIT_TERMS` ne sont pas
+ * exportés — et les exporter pour un test élargirait la surface publique d'un
+ * plancher de sécurité. Lire le fichier prend TOUTES ses tables d'un coup, et
+ * le jour où quelqu'un ajoute « coeur », « caecum » ou « nævus » dans n'importe
+ * laquelle, il entre ici tout seul.
+ *
+ * ⚠️ Les commentaires sont RETIRÉS avant le scan: ce dépôt a déjà mesuré qu'un
+ * grep naïf compte des morts pour des vivants. Le fichier porte des ligatures
+ * littérales dans son en-tête — elles ne sont pas des données.
+ */
+function digrammesDuCodeExecute(): Map<string, number> {
+  const src = Deno.readTextFileSync(
+    new URL("./body_measure_floor.ts", import.meta.url),
+  );
+  // ⛔ ET LE DÉPLIAGE LUI-MÊME EST RETIRÉ DU SCAN, avec un compte: ses deux
+  // chaînes de remplacement (« oe », « ae ») sont le CORRECTIF, pas des
+  // données. Retirer sans compter laisserait le balayage vert le jour où
+  // quelqu'un supprime le dépliage.
+  const unfold = src.match(/\.replace\(\/\\u(?:0153|00e6)\/g, "(?:oe|ae)"\)/g) ?? [];
+  assertEquals(
+    unfold.length,
+    2,
+    "le dépliage des deux ligatures a disparu du module",
+  );
+  const code = src
+    .replace(/\/\*[\s\S]*?\*\//g, " ")
+    .replace(/\/\/[^\n]*/g, " ")
+    .replace(/\.replace\(\/\\u(?:0153|00e6)\/g, "(?:oe|ae)"\)/g, " ")
+    .toLowerCase();
+  const out = new Map<string, number>();
+  for (const m of code.matchAll(/[a-z]*(?:oe|ae)[a-z]*/g)) {
+    out.set(m[0], (out.get(m[0]) ?? 0) + 1);
+  }
+  return out;
+}
+
+/**
+ * Pour CHAQUE digramme du code, une porteuse déclarée: la phrase qui le porte,
+ * et la MÊME phrase sans lui. ⛔ Un jeton sans porteuse fait rougir le
+ * balayage — c'est voulu: il oblige celui qui ajoute un mot à ligature à écrire
+ * son cas au lieu de le laisser passer en silence.
+ */
+const PORTEUSES: Readonly<Record<string, { avec: string; sans: string }>> = {
+  soeur: { avec: "je fais 78 kg comme ma soeur", sans: "je fais 78 kg" },
+};
+
+/** Les digrammes que PERSONNE n'écrit avec une ligature. Aucun ici, à ce jour. */
+const JAMAIS_LIGATURES: readonly string[] = [];
+
+Deno.test("LIGATURE — la ligature ne FABRIQUE plus une mesure corporelle", () => {
+  const couples = [
+    "je fais 78 kg comme ma soeur",
+    "je pese 78 kg comme ma soeur",
+    "je suis a 78 kg comme ma soeur",
+  ];
+  assertEquals(couples.length, 3, "la grille doit porter ses 3 formulations");
+
+  for (const digramme of couples) {
+    const lig = ligature(digramme);
+    assert(lig !== digramme, `cas dégénéré, aucune ligature: ${digramme}`);
+
+    // ⚠️ AUCUNE RÉGRESSION SUR LE DIGRAMME: c'est la moitié qui marchait déjà.
+    assertEquals(hit(digramme), null, `le digramme doit désarmer: ${digramme}`);
+    // Et la ligature rend désormais le MÊME verdict.
+    assertEquals(hit(lig), null, `la ligature doit désarmer: ${lig}`);
+  }
+});
+
+Deno.test("LIGATURE — LE CAS QUI PASSE: le dépliage ne ferme aucune porte", () => {
+  // Sans ces cas, une `normalize()` cassée — qui ferait TOUT refuser — aurait
+  // exactement la tête d'une garde qui marche.
+  assertEquals(hit("je fais 78 kg")?.valueSi, 78);
+  assertEquals(hit("je suis à 78,5 kg ce matin")?.valueSi, 78.5);
+  assertEquals(hit("mon tour de taille est de 84 cm")?.valueSi, 84);
+  refused([
+    "jaime bien les pates",
+    // Une ligature dans une phrase qui ne déclare aucune mesure.
+    "j'ai mangé des œufs à midi",
+    // R7 — la ligature n'invente aucun nombre: « nœud » se déplie en « noeud »,
+    // qui n'est ni une unité ni une porte.
+    "j'ai fait un nœud à 3 boucles",
+  ]);
+});
+
+Deno.test("LIGATURE — BALAYAGE: tout digramme du code exécuté est couvert", () => {
+  const trouves = digrammesDuCodeExecute();
+
+  // ⛔ L'ASSERTION DE CARDINALITÉ, et elle n'est pas décorative: une boucle sur
+  // zéro cas est verte sans rien avoir prouvé.
+  const ligaturables = [...trouves.keys()].filter((t) =>
+    !JAMAIS_LIGATURES.includes(t)
+  );
+  assert(
+    ligaturables.length >= 1,
+    "balayage vide — un balayage qui ne couvre rien n'est pas une preuve",
+  );
+  assertEquals(
+    ligaturables.sort(),
+    ["soeur"],
+    "un digramme est apparu ou a disparu du code exécuté — écrire sa porteuse",
+  );
+
+  for (const token of ligaturables) {
+    const porteuse = PORTEUSES[token];
+    assert(
+      porteuse,
+      `${token}: aucune porteuse déclarée — écrire son cas, pas le sauter`,
+    );
+
+    // ① LA PRÉMISSE. Sans le jeton, la phrase MORD; avec lui, elle est
+    //    désarmée. Sans ce contrôle, comparer `null` à `null` ne prouve rien.
+    const sansJeton = hit(porteuse.sans);
+    const avecJeton = hit(porteuse.avec);
+    assert(sansJeton, `${token}: prémisse cassée, ${porteuse.sans} ne mord pas`);
+    assert(
+      JSON.stringify(sansJeton) !== JSON.stringify(avecJeton),
+      `${token}: le jeton ne change rien — la porteuse ne prouve rien`,
+    );
+
+    // ② L'ÉQUIVALENCE DES DEUX GRAPHIES, qui est le critère du lot.
+    const lig = ligature(porteuse.avec);
+    assert(lig !== porteuse.avec, `${token}: aucune ligature à produire`);
+    assertEquals(
+      JSON.stringify(hit(lig)),
+      JSON.stringify(avecJeton),
+      `${token}: les deux graphies doivent rendre le MÊME verdict`,
+    );
+    assertEquals(digraphe(lig), porteuse.avec, `${token}: aller-retour rompu`);
+  }
+});
+
+Deno.test("LIGATURE — le désarmement « quelqu'un d'autre » CHANGE DE COMPORTEMENT", () => {
+  // ⛔ CE TEST DIT UN CHANGEMENT DE COMPORTEMENT, et il faut le lire comme tel.
+  // Mesuré le 2026-08-22 à 03:51:35, AVANT le correctif:
+  //   « je fais 78 kg comme ma sœur »  ⇒ weight 78 kg
+  //   « je fais 78 kg comme ma soeur » ⇒ null
+  // Deux graphies, deux verdicts — et le mauvais des deux ÉCRIVAIT. Le dépliage
+  // aligne les deux sur le comportement du digramme, qui est celui que l'auteur
+  // a écrit et testé (`DISARM`, section « QUELQU'UN D'AUTRE »).
+  //
+  // ⛔ Ici on ne choisit pas entre deux comportements, on choisit entre UN et
+  // DEUX (§⑨ n° 24). Le retour arrière rouvre l'écriture d'un poids que
+  // personne n'a déclaré pour lui-même.
+  //
+  // Ce qui reste vrai des deux côtés: le poids nommé est celui de QUELQU'UN
+  // D'AUTRE, et le désarmement « autrui » est ABSOLU par construction.
+  for (
+    const phrase of [
+      "je fais 78 kg comme ma sœur",
+      "ma sœur fait 78 kg",
+      "je pèse 78 kg, ma sœur aussi",
+    ]
+  ) {
+    assertEquals(
+      JSON.stringify(hit(phrase)),
+      JSON.stringify(hit(digraphe(phrase))),
+      `les deux graphies doivent rendre le même verdict: ${phrase}`,
+    );
+    assertEquals(hit(phrase), null, phrase);
+  }
+});
+
+Deno.test("LIGATURE — æ est déplié par SYMÉTRIE, et n'a aucune cible aujourd'hui", () => {
+  // ⛔ CE TEST DIT UNE ABSENCE, et il faut le lire comme tel: le dépliage
+  // `æ → ae` de `body_measure_floor.ts` n'est exercé de bout en bout par AUCUN
+  // cas — zéro littéral du code exécuté ne contient « ae ». Il est posé parce
+  // que les quatre modules frères le portent, et que deux normalisations qui
+  // divergent sont exactement la facture que S1, S1c puis S1d ont payée.
+  //
+  // Le jour où un littéral en « ae » entre dans une table, le BALAYAGE
+  // ci-dessus le prend automatiquement — et ce test-ci rougit pour prévenir que
+  // l'affirmation d'absence a cessé d'être vraie. Sans lui, un dépliage jamais
+  // exercé ressemble TRAIT POUR TRAIT à un dépliage qui marche.
+  const avecAe = [...digrammesDuCodeExecute().keys()].filter((t) =>
+    t.includes("ae")
+  );
+  assertEquals(
+    avecAe.sort(),
+    [],
+    "un littéral en « ae » est apparu — vérifier qu'il est couvert sous « æ »",
+  );
 });

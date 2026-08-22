@@ -94,6 +94,49 @@ const IN_TO_CM = 2.54;
  * compte: le séparateur décimal SURVIT. « 78,5 kg » écrasé en « 78 5 kg »
  * deviendrait deux nombres, donc un refus — et la moitié de l'Europe écrit la
  * virgule.
+ *
+ * ── LES LIGATURES SONT DÉPLIÉES, PAS SUPPRIMÉES (2026-08-22, lot S1d) ───────
+ * QUATRIÈME copie de la même blessure, après `allergen_catalog.ts`
+ * (2026-08-19), `safety_constraint_floor.ts` (S1) et `medical_condition_floor`
+ * (S1c). `œ` et `æ` ne sont PAS des accents composés: `NFD` les laisse à UN
+ * seul point de code — mesuré, `"œ".normalize("NFD").length === 1` contre 2
+ * pour `é` — donc `\p{Diacritic}` ne les touche pas, et c'est le filtre
+ * `[^a-z0-9\s…]` juste en dessous qui les remplaçait par une ESPACE au lieu de
+ * les ramener à leurs deux lettres: « ma sœur » ⇒ `"ma s ur"`.
+ *
+ * ⛔ ET ICI LA DIVERGENCE ÉCRIT UN FAIT FAUX SUR LE CORPS DE QUELQU'UN.
+ * `soeur` est le seul littéral à digramme du module, et il vit dans le
+ * désarmement « quelqu'un d'autre ». Mesuré le 2026-08-22 à 03:51:35 CEST,
+ * avant toute ligne de correctif:
+ *
+ *     « je fais 78 kg comme ma sœur »  ⇒ weight 78 kg   ← ÉCRIT
+ *     « je fais 78 kg comme ma soeur » ⇒ null           ← désarmé
+ *
+ * Deux graphies, deux verdicts, et le mauvais des deux **écrit une ligne de
+ * mesure corporelle** que `restriction_guard` comparera ensuite. C'est le sens
+ * INVERSE de S1 et S1c — là-bas la ligature faisait perdre une déclaration,
+ * ici elle en fabrique une. L'en-tête de ce module dit pourquoi c'est le pire
+ * des deux sorts: « sur-déclarer un POIDS fausse `outcomes` puis la ceinture ».
+ *
+ * ⚠️ LE DÉPLIAGE ALIGNE DONC UN DÉSARMEMENT, et c'est le geste, pas un effet
+ * de bord: après lui, « comme ma sœur » désarme exactement comme « comme ma
+ * soeur ». Le comportement du digramme est celui que l'auteur a écrit et
+ * testé; celui de la ligature était un accident de `normalize()`. ⛔ On ne
+ * choisit pas entre deux comportements, on choisit entre UN et DEUX
+ * (§⑨ n° 24). Un test NOMME ce changement.
+ *
+ * C'est le repli déjà posé dans les trois modules frères. ⛔ Ils ne sont PAS
+ * fusionnés: le découplage est délibéré et écrit dans chaque en-tête. La règle
+ * est recopiée, pas importée, et les commentaires se citent.
+ *
+ * ⚠️ Écrit en séquences d'échappement — voir la ligne exécutée ci-dessous —
+ * comme les trois modules frères: ce dépôt a déjà produit du mojibake qu'aucun
+ * `tsc` ni test de parité n'attrape. Les caractères littéraux `œ` et `æ`
+ * n'apparaissent que dans ce commentaire — jamais dans le chemin exécuté, qui
+ * est en ASCII pur.
+ *
+ * ⚠️ Le dépliage vient APRÈS `toLowerCase()`, pour que `Œ` et `Æ` passent
+ * aussi, et AVANT le filtre `[^a-z0-9\s…]`, qui est ce qui les détruisait.
  */
 /**
  * Le caractère sous lequel le séparateur décimal se met à l'abri le temps du
@@ -106,6 +149,8 @@ const DECIMAL_SENTINEL = "\u0001";
 function normalize(text: string): string {
   return String(text ?? "")
     .toLowerCase()
+    .replace(/\u0153/g, "oe")
+    .replace(/\u00e6/g, "ae")
     .normalize("NFD")
     .replace(/\p{Diacritic}/gu, "")
     // Le séparateur décimal survit au nettoyage. SANS espace autour, exprès:

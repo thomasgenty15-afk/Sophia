@@ -632,3 +632,243 @@ Deno.test("« je n'ai rien mangé » est vetoé, dans les deux langues", () => {
   assert(!isNoMealDeclared("j'ai mangé du poulet"));
   assert(!isNoMealDeclared("I had chicken"));
 });
+
+
+// ---------------------------------------------------------------------------
+// LES LIGATURES (lot S1d, 2026-08-22) — LA DÉCLARATION ENTIÈRE ÉTAIT PERDUE
+// ---------------------------------------------------------------------------
+//
+// MESURE AVANT, 2026-08-22 03:52:20 CEST, avant toute ligne de correctif:
+//   « j'ai mangé des œufs brouillés ce matin » ⇒ null       ← TOUT est perdu
+//   « j'ai mangé des oeufs brouillés ce matin » ⇒ ["eggs"]
+//   « j'ai mangé une omelette et du bœuf »     ⇒ ["eggs"]
+//   « j'ai mangé une omelette et du boeuf »    ⇒ ["eggs","red_meat"]
+// 4 couples sur 4 divergents.
+//
+// ⛔ Quand l'œuf ou le bœuf est le SEUL aliment de la phrase, ce n'est pas un
+// composant qui manque: la porte ne s'ouvre pas et le repas déclaré N'EXISTE
+// PAS. L'en-tête de ce module dit que sous-déclarer est le sort NON récupérable
+// — « perd le repas en silence pendant que la réponse affirme le contraire ».
+// C'est l'accusé fantôme, sur la graphie que le francophone tape réellement.
+//
+// ⚠️ Ces cinq tests forment le trépied de S1, recopié, et se lisent ensemble:
+// un qui MORD, un qui NE MORD PAS, un BALAYAGE avec son assertion de
+// cardinalité (un balayage vide est vert pour rien: cicatrice `V0-B-bis`), un
+// qui garde LE SENS UNIQUE du dépliage, et un qui DIT UNE ABSENCE.
+//
+// ⛔ LE CRITÈRE N'EST PAS « rend ce ref », C'EST « les deux graphies rendent le
+// MÊME verdict ». S1 a d'abord rougi pour la mauvaise raison en l'ignorant.
+
+/** La graphie en digramme d'une chaîne à ligature. */
+function digrapheRepas(s: string): string {
+  return s.replace(/œ/g, "oe").replace(/æ/g, "ae");
+}
+
+/** La graphie à ligature d'une chaîne en digramme. */
+function ligatureRepas(s: string): string {
+  return s.replace(/oe/g, "œ").replace(/ae/g, "æ");
+}
+
+/**
+ * LE BALAYAGE EST ÉCRIT SUR LE SOURCE EXÉCUTÉ DU MODULE, pas sur une liste
+ * recopiée: `FOOD_LEXICON`, `AMBIGUOUS_TERMS`, `DISARM` et les marqueurs
+ * hors-plan ne sont pas exportés — et les exporter pour un test élargirait la
+ * surface publique d'un plancher. Lire le fichier prend TOUTES ses tables d'un
+ * coup, `AMBIGUOUS_TERMS` compris, et le jour où quelqu'un ajoute « coeur de
+ * palmier » ou « caeca », il entre ici tout seul.
+ *
+ * ⚠️ Les commentaires sont RETIRÉS avant le scan: ce dépôt a déjà mesuré qu'un
+ * grep naïf compte des morts pour des vivants. Le fichier porte trois ligatures
+ * littérales dans ses commentaires — elles ne sont pas des données.
+ */
+function digrammesDuRepasExecute(): Map<string, number> {
+  const src = Deno.readTextFileSync(
+    new URL("./meal_declaration_floor.ts", import.meta.url),
+  );
+  // ⛔ ET LE DÉPLIAGE LUI-MÊME EST RETIRÉ DU SCAN, avec un compte: ses deux
+  // chaînes de remplacement (« oe », « ae ») sont le CORRECTIF, pas des
+  // données. Retirer sans compter laisserait ce balayage vert le jour où
+  // quelqu'un supprime le dépliage.
+  const unfold = src.match(/\.replace\(\/\\u(?:0153|00e6)\/g, "(?:oe|ae)"\)/g) ?? [];
+  assertEquals(
+    unfold.length,
+    2,
+    "le dépliage des deux ligatures a disparu du module",
+  );
+  const code = src
+    .replace(/\/\*[\s\S]*?\*\//g, " ")
+    .replace(/\/\/[^\n]*/g, " ")
+    .replace(/\.replace\(\/\\u(?:0153|00e6)\/g, "(?:oe|ae)"\)/g, " ")
+    .toLowerCase();
+  const out = new Map<string, number>();
+  for (const m of code.matchAll(/[a-z]*(?:oe|ae)[a-z]*/g)) {
+    out.set(m[0], (out.get(m[0]) ?? 0) + 1);
+  }
+  return out;
+}
+
+/**
+ * Pour CHAQUE digramme du lexique qu'un francophone écrit avec une ligature,
+ * une porteuse déclarée. ⛔ Un jeton sans porteuse fait rougir le balayage —
+ * c'est voulu: il oblige celui qui ajoute un mot à ligature à écrire son cas au
+ * lieu de le laisser passer en silence.
+ */
+const PORTEUSES_REPAS: Readonly<Record<string, string>> = {
+  oeuf: "j'ai mangé un oeuf ce matin",
+  oeufs: "j'ai mangé des oeufs brouilles ce matin",
+  boeuf: "j'ai mangé du boeuf hier soir",
+};
+
+/**
+ * ⛔ LES DIGRAMMES QUE PERSONNE N'ÉCRIT AVEC UNE LIGATURE, et c'est la moitié
+ * du lot qui compte le plus. Mesurés dans le lexique de ce module: `moelleux`
+ * (« moelleux au chocolat »), `tomatoes`, `potatoes`. « Mœlleux », « tomatœs »
+ * n'existent pas. Une règle qui se déclencherait sur le DIGRAMME les casserait
+ * — le dépliage, lui, ne va QUE de la ligature vers le digramme.
+ */
+const JAMAIS_LIGATURES_REPAS: Readonly<Record<string, string>> = {
+  moelleux: "j'ai mangé un moelleux au chocolat hier soir",
+  tomatoes: "i ate tomatoes for lunch",
+  potatoes: "i ate potatoes for lunch",
+};
+
+Deno.test("LIGATURE — les 4 formulations mordent dans les DEUX graphies", () => {
+  const grille: Array<[string, string[]]> = [
+    ["j'ai mangé des œufs brouillés ce matin", ["eggs"]],
+    ["j'ai mangé une omelette et du bœuf", ["eggs", "red_meat"]],
+    ["j'ai mangé des œufs à midi", ["eggs"]],
+    ["j'ai mangé du bœuf hier soir", ["red_meat"]],
+  ];
+  assertEquals(grille.length, 4, "la grille doit porter ses 4 formulations");
+
+  for (const [ligature, attendu] of grille) {
+    const digramme = digrapheRepas(ligature);
+    assert(
+      ligature !== digramme,
+      `cas dégénéré, la ligature a disparu du littéral: ${ligature}`,
+    );
+
+    assertEquals(refs(ligature), attendu.slice().sort(), ligature);
+    // ⚠️ AUCUNE RÉGRESSION SUR LE DIGRAMME: c'est la moitié qui marchait déjà.
+    assertEquals(refs(digramme), attendu.slice().sort(), digramme);
+
+    // Et les deux graphies rendent le MÊME verdict, porte comprise.
+    const hitLig = detectDeclaredMeal(ligature);
+    const hitDig = detectDeclaredMeal(digramme);
+    assertEquals(hitLig?.gate, hitDig?.gate, ligature);
+    assertEquals(hitLig?.planRelation, hitDig?.planRelation, ligature);
+    // `studentNote` porte les mots de l'élève TELS QUELS — la ligature n'est
+    // dépliée que pour reconnaître, jamais pour réécrire ce qu'il a tapé.
+    assertEquals(hitLig?.studentNote, ligature, ligature);
+  }
+});
+
+Deno.test("LIGATURE — LE CAS QUI PASSE: le dépliage n'ouvre aucune porte", () => {
+  // Sans ces cas, une `normalize()` cassée — qui ferait tout mordre — aurait
+  // exactement la tête d'une garde qui marche.
+  for (
+    const message of [
+      "j'aime bien les pâtes",
+      // L'intention future désarme, sous ligature comme sous digramme.
+      "je vais manger des œufs demain",
+      // Le repas de quelqu'un d'autre reste celui de quelqu'un d'autre.
+      "ma fille a mangé des œufs ce matin",
+      // R7 — la ligature n'invente aucun aliment: « nœud » se déplie en
+      // « noeud », qui n'est dans aucune table. On ne rapproche jamais du plus
+      // proche, même quand « oeuf » est à une lettre de là.
+      "j'ai mangé un nœud papillon",
+    ]
+  ) {
+    assertEquals(refs(message), [], `ne doit PAS mordre: ${message}`);
+    assertEquals(
+      refs(message),
+      refs(digrapheRepas(message)),
+      `les deux graphies doivent s'accorder: ${message}`,
+    );
+  }
+});
+
+Deno.test("LIGATURE — BALAYAGE: tout digramme du code exécuté est classé et couvert", () => {
+  const trouves = [...digrammesDuRepasExecute().keys()].sort();
+
+  // ⛔ L'ASSERTION DE CARDINALITÉ, et elle n'est pas décorative: une boucle sur
+  // zéro cas est verte sans rien avoir prouvé.
+  const ligaturables = trouves.filter((t) => !(t in JAMAIS_LIGATURES_REPAS));
+  assert(
+    ligaturables.length >= 1,
+    "balayage vide — un balayage qui ne couvre rien n'est pas une preuve",
+  );
+  assertEquals(
+    ligaturables,
+    ["boeuf", "oeuf", "oeufs"],
+    "un digramme est apparu ou a disparu du code exécuté — le classer",
+  );
+
+  for (const token of ligaturables) {
+    const porteuse = PORTEUSES_REPAS[token];
+    assert(
+      porteuse,
+      `${token}: aucune porteuse déclarée — écrire son cas, pas le sauter`,
+    );
+
+    // ① LA PRÉMISSE: le digramme MORD. Sans ce contrôle, comparer deux `[]`
+    //    entre eux serait vert sans rien prouver.
+    const attendu = refs(porteuse);
+    assert(
+      attendu.length >= 1,
+      `${token}: prémisse cassée, ${porteuse} ne mord pas`,
+    );
+
+    // ② L'ÉQUIVALENCE DES DEUX GRAPHIES, qui est le critère du lot.
+    const lig = ligatureRepas(porteuse);
+    assert(lig !== porteuse, `${token}: aucune ligature à produire`);
+    assertEquals(
+      refs(lig),
+      attendu,
+      `${token}: les deux graphies doivent rendre le MÊME verdict`,
+    );
+  }
+});
+
+Deno.test("LIGATURE — le dépliage est À SENS UNIQUE: `moelleux` n'est pas `mœlleux`", () => {
+  // ⛔ CE TEST GARDE LE PIÈGE NOMMÉ DU LOT. Le lexique porte trois digrammes
+  // `oe`/`ae` que PERSONNE n'écrit avec une ligature — mesurés, pas supposés:
+  // « moelleux au chocolat », « tomatoes », « potatoes ». Une règle de dépôt
+  // qui se déclencherait sur le DIGRAMME les casserait tous les trois; le
+  // dépliage posé ici ne va QUE de la ligature vers le digramme, donc il ne les
+  // touche pas.
+  const declares = Object.keys(JAMAIS_LIGATURES_REPAS).sort();
+  assertEquals(declares, ["moelleux", "potatoes", "tomatoes"]);
+
+  for (const [token, porteuse] of Object.entries(JAMAIS_LIGATURES_REPAS)) {
+    assert(
+      porteuse.includes(token),
+      `${token}: la porteuse ne porte pas son jeton`,
+    );
+    assert(
+      refs(porteuse).length >= 1,
+      `${token}: le digramme a cessé de mordre — le dépliage l'a cassé`,
+    );
+  }
+});
+
+Deno.test("LIGATURE — æ est déplié par SYMÉTRIE, et n'a aucune cible aujourd'hui", () => {
+  // ⛔ CE TEST DIT UNE ABSENCE, et il faut le lire comme tel: le dépliage
+  // `æ → ae` de `meal_declaration_floor.ts` n'est exercé de bout en bout par
+  // AUCUN aliment — zéro littéral du code exécuté ne contient « ae ». Il est
+  // posé parce que les quatre modules frères le portent, et que deux
+  // normalisations qui divergent sont la facture que S1, S1c et S1d ont payée.
+  //
+  // Le jour où un littéral en « ae » entre dans une table, le BALAYAGE
+  // ci-dessus le prend automatiquement — et ce test-ci rougit pour prévenir que
+  // l'affirmation d'absence a cessé d'être vraie. Sans lui, un dépliage jamais
+  // exercé ressemble TRAIT POUR TRAIT à un dépliage qui marche.
+  const avecAe = [...digrammesDuRepasExecute().keys()]
+    .filter((t) => t.includes("ae"))
+    .sort();
+  assertEquals(
+    avecAe,
+    [],
+    "un littéral en « ae » est apparu — vérifier qu'il est couvert sous « æ »",
+  );
+});
