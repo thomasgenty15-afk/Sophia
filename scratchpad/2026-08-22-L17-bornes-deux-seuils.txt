@@ -1,0 +1,85 @@
+
+═══════════════════════════════════════════════════════════════════════════
+L17 — L'ABSTENTION SE PÈSE
+         2026-08-22T11:22:41.121Z · 182 plans · 923 lignes de référentiel
+         ⛔ SEUIL MUTÉ 0.0 %  →  SEUIL DE PRODUCTION 5.0 %  ·  MÊME instantané, MÊME passe
+═══════════════════════════════════════════════════════════════════════════
+
+── ① LES DEUX DÉNOMINATEURS — jamais l'un sans l'autre (§⑨ n° 50) ─────────
+     prompt VIVANT · solo  « meal.en.v18_one_box_per_group »
+     prompt VIVANT · foyer « meal.en.v18_one_box_per_group+household.v21_one_box_per_group »
+
+     population                          journées: MUTÉ 0 %  →  PROD 5 %          plats: MUTÉ → PROD
+     CORPUS ENTIER · foyer        plans  104 ·   94/ 332 = 28.3 % →   98/ 332 = 29.5 % ·  658 →  672 / 1099
+     CORPUS ENTIER · solo         plans   78 ·   43/ 318 = 13.5 % →   43/ 318 = 13.5 % ·   94 →   94 /  786
+     PROMPT VIVANT · foyer        plans    2 ·    0/  13 = 0.0 % →    0/  13 = 0.0 % ·   37 →   37 /   64
+     PROMPT VIVANT · solo         plans    0 ·    0/   0 =    n/a →    0/   0 =    n/a ·    0 →    0 /    0
+
+   LA POPULATION EXCLUE, nommée et comptée — millésimes non déployables:
+     180 plans sur 182 · 26 millésime(s)
+        35 × solo · «aucun prompt_version»
+        28 × foyer · meal.en.v15_the_plan_never_names_it+household.v17_what_each_mouth_already_has
+        17 × solo · meal.en.v3_preparations
+        12 × solo · meal.en.v2_batch
+        11 × foyer · meal.en.v14_what_outranks_what+household.v17_what_each_mouth_already_has
+         8 × foyer · «aucun prompt_version»
+         8 × foyer · meal.en.v9_cooking_shape+household.v5_unmerge
+         8 × foyer · meal.en.v9_cooking_shape+household.v6_voices
+         6 × foyer · meal.en.v8_distinct_health_direction+household.v2_presence
+         6 × foyer · meal.en.v9_cooking_shape+household.v9_merge_dedicated_per_meal
+         5 × foyer · meal.en.v9_cooking_shape+household.v8_plan_gaps
+         4 × foyer · meal.en.v12_a_dish_has_a_name+household.v16_this_kitchen_and_a_meal_out
+         4 × foyer · meal.en.v9_cooking_shape+household.v3_merge
+         4 × solo · meal.en.v1_doctrine
+         4 × solo · meal.en.v9_cooking_shape
+         3 × foyer · meal.en.v11_weighed_or_counted+household.v15_one_box_each_and_a_number
+         3 × foyer · meal.en.v13_what_they_can_actually_do+household.v17_what_each_mouth_already_has
+         3 × foyer · meal.en.v9_cooking_shape+household.v4_merge_budget
+         3 × solo · meal.en.v13_what_they_can_actually_do
+         2 × solo · meal.en.v12_a_dish_has_a_name
+         1 × foyer · meal.en.v10_same_day+household.v12_whose_dish_is_it
+         1 × foyer · meal.en.v11_weighed_or_counted+household.v14_weigh_once_into_boxes
+         1 × foyer · meal.en.v16_the_model_declares_the_group+household.v19_a_why_names_no_ones_rule
+         1 × foyer · meal.en.v9_cooking_shape+household.v11_dietary_regime_at_the_table
+         1 × foyer · meal.en.v9_cooking_shape+household.v7_merge_anchor
+         1 × solo · meal.en.v14_what_outranks_what
+
+── ② LA PART D'ÉNERGIE VENANT D'UNE BORNE DE GROUPE ───────────────────────
+   ⚠️ DIRECTION NÉGATIVE, ÉCRITE D'AVANCE: elle monte de 0 à quelque chose.
+      Comptée À PART, jamais fondue dans `model` — un point de rupture
+      ressemblerait à un fonctionnement.
+     CORPUS ENTIER                MUTÉ 0 kcal → PROD 8 kcal bornés sur 190902 kcal calculables = 0.0042 %
+     PROMPT VIVANT                MUTÉ 0 kcal → PROD 0 kcal bornés sur 0 kcal calculables =    n/a
+
+── ③ L'ENTRÉE DE LA BORNE — le groupe déclaré par le modèle ───────────────
+     lignes d'ingrédient 10038 · portant un `group` NON NUL 0 = 0.0 %
+     contre-lecture SQL: 10053 lignes · `ing ? 'group'` 0 ⛔ (NE MESURE RIEN: la clé est écrite même à null) · `ing->>'group' is not null` 0 ⇐ le seul prédicat vivant
+
+── ④ LES SEUILS ──────────────────────────────────────────────────────────
+     foyer  seuil ≥ 45 % sur le PROMPT VIVANT ⇒ ⛔ MANQUÉ — 0/13 = 0.0 % → 0/13 = 0.0 %
+            (CORPUS ENTIER, pour mémoire: 94/332 = 28.3 % → 98/332 = 29.5 %)
+     solo   seuil ≥ 30 % sur le PROMPT VIVANT ⇒ ⛔ EN ATTENTE DU RUN GROUPÉ
+            aucun plan solo sous le millésime vivant (0 plan(s), 0 journée(s)).
+            ⛔ NI ATTEINT NI MANQUÉ — un seuil déclaré sans sa mesure est le
+            mode d'échec n° 1 de ce dépôt.
+            pour mémoire, CORPUS ENTIER: 43/318 = 13.5 % → 43/318 = 13.5 %
+
+   # ⛔ AUCUN PLAN SOLO SOUS LE PROMPT VIVANT — le seuil solo est EN ATTENTE.
+   # La recette est celle de `V0-D`, la lane changée. Elle exige un compte
+   # élève avec un MOT DE PASSE (jamais un JWT forgé) et une ligne
+   # `student_goals` — sans elle la lane rend `goal_required` (409).
+   API_URL="$(grep -m1 '^SUPABASE_URL=' supabase/.env | cut -d= -f2- | tr -d '"')"
+   ANON="$(grep -m1 '^SUPABASE_ANON_KEY=' supabase/.env | cut -d= -f2- | tr -d '"')"
+   TOKEN="$(curl -s -X POST "$API_URL/auth/v1/token?grant_type=password" \
+       -H "apikey: $ANON" -H 'content-type: application/json' \
+       -d '{"email":"<ELEVE_SOLO>","password":"<MDP>"}' \
+       | python3 -c 'import sys,json; print(json.load(sys.stdin)["access_token"])')"
+   curl -s --max-time 900 -X POST "$API_URL/functions/v1/generate-meal-v1" \
+       -H "apikey: $ANON" -H "authorization: Bearer $TOKEN" \
+       -H 'content-type: application/json' \
+       -d '{"operation":"compose","window":{"kind":"days","count":7},"intent":"prepare_next","replaces":null,"context":null,"cooking_shape":null,"preferences":null}'
+   # puis, une fois les plans en base:
+   bash scripts/keel_l17_bornes_20260822.sh
+
+✅ CARDINALITÉ 9/9 — toutes les lignes attendues sont rendues.
+═══════════════════════════════════════════════════════════════════════════
