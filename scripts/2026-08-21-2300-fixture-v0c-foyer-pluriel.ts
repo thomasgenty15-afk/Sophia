@@ -287,7 +287,33 @@ const MOUTHS: FixtureMouth[] = [
     goal: "maintenance",
     targetWeightKg: null,
     paceKgPerWeek: null,
-    diet: null,
+    // ⑦ LE SECOND RÉGIME DÉCLARÉ — lot `V0-C-quater`, 2026-08-22.
+    //
+    // ⛔ SANS LUI, `regime_belt.mouths` NE PEUT VALOIR QUE 1, et le seuil ③ de
+    // `V0-D` est manqué quelle que soit la génération : `mouths` compte les
+    // bouches qui portent un régime DÉCLARÉ (`meal_generation.ts`,
+    // `mouthRegimes.size`), pas les bouches à table. Malo était le seul.
+    //
+    // ⚠️ POURQUOI YANIS, ET PAS CAMILLE. `keel_household_roster_for` ne lit
+    // `household_members.diet` que pour une bouche SANS COMPTE ; dès qu'il y a
+    // un compte, la source est `student_safety_constraints.diet_ref`. Camille
+    // est la seule bouche à compte : écrire cette colonne sur elle serait un
+    // NO-OP SILENCIEUX — et la RPC le REFUSE (`has_account`), exprès. Yanis est
+    // majeur, sans compte, et porte déjà l'allergie `medical` et l'absence
+    // partielle : le régime le rend divergent SANS ajouter une bouche.
+    // (Anouk est l'autre bouche sans compte — mineure ; on n'ajoute pas une
+    // restriction alimentaire à une enfant pour ouvrir un compteur.)
+    //
+    // ⚠️ POURQUOI `vegetarian`, ET NI UN SECOND `vegan` NI RIEN. `dietDiverges`
+    // rend `false` dès que `exclusionCount(own) >= exclusionCount(strictest)` :
+    // un second végane refermerait la divergence au lieu de l'ouvrir, et
+    // `omnivore` traverse `memberRegime` en `null` — il n'élève jamais
+    // `mouths`. `vegetarian` est le barreau non-égal le PLUS PROCHE de `vegan`
+    // dans l'emboîtement `pescatarian ⊂ vegetarian ⊂ vegan` : c'est le cas le
+    // plus dur pour le `>=`, et c'est celui que `index.ts` nomme lui-même
+    // (« un végétarien qui diverge d'une table végane est le cas qui sépare les
+    // deux lectures »).
+    diet: "vegetarian",
     allergies: [ALLERGY_LABEL],
     // ⑤ PARTIELLE, ET C'EST TOUT LE SUJET : des CRÉNEAUX nommés, jamais une
     // journée entière (une entrée sans `slots` vaut « toute la journée »). Les
@@ -306,7 +332,7 @@ const MOUTHS: FixtureMouth[] = [
       sportFrequency: "1_2",
       appetite: "large",
     },
-    why: "③ l'allergie `medical` · ⑤ l'absence partielle",
+    why: "③ l'allergie `medical` · ⑤ l'absence partielle · ⑦ le SECOND régime déclaré",
   },
 ];
 
@@ -814,6 +840,17 @@ async function verify(token: string, ref: string): Promise<void> {
     Record<string, unknown>
   >;
   const vegan = rows.filter((r) => r.diet === "vegan");
+  // ⑦ LES RÉGIMES DÉCLARÉS — lot `V0-C-quater`.
+  //
+  // ⚠️ `omnivore` N'EN EST PAS UN, ET C'EST TOUTE LA MESURE. `memberRegime` le
+  // rend `null` : une bouche `omnivore` n'entre PAS dans `mouthRegimes`, donc
+  // elle n'élève PAS `regime_belt.mouths`. Compter la colonne non vide au lieu
+  // des trois jetons restrictifs rendrait un contrôle vert sur une fixture qui
+  // laisse le compteur à 1 — exactement le zéro que ce dépôt paie en boucle.
+  const declared = rows.filter((r) =>
+    r.diet === "vegan" || r.diet === "vegetarian" || r.diet === "pescatarian"
+  );
+  const distinctRegimes = new Set(declared.map((r) => r.diet));
   const minors = rows.filter((r) => r.age_state === "minor");
   const fatLoss = rows.filter((r) => r.goal === "fat_loss");
   const muscle = rows.filter((r) => r.goal === "muscle_gain");
@@ -866,6 +903,13 @@ async function verify(token: string, ref: string): Promise<void> {
       false,
     ],
     [surfaceFormsFor(ref).length > 0, `précision 1 — surfaceFormsFor('${ref}') non vide`, false],
+    [
+      declared.length >= 2 && distinctRegimes.size >= 2,
+      `⑦ DEUX régimes déclarés, et pas deux fois le même (${
+        declared.map((r) => `${r.first_name}:${r.diet}`).join(", ") || "aucun"
+      })`,
+      false,
+    ],
   ];
 
   console.log("\n── les six conditions, relues en base ─────────────────────");
