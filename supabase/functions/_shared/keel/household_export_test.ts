@@ -52,6 +52,26 @@ async function exportSource(): Promise<string> {
  * ligne: la moitié des utilisateurs recevrait alors un README qui ne nomme pas
  * le fichier où survit sa date de naissance.
  */
+/**
+ * ⟳ 2026-08-22 (`S5`) — L'ALLOWLIST DE COLONNES A DÉMÉNAGÉ, ET CES DEUX CAS
+ * L'ONT DIT EN ROUGISSANT.
+ *
+ * Elle vivait dans `index.ts`; elle vit maintenant dans un module importable,
+ * parce qu'`index.ts` est en `@ts-nocheck` et monte un serveur au premier
+ * import — donc aucun test ne pouvait la LIRE autrement qu'en la parsant. Le
+ * filet qui ÉNUMÈRE les colonnes (`keel_gdpr_lifecycle_test.ts`) avait besoin
+ * de l'importer, et il a mesuré 145 colonnes hors allowlist le jour où il a
+ * pu le faire.
+ *
+ * ⚠️ Les deux cas ci-dessous lisaient `index.ts` et ont échoué au déménagement.
+ * C'est la preuve qu'ils lisent bien la source qui décide, et pas une copie.
+ */
+async function exportScopeSource(): Promise<string> {
+  return await Deno.readTextFile(
+    new URL("account-export-v1/export_scope.ts", FUNCTIONS_DIR),
+  );
+}
+
 async function exportReadmeSource(): Promise<string> {
   return await Deno.readTextFile(
     new URL("account-export-v1/export_copy.ts", FUNCTIONS_DIR),
@@ -85,7 +105,7 @@ Deno.test("C3 ③ — `household_members` EST DANS L'EXPORT, scopée à SA ligne
 });
 
 Deno.test("C3 ③ — LES DEUX CHAMPS QUI SURVIVENT SONT DANS L'ALLOWLIST", async () => {
-  const src = await exportSource();
+  const src = await exportScopeSource();
   const at = src.indexOf("householdMembers:");
   assert(at >= 0, "l'allowlist de colonnes a disparu");
   const scope = src.slice(at, at + 300);
@@ -206,9 +226,10 @@ Deno.test("RGPD — `household_member_bodies` EST DANS L'EXPORT", async () => {
     "la table qui porte taille, poids et sexe — mineurs compris — n'est " +
       "exportée nulle part. C'est le trou n°10, aggravé.",
   );
-  const at = src.indexOf("householdMemberBody:");
+  const scopeSrc = await exportScopeSource();
+  const at = scopeSrc.indexOf("householdMemberBody:");
   assert(at >= 0, "l'allowlist de colonnes du corps a disparu");
-  const scope = src.slice(at, at + 200);
+  const scope = scopeSrc.slice(at, at + 400);
   for (const column of ["height_cm", "weight_kg", "gender"]) {
     assert(
       scope.includes(column),
