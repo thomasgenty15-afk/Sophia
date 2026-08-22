@@ -117,7 +117,28 @@ export function ingredientGroupPayload(
  */
 export function persistedGroupOf(row: unknown): FoodGroupRef | null {
   if (!row || typeof row !== "object") return null;
-  const raw = (row as Record<string, unknown>)[INGREDIENT_GROUP_KEY];
+  return closedGroupOrNull((row as Record<string, unknown>)[INGREDIENT_GROUP_KEY]);
+}
+
+/**
+ * LE VOCABULAIRE FERMÉ, LU SUR UNE VALEUR SCALAIRE. NE LÈVE JAMAIS.
+ *
+ * ⛔ EXTRAIT DE `persistedGroupOf` PAR `L4`, ET C'EST TOUT L'INTÉRÊT. Un second
+ * champ du produit porte désormais un groupe déclaré — celui d'un APPORT FIXE
+ * (`fixed_intakes.ts`), déclaré par une PERSONNE et non par le modèle. Lui
+ * écrire son propre lecteur aurait créé une seconde vérité sur le même
+ * vocabulaire: deux `try/catch` autour de `parseFoodGroupRef`, qui divergent au
+ * premier ajustement (un `trim` d'un côté, un `toLowerCase` de l'autre) et dont
+ * l'écart ne se voit que dans une assiette.
+ *
+ * ⚠️ LA CLÉ N'EST PAS LA MÊME DES DEUX CÔTÉS, ET C'EST VOULU. L'ingrédient
+ * porte `group` (`INGREDIENT_GROUP_KEY`, l'en-tête dit pourquoi); l'apport fixe
+ * porte `food_group`, comme le reste de son jsonb en snake_case complet
+ * (`food_ref`, `serving_grams`, `protein_g_per_serving`). Ce qui doit être
+ * partagé est le VOCABULAIRE, pas le nom de la clé — les fondre aurait obligé
+ * l'un des deux jsonb à mentir sur sa propre convention.
+ */
+export function closedGroupOrNull(raw: unknown): FoodGroupRef | null {
   if (typeof raw !== "string" || raw.trim() === "") return null;
   try {
     return parseFoodGroupRef(raw.trim());

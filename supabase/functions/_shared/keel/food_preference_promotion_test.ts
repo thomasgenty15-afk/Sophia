@@ -1614,11 +1614,44 @@ Deno.test("B8 — TOUTE CLÉ DE `practical_constraints` EST CLASSÉE, servie ou 
     "retained_items",
     "retained_next_plan",
   ];
-  // ⚠️ LA SOUPAPE, ET ELLE EST VIDE AUJOURD'HUI. Un `…_KEY` capté par le scan
-  // qui ne désigne PAS une clé de `practical_constraints` se range ici, avec son
-  // motif. La remplir pour faire taire une vraie clé de la colonne serait
-  // exactement le geste que ce test existe pour rendre visible.
-  const NOT_A_CONSTRAINT_KEY: string[] = [];
+  // ⚠️ LA SOUPAPE. Un `…_KEY` capté par le scan qui ne désigne PAS une clé de
+  // `practical_constraints` se range ici, AVEC SON MOTIF. La remplir pour faire
+  // taire une vraie clé de la colonne serait exactement le geste que ce test
+  // existe pour rendre visible.
+  const NOT_A_CONSTRAINT_KEY: string[] = [
+    // ⟳ `L4`, 2026-08-22 — PREMIÈRE ENTRÉE DE CETTE SOUPAPE, et elle mérite
+    // d'être lue avant la prochaine.
+    //
+    // `food_group` (`declared_food_group.ts`, `DECLARED_INTAKE_GROUP_KEY`)
+    // n'est PAS une clé de `practical_constraints`: c'est une clé d'une ENTRÉE
+    // de `practical_constraints.fixed_intakes[]`, à côté de `food_ref`,
+    // `serving_grams` et `protein_g_per_serving`. Elle est capturée parce que
+    // le scan est textuel — il retient tout `export const …_KEY = "…"` d'un
+    // fichier qui nomme `practical_constraints`, et l'en-tête de
+    // `declared_food_group.ts` le nomme pour dire OÙ vit la déclaration.
+    //
+    // ⛔ ET LA QUESTION QUE POSE CE TEST A QUAND MÊME UNE RÉPONSE, parce qu'elle
+    // est la bonne question. VÉRIFIÉ, PAS SUPPOSÉ, le 2026-08-22:
+    //
+    //   ① `fixedIntakePromptLines` (`fixed_intakes.ts:658`) est le SEUL chemin
+    //      par lequel un apport fixe atteint une consigne, et il n'imprime que
+    //      `label`, `amount`, `unit`, le moment et les jours. Le jsonb brut n'y
+    //      passe pas, donc `food_group` non plus.
+    //   ② `constraintsForPrompt` **n'a plus aucun appelant vivant** — deux
+    //      mentions en commentaire, sa propre définition, et des tests. Le seul
+    //      appelant qui sérialisait `practical_constraints` EN ENTIER était
+    //      `generate-week-plan-v1` (dit par `meal_generation.ts:3106`), retiré
+    //      le 2026-08-19.
+    //
+    // Le groupe déclaré n'existe donc que pour le CALCUL (`augmentedIndexFor`
+    // → bande de groupe, porteurs de sentinelle). Et il ne DOIT pas être servi:
+    // nommer au modèle le groupe d'un aliment déjà mangé l'inviterait à
+    // composer autour, alors que la consigne lui dit l'inverse.
+    //
+    // ⚠️ Le jour où une clé d'une entrée de `fixed_intakes` DOIT partir au
+    // modèle, elle passe par `fixedIntakePromptLines`, pas par cette soupape.
+    "food_group",
+  ];
 
   const found = await constraintKeysOnDisk();
   const literals = [...new Set(found.map((f) => f.literal))].sort();

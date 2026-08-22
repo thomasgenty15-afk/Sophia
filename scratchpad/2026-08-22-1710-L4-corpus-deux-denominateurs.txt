@@ -1,0 +1,13 @@
+=== LES DEUX DENOMINATEURS, ET LA POPULATION QUE CE LOT TOUCHE ===
+ plans_total | den_restreint_prompt_vivant | population_exclue | plans_d_un_porteur | plans_d_un_porteur_sous_prompt_vivant 
+-------------+-----------------------------+-------------------+--------------------+---------------------------------------
+         193 |                          13 |               180 |                 19 |                                     0
+(1 row)
+
+
+=== COMPTEUR A DEUX POPULATIONS, sur les apports DECLARES reellement en base ===
+ declared | declares_group | valid 
+----------+----------------+-------
+        7 |              0 |     0
+(1 row)
+
