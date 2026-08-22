@@ -37,6 +37,10 @@ function ref(over: Partial<CompositionRef> & { slug: string }): CompositionRef {
   return {
     foodGroupRef: "non_starchy_veg",
     label: over.slug,
+    // LOT 18 — la provenance par défaut d'un décor de test est le référentiel
+    // HUMAIN: c'est ce que ces cas décrivent. Un défaut à `model` ferait lire
+    // « le modèle a rempli » à toute la suite existante.
+    source: "ciqual",
     energyKcal: 100,
     proteinG: 2,
     carbsG: 10,
@@ -53,6 +57,7 @@ function ref(over: Partial<CompositionRef> & { slug: string }): CompositionRef {
     atwaterDiscount: 1,
     energyDense: false,
     unitGrams: null,
+    condimentGrams: null,
     ...over,
   } as CompositionRef;
 }
@@ -113,6 +118,11 @@ Deno.test("FF-059 — un plat pesé rend SON chiffre, calculé à la main", () =
     complete: true,
     gaps: [],
     unreadableTerms: [],
+    // ⟳ L17 — LES TROIS TERMES SONT AU RÉFÉRENTIEL: aucune borne n'entre dans
+    // ce 535. Cette assertion exhaustive est ce qui interdirait qu'une borne
+    // s'y glisse un jour sans se nommer.
+    boundedKcal: 0,
+    boundedTerms: [],
   });
 });
 
@@ -341,6 +351,11 @@ Deno.test("FF-059 — la journée porte SA somme, plat par plat", () => {
       mealsOut: 0,
       subject: "the_day",
       addonKcal: 0,
+      // ⟳ L17 — `0` EST LE CAS NOMINAL, ET C'EST LA MOITIÉ UTILE DE CE CHAMP:
+      // ces journées se calculent entièrement sur le référentiel, aucune borne
+      // de groupe n'y entre. Une assertion exhaustive est ce qui empêche qu'un
+      // jour un total porte une convention sans que personne ne le voie.
+      boundedKcal: 0,
     },
     {
       day: "tue",
@@ -352,6 +367,11 @@ Deno.test("FF-059 — la journée porte SA somme, plat par plat", () => {
       mealsOut: 0,
       subject: "the_day",
       addonKcal: 0,
+      // ⟳ L17 — `0` EST LE CAS NOMINAL, ET C'EST LA MOITIÉ UTILE DE CE CHAMP:
+      // ces journées se calculent entièrement sur le référentiel, aucune borne
+      // de groupe n'y entre. Une assertion exhaustive est ce qui empêche qu'un
+      // jour un total porte une convention sans que personne ne le voie.
+      boundedKcal: 0,
     },
   ]);
 });
@@ -514,6 +534,10 @@ Deno.test("FF-059 — AUCUN add-on est un RÉSULTAT (0), pas une abstention", ()
     complete: true,
     gaps: [],
     unreadableTerms: [],
+    // ⟳ L17 — un add-on n'est jamais borné: ses `food_ref` viennent du
+    // référentiel, pas d'un texte de modèle.
+    boundedKcal: 0,
+    boundedTerms: [],
   });
 });
 

@@ -46,10 +46,11 @@
  * PURE MODULE: no I/O, no clock, no randomness.
  */
 
-import type { CompositionIndex, CompositionInput } from "./food_composition.ts";
+import type { CompositionIndex } from "./food_composition.ts";
 import {
   type DishEnergy,
   dishEnergy,
+  type EnergyIngredient,
   type EnergyPreparation,
   PLAN_ENERGY_BASIS,
   type PlanEnergyBasis,
@@ -117,7 +118,17 @@ export interface MouthEnergyDish {
    */
   slot: string | null;
   method: string;
-  ingredients: readonly CompositionInput[];
+  /**
+   * ⟳ L17 — `EnergyIngredient` ET PAS `CompositionInput`, et ce n'est pas
+   * cosmétique. La lane foyer passe ici les objets d'ingrédient SORTIS DU
+   * PARSEUR (`meal.dishes[].ingredients`), qui portent déjà la clé `group`
+   * déclarée par le modèle. Avec le type étroit, ce champ traversait quand même
+   * — les propriétés en trop survivent à l'affectation — mais **en silence**:
+   * le jour où quelqu'un recopie ces objets champ par champ, la borne de groupe
+   * meurt sans qu'aucun compilateur ne le dise. C'est très exactement ce que
+   * `ingredientPayload()` a fait pendant trois générations.
+   */
+  ingredients: readonly EnergyIngredient[];
   uses: readonly { preparationId: string; servings: number }[];
   /**
    * LES CONTENANTS DE CE PLAT. `[]` = rien n'a été pesé d'avance pour lui.
