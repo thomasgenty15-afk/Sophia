@@ -39,6 +39,7 @@ import {
   PER_PORTION_PROTEIN_G,
 } from "./meal_verdict.ts";
 import { FILL_REQUEST_CAP } from "./composition_fill.ts";
+import { PROTEIN_REFERENCE_CEILING_KG_PER_M2 } from "./protein_reference_weight.ts";
 import {
   ANCHOR_FACTOR_MAX,
   ANCHOR_FACTOR_MIN,
@@ -148,4 +149,12 @@ Deno.test("épinglage — SLOT_DAY_WEIGHT, l'objet ENTIER", () => {
     lunch: 0.40,
     dinner: 0.35,
   });
+});
+
+// ── LE POIDS DE RÉFÉRENCE PROTÉIQUE (`protein_reference_weight.ts`) ──────────
+// Posée par `L1`. Elle ne se rend à personne et ne nomme aucune catégorie de
+// corps: la baisser retire de la protéine à quelqu'un, la monter désarme le
+// lot. Dans les deux cas, une seule ligne rougit.
+Deno.test("épinglage — PROTEIN_REFERENCE_CEILING_KG_PER_M2 vaut 30", () => {
+  assertEquals(PROTEIN_REFERENCE_CEILING_KG_PER_M2, 30);
 });
