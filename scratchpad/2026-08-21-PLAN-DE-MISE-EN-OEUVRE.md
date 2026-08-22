@@ -1839,6 +1839,80 @@ que la vague D existe pour empêcher, à l'envers**.
 | **risque** | ⟳ ⛔ **MESURÉ PAR SONDE — ET LA CONSÉQUENCE POUR `L6′` EST L'INVERSE DE CELLE QU'ANNONÇAIT CETTE FICHE.** Les trois faits sont vrais : un `.int.test.tsx` rend **« No test files found »** · `typeof document` = **`undefined`** · `jsdom`, `happy-dom`, `@testing-library/*` sont **tous ABSENTS**. ⛔ **MAIS `L6′` n'est PAS bloqué** : **22 fichiers montent déjà des composants** via `renderToStaticMarkup` *(61 occurrences)*, **`BoxTable` n'a AUCUN portail**, et il est **DÉJÀ monté** par `mealBoxes.int.test.ts`. **Le chemin de `L6′` existe.** ⛔ **Ce qui reste réellement impossible, c'est un composant à PORTAIL** — et le code le documentait **déjà** ⇒ fiche **`H4`**. ⚠️ **Second risque, celui-là est à lui** : `tsconfig.test.json` est **volontairement NON référencé** depuis `tsconfig.json` — **quiconque le « range » dans les `references` casse les commits de tout le dépôt** |
 | ⟳ **ce que le lot a RÉVÉLÉ** | ⛔ **① Le seuil de la fiche était PÉRIMÉ DE 2,7×** — « 44/44 · 673 tests » contre **112/112 · 1 788**. `S6` l'avait déjà mesuré, **et le plan ne l'avait pas suivi**. ⛔ **② La clé dupliquée n'est PAS « passée à travers » l'histoire — elle n'a JAMAIS été regardée.** `git show HEAD:` n'en porte aucune ; les six vivent dans la part non commitée d'un voisin. **Le verbe change le défaut**, et le second est pire. ⛔ **③ Un gate qui « rapporte sans bloquer » NE PEUT PAS ÊTRE ARMÉ** — c'est la voie B littérale, et elle aurait livré **la garde muette que ce dépôt collectionne**. ⛔ **④ Un glob de test dans un commentaire de bloc JSON REFERME le commentaire** — **10 erreurs de syntaxe** qui ressemblaient trait pour trait à des erreurs de code. ⚠️ **⑤ Le disque est à 297 Mio** : un `git worktree add` de HEAD a **échoué en cours de route** |
 
+### ⟳ CLÔTURE DE LA VAGUE 1 — **2026-08-22**
+
+> §⑦ : *« Une vague n'est PAS close sans ces trois choses. »*
+
+#### ① La sortie datée de `V0-E′`, archivée côte à côte
+`scratchpad/2026-08-22-0500-V0E-tableau-de-bord-FIN-VAGUE-1.txt`, à comparer à celle de la vague 0.
+
+```
+                       fin vague 0 (23:56)      fin vague 1 (05:00)
+#1  boîtes             1 / 181                  clé 2 · NON VIDE 1 / 182   ⛔ le 2e plan a la CLÉ et un tableau VIDE
+#3  résolu+pesé        foyer 93,6 % solo 36,4 %  foyer 93,5 % solo 36,4 %
+#4  plats              1 857                     1 885   (unknown_ingredient 458 → 473)
+#5  inconnus/plan      1 / 181                   2 / 182 · la vue rend 1 ligne
+#6  activité           5 / 24 / 18 sur 47        inchangé
+#7  ceinture > 1 bouche   0 / 14                 ⬆️ **1 / 15**   ← LE CHIFFRE DE LA VAGUE
+#8  portion_note gramme  181 / 344               181 / 348   ⬇️ et c'est une RÉUSSITE (`V0-E′-ter`)
+#9  contraintes        6 non couvertes / 58      6 / **59** — et ⛔ **les 6 sont désormais COUVERTES par `S2`**
+#10 sans birth_date    25 / 92 · 1 193 / 1 313   25 / 92 · 1 213 / 1 333
+```
+
+#### ② La vérification en conditions réelles — **ce qui est prouvé, et ce qui ne l'est pas**
+
+**Prouvé sur des DONNÉES RÉELLES, sans dépenser une génération :**
+
+| critère de la vague | preuve |
+|---|---|
+| une intolérance `strict` fait refuser, un `preference` **ne fait rien** | ✅ compteur `belt` sur les **58 lignes actives** : `strict bit 0 → 6`, `preference bit 0`, **muettes `[]`** |
+| un plan **sans contrainte** sort **byte-identique** | ✅ **128 → 128 octets**, `reason "clean"` |
+| une bouche enceinte **ne reçoit aucune boîte pesée** | ✅ `noSizing("pregnancy")`, **facteur 1 exact**, ancre `null` — et un autre `condition_ref` **byte-identique JUSQU'AUX GRAMMES** |
+| plat dédié + allergie médicale ⇒ **bloc de non-partage** | ✅ `emitted 25 / 95` sur le corpus, **cardinalité 95/95**, fixture ⇒ `emitted` |
+| les **29 violations** de conservation tombent à **0** avec un `within` non nul | ✅ `{violations 102, within 1 179, not_evaluated 83}`, **0 violation résiduelle après refus, 0 plan vidé** |
+| l'export contient les allergies du foyer, la purge décide | ✅ **archive RÉELLE** : 2 libellés du maître, **0 de l'autre bouche** ; purge « je pars » **0 ligne**, « détachement » **1** |
+| **`anon` n'écrit plus** | ✅ **0 / 56**, `TRUNCATE` compris, **bout en bout par PostgREST avec la vraie clé anon** : `PATCH` → **401** |
+| une allergie **avec ligature** écrit une ligne | ✅ **12/12** sous Deno, et **4/4** sur le plancher clinique |
+| ⟳ **la ceinture voit plus d'une bouche** | ✅ **`mouths` 1 → 2**, compteur #7 **0/14 → 1/15** — *première fois du dépôt* |
+
+⛔ **Ce qui N'EST PAS prouvé en conditions réelles, et qui doit être écrit :**
+- **`S3`** — *« un mineur reçoit un plan SANS CHIFFRE »* : prouvé **par test** depuis `energy_gate.ts`, sur les **1 313 lignes réelles** *(le chiffre passe de 1 296 à 103 sorties)*, **jamais par un run**.
+- ⛔ **Le seuil ③ est tenu À VIDE** : `checked = 0`, parce que le plan neuf **ne porte aucune boîte**. *(`V0-C-quater-a`)*
+- ⛔ **Et la ceinture n'a toujours JAMAIS MORDU** : `refused`, `bites`, `separated` restent à **0** — non par sommeil, mais parce que **`dietDiverges` est gaté par l'OBJECTIF, pas par le régime**. **La fin de vague 5 est hors d'atteinte de cette fixture.**
+
+#### ③ Ce que la vague a RÉVÉLÉ
+
+| | |
+|---|---|
+| ⛔ **Le seul filet RGPD du dépôt était INEXÉCUTABLE depuis le 2026-08-03** | et rien ne le disait. Une liste à la main se périme de **trois** façons ; la troisième — *la table existe, sa colonne de propriétaire non* — n'est attrapée par aucune des deux autres. **Il ne rougissait pas : il ne PARTAIT pas** |
+| ⛔ **Le plancher de maladie n'a JAMAIS mordu en réel** | **0 jeton sur 358 messages archivés**. La garde dont l'en-tête dit qu'elle est *« le seul défaut qui peut blesser quelqu'un »* n'a **aucune trace d'exécution** |
+| ⛔ **Le vrai coût de `S2` n'était pas le taux de refus** | une morsure **VIDE le plan**, et le prompt disait au modèle que **seul `medical`** fait ça. Élargir sans corriger, c'était rouvrir **le trou qui a déjà détruit une semaine entière** |
+| ⛔ **`S4` ne fermait pas une brèche : il POSAIT la garde, sur quatre surfaces** | quatre ordres, **quatre `ok:true`**, dont une cible de 40 kg à 0,5 kg/sem **sur une enfant de 15 ans** |
+| ⛔ **Le trou de `C1` avait déjà 25 plans dedans** | et **c'est le moteur qui ordonne la cuisine partagée** : *« same cooking session, same shopping, different plate »* |
+| ⛔ **`TRUNCATE` déborde les 8 tables : 55 sur 126** | dont `internal_admins`, dont la seule policy est en `SELECT` — **l'écriture est retenue par la RLS, le `TRUNCATE` par rien** |
+| ⛔ **Une ligature échappe à la RÉDACTION de la mémoire** | et, dans la lane de crise, quelqu'un qui parlait de sa sœur était lu **comme étant lui-même en crise** |
+| ⛔ **LES BOÎTES SONT UN TIRAGE** | à prompt **identique** : `boxes` **38 → 0**. **Le seuil ② de `V0-D` ne se reproduit pas**, et `mouths_unboxed: 0` est un **faux zéro** |
+| ⛔ **Chaque run réel AMPUTE le plan de la vague précédente** | `3c781a71` : **7 j → 1 j** |
+| ⚠️ **Cinq gardes auraient passé VERTES sur leur propre cas** | et **aucune** n'a été trouvée par une relecture — **toutes par une mutation**. C'est le seul instrument auquel cette campagne fait encore confiance |
+| ⚠️ **Un gate qui « rapporte sans bloquer » ne peut pas être ARMÉ** | la voie B littérale aurait livré **une garde muette de plus** |
+
+#### ④ Le dépensé réel — **c'est lui qui ouvre le plafond suivant**
+
+| | plafond | **dépensé réel** |
+|---|---:|---:|
+| vague 0 | 3 | **1** génération · 26 906 tokens |
+| **vague 1** | 9 | ⛔ **1 génération** · **20 976 tokens** *(+ 634 de secours, hors plafond)* |
+
+⇒ **2 générations pour 15 lots.** Les gardes se prouvent **sur les données déjà en base** ; le plafond ne sert qu'aux seuils **qui ne se lisent pas dans le code**.
+
+#### ⑤ Ce qui reste ouvert en sortant
+
+- ⛔ **`L24′` — PORTE P0**, la qualification juridique. **Hors délégation.**
+- ⛔ **Quatre lots bloqués par le mur des fichiers non commitables** : `V0-A-bis`, `S3-a` *(16 escalades servent un fait faux)*, `S1b-c` *(un 500 avec une phrase d'ingénieur anglaise)*, `S2` *(livré, mais **rien n'est commitable**)*.
+- ⛔ **`S6-a`** — une **policy** n'est pas réversible par un `grant` : **hors du critère de délégation**.
+- **19 fiches neuves** ouvertes par la vague : `S1c`, `S1d`, `S1e`, `X2′`, `S1b-bis`, `S1b-c`, `S3-a`, `S4-a`, `S4-b`, `S4-c`, `S4-d`, `S5-a`, `S5-b`, `S6-a`, `S6-b`, `S6-c`, `C1-a`, `L0-a-bis`, `L0bis-a`, `L0bis-b`, `L0bis-c`, `L35-a-bis`, `L35-a-ter`, `H3`, `H4`, `L6′-b`, `V0-C-quater-a`, `V0-C-quinquies`.
+
+
 ### Fin de vague 1 — vérification en conditions réelles
 
 Sur la fixture : une allergie **avec ligature** écrit une ligne · une intolérance
