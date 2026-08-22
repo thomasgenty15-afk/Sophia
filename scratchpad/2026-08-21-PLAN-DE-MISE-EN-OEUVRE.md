@@ -1539,6 +1539,26 @@ que la vague D existe pour empêcher, à l'envers**.
 | **risque** | ⚠️ Consigne **non vérifiable** — ⟳ **et elle le DIT, deux fois.** Au modèle, dernière ligne du bloc : *« Nothing further down this pipeline can check a washed pan — that written step is the only part of this rule that reaches the person cooking. »* *(constante épinglée : la couper rougit)*. Au lecteur du dépôt : *« `emitted` compte que la PHRASE EST PARTIE, jamais qu'un couteau a été rincé. Un lecteur qui verrait 12 et en conclurait “douze repas séparés” lirait ce compteur à l'envers. »* |
 | ⟳ **ce que le lot a RÉVÉLÉ** | ⛔ **① LE TROU AVAIT DÉJÀ 25 PLANS DEDANS** — 25 plans foyer sur 95 remplissent **les deux** prémisses et ont été composés **sans qu'aucune règle existe nulle part**. Ce n'est pas un risque théorique, c'est **un arriéré mesuré**. ⛔ **② La prémisse discriminante n'est PAS le médical, c'est le plat dédié** : **48 plans tracés sur 53 (90,6 %)** portent déjà une contrainte médicale, contre **29/53** pour le plat dédié. **Lire `emitted 25/95` comme « la règle est rare » est faux.** ⛔ **③ C'est le MOTEUR qui ORDONNE la cuisine partagée** : `dedicatedDishBlock` dit mot pour mot *« same cooking session, same shopping, different plate »* — **et « different plate » ne suffit pas** pour une contrainte médicale. Le bloc devait se poser **contre ce texte-là**. ⚠️ **④ Deux blocs auraient pu S'ANNULER** : celui des contraintes dures dit *« ONE MOUTH'S HARD CONSTRAINT GOVERNS EVERYTHING »*, d'où un lecteur conclut que la seconde poêle est inutile. Le partage est écrit : **le premier tient l'INGRÉDIENT, celui-ci tient l'ÉQUIPEMENT**. ⛔ **⑤ Une contrainte médicale NON ATTRIBUÉE aurait désarmé le bloc pour la bouche SANS COMPTE** — cas nominal de `household_member_allergies`, et **la population qui ne peut pas se redéclarer**. D'où le second champ requis |
 
+## ⟳ C1-a — la séparation demandée n'est DÉCLARÉE nulle part *(fiche NEUVE, ouverte par `C1`)*
+
+> C'est la moitié que `C1` a **délibérément** laissée ouverte — sa propre fiche l'appelait *« un chantier »*.
+
+| | |
+|---|---|
+| **quoi** | Le plan **dit** que le plat protégé a été fait en premier, sur du matériel propre — et le moteur **compte** s'il l'a dit. |
+| **pourquoi** | ⛔ **La dernière ligne du bloc `C1` RÉCLAME une trace écrite** — *« the steps of the dish X eats say, in the plan's own language, that it is made first and on clean equipment »* — **et rien ne compte si elle est apparue.** C'est la forme *« ceinture armée sur un coffre vide »* : la consigne demande un geste observable, **l'observation n'existe pas**. ⚠️ Le compteur de `C1` **ne couvre pas ça** : `emitted` dit *« on l'a demandé »*, jamais *« il l'a écrit »*. ⛔ **Et la population est déjà là : 25 plans sur 95.** |
+| **dépend de** | `C1` *(livré)* |
+| **bloque** | rien — **mais c'est la seule moitié de `C1` qui puisse un jour MORDRE** |
+| **fichiers** | `_shared/keel/cross_contact.ts` *(la moitié schéma)* · `meal_generation.ts` *(le parseur qui valide)* · `generate-household-meal-v1/index.ts` *(le compteur)* |
+| **migration** | non |
+| **mesure AVANT** | **0** — aucun champ, aucun compteur, aucun lecteur |
+| **direction** | ⛔ **LE PATRON QUI MARCHE EST DÉJÀ DANS CE FICHIER** : `for_member_id` / `why_rule_of` / `same_day`. Une clé que le modèle **DÉCLARE**, validée contre une **liste fermée** *(les `dish_id` concernés)*, avec **la clé de schéma et sa promesse ADJACENTES** — la cicatrice qui rend **0 %** quand on l'oublie. ⛔ **ET SURTOUT PAS UN MATCHER** sur la prose : chercher « clean », « first », « propre » dans un texte rendu en trois langues avec ou sans négation est le geste qui a coûté **12 faux positifs sur 12** |
+| **mesure APRÈS** | compteur `cross_contact_written{asked, declared, refused}` — ⛔ **trois nombres, jamais deux** : `{asked: 0}` veut dire que le bloc n'est pas sorti ; `{asked: 12, declared: 0}` veut dire **qu'on a demandé et que rien n'a été déclaré** — le résultat qu'on veut voir, **et pas du tout la même chose**. **Seuil : `asked` non nul sur la fixture, `declared`/`refused` séparés** |
+| **armé par** | ⛔ un cas qui **MORD** *(deux prémisses remplies, rien de déclaré → `refused` non nul)* **et un cas qui PASSE** *(pas de plat dédié → `asked = 0`)*. ⚠️ **`L26-0` est l'avertissement** : le modèle a violé une interdiction **déjà servie**, 12 fois sur 12. Un champ déclaré ne garantit pas la poêle non plus — **il garantit seulement qu'on saura** |
+| **coût** | **un lot** |
+| **risque** | ⛔ **Ce lot ne doit PAS être vendu comme « la contamination croisée est vérifiée ».** Il vérifie qu'une **phrase** a été écrite. On ne prouve toujours pas depuis un JSON qu'une poêle a été lavée, **et le jour où un compteur `declared: 12` apparaîtra, c'est cette phrase-là qu'il faudra relire** |
+
+
 ## ⟳ L0-a — la conservation : ce qui ne dépend PAS de la porte G3  ✅ **LIVRÉ le 2026-08-22, 2 seuils sur 3** *(commit `af896e4a`)*
 
 | | |
