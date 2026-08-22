@@ -1,0 +1,45 @@
+S4 — DIFF DE COMPORTEMENT DES QUATRE RPC (commentaires retirés)
+prosrc AVANT (2026-08-22 03:52 CEST) vs APRÈS la migration 20260822041500
+
+===== keel_household_add_member =====
+29a30,33
+>   if p_goal in ('fat_loss', 'muscle_gain')
+>      and public.keel_age_state(p_birth_date) = 'minor' then
+>     return jsonb_build_object('ok', false, 'reason', 'goal_not_for_minor');
+>   end if;
+
+===== keel_household_set_member_goal =====
+19c19
+<   select hm.member_id, hm.user_id into v_target
+---
+>   select hm.member_id, hm.user_id, hm.birth_date into v_target
+29a30,33
+>   end if;
+>   if p_goal in ('fat_loss', 'muscle_gain')
+>      and public.keel_age_state(v_target.birth_date) = 'minor' then
+>     return jsonb_build_object('ok', false, 'reason', 'goal_not_for_minor');
+
+===== keel_household_set_member_birth_date =====
+19c19
+<   select hm.member_id, hm.user_id into v_target
+---
+>   select hm.member_id, hm.user_id, hm.goal into v_target
+26a27,30
+>   end if;
+>   if public.keel_age_state(p_birth_date) = 'minor'
+>      and v_target.goal in ('fat_loss', 'muscle_gain') then
+>     return jsonb_build_object('ok', false, 'reason', 'goal_not_for_minor');
+
+===== keel_household_set_member_target =====
+6a7
+>   v_birth date;
+20c21,22
+<   select hm.member_id, hm.goal into v_target_member, v_goal
+---
+>   select hm.member_id, hm.goal, hm.birth_date
+>     into v_target_member, v_goal, v_birth
+29a32,34
+>     if public.keel_age_state(v_birth) = 'minor' then
+>       return jsonb_build_object('ok', false, 'reason', 'target_not_for_minor');
+>     end if;
+

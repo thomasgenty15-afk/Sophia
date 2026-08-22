@@ -14,6 +14,19 @@
  *   ③ une allergie       ⑥ au moins une bouche SANS COMPTE
  *      `medical`
  *
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⛔ 2026-08-22 — CE SCRIPT S'ARRÊTE, ET C'EST `S4` QUI L'ARRÊTE.
+ * ══════════════════════════════════════════════════════════════════════════
+ * La migration `20260822041500` refuse tout objectif de poids sur une bouche
+ * mineure, sur les quatre portes d'écriture. La précision n° 2 de cette
+ * fixture (« le mineur porte un des deux objectifs opposés ») demande
+ * exactement ça. `minorGoalOrDie()` s'arrête AVANT toute écriture, avec le
+ * motif nommé — jamais un `Error` générique au milieu d'un foyer à moitié
+ * bâti.
+ * ⚠️ La fixture DÉJÀ EN BASE survit (`S4` ne corrige pas l'existant) : `V0-D`
+ * et la vérification de fin de vague tournent encore. Seule la
+ * RECONSTRUCTION est fermée. Détail : `MINOR_GOAL`, plus bas. Fiche `S4-c`.
+ *
  * ── LA RÈGLE QUI DÉCIDE DE LA QUALITÉ DE CE SCRIPT ────────────────────────
  *
  *   > « une fixture qui diverge du produit mesure autre chose. Chaque champ
@@ -75,6 +88,13 @@
 
 import { householdAllergenRefs } from "../supabase/functions/_shared/keel/household_safety.ts";
 import { surfaceFormsFor } from "../supabase/functions/_shared/keel/allergen_surface_forms.ts";
+// ⚠️ LA MINORITÉ VIENT DU PRODUIT, PAS D'UN CALCUL LOCAL. `assessBirthDate` +
+// `ageStateFromVerdict` sont ce que le générateur ET l'écran lisent, et
+// `KEEL_MINOR_AGE` est le seul 18 du dépôt. Recopier « moins dix-huit ans »
+// ici ferait une SECONDE borne de la minorité, qui divergerait au premier
+// ajustement — et l'arme mesurerait alors autre chose que la base.
+import { assessBirthDate } from "../supabase/functions/_shared/keel/student_age.ts";
+import { ageStateFromVerdict } from "../supabase/functions/_shared/keel/household.ts";
 
 // ---------------------------------------------------------------------------
 // LA FIXTURE, ÉCRITE UNE FOIS
@@ -123,6 +143,52 @@ const FIXTURE_TIMEZONE = "Europe/Paris";
  * d'allergie à la même bouche — c'est un geste explicite, pas un accident.
  */
 const ALLERGY_LABEL = Deno.env.get("FIXTURE_ALLERGY_LABEL") ?? "arachide";
+
+/**
+ * ⛔ L'OBJECTIF DU MINEUR — ET DEPUIS `S4`, LA BASE LE REFUSE.
+ *
+ * ══════════════════════════════════════════════════════════════════════════
+ * CE SCRIPT N'EST PLUS REJOUABLE TEL QUEL, ET C'EST VOULU.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * La migration `20260822041500` (lot `S4`, décision §⑥ n° 15 du 2026-08-21)
+ * ferme les QUATRE portes d'écriture d'un objectif de poids sur une bouche
+ * mineure. La précision n° 2 de cette fixture — « le mineur porte un des deux
+ * objectifs opposés » — demande exactement ce que la base refuse désormais.
+ *
+ * ⚠️ CE QUI EST CASSÉ EST LA RECONSTRUCTION, PAS LA FIXTURE. `S4` ne corrige
+ * PAS les lignes existantes : le foyer `b1959752-…` est en base avec `Anouk`
+ * (2011-05-20, `muscle_gain`) et y reste. `V0-D` et la vérification de fin de
+ * chaque vague continuent de fonctionner sur lui. Ce qui ne se rejoue plus,
+ * c'est ce fichier sur une base neuve.
+ *
+ * ⛔ AUCUNE EXCEPTION N'EST DEMANDÉE À LA GARDE — une garde à exception n'est
+ * pas une garde. Le script s'ARRÊTE, avec un motif nommé, AVANT d'écrire quoi
+ * que ce soit. Il n'écrit pas une fixture amputée en silence, et il ne
+ * réclame pas de porte dérobée.
+ *
+ * ── LES DEUX ISSUES, ET AUCUNE N'EST GRATUITE (fiche `S4`, `risque`) ──────
+ *   · la fixture PERD sa précision n° 2 — `weighedPortionMembers` n'est plus
+ *     exercé sur un mineur, et le lot `L6′` perd le seuil « 0 mineur » qui
+ *     prouve que le mineur est EXCLU du grammage ;
+ *   · ou la garde gagne une exception — refusé.
+ * ⇒ Le choix appartient au propriétaire ; ce script ne le prend pas à sa
+ *   place. Fiche `S4-c` ouverte pour ça.
+ *
+ * ⚠️ SURCHARGEABLE, EXACTEMENT COMME `FIXTURE_ALLERGY_LABEL`, ET POUR LA MÊME
+ * RAISON : une garde paramétrée par sa propre constante reste verte quand on
+ * change la constante. Il faut pouvoir la muter DEPUIS L'EXTÉRIEUR pour la
+ * voir mordre dans les deux sens :
+ *
+ *     (défaut)                        deno run … → exit 1, RIEN d'écrit
+ *     FIXTURE_MINOR_GOAL=maintenance  deno run … → l'arme passe
+ *
+ * ⛔ Et `maintenance` N'EST PAS un contournement de `S4` : la base l'accepte
+ * sur un mineur (c'est l'arbitrage ① de la migration — l'énergie d'un mineur
+ * EST une maintenance calculée sur son âge). C'est une fixture RÉDUITE, qui
+ * perd la précision n° 2, et la bannière ci-dessous le dit à voix haute.
+ */
+const MINOR_GOAL = Deno.env.get("FIXTURE_MINOR_GOAL") ?? "muscle_gain";
 
 /** Le corps d'une bouche, tel que `SetupPage` le collecte. */
 interface FixtureBody {
@@ -196,7 +262,9 @@ const MOUTHS: FixtureMouth[] = [
   {
     firstName: "Anouk",
     birthDate: "2011-05-20",
-    goal: "muscle_gain",
+    // ⛔ REFUSÉ PAR LA BASE DEPUIS `S4` (migration `20260822041500`). Voir
+    // `MINOR_GOAL` et `minorGoalOrDie()` : le script s'arrête avant d'écrire.
+    goal: MINOR_GOAL as FixtureMouth["goal"],
     targetWeightKg: null,
     paceKgPerWeek: null,
     diet: null,
@@ -302,6 +370,112 @@ function armOrDie(): { ref: string; forms: string[] } {
     `arme ✓ « ${ALLERGY_LABEL} » → \`${resolved.ref}\` · ${resolved.forms.length} formes de surface : [${resolved.forms.join(", ")}]`,
   );
   return resolved;
+}
+
+/**
+ * ⛔ LA SECONDE ARME — `S4` A FERMÉ LA PRÉCISION N° 2 DE CETTE FIXTURE.
+ *
+ * Elle passe AVANT toute connexion, exactement comme `armOrDie` : un script
+ * qui découvrirait le refus au 7ᵉ appel RPC aurait déjà écrit un compte, un
+ * profil, un foyer et deux bouches, et laisserait derrière lui un foyer à
+ * moitié bâti qu'il faudrait démonter à la main.
+ *
+ * ⚠️ ET SURTOUT : IL NE S'ARRÊTE PAS EN SILENCE. Sans cette arme, le script
+ * recevrait `{"ok": false, "reason": "goal_not_for_minor"}` de
+ * `keel_household_add_member` et lèverait un `Error` générique au milieu d'un
+ * foyer partiel — un message qui NOMME la RPC, jamais la décision. Le
+ * propriétaire lirait « la fixture est cassée » au lieu de « une garde de
+ * sécurité, posée exprès, refuse cette fixture ». Ce sont deux phrases
+ * opposées, et la seconde est la vraie.
+ */
+function minorGoalOrDie(): void {
+  // ⚠️ LE `as` DE `MINOR_GOAL` EST DÉSARMÉ SANS CE CONTRÔLE. Un cast sur une
+  // valeur qui vient de l'environnement ne vérifie rien: `FIXTURE_MINOR_GOAL=x`
+  // passerait le typecheck et se ferait refuser par `bad_goal` au 7ᵉ appel
+  // RPC, au milieu d'un foyer à moitié bâti.
+  if (!["fat_loss", "maintenance", "muscle_gain"].includes(MINOR_GOAL)) {
+    console.error(
+      `\n⛔ ARRÊT — \`FIXTURE_MINOR_GOAL=${MINOR_GOAL}\` n'est pas un objectif.` +
+        "\n   Valeurs acceptées : fat_loss · maintenance · muscle_gain" +
+        "\n   (et `fat_loss`/`muscle_gain` sur le mineur sont refusés par `S4`).\n",
+    );
+    Deno.exit(1);
+  }
+
+  const today = new Date().toISOString().slice(0, 10);
+  const blocked = MOUTHS.filter((m) =>
+    (m.goal === "fat_loss" || m.goal === "muscle_gain") &&
+    ageStateFromVerdict(assessBirthDate(m.birthDate, today)) === "minor"
+  );
+
+  if (blocked.length === 0) {
+    if (MINOR_GOAL !== "muscle_gain") {
+      console.warn(
+        [
+          "",
+          `⚠️  FIXTURE RÉDUITE — \`FIXTURE_MINOR_GOAL=${MINOR_GOAL}\` est posé.`,
+          "   Le mineur ne porte PLUS un des deux objectifs opposés : la",
+          "   précision n° 2 est PERDUE. `weighedPortionMembers` n'est pas",
+          "   exercé sur lui, et le seuil « 0 mineur » du lot `L6′` ne prouve",
+          "   plus rien. C'est un choix explicite, pas un défaut — mais il ne",
+          "   doit pas passer inaperçu.",
+          "",
+        ].join("\n"),
+      );
+    } else {
+      console.log("arme ✓ aucun mineur ne porte d'objectif directionnel");
+    }
+    return;
+  }
+
+  console.error(
+    [
+      "",
+      "⛔ ARRÊT — `S4` REFUSE LA PRÉCISION N° 2 DE CETTE FIXTURE.",
+      "",
+      ...blocked.map((m) =>
+        `   bouche    : ${m.firstName} (${m.birthDate}) — objectif \`${m.goal}\``
+      ),
+      "   refus     : `goal_not_for_minor`",
+      "   posé par  : supabase/migrations/20260822041500_aucun_objectif_de_poids_sur_un_mineur.sql",
+      "   décision  : plan de mise en œuvre §⑥ n° 15 (2026-08-21) —",
+      "               « Aucun objectif de poids sur un mineur. »",
+      "",
+      "   ⚠️ CE N'EST PAS UNE PANNE. Les quatre portes d'écriture d'un",
+      "   objectif de poids sur une bouche mineure sont fermées EXPRÈS, et",
+      "   cette fixture demande précisément ce qu'elles refusent.",
+      "",
+      "   ⚠️ ET LA FIXTURE EN BASE, ELLE, SURVIT. `S4` ne corrige pas les",
+      "   lignes existantes : le foyer `b1959752-…` porte toujours Anouk",
+      "   (2011-05-20, muscle_gain). `V0-D` et la vérification de fin de",
+      "   chaque vague tournent encore dessus. C'est la RECONSTRUCTION sur",
+      "   une base neuve qui est fermée, pas la fixture.",
+      "",
+      "   ⛔ AUCUNE EXCEPTION NE SERA AJOUTÉE À LA GARDE — une garde à",
+      "   exception n'est pas une garde. Les deux issues, et aucune n'est",
+      "   gratuite (fiche `S4`, `risque` ; fiche `S4-c`) :",
+      "",
+      "     ① la fixture perd sa précision n° 2 :",
+      "          FIXTURE_MINOR_GOAL=maintenance deno run …",
+      "        ⇒ `weighedPortionMembers` n'est plus exercé sur un mineur, et",
+      "          le lot `L6′` perd le seuil « 0 mineur » qui prouve que le",
+      "          mineur est EXCLU du grammage.",
+      "        ⛔ ET ÇA COÛTE UNE LIGNE DE PLUS QUE PRÉVU, mesuré : la",
+      "          CONDITION ④ tombe aussi. Le `muscle_gain` de ce foyer était",
+      "          porté PAR LA MINEURE ; sans lui, plus personne ne porte la",
+      "          seconde direction et les « deux objectifs opposés »",
+      "          n'existent plus. `verify()` le dit, et n'appelle pas ça un",
+      "          succès.",
+      "",
+      "     ② la précision n° 2 se réécrit ailleurs — un mineur exercé par",
+      "        une autre voie que son objectif. Personne ne l'a conçue.",
+      "",
+      "   Le choix appartient au propriétaire. Ce script ne le prend pas à sa",
+      "   place, et il n'écrit RIEN tant qu'il n'est pas fait.",
+      "",
+    ].join("\n"),
+  );
+  Deno.exit(1);
 }
 
 // ---------------------------------------------------------------------------
@@ -655,33 +829,58 @@ async function verify(token: string, ref: string): Promise<void> {
   const veganIds = new Set(vegan.map((r) => r.member_id));
   const distinctVeganAllergic = [...allergicMemberIds].some((id) => !veganIds.has(id));
 
-  const checks: Array<[boolean, string]> = [
-    [rows.length === 4, `4 bouches (${rows.length})`],
-    [vegan.length >= 1, `① un végane (${vegan.length})`],
-    [minors.length >= 1, `② un mineur (${minors.length})`],
-    [allergies.length >= 1, `③ une allergie \`medical\` (${allergies.length})`],
+  // ⛔ CE QUE `S4` EMPORTE QUAND ON PASSE PAR LA PORTE DE SORTIE.
+  //
+  // Avec `FIXTURE_MINOR_GOAL=maintenance`, DEUX lignes tombent — pas une :
+  //   · la précision n° 2 (le mineur ne porte plus d'objectif) ;
+  //   · ⛔ ET LA CONDITION ④, parce que le `muscle_gain` du foyer était PORTÉ
+  //     PAR LA MINEURE. Plus personne ne porte la seconde direction.
+  // Les compter comme des « conditions manquantes » ferait mourir le script
+  // APRÈS avoir tout écrit, sur un message qui accuse la fixture au lieu de
+  // nommer la garde. Les taire ferait pire : une fixture réduite qui se
+  // présente comme complète. On les marque PERDUES PAR CHOIX, à voix haute.
+  const reduced = MINOR_GOAL !== "fat_loss" && MINOR_GOAL !== "muscle_gain";
+
+  /** `[tenue, libellé, perdue par CHOIX plutôt que manquante]` */
+  type FixtureCheck = [boolean, string, boolean];
+  const checks: FixtureCheck[] = [
+    [rows.length === 4, `4 bouches (${rows.length})`, false],
+    [vegan.length >= 1, `① un végane (${vegan.length})`, false],
+    [minors.length >= 1, `② un mineur (${minors.length})`, false],
+    [allergies.length >= 1, `③ une allergie \`medical\` (${allergies.length})`, false],
     [
       fatLoss.length >= 1 && muscle.length >= 1,
       `④ deux objectifs opposés (fat_loss=${fatLoss.length}, muscle_gain=${muscle.length})`,
+      reduced && muscle.length === 0,
     ],
-    [partial.length >= 1, `⑤ une absence partielle (${partial.length})`],
-    [noAccount.length >= 1, `⑥ au moins une bouche sans compte (${noAccount.length})`],
+    [partial.length >= 1, `⑤ une absence partielle (${partial.length})`, false],
+    [noAccount.length >= 1, `⑥ au moins une bouche sans compte (${noAccount.length})`, false],
     [
       minorWithGoal.length >= 1,
       `précision 2 — le mineur porte un objectif (${minorWithGoal.map((r) => `${r.first_name}:${r.goal}`).join(", ") || "aucun"})`,
+      reduced,
     ],
     [
       distinctVeganAllergic,
       "précision 3 — le végane et l'allergique sont deux bouches différentes",
+      false,
     ],
-    [surfaceFormsFor(ref).length > 0, `précision 1 — surfaceFormsFor('${ref}') non vide`],
+    [surfaceFormsFor(ref).length > 0, `précision 1 — surfaceFormsFor('${ref}') non vide`, false],
   ];
 
   console.log("\n── les six conditions, relues en base ─────────────────────");
   let failed = 0;
-  for (const [ok, label] of checks) {
-    console.log(`  ${ok ? "✓" : "✗"} ${label}`);
-    if (!ok) failed++;
+  const lost: string[] = [];
+  for (const [ok, label, byChoice] of checks) {
+    if (ok) {
+      console.log(`  ✓ ${label}`);
+    } else if (byChoice) {
+      console.log(`  ⛔ PERDUE PAR CHOIX (S4) — ${label}`);
+      lost.push(label);
+    } else {
+      console.log(`  ✗ ${label}`);
+      failed++;
+    }
   }
   console.log("\n── le foyer ──────────────────────────────────────────────");
   for (const r of rows) {
@@ -693,14 +892,40 @@ async function verify(token: string, ref: string): Promise<void> {
     console.error(`\n⛔ ${failed} condition(s) manquante(s) — la fixture n'exerce pas ce qu'elle prétend.`);
     Deno.exit(1);
   }
+  if (lost.length > 0) {
+    // ⚠️ EXIT 0, ET UNE BANNIÈRE QU'ON NE PEUT PAS RATER. Le foyer est écrit
+    // et utilisable; ce qu'il ne PROUVE plus doit voyager avec lui, sans quoi
+    // une vague suivante lira un seuil vert sur une fixture amputée.
+    console.warn(
+      [
+        "",
+        `⚠️  FIXTURE RÉDUITE — ${lost.length} ligne(s) perdue(s) par le lot \`S4\`.`,
+        ...lost.map((l) => `      · ${l}`),
+        "",
+        "   Ce foyer N'EXERCE PLUS :",
+        "     · `weighedPortionMembers` sur un mineur — c'est la 5ᵉ surface du",
+        "       mineur, et le seuil « 0 mineur » du lot `L6′` ne prouve plus",
+        "       rien : il devient vrai par construction, pas par la garde.",
+        "     · la divergence de DIRECTION à table (une seule direction reste).",
+        "",
+        "   Rendre les deux lignes exigerait un objectif de poids sur une",
+        "   enfant — ce que la base refuse depuis `20260822041500`, exprès.",
+        "   Fiche `S4-c` : le choix appartient au propriétaire.",
+        "",
+      ].join("\n"),
+    );
+    return;
+  }
   console.log("\n✓ la fixture porte les SIX conditions.");
 }
 
 // ---------------------------------------------------------------------------
 
 async function main(): Promise<void> {
-  // ⛔ L'ARME D'ABORD. Rien n'est écrit tant que l'allergène ne résout pas.
+  // ⛔ LES ARMES D'ABORD. Rien n'est écrit tant que l'allergène ne résout pas,
+  // ni tant que la fixture demande à la base ce que `S4` lui refuse.
   const { ref } = armOrDie();
+  minorGoalOrDie();
 
   API_URL = await envOf("SUPABASE_URL");
   ANON_KEY = await envOf("SUPABASE_ANON_KEY");

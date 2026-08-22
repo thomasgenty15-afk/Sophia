@@ -1,0 +1,35 @@
+Pager usage is off.
+BEGIN
+                            jeton_du_maitre                            
+-----------------------------------------------------------------------
+ {"sub":"53fb05ba-333a-4bf5-9e19-502103581ef7","role":"authenticated"}
+(1 row)
+
+CREATE TABLE
+DO
+ ord | cas |               attendu                |                    observe                    | verdict 
+-----+-----+--------------------------------------+-----------------------------------------------+---------
+   1 | A   | ok=false reason=goal_not_for_minor   | ok=false reason=goal_not_for_minor            | OK
+   2 | B   | ok=false reason=goal_not_for_minor   | ok=false reason=goal_not_for_minor            | OK
+   3 | C   | ok=false reason=goal_not_for_minor   | ok=false reason=goal_not_for_minor            | OK
+   4 | D   | ok=false reason=target_not_for_minor | ok=false reason=target_not_for_minor          | OK
+   5 | E   | les DEUX refusés                     | C:goal_not_for_minor + D:target_not_for_minor | OK
+   6 | P1  | ok=true                              | ok=true reason=-                              | OK
+   7 | P2  | ok=true                              | ok=true reason=-                              | OK
+   8 | P3  | ok=true                              | ok=true reason=-                              | OK
+   9 | P4  | ok=true                              | ok=true reason=-                              | OK
+  10 | P5  | les DEUX ok=true                     | retrait:true + date:true                      | OK
+  11 | P6  | ok=true                              | ok=true reason=-                              | OK
+(11 rows)
+
+                  bloc                   | score 
+-----------------------------------------+-------
+ ── LES CINQ DE LA FICHE (A B C D P1) ── | 5/5
+(1 row)
+
+          bloc           | score 
+-------------------------+-------
+ ── TOUTES LES SONDES ── | 11/11
+(1 row)
+
+ROLLBACK
