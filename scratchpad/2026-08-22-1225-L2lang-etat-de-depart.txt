@@ -105,3 +105,24 @@ apparaissent en tête des termes BLOQUANTS français sont exactement ça — ell
      LE MÊME pour les cinq `fr-FR` et les cinq `en` — sans quoi les deux bras
      ne mesureraient pas le même résolveur, et la garde du `prompt_version` ne
      verrait rien (elle garde la CONSIGNE, pas le RÉFÉRENTIEL).
+
+═══════════════════════════════════════════════════════════════════════════
+⛔ LE POST-SCRIPTUM CI-DESSUS EST À MOITIÉ RÉFUTÉ — 2026-08-22, 12:55 CEST
+═══════════════════════════════════════════════════════════════════════════
+CE QUI TIENT : ces chiffres n'ont pas été pris sur `HEAD`; les reproduire exige
+le même arbre de travail; et `food_composition.ts` doit être dans le MÊME ÉTAT
+pour les cinq `fr-FR` et les cinq `en`.
+
+⛔ CE QUI EST FAUX, et qui n'est pas effacé : « le volet ① coûte », « les 16
+occurrences de `pain complet` SONT cet effet », « elles étaient calculables,
+à tort, avant ». Contre-épreuve au résolveur de production, sur les chaînes
+RÉELLES, deux arbres — `scratchpad/2026-08-22-1255-L2lang-contre-epreuve-complet.txt` :
+
+  · l'alias `pain complet` → `wholemeal_bread` EXISTE et MORD. Les huit chaînes
+    en `complet` résolvent DES DEUX CÔTÉS. Zéro `unknown_ingredient`.
+  · ce qui bloque est `missing_quantity` : `"quantity": "4 tranches"` en texte
+    libre, `amount` et `unit` à `null`. Famille `L-1`, pas `complet`.
+  · le volet ① AMÉLIORE 4 lignes (`bread` → `wholemeal_bread`, `couscous` →
+    `couscous_wholemeal`) sans changer une seule pesée.
+
+⇒ aucune fiche à ouvrir. Registre §⑨ n° 43.

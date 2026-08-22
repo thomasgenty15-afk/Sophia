@@ -1,0 +1,84 @@
+═══════════════════════════════════════════════════════════════════════════
+CONTRE-ÉPREUVE `complet` — ⛔ ELLE RÉFUTE UNE AFFIRMATION DE CE LOT
+═══════════════════════════════════════════════════════════════════════════
+2026-08-22, ~12:55 CEST · résolveur DE PRODUCTION, jamais une copie · 0 modèle
+
+CE QUI ÉTAIT AFFIRMÉ (commit `fd8917b7`, et la ligne « provenance de la mesure »
+de la fiche `L2-lang`) : « le volet ① de `L19b` COÛTE sur ce compteur — les 16
+occurrences de `pain complet` / `pain complet grillé` en tête des termes
+bloquants français SONT cet effet ; elles étaient calculables, à tort, avant. »
+
+⛔ C'EST FAUX. Mesuré ci-dessous, deux arbres, mêmes chaînes.
+
+① LES CHAÎNES LITTÉRALES, telles que `dishes`/`preparations` les portent
+   (extraites des 4 plans `fr`, aucune normalisation) :
+
+     7× {"term":"pain complet grillé",   "amount":null,"unit":null, "quantity":"4 tranches"}
+     4× {"term":"pain complet",          "amount":80,  "unit":"g",  "quantity":"80 g de pain complet"}
+     2× {"term":"pain complet",          "amount":null,"unit":null, "quantity":"4 tranches"}
+     1× {"term":"pain complet",          "amount":null,"unit":null, "quantity":"8 tranches"}
+     2× {"term":"tortilla complète",     "amount":1,   "unit":"unit"}
+     2× {"term":"pain pita complet",     "amount":1,   "unit":"unit"}
+     1× {"term":"couscous complet sec",  "amount":600, "unit":"g"}
+     1× {"term":"semoule complète cuite","amount":1100,"unit":"g","state":"cooked"}
+
+② LE RÉSOLVEUR SUR CES CHAÎNES-LÀ — deux colonnes, même chaîne :
+
+   ════ A — ARBRE DE TRAVAIL (volet ① vivant : `complet` RETIRÉ des modificateurs)
+    7× [pain complet grillé]      amount=   ∅ unit=∅    → wholemeal_bread        NON PESÉ
+    4× [pain complet]             amount=  80 unit=g    → wholemeal_bread        PESÉ 80 g
+    3× [pain complet]             amount=   ∅ unit=∅    → wholemeal_bread        NON PESÉ
+    2× [tortilla complète]        amount=   1 unit=unit → tortilla_wholemeal     PESÉ 60 g
+    2× [pain pita complet]        amount=   1 unit=unit → pita_wholemeal         PESÉ 60 g
+    1× [couscous complet sec]     amount= 600 unit=g    → couscous_wholemeal     PESÉ 600 g
+    1× [semoule complète cuite]   amount=1100 unit=g    → couscous_wholemeal     PESÉ 423.07692307692304 g
+
+   ════ B — CONTRE-ÉPREUVE (`complet` REMIS dans PREPARATION_MODIFIERS)
+    7× [pain complet grillé]      amount=   ∅ unit=∅    → bread                  NON PESÉ
+    4× [pain complet]             amount=  80 unit=g    → wholemeal_bread        PESÉ 80 g
+    3× [pain complet]             amount=   ∅ unit=∅    → wholemeal_bread        NON PESÉ
+    2× [tortilla complète]        amount=   1 unit=unit → tortilla_wholemeal     PESÉ 60 g
+    2× [pain pita complet]        amount=   1 unit=unit → pita_wholemeal         PESÉ 60 g
+    1× [couscous complet sec]     amount= 600 unit=g    → couscous               PESÉ 600 g
+    1× [semoule complète cuite]   amount=1100 unit=g    → couscous               PESÉ 423.07692307692304 g
+
+③ LE VERDICT
+
+  ⛔ AUCUNE des huit chaînes n'est INCONNUE, dans AUCUN des deux arbres.
+     L'alias `pain complet` → `wholemeal_bread` existe en base et MORD ; idem
+     `pain pita complet`, `tortilla complete`, `couscous complet`,
+     `semoule complete`. Le coordinateur avait raison.
+
+  ⇒ CE QUI BLOQUE, C'EST LA QUANTITÉ, PAS LE NOM. Les 10 occurrences qui
+     éteignent un plat (`pain complet grillé` ×7 + `pain complet` sans quantité
+     ×3) sont RÉSOLUES et NON PESÉES : le modèle a écrit `"quantity": "4
+     tranches"` en TEXTE LIBRE et laissé `amount` et `unit` à `null`. Motif
+     `missing_quantity`, famille `L-1` / structuration de la quantité —
+     ⛔ RIEN À VOIR AVEC `complet`.
+     ⚠️ Et `wholemeal_bread` porte `unit_grams = 40` : « 4 tranches » écrit
+     `{amount: 4, unit: "unit"}` pèserait 160 g SANS RIEN CHANGER AU RÉFÉRENTIEL.
+
+  ⇒ ET LE VOLET ① NE COÛTE RIEN — IL GAGNE. Les seules différences A/B vont
+     TOUTES dans le bon sens, et aucune ne touche la complétude :
+        `pain complet grillé`    B → `bread` (raffiné)     · A → `wholemeal_bread`
+        `couscous complet sec`   B → `couscous` (raffiné)  · A → `couscous_wholemeal`
+        `semoule complète cuite` B → `couscous` (raffiné)  · A → `couscous_wholemeal`
+     Même sort de PESÉE des deux côtés, meilleur ALIMENT à droite.
+     **4 lignes corrigées, 0 journée perdue.**
+
+  ⇒ ⛔ AUCUNE FICHE À OUVRIR. Le volet ① de `L19b` ne dégrade pas le critère de
+     fin de vague 2.
+
+④ CE QUI RESTE VRAI de la note de provenance, et qu'il ne faut PAS jeter avec
+   l'affirmation réfutée :
+     · l'état de départ a bien été mesuré sur un arbre à +404 lignes de `HEAD`
+       sur `food_composition.ts` ; le reproduire exige LE MÊME ARBRE ;
+     · au moment des dix générations, le référentiel et ce module doivent être
+       dans le MÊME ÉTAT pour les cinq `fr-FR` et les cinq `en` — la garde du
+       `prompt_version` garde la CONSIGNE, pas le RÉFÉRENTIEL.
+
+⑤ COMMENT REJOUER
+     scratchpad/L19b-complet-probe/{A,B}/sonde.ts  (hors dépôt, atelier)
+     A = arbre de travail tel quel · B = idem + `complet`/`complete`/`complets`/
+     `completes` réinsérés dans `PREPARATION_MODIFIERS`. Les NDJSON sont ceux de
+     l'état de départ. ⛔ Aucun `node_modules` copié.
