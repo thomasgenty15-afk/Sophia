@@ -1,0 +1,77 @@
+══════════════════════════════════════════════════════════════════════════
+`D3′` — LA `direction`, ÉCRITE AVANT LE CODE
+Écrite le 2026-08-22, après la `mesure AVANT` et AVANT la première ligne de
+code. §⑦: « Ne pas réécrire une `direction` après avoir vu le résultat. »
+══════════════════════════════════════════════════════════════════════════
+
+CE QUI DOIT MONTER / DESCENDRE
+──────────────────────────────
+
+⬇️ 1. LANE FOYER — blocs de contenu APRÈS le bloc d'arbitrage: 2 à 9 ⇒ 0.
+      Le seul morceau qui reste après lui est `CONTENT_LANGUAGE:`, déclaré
+      « consigne de LANGUE, pas de contenu » par le dépôt lui-même.
+
+⬆️ 2. LE RANG 1 CESSE DE DÉSIGNER UNE POSITION ET NOMME SES BLOCS.
+      Sur la lane foyer, la chaîne « at the VERY TOP of this message »
+      DISPARAÎT, et les en-têtes des trois verrous apparaissent LITTÉRALEMENT
+      dans le bloc:
+        · `WHAT THE SHARED DISH MUST RESPECT`  (le régime)
+        · `HOUSE RULES`                        (les règles de maison)
+        · `THE SAME KITCHEN, TWO DISHES`       (la contamination croisée)
+      Mesure: 0 en-tête cité ⇒ 3 en-têtes cités.
+
+⬆️ 3. LE BLOC NOMME DES OBJETS DU FOYER: 0 ⇒ au moins 3
+      (`member_portions`, le plat partagé, le plat dédié).
+
+⬆️ 4. UN COMPTEUR À DEUX POPULATIONS APPARAÎT, de somme 5:
+        `ranks_with_object`     — les rangs qui ont un objet dans CE prompt
+        `ranks_without_object`  — les rangs que le bloc nomme et que le
+                                  message ne peut pas honorer
+      ⛔ SEUIL: les DEUX doivent être non nuls sur au moins un cas de la
+      fixture. Un compteur toujours à 5/0 ne distingue rien et serait
+      indiscernable d'un compteur cloué.
+
+⬇️ 5. AUCUNE BOUCHE PROTÉGÉE NE PERD SON RANG.
+      Épreuve mécanique: la DERNIÈRE ligne de contenu du message (celle qui
+      précède `CONTENT_LANGUAGE:`) doit encore parler d'allergie / de médical.
+      Aujourd'hui c'est `crossContact.block` quand il sort, `HOUSE RULES`
+      sinon. Après le lot, c'est la queue du bloc d'arbitrage — et elle DOIT
+      donc se terminer sur cette phrase-là, pas sur l'envie du soir.
+
+CE QUE LA DIRECTION NE PROMET PAS — et c'est écrit avant, pas après
+────────────────────────────────────────────────────────────────────
+
+⛔ AUCUN CHANGEMENT MESURABLE DANS UNE SORTIE DE MODÈLE.
+   ① Le budget de la vague est à ZÉRO génération.
+   ② Il n'existe AUCUNE surface de sortie légale pour cet arbitrage: les deux
+      seules candidates portent déjà un interdit d'énonciation écrit
+      (`dishes[].why`, `member_portions[].portion_note`). C'est la porte
+      `G-disclosure`, et ce lot NE LA TRANCHE PAS.
+   ⇒ sous la loi de `L6′-b` (« une consigne absente du squelette de sortie est
+     une consigne que le modèle comprend et n'exécute pas »), `D3′` est un lot
+     d'ENTRÉE, et sa `mesure APRÈS` porte sur le PROMPT.
+   Tout ce qui exige une génération part en « EN ATTENTE » avec sa requête
+   littérale.
+
+CE QUI FALSIFIERAIT CETTE DIRECTION
+────────────────────────────────────
+
+· Un seul bloc de contenu survivant après l'arbitrage sur un cas de la
+  fixture ⇒ seuil 1 MANQUÉ, et il s'écrit MANQUÉ.
+· Un compteur qui rend 5/0 sur les quatre cas ⇒ seuil 4 MANQUÉ: il ne
+  distingue rien.
+· La dernière ligne de contenu qui cesserait de nommer l'allergie ⇒ le lot
+  aurait DÉMOTÉ une ligne de sécurité, et il devrait être défait.
+
+LE PARI, ÉCRIT POUR POUVOIR AVOIR TORT
+───────────────────────────────────────
+
+Je parie que le correctif qui COMPTE ici n'est PAS le déplacement — c'est le
+correctif de TEXTE du rang 1. Le bloc envoie aujourd'hui le modèle chercher le
+régime « tout en haut », alors qu'il est 63 à 101 lignes PLUS BAS. Un pointeur
+faux vers une règle de sécurité est pire qu'une règle mal placée: la deuxième
+est lue tard, la première n'est pas lue du tout.
+
+Si une génération future montrait que le déplacement seul suffit et que le
+texte n'y était pour rien, c'est ce paragraphe qui aura eu tort, et il reste
+écrit.

@@ -1,0 +1,78 @@
+══════════════════════════════════════════════════════════════════════════
+`D3′` — BANC DE MUTATION, 2026-08-22
+══════════════════════════════════════════════════════════════════════════
+
+BANC: un répertoire qui ne contient QUE les deux fichiers du lot
+(`precedence_tail.ts` + `precedence_tail_test.ts`), hors du dépôt, 44 Ko.
+⛔ Aucune copie de l'arbre, aucun `node_modules`, aucun `git archive` complet
+— le disque est à 2,3 Gi libres et il a été plein il y a une heure.
+Le banc est SUPPRIMÉ à la fin du lot.
+
+⛔ RÈGLE §⑨ n° 92, VÉRIFIÉE ET PAS DÉDUITE
+──────────────────────────────────────────
+  cd <banc>/clone && deno check precedence_tail.ts precedence_tail_test.ts
+  => Check precedence_tail.ts / Check precedence_tail_test.ts   ✓ 0 erreur
+  cd <banc>/clone && deno test precedence_tail_test.ts
+  => 15 passed | 0 failed                                        ✓
+
+Le répertoire ne contient AUCUN autre fichier du dépôt: le module n'importe
+rien, le test n'importe que `jsr:@std/assert` et le module. Un clone peut donc
+exécuter cette garde — ce qui n'est vrai d'aucune des neuf gardes livrées
+aujourd'hui selon le §⑨ n° 92.
+
+⛔ NON MUTÉE VÉRIFIÉE D'ABORD
+─────────────────────────────
+  NON MUTÉE : 15 passed | 0 failed  ✓
+
+MUTATIONS — 9 SUR 9 ATTRAPÉES
+──────────────────────────────
+  M1 — `movePrecedenceToTail` cesse de RETIRER l'occurrence antérieure
+       (append naïf)                              => 13 passed | 2 failed  ✓
+  M2 — le rang 1 du FOYER reprend « at the VERY TOP »
+                                                  => 13 passed | 2 failed  ✓
+  M3 — « THE LAST WORD » retiré « parce qu'il répète le rang 1 »
+                                                  => 14 passed | 1 failed  ✓
+  M4 — le verdict rend TOUJOURS `tail`            => 13 passed | 2 failed  ✓
+  M5 — la queue FOYER reprend l'ordre que le bloc des `why` interdit
+                                                  => 14 passed | 1 failed  ✓
+  M6 — le compteur cloue `withoutObject` à zéro   => 13 passed | 2 failed  ✓
+  M7 — une citation d'en-tête de verrou est retirée (« HOUSE RULES »)
+                                                  => 14 passed | 1 failed  ✓
+  M8 — une lane inconnue retombe EN SILENCE sur le texte solo
+                                                  => 14 passed | 1 failed  ✓
+  M9 — le texte SOLO est « harmonisé » sur celui du foyer
+                                                  => 11 passed | 4 failed  ✓
+
+  NON MUTÉE (revérifiée APRÈS): 15 passed | 0 failed  ✓
+
+⛔ CE QUE LE BANC A TROUVÉ, ET QUE LA RELECTURE N'AURAIT PAS VU
+───────────────────────────────────────────────────────────────
+
+**M7 EST PASSÉE VERTE À SA PREMIÈRE EXÉCUTION — 15/15.**
+
+La première version de l'épreuve ② bis s'écrivait:
+
+    assertEquals(lockHeadersNamed("household"), HOUSEHOLD_LOCK_HEADERS.length);
+
+Retirer « HOUSE RULES » de `HOUSEHOLD_LOCK_HEADERS` fait descendre les DEUX
+côtés de l'égalité en même temps. La garde restait verte pendant que le rang 1
+cessait de nommer les règles de maison — c'est-à-dire pendant que le lot
+perdait un tiers de son correctif de texte.
+
+C'est la cicatrice « un test paramétré par sa propre constante », et elle vient
+de se reproduire, dans un fichier écrit le jour même par quelqu'un qui la
+connaissait. Correctif: `3` en LITTÉRAL, les trois en-têtes écrits en littéral
+DANS le test, et la présence de chacun vérifiée sur le bloc aplati.
+
+⇒ M7 rougit maintenant (14/1). 9/9.
+
+⚠️ AUCUNE DES NEUF N'A ÉTÉ TROUVÉE PAR RELECTURE. Le banc est ce qui les a
+trouvées, et M7 est ce qui prouve que le banc n'est pas décoratif.
+
+LA GARDE VOISINE, VÉRIFIÉE AUSSI
+─────────────────────────────────
+`supabase/functions/_shared/keel/meal_precedence_test.ts` (fichier NON SUIVI,
+d'une autre session, « agent 2A ») garde la place et le contenu du bloc sur la
+lane SOLO. Il est resté VERT, 10/10 — la contre-épreuve que le périmètre du lot
+est bien le foyer seul et que le prompt solo n'a pas bougé d'un octet.
+⛔ Il n'est PAS commité: il ne m'appartient pas.
