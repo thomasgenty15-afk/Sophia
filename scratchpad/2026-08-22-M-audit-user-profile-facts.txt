@@ -1,0 +1,201 @@
+═══════════════════════════════════════════════════════════════════════════
+M-audit — user_profile_facts
+exécuté le 2026-08-22 19:05:10 CEST · base supabase_db_Sophia_2
+═══════════════════════════════════════════════════════════════════════════
+
+   ⛔ BASE INJOIGNABLE — sonde `select 1` : rc=124, sortie vide.
+      Les cinq requêtes de mesure sont SAUTÉES (une tentative, pas une boucle).
+      ⛔ Aucun zéro ne sera publié: les dumps restent vides et le TS le DIT.
+
+── ① QUI NOMME LA TABLE, COMMENTAIRES RETIRÉS ───────────────────────────
+
+   PROD    3  scripts/reset_coach_preferences.sql
+   TEST    1  supabase/functions/keel_gdpr_lifecycle_test.ts
+   TEST    9  supabase/functions/sophia-brain/context/loader_durable_effects_test.ts
+   PROD    4  supabase/functions/sophia-brain/context/loader.ts
+   PROD    3  supabase/functions/sophia-brain/profile_facts.ts
+   TEST    1  supabase/functions/sophia-brain/router/effect_ledger_persistence_test.ts
+   PROD   24  supabase/migrations/20260522143735_squashed_schema.sql
+
+   → 4 fichiers de PRODUCTION, 3 de TEST
+
+── ② LES EXPORTS DE `profile_facts.ts` ET LEURS IMPORTATEURS ────────────
+
+   ProfileFactValue                   MORT       prod=0 test=0  aucun
+   UserProfileFactRow                 MORT       prod=0 test=0  aucun
+   getUserProfileFacts                VIVANT     prod=1 test=0  supabase/functions/sophia-brain/context/loader.ts
+   formatUserProfileFactsForPrompt    VIVANT     prod=1 test=0  supabase/functions/sophia-brain/context/loader.ts
+   upsertUserProfileFactWithEvent     MORT       prod=0 test=0  aucun
+
+── ③ LA CHAÎNE QUI PORTE LES LIGNES JUSQU'AU PROMPT ─────────────────────
+
+   ✅ loader.ts importe getUserProfileFacts              context/loader.ts
+   ✅ l'appel est gardé par `profile.facts`              context/loader.ts
+   ✅ `facts: true` n'existe que pour `companion`        context/types.ts
+   ✅ buildContextString concatène `loaded.facts`        context/loader.ts
+   ✅ run.ts charge le contexte en mode `companion`      router/run.ts
+   ✅ run.ts passe le contexte à l'agent visible         router/run.ts
+
+   LES LECTEURS, LEUR PRÉDICAT, LEUR PLAFOND :
+
+   R1 getUserProfileFacts  (profile_facts.ts:38 ← loader.ts:743)
+      prédicat : user_id = ? · scope in ('global', <scope du tour>) · status = 'active'
+      plafond  : AUCUN — ni `.limit()`, ni `.slice()`, ni troncature de tokens
+   R2 loadPreferencesSurfaceSummary  (loader.ts:1348)
+      prédicat : user_id = ? · scope = 'global' · key in (5 clés coach.*)
+      plafond  : `.slice(0, 5)` sur les lignes rendues
+   R3 loadDurableEffectsSummary  (loader.ts:2622)
+      prédicat : user_id = ? · scope = 'global' · status = 'active' · key like 'coach.%'
+      plafond  : `.limit(12)`
+
+── ④ L'ÉCRIVAIN — IL N'EST PAS DANS LE TYPESCRIPT ───────────────────────
+
+   trigger `on_profile_created_seed_default_coach_preferences_trigger` : PRÉSENT  (AFTER INSERT ON public.profiles)
+   il appelle `seed_default_coach_preferences`                        : OUI
+   la fonction INSÈRE dans user_profile_facts                          : OUI
+   nombre de lignes semées par compte                                  : 9
+   leur `source_type`                                                  : system_default
+
+── ⑤ CE QUE ÇA COÛTE DANS LE PROMPT, RENDU PAR LE MODULE DE PRODUCTION ──
+
+   │ === USER MODEL (FACTS) ===
+   │ - coach.tone = {"value":"warm_direct","label":"Bienveillant ferme"} (scope=global, conf=1.00, src=system_default)
+   │ - coach.challenge_level = {"value":"balanced","label":"Équilibré"} (scope=global, conf=1.00, src=system_default)
+   │ - coach.feedback_style = {"value":"positive_then_fix","label":"Positif puis amélioration"} (scope=global, conf=1.00, src=system_default)
+   │ - coach.talk_propensity = {"value":"balanced","label":"Équilibrée"} (scope=global, conf=1.00, src=system_default)
+   │ - coach.message_length = {"value":"short","label":"Courte"} (scope=global, conf=1.00, src=system_default)
+   │ - coach.message_format = {"value":"adaptive","label":"Mix adaptatif"} (scope=global, conf=1.00, src=system_default)
+   │ - coach.primary_focus = {"value":"discipline","label":"Discipline / action"} (scope=global, conf=1.00, src=system_default)
+   │ - coach.emotional_personalization = {"value":"warm","label":"Chaleureux"} (scope=global, conf=1.00, src=system_default)
+   │ - coach.question_tendency = {"value":"normal","label":"Normale"} (scope=global, conf=1.00, src=system_default)
+
+   bloc « USER MODEL (FACTS) »  :   1080 car. ≈   270 tokens
+   consigne qui part avec lui   :    941 car. ≈   236 tokens
+   TOTAL par tour companion     :   2021 car. ≈   506 tokens
+
+   ⚠️ plafond de R1 dans le code           : AUCUN
+   ⚠️ plafond dans le formateur du bloc    : AUCUN
+
+── ⑤bis LE COMPACTEUR DU PROMPT — `agents/companion.ts` ─────────────────
+
+   `compactUserModelFactsBlock` est sur le chemin du prompt : OUI
+   sa porte d'entrée                                        : line.startsWith("coach.")
+   lignes RENDUES par le formateur de production            : 10
+   lignes que cette porte laisse passer                     : 0
+   sa liste FERMÉE de défauts utiles                        : coach.tone, coach.message_length, coach.question_tendency
+   son plafond                                              : 6 lignes
+
+   ⛔ LE COMPACTEUR EST UN NO-OP MESURÉ. Le formateur écrit `- <clé> = …` ;
+      la porte teste `startsWith("coach.")` sur des lignes qui commencent
+      par « - ». 0 ligne sur 10 passe ⇒ la fonction rend le bloc INCHANGÉ,
+      et ni la liste fermée ni le plafond de 6 n'ont JAMAIS servi.
+      ⚠️ Le même fichier lit `coach.question_tendency` avec `includes(…)`, et LUI marche.
+
+   ⇒ pour un compte SEMÉ PAR DÉFAUT, sur 9 lignes en base,
+     9 atteignent le modèle (100.0 %) ≈ 270 tokens,
+     et la CONSIGNE part INTACTE (941 car. ≈ 236 tokens) — le compacteur coupe au `\n===` suivant.
+
+   la consigne NOMME 9 clés au modèle ; la liste fermée du compacteur en retient 3
+   (6 hors liste : coach.challenge_level, coach.feedback_style, coach.talk_propensity, coach.message_format, coach.primary_focus, coach.emotional_personalization).
+   INSTRUCTION 236 tokens · DONNÉE 270 tokens — rapport 0.9×.
+   TOTAL réellement envoyé par tour companion : 506 tokens.
+
+── ⑥ RGPD — EXPORT ET SUPPRESSION, LES DEUX SÉPARÉMENT ──────────────────
+
+   EXPORT      dans `account-export-v1` (SCOPE + index)      : ⛔ ABSENT
+               NOMMÉ comme non réclamé par le filet RGPD      : OUI (A_QUALIFIER)
+   SUPPRESSION FK vers auth.users ON DELETE CASCADE           : OUI
+               `purge_auth_user` supprime bien auth.users      : OUI
+               le cron de purge appelle la RPC                : OUI
+
+   ⇒ la table est SUPPRIMÉE avec le compte (par CASCADE, jamais nommée),
+     et elle n'est PAS EXPORTÉE. Les deux moitiés du RGPD divergent.
+
+── ⑦ LA POPULATION EN BASE ──────────────────────────────────────────────
+
+   ⛔ EN ATTENTE — BASE INJOIGNABLE. Les dumps NDJSON sont vides ou illisibles.
+      Ce n'est PAS « 0 ligne ». Aucun zéro n'est fabriqué, aucun chiffre publié,
+      et RIEN n'est recopié depuis la fiche du plan : un chiffre non reproduit
+      n'est ni atteint ni manqué — il est EN ATTENTE.
+      Répertoire attendu : /var/folders/yg/3ljjtd7n1pl8n9lwhypn3cwc0000gp/T//keel-maudit-Btirin
+
+      ── LES QUATRE MESURES EN ATTENTE, ET LEUR REQUÊTE LITTÉRALE ───────────
+      (à coller dans `docker exec -i supabase_db_Sophia_2 psql -U postgres -d postgres`
+       dès que le démon Docker répond ; ou relancer simplement le pilote)
+
+      ① le VOLUME et les PORTEURS
+         select count(*) as lignes, count(distinct user_id) as porteurs
+         from public.user_profile_facts;
+
+      ② la part de comptes de TEST
+         select
+           count(*) filter (where u.email ~* '(@keeltest\.dev|@test\.dev)$'
+                               or u.email ~* '^(qa-|laneb-)')            as test,
+           count(*)                                                      as total
+         from auth.users u;
+
+      ③ la VENTILATION par scope · clé · statut · source
+         select scope, key, status, source_type, count(*) as n,
+                count(distinct user_id) as u
+         from public.user_profile_facts group by 1,2,3,4 order by 5 desc;
+
+      ④ la part SANS LECTEUR — les porteurs qui n'ont jamais parlé
+         select count(*) from (
+           select f.user_id from public.user_profile_facts f
+           group by 1
+           having not exists (select 1 from public.chat_messages m
+                              where m.user_id = f.user_id)
+         ) s;
+
+      ⚠️ ⑤ L'HYPOTHÈSE ARITHMÉTIQUE À FALSIFIER, et ce n'est PAS une mesure :
+         le trigger écrit 9 lignes par profil et c'est le SEUL écrivain vivant
+         ⇒ si aucune ligne n'échappe à la graine, le total vaut EXACTEMENT
+         9 × (nombre de profils). La requête qui tranche :
+         select count(*) from public.user_profile_facts
+         where source_type <> 'system_default'
+            or key not in ('coach.tone', 'coach.challenge_level', 'coach.feedback_style', 'coach.talk_propensity', 'coach.message_length', 'coach.message_format', 'coach.primary_focus', 'coach.emotional_personalization', 'coach.question_tendency');
+         Un résultat > 0 réfute l'hypothèse et NOMME la population héritée.
+
+── ⑨ LES GARDES ─────────────────────────────────────────────────────────
+
+  ✅ G1 · un écrivain ATTEIGNABLE existe            trigger → seed_default_coach_preferences → 9 lignes/compte
+  ✅ G2 · un lecteur ATTEINT le prompt              les 6 maillons sont présents sur la source exécutée
+  ✅ G3 · aucun export mort NON NOMMÉ, aucun ressuscité 3 morts nommés, toujours morts
+  ✅ G4 · RGPD export : exporté OU nommé exclu      NON exporté, mais NOMMÉ dans A_QUALIFIER
+  ✅ G5 · RGPD suppression : la cascade tient       FK ON DELETE CASCADE + purge_auth_user + appel du cron
+  ⛔ G6 · le plafond du prompt est ATTEIGNABLE      ⛔ NO-OP : la porte `startsWith("coach.")` laisse passer 0 ligne sur 10 ⇒ le plafond de 6 n'a jamais servi ; en amont R1 ne borne RIEN et le formateur ne borne RIEN
+  ⛔ G7 · la mesure DB existe                       dumps NDJSON absents ou vides — aucun chiffre publié
+
+── ⑩ LA QUESTION, CHIFFRÉE — ⛔ ELLE N'EST PAS TRANCHÉE ICI ─────────────
+
+   ⚠️ La moitié DB de la question est EN ATTENTE. Ce qui est déjà CHIFFRÉ sans la base :
+
+   ① Le seul écrivain vivant est un TRIGGER, et il écrit 9 lignes littérales
+      par profil, toutes en `source_type='system_default'`. Le seul port d'écriture
+      qui permettrait un CHOIX humain — `upsertUserProfileFactWithEvent` — a
+      0 importateur, production ET test.
+
+   ② Le bloc part à CHAQUE tour companion : 270 tokens de données + 236 tokens
+      de consigne = 506 tokens, et le seul plafond du chemin est un NO-OP mesuré.
+
+   ③ Sur les 9 clés, UNE SEULE a un effet déterministe : `coach.question_tendency`
+      (`parseQuestionTendencyFromContext` → `buildQuestionRhythmGuide`), et elle est
+      relue DANS LE TEXTE DU PROMPT, pas dans la ligne de base. Les 8 autres n'ont
+      aucun lecteur qui BRANCHE : elles sont de la prose.
+
+   ⇒ QUESTION RENDUE DÉCIDABLE, NON TRANCHÉE : 506 tokens par tour, dont 236
+      d'instruction pour 8 clés qui ne branchent rien — les garde-t-on ?
+      ⛔ Le dénominateur qui manque (part réelle du prompt d'un tour) est EN ATTENTE :
+      select percentile_cont(0.5) within group (order by prompt_tokens)
+      from llm_usage_events where operation_family <> 'plan_generation';
+
+   ⛔ AUCUNE SUPPRESSION N'EST FAITE NI PROPOSÉE ICI. La table porte des données
+      personnelles, elle n'est PAS exportée, et le choix appartient au propriétaire.
+
+═══════════════════════════════════════════════════════════════════════════
+⛔ 2 GARDE(S) MORDENT :
+   · G6 · le plafond du prompt est ATTEIGNABLE — ⛔ NO-OP : la porte `startsWith("coach.")` laisse passer 0 ligne sur 10 ⇒ le plafond de 6 n'a jamais servi ; en amont R1 ne borne RIEN et le formateur ne borne RIEN
+   · G7 · la mesure DB existe — dumps NDJSON absents ou vides — aucun chiffre publié
+═══════════════════════════════════════════════════════════════════════════
+
+FIN · rc=1
