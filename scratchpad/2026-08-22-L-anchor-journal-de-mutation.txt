@@ -1,0 +1,57 @@
+══════════════════════════════════════════════════════════════════════════
+L-anchor-nodelivery — JOURNAL DE MUTATION
+         2026-08-22T14:59:26Z
+         banc: $MUT/L-anchor-mut  (HORS du depot, sans node_modules, 19 Mo)
+         cible: mouth_delivery_cause_test.ts — 7 epreuves
+══════════════════════════════════════════════════════════════════════════
+
+⛔ NON MUTEE D'ABORD. Une garde cassee bloque tout et ressemble a une garde
+   qui marche; sans ce vert de depart, les cinq rouges ci-dessous ne
+   prouveraient rien.
+
+-- ETAT NON MUTE --
+[0m[32mok[0m | 7 passed | 0 failed [0m[38;5;245m(41ms)[0m
+
+
+-- M1  le bac commun est reclasse en mixed_gaps
+   pourquoi: l etiquette fourre-tout revient: 100 lignes sur 100 redeviennent indistinctes
+   diff:
+     -      return "common_pot_only";
+     +      return "mixed_gaps";
+   [0m[31mFAILED[0m | 4 passed | 3 failed [0m[38;5;245m(78ms)[0m
+
+-- M2  anchorFactorFor reperd la distinction (le code d AVANT ce lot)
+   pourquoi: c est exactement l etat du depot avant ce commit; il DOIT rougir
+   diff:
+     -      reason: deliveryCauseOf(day) === "common_pot_only" ? "common_pot_day" : "no_delivery",
+     +      reason: "no_delivery",
+   [0m[31mFAILED[0m | 6 passed | 1 failed [0m[38;5;245m(72ms)[0m
+
+-- M3  common_pot_only est declare REPARABLE
+   pourquoi: un lot viserait alors une population que le modele produit ne peut pas atteindre
+   diff:
+     -  common_pot_only: "juste",
+     +  common_pot_only: "defaut",
+   [0m[31mFAILED[0m | 6 passed | 1 failed [0m[38;5;245m(74ms)[0m
+
+-- M4  no_box redevient bloquant
+   pourquoi: 80 lignes sur 100 en portent un: tout basculerait en mixed_gaps
+   diff:
+     -  const blocking = gaps.filter((g) => g !== "no_box");
+     +  const blocking = [...gaps];
+   [0m[31mFAILED[0m | 5 passed | 2 failed [0m[38;5;245m(80ms)[0m
+
+-- M5  l ordre de :604 est inverse
+   pourquoi: une journee entierement muette sortirait zero_kcal — un chiffre a la place d un vide
+   diff:
+     -  if (day.kcal === null) return causeOfSilence(day.gaps);
+     -  if (day.kcal <= 0) return "zero_kcal";
+     +  if (day.kcal !== null && day.kcal <= 0) return "zero_kcal";
+     +  if (day.kcal === null) return "zero_kcal";
+   [0m[31mFAILED[0m | 3 passed | 4 failed [0m[38;5;245m(87ms)[0m
+
+-- RETOUR A L ETAT NON MUTE --
+[0m[32mok[0m | 7 passed | 0 failed [0m[38;5;245m(43ms)[0m
+
+
+⇒ 5 mutations sur 5 TUENT l epreuve. Vert avant, vert apres.

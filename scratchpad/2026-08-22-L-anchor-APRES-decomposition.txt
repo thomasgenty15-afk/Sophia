@@ -1,0 +1,179 @@
+
+═══════════════════════════════════════════════════════════════════════════
+L-anchor-nodelivery — CE QUE `no_delivery` RECOUVRE
+         2026-08-22T14:57:34.343Z · 193 plans · 923 lignes de référentiel
+         ⛔ GELÉ À LA GÉNÉRATION  vs  RECOMPOSÉ SUR LE RÉFÉRENTIEL D'AUJOURD'HUI
+═══════════════════════════════════════════════════════════════════════════
+
+── ① LES DEUX DÉNOMINATEURS — jamais l'un sans l'autre (§⑨ n° 50) ─────────
+     prompt VIVANT · solo  « meal.en.v18_one_box_per_group »
+     prompt VIVANT · foyer « meal.en.v18_one_box_per_group+household.v21_one_box_per_group »
+
+     CORPUS ENTIER              193 plans · foyer 114 · solo 79
+     PROMPT VIVANT              13 plans · foyer 12 · solo 1
+     PORTANT LE BLOC anchor     12 plans — ⛔ et ils sont TOUS sous le prompt vivant
+                                (dont hors prompt vivant: 0)
+
+   LA POPULATION EXCLUE, nommée et comptée — millésimes non déployables:
+     180 plans sur 193 · 26 millésime(s)
+        35 × solo · «aucun prompt_version»
+        28 × foyer · meal.en.v15_the_plan_never_names_it+household.v17_what_each_mouth_already_has
+        17 × solo · meal.en.v3_preparations
+        12 × solo · meal.en.v2_batch
+        11 × foyer · meal.en.v14_what_outranks_what+household.v17_what_each_mouth_already_has
+         8 × foyer · «aucun prompt_version»
+         8 × foyer · meal.en.v9_cooking_shape+household.v5_unmerge
+         8 × foyer · meal.en.v9_cooking_shape+household.v6_voices
+         6 × foyer · meal.en.v8_distinct_health_direction+household.v2_presence
+         6 × foyer · meal.en.v9_cooking_shape+household.v9_merge_dedicated_per_meal
+         5 × foyer · meal.en.v9_cooking_shape+household.v8_plan_gaps
+         4 × foyer · meal.en.v12_a_dish_has_a_name+household.v16_this_kitchen_and_a_meal_out
+         4 × foyer · meal.en.v9_cooking_shape+household.v3_merge
+         4 × solo · meal.en.v1_doctrine
+         4 × solo · meal.en.v9_cooking_shape
+         3 × foyer · meal.en.v11_weighed_or_counted+household.v15_one_box_each_and_a_number
+         3 × foyer · meal.en.v13_what_they_can_actually_do+household.v17_what_each_mouth_already_has
+         3 × foyer · meal.en.v9_cooking_shape+household.v4_merge_budget
+         3 × solo · meal.en.v13_what_they_can_actually_do
+         2 × solo · meal.en.v12_a_dish_has_a_name
+         1 × foyer · meal.en.v10_same_day+household.v12_whose_dish_is_it
+         1 × foyer · meal.en.v11_weighed_or_counted+household.v14_weigh_once_into_boxes
+         1 × foyer · meal.en.v16_the_model_declares_the_group+household.v19_a_why_names_no_ones_rule
+         1 × foyer · meal.en.v9_cooking_shape+household.v11_dietary_regime_at_the_table
+         1 × foyer · meal.en.v9_cooking_shape+household.v7_merge_anchor
+         1 × solo · meal.en.v14_what_outranks_what
+
+── ② LES DIX SEAUX, GELÉS À LA GÉNÉRATION — plan par plan ────────────────
+   ⛔ LES DIX, JAMAIS `no_delivery` SEUL. Un seau muet est une information.
+   plan     créé          Σ anchor day_in no_del restri restri no_bod age_un clampe pregna breast common  appl.
+   3c781a71 08-21T21:52  24      1      0     17      0      0      0      0      6      0      0      0     2
+   66de9046 08-22T02:27   0      0      0      0      0      0      0      0      0      0      0      0     0
+   3eae73ac 08-22T12:39   8      2      0      6      0      0      0      0      0      0      0      0     1
+   09240cb5 08-22T12:40   0      0      0      0      0      0      0      0      0      0      0      0     0
+   8f498609 08-22T12:41  18      0      0     13      0      0      0      0      5      0      0      0     1
+   d46c4dad 08-22T12:43  11      3      0      8      0      0      0      0      0      0      0      0     1
+   4ef89334 08-22T12:44   4      0      0      3      0      0      0      0      1      0      0      0     1
+   9ec54e51 08-22T12:45  16      1      0     12      0      0      0      0      3      0      0      0     1
+   5058be6a 08-22T12:47   0      0      0      0      0      0      0      0      0      0      0      0     0
+   612ac898 08-22T12:48  27      7      1     11      0      0      0      0      8      0      0      0     3
+   a5b2a817 08-22T12:50  15      2      0     11      0      0      0      0      2      0      0      0     1
+   9f02838a 08-22T12:51  26      7      0     19      0      0      0      0      0      0      0      0     1
+   ── TOTAL             149     23      1    100      0      0      0      0     25      0      0      0    12
+   ── PART              100%   15 %    1 %   67 %    0 %    0 %    0 %    0 %   17 %    0 %    0 %    0 %
+
+   ⚠️ PLANS DONT LES DIX SEAUX SONT À ZÉRO: 3 sur 12 — 66de9046, 09240cb5, 5058be6a
+      Ce n'est PAS « tout va bien »: c'est l'ancrage qui n'a produit aucune ligne.
+
+── ③ LA GARDE DE COHÉRENCE — le NOMBRE de lignes est invariant ───────────
+   `dishSlices` ne lit pas le référentiel: une ligne existe parce qu'un
+   contenant porte un nom. Le CLASSEMENT bouge, le COMPTE ne doit pas.
+   ✅ 12/12 plans se recomposent au même compte de lignes.
+
+   ── L'IDENTITÉ QUI TRANCHE LA QUESTION DE `L17` ────────────────────────
+   Le référentiel a bougé entre la génération et maintenant (`L-C`: 114
+   lignes cuites réécrites; `L-1-b`: +860 lignes pesées). Si `no_delivery`
+   tenait à la PESÉE, le recomposé DEVRAIT être plus bas que le gelé.
+      3c781a71 · livrantes GELÉ   7 (anchored+clamped+day_incomplete) · RECOMPOSÉ   7
+      66de9046 · livrantes GELÉ   0 (anchored+clamped+day_incomplete) · RECOMPOSÉ   0
+      3eae73ac · livrantes GELÉ   2 (anchored+clamped+day_incomplete) · RECOMPOSÉ   2
+      09240cb5 · livrantes GELÉ   0 (anchored+clamped+day_incomplete) · RECOMPOSÉ   0
+      8f498609 · livrantes GELÉ   5 (anchored+clamped+day_incomplete) · RECOMPOSÉ   5
+      d46c4dad · livrantes GELÉ   3 (anchored+clamped+day_incomplete) · RECOMPOSÉ   3
+      4ef89334 · livrantes GELÉ   1 (anchored+clamped+day_incomplete) · RECOMPOSÉ   1
+      9ec54e51 · livrantes GELÉ   4 (anchored+clamped+day_incomplete) · RECOMPOSÉ   4
+      5058be6a · livrantes GELÉ   0 (anchored+clamped+day_incomplete) · RECOMPOSÉ   0
+      612ac898 · livrantes GELÉ  16 (anchored+clamped+day_incomplete) · RECOMPOSÉ  16
+      a5b2a817 · livrantes GELÉ   4 (anchored+clamped+day_incomplete) · RECOMPOSÉ   4
+      9f02838a · livrantes GELÉ   7 (anchored+clamped+day_incomplete) · RECOMPOSÉ   7
+   ⇒ 12/12 plans rendent le MÊME nombre de journées livrantes sur deux référentiels différents.
+
+── ④ `no_delivery` DÉCOMPOSÉ EN CAUSES — et le verdict de chacune ────────
+   ⚠️ RECOMPOSÉ SUR LE RÉFÉRENTIEL D'AUJOURD'HUI. Les migrations `L-C` et
+      `L-1-b` ont atterri après la plupart de ces plans: l'écart avec ② est
+      un FAIT mesuré, pas une dérive de mesure.
+
+   couples bouche × jour, PROMPT VIVANT · foyer: 200
+   dont VISIBLES du produit (une ligne existe, donc un seau): 149
+   dont INVISIBLES (aucune ligne, aucun seau):                51
+
+   cause                     n   / visibles  / couples   verdict
+   delivered                 49    32.9 %    24.5 %   n/a
+   no_row                    51    34.2 %    25.5 %   juste
+   common_pot_only          100    67.1 %    50.0 %   juste
+   unreadable_dishes_only     0     0.0 %     0.0 %   defaut
+   empty_box_only             0     0.0 %     0.0 %   defaut
+   mixed_gaps                 0     0.0 %     0.0 %   defaut
+   zero_kcal                  0     0.0 %     0.0 %   defaut
+
+   ⇒ no_delivery RECOMPOSÉ = 100 / 149 = 67.1 % des lignes
+        dont JUSTES (silence voulu par le modèle produit): 100 = 100.0 %
+        dont DÉFAUTS (silence voulu par personne):         0 = 0.0 %
+
+── ⑤ L'ENSEMBLE EXACT DES LACUNES sur les lignes qui ne livrent pas ──────
+       80 × common_pot+no_box
+       20 × common_pot
+
+     contenants: 188 · à UN nom 116 (61.7 %) · à PLUSIEURS noms 72 (38.3 %)
+
+── ⑥ LA POPULATION QUE LE PRODUIT NE COMPTE PAS ──────────────────────────
+   ⛔ `householdAnchors` itère sur les LIGNES. Un couple sans ligne n'entre
+      dans AUCUN seau — la branche `day === null` de `:604` est morte.
+
+     couples sans aucune ligne:                        51
+        absence DÉCLARÉE ce jour-là (juste — le cas Yanis): 9 = 17.6 %
+        aucune absence déclarée (le plan l'a oubliée):      42 = 82.4 %
+
+── ⑥bis LA BONNE UNITÉ: LES BOUCHES ATTEINTES ────────────────────────────
+   ⛔ « 17 journées-bouche sur 24 » NE DIT PAS COMBIEN DE PERSONNES sont
+      touchées. Le générateur garde, par bouche, le facteur de sa journée
+      la plus proche de 1 et l'applique à TOUS ses contenants: UNE journée
+      lisible suffit à ancrer une bouche pour la semaine entière.
+
+   plan     bouches  jours  atteintes  muettes  anchor_applied (gelé)
+   3c781a71       4      6          2        2                2
+   66de9046       0      7          0        0                0
+   3eae73ac       4      6          1        3                1
+   09240cb5       0      6          0        0                0
+   8f498609       4      7          1        3                1
+   d46c4dad       4      7          1        3                1
+   4ef89334       4      2          1        3                1
+   9ec54e51       4      4          1        3                1
+   5058be6a       0      7          0        0                0
+   612ac898       4      7          3        1                3
+   a5b2a817       4      4          1        3                1
+   9f02838a       4      7          1        3                1
+   ── TOTAL      36     70         12       24               12
+   ⇒ l'ancrage atteint 12 bouches sur 36 = 33.3 % — et 24 restent muettes.
+
+── ⑥ter LA SORTIE DE LA **VRAIE** `anchorFactorFor`, corpus vivant ───────
+   ⚠️ Corps de référence unique (voir `BOUCHE_DE_REFERENCE`): le partage
+      `anchored`/`clamped` en dépend et n'est donc PAS imprimé. Le partage
+      `no_delivery`/`common_pot_day` ne dépend que de `day`, et c'est lui
+      que ce lot mesure.
+
+     anchored                 27    18.1 %
+     day_incomplete            2     1.3 %
+     no_delivery               0     0.0 % ⇐
+     restriction_floor         0     0.0 %
+     restriction_unknown       0     0.0 %
+     no_body                   0     0.0 %
+     age_unknown               0     0.0 %
+     clamped                  20    13.4 %
+     pregnancy                 0     0.0 %
+     breastfeeding             0     0.0 %
+     common_pot_day          100    67.1 % ⇐
+     TOTAL                   149
+
+── ⑦ LE SEUIL DE LA FICHE ────────────────────────────────────────────────
+   seuil: no_delivery < 25 % des couples
+   GELÉ      · PROMPT VIVANT · foyer  100/149 = 67.1 %  ⇒ ⛔ MANQUÉ
+   RECOMPOSÉ · PROMPT VIVANT · foyer  100/149 = 67.1 %  ⇒ ⛔ MANQUÉ
+   RECOMPOSÉ · défauts seuls          0/149 = 0.0 %  ⇒ ATTEINT
+   APRÈS     · anchorFactorFor réel   0/149 = 0.0 %  ⇒ ATTEINT
+
+   ⛔ ET IL EST ATTEINT PAR ÉTIQUETAGE, PAS PAR LECTURE. Zéro couple
+      bouche-jour de plus n'est devenu lisible. Le chiffre qui compte est
+      celui-ci: 24 bouches sur 36 n'ont AUCUN ancrage absolu,
+      et rien dans le modèle produit ne peut le leur donner tant qu'elles
+      mangent dans un bac.
+

@@ -1,0 +1,26 @@
+L-anchor-nodelivery — LA DIRECTION, ÉCRITE AVANT LE MOINDRE CARACTÈRE DE CODE
+Horodatage: voir la ligne `date` ci-dessous, produite par la même commande.
+
+CE QUE LA MESURE AVANT A ÉTABLI (scratchpad/2026-08-22-L-anchor-AVANT-decomposition.txt):
+  no_delivery = 100 / 149 lignes = 67,1 % · et 100 sur 100 sont `common_pot_only`.
+  ZÉRO `unreadable_dishes_only`, ZÉRO `empty_box_only`, ZÉRO `mixed_gaps`, ZÉRO `zero_kcal`.
+  Gelé et recomposé coïncident sur 12/12 plans MALGRÉ +860 lignes pesées (L-1-b)
+  et 114 lignes cuites réécrites (L-C) entre les deux.
+
+CE QUE JE VAIS CHANGER: le seau, pas le calcul.
+  `ANCHOR_REASONS` gagne `common_pot_day`. `anchorFactorFor` rend ce jeton quand,
+  et seulement quand, `deliveryCauseOf(day) === "common_pot_only"`.
+
+DIRECTION — ÉCRITE AVANT DE VOIR LE RÉSULTAT:
+  ① `no_delivery` TOMBE de 100 à 0 sur le corpus vivant foyer.
+  ② un seau neuf `common_pot_day` prend EXACTEMENT 100.
+  ③ ⛔ AUCUN GRAMME NE BOUGE. `anchored` reste 23, `clamped` reste 25,
+     `day_incomplete` reste 1, et surtout `anchor_applied` reste 12.
+     Si `anchor_applied` bouge d'une seule unité, le lot a changé le PRODUIT
+     et pas seulement son JOURNAL — et il doit être annulé.
+  ④ Le seuil de la fiche (`no_delivery` < 25 %) devient ATTEINT — et c'est
+     précisément pourquoi il faut écrire ici, D'AVANCE, qu'il est ATTEINT SANS
+     QU'UN SEUL COUPLE BOUCHE-JOUR NE DEVIENNE LISIBLE. Un seuil atteint par
+     renommage n'est pas un gain: il est la MESURE d'un défaut d'étiquetage.
+     Le vrai chiffre reste « 24 bouches sur 36 n'ont aucun ancrage absolu ».
+date = 2026-08-22T14:53:26Z  (14:53 UTC)

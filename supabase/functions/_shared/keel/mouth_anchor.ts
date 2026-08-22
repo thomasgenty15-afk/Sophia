@@ -55,6 +55,11 @@ import {
 } from "./energy_gate.ts";
 import type { MouthBody } from "./meal_envelope.ts";
 import type { MemberAgeState } from "./household.ts";
+// ⛔ LA RÈGLE DE CLASSEMENT EST IMPORTÉE, JAMAIS RECOPIÉE. Le compteur du
+// chantier (`scripts/keel_anchor_nodelivery_20260822.ts`) lit la MÊME
+// fonction; deux écritures du même verdict divergeraient, et la fiche
+// citerait alors un chiffre que le produit ne rend pas.
+import { deliveryCauseOf } from "./mouth_delivery_cause.ts";
 import {
   DEFAULT_PACE_KG_PER_WEEK,
   mouthAgeVerdict,
@@ -121,6 +126,40 @@ export const ANCHOR_REASONS = Object.freeze(
     "pregnancy",
     /** L0bis — même geste, même raison, pour un allaitement déclaré (~+500 kcal/j). */
     "breastfeeding",
+    /**
+     * ══════════════════════════════════════════════════════════════════════
+     * L-anchor-nodelivery — LE SILENCE **VOULU**, SORTI DE `no_delivery`.
+     * ══════════════════════════════════════════════════════════════════════
+     *
+     * Toutes les parts de cette bouche ce jour-là sortent d'un bac à plusieurs
+     * noms. Ses grammes décrivent un RÉCIPIENT, pas une assiette (v4): il n'y
+     * a rien à lire, et il n'y aura jamais rien à lire tant qu'un bac est un
+     * bac. Ce n'est pas une lacune, c'est une propriété du modèle produit.
+     *
+     * ⛔ POURQUOI IL SORT DE `no_delivery`, MESURÉ LE 2026-08-22. Sur les 12
+     * plans foyer du prompt vivant, `no_delivery` valait **100 lignes sur
+     * 149 (67,1 %)** — et **100 sur 100** étaient ce cas-ci. Zéro plat
+     * illisible, zéro boîte vide, zéro mélange. Une étiquette qui recouvre à
+     * 100 % une situation IRRÉPARABLE PAR CONSTRUCTION faisait lire « il
+     * reste 67 % à réparer » là où il n'y avait rien à réparer, et cachait la
+     * seule population que quelqu'un peut encore atteindre.
+     *
+     * ⇒ APRÈS CE LOT, `no_delivery` NE DÉSIGNE PLUS QUE DU RÉPARABLE:
+     *   un plat que le référentiel n'a pas su peser, une boîte à zéro gramme,
+     *   un cumul de lacunes. C'est ce seau-là qu'un lot de pesée doit faire
+     *   baisser, et il vaut **0** aujourd'hui.
+     *
+     * ⚠️ CE JETON NE CHANGE AUCUN GRAMME. La branche rend le même
+     * `{factor: 1, raw: null}` qu'avant, et le générateur l'écarte par la
+     * même ligne (`reason !== "anchored" && reason !== "clamped"`). Mesuré:
+     * `anchor_applied` reste à 12 sur les 12 plans, à l'unité près.
+     *
+     * ⛔ ET CE N'EST PAS UNE BONNE NOUVELLE. Ce seau dit qu'une bouche N'A
+     * AUCUN ANCRAGE ABSOLU et n'en aura pas: elle reste dimensionnée par la
+     * chaîne RELATIVE, qui est un rapport et ne décide jamais du niveau.
+     * Mesuré le 2026-08-22: **24 bouches sur 36** sont dans ce cas.
+     */
+    "common_pot_day",
   ] as const,
 );
 export type AnchorReason = (typeof ANCHOR_REASONS)[number];
@@ -654,11 +693,21 @@ export function anchorFactorFor(
       structureState: structure.state,
     };
   }
+  // ⛔ L'EXPRESSION EST INCHANGÉE, OCTET POUR OCTET, ET SEULE L'ÉTIQUETTE SE
+  // DÉDOUBLE (L-anchor-nodelivery, 2026-08-22). Toucher la condition aurait
+  // déplacé des grammes; ce lot n'en déplace aucun. `deliveryCauseOf` est la
+  // SEULE écriture de la règle de classement — un second `switch` ici
+  // divergerait du compteur au premier ajustement, et c'est celui qu'on relit
+  // le moins qui rendrait un chiffre faux.
   if (day === null || day.kcal === null || day.kcal <= 0) {
     return {
       factor: 1,
       raw: null,
-      reason: "no_delivery",
+      // `common_pot_only` est le seul silence qu'AUCUN lot ne peut réparer:
+      // diviser un bac par ses mangeurs remettrait la division que v3 et v4
+      // existent pour supprimer. Tous les autres cas restent `no_delivery`,
+      // qui désigne désormais du RÉPARABLE et rien d'autre.
+      reason: deliveryCauseOf(day) === "common_pot_only" ? "common_pot_day" : "no_delivery",
       targetKcal: target.kcal,
       deliveredKcal: null,
       structureState: structure.state,
