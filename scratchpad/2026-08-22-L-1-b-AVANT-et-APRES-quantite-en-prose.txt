@@ -1,0 +1,83 @@
+═══════════════════════════════════════════════════════════════════════════
+L-1-b — LA QUANTITÉ ÉCRITE EN CLAIR · AVANT et APRÈS dans le même run
+exécuté le 2026-08-22 13:13:50 CEST · base supabase_db_Sophia_2
+═══════════════════════════════════════════════════════════════════════════
+
+── LE RÉFÉRENTIEL, EN DEUX NOMBRES ────────────────────────────────────────
+     unit_grams       94 / 923   ·   condiment_grams 17 / 923   ·   alias 2668
+
+── ① LA VENTILATION — comptée par `readQuantityFromProse`, pas par une regex ─
+     lignes d'ingrédient en base (plats + préparations, AVANT pliage)   10053
+     dont sans `amount` utilisable                                     3850
+       · `quantity` textuel NON VIDE                                    3833   (99.6 %)
+       · `quantity` vide                                               17
+     ⛔ CE QUE LE LECTEUR ACCEPTE, et rien d'autre:
+       · masse littérale     (`150 g`)                                 634
+       · volume littéral     (`200 ml`)                                32
+       · nombre nu           (`1`, `2`)                                498
+       · fraction nue        (`1/2`, `1/4`)                            195
+       ⇒ LU                                                            1359
+     ⛔ CE QUE LE LECTEUR REFUSE — aucun mot n'est lu:
+       · composite / non chiffrable / unité comptée / cuillère          2474   (64.5 % de la prose)
+
+── ② LES DEUX POPULATIONS — ⛔ elles ne se fondent JAMAIS ─────────────────────
+     `ecrit_structure` mesure l'OBÉISSANCE du modèle à FF-038.
+     `recupere_en_prose` mesure ce que la LECTURE a rattrapé.
+     Un seul nombre pour les deux rendrait un modèle qui cesse d'obéir
+     indiscernable d'un lecteur réparé — et ils appellent deux corrections
+     opposées.
+
+     lignes pliées PESÉES · avant  11731   ·  après  12591   (+860)
+       · dont écrites en STRUCTURÉ                                      11703
+       · dont RÉCUPÉRÉES EN PROSE                                       888
+     ⚠️ contrôle: la prose lue AVANT le lot doit être 0            →   0
+
+     ⛔ DEUX GRANDEURS, ET ELLES NE SONT PAS LA MÊME:
+       · lignes de BASE dont la prose se LIT   1359   (section ①, avant pliage)
+       · lignes pliées PESÉES grâce à la prose 888   (lues ET converties en grammes)
+       L'écart est réel et il se nomme: une ligne lue reste non pesée si le
+       référentiel ignore le terme, s'il ignore le poids d'une unité, ou si
+       `state` manque sur une classe où il change le poids. On ne devine
+       aucun des trois.
+
+── ③ SEUIL 1 — LIGNES RÉSOLUES ET NON PESÉES · ⛔ LES DEUX DÉNOMINATEURS ──────
+     ⚠️ population EXCLUE, nommée et comptée: meal.en.v1_doctrine, meal.en.v2_batch, meal.en.v3_preparations
+        ⇒ 3870 lignes pliées (24.7 % du corpus)
+
+     [A] CORPUS ENTIER     avant  3313 / 15644 = 21.2 %   →   après  2453 / 15644 = 15.7 %
+     [B] HORS GÉNÉRATIONS MORTES  avant  336 / 11774 = 2.9 %   →   après  307 / 11774 = 2.6 %
+
+── ④ SEUIL 2 — `missing_quantity` · ⛔ LES DEUX DÉNOMINATEURS ─────────────────
+     [A] CORPUS ENTIER     avant  576   →   après  498   sur 1885 plats pliés
+     [B] HORS GÉNÉRATIONS MORTES  avant  190   →   après  173   sur 1352 plats pliés
+
+     ⚠️ les autres motifs, pour qu'aucun gain ne se cache dans un déplacement:
+       unknown_ingredient   avant   399   →   après   403
+       no_ingredients       avant   144   →   après   144
+       TOTAL plats incomplets avant  1119   →   après  1045   ⇒ 74 plats deviennent calculables
+
+     ⛔ `unknown_ingredient` PEUT MONTER, ET CE N'EST PAS UNE RÉGRESSION.
+       `dishEnergyAtTolerance` teste les inconnus AVANT les non-pesés: un plat
+       qui mourait à l'étape ② (`missing_quantity`) atteint maintenant l'étape
+       ③ et peut y mourir de sa borne de groupe (lot `L17`). Il a changé de
+       seau, il n'a pas régressé — c'est le TOTAL ci-dessus qui tranche.
+
+── ⑤ LES JOURNÉES CALCULABLES — ⛔ LES DEUX DÉNOMINATEURS ─────────────────────
+     [A] foyer  avant 98/332 = 29.5 %   →   après 99/332 = 29.8 %
+     [B] foyer  avant 98/332 = 29.5 %   →   après 99/332 = 29.8 %
+     [A] solo   avant 43/318 = 13.5 %   →   après 45/318 = 14.2 %
+     [B] solo   avant 43/142 = 30.3 %   →   après 43/142 = 30.3 %
+
+── ⑥ LES TROIS SEUILS DE LA FICHE — atteints, ou manqués et pourquoi ─────────
+     [A] non pesées ≤ 14 %          → 15.7 %
+     [B] non pesées ≤ 14 %          → 2.6 %
+     ⛔ MANQUÉ   [A] missing_quantity ≤ 420  498 ≤ 420 ?
+     ✅ ATTEINT  [B] missing_quantity ≤ 420  173 ≤ 420 ?
+     ⛔ MANQUÉ   recupere_en_prose ≥ 1400 (lignes de base LUES)     1359 ≥ 1400 ?
+     ⛔ MANQUÉ   recupere_en_prose ≥ 1400 (lignes pliées PESÉES)  888 ≥ 1400 ?
+
+(cardinalité: 6/6 sections ✅)
+
+═══════════════════════════════════════════════════════════════════════════
+FIN
+═══════════════════════════════════════════════════════════════════════════

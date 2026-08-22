@@ -1,0 +1,19 @@
+── LA COPIE NON MUTÉE, D'ABORD ────────────────────────────────────────
+(non mutée)                                                rc=0  ok | 21 passed | 0 failed (166ms)
+
+── LES MUTATIONS DE REFUS ─────────────────────────────────────────────
+M1  l'ancre de fin saute → `75 g dry` devient lisible      rc=1  FAILED | 20 passed | 1 failed (162ms)
+M2  la cuillère entre dans la liste fermée → `2 tbsp` lu   rc=1  FAILED | 20 passed | 1 failed (171ms)
+M3  le nombre nu cesse d'être ancré → `1 large onion` lu   rc=1  FAILED | 19 passed | 2 failed (161ms)
+M4  zéro devient une quantité → `0 g` lu                   rc=1  FAILED | 20 passed | 1 failed (169ms)
+M5  la fraction perd son garde-fou → `1/0` lu              rc=1  FAILED | 20 passed | 1 failed (158ms)
+
+── LES MUTATIONS D'ARBITRAGE ET DE COMPTEUR ───────────────────────────
+M6  la prose gagne contre le structuré                     rc=1  FAILED | 17 passed | 4 failed (176ms)
+M7  les deux populations se fondent                        rc=1  FAILED | 18 passed | 3 failed (162ms)
+M8  les préparations sortent du compteur                   rc=1  FAILED | 19 passed | 2 failed (156ms)
+M9  ⛔ la lecture écrase la DÉCLARATION (compteur négatif)  rc=1  FAILED | 19 passed | 2 failed (193ms)
+M10 ⛔ la prose survit au pliage (prorata contourné)        rc=1  FAILED | 19 passed | 2 failed (190ms)
+
+── CONTRÔLE FINAL ─────────────────────────────────────────────────────
+(copie restaurée)                                          rc=0  ok | 21 passed | 0 failed (137ms)
