@@ -399,6 +399,116 @@ engagement de processus : **il ne tient que s'il est écrit ici.**
 ---
 ---
 
+## ⟳ CLÔTURE DE LA VAGUE 2 — **2026-08-22**
+
+> **Elle ne devait pas changer une assiette : elle devait changer un DÉNOMINATEUR.**
+> ⟳ Elle a fait les deux, et **le chiffre qu'elle cherchait depuis le début existe enfin.**
+
+### ① La sortie datée de `V0-E′` relancée, archivée côte à côte
+
+Archives : `scratchpad/2026-08-22-0500-V0E-tableau-de-bord-FIN-VAGUE-1.txt` et
+`scratchpad/2026-08-22-V0E-tableau-de-bord-FIN-VAGUE-2.txt` *(exécutée à 14:54:33 CEST)*.
+Données rassemblées : `scratchpad/2026-08-22-CLOTURE-VAGUE-2-donnees.txt`.
+
+| compteur | fin vague 1 *(05:00)* | fin vague 2 *(14:54)* |
+|---|---|---|
+| **#1** plans à `boxes` NON VIDES | clé 2 · non vide **1 / 182** | clé 12 · non vide **9 / 192** |
+| **#2** journées calculables **par langue** | ⛔ **N'EXISTE PAS** | ✅ **IL EXISTE** — en foyer **44,8 %** · fr foyer **28,6 %** |
+| **#3** résolu **et** pesé, après pliage | foyer 93,5 % · solo 36,4 % | foyer **94,0 %** · solo **36,6 %** |
+| **#4** motifs d'abstention | — | `missing_quantity` **576** · `unknown_ingredient` **459** · `no_ingredients` 144 / 2 129 |
+| **#5** inconnus par plan | **0** plan porteur | **12 / 192** plans portent une valeur |
+| **#6** activité `crossed`/`legacy`/`assumed` | — | **5 / 24 / 18** sur 47 corps |
+| **#7** ceinture ayant vu > 1 bouche | **1 / 15** | ⬆️ **11 / 25** |
+| **#8** `portion_note` portant un grammage | 181 / 348 | 181 / **388** |
+| **#9** contraintes actives non couvertes | 6 / 59 | **6** non couvertes · **36** couvertes / 59 |
+| **corpus** | 182 plans | **192** plans *(114 foyer · 78 solo)* · 923 refs · **2 668** alias |
+
+### ② La vérification en conditions réelles — **dix générations, pas un test**
+
+⛔ **`L17-0` : SEUIL ATTEINT SUR LES DIX PLANS.** **800 groupes déclarés par le modèle ·
+769 valides · 769 PERSISTÉS · écart ZÉRO sur chaque plan** · **31 groupes inventés REFUSÉS**
+par la garde. Ce matin la base portait **0 ligne sur 10 038** ; ce soir **769 / 10 852 = 7,1 %**.
+*C'est la première fois du dépôt qu'un champ déclaré par le modèle traverse l'écriture.*
+
+⛔ **`L2-lang` : le compteur qui n'existait pas rend son PREMIER verdict, et il est MANQUÉ.**
+`en` foyer **13/29 = 44,8 %** · `fr` foyer **8/28 = 28,6 %** ⇒ **écart 16,3 points**, seuil ≤ 5.
+Cinq plans par bras, **même millésime**, générés côte à côte. La portée **solo REFUSE de
+conclure** — un bras à 0 journée : **la garde a mordu**, comme elle devait.
+
+⟳ ⛔ **ET LE *POURQUOI* RENVERSE LA FICHE.** Les **deux langues ont exactement 30
+`unknown_ingredient`**, et ce sont **LES MÊMES ALIMENTS** : `unsweetened soy yoghurt` ×10 et
+`soy yoghurt` ×10 côté anglais, `tofu soyeux` ×22 et `yaourt de soja nature` ×6 côté
+français ; `unsweetened cocoa powder` ×6 contre `cacao non sucre`. ⇒ **ce n'est pas un écart
+de traitement de la LANGUE : c'est un trou de RÉFÉRENTIEL sur une poignée d'aliments**, qui
+tombe différemment selon les jours. **La porte étant binaire, un seul terme éteint la journée.**
+
+✅ **`L18b` : seuil DURCI ATTEINT — delta 7 termes neufs ≥ 3** *(niveau 5 → 12)*. Et les sept
+sont **exactement les termes bloquants que `L2-lang` vient de nommer**, dans les deux langues.
+**Le sas attrape précisément ce qui éteint les journées.**
+
+⟳ **`L17` : la borne a ENFIN une entrée** — 769 lignes portent un groupe. Seuil foyer
+**MANQUÉ, 30,0 % → 30,0 %** sur le prompt vivant *(corpus entier 115/389 → 119/389, +4)*,
+exactement comme le lot l'avait **prouvé avant de coder** : le groupe borne une **densité**,
+et 768 plats sont bloqués par une **masse**.
+
+⛔ **LE ONZIÈME RUN — LE PREMIER PLAN SOLO SOUS LE PROMPT VIVANT, ET C'EST LÀ QUE LA BORNE
+MORD.** Relancé à 16:01 après le diagnostic du 502 *(§⑨ n° 69)* : **HTTP 200 · 167,2 s ·
+`L17-0` `91|91|0|91` — SEUIL ATTEINT**, la lane solo persiste `group` elle aussi.
+
+| | seuil muté à 0 % | production |
+|---|---|---|
+| **PROMPT VIVANT · solo** *(1 plan)* | **4 / 7 = 57,1 %** · plats 16/19 | ⬆️ **7 / 7 = 100,0 %** · plats **19/19** |
+| **PROMPT VIVANT · foyer** *(12 plans)* | 21 / 70 = 30,0 % · plats 221/308 | **21 / 70 = 30,0 %** · plats 221/308 |
+
+⛔ **La borne est responsable de 3 des 7 journées** — le seuil muté le prouve **dans le même
+processus**. Le seuil solo était **≥ 30 %**. ⚠️ **ET IL SE REND COMME UN NIVEAU, JAMAIS COMME
+UN TAUX** *(§⑨ n° 63)* : **n = 1 plan, 7 journées.** *« Un compteur qui rend un nombre sur
+n = 1 est pire qu'un compteur absent »* — pour un **verdict**. Pour *« la lane solo
+produit-elle quelque chose sous le prompt qu'elle exécute, et la borne a-t-elle enfin quelque
+chose à borner »*, **c'est une première donnée honnête**, et elle dit **oui** aux deux.
+
+⟳ **L'ASYMÉTRIE EST LE VRAI RÉSULTAT, et elle n'était dans aucune fiche** : la borne fait
+**+3 journées sur 7** en solo et **+0 sur 70** en foyer. Le foyer ne bouge **pas d'un plat**
+(221 → 221). ⇒ **ce qui bloque le foyer n'est pas ce qui bloquait le solo** — c'est la
+**masse**, pas la densité, exactement ce que `L17` avait prouvé avant de coder, et ce que
+`L-1-b` a commencé à récupérer.
+
+**Restauration vérifiée** : ligne de régime temporaire **supprimée**, `profiles.locale` rendu
+à `fr-FR`, et `66de9046` **RENDU INTACT** — `retired_at = NULL`, durée 7 j.
+
+✅ **`L19c` mesuré à ZÉRO sur ce compteur** : les deux jumelles nommées partagent leur
+`unit_grams` ⇒ elles **ne peuvent pas** faire basculer une journée. La borne haute de 775
+couples est étiquetée **« au plus »** — elle sur-capture (`apple`/`peach`).
+
+### ③ Ce que la vague a RÉVÉLÉ, et qui n'était pas prévu
+
+1. ⛔ **Le premier motif d'abstention du produit n'est pas une omission du modèle : c'est une perte d'écriture.** Sur **3 850** lignes sans `amount`, **3 833 (99,6 %) portent un `quantity` textuel non vide** — dont **634 grammes littéraux**. Le modèle écrit la quantité **deux fois** (FF-038) ; l'écriture ne garde que la moitié qui manque.
+2. ⛔ **Trois lots indépendants ont trouvé la MÊME forme le même jour** : une fonction qui recopie des clés une par une et en perd une. `X3′` l'a chiffrée à l'AST — **115 recopies de forme-modèle, 107 plus courtes que leur type, dont `tsc` n'en voit qu'une sur trois** — et **conclut contre la règle de dépôt** : le meilleur périmètre syntaxique serait faux **94,4 %** du temps.
+3. ⛔ **Deux pertes en production, neuves** : **734 plats sur 2 129 portent un nom d'usage que le front n'a AUCUN membre pour lire** *(734 écrits, 0 lisible)* ; et `verdictDishesOf` jette `group` vers le verdict d'énergie, **coût 0 aujourd'hui, garde désarmée demain**.
+4. ⛔ **La fiche de `L-C` visait le bon défaut et la mauvaise population.** Les 134 lignes qu'elle voulait corriger étaient **justes** ; les **57 qu'elle ne nommait pas** — dont **46 produits de panification** — étaient fausses. Son plat témoin fait **480 kcal avant et après** : *le faire bouger était le bug.*
+5. ⛔ **Un troisième chemin existe entre le rendement et l'énergie, nommé nulle part** : `nutrientsOf` calcule un poids cuit **uniquement** pour imputer 12 % d'huile de friture — jusqu'à **363 kcal/jour** de faux **sans passer par `gramsRawOf`**.
+6. ⛔ **Le repli du lot 18 n'était pas faible, il était ABSENT — 0 terme borné sur 260.** Un repli qui n'existe que si l'appel qu'il remplace a réussi n'en est pas un. Le groupe **était déjà en base**, dans le sas que le lot 18 écrivait **et n'a jamais relu**.
+7. ⛔ **`X2′` a réfuté son propre *pourquoi*, et c'est la réfutation qui le justifie** : **13 des 17** constantes faisaient **déjà** rougir un test — mais **par accident**, une assertion de comportement qui mord en passant. **Les 4 muettes sont toutes des PLAFONDS** : `1,8 → 9,9`, `1,25 → 9,90`, `24 → 99`, `300 → 999`, **0 failed sur 4 249 tests à chaque fois**.
+8. ⛔ **`X1′` : le seuil publié de sa propre fiche comptait les COMMENTAIRES.** Deux lignes de commentaire injectées le rendent « atteint » **sur zéro ligne exécutée**. Et le recensement rend **8 sites, pas 4** — une cinquième copie back **invisible au grep par nom**. Une pesée de **360 kg** passait le formulaire, passait le `check`, était **écrite**, puis **jetée sans un mot** par son seul lecteur.
+9. ⛔ **Le gate qui protège ce dépôt n'a JAMAIS regardé autre chose que l'index.** `.husky/pre-commit` porte `AGENT_GATE_STAGED_ONLY=1` **depuis le 2026-05-13**. Un rouge dans un fichier non stagé n'a **jamais** bloqué un commit ici *(§⑨ n° 44, réfuté et barré)*.
+10. ⚠️ **Les niveaux de cette vague ne sont pas reproductibles à la minute** — deux passes à 10 min d'écart rendent **750 puis 764** plats calculables, parce que des lots éditent `plan_energy.ts` en direct. **Seul un DELTA calculé dans un même processus est immunisé** *(§⑨ n° 55)*.
+11. ⛔ **Un rechargement à chaud de `functions serve` tue un run réel sans laisser de trace** — ni ligne côté modèle, ni erreur applicative, **seulement un 502 qui ressemble à une panne du produit** *(§⑨ n° 69)*.
+
+### ④ Le dépensé réel
+
+**11 générations sur un plafond de 16** · **214 017 jetons** sur les dix qui ont abouti
+*(médiane 85 692 ms · 21 402 jetons par génération)* · **+ 7 appels de secours
+`composition_fill`** *(`gpt-5.4-nano`, 4 014 jetons)* — **hors plafond**, ce sont des relances.
+
+⛔ **Onze lots livrés pour onze générations** : `L19b`, `L17-0`, `L-1`, `L2-lang`, `L-1-b`,
+`L-C`, `L17`, `L18b`, `V2-D`, plus `X1′`, `X2′` et `X3′` de la vague 3 — **et dix des douze
+n'en ont dépensé AUCUNE.** Les gardes se prouvent sur ce qui est déjà en base ; le plafond ne
+sert qu'aux seuils qui ne se lisent pas dans le code.
+
+
+---
+---
+
 # ⑨ LES DÉCISIONS PRISES À MA PLACE — *(registre à remplir, à valider après coup)*
 
 > **Le défaut est de DÉCIDER, pas de s'arrêter.** Un exécutant qui bloque à chaque

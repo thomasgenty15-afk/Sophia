@@ -1,0 +1,63 @@
+CLÔTURE VAGUE 2 — les données brutes, rassemblées le 2026-08-22 à 15:15 CEST
+============================================================================
+
+① LE TABLEAU DE BORD V0-E′, CÔTE À CÔTE
+   (fin vague 1 archivée dans 2026-08-22-0500-V0E-tableau-de-bord-FIN-VAGUE-1.txt
+    fin vague 2 archivée dans 2026-08-22-V0E-tableau-de-bord-FIN-VAGUE-2.txt)
+
+  compteur                        fin vague 1 (05:00)      fin vague 2 (14:54)
+  #1  plans à boîtes NON VIDES    clé 2 · non vide 1 / 182  clé 12 · non vide 9 / 192
+  #2  journées calc. PAR LANGUE   ⛔ N'EXISTE PAS            ✅ EXISTE — en foyer 44,8 % · fr foyer 28,6 %
+  #3  résolu+pesé (après pliage)  foyer 93,5 % solo 36,4 %  foyer 94,0 % · solo 36,6 %
+  #4  motifs d'abstention         —                         missing_quantity 576 · unknown 459 · no_ingr 144 / 2129
+  #5  inconnus par plan           0 plan porteur            12 / 192 plans portent une valeur
+  #6  activité crossed/leg/assum  —                         5 / 24 / 18 sur 47 corps
+  #7  ceinture > 1 bouche         1 / 15                    11 / 25   ← LE CHIFFRE DE LA VAGUE
+  #8  portion_note à grammage     181 / 348                 181 / 388
+  #9  contraintes non couvertes   6 / 59                    6 non couvertes · 36 couvertes / 59
+  #10 bouches sans birth_date     —                         25 / 92 · profils 1213 / 1333
+  CORPUS                          182 plans                 192 plans (114 foyer · 78 solo) · 923 refs · 2668 alias
+
+② LA VÉRIFICATION EN CONDITIONS RÉELLES — 10 générations, pas un test
+
+  L17-0  10 plans sur 10, seuil ATTEINT à chaque fois.
+         800 groupes déclarés · 769 valides · 769 PERSISTÉS · écart 0 partout
+         31 groupes inventés REFUSÉS par la garde
+         ce matin : 0 ligne sur 10 038 portait un group.  ce soir : 769 / 10 852 = 7,1 %
+
+  L2-lang  VERDICT MANQUÉ — écart 16,3 points (seuil ≤ 5)
+           en foyer 13/29 = 44,8 % · fr foyer 8/28 = 28,6 %  (5 plans chacun, MÊME millésime)
+           portée solo : REFUS DE CONCLURE (un bras à 0 journée) — la garde a mordu
+           ⛔ LE POURQUOI RENVERSE LA FICHE : les DEUX langues ont exactement
+              30 unknown_ingredient, et ce sont LES MÊMES ALIMENTS :
+              en : unsweetened soy yoghurt ×10 · soy yoghurt ×10 · unsweetened cocoa powder ×6 · baked potato ×4
+              fr : tofu soyeux ×22 · yaourt de soja nature ×6 · figues ×5 · muesli sans fruits a coque ×3
+           ⇒ trou de RÉFÉRENTIEL sur une poignée d'aliments, PAS un écart de langue.
+
+  L19c   mesuré à ZÉRO sur ce compteur : les 2 jumelles nommées partagent leur
+         unit_grams ⇒ elles NE PEUVENT PAS faire basculer une journée.
+         borne haute 775 couples, étiquetée « au plus » : elle sur-capture (apple/peach).
+
+  L18b   SEUIL DURCI ATTEINT — delta 7 termes neufs ≥ 3 (niveau 5 → 12)
+         et les 7 sont EXACTEMENT les termes bloquants nommés par L2-lang :
+         baked potato · cacao non sucre · muesli sans fruits a coque · soy yoghurt
+         · unsweetened cocoa powder · unsweetened soy yoghurt · yaourt de soja nature
+
+  L17    la borne a ENFIN une entrée : 769 lignes portent un group (0 ce matin)
+         seuil foyer MANQUÉ : 21/70 = 30,0 % → 30,0 % (prompt vivant)
+         corpus entier 115/389 → 119/389 (+4 journées)
+         seuil solo EN ATTENTE — le 11e run a échoué (voir ③)
+
+③ LE 11e RUN — 502, ET CE N'EST PAS UN TIMEOUT
+   latence réelle mesurée : household médiane 85 692 ms · max 93 824 ms · 10 appels
+   timeout EN VIGUEUR : PLAN_HTTP_TIMEOUT_MS = 300 000 ms ⇒ 3,5× en dessous, RIEN à relever
+   la lane solo n'a écrit AUCUNE ligne dans llm_usage_events : le modèle n'a jamais été appelé
+   CAUSE, dans le log du runtime :
+     « File change detected: _shared/keel/weight_bounds.ts (CREATE) » → « Setting up Edge Functions runtime... »
+   ⇒ le lot X1′, lancé en parallèle, a fait RECHARGER functions serve PENDANT la requête.
+   Règle écrite au §⑨ n° 69 : tant qu'un run réel est en vol, AUCUN lot n'écrit dans supabase/functions.
+
+④ LE DÉPENSÉ RÉEL
+   10 générations sur un plafond de 16 · 214 017 jetons
+   + 7 appels de secours composition_fill (gpt-5.4-nano, 4 014 jetons) — HORS plafond
+   médiane par génération : 85 692 ms · 21 402 jetons
