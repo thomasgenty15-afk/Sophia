@@ -532,6 +532,60 @@ sert qu'aux seuils qui ne se lisent pas dans le code.
 ---
 ---
 
+## ⟳ ARRÊT DE LA CAMPAGNE — **2026-08-22, 19:40 CEST** *(vagues 3, 4, 5, 6 : partielles)*
+
+> ⛔ **Ce n'est pas une clôture de vague : c'est un ARRÊT, et sa cause est matérielle.**
+> Les vagues 3 à 6 n'ont pas de sortie `V0-E′` datée parce que **la base est injoignable**.
+
+### ① Ce qui est livré — **22 lots, 72 commits, 0 génération sur les 11 derniers**
+
+**Vague 3** : `X1′` · `X2′` · `X3′` · `L16′` · `L26-0` · `L6′-a` · `L6′-b`
+**Vague 4** : `L4` · `L5` *(rattrapage vague 2)* · `L1` · `L3` · `L37` · `L-anchor-nodelivery`
+**Vague 5** : `D3′`  ·  **Vague 6** : `M-audit`
+
+### ② ⛔ POURQUOI ÇA S'ARRÊTE — trois murs, aucun de code
+
+**① LA BASE EST INJOIGNABLE.** Docker rend **0 conteneur et 0 image** ; 54321/54322 acceptent le TCP et rendent **0 octet**. Cause mesurée : **2,2 Go libres sur 228**, dont **51 Go pour `~/Library/Containers/com.docker.docker`**. ⛔ **Ces 51 Go ne sont pas à moi** — supprimer des données est hors délégation.
+
+**② LE DÉPÔT N'EST PAS CLONABLE** *(§⑨ n° 92, reproduit par l'orchestrateur)*. **93 fichiers, +16 887 lignes non commitées** ; `git archive HEAD` + `deno check` ⇒ **60 erreurs sur 15 fichiers**, dont **15 dans une garde livrée le matin même**. ⛔ **La stratégie « livrer dans un fichier neuf commitable » ne suffit pas** : la garde importe le module qu'elle garde, et ce module est `M`. Amendée le jour même — forme locale minimale, ou entrées en paramètres — et **vérifiée depuis leur propre commit** par `L3` (18/18), `L6′-a` (19/19), `D3′` (15/15), `L37` (17/17).
+
+**③ QUATRE PORTES, ET ELLES APPARTIENNENT AU PROPRIÉTAIRE.** `P0` juridique · `P1` *(anticoagulants — **désormais chiffrée**, voir ③)* · `G7` un moteur ou deux · **`G-disclosure`, ouverte ce soir par `D3′`**. Plus **la vague D, 31 signatures**. Elles bloquent `L6′`, `L9bis`, `L38`, `L11★`, `L12`, `L26`, `L21`, `D1′`, `E1`, `L24′`.
+
+### ③ Ce que le travail a révélé, et qui n'était dans aucune fiche
+
+1. ⛔ **Le premier motif d'abstention du produit est une PERTE D'ÉCRITURE.** 3 833 lignes sur 3 850 portaient la quantité **en prose** — 634 en grammes littéraux.
+2. ⛔ **Trois lots indépendants ont trouvé la même forme le même jour** — une recopie de clés qui en perd une. `X3′` l'a chiffrée à l'AST et **a conclu CONTRE la règle de dépôt** : le meilleur périmètre syntaxique serait faux **94,4 %** du temps.
+3. ⛔ **734 plats portent un nom d'usage que le front n'a AUCUN membre pour lire.** 734 écrits, 0 lisible.
+4. ⛔ **`assumed` désigne deux populations séparées de 45 personnes** — **48,9 %** des bouches sont dimensionnées sur une hypothèse qu'aucun compteur ne montre.
+5. ⛔ **Les 13 plans vivants balancent la vitamine K jusqu'à ×39** — 730 µg le vendredi, 29 le samedi. **La garde warfarine se défait sans qu'un gramme bouge.** ⇒ **`P1` a maintenant un chiffre derrière elle.**
+6. ⛔ **La bouche doublement servie était la même 14 fois sur 14 : la MINEURE.**
+7. ⛔ **Les boîtes ne sont pas un tirage** — le squelette de sortie ne liste **aucun** des quatre ajouts du foyer ; le modèle **parle des boîtes onze fois** sans écrire la clé.
+8. ⛔ **`SENIOR_PROTEIN_FLOOR_G_PER_KG` n'a jamais été appliqué à personne** — un `max` qui ne peut pas le rendre, et un commentaire qui affirme le contraire.
+9. ⛔ **Le refus que `L37` devait convertir n'existait pas** — retiré le 2026-08-18, **par écrit, au passé**.
+10. ⛔ **Le compacteur du prompt de mémoire est un NO-OP mesuré** — `startsWith("coach.")` sur des lignes écrites `- <clé> = …` : **0/10**, le plafond n'a **jamais** servi.
+11. ⛔ **`user_profile_facts` : suppression RGPD couverte, EXPORT ABSENT.** La donnée est **effacée sans avoir jamais été rendue**, et le seul document qui le dit **ne part pas** *(cicatrice `S5`)*.
+12. ⛔ **Le gate de ce dépôt n'a JAMAIS regardé autre chose que l'index** — `.husky/pre-commit` porte `AGENT_GATE_STAGED_ONLY=1` **depuis le 2026-05-13**.
+
+### ④ ⛔ LE FAIT DE MÉTHODE QUI DOMINE LA CAMPAGNE
+
+**TREIZE gardes passaient VERTES sur leur propre cas. AUCUNE n'a été trouvée par une relecture. TOUTES par une mutation** — dont **une dans le test d'un lot écrit le soir même**, paramétré par sa propre constante. Et **trois lots ont mesuré que leur seuil était satisfait par la PIRE régression possible** *(`L26-0`, `L1`, `L37`)*.
+
+⇒ **La mutation est le seul instrument auquel cette campagne fait confiance.** Un seuil, un compteur et une relecture ne suffisent jamais.
+
+### ⑤ Le dépensé réel
+
+**11 générations sur un plafond de 16** *(vague 2)*, **214 017 jetons**. ⛔ **Vingt-deux lots livrés ; dix-neuf n'ont dépensé AUCUNE génération.** Les vagues 3 à 6 n'en ont consommé **zéro** — leur plafond (8 + 20 + 12 + 8 = **48**) est **intact**.
+
+### ⑥ Ce qui reste, et à qui
+
+**À moi, dès que la base remonte** : `L30b` *(interrompu)* · `L0-b` · `L8` · les lots de mémoire · et **21 fiches ouvertes par le travail lui-même** — `L19c`, `L-1-a`, `L-C-a`, `L-C-b`, `L17-a`, `L18b-a`, `L26-1`, `L4-b`, `L4-c`, `L1-a`, `L3-a`, `L3-b`, `L5-b`, `L6′-c`, `D3′-a`, `D3′-b`, `L-anchor-a`, `X1′-a`, `X2″`, `X3-a`, `M-audit-a`.
+
+**Au propriétaire** : les **quatre portes**, la **vague D**, les **51 Go de Docker**, et ⛔ **la question que `V0-A-bis` porte depuis la vague 0 — le dépôt doit-il redevenir clonable ?** Elle a cessé d'être théorique : **aucune garde de cette campagne n'est reproductible par quelqu'un d'autre tant qu'elle est ouverte.**
+
+
+---
+---
+
 # ⑨ LES DÉCISIONS PRISES À MA PLACE — *(registre à remplir, à valider après coup)* — **109 entrées au 2026-08-22**
 
 > **Le défaut est de DÉCIDER, pas de s'arrêter.** Un exécutant qui bloque à chaque
