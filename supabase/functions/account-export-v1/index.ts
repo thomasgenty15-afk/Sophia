@@ -364,6 +364,7 @@ async function buildExportPayload(
     studentWeekPlans,
     studentDailyCheckins,
     studentActivitySessions,
+    weightDivergenceEpisodes,
     studentHungerReports,
     studentGeneratedMeals,
     studentMealDocuments,
@@ -529,6 +530,18 @@ async function buildExportPayload(
       admin,
       "student_activity_sessions",
       SCOPE.studentActivitySessions,
+      "user_id",
+      user.id,
+      keelUnavailable,
+    ),
+    // FF-056 — les épisodes de divergence. ⟳ Raccord débloqué le 2026-08-22
+    // (`S5`): le rapport FF-056 §8 B1 le donnait mot pour mot et le déclarait
+    // BLOQUÉ sur ce fichier. La table était réclamée par la purge et absente
+    // de l'export — le cycle de vie à moitié.
+    fetchKeelRows(
+      admin,
+      "student_weight_divergence_episodes",
+      SCOPE.weightDivergenceEpisodes,
       "user_id",
       user.id,
       keelUnavailable,
@@ -938,6 +951,14 @@ async function buildExportPayload(
         // signal par une autre porte: l'axe `hunger` du tap et la faim dite en
         // passant. Les séparer dans l'archive ferait croire à deux choses.
         faim_declaree: studentHungerReports,
+        // FF-056 — LES ÉPISODES DE DIVERGENCE. ⟳ Ajoutés le 2026-08-22 (`S5`):
+        // le raccord était écrit et DÉCLARÉ BLOQUÉ depuis le 2026-08-11, sur
+        // ce fichier même. Rangés ici parce que c'est ce que le produit a
+        // constaté DE SA SEMAINE, à côté de ce qu'il en a déclaré. Aucune
+        // prose: la table ne stocke que des jetons de listes fermées, par
+        // décision — un dossier sur quelqu'un qui n'a pas perdu de poids n'a
+        // pas à exister.
+        divergences_constatees: weightDivergenceEpisodes,
       },
       // Séparé de `mon_plan.json`: un plan de semaine est un ENGAGEMENT que
       // l'élève adopte, un repas généré est un SERVICE rendu à la demande. Les

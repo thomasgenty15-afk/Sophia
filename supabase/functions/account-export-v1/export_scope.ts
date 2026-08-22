@@ -285,6 +285,26 @@ export const SCOPE = {
   // de la migration, la raison y est chiffrée).
   studentActivitySessions:
     "id,local_date,kind,duration_min,intensity,source,created_at",
+  // FF-056 — LES ÉPISODES DE DIVERGENCE.
+  //
+  // ⟳ RACCORD DÉBLOQUÉ LE 2026-08-22 (`S5`). Le rapport FF-056 §8 B1 l'avait
+  // écrit noir sur blanc: « purge ✅ garantie, export ❌ BLOQUÉ — la liste est
+  // en dur dans `account-export-v1/index.ts`, fichier modifié par une autre
+  // session ». La table rejoignait donc le cycle de vie À MOITIÉ, et le filet
+  // qui énumère l'a redit: elle était RÉCLAMÉE par la purge et NOMMÉE comme
+  // non exportée au même instant — deux affirmations qui ne peuvent pas être
+  // vraies ensemble.
+  //
+  // Elle ne porte AUCUNE prose de l'élève (fiche §5: « stocker les mots de
+  // quelqu'un qui explique pourquoi il n'a pas perdu de poids créerait un
+  // dossier ») — que des jetons de listes fermées. Elle dit quand même que le
+  // poids de quelqu'un n'a pas suivi son plan, et pourquoi: donnée de santé,
+  // elle sort en entier. `user_id` seul reste dehors, comme partout.
+  weightDivergenceEpisodes:
+    "id,state,category,detector_version,shape,goal_direction,plan_fingerprint," +
+    "opened_local_date,opened_at,last_turn_at,closed_at,turn_count," +
+    "observation_opened_on,observation_ends_on,opening_chat_message_id," +
+    "content_locale,created_at,updated_at",
   // FF-027 — la faim déclarée en conversation. `student_note` porte LES MOTS DE
   // L'ÉLÈVE: c'est de la donnée personnelle, elle sort donc dans l'archive.
   studentHungerReports:

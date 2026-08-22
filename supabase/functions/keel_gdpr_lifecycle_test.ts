@@ -157,7 +157,18 @@ const PIVOT_TABLES = [
   // L'export les traite déjà comme vides, sans sonder la base.
   // `student_cards`, `card_armings`, `card_wins`: droppées par 20260808070000
   // (retrait résidus grand public) — leurs marqueurs sont partis avec elles.
-  { table: "meal_ideas", owner: "student_id", marker: "A13SEED-IDEE" },
+  // ⛔ `meal_ideas` A ÉTÉ RETIRÉE D'ICI LE 2026-08-22, ET C'EST LA TROISIÈME
+  // FORME DE PÉREMPTION D'UNE LISTE ÉCRITE À LA MAIN — celle qu'aucune des
+  // deux autres n'attrape: la table EXISTE, mais SA COLONNE DE PROPRIÉTAIRE
+  // n'existe plus. `meal_ideas.student_id` a été droppée le 2026-08-04
+  // (`20260804210000_coach_recipe_library.sql`): la bibliothèque de recettes
+  // est désormais GLOBALE, elle appartient au coach, et AUCUNE colonne ne
+  // relie plus une recette à un élève. L'export l'avait retirée le jour même;
+  // ce fichier la réclamait encore, et levait
+  // `Could not find the 'student_id' column of 'meal_ideas'`.
+  //
+  // Le filet plus bas assert maintenant que CHAQUE colonne de propriétaire
+  // existe dans l'inventaire — c'est ce qui aurait dit cette panne.
   { table: "protocol_events", owner: "user_id", marker: "A13SEED-PHOTO" },
   { table: "weekly_reviews", owner: "user_id", marker: "A13SEED-BILAN" },
   // FF-031 — les mesures corporelles datées. Donnée personnelle de santé, et
@@ -359,16 +370,6 @@ async function seedFullStudent(
     opened_local_date: "2026-08-05",
     closed_at: new Date().toISOString(),
     content_locale: "fr-FR",
-  });
-
-  await ins("meal_ideas", {
-    author_kind: "coach",
-    coach_id: coachId,
-    student_id: userId,
-    title: "A13SEED-IDEE",
-    slot_key: "breakfast",
-    content_locale: "fr-FR",
-    status: "active",
   });
 
   return coachId;
@@ -825,7 +826,6 @@ const NON_RECLAMEES: Record<string, string[]> = {
     "reengagement_episodes",
     "scheduled_checkins",
     "student_daily_recommendations",
-    "student_weight_divergence_episodes",
     "subscriptions",
     "user_chat_states",
     "user_entities",
@@ -838,8 +838,9 @@ const NON_RECLAMEES: Record<string, string[]> = {
   ],
 };
 
-/** Plafond de la dette, MESURÉ le 2026-08-22. Il ne peut que descendre. */
-const A_QUALIFIER_MAX = 38;
+/** Plafond de la dette, MESURÉ le 2026-08-22 (38, puis 37 quand FF-056 a été
+ * raccordée dans ce lot même). Il ne peut que DESCENDRE. */
+const A_QUALIFIER_MAX = 37;
 const A_QUALIFIER_KEY =
   "A_QUALIFIER — porte de la donnee personnelle, NON reclamee";
 
@@ -1047,6 +1048,7 @@ const HORS_EXPORT: Record<string, [string[], string][]> = {
     ],
   ],
   student_meal_documents: [[["user_id"], "sa propre cle"]],
+  student_weight_divergence_episodes: [[["user_id"], "sa propre cle"]],
   meal_composition_verdicts: [[["user_id"], "sa propre cle"]],
   coach_doctrines: [
     [["coach_id"], "sa propre cle"],
@@ -1145,11 +1147,45 @@ Deno.test(
         `\`student_facts\` ici pendant trois semaines apres leur DROP.`,
     );
 
+    // ---- 1bis. LA COLONNE DE PROPRIÉTAIRE EXISTE ENCORE -----------------
+    //
+    // ⛔ LA TROISIÈME PÉREMPTION, ET AUCUN DES DEUX CONTRÔLES CI-DESSUS NE LA
+    // VOIT: la table existe, sa colonne de propriétaire non. C'est ce qui a
+    // laissé `meal_ideas` avec `owner: "student_id"` du 2026-08-04 au
+    // 2026-08-22, en levant `Could not find the 'student_id' column` à la
+    // première ligne du décor — c'est-à-dire en rendant le seul filet RGPD du
+    // dépôt INEXÉCUTABLE, sans qu'une seule ligne le dise.
+    const brokenOwners = PIVOT_TABLES
+      .filter((t) => !(schema[t.table] ?? []).includes(t.owner))
+      .map((t) => `${t.table}.${t.owner}`);
+    assertEquals(
+      brokenOwners,
+      [],
+      `colonne(s) de propriétaire disparue(s): ${brokenOwners.join(", ")}. ` +
+        `Le décor de ce fichier ne peut plus semer, donc le filet ne tourne ` +
+        `plus du tout — et une liste écrite à la main ne le dit jamais.`,
+    );
+
     // ---- 2. AUCUNE TABLE NON CLASSÉE -------------------------------------
     const named = new Set<string>(claimed);
     for (const [, tables] of Object.entries(NON_RECLAMEES)) {
       for (const t of tables) named.add(t);
     }
+    // ⛔ ET AUCUNE TABLE N'EST DANS LES DEUX LISTES. « Réclamée » et
+    // « nommée comme exclue » sont contradictoires: la première gagnerait en
+    // silence, et une table pourrait rester dans la classe de la dette tout en
+    // étant exportée — ou l'inverse.
+    const both: string[] = [];
+    for (const [, tables] of Object.entries(NON_RECLAMEES)) {
+      for (const t of tables) if (claimed.has(t)) both.push(t);
+    }
+    assertEquals(
+      both.sort(),
+      [],
+      `table(s) à la fois RÉCLAMÉES et NOMMÉES COMME EXCLUES: ` +
+        `${both.join(", ")}. Les deux affirmations ne peuvent pas être vraies.`,
+    );
+
     const unclassified = allTables.filter((t) => !named.has(t));
     assertEquals(
       unclassified,
