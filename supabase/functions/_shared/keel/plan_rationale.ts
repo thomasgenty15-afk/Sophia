@@ -424,16 +424,45 @@ const COPY = {
  * Un jeton inconnu est RENDU TEL QUEL plutôt que jeté — même arbitrage que
  * `request_report_gate.ts::renderDays`: perdre un jour rend la phrase moins
  * précise, le jeter en silence la rend fausse tout en ayant l'air complète.
+ *
+ * ⚠️ EXPORTÉ POUR `plan_tradeoffs.ts` (L35-a), ET C'EST LE POINT: le module
+ * frère écrit d'autres phrases, dans les mêmes deux langues, et il ne doit PAS
+ * porter une seconde façon d'énumérer des prénoms ni une seconde table de
+ * jours. « Deux copies d'une même règle divergent, et c'est celle qu'on regarde
+ * le moins qui garde l'ancienne » — la table de langue reste ICI, une fois.
  */
-function joinList(items: readonly string[], locale: RationaleLocale): string {
+export function joinList(
+  items: readonly string[],
+  locale: RationaleLocale,
+): string {
   const named = items.filter((s) => String(s ?? "").trim().length > 0);
   if (named.length === 0) return "";
   if (named.length === 1) return named[0];
   return `${named.slice(0, -1).join(", ")}${COPY[locale].and}${named[named.length - 1]}`;
 }
 
-function renderDays(days: readonly string[], locale: RationaleLocale): string {
+/** ⚠️ EXPORTÉ POUR `plan_tradeoffs.ts` — voir `joinList` juste au-dessus. */
+export function renderDays(
+  days: readonly string[],
+  locale: RationaleLocale,
+): string {
   return joinList(days.map((d) => COPY[locale].days[d] ?? d), locale);
+}
+
+/**
+ * LE NOM D'UN RÉGIME DANS LA LANGUE DU CONTENU. `null` = la copie ne sait pas
+ * le nommer, et l'appelant DOIT alors se taire plutôt qu'écrire le slug anglais
+ * au milieu d'un texte français.
+ *
+ * ⚠️ EXPORTÉ POUR `plan_tradeoffs.ts`, ET C'EST LA MÊME TABLE QUE `sharedRegime`
+ * LIT. Deux plans du même foyer ne peuvent donc pas nommer le régime de deux
+ * façons différentes dans deux phrases voisines.
+ */
+export function regimeLabel(
+  regime: string,
+  locale: RationaleLocale,
+): string | null {
+  return COPY[locale].regimes[String(regime ?? "").trim()] ?? null;
 }
 
 function renderSlots(slots: readonly string[], locale: RationaleLocale): string {
