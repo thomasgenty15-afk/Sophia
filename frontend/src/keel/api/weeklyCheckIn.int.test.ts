@@ -29,10 +29,25 @@ import {
 import { en as EN } from "../i18n/en";
 import { fr as FR } from "../i18n/fr";
 
-const BACKEND = readFileSync(
-  resolve(__dirname, "../../../../supabase/functions/_shared/keel/weekly_flow.ts"),
-  "utf8",
-);
+// ⚠️ DEUX FICHIERS, ET C'EST LE LOT `X1′` QUI L'A RENDU NÉCESSAIRE (2026-08-22).
+// Les bornes de POIDS ne sont plus déclarées dans `weekly_flow.ts`: elles y
+// étaient recopiées, comme dans trois autres modules du back, et l'un des
+// quatre portait déjà 350 au lieu de 400. Elles vivent maintenant dans
+// `weight_bounds.ts`, seule déclaration du back, et `weekly_flow.ts` les
+// ré-exporte. Le garde-frontière lit donc les deux fichiers — sans quoi il ne
+// trouverait plus `WEIGHT_KG_MIN` et JETTERAIT, ce qui se lit comme un test
+// cassé au lieu d'un contrat tenu.
+const BACKEND = [
+  "weekly_flow.ts",
+  "weight_bounds.ts",
+]
+  .map((f) =>
+    readFileSync(
+      resolve(__dirname, `../../../../supabase/functions/_shared/keel/${f}`),
+      "utf8",
+    )
+  )
+  .join("\n");
 
 function backendArray(name: string): string[] {
   const at = BACKEND.indexOf(`export const ${name} = [`);

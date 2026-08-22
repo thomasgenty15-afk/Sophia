@@ -209,9 +209,18 @@ export const ACTIVITY_KCAL_PER_KG: Readonly<
  * Les bornes de plausibilité, les mêmes que le point hebdo et que
  * `coachStartingNumbers`. Hors bornes, pas de nombres: un 500 kg d'erreur de
  * frappe produirait une cible absurde présentée avec l'aplomb d'un tableau.
+ *
+ * ⚠️ « Les mêmes que le point hebdo » était une PROMESSE, pas un fait: quatre
+ * modules de `_shared/keel/` déclaraient ces deux nombres et l'un d'eux portait
+ * déjà 350. Depuis le lot `X1′` (2026-08-22) c'est un fait — ils sont IMPORTÉS
+ * de `weight_bounds.ts`, seule déclaration du back, et l'alias `TARGET_` reste
+ * le nom public de ce module.
  */
-export const TARGET_WEIGHT_KG_MIN = 25;
-export const TARGET_WEIGHT_KG_MAX = 400;
+import {
+  WEIGHT_KG_MAX as TARGET_WEIGHT_KG_MAX,
+  WEIGHT_KG_MIN as TARGET_WEIGHT_KG_MIN,
+} from "./weight_bounds.ts";
+export { TARGET_WEIGHT_KG_MAX, TARGET_WEIGHT_KG_MIN };
 
 /**
  * POURQUOI IL N'Y A PAS DE CIBLE. Nommé, jamais un `null` nu — les deux motifs

@@ -30,6 +30,8 @@
  * PURE MODULE : no I/O, no clock (le caller passe `now`), no randomness.
  */
 
+import { WEIGHT_KG_MAX, WEIGHT_KG_MIN } from "./weight_bounds.ts";
+
 // ---------------------------------------------------------------------------
 // Le vocabulaire (R1 : tokens ASCII)
 // ---------------------------------------------------------------------------
@@ -88,9 +90,14 @@ export const WEEKLY_SCALE_LABELS_EN: Record<number, string> = {
  * bord: un 500 kg ramené à 400 produit une donnée fausse qui a l'air vraie, et
  * c'est bien pire qu'une case vide. Volontairement larges — il ne s'agit pas
  * de juger un corps mais d'attraper une faute de frappe.
+ *
+ * ⚠️ LE POIDS N'EST PLUS DÉCLARÉ ICI (lot `X1′`, 2026-08-22). Il vivait dans
+ * QUATRE modules de `_shared/keel/`, et le quatrième portait déjà 350 au lieu
+ * de 400. Il est ré-exporté depuis `weight_bounds.ts`, qui est la seule
+ * déclaration du back — voir l'en-tête de ce module pour ce que la divergence
+ * coûtait. Le tour de taille, lui, n'a jamais divergé et reste ici.
  */
-export const WEIGHT_KG_MIN = 25;
-export const WEIGHT_KG_MAX = 400;
+export { WEIGHT_KG_MAX, WEIGHT_KG_MIN };
 export const WAIST_CM_MIN = 30;
 export const WAIST_CM_MAX = 250;
 
