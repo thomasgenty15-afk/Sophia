@@ -1,0 +1,164 @@
+═══════════════════════════════════════════════════════════════════════════
+L-C — LES DIRECTIONS, PAR CLASSE
+⛔ ÉCRITES LE 2026-08-22 À 13:0x CEST, **AVANT** TOUT `update` EN BASE.
+   État de la base au moment de l'écriture : 0 / 57 décisions appliquées
+   (`scratchpad/2026-08-22-L-C-AVANT-lignes-cuites.txt`, section ①).
+═══════════════════════════════════════════════════════════════════════════
+
+⛔ CE N'EST PAS UNE DIRECTION. C'EST UNE DIRECTION PAR CLASSE, ET LES QUATRE
+   NE VONT PAS DANS LE MÊME SENS. La fiche disait « vers le haut pour une
+   viande braisée, vers le bas pour des nouilles » : les deux moitiés sont
+   réfutées ci-dessous, et c'est écrit AVANT, pas après.
+
+───────────────────────────────────────────────────────────────────────────
+LA RÈGLE DONT LES QUATRE DIRECTIONS DÉCOULENT — écrite une fois
+───────────────────────────────────────────────────────────────────────────
+
+`nutrientsOf` multiplie `gramsRaw` par `energy_kcal / 100`. Donc :
+
+    `yield_class` NON NEUTRE est juste SI ET SEULEMENT SI `energy_kcal` est
+    la densité de l'aliment DANS UN AUTRE ÉTAT que celui qui arrive dans
+    l'assiette — c'est-à-dire une céréale/légumineuse SÈCHE qui boit son eau
+    de cuisson, ou une chair/un légume CRU qui la perd.
+
+    Toute ligne dont la valeur est DÉJÀ celle de l'aliment tel qu'il est
+    mangé — plat cuit, produit de panification, produit fini — doit être
+    `neutral`, sinon le rendement s'applique DEUX FOIS.
+
+Cette règle se dérive du code, pas d'un avis : `gramsRawOf` divise par
+`YIELD_FACTORS[yieldClass]` quand `state === "cooked"`, et `stateMattersFor`
+n'ACCEPTE un `state` absent que sur une classe à facteur 1,0.
+
+───────────────────────────────────────────────────────────────────────────
+CLASSE A — 134 lignes · ligne CUITE, déjà `neutral`
+DIRECTION : ⛔ AUCUN MOUVEMENT. `neutral` EST le bon rendement.
+───────────────────────────────────────────────────────────────────────────
+
+⛔ C'EST UN RENVERSEMENT DE LA PRÉMISSE DE LA FICHE, et il faut le dire net.
+La fiche lisait « 130 lignes cuites en `neutral` » comme 130 défauts. Ce sont
+130 lignes JUSTES. `Beef, braised` porte 240 kcal/100 g CUITS ; l'assiette
+déclare des grammes de bœuf braisé ; `gramsRaw` doit donc valoir ces grammes
+tels quels. Lui poser `meat_shrinks` ferait 200 g → 285,7 g → **686 kcal au
+lieu de 480**, c'est-à-dire l'erreur que la fiche croyait corriger, en plus
+gros et dans le sens qu'elle annonçait (« vers le haut »).
+
+CONSÉQUENCE ANNONCÉE, ET ELLE EST DÉSAGRÉABLE : **le plat témoin de la fiche
+(200 g de bœuf braisé) NE BOUGERA PAS.** 480 kcal avant, 480 kcal après. Le
+seuil ③ demande « recalculée avant/après » — la réponse est « inchangée, et
+voici pourquoi ». Trois autres témoins sont ajoutés pour que le seuil porte
+sur des lignes qui, elles, bougent.
+
+Deuxième raison, indépendante : `neutral` est la seule classe qui ACCEPTE un
+`state` absent. 3 903 des 10 453 lignes du corpus n'en portent pas. Passer
+ces 134 en non-neutre les ferait toutes s'abstenir.
+
+Troisième : le lot 30 a bâti sa grille de prix SUR cette neutralité
+(`cooked_label_dry_input` est défini comme « libellé cuit ET `yield_class`
+vaut 1,0 »). Les faire bouger casserait 111 prix en silence.
+
+───────────────────────────────────────────────────────────────────────────
+CLASSE B — 11 lignes · ligne CUITE portant une classe NON NEUTRE → `neutral`
+DIRECTION : ELLE DÉPEND DU FACTEUR, ET ELLE VA DANS LES DEUX SENS.
+───────────────────────────────────────────────────────────────────────────
+
+  · `noodles` (104 kcal, `grain_absorbs`)          → ⬆ ×2,60
+    `toasted_bread` (317), `country_style_bread` (240),
+    `bread_flour_bread_preparation` (256)          → ⬆ ×2,60
+    200 g de nouilles cuites déclarées « cooked » passent de 80 à 208 kcal.
+    ⛔ LA FICHE DISAIT « vers le bas pour des nouilles » : C'EST L'INVERSE.
+    Elle lisait « ×3,3 trop léger » comme une valeur à alourdir en changeant
+    la VALEUR ; le facteur qui mord est 2,6 et il se retire, il ne s'ajoute
+    pas. La valeur 104 est juste — c'est la classe qui divisait.
+
+  · les six purées (`carrots_puree` 31,5 · `carrots_puree_cream` 44,4 ·
+    `vegetables_mashed` 61,8 · `mashed_potatoes` 91,8 ·
+    `potato_puree_milk_butter` 88,8 ·
+    `potato_puree_flakes_reconstituted` 97,9), `veg_shrinks` → ⬇ ×0,90
+    200 g de purée déclarés « cooked » passent de 204 à 184 kcal.
+
+  · `black_white_pudding_sauteed` (246, `meat_shrinks`) → ⬇ ×0,70
+    100 g de boudin poêlé passent de 351 à 246 kcal.
+
+───────────────────────────────────────────────────────────────────────────
+CLASSE C — 46 lignes · PRODUIT DE PANIFICATION en `grain_absorbs` → `neutral`
+DIRECTION : ⬆ ×2,6 SUR LE GRAMMAGE, ⬇ SUR L'ÉNERGIE D'UN PLAT FRIT.
+            ET « abstention → chiffre » QUAND LE `state` EST ABSENT.
+───────────────────────────────────────────────────────────────────────────
+
+Le pain ne boit pas d'eau à la cuisson : la farine l'a bue à la boulangerie,
+et le référentiel porte le pain FINI (217 à 495 kcal/100 g). Six pains
+étaient déjà `neutral` (`white_bread`, `wholemeal_bread`, `rye_bread`,
+`pita_bread`, `naan_bread`, `bagel`) et cinq ne l'étaient pas : la famille se
+contredisait elle-même. Une tranche de 35 g écrite `cooked` était comptée
+13,5 g, soit **37 kcal au lieu de 97**.
+
+⚠️ TROIS EFFETS, ET ILS NE VONT PAS DANS LE MÊME SENS. Il faut les annoncer
+séparément, sinon le troisième passera pour une régression :
+
+  ① `state: "cooked"` → ⬆ ×2,6 sur l'énergie du pain (37 → 97 kcal) ;
+  ② `state` absent    → ⬆ de l'ABSTENTION vers un chiffre : `gramsRawOf`
+     rendait `null`, donc le plat entier s'éteignait ;
+  ③ `state: "raw"`    → l'énergie du pain est INCHANGÉE (`gramsRawOf` ne
+     divise que sur « cooked »)… **MAIS l'énergie du PLAT baisse s'il est
+     frit.** `nutrientsOf` impute 12 % d'huile sur `cookedWeight`, et
+     `cookedWeight` multiplie par `YIELD_FACTORS[yieldClass]` : un pain en
+     `grain_absorbs` gonflait la masse cuite du plat de ×2,6, donc
+     l'imputation d'huile avec elle. C'est un chemin que la fiche ne nomme
+     pas et qui ne passe PAS par `gramsRawOf`.
+
+     ⛔ DIRECTION PRÉDITE POUR ③, ÉCRITE ICI AVANT L'`UPDATE` : sur le corpus,
+     les seuls plats dont le chiffre bougera sont des plats FRITS contenant
+     du pain, et leur énergie BAISSERA. Prédiction chiffrée par simulation
+     en mémoire (le script applique les décisions sans toucher la base) :
+     **7 plats sur 750, −0,19 % d'énergie sur le corpus entier.**
+
+───────────────────────────────────────────────────────────────────────────
+CLASSE D — 15 lignes · CÉRÉALE / LÉGUMINEUSE SÈCHE
+DIRECTION : ⛔ AUCUN MOUVEMENT — ET C'EST LA CONTRE-ÉPREUVE DU LOT.
+───────────────────────────────────────────────────────────────────────────
+
+`white_rice` 352, `white_pasta` 336, `couscous` 352, `quinoa` 358,
+`lentils_dry` 331, `chickpeas_dry` 351, `noodles_wholewheat` 350 … Ces
+quinze-là boivent VRAIMENT leur eau. Si le lot les emportait « par symétrie »,
+200 g de riz cuit se compteraient 704 kcal au lieu de 271. Deux témoins du
+script existent uniquement pour que ce mouvement-là rougisse s'il arrive.
+
+⚠️ `noodles` (104, cuit) et `noodles_wholewheat` (350, sec) sortent du lot sur
+des bases DIFFÉRENTES, et c'est voulu : chacune est juste chez elle. Le
+couple reste un piège de nommage — il appartient à `L19c`.
+
+───────────────────────────────────────────────────────────────────────────
+CE QUI NE BOUGE PAS, ET LE MOTIF — une liste de refus muette se refait
+───────────────────────────────────────────────────────────────────────────
+
+  `energy_kcal`, `protein_g`, `carbs_g`, `fat_g`, `fiber_g`
+      ⛔ AUCUNE VALEUR NUTRITIONNELLE N'EST TOUCHÉE. Re-baser les 134 lignes
+      de classe A en « pour 100 g crus » les rendrait justes sur un
+      `state: "raw"` — mais il faudrait multiplier 134 × 5 colonnes par un
+      facteur GÉNÉRIQUE sur des lignes dont 689/923 se déclarent `ciqual`
+      SANS `ciqual_code` (lot `O9`). C'est la définition d'un nombre inventé,
+      sur la grandeur que tout le produit lit. Le défaut résiduel est nommé
+      et compté (fiche `L-C-a`), pas maquillé.
+
+  la charcuterie en `meat_shrinks` (salami, rillettes, pâtés, jambons secs,
+  mortadelle…) ⚠️ MÊME DÉFAUT, AUTRE POPULATION, et elle n'est pas lue par
+      ce lot : 290 lignes en `meat_shrinks`, dont une large part sont des
+      produits prêts à manger qui ne rétrécissent jamais dans l'assiette.
+      Les toucher demanderait la même lecture une par une, et le plan impose
+      une seule migration de référentiel à la fois. Fiche `L-C-b`.
+
+  les légumes MANGÉS CRUS en `veg_shrinks` (laitue, concombre, tomate,
+  avocat, champignons…) ⚠️ même mécanisme, troisième population : ils sont
+      gatés derrière un `state` qu'une salade ne portera jamais. Fiche
+      `L-C-b`.
+
+  `potato_flakes` · `potato_flakes_milk_cream` · `shiitake_mushroom` (séché)
+  · `tapioca` — ⚠️ en `veg_shrinks` alors qu'ils RÉHYDRATENT : le facteur y
+      est faux dans l'autre sens (0,9 au lieu de > 1). Aucun facteur
+      défendable ne sort d'une lecture de libellé. Fiche `L-C-b`.
+
+  `potato_crisps_*` · `rostis_potatoes_cake` · `tomato_oil` — produits finis
+      en `veg_shrinks`. Même famille que la classe C, autre classe de départ,
+      hors du classement du lot 30. Fiche `L-C-b`.
+
+═══════════════════════════════════════════════════════════════════════════
