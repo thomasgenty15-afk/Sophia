@@ -40,6 +40,17 @@ import {
   PER_PORTION_PROTEIN_G,
 } from "./meal_verdict.ts";
 import { FILL_REQUEST_CAP } from "./composition_fill.ts";
+// ── la fournée du lot `X2″` (2026-08-23): ce que le scanner élargi fait entrer
+import { ACTIVITY_FACTORS, APPETITE_FACTORS } from "./meal_envelope.ts";
+import {
+  MAX_DOCUMENT_BASE64_CHARS,
+  MAX_DOCUMENT_BYTES,
+} from "./doctrine_document.ts";
+import { HABIT_SLOTS_MAX } from "./household_habits.ts";
+import {
+  TARGET_WEIGHT_KG_MAX,
+  TARGET_WEIGHT_KG_MIN,
+} from "./energy_target.ts";
 import { PROTEIN_REFERENCE_CEILING_KG_PER_M2 } from "./protein_reference_weight.ts";
 import {
   ANCHOR_FACTOR_MAX,
@@ -71,8 +82,15 @@ Deno.test("épinglage — DENSITY_CEILING_DEFAULT vaut 1,8 kcal/g", () => {
 // cette constante-ci est DÉRIVÉE —
 // `Math.round((ENERGY_BANDS.muscle_gain.high - 1) * 1000) / 1000`.
 // ⇒ passer la bande `muscle_gain` de 1,10 à 1,20 ne faisait rougir AUCUN
-// épinglage. Cette ligne-ci est la seule qui rougisse. Le trou du scanner,
-// lui, reste ouvert: fiche `X2″`.
+// épinglage. Cette ligne-ci est la seule qui rougisse. ~~Le trou du scanner,
+// lui, reste ouvert: fiche `X2″`.~~
+// ⟳ **LE TROU EST REFERMÉ le 2026-08-23 par le lot `X2″`** — le scanner VOIT
+// désormais les constantes dérivées, et `MAX_SURPLUS_FRACTION` est l'une des
+// SENTINELLES de son anti-garde-morte: retirer la ligne ci-dessous fait
+// désormais rougir `constant_pinning_gate_test.ts` PAR SON NOM.
+// ⚠️ `ENERGY_BANDS`, elle, reste hors de portée de la règle — elle n'est pas
+// exportée. Elle est fermée en bas de ce fichier, par un épinglage lu sur le
+// disque, et c'est un correctif NOMMÉ, pas une règle.
 //
 // ⚠️ ÉPINGLÉE, PAS DÉFENDUE — même statut que `KEEL_MINOR_AGE`. Le lot `L37`
 // a mesuré que l'élargir au-delà de **0,1055** ferait exécuter, à un adulte
@@ -179,4 +197,129 @@ Deno.test("épinglage — SLOT_DAY_WEIGHT, l'objet ENTIER", () => {
 // lot. Dans les deux cas, une seule ligne rougit.
 Deno.test("épinglage — PROTEIN_REFERENCE_CEILING_KG_PER_M2 vaut 30", () => {
   assertEquals(PROTEIN_REFERENCE_CEILING_KG_PER_M2, 30);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ LA FOURNÉE DU LOT `X2″` — 2026-08-23
+//
+// Ces sept-là ne sont pas des constantes neuves: elles étaient là depuis
+// toujours, et le scanner de `X2′` ne les VOYAIT pas. Mesuré: sur les 152
+// constantes de son propre périmètre, il en ratait 12, pour six causes
+// mécaniques (séparateur `_`, expression dérivée, alias, `.length`,
+// ré-exportation, `Object` et `.freeze({` séparés par un saut de ligne).
+//
+// ⛔ ET LEURS TESTS SONT COMPLICES, TOUS, AU SENS EXACT DE CE FICHIER:
+//   · `assertEquals(HABIT_SLOTS_MAX, EATING_OCCASIONS.length)` — deux dérivées
+//     de la même liste, comparées l'une à l'autre;
+//   · `assert(MAX_DOCUMENT_BASE64_CHARS >= Math.ceil(MAX_DOCUMENT_BYTES / 3) * 4)`
+//     — une RELATION entre les deux: le plafond d'envoi peut passer de 6 Mo à
+//     60 Mo sans qu'une seule assertion bronche;
+//   · `assertEquals(DAY_ACTIVITY_BASE.seated, ACTIVITY_FACTORS.sedentary)` —
+//     deux tables comparées l'une à l'autre.
+// C'est exactement la forme que ce fichier existe pour rendre impossible.
+// ═══════════════════════════════════════════════════════════════════════════
+
+// ── LES FACTEURS D'ACTIVITÉ ET D'APPÉTIT (`meal_envelope.ts`) ────────────────
+// ⛔ CE SONT LES MULTIPLICATEURS DE LA MAINTENANCE. Monter `trains_hard` de
+// 2,00 à 2,20 ajoute ~10 % d'énergie à toutes les assiettes d'un corps sportif,
+// sans qu'aucune ligne de verdict ne change de forme. On épingle L'OBJET
+// ENTIER: une clé AJOUTÉE est un niveau d'activité que personne n'a décidé.
+Deno.test("épinglage — ACTIVITY_FACTORS, l'objet ENTIER", () => {
+  assertEquals(ACTIVITY_FACTORS, {
+    sedentary: 1.45,
+    on_feet: 1.65,
+    trains_some: 1.80,
+    trains_hard: 2.00,
+  });
+});
+
+Deno.test("épinglage — APPETITE_FACTORS, l'objet ENTIER", () => {
+  assertEquals(APPETITE_FACTORS, {
+    small: 0.90,
+    average: 1.00,
+    large: 1.10,
+  });
+});
+
+// ── LES PLAFONDS DU DOCUMENT DE DOCTRINE (`doctrine_document.ts`) ────────────
+// ⛔ Écrites `6_000_000` et `8_000_000`: le séparateur `_` suffisait à les
+// rendre invisibles. Ce sont des plafonds — la famille que `X2′` a mesurée
+// comme la plus souvent MUETTE (4 muettes sur 17, toutes des plafonds).
+Deno.test("épinglage — MAX_DOCUMENT_BYTES vaut 6 000 000 octets", () => {
+  assertEquals(MAX_DOCUMENT_BYTES, 6_000_000);
+});
+
+Deno.test("épinglage — MAX_DOCUMENT_BASE64_CHARS vaut 8 000 000 caractères", () => {
+  assertEquals(MAX_DOCUMENT_BASE64_CHARS, 8_000_000);
+});
+
+// ── LE NOMBRE DE CRÉNEAUX D'HABITUDE (`household_habits.ts`) ─────────────────
+// ⛔ `HABIT_SLOTS_MAX = HABIT_OCCASIONS.length`, et son test le compare à
+// `EATING_OCCASIONS.length`. Retirer une occasion des DEUX listes laisse le
+// test VERT et fait disparaître un moment de la journée. Le littéral est la
+// seule assertion qui le voie.
+Deno.test("épinglage — HABIT_SLOTS_MAX vaut 6 créneaux", () => {
+  assertEquals(HABIT_SLOTS_MAX, 6);
+});
+
+// ── LES BORNES DE POIDS, SOUS LEUR NOM PUBLIC (`energy_target.ts`) ───────────
+// ⛔ `X2′` les avait inscrites à la dette en écrivant « le jour où `X1′` les
+// unifie, elles disparaissent du scan ». ⟳ **CE N'EST PAS CE QUI S'EST PASSÉ**:
+// `X1′` a bien unifié la déclaration dans `weight_bounds.ts`, mais
+// `energy_target.ts` les ré-exporte sous l'alias `TARGET_` — leur NOM PUBLIC —
+// et le scanner élargi les revoit sous ce nom-là. Elles sortent donc de la
+// dette par la porte prévue: un épinglage, pas une disparition.
+Deno.test("épinglage — TARGET_WEIGHT_KG_MIN vaut 25 kg", () => {
+  assertEquals(TARGET_WEIGHT_KG_MIN, 25);
+});
+
+Deno.test("épinglage — TARGET_WEIGHT_KG_MAX vaut 400 kg", () => {
+  assertEquals(TARGET_WEIGHT_KG_MAX, 400);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⛔ `ENERGY_BANDS` — LE CORRECTIF NOMMÉ, PARCE QUE LA RÈGLE NE PEUT PAS
+//
+// `meal_envelope.ts:466` déclare `const ENERGY_BANDS` — SANS `export`. Elle est
+// donc hors de portée de la règle de dépôt PAR CONSTRUCTION: on ne peut ni
+// l'importer, ni l'épingler, et la seule réponse possible à un rouge serait
+// « ajouter le nom à la dette » — une liste que personne ne pourrait refermer.
+// Mesuré le 2026-08-23: `_shared/keel` porte **329** déclarations `const` non
+// exportées. Élargir la règle jusque-là ferait entrer 329 noms d'un coup, tous
+// insolubles. ⇒ ARBITRAGE: la règle s'arrête à l'exporté, et cette table-ci —
+// qui est une table de VERDICT — est fermée à la main, par son nom.
+//
+// ⛔ CE QUE ÇA COÛTAIT: `MAX_SURPLUS_FRACTION` n'ancre QU'UNE des six valeurs
+// (`muscle_gain.high`). Les cinq autres — dont `fat_loss.high`, qui décide de
+// l'énergie de toute personne en PERTE — ne sont ancrées nulle part.
+//
+// ⚠️ L'ÉPINGLAGE SE FAIT SUR LE DISQUE, et c'est le seul chemin possible vers
+// une constante privée. C'est le patron de la dent ③ de `X1′` (« les trois
+// copies du front relues sur le disque »). Il ne défend aucune de ces valeurs:
+// il interdit qu'elles bougent en silence.
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("épinglage — ENERGY_BANDS, les SIX nombres, lus sur le disque", async () => {
+  const src = await Deno.readTextFile(
+    new URL("./meal_envelope.ts", import.meta.url),
+  );
+  const bloc = /\bconst ENERGY_BANDS\b[^=]*=\s*\{([\s\S]*?)\n\};/.exec(src);
+  if (!bloc) {
+    throw new Error(
+      "⛔ `ENERGY_BANDS` est introuvable dans `meal_envelope.ts`. Cet épinglage " +
+        "lit le DISQUE parce que la table n'est pas exportée: si elle a été " +
+        "renommée, déplacée ou exportée, c'est ICI qu'on le décide — pas en " +
+        "supprimant cette ligne.",
+    );
+  }
+  const nombres = [...bloc[1].matchAll(/([a-z_]+)\s*:\s*(-?\d+(?:\.\d+)?)/g)]
+    .map(([, cle, val]) => `${cle}=${val}`);
+  assertEquals(nombres, [
+    "low=0.75",
+    "high=0.85", // fat_loss — la bande de TOUTE personne en perte
+    "low=0.95",
+    "high=1.05", // maintenance
+    "low=1.05",
+    "high=1.10", // muscle_gain — la seule que `MAX_SURPLUS_FRACTION` ancrait
+  ]);
 });
