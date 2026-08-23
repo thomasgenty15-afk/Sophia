@@ -1,0 +1,21 @@
+── ⓪ l'état d'avant ───────────────────────────────────────────────
+   roster : Anouk:—/muscle_gain Camille:—/— Malo:vegan/fat_loss Yanis:vegetarian/maintenance
+   plan vivant 5f078b7e-49c0-4f8d-9ab0-4c51e19beba2 : durée=7 j
+   générations foyer déjà comptées : 234
+── ① connexion du maître (mot de passe, aucun JWT forgé) ───────────
+   maître ✓ 53fb05ba-333a-4bf5-9e19-502103581ef7  (jeton 749 car.)
+── ② LA BORNE, prise EN BASE juste avant l'appel ───────────────────
+   borne (UTC)  : 2026-08-23 17:39:47.350878+00
+   borne (tz db): 2026-08-23 17:39:47.415752+00
+   horloge hôte : 2026-08-23 19:39:47 CEST / 2026-08-23T17:39:47Z
+── ③ LE RUN — UNE génération ──────────────────────────────────────
+   corps : {"operation":"compose","window":{"kind":"days","count":7},"intent":"prepare_next","replaces":null,"context":null,"cooking_shape":null,"preferences":null}
+   début : 2026-08-23T17:39:47Z
+   fin   : 2026-08-23T17:41:18Z
+   curl rc=0 · http=200 · durée=90.879684 s
+   sortie brute → /Users/ahmedamara/Dev/Sophia 2/scratchpad/2026-08-23-D3primec-sortie-brute-20260823-193946.json  (57216 octets)
+── ④ le plan vivant, relu APRÈS ───────────────────────────────────
+   5f078b7e-49c0-4f8d-9ab0-4c51e19beba2 : durée=7 j
+   générations foyer comptées APRÈS : 235
+── ⑤ les 2000 premiers octets de la réponse ───────────────────────
+{"ok":true,"meal":{"id":"677061c6-c9d2-413b-b26d-80bd2c4cb6a4"},"window":{"starts_on":"2026-08-23","duration_days":7},"suggested_window":{"starts_on":"2026-08-24","shifted":"shopping_cutoff"},"rationale":{"lines":["Ce plan couvre 7 jours, à partir d'aujourd'hui.","Pour aujourd'hui, le petit-déjeuner et le déjeuner ne sont plus au plan : la journée est déjà entamée.","Les quantités sont faites pour 4 bouches.","Le plat commun est végane : c'est ce que Malo mange.","Yanis manque des repas mercredi et samedi : ces parts-là ne sont pas comptées.","Camille n'a pas dit ce qu'il lui faut : sa part est servie comme celle de la table.","Les parts de ce plan sont servies à l'assiette, au plus près, plutôt qu'ajustées bouche par bouche."],"refusal":null},"request_report":{"lines":[],"refusal":null},"household":{"id":"b1959752-92c8-4038-8c17-992a77d68d21","member_count":4},"dishes":[{"name":"Bol estival de pois chiches","title":"Ragoût de pois chiches, pain complet et salade verte","slot":"dinner","day":"sun","ingredients":[{"term":"pain complet","quantity":"60 g de pain complet","in_pantry":false,"amount":60,"unit":"g","state":"raw","grams_raw":60,"group":"whole_grain","quantity_source":"structured"},{"term":"salade verte","quantity":"80 g de salade verte","in_pantry":false,"amount":80,"unit":"g","state":"raw","grams_raw":80,"group":"leafy_greens","quantity_source":"structured"},{"term":"jus de citron","quantity":"0.5 citron","in_pantry":false,"amount":0.5,"unit":"unit","state":"raw","grams_raw":30,"group":"citrus","quantity_source":"structured"},{"term":"huile d’olive","quantity":"1 c. à café d’huile d’olive","in_pantry":false,"amount":1,"unit":"tsp","state":"raw","grams_raw":5,"group":"olive_oil","quantity_source":"structured"}],"method":"Réchauffer la portion de ragoût, puis ajouter le pain, la salade assaisonnée de citron et l’huile d’olive.","why":"Un dîner chaud, coloré et facile à assembler avec les légumes d’été.","honours_belief_
