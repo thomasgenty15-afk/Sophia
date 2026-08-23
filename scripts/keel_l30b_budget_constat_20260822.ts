@@ -38,6 +38,8 @@ import { foldPreparationsIntoDishes } from "../supabase/functions/_shared/keel/m
 import { dishEnergy } from "../supabase/functions/_shared/keel/plan_energy.ts";
 import {
   buildPriceIndex,
+  type CeilingVerdict,
+  ceilingVerdict,
   costOfIngredients,
   type CostMarket,
   costPerThousandKcal,
@@ -132,6 +134,16 @@ interface Compte {
   /** Le coût des plans complets, pour la lecture. */
   montants: number[];
   sansPrixTop: Map<string, number>;
+  /**
+   * ⛔ LA PROMESSE, ET CE QU'ON PEUT EN DIRE. Les plans dont la raison
+   * ARCHIVÉE nomme un plafond, ventilés par `ceilingVerdict`. Les trois
+   * cases sortent TOUJOURS ensemble: `notProven` seul se lirait comme
+   * « dans le budget », c'est-à-dire comme la promesse qu'on retire.
+   */
+  plafondAnnonce: number;
+  plafondOverCeiling: number;
+  plafondNotProven: number;
+  plafondUnknown: number;
 }
 
 function compteVide(): Compte {
@@ -149,7 +161,29 @@ function compteVide(): Compte {
     ratios: [],
     montants: [],
     sansPrixTop: new Map(),
+    plafondAnnonce: 0,
+    plafondOverCeiling: 0,
+    plafondNotProven: 0,
+    plafondUnknown: 0,
   };
+}
+
+/**
+ * LE PLAFOND TEL QU'IL A ÉTÉ ANNONCÉ AVEC LE PLAN, relu dans la raison
+ * archivée. `null` = aucune promesse n'a été faite sur ce plan.
+ *
+ * ⚠️ L'ARCHIVE NE PORTE PAS LA DEVISE. `plan_rationale.ts` écrit « The
+ * shopping budget is 152. » — un nombre nu, parce que le montant est saisi
+ * « in your currency » et que rien ne l'accompagne. Le verdict rendu ici
+ * suppose donc que le plafond est dans la devise de la grille interrogée, et
+ * c'est une LIMITE DE L'ARCHIVE, pas du lecteur.
+ */
+export function plafondArchive(ligne: unknown): number | null {
+  if (typeof ligne !== "string" || ligne.length === 0) return null;
+  const m = ligne.match(/([0-9]+(?:[.,][0-9]+)?)/);
+  if (m === null) return null;
+  const n = Number(m[1].replace(",", "."));
+  return Number.isFinite(n) && n > 0 ? n : null;
 }
 
 /**
@@ -208,6 +242,29 @@ function mesure(
       if (e.complete && e.kcal !== null) planKcal += e.kcal;
       else planComplet = false;
     });
+
+    // ── ⛔ LA PROMESSE, MESURÉE SUR LE PLAN QUI LA PORTE ────────────────
+    const plafond = plafondArchive(row.rationale_budget_line);
+    if (plafond !== null) {
+      c.plafondAnnonce += 1;
+      const verdict: CeilingVerdict = ceilingVerdict(
+        {
+          market: prices.market,
+          amount: planComplet && planKcal > 0 ? planCout : null,
+          complete: planComplet && planKcal > 0,
+          pricedLines: 0,
+          unknownLines: 0,
+          gaps: [],
+          unpricedTerms: [],
+          unresolvedTerms: [],
+          unweighedTerms: [],
+        },
+        plafond,
+      );
+      if (verdict === "over_ceiling") c.plafondOverCeiling += 1;
+      else if (verdict === "not_proven") c.plafondNotProven += 1;
+      else c.plafondUnknown += 1;
+    }
 
     if (planComplet && planKcal > 0) {
       c.plansComplets += 1;
@@ -272,6 +329,23 @@ function imprime(titre: string, c: Compte): void {
     const mm = mediane(c.montants)!;
     console.log(`      coût médian d'un plan       ${mm.toFixed(2)}`);
   }
+  // ── ⛔ LA PROMESSE — les trois cases, toujours ensemble ────────────────
+  console.log(
+    `      ⛔ LE PLAFOND ANNONCÉ         ${c.plafondAnnonce} plan(s) portent la phrase ` +
+      `« To stay inside it… »   (${pc(c.plafondAnnonce, c.plans)})`,
+  );
+  if (c.plafondAnnonce > 0) {
+    console.log(
+      `         VIOLATION DÉMONTRÉE      ${c.plafondOverCeiling}   ·   non démontrable ` +
+        `${c.plafondNotProven}   ·   coût inconnu ${c.plafondUnknown}`,
+    );
+    console.log(
+      `         ⚠️ « non démontrable » N'EST PAS « dans le budget »: le panier du plan est`,
+    );
+    console.log(
+      `            un SOUS-ENSEMBLE des courses que le plafond couvre.`,
+    );
+  }
   if (c.sansPrixTop.size > 0) {
     const top = [...c.sansPrixTop.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8);
     console.log(
@@ -298,6 +372,29 @@ async function main() {
     `   ⛔ population EXCLUE           ${exclus} plans — tout millésime autre que`,
   );
   console.log(`      meal.en.v18_one_box_per_group [+household.v21_one_box_per_group]`);
+
+  // ── ⓪ ⛔ LE CONTRÔLE NÉGATIF — sans lui, ce pilote est invérifiable ────
+  //
+  // La `direction D2`, écrite le 2026-08-22 AVANT toute ligne de code: « le
+  // référentiel porte 0 prix, je prédis donc 0/13 et 0/193 plans complets —
+  // par construction, et le harnais doit le RETROUVER. S'il en rend un seul,
+  // mon lecteur invente. »
+  //
+  // ⛔ CETTE PRÉDICTION EST DEVENUE IRREPRODUCTIBLE le jour de la promotion:
+  // le référentiel porte désormais 893 prix, et on ne les retire pas pour
+  // refaire une mesure. Le contrôle négatif la rejoue SANS toucher à la base,
+  // sur une grille VIDE construite par le même `buildPriceIndex`. Il tourne à
+  // CHAQUE run: un lecteur qui se mettrait à inventer un total le ferait ici
+  // aussi, et le pilote sortirait en `rc=1`.
+  const grilleVide = buildPriceIndex("fr", []);
+  const controle = mesure(index, grilleVide, plans);
+  const controleOk = controle.plansComplets === 0 && controle.lignesChiffrees === 0;
+  console.log("\n── ⓪ CONTRÔLE NÉGATIF · GRILLE VIDE ───────────────────────────────────");
+  console.log(
+    `   plans complets ${controle.plansComplets} · lignes chiffrées ${controle.lignesChiffrees}` +
+      `   ⇒ ${controleOk ? "✅ le lecteur s'abstient" : "⛔ LE LECTEUR INVENTE"}`,
+  );
+  if (!controleOk) Deno.exitCode = 1;
 
   const refs = [...index.bySlug.values()];
   console.log("\n── ② LES DEUX GRILLES ─────────────────────────────────────────────────");

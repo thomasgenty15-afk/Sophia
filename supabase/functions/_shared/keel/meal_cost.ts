@@ -413,3 +413,67 @@ export function priceBasisContradictsYield(
   if (basis === "cooked_label_yield_absorbed") return neutral;
   return false;
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⛔ LE PLAFOND ANNONCÉ CONTRE LE CONSTAT — et l'asymétrie qui tient le lot.
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Le produit ANNONCE un plafond, deux fois, et avec un chiffre:
+//
+//   · dans le prompt (`meal_generation.ts`): « budget for this plan: 152 …
+//     it covers the WHOLE shopping list for this stretch … it is a ceiling,
+//     not a target »;
+//   · dans la raison rendue avec le plan (`plan_rationale.ts`): « The
+//     shopping budget is 152. » suivie de « To stay inside it, expensive
+//     proteins give first, then out-of-season produce, then variety — never
+//     the portions. »
+//
+// ⛔ « TO STAY INSIDE IT » EST UNE AFFIRMATION SUR LE PLAN RENDU, et rien,
+// dans tout le dépôt, ne l'a jamais vérifiée. C'est la promesse que ce lot
+// devait convertir en constat.
+//
+// ── ⛔ L'ASYMÉTRIE, ET ELLE N'EST PAS UNE PRUDENCE DE STYLE ────────────────
+// Le plafond porte sur LES COURSES; ce module chiffre LE PANIER DU PLAN, qui
+// en est un SOUS-ENSEMBLE STRICT (ni le pain acheté à côté, ni le dessert, ni
+// le shaker, ni ce qui reste au placard). Donc:
+//
+//   · panier > plafond  ⇒  la promesse est VIOLÉE, et c'est une preuve: les
+//     courses ne peuvent pas coûter MOINS que le panier qu'elles contiennent;
+//   · panier ≤ plafond  ⇒  ON NE SAIT RIEN. Les courses complètes peuvent
+//     très bien dépasser. **Il n'existe aucune valeur de retour « dans le
+//     budget »**, et c'est délibéré: la nommer ainsi rendrait, sur un panier
+//     partiel, exactement la promesse que le lot retire.
+//
+// Le troisième cas — `unknown` — couvre les deux abstentions: pas de plafond
+// lisible, ou pas de coût complet. Elles se comptent ENSEMBLE et jamais avec
+// les autres.
+
+/**
+ * LES TROIS RÉPONSES POSSIBLES, ET IL N'Y EN A PAS DE QUATRIÈME.
+ *
+ * ⛔ `not_proven` ne veut PAS dire « dans le budget ». Voir l'asymétrie
+ * ci-dessus: seule la violation est démontrable sur un sous-ensemble.
+ */
+export const CEILING_VERDICTS = ["over_ceiling", "not_proven", "unknown"] as const;
+export type CeilingVerdict = (typeof CEILING_VERDICTS)[number];
+
+/**
+ * Le panier du plan dépasse-t-il, à lui seul, le plafond annoncé ?
+ *
+ * ⚠️ `cost` et `ceiling` doivent être dans la MÊME devise. Ce module ne
+ * convertit rien: `MARKET_CURRENCY` est pour l'impression, et les deux
+ * colonnes de prix du lot 30 ne sont pas convertibles l'une dans l'autre.
+ * L'appelant qui compare un panier en euros à un plafond en dollars rend un
+ * verdict faux, et aucun défaut ici ne l'en empêcherait.
+ */
+export function ceilingVerdict(
+  cost: CostVerdict,
+  ceiling: number | null,
+): CeilingVerdict {
+  if (ceiling === null || !Number.isFinite(ceiling) || ceiling <= 0) {
+    return "unknown";
+  }
+  if (!cost.complete || cost.amount === null) return "unknown";
+  if (cost.amount > ceiling) return "over_ceiling";
+  return "not_proven";
+}

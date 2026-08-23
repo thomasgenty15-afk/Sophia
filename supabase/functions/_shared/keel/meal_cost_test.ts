@@ -16,6 +16,12 @@
 //      rattraper si la grille venait d'un fichier plat: prix nul, négatif,
 //      non fini, source vide, date vide.
 //   ④ LE PRIX ET LA MASSE PARLENT DU MÊME ÉTAT. La garde de `L-C`.
+//   ⑤ ⛔ UN PANIER SOUS LE PLAFOND NE PROUVE RIEN. C'est le cas que la
+//      promesse rendue avec le plan — « To stay inside it … » — affirme sans
+//      l'avoir jamais vérifié. Le panier du plan est un SOUS-ENSEMBLE des
+//      courses: seule la VIOLATION est démontrable. Un verdict « dans le
+//      budget » réintroduirait très exactement la promesse que le lot retire,
+//      et la mutation qui l'ajoute est écrite dans le cas.
 //
 // ⚠️ ET IL Y A UN CAS QUI PASSE. Une garde cassée refuse tout et ressemble
 // à une garde qui marche (cicatrice `guards-need-a-passing-case`): le premier
@@ -30,6 +36,8 @@ import {
 } from "./food_composition.ts";
 import {
   buildPriceIndex,
+  CEILING_VERDICTS,
+  ceilingVerdict,
   costOfIngredients,
   costOfPlan,
   costPerThousandKcal,
@@ -316,4 +324,77 @@ Deno.test("L30b — ⛔ une base de prix périmée par `L-C` est refusée", () =
   // ne dépendent d'aucune classe, et 34 + 5 lignes en vivent.
   assertEquals(priceBasisContradictsYield("diluted", "neutral"), false);
   assertEquals(priceBasisContradictsYield("edible_portion", "veg_shrinks"), false);
+});
+
+// ---------------------------------------------------------------------------
+// ⑤ ⛔ LE PLAFOND ANNONCÉ CONTRE LE CONSTAT — l'asymétrie
+// ---------------------------------------------------------------------------
+
+Deno.test("L30b — ⛔ un panier SOUS le plafond ne prouve RIEN", () => {
+  // 200 g de poulet + 100 g de riz + 10 g d'huile = 2,326 € (le cas ① le
+  // calcule de tête). Face à un plafond de 115 — la MÉDIANE des 48 plafonds
+  // réellement archivés le 2026-08-23 — le panier est très en dessous.
+  const v = costOfIngredients(INDEX, PRICES, [
+    g("chicken_breast", 200),
+    g("white_rice", 100),
+    g("olive_oil", 10),
+  ]);
+  assertEquals(v.amount, 2.326);
+
+  // ⛔ ET LE VERDICT N'EST PAS « DANS LE BUDGET ». Le plafond couvre LES
+  // COURSES; ce panier est un sous-ensemble strict (ni pain, ni dessert, ni
+  // ce qui reste au placard). Le dire « dans le budget » serait refaire la
+  // promesse que `plan_rationale.ts` fait depuis toujours sans preuve.
+  //
+  // ⚠️ MUTATION QUI DOIT RENDRE ROUGE: dans `ceilingVerdict`, remplacer le
+  // dernier `return "not_proven"` par `return "within_ceiling"` (et l'ajouter
+  // à `CEILING_VERDICTS`). Ce cas casse, et c'est le seul qui le voit.
+  assertEquals(ceilingVerdict(v, 115), "not_proven");
+
+  // ⚠️ ET LE CAS QUI PASSE, sans lequel une garde qui rend « unknown »
+  // partout ressemblerait à une garde qui marche: la VIOLATION, elle, est
+  // démontrable, parce que les courses ne peuvent pas coûter moins que le
+  // panier qu'elles contiennent.
+  assertEquals(ceilingVerdict(v, 2), "over_ceiling");
+  // Le bord exact: égal n'est PAS au-dessus. Un `>=` ici déclarerait violé un
+  // plan qui touche son plafond au centime.
+  assertEquals(ceilingVerdict(v, 2.326), "not_proven");
+});
+
+Deno.test("L30b — les deux abstentions rendent `unknown`, jamais un verdict", () => {
+  const complet = costOfIngredients(INDEX, PRICES, [g("chicken_breast", 200)]);
+  // ① AUCUN PLAFOND LISIBLE. 48 plans sur 193 en portent un; les autres n'ont
+  // jamais reçu de promesse, et leur silence n'est pas un succès.
+  assertEquals(ceilingVerdict(complet, null), "unknown");
+  assertEquals(ceilingVerdict(complet, 0), "unknown");
+  assertEquals(ceilingVerdict(complet, -10), "unknown");
+  assertEquals(ceilingVerdict(complet, Number.NaN), "unknown");
+  assertEquals(ceilingVerdict(complet, Number.POSITIVE_INFINITY), "unknown");
+
+  // ② AUCUN COÛT COMPLET — le cas de 12 plans sur 13 du prompt vivant.
+  // ⛔ Un panier amputé comparé à un plafond rendrait « not_proven » sur une
+  // somme qui n'existe pas, c'est-à-dire le mode d'échec du dépôt en entier.
+  //
+  // ⚠️ MUTATION QUI DOIT RENDRE ROUGE: retirer la ligne
+  // `if (!cost.complete || cost.amount === null) return "unknown";`.
+  const partiel = costOfIngredients(INDEX, PRICES, [
+    g("chicken_breast", 200),
+    g("capers", 30), // cotée nulle part
+  ]);
+  assertEquals(partiel.complete, false);
+  assertEquals(partiel.amount, null);
+  assertEquals(ceilingVerdict(partiel, 115), "unknown");
+});
+
+Deno.test("L30b — ⛔ il n'y a que TROIS verdicts, et aucun ne dit « dans le budget »", () => {
+  // ASSERTION DE CARDINALITÉ. Sans elle, ajouter un quatrième verdict — celui
+  // qui rendrait la promesse — passerait sous tous les cas ci-dessus.
+  assertEquals(CEILING_VERDICTS.length, 3);
+  assertEquals([...CEILING_VERDICTS], ["over_ceiling", "not_proven", "unknown"]);
+  for (const v of CEILING_VERDICTS) {
+    assert(
+      !/within|inside|respect|ok|dans/i.test(v),
+      `⛔ « ${v} » affirme le respect d'un plafond sur un panier PARTIEL`,
+    );
+  }
 });

@@ -48,9 +48,17 @@ psql_q -c "select row_to_json(t)::text from (
   select alias, slug from food_composition_aliases order by alias, slug
 ) t" > "$TMP/food_composition_aliases.ndjson"
 
+# ⛔ `rationale_budget_line` EST LA PROMESSE ELLE-MÊME, telle qu'elle a été
+# ARCHIVÉE avec le plan. C'est la seule trace du plafond CONTRE LEQUEL ce plan
+# a été construit: `student_generated_meals` ne porte aucune colonne de budget,
+# et `student_goals.practical_constraints->>'budget_amount'` est MUTABLE — le
+# lire aujourd'hui comparerait un plan d'hier à un plafond de ce matin.
 psql_q -c "select row_to_json(t)::text from (
   select id, plan_kind, servings, content_locale, created_at,
          generated_from->>'prompt_version' as prompt_version,
+         (select l from jsonb_array_elements_text(generated_from->'rationale'->'lines') l
+           where l ~ 'shopping budget is|budget des courses est' limit 1)
+           as rationale_budget_line,
          dishes, preparations
   from student_generated_meals order by id
 ) t" > "$TMP/plans.ndjson"

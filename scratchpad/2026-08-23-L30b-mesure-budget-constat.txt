@@ -1,0 +1,180 @@
+═══════════════════════════════════════════════════════════════════════════
+EXTRACTION — 2026-08-23 19:08:10 CEST
+   food_composition_refs        923 lignes
+   food_composition_aliases     2668 lignes
+   plans                        193 lignes
+   food_prices_refs             923 lignes
+   food_prices_pending          923 lignes
+
+── ⛔ LE PRIX ET LA MASSE PARLENT-ILS DU MÊME ÉTAT ? ───────────────────
+         price_basis         | yield_class | lignes | base_perimee 
+-----------------------------+-------------+--------+--------------
+ cooked_label_dry_input      | neutral     |    111 | 
+ cooked_label_yield_absorbed | neutral     |      3 | t
+(2 rows)
+
+═══════════════════════════════════════════════════════════════════════════
+L30b — LE BUDGET DEVIENT UN CONSTAT
+lancé le 2026-08-23T17:08:11.640Z
+═══════════════════════════════════════════════════════════════════════════
+
+── ① LES DEUX DÉNOMINATEURS ───────────────────────────────────────────
+   corpus entier                  193 plans
+   prompt VIVANT                  13 plans
+   ⛔ population EXCLUE           180 plans — tout millésime autre que
+      meal.en.v18_one_box_per_group [+household.v21_one_box_per_group]
+
+── ⓪ CONTRÔLE NÉGATIF · GRILLE VIDE ───────────────────────────────────
+   plans complets 0 · lignes chiffrées 0   ⇒ ✅ le lecteur s'abstient
+
+── ② LES DEUX GRILLES ─────────────────────────────────────────────────
+   FR   référentiel LU par le produit  893 / 923 lignes   ·   sas (proposition)  917
+        ⚠️ refusées à l'entrée de la grille: 30
+   US   référentiel LU par le produit  843 / 923 lignes   ·   sas (proposition)  860
+        ⚠️ refusées à l'entrée de la grille: 80
+
+── ③ LE CONSTAT, SUR LA GRILLE QUE LE PRODUIT LIT VRAIMENT ────────────
+
+   ── prompt VIVANT · marché FR ───────────────────────────────
+      plans                       13
+      plans à TOTAL COMPLET       1   (7.7 %)
+      plats chiffrés              193 / 327   (59.0 %)
+      ⛔ LES DEUX POPULATIONS     chiffrées 1806 · INCONNUES 161   (sur 1967 lignes)
+         motifs de l'inconnu      non résolu 102 · non pesé 0 · SANS PRIX 59
+      €/1 000 kcal (médiane)      4.63   [min 4.63 · max 4.63]   bande [1.5 ; 4] ⇒ HORS BANDE ⛔
+      coût médian d'un plan       75.14
+      ⛔ LE PLAFOND ANNONCÉ         0 plan(s) portent la phrase « To stay inside it… »   (0.0 %)
+      sans prix, les plus vus     salt×42, cooked_rice×17
+
+   ── corpus entier · marché FR ───────────────────────────────
+      plans                       193
+      plans à TOTAL COMPLET       16   (8.3 %)
+      plats chiffrés              700 / 2148   (32.6 %)
+      ⛔ LES DEUX POPULATIONS     chiffrées 12076 · INCONNUES 5091   (sur 17167 lignes)
+         motifs de l'inconnu      non résolu 670 · non pesé 3313 · SANS PRIX 1108
+      €/1 000 kcal (médiane)      4.42   [min 2.41 · max 5.95]   bande [1.5 ; 4] ⇒ HORS BANDE ⛔
+      coût médian d'un plan       13.75
+      ⛔ LE PLAFOND ANNONCÉ         48 plan(s) portent la phrase « To stay inside it… »   (24.9 %)
+         VIOLATION DÉMONTRÉE      0   ·   non démontrable 11   ·   coût inconnu 37
+         ⚠️ « non démontrable » N'EST PAS « dans le budget »: le panier du plan est
+            un SOUS-ENSEMBLE des courses que le plafond couvre.
+      sans prix, les plus vus     salt×987, vegetable_stock×45, cooked_rice×44, milk_semi×30, noodles×2
+
+── ④ CE QUE LE SAS DIRAIT, S'IL ÉTAIT PROMU EN ENTIER ─────────────────
+   ⚠️ COMPARAISON SEULE. Aucun lecteur ne voit le sas.
+
+   ── prompt VIVANT · marché FR (sas) ─────────────────────────
+      plans                       13
+      plans à TOTAL COMPLET       3   (23.1 %)
+      plats chiffrés              237 / 327   (72.5 %)
+      ⛔ LES DEUX POPULATIONS     chiffrées 1865 · INCONNUES 102   (sur 1967 lignes)
+         motifs de l'inconnu      non résolu 102 · non pesé 0 · SANS PRIX 0
+      €/1 000 kcal (médiane)      4.70   [min 4.63 · max 5.06]   bande [1.5 ; 4] ⇒ HORS BANDE ⛔
+      coût médian d'un plan       35.14
+      ⛔ LE PLAFOND ANNONCÉ         0 plan(s) portent la phrase « To stay inside it… »   (0.0 %)
+
+   ── corpus entier · marché FR (sas) ─────────────────────────
+      plans                       193
+      plans à TOTAL COMPLET       33   (17.1 %)
+      plats chiffrés              952 / 2148   (44.3 %)
+      ⛔ LES DEUX POPULATIONS     chiffrées 13184 · INCONNUES 3983   (sur 17167 lignes)
+         motifs de l'inconnu      non résolu 670 · non pesé 3313 · SANS PRIX 0
+      €/1 000 kcal (médiane)      5.06   [min 2.41 · max 6.06]   bande [1.5 ; 4] ⇒ HORS BANDE ⛔
+      coût médian d'un plan       21.65
+      ⛔ LE PLAFOND ANNONCÉ         48 plan(s) portent la phrase « To stay inside it… »   (24.9 %)
+         VIOLATION DÉMONTRÉE      1   ·   non démontrable 16   ·   coût inconnu 31
+         ⚠️ « non démontrable » N'EST PAS « dans le budget »: le panier du plan est
+            un SOUS-ENSEMBLE des courses que le plafond couvre.
+
+═══════════════════════════════════════════════════════════════════════════
+
+
+═══════════════════════════════════════════════════════════════════════════
+L30b · LE RECENSEMENT DES SURFACES — 2026-08-23
+⛔ LA LEÇON DE `L3`: sa fiche ne comptait QU'UNE surface, et la non comptée
+   annonçait la promesse EN PROSE, SANS CHIFFRE. On compte donc TOUT ce qui
+   parle du budget, avec ou sans chiffre.
+═══════════════════════════════════════════════════════════════════════════
+
+DOUZE SURFACES. Trois portent un CHIFFRE, six portent la promesse EN PROSE,
+trois ne font que nommer ou restituer.
+
+── A · LA COLLECTE (deux écrans, six phrases) ─────────────────────────────
+ 1. `setup.plan.budget`            "Budget for this plan"                nomme
+ 2. `setup.plan.budget_hint`       "The whole shopping list, in your      PROMESSE
+                                    currency. A real number lets us       (prose,
+                                    trade things off — cheaper cuts,      2 claims)
+                                    fewer out-of-season vegetables…"
+ 3. `setup.missing.budget_amount`  "How much this plan can cost."         PROMESSE
+ 4. `plan.cooking.budget_label`    "Budget for this plan"                 nomme
+ 5. `plan.cooking.budget_hint`     "The whole shopping list, in your      PROMESSE
+                                    currency."
+ 6. `plan.cooking.budget_required` "Say what this plan can cost. Without  PROMESSE
+                                    a number there is nothing to trade
+                                    off."
+   ⇒ fichiers: `frontend/src/keel/i18n/{en,fr}.ts`, rendus par
+     `SetupPage.tsx` et `CookingCapacityCard.tsx`.
+
+── B · LA RESTITUTION ─────────────────────────────────────────────────────
+ 7. `known.logistics.budget_amount` "Budget: {amount}"                    CHIFFRE
+    (`KnownAboutYouCard.tsx`) — rend à la personne ce qu'elle a saisi.
+    Pas une promesse.
+
+── C · LA RAISON RENDUE AVEC LE PLAN — la seule qui promette AVEC un chiffre
+ 8. `plan_rationale.ts` COPY.{fr,en}.budget                               CHIFFRE
+      « The shopping budget is 152. » / « Le budget des courses est 152. »
+ 9. `plan_rationale.ts` COPY.{fr,en}.budgetCuts                           PROMESSE
+      « To stay inside it, expensive proteins give first, then
+        out-of-season produce, then variety — never the portions. »
+   ⇒ ⛔ « TO STAY INSIDE IT » EST UNE AFFIRMATION SUR LE PLAN RENDU.
+     Chemin vérifié: `explainPlanChoices` ← `generate-meal-v1/index.ts:111`
+     ET `generate-household-meal-v1/index.ts:82` → `generated_from.rationale`
+     → `planDraft.ts:234` → `PlanDraftDialog.tsx:170`. SURFACE VIVANTE.
+
+── D · LE PROMPT — où la promesse est FABRIQUÉE ───────────────────────────
+10. `meal_generation.ts:3405`                                             CHIFFRE
+      "budget for this plan: {amount} … It covers the WHOLE shopping list
+       for this stretch, for every serving asked for above — it is a
+       ceiling, not a target."
+11. `meal_generation.ts:3408`                                            PROMESSE
+      "cut in THIS order: expensive proteins first … then variety.
+       NEVER cut the portions themselves."
+12. `conversation_retained.ts:332` + `draft_note_classify.ts:202`
+      "budget_amount takes a number." — consigne de schéma, aucune promesse.
+
+⛔ CE QUE LE RECENSEMENT MONTRE
+   · La promesse ne se tient PAS dans la surface qui porte le chiffre.
+     Six des douze surfaces l'énoncent EN PROSE, sans chiffre — exactement le
+     mode que `L3` avait laissé passer.
+   · UNE SEULE (⑧+⑨) est rendue à côté d'un plan, et c'est celle que la
+     mesure ci-dessus interroge.
+
+═══════════════════════════════════════════════════════════════════════════
+L30b · LES MUTATIONS — 2026-08-23, 19:0x CEST
+copie NON MUTÉE vérifiée D'ABORD: 15/15 verts,
+sha256 e57631760a3bec92d264a02ff67dc8b0c3ebbd7fbddcd98f5563bbcc3c09e14d
+═══════════════════════════════════════════════════════════════════════════
+ M1  `return "not_proven"` ⇒ `return "within_ceiling"` (+ le verdict ajouté
+     à `CEILING_VERDICTS`)                                    ⇒ 2 ROUGES
+       · « un panier SOUS le plafond ne prouve RIEN »
+       · « il n'y a que TROIS verdicts »
+ M2  la garde de complétude RETIRÉE                           ⇒ ROUGE au
+     `if (!cost.complete || cost.amount === null) …`             TYPE-CHECK
+     ⚠️ NE COMPTE PAS comme une mutation du banc: c'est le TYPE qui refuse,
+        pas un cas. D'où M2′.
+ M2′ la même garde remplacée par le `?? 0` — la cicatrice que l'en-tête du
+     module nomme, et elle TYPE-CHECKE                        ⇒ 1 ROUGE
+       · « les deux abstentions rendent `unknown` »
+ M3  `>` devient `>=`                                         ⇒ 1 ROUGE
+       · le bord exact: un plan qui touche son plafond au centime n'est pas
+         en violation
+ ⇒ RESTAURÉ, sha256 IDENTIQUE, 15/15 verts.
+
+ ⚠️ LE CAS QUI PASSE (sans lui une garde cassée rendrait « unknown » partout
+    et ressemblerait à une garde qui marche): `ceilingVerdict(v, 2)` sur un
+    panier de 2,326 € rend `over_ceiling`. La VIOLATION est démontrable.
+
+ ⚠️ LE CONTRÔLE NÉGATIF, dans le pilote et rejoué à CHAQUE run (section ⓪):
+    grille VIDE ⇒ 0 plan complet, 0 ligne chiffrée. Il rejoue la `direction
+    D2` du 2026-08-22, devenue irreproductible en base le jour de la
+    promotion. Un lecteur qui inventerait un total sortirait en `rc=1`.
