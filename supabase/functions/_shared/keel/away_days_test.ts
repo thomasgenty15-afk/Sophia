@@ -94,6 +94,7 @@ Deno.test("l'absence arrive jusqu'à la consigne, en négatif explicite", () => 
   const { userMessage } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true,
     budgetAmount: null,
     safetyConstraints: null,
+    safetyConstraintTable: null,
     body: null,
     focusAxis: null,
     dietBlock: "",
@@ -153,6 +154,8 @@ Deno.test("le parseur REJETTE un plat posé sur un moment écarté", () => {
     dayProperties: [],
     merge: null,
     boxMemberIds: [],
+    weighedMemberIds: [],
+  boxMemberDiets: [],
   });
 
   const kept = parsed.dishes.map((d) => d.title);
@@ -200,6 +203,8 @@ Deno.test("un plat écarté ne consomme PAS une place du plafond", () => {
     dayProperties: [],
     merge: null,
     boxMemberIds: [],
+    weighedMemberIds: [],
+  boxMemberDiets: [],
   });
 
   // `scope: "day"` avec un rythme d'UN moment donne un plafond de 1. Les six
@@ -215,6 +220,7 @@ Deno.test("sans absence, rien ne change — le chantier est additif", () => {
   const args = {
     doctrine: null,
     safetyConstraints: null,
+    safetyConstraintTable: null,
     mode: "to_shop" as const,
     scope: "several_days" as const,
     pantry: [],
@@ -227,6 +233,8 @@ Deno.test("sans absence, rien ne change — le chantier est additif", () => {
     dayProperties: [],
     merge: null,
     boxMemberIds: [],
+    weighedMemberIds: [],
+  boxMemberDiets: [],
   };
   const withNone = parseGeneratedMeal({ dishes, shopping_list: [] }, {
     ...args,
@@ -238,6 +246,7 @@ Deno.test("sans absence, rien ne change — le chantier est additif", () => {
   const { userMessage } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true,
     budgetAmount: null,
     safetyConstraints: null,
+    safetyConstraintTable: null,
     body: null,
     focusAxis: null,
     dietBlock: "",

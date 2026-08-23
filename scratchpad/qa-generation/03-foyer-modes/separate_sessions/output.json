@@ -1,0 +1,770 @@
+{
+  "request_id": "3a030001-0000-4000-8000-000000000001",
+  "resolved_by": "--request-id",
+  "user_id": "3a000000-0000-4000-8000-000000000001",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-19T01:53:50.959Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "fe1340e1-1a55-4d74-b9da-2152d1387845",
+      "status": "attempt_start",
+      "created_at": "2026-08-19T01:52:49.92179+00:00",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 16183,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 16183,
+    "user_message_chars": 17574,
+    "user_message_truncated": false,
+    "user_message_written_chars": 17574,
+    "independent_counters": {
+      "system_prompt_chars": 16183,
+      "prompt_chars": 17574
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "079449c6-3138-4b6e-bde3-8178151a3349",
+    "created_at": "2026-08-19T01:53:50.357732+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "gemini",
+    "model": "gemini-3-flash-preview",
+    "http_status": 200,
+    "attempt": 1,
+    "chain_index": 1,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Smoky Summer Harvest Bowl\",\n      \"title\": \"Smoky bean stew with roasted tofu and charred broccoli\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Assemble the meal by placing a portion of the warm smoky bean stew in a bowl, topping it with the roasted smoked tofu and charred broccoli florets.\",\n      \"why\": \"This dish provides a smoky, slow-cooked flavour profile using beans and tofu to meet the vegan requirement for the shared table.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_theodule\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_broccoli\",\n          \"servings\": 1,\n          \"box_id\": \"box_broccoli_theodule\"\n        },\n        {\n          \"preparation_id\": \"prep_protein_roast\",\n          \"servings\": 1,\n          \"box_id\": \"box_protein_theodule\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Smoky Chicken and Bean Pot\",\n      \"title\": \"Smoky bean stew with roasted chicken and broccoli\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\",\n      \"ingredients\": [],\n      \"method\": \"Assemble the plate by serving the charred broccoli first, followed by the roasted chicken fillets and a portion of the smoky bean stew.\",\n      \"why\": \"Aurele receives a high-protein version of the smoky stew with chicken instead of tofu.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_broccoli\",\n          \"servings\": 1,\n          \"box_id\": \"box_broccoli_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_protein_roast\",\n          \"servings\": 1,\n          \"box_id\": \"box_protein_aurele\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      }\n    },\n    {\n      \"name\": \"Smoky Chicken and Bean Pot\",\n      \"title\": \"Smoky bean stew with roasted chicken and broccoli\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"f5c81e2b-7f57-4fac-a30f-067fa587262d\",\n      \"ingredients\": [],\n      \"method\": \"Serve the roasted chicken and bean stew first, then add the charred broccoli on the side of the plate.\",\n      \"why\": \"This version uses chicken for Marceline and excludes fennel to respect her household rule.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_marceline\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_broccoli\",\n          \"servings\": 1,\n          \"box_id\": \"box_broccoli_marceline\"\n        },\n        {\n          \"preparation_id\": \"prep_protein_roast\",\n          \"servings\": 1,\n          \"box_id\": \"box_protein_marceline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      }\n    },\n    {\n      \"name\": \"Smoky Chicken and Bean Pot\",\n      \"title\": \"Smoky bean stew with roasted chicken and broccoli\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\",\n      \"ingredients\": [],\n      \"method\": \"Place the roasted chicken and bean stew on the plate first, then finish with the charred broccoli.\",\n      \"why\": \"This meal is prepared without any sesame products to ensure Solveig's safety.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_solveig\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_broccoli\",\n          \"servings\": 1,\n          \"box_id\": \"box_broccoli_solveig\"\n        },\n        {\n          \"preparation_id\": \"prep_protein_roast\",\n          \"servings\": 1,\n          \"box_id\": \"box_protein_solveig\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      }\n    },\n    {\n      \"name\": \"Warming Smoky Bean Supper\",\n      \"title\": \"Reheated smoky bean stew with tofu and broccoli\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Gently reheat the bean stew in a pan on the hob. Once hot, stir in the tofu and broccoli to warm through before serving in a bowl.\",\n      \"why\": \"A warm, slow-cooked style dinner that remains vegan for the shared table.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_theodule\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_broccoli\",\n          \"servings\": 1,\n          \"box_id\": \"box_broccoli_theodule\"\n        },\n        {\n          \"preparation_id\": \"prep_protein_roast\",\n          \"servings\": 1,\n          \"box_id\": \"box_protein_theodule\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Late Night Smoky Chicken Stew\",\n      \"title\": \"Reheated smoky chicken and bean stew with broccoli\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the bean stew and chicken in a pan until piping hot. Serve the broccoli first, then top with the chicken and stew.\",\n      \"why\": \"Aurele's dinner is reheated to provide a warm, protein-rich meal late in the evening.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_broccoli\",\n          \"servings\": 1,\n          \"box_id\": \"box_broccoli_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_protein_roast\",\n          \"servings\": 1,\n          \"box_id\": \"box_protein_aurele\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      }\n    },\n    {\n      \"name\": \"Smoky Chicken and Bean Supper\",\n      \"title\": \"Reheated smoky chicken and bean stew with broccoli\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"f5c81e2b-7f57-4fac-a30f-067fa587262d\",\n      \"ingredients\": [],\n      \"method\": \"Warm the chicken and bean stew in a pan on the hob. Plate the chicken and stew first, then add the broccoli on the side.\",\n      \"why\": \"Marceline's meal is reheated without any fennel-containing ingredients.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_marceline\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_broccoli\",\n          \"servings\": 1,\n          \"box_id\": \"box_broccoli_marceline\"\n        },\n        {\n          \"preparation_id\": \"prep_protein_roast\",\n          \"servings\": 1,\n          \"box_id\": \"box_protein_marceline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      }\n    },\n    {\n      \"name\": \"Smoky Chicken and Bean Supper\",\n      \"title\": \"Reheated smoky chicken and bean stew with broccoli\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the chicken and bean stew in a pan. Serve the chicken and stew first, followed by the broccoli florets.\",\n      \"why\": \"Solveig's meal is reheated in a clean pan to maintain the sesame-free requirement.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_solveig\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_broccoli\",\n          \"servings\": 1,\n          \"box_id\": \"box_broccoli_solveig\"\n        },\n        {\n          \"preparation_id\": \"prep_protein_roast\",\n          \"servings\": 1,\n          \"box_id\": \"box_protein_solveig\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      }\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_smoky_beans\",\n      \"title\": \"Smoky Three-Bean and Tomato Base\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        {\n          \"term\": \"Black beans\",\n          \"quantity\": \"2 tins (approx 480 g drained)\",\n          \"amount\": 480,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"Kidney beans\",\n          \"quantity\": \"2 tins (approx 480 g drained)\",\n          \"amount\": 480,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"Chopped tomatoes\",\n          \"quantity\": \"2 tins (800 g)\",\n          \"amount\": 800,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Onions\",\n          \"quantity\": \"2 large, diced\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Garlic\",\n          \"quantity\": \"4 cloves, minced\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Smoked paprika\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Sauté the onions and garlic in olive oil until soft. Add the smoked paprika and stir for a minute. Pour in the chopped tomatoes and all the beans. Simmer on low heat for 25 minutes until the sauce has thickened and the flavours are deep.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 35,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_beans_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 500\n        },\n        {\n          \"id\": \"box_beans_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 500\n        },\n        {\n          \"id\": \"box_beans_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 500\n        },\n        {\n          \"id\": \"box_beans_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 500\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_roasted_broccoli\",\n      \"title\": \"Charred Smoked Paprika Broccoli\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        {\n          \"term\": \"Broccoli\",\n          \"quantity\": \"2 large heads (approx 800 g)\",\n          \"amount\": 800,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Smoked paprika\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Cut the broccoli into bite-sized florets. Toss with olive oil, smoked paprika, and salt. Spread on a single oven tray and roast at 200C for 20 minutes until charred at the edges.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_broccoli_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_broccoli_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_broccoli_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_broccoli_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 150\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_protein_roast\",\n      \"title\": \"Roasted Chicken and Smoked Tofu\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        {\n          \"term\": \"Chicken mini fillets\",\n          \"quantity\": \"450 g\",\n          \"amount\": 450,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Smoked tofu\",\n          \"quantity\": \"200 g, sliced\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Place the chicken fillets on one side of a tray and the tofu slices on the other. Drizzle with oil and roast at 200C for 20 minutes until the chicken is cooked through and the tofu is firm.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_protein_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 130\n        },\n        {\n          \"id\": \"box_protein_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 130\n        },\n        {\n          \"id\": \"box_protein_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 130\n        },\n        {\n          \"id\": \"box_protein_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 130\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_smoky_beans\",\n        \"prep_roasted_broccoli\",\n        \"prep_protein_roast\"\n      ],\n      \"total_minutes\": 50,\n      \"run_through\": \"Preheat the oven to 200C. Prepare the broccoli and get it into the oven on the first tray. While it roasts, start the onion and bean stew on the hob. After 20 minutes, remove the broccoli and swap it for the second tray containing the chicken and tofu. Continue simmering the beans until the protein is roasted, then weigh and box all components into the named containers.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"Black beans\",\n      \"quantity\": \"2 tins (400 g each)\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Kidney beans\",\n      \"quantity\": \"2 tins (400 g each)\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Chopped tomatoes\",\n      \"quantity\": \"2 tins (400 g each)\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Onions\",\n      \"quantity\": \"2 large\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Garlic\",\n      \"quantity\": \"1 bulb\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Broccoli\",\n      \"quantity\": \"2 large heads\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Chicken mini fillets\",\n      \"quantity\": \"450 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"Smoked tofu\",\n      \"quantity\": \"200 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"Smoked paprika\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Olive oil\",\n      \"quantity\": \"250 ml\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\",\n      \"portion_note\": \"Serve the smoky broccoli first, then the roasted chicken, and finish with the bean stew.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"note\": \"one portion of the bean base\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_broccoli\",\n          \"note\": \"one portion of charred broccoli\"\n        },\n        {\n          \"preparation_id\": \"prep_protein_roast\",\n          \"note\": \"one portion of roasted chicken\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"f5c81e2b-7f57-4fac-a30f-067fa587262d\",\n      \"portion_note\": \"Place the roasted chicken and bean stew on the plate first, then add the broccoli on the side.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"note\": \"one portion of the bean base\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_broccoli\",\n          \"note\": \"one portion of charred broccoli\"\n        },\n        {\n          \"preparation_id\": \"prep_protein_roast\",\n          \"note\": \"one portion of roasted chicken\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\",\n      \"portion_note\": \"Start with the roasted chicken and bean stew, adding the broccoli florets last.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"note\": \"one portion of the bean base\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_broccoli\",\n          \"note\": \"one portion of charred broccoli\"\n        },\n        {\n          \"preparation_id\": \"prep_protein_roast\",\n          \"note\": \"one portion of roasted chicken\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"1fea4f51-a4e9-4066-8d09-49881ee58f38\",\n      \"portion_note\": \"Combine the bean stew, smoked tofu, and broccoli together in a bowl.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"note\": \"one portion of the bean base\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_broccoli\",\n          \"note\": \"one portion of charred broccoli\"\n        },\n        {\n          \"preparation_id\": \"prep_protein_roast\",\n          \"note\": \"one portion of smoked tofu\"\n        }\n      ]\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Smoky Summer Harvest Bowl",
+          "title": "Smoky bean stew with roasted tofu and charred broccoli",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [],
+          "method": "Assemble the meal by placing a portion of the warm smoky bean stew in a bowl, topping it with the roasted smoked tofu and charred broccoli florets.",
+          "why": "This dish provides a smoky, slow-cooked flavour profile using beans and tofu to meet the vegan requirement for the shared table.",
+          "uses": [
+            {
+              "preparation_id": "prep_smoky_beans",
+              "servings": 1,
+              "box_id": "box_beans_theodule"
+            },
+            {
+              "preparation_id": "prep_roasted_broccoli",
+              "servings": 1,
+              "box_id": "box_broccoli_theodule"
+            },
+            {
+              "preparation_id": "prep_protein_roast",
+              "servings": 1,
+              "box_id": "box_protein_theodule"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Smoky Chicken and Bean Pot",
+          "title": "Smoky bean stew with roasted chicken and broccoli",
+          "slot": "lunch",
+          "day": "wed",
+          "for_member_id": "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+          "ingredients": [],
+          "method": "Assemble the plate by serving the charred broccoli first, followed by the roasted chicken fillets and a portion of the smoky bean stew.",
+          "why": "Aurele receives a high-protein version of the smoky stew with chicken instead of tofu.",
+          "uses": [
+            {
+              "preparation_id": "prep_smoky_beans",
+              "servings": 1,
+              "box_id": "box_beans_aurele"
+            },
+            {
+              "preparation_id": "prep_roasted_broccoli",
+              "servings": 1,
+              "box_id": "box_broccoli_aurele"
+            },
+            {
+              "preparation_id": "prep_protein_roast",
+              "servings": 1,
+              "box_id": "box_protein_aurele"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          }
+        },
+        {
+          "name": "Smoky Chicken and Bean Pot",
+          "title": "Smoky bean stew with roasted chicken and broccoli",
+          "slot": "lunch",
+          "day": "wed",
+          "for_member_id": "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+          "ingredients": [],
+          "method": "Serve the roasted chicken and bean stew first, then add the charred broccoli on the side of the plate.",
+          "why": "This version uses chicken for Marceline and excludes fennel to respect her household rule.",
+          "uses": [
+            {
+              "preparation_id": "prep_smoky_beans",
+              "servings": 1,
+              "box_id": "box_beans_marceline"
+            },
+            {
+              "preparation_id": "prep_roasted_broccoli",
+              "servings": 1,
+              "box_id": "box_broccoli_marceline"
+            },
+            {
+              "preparation_id": "prep_protein_roast",
+              "servings": 1,
+              "box_id": "box_protein_marceline"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          }
+        },
+        {
+          "name": "Smoky Chicken and Bean Pot",
+          "title": "Smoky bean stew with roasted chicken and broccoli",
+          "slot": "lunch",
+          "day": "wed",
+          "for_member_id": "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7",
+          "ingredients": [],
+          "method": "Place the roasted chicken and bean stew on the plate first, then finish with the charred broccoli.",
+          "why": "This meal is prepared without any sesame products to ensure Solveig's safety.",
+          "uses": [
+            {
+              "preparation_id": "prep_smoky_beans",
+              "servings": 1,
+              "box_id": "box_beans_solveig"
+            },
+            {
+              "preparation_id": "prep_roasted_broccoli",
+              "servings": 1,
+              "box_id": "box_broccoli_solveig"
+            },
+            {
+              "preparation_id": "prep_protein_roast",
+              "servings": 1,
+              "box_id": "box_protein_solveig"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          }
+        },
+        {
+          "name": "Warming Smoky Bean Supper",
+          "title": "Reheated smoky bean stew with tofu and broccoli",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [],
+          "method": "Gently reheat the bean stew in a pan on the hob. Once hot, stir in the tofu and broccoli to warm through before serving in a bowl.",
+          "why": "A warm, slow-cooked style dinner that remains vegan for the shared table.",
+          "uses": [
+            {
+              "preparation_id": "prep_smoky_beans",
+              "servings": 1,
+              "box_id": "box_beans_theodule"
+            },
+            {
+              "preparation_id": "prep_roasted_broccoli",
+              "servings": 1,
+              "box_id": "box_broccoli_theodule"
+            },
+            {
+              "preparation_id": "prep_protein_roast",
+              "servings": 1,
+              "box_id": "box_protein_theodule"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Late Night Smoky Chicken Stew",
+          "title": "Reheated smoky chicken and bean stew with broccoli",
+          "slot": "dinner",
+          "day": "wed",
+          "for_member_id": "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+          "ingredients": [],
+          "method": "Reheat the bean stew and chicken in a pan until piping hot. Serve the broccoli first, then top with the chicken and stew.",
+          "why": "Aurele's dinner is reheated to provide a warm, protein-rich meal late in the evening.",
+          "uses": [
+            {
+              "preparation_id": "prep_smoky_beans",
+              "servings": 1,
+              "box_id": "box_beans_aurele"
+            },
+            {
+              "preparation_id": "prep_roasted_broccoli",
+              "servings": 1,
+              "box_id": "box_broccoli_aurele"
+            },
+            {
+              "preparation_id": "prep_protein_roast",
+              "servings": 1,
+              "box_id": "box_protein_aurele"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          }
+        },
+        {
+          "name": "Smoky Chicken and Bean Supper",
+          "title": "Reheated smoky chicken and bean stew with broccoli",
+          "slot": "dinner",
+          "day": "wed",
+          "for_member_id": "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+          "ingredients": [],
+          "method": "Warm the chicken and bean stew in a pan on the hob. Plate the chicken and stew first, then add the broccoli on the side.",
+          "why": "Marceline's meal is reheated without any fennel-containing ingredients.",
+          "uses": [
+            {
+              "preparation_id": "prep_smoky_beans",
+              "servings": 1,
+              "box_id": "box_beans_marceline"
+            },
+            {
+              "preparation_id": "prep_roasted_broccoli",
+              "servings": 1,
+              "box_id": "box_broccoli_marceline"
+            },
+            {
+              "preparation_id": "prep_protein_roast",
+              "servings": 1,
+              "box_id": "box_protein_marceline"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          }
+        },
+        {
+          "name": "Smoky Chicken and Bean Supper",
+          "title": "Reheated smoky chicken and bean stew with broccoli",
+          "slot": "dinner",
+          "day": "wed",
+          "for_member_id": "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7",
+          "ingredients": [],
+          "method": "Reheat the chicken and bean stew in a pan. Serve the chicken and stew first, followed by the broccoli florets.",
+          "why": "Solveig's meal is reheated in a clean pan to maintain the sesame-free requirement.",
+          "uses": [
+            {
+              "preparation_id": "prep_smoky_beans",
+              "servings": 1,
+              "box_id": "box_beans_solveig"
+            },
+            {
+              "preparation_id": "prep_roasted_broccoli",
+              "servings": 1,
+              "box_id": "box_broccoli_solveig"
+            },
+            {
+              "preparation_id": "prep_protein_roast",
+              "servings": 1,
+              "box_id": "box_protein_solveig"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          }
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_smoky_beans",
+          "title": "Smoky Three-Bean and Tomato Base",
+          "servings_made": 8,
+          "ingredients": [
+            {
+              "term": "Black beans",
+              "quantity": "2 tins (approx 480 g drained)",
+              "amount": 480,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "Kidney beans",
+              "quantity": "2 tins (approx 480 g drained)",
+              "amount": 480,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "Chopped tomatoes",
+              "quantity": "2 tins (800 g)",
+              "amount": 800,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Onions",
+              "quantity": "2 large, diced",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "Garlic",
+              "quantity": "4 cloves, minced",
+              "amount": 4,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "Smoked paprika",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "Olive oil",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Sauté the onions and garlic in olive oil until soft. Add the smoked paprika and stir for a minute. Pour in the chopped tomatoes and all the beans. Simmer on low heat for 25 minutes until the sauce has thickened and the flavours are deep.",
+          "active_minutes": 10,
+          "total_minutes": 35,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_beans_aurele",
+              "member_ids": [
+                "c278b5dc-680f-43f1-b54f-f9da630fcb2f"
+              ],
+              "grams": 500
+            },
+            {
+              "id": "box_beans_marceline",
+              "member_ids": [
+                "f5c81e2b-7f57-4fac-a30f-067fa587262d"
+              ],
+              "grams": 500
+            },
+            {
+              "id": "box_beans_solveig",
+              "member_ids": [
+                "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+              ],
+              "grams": 500
+            },
+            {
+              "id": "box_beans_theodule",
+              "member_ids": [
+                "1fea4f51-a4e9-4066-8d09-49881ee58f38"
+              ],
+              "grams": 500
+            }
+          ]
+        },
+        {
+          "id": "prep_roasted_broccoli",
+          "title": "Charred Smoked Paprika Broccoli",
+          "servings_made": 8,
+          "ingredients": [
+            {
+              "term": "Broccoli",
+              "quantity": "2 large heads (approx 800 g)",
+              "amount": 800,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Smoked paprika",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "Olive oil",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Cut the broccoli into bite-sized florets. Toss with olive oil, smoked paprika, and salt. Spread on a single oven tray and roast at 200C for 20 minutes until charred at the edges.",
+          "active_minutes": 5,
+          "total_minutes": 25,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_broccoli_aurele",
+              "member_ids": [
+                "c278b5dc-680f-43f1-b54f-f9da630fcb2f"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_broccoli_marceline",
+              "member_ids": [
+                "f5c81e2b-7f57-4fac-a30f-067fa587262d"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_broccoli_solveig",
+              "member_ids": [
+                "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_broccoli_theodule",
+              "member_ids": [
+                "1fea4f51-a4e9-4066-8d09-49881ee58f38"
+              ],
+              "grams": 150
+            }
+          ]
+        },
+        {
+          "id": "prep_protein_roast",
+          "title": "Roasted Chicken and Smoked Tofu",
+          "servings_made": 8,
+          "ingredients": [
+            {
+              "term": "Chicken mini fillets",
+              "quantity": "450 g",
+              "amount": 450,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Smoked tofu",
+              "quantity": "200 g, sliced",
+              "amount": 200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Place the chicken fillets on one side of a tray and the tofu slices on the other. Drizzle with oil and roast at 200C for 20 minutes until the chicken is cooked through and the tofu is firm.",
+          "active_minutes": 5,
+          "total_minutes": 25,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_protein_aurele",
+              "member_ids": [
+                "c278b5dc-680f-43f1-b54f-f9da630fcb2f"
+              ],
+              "grams": 130
+            },
+            {
+              "id": "box_protein_marceline",
+              "member_ids": [
+                "f5c81e2b-7f57-4fac-a30f-067fa587262d"
+              ],
+              "grams": 130
+            },
+            {
+              "id": "box_protein_solveig",
+              "member_ids": [
+                "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+              ],
+              "grams": 130
+            },
+            {
+              "id": "box_protein_theodule",
+              "member_ids": [
+                "1fea4f51-a4e9-4066-8d09-49881ee58f38"
+              ],
+              "grams": 130
+            }
+          ]
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_smoky_beans",
+            "prep_roasted_broccoli",
+            "prep_protein_roast"
+          ],
+          "total_minutes": 50,
+          "run_through": "Preheat the oven to 200C. Prepare the broccoli and get it into the oven on the first tray. While it roasts, start the onion and bean stew on the hob. After 20 minutes, remove the broccoli and swap it for the second tray containing the chicken and tofu. Continue simmering the beans until the protein is roasted, then weigh and box all components into the named containers."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "Black beans",
+          "quantity": "2 tins (400 g each)",
+          "aisle": "pantry"
+        },
+        {
+          "term": "Kidney beans",
+          "quantity": "2 tins (400 g each)",
+          "aisle": "pantry"
+        },
+        {
+          "term": "Chopped tomatoes",
+          "quantity": "2 tins (400 g each)",
+          "aisle": "pantry"
+        },
+        {
+          "term": "Onions",
+          "quantity": "2 large",
+          "aisle": "produce"
+        },
+        {
+          "term": "Garlic",
+          "quantity": "1 bulb",
+          "aisle": "produce"
+        },
+        {
+          "term": "Broccoli",
+          "quantity": "2 large heads",
+          "aisle": "produce"
+        },
+        {
+          "term": "Chicken mini fillets",
+          "quantity": "450 g",
+          "aisle": "protein"
+        },
+        {
+          "term": "Smoked tofu",
+          "quantity": "200 g",
+          "aisle": "protein"
+        },
+        {
+          "term": "Smoked paprika",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "Olive oil",
+          "quantity": "250 ml",
+          "aisle": "pantry"
+        }
+      ],
+      "member_portions": [
+        {
+          "member_id": "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+          "portion_note": "Serve the smoky broccoli first, then the roasted chicken, and finish with the bean stew.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_smoky_beans",
+              "note": "one portion of the bean base"
+            },
+            {
+              "preparation_id": "prep_roasted_broccoli",
+              "note": "one portion of charred broccoli"
+            },
+            {
+              "preparation_id": "prep_protein_roast",
+              "note": "one portion of roasted chicken"
+            }
+          ]
+        },
+        {
+          "member_id": "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+          "portion_note": "Place the roasted chicken and bean stew on the plate first, then add the broccoli on the side.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_smoky_beans",
+              "note": "one portion of the bean base"
+            },
+            {
+              "preparation_id": "prep_roasted_broccoli",
+              "note": "one portion of charred broccoli"
+            },
+            {
+              "preparation_id": "prep_protein_roast",
+              "note": "one portion of roasted chicken"
+            }
+          ]
+        },
+        {
+          "member_id": "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7",
+          "portion_note": "Start with the roasted chicken and bean stew, adding the broccoli florets last.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_smoky_beans",
+              "note": "one portion of the bean base"
+            },
+            {
+              "preparation_id": "prep_roasted_broccoli",
+              "note": "one portion of charred broccoli"
+            },
+            {
+              "preparation_id": "prep_protein_roast",
+              "note": "one portion of roasted chicken"
+            }
+          ]
+        },
+        {
+          "member_id": "1fea4f51-a4e9-4066-8d09-49881ee58f38",
+          "portion_note": "Combine the bean stew, smoked tofu, and broccoli together in a bowl.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_smoky_beans",
+              "note": "one portion of the bean base"
+            },
+            {
+              "preparation_id": "prep_roasted_broccoli",
+              "note": "one portion of charred broccoli"
+            },
+            {
+              "preparation_id": "prep_protein_roast",
+              "note": "one portion of smoked tofu"
+            }
+          ]
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "candidates": [
+        {
+          "index": 0,
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Smoky Summer Harvest Bowl\",\n      \"title\": \"Smoky bean stew with roasted tofu and charred broccoli\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Assemble the meal by placing a portion of the warm smoky bean stew in a bowl, topping it with the roasted smoked tofu and charred broccoli florets.\",\n      \"why\": \"This dish provides a smoky, slow-cooked flavour profile using beans and tofu to meet the vegan requirement for the shared table.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_theodule\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_broccoli\",\n          \"servings\": 1,\n          \"box_id\": \"box_broccoli_theodule\"\n        },\n        {\n          \"preparation_id\": \"prep_protein_roast\",\n          \"servings\": 1,\n          \"box_id\": \"box_protein_theodule\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Smoky Chicken and Bean Pot\",\n      \"title\": \"Smoky bean stew with roasted chicken and broccoli\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\",\n      \"ingredients\": [],\n      \"method\": \"Assemble the plate by serving the charred broccoli first, followed by the roasted chicken fillets and a portion of the smoky bean stew.\",\n      \"why\": \"Aurele receives a high-protein version of the smoky stew with chicken instead of tofu.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_broccoli\",\n          \"servings\": 1,\n          \"box_id\": \"box_broccoli_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_protein_roast\",\n          \"servings\": 1,\n          \"box_id\": \"box_protein_aurele\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      }\n    },\n    {\n      \"name\": \"Smoky Chicken and Bean Pot\",\n      \"title\": \"Smoky bean stew with roasted chicken and broccoli\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"f5c81e2b-7f57-4fac-a30f-067fa587262d\",\n      \"ingredients\": [],\n      \"method\": \"Serve the roasted chicken and bean stew first, then add the charred broccoli on the side of the plate.\",\n      \"why\": \"This version uses chicken for Marceline and excludes fennel to respect her household rule.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_marceline\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_broccoli\",\n          \"servings\": 1,\n          \"box_id\": \"box_broccoli_marceline\"\n        },\n        {\n          \"preparation_id\": \"prep_protein_roast\",\n          \"servings\": 1,\n          \"box_id\": \"box_protein_marceline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      }\n    },\n    {\n      \"name\": \"Smoky Chicken and Bean Pot\",\n      \"title\": \"Smoky bean stew with roasted chicken and broccoli\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\",\n      \"ingredients\": [],\n      \"method\": \"Place the roasted chicken and bean stew on the plate first, then finish with the charred broccoli.\",\n      \"why\": \"This meal is prepared without any sesame products to ensure Solveig's safety.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_solveig\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_broccoli\",\n          \"servings\": 1,\n          \"box_id\": \"box_broccoli_solveig\"\n        },\n        {\n          \"preparation_id\": \"prep_protein_roast\",\n          \"servings\": 1,\n          \"box_id\": \"box_protein_solveig\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      }\n    },\n    {\n      \"name\": \"Warming Smoky Bean Supper\",\n      \"title\": \"Reheated smoky bean stew with tofu and broccoli\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Gently reheat the bean stew in a pan on the hob. Once hot, stir in the tofu and broccoli to warm through before serving in a bowl.\",\n      \"why\": \"A warm, slow-cooked style dinner that remains vegan for the shared table.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_theodule\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_broccoli\",\n          \"servings\": 1,\n          \"box_id\": \"box_broccoli_theodule\"\n        },\n        {\n          \"preparation_id\": \"prep_protein_roast\",\n          \"servings\": 1,\n          \"box_id\": \"box_protein_theodule\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Late Night Smoky Chicken Stew\",\n      \"title\": \"Reheated smoky chicken and bean stew with broccoli\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the bean stew and chicken in a pan until piping hot. Serve the broccoli first, then top with the chicken and stew.\",\n      \"why\": \"Aurele's dinner is reheated to provide a warm, protein-rich meal late in the evening.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_broccoli\",\n          \"servings\": 1,\n          \"box_id\": \"box_broccoli_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_protein_roast\",\n          \"servings\": 1,\n          \"box_id\": \"box_protein_aurele\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      }\n    },\n    {\n      \"name\": \"Smoky Chicken and Bean Supper\",\n      \"title\": \"Reheated smoky chicken and bean stew with broccoli\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"f5c81e2b-7f57-4fac-a30f-067fa587262d\",\n      \"ingredients\": [],\n      \"method\": \"Warm the chicken and bean stew in a pan on the hob. Plate the chicken and stew first, then add the broccoli on the side.\",\n      \"why\": \"Marceline's meal is reheated without any fennel-containing ingredients.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_marceline\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_broccoli\",\n          \"servings\": 1,\n          \"box_id\": \"box_broccoli_marceline\"\n        },\n        {\n          \"preparation_id\": \"prep_protein_roast\",\n          \"servings\": 1,\n          \"box_id\": \"box_protein_marceline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      }\n    },\n    {\n      \"name\": \"Smoky Chicken and Bean Supper\",\n      \"title\": \"Reheated smoky chicken and bean stew with broccoli\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the chicken and bean stew in a pan. Serve the chicken and stew first, followed by the broccoli florets.\",\n      \"why\": \"Solveig's meal is reheated in a clean pan to maintain the sesame-free requirement.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_solveig\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_broccoli\",\n          \"servings\": 1,\n          \"box_id\": \"box_broccoli_solveig\"\n        },\n        {\n          \"preparation_id\": \"prep_protein_roast\",\n          \"servings\": 1,\n          \"box_id\": \"box_protein_solveig\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      }\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_smoky_beans\",\n      \"title\": \"Smoky Three-Bean and Tomato Base\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        {\n          \"term\": \"Black beans\",\n          \"quantity\": \"2 tins (approx 480 g drained)\",\n          \"amount\": 480,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"Kidney beans\",\n          \"quantity\": \"2 tins (approx 480 g drained)\",\n          \"amount\": 480,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"Chopped tomatoes\",\n          \"quantity\": \"2 tins (800 g)\",\n          \"amount\": 800,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Onions\",\n          \"quantity\": \"2 large, diced\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Garlic\",\n          \"quantity\": \"4 cloves, minced\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Smoked paprika\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Sauté the onions and garlic in olive oil until soft. Add the smoked paprika and stir for a minute. Pour in the chopped tomatoes and all the beans. Simmer on low heat for 25 minutes until the sauce has thickened and the flavours are deep.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 35,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_beans_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 500\n        },\n        {\n          \"id\": \"box_beans_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 500\n        },\n        {\n          \"id\": \"box_beans_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 500\n        },\n        {\n          \"id\": \"box_beans_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 500\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_roasted_broccoli\",\n      \"title\": \"Charred Smoked Paprika Broccoli\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        {\n          \"term\": \"Broccoli\",\n          \"quantity\": \"2 large heads (approx 800 g)\",\n          \"amount\": 800,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Smoked paprika\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Cut the broccoli into bite-sized florets. Toss with olive oil, smoked paprika, and salt. Spread on a single oven tray and roast at 200C for 20 minutes until charred at the edges.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_broccoli_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_broccoli_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_broccoli_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_broccoli_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 150\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_protein_roast\",\n      \"title\": \"Roasted Chicken and Smoked Tofu\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        {\n          \"term\": \"Chicken mini fillets\",\n          \"quantity\": \"450 g\",\n          \"amount\": 450,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Smoked tofu\",\n          \"quantity\": \"200 g, sliced\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Place the chicken fillets on one side of a tray and the tofu slices on the other. Drizzle with oil and roast at 200C for 20 minutes until the chicken is cooked through and the tofu is firm.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_protein_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 130\n        },\n        {\n          \"id\": \"box_protein_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 130\n        },\n        {\n          \"id\": \"box_protein_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 130\n        },\n        {\n          \"id\": \"box_protein_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 130\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_smoky_beans\",\n        \"prep_roasted_broccoli\",\n        \"prep_protein_roast\"\n      ],\n      \"total_minutes\": 50,\n      \"run_through\": \"Preheat the oven to 200C. Prepare the broccoli and get it into the oven on the first tray. While it roasts, start the onion and bean stew on the hob. After 20 minutes, remove the broccoli and swap it for the second tray containing the chicken and tofu. Continue simmering the beans until the protein is roasted, then weigh and box all components into the named containers.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"Black beans\",\n      \"quantity\": \"2 tins (400 g each)\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Kidney beans\",\n      \"quantity\": \"2 tins (400 g each)\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Chopped tomatoes\",\n      \"quantity\": \"2 tins (400 g each)\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Onions\",\n      \"quantity\": \"2 large\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Garlic\",\n      \"quantity\": \"1 bulb\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Broccoli\",\n      \"quantity\": \"2 large heads\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Chicken mini fillets\",\n      \"quantity\": \"450 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"Smoked tofu\",\n      \"quantity\": \"200 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"Smoked paprika\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Olive oil\",\n      \"quantity\": \"250 ml\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\",\n      \"portion_note\": \"Serve the smoky broccoli first, then the roasted chicken, and finish with the bean stew.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"note\": \"one portion of the bean base\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_broccoli\",\n          \"note\": \"one portion of charred broccoli\"\n        },\n        {\n          \"preparation_id\": \"prep_protein_roast\",\n          \"note\": \"one portion of roasted chicken\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"f5c81e2b-7f57-4fac-a30f-067fa587262d\",\n      \"portion_note\": \"Place the roasted chicken and bean stew on the plate first, then add the broccoli on the side.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"note\": \"one portion of the bean base\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_broccoli\",\n          \"note\": \"one portion of charred broccoli\"\n        },\n        {\n          \"preparation_id\": \"prep_protein_roast\",\n          \"note\": \"one portion of roasted chicken\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\",\n      \"portion_note\": \"Start with the roasted chicken and bean stew, adding the broccoli florets last.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"note\": \"one portion of the bean base\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_broccoli\",\n          \"note\": \"one portion of charred broccoli\"\n        },\n        {\n          \"preparation_id\": \"prep_protein_roast\",\n          \"note\": \"one portion of roasted chicken\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"1fea4f51-a4e9-4066-8d09-49881ee58f38\",\n      \"portion_note\": \"Combine the bean stew, smoked tofu, and broccoli together in a bowl.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"note\": \"one portion of the bean base\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_broccoli\",\n          \"note\": \"one portion of charred broccoli\"\n        },\n        {\n          \"preparation_id\": \"prep_protein_roast\",\n          \"note\": \"one portion of smoked tofu\"\n        }\n      ]\n    }\n  ]\n}",
+                "thoughtSignature": "[redacted]"
+              }
+            ]
+          },
+          "finishReason": "STOP"
+        }
+      ],
+      "responseId": "dgyFasb6L6-2kdUPl5vzqQw",
+      "modelVersion": "gemini-3-flash-preview",
+      "usageMetadata": {
+        "serviceTier": "standard",
+        "totalTokenCount": 20929,
+        "promptTokenCount": 8815,
+        "thoughtsTokenCount": 6131,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 8815
+          }
+        ],
+        "candidatesTokenCount": 5983
+      }
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-19T01:52:49.92179+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T01:52:50.451447+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:52:54.65676+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:52:54.666262+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:52:54.672906+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:53:50.357732+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

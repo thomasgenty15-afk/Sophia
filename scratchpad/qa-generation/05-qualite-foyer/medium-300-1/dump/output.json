@@ -1,0 +1,1817 @@
+{
+  "request_id": "md000001-0000-4000-8000-000000000001",
+  "resolved_by": "--request-id",
+  "user_id": "5a000000-0000-4000-8000-000000000001",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-19T09:27:55.298Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "b806bfcc-820f-4257-928a-028f280a2f62",
+      "status": "attempt_start",
+      "created_at": "2026-08-19T09:26:47.16398+00:00",
+      "provider": "openai",
+      "model": "gpt-5.6-luna",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 16129,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 16129,
+    "user_message_chars": 19190,
+    "user_message_truncated": false,
+    "user_message_written_chars": 19190,
+    "independent_counters": {
+      "system_prompt_chars": 16129,
+      "prompt_chars": 19190
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "604c4589-98d9-4a17-833a-f5cea489a0cf",
+    "created_at": "2026-08-19T09:27:54.671263+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "openai",
+    "model": "gpt-5.6-luna",
+    "http_status": 200,
+    "attempt": 1,
+    "chain_index": 0,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\"dishes\":[{\"name\":\"Hummus crunch boxes\",\"title\":\"Hummus, cucumber, tomatoes and corn cakes\",\"slot\":\"lunch\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"hummus\",\"quantity\":\"120 g hummus\",\"amount\":120,\"unit\":\"g\",\"state\":null},{\"term\":\"cucumber\",\"quantity\":\"100 g cucumber\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"tomatoes\",\"quantity\":\"120 g tomatoes\",\"amount\":120,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"corn cakes\",\"quantity\":\"3 corn cakes\",\"amount\":3,\"unit\":\"unit\",\"state\":null}],\"method\":\"Arrange the hummus, cucumber, tomatoes and corn cakes in a lunch box.\",\"why\":\"A fresh, portable lunch gives the household a simple protein-led plate before the evening cooking session.\",\"uses\":[],\"same_day\":{\"kind\":\"assemble\",\"minutes\":5},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Cucumber hummus plate\",\"title\":\"Hummus, cucumber, tomatoes and corn cakes\",\"slot\":\"lunch\",\"day\":\"wed\",\"for_member_id\":\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\"ingredients\":[{\"term\":\"hummus\",\"quantity\":\"120 g hummus\",\"amount\":120,\"unit\":\"g\",\"state\":null},{\"term\":\"cucumber\",\"quantity\":\"100 g cucumber\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"tomatoes\",\"quantity\":\"120 g tomatoes\",\"amount\":120,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"corn cakes\",\"quantity\":\"3 corn cakes\",\"amount\":3,\"unit\":\"unit\",\"state\":null}],\"method\":\"Arrange the hummus, cucumber, tomatoes and corn cakes in the named lunch box.\",\"why\":\"This keeps the lunch portable and gives a distinct plate from the shared arrangement.\",\"uses\":[],\"same_day\":{\"kind\":\"assemble\",\"minutes\":5},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Golden lentil curry\",\"title\":\"Lentil curry, potatoes, spinach and tomatoes\",\"slot\":\"dinner\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null},{\"term\":\"fresh coriander\",\"quantity\":\"10 coriander leaves\",\"amount\":10,\"unit\":\"unit\",\"state\":null}],\"method\":\"Reheat the named portion of lentil curry, then add lemon and coriander.\",\"why\":\"A warm, comforting batch starts the week without asking anyone to cook after seven.\",\"uses\":[{\"preparation_id\":\"prep_lentil_curry\",\"servings\":1,\"box_id\":\"box_prep_lentil_curry_zoe\"},{\"preparation_id\":\"prep_lentil_curry\",\"servings\":1,\"box_id\":\"box_prep_lentil_curry_lubna\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Lemon lentil curry\",\"title\":\"Lentil curry, potatoes, spinach and tomatoes\",\"slot\":\"dinner\",\"day\":\"wed\",\"for_member_id\":\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\"ingredients\":[{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null},{\"term\":\"fresh coriander\",\"quantity\":\"10 coriander leaves\",\"amount\":10,\"unit\":\"unit\",\"state\":null}],\"method\":\"Reheat the named portion, then finish with lemon and coriander.\",\"why\":\"The same warm batch is given a fresh finish for a separate plate.\",\"uses\":[{\"preparation_id\":\"prep_lentil_curry\",\"servings\":1,\"box_id\":\"box_prep_lentil_curry_roxane\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Curry lunch bowl\",\"title\":\"Lentil curry, potatoes, spinach and tomatoes\",\"slot\":\"lunch\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"lime\",\"quantity\":\"half a lime\",\"amount\":null,\"unit\":null},{\"term\":\"fresh coriander\",\"quantity\":\"10 coriander leaves\",\"amount\":10,\"unit\":\"unit\",\"state\":null}],\"method\":\"Reheat the named portions and add lime and coriander just before eating.\",\"why\":\"It reheats well for work and changes the first dinner into a brighter lunch bowl.\",\"uses\":[{\"preparation_id\":\"prep_lentil_curry\",\"servings\":1,\"box_id\":\"box_prep_lentil_curry_zoe\"},{\"preparation_id\":\"prep_lentil_curry\",\"servings\":1,\"box_id\":\"box_prep_lentil_curry_lubna\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Bright curry bowl\",\"title\":\"Lentil curry, potatoes, spinach and tomatoes\",\"slot\":\"lunch\",\"day\":\"thu\",\"for_member_id\":\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\"ingredients\":[{\"term\":\"lime\",\"quantity\":\"half a lime\",\"amount\":null,\"unit\":null},{\"term\":\"fresh coriander\",\"quantity\":\"10 coriander leaves\",\"amount\":10,\"unit\":\"unit\",\"state\":null}],\"method\":\"Reheat the named portion and add lime and coriander.\",\"why\":\"A citrus finish keeps the reheated lunch varied and easy to pack.\",\"uses\":[{\"preparation_id\":\"prep_lentil_curry\",\"servings\":1,\"box_id\":\"box_prep_lentil_curry_roxane\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Smoky curry supper\",\"title\":\"Lentil curry, potatoes, spinach and tomatoes\",\"slot\":\"dinner\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"spring onions\",\"quantity\":\"2 spring onions\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"}],\"method\":\"Reheat the named portions and scatter over sliced spring onions.\",\"why\":\"The batch remains warm and comforting while the fresh topping prevents repetition.\",\"uses\":[{\"preparation_id\":\"prep_lentil_curry\",\"servings\":1,\"box_id\":\"box_prep_lentil_curry_zoe\"},{\"preparation_id\":\"prep_lentil_curry\",\"servings\":1,\"box_id\":\"box_prep_lentil_curry_lubna\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Spring onion curry\",\"title\":\"Lentil curry, potatoes, spinach and tomatoes\",\"slot\":\"dinner\",\"day\":\"thu\",\"for_member_id\":\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\"ingredients\":[{\"term\":\"spring onions\",\"quantity\":\"2 spring onions\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"}],\"method\":\"Reheat the named portion and top with sliced spring onions.\",\"why\":\"The same preparation becomes a separately finished plate with almost no extra work.\",\"uses\":[{\"preparation_id\":\"prep_lentil_curry\",\"servings\":1,\"box_id\":\"box_prep_lentil_curry_roxane\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Curry potato lunch\",\"title\":\"Lentil curry, potatoes, spinach and tomatoes\",\"slot\":\"lunch\",\"day\":\"fri\",\"ingredients\":[{\"term\":\"fresh mint\",\"quantity\":\"10 mint leaves\",\"amount\":10,\"unit\":\"unit\",\"state\":null}],\"method\":\"Reheat the named portions and add torn mint.\",\"why\":\"This is the last work-friendly use of Wednesday's batch, with a cool herb contrast.\",\"uses\":[{\"preparation_id\":\"prep_lentil_curry\",\"servings\":1,\"box_id\":\"box_prep_lentil_curry_zoe\"},{\"preparation_id\":\"prep_lentil_curry\",\"servings\":1,\"box_id\":\"box_prep_lentil_curry_lubna\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Minted curry lunch\",\"title\":\"Lentil curry, potatoes, spinach and tomatoes\",\"slot\":\"lunch\",\"day\":\"fri\",\"for_member_id\":\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\"ingredients\":[{\"term\":\"fresh mint\",\"quantity\":\"10 mint leaves\",\"amount\":10,\"unit\":\"unit\",\"state\":null}],\"method\":\"Reheat the named portion and add torn mint.\",\"why\":\"Mint gives the separate lunch its own character without another cooking session.\",\"uses\":[{\"preparation_id\":\"prep_lentil_curry\",\"servings\":1,\"box_id\":\"box_prep_lentil_curry_roxane\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Tomato lentil supper\",\"title\":\"Lentil curry, potatoes, spinach and tomatoes\",\"slot\":\"dinner\",\"day\":\"fri\",\"ingredients\":[{\"term\":\"coconut yoghurt\",\"quantity\":\"60 g coconut yoghurt\",\"amount\":60,\"unit\":\"g\",\"state\":null}],\"method\":\"Reheat the named portions and spoon over the coconut yoghurt.\",\"why\":\"A creamy finish makes the final serving of the batch feel like a new dinner.\",\"uses\":[{\"preparation_id\":\"prep_lentil_curry\",\"servings\":1,\"box_id\":\"box_prep_lentil_curry_zoe\"},{\"preparation_id\":\"prep_lentil_curry\",\"servings\":1,\"box_id\":\"box_prep_lentil_curry_lubna\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Creamy lentil supper\",\"title\":\"Lentil curry, potatoes, spinach and tomatoes\",\"slot\":\"dinner\",\"day\":\"fri\",\"for_member_id\":\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\"ingredients\":[{\"term\":\"coconut yoghurt\",\"quantity\":\"60 g coconut yoghurt\",\"amount\":60,\"unit\":\"g\",\"state\":null}],\"method\":\"Reheat the named portion and spoon over the coconut yoghurt.\",\"why\":\"The separate plate gets a gentle creamy finish while using the same final batch.\",\"uses\":[{\"preparation_id\":\"prep_lentil_curry\",\"servings\":1,\"box_id\":\"box_prep_lentil_curry_roxane\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Hummus summer lunch\",\"title\":\"Hummus, cucumber, tomatoes and corn cakes\",\"slot\":\"lunch\",\"day\":\"sat\",\"ingredients\":[{\"term\":\"hummus\",\"quantity\":\"120 g hummus\",\"amount\":120,\"unit\":\"g\",\"state\":null},{\"term\":\"cucumber\",\"quantity\":\"100 g cucumber\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"tomatoes\",\"quantity\":\"120 g tomatoes\",\"amount\":120,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"corn cakes\",\"quantity\":\"3 corn cakes\",\"amount\":3,\"unit\":\"unit\",\"state\":null}],\"method\":\"Assemble the hummus, vegetables and corn cakes.\",\"why\":\"A no-cook lunch leaves the small hob free for Saturday's comforting batch.\",\"uses\":[],\"same_day\":{\"kind\":\"assemble\",\"minutes\":5},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Summer hummus plate\",\"title\":\"Hummus, cucumber, tomatoes and corn cakes\",\"slot\":\"lunch\",\"day\":\"sat\",\"for_member_id\":\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\"ingredients\":[{\"term\":\"hummus\",\"quantity\":\"120 g hummus\",\"amount\":120,\"unit\":\"g\",\"state\":null},{\"term\":\"cucumber\",\"quantity\":\"100 g cucumber\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"tomatoes\",\"quantity\":\"120 g tomatoes\",\"amount\":120,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"corn cakes\",\"quantity\":\"3 corn cakes\",\"amount\":3,\"unit\":\"unit\",\"state\":null}],\"method\":\"Assemble the named lunch box.\",\"why\":\"The fresh lunch is quick, while the evening batch is cooked separately.\",\"uses\":[],\"same_day\":{\"kind\":\"assemble\",\"minutes\":5},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Chickpea courgette stew\",\"title\":\"Chickpea stew, courgettes, peppers and potatoes\",\"slot\":\"dinner\",\"day\":\"sat\",\"ingredients\":[{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Reheat the named portions and add lemon.\",\"why\":\"Saturday's session creates a warm, seasonal batch that carries the weekend forward.\",\"uses\":[{\"preparation_id\":\"prep_chickpea_stew\",\"servings\":1,\"box_id\":\"box_prep_chickpea_stew_zoe\"},{\"preparation_id\":\"prep_chickpea_stew\",\"servings\":1,\"box_id\":\"box_prep_chickpea_stew_lubna\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Lemon chickpea stew\",\"title\":\"Chickpea stew, courgettes, peppers and potatoes\",\"slot\":\"dinner\",\"day\":\"sat\",\"for_member_id\":\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\"ingredients\":[{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Reheat the named portion and add lemon.\",\"why\":\"A separate lemon-finished plate comes from the same Saturday cooking session.\",\"uses\":[{\"preparation_id\":\"prep_chickpea_stew\",\"servings\":1,\"box_id\":\"box_prep_chickpea_stew_roxane\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Herby chickpea bowl\",\"title\":\"Chickpea stew, courgettes, peppers and potatoes\",\"slot\":\"dinner\",\"day\":\"sat\",\"for_member_id\":\"12362957-32c9-43a5-82ef-66b8d5732171\",\"ingredients\":[{\"term\":\"parsley\",\"quantity\":\"10 parsley leaves\",\"amount\":10,\"unit\":\"unit\",\"state\":null}],\"method\":\"Reheat the named portion and add parsley.\",\"why\":\"The same warm batch is given a distinct herb finish for this plate.\",\"uses\":[{\"preparation_id\":\"prep_chickpea_stew\",\"servings\":1,\"box_id\":\"box_prep_chickpea_stew_ivar\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Pepper chickpea lunch\",\"title\":\"Chickpea stew, courgettes, peppers and potatoes\",\"slot\":\"lunch\",\"day\":\"sun\",\"ingredients\":[{\"term\":\"fresh basil\",\"quantity\":\"10 basil leaves\",\"amount\":10,\"unit\":\"unit\",\"state\":null}],\"method\":\"Reheat the named portions and add basil.\",\"why\":\"A fragrant topping makes yesterday's batch feel fresh without extra cooking.\",\"uses\":[{\"preparation_id\":\"prep_chickpea_stew\",\"servings\":1,\"box_id\":\"box_prep_chickpea_stew_zoe\"},{\"preparation_id\":\"prep_chickpea_stew\",\"servings\":1,\"box_id\":\"box_prep_chickpea_stew_lubna\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Basil chickpea lunch\",\"title\":\"Chickpea stew, courgettes, peppers and potatoes\",\"slot\":\"lunch\",\"day\":\"sun\",\"for_member_id\":\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\"ingredients\":[{\"term\":\"fresh basil\",\"quantity\":\"10 basil leaves\",\"amount\":10,\"unit\":\"unit\",\"state\":null}],\"method\":\"Reheat the named portion and add basil.\",\"why\":\"The separate lunch gets a bright seasonal finish from the Saturday batch.\",\"uses\":[{\"preparation_id\":\"prep_chickpea_stew\",\"servings\":1,\"box_id\":\"box_prep_chickpea_stew_roxane\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Paprika chickpea supper\",\"title\":\"Chickpea stew, courgettes, peppers and potatoes\",\"slot\":\"dinner\",\"day\":\"sun\",\"ingredients\":[{\"term\":\"lime\",\"quantity\":\"half a lime\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Reheat the named portions and add lime.\",\"why\":\"Lime changes the flavour while keeping dinner warm and comforting.\",\"uses\":[{\"preparation_id\":\"prep_chickpea_stew\",\"servings\":1,\"box_id\":\"box_prep_chickpea_stew_zoe\"},{\"preparation_id\":\"prep_chickpea_stew\",\"servings\":1,\"box_id\":\"box_prep_chickpea_stew_lubna\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Lime chickpea supper\",\"title\":\"Chickpea stew, courgettes, peppers and potatoes\",\"slot\":\"dinner\",\"day\":\"sun\",\"for_member_id\":\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\"ingredients\":[{\"term\":\"lime\",\"quantity\":\"half a lime\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Reheat the named portion and add lime.\",\"why\":\"The citrus finish gives the separate plate a new flavour.\",\"uses\":[{\"preparation_id\":\"prep_chickpea_stew\",\"servings\":1,\"box_id\":\"box_prep_chickpea_stew_roxane\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Warm chickpea lunch\",\"title\":\"Chickpea stew, courgettes, peppers and potatoes\",\"slot\":\"lunch\",\"day\":\"mon\",\"ingredients\":[{\"term\":\"coconut yoghurt\",\"quantity\":\"60 g coconut yoghurt\",\"amount\":60,\"unit\":\"g\",\"state\":null}],\"method\":\"Reheat the named portions and add coconut yoghurt.\",\"why\":\"This is the final safe fridge-day use of Saturday's batch, made creamy for variety.\",\"uses\":[{\"preparation_id\":\"prep_chickpea_stew\",\"servings\":1,\"box_id\":\"box_prep_chickpea_stew_zoe\"},{\"preparation_id\":\"prep_chickpea_stew\",\"servings\":1,\"box_id\":\"box_prep_chickpea_stew_lubna\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Creamy chickpea lunch\",\"title\":\"Chickpea stew, courgettes, peppers and potatoes\",\"slot\":\"lunch\",\"day\":\"mon\",\"for_member_id\":\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\"ingredients\":[{\"term\":\"coconut yoghurt\",\"quantity\":\"60 g coconut yoghurt\",\"amount\":60,\"unit\":\"g\",\"state\":null}],\"method\":\"Reheat the named portion and add coconut yoghurt.\",\"why\":\"A creamy topping gives the separate final lunch a different finish.\",\"uses\":[{\"preparation_id\":\"prep_chickpea_stew\",\"servings\":1,\"box_id\":\"box_prep_chickpea_stew_roxane\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Smoky chickpea supper\",\"title\":\"Chickpea stew, courgettes, peppers and potatoes\",\"slot\":\"dinner\",\"day\":\"mon\",\"ingredients\":[{\"term\":\"spring onions\",\"quantity\":\"2 spring onions\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"}],\"method\":\"Reheat the named portions and add sliced spring onions.\",\"why\":\"The last batch dinner stays warm while the topping supplies a new texture.\",\"uses\":[{\"preparation_id\":\"prep_chickpea_stew\",\"servings\":1,\"box_id\":\"box_prep_chickpea_stew_zoe\"},{\"preparation_id\":\"prep_chickpea_stew\",\"servings\":1,\"box_id\":\"box_prep_chickpea_stew_lubna\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Spring onion chickpeas\",\"title\":\"Chickpea stew, courgettes, peppers and potatoes\",\"slot\":\"dinner\",\"day\":\"mon\",\"for_member_id\":\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\"ingredients\":[{\"term\":\"spring onions\",\"quantity\":\"2 spring onions\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"}],\"method\":\"Reheat the named portion and add sliced spring onions.\",\"why\":\"This separate plate uses the same batch with a crisp topping.\",\"uses\":[{\"preparation_id\":\"prep_chickpea_stew\",\"servings\":1,\"box_id\":\"box_prep_chickpea_stew_roxane\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Parsley chickpea supper\",\"title\":\"Chickpea stew, courgettes, peppers and potatoes\",\"slot\":\"dinner\",\"day\":\"mon\",\"for_member_id\":\"12362957-32c9-43a5-82ef-66b8d5732171\",\"ingredients\":[{\"term\":\"parsley\",\"quantity\":\"10 parsley leaves\",\"amount\":10,\"unit\":\"unit\",\"state\":null}],\"method\":\"Reheat the named portion and add parsley.\",\"why\":\"The herb finish keeps this warm post-training plate distinct.\",\"uses\":[{\"preparation_id\":\"prep_chickpea_stew\",\"servings\":1,\"box_id\":\"box_prep_chickpea_stew_ivar\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Hummus work box\",\"title\":\"Hummus, cucumber, tomatoes and corn cakes\",\"slot\":\"lunch\",\"day\":\"tue\",\"ingredients\":[{\"term\":\"hummus\",\"quantity\":\"120 g hummus\",\"amount\":120,\"unit\":\"g\",\"state\":null},{\"term\":\"cucumber\",\"quantity\":\"100 g cucumber\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"tomatoes\",\"quantity\":\"120 g tomatoes\",\"amount\":120,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"corn cakes\",\"quantity\":\"3 corn cakes\",\"amount\":3,\"unit\":\"unit\",\"state\":null}],\"method\":\"Assemble the hummus, vegetables and corn cakes.\",\"why\":\"A fresh portable lunch closes the stretch without keeping cooked food too long.\",\"uses\":[],\"same_day\":{\"kind\":\"assemble\",\"minutes\":5},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Fresh hummus box\",\"title\":\"Hummus, cucumber, tomatoes and corn cakes\",\"slot\":\"lunch\",\"day\":\"tue\",\"for_member_id\":\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\"ingredients\":[{\"term\":\"hummus\",\"quantity\":\"120 g hummus\",\"amount\":120,\"unit\":\"g\",\"state\":null},{\"term\":\"cucumber\",\"quantity\":\"100 g cucumber\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"tomatoes\",\"quantity\":\"120 g tomatoes\",\"amount\":120,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"corn cakes\",\"quantity\":\"3 corn cakes\",\"amount\":3,\"unit\":\"unit\",\"state\":null}],\"method\":\"Assemble the named lunch box.\",\"why\":\"The quick fresh plate avoids a fourth-day batch and stays easy to carry.\",\"uses\":[],\"same_day\":{\"kind\":\"assemble\",\"minutes\":5},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Warm tomato lentil soup\",\"title\":\"Tomato lentil soup, spinach and corn cakes\",\"slot\":\"dinner\",\"day\":\"tue\",\"ingredients\":[{\"term\":\"gluten-free ready tomato lentil soup\",\"quantity\":\"500 g ready tomato lentil soup\",\"amount\":500,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"spinach\",\"quantity\":\"60 g spinach\",\"amount\":60,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"corn cakes\",\"quantity\":\"3 corn cakes\",\"amount\":3,\"unit\":\"unit\",\"state\":null}],\"method\":\"Heat the ready soup until steaming, wilt in the spinach, and serve with corn cakes.\",\"why\":\"A ready-to-heat soup keeps Tuesday dinner warm without pretending Saturday's batch lasts longer than it should.\",\"uses\":[],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Green tomato soup\",\"title\":\"Tomato lentil soup, spinach and corn cakes\",\"slot\":\"dinner\",\"day\":\"tue\",\"for_member_id\":\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\"ingredients\":[{\"term\":\"gluten-free ready tomato lentil soup\",\"quantity\":\"500 g ready tomato lentil soup\",\"amount\":500,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"spinach\",\"quantity\":\"60 g spinach\",\"amount\":60,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"corn cakes\",\"quantity\":\"3 corn cakes\",\"amount\":3,\"unit\":\"unit\",\"state\":null}],\"method\":\"Heat the ready soup until steaming, wilt in the spinach, and serve with corn cakes.\",\"why\":\"The separate warm plate uses the same practical Tuesday solution.\",\"uses\":[],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Herby tomato soup\",\"title\":\"Tomato lentil soup, spinach and corn cakes\",\"slot\":\"dinner\",\"day\":\"tue\",\"for_member_id\":\"12362957-32c9-43a5-82ef-66b8d5732171\",\"ingredients\":[{\"term\":\"gluten-free ready tomato lentil soup\",\"quantity\":\"500 g ready tomato lentil soup\",\"amount\":500,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"spinach\",\"quantity\":\"60 g spinach\",\"amount\":60,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"corn cakes\",\"quantity\":\"3 corn cakes\",\"amount\":3,\"unit\":\"unit\",\"state\":null}],\"method\":\"Heat the ready soup until steaming, wilt in the spinach, and serve with corn cakes.\",\"why\":\"The warm soup is quick after training and has a clear vegetable element.\",\"uses\":[],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]}],\"preparations\":[{\"id\":\"prep_lentil_curry\",\"title\":\"Lentil curry with potatoes and spinach\",\"servings_made\":12,\"ingredients\":[{\"term\":\"cooked green lentils\",\"quantity\":\"1.2 kg cooked green lentils\",\"amount\":1200,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"potatoes\",\"quantity\":\"2 kg potatoes\",\"amount\":2000,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"courgettes\",\"quantity\":\"1.2 kg courgettes\",\"amount\":1200,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"tinned tomatoes\",\"quantity\":\"1.2 kg tinned tomatoes\",\"amount\":1200,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"spinach\",\"quantity\":\"600 g spinach\",\"amount\":600,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"onions\",\"quantity\":\"4 onions\",\"amount\":4,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"3 tbsp olive oil\",\"amount\":3,\"unit\":\"tbsp\",\"state\":null},{\"term\":\"mild curry powder\",\"quantity\":\"4 tbsp mild curry powder\",\"amount\":4,\"unit\":\"tbsp\",\"state\":null},{\"term\":\"water\",\"quantity\":\"600 ml water\",\"amount\":600,\"unit\":\"ml\",\"state\":null}],\"method\":\"On the hob, soften the onions in oil, add curry powder, potatoes, courgettes, tomatoes and water, then simmer until tender. Stir in the lentils and spinach at the end. Cool promptly and weigh four named equal ready-food boxes, keeping each box refrigerated.\",\"active_minutes\":20,\"total_minutes\":45,\"cook_on\":\"wed\",\"boxes\":[{\"id\":\"box_prep_lentil_curry_roxane\",\"member_ids\":[\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\"],\"grams\":1000},{\"id\":\"box_prep_lentil_curry_zoe\",\"member_ids\":[\"5fd38cfd-3895-4152-92a2-e62f9b7fc74e\"],\"grams\":1000},{\"id\":\"box_prep_lentil_curry_lubna\",\"member_ids\":[\"86129e3c-2f50-480f-a359-077165b6232b\"],\"grams\":1000},{\"id\":\"box_prep_lentil_curry_ivar\",\"member_ids\":[\"12362957-32c9-43a5-82ef-66b8d5732171\"],\"grams\":1000}]},{\"id\":\"prep_chickpea_stew\",\"title\":\"Chickpea stew with courgettes and peppers\",\"servings_made\":12,\"ingredients\":[{\"term\":\"cooked chickpeas\",\"quantity\":\"1.2 kg cooked chickpeas\",\"amount\":1200,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"potatoes\",\"quantity\":\"2 kg potatoes\",\"amount\":2000,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"courgettes\",\"quantity\":\"1.5 kg courgettes\",\"amount\":1500,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"red peppers\",\"quantity\":\"800 g red peppers\",\"amount\":800,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"tinned tomatoes\",\"quantity\":\"1.2 kg tinned tomatoes\",\"amount\":1200,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"onions\",\"quantity\":\"4 onions\",\"amount\":4,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"3 tbsp olive oil\",\"amount\":3,\"unit\":\"tbsp\",\"state\":null},{\"term\":\"smoked paprika\",\"quantity\":\"3 tbsp smoked paprika\",\"amount\":3,\"unit\":\"tbsp\",\"state\":null},{\"term\":\"water\",\"quantity\":\"600 ml water\",\"amount\":600,\"unit\":\"ml\",\"state\":null}],\"method\":\"Soften onions and peppers in oil on the hob. Add paprika, potatoes, courgettes, tomatoes and water, simmer until tender, then fold in chickpeas. Cool promptly and weigh four named equal ready-food boxes, keeping each box refrigerated.\",\"active_minutes\":20,\"total_minutes\":45,\"cook_on\":\"sat\",\"boxes\":[{\"id\":\"box_prep_chickpea_stew_roxane\",\"member_ids\":[\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\"],\"grams\":1000},{\"id\":\"box_prep_chickpea_stew_zoe\",\"member_ids\":[\"5fd38cfd-3895-4152-92a2-e62f9b7fc74e\"],\"grams\":1000},{\"id\":\"box_prep_chickpea_stew_lubna\",\"member_ids\":[\"86129e3c-2f50-480f-a359-077165b6232b\"],\"grams\":1000},{\"id\":\"box_prep_chickpea_stew_ivar\",\"member_ids\":[\"12362957-32c9-43a5-82ef-66b8d5732171\"],\"grams\":1000}]}],\"cooking_sessions\":[{\"day\":\"wed\",\"preparation_ids\":[\"prep_lentil_curry\"],\"total_minutes\":50,\"run_through\":\"Chop onions, potatoes and courgettes while the hob heats. Soften the onions, add the spices and vegetables, then simmer while washing boxes. Stir in lentils and spinach, cool promptly, and weigh the four named boxes. Keep the batch for Wednesday through Friday only.\"},{\"day\":\"sat\",\"preparation_ids\":[\"prep_chickpea_stew\"],\"total_minutes\":50,\"run_through\":\"Chop onions, peppers, potatoes and courgettes. Soften onions and peppers, add paprika and the remaining ingredients, then simmer until tender. Cool promptly and weigh the four named boxes. Keep the batch for Saturday through Monday only.\"}],\"shopping_list\":[{\"term\":\"green lentils\",\"quantity\":\"1.2 kg cooked green lentils\",\"aisle\":\"pantry\"},{\"term\":\"chickpeas\",\"quantity\":\"1.2 kg cooked chickpeas\",\"aisle\":\"pantry\"},{\"term\":\"tinned tomatoes\",\"quantity\":\"6 x 400 g tins\",\"aisle\":\"pantry\"},{\"term\":\"potatoes\",\"quantity\":\"4 kg potatoes\",\"aisle\":\"produce\"},{\"term\":\"courgettes\",\"quantity\":\"2.7 kg courgettes\",\"aisle\":\"produce\"},{\"term\":\"red peppers\",\"quantity\":\"800 g red peppers\",\"aisle\":\"produce\"},{\"term\":\"spinach\",\"quantity\":\"660 g spinach\",\"aisle\":\"produce\"},{\"term\":\"onions\",\"quantity\":\"8 onions\",\"aisle\":\"produce\"},{\"term\":\"cucumbers\",\"quantity\":\"700 g cucumbers\",\"aisle\":\"produce\"},{\"term\":\"tomatoes\",\"quantity\":\"840 g tomatoes\",\"aisle\":\"produce\"},{\"term\":\"hummus\",\"quantity\":\"840 g hummus\",\"aisle\":\"dairy\"},{\"term\":\"corn cakes\",\"quantity\":\"21 corn cakes\",\"aisle\":\"grains\"},{\"term\":\"coconut yoghurt\",\"quantity\":\"300 g coconut yoghurt\",\"aisle\":\"dairy\"},{\"term\":\"gluten-free ready tomato lentil soup\",\"quantity\":\"1.5 kg ready soup\",\"aisle\":\"pantry\"},{\"term\":\"lemons\",\"quantity\":\"2 lemons\",\"aisle\":\"produce\"},{\"term\":\"limes\",\"quantity\":\"2 limes\",\"aisle\":\"produce\"},{\"term\":\"spring onions\",\"quantity\":\"4 spring onions\",\"aisle\":\"produce\"},{\"term\":\"fresh coriander\",\"quantity\":\"1 bunch fresh coriander\",\"aisle\":\"produce\"},{\"term\":\"fresh mint\",\"quantity\":\"1 bunch fresh mint\",\"aisle\":\"produce\"},{\"term\":\"fresh basil\",\"quantity\":\"1 bunch fresh basil\",\"aisle\":\"produce\"},{\"term\":\"olive oil\",\"quantity\":\"100 ml olive oil\",\"aisle\":\"pantry\"},{\"term\":\"mild curry powder\",\"quantity\":\"1 small jar\",\"aisle\":\"pantry\"},{\"term\":\"smoked paprika\",\"quantity\":\"1 small jar\",\"aisle\":\"pantry\"}],\"member_portions\":[{\"member_id\":\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\"portion_note\":\"For shared plates, place the vegetables first, then the protein food, then the starch. Use the named own dish whenever it is listed.\",\"preparation_shares\":[{\"preparation_id\":\"prep_lentil_curry\",\"note\":\"Use the Roxane box for each serving.\"},{\"preparation_id\":\"prep_chickpea_stew\",\"note\":\"Use the Roxane box for each serving.\"}]},{\"member_id\":\"5fd38cfd-3895-4152-92a2-e62f9b7fc74e\",\"portion_note\":\"Put all components together on the plate.\",\"preparation_shares\":[{\"preparation_id\":\"prep_lentil_curry\",\"note\":\"Use the Zoe box for each serving.\"},{\"preparation_id\":\"prep_chickpea_stew\",\"note\":\"Use the Zoe box for each serving.\"}]},{\"member_id\":\"86129e3c-2f50-480f-a359-077165b6232b\",\"portion_note\":\"Put all components together on the plate.\",\"preparation_shares\":[{\"preparation_id\":\"prep_lentil_curry\",\"note\":\"Use the Lubna box for each serving.\"},{\"preparation_id\":\"prep_chickpea_stew\",\"note\":\"Use the Lubna box for each serving.\"}]},{\"member_id\":\"12362957-32c9-43a5-82ef-66b8d5732171\",\"portion_note\":\"For own plates, place the protein food and starch first, then add the vegetables.\",\"preparation_shares\":[{\"preparation_id\":\"prep_lentil_curry\",\"note\":\"Use the Ivar box whenever an own dish is listed.\"},{\"preparation_id\":\"prep_chickpea_stew\",\"note\":\"Use the Ivar box whenever an own dish is listed.\"}]}]}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Hummus crunch boxes",
+          "title": "Hummus, cucumber, tomatoes and corn cakes",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "hummus",
+              "quantity": "120 g hummus",
+              "amount": 120,
+              "unit": "g",
+              "state": null
+            },
+            {
+              "term": "cucumber",
+              "quantity": "100 g cucumber",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "tomatoes",
+              "quantity": "120 g tomatoes",
+              "amount": 120,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "corn cakes",
+              "quantity": "3 corn cakes",
+              "amount": 3,
+              "unit": "unit",
+              "state": null
+            }
+          ],
+          "method": "Arrange the hummus, cucumber, tomatoes and corn cakes in a lunch box.",
+          "why": "A fresh, portable lunch gives the household a simple protein-led plate before the evening cooking session.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Cucumber hummus plate",
+          "title": "Hummus, cucumber, tomatoes and corn cakes",
+          "slot": "lunch",
+          "day": "wed",
+          "for_member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+          "ingredients": [
+            {
+              "term": "hummus",
+              "quantity": "120 g hummus",
+              "amount": 120,
+              "unit": "g",
+              "state": null
+            },
+            {
+              "term": "cucumber",
+              "quantity": "100 g cucumber",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "tomatoes",
+              "quantity": "120 g tomatoes",
+              "amount": 120,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "corn cakes",
+              "quantity": "3 corn cakes",
+              "amount": 3,
+              "unit": "unit",
+              "state": null
+            }
+          ],
+          "method": "Arrange the hummus, cucumber, tomatoes and corn cakes in the named lunch box.",
+          "why": "This keeps the lunch portable and gives a distinct plate from the shared arrangement.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Golden lentil curry",
+          "title": "Lentil curry, potatoes, spinach and tomatoes",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": null,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "fresh coriander",
+              "quantity": "10 coriander leaves",
+              "amount": 10,
+              "unit": "unit",
+              "state": null
+            }
+          ],
+          "method": "Reheat the named portion of lentil curry, then add lemon and coriander.",
+          "why": "A warm, comforting batch starts the week without asking anyone to cook after seven.",
+          "uses": [
+            {
+              "preparation_id": "prep_lentil_curry",
+              "servings": 1,
+              "box_id": "box_prep_lentil_curry_zoe"
+            },
+            {
+              "preparation_id": "prep_lentil_curry",
+              "servings": 1,
+              "box_id": "box_prep_lentil_curry_lubna"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Lemon lentil curry",
+          "title": "Lentil curry, potatoes, spinach and tomatoes",
+          "slot": "dinner",
+          "day": "wed",
+          "for_member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+          "ingredients": [
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": null,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "fresh coriander",
+              "quantity": "10 coriander leaves",
+              "amount": 10,
+              "unit": "unit",
+              "state": null
+            }
+          ],
+          "method": "Reheat the named portion, then finish with lemon and coriander.",
+          "why": "The same warm batch is given a fresh finish for a separate plate.",
+          "uses": [
+            {
+              "preparation_id": "prep_lentil_curry",
+              "servings": 1,
+              "box_id": "box_prep_lentil_curry_roxane"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Curry lunch bowl",
+          "title": "Lentil curry, potatoes, spinach and tomatoes",
+          "slot": "lunch",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "lime",
+              "quantity": "half a lime",
+              "amount": null,
+              "unit": null
+            },
+            {
+              "term": "fresh coriander",
+              "quantity": "10 coriander leaves",
+              "amount": 10,
+              "unit": "unit",
+              "state": null
+            }
+          ],
+          "method": "Reheat the named portions and add lime and coriander just before eating.",
+          "why": "It reheats well for work and changes the first dinner into a brighter lunch bowl.",
+          "uses": [
+            {
+              "preparation_id": "prep_lentil_curry",
+              "servings": 1,
+              "box_id": "box_prep_lentil_curry_zoe"
+            },
+            {
+              "preparation_id": "prep_lentil_curry",
+              "servings": 1,
+              "box_id": "box_prep_lentil_curry_lubna"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Bright curry bowl",
+          "title": "Lentil curry, potatoes, spinach and tomatoes",
+          "slot": "lunch",
+          "day": "thu",
+          "for_member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+          "ingredients": [
+            {
+              "term": "lime",
+              "quantity": "half a lime",
+              "amount": null,
+              "unit": null
+            },
+            {
+              "term": "fresh coriander",
+              "quantity": "10 coriander leaves",
+              "amount": 10,
+              "unit": "unit",
+              "state": null
+            }
+          ],
+          "method": "Reheat the named portion and add lime and coriander.",
+          "why": "A citrus finish keeps the reheated lunch varied and easy to pack.",
+          "uses": [
+            {
+              "preparation_id": "prep_lentil_curry",
+              "servings": 1,
+              "box_id": "box_prep_lentil_curry_roxane"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Smoky curry supper",
+          "title": "Lentil curry, potatoes, spinach and tomatoes",
+          "slot": "dinner",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "spring onions",
+              "quantity": "2 spring onions",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the named portions and scatter over sliced spring onions.",
+          "why": "The batch remains warm and comforting while the fresh topping prevents repetition.",
+          "uses": [
+            {
+              "preparation_id": "prep_lentil_curry",
+              "servings": 1,
+              "box_id": "box_prep_lentil_curry_zoe"
+            },
+            {
+              "preparation_id": "prep_lentil_curry",
+              "servings": 1,
+              "box_id": "box_prep_lentil_curry_lubna"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Spring onion curry",
+          "title": "Lentil curry, potatoes, spinach and tomatoes",
+          "slot": "dinner",
+          "day": "thu",
+          "for_member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+          "ingredients": [
+            {
+              "term": "spring onions",
+              "quantity": "2 spring onions",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the named portion and top with sliced spring onions.",
+          "why": "The same preparation becomes a separately finished plate with almost no extra work.",
+          "uses": [
+            {
+              "preparation_id": "prep_lentil_curry",
+              "servings": 1,
+              "box_id": "box_prep_lentil_curry_roxane"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Curry potato lunch",
+          "title": "Lentil curry, potatoes, spinach and tomatoes",
+          "slot": "lunch",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "fresh mint",
+              "quantity": "10 mint leaves",
+              "amount": 10,
+              "unit": "unit",
+              "state": null
+            }
+          ],
+          "method": "Reheat the named portions and add torn mint.",
+          "why": "This is the last work-friendly use of Wednesday's batch, with a cool herb contrast.",
+          "uses": [
+            {
+              "preparation_id": "prep_lentil_curry",
+              "servings": 1,
+              "box_id": "box_prep_lentil_curry_zoe"
+            },
+            {
+              "preparation_id": "prep_lentil_curry",
+              "servings": 1,
+              "box_id": "box_prep_lentil_curry_lubna"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Minted curry lunch",
+          "title": "Lentil curry, potatoes, spinach and tomatoes",
+          "slot": "lunch",
+          "day": "fri",
+          "for_member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+          "ingredients": [
+            {
+              "term": "fresh mint",
+              "quantity": "10 mint leaves",
+              "amount": 10,
+              "unit": "unit",
+              "state": null
+            }
+          ],
+          "method": "Reheat the named portion and add torn mint.",
+          "why": "Mint gives the separate lunch its own character without another cooking session.",
+          "uses": [
+            {
+              "preparation_id": "prep_lentil_curry",
+              "servings": 1,
+              "box_id": "box_prep_lentil_curry_roxane"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Tomato lentil supper",
+          "title": "Lentil curry, potatoes, spinach and tomatoes",
+          "slot": "dinner",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "coconut yoghurt",
+              "quantity": "60 g coconut yoghurt",
+              "amount": 60,
+              "unit": "g",
+              "state": null
+            }
+          ],
+          "method": "Reheat the named portions and spoon over the coconut yoghurt.",
+          "why": "A creamy finish makes the final serving of the batch feel like a new dinner.",
+          "uses": [
+            {
+              "preparation_id": "prep_lentil_curry",
+              "servings": 1,
+              "box_id": "box_prep_lentil_curry_zoe"
+            },
+            {
+              "preparation_id": "prep_lentil_curry",
+              "servings": 1,
+              "box_id": "box_prep_lentil_curry_lubna"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Creamy lentil supper",
+          "title": "Lentil curry, potatoes, spinach and tomatoes",
+          "slot": "dinner",
+          "day": "fri",
+          "for_member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+          "ingredients": [
+            {
+              "term": "coconut yoghurt",
+              "quantity": "60 g coconut yoghurt",
+              "amount": 60,
+              "unit": "g",
+              "state": null
+            }
+          ],
+          "method": "Reheat the named portion and spoon over the coconut yoghurt.",
+          "why": "The separate plate gets a gentle creamy finish while using the same final batch.",
+          "uses": [
+            {
+              "preparation_id": "prep_lentil_curry",
+              "servings": 1,
+              "box_id": "box_prep_lentil_curry_roxane"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Hummus summer lunch",
+          "title": "Hummus, cucumber, tomatoes and corn cakes",
+          "slot": "lunch",
+          "day": "sat",
+          "ingredients": [
+            {
+              "term": "hummus",
+              "quantity": "120 g hummus",
+              "amount": 120,
+              "unit": "g",
+              "state": null
+            },
+            {
+              "term": "cucumber",
+              "quantity": "100 g cucumber",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "tomatoes",
+              "quantity": "120 g tomatoes",
+              "amount": 120,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "corn cakes",
+              "quantity": "3 corn cakes",
+              "amount": 3,
+              "unit": "unit",
+              "state": null
+            }
+          ],
+          "method": "Assemble the hummus, vegetables and corn cakes.",
+          "why": "A no-cook lunch leaves the small hob free for Saturday's comforting batch.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Summer hummus plate",
+          "title": "Hummus, cucumber, tomatoes and corn cakes",
+          "slot": "lunch",
+          "day": "sat",
+          "for_member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+          "ingredients": [
+            {
+              "term": "hummus",
+              "quantity": "120 g hummus",
+              "amount": 120,
+              "unit": "g",
+              "state": null
+            },
+            {
+              "term": "cucumber",
+              "quantity": "100 g cucumber",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "tomatoes",
+              "quantity": "120 g tomatoes",
+              "amount": 120,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "corn cakes",
+              "quantity": "3 corn cakes",
+              "amount": 3,
+              "unit": "unit",
+              "state": null
+            }
+          ],
+          "method": "Assemble the named lunch box.",
+          "why": "The fresh lunch is quick, while the evening batch is cooked separately.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Chickpea courgette stew",
+          "title": "Chickpea stew, courgettes, peppers and potatoes",
+          "slot": "dinner",
+          "day": "sat",
+          "ingredients": [
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Reheat the named portions and add lemon.",
+          "why": "Saturday's session creates a warm, seasonal batch that carries the weekend forward.",
+          "uses": [
+            {
+              "preparation_id": "prep_chickpea_stew",
+              "servings": 1,
+              "box_id": "box_prep_chickpea_stew_zoe"
+            },
+            {
+              "preparation_id": "prep_chickpea_stew",
+              "servings": 1,
+              "box_id": "box_prep_chickpea_stew_lubna"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Lemon chickpea stew",
+          "title": "Chickpea stew, courgettes, peppers and potatoes",
+          "slot": "dinner",
+          "day": "sat",
+          "for_member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+          "ingredients": [
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Reheat the named portion and add lemon.",
+          "why": "A separate lemon-finished plate comes from the same Saturday cooking session.",
+          "uses": [
+            {
+              "preparation_id": "prep_chickpea_stew",
+              "servings": 1,
+              "box_id": "box_prep_chickpea_stew_roxane"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Herby chickpea bowl",
+          "title": "Chickpea stew, courgettes, peppers and potatoes",
+          "slot": "dinner",
+          "day": "sat",
+          "for_member_id": "12362957-32c9-43a5-82ef-66b8d5732171",
+          "ingredients": [
+            {
+              "term": "parsley",
+              "quantity": "10 parsley leaves",
+              "amount": 10,
+              "unit": "unit",
+              "state": null
+            }
+          ],
+          "method": "Reheat the named portion and add parsley.",
+          "why": "The same warm batch is given a distinct herb finish for this plate.",
+          "uses": [
+            {
+              "preparation_id": "prep_chickpea_stew",
+              "servings": 1,
+              "box_id": "box_prep_chickpea_stew_ivar"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Pepper chickpea lunch",
+          "title": "Chickpea stew, courgettes, peppers and potatoes",
+          "slot": "lunch",
+          "day": "sun",
+          "ingredients": [
+            {
+              "term": "fresh basil",
+              "quantity": "10 basil leaves",
+              "amount": 10,
+              "unit": "unit",
+              "state": null
+            }
+          ],
+          "method": "Reheat the named portions and add basil.",
+          "why": "A fragrant topping makes yesterday's batch feel fresh without extra cooking.",
+          "uses": [
+            {
+              "preparation_id": "prep_chickpea_stew",
+              "servings": 1,
+              "box_id": "box_prep_chickpea_stew_zoe"
+            },
+            {
+              "preparation_id": "prep_chickpea_stew",
+              "servings": 1,
+              "box_id": "box_prep_chickpea_stew_lubna"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Basil chickpea lunch",
+          "title": "Chickpea stew, courgettes, peppers and potatoes",
+          "slot": "lunch",
+          "day": "sun",
+          "for_member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+          "ingredients": [
+            {
+              "term": "fresh basil",
+              "quantity": "10 basil leaves",
+              "amount": 10,
+              "unit": "unit",
+              "state": null
+            }
+          ],
+          "method": "Reheat the named portion and add basil.",
+          "why": "The separate lunch gets a bright seasonal finish from the Saturday batch.",
+          "uses": [
+            {
+              "preparation_id": "prep_chickpea_stew",
+              "servings": 1,
+              "box_id": "box_prep_chickpea_stew_roxane"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Paprika chickpea supper",
+          "title": "Chickpea stew, courgettes, peppers and potatoes",
+          "slot": "dinner",
+          "day": "sun",
+          "ingredients": [
+            {
+              "term": "lime",
+              "quantity": "half a lime",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Reheat the named portions and add lime.",
+          "why": "Lime changes the flavour while keeping dinner warm and comforting.",
+          "uses": [
+            {
+              "preparation_id": "prep_chickpea_stew",
+              "servings": 1,
+              "box_id": "box_prep_chickpea_stew_zoe"
+            },
+            {
+              "preparation_id": "prep_chickpea_stew",
+              "servings": 1,
+              "box_id": "box_prep_chickpea_stew_lubna"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Lime chickpea supper",
+          "title": "Chickpea stew, courgettes, peppers and potatoes",
+          "slot": "dinner",
+          "day": "sun",
+          "for_member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+          "ingredients": [
+            {
+              "term": "lime",
+              "quantity": "half a lime",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Reheat the named portion and add lime.",
+          "why": "The citrus finish gives the separate plate a new flavour.",
+          "uses": [
+            {
+              "preparation_id": "prep_chickpea_stew",
+              "servings": 1,
+              "box_id": "box_prep_chickpea_stew_roxane"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Warm chickpea lunch",
+          "title": "Chickpea stew, courgettes, peppers and potatoes",
+          "slot": "lunch",
+          "day": "mon",
+          "ingredients": [
+            {
+              "term": "coconut yoghurt",
+              "quantity": "60 g coconut yoghurt",
+              "amount": 60,
+              "unit": "g",
+              "state": null
+            }
+          ],
+          "method": "Reheat the named portions and add coconut yoghurt.",
+          "why": "This is the final safe fridge-day use of Saturday's batch, made creamy for variety.",
+          "uses": [
+            {
+              "preparation_id": "prep_chickpea_stew",
+              "servings": 1,
+              "box_id": "box_prep_chickpea_stew_zoe"
+            },
+            {
+              "preparation_id": "prep_chickpea_stew",
+              "servings": 1,
+              "box_id": "box_prep_chickpea_stew_lubna"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Creamy chickpea lunch",
+          "title": "Chickpea stew, courgettes, peppers and potatoes",
+          "slot": "lunch",
+          "day": "mon",
+          "for_member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+          "ingredients": [
+            {
+              "term": "coconut yoghurt",
+              "quantity": "60 g coconut yoghurt",
+              "amount": 60,
+              "unit": "g",
+              "state": null
+            }
+          ],
+          "method": "Reheat the named portion and add coconut yoghurt.",
+          "why": "A creamy topping gives the separate final lunch a different finish.",
+          "uses": [
+            {
+              "preparation_id": "prep_chickpea_stew",
+              "servings": 1,
+              "box_id": "box_prep_chickpea_stew_roxane"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Smoky chickpea supper",
+          "title": "Chickpea stew, courgettes, peppers and potatoes",
+          "slot": "dinner",
+          "day": "mon",
+          "ingredients": [
+            {
+              "term": "spring onions",
+              "quantity": "2 spring onions",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the named portions and add sliced spring onions.",
+          "why": "The last batch dinner stays warm while the topping supplies a new texture.",
+          "uses": [
+            {
+              "preparation_id": "prep_chickpea_stew",
+              "servings": 1,
+              "box_id": "box_prep_chickpea_stew_zoe"
+            },
+            {
+              "preparation_id": "prep_chickpea_stew",
+              "servings": 1,
+              "box_id": "box_prep_chickpea_stew_lubna"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Spring onion chickpeas",
+          "title": "Chickpea stew, courgettes, peppers and potatoes",
+          "slot": "dinner",
+          "day": "mon",
+          "for_member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+          "ingredients": [
+            {
+              "term": "spring onions",
+              "quantity": "2 spring onions",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the named portion and add sliced spring onions.",
+          "why": "This separate plate uses the same batch with a crisp topping.",
+          "uses": [
+            {
+              "preparation_id": "prep_chickpea_stew",
+              "servings": 1,
+              "box_id": "box_prep_chickpea_stew_roxane"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Parsley chickpea supper",
+          "title": "Chickpea stew, courgettes, peppers and potatoes",
+          "slot": "dinner",
+          "day": "mon",
+          "for_member_id": "12362957-32c9-43a5-82ef-66b8d5732171",
+          "ingredients": [
+            {
+              "term": "parsley",
+              "quantity": "10 parsley leaves",
+              "amount": 10,
+              "unit": "unit",
+              "state": null
+            }
+          ],
+          "method": "Reheat the named portion and add parsley.",
+          "why": "The herb finish keeps this warm post-training plate distinct.",
+          "uses": [
+            {
+              "preparation_id": "prep_chickpea_stew",
+              "servings": 1,
+              "box_id": "box_prep_chickpea_stew_ivar"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Hummus work box",
+          "title": "Hummus, cucumber, tomatoes and corn cakes",
+          "slot": "lunch",
+          "day": "tue",
+          "ingredients": [
+            {
+              "term": "hummus",
+              "quantity": "120 g hummus",
+              "amount": 120,
+              "unit": "g",
+              "state": null
+            },
+            {
+              "term": "cucumber",
+              "quantity": "100 g cucumber",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "tomatoes",
+              "quantity": "120 g tomatoes",
+              "amount": 120,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "corn cakes",
+              "quantity": "3 corn cakes",
+              "amount": 3,
+              "unit": "unit",
+              "state": null
+            }
+          ],
+          "method": "Assemble the hummus, vegetables and corn cakes.",
+          "why": "A fresh portable lunch closes the stretch without keeping cooked food too long.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Fresh hummus box",
+          "title": "Hummus, cucumber, tomatoes and corn cakes",
+          "slot": "lunch",
+          "day": "tue",
+          "for_member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+          "ingredients": [
+            {
+              "term": "hummus",
+              "quantity": "120 g hummus",
+              "amount": 120,
+              "unit": "g",
+              "state": null
+            },
+            {
+              "term": "cucumber",
+              "quantity": "100 g cucumber",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "tomatoes",
+              "quantity": "120 g tomatoes",
+              "amount": 120,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "corn cakes",
+              "quantity": "3 corn cakes",
+              "amount": 3,
+              "unit": "unit",
+              "state": null
+            }
+          ],
+          "method": "Assemble the named lunch box.",
+          "why": "The quick fresh plate avoids a fourth-day batch and stays easy to carry.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Warm tomato lentil soup",
+          "title": "Tomato lentil soup, spinach and corn cakes",
+          "slot": "dinner",
+          "day": "tue",
+          "ingredients": [
+            {
+              "term": "gluten-free ready tomato lentil soup",
+              "quantity": "500 g ready tomato lentil soup",
+              "amount": 500,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "spinach",
+              "quantity": "60 g spinach",
+              "amount": 60,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "corn cakes",
+              "quantity": "3 corn cakes",
+              "amount": 3,
+              "unit": "unit",
+              "state": null
+            }
+          ],
+          "method": "Heat the ready soup until steaming, wilt in the spinach, and serve with corn cakes.",
+          "why": "A ready-to-heat soup keeps Tuesday dinner warm without pretending Saturday's batch lasts longer than it should.",
+          "uses": [],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Green tomato soup",
+          "title": "Tomato lentil soup, spinach and corn cakes",
+          "slot": "dinner",
+          "day": "tue",
+          "for_member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+          "ingredients": [
+            {
+              "term": "gluten-free ready tomato lentil soup",
+              "quantity": "500 g ready tomato lentil soup",
+              "amount": 500,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "spinach",
+              "quantity": "60 g spinach",
+              "amount": 60,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "corn cakes",
+              "quantity": "3 corn cakes",
+              "amount": 3,
+              "unit": "unit",
+              "state": null
+            }
+          ],
+          "method": "Heat the ready soup until steaming, wilt in the spinach, and serve with corn cakes.",
+          "why": "The separate warm plate uses the same practical Tuesday solution.",
+          "uses": [],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Herby tomato soup",
+          "title": "Tomato lentil soup, spinach and corn cakes",
+          "slot": "dinner",
+          "day": "tue",
+          "for_member_id": "12362957-32c9-43a5-82ef-66b8d5732171",
+          "ingredients": [
+            {
+              "term": "gluten-free ready tomato lentil soup",
+              "quantity": "500 g ready tomato lentil soup",
+              "amount": 500,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "spinach",
+              "quantity": "60 g spinach",
+              "amount": 60,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "corn cakes",
+              "quantity": "3 corn cakes",
+              "amount": 3,
+              "unit": "unit",
+              "state": null
+            }
+          ],
+          "method": "Heat the ready soup until steaming, wilt in the spinach, and serve with corn cakes.",
+          "why": "The warm soup is quick after training and has a clear vegetable element.",
+          "uses": [],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_lentil_curry",
+          "title": "Lentil curry with potatoes and spinach",
+          "servings_made": 12,
+          "ingredients": [
+            {
+              "term": "cooked green lentils",
+              "quantity": "1.2 kg cooked green lentils",
+              "amount": 1200,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "potatoes",
+              "quantity": "2 kg potatoes",
+              "amount": 2000,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "courgettes",
+              "quantity": "1.2 kg courgettes",
+              "amount": 1200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "tinned tomatoes",
+              "quantity": "1.2 kg tinned tomatoes",
+              "amount": 1200,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "spinach",
+              "quantity": "600 g spinach",
+              "amount": 600,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "onions",
+              "quantity": "4 onions",
+              "amount": 4,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "3 tbsp olive oil",
+              "amount": 3,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "mild curry powder",
+              "quantity": "4 tbsp mild curry powder",
+              "amount": 4,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "water",
+              "quantity": "600 ml water",
+              "amount": 600,
+              "unit": "ml",
+              "state": null
+            }
+          ],
+          "method": "On the hob, soften the onions in oil, add curry powder, potatoes, courgettes, tomatoes and water, then simmer until tender. Stir in the lentils and spinach at the end. Cool promptly and weigh four named equal ready-food boxes, keeping each box refrigerated.",
+          "active_minutes": 20,
+          "total_minutes": 45,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_prep_lentil_curry_roxane",
+              "member_ids": [
+                "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec"
+              ],
+              "grams": 1000
+            },
+            {
+              "id": "box_prep_lentil_curry_zoe",
+              "member_ids": [
+                "5fd38cfd-3895-4152-92a2-e62f9b7fc74e"
+              ],
+              "grams": 1000
+            },
+            {
+              "id": "box_prep_lentil_curry_lubna",
+              "member_ids": [
+                "86129e3c-2f50-480f-a359-077165b6232b"
+              ],
+              "grams": 1000
+            },
+            {
+              "id": "box_prep_lentil_curry_ivar",
+              "member_ids": [
+                "12362957-32c9-43a5-82ef-66b8d5732171"
+              ],
+              "grams": 1000
+            }
+          ]
+        },
+        {
+          "id": "prep_chickpea_stew",
+          "title": "Chickpea stew with courgettes and peppers",
+          "servings_made": 12,
+          "ingredients": [
+            {
+              "term": "cooked chickpeas",
+              "quantity": "1.2 kg cooked chickpeas",
+              "amount": 1200,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "potatoes",
+              "quantity": "2 kg potatoes",
+              "amount": 2000,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "courgettes",
+              "quantity": "1.5 kg courgettes",
+              "amount": 1500,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "red peppers",
+              "quantity": "800 g red peppers",
+              "amount": 800,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "tinned tomatoes",
+              "quantity": "1.2 kg tinned tomatoes",
+              "amount": 1200,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "onions",
+              "quantity": "4 onions",
+              "amount": 4,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "3 tbsp olive oil",
+              "amount": 3,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "3 tbsp smoked paprika",
+              "amount": 3,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "water",
+              "quantity": "600 ml water",
+              "amount": 600,
+              "unit": "ml",
+              "state": null
+            }
+          ],
+          "method": "Soften onions and peppers in oil on the hob. Add paprika, potatoes, courgettes, tomatoes and water, simmer until tender, then fold in chickpeas. Cool promptly and weigh four named equal ready-food boxes, keeping each box refrigerated.",
+          "active_minutes": 20,
+          "total_minutes": 45,
+          "cook_on": "sat",
+          "boxes": [
+            {
+              "id": "box_prep_chickpea_stew_roxane",
+              "member_ids": [
+                "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec"
+              ],
+              "grams": 1000
+            },
+            {
+              "id": "box_prep_chickpea_stew_zoe",
+              "member_ids": [
+                "5fd38cfd-3895-4152-92a2-e62f9b7fc74e"
+              ],
+              "grams": 1000
+            },
+            {
+              "id": "box_prep_chickpea_stew_lubna",
+              "member_ids": [
+                "86129e3c-2f50-480f-a359-077165b6232b"
+              ],
+              "grams": 1000
+            },
+            {
+              "id": "box_prep_chickpea_stew_ivar",
+              "member_ids": [
+                "12362957-32c9-43a5-82ef-66b8d5732171"
+              ],
+              "grams": 1000
+            }
+          ]
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_lentil_curry"
+          ],
+          "total_minutes": 50,
+          "run_through": "Chop onions, potatoes and courgettes while the hob heats. Soften the onions, add the spices and vegetables, then simmer while washing boxes. Stir in lentils and spinach, cool promptly, and weigh the four named boxes. Keep the batch for Wednesday through Friday only."
+        },
+        {
+          "day": "sat",
+          "preparation_ids": [
+            "prep_chickpea_stew"
+          ],
+          "total_minutes": 50,
+          "run_through": "Chop onions, peppers, potatoes and courgettes. Soften onions and peppers, add paprika and the remaining ingredients, then simmer until tender. Cool promptly and weigh the four named boxes. Keep the batch for Saturday through Monday only."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "green lentils",
+          "quantity": "1.2 kg cooked green lentils",
+          "aisle": "pantry"
+        },
+        {
+          "term": "chickpeas",
+          "quantity": "1.2 kg cooked chickpeas",
+          "aisle": "pantry"
+        },
+        {
+          "term": "tinned tomatoes",
+          "quantity": "6 x 400 g tins",
+          "aisle": "pantry"
+        },
+        {
+          "term": "potatoes",
+          "quantity": "4 kg potatoes",
+          "aisle": "produce"
+        },
+        {
+          "term": "courgettes",
+          "quantity": "2.7 kg courgettes",
+          "aisle": "produce"
+        },
+        {
+          "term": "red peppers",
+          "quantity": "800 g red peppers",
+          "aisle": "produce"
+        },
+        {
+          "term": "spinach",
+          "quantity": "660 g spinach",
+          "aisle": "produce"
+        },
+        {
+          "term": "onions",
+          "quantity": "8 onions",
+          "aisle": "produce"
+        },
+        {
+          "term": "cucumbers",
+          "quantity": "700 g cucumbers",
+          "aisle": "produce"
+        },
+        {
+          "term": "tomatoes",
+          "quantity": "840 g tomatoes",
+          "aisle": "produce"
+        },
+        {
+          "term": "hummus",
+          "quantity": "840 g hummus",
+          "aisle": "dairy"
+        },
+        {
+          "term": "corn cakes",
+          "quantity": "21 corn cakes",
+          "aisle": "grains"
+        },
+        {
+          "term": "coconut yoghurt",
+          "quantity": "300 g coconut yoghurt",
+          "aisle": "dairy"
+        },
+        {
+          "term": "gluten-free ready tomato lentil soup",
+          "quantity": "1.5 kg ready soup",
+          "aisle": "pantry"
+        },
+        {
+          "term": "lemons",
+          "quantity": "2 lemons",
+          "aisle": "produce"
+        },
+        {
+          "term": "limes",
+          "quantity": "2 limes",
+          "aisle": "produce"
+        },
+        {
+          "term": "spring onions",
+          "quantity": "4 spring onions",
+          "aisle": "produce"
+        },
+        {
+          "term": "fresh coriander",
+          "quantity": "1 bunch fresh coriander",
+          "aisle": "produce"
+        },
+        {
+          "term": "fresh mint",
+          "quantity": "1 bunch fresh mint",
+          "aisle": "produce"
+        },
+        {
+          "term": "fresh basil",
+          "quantity": "1 bunch fresh basil",
+          "aisle": "produce"
+        },
+        {
+          "term": "olive oil",
+          "quantity": "100 ml olive oil",
+          "aisle": "pantry"
+        },
+        {
+          "term": "mild curry powder",
+          "quantity": "1 small jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "smoked paprika",
+          "quantity": "1 small jar",
+          "aisle": "pantry"
+        }
+      ],
+      "member_portions": [
+        {
+          "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+          "portion_note": "For shared plates, place the vegetables first, then the protein food, then the starch. Use the named own dish whenever it is listed.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_lentil_curry",
+              "note": "Use the Roxane box for each serving."
+            },
+            {
+              "preparation_id": "prep_chickpea_stew",
+              "note": "Use the Roxane box for each serving."
+            }
+          ]
+        },
+        {
+          "member_id": "5fd38cfd-3895-4152-92a2-e62f9b7fc74e",
+          "portion_note": "Put all components together on the plate.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_lentil_curry",
+              "note": "Use the Zoe box for each serving."
+            },
+            {
+              "preparation_id": "prep_chickpea_stew",
+              "note": "Use the Zoe box for each serving."
+            }
+          ]
+        },
+        {
+          "member_id": "86129e3c-2f50-480f-a359-077165b6232b",
+          "portion_note": "Put all components together on the plate.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_lentil_curry",
+              "note": "Use the Lubna box for each serving."
+            },
+            {
+              "preparation_id": "prep_chickpea_stew",
+              "note": "Use the Lubna box for each serving."
+            }
+          ]
+        },
+        {
+          "member_id": "12362957-32c9-43a5-82ef-66b8d5732171",
+          "portion_note": "For own plates, place the protein food and starch first, then add the vegetables.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_lentil_curry",
+              "note": "Use the Ivar box whenever an own dish is listed."
+            },
+            {
+              "preparation_id": "prep_chickpea_stew",
+              "note": "Use the Ivar box whenever an own dish is listed."
+            }
+          ]
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "id": "resp_0da7d645c2de00b2006a8576d7827487d28baeab63cd33c4d5",
+      "text": {
+        "format": {
+          "type": "json_object"
+        },
+        "verbosity": "medium"
+      },
+      "user": null,
+      "error": null,
+      "model": "gpt-5.6-luna",
+      "store": true,
+      "tools": [],
+      "top_p": 0.98,
+      "usage": {
+        "input_tokens": 8763,
+        "total_tokens": 19384,
+        "output_tokens": 10621,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 8760
+        },
+        "output_tokens_details": {
+          "reasoning_tokens": 2537
+        }
+      },
+      "object": "response",
+      "output": [
+        {
+          "id": "rs_0da7d645c2de00b2006a8576d7f97c87d28ae6670f46d6dcca",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhXcalKKHOQq_496V5b61u7OHN8x7dlU_3aqNDbt7prWcNqKc8osEfaEvxMI1PnRCWh5ggev752yQQLiaieJnhHTYjhRvIkcdfDpiVmT9yF5WuOPfBzn5SmuMZnE0j1-x1hZgpIYmK23au4FRIMAmhgB1QRlIx1XUp-JFMG4nbSYxybf7Awwkw4-pO8-174ThbNlNFCe2C3gp8RKSD6ccOpO0Gth1b9wvhVFTQ3VJ0gKxJGASxoZIXI0OJtAfZd9B12ejLYInFVk2u-s0Dw5rOnblbeKpyIcBjTCJ0JiRXCPUv3XD97knOumN600REAVecjPTlSYN2o8SzXsaCwBDHqGXEsDVmqj8snnj70rJZbZiVEsu9CFUYGznmP8PbMXWECRMZT5sMhtoMIhPuGngeIWz-5FpKDnZiN-xOjFaeI0rOlOwJP-J8LrdEusGOUV8_ua8zfeLp4dLB_bl6ixKfjMWynzMe_9zMU_EfXi4JQom2N34wqWkudYBwveuQidtC8EjSDvR8RgXZ4kskFotD8xMFboEqjdP3jD0_W5Ij5uNH8fnZJJcsnMuNxwv_Wptodf4X514Rz_1VH4ODIFAD-a_bwDE1sP6SSboNM2ZkI6EGAStO8SvGZz93vdoY3-YWFLm930oZwreNqM1O9xgeL6fMKtr1006sDbNT_dGC4kLSGGxiMg1DR_EgjaFBCGUGaW8JVccI9WytgTakvGI1iYv6fNZUn_K6OZYJRW6vKaKWt_d35Wz3qMLTBiMJSUvMKEZgMzOwozchQJtkgUGolda64Qfy1d2hhxOK3oA1hjL30Chbp_VSrswjcfM-qcPLb04VbEKEMw5UUlvzq2iVjad5-tTVgejZGQ6vTBzRHH4VFsXbUZDdsb5aUP8T7MX4ERQp6krRzJSMmL7_Wu3wyqNJw1R-2QTg5ub88I45q094p3XTJtZP50dWYpcwJBmP0px3JyjWQHh9i0CoVBoXxbJmJ1t5tdEzuGQQX10YsD0O3J9gB7EiMZECyydb1wTTuklReQP3RyZgtK-Iz0kpUJovw9fmHjmGu75owFTL_4TVvHKW43hK__wly6DzWpq6BsSbIo1TewsaAo992K4t0hEv-tSybt6p0183L5fuRjDYGrorDp8S-hmuP-2bYygbudRMrchFfmzQHsDb8en_qFq1JqFMIxHhIdGwaNB1LPIPgEC3q4bYQ-vIPqGExjhjeSMRbEeToybbrUrNw84nCWaV2HJcszU_J2y1-iWOdGGxOT5zBwHiAun4q7rQUyk-4dOrTD1ZxpCoqTqyPCvrFSTxfICRD6zBd6NEDMHzSrue_kzYHyftHGk9LemiHHviItYF7ZCs4qKYcYPUQFe1ui0_C6JxtO4DaKoLPrpE17VVJTMnHjd6x7lcVDzIeA6R1DzXO6iOYp1G3NOB-03RjR7M0U0sBE5nOZ4xgQHsTFmZ69K2oQN525u_ipVTHld8q7dGPPCq7b0TuaKylAne7JYQ9vgA9rlsiq4ozXwjvK_ivO0KlcLrwV_pNuRCukHj1l3Y1uWNzra3_f3x54Phw1QS09YRIKY5hBoW7t-qzpNlpTC5K1r051d2BWs6M1lWPlSsf3Is23gwFrEdIGNLVnXpv71v0HML0J31wSj-lErq0kHy7K8tug0VLd1S_wipK98wMwKAFQejLPLWDBKugB39a-81py3w701vsKG2qqhHeSXjsVvzDWMzG6KwpLGRYc9N6_CqY2OhS6VaK9tBjSN5EhP_sgduw_83127Hr-dJnDBUBuutSFihsQC7C3pc-lQ8_a3AfewAexA0iSh_Q-coktU2G7R6-cxEM7EFH9JgVncJLIgaOJaeNS3dvreGLo9rcu9yZ0KEKgN2fiTdj3q7KAgJPowgfszBc4gz8x8ADpS0_ZhUV9qczjvtvX_xPZFPfouiiT2T8hncZAOF6OvkLsDNLR4ctAb15_IlDMz-_BNW420tmPcyStspFp8AJSNbdhsm-fwBgWzhi4gVnw0k8F1632Aff300aSvYFK-PihyFkhprQhDv5bd8k9DskD72gMy5BR0mrsOFC3vHvfbvIPwi7uAINgYEZGR98POX0KcMi0yidhTOVSyWA6AqTUDsM3vGmSR8AUmxxWIh-Q5rrIhjqiO1q-I3Rhdt26n9YkZayJFGdeNi0-XNPCkgPBf_86mm6Wi74EcBW5JYcEBKGJ0At4jVKQAgPAflzEbmdKjPZ6CDECgEd50MgXRxA5bDFNtTDcnKDoO93kJ6Nnvd3leWlYNqgZarJJOLkuMkd-tOevU3PzNxFXxV-VIJMweS41W8JuSQlsQ_YVD57UsMO5wXMliWmELijSDIfnKUkJX8f_Ngzg2THLFnuFikaclbwEMkI5PnfsVXi9JglXg8Iaw0QnASbeoZkcZe998k3AfAOvqblJbOlLe-bhwPag7RW3rMlrhGaWSzYB5YseXEXp9RkEmo6DboGpdO62XZQDWfRFLzg9WnlDXxPq46jw-WleLVAmEU2JCuemv-M1qe8Gta3T4rbCRwBPcERSiwKvsQ1ICxwox3sAhGNLzWtHTVSZfhz9TYFHEcXFxZvmvc6IZnYt091K-itYTi0Nkx3g4ibBYHwBnwafpvbU-5P3j6R7njTS6ck6d2gQgv9YcPUnudTBP_uSFTyXQikC5Pm3_slT0GKjNUpCwNPLPIBZWDDUx17xj7MK18Tb2vjipEycdW_0f2Cazy0nnjOCdhVs3VzAs9mtnpRmpAglIHmj1eg9MkUf-YSt2bUeCPBkB6ZAsX7j_G1QwpXuJDKDVzmNN2j68455hp4uSxIuDXcUeRQr6ZDGeegPYnrhjEjCVIBfzVTFu4y_ZyhH3dr9vO-bfQ7uHAx-SWK7hcL4KSLc6WbSlk9NAoHoB5j1K6ORINKfWWHIybBjnHVKpL1Dq02lLb3rLW0mpPegTK6WL_-do8uOxnFpvf4D9JaJrr_N-syegk8AfrQYjY7Pu2BNVlB1F711HmkHOAbhD1R0mb4zISaKyeH9_TEwfpCPhy5v9f5hvmhvrvD7bKC-gKtjfcWjPZhmuJ3K_XdL-E6gILrsPwNoiVlf1MrkW7BXAl5JMSLDnWzlEzMOe8KWR4T4-V_vvwef0Dep51gPKDDf63fFRChaHmiVS-AX8G7Q_Yin0MPPxoHWNkE1d8vkQKSsb_Ma1HBRKqzd06SWbD1HghTU4QqzwWzrNofXc7NaeOcZLl_SnUcgW8k5Ec65CBAhKA65trmVutIkREmBT4IWZ52Vcde5041nBt7tBzZnHN1Xs3c3sX9Dd2wCOrkDWLIN0rOo6vVmU9lKBOubYMucmR_yzgULSYxl0VUKIJKJ4TXjJjnIwjoZs9237ba3p3GLJcyd-uL9EpdtPhWq46eu1useohG19Ki30qD1-sP9CO8eK1xfJT-8CMJOID0iiOOzKGxUK-mU57HlrJ-eHkj5KjSglVDWWKoxqjL_w3xTywu8f1N6yJCiZglm77FbwVUZ6BTNN6wMavMBumWh5B7RU3Lgg3a0U1hldb69g_JVgTC8rYErPXkiG6F0fiVvKXTmFVevpzqH1ilj2j5l7pD07LamUpCiNJwpY7Of3-jUtUrikTrK4fPRffcV0mFL38BrSJ3HzI_EeQwS22L9JHlrzfelIffuZZsYanx1HFP_BHJkUK3-wo0iSAjNWdoeohpGYme3v66FO0TvQJOmeAkjqx1iZN3619UbxKD7FuhpW_vuXqUCpuUUiYtRoZ6kMw-k2C0w6mw3FSav7M-0t4V_YTLPvvltQBGBM2_snacPezoBMq-JgRRyljJD3ZhnvrNPzmrsVfRkwqDLpMq5YyVzvHVecEq3dOioA1e-IOYJ8krqT4_2kybJXwgofgUkf_EIJYplrOQrE5-HYVmnxGbffjJmKBGVI88YDa5ZdnV1csNGL7EcRxdUBXGlE5lwOF5WnkdYcJecHwKThsdkZ8PjTvDqJNUKWRMw1qvBfUeUFNe0-jzVnCQSk0Z2v9SpWs2I4iibH5vpk2xmyVq3Fq8z6uHewGg7uudiZVUpUVX7WnPvZrgw1sgiRdzd5Qoplt1m5M-MugkEkLUlEEG578J_SG3rY"
+        },
+        {
+          "id": "rs_0da7d645c2de00b2006a8576dd6e9487d2ae782b5a6050ee0e",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhXcakBXOyHVeihIYUxUOwVs3esWavA4OjM5X5mPOrrXHyUjA_Ki_e3BHl41yakaOOt7EJ9z9N-e8t-94_CYY2XSZW-YYoHFSqnMAB7dzLCjcEKoOAHWwSkBqdC7YpBzcua7DlsTHiL4Fxs54Li2T5IsoH5N-bLo8qKRtIJOvnEg4F9cvbVutnnMqqw6E5z7TodKpDCEVKAVVmOVS8OtcbwboK6qNdU5kFwLZEM1GphMhIIt2Xth2ja39wC2QXAtwhGHELUHNUN5-6kcK11k8WSyop1KCIjATaNTBqnnX4AnKwIkxZySctsbTulb4Dv-Ov-uGQXuu1zScd2rztEjf51NbEOYrhnestBpcol2T2mdHkeGIPHOnWrN6c5SKZyA2d6SIsDTG1c0EUVaOemKn1anou9a9fJasZ-xUkcJTFdokYaklNUdBOirdsHE-aOiyV75cwALmjFNy5geW8MpSUMUXGK6cbZPGPpuEgoCPQRvw0F7l9gvHqC-pqUhLkH9JwHk7axU5vwXz9fkDRNd_k4hT25gTOPkQQxuQiUtvZlFcMjejmUWSy-gtiMuesTATiiQh1TTanrzjgxdhIWrzob9-YOX7tFp5GD3atVELMNxpOVzPnRuUf5Pchc2iHxy-cebQ3REfiogqE4FNbDhtMXNa0VQoTnxD-BF6N5wGs-V_H86jH1l4s2ELEndRKvIRmCCspSu4bNjT4q20z0nKM0qQITct7iJpWiZUq-NcQ21Dw7EvPg0uP9D61THuPj7D2OO0lifmq30u1e5VL7hDdqx3RZQxJ_I8Tbz5QCfQ4HNaxrvqdWHGJAobBZzVGDhJuD0OPFQAYjpT4R2P9rfbZio2PXmL9AtH9k7O7B3N3dLarBgPe76FIUYSU-H-XLE1OzJ2selb_2G75Ns8OXp2jN3er2kZWfWGP-NgbUNyT5JHLcstRjjbHsCRALJkP-7Y8GiDNUwCz0u7qJpNHpBohMcWOowDIhvkww5-QYR54uGs0XDtAmKZd-FlUVwDyrjxq9wAehtNrQcJW0DoWAqKR-N0jY8EyrBH6l7G-FWdXrYKMPG15vabd32FHsmx6QLWqMQ2siFnSZBkYzpnLfonVJfGP4oFQxNDmyLBv4mNFC6hSaxcjDriSmVz8eOWumF0fznnIOv-2CWAdCUWtOIiry1T12NyQpu6hgr9tar2grae4po_WrM0qOf7YinCJWZGalO3GyoWHqWaDI_lW8kHCjvq2cr1tlwsnETHVM7-YxD88F7ikzPowtk4WN7yYxxmsJ4NWP9FMQ8HMEeBk6jmAQt8eMGIMaX1Kw2gKgbI9ZJpHW14iEUccjoFlHOCmrf4d5vv1dbb5rpbOgN7hprFzUjaMVEFS22T5scYRC6xsn8taMRrPPtxv6y2VQQhfILLSjmC9UDkx_ijyM_qyqnDYzABZqw3JBFkflCOocGPaf3bGP-RJnrtdXC03eJjyKOjKONSwx5xOU_NA__ivBsHrD4nvpkqCoSXXNa0rU0qQfFY0aCx-hoXUAMODU97zbXZlHsgmBNyVfy_pIvRSiLFKKE2m6SpoMn3ye4z8B6Xd77Z5-PR8jl7VVzIKW3oKu1Haf3kHAmblRSRD0nCArj9V7EVn6OtICsSFW2llW9-TKXdv1cLix4F3Zc_Jt_PForNi-r4ER6CMu9-aReET3p9q0DfKS_SYEvGrUg7Y8MBeO0p9Id1oWAmEKZgWFHd_JeKOYXNBDiCuHcPNKgVP22T1XyVVJhBySYXxyRx_DwfPse3-2RBrTvR6Bj8s5aJKpra4LK6uKE2wzrJjiixzQnS1Hs-TDrznVRGN3mtDaPxvYesWOHzRH4nYI0PTwzjyYVQxElfASmbmoLXLQcuhP3T_nVjUBDO8THjVl9qb-Hb4UYUPVPkfArYiFLu9orf6uR9jkYYJjko9GTKEfRrnkbUz-AwQPOcdTiiKkghNDA8zG00a7l6lIr1vNNvMIXVIR35TP4S-IL2tPfHPM3x7kanlqmO1pgFCux0VAlOAxxaMiMK-3a8voS3Ih5sZiyW7qMUnp7FBQyok6IdkLiGVF1IfKgIa53sgjDBzb4eS-M0grkKf_-VbSjXBxnvXS6khLPb7Kz63R92MER7AaR7L-lrNn3fc2a1tDaAx8t3FtaR_mxffPDgoDQVN-YCvdlPNyIvvLjRogVPqrza9nOIM8yyacVENWOKmrFfj92hpGDJOFkgXJfdUtz5FOG7EaZZUY8LRw6tRpqVNJjseMeIxaUixr-Xo3AWj3UZdqYENGLPmAGJFTF2P_02Je19c_Rr63PUO4hQAw1Jz8TPyfTIGQl3EYCGFj1IvpDlx4G0z3UjbS2oYBkxmrnzUWoaQU5ks5aULlvZGSE__80syFlmwix2JrkB6tP9_1Hug5stAaYbC0C2hlfQOfiZlVjJGhHMycIf2ZM6prm8X1plmdeoi17hFSMWvE718DKn7WTQib-sqaCTMPQaewQQ0yQ053Z_axl9oGppXpBjiiOBKEZzFZz0DsS4cik-3176PVWd5mIbSyfgrw4FowF8B235GnMAqfDYd5_Yt9GbHv3wpMcZxFdquvADGXsN0bEeHLlJlbYz75ZPIKOQzA_Oo6xorsWWVHVOO-Qt7c9cdNhXC1JDJ-O5slFXzuJnSPLqX3pw-1cbQQuVpd18l21zXnLS35Ay95xEtCspduXd6FfFpDQ_LCdEWgPryJs8OwVWPg5G4cZKjJXb3kpOxphqPhkCo7lWQLWs0Izkzz4ZqTqI28FK28a7wIViMjHgUgM1-tWv_lfIloYib9EqXzzs2KDjBQYIpPPJOiMhCThsZxdQ57pHZCFZFRPCVxsdzKeK0jnZwhiZOEXOGAkpiaD7H1riBVSkAKWfsMWgyI2_hNKT6Q8xQWYlPaWD_mjZX00MkMCFbP9kwbFG113opbiX0xqb0POhxJqAdPQaBEEnJqkUuMNMDE7JOlCxwxfCtFe-cH0kGaurj9WUisRuy4gnO1NQ-LIEEp7_cmfMLQZ-VdJe4WgjTTSSD1qIWotpbWrxxbSJivZqWkX1HbgTH0dmibwTU2wln_MJBlVxe5k8jD-TYQJ1slaszGuG7DylU2Y_zGRKO1onDcowVpbc3f2DhjQEh7UFHtuBQf9L_UohDrQfkG1AbFd0Mn6lGfFbnKEbfz6hbDab_C9e7IwrqlMdV3kHtwx1XMaCmdCI2mb8AbDfM0jrkrzz-cj2_9Lpeu4p9n5Q7i1mh8HrRLHuXWQyfY6O-u2ZHM_D2lWJoQ0XL7LxNYKezKCI0VEnYp-M4Dc0cV7OfSAn2Wig_hPDfzhi-on57YAj9xObDz-WamzclaJ8YLA8zp8448KvaAmFlkZPZ5-DFQ5GGo-CVNeI94I9KZGs0hGWX98fXFX9bgqqAGLHewEHWAbthMYZUcoMRanYOSGB-moKF52Z5wUtkVDtWoekuMLumNBpPjqAHOn1AHll4zKBMLCxkpjj9Yp4VT2I9-evCBVvbiULBb5SL5mg7RsAg3F11ploKVHGd95sMfJgNEghBh9k8WSGCy_suHIqJE4xyD5IA8XDIFmRn1J58c00aEFNtA3H75A9qBeuirSkJtNp56UclSO_ugk4KlJ4N8t_yyIPhxHHzrVnmopz3SXFoKu1jtfHtrKv1epuElBFHtwcaJ02ppAJ3vlEzszr6UnaE7vGdt0aE3Nyjw7z0CL9jqbfXlxgyor86NOsexur0nxq-eARJG03aagj5cdFUiPTqwgPDe7899c6_X9OiNgPNJN5SfSELKTLL_sbF4pN_a85xBA6C-H9POqqOkkjWGAEhIamcrh6oRsfjx1yx--uVsGl4NqUdNCa6Nt__vAw8eh4NYMQWuhYnjmdfgv64WX-PoHHwnetQQ2AdEodd5XOF18Np_euzykuU7oKNPS4Fy79y0afIb3EfL_-J67jmoHtJnOOzaqLvFAYpqskJNwFf_pjWluAsnXn2iRA-EmS0Y-t1z05ZWU9y5FIkJbkTdqb72SikEOYnUHJnzPEiTKe8ZxCFU1GhxvpWO7aaRDbPo1keZChClL7vQyUG4-lCOC4tzl6vMOfHTEzuO-iUtda4NFViClQLpMmFNTJPU6gGblpkoTLysTtT8thXqlqYxM2GVi0bex8ODUAntxbGIPQXB0CmKUejvHWDGxMd9L-udVWa-rUGkxYK7xGMBihpssoI8vng6uKvEiSUhRQEC9rF88r03Q_kDPDQDxn5Yj08a0Lq18xXsjs4mj7heRAgsL1DJ1ENnvHcPCot7fHHzCzC1ZdIAF7SxJzURpJzbFQZVoAZhOj5F3n7pgoEgtVws0qpVED-ojEySVGUcfDSYnurBV74_5gFAa00nq9scSzWu54ZVqIKWpa10TcOzv0zgHPqGwgspzvdeY="
+        },
+        {
+          "id": "rs_0da7d645c2de00b2006a8576e3bedc87d28345d21237997d8c",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhXcadNDJOU_f8Zjovjs_3dYyzQ1npYXpugigt04VVuXlAMu5KStavpbMgoiT6NpNhQEBjBLAq9yIdpvBtl-RFn4AMqYVlbiAM3BizQn90rXXiFUKMb-TxJdPYNtKtclaq75hQEqOrIiTXz_weUguV_Q8OlTcu85ait7e3kabMPU3b_WoSsvgoCc99Lsaqljeld_3k8O3Gvhw3wp6-mP5ableua2L3EUHc9lfhsHjrVY0IXm7aIB66igNV8hj1DnxLLg4vStQXewJkDWDlvh-xJYtXg9EDJPbwGGRyx0bpRch0lKkc38JnvOfjru2bMSfIC2IAuJJmgRCykh0-scgu7zMhnyhI63Q9wIXN3T4T_JfOZMH9zggei2AuAA7Yi0NjjGIHQ-pzKFjOsXIKAVWzZQpizKcOGv5pDi3ppp7RrD0IoVYy5izq75TWqpZ4ITN_agr3uMyWU-YzSsEP5na4fA3bYzz_wkzE1wK_hxW6YodMFp4KMg0mVWQHG6gUxyIi4IWORGOzqGeX3xMS7Ec1TQGkZHeunoT5lzYrbyqg8g4Zuwva5Toz-4yS5dDotM8KxTrchqBWGuEaVvu9MNpzDKOEt5MQmzlDT_dtBKXg__msB89ujlAwWw7FQ3gsyfrvBvJly6bSQtXWFKcRzqamHp4Tb85zu3r1zbhr53Y0Ro8qWDG1gZl2vXqYrnNx7Qz3i30zemWOX7iiSmQZdi7r_frIRMCXyolryHKgxXf5evRz0xlx2AFPNyv4lZ-A-2AL9j0c4tJVy6XrJuPKv_r36EQVhqoQriTxP3Bnk3njKeziXHV9OIzAkHCSRtY77xtT4FMRiMBOI4v30TOKGjHpQBWy8oX4YOjMYbDpsX0b9C2fJXHMNqFmcUB940sqgYsO8lpDNXHXaR3PkroZlJ4TOWy0jonE42_wog0SEmdV37i9G4pOoU-6328EVD-JAeTPhrWPR0pmhEsyu57i27zEJxbMc9cJyv4GzL91T60AXblAx8iCvWlJSyYZXjOsV48BqAvsfLMfv6JAtNT_RL45o-fq3Kr6x8YP1O9Qn30VceE7CZ_te4yFZ_ZPz5EitdjnOq6UatlRLkQa_66OXQOWd_0zxbO3iruNOK7TmDp4gDqeiG270FKaKDERrBpJmpV6tFD9Q8HJHSLZ6iTwBO5tEshkGXAUiObK-nh5pTKEdTY9KpnKihxYf5k1rFroYndO1PcEpW4G8dqGip80cjGqrSO9mTCyqyt8NKjG0vqd5ikXuHM9REhkx_4acB8dVwdNWiVObyB5cPJ6S64SXvFbJVUqh3W40lk-TnPw4vjnzoerX0wAUy9okAULbQupoQcP49T-PCdxzPoX6Zh_4AWC1T2fwfxqDDBzVIqj9_6BlnNlAQN3ZxMxHYbU0OrwLC9yly5aICa4jsx2vLALgUBKCjzLij5bdSklapvSVafGo0YTobvrkVfgIlpng7Ik6lhwYB59OMxxhFfgiyltKTjq7gu1z0Geey3rTYHU0O1yI1Pg_pOIq6JMhBqzbSReyG4Y3C0HpXH0g2oR0hff47wi02H5yntkv7KJMRBga5tDrihUSj2yxf49OtQwexc4BpYyLtfHzXCLi6Y7qQuUriQUZZubh9U5hhdnrqN2iQ6yHX8NBsgsJcl8V8FCovE12lGVZqbmspBKASfzvIG7nSnKRPiwkLOoBlx9FnmDZ-LPPXKNh2Tmr-XvzRx90MK-nTJ88IMwdJFoEPJcQaxl5VeeW7yOedmhGD4qgwwbWwk0uUM6EODPRTwEMTTGXEV1_N8lFCv9LyOE6kv9w-cpQ8hcvZCwDmxg-d3UHvPUdJfT61pnnZ3RsO8nt_xO7GBkn1KoFReT_1KvcJGKc8erqROMZ9SS-rsx6gBUDsXGWinaI56u_Myy9bSGsDz0cHnPHrjZqPMep_xu_uentnHv0XJFsV2VmY2IY_Rakzyw05l1t77WqfAiLIWhV6h19BuRZItyGvhPzmwP0XqIt98qfmJPCiRz9HJGbo7o_QQ_PROHipQfW5ipy5Iq2mbQl9lJkVN-scN7mUZIAyjvkUK6a062RU6c2fPbpdrTB8InsCPT5J9QIFJrEsX-z908beh2NpmnDUsU-ApzZVrqDP6ncDVJ4tpTkX9XkKpiSH5agaZrSDVXrlNuoGvDPoxaIpjlIfzlx4eoNfLvyDAW_-uerGsgzkbRy-Fthhw2nxDc2btSVW6TFWwKKxGwB_9xxeZo4uyAGK141t7Q6TYzbY5xbqdb34tmNDivh3sYPfSvCgESfrGDacw6rOLg7rUrHRnEpfqR_EP290uV8JYgPrqDdbkudK8Wa2xVjaWXrngD4u5HuJ9ePnPhv8aFjmXLOKDNUijF71360zsUGhXsyVfV914E-x7bSQpq3D8myMwA0egjZUuAV6hPnZMibWtyjReXPxdFxk-P5_bSAbU8_cNXEBhO4IpsPE5oyUv22XIG6FkTWipilO9CT9V_s79PunAVbXOzsdCUTZesCWegJZuE3wz8htSUx3jJdXJYoP08wo9bxVSOadPMMRQQEvr41tusyaTidV_RuY4QoWULl88S7-Y4Y0uDBn2_3pkjZ6HJ2am0D-JJ8Wt1N-m9DHcgMq4qHi6CYh2qCaKAgn1YwplSwaj5FlDE4qB50LJBF_BoDu7qeM0uv9K2F211e5lzwduPsnax2k3TL9qVZ9P9Wo45Pi8AqKyZ1xt2dT9Lu6FZo3Z1o55Ycx44pGku5aV2aNk9pVR6QH79F48tKhpcvVKY7TYa9gQLIG_fIUDcAOcmYdrRrqq8RbSb275ss-5-pdhNuO0Bn7tlbk6LSX9BTJ0V1h3r65JY6DyLvFZvwGNQb-C3-EYamq2oyZpbUdKKD-81lMsubL_2z4QCTXBTplYl7oe9l8CUqHIioGNfStwB9hZ5iq9qMkAcE6ogm5MjEsHdqV4eTGWrfiUXO6Lg9Z2PWuE1KmjOiyztIqd_tJS_eO8665dHJm1qEjPVMMvAdhUSVU5aeijHuYkIcJQsTBr49lglv62e7azYLr69fLJCIgz87kxqZdbCPV0f_RRgbwVKaaawAClSC-HxosZhyycVsz_GaTRyIe3g1aiNRYQ5BWBCd4Shp-DNFNCOdCxptUIlQmXNn1nVTRdZtyv4t2O-eMXskeWAyI5xInNIvmJU15ZY3whp7FQom1AGk_23QffrpwkBx36x_B603GSBmob3m7wv10nFOmTkUv2y0-DV-MXpA6hbFo9dbF144JTih7kfDI7HegASsjkaYfX0qHYNzHkvLT_FawZ8JVbM8VERDh-aCLhOM-LEEXMr-E27vAvA335SCFlKjd_cfvXAA3SFlwT6y0MgVObhAEeSf5kSqxOworW1RUrnocWjEvSTPT6yA-Dj780UmOfL0SUHiy2vH3x5PZQZzlEcWxfpptbuyL7LGL9iICxTo02vi5gX9-wFWPP83xCFRQ0BQseIlpdRIKLHEKGIAWEd04TSaOHVIa83zhoffkiA5fux_hmQPgYCZy7WZNP9nUgdDjQGYpsPdlp_GXdegY2IsVDOKZCWDLwRfp4bhLkOakwJnNfZ6oOX1Pv_WwtkfC5dK5pImvUEHr4qeHBDRGdVNSgxkh31yAryaxfAo5A4FuRN_VPoZnXBmco2-y4TEr-7eRc2UNZh3ayxsn6SBfAHBpYztq_qXcmK4Vb6vn_SjCf04PnMhIfW6tEdoNHGoXBT3zk9Nm804p10hBY9HpEFYJeOSFnofbBnTaek_wGYtWQy0kcJaMxuoFNrgOO5uXBTQzG2TLr31inmImNJO5JXvfcPW9oMTMkpDcb6cHWP1KeF9mU_0es_6glfKgPUKlUUxkIW9Ar08lcfPyeC5xk8U3TjyviGPPMI2z3MG6Ot-YfyJmj4a3vOUa8V8Ah7fy51afAnu6KHGC8wBx7j-FIykD2tIBW02CDLy814vbnvrD1-3pcymrpPzkrdOtg-_MxhYsQPuFaEAV0O08xWsdd24vPdxxzYrIBpSH7fj5A6uRCNPbvE1vKSSX4BoeMo8HKA9p7X7s5GjVq1F3j-BKJY6WKoPuFRwfxOvisWwkIdwTLfbdq7O-lmjFaNH67hFukqznQOs9c1-scd5JixkaVCfC6dA4ggcdrFbS2blogsdJt7Hd1cA0iYHoBAxPEGaLrtN4093TeN7AAawSRk6sqKxUy80kOJMIj8leQxvaDVGH9HnwX08kkJkEMFM-nxPhRAhFVZNV4zSG-XteNZbz7v9j5LOE2H2UDNDtGrJgG7MljmaopZAzF22SrYiSxvKGwax8l_cD-2VPi1Gvun7-wP68kahMjMdu4ztbnhEQ="
+        },
+        {
+          "id": "rs_0da7d645c2de00b2006a8576e8b59887d288fcac8f5f997413",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhXca36YW2WEAsDrUChG1Dz26l6oyFUb4r5oTKcl7HLZ1DaWYd1UYPnaleSb11zf4o7zyS7JIWjYna4hRBVWNlz-axLfrb-R-Wb9DDmuKyk3D1kD0CQWTfavjYsytaeScTccjGFBKaV1N0VPUTX1yUW11cyrU08ZgCbOmS2Qyibusjy2qmUDwEA2zJc872a3bqqJ2kVgHUqU96v8gBBZsnfwx-3ew4U3tyMwa9fVTJaZnpeNfDkhbRD4BK9uMGfBw-_Gild2h2IhdYtaFTkhampaAiAgL1bxS_Jty8wb1l-IcKv37YVS_BIMHuSX7yMENReq3lo3uHjW2DCOqo-QqJTtQ9H59PtLfUDgj2SNKUJO0ZhXRiNT_J0swlJhli4A19QWIMI5GtF7hqsb3GM4R7V7fiigNnjYWEFbc3dKy8FLHsKxAgCGeY6RdCqzrcEFNccythz3Tpyg7f1nkn7trq8BtoRelrRHk2Y1Qeg1E6z2yLRh_n-z4vz8jrVtj6mt-U2Td_-3vJiW1GG7rx6kPlQVJ5jijgsFSLE6v_DbPW3nqqArcApWS17rGevMhYJEJ8if7zQmGi9TXXoHaVyR8JZVyvgjfQI9NyvOl0CZmKfGovFXZpv-oLf_0Y3ugZ5w01crjRDgOtBQYFz0t2c5sQyHzxHovB-9tMsrHlqzElOXq0PBMBQC4EZ-Xc4RGct0dWRJnI5cuG-C6OBbCAEwPEkm1E601ZIc-C92p1R_ZCEHu17b44hCqwciuiNyAAT_Lm4mdzyrYDqbNNrgqjxpHF4nFzyA-lGM1cenIjldQjrZWnZ-mOnH3z4GXCkoGiAyayblmbV9Zmu9XjMzgjJWN4bcykEl-sP7vhkAAfXUEtCH2C1eV_Bl26jBnUyq9QfgZMzyytRfQXPhh4rHSrgGzNuNpne0PhpO8OLxnznnJ5RfZXho8iiDhCq1IdAm-5npMpE9thkdaArYUcVohRGt3J66IGNiQV4zkgfrUNQREbFUAUCgJrAOmYzLUKX640t6Gr57nvY9u5j6y18J5kv6Yj8EEUl4A7U2ZHUbnphW9WnAnRKVJcOSITXi31iWAXk-dEpppglrvur_lFALmGhXHdvPafKWfZpitVPdjfUSLAm_W4OT87CJmJc1oVoP07LV4qtonlvdlLe2OHITq14B5MxZ3UN6ikEaA-lUQHSfBxgt5TXnEsttwWxXH7Etp7oneGGIGOTZEGLpPFBAnA0S6Ock5eI-QenPVLuYtJOkjgYM_4FGmWAmX6NPxrKxEyb75sJ4ukzBwogG8SiW4U35JP7hM_Jq9Uf3c5N6r_bkF3-99Ue8XDrLxW6BWtx7SAfNAiK19VdaWUG4_dCToKuYxXvIp5FyWn4DbelusG5C38oHNuDiM6aLZNMVrNrdNGzgdLOs1f6DzraeaqWmMrkQOgDB1fy_19canRsqjgjTlaZ5FJd8WTd0ahBYvbB8Qi6nX14b7PMA-RPzTgWiX0moooZpgz0SQ6XzC7fGFFQSO5rXw2aZ-pqdfgSH7ppThVz5qtewINALJbuOgcB0Zn4Sjkmj1eQqCqhZzI_dUrhyULH2trg10Yi9ireJg354t5frjCD6FQC6JzNq2Gg2Ze9gFCNWl8rwduVaf4BWzeCHID1lZaM8RmtVs4HbnEIfBZSKQ5Bd4grUZuLFj_JysJwgcRpqjsq5On7iuo5A_7Rv3PYFeVLU9XYdhir5S-KA2TkZbMlKJmJ88xzLotha8kvlwOuaJdeCSk93UdykQ64fa4pK6OGqBFe6nqEFnLud7C9Enku2w7FI_b2haVJNXfwTDYCnM0cUxldrD7h_nOs5lOqJxUDPmXwaS8GoYoY8NKxNlkG0XJe5GJZDE3yoi8Ktn03Pcam6UQggdRz00U6bR381_XBfNXbGaZUtFbBZSC6o8g2WNDXOBnIW8YPHI4kNZzj19evTCreyYvPpxSVNwQf4U9U73OpBbb3bGpy_TfkkWjAdn3Sci753B2T5JOOseZL7JMPrgma5fmlneqA-YbcCZctGy-HJ6DLlvdwx52FtRx1pTBIbR4Uo-UnQW2_L-qkuxiJ-9jO2iuPTu7tuK6_W3My6umCPdWSo4drCmqlPTUSwlHEwx7CTyFEJhR4eZmKu9kRV21zfLJukx9IdJ2NN3GAy6donxr8iNEhulJJEGA7IxYG0Qm6hqDe-auNVMNB3naEo4PndHHCc-mrMqdK6pkqvd25d3JLlbsWXV0d9c0vd8FguS6d1hVOtRBO2pO8iBm4Pe5JWfw39NSRRQE9YDwr3VQnipGqlLH7af8e0RGUgg8IqGX9Q_452hx4WnTkSfE6d37Ngj6xOxYQT5W8_cPsJq4GeAhzRBMsbvcb7Nql61b1xuaxZqScuO3LvDMm66xsBehL14EyVC28_vpcSZEQxm6Ox0Tyh73ZJTDZ7tMtoUBlhZcoVDDpS3mulPoLfy8U6paw4RcMlWJNu2SlPb8Nx9PCbzsNaK-XEfNa8KEM9q-bBRIxgrV5s5Uu61YCBEOW6tFnG76cVmsuW1Mt1yRfCjqzi9cXvRdDY7d-KdAVyDDUL4_DXS2g0cYHlQZvBjXkttRRKwx1wlj7JxWQtWTu69voa08lsl7fZObYDJb7oK8fy0CJgKDx5gKanm2I32UiMvfWKb2j-gF6DJdMyvmdtikFY4OCP7KLXhfHhpsk6g2Tm_AfbB_JkJzbxu5xHYyhB1XoBjLJ-hyReuhKm5Z3DQpc1omAl-Ap0L94FvJrAQ17SJHMLguwUNHqFwpOV_gf-_VybZerocdF3T7UzV8x6-gbaUC77FGSiQtTXxIn4pOHBZp41heYN8A6NG8MUKJdJrx7UPmhw_s9yoDWOBFoRLHtEIxNmhYtld85WcUBUik3t0eltFjKxb7dKjZdpLpHcmodWFddGrF2qLkyFI1QiUPnw8ipfjpKpVuiyKB9_6yT2vjjARKGYjHzoTjE74Z9X9e-TQni5aqKC2olBZTmMuGHLspAJNqZAjednyHr6qX3hFj86kIGNX3F9sgcH0A5lkYu3fQjPfL5BPA54MxbNLuLtMwo9zKXnTsRqaQ053msiATkPv2wnq50Vc9QsFRSu7dBLAOYOUTMcw-5_3dlnat6h6tjGlVwyRux7eyFr0bcBN-yWIrAi83ADnQhdHjKHpwrpbG9qQDFlIf9nN3ShagmifAW9C0QNlfqdzcTWk5I3aom3pO_fsyXoOeet2Iz4JlNdw4scE91OltuCqA7k5eL5mM8lkhUGHB9xcrTiMCxcmragh400yTWkc-umIhULXPElRFC-0_GnaBf06ooDkNOEKDx8yrQRDh7ig-wfP7ruNPnn2Z-KZbGOxtUVgcuNenWjSFelBZ0qUUdyoO0qzPfhRyunl72YnFKPa9ysljxTb_72rlAc6s1-gtZLvIMYR0pQ_aw1jT_OqyBNTqAAKwIn5ixrDHrfJ-xzLxEfkVuAoPqidfV2rk76mtFSwFGpvQrp-td-Ez6MqqvUvax7OluRxTIPdDZSpGfIXkOR4J4wg4AKitU_G27TUogH7GpZCRSMzsSzdynQ1_vmsk7WP41r0dG9tvM0uvBgrWj7pz1-VTdHbVCwN4zAN8j9T-J4OzcvhgH_lEIqT_hOU4o00PF_mNS9ECxZ1XgC6ZDOrU0jWPL-muH9F81VqgX-LU_yS0zExVHL2cMCzI0bLhYTUOrXzJzF8DreL-N0JTI5OX1qzJ_8-UBPiygRXzT9ILCMqFng9qPi7nqQC44_wm70cJeT75fcbUiGSKZMQNZmRUEyQenNRX515J8vbw_P8TyHOp6911zd-aZxVB7CnxE_QlzydtFiEmhbAx8MkPnk8kLEHvZPSEXI4-QLZJvHFMzSkUYIXufwDnh07n6PWteaoTITOPi5osIrUl3lwJi2F_n0cy9hZT4VuHYzSCIpcQO1dHTOaKmqpVGc_WOZqeEmN5bP5ZGWJDImDXPxraAODubH7HI9H83h0UmJYrCYK8aVL9GIOwZ2e-PfBKXnvrffXbpDgzQQLt_EfQda9K-yV0tNyUI2bWzQp1zfPxIhoc74eykDTMzCjBg2DDBuc7Inf-jtYYm60n2R5Lb6kq6Pmm6NDiPLQzipiOTXFoU4LAZoZ-DyQU7AOHAT8AYOWPAeSG8v_IfskiKXHsxJB7-0x"
+        },
+        {
+          "id": "rs_0da7d645c2de00b2006a8576ee21bc87d28086292d0b92f214",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhXcaRH6MORjIdBu2TIWfd68K9X2u84UejcRfJlgDEeMirfXYb4a2tauY9tbUQowmiYJYmAexelNrZ-Jamc0eIhE8xLxcS0xs2Ks-A_UOh4E6fGQATDbXDXbiGeFot7ok4dtO0D8xyN8N1fcof6udhhhMyWih7WZ-Q9GomOZ173au6qb5ccbCQ9eG0DGAd32C2uFJQdL38XQhdghGq80tqAqG5EF1RGeikrxFusgOHEpm6HgFLYG3HRkGt5rsPiL5-g-WC8u5PqmmYFN_nnUKP4C8M2VuNVDFm7u6NsGHxtKvrgTPfCMUZbfr1n0OvwjTFsGK_GpILFIII2zFAMlechCLxwqnBciA7WWA4qAXHrLi29RG1kk6peqCigt-D5sJMAqPYdqBLaCOOPkGRlk8ure0BSsTVmSmSG3XqBrYjwB4lBXtErqBxOGmS-Cn66h2BBFbh7pDkD1Bxd1TAxyAcunMQGw1-jHccwTXLNYq6RzxbEoAPpKUjCs7_TXUuo31ikUaKEVbjrlhf70dPl2HxW3GFfHNi5TQvKTakq1CceROR-Fus0rKmAYk6xake1KrAwl6hYd3lK7XghycG0UXkcF-aoX-8k1MyhB6CCjjZSfZqN9JLRwHa7islsGquly5Y5qAxgs38BS_8tp82tjk0I9QFru30dhAnmuqMLtEqFfr0yXxiWwfeU66ueGPJ9oLUg4ztKHmRiViGxZRrxPmhNScA-PogXwmDmWQBL1c-2Ahpb3JuPrEuhr9o62ZMegdlcP9uKLc5wZXuRcRf3fxRdlRKPN9dOUjXezK7hKqRWrxc_ypxKywV-mExMiptiEHUS8S0-EbcdwwPGy0uakg41VWiVLVmPcyCM84OduPlt9NGi6XL9lmUj1qG59Afmkl3bGqZuAY_Dql6r9CQHscajoWSnnEHMamtcGi9RcSkELUH2crE_BTPkWRiDU5a4O6fwStcPYoh2X3aVou7I_8yF6gIWBrm3NexTP3H7iq5gwyj-QP4lTiSq-ARYfCa_mKRsuNnnmaeb5OxPF9HRgsheWPccLPNbnbgZK8f8WkFu6SpzMEepf7viWuPLrMOQLc7IP0OSdXD76OJjqkxoOmQiXVqkO7-9a5ZW_wUHXYZnBxTbN0Egft8tSHF2LxL5qwM8rm8uBYXvq39q-1Auf5UqeK4m2DaUbGzL0TT6oEE42dg1MvCl1tITB9-FkT4kQ0S1774pwT6ZWmi4vPDUvR5POJad5e7g7WQvJ5-Wy8gmN7jd7rVW-7T-1Je5OC8dpwiTlEsHsRdHXkizOeorIgrtBQvRtOzs-z8gxmR2F8nTyaD1kApRndHdDvNm0CG7a578LQ8IDBe8YX1cn-3tQJwlNplgmJIncwbbTZ9Gtsnange_dENfqYj7_jJlPw_G5ULO-ij5cnRmV9EZFKh2CtQOu2qjo3tpXTHPmpIe8uETm3ys7wqBGifmn2WNT_NLD1u1HF9O__DNYtsXDaTs6m0zy9BEYzEc4FquP-K9BF1KHxb2rWj0Ubatm-3E6ld8avT6lK-_W9MS-s6fcAvsJhXSK1NQciAmE58KGxWX8bUp5vHDuGNH-95uhO7RjwlQbkdaFWaPpR_QKLOFue4uFO4Hlns1WoqnrJOD4PXmInIsiX7lSdK7KywdU1ck4Tslcp1xjAgcB3tTAv1qylrTLEokGEBPYD3xAnKjv_Yn5in03YQ19pXLc-R1I5h_nCKWgQ7jjBfuxcsXyZrtJZCSO6JagtZVfGfAiA-AqCz6XGhp9pC6JHfDFkcgEoBgHUaqmfuRV_EU8HwWkB7IBRYMVg0i8DGmBMt48LDfVWPoIRqn4_X-blKhDh4fdermkuwijbYIhX4wcrzzDv1oNcB5-N64ThHl4_7O4aCohA8yA_KO1MldfrbDf0EvNM1qzyq-LmcVrJ-b9DxiJvO-jRgFrVxsI0OLkUBdY_MEqLeRPo4eaAbKoapvS_1d-48dnnGuzJ3budQQtW88_XBZUGkggN5jRY76O-47XpORW03kLDycLkSXJpT1gv6O8LvNw6z3vVGMSBmicDbHIwSR4Rfc6iZyd6mJiuFSnNV9hEa4PT6lg9sGjJXX3HQVaQJlL5jcMO_L0amwSZfnHvDwPNAX70mr5UEiAqZ090EDkCQCfgd2LKUPZjJ3fIKHHRsMoVrRZ9qSHi-ElpfcbTincUDY4c0Vc844E4kcNRnwqwkSoDw9zf4lZ0xDEHymN_y7EjKGd1pd6zBdaIuQoTj10fZJt7sDoXZojWsIBJWVEt6VSC_nLXhM1A2q_H_QDLs1cYoRq6hmUuIFaLxnpBY9ijxtq9v6ZyhlABWssdXuQIpqZcXm5-CILkBQqmJ0U-l7ckd1YhQzio1XpOw9l0V9r_eO_pv_h8UOiI8IhjKPbLD2XZNUH7MqYP0gMnQhrS2hU0Oy03huKunKY-JwgLjS0rwFltXlF_poSVyzQBnTI94x1XiR8P5dbVTvqVZVswepV8FVmIq-oEST8xLPAf5XHav838a9b3KdoyAbjDmvNZEhQOWekwos96Ss9f27PlYHdbUSkamhzvy8VhD7vQKLZLCHCX0SrrEul6CmWmBGmKNpFg6lQgQ31lsQVEiC66zlv1NLB805bsNEv6RTfEqhIxi6Vl2IcpHiJGaNC_WHpths5TXle4VFGrT6hIs8bbu-D_3WNCC9Ii6xauisD8werGwmfKXRTK5-BQ04QSIOmFvU-YOBefEVzcaM8WSAsh8VlUWji7d6oaw0lCcwXt3QS9JIJGo8DIhUjejexZWG_2U9zDUk8CBVp7jy9ftQDfBl6sI3wSxHpMUGeSmPD-G5lXuImflV3oXkNJSJvdQ9JKSJbTEvjVKxqihTnyDn69UQSguSHg-NGJmm8U6B-9jPWk9zYU6G34DQZmv4g45xGKrQp-yvnHwsUhDhQ9NFwqH1ZUpVpx0ygnk0YFBlbcRkAsqeIOcnLACpHPkJ9DjWObkLESyy369vurnq8W7weYFdxoSZ4_CKixrI0fjbvYTJQnhywns1jwejTtuFnA0C0VlhRWMRgg5fqctJ8OFKHkxiJJajXOOIvHeLGcVn2hznGmXF32mtin1rz5Gs5Fcl8zZGj0pUrAnLl774ujMyjKBcmMCEU1Okq-5ZjD4S4NldZLuhtTh5RUt7IklzuijKOu04UCr0SvMG1U0yV4qtcdr10CUI-VIPLEyjHpMNVGH-jr00uNbrax1wvJrqGdCoLFuzXRTBZZw0QI4Xd0BPyef6H2Ph6OVCbAvY17poGZJEA2dx67P0rU8n4Y-f1LVm70RMjlbfG9Fro0R76U4sKYK371FhxSk7ewXIvy_n2mQOoqW8yEsYE3VeCQAHHRJ8LoAnBTmmTKUMv1KX4Ieonsv9ZITmQW6bghmWDXgj0EyNOpNc7i5henflGr0OWiAQMYhPtE_ILqS08E6svxXZWsJGXSrwGil0AER3KtMC6AhVpmKXhJ18bKwSP780dJjL2DkMmXT6BX5psEdpRQ3qvCCj_YyPdDgYO_57yQxSdS43SHSXI2uO3RXq6rUoT8Z-TBbEgsN137_0Ev9H9nFTVwXZe0ekqhY9vSminHacAtunFNw77prUqYn39ZXuqp2sSHE4xJetk5uzDMrZtvSfdOFGbHxgUW63pfzy1D_ZdGsTCdWuXC-K9Qzp4PxY0ccMo9j4TcQCYP4qxDgl0rsOhNdO99zKpwTpvCc_zqQrDz22c89EnK_1eyUQxEmT_RGhZSPXXBNy7J_kQKa1kj080fjHjE5WOLEse4"
+        },
+        {
+          "id": "msg_0da7d645c2de00b2006a8576f32c8087d2b95e94e0f341d497",
+          "role": "assistant",
+          "type": "message",
+          "phase": "final_answer",
+          "status": "completed",
+          "content": [
+            {
+              "text": "{\"dishes\":[{\"name\":\"Hummus crunch boxes\",\"title\":\"Hummus, cucumber, tomatoes and corn cakes\",\"slot\":\"lunch\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"hummus\",\"quantity\":\"120 g hummus\",\"amount\":120,\"unit\":\"g\",\"state\":null},{\"term\":\"cucumber\",\"quantity\":\"100 g cucumber\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"tomatoes\",\"quantity\":\"120 g tomatoes\",\"amount\":120,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"corn cakes\",\"quantity\":\"3 corn cakes\",\"amount\":3,\"unit\":\"unit\",\"state\":null}],\"method\":\"Arrange the hummus, cucumber, tomatoes and corn cakes in a lunch box.\",\"why\":\"A fresh, portable lunch gives the household a simple protein-led plate before the evening cooking session.\",\"uses\":[],\"same_day\":{\"kind\":\"assemble\",\"minutes\":5},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Cucumber hummus plate\",\"title\":\"Hummus, cucumber, tomatoes and corn cakes\",\"slot\":\"lunch\",\"day\":\"wed\",\"for_member_id\":\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\"ingredients\":[{\"term\":\"hummus\",\"quantity\":\"120 g hummus\",\"amount\":120,\"unit\":\"g\",\"state\":null},{\"term\":\"cucumber\",\"quantity\":\"100 g cucumber\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"tomatoes\",\"quantity\":\"120 g tomatoes\",\"amount\":120,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"corn cakes\",\"quantity\":\"3 corn cakes\",\"amount\":3,\"unit\":\"unit\",\"state\":null}],\"method\":\"Arrange the hummus, cucumber, tomatoes and corn cakes in the named lunch box.\",\"why\":\"This keeps the lunch portable and gives a distinct plate from the shared arrangement.\",\"uses\":[],\"same_day\":{\"kind\":\"assemble\",\"minutes\":5},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Golden lentil curry\",\"title\":\"Lentil curry, potatoes, spinach and tomatoes\",\"slot\":\"dinner\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null},{\"term\":\"fresh coriander\",\"quantity\":\"10 coriander leaves\",\"amount\":10,\"unit\":\"unit\",\"state\":null}],\"method\":\"Reheat the named portion of lentil curry, then add lemon and coriander.\",\"why\":\"A warm, comforting batch starts the week without asking anyone to cook after seven.\",\"uses\":[{\"preparation_id\":\"prep_lentil_curry\",\"servings\":1,\"box_id\":\"box_prep_lentil_curry_zoe\"},{\"preparation_id\":\"prep_lentil_curry\",\"servings\":1,\"box_id\":\"box_prep_lentil_curry_lubna\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Lemon lentil curry\",\"title\":\"Lentil curry, potatoes, spinach and tomatoes\",\"slot\":\"dinner\",\"day\":\"wed\",\"for_member_id\":\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\"ingredients\":[{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null},{\"term\":\"fresh coriander\",\"quantity\":\"10 coriander leaves\",\"amount\":10,\"unit\":\"unit\",\"state\":null}],\"method\":\"Reheat the named portion, then finish with lemon and coriander.\",\"why\":\"The same warm batch is given a fresh finish for a separate plate.\",\"uses\":[{\"preparation_id\":\"prep_lentil_curry\",\"servings\":1,\"box_id\":\"box_prep_lentil_curry_roxane\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Curry lunch bowl\",\"title\":\"Lentil curry, potatoes, spinach and tomatoes\",\"slot\":\"lunch\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"lime\",\"quantity\":\"half a lime\",\"amount\":null,\"unit\":null},{\"term\":\"fresh coriander\",\"quantity\":\"10 coriander leaves\",\"amount\":10,\"unit\":\"unit\",\"state\":null}],\"method\":\"Reheat the named portions and add lime and coriander just before eating.\",\"why\":\"It reheats well for work and changes the first dinner into a brighter lunch bowl.\",\"uses\":[{\"preparation_id\":\"prep_lentil_curry\",\"servings\":1,\"box_id\":\"box_prep_lentil_curry_zoe\"},{\"preparation_id\":\"prep_lentil_curry\",\"servings\":1,\"box_id\":\"box_prep_lentil_curry_lubna\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Bright curry bowl\",\"title\":\"Lentil curry, potatoes, spinach and tomatoes\",\"slot\":\"lunch\",\"day\":\"thu\",\"for_member_id\":\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\"ingredients\":[{\"term\":\"lime\",\"quantity\":\"half a lime\",\"amount\":null,\"unit\":null},{\"term\":\"fresh coriander\",\"quantity\":\"10 coriander leaves\",\"amount\":10,\"unit\":\"unit\",\"state\":null}],\"method\":\"Reheat the named portion and add lime and coriander.\",\"why\":\"A citrus finish keeps the reheated lunch varied and easy to pack.\",\"uses\":[{\"preparation_id\":\"prep_lentil_curry\",\"servings\":1,\"box_id\":\"box_prep_lentil_curry_roxane\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Smoky curry supper\",\"title\":\"Lentil curry, potatoes, spinach and tomatoes\",\"slot\":\"dinner\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"spring onions\",\"quantity\":\"2 spring onions\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"}],\"method\":\"Reheat the named portions and scatter over sliced spring onions.\",\"why\":\"The batch remains warm and comforting while the fresh topping prevents repetition.\",\"uses\":[{\"preparation_id\":\"prep_lentil_curry\",\"servings\":1,\"box_id\":\"box_prep_lentil_curry_zoe\"},{\"preparation_id\":\"prep_lentil_curry\",\"servings\":1,\"box_id\":\"box_prep_lentil_curry_lubna\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Spring onion curry\",\"title\":\"Lentil curry, potatoes, spinach and tomatoes\",\"slot\":\"dinner\",\"day\":\"thu\",\"for_member_id\":\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\"ingredients\":[{\"term\":\"spring onions\",\"quantity\":\"2 spring onions\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"}],\"method\":\"Reheat the named portion and top with sliced spring onions.\",\"why\":\"The same preparation becomes a separately finished plate with almost no extra work.\",\"uses\":[{\"preparation_id\":\"prep_lentil_curry\",\"servings\":1,\"box_id\":\"box_prep_lentil_curry_roxane\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Curry potato lunch\",\"title\":\"Lentil curry, potatoes, spinach and tomatoes\",\"slot\":\"lunch\",\"day\":\"fri\",\"ingredients\":[{\"term\":\"fresh mint\",\"quantity\":\"10 mint leaves\",\"amount\":10,\"unit\":\"unit\",\"state\":null}],\"method\":\"Reheat the named portions and add torn mint.\",\"why\":\"This is the last work-friendly use of Wednesday's batch, with a cool herb contrast.\",\"uses\":[{\"preparation_id\":\"prep_lentil_curry\",\"servings\":1,\"box_id\":\"box_prep_lentil_curry_zoe\"},{\"preparation_id\":\"prep_lentil_curry\",\"servings\":1,\"box_id\":\"box_prep_lentil_curry_lubna\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Minted curry lunch\",\"title\":\"Lentil curry, potatoes, spinach and tomatoes\",\"slot\":\"lunch\",\"day\":\"fri\",\"for_member_id\":\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\"ingredients\":[{\"term\":\"fresh mint\",\"quantity\":\"10 mint leaves\",\"amount\":10,\"unit\":\"unit\",\"state\":null}],\"method\":\"Reheat the named portion and add torn mint.\",\"why\":\"Mint gives the separate lunch its own character without another cooking session.\",\"uses\":[{\"preparation_id\":\"prep_lentil_curry\",\"servings\":1,\"box_id\":\"box_prep_lentil_curry_roxane\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Tomato lentil supper\",\"title\":\"Lentil curry, potatoes, spinach and tomatoes\",\"slot\":\"dinner\",\"day\":\"fri\",\"ingredients\":[{\"term\":\"coconut yoghurt\",\"quantity\":\"60 g coconut yoghurt\",\"amount\":60,\"unit\":\"g\",\"state\":null}],\"method\":\"Reheat the named portions and spoon over the coconut yoghurt.\",\"why\":\"A creamy finish makes the final serving of the batch feel like a new dinner.\",\"uses\":[{\"preparation_id\":\"prep_lentil_curry\",\"servings\":1,\"box_id\":\"box_prep_lentil_curry_zoe\"},{\"preparation_id\":\"prep_lentil_curry\",\"servings\":1,\"box_id\":\"box_prep_lentil_curry_lubna\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Creamy lentil supper\",\"title\":\"Lentil curry, potatoes, spinach and tomatoes\",\"slot\":\"dinner\",\"day\":\"fri\",\"for_member_id\":\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\"ingredients\":[{\"term\":\"coconut yoghurt\",\"quantity\":\"60 g coconut yoghurt\",\"amount\":60,\"unit\":\"g\",\"state\":null}],\"method\":\"Reheat the named portion and spoon over the coconut yoghurt.\",\"why\":\"The separate plate gets a gentle creamy finish while using the same final batch.\",\"uses\":[{\"preparation_id\":\"prep_lentil_curry\",\"servings\":1,\"box_id\":\"box_prep_lentil_curry_roxane\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Hummus summer lunch\",\"title\":\"Hummus, cucumber, tomatoes and corn cakes\",\"slot\":\"lunch\",\"day\":\"sat\",\"ingredients\":[{\"term\":\"hummus\",\"quantity\":\"120 g hummus\",\"amount\":120,\"unit\":\"g\",\"state\":null},{\"term\":\"cucumber\",\"quantity\":\"100 g cucumber\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"tomatoes\",\"quantity\":\"120 g tomatoes\",\"amount\":120,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"corn cakes\",\"quantity\":\"3 corn cakes\",\"amount\":3,\"unit\":\"unit\",\"state\":null}],\"method\":\"Assemble the hummus, vegetables and corn cakes.\",\"why\":\"A no-cook lunch leaves the small hob free for Saturday's comforting batch.\",\"uses\":[],\"same_day\":{\"kind\":\"assemble\",\"minutes\":5},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Summer hummus plate\",\"title\":\"Hummus, cucumber, tomatoes and corn cakes\",\"slot\":\"lunch\",\"day\":\"sat\",\"for_member_id\":\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\"ingredients\":[{\"term\":\"hummus\",\"quantity\":\"120 g hummus\",\"amount\":120,\"unit\":\"g\",\"state\":null},{\"term\":\"cucumber\",\"quantity\":\"100 g cucumber\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"tomatoes\",\"quantity\":\"120 g tomatoes\",\"amount\":120,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"corn cakes\",\"quantity\":\"3 corn cakes\",\"amount\":3,\"unit\":\"unit\",\"state\":null}],\"method\":\"Assemble the named lunch box.\",\"why\":\"The fresh lunch is quick, while the evening batch is cooked separately.\",\"uses\":[],\"same_day\":{\"kind\":\"assemble\",\"minutes\":5},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Chickpea courgette stew\",\"title\":\"Chickpea stew, courgettes, peppers and potatoes\",\"slot\":\"dinner\",\"day\":\"sat\",\"ingredients\":[{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Reheat the named portions and add lemon.\",\"why\":\"Saturday's session creates a warm, seasonal batch that carries the weekend forward.\",\"uses\":[{\"preparation_id\":\"prep_chickpea_stew\",\"servings\":1,\"box_id\":\"box_prep_chickpea_stew_zoe\"},{\"preparation_id\":\"prep_chickpea_stew\",\"servings\":1,\"box_id\":\"box_prep_chickpea_stew_lubna\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Lemon chickpea stew\",\"title\":\"Chickpea stew, courgettes, peppers and potatoes\",\"slot\":\"dinner\",\"day\":\"sat\",\"for_member_id\":\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\"ingredients\":[{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Reheat the named portion and add lemon.\",\"why\":\"A separate lemon-finished plate comes from the same Saturday cooking session.\",\"uses\":[{\"preparation_id\":\"prep_chickpea_stew\",\"servings\":1,\"box_id\":\"box_prep_chickpea_stew_roxane\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Herby chickpea bowl\",\"title\":\"Chickpea stew, courgettes, peppers and potatoes\",\"slot\":\"dinner\",\"day\":\"sat\",\"for_member_id\":\"12362957-32c9-43a5-82ef-66b8d5732171\",\"ingredients\":[{\"term\":\"parsley\",\"quantity\":\"10 parsley leaves\",\"amount\":10,\"unit\":\"unit\",\"state\":null}],\"method\":\"Reheat the named portion and add parsley.\",\"why\":\"The same warm batch is given a distinct herb finish for this plate.\",\"uses\":[{\"preparation_id\":\"prep_chickpea_stew\",\"servings\":1,\"box_id\":\"box_prep_chickpea_stew_ivar\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Pepper chickpea lunch\",\"title\":\"Chickpea stew, courgettes, peppers and potatoes\",\"slot\":\"lunch\",\"day\":\"sun\",\"ingredients\":[{\"term\":\"fresh basil\",\"quantity\":\"10 basil leaves\",\"amount\":10,\"unit\":\"unit\",\"state\":null}],\"method\":\"Reheat the named portions and add basil.\",\"why\":\"A fragrant topping makes yesterday's batch feel fresh without extra cooking.\",\"uses\":[{\"preparation_id\":\"prep_chickpea_stew\",\"servings\":1,\"box_id\":\"box_prep_chickpea_stew_zoe\"},{\"preparation_id\":\"prep_chickpea_stew\",\"servings\":1,\"box_id\":\"box_prep_chickpea_stew_lubna\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Basil chickpea lunch\",\"title\":\"Chickpea stew, courgettes, peppers and potatoes\",\"slot\":\"lunch\",\"day\":\"sun\",\"for_member_id\":\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\"ingredients\":[{\"term\":\"fresh basil\",\"quantity\":\"10 basil leaves\",\"amount\":10,\"unit\":\"unit\",\"state\":null}],\"method\":\"Reheat the named portion and add basil.\",\"why\":\"The separate lunch gets a bright seasonal finish from the Saturday batch.\",\"uses\":[{\"preparation_id\":\"prep_chickpea_stew\",\"servings\":1,\"box_id\":\"box_prep_chickpea_stew_roxane\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Paprika chickpea supper\",\"title\":\"Chickpea stew, courgettes, peppers and potatoes\",\"slot\":\"dinner\",\"day\":\"sun\",\"ingredients\":[{\"term\":\"lime\",\"quantity\":\"half a lime\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Reheat the named portions and add lime.\",\"why\":\"Lime changes the flavour while keeping dinner warm and comforting.\",\"uses\":[{\"preparation_id\":\"prep_chickpea_stew\",\"servings\":1,\"box_id\":\"box_prep_chickpea_stew_zoe\"},{\"preparation_id\":\"prep_chickpea_stew\",\"servings\":1,\"box_id\":\"box_prep_chickpea_stew_lubna\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Lime chickpea supper\",\"title\":\"Chickpea stew, courgettes, peppers and potatoes\",\"slot\":\"dinner\",\"day\":\"sun\",\"for_member_id\":\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\"ingredients\":[{\"term\":\"lime\",\"quantity\":\"half a lime\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Reheat the named portion and add lime.\",\"why\":\"The citrus finish gives the separate plate a new flavour.\",\"uses\":[{\"preparation_id\":\"prep_chickpea_stew\",\"servings\":1,\"box_id\":\"box_prep_chickpea_stew_roxane\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Warm chickpea lunch\",\"title\":\"Chickpea stew, courgettes, peppers and potatoes\",\"slot\":\"lunch\",\"day\":\"mon\",\"ingredients\":[{\"term\":\"coconut yoghurt\",\"quantity\":\"60 g coconut yoghurt\",\"amount\":60,\"unit\":\"g\",\"state\":null}],\"method\":\"Reheat the named portions and add coconut yoghurt.\",\"why\":\"This is the final safe fridge-day use of Saturday's batch, made creamy for variety.\",\"uses\":[{\"preparation_id\":\"prep_chickpea_stew\",\"servings\":1,\"box_id\":\"box_prep_chickpea_stew_zoe\"},{\"preparation_id\":\"prep_chickpea_stew\",\"servings\":1,\"box_id\":\"box_prep_chickpea_stew_lubna\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Creamy chickpea lunch\",\"title\":\"Chickpea stew, courgettes, peppers and potatoes\",\"slot\":\"lunch\",\"day\":\"mon\",\"for_member_id\":\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\"ingredients\":[{\"term\":\"coconut yoghurt\",\"quantity\":\"60 g coconut yoghurt\",\"amount\":60,\"unit\":\"g\",\"state\":null}],\"method\":\"Reheat the named portion and add coconut yoghurt.\",\"why\":\"A creamy topping gives the separate final lunch a different finish.\",\"uses\":[{\"preparation_id\":\"prep_chickpea_stew\",\"servings\":1,\"box_id\":\"box_prep_chickpea_stew_roxane\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Smoky chickpea supper\",\"title\":\"Chickpea stew, courgettes, peppers and potatoes\",\"slot\":\"dinner\",\"day\":\"mon\",\"ingredients\":[{\"term\":\"spring onions\",\"quantity\":\"2 spring onions\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"}],\"method\":\"Reheat the named portions and add sliced spring onions.\",\"why\":\"The last batch dinner stays warm while the topping supplies a new texture.\",\"uses\":[{\"preparation_id\":\"prep_chickpea_stew\",\"servings\":1,\"box_id\":\"box_prep_chickpea_stew_zoe\"},{\"preparation_id\":\"prep_chickpea_stew\",\"servings\":1,\"box_id\":\"box_prep_chickpea_stew_lubna\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Spring onion chickpeas\",\"title\":\"Chickpea stew, courgettes, peppers and potatoes\",\"slot\":\"dinner\",\"day\":\"mon\",\"for_member_id\":\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\"ingredients\":[{\"term\":\"spring onions\",\"quantity\":\"2 spring onions\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"}],\"method\":\"Reheat the named portion and add sliced spring onions.\",\"why\":\"This separate plate uses the same batch with a crisp topping.\",\"uses\":[{\"preparation_id\":\"prep_chickpea_stew\",\"servings\":1,\"box_id\":\"box_prep_chickpea_stew_roxane\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Parsley chickpea supper\",\"title\":\"Chickpea stew, courgettes, peppers and potatoes\",\"slot\":\"dinner\",\"day\":\"mon\",\"for_member_id\":\"12362957-32c9-43a5-82ef-66b8d5732171\",\"ingredients\":[{\"term\":\"parsley\",\"quantity\":\"10 parsley leaves\",\"amount\":10,\"unit\":\"unit\",\"state\":null}],\"method\":\"Reheat the named portion and add parsley.\",\"why\":\"The herb finish keeps this warm post-training plate distinct.\",\"uses\":[{\"preparation_id\":\"prep_chickpea_stew\",\"servings\":1,\"box_id\":\"box_prep_chickpea_stew_ivar\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Hummus work box\",\"title\":\"Hummus, cucumber, tomatoes and corn cakes\",\"slot\":\"lunch\",\"day\":\"tue\",\"ingredients\":[{\"term\":\"hummus\",\"quantity\":\"120 g hummus\",\"amount\":120,\"unit\":\"g\",\"state\":null},{\"term\":\"cucumber\",\"quantity\":\"100 g cucumber\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"tomatoes\",\"quantity\":\"120 g tomatoes\",\"amount\":120,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"corn cakes\",\"quantity\":\"3 corn cakes\",\"amount\":3,\"unit\":\"unit\",\"state\":null}],\"method\":\"Assemble the hummus, vegetables and corn cakes.\",\"why\":\"A fresh portable lunch closes the stretch without keeping cooked food too long.\",\"uses\":[],\"same_day\":{\"kind\":\"assemble\",\"minutes\":5},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Fresh hummus box\",\"title\":\"Hummus, cucumber, tomatoes and corn cakes\",\"slot\":\"lunch\",\"day\":\"tue\",\"for_member_id\":\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\"ingredients\":[{\"term\":\"hummus\",\"quantity\":\"120 g hummus\",\"amount\":120,\"unit\":\"g\",\"state\":null},{\"term\":\"cucumber\",\"quantity\":\"100 g cucumber\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"tomatoes\",\"quantity\":\"120 g tomatoes\",\"amount\":120,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"corn cakes\",\"quantity\":\"3 corn cakes\",\"amount\":3,\"unit\":\"unit\",\"state\":null}],\"method\":\"Assemble the named lunch box.\",\"why\":\"The quick fresh plate avoids a fourth-day batch and stays easy to carry.\",\"uses\":[],\"same_day\":{\"kind\":\"assemble\",\"minutes\":5},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Warm tomato lentil soup\",\"title\":\"Tomato lentil soup, spinach and corn cakes\",\"slot\":\"dinner\",\"day\":\"tue\",\"ingredients\":[{\"term\":\"gluten-free ready tomato lentil soup\",\"quantity\":\"500 g ready tomato lentil soup\",\"amount\":500,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"spinach\",\"quantity\":\"60 g spinach\",\"amount\":60,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"corn cakes\",\"quantity\":\"3 corn cakes\",\"amount\":3,\"unit\":\"unit\",\"state\":null}],\"method\":\"Heat the ready soup until steaming, wilt in the spinach, and serve with corn cakes.\",\"why\":\"A ready-to-heat soup keeps Tuesday dinner warm without pretending Saturday's batch lasts longer than it should.\",\"uses\":[],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Green tomato soup\",\"title\":\"Tomato lentil soup, spinach and corn cakes\",\"slot\":\"dinner\",\"day\":\"tue\",\"for_member_id\":\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\"ingredients\":[{\"term\":\"gluten-free ready tomato lentil soup\",\"quantity\":\"500 g ready tomato lentil soup\",\"amount\":500,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"spinach\",\"quantity\":\"60 g spinach\",\"amount\":60,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"corn cakes\",\"quantity\":\"3 corn cakes\",\"amount\":3,\"unit\":\"unit\",\"state\":null}],\"method\":\"Heat the ready soup until steaming, wilt in the spinach, and serve with corn cakes.\",\"why\":\"The separate warm plate uses the same practical Tuesday solution.\",\"uses\":[],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Herby tomato soup\",\"title\":\"Tomato lentil soup, spinach and corn cakes\",\"slot\":\"dinner\",\"day\":\"tue\",\"for_member_id\":\"12362957-32c9-43a5-82ef-66b8d5732171\",\"ingredients\":[{\"term\":\"gluten-free ready tomato lentil soup\",\"quantity\":\"500 g ready tomato lentil soup\",\"amount\":500,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"spinach\",\"quantity\":\"60 g spinach\",\"amount\":60,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"corn cakes\",\"quantity\":\"3 corn cakes\",\"amount\":3,\"unit\":\"unit\",\"state\":null}],\"method\":\"Heat the ready soup until steaming, wilt in the spinach, and serve with corn cakes.\",\"why\":\"The warm soup is quick after training and has a clear vegetable element.\",\"uses\":[],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]}],\"preparations\":[{\"id\":\"prep_lentil_curry\",\"title\":\"Lentil curry with potatoes and spinach\",\"servings_made\":12,\"ingredients\":[{\"term\":\"cooked green lentils\",\"quantity\":\"1.2 kg cooked green lentils\",\"amount\":1200,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"potatoes\",\"quantity\":\"2 kg potatoes\",\"amount\":2000,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"courgettes\",\"quantity\":\"1.2 kg courgettes\",\"amount\":1200,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"tinned tomatoes\",\"quantity\":\"1.2 kg tinned tomatoes\",\"amount\":1200,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"spinach\",\"quantity\":\"600 g spinach\",\"amount\":600,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"onions\",\"quantity\":\"4 onions\",\"amount\":4,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"3 tbsp olive oil\",\"amount\":3,\"unit\":\"tbsp\",\"state\":null},{\"term\":\"mild curry powder\",\"quantity\":\"4 tbsp mild curry powder\",\"amount\":4,\"unit\":\"tbsp\",\"state\":null},{\"term\":\"water\",\"quantity\":\"600 ml water\",\"amount\":600,\"unit\":\"ml\",\"state\":null}],\"method\":\"On the hob, soften the onions in oil, add curry powder, potatoes, courgettes, tomatoes and water, then simmer until tender. Stir in the lentils and spinach at the end. Cool promptly and weigh four named equal ready-food boxes, keeping each box refrigerated.\",\"active_minutes\":20,\"total_minutes\":45,\"cook_on\":\"wed\",\"boxes\":[{\"id\":\"box_prep_lentil_curry_roxane\",\"member_ids\":[\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\"],\"grams\":1000},{\"id\":\"box_prep_lentil_curry_zoe\",\"member_ids\":[\"5fd38cfd-3895-4152-92a2-e62f9b7fc74e\"],\"grams\":1000},{\"id\":\"box_prep_lentil_curry_lubna\",\"member_ids\":[\"86129e3c-2f50-480f-a359-077165b6232b\"],\"grams\":1000},{\"id\":\"box_prep_lentil_curry_ivar\",\"member_ids\":[\"12362957-32c9-43a5-82ef-66b8d5732171\"],\"grams\":1000}]},{\"id\":\"prep_chickpea_stew\",\"title\":\"Chickpea stew with courgettes and peppers\",\"servings_made\":12,\"ingredients\":[{\"term\":\"cooked chickpeas\",\"quantity\":\"1.2 kg cooked chickpeas\",\"amount\":1200,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"potatoes\",\"quantity\":\"2 kg potatoes\",\"amount\":2000,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"courgettes\",\"quantity\":\"1.5 kg courgettes\",\"amount\":1500,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"red peppers\",\"quantity\":\"800 g red peppers\",\"amount\":800,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"tinned tomatoes\",\"quantity\":\"1.2 kg tinned tomatoes\",\"amount\":1200,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"onions\",\"quantity\":\"4 onions\",\"amount\":4,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"3 tbsp olive oil\",\"amount\":3,\"unit\":\"tbsp\",\"state\":null},{\"term\":\"smoked paprika\",\"quantity\":\"3 tbsp smoked paprika\",\"amount\":3,\"unit\":\"tbsp\",\"state\":null},{\"term\":\"water\",\"quantity\":\"600 ml water\",\"amount\":600,\"unit\":\"ml\",\"state\":null}],\"method\":\"Soften onions and peppers in oil on the hob. Add paprika, potatoes, courgettes, tomatoes and water, simmer until tender, then fold in chickpeas. Cool promptly and weigh four named equal ready-food boxes, keeping each box refrigerated.\",\"active_minutes\":20,\"total_minutes\":45,\"cook_on\":\"sat\",\"boxes\":[{\"id\":\"box_prep_chickpea_stew_roxane\",\"member_ids\":[\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\"],\"grams\":1000},{\"id\":\"box_prep_chickpea_stew_zoe\",\"member_ids\":[\"5fd38cfd-3895-4152-92a2-e62f9b7fc74e\"],\"grams\":1000},{\"id\":\"box_prep_chickpea_stew_lubna\",\"member_ids\":[\"86129e3c-2f50-480f-a359-077165b6232b\"],\"grams\":1000},{\"id\":\"box_prep_chickpea_stew_ivar\",\"member_ids\":[\"12362957-32c9-43a5-82ef-66b8d5732171\"],\"grams\":1000}]}],\"cooking_sessions\":[{\"day\":\"wed\",\"preparation_ids\":[\"prep_lentil_curry\"],\"total_minutes\":50,\"run_through\":\"Chop onions, potatoes and courgettes while the hob heats. Soften the onions, add the spices and vegetables, then simmer while washing boxes. Stir in lentils and spinach, cool promptly, and weigh the four named boxes. Keep the batch for Wednesday through Friday only.\"},{\"day\":\"sat\",\"preparation_ids\":[\"prep_chickpea_stew\"],\"total_minutes\":50,\"run_through\":\"Chop onions, peppers, potatoes and courgettes. Soften onions and peppers, add paprika and the remaining ingredients, then simmer until tender. Cool promptly and weigh the four named boxes. Keep the batch for Saturday through Monday only.\"}],\"shopping_list\":[{\"term\":\"green lentils\",\"quantity\":\"1.2 kg cooked green lentils\",\"aisle\":\"pantry\"},{\"term\":\"chickpeas\",\"quantity\":\"1.2 kg cooked chickpeas\",\"aisle\":\"pantry\"},{\"term\":\"tinned tomatoes\",\"quantity\":\"6 x 400 g tins\",\"aisle\":\"pantry\"},{\"term\":\"potatoes\",\"quantity\":\"4 kg potatoes\",\"aisle\":\"produce\"},{\"term\":\"courgettes\",\"quantity\":\"2.7 kg courgettes\",\"aisle\":\"produce\"},{\"term\":\"red peppers\",\"quantity\":\"800 g red peppers\",\"aisle\":\"produce\"},{\"term\":\"spinach\",\"quantity\":\"660 g spinach\",\"aisle\":\"produce\"},{\"term\":\"onions\",\"quantity\":\"8 onions\",\"aisle\":\"produce\"},{\"term\":\"cucumbers\",\"quantity\":\"700 g cucumbers\",\"aisle\":\"produce\"},{\"term\":\"tomatoes\",\"quantity\":\"840 g tomatoes\",\"aisle\":\"produce\"},{\"term\":\"hummus\",\"quantity\":\"840 g hummus\",\"aisle\":\"dairy\"},{\"term\":\"corn cakes\",\"quantity\":\"21 corn cakes\",\"aisle\":\"grains\"},{\"term\":\"coconut yoghurt\",\"quantity\":\"300 g coconut yoghurt\",\"aisle\":\"dairy\"},{\"term\":\"gluten-free ready tomato lentil soup\",\"quantity\":\"1.5 kg ready soup\",\"aisle\":\"pantry\"},{\"term\":\"lemons\",\"quantity\":\"2 lemons\",\"aisle\":\"produce\"},{\"term\":\"limes\",\"quantity\":\"2 limes\",\"aisle\":\"produce\"},{\"term\":\"spring onions\",\"quantity\":\"4 spring onions\",\"aisle\":\"produce\"},{\"term\":\"fresh coriander\",\"quantity\":\"1 bunch fresh coriander\",\"aisle\":\"produce\"},{\"term\":\"fresh mint\",\"quantity\":\"1 bunch fresh mint\",\"aisle\":\"produce\"},{\"term\":\"fresh basil\",\"quantity\":\"1 bunch fresh basil\",\"aisle\":\"produce\"},{\"term\":\"olive oil\",\"quantity\":\"100 ml olive oil\",\"aisle\":\"pantry\"},{\"term\":\"mild curry powder\",\"quantity\":\"1 small jar\",\"aisle\":\"pantry\"},{\"term\":\"smoked paprika\",\"quantity\":\"1 small jar\",\"aisle\":\"pantry\"}],\"member_portions\":[{\"member_id\":\"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\"portion_note\":\"For shared plates, place the vegetables first, then the protein food, then the starch. Use the named own dish whenever it is listed.\",\"preparation_shares\":[{\"preparation_id\":\"prep_lentil_curry\",\"note\":\"Use the Roxane box for each serving.\"},{\"preparation_id\":\"prep_chickpea_stew\",\"note\":\"Use the Roxane box for each serving.\"}]},{\"member_id\":\"5fd38cfd-3895-4152-92a2-e62f9b7fc74e\",\"portion_note\":\"Put all components together on the plate.\",\"preparation_shares\":[{\"preparation_id\":\"prep_lentil_curry\",\"note\":\"Use the Zoe box for each serving.\"},{\"preparation_id\":\"prep_chickpea_stew\",\"note\":\"Use the Zoe box for each serving.\"}]},{\"member_id\":\"86129e3c-2f50-480f-a359-077165b6232b\",\"portion_note\":\"Put all components together on the plate.\",\"preparation_shares\":[{\"preparation_id\":\"prep_lentil_curry\",\"note\":\"Use the Lubna box for each serving.\"},{\"preparation_id\":\"prep_chickpea_stew\",\"note\":\"Use the Lubna box for each serving.\"}]},{\"member_id\":\"12362957-32c9-43a5-82ef-66b8d5732171\",\"portion_note\":\"For own plates, place the protein food and starch first, then add the vegetables.\",\"preparation_shares\":[{\"preparation_id\":\"prep_lentil_curry\",\"note\":\"Use the Ivar box whenever an own dish is listed.\"},{\"preparation_id\":\"prep_chickpea_stew\",\"note\":\"Use the Ivar box whenever an own dish is listed.\"}]}]}",
+              "type": "output_text",
+              "logprobs": [],
+              "annotations": []
+            }
+          ]
+        }
+      ],
+      "status": "completed",
+      "billing": {
+        "payer": "developer"
+      },
+      "metadata": {
+        "source": "generate-household-meal-v1",
+        "user_id": "5a000000-0000-4000-8000-000000000001",
+        "request_id": "md000001-0000-4000-8000-000000000001"
+      },
+      "reasoning": {
+        "mode": "standard",
+        "effort": "medium",
+        "context": "all_turns",
+        "summary": null
+      },
+      "background": false,
+      "created_at": 1787131607,
+      "moderation": null,
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "total_tokens": 0,
+          "output_tokens": 0,
+          "input_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          },
+          "output_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          }
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "truncation": "disabled",
+      "temperature": 1,
+      "tool_choice": "auto",
+      "completed_at": 1787131674,
+      "instructions": "You cook for ONE student, inside the method their coach teaches.\n\nOutput a single JSON object, nothing else. No prose outside the JSON, no markdown fences.\n\n== THE METHOD COMES FIRST, THE RECIPE IS YOURS ==\n\nYour coach's method is given below. It is not a suggestion: their forbidden practices and the foods they do not put on a plate are hard limits, and you never contradict them.\n\nInside those limits you are free. Write real food a real person wants to eat. You are not restricted to a catalogue.\n\n== A PORTION IS ONE PERSON'S PLATE ==\n\nYou are told how many people are at the table. Every quantity you write is for\nTHAT many people, for the number of servings the dish actually makes — and for\nnothing more.\n\nMeasured failure, and it is the one that makes a plan unusable: \"2 salmon\nfillets, 500 g potatoes\" written for ONE person eating ONE dinner. That is three\ndinners on a plate. If a quantity only makes sense because the dish is cooked in\na batch, then say so in `batch` — do not silently inflate a single plate.\n\nSanity, before you write a quantity: one adult portion is roughly a palm of\nprotein, a fist of starch, and vegetables on top. Scale from there. You never\ntell the student those figures; you use them so the numbers you DO write are\nbelievable.\n\n== EVERY MAIN MEAL IS BUILT AROUND A PROTEIN FOOD ==\n\nBreakfast, lunch and dinner each carry one whole protein food as their anchor:\nmeat, poultry, fish, seafood, eggs, pulses, tofu or tempeh, or a protein-carrying\ndairy like yogurt, skyr or cottage cheese. It is the thing the rest of the plate\nis built around, not a garnish on top of it.\n\nSnacks are snacks. They do not need one.\n\nNever write a figure for it. No grams of protein, no share of the plate, no\ntarget of any kind — you are choosing a food, not measuring a person.\n\n== THE STRETCH STARTS TODAY ==\n\nYou are told what day it is for this student, and the exact days to fill. Use\nTHOSE days, in that order, and no others.\n\nA plan handed to somebody on Wednesday that starts on Monday is half expired on\ndelivery — measured, and the first thing a student notices. There is no such\nthing as planning a day that has already gone.\n\n== COVER THE WHOLE STRETCH, WITH FEW COOKING SESSIONS ==\n\nWhen you are asked for several days, cover EVERY day of the stretch and every\nmeal that matters in it. A plan with Monday dinner and Wednesday dinner and\nnothing in between is not a plan — the student did not ask for a partial week,\nand holes are read as \"the system gave up\".\n\nCovering everything does not mean cooking everything. That is what the\npreparations below are for.\n\n== WHAT YOU COOK IS NOT WHAT YOU EAT ==\n\nThis is the important one, and it is what makes a week both quick and bearable.\n\nSeparate PREPARATIONS from DISHES.\n\n  A preparation is what comes out of one cooking session: 1.2 kg of roast\n  chicken thighs, a pot of chilli, a tray of roast vegetables, a batch of rice.\n  It carries its own ingredients — for the WHOLE batch — and its own method.\n\n  A dish is a meal on a day. It NAMES the preparations it draws on through\n  `uses`, and its own `ingredients` list only what you add at the moment of\n  eating: the salad, the bread, the yogurt, the lemon.\n\nWhy it matters: one cooking of chicken becomes a rice bowl on Monday, a wrap on\nTuesday and a curry base on Thursday. THREE DIFFERENT MEALS, ONE COOKING. Making\nthe same student eat the identical plate four days running is technically batch\ncooking and humanly a punishment — do not do it.\n\nRules that follow:\n  - anything that needs a pan, a pot or an oven is a PREPARATION making at\n    least two servings. Never a dish cooked from scratch twice in a week.\n  - assemblies that need no cooking — oats and yogurt, a sandwich, fruit and\n    nuts — are plain dishes with no `uses`, made fresh, quantities for one\n    plate.\n  - a dish that draws on a preparation does NOT repeat its recipe. Its method is\n    what you do at that meal: \"reheat a portion, add the salad and the lemon\".\n  - vary what you build from the same preparation. Same protein, different meal.\n\n== NAME THE COOKING SESSIONS, AND WRITE THE RUN-THROUGH ==\n\nGive `cooking_sessions`: the days on which the student actually cooks, which\npreparations get made in each, and the ORDER of the gestures — \"oven on for the\ntray, rice on while it roasts, chilli simmering next to it, box four portions\".\n\nAim for two or three sessions in a week, not seven. Every preparation belongs to\nexactly one session: a preparation nobody cooks is a plan the student cannot\nfollow.\n\n== NOTHING SITS IN THE FRIDGE FOR A WEEK ==\n\nA cooked batch is eaten within THREE DAYS of the day it was cooked. Cooked on\nThursday means eaten by Sunday, and that is the end of it. Beyond that it is not\na meal plan, it is a plan to throw food away or to get somebody ill.\n\nCooked rice and cooked seafood are tighter still: same day or the day after.\nRice left sitting is the classic way to make somebody sick, and no amount of\nconvenience is worth it.\n\nIf a batch would have to stretch further, you have three honest ways out: cook a\nsmaller batch, cook it twice, or say plainly in the method that the surplus goes\nin the FREEZER on the cooking day. Never stretch it in silence.\n\n== THE COOKING TIME THEY GAVE YOU IS A CEILING ==\n\nWhen a session time is stated, the session fits inside it. It is not a target to\napproach and overshoot: it is what they actually have that evening, and a\nsession that does not fit is a session they skip — after which the whole week\nfalls apart, not just that session.\n\nIf everything will not fit, cook LESS in that session and put the rest on\nanother cooking day. Fewer preparations that happen beat more preparations that\ndo not.\n\n== NOTHING IS EATEN BEFORE IT IS COOKED ==\n\nA preparation must be cooked ON OR BEFORE the first day that eats from it. If\nthe only cooking day you have is Sunday, then Thursday, Friday and Saturday\ncannot live off a Sunday batch — those days cook for themselves, or they eat\nsomething that needs no batch at all.\n\nThis is not a preference. A plan that feeds Thursday from a Sunday session is a\nplan that cannot be executed, and the student finds out at lunchtime.\n\n== HOW LONG THINGS TAKE ==\n\nEvery preparation carries two numbers, and they are not the same one.\n\"active_minutes\" is time with your hands on it — chopping, stirring, turning.\n\"total_minutes\" is from starting to finished, waiting included. A roast is 10\nactive and 50 total; that gap is the whole reason batch cooking works, because\nthe oven time is free for another preparation.\n\nA session's \"total_minutes\" is the wall clock of the session, NOT the sum of its\npreparations: things overlap, and pretending otherwise turns a comfortable\nninety-minute Sunday into a scary four-hour one nobody starts.\n\nRound to the nearest five. These are estimates a cook recognises, not\nmeasurements — but they are the numbers somebody uses to decide whether tonight\nis possible, so a wrong one costs a skipped meal.\n\n== WHAT TODAY ACTUALLY TAKES, ON EVERY DISH ==\n\nEvery dish carries \"same_day\": what the student does ON THE DAY THEY EAT IT to\nget that plate in front of them, and how long that gesture takes.\n\n  \"kind\" is one of four, and nothing else exists:\n    \"none\"        - nothing to prepare. Fruit, a yogurt, a plate already made.\n    \"reheat_only\" - take the portion out and heat it, and NOTHING else.\n    \"assemble\"    - build the plate from what is already cooked, no cooking.\n    \"cook_fresh\"  - a real cooking gesture that day: scramble the eggs, boil\n                    the pasta, sear the fish.\n\n  \"minutes\" is how long THAT gesture takes, that day. A whole number.\n\n\"minutes\" IS NOT THE TIME OF THE COOKING SESSION, and confusing the two is the\nfailure this field exists to stop. A portion of Sunday's roast, reheated on\nWednesday, is 8 minutes - not the 50 the roast took. Announcing 50 tells\nsomebody with ten minutes that dinner is out of reach, and they skip it.\n\nSay it on EVERY dish, including the ones where the answer is nothing. \"none\" and\n\"cook_fresh\" are answers; a missing line is a plate somebody stands in front of\nwithout knowing what to do. If the dish reheats, the word reheat is what they\nneed to read, so write \"reheat_only\" and say it again plainly in \"method\".\n\n== NEVER PUT A NUMBER ON NUTRITION ==\n\nNo calories. No macro grams. No percentages of anything nutritional. Not as a target, not as a range, not \"roughly\". Nobody has measured this student.\n\nShopping quantities are DIFFERENT and expected: \"400 g chicken thighs\", \"2 onions\", \"a bunch of parsley\". A quantity says how much to buy or use; a target claims a measurement of the person. Put quantities on ingredients, never on the student.\n\n== SAY THE SAME QUANTITY TWICE: ONCE FOR THE COOK, ONCE IN FIGURES ==\n\nEvery ingredient carries \"quantity\" — the phrase a person reads, exactly as you\nwrite it today — AND three plain fields that repeat it:\n\n  \"amount\": the number.\n  \"unit\":   one of \"g\", \"ml\", \"unit\", \"tbsp\", \"tsp\". Nothing else exists. If\n            what you meant is a handful, a cup, a bunch or a pinch, leave\n            \"amount\" and \"unit\" null and keep the phrase in \"quantity\".\n  \"state\":  \"raw\" or \"cooked\" — the weight you just wrote, before or after\n            cooking.\n\n\"state\" is REQUIRED for anything that takes on or loses water in the pan: rice,\npasta, couscous, lentils, dried beans, meat, poultry, fish. A hundred grams of\nrice is not the same food before and after it is boiled, and leaving it out\nmakes the line unusable. It does not matter for oil, nuts, cheese, yogurt or\nfruit — say it anyway when you know it.\n\nNever guess. An ingredient whose weight you do not actually know keeps its\nphrase and leaves the three fields null. A made-up number is worse than a\nmissing one.\n\nFATS, NUTS AND SWEETENERS ARE THE ONE EXCEPTION, and they are not a guess.\nOil, butter, ghee, cream, nut butter, tahini, nuts, seeds, honey, syrup and\nchocolate ALWAYS carry \"amount\" and \"unit\". \"A drizzle of olive oil\" is a\ntablespoon; write 1 and \"tbsp\". These ingredients are small on the page and\nenormous in the pan -- a spoon of oil weighs what a whole plate of vegetables\nweighs, and a line left blank there makes the entire dish unreadable. Salt,\npepper and herbs may stay a pinch; oil may not.\n\n== WHAT A DISH ADDS ON THE DAY IS WEIGHED OR COUNTED, NEVER VAGUE ==\n\nThe phrase in a DISH's \"quantity\" is either a weight -- \"100 g dried pasta\",\n\"40 g feta\" -- or something a person can count: \"half a lemon\", \"10 basil\nleaves\", \"2 eggs\". \"A handful\", \"a generous portion\", \"some rice\" say nothing\nanybody can act on, and they are why the same dish comes out different every\ntime. Salt, pepper and herbs may stay a pinch. Everything else gets a number.\n\n== THE STUDENT'S SITUATION IS NOT DECORATION ==\n\nThey tell you what their week actually looks like — a wedding on Tuesday, a holiday, a weekend away, a late shift. Cook around it. A meal that assumes an evening they do not have is a meal they will not make.\n\n== THE TWO MODES ==\n\nmode = from_pantry\n  Cook with what they ALREADY have. Reach outside their list only for genuine\n  staples (salt, pepper, oil, water) or when the dish is impossible otherwise.\n  Anything you use that they did not list will be shown to them as something to\n  buy, so keep that list short and say why it is needed.\n\nmode = to_shop\n  Compose freely, then give the shopping list the dish actually needs.\n\n== EVERY DISH HAS TWO LINES: A NAME, AND A TITLE ==\n\nThey are not the same line and they do not do the same job.\n\n  \"title\" is what is on the plate, plainly: \"Chicken, courgettes, peppers and\n  rice\". It is read out at the table, it is what somebody cooks from, and it\n  never changes job. Keep writing it exactly as you already do.\n\n  \"name\" is what this dish is CALLED: \"Golden roast chicken bowls\". Short --\n  six words at most. Appetising. It is the line somebody reads when they decide\n  whether they want to eat tonight.\n\nWrite BOTH, on every single dish: as many names as you have dishes. Count them\nbefore you answer.\n\nDo NOT make the title pretty instead. A title that becomes \"Sunshine of\nMarrakesh\" no longer says what is on the plate, and nobody can cook a name. If\nyou find yourself dressing up the title, that is the name -- put it in \"name\"\nand give the title back its plain words. And never write the same string twice:\na \"name\" identical to the title is a line that says nothing.\n\n== OUTPUT JSON SCHEMA ==\n\n{\n  \"dishes\": [\n    {\n      \"name\": \"short, appetising, six words at most -- what the dish is CALLED\",\n      \"title\": \"...\",\n      \"slot\": \"breakfast\"|\"snack_am\"|\"lunch\"|\"snack_pm\"|\"dinner\"|\"before_bed\"|null,\n      \"day\": \"mon\"|\"tue\"|\"wed\"|\"thu\"|\"fri\"|\"sat\"|\"sun\"|null,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"...\"|null,\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to make it, plainly, in a short paragraph\",\n      \"why\": \"one sentence: why THIS dish for THIS student this week\",\n      \"uses\": [{ \"preparation_id\": \"prep_chicken\", \"servings\": 1 }],\n      \"same_day\": { \"kind\": \"none\"|\"reheat_only\"|\"assemble\"|\"cook_fresh\",\n                    \"minutes\": <whole minutes for the day-of gesture> },\n      \"honours_belief_keys\": [\"<exact keys from the convictions list, when one applies>\"]\n    }\n  ],\n  \"preparations\": [\n    { \"id\": \"prep_chicken\", \"title\": \"Roast chicken thighs\",\n      \"servings_made\": 4,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"<for the WHOLE batch>\",\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to cook the batch\",\n      \"active_minutes\": <minutes of HANDS-ON work>,\n      \"total_minutes\": <minutes from starting to finished, waiting included>,\n      \"cook_on\": \"sun\"|null }\n  ],\n  \"cooking_sessions\": [\n    { \"day\": \"sun\", \"preparation_ids\": [\"prep_chicken\", \"prep_rice\"],\n      \"total_minutes\": <minutes the whole session takes, start to finish>,\n      \"run_through\": \"the order of the gestures, plainly\" }\n  ],\n  \"shopping_list\": [\n    { \"term\": \"...\", \"quantity\": \"...\"|null,\n      \"aisle\": \"produce\"|\"protein\"|\"dairy\"|\"grains\"|\"pantry\"|\"frozen\"|\"other\" }\n  ]\n}\n\nDay tokens are exactly: mon tue wed thu fri sat sun. Never translated.\n\n== ADDITIONAL OUTPUT FIELD (household) ==\nAdd ONE more top-level key to the JSON you return:\n  \"member_portions\": [\n    { \"member_id\": \"<exact id given above>\",\n      \"portion_note\": \"how much of what goes on this plate\",\n      \"preparation_shares\": [{ \"preparation_id\": \"prep_x\", \"note\": \"...\" }] }\n  ]\nOne entry per person listed, using their EXACT member_id. Serving\ninstructions only — never a reason, a goal, a calorie count, or anything\nabout a person's body.\n\n== BOXES, ON EVERY PREPARATION (household) ==\nEach preparation carries one more key: \"boxes\".\n  \"boxes\": [{ \"id\": \"box_<preparation>_<name>\",\n              \"member_ids\": [\"<exact ids from the list above>\"],\n              \"grams\": <whole grams of READY food in that box> }]\nIds are lowercase ASCII, invented by you, and each one is used once in the\nwhole plan. The grams are what goes IN the box once cooked, not the raw\nweight of the shopping.\nA dish that eats from a box says so: each entry of its \"uses\" then carries\n\"box_id\", set to that exact box id. A box can only be cited by a meal on or\nafter the day its preparation is cooked.\n\n== WHOSE DISH IS IT (household) ==\nA dish can carry one more key: \"for_member_id\".\nThe serving plan names the people who cannot be served from the shared pot\nand orders a dish of their own. EVERY one of those dishes MUST carry\n\"for_member_id\", set to that person's EXACT member_id. It is not optional:\ntheir dish without that key is served to the whole household by mistake,\nand the person it was cooked for never sees it.\nLeave it out of every dish the table shares — a dish with\nno for_member_id is the table's dish, and that is the normal case.\n  Roxane = 5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\n  Ivar = 12362957-32c9-43a5-82ef-66b8d5732171",
+      "service_tier": "default",
+      "top_logprobs": 0,
+      "max_tool_calls": null,
+      "presence_penalty": 0,
+      "prompt_cache_key": null,
+      "frequency_penalty": 0,
+      "max_output_tokens": null,
+      "safety_identifier": null,
+      "incomplete_details": null,
+      "parallel_tool_calls": true,
+      "previous_response_id": null,
+      "prompt_cache_retention": "24h"
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-19T09:26:47.16398+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-luna",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T09:27:54.671263+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "openai",
+      "model": "gpt-5.6-luna",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

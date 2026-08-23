@@ -45,6 +45,7 @@ import {
   setMemberBirthDate,
   setMemberBody,
   setMemberDiet,
+  setMemberRhythm,
   setMemberGoal,
   setMemberName,
   setOwnBirthDate,
@@ -85,17 +86,23 @@ import {
   emptyMouthDraft,
   type KnownMouth,
   knownMouthForOwner,
-  type MouthFormBlock,
   type MouthFormDraft,
   mouthToPersist,
 } from "../lib/mouthForm";
-import MouthFormDialog, { MouthCoreFields } from "../components/MouthFormDialog";
+import MouthFormDialog, {
+  MouthActivityAxesFields,
+  MouthAppetiteFields,
+  MouthMealComponentsFields,
+  type MouthActivityAndStructure,
+  MouthCoreFields,
+} from "../components/MouthFormDialog";
 import { householdErrorKey } from "../copy/planRefusals";
 import MealPickerGrid from "../components/MealPickerGrid";
 import HouseholdHabitsCard from "../components/HouseholdHabitsCard";
 import HouseholdMergeCard from "../components/HouseholdMergeCard";
 import HouseholdPlanCard from "../components/HouseholdPlanCard";
 import { t } from "../i18n/t";
+import { habitSlotsFor } from "../lib/habitSlots";
 import KeelAppShell from "../components/KeelAppShell";
 import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
@@ -497,6 +504,7 @@ export default function HouseholdPage(): React.ReactElement {
               {me && ownerGoalRow !== null ? (
                 <MeCard
                   me={me}
+                  slots={habitSlotsFor(me.eatingSlots, rhythm)}
                   // ⚠️ LA PROMESSE N'EST FAITE QU'À QUI PEUT LA TENIR. « ceci
                   // débloque la composition » est vrai pour le compte maître et
                   // FAUX pour un profil réclamé, qui ne compose pas. Sa ligne
@@ -568,6 +576,10 @@ export default function HouseholdPage(): React.ReactElement {
                             // Jamais appelé: la fenêtre ne montre pas le régime
                             // à qui a un compte, donc `diet` part `null`.
                             setDiet: setMemberDiet,
+                            // ⚠️ `null` EST UNE ÉCRITURE, PAS UN SAUT: c'est
+                            // la seule façon de revenir à « comme la maison »
+                            // après avoir coché un moment.
+                            setRhythm: setMemberRhythm,
                           },
                         )
                       ),
@@ -577,6 +589,10 @@ export default function HouseholdPage(): React.ReactElement {
 
               {isOwner ? (
                 <AddMouthCard
+                  // RIEN N'EST ENCORE DIT DE CETTE PERSONNE: les moments de la
+                  // maison sont ce sur quoi elle sera servie tant qu'elle n'a
+                  // pas parlé, donc ce sur quoi on l'interroge.
+                  slots={habitSlotsFor(null, rhythm)}
                   count={household.members.length}
                   busy={busy}
                   // ⚠️ LA DATE LOCALE EST CALCULÉE UNE FOIS, ICI, ET DESCENDUE.
@@ -617,6 +633,7 @@ export default function HouseholdPage(): React.ReactElement {
                       addAllergy,
                       addRestriction,
                       setDiet: setMemberDiet,
+                      setRhythm: setMemberRhythm,
                     }))}
                 />
               ) : null}
@@ -650,7 +667,7 @@ export default function HouseholdPage(): React.ReactElement {
                 // (La base porte la même ceinture: `null` y veut dire « ne
                 // touche pas ». Les deux existent parce que c'est le troisième
                 // appelant, celui qui n'est pas encore écrit, qui casse.)
-                onSaveBody={(memberId, h, w, g) =>
+                onSaveBody={(memberId, h, w, g, extras) =>
                   run(() =>
                     setMemberBody(
                       memberId,
@@ -658,6 +675,33 @@ export default function HouseholdPage(): React.ReactElement {
                       w,
                       g,
                       bodies.get(memberId)?.activityLevel ?? null,
+                      // ── ② ET ① — CETTE RANGÉE POSE VRAIMENT LES CINQ
+                      // QUESTIONS (2026-08-20) ────────────────────────────────
+                      // C'est le SEUL chemin d'écriture d'une bouche déjà
+                      // inscrite: la fiche du maître et la fiche neuve passent
+                      // par `persistMouth`, jamais par ici.
+                      //
+                      // ⚠️ LES DEUX DRAPEAUX SONT À `true` PARCE QUE LE
+                      // FORMULAIRE LES PORTE, et pas parce qu'on a des
+                      // réponses. C'est « on a demandé », et c'est ce qui
+                      // sépare `not_answered` de `not_asked` dans le compteur —
+                      // et ce qui autorise la base à écrire un `null`,
+                      // c'est-à-dire à DÉ-répondre.
+                      {
+                        dayActivity: extras.dayActivity === ""
+                          ? null
+                          : extras.dayActivity,
+                        sportFrequency: extras.sportFrequency === ""
+                          ? null
+                          : extras.sportFrequency,
+                        axesAsked: true,
+                        takesDessert: extras.takesDessert,
+                        takesCheese: extras.takesCheese,
+                        takesBread: extras.takesBread,
+                        structureAsked: true,
+                        appetite: extras.appetite === "" ? null : extras.appetite,
+                        appetiteAsked: true,
+                      },
                     )
                   )}
                 // LE RÉGIME D'UNE BOUCHE. Même `run` que les autres: le refus
@@ -948,7 +992,7 @@ function MouthFields(
  * — ce dépôt en a mesuré deux.
  */
 export function MeCard(
-  { me, needsGoalRow, goalEditable, busy, onSave, sheet }: {
+  { me, slots, needsGoalRow, goalEditable, busy, onSave, sheet }: {
     me: HouseholdMemberView;
     needsGoalRow: boolean;
     /**
@@ -963,6 +1007,13 @@ export function MeCard(
      * mêmes trois colonnes sur la même carte, c'est la garantie qu'un jour
      * l'un des deux cessera d'écrire ce que l'autre écrit.
      */
+    /**
+     * LES MOMENTS SUR LESQUELS SA FICHE L'INTERROGE. REQUIS — jamais
+     * optionnel: non passé, la fenêtre reviendrait aux six créneaux en dur,
+     * c'est-à-dire au défaut signalé le 2026-08-19. `habitSlotsFor` porte la
+     * cascade (les siens, sinon ceux de la maison, sinon les six).
+     */
+    slots: readonly EatingOccasion[];
     sheet: null | {
       known: KnownMouth;
       todayLocalIso: string;
@@ -1002,7 +1053,6 @@ export function MeCard(
   const [sheetDraft, setSheetDraft] = React.useState<MouthFormDraft>(() =>
     sheet === null ? emptyMouthDraft() : draftFromKnown(sheet.known)
   );
-  const [openBlock, setOpenBlock] = React.useState<MouthFormBlock | null>(null);
   /**
    * ⚠️ ON SÈME SUR LA LECTURE, PAS AU MONTAGE, ET C'EST LA MOITIÉ QUI COMPTE.
    *
@@ -1042,7 +1092,8 @@ export function MeCard(
           // `existing: true` — sa ligne EXISTE, on la complète. `hasAccount:
           // true` — c'est la seule bouche de cet écran qui en a un: elle porte
           // donc son shaker, et pas son régime.
-          subject={{ existing: true, hasAccount: true }}
+          // `/app/household` ne rend cette fiche QUE pour le compte courant.
+          subject={{ existing: true, hasAccount: true, isSelf: true }}
           todayLocalIso={sheet.todayLocalIso}
           busy={busy}
           failure={sheet.failure}
@@ -1056,14 +1107,19 @@ export function MeCard(
           onClose={() => setOpen(false)}
           draft={sheetDraft}
           onChange={setSheetDraft}
-          subject={{ existing: true, hasAccount: true }}
+          // `/app/household` ne rend cette fiche QUE pour le compte courant.
+          subject={{ existing: true, hasAccount: true, isSelf: true }}
           busy={busy}
           // `/app/household` N'EXISTE QUE PARCE QU'IL Y A UN FOYER: la ligne
           // membre est là, donc les habitudes, les dégoûts et le régime ont
           // tous les trois où aller. Voir la prop.
           memberScoped
-          openBlock={openBlock}
-          onOpenBlock={setOpenBlock}
+          slots={slots}
+          // ⚠️ `null` = PAS DE PORT ICI. `/app/household` n'a pas de chemin
+          // d'écriture pour `fixed_intakes` sur cette carte (il vit sur
+          // `user_id`, via `persistMouth`). Le bloc ne se rend donc pas — un
+          // bouton qui échoue à tous les coups est pire qu'un bouton absent.
+          onSaveShaker={null}
         />
       </Card>
     );
@@ -1143,21 +1199,23 @@ export function MeCard(
  * la rate.
  */
 function AddMouthCard(
-  { count, busy, todayLocalIso, failure, onAdd }: {
+  { count, slots, busy, todayLocalIso, failure, onAdd }: {
     count: number;
     busy: boolean;
     todayLocalIso: string;
     /** Le refus du dernier geste, ou `null`. REQUIS — voir `MouthFormDialog`. */
     failure: string | null;
     onAdd: (draft: MouthFormDraft) => Promise<boolean>;
+    /**
+     * LES MOMENTS DE LA MAISON. REQUIS, même raison qu'ailleurs — et c'est
+     * bien CEUX DE LA MAISON: quelqu'un qu'on ajoute n'a encore rien dit de
+     * lui, et le repli documenté de `null` sur sa ligne est le rythme du foyer.
+     */
+    slots: readonly EatingOccasion[];
   },
 ) {
   const [open, setOpen] = React.useState(false);
   const [draft, setDraft] = React.useState<MouthFormDraft>(emptyMouthDraft);
-  // LE BLOC SAUTABLE OUVERT — un seul à la fois, et tous repliés au départ.
-  // Trois blocs dépliés d'un coup, c'est le formulaire de trente champs que la
-  // fenêtre existe pour éviter.
-  const [openBlock, setOpenBlock] = React.useState<MouthFormBlock | null>(null);
 
   // LE PLAFOND REND SON MOTIF. La limite vit en base (`household_full`) et doit
   // tenir face à un appel direct de la RPC; ici on ne fait que la DIRE, et on
@@ -1191,7 +1249,7 @@ function AddMouthCard(
             // `existing: false` — on l'AJOUTE. `hasAccount: false` — une bouche
             // qu'on saisit n'a jamais de compte au moment où on la saisit;
             // elle en gagne un si elle réclame sa place plus tard.
-            subject={{ existing: false, hasAccount: false }}
+            subject={{ existing: false, hasAccount: false, isSelf: false }}
             todayLocalIso={todayLocalIso}
             busy={busy}
             failure={failure}
@@ -1214,11 +1272,13 @@ function AddMouthCard(
             onClose={() => setOpen(false)}
             draft={draft}
             onChange={setDraft}
-            subject={{ existing: false, hasAccount: false }}
+            subject={{ existing: false, hasAccount: false, isSelf: false }}
             busy={busy}
             memberScoped
-            openBlock={openBlock}
-            onOpenBlock={setOpenBlock}
+            slots={slots}
+            // Une bouche qu'on AJOUTE n'a pas de compte: `fixed_intakes` est
+            // clé sur `user_id`, elle n'a nulle part où le ranger.
+            onSaveShaker={null}
           />
         </div>
       )}
@@ -1264,6 +1324,16 @@ function MembersCard(
       heightCm: number,
       weightKg: number,
       gender: MemberGender,
+      /**
+       * ② les deux axes · ① les trois cases (2026-08-20), REQUIS.
+       *
+       * ⛔ Ce sont les CINQ questions que la fiche pose maintenant, et cette
+       * rangée est le SEUL chemin d'écriture d'une bouche déjà inscrite. Un
+       * paramètre facultatif ici aurait laissé le formulaire les afficher et le
+       * bouton les jeter — « un champ qu'on remplit et qui ne va nulle part est
+       * pire qu'un champ absent, il promet ».
+       */
+      extras: MouthActivityAndStructure,
     ) => Promise<boolean>;
     /** D17 — les bouches dont on ne veut plus voir les propositions. */
     mutedMembers: Set<string> | null;
@@ -1354,7 +1424,7 @@ function MembersCard(
             habits={habits?.get(m.memberId) ?? null}
             onSaveHabits={(s, n) => onSaveHabits(m.memberId, s, n)}
             onSaveDiet={(diet) => onSaveDiet(m.memberId, diet)}
-            onSaveBody={(h, w, g) => onSaveBody(m.memberId, h, w, g)}
+            onSaveBody={(h, w, g, extras) => onSaveBody(m.memberId, h, w, g, extras)}
             onMute={(next) => onMute(m.memberId, next)}
             onSaveAway={(next) => onSaveAway(m.memberId, next)}
             onSave={(patch) => onSave(m, patch)}
@@ -1390,13 +1460,55 @@ function BodyFields(
     busy: boolean;
     /** L'équation dépend de l'âge, et elle n'est pas la même avant 18 ans. */
     needsBirthDate: boolean;
-    onSave: (h: number, w: number, g: MemberGender) => Promise<boolean>;
+    onSave: (
+      h: number,
+      w: number,
+      g: MemberGender,
+      extras: MouthActivityAndStructure,
+    ) => Promise<boolean>;
   },
 ) {
   const [height, setHeight] = React.useState(body ? String(body.heightCm) : "");
   const [weight, setWeight] = React.useState(body ? String(body.weightKg) : "");
   const [gender, setGender] = React.useState<MemberGender | "">(body?.gender ?? "");
   const [saved, setSaved] = React.useState(false);
+  // ── ② LES DEUX AXES · ① LES TROIS CASES (2026-08-20) ──────────────────
+  const [extras, setExtras] = React.useState<MouthActivityAndStructure>({
+    dayActivity: body?.dayActivity ?? "",
+    sportFrequency: body?.sportFrequency ?? "",
+    takesDessert: body?.takesDessert ?? null,
+    takesCheese: body?.takesCheese ?? null,
+    takesBread: body?.takesBread ?? null,
+    appetite: body?.appetite ?? "",
+  });
+  /**
+   * ⛔ ON RESÈME SUR LA LECTURE, PAS AU MONTAGE — ET ICI ÇA COÛTE PLUS CHER
+   * QU'AILLEURS.
+   *
+   * Les trois champs du dessus (taille, poids, sexe) sont semés au montage, et
+   * c'est supportable: la porte les lit comme un tout-ou-rien qu'on renvoie
+   * complet. Ces cinq-là, non. Depuis le 2026-08-20 la porte accepte de
+   * DÉ-répondre — le drapeau `…_asked` autorise l'écriture d'un `null` — donc
+   * un formulaire figé sur du vide non lu ne se contente plus de ne rien dire:
+   * il EFFACE. C'est « formulaire figé au montage » et « `current` périmé
+   * efface l'écriture d'avant », les deux à la fois.
+   *
+   * La dépendance est la VALEUR lue, sérialisée: un re-rendu qui rend le même
+   * corps ne touche à rien, donc une saisie en cours survit à tout ce qui n'est
+   * pas une lecture différente.
+   */
+  const bodyKey = JSON.stringify(body ?? null);
+  React.useEffect(() => {
+    setExtras({
+      dayActivity: body?.dayActivity ?? "",
+      sportFrequency: body?.sportFrequency ?? "",
+      takesDessert: body?.takesDessert ?? null,
+      takesCheese: body?.takesCheese ?? null,
+      takesBread: body?.takesBread ?? null,
+      appetite: body?.appetite ?? "",
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bodyKey]);
 
   const h = Number(height);
   const w = Number(weight);
@@ -1478,6 +1590,55 @@ function BodyFields(
           </select>
         </Field>
       </div>
+      {/* ── ② LES DEUX AXES · ① LES TROIS QUESTIONS ─────────────────────
+          Sous le corps, dans le MÊME geste d'enregistrement, parce que c'est la
+          même porte qui les écrit. Deux boutons sur un même bloc, c'est la
+          garantie qu'un jour l'un des deux cessera d'écrire ce que l'autre
+          écrit — mesuré sur `MeCard`. */}
+      <div className="mt-3 flex flex-col gap-3">
+        {/* ⛔ LES DEUX BLOCS ICI, ET C'EST LE SEUL ÉCRAN DANS CE CAS. Cette
+            rangée n'ouvre AUCUNE fenêtre de préférences: y laisser seulement
+            les deux axes rendrait ① et ⑤ inatteignables pour une bouche déjà
+            inscrite — un champ qu'on peut remplir sur une fiche neuve et plus
+            jamais ensuite. */}
+        {/* ⛔ LES DEUX BLOCS ICI, ET C'EST LE SEUL ÉCRAN DANS CE CAS. Cette
+            rangée n'ouvre AUCUNE fenêtre de préférences: n'y laisser que les
+            deux axes rendrait ① et ⑤ inatteignables pour une bouche déjà
+            inscrite — un champ qu'on peut remplir sur une fiche neuve et plus
+            jamais ensuite. */}
+        <MouthActivityAxesFields
+          voice="other"
+          who={t("household.mouth.who_fallback")}
+          value={extras}
+          onChange={(patch) => {
+            setExtras((prev) => ({ ...prev, ...patch }));
+            setSaved(false);
+          }}
+        />
+        <MouthAppetiteFields
+          voice="other"
+          who={t("household.mouth.who_fallback")}
+          value={extras}
+          onChange={(patch) => {
+            setExtras((prev) => ({ ...prev, ...patch }));
+            setSaved(false);
+          }}
+        />
+        {/* ① EN DERNIER ET DANS SON PROPRE BLOC, comme dans la fenêtre des
+            préférences: sa place dit qu'elle attend une décision de forme
+            (par personne ou par moment). Voir `MouthMealComponentsFields`. */}
+        <div>
+          <MouthMealComponentsFields
+            voice="other"
+            who={t("household.mouth.who_fallback")}
+            value={extras}
+            onChange={(patch) => {
+              setExtras((prev) => ({ ...prev, ...patch }));
+              setSaved(false);
+            }}
+          />
+        </div>
+      </div>
       <div className="mt-2 flex items-center gap-2">
         <Button
           variant="secondary"
@@ -1487,7 +1648,7 @@ function BodyFields(
             // rétrécissement voyage par la constante. Rajouter le test ici
             // ferait une comparaison que le compilateur signale comme morte.
             if (!complete) return;
-            const ok = await onSave(h, w, gender);
+            const ok = await onSave(h, w, gender, extras);
             if (ok) setSaved(true);
           }}
         >
@@ -1531,7 +1692,12 @@ function MemberRow(
     onSaveHabits: (slots: HabitSlot[], note: string | null) => Promise<boolean>;
     /** Le régime de CETTE bouche. `null` efface. */
     onSaveDiet: (diet: string | null) => Promise<boolean>;
-    onSaveBody: (h: number, w: number, g: MemberGender) => Promise<boolean>;
+    onSaveBody: (
+      h: number,
+      w: number,
+      g: MemberGender,
+      extras: MouthActivityAndStructure,
+    ) => Promise<boolean>;
     /** D17 — `null` = le réglage n'a pas pu être lu. Voir l'interrupteur. */
     muted: boolean | null;
     rhythm: EatingOccasionSlot[];

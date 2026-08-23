@@ -1,9 +1,14 @@
 import type {
   DispatcherMemoryPlan,
+  DispatcherPlanFeedbackSignal,
   DispatcherResearchSignal,
 } from "../contracts/turn_frame.v1.ts";
 
-export type { DispatcherMemoryPlan, DispatcherResearchSignal };
+export type {
+  DispatcherMemoryPlan,
+  DispatcherPlanFeedbackSignal,
+  DispatcherResearchSignal,
+};
 
 export type DispatcherModelTierHint = "lite" | "standard" | "deep";
 
@@ -22,15 +27,12 @@ export type DispatcherSignals = {
     item_hint?: string;
     target_item_id?: string | null;
   };
-  plan_feedback: {
-    detected: boolean;
-    kind?: string | null;
-    confidence?: number;
-    target_item_id?: string | null;
-    target_title?: string | null;
-    detail?: string | null;
-    sentiment?: string | null;
-  };
+  // LOT 4A — la forme est INCHANGÉE; elle a seulement cessé d'être recopiée.
+  // Une seule définition, dans `contracts/turn_frame.v1.ts`, que le contrat du
+  // TurnFrame et ce type partagent — le modèle remplit le champ du contrat, ce
+  // type est ce que le runtime en lit. Deux jumeaux que rien ne relie, c'est la
+  // panne §7.4: renommer un champ d'un côté laisse tout vert de l'autre.
+  plan_feedback: DispatcherPlanFeedbackSignal;
   track_progress_plan_item: {
     detected: boolean;
     target_item_id?: string | null;

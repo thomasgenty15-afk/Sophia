@@ -59,7 +59,11 @@
  */
 
 import { type FoodGroupRef } from "./tokens.ts";
-import { normalizeForMatch } from "./forbidden_matcher.ts";
+import {
+  findForbiddenMatches,
+  type ForbiddenTerm,
+  normalizeForMatch,
+} from "./forbidden_matcher.ts";
 
 /**
  * Les régimes que le produit sait EXÉCUTER.
@@ -111,6 +115,103 @@ export function excludedGroupsFor(
   regime: DietaryRegime,
 ): readonly FoodGroupRef[] {
   return EXCLUDED_GROUPS[regime];
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * LES GROUPES QU'AUCUN ALIMENT D'ORIGINE ANIMALE NE PORTE — liste FERMÉE.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ── LE DÉFAUT QUE CETTE LISTE FERME, ET IL EST NOMMÉ ───────────────────────
+ * Le compteur de régime restait faux sur une classe résiduelle de DEUX cas,
+ * mesurés tous les deux:
+ *
+ *   · HOMONYME       — « butter beans » compté en brèche laitière sur `butter`.
+ *   · MARQUEUR VÉGÉTAL — « Vegan sausage » compté en brèche carnée sur
+ *                        `sausage` dès qu'il apparaît dans un TITRE.
+ *
+ * ⛔ LA CORRECTION N'EST PAS UN APPARIEMENT PLUS MALIN. Une liste de plus,
+ * plus longue, plus subtile, aurait rejoué « laitue ≠ lait » — douze faux
+ * positifs sur douze mesurés dans ce dépôt. La correction honnête est que le
+ * modèle DÉCLARE le groupe de chaque aliment, et qu'on le valide contre le
+ * vocabulaire fermé de trente entrées qui existe déjà (`FOOD_GROUP_REFS`).
+ * Un haricot beurre est déclaré `legumes`; une saucisse végane, `tofu_tempeh`.
+ * Aucune chaîne n'est interrogée.
+ *
+ * ── POURQUOI CETTE LISTE-CI N'EST PAS `EXCLUDED_GROUPS` À L'ENVERS ─────────
+ * `EXCLUDED_GROUPS` est GROSSIER et son en-tête le dit: `lean_protein` n'y
+ * figure volontairement pas, parce que le groupe désigne aussi bien un blanc
+ * de poulet qu'un tofu. En faire le complément rendrait `lean_protein`
+ * « végétal », donc DÉSARMERAIT la ceinture sur le poulet — l'exact contraire
+ * du but, et un desserrage qu'on refuse.
+ *
+ * Ce qui entre ici est donc décidé un groupe à la fois, et ce qui en est
+ * EXCLU l'est avec sa raison:
+ *
+ *   · `lean_protein`       — poulet ou tofu, indécidable.
+ *   · `sauce_dressing`     — nuoc-mâm, sauce d'huître, Worcestershire.
+ *   · `other_added_fat`    — beurre, ghee, saindoux.
+ *   · `sugar_sweets`       — le MIEL, que le véganisme exclut.
+ *   · `fried_food`         — la friture peut être au saindoux.
+ *   · `alcohol`            — collage à la vessie de poisson.
+ *   · `coffee_tea`         — un latte est un laitage.
+ *   · `sweetened_beverage` — un lassi aussi.
+ *   · `water`              — rien à décider, et rien à gagner à l'y mettre.
+ *
+ * Une entrée absente laisse le comportement d'avant (on retombe sur la prose),
+ * donc l'omission est TOUJOURS le côté sûr — comme partout dans ce fichier.
+ */
+const PLANT_ONLY_GROUPS = [
+  "legumes",
+  "tofu_tempeh",
+  "whole_grain",
+  "refined_grain",
+  "starchy_veg",
+  "cruciferous_veg",
+  "leafy_greens",
+  "non_starchy_veg",
+  "berries",
+  "citrus",
+  "other_fruit",
+  "nuts_seeds",
+  "olive_oil",
+  // `satisfies` et pas une annotation: un slug inventé ne compile pas, et la
+  // liste reste un SOUS-ENSEMBLE vérifié des trente groupes — jamais un second
+  // vocabulaire alimentaire à côté du premier.
+] as const satisfies readonly FoodGroupRef[];
+
+/**
+ * Ce que le GROUPE DÉCLARÉ décide, et les trois verdicts sont distincts exprès.
+ *
+ *   · `excluded`  — le groupe est structurellement exclu par ce régime. C'est
+ *                   une brèche SANS lire un caractère de prose: « coq au vin »
+ *                   déclaré `poultry` mord, alors qu'aucune forme de surface ne
+ *                   porte « coq ». La déclaration AJOUTE de la couverture.
+ *   · `plant_only` — aucun aliment de ce groupe n'est d'origine animale. La
+ *                   morsure de chaîne est un FAUX, et on la range dans l'autre
+ *                   colonne. C'est le même pouvoir que celui qu'`isPlantAnalogue`
+ *                   exerce déjà sur un terme entier — sourcé d'une déclaration
+ *                   au lieu d'une liste de chaînes, ce qui est la doctrine du
+ *                   dépôt et pas une nouveauté.
+ *   · `undecided` — le modèle n'a rien déclaré, ou a déclaré un groupe qui ne
+ *                   tranche pas (`lean_protein`). On retombe EXACTEMENT sur le
+ *                   comportement d'avant ce lot. Un lot désarmé et un lot qui
+ *                   marche rendraient sinon le même silence: c'est ce verdict
+ *                   qui est compté, et c'est lui qu'on lit pour savoir si le
+ *                   modèle obéit.
+ */
+export type RegimeGroupVerdict = "excluded" | "plant_only" | "undecided";
+
+export function regimeGroupVerdict(
+  regime: DietaryRegime,
+  group: FoodGroupRef | null,
+): RegimeGroupVerdict {
+  if (group === null) return "undecided";
+  if ((EXCLUDED_GROUPS[regime] as readonly string[]).includes(group)) {
+    return "excluded";
+  }
+  if ((PLANT_ONLY_GROUPS as readonly string[]).includes(group)) return "plant_only";
+  return "undecided";
 }
 
 // ---------------------------------------------------------------------------
@@ -275,6 +376,23 @@ const PLANT_ANALOGUE_PHRASES = [
   // simili-carnés
   "soy sausage", "soy mince", "soy chunks", "textured soy",
   "saucisse de soja", "protéines de soja", "proteines de soja",
+  // ── LES MÊMES, AVEC L'APOSTROPHE — ET CE N'EST PAS UNE REDONDANCE ────────
+  // `isPlantAnalogue` passe par `canonical()`, qui aplatit l'apostrophe en
+  // espace: pour LUI, « lait d'avoine » et « lait d avoine » sont la même
+  // entrée. Le lecteur de PROSE ajouté plus bas, lui, travaille sur les
+  // OFFSETS du texte réel — il ne peut donc pas aplatir, et passe par
+  // `tokenPattern`, qui découpe sur `[_\s-]` et ne franchit PAS une
+  // apostrophe. Sans ces lignes, un titre français (`content_locale` vaut
+  // `fr-FR` par défaut sur ce produit) laisserait « lait » mordre à
+  // l'intérieur de « lait d'avoine ».
+  //
+  // ⛔ Écrites À LA MAIN, une par une, comme tout ce fichier. Générer la
+  // variante par une transformation serait le matcher maison que ce dépôt
+  // refuse.
+  "lait d'amande", "lait d'amandes", "lait d'avoine",
+  "boisson a l'avoine", "boisson à l'avoine", "boisson d'amande",
+  "creme d'avoine", "crème d'avoine",
+  "beurre d'amande", "purée d'amande", "puree d'amande",
 ] as const;
 
 /**
@@ -298,6 +416,261 @@ export function isPlantAnalogue(term: string): boolean {
     if (n && hay.includes(n)) return true;
   }
   return false;
+}
+
+// ---------------------------------------------------------------------------
+// LE LECTEUR — parce que `isPlantAnalogue` n'en avait AUCUN
+// ---------------------------------------------------------------------------
+//
+// ⚠️ ── LE DÉFAUT MESURÉ, ET CE N'EST PAS UN MATCHER MAISON ─────────────────
+//
+// L'agent 2V a mesuré, sur la lane solo, que `dietary_regime_breach` accusait
+// des sorties JUSTES chez une végane:
+//
+//     1 morsure ← "Soy yoghurt, gluten-free oats, cocoa and pumpkin seeds"
+//     1 morsure ← "plain unsweetened soy yoghurt"
+//     1 morsure ← "oat milk"
+//     1 morsure ← "coconut milk"
+//     1 morsure ← "peanut butter"
+//
+// C'est-à-dire le garde-manger végane courant tout entier. Un plan végane
+// correct était signalé en brèche à peu près à coup sûr, et c'est ce compteur
+// qu'on lit pour décider si le régime est tenu.
+//
+// LA MÉCANIQUE N'EST NI CELLE QU'ON CROIT NI CELLE QU'ON CRAINT:
+//
+//   · `findForbiddenMatches` est CORRECT. `yoghurt` est un mot entier de
+//     « Soy yoghurt »; les frontières de mot font leur travail. Ce n'est PAS
+//     la cicatrice « laitue ≠ lait », et ce n'est pas un matcher maison —
+//     le moteur est celui du dépôt, avec ses dix consommateurs.
+//   · `excludedSurfaceFormsFor("vegan")` est CORRECT aussi: `milk`, `butter`
+//     et `yoghurt` DOIVENT y figurer, sinon un vrai laitage passe.
+//   · Le désamorçage existait DÉJÀ, écrit à la main, fermé, testé, et daté du
+//     run réel du 2026-08-11 qui a produit ce défaut: `isPlantAnalogue`.
+//
+// ⛔ ET IL N'AVAIT AUCUN LECTEUR EN PRODUCTION. `grep -rn isPlantAnalogue`
+// rendait exactement deux fichiers: sa propre définition, et son test. Le seul
+// consommateur de `excludedSurfaceFormsFor` (`generate-meal-v1:2374`)
+// construisait ses aiguilles et appelait le matcher SANS jamais passer par
+// lui. C'est la cicatrice du dépôt « un champ collecté sans lecteur ressemble
+// exactement à un champ ignoré », appliquée à une garde: elle était écrite,
+// juste, et morte.
+//
+// Ce bloc est le lecteur. Il n'invente aucune règle: il branche la liste
+// fermée qui existait sur le compteur qui la réclamait.
+
+/** Une morsure de régime, réduite à ce qu'un compteur et un journal lisent. */
+export interface DietaryRegimeBreach {
+  /** La forme d'exclusion qui a mordu (`milk`, `lardons`…). */
+  token: string;
+  /** Le texte réellement trouvé, pour que le journal soit relisible. */
+  matchedText: string;
+}
+
+/**
+ * Ce qu'une lecture de régime rend — LES DEUX MOITIÉS, jamais la première
+ * seule.
+ *
+ * ── POURQUOI LE SILENCE EST RENDU, ET PAS SEULEMENT JETÉ ──────────────────
+ * « Un lot désarmé et un lot qui marche rendent le même `false` »: si ce
+ * lecteur se mettait à tout blanchir demain, un compteur qui ne rendrait que
+ * `breaches` afficherait 0 — c'est-à-dire l'image d'un régime parfaitement
+ * tenu. `silencedByPlantAnalogue` est le nombre qui distingue « rien trouvé »
+ * de « tout désamorcé », et c'est lui qui rend CE lot observable en
+ * production.
+ */
+export interface DietaryRegimeScan {
+  breaches: DietaryRegimeBreach[];
+  silencedByPlantAnalogue: DietaryRegimeBreach[];
+  /**
+   * ── LE COMPTEUR DU CHAMP DÉCLARÉ, EN TROIS NOMBRES ────────────────────────
+   *
+   * « Un champ déclaré par le modèle a besoin d'un compteur »: sans lui, un lot
+   * désarmé ressemble EXACTEMENT à un lot qui marche. Et un compteur à deux
+   * nombres ment — « jamais déclaré » et « déclaré puis sans effet » rendraient
+   * le même zéro.
+   *
+   *   · `excluded`  — combien d'aliments ont mordu SUR LEUR GROUPE. C'est ce
+   *                   que la déclaration a AJOUTÉ.
+   *   · `plantOnly` — combien de morsures de chaîne elle a rendues au silence.
+   *                   C'est ce qu'elle a RÉPARÉ (l'homonyme, le marqueur).
+   *   · `undecided` — combien d'aliments sont retombés sur la prose. C'est le
+   *                   nombre qui dit si le modèle OBÉIT: s'il reste haut, la
+   *                   consigne ne porte pas, et il faut le savoir avant de
+   *                   croire les deux autres.
+   */
+  group: { excluded: number; plantOnly: number; undecided: number };
+}
+
+/**
+ * UN ALIMENT, TEL QUE LE MODÈLE LE DÉCLARE: son nom, et son groupe.
+ *
+ * `group: null` est une VALEUR et pas une absence — « le modèle n'a rien
+ * déclaré, ou a déclaré hors du vocabulaire fermé ». Les deux causes sont
+ * séparées CHEZ L'APPELANT, qui est le seul à voir la chaîne brute; ici elles
+ * produisent le même repli, qui est le comportement d'avant ce lot.
+ */
+export interface DeclaredFood {
+  term: string;
+  group: FoodGroupRef | null;
+}
+
+function emptyScan(): DietaryRegimeScan {
+  return {
+    breaches: [],
+    silencedByPlantAnalogue: [],
+    group: { excluded: 0, plantOnly: 0, undecided: 0 },
+  };
+}
+
+/** Les analogues, en aiguilles du moteur du dépôt. */
+const PLANT_ANALOGUE_TERMS: readonly ForbiddenTerm[] = PLANT_ANALOGUE_PHRASES
+  .map((phrase) => ({ ruleId: "plant_analogue", token: phrase }));
+
+function regimeTermsFor(regime: DietaryRegime): ForbiddenTerm[] {
+  return excludedSurfaceFormsFor(regime).map((form) => ({
+    ruleId: `diet:${regime}`,
+    token: form,
+  }));
+}
+
+/**
+ * ── LA PROSE: ON DÉSAMORCE LA MORSURE, PAS LA PHRASE ──────────────────────
+ *
+ * Un titre et un `why` portent PLUSIEURS aliments. Blanchir la chaîne entière
+ * parce qu'elle nomme un analogue quelque part rendrait
+ * « Soy yoghurt bowl with chicken stock » parfaitement propre — un vrai
+ * manquement, avalé par la correction censée éviter les faux.
+ *
+ * On calcule donc les PORTÉES des analogues et on ne retire que les morsures
+ * CONTENUES dedans, exactement comme `forbidden_matcher.ts` traite déjà la
+ * « mention imbriquée ». Les deux appels normalisent la même chaîne par la
+ * même fonction, donc leurs offsets sont comparables.
+ *
+ * `allowNegatedMentions: false` sur les analogues: on cherche où le mot EST
+ * écrit, pas s'il est recommandé. Une « boisson sans lait d'avoine » ne doit
+ * pas cesser d'être une portée d'analogue.
+ */
+function scanProse(
+  text: string,
+  terms: readonly ForbiddenTerm[],
+): DietaryRegimeScan {
+  const hits = findForbiddenMatches(text, terms);
+  if (hits.length === 0) return emptyScan();
+
+  const spans = findForbiddenMatches(text, PLANT_ANALOGUE_TERMS, {
+    allowNegatedMentions: false,
+  }).map((m) => [m.index, m.index + m.matchedText.length] as const);
+
+  const breaches: DietaryRegimeBreach[] = [];
+  const silenced: DietaryRegimeBreach[] = [];
+  for (const hit of hits) {
+    const found = { token: hit.token, matchedText: hit.matchedText };
+    const end = hit.index + hit.matchedText.length;
+    const covered = spans.some(([s, e]) => hit.index >= s && end <= e);
+    (covered ? silenced : breaches).push(found);
+  }
+  return {
+    breaches,
+    silencedByPlantAnalogue: silenced,
+    group: { excluded: 0, plantOnly: 0, undecided: 0 },
+  };
+}
+
+/**
+ * Les morsures de régime dans UN plat.
+ *
+ * ── DEUX ENTRÉES, PARCE QUE CE NE SONT PAS DEUX PROSES ────────────────────
+ * `terms` est UN aliment par chaîne (les ingrédients). C'est le contrat exact
+ * d'`isPlantAnalogue(term)`, et c'est la seule forme où un marqueur sans
+ * ambiguïté peut valoir pour toute la chaîne: « vegan sausage », « tofu »,
+ * « fromage végétal » sont végétaux en entier. Sur de la prose, le même
+ * raisonnement blanchirait la phrase autour du marqueur, donc on ne l'y
+ * applique pas.
+ *
+ * `prose` est un titre ou un `why`: plusieurs aliments, portées calculées.
+ *
+ * ── ET DEPUIS LE 2026-08-19, UNE TROISIÈME: `items` ───────────────────────
+ * Le même canal que `terms` — un aliment par entrée — mais avec le GROUPE que
+ * le modèle a déclaré à côté du nom. `terms` reste, et il est exactement
+ * `items` avec `group: null`: un appelant qui ne déclare rien obtient le
+ * comportement d'avant ce lot, octet pour octet. Les deux passent par le même
+ * corps, parce que deux chemins auraient divergé au premier ajout de forme.
+ */
+export function scanDietaryRegime(
+  regime: DietaryRegime,
+  fields: {
+    prose?: readonly string[];
+    terms?: readonly string[];
+    items?: readonly DeclaredFood[];
+  },
+): DietaryRegimeScan {
+  const needles = regimeTermsFor(regime);
+  const out = emptyScan();
+
+  for (const text of fields.prose ?? []) {
+    const scan = scanProse(String(text ?? ""), needles);
+    out.breaches.push(...scan.breaches);
+    out.silencedByPlantAnalogue.push(...scan.silencedByPlantAnalogue);
+  }
+
+  const items: DeclaredFood[] = [
+    ...(fields.terms ?? []).map((term) => ({ term: String(term ?? ""), group: null })),
+    ...(fields.items ?? []),
+  ];
+
+  for (const item of items) {
+    const text = String(item?.term ?? "");
+    const verdict = regimeGroupVerdict(regime, item?.group ?? null);
+
+    // ── ① LE GROUPE DÉCLARÉ EST EXCLU PAR CE RÉGIME ───────────────────────
+    // Une brèche SANS lire un caractère de prose. C'est ce que la déclaration
+    // ajoute: « coq au vin » déclaré `poultry` mord ici alors qu'aucune forme
+    // de surface ne porte « coq ». Le `token` rendu est le GROUPE, ce qui rend
+    // le journal relisible — on voit d'un coup d'œil que la morsure vient de
+    // la déclaration et non d'un mot.
+    if (verdict === "excluded") {
+      out.group.excluded++;
+      out.breaches.push({ token: item.group as string, matchedText: text });
+      continue;
+    }
+
+    const scan = scanProse(text, needles);
+
+    // ── ② LE GROUPE DÉCLARÉ NE PORTE AUCUN ALIMENT ANIMAL ─────────────────
+    // Tout ce que la chaîne a produit est un FAUX, et c'est précisément la
+    // classe résiduelle nommée: `butter beans` déclaré `legumes`,
+    // `Vegan sausage` déclaré `tofu_tempeh`. On ne devine pas — on lit une
+    // déclaration validée contre une liste fermée.
+    if (verdict === "plant_only") {
+      out.group.plantOnly++;
+      out.silencedByPlantAnalogue.push(
+        ...scan.breaches,
+        ...scan.silencedByPlantAnalogue,
+      );
+      continue;
+    }
+
+    // ── ③ RIEN DE DÉCLARÉ, OU UN GROUPE QUI NE TRANCHE PAS ────────────────
+    // Le comportement d'avant ce lot, mot pour mot: `isPlantAnalogue` sur le
+    // terme entier, puis la prose. `lean_protein` passe par ici — un blanc de
+    // poulet déclaré `lean_protein` reste donc mordu sur son mot, et c'est la
+    // raison pour laquelle ce groupe n'est PAS dans `PLANT_ONLY_GROUPS`.
+    out.group.undecided++;
+    if (isPlantAnalogue(text)) {
+      // L'ingrédient ENTIER est un analogue: tout ce qu'on y a trouvé est un
+      // faux. On le compte quand même, dans l'autre colonne.
+      out.silencedByPlantAnalogue.push(
+        ...scan.breaches,
+        ...scan.silencedByPlantAnalogue,
+      );
+      continue;
+    }
+    out.breaches.push(...scan.breaches);
+    out.silencedByPlantAnalogue.push(...scan.silencedByPlantAnalogue);
+  }
+
+  return out;
 }
 
 /**
@@ -353,8 +726,52 @@ export function dietaryRegimePromptLine(regime: DietaryRegime): string {
   return `${head[regime]} This holds for stocks, sauces, fats and garnishes too — ` +
     `fish sauce, anchovy in a dressing, gelatine in a dessert, lard in a pastry ` +
     `and chicken stock in a "vegetable" soup all break it. If a dish only works ` +
-    `with one of these, choose a different dish rather than a version that omits it.`;
+    `with one of these, choose a different dish rather than a version that omits it.` +
+    `\n\n${FOOD_GROUP_DECLARATION_BLOCK}`;
 }
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * LA DEMANDE DE GROUPE — ET POURQUOI ELLE VIT COLLÉE À LA CONSIGNE DE RÉGIME.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ LA PROMESSE ET LA CLÉ DE SCHÉMA DOIVENT SE TOUCHER. Ce dépôt l'a mesuré
+ * deux fois: un champ dont la PROMESSE vit dans le message utilisateur et dont
+ * la CLÉ vit dans le prompt système sort à **0 %**. Rapprochées, avec un
+ * NOMBRE ATTENDU et une ÉCHAPPATOIRE NOMMÉE, le même champ est passé de 0 à 38 %
+ * de notes remplies. Ce bloc porte donc les trois: la clé exacte, où la mettre,
+ * combien on en attend, et quoi écrire quand on ne sait pas.
+ *
+ * ⛔ ET IL NE VIT PAS DANS `MEAL_SYSTEM_PROMPT`. Le schéma partagé est servi à
+ * TOUTE la population; y ajouter `"group"` aurait changé la consigne de chaque
+ * élève, y compris les millions de compositions où aucun régime n'est déclaré
+ * et où le groupe ne sert à rien. Attaché à la ligne de régime, il ne paraît
+ * que pour la population qu'il concerne — et un élève sans régime reçoit un
+ * prompt byte-identique à celui d'avant ce lot, ce qu'un test tient.
+ *
+ * ⚠️ « null » EST L'ÉCHAPPATOIRE, ET ELLE EST NOMMÉE EXPRÈS. Sans elle, un
+ * modèle coincé invente un groupe plausible — et un groupe inventé qui tombe
+ * dans la liste des végétaux DÉSARMERAIT la ceinture sur cet aliment. Nommer
+ * la sortie de secours est ce qui rend le refus moins cher que le mensonge.
+ */
+const FOOD_GROUP_DECLARATION_BLOCK = [
+  "== ONE EXTRA KEY ON EVERY INGREDIENT (because a diet is declared here) ==",
+  'Add a "group" key to EVERY ingredient object you write, in dishes AND in',
+  "preparations. Not some of them: every single one. Count them before you answer.",
+  'Its value is ONE of these words, exactly as written, or null:',
+  "  lean_protein fatty_fish white_fish shellfish poultry red_meat eggs legumes",
+  "  tofu_tempeh dairy_yogurt dairy_cheese whole_grain refined_grain starchy_veg",
+  "  cruciferous_veg leafy_greens non_starchy_veg berries citrus other_fruit",
+  "  nuts_seeds olive_oil other_added_fat sauce_dressing sugar_sweets fried_food",
+  "  alcohol sweetened_beverage water coffee_tea",
+  "",
+  "Say what the food IS, not what it sounds like. Butter beans are legumes, not",
+  "a dairy fat. A vegan sausage is tofu_tempeh, not red_meat. Oat milk is a",
+  "whole_grain drink, not dairy_yogurt.",
+  "",
+  'If a food genuinely fits none of them, write null. Do NOT guess a near-miss:',
+  "a wrong group is worse than no group, because it is trusted.",
+].join("\n");
 
 /**
  * Ce qu'un régime rend structurellement incouvrable par l'aliment seul.

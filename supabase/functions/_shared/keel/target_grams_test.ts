@@ -29,6 +29,7 @@ import {
   BOX_FACTOR_MIN,
   BOX_SIZING_REASONS,
   type BoxSizingReason,
+  DEFAULT_PACE_KG_PER_WEEK,
   eatingOutAdvice,
   EATING_OUT_ADVICE_REASONS,
   type EatingOutAdviceReason,
@@ -40,6 +41,7 @@ import {
   mouthAgeVerdict,
   mouthTargetFactor,
   type PortionMember,
+  type SizableMeal,
   type SizablePreparation,
   sizeBoxesFromTarget,
 } from "./household_portions.ts";
@@ -63,27 +65,33 @@ import { EATING_OCCASIONS, type EatingOccasion } from "./meal_generation.ts";
 // ---------------------------------------------------------------------------
 
 const ADULT_BODY: MouthBody = {
+  appetite: null,
   heightCm: 180,
   weightKg: 80,
   gender: "male",
   ageYears: 35,
   activityLevel: null,
+  activityAxes: { day: null, sport: null, asked: false },
 };
 
 const SMALL_ADULT_BODY: MouthBody = {
+  appetite: null,
   heightCm: 158,
   weightKg: 52,
   gender: "female",
   ageYears: 41,
   activityLevel: "sedentary",
+  activityAxes: { day: null, sport: null, asked: false },
 };
 
 const CHILD_BODY: MouthBody = {
+  appetite: null,
   heightCm: 148,
   weightKg: 38,
   gender: "female",
   ageYears: 12,
   activityLevel: null,
+  activityAxes: { day: null, sport: null, asked: false },
 };
 
 const MOUTH = (over: Partial<PortionMember> = {}): PortionMember => ({
@@ -97,6 +105,7 @@ const MOUTH = (over: Partial<PortionMember> = {}): PortionMember => ({
     gender: "male",
     latestWeight: null,
     latestWaist: null,
+    declaredWeightKg: null,
     restrictionFlag: false,
   },
   eatingSlots: null,
@@ -113,6 +122,7 @@ const SIZING_ARGS: SizingArgs = {
   coachCounting: "no_position",
   direction: "down",
   paceKgPerWeek: 0.5,
+  conditionRefs: [],
   subject: { body: ADULT_BODY, isMinor: false },
 };
 
@@ -180,8 +190,6 @@ Deno.test("L8 ① — chaque porte de sécurité ferme le DIMENSIONNEMENT, avec 
     [{ coachCounting: "no_counting" }, "doctrine_no_counting"],
     [{ ageState: "unknown" }, "age_unknown"],
     [{ direction: null }, "no_direction"],
-    [{ paceKgPerWeek: null }, "no_pace"],
-    [{ paceKgPerWeek: 0 }, "no_pace"],
     [{
       subject: { body: { ...ADULT_BODY, weightKg: null }, isMinor: false },
     }, "no_body"],
@@ -189,6 +197,85 @@ Deno.test("L8 ① — chaque porte de sécurité ferme le DIMENSIONNEMENT, avec 
   for (const [over, reason] of cases) {
     const out = mouthTargetFactor({ ...SIZING_ARGS, ...over });
     assertEquals(out, { factor: 1, reason }, reason);
+  }
+});
+
+Deno.test("⛔ LOT B ① — UNE DIRECTION SANS CRAN PÈSE SUR LES GRAMMES, ET LE MOTIF LE DIT", () => {
+  // ══════════════════════════════════════════════════════════════════════════
+  // « Assez de direction pour coûter un plat, pas assez pour peser un gramme. »
+  // Mesuré sur un foyer de quatre: deux bouches `muscle_gain` déclarées PAR LA
+  // RPC QUE L'ÉCRAN APPELLE, `divergentes` dans SIX plans (donc un plat dédié
+  // ouvert pour elles), et facteur **1,000** — la part de quelqu'un qui n'a
+  // rien demandé. `box_sizing.mouths` archivait `{"no_pace": 2}`.
+  // ══════════════════════════════════════════════════════════════════════════
+  for (const paceKgPerWeek of [null, 0, -1, Number.NaN]) {
+    const out = mouthTargetFactor({ ...SIZING_ARGS, paceKgPerWeek });
+    assertEquals(out.reason, "sized_default_pace", JSON.stringify(paceKgPerWeek));
+    assert(out.factor < 1, `${out.factor} — une PERTE doit réduire la boîte`);
+    assert(out.factor >= BOX_FACTOR_MIN, `${out.factor}`);
+  }
+  // ── LE CRAN RÉGLÉ RESTE DISTINCT, ET IL GAGNE ─────────────────────────
+  const set = mouthTargetFactor({ ...SIZING_ARGS, paceKgPerWeek: 0.5 });
+  assertEquals(set.reason, "sized");
+  const derived = mouthTargetFactor({ ...SIZING_ARGS, paceKgPerWeek: null });
+  // 0,5 kg/sem creuse plus que 0,25: le cran choisi n'est PAS écrasé par le défaut.
+  assert(set.factor < derived.factor, `${set.factor} vs ${derived.factor}`);
+
+  // ── LE DÉFAUT VAUT EXACTEMENT 0,25 kg/SEMAINE, ET LE NOMBRE EST ÉCRIT ───
+  // ⛔ LE NOMBRE ATTENDU EST CALCULÉ ICI, PAS EMPRUNTÉ À LA CONSTANTE. Écrire
+  // `mouthTargetFactor({… paceKgPerWeek: DEFAULT_PACE_KG_PER_WEEK})` comme
+  // attendu ferait un test PARAMÉTRÉ PAR SA PROPRE CONSTANTE: il resterait
+  // vert si quelqu'un passait le défaut à 0,8 kg/semaine — c'est-à-dire à un
+  // déficit que personne n'a validé. Cicatrice
+  // `test-parameterized-by-its-own-constant`.
+  //
+  // Sur `ADULT_BODY` (180 cm, 80 kg, homme, 35 ans, sans cran d'activité):
+  // entretien 2 618 kcal/j; 0,25 × 7 700 / 7 = 275 kcal/j, très en dessous
+  // d'A1 (500) et du plancher, donc c'est LE CRAN qui décide, pas un plafond.
+  //     (2618 − 275) / 2618 = 0,894958…
+  assertEquals(DEFAULT_PACE_KG_PER_WEEK, 0.25);
+  assertEquals(derived.factor.toFixed(6), "0.894958");
+
+  // ── ⛔ ET IL NE DESSERRE AUCUNE DES TROIS PORTES ──────────────────────
+  // La mutation la plus rentable de ce lot serait de dériver le cran AVANT la
+  // chaîne de sécurité. Les trois lignes ci-dessous la font mordre.
+  for (
+    const [over, reason] of [
+      [{ restrictionFlag: true }, "restriction_floor"],
+      [{ ageState: "minor", subject: { body: CHILD_BODY, isMinor: true } }, "minor"],
+      [{ coachCounting: "no_counting" }, "doctrine_no_counting"],
+      [{ ageState: "unknown" }, "age_unknown"],
+      [{ direction: null }, "no_direction"],
+    ] as Array<[Partial<SizingArgs>, BoxSizingReason]>
+  ) {
+    assertEquals(
+      mouthTargetFactor({ ...SIZING_ARGS, paceKgPerWeek: null, ...over }),
+      { factor: 1, reason },
+      reason,
+    );
+  }
+});
+
+Deno.test("⛔ LOT B ① — UN MINEUR NE REÇOIT AUCUN CRAN PAR DÉFAUT, MÊME AVEC UNE DIRECTION", () => {
+  // ⚠️ LA GARDE QUE CE LOT NE DOIT PAS DESSERRER, ET ELLE EST TESTÉE PAR LE
+  // CHEMIN RÉEL — `memberTargetFactor`, celui que le générateur appelle — pas
+  // par la porte pure. Un enfant qui porte `fat_loss` (ce que la RPC autorise
+  // depuis le 2026-08-18) reste à `1`, motif `minor`, cran dérivé ou pas.
+  for (const goal of ["fat_loss", "muscle_gain"] as const) {
+    assertEquals(
+      memberTargetFactor(
+        MOUTH({ memberId: "child", ageState: "minor", goal }),
+        {
+          coachCounting: "no_position",
+          paceKgPerWeek: null,
+          conditionRefs: [],
+          body: CHILD_BODY,
+          restriction: "clear",
+        },
+      ),
+      { factor: 1, reason: "minor" },
+      goal,
+    );
   }
 });
 
@@ -207,7 +294,13 @@ Deno.test("⛔ L8 C8 — L'ENFANT DE DOUZE ANS N'EST PAS DIMENSIONNÉ PARCE QUE 
   // ══════════════════════════════════════════════════════════════════════════
   const parent = memberTargetFactor(
     MOUTH({ memberId: "parent", ageState: "adult", goal: "fat_loss" }),
-    { coachCounting: "no_position", paceKgPerWeek: 0.5, body: ADULT_BODY },
+    {
+      coachCounting: "no_position",
+      paceKgPerWeek: 0.5,
+      conditionRefs: [],
+      body: ADULT_BODY,
+      restriction: "clear",
+    },
   );
   const child = memberTargetFactor(
     MOUTH({
@@ -219,7 +312,13 @@ Deno.test("⛔ L8 C8 — L'ENFANT DE DOUZE ANS N'EST PAS DIMENSIONNÉ PARCE QUE 
       // chemin par lequel la ceinture du maître se substituait à la sienne.
       body: { ...MOUTH().body!, restrictionFlag: false },
     }),
-    { coachCounting: "no_position", paceKgPerWeek: 0.5, body: CHILD_BODY },
+    {
+      coachCounting: "no_position",
+      paceKgPerWeek: 0.5,
+      conditionRefs: [],
+      body: CHILD_BODY,
+      restriction: "clear",
+    },
   );
 
   assertEquals(parent.reason, "sized");
@@ -294,7 +393,7 @@ Deno.test("⛔ L8 ① — LES BORNES DE PLAUSIBILITÉ NE MORDENT SUR AUCUN CORPS
                 direction,
                 paceKgPerWeek: pace,
                 subject: {
-                  body: { heightCm, weightKg, gender, ageYears: isMinor ? 12 : 35, activityLevel: null },
+                  body: { appetite: null, heightCm, weightKg, gender, ageYears: isMinor ? 12 : 35, activityLevel: null , activityAxes: { day: null, sport: null, asked: false }},
                   isMinor,
                 },
               });
@@ -341,12 +440,55 @@ Deno.test("L8 ① — le vocabulaire des motifs est FERMÉ et chaque valeur est 
     { coachCounting: "no_counting" },
     { ageState: "unknown" },
     { direction: null },
+    // LOT B ① — SANS CRAN, LA DIRECTION FOURNIT LE SIEN: `sized_default_pace`.
     { paceKgPerWeek: null },
+    // LOT B ① — ET `no_pace` NE PARLE PLUS DU CURSEUR. Ce qui reste est le seul
+    // cas où `executedPaceFor` n'exécute RIEN: un corps déjà sous son propre
+    // plancher d'énergie (1 128 kcal d'entretien contre un plancher à 1 200,
+    // `ENERGY_FLOOR_KCAL.female`). Sans ce cas-là, le jeton serait dans la
+    // liste fermée sans qu'aucun appel ne le produise — un motif orphelin, la
+    // forme exacte du compteur qui ment.
+    {
+      subject: {
+        body: {
+          appetite: null,
+          heightCm: 135,
+          weightKg: 28,
+          gender: "female",
+          ageYears: 35,
+          activityLevel: "sedentary",
+          activityAxes: { day: null, sport: null, asked: false },
+        },
+        isMinor: false,
+      },
+    },
     { subject: { body: { ...ADULT_BODY, weightKg: null }, isMinor: false } },
+    // ── L0bis — LES DEUX JETONS NEUFS, ET ILS SONT ATTEIGNABLES ──────────
+    // `SIZING_ARGS.direction` vaut `"down"`, et c'est la MOITIÉ de la
+    // prémisse: la garde de grossesse ne mord que sur un DÉFICIT. Sur une
+    // prise, le facteur reste celui d'hier — rabattre un surplus retirerait de
+    // l'énergie à une femme enceinte qui en demande.
+    { conditionRefs: ["pregnancy"] },
+    { conditionRefs: ["breastfeeding"] },
   ];
   for (const over of cases) {
     seen.add(mouthTargetFactor({ ...SIZING_ARGS, ...over }).reason);
   }
+  // ⚠️ `restriction_unknown` NE SORT PAS DE `mouthTargetFactor`, ET C'EST EXACT.
+  // La porte pure ne connaît qu'un booléen (c'est `energySafetyGates` qui la
+  // gouverne, et on ne la réécrit pas); c'est le raccourci d'appel qui sait
+  // LEQUEL des deux `true` c'était. Sans cette ligne, la valeur serait dans la
+  // liste fermée sans qu'aucun appel ne la produise — un motif orphelin, la
+  // forme exacte du compteur qui ment.
+  seen.add(
+    memberTargetFactor(MOUTH(), {
+      coachCounting: "no_position",
+      paceKgPerWeek: 0.5,
+      conditionRefs: [],
+      body: ADULT_BODY,
+      restriction: "unreadable",
+    }).reason,
+  );
   // `implausible_factor` est le seul motif inatteignable depuis un corps réel —
   // c'est le sujet du test précédent, et il est nommé ici pour que sa présence
   // dans la liste fermée ne passe pas pour un oubli.
@@ -360,89 +502,138 @@ Deno.test("L8 ① — le vocabulaire des motifs est FERMÉ et chaque valeur est 
 // ① LES BOÎTES — ce qui bouge, ce qui ne bouge pas, et ce que la casserole tient
 // ---------------------------------------------------------------------------
 
+/** Une casserole, réduite à ce que le dimensionnement lit. */
 const PREP = (
-  boxes: Array<{ id: string; memberIds: string[]; grams: number }>,
+  id: string,
   readyGrams: number | null = 100000,
-): SizablePreparation => ({ id: "prep_rice", boxes, readyGrams });
+  servingsMade = 1,
+): SizablePreparation => ({ id, servingsMade, readyGrams });
+
+const RICE = [PREP("prep_rice")];
+
+/**
+ * UN CONTENANT v4: son groupe, son contenu, et la casserole que son repas
+ * reprend.
+ *
+ * ⚠️ LE NOMBRE DE NOMS EST LE SEUL MARQUEUR. Un seul ⇒ une prescription, qui se
+ * dimensionne. Plusieurs ⇒ une quantité de bac, qui ne se dimensionne pas.
+ */
+const BOX = (
+  boxId: string,
+  memberIds: string[],
+  items: Array<{ preparationId: string | null; grams: number }>,
+  uses: Array<{ preparationId: string; servings: number }> = [
+    { preparationId: "prep_rice", servings: 1 },
+  ],
+): SizableMeal => ({ boxId, memberIds, items, uses });
+
+/** Le raccourci du cas majoritaire: un nom, un composant, du riz. */
+const RICE_BOX = (
+  boxId: string,
+  memberId: string,
+  grams: number,
+): SizableMeal => BOX(boxId, [memberId], [{ preparationId: "prep_rice", grams }]);
 
 const TOL = 1.1;
 
 Deno.test("L8 ① — LE CAS QUI PASSE: deux bouches, deux facteurs, deux grammages", () => {
+  // ⚠️ ET CE SONT DEUX CONTENANTS, PAS DEUX PARTS SUR UN COUVERCLE (v4,
+  // 2026-08-20). Une bouche à objectif est SEULE sur sa boîte; deux bouches à
+  // objectif au même repas font deux boîtes. Le grammage de chacune est une
+  // PRESCRIPTION, et c'est ce qui autorise à la dimensionner.
   const out = sizeBoxesFromTarget(
-    [PREP([
-      { id: "box_zoe", memberIds: ["zoe"], grams: 200 },
-      { id: "box_marc", memberIds: ["marc"], grams: 200 },
-    ])],
+    [
+      RICE_BOX("box_thu_lunch_zoe", "zoe", 200),
+      RICE_BOX("box_thu_lunch_marc", "marc", 200),
+    ],
+    RICE,
     new Map([["zoe", 0.8], ["marc", 1.1]]),
     TOL,
   );
-  assertEquals(out.grams.get("box_zoe"), 160);
-  assertEquals(out.grams.get("box_marc"), 220);
+  assertEquals(out.items.get("box_thu_lunch_zoe")?.get(0), 160);
+  assertEquals(out.items.get("box_thu_lunch_marc")?.get(0), 220);
   assertEquals(out.counts, {
     boxes: 2,
+    common: 0,
+    items: 2,
     sized: 2,
     unchanged: 0,
-    shared_mixed: 0,
     capped_by_pot: 0,
     unverifiable: 0,
   });
   assertEquals(out.issues, []);
 });
 
+Deno.test("⛔ v4 — UN BAC À PLUSIEURS NOMS NE SE DIMENSIONNE PAS DU TOUT", () => {
+  // ⛔ CE QUI EST TENU ICI EST LE CŒUR DE v4. Les grammes d'un bac commun sont
+  // une QUANTITÉ DE RÉCIPIENT: ils ne visent personne, donc il n'y a personne
+  // dont la cible pourrait les redimensionner. Multiplier le bac par le facteur
+  // de l'un de ses mangeurs ferait payer aux autres l'arithmétique d'un tiers —
+  // le défaut « une ceinture posée sur l'un retire à l'autre », par l'autre bout.
+  //
+  // MUTATION LA PLUS RENTABLE DE CE TEST: faire lire au sizing le facteur de
+  // `memberIds[0]`. Elle rendrait 320 g au lieu de 400 g, et ce test rougirait.
+  const out = sizeBoxesFromTarget(
+    [BOX("box_common", ["zoe", "marc"], [{ preparationId: "prep_rice", grams: 400 }])],
+    RICE,
+    new Map([["zoe", 0.8], ["marc", 1.1]]),
+    TOL,
+  );
+  assertEquals(out.items.size, 0, "un bac commun a été redimensionné");
+  assertEquals(out.counts.common, 1);
+  assertEquals(out.counts.items, 1);
+  assertEquals(out.counts.sized, 0);
+  assertEquals(out.counts.unchanged, 1);
+  assertEquals(out.issues, []);
+});
+
+Deno.test("⛔ v4 — `common` DISTINGUE « aucune cible » DE « QUE des bacs communs »", () => {
+  // ⛔ SANS CE NOMBRE, un plan où tout le monde partage rendrait `sized: 0` —
+  // exactement ce que rend un lot débranché. Le zéro ambigu, pour la n-ième
+  // fois de ce dépôt.
+  const allCommon = sizeBoxesFromTarget(
+    [BOX("b1", ["a", "b"], [{ preparationId: "prep_rice", grams: 400 }])],
+    RICE,
+    new Map([["a", 1.2], ["b", 1.2]]),
+    TOL,
+  );
+  const noTarget = sizeBoxesFromTarget(
+    [RICE_BOX("b1", "a", 400)],
+    RICE,
+    new Map(),
+    TOL,
+  );
+  assertEquals(allCommon.counts.sized, 0);
+  assertEquals(noTarget.counts.sized, 0);
+  assert(
+    allCommon.counts.common !== noTarget.counts.common,
+    "les deux causes rendent le même compteur",
+  );
+});
+
 Deno.test("⛔ L8 ① — AUCUNE CIBLE ⇒ AUCUN GRAMME NE BOUGE, ET AUCUNE `issue`", () => {
   // ⚠️ C'EST LE CAS DE LA POPULATION ENTIÈRE AU 2026-08-18: aucun écran n'écrit
   // encore le curseur de rythme. Si ce lot changeait quoi que ce soit ici, il
   // changerait tout pour tout le monde le jour de sa livraison.
-  const prep = PREP(
+  //
+  // ⚠️ ET LA CASSEROLE EST DÉLIBÉRÉMENT TROP PETITE: un plan déjà sur-rempli ne
+  // doit PAS être « réparé » au passage. Le parseur a sa propre `issue` pour ce
+  // cas; la doubler ici changerait le produit pour qui n'a pas de cible.
+  // Mutation la plus rentable de ce fichier: retirer la garde `anySized`.
+  const out = sizeBoxesFromTarget(
     [
-      { id: "box_a", memberIds: ["a"], grams: 300 },
-      { id: "box_b", memberIds: ["b", "c"], grams: 250 },
+      RICE_BOX("box_a", "a", 300),
+      BOX("box_b", ["b", "c"], [{ preparationId: "prep_rice", grams: 500 }]),
     ],
-    // ⚠️ ET LA CASSEROLE EST DÉLIBÉRÉMENT TROP PETITE: un plan déjà sur-rempli
-    // ne doit PAS être « réparé » au passage. Le parseur a sa propre `issue`
-    // pour ce cas; la doubler ici changerait le produit pour qui n'a pas de
-    // cible. Mutation la plus rentable de ce fichier: retirer la garde
-    // `anySized`.
-    10,
+    [PREP("prep_rice", 10)],
+    new Map(),
+    TOL,
   );
-  const out = sizeBoxesFromTarget([prep], new Map(), TOL);
-  assertEquals(out.grams.size, 0);
+  assertEquals(out.items.size, 0);
   assertEquals(out.issues, []);
   assertEquals(out.counts.sized, 0);
   assertEquals(out.counts.capped_by_pot, 0);
   assertEquals(out.counts.unchanged, 2);
-});
-
-Deno.test("L8 ① — une boîte PARTAGÉE à facteurs divergents n'est pas coupée en deux", () => {
-  // On ne peut pas fabriquer un second identifiant: `dishes[].uses[].box_id`
-  // pointerait sur une boîte au contenu changé, et l'écran citerait une boîte
-  // que personne n'a pesée. On laisse, et on COMPTE.
-  const out = sizeBoxesFromTarget(
-    [PREP([{ id: "box_shared", memberIds: ["zoe", "marc"], grams: 200 }])],
-    new Map([["zoe", 0.8], ["marc", 1.1]]),
-    TOL,
-  );
-  assertEquals(out.grams.size, 0);
-  assertEquals(out.counts.shared_mixed, 1);
-  assertEquals(out.counts.sized, 0);
-  assertEquals(out.counts.unchanged, 0);
-  assertEquals(out.issues.length, 1);
-  assert(out.issues[0].includes("box_shared"));
-  assert(out.issues[0].includes("targets differ"));
-});
-
-Deno.test("L8 ① — une boîte partagée à facteurs IDENTIQUES se redimensionne", () => {
-  // Le cas qui passe du refus précédent. Sans lui, « on ne touche jamais une
-  // boîte partagée » et « on ne touche pas celles qui divergent » se liraient
-  // pareil.
-  const out = sizeBoxesFromTarget(
-    [PREP([{ id: "box_shared", memberIds: ["zoe", "marc"], grams: 200 }])],
-    new Map([["zoe", 0.8], ["marc", 0.8]]),
-    TOL,
-  );
-  assertEquals(out.grams.get("box_shared"), 160);
-  assertEquals(out.counts.shared_mixed, 0);
-  assertEquals(out.counts.sized, 1);
 });
 
 Deno.test("⛔ L8 ① — LE FACTEUR NE FAIT PAS APPARAÎTRE DE LA NOURRITURE", () => {
@@ -450,45 +641,111 @@ Deno.test("⛔ L8 ① — LE FACTEUR NE FAIT PAS APPARAÎTRE DE LA NOURRITURE", 
   // est ce que la casserole produit. Un facteur qui l'ignore fait grossir un
   // plan sans rien lui donner à manger.
   //
-  // 3 boîtes de 200 g, toutes à ×1,2 ⇒ 720 g demandés dans une casserole de
+  // 3 contenants de 200 g, tous à ×1,2 ⇒ 720 g demandés à une casserole de
   // 500 g (plafond 550 avec la tolérance).
   const out = sizeBoxesFromTarget(
-    [PREP(
-      [
-        { id: "b1", memberIds: ["a"], grams: 200 },
-        { id: "b2", memberIds: ["b"], grams: 200 },
-        { id: "b3", memberIds: ["c"], grams: 200 },
-      ],
-      500,
-    )],
+    [
+      RICE_BOX("b1", "a", 200),
+      RICE_BOX("b2", "b", 200),
+      RICE_BOX("b3", "c", 200),
+    ],
+    [PREP("prep_rice", 500)],
     new Map([["a", 1.2], ["b", 1.2], ["c", 1.2]]),
     TOL,
   );
-  const sum = [...out.grams.values()].reduce((a, b) => a + b, 0);
+  let sum = 0;
+  for (const box of out.items.values()) for (const g of box.values()) sum += g;
   assert(sum <= 500 * TOL + 3, `${sum} g dans une casserole de 500 g`);
   assertEquals(out.counts.capped_by_pot, 1);
   assert(out.issues.some((i) => i.includes("scaled back to fit")));
-  // ⚠️ LE RAPPORT ENTRE LES PARTS EST PRÉSERVÉ — c'est ce que la cible achète.
-  // Raboter une seule boîte retirerait sa part à quelqu'un pour l'arithmétique
-  // d'un autre.
-  assertEquals(out.grams.get("b1"), out.grams.get("b2"));
-  assertEquals(out.grams.get("b2"), out.grams.get("b3"));
+  // ⚠️ LE RAPPORT ENTRE LES CONTENANTS EST PRÉSERVÉ — c'est ce que la cible
+  // achète. Raboter une seule boîte retirerait sa part à quelqu'un pour
+  // l'arithmétique d'un autre.
+  assertEquals(out.items.get("b1")?.get(0), out.items.get("b2")?.get(0));
+  assertEquals(out.items.get("b2")?.get(0), out.items.get("b3")?.get(0));
+});
+
+Deno.test("⛔ v4 — LE PLAFOND RABOTE LE COMPOSANT QUI DÉBORDE, ET LUI SEUL", () => {
+  // ⚠️ C'ÉTAIT LA SEULE VRAIE DIFFICULTÉ DE L'UNITÉ « UN CONTENANT PAR REPAS »,
+  // et v4 la fait disparaître. Sous v2 un couvercle portait UN total pour N
+  // casseroles: il fallait le répartir au prorata, puis raboter la boîte
+  // ENTIÈRE au prorata inverse — donc retirer un peu de riz parce qu'il manquait
+  // de la sauce. Un `item` porte son `preparation_id`: le riz ne bouge PAS.
+  //
+  // LE DÉCOR: le riz produit 1 000 g et ne sert qu'un contenant; la sauce
+  // produit 100 g et sert TROIS contenants. Après ×1,2, la sauce se voit tirer
+  // 288 g pour 110 g de plafond — elle déborde — pendant que le riz est
+  // tranquille.
+  const meals = [
+    BOX("box_full", ["a"], [
+      { preparationId: "prep_rice", grams: 160 },
+      { preparationId: "prep_sauce", grams: 80 },
+    ], [
+      { preparationId: "prep_rice", servings: 1 },
+      { preparationId: "prep_sauce", servings: 1 },
+    ]),
+    BOX("box_sauce_1", ["c"], [{ preparationId: "prep_sauce", grams: 80 }], [
+      { preparationId: "prep_sauce", servings: 1 },
+    ]),
+    BOX("box_sauce_2", ["d"], [{ preparationId: "prep_sauce", grams: 80 }], [
+      { preparationId: "prep_sauce", servings: 1 },
+    ]),
+  ];
+  const factors = new Map([["a", 1.2], ["c", 1.2], ["d", 1.2]]);
+  const out = sizeBoxesFromTarget(
+    meals,
+    [PREP("prep_rice", 1000), PREP("prep_sauce", 100)],
+    factors,
+    TOL,
+  );
+  assertEquals(out.counts.capped_by_pot, 1, "une seule casserole déborde");
+  assert(out.issues.some((i) => i.includes("prep_sauce")), out.issues.join("\n"));
+  assert(
+    !out.issues.some((i) => i.includes("prep_rice")),
+    "le riz a été accusé pour la sauce: " + out.issues.join("\n"),
+  );
+
+  // ⛔ LE RIZ GARDE SON FACTEUR ENTIER: 160 × 1,2 = 192, sans un gramme de
+  // rabot. C'est la mutation à faire pour voir ce test rougir — remettre un
+  // rabot proportionnel sur toute la boîte le ferait tomber à ~155.
+  assertEquals(out.items.get("box_full")?.get(0), 192);
+  // ⛔ ET LA SAUCE, ELLE, PAIE PLEIN TARIF. Sans cette moitié, un rabotage qui
+  // ne mordrait NULLE PART lirait pareil.
+  const sauce = out.items.get("box_full")?.get(1) ?? 0;
+  assert(sauce < 80, `la sauce inexistante a été servie quand même: ${sauce}`);
+  // ⚠️ ET LE RAPPORT ENTRE LES BOUCHES SURVIT: elles ont le même facteur et
+  // tirent sur la même casserole, donc le même rabot.
+  assertEquals(out.items.get("box_sauce_1")?.get(0), out.items.get("box_sauce_2")?.get(0));
+});
+
+Deno.test("⛔ v4 — UN COMPOSANT AJOUTÉ FRAIS N'EST BORNÉ PAR AUCUNE CASSEROLE", () => {
+  // `preparation_id: null` = ajouté le jour même (le pain). Aucune fournée ne le
+  // produit, donc aucun plafond de fournée ne le borne — et l'attribuer à une
+  // casserole la ferait déborder avec du pain acheté le matin.
+  const out = sizeBoxesFromTarget(
+    [BOX("b1", ["a"], [
+      { preparationId: "prep_rice", grams: 200 },
+      { preparationId: null, grams: 100 },
+    ])],
+    [PREP("prep_rice", 100)],
+    new Map([["a", 1.2]]),
+    TOL,
+  );
+  assertEquals(out.counts.capped_by_pot, 1);
+  // Le riz est raboté, le pain garde son facteur entier: 100 × 1,2 = 120.
+  assertEquals(out.items.get("b1")?.get(1), 120);
+  assert((out.items.get("b1")?.get(0) ?? 0) < 240, "le riz n'a pas été raboté");
 });
 
 Deno.test("L8 ① — le rapport entre DEUX cibles différentes survit au plafond", () => {
   const out = sizeBoxesFromTarget(
-    [PREP(
-      [
-        { id: "b1", memberIds: ["a"], grams: 200 },
-        { id: "b2", memberIds: ["b"], grams: 200 },
-      ],
-      300,
-    )],
+    [RICE_BOX("b1", "a", 200), RICE_BOX("b2", "b", 200)],
+    [PREP("prep_rice", 300)],
     new Map([["a", 0.8], ["b", 1.2]]),
     TOL,
   );
-  const a = out.grams.get("b1")!;
-  const b = out.grams.get("b2")!;
+  const a = out.items.get("b1")!.get(0)!;
+  const b = out.items.get("b2")!.get(0)!;
   assertEquals(out.counts.capped_by_pot, 1);
   // 0,8 / 1,2 = 0,667, à l'arrondi près.
   assert(Math.abs(a / b - 0.8 / 1.2) < 0.02, `${a}/${b}`);
@@ -496,16 +753,43 @@ Deno.test("L8 ① — le rapport entre DEUX cibles différentes survit au plafon
 
 Deno.test("L8 ① — une production non reconstructible se redimensionne SANS vérification, et le dit", () => {
   const out = sizeBoxesFromTarget(
-    [PREP([{ id: "b1", memberIds: ["a"], grams: 200 }], null)],
+    [RICE_BOX("b1", "a", 200)],
+    [PREP("prep_rice", null)],
     new Map([["a", 1.2]]),
     TOL,
   );
-  assertEquals(out.grams.get("b1"), 240);
+  assertEquals(out.items.get("b1")?.get(0), 240);
   assertEquals(out.counts.unverifiable, 1);
   assertEquals(out.counts.capped_by_pot, 0);
 });
 
-Deno.test("⛔ L8 ① — UNE BOÎTE NE DESCEND JAMAIS À ZÉRO, et le seul chemin qui l'y mènerait est le PLAFOND", () => {
+Deno.test("⛔ v4 — UNE CASSEROLE INCONNUE N'EMPÊCHE PLUS DE VÉRIFIER SA VOISINE", () => {
+  // ⛔ C'EST LE RENVERSEMENT DU 2026-08-20, ET IL EST ÉCRIT ICI POUR QUE
+  // PERSONNE NE LE « RÉPARE ». Sous v2 il fallait répartir UN total entre N
+  // casseroles: dès qu'une seule était irreconstructible, le repas entier
+  // passait en `unverifiable` — attribuer son total aux autres les aurait fait
+  // déborder. Un `item` nomme sa casserole: le riz est vérifié, la sauce est
+  // comptée comme invérifiable, et les deux faits sont vrais en même temps.
+  const out = sizeBoxesFromTarget(
+    [BOX("b1", ["a"], [
+      { preparationId: "prep_rice", grams: 200 },
+      { preparationId: "prep_sauce", grams: 200 },
+    ], [
+      { preparationId: "prep_rice", servings: 1 },
+      { preparationId: "prep_sauce", servings: 1 },
+    ])],
+    [PREP("prep_rice", 10), PREP("prep_sauce", null)],
+    new Map([["a", 1.2]]),
+    TOL,
+  );
+  assertEquals(out.counts.unverifiable, 1, "la sauce seule est invérifiable");
+  assertEquals(out.counts.capped_by_pot, 1, "le riz, lui, a été vérifié");
+  // La sauce garde son facteur entier: on ne sait pas ce qu'elle produit.
+  assertEquals(out.items.get("b1")?.get(1), 240);
+  assert((out.items.get("b1")?.get(0) ?? 0) < 240, "le riz de 10 g n'a pas été borné");
+});
+
+Deno.test("⛔ L8 ① — UN COMPOSANT NE DESCEND JAMAIS À ZÉRO, et le seul chemin qui l'y mènerait est le PLAFOND", () => {
   // ⚠️ LA MISE EN SCÈNE EST LA MOITIÉ DU TEST, ET ELLE A ÉTÉ REFAITE. La
   // première rédaction appliquait un simple facteur (`1 g × 0,8`), et la
   // mutation « retirer le plancher » SURVIVAIT: `Math.round(0,8)` vaut 1, donc
@@ -513,25 +797,20 @@ Deno.test("⛔ L8 ① — UNE BOÎTE NE DESCEND JAMAIS À ZÉRO, et le seul chem
   // un coffre vide », mesuré trois fois sur ce chantier.
   //
   // Le SEUL chemin qui peut rendre zéro est le rabotage par le plafond du
-  // récipient: une casserole minuscule pour des boîtes redimensionnées donne un
-  // `shrink` arbitrairement petit.
+  // récipient: une casserole minuscule pour des composants redimensionnés donne
+  // un `shrink` arbitrairement petit.
   const out = sizeBoxesFromTarget(
-    [PREP(
-      [
-        { id: "b1", memberIds: ["a"], grams: 400 },
-        { id: "b2", memberIds: ["b"], grams: 400 },
-      ],
-      // 1 g produits: le rabotage vaut ~0,0014.
-      1,
-    )],
+    [RICE_BOX("b1", "a", 400), RICE_BOX("b2", "b", 400)],
+    // 1 g produit: le rabotage vaut ~0,0014.
+    [PREP("prep_rice", 1)],
     new Map([["a", 0.8], ["b", 1.2]]),
     TOL,
   );
   assertEquals(out.counts.capped_by_pot, 1);
-  // Une boîte à zéro est une consigne qui dit « rien », et l'écran l'imprimerait
-  // telle quelle (« Boîte Zoé — 0 g »).
-  assertEquals(out.grams.get("b1"), 1);
-  assertEquals(out.grams.get("b2"), 1);
+  // Un composant à zéro est une consigne qui dit « rien », et l'écran
+  // l'imprimerait telle quelle (« riz — 0 g »).
+  assertEquals(out.items.get("b1")?.get(0), 1);
+  assertEquals(out.items.get("b2")?.get(0), 1);
 
   // ── ET LE CHEMIN DU FACTEUR NE PEUT PAS Y MENER, ARITHMÉTIQUEMENT ────────
   // Le parseur n'accepte qu'un `grams` entier > 0, donc ≥ 1, et le facteur ne
@@ -541,17 +820,18 @@ Deno.test("⛔ L8 ① — UNE BOÎTE NE DESCEND JAMAIS À ZÉRO, et le seul chem
   assert(Math.round(1 * BOX_FACTOR_MIN) >= 1, "le plancher du facteur est atteignable");
 });
 
-Deno.test("L8 ① — PROPRIÉTÉ: sized + unchanged + shared_mixed === boxes, toujours", () => {
+Deno.test("L8 ① — PROPRIÉTÉ: sized + unchanged === items, toujours", () => {
   // Un compteur dont les parts ne recomposent pas le tout est un compteur qui
   // ment, et c'est écrit trois fois dans `meal_generation.ts`.
-  const preps: SizablePreparation[] = [
-    PREP([
-      { id: "b1", memberIds: ["a"], grams: 200 },
-      { id: "b2", memberIds: ["b", "c"], grams: 180 },
-      { id: "b3", memberIds: ["d"], grams: 90 },
-    ]),
-    PREP([{ id: "b4", memberIds: ["a", "b"], grams: 150 }], 200),
+  const meals: SizableMeal[] = [
+    RICE_BOX("b1", "a", 200),
+    BOX("b2", ["b", "c"], [{ preparationId: "prep_rice", grams: 360 }]),
+    BOX("b3", ["d"], [
+      { preparationId: "prep_sauce", grams: 90 },
+      { preparationId: null, grams: 40 },
+    ], [{ preparationId: "prep_sauce", servings: 1 }]),
   ];
+  const preps = [PREP("prep_rice"), PREP("prep_sauce", 200)];
   for (
     const factors of [
       new Map<string, number>(),
@@ -560,10 +840,10 @@ Deno.test("L8 ① — PROPRIÉTÉ: sized + unchanged + shared_mixed === boxes, t
       new Map([["a", 1.2], ["b", 0.8], ["c", 1.1], ["d", 0.85]]),
     ]
   ) {
-    const out = sizeBoxesFromTarget(preps, factors, TOL);
+    const out = sizeBoxesFromTarget(meals, preps, factors, TOL);
     assertEquals(
-      out.counts.sized + out.counts.unchanged + out.counts.shared_mixed,
-      out.counts.boxes,
+      out.counts.sized + out.counts.unchanged,
+      out.counts.items,
       JSON.stringify([...factors]),
     );
   }

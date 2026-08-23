@@ -41,6 +41,7 @@ function mealArgs(budgetAmount: number | null) {
     slot: null,
     servings: 4,
     safetyConstraints: null,
+    safetyConstraintTable: null,
     body: null,
     focusAxis: null,
     dietBlock: "",

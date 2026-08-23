@@ -24,6 +24,11 @@ function dish(over: Partial<GeneratedDish> = {}): GeneratedDish {
     why: "",
     ingredients: [],
     uses: [],
+    // ⚠️ `boxes: []` EST OBLIGATOIRE, ET LE `as GeneratedDish` PLUS BAS EST CE
+    // QUI L'A CACHÉ: le cast fait taire tsc sur un champ manquant, et
+    // `boxLinesForDish` lève alors un `TypeError` au montage — écran blanc.
+    // Cette fixture ne met AUCUN contenant, exprès; mais elle doit le DIRE.
+    boxes: [],
     same_day: null,
     member_id: null,
     ...over,
@@ -35,6 +40,10 @@ function person(over: Partial<MemberPortionView> = {}): MemberPortionView {
     memberId: "mem-zoe",
     displayName: "Zoé",
     portionNote: null,
+    // ⚠️ `null` = elle n'a rien déclaré, donc elle suit la maison — le cas
+    // nominal. Un test qui veut prouver qu'une bouche est ABSENTE d'un moment
+    // le dit explicitement (`eatingSlots: ["lunch", "dinner"]`).
+    eatingSlots: null,
     shares: [],
     ...over,
   };
@@ -52,7 +61,7 @@ describe("LOT 3 · la séparation d'un moment", () => {
   });
 
   it("⛔ un plat de la table + un plat dédié ⇒ DEUX voies, nommées", () => {
-    const groups = groupDayBySlot({ preparations: [],
+    const groups = groupDayBySlot({
       dishes: [dish(), dish({ member_id: "mem-zoe" })],
       portions: [ZOE, KID],
     });
@@ -65,7 +74,7 @@ describe("LOT 3 · la séparation d'un moment", () => {
   });
 
   it("deux bouches, deux plats dédiés ⇒ une voie chacune, dans l'ordre du plan", () => {
-    const [group] = groupDayBySlot({ preparations: [],
+    const [group] = groupDayBySlot({
       dishes: [dish({ member_id: "mem-kid" }), dish({ member_id: "mem-zoe" })],
       portions: [ZOE, KID],
     });
@@ -90,7 +99,7 @@ describe("LOT 3 · la séparation d'un moment", () => {
     // trouverait rien et ce test resterait vert en ne prouvant RIEN — la
     // mutation ne mordait pas, mesuré le 2026-08-17.
     const ZOE_AS_WRITTEN = person({ displayName: "Zoe" });
-    const [group] = groupDayBySlot({ preparations: [],
+    const [group] = groupDayBySlot({
       dishes: [dish({ title: named }), dish({ title: named, member_id: "mem-zoe" })],
       portions: [ZOE_AS_WRITTEN, KID],
     });
@@ -100,7 +109,7 @@ describe("LOT 3 · la séparation d'un moment", () => {
   });
 
   it("un plat commun ne se répète JAMAIS sous une bouche", () => {
-    const [group] = groupDayBySlot({ preparations: [],
+    const [group] = groupDayBySlot({
       dishes: [dish(), dish({ member_id: "mem-zoe" })],
       portions: [ZOE, KID],
     });
@@ -114,7 +123,7 @@ describe("LOT 3 · la séparation d'un moment", () => {
   });
 
   it("⚠️ une bouche que le plan ne nomme plus ne devient PAS « la table »", () => {
-    const [group] = groupDayBySlot({ preparations: [],
+    const [group] = groupDayBySlot({
       dishes: [dish(), dish({ member_id: "mem-parti" })],
       portions: [ZOE, KID],
     });
@@ -126,7 +135,7 @@ describe("LOT 3 · la séparation d'un moment", () => {
   });
 
   it("sans aucune part connue, tout se rend à plat — le chemin individuel", () => {
-    const [group] = groupDayBySlot({ preparations: [],
+    const [group] = groupDayBySlot({
       dishes: [dish(), dish({ member_id: "mem-zoe" })],
       portions: [],
     });
@@ -136,9 +145,243 @@ describe("LOT 3 · la séparation d'un moment", () => {
   });
 });
 
+// ===========================================================================
+// 2026-08-19 — QUI MANGE CE PLAT, ET QUI EST « LA TABLE »
+//
+// Deux demandes du même jour, sur la même surface:
+//   · « je comprends pas non plus "pour la table" » — l'en-tête commun le
+//     disait même quand une bouche mangeait à part;
+//   · « quand le repas est commun, il faudrait des genre de marqueur pour les
+//     personnes » — un plat commun ne portait AUCUN prénom.
+// ===========================================================================
+
+describe("2026-08-19 · les marqueurs de bouche sous un plat", () => {
+  it("un plat commun nomme TOUTES ses bouches, même sans part écrite", () => {
+    // Le petit-déjeuner ne puise dans rien: `shares` est vide, et c'était tout
+    // ce que le modèle savait dire. On ne pouvait donc pas savoir si le foyer
+    // entier était servi ou si quelqu'un avait été oublié.
+    const [group] = groupDayBySlot({
+      dishes: [dish()],
+      portions: [ZOE, KID],
+    });
+    expect(group.table[0].shares).toEqual([]);
+    expect(group.table[0].eaters).toEqual([
+      { memberId: "mem-zoe", name: "Zoé" },
+      { memberId: "mem-kid", name: "Kid" },
+    ]);
+  });
+
+  it("⛔ une bouche qui mange à part sort des marqueurs du plat commun", () => {
+    // Même règle que C4 sur les parts: une bouche n'est servie qu'une fois.
+    const [group] = groupDayBySlot({
+      dishes: [dish(), dish({ member_id: "mem-zoe" })],
+      portions: [ZOE, KID],
+    });
+    expect(group.table[0].eaters.map((e) => e.name)).toEqual(["Kid"]);
+    expect(group.people[0].entries[0].eaters.map((e) => e.name)).toEqual(["Zoé"]);
+  });
+
+  it("⛔ à une seule bouche, AUCUN marqueur — et à deux, ils reviennent", () => {
+    // « Pour Zoé » sur le plan d'une personne seule serait une évidence
+    // répétée vingt fois par semaine. ⚠️ Le test compte des bouches
+    // LITTÉRALES: monter `SHARES_MIN_MOUTHS` à 3 le fait tomber.
+    const alone = groupDayBySlot({ preparations: [], dishes: [dish()], portions: [ZOE] });
+    expect(alone[0].table[0].eaters).toEqual([]);
+    const pair = groupDayBySlot({ preparations: [], dishes: [dish()], portions: [ZOE, KID] });
+    expect(pair[0].table[0].eaters).toHaveLength(2);
+  });
+
+  it("⚠️ un plat dédié à une bouche que le plan ne nomme plus ne marque personne", () => {
+    const [group] = groupDayBySlot({
+      dishes: [dish({ member_id: "mem-parti" })],
+      portions: [ZOE, KID],
+    });
+    expect(group.unnamed[0].eaters).toEqual([]);
+  });
+});
+
+describe("2026-08-19 · une bouche n'est nommée qu'aux moments où elle mange", () => {
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * ⛔ LE CAS RÉEL, TEL QU'IL A ÉTÉ VU À L'ÉCRAN LE 2026-08-19.
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * Foyer de deux. Christèle a déclaré déjeuner et dîner — pas de petit-déj.
+   * Elle était pourtant marquée au PETIT-DÉJEUNER, à côté d'iku. Ses mots:
+   * « on a dit qu'elle voulait pas prendre de petit déj : elle est marquée
+   * pour le petit déj à côté de iku ».
+   *
+   * ⚠️ LES MOMENTS VIENNENT DU PLAN, pas d'une relecture du foyer: « il faut
+   * que le plan respecte les créneaux renseignés AU MOMENT DE FAIRE LE PLAN ».
+   */
+  const CHRISTELE = person({
+    memberId: "mem-c",
+    displayName: "Christèle",
+    eatingSlots: ["lunch", "dinner"],
+  });
+  const IKU = person({ memberId: "mem-i", displayName: "iku", eatingSlots: null });
+
+  it("⛔ elle ne mange pas le matin ⇒ aucun marqueur au petit-déjeuner", () => {
+    const [group] = groupDayBySlot({
+      dishes: [dish({ slot: "breakfast" })],
+      portions: [IKU, CHRISTELE],
+    });
+    expect(group.table[0].eaters.map((e) => e.name)).toEqual(["iku"]);
+  });
+
+  it("⚠️ LE CAS QUI PASSE — au dîner, elle est là", () => {
+    // Sans ce cas, une règle qui l'effacerait de TOUS les repas ressemblerait
+    // trait pour trait à la règle juste.
+    const [group] = groupDayBySlot({
+      dishes: [dish({ slot: "dinner" })],
+      portions: [IKU, CHRISTELE],
+    });
+    expect(group.table[0].eaters.map((e) => e.name)).toEqual(["iku", "Christèle"]);
+  });
+
+  it("⛔ l'en-tête de la voie commune ne la nomme pas non plus", () => {
+    const [group] = groupDayBySlot({
+      dishes: [dish({ slot: "breakfast" })],
+      portions: [IKU, CHRISTELE],
+    });
+    expect(group.tableEaters.map((e) => e.name)).toEqual(["iku"]);
+    // ⚠️ ET « POUR LA TABLE » RESTE VRAI: à ce petit-déjeuner, iku EST toute
+    // la tablée. Compter sur le roster entier ferait dire « iku » là où « la
+    // table » est exact.
+    expect(group.tableIsEveryone).toBe(true);
+  });
+
+  it("⚠️ `null` = elle suit la maison, et elle est partout où la maison mange", () => {
+    // ⛔ ET SURTOUT PAS `[]`. Les deux se rendraient pareil si on les
+    // confondait, et une bouche muette disparaîtrait de tous ses repas.
+    const MUTE = person({ memberId: "mem-m", displayName: "Mute", eatingSlots: null });
+    const groups = groupDayBySlot({
+      dishes: [dish({ slot: "breakfast" }), dish({ slot: "dinner" })],
+      portions: [IKU, MUTE],
+    });
+    for (const g of groups) {
+      expect(g.table[0].eaters.map((e) => e.name)).toEqual(["iku", "Mute"]);
+    }
+  });
+
+  it("⚠️ un plat SANS moment ne filtre personne", () => {
+    // Des plans anciens en portent; répondre « personne ne mange ça » les
+    // viderait.
+    const [group] = groupDayBySlot({
+      dishes: [dish({ slot: null })],
+      portions: [IKU, CHRISTELE],
+    });
+    expect(group.table[0].eaters).toHaveLength(2);
+  });
+});
+
+describe("2026-08-19 · deux plats de table au même moment ⇒ silence", () => {
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * ⛔ MESURÉ À L'ÉCRAN. Au déjeuner: « Poulet rôti, courgette, aubergine » ET
+   * « Thon, tomates, concombre » — les deux SANS `member_id`. Les pastilles
+   * ont nommé iku ET Christèle sous LES DEUX. Or iku mange le poulet: la
+   * salade est le repas à part de Christèle, que le modèle n'a pas attribué.
+   * L'écran affirmait donc que chacun mange deux déjeuners.
+   *
+   * « Sous thon tomates, il y avait marqué iku alors qu'il mange déjà Poulet
+   * rôti, courgette, aubergine et pain. »
+   */
+  it("⛔ aucun marqueur quand deux plats communs se disputent le moment", () => {
+    const [group] = groupDayBySlot({
+      dishes: [
+        dish({ slot: "lunch", title: "Poulet rôti" }),
+        dish({ slot: "lunch", title: "Thon, tomates" }),
+      ],
+      portions: [ZOE, KID],
+    });
+    expect(group.table).toHaveLength(2);
+    for (const entry of group.table) {
+      expect(entry.eaters, `« ${entry.dish.title} » nomme quelqu'un`).toEqual([]);
+    }
+    // L'en-tête de voie non plus: deux réponses à « qui mange ce déjeuner »
+    // seraient pires qu'aucune.
+    expect(group.tableEaters).toEqual([]);
+  });
+
+  /**
+   * ⚠️ LE CAS QUI PASSE, ET IL EST LE CHEMIN MAJORITAIRE. Sans lui, une règle
+   * qui effacerait TOUS les marqueurs ressemblerait trait pour trait à la
+   * règle juste.
+   */
+  it("⚠️ un seul plat commun ⇒ les marqueurs reviennent", () => {
+    const [group] = groupDayBySlot({
+      dishes: [dish({ slot: "lunch" })],
+      portions: [ZOE, KID],
+    });
+    expect(group.table[0].eaters.map((e) => e.name)).toEqual(["Zoé", "Kid"]);
+    expect(group.tableEaters).toHaveLength(2);
+  });
+
+  /**
+   * ⚠️ ET UN PLAT ATTRIBUÉ NE REND RIEN AMBIGU. Un plat commun + le plat dédié
+   * d'une bouche est exactement le cas que le lot 3 existe pour rendre
+   * lisible: on sait qui mange quoi, donc on le dit.
+   */
+  it("⚠️ un commun + un DÉDIÉ reste nommé — l'ambiguïté vient des non-attribués", () => {
+    const [group] = groupDayBySlot({
+      dishes: [
+        dish({ slot: "lunch" }),
+        dish({ slot: "lunch", member_id: "mem-zoe" }),
+      ],
+      portions: [ZOE, KID],
+    });
+    expect(group.table[0].eaters.map((e) => e.name)).toEqual(["Kid"]);
+    expect(group.people[0].entries[0].eaters.map((e) => e.name)).toEqual(["Zoé"]);
+  });
+});
+
+describe("2026-08-19 · « pour la table » n'est dit que si la table entière y mange", () => {
+  it("rien de dédié ⇒ tout le monde mange le plat commun", () => {
+    const [group] = groupDayBySlot({
+      dishes: [dish()],
+      portions: [ZOE, KID],
+    });
+    expect(group.tableIsEveryone).toBe(true);
+    expect(group.tableEaters.map((e) => e.name)).toEqual(["Zoé", "Kid"]);
+  });
+
+  it("⛔ une bouche à part ⇒ la casserole commune n'est PLUS la table", () => {
+    // C'est le défaut mesuré: sur un foyer de deux, « pour la table »
+    // désignait UNE personne.
+    const [group] = groupDayBySlot({
+      dishes: [dish(), dish({ member_id: "mem-zoe" })],
+      portions: [ZOE, KID],
+    });
+    expect(group.tableIsEveryone).toBe(false);
+    expect(group.tableEaters.map((e) => e.name)).toEqual(["Kid"]);
+  });
+
+  it("⚠️ chaque bouche à part ⇒ plus personne à nommer, et l'écran retombe sur « la table »", () => {
+    const [group] = groupDayBySlot({
+      dishes: [dish(), dish({ member_id: "mem-zoe" }), dish({ member_id: "mem-kid" })],
+      portions: [ZOE, KID],
+    });
+    expect(group.tableEaters).toEqual([]);
+    expect(group.tableIsEveryone).toBe(false);
+  });
+
+  it("⛔ sans part connue, on n'affirme RIEN — le chemin individuel", () => {
+    const [group] = groupDayBySlot({
+      dishes: [dish()],
+      portions: [],
+    });
+    // ⚠️ `tableIsEveryone` DOIT être faux ici. Sans le membre `withShares` de
+    // la condition, `0 === 0` le rendrait VRAI et l'écran affirmerait « pour
+    // la table » sur un plan qui ne connaît aucune bouche.
+    expect(group.tableIsEveryone).toBe(false);
+    expect(group.tableEaters).toEqual([]);
+  });
+});
+
 describe("LOT 3 · l'ordre des moments, et rien de perdu", () => {
   it("les moments sortent dans l'ordre de la JOURNÉE, pas dans celui du modèle", () => {
-    const groups = groupDayBySlot({ preparations: [],
+    const groups = groupDayBySlot({
       dishes: [
         dish({ slot: "dinner", title: "Chicken" }),
         dish({ slot: "breakfast", title: "Yogurt" }),
@@ -152,7 +395,7 @@ describe("LOT 3 · l'ordre des moments, et rien de perdu", () => {
   it("⚠️ un moment INCONNU passe en queue, et un plat sans moment ferme la marche", () => {
     // `snack` n'est plus proposé, et des plats en base le portent: l'écarter
     // ferait disparaître un plat d'un plan vivant.
-    const groups = groupDayBySlot({ preparations: [],
+    const groups = groupDayBySlot({
       dishes: [
         dish({ slot: "snack" as GeneratedDish["slot"], title: "Nuts" }),
         dish({ slot: null, title: "Water" }),
@@ -182,28 +425,69 @@ describe("LOT 3 · les parts, sous le plat qu'elles servent", () => {
   });
 
   it("⛔ la part de chaque bouche se lit SOUS le plat, jointe par `preparation_id`", () => {
-    const [group] = groupDayBySlot({ preparations: [],
+    const [group] = groupDayBySlot({
       dishes: [bowls],
       portions: [zoeShare, kidShare],
     });
+    // ⛔ `toEqual` EXACT, ET C'EST LA CEINTURE DU 2026-08-20. La ligne portait
+    // `boxGrams` — la part de cette bouche dans la boîte du repas, rendue à
+    // côté de son prénom sur la carte du plat. v4 l'a retirée: le contenant EST
+    // la portion, et un gramme au moment du repas ferait ressortir la balance à
+    // table. Un `toMatchObject` laisserait ce champ revenir sans un rouge; ce
+    // `toEqual`-ci refuse TOUT champ de plus sur une ligne de part.
     expect(group.table[0].shares).toEqual([
-      // LOT 4 — `boxGrams` est vide ici, et c'est le CAS QUI PASSE: aucune
-      // préparation n'a de boîte dans cette fixture, donc la part reste la
-      // phrase seule, exactement comme avant ce lot.
-      { memberId: "mem-zoe", name: "Zoé", note: "2 portions of chicken", boxGrams: [] },
-      {
-        memberId: "mem-kid",
-        name: "Kid",
-        note: "1 small portion of chicken",
-        boxGrams: [],
-      },
+      { memberId: "mem-zoe", name: "Zoé", note: "2 portions of chicken" },
+      { memberId: "mem-kid", name: "Kid", note: "1 small portion of chicken" },
     ]);
+  });
+
+  it("⛔ v4 — UN PLAT QUI PORTE DES CONTENANTS N'A PLUS DE PHRASE DE TABLE", () => {
+    // ══════════════════════════════════════════════════════════════════════
+    // CE QUI A ÉTÉ VU À L'ÉCRAN LE 2026-08-20, ET QUI A DÉCIDÉ.
+    // ══════════════════════════════════════════════════════════════════════
+    // Sous une carte dont le couvercle disait `iku — Vendredi Déjeuner` — UN
+    // seul nom, donc la portion d'iku — la phrase de table écrivait
+    // « Christèle : prendre la boîte PARTAGÉE avec iku ». Le nombre de noms
+    // sur le couvercle EST le marqueur de v4, et la prose disait l'inverse.
+    //
+    // ⛔ CE N'EST PAS UNE RÉPÉTITION QU'ON RANGE, C'EST UNE SECONDE AUTORITÉ
+    // QU'ON SUPPRIME: une phrase peut contredire un contenant sans qu'aucun
+    // compteur ne bouge, et c'est elle qu'on croit — elle est en français.
+    const [group] = groupDayBySlot({
+      dishes: [{
+        ...bowls,
+        boxes: [{
+          id: "box_fri_dinner_zoe",
+          member_ids: ["mem-zoe"],
+          items: [{ preparation_id: "prep_chicken", term: "poulet rôti", grams: 140 }],
+          legacy_total_grams: null,
+        }],
+      }],
+      portions: [zoeShare, kidShare],
+    });
+    expect(group.table[0].shares).toEqual([]);
+    // ⚠️ ET LES PASTILLES DE PRÉNOMS RESTENT: « ce plat est-il pour moi ? » est
+    // une autre question que « que dois-je faire », et le couvercle n'y répond
+    // que pour ceux qu'il nomme.
+    expect(group.table[0].eaters.map((e) => e.memberId)).toEqual(["mem-zoe", "mem-kid"]);
+  });
+
+  it("⚠️ ET SEULEMENT LÀ — sans contenant, la phrase reste la SEULE instruction", () => {
+    // ⛔ LA MOITIÉ QUI EMPÊCHE LA GARDE D'AVALER TOUT LE MONDE. Un plat
+    // cuisiné de zéro le jour même n'a aucun contenant: retirer sa phrase
+    // rendrait le jour muet sur qui prend quoi. Sans ce cas, un filtre cassé
+    // qui viderait TOUTES les parts passerait pour un filtre qui marche.
+    const [group] = groupDayBySlot({
+      dishes: [bowls],
+      portions: [zoeShare, kidShare],
+    });
+    expect(group.table[0].shares.map((s) => s.memberId)).toEqual(["mem-zoe", "mem-kid"]);
   });
 
   it("⚠️ LE SILENCE EST VOULU — un plat qui ne puise dans rien n'a aucune ligne", () => {
     // Le petit-déjeuner se fait de zéro: aucune bouche n'a de part pour lui.
     // Fabriquer « comme la table » ferait dire au moteur ce qu'il n'a pas dit.
-    const [group] = groupDayBySlot({ preparations: [],
+    const [group] = groupDayBySlot({
       dishes: [dish()],
       portions: [zoeShare, kidShare],
     });
@@ -211,7 +495,7 @@ describe("LOT 3 · les parts, sous le plat qu'elles servent", () => {
   });
 
   it("une bouche sans part pour CE lot n'a pas de ligne, les autres si", () => {
-    const [group] = groupDayBySlot({ preparations: [],
+    const [group] = groupDayBySlot({
       dishes: [bowls],
       portions: [zoeShare, person({ memberId: "mem-kid", displayName: "Kid" })],
     });
@@ -237,7 +521,7 @@ describe("LOT 3 · les parts, sous le plat qu'elles servent", () => {
   });
 
   it("un plat DÉDIÉ porte la part du lot qu'il prélève, pour SA bouche", () => {
-    const [group] = groupDayBySlot({ preparations: [],
+    const [group] = groupDayBySlot({
       dishes: [{ ...bowls, member_id: "mem-zoe" }],
       portions: [zoeShare, kidShare],
     });
@@ -261,7 +545,7 @@ describe("LOT 3 · les parts, sous le plat qu'elles servent", () => {
    * `buildPersonWeek` corrigé par le troisième commit de ce lot.
    */
   it("⛔ au moment où une bouche a SON plat, elle sort des parts de la table", () => {
-    const [group] = groupDayBySlot({ preparations: [],
+    const [group] = groupDayBySlot({
       dishes: [bowls, { ...bowls, title: "Zoé's bowl", member_id: "mem-zoe" }],
       portions: [zoeShare, kidShare],
     });
@@ -275,7 +559,7 @@ describe("LOT 3 · les parts, sous le plat qu'elles servent", () => {
   it("⚠️ LE CAS QUI PASSE — sans plat dédié, la table garde TOUTES ses parts", () => {
     // Sans ce cas, une règle qui couperait toutes les parts ressemblerait
     // trait pour trait à la règle juste: c'est le chemin majoritaire.
-    const [group] = groupDayBySlot({ preparations: [],
+    const [group] = groupDayBySlot({
       dishes: [bowls],
       portions: [zoeShare, kidShare],
     });
@@ -285,7 +569,7 @@ describe("LOT 3 · les parts, sous le plat qu'elles servent", () => {
   it("⚠️ un plat dédié à une bouche que le plan ne nomme plus ne porte AUCUNE part", () => {
     // Aucune bouche nommée ne le mange; lui prêter les parts de la table
     // dirait de lui une chose fausse.
-    const [group] = groupDayBySlot({ preparations: [],
+    const [group] = groupDayBySlot({
       dishes: [{ ...bowls, member_id: "mem-parti" }],
       portions: [zoeShare, kidShare],
     });

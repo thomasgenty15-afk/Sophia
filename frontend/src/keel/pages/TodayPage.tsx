@@ -81,6 +81,7 @@ import {
 import { useMealEnergy } from "../lib/useMealEnergy";
 import KeelAppShell from "../components/KeelAppShell";
 import KitchenToday from "../components/KitchenToday";
+import { boxLinesForDish } from "../lib/mealBoxes";
 import { Badge } from "../components/ui/Badge";
 import { Button, ButtonLink } from "../components/ui/Button";
 import { Card, SectionLabel } from "../components/ui/Card";
@@ -303,6 +304,18 @@ function OwnDay({
                     dish={dish}
                     tick={ticks.bind(dish, todayDate)}
                     energy={energy.showing ? energy.forDish(dish) : null}
+                    // ── LE COUVERCLE, LE JOUR OÙ ON L'OUVRE ─────────────────
+                    // C'est l'écran du jour J: la boîte de ce repas est ce qu'on
+                    // sort du frigo, et c'est là qu'on lit sa part. Résolue ici
+                    // (la carte ne reçoit pas les parts et n'ira pas les
+                    // chercher: deux lecteurs du même plan finissent par se
+                    // contredire).
+                    boxes={boxLinesForDish(dish, meals?.memberPortions ?? [])}
+                    // ⚠️ LA PASTILLE RESTE ICI. `/app/plan` a des SECTIONS par
+                    // moment depuis le 2026-08-19 et n'en a plus besoin; cette
+                    // liste-ci est plate — sans la pastille, rien ne dirait
+                    // lequel de ces plats est le petit-déjeuner.
+                    slotBadge
                   />
                 ))}
               </div>
@@ -327,6 +340,10 @@ function OwnDay({
                     dish={dish}
                     tick={ticks.bind(dish, todayDate)}
                     energy={energy.showing ? energy.forDish(dish) : null}
+                    // Le couvercle, comme sur la liste du jour juste au-dessus.
+                    boxes={boxLinesForDish(dish, meals?.memberPortions ?? [])}
+                    // Liste plate, comme celle du jour juste au-dessus.
+                    slotBadge
                   />
                 ))}
               </div>

@@ -11,7 +11,14 @@
 
 ## 1. Qui on sert, en une phrase
 
-> ### Les foyers dont les membres ont des contraintes alimentaires différentes, et qui veulent gagner du temps sur la planification et la préparation de repas qui conviennent à chacun.
+> ### Les foyers avec au moins un enfant, où l'on cuisine le soir, et où tout le monde ne mange pas la même chose — et où une personne porte seule la charge de le faire tenir.
+
+Trois qualifieurs, et ils se posent **dans cet ordre** (§2.3). Le troisième est
+notre avantage ; les deux premiers décident simplement s'il y a un usage.
+
+**Aucune limite sur le nombre d'enfants** — le produit tient jusqu'à **8 bouches**
+au total, maître compris (`HOUSEHOLD_MAX_MOUTHS`, `onboarding.ts:847`). Plus il y
+a d'enfants, plus la divergence est forte, et moins un concurrent sait faire.
 
 Et le créneau, en une phrase :
 
@@ -65,11 +72,66 @@ Trois raisons, et la troisième est la vraie.
 > elle ne s'abandonne pas, elle vient avec des communautés denses. On la traite comme
 > telle. **On ne la chasse plus.**
 
-### 2.3 La question de recrutement
+### 2.3 Le filtre de recrutement — trois questions, dans cet ordre
 
-> *« Chez vous, est-ce que tout le monde mange la même chose ? »*
+| | La question | Ce qu'elle écarte | Pourquoi elle est à ce rang |
+|---|---|---|---|
+| **1** | *« Le soir, vous cuisinez chez vous ? »* | ceux qui commandent ou assemblent | **aucun usage du produit.** Une famille de quatre qui commande trois soirs sur sept n'a que faire d'une session de cuisine, quelles que soient ses contraintes |
+| **2** | *« Il y a des enfants à la maison ? »* | les couples d'adultes, les colocations | **l'enfant est le générateur de divergence.** Un couple a négocié sa bouffe pendant des années et s'en arrange. Un enfant ne négocie pas : il refuse, il a d'autres portions, un autre rythme — et il grandit, donc ça bouge tout seul |
+| **3** | *« Tout le monde mange la même chose ? Combien de raisons font que non ? »* | ceux qui n'ont qu'une contrainte | c'est là qu'est notre avantage (§2.1) |
 
-Puis, la seule qui décide : **combien de raisons différentes font que non ?**
+**Trente secondes, et on sait si la conversation continue.**
+
+> ### ⚠️ « Tout le monde mange pareil » est un FAUX NÉGATIF
+>
+> C'est le piège de la question 3 au présent, et il porte sur exactement la
+> population qu'on cherche.
+>
+> Un foyer aplatit sa table **parce que la divergence est trop chère à produire**
+> quand on cuisine seul, le soir, pour tout le monde. « Oui, on mange tous
+> pareil » veut donc souvent dire **« on a renoncé »** — et la question, posée au
+> présent, le compte comme « pas de problème ».
+>
+> **La formulation qui débloque est le contrefactuel :**
+>
+> > *« Si chacun mangeait vraiment ce qui lui convient, ce serait le même plat
+> > pour tout le monde ? »*
+>
+> Celui qui a renoncé répond « ah non, clairement pas » — alors qu'il aurait dit
+> « oui » à la version au présent.
+>
+> **Conséquence sur le marché (§7) :** la cible est plus large que le nombre de
+> foyers qui divergent *aujourd'hui*, parce qu'une part d'entre eux ne diverge pas
+> encore **faute de pouvoir se le permettre**. C'est aussi la meilleure preuve que
+> le produit crée de la valeur au lieu de la constater.
+
+### ⚠️ « Trois personnes ou plus » serait un mauvais qualifieur
+
+C'est le nombre de têtes qui est trompeur, pas l'intuition. Le seuil correct est
+**la présence d'un enfant**, et la différence n'est pas théorique :
+
+- **Un parent seul avec un enfant, c'est DEUX personnes** — et c'est probablement
+  le foyer le plus qualifié du marché : un enfant qui diverge, **personne avec qui
+  partager la cuisine**, et la pression de temps maximale. Un seuil à trois
+  l'écarterait.
+- **Trois adultes en colocation, c'est trois personnes** — et ce n'est pas notre
+  cible du tout.
+
+### Et une distinction sur « cuisiner » qui change la cible
+
+Cuisiner, ici, ce n'est pas la gastronomie : le produit porte un réglage de
+difficulté et un temps disponible. Quelqu'un qui fait des pâtes et une salade
+cuisine.
+
+> **Ce n'est pas le passionné qu'on vise, c'est l'obligé.**
+> Celui qui aime cuisiner résiste à un plan qui lui dit quoi faire — on lui retire
+> son plaisir. Celui qui cuisine **parce qu'il faut bien**, tous les soirs, depuis
+> des années, c'est celui qui achète.
+
+D'où une formulation de la question 1 qui trie mieux que « est-ce que vous
+cuisinez ? » :
+
+> *« Le soir, c'est plutôt un moment que vous aimez, ou un truc à expédier ? »*
 
 ---
 
@@ -218,16 +280,25 @@ Le nouveau qualifieur (≥ 2 contraintes simultanées) n'a **aucune source publi
 personne ne mesure « part des foyers dont les membres ont deux contraintes alimentaires
 différentes ». On ne va donc pas l'inventer.
 
+**Et le qualifieur « au moins un enfant » (§2.3) change la base de calcul.** Ce
+n'est plus un plafond arithmétique lointain : c'est la **définition** du segment,
+qu'on filtre ensuite deux fois.
+
 | | Chiffre | Statut |
 |---|---|---|
-| Plancher — contrainte médicale non négociable | 1 à 1,5 M de foyers | **sourcé** (INSEE, ELFE, SPF) |
-| Plafond arithmétique — familles avec au moins un enfant mineur | 7,9 M de foyers | **sourcé** (INSEE 2022) |
-| Notre cible réelle | entre les deux | **à mesurer** |
+| **La base** — familles avec au moins un enfant mineur au domicile | **7,9 M de foyers** | **sourcé** (INSEE 2022) |
+| × celles où **on cuisine le soir** | ? | **à mesurer** — question 1 |
+| × celles où **≥ 2 contraintes divergent** | ? | **à mesurer** — question 3 |
+| *(pour mémoire)* dont contrainte médicale non négociable | 1 à 1,5 M | sourcé — notre meilleure cohorte, plus notre qualifieur |
 
-**Et elle se mesure sans étude de marché.** La question de recrutement pose déjà le
-compte de contraintes. Les 10 premiers foyers donnent le ratio : sur 10 foyers
-approchés au hasard dans une sortie d'école, combien en ont deux ou plus ? C'est un
-chiffre qu'on aura avant la fin du mois, et il vaut mieux qu'une estimation.
+**Les deux inconnues se mesurent en une matinée, et sans étude de marché** — parce
+que **le filtre de recrutement EST l'entonnoir de dimensionnement**. Les trois
+questions du §2.3, posées cinquante fois à un marché ou une sortie d'école,
+rendent les deux taux qui manquent.
+
+> **À noter pour chaque foyer abordé, même ceux qui refusent la conversation :**
+> cuisine-t-il ? a-t-il des enfants ? combien de raisons de divergence ?
+> Trois chiffres, gratuits, que personne ne publie.
 
 ---
 

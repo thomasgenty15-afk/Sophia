@@ -1,0 +1,326 @@
+{
+    "envy": [
+        {
+            "body": "the house is dreaming of a pistachio and lemon traybake on Sunday",
+            "week": "2026-08-17"
+        }
+    ],
+    "members": [
+        {
+            "body": {
+                "gender": "male",
+                "height_cm": 183.0,
+                "weight_kg": 79.0,
+                "activity_level": "on_feet"
+            },
+            "diet": null,
+            "goal": null,
+            "role": "owner",
+            "habits": {
+                "note": "eats standing at the window",
+                "slots": [
+                    {
+                        "kind": "own_usual",
+                        "slot": "breakfast",
+                        "usual": "a spoonful of pistachio butter on toast"
+                    }
+                ]
+            },
+            "age_state": "adult",
+            "allergies": [
+                "celeriac"
+            ],
+            "away_days": [
+            ],
+            "member_id": "85acac95-312b-4d0e-a4da-02558e8a182f",
+            "birth_date": "1988-04-03",
+            "first_name": "Odalric",
+            "work_lunch": null,
+            "has_account": true,
+            "target_pace": null,
+            "restrictions": null,
+            "eating_rhythm": null,
+            "target_weight_kg": null
+        },
+        {
+            "body": {
+                "gender": "female",
+                "height_cm": 152.0,
+                "weight_kg": 47.0,
+                "activity_level": "sedentary"
+            },
+            "diet": null,
+            "goal": "muscle_gain",
+            "role": "member",
+            "habits": {
+                "note": "will not eat anything the colour of a carrot",
+                "slots": [
+                ]
+            },
+            "age_state": "adult",
+            "allergies": [
+                "pistachio"
+            ],
+            "away_days": [
+            ],
+            "member_id": "65eb7490-adae-40c2-8b43-b10a0cc0ab05",
+            "birth_date": "1992-06-17",
+            "first_name": "Peregrine",
+            "work_lunch": null,
+            "has_account": false,
+            "target_pace": null,
+            "restrictions": [
+                "fennel"
+            ],
+            "eating_rhythm": [
+                {
+                    "size": "medium",
+                    "slot": "breakfast"
+                },
+                {
+                    "size": "large",
+                    "slot": "lunch"
+                },
+                {
+                    "size": "medium",
+                    "slot": "dinner"
+                }
+            ],
+            "target_weight_kg": null
+        },
+        {
+            "body": {
+                "gender": "male",
+                "height_cm": 122.0,
+                "weight_kg": 23.0,
+                "activity_level": "on_feet"
+            },
+            "diet": null,
+            "goal": null,
+            "role": "member",
+            "habits": {
+                "note": "only eats bread with the crust cut off",
+                "slots": [
+                ]
+            },
+            "age_state": "minor",
+            "allergies": null,
+            "away_days": [
+                {
+                    "day": "sat",
+                    "kind": "away",
+                    "slots": [
+                        "dinner"
+                    ]
+                }
+            ],
+            "member_id": "f190856d-d573-42e9-a026-b6a37b9f7471",
+            "birth_date": "2019-03-04",
+            "first_name": "Wilfrid",
+            "work_lunch": null,
+            "has_account": false,
+            "target_pace": null,
+            "restrictions": null,
+            "eating_rhythm": [
+                {
+                    "size": "medium",
+                    "slot": "breakfast"
+                },
+                {
+                    "size": "large",
+                    "slot": "lunch"
+                },
+                {
+                    "size": "medium",
+                    "slot": "dinner"
+                }
+            ],
+            "target_weight_kg": null
+        },
+        {
+            "body": {
+                "gender": "male",
+                "height_cm": 178.0,
+                "weight_kg": 70.0,
+                "activity_level": "on_feet"
+            },
+            "diet": null,
+            "goal": null,
+            "role": "member",
+            "habits": {
+                "note": "puts hot sauce on everything",
+                "slots": [
+                ]
+            },
+            "age_state": "minor",
+            "allergies": null,
+            "away_days": [
+            ],
+            "member_id": "536e683d-64a8-4dc2-a69b-6ee1925b206c",
+            "birth_date": "2010-02-11",
+            "first_name": "Casimir",
+            "work_lunch": null,
+            "has_account": false,
+            "target_pace": null,
+            "restrictions": null,
+            "eating_rhythm": [
+                {
+                    "size": "medium",
+                    "slot": "breakfast"
+                },
+                {
+                    "size": "large",
+                    "slot": "lunch"
+                },
+                {
+                    "size": "medium",
+                    "slot": "dinner"
+                }
+            ],
+            "target_weight_kg": null
+        }
+    ],
+    "doctrine": {
+        "foods": {
+            "discouraged": [
+                {
+                    "term": "breakfast cereal bar",
+                    "reason": "it is a biscuit wearing a tracksuit",
+                    "surface_forms": [
+                        "cereal bar",
+                        "breakfast bar"
+                    ]
+                }
+            ]
+        },
+        "beliefs": [
+            {
+                "key": "name_the_plate_out_loud",
+                "claim": "Every week starts with a plate you can name out loud, never with a number.",
+                "rationale": "a plate you can picture is a plate you will actually cook"
+            },
+            {
+                "key": "one_loud_vegetable",
+                "claim": "One loud vegetable on every plate, and it is the first thing in the basket.",
+                "rationale": "the basket decides the week, willpower does not"
+            },
+            {
+                "key": "starch_follows_the_session",
+                "claim": "On a muscle gain stretch the starch goes where the training is.",
+                "rationale": "an unfuelled session is a session paid for twice",
+                "goal_scope": [
+                    "muscle_gain"
+                ]
+            }
+        ],
+        "forbidden": [
+            {
+                "token": "plain_salad_dinners",
+                "reason": "a plate with nothing warm on it is a plate you leave hungry at ten",
+                "instead": "EVERY dinner carries one warm element, even in July: a broth, a roasted root, or a pan-warmed grain.",
+                "surface_forms": [
+                    "salad only dinner",
+                    "just a salad for dinner",
+                    "cold salad dinner",
+                    "light salad supper"
+                ]
+            },
+            {
+                "token": "weekend_batch_marathon",
+                "reason": "one Sunday of eight hours buys six days of grey boxes",
+                "instead": "We cook twice in the week, on the two days they already stand in that kitchen.",
+                "surface_forms": [
+                    "sunday meal prep",
+                    "batch cook the whole week",
+                    "cook everything on sunday"
+                ]
+            }
+        ],
+        "published_at": "2026-08-18T22:08:36.715592+00:00"
+    },
+    "household": {
+        "id": "aeceffed-dad1-4f1f-9087-424109642f1f",
+        "name": "Thelwall Cottage",
+        "reference_member_id": null
+    },
+    "owner_goals": {
+        "id": "23dcdba6-b0f2-4e90-a194-c8e34c4e97cc",
+        "goal": "muscle_gain",
+        "user_id": "1e000000-0000-4000-8000-000000000002",
+        "situation": "I share this kitchen with a lodger on Thursdays",
+        "aspiration": "Get back on the tandem with my father",
+        "created_at": "2026-08-18T22:09:24.959148+00:00",
+        "focus_axis": null,
+        "updated_at": "2026-08-18T22:09:24.959148+00:00",
+        "content_locale": "en-GB",
+        "target_waist_cm": null,
+        "target_weight_kg": 86,
+        "practical_constraints": {
+            "variety": "varied",
+            "cook_days": [
+                "tue",
+                "sat"
+            ],
+            "diet_asked": true,
+            "budget_amount": 152,
+            "eating_rhythm": [
+                {
+                    "size": "medium",
+                    "slot": "breakfast"
+                },
+                {
+                    "size": "large",
+                    "slot": "lunch"
+                },
+                {
+                    "size": "medium",
+                    "slot": "dinner"
+                }
+            ],
+            "cooking_time_min": 55,
+            "kitchen_equipment": [
+                "oven",
+                "stovetop",
+                "freezer",
+                "air_fryer",
+                "blender"
+            ],
+            "recipe_difficulty": "keen"
+        },
+        "target_pace_kg_per_week": 0.35
+    },
+    "owner_safety": [
+        {
+            "id": "c8f5d3f3-3d2a-4b25-9cdb-ca955bb079dd",
+            "kind": "allergy",
+            "notes": null,
+            "status": "active",
+            "user_id": "1e000000-0000-4000-8000-000000000002",
+            "diet_ref": null,
+            "severity": "medical",
+            "created_at": "2026-08-18T22:09:24.960203+00:00",
+            "updated_at": "2026-08-18T22:09:24.960203+00:00",
+            "declared_by": "student",
+            "allergen_ref": "celeriac",
+            "retracted_at": null,
+            "condition_ref": null,
+            "substance_ref": null,
+            "content_locale": "en-GB",
+            "medication_class": null,
+            "retracted_reason": null,
+            "source_message_id": null,
+            "superseded_by_constraint_id": null
+        }
+    ],
+    "owner_profile": {
+        "gender": "male",
+        "locale": "en-GB",
+        "country": "GB",
+        "timezone": "Europe/London",
+        "full_name": "Quenneville",
+        "height_cm": 183,
+        "birth_date": "1988-04-03",
+        "activity_level": "on_feet"
+    },
+    "owner_body_measures": null
+}

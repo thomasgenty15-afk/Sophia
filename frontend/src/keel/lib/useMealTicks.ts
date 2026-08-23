@@ -123,6 +123,28 @@ export function browserLocalDate(): string {
   return localDateIn(Intl.DateTimeFormat().resolvedOptions().timeZone);
 }
 
+/**
+ * LE DÉBUT DE FENÊTRE, RATTRAPÉ QUAND MINUIT EST PASSÉ.
+ *
+ * ── LE DÉFAUT, MESURÉ LE 2026-08-20 À 00h03 ───────────────────────────────
+ * `SetupPage` initialise son début de fenêtre par `browserLocalDate()` DANS un
+ * `useState`, donc évalué **une seule fois, au montage**. Un onglet laissé
+ * ouvert la veille tient encore le 19 quand le serveur, qui lit le MÊME fuseau,
+ * est déjà au 20. `resolveRequestedWindow` refuse alors un début dans le passé
+ * (`bad_window`, HTTP 400), et l'écran rend « Ces jours n'ont pas pu être
+ * lus » — un message qui parle des JOURS alors que le défaut est une HORLOGE.
+ *
+ * ⚠️ SEUL LE PASSÉ EST CORRIGÉ, JAMAIS L'AVENIR. Une fenêtre posée plus loin
+ * volontairement (« je pars jeudi, fais-moi trois jours ») est une décision, et
+ * la déplacer au prétexte d'un rafraîchissement la prendrait des mains de la
+ * personne.
+ *
+ * PURE: aucune horloge lue ici — `today` est passé, pour que la règle se teste.
+ */
+export function catchUpWindowStart(current: string, today: string): string {
+  return current < today ? today : current;
+}
+
 /** Le jour de la semaine, dans cette même horloge. */
 export function browserDayToken(): DayToken {
   return dayTokenOf(browserLocalDate());

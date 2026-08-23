@@ -202,6 +202,20 @@ function readIngredient(raw: unknown): CompositionInput | null {
     state: (COMPOSITION_STATES as readonly string[]).includes(state)
       ? (state as CompositionState)
       : null,
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ LOT `L-1-b` · LA SECONDE COPIE DE LA QUANTITÉ — 2026-08-22
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ TRANSMISE, PAS INTERPRÉTÉE. `resolveIngredients` ne la lit QUE lorsque
+    // la copie structurée ci-dessus a rendu `null`, et la lecture elle-même est
+    // dans `quantity_from_prose.ts`: un nombre suivi d'un symbole de mesure
+    // ancré des deux bouts, ou rien. Aucun mot n'est lu.
+    //
+    // ⛔ C'EST LE CHEMIN QUI FAIT BOUGER LE CORPUS DÉJÀ ÉCRIT. `grams_raw` est
+    // FIGÉ à la génération; cette lane recalcule sur l'index d'aujourd'hui.
+    // Sans cette ligne, 3 833 lignes de plans existants continueraient d'être
+    // comptées « sans quantité » alors que leur masse est écrite en clair.
+    quantity: typeof i.quantity === "string" ? i.quantity : null,
   };
 }
 
@@ -759,6 +773,21 @@ Deno.serve(async (req) => {
           // se choisit sur `isMinor`, juste en dessous.
           ageYears: usableAge(ageVerdict),
           activityLevel,
+          // ── ⚠️ LES DEUX AXES NE SONT PAS COLLECTÉS SUR CETTE LANE ────────
+          // Le lot du 2026-08-20 pose la journée et le sport sur la FICHE d'une
+          // bouche de foyer (`household_member_bodies`). Cette lane-ci lit
+          // `profiles.activity_level` — le cran mélangé —, et l'entonnoir solo
+          // ne pose pas encore les deux questions. `asked: false` est donc la
+          // vérité: personne n'a rien demandé ici.
+          //
+          // ⛔ ET ON NE DÉRIVE RIEN DEPUIS LE CRAN. `activityFactorOf` retombe
+          // sur `activityLevel`, ce qui rend EXACTEMENT le nombre d'avant ce
+          // lot. Fabriquer une journée et un sport à partir de `trains_some`
+          // serait écrire un fait que personne n'a dit — la limite est nommée
+          // ici plutôt que comblée par une invention.
+          activityAxes: { day: null, sport: null, asked: false },
+          // ⑤ — pas collecté sur cette lane. `null` = x1,00, neutre vrai.
+          appetite: null,
         };
         const subject = {
           body: mouthBody,

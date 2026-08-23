@@ -61,6 +61,7 @@ const PROMPT_ARGS = {
   contentLocale: "en-US",
   budgetAmount: null,
   safetyConstraints: null,
+  safetyConstraintTable: null,
   body: null,
   focusAxis: null,
   dietBlock: "",
@@ -86,6 +87,8 @@ const PROMPT_ARGS = {
   dayProperties: [],
   merge: null,
   boxMemberIds: [],
+  weighedMemberIds: [],
+  boxMemberDiets: [],
 };
 
 type Tables = Record<string, Array<Record<string, unknown>>>;
@@ -161,18 +164,31 @@ Deno.test("le shaker d'Ana ne part pas chez Marc — l'eq(user_id) est appliqué
   assertEquals(got.intakes.filter((i) => i.label.startsWith("Marc")), []);
 });
 
-Deno.test("une bouche SANS COMPTE ne coûte aucune requête", async () => {
+Deno.test("⛔ une bouche SANS COMPTE a maintenant SON stock, donc SA requête", async () => {
+  // ── RENVERSÉ LE 2026-08-19 ────────────────────────────────────────────
+  // Ce cas gardait qu'une bouche sans compte ne coûtait RIEN: elle n'avait
+  // aucun apport possible, `fixed_intakes` vivant sur `user_id`. C'était vrai,
+  // et c'était le trou — un enfant, un conjoint saisi (le cas NOMINAL du
+  // foyer) ne pouvait pas déclarer un shaker. Demandé quatre fois par
+  // l'utilisateur le même jour.
+  //
+  // `household_members.fixed_intakes` (migration `20260819170000`) lui donne
+  // un domicile, et ce lecteur va le chercher. Une bouche sans compte coûte
+  // donc UNE requête, comme les autres — ce que ce test mesure maintenant.
+  //
+  // ⚠️ CE QUI RESTE GARDÉ EST LE DÉCOMPTE, et c'est ce qui compte: il reste un
+  // VRAI décompte, une lecture par bouche, sans requête cachée ni N+1.
   const onlyLeo = await loadHouseholdFixedIntakes(stubDb(goals()), {
     mouths: [MOUTHS[2]],
   });
-  assertEquals(onlyLeo.reads, 0);
+  assertEquals(onlyLeo.reads, 1);
   assertEquals(onlyLeo.intakes, []);
 
-  // Et le décompte est un VRAI décompte: deux comptes, deux allers-retours.
+  // Trois bouches, trois allers-retours — deux comptes et une ligne membre.
   const all = await loadHouseholdFixedIntakes(stubDb(goals()), {
     mouths: MOUTHS,
   });
-  assertEquals(all.reads, 2);
+  assertEquals(all.reads, 3);
 });
 
 // ---------------------------------------------------------------------------

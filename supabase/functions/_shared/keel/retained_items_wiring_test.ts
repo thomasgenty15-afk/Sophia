@@ -1,5 +1,7 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// LOT 1J — LE CÂBLAGE DE LA MÉMOIRE STRUCTURÉE, ÉPINGLÉ SUR LES TROIS LANES
+// LOT 1J — LE CÂBLAGE DE LA MÉMOIRE STRUCTURÉE, ÉPINGLÉ SUR LES LANES
+// (trois à l'origine; la lane WEEK-PLAN est partie avec sa fonction edge le
+//  2026-08-19 — le constat de mesure ci-dessous porte encore sur les trois)
 //
 // ⚠️ CE FICHIER EXISTE À CAUSE D'UNE MESURE, PAS D'UNE INTUITION. Un
 // vérificateur adversarial a neutralisé le câblage des trois générateurs —
@@ -196,7 +198,7 @@ function between(src: string, from: string, to: string): string {
 }
 
 // ---------------------------------------------------------------------------
-// LES ASSERTIONS COMMUNES AUX TROIS LANES
+// LES ASSERTIONS COMMUNES AUX LANES
 // ---------------------------------------------------------------------------
 
 /**
@@ -422,7 +424,7 @@ const CHANNEL_LIE_RETURNS: Cut = {
 const ORDER_BITES = "EST POSÉ APRÈS";
 
 // ---------------------------------------------------------------------------
-// LES TROIS LANES
+// LES LANES
 // ---------------------------------------------------------------------------
 
 type Lane = {
@@ -432,63 +434,20 @@ type Lane = {
   readonly cuts: readonly Cut[];
 };
 
-const WEEK_PLAN: Lane = {
-  lane: "week-plan",
-  rel: "generate-week-plan-v1/index.ts",
-  assertWired(src) {
-    assertBothStores(src, "week-plan");
-    assertSpeaksForIsNeverEmpty(src, "week-plan");
-    assertReadPrecedesReaders(src, "week-plan", [{
-      label: "constraintsForPrompt(",
-      at: (s) => firstCallSite(s, "constraintsForPrompt"),
-    }]);
-    assertNoChannelLie(src, "week-plan");
-    // LA DESTINATION DE CETTE LANE: la consigne de composition rejoint la clé
-    // `food_preferences` du jsonb sérialisé, et les DEUX rangs y vont. Ne
-    // porter que `written` laisserait tomber ce que le memorizer a retenu; ne
-    // porter que `remembered` laisserait tomber ce que la personne a TAPÉ.
-    const block = between(
-      src,
-      "const practicalConstraintsForPrompt =",
-      "const goal =",
-    );
-    assert(
-      block.includes("retainedComposition.written"),
-      "LANE WEEK-PLAN — les consignes ÉCRITES ne rejoignent plus le prompt: " +
-        "ce que la personne a tapé dans sa carte est lu, routé, compté… et jeté.",
-    );
-    assert(
-      block.includes("retainedComposition.remembered"),
-      "LANE WEEK-PLAN — les préférences RETENUES ne rejoignent plus le prompt.",
-    );
-  },
-  cuts: [
-    EMPTY_STORE,
-    DROP_NEXT_PLAN,
-    EMPTY_SPEAKS_FOR,
-    CHANNEL_LIE_RETURNS,
-    {
-      // ⚠️ L'ANCRE EST APRÈS L'APPEL, PAS APRÈS SA LIGNE D'OUVERTURE. Premier
-      // essai: `const practicalConstraintsForPrompt = (() => {` — le correctif
-      // atterrissait DANS l'IIFE, donc toujours AVANT `constraintsForPrompt(`,
-      // et la mutation ne mordait pas. Une mutation qui ne reproduit pas la
-      // régression fait passer l'épingle pour une garde qui marche.
-      name: "le correctif logistique passe sous `constraintsForPrompt`",
-      expects: ORDER_BITES,
-      apply: movePatchUnder("[FOOD_PREFERENCES_KEY]: [...lines, ...legacy],"),
-    },
-    {
-      name: "la composition ne rejoint plus le prompt",
-      expects: "les consignes ÉCRITES ne rejoignent plus le prompt",
-      apply: (src) => src.replace("...retainedComposition.written,", ""),
-    },
-    {
-      name: "seul le rang `written` rejoint le prompt",
-      expects: "les préférences RETENUES ne rejoignent plus le prompt",
-      apply: (src) => src.replace("...retainedComposition.remembered,", ""),
-    },
-  ],
-};
+// ---------------------------------------------------------------------------
+// LA LANE WEEK-PLAN EST PARTIE LE 2026-08-19, AVEC SA FONCTION EDGE
+// ---------------------------------------------------------------------------
+//
+// Il y avait ici un troisième objet `Lane` pointant
+// `generate-week-plan-v1/index.ts`. La fonction a été retirée: elle n'avait
+// aucun appelant vivant, donc `source()` ne pouvait plus l'ouvrir et les deux
+// tests générés pour elle levaient sur un fichier absent — pas sur la
+// propriété qu'ils gardaient.
+//
+// ⚠️ LE CÂBLAGE QU'ELLE ÉPINGLAIT (les DEUX magasins, `speaksFor` non vide,
+// la lecture avant ses lecteurs, l'absence de trace `next_plan_channel`) est
+// gardé à l'identique sur les deux lanes restantes, par les mêmes assertions
+// partagées. Ce sont les mêmes fonctions, appelées deux fois au lieu de trois.
 
 const MEAL: Lane = {
   lane: "meal",
@@ -743,7 +702,7 @@ const HOUSEHOLD: Lane = {
   ],
 };
 
-const LANES: readonly Lane[] = [WEEK_PLAN, MEAL, HOUSEHOLD];
+const LANES: readonly Lane[] = [MEAL, HOUSEHOLD];
 
 // ---------------------------------------------------------------------------
 // LES DEUX APPELS — le vrai fichier, puis la copie amputée
@@ -796,10 +755,10 @@ for (const lane of LANES) {
 }
 
 // ---------------------------------------------------------------------------
-// CE QUE LES TROIS LANES PARTAGENT, ÉPINGLÉ UNE FOIS
+// CE QUE LES LANES RESTANTES PARTAGENT, ÉPINGLÉ UNE FOIS
 // ---------------------------------------------------------------------------
 
-Deno.test("LES TROIS LANES — aucune ne relit `household_envy_submissions` pour ses `next_plan`", async () => {
+Deno.test("LES LANES — aucune ne relit `household_envy_submissions` pour ses `next_plan`", async () => {
   // Le magasin a DÉMÉNAGÉ (contrat §7.2): il vit dans
   // `practical_constraints.retained_next_plan`, lu par `user_id` SEUL, et le
   // solo est servi comme tout le monde. Un générateur qui rebrancherait le

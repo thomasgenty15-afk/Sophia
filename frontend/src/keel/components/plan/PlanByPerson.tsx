@@ -30,13 +30,54 @@
  * ── ⛔ LES GARDES D'AFFICHAGE, QUI SONT DES RÈGLES PRODUIT ────────────────
  *
  * 1. AUCUN OBJECTIF, AUCUN POIDS, AUCUNE CALORIE, AUCUN « POURQUOI » DE PART.
- *    `portion_note` est une INSTRUCTION DE SERVICE, garantie sans motif ni
- *    vocabulaire de corps par `sanitizePortionNote` côté serveur — c'est
- *    précisément ce qui permet de l'afficher devant toute la table.
- *    ⚠️ L'INSTRUCTION EST PUBLIQUE, LE MOTIF QUI LA PRODUIT NE L'EST PAS.
- *    (Règle recopiée de l'en-tête de `TableCard.tsx`, supprimée le 2026-08-14.
- *    Une règle dont le seul porteur disparaît est une règle qu'on
+ *    `portion_note` est une INSTRUCTION DE SERVICE. C'est la RÈGLE, et elle
+ *    reste. ⚠️ L'INSTRUCTION EST PUBLIQUE, LE MOTIF QUI LA PRODUIT NE L'EST
+ *    PAS. (Règle recopiée de l'en-tête de `TableCard.tsx`, supprimée le
+ *    2026-08-14. Une règle dont le seul porteur disparaît est une règle qu'on
  *    redécouvrira par un incident.)
+ *
+ *    ⛔ CE QUI SUIT A ÉTÉ CORRIGÉ LE 2026-08-19 (lot D) — CE COMMENTAIRE
+ *    PROMETTAIT UNE GARANTIE QUE LE CODE N'ARME PAS. Il disait
+ *    « garantie sans MOTIF ni vocabulaire de corps par `sanitizePortionNote`
+ *    côté serveur ». La moitié « vocabulaire de corps » est vraie; la moitié
+ *    « sans motif » ne l'est pas, et c'est la moitié qui rassure.
+ *
+ *    CE QUE `sanitizePortionNote` TIENT VRAIMENT: une LISTE FERMÉE de
+ *    vocabulaire de corps et d'objectif (`FORBIDDEN_PORTION_TERMS`,
+ *    `household_portions.ts`) — poids, maigrir, silhouette, calories/kcal/BMI,
+ *    taille et tour de taille possessifs, mesures, âge, sèche, le mot `régime`
+ *    lui-même, et les six valeurs de `MEMBER_GOALS`. Une note qui mord est mise
+ *    à `null`, jamais réécrite.
+ *
+ *    CE QU'ELLE NE TIENT PAS, mesuré le 2026-08-19 en appelant la fonction
+ *    directement, notes rendues INTACTES:
+ *      · « One ladle of the vegan chilli »            → passe
+ *      · « Serve her the pescatarian plate »          → passe
+ *      · « Half a portion of the halal chicken »      → passe
+ *      · « Give her the gluten-free pasta »           → passe
+ *      · « Keep the sesame away from her plate »      → passe
+ *    (contre-épreuve, la liste mord bien: « A smaller share, for her fat
+ *    loss » et « elle fait attention à son poids » sont mises à `null`.)
+ *
+ *    Autrement dit: le NOM d'un régime et une CONTRAINTE MÉDICALE ne sont pas
+ *    filtrés. Le mot `regime` est dans la liste, les régimes ne le sont pas.
+ *
+ *    ⚠️ CE QUE ÇA COÛTE À CETTE VUE, PRÉCISÉMENT — et c'est moins que la
+ *    phrase d'origine ne le laissait croire dans l'autre sens. Sur 101 plans
+ *    de foyer en base, 18 nomment un régime en clair; les 29 occurrences sont
+ *    TOUTES dans le champ `why` d'un plat (« A non-vegan plate for Roxane… »),
+ *    que cette vue ne rend PAS: `HouseholdDishView` ne le porte pas et
+ *    `DishListByDay` n'affiche que jour/moment/titre. ZÉRO occurrence dans les
+ *    336 `portion_note` de la base. Le trou est donc RÉEL et NON EXERCÉ ici:
+ *    rien ne l'empêche d'arriver, seul le modèle ne l'a pas encore écrit à cet
+ *    endroit-là — la forme exacte de faux vert que ce dépôt paie en boucle.
+ *
+ *    ⛔ N'ARME PAS LE FILTRE DEPUIS CETTE VUE. Un filtrage côté écran serait
+ *    une seconde garde, divergente de la première, et c'est celle qu'on relit
+ *    le moins qui déciderait. L'extension du verrou de sortie est un lot à part
+ *    (`applyKeelOutputLocks` ne reçoit aujourd'hui ni titres de préparation ni
+ *    `portion_note`), et elle doit porter la tolérance des négations — sans
+ *    elle, « Keep the sesame away » se ferait mordre par son propre allergène.
  *
  * 2. UN MINEUR N'A JAMAIS D'OBJECTIF AFFICHÉ, et la ceinture est STRUCTURELLE:
  *    les seules entrées de ce composant sont `MemberPortionView` et

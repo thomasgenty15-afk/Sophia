@@ -66,6 +66,9 @@ function spyWriters(
       addAllergy: make("addAllergy") as MouthWriters["addAllergy"],
       addRestriction: make("addRestriction") as MouthWriters["addRestriction"],
       setDiet: make("setDiet") as MouthWriters["setDiet"],
+      // Les moments, depuis le 2026-08-19: la question a quitté l'étape 3 pour
+      // la fiche. Branchée par défaut, même raison que le shaker.
+      setRhythm: make("setRhythm") as MouthWriters["setRhythm"],
       // D1 (2026-08-18) — LA SEPTIÈME PORTE. Le harnais la BRANCHE par défaut:
       // « appelée avec quoi » est le sujet des tests d'en bas, et « jamais
       // appelée sans shaker » n'a de sens que si elle était appelable.
@@ -91,6 +94,12 @@ const MOUTH: MouthToPersist = {
   weightKg: 60,
   gender: "female",
   activityLevel: "sedentary",
+  dayActivity: "seated",
+  sportFrequency: "1_2",
+  takesDessert: true,
+  takesCheese: false,
+  takesBread: null,
+  appetite: "large",
   targetWeightKg: 55,
   paceKgPerWeek: 0.45,
   habits: [{ slot: "breakfast", kind: "own_usual", usual: "une pomme" }],
@@ -124,6 +133,7 @@ describe("l'ordre des écritures est une garde", () => {
         "setHabits",
         "addAllergy",
         "addRestriction",
+        "setRhythm",
         "setDiet",
       ]);
     });
@@ -138,7 +148,27 @@ describe("l'ordre des écritures est une garde", () => {
     }) as MouthWriters["setBody"];
     await persistMouth(MOUTH, writers);
     expect(seen).toHaveLength(1);
-    expect(seen[0]).toEqual(["m-1", 165, 60, "female", "sedentary"]);
+    // ⚠️ LES CINQ QUESTIONS DU 2026-08-20 PARTENT DANS LE MÊME APPEL, et le
+    // test l'épingle pour la même raison que le cran: il n'y a qu'UNE porte de
+    // corps, et un second appel finirait par écraser ce que le premier écrit.
+    //
+    // ⛔ ET LES DEUX DRAPEAUX SONT `true`. Ils ne disent pas « elle a répondu »
+    // — `takesBread` vaut `null` juste au-dessus — mais « le pop-up a posé les
+    // questions ». C'est eux qui autorisent la base à écrire un `null`, donc à
+    // dé-répondre, et eux qui séparent `not_answered` de `not_asked`.
+    expect(seen[0]).toEqual(["m-1", 165, 60, "female", "sedentary", {
+      dayActivity: "seated",
+      sportFrequency: "1_2",
+      axesAsked: true,
+      takesDessert: true,
+      takesCheese: false,
+      takesBread: null,
+      structureAsked: true,
+      // ⑤ — même appel, même drapeau. Une seconde porte pour l'appétit
+      // finirait par écraser ce que celle-ci écrit.
+      appetite: "large",
+      appetiteAsked: true,
+    }]);
   });
 
   it("⚠️ il S'ARRÊTE à la première marche qui casse", async () => {
@@ -213,8 +243,11 @@ function argSpy(): {
   for (const door of Object.keys(writers) as (keyof MouthWriters)[]) {
     const inner = writers[door];
     if (inner === null) continue;
-    // deno-lint-ignore no-explicit-any
-    (writers as any)[door] = (...args: unknown[]) => {
+    const table = writers as unknown as Record<
+      string,
+      (...a: unknown[]) => unknown
+    >;
+    table[door] = (...args: unknown[]) => {
       seen.push({ door, args });
       return Promise.resolve(
         door === "addMember" ? { ...OK, member_id: "m-1" } : { ...OK },
@@ -262,6 +295,7 @@ describe("la marche 1 bis — une bouche qui EXISTE s'écrit quand même", () =>
       "setHabits",
       "addAllergy",
       "addRestriction",
+      "setRhythm",
       "setDiet",
     ]);
   });
@@ -418,6 +452,12 @@ describe("`draftFromKnown` — ce qui n'est pas semé est EFFACÉ au Save", () =
       weightKg: null,
       gender: null,
       activityLevel: null,
+      dayActivity: null,
+      sportFrequency: null,
+      takesDessert: null,
+      takesCheese: null,
+      takesBread: null,
+      appetite: null,
       habits: {},
     });
     // `String(null)` rendrait « null », `Number(null)` rendrait 0 — et un zéro

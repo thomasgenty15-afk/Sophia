@@ -94,9 +94,89 @@ export interface LoadedDoctrine {
   /** LA VARIANTE SERVIE. `null` = `default`. */
   goal: GoalToken | null;
   goalSource: DoctrineGoalSource;
+  /**
+   * LOT C ① — LE BLOC DES LIGNES QUI VISENT UNE **AUTRE** BOUCHE DE LA TABLE.
+   *
+   * `""` partout sauf sur un foyer dont une bouche porte un objectif que le
+   * titulaire n'a pas ET dont le coach a écrit quelque chose pour cet
+   * objectif-là. C'est-à-dire: `""` pour toute la lane individuelle, pour la
+   * conversation, pour les crons, et pour la majorité des foyers.
+   *
+   * ⚠️ IL EST RENDU À PART DE `compiled`, ET PAS CONCATÉNÉ DEDANS. `compiled`
+   * porte un `hash` qui est LA clé de cache et LE signal d'invalidation de la
+   * doctrine du coach; y coller un texte qui dépend de QUI est à table
+   * fabriquerait une clé par foyer pour une doctrine qui n'a pas bougé. La
+   * jonction se fait une seule fois, dans `doctrineBlockFor`.
+   */
+  tableScopeBlock: string;
+  /**
+   * LOT C ① — LES CROYANCES DE CE BLOC-LÀ, pour que `doctrineBeliefsFor` puisse
+   * les autoriser à la citation (`honours_belief_keys`).
+   *
+   * Sans elles, une ligne servie au modèle serait une ligne que le parseur
+   * refuse de laisser citer: le plan porterait la conviction sans pouvoir la
+   * tracer, et le CHECK `..._doctrine_traceable_check` la jetterait. Un bloc
+   * injecté dont les clés sont interdites est un bloc qu'on paie sans l'avoir.
+   */
+  tableScopeBeliefs: readonly DoctrineBelief[];
+}
+
+/**
+ * LOT C ① — UNE AUTRE BOUCHE À CETTE TABLE, ET L'OBJECTIF QU'ELLE PORTE.
+ *
+ * `who` est le PRÉNOM tel que le prompt le nomme déjà ailleurs (la liste d'ids,
+ * le brief de portions, les règles de maison). Il est passé par l'appelant et
+ * jamais relu ici: ce module ne connaît pas de foyer, il connaît des objectifs.
+ * L'y résoudre ferait une seconde définition de « comment s'appelle cette
+ * bouche », et ce dépôt a déjà payé deux prénoms pour une personne.
+ */
+export interface DoctrineTableMouth {
+  goal: GoalToken;
+  who: string;
 }
 
 export interface DoctrineLoadOptions {
+  /**
+   * ══════════════════════════════════════════════════════════════════════
+   * LOT C ① — LES AUTRES BOUCHES DE LA TABLE. MESURÉ LE 2026-08-19.
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ LE DÉFAUT QUE CE CHAMP FERME. La doctrine est compilée sur l'objectif du
+   * TITULAIRE DU COMPTE — c'est `student_goals.goal` que ce fichier lit trente
+   * lignes plus bas — et le foyer entier reçoit cette variante-là. Sur le foyer
+   * de l'étape ⑤ (titulaire en `fat_loss`, un athlète en `muscle_gain` à
+   * table), la croyance `starch_follows_the_session`, `goal_scope:
+   * ["muscle_gain"]`, était ABSENTE des 6 prompts sur 6:
+   *
+   *     == THE CONVICTION KEYS YOU MAY NAME ==
+   *     ["name_the_plate_out_loud","one_loud_vegetable"]
+   *
+   * La ligne que le coach a écrite EXPRÈS pour la prise de muscle n'atteint
+   * jamais le plan d'un foyer où quelqu'un prend du muscle, sauf si c'est le
+   * titulaire. Ce n'est pas un branchement mort — `goalScopeApplies` est bien
+   * appelé, 84 occurrences vivantes — c'est une PORTÉE MAL CHOISIE.
+   *
+   * ⚠️ CE N'EST PAS UNE SECONDE DOCTRINE, ET C'EST LA CONTRAINTE DURE. Un foyer
+   * suit UNE méthode, celle du référent: le coach, son bloc, sa voix, ses
+   * interdits et son nom ne bougent pas d'un octet. Ce qui suit la bouche est le
+   * FILTRE PAR OBJECTIF appliqué à ses croyances — rien d'autre.
+   *
+   * ⚠️ LES LIGNES AINSI RETROUVÉES NE REJOIGNENT PAS LE BLOC PRINCIPAL, elles
+   * partent dans une section À PART qui NOMME la bouche. Les fondre dans
+   * « WHAT THIS COACH BELIEVES » ferait appliquer à toute la table une ligne
+   * écrite pour un seul objectif — c'est-à-dire échanger une portée trop
+   * étroite contre une portée trop large, sur un prompt qui annonce déjà
+   * « goal: fat_loss » quinze lignes plus haut.
+   *
+   * ⚠️ OPTIONNEL, ET LE DÉFAUT EST LE COMPORTEMENT CORRECT — même arbitrage,
+   * mot pour mot, que `goalOverride` juste en dessous. Onze appelants sur douze
+   * n'ont pas de table: leur omission doit rendre le bloc d'AVANT ce lot, octet
+   * pour octet, et un test le tient. La lane qui en a une passe par
+   * `loadHouseholdDoctrine` (`household_doctrine.ts`), dont le paramètre est
+   * REQUIS — c'est là que la casse de compilation recense les appelants qui
+   * comptent.
+   */
+  tableGoals?: readonly DoctrineTableMouth[];
   /**
    * LE MODE TEST DU COACH — la variante qu'il veut éprouver.
    *
@@ -225,6 +305,92 @@ function exclusionBound(row: Record<string, unknown>): string {
 }
 
 /**
+ * ══════════════════════════════════════════════════════════════════════════
+ * LOT C ① — LA SECTION QUI REND SA LIGNE À LA BOUCHE QUI LA PORTE.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * Elle ne rend QUE ce que la variante du titulaire a laissé tomber: une entrée
+ * déjà gardée par `goalScopeApplies(scope, goal)` n'y entre jamais, sinon elle
+ * paraîtrait deux fois dans le même prompt, une fois pour tout le monde et une
+ * fois nommée — et le modèle lit une répétition comme une insistance.
+ *
+ * ⚠️ ELLE NOMME LA BOUCHE, ET C'EST TOUTE LA DIFFÉRENCE AVEC UN FILTRE ÉLARGI.
+ * « Sur une phase de prise de muscle l'amidon va où est l'entraînement » servi
+ * nu, dans un prompt qui annonce `goal: fat_loss` à la table, est une consigne
+ * que le modèle applique à la casserole commune. Servi comme
+ * `- Ivar (muscle_gain): …`, c'est une consigne qui a un destinataire, et le
+ * prompt nomme déjà Ivar quatre fois ailleurs avec le même prénom.
+ *
+ * ⚠️ LA DERNIÈRE PHRASE DU BLOC N'EST PAS DÉCORATIVE. Tout ce qui nomme une
+ * personne ET une raison finit, mesuré quatre runs sur quatre, dans un champ lu
+ * à voix haute à table (`dishes[].why`, `portion_note`). Le bloc porte donc son
+ * propre interdit de sortie, au plus près de ce qu'il autorise.
+ *
+ * ⚠️ AUCUN OBJECTIF N'EST DEVINÉ ICI. Les jetons arrivent déjà validés contre
+ * `GOAL_TOKENS` par leur lecteur (le roster, ou `student_goals`); ce module ne
+ * fait que grouper. Un `who` vide fait tomber la bouche — un bloc qui dirait
+ * « (muscle_gain): … » sans nom serait exactement la ligne anonyme qu'on
+ * remplace.
+ */
+export function tableScopeSection(
+  doctrine: CoachDoctrine,
+  goal: GoalToken | null,
+  tableGoals: readonly DoctrineTableMouth[],
+): { block: string; beliefs: DoctrineBelief[]; mouths: DoctrineTableMouth[] } {
+  const mouths: DoctrineTableMouth[] = [];
+  const seen = new Set<string>();
+  for (const raw of tableGoals) {
+    const who = String(raw?.who ?? "").trim().slice(0, 60);
+    const g = raw?.goal;
+    if (!who || !(GOAL_TOKENS as readonly string[]).includes(String(g))) continue;
+    // LA VARIANTE DU TITULAIRE COUVRE DÉJÀ CETTE BOUCHE: rien à rattraper.
+    if (g === goal) continue;
+    const key = `${g}|${who}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    mouths.push({ goal: g as GoalToken, who });
+  }
+  if (mouths.length === 0) return { block: "", beliefs: [], mouths: [] };
+
+  /** Qui, à cette table, rend cette portée applicable — dans l'ordre du roster. */
+  const carriers = (scope: readonly string[]): DoctrineTableMouth[] =>
+    mouths.filter((m) => goalScopeApplies(scope, m.goal));
+
+  const beliefs = doctrine.beliefs.filter(
+    (b) => !goalScopeApplies(b.goalScope, goal) && carriers(b.goalScope).length > 0,
+  );
+  const arbitrations = doctrine.arbitrations.filter(
+    (a) => !goalScopeApplies(a.goalScope, goal) && carriers(a.goalScope).length > 0,
+  );
+  if (beliefs.length === 0 && arbitrations.length === 0) {
+    return { block: "", beliefs: [], mouths };
+  }
+
+  const label = (scope: readonly string[]): string =>
+    carriers(scope).map((m) => `${m.who} (${m.goal})`).join(", ");
+
+  const lines: string[] = [
+    "-- WHAT THIS COACH WROTE FOR SOME OF THESE MOUTHS ONLY --",
+    "This is the SAME coach and the SAME method as above. Each line below is " +
+      "written for one goal, and only the people named in front of it carry " +
+      "that goal at this table.",
+    "Apply it to THEIR share and to their own dish. Never to the table's dish, " +
+      "and never to anyone else — the people not named do not follow it.",
+    "Never write the goal, the reason, or the fact that a line is theirs in " +
+      "anything read at the table.",
+  ];
+  for (const b of beliefs) {
+    const claim = b.rationale ? `${b.claim} (${b.rationale})` : b.claim;
+    lines.push(`- ${label(b.goalScope)}: ${claim}`);
+  }
+  for (const a of arbitrations) {
+    lines.push(`- ${label(a.goalScope)} — situation: ${a.situation}`);
+    lines.push(`  He answers: ${a.coachAnswer}`);
+  }
+  return { block: lines.join("\n"), beliefs, mouths };
+}
+
+/**
  * Résout le coach VIVANT de cet élève, puis sa doctrine publiée.
  *
  * Deux lectures et pas une jointure: `coach_clients` porte l'index unique
@@ -272,6 +438,12 @@ export async function loadPublishedDoctrine(
       arbitrations_kept: 0,
       arbitrations_total: 0,
       empty_for_goal: false,
+      // LOT C ① — TRACÉ MÊME À ZÉRO. Sans ce nombre sur les chemins vides,
+      // « ce foyer n'a pas d'autre objectif à table » et « l'appelant a oublié
+      // de passer la table » laissent la même trace, et ils se réparent
+      // différemment.
+      table_goals: 0,
+      table_scope_beliefs: 0,
     });
     return {
       doctrine: null,
@@ -282,6 +454,10 @@ export async function loadPublishedDoctrine(
       issues: [],
       goal,
       goalSource,
+      // Pas de doctrine lue ⇒ rien à rattraper pour personne. Le repli servi
+      // est un bloc entier (`NO_COACH_METHOD_BLOCK`), pas un bloc à compléter.
+      tableScopeBlock: "",
+      tableScopeBeliefs: [],
     };
   };
 
@@ -484,6 +660,10 @@ export async function loadPublishedDoctrine(
     coach_display_name: coachDisplayName,
   });
   const compiled = compileDoctrineBlock(doctrine, goal);
+  // LOT C ① — CE QUE LA VARIANTE DU TITULAIRE A LAISSÉ TOMBER, ET QUI VISE
+  // QUELQU'UN D'AUTRE À CETTE TABLE. `[]` hors foyer ⇒ `{block: "", ...}`, et le
+  // reste de cette fonction est alors byte-identique à celui d'avant ce lot.
+  const tableScope = tableScopeSection(doctrine, goal, options.tableGoals ?? []);
 
   // §3.2.2 — LA SÉLECTION SE LIT DANS LES LOGS.
   //
@@ -504,17 +684,28 @@ export async function loadPublishedDoctrine(
     delegated: owner.delegated,
     // Même clé que sur les chemins vides, pour qu'un `grep` unique réponde à
     // « quelle variante, et pourquoi » sans avoir à connaître deux formats.
-    reason: compiled.emptyForGoal
-      ? "empty_for_goal"
-      : compiled.isEmpty
-      ? "empty_doctrine"
-      : "loaded",
+    //
+    // ⚠️ LOT C ① — LA RAISON SUIT LE BLOC RÉELLEMENT SERVI. Une doctrine
+    // entièrement écrite pour `muscle_gain`, servie à un foyer dont le
+    // titulaire est en `fat_loss` et dont l'athlète est à table, N'EST PAS
+    // « vide pour cet objectif »: elle a du contenu pour cette table. Laisser
+    // `empty_for_goal` ici ferait injecter `NO_DOCTRINE_FOR_THIS_GOAL_BLOCK` À
+    // LA PLACE du bloc qu'on vient de reconstituer — un lot branché puis
+    // désarmé par le champ d'à côté.
+    reason: doctrineReasonFor(compiled, tableScope.block),
     beliefs_kept: doctrine.beliefs.filter((b) => goalScopeApplies(b.goalScope, goal)).length,
     beliefs_total: doctrine.beliefs.length,
     arbitrations_kept:
       doctrine.arbitrations.filter((a) => goalScopeApplies(a.goalScope, goal)).length,
     arbitrations_total: doctrine.arbitrations.length,
     empty_for_goal: compiled.emptyForGoal,
+    // LOT C ① — DEUX NOMBRES, ET ILS NE DISENT PAS LA MÊME CHOSE. « La table a
+    // trois autres objectifs » et « le coach a écrit trois lignes pour eux »
+    // sont deux faits distincts: le premier à zéro veut dire « personne d'autre
+    // n'a d'objectif ici », le second à zéro veut dire « ce coach n'a rien
+    // écrit pour eux ». Un seul compteur rendrait le même zéro pour les deux.
+    table_goals: tableScope.mouths.length,
+    table_scope_beliefs: tableScope.beliefs.length,
   });
 
   return {
@@ -529,11 +720,40 @@ export async function loadPublishedDoctrine(
     // `empty_for_goal` s'en sépare: la doctrine EXISTE, elle est simplement
     // toute entière écrite pour d'autres objectifs. Même prudence, autre
     // phrase (voir `NO_DOCTRINE_FOR_THIS_GOAL_BLOCK`).
-    reason: compiled.emptyForGoal ? "empty_for_goal" : compiled.isEmpty ? "empty_doctrine" : "loaded",
+    // ⚠️ LOT C ① — LA MÊME EXPRESSION QUE LA LIGNE DE JOURNAL, ET C'EST LE
+    // POINT: elle valait `compiled.emptyForGoal ? … : …` ici et là-haut, deux
+    // copies d'une même règle. Une seule fonction, deux lecteurs.
+    reason: doctrineReasonFor(compiled, tableScope.block),
     issues,
     goal,
     goalSource,
+    tableScopeBlock: tableScope.block,
+    tableScopeBeliefs: tableScope.beliefs,
   };
+}
+
+/**
+ * LOT C ① — LA RAISON SERVIE, EN UN SEUL ENDROIT.
+ *
+ * Elle se lit à DEUX endroits (la ligne de journal, la valeur de retour) et
+ * elle y était écrite deux fois. Ce lot lui ajoute une troisième entrée — le
+ * bloc de table — et deux copies d'une règle à trois branches divergent au
+ * premier changement, en silence, du côté qu'on regarde le moins.
+ *
+ * ⚠️ LE BLOC DE TABLE FAIT PENCHER VERS `loaded`, ET C'EST DÉLIBÉRÉ. Une
+ * doctrine dont TOUTES les croyances visent `muscle_gain`, lue pour un
+ * titulaire en `fat_loss`, rendait `empty_for_goal` — donc le bloc « ton coach
+ * n'a rien écrit sur ce sujet ». Si l'athlète est à table, c'est faux: on a
+ * quelque chose à servir, nommé, et c'est ce bloc-là qui doit partir.
+ */
+function doctrineReasonFor(
+  compiled: CompiledDoctrine,
+  tableScopeBlock: string,
+): DoctrineLoadReason {
+  if (tableScopeBlock.length > 0) return "loaded";
+  if (compiled.emptyForGoal) return "empty_for_goal";
+  if (compiled.isEmpty) return "empty_doctrine";
+  return "loaded";
 }
 
 /**
@@ -547,7 +767,15 @@ export async function loadPublishedDoctrine(
  * nom d'un coach qu'il n'a pas lu.
  */
 export function doctrineBlockFor(loaded: LoadedDoctrine): string {
-  if (loaded.reason === "loaded" && loaded.compiled) return loaded.compiled.text;
+  if (loaded.reason === "loaded" && loaded.compiled) {
+    // LOT C ① — LA JONCTION, ET ELLE N'A QU'UN SEUL ENDROIT. `tableScopeBlock`
+    // vaut `""` pour toute la lane individuelle, la conversation et les crons:
+    // la chaîne rendue y est alors `compiled.text` sans un octet de plus, et un
+    // test le tient par égalité de chaîne.
+    return loaded.tableScopeBlock
+      ? `${loaded.compiled.text}\n\n${loaded.tableScopeBlock}`
+      : loaded.compiled.text;
+  }
   if (loaded.reason === "empty_for_goal") return NO_DOCTRINE_FOR_THIS_GOAL_BLOCK;
   return NO_COACH_METHOD_BLOCK;
 }
@@ -572,8 +800,22 @@ export function doctrineBlockFor(loaded: LoadedDoctrine): string {
  *
  * Elle rend la liste EXACTEMENT alignée sur le bloc servi: ce que l'agent a
  * dans son prompt est ce que le générateur peut citer, et rien d'autre.
+ *
+ * ⚠️ LOT C ① — « LE BLOC SERVI » INCLUT LE BLOC DE TABLE, et l'oublier ici
+ * aurait désarmé le lot par le champ d'à côté: le modèle recevrait la ligne
+ * écrite pour l'athlète, composerait un plat qui s'en réclame, et le parseur
+ * jetterait la clé parce qu'elle n'est pas dans la liste autorisée. Le plan
+ * porterait la conviction sans pouvoir la tracer — c'est-à-dire qu'on paierait
+ * le bloc sans le recevoir.
  */
 export function doctrineBeliefsFor(loaded: LoadedDoctrine): readonly DoctrineBelief[] {
   if (loaded.reason !== "loaded" || !loaded.doctrine) return [];
-  return loaded.doctrine.beliefs.filter((b) => goalScopeApplies(b.goalScope, loaded.goal));
+  const own = loaded.doctrine.beliefs.filter((b) => goalScopeApplies(b.goalScope, loaded.goal));
+  // `tableScopeBeliefs` est DÉJÀ disjointe de `own` par construction
+  // (`tableScopeSection` écarte tout ce que la variante du titulaire garde),
+  // donc la concaténation ne peut pas produire de doublon. Un `Set` ici
+  // masquerait une régression de ce côté-là plutôt que de la faire voir.
+  return loaded.tableScopeBeliefs.length === 0
+    ? own
+    : [...own, ...loaded.tableScopeBeliefs];
 }

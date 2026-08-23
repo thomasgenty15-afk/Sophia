@@ -154,7 +154,14 @@ Deno.test("chaque corps rejoint SA bouche, par member_id", async () => {
 // PREUVE 4 — une bouche sans compte ne casse rien, et ne coûte rien
 // ---------------------------------------------------------------------------
 
-Deno.test("une bouche sans compte n'a pas de corps, aucun incident, aucune requête", async () => {
+// ⚠️ CE TEST DISAIT « AUCUN CORPS, AUCUNE REQUÊTE », ET LA PREMIÈRE MOITIÉ
+// ÉTAIT FAUSSE (corrigé le 2026-08-19). Une bouche sans compte n'a ni profil ni
+// pesées — mais elle a une FICHE (`household_member_bodies`, trois colonnes
+// `not null` saisies à l'ajout). Le test gardait le trou: sur un foyer réel,
+// « 169 cm · 59 kg · femme » était en base et le brief ne portait rien.
+// Ce qui reste vrai et qui est maintenant énoncé seul: elle ne coûte pas N
+// requêtes. Elle en coûte UNE, partagée par tout le foyer.
+Deno.test("une bouche sans compte: aucun incident, et UNE seule requête pour tous", async () => {
   const withLeo = await loadHouseholdMemberBodies(stubDb(tables()), {
     members: MIXED_HOUSEHOLD,
     todayLocalDate: TODAY,
@@ -164,14 +171,19 @@ Deno.test("une bouche sans compte n'a pas de corps, aucun incident, aucune requ�
     todayLocalDate: TODAY,
   });
 
+  // Sans fiche en base, toujours aucun corps — et c'est le décor de ce test.
+  // Le cas AVEC fiche est prouvé plus bas, dans le bloc du 2026-08-19.
   assertEquals(withLeo.byMember.has(LEO_MEMBER), false);
   // PAS UN INCIDENT. Ne pas avoir de compte est le cas nominal du produit
   // depuis le lot 1, pas une panne: le tracer polluerait `issues` à chaque
   // génération de chaque foyer qui a des enfants.
   assertEquals(withLeo.issues, []);
-  // ET PAS UNE REQUÊTE. Interroger `profiles` pour un `user_id` nul serait N
-  // allers-retours garantis vides par génération.
-  assertEquals(withLeo.reads, withoutLeo.reads);
+  // ⚠️ UNE REQUÊTE DE PLUS, ET UNE SEULE — pas N. Interroger `profiles` par
+  // bouche serait N allers-retours garantis vides; lire les fiches du foyer
+  // d'un coup en coûte UN, quel que soit le nombre de bouches sans compte.
+  // C'est l'objection de coût d'origine, tenue; c'est sa conclusion (« donc on
+  // ne lit rien ») qui était fausse.
+  assertEquals(withLeo.reads, withoutLeo.reads + 1);
 });
 
 // ---------------------------------------------------------------------------
@@ -230,7 +242,7 @@ Deno.test("corps illisible: best-effort, la bouche reste servie", async () => {
     habits: [],
     habitNote: null,
   }));
-  const brief = buildPortionBrief(members, "one_dish", 0);
+  const brief = buildPortionBrief(members, "one_dish", 0, 1);
   assertEquals(brief.split("\n").filter((l) => l.startsWith("- ")).length, 3);
   assert(!brief.includes("["), brief);
 });
@@ -288,9 +300,14 @@ Deno.test("le coût est LINÉAIRE en comptes, et nul pour une bouche sans compte
   // lecture du code, le plancher paraissait valoir 3: la lecture des mesures
   // datées est cachée deux niveaux plus bas. C'est exactement pourquoi la
   // fiche dit « à mesurer, pas à supposer ».
+  //
+  // ⚠️ ET LA FICHE AJOUTE UN, PAS N (2026-08-19). Une bouche sans compte ne
+  // coûte plus zéro: ses trois colonnes de fiche sont lues. Mais la lecture est
+  // GROUPÉE (`.in(member_id, …)`), donc le cliquet porte sur « +1 par
+  // génération », jamais « +1 par bouche » — c'est ça qu'il faut voir rougir.
   assertEquals(one.reads, 7);
   assertEquals(two.reads, 14);
-  assertEquals(twoPlusLeo.reads, 14);
+  assertEquals(twoPlusLeo.reads, 15);
 });
 
 Deno.test("un engagement d'énergie ajoute UNE requête, et une seule", async () => {
@@ -304,4 +321,96 @@ Deno.test("un engagement d'énergie ajoute UNE requête, et une seule", async ()
     { members: [MIXED_HOUSEHOLD[0]], todayLocalDate: TODAY },
   );
   assertEquals(got.reads, 8);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 2026-08-19 — LA FICHE PORTE LE CORPS D'UNE BOUCHE SANS COMPTE.
+//
+// ── LE DÉFAUT, MESURÉ SUR UN FOYER RÉEL ───────────────────────────────────
+// `household_member_bodies` portait « 169 cm · 59 kg · femme » pour une bouche
+// sans compte, et le brief de portions envoyé au modèle disait
+// « - Christèle: » suivi de RIEN. Le chargeur sortait par
+// `if (!member.userId) return { body: null }` — vrai pour le PROFIL et les
+// mesures hebdomadaires, faux pour la fiche, dont les trois colonnes sont
+// `not null` et saisies à l'ajout du membre.
+//
+// Conséquence lisible dans la réponse du modèle: des grammages IDENTIQUES pour
+// une femme de 59 kg et un homme de 73 kg qui s'entraîne dur — `140/140`,
+// `180/180`, `220/220`. Il n'a rien différencié parce qu'il n'avait rien.
+//
+// ⚠️ CES TESTS MANQUAIENT AU CORRECTIF. Le bloc de fusion existait déjà; rien
+// ne le tenait. Un chargeur qui repasserait à `return null` redeviendrait vert.
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("⛔ une bouche SANS COMPTE reçoit le corps de sa fiche", async () => {
+  const db = stubDb(tables({
+    household_member_bodies: [
+      { member_id: LEO_MEMBER, height_cm: 169, weight_kg: 59, gender: "female" },
+    ],
+  }));
+  const out = await loadHouseholdMemberBodies(db, {
+    members: MIXED_HOUSEHOLD,
+    todayLocalDate: TODAY,
+  });
+  const leo = out.byMember.get(LEO_MEMBER);
+  assert(leo, "la bouche sans compte n'a toujours aucun corps");
+  assertEquals(leo.heightCm, 169);
+  // ⚠️ `declaredWeightKg`, PAS `latestWeight`: une fiche n'est pas une série de
+  // pesées. Les confondre ferait écrire « measured week of … » sous un chiffre
+  // qui n'a pas de semaine.
+  assertEquals(leo.declaredWeightKg, 59);
+  assertEquals(leo.latestWeight, null);
+  assertEquals(leo.gender, "female");
+});
+
+Deno.test("⛔ et ce corps ATTEINT le brief de portions", async () => {
+  // Le test du dessus prouve le chargeur; celui-ci prouve que le chiffre
+  // traverse jusqu'à la phrase que le modèle lit. C'est très exactement
+  // l'écart qui a laissé passer le défaut: le brief était testé avec un corps
+  // qu'on lui donnait à la main.
+  const db = stubDb(tables({
+    household_member_bodies: [
+      { member_id: LEO_MEMBER, height_cm: 169, weight_kg: 59, gender: "female" },
+    ],
+  }));
+  const out = await loadHouseholdMemberBodies(db, {
+    members: MIXED_HOUSEHOLD,
+    todayLocalDate: TODAY,
+  });
+  const members: PortionMember[] = [
+    {
+      memberId: LEO_MEMBER,
+      displayName: "Christèle",
+      goal: "maintenance",
+      ageState: "adult",
+      body: out.byMember.get(LEO_MEMBER) ?? null,
+      eatingSlots: null,
+      habits: [],
+      habitNote: null,
+    },
+    {
+      memberId: ANA_MEMBER,
+      displayName: "Ana",
+      goal: "maintenance",
+      ageState: "adult",
+      body: null,
+      eatingSlots: null,
+      habits: [],
+      habitNote: null,
+    },
+  ];
+  const brief = buildPortionBrief(members, "one_dish", 0, 1);
+  assert(brief.includes("169 cm"), `la taille n'atteint pas le brief:\n${brief}`);
+  assert(brief.includes("59 kg"), `le poids n'atteint pas le brief:\n${brief}`);
+});
+
+Deno.test("⚠️ LE CAS QUI PASSE — sans fiche, aucun corps inventé", async () => {
+  // Sans ce cas, une règle qui fabriquerait un corps vide pour toute bouche
+  // sans compte ressemblerait trait pour trait à la règle juste.
+  const db = stubDb(tables({ household_member_bodies: [] }));
+  const out = await loadHouseholdMemberBodies(db, {
+    members: MIXED_HOUSEHOLD,
+    todayLocalDate: TODAY,
+  });
+  assertEquals(out.byMember.get(LEO_MEMBER), undefined);
 });

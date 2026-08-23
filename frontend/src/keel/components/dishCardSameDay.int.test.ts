@@ -39,6 +39,11 @@ function dish(over: Partial<GeneratedDish> = {}): GeneratedDish {
     method: METHOD,
     ingredients: [],
     uses: [],
+    // ⚠️ `boxes: []` EST OBLIGATOIRE, ET LE `as GeneratedDish` PLUS BAS EST CE
+    // QUI L'A CACHÉ: le cast fait taire tsc sur un champ manquant, et
+    // `boxLinesForDish` lève alors un `TypeError` au montage — écran blanc.
+    // Cette fixture ne met AUCUN contenant, exprès; mais elle doit le DIRE.
+    boxes: [],
     same_day: { kind: "reheat_only", minutes: 8 },
     ...over,
   } as GeneratedDish;

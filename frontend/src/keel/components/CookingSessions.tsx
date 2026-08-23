@@ -8,7 +8,7 @@ import {
 } from "../api/mealGeneration";
 import { dishDayLabel, mealCopy } from "../api/mealLabels";
 import { plural } from "../i18n/plural";
-import { boxLinesFor } from "../lib/preparationBoxes";
+import { boxLinesForSession } from "../lib/mealBoxes";
 import { daysFedBy } from "../lib/planGridModel";
 import { Card } from "./ui/Card";
 import Modal from "./ui/Modal";
@@ -188,11 +188,35 @@ export default function CookingSessions(
                   key={prep.id}
                   prep={prep}
                   feeds={daysFedBy(prep.id, dishes)}
-                  portions={portions}
                   open={openPreps.has(prep.id)}
                   onToggle={() => togglePrep(prep.id)}
                 />
               ))}
+
+              {/* ══════════════════════════════════════════════════════════
+                  LES CONTENANTS QUE CETTE SESSION DOIT REMPLIR.
+                  ══════════════════════════════════════════════════════════
+
+                  ── CE QUI A CHANGÉ LE 2026-08-19 ────────────────────────
+                  La pesée était SOUS CHAQUE PRÉPARATION, et elle listait des
+                  bacs par aliment. Devant le frigo, ces couvercles ne
+                  décidaient rien: « Boîte iku » était sur cinq d'entre eux, et
+                  huit boîtes sur seize n'atteignaient aucun repas.
+
+                  ⚠️ ELLE EST DONC UNE FOIS, EN BAS DE LA SESSION, ET ELLE LISTE
+                  DES REPAS. Ce qu'une session produit, ce sont des contenants —
+                  « jeudi midi », « jeudi soir » — chacun tenant tout ce que son
+                  repas sortira, toutes casseroles confondues. C'est un
+                  contenant en MOINS par repas, et c'est voulu.
+
+                  ⚠️ DEHORS DES RECETTES DÉPLIÉES: c'est une INSTRUCTION DE
+                  SESSION, et on la lit en décidant de se mettre à cuisiner. La
+                  replier obligerait à ouvrir un panneau pour savoir combien
+                  peser. */}
+              <BoxTable
+                lines={boxLinesForSession(session.preparation_ids, dishes, portions)}
+                context="session"
+      />
             </Card>
           );
         })}
@@ -207,17 +231,22 @@ export default function CookingSessions(
  * ⚠️ `ui/Modal` REND PAR `createPortal` VERS `document.body`, et ce dépôt teste
  * en environnement `node` (`vitest.config.ts`, ni jsdom ni testing-library): la
  * fenêtre entière ne peut PAS être montée par `renderToStaticMarkup`. Sans cette
- * extraction, la table de pesée et le pluriel réparé ne seraient vérifiables que
- * par des littéraux de source — et deux vérificateurs de ce chantier ont trouvé
- * cette semaine des tests de source VERTS sur du code mort. On teste la valeur
- * rendue, donc on extrait ce qui se rend.
+ * extraction, le pluriel réparé ne serait vérifiable que par des littéraux de
+ * source — et deux vérificateurs de ce chantier ont trouvé cette semaine des
+ * tests de source VERTS sur du code mort. On teste la valeur rendue, donc on
+ * extrait ce qui se rend.
+ *
+ * ⚠️ `portions` A QUITTÉ CETTE SIGNATURE LE 2026-08-19, et ce n'est pas un
+ * relâchement de la règle « paramètre optionnel = garde désarmée »: la table de
+ * pesée n'est plus sous une préparation. Elle est sous la SESSION, et
+ * `BoxTable` se monte directement (aucun portail), donc elle reste testable sur
+ * la valeur rendue.
  */
 export function SessionPreparation(
-  { prep, feeds, portions, open, onToggle }: {
+  { prep, feeds, open, onToggle }: {
     prep: MealPreparation;
     /** Les jours que cette casserole nourrit. `[]` = préparation orpheline. */
     feeds: readonly string[];
-    portions: readonly MemberPortionView[];
     open: boolean;
     onToggle: () => void;
   },
@@ -308,15 +337,6 @@ export function SessionPreparation(
                       )}
                     </p>
                   )}
-
-                  {/* ── LA TABLE DE PESÉE (LOT 4) ────────────────────────────
-                      DEHORS de la recette dépliée, avec les durées et les jours
-                      nourris: c'est une INSTRUCTION DE SESSION — « voilà ce que
-                      tu mets dans quelle boîte » — et on la lit en même temps
-                      qu'on décide de se mettre à cuisiner, pas une fois la
-                      casserole ouverte. La replier obligerait à déplier chaque
-                      préparation pour savoir combien peser. */}
-                  <BoxTable lines={boxLinesFor(prep, portions)} />
 
                   {open && (
                     <>

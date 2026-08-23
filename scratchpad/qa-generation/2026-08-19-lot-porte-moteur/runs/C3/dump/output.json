@@ -1,0 +1,1528 @@
+{
+  "request_id": "c030000c-0000-4000-8000-000000000002",
+  "resolved_by": "--request-id",
+  "user_id": "1e000000-0000-4000-8000-000000000002",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-18T23:31:41.525Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "54f151da-dcf3-4691-8f63-7caab7c26415",
+      "status": "attempt_start",
+      "created_at": "2026-08-18T23:29:54.93445+00:00",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 15486,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 15486,
+    "user_message_chars": 14553,
+    "user_message_truncated": false,
+    "user_message_written_chars": 14553,
+    "independent_counters": {
+      "system_prompt_chars": 15486,
+      "prompt_chars": 14553
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "1fdcf3e6-366c-49de-813a-004a0659c002",
+    "created_at": "2026-08-18T23:31:39.911851+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "openai",
+    "model": "gpt-5.4-mini",
+    "http_status": 200,
+    "attempt": 1,
+    "chain_index": 0,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\"member_portions\":[{\"member_id\":\"85acac95-312b-4d0e-a4da-02558e8a182f\",\"portion_note\":\"Serve 2 eggs, 120 g roasted potatoes, 150 g chicken traybake, 80 g rice, and 120 g vegetables; for breakfast swap the chicken traybake for 2 slices toast with blackcurrant jam.\",\"preparation_shares\":[{\"preparation_id\":\"prep_traybake\",\"note\":\"Take the larger portion.\"},{\"preparation_id\":\"prep_rice\",\"note\":\"Take the larger portion.\"},{\"preparation_id\":\"prep_potatoes\",\"note\":\"Take the larger portion.\"},{\"preparation_id\":\"prep_veg\",\"note\":\"Take the same vegetables as everyone else.\"},{\"preparation_id\":\"prep_eggs\",\"note\":\"Take the breakfast eggs portion.\"}]},{\"member_id\":\"f190856d-d573-42e9-a026-b6a37b9f7471\",\"portion_note\":\"Serve 1 egg, 80 g roasted potatoes, 100 g chicken traybake, 60 g rice, and 90 g vegetables; for breakfast serve 1 slice toast with the eggs and leave the crust off.\",\"preparation_shares\":[{\"preparation_id\":\"prep_traybake\",\"note\":\"Take the smaller portion.\"},{\"preparation_id\":\"prep_rice\",\"note\":\"Take the smaller portion.\"},{\"preparation_id\":\"prep_potatoes\",\"note\":\"Take the smaller portion.\"},{\"preparation_id\":\"prep_veg\",\"note\":\"Take the same vegetables as everyone else.\"},{\"preparation_id\":\"prep_eggs\",\"note\":\"Take the breakfast eggs portion.\"}]},{\"member_id\":\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\",\"portion_note\":\"Serve 2 eggs, 120 g roasted potatoes, 150 g chicken traybake, 80 g rice, and 120 g vegetables; for breakfast swap the chicken traybake for 2 slices toast with jam, and keep the plate free of fennel and carrot-coloured sides.\",\"preparation_shares\":[{\"preparation_id\":\"prep_traybake\",\"note\":\"Take the larger portion.\"},{\"preparation_id\":\"prep_rice\",\"note\":\"Take the larger portion.\"},{\"preparation_id\":\"prep_potatoes\",\"note\":\"Take the larger portion.\"},{\"preparation_id\":\"prep_veg\",\"note\":\"Take the same vegetables as everyone else, without fennel.\"},{\"preparation_id\":\"prep_eggs\",\"note\":\"Take the breakfast eggs portion.\"}]},{\"member_id\":\"536e683d-64a8-4dc2-a69b-6ee1925b206c\",\"portion_note\":\"Serve 1 egg, 80 g roasted potatoes, 100 g chicken traybake, 60 g rice, and 90 g vegetables; for breakfast serve 1 slice toast with the eggs and add hot sauce if wanted.\",\"preparation_shares\":[{\"preparation_id\":\"prep_traybake\",\"note\":\"Take the smaller portion.\"},{\"preparation_id\":\"prep_rice\",\"note\":\"Take the smaller portion.\"},{\"preparation_id\":\"prep_potatoes\",\"note\":\"Take the smaller portion.\"},{\"preparation_id\":\"prep_veg\",\"note\":\"Take the same vegetables as everyone else.\"},{\"preparation_id\":\"prep_eggs\",\"note\":\"Take the breakfast eggs portion.\"}]}],\"dishes\":[{\"name\":\"Jam toast and eggs\",\"title\":\"Toast, blackcurrant jam and scrambled eggs\",\"slot\":\"breakfast\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"sliced bread\",\"quantity\":\"8 slices\",\"amount\":8,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"blackcurrant jam\",\"quantity\":\"4 tbsp\",\"amount\":4,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"eggs\",\"quantity\":\"10 eggs\",\"amount\":10,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"butter\",\"quantity\":\"20 g\",\"amount\":20,\"unit\":\"g\",\"state\":\"raw\"}],\"method\":\"Toast the bread. Scramble the eggs in butter in a pan and serve them beside the toast with blackcurrant jam on the side for Odalric, with crusts cut off for Wilfrid.\",\"why\":\"A warm breakfast fits the coach’s rule, and the traybake plan leaves room for the house’s Sunday cake later in the stretch.\",\"uses\":[{\"preparation_id\":\"prep_eggs\",\"servings\":4}],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":15},\"honours_belief_keys\":[\"name_the_plate_out_loud\"]},{\"name\":\"Traybake lunch boxes\",\"title\":\"Chicken traybake, roasted potatoes and green beans\",\"slot\":\"lunch\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"lemon\",\"quantity\":\"1 lemon\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"green salad\",\"quantity\":\"160 g\",\"amount\":160,\"unit\":\"g\",\"state\":\"raw\"}],\"method\":\"Reheat a portion of the traybake, pile it on the plate with the roasted potatoes and green beans, and finish with lemon. Add the salad fresh.\",\"why\":\"One loud vegetable is covered by the green beans, and this is the first use of the batch before Thursday’s kitchen disruption.\",\"uses\":[{\"preparation_id\":\"prep_traybake\",\"servings\":4,\"box_id\":\"box_prep_traybake_odalric\"},{\"preparation_id\":\"prep_potatoes\",\"servings\":4,\"box_id\":\"box_prep_potatoes_odalric\"},{\"preparation_id\":\"prep_veg\",\"servings\":4,\"box_id\":\"box_prep_veg_odalric\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":8},\"honours_belief_keys\":[\"one_loud_vegetable\",\"starch_follows_the_session\"]},{\"name\":\"Traybake dinner bowls\",\"title\":\"Chicken traybake, roasted potatoes and green beans\",\"slot\":\"dinner\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"lemon\",\"quantity\":\"1 lemon\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"}],\"method\":\"Reheat a portion of the traybake, potatoes and green beans in a pan or the oven, then finish with lemon. Keep the plates warm because dinner must have a warm element.\",\"why\":\"It reuses the Wednesday cook while staying within the coach’s no-salad-dinner rule and keeping the evening simple before the shared kitchen day.\",\"uses\":[{\"preparation_id\":\"prep_traybake\",\"servings\":4,\"box_id\":\"box_prep_traybake_odalric\"},{\"preparation_id\":\"prep_potatoes\",\"servings\":4,\"box_id\":\"box_prep_potatoes_odalric\"},{\"preparation_id\":\"prep_veg\",\"servings\":4,\"box_id\":\"box_prep_veg_odalric\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"one_loud_vegetable\",\"name_the_plate_out_loud\"]},{\"name\":\"Pasta chicken bowls\",\"title\":\"Chicken, tomato and spinach pasta\",\"slot\":\"lunch\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"lemon\",\"quantity\":\"1 lemon\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"grated cheese\",\"quantity\":\"40 g\",\"amount\":40,\"unit\":\"g\",\"state\":\"raw\"}],\"method\":\"Reheat a portion of the chicken sauce, boil the pasta fresh, toss together with spinach and finish with lemon and cheese. This keeps lunch away from the dust sheet and makes the starch follow the session.\",\"why\":\"Thursday is awkward in the kitchen, so lunch is built from the Wednesday batch and one fresh pot of pasta without needing the table.\",\"uses\":[{\"preparation_id\":\"prep_chicken_sauce\",\"servings\":4,\"box_id\":\"box_prep_chicken_sauce_odalric\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":15},\"honours_belief_keys\":[\"starch_follows_the_session\",\"one_loud_vegetable\"]},{\"name\":\"Egg fried rice\",\"title\":\"Egg fried rice with peppers and spring onions\",\"slot\":\"dinner\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"soy sauce\",\"quantity\":\"2 tbsp\",\"amount\":2,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"spring onions\",\"quantity\":\"4 spring onions\",\"amount\":4,\"unit\":\"unit\",\"state\":\"raw\"}],\"method\":\"Fry the cold rice with the eggs, peppers and spring onions in a hot pan, finishing with soy sauce. Make it fresh because cooked rice stays within the same day or the day after.\",\"why\":\"This gives the house a quick dinner that fits the coach’s warm-element rule while avoiding a rice batch that would overrun the safe window.\",\"uses\":[{\"preparation_id\":\"prep_rice\",\"servings\":4,\"box_id\":\"box_prep_rice_odalric\"},{\"preparation_id\":\"prep_eggs\",\"servings\":4,\"box_id\":\"box_prep_eggs_odalric\"}],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":20},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Traybake salad plates\",\"title\":\"Chicken traybake, roasted potatoes and green beans\",\"slot\":\"lunch\",\"day\":\"fri\",\"ingredients\":[{\"term\":\"lemon\",\"quantity\":\"1 lemon\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"green salad\",\"quantity\":\"160 g\",\"amount\":160,\"unit\":\"g\",\"state\":\"raw\"}],\"method\":\"Reheat the remaining traybake and potatoes, add the last green beans, then serve with lemon and salad. This uses the final box before the three-day limit closes.\",\"why\":\"Friday lunch finishes the Wednesday batch in time and keeps the plate varied enough to avoid the grey-box feeling the coach dislikes.\",\"uses\":[{\"preparation_id\":\"prep_traybake\",\"servings\":4,\"box_id\":\"box_prep_traybake_peregrine\"},{\"preparation_id\":\"prep_potatoes\",\"servings\":4,\"box_id\":\"box_prep_potatoes_peregrine\"},{\"preparation_id\":\"prep_veg\",\"servings\":4,\"box_id\":\"box_prep_veg_peregrine\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":8},\"honours_belief_keys\":[\"one_loud_vegetable\",\"starch_follows_the_session\"]},{\"name\":\"Traybake supper\",\"title\":\"Chicken traybake, roasted potatoes and green beans\",\"slot\":\"dinner\",\"day\":\"fri\",\"ingredients\":[{\"term\":\"lemon\",\"quantity\":\"1 lemon\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"}],\"method\":\"Reheat the last portion in the oven or a pan, then finish with lemon. Keep it warm and plain, because the house wants comfort after a week with the kitchen table covered.\",\"why\":\"Friday dinner clears the final Wednesday preparation safely within the three-day window and uses the same base in a different meal context.\",\"uses\":[{\"preparation_id\":\"prep_traybake\",\"servings\":4,\"box_id\":\"box_prep_traybake_peregrine\"},{\"preparation_id\":\"prep_potatoes\",\"servings\":4,\"box_id\":\"box_prep_potatoes_peregrine\"},{\"preparation_id\":\"prep_veg\",\"servings\":4,\"box_id\":\"box_prep_veg_peregrine\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Traybake start\", \"title\":\"Chicken traybake with roasted potatoes and green beans\",\"slot\":\"lunch\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"chicken thighs\",\"quantity\":\"2.2 kg\",\"amount\":2200,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"potatoes\",\"quantity\":\"1.8 kg\",\"amount\":1800,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"green beans\",\"quantity\":\"1.2 kg\",\"amount\":1200,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"red onions\",\"quantity\":\"4 red onions\",\"amount\":4,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"garlic\",\"quantity\":\"8 cloves\",\"amount\":8,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"4 tbsp\",\"amount\":4,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"paprika\",\"quantity\":\"2 tsp\",\"amount\":2,\"unit\":\"tsp\",\"state\":\"raw\"},{\"term\":\"lemon\",\"quantity\":\"2 lemons\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"}],\"method\":\"Toss the chicken thighs, potatoes, onions, garlic, oil and paprika, then roast on trays. Blanch or roast the green beans separately and finish everything with lemon. Box the food hot into four named portions for each person.\",\"why\":\"It gives the week a clear cooked anchor and a loud green vegetable, while keeping the kitchen work inside one Wednesday session.\",\"uses\":[],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":0},\"honours_belief_keys\":[\"one_loud_vegetable\",\"name_the_plate_out_loud\"]},{\"name\":\"Chicken pasta sauce\",\"title\":\"Chicken, tomato and spinach pasta sauce\",\"slot\":\"lunch\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"chicken thighs\",\"quantity\":\"1.6 kg\",\"amount\":1600,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"onions\",\"quantity\":\"2 onions\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"garlic\",\"quantity\":\"6 cloves\",\"amount\":6,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"tinned tomatoes\",\"quantity\":\"3 tins\",\"amount\":3,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"spinach\",\"quantity\":\"300 g\",\"amount\":300,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"2 tbsp\",\"amount\":2,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"dried oregano\",\"quantity\":\"2 tsp\",\"amount\":2,\"unit\":\"tsp\",\"state\":\"raw\"}],\"method\":\"Brown the chicken, soften the onions and garlic, then simmer with tomatoes and oregano until the sauce is rich. Stir in spinach at the end and box it for quick Thursday and Friday lunches.\",\"why\":\"Thursday needs food that survives the kitchen disruption, and this sauce turns the session into two lunches without another full cook.\",\"uses\":[],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":0},\"honours_belief_keys\":[\"one_loud_vegetable\",\"starch_follows_the_session\"]},{\"name\":\"Egg rice base\",\"title\":\"Egg fried rice base with peppers and spring onions\",\"slot\":\"dinner\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"eggs\",\"quantity\":\"12 eggs\",\"amount\":12,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"cooked rice\",\"quantity\":\"1.4 kg\",\"amount\":1400,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"red peppers\",\"quantity\":\"3 red peppers\",\"amount\":3,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"spring onions\",\"quantity\":\"6 spring onions\",\"amount\":6,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"soy sauce\",\"quantity\":\"4 tbsp\",\"amount\":4,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"sesame oil\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\"}],\"method\":\"Cook the rice on the same day, cool it quickly, then fry it with eggs, peppers and spring onions in a hot pan. Season with soy sauce and sesame oil, and box any extra only for Friday if needed.\",\"why\":\"It keeps the dinner warm and fresh while respecting the cooked-rice safety window and uses affordable protein for a muscle-gain stretch.\",\"uses\":[],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":0},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Sunday cake\", \"title\":\"Lemon and poppy seed traybake\",\"slot\":\"snack_pm\",\"day\":\"sun\",\"ingredients\":[{\"term\":\"self-raising flour\",\"quantity\":\"250 g\",\"amount\":250,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"caster sugar\",\"quantity\":\"200 g\",\"amount\":200,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"butter\",\"quantity\":\"200 g\",\"amount\":200,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"eggs\",\"quantity\":\"4 eggs\",\"amount\":4,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"lemons\",\"quantity\":\"2 lemons\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"poppy seeds\",\"quantity\":\"2 tbsp\",\"amount\":2,\"unit\":\"tbsp\",\"state\":\"raw\"}],\"method\":\"Cream the butter and sugar, beat in eggs, flour, zest, juice and poppy seeds, then bake in a tray until springy. Cool and cut into squares for Sunday, with no celeriac, tree nuts or pistachios anywhere near it.\",\"why\":\"The house asked for it, so it stays as a snack rather than replacing a main meal that still needs a protein anchor.\",\"uses\":[],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":0},\"honours_belief_keys\":[\"name_the_plate_out_loud\"]}],\"preparations\":[{\"id\":\"prep_traybake\",\"title\":\"Chicken traybake with roasted potatoes and green beans\",\"servings_made\":4,\"ingredients\":[{\"term\":\"chicken thighs\",\"quantity\":\"2.2 kg\",\"amount\":2200,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"potatoes\",\"quantity\":\"1.8 kg\",\"amount\":1800,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"green beans\",\"quantity\":\"1.2 kg\",\"amount\":1200,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"red onions\",\"quantity\":\"4 red onions\",\"amount\":4,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"garlic\",\"quantity\":\"8 cloves\",\"amount\":8,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"4 tbsp\",\"amount\":4,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"paprika\",\"quantity\":\"2 tsp\",\"amount\":2,\"unit\":\"tsp\",\"state\":\"raw\"},{\"term\":\"lemon\",\"quantity\":\"2 lemons\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"}],\"method\":\"Toss the chicken thighs, potatoes, onions, garlic, oil and paprika, then roast on trays. Blanch or roast the green beans separately and finish everything with lemon. Box the food hot into four named portions.\",\"active_minutes\":20,\"total_minutes\":55,\"cook_on\":\"wed\",\"boxes\":[{\"id\":\"box_prep_traybake_odalric\",\"member_ids\":[\"85acac95-312b-4d0e-a4da-02558e8a182f\"],\"grams\":520},{\"id\":\"box_prep_traybake_wilfrid\",\"member_ids\":[\"f190856d-d573-42e9-a026-b6a37b9f7471\"],\"grams\":340},{\"id\":\"box_prep_traybake_peregrine\",\"member_ids\":[\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"],\"grams\":520},{\"id\":\"box_prep_traybake_casimir\",\"member_ids\":[\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"],\"grams\":340}]},{\"id\":\"prep_chicken_sauce\",\"title\":\"Chicken, tomato and spinach pasta sauce\",\"servings_made\":4,\"ingredients\":[{\"term\":\"chicken thighs\",\"quantity\":\"1.6 kg\",\"amount\":1600,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"onions\",\"quantity\":\"2 onions\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"garlic\",\"quantity\":\"6 cloves\",\"amount\":6,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"tinned tomatoes\",\"quantity\":\"3 tins\",\"amount\":3,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"spinach\",\"quantity\":\"300 g\",\"amount\":300,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"2 tbsp\",\"amount\":2,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"dried oregano\",\"quantity\":\"2 tsp\",\"amount\":2,\"unit\":\"tsp\",\"state\":\"raw\"}],\"method\":\"Brown the chicken, soften the onions and garlic, then simmer with tomatoes and oregano until the sauce is rich. Stir in spinach at the end and box it for quick Thursday and Friday lunches.\",\"active_minutes\":20,\"total_minutes\":45,\"cook_on\":\"wed\",\"boxes\":[{\"id\":\"box_prep_chicken_sauce_odalric\",\"member_ids\":[\"85acac95-312b-4d0e-a4da-02558e8a182f\"],\"grams\":480},{\"id\":\"box_prep_chicken_sauce_wilfrid\",\"member_ids\":[\"f190856d-d573-42e9-a026-b6a37b9f7471\"],\"grams\":320},{\"id\":\"box_prep_chicken_sauce_peregrine\",\"member_ids\":[\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"],\"grams\":480},{\"id\":\"box_prep_chicken_sauce_casimir\",\"member_ids\":[\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"],\"grams\":320}]},{\"id\":\"prep_rice\",\"title\":\"Egg fried rice base with peppers and spring onions\",\"servings_made\":4,\"ingredients\":[{\"term\":\"eggs\",\"quantity\":\"12 eggs\",\"amount\":12,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"cooked rice\",\"quantity\":\"1.4 kg\",\"amount\":1400,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"red peppers\",\"quantity\":\"3 red peppers\",\"amount\":3,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"spring onions\",\"quantity\":\"6 spring onions\",\"amount\":6,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"soy sauce\",\"quantity\":\"4 tbsp\",\"amount\":4,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"sesame oil\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\"}],\"method\":\"Cook the rice on the same day, cool it quickly, then fry it with eggs, peppers and spring onions in a hot pan. Season with soy sauce and sesame oil, and box any extra only for Friday if needed.\",\"active_minutes\":20,\"total_minutes\":30,\"cook_on\":\"thu\",\"boxes\":[{\"id\":\"box_prep_rice_odalric\",\"member_ids\":[\"85acac95-312b-4d0e-a4da-02558e8a182f\"],\"grams\":340},{\"id\":\"box_prep_rice_wilfrid\",\"member_ids\":[\"f190856d-d573-42e9-a026-b6a37b9f7471\"],\"grams\":220},{\"id\":\"box_prep_rice_peregrine\",\"member_ids\":[\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"],\"grams\":340},{\"id\":\"box_prep_rice_casimir\",\"member_ids\":[\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"],\"grams\":220}]},{\"id\":\"prep_veg\",\"title\":\"Roasted and blanched green beans\",\"servings_made\":4,\"ingredients\":[{\"term\":\"green beans\",\"quantity\":\"1.2 kg\",\"amount\":1200,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"2 tbsp\",\"amount\":2,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"salt\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\"},{\"term\":\"lemon\",\"quantity\":\"1 lemon\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"}],\"method\":\"Blanch the green beans, then toss with a little oil, salt and lemon so they stay bright and loud. Box them for the traybake meals.\",\"active_minutes\":15,\"total_minutes\":20,\"cook_on\":\"wed\",\"boxes\":[{\"id\":\"box_prep_veg_odalric\",\"member_ids\":[\"85acac95-312b-4d0e-a4da-02558e8a182f\"],\"grams\":120},{\"id\":\"box_prep_veg_wilfrid\",\"member_ids\":[\"f190856d-d573-42e9-a026-b6a37b9f7471\"],\"grams\":90},{\"id\":\"box_prep_veg_peregrine\",\"member_ids\":[\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"],\"grams\":120},{\"id\":\"box_prep_veg_casimir\",\"member_ids\":[\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"],\"grams\":90}]},{\"id\":\"prep_potatoes\",\"title\":\"Roasted potatoes\",\"servings_made\":4,\"ingredients\":[{\"term\":\"potatoes\",\"quantity\":\"1.8 kg\",\"amount\":1800,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"3 tbsp\",\"amount\":3,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"salt\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\"},{\"term\":\"black pepper\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\"}],\"method\":\"Chunk the potatoes, toss with oil, salt and pepper, and roast until crisp. Box alongside the traybake so the starch is ready when training or tiredness makes the evening late.\",\"active_minutes\":15,\"total_minutes\":45,\"cook_on\":\"wed\",\"boxes\":[{\"id\":\"box_prep_potatoes_odalric\",\"member_ids\":[\"85acac95-312b-4d0e-a4da-02558e8a182f\"],\"grams\":120},{\"id\":\"box_prep_potatoes_wilfrid\",\"member_ids\":[\"f190856d-d573-42e9-a026-b6a37b9f7471\"],\"grams\":80},{\"id\":\"box_prep_potatoes_peregrine\",\"member_ids\":[\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"],\"grams\":120},{\"id\":\"box_prep_potatoes_casimir\",\"member_ids\":[\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"],\"grams\":80}]},{\"id\":\"prep_eggs\",\"title\":\"Scrambled eggs for toast and rice\",\"servings_made\":4,\"ingredients\":[{\"term\":\"eggs\",\"quantity\":\"14 eggs\",\"amount\":14,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"butter\",\"quantity\":\"30 g\",\"amount\":30,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"milk\",\"quantity\":\"100 ml\",\"amount\":100,\"unit\":\"ml\",\"state\":\"raw\"},{\"term\":\"salt\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\"}],\"method\":\"Scramble the eggs gently in butter with a splash of milk and a little salt. Box four breakfast portions so the house can have a fast warm start on each day.\",\"active_minutes\":15,\"total_minutes\":15,\"cook_on\":\"wed\",\"boxes\":[{\"id\":\"box_prep_eggs_odalric\",\"member_ids\":[\"85acac95-312b-4d0e-a4da-02558e8a182f\"],\"grams\":220},{\"id\":\"box_prep_eggs_wilfrid\",\"member_ids\":[\"f190856d-d573-42e9-a026-b6a37b9f7471\"],\"grams\":140},{\"id\":\"box_prep_eggs_peregrine\",\"member_ids\":[\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"],\"grams\":220},{\"id\":\"box_prep_eggs_casimir\",\"member_ids\":[\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"],\"grams\":140}]}],\"cooking_sessions\":[{\"day\":\"wed\",\"preparation_ids\":[\"prep_traybake\",\"prep_chicken_sauce\",\"prep_veg\",\"prep_potatoes\",\"prep_eggs\"],\"total_minutes\":55,\"run_through\":\"Start the oven for the traybake and potatoes. While they roast, brown the chicken for the tomato sauce, then simmer it with onions, garlic, tomatoes and spinach. Blanch the green beans, scramble the eggs, and box everything hot into the named containers.\"},{\"day\":\"thu\",\"preparation_ids\":[\"prep_rice\"],\"total_minutes\":30,\"run_through\":\"Cook the rice fresh, cool it quickly, then fry it with eggs, peppers and spring onions. Box the portions straight away for the same-day dinner and the next day’s use if any remains.\"}],\"shopping_list\":[{\"term\":\"chicken thighs\",\"quantity\":\"3.8 kg\",\"aisle\":\"protein\"},{\"term\":\"eggs\",\"quantity\":\"36 eggs\",\"aisle\":\"protein\"},{\"term\":\"potatoes\",\"quantity\":\"1.8 kg\",\"aisle\":\"grains\"},{\"term\":\"green beans\",\"quantity\":\"1.2 kg\",\"aisle\":\"produce\"},{\"term\":\"red onions\",\"quantity\":\"4 red onions\",\"aisle\":\"produce\"},{\"term\":\"onions\",\"quantity\":\"2 onions\",\"aisle\":\"produce\"},{\"term\":\"garlic\",\"quantity\":\"14 cloves\",\"aisle\":\"produce\"},{\"term\":\"red peppers\",\"quantity\":\"3 red peppers\",\"aisle\":\"produce\"},{\"term\":\"spring onions\",\"quantity\":\"6 spring onions\",\"aisle\":\"produce\"},{\"term\":\"spinach\",\"quantity\":\"300 g\",\"aisle\":\"produce\"},{\"term\":\"lemons\",\"quantity\":\"5 lemons\",\"aisle\":\"produce\"},{\"term\":\"sliced bread\",\"quantity\":\"8 slices\",\"aisle\":\"grains\"},{\"term\":\"blackcurrant jam\",\"quantity\":\"1 jar\",\"aisle\":\"pantry\"},{\"term\":\"tinned tomatoes\",\"quantity\":\"3 tins\",\"aisle\":\"pantry\"},{\"term\":\"self-raising flour\",\"quantity\":\"250 g\",\"aisle\":\"grains\"},{\"term\":\"caster sugar\",\"quantity\":\"200 g\",\"aisle\":\"pantry\"},{\"term\":\"butter\",\"quantity\":\"250 g\",\"aisle\":\"dairy\"},{\"term\":\"milk\",\"quantity\":\"100 ml\",\"aisle\":\"dairy\"},{\"term\":\"poppy seeds\",\"quantity\":\"2 tbsp\",\"aisle\":\"pantry\"},{\"term\":\"olive oil\",\"quantity\":\"9 tbsp\",\"aisle\":\"pantry\"},{\"term\":\"soy sauce\",\"quantity\":\"6 tbsp\",\"aisle\":\"pantry\"},{\"term\":\"sesame oil\",\"quantity\":\"1 tbsp\",\"aisle\":\"pantry\"},{\"term\":\"paprika\",\"quantity\":\"2 tsp\",\"aisle\":\"pantry\"},{\"term\":\"dried oregano\",\"quantity\":\"2 tsp\",\"aisle\":\"pantry\"},{\"term\":\"rice\",\"quantity\":\"1.4 kg\",\"aisle\":\"grains\"},{\"term\":\"salad\",\"quantity\":\"320 g\",\"aisle\":\"produce\"},{\"term\":\"grated cheese\",\"quantity\":\"40 g\",\"aisle\":\"dairy\"}]}",
+    "output_text_json": {
+      "member_portions": [
+        {
+          "member_id": "85acac95-312b-4d0e-a4da-02558e8a182f",
+          "portion_note": "Serve 2 eggs, 120 g roasted potatoes, 150 g chicken traybake, 80 g rice, and 120 g vegetables; for breakfast swap the chicken traybake for 2 slices toast with blackcurrant jam.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_traybake",
+              "note": "Take the larger portion."
+            },
+            {
+              "preparation_id": "prep_rice",
+              "note": "Take the larger portion."
+            },
+            {
+              "preparation_id": "prep_potatoes",
+              "note": "Take the larger portion."
+            },
+            {
+              "preparation_id": "prep_veg",
+              "note": "Take the same vegetables as everyone else."
+            },
+            {
+              "preparation_id": "prep_eggs",
+              "note": "Take the breakfast eggs portion."
+            }
+          ]
+        },
+        {
+          "member_id": "f190856d-d573-42e9-a026-b6a37b9f7471",
+          "portion_note": "Serve 1 egg, 80 g roasted potatoes, 100 g chicken traybake, 60 g rice, and 90 g vegetables; for breakfast serve 1 slice toast with the eggs and leave the crust off.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_traybake",
+              "note": "Take the smaller portion."
+            },
+            {
+              "preparation_id": "prep_rice",
+              "note": "Take the smaller portion."
+            },
+            {
+              "preparation_id": "prep_potatoes",
+              "note": "Take the smaller portion."
+            },
+            {
+              "preparation_id": "prep_veg",
+              "note": "Take the same vegetables as everyone else."
+            },
+            {
+              "preparation_id": "prep_eggs",
+              "note": "Take the breakfast eggs portion."
+            }
+          ]
+        },
+        {
+          "member_id": "65eb7490-adae-40c2-8b43-b10a0cc0ab05",
+          "portion_note": "Serve 2 eggs, 120 g roasted potatoes, 150 g chicken traybake, 80 g rice, and 120 g vegetables; for breakfast swap the chicken traybake for 2 slices toast with jam, and keep the plate free of fennel and carrot-coloured sides.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_traybake",
+              "note": "Take the larger portion."
+            },
+            {
+              "preparation_id": "prep_rice",
+              "note": "Take the larger portion."
+            },
+            {
+              "preparation_id": "prep_potatoes",
+              "note": "Take the larger portion."
+            },
+            {
+              "preparation_id": "prep_veg",
+              "note": "Take the same vegetables as everyone else, without fennel."
+            },
+            {
+              "preparation_id": "prep_eggs",
+              "note": "Take the breakfast eggs portion."
+            }
+          ]
+        },
+        {
+          "member_id": "536e683d-64a8-4dc2-a69b-6ee1925b206c",
+          "portion_note": "Serve 1 egg, 80 g roasted potatoes, 100 g chicken traybake, 60 g rice, and 90 g vegetables; for breakfast serve 1 slice toast with the eggs and add hot sauce if wanted.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_traybake",
+              "note": "Take the smaller portion."
+            },
+            {
+              "preparation_id": "prep_rice",
+              "note": "Take the smaller portion."
+            },
+            {
+              "preparation_id": "prep_potatoes",
+              "note": "Take the smaller portion."
+            },
+            {
+              "preparation_id": "prep_veg",
+              "note": "Take the same vegetables as everyone else."
+            },
+            {
+              "preparation_id": "prep_eggs",
+              "note": "Take the breakfast eggs portion."
+            }
+          ]
+        }
+      ],
+      "dishes": [
+        {
+          "name": "Jam toast and eggs",
+          "title": "Toast, blackcurrant jam and scrambled eggs",
+          "slot": "breakfast",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "sliced bread",
+              "quantity": "8 slices",
+              "amount": 8,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "blackcurrant jam",
+              "quantity": "4 tbsp",
+              "amount": 4,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "eggs",
+              "quantity": "10 eggs",
+              "amount": 10,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "butter",
+              "quantity": "20 g",
+              "amount": 20,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Toast the bread. Scramble the eggs in butter in a pan and serve them beside the toast with blackcurrant jam on the side for Odalric, with crusts cut off for Wilfrid.",
+          "why": "A warm breakfast fits the coach’s rule, and the traybake plan leaves room for the house’s Sunday cake later in the stretch.",
+          "uses": [
+            {
+              "preparation_id": "prep_eggs",
+              "servings": 4
+            }
+          ],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 15
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Traybake lunch boxes",
+          "title": "Chicken traybake, roasted potatoes and green beans",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "lemon",
+              "quantity": "1 lemon",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "green salad",
+              "quantity": "160 g",
+              "amount": 160,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat a portion of the traybake, pile it on the plate with the roasted potatoes and green beans, and finish with lemon. Add the salad fresh.",
+          "why": "One loud vegetable is covered by the green beans, and this is the first use of the batch before Thursday’s kitchen disruption.",
+          "uses": [
+            {
+              "preparation_id": "prep_traybake",
+              "servings": 4,
+              "box_id": "box_prep_traybake_odalric"
+            },
+            {
+              "preparation_id": "prep_potatoes",
+              "servings": 4,
+              "box_id": "box_prep_potatoes_odalric"
+            },
+            {
+              "preparation_id": "prep_veg",
+              "servings": 4,
+              "box_id": "box_prep_veg_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "starch_follows_the_session"
+          ]
+        },
+        {
+          "name": "Traybake dinner bowls",
+          "title": "Chicken traybake, roasted potatoes and green beans",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "lemon",
+              "quantity": "1 lemon",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat a portion of the traybake, potatoes and green beans in a pan or the oven, then finish with lemon. Keep the plates warm because dinner must have a warm element.",
+          "why": "It reuses the Wednesday cook while staying within the coach’s no-salad-dinner rule and keeping the evening simple before the shared kitchen day.",
+          "uses": [
+            {
+              "preparation_id": "prep_traybake",
+              "servings": 4,
+              "box_id": "box_prep_traybake_odalric"
+            },
+            {
+              "preparation_id": "prep_potatoes",
+              "servings": 4,
+              "box_id": "box_prep_potatoes_odalric"
+            },
+            {
+              "preparation_id": "prep_veg",
+              "servings": 4,
+              "box_id": "box_prep_veg_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Pasta chicken bowls",
+          "title": "Chicken, tomato and spinach pasta",
+          "slot": "lunch",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "lemon",
+              "quantity": "1 lemon",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "grated cheese",
+              "quantity": "40 g",
+              "amount": 40,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat a portion of the chicken sauce, boil the pasta fresh, toss together with spinach and finish with lemon and cheese. This keeps lunch away from the dust sheet and makes the starch follow the session.",
+          "why": "Thursday is awkward in the kitchen, so lunch is built from the Wednesday batch and one fresh pot of pasta without needing the table.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_sauce",
+              "servings": 4,
+              "box_id": "box_prep_chicken_sauce_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 15
+          },
+          "honours_belief_keys": [
+            "starch_follows_the_session",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Egg fried rice",
+          "title": "Egg fried rice with peppers and spring onions",
+          "slot": "dinner",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "soy sauce",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "spring onions",
+              "quantity": "4 spring onions",
+              "amount": 4,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Fry the cold rice with the eggs, peppers and spring onions in a hot pan, finishing with soy sauce. Make it fresh because cooked rice stays within the same day or the day after.",
+          "why": "This gives the house a quick dinner that fits the coach’s warm-element rule while avoiding a rice batch that would overrun the safe window.",
+          "uses": [
+            {
+              "preparation_id": "prep_rice",
+              "servings": 4,
+              "box_id": "box_prep_rice_odalric"
+            },
+            {
+              "preparation_id": "prep_eggs",
+              "servings": 4,
+              "box_id": "box_prep_eggs_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 20
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Traybake salad plates",
+          "title": "Chicken traybake, roasted potatoes and green beans",
+          "slot": "lunch",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "lemon",
+              "quantity": "1 lemon",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "green salad",
+              "quantity": "160 g",
+              "amount": 160,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the remaining traybake and potatoes, add the last green beans, then serve with lemon and salad. This uses the final box before the three-day limit closes.",
+          "why": "Friday lunch finishes the Wednesday batch in time and keeps the plate varied enough to avoid the grey-box feeling the coach dislikes.",
+          "uses": [
+            {
+              "preparation_id": "prep_traybake",
+              "servings": 4,
+              "box_id": "box_prep_traybake_peregrine"
+            },
+            {
+              "preparation_id": "prep_potatoes",
+              "servings": 4,
+              "box_id": "box_prep_potatoes_peregrine"
+            },
+            {
+              "preparation_id": "prep_veg",
+              "servings": 4,
+              "box_id": "box_prep_veg_peregrine"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "starch_follows_the_session"
+          ]
+        },
+        {
+          "name": "Traybake supper",
+          "title": "Chicken traybake, roasted potatoes and green beans",
+          "slot": "dinner",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "lemon",
+              "quantity": "1 lemon",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the last portion in the oven or a pan, then finish with lemon. Keep it warm and plain, because the house wants comfort after a week with the kitchen table covered.",
+          "why": "Friday dinner clears the final Wednesday preparation safely within the three-day window and uses the same base in a different meal context.",
+          "uses": [
+            {
+              "preparation_id": "prep_traybake",
+              "servings": 4,
+              "box_id": "box_prep_traybake_peregrine"
+            },
+            {
+              "preparation_id": "prep_potatoes",
+              "servings": 4,
+              "box_id": "box_prep_potatoes_peregrine"
+            },
+            {
+              "preparation_id": "prep_veg",
+              "servings": 4,
+              "box_id": "box_prep_veg_peregrine"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Traybake start",
+          "title": "Chicken traybake with roasted potatoes and green beans",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "chicken thighs",
+              "quantity": "2.2 kg",
+              "amount": 2200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "potatoes",
+              "quantity": "1.8 kg",
+              "amount": 1800,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "green beans",
+              "quantity": "1.2 kg",
+              "amount": 1200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "red onions",
+              "quantity": "4 red onions",
+              "amount": 4,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "garlic",
+              "quantity": "8 cloves",
+              "amount": 8,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "4 tbsp",
+              "amount": 4,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "paprika",
+              "quantity": "2 tsp",
+              "amount": 2,
+              "unit": "tsp",
+              "state": "raw"
+            },
+            {
+              "term": "lemon",
+              "quantity": "2 lemons",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Toss the chicken thighs, potatoes, onions, garlic, oil and paprika, then roast on trays. Blanch or roast the green beans separately and finish everything with lemon. Box the food hot into four named portions for each person.",
+          "why": "It gives the week a clear cooked anchor and a loud green vegetable, while keeping the kitchen work inside one Wednesday session.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 0
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Chicken pasta sauce",
+          "title": "Chicken, tomato and spinach pasta sauce",
+          "slot": "lunch",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "chicken thighs",
+              "quantity": "1.6 kg",
+              "amount": 1600,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "onions",
+              "quantity": "2 onions",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "garlic",
+              "quantity": "6 cloves",
+              "amount": 6,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "tinned tomatoes",
+              "quantity": "3 tins",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "spinach",
+              "quantity": "300 g",
+              "amount": 300,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "dried oregano",
+              "quantity": "2 tsp",
+              "amount": 2,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Brown the chicken, soften the onions and garlic, then simmer with tomatoes and oregano until the sauce is rich. Stir in spinach at the end and box it for quick Thursday and Friday lunches.",
+          "why": "Thursday needs food that survives the kitchen disruption, and this sauce turns the session into two lunches without another full cook.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 0
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "starch_follows_the_session"
+          ]
+        },
+        {
+          "name": "Egg rice base",
+          "title": "Egg fried rice base with peppers and spring onions",
+          "slot": "dinner",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "eggs",
+              "quantity": "12 eggs",
+              "amount": 12,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "cooked rice",
+              "quantity": "1.4 kg",
+              "amount": 1400,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "red peppers",
+              "quantity": "3 red peppers",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "spring onions",
+              "quantity": "6 spring onions",
+              "amount": 6,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "soy sauce",
+              "quantity": "4 tbsp",
+              "amount": 4,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "sesame oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Cook the rice on the same day, cool it quickly, then fry it with eggs, peppers and spring onions in a hot pan. Season with soy sauce and sesame oil, and box any extra only for Friday if needed.",
+          "why": "It keeps the dinner warm and fresh while respecting the cooked-rice safety window and uses affordable protein for a muscle-gain stretch.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 0
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Sunday cake",
+          "title": "Lemon and poppy seed traybake",
+          "slot": "snack_pm",
+          "day": "sun",
+          "ingredients": [
+            {
+              "term": "self-raising flour",
+              "quantity": "250 g",
+              "amount": 250,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "caster sugar",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "butter",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "eggs",
+              "quantity": "4 eggs",
+              "amount": 4,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "lemons",
+              "quantity": "2 lemons",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "poppy seeds",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Cream the butter and sugar, beat in eggs, flour, zest, juice and poppy seeds, then bake in a tray until springy. Cool and cut into squares for Sunday, with no celeriac, tree nuts or pistachios anywhere near it.",
+          "why": "The house asked for it, so it stays as a snack rather than replacing a main meal that still needs a protein anchor.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 0
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_traybake",
+          "title": "Chicken traybake with roasted potatoes and green beans",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "chicken thighs",
+              "quantity": "2.2 kg",
+              "amount": 2200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "potatoes",
+              "quantity": "1.8 kg",
+              "amount": 1800,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "green beans",
+              "quantity": "1.2 kg",
+              "amount": 1200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "red onions",
+              "quantity": "4 red onions",
+              "amount": 4,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "garlic",
+              "quantity": "8 cloves",
+              "amount": 8,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "4 tbsp",
+              "amount": 4,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "paprika",
+              "quantity": "2 tsp",
+              "amount": 2,
+              "unit": "tsp",
+              "state": "raw"
+            },
+            {
+              "term": "lemon",
+              "quantity": "2 lemons",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Toss the chicken thighs, potatoes, onions, garlic, oil and paprika, then roast on trays. Blanch or roast the green beans separately and finish everything with lemon. Box the food hot into four named portions.",
+          "active_minutes": 20,
+          "total_minutes": 55,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_prep_traybake_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 520
+            },
+            {
+              "id": "box_prep_traybake_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 340
+            },
+            {
+              "id": "box_prep_traybake_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 520
+            },
+            {
+              "id": "box_prep_traybake_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 340
+            }
+          ]
+        },
+        {
+          "id": "prep_chicken_sauce",
+          "title": "Chicken, tomato and spinach pasta sauce",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "chicken thighs",
+              "quantity": "1.6 kg",
+              "amount": 1600,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "onions",
+              "quantity": "2 onions",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "garlic",
+              "quantity": "6 cloves",
+              "amount": 6,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "tinned tomatoes",
+              "quantity": "3 tins",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "spinach",
+              "quantity": "300 g",
+              "amount": 300,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "dried oregano",
+              "quantity": "2 tsp",
+              "amount": 2,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Brown the chicken, soften the onions and garlic, then simmer with tomatoes and oregano until the sauce is rich. Stir in spinach at the end and box it for quick Thursday and Friday lunches.",
+          "active_minutes": 20,
+          "total_minutes": 45,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_prep_chicken_sauce_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 480
+            },
+            {
+              "id": "box_prep_chicken_sauce_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 320
+            },
+            {
+              "id": "box_prep_chicken_sauce_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 480
+            },
+            {
+              "id": "box_prep_chicken_sauce_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 320
+            }
+          ]
+        },
+        {
+          "id": "prep_rice",
+          "title": "Egg fried rice base with peppers and spring onions",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "eggs",
+              "quantity": "12 eggs",
+              "amount": 12,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "cooked rice",
+              "quantity": "1.4 kg",
+              "amount": 1400,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "red peppers",
+              "quantity": "3 red peppers",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "spring onions",
+              "quantity": "6 spring onions",
+              "amount": 6,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "soy sauce",
+              "quantity": "4 tbsp",
+              "amount": 4,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "sesame oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Cook the rice on the same day, cool it quickly, then fry it with eggs, peppers and spring onions in a hot pan. Season with soy sauce and sesame oil, and box any extra only for Friday if needed.",
+          "active_minutes": 20,
+          "total_minutes": 30,
+          "cook_on": "thu",
+          "boxes": [
+            {
+              "id": "box_prep_rice_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 340
+            },
+            {
+              "id": "box_prep_rice_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 220
+            },
+            {
+              "id": "box_prep_rice_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 340
+            },
+            {
+              "id": "box_prep_rice_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 220
+            }
+          ]
+        },
+        {
+          "id": "prep_veg",
+          "title": "Roasted and blanched green beans",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "green beans",
+              "quantity": "1.2 kg",
+              "amount": 1200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "salt",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            },
+            {
+              "term": "lemon",
+              "quantity": "1 lemon",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Blanch the green beans, then toss with a little oil, salt and lemon so they stay bright and loud. Box them for the traybake meals.",
+          "active_minutes": 15,
+          "total_minutes": 20,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_prep_veg_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 120
+            },
+            {
+              "id": "box_prep_veg_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 90
+            },
+            {
+              "id": "box_prep_veg_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 120
+            },
+            {
+              "id": "box_prep_veg_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 90
+            }
+          ]
+        },
+        {
+          "id": "prep_potatoes",
+          "title": "Roasted potatoes",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "potatoes",
+              "quantity": "1.8 kg",
+              "amount": 1800,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "3 tbsp",
+              "amount": 3,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "salt",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            },
+            {
+              "term": "black pepper",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Chunk the potatoes, toss with oil, salt and pepper, and roast until crisp. Box alongside the traybake so the starch is ready when training or tiredness makes the evening late.",
+          "active_minutes": 15,
+          "total_minutes": 45,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_prep_potatoes_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 120
+            },
+            {
+              "id": "box_prep_potatoes_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 80
+            },
+            {
+              "id": "box_prep_potatoes_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 120
+            },
+            {
+              "id": "box_prep_potatoes_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 80
+            }
+          ]
+        },
+        {
+          "id": "prep_eggs",
+          "title": "Scrambled eggs for toast and rice",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "eggs",
+              "quantity": "14 eggs",
+              "amount": 14,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "butter",
+              "quantity": "30 g",
+              "amount": 30,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "milk",
+              "quantity": "100 ml",
+              "amount": 100,
+              "unit": "ml",
+              "state": "raw"
+            },
+            {
+              "term": "salt",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Scramble the eggs gently in butter with a splash of milk and a little salt. Box four breakfast portions so the house can have a fast warm start on each day.",
+          "active_minutes": 15,
+          "total_minutes": 15,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_prep_eggs_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 220
+            },
+            {
+              "id": "box_prep_eggs_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 140
+            },
+            {
+              "id": "box_prep_eggs_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 220
+            },
+            {
+              "id": "box_prep_eggs_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 140
+            }
+          ]
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_traybake",
+            "prep_chicken_sauce",
+            "prep_veg",
+            "prep_potatoes",
+            "prep_eggs"
+          ],
+          "total_minutes": 55,
+          "run_through": "Start the oven for the traybake and potatoes. While they roast, brown the chicken for the tomato sauce, then simmer it with onions, garlic, tomatoes and spinach. Blanch the green beans, scramble the eggs, and box everything hot into the named containers."
+        },
+        {
+          "day": "thu",
+          "preparation_ids": [
+            "prep_rice"
+          ],
+          "total_minutes": 30,
+          "run_through": "Cook the rice fresh, cool it quickly, then fry it with eggs, peppers and spring onions. Box the portions straight away for the same-day dinner and the next day’s use if any remains."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "chicken thighs",
+          "quantity": "3.8 kg",
+          "aisle": "protein"
+        },
+        {
+          "term": "eggs",
+          "quantity": "36 eggs",
+          "aisle": "protein"
+        },
+        {
+          "term": "potatoes",
+          "quantity": "1.8 kg",
+          "aisle": "grains"
+        },
+        {
+          "term": "green beans",
+          "quantity": "1.2 kg",
+          "aisle": "produce"
+        },
+        {
+          "term": "red onions",
+          "quantity": "4 red onions",
+          "aisle": "produce"
+        },
+        {
+          "term": "onions",
+          "quantity": "2 onions",
+          "aisle": "produce"
+        },
+        {
+          "term": "garlic",
+          "quantity": "14 cloves",
+          "aisle": "produce"
+        },
+        {
+          "term": "red peppers",
+          "quantity": "3 red peppers",
+          "aisle": "produce"
+        },
+        {
+          "term": "spring onions",
+          "quantity": "6 spring onions",
+          "aisle": "produce"
+        },
+        {
+          "term": "spinach",
+          "quantity": "300 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "lemons",
+          "quantity": "5 lemons",
+          "aisle": "produce"
+        },
+        {
+          "term": "sliced bread",
+          "quantity": "8 slices",
+          "aisle": "grains"
+        },
+        {
+          "term": "blackcurrant jam",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "tinned tomatoes",
+          "quantity": "3 tins",
+          "aisle": "pantry"
+        },
+        {
+          "term": "self-raising flour",
+          "quantity": "250 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "caster sugar",
+          "quantity": "200 g",
+          "aisle": "pantry"
+        },
+        {
+          "term": "butter",
+          "quantity": "250 g",
+          "aisle": "dairy"
+        },
+        {
+          "term": "milk",
+          "quantity": "100 ml",
+          "aisle": "dairy"
+        },
+        {
+          "term": "poppy seeds",
+          "quantity": "2 tbsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "olive oil",
+          "quantity": "9 tbsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "soy sauce",
+          "quantity": "6 tbsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "sesame oil",
+          "quantity": "1 tbsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "paprika",
+          "quantity": "2 tsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "dried oregano",
+          "quantity": "2 tsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "rice",
+          "quantity": "1.4 kg",
+          "aisle": "grains"
+        },
+        {
+          "term": "salad",
+          "quantity": "320 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "grated cheese",
+          "quantity": "40 g",
+          "aisle": "dairy"
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "id": "resp_0380f401482e0ecf006a84eb319efc87d285f8be22df2d60b6",
+      "text": {
+        "format": {
+          "type": "json_object"
+        },
+        "verbosity": "medium"
+      },
+      "user": null,
+      "error": null,
+      "model": "gpt-5.4-mini-2026-03-17",
+      "store": true,
+      "tools": [],
+      "top_p": 0.98,
+      "usage": {
+        "input_tokens": 7497,
+        "total_tokens": 14098,
+        "output_tokens": 6601,
+        "input_tokens_details": {
+          "cached_tokens": 6912,
+          "cache_write_tokens": 0
+        },
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "object": "response",
+      "output": [
+        {
+          "id": "msg_0380f401482e0ecf006a84eb32615887d2be36d8e39ce23617",
+          "role": "assistant",
+          "type": "message",
+          "phase": "final_answer",
+          "status": "completed",
+          "content": [
+            {
+              "text": "{\"member_portions\":[{\"member_id\":\"85acac95-312b-4d0e-a4da-02558e8a182f\",\"portion_note\":\"Serve 2 eggs, 120 g roasted potatoes, 150 g chicken traybake, 80 g rice, and 120 g vegetables; for breakfast swap the chicken traybake for 2 slices toast with blackcurrant jam.\",\"preparation_shares\":[{\"preparation_id\":\"prep_traybake\",\"note\":\"Take the larger portion.\"},{\"preparation_id\":\"prep_rice\",\"note\":\"Take the larger portion.\"},{\"preparation_id\":\"prep_potatoes\",\"note\":\"Take the larger portion.\"},{\"preparation_id\":\"prep_veg\",\"note\":\"Take the same vegetables as everyone else.\"},{\"preparation_id\":\"prep_eggs\",\"note\":\"Take the breakfast eggs portion.\"}]},{\"member_id\":\"f190856d-d573-42e9-a026-b6a37b9f7471\",\"portion_note\":\"Serve 1 egg, 80 g roasted potatoes, 100 g chicken traybake, 60 g rice, and 90 g vegetables; for breakfast serve 1 slice toast with the eggs and leave the crust off.\",\"preparation_shares\":[{\"preparation_id\":\"prep_traybake\",\"note\":\"Take the smaller portion.\"},{\"preparation_id\":\"prep_rice\",\"note\":\"Take the smaller portion.\"},{\"preparation_id\":\"prep_potatoes\",\"note\":\"Take the smaller portion.\"},{\"preparation_id\":\"prep_veg\",\"note\":\"Take the same vegetables as everyone else.\"},{\"preparation_id\":\"prep_eggs\",\"note\":\"Take the breakfast eggs portion.\"}]},{\"member_id\":\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\",\"portion_note\":\"Serve 2 eggs, 120 g roasted potatoes, 150 g chicken traybake, 80 g rice, and 120 g vegetables; for breakfast swap the chicken traybake for 2 slices toast with jam, and keep the plate free of fennel and carrot-coloured sides.\",\"preparation_shares\":[{\"preparation_id\":\"prep_traybake\",\"note\":\"Take the larger portion.\"},{\"preparation_id\":\"prep_rice\",\"note\":\"Take the larger portion.\"},{\"preparation_id\":\"prep_potatoes\",\"note\":\"Take the larger portion.\"},{\"preparation_id\":\"prep_veg\",\"note\":\"Take the same vegetables as everyone else, without fennel.\"},{\"preparation_id\":\"prep_eggs\",\"note\":\"Take the breakfast eggs portion.\"}]},{\"member_id\":\"536e683d-64a8-4dc2-a69b-6ee1925b206c\",\"portion_note\":\"Serve 1 egg, 80 g roasted potatoes, 100 g chicken traybake, 60 g rice, and 90 g vegetables; for breakfast serve 1 slice toast with the eggs and add hot sauce if wanted.\",\"preparation_shares\":[{\"preparation_id\":\"prep_traybake\",\"note\":\"Take the smaller portion.\"},{\"preparation_id\":\"prep_rice\",\"note\":\"Take the smaller portion.\"},{\"preparation_id\":\"prep_potatoes\",\"note\":\"Take the smaller portion.\"},{\"preparation_id\":\"prep_veg\",\"note\":\"Take the same vegetables as everyone else.\"},{\"preparation_id\":\"prep_eggs\",\"note\":\"Take the breakfast eggs portion.\"}]}],\"dishes\":[{\"name\":\"Jam toast and eggs\",\"title\":\"Toast, blackcurrant jam and scrambled eggs\",\"slot\":\"breakfast\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"sliced bread\",\"quantity\":\"8 slices\",\"amount\":8,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"blackcurrant jam\",\"quantity\":\"4 tbsp\",\"amount\":4,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"eggs\",\"quantity\":\"10 eggs\",\"amount\":10,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"butter\",\"quantity\":\"20 g\",\"amount\":20,\"unit\":\"g\",\"state\":\"raw\"}],\"method\":\"Toast the bread. Scramble the eggs in butter in a pan and serve them beside the toast with blackcurrant jam on the side for Odalric, with crusts cut off for Wilfrid.\",\"why\":\"A warm breakfast fits the coach’s rule, and the traybake plan leaves room for the house’s Sunday cake later in the stretch.\",\"uses\":[{\"preparation_id\":\"prep_eggs\",\"servings\":4}],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":15},\"honours_belief_keys\":[\"name_the_plate_out_loud\"]},{\"name\":\"Traybake lunch boxes\",\"title\":\"Chicken traybake, roasted potatoes and green beans\",\"slot\":\"lunch\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"lemon\",\"quantity\":\"1 lemon\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"green salad\",\"quantity\":\"160 g\",\"amount\":160,\"unit\":\"g\",\"state\":\"raw\"}],\"method\":\"Reheat a portion of the traybake, pile it on the plate with the roasted potatoes and green beans, and finish with lemon. Add the salad fresh.\",\"why\":\"One loud vegetable is covered by the green beans, and this is the first use of the batch before Thursday’s kitchen disruption.\",\"uses\":[{\"preparation_id\":\"prep_traybake\",\"servings\":4,\"box_id\":\"box_prep_traybake_odalric\"},{\"preparation_id\":\"prep_potatoes\",\"servings\":4,\"box_id\":\"box_prep_potatoes_odalric\"},{\"preparation_id\":\"prep_veg\",\"servings\":4,\"box_id\":\"box_prep_veg_odalric\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":8},\"honours_belief_keys\":[\"one_loud_vegetable\",\"starch_follows_the_session\"]},{\"name\":\"Traybake dinner bowls\",\"title\":\"Chicken traybake, roasted potatoes and green beans\",\"slot\":\"dinner\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"lemon\",\"quantity\":\"1 lemon\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"}],\"method\":\"Reheat a portion of the traybake, potatoes and green beans in a pan or the oven, then finish with lemon. Keep the plates warm because dinner must have a warm element.\",\"why\":\"It reuses the Wednesday cook while staying within the coach’s no-salad-dinner rule and keeping the evening simple before the shared kitchen day.\",\"uses\":[{\"preparation_id\":\"prep_traybake\",\"servings\":4,\"box_id\":\"box_prep_traybake_odalric\"},{\"preparation_id\":\"prep_potatoes\",\"servings\":4,\"box_id\":\"box_prep_potatoes_odalric\"},{\"preparation_id\":\"prep_veg\",\"servings\":4,\"box_id\":\"box_prep_veg_odalric\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"one_loud_vegetable\",\"name_the_plate_out_loud\"]},{\"name\":\"Pasta chicken bowls\",\"title\":\"Chicken, tomato and spinach pasta\",\"slot\":\"lunch\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"lemon\",\"quantity\":\"1 lemon\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"grated cheese\",\"quantity\":\"40 g\",\"amount\":40,\"unit\":\"g\",\"state\":\"raw\"}],\"method\":\"Reheat a portion of the chicken sauce, boil the pasta fresh, toss together with spinach and finish with lemon and cheese. This keeps lunch away from the dust sheet and makes the starch follow the session.\",\"why\":\"Thursday is awkward in the kitchen, so lunch is built from the Wednesday batch and one fresh pot of pasta without needing the table.\",\"uses\":[{\"preparation_id\":\"prep_chicken_sauce\",\"servings\":4,\"box_id\":\"box_prep_chicken_sauce_odalric\"}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":15},\"honours_belief_keys\":[\"starch_follows_the_session\",\"one_loud_vegetable\"]},{\"name\":\"Egg fried rice\",\"title\":\"Egg fried rice with peppers and spring onions\",\"slot\":\"dinner\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"soy sauce\",\"quantity\":\"2 tbsp\",\"amount\":2,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"spring onions\",\"quantity\":\"4 spring onions\",\"amount\":4,\"unit\":\"unit\",\"state\":\"raw\"}],\"method\":\"Fry the cold rice with the eggs, peppers and spring onions in a hot pan, finishing with soy sauce. Make it fresh because cooked rice stays within the same day or the day after.\",\"why\":\"This gives the house a quick dinner that fits the coach’s warm-element rule while avoiding a rice batch that would overrun the safe window.\",\"uses\":[{\"preparation_id\":\"prep_rice\",\"servings\":4,\"box_id\":\"box_prep_rice_odalric\"},{\"preparation_id\":\"prep_eggs\",\"servings\":4,\"box_id\":\"box_prep_eggs_odalric\"}],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":20},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Traybake salad plates\",\"title\":\"Chicken traybake, roasted potatoes and green beans\",\"slot\":\"lunch\",\"day\":\"fri\",\"ingredients\":[{\"term\":\"lemon\",\"quantity\":\"1 lemon\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"green salad\",\"quantity\":\"160 g\",\"amount\":160,\"unit\":\"g\",\"state\":\"raw\"}],\"method\":\"Reheat the remaining traybake and potatoes, add the last green beans, then serve with lemon and salad. This uses the final box before the three-day limit closes.\",\"why\":\"Friday lunch finishes the Wednesday batch in time and keeps the plate varied enough to avoid the grey-box feeling the coach dislikes.\",\"uses\":[{\"preparation_id\":\"prep_traybake\",\"servings\":4,\"box_id\":\"box_prep_traybake_peregrine\"},{\"preparation_id\":\"prep_potatoes\",\"servings\":4,\"box_id\":\"box_prep_potatoes_peregrine\"},{\"preparation_id\":\"prep_veg\",\"servings\":4,\"box_id\":\"box_prep_veg_peregrine\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":8},\"honours_belief_keys\":[\"one_loud_vegetable\",\"starch_follows_the_session\"]},{\"name\":\"Traybake supper\",\"title\":\"Chicken traybake, roasted potatoes and green beans\",\"slot\":\"dinner\",\"day\":\"fri\",\"ingredients\":[{\"term\":\"lemon\",\"quantity\":\"1 lemon\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"}],\"method\":\"Reheat the last portion in the oven or a pan, then finish with lemon. Keep it warm and plain, because the house wants comfort after a week with the kitchen table covered.\",\"why\":\"Friday dinner clears the final Wednesday preparation safely within the three-day window and uses the same base in a different meal context.\",\"uses\":[{\"preparation_id\":\"prep_traybake\",\"servings\":4,\"box_id\":\"box_prep_traybake_peregrine\"},{\"preparation_id\":\"prep_potatoes\",\"servings\":4,\"box_id\":\"box_prep_potatoes_peregrine\"},{\"preparation_id\":\"prep_veg\",\"servings\":4,\"box_id\":\"box_prep_veg_peregrine\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Traybake start\", \"title\":\"Chicken traybake with roasted potatoes and green beans\",\"slot\":\"lunch\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"chicken thighs\",\"quantity\":\"2.2 kg\",\"amount\":2200,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"potatoes\",\"quantity\":\"1.8 kg\",\"amount\":1800,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"green beans\",\"quantity\":\"1.2 kg\",\"amount\":1200,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"red onions\",\"quantity\":\"4 red onions\",\"amount\":4,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"garlic\",\"quantity\":\"8 cloves\",\"amount\":8,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"4 tbsp\",\"amount\":4,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"paprika\",\"quantity\":\"2 tsp\",\"amount\":2,\"unit\":\"tsp\",\"state\":\"raw\"},{\"term\":\"lemon\",\"quantity\":\"2 lemons\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"}],\"method\":\"Toss the chicken thighs, potatoes, onions, garlic, oil and paprika, then roast on trays. Blanch or roast the green beans separately and finish everything with lemon. Box the food hot into four named portions for each person.\",\"why\":\"It gives the week a clear cooked anchor and a loud green vegetable, while keeping the kitchen work inside one Wednesday session.\",\"uses\":[],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":0},\"honours_belief_keys\":[\"one_loud_vegetable\",\"name_the_plate_out_loud\"]},{\"name\":\"Chicken pasta sauce\",\"title\":\"Chicken, tomato and spinach pasta sauce\",\"slot\":\"lunch\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"chicken thighs\",\"quantity\":\"1.6 kg\",\"amount\":1600,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"onions\",\"quantity\":\"2 onions\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"garlic\",\"quantity\":\"6 cloves\",\"amount\":6,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"tinned tomatoes\",\"quantity\":\"3 tins\",\"amount\":3,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"spinach\",\"quantity\":\"300 g\",\"amount\":300,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"2 tbsp\",\"amount\":2,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"dried oregano\",\"quantity\":\"2 tsp\",\"amount\":2,\"unit\":\"tsp\",\"state\":\"raw\"}],\"method\":\"Brown the chicken, soften the onions and garlic, then simmer with tomatoes and oregano until the sauce is rich. Stir in spinach at the end and box it for quick Thursday and Friday lunches.\",\"why\":\"Thursday needs food that survives the kitchen disruption, and this sauce turns the session into two lunches without another full cook.\",\"uses\":[],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":0},\"honours_belief_keys\":[\"one_loud_vegetable\",\"starch_follows_the_session\"]},{\"name\":\"Egg rice base\",\"title\":\"Egg fried rice base with peppers and spring onions\",\"slot\":\"dinner\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"eggs\",\"quantity\":\"12 eggs\",\"amount\":12,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"cooked rice\",\"quantity\":\"1.4 kg\",\"amount\":1400,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"red peppers\",\"quantity\":\"3 red peppers\",\"amount\":3,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"spring onions\",\"quantity\":\"6 spring onions\",\"amount\":6,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"soy sauce\",\"quantity\":\"4 tbsp\",\"amount\":4,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"sesame oil\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\"}],\"method\":\"Cook the rice on the same day, cool it quickly, then fry it with eggs, peppers and spring onions in a hot pan. Season with soy sauce and sesame oil, and box any extra only for Friday if needed.\",\"why\":\"It keeps the dinner warm and fresh while respecting the cooked-rice safety window and uses affordable protein for a muscle-gain stretch.\",\"uses\":[],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":0},\"honours_belief_keys\":[\"name_the_plate_out_loud\",\"one_loud_vegetable\"]},{\"name\":\"Sunday cake\", \"title\":\"Lemon and poppy seed traybake\",\"slot\":\"snack_pm\",\"day\":\"sun\",\"ingredients\":[{\"term\":\"self-raising flour\",\"quantity\":\"250 g\",\"amount\":250,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"caster sugar\",\"quantity\":\"200 g\",\"amount\":200,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"butter\",\"quantity\":\"200 g\",\"amount\":200,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"eggs\",\"quantity\":\"4 eggs\",\"amount\":4,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"lemons\",\"quantity\":\"2 lemons\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"poppy seeds\",\"quantity\":\"2 tbsp\",\"amount\":2,\"unit\":\"tbsp\",\"state\":\"raw\"}],\"method\":\"Cream the butter and sugar, beat in eggs, flour, zest, juice and poppy seeds, then bake in a tray until springy. Cool and cut into squares for Sunday, with no celeriac, tree nuts or pistachios anywhere near it.\",\"why\":\"The house asked for it, so it stays as a snack rather than replacing a main meal that still needs a protein anchor.\",\"uses\":[],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":0},\"honours_belief_keys\":[\"name_the_plate_out_loud\"]}],\"preparations\":[{\"id\":\"prep_traybake\",\"title\":\"Chicken traybake with roasted potatoes and green beans\",\"servings_made\":4,\"ingredients\":[{\"term\":\"chicken thighs\",\"quantity\":\"2.2 kg\",\"amount\":2200,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"potatoes\",\"quantity\":\"1.8 kg\",\"amount\":1800,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"green beans\",\"quantity\":\"1.2 kg\",\"amount\":1200,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"red onions\",\"quantity\":\"4 red onions\",\"amount\":4,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"garlic\",\"quantity\":\"8 cloves\",\"amount\":8,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"4 tbsp\",\"amount\":4,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"paprika\",\"quantity\":\"2 tsp\",\"amount\":2,\"unit\":\"tsp\",\"state\":\"raw\"},{\"term\":\"lemon\",\"quantity\":\"2 lemons\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"}],\"method\":\"Toss the chicken thighs, potatoes, onions, garlic, oil and paprika, then roast on trays. Blanch or roast the green beans separately and finish everything with lemon. Box the food hot into four named portions.\",\"active_minutes\":20,\"total_minutes\":55,\"cook_on\":\"wed\",\"boxes\":[{\"id\":\"box_prep_traybake_odalric\",\"member_ids\":[\"85acac95-312b-4d0e-a4da-02558e8a182f\"],\"grams\":520},{\"id\":\"box_prep_traybake_wilfrid\",\"member_ids\":[\"f190856d-d573-42e9-a026-b6a37b9f7471\"],\"grams\":340},{\"id\":\"box_prep_traybake_peregrine\",\"member_ids\":[\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"],\"grams\":520},{\"id\":\"box_prep_traybake_casimir\",\"member_ids\":[\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"],\"grams\":340}]},{\"id\":\"prep_chicken_sauce\",\"title\":\"Chicken, tomato and spinach pasta sauce\",\"servings_made\":4,\"ingredients\":[{\"term\":\"chicken thighs\",\"quantity\":\"1.6 kg\",\"amount\":1600,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"onions\",\"quantity\":\"2 onions\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"garlic\",\"quantity\":\"6 cloves\",\"amount\":6,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"tinned tomatoes\",\"quantity\":\"3 tins\",\"amount\":3,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"spinach\",\"quantity\":\"300 g\",\"amount\":300,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"2 tbsp\",\"amount\":2,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"dried oregano\",\"quantity\":\"2 tsp\",\"amount\":2,\"unit\":\"tsp\",\"state\":\"raw\"}],\"method\":\"Brown the chicken, soften the onions and garlic, then simmer with tomatoes and oregano until the sauce is rich. Stir in spinach at the end and box it for quick Thursday and Friday lunches.\",\"active_minutes\":20,\"total_minutes\":45,\"cook_on\":\"wed\",\"boxes\":[{\"id\":\"box_prep_chicken_sauce_odalric\",\"member_ids\":[\"85acac95-312b-4d0e-a4da-02558e8a182f\"],\"grams\":480},{\"id\":\"box_prep_chicken_sauce_wilfrid\",\"member_ids\":[\"f190856d-d573-42e9-a026-b6a37b9f7471\"],\"grams\":320},{\"id\":\"box_prep_chicken_sauce_peregrine\",\"member_ids\":[\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"],\"grams\":480},{\"id\":\"box_prep_chicken_sauce_casimir\",\"member_ids\":[\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"],\"grams\":320}]},{\"id\":\"prep_rice\",\"title\":\"Egg fried rice base with peppers and spring onions\",\"servings_made\":4,\"ingredients\":[{\"term\":\"eggs\",\"quantity\":\"12 eggs\",\"amount\":12,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"cooked rice\",\"quantity\":\"1.4 kg\",\"amount\":1400,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"red peppers\",\"quantity\":\"3 red peppers\",\"amount\":3,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"spring onions\",\"quantity\":\"6 spring onions\",\"amount\":6,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"soy sauce\",\"quantity\":\"4 tbsp\",\"amount\":4,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"sesame oil\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\"}],\"method\":\"Cook the rice on the same day, cool it quickly, then fry it with eggs, peppers and spring onions in a hot pan. Season with soy sauce and sesame oil, and box any extra only for Friday if needed.\",\"active_minutes\":20,\"total_minutes\":30,\"cook_on\":\"thu\",\"boxes\":[{\"id\":\"box_prep_rice_odalric\",\"member_ids\":[\"85acac95-312b-4d0e-a4da-02558e8a182f\"],\"grams\":340},{\"id\":\"box_prep_rice_wilfrid\",\"member_ids\":[\"f190856d-d573-42e9-a026-b6a37b9f7471\"],\"grams\":220},{\"id\":\"box_prep_rice_peregrine\",\"member_ids\":[\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"],\"grams\":340},{\"id\":\"box_prep_rice_casimir\",\"member_ids\":[\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"],\"grams\":220}]},{\"id\":\"prep_veg\",\"title\":\"Roasted and blanched green beans\",\"servings_made\":4,\"ingredients\":[{\"term\":\"green beans\",\"quantity\":\"1.2 kg\",\"amount\":1200,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"2 tbsp\",\"amount\":2,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"salt\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\"},{\"term\":\"lemon\",\"quantity\":\"1 lemon\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"}],\"method\":\"Blanch the green beans, then toss with a little oil, salt and lemon so they stay bright and loud. Box them for the traybake meals.\",\"active_minutes\":15,\"total_minutes\":20,\"cook_on\":\"wed\",\"boxes\":[{\"id\":\"box_prep_veg_odalric\",\"member_ids\":[\"85acac95-312b-4d0e-a4da-02558e8a182f\"],\"grams\":120},{\"id\":\"box_prep_veg_wilfrid\",\"member_ids\":[\"f190856d-d573-42e9-a026-b6a37b9f7471\"],\"grams\":90},{\"id\":\"box_prep_veg_peregrine\",\"member_ids\":[\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"],\"grams\":120},{\"id\":\"box_prep_veg_casimir\",\"member_ids\":[\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"],\"grams\":90}]},{\"id\":\"prep_potatoes\",\"title\":\"Roasted potatoes\",\"servings_made\":4,\"ingredients\":[{\"term\":\"potatoes\",\"quantity\":\"1.8 kg\",\"amount\":1800,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"3 tbsp\",\"amount\":3,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"salt\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\"},{\"term\":\"black pepper\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\"}],\"method\":\"Chunk the potatoes, toss with oil, salt and pepper, and roast until crisp. Box alongside the traybake so the starch is ready when training or tiredness makes the evening late.\",\"active_minutes\":15,\"total_minutes\":45,\"cook_on\":\"wed\",\"boxes\":[{\"id\":\"box_prep_potatoes_odalric\",\"member_ids\":[\"85acac95-312b-4d0e-a4da-02558e8a182f\"],\"grams\":120},{\"id\":\"box_prep_potatoes_wilfrid\",\"member_ids\":[\"f190856d-d573-42e9-a026-b6a37b9f7471\"],\"grams\":80},{\"id\":\"box_prep_potatoes_peregrine\",\"member_ids\":[\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"],\"grams\":120},{\"id\":\"box_prep_potatoes_casimir\",\"member_ids\":[\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"],\"grams\":80}]},{\"id\":\"prep_eggs\",\"title\":\"Scrambled eggs for toast and rice\",\"servings_made\":4,\"ingredients\":[{\"term\":\"eggs\",\"quantity\":\"14 eggs\",\"amount\":14,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"butter\",\"quantity\":\"30 g\",\"amount\":30,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"milk\",\"quantity\":\"100 ml\",\"amount\":100,\"unit\":\"ml\",\"state\":\"raw\"},{\"term\":\"salt\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\"}],\"method\":\"Scramble the eggs gently in butter with a splash of milk and a little salt. Box four breakfast portions so the house can have a fast warm start on each day.\",\"active_minutes\":15,\"total_minutes\":15,\"cook_on\":\"wed\",\"boxes\":[{\"id\":\"box_prep_eggs_odalric\",\"member_ids\":[\"85acac95-312b-4d0e-a4da-02558e8a182f\"],\"grams\":220},{\"id\":\"box_prep_eggs_wilfrid\",\"member_ids\":[\"f190856d-d573-42e9-a026-b6a37b9f7471\"],\"grams\":140},{\"id\":\"box_prep_eggs_peregrine\",\"member_ids\":[\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"],\"grams\":220},{\"id\":\"box_prep_eggs_casimir\",\"member_ids\":[\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"],\"grams\":140}]}],\"cooking_sessions\":[{\"day\":\"wed\",\"preparation_ids\":[\"prep_traybake\",\"prep_chicken_sauce\",\"prep_veg\",\"prep_potatoes\",\"prep_eggs\"],\"total_minutes\":55,\"run_through\":\"Start the oven for the traybake and potatoes. While they roast, brown the chicken for the tomato sauce, then simmer it with onions, garlic, tomatoes and spinach. Blanch the green beans, scramble the eggs, and box everything hot into the named containers.\"},{\"day\":\"thu\",\"preparation_ids\":[\"prep_rice\"],\"total_minutes\":30,\"run_through\":\"Cook the rice fresh, cool it quickly, then fry it with eggs, peppers and spring onions. Box the portions straight away for the same-day dinner and the next day’s use if any remains.\"}],\"shopping_list\":[{\"term\":\"chicken thighs\",\"quantity\":\"3.8 kg\",\"aisle\":\"protein\"},{\"term\":\"eggs\",\"quantity\":\"36 eggs\",\"aisle\":\"protein\"},{\"term\":\"potatoes\",\"quantity\":\"1.8 kg\",\"aisle\":\"grains\"},{\"term\":\"green beans\",\"quantity\":\"1.2 kg\",\"aisle\":\"produce\"},{\"term\":\"red onions\",\"quantity\":\"4 red onions\",\"aisle\":\"produce\"},{\"term\":\"onions\",\"quantity\":\"2 onions\",\"aisle\":\"produce\"},{\"term\":\"garlic\",\"quantity\":\"14 cloves\",\"aisle\":\"produce\"},{\"term\":\"red peppers\",\"quantity\":\"3 red peppers\",\"aisle\":\"produce\"},{\"term\":\"spring onions\",\"quantity\":\"6 spring onions\",\"aisle\":\"produce\"},{\"term\":\"spinach\",\"quantity\":\"300 g\",\"aisle\":\"produce\"},{\"term\":\"lemons\",\"quantity\":\"5 lemons\",\"aisle\":\"produce\"},{\"term\":\"sliced bread\",\"quantity\":\"8 slices\",\"aisle\":\"grains\"},{\"term\":\"blackcurrant jam\",\"quantity\":\"1 jar\",\"aisle\":\"pantry\"},{\"term\":\"tinned tomatoes\",\"quantity\":\"3 tins\",\"aisle\":\"pantry\"},{\"term\":\"self-raising flour\",\"quantity\":\"250 g\",\"aisle\":\"grains\"},{\"term\":\"caster sugar\",\"quantity\":\"200 g\",\"aisle\":\"pantry\"},{\"term\":\"butter\",\"quantity\":\"250 g\",\"aisle\":\"dairy\"},{\"term\":\"milk\",\"quantity\":\"100 ml\",\"aisle\":\"dairy\"},{\"term\":\"poppy seeds\",\"quantity\":\"2 tbsp\",\"aisle\":\"pantry\"},{\"term\":\"olive oil\",\"quantity\":\"9 tbsp\",\"aisle\":\"pantry\"},{\"term\":\"soy sauce\",\"quantity\":\"6 tbsp\",\"aisle\":\"pantry\"},{\"term\":\"sesame oil\",\"quantity\":\"1 tbsp\",\"aisle\":\"pantry\"},{\"term\":\"paprika\",\"quantity\":\"2 tsp\",\"aisle\":\"pantry\"},{\"term\":\"dried oregano\",\"quantity\":\"2 tsp\",\"aisle\":\"pantry\"},{\"term\":\"rice\",\"quantity\":\"1.4 kg\",\"aisle\":\"grains\"},{\"term\":\"salad\",\"quantity\":\"320 g\",\"aisle\":\"produce\"},{\"term\":\"grated cheese\",\"quantity\":\"40 g\",\"aisle\":\"dairy\"}]}",
+              "type": "output_text",
+              "logprobs": [],
+              "annotations": []
+            }
+          ]
+        }
+      ],
+      "status": "completed",
+      "billing": {
+        "payer": "developer"
+      },
+      "metadata": {
+        "source": "generate-household-meal-v1.protein_anchor_retry",
+        "user_id": "1e000000-0000-4000-8000-000000000002",
+        "request_id": "c030000c-0000-4000-8000-000000000002"
+      },
+      "reasoning": {
+        "mode": "standard",
+        "effort": "none",
+        "context": "current_turn",
+        "summary": null
+      },
+      "background": false,
+      "created_at": 1787095857,
+      "moderation": null,
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "total_tokens": 0,
+          "output_tokens": 0,
+          "input_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          },
+          "output_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          }
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "truncation": "disabled",
+      "temperature": 1,
+      "tool_choice": "auto",
+      "completed_at": 1787095899,
+      "instructions": "You cook for ONE student, inside the method their coach teaches.\n\nOutput a single JSON object, nothing else. No prose outside the JSON, no markdown fences.\n\n== THE METHOD COMES FIRST, THE RECIPE IS YOURS ==\n\nYour coach's method is given below. It is not a suggestion: their forbidden practices and the foods they do not put on a plate are hard limits, and you never contradict them.\n\nInside those limits you are free. Write real food a real person wants to eat. You are not restricted to a catalogue.\n\n== A PORTION IS ONE PERSON'S PLATE ==\n\nYou are told how many people are at the table. Every quantity you write is for\nTHAT many people, for the number of servings the dish actually makes — and for\nnothing more.\n\nMeasured failure, and it is the one that makes a plan unusable: \"2 salmon\nfillets, 500 g potatoes\" written for ONE person eating ONE dinner. That is three\ndinners on a plate. If a quantity only makes sense because the dish is cooked in\na batch, then say so in `batch` — do not silently inflate a single plate.\n\nSanity, before you write a quantity: one adult portion is roughly a palm of\nprotein, a fist of starch, and vegetables on top. Scale from there. You never\ntell the student those figures; you use them so the numbers you DO write are\nbelievable.\n\n== EVERY MAIN MEAL IS BUILT AROUND A PROTEIN FOOD ==\n\nBreakfast, lunch and dinner each carry one whole protein food as their anchor:\nmeat, poultry, fish, seafood, eggs, pulses, tofu or tempeh, or a protein-carrying\ndairy like yogurt, skyr or cottage cheese. It is the thing the rest of the plate\nis built around, not a garnish on top of it.\n\nSnacks are snacks. They do not need one.\n\nNever write a figure for it. No grams of protein, no share of the plate, no\ntarget of any kind — you are choosing a food, not measuring a person.\n\n== THE STRETCH STARTS TODAY ==\n\nYou are told what day it is for this student, and the exact days to fill. Use\nTHOSE days, in that order, and no others.\n\nA plan handed to somebody on Wednesday that starts on Monday is half expired on\ndelivery — measured, and the first thing a student notices. There is no such\nthing as planning a day that has already gone.\n\n== COVER THE WHOLE STRETCH, WITH FEW COOKING SESSIONS ==\n\nWhen you are asked for several days, cover EVERY day of the stretch and every\nmeal that matters in it. A plan with Monday dinner and Wednesday dinner and\nnothing in between is not a plan — the student did not ask for a partial week,\nand holes are read as \"the system gave up\".\n\nCovering everything does not mean cooking everything. That is what the\npreparations below are for.\n\n== WHAT YOU COOK IS NOT WHAT YOU EAT ==\n\nThis is the important one, and it is what makes a week both quick and bearable.\n\nSeparate PREPARATIONS from DISHES.\n\n  A preparation is what comes out of one cooking session: 1.2 kg of roast\n  chicken thighs, a pot of chilli, a tray of roast vegetables, a batch of rice.\n  It carries its own ingredients — for the WHOLE batch — and its own method.\n\n  A dish is a meal on a day. It NAMES the preparations it draws on through\n  `uses`, and its own `ingredients` list only what you add at the moment of\n  eating: the salad, the bread, the yogurt, the lemon.\n\nWhy it matters: one cooking of chicken becomes a rice bowl on Monday, a wrap on\nTuesday and a curry base on Thursday. THREE DIFFERENT MEALS, ONE COOKING. Making\nthe same student eat the identical plate four days running is technically batch\ncooking and humanly a punishment — do not do it.\n\nRules that follow:\n  - anything that needs a pan, a pot or an oven is a PREPARATION making at\n    least two servings. Never a dish cooked from scratch twice in a week.\n  - assemblies that need no cooking — oats and yogurt, a sandwich, fruit and\n    nuts — are plain dishes with no `uses`, made fresh, quantities for one\n    plate.\n  - a dish that draws on a preparation does NOT repeat its recipe. Its method is\n    what you do at that meal: \"reheat a portion, add the salad and the lemon\".\n  - vary what you build from the same preparation. Same protein, different meal.\n\n== NAME THE COOKING SESSIONS, AND WRITE THE RUN-THROUGH ==\n\nGive `cooking_sessions`: the days on which the student actually cooks, which\npreparations get made in each, and the ORDER of the gestures — \"oven on for the\ntray, rice on while it roasts, chilli simmering next to it, box four portions\".\n\nAim for two or three sessions in a week, not seven. Every preparation belongs to\nexactly one session: a preparation nobody cooks is a plan the student cannot\nfollow.\n\n== NOTHING SITS IN THE FRIDGE FOR A WEEK ==\n\nA cooked batch is eaten within THREE DAYS of the day it was cooked. Cooked on\nThursday means eaten by Sunday, and that is the end of it. Beyond that it is not\na meal plan, it is a plan to throw food away or to get somebody ill.\n\nCooked rice and cooked seafood are tighter still: same day or the day after.\nRice left sitting is the classic way to make somebody sick, and no amount of\nconvenience is worth it.\n\nIf a batch would have to stretch further, you have three honest ways out: cook a\nsmaller batch, cook it twice, or say plainly in the method that the surplus goes\nin the FREEZER on the cooking day. Never stretch it in silence.\n\n== THE COOKING TIME THEY GAVE YOU IS A CEILING ==\n\nWhen a session time is stated, the session fits inside it. It is not a target to\napproach and overshoot: it is what they actually have that evening, and a\nsession that does not fit is a session they skip — after which the whole week\nfalls apart, not just that session.\n\nIf everything will not fit, cook LESS in that session and put the rest on\nanother cooking day. Fewer preparations that happen beat more preparations that\ndo not.\n\n== NOTHING IS EATEN BEFORE IT IS COOKED ==\n\nA preparation must be cooked ON OR BEFORE the first day that eats from it. If\nthe only cooking day you have is Sunday, then Thursday, Friday and Saturday\ncannot live off a Sunday batch — those days cook for themselves, or they eat\nsomething that needs no batch at all.\n\nThis is not a preference. A plan that feeds Thursday from a Sunday session is a\nplan that cannot be executed, and the student finds out at lunchtime.\n\n== HOW LONG THINGS TAKE ==\n\nEvery preparation carries two numbers, and they are not the same one.\n\"active_minutes\" is time with your hands on it — chopping, stirring, turning.\n\"total_minutes\" is from starting to finished, waiting included. A roast is 10\nactive and 50 total; that gap is the whole reason batch cooking works, because\nthe oven time is free for another preparation.\n\nA session's \"total_minutes\" is the wall clock of the session, NOT the sum of its\npreparations: things overlap, and pretending otherwise turns a comfortable\nninety-minute Sunday into a scary four-hour one nobody starts.\n\nRound to the nearest five. These are estimates a cook recognises, not\nmeasurements — but they are the numbers somebody uses to decide whether tonight\nis possible, so a wrong one costs a skipped meal.\n\n== WHAT TODAY ACTUALLY TAKES, ON EVERY DISH ==\n\nEvery dish carries \"same_day\": what the student does ON THE DAY THEY EAT IT to\nget that plate in front of them, and how long that gesture takes.\n\n  \"kind\" is one of four, and nothing else exists:\n    \"none\"        - nothing to prepare. Fruit, a yogurt, a plate already made.\n    \"reheat_only\" - take the portion out and heat it, and NOTHING else.\n    \"assemble\"    - build the plate from what is already cooked, no cooking.\n    \"cook_fresh\"  - a real cooking gesture that day: scramble the eggs, boil\n                    the pasta, sear the fish.\n\n  \"minutes\" is how long THAT gesture takes, that day. A whole number.\n\n\"minutes\" IS NOT THE TIME OF THE COOKING SESSION, and confusing the two is the\nfailure this field exists to stop. A portion of Sunday's roast, reheated on\nWednesday, is 8 minutes - not the 50 the roast took. Announcing 50 tells\nsomebody with ten minutes that dinner is out of reach, and they skip it.\n\nSay it on EVERY dish, including the ones where the answer is nothing. \"none\" and\n\"cook_fresh\" are answers; a missing line is a plate somebody stands in front of\nwithout knowing what to do. If the dish reheats, the word reheat is what they\nneed to read, so write \"reheat_only\" and say it again plainly in \"method\".\n\n== NEVER PUT A NUMBER ON NUTRITION ==\n\nNo calories. No macro grams. No percentages of anything nutritional. Not as a target, not as a range, not \"roughly\". Nobody has measured this student.\n\nShopping quantities are DIFFERENT and expected: \"400 g chicken thighs\", \"2 onions\", \"a bunch of parsley\". A quantity says how much to buy or use; a target claims a measurement of the person. Put quantities on ingredients, never on the student.\n\n== SAY THE SAME QUANTITY TWICE: ONCE FOR THE COOK, ONCE IN FIGURES ==\n\nEvery ingredient carries \"quantity\" — the phrase a person reads, exactly as you\nwrite it today — AND three plain fields that repeat it:\n\n  \"amount\": the number.\n  \"unit\":   one of \"g\", \"ml\", \"unit\", \"tbsp\", \"tsp\". Nothing else exists. If\n            what you meant is a handful, a cup, a bunch or a pinch, leave\n            \"amount\" and \"unit\" null and keep the phrase in \"quantity\".\n  \"state\":  \"raw\" or \"cooked\" — the weight you just wrote, before or after\n            cooking.\n\n\"state\" is REQUIRED for anything that takes on or loses water in the pan: rice,\npasta, couscous, lentils, dried beans, meat, poultry, fish. A hundred grams of\nrice is not the same food before and after it is boiled, and leaving it out\nmakes the line unusable. It does not matter for oil, nuts, cheese, yogurt or\nfruit — say it anyway when you know it.\n\nNever guess. An ingredient whose weight you do not actually know keeps its\nphrase and leaves the three fields null. A made-up number is worse than a\nmissing one.\n\nFATS, NUTS AND SWEETENERS ARE THE ONE EXCEPTION, and they are not a guess.\nOil, butter, ghee, cream, nut butter, tahini, nuts, seeds, honey, syrup and\nchocolate ALWAYS carry \"amount\" and \"unit\". \"A drizzle of olive oil\" is a\ntablespoon; write 1 and \"tbsp\". These ingredients are small on the page and\nenormous in the pan -- a spoon of oil weighs what a whole plate of vegetables\nweighs, and a line left blank there makes the entire dish unreadable. Salt,\npepper and herbs may stay a pinch; oil may not.\n\n== WHAT A DISH ADDS ON THE DAY IS WEIGHED OR COUNTED, NEVER VAGUE ==\n\nThe phrase in a DISH's \"quantity\" is either a weight -- \"100 g dried pasta\",\n\"40 g feta\" -- or something a person can count: \"half a lemon\", \"10 basil\nleaves\", \"2 eggs\". \"A handful\", \"a generous portion\", \"some rice\" say nothing\nanybody can act on, and they are why the same dish comes out different every\ntime. Salt, pepper and herbs may stay a pinch. Everything else gets a number.\n\n== THE STUDENT'S SITUATION IS NOT DECORATION ==\n\nThey tell you what their week actually looks like — a wedding on Tuesday, a holiday, a weekend away, a late shift. Cook around it. A meal that assumes an evening they do not have is a meal they will not make.\n\n== THE TWO MODES ==\n\nmode = from_pantry\n  Cook with what they ALREADY have. Reach outside their list only for genuine\n  staples (salt, pepper, oil, water) or when the dish is impossible otherwise.\n  Anything you use that they did not list will be shown to them as something to\n  buy, so keep that list short and say why it is needed.\n\nmode = to_shop\n  Compose freely, then give the shopping list the dish actually needs.\n\n== EVERY DISH HAS TWO LINES: A NAME, AND A TITLE ==\n\nThey are not the same line and they do not do the same job.\n\n  \"title\" is what is on the plate, plainly: \"Chicken, courgettes, peppers and\n  rice\". It is read out at the table, it is what somebody cooks from, and it\n  never changes job. Keep writing it exactly as you already do.\n\n  \"name\" is what this dish is CALLED: \"Golden roast chicken bowls\". Short --\n  six words at most. Appetising. It is the line somebody reads when they decide\n  whether they want to eat tonight.\n\nWrite BOTH, on every single dish: as many names as you have dishes. Count them\nbefore you answer.\n\nDo NOT make the title pretty instead. A title that becomes \"Sunshine of\nMarrakesh\" no longer says what is on the plate, and nobody can cook a name. If\nyou find yourself dressing up the title, that is the name -- put it in \"name\"\nand give the title back its plain words. And never write the same string twice:\na \"name\" identical to the title is a line that says nothing.\n\n== OUTPUT JSON SCHEMA ==\n\n{\n  \"dishes\": [\n    {\n      \"name\": \"short, appetising, six words at most -- what the dish is CALLED\",\n      \"title\": \"...\",\n      \"slot\": \"breakfast\"|\"snack_am\"|\"lunch\"|\"snack_pm\"|\"dinner\"|\"before_bed\"|null,\n      \"day\": \"mon\"|\"tue\"|\"wed\"|\"thu\"|\"fri\"|\"sat\"|\"sun\"|null,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"...\"|null,\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to make it, plainly, in a short paragraph\",\n      \"why\": \"one sentence: why THIS dish for THIS student this week\",\n      \"uses\": [{ \"preparation_id\": \"prep_chicken\", \"servings\": 1 }],\n      \"same_day\": { \"kind\": \"none\"|\"reheat_only\"|\"assemble\"|\"cook_fresh\",\n                    \"minutes\": <whole minutes for the day-of gesture> },\n      \"honours_belief_keys\": [\"<exact keys from the convictions list, when one applies>\"]\n    }\n  ],\n  \"preparations\": [\n    { \"id\": \"prep_chicken\", \"title\": \"Roast chicken thighs\",\n      \"servings_made\": 4,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"<for the WHOLE batch>\",\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to cook the batch\",\n      \"active_minutes\": <minutes of HANDS-ON work>,\n      \"total_minutes\": <minutes from starting to finished, waiting included>,\n      \"cook_on\": \"sun\"|null }\n  ],\n  \"cooking_sessions\": [\n    { \"day\": \"sun\", \"preparation_ids\": [\"prep_chicken\", \"prep_rice\"],\n      \"total_minutes\": <minutes the whole session takes, start to finish>,\n      \"run_through\": \"the order of the gestures, plainly\" }\n  ],\n  \"shopping_list\": [\n    { \"term\": \"...\", \"quantity\": \"...\"|null,\n      \"aisle\": \"produce\"|\"protein\"|\"dairy\"|\"grains\"|\"pantry\"|\"frozen\"|\"other\" }\n  ]\n}\n\nDay tokens are exactly: mon tue wed thu fri sat sun. Never translated.\n\n== ADDITIONAL OUTPUT FIELD (household) ==\nAdd ONE more top-level key to the JSON you return:\n  \"member_portions\": [\n    { \"member_id\": \"<exact id given above>\",\n      \"portion_note\": \"how much of what goes on this plate\",\n      \"preparation_shares\": [{ \"preparation_id\": \"prep_x\", \"note\": \"...\" }] }\n  ]\nOne entry per person listed, using their EXACT member_id. Serving\ninstructions only — never a reason, a goal, a calorie count, or anything\nabout a person's body.\n\n== BOXES, ON EVERY PREPARATION (household) ==\nEach preparation carries one more key: \"boxes\".\n  \"boxes\": [{ \"id\": \"box_<preparation>_<name>\",\n              \"member_ids\": [\"<exact ids from the list above>\"],\n              \"grams\": <whole grams of READY food in that box> }]\nIds are lowercase ASCII, invented by you, and each one is used once in the\nwhole plan. The grams are what goes IN the box once cooked, not the raw\nweight of the shopping.\nA dish that eats from a box says so: each entry of its \"uses\" then carries\n\"box_id\", set to that exact box id. A box can only be cited by a meal on or\nafter the day its preparation is cooked.",
+      "service_tier": "default",
+      "top_logprobs": 0,
+      "max_tool_calls": null,
+      "presence_penalty": 0,
+      "prompt_cache_key": null,
+      "frequency_penalty": 0,
+      "max_output_tokens": null,
+      "safety_identifier": null,
+      "incomplete_details": null,
+      "parallel_tool_calls": true,
+      "previous_response_id": null,
+      "prompt_cache_retention": "24h"
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-18T23:29:54.93445+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:30:57.315473+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:30:57.352398+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:31:39.911851+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

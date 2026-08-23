@@ -52,6 +52,8 @@ function parse(payload: Record<string, unknown>, over: Record<string, unknown> =
     dayProperties: [],
     merge: null,
     boxMemberIds: [],
+    weighedMemberIds: [],
+  boxMemberDiets: [],
     ...over,
   });
 }
@@ -525,7 +527,25 @@ Deno.test("LOT 2 — le TRONC bumpe, l'enveloppe FOYER ne bouge pas", () => {
   // cuisine n'a pas, et les midis qui sortent du plan sans sortir de la
   // journée. Trois consignes, deux portées, deux numéros — ce n'est pas le cas
   // que ce test met en garde (un même changement bumpé deux fois).
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v12_a_dish_has_a_name");
+  // ⚠️ v13 (2026-08-18) — QA 01-injection, LANE SOLO. Le tronc bumpe une
+  // troisième fois pour la même raison que v10 et v11: des OCTETS DE CONSIGNE
+  // changent dans le message utilisateur. Quatre, tous mesurés sur le run réel
+  // `798c5cd6-…` avant d'être écrits — moyens de cuisson, cran d'activité,
+  // aspiration, et l'en-tête du garde-manger qui doublait celui des apports
+  // fixes. Les trois premiers ne concernent QUE la lane solo; le quatrième
+  // traverse les deux. Un compte qui n'a répondu à aucune des trois questions
+  // reçoit un message byte-identique à v12 — mais le cache doit quand même
+  // distinguer les deux, sinon un compte qui vient de répondre se voit rendre
+  // le prompt d'avant sa réponse.
+  // ⚠️ v16 (2026-08-19) — LE GROUPE ALIMENTAIRE EST DÉCLARÉ, PLUS DEVINÉ.
+  // La population qui voit une consigne différente: celle qui a un RÉGIME
+  // déclaré, sur les deux lanes. Le bloc voyage avec `dietaryRegimePromptLine`
+  // et PAS dans `MEAL_SYSTEM_PROMPT`, donc une composition sans régime rend un
+  // message byte-identique à v15 (`dietary_regime_solo_lane_test.ts :: « v16 —
+  // la demande de GROUPE n QUE dans le bloc de régime »`). Le bump vaut
+  // quand même — règle de v3/v5 de l foyer: c la PRÉSENCE du bloc qui
+  // distingue deux populations dans la colonne.
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v18_one_box_per_group");
   // ⚠️ D1b (2026-08-18) — UN SEUL AXE BOUGE, ET C'EST L'ENVELOPPE FOYER.
   // `v17_what_each_mouth_already_has`: la lane foyer passait `fixedIntakes: []`
   // EN DUR sur ses trois sites, donc le shaker qu'une bouche déclare
@@ -534,7 +554,14 @@ Deno.test("LOT 2 — le TRONC bumpe, l'enveloppe FOYER ne bouge pas", () => {
   // tronc, lui, ne gagne pas un octet: il reste à `meal.en.v12_a_dish_has_a_name`.
   // Population concernée: les foyers où une bouche ATTABLÉE a un compte ET a
   // déclaré un apport. Ailleurs, prompt byte-identique à v16.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v17_what_each_mouth_already_has");
+  // ⚠️ LOT D (2026-08-19) — v18: le champ d'envie de l'écran de composition
+  // atteint enfin le tronc; aucun bloc de l'enveloppe ne bouge.
+  // ⚠️ LOT C ② (2026-08-19) — v19: le `why` ne porte plus la règle de personne.
+  // DEUX blocs neufs dans l'enveloppe foyer, servis uniquement quand une bouche
+  // de la table porte une règle. `ruleHolders: []` ⇒ prompt byte-identique à
+  // v18, tenu par égalité de chaîne dans `household_meal_generation_test.ts`.
+  // Le TRONC ne bouge pas dans ce lot.
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v21_one_box_per_group");
 });
 
 // ---------------------------------------------------------------------------

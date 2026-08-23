@@ -309,6 +309,7 @@ Deno.test("④ sans rythme déclaré, la grille est celle du PROMPT", () => {
 const PARSE_ARGS = {
   doctrine: null,
   safetyConstraints: null,
+  safetyConstraintTable: null,
   mode: "to_shop" as const,
   pantry: [],
   beliefKeys: [],
@@ -320,6 +321,8 @@ const PARSE_ARGS = {
   dayProperties: [],
   merge: null,
   boxMemberIds: [],
+  weighedMemberIds: [],
+  boxMemberDiets: [],
 };
 
 function parse(raw: unknown, over: Record<string, unknown> = {}) {
@@ -725,7 +728,6 @@ for (
   const [fn, planWrite] of [
     ["generate-meal-v1", '"write_student_meal_plan"'],
     ["generate-household-meal-v1", '"write_student_meal_plan"'],
-    ["generate-week-plan-v1", '.from("student_week_plans")'],
   ] as const
 ) {
   Deno.test(`C6 ② — la correction de goût s'écrit APRÈS le plan — ${fn}`, async () => {

@@ -54,6 +54,7 @@
 
 import {
   type DoctrineLoadOptions,
+  type DoctrineTableMouth,
   type LoadedDoctrine,
   loadPublishedDoctrine,
 } from "./doctrine_loader.ts";
@@ -120,6 +121,67 @@ export async function resolveHouseholdOwnerUserId(
   if (error) throw error;
   return String((data as Record<string, unknown> | null)?.user_id ?? "").trim() ||
     null;
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * LOT C ① — LA DOCTRINE D'UNE TABLE: UNE MÉTHODE, PLUSIEURS OBJECTIFS.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ LE DÉFAUT QU'ELLE FERME, MESURÉ LE 2026-08-19. La lane du repas de foyer
+ * appelait `loadPublishedDoctrine(admin, userId)` — le TITULAIRE — et recevait
+ * donc la variante compilée sur `student_goals.goal` du titulaire seul. Un
+ * coach qui écrit une croyance `goal_scope: ["muscle_gain"]` la voyait absente
+ * des 6 prompts sur 6 d'un foyer où l'athlète est à table, parce que la
+ * maîtresse de maison est en `fat_loss`. Le filtre est vivant; c'est la PORTÉE
+ * qui était prise sur la mauvaise personne.
+ *
+ * ── CE QUE CETTE FONCTION NE FAIT PAS, ET C'EST LA MOITIÉ DU LOT ──────────
+ * ⚠️ **ELLE NE CHERCHE PAS UNE SECONDE DOCTRINE.** Le coach reste celui du
+ * titulaire, son bloc reste son bloc, sa voix et ses interdits ne bougent pas
+ * d'un octet. UN foyer, UNE méthode: c'est la règle du fichier, écrite en tête,
+ * et la mélanger produirait un plan qu'aucun coach n'a écrit, signé des deux.
+ * Ce qui suit la bouche est le FILTRE PAR OBJECTIF, rien d'autre.
+ *
+ * ⚠️ **ELLE N'EMPRUNTE PAS LE COACH D'UNE AUTRE BOUCHE.** `loadDoctrineForCaller`
+ * juste en dessous fait ça — pour un SECONDAIRE qui compose son plan
+ * personnel — et c'est un autre geste, sur un autre chemin. Ici l'appelant EST
+ * le titulaire du foyer: s'il n'a pas de coach, la lane rend `no_coach` comme
+ * avant.
+ *
+ * ⚠️ `tableGoals` EST REQUIS, jamais `?`. C'est ici que la casse de compilation
+ * recense les appelants, et c'est voulu: l'option est FACULTATIVE sur
+ * `loadPublishedDoctrine` — pour que les onze appelants sans table gardent le
+ * comportement d'avant sans y penser — donc il faut un endroit où l'oubli ne
+ * soit PAS silencieux. C'est celui-ci. `[]` est une réponse valable et explicite
+ * (« personne d'autre n'a d'objectif ici »), et elle rend un bloc byte-identique
+ * à celui d'avant ce lot.
+ */
+export async function loadHouseholdDoctrine(
+  db: unknown,
+  args: {
+    /** Le TITULAIRE du foyer — celui dont le coach gouverne la cuisine. */
+    ownerUserId: string;
+    /**
+     * LES AUTRES BOUCHES ATTABLÉES, avec leur objectif et leur prénom.
+     *
+     * ⚠️ L'APPELANT PASSE LE ROSTER TEL QU'IL EST, sans filtrer le titulaire ni
+     * dédupliquer: `tableScopeSection` écarte déjà tout objectif que la variante
+     * du titulaire couvre, et déduplique par (objectif, prénom). Un second
+     * filtrage chez l'appelant serait une seconde définition de « qui compte »,
+     * et c'est elle qui divergerait le jour où la règle bouge.
+     *
+     * ⚠️ UNE BOUCHE SANS OBJECTIF LISIBLE N'Y ENTRE PAS — pas avec un jeton
+     * inventé, pas avec celui du titulaire. C'est la même direction sûre que
+     * partout ailleurs: on perd une ligne ciblée, on n'en sert jamais une qui ne
+     * vise pas cette bouche.
+     */
+    tableGoals: readonly DoctrineTableMouth[];
+  },
+): Promise<LoadedDoctrine> {
+  return await loadPublishedDoctrine(db, args.ownerUserId, {
+    tableGoals: args.tableGoals,
+  });
 }
 
 /**

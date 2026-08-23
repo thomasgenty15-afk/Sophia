@@ -63,12 +63,17 @@ import type { MouthBody } from "./meal_envelope.ts";
 // `mouthTargetFactor`: c'est toute la différence entre un grammage tenable et
 // une promesse que la casserole ne livre pas.
 import {
+  estimatedMaintenanceFor,
   executedPaceFor,
   type ExecutedPace,
   type PaceSubject,
   type ScaleDirection,
   scaleDirectionOf,
 } from "./weight_pace.ts";
+import {
+  conditionGatePopulationOf,
+  conditionGateReason,
+} from "./condition_energy_gate.ts";
 import { findForbiddenMatches, type ForbiddenTerm } from "./forbidden_matcher.ts";
 import { householdBodyFacts, type MealBodyContext } from "./meal_body.ts";
 // G4 — LE MODULE DES HABITUDES EST IMPORTÉ, JAMAIS RECOPIÉ. Le fragment de
@@ -213,6 +218,29 @@ export interface MemberPortion {
    */
   portionNote: string | null;
   preparationShares: PreparationShare[];
+  /**
+   * ══════════════════════════════════════════════════════════════════════
+   * LES MOMENTS OÙ CETTE BOUCHE MANGE, TELS QU'ILS ÉTAIENT À LA COMPOSITION.
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * ── LE DÉFAUT QUE ÇA FERME (2026-08-19) ──────────────────────────────
+   * L'écran nomme les bouches sous chaque plat. Il les nommait TOUTES, sans
+   * jamais demander si elles mangent à ce moment-là: Christèle, qui a déclaré
+   * déjeuner et dîner, se retrouvait marquée au petit-déjeuner à côté d'iku.
+   *
+   * ⛔ ET C'EST LE PLAN QUI LES PORTE, PAS UNE RELECTURE DU FOYER À
+   * L'AFFICHAGE. Demandé mot pour mot: « il faut que le plan respecte les
+   * créneaux qui sont renseignés AU MOMENT DE FAIRE LE PLAN ». Un écran qui
+   * relirait le roster montrerait les créneaux d'AUJOURD'HUI sous un plan
+   * composé la semaine dernière — et c'est précisément la divergence que ce
+   * dépôt paie à chaque fois qu'une même question a deux sources.
+   *
+   * ⚠️ `null` = elle n'a rien déclaré, donc elle suit la maison. Ce n'est PAS
+   * « elle ne mange jamais »: les deux se rendraient pareil à l'écran, et
+   * confondre les deux ferait disparaître une bouche muette de tous ses repas.
+   * Le repli sur le rythme de la maison est celui du moteur, à l'identique.
+   */
+  eatingSlots: readonly EatingOccasionSlot[] | null;
 }
 
 /**
@@ -268,6 +296,83 @@ export const NEUTRAL_DIRECTION = "balanced share of every component";
 
 /** Ce qu'on dit d'un mineur au modèle. Une taille, jamais une direction. */
 export const CHILD_DIRECTION = "child-size share of the same dish";
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * LES DIRECTIONS SANS TAILLE — ce qu'on dit quand LE MOTEUR possède le nombre.
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * ── LE DÉFAUT, MESURÉ SUR LE PLAN `cfd44e89` (2026-08-19 00:35) ───────────
+ * `child-size` était mort, et la comparaison GÉNÉRIQUE avait survécu. Quatre
+ * phrases lues à table, deux qui disent l'inverse de ce qu'elles servent:
+ *
+ *     Odalric  (79 kg)  « Serve a larger share of the chicken and rice » 273 g ✅
+ *     Peregrine(47 kg)  « Serve a larger share of chicken and rice »     134 g ❌
+ *     Casimir  (70 kg)  « Serve the standard share of all components »   271 g ❌
+ *     Wilfrid  (23 kg)  « Serve the standard share of all components »   147 g ✅
+ *
+ * Le modèle décrit par CLASSE — adultes « larger », mineurs « standard » —
+ * pendant que le moteur chiffre par CORPS. Peregrine s'entend dire « une plus
+ * grande part » et reçoit la plus petite; Casimir s'entend dire « la part
+ * normale » et reçoit presque le double.
+ *
+ * ⛔ C'EST PIRE QUE LE DÉFAUT D'AVANT SUR UN POINT PRÉCIS: avant, la phrase
+ * était fausse mais COHÉRENTE. Là elle se contredit DANS LA MÊME LIGNE, et
+ * quelqu'un qui la suit ne sait pas quoi faire.
+ *
+ * ── LE PRINCIPE QUI TRANCHE: UNE SEULE AUTORITÉ SUR LA TAILLE ────────────
+ * Le moteur possède le nombre ⇒ le modèle ne décrit plus AUCUNE taille — ni
+ * « larger », ni « standard », ni « the same as ». Sa phrase porte ce que lui
+ * seul sait: la manière, l'ordre, les substitutions, les précautions
+ * (« retirer les croûtes », « sauce piquante à part », « pas de fenouil »).
+ * C'est exactement ce que font déjà les bonnes moitiés des phrases mesurées.
+ *
+ * ── CE QUI SE PERD, ET IL FAUT LE NOMMER ─────────────────────────────────
+ * La MAGNITUDE de la composition (« smaller starch share », « larger protein
+ * share ») sort du texte de l'assiette; il n'en reste que l'ORDRE. C'est un
+ * arbitrage assumé: un mot de composition que le modèle rend comme une
+ * comparaison entre DEUX PERSONNES est pire qu'aucun mot, parce que deux
+ * bouches sur quatre s'entendent dire le contraire de ce qu'elles reçoivent.
+ * ⚠️ Rien ne se perd côté MOTEUR: `servingDemandsFor` / `readServingDemands`
+ * lisent toujours `SERVING_DIRECTION`, que ce lot ne touche pas — la fusion et
+ * l'arbitrage voient exactement ce qu'ils voyaient hier.
+ *
+ * ── UNE SEULE LECTURE DE LA RÈGLE DES TROIS CAS ──────────────────────────
+ * ⚠️ CE N'EST PAS UN SECOND `if`. L'ordre des trois cas (objectif applicable →
+ * mineur → repli) reste écrit UNE fois, dans `servingDirectionFor`; ce qui suit
+ * est une TRADUCTION pure, clée sur ce qu'elle rend. Deux lectures de la même
+ * règle divergeraient, et celle-ci gouverne une phrase lue à voix haute.
+ */
+const SIZE_FREE_DIRECTIONS: ReadonlyArray<readonly [string, string]> = [
+  [SERVING_DIRECTION.fat_loss, "vegetables first on the plate, then the protein, then the starch"],
+  [SERVING_DIRECTION.maintenance, "all the components together on the plate"],
+  [SERVING_DIRECTION.muscle_gain, "protein and starch first on the plate, then the vegetables"],
+  [NEUTRAL_DIRECTION, "all the components together on the plate"],
+  [CHILD_DIRECTION, "all the components together on the plate"],
+];
+
+/**
+ * LE REPLI, NOMMÉ. Il ne devrait jamais servir — un test exige que la table
+ * couvre TOUTE sortie possible de `servingDirectionFor`, donc l'ajout d'un
+ * objectif casse le banc avant d'atteindre une assiette. Il existe parce qu'une
+ * chaîne inconnue ne doit pas rendre `undefined` dans un prompt.
+ */
+export const SIZE_FREE_FALLBACK_DIRECTION = "all the components together on the plate";
+
+/**
+ * LA DIRECTION DE SERVICE **SANS TAILLE** DE CETTE BOUCHE.
+ *
+ * ⚠️ N'EST APPELÉE QUE QUAND LE MOTEUR DIMENSIONNE. Sans moteur, c'est le
+ * modèle qui porte le nombre, et lui retirer les mots de taille le laisserait
+ * sans rien à dire — la vague de 93 notes sans un gramme, mesurée au LOT 4C.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function sizeFreeDirectionFor(member: PortionMember): string {
+  const said = servingDirectionFor(member);
+  for (const [from, to] of SIZE_FREE_DIRECTIONS) if (from === said) return to;
+  return SIZE_FREE_FALLBACK_DIRECTION;
+}
 
 // ---------------------------------------------------------------------------
 // D6 — CE QU'UNE DIRECTION DE SERVICE DEMANDE, AXE PAR AXE
@@ -1018,6 +1123,30 @@ export function buildPortionBrief(
    * rend donc le texte byte-identique à celui d'avant le lot G.
    */
   divergingCount: number,
+  /**
+   * COMBIEN DE POIDS DIFFÉRENTS SONT SERVIS À CETTE TABLE — le nombre de
+   * groupes de bouches dont le facteur de grammage diffère (`bodyShareFactors`,
+   * puis `householdMouthFactors`). REQUIS.
+   *
+   * ⚠️ CE PARAMÈTRE EST LA MOITIÉ QUI MANQUAIT AU LOT DU 2026-08-19, ET IL EST
+   * MESURÉ. Le moteur calculait enfin quatre facteurs distincts, et n'en
+   * appliquait AUCUN: le modèle écrivait une boîte pour tout le monde (ou une
+   * par CLASSE — adultes ensemble, mineurs ensemble), et
+   * `sizeBoxesFromTarget` refuse de couper une boîte partagée dont les bouches
+   * n'ont pas le même facteur (`shared_mixed`, 3 boîtes sur 3 au run A1). Le
+   * moteur était armé et inerte, parce que rien dans le prompt ne disait au
+   * modèle que ces quatre parts diffèrent.
+   *
+   * ⛔ C'EST UN NOMBRE DE BOÎTES, JAMAIS UN FAIT DE CORPS. Il ne dit ni l'âge,
+   * ni la taille, ni le poids de personne — il dit combien de poids distincts
+   * la casserole doit produire. Le corps d'un mineur ne s'énonce toujours pas.
+   *
+   * `1` (ou moins) = un seul poids à cette table, ou aucun corps saisi: le bloc
+   * rend alors le texte byte-identique à celui d'avant ce lot. La population
+   * qui voit une consigne différente est exactement celle dont les corps
+   * diffèrent, et c'est vérifiable à l'octet.
+   */
+  weightGroups: number,
 ): string {
   if (members.length === 0) return "";
   let anyBodyFacts = false;
@@ -1032,13 +1161,39 @@ export function buildPortionBrief(
   // est marqué… » servie à un foyer où personne ne l'est apprend au modèle
   // qu'il existe un marquage, et l'invite à en inventer un.
   let anyRhythm = false;
+  // Le moteur pèse-t-il les parts de ce foyer ? Une seule lecture, et c'est la
+  // même que celle du bloc des boîtes: deux façons de répondre à « le moteur
+  // dimensionne-t-il ? » finiraient par se contredire dans le même prompt.
+  const sizedByEngine = Number.isFinite(weightGroups) && weightGroups >= 2;
   const lines = members.map((m) => {
     // L'ORDRE DES TROIS CAS EST LA RÈGLE, pas un style — et il est écrit UNE
     // fois, dans `servingDirectionFor`, parce que la fusion doit lire
     // EXACTEMENT la direction que ce brief écrit (D6). Deux lectures de la
     // même règle finiraient par diverger, et la fusion renoncerait — ou
     // n'aurait pas renoncé — sur une direction que personne n'a servie.
-    const direction = servingDirectionFor(m);
+    const rawDirection = servingDirectionFor(m);
+    // ══ LA TAILLE SORT DE LA LIGNE QUAND LE MOTEUR LA CALCULE ══════════════
+    //
+    // ⛔ `CHILD_DIRECTION` EST UNE TAILLE, la seule des trois — son propre
+    // commentaire le dit: « une taille, jamais une direction ». Mesuré aux runs
+    // E3 et F3: le modèle la RECOPIE mot pour mot dans la phrase lue à table
+    // (« Child-size share. — Beef and Red Lentil Ragu 271 g »), à côté du
+    // grammage du moteur, qui est le PLUS GROS de la table pour cet ado de
+    // 70 kg. Les mots et le nombre se contredisent, dans une phrase lue à voix
+    // haute, et c'est le mot qui blesse: expliquer à un enfant que sa part est
+    // plus petite est à une phrase d'un dégât réel (§8.4, en tête de fichier).
+    //
+    // ⚠️ ON NE TOUCHE PAS `servingDirectionFor`: la fusion doit lire EXACTEMENT
+    // la même règle (D6), et `distinctServingDirections` compte des positions,
+    // pas des tailles. C'est le BRIEF qui cesse de dire la taille, et seulement
+    // quand le moteur la dit à sa place — les deux directions d'OBJECTIF
+    // (protéine, féculent) passent intactes, elles parlent de composition.
+    // ⛔ TOUTES LES DIRECTIONS, PAS SEULEMENT CELLE DU MINEUR. Le premier
+    // correctif ne relayait que `CHILD_DIRECTION`, et la comparaison GÉNÉRIQUE
+    // a survécu: mesuré sur `cfd44e89`, l'adulte de 47 kg lisait « a larger
+    // share » et recevait la plus petite part de la table. Une seule autorité
+    // sur la taille veut dire AUCUN mot de taille, pas un mot de moins.
+    const direction = sizedByEngine ? sizeFreeDirectionFor(m) : rawDirection;
     // AUCUNE DES DEUX GARDES N'EST APPLIQUÉE ICI — ni le plancher TCA, ni la
     // règle du mineur. `householdBodyFacts` les porte toutes les deux, dans le
     // même fichier que `mealBodyBlocks`: une garde qu'un appelant applique est
@@ -1129,11 +1284,66 @@ export function buildPortionBrief(
     // côté de la frontière que « 400 g de cuisses de poulet » sur une liste de
     // courses. Les trois dernières lignes du brief l'interdisent explicitement,
     // et elles RESTENT les dernières.
-    "Every one of those instructions carries a number and a unit: 150 g of the",
-    "chicken, 80 g of dry pasta, 2 tbsp of the sauce. All " +
-    `${members.length} of them, not some.`,
-    `"A standard portion", "a balanced share", "take your box" tell nobody how`,
-    "much to put on a plate: write the grams, even when a box already holds them.",
+    // ══ 2026-08-19 · LE CHIFFRE CHANGE D'AUTORITÉ QUAND LE MOTEUR DIMENSIONNE ══
+    //
+    // ⛔ MESURÉ, TROIS PLANS SUR TROIS. Les BOÎTES portaient bien le facteur par
+    // corps (492 / 241 / 366 / 198), et `member_portions[].portion_note` — la
+    // phrase lue à voix haute à table, celle qu'un humain EXÉCUTE — portait
+    // toujours DEUX étages: « Serve 2 eggs, 120 g potatoes, 150 g traybake » aux
+    // deux adultes (79 kg et 47 kg), et « 1 egg, 80 g, 100 g » aux deux mineurs
+    // (70 kg et 23 kg). Le défaut d'origine, intact, sur la surface la plus lue.
+    //
+    // ⛔ ET IL NE SE RÉPARE PAS EN RÉÉCRIVANT LA PHRASE. Multiplier les nombres
+    // d'une prose de modèle demanderait de deviner lesquels sont des parts:
+    // « le bidon de 500 g », « 2 tranches », « 3 cm » — c'est la cicatrice
+    // « laitue ≠ lait », 12 faux positifs sur 12, sur un texte lu à table.
+    //
+    // La réparation est donc de retirer la DEUXIÈME AUTORITÉ: quand le moteur
+    // dimensionne, le poids vient de la boîte de la personne (calculé, exact,
+    // rejouable), et la phrase dit ce qui va dans l'assiette et ce qui change.
+    // Le gramme n'est pas perdu — `attachSizedQuantities` le RECOLLE à la
+    // phrase, depuis les boîtes, après le dimensionnement.
+    //
+    // ⚠️ CE QUE CES QUATRE LIGNES NE FONT PAS: revenir à la vague d'avant le
+    // LOT 4C (93 notes réelles, ZÉRO gramme, « One standard table portion. »).
+    // Les deux tournures mesurées restent refusées LITTÉRALEMENT, et le gramme
+    // devient GARANTI au lieu d'espéré — il est écrit par le moteur, pas par le
+    // modèle. C'est un renversement d'autorité, pas un abandon d'exigence.
+    ...(Number.isFinite(weightGroups) && weightGroups >= 2
+      ? [
+        "Every one of those instructions names the food and the change -- never a",
+        "weight. Each person's own box already carries their exact grams, and this",
+        "plan hands it to them; a second number written here would contradict it.",
+        // ══ ET AUCUNE COMPARAISON DE TAILLE — MESURÉ AU RUN E3 ══════════════
+        //
+        // ⛔ « Serve a smaller child-sized share of all components. — Roast
+        // chicken 610 g » à côté de « a larger share … 301 g ». Les MOTS du
+        // modèle et le NOMBRE du moteur se contredisaient dans la même phrase,
+        // et la phrase est lue à voix haute à table.
+        //
+        // ⛔ ET C'EST DÉJÀ LA DOCTRINE DU FICHIER, §8.4: « expliquer à un enfant
+        // que sa part est plus petite est à une phrase d'un dégât réel ». Une
+        // comparaison de taille EST un verdict sur un corps — « ta part », pas
+        // « ta part parce que ». La taille appartient au moteur; la phrase dit
+        // ce qu'on met dans l'assiette et ce qui change.
+        // ⚠️ LE VOCABULAIRE EST NOMMÉ LITTÉRALEMENT, parce que la première
+        // rédaction (« bigger, smaller or child-sized ») a été mesurée: le
+        // modèle a écrit « a larger share » et « the standard share », deux
+        // tournures qu'elle ne nommait pas. Une interdiction qui ne nomme pas ce
+        // qu'elle refuse se fait satisfaire par un synonyme — troisième fois
+        // dans ce fichier.
+        "Never describe the size of anyone's share: not bigger, not smaller, not",
+        "larger, not standard, not normal, not child-sized, not the same as",
+        "someone else's. How much each person takes is settled by this plan. Say",
+        "the manner, the order, the swaps and the care -- what only you know.",
+      ]
+      : [
+        "Every one of those instructions carries a number and a unit: 150 g of the",
+        "chicken, 80 g of dry pasta, 2 tbsp of the sauce. All " +
+        `${members.length} of them, not some.`,
+        `"A standard portion", "a balanced share", "take your box" tell nobody how`,
+        "much to put on a plate: write the grams, even when a box already holds them.",
+      ]),
     // LA CONSÉQUENCE DU « eats at ... only », DITE UNE FOIS, ET SEULEMENT SI
     // QUELQU'UN EST MARQUÉ. Sans elle, le modèle lit le fait et sert quand
     // même: une contrainte qu'on énonce sans dire ce qu'elle interdit est une
@@ -1158,7 +1368,7 @@ export function buildPortionBrief(
     // ── LOT 4 · LA MISE EN BOÎTES, COLLÉE À LA PROMESSE ────────────────────
     // Elle est ICI, dans le même souffle que les lignes par personne, et c'est
     // la moitié qui décide du lot — voir `boxingOrderLines`.
-    ...boxingOrderLines(members),
+    ...boxingOrderLines(members, weighedPortionMembers(members)),
     // EN DERNIER, ET ÇA RESTE LE CAS APRÈS LE LOT 3B, PUIS APRÈS LE LOT 4. Un
     // modèle lit la contrainte la plus proche de la fin comme la plus
     // contraignante, et c'est celle-ci qui doit survivre aux faits corporels
@@ -1191,27 +1401,33 @@ export function buildPortionBrief(
  *
  *   ① LE NOMBRE. « ADD ONE dish » → le nombre exact avait déjà changé le
  *      résultat sur la lane fusion (C6, 2026-08-12), puis sur le plat dédié
- *      (LOT 3C). Ici c'est le nombre de BOUCHES à peser sur chaque préparation.
- *      Il vient de `members.length` — la MÊME liste qui écrit les lignes juste
- *      au-dessus, jamais un second calcul.
+ *      (LOT 3C). Ici c'est le nombre de BOUCHES à placer sur CHAQUE REPAS pris
+ *      sur un lot. Il vient de `members.length` — la MÊME liste qui écrit les
+ *      lignes juste au-dessus, jamais un second calcul.
  *   ② L'ÉCHAPPATOIRE, NOMMÉE. Le modèle a DÉJÀ un champ où ranger « qui mange
  *      combien »: `member_portions`, qui lui est demandé. Une consigne qui
  *      demande des grammes sans dire que la note de portion n'en est pas une
  *      est une consigne qu'il satisfait dans l'autre champ — c'est exactement ce
  *      qui a été capturé le 2026-08-17, la consigne renvoyée mot pour mot dans
  *      le mauvais champ.
- *   ③ LA BOÎTE PARTAGÉE EST LÉGITIME. Sans cette phrase, un modèle obéissant
- *      écrirait quatre boîtes identiques là où une seule suffit, et la table de
- *      pesée deviendrait illisible — après quoi quelqu'un désarmerait la
- *      consigne. Ce qui compte est que CHAQUE bouche soit dans exactement une
- *      boîte de chaque préparation.
+ *   ③ LA BOÎTE PARTAGÉE EST LÉGITIME, ET DEPUIS LE 2026-08-19 ELLE EST LE CAS
+ *      NOMINAL D'UN REPAS COMMUN. Sans cette phrase, un modèle obéissant
+ *      fabriquerait un contenant par personne là où le foyer en remplit un — et
+ *      c'est très exactement le contenant en moins qui est voulu. Ce qui compte
+ *      est que chaque bouche attablée soit UNE part de la boîte de ce repas,
+ *      jamais deux, jamais aucune.
+ *
+ * ⚠️ CE QUE ③ A CESSÉ DE DIRE, ET IL FAUT LE LIRE: « une boîte par casserole »
+ * n'existe plus. Une boîte porte un REPAS ENTIER, toutes préparations confondues.
+ * Un lecteur qui « répare » en redemandant une boîte par préparation rouvre les
+ * trois défauts du run `76be8ce3` d'un seul geste.
  *
  * ⛔ ET AUCUN POURQUOI, JAMAIS. Le bloc ne dit pas d'où viennent les grammes: ce
  * sont des grammes d'ALIMENT dans une boîte, du même côté de la frontière que
  * « 400 g de cuisses de poulet » sur une liste de courses. Les trois lignes qui
  * SUIVENT ce bloc l'interdisent explicitement, et elles restent les dernières.
  *
- * ⚠️ MUET À UNE SEULE BOUCHE. Une boîte par personne n'a de sujet qu'à partir de
+ * ⚠️ MUET À UNE SEULE BOUCHE. Une part par personne n'a de sujet qu'à partir de
  * deux, et servir le bloc à un foyer d'un lui apprendrait qu'un marquage par
  * personne existe — le raisonnement de `anyHabit`/`anyRhythm` juste au-dessus,
  * quatrième fois. Un foyer à une bouche rend donc un brief byte-identique à
@@ -1219,38 +1435,89 @@ export function buildPortionBrief(
  */
 export function boxingOrderLines(
   members: readonly PortionMember[],
+  /**
+   * LES BOUCHES DONT L'OBJECTIF OUVRE UNE PORTION MILLIMÉTRÉE. REQUIS.
+   *
+   * ⛔ IL A REMPLACÉ `weightGroups` LE 2026-08-20, ET C'EST LE LOT. Le nombre de
+   * poids différents que la table sert ne décide plus rien ici: ce qui décide
+   * est QUI a demandé une portion à soi. `weightGroups` reste ailleurs dans
+   * `buildPortionBrief`, où il gouverne autre chose.
+   *
+   * ⚠️ LA MÊME LISTE QUE `boxSchemaBlock` ET QUE `weighedMemberIds` CÔTÉ
+   * PARSEUR — `weighedPortionMembers(members)`, appelée, jamais recopiée.
+   */
+  weighed: readonly PortionMember[],
 ): readonly string[] {
   if (members.length < 2) return [];
   const names = members.map((m) => m.displayName).join(", ");
+  // ══ CE QUE LE NOMBRE COMPTE A CHANGÉ AVEC L'UNITÉ ════════════════════════
+  //
+  // ⚠️ MESURÉ, PAS SUPPOSÉ. Le levier du NOMBRE ATTENDU est la recette de ce
+  // dépôt (0→11 plats, 0→38 % de notes), et il reste ici — mais il ne compte
+  // plus « combien de boîtes par casserole ». Il compte **qui est sur les
+  // couvercles de ce repas-ci**, parce que c'est là que le défaut n°1 vivait:
+  // sur le run `76be8ce3`, `box_id` étant unique par reprise, le modèle pointait
+  // la boîte d'UNE personne et orphelinait l'autre — Christèle n'aurait eu de
+  // boîte à AUCUN repas, sur seize boîtes déclarées.
+  //
+  // ⛔ LE BLOC NE S'ALLONGE PAS. La lane foyer frôle le mur de temps du worker
+  // (mesuré par 3C, reconfirmé par L7): ce qui est ajouté REMPLACE, il ne
+  // s'empile pas, et les trois lignes « NEVER state a reason » restent les
+  // dernières du brief.
+  //
+  // ══ CE QUI A DISPARU LE 2026-08-20, ET IL FAUT LE LIRE ═══════════════════
+  //
+  // ⛔ « Give every share of a meal the SAME ordinary figure -- one plate's
+  // worth of that meal » ET SES TROIS LIGNES SONT PARTIES. Elles ordonnaient au
+  // modèle le même chiffre pour tout le monde, et elles n'ont plus d'objet dès
+  // lors que le commun est un BAC et non une somme de parts: il n'y a plus de
+  // part par personne à uniformiser. Ne les remets pas « pour l'équité » — ce
+  // qu'elles réparaient (le découpage par classe compté deux fois) n'existe plus
+  // non plus, puisque plus personne d'autre qu'une bouche à objectif ne reçoit
+  // un nombre qui la vise.
+  //
+  // ⛔ ET « grams is what THAT person takes out of the box » AUSSI. C'était la
+  // lecture v2 du bac partagé — une part par nom sur un couvercle collectif,
+  // c'est-à-dire la balance de retour au service.
+  const weighedNames = weighed.map((m) => m.displayName).join(", ");
+  const groupLines = weighedNames === ""
+    ? [
+      "Nobody here asked for a portion of their own, so that meal has exactly ONE",
+      "box, with everyone who eats it named on the lid.",
+    ]
+    : [
+      `These people each get a box of their OWN, alone on the lid: ${weighedNames}.`,
+      "Everyone else who eats that meal shares ONE box, named with all of them.",
+    ];
   return [
-    "WEIGH IT ONCE, INTO NAMED BOXES.",
+    "WEIGH IT ONCE, INTO BOXES NAMED BY MEAL.",
     "Nobody weighs anything at mealtime. Everything is weighed at the cooking",
-    "session, straight into boxes with a name on the lid, and a meal later just",
-    `takes its box out. Every preparation you write carries "boxes": one entry`,
-    "per box, with the exact member_ids it belongs to and its weight in grams of",
-    "READY food.",
-    `That is ${members.length} people to weigh out on EVERY preparation: ${names}.`,
-    "Count them before you answer — a person missing from a preparation's boxes",
-    "is a person standing at the fridge with nothing that says how much.",
-    // ══ LOT 4C ③ · CE QUE `grams` DÉSIGNE, ET COMBIEN DE BOÎTES PAR BOUCHE ══
-    //
-    // ⛔ EN REMPLACEMENT DE DEUX LIGNES, PAS EN AJOUT: la lane foyer frôle le mur
-    // de temps du worker (mesuré par 3C), et ce bloc est déjà le plus long du
-    // brief. Deux lignes deviennent quatre; rien d'autre ne bouge.
-    //
-    // ⚠️ LES DEUX TROUS QUE CETTE RÉDACTION FERME, MESURÉS SUR QUATRE RUNS RÉELS:
-    //   ① `grams` ÉTAIT AMBIGU. « ONE box may carry both their ids » ne disait
-    //      pas si le nombre est la part d'UNE personne ou le contenu du bac. Un
-    //      run l'a écrit comme le total (7500 g pour cinq), et l'écran imprime
-    //      les deux cas à l'identique: « Boîte Paul, Zoe, … — 430 g » se lit
-    //      « prends 430 g » et valait peut-être 72.
-    //   ② TREIZE BOUCHES DANS DEUX BOÎTES de la même casserole, TROIS dans
-    //      aucune. « Chaque bouche dans exactement une boîte » n'était énoncé
-    //      nulle part — seulement suggéré par « a person missing … ».
-    `"grams" is what ONE person takes out, never the size of the tub. Two people`,
-    "on the same weight share ONE box that lists both ids; when their shares",
-    "differ they get one box each. Every name above is in exactly ONE box of each",
-    "preparation -- never two, never none.",
+    "session, straight into containers, and a meal later just takes its box out.",
+    'Every dish that takes from a preparation carries "boxes": one container per',
+    "GROUP of people eating that meal, each holding everything that group takes",
+    "out -- all its preparations together in the same box, not one tub per pan.",
+    `That is ${members.length} people to place at every such meal: ${names}. Each of`,
+    "them who eats that meal is named on EXACTLY one of that meal's boxes --",
+    "never two, never none.",
+    ...groupLines,
+    // ⛔ ET LA SEULE CHOSE QUI CHANGE ENTRE LES DEUX LECTURES: LE NOMBRE DE
+    // NOMS. Il n'y a aucun autre marqueur, aucun booléen, aucun type — un second
+    // marqueur finirait par contredire la liste des noms, et c'est la liste
+    // qu'on croirait.
+    "When ONE name is on the lid, its grams are that person's portion: they open",
+    "it and eat, and nothing is weighed at the table.",
+    "When SEVERAL names are on the lid, its grams are how much goes IN the tub for",
+    "all of them together. That number aims at nobody: never split it per person,",
+    "never write a figure next to a name on a shared lid.",
+    // ⛔ ET LE DÉROULÉ DE SESSION NE PORTE AUCUN POIDS (2026-08-19). Mesuré:
+    // « répartir six portions de 450 g » sur un foyer de DEUX, un grammage qui
+    // ne nommait aucun aliment et ne correspondait à aucune boîte. L'interdit
+    // existait pour `member_portions` seulement; le déroulé passait à travers.
+    "The cooking session run_through is the ORDER of the gestures, and nothing",
+    "else: no weights, no gram figures, no portion counts. Those live in the",
+    "boxes, where each one already carries the name of what is in it and whose",
+    "it is. A weight written in the run_through names no food and matches no",
+    "lid — say \"portion it into the named boxes\" and let the boxes speak.",
     "A line in member_portions is NOT a box. It is a sentence read aloud at the",
     "table; a box has a weight and a name on it, and it is what stops the weighing",
     "from happening again at every meal. Writing the serving instruction instead",
@@ -1354,10 +1621,66 @@ export function mouthAgeVerdict(ageState: MemberAgeState): BirthDateVerdict {
  */
 export const BOX_SIZING_REASONS = Object.freeze(
   [
-    /** Le facteur a été calculé et il s'applique. */
+    /** Le facteur a été calculé sur un rythme RÉGLÉ, et il s'applique. */
     "sized",
-    /** ① le plancher TCA de CETTE bouche. */
+    /**
+     * LOT B ① — LE FACTEUR A ÉTÉ CALCULÉ SUR LE RYTHME **PAR DÉFAUT** DE LA
+     * DIRECTION, parce que personne n'a réglé le curseur.
+     *
+     * ── LE DÉFAUT QUE CE MOTIF FERME, ET IL A ÉTÉ MESURÉ ─────────────────
+     * « Assez de direction pour coûter un plat, pas assez pour peser un
+     * gramme. » La MÊME déclaration `muscle_gain` était lue par deux
+     * sous-systèmes qui répondaient l'inverse:
+     *
+     *   · `servingDemandsFor` — « cette bouche a-t-elle besoin de son propre
+     *     plat ? » — lit LA DIRECTION SEULE. Deux bouches divergeaient, et ça
+     *     leur ouvrait un plat dédié, archivé dans SIX plans (`cooking.diverging`).
+     *   · `mouthTargetFactor` — « combien lui sert-on ? » — EXIGEAIT un rythme.
+     *     Sans lui: facteur **1,000**, motif `no_pace`, c'est-à-dire la part de
+     *     quelqu'un qui n'a rien demandé.
+     *
+     * Et le chemin par défaut du produit y menait tout seul:
+     * `keel_household_add_member` prend un OBJECTIF et PAS de rythme, donc
+     * toute bouche ajoutée était dans cet état tant que personne n'ouvrait son
+     * formulaire. Mesuré le 2026-08-19: `box_sizing.mouths` = `{"sized": 1,
+     * "no_pace": 2, "minor": 1}` sur un foyer de quatre.
+     *
+     * ⚠️ IL EST DISTINCT DE `sized`, ET C'EST TOUT L'INTÉRÊT. « La personne a
+     * réglé 0,4 kg/semaine » et « on a dérivé un cran d'une direction nue » ne
+     * se lisent pas pareil, ne se réparent pas pareil, et l'écran qui posera un
+     * jour la question doit pouvoir compter combien de bouches attendent encore
+     * qu'on la leur pose. Un seul jeton pour les deux serait le compteur à deux
+     * nombres que ce dépôt paie en boucle.
+     *
+     * ⛔ CE MOTIF NE DESSERRE AUCUNE GARDE. Il arrive APRÈS ①②③, après l'âge
+     * inconnu et après la direction; le cran dérivé traverse `executedPaceFor`
+     * comme n'importe quel autre, donc le plancher d'énergie, le plafond A1 et
+     * la fraction du mineur mordent exactement pareil.
+     */
+    "sized_default_pace",
+    /** ① le plancher TCA de CETTE bouche, RÉELLEMENT levé sur son compte. */
     "restriction_floor",
+    /**
+     * ① bis — ON N'A PAS PU ÉVALUER LA CEINTURE DE CETTE BOUCHE, ET C'EST UNE
+     * AUTRE PHRASE QUE « SON PLANCHER EST LEVÉ ».
+     *
+     * ── LE DÉFAUT D'OBSERVABILITÉ QUE CE MOTIF FERME ─────────────────────
+     * Jusqu'au 2026-08-19, `memberTargetFactor` évaluait
+     * `member.body?.restrictionFlag ?? true`. `member.body` est un
+     * `MealBodyContext`, qui n'existe QUE pour un compte: toute bouche SANS
+     * compte valait donc `true`, sortait `restriction_floor`, et le journal
+     * d'un foyer ordinaire annonçait « plancher TCA » ×3 pour trois personnes
+     * qui n'ont simplement pas de compte. Mesuré sur 4 plans / 3 foyers:
+     * `{"mouths":{"sized":1,"restriction_floor":3,"minor":0,"no_body":0}}`.
+     * Un lecteur du journal en concluait un plancher alimentaire là où il n'y
+     * avait qu'une absence de compte — l'observabilité masquait la cause.
+     *
+     * `restriction_unknown` est le fail-closed HONNÊTE: on ne dimensionne pas,
+     * et on dit pourquoi on ne l'a pas fait. « Pas de compte » n'est plus dans
+     * ce sac: une bouche sans compte n'a pas de plancher à lire, elle a un
+     * CORPS DE FICHE, et c'est lui qui la dimensionne.
+     */
+    "restriction_unknown",
     /** ② la ceinture d'âge de CETTE bouche — clause C8, réécrite par L4-B. */
     "minor",
     /** ③ la méthode du coach. */
@@ -1371,7 +1694,18 @@ export const BOX_SIZING_REASONS = Object.freeze(
     "age_unknown",
     /** Ni perte ni prise: la balance ne bouge pas, il n'y a rien à viser. */
     "no_direction",
-    /** Personne n'a réglé le curseur. C'est le cas de TOUTE la base au 18/08. */
+    /**
+     * AUCUN ÉCART N'EST EXÉCUTABLE SUR CE CORPS — le moteur ne déplace rien.
+     *
+     * ⚠️ SON SENS A CHANGÉ LE 2026-08-19 (LOT B ①), ET IL FAUT LE SAVOIR POUR
+     * RELIRE UNE ARCHIVE. Il voulait dire « personne n'a réglé le curseur »,
+     * et c'était le cas de TOUTE la base au 18/08. Cette branche-là n'existe
+     * plus: une direction sans cran reçoit désormais
+     * `DEFAULT_PACE_KG_PER_WEEK` et sort en `sized_default_pace`. Ce qui reste
+     * ici est le seul cas où `executedPaceFor` rend un écart NUL — un corps
+     * déjà sous son propre plancher d'énergie. Un plan archivé AVANT cette
+     * date qui porte `no_pace` dit l'ancienne phrase, pas celle-ci.
+     */
     "no_pace",
     /** Pas de corps exploitable ⇒ pas d'entretien ⇒ pas de facteur. */
     "no_body",
@@ -1383,6 +1717,29 @@ export const BOX_SIZING_REASONS = Object.freeze(
      * pourrait atteindre une assiette.
      */
     "implausible_factor",
+    /**
+     * L0bis (2026-08-22) — UNE GROSSESSE DÉCLARÉE, ET LE DÉFICIT TOMBE À ZÉRO.
+     *
+     * ── LE DÉFAUT QUE CE MOTIF FERME, MESURÉ ─────────────────────────────
+     * `pregnancy` était dans la liste fermée du plancher de maladie depuis le
+     * 2026-08-06, mais `conditionRef` n'était lu par AUCUN calcul d'énergie:
+     * ni ici, ni dans `meal_envelope.ts`, ni dans `weight_pace.ts`. Mesuré le
+     * 2026-08-22 à 03:19:55 CEST sur une femme de 68 kg portant `pregnancy` et
+     * `fat_loss`: facteur **0,7475**, et la journée la plus basse que le moteur
+     * exécute pour elle est **1 200 kcal** — c'est-à-dire `ENERGY_FLOOR_KCAL.
+     * female`, un plancher qui n'a jamais entendu parler de grossesse. **Elle
+     * recevait une boîte pesée en déficit.**
+     *
+     * ⛔ IL NE MORD QUE VERS LE BAS (`direction === "down"`). Sur une prise, le
+     * facteur reste celui d'hier: rabattre un surplus retirerait de l'énergie à
+     * quelqu'un qui en demande, sous le nom d'une protection.
+     *
+     * Le bon chiffre de déficit ici est ZÉRO, pas « un plancher plus haut »:
+     * un plafond n'est pas un interdit.
+     */
+    "pregnancy",
+    /** L0bis — même geste, même raison, pour un allaitement déclaré. */
+    "breastfeeding",
   ] as const,
 );
 export type BoxSizingReason = (typeof BOX_SIZING_REASONS)[number];
@@ -1423,6 +1780,48 @@ export type BoxSizingReason = (typeof BOX_SIZING_REASONS)[number];
  */
 export const BOX_FACTOR_MIN = 0.70;
 export const BOX_FACTOR_MAX = 1.25;
+
+/**
+ * LOT B ① — LE CRAN D'UNE DIRECTION QUE PERSONNE N'A CHIFFRÉE, en kg/semaine.
+ *
+ * ── L'ARBITRAGE, ET POURQUOI C'EST CELUI-LÀ ──────────────────────────────
+ * Deux sorties étaient posées: soit les deux lecteurs exigent la même chose —
+ * une direction sans rythme ne fait alors PAS diverger non plus, et on RETIRE
+ * le plat dédié —, soit une direction sans rythme reçoit un cran par défaut.
+ * La première rend le produit plus petit pour réparer une incohérence: elle
+ * retire à quelqu'un un plat qu'il a aujourd'hui, au motif qu'un curseur
+ * qu'on ne lui a jamais montré n'est pas réglé. La seconde tient la promesse
+ * déjà faite. C'est la seconde qui est retenue.
+ *
+ * ── D'OÙ VIENT 0,25, ET CE QU'IL VAUT DANS LES DEUX SENS ─────────────────
+ * C'est un demi-livre par semaine: le cran modéré, celui qu'on donnerait à
+ * quelqu'un qui a dit « je veux perdre » sans dire à quelle vitesse.
+ * 0,25 × 7 700 / 7 = **275 kcal/jour** demandés, et ce nombre traverse ensuite
+ * `executedPaceFor` comme n'importe quel autre cran:
+ *
+ *   · PERTE d'adulte — 275 kcal est très en dessous d'A1 (500 kcal), donc
+ *     c'est le CRAN qui décide, jamais le plafond. Sur 2 713 kcal d'entretien:
+ *     facteur 0,899. Le plancher d'énergie de ce corps reste évalué et gagne
+ *     quand il est plus proche.
+ *   · PRISE d'adulte — la bande `MAX_SURPLUS_FRACTION` (+10 %) est plus basse
+ *     que 275 kcal sous ~2 750 kcal d'entretien, donc le clamp `surplus_band`
+ *     décide et le facteur vaut exactement ce que la composition SAIT livrer.
+ *   · MINEUR — n'arrive jamais ici: la porte ② ferme avant.
+ *
+ * ⚠️ IL N'EST PAS LE MAXIMUM, ET C'EST DÉLIBÉRÉ. Saturer A1 (500 kcal/jour)
+ * donnerait le déficit le plus creux que le produit connaisse à quelqu'un qui
+ * a seulement coché une case. Un défaut se choisit conservateur; c'est le
+ * curseur, quand un écran le posera, qui a le droit de monter.
+ *
+ * ⚠️ IL N'EST PAS ÉCRIT EN BASE, ET C'EST LA MOITIÉ DE LA DÉCISION. Poser
+ * 0,25 dans `household_members.target_pace_kg_per_week` à l'ajout d'une bouche
+ * rendrait un cran DÉRIVÉ indiscernable d'un cran CHOISI: l'écran l'afficherait
+ * comme la réponse de la personne, `keel_household_set_member_target(null,
+ * null)` l'effacerait comme si elle l'avait retiré, et plus personne ne
+ * pourrait compter qui attend encore qu'on lui pose la question. La dérivation
+ * vit ici, à la lecture, et elle porte son propre motif (`sized_default_pace`).
+ */
+export const DEFAULT_PACE_KG_PER_WEEK = 0.25;
 
 export interface MouthSizing {
   /** Sans unité. `1` = la boîte que le modèle a écrite, inchangée. */
@@ -1489,6 +1888,15 @@ export function mouthTargetFactor(args: {
   paceKgPerWeek: number | null;
   /** Le corps de cette bouche, pour estimer son entretien. */
   subject: PaceSubject;
+  /**
+   * L0bis — LES `condition_ref` DE CETTE BOUCHE. REQUIS, jamais optionnel.
+   *
+   * Sixième champ requis, et pour la raison écrite au-dessus des cinq autres:
+   * un `?` n'aurait fait remonter aucun appelant au compilateur, et la garde de
+   * grossesse serait écrite, testée, branchée nulle part. `[]` = rien de
+   * déclaré. Source unique: `student_safety_constraints.condition_ref`.
+   */
+  conditionRefs: readonly string[];
 }): MouthSizing {
   if (args === null || typeof args !== "object") {
     throw new Error("[keel/household_portions] mouthTargetFactor requires an input object");
@@ -1501,6 +1909,7 @@ export function mouthTargetFactor(args: {
       "direction",
       "paceKgPerWeek",
       "subject",
+      "conditionRefs",
     ]
   ) {
     const bag = args as unknown as Record<string, unknown>;
@@ -1535,10 +1944,28 @@ export function mouthTargetFactor(args: {
   if (args.ageState === "unknown") return noSizing("age_unknown");
 
   if (args.direction === null) return noSizing("no_direction");
-  const pace = Number(args.paceKgPerWeek);
-  if (args.paceKgPerWeek === null || !Number.isFinite(pace) || pace <= 0) {
-    return noSizing("no_pace");
+  // ── L0bis — LA GROSSESSE, POSÉE SUR LE DÉFICIT ET PAS SUR LA PERSONNE ───
+  //
+  // ⚠️ LA POSITION EST L'ARBITRAGE. Placé en tête de la chaîne, ce garde aurait
+  // effacé du journal `restriction_floor`, `age_unknown` et `no_direction` de
+  // toute bouche enceinte — trois motifs qui disent chacun une chose vraie et
+  // différente. Placé ICI, à l'endroit exact où le cran va devenir un écart, il
+  // ne change le verdict que des bouches qui allaient recevoir un DÉFICIT.
+  // Toute autre bouche — y compris une bouche portant un AUTRE `condition_ref`
+  // — sort octet pour octet comme hier, et un test le tient.
+  if (args.direction === "down") {
+    const population = conditionGatePopulationOf(args.conditionRefs);
+    const reason = conditionGateReason(population);
+    if (reason !== null) return noSizing(reason);
   }
+  // ── LOT B ① — UNE DIRECTION DÉCLARÉE PÈSE SUR LES GRAMMES ───────────────
+  // Le cran choisi s'il existe; sinon celui que la direction porte par défaut.
+  // Voir `DEFAULT_PACE_KG_PER_WEEK` pour l'arbitrage, et `sized_default_pace`
+  // pour la mesure qui l'a ouvert. Le retour `no_pace` n'est PAS ici: il vit
+  // plus bas, sur l'écart réellement exécuté, et il ne parle plus du curseur.
+  const chosen = Number(args.paceKgPerWeek);
+  const paceIsSet = args.paceKgPerWeek !== null && Number.isFinite(chosen) && chosen > 0;
+  const pace = paceIsSet ? chosen : DEFAULT_PACE_KG_PER_WEEK;
 
   // ── LE RYTHME **EXÉCUTÉ**, JAMAIS LE CRAN CHOISI ────────────────────────
   // Le curseur d'une PRISE monte plus haut que ce que `envelopeCore` exécute
@@ -1570,7 +1997,85 @@ export function mouthTargetFactor(args: {
   // On le nomme `no_pace` plutôt que `sized`: rendre « dimensionné, facteur 1 »
   // ferait lire à un compteur qu'une cible a mordu là où elle n'a rien pu faire.
   if (executed.dailyDeltaKcal === 0) return noSizing("no_pace");
-  return { factor, reason: "sized" };
+  return { factor, reason: paceIsSet ? "sized" : "sized_default_pace" };
+}
+
+// ---------------------------------------------------------------------------
+// ⛔ LA CEINTURE TCA D'UNE BOUCHE — QUATRE ÉTATS, PAS UN BOOLÉEN
+// ---------------------------------------------------------------------------
+
+/**
+ * CE QU'ON SAIT DU PLANCHER TCA DE CETTE BOUCHE.
+ *
+ * ── POURQUOI QUATRE ÉTATS, ET PAS UN `boolean` ───────────────────────────
+ * Un booléen fail-closed rendait le même `true` pour trois phrases qui n'ont
+ * rien à voir, et c'est le défaut mesuré du 2026-08-19 (4 plans, 3 foyers):
+ *
+ *   · « son plancher est levé »        → il FAUT se fermer, et c'est le produit.
+ *   · « on n'a pas pu l'évaluer »      → il FAUT se fermer, c'est le fail-closed.
+ *   · « elle n'a pas de compte »       → il n'y a RIEN à lire. Le plancher TCA
+ *     vit sur `auth.users` (série de pesées + verdict); une bouche sans compte
+ *     n'en a pas, et n'en a jamais eu. Se fermer là-dessus ne protège personne:
+ *     ça retire à la personne le seul fait qu'on ait sur elle — le corps que le
+ *     compte maître a saisi sur sa FICHE — pendant que le prompt, lui, ne le
+ *     voit déjà pas. Les deux mécanismes rataient le même monde.
+ *
+ * ⚠️ « PAS DE COMPTE » N'EST PAS UNE PORTE OUVERTE. Elle ne débloque QUE la
+ * part de la fiche (`bodyShareFactors`, une MAINTENANCE relative). Elle
+ * n'ouvre aucun déficit: la chaîne d'objectif garde ses autres portes (âge,
+ * direction, cran de rythme), et la part de fiche ne prend aucun `goal`.
+ */
+export const MOUTH_RESTRICTION_STATES = Object.freeze(
+  [
+    /** Compte lu, verdict rendu, plancher NON levé. */
+    "clear",
+    /** Compte lu, plancher RÉELLEMENT levé. La porte se ferme, et c'est le produit. */
+    "raised",
+    /**
+     * Cette bouche N'A PAS DE COMPTE. Rien à lire, donc rien à craindre d'une
+     * lecture: son corps est celui de sa fiche, et c'est la seule chose qu'on ait.
+     */
+    "no_account",
+    /**
+     * Elle A un compte, et on n'a pas su l'évaluer (lecture en échec, verdict
+     * illisible, rien de saisi). FAIL-CLOSED, et c'est le seul état qui garde
+     * l'ancien arbitrage — mais il porte désormais son propre nom.
+     */
+    "unreadable",
+  ] as const,
+);
+export type MouthRestrictionState = (typeof MOUTH_RESTRICTION_STATES)[number];
+
+/**
+ * L'ÉTAT, RÉDUIT AU BOOLÉEN QUE `energySafetyGates` DEMANDE.
+ *
+ * ⚠️ UNE SEULE ÉCRITURE DE CETTE RÉDUCTION. Deux `switch` sur quatre états
+ * divergent, et celui qui divergerait ici gouverne l'assiette d'un enfant.
+ */
+export function restrictionFlagOf(state: MouthRestrictionState): boolean {
+  switch (state) {
+    case "raised":
+    case "unreadable":
+      return true;
+    case "clear":
+    case "no_account":
+      return false;
+  }
+}
+
+/**
+ * LE MOTIF DU PLANCHER, NOMMÉ POUR CE QU'IL EST.
+ *
+ * `energySafetyGates` ne connaît qu'un booléen: il rend donc `restriction_floor`
+ * pour les deux `true`. Ici on sait lequel des deux c'était, et un compteur qui
+ * ne le dirait pas serait le compteur à deux nombres que ce dépôt paie en boucle.
+ */
+function namedFloorReason(
+  reason: BoxSizingReason,
+  state: MouthRestrictionState,
+): BoxSizingReason {
+  if (reason !== "restriction_floor") return reason;
+  return state === "unreadable" ? "restriction_unknown" : "restriction_floor";
 }
 
 /**
@@ -1589,8 +2094,37 @@ export function memberTargetFactor(
     paceKgPerWeek: number | null;
     /** Le corps de la FICHE de cette bouche. `null` = rien à estimer. */
     body: MouthBody | null;
+    /**
+     * ⛔ LA CEINTURE TCA DE CETTE BOUCHE, À QUATRE ÉTATS — REQUIS.
+     *
+     * C'ÉTAIT `member.body?.restrictionFlag ?? true`, ET C'ÉTAIT LE DÉFAUT.
+     * Cette expression lit l'objet du COMPTE pour décider du sort du corps de
+     * la FICHE. Elle confondait trois mondes en un seul `true`, et fermait la
+     * porte du moteur sur exactement la population que le prompt ne voit pas
+     * déjà. Voir `MouthRestrictionState` pour les quatre états et l'arbitrage.
+     */
+    restriction: MouthRestrictionState;
+    /**
+     * L0bis — LES `condition_ref` DE CETTE BOUCHE. REQUIS.
+     *
+     * ⚠️ IL NE PORTE AUCUNE DÉCISION ICI: il traverse jusqu'à
+     * `mouthTargetFactor`, où la règle est écrite une seule fois. Deux lectures
+     * d'une même règle finiraient par diverger, et celle-ci gouverne l'assiette
+     * d'une femme enceinte.
+     */
+    conditionRefs: readonly string[];
   },
 ): MouthSizing {
+  const restriction = args.restriction;
+  if (
+    restriction === undefined ||
+    !(MOUTH_RESTRICTION_STATES as readonly string[]).includes(restriction)
+  ) {
+    throw new Error(
+      `[keel/household_portions] memberTargetFactor: unknown restriction ` +
+        `state ${JSON.stringify(restriction)} — an absent gate is a disarmed gate`,
+    );
+  }
   if (args.body === null) {
     // ⚠️ ON NE SAUTE PAS LA PORTE POUR AUTANT. Un corps absent est une raison de
     // ne rien dimensionner, pas une raison de ne pas évaluer la ceinture: le
@@ -1598,44 +2132,622 @@ export function memberTargetFactor(
     // journal dirait « pas de corps » d'un enfant que la porte ② protège.
     const gate = canSizeFromTarget({
       safety: energySafetyGates({
-        restrictionFlag: member.body?.restrictionFlag ?? true,
+        restrictionFlag: restrictionFlagOf(restriction),
         ageVerdict: mouthAgeVerdict(member.ageState),
         coachCounting: args.coachCounting,
       }),
     });
-    if (!gate.size) return noSizing(gate.reason as BoxSizingReason);
+    if (!gate.size) {
+      return noSizing(namedFloorReason(gate.reason as BoxSizingReason, restriction));
+    }
     if (member.ageState === "unknown") return noSizing("age_unknown");
     return noSizing("no_body");
   }
   const goal = goalApplies(member) && member.goal ? member.goal : null;
-  return mouthTargetFactor({
+  const out = mouthTargetFactor({
     ageState: member.ageState,
-    // FAIL-CLOSED: pas de contexte de corps lu ⇒ on se ferme. Une bouche sans
-    // compte n'a jamais de `MealBodyContext` (les mesures restent clées sur
-    // `auth.users`), donc c'est le cas NOMINAL d'un enfant — et c'est très
-    // exactement la personne pour qui se fermer est juste.
-    restrictionFlag: member.body?.restrictionFlag ?? true,
+    restrictionFlag: restrictionFlagOf(restriction),
     coachCounting: args.coachCounting,
     direction: goal === null ? null : scaleDirectionOf(goal),
     paceKgPerWeek: args.paceKgPerWeek,
     subject: { body: args.body, isMinor: member.ageState === "minor" },
+    conditionRefs: args.conditionRefs,
   });
+  return out.reason === "restriction_floor"
+    ? noSizing(namedFloorReason(out.reason, restriction))
+    : out;
+}
+
+// ---------------------------------------------------------------------------
+// ① bis — LA PART DE LA FICHE: le corps saisi dimensionne enfin l'assiette
+// ---------------------------------------------------------------------------
+
+/**
+ * POURQUOI CETTE BOUCHE A — OU N'A PAS — UNE PART CALCULÉE SUR SON CORPS.
+ *
+ * ⚠️ VOCABULAIRE À PART, ET C'EST VOULU. `BOX_SIZING_REASONS` est le vocabulaire
+ * de la chaîne d'OBJECTIF (perte/prise, cran de rythme). Celui-ci est celui de
+ * la chaîne de MAINTENANCE. Les fondre en une seule liste ferait un compteur où
+ * la moitié des valeurs seraient structurellement à zéro dans chaque colonne —
+ * c'est-à-dire un compteur qu'on ne relit plus.
+ */
+export const BODY_SHARE_REASONS = Object.freeze(
+  [
+    /** Une part relative a été calculée sur le corps de la fiche. */
+    "sized",
+    /** Plancher TCA RÉELLEMENT levé sur son compte. Rien ne bouge, et c'est le produit. */
+    "restriction_floor",
+    /** Compte présent, ceinture non évaluable. Fail-closed, nommé. */
+    "restriction_unknown",
+    /**
+     * ⛔ RETIRÉ DU VOCABULAIRE LE 2026-08-19 (LOT B ④) — LISEZ AVANT DE LE
+     * REMETTRE. La porte ③ ne ferme plus la part de FICHE; elle continue de
+     * fermer la chaîne d'OBJECTIF (`mouthTargetFactor`), qui est la seule des
+     * deux à produire une cible. Le jeton est laissé ici, commenté, parce
+     * qu'un plan archivé AVANT cette date le porte: sur `617ab89c` et ses
+     * voisins, `box_sizing.shares` compte des bouches fermées par la doctrine.
+     * Le garder DANS la liste en ferait une colonne structurellement à zéro,
+     * c'est-à-dire un compteur qu'on ne relit plus (l'argument de l'en-tête).
+     *
+     *   "doctrine_no_counting",
+     */
+    /**
+     * L'âge n'a pas été saisi. On ne sait donc pas QUELLE équation d'entretien
+     * s'applique — Mifflin-St Jeor sur un corps d'enfant SOUS-ESTIME son besoin,
+     * donc lui servirait une part réduite. « Je ne sais pas » n'est pas
+     * « c'est un adulte », et la seconde phrase rétrécit une assiette.
+     */
+    "age_unknown",
+    /** Corps de fiche absent ou insuffisant ⇒ pas d'entretien ⇒ pas de part. */
+    "no_body",
+    /**
+     * Une seule bouche calculable à cette table. Une part est un RAPPORT: seule,
+     * elle vaut 1 par construction. Rendre `sized` ferait lire à un compteur
+     * qu'un corps a mordu là où il n'y avait rien à comparer.
+     */
+    "no_reference",
+  ] as const,
+);
+export type BodyShareReason = (typeof BODY_SHARE_REASONS)[number];
+
+export interface BodyShare {
+  /**
+   * Sans unité. `1` = la boîte que le modèle a écrite, inchangée.
+   *
+   * ⚠️ BRUT, NON RABOTÉ. Le rabotage est fait UNE fois, sur le PRODUIT des deux
+   * chaînes (`householdMouthFactors`), et il y est compté. Raboter ici aussi
+   * ferait deux rabotages dont un invisible: le second ne mordrait plus, et
+   * `clamped` rendrait `false` sur une part qui a bel et bien été bornée.
+   */
+  factor: number;
+  reason: BodyShareReason;
+}
+
+/**
+ * LES BORNES DE LA PART DE FICHE.
+ *
+ * ── ELLES SE RABOTENT, ET C'EST L'INVERSE DE `BOX_FACTOR_MIN/MAX` ────────
+ * Sur la chaîne d'objectif, « un facteur hors bornes ne se rabote pas, il se
+ * refuse »: rendre 0,70 au lieu de 0,40 servirait un déficit que personne n'a
+ * validé en ayant l'air d'avoir protégé quelqu'un.
+ *
+ * Ici l'arbitrage s'inverse, et pour une raison MESURÉE. Refuser rend `1`,
+ * c'est-à-dire **la boîte de l'adulte de 79 kg servie à l'enfant de 23 kg** —
+ * exactement le défaut que ce lot corrige, et il mordrait d'abord sur le plus
+ * petit corps de la maison, celui dont le rapport à la moyenne est le plus
+ * extrême. Une ceinture qui se referme précisément sur le cas qu'elle est
+ * censée servir est le mode d'échec que ce fichier documente déjà deux fois
+ * (voir `BOX_FACTOR_MIN`, « 0,75 était trop serré »).
+ *
+ * ── D'OÙ VIENNENT CES DEUX NOMBRES ───────────────────────────────────────
+ * La part est normalisée sur la MOYENNE de la table (voir `bodyShareFactors`),
+ * donc la somme des facteurs vaut le nombre de bouches: la casserole ne gonfle
+ * pas. Les extrêmes réels d'un foyer ordinaire:
+ *
+ *   · un enfant de 3 ans (~1 000 kcal) à une table de deux adultes (~2 400):
+ *     moyenne 1 933, part 0,52 — le plus bas rapport constructible sans corps
+ *     aberrant. On s'arrête à 0,55: en dessous, on ne redistribue plus un plat
+ *     de famille, on sert un autre repas — et c'est une décision de produit,
+ *     pas d'arithmétique.
+ *   · l'adulte le plus grand de la même table monte à ~1,24. 1,45 laisse la
+ *     place à un foyer d'un adulte et de deux jeunes enfants sans que la part
+ *     de l'adulte vide la casserole des deux autres.
+ *
+ * ⚠️ UN RABOTAGE SE COMPTE. `MouthFactor.clamped` le porte jusqu'au journal:
+ * une borne qui mord sans qu'on le sache est une borne qu'on croit inerte.
+ */
+export const BODY_SHARE_FACTOR_MIN = 0.55;
+export const BODY_SHARE_FACTOR_MAX = 1.45;
+
+/** Ce que la part de fiche lit d'une bouche. Rien d'autre n'entre. */
+export interface ShareMouth {
+  memberId: string;
+  ageState: MemberAgeState;
+  restriction: MouthRestrictionState;
+  /** Le corps de sa FICHE (`household_member_bodies`), mineurs compris. */
+  body: MouthBody | null;
+}
+
+function clampShare(factor: number): { factor: number; clamped: boolean } {
+  if (factor < BODY_SHARE_FACTOR_MIN) {
+    return { factor: BODY_SHARE_FACTOR_MIN, clamped: true };
+  }
+  if (factor > BODY_SHARE_FACTOR_MAX) {
+    return { factor: BODY_SHARE_FACTOR_MAX, clamped: true };
+  }
+  return { factor, clamped: false };
+}
+
+/**
+ * LA PART DE CHAQUE BOUCHE, RELATIVE À LA TABLE — et c'est ici que le corps
+ * saisi sur la fiche cesse d'être collecté pour rien.
+ *
+ * ── LE DÉFAUT, ET SA MESURE ──────────────────────────────────────────────
+ * Trois runs, neuf comparaisons, zéro écart: une adulte de 152 cm / 47 kg
+ * recevait 220 g de poulet, un ado de 178 cm / 70 kg en recevait 140 —
+ * exactement comme un enfant de 7 ans de 122 cm / 23 kg. Le corps des trois
+ * était en base (`household_member_bodies`), chargé (`lineBodies`), passé à
+ * `memberTargetFactor` — et jeté par une porte qui lisait l'objet du COMPTE.
+ *
+ * ── CE QUE CETTE FONCTION EST, ET CE QU'ELLE N'EST PAS ───────────────────
+ * C'est une **maintenance relative**, jamais un objectif. Elle ne prend aucun
+ * `goal`, aucun cran de rythme, aucune direction: il n'existe donc aucun chemin
+ * par lequel un `fat_loss` écrit sur la fiche d'un enfant atteigne ce facteur.
+ * C'est le même patron que `childEnvelopeFromBody` — la garde est l'ABSENCE
+ * d'un paramètre, pas un `if` qu'on pourrait oublier de rejouer.
+ *
+ * ── LA NORMALISATION EST LA MOYENNE, ET ELLE PROTÈGE LA CASSEROLE ───────
+ * `facteur = entretien / moyenne(entretiens de la table)`. Somme des facteurs
+ * = nombre de bouches: ce qui est retiré à un petit corps est très exactement
+ * ce qui est ajouté à un grand, et la production de la casserole n'a pas à
+ * grossir. `sizeBoxesFromTarget` garde de toute façon son plafond de récipient.
+ *
+ * ── ⛔ LES PORTES ② (MINEUR) ET ③ (DOCTRINE) SONT ÉVALUÉES PUIS DÉPASSÉES ──
+ * `energySafetyGates` est appelée avec le VRAI verdict d'âge de cette bouche
+ * ET la VRAIE position du coach, dans l'ordre du contrat, et le motif de ①
+ * survit tel quel. Deux motifs seulement sont dépassés — `minor` et
+ * `doctrine_no_counting` — et l'arbitrage est le même pour les deux:
+ *
+ *   · les portes ② et ③ ferment une **cible d'énergie** — un déficit, un
+ *     surplus, une date d'arrivée. Aucun de ces trois objets n'existe ici.
+ *   · une **maintenance pédiatrique** calculée sur le corps d'un mineur est
+ *     déjà le produit de ce dépôt: `mouthEnvelope` la sert par
+ *     `childEnvelopeFromBody` (Schofield, FAO/WHO/UNU), et `lineBodies` est
+ *     chargée pour ça. `estimatedMaintenanceFor` choisit l'équation sur
+ *     `isMinor`, jamais sur `ageYears`.
+ *   · maintenir ② ici, c'est servir à un enfant de 7 ans la boîte d'un adulte
+ *     de 79 kg **au nom de sa protection**. C'est la mesure du 2026-08-19, et
+ *     c'est le contraire d'une protection.
+ *
+ * ── ③ · CE QUE LE COACH A DIT, ET CE QU'IL N'A PAS DIT (LOT B ④) ─────────
+ * Le jeton de la porte ③ est `count_calories`: « on ne compte pas les
+ * calories ». Il porte sur un CHIFFRE mis devant quelqu'un. Répartir une même
+ * casserole au prorata des corps qui la mangent n'est pas un comptage: rien
+ * n'est énoncé, aucun nombre de corps n'entre nulle part, et ce qui sort est
+ * une part de plat — la grandeur que ce dépôt autorise en toutes lettres.
+ *
+ * ⚠️ ET `countingStanceFrom` REND `no_counting` POUR DEUX PHRASES DIFFÉRENTES:
+ * « le coach l'a écrit » et « on n'a pas su lire sa doctrine » (fail-closed).
+ * La seconde n'est la décision de personne. Tant que la porte ③ fermait la
+ * part de fiche, une panne de lecture de doctrine rendait à l'enfant de 23 kg
+ * la boîte de l'adulte de 61 kg — un défaut d'infrastructure servi à table
+ * sous le nom d'une méthode pédagogique.
+ *
+ * ⛔ CE QUE ÇA NE FAIT PAS: la porte ③ reste ENTIÈRE sur `mouthTargetFactor`.
+ * Un coach qui ne compte pas garde donc exactement ce qu'il a demandé — aucun
+ * déficit, aucun surplus, aucune cible pour personne de sa cohorte — et ce
+ * qu'il perd est seulement le droit de faire manger à un enfant la part d'un
+ * adulte. C'est la ligne: la position du coach gouverne une CIBLE, elle ne
+ * gouverne pas QUI reçoit le plus grand creux de la même casserole.
+ *
+ * ⚠️ CE QUE ÇA N'OUVRE PAS: le plancher TCA reste PREMIER et gagne contre tout,
+ * mineur et doctrine compris; l'âge inconnu ferme; et rien de ce qui est
+ * calculé ici ne s'énonce — ni au prompt, ni dans une note, ni dans un log
+ * nominatif.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * QUI A DROIT À UNE PORTION PESÉE — et personne d'autre.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * **Décision produit du 2026-08-19** (`docs/keel/BOITES-PAR-REPAS.md`):
+ *
+ *   > Un objectif de poids ouvre une portion millimétrée. Rien d'autre ne la
+ *   > demande, et personne d'autre ne la subit.
+ *
+ * ── CE QUE ÇA REMPLACE ───────────────────────────────────────────────────
+ * Les deux modèles précédents pesaient TOUT LE MONDE. Une personne qui se
+ * maintient, un enfant, quelqu'un qui veut juste dîner recevaient un grammage
+ * que personne n'avait demandé — et le foyer entier héritait d'un protocole de
+ * balance pour la cible d'une seule personne.
+ *
+ * ⛔ `maintenance` N'OUVRE RIEN, ET CE N'EST PAS UN OUBLI. C'est le cœur de la
+ * décision: se maintenir, c'est précisément ne pas vouloir qu'on compte à sa
+ * place. Le jour où quelqu'un « répare » ça, il rétablit le défaut.
+ *
+ * ⚠️ ET CE N'EST PAS LA MÊME QUESTION QUE `dishBearingMembers`. Un objectif dit
+ * COMBIEN on met dans l'assiette; un régime dit qu'on ne peut pas manger la
+ * casserole commune. Les deux se composent — une bouche végane qui prend du
+ * muscle a son plat À ELLE, pesé.
+ *
+ * ⚠️ AUCUNE PORTE DE SÉCURITÉ ICI. Le plancher TCA, la minorité et la position
+ * du coach ferment plus bas, dans `memberTargetFactor`, où elles ont accès à
+ * l'état de ceinture. Les rejouer ici en ferait un second avis sur une
+ * question qui n'en supporte pas deux.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function weighedPortionMembers(
+  members: readonly PortionMember[],
+): PortionMember[] {
+  return members.filter((m) =>
+    m.goal === "fat_loss" || m.goal === "muscle_gain"
+  );
+}
+
+// ---------------------------------------------------------------------------
+// L'APPÉTIT DE LA TABLE — ce qui dimensionne la CASSEROLE (2026-08-19)
+// ---------------------------------------------------------------------------
+
+/**
+ * L'ENTRETIEN D'UN ADULTE DE RÉFÉRENCE, en kcal/jour. LE DÉNOMINATEUR.
+ *
+ * ⚠️ CE N'EST PAS UNE RECOMMANDATION NUTRITIONNELLE, c'est une UNITÉ. Elle sert
+ * à exprimer « cette table mange comme 2,3 adultes » — un rapport, pas une
+ * cible. Personne ne reçoit ce nombre, personne n'est comparé à lui.
+ *
+ * ⚠️ ET ELLE EST GROSSIÈRE EXPRÈS, POUR L'INSTANT. Le socle chiffré est un
+ * chantier à part (`scratchpad/2026-08-19-BRAINSTORM-CALCULATEUR-NUTRITIONNEL.md`).
+ * Déplacer cette constante déplace toutes les casseroles: c'est le seul endroit
+ * à changer, et c'est pour ça qu'elle est nommée.
+ */
+export const REFERENCE_ADULT_MAINTENANCE_KCAL = 2000;
+
+/** Ce que la table mange, exprimé en adultes de référence. */
+export interface HouseholdAppetite {
+  /**
+   * L'ÉQUIVALENT, arrondi au demi. `null` = on n'a pas su, et l'appelant
+   * retombe sur le compte de têtes.
+   */
+  equivalent: number | null;
+  /** Combien de bouches ont un corps calculable — le NUMÉRATEUR du constat. */
+  known: number;
+  /** Combien de bouches à table — le dénominateur. Un compteur seul ment. */
+  mouths: number;
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * COMBIEN CETTE TABLE MANGE — et rien sur QUI mange quoi.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ── LE DÉFAUT QUE ÇA FERME (2026-08-19) ──────────────────────────────────
+ * `presence.servings` est un COMPTE DE TÊTES (`Math.max(1, total)`), et c'est
+ * la seule chose qui dimensionnait la casserole. Un homme de 73 kg qui
+ * s'entraîne dur et une femme de 59 kg comptaient tous les deux pour 1. Le
+ * gaspillage n'était pas un risque, il était structurel — et le manque aussi.
+ * Demandé: « c'est important de ne pas faire de gaspillage non plus ».
+ *
+ * ── LA SOMME SURVIT, LA DIVISION MEURT ───────────────────────────────────
+ * `bodyShareFactors` calculait déjà ces entretiens, puis en faisait une
+ * MOYENNE pour diviser les parts les unes contre les autres. C'est la division
+ * qui couplait les convives et produisait le défaut « une ceinture posée sur
+ * l'un retire à l'autre ». La somme, elle, n'a jamais couplé personne.
+ *
+ * ⛔ AUCUNE PORTE NE RETIRE QUELQU'UN DE CETTE SOMME. Ni le plancher TCA, ni
+ * la minorité, ni la position du coach. Ces portes existent pour ne pas donner
+ * un CHIFFRE à quelqu'un; l'en retirer ici ne lui donnerait pas moins de
+ * chiffres, ça lui donnerait moins à MANGER. Sous-dimensionner la casserole
+ * d'une personne sous plancher alimentaire serait l'exact contraire de ce que
+ * cette ceinture protège.
+ *
+ * ⛔ TOUT OU RIEN. Une seule bouche sans corps calculable ⇒ `null`, et
+ * l'appelant retombe sur le compte de têtes. Sommer les corps CONNUS
+ * sous-dimensionne systématiquement — et se tromper dans ce sens-là veut dire
+ * que quelqu'un ne mange pas. Le repli est le côté sûr.
+ *
+ * ⚠️ ARRONDI AU DEMI, ET L'ARRONDI EST UNE GARDE. Sur un foyer de deux, une
+ * précision au centième laisse deviner un corps par soustraction. Elle
+ * n'ajoute par ailleurs rien à une casserole.
+ *
+ * ⚠️ PLANCHER À 1. Une table sert au moins une assiette, même si l'équation
+ * rend moins pour un tout petit corps.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function householdAppetite(
+  mouths: readonly {
+    ageState: MemberAgeState;
+    body: MouthBody | null;
+  }[],
+): HouseholdAppetite {
+  let sum = 0;
+  let known = 0;
+  for (const m of mouths) {
+    const kcal = m.body === null ? null : estimatedMaintenanceFor({
+      body: m.body,
+      isMinor: m.ageState === "minor",
+    });
+    if (kcal === null || !Number.isFinite(kcal) || kcal <= 0) continue;
+    known++;
+    sum += kcal;
+  }
+  if (mouths.length === 0 || known !== mouths.length || sum <= 0) {
+    return { equivalent: null, known, mouths: mouths.length };
+  }
+  const raw = sum / REFERENCE_ADULT_MAINTENANCE_KCAL;
+  return {
+    equivalent: Math.max(1, Math.round(raw * 2) / 2),
+    known,
+    mouths: mouths.length,
+  };
+}
+
+export function bodyShareFactors(
+  mouths: readonly ShareMouth[],
+  coachCounting: CountingStance,
+): Map<string, BodyShare> {
+  const out = new Map<string, BodyShare>();
+  const maintenance = new Map<string, number>();
+
+  for (const m of mouths) {
+    // ①②③ — LA MÊME CHAÎNE, LE MÊME ORDRE, LA MÊME ÉCRITURE. On n'en recopie
+    // aucun `if`: on l'appelle, et on ne dépasse QUE `minor` (voir en tête).
+    let gate = canSizeFromTarget({
+      safety: energySafetyGates({
+        restrictionFlag: restrictionFlagOf(m.restriction),
+        ageVerdict: mouthAgeVerdict(m.ageState),
+        coachCounting,
+      }),
+    });
+    if (!gate.size && (gate.reason === "minor" || gate.reason === "doctrine_no_counting")) {
+      // ⛔ ON NE DÉPASSE QUE ② ET ③, ET C'EST POURQUOI LA CHAÎNE EST REJOUÉE.
+      // `energySafetyGates` ne rend que la PREMIÈRE porte fermée. Rejouer la
+      // MÊME chaîne — avec un verdict de majeur et sans position de coach — est
+      // la seule façon de dépasser ces deux portes-là sans recopier leurs `if`
+      // ici; ce qui reste évalué est ①, et lui seul.
+      //
+      // ⚠️ LE PLANCHER ① EST ÉVALUÉ AVANT ② ET ③ DANS LES DEUX PASSES, et c'est
+      // ce qui rend ce dépassement sûr: une ceinture TCA levée sort
+      // `restriction_floor` à la PREMIÈRE passe, la condition ci-dessus est
+      // fausse, et la seconde passe n'a jamais lieu. Une mutation qui inverse
+      // l'ordre des portes dans `energy_gate.ts` fait rougir son propre test de
+      // source (« ② est passée avant ① »).
+      gate = canSizeFromTarget({
+        safety: energySafetyGates({
+          restrictionFlag: restrictionFlagOf(m.restriction),
+          ageVerdict: mouthAgeVerdict("adult"),
+          // ⛔ LITTÉRAL, PAS `coachCounting`. Voir l'en-tête, §③: la position du
+          // coach gouverne une CIBLE (`mouthTargetFactor`, où elle reste
+          // entière), jamais le partage d'une même casserole. Repasser
+          // `coachCounting` ici rendrait à l'enfant de 23 kg la boîte de
+          // l'adulte de 61 kg dès qu'une doctrine est illisible.
+          coachCounting: "no_position",
+        }),
+      });
+    }
+    if (!gate.size) {
+      out.set(m.memberId, {
+        factor: 1,
+        reason: namedFloorReason(
+          gate.reason as BoxSizingReason,
+          m.restriction,
+        ) as BodyShareReason,
+      });
+      continue;
+    }
+    if (m.ageState === "unknown") {
+      out.set(m.memberId, { factor: 1, reason: "age_unknown" });
+      continue;
+    }
+    const kcal = m.body === null ? null : estimatedMaintenanceFor({
+      body: m.body,
+      isMinor: m.ageState === "minor",
+    });
+    if (kcal === null || !Number.isFinite(kcal) || kcal <= 0) {
+      out.set(m.memberId, { factor: 1, reason: "no_body" });
+      continue;
+    }
+    maintenance.set(m.memberId, kcal);
+  }
+
+  // ── LA RÉFÉRENCE — LA TABLE, PAS UNE CONSTANTE ──────────────────────────
+  // Une constante universelle (« l'adulte de référence ») rendrait un facteur
+  // qui ne dit plus rien du PARTAGE d'une casserole: à une table de deux
+  // enfants, les deux verraient leur part rabotée sans que personne ne
+  // récupère les grammes. La moyenne de la table est le seul dénominateur qui
+  // conserve la production.
+  let sum = 0;
+  for (const kcal of maintenance.values()) sum += kcal;
+  if (maintenance.size < 2 || sum <= 0) {
+    for (const id of maintenance.keys()) {
+      out.set(id, { factor: 1, reason: "no_reference" });
+    }
+    return out;
+  }
+  const mean = sum / maintenance.size;
+  for (const [id, kcal] of maintenance) {
+    out.set(id, { factor: kcal / mean, reason: "sized" });
+  }
+  return out;
+}
+
+/**
+ * COMBIEN DE POIDS DIFFÉRENTS CETTE TABLE SERT — le nombre que le prompt dit.
+ *
+ * ⚠️ CE N'EST PAS UN FAIT DE CORPS, C'EST UN NOMBRE DE BOÎTES. Il ne nomme
+ * personne, ne dit ni âge ni poids, et ne permet de reconstruire aucun corps:
+ * c'est la seule forme sous laquelle le résultat du moteur peut entrer dans un
+ * prompt sans violer « le corps d'un mineur ne s'énonce jamais ».
+ *
+ * ⚠️ COMPTÉ SUR LA PART DE FICHE SEULE, PAS SUR LE FACTEUR APPLIQUÉ. Le cran de
+ * rythme est lu APRÈS le modèle (`paceByMember`), donc il n'existe pas encore
+ * quand le prompt s'écrit. La chaîne d'objectif ne peut que SÉPARER davantage
+ * de bouches, jamais en fusionner deux qui divergeaient déjà; le nombre dit est
+ * donc un PLANCHER, et la phrase du prompt nomme sa propre échappatoire (« deux
+ * noms sur une boîte seulement s'ils prennent le même poids »), ce qui la rend
+ * juste même quand le compte est bas d'une unité.
+ *
+ * ⚠️ ON GROUPE SUR LE **FACTEUR**, PAS SUR LE MOTIF, et c'est une simplification
+ * MESURÉE: la version d'origine rangeait les bouches non dimensionnées dans un
+ * sac « unsized » à part. Muter cette branche (M7) n'a fait tomber AUCUN test —
+ * et pour cause: toute bouche non dimensionnée porte le facteur `1` exactement,
+ * donc elle se range déjà avec les autres `1`. Une branche qu'aucun test ne
+ * distingue est une branche qui ment sur ce qu'elle protège; celle-ci est
+ * partie. Ce qui reste est la seule question qui compte pour une boîte: deux
+ * bouches prennent-elles le MÊME poids ?
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function weightGroupCount(shares: ReadonlyMap<string, BodyShare>): number {
+  const groups = new Set<string>();
+  // Six décimales: deux corps qui diffèrent d'un millième de facteur ne sont
+  // pas deux poids de boîte, et l'égalité flottante exacte ferait deux groupes
+  // d'un même arrondi.
+  for (const s of shares.values()) groups.add(s.factor.toFixed(6));
+  return groups.size;
+}
+
+// ---------------------------------------------------------------------------
+// LE FACTEUR APPLIQUÉ — les deux chaînes, composées, et DEUX compteurs
+// ---------------------------------------------------------------------------
+
+export interface MouthFactor {
+  /** Ce qui est réellement multiplié dans `sizeBoxesFromTarget`. */
+  factor: number;
+  /** La chaîne d'OBJECTIF (perte/prise + cran de rythme), avec son motif. */
+  target: MouthSizing;
+  /** La chaîne de MAINTENANCE (le corps de la fiche), avec son motif. */
+  share: BodyShare;
+  /** Le produit des deux a-t-il été raboté par les bornes de part ? */
+  clamped: boolean;
+}
+
+export interface FactorMouth {
+  member: PortionMember;
+  restriction: MouthRestrictionState;
+  /** Le corps de la FICHE. La MÊME lecture que `mouthEnvelope`, jamais une seconde. */
+  body: MouthBody | null;
+  paceKgPerWeek: number | null;
+  /**
+   * L0bis — LES `condition_ref` DE CETTE BOUCHE. REQUIS, jamais `?`.
+   *
+   * ⚠️ SOURCE UNIQUE, ET ELLE EXCLUT UNE POPULATION ENTIÈRE:
+   * `student_safety_constraints.condition_ref` est clée sur `user_id`. Il
+   * n'existe pas de `household_member_conditions`, donc une bouche SANS COMPTE
+   * porte toujours `[]` — la garde de grossesse ne peut PAS la protéger
+   * aujourd'hui. C'est un trou NOMMÉ (fiche `L0bis-a`), pas un oubli, et il
+   * demande une décision produit avant toute table.
+   */
+  conditionRefs: readonly string[];
+}
+
+/**
+ * LE FACTEUR DE CHAQUE BOUCHE DE LA TABLE — le seul appelant côté générateur.
+ *
+ * ── POURQUOI LES DEUX CHAÎNES SE MULTIPLIENT ────────────────────────────
+ * Elles répondent à deux questions orthogonales: « ce corps est-il plus grand
+ * que la moyenne de cette table ? » et « cette personne vise-t-elle une perte
+ * ou une prise, et à quel cran ? ». Une personne peut être les deux. Les
+ * additionner mélangerait deux échelles; en prendre le max en jetterait une.
+ *
+ * ⚠️ LE PRODUIT EST RABOTÉ, ET LE RABOTAGE EST COMPTÉ. Les deux facteurs
+ * peuvent pousser dans le même sens (un petit corps qui perd du poids); leurs
+ * bornes ne se composent pas, donc le produit reçoit la sienne.
+ *
+ * ⚠️ AUCUN MOTIF UNIQUE N'EST RENDU. Deux décisions ⇒ deux motifs ⇒ deux
+ * compteurs. Un seul motif rendrait le même zéro pour « aucune cible » et
+ * « aucun corps », et c'est le zéro ambigu que ce dépôt paie en boucle.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function householdMouthFactors(
+  mouths: readonly FactorMouth[],
+  coachCounting: CountingStance,
+): Map<string, MouthFactor> {
+  const shares = bodyShareFactors(
+    mouths.map((m) => ({
+      memberId: m.member.memberId,
+      ageState: m.member.ageState,
+      restriction: m.restriction,
+      body: m.body,
+    })),
+    coachCounting,
+  );
+  const out = new Map<string, MouthFactor>();
+  for (const m of mouths) {
+    const target = memberTargetFactor(m.member, {
+      coachCounting,
+      paceKgPerWeek: m.paceKgPerWeek,
+      body: m.body,
+      restriction: m.restriction,
+      conditionRefs: m.conditionRefs,
+    });
+    const share = shares.get(m.member.memberId) ??
+      { factor: 1, reason: "no_body" as BodyShareReason };
+    const clamped = clampShare(share.factor * target.factor);
+    out.set(m.member.memberId, {
+      factor: clamped.factor,
+      target,
+      share,
+      clamped: clamped.clamped,
+    });
+  }
+  return out;
 }
 
 // ---------------------------------------------------------------------------
 // ① LES BOÎTES, REDIMENSIONNÉES — déterministe, après le parseur
 // ---------------------------------------------------------------------------
 
-/** Une boîte, réduite à ce que le redimensionnement lit. */
-export interface SizableBox {
-  id: string;
-  memberIds: readonly string[];
+/** UN COMPOSANT d'un contenant, réduit à ce que le dimensionnement lit. */
+export interface SizableItem {
+  /**
+   * LA CASSEROLE D'OÙ IL SORT. `null` = ajouté frais le jour même, donc hors du
+   * contrôle de fournée: aucun plafond de récipient ne le borne, parce qu'aucune
+   * casserole ne le produit.
+   */
+  preparationId: string | null;
   grams: number;
+}
+
+/** UN CONTENANT: son groupe, son contenu, et ce que son repas tire des casseroles. */
+export interface SizableMeal {
+  boxId: string;
+  /**
+   * ⛔ LE NOMBRE DE NOMS DÉCIDE SI CE CONTENANT SE DIMENSIONNE (v4, 2026-08-20).
+   *
+   *   · **un seul** → une PRESCRIPTION. Le facteur de cette bouche s'y applique:
+   *     c'est très exactement ce que la cible achète.
+   *   · **plusieurs** → une QUANTITÉ DE BAC. ⛔ AUCUN FACTEUR NE S'Y APPLIQUE, et
+   *     ce n'est pas un oubli: le bac n'est la portion de personne, donc il n'y
+   *     a personne dont la cible pourrait le redimensionner. Multiplier un bac
+   *     par le facteur de l'un de ses mangeurs ferait payer aux autres
+   *     l'arithmétique d'un tiers — le défaut « une ceinture posée sur l'un
+   *     retire à l'autre », repris par l'autre bout.
+   */
+  memberIds: readonly string[];
+  /**
+   * ⚠️ L'ORDRE EST LE CONTRAT. Le résultat rend les nouveaux grammes indexés sur
+   * CETTE liste: l'appelant doit réécrire dans le même tableau, dans le même
+   * ordre. Il n'existe pas de clé stable pour un composant — deux `term`
+   * identiques sur un couvercle sont légitimes.
+   */
+  items: readonly SizableItem[];
+  /**
+   * LES REPRISES DU REPAS. ⚠️ ELLES NE SERVENT PLUS AU PRORATA — un `item` nomme
+   * sa casserole, donc le plafond se pose EXACTEMENT. Elles restent pour dire
+   * quelles casseroles ce repas touche, ce qui est ce que `touched` lit.
+   */
+  uses: readonly { preparationId: string; servings: number }[];
 }
 
 export interface SizablePreparation {
   id: string;
-  boxes: readonly SizableBox[];
+  /** > 0. Ce qui sort de la cuisson, en nombre de portions. */
+  servingsMade: number;
   /**
    * CE QUE LA CASSEROLE PRODUIT VRAIMENT, en grammes de PRÊT
    * (`preparationReadyGrams`). `null` = non reconstructible.
@@ -1651,35 +2763,50 @@ export interface SizablePreparation {
 
 export interface BoxSizingResult {
   /**
-   * Les nouveaux grammages, par ID de boîte. Une boîte absente de cette table
-   * n'a pas bougé — on ne rend PAS la boîte entière, pour que l'appelant ne
-   * puisse pas reconstruire une préparation en perdant ses autres champs.
-   */
-  grams: Map<string, number>;
-  /**
-   * ⚠️ TROIS NOMBRES, ET LEUR SOMME EST UNE PROPRIÉTÉ TESTÉE:
-   * `sized + unchanged + shared_mixed === boxes`. Un compteur à deux nombres
-   * rendrait le même zéro pour « aucune cible » et pour « une cible qu'on n'a
-   * pas su appliquer », et c'est le zéro ambigu que ce dépôt paie en boucle.
+   * Les nouveaux grammages, par contenant puis par INDEX de composant. Un
+   * composant absent de cette table n'a pas bougé — on ne rend PAS le contenant
+   * entier, pour que l'appelant ne puisse pas reconstruire un repas en perdant
+   * ses autres champs.
    *
-   *   · `boxes`        — le dénominateur: toutes les boîtes gardées du plan.
-   *   · `sized`        — celles dont les grammes ont bougé.
-   *   · `unchanged`    — facteur 1 sur toutes leurs bouches. Le cas NOMINAL.
-   *   · `shared_mixed` — une boîte partagée dont les bouches n'ont PAS le même
-   *                      facteur. Laissée telle quelle, et comptée: on ne peut
-   *                      pas la couper en deux sans inventer un identifiant de
-   *                      boîte que rien ne cite.
-   *   · `capped_by_pot`— les préparations dont la somme redimensionnée dépassait
-   *                      ce que la casserole produit, ramenées au plafond.
-   *   · `unverifiable` — les préparations dont la production n'est pas
-   *                      reconstructible (`readyGrams === null`): on
-   *                      redimensionne, on ne peut pas vérifier la somme.
+   * ⚠️ L'INDEX, PAS UNE CLÉ. Voir `SizableMeal.items`: il n'existe pas de clé
+   * stable pour un composant, et l'ordre est le contrat.
+   */
+  items: Map<string, Map<number, number>>;
+  /**
+   * ⚠️ QUATRE NOMBRES, ET UNE PROPRIÉTÉ TESTÉE: `sized + unchanged === shares`.
+   * Un compteur à deux nombres rendrait le même zéro pour « aucune cible » et
+   * pour « une cible qu'on n'a pas su appliquer », et c'est le zéro ambigu que
+   * ce dépôt paie en boucle.
+   *
+   *   · `boxes`         — les contenants du plan. Le contexte.
+   *   · `common`        — ceux qui portent PLUSIEURS noms, donc qu'aucun facteur
+   *                       ne touche. ⛔ SANS CE NOMBRE, un plan v4 où tout le
+   *                       monde est dans un bac commun rendrait `sized: 0` —
+   *                       exactement ce que rend un lot désarmé.
+   *   · `items`         — les composants, tous contenants confondus. Le
+   *                       dénominateur.
+   *   · `sized`         — ceux dont les grammes ont bougé.
+   *   · `unchanged`     — les autres. Le cas NOMINAL (aucune cible réglée).
+   *   · `capped_by_pot` — les préparations dont la somme redimensionnée dépassait
+   *                       ce qu'elles produisent, ramenées au plafond.
+   *   · `unverifiable`  — les préparations dont la production n'est pas
+   *                       reconstructible: on redimensionne, on ne peut pas
+   *                       vérifier la somme.
+   *
+   * ⚠️ PROPRIÉTÉ TESTÉE: `sized + unchanged === items`.
+   *
+   * ⛔ `shared_mixed` ET `shared_scaled` ONT DISPARU, ET CE N'EST PAS UNE PERTE.
+   * Ils existaient parce qu'une boîte à N noms ne portait qu'UN nombre: le
+   * moteur la pesait à la MOYENNE des facteurs de ses bouches et rendait à
+   * chacune sa part dans la phrase de table. v4 les rend inutiles autrement —
+   * un bac à N noms ne se dimensionne pas du tout, et `common` le dit.
    */
   counts: {
     boxes: number;
+    common: number;
+    items: number;
     sized: number;
     unchanged: number;
-    shared_mixed: number;
     capped_by_pot: number;
     unverifiable: number;
   };
@@ -1687,26 +2814,23 @@ export interface BoxSizingResult {
 }
 
 /**
- * LE PLANCHER D'UNE BOÎTE, en grammes. Une boîte à zéro n'est pas une part,
+ * LE PLANCHER D'UNE PART, en grammes. Une part à zéro n'est pas une portion,
  * c'est une consigne qui dit « rien » — et l'écran l'imprimerait telle quelle.
  */
 export const BOX_MIN_SIZED_GRAMS = 1;
 
 /**
- * LES BOÎTES, REDIMENSIONNÉES SUR LA CIBLE DE CHAQUE BOUCHE.
+ * LES PARTS, REDIMENSIONNÉES SUR LA CIBLE DE CHAQUE BOUCHE.
  *
  * ── POURQUOI C'EST DÉTERMINISTE ET APRÈS LE PARSEUR ───────────────────────
  * L'autre sortie était de demander les grammages au modèle, en lui donnant la
  * cible dans le prompt. Elle est écartée, et pour trois raisons mesurées:
  *
  *   1. **Le prompt de la lane foyer expire à quatre minutes** (mesuré par 3C,
- *      reconfirmé par L7). Ce lot n'ajoute pas une ligne au prompt et ne bumpe
- *      aucune version: la population qui voit une consigne différente est
- *      VIDE, et c'est vérifiable à l'octet.
+ *      reconfirmé par L7). Ce lot n'ajoute pas une ligne au prompt pour ça.
  *   2. Un facteur de grammage dit dans le prompt est un nombre que le modèle
- *      RECOPIE. Mesuré au LOT E: il a écrit `box_prep_chicken_shared` dans une
- *      note lue à voix haute à table. « Zoé: 0,85 de la part de Marc » lu à
- *      table est un verdict comparatif sur deux corps.
+ *      RECOPIE. Mesuré au LOT E: « Zoé: 0,85 de la part de Marc » lu à table est
+ *      un verdict comparatif sur deux corps.
  *   3. Un grammage déclaré par le modèle ne peut être que COMPTÉ, jamais
  *      garanti; un grammage calculé ici est exact et rejouable.
  *
@@ -1716,9 +2840,28 @@ export const BOX_MIN_SIZED_GRAMS = 1;
  * multiplier des grammes par un facteur sans unité — et elle refuse de le faire
  * quand la casserole ne suivrait pas.
  *
+ * ── LE PLAFOND DU RÉCIPIENT, EXACT DEPUIS v4 (2026-08-20) ────────────────
+ * ⛔ C'ÉTAIT LA SEULE VRAIE DIFFICULTÉ DE L'UNITÉ « UN CONTENANT PAR REPAS », ET
+ * ELLE A DISPARU. Sous v2, un couvercle portait UN total pour N casseroles: il
+ * fallait le répartir au prorata de ce que chaque reprise tire vraiment, et
+ * s'abstenir dès qu'un morceau manquait. Un `item` porte son `preparation_id` —
+ * l'attribution est EXACTE, et une casserole illisible n'empêche plus de
+ * vérifier ses voisines.
+ *
+ * ⚠️ `unverifiable` NE COMPTE PLUS QUE LES CASSEROLES DONT LA PRODUCTION est
+ * irreconstructible (`readyGrams: null`). On ne présente jamais « vérifié » ce
+ * qui est « on ne sait pas ».
+ *
+ * ⚠️ LE RABOT EST CELUI DE **SA** CASSEROLE, ET LE RAPPORT ENTRE LES BOUCHES
+ * SURVIT QUAND MÊME: le facteur de rabot est le même pour tous ceux qui tirent
+ * sur cette casserole-là. Ce qu'une cible achète est ce rapport, et le préserver
+ * est la seule façon de ne pas retirer sa part à quelqu'un pour l'arithmétique
+ * d'un autre.
+ *
  * PURE: no I/O, no clock, no randomness.
  */
 export function sizeBoxesFromTarget(
+  meals: readonly SizableMeal[],
   preparations: readonly SizablePreparation[],
   /**
    * Le facteur de CHAQUE bouche, par `member_id`. Une bouche absente de la table
@@ -1732,112 +2875,127 @@ export function sizeBoxesFromTarget(
   /** La tolérance de somme, reprise du parseur. REQUISE pour la même raison. */
   sumToleranceRatio: number,
 ): BoxSizingResult {
-  const grams = new Map<string, number>();
+  const items = new Map<string, Map<number, number>>();
   const issues: string[] = [];
   const counts = {
     boxes: 0,
+    common: 0,
+    items: 0,
     sized: 0,
     unchanged: 0,
-    shared_mixed: 0,
     capped_by_pot: 0,
     unverifiable: 0,
   };
+  const prepById = new Map(preparations.map((p) => [p.id, p]));
 
-  for (const prep of preparations) {
-    // Les grammes CANDIDATS de cette préparation, avant le plafond du récipient.
-    const candidate = new Map<string, number>();
-    let anySized = false;
-    for (const box of prep.boxes) {
-      counts.boxes++;
-      const mouthFactors = box.memberIds.map((id) => factors.get(id) ?? 1);
-      const first = mouthFactors[0] ?? 1;
-      const uniform = mouthFactors.every((f) => Math.abs(f - first) < 1e-9);
-      if (!uniform) {
-        // ⛔ ON NE COUPE PAS UNE BOÎTE EN DEUX. Fabriquer un second identifiant
-        // laisserait `dishes[].uses[].box_id` pointer sur une boîte qui n'a plus
-        // le bon contenu, et l'écran citerait une boîte que personne n'a pesée.
-        // La consigne du prompt dit déjà « when their shares differ they get one
-        // box each »: une boîte partagée à facteurs divergents est le modèle qui
-        // ne l'a pas suivie, et c'est une MESURE, pas une réparation.
-        counts.shared_mixed++;
-        issues.push(
-          `preparations[${prep.id}].boxes[${box.id}]: shared by mouths whose ` +
-            `targets differ, grams left as written`,
-        );
-        candidate.set(box.id, box.grams);
-        continue;
-      }
-      if (first === 1) {
-        counts.unchanged++;
-        candidate.set(box.id, box.grams);
-        continue;
-      }
-      anySized = true;
-      candidate.set(
-        box.id,
-        Math.max(BOX_MIN_SIZED_GRAMS, Math.round(box.grams * first)),
-      );
+  // ── ① CHAQUE COMPOSANT, MULTIPLIÉ PAR LE FACTEUR DE **SA** BOUCHE ───────
+  //
+  // ⛔ ET SEULEMENT SUR UN CONTENANT À UN SEUL NOM. Un bac commun n'est la
+  // portion de personne: il n'a pas de bouche dont la cible pourrait le
+  // redimensionner, et lui appliquer le facteur de l'un de ses mangeurs ferait
+  // payer aux autres l'arithmétique d'un tiers.
+  /** Les grammes candidats, par contenant puis par index, avant tout plafond. */
+  const candidate = new Map<string, Map<number, number>>();
+  /** Les préparations dont AU MOINS un composant a bougé — voir le plafond. */
+  const touched = new Set<string>();
+  for (const meal of meals) {
+    counts.boxes++;
+    const next = new Map<number, number>();
+    candidate.set(meal.boxId, next);
+    if (meal.memberIds.length !== 1) {
+      counts.common++;
+      counts.items += meal.items.length;
+      continue;
     }
-
-    // ── LE PLAFOND DU RÉCIPIENT — ET IL NE TOURNE QUE SI ON A TOUCHÉ QUELQUE
-    //    CHOSE ────────────────────────────────────────────────────────────
-    // ⚠️ LA CONDITION `anySized` EST LA GARANTIE DE BYTE-IDENTITÉ. Sans elle, ce
-    // bloc « réparerait » au passage les plans où le modèle a sur-rempli ses
-    // boîtes — c'est-à-dire changerait le produit pour la population qui n'a
-    // AUCUNE cible, qui est aujourd'hui la population entière. Le parseur a déjà
-    // sa propre `issue` pour ce cas-là; ce n'est pas à ce lot de la doubler.
+    const factor = factors.get(meal.memberIds[0]) ?? 1;
+    let anySized = false;
+    for (const [index, item] of meal.items.entries()) {
+      counts.items++;
+      const sized = factor === 1
+        ? item.grams
+        : Math.max(BOX_MIN_SIZED_GRAMS, Math.round(item.grams * factor));
+      if (sized !== item.grams) anySized = true;
+      next.set(index, sized);
+    }
+    // ⚠️ LA CONDITION `anySized` EST LA GARANTIE DE BYTE-IDENTITÉ. Sans elle, le
+    // plafond « réparerait » au passage les plans où le modèle a sur-rempli ses
+    // contenants — c'est-à-dire changerait le produit pour la population qui n'a
+    // AUCUNE cible. Le parseur a déjà sa propre `issue` pour ce cas-là; ce n'est
+    // pas à ce lot de la doubler.
     if (!anySized) continue;
+    for (const use of meal.uses) touched.add(use.preparationId);
+  }
+
+  // ── ② CE QUE CHAQUE CASSEROLE SE VOIT TIRER — EXACTEMENT, PLUS AU PRORATA ─
+  //
+  // ⚠️ C'EST LE SEUL ENDROIT OÙ v4 SIMPLIFIE. Sous v2 un couvercle portait UN
+  // total pour N casseroles, et il fallait le répartir au prorata de ce que
+  // chaque reprise tire — donc s'abstenir dès qu'une casserole n'était pas
+  // reconstructible. Un `item` porte son `preparation_id`: l'attribution est
+  // exacte, et une casserole illisible n'empêche plus de vérifier ses voisines.
+  //
+  // ⚠️ UN COMPOSANT À `preparationId: null` NE TIRE SUR AUCUNE FOURNÉE. Il est
+  // ajouté frais le jour même; l'attribuer à une casserole la ferait déborder
+  // avec du pain acheté le matin.
+  const drawn = new Map<string, number>();
+  for (const meal of meals) {
+    const next = candidate.get(meal.boxId);
+    for (const [index, item] of meal.items.entries()) {
+      if (item.preparationId === null) continue;
+      const grams = next?.get(index) ?? item.grams;
+      drawn.set(item.preparationId, (drawn.get(item.preparationId) ?? 0) + grams);
+    }
+  }
+
+  // ── ③ LE PLAFOND DU RÉCIPIENT, CASSEROLE PAR CASSEROLE ──────────────────
+  const shrink = new Map<string, number>();
+  for (const prep of preparations) {
+    if (!touched.has(prep.id)) continue;
     if (prep.readyGrams === null) {
       counts.unverifiable++;
-      for (const [id, g] of candidate) grams.set(id, g);
-      counts.sized += countSized(prep, candidate);
       continue;
     }
     const ceiling = prep.readyGrams * sumToleranceRatio;
-    let sum = 0;
-    for (const g of candidate.values()) sum += g;
-    if (sum > ceiling && sum > 0) {
-      // ⚠️ ON RABOTE **PROPORTIONNELLEMENT**, ET SUR TOUTE LA PRÉPARATION. Ce
-      // qu'une cible achète est le RAPPORT entre les parts; le préserver est la
-      // seule façon de ne pas retirer sa part à quelqu'un pour l'arithmétique
-      // d'un autre. La quantité de nourriture, elle, est fixe: c'est le point de
-      // `scaling-factor-applies-only-to-the-mobile-part`, et ici la part fixe
-      // est le contenu de la casserole.
-      const shrink = ceiling / sum;
-      for (const [id, g] of candidate) {
-        candidate.set(id, Math.max(BOX_MIN_SIZED_GRAMS, Math.round(g * shrink)));
-      }
-      counts.capped_by_pot++;
-      issues.push(
-        `preparations[${prep.id}]: sized boxes would hold ${Math.round(sum)} g ` +
-          `but the batch makes about ${Math.round(prep.readyGrams)} g, all boxes ` +
-          `scaled back to fit`,
-      );
+    const taken = drawn.get(prep.id) ?? 0;
+    if (taken <= ceiling || taken <= 0) continue;
+    shrink.set(prep.id, ceiling / taken);
+    counts.capped_by_pot++;
+    issues.push(
+      `preparations[${prep.id}]: the sized meals would take ${Math.round(taken)} g ` +
+        `but the batch makes about ${Math.round(prep.readyGrams)} g, every share ` +
+        `that draws on it scaled back to fit`,
+    );
+  }
+
+  // ── ④ CE QUI SORT: CHAQUE COMPOSANT, RABOTÉ PAR SA PROPRE CASSEROLE ─────
+  //
+  // ⚠️ LE RABOT EST CELUI DE LA CASSEROLE QUI DÉBORDE, ET DE PERSONNE D'AUTRE.
+  // Ce qu'une cible achète est le RAPPORT entre les bouches; il est préservé
+  // parce que le facteur de rabot est le MÊME pour tous ceux qui tirent sur
+  // cette casserole-là. Le riz d'un plat dont seul le poulet manque ne bouge
+  // pas, ce qui est la réalité du récipient.
+  for (const meal of meals) {
+    const next = candidate.get(meal.boxId);
+    if (!next || next.size === 0) continue;
+    const out = new Map<number, number>();
+    for (const [index, item] of meal.items.entries()) {
+      const sized = next.get(index) ?? item.grams;
+      const ratio = item.preparationId === null ? 1 : (shrink.get(item.preparationId) ?? 1);
+      const final = ratio === 1
+        ? sized
+        : Math.max(BOX_MIN_SIZED_GRAMS, Math.round(sized * ratio));
+      // ⚠️ `sized` SE COMPTE SUR CE QUI A RÉELLEMENT BOUGÉ, jamais par
+      // soustraction. Un composant dont le facteur ≠ 1 mais dont l'arrondi rend
+      // le MÊME nombre n'a pas bougé, et le compter dirait qu'une cible a mordu
+      // là où l'assiette est identique. Cicatrice `withheld`/`over_cap`.
+      if (final === item.grams) continue;
+      counts.sized++;
+      out.set(index, final);
     }
-    for (const [id, g] of candidate) grams.set(id, g);
-    counts.sized += countSized(prep, candidate);
+    if (out.size > 0) items.set(meal.boxId, out);
   }
-
-  // ⚠️ `sized` SE COMPTE SUR CE QUI A RÉELLEMENT BOUGÉ, jamais par soustraction.
-  // Une boîte dont le facteur ≠ 1 mais dont l'arrondi rend le MÊME nombre n'a
-  // pas bougé, et la compter dirait qu'une cible a mordu là où l'assiette est
-  // identique. Cicatrice `withheld`/`over_cap`, écrite trois fois dans
-  // `meal_generation.ts`.
-  counts.unchanged = counts.boxes - counts.sized - counts.shared_mixed;
-  return { grams, counts, issues };
-}
-
-/** Combien de boîtes de CETTE préparation portent un grammage différent. */
-function countSized(
-  prep: SizablePreparation,
-  candidate: ReadonlyMap<string, number>,
-): number {
-  let n = 0;
-  for (const box of prep.boxes) {
-    const next = candidate.get(box.id);
-    if (next !== undefined && next !== box.grams) n++;
-  }
-  return n;
+  counts.unchanged = counts.items - counts.sized;
+  return { items, counts, issues };
 }
 
 // ---------------------------------------------------------------------------
@@ -2409,6 +3567,125 @@ export function vaguePortionMatches(raw: unknown): string[] {
 }
 
 /**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * LA TAILLE DITE EN MOTS — le compteur de la contradiction, 2026-08-19.
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ CE QU'IL COMPTE, ET POURQUOI IL EXISTE. Quand le moteur possède le
+ * grammage, tout mot de taille écrit par le modèle est un second avis sur le
+ * même nombre — et il a été mesuré FAUX une fois sur deux: sur `cfd44e89`,
+ * « Serve a larger share » à l'adulte de 47 kg qui reçoit 134 g (la plus petite
+ * part de la table) et « the standard share » à l'ado de 70 kg qui en reçoit
+ * 271 g (presque la plus grande). La phrase se contredit dans sa propre ligne,
+ * et elle est lue à voix haute à table.
+ *
+ * ⛔ ON COMPTE, ON NE RÉÉCRIT PAS. Nuller la note ferait tomber avec elle la
+ * moitié UTILE — « retirer les croûtes », « sauce piquante à part », « pas de
+ * fenouil » — c'est-à-dire ce que le modèle est le seul à savoir. La ceinture
+ * est le BRIEF (qui nomme le vocabulaire refusé); ceci est l'instrument qui dit
+ * s'il a été suivi.
+ *
+ * ⛔ CE N'EST PAS UN MATCHER MAISON. Aucune forme devinée, aucun savoir sur les
+ * aliments: une LISTE FERMÉE de tournures, passée au moteur du dépôt
+ * (`findForbiddenMatches`), exactement comme `VAGUE_PORTION_TERMS` juste
+ * au-dessus. `allowNegatedMentions: false`, même posture que
+ * `sanitizePortionNote`: « pas une plus grosse part » parle quand même de la
+ * taille de la part de quelqu'un.
+ *
+ * ⚠️ CE QU'IL NE COMPTE PAS, ET C'EST ASSUMÉ. Une comparaison écrite sans aucun
+ * de ces mots (« Odalric gets the bowl, Wilfrid the small plate ») lui échappe.
+ * C'est un PLANCHER de mesure, pas un verdict — le même statut que
+ * `vague_portions` et `unquantified_dish_ingredients`.
+ */
+export const SIZE_WORD_TERMS: readonly ForbiddenTerm[] = [
+  {
+    ruleId: "portion.size_word",
+    token: "larger share",
+    surfaceForms: [
+      "large share",
+      "larger portion",
+      "bigger share",
+      "bigger portion",
+      "big portion",
+      "plus grande part",
+      "plus grosse part",
+      "part plus grande",
+      "portion plus grande",
+    ],
+  },
+  {
+    ruleId: "portion.size_word",
+    token: "smaller share",
+    surfaceForms: [
+      "small share",
+      "smaller portion",
+      "small portion",
+      "reduced portion",
+      "plus petite part",
+      "part plus petite",
+      "portion plus petite",
+    ],
+  },
+  {
+    ruleId: "portion.size_word",
+    token: "standard share",
+    surfaceForms: [
+      "standard portion",
+      "normal share",
+      "normal portion",
+      "usual share",
+      "usual portion",
+      "regular portion",
+      "part standard",
+      "portion standard",
+      "portion normale",
+      "part normale",
+    ],
+  },
+  {
+    ruleId: "portion.size_word",
+    token: "child-size share",
+    surfaceForms: [
+      "child size share",
+      "child-sized share",
+      "child sized share",
+      "child-size portion",
+      "child-sized portion",
+      "child portion",
+      "kid-size portion",
+      "part d'enfant",
+      "portion d'enfant",
+    ],
+  },
+  {
+    ruleId: "portion.size_word",
+    token: "same share as",
+    surfaceForms: [
+      "same portion as",
+      "same share",
+      "same amount as",
+      "meme part que",
+      "meme portion que",
+    ],
+  },
+];
+
+/**
+ * LES TOURNURES DE TAILLE D'UNE CONSIGNE, dédupliquées et triées.
+ * `[]` quand il n'y en a aucune — le cas voulu dès que le moteur pèse.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function sizeWordMatches(raw: unknown): string[] {
+  const text = typeof raw === "string" ? raw.trim() : "";
+  if (!text) return [];
+  const matches = findForbiddenMatches(text, SIZE_WORD_TERMS, {
+    allowNegatedMentions: false,
+  });
+  return [...new Set(matches.map((m) => m.token))].sort();
+}
+
+/**
  * ══════════════════════════════════════════════════════════════════════════
  * LOT 4C ② — UN NOMBRE SUIVI D'UNE UNITÉ. LE SEUL FAIT VÉRIFIABLE ICI.
  * ══════════════════════════════════════════════════════════════════════════
@@ -2478,8 +3755,8 @@ export function portionCarriesAQuantity(raw: unknown): boolean {
  * `preparation_id`, une fois de plus.
  *
  * ⛔ LA LANGUE N'Y CHANGE RIEN, ET C'EST STRUCTUREL: `MEAL_TOKEN_FIELDS` range
- * `preparations[].boxes[].id` parmi les jetons « ASCII snake_case, English words
- * only » — un id n'est jamais traduit. La ceinture mord donc à l'identique sur
+ * `dishes[].box.id` parmi les jetons « ASCII snake_case, English words only » —
+ * un id n'est jamais traduit. La ceinture mord donc à l'identique sur
  * une note anglaise et sur une note française, et les deux sont testées.
  *
  * ── LE PLANCHER, ASSUMÉ ───────────────────────────────────────────────────
@@ -2611,7 +3888,15 @@ export interface ReconciledPortions {
    * `unknown` ce qui tombe; les dériver l'un de l'autre est la cicatrice
    * `withheld`/`over_cap`, et elle est écrite trois fois dans `meal_generation.ts`.
    */
-  shareCounts: { shares: number; unknown: number };
+  /**
+   * ⚠️ `regime_refused` EST UN TROISIÈME NOMBRE, ET IL NE SE DÉDUIT PAS. Une
+   * part retirée parce que la préparation rompt la LIGNE DÉCLARÉE de cette
+   * bouche n'est pas une part orpheline (`unknown`): l'une dit « le modèle a
+   * cité une préparation qui n'existe pas », l'autre « le modèle a servi du
+   * bœuf à une végane ». Les fondre rendrait la seconde invisible derrière la
+   * première.
+   */
+  shareCounts: { shares: number; unknown: number; regime_refused: number };
 }
 
 /**
@@ -2668,8 +3953,8 @@ export function reconcilePortions(
    * passer sans qu'aucun compilateur ni aucun test ne bouge, et la note
    * continuerait de dire « Use box_prep_chicken_shared » à toute la table.
    *
-   * ⚠️ CE SONT LES BOÎTES **GARDÉES** (`preparations[].boxes[].id` en sortie du
-   * parseur), pas celles que le modèle a déclarées. Une boîte refusée n'existe
+   * ⚠️ CE SONT LES BOÎTES **GARDÉES** (`dishes[].boxes[].id` en sortie du parseur),
+   * pas celles que le modèle a déclarées. Une boîte refusée n'existe
    * nulle part: son id dans une phrase est du bruit exactement comme les autres,
    * et il n'y a aucune raison de le laisser passer — mais la liste fermée est
    * celle du plan qu'on écrit, comme partout ailleurs.
@@ -2679,13 +3964,49 @@ export function reconcilePortions(
    * et c'est juste: sans boîte, il n'y a aucun id à faire fuir.
    */
   boxIds: readonly string[],
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * LA CEINTURE DE RÉGIME, SECONDE SURFACE — CE QUE LE PARSEUR A DÉJÀ RETIRÉ.
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ REQUIS, `[]` pour « rien à retirer », JAMAIS `?`. Troisième fois dans
+   * cette signature, et la raison n'a pas changé: un paramètre de garde
+   * optionnel est une garde désarmée. Avec un `?`, l'unique appelant de
+   * production pourrait cesser de le passer sans qu'un compilateur ni un test
+   * ne bouge, et la ligne « une portion de bœuf » resterait accrochée sous le
+   * plat d'une bouche végane.
+   *
+   * ⚠️ LU, JAMAIS RECALCULÉ. C'est `parseGeneratedMeal` qui a fait le scan
+   * (liste fermée, analogues végétaux désamorcés) et qui rend
+   * `meal.regime_refusals`. Refaire ici une seconde lecture des mêmes
+   * préparations produirait deux verdicts sur la même casserole, et c'est
+   * toujours celui qu'on relit le moins qui garderait l'ancienne liste.
+   *
+   * ⚠️ CE SONT LES PRÉPARATIONS **GARDÉES**, comme `preparationIds` et
+   * `boxIds` au-dessus: une préparation refusée par le parseur n'existe plus.
+   */
+  regimeRefusals: readonly {
+    preparation_id: string;
+    member_ids: readonly string[];
+  }[],
 ): ReconciledPortions {
   const issues: string[] = [];
+  /** `preparation_id` → les bouches que leur ligne déclarée en tient dehors. */
+  const regimeHeldOff = new Map<string, Set<string>>();
+  for (const entry of regimeRefusals) {
+    const preparationId = String(entry?.preparation_id ?? "").trim();
+    if (!preparationId) continue;
+    const ids = new Set(
+      (entry.member_ids ?? []).map((id) => String(id).trim()).filter(Boolean),
+    );
+    if (ids.size === 0) continue;
+    regimeHeldOff.set(preparationId, ids);
+  }
   // LOT 4 — LES NOMBRES DU FLOU. Passés par référence à `parseShares` pour
   // qu'il n'existe qu'UN compteur: une seconde addition côté appelant
   // divergerait au premier changement de forme des parts.
   const vagueCounts = { notes: 0, vague: 0, quantified: 0, box_ids: 0 };
-  const shareCounts = { shares: 0, unknown: 0 };
+  const shareCounts = { shares: 0, unknown: 0, regime_refused: 0 };
   const knownPreparations = new Set(
     preparationIds.map((id) => String(id).trim()).filter(Boolean),
   );
@@ -2721,6 +4042,7 @@ export function reconcilePortions(
         displayName: member.displayName,
         portionNote: null,
         preparationShares: [],
+        eatingSlots: member.eatingSlots,
       };
     }
 
@@ -2745,8 +4067,9 @@ export function reconcilePortions(
     //
     // ⚠️ CE QUE ÇA COÛTE, ET POURQUOI ON LE PAIE: si la phrase portait un
     // gramme, il tombe avec elle. Mais ce gramme-là n'est pas perdu à l'écran —
-    // il vient de la BOÎTE (`preparations[].boxes[].grams`), qui est structurée,
-    // et que `DishCard` comme la ligne de part rendent déjà (« Box Zoe — 220 g »).
+    // il vient de la BOÎTE (`dishes[].box.shares[].grams`), qui est structurée,
+    // et que `DishCard` comme la ligne de part rendent déjà (« Zoé — jeudi
+    // midi · 220 g »).
     const leakedBoxIds = boxIdsInNote(note, knownBoxIds);
     if (leakedBoxIds.length > 0) {
       vagueCounts.box_ids++;
@@ -2778,6 +4101,7 @@ export function reconcilePortions(
       memberId: member.memberId,
       displayName: member.displayName,
       portionNote: note,
+      eatingSlots: member.eatingSlots,
       preparationShares: parseShares(
         row,
         member,
@@ -2786,6 +4110,7 @@ export function reconcilePortions(
         shareCounts,
         knownPreparations,
         knownBoxIds,
+        regimeHeldOff,
       ),
     };
   });
@@ -2803,9 +4128,11 @@ function parseShares(
     quantified: number;
     box_ids: number;
   },
-  shareCounts: { shares: number; unknown: number },
+  shareCounts: { shares: number; unknown: number; regime_refused: number },
   knownPreparations: ReadonlySet<string>,
   knownBoxIds: ReadonlySet<string>,
+  /** Voir `reconcilePortions`: LU du parseur, jamais recalculé ici. */
+  regimeHeldOff: ReadonlyMap<string, ReadonlySet<string>>,
 ): PreparationShare[] {
   const raw = row.preparation_shares ?? row.preparationShares;
   if (!Array.isArray(raw)) return [];
@@ -2831,6 +4158,31 @@ function parseShares(
       shareCounts.unknown++;
       issues.push(
         `share_for_unknown_preparation:${member.memberId}:${preparationId}`,
+      );
+      continue;
+    }
+    // ── LA CEINTURE DE RÉGIME, SUR LA SECONDE SURFACE ─────────────────────
+    //
+    // ⛔ JUSTE APRÈS LA LISTE FERMÉE, ET AVANT TOUT LE RESTE, pour la raison
+    // écrite au-dessus: une part qui ne sera jamais rendue n'a rien à faire
+    // dans le dénominateur du flou.
+    //
+    // ⚠️ ET ÇA NE TOUCHE NI `portion_note` NI LE PLAT NI LA BOUCHE. Seule la
+    // LIGNE tombe — c'est-à-dire l'affectation d'une préparation à quelqu'un,
+    // pas une phrase qu'on récrirait. La consigne principale de cette
+    // personne sort intacte, comme pour une part orpheline: compter, nommer,
+    // ne rien perdre d'autre.
+    //
+    // ⛔ MESURÉ: `separate_sessions`/run-1 du 2026-08-19 attachait à Théodule
+    // (végane, 9 ans) une part de `Roasted Chicken and Smoked Tofu` — le
+    // modèle avait écrit « one portion of smoked tofu » sous un titre qui
+    // porte du poulet. La casserole est mixte; on ne peut pas garantir que sa
+    // moitié végétale n'a pas touché l'autre, et une garantie fausse est pire
+    // qu'aucune garantie.
+    if (regimeHeldOff.get(preparationId)?.has(member.memberId)) {
+      shareCounts.regime_refused++;
+      issues.push(
+        `share_against_declared_line:${member.memberId}:${preparationId}`,
       );
       continue;
     }
@@ -2878,6 +4230,65 @@ function parseShares(
   return out;
 }
 
+// ---------------------------------------------------------------------------
+// LA PHRASE DE TABLE, MESURÉE — le gramme, lui, vit sur le couvercle
+// ---------------------------------------------------------------------------
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * CE QUE LA PHRASE DU MODÈLE PORTE ENCORE, ET QU'ELLE NE DEVRAIT PAS.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ CE QUI A DISPARU ICI LE 2026-08-19, ET POURQUOI CE N'EST PAS UN RECUL.
+ * `attachSizedQuantities` recollait à chaque bouche « titre de casserole + ses
+ * grammes de boîte », parce qu'une boîte pendait à UNE casserole et qu'une
+ * bouche y avait exactement une part: « Poulet rôti 150 g · Quinoa 80 g » était
+ * alors une phrase VRAIE pour toute la semaine.
+ *
+ * Ce n'est plus le cas. Une boîte porte un REPAS, donc la part d'iku sur le
+ * poulet du jeudi midi n'est pas celle du vendredi soir. Recoller un nombre par
+ * casserole à une note valable pour toute la fenêtre écrirait un gramme faux
+ * quatre fois sur cinq — et il serait lu à voix haute à table.
+ *
+ * ⚠️ LE GRAMME N'EST PAS PERDU: IL EST À L'ENDROIT OÙ ON L'EXÉCUTE. Chaque part
+ * est écrite sur le couvercle de son repas, avec le nom de la personne. Un seul
+ * nom sur la boîte ⇒ elle EST la portion. Plusieurs noms ⇒ l'étiquette porte le
+ * partage. C'est très exactement ce que l'arbitrage a décidé, et c'est ce que le
+ * brief promet au modèle (« Each person's own box already carries their exact
+ * grams »).
+ *
+ * ── CE QUI RESTE, ET POURQUOI IL RESTE ────────────────────────────────────
+ * Les deux compteurs de DÉSOBÉISSANCE. Sans eux, « le modèle a obéi » et « on
+ * n'a rien mesuré » rendent le même silence:
+ *   · `notes`            — les bouches qui sortent avec une consigne lisible.
+ *   · `model_quantity`   — celles dont la phrase porte encore un POIDS alors que
+ *                          le brief lui demande de n'en écrire aucun.
+ *   · `model_size_word`  — celles dont la phrase DÉCRIT une taille en MOTS
+ *                          (« a larger share », « the standard share ») alors
+ *                          que le nombre vit sur le couvercle. Mesuré FAUX une
+ *                          fois sur deux sur `cfd44e89`: deux bouches sur quatre
+ *                          lisaient l'inverse de ce qu'elles recevaient.
+ *
+ * ⛔ ET IL EST CALCULÉ SUR TOUS LES PLANS, PAS SEULEMENT QUAND LE MOTEUR
+ * DIMENSIONNE. L'ancien compteur ne tournait que dans la branche « une cible a
+ * mordu »: un foyer sans corps saisi pouvait donc écrire n'importe quoi dans sa
+ * phrase de table sans qu'aucun nombre ne bouge. Une mesure qui ne se prend que
+ * quand tout va bien ne mesure rien.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function countPortionNoteDrift(
+  portions: readonly MemberPortion[],
+): { notes: number; model_quantity: number; model_size_word: number } {
+  const counts = { notes: 0, model_quantity: 0, model_size_word: 0 };
+  for (const p of portions) {
+    if (p.portionNote !== null) counts.notes++;
+    if (portionCarriesAQuantity(p.portionNote)) counts.model_quantity++;
+    if (sizeWordMatches(p.portionNote).length > 0) counts.model_size_word++;
+  }
+  return counts;
+}
+
 /** Le format stocké dans `student_generated_meals.member_portions`. */
 export function memberPortionsPayload(
   portions: readonly MemberPortion[],
@@ -2886,6 +4297,12 @@ export function memberPortionsPayload(
     member_id: p.memberId,
     display_name: p.displayName,
     portion_note: p.portionNote,
+    // ⚠️ LES JETONS SEULS, PAS LES TAILLES. L'écran ne pose la question que
+    // « mange-t-elle à ce moment-là ? »; la TAILLE d'une part est un fait de
+    // corps, et `member_portions` est lisible par TOUT le foyer (§1 de ce
+    // fichier). Un `{slot, size}` recopié ici ferait passer la frontière à une
+    // donnée qui n'a rien à faire devant les autres bouches.
+    eating_slots: p.eatingSlots === null ? null : p.eatingSlots.map((o) => o.slot),
     preparation_shares: p.preparationShares.map((s) => ({
       preparation_id: s.preparationId,
       note: s.note,

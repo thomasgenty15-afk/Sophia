@@ -368,14 +368,19 @@ export const fr: TranslatedMessages = {
   "pro.hero.kicker": "Pour ceux qui vendent une méthode, pas des heures",
   "pro.hero.title": "Votre méthode au travail les jours où vous n’êtes pas là.",
   "pro.hero.lede":
-    "Coachs, salles, communautés payantes : six choses qui doivent tenir quand vous n’êtes pas là.",
+    "Coachs, salles, communautés payantes : cinq choses qui doivent tenir quand vous n’êtes pas là.",
   "pro.hero.cta": "Démarrer l’essai de 14 jours",
   "pro.hero.note":
     "14 jours, jusqu’à 3 clients, puis ça s’arrête tout seul. Ensuite 7 € par client et par mois.",
 
   "pro.lines.kicker": "Le produit entier",
   // ⚠️ Voir la note anglaise: on ne sert pas au lecteur le nom de notre grille.
-  "pro.lines.title": "Six fois où ça casse sans vous. Six réponses.",
+    // ⚠️ CINQ, ET C'ÉTAIT « SIX » JUSQU'AU 2026-08-19. Le compte n'est pas un
+  // effet de style: la grille en dessous rend exactement autant de lignes. La
+  // ligne 05 (B27, « chaque ligne cite la conviction qu'elle applique ») a été
+  // retirée ce jour-là — le pourquoi est écrit une seule fois, dans `en.ts`,
+  // et le `lede` du hero porte le même compte.
+  "pro.lines.title": "Cinq fois où ça casse sans vous. Cinq réponses.",
 
   "pro.line.method.pain":
     "Ce qui doit être dit chaque jour ne peut pas dépendre de votre présence.",
@@ -386,7 +391,7 @@ export const fr: TranslatedMessages = {
   "pro.line.daily.pain": "Vos clients ont des questions entre deux séances.",
   "pro.line.daily.title": "Le quotidien, tenu par votre méthode.",
   "pro.line.daily.body":
-    "Elle entre à quatre endroits : la conversation, la semaine qu’ils composent, le repas qu’ils cuisinent, et celui qu’ils cuisinent pour une table.",
+    "Elle entre à trois endroits : la conversation, le repas qu’ils cuisinent, et celui qu’ils cuisinent pour une table.",
 
   "pro.line.lock.pain": "Une IA qui parle en votre nom vous contredira.",
   "pro.line.lock.title": "Le double verrou.",
@@ -399,11 +404,8 @@ export const fr: TranslatedMessages = {
   "pro.line.monday.body":
     "Qui a répondu, qui s’est tu depuis deux jours, qui n’a rien dit depuis cinq. Calculée, jamais rédigée par un modèle — et vos clients seulement.",
 
-  "pro.line.cite.pain":
-    "Comment savoir que c’est bien votre méthode qui est appliquée ?",
-  "pro.line.cite.title": "Chaque ligne cite la conviction qu’elle applique.",
-  "pro.line.cite.body":
-    "La base refuse une ligne de la semaine qui n’en cite aucune. C’est vrai de la semaine ; les plats, eux, ne citent pas, délibérément.",
+  // ⚠️ `pro.line.cite.*` retirées le 2026-08-19 — voir le commentaire d'en.ts.
+  // La garantie B27 reposait sur un CHECK que plus aucun écrivain ne satisfait.
 
   "pro.line.seat.pain": "Les plateformes facturent par palier.",
   "pro.line.seat.title": "Le siège est le seul poste.",
@@ -763,7 +765,7 @@ export const fr: TranslatedMessages = {
   "families.age.kicker": "Les enfants",
   "families.age.title": "Votre objectif s’arrête aux adultes.",
   "families.age.body":
-    "Un mineur n’est jamais une cible nutritionnelle : une semaine qui viserait un enfant est refusée là où elle se fabrique, pas filtrée à l’écran. Sa part suit son âge.",
+    "Un mineur n’est jamais une cible nutritionnelle : le chiffre est fermé là où il se calcule, pas filtré à l’écran. Sa part suit son âge.",
   "families.age.reserve":
     "Aucune courbe de poids pour personne ici : rien ne garde de série. Et les chiffres restent éteints par défaut, derrière une chaîne de gardes dont être mineur fait partie.",
 
@@ -860,10 +862,10 @@ export const fr: TranslatedMessages = {
   "coaches.fig.method.l2": "tes lignes rouges",
   "coaches.fig.method.l3": "ce que tu dis à la place",
   "coaches.fig.method.l4": "ton vocabulaire",
+  // ⚠️ TROIS SORTIES DEPUIS LE 2026-08-19 — voir le commentaire d'en.ts.
   "coaches.fig.method.out1": "son chat",
-  "coaches.fig.method.out2": "sa semaine composée",
-  "coaches.fig.method.out3": "les repas rédigés",
-  "coaches.fig.method.out4": "les repas du foyer",
+  "coaches.fig.method.out2": "les repas rédigés",
+  "coaches.fig.method.out3": "les repas du foyer",
 
   // ── BANDE 3 — DOULEUR 03 · LE BLOC SOMBRE ───────────────────────────────
   "coaches.lock.kicker": "La partie qui devrait te faire le plus peur",
@@ -871,7 +873,7 @@ export const fr: TranslatedMessages = {
   "coaches.lock.body":
     "Un prompt est une consigne, pas une garantie. Dis à n’importe quel modèle « ne recommande jamais six petits repas » et il obéira presque toujours — et presque toujours est le mauvais chiffre quand une seule contradiction publique est ce que tes élèves retiendront.",
   "coaches.lock.scope":
-    "Alors ta méthode entre dans le chat, dans chaque semaine et dans chaque repas que Sophia rédige. Ça, c’est une consigne. La suite n’en est pas une : ce qu’elle écrit dans le chat est relu contre tes lignes rouges avant d’être envoyé, par du code, sans modèle dans cette boucle.",
+    "Alors ta méthode entre dans le chat et dans chaque repas que Sophia rédige. Ça, c’est une consigne. La suite n’en est pas une : ce qu’elle écrit dans le chat est relu contre tes lignes rouges avant d’être envoyé, par du code, sans modèle dans cette boucle.",
   "coaches.lock.reserve":
     "Ton élève ne reçoit jamais un refus, et jamais un « demande à ton coach » — dans une masterclasse, ça désigne une porte qui n’existe pas. Là où tu n’as rien écrit à la place, ce qui part est notre phrase à nous, non signée : on ne met pas ton nom sur des mots que tu n’as pas écrits.",
 
@@ -949,7 +951,7 @@ export const fr: TranslatedMessages = {
 
   "gyms.day.title": "Il est réveillé à 21 h un mardi soir. Vous êtes chez vous.",
   "gyms.day.body":
-    "Un client pose sa question au moment où il l’a, et la réponse est construite depuis la méthode qui tient son compte — dans le chat, dans la semaine qu’il compose, et dans chaque repas que Sophia rédige.",
+    "Un client pose sa question au moment où il l’a, et la réponse est construite depuis la méthode qui tient son compte — dans le chat, et dans chaque repas que Sophia rédige.",
 
   "gyms.money.title": "C’est vous qui le vendez. C’est vous qui fixez le prix.",
   "gyms.money.body":
@@ -1738,6 +1740,19 @@ export const fr: TranslatedMessages = {
   "household.error.bad_weight": "Ce poids n’est pas exploitable.",
   "household.error.bad_gender": "Ce n’est pas une des options.",
   // L5-B (2026-08-18). Voir la note du pack anglais.
+  "household.error.bad_day_activity":
+    "Cette réponse sur la journée ne fait pas partie de celles qu'on connaît. Choisis parmi les trois.",
+  "household.error.bad_sport_frequency":
+    "Cette réponse sur le sport ne fait pas partie de celles qu'on connaît. Choisis parmi les quatre.",
+  "household.error.bad_appetite":
+    "Cette réponse sur l'appétit ne fait pas partie de celles qu'on connaît. Choisis parmi les trois.",
+  "household.error.bad_weekday": "Ce n'est pas un jour de la semaine.",
+  "household.error.bad_slot": "Ce n'est pas un repas sur lequel on peut poser une habitude.",
+  "household.error.empty_label":
+    "Dis-nous ce que c'est, dans tes mots — un libellé vide correspondrait à n'importe quel plat.",
+  "household.error.label_too_long": "Soixante caractères au maximum.",
+  "household.error.too_many_traditions":
+    "Trois jours fixes, c'est le maximum. Retires-en un pour en ajouter un autre.",
   "household.error.bad_activity_level":
     "Ce n’est pas une des quatre réponses proposées.",
   // ⚠️ REMPLACÉES PAR `plan.reference.*`, gardées le temps que leur lecteur
@@ -2053,6 +2068,18 @@ export const fr: TranslatedMessages = {
   "setup.situate.family_hint": "La maison cuisine une fois, et chacun reçoit sa part.",
   "setup.situate.member":
     "Quelqu’un d’autre tient ce foyer et compose pour lui. Ce qui suit ne concerne que toi — tes parts, ta direction, et un plan à toi si tu en veux un.",
+  // Voir la note d'`en.ts`: le verrou garde sa raison, il la dit enfin, et il
+  // s'ouvre quand il n'y a plus personne à effacer.
+  "setup.situate.solo_locked":
+    "« Juste moi » est désactivé tant que d’autres personnes sont à cette table. Retire-les plus bas, une par une, et il revient.",
+  "setup.situate.dissolve_confirm":
+    "Ceci défait le foyer. Ta propre place à table part avec : tes parts de foyer, tes habitudes de cuisine, ce que tu ne veux pas voir servir et les allergies enregistrées ici. Ton profil, ta direction et ton poids visé ne bougent pas — tu continues seul.",
+  "setup.situate.dissolve_do": "Défaire le foyer",
+  "setup.situate.dissolve_cancel": "Le garder",
+  "setup.situate.dissolve_not_alone":
+    "Quelqu’un d’autre est encore à cette table. Retire-le d’abord — on ne défait rien ici tant qu’une place est prise.",
+  "setup.situate.dissolve_has_plans":
+    "Ce foyer a déjà cuisiné. Ses plans restent, donc il ne se défait pas depuis ici.",
   "setup.people.title": "Toi",
   "setup.people.intro":
     "Toi aussi, tu manges ici. Tu es la première place à table, pas la personne qui la tient.",
@@ -2072,6 +2099,54 @@ export const fr: TranslatedMessages = {
   // Les quatre libellés courts sont NEUTRES EN PERSONNE: les mêmes servent à ma
   // fiche et à celle d'une autre bouche. Seuls la question et son aide changent
   // de personne. Voir le bloc jumeau de `en.ts` pour le pourquoi complet.
+  // ② Voir la note d'`en.ts`: deux axes, parce qu'une journée n'est pas un sport.
+  // ③ Voir la note d'`en.ts`: on demande ce qui SE FAIT, jamais ce qu'on aime.
+  "setup.traditions.title": "Les jours que vous ne déplacez pas",
+  "setup.traditions.hint":
+    "Le rôti du dimanche, le poisson du vendredi. Dites-le et le plan compose autour, au lieu de composer par-dessus. Deux ou trois suffisent — trois au maximum.",
+  "setup.traditions.weekday": "Jour",
+  "setup.traditions.slot": "Repas",
+  "setup.traditions.slot_breakfast": "Petit-déjeuner",
+  "setup.traditions.slot_lunch": "Déjeuner",
+  "setup.traditions.slot_dinner": "Dîner",
+  "setup.traditions.label": "C'est quoi, dans vos mots",
+  "setup.traditions.label_placeholder": "rôti, poisson, pizza...",
+  "setup.traditions.add": "Ajouter",
+  "setup.traditions.remove": "Retirer",
+  "setup.traditions.empty": "Rien de posé — le plan compose tous les repas.",
+  "setup.traditions.full":
+    "Trois, c'est le maximum. Retirez-en un pour en ajouter un autre.",
+  "setup.traditions.day_mon": "Lundi",
+  "setup.traditions.day_tue": "Mardi",
+  "setup.traditions.day_wed": "Mercredi",
+  "setup.traditions.day_thu": "Jeudi",
+  "setup.traditions.day_fri": "Vendredi",
+  "setup.traditions.day_sat": "Samedi",
+  "setup.traditions.day_sun": "Dimanche",
+  "setup.day_activity.label": "Tes journées, elles sont comment ?",
+  "setup.day_activity.member_label": "Ses journées, elles sont comment ?",
+  "setup.day_activity.hint":
+    "Le travail et la vie courante, sport mis à part — le sport, c'est la question juste après.",
+  "setup.day_activity.seated": "Plutôt assis",
+  "setup.day_activity.seated_hint": "Assis toute la journée, peu de marche.",
+  "setup.day_activity.on_feet": "Debout, en mouvement",
+  "setup.day_activity.on_feet_hint":
+    "Debout ou en mouvement une bonne partie du jour.",
+  "setup.day_activity.physical_job": "Métier physique",
+  "setup.day_activity.physical_job_hint":
+    "Porter, marcher, monter — toute la journée.",
+  "setup.sport.label": "Et le sport ?",
+  "setup.sport.member_label": "Et le sport, pour elle ou lui ?",
+  "setup.sport.hint":
+    "Des séances par semaine, journée mise à part. « Pas de sport » est une réponse, et elle compte.",
+  "setup.sport.none": "Pas de sport",
+  "setup.sport.none_hint": "Aucune séance en ce moment.",
+  "setup.sport.1_2": "1 à 2 par semaine",
+  "setup.sport.1_2_hint": "Une ou deux séances dans une semaine ordinaire.",
+  "setup.sport.3_4": "3 à 4 par semaine",
+  "setup.sport.3_4_hint": "Trois ou quatre séances dans une semaine ordinaire.",
+  "setup.sport.5_plus": "5 ou plus par semaine",
+  "setup.sport.5_plus_hint": "Cinq séances par semaine ou davantage.",
   "setup.activity.label": "Tes journées, elles sont comment ?",
   "setup.activity.hint":
     "Ça dimensionne chacune de tes parts. Entre huit heures assis et quatre " +
@@ -2123,9 +2198,16 @@ export const fr: TranslatedMessages = {
   "setup.mouths.title": "Qui mange ici, à part toi",
   "setup.mouths.intro":
     "Trois choses par personne, et le plan de ce soir les compte déjà.",
-  "setup.mouths.discard": "Effacer cette fiche",
+  // ⚠️ `setup.mouths.discard` (« Effacer cette fiche ») est parti le
+  // 2026-08-19: la fiche se REFERME maintenant, et le mot que l'utilisateur a
+  // demandé est « Retirer » (`setup.mouths.remove`, partagé avec la carte
+  // d'une personne inscrite).
   "setup.mouths.add": "Ajouter quelqu’un qui mange ici",
-  "setup.mouths.first_name_hint": "C’est ainsi que le plan nommera sa part.",
+  "setup.mouths.add_confirm": "Ajouter à la table",
+  "setup.mouths.first_name_hint":
+    "C'est ainsi que le plan nommera sa part.",
+  "setup.mouths.first_name_hint_you":
+    "C'est ainsi que le plan nommera ta part.",
   "setup.mouths.kind": "C’est un adulte ou un enfant ?",
   "setup.mouths.kind_adult": "Un adulte",
   "setup.mouths.kind_child": "Un enfant",
@@ -2134,13 +2216,19 @@ export const fr: TranslatedMessages = {
     "s’entraîner. Ce qu’on ne fait jamais pour un enfant, c’est une perte de " +
     "poids ou un travail de silhouette : c’est intégré, ce n’est pas un réglage.",
   "setup.mouths.body": "Taille, poids et sexe",
-  "setup.mouths.body_hint":
-    "Les trois, ou aucun. C’est ce qui permet au plan de lui donner sa propre part plutôt que celle de tout le monde.",
+  "setup.mouths.body_hint": "Les trois ensemble, ou aucun des trois.",
   "setup.mouths.goal": "Ce qu’il vise",
   "setup.mouths.goal_none": "Aucune direction particulière",
   "setup.mouths.goal_from_profile":
     "Posée dans son propre profil — elle le suit partout, pas seulement à cette table.",
-  "setup.mouths.allergies": "Il est allergique à quelque chose ?",
+  "setup.mouths.allergies":
+    "{who} est allergique à quelque chose ?",
+  "setup.mouths.allergies_you":
+    "Tu es allergique à quelque chose ?",
+  // Voir la note d'`en.ts`: la carte ne s'édite qu'au bouton.
+  "setup.mouths.edit": "Modifier",
+  "setup.mouths.edit_done": "Terminé",
+  "setup.mouths.summary_on_file": "Renseignée",
   "setup.mouths.remove": "Retirer",
   "setup.mouths.remove_confirm": "Retirer définitivement ?",
   "setup.mouths.duplicate":
@@ -2149,6 +2237,15 @@ export const fr: TranslatedMessages = {
     "distinguer.",
   "setup.mouths.full":
     "Huit, c’est le maximum d’un foyer. Chaque bouche est une part de plus à composer à chaque génération.",
+  // Voir la note d'`en.ts`: l'absorption reste voulue, son silence non.
+  // Voir la note d'`en.ts`: le bloc vide était un sosie d'une bouche inscrite.
+  "setup.mouths.new_card": "Une fiche vide",
+  "setup.mouths.new_card_hint":
+    "Personne n’est encore ici — cette fiche ne devient quelqu’un qu’au moment où tu l’ajoutes, avec le bouton du bas. D’ici là, il n’y a rien à retirer.",
+  "setup.mouths.next_will_save":
+    "« Continuer » enregistre aussi cette fiche, et {name} rejoint la table. Utilise « Effacer cette fiche » si ce n’est pas ce que tu veux.",
+  "setup.mouths.added_by_next":
+    "{name} est maintenant à table — « Continuer » a enregistré sa fiche avant de passer à la suite. Le bouton « Retirer » de sa carte l’annule.",
   "setup.access.title": "Lui donner son propre accès ?",
   "setup.access.optional": "Facultatif. Ça ne change rien pour ce soir.",
   "setup.access.waiting":
@@ -2239,7 +2336,11 @@ export const fr: TranslatedMessages = {
   "household.mouth.block_habits": "ce qu'elle mange déjà",
   "household.mouth.block_allergies": "les allergies",
   "household.mouth.block_tastes": "ses dégoûts et son régime",
-  "household.mouth.preferences_open": "Renseigner ses préférences alimentaires",
+  "household.mouth.preferences_open":
+    "Renseigner ses préférences alimentaires",
+  "household.mouth.preferences_open_you":
+    "Renseigner tes préférences alimentaires",
+  "household.mouth.preferences_saved": "Les préférences de {name} sont enregistrées.",
   "household.mouth.preferences_title": "Préférences alimentaires",
   "household.mouth.preferences_title_named": "{name} — préférences alimentaires",
   "household.mouth.preferences_intro":
@@ -2247,8 +2348,6 @@ export const fr: TranslatedMessages = {
   "household.mouth.preferences_empty":
     "Rien de renseigné pour l'instant — habitudes, allergies, dégoûts, régime.",
   "household.mouth.preferences_filled": "Déjà renseigné : {blocks}.",
-  "household.mouth.preferences_kept":
-    "Fermer cette fenêtre garde ce que tu as tapé. C'est enregistré avec le reste, par le bouton de la fiche.",
   "household.mouth.preferences_done": "Terminé",
   "household.mouth.save": "Enregistrer",
   "household.mouth.add": "L'ajouter",
@@ -2261,6 +2360,8 @@ export const fr: TranslatedMessages = {
   "household.mouth.identity": "Qui c'est",
   "household.mouth.identity_hint":
     "Le prénom est ce qui nomme sa part — une part au prénom vide est écartée en silence.",
+  "household.mouth.identity_hint_you":
+    "Ton prénom est ce qui nomme ta part — une part au prénom vide est écartée en silence.",
   "household.mouth.birth_date_hint":
     "On ne demande jamais si c'est un adulte ou un enfant : la date de naissance le dit.",
   "household.mouth.age_unknown":
@@ -2280,48 +2381,164 @@ export const fr: TranslatedMessages = {
   "household.mouth.pace": "À quelle vitesse",
   "household.mouth.pace_hint":
     "Le maximum de ce curseur est réglé sur son corps — c'est le rythme le plus rapide que le plan sait vraiment cuisiner.",
+  "household.mouth.pace_hint_you":
+    "Le maximum de ce curseur est réglé sur ton corps — c'est le rythme le plus rapide que le plan sait vraiment cuisiner.",
   "household.mouth.pace_value": "{pace} kg par semaine",
   "household.mouth.pace_needs_body":
     "Renseigne taille, poids et sexe juste au-dessus, et le curseur apparaît ici.",
   "household.mouth.pace_no_margin":
     "Ce corps n'a pas de marge de perte sans passer sous le plancher d'énergie. La direction continue de façonner ses parts.",
   "household.mouth.arrival": "Environ {weeks} semaines à ce rythme.",
-  "household.mouth.body": "Son corps",
+  "household.mouth.who_fallback": "cette personne",
+  "household.mouth.body":
+    "Son corps",
+  "household.mouth.body_you":
+    "Ton corps",
   "household.mouth.body_hint":
     "Sert à dimensionner les parts. Il n'est jamais énoncé, ni à table ni à côté d'un prénom.",
-  "household.mouth.activity": "Son niveau d'activité",
+  "household.mouth.activity":
+    "Son niveau d'activité",
+  "household.mouth.activity_you":
+    "Ton niveau d'activité",
   "household.mouth.activity_hint":
     "Sans ça, tout chiffre de calories est une constante devinée qui a l'aplomb d'un tableau.",
   "household.mouth.activity_sedentary": "Assis toute la journée, peu de marche",
   "household.mouth.activity_on_feet": "Debout ou en mouvement une bonne partie du jour",
   "household.mouth.activity_trains_some": "Sport 2 à 3 fois par semaine",
   "household.mouth.activity_trains_hard": "Sport 4 fois ou plus, ou métier physique",
-  "household.mouth.habits": "Ce qu'elle mange déjà",
+  // ② Voir la note d'`en.ts`: deux axes, parce qu'une journée n'est pas un sport.
+  "household.mouth.day_activity": "La journée de {who}",
+  "household.mouth.day_activity_you": "Ta journée",
+  "household.mouth.day_activity_hint":
+    "Le travail et la vie courante, sport mis à part. Le sport, c'est la question juste après.",
+  "household.mouth.day_activity_seated": "Assis toute la journée, peu de marche",
+  "household.mouth.day_activity_on_feet": "Debout ou en mouvement une bonne partie du jour",
+  "household.mouth.day_activity_physical_job":
+    "Métier physique : porter, marcher, monter, toute la journée",
+  "household.mouth.sport": "Le sport, pour {who}",
+  "household.mouth.sport_you": "Le sport, pour toi",
+  "household.mouth.sport_hint":
+    "Des séances par semaine, journée mise à part. « Pas de sport » est une réponse, et elle compte.",
+  "household.mouth.sport_none": "Pas de sport",
+  "household.mouth.sport_1_2": "1 à 2 fois par semaine",
+  "household.mouth.sport_3_4": "3 à 4 fois par semaine",
+  "household.mouth.sport_5_plus": "5 fois par semaine ou plus",
+  // ① Voir la note d'`en.ts`: le plan ne compose que le plat.
+  "household.mouth.meal_structure": "Ce qu'il y a d'autre dans l'assiette de {who}",
+  "household.mouth.meal_structure_you": "Ce qu'il y a d'autre dans ton assiette",
+  "household.mouth.meal_structure_hint":
+    "Le plan ne compose que le plat. Répondre aux trois lui permet de dimensionner ce plat pour cette assiette-là, et plus pour une assiette moyenne.",
+  "household.mouth.takes_dessert": "Un dessert, un fruit ou un yaourt ?",
+  "household.mouth.takes_cheese": "Du fromage ?",
+  "household.mouth.takes_bread": "Du pain ?",
+  "household.mouth.answer_yes": "Oui",
+  "household.mouth.answer_no": "Non",
+  // ⑤ Voir la note d'`en.ts`: on ne demande pas l'appétit, on demande de quel
+  // côté de l'incertitude de la formule la personne se situe.
+  "household.mouth.appetite": "Ce que {who} mange, d'habitude",
+  "household.mouth.appetite_you": "Ce que tu manges, d'habitude",
+  "household.mouth.appetite_hint":
+    "Une formule estime un besoin à environ 10 % près. C'est ici qu'on dit de quel côté on est — ce n'est pas un bouton pour manger plus ou moins.",
+  "household.mouth.appetite_small": "Moins que les gens de la même carrure",
+  "household.mouth.appetite_average": "À peu près comme les gens de la même carrure",
+  "household.mouth.appetite_large": "Plus que les gens de la même carrure",
+  // Voir la note d'`en.ts`: la question dimensionne la section du dessous.
+  "household.mouth.rhythm":
+    "Combien de fois {who} mange par jour",
+  "household.mouth.rhythm_you":
+    "Combien de fois tu manges par jour",
+  "household.mouth.rhythm_hint":
+    "Coche les moments où {who} mange vraiment.",
+  "household.mouth.rhythm_hint_you":
+    "Coche les moments où tu manges vraiment.",
+  "household.mouth.rhythm_house":
+    "Rien de coché veut dire que {who} mange aux moments de la maison — pas que {who} ne mange jamais.",
+  "household.mouth.rhythm_house_you":
+    "Rien de coché veut dire que tu manges aux moments de la maison — pas que tu ne manges jamais.",
+  "household.mouth.habits":
+    "Ce que {who} mange déjà",
+  "household.mouth.habits_you":
+    "Ce que tu manges déjà",
   "household.mouth.habits_hint":
-    "Y a-t-il quelque chose qu'elle mange presque tous les jours ? Un plan a servi des œufs brouillés sept matins d'affilée à quelqu'un qui mange une pomme.",
-  "household.mouth.habit_placeholder": "une pomme, rien, ce que la maison cuisine…",
+    "Y a-t-il quelque chose que {who} mange presque tous les jours et qui ne doit pas changer ?",
+  "household.mouth.habits_hint_you":
+    "Y a-t-il quelque chose que tu manges presque tous les jours et que tu ne veux pas changer ?",
+  "household.mouth.habits_only_declared":
+    "Ne montrer que ses moments",
+  "household.mouth.habits_only_declared_you":
+    "Ne montrer que tes moments",
+  // ── ⚠️ UN EXEMPLE PAR MOMENT, ET PAS UN SEUL POUR LES SIX ───────────────
+  // Le placeholder était le même partout: « un café et deux tartines » sous
+  // DÎNER. Un exemple qui ne va pas avec la question n'aide pas — il apprend au
+  // lecteur que l'écran ne le suit pas. Signalé le 2026-08-19.
+  //
+  // ⛔ CE SONT DES EXEMPLES, PAS DES SUGGESTIONS: rien de ce qui est écrit là
+  // ne part en base et rien n'est proposé au plan. Ils disent le NIVEAU DE
+  // DÉTAIL attendu — concret, sans quantité —, ce qu'une consigne abstraite ne
+  // sait pas faire dire.
+  "household.mouth.habit_placeholder_breakfast": "un café et deux tartines, un bol de céréales…",
+  "household.mouth.habit_placeholder_snack_am": "un fruit, une poignée d'amandes…",
+  "household.mouth.habit_placeholder_lunch": "une salade au bureau, les restes de la veille…",
+  "household.mouth.habit_placeholder_snack_pm": "un yaourt, un carré de chocolat…",
+  "household.mouth.habit_placeholder_dinner": "une soupe, des pâtes vite faites…",
+  "household.mouth.habit_placeholder_before_bed": "une tisane, un fromage blanc…",
+  // Voir la note d'`en.ts`: nom, cadre, étiquettes, et où ça part.
+  "household.mouth.shaker_title":
+    "Son shaker ou sa collation",
+  "household.mouth.shaker_title_you":
+    "Ton shaker ou ta collation",
+  "household.mouth.shaker_summary":
+    "Une portion : {grams} g · {protein} g de protéines · {kcal} kcal. Relis-le — une protéine tapée dans la case des calories ressemble exactement à un formulaire bien rempli.",
+  "household.mouth.shaker_kept":
+    "Il s’enregistre avec le reste de la fiche, par le bouton du bas — il n’y a rien à enregistrer ici.",
   "household.mouth.shaker_foreground":
     "Prendre du poids passe presque toujours par un shaker ou une collation chiffrée. Ajoute-le et il compte DANS la journée au lieu de s'ajouter par-dessus.",
   "household.mouth.shaker_background":
     "Un shaker, une collation chiffrée ? Ajoute-le et il compte dans la journée.",
   "household.mouth.shaker_add": "Ajouter un shaker ou une collation chiffrée",
-  "household.mouth.shaker_label": "Comment elle l'appelle",
-  "household.mouth.shaker_label_hint": "« mon shaker », « le truc du matin » — ses mots à elle.",
+  "household.mouth.shaker_label":
+    "Comment {who} l'appelle",
+  "household.mouth.shaker_label_you":
+    "Comment tu l'appelles",
+  "household.mouth.shaker_label_hint":
+    "« mon shaker », « le truc du matin » — ses mots, pas les tiens.",
+  "household.mouth.shaker_label_hint_you":
+    "« mon shaker », « le truc du matin » — tes mots.",
   "household.mouth.shaker_grams": "grammes par portion",
   "household.mouth.shaker_protein": "protéines (g)",
   "household.mouth.shaker_kcal": "calories (kcal)",
   "household.mouth.shaker_label_source":
     "Les trois se lisent sur l'étiquette du pot. Sans eux, le shaker est contourné au lieu d'être compté.",
-  "household.mouth.shaker_incomplete":
-    "Il faut un nom et les trois nombres, sinon la ligne est jetée sans un mot.",
+  // ── LE BOUTON D'ENREGISTREMENT DU SHAKER, ET LES TROIS ÉTATS ────────────
+  // Il s'active dès qu'il y a un nom et UNE des trois mesures — règle demandée.
+  // Mais le moteur, lui, est tout-ou-rien: une déclaration incomplète est jetée
+  // par `parseFixedIntakes`. On enregistre quand même, et on DIT l'état.
+  "household.mouth.shaker_save": "Enregistrer",
+  "household.mouth.shaker_counted":
+    "Enregistré, et compté dans la journée : les trois nombres y sont.",
+  "household.mouth.shaker_kept_not_counted":
+    "Enregistrable, mais il ne sera pas encore compté : le plan a besoin des trois nombres pour l’intégrer au lieu de le contourner. Ce que tu as tapé est gardé.",
+  "household.mouth.shaker_needs_one":
+    "Il faut au moins un nom et une des trois mesures pour l’enregistrer.",
   "household.mouth.shaker_remove": "Le retirer",
-  "household.mouth.tastes": "Ce qu'elle n'aime pas, et son régime",
-  "household.mouth.tastes_hint": "Les dégoûts, et un régime si elle en a un. Dégoût, pas allergie — les allergies sont dans le bloc au-dessus, où elles sont traitées comme médicales.",
+  "household.mouth.tastes":
+    "Ce que {who} n'aime pas",
+  "household.mouth.tastes_you":
+    "Ce que tu n'aimes pas",
+  "household.mouth.tastes_hint":
+    "Les aliments que {who} refuse. Un dégoût, pas une allergie — les allergies sont la section au-dessus, où elles sont traitées comme médicales.",
+  "household.mouth.tastes_hint_you":
+    "Les aliments que tu refuses. Un dégoût, pas une allergie — les allergies sont la section au-dessus, où elles sont traitées comme médicales.",
   "household.mouth.dislikes": "Aliments refusés",
   "household.mouth.dislikes_hint":
     "Dégoût, pas allergie — les allergies sont dans le bloc au-dessus, où elles sont traitées comme médicales.",
   "household.mouth.dislikes_placeholder": "champignons",
-  "household.mouth.diet": "Comment elle mange",
+  // Voir la note d'`en.ts`: le régime passe en tête parce qu'il exclut.
+  "household.mouth.diet_hint": "Végétarien, vegan, pescétarien, ou rien de tout ça.",
+  "household.mouth.diet":
+    "Comment {who} mange",
+  "household.mouth.diet_you":
+    "Comment tu manges",
   "household.mouth.diet_unset": "Personne n'a dit",
   "setup.table.from_profile":
     "Cette personne a son compte — ses moments sont dans ses réglages à elle.",
@@ -2421,6 +2638,7 @@ export const fr: TranslatedMessages = {
   "setup.plan.composing_8": "On écrit pourquoi chaque choix a été fait…",
   "setup.plan.compose_hint": "Ça le compose. L’écran suivant est le plan lui-même.",
   "setup.missing.title": "Avant de pouvoir le construire",
+  "setup.missing.for_you": "Toi",
   "setup.missing.before_next": "Avant de continuer",
   "setup.missing.household_size": "Dis-nous pour combien de personnes tu cuisines.",
   "setup.missing.own_first_name": "Ton prénom — c’est avec lui que le plan nomme ta part.",
@@ -2474,7 +2692,7 @@ export const fr: TranslatedMessages = {
   "setup.goal.recomposition": "Même poids, autre silhouette",
   "setup.goal.performance": "Mieux m’entraîner",
   "setup.goal.health": "Mieux manger",
-  "setup.goal.maintenance": "Garder ce que j’ai",
+  "setup.goal.maintenance": "Maintenir un poids stable",
   "setup.occasion.breakfast": "Petit-déjeuner",
   "setup.occasion.snack_am": "Milieu de matinée",
   "setup.occasion.lunch": "Déjeuner",
@@ -2512,6 +2730,13 @@ export const fr: TranslatedMessages = {
   "allergen.soy": "Soja",
   "allergen.pork": "Porc",
   "allergen.alcohol": "Alcool",
+  "allergen.celery": "Céleri",
+  "allergen.mustard": "Moutarde",
+  "allergen.sulphite": "Sulfites",
+  // Le mot est le même dans les deux langues, comme « Gluten »: il rejoint donc
+  // la liste blanche de `parity.int.test.ts`, qui refuse par défaut deux
+  // traductions identiques (une clé non traduite s'y voit exactement pareil).
+  "allergen.lupin": "Lupin",
 
   // ══════════════════════════════════════════════════════════════════════════
   // LOT 3 — LES ATOMES PARTAGÉS
@@ -3173,6 +3398,9 @@ export const fr: TranslatedMessages = {
   // exact pour ce qu'on fait cuire en une fois. Les deux choix sont
   // volontairement différents, et ils ne se croisent nulle part à l'écran.
   "meals.result.in_pantry": "Tu l’as déjà",
+  // Seulement quand le plat puise dans un lot: sans lot, ces ingrédients sont la
+  // recette entière et ce titre affirmerait un lot qui n'existe pas.
+  "meals.result.extra_ingredients": "En plus du lot",
   "meals.result.method": "Comment",
   // « Comment » ouvre une recette; ceci ouvre un GESTE — réchauffer, trancher,
   // ajouter la salade. Deux mots parce que ce sont deux choses.
@@ -3196,6 +3424,8 @@ export const fr: TranslatedMessages = {
   "meals.result.day_nothing": "Rien à cuisiner ni à acheter ce jour-là.",
   "meals.day_person.table": "Pour la table",
   "meals.day_person.member": "Pour {name}",
+  "meals.day_person.members": "Pour {names}",
+  "meals.day_person.marks_label": "Qui mange ce plat",
   "meals.grid.title": "Ta semaine d’un coup d’œil",
   "meals.grid.from_batch": "d’une fournée",
   "meals.grid.own_one": "+1 à part",
@@ -3217,9 +3447,31 @@ export const fr: TranslatedMessages = {
     "Cuisine ces jours-là, et le reste de la semaine s’assemble au lieu de se cuisiner.",
   "meals.sessions.makes": "— {n} portions",
   "meals.sessions.makes_one": "— {n} portion",
-  "meals.boxes.title": "La pesée",
-  "meals.boxes.line": "Boîte {names} — {n} g",
-  "meals.boxes.line_unnamed": "Une boîte — {n} g",
+  // ⚠️ « Boxing » N'EST PAS TRADUIT, ET C'EST UNE DÉCISION DU 2026-08-20. C'est
+  // le nom que le produit donne au geste; « Mise en boîtes » d'un côté et
+  // « Boxing » de l'autre feraient deux noms pour la même chose entre une
+  // capture d'écran et une phrase de support.
+  "meals.boxes.title": "Boxing",
+  // Sur la carte d'un PLAT: pas une pesée — elle a eu lieu à la session —, mais
+  // les bacs à aller chercher dans le frigo.
+  "meals.boxes.title_dish": "Les boîtes à sortir",
+  "meals.dish.who_eats": "Qui mange ça",
+  // Le compte est en tête: on sort ses bacs avant de commencer, pas au milieu.
+  "meals.boxes.count_one": "1 contenant à remplir",
+  "meals.boxes.count_many": "{n} contenants à remplir",
+  // De quel gramme on parle, une fois pour tout le bloc. Juste au-dessus, les
+  // casseroles affichent du CRU pour la fournée entière; sans cette ligne, les
+  // deux séries de nombres se lisent comme une contradiction.
+  "meals.boxes.ready_not_raw":
+    "Grammes d’aliment cuit, par contenant. Les quantités des casseroles, plus haut, sont celles du cru, pour toute la fournée.",
+  // ⛔ Ce qui dit que le nombre décrit un BAC et non une personne. Seulement sur
+  // un contenant à plusieurs noms: à un seul nom, la boîte EST la portion.
+  "meals.boxes.for_n": "· pour {n}",
+  // Au-delà de quatre prénoms, le couvercle dit combien ils sont.
+  "meals.boxes.rest_of_table": "Le reste de la table ({n})",
+  // Le couvercle sans nom: un plan relu sans ses parts n'a aucun prénom à
+  // joindre, et l'instruction de pesée reste vraie sans lui.
+  "meals.boxes.lid_unnamed": "Un contenant",
   "meals.boxes.grams": "{n} g",
   // Les deux nombres restent DEUX nombres. « 10 min aux fourneaux » décide si
   // on s’y met ce soir, « 50 min en tout » décide si on a la fenêtre.

@@ -166,10 +166,14 @@ describe("pack français de la vitrine", () => {
       // l'abréviation NORMALISÉE, pas un anglicisme). « {n} h » en face, lui,
       // diffère bien de « {n} hr ».
       "setup.plan.time_minutes",
-      // « Gluten » est le même mot. Les douze autres allergènes diffèrent tous
+      // « Gluten » est le même mot. Les autres allergènes diffèrent tous
       // (« Arachides », « Fruits à coque », « Crustacés »…), et ce sont les
       // termes de l'étiquetage réglementaire français.
       "allergen.gluten",
+      // « Lupin » aussi — c'est le même mot dans les deux étiquetages
+      // réglementaires. Ses trois compagnons de lot, eux, sont bien traduits
+      // (« Céleri », « Moutarde », « Sulfites »).
+      "allergen.lupin",
       // La forme COURTE de l'onglet du plan. « Plan » est le mot dans les deux
       // langues, et c'est le seul des dix onglets dans ce cas — sa forme
       // longue, elle, diffère bien (« Le plan de ma semaine »). Le raccourci
@@ -309,12 +313,16 @@ describe("pack français de la vitrine", () => {
       // « Cuisine minute » / « Cook it fresh » — ce qui montre que le bloc
       // n'est pas recopié.
       "meals.same_day.minutes",
-      // LOT 4 — « {n} g », le poids d'une boîte, seul avec son nombre. Même
-      // raison que `meals.same_day.minutes` juste au-dessus: « g » est le
-      // symbole international du gramme, et il s'écrit pareil dans les deux
-      // langues. Les deux libellés voisins, eux, sont bien rédigés — « La
-      // pesée » / « Weigh it out », « Boîte {names} » / « Box {names} ».
+      // « {n} g », le poids d'une boîte, seul avec son nombre. Même raison que
+      // `meals.same_day.minutes` juste au-dessus: « g » est le symbole
+      // international du gramme, et il s'écrit pareil dans les deux langues.
+      // Les libellés voisins, eux, sont bien rédigés — « La pesée » / « Weigh
+      // it out », « Une boîte » / « One box ».
       "meals.boxes.grams",
+      // « {name} {n} g » — un prénom, un nombre, un symbole. Il n'y a aucun mot
+      // à traduire dedans, et en inventer un (« part de », « share ») ferait
+      // dire à l'étiquette une chose que l'arbitrage ne lui fait pas dire.
+      "meals.boxes.share",
       // ⚠️ CETTE VALEUR N'EST QU'UN TROU. `today.slot_header` vaut « {slot} »
       // dans les deux langues: le mot rendu vient de `slot.*`, qui est traduit
       // depuis le lot 3. Y écrire quoi que ce soit d'autre ajouterait un mot
@@ -367,6 +375,16 @@ describe("pack français de la vitrine", () => {
       // l'onglet, exprès: deux mots pour un écran, c'est un écran qu'on croit
       // avoir quitté.
       "coach.doctrine.title",
+
+      // ══ LE BOXING (2026-08-20) ════════════════════════════════════════════
+      // « Boxing » est le NOM QUE LE PRODUIT DONNE AU GESTE, choisi en français
+      // par l'utilisateur le 2026-08-20 (« la dernière partie doit être appelée
+      // le "Boxing" »). Deux noms pour la même chose — « Mise en boîtes » ici,
+      // « Boxing » là — sépareraient une capture d'écran d'une phrase de
+      // support, et le pack n'est pas recopié pour autant: ses huit voisines
+      // (`title_dish`, `count_one`, `count_many`, `ready_not_raw`, `for_n`,
+      // `rest_of_table`, `lid_unnamed`) diffèrent toutes.
+      "meals.boxes.title",
 
       // ══ LOT 6 · LES DEUX DERNIÈRES PAGES ÉLÈVE ════════════════════════════
       // Quatre clés sur 300, et la preuve que le pack est rédigé est dans ce

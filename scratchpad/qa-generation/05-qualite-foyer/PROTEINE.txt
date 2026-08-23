@@ -1,0 +1,34 @@
+
+### plan-1 — protéine ESTIMÉE (plancher), par bouche et par repas
+   Roxane  wed/lun=17g · wed/din=17g · thu/lun=17g · thu/din=10g   TOTAL fenêtre ≈ 60 g
+   Zoe     wed/lun=10g · wed/din=10g · thu/lun=10g · thu/din=10g   TOTAL fenêtre ≈ 39 g
+   Lubna   wed/lun=10g · wed/din=10g · thu/lun=10g · thu/din=10g   TOTAL fenêtre ≈ 39 g
+   Ivar    wed/lun=dehors · wed/din=31g · thu/lun=dehors · thu/din=10g   TOTAL fenêtre ≈ 40 g
+
+### plan-2 — protéine ESTIMÉE (plancher), par bouche et par repas
+   Roxane  wed/lun=0g · wed/din=24g · thu/lun=24g · thu/din=24g   TOTAL fenêtre ≈ 73 g
+   Zoe     wed/lun=0g · wed/din=18g · thu/lun=18g · thu/din=18g   TOTAL fenêtre ≈ 53 g
+   Lubna   wed/lun=0g · wed/din=20g · thu/lun=20g · thu/din=20g   TOTAL fenêtre ≈ 59 g
+   Ivar    wed/lun=dehors · wed/din=8g · thu/lun=dehors · thu/din=8g   TOTAL fenêtre ≈ 16 g
+   ⚠️ `grams_raw` NUL, replié sur `amount` en g: ['chicken thighs, boneless/skinless', 'sweet potatoes, cubed']
+
+### plan-3 — protéine ESTIMÉE (plancher), par bouche et par repas
+   Roxane  wed/lun=27g · wed/din=27g · thu/lun=27g · thu/din=27g   TOTAL fenêtre ≈ 110 g
+   Zoe     wed/lun=18g · wed/din=18g · thu/lun=18g · thu/din=18g   TOTAL fenêtre ≈ 71 g
+   Lubna   wed/lun=20g · wed/din=20g · thu/lun=20g · thu/din=20g   TOTAL fenêtre ≈ 80 g
+   Ivar    wed/lun=dehors · wed/din=38g · thu/lun=dehors · thu/din=38g   TOTAL fenêtre ≈ 75 g
+   ⚠️ `grams_raw` NUL, replié sur `amount` en g: ['sweet potatoes, cubed']
+
+### plan-4 — protéine ESTIMÉE (plancher), par bouche et par repas
+   Roxane  wed/lun=24g · wed/din=24g · thu/lun=24g · thu/din=24g   TOTAL fenêtre ≈ 96 g
+   Zoe     wed/lun=19g · wed/din=19g · thu/lun=19g · thu/din=19g   TOTAL fenêtre ≈ 78 g
+   Lubna   wed/lun=19g · wed/din=19g · thu/lun=19g · thu/din=19g   TOTAL fenêtre ≈ 78 g
+   Ivar    wed/lun=dehors · wed/din=9g · thu/lun=dehors · thu/din=9g   TOTAL fenêtre ≈ 19 g
+   ⚠️ termes NON APPARIÉS (comptés zéro): ['dried thyme', 'water']
+
+### onedish-1 — protéine ESTIMÉE (plancher), par bouche et par repas
+   Roxane  wed/lun=0g · wed/din=16g · thu/lun=23g · thu/din=16g   TOTAL fenêtre ≈ 54 g
+   Zoe     wed/lun=0g · wed/din=14g · thu/lun=20g · thu/din=14g   TOTAL fenêtre ≈ 47 g
+   Lubna   wed/lun=0g · wed/din=15g · thu/lun=22g · thu/din=15g   TOTAL fenêtre ≈ 53 g
+   Ivar    wed/lun=dehors · wed/din=29g · thu/lun=dehors · thu/din=29g   TOTAL fenêtre ≈ 58 g
+   ⚠️ `grams_raw` NUL, replié sur `amount` en g: ['sweet potatoes, peeled and cubed']

@@ -1,0 +1,1328 @@
+{
+  "request_id": "2a000000-4100-4000-8000-000000000001",
+  "resolved_by": "--request-id",
+  "user_id": "2a000000-0000-4000-8000-000000000004",
+  "source": "generate-meal-v1",
+  "exported_at": "2026-08-18T23:28:04.873Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "33af970b-1994-418d-b9a1-139b97181dde",
+      "status": "attempt_start",
+      "created_at": "2026-08-18T23:06:09.505613+00:00",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 14382,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 14382,
+    "user_message_chars": 8090,
+    "user_message_truncated": false,
+    "user_message_written_chars": 8090,
+    "independent_counters": {
+      "system_prompt_chars": 14382,
+      "prompt_chars": 8090
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "142a9dd2-2619-41a0-975f-befee34a3780",
+    "created_at": "2026-08-18T23:15:25.354842+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "openai",
+    "model": "gpt-5.6-sol",
+    "http_status": 200,
+    "attempt": 1,
+    "chain_index": 0,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\"dishes\":[{\"name\":\"Ward-Shift Egg Toast\",\"title\":\"Boiled eggs, toast and tomato\",\"slot\":\"breakfast\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"wholemeal bread\",\"quantity\":\"1 slice (40 g)\",\"amount\":40,\"unit\":\"g\",\"state\":null},{\"term\":\"tomato\",\"quantity\":\"100 g\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"black pepper\",\"quantity\":\"a pinch\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Toast the bread, peel the eggs and serve them with the sliced tomato and black pepper.\",\"why\":\"This is a small, simple breakfast that can be eaten before a long ward shift.\",\"uses\":[{\"preparation_id\":\"prep_boiled_eggs\",\"servings\":1}],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":3},\"honours_belief_keys\":[\"the_basket_decides_the_week\"]},{\"name\":\"Pocket Apple\",\"title\":\"Apple\",\"slot\":\"snack_am\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"apple\",\"quantity\":\"1 apple\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"}],\"method\":\"Take the apple with you and eat it when the morning break arrives.\",\"why\":\"It is inexpensive, portable and requires no preparation on the ward.\",\"uses\":[],\"same_day\":{\"kind\":\"none\",\"minutes\":0},\"honours_belief_keys\":[\"the_basket_decides_the_week\"]},{\"name\":\"Golden Lentil Bowl\",\"title\":\"Tomato lentils, golden couscous and cucumber\",\"slot\":\"lunch\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"cucumber\",\"quantity\":\"100 g\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\"}],\"method\":\"Put a portion each of the freshly prepared lentils and couscous in a container, then add the diced cucumber.\",\"why\":\"The lentils provide an economical lunch anchor, while the couscous gives some of the comfort of the requested risotto without exceeding the cooking window.\",\"uses\":[{\"preparation_id\":\"prep_tomato_lentils\",\"servings\":1},{\"preparation_id\":\"prep_golden_couscous\",\"servings\":1}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":3},\"honours_belief_keys\":[\"the_basket_decides_the_week\"]},{\"name\":\"Carrot Peanut Crunch\",\"title\":\"Carrot and peanuts\",\"slot\":\"snack_pm\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"carrot\",\"quantity\":\"100 g\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"roasted peanuts\",\"quantity\":\"20 g\",\"amount\":20,\"unit\":\"g\",\"state\":null}],\"method\":\"Cut the carrot into sticks and pack it with the peanuts.\",\"why\":\"This low-cost bite is sturdy enough to carry through a twelve-hour shift.\",\"uses\":[],\"same_day\":{\"kind\":\"assemble\",\"minutes\":2},\"honours_belief_keys\":[\"the_basket_decides_the_week\"]},{\"name\":\"Smoky Golden Lentils\",\"title\":\"Warm tomato lentils, golden couscous, yoghurt and toast\",\"slot\":\"dinner\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"plain yoghurt\",\"quantity\":\"100 g\",\"amount\":100,\"unit\":\"g\",\"state\":null},{\"term\":\"wholemeal bread\",\"quantity\":\"1 slice (40 g)\",\"amount\":40,\"unit\":\"g\",\"state\":null}],\"method\":\"Reheat one portion each of the lentils and couscous until piping hot. Toast the bread and serve it beside the lentils with the yoghurt. The hot lentils and couscous are a warm anchor.\",\"why\":\"This gives a substantial, comforting evening plate without attempting costly lamb shanks or a cooking session longer than fifteen minutes.\",\"uses\":[{\"preparation_id\":\"prep_tomato_lentils\",\"servings\":1},{\"preparation_id\":\"prep_golden_couscous\",\"servings\":1}],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":8},\"honours_belief_keys\":[\"a_warm_anchor_every_evening\",\"the_basket_decides_the_week\"]},{\"name\":\"Cucumber Egg Fold\",\"title\":\"Boiled eggs, wholemeal bread and cucumber\",\"slot\":\"breakfast\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"wholemeal bread\",\"quantity\":\"1 slice (40 g)\",\"amount\":40,\"unit\":\"g\",\"state\":null},{\"term\":\"cucumber\",\"quantity\":\"50 g\",\"amount\":50,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"black pepper\",\"quantity\":\"a pinch\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Peel and slice the eggs, place them on the bread with the cucumber and pepper, then fold the bread to eat.\",\"why\":\"It is a small breakfast that can be assembled quickly before another long shift.\",\"uses\":[{\"preparation_id\":\"prep_boiled_eggs\",\"servings\":1}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":3},\"honours_belief_keys\":[\"the_basket_decides_the_week\"]},{\"name\":\"Second Pocket Apple\",\"title\":\"Apple\",\"slot\":\"snack_am\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"apple\",\"quantity\":\"1 apple\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"}],\"method\":\"Take the apple with you and eat it during the morning break.\",\"why\":\"Repeating an inexpensive portable snack keeps both the shopping bill and morning effort low.\",\"uses\":[],\"same_day\":{\"kind\":\"none\",\"minutes\":0},\"honours_belief_keys\":[\"the_basket_decides_the_week\"]},{\"name\":\"Crunchy Lentil Sandwich\",\"title\":\"Tomato lentils, cabbage and wholemeal bread\",\"slot\":\"lunch\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"wholemeal bread\",\"quantity\":\"2 slices (80 g)\",\"amount\":80,\"unit\":\"g\",\"state\":null},{\"term\":\"white cabbage\",\"quantity\":\"80 g\",\"amount\":80,\"unit\":\"g\",\"state\":\"raw\"}],\"method\":\"Spoon a chilled portion of lentils onto one bread slice, add the finely shredded cabbage and close with the second slice.\",\"why\":\"The same economical lentil batch becomes a portable lunch rather than another identical bowl.\",\"uses\":[{\"preparation_id\":\"prep_tomato_lentils\",\"servings\":1}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":4},\"honours_belief_keys\":[\"the_basket_decides_the_week\"]},{\"name\":\"Carrot Peanut Crunch\",\"title\":\"Carrot and peanuts\",\"slot\":\"snack_pm\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"carrot\",\"quantity\":\"100 g\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"roasted peanuts\",\"quantity\":\"20 g\",\"amount\":20,\"unit\":\"g\",\"state\":null}],\"method\":\"Cut the carrot into sticks and eat it with the peanuts.\",\"why\":\"The planned repeat avoids an unnecessary extra purchase when money is tight.\",\"uses\":[],\"same_day\":{\"kind\":\"assemble\",\"minutes\":2},\"honours_belief_keys\":[\"the_basket_decides_the_week\"]},{\"name\":\"Cabbage Lentil Skillet\",\"title\":\"Warm tomato lentils, cabbage and toast\",\"slot\":\"dinner\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"white cabbage\",\"quantity\":\"100 g\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"wholemeal bread\",\"quantity\":\"2 slices (80 g)\",\"amount\":80,\"unit\":\"g\",\"state\":null}],\"method\":\"Put the cabbage and one portion of lentils in a pan and heat for 6 minutes, stirring, until the cabbage softens and everything is piping hot. Toast the bread alongside. The hot lentil skillet is a warm anchor.\",\"why\":\"Pan-warming the cabbage changes the lentil batch into a generous dinner while staying within the student's short evening window.\",\"uses\":[{\"preparation_id\":\"prep_tomato_lentils\",\"servings\":1}],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":8},\"honours_belief_keys\":[\"a_warm_anchor_every_evening\",\"the_basket_decides_the_week\"]},{\"name\":\"Peppered Egg Pot\",\"title\":\"Boiled eggs and yoghurt\",\"slot\":\"breakfast\",\"day\":\"fri\",\"ingredients\":[{\"term\":\"plain yoghurt\",\"quantity\":\"100 g\",\"amount\":100,\"unit\":\"g\",\"state\":null},{\"term\":\"black pepper\",\"quantity\":\"a pinch\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Peel and quarter the eggs, then serve them over the yoghurt with black pepper.\",\"why\":\"This keeps breakfast small while using the final safe portion from Wednesday's egg batch.\",\"uses\":[{\"preparation_id\":\"prep_boiled_eggs\",\"servings\":1}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":2},\"honours_belief_keys\":[\"the_basket_decides_the_week\"]},{\"name\":\"Final Pocket Apple\",\"title\":\"Apple\",\"slot\":\"snack_am\",\"day\":\"fri\",\"ingredients\":[{\"term\":\"apple\",\"quantity\":\"1 apple\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"}],\"method\":\"Take the apple with you and eat it during the morning break.\",\"why\":\"A third planned apple is cheaper and simpler than buying a snack during the shift.\",\"uses\":[],\"same_day\":{\"kind\":\"none\",\"minutes\":0},\"honours_belief_keys\":[\"the_basket_decides_the_week\"]},{\"name\":\"Quick Chickpea Toast\",\"title\":\"Chickpea and pea curry with toast\",\"slot\":\"lunch\",\"day\":\"fri\",\"ingredients\":[{\"term\":\"wholemeal bread\",\"quantity\":\"2 slices (80 g)\",\"amount\":80,\"unit\":\"g\",\"state\":null}],\"method\":\"Reheat one portion of curry until piping hot and toast the bread, then use the toast to scoop up the curry.\",\"why\":\"Tinned chickpeas and frozen peas provide a filling, inexpensive lunch anchor after the second short cooking session.\",\"uses\":[{\"preparation_id\":\"prep_chickpea_pea_curry\",\"servings\":1}],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":7},\"honours_belief_keys\":[\"the_basket_decides_the_week\"]},{\"name\":\"Carrot Peanut Crunch\",\"title\":\"Carrot and peanuts\",\"slot\":\"snack_pm\",\"day\":\"fri\",\"ingredients\":[{\"term\":\"carrot\",\"quantity\":\"100 g\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"roasted peanuts\",\"quantity\":\"20 g\",\"amount\":20,\"unit\":\"g\",\"state\":null}],\"method\":\"Cut the carrot into sticks and eat it with the peanuts.\",\"why\":\"This dependable packed bite finishes the stretch without adding another costly snack ingredient.\",\"uses\":[],\"same_day\":{\"kind\":\"assemble\",\"minutes\":2},\"honours_belief_keys\":[\"the_basket_decides_the_week\"]},{\"name\":\"Golden Chickpea Supper\",\"title\":\"Warm chickpea and pea curry with golden couscous\",\"slot\":\"dinner\",\"day\":\"fri\",\"ingredients\":[],\"method\":\"Reheat the curry and the final couscous portion together until piping hot. The hot, spiced curry and grain are a warm anchor.\",\"why\":\"The richly spiced pulses and golden grain give the final dinner a braised, risotto-like sense of comfort within the strict budget and time limit.\",\"uses\":[{\"preparation_id\":\"prep_chickpea_pea_curry\",\"servings\":1},{\"preparation_id\":\"prep_golden_couscous\",\"servings\":1}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":8},\"honours_belief_keys\":[\"a_warm_anchor_every_evening\",\"the_basket_decides_the_week\"]}],\"preparations\":[{\"id\":\"prep_boiled_eggs\",\"title\":\"Boiled eggs\",\"servings_made\":3,\"ingredients\":[{\"term\":\"eggs\",\"quantity\":\"6 eggs\",\"amount\":6,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"water\",\"quantity\":\"enough to cover the eggs\",\"amount\":null,\"unit\":null,\"state\":\"raw\"}],\"method\":\"Put the eggs in a small pan, cover with water and bring to the boil. Simmer for 9 minutes, drain and cool under cold running water. Refrigerate in their shells, with two eggs counted as each serving.\",\"active_minutes\":5,\"total_minutes\":15,\"cook_on\":\"wed\"},{\"id\":\"prep_tomato_lentils\",\"title\":\"Smoky tomato lentils\",\"servings_made\":4,\"ingredients\":[{\"term\":\"tinned green or brown lentils, drained\",\"quantity\":\"720 g drained lentils\",\"amount\":720,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"chopped tomatoes\",\"quantity\":\"300 g\",\"amount\":300,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"onion\",\"quantity\":\"150 g\",\"amount\":150,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"garlic\",\"quantity\":\"2 cloves\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"vegetable oil\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"smoked paprika\",\"quantity\":\"2 tsp\",\"amount\":2,\"unit\":\"tsp\",\"state\":\"raw\"},{\"term\":\"salt\",\"quantity\":\"a pinch\",\"amount\":null,\"unit\":null,\"state\":null},{\"term\":\"black pepper\",\"quantity\":\"a pinch\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Finely chop the onion and garlic. Soften them in the oil for 3 minutes, stir in the paprika, then add the lentils and tomatoes. Simmer briskly for 8 minutes, season and divide into four portions.\",\"active_minutes\":10,\"total_minutes\":15,\"cook_on\":\"wed\"},{\"id\":\"prep_golden_couscous\",\"title\":\"Golden spiced couscous\",\"servings_made\":3,\"ingredients\":[{\"term\":\"couscous\",\"quantity\":\"240 g dry couscous\",\"amount\":240,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"boiling water\",\"quantity\":\"300 ml\",\"amount\":300,\"unit\":\"ml\",\"state\":\"raw\"},{\"term\":\"mild curry powder\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\"},{\"term\":\"salt\",\"quantity\":\"a pinch\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Put the couscous, curry powder and salt in a heatproof bowl. Pour over the boiling water, cover for 5 minutes, then fluff with a fork and divide into three portions.\",\"active_minutes\":5,\"total_minutes\":10,\"cook_on\":\"wed\"},{\"id\":\"prep_chickpea_pea_curry\",\"title\":\"Quick chickpea and pea curry\",\"servings_made\":2,\"ingredients\":[{\"term\":\"tinned chickpeas, drained\",\"quantity\":\"240 g drained chickpeas\",\"amount\":240,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"frozen peas\",\"quantity\":\"200 g\",\"amount\":200,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"chopped tomatoes\",\"quantity\":\"100 g\",\"amount\":100,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"onion\",\"quantity\":\"150 g\",\"amount\":150,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"garlic\",\"quantity\":\"2 cloves\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"vegetable oil\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"mild curry powder\",\"quantity\":\"2 tsp\",\"amount\":2,\"unit\":\"tsp\",\"state\":\"raw\"},{\"term\":\"water\",\"quantity\":\"100 ml\",\"amount\":100,\"unit\":\"ml\",\"state\":\"raw\"},{\"term\":\"salt\",\"quantity\":\"a pinch\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Finely chop the onion and garlic, then soften them in the oil for 3 minutes. Stir in the curry powder, chickpeas, peas, tomatoes and water. Simmer briskly for 8 minutes, lightly crush a few chickpeas with the spoon and divide into two portions.\",\"active_minutes\":10,\"total_minutes\":15,\"cook_on\":\"fri\"}],\"cooking_sessions\":[{\"day\":\"wed\",\"preparation_ids\":[\"prep_boiled_eggs\",\"prep_tomato_lentils\",\"prep_golden_couscous\"],\"total_minutes\":15,\"run_through\":\"Put the egg pan on first. While it heats, chop the onion and garlic and start the lentils in a second pan. Add the lentils and tomatoes, then pour boiling water over the couscous while both pans finish. Drain and cool the eggs, fluff the couscous and portion all three preparations into the fridge.\"},{\"day\":\"fri\",\"preparation_ids\":[\"prep_chickpea_pea_curry\"],\"total_minutes\":15,\"run_through\":\"Chop the onion and garlic, soften them in the oil, then add the curry powder, chickpeas, peas, tomatoes and water. Simmer briskly, crush a few chickpeas to thicken the sauce and divide it into the lunch and dinner portions.\"}],\"shopping_list\":[{\"term\":\"eggs\",\"quantity\":\"6\",\"aisle\":\"protein\"},{\"term\":\"tinned green or brown lentils\",\"quantity\":\"3 x 400 g tins\",\"aisle\":\"pantry\"},{\"term\":\"tinned chickpeas\",\"quantity\":\"1 x 400 g tin\",\"aisle\":\"pantry\"},{\"term\":\"chopped tomatoes\",\"quantity\":\"1 x 400 g tin\",\"aisle\":\"pantry\"},{\"term\":\"frozen peas\",\"quantity\":\"200 g\",\"aisle\":\"frozen\"},{\"term\":\"plain yoghurt\",\"quantity\":\"200 g\",\"aisle\":\"dairy\"},{\"term\":\"wholemeal bread\",\"quantity\":\"1 small loaf\",\"aisle\":\"grains\"},{\"term\":\"couscous\",\"quantity\":\"240 g\",\"aisle\":\"grains\"},{\"term\":\"onions\",\"quantity\":\"300 g\",\"aisle\":\"produce\"},{\"term\":\"garlic\",\"quantity\":\"4 cloves\",\"aisle\":\"produce\"},{\"term\":\"tomato\",\"quantity\":\"1 medium tomato\",\"aisle\":\"produce\"},{\"term\":\"cucumber\",\"quantity\":\"150 g\",\"aisle\":\"produce\"},{\"term\":\"white cabbage\",\"quantity\":\"180 g\",\"aisle\":\"produce\"},{\"term\":\"apples\",\"quantity\":\"3\",\"aisle\":\"produce\"},{\"term\":\"carrots\",\"quantity\":\"300 g\",\"aisle\":\"produce\"},{\"term\":\"roasted peanuts\",\"quantity\":\"60 g\",\"aisle\":\"pantry\"},{\"term\":\"vegetable oil\",\"quantity\":\"2 tbsp\",\"aisle\":\"pantry\"},{\"term\":\"smoked paprika\",\"quantity\":\"2 tsp\",\"aisle\":\"pantry\"},{\"term\":\"mild curry powder\",\"quantity\":\"3 tsp\",\"aisle\":\"pantry\"},{\"term\":\"salt\",\"quantity\":\"1 small pack if needed\",\"aisle\":\"pantry\"},{\"term\":\"black pepper\",\"quantity\":\"1 small jar if needed\",\"aisle\":\"pantry\"}]}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Ward-Shift Egg Toast",
+          "title": "Boiled eggs, toast and tomato",
+          "slot": "breakfast",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "wholemeal bread",
+              "quantity": "1 slice (40 g)",
+              "amount": 40,
+              "unit": "g",
+              "state": null
+            },
+            {
+              "term": "tomato",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "black pepper",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Toast the bread, peel the eggs and serve them with the sliced tomato and black pepper.",
+          "why": "This is a small, simple breakfast that can be eaten before a long ward shift.",
+          "uses": [
+            {
+              "preparation_id": "prep_boiled_eggs",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 3
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Pocket Apple",
+          "title": "Apple",
+          "slot": "snack_am",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "apple",
+              "quantity": "1 apple",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Take the apple with you and eat it when the morning break arrives.",
+          "why": "It is inexpensive, portable and requires no preparation on the ward.",
+          "uses": [],
+          "same_day": {
+            "kind": "none",
+            "minutes": 0
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Golden Lentil Bowl",
+          "title": "Tomato lentils, golden couscous and cucumber",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "cucumber",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Put a portion each of the freshly prepared lentils and couscous in a container, then add the diced cucumber.",
+          "why": "The lentils provide an economical lunch anchor, while the couscous gives some of the comfort of the requested risotto without exceeding the cooking window.",
+          "uses": [
+            {
+              "preparation_id": "prep_tomato_lentils",
+              "servings": 1
+            },
+            {
+              "preparation_id": "prep_golden_couscous",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 3
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Carrot Peanut Crunch",
+          "title": "Carrot and peanuts",
+          "slot": "snack_pm",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "carrot",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "roasted peanuts",
+              "quantity": "20 g",
+              "amount": 20,
+              "unit": "g",
+              "state": null
+            }
+          ],
+          "method": "Cut the carrot into sticks and pack it with the peanuts.",
+          "why": "This low-cost bite is sturdy enough to carry through a twelve-hour shift.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 2
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Smoky Golden Lentils",
+          "title": "Warm tomato lentils, golden couscous, yoghurt and toast",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "plain yoghurt",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": null
+            },
+            {
+              "term": "wholemeal bread",
+              "quantity": "1 slice (40 g)",
+              "amount": 40,
+              "unit": "g",
+              "state": null
+            }
+          ],
+          "method": "Reheat one portion each of the lentils and couscous until piping hot. Toast the bread and serve it beside the lentils with the yoghurt. The hot lentils and couscous are a warm anchor.",
+          "why": "This gives a substantial, comforting evening plate without attempting costly lamb shanks or a cooking session longer than fifteen minutes.",
+          "uses": [
+            {
+              "preparation_id": "prep_tomato_lentils",
+              "servings": 1
+            },
+            {
+              "preparation_id": "prep_golden_couscous",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "a_warm_anchor_every_evening",
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Cucumber Egg Fold",
+          "title": "Boiled eggs, wholemeal bread and cucumber",
+          "slot": "breakfast",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "wholemeal bread",
+              "quantity": "1 slice (40 g)",
+              "amount": 40,
+              "unit": "g",
+              "state": null
+            },
+            {
+              "term": "cucumber",
+              "quantity": "50 g",
+              "amount": 50,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "black pepper",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Peel and slice the eggs, place them on the bread with the cucumber and pepper, then fold the bread to eat.",
+          "why": "It is a small breakfast that can be assembled quickly before another long shift.",
+          "uses": [
+            {
+              "preparation_id": "prep_boiled_eggs",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 3
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Second Pocket Apple",
+          "title": "Apple",
+          "slot": "snack_am",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "apple",
+              "quantity": "1 apple",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Take the apple with you and eat it during the morning break.",
+          "why": "Repeating an inexpensive portable snack keeps both the shopping bill and morning effort low.",
+          "uses": [],
+          "same_day": {
+            "kind": "none",
+            "minutes": 0
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Crunchy Lentil Sandwich",
+          "title": "Tomato lentils, cabbage and wholemeal bread",
+          "slot": "lunch",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "wholemeal bread",
+              "quantity": "2 slices (80 g)",
+              "amount": 80,
+              "unit": "g",
+              "state": null
+            },
+            {
+              "term": "white cabbage",
+              "quantity": "80 g",
+              "amount": 80,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Spoon a chilled portion of lentils onto one bread slice, add the finely shredded cabbage and close with the second slice.",
+          "why": "The same economical lentil batch becomes a portable lunch rather than another identical bowl.",
+          "uses": [
+            {
+              "preparation_id": "prep_tomato_lentils",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 4
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Carrot Peanut Crunch",
+          "title": "Carrot and peanuts",
+          "slot": "snack_pm",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "carrot",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "roasted peanuts",
+              "quantity": "20 g",
+              "amount": 20,
+              "unit": "g",
+              "state": null
+            }
+          ],
+          "method": "Cut the carrot into sticks and eat it with the peanuts.",
+          "why": "The planned repeat avoids an unnecessary extra purchase when money is tight.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 2
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Cabbage Lentil Skillet",
+          "title": "Warm tomato lentils, cabbage and toast",
+          "slot": "dinner",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "white cabbage",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "wholemeal bread",
+              "quantity": "2 slices (80 g)",
+              "amount": 80,
+              "unit": "g",
+              "state": null
+            }
+          ],
+          "method": "Put the cabbage and one portion of lentils in a pan and heat for 6 minutes, stirring, until the cabbage softens and everything is piping hot. Toast the bread alongside. The hot lentil skillet is a warm anchor.",
+          "why": "Pan-warming the cabbage changes the lentil batch into a generous dinner while staying within the student's short evening window.",
+          "uses": [
+            {
+              "preparation_id": "prep_tomato_lentils",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "a_warm_anchor_every_evening",
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Peppered Egg Pot",
+          "title": "Boiled eggs and yoghurt",
+          "slot": "breakfast",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "plain yoghurt",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": null
+            },
+            {
+              "term": "black pepper",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Peel and quarter the eggs, then serve them over the yoghurt with black pepper.",
+          "why": "This keeps breakfast small while using the final safe portion from Wednesday's egg batch.",
+          "uses": [
+            {
+              "preparation_id": "prep_boiled_eggs",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 2
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Final Pocket Apple",
+          "title": "Apple",
+          "slot": "snack_am",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "apple",
+              "quantity": "1 apple",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Take the apple with you and eat it during the morning break.",
+          "why": "A third planned apple is cheaper and simpler than buying a snack during the shift.",
+          "uses": [],
+          "same_day": {
+            "kind": "none",
+            "minutes": 0
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Quick Chickpea Toast",
+          "title": "Chickpea and pea curry with toast",
+          "slot": "lunch",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "wholemeal bread",
+              "quantity": "2 slices (80 g)",
+              "amount": 80,
+              "unit": "g",
+              "state": null
+            }
+          ],
+          "method": "Reheat one portion of curry until piping hot and toast the bread, then use the toast to scoop up the curry.",
+          "why": "Tinned chickpeas and frozen peas provide a filling, inexpensive lunch anchor after the second short cooking session.",
+          "uses": [
+            {
+              "preparation_id": "prep_chickpea_pea_curry",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 7
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Carrot Peanut Crunch",
+          "title": "Carrot and peanuts",
+          "slot": "snack_pm",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "carrot",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "roasted peanuts",
+              "quantity": "20 g",
+              "amount": 20,
+              "unit": "g",
+              "state": null
+            }
+          ],
+          "method": "Cut the carrot into sticks and eat it with the peanuts.",
+          "why": "This dependable packed bite finishes the stretch without adding another costly snack ingredient.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 2
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Golden Chickpea Supper",
+          "title": "Warm chickpea and pea curry with golden couscous",
+          "slot": "dinner",
+          "day": "fri",
+          "ingredients": [],
+          "method": "Reheat the curry and the final couscous portion together until piping hot. The hot, spiced curry and grain are a warm anchor.",
+          "why": "The richly spiced pulses and golden grain give the final dinner a braised, risotto-like sense of comfort within the strict budget and time limit.",
+          "uses": [
+            {
+              "preparation_id": "prep_chickpea_pea_curry",
+              "servings": 1
+            },
+            {
+              "preparation_id": "prep_golden_couscous",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "a_warm_anchor_every_evening",
+            "the_basket_decides_the_week"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_boiled_eggs",
+          "title": "Boiled eggs",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "eggs",
+              "quantity": "6 eggs",
+              "amount": 6,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "water",
+              "quantity": "enough to cover the eggs",
+              "amount": null,
+              "unit": null,
+              "state": "raw"
+            }
+          ],
+          "method": "Put the eggs in a small pan, cover with water and bring to the boil. Simmer for 9 minutes, drain and cool under cold running water. Refrigerate in their shells, with two eggs counted as each serving.",
+          "active_minutes": 5,
+          "total_minutes": 15,
+          "cook_on": "wed"
+        },
+        {
+          "id": "prep_tomato_lentils",
+          "title": "Smoky tomato lentils",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "tinned green or brown lentils, drained",
+              "quantity": "720 g drained lentils",
+              "amount": 720,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "chopped tomatoes",
+              "quantity": "300 g",
+              "amount": 300,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "onion",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "garlic",
+              "quantity": "2 cloves",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "vegetable oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "2 tsp",
+              "amount": 2,
+              "unit": "tsp",
+              "state": "raw"
+            },
+            {
+              "term": "salt",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "black pepper",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Finely chop the onion and garlic. Soften them in the oil for 3 minutes, stir in the paprika, then add the lentils and tomatoes. Simmer briskly for 8 minutes, season and divide into four portions.",
+          "active_minutes": 10,
+          "total_minutes": 15,
+          "cook_on": "wed"
+        },
+        {
+          "id": "prep_golden_couscous",
+          "title": "Golden spiced couscous",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "couscous",
+              "quantity": "240 g dry couscous",
+              "amount": 240,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "boiling water",
+              "quantity": "300 ml",
+              "amount": 300,
+              "unit": "ml",
+              "state": "raw"
+            },
+            {
+              "term": "mild curry powder",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            },
+            {
+              "term": "salt",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Put the couscous, curry powder and salt in a heatproof bowl. Pour over the boiling water, cover for 5 minutes, then fluff with a fork and divide into three portions.",
+          "active_minutes": 5,
+          "total_minutes": 10,
+          "cook_on": "wed"
+        },
+        {
+          "id": "prep_chickpea_pea_curry",
+          "title": "Quick chickpea and pea curry",
+          "servings_made": 2,
+          "ingredients": [
+            {
+              "term": "tinned chickpeas, drained",
+              "quantity": "240 g drained chickpeas",
+              "amount": 240,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "frozen peas",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "chopped tomatoes",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "onion",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "garlic",
+              "quantity": "2 cloves",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "vegetable oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "mild curry powder",
+              "quantity": "2 tsp",
+              "amount": 2,
+              "unit": "tsp",
+              "state": "raw"
+            },
+            {
+              "term": "water",
+              "quantity": "100 ml",
+              "amount": 100,
+              "unit": "ml",
+              "state": "raw"
+            },
+            {
+              "term": "salt",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Finely chop the onion and garlic, then soften them in the oil for 3 minutes. Stir in the curry powder, chickpeas, peas, tomatoes and water. Simmer briskly for 8 minutes, lightly crush a few chickpeas with the spoon and divide into two portions.",
+          "active_minutes": 10,
+          "total_minutes": 15,
+          "cook_on": "fri"
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_boiled_eggs",
+            "prep_tomato_lentils",
+            "prep_golden_couscous"
+          ],
+          "total_minutes": 15,
+          "run_through": "Put the egg pan on first. While it heats, chop the onion and garlic and start the lentils in a second pan. Add the lentils and tomatoes, then pour boiling water over the couscous while both pans finish. Drain and cool the eggs, fluff the couscous and portion all three preparations into the fridge."
+        },
+        {
+          "day": "fri",
+          "preparation_ids": [
+            "prep_chickpea_pea_curry"
+          ],
+          "total_minutes": 15,
+          "run_through": "Chop the onion and garlic, soften them in the oil, then add the curry powder, chickpeas, peas, tomatoes and water. Simmer briskly, crush a few chickpeas to thicken the sauce and divide it into the lunch and dinner portions."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "eggs",
+          "quantity": "6",
+          "aisle": "protein"
+        },
+        {
+          "term": "tinned green or brown lentils",
+          "quantity": "3 x 400 g tins",
+          "aisle": "pantry"
+        },
+        {
+          "term": "tinned chickpeas",
+          "quantity": "1 x 400 g tin",
+          "aisle": "pantry"
+        },
+        {
+          "term": "chopped tomatoes",
+          "quantity": "1 x 400 g tin",
+          "aisle": "pantry"
+        },
+        {
+          "term": "frozen peas",
+          "quantity": "200 g",
+          "aisle": "frozen"
+        },
+        {
+          "term": "plain yoghurt",
+          "quantity": "200 g",
+          "aisle": "dairy"
+        },
+        {
+          "term": "wholemeal bread",
+          "quantity": "1 small loaf",
+          "aisle": "grains"
+        },
+        {
+          "term": "couscous",
+          "quantity": "240 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "onions",
+          "quantity": "300 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "garlic",
+          "quantity": "4 cloves",
+          "aisle": "produce"
+        },
+        {
+          "term": "tomato",
+          "quantity": "1 medium tomato",
+          "aisle": "produce"
+        },
+        {
+          "term": "cucumber",
+          "quantity": "150 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "white cabbage",
+          "quantity": "180 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "apples",
+          "quantity": "3",
+          "aisle": "produce"
+        },
+        {
+          "term": "carrots",
+          "quantity": "300 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "roasted peanuts",
+          "quantity": "60 g",
+          "aisle": "pantry"
+        },
+        {
+          "term": "vegetable oil",
+          "quantity": "2 tbsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "smoked paprika",
+          "quantity": "2 tsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "mild curry powder",
+          "quantity": "3 tsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "salt",
+          "quantity": "1 small pack if needed",
+          "aisle": "pantry"
+        },
+        {
+          "term": "black pepper",
+          "quantity": "1 small jar if needed",
+          "aisle": "pantry"
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "id": "resp_046011d2f456a9c3006a84e6e6a8d087d28cb960a6d126f1ca",
+      "text": {
+        "format": {
+          "type": "json_object"
+        },
+        "verbosity": "medium"
+      },
+      "user": null,
+      "error": null,
+      "model": "gpt-5.6-sol",
+      "store": true,
+      "tools": [],
+      "top_p": 0.98,
+      "usage": {
+        "input_tokens": 5565,
+        "total_tokens": 14305,
+        "output_tokens": 8740,
+        "input_tokens_details": {
+          "cached_tokens": 5562,
+          "cache_write_tokens": 0
+        },
+        "output_tokens_details": {
+          "reasoning_tokens": 4838
+        }
+      },
+      "object": "response",
+      "output": [
+        {
+          "id": "rs_046011d2f456a9c3006a84e6e72b0887d28c734b4eabc235cb",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOeN_BhPmwNpnY-9CbkiW6T_lBBec6QmwIQox6xEHeJzT5sETvpeAF5_KxCZRDt5EzViSh6v9GDiwNo7FiE6luCONB33lSN5Yv-6AfZtsrJa14_7qu4FohQ56nG3i6F_kbl_B10GRHCUJf8uA_dRgdrNEiJAtrPl1VShcyKndwjik-NUVrHWvpj3rswMAWcJNhkWBoxVk5N9jnLq-_km970BjT0cY5wIw6LTpQIhkGC2iohRfF_VfB0dWjiAR2M3ulQ9nNwllsj4loJhMCbY1ivw2O3B8WkcUKbvQtHEBh5N7v7f-4TuWjwcQiPF_ZUPQjIly7EEDciozJPZVmbpxE47Le_dOPsk199XkxSLZb0Tw22WxhZFNR2aKiuHb5O4ebm6MDh-Qisi98p1HTqI6ROf0iQ3LHzAAC1e8MnF-JvruCPEFynLHzV3jgP2-qUNinTnd2f0wtAnrCBZFe6HTkeK8oRZVGPqfxeWcq11MRMVY7p_iFV3sKdjnxyhgA2Ucny4Nxm6JliBHIeqZFbaPaMHYLpI96cBPgkjoTZkvLrfB60T39M8tStkguk5qygwAxRJp5dmE2VoVexKlIZV0NF-JrhyMw1Qq-YtNNTmGVZREOmi3DKAbtzVE-cxltSjPrzbX8pSKnWdu3XLQGmm9-zr37deXtv73-8H5bTMBTYTatj8SWhj_T43xJR70tw_TpjzlaMPMBVWXEQiYzuGGqlblnQBhClOevxOaZn5fn7E8E3OjenS-MDkuXgmSzh-5P3Ba3PuQlrZBQOuJZcnt3yOts2YEumcscT3fy2GD0kmSY0jO0IeHVkDsVm1lXi7e_IM6rkq-Dc42l92YPfFNB5NPrTAtwBQCDgiZikvorbZsM-0yMZdAnKQLnV2PQKk7y1G-3u-ZS-22SXNM3fOk3ndC4iWxq1ZG7EjZnHyQoEQV2yp4W2Y4zJp-_-Ev9JoFNrssvfPaM51iVR3lY9APT7YI2szCDs_WT2L8BUjsVtPry16ZwK_iKEBHb-laVTR06Q22ffBft8AafOpsrHMTkGEiBVbdwoTbY7pPF2g6O66KlzrPJKelLS3nc01r4LfI1sdKl-2H8wtiFf23SrT_5PWP5aRJic-wZERculuWOWoU184cIWrErqJU8Jw5qPNrUNFc-tOCvpGLXTSAPrlYDtmiqNC-9VitJe6bqCJ-EkXWodh-wzuj1ljdv9pXuPYlKrTNVXAmhsD9Z6U0WdOB0jcisogb7C5DYfScR77lEOkfQ0Qrt7vumnCci6Y7YpugSxZ8yKm2lPzi2lTzqR72vl42d4amK3P4SAwi_lIKdnpAfqDy7dPxkmG4-E06Nj9H8Jd7rojfSY9biBvFMWSyKipeGOlU-k3w9n_716VtQP4dteF6pDywP3c-BBNwrIm8WKElbK6ZMcE4pBZOGNEzsM4xgR1xerRz-_Hggh0TrvxE9_29uYyu4pNAIKJ2Ta1RSnvcTeLs1rys_UEzYkYpSGtxfGngB1_Ws04x9UByQe3O9-b3HFr84ggjNPAJK8uGilTxvDK8Rao05nDE-TMPrGsFK2hTDFVUbxK6XiCveQ4VU-6QlkizPk-M0fqGDaIkhKDnDVnwtSjysG7r9xP8uUWNxgQxqE3Cbi-RLpWMVm7Hi74isQZjOnPk5VMOmMmr2qQfKHifrUYQzrGKnBPr9D8Y_laEihnbtYnThU9gy0AXMrS7MExxG0k2eGO42mmDyIH8MjmrAPJ_NjBvUkmNtMRADUg3lnRwj_7QSwNHxsPJmKIgFEO9jF4tCZjnZppK0e05sSF-nBgSL2erZaOv1M3GApTJkNIh4T3hs8kj796rvKEAGqzBuMPCDgHTLWSn5RTv7UI7mMS_3Bz607WpBcPBYtIT1nEDOUzO_nCsj0I2lEtNkY6YHK2sbDas6W_-s3CAnvXrCW120pDr_kag4mQ3R9ULYfN0jHA2uPRlHI07l0RGIWGnTMFUIBCNl_721ISD6Q0JifhfwbvdLCEdDTeWKnTVJKlLhtIwiNxnsU_QV1mANsO2hE1OYvrunxPzt2ozHLjazYzKWXBB8TcxHrgVWauf_ORrxYouv05JYamS1kapAFtFLHAfOVKkurN2nwzPhlOFYpipgMHwi2Ma0ytQ8BkR7hMgUbbn7u20vP3twyGoJZkEqLNcfIMxt0HiUZ2vMiPxDzQguj9jlvFqe_OiUjZm2_HtWD5kxgESuNi_D16LXleShwO5EchwnpBfA7GHA82SHmYnnFnsPJg2k5vFzg2Y_FM5fi3-IjZ8r11XxiqJaTl3Z4kw1-pacq_0dK2CCTHncng6Nmc8ZkfwcLe6rW5dCGEXcyDEHVLycFRGmyo93um4_IvYU612tj-vYOETKrrXyd6oHsO4Dqv7Hk66FQo1eg4TmDJqZzZFlB5K6y7f26WhtdrcO4tjlZqZE0OpIcfDByu1j6YCkegySMRLCb2SwP4Q6y_04gqtAT5Nrr1bBpVcHlFhvwHC1Y8LBjvGMpcpeXgbX4QmwKLrnBeGWOZamWoT7UdzesjDYYRwcazJZ85hdfqE3CWibcW-lQgVyATNVmWVUTL-RMXXzq-nf8QnQh4qrD3rKXOVKs-6f0Oi4DnCaeAt4-OFqGtbMsC-LsZDjZp3DaSUbfxquTTpBjvu1BVxLzRAnFE7O7AA5O6lBk_NPl_UmabuJx8ZrkHXyqcB6_E1DaXRIZlhNgagb1E5D_j--ZiQoHHJsOFDYrJBjxGdrBqtoyyJQ1AjcdVt9vrQD5UbzpAsfeAPoGvNpERuXoLadDYjas0ziOhieAxBajg_gFNHri5iT1C0jzlALyTkoZdKUD6V2XaiTNoRC2k0I4v--iWp9p6cFmBuhPZGIJeWpbZY5JGjf1m8kQ7RJVGkqqKk2lPJsGqAZhdoC5iQNhZhHjv6lfT5OLeSIhf5Jy3XZ7rDziT1okSb411COm9VDLZwzXH4QPDZtKUEJ6jwkM73H5CY64FIzLPUt7QfqiRA28bpmpICeUTl9fNNBWQ70oSmJ-MuyFIQA7BrcBSTzKOIGEROOL83nIhISIey1tzlHqThqLV4Xd671T8U-oF00997KcTdeHEE_MuJOlesEnm-gt8p-lSulnutKF-UwJ0HOkpGH_eJfaiaElz452P_DIhpYTw915bssGfNnAKz0nQL_2tP_vRUKbfA3A4wGlTXuJKx0OsuI4UoOZXyXQMw3w5u0KSlV8b-lNh3nzhjezTvwk0VuMuYkRvGeE5MwaeFYezQ7F7r3AKBiucRY0n4HTFRkVSM2nyVW87SN6ENNZwbfVU7aesua_v53wKcV1e-8L1KWZVn8K3i5OOEw8NfjvDTm8MbkkY83iA2i5JicEgM1FRrTaYQcLua5ou-Ba1z9ZD7Yj6sm72JJeMv4R89awKpgQ7OZxn8HFOpdgWrKTpB91dJqysHJp9xDtboCIKUPKuffFqmTJqZ7xsYNyqXQwMkJZNkFZEKf_OLGoWNnR_hu8-rnjBZ4zPnH78oeG4AnSfdabJv89yG5edRhQnqvNjMjGl2gWhX-oa43eAsfqthQQaMem3zKQMRJM0Wi6suZTgLZq0MySwm-qNJsX2maKQL-DDia47PfpBwjGBzMEAAdHm8fKzW_8HHICPsrScH8srXpSgr6BIUQyU-RZtGrya28i-q9zAyWOr474z6piO4HdqPN1fNv0zBBdYIjZPN_kZ-NtAj0xI-mZf0uZMZgkkpn1O6HHkmL_oGq_zXU-_3BpmZ5id300Poci5tUKODnu3Zp8ATjKyG7kDY2X2TfMq96VOU6T2R8Fe69VjVB6w6IoF9N23iXw84BEpciZP7vb9GoLtq7rY6700IDVvNMPfjnILxVNtbJPJpCeq1VZeGPuNzNSYlEWBuwvMYWXhiMXJ2rOVBRs_Gcgk_ZxRWobQnLpBYtsQOgxCGJFeTo5KZrkZV82WnDVBlmqco71Dl8Q6w0Y0zERJqM-GEb1F8RfFfYV-mCBOcU4As562XBt1MY3Lvf5alANKnqgx6a6vUpdbTGBpuAhBaQHgYXGesqVBHwmNI5u_8vsKXD1AsOoKArhlJjqLFc3vDLu-wdASOZS9G3K1aeld1bQu"
+        },
+        {
+          "id": "rs_046011d2f456a9c3006a84e6f5642c87d2a3ef867dbfa2be2f",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOeN_xiS1YVK6XyHV2di08NGEkejvTk9_WlnLovPFJWYPbuDHUSV0MN5eqNfbfBL6osYJtocxWxZ3Jccq1WNPc1Lxf4fkY3H2m4TOCKmKrRIvw7K9UaK-xYQ8MT9qULt3VVq4tUU2t57s8KXO8Z9HjNfvJdchXzNHcrT2_fKjgofukuvdGsM1ROrjmsrRLeF6_jnMv0NuPdp32zQd3S0Buwt76RCtXh0is7FoKQfGMwlwzoAAmGL_ML8m7cOpyM50MGqg2eVlm85yBfR8r7TMHa55MGAuMbvQxFDVL60uAKCP_B0AEeNIDTxsJlDVs43-O7L5p7Uk1VwSHVqQi5JMh-qna9_v8XJPgfvw7gLGOmzsuxK0LmVL9A0d4ISgUK0rTLO_JK0IoX3sfBhOi7WZgjl4Esu3ZmKrsOKCu2kBxFmk-VYMd2PUdBvYpHDhB_hSSrBHf-x5RGQRw5cb8CcA408xlhar9yC60g9J-NvEbKjXcmBhNp20uyP4G_I6arZjOnCfhBEugTbQ-bBI6Xkw1bX86Mmd0aJjMS-4HuYsvA10obeCHTCHPw9HGLpncq9-6BTVpIhGZbvOqupR_vXyXrbCG5tIVfqzkMcOHnF1ci2PfKzN4xzpudRcj_kgiIQVX_AXQdYuTiyXvd27L6Izv5CHUPNbfHAHmYiS4FtxuzY2s8hzBxmVUhhTlaUHn2fFZM5HQtIVjHqsKpKRKcWWgRttraSdR_yeM4iDxg4NQtfSeh9QLcxVXkvb8_rcaM3UJmTOFf6xSzMJxhOTAyeGDGR53b6YCUKkELLPZpjVHghjvAuN89j-ijmDgtE0yGsd7YsJCJwlW_9S5ZJDaq198loPgRWZT15VinsHeNHOu83Is7Zpi4OiLJ85G9fmSNGKuiV-vyMuyY3V52cn5MkjuCQL0GH5kVAy5LBJDTQYwvzrPx7tDBjKH68jghOrNfqoGxGsFi5UwMDKBVyKMMnI6AFsUA3EUEqIotivbwEXvgk8HSF4szOlln95m1sgunqWqggTITXini-ysnKJotqp19EzcRFyNVxof_GPMul4gaaUwlRGfaY57MS8kCqlkTruiGUa4RTU_9pmROqtDYCq1JPN2WERt97B42FpVbmcLeaTIrFQ6rfPcCTFbrZFDdibLJ-hPwbJUysxu7lbBZTGqZMU5YsBdidb2zLh4MJtOwCjZi01Axq7WHtj6UUp6gP6ARmHhtUp6PP9JXphV6Ql22hKpkMm-MnyORXzWu1-z-QudxtUDaeBvJ2_Zjuwlik3Jq5344ZqnZDj7mzW_cKqJUziDySZ0lVGvKYviJmsltuUdC_i97cZV3PPJQUcCohRGvmXEYeod5E623G2oUFMJfb4G1c1Pukh17x7sW9QWh21pvMOSNpFbKIlktbFU0QeRLR9xxVQezAbZKuNamLybSsLwqRreen4kZHfFdmVV7mqi4_fxSJmvUbFq55DpBtugUj1FI1ukYmpFKZIvyk2psAR6sWuRrxVV57FjCAcT7PCUT0wMGrY3mkXVjjeR6KUVmE8tT5Zo2jAJfFe1ncguDHDC0LydHDwU2YexQMemC6LZvQHIs9eiowFQkEH7p6hTCESpaXABC6ejVT4Cjm46jLdfzwJWaSkwi6eUlaCc7KD6FxkBPwvUak1FwiEWkKzUNBR6WTWh5LRnMGlo1Kw_fpTH2vU9cN2vcb-kv5xY86bx9HX0C2cpI4z7FYItBajBxPxcaKU-iQGK1veX_Y8HA2VpagxvYI72mZUJf336YC8ig6kdx5bD-rufyJ3wti-NgKvOHNTJ21i3iFEMxaZxazLrz-DSturt04lvvC2zJiNy0N1xnseOBhvty4CiLlYcLUCQ6nnPY5JrHQGw8MBGWVCVSUTnEan_FJeiNoFM-u4ZJ2BA0K7bYinQxaqQRy5FrSwdNgl2EOSqsy0uxelHCeIKQdRHXdJeh2CTDFXVSEtFDr3cyDkgKWJpZsdrZi-GfLTLXATlXOwp7o5kreo71rs_SKGKdRfOuL1AQixF-Kztiw0UI4o1PHbQ5F33hXZ2ckHmfwNJOjI9Q7hzGreJ7Fk9gNQpFCEM_bss4mKYpA5V7MovAYsrxlo5pE5c3XgzFz-vc6lfPEzCsj2pYATItZmKjovsp2JfOSWtH-Dny2OoYaYtBb0ei33PRDQwqBDBazs6oUtWtkDyyNzQevZ8EzaQd4lLj3TVjdKsBmkjlLPGtupL_vyDWu22D9LuMG7mQGgzVqtFFIoT3A8RIVwkrbKvNO_FWV0EA_MS3QwjlWgXWqcbLoIEBzhzBZrr-uqxwe6RMVJx-ztHgiFSFGVbA_Tx-jaDKyV3oUlYjprm5eUfggGCV1NZMI89c6YVVGQ064Ra3agd4wTe_pn4l84e3ERj-xxXyMpcGvLkEs41j5_lku_sVd0XCPy6Aao08e6AUMx8ult3kJNslebMVbUp2TPbl-AmyHLgKFrvCC3WD6vQQJiIe_mTo-CNY7uZZhLTAYaq6FImjmgxzTqc4Bn3UEKign6vQ30XBPSHi_NzLVk9JzTssZqA-iV-UVbIdr9XliivNH_GekTMyTsq3Gt5fdZAoZ2P-g3AOkTXe4d40XzsgItSa_3xHDdi4LQ3bIIuVwa2rMo2Sc7p_BSjITUxp3XM9r52LHhvo8PuSw6ewyjFSiFO9rr-XRfUyzHVZAVMF81aeVIGX1JPLy-g9caMxlFhfKQTaqAgb2HG0r__OWU3hihkwd1-mOF2ANVtKBfjgJJhvQ7dDkvEHfwpi8t8L-1QPYnTSXCoeWQVVnybrmii6jjnkBDhGnOHA5zSMkzla-YMq1FnvdHqScW9dt4f-fQDcXY3HWN3gtpeQceECElNZCEWoLwPtytsIhdwQBShq6JLi7INnMB7JviQ7Av2Olg94lGMcZqhvadoF2w5zXTe1tRvvOeMZBhvhB1AtUGm8zxCq6ibiI9dY6PJ5ftI6cEAG6dhLjoEcOwqU3mxqGzHR7T4zfMZFUBt5Fx8D_21e_5KlSBZYIAEVEFwozMuOKG4OlglkaHje2eUWfCaUpkJGscE-AzjPfLRRqS3CryTXUmmyOfc5FMj1keFt42nW3NZQ1S_kVT8gNWNTcvOhFLzCKzvv3Am4OlexYkOB4NfZxITkX0A6aAUwGP8M599asO2G1sQDKPzPQLsJsWyvAniT4Unakwno9lsWOAyVNLrkvttNaBQDPzqPRRsXZYe38E5avf6MUNUg4zGQxLyaxZUNIpHKcdpOfX20wPOsByiLo18b3cCycUA9E4B8rcf6hzIbruGo2tYM9iFZQ2NFVqWUIBl1m7F-NBMnlJeu67yzjCjZjYfTGLMi5RAFKpyV3_4fYwyXnUuh1A93r7L8iCBgBNd2rK4tsSumNKudmUjAaKffDA3-CUc5nz214ciTSAH6pJXWABmgJDCvEBIuFMr-ONhmhW1mFEygBmInJWECai3GV7QKXQgxRx1GHGyOTuLny970NfVlztS_baRN-_wbC4wmJF5uvSyKI0IktEtlBPQ6plKId-jPijo-bXV1MqjNIJ0WSV3Iiw25cDaYvH-iJ1K0N3_YpCtAfKsCCBbdAZ9BNA6wW8xh-kSv4ktFw9onWmVyqbGEr7LuXp1LjK55o4m-7TyiWz1FVMf60uT0hnkUZd7lgUrD25ZMxSJI7M3-C6zcT5fdsc2haGILUif-Iw86V2HTQr3WaCWlo2bCdt9BOXH_oX-Vv8vRK3f6o23ZX3bl1qX3nIAYVO_tAHjrlb1fsfw6rMWAYhNBcZnEHSrrPkw51oftTAYIkuTe8YzIYVk6yFke3c6hAUoREsIpufaRuqK_YQKBQEpFzLe8urWoyv-rIzjUfnlBGlxmHdI9zQTBm2LpNzQNXWOfWea3HKQw8GZNtol-jTC3_DQDrH38PxxBxz1YnKawxw4ypzQ=="
+        },
+        {
+          "id": "rs_046011d2f456a9c3006a84e70310b487d2b5897b7e6e32ea4c",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOeNwWsgL8Wec5HLE4L883RDt2j_ELg5oxPU7HaycrCTQqamKSnH-MM1lp0Ih6mg073CtL5BT2GdCxFZDGUN6GmJu7vvomuQHYsM35SjL9O4SPrsIKsnsEtFHQVpEh8SYA3wmVGWAmXEwGj3x0BNS1BbrfvPbYy9V8lW9_8L55a6PDdfddr5g1RA4vhFhv7MOf49LNnpVREAhnK5_xygD0Yl71TSiM4tiKcsOesKd4LFP9elnGsgtGS0tQ_6aa53NzlixAkhwbReMLEMlFw2ekXkRdhnDjfbn179B2_oM2rF4yQnss8BSpHGhwOyXay-zaaiCDj00vSVuyVEhlWnwVxkjucnoiNkyJvspKyb-dN78MUG-PHZszLohwT1BmfcMTxBkUYuQjYGZcB83GTAG5gOp13knPtF-tnHgacXHV-6k9CBw0nDGQtVxx4HDDaM3BOoL59cpoeBO4K2xzOWy0PPLtR24ZdaPetNwIszuDzKpX2JfzlQUlkPtdAFpP4RVbwCsCqzWdYj4-Nhl0hc8LbhTJpCvw9CSG3qS1KxhtbBKqzHLi5Lm1CzM2VOKT4cntapdHxOVu6znKuqU3m6Cp4Wipmabsv5hIm3BdGSzsluJiVH2l_pF7hwc4k3VPy1bW8CJUqAl1zh6OUuGT6T3iCvnNwNCpykrO-5jvJ2ol8_nlC2m9u_3FLhTtcrK-K2AX49D3fonNTZKeVRHVSJK5vjPGzsASyCovyurfCEN5-9LKd9pTFiI7CGnWLDaQRSE_QmcSTbcxjLkhL9NzaVplzUDlInvArB5TevWOz8vKcasdqVjSuIcIg1N1YhsZFxHc30d9jFHASMjdSI44VDnkXZPO8bbwGTWuK-_d0onANmVjr2fkBOiif-0ggB83DYXHpxgEB8Edz3YyuhDv9OA61jxiwn0d3pUFITArst4PJBNE5fXGKT5MsgAI2DhIhen8K14Sq9TlSQBxVCpgYfUjfRTKvzHp5N5qXO1xVrSsmv5jdFCU_SNoJG0IMJ8SsmnnbbOGtbAuXNCrvTV0yVaKu_K4sV69lMUc65ELhh84K3NUUbmPYmLMy_mCOuMbTkjB_dt1pSaksAanGPcopOPiuiupgVWVMHCsQ7dEpkuRhq41a40mk9nwzLeX9xxtDJ6S2JKHWNv6sTa5S5KAwBnzD0LbWaE_fax0COwmMNKmbMIE5lgfEhP9BFOVPXDXXq4l6QrzDp4hhK9jRwfKr0tS2qQ0AtIkDyi-zE_5ATA7fnsAqbxxqL2Paof7xLaeLgb0sgY1U26vFDVBUt12dvxGPGso9kBvJtB7o9cBq_dXPL62AfCYJ9TrVyw7QoZbVm_t_kFE6uVbskKrJO6ZNtLyEHT2vq08mZNLnQayvBJn7G0KSKuOVue13NxzXDPx-4qMPUZGCe-9unOwZpMEmPs-OCAGs8HqXKRx7zjntGcs6mk6N9EvKLiAJq9X8HQGN2FNHSRZEql2Rv7lewVbCKePsk5wt27vV16GJ4Ry-tD3qX01BRa05xp38D36EDEJVqUGAeY3rPyc2PSygaF277gDXaFcK04RqojgDb4yQlinU3FqEjvL9DNfcjKIvBfbJTCaoH3d2dBTRfAgBep8nyTcvLukLYfacEc4TBCsSCqwLDuB0rbBSrheNInhpljyGxHBwUToez0VdEC8Q-1Vx5laygRzbluSjDIUYQ4UwiKxTaSHvnySRQEQM_96K28DyJYrHWZXK81cAu_55DZ7T23OdmvFaIctLGsLdyVrbNQke7XijRDYbj9aQUjKNHSVQ09Z5zYCV-Fv5zdLvoq52Dk2Pfl2KZOwBtmCn7cIuPSW7OlSQdAGL0Ldb_pxYxbgtqUCyePdIgWXgC4AtUpkefXexuXv8G7155FsqObpuJbrU3WHZU-x9q1sPy6Qvk5-zEru0L5dMKzJLipPTojGCN-YmDTKORXeFtp-74zDjQjhLZPId9N2u08JEz3goY27PzOyP90d222ZPNNgj7ojXBquIBE5I8w3zTifG3EMDR00cfnEZyQwYHo_nFYFhQ8hCYbwYBkKEKiecpTtfI1UJusT0FlJFP1il3KCgyQYPpD7NkNH0Y-MpU7XHISDHe1Km0jLZOyAxrFLtNuk97YqFrCwdVIzFyJkCdCwCfGNaPrgt4MEnZwljJXai0wnkAXMdOZ_AfzOXtmcPxuOzAHgACm0chig5fMwKx33XvItNsrMq-5VVHP_OxW5habWC_tNzlTkQwwIeHCFtW5Rb7LW8b4pHFq5D-HhEbKqgFUs-RK2tbAlfA8PrEr8BvzcxVGy6MHz8rQDj-16yccA5qzXaUSdn1YRAM_prrNJQ9mDiB94kruHxEYIGDRReT2hHPYOb7dXKBotVmFf4xAAqWO88eo0SHeflw42_E1QuiE2gCZ7266R0svp6TzVjkMGQa16R9I-DypZxmhxV1KfNtB0JtZfxnLil-twuQMrJlsEo1jNYw23GU6drWD8corzxBhEssSx5aWHuBMswCbKDJ3ECfJ3b1PGrnO2ATOQFpKw4Bj_-VapnUe1mTqzG6Z9SSJFK5mAy5GkHX6ikStqfjQZmOguoX7-j-9kvB6V-VGeL-76qGIeZCewwJFmeeszjzsqSQPkX35fk8KHBRRk8kT_O_Hun7uSV1AAQW3BlSSlkMwXD7w-HrSKRqfyetbNEL5aNloDBfBaYO7usqahqu7nJ4otNHRi0C5oISU8FsCYGZRgmfQBABRnviyj1U2G_pbkTDvlEpgS7LpjpjEMQtx3OiUpJVno3E1y3rsNQ7rDKS3W8Qz_UYEp8Zq7JHY_9h5m4JQDocr-1P3O6npVI5ZosNxjCNuj3NP2CJ9vwETJ9K8YIX9HKVKMXtbZgL_XKp6uX4IBaZHtJBDiw-4GCnS6BDhhxLhxhqhWPafZcXMOLtVU04DFaGPsoylPH9qIT5RFgyHD7xdaMxYn8waOmu7ad2PnNpaPper75q8zNLw2QzCJM6No-zY91JXM8yqZCL3NqaVDnbXcQZpIT345jCYW7TkUeaR2UOgQ2ub5LD_Yy3i4bKz1AQtiLp7UALiHOZIeW3Y8c5f-1QhujZC5BPzZ8TXlJ6prYhjLA4FT0gqVwYAB-WodleGOoEkbDX9fVG9ahTsefmpx-_-HPa_yweR6ZL5fap6KCWj6EMeFXSAcCIZMp6BYFT6m6eiKVEUifNVZzq_oKo5UE5BRL0ItBk-6c9b2EfxUvhbuFDi88vY-AfXr0ZXY2B3GG_QHwj61CE3kZXu2-di2c1tqU6b_fvaR3z-wRd1DFMIlZHDcG1J25TTxBjrTgcL-vNF6NKVdUmOkMMSDCMF8vInWh6R08Mgbdr3p5D9ZtP5HV7d9-EcMNrnmDmpfC4raArqmOr47jcGwDUxg_Z3HtXG6BfCxS0wtjIp3VUkjdH0-IU-Ao-YVX5tluQaPKFGUxD7LoUvkgZ1Hf6KmMgs_mBJfPZKklQATsvvRhdd144G_cLb4KdVOzDuNuesH7wTvRXsgFG-eGvXUDIdEyKG-F7WAz-U2Dq6__OUctqHCB-UOgYPScgDfgvtIyam2zhUVUwIFQlOFITxHFfRnFuOZpqocjWifxLLt8Fp101qY0-Lie2scuOoXLwSf3G2OikNTNrTIveGIlsYUBbr0ehCtCtswxh0-sPKGZXMm86nM-AUUQCucEUUngwRO8OEayVfbEPGyQMokpgKWgbSP6FgCvDFTP_b6V54nmu3vKHDx7GdNLeG0hkJNvK3A9hq47mpZ0xU-mxQ8pgs6ggptPaKhNv-Jmjn6biGVFR-vqh4OgG-SHPxsUYYuphchuPPL2ZflRSWX7NItBlrpvuVKuN9JVcp-RfcIrqpwABAbKZ2Buh--lEclEEJFoucFjgzGkLDiYPJ0K8VZhoIhcCb68F0hMeCmiBEJxVtiE8QzLjtp8gyR4eZwEDIW5tlYX2QepooPVJAy-QpX_L6s_D762Ttje_hOAq9PngKBCxy3rR3QgGb9p_nCALrnDn8rTQndi0h9vW22QKR8SiV3skM1zPNWN_EmcSnlqQz3RlvTOUx6fVsrLSxPTr1sJB2e_00ylg1TmBrVekeOup7PsVn5Hg78U6ZoPRzvVfww5krup_ndfM_sFmds-L5lPQrErQGBcln5GylOn62CErlJrG54XCZa2QvZoMM27VywcjTFKgz1EfDwB3-4Cv9mobAzO5sIq2RnhoyKRY07yQ5jojNCSkeO4_58EQVSCxxEJq-q7zn9tSPj04diwVYJ79guRCtd52omdagbMRcuIgbpopMxpLavNTG6furkw4c6FWSLdqOH2XVwWPVV7NHVEkoERMBeM="
+        },
+        {
+          "id": "rs_046011d2f456a9c3006a84e70e200087d2b6daefd5fd23cc77",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOeNXVa4Ch7GzMakNPMHBnAHzkJlzMbMEWlywVLfzHSUK6xnOdOMbHK0BTtzziXeQyI0JmA5Ne6x-GZMOYxAAac-raIZ6bW4-CT3_hd61SUUsXnfJBH5TznuW7Ujy2SA-vA1Mh7gOfgP20inw1bc_nBT5ASmqm1Yac5A0ZQNmLtDqaKSwLM9VnDZiBmn1utOKEYZ8NvyfbNjiGwHMKCBok2jT9UDQCs_zFOYv6dX20uMsZcfwFAdZ_IYf7rWq25OlSTEfTyvLZpRUWkI9NbEQaJW7_kNCto0puvopngWwOBRqE5DsdVP1VEVBYBxeQn7LQ84g_mm4KB3gkMR8hSsPvUQSig1H-B02meyjl48TTJGrvdKyxiHJpwtMbAy6UWumcKEjf4s4myb4ZyDp_q_Qpnv-_DnmmJONQM1Q_ZYerIwBtkiSGY6DYHPB4ywzvlEJsrNnAT_Ia36ozY1mZZKLUQAPHN4lbpVit1OqGgMJdgw8lmZXi7jeXbsR-QAsyu4UpfVSF99VHA9Abw7hPKzn9mSbVWRdZugp5Qjzmi9vAqceQ1YGqEshzRvZlmqOUsYMywoQygbEACcj6FlXkcAzqQVoSIhdI-SHw95NFNi6g0vXBO5qD95QOF98J3VpXXb37nh72WcvblUp34A37XyDCcYH6_tUQNEo2qXidvyEdgvXh8nVSY-cJGn0ZNzDeJcYAkBMWAv29WBf4Dsss9nyqoIW6ikC9SSVFL2Hje8neKibzTzXzxLQw_stVkoJV_G5ljGTyjXf1Y2UZl0dYNXxlH0EcO5L-RnuLrek6pzvhOO062TFSD_ojDL5x5z1WBY9Vd3NDuMANWAm2VPFnKXBZj_DhLir5tP79YrYaJA7S8N63VwEDUzkK_vGAjTSjB_i-yADE6YI3cWvduvEaYKcS-bn_0dwhO8uHLb86gUWYg0QbNwi0WSDKRBW_mDvUtn5Rtuzp_-YkQ-kGv5HSuueg8jC82ZsiHuMP-Q4u78cW_xKp7QXp52FLqzxkfe-wsZEhoAKErl1JRkLkXwZh7qZXKKbUWIZFhTp6M4lQMZQUUS7TL_ytO3TU_EGnH-9p12pNzbQHc9NbqRyeHqMjdvt4onM3L7p21LB7Ge3s-7wX8dguaKQpn88lproZ-1fG6KRJxedBkqxN_KPlir3ogA9bEX5uElMJsWAhtF0kFx0tsUzIcX1FF01R1_r3jRQ3lGt-ws_eZBYfEPrQdQUxChNndgyRH1aHdtcF-SwudjsUClWh7gTOrUuxlttVoUfCuJWhkPrTx6po5xbcw0xv42_E_DiW4mFInEa61NW7pwCjBY6cCCJRLjeB2qxpgNVOoJqnqpMiqP7coZEclXjWzKjjbiKopMScvyntoMUr1RL2srr7jLUZr4El_EPdDmPGIDKGzRVIPPaX_DSHe9nMTvRviGzvwi1hvpSiuMhD6kcI1kPB3n0gsQ3tbucqAOvff5TvNUESidUe3M1spxu_zd9cbIvypFgsmnDhNY5c2QphP1_SZljDX-maY1Tgd_up3gLTR5Ydg-o-Upc8i1S5hUdLSVbg-mbivMGus7rWDR04jFfjkfsbM5KeWcBzJlaTFQkXMcJrBD8yDKtYLjFfvREmkFhvhOV4HWnoz5nnieP4VB_L-zDJq-VRDg-wtGdDlNVE3o-YawoHH9wDBrII5C_HfV2fZAkBliKm4fd8CIR8RSLb93ccsY_60p1Nn9X0aejZutj6sRyY0CLYdVVSRh95LpzDZz39OpkMEL4ufBVU5aGFs5JLFO1hHY5G8oHtxUNcwsBgSwuSPGUYH7FhPHDdequBtXmDfIA6W74plrQ7YTxRrTl10amJ0TCQyo1tUwGsjwHqeSWYMs-MxzqM7BLLMNWyirsfolpdZYJKzrYccs51Ggds63QKiwpU077wJvQyL6EkbsxZ8v79cfjLZSILVV8cUd8kmIKZIhHDnkjS7MQ9iTlqJaibBqzZeezzrRlyYzmmi9tgWNSA_j751a83xlLM6sYoCMFOOqpIjqrUdmBpNTcaSYAzXLgZV-QCK3vsyRi-aVr1FOuIxm3upQDGjCuhg931OISDQEOiUKYyhbLLyb3VTd3g8I5K0Pwpb-vQJwvbesgVzKv7pM43wypXnzPknDevNy7MrZgGFswsYa70q_TjgIYAOGAw_y01GVQV8HMAjCFecbhk8yU1HPczxwTRrOrW0enF8CJ7QhoyG5ZRUEd_05Sc_Pf3kYFr1poKQk2WSMK-HdNlb8WmeOs-X8IS1gsXE75BX9Z52lo2sc4GrzDHWxG-pPjOa0wqk-8XV2NXq2owPbznVCcfGcJONr605rokMdFHBRgtLXinWB6XMd5VIVSWVaOEoo3hm_A8dusm3oEQazjDTRLdsRH7LjsnLhkx-t4EI8rHElyfd5sa0Pzmta4jQjrt-yqOZKdwW3A_gLfBn8BkapoaNga5cgPJFrlE0FsdeXZ5rWJBuJ7BUxm1Z6CcNCmIzcWJ3N02LnsVBox2Nius5TeCDMEwBsStoCP1tVJ1KhrgEIQKyU8GhZpQFqonLEjj9dc5Ljjwq2btgzZpmb2MbB6GZgLGVAs5R1YTx5OhWm8v0Zas5hWuJtcYuR0I8qWeXdEO9F-u87km92pTGThU02PidUZr8xZAejkXrNAfOpzeLhQT6twyXujSQsn4CQQJrIspaVAETtQnfZu-Z9l3YGbT1gj6p8G3F27HYJhzLUuOt4wkfurpmGAyMAlL63eWjEMJAnH1RVhTa-PMFjMdcR26St_LOzJXaGFCIO5P0gANNvPSatxSXcq8sSUYeF5NctQ89_j3u8DHu_T6j-Sf-E3ab2vdUTUcS9rnZnkRcEX_3bpA4ywYPUFDTmC6tdjQ22koNW38l3JtznZ8uZz4fA64CkpL4md-3yiF9obt2Eet3FKSR1s5z7A3rxlb5p509ZacImuyU8IV7s0BOJPmiEWPnMC42VrqL2-_8mp4RfnPNZPRI_KmW_4Tjh0xw9V5m3xxKs7uJEW9thvghbC6aNubM80NZJLHZ1NMxcTx_wG97NQfyXHNOkkfPGxAGEzWnQ00iPwQ9oId7tPjTYtpMygXhZp8kGjm8IwbluaCTWwvrYe1MhUh0fCugfxGWOLigaAxGpb1oMd7eFrnkqz0-QcOT5ZIEMtggTW3O96WNcXC4G53xtNCukBCRpiO7k_zMzeshZFHr1sEhRs4Z5HAqsxfqJQzbeguM0dpcitDoIMlHsdPPKC4VQZji9HV5qBndrmbC7tiKFDNo_7EqpsMOmsbfwKqxCdpNFDMzSw2Ru6ZRAJFjwS0BtCiB70RacHo1oH6hw-mfhanBKMP7wAWZ3_Wd_H4iWSEjsXDMZ-5qKGIXZtANjpMgAG_O6BTABFMciZD_Wu6K5J8XziZBM8Zz1EskbheLNtmTGj2RHPmOb0jMBbpNrJQDV-evl9IlujoVeLqMXv846CTWAzMmM_QOtpvj_SjMqKQHKpV314r39VzxPFgNQAEr-T_fsdLP-LbDaxZfmEiJnJQAZeNrTKNpJT1kOEQsTiANyRQfz6AoZ6Rj6KQU8SGIBIogjogOVFjDoOZpZ1m-jnfZfPQl0T8YLrRT_JEfsY5zyPFBxKpZIPPKcnSYP4iXVra8bLUIR1ynCf8xw0xDq1Z-dsU3QEHRtkQB9MMvrqIZ-qfyXC7Zc0NNnYe7GW71ePLj3m81iGdM9p53OzFDzqk2TiPnvKTBaCNnBKD4fWdwpC0CUbI7mO5ng-8kJzsAF-pabiuhyYXaKjINmVWG86sIe6UO5m3hxF6xKqJ_7aJgrd_y1uHi7dxcLf3wHo_kG4-ZPYdSBjUUx7-u3xvK9_lFmmi5qj0APySw8B6h2HMe3KN0_-6pZKq-JwqxuP4W5CfdMr7bfZDQNYZpjbwpyDJ3BI3_jhbb68JqGTqIouGf3mplI_KOHA-wxRuNlzf02b9h19c7S4qTdbTCAp3qK7EQ3cn5yi14HL_9J9uI6rwzscIiFlsmwY2g7FNUCHXX39BrTixm5Jhym1cH0rcmtYOnRF4WMgtWIo9ID2pnvxtTwDoy8NswjWyO_AuqNcmyzoY53nKCdry5tgoWcNCmRh5MsmsHkaIdlogxb4ckLapLYtwmtOf7S_HGTDJC7j0m8xrbwDmDCS3JW4ffOtd-S"
+        },
+        {
+          "id": "rs_046011d2f456a9c3006a84e719e9b887d2a5805ed250a608f0",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOeNEu2latnLxFIjz8CquRFE3ymaDsJFE34PWoPaNiWiUJAsXGc2G8KeUFlW9I_W__XhKDNXqhS30P5APH94yzjDh_h5Inaa6PwTwuqS3Rich8T-Nwjd94GnWt1E1OOp_ebpCVbze2i96qXrh-0gRcLEGpjh9raPuuhHmvt0pQthEjaYr-hoJwCa3SCWPSF2ceEYrZv6DYZZtEGX39ZSs29w61vFnLeWtC_dVyOUzUytatiddEjO2EO3dVNfuy6lrGaiC9Opt9hK_3PRGMOOo4gIudoEE9bWXxU1pbAKZmZFd9h9lvEmxnG1kupU8YdDmwuStk9XBEUVaQAciNLQgBbyoz19AIRf8rt-HnNvUL9VfD2IzxY4xTWLWdtsN6Tvu1Q5B8x6AFKFjNzFc4Zvyi5lqu0uVVX4UDx8CwLADDX2OC3YtZp07PtD5aZQV46kSqj9ejLVisDoNr5iuB2TiR73KeU8j8Tu3SLUC0nPe3goKeSXarcnNNybYDV3HUEehPQUUZPIvlFYhW0YBoFIop1C2q7v0jdGXQzB-UOsiO4_9WrGiIeE_D2_9EBW3wz0ViFxAOmcwHKAkxc9V_2JMrGzbzkHm47_h7K4yfXLZ7yYElJdIuI492Vf5qr49Hbao5r7_SBpd4GZlPWAPG0GLieFQKsMUDBsRJu-4knvKAPgR7TqhMOay9f23yCkFfQqmjjzpU_gS_NORaHpwTb26XlPhyOYkUi_2lbKTLDj7xgpZBJzDQrkOMhwM-s45HrW_PLKmOKHeCwen8xfszxv6tDE9tFWsXzyjzbzewp8b1dClnidCnPJ8bTXxwNaVPIzD3AFZvmhj8pHkoOIfA_0jjCC5AVVa1gBfM1ufxEPSO8y8TjL8yHlpok0uZ4nt_qbpIINPwG2fgWEe9--6bya4AfXsov19eUOgPWBwIeyaZalMF-QK13U4x5vz_Ego8L2k0eFPFw8bthi3rGuCb1HPm7dmU5TleQPFlikExDT7qeTxPA6Ehj4uC7BsjNtbeXDkxQhal7dxFIjF9y3ykABprgUce0C7BjHAvNYMZ9o6vNCFhh1of5A1UDVYPZewYN47PAGn2yb3Uut2JNHeA6h2K1d_hV4cwHXGX4Ims3v0AS-e11sYMqe1_i_HUu0xIKz1s37UHUV4M_cuq2781aXL-TGn2Gm7ZcMHY_8lwKWwAC_uHTFOuPUH_RBvHZDEhiGqa3rrUihenYHfS2refm2At8lxi9H2UN7bNtr0gxrBXPCIzq5oT4MXcEXfvAbY2we27HjZ44PAKAx12zIp8Z4-BqhVmzbJuhpoJ7IgKQ2Dje86S0x1t2oGsbV7HS9ffEc2Aftfayc1cDjIYl2vjM9ywFmksqgQ5fhlPSsUyw-5-4TapYwX_hVkPgQW2SyEx6Ha5G-jJG9Lroaj3VaXkWJ2LGYCe-qvX_mHzO-J_NUUtejbvQ-yTHHRdoccivsJj2pMhtHfFk8IBUkV0z16rWtT7o3ER8eqDTlq5YGHNLIzikSyawfDOwB9Dp__TLq2Kf5SwsRnS5TTjgXvhTHP2H9FNckHVuSJUVqSFS9Yw2SXiS6LamOzO0R9RLp5LdHB66nExLITeBkaA3NkND7saz4NpmHtfRHU5fhff-kaftXJv5PTHEOjOccjMrwaLtQuc7QegrOobzMqVxbt7Rt1mhH9tJ-tD_VBg9t8kszGmh6rDSbHhi-qsGmTlTXY73QOVurRfMg4i4QTCpjVt8GZtOeEjFnpcdgDhPDaKwVkHyuPh-0GjkuBS9emj1KBhgzyyh__faNRmOuYF0cWF-wvKz2_Vi9Ss1QYfTasGqx0WzSZhgtUVcVgyUtBuNJdOElBY_zbjgbCMcQnZPBSWFgsG8J4LasS-FN43veP4WJM2bVg36jEhFn8Tbl-YvuR6xllSa39YIokhg0WWMTIVP0dWoevgXVD26HqRxXn8CSRSi8XSugh8E2XJm7_9zmpgKATA95TLaCxX_ADoLy_rSybF2-Oe4OGPbuh9WCjId8O8XLNYo9CF5ElW5qFYEwHxrJih8RCy01HeMd5cT_4BqGhJ5AHhEOYidWdkLV9agdIB5__JySBAdnDjKtEySECE0sbPvzLUhnIp1sd24x3MXLq8eVa_o3ZoKGxYXJ8MpkN11mRG9nWlYhWjVTkzWrG-5qD_b7ID07O8n6ro2FQwZrEpbnupkl5VbVZSKle9TkKvZlxtxo57qhgfnCf-XGZYf7SXiLsWp67G5sJ6-PlnUYxCiPA2_5aANF6qCAReVI9Y1_BRK1i_8mCsGX7oXeZcZTHZVSKIwD6rgAO6m_TUL7iHl90DjlZhoJsAeQNpLVE3KRmWSSS8YbFv3kJbv_Mxd0FP1-7lxmZ4Yrb0a53hjc8J51t_Ro6tc8X-0rm8hFTojS85rLq7fsd-urPjqU8xsm5HCn64qtjjTuR2xTBCoPUIY-EH8wLqYNpyviAbTVvNVFar8wEpr2eUwkNeBss0BBy9k7b7WG0OYcVJspvtHcoWj4CbGgVcvA-t1AWUBGVAQXDRwXi66YvJhalHyhjkexS4yaPLuKvf_LAhS4AUW-nlGPTDzKZQZEo3hgPHsmOX7tYvUssqJhHDjZmg7eyIJHz_tfs30ovZUJ2bRHt_ON67LKnU8bherpSBcId5ER3guJch-V2Bcowa6yXhyvP8EKwlCW-K26T83f-R4nXlb9fWrTO0QyU5-ULL97odQlKAGjn5rdJsFQTJxPkex-JbqF-g7gtrkBzeSMwqw0Yhm3cOo8BzW8_uzNtHz0lBdBRZRqUbG_7GGsO-RqYpupk_5f2qPh9HhH8yoN2IM7sKPUFEoUNuUazCUPRS1AWBSpX-dxelR4IH7VVpWFGZ5v5icREx04DsVKayRSNC8pe9KJFRz53Rh3Y4CIyyARvr7hDALFAm36GsA10ba27Lp9fSSoAvhOioUDY2KRCFFCOXGCAJ7i04_ewO78H2vWH5lVgIqYP-HFg8_7FIwBjFphppETFXhy3LbSogofniV_4VouJo6CN8Q7SAgZC7KoxS1EgLpC-nlbyvodqoRSwIO1lZa8Az-7GzW_GWqNv_N1-L3gk1gKIfzgDZ9NjLmoevHUNtine97Q8ywPxToArUBh5dFaSRG0TPTKE9HHv_nF_FgSnIgo3L-Mmr19omYC4Y9lvnCENX7S_fP39Suhxyw8ZPZBRvn6gR6qtRgpnLpvaW83y9PEfqNHAnIJ54NgK7K3SCBURJ5fX12nXuSW3AIklytOlBb9lo8YWtFgBkFSXxB2pHnG_ZNjYB5zYMSUn5aqQyK23OpTNlvje5HdT2YOhaSsF_xETsoEFHWuHKbosMfrAtygAvJ287cbgdJa-7jnPnmKpVfvs4K7C0O1KL7kACtebHkFnpon6-aYs6FWdwgGHGSh5A8LspoVj9HoiHCXb1kQVmOuX_JaGuyjK7kCOQhi4kd8m5TxBQ4ZkX8CdTuCvDALhVFyWu1pUQDrwdTuSt-UrZMsfW9vrQxPbmWQOcEX8BvbQ6s5jkWpOg250-cqb6MwynCx2Iw3_U0-TBL3TIHY2D9T4S3kgoquzX8nHGH-PTKxdwptRwk4lMf1NcRQLUzHA9-m2evj53YKqPqbrL_i7X0v4rVNC_50NC2Gz8pb7C2iN-RvHB7hHgYAoqWBj5lIU4enTg=="
+        },
+        {
+          "id": "rs_046011d2f456a9c3006a84e724fce887d28f0b705cfc568135",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOeNmzSdd7dO6q3ft8boFX-yRPqhGcQfP9DTcGxWVWaqWW4abBG4Hwkvs9d9O4PJLGPpDhP8NxLe46dfLR1TjcWB4iq3rTMj1SxvecI9zbHOZI9VGTLc8gFhkXtv9m1fneflqb3guDJCrslfb46kVwXRygLzIlf5WliK1zaNht3Iu6P-ogXugSRUIxisGVcjwg-5-HvQAzVioTwvwWLUim9R4sC5Lj3ch5qF9j-olLwkaUjqcOLqgGMfFhCwFQaqSXMx8Xxt2w9q76-0mBlSVXVDRJcyKS2OJKdqIkpOKh7kuebtVyCCUSN_xqr8MV4A7q7vq05TsFmdOaJMJzQJVV8OvIirPaAhYADQ6FA0gCCbYriqJLmQr52TfwLsyl3_yi5GewWFUY0ueQNF2I6z5axvObySj33F6cBcWz9fzPzOF8JPYUJME0L_sSOYbzRmxTYJqEEvTWHi3LR_30BywrAT-TmND9_43eBHVQGIhtR4x8GYVuoIgGDedDVWXfgaUCrqovXgyNCy-GyLhf85u7STvZZv3ZkTakjudLvcbT-9ZoEhVZuReKpyjnlnHJcyrfUIaM7R4ouArmyhYLJFePZme6J6mxiAG_ctbT5bkBPmknxN4Gn9RztISr7Bf-usjcTKaV180mjeiYxzOUehItkb7PttXMQSqbVJOfAlbd6wJSav_w4FPTeTZcwnKWyP01-Llx3b7zJ51YYJHweu_cEZrHOFd-FOycUftx3i8DVt8mcNTgfnSLHHYYkGbQmglDE_yPQWUC2Kc1MNZCCB9J3Sh6bLnONpS9gV9bz1CP_PMG6M7CqgPPD3Ja0IlZQ_SlP-yGsytNHAqC0hHrkcqPOh7g1yupDZSh-RXpDW4x_17Tsbi4f43-EoYADGI7Is8Ujr9I5fbet0LBDOQ_U0DWgsVQ0k5k60Dcdh8pgh7OSffPIwzYKQQdv9rA-j9uaQZyPiSXgwMoFwqGaF5jAFqIGSt94dvy1CqcNqPcSXZv5QF8n2YQYqsjDhg7uS2EtBt3gC9BejGriof0gncazuhYLVzs9IZyLKiaju0z-TgIMxESJCRl70mHT7W_WVSerEaL51tUl_Gq7viDVufaptxY8C7IU6zNs0eK0dzpZ5LhuHgJ3mDwT7VHvNF-GOwkC0pwiBLtcxR9tXo1KF-Y9xpOwnd1EY0V5nnCvDQB0GwNOMYRZ7pFvyB4QPiEV5perdQtmorVcZ1d6OxjchvoCy2CTGcD0Mxbn8jOpXwL6nddSj8uXxk2nPOY-3Hw8GK2aeqBv3UgG-FT7vbLzgfN-PiSkvMi2Ps6httcvQ7ysTs2hBL4TFer9B8zEpaSYQAAr9b0qcX8YrGcz-nbZRuq8wWq5a6jt8fcIn-YxV0RlhHhkAzuRNHBAL_r5ep6sCb3JvNA_zGYu-cB8be7eRhdKCb3paa9kTCZ_P31DWa73DZFdoE8BZmwm1h3-PEvt66be_L6XpltGck-lANa7kBKNAgCqO3-2s1wJCN-F_KCvLv46zSx4rHmfVG1sXaKp5mQHAeSkqcuAU-g2woJHehuyr8Zcjdrx9OLEab8zDbP3MxFNT1zIxPNesPWVota4TTpf5EV83dKFdQEVmmevoYVE0Wk04FLauWYPPezSlmWgP0k9vYoQ_bCVOTxTfvYOIrPKqeK0ghwulQq0JyolMuh0JvXRxIX-l2cvFhtEmKTJgQ6CUm9hgCsDtYvt6hPDFYriJKqsnMuZY38J7ao_b9RjRg9nq0haumlgweibA0LCDaCqUJ8WQLNBtN1FzraqWk3Hu5oYm5_6dfKvMa9p-B5jaoWUeBb0ffx2MnRGhslG9YWzJ0bCCjSfGAPFUwXilZjyQkK9ZUoSrkMOcKB5x9juogzkh06VIBSbjlqNRexckI0TaAvtwZem-cxIvqgA5QJ_hvFwqe4dou4ECJj2H3_fYSH4BWm2k2SNR1f0GNnhiOxnENIL7FtqvRxGYraHb_trh1KNVUIziGyGj4hZssWfd_YJ9yCfeFugVtyEvp_6VSb9nOgrOCO2QtSgJpr07OusnPMVhCQwK1-FaoiyjuxuAyeJNrPSXf2fN3s_kYtTbvQ2KCatMij_jbzokAOEWX5dl_358WQ_edJ4IT-OxDWfR61oM7Nw6MeGuWkInhIfZ8keUCOf6YrCbpKAe73XUGZlMkL0KbQ3xwfs9Wt6GakJbna1_gphNnY-M3JnheX53LNdWEBnE5jguVFxSq06mk5weG49AP-bndsEAt0b9IJ25QbipbAkCdL1ClZ2P3nYuaJXkz1bD6v4gZoxSYluUpJyOE0KLVbf8nxQ33Vmq9ZEyUYStIB3i_EXOYqYJSpTPtIaIMtoK0sA8-iNyIlVU22abk5KlpG5iexMKxYt4JhH7LFQ_jxs-CvTSMxcWHSa9n_pEwEJdLaEmIVewzOKr5Jf6BakmUJ6Ww9mpTMMjL5_yyRZCDJZmMaPaD2-SuH8xq_hbXRToq60lVyJeLXfPdrLkj_Ele49fA-MmBltYs0RCo_EKP-TkGNzO1B9xlGRzWmRCpohdKsTNqXNSW64krjyeDyVnzlVrqFy4AYO_oJ_iodOEFDAIytj1NL8ZDSkNUelReTHbuCHoXAZ1G21LQd7jDgkYjZOTPuF5JfciayuTVs9jRaFKyQ-e4_Dcg9ytXLxdZCIGTZKr37hSLwNLa1ok1vQ-Rfo98GDsat6wJIqeg8I3O7algYX5r5O0mjdefZU-c_zu8eilyNN-25_i27rkESZZF50fheIq3RfOzbv2BFM4FU2EcktKt21TmUSf51ys1T7Wh4MRFt0WLxMQgbJAjNCSaJAuyY7H74Kq-RUv9N1O_pZ-8p-CwoMdn1eQl2WQDIZ-tHUWV2Zd9dbfDLrms7y-5bBxapPRZVPFb970EyAOPiZKB3JzRkAp5M5HkqgHEDacwRVLRraprHMHIfJ3SsSth6y0Uw-bS9Pcaa9X5_2CUBwt7dnGLVbIHMnFHyTbqPNq_gYjC5SOk8AFNn8RuTdbnzhu8BGpurszzXOHxn57GufBNiNEps6ryZFsk9-OR3QlgATaeF3Brjwy91Xl-aFx3IeQLvVtETpCsniBNxF5vpG0Wg638vYfAe-oMJNvUbWWao0KsOkCuVZRsGfw0POCV3wc0mEg0b-7nXegfXAOAZh20N2G2dXTCtMqUeDUrIbHnemXfIoo3XkDE5G6aOunKFyMfp-mx03X12z_UKwWZkzprWFjByt0XiNevVv8tpAzR-ZDtGR23HzGiBA0E2OgTiBhzpVdCFLpNFTga4gCsxxpb2x2mncBKSEjk1mSCwpOhAVhtls-qcTlNj5IL2xIpnj82RpBHTis7-rVlKVomxCkd1pHXPdPrkYKW6F_1oIgt-r1klL4c_20MlNTQsJVvJV12r3wWd7mhlenXXMPfl5vwHwcUS7B15gffvykH89zK48Nw8pYIfGMMGZiFLBVE--wN6cJUsgqNyw_p7knRCoegdf36w3rDqsYH3nLpxivrqHmDW_WJVD4tJ0VfuoZlOV3eY6CtUKABB7aG1Yrw7l8U_zeKtGdUEa4ju0LwTsblyZgnsOHYJ8A1QADhafZTtQrPkRkyHUeJBeUGsmijpkvJAmfEYByKZLPYdNayfe8Qzk4e3NBYO9Mp6phBnNdMcNjnj9g3hNHsJyOQbCudzaBm9-pV9KvZnhnFDqHzcucT4jBgIVAs-PcoW4HTRtv38P0-PYae9EYSqV52jaCJXIuSAfjAPIWxU6gNi5j8TGuLImlwKQdxId5MxiQPajPOPiOdGo5Q1jXh_SPd1WfxMiyHK5XxIWFRj1qThGkiduq0QAB-stBRr2vBl9uBYMtdUZWn-M_vX0Ylipp9SGgFCUVNEKRqYpI2KNpXZTRe9BahaC7geX3X69bO740P1etOonYz4D26EmRnLOKPM1F8A8tZ-z1A7eQny4Ae3hibq2ijSspUefNmbiHorgEIUS2I86ALxHXvwo3CTYw-lCD78QGdK43zX-9q2IXauuO6kjKbM2jjSPYmlsZUD4ZtW95Jp4mo_X-UXcHpHee75M-Nw=="
+        },
+        {
+          "id": "rs_046011d2f456a9c3006a84e731b46487d2bef84c7b51e21080",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOeNmT-5FfX4_9UdeeeVVI645KKJ9OipHsoROf389PGXvox865SJly-FElDnVDVw7DDVCSvKNso3wsqbbANUIZw4M5QZ-QRa5d5ur0KF5gfC31zWAXqB1t0k_RBGMBBy1I8CP_wGA1R2YicVydMEZLeNU2h5zp8b1fl3-AnaspO7Si916dxllQF0nn0tNb_V1UouI885Vzy98ypZfSZ7hc3VaS51fXfET81iMXm_DNGnTV8iXXpDEUxVC-zeo_ZNP9OfmwLHYr5TQXQWgoypMrcvQafyg0pIiJjlS2TgSb6MfE2X8JrQ0TwoUoMVB4n_N2Sgr_XeQRYw5g3zy6Ev7VYjrKbPzke7CtkWrA4jrAEDN8YweCf-RAkoL57DNHqxHAUbzVGeYvXHIHElvGqf7Dt8g-yZzebVves_HatfSqUGaMUy_sXH-wVy0_5WVvzio6G776N8qn50X8szYG9ASxC0k0D8xLvKRzxg_PG-WJb8hakds9PlpZIETlIrp0xDaZJh0IF7AXYJKcsUvHGMG4fG1jo1OXudStjXbHtxy2zZK0MaII-albq_-GL8XSL1DuKKUnU2fLI0ZJ8zJ3oZY6kklv3934o0iTK3jbx24H-2vpnZuXLKenB4hCtsBwGSJ4jBX7Xxn4_4HeLxA_mJIcoaC1P215cXbch2-9yhw-3ZQ6TOoeGSh80uhVXcP4p5H_rcxiRf6w5spBiXOJ1cJXxyLqNS0f-lviiC1f2gbcrsvoX8APXbKAKhKKVQGnNN8E4YQtmu8C0r0wZebmpwuQ-p6iTy-nIBRN-3fl1_Ycm5j67rKCREZ1Z7BzSGHgjXHHTp1avWYUwk8UJ6UlZ8QbgWHIlhiA8GjNt_21uSChIoLgnqMG3RYG9OIXuPMbq-0S-01WyH13PEZsYV5QJD417KSkIc-SO_2LBCeqNH-ch3IYY8A-u4b8n6m3Y2JU2tdshF_ykMg9Qo_0tu152LTnbq1q7rQtf9ssw74-g8k8aFo9kRhbbpAGL-ddCYkb3FKRUtuFE-UGRhIGXLH72SG343CO_QO-bOzT8JEEIPG1gLSJKFFFpkTloZpx9HgCyV213L3VZV51gua4Tqny0rBf4upHlb7XmpgBQ7UGOS40iVojcvH47_UZ2V15XrQM_A6reBHfLGJnVyvh0FzodJcQGUV8cjZPFhoYzxOewmtEWuMzNbQnKKS33ezSD7Uv2Ekytu0bwO2Aw_54858JXpXXBgDQ7hMzb4vd116C8SQkoT8TRi3UY4-mFTupm-qoKBUOQXlXyyaoxSufAjRS5Y5-FW-X7Sr4HjPqaX7qAO6ndq9UrC7_BCQYKy9IE1-7v_JE9kUs4jWugc41MxQs1uQ5-ixzaLvdTi3yQPLjlSJvYL_KvdbDGFczaBZUauGKbcC_7RBo6VOuwciI6wDL5YlG0gj4TiC_DlYQxryw79cfFD82t_YOoHAv_kmbzCvn51slSoA8sJssB5lI_AxkKm9ZXywKy9-T1F2mi24Ncpior_dirjpPMmAkaTNXTsNJc8_qKAhTnegOX8PW4Gemz5Z3l07guJo3SnYUPXFtY8a2iLc3hC9x4HVSp-PEgakcggq5mH1RcVnMaPKVVbu-HVt4tqs3l0TFmhZ3S49t9eFSBBiujEqkZy8E6BYYnDvsUqJg1gVyHKnkqSxWaSiaRIY2YBJndDgExA9BQiLBNdbRIIQTg94t7YYWBM7bV4o09OiUGzbR1OrpC5KbKT1n70invQgsFm7Ico_7EzlM4ud_SDXzbig6eBzgZL-w5IO_7rE3BjYQ-es2g7deUyczo_Vgz8qd65bwHlhu1ac_J0yWrYh696bWqCOE2hIi0UMPohHSs9nGqq1Atn0aMV2AHBKun_DuxxmQdQD8z-gWrFbMsMsumU365czwIgjrvobor0wmkS4LHug6hKtl_5uoRdKqIpSAUo-hXDMGLZUotjeq2dnkY8MU0jf-bacAE9WE55nymCBz4Z-as8dMO3fIsq5HFDzW8VfEqd12YqMqYzxYlaYKngAiygD6bHukLihnsE2OiJbhfEm4XqT2EP2J6letFvE2bg2cw9Nb8hq0rNrOSVvkgcSI0x0QrDEVugL18IWgNBaj9DNogA51Wa0dUu3CzTM-OTaNhKvLQA1BRn-EZuRYgYrDfvp19TYlhWfqLgK1LMec11rMBmbFPFwxEYklGcWhGnxVQUqIsLy__Seq_vsvwg8E6xdewE1GWmO_YLTN7culXz08fbd06df0PFjotpBFuImq7LfNc5Wy0D022b74hcVKA5D-w6cusizxaPifx-dh1-FzkP3AfvczftRHAcgwWtwiIoKdRPdbTUNrYO8pnbZeuec9Ttk81doLISE413dTt-Qwc1S0DqmINS4nWhS7CemAY7P9ukX1QZN9m1BqzhQglD-cVMsz7o0nnsFWbsOTwGSssS5GyRAj4ba9iuPoITUA4csP814aFWb_a4lxsgOvPIgGw7s0cTrku5b9-AYutHAlvtAUJkteI6Hl2Ui9_pcFOZ3PltS67yBTlBxBrLfudv8N-a3_iZyofDb1oB7ip5pUcmoXHmmlAvEPkRETbeHjVF1R-3aTKoD5_-cKy-Mm_epAP7HeryKubncMcgowsONW9wLjzoFP9JlA78waEnOlpKQVTzz5GhuGhNEzbH9eu1AhJ35crjUd9NUc59_0sbBOtWLh6kp0wCorLHDpG_r8e2oG0ozmsD-clTZI6537R5awWTfI9UFlpOv04FNNUQTP4-gif-YOpsN9jvzs8Vs5zMmODcEvdCJ_6UsWBT3qW7_-CZu8Rarmqv0k-eLkfJXrGgIcIJ8gMyp3_Y5Ie3daboUIJqcy0HVcvvKd9ePpBhhtAPfGjiCH6l_l1CWJfivWP9E9Kdi8RR87YIM0FrSyE9n5sokMK1X3y08-xfonlU8LPdgbyGUl8igdTBEzZU9zsJozY2zcxMNSwCWlaDzsUPbftyajaFw7UY0h1SzrQlrnw4Ik-xG-pPAkHb5x3tXJYLEjKkrYiyr6eL3H4w8EdOnuLZUoihSDr5Dg-gEC8fEl42LqLQXfwJyN_Vw0SZswquwJO0RjMidMoeF-QW2PsmidTk-FNOtHtWX9MdAqbdzOBNtNYvPDFO-lC1VvEYgTcp7R3SjQRD_PCdnokmF3hXV1KjCsWJgHEql1Uq74drKamYn9LC-Wz1bGxwyfWi79RCod9Ewm_NdWLBSJVGv3cPsRZ5u2sD_U1TI3haM0HBdYh9J_QLO81EX5gdyItIFxTXeOc06NDn6hPJbpZU-p-2tRFC9Hv2Ys9mqldm9y438l89GXQoZKX9NCiV4AARsz797FQIeTFZ7SNPEa5ePGDB-IRWC9Vpw-V_Sk_jd8ISRN9y4M3u-LJIFFUfpnqq_xCmDwB55zjBMmTre9iWHT1FlZCDDUf-Cw0fBDM0_50JrXGNciEt2v4kBgaIcymiyG0aKXqNPMXP6OREuGocQArFQO4LAXxlnCqLSlkKI8qtJxr3TB42ItwW2GvJNpFi48FZhNJWTHcTUVBjjc_hJoYojCcxElqvta6ti2O4Z02GRt52JHhnTmMickJ0aiEK8YjMk4zJBKh3kyd_JT4FzSxc7jPgzbQhOkjRqLlgYDTmA8d87YMbhi1PK4JGiYHKlS9yYha7v9NXA4yzxVxI8r91HQlnk-IVp-FXNa8Zw9EWBh3NkDCp14YEYNruA7AeTKbvX5DlxytgDQk661v4UzMFQ-gsXXTyFDZCWFIpRzn3GR5cYPnw-5YwwlKwR1rxUoSi2kJU3CCmrXj_llfvABKG-Is0W-5cocyZDcmpTve5leIB-yPiJhshAvXB"
+        },
+        {
+          "id": "rs_046011d2f456a9c3006a84e73ce94887d2ac475cb47d60bd99",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOeNssg-9i-MXSxkXablyTGu4LB5TmhOlM3Km9LtlKqY-LD9UwRDqzc3y7FAKEWY6OH_0TQMpJmrj4xhjvSHluOSR3jUXt2qnbnYn6GZhnISDRxHljbx99vUgM-qmRO9PKVMGL3Le0gl9Wy8POkbx8K6LtmB7eEChgKCgVPplg1f9sSUvBdLXZq0YUyxdU8KbbJbXiICqNp36TqrUt01qEYUEHrHcQ30Uk1LE5umIVLulQv57h9yKxprYnlUY-zIeXQppME0eg-3FzDXdIj56KBzonIjd2yb7JYsTkd64vRIi1nMqR9i_KOe8kAx36vLsXrVvPjS95lBRjJjbp5tq02DDXg1_rK7eQLuiRPmQ_7q1_5ys5lTrRtriSKgMNjh-H2Cs2UKvtk90WkgWM9R-SxfehsjBE0ZcIySAvMMW3THcHbZl1bJVrt35-4iWnDjrdTTJN9lduf1qpCTSaS115OG2ehM-mCwNsIU6OQN11kfZHFUC_M5OJjuVQ-9LCU2C2PF1rjD3NmkDumZzdeF3pmYb2zJib5p8DfPGRlQ9rxOYCGOUqocfFYjFdfYOYuGmm0TjO0lnUlTKz9E2-JBx3DD9wEVzEHkt8qQkC9FjEg90augPGZoIgOMQXP_8IcSn1A0fVdUH9OpBmHQo-_mXd0xXw6qd8uJuASF9lfXKTbVt_sgmZKKj7vi5LELXJZbW89ujyO4QDbPbD0sSdBoHk3gugLzlwP35JercDWSvAlThBFWw7MchO_c04e-lJR9bGVX6v8gjCUnY9ypMQk-QWQW9PjCr5saPXWU9a2A_ocv8ywDYRjQv8OfyHbCp1NpfpnFwscVEGReH7M1Vsn4s1U9HyoxyJOJYg4C_Pp_NPx5GcZHwFsBnUfZHYQiDTqbkKaNDhpVjjCED6qPI59WYbAYfjh7b0_5IMdzjN2b1AUB2DMAaUZHscC_hqpiv_Xj7c617DOn-DHOjGIzJfmZf1JNAwe4D-8vYqRgo4ZmF-0XaDo9T9eonNK_rOH4hxxVfyMZNar-rdFtKuJ98EX2qNcnLjS4flsIrC6DO0Ef_YK15mP7WedEr10c0gQtPBOfBD0wMD-_wDWyioEQbxPhwZpbamCmoxxJTvQ_m0SaLsdttd4lw63R6JwHc5PVXrDvavzsJLMgZP4_vLm5OimiVHZOvr2iKpRkCKwrBGEMAx4-WxqFpSKlktEbBbMIOk5BcpAzuW46w6KJ2maMkqGKkMx0AWSKr5jRXpQRcdl4VihqXaGA7m2Caf9RhDsKGUpP6YszWbdEXoDL-cNpiQ5yHE78FoUBdvHzJIyo1Dxb-Hh3ectNg3NbLA1ZDgTwjMnrUk0BIz1NL5MD2dCfhcg1Go5WJ9LAqiwbSPIdhndzMimUqusagwxFsYdPrcYGsmY683VkAn4R9h5tsPoXq__jZIIgisLb9QqRSWucimdYJzxpuLxbNAT6pm5154cxmiR_WI0vI36J3jOKo4-5ViGjSf7eL_B3mXrLJyUMPY1stjVdAqUc5iRVUBEqq2Rcs0g6KrLLvd7iDAMxvzjRFbwlohp1LZH6xQLfh9TnjGpzXQ-V1_WJXvlugolk9xYW8DqDXxWS8mgNBoyj7lFlC42irwlwd-fy5IEUAnmKpZy-Uira6BzvKRVEi-gRY1rqsc9_IKPZfgehUpFwVsCata_yBtbhtebGtPqPa3qVv_nx51RETWFdSB6_FGQDlvKUnYvO74HTVRwIGEOQoRhGlFHglY8bChoIpZS8spTpP-6OqUQQdxr_DNNe1gmubZtTWPJiKLfvT8DDUiTtLeniovUDwgsvj6PLFDjbRtjGRs5dfm0tzZehWtIUDgA2ms2b4iUWqGC9k8LZGodWhEktuzbiEvvLA1XkEooA3gHeQhTMOsdCt8wY9Ck2W5JPuivXizGVssl5nS17khizwFFkzGeD8BKA7iAD76pE2GnEw9p91aV9Rp9lzU1fruqWWEx5VjE-A9gqbygLXHbdBE9S-PmZqfiv0qkTqSZt4PIPQ0N5Jg99IuiipkoO3vB42pCNTcyNiGTL3gUat0Swu3pgeMzyzNDfbQT1qVG-NXgMKg0zBbXukXA9puCgRTFykr5ji7R-I6O91daTjy76V4DJsDUJRZmle3WKxOsVkUZ2eTZdsPJyPjVBzacfo9Z6md8enxL-0_uf1nF8uiIHnaBHwE-tYuYT-ZO8DpeVbAozsei9bXmyOgDkgejnOJ7IKXmZZTg-40JAjxZ8-amTRn1bZ4tHBIxxsoXf7a3nvO9D8G70z2pf-SznPwvs7c7Q8XSUjz44AUPGGO5BFRBM0Nst_pLf0gVHiR4Z2OxRdDev8y-BQd1xIO_DorURLdzgxz0foBJjVvhK3VFC4hgG67WCI1GrtwNpocsZmZvVAPJvUHWhEjRvoxDRxrOCnYJZzL9YpvEr7Mz66eg7Hq6lWaJ97J4xjFxQ2jWzqydDewgu9G3XZuLXFybl2-h1PyuJzRgri5ZvCP2rBsE1Qtn7ABT9GqIuEPAenzsrPMLfin28kd5jw-PDV-wQXqVf8SQ3EWSYg_hbEX-vineDY3aRBTGMVvsYFUWTM6JvDmJySD-ZLR2OjaGWNNCis7-3d8QAFzae93yJ6Mw253fLSbpNXuME_z-4Gl3t-MDXf34VA_DPzcqHWDHi1PGtsDPZ779E1sQEYv_dgwarvDt02dKuKtvK1XSdQbxtWVoJYAP5ALJ_QsZ1LeLcd5TjV6ZmwhcDpSGg_74kifP858xD_c52fcVhE1S1bdavzzSF6grBSkCUxCnKe9--Trm-o8EmiIgPL5lskL4viaJt1s9TJ_BQMR16ZO3aKjfyQ7VhcqVUQmxngXL-qhy7H4jAplLeaNsbmq20r7gchQxUWgeOp0YAfCfqD8LorvQj7XZp0Dp07HKhCg3pFhemeDJY1SL0dh6Y_mh8tVFa31BiD3ug-YNJ2g5jpZOj21LCWdRi0H119F8bUXcrQok90_fELt7pUmWLe0w-6bt8R6z4pviJdcTaKLbTfKtE47t9s2BdIJmc6SeWVD4kAVDl6bO7vTnATQW-doaYo1mD7cKTDXtZIqwch0IDc8LOzF3c5ffttL7zgDMtsDouFvpf9rwxyiqyLPFAM-aTP1UlQ_yLWci5HuYYu9I62lIwrNdA3bIWuq_Oe5rv1t_5z_OsJEyPcsJEUdtJ8qzOgphxtdx8yWwc4cUSrp9wpYfClJErsiOJ_wt4CMFpq0xJKoJ2qu5LqceLtBzoiZkUhlhxcJixQjNskPaxl36mf84ZHjdncHsDjsQzDtsfjbme5RdvPu-9VS5tspMZT7Aapdy8j18JM4BzggW5OKrboQR-DeHkluVFUkB_9a2aMYzZZbVkXYzV-T8kc9ZiRSqZBSpPeBSZD5iIOwHkttcJZWMIQLJKRvDxnfyfw5HfSVPemBgs__bUr__nonw2y_Lzu5R09OQulY77IkLldLEsy54GMap2krfMvnBAxU3n_W5G4L6mKTPV_jrZL49mlyM-WE2ru0TiVZOOHKeoWj4eUQNhvZyuJeWz0QXWhpNUVjIjs82_mjBf5Zf61jVHqa7REDt28tOVb7M-Olcys8ejs4fo_-7JeubPRTyszuKTeIyBHYM22i_QqIjR0VvVE5SNp21DD5j2EvxjU8aMKTjXVZSH9dtwamJcY3wcWGgrmMKeQDJfRK4aUdFXZ7C8KURvMM9UKO8u91ZzMDT0OWG0QtzW2Ch5mHEErZgZm4-TCiTKEIXX-z8ux55xHE7g6S-4Edw-WBCfIrbCdglItyoGcibocrqT5gGFKtJtHUti41ihldeyoZiRkG_Y2Nox7Gfd79_MBEEH0Ikm9hsX3r34Ob-IPgH05a3el8MCjWsySiBsvsPI1yOa1v1jOcxow4O15lRDRA3OYaklyCGpxprwIctJY1570Q=="
+        },
+        {
+          "id": "rs_046011d2f456a9c3006a84e749a1ac87d29d413fba70de11a5",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOeNAuk3OuHsM19X89zb6ETsNfsGFzHOmTRJSrg9BUIMtqXGmVTJkePKIhekihiMna8d5B2ANzToCXQDrHNYsA8CC9AIXzFpT70mR0QHi0Lo7hvxcSUrIOeYj2SPx3fEw0ZymEEzfDOi8iCP6DFVon0U--OfmEsMIgtuta6PF_LUZ5uUsf0ddDQne4HbUK8oEMyDQeGzpfTXT0R2m1CimJlc7lwtCweUNVLa5-_bd0XVFx2JJ2flqrdz6VZtAVqmwd0UaCOVnYbqYJ3s-ZCgYRxD4QKp2UiBnDylfeCpaTDUODhvaN8qqF9vrNG5VriTOCGRHU2Z9o153_7awYf6gywxyJ6nYUAS3VgTDhj59X1kSUCWsNPgUjZNPRZAxIUIw1DJSv9qyt9iWbzpLBQPyxvvTIvr3jZE2bWcQix8IFQx9gguX__usq1HeGNitciHcq0ovUP_TcUdoL0JX12TSrzzBobwpMqASxDRSu7g8Up2TJSpuU1sgQkuoE6FRA0_a5w_LeEyFNQgmF5PvwTWLxD6Akaa0k1Qz1tyQJXlpF-O_zl0xju6twe16_7B4pfFK9xryjcFzPD1-pu5Hiz2pEgawMuS5ZfMrCm5PvdSX05dXZs3N2d_p0KMUXVifq7FGR84LlN67PYmC0Omay4c8-_1QW4dL1OuqQA3WlKLyYk4EAulLQRf_7CwrTWWOwmSZhwOaC57MeGNHWp4EMh0kFLzJbrIj33Z1BoRwP4rcIx3e9nCGQV_YkS-Zf9A7ldq5eVJJAcX7bRIx1R7ewuIuilVj075stQl-240M3wBrQbTNFTfFfbMOSrswnPoPBsQ4DvtEVnRKTcOx02tZ4HOanvLWANUzgyCzO55-AvE7e8usNEICfKxDQfqFZhFz5M1GpkWSD_UjvBzid2AIyJPC2SIQav_lN41EITpNaTDANi2AAbrJ34DS5K68rh6gCto6erC86N4xyAc6mZhxtFsSTDcBZ3CkNPMNZ_tOGmRBVqAPfx-dJLrt7Oye3f0gphHGJcoT0GDoxBWzYFbWbfERKIBBEaz4wTOiFmtnFGyau1uCB7RT2CfaofHhCA1uwbNJsuiQiDK-dhnSmt4PpU_45EzriURrp_pAzDRd9AhkZJvSeKV2uSHurkMMVq9PR25KPQppqJ0mNbF6dgdwTh47LRenbDHIlNhObu2uVQotU9LpnV1xeLsA_ffs6H6crRjL2HlTCFhrF4HRm2ZxfTFLkbHjBDi3Uev6KVeAVtYlD-2kVsUHBi7QtJabmQggalE4q3emDvnjvMIrKU9J9rVUOYAvmfMopVAhmOGhgt9Dbk-vIAmUFYAr4ZC2RxjMJWLHL8L4zIrJj4t9MCGZxbkoPkGw_6lTgYr7at67vXUk_BCpwoROm0nHpSoajFacnrHAlK8pNykiPv2whI-_zi6em4tCytnKqRTYy7wF8x3jk-1g-bR774FikEbcYcqOOtD8BhpP_R6F_Nroom_6w6h-GsWzxqtM0-e1439uaSzmca8UiHtINdCCWbWFLBUCs9bcxXxqtovt_iP4xtnkmrusyTIVcydEZXukzBC-JPIgaJFxk3nRGCvifGcSTgX64Gsx0LOcUSMGYpSM_fVk5D9bjaJxg05cKeX4csKLfJiBCsApydbq0z2rvR3YwCzrrxeM0inQue99Q_P4ERpKQxUvcmZ7nvZgSEr3RFtqiXVCBakrGeC8jC_GPcXg6NuydkFZXamcg8Zq42Oq9fOKKax592M64koEml6Z8pbC-gb46i8wGA2RKW982QSGEQukOzL9Ue-o0ex06s2ugTBDKhkdWQWFd_ShIMtZbNCj8gDRc2e6mf9ZFt2wGDlH2Kmmp4Mdwt_tK17Q1TC4sm-FLtcb1t-OF1xWCpjTNwIIfHUl9Ng4D20gDDMve1MrXfB_fHd2YfXYvrc7jusqPRzh_CaSBSlqbZJye8k8UVfokeHGa4_hb7QhxlQH4eOVB3OnpOkncscLAMWwWjEqKCgGlUGIJUT_nnkXzUGInDFdJrBVCgBx92efFl8fpXCBpwj31b8NfoMg2qczQVjYsa43vYSRcfoSKIV_6WoMZl0MnVZnIb4y2s3p8BsBJ_avvMHjCh8VArNMfNioB9IoexBLSFfOp8kXOkKpOxkewQGOp4lqu8h-vh_oEIk6nXDJe_RsyWMmcAwIbgMvGWOByrDFKGJ6wBlyIKkg85UTCNNYosbLHM0qVa_QyhPmKHy-Q9NdcTxelG6OqEn1YCVqdDJF0bAgJG-tl-ZFDmHb5cHvRHZ4rjlDnvZSMYesFF218-JgVTLJJfGD_pzLcVcyp5dacwxV_tCMn1MTBOf5RwrImRIKSdPOiTt9NAHJCNZ8FvbXuOnyBSXE-VAdhZdv28IzziQlQ4eMM1XXRbl4GZaNkHbTWRD-Hsq_IqtUYpXWReiC-Jxv8Ba-7xXCfN5WXy8d71fa8KlnIY2kPk-xEmcH0dOL2d58bt9bR92TAa6frhn9lH_Y66hztHcCqFxa2a-ekh-H53GtDiKOT7UwfPf84fOrk_4DH2eXS5eS-EuZPXygKjosyt2CBJgyoEnj8Sn1bSJBdE1UizrVb649sDwDH3DJIPerqTE5fT5S63jLBVSo-FwNzC-tGEyWyE0KmZwBN0gT6QLb8wz0smZc8A8r9TOOVsVEVFDwuFgXz1Pi5jpdJEeisj92_4DSvO1luaMh6tYAhj9mk2oes9J7NdTsY58Yk9vXAitRTXZtuveDAGYmAKY47cBwAi8WpKmQl6FgFD2sNx3hJCBsynmFoEI5_8wdFtS0bkgKqdICR_Dernp9tGPHTGVMoiM0CoBXuuAODLAW2uC09bg6NoukVY6H3xiKMDWwCXAYgwJCZnZyL9JF5GkZ8ZtZYwmuIG5tVV4ELE8IACu5-G4Uzc6T7HZS9tWqvsU5uKxKQ2ArW1BSoJc2htp203JZFxEFMjtGJxMXmyvR_8xmXDcEGOhtXFjFXRijwj8-ZyWXsndtQpnzs8hOhJz-kpQ9-gSHq-lQufgCPlLymR-Kn1EViKMQd8IQG3f5-75c34Kwkh_UprEnKuv-m-5V2fXKWGb9fH_6VGPnduXTSD2MUUASt2IixZzOwkvWrDZlhEaRtATVMUTh18j1clGWpXyUgdXJvdRABlincUFId5wqcCiDcRrG-mEE9JrU9q_3bek9RDbDK0X69or-A3KBQfqC4h7IZ0wZ-mQ9Tg-4WeEh21ihfQt9kJ4MIj6b0v1W9o7TSG3AWe04uo9G691AldiymEDjI9DKne9JQfc_CqImoqeN6DJgiRsbaJK8sEHrH7_MF3_T2lIQMdDKUNQwQhiAaALg6nKiwVU-IQ4tBKxfwez-1ifgLhb_VAM-KXx9c5xhJIjYpPiT25X_7cVNEE-1ojiYcURQEKhVo07fE_8Ll-Cs3VRLCTz_0hS7Uf02Fk3xEYwk38XnKAGIbOfDJiQ1znu2DHQrXxTKThJVdu6bpmXClAbP-S4fKUBb6Wqxq2VXKvOTRuRrgD2_RxHg3vliWsuk9DjZRNK6TJ0PYOTz6ixkDL70LQKV10PRo82bItzX3sYsooRB4IqIYXlb4evQNbhR12jcZtZ_-o-sDYU09yhsLogJwXv5yNQce5MilAxQ8GXui3TjmTq2c5PLiqvaAIcBmZgwzibH74ggYIM3cgQ5K9N0S6_hW9LSwu5q3kfn9jQ4xUMReJueAY901prftwwFvIZVA3JuPxmBvasRYj8zP0j9FVbEY04q4VoaGotCfAHUTD_tjyE8KiCKKBRvpTjl7Zo86951EnQh9MCOc72tt4WSmPdnq3weQ0wA1-Zn3Ffg_KjunJ0Ie1RAQ6xKDGV6s2g0wATL_p4yOUZUhunjbi_20NO10LNYA4AvLQ="
+        },
+        {
+          "id": "rs_046011d2f456a9c3006a84e7551c9c87d2bcb8d2906f045f3a",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOeNdVMO2jO6txsPxUE_X6PcjYBvfeONLXyFIAy0vuxZ_Z0XwNeyiuxhnVHCzHd2bHlMNPInfHCmJ37PXr7tYlS2eNf_46uQ617d0qDSZESXxBl_xk_bBOGfPxuHZe4uSM9BmQkWjgU4-EhKkKj0INlzDKqfO2vkgFNl7EN5M17Nqv7oI1b6R0bXGxA_RPR8lLnchVVYmxKVRZO_JEHGNH4GgoPx38lhqUwlCivX-bn6Ixq4Bp1uBN0p3b869T-YkO8eU6z0NPa5Gt7_h2ASgGq6MMahsGXqUgUfrEr_nHutQjei5-I1iRP-9ptc0winpJmbeR1QkqjoXOfsrZdF2hGGIwlshasMwyo78AK5Q398VT1a6GpESnMK0KepRI-6K2mZZ4ipXieXMyLzrTB4vb1HEc4Kzzl0XsnzWhw4aYPltHPihXARlHpt2KCOTf6W0-S3A_kie9tbm97J0YhGniHjWN7VrJEKK7XB5UowMuKXmIWw9CfUy-Z7otpC7Bdlc8HR6n_rZv1Bfu6hURfXo1yq4TJoUWvwR2qlSMG5ouJz08LOlauHELq204sfQdjSbcOkkBf4eDzYCVDpC1rEXp_IZUdhA_H-AXRg8dhCVY5uPany_vXz08t8kbPYcDHcbxUJUzIyWuNExkdHtR9fq4qd5jze9NeEUlpOSbeKjRGcN2HoxKeoz8j_rmvs-S0TIgwIUyYLsBWKOT4KFosjlWnPUgQ1KrH6l9p5DAhcY7iMPFuIjPrVqSx2ttKtqL1oPH2irjyQYFZaotOtl7TFehS8VWh0AHku7IzpMsPLFn44VuLmnj2_zo3ePUmBSFc-XXztCHlxQ9MyaTO0e0IZ424xtFh9FYBeRMs574Pqjz8pE7ArgoOnrzKZxkhv2PSYVJLqSeHh9qsYZ8zCafnaUZoTwA5_Qo1w36ZFmO6vfVAZo0fKPFlhJh8WCy3nNBx4AqzJztT5jyIss4WB-s8AK_p8CdhBV6HzxyJfuSgKnl4SkomI_-iilXGzPLHLJAZhAm8AKAj2nu0gjXEDa7nYu84UhtU8AsoTPVFAHi7GPQaxP1VpCxbsLW3WEHSYYfIYhOI8xrM9UGJKW7_5hhsS3oRQHJxG-i1g_zrzOmOhh1JrS4gzHBAWv0bfr2UpyGDywDVVRl1ME85xy7P1dXItd4ncPGFO8jjgwyKYYfflDO0-So1akElTtlPO8Dmvi-Et_yhi5z6W7QzV35Qway_hx6IJhPR9amQgTVJ8uauZML1h6SBGkWeqgKBFfJm3J8mKiNz4VUvbzUB6NBpf0jQX804anhsYdIb3r6s7twgH33GbslFvsEewS_UJnMJApANzCEObApre-_D1ZwQJmjNCxbekoL8iBrYaBnbIC-q8IulIkhJFXUd1fk38aWF4T50ioKEsgmTYBj9O1fCDEoUjIPNoVRb5FQu4wtLGWM-FjCMXO_xL_moSU4pum6IaS8PEoG36L8eJ_S4MJ8-3ycIvp72FfDVOr66XRqmpaYefMNk7qdkOxGI7HtzNMCJgP4nS65-LF_oUj7LlYRMBaTJypXjOGNgwwSEHUJDNkMRNjy-YUU7q5KOhYEcGGIAxbuILw4pG7N_C5uhI3OEIK2WHgjqrhKuLbktw9vZnvLwmE537CFNgl-lWzv_UcqaTTCJhe3QapeOBQ5wKLLiUrLbp3_WGN3c2u0WTnmaG94N6meIXhqsrgVaDtAVAcUnT06b5XIDqsi2rWUTn9bPtfPC-GeTevUBG9e4NE3ud5IyJNw8uwjWiEHCJXIxpQytZTGgBxr6SU8DhNSj5ZrUIuE_NA-J_4pJ7zS7eIaj0vBYJF1UX6UX83pXxrQY9qf6pUrjxkTl1KXeLDQO1A1N5HCVNo2dM_5cZiJ9_Qqd6VEzMrSVaLPEbljIzBkRmeiywwWDoVPRSCt1AAKEtN_B5vkxLN5LYDquWXVcGGeJdPKDEe8ZTBcBKKXSkViDmU12EfCty2-z3HveoOgJO4ieVLnyGJsePZEpQ3R5VkY7BTW9Qcgv8HqslFQCp3Wwl5n1JIP7XRbfTKNQgBBubnuZxRc3xY4BxAajCFIxWzPd65ja6Eq9Db-B-ldB-EcRgYfEDJOk3PBW_pThTPcra6XW6c5noeX-5bg=="
+        },
+        {
+          "id": "msg_046011d2f456a9c3006a84e759b2bc87d2b36f2249dc68853f",
+          "role": "assistant",
+          "type": "message",
+          "phase": "final_answer",
+          "status": "completed",
+          "content": [
+            {
+              "text": "{\"dishes\":[{\"name\":\"Ward-Shift Egg Toast\",\"title\":\"Boiled eggs, toast and tomato\",\"slot\":\"breakfast\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"wholemeal bread\",\"quantity\":\"1 slice (40 g)\",\"amount\":40,\"unit\":\"g\",\"state\":null},{\"term\":\"tomato\",\"quantity\":\"100 g\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"black pepper\",\"quantity\":\"a pinch\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Toast the bread, peel the eggs and serve them with the sliced tomato and black pepper.\",\"why\":\"This is a small, simple breakfast that can be eaten before a long ward shift.\",\"uses\":[{\"preparation_id\":\"prep_boiled_eggs\",\"servings\":1}],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":3},\"honours_belief_keys\":[\"the_basket_decides_the_week\"]},{\"name\":\"Pocket Apple\",\"title\":\"Apple\",\"slot\":\"snack_am\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"apple\",\"quantity\":\"1 apple\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"}],\"method\":\"Take the apple with you and eat it when the morning break arrives.\",\"why\":\"It is inexpensive, portable and requires no preparation on the ward.\",\"uses\":[],\"same_day\":{\"kind\":\"none\",\"minutes\":0},\"honours_belief_keys\":[\"the_basket_decides_the_week\"]},{\"name\":\"Golden Lentil Bowl\",\"title\":\"Tomato lentils, golden couscous and cucumber\",\"slot\":\"lunch\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"cucumber\",\"quantity\":\"100 g\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\"}],\"method\":\"Put a portion each of the freshly prepared lentils and couscous in a container, then add the diced cucumber.\",\"why\":\"The lentils provide an economical lunch anchor, while the couscous gives some of the comfort of the requested risotto without exceeding the cooking window.\",\"uses\":[{\"preparation_id\":\"prep_tomato_lentils\",\"servings\":1},{\"preparation_id\":\"prep_golden_couscous\",\"servings\":1}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":3},\"honours_belief_keys\":[\"the_basket_decides_the_week\"]},{\"name\":\"Carrot Peanut Crunch\",\"title\":\"Carrot and peanuts\",\"slot\":\"snack_pm\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"carrot\",\"quantity\":\"100 g\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"roasted peanuts\",\"quantity\":\"20 g\",\"amount\":20,\"unit\":\"g\",\"state\":null}],\"method\":\"Cut the carrot into sticks and pack it with the peanuts.\",\"why\":\"This low-cost bite is sturdy enough to carry through a twelve-hour shift.\",\"uses\":[],\"same_day\":{\"kind\":\"assemble\",\"minutes\":2},\"honours_belief_keys\":[\"the_basket_decides_the_week\"]},{\"name\":\"Smoky Golden Lentils\",\"title\":\"Warm tomato lentils, golden couscous, yoghurt and toast\",\"slot\":\"dinner\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"plain yoghurt\",\"quantity\":\"100 g\",\"amount\":100,\"unit\":\"g\",\"state\":null},{\"term\":\"wholemeal bread\",\"quantity\":\"1 slice (40 g)\",\"amount\":40,\"unit\":\"g\",\"state\":null}],\"method\":\"Reheat one portion each of the lentils and couscous until piping hot. Toast the bread and serve it beside the lentils with the yoghurt. The hot lentils and couscous are a warm anchor.\",\"why\":\"This gives a substantial, comforting evening plate without attempting costly lamb shanks or a cooking session longer than fifteen minutes.\",\"uses\":[{\"preparation_id\":\"prep_tomato_lentils\",\"servings\":1},{\"preparation_id\":\"prep_golden_couscous\",\"servings\":1}],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":8},\"honours_belief_keys\":[\"a_warm_anchor_every_evening\",\"the_basket_decides_the_week\"]},{\"name\":\"Cucumber Egg Fold\",\"title\":\"Boiled eggs, wholemeal bread and cucumber\",\"slot\":\"breakfast\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"wholemeal bread\",\"quantity\":\"1 slice (40 g)\",\"amount\":40,\"unit\":\"g\",\"state\":null},{\"term\":\"cucumber\",\"quantity\":\"50 g\",\"amount\":50,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"black pepper\",\"quantity\":\"a pinch\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Peel and slice the eggs, place them on the bread with the cucumber and pepper, then fold the bread to eat.\",\"why\":\"It is a small breakfast that can be assembled quickly before another long shift.\",\"uses\":[{\"preparation_id\":\"prep_boiled_eggs\",\"servings\":1}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":3},\"honours_belief_keys\":[\"the_basket_decides_the_week\"]},{\"name\":\"Second Pocket Apple\",\"title\":\"Apple\",\"slot\":\"snack_am\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"apple\",\"quantity\":\"1 apple\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"}],\"method\":\"Take the apple with you and eat it during the morning break.\",\"why\":\"Repeating an inexpensive portable snack keeps both the shopping bill and morning effort low.\",\"uses\":[],\"same_day\":{\"kind\":\"none\",\"minutes\":0},\"honours_belief_keys\":[\"the_basket_decides_the_week\"]},{\"name\":\"Crunchy Lentil Sandwich\",\"title\":\"Tomato lentils, cabbage and wholemeal bread\",\"slot\":\"lunch\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"wholemeal bread\",\"quantity\":\"2 slices (80 g)\",\"amount\":80,\"unit\":\"g\",\"state\":null},{\"term\":\"white cabbage\",\"quantity\":\"80 g\",\"amount\":80,\"unit\":\"g\",\"state\":\"raw\"}],\"method\":\"Spoon a chilled portion of lentils onto one bread slice, add the finely shredded cabbage and close with the second slice.\",\"why\":\"The same economical lentil batch becomes a portable lunch rather than another identical bowl.\",\"uses\":[{\"preparation_id\":\"prep_tomato_lentils\",\"servings\":1}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":4},\"honours_belief_keys\":[\"the_basket_decides_the_week\"]},{\"name\":\"Carrot Peanut Crunch\",\"title\":\"Carrot and peanuts\",\"slot\":\"snack_pm\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"carrot\",\"quantity\":\"100 g\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"roasted peanuts\",\"quantity\":\"20 g\",\"amount\":20,\"unit\":\"g\",\"state\":null}],\"method\":\"Cut the carrot into sticks and eat it with the peanuts.\",\"why\":\"The planned repeat avoids an unnecessary extra purchase when money is tight.\",\"uses\":[],\"same_day\":{\"kind\":\"assemble\",\"minutes\":2},\"honours_belief_keys\":[\"the_basket_decides_the_week\"]},{\"name\":\"Cabbage Lentil Skillet\",\"title\":\"Warm tomato lentils, cabbage and toast\",\"slot\":\"dinner\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"white cabbage\",\"quantity\":\"100 g\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"wholemeal bread\",\"quantity\":\"2 slices (80 g)\",\"amount\":80,\"unit\":\"g\",\"state\":null}],\"method\":\"Put the cabbage and one portion of lentils in a pan and heat for 6 minutes, stirring, until the cabbage softens and everything is piping hot. Toast the bread alongside. The hot lentil skillet is a warm anchor.\",\"why\":\"Pan-warming the cabbage changes the lentil batch into a generous dinner while staying within the student's short evening window.\",\"uses\":[{\"preparation_id\":\"prep_tomato_lentils\",\"servings\":1}],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":8},\"honours_belief_keys\":[\"a_warm_anchor_every_evening\",\"the_basket_decides_the_week\"]},{\"name\":\"Peppered Egg Pot\",\"title\":\"Boiled eggs and yoghurt\",\"slot\":\"breakfast\",\"day\":\"fri\",\"ingredients\":[{\"term\":\"plain yoghurt\",\"quantity\":\"100 g\",\"amount\":100,\"unit\":\"g\",\"state\":null},{\"term\":\"black pepper\",\"quantity\":\"a pinch\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Peel and quarter the eggs, then serve them over the yoghurt with black pepper.\",\"why\":\"This keeps breakfast small while using the final safe portion from Wednesday's egg batch.\",\"uses\":[{\"preparation_id\":\"prep_boiled_eggs\",\"servings\":1}],\"same_day\":{\"kind\":\"assemble\",\"minutes\":2},\"honours_belief_keys\":[\"the_basket_decides_the_week\"]},{\"name\":\"Final Pocket Apple\",\"title\":\"Apple\",\"slot\":\"snack_am\",\"day\":\"fri\",\"ingredients\":[{\"term\":\"apple\",\"quantity\":\"1 apple\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"}],\"method\":\"Take the apple with you and eat it during the morning break.\",\"why\":\"A third planned apple is cheaper and simpler than buying a snack during the shift.\",\"uses\":[],\"same_day\":{\"kind\":\"none\",\"minutes\":0},\"honours_belief_keys\":[\"the_basket_decides_the_week\"]},{\"name\":\"Quick Chickpea Toast\",\"title\":\"Chickpea and pea curry with toast\",\"slot\":\"lunch\",\"day\":\"fri\",\"ingredients\":[{\"term\":\"wholemeal bread\",\"quantity\":\"2 slices (80 g)\",\"amount\":80,\"unit\":\"g\",\"state\":null}],\"method\":\"Reheat one portion of curry until piping hot and toast the bread, then use the toast to scoop up the curry.\",\"why\":\"Tinned chickpeas and frozen peas provide a filling, inexpensive lunch anchor after the second short cooking session.\",\"uses\":[{\"preparation_id\":\"prep_chickpea_pea_curry\",\"servings\":1}],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":7},\"honours_belief_keys\":[\"the_basket_decides_the_week\"]},{\"name\":\"Carrot Peanut Crunch\",\"title\":\"Carrot and peanuts\",\"slot\":\"snack_pm\",\"day\":\"fri\",\"ingredients\":[{\"term\":\"carrot\",\"quantity\":\"100 g\",\"amount\":100,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"roasted peanuts\",\"quantity\":\"20 g\",\"amount\":20,\"unit\":\"g\",\"state\":null}],\"method\":\"Cut the carrot into sticks and eat it with the peanuts.\",\"why\":\"This dependable packed bite finishes the stretch without adding another costly snack ingredient.\",\"uses\":[],\"same_day\":{\"kind\":\"assemble\",\"minutes\":2},\"honours_belief_keys\":[\"the_basket_decides_the_week\"]},{\"name\":\"Golden Chickpea Supper\",\"title\":\"Warm chickpea and pea curry with golden couscous\",\"slot\":\"dinner\",\"day\":\"fri\",\"ingredients\":[],\"method\":\"Reheat the curry and the final couscous portion together until piping hot. The hot, spiced curry and grain are a warm anchor.\",\"why\":\"The richly spiced pulses and golden grain give the final dinner a braised, risotto-like sense of comfort within the strict budget and time limit.\",\"uses\":[{\"preparation_id\":\"prep_chickpea_pea_curry\",\"servings\":1},{\"preparation_id\":\"prep_golden_couscous\",\"servings\":1}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":8},\"honours_belief_keys\":[\"a_warm_anchor_every_evening\",\"the_basket_decides_the_week\"]}],\"preparations\":[{\"id\":\"prep_boiled_eggs\",\"title\":\"Boiled eggs\",\"servings_made\":3,\"ingredients\":[{\"term\":\"eggs\",\"quantity\":\"6 eggs\",\"amount\":6,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"water\",\"quantity\":\"enough to cover the eggs\",\"amount\":null,\"unit\":null,\"state\":\"raw\"}],\"method\":\"Put the eggs in a small pan, cover with water and bring to the boil. Simmer for 9 minutes, drain and cool under cold running water. Refrigerate in their shells, with two eggs counted as each serving.\",\"active_minutes\":5,\"total_minutes\":15,\"cook_on\":\"wed\"},{\"id\":\"prep_tomato_lentils\",\"title\":\"Smoky tomato lentils\",\"servings_made\":4,\"ingredients\":[{\"term\":\"tinned green or brown lentils, drained\",\"quantity\":\"720 g drained lentils\",\"amount\":720,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"chopped tomatoes\",\"quantity\":\"300 g\",\"amount\":300,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"onion\",\"quantity\":\"150 g\",\"amount\":150,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"garlic\",\"quantity\":\"2 cloves\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"vegetable oil\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"smoked paprika\",\"quantity\":\"2 tsp\",\"amount\":2,\"unit\":\"tsp\",\"state\":\"raw\"},{\"term\":\"salt\",\"quantity\":\"a pinch\",\"amount\":null,\"unit\":null,\"state\":null},{\"term\":\"black pepper\",\"quantity\":\"a pinch\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Finely chop the onion and garlic. Soften them in the oil for 3 minutes, stir in the paprika, then add the lentils and tomatoes. Simmer briskly for 8 minutes, season and divide into four portions.\",\"active_minutes\":10,\"total_minutes\":15,\"cook_on\":\"wed\"},{\"id\":\"prep_golden_couscous\",\"title\":\"Golden spiced couscous\",\"servings_made\":3,\"ingredients\":[{\"term\":\"couscous\",\"quantity\":\"240 g dry couscous\",\"amount\":240,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"boiling water\",\"quantity\":\"300 ml\",\"amount\":300,\"unit\":\"ml\",\"state\":\"raw\"},{\"term\":\"mild curry powder\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\"},{\"term\":\"salt\",\"quantity\":\"a pinch\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Put the couscous, curry powder and salt in a heatproof bowl. Pour over the boiling water, cover for 5 minutes, then fluff with a fork and divide into three portions.\",\"active_minutes\":5,\"total_minutes\":10,\"cook_on\":\"wed\"},{\"id\":\"prep_chickpea_pea_curry\",\"title\":\"Quick chickpea and pea curry\",\"servings_made\":2,\"ingredients\":[{\"term\":\"tinned chickpeas, drained\",\"quantity\":\"240 g drained chickpeas\",\"amount\":240,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"frozen peas\",\"quantity\":\"200 g\",\"amount\":200,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"chopped tomatoes\",\"quantity\":\"100 g\",\"amount\":100,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"onion\",\"quantity\":\"150 g\",\"amount\":150,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"garlic\",\"quantity\":\"2 cloves\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"vegetable oil\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"mild curry powder\",\"quantity\":\"2 tsp\",\"amount\":2,\"unit\":\"tsp\",\"state\":\"raw\"},{\"term\":\"water\",\"quantity\":\"100 ml\",\"amount\":100,\"unit\":\"ml\",\"state\":\"raw\"},{\"term\":\"salt\",\"quantity\":\"a pinch\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Finely chop the onion and garlic, then soften them in the oil for 3 minutes. Stir in the curry powder, chickpeas, peas, tomatoes and water. Simmer briskly for 8 minutes, lightly crush a few chickpeas with the spoon and divide into two portions.\",\"active_minutes\":10,\"total_minutes\":15,\"cook_on\":\"fri\"}],\"cooking_sessions\":[{\"day\":\"wed\",\"preparation_ids\":[\"prep_boiled_eggs\",\"prep_tomato_lentils\",\"prep_golden_couscous\"],\"total_minutes\":15,\"run_through\":\"Put the egg pan on first. While it heats, chop the onion and garlic and start the lentils in a second pan. Add the lentils and tomatoes, then pour boiling water over the couscous while both pans finish. Drain and cool the eggs, fluff the couscous and portion all three preparations into the fridge.\"},{\"day\":\"fri\",\"preparation_ids\":[\"prep_chickpea_pea_curry\"],\"total_minutes\":15,\"run_through\":\"Chop the onion and garlic, soften them in the oil, then add the curry powder, chickpeas, peas, tomatoes and water. Simmer briskly, crush a few chickpeas to thicken the sauce and divide it into the lunch and dinner portions.\"}],\"shopping_list\":[{\"term\":\"eggs\",\"quantity\":\"6\",\"aisle\":\"protein\"},{\"term\":\"tinned green or brown lentils\",\"quantity\":\"3 x 400 g tins\",\"aisle\":\"pantry\"},{\"term\":\"tinned chickpeas\",\"quantity\":\"1 x 400 g tin\",\"aisle\":\"pantry\"},{\"term\":\"chopped tomatoes\",\"quantity\":\"1 x 400 g tin\",\"aisle\":\"pantry\"},{\"term\":\"frozen peas\",\"quantity\":\"200 g\",\"aisle\":\"frozen\"},{\"term\":\"plain yoghurt\",\"quantity\":\"200 g\",\"aisle\":\"dairy\"},{\"term\":\"wholemeal bread\",\"quantity\":\"1 small loaf\",\"aisle\":\"grains\"},{\"term\":\"couscous\",\"quantity\":\"240 g\",\"aisle\":\"grains\"},{\"term\":\"onions\",\"quantity\":\"300 g\",\"aisle\":\"produce\"},{\"term\":\"garlic\",\"quantity\":\"4 cloves\",\"aisle\":\"produce\"},{\"term\":\"tomato\",\"quantity\":\"1 medium tomato\",\"aisle\":\"produce\"},{\"term\":\"cucumber\",\"quantity\":\"150 g\",\"aisle\":\"produce\"},{\"term\":\"white cabbage\",\"quantity\":\"180 g\",\"aisle\":\"produce\"},{\"term\":\"apples\",\"quantity\":\"3\",\"aisle\":\"produce\"},{\"term\":\"carrots\",\"quantity\":\"300 g\",\"aisle\":\"produce\"},{\"term\":\"roasted peanuts\",\"quantity\":\"60 g\",\"aisle\":\"pantry\"},{\"term\":\"vegetable oil\",\"quantity\":\"2 tbsp\",\"aisle\":\"pantry\"},{\"term\":\"smoked paprika\",\"quantity\":\"2 tsp\",\"aisle\":\"pantry\"},{\"term\":\"mild curry powder\",\"quantity\":\"3 tsp\",\"aisle\":\"pantry\"},{\"term\":\"salt\",\"quantity\":\"1 small pack if needed\",\"aisle\":\"pantry\"},{\"term\":\"black pepper\",\"quantity\":\"1 small jar if needed\",\"aisle\":\"pantry\"}]}",
+              "type": "output_text",
+              "logprobs": [],
+              "annotations": []
+            }
+          ]
+        }
+      ],
+      "status": "completed",
+      "billing": {
+        "payer": "developer"
+      },
+      "metadata": {
+        "source": "generate-meal-v1",
+        "user_id": "2a000000-0000-4000-8000-000000000004",
+        "request_id": "2a000000-4100-4000-8000-000000000001"
+      },
+      "reasoning": {
+        "mode": "standard",
+        "effort": "medium",
+        "context": "all_turns",
+        "summary": null
+      },
+      "background": false,
+      "created_at": 1787094758,
+      "moderation": null,
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "total_tokens": 0,
+          "output_tokens": 0,
+          "input_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          },
+          "output_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          }
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "truncation": "disabled",
+      "temperature": 1,
+      "tool_choice": "auto",
+      "completed_at": 1787094924,
+      "instructions": "You cook for ONE student, inside the method their coach teaches.\n\nOutput a single JSON object, nothing else. No prose outside the JSON, no markdown fences.\n\n== THE METHOD COMES FIRST, THE RECIPE IS YOURS ==\n\nYour coach's method is given below. It is not a suggestion: their forbidden practices and the foods they do not put on a plate are hard limits, and you never contradict them.\n\nInside those limits you are free. Write real food a real person wants to eat. You are not restricted to a catalogue.\n\n== A PORTION IS ONE PERSON'S PLATE ==\n\nYou are told how many people are at the table. Every quantity you write is for\nTHAT many people, for the number of servings the dish actually makes — and for\nnothing more.\n\nMeasured failure, and it is the one that makes a plan unusable: \"2 salmon\nfillets, 500 g potatoes\" written for ONE person eating ONE dinner. That is three\ndinners on a plate. If a quantity only makes sense because the dish is cooked in\na batch, then say so in `batch` — do not silently inflate a single plate.\n\nSanity, before you write a quantity: one adult portion is roughly a palm of\nprotein, a fist of starch, and vegetables on top. Scale from there. You never\ntell the student those figures; you use them so the numbers you DO write are\nbelievable.\n\n== EVERY MAIN MEAL IS BUILT AROUND A PROTEIN FOOD ==\n\nBreakfast, lunch and dinner each carry one whole protein food as their anchor:\nmeat, poultry, fish, seafood, eggs, pulses, tofu or tempeh, or a protein-carrying\ndairy like yogurt, skyr or cottage cheese. It is the thing the rest of the plate\nis built around, not a garnish on top of it.\n\nSnacks are snacks. They do not need one.\n\nNever write a figure for it. No grams of protein, no share of the plate, no\ntarget of any kind — you are choosing a food, not measuring a person.\n\n== THE STRETCH STARTS TODAY ==\n\nYou are told what day it is for this student, and the exact days to fill. Use\nTHOSE days, in that order, and no others.\n\nA plan handed to somebody on Wednesday that starts on Monday is half expired on\ndelivery — measured, and the first thing a student notices. There is no such\nthing as planning a day that has already gone.\n\n== COVER THE WHOLE STRETCH, WITH FEW COOKING SESSIONS ==\n\nWhen you are asked for several days, cover EVERY day of the stretch and every\nmeal that matters in it. A plan with Monday dinner and Wednesday dinner and\nnothing in between is not a plan — the student did not ask for a partial week,\nand holes are read as \"the system gave up\".\n\nCovering everything does not mean cooking everything. That is what the\npreparations below are for.\n\n== WHAT YOU COOK IS NOT WHAT YOU EAT ==\n\nThis is the important one, and it is what makes a week both quick and bearable.\n\nSeparate PREPARATIONS from DISHES.\n\n  A preparation is what comes out of one cooking session: 1.2 kg of roast\n  chicken thighs, a pot of chilli, a tray of roast vegetables, a batch of rice.\n  It carries its own ingredients — for the WHOLE batch — and its own method.\n\n  A dish is a meal on a day. It NAMES the preparations it draws on through\n  `uses`, and its own `ingredients` list only what you add at the moment of\n  eating: the salad, the bread, the yogurt, the lemon.\n\nWhy it matters: one cooking of chicken becomes a rice bowl on Monday, a wrap on\nTuesday and a curry base on Thursday. THREE DIFFERENT MEALS, ONE COOKING. Making\nthe same student eat the identical plate four days running is technically batch\ncooking and humanly a punishment — do not do it.\n\nRules that follow:\n  - anything that needs a pan, a pot or an oven is a PREPARATION making at\n    least two servings. Never a dish cooked from scratch twice in a week.\n  - assemblies that need no cooking — oats and yogurt, a sandwich, fruit and\n    nuts — are plain dishes with no `uses`, made fresh, quantities for one\n    plate.\n  - a dish that draws on a preparation does NOT repeat its recipe. Its method is\n    what you do at that meal: \"reheat a portion, add the salad and the lemon\".\n  - vary what you build from the same preparation. Same protein, different meal.\n\n== NAME THE COOKING SESSIONS, AND WRITE THE RUN-THROUGH ==\n\nGive `cooking_sessions`: the days on which the student actually cooks, which\npreparations get made in each, and the ORDER of the gestures — \"oven on for the\ntray, rice on while it roasts, chilli simmering next to it, box four portions\".\n\nAim for two or three sessions in a week, not seven. Every preparation belongs to\nexactly one session: a preparation nobody cooks is a plan the student cannot\nfollow.\n\n== NOTHING SITS IN THE FRIDGE FOR A WEEK ==\n\nA cooked batch is eaten within THREE DAYS of the day it was cooked. Cooked on\nThursday means eaten by Sunday, and that is the end of it. Beyond that it is not\na meal plan, it is a plan to throw food away or to get somebody ill.\n\nCooked rice and cooked seafood are tighter still: same day or the day after.\nRice left sitting is the classic way to make somebody sick, and no amount of\nconvenience is worth it.\n\nIf a batch would have to stretch further, you have three honest ways out: cook a\nsmaller batch, cook it twice, or say plainly in the method that the surplus goes\nin the FREEZER on the cooking day. Never stretch it in silence.\n\n== THE COOKING TIME THEY GAVE YOU IS A CEILING ==\n\nWhen a session time is stated, the session fits inside it. It is not a target to\napproach and overshoot: it is what they actually have that evening, and a\nsession that does not fit is a session they skip — after which the whole week\nfalls apart, not just that session.\n\nIf everything will not fit, cook LESS in that session and put the rest on\nanother cooking day. Fewer preparations that happen beat more preparations that\ndo not.\n\n== NOTHING IS EATEN BEFORE IT IS COOKED ==\n\nA preparation must be cooked ON OR BEFORE the first day that eats from it. If\nthe only cooking day you have is Sunday, then Thursday, Friday and Saturday\ncannot live off a Sunday batch — those days cook for themselves, or they eat\nsomething that needs no batch at all.\n\nThis is not a preference. A plan that feeds Thursday from a Sunday session is a\nplan that cannot be executed, and the student finds out at lunchtime.\n\n== HOW LONG THINGS TAKE ==\n\nEvery preparation carries two numbers, and they are not the same one.\n\"active_minutes\" is time with your hands on it — chopping, stirring, turning.\n\"total_minutes\" is from starting to finished, waiting included. A roast is 10\nactive and 50 total; that gap is the whole reason batch cooking works, because\nthe oven time is free for another preparation.\n\nA session's \"total_minutes\" is the wall clock of the session, NOT the sum of its\npreparations: things overlap, and pretending otherwise turns a comfortable\nninety-minute Sunday into a scary four-hour one nobody starts.\n\nRound to the nearest five. These are estimates a cook recognises, not\nmeasurements — but they are the numbers somebody uses to decide whether tonight\nis possible, so a wrong one costs a skipped meal.\n\n== WHAT TODAY ACTUALLY TAKES, ON EVERY DISH ==\n\nEvery dish carries \"same_day\": what the student does ON THE DAY THEY EAT IT to\nget that plate in front of them, and how long that gesture takes.\n\n  \"kind\" is one of four, and nothing else exists:\n    \"none\"        - nothing to prepare. Fruit, a yogurt, a plate already made.\n    \"reheat_only\" - take the portion out and heat it, and NOTHING else.\n    \"assemble\"    - build the plate from what is already cooked, no cooking.\n    \"cook_fresh\"  - a real cooking gesture that day: scramble the eggs, boil\n                    the pasta, sear the fish.\n\n  \"minutes\" is how long THAT gesture takes, that day. A whole number.\n\n\"minutes\" IS NOT THE TIME OF THE COOKING SESSION, and confusing the two is the\nfailure this field exists to stop. A portion of Sunday's roast, reheated on\nWednesday, is 8 minutes - not the 50 the roast took. Announcing 50 tells\nsomebody with ten minutes that dinner is out of reach, and they skip it.\n\nSay it on EVERY dish, including the ones where the answer is nothing. \"none\" and\n\"cook_fresh\" are answers; a missing line is a plate somebody stands in front of\nwithout knowing what to do. If the dish reheats, the word reheat is what they\nneed to read, so write \"reheat_only\" and say it again plainly in \"method\".\n\n== NEVER PUT A NUMBER ON NUTRITION ==\n\nNo calories. No macro grams. No percentages of anything nutritional. Not as a target, not as a range, not \"roughly\". Nobody has measured this student.\n\nShopping quantities are DIFFERENT and expected: \"400 g chicken thighs\", \"2 onions\", \"a bunch of parsley\". A quantity says how much to buy or use; a target claims a measurement of the person. Put quantities on ingredients, never on the student.\n\n== SAY THE SAME QUANTITY TWICE: ONCE FOR THE COOK, ONCE IN FIGURES ==\n\nEvery ingredient carries \"quantity\" — the phrase a person reads, exactly as you\nwrite it today — AND three plain fields that repeat it:\n\n  \"amount\": the number.\n  \"unit\":   one of \"g\", \"ml\", \"unit\", \"tbsp\", \"tsp\". Nothing else exists. If\n            what you meant is a handful, a cup, a bunch or a pinch, leave\n            \"amount\" and \"unit\" null and keep the phrase in \"quantity\".\n  \"state\":  \"raw\" or \"cooked\" — the weight you just wrote, before or after\n            cooking.\n\n\"state\" is REQUIRED for anything that takes on or loses water in the pan: rice,\npasta, couscous, lentils, dried beans, meat, poultry, fish. A hundred grams of\nrice is not the same food before and after it is boiled, and leaving it out\nmakes the line unusable. It does not matter for oil, nuts, cheese, yogurt or\nfruit — say it anyway when you know it.\n\nNever guess. An ingredient whose weight you do not actually know keeps its\nphrase and leaves the three fields null. A made-up number is worse than a\nmissing one.\n\nFATS, NUTS AND SWEETENERS ARE THE ONE EXCEPTION, and they are not a guess.\nOil, butter, ghee, cream, nut butter, tahini, nuts, seeds, honey, syrup and\nchocolate ALWAYS carry \"amount\" and \"unit\". \"A drizzle of olive oil\" is a\ntablespoon; write 1 and \"tbsp\". These ingredients are small on the page and\nenormous in the pan -- a spoon of oil weighs what a whole plate of vegetables\nweighs, and a line left blank there makes the entire dish unreadable. Salt,\npepper and herbs may stay a pinch; oil may not.\n\n== WHAT A DISH ADDS ON THE DAY IS WEIGHED OR COUNTED, NEVER VAGUE ==\n\nThe phrase in a DISH's \"quantity\" is either a weight -- \"100 g dried pasta\",\n\"40 g feta\" -- or something a person can count: \"half a lemon\", \"10 basil\nleaves\", \"2 eggs\". \"A handful\", \"a generous portion\", \"some rice\" say nothing\nanybody can act on, and they are why the same dish comes out different every\ntime. Salt, pepper and herbs may stay a pinch. Everything else gets a number.\n\n== THE STUDENT'S SITUATION IS NOT DECORATION ==\n\nThey tell you what their week actually looks like — a wedding on Tuesday, a holiday, a weekend away, a late shift. Cook around it. A meal that assumes an evening they do not have is a meal they will not make.\n\n== THE TWO MODES ==\n\nmode = from_pantry\n  Cook with what they ALREADY have. Reach outside their list only for genuine\n  staples (salt, pepper, oil, water) or when the dish is impossible otherwise.\n  Anything you use that they did not list will be shown to them as something to\n  buy, so keep that list short and say why it is needed.\n\nmode = to_shop\n  Compose freely, then give the shopping list the dish actually needs.\n\n== EVERY DISH HAS TWO LINES: A NAME, AND A TITLE ==\n\nThey are not the same line and they do not do the same job.\n\n  \"title\" is what is on the plate, plainly: \"Chicken, courgettes, peppers and\n  rice\". It is read out at the table, it is what somebody cooks from, and it\n  never changes job. Keep writing it exactly as you already do.\n\n  \"name\" is what this dish is CALLED: \"Golden roast chicken bowls\". Short --\n  six words at most. Appetising. It is the line somebody reads when they decide\n  whether they want to eat tonight.\n\nWrite BOTH, on every single dish: as many names as you have dishes. Count them\nbefore you answer.\n\nDo NOT make the title pretty instead. A title that becomes \"Sunshine of\nMarrakesh\" no longer says what is on the plate, and nobody can cook a name. If\nyou find yourself dressing up the title, that is the name -- put it in \"name\"\nand give the title back its plain words. And never write the same string twice:\na \"name\" identical to the title is a line that says nothing.\n\n== OUTPUT JSON SCHEMA ==\n\n{\n  \"dishes\": [\n    {\n      \"name\": \"short, appetising, six words at most -- what the dish is CALLED\",\n      \"title\": \"...\",\n      \"slot\": \"breakfast\"|\"snack_am\"|\"lunch\"|\"snack_pm\"|\"dinner\"|\"before_bed\"|null,\n      \"day\": \"mon\"|\"tue\"|\"wed\"|\"thu\"|\"fri\"|\"sat\"|\"sun\"|null,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"...\"|null,\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to make it, plainly, in a short paragraph\",\n      \"why\": \"one sentence: why THIS dish for THIS student this week\",\n      \"uses\": [{ \"preparation_id\": \"prep_chicken\", \"servings\": 1 }],\n      \"same_day\": { \"kind\": \"none\"|\"reheat_only\"|\"assemble\"|\"cook_fresh\",\n                    \"minutes\": <whole minutes for the day-of gesture> },\n      \"honours_belief_keys\": [\"<exact keys from the convictions list, when one applies>\"]\n    }\n  ],\n  \"preparations\": [\n    { \"id\": \"prep_chicken\", \"title\": \"Roast chicken thighs\",\n      \"servings_made\": 4,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"<for the WHOLE batch>\",\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to cook the batch\",\n      \"active_minutes\": <minutes of HANDS-ON work>,\n      \"total_minutes\": <minutes from starting to finished, waiting included>,\n      \"cook_on\": \"sun\"|null }\n  ],\n  \"cooking_sessions\": [\n    { \"day\": \"sun\", \"preparation_ids\": [\"prep_chicken\", \"prep_rice\"],\n      \"total_minutes\": <minutes the whole session takes, start to finish>,\n      \"run_through\": \"the order of the gestures, plainly\" }\n  ],\n  \"shopping_list\": [\n    { \"term\": \"...\", \"quantity\": \"...\"|null,\n      \"aisle\": \"produce\"|\"protein\"|\"dairy\"|\"grains\"|\"pantry\"|\"frozen\"|\"other\" }\n  ]\n}\n\nDay tokens are exactly: mon tue wed thu fri sat sun. Never translated.",
+      "service_tier": "default",
+      "top_logprobs": 0,
+      "max_tool_calls": null,
+      "presence_penalty": 0,
+      "prompt_cache_key": null,
+      "frequency_penalty": 0,
+      "max_output_tokens": null,
+      "safety_identifier": null,
+      "incomplete_details": null,
+      "parallel_tool_calls": true,
+      "previous_response_id": null,
+      "prompt_cache_retention": "24h"
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-18T23:06:09.505613+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:07:16.239602+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:07:48.184905+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:08:38.940658+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:09:34.724463+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:10:04.302294+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:11:02.663381+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:12:38.29978+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:15:25.354842+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:15:25.404624+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:15:45.903635+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:17:04.640154+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:17:24.497584+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:17:45.267913+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:17:49.284417+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:18:01.131746+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:19:19.953523+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:19:47.631668+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:20:36.729978+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:21:00.914082+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:22:03.810226+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:22:49.282812+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    }
+  ]
+}

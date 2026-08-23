@@ -1,0 +1,728 @@
+{
+  "request_id": "3a020001-0000-4000-8000-000000000002",
+  "resolved_by": "--request-id",
+  "user_id": "3a000000-0000-4000-8000-000000000001",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-19T01:51:27.525Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "0575b08b-fab0-4710-be82-d26e2c8ca8a3",
+      "status": "attempt_start",
+      "created_at": "2026-08-19T01:50:26.079832+00:00",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 16183,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 16183,
+    "user_message_chars": 17574,
+    "user_message_truncated": false,
+    "user_message_written_chars": 17574,
+    "independent_counters": {
+      "system_prompt_chars": 16183,
+      "prompt_chars": 17574
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "affc19c2-e5d2-4d27-b90a-f406364cf185",
+    "created_at": "2026-08-19T01:51:26.918443+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "gemini",
+    "model": "gemini-3-flash-preview",
+    "http_status": 200,
+    "attempt": 1,
+    "chain_index": 1,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Smoky Three-Bean Harvest Bowl\",\n      \"title\": \"Smoky bean chili with roasted sweet potatoes\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"lime\",\n          \"quantity\": \"0.25 unit\",\n          \"amount\": 0.25,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"fresh coriander\",\n          \"quantity\": \"a few leaves\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the smoky beans in a small pan until bubbling. Place the roasted sweet potatoes in a bowl, top with the bean chili, and finish with a squeeze of lime and fresh coriander.\",\n      \"why\": \"This vegan shared dish uses the hob for the smoky beans to respect your one-tray oven limit while providing a deep, slow-cooked flavour.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_theodule\"\n        },\n        {\n          \"preparation_id\": \"prep_sweet_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_spud_theodule\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Slow-Simmered Smoky Beef Chili\",\n      \"title\": \"Smoky beef and bean chili with roasted sweet potatoes\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\",\n      \"ingredients\": [\n        {\n          \"term\": \"lime\",\n          \"quantity\": \"0.25 unit\",\n          \"amount\": 0.25,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"fresh coriander\",\n          \"quantity\": \"a few leaves\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Combine the portion of beef and smoky beans in a pan and warm through. Serve with the roasted sweet potatoes, adding the lime and coriander at the end.\",\n      \"why\": \"Aurele's version includes the slow-cooked beef for a rich, smoky dinner that fits the household request.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_beef\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_sweet_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_spud_aurele\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Rich Smoky Beef & Bean Bowl\",\n      \"title\": \"Smoky beef and bean chili with roasted sweet potatoes\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"f5c81e2b-7f57-4fac-a30f-067fa587262d\",\n      \"ingredients\": [\n        {\n          \"term\": \"lime\",\n          \"quantity\": \"0.25 unit\",\n          \"amount\": 0.25,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"fresh coriander\",\n          \"quantity\": \"a few leaves\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Gently reheat the beef and beans together in a pan. Plate with the sweet potatoes and garnish with lime and coriander.\",\n      \"why\": \"This dish satisfies the smoky request without using fennel, respecting Marceline's house rule.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_beef\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_marceline\"\n        },\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_marceline\"\n        },\n        {\n          \"preparation_id\": \"prep_sweet_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_spud_marceline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Deep Smoky Beef & Bean Chili\",\n      \"title\": \"Smoky beef and bean chili with roasted sweet potatoes\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\",\n      \"ingredients\": [\n        {\n          \"term\": \"lime\",\n          \"quantity\": \"0.25 unit\",\n          \"amount\": 0.25,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"fresh coriander\",\n          \"quantity\": \"a few leaves\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Warm the beef and bean mixture in a pan until hot. Serve alongside the roasted sweet potatoes with a squeeze of lime.\",\n      \"why\": \"A safe, smoky meal for Solveig that avoids sesame entirely while delivering the requested slow-cooked depth.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_beef\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_solveig\"\n        },\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_solveig\"\n        },\n        {\n          \"preparation_id\": \"prep_sweet_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_spud_solveig\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_smoky_beans\",\n      \"title\": \"Smoky Three-Bean and Pepper Base\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"black beans\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"kidney beans\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"red peppers\",\n          \"quantity\": \"2 unit\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"onion\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"tinned tomatoes\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"chipotle paste\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"0.5 tbsp\",\n          \"amount\": 0.5,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Sauté diced onion and peppers in oil until soft. Stir in the chipotle paste and smoked paprika, then add the beans and tomatoes. Simmer on the hob for 30 minutes until thickened and smoky.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 40,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_beans_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_beans_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_beans_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_beans_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 250\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_smoky_beef\",\n      \"title\": \"Slow-Simmered Smoky Beef\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"beef chuck\",\n          \"quantity\": \"600 g\",\n          \"amount\": 600,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"onion\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"0.5 tbsp\",\n          \"amount\": 0.5,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Dice the beef into small 1cm cubes. Brown in a pot with oil and diced onion. Add a splash of water and the paprika, then cover and simmer on low heat for 40 minutes until tender.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 45,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_beef_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 112\n        },\n        {\n          \"id\": \"box_beef_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 112\n        },\n        {\n          \"id\": \"box_beef_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 112\n        },\n        {\n          \"id\": \"box_beef_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 112\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_sweet_potatoes\",\n      \"title\": \"Roasted Sweet Potato Cubes\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"sweet potatoes\",\n          \"quantity\": \"800 g\",\n          \"amount\": 800,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Peel and cube the sweet potatoes. Toss with oil and spread on your single oven tray. Roast at 200°C for 35-40 minutes until tender and browned.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 40,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_spud_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_spud_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_spud_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_spud_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 150\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_smoky_beans\",\n        \"prep_smoky_beef\",\n        \"prep_sweet_potatoes\"\n      ],\n      \"total_minutes\": 50,\n      \"run_through\": \"Start by peeling and cubing the sweet potatoes; get them into the oven on the single tray immediately. While they roast, dice the beef small and start it browning in one pot. In a second pot, begin the onion and pepper base for the beans. Once the beef is browned and the vegetables are soft, add the remaining ingredients to both pots and let them simmer until the potatoes are finished. Box everything into the named portions.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"beef chuck\",\n      \"quantity\": \"600 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"black beans\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"kidney beans\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"sweet potatoes\",\n      \"quantity\": \"800 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red peppers\",\n      \"quantity\": \"2 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"onions\",\n      \"quantity\": \"2 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"garlic\",\n      \"quantity\": \"1 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"tinned tomatoes\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"chipotle paste\",\n      \"quantity\": \"1 tbsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"smoked paprika\",\n      \"quantity\": \"1 tbsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"lime\",\n      \"quantity\": \"1 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"fresh coriander\",\n      \"quantity\": \"1 bunch\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"3 tbsp\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\",\n      \"portion_note\": \"Arrange the sweet potatoes and smoky bean chili on the plate first, then place the beef on top.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"note\": \"one portion\"\n        },\n        {\n          \"preparation_id\": \"prep_smoky_beef\",\n          \"note\": \"one portion\"\n        },\n        {\n          \"preparation_id\": \"prep_sweet_potatoes\",\n          \"note\": \"one portion\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"f5c81e2b-7f57-4fac-a30f-067fa587262d\",\n      \"portion_note\": \"Place the beef and roasted sweet potatoes on the plate first, followed by the smoky bean chili.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"note\": \"one portion\"\n        },\n        {\n          \"preparation_id\": \"prep_smoky_beef\",\n          \"note\": \"one portion\"\n        },\n        {\n          \"preparation_id\": \"prep_sweet_potatoes\",\n          \"note\": \"one portion\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\",\n      \"portion_note\": \"Serve the beef and roasted sweet potatoes first, then add the smoky bean chili to the side.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"note\": \"one portion\"\n        },\n        {\n          \"preparation_id\": \"prep_smoky_beef\",\n          \"note\": \"one portion\"\n        },\n        {\n          \"preparation_id\": \"prep_sweet_potatoes\",\n          \"note\": \"one portion\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"1fea4f51-a4e9-4066-8d09-49881ee58f38\",\n      \"portion_note\": \"Serve the roasted sweet potatoes and smoky bean chili together on the plate.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"note\": \"one portion\"\n        },\n        {\n          \"preparation_id\": \"prep_sweet_potatoes\",\n          \"note\": \"one portion\"\n        }\n      ]\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Smoky Three-Bean Harvest Bowl",
+          "title": "Smoky bean chili with roasted sweet potatoes",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "lime",
+              "quantity": "0.25 unit",
+              "amount": 0.25,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "fresh coriander",
+              "quantity": "a few leaves",
+              "amount": null,
+              "unit": null,
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the smoky beans in a small pan until bubbling. Place the roasted sweet potatoes in a bowl, top with the bean chili, and finish with a squeeze of lime and fresh coriander.",
+          "why": "This vegan shared dish uses the hob for the smoky beans to respect your one-tray oven limit while providing a deep, slow-cooked flavour.",
+          "uses": [
+            {
+              "preparation_id": "prep_smoky_beans",
+              "servings": 1,
+              "box_id": "box_beans_theodule"
+            },
+            {
+              "preparation_id": "prep_sweet_potatoes",
+              "servings": 1,
+              "box_id": "box_spud_theodule"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Slow-Simmered Smoky Beef Chili",
+          "title": "Smoky beef and bean chili with roasted sweet potatoes",
+          "slot": "dinner",
+          "day": "wed",
+          "for_member_id": "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+          "ingredients": [
+            {
+              "term": "lime",
+              "quantity": "0.25 unit",
+              "amount": 0.25,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "fresh coriander",
+              "quantity": "a few leaves",
+              "amount": null,
+              "unit": null,
+              "state": "raw"
+            }
+          ],
+          "method": "Combine the portion of beef and smoky beans in a pan and warm through. Serve with the roasted sweet potatoes, adding the lime and coriander at the end.",
+          "why": "Aurele's version includes the slow-cooked beef for a rich, smoky dinner that fits the household request.",
+          "uses": [
+            {
+              "preparation_id": "prep_smoky_beef",
+              "servings": 1,
+              "box_id": "box_beef_aurele"
+            },
+            {
+              "preparation_id": "prep_smoky_beans",
+              "servings": 1,
+              "box_id": "box_beans_aurele"
+            },
+            {
+              "preparation_id": "prep_sweet_potatoes",
+              "servings": 1,
+              "box_id": "box_spud_aurele"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Rich Smoky Beef & Bean Bowl",
+          "title": "Smoky beef and bean chili with roasted sweet potatoes",
+          "slot": "dinner",
+          "day": "wed",
+          "for_member_id": "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+          "ingredients": [
+            {
+              "term": "lime",
+              "quantity": "0.25 unit",
+              "amount": 0.25,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "fresh coriander",
+              "quantity": "a few leaves",
+              "amount": null,
+              "unit": null,
+              "state": "raw"
+            }
+          ],
+          "method": "Gently reheat the beef and beans together in a pan. Plate with the sweet potatoes and garnish with lime and coriander.",
+          "why": "This dish satisfies the smoky request without using fennel, respecting Marceline's house rule.",
+          "uses": [
+            {
+              "preparation_id": "prep_smoky_beef",
+              "servings": 1,
+              "box_id": "box_beef_marceline"
+            },
+            {
+              "preparation_id": "prep_smoky_beans",
+              "servings": 1,
+              "box_id": "box_beans_marceline"
+            },
+            {
+              "preparation_id": "prep_sweet_potatoes",
+              "servings": 1,
+              "box_id": "box_spud_marceline"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Deep Smoky Beef & Bean Chili",
+          "title": "Smoky beef and bean chili with roasted sweet potatoes",
+          "slot": "dinner",
+          "day": "wed",
+          "for_member_id": "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7",
+          "ingredients": [
+            {
+              "term": "lime",
+              "quantity": "0.25 unit",
+              "amount": 0.25,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "fresh coriander",
+              "quantity": "a few leaves",
+              "amount": null,
+              "unit": null,
+              "state": "raw"
+            }
+          ],
+          "method": "Warm the beef and bean mixture in a pan until hot. Serve alongside the roasted sweet potatoes with a squeeze of lime.",
+          "why": "A safe, smoky meal for Solveig that avoids sesame entirely while delivering the requested slow-cooked depth.",
+          "uses": [
+            {
+              "preparation_id": "prep_smoky_beef",
+              "servings": 1,
+              "box_id": "box_beef_solveig"
+            },
+            {
+              "preparation_id": "prep_smoky_beans",
+              "servings": 1,
+              "box_id": "box_beans_solveig"
+            },
+            {
+              "preparation_id": "prep_sweet_potatoes",
+              "servings": 1,
+              "box_id": "box_spud_solveig"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_smoky_beans",
+          "title": "Smoky Three-Bean and Pepper Base",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "black beans",
+              "quantity": "400 g",
+              "amount": 400,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "kidney beans",
+              "quantity": "400 g",
+              "amount": 400,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "red peppers",
+              "quantity": "2 unit",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "onion",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "tinned tomatoes",
+              "quantity": "400 g",
+              "amount": 400,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "chipotle paste",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "0.5 tbsp",
+              "amount": 0.5,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Sauté diced onion and peppers in oil until soft. Stir in the chipotle paste and smoked paprika, then add the beans and tomatoes. Simmer on the hob for 30 minutes until thickened and smoky.",
+          "active_minutes": 15,
+          "total_minutes": 40,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_beans_aurele",
+              "member_ids": [
+                "c278b5dc-680f-43f1-b54f-f9da630fcb2f"
+              ],
+              "grams": 250
+            },
+            {
+              "id": "box_beans_marceline",
+              "member_ids": [
+                "f5c81e2b-7f57-4fac-a30f-067fa587262d"
+              ],
+              "grams": 250
+            },
+            {
+              "id": "box_beans_solveig",
+              "member_ids": [
+                "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+              ],
+              "grams": 250
+            },
+            {
+              "id": "box_beans_theodule",
+              "member_ids": [
+                "1fea4f51-a4e9-4066-8d09-49881ee58f38"
+              ],
+              "grams": 250
+            }
+          ]
+        },
+        {
+          "id": "prep_smoky_beef",
+          "title": "Slow-Simmered Smoky Beef",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "beef chuck",
+              "quantity": "600 g",
+              "amount": 600,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "onion",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "0.5 tbsp",
+              "amount": 0.5,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Dice the beef into small 1cm cubes. Brown in a pot with oil and diced onion. Add a splash of water and the paprika, then cover and simmer on low heat for 40 minutes until tender.",
+          "active_minutes": 10,
+          "total_minutes": 45,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_beef_aurele",
+              "member_ids": [
+                "c278b5dc-680f-43f1-b54f-f9da630fcb2f"
+              ],
+              "grams": 112
+            },
+            {
+              "id": "box_beef_marceline",
+              "member_ids": [
+                "f5c81e2b-7f57-4fac-a30f-067fa587262d"
+              ],
+              "grams": 112
+            },
+            {
+              "id": "box_beef_solveig",
+              "member_ids": [
+                "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+              ],
+              "grams": 112
+            },
+            {
+              "id": "box_beef_theodule",
+              "member_ids": [
+                "1fea4f51-a4e9-4066-8d09-49881ee58f38"
+              ],
+              "grams": 112
+            }
+          ]
+        },
+        {
+          "id": "prep_sweet_potatoes",
+          "title": "Roasted Sweet Potato Cubes",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "sweet potatoes",
+              "quantity": "800 g",
+              "amount": 800,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Peel and cube the sweet potatoes. Toss with oil and spread on your single oven tray. Roast at 200°C for 35-40 minutes until tender and browned.",
+          "active_minutes": 10,
+          "total_minutes": 40,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_spud_aurele",
+              "member_ids": [
+                "c278b5dc-680f-43f1-b54f-f9da630fcb2f"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_spud_marceline",
+              "member_ids": [
+                "f5c81e2b-7f57-4fac-a30f-067fa587262d"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_spud_solveig",
+              "member_ids": [
+                "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_spud_theodule",
+              "member_ids": [
+                "1fea4f51-a4e9-4066-8d09-49881ee58f38"
+              ],
+              "grams": 150
+            }
+          ]
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_smoky_beans",
+            "prep_smoky_beef",
+            "prep_sweet_potatoes"
+          ],
+          "total_minutes": 50,
+          "run_through": "Start by peeling and cubing the sweet potatoes; get them into the oven on the single tray immediately. While they roast, dice the beef small and start it browning in one pot. In a second pot, begin the onion and pepper base for the beans. Once the beef is browned and the vegetables are soft, add the remaining ingredients to both pots and let them simmer until the potatoes are finished. Box everything into the named portions."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "beef chuck",
+          "quantity": "600 g",
+          "aisle": "protein"
+        },
+        {
+          "term": "black beans",
+          "quantity": "400 g",
+          "aisle": "pantry"
+        },
+        {
+          "term": "kidney beans",
+          "quantity": "400 g",
+          "aisle": "pantry"
+        },
+        {
+          "term": "sweet potatoes",
+          "quantity": "800 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "red peppers",
+          "quantity": "2 unit",
+          "aisle": "produce"
+        },
+        {
+          "term": "onions",
+          "quantity": "2 unit",
+          "aisle": "produce"
+        },
+        {
+          "term": "garlic",
+          "quantity": "1 unit",
+          "aisle": "produce"
+        },
+        {
+          "term": "tinned tomatoes",
+          "quantity": "400 g",
+          "aisle": "pantry"
+        },
+        {
+          "term": "chipotle paste",
+          "quantity": "1 tbsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "smoked paprika",
+          "quantity": "1 tbsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "lime",
+          "quantity": "1 unit",
+          "aisle": "produce"
+        },
+        {
+          "term": "fresh coriander",
+          "quantity": "1 bunch",
+          "aisle": "produce"
+        },
+        {
+          "term": "olive oil",
+          "quantity": "3 tbsp",
+          "aisle": "pantry"
+        }
+      ],
+      "member_portions": [
+        {
+          "member_id": "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+          "portion_note": "Arrange the sweet potatoes and smoky bean chili on the plate first, then place the beef on top.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_smoky_beans",
+              "note": "one portion"
+            },
+            {
+              "preparation_id": "prep_smoky_beef",
+              "note": "one portion"
+            },
+            {
+              "preparation_id": "prep_sweet_potatoes",
+              "note": "one portion"
+            }
+          ]
+        },
+        {
+          "member_id": "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+          "portion_note": "Place the beef and roasted sweet potatoes on the plate first, followed by the smoky bean chili.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_smoky_beans",
+              "note": "one portion"
+            },
+            {
+              "preparation_id": "prep_smoky_beef",
+              "note": "one portion"
+            },
+            {
+              "preparation_id": "prep_sweet_potatoes",
+              "note": "one portion"
+            }
+          ]
+        },
+        {
+          "member_id": "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7",
+          "portion_note": "Serve the beef and roasted sweet potatoes first, then add the smoky bean chili to the side.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_smoky_beans",
+              "note": "one portion"
+            },
+            {
+              "preparation_id": "prep_smoky_beef",
+              "note": "one portion"
+            },
+            {
+              "preparation_id": "prep_sweet_potatoes",
+              "note": "one portion"
+            }
+          ]
+        },
+        {
+          "member_id": "1fea4f51-a4e9-4066-8d09-49881ee58f38",
+          "portion_note": "Serve the roasted sweet potatoes and smoky bean chili together on the plate.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_smoky_beans",
+              "note": "one portion"
+            },
+            {
+              "preparation_id": "prep_sweet_potatoes",
+              "note": "one portion"
+            }
+          ]
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "candidates": [
+        {
+          "index": 0,
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Smoky Three-Bean Harvest Bowl\",\n      \"title\": \"Smoky bean chili with roasted sweet potatoes\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"lime\",\n          \"quantity\": \"0.25 unit\",\n          \"amount\": 0.25,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"fresh coriander\",\n          \"quantity\": \"a few leaves\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the smoky beans in a small pan until bubbling. Place the roasted sweet potatoes in a bowl, top with the bean chili, and finish with a squeeze of lime and fresh coriander.\",\n      \"why\": \"This vegan shared dish uses the hob for the smoky beans to respect your one-tray oven limit while providing a deep, slow-cooked flavour.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_theodule\"\n        },\n        {\n          \"preparation_id\": \"prep_sweet_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_spud_theodule\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Slow-Simmered Smoky Beef Chili\",\n      \"title\": \"Smoky beef and bean chili with roasted sweet potatoes\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\",\n      \"ingredients\": [\n        {\n          \"term\": \"lime\",\n          \"quantity\": \"0.25 unit\",\n          \"amount\": 0.25,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"fresh coriander\",\n          \"quantity\": \"a few leaves\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Combine the portion of beef and smoky beans in a pan and warm through. Serve with the roasted sweet potatoes, adding the lime and coriander at the end.\",\n      \"why\": \"Aurele's version includes the slow-cooked beef for a rich, smoky dinner that fits the household request.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_beef\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_sweet_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_spud_aurele\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Rich Smoky Beef & Bean Bowl\",\n      \"title\": \"Smoky beef and bean chili with roasted sweet potatoes\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"f5c81e2b-7f57-4fac-a30f-067fa587262d\",\n      \"ingredients\": [\n        {\n          \"term\": \"lime\",\n          \"quantity\": \"0.25 unit\",\n          \"amount\": 0.25,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"fresh coriander\",\n          \"quantity\": \"a few leaves\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Gently reheat the beef and beans together in a pan. Plate with the sweet potatoes and garnish with lime and coriander.\",\n      \"why\": \"This dish satisfies the smoky request without using fennel, respecting Marceline's house rule.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_beef\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_marceline\"\n        },\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_marceline\"\n        },\n        {\n          \"preparation_id\": \"prep_sweet_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_spud_marceline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Deep Smoky Beef & Bean Chili\",\n      \"title\": \"Smoky beef and bean chili with roasted sweet potatoes\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\",\n      \"ingredients\": [\n        {\n          \"term\": \"lime\",\n          \"quantity\": \"0.25 unit\",\n          \"amount\": 0.25,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"fresh coriander\",\n          \"quantity\": \"a few leaves\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Warm the beef and bean mixture in a pan until hot. Serve alongside the roasted sweet potatoes with a squeeze of lime.\",\n      \"why\": \"A safe, smoky meal for Solveig that avoids sesame entirely while delivering the requested slow-cooked depth.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_beef\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_solveig\"\n        },\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_solveig\"\n        },\n        {\n          \"preparation_id\": \"prep_sweet_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_spud_solveig\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_smoky_beans\",\n      \"title\": \"Smoky Three-Bean and Pepper Base\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"black beans\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"kidney beans\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"red peppers\",\n          \"quantity\": \"2 unit\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"onion\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"tinned tomatoes\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"chipotle paste\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"0.5 tbsp\",\n          \"amount\": 0.5,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Sauté diced onion and peppers in oil until soft. Stir in the chipotle paste and smoked paprika, then add the beans and tomatoes. Simmer on the hob for 30 minutes until thickened and smoky.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 40,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_beans_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_beans_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_beans_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_beans_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 250\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_smoky_beef\",\n      \"title\": \"Slow-Simmered Smoky Beef\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"beef chuck\",\n          \"quantity\": \"600 g\",\n          \"amount\": 600,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"onion\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"0.5 tbsp\",\n          \"amount\": 0.5,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Dice the beef into small 1cm cubes. Brown in a pot with oil and diced onion. Add a splash of water and the paprika, then cover and simmer on low heat for 40 minutes until tender.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 45,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_beef_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 112\n        },\n        {\n          \"id\": \"box_beef_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 112\n        },\n        {\n          \"id\": \"box_beef_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 112\n        },\n        {\n          \"id\": \"box_beef_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 112\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_sweet_potatoes\",\n      \"title\": \"Roasted Sweet Potato Cubes\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"sweet potatoes\",\n          \"quantity\": \"800 g\",\n          \"amount\": 800,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Peel and cube the sweet potatoes. Toss with oil and spread on your single oven tray. Roast at 200°C for 35-40 minutes until tender and browned.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 40,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_spud_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_spud_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_spud_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_spud_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 150\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_smoky_beans\",\n        \"prep_smoky_beef\",\n        \"prep_sweet_potatoes\"\n      ],\n      \"total_minutes\": 50,\n      \"run_through\": \"Start by peeling and cubing the sweet potatoes; get them into the oven on the single tray immediately. While they roast, dice the beef small and start it browning in one pot. In a second pot, begin the onion and pepper base for the beans. Once the beef is browned and the vegetables are soft, add the remaining ingredients to both pots and let them simmer until the potatoes are finished. Box everything into the named portions.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"beef chuck\",\n      \"quantity\": \"600 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"black beans\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"kidney beans\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"sweet potatoes\",\n      \"quantity\": \"800 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red peppers\",\n      \"quantity\": \"2 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"onions\",\n      \"quantity\": \"2 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"garlic\",\n      \"quantity\": \"1 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"tinned tomatoes\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"chipotle paste\",\n      \"quantity\": \"1 tbsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"smoked paprika\",\n      \"quantity\": \"1 tbsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"lime\",\n      \"quantity\": \"1 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"fresh coriander\",\n      \"quantity\": \"1 bunch\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"3 tbsp\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\",\n      \"portion_note\": \"Arrange the sweet potatoes and smoky bean chili on the plate first, then place the beef on top.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"note\": \"one portion\"\n        },\n        {\n          \"preparation_id\": \"prep_smoky_beef\",\n          \"note\": \"one portion\"\n        },\n        {\n          \"preparation_id\": \"prep_sweet_potatoes\",\n          \"note\": \"one portion\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"f5c81e2b-7f57-4fac-a30f-067fa587262d\",\n      \"portion_note\": \"Place the beef and roasted sweet potatoes on the plate first, followed by the smoky bean chili.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"note\": \"one portion\"\n        },\n        {\n          \"preparation_id\": \"prep_smoky_beef\",\n          \"note\": \"one portion\"\n        },\n        {\n          \"preparation_id\": \"prep_sweet_potatoes\",\n          \"note\": \"one portion\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\",\n      \"portion_note\": \"Serve the beef and roasted sweet potatoes first, then add the smoky bean chili to the side.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"note\": \"one portion\"\n        },\n        {\n          \"preparation_id\": \"prep_smoky_beef\",\n          \"note\": \"one portion\"\n        },\n        {\n          \"preparation_id\": \"prep_sweet_potatoes\",\n          \"note\": \"one portion\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"1fea4f51-a4e9-4066-8d09-49881ee58f38\",\n      \"portion_note\": \"Serve the roasted sweet potatoes and smoky bean chili together on the plate.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_smoky_beans\",\n          \"note\": \"one portion\"\n        },\n        {\n          \"preparation_id\": \"prep_sweet_potatoes\",\n          \"note\": \"one portion\"\n        }\n      ]\n    }\n  ]\n}",
+                "thoughtSignature": "[redacted]"
+              }
+            ]
+          },
+          "finishReason": "STOP"
+        }
+      ],
+      "responseId": "5QuFavCOM9ehnsEP-bymuAM",
+      "modelVersion": "gemini-3-flash-preview",
+      "usageMetadata": {
+        "serviceTier": "standard",
+        "totalTokenCount": 21028,
+        "promptTokenCount": 8815,
+        "thoughtsTokenCount": 6995,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 8815
+          }
+        ],
+        "candidatesTokenCount": 5218
+      }
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-19T01:50:26.079832+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T01:50:26.695797+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:50:29.620566+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:50:29.630414+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:50:29.637586+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:51:26.918443+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

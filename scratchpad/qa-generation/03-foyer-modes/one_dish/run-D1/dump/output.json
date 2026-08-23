@@ -1,0 +1,940 @@
+{
+  "request_id": "3a010001-0000-4000-8000-000000F00001",
+  "resolved_by": "--request-id",
+  "user_id": "3a000000-0000-4000-8000-000000000001",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-19T02:23:04.289Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "c9e2f34f-bb42-4bb7-8ad1-aa9ff0e9f8aa",
+      "status": "attempt_start",
+      "created_at": "2026-08-19T02:19:45.446153+00:00",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 15486,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 15486,
+    "user_message_chars": 16114,
+    "user_message_truncated": false,
+    "user_message_written_chars": 16114,
+    "independent_counters": {
+      "system_prompt_chars": 15486,
+      "prompt_chars": 16114
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "09bc4ada-3313-44c6-b281-4a9dd95b34dd",
+    "created_at": "2026-08-19T02:23:03.695632+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "gemini",
+    "model": "gemini-3-flash-preview",
+    "http_status": 200,
+    "attempt": 3,
+    "chain_index": 1,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Zesty Smoky Bean Tacos\",\n      \"title\": \"Smoky black beans and charred peppers in corn tortillas\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"corn tortillas\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lime\",\n          \"quantity\": \"0.25 unit\",\n          \"amount\": 0.25,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"fresh coriander\",\n          \"quantity\": \"a small handful\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Warm the tortillas in a dry pan for 30 seconds each side. Fill with a portion of the smoky beans and roasted vegetables. Squeeze over the lime and top with coriander.\",\n      \"why\": \"A bright, fresh lunch that uses the smoky batch components without needing a full reheat, perfect for a busy Wednesday.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beans_lunch\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_lunch_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_veg_lunch\",\n          \"servings\": 1,\n          \"box_id\": \"box_veg_lunch_aurele\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Hearty Smoky Bean Bowls\",\n      \"title\": \"Smoky bean stew with roasted summer vegetables and brown rice\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"avocado\",\n          \"quantity\": \"0.5 unit\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the beans and roasted vegetables in a pan with a splash of water until piping hot. Serve over the pre-cooked rice and top with sliced avocado.\",\n      \"why\": \"This provides the 'slow-cooked' feel the house requested while respecting the one-oven-tray limit by using a stovetop bean base.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beans_dinner\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_dinner_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_veg_dinner\",\n          \"servings\": 1,\n          \"box_id\": \"box_veg_dinner_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_rice_dinner\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_dinner_aurele\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_beans_lunch\",\n      \"title\": \"Smoky Three-Bean Batch (Lunch Portion)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"black beans\",\n          \"quantity\": \"480 g\",\n          \"amount\": 480,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"kidney beans\",\n          \"quantity\": \"480 g\",\n          \"amount\": 480,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"chopped tomatoes\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"onion\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"sesame-free chipotle paste\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Sauté onion and garlic in oil. Stir in chipotle paste and spices. Add beans and tomatoes, then simmer for 20 minutes until thickened. Divide into boxes.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_beans_lunch_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_beans_lunch_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_beans_lunch_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_beans_lunch_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 200\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_beans_dinner\",\n      \"title\": \"Smoky Three-Bean Batch (Dinner Portion)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"black beans\",\n          \"quantity\": \"480 g\",\n          \"amount\": 480,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"kidney beans\",\n          \"quantity\": \"480 g\",\n          \"amount\": 480,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"chopped tomatoes\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"onion\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"sesame-free chipotle paste\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Cooked simultaneously with the lunch batch in the same pot. Simmer until rich and smoky, then portion into dinner boxes.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_beans_dinner_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_beans_dinner_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_beans_dinner_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_beans_dinner_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 200\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_veg_lunch\",\n      \"title\": \"Roasted Summer Vegetables (Lunch Portion)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"bell peppers\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"courgette\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red onion\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Chop vegetables into chunks. Toss with oil and smoked paprika. Roast on a single tray at 200C for 25 minutes until charred.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_veg_lunch_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_veg_lunch_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_veg_lunch_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_veg_lunch_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 150\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_veg_dinner\",\n      \"title\": \"Roasted Summer Vegetables (Dinner Portion)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"bell peppers\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"courgette\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red onion\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Roasted on the same tray as the lunch vegetables. Portion once charred and tender.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_veg_dinner_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_veg_dinner_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_veg_dinner_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_veg_dinner_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 150\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_rice_dinner\",\n      \"title\": \"Steamed Brown Rice\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"brown rice\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Rinse rice and boil in salted water until tender (about 25-30 mins). Drain and portion.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 35,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_rice_dinner_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_rice_dinner_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_rice_dinner_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_rice_dinner_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 180\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_beans_lunch\",\n        \"prep_beans_dinner\",\n        \"prep_veg_lunch\",\n        \"prep_veg_dinner\",\n        \"prep_rice_dinner\"\n      ],\n      \"total_minutes\": 50,\n      \"run_through\": \"Start the brown rice on the stove. Preheat the oven and chop all peppers, courgettes, and red onions; toss them in oil and smoked paprika on the single oven tray and roast. While they roast, sauté the onions for the beans in a large pot, add the chipotle paste, beans, and tomatoes, and leave to simmer. Once everything is cooked, divide the beans and vegetables into lunch and dinner boxes, and portion the rice for tonight's dinner.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"black beans\",\n      \"quantity\": \"4 cans (400g each)\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"kidney beans\",\n      \"quantity\": \"4 cans (400g each)\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"chopped tomatoes\",\n      \"quantity\": \"2 cans (400g each)\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"brown rice\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"corn tortillas\",\n      \"quantity\": \"8 units\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"bell peppers\",\n      \"quantity\": \"4 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"courgette\",\n      \"quantity\": \"2 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red onion\",\n      \"quantity\": \"2 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"yellow onion\",\n      \"quantity\": \"2 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"sesame-free chipotle paste\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"avocado\",\n      \"quantity\": \"2 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"lime\",\n      \"quantity\": \"1 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"fresh coriander\",\n      \"quantity\": \"1 bunch\",\n      \"aisle\": \"produce\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\",\n      \"portion_note\": \"Serve the roasted vegetables first, followed by the smoky beans, and then the corn tortillas or rice.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_beans_lunch\",\n          \"note\": \"one box of smoky beans\"\n        },\n        {\n          \"preparation_id\": \"prep_veg_lunch\",\n          \"note\": \"one box of roasted vegetables\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"f5c81e2b-7f57-4fac-a30f-067fa587262d\",\n      \"portion_note\": \"Serve the smoky beans and corn tortillas or rice first, then add the roasted vegetables to the plate.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_beans_lunch\",\n          \"note\": \"one box of smoky beans\"\n        },\n        {\n          \"preparation_id\": \"prep_veg_lunch\",\n          \"note\": \"one box of roasted vegetables\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\",\n      \"portion_note\": \"Serve the smoky beans and corn tortillas or rice first, then add the roasted vegetables.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_beans_lunch\",\n          \"note\": \"one box of smoky beans\"\n        },\n        {\n          \"preparation_id\": \"prep_veg_lunch\",\n          \"note\": \"one box of roasted vegetables\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"1fea4f51-a4e9-4066-8d09-49881ee58f38\",\n      \"portion_note\": \"Serve all components together on the plate, ensuring the beans and vegetables are well mixed.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_beans_lunch\",\n          \"note\": \"one box of smoky beans\"\n        },\n        {\n          \"preparation_id\": \"prep_veg_lunch\",\n          \"note\": \"one box of roasted vegetables\"\n        }\n      ]\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Zesty Smoky Bean Tacos",
+          "title": "Smoky black beans and charred peppers in corn tortillas",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "corn tortillas",
+              "quantity": "2 units",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "lime",
+              "quantity": "0.25 unit",
+              "amount": 0.25,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "fresh coriander",
+              "quantity": "a small handful",
+              "amount": null,
+              "unit": null,
+              "state": "raw"
+            }
+          ],
+          "method": "Warm the tortillas in a dry pan for 30 seconds each side. Fill with a portion of the smoky beans and roasted vegetables. Squeeze over the lime and top with coriander.",
+          "why": "A bright, fresh lunch that uses the smoky batch components without needing a full reheat, perfect for a busy Wednesday.",
+          "uses": [
+            {
+              "preparation_id": "prep_beans_lunch",
+              "servings": 1,
+              "box_id": "box_beans_lunch_aurele"
+            },
+            {
+              "preparation_id": "prep_veg_lunch",
+              "servings": 1,
+              "box_id": "box_veg_lunch_aurele"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Hearty Smoky Bean Bowls",
+          "title": "Smoky bean stew with roasted summer vegetables and brown rice",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "avocado",
+              "quantity": "0.5 unit",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the beans and roasted vegetables in a pan with a splash of water until piping hot. Serve over the pre-cooked rice and top with sliced avocado.",
+          "why": "This provides the 'slow-cooked' feel the house requested while respecting the one-oven-tray limit by using a stovetop bean base.",
+          "uses": [
+            {
+              "preparation_id": "prep_beans_dinner",
+              "servings": 1,
+              "box_id": "box_beans_dinner_aurele"
+            },
+            {
+              "preparation_id": "prep_veg_dinner",
+              "servings": 1,
+              "box_id": "box_veg_dinner_aurele"
+            },
+            {
+              "preparation_id": "prep_rice_dinner",
+              "servings": 1,
+              "box_id": "box_rice_dinner_aurele"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_beans_lunch",
+          "title": "Smoky Three-Bean Batch (Lunch Portion)",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "black beans",
+              "quantity": "480 g",
+              "amount": 480,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "kidney beans",
+              "quantity": "480 g",
+              "amount": 480,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "chopped tomatoes",
+              "quantity": "400 g",
+              "amount": 400,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "onion",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "sesame-free chipotle paste",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Sauté onion and garlic in oil. Stir in chipotle paste and spices. Add beans and tomatoes, then simmer for 20 minutes until thickened. Divide into boxes.",
+          "active_minutes": 10,
+          "total_minutes": 30,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_beans_lunch_aurele",
+              "member_ids": [
+                "c278b5dc-680f-43f1-b54f-f9da630fcb2f"
+              ],
+              "grams": 200
+            },
+            {
+              "id": "box_beans_lunch_marceline",
+              "member_ids": [
+                "f5c81e2b-7f57-4fac-a30f-067fa587262d"
+              ],
+              "grams": 200
+            },
+            {
+              "id": "box_beans_lunch_solveig",
+              "member_ids": [
+                "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+              ],
+              "grams": 200
+            },
+            {
+              "id": "box_beans_lunch_theodule",
+              "member_ids": [
+                "1fea4f51-a4e9-4066-8d09-49881ee58f38"
+              ],
+              "grams": 200
+            }
+          ]
+        },
+        {
+          "id": "prep_beans_dinner",
+          "title": "Smoky Three-Bean Batch (Dinner Portion)",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "black beans",
+              "quantity": "480 g",
+              "amount": 480,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "kidney beans",
+              "quantity": "480 g",
+              "amount": 480,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "chopped tomatoes",
+              "quantity": "400 g",
+              "amount": 400,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "onion",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "sesame-free chipotle paste",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Cooked simultaneously with the lunch batch in the same pot. Simmer until rich and smoky, then portion into dinner boxes.",
+          "active_minutes": 5,
+          "total_minutes": 30,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_beans_dinner_aurele",
+              "member_ids": [
+                "c278b5dc-680f-43f1-b54f-f9da630fcb2f"
+              ],
+              "grams": 200
+            },
+            {
+              "id": "box_beans_dinner_marceline",
+              "member_ids": [
+                "f5c81e2b-7f57-4fac-a30f-067fa587262d"
+              ],
+              "grams": 200
+            },
+            {
+              "id": "box_beans_dinner_solveig",
+              "member_ids": [
+                "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+              ],
+              "grams": 200
+            },
+            {
+              "id": "box_beans_dinner_theodule",
+              "member_ids": [
+                "1fea4f51-a4e9-4066-8d09-49881ee58f38"
+              ],
+              "grams": 200
+            }
+          ]
+        },
+        {
+          "id": "prep_veg_lunch",
+          "title": "Roasted Summer Vegetables (Lunch Portion)",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "bell peppers",
+              "quantity": "2 units",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "courgette",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "red onion",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Chop vegetables into chunks. Toss with oil and smoked paprika. Roast on a single tray at 200C for 25 minutes until charred.",
+          "active_minutes": 10,
+          "total_minutes": 30,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_veg_lunch_aurele",
+              "member_ids": [
+                "c278b5dc-680f-43f1-b54f-f9da630fcb2f"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_veg_lunch_marceline",
+              "member_ids": [
+                "f5c81e2b-7f57-4fac-a30f-067fa587262d"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_veg_lunch_solveig",
+              "member_ids": [
+                "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_veg_lunch_theodule",
+              "member_ids": [
+                "1fea4f51-a4e9-4066-8d09-49881ee58f38"
+              ],
+              "grams": 150
+            }
+          ]
+        },
+        {
+          "id": "prep_veg_dinner",
+          "title": "Roasted Summer Vegetables (Dinner Portion)",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "bell peppers",
+              "quantity": "2 units",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "courgette",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "red onion",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Roasted on the same tray as the lunch vegetables. Portion once charred and tender.",
+          "active_minutes": 5,
+          "total_minutes": 30,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_veg_dinner_aurele",
+              "member_ids": [
+                "c278b5dc-680f-43f1-b54f-f9da630fcb2f"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_veg_dinner_marceline",
+              "member_ids": [
+                "f5c81e2b-7f57-4fac-a30f-067fa587262d"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_veg_dinner_solveig",
+              "member_ids": [
+                "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_veg_dinner_theodule",
+              "member_ids": [
+                "1fea4f51-a4e9-4066-8d09-49881ee58f38"
+              ],
+              "grams": 150
+            }
+          ]
+        },
+        {
+          "id": "prep_rice_dinner",
+          "title": "Steamed Brown Rice",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "brown rice",
+              "quantity": "300 g",
+              "amount": 300,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Rinse rice and boil in salted water until tender (about 25-30 mins). Drain and portion.",
+          "active_minutes": 5,
+          "total_minutes": 35,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_rice_dinner_aurele",
+              "member_ids": [
+                "c278b5dc-680f-43f1-b54f-f9da630fcb2f"
+              ],
+              "grams": 180
+            },
+            {
+              "id": "box_rice_dinner_marceline",
+              "member_ids": [
+                "f5c81e2b-7f57-4fac-a30f-067fa587262d"
+              ],
+              "grams": 180
+            },
+            {
+              "id": "box_rice_dinner_solveig",
+              "member_ids": [
+                "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+              ],
+              "grams": 180
+            },
+            {
+              "id": "box_rice_dinner_theodule",
+              "member_ids": [
+                "1fea4f51-a4e9-4066-8d09-49881ee58f38"
+              ],
+              "grams": 180
+            }
+          ]
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_beans_lunch",
+            "prep_beans_dinner",
+            "prep_veg_lunch",
+            "prep_veg_dinner",
+            "prep_rice_dinner"
+          ],
+          "total_minutes": 50,
+          "run_through": "Start the brown rice on the stove. Preheat the oven and chop all peppers, courgettes, and red onions; toss them in oil and smoked paprika on the single oven tray and roast. While they roast, sauté the onions for the beans in a large pot, add the chipotle paste, beans, and tomatoes, and leave to simmer. Once everything is cooked, divide the beans and vegetables into lunch and dinner boxes, and portion the rice for tonight's dinner."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "black beans",
+          "quantity": "4 cans (400g each)",
+          "aisle": "pantry"
+        },
+        {
+          "term": "kidney beans",
+          "quantity": "4 cans (400g each)",
+          "aisle": "pantry"
+        },
+        {
+          "term": "chopped tomatoes",
+          "quantity": "2 cans (400g each)",
+          "aisle": "pantry"
+        },
+        {
+          "term": "brown rice",
+          "quantity": "300 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "corn tortillas",
+          "quantity": "8 units",
+          "aisle": "pantry"
+        },
+        {
+          "term": "bell peppers",
+          "quantity": "4 units",
+          "aisle": "produce"
+        },
+        {
+          "term": "courgette",
+          "quantity": "2 units",
+          "aisle": "produce"
+        },
+        {
+          "term": "red onion",
+          "quantity": "2 units",
+          "aisle": "produce"
+        },
+        {
+          "term": "yellow onion",
+          "quantity": "2 units",
+          "aisle": "produce"
+        },
+        {
+          "term": "sesame-free chipotle paste",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "avocado",
+          "quantity": "2 units",
+          "aisle": "produce"
+        },
+        {
+          "term": "lime",
+          "quantity": "1 unit",
+          "aisle": "produce"
+        },
+        {
+          "term": "fresh coriander",
+          "quantity": "1 bunch",
+          "aisle": "produce"
+        }
+      ],
+      "member_portions": [
+        {
+          "member_id": "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+          "portion_note": "Serve the roasted vegetables first, followed by the smoky beans, and then the corn tortillas or rice.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_beans_lunch",
+              "note": "one box of smoky beans"
+            },
+            {
+              "preparation_id": "prep_veg_lunch",
+              "note": "one box of roasted vegetables"
+            }
+          ]
+        },
+        {
+          "member_id": "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+          "portion_note": "Serve the smoky beans and corn tortillas or rice first, then add the roasted vegetables to the plate.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_beans_lunch",
+              "note": "one box of smoky beans"
+            },
+            {
+              "preparation_id": "prep_veg_lunch",
+              "note": "one box of roasted vegetables"
+            }
+          ]
+        },
+        {
+          "member_id": "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7",
+          "portion_note": "Serve the smoky beans and corn tortillas or rice first, then add the roasted vegetables.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_beans_lunch",
+              "note": "one box of smoky beans"
+            },
+            {
+              "preparation_id": "prep_veg_lunch",
+              "note": "one box of roasted vegetables"
+            }
+          ]
+        },
+        {
+          "member_id": "1fea4f51-a4e9-4066-8d09-49881ee58f38",
+          "portion_note": "Serve all components together on the plate, ensuring the beans and vegetables are well mixed.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_beans_lunch",
+              "note": "one box of smoky beans"
+            },
+            {
+              "preparation_id": "prep_veg_lunch",
+              "note": "one box of roasted vegetables"
+            }
+          ]
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "candidates": [
+        {
+          "index": 0,
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Zesty Smoky Bean Tacos\",\n      \"title\": \"Smoky black beans and charred peppers in corn tortillas\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"corn tortillas\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lime\",\n          \"quantity\": \"0.25 unit\",\n          \"amount\": 0.25,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"fresh coriander\",\n          \"quantity\": \"a small handful\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Warm the tortillas in a dry pan for 30 seconds each side. Fill with a portion of the smoky beans and roasted vegetables. Squeeze over the lime and top with coriander.\",\n      \"why\": \"A bright, fresh lunch that uses the smoky batch components without needing a full reheat, perfect for a busy Wednesday.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beans_lunch\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_lunch_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_veg_lunch\",\n          \"servings\": 1,\n          \"box_id\": \"box_veg_lunch_aurele\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Hearty Smoky Bean Bowls\",\n      \"title\": \"Smoky bean stew with roasted summer vegetables and brown rice\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"avocado\",\n          \"quantity\": \"0.5 unit\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the beans and roasted vegetables in a pan with a splash of water until piping hot. Serve over the pre-cooked rice and top with sliced avocado.\",\n      \"why\": \"This provides the 'slow-cooked' feel the house requested while respecting the one-oven-tray limit by using a stovetop bean base.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beans_dinner\",\n          \"servings\": 1,\n          \"box_id\": \"box_beans_dinner_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_veg_dinner\",\n          \"servings\": 1,\n          \"box_id\": \"box_veg_dinner_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_rice_dinner\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_dinner_aurele\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_beans_lunch\",\n      \"title\": \"Smoky Three-Bean Batch (Lunch Portion)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"black beans\",\n          \"quantity\": \"480 g\",\n          \"amount\": 480,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"kidney beans\",\n          \"quantity\": \"480 g\",\n          \"amount\": 480,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"chopped tomatoes\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"onion\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"sesame-free chipotle paste\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Sauté onion and garlic in oil. Stir in chipotle paste and spices. Add beans and tomatoes, then simmer for 20 minutes until thickened. Divide into boxes.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_beans_lunch_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_beans_lunch_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_beans_lunch_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_beans_lunch_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 200\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_beans_dinner\",\n      \"title\": \"Smoky Three-Bean Batch (Dinner Portion)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"black beans\",\n          \"quantity\": \"480 g\",\n          \"amount\": 480,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"kidney beans\",\n          \"quantity\": \"480 g\",\n          \"amount\": 480,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"chopped tomatoes\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"onion\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"sesame-free chipotle paste\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Cooked simultaneously with the lunch batch in the same pot. Simmer until rich and smoky, then portion into dinner boxes.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_beans_dinner_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_beans_dinner_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_beans_dinner_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_beans_dinner_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 200\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_veg_lunch\",\n      \"title\": \"Roasted Summer Vegetables (Lunch Portion)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"bell peppers\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"courgette\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red onion\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Chop vegetables into chunks. Toss with oil and smoked paprika. Roast on a single tray at 200C for 25 minutes until charred.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_veg_lunch_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_veg_lunch_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_veg_lunch_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_veg_lunch_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 150\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_veg_dinner\",\n      \"title\": \"Roasted Summer Vegetables (Dinner Portion)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"bell peppers\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"courgette\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red onion\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Roasted on the same tray as the lunch vegetables. Portion once charred and tender.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_veg_dinner_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_veg_dinner_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_veg_dinner_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_veg_dinner_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 150\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_rice_dinner\",\n      \"title\": \"Steamed Brown Rice\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"brown rice\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Rinse rice and boil in salted water until tender (about 25-30 mins). Drain and portion.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 35,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_rice_dinner_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_rice_dinner_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_rice_dinner_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_rice_dinner_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 180\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_beans_lunch\",\n        \"prep_beans_dinner\",\n        \"prep_veg_lunch\",\n        \"prep_veg_dinner\",\n        \"prep_rice_dinner\"\n      ],\n      \"total_minutes\": 50,\n      \"run_through\": \"Start the brown rice on the stove. Preheat the oven and chop all peppers, courgettes, and red onions; toss them in oil and smoked paprika on the single oven tray and roast. While they roast, sauté the onions for the beans in a large pot, add the chipotle paste, beans, and tomatoes, and leave to simmer. Once everything is cooked, divide the beans and vegetables into lunch and dinner boxes, and portion the rice for tonight's dinner.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"black beans\",\n      \"quantity\": \"4 cans (400g each)\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"kidney beans\",\n      \"quantity\": \"4 cans (400g each)\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"chopped tomatoes\",\n      \"quantity\": \"2 cans (400g each)\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"brown rice\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"corn tortillas\",\n      \"quantity\": \"8 units\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"bell peppers\",\n      \"quantity\": \"4 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"courgette\",\n      \"quantity\": \"2 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red onion\",\n      \"quantity\": \"2 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"yellow onion\",\n      \"quantity\": \"2 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"sesame-free chipotle paste\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"avocado\",\n      \"quantity\": \"2 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"lime\",\n      \"quantity\": \"1 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"fresh coriander\",\n      \"quantity\": \"1 bunch\",\n      \"aisle\": \"produce\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\",\n      \"portion_note\": \"Serve the roasted vegetables first, followed by the smoky beans, and then the corn tortillas or rice.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_beans_lunch\",\n          \"note\": \"one box of smoky beans\"\n        },\n        {\n          \"preparation_id\": \"prep_veg_lunch\",\n          \"note\": \"one box of roasted vegetables\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"f5c81e2b-7f57-4fac-a30f-067fa587262d\",\n      \"portion_note\": \"Serve the smoky beans and corn tortillas or rice first, then add the roasted vegetables to the plate.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_beans_lunch\",\n          \"note\": \"one box of smoky beans\"\n        },\n        {\n          \"preparation_id\": \"prep_veg_lunch\",\n          \"note\": \"one box of roasted vegetables\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\",\n      \"portion_note\": \"Serve the smoky beans and corn tortillas or rice first, then add the roasted vegetables.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_beans_lunch\",\n          \"note\": \"one box of smoky beans\"\n        },\n        {\n          \"preparation_id\": \"prep_veg_lunch\",\n          \"note\": \"one box of roasted vegetables\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"1fea4f51-a4e9-4066-8d09-49881ee58f38\",\n      \"portion_note\": \"Serve all components together on the plate, ensuring the beans and vegetables are well mixed.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_beans_lunch\",\n          \"note\": \"one box of smoky beans\"\n        },\n        {\n          \"preparation_id\": \"prep_veg_lunch\",\n          \"note\": \"one box of roasted vegetables\"\n        }\n      ]\n    }\n  ]\n}",
+                "thoughtSignature": "[redacted]"
+              }
+            ]
+          },
+          "finishReason": "STOP"
+        }
+      ],
+      "responseId": "VhOFauKpMuygnsEPjrvQiAk",
+      "modelVersion": "gemini-3-flash-preview",
+      "usageMetadata": {
+        "serviceTier": "standard",
+        "totalTokenCount": 18653,
+        "promptTokenCount": 8110,
+        "thoughtsTokenCount": 5146,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 8110
+          }
+        ],
+        "candidatesTokenCount": 5397
+      }
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-19T02:19:45.446153+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T02:19:45.976837+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:19:49.100633+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:19:49.112038+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:19:49.120257+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:20:49.175116+00:00",
+      "status": "timeout_or_abort",
+      "outcome": "error",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": "Signal timed out.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:20:49.197014+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 1,
+      "chain_index": 2,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:20:49.96858+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 1,
+      "chain_index": 2,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:20:54.854933+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 2,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:20:55.370885+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 2,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:21:00.572521+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:21:00.57847+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:21:00.581065+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:22:00.598197+00:00",
+      "status": "timeout_or_abort",
+      "outcome": "error",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": "Signal timed out.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:22:00.606638+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 2,
+      "chain_index": 2,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:22:01.086673+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 2,
+      "chain_index": 2,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:22:07.701732+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 3,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:22:08.23777+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 3,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:22:14.596043+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 3,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:22:14.608835+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 3,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:22:14.614904+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 3,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:23:03.695632+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 3,
+      "chain_index": 1,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

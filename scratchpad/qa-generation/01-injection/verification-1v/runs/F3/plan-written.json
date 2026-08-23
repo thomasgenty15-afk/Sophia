@@ -1,0 +1,1240 @@
+{
+    "id": "1239047d-f91d-4583-a829-5e29f55ec299",
+    "dishes": [
+        {
+            "day": "wed",
+            "why": "A named breakfast with a warm element keeps the week anchored and fits the coach's rule that breakfast can be small and warm.",
+            "name": "Jam toast eggs",
+            "slot": "breakfast",
+            "uses": [
+                {
+                    "box_id": null,
+                    "servings": 4,
+                    "preparation_id": "prep_egg_frittata"
+                },
+                {
+                    "box_id": null,
+                    "servings": 4,
+                    "preparation_id": "prep_roast_potatoes"
+                }
+            ],
+            "title": "Toast with blackcurrant jam, egg frittata and roast potatoes",
+            "method": "Toast the bread. Serve with blackcurrant jam for Odalric and Peregrine, and crustless toast for Wilfrid and Casimir. Reheat the egg frittata and roast potatoes, then plate them alongside the toast.",
+            "same_day": {
+                "kind": "reheat_only",
+                "minutes": 10
+            },
+            "member_id": null,
+            "ingredients": [
+                {
+                    "term": "blackcurrant jam",
+                    "unit": "tbsp",
+                    "state": "raw",
+                    "amount": 4,
+                    "quantity": "4 tbsp",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "wholemeal bread",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 8,
+                    "quantity": "8 slices",
+                    "grams_raw": 320,
+                    "in_pantry": false
+                },
+                {
+                    "term": "salt",
+                    "unit": null,
+                    "state": null,
+                    "amount": null,
+                    "quantity": "pinch",
+                    "grams_raw": null,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud"
+            ]
+        },
+        {
+            "day": "wed",
+            "why": "This uses one cooked batch for a large lunch and gives the loud vegetable the lead without needing extra cooking on a busy day.",
+            "name": "Traybake lunch bowls",
+            "slot": "lunch",
+            "uses": [
+                {
+                    "box_id": "box_prep_roast_chicken_wed",
+                    "servings": 4,
+                    "preparation_id": "prep_roast_chicken"
+                },
+                {
+                    "box_id": "box_prep_rice_wed",
+                    "servings": 4,
+                    "preparation_id": "prep_rice"
+                },
+                {
+                    "box_id": "box_prep_roast_veg_wed",
+                    "servings": 4,
+                    "preparation_id": "prep_roast_veg"
+                },
+                {
+                    "box_id": "box_prep_yoghurt_sauce_wed",
+                    "servings": 4,
+                    "preparation_id": "prep_yoghurt_sauce"
+                }
+            ],
+            "title": "Roast chicken, rice, roast courgettes and peppers, and yoghurt sauce",
+            "method": "Reheat the chicken, rice and vegetables in a pan with a splash of water, then finish with yoghurt sauce and lemon. Keep the portions as boxed for each person, with Peregrine's vegetables chosen from the non-carrot tray.",
+            "same_day": {
+                "kind": "reheat_only",
+                "minutes": 10
+            },
+            "member_id": null,
+            "ingredients": [
+                {
+                    "term": "lemon",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 lemon, cut into wedges",
+                    "grams_raw": 60,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "one_loud_vegetable",
+                "starch_follows_the_session"
+            ]
+        },
+        {
+            "day": "wed",
+            "why": "It gives a warm dinner from the same session and varies the second main meal so the week does not feel repetitive.",
+            "name": "Herby chicken dinner",
+            "slot": "dinner",
+            "uses": [
+                {
+                    "box_id": "box_prep_roast_chicken_wed",
+                    "servings": 4,
+                    "preparation_id": "prep_roast_chicken"
+                },
+                {
+                    "box_id": "box_prep_roast_potatoes_wed",
+                    "servings": 4,
+                    "preparation_id": "prep_roast_potatoes"
+                },
+                {
+                    "box_id": "box_prep_roast_veg_wed",
+                    "servings": 4,
+                    "preparation_id": "prep_roast_veg"
+                },
+                {
+                    "box_id": "box_prep_yoghurt_sauce_wed",
+                    "servings": 4,
+                    "preparation_id": "prep_yoghurt_sauce"
+                }
+            ],
+            "title": "Roast chicken, roast potatoes, roast courgettes and peppers, and yoghurt sauce",
+            "method": "Reheat the chicken, potatoes and vegetables in a pan, then add yoghurt sauce and lemon at the table. Serve Peregrine's plate without any fennel and keep Wilfrid's bread separate if he wants it.",
+            "same_day": {
+                "kind": "reheat_only",
+                "minutes": 10
+            },
+            "member_id": null,
+            "ingredients": [
+                {
+                    "term": "lemon",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 lemon, cut into wedges",
+                    "grams_raw": 60,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "thu",
+            "why": "Thursday needs a quick breakfast because the kitchen table is under a dust sheet and the coach wants breakfast present, not absent.",
+            "name": "Window toast breakfast",
+            "slot": "breakfast",
+            "uses": [
+                {
+                    "box_id": "box_prep_egg_frittata_thu",
+                    "servings": 4,
+                    "preparation_id": "prep_egg_frittata"
+                },
+                {
+                    "box_id": null,
+                    "servings": 4,
+                    "preparation_id": "prep_roast_potatoes"
+                }
+            ],
+            "title": "Toast with blackcurrant jam, egg frittata and roast potatoes",
+            "method": "Toast the bread, spread the jam for Odalric and Peregrine, and serve the crustless slices for Wilfrid and Casimir. Reheat the egg frittata and potatoes from their boxes.",
+            "same_day": {
+                "kind": "reheat_only",
+                "minutes": 10
+            },
+            "member_id": null,
+            "ingredients": [
+                {
+                    "term": "blackcurrant jam",
+                    "unit": "tbsp",
+                    "state": "raw",
+                    "amount": 4,
+                    "quantity": "4 tbsp",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "wholemeal bread",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 8,
+                    "quantity": "8 slices",
+                    "grams_raw": 320,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud"
+            ]
+        },
+        {
+            "day": "thu",
+            "why": "It gives a full lunch without needing the shared table or extra cooking while the hallway is being painted.",
+            "name": "Hallway lunch bowls",
+            "slot": "lunch",
+            "uses": [
+                {
+                    "box_id": "box_prep_roast_chicken_wed",
+                    "servings": 4,
+                    "preparation_id": "prep_roast_chicken"
+                },
+                {
+                    "box_id": "box_prep_rice_wed",
+                    "servings": 4,
+                    "preparation_id": "prep_rice"
+                },
+                {
+                    "box_id": "box_prep_roast_veg_wed",
+                    "servings": 4,
+                    "preparation_id": "prep_roast_veg"
+                },
+                {
+                    "box_id": "box_prep_yoghurt_sauce_wed",
+                    "servings": 4,
+                    "preparation_id": "prep_yoghurt_sauce"
+                }
+            ],
+            "title": "Roast chicken, rice, roast courgettes and peppers, and yoghurt sauce",
+            "method": "Reheat the boxed chicken, rice and vegetables in a pan, then spoon over yoghurt sauce and lemon. Keep the portions ready so the dust sheet does not turn lunch into a faff.",
+            "same_day": {
+                "kind": "reheat_only",
+                "minutes": 10
+            },
+            "member_id": null,
+            "ingredients": [
+                {
+                    "term": "lemon",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 lemon, cut into wedges",
+                    "grams_raw": 60,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "one_loud_vegetable",
+                "starch_follows_the_session"
+            ]
+        },
+        {
+            "day": "thu",
+            "why": "It reuses the same batch on the next day, staying within the coach's cooking rhythm and the fridge safety window.",
+            "name": "Dust-sheet chicken dinner",
+            "slot": "dinner",
+            "uses": [
+                {
+                    "box_id": "box_prep_roast_chicken_wed",
+                    "servings": 4,
+                    "preparation_id": "prep_roast_chicken"
+                },
+                {
+                    "box_id": "box_prep_roast_potatoes_wed",
+                    "servings": 4,
+                    "preparation_id": "prep_roast_potatoes"
+                },
+                {
+                    "box_id": "box_prep_roast_veg_wed",
+                    "servings": 4,
+                    "preparation_id": "prep_roast_veg"
+                },
+                {
+                    "box_id": "box_prep_yoghurt_sauce_wed",
+                    "servings": 4,
+                    "preparation_id": "prep_yoghurt_sauce"
+                }
+            ],
+            "title": "Roast chicken, roast potatoes, roast courgettes and peppers, and yoghurt sauce",
+            "method": "Reheat the boxed chicken, potatoes and vegetables in a pan, then finish with yoghurt sauce and lemon. Serve the plates straight away so the shared kitchen stays manageable.",
+            "same_day": {
+                "kind": "reheat_only",
+                "minutes": 10
+            },
+            "member_id": null,
+            "ingredients": [
+                {
+                    "term": "lemon",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 lemon, cut into wedges",
+                    "grams_raw": 60,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "fri",
+            "why": "Friday breakfast is another warm, low-effort plate that keeps the week moving before the next cooking session.",
+            "name": "Cold-weather breakfast tray",
+            "slot": "breakfast",
+            "uses": [
+                {
+                    "box_id": "box_prep_egg_frittata_fri",
+                    "servings": 4,
+                    "preparation_id": "prep_egg_frittata"
+                },
+                {
+                    "box_id": null,
+                    "servings": 4,
+                    "preparation_id": "prep_roast_potatoes"
+                }
+            ],
+            "title": "Toast with blackcurrant jam, egg frittata and roast potatoes",
+            "method": "Toast the bread, spread the jam for Odalric and Peregrine, and keep Wilfrid's slices crustless. Reheat the egg frittata and roast potatoes from their boxes.",
+            "same_day": {
+                "kind": "reheat_only",
+                "minutes": 10
+            },
+            "member_id": null,
+            "ingredients": [
+                {
+                    "term": "blackcurrant jam",
+                    "unit": "tbsp",
+                    "state": "raw",
+                    "amount": 4,
+                    "quantity": "4 tbsp",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "wholemeal bread",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 8,
+                    "quantity": "8 slices",
+                    "grams_raw": 320,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud"
+            ]
+        },
+        {
+            "day": "fri",
+            "why": "It finishes the Wednesday cook within the safe three-day window and keeps starch where the training is.",
+            "name": "Rice bowl lunch",
+            "slot": "lunch",
+            "uses": [
+                {
+                    "box_id": "box_prep_roast_chicken_wed",
+                    "servings": 4,
+                    "preparation_id": "prep_roast_chicken"
+                },
+                {
+                    "box_id": "box_prep_rice_wed",
+                    "servings": 4,
+                    "preparation_id": "prep_rice"
+                },
+                {
+                    "box_id": "box_prep_roast_veg_wed",
+                    "servings": 4,
+                    "preparation_id": "prep_roast_veg"
+                },
+                {
+                    "box_id": "box_prep_yoghurt_sauce_wed",
+                    "servings": 4,
+                    "preparation_id": "prep_yoghurt_sauce"
+                }
+            ],
+            "title": "Roast chicken, rice, roast courgettes and peppers, and yoghurt sauce",
+            "method": "Reheat the boxed chicken, rice and vegetables in a pan, then add yoghurt sauce and lemon. This is the last use of the Wednesday batch, so keep the boxes moving and the portions even.",
+            "same_day": {
+                "kind": "reheat_only",
+                "minutes": 10
+            },
+            "member_id": null,
+            "ingredients": [
+                {
+                    "term": "lemon",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 lemon, cut into wedges",
+                    "grams_raw": 60,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "starch_follows_the_session",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "fri",
+            "why": "It gives dinner from the same session without a fourth distinct cook, which keeps the plan realistic and varied.",
+            "name": "Friday chicken dinner",
+            "slot": "dinner",
+            "uses": [
+                {
+                    "box_id": "box_prep_roast_chicken_wed",
+                    "servings": 4,
+                    "preparation_id": "prep_roast_chicken"
+                },
+                {
+                    "box_id": "box_prep_roast_potatoes_wed",
+                    "servings": 4,
+                    "preparation_id": "prep_roast_potatoes"
+                },
+                {
+                    "box_id": "box_prep_roast_veg_wed",
+                    "servings": 4,
+                    "preparation_id": "prep_roast_veg"
+                },
+                {
+                    "box_id": "box_prep_yoghurt_sauce_wed",
+                    "servings": 4,
+                    "preparation_id": "prep_yoghurt_sauce"
+                }
+            ],
+            "title": "Roast chicken, roast potatoes, roast courgettes and peppers, and yoghurt sauce",
+            "method": "Reheat the boxed chicken, potatoes and vegetables in a pan, then add yoghurt sauce and lemon. Serve Peregrine's plate without any fennel and give Casimir's plate his hot sauce separately if he wants it.",
+            "same_day": {
+                "kind": "reheat_only",
+                "minutes": 10
+            },
+            "member_id": null,
+            "ingredients": [
+                {
+                    "term": "lemon",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 lemon, cut into wedges",
+                    "grams_raw": 60,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "one_loud_vegetable"
+            ]
+        }
+    ],
+    "servings": 4,
+    "starts_on": "2026-08-19",
+    "preparations": [
+        {
+            "id": "prep_roast_chicken",
+            "boxes": [
+                {
+                    "id": "box_prep_roast_chicken_wed",
+                    "grams": 1800,
+                    "member_ids": [
+                        "85acac95-312b-4d0e-a4da-02558e8a182f",
+                        "f190856d-d573-42e9-a026-b6a37b9f7471",
+                        "65eb7490-adae-40c2-8b43-b10a0cc0ab05",
+                        "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+                    ]
+                }
+            ],
+            "title": "Roast chicken thighs",
+            "method": "Heat the oven to 220 C. Toss the thighs with oil, paprika, crushed garlic, salt and pepper, spread on two trays and roast until browned and cooked through. Rest, then box straight away in meal portions.",
+            "cook_on": "wed",
+            "ingredients": [
+                {
+                    "term": "chicken thighs",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 1800,
+                    "quantity": "1.8 kg chicken thighs",
+                    "grams_raw": 1800,
+                    "in_pantry": false
+                },
+                {
+                    "term": "olive oil",
+                    "unit": "tbsp",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 tbsp",
+                    "grams_raw": 30,
+                    "in_pantry": false
+                },
+                {
+                    "term": "smoked paprika",
+                    "unit": "tsp",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 tsp",
+                    "grams_raw": 10,
+                    "in_pantry": false
+                },
+                {
+                    "term": "garlic",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 4,
+                    "quantity": "4 cloves",
+                    "grams_raw": 20,
+                    "in_pantry": false
+                },
+                {
+                    "term": "salt",
+                    "unit": "tsp",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 tsp",
+                    "grams_raw": 10,
+                    "in_pantry": false
+                },
+                {
+                    "term": "black pepper",
+                    "unit": "tsp",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 tsp",
+                    "grams_raw": 5,
+                    "in_pantry": false
+                }
+            ],
+            "servings_made": 12,
+            "total_minutes": 45,
+            "active_minutes": 15
+        },
+        {
+            "id": "prep_roast_veg",
+            "boxes": [
+                {
+                    "id": "box_prep_roast_veg_wed",
+                    "grams": 1800,
+                    "member_ids": [
+                        "85acac95-312b-4d0e-a4da-02558e8a182f",
+                        "f190856d-d573-42e9-a026-b6a37b9f7471",
+                        "65eb7490-adae-40c2-8b43-b10a0cc0ab05",
+                        "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+                    ]
+                }
+            ],
+            "title": "Roast courgettes and peppers",
+            "method": "Roast the courgettes, peppers and onions with oil, thyme and salt on a hot tray until tender and a little charred. Cool briefly, then box for the next three days.",
+            "cook_on": "wed",
+            "ingredients": [
+                {
+                    "term": "courgettes",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 1200,
+                    "quantity": "1.2 kg courgettes",
+                    "grams_raw": 1200,
+                    "in_pantry": false
+                },
+                {
+                    "term": "red peppers",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 800,
+                    "quantity": "800 g red peppers",
+                    "grams_raw": 800,
+                    "in_pantry": false
+                },
+                {
+                    "term": "red onion",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 red onions",
+                    "grams_raw": 220,
+                    "in_pantry": false
+                },
+                {
+                    "term": "olive oil",
+                    "unit": "tbsp",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 tbsp",
+                    "grams_raw": 30,
+                    "in_pantry": false
+                },
+                {
+                    "term": "dried thyme",
+                    "unit": "tsp",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 tsp",
+                    "grams_raw": 10,
+                    "in_pantry": false
+                },
+                {
+                    "term": "salt",
+                    "unit": "tsp",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 tsp",
+                    "grams_raw": 10,
+                    "in_pantry": false
+                }
+            ],
+            "servings_made": 12,
+            "total_minutes": 35,
+            "active_minutes": 15
+        },
+        {
+            "id": "prep_rice",
+            "boxes": [
+                {
+                    "id": "box_prep_rice_wed",
+                    "grams": 960,
+                    "member_ids": [
+                        "85acac95-312b-4d0e-a4da-02558e8a182f",
+                        "f190856d-d573-42e9-a026-b6a37b9f7471",
+                        "65eb7490-adae-40c2-8b43-b10a0cc0ab05",
+                        "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+                    ]
+                }
+            ],
+            "title": "Basmati rice",
+            "method": "Rinse the rice, simmer it until fluffy, then spread it out to steam off. Box the cooked rice the same day it is made and keep it for lunch only on Wednesday and Friday.",
+            "cook_on": "wed",
+            "ingredients": [
+                {
+                    "term": "basmati rice",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 320,
+                    "quantity": "320 g basmati rice",
+                    "grams_raw": 320,
+                    "in_pantry": false
+                },
+                {
+                    "term": "water",
+                    "unit": "ml",
+                    "state": "raw",
+                    "amount": 640,
+                    "quantity": "640 ml water",
+                    "grams_raw": 640,
+                    "in_pantry": false
+                },
+                {
+                    "term": "salt",
+                    "unit": "tsp",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 tsp",
+                    "grams_raw": 5,
+                    "in_pantry": false
+                }
+            ],
+            "servings_made": 4,
+            "total_minutes": 20,
+            "active_minutes": 5
+        },
+        {
+            "id": "prep_roast_potatoes",
+            "boxes": [
+                {
+                    "id": "box_prep_roast_potatoes_wed",
+                    "grams": 1800,
+                    "member_ids": [
+                        "85acac95-312b-4d0e-a4da-02558e8a182f",
+                        "f190856d-d573-42e9-a026-b6a37b9f7471",
+                        "65eb7490-adae-40c2-8b43-b10a0cc0ab05",
+                        "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+                    ]
+                }
+            ],
+            "title": "Roast potatoes",
+            "method": "Cut the potatoes into chunks, toss with oil, rosemary and salt, then roast until crisp at the edges. Box the cooked potatoes for breakfasts and dinners within the next three days.",
+            "cook_on": "wed",
+            "ingredients": [
+                {
+                    "term": "potatoes",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 2400,
+                    "quantity": "2.4 kg potatoes",
+                    "grams_raw": 2400,
+                    "in_pantry": false
+                },
+                {
+                    "term": "olive oil",
+                    "unit": "tbsp",
+                    "state": "raw",
+                    "amount": 3,
+                    "quantity": "3 tbsp",
+                    "grams_raw": 45,
+                    "in_pantry": false
+                },
+                {
+                    "term": "rosemary",
+                    "unit": "tsp",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 tsp",
+                    "grams_raw": 10,
+                    "in_pantry": false
+                },
+                {
+                    "term": "salt",
+                    "unit": "tsp",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 tsp",
+                    "grams_raw": 10,
+                    "in_pantry": false
+                }
+            ],
+            "servings_made": 12,
+            "total_minutes": 50,
+            "active_minutes": 20
+        },
+        {
+            "id": "prep_yoghurt_sauce",
+            "boxes": [
+                {
+                    "id": "box_prep_yoghurt_sauce_wed",
+                    "grams": 360,
+                    "member_ids": [
+                        "85acac95-312b-4d0e-a4da-02558e8a182f",
+                        "f190856d-d573-42e9-a026-b6a37b9f7471",
+                        "65eb7490-adae-40c2-8b43-b10a0cc0ab05",
+                        "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+                    ]
+                }
+            ],
+            "title": "Lemon herb yoghurt sauce",
+            "method": "Stir the yoghurt with lemon zest and juice, finely chopped parsley, grated garlic, salt and pepper. Box cold; it is spooned over the hot food at meal time.",
+            "cook_on": "wed",
+            "ingredients": [
+                {
+                    "term": "Greek yoghurt",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 600,
+                    "quantity": "600 g Greek yoghurt",
+                    "grams_raw": 600,
+                    "in_pantry": false
+                },
+                {
+                    "term": "lemon",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 lemons",
+                    "grams_raw": 120,
+                    "in_pantry": false
+                },
+                {
+                    "term": "parsley",
+                    "unit": null,
+                    "state": null,
+                    "amount": null,
+                    "quantity": "a small bunch parsley",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "garlic",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 clove",
+                    "grams_raw": 5,
+                    "in_pantry": false
+                },
+                {
+                    "term": "salt",
+                    "unit": null,
+                    "state": null,
+                    "amount": null,
+                    "quantity": "pinch",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "black pepper",
+                    "unit": null,
+                    "state": null,
+                    "amount": null,
+                    "quantity": "pinch",
+                    "grams_raw": null,
+                    "in_pantry": false
+                }
+            ],
+            "servings_made": 12,
+            "total_minutes": 10,
+            "active_minutes": 10
+        },
+        {
+            "id": "prep_egg_frittata",
+            "boxes": [
+                {
+                    "id": "box_prep_egg_frittata_thu",
+                    "grams": 800,
+                    "member_ids": [
+                        "85acac95-312b-4d0e-a4da-02558e8a182f",
+                        "f190856d-d573-42e9-a026-b6a37b9f7471",
+                        "65eb7490-adae-40c2-8b43-b10a0cc0ab05",
+                        "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+                    ]
+                },
+                {
+                    "id": "box_prep_egg_frittata_fri",
+                    "grams": 800,
+                    "member_ids": [
+                        "85acac95-312b-4d0e-a4da-02558e8a182f",
+                        "f190856d-d573-42e9-a026-b6a37b9f7471",
+                        "65eb7490-adae-40c2-8b43-b10a0cc0ab05",
+                        "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+                    ]
+                }
+            ],
+            "title": "Courgette and herb egg frittata",
+            "method": "Fry the courgette and spring onions briefly, add beaten eggs and cheddar, then cook gently until set and finish under the grill if needed. Cool, cut into portions and box for breakfast.",
+            "cook_on": "wed",
+            "ingredients": [
+                {
+                    "term": "eggs",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 8,
+                    "quantity": "8 eggs",
+                    "grams_raw": 440,
+                    "in_pantry": false
+                },
+                {
+                    "term": "courgette",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 300,
+                    "quantity": "300 g courgette",
+                    "grams_raw": 300,
+                    "in_pantry": false
+                },
+                {
+                    "term": "spring onion",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 4,
+                    "quantity": "4 spring onions",
+                    "grams_raw": 60,
+                    "in_pantry": false
+                },
+                {
+                    "term": "cheddar",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 120,
+                    "quantity": "120 g cheddar",
+                    "grams_raw": 120,
+                    "in_pantry": false
+                },
+                {
+                    "term": "olive oil",
+                    "unit": "tbsp",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 tbsp",
+                    "grams_raw": 15,
+                    "in_pantry": false
+                },
+                {
+                    "term": "salt",
+                    "unit": "tsp",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 tsp",
+                    "grams_raw": 5,
+                    "in_pantry": false
+                },
+                {
+                    "term": "black pepper",
+                    "unit": "tsp",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 tsp",
+                    "grams_raw": 5,
+                    "in_pantry": false
+                }
+            ],
+            "servings_made": 8,
+            "total_minutes": 25,
+            "active_minutes": 15
+        }
+    ],
+    "duration_days": 3,
+    "generated_from": {
+        "goal": "muscle_gain",
+        "names": {
+            "kept": 9,
+            "dishes": 9,
+            "refused": 0,
+            "declared": 9
+        },
+        "intent": "prepare_next",
+        "issues": [
+            "preparations[prep_roast_chicken].boxes[box_prep_roast_chicken_wed]: shared by mouths whose targets differ, grams left as written",
+            "preparations[prep_roast_veg].boxes[box_prep_roast_veg_wed]: shared by mouths whose targets differ, grams left as written",
+            "preparations[prep_rice].boxes[box_prep_rice_wed]: shared by mouths whose targets differ, grams left as written",
+            "preparations[prep_roast_potatoes].boxes[box_prep_roast_potatoes_wed]: shared by mouths whose targets differ, grams left as written",
+            "preparations[prep_yoghurt_sauce].boxes[box_prep_yoghurt_sauce_wed]: shared by mouths whose targets differ, grams left as written",
+            "preparations[prep_egg_frittata].boxes[box_prep_egg_frittata_thu]: shared by mouths whose targets differ, grams left as written",
+            "preparations[prep_egg_frittata].boxes[box_prep_egg_frittata_fri]: shared by mouths whose targets differ, grams left as written",
+            "shopping_list_unattributed: 2/21 lines match no kept and no dropped ingredient -- kept, not guessed",
+            "structured_quantity_missing: 1/13 ingredients",
+            "dishes[3].uses: box \"box_prep_roast_potatoes_thu\" does not exist, dropped",
+            "dishes[6].uses: box \"box_prep_roast_potatoes_fri\" does not exist, dropped",
+            "preparations[0]: boxes hold 1800 g but \"Roast chicken thighs\" makes about 1335 g ready -- the boxes cannot all be filled",
+            "preparations[5]: boxes hold 1600 g but \"Courgette and herb egg frittata\" makes about 915 g ready -- the boxes cannot all be filled",
+            "preparations[5]: \"85acac95-312b-4d0e-a4da-02558e8a182f\" is in 2 boxes of \"Courgette and herb egg frittata\" -- two weights for one pan",
+            "preparations[5]: \"f190856d-d573-42e9-a026-b6a37b9f7471\" is in 2 boxes of \"Courgette and herb egg frittata\" -- two weights for one pan",
+            "preparations[5]: \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\" is in 2 boxes of \"Courgette and herb egg frittata\" -- two weights for one pan",
+            "preparations[5]: \"536e683d-64a8-4dc2-a69b-6ee1925b206c\" is in 2 boxes of \"Courgette and herb egg frittata\" -- two weights for one pan"
+        ],
+        "coach_id": "1e000000-0000-4000-8000-0000000000c1",
+        "same_day": {
+            "dishes": 9,
+            "invalid": 0,
+            "declared": 9,
+            "minutes_missing": 0
+        },
+        "household": {
+            "id": "aeceffed-dad1-4f1f-9087-424109642f1f",
+            "hand": {
+                "taken": [
+                ],
+                "partial": [
+                ],
+                "unmerged": [
+                ],
+                "reclaimed": [
+                ]
+            },
+            "boxes": {
+                "boxes": 7,
+                "capped": 0,
+                "mouths": 4,
+                "refused": 0,
+                "sum_over": 2,
+                "with_boxes": 6,
+                "mouth_slots": 24,
+                "sum_checked": 5,
+                "preparations": 6,
+                "mouths_double": 4,
+                "mouths_unboxed": 0,
+                "sum_unverifiable": 1
+            },
+            "shares": {
+                "shares": 24,
+                "unknown": 0
+            },
+            "voices": {
+                "heard": 0,
+                "lines_in": 0,
+                "over_cap": 0,
+                "withheld": 0,
+                "lines_used": 0,
+                "per_member": [
+                ],
+                "accounts_at_table": 1
+            },
+            "cooking": {
+                "asked": null,
+                "capped": false,
+                "served": "one_dish",
+                "unused": false,
+                "computed": "one_dish",
+                "diverging": [
+                ],
+                "dish_bearing": [
+                ]
+            },
+            "kitchen": {
+                "missing": [
+                    "microwave",
+                    "pressure_cooker"
+                ],
+                "declared": [
+                    "oven",
+                    "stovetop",
+                    "freezer",
+                    "air_fryer",
+                    "blender"
+                ]
+            },
+            "box_uses": {
+                "uses": 30,
+                "cited": 28,
+                "refused": 2,
+                "resolved": 26
+            },
+            "presence": {
+                "members": [
+                    {
+                        "away": [
+                            {
+                                "day": "sat",
+                                "slots": [
+                                    "dinner"
+                                ]
+                            }
+                        ],
+                        "self": [
+                        ],
+                        "household": [
+                            {
+                                "day": "sat",
+                                "slots": [
+                                    "dinner"
+                                ]
+                            }
+                        ],
+                        "member_id": "f190856d-d573-42e9-a026-b6a37b9f7471",
+                        "eating_out": [
+                        ]
+                    }
+                ],
+                "deserted": [
+                ],
+                "servings": 4
+            },
+            "envy_week": "2026-08-17",
+            "box_sizing": {
+                "boxes": 7,
+                "sized": 0,
+                "mouths": {
+                    "minor": 0,
+                    "sized": 1,
+                    "no_body": 0,
+                    "no_pace": 0,
+                    "age_unknown": 0,
+                    "no_direction": 0,
+                    "restriction_floor": 3,
+                    "implausible_factor": 0,
+                    "doctrine_no_counting": 0
+                },
+                "unchanged": 0,
+                "shared_mixed": 7,
+                "unverifiable": 0,
+                "capped_by_pot": 0
+            },
+            "eating_out": {
+                "cells": 0,
+                "mouths": 0
+            },
+            "dish_owners": {
+                "asked": 0,
+                "refused": 0,
+                "declared": 0,
+                "attributed": 0
+            },
+            "minor_count": 2,
+            "member_count": 4,
+            "member_deltas": [
+            ],
+            "envy_line_used": true,
+            "vague_portions": {
+                "notes": 28,
+                "vague": 0,
+                "box_ids": 0,
+                "quantified": 28
+            },
+            "accountless_count": 3,
+            "restriction_count": 1,
+            "unknown_age_count": 0,
+            "unquantified_dish_ingredients": {
+                "ingredients": 13,
+                "unquantified": 1
+            }
+        },
+        "rationale": {
+            "lines": [
+                "This plan covers 3 days, starting Wednesday 2026-08-19.",
+                "You cook on Tuesday and Saturday, and that is what was kept.",
+                "Quantities are made for 4 people.",
+                "The shopping budget is 152.",
+                "To stay inside it, expensive proteins give first, then out-of-season produce, then variety — never the portions."
+            ],
+            "refusal": null
+        },
+        "belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable",
+            "starch_follows_the_session"
+        ],
+        "empty_slots": [
+        ],
+        "hunger_days": 0,
+        "prompt_version": "meal.en.v13_what_they_can_actually_do+household.v17_what_each_mouth_already_has",
+        "request_report": {
+            "lines": [
+            ],
+            "refusal": null
+        },
+        "doctrine_reason": "loaded",
+        "doctrine_version": 1,
+        "satiety_priority": false,
+        "hunger_window_end": "2026-08-18",
+        "hunger_window_days": 7,
+        "hunger_window_start": "2026-08-12",
+        "protein_anchor_retry": false,
+        "protein_anchor_missing": [
+        ]
+    },
+    "member_portions": [
+        {
+            "member_id": "85acac95-312b-4d0e-a4da-02558e8a182f",
+            "display_name": "Odalric",
+            "portion_note": "Breakfast: 2 slices toast with blackcurrant jam, plus 180 g cooked egg and 120 g potatoes. Lunch: 220 g cooked chicken, 260 g cooked rice, 180 g roast vegetables, and 30 g yoghurt sauce. Dinner: 180 g cooked chicken, 220 g cooked potatoes, 180 g roast vegetables, and 30 g yoghurt sauce.",
+            "preparation_shares": [
+                {
+                    "note": "Take 220 g at lunch and 180 g at dinner.",
+                    "preparation_id": "prep_roast_chicken"
+                },
+                {
+                    "note": "Take 180 g at lunch and 180 g at dinner.",
+                    "preparation_id": "prep_roast_veg"
+                },
+                {
+                    "note": "Take 260 g at lunch.",
+                    "preparation_id": "prep_rice"
+                },
+                {
+                    "note": "Take 120 g at breakfast and 220 g at dinner.",
+                    "preparation_id": "prep_roast_potatoes"
+                },
+                {
+                    "note": "Take 30 g at lunch and 30 g at dinner.",
+                    "preparation_id": "prep_yoghurt_sauce"
+                },
+                {
+                    "note": "Take 180 g at breakfast.",
+                    "preparation_id": "prep_egg_frittata"
+                }
+            ]
+        },
+        {
+            "member_id": "f190856d-d573-42e9-a026-b6a37b9f7471",
+            "display_name": "Wilfrid",
+            "portion_note": "Breakfast: crustless toast with 120 g cooked egg and 80 g potatoes. Lunch: 140 g cooked chicken, 180 g cooked rice, 140 g roast vegetables, and 20 g yoghurt sauce. Dinner: 120 g cooked chicken, 150 g cooked potatoes, 140 g roast vegetables, and 20 g yoghurt sauce.",
+            "preparation_shares": [
+                {
+                    "note": "Take 140 g at lunch and 120 g at dinner.",
+                    "preparation_id": "prep_roast_chicken"
+                },
+                {
+                    "note": "Take 140 g at lunch and 140 g at dinner.",
+                    "preparation_id": "prep_roast_veg"
+                },
+                {
+                    "note": "Take 180 g at lunch.",
+                    "preparation_id": "prep_rice"
+                },
+                {
+                    "note": "Take 80 g at breakfast and 150 g at dinner.",
+                    "preparation_id": "prep_roast_potatoes"
+                },
+                {
+                    "note": "Take 20 g at lunch and 20 g at dinner.",
+                    "preparation_id": "prep_yoghurt_sauce"
+                },
+                {
+                    "note": "Take 120 g at breakfast.",
+                    "preparation_id": "prep_egg_frittata"
+                }
+            ]
+        },
+        {
+            "member_id": "65eb7490-adae-40c2-8b43-b10a0cc0ab05",
+            "display_name": "Peregrine",
+            "portion_note": "Breakfast: 2 slices toast with blackcurrant jam, plus 220 g cooked egg and 120 g potatoes. Lunch: 220 g cooked chicken, 260 g cooked rice, 180 g roast vegetables, and 30 g yoghurt sauce. Dinner: 180 g cooked chicken, 220 g cooked potatoes, 180 g roast vegetables, and 30 g yoghurt sauce.",
+            "preparation_shares": [
+                {
+                    "note": "Take 220 g at lunch and 180 g at dinner.",
+                    "preparation_id": "prep_roast_chicken"
+                },
+                {
+                    "note": "Take 180 g at lunch and 180 g at dinner.",
+                    "preparation_id": "prep_roast_veg"
+                },
+                {
+                    "note": "Take 260 g at lunch.",
+                    "preparation_id": "prep_rice"
+                },
+                {
+                    "note": "Take 120 g at breakfast and 220 g at dinner.",
+                    "preparation_id": "prep_roast_potatoes"
+                },
+                {
+                    "note": "Take 30 g at lunch and 30 g at dinner.",
+                    "preparation_id": "prep_yoghurt_sauce"
+                },
+                {
+                    "note": "Take 220 g at breakfast.",
+                    "preparation_id": "prep_egg_frittata"
+                }
+            ]
+        },
+        {
+            "member_id": "536e683d-64a8-4dc2-a69b-6ee1925b206c",
+            "display_name": "Casimir",
+            "portion_note": "Breakfast: crustless toast with 120 g cooked egg and 80 g potatoes. Lunch: 140 g cooked chicken, 180 g cooked rice, 140 g roast vegetables, and 20 g yoghurt sauce. Dinner: 120 g cooked chicken, 150 g cooked potatoes, 140 g roast vegetables, and 20 g yoghurt sauce.",
+            "preparation_shares": [
+                {
+                    "note": "Take 140 g at lunch and 120 g at dinner.",
+                    "preparation_id": "prep_roast_chicken"
+                },
+                {
+                    "note": "Take 140 g at lunch and 140 g at dinner.",
+                    "preparation_id": "prep_roast_veg"
+                },
+                {
+                    "note": "Take 180 g at lunch.",
+                    "preparation_id": "prep_rice"
+                },
+                {
+                    "note": "Take 80 g at breakfast and 150 g at dinner.",
+                    "preparation_id": "prep_roast_potatoes"
+                },
+                {
+                    "note": "Take 20 g at lunch and 20 g at dinner.",
+                    "preparation_id": "prep_yoghurt_sauce"
+                },
+                {
+                    "note": "Take 120 g at breakfast.",
+                    "preparation_id": "prep_egg_frittata"
+                }
+            ]
+        }
+    ]
+}

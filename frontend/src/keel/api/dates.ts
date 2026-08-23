@@ -11,6 +11,28 @@ import type { DayToken } from "./types";
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
+/**
+ * LA MÊME QUESTION, SANS LA SANCTION — et pourquoi les deux existent.
+ *
+ * `assertIsoDate` jette, et c'est ce qu'on veut d'une date qui ARRIVE dans le
+ * calcul. Mais un écran a besoin de demander « est-ce déjà une date ? » AVANT
+ * de la faire entrer, parce qu'un `<input type="date">` passe par des valeurs
+ * vides et incomplètes pendant qu'on l'édite au clavier.
+ *
+ * Sans cette porte, la seule façon de poser la question était d'appeler la
+ * garde et de rattraper son erreur — ou de ne pas la poser. Mesuré le
+ * 2026-08-18 dans `MealBuilder`: la valeur brute du champ partait dans l'état
+ * qui nourrit `addDays`, la garde jetait PENDANT LE RENDU, et l'ErrorBoundary
+ * emportait la page entière dès qu'on vidait le champ une fraction de seconde.
+ * La fenêtre du plan était inéditable au clavier.
+ *
+ * La garde n'est pas assouplie: elle jette toujours. C'est l'appelant qui
+ * cesse de lui donner des demi-dates.
+ */
+export function isIsoDate(date: string): boolean {
+  return ISO_DATE.test(date);
+}
+
 /** R7: a malformed date is a throw, never a silently shifted day. */
 export function assertIsoDate(date: string): string {
   if (!ISO_DATE.test(date)) {

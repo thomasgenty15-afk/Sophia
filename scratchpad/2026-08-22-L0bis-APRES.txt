@@ -1,0 +1,24 @@
+# L0bis — sortie ARCHIVÉE de la sonde APRÈS
+# lancée le 2026-08-22 03:48:21 CEST
+
+══ ① LE COMPTEUR SUR LE CORPUS RÉEL — les bouches de foyer ══
+  bouches de foyer                 = 92
+  dont SANS COMPTE (donc refs = []) = 59
+  lignes condition_ref actives      = 0
+  condition_gate                    = {"pregnancy":0,"breastfeeding":0,"other":0,"none":92}
+  populations rendues               = 4 (pregnancy, breastfeeding, other, none)
+  none majoritaire ?                = 92 / 92 = 100.0 %
+
+══ ② LE CHEMIN RÉEL — rejeu du plancher sur les messages ARCHIVÉS ══
+  messages d'élève archivés = 358
+  condition_gate (rejeu)    = {"pregnancy":0,"breastfeeding":0,"other":0,"none":358}
+  jetons produits           = []
+  none majoritaire ?        = 358 / 358 = 100.0 %
+
+══ ③ LES DEUX CAS, SUR LE CORPS DE LA MESURE AVANT ══
+  []                   ⇒ facteur 0.7475 (sized             ) · ancre 1480 (anchored)
+  ["pregnancy"]        ⇒ facteur 1.0000 (pregnancy         ) · ancre null (pregnancy)
+  ["breastfeeding"]    ⇒ facteur 1.0000 (breastfeeding     ) · ancre null (breastfeeding)
+  ["diabetes"]         ⇒ facteur 0.7475 (sized             ) · ancre 1480 (anchored)
+  ["hypertension"]     ⇒ facteur 0.7475 (sized             ) · ancre 1480 (anchored)
+  byte-identique (aucune condition vs diabetes) : OUI

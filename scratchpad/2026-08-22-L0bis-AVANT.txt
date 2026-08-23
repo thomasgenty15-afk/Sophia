@@ -1,0 +1,84 @@
+# L0bis — MESURE AVANT, sortie ARCHIVÉE
+# Exécutée le 2026-08-22 à 03:19:55 CEST, sur l'arbre de travail AVANT toute
+# ligne de correctif. Script: scratchpad/2026-08-22-L0bis-sonde-avant.ts
+# (modules IMPORTÉS, jamais recopiés). Zéro génération, zéro écriture.
+#
+# ⚠️ CE SCRIPT NE SE REJOUE PLUS TEL QUEL, ET C'EST LA PREUVE QUE LA GARDE EST
+# ARMÉE. Relancé après le lot, il LÈVE:
+#
+#   Error: [keel/household_portions] missing required sizing input:
+#          conditionRefs — an absent gate is a disarmed gate
+#
+# C'est-à-dire que le sixième champ requis de `mouthTargetFactor` fait remonter
+# ses appelants à l'exécution comme au compilateur. La sortie ci-dessous est
+# donc conservée telle qu'elle a été produite.
+
+══ ① LE CHAT EST LE SEUL ÉCRIVAIN — ce qu'il écrit ══
+  "je suis enceinte"                                   ⇒ pregnancy (matched="enceinte")
+  "I'm pregnant"                                       ⇒ pregnancy (matched="pregnant")
+  "j'ai une grossesse"                                 ⇒ pregnancy (matched="grossesse")
+  "je suis enceinte de 5 mois et je veux perdre du poids" ⇒ pregnancy (matched="enceinte")
+  "I'm breastfeeding"                                  ⇒ pregnancy (matched="breastfeeding")
+  "j'allaite"                                          ⇒ null
+  "je suis en plein allaitement"                       ⇒ pregnancy (matched="allaitement")
+  "I am diabetic"                                      ⇒ diabetes (matched="diabetic")
+
+══ ② LA CEINTURE DE SORTIE NE VOIT PAS conditionRef (justifié) ══
+  safetyConstraintTokens  ⇒ []
+  medicalConstraintTokens ⇒ []
+
+══ ③ LE MOTEUR — un corps réel, féminin, adulte, objectif fat_loss ══
+  entretien estimé            = 1980.0 kcal/j
+  energyFloorFor("female")    = 1200 kcal/j
+  ENERGY_FLOOR_KCAL           = {"male":1500,"female":1200,"other":1350}
+  MAX_DAILY_DEFICIT_KCAL (A1) = 500 kcal/j
+
+  ── (a) L'ANCRE ABSOLUE — mouthTargetKcal (mouth_anchor.ts) ──
+    pace=null  ⇒ cible 1705.0 kcal (reason=anchored)  ⇒ DÉFICIT 275.0 kcal/j
+    pace=0.25  ⇒ cible 1705.0 kcal (reason=anchored)  ⇒ DÉFICIT 275.0 kcal/j
+    pace=0.5   ⇒ cible 1480.0 kcal (reason=anchored)  ⇒ DÉFICIT 500.0 kcal/j
+    pace=1     ⇒ cible 1480.0 kcal (reason=anchored)  ⇒ DÉFICIT 500.0 kcal/j
+
+  ── (b) LE FACTEUR RELATIF — mouthTargetFactor (household_portions.ts) ──
+    pace=null  ⇒ facteur 0.8611  reason=sized_default_pace
+    pace=0.25  ⇒ facteur 0.8611  reason=sized
+    pace=0.5   ⇒ facteur 0.7475  reason=sized
+    pace=1     ⇒ facteur 0.7475  reason=sized
+
+  ── (c) L'ENVELOPPE DU PROMPT — envelopeFor('fat_loss') ──
+    goal=maintenance  ⇒ energy={"low":1881,"high":2079}  densityCeiling=1.8
+    goal=fat_loss     ⇒ energy={"low":1485,"high":1683}  densityCeiling=1.3
+
+  ── (d) JUSQU'OÙ LE PLANCHER LAISSE DESCENDRE ──
+    journée la PLUS BASSE servie à une femme adulte enceinte: 1200 kcal/j (poids 40 kg, entretien 1574, clamp=energy_floor)
+    ⇒ le plancher qui décide est energyFloorFor("female") = 1200 kcal — il n'a jamais entendu parler de grossesse.
+
+# ── ET LA MESURE EN BASE, exécutée le 2026-08-22 à 03:14 CEST ──────────────
+#
+#   $ docker exec supabase_db_Sophia_2 psql -U postgres -d postgres -tAc \
+#       "select count(*) from student_safety_constraints where condition_ref is not null;"
+#   0
+#
+#   $ ... "select count(*) from student_safety_constraints;"
+#   68
+#
+#   $ ... "select kind, severity, status, count(*) from student_safety_constraints
+#          group by 1,2,3 order by 4 desc;"
+#   allergy|medical|active|31
+#   diet|strict|active|8
+#   dislike|preference|active|8
+#   allergy|medical|retracted|7
+#   intolerance|strict|active|5
+#   medical|medical|active|4        <- les 4 portent `medication_class`, PAS `condition_ref`
+#   allergy|strict|retracted|3
+#   intolerance|preference|active|1
+#   allergy|strict|active|1
+#
+#   $ ... "select count(*) filter (where user_id is not null),
+#                 count(*) filter (where user_id is null) from household_members;"
+#   33|59      <- 59 bouches sur 92 n'ont AUCUN compte, donc aucune condition possible
+#
+#   $ ... "select table_name from information_schema.tables where table_schema='public'
+#          and table_name like 'household%';"
+#   ... household_member_allergies, household_member_bodies, household_member_habits ...
+#   ⛔ AUCUN `household_member_conditions`.

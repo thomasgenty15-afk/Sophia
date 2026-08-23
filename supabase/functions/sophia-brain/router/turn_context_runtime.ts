@@ -72,6 +72,23 @@ export function dispatcherSignalsFromTurnFrame(args: {
     track_progress_plan_item: dispatcherTrackProgressSignalFromTurnFrame(
       turnFrame,
     ),
+    // ── LOT 4A · LE CHAÎNON QUI MANQUAIT ─────────────────────────────────────
+    //
+    // ⚠️ C'EST ICI, ET NULLE PART AILLEURS, QUE LE LOT EXISTAIT PAS. Le renvoi
+    // du sizing (lot 2C) était complet, testé et bilingue; le signal qui l'arme
+    // était déclaré au type, avait quatre lecteurs, et RESTAIT à
+    // `DEFAULT_SIGNALS.plan_feedback` — c'est-à-dire `{ detected: false }` —
+    // parce que ce mapper ne le recopiait pas du frame. Une ceinture armée sur
+    // un coffre vide, en une ligne d'omission.
+    //
+    // ⛔ AUCUNE RELECTURE DU MESSAGE ICI. `args.userMessage` est explicitement
+    // `void`-é au-dessus: le verdict vient du modèle, jamais d'un matcher.
+    //
+    // ⚠️ LE REPLI EST `DEFAULT_SIGNALS.plan_feedback`, PAS `{detected:true}`
+    // ni un objet vide. Un frame absent (dispatcher neutre, crise) doit rendre
+    // « pas détecté », pas « détecté sans rien dedans ».
+    plan_feedback: turnFrame?.skill_signals?.plan_feedback ??
+      DEFAULT_SIGNALS.plan_feedback,
   };
 }
 

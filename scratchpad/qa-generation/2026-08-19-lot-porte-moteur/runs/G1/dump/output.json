@@ -1,0 +1,1040 @@
+{
+  "request_id": "g010000a-0000-4000-8000-000000000001",
+  "resolved_by": "--request-id",
+  "user_id": "1e000000-0000-4000-8000-000000000002",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-19T00:35:16.977Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "89703163-a2d0-4e2b-aa64-a615112b0d8a",
+      "status": "attempt_start",
+      "created_at": "2026-08-19T00:33:09.213536+00:00",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 15486,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 15486,
+    "user_message_chars": 17358,
+    "user_message_truncated": false,
+    "user_message_written_chars": 17358,
+    "independent_counters": {
+      "system_prompt_chars": 15486,
+      "prompt_chars": 17358
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "110ebe96-2075-4116-b4b2-7db0dcdf0075",
+    "created_at": "2026-08-19T00:35:16.381207+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "gemini",
+    "model": "gemini-3-flash-preview",
+    "http_status": 200,
+    "attempt": 2,
+    "chain_index": 1,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Herby Scrambled Eggs on Sourdough\",\n      \"title\": \"Scrambled eggs with spinach and toasted sourdough\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        { \"term\": \"eggs\", \"quantity\": \"8 units\", \"amount\": 8, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"spinach\", \"quantity\": \"100 g\", \"amount\": 100, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"sourdough bread\", \"quantity\": \"8 slices\", \"amount\": 8, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"olive oil\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Whisk the eggs with salt and pepper. Heat oil in a pan, wilt the spinach for a minute, then pour in the eggs and scramble gently until just set. Serve over toasted sourdough.\",\n      \"why\": \"A warm, protein-rich start to the stretch that requires no pre-prepared batches.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"cook_fresh\", \"minutes\": 10 },\n      \"honours_belief_keys\": [\"name_the_plate_out_loud\"]\n    },\n    {\n      \"name\": \"Mackerel and Cucumber Toasts\",\n      \"title\": \"Tinned mackerel on sourdough with sliced cucumber\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        { \"term\": \"tinned mackerel in olive oil\", \"quantity\": \"4 tins\", \"amount\": 4, \"unit\": \"unit\", \"state\": \"cooked\" },\n        { \"term\": \"sourdough bread\", \"quantity\": \"8 slices\", \"amount\": 8, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"cucumber\", \"quantity\": \"half a unit\", \"amount\": 0.5, \"unit\": \"unit\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Toast the bread. Flake the mackerel over the toast and top with thin slices of cucumber and a crack of black pepper.\",\n      \"why\": \"A high-protein lunch that uses pantry staples while the main batch cooking is yet to happen.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 5 },\n      \"honours_belief_keys\": [\"name_the_plate_out_loud\"]\n    },\n    {\n      \"name\": \"Garlic Roast Chicken and Rice\",\n      \"title\": \"Roasted chicken thighs with garlic broccoli and basmati rice\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        { \"term\": \"dried oregano\", \"quantity\": \"1 tsp\", \"amount\": 1, \"unit\": \"tsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Place a portion of chicken, rice, and broccoli into a wide pan with a splash of water. Cover and heat over medium heat until steaming and hot throughout.\",\n      \"why\": \"A complete meal with a loud vegetable and warm components as the coach requires.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_chicken\", \"servings\": 1, \"box_id\": \"box_chicken_odalric\" },\n        { \"preparation_id\": \"prep_rice\", \"servings\": 1, \"box_id\": \"box_rice_odalric\" },\n        { \"preparation_id\": \"prep_broccoli\", \"servings\": 1, \"box_id\": \"box_broccoli_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"reheat_only\", \"minutes\": 10 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\", \"starch_follows_the_session\"]\n    },\n    {\n      \"name\": \"Berry and Seed Yogurt Bowls\",\n      \"title\": \"Greek yogurt with berry compote and sunflower seeds\",\n      \"slot\": \"breakfast\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        { \"term\": \"greek yogurt\", \"quantity\": \"500 g\", \"amount\": 500, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"sunflower seeds\", \"quantity\": \"4 tbsp\", \"amount\": 4, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Spoon the yogurt into bowls and top with the cold berry compote and seeds.\",\n      \"why\": \"A quick, cold assembly that avoids the kitchen while the lodger is present.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_compote\", \"servings\": 1, \"box_id\": \"box_compote_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 2 },\n      \"honours_belief_keys\": [\"name_the_plate_out_loud\"]\n    },\n    {\n      \"name\": \"Cold Lemon Chicken Rice Salad\",\n      \"title\": \"Chicken and rice salad with lemon and herbs\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        { \"term\": \"lemon juice\", \"quantity\": \"2 tbsp\", \"amount\": 2, \"unit\": \"tbsp\", \"state\": \"raw\" },\n        { \"term\": \"olive oil\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Dice the cold chicken and mix with the rice. Dress with lemon juice, oil, and pepper. Serve in bowls.\",\n      \"why\": \"Uses the pre-cooked batch for a large, muscle-fuelling lunch that needs no stove time.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_chicken\", \"servings\": 1, \"box_id\": \"box_chicken_odalric\" },\n        { \"preparation_id\": \"prep_rice\", \"servings\": 1, \"box_id\": \"box_rice_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 5 },\n      \"honours_belief_keys\": [\"starch_follows_the_session\"]\n    },\n    {\n      \"name\": \"One-Pot Tomato and Bean Stew\",\n      \"title\": \"White bean and tomato stew with fresh spinach\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        { \"term\": \"tinned cannellini beans\", \"quantity\": \"2 tins\", \"amount\": 2, \"unit\": \"unit\", \"state\": \"cooked\" },\n        { \"term\": \"tinned chopped tomatoes\", \"quantity\": \"1 tin\", \"amount\": 1, \"unit\": \"unit\", \"state\": \"cooked\" },\n        { \"term\": \"spinach\", \"quantity\": \"100 g\", \"amount\": 100, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"garlic clove\", \"quantity\": \"2 units\", \"amount\": 2, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"olive oil\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Sauté garlic in oil, add tomatoes and beans. Simmer for 10 minutes, then stir in spinach until wilted. Serve hot in bowls.\",\n      \"why\": \"A warm dinner that only uses one pot, making it easy to cook even with a busy kitchen.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"cook_fresh\", \"minutes\": 15 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\"]\n    },\n    {\n      \"name\": \"Summer Berry Yogurt Pots\",\n      \"title\": \"Greek yogurt with berry compote\",\n      \"slot\": \"breakfast\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        { \"term\": \"greek yogurt\", \"quantity\": \"500 g\", \"amount\": 500, \"unit\": \"g\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Layer the yogurt and berry compote in small bowls or glasses.\",\n      \"why\": \"Consistent, high-protein breakfast using the existing batch.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_compote\", \"servings\": 1, \"box_id\": \"box_compote_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 2 },\n      \"honours_belief_keys\": [\"name_the_plate_out_loud\"]\n    },\n    {\n      \"name\": \"Tuna and White Bean Salad\",\n      \"title\": \"Tinned tuna and cannellini bean salad with cucumber\",\n      \"slot\": \"lunch\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        { \"term\": \"tinned tuna in spring water\", \"quantity\": \"4 tins\", \"amount\": 4, \"unit\": \"unit\", \"state\": \"cooked\" },\n        { \"term\": \"tinned cannellini beans\", \"quantity\": \"2 tins\", \"amount\": 2, \"unit\": \"unit\", \"state\": \"cooked\" },\n        { \"term\": \"cucumber\", \"quantity\": \"half a unit\", \"amount\": 0.5, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"olive oil\", \"quantity\": \"2 tbsp\", \"amount\": 2, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Drain the tuna and beans. Mix with diced cucumber, olive oil, and plenty of black pepper.\",\n      \"why\": \"A high-protein, large lunch that requires no cooking session.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 5 },\n      \"honours_belief_keys\": [\"name_the_plate_out_loud\"]\n    },\n    {\n      \"name\": \"Pan-Seared Fish with Garlic Broccoli\",\n      \"title\": \"White fish fillets with reheated garlic broccoli\",\n      \"slot\": \"dinner\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        { \"term\": \"white fish fillets\", \"quantity\": \"4 units\", \"amount\": 4, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"olive oil\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" },\n        { \"term\": \"lemon\", \"quantity\": \"half a unit\", \"amount\": 0.5, \"unit\": \"unit\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Season the fish and sear in a hot pan with oil for 3 minutes per side. Reheat the broccoli in the same pan for the last 2 minutes.\",\n      \"why\": \"Freshly cooked protein paired with a pre-prepared loud vegetable.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_broccoli\", \"servings\": 1, \"box_id\": \"box_broccoli_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"cook_fresh\", \"minutes\": 12 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\"]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_chicken\",\n      \"title\": \"Herb Roasted Chicken Thighs\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        { \"term\": \"chicken thighs, bone-in\", \"quantity\": \"8 units\", \"amount\": 8, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"olive oil\", \"quantity\": \"2 tbsp\", \"amount\": 2, \"unit\": \"tbsp\", \"state\": \"raw\" },\n        { \"term\": \"dried oregano\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Rub chicken with oil, oregano, salt, and pepper. Roast at 200C for 30-35 minutes until the skin is crisp and cooked through.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 45,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_chicken_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 200 },\n        { \"id\": \"box_chicken_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 200 },\n        { \"id\": \"box_chicken_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 200 },\n        { \"id\": \"box_chicken_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 200 }\n      ]\n    },\n    {\n      \"id\": \"prep_rice\",\n      \"title\": \"Steamed Basmati Rice\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        { \"term\": \"basmati rice\", \"quantity\": \"400 g\", \"amount\": 400, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"olive oil\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Rinse rice. Add to a pot with double the volume of water and a pinch of salt. Bring to boil, then cover and simmer for 12 minutes. Turn off heat and let sit for 5 minutes.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_rice_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 250 },\n        { \"id\": \"box_rice_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 250 },\n        { \"id\": \"box_rice_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 250 },\n        { \"id\": \"box_rice_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 250 }\n      ]\n    },\n    {\n      \"id\": \"prep_broccoli\",\n      \"title\": \"Garlic Roasted Broccoli\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        { \"term\": \"broccoli\", \"quantity\": \"2 units\", \"amount\": 2, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"garlic cloves\", \"quantity\": \"3 units\", \"amount\": 3, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"olive oil\", \"quantity\": \"2 tbsp\", \"amount\": 2, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Cut broccoli into florets. Toss with sliced garlic and oil. Roast on a tray at 200C for 20 minutes until tender and slightly charred.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_broccoli_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 150 },\n        { \"id\": \"box_broccoli_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 150 },\n        { \"id\": \"box_broccoli_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 150 },\n        { \"id\": \"box_broccoli_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 150 }\n      ]\n    },\n    {\n      \"id\": \"prep_compote\",\n      \"title\": \"Simmered Berry Compote\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        { \"term\": \"frozen mixed berries\", \"quantity\": \"400 g\", \"amount\": 400, \"unit\": \"g\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Place berries in a small saucepan over medium heat. Simmer for 10-15 minutes until they break down and the juices thicken slightly.\",\n      \"active_minutes\": 2,\n      \"total_minutes\": 15,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_compote_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 75 },\n        { \"id\": \"box_compote_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 75 },\n        { \"id\": \"box_compote_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 75 },\n        { \"id\": \"box_compote_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 75 }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\"prep_chicken\", \"prep_rice\", \"prep_broccoli\", \"prep_compote\"],\n      \"total_minutes\": 50,\n      \"run_through\": \"Preheat the oven to 200C. Prepare the chicken and broccoli on separate trays and put them in. Start the rice on the stove. While things cook, simmer the berries in a small pot. Once the rice is done, fluff it and set aside. Remove the broccoli and chicken when ready, let them cool slightly, and box everything into the named containers.\"\n    }\n  ],\n  \"shopping_list\": [\n    { \"term\": \"chicken thighs, bone-in\", \"quantity\": \"8 units\", \"aisle\": \"protein\" },\n    { \"term\": \"white fish fillets\", \"quantity\": \"4 units\", \"aisle\": \"protein\" },\n    { \"term\": \"eggs\", \"quantity\": \"8 units\", \"aisle\": \"dairy\" },\n    { \"term\": \"greek yogurt\", \"quantity\": \"1 kg\", \"aisle\": \"dairy\" },\n    { \"term\": \"broccoli\", \"quantity\": \"2 large heads\", \"aisle\": \"produce\" },\n    { \"term\": \"spinach\", \"quantity\": \"200 g\", \"aisle\": \"produce\" },\n    { \"term\": \"cucumber\", \"quantity\": \"1 unit\", \"aisle\": \"produce\" },\n    { \"term\": \"frozen mixed berries\", \"quantity\": \"400 g\", \"aisle\": \"frozen\" },\n    { \"term\": \"basmati rice\", \"quantity\": \"500 g bag\", \"aisle\": \"grains\" },\n    { \"term\": \"sourdough bread\", \"quantity\": \"2 loaves\", \"aisle\": \"pantry\" },\n    { \"term\": \"tinned mackerel in olive oil\", \"quantity\": \"4 tins\", \"aisle\": \"pantry\" },\n    { \"term\": \"tinned tuna in spring water\", \"quantity\": \"4 tins\", \"aisle\": \"pantry\" },\n    { \"term\": \"tinned cannellini beans\", \"quantity\": \"4 tins\", \"aisle\": \"pantry\" },\n    { \"term\": \"tinned chopped tomatoes\", \"quantity\": \"1 tin\", \"aisle\": \"pantry\" },\n    { \"term\": \"sunflower seeds\", \"quantity\": \"1 small bag\", \"aisle\": \"pantry\" },\n    { \"term\": \"blackcurrant jam\", \"quantity\": \"1 jar\", \"aisle\": \"pantry\" },\n    { \"term\": \"hot sauce\", \"quantity\": \"1 bottle\", \"aisle\": \"pantry\" },\n    { \"term\": \"olive oil\", \"quantity\": \"250 ml\", \"aisle\": \"pantry\" },\n    { \"term\": \"dried oregano\", \"quantity\": \"1 jar\", \"aisle\": \"pantry\" },\n    { \"term\": \"garlic\", \"quantity\": \"1 bulb\", \"aisle\": \"produce\" },\n    { \"term\": \"lemon\", \"quantity\": \"2 units\", \"aisle\": \"produce\" }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"85acac95-312b-4d0e-a4da-02558e8a182f\",\n      \"portion_note\": \"Serve a larger share of the chicken and rice with the standard broccoli portion. For breakfast, add a spoonful of blackcurrant jam to the sourdough toast.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_chicken\", \"note\": \"take the full box content\" },\n        { \"preparation_id\": \"prep_rice\", \"note\": \"take the full box content\" }\n      ]\n    },\n    {\n      \"member_id\": \"f190856d-d573-42e9-a026-b6a37b9f7471\",\n      \"portion_note\": \"Serve the standard share of all components. Ensure all bread crusts are removed before serving.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_chicken\", \"note\": \"take the full box content\" }\n      ]\n    },\n    {\n      \"member_id\": \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\",\n      \"portion_note\": \"Serve a larger share of chicken and rice. Ensure no orange-coloured vegetables or fennel-containing herbs are added to the plate.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_chicken\", \"note\": \"take the full box content\" },\n        { \"preparation_id\": \"prep_rice\", \"note\": \"take the full box content\" }\n      ]\n    },\n    {\n      \"member_id\": \"536e683d-64a8-4dc2-a69b-6ee1925b206c\",\n      \"portion_note\": \"Serve the standard share of all components. Provide hot sauce on the side for every meal.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_chicken\", \"note\": \"take the full box content\" }\n      ]\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Herby Scrambled Eggs on Sourdough",
+          "title": "Scrambled eggs with spinach and toasted sourdough",
+          "slot": "breakfast",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "eggs",
+              "quantity": "8 units",
+              "amount": 8,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "spinach",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "sourdough bread",
+              "quantity": "8 slices",
+              "amount": 8,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Whisk the eggs with salt and pepper. Heat oil in a pan, wilt the spinach for a minute, then pour in the eggs and scramble gently until just set. Serve over toasted sourdough.",
+          "why": "A warm, protein-rich start to the stretch that requires no pre-prepared batches.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Mackerel and Cucumber Toasts",
+          "title": "Tinned mackerel on sourdough with sliced cucumber",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "tinned mackerel in olive oil",
+              "quantity": "4 tins",
+              "amount": 4,
+              "unit": "unit",
+              "state": "cooked"
+            },
+            {
+              "term": "sourdough bread",
+              "quantity": "8 slices",
+              "amount": 8,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "cucumber",
+              "quantity": "half a unit",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Toast the bread. Flake the mackerel over the toast and top with thin slices of cucumber and a crack of black pepper.",
+          "why": "A high-protein lunch that uses pantry staples while the main batch cooking is yet to happen.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Garlic Roast Chicken and Rice",
+          "title": "Roasted chicken thighs with garlic broccoli and basmati rice",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "dried oregano",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Place a portion of chicken, rice, and broccoli into a wide pan with a splash of water. Cover and heat over medium heat until steaming and hot throughout.",
+          "why": "A complete meal with a loud vegetable and warm components as the coach requires.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken",
+              "servings": 1,
+              "box_id": "box_chicken_odalric"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_rice_odalric"
+            },
+            {
+              "preparation_id": "prep_broccoli",
+              "servings": 1,
+              "box_id": "box_broccoli_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "starch_follows_the_session"
+          ]
+        },
+        {
+          "name": "Berry and Seed Yogurt Bowls",
+          "title": "Greek yogurt with berry compote and sunflower seeds",
+          "slot": "breakfast",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "greek yogurt",
+              "quantity": "500 g",
+              "amount": 500,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "sunflower seeds",
+              "quantity": "4 tbsp",
+              "amount": 4,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Spoon the yogurt into bowls and top with the cold berry compote and seeds.",
+          "why": "A quick, cold assembly that avoids the kitchen while the lodger is present.",
+          "uses": [
+            {
+              "preparation_id": "prep_compote",
+              "servings": 1,
+              "box_id": "box_compote_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 2
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Cold Lemon Chicken Rice Salad",
+          "title": "Chicken and rice salad with lemon and herbs",
+          "slot": "lunch",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "lemon juice",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Dice the cold chicken and mix with the rice. Dress with lemon juice, oil, and pepper. Serve in bowls.",
+          "why": "Uses the pre-cooked batch for a large, muscle-fuelling lunch that needs no stove time.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken",
+              "servings": 1,
+              "box_id": "box_chicken_odalric"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_rice_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "starch_follows_the_session"
+          ]
+        },
+        {
+          "name": "One-Pot Tomato and Bean Stew",
+          "title": "White bean and tomato stew with fresh spinach",
+          "slot": "dinner",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "tinned cannellini beans",
+              "quantity": "2 tins",
+              "amount": 2,
+              "unit": "unit",
+              "state": "cooked"
+            },
+            {
+              "term": "tinned chopped tomatoes",
+              "quantity": "1 tin",
+              "amount": 1,
+              "unit": "unit",
+              "state": "cooked"
+            },
+            {
+              "term": "spinach",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "garlic clove",
+              "quantity": "2 units",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Sauté garlic in oil, add tomatoes and beans. Simmer for 10 minutes, then stir in spinach until wilted. Serve hot in bowls.",
+          "why": "A warm dinner that only uses one pot, making it easy to cook even with a busy kitchen.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 15
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Summer Berry Yogurt Pots",
+          "title": "Greek yogurt with berry compote",
+          "slot": "breakfast",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "greek yogurt",
+              "quantity": "500 g",
+              "amount": 500,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Layer the yogurt and berry compote in small bowls or glasses.",
+          "why": "Consistent, high-protein breakfast using the existing batch.",
+          "uses": [
+            {
+              "preparation_id": "prep_compote",
+              "servings": 1,
+              "box_id": "box_compote_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 2
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Tuna and White Bean Salad",
+          "title": "Tinned tuna and cannellini bean salad with cucumber",
+          "slot": "lunch",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "tinned tuna in spring water",
+              "quantity": "4 tins",
+              "amount": 4,
+              "unit": "unit",
+              "state": "cooked"
+            },
+            {
+              "term": "tinned cannellini beans",
+              "quantity": "2 tins",
+              "amount": 2,
+              "unit": "unit",
+              "state": "cooked"
+            },
+            {
+              "term": "cucumber",
+              "quantity": "half a unit",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Drain the tuna and beans. Mix with diced cucumber, olive oil, and plenty of black pepper.",
+          "why": "A high-protein, large lunch that requires no cooking session.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Pan-Seared Fish with Garlic Broccoli",
+          "title": "White fish fillets with reheated garlic broccoli",
+          "slot": "dinner",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "white fish fillets",
+              "quantity": "4 units",
+              "amount": 4,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "lemon",
+              "quantity": "half a unit",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Season the fish and sear in a hot pan with oil for 3 minutes per side. Reheat the broccoli in the same pan for the last 2 minutes.",
+          "why": "Freshly cooked protein paired with a pre-prepared loud vegetable.",
+          "uses": [
+            {
+              "preparation_id": "prep_broccoli",
+              "servings": 1,
+              "box_id": "box_broccoli_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 12
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_chicken",
+          "title": "Herb Roasted Chicken Thighs",
+          "servings_made": 8,
+          "ingredients": [
+            {
+              "term": "chicken thighs, bone-in",
+              "quantity": "8 units",
+              "amount": 8,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "dried oregano",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Rub chicken with oil, oregano, salt, and pepper. Roast at 200C for 30-35 minutes until the skin is crisp and cooked through.",
+          "active_minutes": 10,
+          "total_minutes": 45,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_chicken_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 200
+            },
+            {
+              "id": "box_chicken_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 200
+            },
+            {
+              "id": "box_chicken_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 200
+            },
+            {
+              "id": "box_chicken_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 200
+            }
+          ]
+        },
+        {
+          "id": "prep_rice",
+          "title": "Steamed Basmati Rice",
+          "servings_made": 8,
+          "ingredients": [
+            {
+              "term": "basmati rice",
+              "quantity": "400 g",
+              "amount": 400,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Rinse rice. Add to a pot with double the volume of water and a pinch of salt. Bring to boil, then cover and simmer for 12 minutes. Turn off heat and let sit for 5 minutes.",
+          "active_minutes": 5,
+          "total_minutes": 25,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_rice_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 250
+            },
+            {
+              "id": "box_rice_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 250
+            },
+            {
+              "id": "box_rice_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 250
+            },
+            {
+              "id": "box_rice_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 250
+            }
+          ]
+        },
+        {
+          "id": "prep_broccoli",
+          "title": "Garlic Roasted Broccoli",
+          "servings_made": 8,
+          "ingredients": [
+            {
+              "term": "broccoli",
+              "quantity": "2 units",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "garlic cloves",
+              "quantity": "3 units",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Cut broccoli into florets. Toss with sliced garlic and oil. Roast on a tray at 200C for 20 minutes until tender and slightly charred.",
+          "active_minutes": 10,
+          "total_minutes": 20,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_broccoli_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_broccoli_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_broccoli_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_broccoli_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 150
+            }
+          ]
+        },
+        {
+          "id": "prep_compote",
+          "title": "Simmered Berry Compote",
+          "servings_made": 8,
+          "ingredients": [
+            {
+              "term": "frozen mixed berries",
+              "quantity": "400 g",
+              "amount": 400,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Place berries in a small saucepan over medium heat. Simmer for 10-15 minutes until they break down and the juices thicken slightly.",
+          "active_minutes": 2,
+          "total_minutes": 15,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_compote_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 75
+            },
+            {
+              "id": "box_compote_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 75
+            },
+            {
+              "id": "box_compote_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 75
+            },
+            {
+              "id": "box_compote_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 75
+            }
+          ]
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_chicken",
+            "prep_rice",
+            "prep_broccoli",
+            "prep_compote"
+          ],
+          "total_minutes": 50,
+          "run_through": "Preheat the oven to 200C. Prepare the chicken and broccoli on separate trays and put them in. Start the rice on the stove. While things cook, simmer the berries in a small pot. Once the rice is done, fluff it and set aside. Remove the broccoli and chicken when ready, let them cool slightly, and box everything into the named containers."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "chicken thighs, bone-in",
+          "quantity": "8 units",
+          "aisle": "protein"
+        },
+        {
+          "term": "white fish fillets",
+          "quantity": "4 units",
+          "aisle": "protein"
+        },
+        {
+          "term": "eggs",
+          "quantity": "8 units",
+          "aisle": "dairy"
+        },
+        {
+          "term": "greek yogurt",
+          "quantity": "1 kg",
+          "aisle": "dairy"
+        },
+        {
+          "term": "broccoli",
+          "quantity": "2 large heads",
+          "aisle": "produce"
+        },
+        {
+          "term": "spinach",
+          "quantity": "200 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "cucumber",
+          "quantity": "1 unit",
+          "aisle": "produce"
+        },
+        {
+          "term": "frozen mixed berries",
+          "quantity": "400 g",
+          "aisle": "frozen"
+        },
+        {
+          "term": "basmati rice",
+          "quantity": "500 g bag",
+          "aisle": "grains"
+        },
+        {
+          "term": "sourdough bread",
+          "quantity": "2 loaves",
+          "aisle": "pantry"
+        },
+        {
+          "term": "tinned mackerel in olive oil",
+          "quantity": "4 tins",
+          "aisle": "pantry"
+        },
+        {
+          "term": "tinned tuna in spring water",
+          "quantity": "4 tins",
+          "aisle": "pantry"
+        },
+        {
+          "term": "tinned cannellini beans",
+          "quantity": "4 tins",
+          "aisle": "pantry"
+        },
+        {
+          "term": "tinned chopped tomatoes",
+          "quantity": "1 tin",
+          "aisle": "pantry"
+        },
+        {
+          "term": "sunflower seeds",
+          "quantity": "1 small bag",
+          "aisle": "pantry"
+        },
+        {
+          "term": "blackcurrant jam",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "hot sauce",
+          "quantity": "1 bottle",
+          "aisle": "pantry"
+        },
+        {
+          "term": "olive oil",
+          "quantity": "250 ml",
+          "aisle": "pantry"
+        },
+        {
+          "term": "dried oregano",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "garlic",
+          "quantity": "1 bulb",
+          "aisle": "produce"
+        },
+        {
+          "term": "lemon",
+          "quantity": "2 units",
+          "aisle": "produce"
+        }
+      ],
+      "member_portions": [
+        {
+          "member_id": "85acac95-312b-4d0e-a4da-02558e8a182f",
+          "portion_note": "Serve a larger share of the chicken and rice with the standard broccoli portion. For breakfast, add a spoonful of blackcurrant jam to the sourdough toast.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken",
+              "note": "take the full box content"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "note": "take the full box content"
+            }
+          ]
+        },
+        {
+          "member_id": "f190856d-d573-42e9-a026-b6a37b9f7471",
+          "portion_note": "Serve the standard share of all components. Ensure all bread crusts are removed before serving.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken",
+              "note": "take the full box content"
+            }
+          ]
+        },
+        {
+          "member_id": "65eb7490-adae-40c2-8b43-b10a0cc0ab05",
+          "portion_note": "Serve a larger share of chicken and rice. Ensure no orange-coloured vegetables or fennel-containing herbs are added to the plate.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken",
+              "note": "take the full box content"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "note": "take the full box content"
+            }
+          ]
+        },
+        {
+          "member_id": "536e683d-64a8-4dc2-a69b-6ee1925b206c",
+          "portion_note": "Serve the standard share of all components. Provide hot sauce on the side for every meal.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken",
+              "note": "take the full box content"
+            }
+          ]
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "candidates": [
+        {
+          "index": 0,
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Herby Scrambled Eggs on Sourdough\",\n      \"title\": \"Scrambled eggs with spinach and toasted sourdough\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        { \"term\": \"eggs\", \"quantity\": \"8 units\", \"amount\": 8, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"spinach\", \"quantity\": \"100 g\", \"amount\": 100, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"sourdough bread\", \"quantity\": \"8 slices\", \"amount\": 8, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"olive oil\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Whisk the eggs with salt and pepper. Heat oil in a pan, wilt the spinach for a minute, then pour in the eggs and scramble gently until just set. Serve over toasted sourdough.\",\n      \"why\": \"A warm, protein-rich start to the stretch that requires no pre-prepared batches.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"cook_fresh\", \"minutes\": 10 },\n      \"honours_belief_keys\": [\"name_the_plate_out_loud\"]\n    },\n    {\n      \"name\": \"Mackerel and Cucumber Toasts\",\n      \"title\": \"Tinned mackerel on sourdough with sliced cucumber\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        { \"term\": \"tinned mackerel in olive oil\", \"quantity\": \"4 tins\", \"amount\": 4, \"unit\": \"unit\", \"state\": \"cooked\" },\n        { \"term\": \"sourdough bread\", \"quantity\": \"8 slices\", \"amount\": 8, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"cucumber\", \"quantity\": \"half a unit\", \"amount\": 0.5, \"unit\": \"unit\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Toast the bread. Flake the mackerel over the toast and top with thin slices of cucumber and a crack of black pepper.\",\n      \"why\": \"A high-protein lunch that uses pantry staples while the main batch cooking is yet to happen.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 5 },\n      \"honours_belief_keys\": [\"name_the_plate_out_loud\"]\n    },\n    {\n      \"name\": \"Garlic Roast Chicken and Rice\",\n      \"title\": \"Roasted chicken thighs with garlic broccoli and basmati rice\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        { \"term\": \"dried oregano\", \"quantity\": \"1 tsp\", \"amount\": 1, \"unit\": \"tsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Place a portion of chicken, rice, and broccoli into a wide pan with a splash of water. Cover and heat over medium heat until steaming and hot throughout.\",\n      \"why\": \"A complete meal with a loud vegetable and warm components as the coach requires.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_chicken\", \"servings\": 1, \"box_id\": \"box_chicken_odalric\" },\n        { \"preparation_id\": \"prep_rice\", \"servings\": 1, \"box_id\": \"box_rice_odalric\" },\n        { \"preparation_id\": \"prep_broccoli\", \"servings\": 1, \"box_id\": \"box_broccoli_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"reheat_only\", \"minutes\": 10 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\", \"starch_follows_the_session\"]\n    },\n    {\n      \"name\": \"Berry and Seed Yogurt Bowls\",\n      \"title\": \"Greek yogurt with berry compote and sunflower seeds\",\n      \"slot\": \"breakfast\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        { \"term\": \"greek yogurt\", \"quantity\": \"500 g\", \"amount\": 500, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"sunflower seeds\", \"quantity\": \"4 tbsp\", \"amount\": 4, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Spoon the yogurt into bowls and top with the cold berry compote and seeds.\",\n      \"why\": \"A quick, cold assembly that avoids the kitchen while the lodger is present.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_compote\", \"servings\": 1, \"box_id\": \"box_compote_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 2 },\n      \"honours_belief_keys\": [\"name_the_plate_out_loud\"]\n    },\n    {\n      \"name\": \"Cold Lemon Chicken Rice Salad\",\n      \"title\": \"Chicken and rice salad with lemon and herbs\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        { \"term\": \"lemon juice\", \"quantity\": \"2 tbsp\", \"amount\": 2, \"unit\": \"tbsp\", \"state\": \"raw\" },\n        { \"term\": \"olive oil\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Dice the cold chicken and mix with the rice. Dress with lemon juice, oil, and pepper. Serve in bowls.\",\n      \"why\": \"Uses the pre-cooked batch for a large, muscle-fuelling lunch that needs no stove time.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_chicken\", \"servings\": 1, \"box_id\": \"box_chicken_odalric\" },\n        { \"preparation_id\": \"prep_rice\", \"servings\": 1, \"box_id\": \"box_rice_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 5 },\n      \"honours_belief_keys\": [\"starch_follows_the_session\"]\n    },\n    {\n      \"name\": \"One-Pot Tomato and Bean Stew\",\n      \"title\": \"White bean and tomato stew with fresh spinach\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        { \"term\": \"tinned cannellini beans\", \"quantity\": \"2 tins\", \"amount\": 2, \"unit\": \"unit\", \"state\": \"cooked\" },\n        { \"term\": \"tinned chopped tomatoes\", \"quantity\": \"1 tin\", \"amount\": 1, \"unit\": \"unit\", \"state\": \"cooked\" },\n        { \"term\": \"spinach\", \"quantity\": \"100 g\", \"amount\": 100, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"garlic clove\", \"quantity\": \"2 units\", \"amount\": 2, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"olive oil\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Sauté garlic in oil, add tomatoes and beans. Simmer for 10 minutes, then stir in spinach until wilted. Serve hot in bowls.\",\n      \"why\": \"A warm dinner that only uses one pot, making it easy to cook even with a busy kitchen.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"cook_fresh\", \"minutes\": 15 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\"]\n    },\n    {\n      \"name\": \"Summer Berry Yogurt Pots\",\n      \"title\": \"Greek yogurt with berry compote\",\n      \"slot\": \"breakfast\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        { \"term\": \"greek yogurt\", \"quantity\": \"500 g\", \"amount\": 500, \"unit\": \"g\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Layer the yogurt and berry compote in small bowls or glasses.\",\n      \"why\": \"Consistent, high-protein breakfast using the existing batch.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_compote\", \"servings\": 1, \"box_id\": \"box_compote_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 2 },\n      \"honours_belief_keys\": [\"name_the_plate_out_loud\"]\n    },\n    {\n      \"name\": \"Tuna and White Bean Salad\",\n      \"title\": \"Tinned tuna and cannellini bean salad with cucumber\",\n      \"slot\": \"lunch\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        { \"term\": \"tinned tuna in spring water\", \"quantity\": \"4 tins\", \"amount\": 4, \"unit\": \"unit\", \"state\": \"cooked\" },\n        { \"term\": \"tinned cannellini beans\", \"quantity\": \"2 tins\", \"amount\": 2, \"unit\": \"unit\", \"state\": \"cooked\" },\n        { \"term\": \"cucumber\", \"quantity\": \"half a unit\", \"amount\": 0.5, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"olive oil\", \"quantity\": \"2 tbsp\", \"amount\": 2, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Drain the tuna and beans. Mix with diced cucumber, olive oil, and plenty of black pepper.\",\n      \"why\": \"A high-protein, large lunch that requires no cooking session.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 5 },\n      \"honours_belief_keys\": [\"name_the_plate_out_loud\"]\n    },\n    {\n      \"name\": \"Pan-Seared Fish with Garlic Broccoli\",\n      \"title\": \"White fish fillets with reheated garlic broccoli\",\n      \"slot\": \"dinner\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        { \"term\": \"white fish fillets\", \"quantity\": \"4 units\", \"amount\": 4, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"olive oil\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" },\n        { \"term\": \"lemon\", \"quantity\": \"half a unit\", \"amount\": 0.5, \"unit\": \"unit\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Season the fish and sear in a hot pan with oil for 3 minutes per side. Reheat the broccoli in the same pan for the last 2 minutes.\",\n      \"why\": \"Freshly cooked protein paired with a pre-prepared loud vegetable.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_broccoli\", \"servings\": 1, \"box_id\": \"box_broccoli_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"cook_fresh\", \"minutes\": 12 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\"]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_chicken\",\n      \"title\": \"Herb Roasted Chicken Thighs\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        { \"term\": \"chicken thighs, bone-in\", \"quantity\": \"8 units\", \"amount\": 8, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"olive oil\", \"quantity\": \"2 tbsp\", \"amount\": 2, \"unit\": \"tbsp\", \"state\": \"raw\" },\n        { \"term\": \"dried oregano\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Rub chicken with oil, oregano, salt, and pepper. Roast at 200C for 30-35 minutes until the skin is crisp and cooked through.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 45,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_chicken_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 200 },\n        { \"id\": \"box_chicken_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 200 },\n        { \"id\": \"box_chicken_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 200 },\n        { \"id\": \"box_chicken_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 200 }\n      ]\n    },\n    {\n      \"id\": \"prep_rice\",\n      \"title\": \"Steamed Basmati Rice\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        { \"term\": \"basmati rice\", \"quantity\": \"400 g\", \"amount\": 400, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"olive oil\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Rinse rice. Add to a pot with double the volume of water and a pinch of salt. Bring to boil, then cover and simmer for 12 minutes. Turn off heat and let sit for 5 minutes.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_rice_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 250 },\n        { \"id\": \"box_rice_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 250 },\n        { \"id\": \"box_rice_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 250 },\n        { \"id\": \"box_rice_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 250 }\n      ]\n    },\n    {\n      \"id\": \"prep_broccoli\",\n      \"title\": \"Garlic Roasted Broccoli\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        { \"term\": \"broccoli\", \"quantity\": \"2 units\", \"amount\": 2, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"garlic cloves\", \"quantity\": \"3 units\", \"amount\": 3, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"olive oil\", \"quantity\": \"2 tbsp\", \"amount\": 2, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Cut broccoli into florets. Toss with sliced garlic and oil. Roast on a tray at 200C for 20 minutes until tender and slightly charred.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_broccoli_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 150 },\n        { \"id\": \"box_broccoli_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 150 },\n        { \"id\": \"box_broccoli_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 150 },\n        { \"id\": \"box_broccoli_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 150 }\n      ]\n    },\n    {\n      \"id\": \"prep_compote\",\n      \"title\": \"Simmered Berry Compote\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        { \"term\": \"frozen mixed berries\", \"quantity\": \"400 g\", \"amount\": 400, \"unit\": \"g\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Place berries in a small saucepan over medium heat. Simmer for 10-15 minutes until they break down and the juices thicken slightly.\",\n      \"active_minutes\": 2,\n      \"total_minutes\": 15,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_compote_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 75 },\n        { \"id\": \"box_compote_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 75 },\n        { \"id\": \"box_compote_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 75 },\n        { \"id\": \"box_compote_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 75 }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\"prep_chicken\", \"prep_rice\", \"prep_broccoli\", \"prep_compote\"],\n      \"total_minutes\": 50,\n      \"run_through\": \"Preheat the oven to 200C. Prepare the chicken and broccoli on separate trays and put them in. Start the rice on the stove. While things cook, simmer the berries in a small pot. Once the rice is done, fluff it and set aside. Remove the broccoli and chicken when ready, let them cool slightly, and box everything into the named containers.\"\n    }\n  ],\n  \"shopping_list\": [\n    { \"term\": \"chicken thighs, bone-in\", \"quantity\": \"8 units\", \"aisle\": \"protein\" },\n    { \"term\": \"white fish fillets\", \"quantity\": \"4 units\", \"aisle\": \"protein\" },\n    { \"term\": \"eggs\", \"quantity\": \"8 units\", \"aisle\": \"dairy\" },\n    { \"term\": \"greek yogurt\", \"quantity\": \"1 kg\", \"aisle\": \"dairy\" },\n    { \"term\": \"broccoli\", \"quantity\": \"2 large heads\", \"aisle\": \"produce\" },\n    { \"term\": \"spinach\", \"quantity\": \"200 g\", \"aisle\": \"produce\" },\n    { \"term\": \"cucumber\", \"quantity\": \"1 unit\", \"aisle\": \"produce\" },\n    { \"term\": \"frozen mixed berries\", \"quantity\": \"400 g\", \"aisle\": \"frozen\" },\n    { \"term\": \"basmati rice\", \"quantity\": \"500 g bag\", \"aisle\": \"grains\" },\n    { \"term\": \"sourdough bread\", \"quantity\": \"2 loaves\", \"aisle\": \"pantry\" },\n    { \"term\": \"tinned mackerel in olive oil\", \"quantity\": \"4 tins\", \"aisle\": \"pantry\" },\n    { \"term\": \"tinned tuna in spring water\", \"quantity\": \"4 tins\", \"aisle\": \"pantry\" },\n    { \"term\": \"tinned cannellini beans\", \"quantity\": \"4 tins\", \"aisle\": \"pantry\" },\n    { \"term\": \"tinned chopped tomatoes\", \"quantity\": \"1 tin\", \"aisle\": \"pantry\" },\n    { \"term\": \"sunflower seeds\", \"quantity\": \"1 small bag\", \"aisle\": \"pantry\" },\n    { \"term\": \"blackcurrant jam\", \"quantity\": \"1 jar\", \"aisle\": \"pantry\" },\n    { \"term\": \"hot sauce\", \"quantity\": \"1 bottle\", \"aisle\": \"pantry\" },\n    { \"term\": \"olive oil\", \"quantity\": \"250 ml\", \"aisle\": \"pantry\" },\n    { \"term\": \"dried oregano\", \"quantity\": \"1 jar\", \"aisle\": \"pantry\" },\n    { \"term\": \"garlic\", \"quantity\": \"1 bulb\", \"aisle\": \"produce\" },\n    { \"term\": \"lemon\", \"quantity\": \"2 units\", \"aisle\": \"produce\" }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"85acac95-312b-4d0e-a4da-02558e8a182f\",\n      \"portion_note\": \"Serve a larger share of the chicken and rice with the standard broccoli portion. For breakfast, add a spoonful of blackcurrant jam to the sourdough toast.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_chicken\", \"note\": \"take the full box content\" },\n        { \"preparation_id\": \"prep_rice\", \"note\": \"take the full box content\" }\n      ]\n    },\n    {\n      \"member_id\": \"f190856d-d573-42e9-a026-b6a37b9f7471\",\n      \"portion_note\": \"Serve the standard share of all components. Ensure all bread crusts are removed before serving.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_chicken\", \"note\": \"take the full box content\" }\n      ]\n    },\n    {\n      \"member_id\": \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\",\n      \"portion_note\": \"Serve a larger share of chicken and rice. Ensure no orange-coloured vegetables or fennel-containing herbs are added to the plate.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_chicken\", \"note\": \"take the full box content\" },\n        { \"preparation_id\": \"prep_rice\", \"note\": \"take the full box content\" }\n      ]\n    },\n    {\n      \"member_id\": \"536e683d-64a8-4dc2-a69b-6ee1925b206c\",\n      \"portion_note\": \"Serve the standard share of all components. Provide hot sauce on the side for every meal.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_chicken\", \"note\": \"take the full box content\" }\n      ]\n    }\n  ]\n}",
+                "thoughtSignature": "[redacted]"
+              }
+            ]
+          },
+          "finishReason": "STOP"
+        }
+      ],
+      "responseId": "DvqEapiSNNia28oPgvSq2AU",
+      "modelVersion": "gemini-3-flash-preview",
+      "usageMetadata": {
+        "serviceTier": "standard",
+        "totalTokenCount": 20806,
+        "promptTokenCount": 8421,
+        "thoughtsTokenCount": 6539,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 8421
+          }
+        ],
+        "candidatesTokenCount": 5846
+      }
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-19T00:33:09.213536+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T00:33:09.740833+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:33:12.799983+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:33:12.804279+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:33:12.809825+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:34:12.827443+00:00",
+      "status": "timeout_or_abort",
+      "outcome": "error",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": "Signal timed out.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:34:12.838246+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 1,
+      "chain_index": 2,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:34:13.321792+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 1,
+      "chain_index": 2,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:34:17.699247+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 2,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:34:18.338468+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 2,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:34:22.58614+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:34:22.59493+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:34:22.599749+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:35:16.381207+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

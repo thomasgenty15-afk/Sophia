@@ -1,12 +1,193 @@
-# Lane FOYER — inventaire d'injection (agent 1B-inv)
+# Lane FOYER — inventaire d'injection, **COCHÉ SUR PROMPT RÉEL** (agent 1B)
 
 **Date** : 2026-08-18 · **Branche** : `ff-001-quotidien-du-coach` · **Racine** : `/Users/ahmedamara/Dev/Sophia 2`
 
-> ⛔ **CE DOCUMENT N'EST PAS UN VERDICT.** Aucune génération n'a été lancée, rien n'a été mesuré.
-> Tout ce qui suit est **de la lecture de code**. Les « ruptures suspectées » sont des hypothèses
-> sourcées `fichier:ligne`, à confirmer par l'agent 1B avec l'outil qui rend le prompt réel.
-> Rappel du contexte : sur cette lane le modèle prévu **expire à 4 min** et la requête retombe
-> sur `gpt-5.4-mini` — toute latence ou qualité observée doit être lue avec ça en tête.
+> ✅ **CE DOCUMENT EST MAINTENANT UN VERDICT** pour la partie §0 ci-dessous. L'inventaire
+> d'origine (§1 à §7) est **conservé tel quel** — c'est la lecture de code qui a servi de
+> plan de mesure. Chaque ligne est reprise en §0 avec **la preuve tirée du prompt
+> réellement envoyé**, jamais de la lecture de code.
+>
+> ⚠️ **Correction au préambule d'origine** : la lane foyer **ne replie aucun modèle**.
+> `keelGenerationModel()` n'est pas appelé par `generate-household-meal-v1` ; les cinq runs
+> de ce lot sont tous partis sur `gpt-5.4-mini` **directement** — le modèle du chat.
+> Aucune bascule, aucune expiration à 4 min. Le prompt foyer est donc bâti pour une
+> composition et servi au modèle de conversation ; ce n'est pas mon chantier de le changer,
+> mais c'est écrit ici pour que personne ne relise ces latences autrement.
+
+---
+
+## §0. LE VERDICT — 46 lignes, mesurées
+
+**Run de référence** : `ac79471a-0ac9-4bfc-85eb-bc34ce99997b` (itération 03, après
+correctifs) · `generate-household-meal-v1` · `gpt-5.4-mini` · HTTP 200 en 36 s ·
+système 15 486 car. / utilisateur 15 105 car. · `*_truncated = false` ·
+`written_chars == chars == compteur indépendant de gemini.ts`, vérifié à la main des deux
+côtés. Runs antérieurs : `35463ae7…` (it. 01, `one_session`, prompt seul),
+`ebeb0828…` (it. 02, première sortie).
+Les trois fichiers de chaque run sont dans `iterations/01..03/`.
+
+**Le foyer mesuré** — trois bouches volontairement divergentes, montées **entièrement par
+les écrans** (`/app/setup` §1→§4, `/app/plan`), jamais par SQL :
+
+| | Sacha (maître, compte) | Livia (bouche nue, adulte) | Tino (bouche nue, **mineur, 10 ans**) |
+|---|---|---|---|
+| direction | `fat_loss` | `muscle_gain` | aucune |
+| corps saisi | 178/88/male/sedentary | 165/54/female/trains_hard | 138/33/male/on_feet |
+| sécurité | **allergie arachide** | dégoût **champignons** + **pescatarian** | — |
+| habitude / note | petit-déj + note | goûter + note | note seule |
+
+**Compte : 26 cochées ✅ · 4 partielles ⚠️ · 12 absentes motivées ❌ · 4 non exerçables ⛔ = 46.**
+
+Détail : ✅ = 1, 2, 7, 10, 11, 12, 14, 15, 16, 19, 21, 25, 28, 29, 30, 31, 32, 33, 34, 35,
+37, 38, 40, 44, 45, 46 · ⚠️ = 3, 4, 5, 13 · ❌ = 6, 8, 9, 17, 18, 20, 23, 26, 27, 36, 39,
+43 · ⛔ = 22, 24, 41, 42.
+
+**Deux de ces 26 n'étaient PAS cochées à l'arrivée** — #1 (prénom du maître) et #19 (repas
+pris dehors) — et le sont après les correctifs **D-1** et **D-2**. **Aucune case n'est
+cochée sur la présence d'un mot** : chaque ligne porte la valeur que j'ai tapée à l'écran.
+
+### 0.1 — Par bouche (24 lignes)
+
+| # | Ligne | Verdict | La preuve, dans le prompt réel |
+|---|---|---|---|
+| 1 | Prénom | ✅ **après correctif** | `- Sacha = 5e61b4af…` / `- Livia = b9415944…` / `- Tino = 0c3e9590…`, puis chaque ligne du brief. **Avant correctif : ❌ pour le maître** — « Sacha » tapé, `Student` servi, 6 fois. Voir **D-1**. |
+| 2 | Date de naissance → minorité | ✅ conséquence attachée, date jamais dite | `1986`/`1994`/`2016` → **0 occurrence**. Seule la conséquence est écrite, sur SA ligne : Tino porte `child-size share of the same dish` et **aucun crochet de corps** ; Sacha porte `age band 30 to 44`. |
+| 3 | Taille (cm) | ⚠️ **compte seulement** | `[height 178 cm; …]` sur la ligne de Sacha. Livia (165 cm **saisis à l'écran**) : rien. Motivé, voir **D-3**. |
+| 4 | Poids (kg) | ⚠️ **compte seulement** | `weight 88 kg, measured week of 2026-08-17`, ligne de Sacha. Livia (54 kg saisis) : rien. |
+| 5 | Sexe | ⚠️ **compte seulement** | `gender male`, ligne de Sacha. Livia (female saisi) : rien. |
+| 6 | Niveau d'activité | ❌ motivé | `sedentary` / `trains_hard` / `on_feet` → **0**. Moteur d'énergie uniquement (`EDGE:1874-1879`). Conforme à l'inventaire. |
+| 7 | Direction (objectif) | ✅ attachée, traduite | `- Sacha: generous vegetables, full protein share, smaller starch share` · `- Livia: larger protein and starch share, same vegetables` · `- Tino: child-size share of the same dish`. Aucun jeton `fat_loss` sur une ligne de bouche. |
+| 8 | **Poids visé** | ❌ **R-2 CONFIRMÉE** | `80` n'apparaît qu'une fois, dans l'exemple figé `80 g of dry pasta`. Aucun lecteur. Coût : voir **D-5**. |
+| 9 | **Rythme (kg/sem)** | ❌ confirmé, par conception | `0.3` → **0**. Agit sur les grammes des boîtes **après** la réponse (`EDGE:4409-4410`), jamais dans le prompt. |
+| 10 | Moments + taille | ✅ attachés | `eats at breakfast (small for them), lunch (medium for them), dinner (large for them) only` (Sacha) · `lunch (large for them), snack_pm, dinner (medium for them)` (Livia) · `breakfast, lunch, snack_pm, dinner` (Tino). |
+| 11 | Habitude par créneau | ✅ attachée | `has their own at breakfast: black coffee and two boiled eggs` (Sacha) · `has their own at the afternoon snack: a bowl of skyr with walnuts` (Livia). |
+| 12 | Note libre durable | ✅ attachée | `usually: eats standing up on Tuesdays` · `usually: will not touch coriander, ever` · `usually: only eats vegetables when they are not touching each other`. ⚠️ Non isolable : Tino n'a QUE la note, mais la phrase de conséquence des habitudes est levée par Sacha et Livia — l'avertissement `HP:1093-1097` reste **non infirmé**, pas confirmé. |
+| 13 | **Allergies** | ⚠️ valeur ✅ / **bouche ❌ — R-6 CONFIRMÉE** | `- peanut — allergy, severity=medical (declared by student)` sous `=== THIS STUDENT'S HARD CONSTRAINTS ===`, **au singulier pour une tablée de trois**, sans `member_id`. Mesure de sortie en **D-6**. |
+| 14 | Régime alimentaire | ✅ partiel, comme documenté | `This student is PESCATARIAN: … This is the line of: Livia.` puis `Sacha, Livia cannot be served from that shared dish`. L'`omnivore` déclaré de Sacha n'est **jamais nommé** — exactement la limite annoncée. |
+| 15 | Dégoûts | ✅ attaché | `HOUSE RULES … - Livia: never serve mushrooms`. |
+| 16 | Apport fixe | ✅ attaché, préfixé | `- Sacha: the evening tub (32 g), every day`. ⚠️ impossible pour une bouche nue (**R-8**, vérifié à l'écran : le bloc est masqué). |
+| 17 | `work_lunch.at_work` | ❌ | Aucun bloc. N'atteint le prompt qu'indirectement, par #19. |
+| 18 | **`work_lunch.mode`** | ❌ **R-3 CONFIRMÉE** pour `lunchbox` | Foyer d'it. 01/02 : Livia en **gamelle sans micro-ondes** ⇒ **rien** dans le prompt. Pas un mot sur un repas transportable ou bon froid. `outside` n'agit que par #19. Et il n'était **pas écrivable** avant **D-2**. |
+| 19 | Repas pris dehors | ✅ **après correctif D-2** | `== A MEAL EATEN OUT IS NOT AN ABSENCE == … - Livia: Tuesday lunch, Wednesday lunch, Thursday lunch, Friday lunch, Monday lunch`. **Avant : ligne sans aucun écrivain vivant** (la porte refusait, la grille 3 états est morte — R-10). |
+| 20 | **Micro-ondes au bureau** | ❌ **R-3 CONFIRMÉE** | Les deux seules occurrences de `microwave` viennent de la cuisine de la maison (`This household does not have: a microwave…`). Le micro-ondes du bureau, répondu à l'écran, n'atteint rien. |
+| 21 | Absences | ✅ attachée | `- Saturday, dinner: Tino not eating here -- cook for 2 instead of 3.` |
+| 22 | Préférences durables (voix) | ⛔ non exerçable | Produites par le memorizer depuis la conversation d'un titulaire ; aucune de mes bouches n'en a. Le bloc est conditionnel (`HMG:1273`) et absent. **Non infirmé.** |
+| 23 | Rôle | ❌ par conception | Aucun bloc, conforme. |
+| 24 | Plan personnel vivant | ⛔ non exerçable | Demande un secondaire AVEC compte et un plan à lui. Mes deux secondaires sont des bouches nues. |
+
+### 0.2 — Au niveau du foyer (22 lignes)
+
+| # | Ligne | Verdict | La preuve |
+|---|---|---|---|
+| 25 | Composition | ✅ | `== THE HOUSEHOLD == / Exact ids to use…` puis les 3 lignes nominatives. |
+| 26 | Nom du foyer | ❌ | `Home` → 0. Aucun bloc, conforme. |
+| 27 | Membre référent | ❌ **R-9 CONFIRMÉE** | `households.reference_member_id` est `null` sur un foyer neuf monté par les écrans, et aucun écran ne l'écrit. Aucun bloc. |
+| 28 | Mode de cuisson | ✅ | it. 03 (`one_dish`) : `Cook ONE set of preparations for everyone. Do NOT propose separate dishes.` · it. 01 (`one_session`, 2 divergents) : `SOME of the people below cannot be served from it …` + `== A DISH OF THEIR OWN ==` + `== WHOSE DISH IS IT ==`. Le plafond **mord** (it. 02/03) et **ne fabrique rien**. |
+| 29 | Budget | ✅ | `budget for this plan: 137, in the local currency of their country.` |
+| 30 | Temps / session | ✅ | `time per cooking session: about 60 minutes.` |
+| 31 | Jours de cuisine | ✅ | `they can only cook on: mon, wed, sat.` |
+| 32 | Moyens de cuisson | ✅ | `== THIS KITCHEN == / This household does not have: a microwave, an air fryer, a pressure cooker, a blender or food processor.` — le bloc conditionnel de R-13 **se déclenche bien** dès qu'un outil est décoché. |
+| 33 | Difficulté de recette | ✅ | `recipe level they want: keen`. (Absent en it. 01-02 parce que non saisi, pas parce que rompu.) |
+| 34 | Variété acceptée | ✅ | `repetition they accept: varied`. |
+| 35 | Moments de la maison | ✅ union vérifiée | `every day of the stretch needs breakfast, lunch, an afternoon bite and dinner` — l'`afternoon bite` ne vient QUE de Livia et Tino ; le maître ne l'a pas coché. L'union `EDGE:2474-2501` est prouvée. |
+| 36 | **Propriétés de jour** | ❌ **R-5 CONFIRMÉE** | `batch_cook` / `leftovers` → 0. Ni écran, ni lecteur (`EDGE:3410` en dur). |
+| 37 | Envie de la semaine | ✅ (anonyme par conception) | `WHAT THIS HOUSEHOLD ASKED FOR THIS WEEK … "the house is craving something with aubergine on Saturday"`. Sortie it. 02 : 15 occurrences d'`aubergine`. |
+| 38 | Contraintes libres de la semaine | ✅ (anonyme) | `what is going on for them RIGHT NOW: Livia is on a late shift on Wednesday and nobody is home before nine`. Sortie : `late shift` cité. |
+| 39 | **« Ce dont ils ont envie »** | ❌ **R-1 CONFIRMÉE** | `brussels` → **0**, `dahl` → **0**, dans le prompt **et** dans la sortie, sur trois runs. Le bloc `-- THIS TIME --` existe mais ne porte que le contexte : `what they feel like eating THIS TIME:` n'est **jamais** servi. ⚠️ **Arbitrage produit, remonté, non corrigé** — voir **D-4**. |
+| 40 | Fenêtre du plan | ✅ | `days to fill, in this order: tue, wed, thu, fri, sat, sun, mon`. |
+| 41 | Note de reprise d'aperçu | ⛔ non exercée | Aucun aperçu (`intent: draft`) dans ce lot. |
+| 42 | Demande sur ma part | ⛔ non exerçable | `MyShareCard` demande un secondaire AVEC compte. **R-7 non infirmée.** |
+| 43 | Garde-manger | ❌ assumé | `pantry: []` en dur ; le foyer est `to_shop`. |
+| 44 | Objectif + situation du maître | ✅ (anonyme, « la doctrine du repas ») | `goal: fat_loss` + `their situation, in their words: QA fixture cohort f1b`. |
+| 45 | Fuseau / pays / langue | ✅ | `today's date: 2026-08-18` · `they shop in: GB` · `CONTENT_LANGUAGE: … English (en-GB)`. |
+| 46 | Nombre de parts | ✅ | `people at the table: 3`. |
+
+### 0.3 — Les décisions et les coûts
+
+**D-1 · Le prénom du maître n'atteignait pas le prompt — CORRIGÉ.**
+`/app/setup` §2 rend un champ « FIRST NAME — *How the plan names your serving* » qui
+écrivait `profiles.full_name`, alors que le roster (`keel_household_roster_for`) ne rend
+que `household_members.first_name`. `keel_household_create` n'y recopie le premier mot du
+`full_name` **qu'une fois** — arbitrage écrit dans la RPC : « s'il renomme son profil plus
+tard, son prénom au foyer ne suit pas ; il le change au foyer ». La porte
+(`keel_household_set_member_name`) existait et n'était appelée que par `/app/household`.
+Correctif : `SetupPage.tsx` `saveSelf()` l'appelle. Preuve : `Student` ×6 → `Sacha` ×4
+dans le prompt, ×21 dans la sortie.
+
+**D-2 · « Elle mange dehors le midi » n'était écrivable par aucun écran — CORRIGÉ.**
+`workLunchPayload` émettait `microwave: null` ; la RPC refuse tout `microwave` dont le
+`jsonb_typeof` n'est pas `boolean`, et celui d'un `null` JSON vaut `'null'`. Trois branches
+sur quatre rendaient `bad_work_lunch`, dont **`mode='outside'`, le seul mode qui produise
+un effet**. Correctif : ne pas émettre la clé. Le test qui figeait l'ancienne forme est
+corrigé et doublé d'un test sur la **présence des clés** + un cas passant.
+
+**D-3 · Le corps d'une bouche SANS COMPTE n'entre pas dans le brief — NON CORRIGÉ, motivé.**
+Ce n'est pas seulement le mineur : Livia, adulte, 165 cm / 54 kg / female **saisis par
+l'écran**, n'a aucun crochet. `EDGE:1828-1838` sépare explicitement `bodies` (comptes →
+le brief, ce que le modèle LIT) de `lineBodies` (tout le monde → le moteur d'énergie).
+`HP:983-990` en donne la raison, et elle tient : « une bouche sans compte, une lecture
+ratée, un compte sous plancher TCA et un compte qui n'a rien saisi produisent TOUS la même
+ligne … un membre marqué "on ne vous dira rien de lui" est un membre désigné ». Donner son
+corps à Livia ferait de l'absence de crochets **la signature du mineur**.
+**Coût mesuré, à assumer sciemment** : sur trois bouches, le modèle dimensionne **deux
+assiettes sur trois à l'aveugle**, sous un prompt qui lui dit que ces faits sont là « for
+ONE thing: the SIZE of a portion ». Dans un foyer réel, les bouches nues sont la majorité.
+**Arbitrage humain, pas QA.**
+
+**D-4 · R-1 est un arbitrage produit — REMONTÉ, NON CORRIGÉ.**
+Le textarea `meals-preferences` est bien rendu sans garde de lane (`MealBuilder.tsx:1223`,
+contre `composingForHousehold` sur le champ d'envie juste en dessous) et le maître le
+remplit ; la branche foyer du submit ne le passe pas ; `EDGE:3442` lit `body.preferences`
+et reçoit toujours `null`. Mais `planDraft.ts:461-465` écrit noir sur blanc : « **LE CORPS
+DE LA LANE FOYER EST PLUS ÉTROIT, et c'est le contrat de la fonction** … Lui envoyer les
+champs de la lane individuelle ne les ferait pas lire, mais laisserait croire ici qu'ils
+comptent. » Deux réparations opposées existent — **retirer le champ de l'écran** (respecte
+le contrat) ou **le transmettre** (le serveur sait déjà le lire) — et le choix est un
+choix de produit. ⚠️ Une seule remarque factuelle : la justification écrite du contrat
+(« ne les ferait pas lire ») est **fausse**, `EDGE:3442` les lirait.
+
+**D-5 · Poids visé, rythme, gamelle, micro-ondes, propriétés de jour : collectés, sans
+lecteur — NON CORRIGÉS.** Leur réparation n'est pas un branchement mais l'ajout d'un
+lecteur dans le générateur, c'est-à-dire une décision de composition. Coût : cinq champs
+qu'un utilisateur remplit et qui ne changent rien à son plan, dont **un curseur de rythme
+borné sur un poids visé que rien ne lit**.
+
+**D-6 · L'allergie détachée — MESURÉE, REMONTÉE, NON TRANCHÉE.**
+Sortie de l'itération 02 : `peanut` → 0, `allerg` → 0, et **aucun aliment de la famille
+arachide** dans les 27 lignes de courses. Le modèle **n'a ni commenté ni justifié** —
+il a exclu pour tout le foyer. La direction sûre tient, mais **par sur-application**, et
+rien dans la sortie ne prouve que la garde a mordu plutôt qu'un plat de poisson qui n'en
+contenait de toute façon pas. Le fichier documente l'anonymisation comme un choix
+(`household_safety.ts:155-160`) ; contraste dans le même prompt : `- Livia: never serve
+mushrooms`.
+
+**D-7 · Le corps d'un mineur ne s'énonce jamais — ✅ TENU, prompt ET sortie.**
+Ligne de Tino sans crochets. Sortie : `138` → 0, `cm` → 0, `weight` → 0, `BMI` → 0,
+`kcal` → 0, `calorie` → 0 ; les seuls `kg` sont `1.5 kg` de poisson, une quantité
+d'aliment. **Rien à remonter en bloquant.**
+
+**D-8 · Hors périmètre, à faire suivre.**
+① `MealBuilder` **casse toute la page** (ErrorBoundary, « Une erreur est survenue ») dès
+que le champ de date de fin est vidé une fraction de seconde — `[keel/dates] expected a
+yyyy-mm-dd local date, got ""` levé pendant le rendu. La fenêtre du plan est donc
+**inéditable au clavier**. `MealBuilder.tsx` est **partagé avec la lane solo** ⇒ appartient
+à l'agent 1A. ② `member_portions` sans grammes en itération 03 alors que le prompt l'exige
+deux fois : désobéissance du modèle, pas défaut d'injection — étapes ④/⑤.
+
+**D-9 · Le poste.** Trois runs `one_session` sont morts en **502 Kong** avec
+`attempt_start` seul en base : le conteneur `supabase_edge_runtime_Sophia_2` est **recréé
+toutes les 2-3 min** par le `functions serve` d'une session voisine qui surveille
+`supabase/functions/`. Ni le produit, ni le timeout Kong (patché à 600 s, revérifié).
+Discriminant : `attempt_start` sans autre événement + 502 au navigateur.
+Et : **un `request_id` foyer peut porter deux appels modèle**
+(`generate-household-meal-v1.protein_anchor_retry`) — le vidage exige `--source`.
+
+---
+
+> Ce qui suit est l'inventaire d'origine (lecture de code), conservé intact comme plan de
+> mesure. Ses « ruptures suspectées » sont désormais tranchées en §0.
+
+---
 
 Chemins **relatifs à la racine ci-dessus**. Abréviations :
 
@@ -113,6 +294,8 @@ Toute information qui n'emprunte pas ce chemin **arrive détachée**.
 
 **R-1 · Le champ « ce dont ils ont envie pour ces repas » n'est jamais transmis sur la lane foyer.**
 
+> ✅ **CONFIRMÉE** sur trois prompts réels (`brussels` → 0, `dahl` → 0). ⚠️ Mais c'est un **arbitrage produit**, pas un bug à réparer : voir **D-4** en §0.3.
+
 - Le textarea `meals-preferences` est rendu **sans garde de lane** : `frontend/src/keel/components/MealBuilder.tsx:1223-1238`. Un maître de foyer le voit et le remplit.
 - La branche foyer du submit ne le passe pas : `MealBuilder.tsx:735-750` appelle `generateHouseholdMeal({window, intent, replaces, context, cookingShape})` — **pas de `preferences`**.
 - La signature ne l'accepte même pas : `frontend/src/keel/api/household.ts:1360-1398`, et le corps envoyé `:1399-1419` n'a pas la clé.
@@ -125,11 +308,15 @@ Toute information qui n'emprunte pas ce chemin **arrive détachée**.
 ### 🟠 P1 — stocké, aucun lecteur vivant
 
 **R-2 · `target_weight_kg` (poids visé) n'a aucun lecteur dans la génération.**
+
+> ✅ **CONFIRMÉE** — `80` n'apparaît que dans l'exemple figé `80 g of dry pasta`.
 - Écrit par deux portes livrées le 2026-08-18 : `frontend/src/keel/api/mouthProfile.ts:76` (`keel_household_set_member_target`) et `:101` (`student_goals` en direct).
 - Grep `target_weight_kg|targetWeightKg` sur `supabase/functions/` (hors tests) ⟶ **2 occurrences seulement** : `account-export-v1/index.ts:392` (export RGPD) et `_shared/keel/meal_body.ts:63`, qui est un commentaire d'**exclusion délibérée**.
 - L'écran de la bouche (`MouthFormDialog.tsx:934`) le demande, et un slider de rythme est **borné sur lui** — mais rien ne l'utilise pour composer.
 
 **R-3 · `work_lunch.mode='lunchbox'` et `work_lunch.microwave` n'ont aucun lecteur serveur.**
+
+> ✅ **CONFIRMÉE**, et **pire que suspecté** : `mode='outside'` n'était **écrivable par aucun écran** (`bad_work_lunch`). Corrigé — voir **D-2**. La gamelle et le micro-ondes restent sans lecteur.
 - La colonne, sa contrainte et sa porte existent : `supabase/migrations/20260818120000_lunch_out_is_not_absence.sql` §2, §4.
 - La sémantique promise est écrite noir sur blanc : `household_presence.ts:654-658` — « le repas doit être **transportable**, et **bon froid** s'il n'y a pas de micro-ondes ».
 - `parseWorkLunch` (`household_presence.ts:701`) n'a **aucun appelant** dans `supabase/functions/` (seul appelant : `frontend/src/keel/api/workLunch.ts:53`).
@@ -137,6 +324,8 @@ Toute information qui n'emprunte pas ce chemin **arrive détachée**.
 - ⟹ Seul le chemin `mode='outside'` produit un effet, **par ricochet** (pré-remplissage `away_days` à l'écriture, migration §3). Une gamelle sans micro-ondes est **collectée et perdue**.
 
 **R-5 · `day_properties` : ni écran de saisie, ni lecteur foyer.**
+
+> ✅ **CONFIRMÉE** — `batch_cook` / `leftovers` → 0 dans le prompt.
 - Le module existe et est complet : `_shared/keel/day_properties.ts` (2 propriétés, `batch_cook` / `leftovers`).
 - `EDGE:3410` `dayProperties: []` **en dur**, avec le motif écrit (`EDGE:3405-3409`, FF-052 §11 Q3).
 - Et **aucun écrivain non plus** : grep `day_properties` sur `frontend/src` ⟶ **lecteurs de sortie de plan uniquement** (`api/planDraft.ts:298`, `api/mealGeneration.ts:677,1036`, `lib/planGridModel.ts:265`). Aucun champ de saisie.
@@ -144,22 +333,30 @@ Toute information qui n'emprunte pas ce chemin **arrive détachée**.
 ### 🟡 P2 — attaché à la mauvaise bouche, ou détaché
 
 **R-6 · Une allergie arrive dans le prompt SANS sa bouche, et sous un en-tête au singulier.**
+
+> ✅ **CONFIRMÉE**, et la sortie mesurée : le modèle **ne commente ni ne justifie** (0 `peanut`, 0 `allerg`, aucun aliment de la famille dans les courses). Non tranché — voir **D-6**.
 - `household_safety.ts:166-191` `householdAllergyConstraints` pose `userId: ""` — et le commentaire `:155-160` explique pourquoi (`member_id` dans un champ de compte serait une fixture qui ment).
 - Le bloc rendu : `safety_constraints.ts:313` `=== THIS STUDENT'S HARD CONSTRAINTS ===` — **« THIS STUDENT »**, pour une tablée de quatre.
 - ⟹ Le modèle sait qu'on ne sert **rien** de tel à personne (direction sûre), mais il ne peut **pas** savoir de qui vient la contrainte. Contraste net avec #15 (dégoûts), qui écrit `- Léa: never serve X`.
 - ⚠️ **À ne pas « réparer » en passant** : le fichier documente que cette anonymisation est un choix. Ce qui est à **mesurer** par 1B : est-ce que le modèle commente ou justifie l'allergie faute de savoir à qui elle est ?
 
 **R-7 · La demande de changement d'une bouche sur SA part ne dit pas qui la formule.**
+
+> ⛔ **NON EXERÇABLE** avec ce foyer : `MyShareCard` demande un secondaire AVEC compte. Ni confirmée ni infirmée.
 - `frontend/src/keel/components/plan/MyShareCard.tsx:314` : la bouche écrit une demande sur **sa** part.
 - Elle repart en `draft_note` — un canal **anonyme** — lu par `EDGE:1980-2010` et injecté en queue de message (`EDGE:2005` `draftNoteInstruction(note.usable)`).
 - Le `restrictionFlag` appliqué à la garde est celui du **compte qui compose** (`EDGE:1984-1986`), pas celui de la bouche concernée — l'écart est documenté à `EDGE:3527-3532`, mais **dans l'autre sens** (les habitudes, elles, utilisent le plancher de la bouche).
 
 **R-8 · Une bouche sans compte ne peut porter ni apport fixe, ni voix.**
+
+> ✅ **CONFIRMÉE à l'écran** : le bloc « shake ou collation mesurée » est masqué pour une bouche nue ; seul Sacha a pu déclarer le sien.
 - Apports fixes : `household_fixed_intakes.ts:196-200` — `fixed_intakes` est clé sur `user_id`, une bouche nue « n'a nulle part où en porter ». `MouthFormDialog.tsx:753` masque le champ. `mouthProfile.ts:665-673` **lève** si un shaker est déclaré sans porte.
 - Voix : `household_voices_io.ts:130-132` filtre sur `userId` non vide (D3).
 - ⟹ Un enfant de 8 ans qui prend un goûter fixe **ne peut pas** le déclarer. C'est cohérent et documenté, mais c'est un **trou d'inventaire** que 1B doit connaître avant d'écrire ses fixtures.
 
 **R-9 · Le membre référent n'a aucun écran.**
+
+> ✅ **CONFIRMÉE** : `reference_member_id` est resté `null` sur un foyer monté entièrement par les écrans.
 - `households.reference_member_id` est lu par `EDGE:1821-1825` et gouverne la doctrine + le tronc d'énergie (`EDGE:2361`).
 - Côté front : lu (`api/household.ts:444,491`) mais **jamais écrit** — `ReferenceMemberCard` et `setReferenceMember` ont été supprimés (`api/household.ts:778-786`, `HouseholdPage.tsx:685`).
 - ⟹ La valeur est toujours `null` sur un foyer neuf, et la résolution retombe sur la cascade serveur.
@@ -167,12 +364,18 @@ Toute information qui n'emprunte pas ce chemin **arrive détachée**.
 ### 🔵 P3 — résidus et angles morts
 
 **R-10 · Grille de présence à 3 états : UI morte.**
+
+> ✅ **CONFIRMÉE**, et c'est ce qui rendait **R-3 bloquante** : sans écran pour poser « dehors » à la main, la porte du déjeuner au bureau était le seul chemin — et elle refusait.
 `MealPickerGrid.tsx:410` rend le sélecteur `at_table` / `eating_out` / `away` **uniquement** si `onSaveMarks` est passé (`:120`, `:258`). Les trois montages de production (`SetupPage.tsx:4380`, `HouseholdPage.tsx:1801`, `MealBuilder.tsx:1066`) ne passent que `onSave`. ⟹ « dehors » (#19) n'est **atteignable que** par la question du déjeuner au travail.
 
 **R-11 · Repli d'objectif périmé.**
+
+> ✅ **INJOIGNABLE**, comme annoncé : `goal: fat_loss` sort de la colonne, jamais du repli.
 `EDGE:3439` `goal: String(goalRow.goal ?? "health")`. Le jeton `health` a été retiré le 2026-08-18 (`_shared/keel/tokens.ts:630-634` : `fat_loss | maintenance | muscle_gain`), et `EDGE:2312-2316` documente déjà ce repli **corrigé en `maintenance`** à 1 100 lignes de là. **Injoignable aujourd'hui** (`student_goals.goal` est `NOT NULL` + CHECK — `schema.sql:9254`, `20260818100000:285-287`), donc à classer « résidu », pas « rupture ». À signaler, pas à corriger dans un lot QA.
 
 **R-12 · Un prénom vide efface l'attribution (garde en base, pas en code).**
+
+> ⛔ non testée (la contrainte en base interdit d'y arriver par un écran). ⚠️ Mais **D-1** montre un défaut voisin et RÉEL : ce n'est pas un prénom vide qui cassait l'attribution du maître, c'est un prénom **juste, écrit dans la mauvaise colonne**.
 - La cicatrice est nommée dans `20260810120000_household_member_identity.sql:95-97` : « un prénom vide **efface la portion sans bruit** ».
 - Ce qui la tient aujourd'hui : `first_name NOT NULL` + `check (char_length(btrim(first_name)) between 1 and 40)` (`:123-126`).
 - Ce qui la tiendrait si la base cédait : `EDGE:1570` `|| "Member"`, `household_voices.ts:692` `|| "Member"`, `EDGE:3660` `|| "Member"`.
@@ -180,6 +383,8 @@ Toute information qui n'emprunte pas ce chemin **arrive détachée**.
 - ⚠️ **Troncature à 20 caractères** : `HOUSEHOLD_MAX_NAME_CHARS = 20` (`household_turn_context.ts:229`) tronque les prénoms côté **chat**, pendant que la base en accepte 40. Deux prénoms composés partageant leurs 20 premiers caractères deviendraient **indiscernables** dans le contexte de tour. (Ce plafond n'est **pas** appliqué par `EDGE`, qui prend le prénom entier.)
 
 **R-13 · Injections conditionnelles à vérifier — une garde qui ne se déclenche jamais est un trou déguisé.**
+
+> Mesuré : `== THIS KITCHEN ==` **se déclenche** dès qu'un outil est décoché (le « 0/175 » est une population, pas une garde morte) · `== A DISH OF THEIR OWN ==` et `WHOSE DISH IS IT` **présents** en `one_session` (it. 01), **absents** en `one_dish` (it. 02/03) · bloc de régime **présent** · conséquence du rythme **présente** · bloc des voix **absent** (aucun titulaire avec préférences) · bloc d'envies **présent**, ancré sur le lundi ISO.
 
 | Bloc | Condition | Où | Population au 2026-08-18 |
 |---|---|---|---|
@@ -195,6 +400,8 @@ Toute information qui n'emprunte pas ce chemin **arrive détachée**.
 | bloc d'envies | `envyLine ≠ null` | `HMG:1190` | ancré sur le **lundi ISO** de `startsOn` (`EDGE:1916`) |
 
 **R-14 · Double injection : aucune trouvée, et c'est activement défendu.**
+
+> ✅ **AUCUNE DOUBLE INJECTION MESURÉE** : une seule phrase de régime, un seul bloc de mots du maître, les corps uniquement par bouche. Le §7 Q5 (allergie déclarée des deux côtés) n'a pas été exercé : la bouche allergique est le maître, donc une seule source.
 Trois endroits refusent explicitement d'écrire deux fois la même chose, et 1B doit les connaître pour ne pas les prendre pour des trous :
 - `EDGE:3404` `dietBlock: ""` au tronc — le régime passe **uniquement** par `householdDietBlock` (motif : `EDGE:3387-3403`, sinon deux phrases de régime dans le même prompt, dont une qui n'est pas la plus stricte).
 - `EDGE:3483` `foodPreferences: []` et `EDGE:3489` `writtenInstructions: []` — les mots du maître passent **uniquement** par le bloc des voix (motif : `EDGE:3466-3488`, une seule porte gardée).
@@ -361,3 +568,41 @@ Voir **§4** — code, lignes, et les cinq preuves. Rappel : **ne pas le répare
 7. **`reportOnRequest` avec `preferences: ""`** (`EDGE:4337`) : je n'ai pas lu `request_report.ts` en entier — je ne sais pas si un rapport vide est simplement muet, ou s'il produit une ligne dégradée.
 
 8. **La cascade de résolution du référent** quand `reference_member_id` est `null` (**R-9**) vit dans `household_composition.ts`, que je n'ai pas lu en entier. Je ne sais pas **qui** gagne par défaut.
+
+---
+
+## 8. RÉPONSES DE 1B AUX HUIT POINTS DE §7 (mesurées)
+
+1. **R-1, oubli ou décision ?** → **Décision, mal justifiée.** `planDraft.ts:461-465` dit que
+   le corps étroit « est le contrat ». La justification donnée (« ne les ferait pas lire »)
+   est **fausse** : `EDGE:3442` lit `body.preferences`. Deux réparations opposées existent.
+   **Arbitrage humain — remonté, non corrigé (D-4).**
+2. **Le rythme atteint-il vraiment les grammes ?** → **OUI.** Le commentaire `EDGE:4425-4428`
+   (« la population est vide au 2026-08-18 ») était **périmé du jour même**.
+   `generated_from.household.box_sizing.mouths` du run mesuré :
+   `{"sized": 1, "no_pace": 0, "restriction_floor": 2, …}` — le curseur de Sacha
+   (0,30 kg/sem) a bien dimensionné ses boîtes ; Livia et Tino, sans cible, retombent sur
+   le plancher. ⚠️ Rappel : **il n'entre toujours dans aucun prompt** (ligne #9).
+3. **Le seuil des 90 min est-il franchi ?** → **OUI, largement** : 3 jours × 60 min = 180
+   min/sem. Le barreau ② n'était donc pas cloué par le temps — le `one_session` calculé
+   en itération 01 le prouve (deux divergents servis).
+4. **Le pré-remplissage `eating_out` survit-il à la grille ?** → Mesuré une fois : la porte
+   a posé cinq midis (`kind: "eating_out"`) **sans toucher** au samedi soir de Tino
+   (`kind: "away"`), déjà posé à la main. Les deux coexistent dans `away_days`. La
+   modification manuelle **après** pré-remplissage n'a pas été testée.
+5. **Les allergies d'une bouche AVEC compte passent-elles deux fois ?** → **Non exercé** :
+   la bouche allergique est le maître, donc une seule source (`student_safety_constraints`).
+   Une seule ligne dans le bloc. Le cas « même allergène des deux côtés » reste ouvert.
+6. **Le plafond de 20 caractères sur les prénoms** → **Non exercé** (Sacha/Livia/Tino font
+   moins de 20 caractères). `EDGE` prend bien le prénom entier.
+7. **`reportOnRequest` avec `preferences: ""`** → **Muet, pas dégradé.**
+   `generated_from.request_report` = `{"lines": [], "refusal": null}`. Le rapport « ce que
+   j'ai demandé » est donc **structurellement vide** sur cette lane, sans produire de ligne
+   fausse. C'est la conséquence 2 de R-1, confirmée.
+8. **Qui gagne quand `reference_member_id` est `null` ?** → Non tranché ici : la valeur est
+   restée `null` (R-9 confirmée) et la cascade serveur n'a pas été isolée. Ce qui EST
+   mesuré : la sortie est cohérente sans référent déclaré.
+
+**Bonus, non demandé mais utile :** `generated_from.household.voices` =
+`{"heard": 0, "accounts_at_table": 1, …}` — confirme que la ligne #22 (voix) est
+**non exerçable** avec un foyer à un seul compte, et que son silence n'est pas une rupture.

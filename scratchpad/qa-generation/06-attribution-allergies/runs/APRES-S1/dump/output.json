@@ -1,0 +1,104 @@
+{
+  "request_id": "a2000001-0000-4000-8000-000000000001",
+  "resolved_by": "--request-id",
+  "user_id": "1e000000-0000-4000-8000-000000000012",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-19T00:24:30.770Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "f90bd07c-535e-43eb-a9b0-442d5212dba0",
+      "status": "breaker_skip",
+      "created_at": "2026-08-19T00:23:44.46649+00:00",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 16134,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 16134,
+    "user_message_chars": 17301,
+    "user_message_truncated": false,
+    "user_message_written_chars": 17301,
+    "independent_counters": {
+      "system_prompt_chars": 16134,
+      "prompt_chars": 17301
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "f90bd07c-535e-43eb-a9b0-442d5212dba0",
+    "created_at": "2026-08-19T00:23:44.46649+00:00",
+    "status": "breaker_skip",
+    "outcome": "skipped",
+    "provider": "openai",
+    "model": "gpt-5.4-mini",
+    "http_status": null,
+    "attempt": 1,
+    "chain_index": 0,
+    "error_message": "LLM breaker open for provider/model",
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": null,
+    "output_text_json": null,
+    "raw_response_truncated": false,
+    "raw_response": null
+  },
+  "events": [
+    {
+      "created_at": "2026-08-19T00:23:44.46649+00:00",
+      "status": "breaker_skip",
+      "outcome": "skipped",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": "LLM breaker open for provider/model",
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T00:23:44.479342+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:23:44.483551+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:23:44.488258+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

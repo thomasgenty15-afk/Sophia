@@ -458,8 +458,26 @@ async function callGenerator(
 
   // LE CORPS DE LA LANE FOYER EST PLUS ÉTROIT, et c'est le contrat de la
   // fonction: elle relit le mode, les bouches et les règles de maison en base.
-  // Lui envoyer les champs de la lane individuelle ne les ferait pas lire, mais
-  // laisserait croire ici qu'ils comptent.
+  // `mode`, `meal_slot`, `servings` et `pantry` n'ont donc rien à faire ici.
+  //
+  // ⛔ CE COMMENTAIRE DISAIT AUSSI « lui envoyer les champs de la lane
+  // individuelle ne les ferait pas lire ». C'ÉTAIT FAUX POUR `preferences`, ET
+  // C'EST MESURÉ: `generate-household-meal-v1` relit `body.preferences` à
+  // TROIS endroits — la consigne (`:3582`, la ligne « what they feel like
+  // eating THIS TIME » de `buildMealPrompt`), le compte-rendu de la demande
+  // (FF-061, `:4569`) et la colonne écrite du plan (`:4976`). Les trois
+  // recevaient `null` parce que personne ne l'envoyait, et la justification
+  // écrite ici est ce qui a fait tenir l'absence.
+  //
+  // ⚠️ LA LEÇON, PLUS QUE LE CHAMP: un commentaire qui EXPLIQUE une absence
+  // est une affirmation à vérifier, pas une décision à respecter. Celui-ci a
+  // survécu à la lecture qu'il déclarait impossible.
+  //
+  // ⚠️ EFFET RÉEL AUJOURD'HUI: NUL, et c'est dit exprès. Les deux appelants de
+  // `composeDraft` (`SetupPage`, `StudentWeekPlanPage`) passent
+  // `preferences: null` en dur — l'aperçu n'a pas encore de champ d'envie. Le
+  // corps cesse simplement de MENTIR sur ce que la fonction lit; le jour où un
+  // écran d'aperçu pose la question, elle arrive.
   const body: Record<string, unknown> = input.lane === "household"
     ? {
       operation: "compose",
@@ -478,6 +496,9 @@ async function callGenerator(
       // bouche n'a jamais eu la question « un plat ou deux ». L'envoyer
       // quand même laisserait croire ici qu'il compte.
       cooking_shape: input.cookingShape,
+      // L'ENVIE — LE MÊME NOM QUE SUR LA LANE INDIVIDUELLE, parce que c'est le
+      // nom que le serveur lit. Les deux lanes traversent `buildMealPrompt`.
+      preferences: input.preferences,
     }
     : {
       mode: input.mode,

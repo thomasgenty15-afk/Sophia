@@ -1,0 +1,18 @@
+
+### frontend/src/keel/lib/mouthForm.ts  (2)
+  48: weeksToTarget,
+  695: return { kind: "accepted", weeks: weeksToTarget(current, target, paceValue) };
+
+### supabase/functions/_shared/keel/weight_pace.ts  (1)
+  927: export function weeksToTarget(
+
+### supabase/functions/_shared/keel/weight_pace_test.ts  (7)
+  24: weeksToTarget,
+  606: assertEquals(weeksToTarget(80, 74, 0.5), 12);
+  607: assertEquals(weeksToTarget(80, 74.2, 0.5), 12);
+  608: assertEquals(weeksToTarget(60, 65, 0.25), 20);
+  614: assertEquals(weeksToTarget(80, 74, 0), null);
+  615: assertEquals(weeksToTarget(80, 74, -1), null);
+  616: assertEquals(weeksToTarget(80, 80, 0.5), null);
+
+=== 3 fichiers avec au moins un HIT EXÉCUTABLE ===

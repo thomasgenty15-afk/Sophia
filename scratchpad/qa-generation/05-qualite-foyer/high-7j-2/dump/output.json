@@ -1,0 +1,92 @@
+{
+  "request_id": "hi000002-0000-4000-8000-000000000002",
+  "resolved_by": "--request-id",
+  "user_id": "5a000000-0000-4000-8000-000000000001",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-19T09:21:58.496Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "72c36ccc-62ba-45ec-bf35-8680a13771ca",
+      "status": "attempt_start",
+      "created_at": "2026-08-19T09:17:40.550673+00:00",
+      "provider": "openai",
+      "model": "gpt-5.6-luna",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 16129,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 16129,
+    "user_message_chars": 19190,
+    "user_message_truncated": false,
+    "user_message_written_chars": 19190,
+    "independent_counters": {
+      "system_prompt_chars": 16129,
+      "prompt_chars": 19190
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "6f0e210f-647e-41c4-8067-fb42b6c059b3",
+    "created_at": "2026-08-19T09:20:10.573861+00:00",
+    "status": "timeout_or_abort",
+    "outcome": "error",
+    "provider": "openai",
+    "model": "gpt-5.6-luna",
+    "http_status": null,
+    "attempt": 1,
+    "chain_index": 0,
+    "error_message": "Signal timed out.",
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": null,
+    "output_text_json": null,
+    "raw_response_truncated": false,
+    "raw_response": null
+  },
+  "events": [
+    {
+      "created_at": "2026-08-19T09:17:40.550673+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-luna",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T09:20:10.573861+00:00",
+      "status": "timeout_or_abort",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.6-luna",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": "Signal timed out.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T09:20:10.586796+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

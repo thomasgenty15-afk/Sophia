@@ -38,6 +38,10 @@ function body(over: Partial<MouthBody> = {}): MouthBody {
     gender: "female",
     ageYears: 34,
     activityLevel: null,
+    activityAxes: { day: null, sport: null, asked: false },
+    // ⑤ — neutre vrai par défaut: un banc qui déclarerait un appétit ferait
+    // porter ±10 % à tous les tests de rythme sans qu'aucun ne le dise.
+    appetite: null,
     ...over,
   };
 }
@@ -293,10 +297,12 @@ Deno.test("① un MINEUR reçoit l'équation pédiatrique, ici aussi", () => {
   assertEquals(
     child.maintenanceKcal,
     Math.round(estimatedChildMaintenanceKcal({
+      appetite: null,
       weightKg: 45,
       ageYears: 13,
       gender: "male",
       activityLevel: null,
+      activityAxes: { day: null, sport: null, asked: false },
     })!),
   );
   // ⚠️ ET LE MÊME CORPS SOUS `isMinor: false` NE REND RIEN. L'équation adulte
@@ -330,6 +336,7 @@ Deno.test("③ le curseur SATURE sur une prise, et deux crans très différents 
     gender: "female",
     ageYears: 28,
     activityLevel: "sedentary",
+    activityAxes: { day: null, sport: null, asked: false },
   });
   const ceiling = paceCeilingFor("up", her);
   assert(ceiling !== null);
@@ -477,16 +484,20 @@ Deno.test("⚠️ ce qui borne un mineur est CALCULÉ SUR SON ÂGE", () => {
   // adolescent de 16 ans tombent dans deux bandes Schofield différentes et
   // n'ont pas le même besoin estimé.
   const eight = estimatedChildMaintenanceKcal({
+    appetite: null,
     weightKg: 45,
     ageYears: 8,
     gender: "male",
     activityLevel: null,
+    activityAxes: { day: null, sport: null, asked: false },
   });
   const sixteen = estimatedChildMaintenanceKcal({
+    appetite: null,
     weightKg: 45,
     ageYears: 16,
     gender: "male",
     activityLevel: null,
+    activityAxes: { day: null, sport: null, asked: false },
   });
   assert(eight !== null && sixteen !== null);
   assert(eight !== sixteen, "le besoin d'un mineur doit dépendre de son âge");
@@ -509,10 +520,12 @@ Deno.test("⚠️ l'écart d'un mineur reste une FRACTION de son besoin", () => 
   // La contre-épreuve chiffrée de « ouvrir l'objectif sans ouvrir le régime ».
   const b = body({ weightKg: 45, ageYears: 14, gender: "male", heightCm: 160 });
   const need = estimatedChildMaintenanceKcal({
+    appetite: null,
     weightKg: b.weightKg,
     ageYears: b.ageYears,
     gender: b.gender,
     activityLevel: b.activityLevel,
+    activityAxes: { day: null, sport: null, asked: false },
   });
   assert(need !== null);
   const c = paceCeilingFor("down", { body: b, isMinor: true });

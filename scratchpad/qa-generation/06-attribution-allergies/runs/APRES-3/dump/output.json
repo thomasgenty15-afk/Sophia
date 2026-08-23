@@ -1,0 +1,2568 @@
+{
+  "request_id": "a1000003-0000-4000-8000-000000000003",
+  "resolved_by": "--request-id",
+  "user_id": "1e000000-0000-4000-8000-000000000012",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-18T23:29:17.979Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "683b5328-1aba-43ca-afff-5480b7f50a08",
+      "status": "attempt_start",
+      "created_at": "2026-08-18T23:26:19.123457+00:00",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 16134,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 16134,
+    "user_message_chars": 16536,
+    "user_message_truncated": false,
+    "user_message_written_chars": 16536,
+    "independent_counters": {
+      "system_prompt_chars": 16134,
+      "prompt_chars": 16536
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "fd2bcd09-7753-484e-a319-f799431fee7c",
+    "created_at": "2026-08-18T23:29:17.407522+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "openai",
+    "model": "gpt-5.4-mini",
+    "http_status": 200,
+    "attempt": 1,
+    "chain_index": 0,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\"member_portions\":[{\"member_id\":\"8917f344-51d8-4177-8c54-ff4460ef9122\",\"portion_note\":\"Shared plates: breakfast gets 2 slices toast with 2 eggs and 1 serving fruit; lunch gets 180 g pasta or rice with 160 g chicken or beans and the vegetables; dinner gets 150 g chicken or beans with 120 g starch and the vegetables.\",\"preparation_shares\":[{\"preparation_id\":\"prep_veg_roast\",\"note\":\"Take 220 g of the roasted vegetables.\"},{\"preparation_id\":\"prep_chicken_thighs\",\"note\":\"Take 160 g of the cooked chicken thighs.\"},{\"preparation_id\":\"prep_tomato_lentils\",\"note\":\"Take 200 g of the lentil tomato sauce.\"},{\"preparation_id\":\"prep_rice\",\"note\":\"Take 170 g of the cooked rice.\"},{\"preparation_id\":\"prep_pasta\",\"note\":\"Take 180 g of the cooked pasta.\"}]},{\"member_id\":\"2a937736-693a-45f1-97a6-110f535ae004\",\"portion_note\":\"Shared plates: breakfast gets 1 slice toast with 1 egg and fruit; lunch gets 120 g pasta or rice with 110 g chicken or beans and the vegetables; dinner gets 100 g chicken or beans with 80 g starch and the vegetables.\",\"preparation_shares\":[{\"preparation_id\":\"prep_veg_roast\",\"note\":\"Take 160 g of the roasted vegetables.\"},{\"preparation_id\":\"prep_chicken_thighs\",\"note\":\"Take 110 g of the cooked chicken thighs.\"},{\"preparation_id\":\"prep_tomato_lentils\",\"note\":\"Take 140 g of the lentil tomato sauce.\"},{\"preparation_id\":\"prep_rice\",\"note\":\"Take 120 g of the cooked rice.\"},{\"preparation_id\":\"prep_pasta\",\"note\":\"Take 120 g of the cooked pasta.\"}]},{\"member_id\":\"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\"portion_note\":\"Shared plates: breakfast gets 1 slice toast with 2 eggs and fruit; lunch gets 160 g pasta or rice with 150 g chicken or beans and extra vegetables; dinner gets 130 g chicken or beans with 90 g starch and plenty of vegetables.\",\"preparation_shares\":[{\"preparation_id\":\"prep_veg_roast\",\"note\":\"Take 260 g of the roasted vegetables.\"},{\"preparation_id\":\"prep_chicken_thighs\",\"note\":\"Take 150 g of the cooked chicken thighs.\"},{\"preparation_id\":\"prep_tomato_lentils\",\"note\":\"Take 180 g of the lentil tomato sauce.\"},{\"preparation_id\":\"prep_rice\",\"note\":\"Take 150 g of the cooked rice.\"},{\"preparation_id\":\"prep_pasta\",\"note\":\"Take 160 g of the cooked pasta.\"}]}],\"dishes\":[{\"name\":\"Berry egg toast\",\"title\":\"Eggs, toast and berries\",\"slot\":\"breakfast\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"wholemeal bread\",\"quantity\":\"3 slices\",\"amount\":3,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"butter\",\"quantity\":\"15 g\",\"amount\":15,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"berries\",\"quantity\":\"300 g\",\"amount\":300,\"unit\":\"g\",\"state\":\"raw\"}],\"method\":\"Toast the bread, soft-scramble the eggs in a pan, and serve with the berries on the side.\",\"why\":\"A small warm breakfast keeps the day started and gives everyone a proper protein anchor without extra faff.\",\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":15},\"honours_belief_keys\":[\"name_the_plate_out_loud\"],\"for_member_id\":\"8917f344-51d8-4177-8c54-ff4460ef9122\"},{\"name\":\"Plain egg toast\",\"title\":\"Eggs, toast and berries\",\"slot\":\"breakfast\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"wholemeal bread\",\"quantity\":\"3 slices\",\"amount\":3,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"butter\",\"quantity\":\"10 g\",\"amount\":10,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"berries\",\"quantity\":\"200 g\",\"amount\":200,\"unit\":\"g\",\"state\":\"raw\"}],\"method\":\"Toast the bread, scramble the eggs, and serve with the berries on the side.\",\"why\":\"A small warm breakfast keeps the day started while staying easy enough for a busy weekday.\",\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":15},\"honours_belief_keys\":[\"name_the_plate_out_loud\"]},{\"name\":\"Big berry egg toast\",\"title\":\"Eggs, toast and berries\",\"slot\":\"breakfast\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"wholemeal bread\",\"quantity\":\"4 slices\",\"amount\":4,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"butter\",\"quantity\":\"15 g\",\"amount\":15,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"berries\",\"quantity\":\"300 g\",\"amount\":300,\"unit\":\"g\",\"state\":\"raw\"}],\"method\":\"Toast the bread, fry the eggs, and serve with extra berries on the side.\",\"why\":\"A small warm breakfast with a fuller protein anchor fits the household’s first meal without making it fussy.\",\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":15},\"honours_belief_keys\":[\"name_the_plate_out_loud\"]},{\"name\":\"Chicken pasta bowls\",\"title\":\"Chicken, roasted vegetables and pasta\",\"slot\":\"lunch\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"cooked chicken thighs\",\"quantity\":\"160 g\",\"amount\":160,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"cooked pasta\",\"quantity\":\"180 g\",\"amount\":180,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"roasted vegetables\",\"quantity\":\"220 g\",\"amount\":220,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null},{\"term\":\"parsley\",\"quantity\":\"a handful\",\"amount\":null,\"unit\":null,\"state\":null}],\"uses\":[{\"preparation_id\":\"prep_chicken_thighs\",\"servings\":1,\"box_id\":\"box_prep_chicken_thighs_bertille\"},{\"preparation_id\":\"prep_veg_roast\",\"servings\":1,\"box_id\":\"box_prep_veg_roast_bertille\"},{\"preparation_id\":\"prep_pasta\",\"servings\":1,\"box_id\":\"box_prep_pasta_bertille\"}],\"method\":\"Reheat the chicken, vegetables and pasta in a pan with a squeeze of lemon, then finish with parsley.\",\"why\":\"A loud vegetable, a proper protein and a starch that suits training make a solid lunch with one cooking session doing the work.\",\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"one_loud_vegetable\",\"starch_follows_the_session\"]},{\"name\":\"Chicken pasta bowl\",\"title\":\"Chicken, roasted vegetables and pasta\",\"slot\":\"lunch\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"cooked chicken thighs\",\"quantity\":\"110 g\",\"amount\":110,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"cooked pasta\",\"quantity\":\"120 g\",\"amount\":120,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"roasted vegetables\",\"quantity\":\"160 g\",\"amount\":160,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null}],\"uses\":[{\"preparation_id\":\"prep_chicken_thighs\",\"servings\":1,\"box_id\":\"box_prep_chicken_thighs_marceau\"},{\"preparation_id\":\"prep_veg_roast\",\"servings\":1,\"box_id\":\"box_prep_veg_roast_marceau\"},{\"preparation_id\":\"prep_pasta\",\"servings\":1,\"box_id\":\"box_prep_pasta_marceau\"}],\"method\":\"Reheat the chicken, vegetables and pasta together, then finish with lemon.\",\"why\":\"A simple reheated bowl keeps lunch efficient and still puts a real protein at the centre.\",\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"one_loud_vegetable\"],\"for_member_id\":\"2a937736-693a-45f1-97a6-110f535ae004\"},{\"name\":\"Chicken pasta plate\",\"title\":\"Chicken, roasted vegetables and pasta\",\"slot\":\"lunch\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"cooked chicken thighs\",\"quantity\":\"150 g\",\"amount\":150,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"cooked pasta\",\"quantity\":\"160 g\",\"amount\":160,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"roasted vegetables\",\"quantity\":\"260 g\",\"amount\":260,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null},{\"term\":\"parsley\",\"quantity\":\"a handful\",\"amount\":null,\"unit\":null,\"state\":null}],\"uses\":[{\"preparation_id\":\"prep_chicken_thighs\",\"servings\":1,\"box_id\":\"box_prep_chicken_thighs_ysoline\"},{\"preparation_id\":\"prep_veg_roast\",\"servings\":1,\"box_id\":\"box_prep_veg_roast_ysoline\"},{\"preparation_id\":\"prep_pasta\",\"servings\":1,\"box_id\":\"box_prep_pasta_ysoline\"}],\"method\":\"Reheat the chicken, vegetables and pasta in a pan, then brighten with lemon and parsley.\",\"why\":\"A generous plate of chicken, vegetables and pasta gives the table an easy lunch with the vegetable front and centre.\",\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"one_loud_vegetable\"]},{\"name\":\"Lentil toast lunch\",\"title\":\"Lentil tomato sauce, spinach and toast\",\"slot\":\"lunch\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"lentil tomato sauce\",\"quantity\":\"200 g\",\"amount\":200,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"wholemeal bread\",\"quantity\":\"3 slices\",\"amount\":3,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"spinach\",\"quantity\":\"120 g\",\"amount\":120,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\"}],\"uses\":[{\"preparation_id\":\"prep_tomato_lentils\",\"servings\":1,\"box_id\":\"box_prep_tomato_lentils_bertille\"}],\"method\":\"Warm the lentil tomato sauce in a pan, wilt the spinach into it, and toast the bread on the side.\",\"why\":\"It uses a batch that is ready in time for Thursday and keeps a full protein food at the centre without needing the oven.\",\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":12},\"honours_belief_keys\":[\"one_loud_vegetable\",\"name_the_plate_out_loud\"],\"for_member_id\":\"8917f344-51d8-4177-8c54-ff4460ef9122\"},{\"name\":\"Lentil toast lunch\",\"title\":\"Lentil tomato sauce, spinach and toast\",\"slot\":\"lunch\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"lentil tomato sauce\",\"quantity\":\"140 g\",\"amount\":140,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"wholemeal bread\",\"quantity\":\"2 slices\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"spinach\",\"quantity\":\"80 g\",\"amount\":80,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\"}],\"uses\":[{\"preparation_id\":\"prep_tomato_lentils\",\"servings\":1,\"box_id\":\"box_prep_tomato_lentils_marceau\"}],\"method\":\"Warm the lentil tomato sauce in a pan, wilt the spinach into it, and toast the bread on the side.\",\"why\":\"It is quick, warm and steady on a day when the kitchen setup is awkward.\",\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":12},\"honours_belief_keys\":[\"one_loud_vegetable\"],\"for_member_id\":\"2a937736-693a-45f1-97a6-110f535ae004\"},{\"name\":\"Lentil toast plate\",\"title\":\"Lentil tomato sauce, spinach and toast\",\"slot\":\"lunch\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"lentil tomato sauce\",\"quantity\":\"180 g\",\"amount\":180,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"wholemeal bread\",\"quantity\":\"3 slices\",\"amount\":3,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"spinach\",\"quantity\":\"120 g\",\"amount\":120,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\"}],\"uses\":[{\"preparation_id\":\"prep_tomato_lentils\",\"servings\":1,\"box_id\":\"box_prep_tomato_lents_ysoline\"}],\"method\":\"Warm the lentil tomato sauce in a pan, wilt the spinach into it, and toast the bread on the side.\",\"why\":\"A proper lentil lunch keeps the protein anchor intact and makes good use of a batch before it ages out.\",\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":12},\"honours_belief_keys\":[\"one_loud_vegetable\"]},{\"name\":\"Herby chicken dinner\",\"title\":\"Chicken, roasted vegetables and rice\",\"slot\":\"dinner\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"cooked chicken thighs\",\"quantity\":\"160 g\",\"amount\":160,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"cooked rice\",\"quantity\":\"170 g\",\"amount\":170,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"roasted vegetables\",\"quantity\":\"220 g\",\"amount\":220,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null}],\"uses\":[{\"preparation_id\":\"prep_chicken_thighs\",\"servings\":1,\"box_id\":\"box_prep_chicken_thighs_bertille\"},{\"preparation_id\":\"prep_veg_roast\",\"servings\":1,\"box_id\":\"box_prep_veg_roast_bertille\"},{\"preparation_id\":\"prep_rice\",\"servings\":1,\"box_id\":\"box_prep_rice_bertille\"}],\"method\":\"Reheat the chicken, rice and vegetables in a pan with a little water, then finish with lemon.\",\"why\":\"The first dinner keeps a warm element on the plate and pushes the starch to the training day without extra cooking.\",\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"one_loud_vegetable\",\"starch_follows_the_session\"]},{\"name\":\"Herby chicken dinner\",\"title\":\"Chicken, roasted vegetables and rice\",\"slot\":\"dinner\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"cooked chicken thighs\",\"quantity\":\"110 g\",\"amount\":110,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"cooked rice\",\"quantity\":\"120 g\",\"amount\":120,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"roasted vegetables\",\"quantity\":\"160 g\",\"amount\":160,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null}],\"uses\":[{\"preparation_id\":\"prep_chicken_thighs\",\"servings\":1,\"box_id\":\"box_prep_chicken_thighs_marceau\"},{\"preparation_id\":\"prep_veg_roast\",\"servings\":1,\"box_id\":\"box_prep_veg_roast_marceau\"},{\"preparation_id\":\"prep_rice\",\"servings\":1,\"box_id\":\"box_prep_rice_marceau\"}],\"method\":\"Reheat the chicken, rice and vegetables together, then finish with lemon.\",\"why\":\"It is a straightforward dinner that stays warm, uses one batch and keeps the plate readable.\",\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"one_loud_vegetable\"],\"for_member_id\":\"2a937736-693a-45f1-97a6-110f535ae004\"},{\"name\":\"Herby chicken supper\",\"title\":\"Chicken, roasted vegetables and rice\",\"slot\":\"dinner\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"cooked chicken thighs\",\"quantity\":\"150 g\",\"amount\":150,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"cooked rice\",\"quantity\":\"150 g\",\"amount\":150,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"roasted vegetables\",\"quantity\":\"260 g\",\"amount\":260,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null},{\"term\":\"parsley\",\"quantity\":\"a handful\",\"amount\":null,\"unit\":null,\"state\":null}],\"uses\":[{\"preparation_id\":\"prep_chicken_thighs\",\"servings\":1,\"box_id\":\"box_prep_chicken_thighs_ysoline\"},{\"preparation_id\":\"prep_veg_roast\",\"servings\":1,\"box_id\":\"box_prep_veg_roast_ysoline\"},{\"preparation_id\":\"prep_rice\",\"servings\":1,\"box_id\":\"box_prep_rice_ysoline\"}],\"method\":\"Reheat the chicken, rice and vegetables in a pan, then finish with lemon and parsley.\",\"why\":\"A fuller dinner portion keeps the vegetable loud and the plate balanced without adding a second cooking job.\",\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"one_loud_vegetable\"]},{\"name\":\"Courgette frittata and toast\",\"title\":\"Courgettes, eggs and toast\",\"slot\":\"breakfast\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"eggs\",\"quantity\":\"6 eggs\",\"amount\":6,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"courgettes\",\"quantity\":\"2 medium courgettes\",\"amount\":null,\"unit\":null,\"state\":null},{\"term\":\"wholemeal bread\",\"quantity\":\"3 slices\",\"amount\":3,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"cheddar\",\"quantity\":\"60 g\",\"amount\":60,\"unit\":\"g\",\"state\":\"raw\"}],\"method\":\"Cook the courgettes in a pan, add the beaten eggs and cheddar, and finish under a lid; toast the bread alongside.\",\"why\":\"Thursday needs something cooked without relying on the broken oven door, and this still gives a proper protein anchor.\",\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":20},\"honours_belief_keys\":[\"one_loud_vegetable\",\"name_the_plate_out_loud\"],\"for_member_id\":\"8917f344-51d8-4177-8c54-ff4460ef9122\"},{\"name\":\"Courgette egg toast\",\"title\":\"Courgettes, eggs and toast\",\"slot\":\"breakfast\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"eggs\",\"quantity\":\"4 eggs\",\"amount\":4,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"courgettes\",\"quantity\":\"1 medium courgette\",\"amount\":null,\"unit\":null,\"state\":null},{\"term\":\"wholemeal bread\",\"quantity\":\"2 slices\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"cheddar\",\"quantity\":\"40 g\",\"amount\":40,\"unit\":\"g\",\"state\":\"raw\"}],\"method\":\"Cook the courgette in a pan, add the eggs and cheddar, and serve with toast.\",\"why\":\"A straightforward cooked breakfast works around the oven issue and keeps the morning warm.\",\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":18},\"honours_belief_keys\":[\"one_loud_vegetable\"],\"for_member_id\":\"2a937736-693a-45f1-97a6-110f535ae004\"},{\"name\":\"Courgette eggs and toast\",\"title\":\"Courgettes, eggs and toast\",\"slot\":\"breakfast\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"eggs\",\"quantity\":\"6 eggs\",\"amount\":6,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"courgettes\",\"quantity\":\"2 medium courgettes\",\"amount\":null,\"unit\":null,\"state\":null},{\"term\":\"wholemeal bread\",\"quantity\":\"3 slices\",\"amount\":3,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"cheddar\",\"quantity\":\"60 g\",\"amount\":60,\"unit\":\"g\",\"state\":\"raw\"}],\"method\":\"Cook the courgettes in a pan, add the eggs and cheddar, and serve with toast.\",\"why\":\"It keeps breakfast warm and anchored on a day when the kitchen is awkward to use.\",\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":20},\"honours_belief_keys\":[\"one_loud_vegetable\"]},{\"name\":\"Bean and pepper wraps\",\"title\":\"Black beans, peppers and wraps\",\"slot\":\"lunch\",\"day\":\"fri\",\"ingredients\":[{\"term\":\"black beans\",\"quantity\":\"2 tins\",\"amount\":2,\"unit\":\"unit\",\"state\":\"cooked\"},{\"term\":\"red peppers\",\"quantity\":\"2\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"wholemeal wraps\",\"quantity\":\"6\",\"amount\":6,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"sweetcorn\",\"quantity\":\"150 g\",\"amount\":150,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"yogurt\",\"quantity\":\"150 g\",\"amount\":150,\"unit\":\"g\",\"state\":\"raw\"}],\"method\":\"Warm the beans and sweetcorn in a pan with the peppers, then fill the wraps and add yogurt.\",\"why\":\"Friday lunch needs to stand on its own, and beans give a fast protein anchor without another long cook.\",\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":15},\"honours_belief_keys\":[\"one_loud_vegetable\",\"name_the_plate_out_loud\"],\"for_member_id\":\"8917f344-51d8-4177-8c54-ff4460ef9122\"},{\"name\":\"Bean wraps for one\",\"title\":\"Black beans, peppers and wraps\",\"slot\":\"lunch\",\"day\":\"fri\",\"ingredients\":[{\"term\":\"black beans\",\"quantity\":\"1 tin\",\"amount\":1,\"unit\":\"unit\",\"state\":\"cooked\"},{\"term\":\"red peppers\",\"quantity\":\"1\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"wholemeal wrap\",\"quantity\":\"2\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"sweetcorn\",\"quantity\":\"80 g\",\"amount\":80,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"yogurt\",\"quantity\":\"50 g\",\"amount\":50,\"unit\":\"g\",\"state\":\"raw\"}],\"method\":\"Warm the beans and sweetcorn in a pan with the peppers, then fill the wraps and add yogurt.\",\"why\":\"A quick bean wrap lunch fits the day and keeps the table moving without the oven.\",\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":15},\"honours_belief_keys\":[\"one_loud_vegetable\"],\"for_member_id\":\"2a937736-693a-45f1-97a6-110f535ae004\"},{\"name\":\"Bean wrap plate\",\"title\":\"Black beans, peppers and wraps\",\"slot\":\"lunch\",\"day\":\"fri\",\"ingredients\":[{\"term\":\"black beans\",\"quantity\":\"2 tins\",\"amount\":2,\"unit\":\"unit\",\"state\":\"cooked\"},{\"term\":\"red peppers\",\"quantity\":\"2\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"wholemeal wraps\",\"quantity\":\"6\",\"amount\":6,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"sweetcorn\",\"quantity\":\"150 g\",\"amount\":150,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"yogurt\",\"quantity\":\"150 g\",\"amount\":150,\"unit\":\"g\",\"state\":\"raw\"}],\"method\":\"Warm the beans and sweetcorn in a pan with the peppers, then fill the wraps and add yogurt.\",\"why\":\"Beans make the lunch a real meal and the peppers keep the vegetable loud.\",\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":15},\"honours_belief_keys\":[\"one_loud_vegetable\"]},{\"name\":\"Lentil and veg bowl\",\"title\":\"Lentil tomato sauce, roasted vegetables and rice\",\"slot\":\"dinner\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"lentil tomato sauce\",\"quantity\":\"200 g\",\"amount\":200,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"roasted vegetables\",\"quantity\":\"220 g\",\"amount\":220,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"cooked rice\",\"quantity\":\"170 g\",\"amount\":170,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"parsley\",\"quantity\":\"a handful\",\"amount\":null,\"unit\":null,\"state\":null}],\"uses\":[{\"preparation_id\":\"prep_tomato_lentils\",\"servings\":1,\"box_id\":\"box_prep_tomato_lentils_bertille\"},{\"preparation_id\":\"prep_veg_roast\",\"servings\":1,\"box_id\":\"box_prep_veg_roast_bertille\"},{\"preparation_id\":\"prep_rice\",\"servings\":1,\"box_id\":\"box_prep_rice_bertille\"}],\"method\":\"Reheat the lentil sauce, roasted vegetables and rice in a pan, then finish with parsley.\",\"why\":\"It keeps Thursday dinner warm and usable while the repainting makes the kitchen less convenient.\",\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"one_loud_vegetable\",\"starch_follows_the_session\"],\"for_member_id\":\"8917f344-51d8-4177-8c54-ff4460ef9122\"},{\"name\":\"Lentil and veg bowl\",\"title\":\"Lentil tomato sauce, roasted vegetables and rice\",\"slot\":\"dinner\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"lentil tomato sauce\",\"quantity\":\"140 g\",\"amount\":140,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"roasted vegetables\",\"quantity\":\"160 g\",\"amount\":160,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"cooked rice\",\"quantity\":\"120 g\",\"amount\":120,\"unit\":\"g\",\"state\":\"cooked\"}],\"uses\":[{\"preparation_id\":\"prep_tomato_lents\",\"servings\":1,\"box_id\":\"box_prep_tomato_lents_marceau\"}],\"method\":\"Reheat the lentil sauce, roasted vegetables and rice in a pan.\",\"why\":\"A simple reheated dinner keeps the plan moving and avoids extra work on a difficult evening.\",\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"one_loud_vegetable\"],\"for_member_id\":\"2a937736-693a-45f1-97a6-110f535ae004\"},{\"name\":\"Lentil and veg dinner\",\"title\":\"Lentil tomato sauce, roasted vegetables and rice\",\"slot\":\"dinner\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"lentil tomato sauce\",\"quantity\":\"180 g\",\"amount\":180,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"roasted vegetables\",\"quantity\":\"260 g\",\"amount\":260,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"cooked rice\",\"quantity\":\"150 g\",\"amount\":150,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"parsley\",\"quantity\":\"a handful\",\"amount\":null,\"unit\":null,\"state\":null}],\"uses\":[{\"preparation_id\":\"prep_tomato_lents\",\"servings\":1,\"box_id\":\"box_prep_tomato_lents_ysoline\"}],\"method\":\"Reheat the lentil sauce, roasted vegetables and rice in a pan, then finish with parsley.\",\"why\":\"It keeps dinner warm and full even with the kitchen under disruption.\",\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"one_loud_vegetable\"],\"for_member_id\":\"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"},{\"name\":\"Chicken traybake lunch\",\"title\":\"Chicken, courgettes and potatoes\",\"slot\":\"lunch\",\"day\":\"sat\",\"ingredients\":[{\"term\":\"roasted chicken thighs\",\"quantity\":\"160 g\",\"amount\":160,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"new potatoes\",\"quantity\":\"250 g\",\"amount\":250,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"courgettes\",\"quantity\":\"2\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"thyme\",\"quantity\":\"a few sprigs\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Roast the potatoes and courgettes, then top with reheated chicken thighs and thyme.\",\"why\":\"This is the second cook day and it gives a fresh lunch without relying on anything from the broken oven last week.\",\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":35},\"honours_belief_keys\":[\"one_loud_vegetable\",\"name_the_plate_out_loud\"],\"for_member_id\":\"8917f344-51d8-4177-8c54-ff4460ef9122\"},{\"name\":\"Chicken traybake lunch\",\"title\":\"Chicken, courgettes and potatoes\",\"slot\":\"lunch\",\"day\":\"sat\",\"ingredients\":[{\"term\":\"roasted chicken thighs\",\"quantity\":\"110 g\",\"amount\":110,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"new potatoes\",\"quantity\":\"180 g\",\"amount\":180,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"courgettes\",\"quantity\":\"1\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\"}],\"method\":\"Roast the potatoes and courgettes, then top with reheated chicken thighs.\",\"why\":\"A smaller traybake keeps the whole session under control and still serves a full meal.\",\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":35},\"honours_belief_keys\":[\"one_loud_vegetable\"],\"for_member_id\":\"2a937736-693a-45f1-97a6-110f535ae004\"},{\"name\":\"Chicken traybake lunch\",\"title\":\"Chicken, courgettes and potatoes\",\"slot\":\"lunch\",\"day\":\"sat\",\"ingredients\":[{\"term\":\"roasted chicken thighs\",\"quantity\":\"150 g\",\"amount\":150,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"new potatoes\",\"quantity\":\"220 g\",\"amount\":220,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"courgettes\",\"quantity\":\"2\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"thyme\",\"quantity\":\"a few sprigs\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Roast the potatoes and courgettes, then top with reheated chicken thighs and thyme.\",\"why\":\"A fuller traybake is the cleanest way to turn the second cook day into a proper lunch for the table.\",\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":35},\"honours_belief_keys\":[\"one_loud_vegetable\"],\"for_member_id\":\"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"},{\"name\":\"Traybake dinner\",\"title\":\"Chicken, courgettes and potatoes\",\"slot\":\"dinner\",\"day\":\"sat\",\"ingredients\":[{\"term\":\"roasted chicken thighs\",\"quantity\":\"160 g\",\"amount\":160,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"new potatoes\",\"quantity\":\"250 g\",\"amount\":250,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"courgettes\",\"quantity\":\"2\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\"}],\"method\":\"Roast the potatoes and courgettes, then serve with the chicken reheated in the pan.\",\"why\":\"Saturday dinner stays warm, uses the second cook day and gives a loud vegetable again.\",\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":35},\"honours_belief_keys\":[\"one_loud_vegetable\"],\"for_member_id\":\"8917f344-51d8-4177-8c54-ff4460ef9122\"},{\"name\":\"Traybake dinner\",\"title\":\"Chicken, courgettes and potatoes\",\"slot\":\"dinner\",\"day\":\"sat\",\"ingredients\":[{\"term\":\"roasted chicken thighs\",\"quantity\":\"110 g\",\"amount\":110,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"new potatoes\",\"quantity\":\"180 g\",\"amount\":180,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"courgettes\",\"quantity\":\"1\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\"}],\"method\":\"Roast the potatoes and courgettes, then serve with the chicken reheated in the pan.\",\"why\":\"It is the same easy Saturday dinner at a smaller share, keeping the table served without extra effort.\",\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":35},\"honours_belief_keys\":[\"one_loud_vegetable\"],\"for_member_id\":\"2a937736-693a-45f1-97a6-110f535ae004\"},{\"name\":\"Traybake supper\",\"title\":\"Chicken, courgettes and potatoes\",\"slot\":\"dinner\",\"day\":\"sat\",\"ingredients\":[{\"term\":\"roasted chicken thighs\",\"quantity\":\"150 g\",\"amount\":150,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"new potatoes\",\"quantity\":\"220 g\",\"amount\":220,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"courgettes\",\"quantity\":\"2\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\"}],\"method\":\"Roast the potatoes and courgettes, then serve with the chicken reheated in the pan.\",\"why\":\"A fuller Saturday supper uses the second cooking session and keeps the vegetable obvious on the plate.\",\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":35},\"honours_belief_keys\":[\"one_loud_vegetable\"],\"for_member_id\":\"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"}],\"preparations\":[{\"id\":\"prep_chicken_thighs\",\"title\":\"Roast chicken thighs\",\"servings_made\":9,\"ingredients\":[{\"term\":\"chicken thighs\",\"quantity\":\"1.8 kg\",\"amount\":1800,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"2 tbsp\",\"amount\":2,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"garlic\",\"quantity\":\"4 cloves\",\"amount\":4,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"smoked paprika\",\"quantity\":\"2 tsp\",\"amount\":2,\"unit\":\"tsp\",\"state\":\"raw\"},{\"term\":\"salt\",\"quantity\":\"2 tsp\",\"amount\":2,\"unit\":\"tsp\",\"state\":\"raw\"},{\"term\":\"black pepper\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\"}],\"method\":\"Season the chicken thighs with oil, garlic, paprika, salt and pepper. Roast in a lined tray until cooked through, then rest and box into nine portions for the week.\",\"active_minutes\":15,\"total_minutes\":45,\"cook_on\":\"wed\",\"boxes\":[{\"id\":\"box_prep_chicken_thighs_bertille\",\"member_ids\":[\"8917f344-51d8-4177-8c54-ff4460ef9122\"],\"grams\":160},{\"id\":\"box_prep_chicken_thighs_marceau\",\"member_ids\":[\"2a937736-693a-45f1-97a6-110f535ae004\"],\"grams\":110},{\"id\":\"box_prep_chicken_thighs_ysoline\",\"member_ids\":[\"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"],\"grams\":150},{\"id\":\"box_prep_chicken_thighs_bertille2\",\"member_ids\":[\"8917f344-51d8-4177-8c54-ff4460ef9122\"],\"grams\":160},{\"id\":\"box_prep_chicken_thighs_marceau2\",\"member_ids\":[\"2a937736-693a-45f1-97a6-110f535ae004\"],\"grams\":110},{\"id\":\"box_prep_chicken_thighs_ysoline2\",\"member_ids\":[\"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"],\"grams\":150},{\"id\":\"box_prep_chicken_thighs_bertille3\",\"member_ids\":[\"8917f344-51d8-4177-8c54-ff4460ef9122\"],\"grams\":160},{\"id\":\"box_prep_chicken_thighs_marceau3\",\"member_ids\":[\"2a937736-693a-45f1-97a6-110f535ae004\"],\"grams\":110},{\"id\":\"box_prep_chicken_thighs_ysoline3\",\"member_ids\":[\"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"],\"grams\":150}]},{\"id\":\"prep_veg_roast\",\"title\":\"Roasted vegetables\",\"servings_made\":9,\"ingredients\":[{\"term\":\"courgettes\",\"quantity\":\"1.2 kg\",\"amount\":1200,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"red peppers\",\"quantity\":\"6\",\"amount\":6,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"red onions\",\"quantity\":\"4\",\"amount\":4,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"aubergines\",\"quantity\":\"2\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"3 tbsp\",\"amount\":3,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"dried oregano\",\"quantity\":\"2 tsp\",\"amount\":2,\"unit\":\"tsp\",\"state\":\"raw\"},{\"term\":\"salt\",\"quantity\":\"2 tsp\",\"amount\":2,\"unit\":\"tsp\",\"state\":\"raw\"}],\"method\":\"Chop the vegetables, toss with oil, oregano and salt, then roast on trays until browned and tender. Cool briefly and box into nine portions.\",\"active_minutes\":20,\"total_minutes\":40,\"cook_on\":\"wed\",\"boxes\":[{\"id\":\"box_prep_veg_roast_bertille\",\"member_ids\":[\"8917f344-51d8-4177-8c54-ff4460ef9122\"],\"grams\":220},{\"id\":\"box_prep_veg_roast_marceau\",\"member_ids\":[\"2a937736-693a-45f1-97a6-110f535ae004\"],\"grams\":160},{\"id\":\"box_prep_veg_roast_ysoline\",\"member_ids\":[\"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"],\"grams\":260},{\"id\":\"box_prep_veg_roast_bertille2\",\"member_ids\":[\"8917f344-51d8-4177-8c54-ff4460ef9122\"],\"grams\":220},{\"id\":\"box_prep_veg_roast_marceau2\",\"member_ids\":[\"2a937736-693a-45f1-97a6-110f535ae004\"],\"grams\":160},{\"id\":\"box_prep_veg_roast_ysoline2\",\"member_ids\":[\"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"],\"grams\":260},{\"id\":\"box_prep_veg_roast_bertille3\",\"member_ids\":[\"8917f344-51d8-4177-8c54-ff4460ef9122\"],\"grams\":220},{\"id\":\"box_prep_veg_roast_marceau3\",\"member_ids\":[\"2a937736-693a-45f1-97a6-110f535ae004\"],\"grams\":160},{\"id\":\"box_prep_veg_roast_ysoline3\",\"member_ids\":[\"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"],\"grams\":260}]},{\"id\":\"prep_pasta\",\"title\":\"Cooked pasta\",\"servings_made\":6,\"ingredients\":[{\"term\":\"dry pasta\",\"quantity\":\"450 g\",\"amount\":450,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"salt\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\"}],\"method\":\"Boil the pasta in salted water until just tender, drain, toss with a little oil and cool quickly before boxing it into six portions.\",\"active_minutes\":10,\"total_minutes\":20,\"cook_on\":\"wed\",\"boxes\":[{\"id\":\"box_prep_pasta_bertille\",\"member_ids\":[\"8917f344-51d8-4177-8c54-ff4460ef9122\"],\"grams\":180},{\"id\":\"box_prep_pasta_marceau\",\"member_ids\":[\"2a937736-693a-45f1-97a6-110f535ae004\"],\"grams\":120},{\"id\":\"box_prep_pasta_ysoline\",\"member_ids\":[\"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"],\"grams\":160},{\"id\":\"box_prep_pasta_bertille2\",\"member_ids\":[\"8917f344-51d8-4177-8c54-ff4460ef9122\"],\"grams\":180},{\"id\":\"box_prep_pasta_marceau2\",\"member_ids\":[\"2a937736-693a-45f1-97a6-110f535ae004\"],\"grams\":120},{\"id\":\"box_prep_pasta_ysoline2\",\"member_ids\":[\"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"],\"grams\":160}]},{\"id\":\"prep_tomato_lentils\",\"title\":\"Lentil tomato sauce\",\"servings_made\":3,\"ingredients\":[{\"term\":\"green lentils\",\"quantity\":\"300 g\",\"amount\":300,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"tinned chopped tomatoes\",\"quantity\":\"2 tins\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"onion\",\"quantity\":\"1\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"carrots\",\"quantity\":\"2\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"celery sticks\",\"quantity\":\"2\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"garlic\",\"quantity\":\"3 cloves\",\"amount\":3,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"bay leaf\",\"quantity\":\"1\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"salt\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\"}],\"method\":\"Soften the onion, carrots, celery and garlic in oil, add lentils, tomatoes, bay leaf, salt and water, then simmer until thick and saucy. Cool and box into three portions for the days that need it.\",\"active_minutes\":15,\"total_minutes\":40,\"cook_on\":\"wed\",\"boxes\":[{\"id\":\"box_prep_tomato_lentils_bertille\",\"member_ids\":[\"8917f344-51d8-4177-8c54-ff4460ef9122\"],\"grams\":200},{\"id\":\"box_prep_tomato_lentils_marceau\",\"member_ids\":[\"2a937736-693a-45f1-97a6-110f535ae004\"],\"grams\":140},{\"id\":\"box_prep_tomato_lentils_ysoline\",\"member_ids\":[\"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"],\"grams\":180}]},{\"id\":\"prep_rice\",\"title\":\"Cooked rice\",\"servings_made\":6,\"ingredients\":[{\"term\":\"basmati rice\",\"quantity\":\"450 g\",\"amount\":450,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"salt\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\"}],\"method\":\"Rinse the rice, cook it until tender, spread it out briefly to cool, then box into same-day portions for the meals that need it.\",\"active_minutes\":10,\"total_minutes\":25,\"cook_on\":\"wed\",\"boxes\":[{\"id\":\"box_prep_rice_bertille\",\"member_ids\":[\"8917f344-51d8-4177-8c54-ff4460ef9122\"],\"grams\":170},{\"id\":\"box_prep_rice_marceau\",\"member_ids\":[\"2a937736-693a-45f1-97a6-110f535ae004\"],\"grams\":120},{\"id\":\"box_prep_rice_ysoline\",\"member_ids\":[\"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"],\"grams\":150},{\"id\":\"box_prep_rice_bertille2\",\"member_ids\":[\"8917f344-51d8-4177-8c54-ff4460ef9122\"],\"grams\":170},{\"id\":\"box_prep_rice_marceau2\",\"member_ids\":[\"2a937736-693a-45f1-97a6-110f535ae004\"],\"grams\":120},{\"id\":\"box_prep_rice_ysoline2\",\"member_ids\":[\"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"],\"grams\":150}]},{\"id\":\"prep_courgette_frittata\",\"title\":\"Courgette frittata\",\"servings_made\":3,\"ingredients\":[{\"term\":\"eggs\",\"quantity\":\"12 eggs\",\"amount\":12,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"courgettes\",\"quantity\":\"3 medium courgettes\",\"amount\":null,\"unit\":null,\"state\":null},{\"term\":\"cheddar\",\"quantity\":\"120 g\",\"amount\":120,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"salt\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\"},{\"term\":\"black pepper\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\"}],\"method\":\"Cook the courgettes until they lose some water, pour in the beaten eggs and cheddar, and set the mixture gently in a covered pan. Cool slightly and cut into three boxed portions.\",\"active_minutes\":15,\"total_minutes\":25,\"cook_on\":\"thu\",\"boxes\":[{\"id\":\"box_prep_courgette_frittata_bertille\",\"member_ids\":[\"8917f344-51d8-4177-8c54-ff4460ef9122\"],\"grams\":220},{\"id\":\"box_prep_courgette_frittata_marceau\",\"member_ids\":[\"2a937736-693a-45f1-97a6-110f535ae004\"],\"grams\":160},{\"id\":\"box_prep_courgette_frittata_ysoline\",\"member_ids\":[\"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"],\"grams\":260}]},{\"id\":\"prep_sat_tray\",\"title\":\"Roasted chicken courgette traybake\",\"servings_made\":3,\"ingredients\":[{\"term\":\"chicken thighs\",\"quantity\":\"1.1 kg\",\"amount\":1100,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"new potatoes\",\"quantity\":\"900 g\",\"amount\":900,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"courgettes\",\"quantity\":\"6\",\"amount\":6,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"2 tbsp\",\"amount\":2,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"lemon\",\"quantity\":\"2\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"thyme\",\"quantity\":\"1 small bunch\",\"amount\":null,\"unit\":null,\"state\":null},{\"term\":\"salt\",\"quantity\":\"2 tsp\",\"amount\":2,\"unit\":\"tsp\",\"state\":\"raw\"}],\"method\":\"Toss the potatoes and courgettes with oil, salt and thyme, roast until nearly tender, then add the chicken and finish until cooked through. Use it the same day for Saturday meals, then box three meal portions.\",\"active_minutes\":20,\"total_minutes\":45,\"cook_on\":\"sat\",\"boxes\":[{\"id\":\"box_prep_sat_tray_bertille\",\"member_ids\":[\"8917f344-51d8-4177-8c54-ff4460ef9122\"],\"grams\":430},{\"id\":\"box_prep_sat_tray_marceau\",\"member_ids\":[\"2a937736-693a-45f1-97a6-110f535ae004\"],\"grams\":320},{\"id\":\"box_prep_sat_tray_ysoline\",\"member_ids\":[\"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"],\"grams\":470}]}],\"cooking_sessions\":[{\"day\":\"wed\",\"preparation_ids\":[\"prep_chicken_thighs\",\"prep_veg_roast\",\"prep_pasta\",\"prep_tomato_lentils\",\"prep_rice\"],\"total_minutes\":50,\"run_through\":\"Put the oven on for the chicken and vegetables. While they roast, start the lentil tomato sauce on the hob. Put the pasta and rice on in separate pots, then cool and box everything as it finishes.\"},{\"day\":\"thu\",\"preparation_ids\":[\"prep_courgette_frittata\"],\"total_minutes\":25,\"run_through\":\"Make the courgette frittata in a covered pan on the hob, then cut it into portions and box it for lunch or breakfast.\"},{\"day\":\"sat\",\"preparation_ids\":[\"prep_sat_tray\"],\"total_minutes\":45,\"run_through\":\"Roast the potatoes and courgettes first, then add the chicken to finish in the same tray and box the portions once cooked.\"}],\"shopping_list\":[{\"term\":\"chicken thighs\",\"quantity\":\"2.9 kg\",\"aisle\":\"protein\"},{\"term\":\"courgettes\",\"quantity\":\"12 medium\",\"aisle\":\"produce\"},{\"term\":\"red peppers\",\"quantity\":\"6\",\"aisle\":\"produce\"},{\"term\":\"red onions\",\"quantity\":\"4\",\"aisle\":\"produce\"},{\"term\":\"aubergines\",\"quantity\":\"2\",\"aisle\":\"produce\"},{\"term\":\"new potatoes\",\"quantity\":\"900 g\",\"aisle\":\"produce\"},{\"term\":\"onion\",\"quantity\":\"1\",\"aisle\":\"produce\"},{\"term\":\"carrots\",\"quantity\":\"2\",\"aisle\":\"produce\"},{\"term\":\"celery sticks\",\"quantity\":\"2\",\"aisle\":\"produce\"},{\"term\":\"garlic\",\"quantity\":\"7 cloves\",\"aisle\":\"produce\"},{\"term\":\"lemon\",\"quantity\":\"2\",\"aisle\":\"produce\"},{\"term\":\"berries\",\"quantity\":\"500 g\",\"aisle\":\"frozen\"},{\"term\":\"eggs\",\"quantity\":\"16\",\"aisle\":\"protein\"},{\"term\":\"cheddar\",\"quantity\":\"180 g\",\"aisle\":\"dairy\"},{\"term\":\"wholemeal bread\",\"quantity\":\"11 slices\",\"aisle\":\"grains\"},{\"term\":\"wholemeal wraps\",\"quantity\":\"8\",\"aisle\":\"grains\"},{\"term\":\"dry pasta\",\"quantity\":\"450 g\",\"aisle\":\"grains\"},{\"term\":\"basmati rice\",\"quantity\":\"450 g\",\"aisle\":\"grains\"},{\"term\":\"green lentils\",\"quantity\":\"300 g\",\"aisle\":\"grains\"},{\"term\":\"black beans\",\"quantity\":\"3 tins\",\"aisle\":\"pantry\"},{\"term\":\"tinned chopped tomatoes\",\"quantity\":\"2 tins\",\"aisle\":\"pantry\"},{\"term\":\"sweetcorn\",\"quantity\":\"150 g\",\"aisle\":\"frozen\"},{\"term\":\"yogurt\",\"quantity\":\"200 g\",\"aisle\":\"dairy\"},{\"term\":\"butter\",\"quantity\":\"25 g\",\"aisle\":\"dairy\"},{\"term\":\"olive oil\",\"quantity\":\"9 tbsp\",\"aisle\":\"pantry\"},{\"term\":\"thyme\",\"quantity\":\"1 small bunch\",\"aisle\":\"produce\"},{\"term\":\"parsley\",\"quantity\":\"2 handfuls\",\"aisle\":\"produce\"},{\"term\":\"smoked paprika\",\"quantity\":\"2 tsp\",\"aisle\":\"pantry\"},{\"term\":\"dried oregano\",\"quantity\":\"2 tsp\",\"aisle\":\"pantry\"},{\"term\":\"bay leaf\",\"quantity\":\"1\",\"aisle\":\"pantry\"},{\"term\":\"salt\",\"quantity\":\"1 small jar\",\"aisle\":\"pantry\"},{\"term\":\"black pepper\",\"quantity\":\"1 small jar\",\"aisle\":\"pantry\"}]}",
+    "output_text_json": {
+      "member_portions": [
+        {
+          "member_id": "8917f344-51d8-4177-8c54-ff4460ef9122",
+          "portion_note": "Shared plates: breakfast gets 2 slices toast with 2 eggs and 1 serving fruit; lunch gets 180 g pasta or rice with 160 g chicken or beans and the vegetables; dinner gets 150 g chicken or beans with 120 g starch and the vegetables.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_veg_roast",
+              "note": "Take 220 g of the roasted vegetables."
+            },
+            {
+              "preparation_id": "prep_chicken_thighs",
+              "note": "Take 160 g of the cooked chicken thighs."
+            },
+            {
+              "preparation_id": "prep_tomato_lentils",
+              "note": "Take 200 g of the lentil tomato sauce."
+            },
+            {
+              "preparation_id": "prep_rice",
+              "note": "Take 170 g of the cooked rice."
+            },
+            {
+              "preparation_id": "prep_pasta",
+              "note": "Take 180 g of the cooked pasta."
+            }
+          ]
+        },
+        {
+          "member_id": "2a937736-693a-45f1-97a6-110f535ae004",
+          "portion_note": "Shared plates: breakfast gets 1 slice toast with 1 egg and fruit; lunch gets 120 g pasta or rice with 110 g chicken or beans and the vegetables; dinner gets 100 g chicken or beans with 80 g starch and the vegetables.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_veg_roast",
+              "note": "Take 160 g of the roasted vegetables."
+            },
+            {
+              "preparation_id": "prep_chicken_thighs",
+              "note": "Take 110 g of the cooked chicken thighs."
+            },
+            {
+              "preparation_id": "prep_tomato_lentils",
+              "note": "Take 140 g of the lentil tomato sauce."
+            },
+            {
+              "preparation_id": "prep_rice",
+              "note": "Take 120 g of the cooked rice."
+            },
+            {
+              "preparation_id": "prep_pasta",
+              "note": "Take 120 g of the cooked pasta."
+            }
+          ]
+        },
+        {
+          "member_id": "db0dcc2f-a0f4-46d7-90ab-980b8be0189c",
+          "portion_note": "Shared plates: breakfast gets 1 slice toast with 2 eggs and fruit; lunch gets 160 g pasta or rice with 150 g chicken or beans and extra vegetables; dinner gets 130 g chicken or beans with 90 g starch and plenty of vegetables.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_veg_roast",
+              "note": "Take 260 g of the roasted vegetables."
+            },
+            {
+              "preparation_id": "prep_chicken_thighs",
+              "note": "Take 150 g of the cooked chicken thighs."
+            },
+            {
+              "preparation_id": "prep_tomato_lentils",
+              "note": "Take 180 g of the lentil tomato sauce."
+            },
+            {
+              "preparation_id": "prep_rice",
+              "note": "Take 150 g of the cooked rice."
+            },
+            {
+              "preparation_id": "prep_pasta",
+              "note": "Take 160 g of the cooked pasta."
+            }
+          ]
+        }
+      ],
+      "dishes": [
+        {
+          "name": "Berry egg toast",
+          "title": "Eggs, toast and berries",
+          "slot": "breakfast",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "wholemeal bread",
+              "quantity": "3 slices",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "butter",
+              "quantity": "15 g",
+              "amount": 15,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "berries",
+              "quantity": "300 g",
+              "amount": 300,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Toast the bread, soft-scramble the eggs in a pan, and serve with the berries on the side.",
+          "why": "A small warm breakfast keeps the day started and gives everyone a proper protein anchor without extra faff.",
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 15
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ],
+          "for_member_id": "8917f344-51d8-4177-8c54-ff4460ef9122"
+        },
+        {
+          "name": "Plain egg toast",
+          "title": "Eggs, toast and berries",
+          "slot": "breakfast",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "wholemeal bread",
+              "quantity": "3 slices",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "butter",
+              "quantity": "10 g",
+              "amount": 10,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "berries",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Toast the bread, scramble the eggs, and serve with the berries on the side.",
+          "why": "A small warm breakfast keeps the day started while staying easy enough for a busy weekday.",
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 15
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Big berry egg toast",
+          "title": "Eggs, toast and berries",
+          "slot": "breakfast",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "wholemeal bread",
+              "quantity": "4 slices",
+              "amount": 4,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "butter",
+              "quantity": "15 g",
+              "amount": 15,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "berries",
+              "quantity": "300 g",
+              "amount": 300,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Toast the bread, fry the eggs, and serve with extra berries on the side.",
+          "why": "A small warm breakfast with a fuller protein anchor fits the household’s first meal without making it fussy.",
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 15
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Chicken pasta bowls",
+          "title": "Chicken, roasted vegetables and pasta",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "cooked chicken thighs",
+              "quantity": "160 g",
+              "amount": 160,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "cooked pasta",
+              "quantity": "180 g",
+              "amount": 180,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "roasted vegetables",
+              "quantity": "220 g",
+              "amount": 220,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": null,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "parsley",
+              "quantity": "a handful",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_thighs",
+              "servings": 1,
+              "box_id": "box_prep_chicken_thighs_bertille"
+            },
+            {
+              "preparation_id": "prep_veg_roast",
+              "servings": 1,
+              "box_id": "box_prep_veg_roast_bertille"
+            },
+            {
+              "preparation_id": "prep_pasta",
+              "servings": 1,
+              "box_id": "box_prep_pasta_bertille"
+            }
+          ],
+          "method": "Reheat the chicken, vegetables and pasta in a pan with a squeeze of lemon, then finish with parsley.",
+          "why": "A loud vegetable, a proper protein and a starch that suits training make a solid lunch with one cooking session doing the work.",
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "starch_follows_the_session"
+          ]
+        },
+        {
+          "name": "Chicken pasta bowl",
+          "title": "Chicken, roasted vegetables and pasta",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "cooked chicken thighs",
+              "quantity": "110 g",
+              "amount": 110,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "cooked pasta",
+              "quantity": "120 g",
+              "amount": 120,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "roasted vegetables",
+              "quantity": "160 g",
+              "amount": 160,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_thighs",
+              "servings": 1,
+              "box_id": "box_prep_chicken_thighs_marceau"
+            },
+            {
+              "preparation_id": "prep_veg_roast",
+              "servings": 1,
+              "box_id": "box_prep_veg_roast_marceau"
+            },
+            {
+              "preparation_id": "prep_pasta",
+              "servings": 1,
+              "box_id": "box_prep_pasta_marceau"
+            }
+          ],
+          "method": "Reheat the chicken, vegetables and pasta together, then finish with lemon.",
+          "why": "A simple reheated bowl keeps lunch efficient and still puts a real protein at the centre.",
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ],
+          "for_member_id": "2a937736-693a-45f1-97a6-110f535ae004"
+        },
+        {
+          "name": "Chicken pasta plate",
+          "title": "Chicken, roasted vegetables and pasta",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "cooked chicken thighs",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "cooked pasta",
+              "quantity": "160 g",
+              "amount": 160,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "roasted vegetables",
+              "quantity": "260 g",
+              "amount": 260,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": null,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "parsley",
+              "quantity": "a handful",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_thighs",
+              "servings": 1,
+              "box_id": "box_prep_chicken_thighs_ysoline"
+            },
+            {
+              "preparation_id": "prep_veg_roast",
+              "servings": 1,
+              "box_id": "box_prep_veg_roast_ysoline"
+            },
+            {
+              "preparation_id": "prep_pasta",
+              "servings": 1,
+              "box_id": "box_prep_pasta_ysoline"
+            }
+          ],
+          "method": "Reheat the chicken, vegetables and pasta in a pan, then brighten with lemon and parsley.",
+          "why": "A generous plate of chicken, vegetables and pasta gives the table an easy lunch with the vegetable front and centre.",
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Lentil toast lunch",
+          "title": "Lentil tomato sauce, spinach and toast",
+          "slot": "lunch",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "lentil tomato sauce",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "wholemeal bread",
+              "quantity": "3 slices",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "spinach",
+              "quantity": "120 g",
+              "amount": 120,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "uses": [
+            {
+              "preparation_id": "prep_tomato_lentils",
+              "servings": 1,
+              "box_id": "box_prep_tomato_lentils_bertille"
+            }
+          ],
+          "method": "Warm the lentil tomato sauce in a pan, wilt the spinach into it, and toast the bread on the side.",
+          "why": "It uses a batch that is ready in time for Thursday and keeps a full protein food at the centre without needing the oven.",
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 12
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "name_the_plate_out_loud"
+          ],
+          "for_member_id": "8917f344-51d8-4177-8c54-ff4460ef9122"
+        },
+        {
+          "name": "Lentil toast lunch",
+          "title": "Lentil tomato sauce, spinach and toast",
+          "slot": "lunch",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "lentil tomato sauce",
+              "quantity": "140 g",
+              "amount": 140,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "wholemeal bread",
+              "quantity": "2 slices",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "spinach",
+              "quantity": "80 g",
+              "amount": 80,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "uses": [
+            {
+              "preparation_id": "prep_tomato_lentils",
+              "servings": 1,
+              "box_id": "box_prep_tomato_lentils_marceau"
+            }
+          ],
+          "method": "Warm the lentil tomato sauce in a pan, wilt the spinach into it, and toast the bread on the side.",
+          "why": "It is quick, warm and steady on a day when the kitchen setup is awkward.",
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 12
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ],
+          "for_member_id": "2a937736-693a-45f1-97a6-110f535ae004"
+        },
+        {
+          "name": "Lentil toast plate",
+          "title": "Lentil tomato sauce, spinach and toast",
+          "slot": "lunch",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "lentil tomato sauce",
+              "quantity": "180 g",
+              "amount": 180,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "wholemeal bread",
+              "quantity": "3 slices",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "spinach",
+              "quantity": "120 g",
+              "amount": 120,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "uses": [
+            {
+              "preparation_id": "prep_tomato_lentils",
+              "servings": 1,
+              "box_id": "box_prep_tomato_lents_ysoline"
+            }
+          ],
+          "method": "Warm the lentil tomato sauce in a pan, wilt the spinach into it, and toast the bread on the side.",
+          "why": "A proper lentil lunch keeps the protein anchor intact and makes good use of a batch before it ages out.",
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 12
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Herby chicken dinner",
+          "title": "Chicken, roasted vegetables and rice",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "cooked chicken thighs",
+              "quantity": "160 g",
+              "amount": 160,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "cooked rice",
+              "quantity": "170 g",
+              "amount": 170,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "roasted vegetables",
+              "quantity": "220 g",
+              "amount": 220,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_thighs",
+              "servings": 1,
+              "box_id": "box_prep_chicken_thighs_bertille"
+            },
+            {
+              "preparation_id": "prep_veg_roast",
+              "servings": 1,
+              "box_id": "box_prep_veg_roast_bertille"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_prep_rice_bertille"
+            }
+          ],
+          "method": "Reheat the chicken, rice and vegetables in a pan with a little water, then finish with lemon.",
+          "why": "The first dinner keeps a warm element on the plate and pushes the starch to the training day without extra cooking.",
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "starch_follows_the_session"
+          ]
+        },
+        {
+          "name": "Herby chicken dinner",
+          "title": "Chicken, roasted vegetables and rice",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "cooked chicken thighs",
+              "quantity": "110 g",
+              "amount": 110,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "cooked rice",
+              "quantity": "120 g",
+              "amount": 120,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "roasted vegetables",
+              "quantity": "160 g",
+              "amount": 160,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_thighs",
+              "servings": 1,
+              "box_id": "box_prep_chicken_thighs_marceau"
+            },
+            {
+              "preparation_id": "prep_veg_roast",
+              "servings": 1,
+              "box_id": "box_prep_veg_roast_marceau"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_prep_rice_marceau"
+            }
+          ],
+          "method": "Reheat the chicken, rice and vegetables together, then finish with lemon.",
+          "why": "It is a straightforward dinner that stays warm, uses one batch and keeps the plate readable.",
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ],
+          "for_member_id": "2a937736-693a-45f1-97a6-110f535ae004"
+        },
+        {
+          "name": "Herby chicken supper",
+          "title": "Chicken, roasted vegetables and rice",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "cooked chicken thighs",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "cooked rice",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "roasted vegetables",
+              "quantity": "260 g",
+              "amount": 260,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": null,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "parsley",
+              "quantity": "a handful",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_thighs",
+              "servings": 1,
+              "box_id": "box_prep_chicken_thighs_ysoline"
+            },
+            {
+              "preparation_id": "prep_veg_roast",
+              "servings": 1,
+              "box_id": "box_prep_veg_roast_ysoline"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_prep_rice_ysoline"
+            }
+          ],
+          "method": "Reheat the chicken, rice and vegetables in a pan, then finish with lemon and parsley.",
+          "why": "A fuller dinner portion keeps the vegetable loud and the plate balanced without adding a second cooking job.",
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Courgette frittata and toast",
+          "title": "Courgettes, eggs and toast",
+          "slot": "breakfast",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "eggs",
+              "quantity": "6 eggs",
+              "amount": 6,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "courgettes",
+              "quantity": "2 medium courgettes",
+              "amount": null,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "wholemeal bread",
+              "quantity": "3 slices",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "cheddar",
+              "quantity": "60 g",
+              "amount": 60,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Cook the courgettes in a pan, add the beaten eggs and cheddar, and finish under a lid; toast the bread alongside.",
+          "why": "Thursday needs something cooked without relying on the broken oven door, and this still gives a proper protein anchor.",
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 20
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "name_the_plate_out_loud"
+          ],
+          "for_member_id": "8917f344-51d8-4177-8c54-ff4460ef9122"
+        },
+        {
+          "name": "Courgette egg toast",
+          "title": "Courgettes, eggs and toast",
+          "slot": "breakfast",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "eggs",
+              "quantity": "4 eggs",
+              "amount": 4,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "courgettes",
+              "quantity": "1 medium courgette",
+              "amount": null,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "wholemeal bread",
+              "quantity": "2 slices",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "cheddar",
+              "quantity": "40 g",
+              "amount": 40,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Cook the courgette in a pan, add the eggs and cheddar, and serve with toast.",
+          "why": "A straightforward cooked breakfast works around the oven issue and keeps the morning warm.",
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 18
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ],
+          "for_member_id": "2a937736-693a-45f1-97a6-110f535ae004"
+        },
+        {
+          "name": "Courgette eggs and toast",
+          "title": "Courgettes, eggs and toast",
+          "slot": "breakfast",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "eggs",
+              "quantity": "6 eggs",
+              "amount": 6,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "courgettes",
+              "quantity": "2 medium courgettes",
+              "amount": null,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "wholemeal bread",
+              "quantity": "3 slices",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "cheddar",
+              "quantity": "60 g",
+              "amount": 60,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Cook the courgettes in a pan, add the eggs and cheddar, and serve with toast.",
+          "why": "It keeps breakfast warm and anchored on a day when the kitchen is awkward to use.",
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 20
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Bean and pepper wraps",
+          "title": "Black beans, peppers and wraps",
+          "slot": "lunch",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "black beans",
+              "quantity": "2 tins",
+              "amount": 2,
+              "unit": "unit",
+              "state": "cooked"
+            },
+            {
+              "term": "red peppers",
+              "quantity": "2",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "wholemeal wraps",
+              "quantity": "6",
+              "amount": 6,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "sweetcorn",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "yogurt",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Warm the beans and sweetcorn in a pan with the peppers, then fill the wraps and add yogurt.",
+          "why": "Friday lunch needs to stand on its own, and beans give a fast protein anchor without another long cook.",
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 15
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "name_the_plate_out_loud"
+          ],
+          "for_member_id": "8917f344-51d8-4177-8c54-ff4460ef9122"
+        },
+        {
+          "name": "Bean wraps for one",
+          "title": "Black beans, peppers and wraps",
+          "slot": "lunch",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "black beans",
+              "quantity": "1 tin",
+              "amount": 1,
+              "unit": "unit",
+              "state": "cooked"
+            },
+            {
+              "term": "red peppers",
+              "quantity": "1",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "wholemeal wrap",
+              "quantity": "2",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "sweetcorn",
+              "quantity": "80 g",
+              "amount": 80,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "yogurt",
+              "quantity": "50 g",
+              "amount": 50,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Warm the beans and sweetcorn in a pan with the peppers, then fill the wraps and add yogurt.",
+          "why": "A quick bean wrap lunch fits the day and keeps the table moving without the oven.",
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 15
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ],
+          "for_member_id": "2a937736-693a-45f1-97a6-110f535ae004"
+        },
+        {
+          "name": "Bean wrap plate",
+          "title": "Black beans, peppers and wraps",
+          "slot": "lunch",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "black beans",
+              "quantity": "2 tins",
+              "amount": 2,
+              "unit": "unit",
+              "state": "cooked"
+            },
+            {
+              "term": "red peppers",
+              "quantity": "2",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "wholemeal wraps",
+              "quantity": "6",
+              "amount": 6,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "sweetcorn",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "yogurt",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Warm the beans and sweetcorn in a pan with the peppers, then fill the wraps and add yogurt.",
+          "why": "Beans make the lunch a real meal and the peppers keep the vegetable loud.",
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 15
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Lentil and veg bowl",
+          "title": "Lentil tomato sauce, roasted vegetables and rice",
+          "slot": "dinner",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "lentil tomato sauce",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "roasted vegetables",
+              "quantity": "220 g",
+              "amount": 220,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "cooked rice",
+              "quantity": "170 g",
+              "amount": 170,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "parsley",
+              "quantity": "a handful",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "uses": [
+            {
+              "preparation_id": "prep_tomato_lentils",
+              "servings": 1,
+              "box_id": "box_prep_tomato_lentils_bertille"
+            },
+            {
+              "preparation_id": "prep_veg_roast",
+              "servings": 1,
+              "box_id": "box_prep_veg_roast_bertille"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_prep_rice_bertille"
+            }
+          ],
+          "method": "Reheat the lentil sauce, roasted vegetables and rice in a pan, then finish with parsley.",
+          "why": "It keeps Thursday dinner warm and usable while the repainting makes the kitchen less convenient.",
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "starch_follows_the_session"
+          ],
+          "for_member_id": "8917f344-51d8-4177-8c54-ff4460ef9122"
+        },
+        {
+          "name": "Lentil and veg bowl",
+          "title": "Lentil tomato sauce, roasted vegetables and rice",
+          "slot": "dinner",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "lentil tomato sauce",
+              "quantity": "140 g",
+              "amount": 140,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "roasted vegetables",
+              "quantity": "160 g",
+              "amount": 160,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "cooked rice",
+              "quantity": "120 g",
+              "amount": 120,
+              "unit": "g",
+              "state": "cooked"
+            }
+          ],
+          "uses": [
+            {
+              "preparation_id": "prep_tomato_lents",
+              "servings": 1,
+              "box_id": "box_prep_tomato_lents_marceau"
+            }
+          ],
+          "method": "Reheat the lentil sauce, roasted vegetables and rice in a pan.",
+          "why": "A simple reheated dinner keeps the plan moving and avoids extra work on a difficult evening.",
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ],
+          "for_member_id": "2a937736-693a-45f1-97a6-110f535ae004"
+        },
+        {
+          "name": "Lentil and veg dinner",
+          "title": "Lentil tomato sauce, roasted vegetables and rice",
+          "slot": "dinner",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "lentil tomato sauce",
+              "quantity": "180 g",
+              "amount": 180,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "roasted vegetables",
+              "quantity": "260 g",
+              "amount": 260,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "cooked rice",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "parsley",
+              "quantity": "a handful",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "uses": [
+            {
+              "preparation_id": "prep_tomato_lents",
+              "servings": 1,
+              "box_id": "box_prep_tomato_lents_ysoline"
+            }
+          ],
+          "method": "Reheat the lentil sauce, roasted vegetables and rice in a pan, then finish with parsley.",
+          "why": "It keeps dinner warm and full even with the kitchen under disruption.",
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ],
+          "for_member_id": "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+        },
+        {
+          "name": "Chicken traybake lunch",
+          "title": "Chicken, courgettes and potatoes",
+          "slot": "lunch",
+          "day": "sat",
+          "ingredients": [
+            {
+              "term": "roasted chicken thighs",
+              "quantity": "160 g",
+              "amount": 160,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "new potatoes",
+              "quantity": "250 g",
+              "amount": 250,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "courgettes",
+              "quantity": "2",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "thyme",
+              "quantity": "a few sprigs",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Roast the potatoes and courgettes, then top with reheated chicken thighs and thyme.",
+          "why": "This is the second cook day and it gives a fresh lunch without relying on anything from the broken oven last week.",
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 35
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "name_the_plate_out_loud"
+          ],
+          "for_member_id": "8917f344-51d8-4177-8c54-ff4460ef9122"
+        },
+        {
+          "name": "Chicken traybake lunch",
+          "title": "Chicken, courgettes and potatoes",
+          "slot": "lunch",
+          "day": "sat",
+          "ingredients": [
+            {
+              "term": "roasted chicken thighs",
+              "quantity": "110 g",
+              "amount": 110,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "new potatoes",
+              "quantity": "180 g",
+              "amount": 180,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "courgettes",
+              "quantity": "1",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Roast the potatoes and courgettes, then top with reheated chicken thighs.",
+          "why": "A smaller traybake keeps the whole session under control and still serves a full meal.",
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 35
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ],
+          "for_member_id": "2a937736-693a-45f1-97a6-110f535ae004"
+        },
+        {
+          "name": "Chicken traybake lunch",
+          "title": "Chicken, courgettes and potatoes",
+          "slot": "lunch",
+          "day": "sat",
+          "ingredients": [
+            {
+              "term": "roasted chicken thighs",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "new potatoes",
+              "quantity": "220 g",
+              "amount": 220,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "courgettes",
+              "quantity": "2",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "thyme",
+              "quantity": "a few sprigs",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Roast the potatoes and courgettes, then top with reheated chicken thighs and thyme.",
+          "why": "A fuller traybake is the cleanest way to turn the second cook day into a proper lunch for the table.",
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 35
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ],
+          "for_member_id": "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+        },
+        {
+          "name": "Traybake dinner",
+          "title": "Chicken, courgettes and potatoes",
+          "slot": "dinner",
+          "day": "sat",
+          "ingredients": [
+            {
+              "term": "roasted chicken thighs",
+              "quantity": "160 g",
+              "amount": 160,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "new potatoes",
+              "quantity": "250 g",
+              "amount": 250,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "courgettes",
+              "quantity": "2",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Roast the potatoes and courgettes, then serve with the chicken reheated in the pan.",
+          "why": "Saturday dinner stays warm, uses the second cook day and gives a loud vegetable again.",
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 35
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ],
+          "for_member_id": "8917f344-51d8-4177-8c54-ff4460ef9122"
+        },
+        {
+          "name": "Traybake dinner",
+          "title": "Chicken, courgettes and potatoes",
+          "slot": "dinner",
+          "day": "sat",
+          "ingredients": [
+            {
+              "term": "roasted chicken thighs",
+              "quantity": "110 g",
+              "amount": 110,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "new potatoes",
+              "quantity": "180 g",
+              "amount": 180,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "courgettes",
+              "quantity": "1",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Roast the potatoes and courgettes, then serve with the chicken reheated in the pan.",
+          "why": "It is the same easy Saturday dinner at a smaller share, keeping the table served without extra effort.",
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 35
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ],
+          "for_member_id": "2a937736-693a-45f1-97a6-110f535ae004"
+        },
+        {
+          "name": "Traybake supper",
+          "title": "Chicken, courgettes and potatoes",
+          "slot": "dinner",
+          "day": "sat",
+          "ingredients": [
+            {
+              "term": "roasted chicken thighs",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "new potatoes",
+              "quantity": "220 g",
+              "amount": 220,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "courgettes",
+              "quantity": "2",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Roast the potatoes and courgettes, then serve with the chicken reheated in the pan.",
+          "why": "A fuller Saturday supper uses the second cooking session and keeps the vegetable obvious on the plate.",
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 35
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ],
+          "for_member_id": "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_chicken_thighs",
+          "title": "Roast chicken thighs",
+          "servings_made": 9,
+          "ingredients": [
+            {
+              "term": "chicken thighs",
+              "quantity": "1.8 kg",
+              "amount": 1800,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "garlic",
+              "quantity": "4 cloves",
+              "amount": 4,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "2 tsp",
+              "amount": 2,
+              "unit": "tsp",
+              "state": "raw"
+            },
+            {
+              "term": "salt",
+              "quantity": "2 tsp",
+              "amount": 2,
+              "unit": "tsp",
+              "state": "raw"
+            },
+            {
+              "term": "black pepper",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Season the chicken thighs with oil, garlic, paprika, salt and pepper. Roast in a lined tray until cooked through, then rest and box into nine portions for the week.",
+          "active_minutes": 15,
+          "total_minutes": 45,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_prep_chicken_thighs_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 160
+            },
+            {
+              "id": "box_prep_chicken_thighs_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 110
+            },
+            {
+              "id": "box_prep_chicken_thighs_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_prep_chicken_thighs_bertille2",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 160
+            },
+            {
+              "id": "box_prep_chicken_thighs_marceau2",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 110
+            },
+            {
+              "id": "box_prep_chicken_thighs_ysoline2",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_prep_chicken_thighs_bertille3",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 160
+            },
+            {
+              "id": "box_prep_chicken_thighs_marceau3",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 110
+            },
+            {
+              "id": "box_prep_chicken_thighs_ysoline3",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 150
+            }
+          ]
+        },
+        {
+          "id": "prep_veg_roast",
+          "title": "Roasted vegetables",
+          "servings_made": 9,
+          "ingredients": [
+            {
+              "term": "courgettes",
+              "quantity": "1.2 kg",
+              "amount": 1200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "red peppers",
+              "quantity": "6",
+              "amount": 6,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "red onions",
+              "quantity": "4",
+              "amount": 4,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "aubergines",
+              "quantity": "2",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "3 tbsp",
+              "amount": 3,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "dried oregano",
+              "quantity": "2 tsp",
+              "amount": 2,
+              "unit": "tsp",
+              "state": "raw"
+            },
+            {
+              "term": "salt",
+              "quantity": "2 tsp",
+              "amount": 2,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Chop the vegetables, toss with oil, oregano and salt, then roast on trays until browned and tender. Cool briefly and box into nine portions.",
+          "active_minutes": 20,
+          "total_minutes": 40,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_prep_veg_roast_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 220
+            },
+            {
+              "id": "box_prep_veg_roast_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 160
+            },
+            {
+              "id": "box_prep_veg_roast_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 260
+            },
+            {
+              "id": "box_prep_veg_roast_bertille2",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 220
+            },
+            {
+              "id": "box_prep_veg_roast_marceau2",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 160
+            },
+            {
+              "id": "box_prep_veg_roast_ysoline2",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 260
+            },
+            {
+              "id": "box_prep_veg_roast_bertille3",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 220
+            },
+            {
+              "id": "box_prep_veg_roast_marceau3",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 160
+            },
+            {
+              "id": "box_prep_veg_roast_ysoline3",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 260
+            }
+          ]
+        },
+        {
+          "id": "prep_pasta",
+          "title": "Cooked pasta",
+          "servings_made": 6,
+          "ingredients": [
+            {
+              "term": "dry pasta",
+              "quantity": "450 g",
+              "amount": 450,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "salt",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Boil the pasta in salted water until just tender, drain, toss with a little oil and cool quickly before boxing it into six portions.",
+          "active_minutes": 10,
+          "total_minutes": 20,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_prep_pasta_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 180
+            },
+            {
+              "id": "box_prep_pasta_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 120
+            },
+            {
+              "id": "box_prep_pasta_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 160
+            },
+            {
+              "id": "box_prep_pasta_bertille2",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 180
+            },
+            {
+              "id": "box_prep_pasta_marceau2",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 120
+            },
+            {
+              "id": "box_prep_pasta_ysoline2",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 160
+            }
+          ]
+        },
+        {
+          "id": "prep_tomato_lentils",
+          "title": "Lentil tomato sauce",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "green lentils",
+              "quantity": "300 g",
+              "amount": 300,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "tinned chopped tomatoes",
+              "quantity": "2 tins",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "onion",
+              "quantity": "1",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "carrots",
+              "quantity": "2",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "celery sticks",
+              "quantity": "2",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "garlic",
+              "quantity": "3 cloves",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "bay leaf",
+              "quantity": "1",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "salt",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Soften the onion, carrots, celery and garlic in oil, add lentils, tomatoes, bay leaf, salt and water, then simmer until thick and saucy. Cool and box into three portions for the days that need it.",
+          "active_minutes": 15,
+          "total_minutes": 40,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_prep_tomato_lentils_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 200
+            },
+            {
+              "id": "box_prep_tomato_lentils_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 140
+            },
+            {
+              "id": "box_prep_tomato_lentils_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 180
+            }
+          ]
+        },
+        {
+          "id": "prep_rice",
+          "title": "Cooked rice",
+          "servings_made": 6,
+          "ingredients": [
+            {
+              "term": "basmati rice",
+              "quantity": "450 g",
+              "amount": 450,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "salt",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Rinse the rice, cook it until tender, spread it out briefly to cool, then box into same-day portions for the meals that need it.",
+          "active_minutes": 10,
+          "total_minutes": 25,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_prep_rice_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 170
+            },
+            {
+              "id": "box_prep_rice_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 120
+            },
+            {
+              "id": "box_prep_rice_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_prep_rice_bertille2",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 170
+            },
+            {
+              "id": "box_prep_rice_marceau2",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 120
+            },
+            {
+              "id": "box_prep_rice_ysoline2",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 150
+            }
+          ]
+        },
+        {
+          "id": "prep_courgette_frittata",
+          "title": "Courgette frittata",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "eggs",
+              "quantity": "12 eggs",
+              "amount": 12,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "courgettes",
+              "quantity": "3 medium courgettes",
+              "amount": null,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "cheddar",
+              "quantity": "120 g",
+              "amount": 120,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "salt",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            },
+            {
+              "term": "black pepper",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Cook the courgettes until they lose some water, pour in the beaten eggs and cheddar, and set the mixture gently in a covered pan. Cool slightly and cut into three boxed portions.",
+          "active_minutes": 15,
+          "total_minutes": 25,
+          "cook_on": "thu",
+          "boxes": [
+            {
+              "id": "box_prep_courgette_frittata_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 220
+            },
+            {
+              "id": "box_prep_courgette_frittata_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 160
+            },
+            {
+              "id": "box_prep_courgette_frittata_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 260
+            }
+          ]
+        },
+        {
+          "id": "prep_sat_tray",
+          "title": "Roasted chicken courgette traybake",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "chicken thighs",
+              "quantity": "1.1 kg",
+              "amount": 1100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "new potatoes",
+              "quantity": "900 g",
+              "amount": 900,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "courgettes",
+              "quantity": "6",
+              "amount": 6,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "lemon",
+              "quantity": "2",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "thyme",
+              "quantity": "1 small bunch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "salt",
+              "quantity": "2 tsp",
+              "amount": 2,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Toss the potatoes and courgettes with oil, salt and thyme, roast until nearly tender, then add the chicken and finish until cooked through. Use it the same day for Saturday meals, then box three meal portions.",
+          "active_minutes": 20,
+          "total_minutes": 45,
+          "cook_on": "sat",
+          "boxes": [
+            {
+              "id": "box_prep_sat_tray_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 430
+            },
+            {
+              "id": "box_prep_sat_tray_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 320
+            },
+            {
+              "id": "box_prep_sat_tray_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 470
+            }
+          ]
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_chicken_thighs",
+            "prep_veg_roast",
+            "prep_pasta",
+            "prep_tomato_lentils",
+            "prep_rice"
+          ],
+          "total_minutes": 50,
+          "run_through": "Put the oven on for the chicken and vegetables. While they roast, start the lentil tomato sauce on the hob. Put the pasta and rice on in separate pots, then cool and box everything as it finishes."
+        },
+        {
+          "day": "thu",
+          "preparation_ids": [
+            "prep_courgette_frittata"
+          ],
+          "total_minutes": 25,
+          "run_through": "Make the courgette frittata in a covered pan on the hob, then cut it into portions and box it for lunch or breakfast."
+        },
+        {
+          "day": "sat",
+          "preparation_ids": [
+            "prep_sat_tray"
+          ],
+          "total_minutes": 45,
+          "run_through": "Roast the potatoes and courgettes first, then add the chicken to finish in the same tray and box the portions once cooked."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "chicken thighs",
+          "quantity": "2.9 kg",
+          "aisle": "protein"
+        },
+        {
+          "term": "courgettes",
+          "quantity": "12 medium",
+          "aisle": "produce"
+        },
+        {
+          "term": "red peppers",
+          "quantity": "6",
+          "aisle": "produce"
+        },
+        {
+          "term": "red onions",
+          "quantity": "4",
+          "aisle": "produce"
+        },
+        {
+          "term": "aubergines",
+          "quantity": "2",
+          "aisle": "produce"
+        },
+        {
+          "term": "new potatoes",
+          "quantity": "900 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "onion",
+          "quantity": "1",
+          "aisle": "produce"
+        },
+        {
+          "term": "carrots",
+          "quantity": "2",
+          "aisle": "produce"
+        },
+        {
+          "term": "celery sticks",
+          "quantity": "2",
+          "aisle": "produce"
+        },
+        {
+          "term": "garlic",
+          "quantity": "7 cloves",
+          "aisle": "produce"
+        },
+        {
+          "term": "lemon",
+          "quantity": "2",
+          "aisle": "produce"
+        },
+        {
+          "term": "berries",
+          "quantity": "500 g",
+          "aisle": "frozen"
+        },
+        {
+          "term": "eggs",
+          "quantity": "16",
+          "aisle": "protein"
+        },
+        {
+          "term": "cheddar",
+          "quantity": "180 g",
+          "aisle": "dairy"
+        },
+        {
+          "term": "wholemeal bread",
+          "quantity": "11 slices",
+          "aisle": "grains"
+        },
+        {
+          "term": "wholemeal wraps",
+          "quantity": "8",
+          "aisle": "grains"
+        },
+        {
+          "term": "dry pasta",
+          "quantity": "450 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "basmati rice",
+          "quantity": "450 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "green lentils",
+          "quantity": "300 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "black beans",
+          "quantity": "3 tins",
+          "aisle": "pantry"
+        },
+        {
+          "term": "tinned chopped tomatoes",
+          "quantity": "2 tins",
+          "aisle": "pantry"
+        },
+        {
+          "term": "sweetcorn",
+          "quantity": "150 g",
+          "aisle": "frozen"
+        },
+        {
+          "term": "yogurt",
+          "quantity": "200 g",
+          "aisle": "dairy"
+        },
+        {
+          "term": "butter",
+          "quantity": "25 g",
+          "aisle": "dairy"
+        },
+        {
+          "term": "olive oil",
+          "quantity": "9 tbsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "thyme",
+          "quantity": "1 small bunch",
+          "aisle": "produce"
+        },
+        {
+          "term": "parsley",
+          "quantity": "2 handfuls",
+          "aisle": "produce"
+        },
+        {
+          "term": "smoked paprika",
+          "quantity": "2 tsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "dried oregano",
+          "quantity": "2 tsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "bay leaf",
+          "quantity": "1",
+          "aisle": "pantry"
+        },
+        {
+          "term": "salt",
+          "quantity": "1 small jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "black pepper",
+          "quantity": "1 small jar",
+          "aisle": "pantry"
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "id": "resp_0cf482ce620fa734006a84ea8a721887d2b75f09c0ea6af5e5",
+      "text": {
+        "format": {
+          "type": "json_object"
+        },
+        "verbosity": "medium"
+      },
+      "user": null,
+      "error": null,
+      "model": "gpt-5.4-mini-2026-03-17",
+      "store": true,
+      "tools": [],
+      "top_p": 0.98,
+      "usage": {
+        "input_tokens": 8194,
+        "total_tokens": 19448,
+        "output_tokens": 11254,
+        "input_tokens_details": {
+          "cached_tokens": 6912,
+          "cache_write_tokens": 0
+        },
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "object": "response",
+      "output": [
+        {
+          "id": "msg_0cf482ce620fa734006a84ea8b057487d2a4acc9b777c92475",
+          "role": "assistant",
+          "type": "message",
+          "phase": "final_answer",
+          "status": "completed",
+          "content": [
+            {
+              "text": "{\"member_portions\":[{\"member_id\":\"8917f344-51d8-4177-8c54-ff4460ef9122\",\"portion_note\":\"Shared plates: breakfast gets 2 slices toast with 2 eggs and 1 serving fruit; lunch gets 180 g pasta or rice with 160 g chicken or beans and the vegetables; dinner gets 150 g chicken or beans with 120 g starch and the vegetables.\",\"preparation_shares\":[{\"preparation_id\":\"prep_veg_roast\",\"note\":\"Take 220 g of the roasted vegetables.\"},{\"preparation_id\":\"prep_chicken_thighs\",\"note\":\"Take 160 g of the cooked chicken thighs.\"},{\"preparation_id\":\"prep_tomato_lentils\",\"note\":\"Take 200 g of the lentil tomato sauce.\"},{\"preparation_id\":\"prep_rice\",\"note\":\"Take 170 g of the cooked rice.\"},{\"preparation_id\":\"prep_pasta\",\"note\":\"Take 180 g of the cooked pasta.\"}]},{\"member_id\":\"2a937736-693a-45f1-97a6-110f535ae004\",\"portion_note\":\"Shared plates: breakfast gets 1 slice toast with 1 egg and fruit; lunch gets 120 g pasta or rice with 110 g chicken or beans and the vegetables; dinner gets 100 g chicken or beans with 80 g starch and the vegetables.\",\"preparation_shares\":[{\"preparation_id\":\"prep_veg_roast\",\"note\":\"Take 160 g of the roasted vegetables.\"},{\"preparation_id\":\"prep_chicken_thighs\",\"note\":\"Take 110 g of the cooked chicken thighs.\"},{\"preparation_id\":\"prep_tomato_lentils\",\"note\":\"Take 140 g of the lentil tomato sauce.\"},{\"preparation_id\":\"prep_rice\",\"note\":\"Take 120 g of the cooked rice.\"},{\"preparation_id\":\"prep_pasta\",\"note\":\"Take 120 g of the cooked pasta.\"}]},{\"member_id\":\"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\"portion_note\":\"Shared plates: breakfast gets 1 slice toast with 2 eggs and fruit; lunch gets 160 g pasta or rice with 150 g chicken or beans and extra vegetables; dinner gets 130 g chicken or beans with 90 g starch and plenty of vegetables.\",\"preparation_shares\":[{\"preparation_id\":\"prep_veg_roast\",\"note\":\"Take 260 g of the roasted vegetables.\"},{\"preparation_id\":\"prep_chicken_thighs\",\"note\":\"Take 150 g of the cooked chicken thighs.\"},{\"preparation_id\":\"prep_tomato_lentils\",\"note\":\"Take 180 g of the lentil tomato sauce.\"},{\"preparation_id\":\"prep_rice\",\"note\":\"Take 150 g of the cooked rice.\"},{\"preparation_id\":\"prep_pasta\",\"note\":\"Take 160 g of the cooked pasta.\"}]}],\"dishes\":[{\"name\":\"Berry egg toast\",\"title\":\"Eggs, toast and berries\",\"slot\":\"breakfast\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"wholemeal bread\",\"quantity\":\"3 slices\",\"amount\":3,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"butter\",\"quantity\":\"15 g\",\"amount\":15,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"berries\",\"quantity\":\"300 g\",\"amount\":300,\"unit\":\"g\",\"state\":\"raw\"}],\"method\":\"Toast the bread, soft-scramble the eggs in a pan, and serve with the berries on the side.\",\"why\":\"A small warm breakfast keeps the day started and gives everyone a proper protein anchor without extra faff.\",\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":15},\"honours_belief_keys\":[\"name_the_plate_out_loud\"],\"for_member_id\":\"8917f344-51d8-4177-8c54-ff4460ef9122\"},{\"name\":\"Plain egg toast\",\"title\":\"Eggs, toast and berries\",\"slot\":\"breakfast\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"wholemeal bread\",\"quantity\":\"3 slices\",\"amount\":3,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"butter\",\"quantity\":\"10 g\",\"amount\":10,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"berries\",\"quantity\":\"200 g\",\"amount\":200,\"unit\":\"g\",\"state\":\"raw\"}],\"method\":\"Toast the bread, scramble the eggs, and serve with the berries on the side.\",\"why\":\"A small warm breakfast keeps the day started while staying easy enough for a busy weekday.\",\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":15},\"honours_belief_keys\":[\"name_the_plate_out_loud\"]},{\"name\":\"Big berry egg toast\",\"title\":\"Eggs, toast and berries\",\"slot\":\"breakfast\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"wholemeal bread\",\"quantity\":\"4 slices\",\"amount\":4,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"butter\",\"quantity\":\"15 g\",\"amount\":15,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"berries\",\"quantity\":\"300 g\",\"amount\":300,\"unit\":\"g\",\"state\":\"raw\"}],\"method\":\"Toast the bread, fry the eggs, and serve with extra berries on the side.\",\"why\":\"A small warm breakfast with a fuller protein anchor fits the household’s first meal without making it fussy.\",\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":15},\"honours_belief_keys\":[\"name_the_plate_out_loud\"]},{\"name\":\"Chicken pasta bowls\",\"title\":\"Chicken, roasted vegetables and pasta\",\"slot\":\"lunch\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"cooked chicken thighs\",\"quantity\":\"160 g\",\"amount\":160,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"cooked pasta\",\"quantity\":\"180 g\",\"amount\":180,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"roasted vegetables\",\"quantity\":\"220 g\",\"amount\":220,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null},{\"term\":\"parsley\",\"quantity\":\"a handful\",\"amount\":null,\"unit\":null,\"state\":null}],\"uses\":[{\"preparation_id\":\"prep_chicken_thighs\",\"servings\":1,\"box_id\":\"box_prep_chicken_thighs_bertille\"},{\"preparation_id\":\"prep_veg_roast\",\"servings\":1,\"box_id\":\"box_prep_veg_roast_bertille\"},{\"preparation_id\":\"prep_pasta\",\"servings\":1,\"box_id\":\"box_prep_pasta_bertille\"}],\"method\":\"Reheat the chicken, vegetables and pasta in a pan with a squeeze of lemon, then finish with parsley.\",\"why\":\"A loud vegetable, a proper protein and a starch that suits training make a solid lunch with one cooking session doing the work.\",\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"one_loud_vegetable\",\"starch_follows_the_session\"]},{\"name\":\"Chicken pasta bowl\",\"title\":\"Chicken, roasted vegetables and pasta\",\"slot\":\"lunch\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"cooked chicken thighs\",\"quantity\":\"110 g\",\"amount\":110,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"cooked pasta\",\"quantity\":\"120 g\",\"amount\":120,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"roasted vegetables\",\"quantity\":\"160 g\",\"amount\":160,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null}],\"uses\":[{\"preparation_id\":\"prep_chicken_thighs\",\"servings\":1,\"box_id\":\"box_prep_chicken_thighs_marceau\"},{\"preparation_id\":\"prep_veg_roast\",\"servings\":1,\"box_id\":\"box_prep_veg_roast_marceau\"},{\"preparation_id\":\"prep_pasta\",\"servings\":1,\"box_id\":\"box_prep_pasta_marceau\"}],\"method\":\"Reheat the chicken, vegetables and pasta together, then finish with lemon.\",\"why\":\"A simple reheated bowl keeps lunch efficient and still puts a real protein at the centre.\",\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"one_loud_vegetable\"],\"for_member_id\":\"2a937736-693a-45f1-97a6-110f535ae004\"},{\"name\":\"Chicken pasta plate\",\"title\":\"Chicken, roasted vegetables and pasta\",\"slot\":\"lunch\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"cooked chicken thighs\",\"quantity\":\"150 g\",\"amount\":150,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"cooked pasta\",\"quantity\":\"160 g\",\"amount\":160,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"roasted vegetables\",\"quantity\":\"260 g\",\"amount\":260,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null},{\"term\":\"parsley\",\"quantity\":\"a handful\",\"amount\":null,\"unit\":null,\"state\":null}],\"uses\":[{\"preparation_id\":\"prep_chicken_thighs\",\"servings\":1,\"box_id\":\"box_prep_chicken_thighs_ysoline\"},{\"preparation_id\":\"prep_veg_roast\",\"servings\":1,\"box_id\":\"box_prep_veg_roast_ysoline\"},{\"preparation_id\":\"prep_pasta\",\"servings\":1,\"box_id\":\"box_prep_pasta_ysoline\"}],\"method\":\"Reheat the chicken, vegetables and pasta in a pan, then brighten with lemon and parsley.\",\"why\":\"A generous plate of chicken, vegetables and pasta gives the table an easy lunch with the vegetable front and centre.\",\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"one_loud_vegetable\"]},{\"name\":\"Lentil toast lunch\",\"title\":\"Lentil tomato sauce, spinach and toast\",\"slot\":\"lunch\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"lentil tomato sauce\",\"quantity\":\"200 g\",\"amount\":200,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"wholemeal bread\",\"quantity\":\"3 slices\",\"amount\":3,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"spinach\",\"quantity\":\"120 g\",\"amount\":120,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\"}],\"uses\":[{\"preparation_id\":\"prep_tomato_lentils\",\"servings\":1,\"box_id\":\"box_prep_tomato_lentils_bertille\"}],\"method\":\"Warm the lentil tomato sauce in a pan, wilt the spinach into it, and toast the bread on the side.\",\"why\":\"It uses a batch that is ready in time for Thursday and keeps a full protein food at the centre without needing the oven.\",\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":12},\"honours_belief_keys\":[\"one_loud_vegetable\",\"name_the_plate_out_loud\"],\"for_member_id\":\"8917f344-51d8-4177-8c54-ff4460ef9122\"},{\"name\":\"Lentil toast lunch\",\"title\":\"Lentil tomato sauce, spinach and toast\",\"slot\":\"lunch\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"lentil tomato sauce\",\"quantity\":\"140 g\",\"amount\":140,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"wholemeal bread\",\"quantity\":\"2 slices\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"spinach\",\"quantity\":\"80 g\",\"amount\":80,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\"}],\"uses\":[{\"preparation_id\":\"prep_tomato_lentils\",\"servings\":1,\"box_id\":\"box_prep_tomato_lentils_marceau\"}],\"method\":\"Warm the lentil tomato sauce in a pan, wilt the spinach into it, and toast the bread on the side.\",\"why\":\"It is quick, warm and steady on a day when the kitchen setup is awkward.\",\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":12},\"honours_belief_keys\":[\"one_loud_vegetable\"],\"for_member_id\":\"2a937736-693a-45f1-97a6-110f535ae004\"},{\"name\":\"Lentil toast plate\",\"title\":\"Lentil tomato sauce, spinach and toast\",\"slot\":\"lunch\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"lentil tomato sauce\",\"quantity\":\"180 g\",\"amount\":180,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"wholemeal bread\",\"quantity\":\"3 slices\",\"amount\":3,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"spinach\",\"quantity\":\"120 g\",\"amount\":120,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\"}],\"uses\":[{\"preparation_id\":\"prep_tomato_lentils\",\"servings\":1,\"box_id\":\"box_prep_tomato_lents_ysoline\"}],\"method\":\"Warm the lentil tomato sauce in a pan, wilt the spinach into it, and toast the bread on the side.\",\"why\":\"A proper lentil lunch keeps the protein anchor intact and makes good use of a batch before it ages out.\",\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":12},\"honours_belief_keys\":[\"one_loud_vegetable\"]},{\"name\":\"Herby chicken dinner\",\"title\":\"Chicken, roasted vegetables and rice\",\"slot\":\"dinner\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"cooked chicken thighs\",\"quantity\":\"160 g\",\"amount\":160,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"cooked rice\",\"quantity\":\"170 g\",\"amount\":170,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"roasted vegetables\",\"quantity\":\"220 g\",\"amount\":220,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null}],\"uses\":[{\"preparation_id\":\"prep_chicken_thighs\",\"servings\":1,\"box_id\":\"box_prep_chicken_thighs_bertille\"},{\"preparation_id\":\"prep_veg_roast\",\"servings\":1,\"box_id\":\"box_prep_veg_roast_bertille\"},{\"preparation_id\":\"prep_rice\",\"servings\":1,\"box_id\":\"box_prep_rice_bertille\"}],\"method\":\"Reheat the chicken, rice and vegetables in a pan with a little water, then finish with lemon.\",\"why\":\"The first dinner keeps a warm element on the plate and pushes the starch to the training day without extra cooking.\",\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"one_loud_vegetable\",\"starch_follows_the_session\"]},{\"name\":\"Herby chicken dinner\",\"title\":\"Chicken, roasted vegetables and rice\",\"slot\":\"dinner\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"cooked chicken thighs\",\"quantity\":\"110 g\",\"amount\":110,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"cooked rice\",\"quantity\":\"120 g\",\"amount\":120,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"roasted vegetables\",\"quantity\":\"160 g\",\"amount\":160,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null}],\"uses\":[{\"preparation_id\":\"prep_chicken_thighs\",\"servings\":1,\"box_id\":\"box_prep_chicken_thighs_marceau\"},{\"preparation_id\":\"prep_veg_roast\",\"servings\":1,\"box_id\":\"box_prep_veg_roast_marceau\"},{\"preparation_id\":\"prep_rice\",\"servings\":1,\"box_id\":\"box_prep_rice_marceau\"}],\"method\":\"Reheat the chicken, rice and vegetables together, then finish with lemon.\",\"why\":\"It is a straightforward dinner that stays warm, uses one batch and keeps the plate readable.\",\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"one_loud_vegetable\"],\"for_member_id\":\"2a937736-693a-45f1-97a6-110f535ae004\"},{\"name\":\"Herby chicken supper\",\"title\":\"Chicken, roasted vegetables and rice\",\"slot\":\"dinner\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"cooked chicken thighs\",\"quantity\":\"150 g\",\"amount\":150,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"cooked rice\",\"quantity\":\"150 g\",\"amount\":150,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"roasted vegetables\",\"quantity\":\"260 g\",\"amount\":260,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"lemon\",\"quantity\":\"half a lemon\",\"amount\":null,\"unit\":null,\"state\":null},{\"term\":\"parsley\",\"quantity\":\"a handful\",\"amount\":null,\"unit\":null,\"state\":null}],\"uses\":[{\"preparation_id\":\"prep_chicken_thighs\",\"servings\":1,\"box_id\":\"box_prep_chicken_thighs_ysoline\"},{\"preparation_id\":\"prep_veg_roast\",\"servings\":1,\"box_id\":\"box_prep_veg_roast_ysoline\"},{\"preparation_id\":\"prep_rice\",\"servings\":1,\"box_id\":\"box_prep_rice_ysoline\"}],\"method\":\"Reheat the chicken, rice and vegetables in a pan, then finish with lemon and parsley.\",\"why\":\"A fuller dinner portion keeps the vegetable loud and the plate balanced without adding a second cooking job.\",\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"one_loud_vegetable\"]},{\"name\":\"Courgette frittata and toast\",\"title\":\"Courgettes, eggs and toast\",\"slot\":\"breakfast\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"eggs\",\"quantity\":\"6 eggs\",\"amount\":6,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"courgettes\",\"quantity\":\"2 medium courgettes\",\"amount\":null,\"unit\":null,\"state\":null},{\"term\":\"wholemeal bread\",\"quantity\":\"3 slices\",\"amount\":3,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"cheddar\",\"quantity\":\"60 g\",\"amount\":60,\"unit\":\"g\",\"state\":\"raw\"}],\"method\":\"Cook the courgettes in a pan, add the beaten eggs and cheddar, and finish under a lid; toast the bread alongside.\",\"why\":\"Thursday needs something cooked without relying on the broken oven door, and this still gives a proper protein anchor.\",\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":20},\"honours_belief_keys\":[\"one_loud_vegetable\",\"name_the_plate_out_loud\"],\"for_member_id\":\"8917f344-51d8-4177-8c54-ff4460ef9122\"},{\"name\":\"Courgette egg toast\",\"title\":\"Courgettes, eggs and toast\",\"slot\":\"breakfast\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"eggs\",\"quantity\":\"4 eggs\",\"amount\":4,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"courgettes\",\"quantity\":\"1 medium courgette\",\"amount\":null,\"unit\":null,\"state\":null},{\"term\":\"wholemeal bread\",\"quantity\":\"2 slices\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"cheddar\",\"quantity\":\"40 g\",\"amount\":40,\"unit\":\"g\",\"state\":\"raw\"}],\"method\":\"Cook the courgette in a pan, add the eggs and cheddar, and serve with toast.\",\"why\":\"A straightforward cooked breakfast works around the oven issue and keeps the morning warm.\",\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":18},\"honours_belief_keys\":[\"one_loud_vegetable\"],\"for_member_id\":\"2a937736-693a-45f1-97a6-110f535ae004\"},{\"name\":\"Courgette eggs and toast\",\"title\":\"Courgettes, eggs and toast\",\"slot\":\"breakfast\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"eggs\",\"quantity\":\"6 eggs\",\"amount\":6,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"courgettes\",\"quantity\":\"2 medium courgettes\",\"amount\":null,\"unit\":null,\"state\":null},{\"term\":\"wholemeal bread\",\"quantity\":\"3 slices\",\"amount\":3,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"cheddar\",\"quantity\":\"60 g\",\"amount\":60,\"unit\":\"g\",\"state\":\"raw\"}],\"method\":\"Cook the courgettes in a pan, add the eggs and cheddar, and serve with toast.\",\"why\":\"It keeps breakfast warm and anchored on a day when the kitchen is awkward to use.\",\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":20},\"honours_belief_keys\":[\"one_loud_vegetable\"]},{\"name\":\"Bean and pepper wraps\",\"title\":\"Black beans, peppers and wraps\",\"slot\":\"lunch\",\"day\":\"fri\",\"ingredients\":[{\"term\":\"black beans\",\"quantity\":\"2 tins\",\"amount\":2,\"unit\":\"unit\",\"state\":\"cooked\"},{\"term\":\"red peppers\",\"quantity\":\"2\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"wholemeal wraps\",\"quantity\":\"6\",\"amount\":6,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"sweetcorn\",\"quantity\":\"150 g\",\"amount\":150,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"yogurt\",\"quantity\":\"150 g\",\"amount\":150,\"unit\":\"g\",\"state\":\"raw\"}],\"method\":\"Warm the beans and sweetcorn in a pan with the peppers, then fill the wraps and add yogurt.\",\"why\":\"Friday lunch needs to stand on its own, and beans give a fast protein anchor without another long cook.\",\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":15},\"honours_belief_keys\":[\"one_loud_vegetable\",\"name_the_plate_out_loud\"],\"for_member_id\":\"8917f344-51d8-4177-8c54-ff4460ef9122\"},{\"name\":\"Bean wraps for one\",\"title\":\"Black beans, peppers and wraps\",\"slot\":\"lunch\",\"day\":\"fri\",\"ingredients\":[{\"term\":\"black beans\",\"quantity\":\"1 tin\",\"amount\":1,\"unit\":\"unit\",\"state\":\"cooked\"},{\"term\":\"red peppers\",\"quantity\":\"1\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"wholemeal wrap\",\"quantity\":\"2\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"sweetcorn\",\"quantity\":\"80 g\",\"amount\":80,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"yogurt\",\"quantity\":\"50 g\",\"amount\":50,\"unit\":\"g\",\"state\":\"raw\"}],\"method\":\"Warm the beans and sweetcorn in a pan with the peppers, then fill the wraps and add yogurt.\",\"why\":\"A quick bean wrap lunch fits the day and keeps the table moving without the oven.\",\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":15},\"honours_belief_keys\":[\"one_loud_vegetable\"],\"for_member_id\":\"2a937736-693a-45f1-97a6-110f535ae004\"},{\"name\":\"Bean wrap plate\",\"title\":\"Black beans, peppers and wraps\",\"slot\":\"lunch\",\"day\":\"fri\",\"ingredients\":[{\"term\":\"black beans\",\"quantity\":\"2 tins\",\"amount\":2,\"unit\":\"unit\",\"state\":\"cooked\"},{\"term\":\"red peppers\",\"quantity\":\"2\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"wholemeal wraps\",\"quantity\":\"6\",\"amount\":6,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"sweetcorn\",\"quantity\":\"150 g\",\"amount\":150,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"yogurt\",\"quantity\":\"150 g\",\"amount\":150,\"unit\":\"g\",\"state\":\"raw\"}],\"method\":\"Warm the beans and sweetcorn in a pan with the peppers, then fill the wraps and add yogurt.\",\"why\":\"Beans make the lunch a real meal and the peppers keep the vegetable loud.\",\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":15},\"honours_belief_keys\":[\"one_loud_vegetable\"]},{\"name\":\"Lentil and veg bowl\",\"title\":\"Lentil tomato sauce, roasted vegetables and rice\",\"slot\":\"dinner\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"lentil tomato sauce\",\"quantity\":\"200 g\",\"amount\":200,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"roasted vegetables\",\"quantity\":\"220 g\",\"amount\":220,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"cooked rice\",\"quantity\":\"170 g\",\"amount\":170,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"parsley\",\"quantity\":\"a handful\",\"amount\":null,\"unit\":null,\"state\":null}],\"uses\":[{\"preparation_id\":\"prep_tomato_lentils\",\"servings\":1,\"box_id\":\"box_prep_tomato_lentils_bertille\"},{\"preparation_id\":\"prep_veg_roast\",\"servings\":1,\"box_id\":\"box_prep_veg_roast_bertille\"},{\"preparation_id\":\"prep_rice\",\"servings\":1,\"box_id\":\"box_prep_rice_bertille\"}],\"method\":\"Reheat the lentil sauce, roasted vegetables and rice in a pan, then finish with parsley.\",\"why\":\"It keeps Thursday dinner warm and usable while the repainting makes the kitchen less convenient.\",\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"one_loud_vegetable\",\"starch_follows_the_session\"],\"for_member_id\":\"8917f344-51d8-4177-8c54-ff4460ef9122\"},{\"name\":\"Lentil and veg bowl\",\"title\":\"Lentil tomato sauce, roasted vegetables and rice\",\"slot\":\"dinner\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"lentil tomato sauce\",\"quantity\":\"140 g\",\"amount\":140,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"roasted vegetables\",\"quantity\":\"160 g\",\"amount\":160,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"cooked rice\",\"quantity\":\"120 g\",\"amount\":120,\"unit\":\"g\",\"state\":\"cooked\"}],\"uses\":[{\"preparation_id\":\"prep_tomato_lents\",\"servings\":1,\"box_id\":\"box_prep_tomato_lents_marceau\"}],\"method\":\"Reheat the lentil sauce, roasted vegetables and rice in a pan.\",\"why\":\"A simple reheated dinner keeps the plan moving and avoids extra work on a difficult evening.\",\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"one_loud_vegetable\"],\"for_member_id\":\"2a937736-693a-45f1-97a6-110f535ae004\"},{\"name\":\"Lentil and veg dinner\",\"title\":\"Lentil tomato sauce, roasted vegetables and rice\",\"slot\":\"dinner\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"lentil tomato sauce\",\"quantity\":\"180 g\",\"amount\":180,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"roasted vegetables\",\"quantity\":\"260 g\",\"amount\":260,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"cooked rice\",\"quantity\":\"150 g\",\"amount\":150,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"parsley\",\"quantity\":\"a handful\",\"amount\":null,\"unit\":null,\"state\":null}],\"uses\":[{\"preparation_id\":\"prep_tomato_lents\",\"servings\":1,\"box_id\":\"box_prep_tomato_lents_ysoline\"}],\"method\":\"Reheat the lentil sauce, roasted vegetables and rice in a pan, then finish with parsley.\",\"why\":\"It keeps dinner warm and full even with the kitchen under disruption.\",\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"one_loud_vegetable\"],\"for_member_id\":\"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"},{\"name\":\"Chicken traybake lunch\",\"title\":\"Chicken, courgettes and potatoes\",\"slot\":\"lunch\",\"day\":\"sat\",\"ingredients\":[{\"term\":\"roasted chicken thighs\",\"quantity\":\"160 g\",\"amount\":160,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"new potatoes\",\"quantity\":\"250 g\",\"amount\":250,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"courgettes\",\"quantity\":\"2\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"thyme\",\"quantity\":\"a few sprigs\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Roast the potatoes and courgettes, then top with reheated chicken thighs and thyme.\",\"why\":\"This is the second cook day and it gives a fresh lunch without relying on anything from the broken oven last week.\",\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":35},\"honours_belief_keys\":[\"one_loud_vegetable\",\"name_the_plate_out_loud\"],\"for_member_id\":\"8917f344-51d8-4177-8c54-ff4460ef9122\"},{\"name\":\"Chicken traybake lunch\",\"title\":\"Chicken, courgettes and potatoes\",\"slot\":\"lunch\",\"day\":\"sat\",\"ingredients\":[{\"term\":\"roasted chicken thighs\",\"quantity\":\"110 g\",\"amount\":110,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"new potatoes\",\"quantity\":\"180 g\",\"amount\":180,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"courgettes\",\"quantity\":\"1\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\"}],\"method\":\"Roast the potatoes and courgettes, then top with reheated chicken thighs.\",\"why\":\"A smaller traybake keeps the whole session under control and still serves a full meal.\",\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":35},\"honours_belief_keys\":[\"one_loud_vegetable\"],\"for_member_id\":\"2a937736-693a-45f1-97a6-110f535ae004\"},{\"name\":\"Chicken traybake lunch\",\"title\":\"Chicken, courgettes and potatoes\",\"slot\":\"lunch\",\"day\":\"sat\",\"ingredients\":[{\"term\":\"roasted chicken thighs\",\"quantity\":\"150 g\",\"amount\":150,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"new potatoes\",\"quantity\":\"220 g\",\"amount\":220,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"courgettes\",\"quantity\":\"2\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"thyme\",\"quantity\":\"a few sprigs\",\"amount\":null,\"unit\":null,\"state\":null}],\"method\":\"Roast the potatoes and courgettes, then top with reheated chicken thighs and thyme.\",\"why\":\"A fuller traybake is the cleanest way to turn the second cook day into a proper lunch for the table.\",\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":35},\"honours_belief_keys\":[\"one_loud_vegetable\"],\"for_member_id\":\"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"},{\"name\":\"Traybake dinner\",\"title\":\"Chicken, courgettes and potatoes\",\"slot\":\"dinner\",\"day\":\"sat\",\"ingredients\":[{\"term\":\"roasted chicken thighs\",\"quantity\":\"160 g\",\"amount\":160,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"new potatoes\",\"quantity\":\"250 g\",\"amount\":250,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"courgettes\",\"quantity\":\"2\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\"}],\"method\":\"Roast the potatoes and courgettes, then serve with the chicken reheated in the pan.\",\"why\":\"Saturday dinner stays warm, uses the second cook day and gives a loud vegetable again.\",\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":35},\"honours_belief_keys\":[\"one_loud_vegetable\"],\"for_member_id\":\"8917f344-51d8-4177-8c54-ff4460ef9122\"},{\"name\":\"Traybake dinner\",\"title\":\"Chicken, courgettes and potatoes\",\"slot\":\"dinner\",\"day\":\"sat\",\"ingredients\":[{\"term\":\"roasted chicken thighs\",\"quantity\":\"110 g\",\"amount\":110,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"new potatoes\",\"quantity\":\"180 g\",\"amount\":180,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"courgettes\",\"quantity\":\"1\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\"}],\"method\":\"Roast the potatoes and courgettes, then serve with the chicken reheated in the pan.\",\"why\":\"It is the same easy Saturday dinner at a smaller share, keeping the table served without extra effort.\",\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":35},\"honours_belief_keys\":[\"one_loud_vegetable\"],\"for_member_id\":\"2a937736-693a-45f1-97a6-110f535ae004\"},{\"name\":\"Traybake supper\",\"title\":\"Chicken, courgettes and potatoes\",\"slot\":\"dinner\",\"day\":\"sat\",\"ingredients\":[{\"term\":\"roasted chicken thighs\",\"quantity\":\"150 g\",\"amount\":150,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"new potatoes\",\"quantity\":\"220 g\",\"amount\":220,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"courgettes\",\"quantity\":\"2\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\"}],\"method\":\"Roast the potatoes and courgettes, then serve with the chicken reheated in the pan.\",\"why\":\"A fuller Saturday supper uses the second cooking session and keeps the vegetable obvious on the plate.\",\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":35},\"honours_belief_keys\":[\"one_loud_vegetable\"],\"for_member_id\":\"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"}],\"preparations\":[{\"id\":\"prep_chicken_thighs\",\"title\":\"Roast chicken thighs\",\"servings_made\":9,\"ingredients\":[{\"term\":\"chicken thighs\",\"quantity\":\"1.8 kg\",\"amount\":1800,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"2 tbsp\",\"amount\":2,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"garlic\",\"quantity\":\"4 cloves\",\"amount\":4,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"smoked paprika\",\"quantity\":\"2 tsp\",\"amount\":2,\"unit\":\"tsp\",\"state\":\"raw\"},{\"term\":\"salt\",\"quantity\":\"2 tsp\",\"amount\":2,\"unit\":\"tsp\",\"state\":\"raw\"},{\"term\":\"black pepper\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\"}],\"method\":\"Season the chicken thighs with oil, garlic, paprika, salt and pepper. Roast in a lined tray until cooked through, then rest and box into nine portions for the week.\",\"active_minutes\":15,\"total_minutes\":45,\"cook_on\":\"wed\",\"boxes\":[{\"id\":\"box_prep_chicken_thighs_bertille\",\"member_ids\":[\"8917f344-51d8-4177-8c54-ff4460ef9122\"],\"grams\":160},{\"id\":\"box_prep_chicken_thighs_marceau\",\"member_ids\":[\"2a937736-693a-45f1-97a6-110f535ae004\"],\"grams\":110},{\"id\":\"box_prep_chicken_thighs_ysoline\",\"member_ids\":[\"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"],\"grams\":150},{\"id\":\"box_prep_chicken_thighs_bertille2\",\"member_ids\":[\"8917f344-51d8-4177-8c54-ff4460ef9122\"],\"grams\":160},{\"id\":\"box_prep_chicken_thighs_marceau2\",\"member_ids\":[\"2a937736-693a-45f1-97a6-110f535ae004\"],\"grams\":110},{\"id\":\"box_prep_chicken_thighs_ysoline2\",\"member_ids\":[\"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"],\"grams\":150},{\"id\":\"box_prep_chicken_thighs_bertille3\",\"member_ids\":[\"8917f344-51d8-4177-8c54-ff4460ef9122\"],\"grams\":160},{\"id\":\"box_prep_chicken_thighs_marceau3\",\"member_ids\":[\"2a937736-693a-45f1-97a6-110f535ae004\"],\"grams\":110},{\"id\":\"box_prep_chicken_thighs_ysoline3\",\"member_ids\":[\"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"],\"grams\":150}]},{\"id\":\"prep_veg_roast\",\"title\":\"Roasted vegetables\",\"servings_made\":9,\"ingredients\":[{\"term\":\"courgettes\",\"quantity\":\"1.2 kg\",\"amount\":1200,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"red peppers\",\"quantity\":\"6\",\"amount\":6,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"red onions\",\"quantity\":\"4\",\"amount\":4,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"aubergines\",\"quantity\":\"2\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"3 tbsp\",\"amount\":3,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"dried oregano\",\"quantity\":\"2 tsp\",\"amount\":2,\"unit\":\"tsp\",\"state\":\"raw\"},{\"term\":\"salt\",\"quantity\":\"2 tsp\",\"amount\":2,\"unit\":\"tsp\",\"state\":\"raw\"}],\"method\":\"Chop the vegetables, toss with oil, oregano and salt, then roast on trays until browned and tender. Cool briefly and box into nine portions.\",\"active_minutes\":20,\"total_minutes\":40,\"cook_on\":\"wed\",\"boxes\":[{\"id\":\"box_prep_veg_roast_bertille\",\"member_ids\":[\"8917f344-51d8-4177-8c54-ff4460ef9122\"],\"grams\":220},{\"id\":\"box_prep_veg_roast_marceau\",\"member_ids\":[\"2a937736-693a-45f1-97a6-110f535ae004\"],\"grams\":160},{\"id\":\"box_prep_veg_roast_ysoline\",\"member_ids\":[\"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"],\"grams\":260},{\"id\":\"box_prep_veg_roast_bertille2\",\"member_ids\":[\"8917f344-51d8-4177-8c54-ff4460ef9122\"],\"grams\":220},{\"id\":\"box_prep_veg_roast_marceau2\",\"member_ids\":[\"2a937736-693a-45f1-97a6-110f535ae004\"],\"grams\":160},{\"id\":\"box_prep_veg_roast_ysoline2\",\"member_ids\":[\"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"],\"grams\":260},{\"id\":\"box_prep_veg_roast_bertille3\",\"member_ids\":[\"8917f344-51d8-4177-8c54-ff4460ef9122\"],\"grams\":220},{\"id\":\"box_prep_veg_roast_marceau3\",\"member_ids\":[\"2a937736-693a-45f1-97a6-110f535ae004\"],\"grams\":160},{\"id\":\"box_prep_veg_roast_ysoline3\",\"member_ids\":[\"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"],\"grams\":260}]},{\"id\":\"prep_pasta\",\"title\":\"Cooked pasta\",\"servings_made\":6,\"ingredients\":[{\"term\":\"dry pasta\",\"quantity\":\"450 g\",\"amount\":450,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"salt\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\"}],\"method\":\"Boil the pasta in salted water until just tender, drain, toss with a little oil and cool quickly before boxing it into six portions.\",\"active_minutes\":10,\"total_minutes\":20,\"cook_on\":\"wed\",\"boxes\":[{\"id\":\"box_prep_pasta_bertille\",\"member_ids\":[\"8917f344-51d8-4177-8c54-ff4460ef9122\"],\"grams\":180},{\"id\":\"box_prep_pasta_marceau\",\"member_ids\":[\"2a937736-693a-45f1-97a6-110f535ae004\"],\"grams\":120},{\"id\":\"box_prep_pasta_ysoline\",\"member_ids\":[\"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"],\"grams\":160},{\"id\":\"box_prep_pasta_bertille2\",\"member_ids\":[\"8917f344-51d8-4177-8c54-ff4460ef9122\"],\"grams\":180},{\"id\":\"box_prep_pasta_marceau2\",\"member_ids\":[\"2a937736-693a-45f1-97a6-110f535ae004\"],\"grams\":120},{\"id\":\"box_prep_pasta_ysoline2\",\"member_ids\":[\"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"],\"grams\":160}]},{\"id\":\"prep_tomato_lentils\",\"title\":\"Lentil tomato sauce\",\"servings_made\":3,\"ingredients\":[{\"term\":\"green lentils\",\"quantity\":\"300 g\",\"amount\":300,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"tinned chopped tomatoes\",\"quantity\":\"2 tins\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"onion\",\"quantity\":\"1\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"carrots\",\"quantity\":\"2\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"celery sticks\",\"quantity\":\"2\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"garlic\",\"quantity\":\"3 cloves\",\"amount\":3,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"bay leaf\",\"quantity\":\"1\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"salt\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\"}],\"method\":\"Soften the onion, carrots, celery and garlic in oil, add lentils, tomatoes, bay leaf, salt and water, then simmer until thick and saucy. Cool and box into three portions for the days that need it.\",\"active_minutes\":15,\"total_minutes\":40,\"cook_on\":\"wed\",\"boxes\":[{\"id\":\"box_prep_tomato_lentils_bertille\",\"member_ids\":[\"8917f344-51d8-4177-8c54-ff4460ef9122\"],\"grams\":200},{\"id\":\"box_prep_tomato_lentils_marceau\",\"member_ids\":[\"2a937736-693a-45f1-97a6-110f535ae004\"],\"grams\":140},{\"id\":\"box_prep_tomato_lentils_ysoline\",\"member_ids\":[\"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"],\"grams\":180}]},{\"id\":\"prep_rice\",\"title\":\"Cooked rice\",\"servings_made\":6,\"ingredients\":[{\"term\":\"basmati rice\",\"quantity\":\"450 g\",\"amount\":450,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"salt\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\"}],\"method\":\"Rinse the rice, cook it until tender, spread it out briefly to cool, then box into same-day portions for the meals that need it.\",\"active_minutes\":10,\"total_minutes\":25,\"cook_on\":\"wed\",\"boxes\":[{\"id\":\"box_prep_rice_bertille\",\"member_ids\":[\"8917f344-51d8-4177-8c54-ff4460ef9122\"],\"grams\":170},{\"id\":\"box_prep_rice_marceau\",\"member_ids\":[\"2a937736-693a-45f1-97a6-110f535ae004\"],\"grams\":120},{\"id\":\"box_prep_rice_ysoline\",\"member_ids\":[\"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"],\"grams\":150},{\"id\":\"box_prep_rice_bertille2\",\"member_ids\":[\"8917f344-51d8-4177-8c54-ff4460ef9122\"],\"grams\":170},{\"id\":\"box_prep_rice_marceau2\",\"member_ids\":[\"2a937736-693a-45f1-97a6-110f535ae004\"],\"grams\":120},{\"id\":\"box_prep_rice_ysoline2\",\"member_ids\":[\"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"],\"grams\":150}]},{\"id\":\"prep_courgette_frittata\",\"title\":\"Courgette frittata\",\"servings_made\":3,\"ingredients\":[{\"term\":\"eggs\",\"quantity\":\"12 eggs\",\"amount\":12,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"courgettes\",\"quantity\":\"3 medium courgettes\",\"amount\":null,\"unit\":null,\"state\":null},{\"term\":\"cheddar\",\"quantity\":\"120 g\",\"amount\":120,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"salt\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\"},{\"term\":\"black pepper\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\"}],\"method\":\"Cook the courgettes until they lose some water, pour in the beaten eggs and cheddar, and set the mixture gently in a covered pan. Cool slightly and cut into three boxed portions.\",\"active_minutes\":15,\"total_minutes\":25,\"cook_on\":\"thu\",\"boxes\":[{\"id\":\"box_prep_courgette_frittata_bertille\",\"member_ids\":[\"8917f344-51d8-4177-8c54-ff4460ef9122\"],\"grams\":220},{\"id\":\"box_prep_courgette_frittata_marceau\",\"member_ids\":[\"2a937736-693a-45f1-97a6-110f535ae004\"],\"grams\":160},{\"id\":\"box_prep_courgette_frittata_ysoline\",\"member_ids\":[\"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"],\"grams\":260}]},{\"id\":\"prep_sat_tray\",\"title\":\"Roasted chicken courgette traybake\",\"servings_made\":3,\"ingredients\":[{\"term\":\"chicken thighs\",\"quantity\":\"1.1 kg\",\"amount\":1100,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"new potatoes\",\"quantity\":\"900 g\",\"amount\":900,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"courgettes\",\"quantity\":\"6\",\"amount\":6,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"2 tbsp\",\"amount\":2,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"lemon\",\"quantity\":\"2\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"thyme\",\"quantity\":\"1 small bunch\",\"amount\":null,\"unit\":null,\"state\":null},{\"term\":\"salt\",\"quantity\":\"2 tsp\",\"amount\":2,\"unit\":\"tsp\",\"state\":\"raw\"}],\"method\":\"Toss the potatoes and courgettes with oil, salt and thyme, roast until nearly tender, then add the chicken and finish until cooked through. Use it the same day for Saturday meals, then box three meal portions.\",\"active_minutes\":20,\"total_minutes\":45,\"cook_on\":\"sat\",\"boxes\":[{\"id\":\"box_prep_sat_tray_bertille\",\"member_ids\":[\"8917f344-51d8-4177-8c54-ff4460ef9122\"],\"grams\":430},{\"id\":\"box_prep_sat_tray_marceau\",\"member_ids\":[\"2a937736-693a-45f1-97a6-110f535ae004\"],\"grams\":320},{\"id\":\"box_prep_sat_tray_ysoline\",\"member_ids\":[\"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"],\"grams\":470}]}],\"cooking_sessions\":[{\"day\":\"wed\",\"preparation_ids\":[\"prep_chicken_thighs\",\"prep_veg_roast\",\"prep_pasta\",\"prep_tomato_lentils\",\"prep_rice\"],\"total_minutes\":50,\"run_through\":\"Put the oven on for the chicken and vegetables. While they roast, start the lentil tomato sauce on the hob. Put the pasta and rice on in separate pots, then cool and box everything as it finishes.\"},{\"day\":\"thu\",\"preparation_ids\":[\"prep_courgette_frittata\"],\"total_minutes\":25,\"run_through\":\"Make the courgette frittata in a covered pan on the hob, then cut it into portions and box it for lunch or breakfast.\"},{\"day\":\"sat\",\"preparation_ids\":[\"prep_sat_tray\"],\"total_minutes\":45,\"run_through\":\"Roast the potatoes and courgettes first, then add the chicken to finish in the same tray and box the portions once cooked.\"}],\"shopping_list\":[{\"term\":\"chicken thighs\",\"quantity\":\"2.9 kg\",\"aisle\":\"protein\"},{\"term\":\"courgettes\",\"quantity\":\"12 medium\",\"aisle\":\"produce\"},{\"term\":\"red peppers\",\"quantity\":\"6\",\"aisle\":\"produce\"},{\"term\":\"red onions\",\"quantity\":\"4\",\"aisle\":\"produce\"},{\"term\":\"aubergines\",\"quantity\":\"2\",\"aisle\":\"produce\"},{\"term\":\"new potatoes\",\"quantity\":\"900 g\",\"aisle\":\"produce\"},{\"term\":\"onion\",\"quantity\":\"1\",\"aisle\":\"produce\"},{\"term\":\"carrots\",\"quantity\":\"2\",\"aisle\":\"produce\"},{\"term\":\"celery sticks\",\"quantity\":\"2\",\"aisle\":\"produce\"},{\"term\":\"garlic\",\"quantity\":\"7 cloves\",\"aisle\":\"produce\"},{\"term\":\"lemon\",\"quantity\":\"2\",\"aisle\":\"produce\"},{\"term\":\"berries\",\"quantity\":\"500 g\",\"aisle\":\"frozen\"},{\"term\":\"eggs\",\"quantity\":\"16\",\"aisle\":\"protein\"},{\"term\":\"cheddar\",\"quantity\":\"180 g\",\"aisle\":\"dairy\"},{\"term\":\"wholemeal bread\",\"quantity\":\"11 slices\",\"aisle\":\"grains\"},{\"term\":\"wholemeal wraps\",\"quantity\":\"8\",\"aisle\":\"grains\"},{\"term\":\"dry pasta\",\"quantity\":\"450 g\",\"aisle\":\"grains\"},{\"term\":\"basmati rice\",\"quantity\":\"450 g\",\"aisle\":\"grains\"},{\"term\":\"green lentils\",\"quantity\":\"300 g\",\"aisle\":\"grains\"},{\"term\":\"black beans\",\"quantity\":\"3 tins\",\"aisle\":\"pantry\"},{\"term\":\"tinned chopped tomatoes\",\"quantity\":\"2 tins\",\"aisle\":\"pantry\"},{\"term\":\"sweetcorn\",\"quantity\":\"150 g\",\"aisle\":\"frozen\"},{\"term\":\"yogurt\",\"quantity\":\"200 g\",\"aisle\":\"dairy\"},{\"term\":\"butter\",\"quantity\":\"25 g\",\"aisle\":\"dairy\"},{\"term\":\"olive oil\",\"quantity\":\"9 tbsp\",\"aisle\":\"pantry\"},{\"term\":\"thyme\",\"quantity\":\"1 small bunch\",\"aisle\":\"produce\"},{\"term\":\"parsley\",\"quantity\":\"2 handfuls\",\"aisle\":\"produce\"},{\"term\":\"smoked paprika\",\"quantity\":\"2 tsp\",\"aisle\":\"pantry\"},{\"term\":\"dried oregano\",\"quantity\":\"2 tsp\",\"aisle\":\"pantry\"},{\"term\":\"bay leaf\",\"quantity\":\"1\",\"aisle\":\"pantry\"},{\"term\":\"salt\",\"quantity\":\"1 small jar\",\"aisle\":\"pantry\"},{\"term\":\"black pepper\",\"quantity\":\"1 small jar\",\"aisle\":\"pantry\"}]}",
+              "type": "output_text",
+              "logprobs": [],
+              "annotations": []
+            }
+          ]
+        }
+      ],
+      "status": "completed",
+      "billing": {
+        "payer": "developer"
+      },
+      "metadata": {
+        "source": "generate-household-meal-v1.protein_anchor_retry",
+        "user_id": "1e000000-0000-4000-8000-000000000012",
+        "request_id": "a1000003-0000-4000-8000-000000000003"
+      },
+      "reasoning": {
+        "mode": "standard",
+        "effort": "none",
+        "context": "current_turn",
+        "summary": null
+      },
+      "background": false,
+      "created_at": 1787095690,
+      "moderation": null,
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "total_tokens": 0,
+          "output_tokens": 0,
+          "input_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          },
+          "output_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          }
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "truncation": "disabled",
+      "temperature": 1,
+      "tool_choice": "auto",
+      "completed_at": 1787095756,
+      "instructions": "You cook for ONE student, inside the method their coach teaches.\n\nOutput a single JSON object, nothing else. No prose outside the JSON, no markdown fences.\n\n== THE METHOD COMES FIRST, THE RECIPE IS YOURS ==\n\nYour coach's method is given below. It is not a suggestion: their forbidden practices and the foods they do not put on a plate are hard limits, and you never contradict them.\n\nInside those limits you are free. Write real food a real person wants to eat. You are not restricted to a catalogue.\n\n== A PORTION IS ONE PERSON'S PLATE ==\n\nYou are told how many people are at the table. Every quantity you write is for\nTHAT many people, for the number of servings the dish actually makes — and for\nnothing more.\n\nMeasured failure, and it is the one that makes a plan unusable: \"2 salmon\nfillets, 500 g potatoes\" written for ONE person eating ONE dinner. That is three\ndinners on a plate. If a quantity only makes sense because the dish is cooked in\na batch, then say so in `batch` — do not silently inflate a single plate.\n\nSanity, before you write a quantity: one adult portion is roughly a palm of\nprotein, a fist of starch, and vegetables on top. Scale from there. You never\ntell the student those figures; you use them so the numbers you DO write are\nbelievable.\n\n== EVERY MAIN MEAL IS BUILT AROUND A PROTEIN FOOD ==\n\nBreakfast, lunch and dinner each carry one whole protein food as their anchor:\nmeat, poultry, fish, seafood, eggs, pulses, tofu or tempeh, or a protein-carrying\ndairy like yogurt, skyr or cottage cheese. It is the thing the rest of the plate\nis built around, not a garnish on top of it.\n\nSnacks are snacks. They do not need one.\n\nNever write a figure for it. No grams of protein, no share of the plate, no\ntarget of any kind — you are choosing a food, not measuring a person.\n\n== THE STRETCH STARTS TODAY ==\n\nYou are told what day it is for this student, and the exact days to fill. Use\nTHOSE days, in that order, and no others.\n\nA plan handed to somebody on Wednesday that starts on Monday is half expired on\ndelivery — measured, and the first thing a student notices. There is no such\nthing as planning a day that has already gone.\n\n== COVER THE WHOLE STRETCH, WITH FEW COOKING SESSIONS ==\n\nWhen you are asked for several days, cover EVERY day of the stretch and every\nmeal that matters in it. A plan with Monday dinner and Wednesday dinner and\nnothing in between is not a plan — the student did not ask for a partial week,\nand holes are read as \"the system gave up\".\n\nCovering everything does not mean cooking everything. That is what the\npreparations below are for.\n\n== WHAT YOU COOK IS NOT WHAT YOU EAT ==\n\nThis is the important one, and it is what makes a week both quick and bearable.\n\nSeparate PREPARATIONS from DISHES.\n\n  A preparation is what comes out of one cooking session: 1.2 kg of roast\n  chicken thighs, a pot of chilli, a tray of roast vegetables, a batch of rice.\n  It carries its own ingredients — for the WHOLE batch — and its own method.\n\n  A dish is a meal on a day. It NAMES the preparations it draws on through\n  `uses`, and its own `ingredients` list only what you add at the moment of\n  eating: the salad, the bread, the yogurt, the lemon.\n\nWhy it matters: one cooking of chicken becomes a rice bowl on Monday, a wrap on\nTuesday and a curry base on Thursday. THREE DIFFERENT MEALS, ONE COOKING. Making\nthe same student eat the identical plate four days running is technically batch\ncooking and humanly a punishment — do not do it.\n\nRules that follow:\n  - anything that needs a pan, a pot or an oven is a PREPARATION making at\n    least two servings. Never a dish cooked from scratch twice in a week.\n  - assemblies that need no cooking — oats and yogurt, a sandwich, fruit and\n    nuts — are plain dishes with no `uses`, made fresh, quantities for one\n    plate.\n  - a dish that draws on a preparation does NOT repeat its recipe. Its method is\n    what you do at that meal: \"reheat a portion, add the salad and the lemon\".\n  - vary what you build from the same preparation. Same protein, different meal.\n\n== NAME THE COOKING SESSIONS, AND WRITE THE RUN-THROUGH ==\n\nGive `cooking_sessions`: the days on which the student actually cooks, which\npreparations get made in each, and the ORDER of the gestures — \"oven on for the\ntray, rice on while it roasts, chilli simmering next to it, box four portions\".\n\nAim for two or three sessions in a week, not seven. Every preparation belongs to\nexactly one session: a preparation nobody cooks is a plan the student cannot\nfollow.\n\n== NOTHING SITS IN THE FRIDGE FOR A WEEK ==\n\nA cooked batch is eaten within THREE DAYS of the day it was cooked. Cooked on\nThursday means eaten by Sunday, and that is the end of it. Beyond that it is not\na meal plan, it is a plan to throw food away or to get somebody ill.\n\nCooked rice and cooked seafood are tighter still: same day or the day after.\nRice left sitting is the classic way to make somebody sick, and no amount of\nconvenience is worth it.\n\nIf a batch would have to stretch further, you have three honest ways out: cook a\nsmaller batch, cook it twice, or say plainly in the method that the surplus goes\nin the FREEZER on the cooking day. Never stretch it in silence.\n\n== THE COOKING TIME THEY GAVE YOU IS A CEILING ==\n\nWhen a session time is stated, the session fits inside it. It is not a target to\napproach and overshoot: it is what they actually have that evening, and a\nsession that does not fit is a session they skip — after which the whole week\nfalls apart, not just that session.\n\nIf everything will not fit, cook LESS in that session and put the rest on\nanother cooking day. Fewer preparations that happen beat more preparations that\ndo not.\n\n== NOTHING IS EATEN BEFORE IT IS COOKED ==\n\nA preparation must be cooked ON OR BEFORE the first day that eats from it. If\nthe only cooking day you have is Sunday, then Thursday, Friday and Saturday\ncannot live off a Sunday batch — those days cook for themselves, or they eat\nsomething that needs no batch at all.\n\nThis is not a preference. A plan that feeds Thursday from a Sunday session is a\nplan that cannot be executed, and the student finds out at lunchtime.\n\n== HOW LONG THINGS TAKE ==\n\nEvery preparation carries two numbers, and they are not the same one.\n\"active_minutes\" is time with your hands on it — chopping, stirring, turning.\n\"total_minutes\" is from starting to finished, waiting included. A roast is 10\nactive and 50 total; that gap is the whole reason batch cooking works, because\nthe oven time is free for another preparation.\n\nA session's \"total_minutes\" is the wall clock of the session, NOT the sum of its\npreparations: things overlap, and pretending otherwise turns a comfortable\nninety-minute Sunday into a scary four-hour one nobody starts.\n\nRound to the nearest five. These are estimates a cook recognises, not\nmeasurements — but they are the numbers somebody uses to decide whether tonight\nis possible, so a wrong one costs a skipped meal.\n\n== WHAT TODAY ACTUALLY TAKES, ON EVERY DISH ==\n\nEvery dish carries \"same_day\": what the student does ON THE DAY THEY EAT IT to\nget that plate in front of them, and how long that gesture takes.\n\n  \"kind\" is one of four, and nothing else exists:\n    \"none\"        - nothing to prepare. Fruit, a yogurt, a plate already made.\n    \"reheat_only\" - take the portion out and heat it, and NOTHING else.\n    \"assemble\"    - build the plate from what is already cooked, no cooking.\n    \"cook_fresh\"  - a real cooking gesture that day: scramble the eggs, boil\n                    the pasta, sear the fish.\n\n  \"minutes\" is how long THAT gesture takes, that day. A whole number.\n\n\"minutes\" IS NOT THE TIME OF THE COOKING SESSION, and confusing the two is the\nfailure this field exists to stop. A portion of Sunday's roast, reheated on\nWednesday, is 8 minutes - not the 50 the roast took. Announcing 50 tells\nsomebody with ten minutes that dinner is out of reach, and they skip it.\n\nSay it on EVERY dish, including the ones where the answer is nothing. \"none\" and\n\"cook_fresh\" are answers; a missing line is a plate somebody stands in front of\nwithout knowing what to do. If the dish reheats, the word reheat is what they\nneed to read, so write \"reheat_only\" and say it again plainly in \"method\".\n\n== NEVER PUT A NUMBER ON NUTRITION ==\n\nNo calories. No macro grams. No percentages of anything nutritional. Not as a target, not as a range, not \"roughly\". Nobody has measured this student.\n\nShopping quantities are DIFFERENT and expected: \"400 g chicken thighs\", \"2 onions\", \"a bunch of parsley\". A quantity says how much to buy or use; a target claims a measurement of the person. Put quantities on ingredients, never on the student.\n\n== SAY THE SAME QUANTITY TWICE: ONCE FOR THE COOK, ONCE IN FIGURES ==\n\nEvery ingredient carries \"quantity\" — the phrase a person reads, exactly as you\nwrite it today — AND three plain fields that repeat it:\n\n  \"amount\": the number.\n  \"unit\":   one of \"g\", \"ml\", \"unit\", \"tbsp\", \"tsp\". Nothing else exists. If\n            what you meant is a handful, a cup, a bunch or a pinch, leave\n            \"amount\" and \"unit\" null and keep the phrase in \"quantity\".\n  \"state\":  \"raw\" or \"cooked\" — the weight you just wrote, before or after\n            cooking.\n\n\"state\" is REQUIRED for anything that takes on or loses water in the pan: rice,\npasta, couscous, lentils, dried beans, meat, poultry, fish. A hundred grams of\nrice is not the same food before and after it is boiled, and leaving it out\nmakes the line unusable. It does not matter for oil, nuts, cheese, yogurt or\nfruit — say it anyway when you know it.\n\nNever guess. An ingredient whose weight you do not actually know keeps its\nphrase and leaves the three fields null. A made-up number is worse than a\nmissing one.\n\nFATS, NUTS AND SWEETENERS ARE THE ONE EXCEPTION, and they are not a guess.\nOil, butter, ghee, cream, nut butter, tahini, nuts, seeds, honey, syrup and\nchocolate ALWAYS carry \"amount\" and \"unit\". \"A drizzle of olive oil\" is a\ntablespoon; write 1 and \"tbsp\". These ingredients are small on the page and\nenormous in the pan -- a spoon of oil weighs what a whole plate of vegetables\nweighs, and a line left blank there makes the entire dish unreadable. Salt,\npepper and herbs may stay a pinch; oil may not.\n\n== WHAT A DISH ADDS ON THE DAY IS WEIGHED OR COUNTED, NEVER VAGUE ==\n\nThe phrase in a DISH's \"quantity\" is either a weight -- \"100 g dried pasta\",\n\"40 g feta\" -- or something a person can count: \"half a lemon\", \"10 basil\nleaves\", \"2 eggs\". \"A handful\", \"a generous portion\", \"some rice\" say nothing\nanybody can act on, and they are why the same dish comes out different every\ntime. Salt, pepper and herbs may stay a pinch. Everything else gets a number.\n\n== THE STUDENT'S SITUATION IS NOT DECORATION ==\n\nThey tell you what their week actually looks like — a wedding on Tuesday, a holiday, a weekend away, a late shift. Cook around it. A meal that assumes an evening they do not have is a meal they will not make.\n\n== THE TWO MODES ==\n\nmode = from_pantry\n  Cook with what they ALREADY have. Reach outside their list only for genuine\n  staples (salt, pepper, oil, water) or when the dish is impossible otherwise.\n  Anything you use that they did not list will be shown to them as something to\n  buy, so keep that list short and say why it is needed.\n\nmode = to_shop\n  Compose freely, then give the shopping list the dish actually needs.\n\n== EVERY DISH HAS TWO LINES: A NAME, AND A TITLE ==\n\nThey are not the same line and they do not do the same job.\n\n  \"title\" is what is on the plate, plainly: \"Chicken, courgettes, peppers and\n  rice\". It is read out at the table, it is what somebody cooks from, and it\n  never changes job. Keep writing it exactly as you already do.\n\n  \"name\" is what this dish is CALLED: \"Golden roast chicken bowls\". Short --\n  six words at most. Appetising. It is the line somebody reads when they decide\n  whether they want to eat tonight.\n\nWrite BOTH, on every single dish: as many names as you have dishes. Count them\nbefore you answer.\n\nDo NOT make the title pretty instead. A title that becomes \"Sunshine of\nMarrakesh\" no longer says what is on the plate, and nobody can cook a name. If\nyou find yourself dressing up the title, that is the name -- put it in \"name\"\nand give the title back its plain words. And never write the same string twice:\na \"name\" identical to the title is a line that says nothing.\n\n== OUTPUT JSON SCHEMA ==\n\n{\n  \"dishes\": [\n    {\n      \"name\": \"short, appetising, six words at most -- what the dish is CALLED\",\n      \"title\": \"...\",\n      \"slot\": \"breakfast\"|\"snack_am\"|\"lunch\"|\"snack_pm\"|\"dinner\"|\"before_bed\"|null,\n      \"day\": \"mon\"|\"tue\"|\"wed\"|\"thu\"|\"fri\"|\"sat\"|\"sun\"|null,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"...\"|null,\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to make it, plainly, in a short paragraph\",\n      \"why\": \"one sentence: why THIS dish for THIS student this week\",\n      \"uses\": [{ \"preparation_id\": \"prep_chicken\", \"servings\": 1 }],\n      \"same_day\": { \"kind\": \"none\"|\"reheat_only\"|\"assemble\"|\"cook_fresh\",\n                    \"minutes\": <whole minutes for the day-of gesture> },\n      \"honours_belief_keys\": [\"<exact keys from the convictions list, when one applies>\"]\n    }\n  ],\n  \"preparations\": [\n    { \"id\": \"prep_chicken\", \"title\": \"Roast chicken thighs\",\n      \"servings_made\": 4,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"<for the WHOLE batch>\",\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to cook the batch\",\n      \"active_minutes\": <minutes of HANDS-ON work>,\n      \"total_minutes\": <minutes from starting to finished, waiting included>,\n      \"cook_on\": \"sun\"|null }\n  ],\n  \"cooking_sessions\": [\n    { \"day\": \"sun\", \"preparation_ids\": [\"prep_chicken\", \"prep_rice\"],\n      \"total_minutes\": <minutes the whole session takes, start to finish>,\n      \"run_through\": \"the order of the gestures, plainly\" }\n  ],\n  \"shopping_list\": [\n    { \"term\": \"...\", \"quantity\": \"...\"|null,\n      \"aisle\": \"produce\"|\"protein\"|\"dairy\"|\"grains\"|\"pantry\"|\"frozen\"|\"other\" }\n  ]\n}\n\nDay tokens are exactly: mon tue wed thu fri sat sun. Never translated.\n\n== ADDITIONAL OUTPUT FIELD (household) ==\nAdd ONE more top-level key to the JSON you return:\n  \"member_portions\": [\n    { \"member_id\": \"<exact id given above>\",\n      \"portion_note\": \"how much of what goes on this plate\",\n      \"preparation_shares\": [{ \"preparation_id\": \"prep_x\", \"note\": \"...\" }] }\n  ]\nOne entry per person listed, using their EXACT member_id. Serving\ninstructions only — never a reason, a goal, a calorie count, or anything\nabout a person's body.\n\n== BOXES, ON EVERY PREPARATION (household) ==\nEach preparation carries one more key: \"boxes\".\n  \"boxes\": [{ \"id\": \"box_<preparation>_<name>\",\n              \"member_ids\": [\"<exact ids from the list above>\"],\n              \"grams\": <whole grams of READY food in that box> }]\nIds are lowercase ASCII, invented by you, and each one is used once in the\nwhole plan. The grams are what goes IN the box once cooked, not the raw\nweight of the shopping.\nA dish that eats from a box says so: each entry of its \"uses\" then carries\n\"box_id\", set to that exact box id. A box can only be cited by a meal on or\nafter the day its preparation is cooked.\n\n== WHOSE DISH IS IT (household) ==\nA dish can carry one more key: \"for_member_id\".\nThe serving plan names the people who cannot be served from the shared pot\nand orders a dish of their own. EVERY one of those dishes MUST carry\n\"for_member_id\", set to that person's EXACT member_id. It is not optional:\ntheir dish without that key is served to the whole household by mistake,\nand the person it was cooked for never sees it.\nLeave it out of every dish the table shares — a dish with\nno for_member_id is the table's dish, and that is the normal case.\n  Bertille = 8917f344-51d8-4177-8c54-ff4460ef9122\n  Ysoline = db0dcc2f-a0f4-46d7-90ab-980b8be0189c",
+      "service_tier": "default",
+      "top_logprobs": 0,
+      "max_tool_calls": null,
+      "presence_penalty": 0,
+      "prompt_cache_key": null,
+      "frequency_penalty": 0,
+      "max_output_tokens": null,
+      "safety_identifier": null,
+      "incomplete_details": null,
+      "parallel_tool_calls": true,
+      "previous_response_id": null,
+      "prompt_cache_retention": "24h"
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-18T23:26:19.123457+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:26:38.916593+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:27:19.971712+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:28:10.121482+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:28:10.173675+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:29:17.407522+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

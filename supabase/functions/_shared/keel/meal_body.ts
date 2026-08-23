@@ -37,6 +37,7 @@
 import type { AgeBand } from "./student_age.ts";
 import type { DatedMeasure } from "./student_body.ts";
 import type { MemberAgeState } from "./household.ts";
+import type { ActivityLevel } from "./tokens.ts";
 
 /** Les trois valeurs que la base accepte (`profiles_gender_check`). */
 export const MEAL_BODY_GENDERS = ["male", "female", "other"] as const;
@@ -75,6 +76,25 @@ export interface MealBodyContext {
   gender: MealBodyGender | null;
   /** La dernière pesée connue, AVEC sa date. `null` = jamais pesé. */
   latestWeight: DatedMeasure | null;
+  /**
+   * LE POIDS DE LA FICHE — déclaré à l'ajout du membre, SANS date de pesée.
+   *
+   * ⛔ POURQUOI UN CHAMP À PART, ET PAS UN `DatedMeasure` AVEC UNE DATE INVENTÉE.
+   * La règle du dépôt est qu'une MESURE porte sa date: « 78 kg » ne dit rien,
+   * « 78 kg, semaine du 30 juin » dit quelque chose. Une fiche n'est pas une
+   * pesée — elle n'a jamais eu de date, et lui en fabriquer une ferait passer
+   * une déclaration pour un relevé. On garde donc les deux formes distinctes,
+   * et la ligne rendue le dit.
+   *
+   * ⚠️ CE CHAMP EXISTE PARCE QU'UNE BOUCHE SANS COMPTE N'AVAIT AUCUN CORPS DANS
+   * LE BRIEF (mesuré le 2026-08-19 par le propriétaire, sur son propre foyer):
+   * `169 cm · 59 kg · femme` saisis à l'écran, et le brief ne portait
+   * « - Christèle: » suivi de rien. Le modèle a servi à une femme de 59 kg la
+   * boîte d'un homme de 73 kg qui s'entraîne — `140/140`, `180/180`, `220/220`,
+   * identiques à chaque préparation. Le chargeur croyait, et l'écrivait, qu'une
+   * bouche sans compte « n'a ni profil ni mesures »: elle a une FICHE.
+   */
+  declaredWeightKg: number | null;
   /** Le dernier tour de taille connu, AVEC sa date. */
   latestWaist: DatedMeasure | null;
   /**
@@ -87,7 +107,59 @@ export interface MealBodyContext {
    * élève qu'on n'a pas su évaluer.
    */
   restrictionFlag: boolean;
+  /**
+   * `profiles.activity_level` — QUATRE CRANS, JAMAIS UN NOMBRE (`tokens.ts`).
+   *
+   * ── POURQUOI IL ENTRE ICI LE 2026-08-18 ───────────────────────────────
+   * Il était collecté (`/app/setup` étape 2, quatre tuiles), stocké, LU par
+   * `generate-meal-v1` — et il ne servait qu'APRÈS l'appel modèle, dans
+   * `envelopeFor` (`ACTIVITY_FACTORS`). Mesuré sur le run réel
+   * `798c5cd6-…`: un élève à `trains_hard` compose son premier plan sans que
+   * la consigne l'ait jamais su. L'écran, lui, promet l'inverse mot pour mot
+   * — « It sizes every serving you get. Sitting eight hours and training four
+   * times a week are about forty per cent apart ».
+   *
+   * ⚠️ CE N'EST PAS UNE PORTE D'ÉNERGIE. La ligne rendue ne porte ni facteur,
+   * ni kcal, ni fourchette: elle dit le CRAN, dans le même bloc et sous la
+   * même consigne que la taille — « ceci sert à la TAILLE d'une portion, et à
+   * rien d'autre ». Le chiffre reste du côté déterministe (l'enveloppe), qui
+   * ne parle jamais au modèle.
+   *
+   * ⚠️ IL N'EST PAS COUPÉ PAR LE PLANCHER TCA, comme l'âge et le sexe et pour
+   * la même raison exactement: on ne restreint pas pour changer combien on
+   * bouge. Aucune boucle ne se nourrit de cette ligne.
+   *
+   * `null` = jamais répondu ⇒ AUCUNE ligne (voir « une absence ne produit
+   * aucune ligne » plus bas).
+   *
+   * ⚠️ `?:` ALORS QUE `restrictionFlag` JUSTE AU-DESSUS EST REQUIS, ET LA
+   * DIFFÉRENCE EST MOTIVÉE. Un champ requis ici casse 24 fixtures de test —
+   * dont celles de la lane foyer, hors du périmètre de ce lot — pour un champ
+   * dont il n'existe QU'UN SEUL producteur en production:
+   * `mealBodyContextFrom` (`student_body_io.ts`), qui le remplit depuis le
+   * snapshot. Le risque « un appelant l'oublie » est donc tenu à cet unique
+   * site, et il l'est par un test qui traverse ce producteur —
+   * `solo_lane_injection_test.ts`, « le cran d'activité traverse
+   * `mealBodyContextFrom` ». La garde de `restrictionFlag`, elle, protège une
+   * décision de SÉCURITÉ prise par l'appelant: rien d'équivalent ici.
+   */
+  activityLevel?: ActivityLevel | null;
 }
+
+/**
+ * LE CRAN D'ACTIVITÉ, EN ANGLAIS LISIBLE — jamais le slug.
+ *
+ * Même raison que `MEAL_AGE_BAND_PROSE` juste au-dessus: « trains_hard » dans
+ * une phrase se lit comme un identifiant, et un identifiant finit recopié tel
+ * quel dans une justification de plat. La phrase dit le FAIT (ce que la
+ * personne a coché), jamais une conséquence chiffrée.
+ */
+export const MEAL_ACTIVITY_PROSE: Record<ActivityLevel, string> = {
+  sedentary: "sitting most of the day, not much walking",
+  on_feet: "on their feet or moving for a good part of the day",
+  trains_some: "training two or three times a week",
+  trains_hard: "training four times a week or more, or a physical job",
+};
 
 export interface MealBodyBlocks {
   /** Les lignes de `-- WHO THEY ARE --`. Vide = rien de connu. */
@@ -144,6 +216,15 @@ export function mealBodyBlocks(body: MealBodyContext | null): MealBodyBlocks {
   }
   if (body.gender !== null) {
     who.push(`- gender, as they picked it: ${body.gender}`);
+  }
+  // LE CRAN D'ACTIVITÉ, DERNIER DE LA LISTE ET AVANT LA CONSIGNE DE CADRAGE:
+  // il est couvert, comme les trois d'au-dessus, par les deux phrases qui
+  // suivent — « pour la TAILLE d'une portion, et rien d'autre ».
+  const activityLevel = body.activityLevel ?? null;
+  if (activityLevel !== null) {
+    who.push(
+      `- how their days go: ${MEAL_ACTIVITY_PROSE[activityLevel]}`,
+    );
   }
   if (who.length > 0) {
     // CE QU'ON ATTEND DE CES CHIFFRES, ET CE QU'ON N'EN ATTEND PAS.
@@ -261,6 +342,12 @@ export function householdBodyFacts(
     facts.push(
       `weight ${body.latestWeight.value} kg, measured week of ${body.latestWeight.weekStart}`,
     );
+  }
+  // LE POIDS DE FICHE NE PARLE QUE SI AUCUNE PESÉE DATÉE N'EXISTE — une série
+  // vaut toujours mieux qu'une déclaration, et servir les deux ferait deux
+  // poids pour une personne dans le même brief.
+  if (!body.latestWeight && body.declaredWeightKg !== null) {
+    facts.push(`weight ${body.declaredWeightKg} kg, as stated on their sheet`);
   }
   if (body.latestWaist) {
     facts.push(

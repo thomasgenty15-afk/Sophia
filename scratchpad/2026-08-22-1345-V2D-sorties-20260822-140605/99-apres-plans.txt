@@ -1,0 +1,6 @@
+                  id                  | plan_kind | starts_on  | duration_days | retired_at | content_locale 
+--------------------------------------+-----------+------------+---------------+------------+----------------
+ 3c781a71-da7c-4abe-8a99-4a6ed7445c99 | household | 2026-08-21 |             1 |            | fr-FR
+ 66de9046-7b8e-48f9-958c-aa8086d65d66 | household | 2026-08-22 |             7 |            | fr-FR
+(2 rows)
+

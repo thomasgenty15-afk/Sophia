@@ -413,6 +413,28 @@ export function buildWeekPlanPrompt(args: {
    */
   safetyConstraints: readonly StudentSafetyConstraint[] | null;
   /**
+   * LE RÉGIME, EN UNE PHRASE — `dietaryRegimePromptLine`, ou `""`.
+   *
+   * ── LE DÉFAUT QUE CE PARAMÈTRE FERME (QA 01-injection, 2026-08-18) ────────
+   * FF-042 a câblé le régime sur la lane REPAS (`meal_generation.ts`) et
+   * `household_diet.ts` l'a câblé sur la lane FOYER. Cette lane-ci ne l'a
+   * jamais eu: `grep -c "diet" generate-week-plan-v1/index.ts` rendait ZÉRO.
+   * Un élève végane ou pescatarien recevait donc une semaine écrite comme
+   * s'il mangeait de tout — alors que la même déclaration, écrite au même
+   * endroit (`student_safety_constraints`, `kind='diet'`), gouverne ses repas.
+   *
+   * ⚠️ IL EST SÉPARÉ DES CONTRAINTES DURES, ET CE N'EST PAS DE LA MISE EN
+   * PAGE. `safetyConstraintTokens` exclut délibérément `dietRef`: verser
+   * « vegan » dans la liste d'évitement armerait la ceinture de sortie sur le
+   * MOT, et un plan qui explique le végétarisme deviendrait un plan refusé.
+   * Le régime est une règle de composition, pas un allergène.
+   *
+   * REQUIS et `string` (jamais `T?`): `""` est une réponse (« aucun régime
+   * déclaré »), une propriété manquante ne compile pas. Même raisonnement que
+   * `safetyConstraints` juste au-dessus, et même cicatrice (`safetyBand`).
+   */
+  dietBlock: string;
+  /**
    * LA NOTE DU COACH SUR CET ÉLÈVE — mode 1:1 assumé, `null` quand il n'y en a
    * pas (le cas ordinaire). Produit par `coachNotePromptBlock`.
    *
@@ -494,10 +516,20 @@ export function buildWeekPlanPrompt(args: {
 
   // En TÊTE, avant la doctrine: si le budget de prompt tronque quoi que ce
   // soit, ce n'est pas la ligne qui dit « pas d'arachide » qui doit sauter.
-  const safetyBlock = safetyConstraintsPromptBlock(args.safetyConstraints);
+  // `null` = UNE SEULE BOUCHE, dit explicitement (le paramètre est requis pour
+  // que le compilateur oblige chaque lane à le dire — « un paramètre de garde
+  // optionnel est une garde désarmée »). Cette lane compose la semaine d'UN
+  // élève: les contraintes du bloc sont toutes les siennes, et son titre le dit
+  // déjà. L'attribution par bouche n'existe que là où il y a une tablée.
+  const safetyBlock = safetyConstraintsPromptBlock(args.safetyConstraints, null);
 
   const userMessage = [
     ...(safetyBlock ? [safetyBlock, ""] : []),
+    // LE RÉGIME, JUSTE SOUS LES CONTRAINTES DURES ET AVANT LA DOCTRINE — même
+    // rang et même argument que sur la lane repas: un coach dont la méthode
+    // construit sur le poulet ne l'a pas écrite pour un végane, donc le régime
+    // gagne sur la doctrine et doit survivre à une troncature.
+    ...(args.dietBlock.trim() ? [args.dietBlock.trim(), ""] : []),
     args.doctrineBlock.trim(),
     "",
     "== YOUR COACH'S CONVICTIONS (the only method that exists here) ==",

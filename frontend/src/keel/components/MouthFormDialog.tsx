@@ -5,33 +5,49 @@ import { Button } from "./ui/Button";
 import { Field, inputClass } from "./ui/Field";
 import { SectionLabel } from "./ui/Card";
 import { allergenLabel, ALLERGEN_OPTIONS } from "../copy/allergens";
-import { t } from "../i18n/t";
+import { type MessageKey, t } from "../i18n/t";
 import { uiLocale } from "../i18n/runtime";
 import { MEMBER_GENDERS, MEMBER_GOALS } from "../api/household";
 import type { MemberGender, MemberGoal } from "../api/household";
 import { DIET_ANSWERS } from "../api/onboarding";
-import { EATING_OCCASIONS } from "../api/mealGeneration";
+import {
+  EATING_OCCASIONS,
+  type EatingOccasion,
+  type EatingOccasionSlot,
+} from "../api/mealGeneration";
 import { mealCopy } from "../api/mealLabels";
+import { type MouthVoice, voiced, whoOf } from "../lib/mouthVoice";
+import {
+  ARRIVAL_HORIZON_COPY,
+  TARGET_WEIGHT_HINT_COPY,
+} from "../lib/arrivalHorizon";
 import {
   activityIsRequired,
   ageStateOfDraft,
   filledPreferenceBlocks,
-  type MouthFormBlock,
   type MouthFormDraft,
   missingRequiredBlocks,
   paceControlFor,
   type ShakerDraft,
+  shakerCanBeSaved,
   shakerIsComplete,
   shakerIsForeground,
   submitIsHeld,
   targetWeightStateFor,
 } from "../lib/mouthForm";
-import { ACTIVITY_LEVELS } from "../../../../supabase/functions/_shared/keel/tokens.ts";
-import type { ActivityLevel } from "../../../../supabase/functions/_shared/keel/tokens.ts";
 import {
-  PACE_SATURATION_LABELS,
-  PACE_WARNING_LABELS,
-} from "../../../../supabase/functions/_shared/keel/weight_pace.ts";
+  ACTIVITY_LEVELS,
+  APPETITE_LEVELS,
+  DAY_ACTIVITY_LEVELS,
+  SPORT_FREQUENCIES,
+} from "../../../../supabase/functions/_shared/keel/tokens.ts";
+import type {
+  ActivityLevel,
+  AppetiteLevel,
+  DayActivityLevel,
+  SportFrequency,
+} from "../../../../supabase/functions/_shared/keel/tokens.ts";
+import { PACE_WARNING_LABELS } from "../../../../supabase/functions/_shared/keel/weight_pace.ts";
 
 // ═══════════════════════════════════════════════════════════════════════════
 // UNE BOUCHE — SIX BLOCS, ET DEUX SURFACES DEPUIS LE 2026-08-18.
@@ -110,6 +126,16 @@ export interface MouthSubject {
   /** `false` pour une bouche qu'on ajoute; `true` quand on complète une fiche. */
   existing: boolean;
   hasAccount: boolean;
+  /**
+   * EST-CE MA PROPRE FICHE ? REQUIS — jamais optionnel.
+   *
+   * ⚠️ C'EST CE QUI DÉCIDE DE LA VOIX, et un défaut le désarmerait en silence:
+   * non passé, le titulaire relirait « Son corps » et « Comment elle mange »
+   * sur SA carte, ce qui est exactement le défaut signalé le 2026-08-19. Voir
+   * `lib/mouthVoice.ts` — et pourquoi la troisième personne NOMME plutôt
+   * qu'elle ne genre.
+   */
+  isSelf: boolean;
 }
 
 /** Les blocs 1-3, EN LIGNE — c'est la fiche, pas la fenêtre. */
@@ -157,8 +183,47 @@ export interface MouthPreferencesFieldsProps {
    * le seul levier qui manquait, et il donne à l'appelant celui de rouvrir la
    * fiche sur le bloc qu'il vient de refuser.
    */
-  openBlock: MouthFormBlock | null;
-  onOpenBlock: (next: MouthFormBlock | null) => void;
+  /**
+   * LES MOMENTS OÙ CETTE BOUCHE MANGE — la liste que la section « ce qu'elle
+   * mange déjà » propose, dans l'ordre de la journée.
+   *
+   * ⚠️ REQUISE, ET C'EST LE DÉFAUT QU'ELLE FERME. Cette section rendait les
+   * SIX créneaux en dur (`EATING_OCCASIONS`). Signalé capture à l'appui le
+   * 2026-08-19: « par défaut on a mis les 6 plages et ça n'a pas de sens pour
+   * une personne qui indique qu'elle mange que 2 fois par jour ». On demandait
+   * donc à quelqu'un ce qu'il mange à quatre moments dont il vient de dire
+   * qu'ils n'existent pas — et chaque champ laissé vide ressemble alors à un
+   * oubli plutôt qu'à une réponse.
+   *
+   * L'appelant la calcule: le rythme de CETTE bouche s'il en a un, sinon celui
+   * de la maison, sinon les six. C'est exactement la cascade que le moteur
+   * applique (`null` sur la ligne membre = « comme la maison »), donc l'écran
+   * propose ce que la composition servira — pas autre chose.
+   *
+   * ⛔ NE PAS LA RENDRE OPTIONNELLE avec un défaut à six: le défaut serait
+   * précisément le bug, et il reviendrait au premier appelant distrait.
+   */
+  slots: readonly EatingOccasion[];
+  /**
+   * ENREGISTRER LE SHAKER, TOUT DE SUITE — ou `null` quand ce sujet n'a pas de
+   * port où l'écrire.
+   *
+   * ── ⚠️ C'EST LA SEULE ÉCRITURE DE CETTE FENÊTRE, ET ELLE EST DEMANDÉE ────
+   * Le reste de la fiche est un BROUILLON que la carte enregistre; j'ai
+   * d'abord appliqué la même règle ici, et l'utilisateur l'a refusée deux fois
+   * — « je veux un bouton enregistrer pour le shaker ». Il a raison sur le
+   * fond: ce bloc-ci est un OBJET qu'on ajoute et qu'on retire, pas un champ de
+   * la personne, et un objet qui s'ajoute doit pouvoir se poser sans emporter
+   * tout le formulaire avec lui.
+   *
+   * ⚠️ `null` QUAND LE SUJET N'A PAS DE COMPTE. `fixed_intakes` vit dans
+   * `student_goals.practical_constraints`, donc sur `user_id`: une bouche sans
+   * compte n'a nulle part où le ranger, et un bouton qui écrirait « son »
+   * shaker le poserait en fait sur la ligne du MAÎTRE. On ne rend alors pas le
+   * bloc du tout — un contrôle qui échoue à tous les coups est pire qu'un
+   * contrôle absent, « parce qu'il promet ».
+   */
+  onSaveShaker: ((shaker: ShakerDraft) => void) | null;
   /**
    * CET ÉCRAN SAIT-IL ÉCRIRE SUR UNE LIGNE DE FOYER ? REQUIS, jamais `?`.
    *
@@ -200,33 +265,63 @@ export interface MouthFormDialogProps extends MouthPreferencesFieldsProps {
  * trois blocs à remplir et trois qu'on peut ignorer, ce qui est exactement la
  * promesse de la conception.
  */
-function Foldable(
-  { title, hint, open, onToggle, children }: {
+/**
+ * UNE SECTION DE LA FICHE — TOUJOURS OUVERTE.
+ *
+ * ── ⛔ ELLE REMPLACE `Foldable`, ET LE REPLI EST PARTI POUR DE BON ─────────
+ * Le repli existait pour une raison mesurée: dépliés, les blocs faisaient
+ * « trente champs dont on ne voyait pas où l'un finissait ». Mais il coûtait
+ * plus qu'il ne rendait, et l'utilisateur l'a tranché le 2026-08-19 — « il faut
+ * arrêter avec le dépliable ». Ce qu'il coûtait, en clair:
+ *
+ *   · UNE RÉPONSE REPLIÉE EST UNE RÉPONSE INVISIBLE. Un régime déjà choisi,
+ *     une allergie déjà cochée, ne se voyaient qu'en rouvrant le bloc — sur un
+ *     écran dont le seul travail est de dire ce qu'on sait de quelqu'un;
+ *   · IL FALLAIT DEVINER OÙ. Trois en-têtes fermés ne disent pas laquelle des
+ *     trois porte « pas de champignons »;
+ *   · ET IL COÛTAIT UN ÉTAT CONTRÔLÉ à chaque appelant (`openBlock`), pour un
+ *     confort de mise en page.
+ *
+ * Ce que le repli achetait — ne pas noyer le lecteur — est repris par l'ORDRE
+ * des sections, qui n'est plus arbitraire: le régime d'abord (il écarte des
+ * familles entières d'aliments), les allergies ensuite (elles interdisent), les
+ * dégoûts après (ils évitent), et ce qu'elle mange déjà en dernier, parce que
+ * cette section-là ne se lit bien qu'une fois qu'on sait combien de fois elle
+ * mange.
+ */
+/**
+ * L'EXEMPLE DE CHAQUE MOMENT — `Record` COMPLET, jamais un repli.
+ *
+ * ⛔ PAS DE CLÉ GÉNÉRIQUE EN SECOURS. Il y en avait une, la même pour les six,
+ * et c'est ce qui mettait « un café et deux tartines » sous DÎNER. Un repli
+ * muet la réintroduirait au premier moment ajouté; le `Record` fait échouer la
+ * compilation à la place.
+ */
+const HABIT_PLACEHOLDERS: Record<EatingOccasion, MessageKey> = {
+  breakfast: "household.mouth.habit_placeholder_breakfast",
+  snack_am: "household.mouth.habit_placeholder_snack_am",
+  lunch: "household.mouth.habit_placeholder_lunch",
+  snack_pm: "household.mouth.habit_placeholder_snack_pm",
+  dinner: "household.mouth.habit_placeholder_dinner",
+  before_bed: "household.mouth.habit_placeholder_before_bed",
+};
+
+function Section(
+  { title, hint, children }: {
     title: string;
     hint: string;
-    open: boolean;
-    onToggle: () => void;
     children: React.ReactNode;
   },
 ) {
   return (
     <div className="rounded-card border border-line-strong bg-paper p-4">
-      <button
-        type="button"
-        onClick={onToggle}
-        className="flex w-full items-start justify-between gap-3 text-left"
-      >
-        <span className="min-w-0">
-          <SectionLabel>{title}</SectionLabel>
-          <span className="mt-1 block text-xs leading-5 text-ink-soft">
-            {hint}
-          </span>
-        </span>
-        <span className="shrink-0 text-sm text-fig-700 underline underline-offset-2">
-          {open ? t("household.mouth.fold") : t("household.mouth.unfold")}
-        </span>
-      </button>
-      {open ? <div className="mt-4 space-y-4">{children}</div> : null}
+      <SectionLabel>{title}</SectionLabel>
+      <p className="mt-1 text-xs leading-5 text-ink-soft">{hint}</p>
+      {/* `space-y-5` ET PAS `space-y-4`: mesuré sur capture le 2026-08-19, les
+          six lignes d'habitudes se lisaient collées — l'étiquette en capitales
+          du moment SUIVANT touchait presque le champ du précédent, et la liste
+          se lisait comme un seul pavé au lieu de six questions. */}
+      <div className="mt-4 space-y-5">{children}</div>
     </div>
   );
 }
@@ -317,10 +412,17 @@ export default function MouthFormDialog(
         })
         : t("household.mouth.preferences_title")}
       size="lg"
-      // LA SORTIE DIT CE QU'ELLE FAIT. « Fermer » sur une fenêtre à moitié
-      // remplie laisse croire qu'on perd tout; « plus tard » dit que la
-      // personne reste et que la fiche se reprend.
-      closeLabel={t("household.mouth.later")}
+      // ── ⛔ UNE CROIX, PLUS « PLUS TARD » (2026-08-19) ────────────────────
+      // Le libellé disait « plus tard » pour rassurer: la fiche se reprend, on
+      // ne perd rien. Il n'a plus lieu d'être — la fenêtre ÉCRIT à la
+      // fermeture depuis ce matin, donc il n'y a pas de « plus tard », il y a
+      // « c'est enregistré ». Un mot qui décrit une hésitation sur un geste qui
+      // n'en est plus une.
+      //
+      // ⚠️ LE TEXTE SURVIT EN `aria-label`: une croix sans nom accessible est
+      // un bouton muet pour un lecteur d'écran.
+      closeAsIcon
+      closeLabel={t("common.close")}
     >
       <MouthPreferencesFields {...props} />
     </Modal>
@@ -343,17 +445,20 @@ export default function MouthFormDialog(
  * geste qui a marché » vaut aussi dans l'autre sens.
  */
 export function MouthPreferencesButton(
-  { draft, busy, onOpen }: {
+  { draft, busy, onOpen, voice, who }: {
     draft: MouthFormDraft;
     busy: boolean;
     onOpen: () => void;
+    /** REQUIS: le maître lisait « Renseigner SES préférences » sur sa carte. */
+    voice: MouthVoice;
+    who: string;
   },
 ): React.ReactElement {
   const filled = filledPreferenceBlocks(draft);
   return (
     <div className="rounded-card border border-line-strong bg-paper p-4">
       <Button variant="secondary" disabled={busy} onClick={onOpen}>
-        {t("household.mouth.preferences_open")}
+        {t(voiced("household.mouth.preferences_open", voice), { who })}
       </Button>
       <p className="mt-2 text-xs leading-5 text-ink-soft">
         {filled.length > 0
@@ -370,9 +475,274 @@ export function MouthPreferencesButton(
   );
 }
 
+// ---------------------------------------------------------------------------
+// ② LES DEUX AXES · ① LES TROIS CASES — un seul composant, deux appelants
+// ---------------------------------------------------------------------------
+//
+// ⛔ POURQUOI UN COMPOSANT PARTAGÉ ET PAS DEUX BLOCS RECOPIÉS. Ces cinq
+// questions se posent à DEUX endroits de `/app/household`: la fiche du maître
+// et la fiche neuve (`MouthCoreFields`, sur un brouillon), et la ligne d'une
+// bouche déjà inscrite (`BodyFields`, sur un état local semé par la base). Deux
+// copies d'un même formulaire finissent par poser deux questions différentes —
+// et c'est la copie la moins regardée qui garde l'ancienne formulation.
+//
+// ── ⛔ POURQUOI DES « OUI / NON » ET PAS TROIS CASES À COCHER ─────────────
+// Une case cochée ou non ne sait dire que deux choses, et il en faut TROIS:
+// « oui », « non », et « je n'ai pas répondu ». Sans le troisième, un
+// formulaire enregistré sans être lu écrirait « ni pain ni fromage ni
+// dessert », c'est-à-dire un plat qui porte 100 % du repas — deux fois et demie
+// la part servie aujourd'hui, dans le sens qui nourrit trop. C'est la cicatrice
+// « coche auto = faits faux indémentables », et elle interdit la case.
+//
+// ⚠️ ET LES TROIS SE RÉPONDENT ENSEMBLE OU PAS DU TOUT. Une seule réponse ne
+// suffit pas au calcul (`composedDishShare` rend alors la moyenne), et c'est
+// dit à l'écran plutôt que découvert dans un compteur.
+
+/** Ce que les cinq questions du 2026-08-20 valent, pour une bouche. */
+export interface MouthActivityAndStructure {
+  dayActivity: DayActivityLevel | "";
+  sportFrequency: SportFrequency | "";
+  takesDessert: boolean | null;
+  takesCheese: boolean | null;
+  takesBread: boolean | null;
+  /** ⑤ (2026-08-20). `""` = pas répondu ⇒ ×1,00, un neutre VRAI. */
+  appetite: AppetiteLevel | "";
+}
+
+/** Une question à trois états, rendue par deux boutons radio et rien d'autre. */
+function YesNo(
+  { name, value, onChange }: {
+    name: string;
+    value: boolean | null;
+    onChange: (next: boolean) => void;
+  },
+): React.ReactElement {
+  return (
+    <div className="flex items-center gap-4" role="radiogroup" aria-label={name}>
+      {[true, false].map((v) => (
+        <label key={String(v)} className="flex cursor-pointer items-center gap-2 text-sm text-ink">
+          <input
+            type="radio"
+            name={name}
+            value={v ? "yes" : "no"}
+            checked={value === v}
+            onChange={() => onChange(v)}
+          />
+          <span>{t(v ? "household.mouth.answer_yes" : "household.mouth.answer_no")}</span>
+        </label>
+      ))}
+    </div>
+  );
+}
+
+export function MouthActivityAxesFields(
+  { value, onChange, voice, who }: {
+    value: MouthActivityAndStructure;
+    onChange: (patch: Partial<MouthActivityAndStructure>) => void;
+    voice: MouthVoice;
+    who: string;
+  },
+): React.ReactElement {
+  return (
+    <>
+      {/* ── ② LA JOURNÉE ──────────────────────────────────────────────── */}
+      <Field
+        label={t(voiced("household.mouth.day_activity", voice), { who })}
+        hint={t("household.mouth.day_activity_hint")}
+      >
+        <div
+          className="flex flex-col gap-2"
+          role="radiogroup"
+          aria-label={t(voiced("household.mouth.day_activity", voice), { who })}
+        >
+          {DAY_ACTIVITY_LEVELS.map((level) => (
+            <label
+              key={level}
+              className="flex cursor-pointer items-center gap-3 rounded-card border border-line-strong bg-paper px-3 py-2.5 text-sm text-ink"
+            >
+              <input
+                type="radio"
+                name="mouth-day-activity"
+                value={level}
+                checked={value.dayActivity === level}
+                onChange={() => onChange({ dayActivity: level })}
+              />
+              <span>
+                {t(
+                  `household.mouth.day_activity_${level}` as "household.mouth.day_activity_seated",
+                )}
+              </span>
+            </label>
+          ))}
+        </div>
+      </Field>
+
+      {/* ── ② LE SPORT ────────────────────────────────────────────────── */}
+      <Field
+        label={t(voiced("household.mouth.sport", voice), { who })}
+        hint={t("household.mouth.sport_hint")}
+      >
+        <div
+          className="flex flex-col gap-2"
+          role="radiogroup"
+          aria-label={t(voiced("household.mouth.sport", voice), { who })}
+        >
+          {SPORT_FREQUENCIES.map((freq) => (
+            <label
+              key={freq}
+              className="flex cursor-pointer items-center gap-3 rounded-card border border-line-strong bg-paper px-3 py-2.5 text-sm text-ink"
+            >
+              <input
+                type="radio"
+                name="mouth-sport-frequency"
+                value={freq}
+                checked={value.sportFrequency === freq}
+                onChange={() => onChange({ sportFrequency: freq })}
+              />
+              <span>
+                {t(`household.mouth.sport_${freq}` as "household.mouth.sport_none")}
+              </span>
+            </label>
+          ))}
+        </div>
+      </Field>
+    </>
+  );
+}
+
+/**
+ * ① LA STRUCTURE DU REPAS · ⑤ L'APPÉTIT — LE SECOND BLOC, ET IL VIT AILLEURS.
+ *
+ * ⛔ SCINDÉ DE `MouthActivityAxesFields` LE 2026-08-20 (soir), SUR UNE DÉCISION
+ * D'ÉCRAN. Les deux axes d'activité sont la TROISIÈME ENTRÉE DE L'ÉQUATION
+ * D'ENTRETIEN, au même titre que la taille et le poids: ils restent collés au
+ * corps. Ces cinq questions-ci décrivent une HABITUDE DE TABLE — ce qu'on
+ * prend à côté du plat, et de quel côté de la formule on tombe — et elles
+ * appartiennent aux préférences.
+ *
+ * ⚠️ UN SEUL COMPOSANT POUR TROIS ÉCRANS, comme son jumeau: la fenêtre des
+ * préférences (entonnoir ET foyer) et la rangée d'une bouche déjà inscrite, qui
+ * n'a pas de fenêtre. Deux copies poseraient deux fois la même question dans
+ * deux formulations, et c'est celle qu'on regarde le moins qui garderait
+ * l'ancienne.
+ */
+export function MouthAppetiteFields(
+  { value, onChange, voice, who }: {
+    value: MouthActivityAndStructure;
+    onChange: (patch: Partial<MouthActivityAndStructure>) => void;
+    voice: MouthVoice;
+    who: string;
+  },
+): React.ReactElement {
+  return (
+    <>
+      {/* ── ⑤ L'APPÉTIT — TROIS CRANS, ET IL EST TRANSITOIRE ────────────
+          ⚠️ IL NE DEMANDE PAS « as-tu faim ». Les ±10 % sont l'incertitude
+          inter-individuelle de l'équation de prédiction (Mifflin-St Jeor), pas
+          un curseur de confort: la question est « la formule me tombe-t-elle
+          juste ? », et la seule personne qui puisse y répondre est celle qui se
+          connaît. Les libellés le disent, sinon on obtient une réponse à une
+          autre question.
+
+          ⛔ ET IL EST DESTINÉ À MOURIR: le lot ⑦ (boucle de poids) le remplace
+          pour qui a un compte et une série de pesées. Une stabilité est une
+          MESURE, ces trois crans sont une DÉCLARATION. */}
+      <Field
+        label={t(voiced("household.mouth.appetite", voice), { who })}
+        hint={t("household.mouth.appetite_hint")}
+      >
+        <div
+          className="flex flex-col gap-2"
+          role="radiogroup"
+          aria-label={t(voiced("household.mouth.appetite", voice), { who })}
+        >
+          {APPETITE_LEVELS.map((level) => (
+            <label
+              key={level}
+              className="flex cursor-pointer items-center gap-3 rounded-card border border-line-strong bg-paper px-3 py-2.5 text-sm text-ink"
+            >
+              <input
+                type="radio"
+                name="mouth-appetite"
+                value={level}
+                checked={value.appetite === level}
+                onChange={() => onChange({ appetite: level })}
+              />
+              <span>
+                {t(`household.mouth.appetite_${level}` as "household.mouth.appetite_small")}
+              </span>
+            </label>
+          ))}
+        </div>
+      </Field>
+
+    </>
+  );
+}
+
+/**
+ * ① CE QU'IL Y A D'AUTRE DANS L'ASSIETTE — UN COMPOSANT À PART, ET EN SURSIS.
+ *
+ * ⛔ SÉPARÉ DE L'APPÉTIT LE 2026-08-20 (soir), SUR DEMANDE DU PROPRIÉTAIRE, ET
+ * CE N'EST PAS UN RANGEMENT: c'est un aveu écrit dans la structure du fichier.
+ * L'appétit est une propriété de la PERSONNE — de quel côté de l'incertitude de
+ * Mifflin-St Jeor elle tombe — et il est stable. Ces trois questions-ci sont une
+ * propriété du REPAS: le déjeuner de quelqu'un (une salade froide) et son dîner
+ * n'ont pas le même pain, pas le même fromage, pas le même dessert.
+ *
+ * Les poser UNE FOIS pour la personne force un seul nombre sur deux repas
+ * différents — la MÊME faute que les quatre crans d'activité (une réponse pour
+ * deux axes) et que `COMPOSED_DISH_MEAL_SHARE` lui-même (une moyenne pour tout
+ * le monde). C'est la troisième occurrence du même défaut dans ce chantier.
+ *
+ * ⚠️ ELLES ATTENDENT UNE DÉCISION, ET ELLES SONT EN BAS DE FENÊTRE POUR ÇA. La
+ * forme visée est une question PAR MOMENT, dans le bloc des habitudes
+ * (`household_member_habits` est déjà clavetée `(member_id, slot)` et atteint
+ * déjà le prompt). Ne pas les consolider ici en attendant — et surtout ne pas
+ * les remonter: leur place actuelle dit qu'elles sont provisoires.
+ */
+export function MouthMealComponentsFields(
+  { value, onChange, voice, who }: {
+    value: MouthActivityAndStructure;
+    onChange: (patch: Partial<MouthActivityAndStructure>) => void;
+    voice: MouthVoice;
+    who: string;
+  },
+): React.ReactElement {
+  return (
+      <Field
+        label={t(voiced("household.mouth.meal_structure", voice), { who })}
+        hint={t("household.mouth.meal_structure_hint")}
+      >
+        <div className="flex flex-col gap-2">
+          {([
+            ["takesDessert", "household.mouth.takes_dessert"],
+            ["takesCheese", "household.mouth.takes_cheese"],
+            ["takesBread", "household.mouth.takes_bread"],
+          ] as const).map(([key, label]) => (
+            <div
+              key={key}
+              className="flex flex-wrap items-center justify-between gap-2 rounded-card border border-line-strong bg-paper px-3 py-2.5 text-sm text-ink"
+            >
+              <span>{t(label)}</span>
+              <YesNo
+                name={key}
+                value={value[key]}
+                onChange={(next) => onChange({ [key]: next } as Partial<MouthActivityAndStructure>)}
+              />
+            </div>
+          ))}
+        </div>
+      </Field>
+  );
+}
+
 export function MouthCoreFields(
   props: MouthCoreFieldsProps,
 ): React.ReactElement {
+  // LA VOIX, ET CE QUE `{who}` VAUT — voir `lib/mouthVoice.ts`.
+  const voice: MouthVoice = props.subject.isSelf ? "self" : "other";
+  const who = whoOf(props.draft.firstName, t("household.mouth.who_fallback"));
   const { draft, onChange, subject, todayLocalIso } = props;
   // ⚠️ MISE À JOUR FONCTIONNELLE. React groupe les mises à jour d'un même tick:
   // deux champs touchés coup sur coup partiraient sinon du MÊME état de départ,
@@ -381,10 +751,7 @@ export function MouthCoreFields(
     onChange((prev) => ({ ...prev, ...patch }));
 
   const missing = missingRequiredBlocks(draft);
-  const filled = filledPreferenceBlocks(draft);
   const held = submitIsHeld(draft, todayLocalIso);
-  const paceControl = paceControlFor(draft, todayLocalIso);
-  const targetState = targetWeightStateFor(draft, todayLocalIso);
   const ageState = ageStateOfDraft(draft, todayLocalIso);
 
   return (
@@ -397,11 +764,11 @@ export function MouthCoreFields(
         {/* ── BLOC 1 · QUI C'EST ─────────────────────────────────────────── */}
         <RequiredBlock
           title={t("household.mouth.identity")}
-          hint={t("household.mouth.identity_hint")}
+          hint={t(voiced("household.mouth.identity_hint", voice), { who })}
         >
           <Field
             label={t("setup.people.first_name")}
-            hint={t("setup.mouths.first_name_hint")}
+            hint={t(voiced("setup.mouths.first_name_hint", voice), { who })}
             htmlFor="mouth-first-name"
           >
             <input
@@ -450,7 +817,7 @@ export function MouthCoreFields(
             le poids visé ni le rythme ». La cause du silence n'était pas le
             calcul, c'était l'ordre. Voir `MOUTH_FORM_BLOCKS`. */}
         <RequiredBlock
-          title={t("household.mouth.body")}
+          title={t(voiced("household.mouth.body", voice), { who })}
           hint={t("household.mouth.body_hint")}
         >
           <div className="grid gap-3 sm:grid-cols-3">
@@ -531,13 +898,13 @@ export function MouthCoreFields(
               dirait « facultatif » au-dessus d'un bouton qui retient quand même
               serait une garde désarmée doublée d'un mensonge. */}
           <Field
-            label={t("household.mouth.activity")}
+            label={t(voiced("household.mouth.activity", voice), { who })}
             hint={t("household.mouth.activity_hint")}
           >
             <div
               className="flex flex-col gap-2"
               role="radiogroup"
-              aria-label={t("household.mouth.activity")}
+              aria-label={t(voiced("household.mouth.activity", voice), { who })}
               aria-required={activityIsRequired(draft.goal)}
             >
               {ACTIVITY_LEVELS.map((level) => (
@@ -562,6 +929,30 @@ export function MouthCoreFields(
               ))}
             </div>
           </Field>
+
+          {/* ── ② LES DEUX AXES, DANS LE BLOC DU CORPS ────────────────────
+              Ils y sont parce qu'ils sont la TROISIÈME ENTRÉE DE LA MÊME
+              ÉQUATION: le corps dit combien on pèse, l'activité dit ce qu'on en
+              fait, et `meal_envelope.ts` multiplie les deux. Les ranger dans
+              les préférences en ferait une option, alors que l'écart entre les
+              deux extrêmes du croisement est de ~47 % de l'enveloppe.
+
+              ⛔ ① ET ⑤ NE SONT PLUS ICI (2026-08-20, soir). Ils décrivent une
+              habitude de table, pas un corps: ils vivent dans la fenêtre des
+              préférences (`MouthEatingHabitsFields`). */}
+          <MouthActivityAxesFields
+            voice={voice}
+            who={who}
+            value={{
+              dayActivity: draft.dayActivity,
+              sportFrequency: draft.sportFrequency,
+              takesDessert: draft.takesDessert,
+              takesCheese: draft.takesCheese,
+              takesBread: draft.takesBread,
+              appetite: draft.appetite,
+            }}
+            onChange={(patch) => set(patch)}
+          />
         </RequiredBlock>
 
         {/* ── BLOC 3 · LA DIRECTION — ET SES DEUX CHAMPS DÉPLIABLES ─────── */}
@@ -610,6 +1001,8 @@ export function MouthCoreFields(
             // sur sa page (`/app/household`), et les renommer casserait les
             // tests qui les mesurent sans rien réparer.
             idPrefix="mouth"
+            voice={voice}
+            who={who}
           />
         </RequiredBlock>
 
@@ -628,6 +1021,8 @@ export function MouthCoreFields(
           draft={draft}
           busy={props.busy}
           onOpen={props.onOpenPreferences}
+          voice={voice}
+          who={who}
         />
 
         {/* ── LE REFUS, PUIS CE QUI RETIENT, PUIS LE GESTE ───────────────── */}
@@ -694,9 +1089,51 @@ export function MouthPreferencesFields(
   const { draft, onChange, subject } = props;
   const set = (patch: Partial<MouthFormDraft>) =>
     onChange((prev) => ({ ...prev, ...patch }));
+  const voice: MouthVoice = subject.isSelf ? "self" : "other";
+  const who = whoOf(draft.firstName, t("household.mouth.who_fallback"));
 
-  const toggle = (id: MouthFormBlock) =>
-    props.onOpenBlock(props.openBlock === id ? null : id);
+  /**
+   * LES MOMENTS SUR LESQUELS ON INTERROGE — LE BROUILLON D'ABORD.
+   *
+   * `props.slots` porte la cascade LUE (les siens, sinon la maison, sinon les
+   * six). Dès que la personne coche quelque chose au-dessus, c'est SON choix
+   * en cours qui commande: une question et son effet doivent tenir dans le même
+   * geste, sinon la case cochée n'a l'air de rien faire.
+   */
+  // ⛔ `[]` COMPTE COMME `null`, ET C'EST UN DÉFAUT MESURÉ DANS L'UI ────────
+  // Le titulaire n'avait AUCUNE ligne « ce qu'il mange déjà », là où une bouche
+  // en avait six. Constaté au navigateur le 2026-08-19 sur un onboarding
+  // complet, et l'utilisateur l'avait vu avant moi: « je comprends pas pourquoi
+  // c'est pas pareil que le maître à ce niveau-là ».
+  //
+  // La cause: son brouillon est semé depuis `plan.eatingRhythm`, qui vaut un
+  // TABLEAU VIDE tant que la maison n'a rien déclaré — pas `null`. Le filtre
+  // rendait donc « zéro moment déclaré » au lieu de « rien de déclaré », et la
+  // section se vidait entièrement. Une bouche, elle, part de `null` et tombait
+  // sur le repli.
+  //
+  // Les deux disent la même chose et doivent se lire pareil: `habitSlotsFor`
+  // fait déjà cette égalité côté cascade lue, elle manquait ici.
+  const declaredSlots: readonly EatingOccasion[] =
+    draft.rhythm === null || draft.rhythm.length === 0
+      ? props.slots
+      : EATING_OCCASIONS.filter((s) => draft.rhythm!.some((r) => r.slot === s));
+  /**
+   * ── ⛔ IL N'Y A PLUS DE « VOIR LES N AUTRES MOMENTS » ────────────────────
+   * Le contrôle a vécu quelques heures le 2026-08-19. Il existait pour qu'une
+   * ligne d'habitude ne disparaisse pas en silence quand on décoche un moment
+   * au-dessus — une inquiétude légitime, et fausse en pratique:
+   *
+   *   · il ne s'affichait QUE sur une bouche dont le rythme est déclaré, jamais
+   *     sur la carte du maître (qui n'a rien déclaré, donc rien de caché). Deux
+   *     fiches identiques ne se ressemblaient plus, sans raison lisible;
+   *   · et ce qu'il « révélait » sont des moments dont la personne vient de
+   *     dire qu'ils n'existent pas. Proposer de les rouvrir, c'est proposer de
+   *     répondre à une question qu'on a retirée soi-même.
+   *
+   * La section suit donc les moments déclarés, point — et la liste de cases
+   * juste au-dessus est ce qui les change.
+   */
 
   return (
     <div className="space-y-4">
@@ -704,169 +1141,351 @@ export function MouthPreferencesFields(
         {t("household.mouth.preferences_intro")}
       </p>
 
-        {/* ── BLOC 4 · CE QU'ELLE MANGE DÉJÀ · sautable ──────────────────── */}
-        <Foldable
-          title={t("household.mouth.habits")}
-          hint={t("household.mouth.habits_hint")}
-          open={props.openBlock === "habits" || shakerIsForeground(draft.goal)}
-          onToggle={() => toggle("habits")}
-        >
-          {/* ⚠️ LES LIGNES PAR MOMENT VIVENT SUR `household_member_habits`,
-              clé `member_id`. Un compte solo n'a pas de ligne de foyer: les
-              montrer chez lui promettrait une saisie qui n'irait nulle part.
-              Le shaker, lui, reste — il est clé sur `user_id`. */}
-          {/* UNE HABITUDE DIT UNE TENDANCE QUE LA COMPOSITION CONTOURNE, pas
-              une quantité qui remplace un repas. On ne demande donc NI
-              quantité NI aliment résolu: « une pomme » n'a ni l'un ni l'autre,
-              et lui en inventer écrirait un fait que personne n'a pesé.
-              Le cas qui a ouvert le chantier: sept matins d'œufs brouillés
-              servis à une femme qui mange une pomme — personne ne le lui avait
-              demandé. */}
-          {(props.memberScoped ? EATING_OCCASIONS : []).map((slot) => (
-            <Field
-              key={slot}
-              label={mealCopy(`meals.slot.${slot}` as "meals.slot.breakfast")}
-              htmlFor={`mouth-habit-${slot}`}
-              className="mb-0"
-            >
-              <input
-                id={`mouth-habit-${slot}`}
-                type="text"
-                maxLength={120}
-                placeholder={t("household.mouth.habit_placeholder")}
-                value={draft.habits[slot] ?? ""}
-                onChange={(e) =>
-                  set({ habits: { ...draft.habits, [slot]: e.target.value } })}
-                className={inputClass}
-              />
-            </Field>
-          ))}
+      {/* ═══ L'ORDRE DES SECTIONS EST UNE DÉCISION, PAS UNE MISE EN PAGE ═══
+          Il va du plus EXCLUANT au plus informatif, et chaque cran contient le
+          suivant:
 
-          {/* ── LE SHAKER ────────────────────────────────────────────────────
-              ⚠️ IL N'EXISTE QUE POUR UNE BOUCHE QUI A UN COMPTE, et ce n'est
-              pas un oubli: `fixed_intakes` vit dans
-              `student_goals.practical_constraints`, donc sur `user_id`, et la
-              lane foyer passe `fixedIntakes: []` EN DUR. Le montrer à une
-              bouche sans compte serait montrer un contrôle qui échoue à tous
-              les coups — « pire qu'un contrôle absent, parce qu'il promet ».
-              Le trou appartient à L7/L8 (le lecteur vit dans le prompt). */}
-          {subject.hasAccount ? (
-            <ShakerFields
-              shaker={draft.shaker}
-              foreground={shakerIsForeground(draft.goal)}
-              onChange={(next) => set({ shaker: next })}
-            />
-          ) : null}
-        </Foldable>
+            1. LE RÉGIME écarte des familles entières d'aliments. Le poser en
+               dernier ferait remplir des dégoûts sur des aliments qu'on ne
+               servira de toute façon jamais.
+            2. LES ALLERGIES interdisent — médicales, fail-closed.
+            3. LES DÉGOÛTS évitent — un fait de goût, que le serveur tait.
+            4. COMBIEN DE FOIS ELLE MANGE dimensionne la journée…
+            5. …et c'est ce qui rend la dernière section lisible: on ne demande
+               « qu'est-ce qu'elle mange déjà » QUE sur les moments qui
+               existent. Cette dépendance est la raison de l'ordre, pas un
+               goût: l'inverse posait six questions à quelqu'un qui mange deux
+               fois.
 
-        {/* ── BLOC 5 · LES ALLERGIES · sautable mais fail-closed ─────────── */}
-        <Foldable
-          title={t("setup.mouths.allergies")}
-          hint={t("setup.people.allergies_hint")}
-          open={props.openBlock === "allergies"}
-          onToggle={() => toggle("allergies")}
-        >
-          <div className="flex flex-wrap gap-2">
-            {ALLERGEN_OPTIONS.map((option) => {
-              const on = draft.allergies.includes(option.slug);
-              return (
-                <Button
-                  key={option.slug}
-                  variant={on ? "primary" : "secondary"}
-                  size="sm"
-                  onClick={() =>
-                    set({
-                      allergies: on
-                        ? draft.allergies.filter((s) => s !== option.slug)
-                        : [...draft.allergies, option.slug],
-                      // COCHER UN ALLERGÈNE LÈVE « rien ». Les deux ensemble
-                      // sont un état contradictoire que la base n'a pas à
-                      // arbitrer.
-                      allergiesNone: false,
-                    })}
-                >
-                  {allergenLabel(option.slug)}
-                </Button>
-              );
-            })}
-          </div>
-          {/* « RIEN » EST UNE RÉPONSE, distincte de « personne n'a demandé ».
-              Sans ce bouton, un bloc sauté et un bloc rempli d'un « non »
-              seraient le même état en base. */}
-          <Button
-            variant={draft.allergiesNone ? "primary" : "secondary"}
-            size="sm"
-            onClick={() =>
-              set({
-                allergiesNone: !draft.allergiesNone,
-                allergies: draft.allergiesNone ? draft.allergies : [],
-              })}
+          Ordre demandé et arbitré par l'utilisateur le 2026-08-19. */}
+
+      {/* ── 1 · LE RÉGIME ────────────────────────────────────────────────────
+          ⚠️ IL EST MONTRÉ À TOUT LE MONDE DEPUIS LE 2026-08-19, et il ne
+          l'était pas: la ligne portait `subject.hasAccount ? null : (…)`, au
+          motif que `keel_household_set_member_diet` refuse `has_account`. Le
+          motif est juste et ne dit rien de l'ÉCRAN: le régime de quelqu'un qui
+          a un compte existe, il vit simplement dans une autre table
+          (`student_safety_constraints`, via `saveOwnDiet`) — et cet écrivain-là
+          est branché depuis toujours sur ce même champ de brouillon. Le cacher
+          faisait donc que le titulaire, seul de la maison, ne voyait nulle part
+          la question qui écarte le plus d'aliments; il devait la retrouver deux
+          écrans plus loin. C'est l'inverse de la règle de la fenêtre — « sans
+          quoi celui qui tient la maison serait le seul dont on ne sait rien ».
+
+          ⚠️ CE QUI RESTE VRAI: l'écrivain n'est pas le même des deux côtés.
+          C'est à l'appelant de le savoir, et les deux le savent déjà. */}
+      <Section
+        title={t(voiced("household.mouth.diet", voice), { who })}
+        hint={t("household.mouth.diet_hint")}
+      >
+        <Field label={t(voiced("household.mouth.diet", voice), { who })} htmlFor="mouth-diet">
+          <select
+            id="mouth-diet"
+            value={draft.diet}
+            onChange={(e) => set({ diet: e.target.value })}
+            className={inputClass}
           >
-            {t("setup.people.allergies_none")}
-          </Button>
-        </Foldable>
+            <option value="">{t("household.mouth.diet_unset")}</option>
+            {DIET_ANSWERS.map((d) => (
+              <option key={d} value={d}>
+                {t(`setup.people.diet_${d}` as "setup.people.diet_omnivore")}
+              </option>
+            ))}
+          </select>
+        </Field>
+      </Section>
 
-        {/* ── BLOC 6 · SES GOÛTS, SON RÉGIME · sautable ────────────────────
-            ⚠️ LES DEUX SONT CLÉS SUR `member_id` — `household_food_restrictions`
-            pour les dégoûts, `keel_household_set_member_diet` pour le régime.
-            Sans ligne de foyer, ce bloc entier n'a aucun écrivain: on le retire
-            plutôt que de rendre trois contrôles qui échouent à tous les
-            coups. */}
-        {props.memberScoped ? (
-        <Foldable
-          title={t("household.mouth.tastes")}
-          hint={t("household.mouth.tastes_hint")}
-          open={props.openBlock === "tastes"}
-          onToggle={() => toggle("tastes")}
+      {/* ── ⑤ L'APPÉTIT, ET LUI SEUL ──────────────────────────────────
+          ⛔ JUSTE SOUS « COMMENT {who} MANGE » — LA SECTION DU RÉGIME, ET
+          C'EST UNE DEMANDE EXPLICITE DU PROPRIÉTAIRE (2026-08-20). Elles y sont
+          parce que c'est la MÊME question sous trois angles: ce qu'elle
+          s'interdit (le régime), de quel côté de la formule elle tombe
+          (l'appétit). Les poser en tête de fenêtre — ou plus bas, sous les
+          habitudes par moment — les séparait de ce qu'elles précisent.
+
+          ⛔ ① N'EST PLUS ICI: elle est descendue TOUT EN BAS, dans son propre
+          bloc, parce qu'elle attend une décision de forme (par personne ou par
+          moment). Voir `MouthMealComponentsFields`.
+
+          ⚠️ POSÉES DEUX FOIS AU MAUVAIS ENDROIT AVANT D'ARRIVER ICI: en tête de
+          fenêtre, puis sous le bloc des habitudes. « Comment {who} mange » est
+          le titre de la section du RÉGIME, pas de celle des habitudes — les
+          deux se lisent pareil dans un fichier et pas du tout à l'écran.
+
+          ⚠️ ELLES ONT BESOIN D'UN CORPS POUR AGIR, et c'est pour ça qu'elles ne
+          bloquent rien: sans taille/poids/sexe, `mouthTargetKcal` rend
+          `no_body`, le facteur vaut 1, et ni l'une ni l'autre n'a le moindre
+          effet. Les exiger ici ferait un mur devant deux champs qui, eux, sont
+          exigés ailleurs.
+
+      */}
+      <MouthAppetiteFields
+        voice={voice}
+        who={who}
+        value={{
+          dayActivity: draft.dayActivity,
+          sportFrequency: draft.sportFrequency,
+          takesDessert: draft.takesDessert,
+          takesCheese: draft.takesCheese,
+          takesBread: draft.takesBread,
+          appetite: draft.appetite,
+        }}
+        onChange={(patch) => set(patch)}
+      />
+
+      {/* ── 2 · LES ALLERGIES · fail-closed ──────────────────────────────── */}
+      <Section
+        title={t(voiced("setup.mouths.allergies", voice), { who })}
+        hint={t("setup.people.allergies_hint")}
+      >
+        <div className="flex flex-wrap gap-2">
+          {ALLERGEN_OPTIONS.map((option) => {
+            const on = draft.allergies.includes(option.slug);
+            return (
+              <Button
+                key={option.slug}
+                variant={on ? "primary" : "secondary"}
+                size="sm"
+                onClick={() =>
+                  set({
+                    allergies: on
+                      ? draft.allergies.filter((s) => s !== option.slug)
+                      : [...draft.allergies, option.slug],
+                    // COCHER UN ALLERGÈNE LÈVE « rien ». Les deux ensemble
+                    // sont un état contradictoire que la base n'a pas à
+                    // arbitrer.
+                    allergiesNone: false,
+                  })}
+              >
+                {allergenLabel(option.slug)}
+              </Button>
+            );
+          })}
+        </div>
+        {/* « RIEN » EST UNE RÉPONSE, distincte de « personne n'a demandé ».
+            Sans ce bouton, une section sautée et une section remplie d'un
+            « non » seraient le même état en base. */}
+        <Button
+          variant={draft.allergiesNone ? "primary" : "secondary"}
+          size="sm"
+          onClick={() =>
+            set({
+              allergiesNone: !draft.allergiesNone,
+              allergies: draft.allergiesNone ? draft.allergies : [],
+            })}
         >
-          {/* ⚠️ CE BLOC VIT SUR LA LIGNE MEMBRE, PAS SUR `food_preferences`.
-              Celle-là est indexée sur `user_id` — donc INATTEIGNABLE pour une
-              bouche sans compte, c'est-à-dire pour un enfant, le cas nominal
-              du foyer. Les dégoûts partent dans
-              `household_food_restrictions` (clé `member_id`, comme les
-              allergies et les habitudes), qui est exactement la table du
-              « pas de champignons pour Léa ».
+          {t("setup.people.allergies_none")}
+        </Button>
+      </Section>
 
-              ⚠️ ET CE N'EST PAS UNE ALLERGIE. Deux tables, deux natures: une
-              allergie est MÉDICALE et rejoint l'union de sécurité fail-closed;
-              un dégoût est un fait de foyer dont le verrou serveur TAIT le
-              pourquoi. Les fondre promettrait une garde de sécurité sur une
-              préférence. */}
+      {/* ── 3 · CE QU'ELLE N'AIME PAS ────────────────────────────────────────
+          ⚠️ CE N'EST PAS UNE ALLERGIE, et la séparation d'avec la section du
+          dessus est le point. Deux tables, deux natures: une allergie est
+          MÉDICALE et rejoint l'union de sécurité fail-closed; un dégoût est un
+          fait de foyer dont le verrou serveur TAIT le pourquoi. Les fondre
+          promettrait une garde de sécurité sur une préférence. Elles étaient
+          dans le même bloc replié que le régime — donc indistinctes une fois
+          fermé.
+
+          ⚠️ ET ÇA VIT SUR LA LIGNE MEMBRE, pas sur `food_preferences`:
+          celle-là est indexée sur `user_id`, donc INATTEIGNABLE pour une bouche
+          sans compte — c'est-à-dire pour un enfant, le cas nominal du foyer. */}
+      {props.memberScoped ? (
+        <Section
+          title={t(voiced("household.mouth.tastes", voice), { who })}
+          hint={t(voiced("household.mouth.tastes_hint", voice), { who })}
+        >
           <DislikeFields
             dislikes={draft.dislikes}
             onChange={(next) => set({ dislikes: next })}
           />
+        </Section>
+      ) : null}
 
-          {/* LE RÉGIME (FF-042) — POUR UNE BOUCHE SANS COMPTE SEULEMENT. La
-              base refuse `has_account`: le régime de quelqu'un qui a un compte
-              vit dans SON « about you », et le roster ne lit pas la colonne
-              pour lui. */}
-          {subject.hasAccount ? null : (
-            <Field label={t("household.mouth.diet")} htmlFor="mouth-diet">
-              <select
-                id="mouth-diet"
-                value={draft.diet}
-                onChange={(e) => set({ diet: e.target.value })}
-                className={inputClass}
-              >
-                <option value="">{t("household.mouth.diet_unset")}</option>
-                {DIET_ANSWERS.map((d) => (
-                  <option key={d} value={d}>
-                    {t(`setup.people.diet_${d}` as "setup.people.diet_omnivore")}
-                  </option>
-                ))}
-              </select>
-            </Field>
-          )}
-        </Foldable>
+      {/* ── 4 · COMBIEN DE FOIS ELLE MANGE, ET QUAND ────────────────────────
+          ⚠️ CETTE QUESTION VIVAIT À L'ÉTAPE 3, DEUX ÉCRANS PLUS LOIN, et c'est
+          ce qui rendait la section du dessous absurde: on demandait ce que
+          quelqu'un mange à six moments sans lui avoir demandé combien de fois
+          il mange. Déplacée ici le 2026-08-19, JUSTE AU-DESSUS de ce qu'elle
+          dimensionne — la même règle que le poids visé sous la direction qui
+          le débloque.
+
+          ⛔ NE RIEN COCHER N'EST PAS « ELLE NE MANGE JAMAIS ». C'est « comme la
+          maison » (`null`), le repli documenté de la ligne membre, et la base
+          refuse de toute façon un tableau vide (`empty_rhythm`). La phrase sous
+          la liste le DIT, sinon une rangée décochée se lit comme un oubli. */}
+      {props.memberScoped ? (
+        <Section
+          title={t(voiced("household.mouth.rhythm", voice), { who })}
+          hint={t(voiced("household.mouth.rhythm_hint", voice), { who })}
+        >
+          <ul className="space-y-2">
+            {EATING_OCCASIONS.map((slot) => {
+              const on = (draft.rhythm ?? []).some((r) => r.slot === slot);
+              return (
+                <li
+                  key={slot}
+                  className={`rounded-card border px-3 py-2 ${
+                    on ? "border-ink bg-fig-50" : "border-line"
+                  }`}
+                >
+                  {/* `accent-ink`, ET CE N'EST PAS DÉCORATIF: sans lui, une case
+                      cochée prend la couleur d'accent du SYSTÈME — bleue sur
+                      les réglages par défaut de macOS et de Windows. */}
+                  <label className="flex cursor-pointer items-center gap-2.5">
+                    <input
+                      id={`mouth-rhythm-${slot}`}
+                      type="checkbox"
+                      className="h-4 w-4 shrink-0 accent-ink"
+                      checked={on}
+                      disabled={props.busy}
+                      onChange={() => {
+                        const current = draft.rhythm ?? [];
+                        const next: EatingOccasionSlot[] = on
+                          ? current.filter((r) => r.slot !== slot)
+                          : [...current, { slot, size: null }];
+                        // ⛔ LE VIDE REDEVIENT `null`. Voir la note du champ:
+                        // décocher le dernier moment veut dire « finalement,
+                        // comme la maison », pas « elle ne mange jamais ».
+                        set({
+                          rhythm: next.length === 0
+                            ? null
+                            : EATING_OCCASIONS
+                              .filter((s) => next.some((r) => r.slot === s))
+                              .map((s) => ({ slot: s, size: null })),
+                        });
+                      }}
+                    />
+                    <span className="text-sm font-medium text-ink">
+                      {mealCopy(`meals.slot.${slot}` as "meals.slot.breakfast")}
+                    </span>
+                  </label>
+                </li>
+              );
+            })}
+          </ul>
+          {draft.rhythm === null ? (
+            <p className="text-xs leading-5 text-ink-soft">
+              {t(voiced("household.mouth.rhythm_house", voice), { who })}
+            </p>
+          ) : null}
+        </Section>
+      ) : null}
+
+      {/* ── 5 · CE QU'ELLE MANGE DÉJÀ, SUR LES MOMENTS QUI EXISTENT ──────────
+          ⚠️ `props.slots`, JAMAIS `EATING_OCCASIONS`. Voir la note du champ:
+          les six créneaux en dur demandaient à quelqu'un ce qu'il mange à des
+          moments dont il venait de dire qu'ils n'existent pas.
+
+          ⚠️ LES LIGNES PAR MOMENT VIVENT SUR `household_member_habits`, clé
+          `member_id`. Un compte solo n'a pas de ligne de foyer: les montrer
+          chez lui promettrait une saisie qui n'irait nulle part. Le shaker, lui,
+          reste — il est clé sur `user_id`.
+
+          UNE HABITUDE DIT UNE TENDANCE QUE LA COMPOSITION CONTOURNE, pas une
+          quantité qui remplace un repas. On ne demande donc NI quantité NI
+          aliment résolu: « une pomme » n'a ni l'un ni l'autre, et lui en
+          inventer écrirait un fait que personne n'a pesé. Le cas qui a ouvert
+          le chantier: sept matins d'œufs brouillés servis à une femme qui mange
+          une pomme — personne ne le lui avait demandé. */}
+      <Section
+        title={t(voiced("household.mouth.habits", voice), { who })}
+        hint={t(voiced("household.mouth.habits_hint", voice), { who })}
+      >
+        {/* ⚠️ LE BROUILLON GAGNE SUR LA BASE, ET C'EST TOUT L'INTÉRÊT DU
+            DÉPLACEMENT: on décoche « milieu de matinée » juste au-dessus, la
+            ligne disparaît ici DANS LE MÊME GESTE. `props.slots` reste le repli
+            pour qui n'a rien dit (la cascade du moteur — voir `habitSlotsFor`).
+            Sans cette priorité, la question du dessus n'aurait aucun effet
+            visible avant un aller-retour en base. */}
+        {/* ── LES LIGNES ONT LEUR PROPRE RESPIRATION ────────────────────────
+            ⚠️ MESURÉ DEUX FOIS SUR CAPTURE, LE 2026-08-19: « trop serré entre
+            la zone de texte et les plages ». Elles héritaient de l'espacement
+            de la SECTION (20 px) — le même qui sépare deux blocs entiers. Or
+            ici l'étiquette du moment SUIVANT arrive 20 px sous un champ de
+            44 px de haut, et 8 px seulement au-dessus du sien: l'œil groupe
+            par proximité, donc chaque étiquette se lisait comme la légende du
+            champ du DESSUS, et les six lignes formaient un pavé au lieu de six
+            questions.
+
+            ⛔ CE N'EST PAS L'ESPACEMENT DE LA SECTION QU'IL FAUT MONTER: il
+            sert aussi à séparer cette liste du bloc « shaker » en dessous, et
+            l'augmenter partout ferait dériver toutes les autres sections. La
+            liste prend donc son propre conteneur, à 32 px — soit QUATRE fois
+            l'écart étiquette↔champ (8 px). C'est le rapport qui décide de la
+            lecture, pas la valeur absolue: en dessous de 3:1 sur un champ de
+            46 px de haut, l'étiquette se rattache au champ du dessus.
+
+            ⛔ ET `mb-0` EST PARTI DES `Field`: il ne servait à rien (`Field`
+            n'a pas de marge basse par défaut) et il faisait croire, en
+            relecture, que l'espacement se réglait là. */}
+        <div className="space-y-8">
+        {(props.memberScoped ? declaredSlots : []).map((slot) => (
+          <Field
+            key={slot}
+            label={mealCopy(`meals.slot.${slot}` as "meals.slot.breakfast")}
+            htmlFor={`mouth-habit-${slot}`}
+          >
+            <input
+              id={`mouth-habit-${slot}`}
+              type="text"
+              maxLength={120}
+              // ⚠️ UN EXEMPLE PAR MOMENT. Le `Record` complet de
+              // `HABIT_PLACEHOLDERS` refuse de compiler si un septième moment
+              // arrivait sans le sien — la même garde que `ACTIVITY_KEYS`.
+              placeholder={t(HABIT_PLACEHOLDERS[slot])}
+              value={draft.habits[slot] ?? ""}
+              onChange={(e) =>
+                set({ habits: { ...draft.habits, [slot]: e.target.value } })}
+              className={inputClass}
+            />
+          </Field>
+        ))}
+        </div>
+
+
+        {/* ── LE SHAKER ────────────────────────────────────────────────────
+            ⚠️ IL N'EXISTE QUE POUR UNE BOUCHE QUI A UN COMPTE, et ce n'est
+            pas un oubli: `fixed_intakes` vit dans
+            `student_goals.practical_constraints`, donc sur `user_id`, et la
+            lane foyer passe `fixedIntakes: []` EN DUR. Le montrer à une
+            bouche sans compte serait montrer un contrôle qui échoue à tous
+            les coups — « pire qu'un contrôle absent, parce qu'il promet ».
+            Le trou appartient à L7/L8 (le lecteur vit dans le prompt). */}
+        {/* ── ⛔ PLUS DE CONDITION `hasAccount` (2026-08-19) ────────────────
+            Elle était juste tant que `fixed_intakes` n'existait que sur
+            `user_id`: une bouche sans compte n'avait nulle part où le ranger,
+            et le bloc aurait écrit son shaker sur la ligne du MAÎTRE.
+            `household_members.fixed_intakes` a fermé ce trou (migration
+            `20260819170000`), et le moteur lit les deux stocks.
+
+            ⚠️ CE QUI DÉCIDE MAINTENANT EST LE PORT, pas le compte: `null` veut
+            dire « cet appelant n'a pas d'endroit où écrire » — c'est le cas de
+            la fiche d'AJOUT, dont la ligne n'existe pas encore. Un contrôle
+            sans écrivain reste pire qu'un contrôle absent. */}
+        {props.onSaveShaker !== null ? (
+          <ShakerFields
+            shaker={draft.shaker}
+            foreground={shakerIsForeground(draft.goal)}
+            onChange={(next) => set({ shaker: next })}
+            onSave={props.onSaveShaker}
+            busy={props.busy}
+            voice={voice}
+            who={who}
+          />
         ) : null}
+      </Section>
 
+      {/* ⛔ « Fermer cette fenêtre garde ce que tu as tapé » A ÉTÉ RETIRÉ LE
+          2026-08-19. La phrase existait pour rassurer sur une CROIX de
+          fermeture; le bouton « Terminé » juste en dessous dit la même chose en
+          se laissant cliquer, et deux façons de dire « c'est gardé » font
+          douter qu'il le soit.
 
-      {/* CE QUI SE PASSE À LA FERMETURE, DIT AVANT DE FERMER. */}
-      <p className="rounded-card border border-line-strong bg-paper-2 p-3 text-xs leading-5 text-ink-soft">
-        {t("household.mouth.preferences_kept")}
-      </p>
-      <div className="flex flex-wrap items-center gap-3">
+          ⚠️ ET LE BOUTON EST CENTRÉ: c'est le seul geste de fin de la fenêtre,
+          donc il ne s'aligne sur rien d'autre. Collé à gauche sous une colonne
+          de sections, il se lisait comme le bouton d'une de ces sections. */}
+      <div className="flex justify-center pt-2">
         <Button variant="secondary" disabled={props.busy} onClick={props.onClose}>
           {t("household.mouth.preferences_done")}
         </Button>
@@ -904,11 +1523,14 @@ export function MouthPreferencesFields(
  * raison.
  */
 export function TargetAndPaceFields(
-  { draft, onChange, todayLocalIso, idPrefix }: {
+  { draft, onChange, todayLocalIso, idPrefix, voice, who }: {
     draft: MouthFormDraft;
     onChange: React.Dispatch<React.SetStateAction<MouthFormDraft>>;
     todayLocalIso: string;
     idPrefix: string;
+    /** REQUIS, même raison que partout ailleurs sur cette fiche. */
+    voice: MouthVoice;
+    who: string;
   },
 ): React.ReactElement | null {
   const set = (patch: Partial<MouthFormDraft>) =>
@@ -920,7 +1542,15 @@ export function TargetAndPaceFields(
             <div className="space-y-4 border-t border-line pt-4">
               <Field
                 label={t("household.mouth.target_weight")}
-                hint={t("household.mouth.target_weight_hint")}
+                // ⛔ LA SECONDE SURFACE DU LOT `L3` — et la plus explicite des
+                // deux. `household.mouth.target_weight_hint` disait « Avec le
+                // rythme ci-dessous, il donne une date d'arrivée. » Retirer le
+                // nombre de semaines en la laissant aurait donné le pire des
+                // deux états: un écran qui ANNONCE une date et n'en donne
+                // aucune. La clé i18n reste en place, elle n'est plus lue.
+                hint={TARGET_WEIGHT_HINT_COPY[
+                  uiLocale() === "fr" ? "fr" : "en"
+                ]}
                 // ⚠️ LE REFUS EST RENDU À CÔTÉ DU CHAMP, ET C'EST LE CONTRAT DE
                 // PASSATION DU SOCLE. Trois fois dans `SetupPage`, un refus
                 // rendu loin du geste s'est lu comme un bouton mort.
@@ -969,7 +1599,7 @@ export function TargetAndPaceFields(
               {paceControl.kind === "slider" ? (
                 <Field
                   label={t("household.mouth.pace")}
-                  hint={t("household.mouth.pace_hint")}
+                  hint={t(voiced("household.mouth.pace_hint", voice), { who })}
                   htmlFor={`${idPrefix}-pace`}
                 >
                   <input
@@ -1020,28 +1650,75 @@ export function TargetAndPaceFields(
                       une information sur le contrôle: le peindre en alerte
                       ferait lire « tu fais quelque chose de dangereux » à
                       quelqu'un qui a simplement poussé un curseur. */}
-                  {paceControl.saturation !== null ? (
-                    <p className="mt-2 rounded-card border border-line-strong bg-paper-2 p-3 text-xs leading-5 text-ink-soft">
-                      {PACE_SATURATION_LABELS[paceControl.saturation][
-                        uiLocale() === "fr" ? "fr" : "en"
-                      ]}
-                    </p>
-                  ) : null}
-                  {/* LA DATE D'ARRIVÉE — ce qui rend l'objectif réel au lieu
-                      d'abstrait. `null` = on n'affiche rien; « tu y es dans 0
-                      semaine » et « ce rythme ne mène nulle part » ne se disent
-                      pas de la même façon. */}
-                  {targetState.kind === "accepted" && targetState.weeks !== null
+                  {/* ⛔ LA PHRASE DE SATURATION N'EST PLUS RENDUE (2026-08-19).
+                      « À partir de ce cran, l'assiette ne change plus… »
+                      décrivait le comportement INTERNE du plafond à quelqu'un
+                      qui pousse un curseur déjà borné par ce même plafond: le
+                      contrôle ne monte pas plus haut, ce qui est l'information
+                      — la phrase ne faisait que la répéter en trente mots.
+
+                      ⚠️ `PACE_SATURATION_LABELS` RESTE dans le module moteur,
+                      avec ses tests: c'est l'AFFICHAGE qui part, pas la
+                      décision. Le jour où un écran veut l'expliquer, le texte
+                      est là et il est traduit. */}
+                  {/* ⛔ LA DATE D'ARRIVÉE EST PARTIE (lot `L3`, 2026-08-22),
+                      ET CE N'EST PAS UN SILENCE. Cette place affichait « About
+                      12 weeks at this pace. ». Mesuré le même jour sur les cas
+                      de design: l'écart quotidien prescrit vaut 495 kcal/j et
+                      notre erreur d'estimation ±580 kcal/j, donc l'écart
+                      RÉELLEMENT exécuté vit dans [-85 … 1075] kcal/j — il
+                      TRAVERSE ZÉRO, et le nombre de semaines réellement
+                      possible allait « de 6 à JAMAIS ». Une fourchette aurait
+                      donc été une seconde promesse, fausse comme la première.
+
+                      ⚠️ LA SURFACE RESTE, SOUS LA MÊME PRÉMISSE — cible
+                      acceptée et curseur vivant. Seul son contenu change: la
+                      direction survit (« vers ce poids »), la raison de
+                      l'absence de date est NOMMÉE, et ce qui donnera le rythme
+                      réel est dit (la balance). Rien de plus: on n'annonce PAS
+                      que le plan suivra les pesées — `L11★` mesure zéro bouche
+                      pesée plus d'une fois, et aucun écrivain ne propage.
+
+                      ⚠️ LA PHRASE VIENT DU MODULE, DANS LES DEUX LANGUES, ET
+                      ELLE N'EST PAS RÉÉCRITE ICI — même règle que
+                      `PACE_WARNING_LABELS` juste au-dessus. Elle n'a donc
+                      AUCUNE clé i18n: `arrivalHorizon.ts` porte son propre
+                      catalogue, et sa garde refuse tout chiffre et toute unité
+                      de calendrier dans les deux langues. */}
+                  {targetState.kind === "accepted" &&
+                      targetState.horizon !== null
                     ? (
                       <p className="mt-2 text-sm text-ink-soft">
-                        {t("household.mouth.arrival", {
-                          weeks: targetState.weeks,
-                        })}
+                        {ARRIVAL_HORIZON_COPY[targetState.horizon][
+                          uiLocale() === "fr" ? "fr" : "en"
+                        ]}
                       </p>
                     )
                     : null}
                 </Field>
               ) : null}
+      {/* ── ① CE QU'IL Y A D'AUTRE DANS L'ASSIETTE — EN DERNIER, ET EN SURSIS
+          ⛔ SA PLACE DIT SON STATUT. Elle est ici, seule, en bas de fenêtre,
+          parce qu'elle attend une décision de forme: posée UNE FOIS pour la
+          personne (aujourd'hui) ou PAR MOMENT (la forme visée — le déjeuner et
+          le dîner de quelqu'un n'ont pas le même pain). Tant que la décision
+          n'est pas prise, elle ne se mélange à rien: un bloc à elle, que
+          personne ne consolide par erreur. */}
+      <div>
+        <MouthMealComponentsFields
+          voice={voice}
+          who={who}
+          value={{
+            dayActivity: draft.dayActivity,
+            sportFrequency: draft.sportFrequency,
+            takesDessert: draft.takesDessert,
+            takesCheese: draft.takesCheese,
+            takesBread: draft.takesBread,
+            appetite: draft.appetite,
+          }}
+          onChange={(patch) => set(patch)}
+        />
+      </div>
             </div>
   );
 }
@@ -1064,11 +1741,48 @@ export function TargetAndPaceFields(
  * très bien en prendre un, et ne pas le demander le rendrait invisible au
  * calcul.
  */
+/**
+ * L'APPORT CHIFFRÉ — UN OBJET, PAS UNE SUITE DE CHAMPS.
+ *
+ * ── ⚠️ REFAIT LE 2026-08-19, SUR UN SIGNALEMENT DE COMPRÉHENSION ──────────
+ * « La partie ajouter un shaker, on ne comprend pas […] refais la partie UI
+ * parce qu'on comprend vraiment pas. » Ce qui ne se comprenait pas, en clair,
+ * et chaque point était une cause distincte:
+ *
+ *   · REPLIÉ, ON NE VOYAIT QU'UN PARAGRAPHE ET UN BOUTON. Rien ne disait ce
+ *     qu'est cette chose ni où elle atterrit — juste une phrase sur la prise de
+ *     poids, suivie d'un bouton de vingt-cinq caractères.
+ *   · DÉPLIÉ, IL N'AVAIT PAS DE CADRE. Les champs tombaient dans le flux, à la
+ *     suite des lignes d'habitudes: on lisait la suite de la section du dessus,
+ *     pas un objet ajouté.
+ *   · LES TROIS NOMBRES N'AVAIENT QUE DES `placeholder`. Le placeholder
+ *     DISPARAÎT dès qu'on tape: trois cases de chiffres sans étiquette, et plus
+ *     aucun moyen de savoir laquelle porte les protéines. C'est le défaut le
+ *     plus coûteux des trois — il produit des données FAUSSES, pas seulement de
+ *     la confusion.
+ *   · ET RIEN NE DISAIT OÙ ÇA S'ENREGISTRE. « Il faut que ça permette
+ *     d'enregistrer, de supprimer. »
+ *
+ * ── ⚠️ CE BLOC N'A TOUJOURS PAS SON PROPRE BOUTON D'ENREGISTREMENT ────────
+ * Et c'est délibéré, pas un raccourci: la fenêtre édite LE MÊME brouillon que
+ * la fiche, et c'est la fiche qui écrit. Un second bouton d'enregistrement sur
+ * les mêmes colonnes est « la garantie qu'un jour l'un des deux cessera
+ * d'écrire ce que l'autre écrit » — le dépôt l'a déjà mesuré sur `MeCard`.
+ * Ce qui manquait n'était donc pas un bouton, c'était la PHRASE: le pied du
+ * cadre dit maintenant par quoi il part. Le retrait, lui, est immédiat et local
+ * — il ne touche que le brouillon.
+ */
 function ShakerFields(
-  { shaker, foreground, onChange }: {
+  { shaker, foreground, onChange, onSave, busy, voice, who }: {
     shaker: ShakerDraft | null;
     foreground: boolean;
     onChange: (next: ShakerDraft | null) => void;
+    /** Enregistre TOUT DE SUITE, sans passer par le Save de la fiche. */
+    onSave: (shaker: ShakerDraft) => void;
+    busy: boolean;
+    /** REQUIS: sans elle, ce bloc reparlerait de « son » shaker au maître. */
+    voice: MouthVoice;
+    who: string;
   },
 ) {
   const empty: ShakerDraft = {
@@ -1078,30 +1792,87 @@ function ShakerFields(
     energyKcalPerServing: "",
     slot: "",
   };
+
+  // ── REPLIÉ: UNE INVITATION ENCADRÉE, PAS UN BOUTON ORPHELIN ──────────────
+  // Le cadre en pointillé dit « il n'y a rien encore ici », exactement comme la
+  // fiche d'ajout d'une personne — un seul idiome dans tout l'entonnoir.
   if (shaker === null) {
     return (
-      <div className="border-t border-line pt-4">
-        <p className="mb-2 text-xs leading-5 text-ink-soft">
+      <div className="rounded-card border border-dashed border-line-strong p-4">
+        <span className="block text-sm font-semibold text-ink">
+          {t(voiced("household.mouth.shaker_title", voice), { who })}
+        </span>
+        <p className="mt-1 text-xs leading-5 text-ink-soft">
           {foreground
             ? t("household.mouth.shaker_foreground")
             : t("household.mouth.shaker_background")}
         </p>
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => onChange(empty)}
-        >
-          {t("household.mouth.shaker_add")}
-        </Button>
+        <div className="mt-3">
+          <Button variant="secondary" size="sm" onClick={() => onChange(empty)}>
+            {t("household.mouth.shaker_add")}
+          </Button>
+        </div>
       </div>
     );
   }
+
   const set = (patch: Partial<ShakerDraft>) => onChange({ ...shaker, ...patch });
+  const complete = shakerIsComplete(shaker);
+  // LES TROIS NOMBRES, DÉCLARÉS UNE FOIS. Le `Record` n'est pas du zèle: il
+  // garantit qu'aucun des trois ne peut être rendu sans son étiquette, ce qui
+  // est très précisément le défaut qu'on referme.
+  const numbers: Array<{
+    id: string;
+    label: string;
+    value: string;
+    onValue: (v: string) => void;
+    min: number;
+  }> = [
+    {
+      id: "mouth-shaker-grams",
+      label: t("household.mouth.shaker_grams"),
+      value: shaker.servingGrams,
+      onValue: (v) => set({ servingGrams: v }),
+      min: 1,
+    },
+    {
+      id: "mouth-shaker-protein",
+      label: t("household.mouth.shaker_protein"),
+      value: shaker.proteinGPerServing,
+      onValue: (v) => set({ proteinGPerServing: v }),
+      min: 0,
+    },
+    {
+      id: "mouth-shaker-kcal",
+      label: t("household.mouth.shaker_kcal"),
+      value: shaker.energyKcalPerServing,
+      onValue: (v) => set({ energyKcalPerServing: v }),
+      min: 0,
+    },
+  ];
+
   return (
-    <div className="space-y-3 border-t border-line pt-4">
+    // ── DÉPLIÉ: UN CADRE PLEIN — « ceci est un objet que tu as ajouté » ─────
+    // Trait plein contre le pointillé de l'invitation, exactement comme une
+    // bouche inscrite contre la fiche d'ajout.
+    <div className="space-y-4 rounded-card border border-line-strong bg-paper p-4">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        {/* SON NOM EN TÊTE, comme une personne inscrite: c'est ce qui dit « ici
+            commence un objet », et ce qui permet de le reconnaître plus tard.
+            Tant qu'il n'est pas nommé, le titre générique tient la place. */}
+        <span className="min-w-0 text-sm font-semibold text-ink">
+          {shaker.label.trim() || t(voiced("household.mouth.shaker_title", voice), { who })}
+        </span>
+        {/* ⚠️ « RETIRER » EST EN TÊTE, PAS AU FOND. Au fond d'un bloc de six
+            champs, il se lisait comme le geste de la SECTION entière. */}
+        <Button variant="ghost" size="sm" onClick={() => onChange(null)}>
+          {t("household.mouth.shaker_remove")}
+        </Button>
+      </div>
+
       <Field
-        label={t("household.mouth.shaker_label")}
-        hint={t("household.mouth.shaker_label_hint")}
+        label={t(voiced("household.mouth.shaker_label", voice), { who })}
+        hint={t(voiced("household.mouth.shaker_label_hint", voice), { who })}
         htmlFor="mouth-shaker-label"
       >
         <input
@@ -1113,55 +1884,85 @@ function ShakerFields(
           className={inputClass}
         />
       </Field>
-      <div className="grid gap-3 sm:grid-cols-3">
-        <input
-          id="mouth-shaker-grams"
-          type="number"
-          inputMode="decimal"
-          min={1}
-          placeholder={t("household.mouth.shaker_grams")}
-          aria-label={t("household.mouth.shaker_grams")}
-          value={shaker.servingGrams}
-          onChange={(e) => set({ servingGrams: e.target.value })}
-          className={`${inputClass} min-w-0`}
-        />
-        <input
-          id="mouth-shaker-protein"
-          type="number"
-          inputMode="decimal"
-          min={0}
-          placeholder={t("household.mouth.shaker_protein")}
-          aria-label={t("household.mouth.shaker_protein")}
-          value={shaker.proteinGPerServing}
-          onChange={(e) => set({ proteinGPerServing: e.target.value })}
-          className={`${inputClass} min-w-0`}
-        />
-        <input
-          id="mouth-shaker-kcal"
-          type="number"
-          inputMode="decimal"
-          min={0}
-          placeholder={t("household.mouth.shaker_kcal")}
-          aria-label={t("household.mouth.shaker_kcal")}
-          value={shaker.energyKcalPerServing}
-          onChange={(e) => set({ energyKcalPerServing: e.target.value })}
-          className={`${inputClass} min-w-0`}
-        />
+
+      {/* ── ⛔ CHAQUE NOMBRE PORTE SON ÉTIQUETTE, ET PAS UN `placeholder` ────
+          Le placeholder disparaît à la première frappe. Trois cases de chiffres
+          côte à côte SANS étiquette, c'est un tableau qu'on ne peut plus relire
+          — et une protéine saisie dans la case des calories est une donnée
+          fausse qui entre ensuite dans un calcul d'énergie avec l'autorité
+          d'une mesure. L'`aria-label` seul ne réparait rien: il ne se VOIT
+          pas. */}
+      <div className="grid gap-4 sm:grid-cols-3">
+        {numbers.map((n) => (
+          <Field key={n.id} label={n.label} htmlFor={n.id}>
+            <input
+              id={n.id}
+              type="number"
+              inputMode="decimal"
+              min={n.min}
+              value={n.value}
+              onChange={(e) => n.onValue(e.target.value)}
+              className={`${inputClass} min-w-0`}
+            />
+          </Field>
+        ))}
       </div>
+
       <p className="text-xs leading-5 text-ink-soft">
         {t("household.mouth.shaker_label_source")}
       </p>
-      {/* CE QUI MANQUE EST DIT ICI, PAS AU SAVE. Un apport déclaré sans ses
-          trois nombres est jeté par `parseFixedIntakes`, et la déclaration
-          disparaîtrait sans un mot. */}
-      {!shakerIsComplete(shaker) ? (
-        <p className="text-xs leading-5 text-amber-900">
-          {t("household.mouth.shaker_incomplete")}
+
+      {/* ⛔ L'AVERTISSEMENT AMBRE A ÉTÉ RETIRÉ LE 2026-08-19. Il disait « il
+          faut un nom et les trois nombres, sinon la ligne est jetée sans un
+          mot » — au-dessus d'une ligne d'état qui dit déjà, sous le bouton,
+          exactement où en est cette déclaration. Deux phrases pour le même
+          fait, dont une en ambre: on lisait un refus là où il n'y en a pas. */}
+      {!complete ? null : (
+        // ── COMPLET: ON RELIT CE QUI PARTIRA ───────────────────────────────
+        // ⚠️ CE RÉCAPITULATIF EST LA SECONDE MOITIÉ DES ÉTIQUETTES. Il rejoue
+        // les trois nombres AVEC leur unité, dans une phrase: c'est ce qui
+        // permet d'attraper une protéine tapée dans la case des calories, que
+        // trois champs remplis ne montrent pas.
+        <p className="rounded-card border border-line-strong bg-paper-2 p-3 text-xs leading-5 text-ink">
+          {t("household.mouth.shaker_summary", {
+            grams: shaker.servingGrams,
+            protein: shaker.proteinGPerServing,
+            kcal: shaker.energyKcalPerServing,
+          })}
         </p>
-      ) : null}
-      <Button variant="ghost" size="sm" onClick={() => onChange(null)}>
-        {t("household.mouth.shaker_remove")}
-      </Button>
+      )}
+
+      {/* ── SON PROPRE BOUTON D'ENREGISTREMENT ─────────────────────────────
+          ⚠️ IL S'ACTIVE DÈS QU'IL Y A UN NOM ET **UNE** DES TROIS MESURES, et
+          c'est la règle demandée: « ça enregistre peu importe si tout est
+          complété, il faut au moins une des 3 mesures ».
+
+          ⛔ MAIS UNE DÉCLARATION INCOMPLÈTE N'EST PAS COMPTÉE, ET L'ÉCRAN NE
+          PEUT PAS LE TAIRE. `parseFixedIntakes` est TOUT-OU-RIEN sur les trois
+          nombres — « une déclaration à moitié lisible n'est pas une
+          déclaration […] ferait perdre la protéine en silence ». Un shaker
+          enregistré avec le seul grammage est donc gardé sur la fiche et JETÉ
+          par le moteur. On enregistre quand même (c'est la demande), et la
+          phrase juste en dessous dit dans quel état il est: gardé, ou compté.
+          Un bouton qui dit « enregistré » sur une ligne que la composition
+          ignore serait le mensonge que ce dépôt passe son temps à fermer. */}
+      <div className="flex flex-wrap items-center gap-3">
+        <Button
+          variant="primary"
+          size="sm"
+          disabled={busy || !shakerCanBeSaved(shaker)}
+          onClick={() => onSave(shaker)}
+        >
+          {t("household.mouth.shaker_save")}
+        </Button>
+      </div>
+      <p className="text-xs leading-5 text-ink-soft">
+        {complete
+          ? t("household.mouth.shaker_counted")
+          : shakerCanBeSaved(shaker)
+          ? t("household.mouth.shaker_kept_not_counted")
+          : t("household.mouth.shaker_needs_one")}
+      </p>
     </div>
   );
 }

@@ -354,6 +354,12 @@ export default function PlanResult(props: PlanResultProps) {
           date={dishDate(group.day, dayDates, props.today)}
           today={props.today}
           preparations={props.preparations}
+          // ⛔ LES PLATS DU PLAN ENTIER, EN PLUS DE CEUX DU GROUPE, ET IL LE
+          // FAUT. La carte de session liste les CONTENANTS qu'elle doit
+          // remplir, et une session du dimanche nourrit des repas du mardi:
+          // `group.dishes` ne contient que le jour rendu, donc elle n'y
+          // trouverait qu'une partie de ce qu'elle a à peser.
+          allDishes={props.dishes}
           cookingSessions={props.cookingSessions}
           // LA VAGUE DU JOUR — jointure par DATE, via `windowDates` et rien
           // d'autre. `dayDates[group.day]` et pas `dishDate(...)`: le repli

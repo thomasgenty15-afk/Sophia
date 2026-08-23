@@ -205,7 +205,17 @@ export default function PlanFeedbackDialog(props: PlanFeedbackDialogProps) {
               par défaut sur ce produit), et les recopier en clés d'écran ferait
               deux tables de la même question — celle qu'on regarde le moins
               garderait l'ancien mot. La langue servie est celle de la page,
-              anglaise pour toute l'app connectée (`catalog.ts`). */}
+              anglaise pour toute l'app connectée (`catalog.ts`).
+
+              ⚠️ ET LE **NOMBRE** D'OPTIONS VIENT DU MODULE AUSSI. `portions`
+              en porte CINQ depuis le 2026-08-19 (l'échelle a gagné un second
+              cran par sens, `way_too_much` / `way_not_enough`), et cet écran
+              n'a pas eu une ligne à changer: il boucle sur
+              `QUESTION_OPTIONS[q]`. Écrire trois boutons à la main ici aurait
+              fait deux listes, et c'est celle-ci — la seule que la personne
+              voit — qui serait restée à trois. `flex-wrap` était déjà là: à
+              320 px, cinq boutons passent à la ligne au lieu de sortir de
+              l'écran, et un bouton hors écran est un bouton absent. */}
           <div className="mt-2 flex flex-wrap gap-2">
             {QUESTION_OPTIONS[q].map((opt) => (
               <Button

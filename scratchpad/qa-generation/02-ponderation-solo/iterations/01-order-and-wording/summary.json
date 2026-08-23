@@ -1,0 +1,33 @@
+{
+  "promptVersion": "meal.en.v14_what_outranks_what",
+  "scenario-1": {
+    "userChars": 11834,
+    "systemChars": 14382,
+    "jsonWordInSystem": true,
+    "jsonWordInUser": true
+  },
+  "scenario-2": {
+    "userChars": 6127,
+    "systemChars": 14382,
+    "jsonWordInSystem": true,
+    "jsonWordInUser": true
+  },
+  "scenario-3": {
+    "userChars": 10897,
+    "systemChars": 14382,
+    "jsonWordInSystem": true,
+    "jsonWordInUser": true
+  },
+  "scenario-4": {
+    "userChars": 9283,
+    "systemChars": 14382,
+    "jsonWordInSystem": true,
+    "jsonWordInUser": true
+  },
+  "scenario-5": {
+    "userChars": 11084,
+    "systemChars": 14382,
+    "jsonWordInSystem": true,
+    "jsonWordInUser": true
+  }
+}

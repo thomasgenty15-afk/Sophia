@@ -52,8 +52,18 @@ import {
 import {
   ACTIVITY_LEVELS,
   type ActivityLevel,
+  APPETITE_LEVELS,
+  type AppetiteLevel,
+  DAY_ACTIVITY_LEVELS,
+  type DayActivityLevel,
   GOAL_TOKENS,
+  SPORT_FREQUENCIES,
+  type SportFrequency,
 } from "../../../../supabase/functions/_shared/keel/tokens.ts";
+import {
+  type HouseholdTradition,
+  parseTraditions,
+} from "../../../../supabase/functions/_shared/keel/household_traditions.ts";
 import {
   type HouseholdPlanTrace,
   readHouseholdPlanTrace,
@@ -696,6 +706,30 @@ export async function removeHouseholdMember(memberId: string) {
 }
 
 /**
+ * DÉFAIRE LE FOYER — LA SORTIE DE LA BRANCHE « ON EST DEUX ».
+ *
+ * ⚠️ CE GESTE EXISTE PARCE QUE L'ENTONNOIR ÉTAIT SANS RETOUR. Sa branche se
+ * dérive du NOMBRE DE BOUCHES (`api/onboarding.ts`, `max(2, …)`): une fois le
+ * foyer créé, elle reste « à deux » même à une seule bouche, l'étape 2 refuse
+ * d'avancer sur `missing_mouths`, et la tuile « Juste moi » de l'étape 1 est
+ * grisée. Rien ne ramenait au solo — ni ici, ni sur `/app/household`, dont le
+ * commentaire du verrou promettait pourtant le geste.
+ *
+ * ⚠️ LA BASE REFUSE TANT QU'IL RESTE QUELQU'UN (`not_alone`), ET C'EST LÀ QUE
+ * VIT LA GARDE. L'écran ne fait que ne pas proposer le bouton: une limite d'UI
+ * n'est pas une limite. Pour défaire un foyer peuplé, on retire les bouches une
+ * par une, chacune derrière sa confirmation.
+ *
+ * Motifs nommés: `not_authenticated`, `no_household`, `not_owner`, `not_alone`
+ * (avec `others`), `household_has_plans`.
+ */
+export async function dissolveHousehold() {
+  const { data, error } = await supabase.rpc("keel_household_dissolve");
+  if (error) throw new Error(error.message);
+  return asResult(data);
+}
+
+/**
  * MA PLACE DANS UN FOYER — ce que le tunnel de suppression de compte doit
  * savoir AVANT de poser sa question (chantier 2, D3).
  *
@@ -813,6 +847,34 @@ export interface MemberBodyView {
    * droit de ne pas répondre un mur devant deux champs qui, eux, sont exigés.
    */
   activityLevel: ActivityLevel | null;
+  /**
+   * ── LES DEUX AXES (2026-08-20) ─────────────────────────────────────────
+   * `null` = pas répondu. `asked` dit si l'écran a DÉJÀ posé les deux
+   * questions à cette fiche — sans lui, « pas posé » et « pas répondu »
+   * rendraient le même vide, et le compteur du moteur mentirait.
+   */
+  dayActivity: DayActivityLevel | null;
+  sportFrequency: SportFrequency | null;
+  activityAxesAsked: boolean;
+  /**
+   * ── LES TROIS CASES DU REPAS (2026-08-20) ─────────────────────────────
+   * ⛔ TRI-ÉTAT. `false` = « non, je n'en prends pas », une réponse qui fait
+   * MONTER la part du plat; `null` = pas répondu, et la moyenne 0,42 reprend
+   * la main. Une case décochée ne peut pas dire les deux.
+   */
+  takesDessert: boolean | null;
+  takesCheese: boolean | null;
+  takesBread: boolean | null;
+  mealStructureAsked: boolean;
+  /**
+   * ⑤ L'APPÉTIT (2026-08-20) — ±10 % sur l'ESTIMATION. `null` = pas répondu.
+   *
+   * ⛔ TRANSITOIRE: le lot ⑦ (boucle de poids) le remplace pour toute bouche
+   * qui a un compte ET une série de pesées. Il ne mourra PAS pour les bouches
+   * sans compte — `student_body_measures` est claveté sur `user_id`.
+   */
+  appetite: AppetiteLevel | null;
+  appetiteAsked: boolean;
 }
 
 export const MEMBER_GENDERS = ["female", "male", "other"] as const;
@@ -876,6 +938,28 @@ export async function loadMemberBodies(): Promise<Map<string, MemberBodyView>> {
       // de quelqu'un ferait peser une réponse qu'il n'a pas donnée. Une valeur
       // illisible doit rendre l'écran vierge, pas une tuile cochée.
       activityLevel: readActivityLevel(r.activity_level),
+      // Même lecture fail-soft que le cran: hors vocabulaire ⇒ `null`, jamais
+      // un repli. Une valeur illisible doit rendre l'écran vierge, pas une
+      // tuile cochée à la place de quelqu'un.
+      dayActivity: (DAY_ACTIVITY_LEVELS as readonly string[])
+          .includes(String(r.day_activity ?? "").trim())
+        ? (String(r.day_activity).trim() as DayActivityLevel)
+        : null,
+      sportFrequency: (SPORT_FREQUENCIES as readonly string[])
+          .includes(String(r.sport_frequency ?? "").trim())
+        ? (String(r.sport_frequency).trim() as SportFrequency)
+        : null,
+      activityAxesAsked: r.activity_axes_asked === true,
+      takesDessert: typeof r.takes_dessert === "boolean" ? r.takes_dessert : null,
+      takesCheese: typeof r.takes_cheese === "boolean" ? r.takes_cheese : null,
+      takesBread: typeof r.takes_bread === "boolean" ? r.takes_bread : null,
+      mealStructureAsked: r.meal_structure_asked === true,
+      // Même lecture fail-soft que les crans: hors vocabulaire ⇒ `null`.
+      appetite: (APPETITE_LEVELS as readonly string[])
+          .includes(String(r.appetite ?? "").trim())
+        ? (String(r.appetite).trim() as AppetiteLevel)
+        : null,
+      appetiteAsked: r.appetite_asked === true,
     });
   }
   return out;
@@ -915,6 +999,31 @@ export async function setMemberBody(
   weightKg: number,
   gender: MemberGender,
   activityLevel: ActivityLevel | null,
+  /**
+   * ── LES DEUX AXES ET LES TROIS CASES (2026-08-20), EN UN SEUL OBJET ────
+   *
+   * ⚠️ REQUIS, comme `activityLevel` au-dessus et pour la MÊME cicatrice: deux
+   * écrans appellent cette porte, et un paramètre facultatif aurait laissé le
+   * second enregistrer un corps complet en effaçant — ou en n'écrivant jamais —
+   * ce que le premier avait collecté.
+   *
+   * ⛔ `axesAsked` / `structureAsked` NE SONT PAS DÉCORATIFS: c'est EUX que la
+   * base lit pour décider d'écrire. Un écran qui ne porte pas les questions
+   * passe `false` et ne touche à rien; un écran qui les porte passe `true` et
+   * écrit ce qu'il a, `null` compris — c'est la seule façon de dé-répondre.
+   */
+  extras: {
+    dayActivity: DayActivityLevel | null;
+    sportFrequency: SportFrequency | null;
+    axesAsked: boolean;
+    takesDessert: boolean | null;
+    takesCheese: boolean | null;
+    takesBread: boolean | null;
+    structureAsked: boolean;
+    /** ⑤ (2026-08-20). `null` = pas répondu ⇒ ×1,00, un neutre vrai. */
+    appetite: AppetiteLevel | null;
+    appetiteAsked: boolean;
+  },
 ) {
   const { data, error } = await supabase.rpc("keel_household_set_member_body", {
     p_member: memberId,
@@ -922,6 +1031,72 @@ export async function setMemberBody(
     p_weight_kg: weightKg,
     p_gender: gender,
     p_activity_level: activityLevel,
+    p_day_activity: extras.dayActivity,
+    p_sport_frequency: extras.sportFrequency,
+    p_activity_axes_asked: extras.axesAsked,
+    p_takes_dessert: extras.takesDessert,
+    p_takes_cheese: extras.takesCheese,
+    p_takes_bread: extras.takesBread,
+    p_meal_structure_asked: extras.structureAsked,
+    p_appetite: extras.appetite,
+    p_appetite_asked: extras.appetiteAsked,
+  });
+  if (error) throw new Error(error.message);
+  return asResult(data);
+}
+
+/**
+ * ③ LES JOURS QUE LE FOYER NE DÉPLACE PAS — LECTURE, POUR SON MAÎTRE SEUL.
+ *
+ * ⚠️ CE N'EST PAS UNE LECTURE DE TABLE. `household_traditions` n'a AUCUN
+ * privilège à `anon` ni `authenticated`, et RLS y est armée sans policy
+ * (`20260820161000`) — parce que les privilèges par défaut de Supabase les
+ * avaient tous donnés, TRUNCATE compris, et que TRUNCATE échappe à RLS.
+ *
+ * Un NON-MAÎTRE reçoit zéro ligne, pas une erreur: une erreur dirait déjà
+ * qu'il y a quelque chose là.
+ */
+export async function loadTraditions(): Promise<HouseholdTradition[]> {
+  const { data, error } = await supabase.rpc("keel_household_traditions");
+  if (error) throw new Error(error.message);
+  // ⛔ LE MÊME PARSEUR QUE LE MOTEUR, pas une seconde lecture. Un écran qui
+  // accepterait un jeton que le serveur refuse afficherait une tradition qui
+  // n'agit sur rien.
+  return parseTraditions(data ?? []);
+}
+
+/**
+ * ③ POSER OU REMPLACER LA TRADITION D'UNE CASE. Compte maître seul.
+ *
+ * Refus nommés: `not_owner`, `bad_weekday`, `bad_slot`, `empty_label`,
+ * `label_too_long`, `too_many_traditions`.
+ */
+export async function setTradition(
+  weekday: string,
+  slot: string,
+  label: string,
+) {
+  const { data, error } = await supabase.rpc("keel_household_set_tradition", {
+    p_weekday: weekday,
+    p_slot: slot,
+    p_label: label,
+  });
+  if (error) throw new Error(error.message);
+  return asResult(data);
+}
+
+/**
+ * ③ RETIRER LA TRADITION D'UNE CASE.
+ *
+ * ⛔ ELLE EST OBLIGATOIRE, ET PAS UN CONFORT. Une tradition sans porte de
+ * retrait est une tradition qu'on ne peut pas avoir posée par erreur: le foyer
+ * qui a tapé « poisson » un vendredi où il n'en mange plus verrouillerait ce
+ * vendredi pour toujours.
+ */
+export async function removeTradition(weekday: string, slot: string) {
+  const { data, error } = await supabase.rpc("keel_household_remove_tradition", {
+    p_weekday: weekday,
+    p_slot: slot,
   });
   if (error) throw new Error(error.message);
   return asResult(data);
@@ -1396,6 +1571,33 @@ export async function generateHouseholdMeal(args: {
    * semaines suivantes, y compris celle où on reçoit du monde.
    */
   cookingShape?: CookingShape | null;
+  /**
+   * ── L'ENVIE TAPÉE POUR CES REPAS-LÀ (LOT D, 2026-08-19) ────────────────
+   *
+   * ⚠️ ELLE MANQUAIT ICI, ET C'ÉTAIT LE DÉFAUT. `MealBuilder` rend le champ
+   * « ce dont ils ont envie pour ces repas » SANS garde de lane: un maître de
+   * foyer le voit, le remplit — et la branche foyer du submit ne le
+   * transmettait pas, parce que cette signature ne l'acceptait pas. Le serveur,
+   * lui, le lit depuis toujours: `body.preferences` est relu TROIS fois dans
+   * `generate-household-meal-v1` (le prompt `:3582`, le compte-rendu FF-061
+   * `:4569`, la colonne écrite `:4976`) et valait `null` sur les trois.
+   *
+   * ⛔ LA JUSTIFICATION ÉCRITE EN FACE ÉTAIT FAUSSE, ET C'EST MESURÉ. Le
+   * commentaire de `api/planDraft.ts` disait que le corps étroit de la lane
+   * foyer « est le contrat » et qu'envoyer les champs de la lane individuelle
+   * « ne les ferait pas lire ». Pour `preferences`, le serveur les lit. Un
+   * commentaire qui explique une absence est une affirmation à vérifier.
+   *
+   * ⚠️ REQUIS ET NULLABLE, jamais optionnel — même arbitrage que
+   * `ComposeDraftInput.cookingShape`, et pour la cicatrice que ce dépôt paie en
+   * boucle: un `?` ici aurait laissé passer un appelant qui l'oublie sans un
+   * mot du compilateur, c'est-à-dire exactement le défaut qu'on ferme.
+   *
+   * `null` = rien n'a été tapé. Le serveur le lit comme « aucune envie », et
+   * `buildMealPrompt` n'écrit alors AUCUNE ligne: le prompt d'un foyer sans
+   * envie reste byte-identique à celui d'hier.
+   */
+  preferences: string | null;
 }): Promise<HouseholdMealResult> {
   const { data, error } = await supabase.functions.invoke("generate-household-meal-v1", {
     body: {
@@ -1416,6 +1618,11 @@ export async function generateHouseholdMeal(args: {
       // fonction edge, et le client ne le réécrit pas. `null` traverse tel
       // quel — le serveur lit `null` comme « rien n'a été demandé ».
       cooking_shape: args.cookingShape ?? null,
+      // L'ENVIE. Même nom que sur la lane individuelle (`preferences`), parce
+      // que c'est le nom que le SERVEUR lit — les deux lanes traversent
+      // `buildMealPrompt`, et un alias ici aurait fabriqué un champ que la
+      // fonction edge ignore poliment.
+      preferences: args.preferences,
     },
   });
   if (error) throw new Error(await namedEdgeRefusal(error) ?? error.message);
@@ -1661,4 +1868,61 @@ export async function loadMemberPersonalPlan(
   const row = (data ?? [])[0] as Record<string, unknown> | undefined;
   if (!row) return null;
   return readHouseholdDishes(row.dishes);
+}
+
+/**
+ * LA DATE DE NAISSANCE D'UNE BOUCHE, RENDUE AU SEUL MAÎTRE DE SON FOYER.
+ *
+ * ── ⚠️ POURQUOI CE N'EST PAS DANS LE ROSTER ──────────────────────────────
+ * `keel_household_roster_for` ne rend JAMAIS la date, seulement un état d'âge:
+ * « le foyer doit savoir qu'il y a un enfant à table, pas son âge ». La règle
+ * protège une bouche des AUTRES bouches — le roster est lisible par tout membre,
+ * adolescent compris. Elle n'a en revanche jamais eu de raison de cacher la date
+ * à la personne QUI L'A TAPÉE, et c'est exactement l'écart que cette porte
+ * ouvre. Signalé le 2026-08-19: la carte affichait « Renseignée » là où elle
+ * pouvait afficher la date, et le champ d'édition restait vide.
+ *
+ * ⛔ NE PAS LA REMPLACER PAR `keel_household_member_birth_date`: celle-là rend
+ * la même valeur SANS AUCUN CONTRÔLE DE PROPRIÉTÉ, et elle est réservée à
+ * `service_role` pour cette raison. L'ouvrir laisserait lire la date de
+ * n'importe quelle bouche de n'importe quel foyer en devinant un uuid.
+ *
+ * ⚠️ `null` COUVRE DEUX CAS, ET C'EST VOULU: « pas de date » et « ça ne te
+ * regarde pas » sont la même réponse. Un refus nommé apprendrait à un appelant
+ * qu'il existe une bouche derrière cet uuid.
+ */
+export async function loadMemberBirthDate(
+  memberId: string,
+): Promise<string | null> {
+  const { data, error } = await supabase.rpc(
+    "keel_household_member_birth_date_for_owner",
+    { p_member: memberId },
+  );
+  if (error) throw new Error(error.message);
+  return typeof data === "string" && data !== "" ? data : null;
+}
+
+/**
+ * LES DATES DE TOUTES LES BOUCHES, EN UNE LECTURE PAR BOUCHE.
+ *
+ * ⚠️ UNE RPC PAR MEMBRE, ET C'EST ASSUMÉ: le foyer plafonne à huit bouches
+ * (`HOUSEHOLD_MAX_MOUTHS`), donc au pire huit appels sur un écran qu'on ouvre
+ * une fois. Une porte « toutes les dates du foyer » aurait rendu, dans un seul
+ * jsonb, exactement ce que le roster refuse de rendre — et elle aurait fini par
+ * être appelée depuis un écran de membre.
+ *
+ * ⛔ UN ÉCHEC NE FAIT PAS TOMBER LA CARTE: on rend la Map partielle. Une date
+ * absente se lit « pas encore renseignée », ce qui est faux mais inoffensif;
+ * une carte qui ne se rend pas, non.
+ */
+export async function loadMemberBirthDates(
+  memberIds: readonly string[],
+): Promise<Map<string, string>> {
+  const out = new Map<string, string>();
+  await Promise.all(memberIds.map(async (id) => {
+    if (!id) return;
+    const date = await loadMemberBirthDate(id).catch(() => null);
+    if (date !== null) out.set(id, date);
+  }));
+  return out;
 }

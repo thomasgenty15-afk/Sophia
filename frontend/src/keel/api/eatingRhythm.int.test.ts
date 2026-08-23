@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 import { parseEatingRhythm } from "./mealGeneration";
 
@@ -76,5 +78,100 @@ describe("parseEatingRhythm — le jumeau de l'écran", () => {
     expect(
       parseEatingRhythm([{ slot: "lunch", size: null }, { slot: "lunch", size: "large" }]),
     ).toEqual([{ slot: "lunch", size: "large" }]);
+  });
+});
+
+// ===========================================================================
+// 2026-08-19 — LE RYTHME N'A QU'UN ÉCRIVAIN, ET COMPOSER N'EN EST PAS UN.
+//
+// ── LE DÉFAUT, MESURÉ EN BASE ─────────────────────────────────────────────
+// L'utilisateur retire le goûter de l'après-midi, vérifie que le retrait
+// tient, vérifie que la grille de l'étape 3 ne le montre plus, compose un
+// plan — et le plan porte des créneaux d'après-midi. Relecture en base juste
+// après: `eating_rhythm` vaut de nouveau `[breakfast, lunch, snack_pm,
+// dinner]`. Ses mots: « il y a un bug à ce niveau-là pour sûr ».
+//
+// La cause: `savePlanAnswers` écrivait `eating_rhythm` depuis `answers`, et le
+// bouton « composer » lui passe l'état React de l'étape 3 — un écran qui NE
+// POSE PLUS la question depuis que la fiche l'a reprise. `TableStep` a été
+// retiré pour qu'il n'y ait pas « deux formulaires sur les mêmes colonnes »;
+// le formulaire est parti, l'écrivain était resté.
+//
+// ⚠️ TESTS DE SOURCE, ET C'EST LE BON OUTIL ICI. Ce qu'on protège n'est pas
+// une valeur calculée mais une FRONTIÈRE D'ÉCRITURE: quelle fonction a le
+// droit de toucher quelle clé. Une assertion de valeur ne verrait pas
+// revenir la clé dans l'autre fonction.
+// ===========================================================================
+
+describe("2026-08-19 · la frontière d'écriture du rythme", () => {
+  const ROOT = resolve(__dirname, "../../../..");
+
+  /**
+   * ⚠️ COMMENTAIRES RETIRÉS — cicatrice `caller-audit-must-strip-comments`.
+   * Ce fichier-ci l'a payée en l'écrivant: la note de `saveEatingRhythm` cite
+   * `cook_days` pour expliquer l'ordre de la journée, et le test a rougi sur un
+   * appelant qui n'existe pas. Un grep naïf compte les morts.
+   */
+  function stripComments(src: string): string {
+    return src
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .split("\n")
+      .map((line) => {
+        const at = line.indexOf("//");
+        if (at < 0) return line;
+        if (at > 0 && line[at - 1] === ":") return line;
+        return line.slice(0, at);
+      })
+      .join("\n");
+  }
+
+  function bodyOf(rel: string, fn: string): string {
+    const src = stripComments(readFileSync(resolve(ROOT, rel), "utf8"));
+    const at = src.indexOf(`export async function ${fn}(`);
+    expect(at, `${fn} est introuvable dans ${rel}`).toBeGreaterThan(-1);
+    // Jusqu'à l'accolade fermante de PREMIER NIVEAU — le corps de CETTE
+    // fonction, et pas le fichier entier, qui contient forcément les deux clés.
+    // ⚠️ PAS « jusqu'au prochain `export` »: le commentaire d'en-tête de la
+    // fonction SUIVANTE serait avalé, et il parle justement de l'autre clé.
+    const rest = src.slice(at);
+    const end = rest.indexOf("\n}\n");
+    expect(end, `la fin de ${fn} est introuvable`).toBeGreaterThan(-1);
+    return rest.slice(0, end);
+  }
+
+  it("⛔ `savePlanAnswers` ne touche PLUS `eating_rhythm`", () => {
+    const body = bodyOf("frontend/src/keel/api/onboarding.ts", "savePlanAnswers");
+    expect(body, "composer réécrit le rythme depuis un écran qui ne le montre pas")
+      .not.toContain("eating_rhythm");
+    // ⚠️ LE CAS QUI PASSE — sans lui, une fonction VIDE passerait ce test.
+    // Elle garde ce que l'étape 3 demande vraiment.
+    expect(body).toContain("cook_days");
+    expect(body).toContain("cooking_time_min");
+    expect(body).toContain("budget_amount");
+  });
+
+  it("⛔ `saveEatingRhythm` est le seul à l'écrire, et il n'écrit que ça", () => {
+    const body = bodyOf("frontend/src/keel/api/onboarding.ts", "saveEatingRhythm");
+    expect(body).toContain("eating_rhythm");
+    // Une seconde clé ici rouvrirait la porte par l'autre côté: un geste qui
+    // ne montre que les moments écraserait le budget ou les jours de cuisine.
+    for (const key of ["cook_days", "cooking_time_min", "budget_amount"]) {
+      expect(body, `${key} n'a rien à faire dans l'écrivain du rythme`)
+        .not.toContain(key);
+    }
+  });
+
+  it("⛔ l'écran n'appelle `saveEatingRhythm` que depuis la fiche", () => {
+    const src = readFileSync(
+      resolve(ROOT, "frontend/src/keel/pages/SetupPage.tsx"),
+      "utf8",
+    );
+    // Une seule fois: l'enregistrement du titulaire. Un second appelant serait
+    // le second formulaire que ce lot vient de retirer.
+    expect(src.split("await saveEatingRhythm(").length - 1).toBe(1);
+    // Et le bouton qui compose ne l'appelle pas — il ne montre pas la question.
+    const compose = src.slice(src.indexOf("function askForDraft("));
+    expect(compose.slice(0, compose.indexOf("\n  }\n")))
+      .not.toContain("saveEatingRhythm");
   });
 });

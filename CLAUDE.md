@@ -4,13 +4,26 @@
 
 > ### Le coach ne produit RIEN de personnel pour un élève.
 > Pas de plan, pas de menu, pas de message, pas de correction. Il écrit une **doctrine** et un
-> **programme** pour toute sa cohorte ; c'est **l'élève** qui compose sa semaine à partir de ça
-> (`student_goals` → `generate-week-plan-v1` → `student_week_plans`). Il n'existe **aucun canal
-> 1:1** coach → élève.
+> **programme** pour toute sa cohorte ; c'est **l'élève** qui compose à partir de ça
+> (`student_goals` → `generate-meal-v1` → `student_generated_meals`, sur une fenêtre de 1 à
+> 7 jours — `MAX_WINDOW_DAYS`). Il n'existe **aucun canal 1:1** coach → élève.
 
 Conséquence immédiate et la plus souvent violée : **aucune copie ne doit faire attendre
 l'élève**. « Ton coach prépare ton plan » est faux. Un écran élève vide porte la sortie vers
 `/app/plan`, où il compose lui-même.
+
+> ⚠️ **La chaîne de la SEMAINE (`generate-week-plan-v1` → `student_week_plans`) a été retirée
+> le 2026-08-19.** Elle n'avait aucun appelant vivant : aucun écran ne pouvait produire une
+> ligne, ni la faire passer en `adopted`. **Ce que ça coûte, écrit ici pour que personne ne le
+> redécouvre** : le produit n'a plus d'objet où une consigne **nomme** la conviction du coach
+> qu'elle applique, et où la base **refuse** la ligne qui ne la nomme pas (le CHECK
+> `student_week_plans_doctrine_traceable_check`). La lane du repas *peut* citer une conviction
+> (`generated_from.belief_keys`, à l'échelle du plan) ; elle n'y est **jamais obligée** et rien
+> ne le vérifie. **La traçabilité par ligne n'existe plus dans le produit.**
+>
+> La table `student_week_plans` et ses **cinq lecteurs restants** sont **gardés exprès** : le
+> retrait s'arrête au producteur. Ne « rebranche » pas un écrivain par symétrie — c'est une
+> décision produit. Détail : **[docs/keel/MODEL.md](docs/keel/MODEL.md)**.
 
 La chaîne de prescription individuelle (`plan_versions`, `/coach/import`, `/coach/templates`)
 existe encore dans le code : elle est **gardée exprès** — c'est le mode 1:1 — et elle **n'est

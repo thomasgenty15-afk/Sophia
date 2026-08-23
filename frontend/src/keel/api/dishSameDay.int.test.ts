@@ -56,15 +56,33 @@ describe("le geste du jour J", () => {
     expect([...SAME_DAY_KINDS]).toEqual(fromEngine);
   });
 
-  it("② le bandeau se lit AVANT le pourquoi et AVANT les ingrédients", () => {
+  /**
+   * ⚠️ CE TEST COMPARAIT AUSSI LA POSITION DU « POURQUOI », ET CE REPÈRE A
+   * DISPARU LE 2026-08-19: `dish.why` n'est plus affiché du tout — décision
+   * explicite, « garde-le mais ne l'affiche pas », le champ reste demandé au
+   * modèle parce qu'il l'aide à composer. Le reste de l'ordre tient: le geste
+   * du jour J se lit avant les ingrédients.
+   */
+  it("② le bandeau se lit AVANT les ingrédients", () => {
     const card = code("frontend/src/keel/components/DishCard.tsx");
     const banner = card.indexOf("{dish.same_day && <SameDayLine");
-    const why = card.indexOf("{dish.why &&");
     const ingredients = card.indexOf("{dish.ingredients.length > 0 &&");
     expect(banner, "le bandeau du jour J n'est plus rendu").toBeGreaterThan(0);
-    expect(banner, "le bandeau est passé sous le pourquoi").toBeLessThan(why);
     expect(banner, "le bandeau est passé sous les ingrédients")
       .toBeLessThan(ingredients);
+  });
+
+  /**
+   * ⛔ ET LE « POURQUOI » NE REVIENT PAS À L'ÉCRAN PAR DISTRACTION.
+   *
+   * Une phrase par plat, toujours de la même matière (« un dîner déjà
+   * portionné rend le soir de cuisine immédiatement praticable »). Retirée le
+   * 2026-08-19. Le champ reste dans le schéma du modèle: c'est le RENDU qui a
+   * été supprimé, et ce test est la seule chose qui empêche de le reposer.
+   */
+  it("⛔ `why` n'est rendu par AUCUNE carte", () => {
+    const card = code("frontend/src/keel/components/DishCard.tsx");
+    expect(card).not.toContain("dish.why");
   });
 
   it("② et il atteint la vue JOUR, qui monte la même carte", () => {

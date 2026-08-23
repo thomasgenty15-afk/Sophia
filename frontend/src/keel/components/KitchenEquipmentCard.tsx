@@ -104,11 +104,20 @@ export default function KitchenEquipmentCard(props: KitchenEquipmentCardProps) {
 
   const loaded = props.practicalConstraints !== null;
 
-  async function save() {
+  /**
+   * ÉCRIT LA SÉLECTION — appelée AU CLIC d'une pastille, pas par un bouton.
+   *
+   * ── ⛔ ELLE PREND LA SÉLECTION EN PARAMÈTRE, ET C'EST OBLIGATOIRE ────────
+   * Au moment du clic, l'état `selection` porte encore la valeur d'AVANT: React
+   * n'a pas re-rendu. Lire l'état ici écrirait donc systématiquement le coup
+   * précédent — un décalage d'un geste, invisible à l'œil et parfaitement
+   * cohérent en apparence.
+   */
+  async function save(next: readonly KitchenTool[]) {
     setError(null);
     setFlash(null);
-    // LE REFUS AVANT LE RÉSEAU, ET SOUS LE BOUTON QUI L'A DÉCLENCHÉ.
-    const plan = planKitchenEquipmentWrite(selection);
+    // LE REFUS AVANT LE RÉSEAU, ET SOUS LE GESTE QUI L'A DÉCLENCHÉ.
+    const plan = planKitchenEquipmentWrite(next);
     if (!plan.ok) {
       setError(t("setup.equipment.error_empty"));
       return;
@@ -123,7 +132,7 @@ export default function KitchenEquipmentCard(props: KitchenEquipmentCardProps) {
       // la colonne lui-même. Voir le pavé de `api/kitchenEquipment.ts`: sur
       // cette étape, le « Continuer » écrit `diet_asked` dans la MÊME colonne,
       // et fusionner sur une photo périmée l'efface — mesuré deux fois.
-      await saveKitchenEquipment({ userId: uid, selection });
+      await saveKitchenEquipment({ userId: uid, selection: next });
       setFlash(t("setup.equipment.saved"));
       await props.onSaved();
     } catch (e) {
@@ -153,9 +162,29 @@ export default function KitchenEquipmentCard(props: KitchenEquipmentCardProps) {
                     size="sm"
                     variant={on ? "primary" : "secondary"}
                     aria-pressed={on}
-                    disabled={busy}
-                    onClick={() =>
-                      setSelection((prev) => toggleKitchenTool(prev, tool))}
+                    // ⚠️ COUPÉES SANS LIGNE D'OBJECTIF, et c'est une
+                    // IMPOSSIBILITÉ, pas un refus: il n'y a aucune ligne
+                    // `student_goals` à mettre à jour, et un update qui ne
+                    // matche rien répond 204 sans erreur — l'écran dirait
+                    // « Enregistré » sur une saisie partie nulle part. La
+                    // phrase juste en dessous dit ce qui la lève.
+                    //
+                    // ⛔ RIEN DE COCHÉ N'EST PAS DANS CETTE LISTE: là on
+                    // clique, et le refus se lit sous les pastilles. « Un refus
+                    // loin du geste se lit comme un bouton mort. »
+                    disabled={busy || !props.hasGoal}
+                    // ── ÇA S'ENREGISTRE TOUT SEUL (2026-08-19) ────────────
+                    // Une pastille est un CHOIX, pas une frappe: il n'y a
+                    // aucune valeur intermédiaire à attendre. Le bouton
+                    // « Enregistrer » qui vivait en dessous était le dernier de
+                    // l'entonnoir — tout le reste écrit à la volée depuis ce
+                    // matin, et un formulaire qui garde une réponse en mémoire
+                    // jusqu'à un clic final est un formulaire qui la perd.
+                    onClick={() => {
+                      const next = toggleKitchenTool(selection, tool);
+                      setSelection(next);
+                      void save(next);
+                    }}
                   >
                     {t(TOOL_LABEL[tool])}
                   </Button>
@@ -175,19 +204,11 @@ export default function KitchenEquipmentCard(props: KitchenEquipmentCardProps) {
       {error && <p className="text-sm text-red-700">{error}</p>}
       {flash && <p className="text-sm text-emerald-700">{flash}</p>}
 
-      {/* ⛔ LE BOUTON N'EST PAS DÉSACTIVÉ QUAND RIEN N'EST COCHÉ, ET C'EST UNE
-          DÉCISION. Un bouton gris ne dit pas POURQUOI il est gris; on appuie,
-          on lit le refus juste en dessous, et on sait quoi faire. « Un refus
-          loin du geste se lit comme un bouton mort » — trois fois dans
-          `SetupPage`. Il est désactivé pendant l'écriture et sans ligne
-          d'objectif, qui sont deux impossibilités, pas des refus. */}
-      <Button
-        variant="secondary"
-        onClick={() => void save()}
-        disabled={busy || !props.hasGoal || !loaded}
-      >
-        {busy ? t("setup.equipment.saving") : t("setup.equipment.save")}
-      </Button>
+      {/* ⛔ ICI SE TENAIT « ENREGISTRER ». Retiré le 2026-08-19: c'était le
+          dernier bouton d'enregistrement de l'entonnoir, et il ne gardait plus
+          personne — toutes les autres réponses partent à la volée. Le refus
+          qu'il portait (« coche au moins un moyen ») se rend toujours
+          au-dessus, sous les pastilles qui le lèvent. */}
     </div>
   );
 

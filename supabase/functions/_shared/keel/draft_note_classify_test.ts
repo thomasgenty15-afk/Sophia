@@ -643,7 +643,7 @@ Deno.test("sans surcharge, c'est le modèle de COMPOSITION, pas celui du chat", 
     assertEquals(res.model, KEEL_GENERATION_MODEL_DEFAULT);
     // Le littéral EN DUR, à côté: si le défaut bougeait sans qu'on le veuille,
     // ce test le dirait au lieu de suivre la constante en silence.
-    assertEquals(res.model, "gpt-5.6-sol");
+    assertEquals(res.model, "gpt-5.6-luna");
   } finally {
     if (previous !== undefined) Deno.env.set("KEEL_GENERATION_MODEL", previous);
   }

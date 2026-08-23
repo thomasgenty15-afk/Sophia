@@ -1,0 +1,157 @@
+{
+    "roster": [
+        {
+            "body": {
+                "gender": "male",
+                "height_cm": 181.0,
+                "weight_kg": 92.0,
+                "activity_level": "sedentary"
+            },
+            "diet": "omnivore",
+            "goal": "fat_loss",
+            "role": "owner",
+            "dislikes": [
+            ],
+            "age_state": "adult",
+            "allergies": [
+            ],
+            "member_id": "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+            "first_name": "Aurele",
+            "has_account": true,
+            "eating_rhythm": [
+                {
+                    "size": "medium",
+                    "slot": "lunch"
+                },
+                {
+                    "size": "large",
+                    "slot": "dinner"
+                }
+            ]
+        },
+        {
+            "body": {
+                "gender": "female",
+                "height_cm": 170.0,
+                "weight_kg": 74.0,
+                "activity_level": "on_feet"
+            },
+            "diet": "omnivore",
+            "goal": "muscle_gain",
+            "role": "member",
+            "dislikes": [
+                "sweet potato"
+            ],
+            "age_state": "adult",
+            "allergies": [
+            ],
+            "member_id": "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+            "first_name": "Marceline",
+            "has_account": false,
+            "eating_rhythm": [
+                {
+                    "size": "medium",
+                    "slot": "lunch"
+                },
+                {
+                    "size": "large",
+                    "slot": "dinner"
+                }
+            ]
+        },
+        {
+            "body": {
+                "gender": "female",
+                "height_cm": 163.0,
+                "weight_kg": 55.0,
+                "activity_level": "trains_hard"
+            },
+            "diet": "omnivore",
+            "goal": "muscle_gain",
+            "role": "member",
+            "dislikes": [
+            ],
+            "age_state": "adult",
+            "allergies": [
+                "sesame"
+            ],
+            "member_id": "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7",
+            "first_name": "Solveig",
+            "has_account": false,
+            "eating_rhythm": [
+                {
+                    "size": "large",
+                    "slot": "lunch"
+                },
+                {
+                    "size": "medium",
+                    "slot": "dinner"
+                }
+            ]
+        },
+        {
+            "body": {
+                "gender": "male",
+                "height_cm": 134.0,
+                "weight_kg": 29.0,
+                "activity_level": "on_feet"
+            },
+            "diet": "vegan",
+            "goal": null,
+            "role": "member",
+            "dislikes": [
+            ],
+            "age_state": "minor",
+            "allergies": [
+            ],
+            "member_id": "1fea4f51-a4e9-4066-8d09-49881ee58f38",
+            "first_name": "Theodule",
+            "has_account": false,
+            "eating_rhythm": [
+                {
+                    "size": "medium",
+                    "slot": "lunch"
+                },
+                {
+                    "size": "medium",
+                    "slot": "dinner"
+                }
+            ]
+        }
+    ],
+    "window": {
+        "starts_on": "2026-08-19",
+        "duration_days": 1
+    },
+    "asked_at": "2026-08-19T03:17:01.84164+00:00",
+    "owner_goal": "fat_loss",
+    "request_id": "7ce40002-0000-4000-8000-000000000002",
+    "household_id": "43102a0a-72b5-4478-bff8-e7d056501f26",
+    "cooking_shape_asked": "one_dish",
+    "practical_constraints": {
+        "variety": "varied",
+        "cook_days": [
+            "wed",
+            "sat"
+        ],
+        "diet_asked": true,
+        "budget_amount": 115,
+        "eating_rhythm": [
+            {
+                "size": "medium",
+                "slot": "lunch"
+            },
+            {
+                "size": "large",
+                "slot": "dinner"
+            }
+        ],
+        "cooking_time_min": 50,
+        "kitchen_equipment": [
+            "oven",
+            "stovetop",
+            "freezer"
+        ],
+        "recipe_difficulty": "keen"
+    }
+}

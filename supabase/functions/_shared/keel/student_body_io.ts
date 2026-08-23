@@ -34,6 +34,7 @@ import {
 import { loadBodyMeasures } from "./body_measure_io.ts";
 import { addDays } from "./local_date.ts";
 import { ACTIVITY_LEVELS, type ActivityLevel } from "./tokens.ts";
+import { WEIGHT_KG_MAX, WEIGHT_KG_MIN } from "./weight_bounds.ts";
 import {
   MEAL_BODY_GENDERS,
   type MealBodyContext,
@@ -84,9 +85,20 @@ export interface StudentBodySnapshot {
   waists: DatedMeasure[];
 }
 
-/** Bornes de plausibilité, alignées sur celles du formulaire hebdo. */
-const WEIGHT_KG_MIN = 25;
-const WEIGHT_KG_MAX = 350;
+/**
+ * Bornes de plausibilité, alignées sur celles du formulaire hebdo.
+ *
+ * ⛔ CE COMMENTAIRE ÉTAIT FAUX, ET IL L'EST RESTÉ LONGTEMPS. Le formulaire
+ * hebdo porte 25-400; ce module portait 25-**350**, en copie privée. Une pesée
+ * de 360 kg passait donc le formulaire, passait le `check` de la base
+ * (`student_body_measures_value_in_range`, 25-400) — et ce lecteur-ci, le seul
+ * qui la relit, la jetait sans un mot. Corrigé par le lot `X1′` (2026-08-22):
+ * les bornes sont IMPORTÉES de `weight_bounds.ts`, donc la phrase ci-dessus est
+ * enfin vraie. Le tour de taille garde ses bornes propres, plus étroites: elles
+ * n'ont jamais prétendu être celles du formulaire.
+ *
+ * (L'import vit dans le bloc d'imports en tête de fichier.)
+ */
 const WAIST_CM_MIN = 40;
 const WAIST_CM_MAX = 200;
 /** Celles de `profiles_height_cm_range_check`, relues plutôt que supposées. */
@@ -342,7 +354,16 @@ export function mealBodyContextFrom(
     gender: snapshot.gender,
     latestWeight: latest(snapshot.weights),
     latestWaist: latest(snapshot.waists),
+    // CE CHEMIN EST CELUI D'UN COMPTE: il porte des pesées DATÉES, pas une
+    // fiche. Le poids déclaré n'existe que pour les bouches sans compte, et il
+    // est posé par `loadHouseholdMemberBodies`. Le laisser à `null` ici est ce
+    // qui garantit qu'une série ne se fera jamais doubler par une déclaration.
+    declaredWeightKg: null,
     restrictionFlag,
+    // LE CRAN D'ACTIVITÉ, tel que `readActivityLevel` l'a déjà lu au-dessus:
+    // aucune lecture nouvelle, aucune requête de plus. `null` quand personne
+    // n'a répondu — et `meal_body.ts` n'écrit alors aucune ligne.
+    activityLevel: snapshot.activityLevel,
   };
 }
 

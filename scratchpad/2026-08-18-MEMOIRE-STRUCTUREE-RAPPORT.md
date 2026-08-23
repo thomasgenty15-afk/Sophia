@@ -434,3 +434,196 @@ basculé sur un compte vierge **plutôt que de mesurer des octets faussés**. Sa
 ce réflexe, tous ses chiffres auraient été faux. La règle qu'il faut en tirer est
 celle qui est déjà écrite dans ce dépôt : *sur un dépôt et une base partagés, on
 horodate et on cloisonne — y compris entre ses propres lots.*
+
+---
+
+## 13. SUITE — deux questions posées après coup, et ce qu'elles ont ouvert
+
+> *« T'as bien testé le chat pour voir la réponse quand il y a un commentaire sur
+> le plan ? Et est-ce que le questionnaire de fin de plan est bien optimisé ? »*
+
+**Non aux deux**, et la vérification a trouvé pire que « pas testé ».
+
+### 13.1 — Le chat : le chemin était mort en amont · **RÉPARÉ (lot 4A)**
+
+`plan_feedback.detected` n'avait **aucun écrivain** dans tout `sophia-brain` :
+une définition de type, un défaut `false`, et **quatre lecteurs**. Le renvoi du
+sizing était complet, testé, bilingue, posé dans `finalVisibleText` — et **ne
+pouvait jamais se déclencher**.
+
+**Le chaînon manquant tenait en une ligne** : `turn_context_runtime.ts:76`, le
+mapper qui ne recopiait pas le champ. Producteur et consommateur se croyaient
+branchés.
+
+**Prouvé en run réel de chat, dans les deux langues :**
+> **FR** — « Je garde ça pour le bilan de fin de plan plutôt que de le ranger
+> tout de suite — pour une portion j'ai besoin de savoir pour qui, et le bilan
+> pose la question avec tout ton foyer sous les yeux. »
+> **EN** — « I'm noting that for the end-of-plan review rather than filing it
+> now — for a serving I need to know who it's for… »
+
+**`plan_question` ne l'avale pas, mesuré au modèle réel sur 18 tours :**
+
+| cas | `plan_feedback` | `plan_question` |
+|---|---|---|
+| retour de part **pur** (FR+EN) | **6/6** | 0/6 |
+| retour + question de swap | 6/6 | 5/6 (**les deux sur 5 tours**) |
+| question de swap **seule** | **0/3** — aucun faux positif | 3/3 |
+| « I'm starving, what should I have » | **0/3** | 0/3 |
+
+Et le tour décisif en chat réel : les deux signaux détectés,
+`response_owner: "plan_question"`, et **la phrase sort par-dessus** la réponse de
+la lane qui possédait le tour. Compteur : **11 vus / 8 émis / 7 réellement dits**.
+
+⚠️ **Aucun effet de bord** : `__plan_feedback_addon` ne se réveille **pas** — son
+écrivain n'est appelé que par `attachDynamicAddons`, qui **n'a aucun appelant**
+(vérifié). Tant mieux : le bloc qu'il produit propose un **dashboard B2C** qu'un
+élève de coach n'a pas. Un test rougit si quelqu'un le rebranche sans le gater.
+
+### 13.2 — Le questionnaire : deux trous, un fermé, un ouvert
+
+**La 4ᵉ question n'avait aucun lecteur** — `emphasisHint` calculé, appelé par
+personne. On posait une question et on n'en faisait rien : la règle fondatrice de
+la nomenclature, violée sur une **question**.
+
+**Fermé (lot 4B) : `enough_variety` → `logistics.set{field:"variety"}`** — un
+levier qui existait déjà, vocabulaire fermé `repeat | some | varied`, jamais un
+cran vers le bas (aucun `"less"` n'existe). **Prouvé par un test d'ARRIVÉE** qui
+exécute la chaîne entière jusqu'à la ligne du prompt
+(`meal_generation.ts:2976` : `repetition they accept: varied`), avec son contrôle
+négatif avant patch.
+
+**Laissés ouverts, avec leur motif :**
+- *« sur ta faim entre les repas »* — trois routes instruites, trois refusées. La
+  plus parlante : `food.prefer` (« plus de volume végétal ») mettrait sur la
+  carte, **sous la mention « tu l'as coché au bilan », une phrase qu'elle n'a
+  jamais écrite**. Elle a dit qu'elle avait faim, pas qu'elle voulait des légumes.
+- *« assiettes faciles à finir »* — aucune route sans inventer un champ de
+  densité, c'est-à-dire **un neuvième `kind` déguisé**. Et le rabattre sur
+  `portion.adjust` **retirerait de la nourriture** à la seule dynamique dont
+  l'obstacle est de manger assez.
+
+⚠️ **La garde du plancher TCA porte sur le JETON DE LA QUESTION, jamais sur la
+réponse** — parce que `no` est une option des **trois** axes. Router sur la
+réponse seule aurait laissé une réponse à « sur ta faim » — que le plancher
+retire — entrer dans le magasin **par la porte de la variété**.
+
+**Défaut dormant trouvé et corrigé au passage :** `emphasisHintFor` ne lisait que
+la réponse et rendait l'indice de **satiété** (une consigne `fat_loss`) pour une
+réponse `enough_variety` de quelqu'un en **maintien**. Inerte faute d'appelant,
+**armé le jour où quelqu'un le branche.**
+
+### 13.3 — Ce qui reste à décider
+
+1. **`magnitude` est codé en dur sur `slight`.** Le questionnaire est le **seul
+   producteur** de `portion.adjust` et ne connaît qu'un cran. Comme un nouvel
+   ajustement **remplace** le précédent (jamais de somme), quelqu'un dont les
+   parts sont énormément trop grosses est **bloqué à −5 % pour toujours**, et le
+   −10 % du moteur est **inatteignable par personne**.
+   **Correctif proposé** : un troisième choix dans la même question — `Un peu
+   trop` / `Vraiment trop`. La personne dit l'ampleur dans ses mots.
+2. **La variété n'a de base chez presque personne.** `practical_constraints
+   .variety` n'est écrit que par **une seule carte**, et **aucune étape
+   d'inscription ne le collecte** : un élève qui ne l'a jamais ouverte répond à
+   la question et obtient **zéro item** (`noBaseline`). Le lot a **refusé** de
+   semer la valeur depuis le défaut d'affichage de la carte — ce serait écrire un
+   réglage que personne n'a choisi sur la clé même que le prompt sert.
+   **Le questionnaire a-t-il le droit de poser la variété de départ ?** Décision
+   produit.
+3. **Un rouge préexistant, nommé et non réparé** :
+   `sophia-brain/tools/always_on/declare_safety_constraint/…_test.ts:248`.
+
+### 13.4 — État après la suite
+`_shared/keel` : **3805 passed | 0 failed** · `sophia-brain` : **1325 passed |
+1 failed** (le rouge préexistant ci-dessus) · **20 mutations** de plus, toutes
+rouges, restaurations vérifiées par SHA.
+
+---
+
+## 14. Les deux décisions du §13.3, tranchées et livrées (lot 4C)
+
+### 14.1 — Le second cran de portion · **LIVRÉ ET MIGRÉ**
+
+La question passe à **cinq** choix. Les trois jetons existants gardent
+**exactement** le sens qu'ils ont toujours eu ; deux jetons **neufs** portent le
+cran fort.
+
+| jeton | statut | fr | en | `magnitude` |
+|---|---|---|---|---|
+| `way_too_much` | **neuf** | Vraiment trop | Really too much | `clear` |
+| `too_much` | existant | Un peu trop | A bit too much | `slight` |
+| `right` | existant | Ce qu'il fallait | About right | neutre |
+| `not_enough` | existant | Un peu juste | A bit short | `slight` |
+| `way_not_enough` | **neuf** | Vraiment pas assez | Really not enough | `clear` |
+
+⚠️ **Re-libeller `too_much` en « Un peu trop » n'est pas une falsification** : le
+jeton stocké garde sa traduction, donc **aucune réponse déjà donnée ne change de
+sens**. Un test épingle `direction` **ET** `magnitude` — un test qui n'aurait
+regardé que le sens serait resté vert sur exactement le remappage interdit.
+
+**La preuve du plancher, refaite avec le cran fort**, nombres en dur, item
+construit par l'extraction réelle :
+- bande de base `{2071, 2185}` — le bas **est** le plancher A1 ;
+- `way_too_much` → `{2071, 2071}`. **Sans écrêtage, −10 % donnerait 707 kcal de
+  déficit contre un plafond de 500** ;
+- `too_much` → `{2071, 2076}` : le cran faible **mord moins et mord quand même**
+  — sans quoi deux crans écrêtés au même nombre ressembleraient à un écrêtage qui
+  marche ;
+- mineurs et `ageState: "unknown"` restent à la bande de base sur **les deux**
+  crans, l'adulte non.
+
+**Le piège attendu s'est confirmé** : `portionSubjectIsAsked` ne couvrait que
+deux réponses. Il interroge désormais `effectOf().portionAdjust`, donc **les
+quatre**. Sans ça, un « Vraiment trop » aurait produit un `portion.adjust`
+**sans sujet** — exactement ce que le questionnaire existe pour empêcher.
+
+**Défaut de sécurité trouvé en chemin** : `PORTION_ANSWER_ADJUST["constructor"]`
+rendait une **fonction** sur un objet littéral, **sur une charge qui vient d'un
+corps de requête HTTP**. Fermé par `hasOwnProperty`, testé sur `constructor`,
+`toString`, et les variantes de casse et d'espaces.
+
+**Migration appliquée** (`20260819180000`) et vérifiée en base :
+```
+CHECK (portions = ANY (ARRAY['way_too_much','too_much','right','not_enough','way_not_enough']))
+→ way_too_much ACCEPTÉ · jeton inventé REFUSÉ
+→ keel_plan_feedback_submit : 1 seule version (pas de surcharge, pas de PGRST203)
+```
+
+### 14.2 — La variété sans base · **LIVRÉ**
+
+**Seule une plainte écrit ; sans base elle écrit le haut de l'échelle. Une
+réponse satisfaite n'écrit rien.**
+
+| | plainte (`no` / `sometimes`) | satisfait (`yes`) |
+|---|---|---|
+| **sans base** | 1 item `logistics.set{variety:"varied"}` | **0 item** |
+| **avec base** | **un** cran vers le haut, jamais deux | 0 item |
+| `varied` déjà | `atCeiling`, 0 item | 0 item |
+
+**Motifs** : sans base, la personne ne **corrige** pas, elle **déclare** — et une
+déclaration n'a pas besoin de référence. « Pas assez » n'a qu'une lecture non
+ambiguë : plus que ce qu'elle a eu ; écrire `some` affirmerait une position
+moyenne qu'elle n'a pas exprimée. ⛔ **Semer depuis le défaut d'affichage de la
+carte reste refusé** — ce serait écrire un réglage que personne n'a choisi sur la
+clé même que le prompt sert.
+
+**Ce qui rend le raccourci acceptable, et ne le rend acceptable QUE là** : la
+variété **ne retire pas de nourriture**, ne touche ni calorie ni plancher. Se
+tromper vers le haut coûte un peu de diversité en cuisine. La portion, elle,
+n'autoriserait jamais ce saut.
+
+**La garde du jeton est intacte** : 2 questions × 5 réponses × 6 niveaux ⇒ 0 item.
+
+### 14.3 — État final
+`_shared/keel` : **3819 passed | 1 failed** · front : `tsc -b` propre,
+`planFeedback.int.test.ts` **20/20** · **12 mutations** de plus, toutes rouges.
+
+⚠️ **Le rouge n'est pas de ce chantier** :
+`household_fixed_intakes_test.ts:170`, dans un fichier qu'une session parallèle
+modifie en ce moment (« le chargeur d'apports fixes du foyer — pas encore
+branché »). **Nommé, pas réparé.**
+
+⚠️ **Et une correction à ce rapport** : la baseline « 3805 | 0 » annoncée au §13.4
+était juste au moment de la mesure ; une session parallèle a fait atterrir ce
+rouge entre-temps. Le lot 4C a mesuré **3804 | 1** avant sa première frappe et a
+eu raison de ne pas me croire sur parole.

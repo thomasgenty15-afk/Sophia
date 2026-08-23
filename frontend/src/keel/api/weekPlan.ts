@@ -1,23 +1,27 @@
 import { supabase } from "../../lib/supabase";
-import { readInvokeError } from "./keelClient";
 import { type DayToken } from "./types";
 
 /**
  * KEEL — LA SEMAINE QUE L'ÉLÈVE S'EST COMPOSÉE (`student_week_plans`).
  *
+ * ⚠️ CE MODULE EST EN LECTURE SEULE DEPUIS LE 2026-08-19, ET C'EST UN RETRAIT
+ * DÉCIDÉ, PAS UN OUBLI.
  * ---------------------------------------------------------------------------
- * POURQUOI CE MODULE EXISTE
- * ---------------------------------------------------------------------------
- * Cette table n'avait qu'UN lecteur côté app: l'écran qui l'écrit
- * (`/app/plan`). `/app/today` ne lisait que `plan_versions` — le plan publié
- * par un coach — et, par la règle du modèle, aucun coach n'en publie jamais
- * (docs/keel/MODEL.md). Un élève pouvait donc composer et ADOPTER sa semaine,
- * et voir « tu n'as pas encore de plan » tous les jours.
+ * La lane qui écrivait cette table — la fonction edge `generate-week-plan-v1`,
+ * plus `generateWeekPlan` et `adoptWeekPlan` qui vivaient ici — a été retirée.
+ * Elle n'avait AUCUN appelant vivant: aucun écran ne pouvait produire une
+ * ligne, et rien ne pouvait la faire passer en `'adopted'`. Les 246 lignes en
+ * base au moment du retrait étaient des comptes de test, à l'unité près.
  *
- * La forme de la ligne était en plus déclarée deux fois, dans deux fichiers
- * d'écran. Deux définitions de la même ligne finissent par diverger, et la
- * divergence se paie sur la seule chose qui compte ici: ce qu'on montre à
- * l'élève. Le type vit donc ici, une fois.
+ * Ce que le retrait a coûté, écrit ici pour que personne ne le redécouvre: le
+ * produit n'a plus d'objet où une consigne NOMME la conviction du coach
+ * qu'elle applique, et où la base refuse la ligne qui ne la nomme pas (CHECK
+ * `student_week_plans_doctrine_traceable_check`). La lane du repas peut citer
+ * une conviction; elle n'y est jamais obligée et rien ne le vérifie.
+ *
+ * ⚠️ NE PAS « REBRANCHER » CE MODULE EN PASSANT. La table et ses six lecteurs
+ * restent en place exprès; y remettre un écrivain est une décision produit, pas
+ * un raccord.
  *
  * ---------------------------------------------------------------------------
  * CE QUE CE MODULE NE FAIT PAS
@@ -93,105 +97,25 @@ export async function loadWeekPlan(weekStart: string): Promise<WeekPlanRow | nul
 }
 
 // ---------------------------------------------------------------------------
-// LES DEUX ÉCRITURES — et pourquoi leur absence coûtait plus qu'un écran vide
+// LES DEUX ÉCRITURES ONT ÉTÉ RETIRÉES LE 2026-08-19 — le constat qui l'a décidé
 // ---------------------------------------------------------------------------
 //
-// `generate-week-plan-v1` était DÉPLOYÉE, testée, listée dans le garde-fou de
-// couverture — et sans un seul appelant. Rien, nulle part, n'écrivait non plus
-// `status='adopted'`. Ce fichier ne portait que `loadWeekPlan`: il lisait une
-// ligne que personne ne pouvait produire.
+// `generateWeekPlan` (qui appelait `generate-week-plan-v1`) et `adoptWeekPlan`
+// (qui posait `status='adopted'`) vivaient ici sans UN SEUL appelant. La lane
+// était déployée, testée, listée dans le garde-fou de couverture — et
+// inatteignable depuis n'importe quel écran. Trois épreuves concordantes le
+// 2026-08-19: 0 vue, 0 cron, 0 policy autre que celle du propriétaire, aucune
+// mention en CI ni dans `supabase/config.toml`.
 //
-// CE QUE ÇA CASSAIT EN AVAL, ET QUI NE SE VOYAIT PAS:
-// `keel-daily-pulse-v1` n'envoie le tap du soir qu'à un élève qui a SOIT un
-// `plan_versions` publié (le chemin 1:1, qu'aucun coach n'emprunte en 1:N),
-// SOIT un `student_week_plans` en `'adopted'`. Les deux étant impossibles,
-// **le tap du soir n'a jamais pu partir pour un élève 1:N** — donc pas de
-// `student_daily_checkins`, donc « comment la semaine a été vécue » vide sur la
-// page du lundi, c'est-à-dire sur l'artefact que le coach paie pour lire.
-//
-// Une seule chaîne, et elle était coupée à la source:
-//   générer → adopter → tap du soir → bilan hebdo → page du lundi → le coach reste
+// CE QUE ÇA AVAIT DÉJÀ CASSÉ EN AVAL, ET QUI EST DÉSORMAIS RÉPARÉ AILLEURS:
+// `keel-daily-pulse-v1` et `keel-weekly-flow-v1` n'envoyaient leur tap qu'à un
+// élève ayant SOIT un `plan_versions` publié (le chemin 1:1, qu'aucun coach
+// n'emprunte en 1:N), SOIT un `student_week_plans` en `'adopted'` — deux
+// conditions impossibles. Le commit 99697610 les a rebranchés sur
+// `resolveStudentFollowing`, qui interroge `student_generated_meals` en
+// premier. Le rôle de SIGNAL a donc un repreneur; le rôle de PRODUCTEUR d'un
+// objet tracé à une conviction n'en a aucun.
 // ---------------------------------------------------------------------------
-
-/**
- * Demande un BROUILLON de semaine au moteur.
- *
- * GÉNÉRER N'EST PAS ADOPTER, et c'est tout le modèle: la fonction écrit
- * toujours `status='draft'`. L'élève lit, puis adopte s'il s'y reconnaît. Un
- * plan appliqué d'office serait le plan de la machine porté par l'élève.
- *
- * Aucun `user_id` n'est envoyé: le JWT décide de qui il s'agit, et le moteur
- * n'en accepterait pas.
- *
- * `replaceAdopted` — LE SERVEUR REFUSE SEUL. `generate-week-plan-v1` rend
- * `plan_already_adopted` (409) tant qu'on ne le lui passe pas: régénérer
- * remplace les lignes ET fait retomber la semaine en brouillon, ce qui coupe le
- * tap du soir et le point hebdomadaire (les deux filtrent sur `'adopted'`). La
- * confirmation d'écran est la politesse; ce refus-là est la garantie.
- *
- * Les motifs métier remontent NOMMÉS (`goal_required`,
- * `coach_has_no_doctrine`, `coach_doctrine_excludes_goal`,
- * `plan_already_adopted`) — les traduire en « une erreur est survenue » ferait
- * perdre la seule information exploitable par l'écran.
- */
-export async function generateWeekPlan(input?: {
-  localDate?: string;
-  context?: string;
-  replaceAdopted?: boolean;
-}): Promise<WeekPlanRow | null> {
-  const { data, error } = await supabase.functions.invoke("generate-week-plan-v1", {
-    body: {
-      local_date: input?.localDate ?? currentMonday(),
-      context: input?.context ?? "",
-      replace_adopted: input?.replaceAdopted === true,
-    },
-  });
-  if (error) {
-    const detail = await readInvokeError(error);
-    throw new Error(detail || `[keel/weekPlan] ${error.message}`);
-  }
-  const payload = (data ?? {}) as Record<string, unknown>;
-  // Le moteur ne rend que `id, week_start, status`: pas les items. On ne
-  // fabrique donc pas une `WeekPlanRow` à moitié — l'appelant relit.
-  const plan = payload.plan as { week_start?: string } | null | undefined;
-  if (!plan?.week_start) return null;
-  return await loadWeekPlan(String(plan.week_start));
-}
-
-/**
- * L'ADOPTION — l'élève dit « oui, c'est ma semaine ».
- *
- * Écriture directe, pas de fonction edge: `student_week_plans_owner_all` borne
- * déjà l'écriture à ses propres lignes, et c'est exactement la façon dont cet
- * écran enregistre déjà son objectif. Une RPC n'ajouterait ici qu'une porte de
- * plus devant la même serrure.
- *
- * WRITE-THROUGH: on relit la ligne écrite et on la rend. Rien dans cette app
- * n'annonce un effet qu'elle n'a pas relu — c'est la classe de défaut
- * « committé fantôme » que ce dépôt a payée plusieurs fois.
- *
- * `adopted_at` est posé ICI et pas laissé à un défaut de colonne: une semaine
- * adoptée sans date d'adoption ne peut être ni datée ni auditée, et le point
- * hebdomadaire s'en sert pour savoir de quand date l'engagement.
- */
-export async function adoptWeekPlan(planId: string): Promise<WeekPlanRow> {
-  const result = await supabase
-    .from("student_week_plans")
-    .update({ status: "adopted", adopted_at: new Date().toISOString() })
-    .eq("id", planId)
-    .select(COLUMNS)
-    .maybeSingle();
-  if (result.error) {
-    throw new Error(`[keel/weekPlan] adopt failed: ${result.error.message}`);
-  }
-  if (!result.data) {
-    // Zéro ligne sous une RLS `for all` veut dire « ce n'est pas la tienne ».
-    // Le dire, plutôt que de rendre un succès muet sur une écriture qui n'a
-    // rien touché.
-    throw new Error("[keel/weekPlan] adopt touched no row");
-  }
-  return result.data as unknown as WeekPlanRow;
-}
 
 /**
  * Les lignes du jour, séparées de celles qui ne visent aucun jour.

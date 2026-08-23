@@ -56,14 +56,27 @@ const DEFAULT_MODELS = [
 ];
 
 /**
- * Tarifs $/M tokens, entrée / sortie. Ce sont des ORDRES DE GRANDEUR saisis à
+ * Tarifs /M tokens, entrée / sortie. Ce sont des ORDRES DE GRANDEUR saisis à
  * la main: aucune API ne les rend, et un tarif inventé qui a l'air précis est
  * pire qu'un tarif avoué approximatif. La colonne coût du rapport le dit.
+ *
+ * ⚠️ CORRIGÉ LE 2026-08-19, ET LA CORRECTION DIT COMBIEN CETTE TABLE PEUT MENTIR.
+ * `gpt-5.6-luna` portait ici la ligne de `gpt-5.6-sol` (1,25 / 10) — recopiée,
+ * jamais vérifiée. Le vrai tarif est **0,20 / 1,20**, soit HUIT FOIS MOINS. Sur
+ * cette seule ligne fausse, une analyse de coût a conclu qu'une bascule
+ * multipliait la facture par 6 alors qu'elle la divise par 8.
+ *
+ * ⛔ LES AUTRES LIGNES N'ONT PAS ÉTÉ REVÉRIFIÉES et sont suspectes au même
+ * titre: elles partagent toutes le même tarif par famille, ce qui est
+ * exactement le motif qui a produit l'erreur. Toute conclusion de coût tirée
+ * d'ici doit nommer cette réserve — ou vérifier le tarif chez le fournisseur
+ * avant de conclure. Un tarif recopié ressemble exactement à un tarif mesuré.
  */
 const PRICING: Record<string, { in: number; out: number }> = {
   "gpt-5.6-sol": { in: 1.25, out: 10 },
   "gpt-5.6-terra": { in: 1.25, out: 10 },
-  "gpt-5.6-luna": { in: 1.25, out: 10 },
+  // Vérifié auprès du propriétaire le 2026-08-19 — voir l'avertissement ci-dessus.
+  "gpt-5.6-luna": { in: 0.20, out: 1.20 },
   "gpt-5.5": { in: 1.25, out: 10 },
   "gpt-5.4": { in: 1.25, out: 10 },
   "gpt-5.4-mini": { in: 0.25, out: 2 },

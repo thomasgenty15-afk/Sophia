@@ -364,7 +364,6 @@ Deno.test("personne ne relit `free_until` hors de la facturation", async () => {
 for (
   const fn of [
     "generate-meal-v1/index.ts",
-    "generate-week-plan-v1/index.ts",
   ]
 ) {
   Deno.test(`C5 ⑦ — la panne de résolution du foyer est journalisée — ${fn}`, async () => {
@@ -416,7 +415,6 @@ Deno.test("C5 ⑥ — aucun générateur ne rend `[object Object]` dans son corp
   for (
     const fn of [
       "generate-meal-v1/index.ts",
-      "generate-week-plan-v1/index.ts",
       "generate-household-meal-v1/index.ts",
     ]
   ) {

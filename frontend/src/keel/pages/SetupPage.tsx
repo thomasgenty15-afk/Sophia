@@ -17,11 +17,18 @@ import { Field, inputClass } from "../components/ui/Field";
 // refuse à l'écriture.
 import {
   ACTIVITY_LEVELS,
+  type AppetiteLevel,
+  DAY_ACTIVITY_LEVELS,
+  type DayActivityLevel,
+  SPORT_FREQUENCIES,
+  type SportFrequency,
   type ActivityLevel,
 } from "../../../../supabase/functions/_shared/keel/tokens.ts";
 import {
   addHouseholdMember,
   createHousehold,
+  dissolveHousehold,
+  loadMemberBirthDates,
   inviteToHousehold,
   MEMBER_GENDERS,
   type MemberGender,
@@ -31,6 +38,7 @@ import {
   removeHouseholdMember,
   setMemberBirthDate,
   setMemberDiet,
+  setMemberName,
   setMemberRhythm,
   setMemberGoal,
   setOwnBirthDate,
@@ -74,6 +82,8 @@ import {
   funnelSteps,
   HOUSEHOLD_MAX_MOUTHS,
   missesForStep,
+  peopleStepBlockers,
+  type StepBlocker,
   mouthsStillNeeded,
   nextIncomplete,
   readFunnelFacts,
@@ -85,6 +95,7 @@ import {
   saveOwnGoal,
   saveOwnProfile,
   saveOwnWeight,
+  saveEatingRhythm,
   savePlanAnswers,
 } from "../api/onboarding";
 import { BUDGET_MAX } from "../api/planBudget";
@@ -98,30 +109,42 @@ import MouthFormDialog, {
 } from "../components/MouthFormDialog";
 import {
   emptyMouthDraft as emptyMouthFormDraft,
-  filledPreferenceBlocks,
-  type MouthFormBlock,
   type MouthFormDraft,
   type ShakerDraft,
+  shakerPartialToWrite,
   shakerToWrite,
   targetPayloadOf,
 } from "../lib/mouthForm";
 import {
+  addShakerToMemberIntakes,
   addShakerToOwnIntakes,
+  loadMemberFixedIntakes,
+  loadMemberTargets,
   loadOwnMouth,
+  type MemberTargetView,
   setMemberTarget,
   setOwnTarget,
 } from "../api/mouthProfile";
 import { chooseGenerator } from "../api/planRouting";
-import { addDays, daysBetween } from "../api/dates";
+import { addDays, daysBetween, weekStartFor } from "../api/dates";
 import { MAX_WINDOW_DAYS, windowDayOrder } from "../api/mealWindow";
 import { type AwayDay, type EatingOccasionSlot } from "../api/mealGeneration";
-import { addRestriction, setMemberAway } from "../api/household";
+import {
+  addRestriction,
+  // LE MÊME ÉCRIVAIN QUE `MealBuilder`, appelé — jamais un second.
+  ENVY_MAX_CHARS,
+  loadEnvyLine,
+  setMemberAway,
+  submitEnvy,
+} from "../api/household";
 import MealPickerGrid from "../components/MealPickerGrid";
 import TableStepPlanning from "../components/TableStepPlanning";
 import { workLunchRoster } from "../lib/workLunchRoster";
 import { presenceRoster } from "../lib/presenceRoster";
-import { browserLocalDate } from "../lib/useMealTicks";
+import { browserLocalDate, catchUpWindowStart } from "../lib/useMealTicks";
 import { t, type MessageKey } from "../i18n/t";
+import { habitSlotsFor } from "../lib/habitSlots";
+import { formatDate } from "../i18n/format";
 // ⚠️ `HouseholdHabitsCard` N'EST PLUS MONTÉE ICI (2026-08-14). Elle reste le
 // bon écran pour RELIRE ce qu'une bouche mange, sur `/app/household`; dans
 // l'entonnoir, son dépliant et sa phrase « aucun moment de repas n'est encore
@@ -201,6 +224,28 @@ interface SelfDraft {
    * vocabulaire n'a pas de jeton d'ignorance, exprès (`tokens.ts`).
    */
   activityLevel: ActivityLevel | null;
+  /**
+   * ② LES DEUX AXES (2026-08-20). `null` = pas répondu — le cran ci-dessus
+   * reste alors le repli nommé, et il rend le nombre d'avant.
+   */
+  dayActivity: DayActivityLevel | null;
+  sportFrequency: SportFrequency | null;
+  /**
+   * ① CE QU'IL Y A D'AUTRE DANS L'ASSIETTE · ⑤ L'APPÉTIT (2026-08-20).
+   *
+   * ⛔ ILS SE SAISISSENT DANS LA FENÊTRE DES PRÉFÉRENCES, ET ILS SONT DANS CE
+   * BROUILLON-CI — pas dans un second. C'est la règle qui gouverne toute la
+   * fenêtre: un seul brouillon, un seul écrivain. Deux états pour une même
+   * personne, c'est la garantie qu'un jour l'un des deux cessera d'écrire ce
+   * que l'autre écrit.
+   *
+   * ⚠️ TRI-ÉTAT sur les trois premiers: `false` est une RÉPONSE qui fait monter
+   * la part du plat, `null` veut dire « pas répondu » et retombe sur la moyenne.
+   */
+  takesDessert: boolean | null;
+  takesCheese: boolean | null;
+  takesBread: boolean | null;
+  appetite: AppetiteLevel | "";
   goal: MemberGoal | "";
   /** Vide = pas encore répondu. `omnivore` EST une réponse. */
   diet: DietAnswer | "";
@@ -219,6 +264,14 @@ interface SelfDraft {
   dislikes: string[];
   /** Son apport fixe déclaré, ou `null`. Clé sur `user_id` (`fixed_intakes`). */
   shaker: ShakerDraft | null;
+  /**
+   * SES MOMENTS — et, depuis le 2026-08-19, CEUX DE LA MAISON.
+   *
+   * La question a quitté l'étape 3 pour la fiche. Le titulaire étant la
+   * première bouche, sa réponse écrit les DEUX: `practical_constraints`
+   * (le repli de toute bouche muette) et sa ligne membre. Voir `saveSelf`.
+   */
+  rhythm: readonly EatingOccasionSlot[] | null;
 }
 
 /**
@@ -415,6 +468,69 @@ export default function SetupPage() {
   /** La bouche dont le retrait attend un second clic. Voir `MouthRow`. */
   const [confirmRemove, setConfirmRemove] = React.useState<string | null>(null);
   /**
+   * LA FICHE D'AJOUT EST-ELLE DÉPLIÉE ?
+   *
+   * ⚠️ FERMÉE PAR DÉFAUT, ET C'EST LE CORRECTIF. Elle était montée en
+   * permanence sous la liste des bouches: un bloc en forme de personne, mêmes
+   * champs, même bouton de préférences, même phrase « rien de renseigné » — et
+   * pour seule différence d'avec une bouche inscrite un trait de bordure en
+   * pointillé. Signalé capture à l'appui le 2026-08-19: « je peux toujours pas
+   * supprimer le truc qui s'est ajouté tout seul ». Il cherchait un « Retirer »
+   * sur un bloc qui n'en avait pas, parce que ce bloc n'était pas quelqu'un —
+   * mais rien à l'écran ne le disait, et rien ne permettait de s'en défaire.
+   */
+  const [mouthFormOpen, setMouthFormOpen] = React.useState(false);
+  /**
+   * LA CARTE EN COURS D'ÉDITION — une seule à la fois, par `member_id`.
+   *
+   * ⚠️ UNE SEULE, ET C'EST VOULU: deux cartes ouvertes en même temps, c'est de
+   * nouveau vingt contrôles armés à l'écran, c'est-à-dire le défaut que
+   * « Modifier » ferme. Ouvrir la seconde referme la première.
+   */
+  const [editingMouth, setEditingMouth] = React.useState<string | null>(null);
+  /**
+   * LA CIBLE ET LE RYTHME DE CHAQUE BOUCHE — `null` = LA LECTURE N'A PAS EU
+   * LIEU, et c'est une garde, pas un état d'affichage. Voir `loadMemberTargets`:
+   * `setMemberTarget` REMPLACE la paire, donc une carte montée sur du vide non
+   * lu effacerait la cible déjà posée au premier enregistrement.
+   */
+  const [memberTargets, setMemberTargets] = React.useState<
+    Map<string, MemberTargetView> | null
+  >(null);
+  /**
+   * LA DATE DE NAISSANCE DE CHAQUE BOUCHE — `null` = lecture pas faite.
+   *
+   * ⚠️ ELLE NE VIENT PAS DU ROSTER, qui ne rend qu'un état d'âge: « le foyer
+   * doit savoir qu'il y a un enfant à table, pas son âge ». Cette règle protège
+   * une bouche des AUTRES bouches; elle n'a jamais eu de raison de cacher la
+   * date au maître, qui l'a tapée. Voir `loadMemberBirthDates`.
+   */
+  const [memberBirthDates, setMemberBirthDates] = React.useState<
+    Map<string, string> | null
+  >(null);
+  /**
+   * « JUSTE MOI » A ÉTÉ CHOISI ALORS QU'UN FOYER EXISTE — et ce geste-là DÉFAIT
+   * le foyer, donc il attend un second clic comme « Retirer ».
+   *
+   * ⚠️ IL N'EST PAS UN CONFORT: c'était le seul cul-de-sac total de
+   * l'entonnoir. La branche se dérive du nombre de bouches (`max(2, …)`), donc
+   * répondre « on est deux » à la première question était SANS RETOUR — l'étape
+   * 2 retenait ensuite sur `missing_mouths`, et la tuile « Juste moi » était
+   * grisée sans un mot. Voir `dissolveHousehold`.
+   */
+  const [confirmDissolve, setConfirmDissolve] = React.useState(false);
+  /**
+   * LE PRÉNOM QUE « CONTINUER » VIENT D'ENREGISTRER, ou `null`.
+   *
+   * ⚠️ CECI EST LA MOITIÉ MANQUANTE DE LA DÉCISION DU 2026-08-15. « Continuer »
+   * absorbe le brouillon de bouche — c'est voulu, une fiche remplie n'est pas
+   * une fiche à jeter — mais il le faisait EN SILENCE. Signalé sur un compte
+   * réel le 2026-08-19: « ça m'a rajouté une personne que je voulais pas ».
+   * Un bouton d'avancement qui crée quelqu'un sans le dire est indiscernable
+   * d'un bouton qui a mal compris.
+   */
+  const [mouthAdded, setMouthAdded] = React.useState<string | null>(null);
+  /**
    * LA FENÊTRE DU PLAN — deux dates, et c'est la question qui manquait.
    *
    * ── CE QUI ÉTAIT CODÉ EN DUR ──────────────────────────────────────────
@@ -444,6 +560,43 @@ export default function SetupPage() {
     if (windowEnd < windowStart) setWindowEnd(windowStart);
     else if (windowEnd > maxEnd) setWindowEnd(maxEnd);
   }, [windowStart, windowEnd]);
+
+  // ══════════════════════════════════════════════════════════════════════
+  // MINUIT — le début de fenêtre est un INSTANTANÉ DE MONTAGE, et il périme
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ LE DÉFAUT, MESURÉ SUR L'ÉCRAN DU PROPRIÉTAIRE LE 2026-08-20 À 00h03.
+  // `windowStart` est initialisé par `browserLocalDate()` DANS un `useState`,
+  // donc évalué une seule fois, au montage. Un onglet ouvert la veille tient
+  // encore le 19 quand le serveur, qui lit le MÊME fuseau (`Europe/Paris`),
+  // est déjà au 20. `resolveRequestedWindow` refuse alors un début dans le
+  // passé, et l'écran rend « Ces jours n'ont pas pu être lus » — un message qui
+  // parle des JOURS alors que le défaut est une HORLOGE.
+  //
+  // ⚠️ ON NE CORRIGE QUE LE PASSÉ, JAMAIS L'AVENIR. Une fenêtre que la personne
+  // a délibérément posée plus loin (« je pars jeudi ») est sa décision et elle
+  // est légitime; la déplacer au prétexte d'un rafraîchissement lui prendrait
+  // son choix des mains. Seul un début DEVENU passé est corrigé.
+  //
+  // ⚠️ ET IL EST CORRIGÉ À L'ÉCRAN, PAS SEULEMENT À L'ENVOI. Rattraper la date
+  // au moment du POST enverrait une fenêtre que la grille ne montre pas: la
+  // personne verrait les colonnes d'hier et recevrait le plan de demain. Le
+  // `setState` remonte donc dans `planWindow`, et les colonnes se réalignent.
+  React.useEffect(() => {
+    const catchUp = () => {
+      const today = browserLocalDate();
+      setWindowStart((current) => catchUpWindowStart(current, today));
+    };
+    // `visibilitychange` couvre l'onglet laissé ouvert toute la nuit;
+    // `focus` couvre la fenêtre restée au premier plan sur un autre écran.
+    document.addEventListener("visibilitychange", catchUp);
+    globalThis.addEventListener("focus", catchUp);
+    catchUp();
+    return () => {
+      document.removeEventListener("visibilitychange", catchUp);
+      globalThis.removeEventListener("focus", catchUp);
+    };
+  }, []);
 
   /** Les jours de la fenêtre demandée — les colonnes de la grille. */
   const planWindow = React.useMemo(() => {
@@ -515,6 +668,47 @@ export default function SetupPage() {
    * 2026-08-13). Ce choix-ci se refait à chaque composition; il ne s'enregistre
    * nulle part et repart avec la demande.
    */
+  /**
+   * L'ENVIE DE LA MAISON, POUR LA SEMAINE DU DÉPART CHOISI.
+   *
+   * ⚠️ ANCRÉE SUR `planWindow.startsOn`, PAS SUR AUJOURD'HUI — même règle que
+   * `MealBuilder` (`envyWeek`). Deux dates libres rendent l'écart atteignable:
+   * écrire sur la semaine courante ferait disparaître l'envie d'un plan qui
+   * commence lundi prochain.
+   */
+  const [envy, setEnvy] = React.useState("");
+  /** La semaine LUE, pour ne pas écraser une saisie en cours par une relecture. */
+  const [envyPrint, setEnvyPrint] = React.useState<string | null>(null);
+  const envyWeek = React.useMemo(
+    () => weekStartFor(planWindow.startsOn, "mon"),
+    [planWindow.startsOn],
+  );
+  /**
+   * ⚠️ LA PORTE DE CHARGEMENT EST `envyPrint`, ET ELLE EST OBLIGATOIRE — même
+   * patron que `MealBuilder`. Sans elle, chaque rendu relirait la base et
+   * écraserait ce qu'on est en train de taper. Ce qui est comparé est la
+   * SEMAINE lue: tant qu'elle ne correspond pas à `envyWeek`, on relit.
+   */
+  React.useEffect(() => {
+    if (envyPrint === envyWeek) return;
+    let alive = true;
+    void (async () => {
+      try {
+        const line = await loadEnvyLine(envyWeek);
+        if (!alive) return;
+        setEnvy(line ?? "");
+        setEnvyPrint(envyWeek);
+      } catch {
+        // ⚠️ MUET, ET C'EST VOULU: ne pas savoir ce qui a été écrit la semaine
+        // dernière n'empêche pas de composer. Un refus ici bloquerait l'étape
+        // entière pour un champ facultatif.
+        if (alive) setEnvyPrint(envyWeek);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [envyWeek, envyPrint]);
   const [cookingShape, setCookingShape] = React.useState<CookingShape | null>(
     null,
   );
@@ -552,10 +746,6 @@ export default function SetupPage() {
     | { kind: "member"; memberId: string }
     | null
   >(null);
-  /** Le bloc sautable ouvert. Contrôlé — voir `MouthPreferencesFieldsProps`. */
-  const [prefsBlock, setPrefsBlock] = React.useState<MouthFormBlock | null>(
-    null,
-  );
   /**
    * LE BROUILLON DE PRÉFÉRENCES D'UNE BOUCHE DÉJÀ INSCRITE.
    *
@@ -610,6 +800,23 @@ export default function SetupPage() {
           ? await loadMemberHabits().catch(() => new Map())
           : new Map();
         setHabits(habitsMap);
+        // MÊME LECTURE, MÊME GARDE QUE LES HABITUDES: sans foyer il n'y a pas
+        // de ligne membre, donc pas de cible de bouche — une Map vide, pas une
+        // erreur.
+        setMemberBirthDates(
+          read.householdId
+            ? await loadMemberBirthDates(
+              read.mouths.map((m) => m.memberId ?? "").filter(Boolean),
+            ).catch(() => new Map<string, string>())
+            : new Map<string, string>(),
+        );
+        setMemberTargets(
+          read.householdId
+            ? await loadMemberTargets(read.householdId).catch(() =>
+              new Map<string, MemberTargetView>()
+            )
+            : new Map<string, MemberTargetView>(),
+        );
         // SA CIBLE ET SON RYTHME, DEPUIS `student_goals`. Hors du `seed`: ces
         // deux valeurs ne sont pas un brouillon de saisie, ce sont des FAITS
         // qu'une autre surface a pu écrire entre-temps — et l'étape 3 doit les
@@ -628,6 +835,19 @@ export default function SetupPage() {
         if (seed) {
           setSelf({
             firstName: read.state.self.firstName,
+            // ② SEMÉS COMME LE CRAN. Un écran ouvert sur des tuiles vierges
+            // au-dessus d'une réponse déjà donnée finit par l'écraser — c'est
+            // « formulaire figé au montage », et `saveOwnProfile` écrit
+            // désormais les nulls (voir son patch).
+            dayActivity: read.state.self.dayActivity,
+            sportFrequency: read.state.self.sportFrequency,
+            // ① ET ⑤ SEMÉS DEPUIS LA LIGNE DE CORPS. Une fenêtre ouverte sur
+            // des réponses vierges au-dessus d'une réponse déjà donnée finit
+            // par l'écraser — « formulaire figé au montage ».
+            takesDessert: read.state.self.takesDessert,
+            takesCheese: read.state.self.takesCheese,
+            takesBread: read.state.self.takesBread,
+            appetite: read.state.self.appetite ?? "",
             // La date de MOI vient de `profiles`, donc elle est lisible telle
             // quelle — contrairement à celle d'une autre bouche, que le roster
             // ne rend jamais.
@@ -647,6 +867,18 @@ export default function SetupPage() {
             goal: read.state.self.goal ?? "",
             allergies: [],
             allergiesNone: read.state.self.allergiesReviewed,
+            // SES MOMENTS: les siens s'il en a, sinon ceux de la maison — la
+            // même cascade que partout ailleurs. `null` traverse quand personne
+            // n'a rien dit, et la fiche le rend comme « aux moments de la
+            // maison » plutôt qu'en pré-cochant six cases.
+            // ⚠️ `[]` REDEVIENT `null`: `plan.eatingRhythm` vaut un tableau
+            // VIDE tant que la maison n'a rien dit, et le laisser passer se
+            // lisait « zéro moment déclaré » — ce qui vidait la section des
+            // habitudes sur la carte du maître, et sur la sienne seulement.
+            rhythm: read.ownEatingSlots ??
+              (read.state.plan.eatingRhythm.length > 0
+                ? read.state.plan.eatingRhythm
+                : null),
             // ⚠️ SEMÉES, JAMAIS VIDES: `keel_household_set_member_habits`
             // REMPLACE la liste entière. Un brouillon vide enregistré effacerait
             // « elle mange une pomme le matin » sans un mot — la cicatrice
@@ -738,30 +970,15 @@ export default function SetupPage() {
    * l'entonnoir demandait pour les bouches jusqu'au 2026-08-13.
    */
   const stepMissing = missesForStep(previewState, branch, step.id);
-
   /**
-   * L'ÉTAT DE L'ÉTAPE 3 **TEL QUE L'ÉCRAN LE MONTRE**, et il diffère de
-   * `previewState` sur un seul champ: le régime du titulaire.
+   * CE QUI RETIENT L'ÉTAPE 2, PAR PERSONNE.
    *
-   * ⚠️ SANS ÇA, LE MESSAGE QU'ON VIENT D'AJOUTER SE SERAIT MIS À MENTIR. Le
-   * régime est écrit par le « Continuer » de l'étape 3 (`saveOwnDiet`), donc
-   * `facts.state.self.diet` reste `null` tant qu'on n'a pas quitté l'étape.
-   * Quelqu'un retenu une première fois, qui clique ensuite « Végétarien »,
-   * aurait continué à lire « il manque ton régime » sous le bouton qu'il vient
-   * d'allumer — un reproche sur une question déjà répondue, exactement ce que
-   * `heldBack` existe pour éviter.
-   *
-   * Il ne sert QU'AU MESSAGE, jamais au verdict de composition: `previewState`
-   * reste la seule source du bouton de fin, qui ne doit s'allumer que sur des
-   * faits ENREGISTRÉS.
+   * ⚠️ CE N'EST PLUS `stepMissing` FILTRÉ: la liste plate ne portait pas de
+   * sujet, donc elle ne pouvait pas dire chez qui. Les deux coexistent — l'une
+   * décide, l'autre nomme — et c'est `peopleStepBlockers` qui décide pour
+   * l'étape 2 depuis le 2026-08-19.
    */
-  const tableShownState: FunnelState = {
-    ...previewState,
-    self: {
-      ...previewState.self,
-      diet: self?.diet || previewState.self.diet,
-    },
-  };
+  const stepBlockers = peopleStepBlockers(previewState, branch);
 
   /**
    * CE QUI RETIENT SUR LES BOUCHES, DIT SUR LE FORMULAIRE QUI LE LÈVE.
@@ -828,6 +1045,7 @@ export default function SetupPage() {
       dislikes: self.dislikes,
       shaker: self.shaker,
       diet: self.diet,
+      rhythm: self.rhythm,
     };
 
   /**
@@ -858,6 +1076,33 @@ export default function SetupPage() {
         habits: { ...applied.habits },
         dislikes: [...applied.dislikes],
         shaker: applied.shaker,
+        rhythm: applied.rhythm,
+        // ── ⛔ LE RÉGIME MANQUAIT ICI, ET LE CHAMP NE BOUGEAIT PAS ──────────
+        //
+        // Signalé le 2026-08-19: « comment elle mange, quand je sélectionne il
+        // n'y a rien qui bouge ». Le champ du régime a été ouvert au TITULAIRE
+        // le même jour (il était réservé aux bouches sans compte); son
+        // remontage, lui, ne l'a pas suivi. Or `selfMouthDraft` est DÉRIVÉ de
+        // `self` à chaque rendu: une valeur qui ne remonte pas dans `self` est
+        // recalculée à l'ancienne au rendu suivant, donc le `select` revient
+        // tout seul sur son option d'avant. Le geste avait l'air refusé alors
+        // qu'il n'était même pas enregistré dans le brouillon.
+        //
+        // ⚠️ ET C'EST BIEN UN DÉFAUT DE REMONTÉE, PAS D'ENREGISTREMENT: la
+        // fenêtre n'écrit jamais en base — elle édite le brouillon, et c'est
+        // « Continuer » qui écrit (`saveSelf` → `saveOwnDiet`). Un champ qui ne
+        // remonte pas ne peut donc pas non plus être enregistré: le défaut se
+        // voyait à l'écran et se serait vu en base.
+        //
+        // ⛔ PAS DE `as` SEC SUR LA VALEUR. `MouthFormDraft.diet` est un
+        // `string` (la fenêtre ne connaît pas le vocabulaire fermé), `SelfDraft`
+        // porte `DietAnswer | ""`. Un cast direct désarmerait le typecheck sur
+        // exactement le jeton qui décide si la ligne part en base — cicatrice
+        // `as-cast-on-foreign-type-disarms-typecheck`. On VÉRIFIE, puis on
+        // rétrécit.
+        diet: (DIET_ANSWERS as readonly string[]).includes(applied.diet)
+          ? (applied.diet as DietAnswer)
+          : "",
       }
     );
   };
@@ -868,6 +1113,10 @@ export default function SetupPage() {
     setBusy(true);
     setFailure(null);
     setFlash(null);
+    // L'accusé d'ajout ne survit pas au geste SUIVANT: il dit « ce clic-ci
+    // vient de créer quelqu'un », et une phrase qui reste devient un décor.
+    // Le « Continuer » de l'étape 2 le repose APRÈS ce nettoyage.
+    setMouthAdded(null);
     try {
       await work();
     } catch (error) {
@@ -930,6 +1179,7 @@ export default function SetupPage() {
     setBusy(true);
     setMouthFailure(null);
     setFlash(null);
+    setMouthAdded(null);
     try {
       await work();
     } catch (error) {
@@ -948,6 +1198,16 @@ export default function SetupPage() {
    * « juste moi ». Aucun drapeau de progression n'est écrit nulle part.
    */
   function chooseSize(mouths: number) {
+    // ── « JUSTE MOI » APRÈS COUP N'EST PAS UN CHOIX, C'EST UNE DÉFAITE DE
+    //    FOYER — donc il s'arme, il ne s'exécute pas ────────────────────────
+    // Rien d'autre ici ne pouvait ramener quelqu'un au solo: la branche se
+    // dérive du NOMBRE de bouches, et il ne descend jamais sous deux
+    // (`api/onboarding.ts`). Ce clic-ci ouvre la seule porte, et elle dit ce
+    // qu'elle emporte avant de s'ouvrir.
+    if (mouths === 1 && facts!.householdId) {
+      setConfirmDissolve(true);
+      return;
+    }
     void guard(async () => {
       if (mouths >= 2 && !facts!.householdId) {
         const result = await createHousehold(DEFAULT_HOUSEHOLD_NAME);
@@ -956,6 +1216,47 @@ export default function SetupPage() {
       await load(false);
       // La branche décidée ici est LOCALE jusqu'à la relecture: on avance
       // d'une étape, et la relecture a déjà remis les faits d'accord.
+      setStepIndex(1);
+    });
+  }
+
+  /**
+   * DÉFAIRE LE FOYER, ET REPARTIR EN SOLO.
+   *
+   * ⚠️ LA GARDE EST EN BASE, PAS ICI. `keel_household_dissolve` refuse
+   * `not_alone` tant qu'il reste une bouche et `household_has_plans` dès qu'un
+   * repas a été composé — une limite d'UI n'est pas une limite. L'écran ne
+   * décide que de ce qu'il PROPOSE, et il traduit les deux refus qu'on peut
+   * réellement atteindre depuis ce bouton.
+   */
+  function dissolveTheHousehold() {
+    void guard(async () => {
+      const result = await dissolveHousehold();
+      if (!result.ok) {
+        throw new Error(
+          result.reason === "not_alone"
+            ? t("setup.situate.dissolve_not_alone")
+            : result.reason === "household_has_plans"
+            ? t("setup.situate.dissolve_has_plans")
+            : result.reason,
+        );
+      }
+      setConfirmDissolve(false);
+      // LE FOYER N'EXISTE PLUS, DONC RIEN DE CE QUI LE VISAIT N'A D'OBJET.
+      //
+      // ⚠️ ET VIDER LE BROUILLON N'EST PAS DU MÉNAGE. En solo, `MouthsStep`
+      // n'est pas rendu — mais le « Continuer » de l'étape 2, lui, absorbe
+      // toujours le brouillon. Un prénom resté là partirait sur
+      // `addHouseholdMember`, que la base refuse par `no_household`, et le
+      // refus atterrirait sur `mouthFailure` — c'est-à-dire sur une carte que
+      // cette branche ne rend pas. Un « Continuer » qui ne passe pas, sans un
+      // mot pour dire pourquoi: exactement le mur qu'on vient de démonter.
+      setMouth(emptyMouthDraft());
+      setMemberPrefs(null);
+      setMouthFailure(null);
+      setConfirmRemove(null);
+      setHeldBack(false);
+      await load(false);
       setStepIndex(1);
     });
   }
@@ -977,12 +1278,41 @@ export default function SetupPage() {
           firstName: draft.firstName,
           heightCm: height,
           gender: draft.gender,
+          dayActivity: draft.dayActivity,
+          sportFrequency: draft.sportFrequency,
           // LA LANE INDIVIDUELLE LIT `profiles.activity_level`
           // (`student_body_io.ts#loadStudentBody`). Celle du foyer lit la ligne
           // de corps, écrite quelques lignes plus bas — d'où les DEUX
           // écritures: deux moteurs, deux tables, un seul cran.
           activityLevel: draft.activityLevel,
         });
+      }
+      // ── ET MON PRÉNOM SUR MA LIGNE DE FOYER ────────────────────────────
+      //
+      // ⚠️ `profiles.full_name` NE NOMME AUCUNE PORTION. Le roster
+      // (`keel_household_roster_for`) rend `household_members.first_name` et
+      // rien d'autre; c'est ce prénom-là que le brief de portions, la liste
+      // d'ids et les règles de maison citent au modèle. `keel_household_create`
+      // n'y recopie le premier mot de `profiles.full_name` QU'UNE FOIS, et son
+      // commentaire le dit: « s'il renomme son profil plus tard, son prénom au
+      // foyer ne suit pas; il le change au foyer ».
+      //
+      // Sans cette écriture, le champ « Prénom — comment le plan nomme ta part »
+      // de cette étape-ci écrit dans `profiles` et le plan continue de nommer
+      // le maître « Student » (ou « Me »). Mesuré le 2026-08-18 sur un prompt
+      // réel: « Sacha » tapé à l'écran, « Student » servi au modèle sur les
+      // trois blocs qui le nomment.
+      //
+      // Muet quand il n'y a pas de foyer: la lane individuelle ne lit aucun
+      // prénom (voir la garde `branch !== "solo"` sur le champ lui-même).
+      if (facts!.householdId && facts!.ownMemberId && draft.firstName.trim()) {
+        const named = await setMemberName(
+          facts!.ownMemberId,
+          draft.firstName.trim(),
+        );
+        // `reason` est TOUJOURS une chaîne (`asResult` la normalise), donc
+        // `||` et pas `??`: un refus sans motif rendrait un message vide.
+        if (!named.ok) throw new Error(named.reason || "member_name_refused");
       }
       // MON POIDS VA DANS LA SÉRIE — c'est elle qui arme `restriction_guard`.
       if (Number.isFinite(weight) && weight > 0) {
@@ -1002,6 +1332,11 @@ export default function SetupPage() {
           heightCm: height,
           weightKg: weight,
           gender: draft.gender,
+          // ② LES DEUX MOTEURS LISENT DEUX TABLES: `profiles` pour la lane
+          // individuelle (juste au-dessus), la ligne de corps pour le foyer.
+          // Les deux écritures partent du MÊME brouillon, dans le même geste.
+          dayActivity: draft.dayActivity,
+          sportFrequency: draft.sportFrequency,
           // ⚠️ ET PAS SEULEMENT DANS `profiles`. `generate-household-meal-v1`
           // ne charge PAS le profil des membres — il lit des corps par
           // `member_id` (`keel_household_bodies_for`), y compris le mien. Sans
@@ -1009,6 +1344,16 @@ export default function SetupPage() {
           // quatre fois par semaine » compose son foyer sur l'hypothèse 1,5,
           // et rien ne le dit.
           activityLevel: draft.activityLevel,
+          // ① ET ⑤ — SAISIS DANS LA FENÊTRE DES PRÉFÉRENCES, ÉCRITS ICI. La
+          // fenêtre n'a pas d'écrivain à elle: elle édite CE brouillon, et
+          // c'est ce geste-ci qui le pose. Un second écrivain dans la fenêtre
+          // ferait deux enregistrements sur une même porte, et c'est celui
+          // qu'on regarde le moins qui écraserait l'autre.
+          takesDessert: draft.takesDessert,
+          takesCheese: draft.takesCheese,
+          takesBread: draft.takesBread,
+          // `""` (personne n'a répondu) redevient `null`: x1,00, un neutre vrai.
+          appetite: draft.appetite || null,
         });
       }
       if (draft.birthDate) {
@@ -1099,6 +1444,55 @@ export default function SetupPage() {
           already.add(label);
         }
         writtenDislikes.current.set(memberId, already);
+      }
+      // ── SES MOMENTS À LUI, ET CEUX DE LA MAISON, DANS LE MÊME GESTE ──────
+      //
+      // ⚠️ ARBITRAGE DU 2026-08-19: LA FICHE DU TITULAIRE PORTE LA RÉFÉRENCE DE
+      // LA MAISON. La question a quitté l'étape 3, où elle était posée UNE fois
+      // pour le foyer; posée par personne, il fallait décider qui porte le
+      // repli — celui sur lequel toute bouche muette est servie. C'est lui: il
+      // est la première bouche, et c'est déjà sa ligne `practical_constraints`
+      // qui dimensionne la grille du plan.
+      //
+      // Les deux écritures sont donc voulues, et elles ne font pas doublon:
+      //   · `practical_constraints.eating_rhythm` = LA MAISON (le repli des
+      //     autres bouches, lu par les deux générateurs);
+      //   · sa ligne membre = LUI (ce que la lane foyer sert dans son assiette).
+      // N'en écrire qu'une ferait diverger « ce que la maison mange » et « ce
+      // que le maître mange », sans que rien ne le dise.
+      //
+      // ⚠️ LECTURE FRAÎCHE, comme partout où deux écritures visent ce jsonb:
+      // `mergePracticalConstraints` le réécrit en entier, et repartir de la
+      // photo d'écran effacerait ce que les lignes ci-dessus viennent d'y
+      // poser. Cicatrice `stale-current-erases-the-previous-write`.
+      if (draft.rhythm !== null && draft.rhythm.length > 0) {
+        const beforeRhythm = await readFunnelFacts(userId);
+        // ⛔ `saveEatingRhythm`, ET PLUS `savePlanAnswers`. Le second écrivait
+        // le rythme depuis `answers`, et le bouton « composer » lui passait
+        // l'état React de l'étape 3 — un écran qui ne pose plus la question.
+        // Composer remettait donc le moment qu'on venait de retirer. Mesuré en
+        // base le 2026-08-19; voir la note sur `saveEatingRhythm`.
+        await saveEatingRhythm({
+          userId,
+          current: beforeRhythm.practicalConstraints,
+          rhythm: draft.rhythm,
+        });
+        // ── ⛔ ET SURTOUT PAS SUR MA LIGNE MEMBRE ────────────────────────
+        //
+        // Il y avait ici un second appel, `setMemberRhythm(ownMemberId, …)`,
+        // ajouté le 2026-08-19 « pour que les deux soient d'accord ». Il
+        // ÉCHOUE À TOUS LES COUPS: `keel_household_set_member_rhythm` refuse
+        // `has_account` — « la bouche a un compte: son rythme vit dans SON
+        // about you » (D1) — et le maître a un compte par définition.
+        //
+        // Le refus remontait en jaune en haut de l'étape 2 et bloquait
+        // « Continuer » sans dire de quel champ il parlait. Signalé le jour
+        // même: « ça veut pas continuer et j'ai has_account qui s'affiche ».
+        //
+        // Il n'y a donc RIEN à réconcilier: pour un compte, le rythme EST
+        // `practical_constraints.eating_rhythm`, que la ligne au-dessus vient
+        // d'écrire. La ligne membre n'est le domicile du rythme que pour une
+        // bouche SANS compte.
       }
       // LE SHAKER, LUI, VIT SUR `user_id` — donc il part même sans foyer.
       // `shakerToWrite` rend `null` tant que la quantité manque: un apport sans
@@ -1202,6 +1596,12 @@ export default function SetupPage() {
             heightCm: mHeight,
             weightKg: mWeight,
             gender: draft.gender,
+            dayActivity: draft.dayActivity || null,
+            sportFrequency: draft.sportFrequency || null,
+            takesDessert: draft.takesDessert,
+            takesCheese: draft.takesCheese,
+            takesBread: draft.takesBread,
+            appetite: draft.appetite || null,
             // `""` (personne n'a répondu) redevient `null` ici: la RPC lit
             // `null` comme « ne touche pas », et le brouillon parle le
             // vocabulaire de `MouthFormDraft`. Voir `MouthDraft`.
@@ -1251,7 +1651,11 @@ export default function SetupPage() {
         // ── ET LE RESTE DE CE QUI A ÉTÉ SAISI DANS LA FENÊTRE ──────────────
         // Même ordre que `persistMouth`: les habitudes, puis les dégoûts, puis
         // le régime. Les trois sont clés sur la ligne qu'on vient de créer.
-        await writeMouthPreferences(memberId, draft);
+        //
+        // `claimed: false` — une bouche qu'on AJOUTE n'a jamais de compte:
+        // `keel_household_add_member` ne pose pas de `user_id`, et la
+        // réclamation est un geste ultérieur de la personne elle-même.
+        await writeMouthPreferences(memberId, draft, false);
       } catch (error) {
         // On retire la ligne à moitié écrite, PUIS on relaie le motif d'origine.
         // Si le retrait échoue lui aussi, on ne le cache pas: la relecture
@@ -1262,6 +1666,12 @@ export default function SetupPage() {
         throw error;
       }
       setMouth(emptyMouthDraft());
+      // ET LA FICHE SE REFERME. Elle restait ouverte et vide sous la personne
+      // qu'on venait d'inscrire — c'est-à-dire un second bloc en forme de
+      // quelqu'un, juste sous le premier, à la seconde exacte où l'utilisateur
+      // cherche à comprendre ce que son clic a produit. Rouvrir coûte un clic;
+      // se demander qui est ce bloc-là coûte le signalement du 2026-08-19.
+      setMouthFormOpen(false);
       await load(false);
     })();
   }
@@ -1281,6 +1691,16 @@ export default function SetupPage() {
   async function writeMouthPreferences(
     memberId: string,
     draft: MouthFormDraft,
+    /**
+     * CETTE BOUCHE A-T-ELLE UN COMPTE ? REQUIS.
+     *
+     * ⚠️ DEUX PORTES REFUSENT `has_account` — le régime et le rythme —, et la
+     * raison est la même (D1): les deux vivent dans le « about you » de qui a
+     * un compte. Les appeler quand même fait échouer TOUT l'enregistrement des
+     * préférences sur un motif qui ne parle d'aucun champ visible. C'est ce qui
+     * vient de bloquer « Continuer » sur la carte du maître.
+     */
+    claimed: boolean,
   ): Promise<void> {
     const slots = Object.entries(draft.habits)
       .map(([slot, usual]) => ({
@@ -1303,8 +1723,28 @@ export default function SetupPage() {
       already.add(label);
     }
     writtenDislikes.current.set(memberId, already);
-    if (draft.diet) {
+    // ⛔ LES DEUX PORTES QUI REFUSENT `has_account` SONT SAUTÉES, PAS TENTÉES.
+    // Sauter n'est pas perdre: le régime et le rythme d'une bouche qui a un
+    // compte se règlent chez elle, et l'écran le DIT déjà (« ça se règle dans
+    // son about you »).
+    if (draft.diet && !claimed) {
       const res = await setMemberDiet(memberId, draft.diet as DietAnswer);
+      if (!res.ok) throw new Error(res.reason);
+    }
+    // ── SES MOMENTS, DEPUIS LA FICHE (2026-08-19) ────────────────────────────
+    //
+    // ⚠️ ON ENVOIE `null` QUAND LE BROUILLON EST `null`, ET C'EST UNE ÉCRITURE,
+    // pas un saut: `null` veut dire « comme la maison », et c'est la seule
+    // façon de REVENIR à ce repli après avoir coché quelque chose. Sauter
+    // l'appel rendrait ce retour impossible — le champ deviendrait un
+    // aller simple.
+    //
+    // ⛔ ET JAMAIS UN TABLEAU VIDE: la base refuse `empty_rhythm`, et
+    // `MouthPreferencesFields` a déjà retraduit le vide en `null`. La ceinture
+    // est ici quand même, parce qu'un second appelant l'oublierait.
+    if (!claimed) {
+      const rhythm = draft.rhythm && draft.rhythm.length > 0 ? draft.rhythm : null;
+      const res = await setMemberRhythm(memberId, rhythm);
       if (!res.ok) throw new Error(res.reason);
     }
   }
@@ -1318,11 +1758,28 @@ export default function SetupPage() {
    * de sa colonne — pas de la photo d'écran, qui a pu vieillir de plusieurs
    * gestes.
    */
-  function saveMouthPreferences(target: FunnelMouth): Promise<void> {
+  function saveMouthPreferences(
+    target: FunnelMouth,
+    draft: MouthFormDraft,
+  ): Promise<void> {
     return (async () => {
       const memberId = target.memberId;
-      if (!memberId || memberPrefs?.memberId !== memberId) return;
-      const draft = memberPrefs.draft;
+      // ── ⛔ LE BROUILLON EST PASSÉ, PLUS RELU DEPUIS L'ÉTAT ────────────────
+      //
+      // Cette fonction commençait par:
+      //     if (!memberId || memberPrefs?.memberId !== memberId) return;
+      //     const draft = memberPrefs.draft;
+      //
+      // Deux `return` silencieux sur un écrivain, et c'est ce qui a coûté une
+      // matinée le 2026-08-19: les préférences du TITULAIRE partaient, celles
+      // d'une bouche non — sans un mot, sans un refus, sans rien à l'écran.
+      // Un écrivain qui ne fait rien est indiscernable d'un écrivain qui a
+      // marché, et c'est le mode d'échec n°1 de ce dépôt.
+      //
+      // L'appelant SAIT quel brouillon il ferme: il le passe. Il ne reste
+      // qu'une garde, sur le seul cas qui n'a rien à écrire — une bouche sans
+      // ligne —, et elle LÈVE au lieu de se taire.
+      if (!memberId) throw new Error("no_member_id");
       if (draft.allergiesNone || draft.allergies.length > 0) {
         const fresh = await readFunnelFacts(userId);
         await saveMouthAllergies({
@@ -1332,10 +1789,19 @@ export default function SetupPage() {
           current: fresh.practicalConstraints,
         });
       }
-      await writeMouthPreferences(memberId, draft);
+      await writeMouthPreferences(memberId, draft, target.claimed);
       setMemberPrefs(null);
       setPrefsFor(null);
       await load(false);
+      // ── UN ACCUSÉ, PARCE QUE L'ÉCRIT EST INVISIBLE ─────────────────────
+      // Cette écriture part à la FERMETURE de la fenêtre: il n'y a pas de
+      // bouton à regarder devenir gris, et le récapitulatif de la carte ne
+      // change que si la personne a rempli un bloc que cet écran relit. Sans
+      // un mot, « enregistré » et « perdu » se ressemblent — c'est très
+      // exactement ce qu'on vient de passer une matinée à démêler.
+      setFlash(t("household.mouth.preferences_saved", {
+        name: target.firstName.trim() || t("household.mouth.who_fallback"),
+      }));
     })();
   }
 
@@ -1366,14 +1832,99 @@ export default function SetupPage() {
    * réponse. Décocher le dernier moment veut dire « finalement, comme la
    * maison » — c'est `null`, et c'est ce que l'écran envoie.
    */
-  function saveMouthRhythm(
-    target: FunnelMouth,
-    rhythm: readonly EatingOccasionSlot[],
+  /**
+   * LE SHAKER, ENREGISTRÉ TOUT DE SUITE — LE SEUL ÉCRIVAIN DE LA FENÊTRE.
+   *
+   * ⚠️ IL S'ÉCRIT DÈS QU'IL Y A UN NOM ET **UNE** DES TROIS MESURES
+   * (`shakerCanBeSaved`), pas trois. Règle demandée le 2026-08-19, et elle est
+   * juste: refuser d'enregistrer une saisie à moitié faite la fait perdre au
+   * premier rechargement.
+   *
+   * ⛔ MAIS LE MOTEUR, LUI, EN EXIGE TROIS. `parseFixedIntakes` est
+   * tout-ou-rien, et il JETTE une déclaration incomplète — « ferait perdre la
+   * protéine en silence ». La ligne part donc en base et n'est PAS comptée tant
+   * qu'il manque un nombre. L'écran le dit, mot pour mot, sous le bouton: c'est
+   * la seule chose qui empêche « Enregistrer » de mentir.
+   *
+   * ⚠️ ET IL N'ÉCRIT QUE POUR UN COMPTE. `fixed_intakes` vit dans
+   * `student_goals.practical_constraints`, donc sur `user_id`: seule la fiche
+   * du TITULAIRE reçoit ce geste (`prefsFor.kind === "self"`), les autres
+   * reçoivent `null` et ne rendent pas le bloc.
+   */
+  function saveOwnShaker(shaker: ShakerDraft): Promise<void> {
+    return (async () => {
+      // LECTURE FRAÎCHE: `fixed_intakes` partage le jsonb avec le régime et les
+      // allergies. Repartir de la photo d'écran effacerait ce qui vient d'y
+      // être posé — cicatrice `stale-current-erases-the-previous-write`.
+      const fresh = await readFunnelFacts(userId);
+      await addShakerToOwnIntakes({
+        userId,
+        current: fresh.practicalConstraints,
+        // ⚠️ `shakerPartialToWrite` ET PAS `shakerToWrite`: le second rend
+        // `null` tant que les trois nombres ne sont pas là, ce qui ferait de ce
+        // bouton un geste qui ne fait rien — le mode d'échec n°1 du dépôt.
+        shaker: shakerPartialToWrite(shaker),
+      });
+      await load(false);
+    })();
+  }
+
+  /**
+   * LE SHAKER D'UNE BOUCHE — SUR SA LIGNE, PAS SUR LA MIENNE.
+   *
+   * ⚠️ AUTRE PORTE QUE `saveOwnShaker`, et c'est tout l'objet du lot: les
+   * apports d'un compte vivent dans `student_goals.practical_constraints`, ceux
+   * d'une bouche sur `household_members.fixed_intakes`. Une bouche sans compte
+   * n'a pas de ligne `student_goals` — c'est pour ça que le bloc lui était
+   * caché, et pourquoi l'afficher SANS cette porte aurait écrit son shaker sur
+   * la ligne du maître.
+   */
+  function saveMemberShaker(
+    memberId: string,
+    shaker: ShakerDraft,
   ): Promise<void> {
     return (async () => {
-      const result = await setMemberRhythm(
+      // LECTURE FRAÎCHE de ce que la ligne porte déjà: la porte REMPLACE le
+      // tableau entier, donc écrire sans relire effacerait un second apport.
+      const current = await loadMemberFixedIntakes(memberId);
+      const res = await addShakerToMemberIntakes({
+        memberId,
+        current,
+        shaker: shakerPartialToWrite(shaker),
+      });
+      if (!res.ok) throw new Error(res.reason);
+      await load(false);
+      setFlash(t("household.mouth.shaker_counted"));
+    })();
+  }
+
+  /**
+   * LA CIBLE ET LE RYTHME D'UNE BOUCHE, DEPUIS SA CARTE.
+   *
+   * ⚠️ MÊME PORTE QU'À L'AJOUT (`keel_household_set_member_target`), et surtout
+   * PAS celle du titulaire: la cible d'une bouche vit sur SA LIGNE, celle du
+   * maître dans `student_goals`. Les deux colonnes portent le même CHECK « pas
+   * de cible sans direction ».
+   *
+   * ⚠️ `targetPayloadOf` EST LA SEULE DÉCISION, miroir exact du CHECK: rien ne
+   * part sur une direction qui ne bouge pas, rien ne part à moitié. Le
+   * reconstruire ici en ferait une seconde arithmétique qui divergerait de
+   * celle de l'ajout au premier ajustement.
+   */
+  function saveMouthTarget(
+    target: FunnelMouth,
+    targetWeightKg: string,
+    paceKgPerWeek: string,
+  ): Promise<void> {
+    return (async () => {
+      const payload = targetPayloadOf(
+        { ...emptyMouthFormDraft(), goal: target.goal ?? "", targetWeightKg, paceKgPerWeek },
+        browserLocalDate(),
+      );
+      const result = await setMemberTarget(
         target.memberId!,
-        rhythm.length === 0 ? null : rhythm,
+        payload.targetWeightKg,
+        payload.paceKgPerWeek,
       );
       if (!result.ok) throw new Error(result.reason);
       await load(false);
@@ -1381,24 +1932,103 @@ export default function SetupPage() {
   }
 
   /**
-   * LE RÉGIME D'UNE BOUCHE — la question que l'utilisateur a redemandée deux
-   * fois parce qu'elle existait pour lui et pour personne d'autre.
+   * TOUT CE QUI EST PRÊT SUR CETTE CARTE, PUIS ON REFERME.
    *
-   * ⚠️ RE-CLIQUER LE MÊME BOUTON EFFACE, et c'est le seul moyen de revenir à
-   * « on n'a pas demandé ». Les quatre réponses ne comportent pas de « je ne
-   * sais pas »: `omnivore` est une réponse, pas un vide. Sans ce geste, une
-   * réponse posée par erreur sur la ligne d'un enfant serait indéfaisable.
+   * ── ⚠️ CE QUI N'EST PAS PRÊT EST SAUTÉ, PAS REFUSÉ ───────────────────────
+   * Les trois portes n'ont pas les mêmes exigences: le corps est tout-ou-rien
+   * pour la base (`body_incomplete`), la cible n'est légale que sous une
+   * direction qui bouge (`target_needs_direction_check`), et la date n'existe
+   * que si on en a tapé une (le roster ne la rend jamais, donc le champ est
+   * toujours vide au départ). Un bouton unique qui LÈVERAIT sur l'une ferait
+   * perdre les deux autres — et c'est le bouton qui remplace quatre boutons,
+   * donc celui qu'on presse en croyant tout sauver.
+   *
+   * ⛔ L'ORDRE N'EST PAS LIBRE: le corps AVANT la cible. Le plafond du curseur
+   * se calcule sur ce corps-là, et la ligne membre doit le porter avant qu'on y
+   * pose une cible qui en dépend. C'est le même ordre que `persistMouth` et que
+   * `addMouth`.
    */
-  function saveMouthDiet(target: FunnelMouth, diet: DietAnswer): Promise<void> {
+  function saveMouthCard(
+    target: FunnelMouth,
+    fields: {
+      birthDate: string;
+      heightCm: string;
+      weightKg: string;
+      gender: MemberGender | "";
+      activityLevel: ActivityLevel | null;
+      dayActivity: DayActivityLevel | null;
+      sportFrequency: SportFrequency | null;
+      targetWeightKg: string;
+      paceKgPerWeek: string;
+    },
+  ): Promise<void> {
     return (async () => {
-      const result = await setMemberDiet(
-        target.memberId!,
-        target.diet === diet ? null : diet,
+      if (fields.birthDate.trim() !== "") {
+        const answer = birthDateAnswer(fields.birthDate, browserLocalDate());
+        if (!answer) throw new Error(t("setup.people.birth_date_error"));
+        const dated = await setMemberBirthDate(target.memberId!, answer.date);
+        if (!dated.ok) throw new Error(dated.reason);
+      }
+      const h = Number(fields.heightCm);
+      const w = Number(fields.weightKg);
+      if (fields.gender && Number.isFinite(h) && Number.isFinite(w)) {
+        await saveMouthBody({
+          memberId: target.memberId!,
+          heightCm: h,
+          weightKg: w,
+          gender: fields.gender,
+          // ── ⛔ ① ET ⑤ SONT RELAYÉS, PAS RÉÉCRITS À `null` ──────────────
+          // Cette carte ne les demande PAS: ils vivent dans la fenêtre des
+          // préférences. Or `structureAsked` / `appetiteAsked` valent désormais
+          // `true` dans `saveMouthBody` — donc un `null` ici EFFACERAIT ce que
+          // la fenêtre vient d'écrire, en cliquant sur un champ d'à côté. C'est
+          // la cicatrice « `current` périmé efface l'écriture d'avant », et
+          // elle mord ici plus fort qu'ailleurs parce que le drapeau autorise
+          // maintenant l'effacement. On renvoie donc ce que la base porte.
+          takesDessert: target.takesDessert,
+          takesCheese: target.takesCheese,
+          takesBread: target.takesBread,
+          appetite: target.appetite,
+          dayActivity: fields.dayActivity,
+          sportFrequency: fields.sportFrequency,
+          // `null` = « ne touche pas », jamais « efface ».
+          activityLevel: fields.activityLevel,
+        });
+      }
+      const payload = targetPayloadOf(
+        {
+          ...emptyMouthFormDraft(),
+          goal: target.goal ?? "",
+          targetWeightKg: fields.targetWeightKg,
+          paceKgPerWeek: fields.paceKgPerWeek,
+        },
+        browserLocalDate(),
       );
-      if (!result.ok) throw new Error(result.reason);
+      const aimed = await setMemberTarget(
+        target.memberId!,
+        payload.targetWeightKg,
+        payload.paceKgPerWeek,
+      );
+      if (!aimed.ok) throw new Error(aimed.reason);
+      // LES PRÉFÉRENCES SUIVENT, quand la fenêtre en a collecté: c'est le
+      // quatrième bouton que ce geste remplace.
+      if (memberPrefs?.memberId === target.memberId) {
+        await saveMouthPreferences(target, memberPrefs.draft);
+      }
+      // ⛔ ON NE REFERME PAS. C'est un AUTOSAVE, pas un « Terminé »: refermer
+      // la carte sous les doigts de quelqu'un qui quitte un champ pour aller au
+      // suivant serait un geste qu'il n'a pas demandé.
       await load(false);
     })();
   }
+
+  /* ⛔ ICI SE TENAIENT `saveMouthRhythm` ET `saveMouthDiet` — les deux
+     écrivains que cette page passait à `TableStep`. Retirés avec son montage
+     le 2026-08-19 (voir le bloc « ICI SE TENAIT `TableStep` » plus bas): les
+     deux questions sont posées dans la FICHE de chaque personne, à l'étape 2,
+     et c'est `saveMouthPreferences` qui écrit `setMemberRhythm` /
+     `setMemberDiet` désormais. `TableStep` reste exporté pour son harnais, qui
+     lui passe ses propres bouchons. */
 
   function saveMouthGoal(target: FunnelMouth, goal: MemberGoal | ""): Promise<void> {
     return (async () => {
@@ -1443,6 +2073,10 @@ export default function SetupPage() {
     weightKg: string,
     gender: MemberGender | "",
     activityLevel: ActivityLevel | null,
+    // ② Positionnels comme le cran, et pour la même raison: la casse de
+    // compilation est le mécanisme qui recense les appelants.
+    dayActivity: DayActivityLevel | null,
+    sportFrequency: SportFrequency | null,
   ): Promise<void> {
     return (async () => {
       const h = Number(heightCm);
@@ -1455,11 +2089,25 @@ export default function SetupPage() {
         heightCm: h,
         weightKg: w,
         gender,
+        // ── ⛔ ① ET ⑤ SONT RELAYÉS, PAS RÉÉCRITS À `null` ──────────────
+        // Cette carte ne les demande PAS: ils vivent dans la fenêtre des
+        // préférences. Or `structureAsked` / `appetiteAsked` valent désormais
+        // `true` dans `saveMouthBody` — donc un `null` ici EFFACERAIT ce que
+        // la fenêtre vient d'écrire, en cliquant sur un champ d'à côté. C'est
+        // la cicatrice « `current` périmé efface l'écriture d'avant », et
+        // elle mord ici plus fort qu'ailleurs parce que le drapeau autorise
+        // maintenant l'effacement. On renvoie donc ce que la base porte.
+        takesDessert: target.takesDessert,
+        takesCheese: target.takesCheese,
+        takesBread: target.takesBread,
+        appetite: target.appetite,
         // ⚠️ LE CRAN NE FAIT PAS PARTIE DE LA GARDE AU-DESSUS, et il ne doit
         // pas: les trois du corps sont exigés (le moteur saute une ligne
         // partielle), celui-ci ne l'est pas (il a un repli sûr). Un `null`
         // n'efface rien en base — la RPC le lit « ne touche pas ».
         activityLevel,
+        dayActivity,
+        sportFrequency,
       });
       await load(false);
     })();
@@ -1597,6 +2245,16 @@ export default function SetupPage() {
         current: before.practicalConstraints,
         answers: plan!,
       });
+      // ── L'ENVIE PART AVEC LA DEMANDE, comme dans `MealBuilder` ──────────
+      // ⚠️ AVANT `composeDraft`, ET C'EST L'ORDRE QUI COMPTE: le générateur
+      // relit `household_envy_submissions` PAR SEMAINE, côté serveur. Écrire
+      // après composerait le plan sans l'envie qu'on vient de saisir.
+      //
+      // ⚠️ UNE PHRASE VIDE N'ÉCRASE RIEN. Même règle que `MealBuilder`: ne rien
+      // avoir envie de dire est un état normal, et il ne doit pas effacer ce
+      // qui a été écrit ailleurs pour cette semaine-là.
+      const envyLine = envy.trim();
+      if (envyLine) await submitEnvy(envyWeek, envyLine);
       const fresh = await readFunnelFacts(userId);
       const freshBranch = fresh.branch ?? "solo";
       const last = canGenerate(fresh.state, freshBranch);
@@ -1627,11 +2285,39 @@ export default function SetupPage() {
   return (
     <FunnelShell>
       <div className="space-y-6">
-        {/* UN FIL DE PROGRESSION HONNÊTE: le compte réel des étapes de CETTE
-            branche, pas une barre décorative. */}
-        <p className="text-label font-semibold uppercase text-ink-soft">
-          {t("setup.progress", { n: stepIndex + 1, total: steps.length })}
-        </p>
+        {/* ── ⚠️ « RETOUR » EST EN HAUT, ET C'EST SA PLACE ────────────────────
+            Il vivait dans la barre d'action du bas, à côté de « Continuer ».
+            Deux défauts, et le second est celui qui compte:
+
+              · il se lisait comme une variante de l'avance — même barre, même
+                taille, même bord;
+              · et il fallait DESCENDRE tout un formulaire pour revenir en
+                arrière. Sur l'étape 2 d'un foyer de quatre, c'est plusieurs
+                écrans de défilement pour un geste qui veut dire « je me suis
+                trompé plus tôt ».
+
+            En tête, il est là où on le cherche: au-dessus de ce qu'on veut
+            quitter, et à côté du fil qui dit où on en est. Demandé le
+            2026-08-19.
+
+            ⚠️ IL NE PERD RIEN. Les brouillons vivent dans l'état de la PAGE et
+            chaque champ écrit tout seul depuis le même jour — revenir n'a aucun
+            coût, et c'est ce qui rend ce bouton sûr à mettre en évidence. */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-label font-semibold uppercase text-ink-soft">
+            {t("setup.progress", { n: stepIndex + 1, total: steps.length })}
+          </p>
+          {stepIndex > 0 ? (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setStepIndex((i) => Math.max(0, i - 1))}
+              disabled={busy}
+            >
+              {t("setup.back")}
+            </Button>
+          ) : null}
+        </div>
 
         {failure ? (
           <Card tone="warning">
@@ -1644,9 +2330,19 @@ export default function SetupPage() {
           <SituateStep
             current={facts.state.mouths}
             hasHousehold={facts.householdId !== null}
+            // ⚠️ `facts.mouths` EST LA LISTE SANS LE MAÎTRE (`readFunnelFacts`
+            // le retire — il vit dans `state.self`). « Vide » veut donc bien
+            // dire « il est seul à table », et c'est ce que la base vérifie de
+            // son côté par `not_alone`.
+            hasOtherMouths={facts.mouths.length > 0}
             isOwner={facts.isOwner}
             busy={busy}
             onChoose={chooseSize}
+            dissolve={{
+              armed: confirmDissolve,
+              onConfirm: dissolveTheHousehold,
+              onCancel: () => setConfirmDissolve(false),
+            }}
           />
         ) : null}
 
@@ -1676,7 +2372,6 @@ export default function SetupPage() {
               // lieu: un bouton qui ouvrirait une fenêtre sur du vide non lu
               // l'écrirait au Save.
               onOpenPreferences={selfMouthDraft === null ? null : () => {
-                setPrefsBlock(null);
                 setPrefsFor({ kind: "self" });
               }}
             />
@@ -1705,16 +2400,21 @@ export default function SetupPage() {
                 onAdd={() => guardMouth(addMouth)}
                 held={mouthsHeld}
                 failure={mouthFailure}
+                added={mouthAdded}
+                formOpen={mouthFormOpen}
+                onOpenForm={() => setMouthFormOpen(true)}
+                // « RETIRER » VIDE **ET** REFERME. Vider sans refermer
+                // laisserait exactement le bloc dont on veut se défaire.
                 onDiscard={() => {
                   setMouth(emptyMouthDraft());
                   setMouthFailure(null);
+                  setMouthFormOpen(false);
                 }}
                 onGoal={(m, g) => guardMouth(() => saveMouthGoal(m, g))}
                 onBirthDate={(m, d) => guardMouth(() => saveMouthBirthDate(m, d))}
                 onAllergyAnswer={(m, labels) =>
                   guardMouth(() => saveMouthAllergyAnswer(m, labels))}
                 onOpenDraftPreferences={() => {
-                  setPrefsBlock(null);
                   setPrefsFor({ kind: "new" });
                 }}
                 // ⚠️ ON SÈME LES HABITUDES DE CETTE BOUCHE, ET RIEN D'AUTRE.
@@ -1731,18 +2431,64 @@ export default function SetupPage() {
                       firstName: m.firstName,
                       goal: m.goal ?? "",
                       diet: m.diet ?? "",
+                      // ⛔ LE RYTHME MANQUAIT ICI, ET C'EST TOUT LE DÉFAUT.
+                      // Le régime et les habitudes étaient semés, lui non: on
+                      // cochait « déjeuner, dîner », on fermait, on rouvrait —
+                      // et les six cases étaient vides. La valeur ÉTAIT en base
+                      // (vérifié: `[{"slot":"lunch"},{"slot":"dinner"}]`);
+                      // c'est la fenêtre qui repartait de zéro.
+                      //
+                      // ⚠️ ET C'EST PIRE QU'UN AFFICHAGE: `setMemberRhythm`
+                      // REMPLACE la ligne. Rouvrir puis refermer aurait donc
+                      // ÉCRASÉ le rythme par un `null` — la cicatrice
+                      // `mount-snapshot-forms-need-a-loading-gate`, prise par
+                      // le bout qui coûte la donnée.
+                      rhythm: m.eatingSlots,
                       habits: Object.fromEntries(
                         (known?.slots ?? []).map((h) => [h.slot, h.usual]),
                       ),
                     },
                   });
-                  setPrefsBlock(null);
                   setPrefsFor({ kind: "member", memberId: m.memberId ?? "" });
                 }}
                 mouthPrefs={memberPrefs}
-                onSaveMouthPreferences={(m) =>
-                  guardMouth(() => saveMouthPreferences(m))}
-                onBody={(m, h, w, g, a) => guardMouth(() => saveRowBody(m, h, w, g, a))}
+                // ── CE QUE LA BASE SAIT DÉJÀ D'ELLE ────────────────────────
+                // ⚠️ ON NE SÈME PAS LES DÉGOÛTS: ils ne sont pas relus par cet
+                // écran (leur porte n'a qu'`add`/`remove`), donc les compter
+                // ici dirait « renseignés » sur une lecture qui n'a pas eu
+                // lieu. Un récapitulatif qui invente est pire qu'un
+                // récapitulatif court.
+                knownPrefs={(m) => ({
+                  ...emptyMouthFormDraft(),
+                  firstName: m.firstName,
+                  goal: m.goal ?? "",
+                  diet: m.diet ?? "",
+                  rhythm: m.eatingSlots,
+                  allergiesNone: m.allergiesReviewed,
+                  habits: Object.fromEntries(
+                    (habits?.get(m.memberId ?? "")?.slots ?? []).map((h) => [
+                      h.slot,
+                      h.usual,
+                    ]),
+                  ),
+                })}
+                onSaveMouthPreferences={(m) => {
+                  const d = memberPrefs?.draft;
+                  if (d) guardMouth(() => saveMouthPreferences(m, d));
+                }}
+                onBody={(m, h, w, g, a, day, sport) =>
+                  guardMouth(() => saveRowBody(m, h, w, g, a, day, sport))}
+                editingMemberId={editingMouth}
+                // OUVRIR UNE CARTE REFERME L'AUTRE — voir `editingMouth`.
+                onToggleEdit={(m) =>
+                  setEditingMouth((prev) =>
+                    prev === m.memberId ? null : m.memberId ?? null
+                  )}
+                onSaveAndClose={(m, fields) =>
+                  guardMouth(() => saveMouthCard(m, fields))}
+                targets={memberTargets}
+                birthDates={memberBirthDates}
+                onTarget={(m, w, p) => guardMouth(() => saveMouthTarget(m, w, p))}
                 onRemove={(m) => guardMouth(() => removeMouth(m))}
                 confirmRemove={confirmRemove}
                 onConfirmRemove={setConfirmRemove}
@@ -1762,7 +2508,7 @@ export default function SetupPage() {
                 essayé de partir. La liste est celle des faits, donc elle
                 rétrécit à chaque réponse et disparaît d'elle-même. */}
             {heldBack && stepMissing.length > 0 ? (
-              <MissingCard missing={stepMissing} title="setup.missing.before_next" />
+              <BlockersCard blockers={stepBlockers} />
             ) : null}
           </>
         ) : null}
@@ -1779,7 +2525,21 @@ export default function SetupPage() {
             quarante lignes de `TableStep` pour les envelopper aurait fait un
             diff illisible à côté du leur. Deux blocs sur la même condition
             rendent la même chose, dans le même ordre. */}
-        {step.id === "table" ? (
+        {/* ── LES MOYENS, SUR L'ÉTAPE QUI LES DEMANDE (2026-08-19) ─────────
+            Cette carte vivait sur l'étape `table`, supprimée le même jour. Elle
+            rejoint `request`, avec les jours où l'on cuisine, le temps et le
+            budget: c'est la même famille de question — AVEC QUOI, QUAND,
+            COMBIEN —, et elle garde son ordre interne (les moyens de cuisson
+            AVANT les disponibilités, sinon on planifie une cuisson qu'aucun
+            appareil de la maison ne peut faire).
+
+            ⛔ ET ELLE NE POUVAIT PAS ALLER DANS LA FICHE D'UNE PERSONNE:
+            l'équipement est un fait de MAISON. Le poser par bouche le ferait
+            demander quatre fois, et rien ne dirait laquelle des quatre réponses
+            compte. Le déjeuner au boulot, lui, est per-personne — mais
+            `WorkLunchCard` les traite déjà TOUS dans une seule carte, ce qui
+            est la même question posée une fois plutôt que N fois. */}
+        {step.id === "request" ? (
           <TableStepPlanning
             // LA PHOTO DE LA COLONNE, JAMAIS DE QUOI ÉCRIRE. `null` = pas
             // encore lu, et c'est la porte de rendu de la carte: sept cases
@@ -1812,48 +2572,13 @@ export default function SetupPage() {
           />
         ) : null}
 
-        {step.id === "table" ? (
-          <TableStep
-            draft={plan}
-            onChange={setPlan}
-            mouths={facts.mouths}
-            onMouthRhythm={(m, rhythm) => guard(() => saveMouthRhythm(m, rhythm))}
-            onMouthDiet={(m, diet) => guard(() => saveMouthDiet(m, diet))}
-            busy={busy}
-            selfDiet={self?.diet ?? ""}
-            onSelfDiet={(diet) =>
-              setSelf((prev) => (prev === null ? prev : { ...prev, diet }))}
-            // LE TITULAIRE EST UNE BOUCHE COMME LES AUTRES, et sa carte le dit:
-            // son prénom en tête, comme les autres. `facts.state.self` est la
-            // lecture, pas le brouillon — on n'affiche pas ici un prénom tapé à
-            // l'étape 2 et jamais enregistré.
-            selfFirstName={facts.state.self.firstName}
-            selfMemberId={facts.ownMemberId}
-            habits={habits}
-            // ⚠️ LES `slots` DÉJÀ ÉCRITS SONT REPASSÉS TELS QUELS. La RPC
-            // REMPLACE la ligne entière (`on conflict do update set slots =
-            // excluded.slots`): envoyer `[]` parce que cet écran ne montre plus
-            // le détail par moment effacerait, en silence, les habitudes posées
-            // sur `/app/household`. On renvoie donc ce qu'on a lu — et si la
-            // lecture n'a pas eu lieu, le champ n'est pas rendu du tout.
-            onSaveNote={async (memberId, note) => {
-              const keep: HabitSlot[] = habits?.get(memberId)?.slots ?? [];
-              const result = await setMemberHabits(memberId, keep, note);
-              if (!result.ok) return false;
-              setHabits(await loadMemberHabits().catch(() => new Map()));
-              return true;
-            }}
-            // MÊME DISCIPLINE QU'À L'ÉTAPE 2: la liste ne s'affiche
-            // qu'APRÈS avoir essayé de partir. Sans ce drapeau, on arrivait
-            // sur l'étape avec « avant de pouvoir le construire — quand tu
-            // manges » sous un formulaire qui pose exactement cette
-            // question, et qui ne construit rien.
-            missing={heldBack
-              ? missesForStep(tableShownState, branch, "table")
-              : []}
-          />
-        ) : null}
-
+        {/* ⛔ ICI SE TENAIT `TableStep` — LE RÉGIME ET LES MOMENTS, PAR BOUCHE.
+            Retiré le 2026-08-19: les deux questions sont dans la FICHE de
+            chaque personne, à l'étape 2, où elles sont posées à côté de ce
+            qu'elles commandent. Les garder ici aurait fait DEUX formulaires sur
+            les mêmes colonnes — « la garantie qu'un jour l'un des deux cessera
+            d'écrire ce que l'autre écrit ». Le composant reste exporté pour son
+            harnais; plus rien ne le monte. */}
         {step.id === "request" ? (
           <RequestStep
             draft={plan}
@@ -1888,6 +2613,12 @@ export default function SetupPage() {
             rhythm={plan.eatingRhythm}
             cookingShape={cookingShape}
             onCookingShape={setCookingShape}
+            envy={envy}
+            onEnvy={setEnvy}
+            // LA MÊME QUESTION QUE LE ROUTAGE, POSÉE AU MÊME ENDROIT que la
+            // forme de cuisine: le champ n'existe que si la demande part sur
+            // la lane foyer.
+            askEnvy={facts.householdId !== null && facts.isOwner}
             // LA MÊME QUESTION QUE LE ROUTAGE, POSÉE AU MÊME ENDROIT: le champ
             // n'existe que si la demande part sur la lane foyer. `facts.mouths`
             // ne contient pas la ligne du maître, d'où le `+ 1` — et c'est le
@@ -1922,17 +2653,26 @@ export default function SetupPage() {
             `student_goals`, et la garde de route le rejoue maintenant à
             chaque écran de l'app. Ce qui reste comme échappatoire est la
             seule qui soit honnête: se déconnecter. */}
+        {/* ── ⚠️ « RETOUR » À GAUCHE, L'AVANCE À DROITE ─────────────────────
+            La barre entière était en `justify-end`: les deux gestes se
+            touchaient au bord droit, et « Retour » se lisait comme une variante
+            de « Continuer ». Demandé le 2026-08-19 — « à chaque étape il faut
+            une étape retour »: il EXISTAIT, mais collé à l'avance, donc
+            invisible en tant que sortie.
+
+            ⚠️ ET IL NE PERD RIEN. Les brouillons de l'écran (le titulaire, la
+            fiche d'ajout, les réponses de plan, les préférences ouvertes) vivent
+            dans l'état de la PAGE, pas de l'étape: revenir en arrière ne
+            démonte rien. Depuis le 2026-08-19 chaque champ écrit en plus tout
+            seul, donc même un rechargement complet retrouve la saisie. */}
+        {/* ⛔ « RETOUR » N'EST PLUS ICI — il est monté en tête d'écran. Le
+            laisser aux deux endroits aurait fait deux sorties pour un seul
+            geste, et celle du bas restait à des écrans de défilement.
+
+            ⚠️ ET LA BARRE REPASSE À DROITE: avec un seul groupe restant,
+            `justify-between` l'aurait collée à gauche, où rien ne l'attend. */}
         <div className="flex flex-wrap items-center justify-end gap-3">
           <div className="flex flex-wrap gap-2">
-            {stepIndex > 0 ? (
-              <Button
-                variant="secondary"
-                onClick={() => setStepIndex((i) => Math.max(0, i - 1))}
-                disabled={busy}
-              >
-                {t("setup.back")}
-              </Button>
-            ) : null}
             {step.id === "people" ? (
               <Button
                 variant="primary"
@@ -1965,6 +2705,12 @@ export default function SetupPage() {
                     if (typed) {
                       try {
                         await addMouth();
+                        // ── ET IL LE DIT ────────────────────────────────────
+                        // L'absorption reste voulue; son SILENCE ne l'était
+                        // pas. Posé APRÈS le `setMouthAdded(null)` de `guard`,
+                        // donc il survit à ce tour et à lui seul. Voir
+                        // `mouthAdded`.
+                        setMouthAdded(typed);
                       } catch (error) {
                         setMouthFailure(
                           error instanceof Error ? error.message : String(error),
@@ -1981,10 +2727,15 @@ export default function SetupPage() {
                     // trancher sur la photo d'avant retiendrait quelqu'un qui
                     // vient exactement de répondre.
                     const fresh = await readFunnelFacts(userId);
-                    const held = missesForStep(
+                    // ⛔ `peopleStepBlockers` ET PAS `missesForStep`: le seul
+                    // refus de cette étape est l'identité, le corps et la
+                    // direction d'une personne. Les allergies, le régime et les
+                    // moments sont DEMANDÉS et ne retiennent plus — décision du
+                    // 2026-08-19, et sa contrepartie est écrite dans
+                    // `personMisses`.
+                    const held = peopleStepBlockers(
                       { ...fresh.state, plan },
                       fresh.branch ?? branch,
-                      "people",
                     );
                     if (held.length > 0) {
                       setHeldBack(true);
@@ -2008,81 +2759,10 @@ export default function SetupPage() {
                 Elle retient comme l'étape 2, par le même verdict: on
                 n'avance pas tant que les moments de la maison ne sont pas
                 posés, et on le DIT plutôt que de griser. */}
-            {step.id === "table" ? (
-              <Button
-                variant="primary"
-                disabled={busy}
-                onClick={() =>
-                  guard(async () => {
-                    // LE RÉGIME EST ÉCRIT ICI DEPUIS QU'IL VIT SUR CETTE
-                    // ÉTAPE. Sans cette ligne il resterait dans le brouillon,
-                    // `readFunnelFacts` le relirait `null`, et l'étape
-                    // retiendrait sur une question à laquelle on vient de
-                    // répondre — le défaut exact que l'étape 2 a déjà payé.
-                    if (self?.diet) {
-                      const before = await readFunnelFacts(userId);
-                      await saveOwnDiet({
-                        userId,
-                        diet: self.diet,
-                        current: before.practicalConstraints,
-                      });
-                    }
-                    // ⛔ LA CIBLE ET LE RYTHME NE S'ÉCRIVENT PLUS ICI. Ils sont
-                    // saisis à l'étape 2, sous la direction qui les débloque, et
-                    // `saveSelf` les écrit dans le même geste qu'elle. Les
-                    // laisser sur ce bouton-ci les aurait fait partir d'un
-                    // brouillon que cet écran ne montre plus — une écriture sans
-                    // champ, c'est-à-dire la moitié muette du défaut d'en face.
-                    // ⚠️ LECTURE FRAÎCHE, ET C'EST CE QUI DÉBLOQUE L'ÉTAPE.
-                    //
-                    // Cette ligne disait `facts!.practicalConstraints` — la
-                    // photo d'AVANT le `saveOwnDiet` ci-dessus. Or les deux
-                    // écritures visent la MÊME colonne JSON et
-                    // `mergePracticalConstraints` la réécrit en entier
-                    // (`{...current, ...patch}`): repartir de la photo
-                    // périmée effaçait `diet_asked` à la milliseconde où il
-                    // venait d'être posé.
-                    //
-                    // Conséquence, mesurée le 2026-08-15 sur un compte réel:
-                    // « Je mange de tout » — la seule réponse dont l'accusé
-                    // JSON est la SEULE trace, les trois autres écrivant en
-                    // plus une ligne `student_safety_constraints` — ne
-                    // survivait jamais. `readDietAnswer` relisait `null`,
-                    // l'étape retenait sur `own_diet`, et elle retenait
-                    // À CHAQUE FOIS: un bouton « Continuer » qui ne pouvait
-                    // pas passer, quoi qu'on clique.
-                    //
-                    // C'est la même discipline qu'`addMouth` — voir le
-                    // commentaire « ET IL PART D'UNE LECTURE FRAÎCHE » — et
-                    // elle vaut partout où deux écritures se suivent sur ce
-                    // même objet.
-                    const beforePlan = await readFunnelFacts(userId);
-                    await savePlanAnswers({
-                      userId,
-                      current: beforePlan.practicalConstraints,
-                      answers: plan!,
-                    });
-                    const fresh = await readFunnelFacts(userId);
-                    const held = missesForStep(
-                      { ...fresh.state, plan },
-                      fresh.branch ?? branch,
-                      "table",
-                    );
-                    if (held.length > 0) {
-                      setHeldBack(true);
-                      return;
-                    }
-                    setHeldBack(false);
-                    // LES FAITS FRAIS SONT RETENUS. Sans ça, l'étape 4 hérite
-                    // de la photo du montage — donc d'un état ANTÉRIEUR au
-                    // régime qu'on vient d'écrire.
-                    setFacts(fresh);
-                    setStepIndex((i) => Math.min(steps.length - 1, i + 1));
-                  })}
-              >
-                {t("setup.next")}
-              </Button>
-            ) : null}
+            {/* ⛔ ET SON BOUTON « CONTINUER » AVEC ELLE. Ce qu'il écrivait est
+                repris ailleurs, sans perte: le régime part avec `saveSelf`
+                (étape 2), les moments aussi, et `savePlanAnswers` est de toute
+                façon rejoué par le bouton de composition. */}
             {isLast ? (
               <Button
                 variant="primary"
@@ -2127,7 +2807,43 @@ export default function SetupPage() {
         ) ? (
           <MouthFormDialog
             open
-            onClose={() => setPrefsFor(null)}
+            // ── ⛔ FERMER ÉCRIT. C'EST LA CORRECTION D'UNE PERTE RÉELLE ──
+            //
+            // Mesuré en base le 2026-08-19 après un passage complet: habitudes
+            // `[]`, aucun régime, aucun rythme, aucun dégoût, aucune allergie.
+            // Rien de ce que la fenêtre avait collecté n'était parti.
+            //
+            // La cause est un enchaînement de deux décisions justes prises
+            // séparément: la fenêtre édite un BROUILLON que la fiche
+            // enregistrait, et le bouton d'enregistrement de la fiche a été
+            // retiré le même jour (« le seul bouton enregistrer c'est pour le
+            // shaker »). Le brouillon n'avait donc plus d'écrivain.
+            //
+            // ⚠️ ON ÉCRIT SUR LE `onClose`, PAS SUR LE BOUTON « Terminé »: la
+            // fenêtre se ferme aussi par la croix et par Échap, et ces deux
+            // chemins-là auraient continué de jeter la saisie en silence. C'est
+            // la même leçon que « un geste qui ne fait rien est indiscernable
+            // d'un geste qui a marché », prise par le bout qui coûte la donnée.
+            //
+            // ⚠️ LA BOUCHE QU'ON AJOUTE N'A RIEN OÙ ÉCRIRE: sa ligne n'existe
+            // pas encore. Son brouillon part avec « Ajouter à la table », qui
+            // le pose en même temps que la personne — il n'est pas perdu, il
+            // attend.
+            onClose={() => {
+              const target = prefsFor;
+              setPrefsFor(null);
+              if (target.kind === "self") {
+                void guard(saveSelf);
+              } else if (target.kind === "member") {
+                const m = facts.mouths.find((x) =>
+                  x.memberId === target.memberId
+                );
+                // ⚠️ LE BROUILLON EST PRIS ICI, dans le rendu où la fenêtre
+                // était encore ouverte — pas relu plus tard dans l'écrivain.
+                const d = memberPrefs?.draft;
+                if (m && d) void guardMouth(() => saveMouthPreferences(m, d));
+              }
+            }}
             draft={prefsFor.kind === "self"
               ? selfMouthDraft!
               : prefsFor.kind === "new"
@@ -2150,6 +2866,10 @@ export default function SetupPage() {
             // refuse `has_account`). Le titulaire en a un; une bouche qu'on
             // ajoute n'en a jamais; une bouche inscrite, ça dépend d'elle.
             subject={{
+              // LA VOIX: « tu » sur ma propre fiche, le PRÉNOM sur celle des
+              // autres. Voir `lib/mouthVoice.ts` — et pourquoi la troisième
+              // personne nomme plutôt qu'elle ne genre.
+              isSelf: prefsFor.kind === "self",
               existing: prefsFor.kind !== "new",
               hasAccount: prefsFor.kind === "self" ||
                 (prefsFor.kind === "member" &&
@@ -2165,8 +2885,43 @@ export default function SetupPage() {
             memberScoped={prefsFor.kind !== "self" ||
               facts.ownMemberId !== null}
             busy={busy}
-            openBlock={prefsBlock}
-            onOpenBlock={setPrefsBlock}
+            // ── LES MOMENTS SUR LESQUELS LA FICHE INTERROGE ────────────────
+            // ⚠️ LA CASCADE EST CELLE DU MOTEUR, PAS UNE RÈGLE D'ÉCRAN: les
+            // siens s'il en a, sinon ceux de la maison, sinon les six. Voir
+            // `habitSlotsFor` — et le défaut qu'elle ferme, signalé capture à
+            // l'appui le 2026-08-19: six créneaux proposés à quelqu'un qui
+            // venait de dire qu'il mange deux fois par jour.
+            //
+            // La bouche qu'on AJOUTE n'a encore rien dit d'elle: elle tombe
+            // donc sur le rythme de la maison, qui est très exactement ce sur
+            // quoi elle sera servie tant qu'elle se tait.
+            // ⚠️ SEUL LE TITULAIRE A UN PORT: `fixed_intakes` est clé sur
+            // `user_id`. Une bouche sans compte n'a nulle part où le ranger, et
+            // une bouche AVEC compte a le sien — que cet écran ne peut pas
+            // écrire. `null` retire le bloc au lieu de promettre.
+            // ── LES DEUX PORTES, ET LA BONNE POUR CHAQUE SUJET ────────────
+            // ⚠️ ELLES N'ÉCRIVENT PAS AU MÊME ENDROIT: le titulaire dans
+            // `student_goals.practical_constraints` (clé `user_id`), une bouche
+            // sur SA ligne (`household_members.fixed_intakes`). Se tromper de
+            // porte poserait le shaker de quelqu'un sur la ligne d'un autre.
+            //
+            // `null` sur la fiche d'AJOUT: sa ligne n'existe pas encore, donc
+            // il n'y a pas d'endroit. Son shaker part avec « Ajouter à la
+            // table », comme le reste de son brouillon.
+            onSaveShaker={prefsFor.kind === "self"
+              ? (shaker) => guard(() => saveOwnShaker(shaker))
+              : prefsFor.kind === "member"
+              ? (shaker) => guardMouth(() => saveMemberShaker(prefsFor.memberId, shaker))
+              : null}
+            slots={habitSlotsFor(
+              prefsFor.kind === "member"
+                ? facts.mouths.find((m) => m.memberId === prefsFor.memberId)
+                  ?.eatingSlots ?? null
+                : prefsFor.kind === "self"
+                ? facts.ownEatingSlots
+                : null,
+              plan?.eatingRhythm ?? facts.state.plan.eatingRhythm,
+            )}
           />
         ) : null}
 
@@ -2329,18 +3084,35 @@ function FunnelShell({ children }: { children: React.ReactNode }) {
 // ÉTAPE 1
 // ───────────────────────────────────────────────────────────────────────────
 
-function SituateStep({
+/**
+ * ⚠️ EXPORTÉ POUR ÊTRE RENDU, pas pour être réutilisé ailleurs — même raison
+ * que `MouthsStep`: `SetupPage` entier ne se monte pas sous
+ * `renderToStaticMarkup`, et ce qui doit être prouvé ici est ce que la tuile
+ * « Juste moi » DIT et FAIT selon qu'il reste ou non quelqu'un à table. Voir
+ * `pages/setupSituateStep.int.test.ts`.
+ */
+export function SituateStep({
   current,
   hasHousehold,
+  hasOtherMouths,
   isOwner,
   busy,
   onChoose,
+  dissolve,
 }: {
   current: number | null;
   hasHousehold: boolean;
+  /**
+   * RESTE-T-IL QUELQU'UN D'AUTRE À TABLE ? REQUIS — jamais optionnel: c'est
+   * cette réponse-là qui décide si « Juste moi » est un choix ou une
+   * destruction, et un paramètre de garde facultatif est une garde désarmée.
+   */
+  hasOtherMouths: boolean;
   isOwner: boolean;
   busy: boolean;
   onChoose: (mouths: number) => void;
+  /** La défaite du foyer, armée ou non. REQUIS, même raison. */
+  dissolve: { armed: boolean; onConfirm: () => void; onCancel: () => void };
 }) {
   // UN SECONDAIRE N'A PAS CETTE QUESTION À RÉPONDRE. Quelqu'un d'autre gouverne
   // la table, et lui proposer trois cartes serait promettre un geste que la
@@ -2365,11 +3137,29 @@ function SituateStep({
       <p className="mt-2 text-sm text-ink-soft">{t("setup.situate.hint")}</p>
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
         {options.map((option) => {
-          // ⚠️ « JUSTE MOI » SE DÉSARME QUAND UN FOYER EXISTE. Cet écran ne
-          // supprime pas un foyer: ce serait effacer des bouches, leurs
-          // allergies et leurs portions sur un clic d'entonnoir. Le geste
-          // existe, il vit sur `/app/household`, où il porte son avertissement.
-          const locked = option.mouths === 1 && hasHousehold;
+          // ── ⚠️ « JUSTE MOI » NE SE DÉSARME PLUS QUE S'IL RESTE QUELQU'UN ──
+          //
+          // Cette ligne disait `option.mouths === 1 && hasHousehold`, et son
+          // commentaire justifiait le verrou ainsi: « cet écran ne supprime pas
+          // un foyer — ce serait effacer des bouches, leurs allergies et leurs
+          // portions sur un clic d'entonnoir. Le geste existe, il vit sur
+          // /app/household, où il porte son avertissement. »
+          //
+          // ⛔ LA SECONDE PHRASE ÉTAIT FAUSSE, ET C'EST ELLE QUI A FAIT LE MUR.
+          // `/app/household` ne sait retirer que des MEMBRES;
+          // `keel_household_remove_member` refuse le maître
+          // (`cannot_remove_owner`); rien nulle part ne défaisait un foyer.
+          // Répondre « on est deux » à cette question était donc irréversible
+          // dans tout le produit — et l'étape 2 retient ensuite sur
+          // `missing_mouths`. Signalé sur un compte réel le 2026-08-19:
+          // « je ne peux même pas la retirer et faire continuer ».
+          //
+          // La PREMIÈRE phrase, elle, est juste — et elle porte exactement sa
+          // condition: on efface des bouches QUAND IL Y EN A. Le verrou tient
+          // donc tant qu'il en reste une, et il le DIT sous la grille; quand le
+          // maître est seul, il n'y a plus rien à effacer que sa propre ligne,
+          // et le geste s'ouvre derrière une confirmation qui la nomme.
+          const locked = option.mouths === 1 && hasHousehold && hasOtherMouths;
           const chosen = branch === option.key;
           return (
             <button
@@ -2422,13 +3212,219 @@ function SituateStep({
           );
         })}
       </div>
+
+      {/* ── UN REFUS QUI NE DIT PAS CE QUI LE LÈVERAIT N'EST PAS UN REFUS ────
+          La tuile grisée ne portait RIEN: ni pourquoi, ni par où. C'est le mot
+          d'ordre du dépôt, et c'était le seul endroit de l'entonnoir où il
+          était violé sur un chemin sans issue. */}
+      {hasHousehold && hasOtherMouths ? (
+        <p className="mt-4 text-xs leading-5 text-ink-soft">
+          {t("setup.situate.solo_locked")}
+        </p>
+      ) : null}
+
+      {/* LA DÉFAITE DU FOYER, EN DEUX CLICS ET AVEC SA LISTE. Même idiome que
+          « Retirer » sur une bouche: un clic arme, le second exécute, et le
+          libellé change entre les deux. Ce qui part est NOMMÉ — la ligne de
+          bouche du maître et ce qui y est clé —, et ce qui reste aussi: son
+          profil et sa direction ne bougent pas, c'est ce qui rend le retour au
+          solo non destructeur pour la personne elle-même. */}
+      {dissolve.armed ? (
+        <div className="mt-4 rounded-card border border-amber-200 bg-amber-50 p-4">
+          <p className="text-xs leading-5 text-amber-900">
+            {t("setup.situate.dissolve_confirm")}
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <Button
+              variant="danger"
+              size="sm"
+              disabled={busy}
+              onClick={dissolve.onConfirm}
+            >
+              {t("setup.situate.dissolve_do")}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={busy}
+              onClick={dissolve.onCancel}
+            >
+              {t("setup.situate.dissolve_cancel")}
+            </Button>
+          </div>
+        </div>
+      ) : null}
     </Card>
   );
 }
 
 // ───────────────────────────────────────────────────────────────────────────
-// LE NIVEAU D'ACTIVITÉ — QUATRE TUILES, TROIS ENDROITS, UN SEUL RENDU
+// ② L'ACTIVITÉ EN DEUX AXES — DEUX GRILLES, TROIS ENDROITS, UN SEUL RENDU
 // ───────────────────────────────────────────────────────────────────────────
+//
+// ⛔ CE QUI A REMPLACÉ QUOI, ET POURQUOI (2026-08-20, soir). Les quatre crans
+// d'`ACTIVITY_KEYS` — gardés juste en dessous, et NON rendus — mélangeaient
+// deux axes: les deux premiers décrivent une JOURNÉE, les deux derniers un
+// SPORT. Quelqu'un d'assis qui court deux fois par semaine ne pouvait dire que
+// l'un des deux: il cochait « Sport 2 à 3 fois » et héritait de PAL 1,80, quand
+// le croisement vaut ~1,60. **239 kcal/jour fabriqués par la forme de la
+// question**, et ils traversaient toute la chaîne avec l'autorité d'une mesure.
+//
+// ⚠️ `ACTIVITY_KEYS` ET `ActivityTiles` RESTENT DANS CE FICHIER, SANS APPELANT
+// D'ÉCRAN, ET C'EST DÉLIBÉRÉ — mais ce n'est pas gratuit non plus. Le cran
+// d'avant reste le REPLI NOMMÉ de toute fiche qui n'a répondu qu'à lui
+// (`activityFactorOf`, source `legacy`), donc son vocabulaire doit rester lisible
+// à côté du neuf. Le jour où plus aucune fiche ne porte de `legacy`, les deux
+// partent ensemble.
+
+/**
+ * ② LE PREMIER AXE — la journée, sport EXCLU. `Record` complet: un cran ajouté
+ * sans ses mots ne compile pas.
+ */
+const DAY_ACTIVITY_KEYS: Record<
+  DayActivityLevel,
+  { label: MessageKey; hint: MessageKey }
+> = {
+  seated: {
+    label: "setup.day_activity.seated",
+    hint: "setup.day_activity.seated_hint",
+  },
+  on_feet: {
+    label: "setup.day_activity.on_feet",
+    hint: "setup.day_activity.on_feet_hint",
+  },
+  physical_job: {
+    label: "setup.day_activity.physical_job",
+    hint: "setup.day_activity.physical_job_hint",
+  },
+};
+
+/**
+ * ② LE SECOND AXE — les séances par semaine, journée EXCLUE.
+ *
+ * ⚠️ `none` EST UNE TUILE, ET CE N'EST PAS UN « JE NE SAIS PAS ». « Je ne fais
+ * pas de sport » est une RÉPONSE, et elle pèse: elle fait descendre le PAL au
+ * bas de la bande sédentaire. C'est `null` — aucune tuile cochée — qui veut
+ * dire « pas répondu », et il n'a pas de tuile, exprès.
+ */
+const SPORT_KEYS: Record<
+  SportFrequency,
+  { label: MessageKey; hint: MessageKey }
+> = {
+  none: { label: "setup.sport.none", hint: "setup.sport.none_hint" },
+  "1_2": { label: "setup.sport.1_2", hint: "setup.sport.1_2_hint" },
+  "3_4": { label: "setup.sport.3_4", hint: "setup.sport.3_4_hint" },
+  "5_plus": { label: "setup.sport.5_plus", hint: "setup.sport.5_plus_hint" },
+};
+
+/**
+ * LES DEUX GRILLES, RENDUES PAR LE MÊME COMPOSANT.
+ *
+ * ⛔ UN SEUL RENDU POUR LES DEUX AXES, ET POUR LES TROIS ENDROITS. Deux grilles
+ * de tuiles recopiées divergeraient au premier ajustement, et c'est celle qu'on
+ * regarde le moins qui garderait l'ancienne. C'est mot pour mot la raison
+ * écrite au-dessus d'`ActivityTiles`, appliquée à son remplaçant.
+ */
+function TokenTiles<T extends string>(props: {
+  label: MessageKey;
+  /** `null` = aucune aide sous la grille. Voir `ActivityTiles`. */
+  hint: MessageKey | null;
+  tokens: readonly T[];
+  keys: Record<T, { label: MessageKey; hint: MessageKey }>;
+  /** `null` = personne n'a répondu. Aucune tuile n'est alors marquée. */
+  value: T | null;
+  onChange: (next: T) => void;
+  busy: boolean;
+  /** Préfixe d'`id` — plusieurs grilles coexistent sur le même écran. */
+  idPrefix: string;
+}) {
+  return (
+    <Field
+      label={t(props.label)}
+      hint={props.hint === null ? undefined : t(props.hint)}
+    >
+      {/* Deux colonnes et pas quatre: à quatre, chaque tuile tombe sous 80 px
+          au format de la carte et l'aide se casse en cinq lignes. Une seule
+          colonne à 320 px — pas de `whitespace-nowrap`, le texte se replie. */}
+      <div className="grid gap-3 sm:grid-cols-2">
+        {props.tokens.map((token) => {
+          const chosen = props.value === token;
+          return (
+            <button
+              key={token}
+              id={`${props.idPrefix}-${token}`}
+              type="button"
+              disabled={props.busy}
+              aria-pressed={chosen}
+              onClick={() => props.onChange(token)}
+              className={[
+                "rounded-card border p-3 text-left transition-colors",
+                chosen
+                  ? "border-fig-700 bg-fig-100"
+                  : "border-line-strong bg-paper hover:bg-fig-50",
+              ].join(" ")}
+            >
+              <span className="block text-sm font-medium text-ink">
+                {t(props.keys[token].label)}
+              </span>
+              <span className="mt-1 block text-xs leading-5 text-ink-soft">
+                {t(props.keys[token].hint)}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </Field>
+  );
+}
+
+/**
+ * LES DEUX AXES, ENSEMBLE — parce qu'ils se répondent ensemble ou pas du tout.
+ *
+ * ⛔ `activityFactorOf` N'APPLIQUE LE CROISEMENT QUE SI LES DEUX SONT LÀ. Un
+ * seul axe retombe sur le cran d'avant (`partial`), parce qu'une journée sans
+ * sport déclaré n'est PAS une journée sans sport — compléter l'axe manquant
+ * serait inventer une réponse que personne n'a donnée. Les rendre côte à côte,
+ * dans un seul composant, est ce qui rend improbable qu'un écran n'en pose
+ * qu'un.
+ */
+function ActivityAxesTiles(props: {
+  ownVoice: boolean;
+  hint: MessageKey | null;
+  day: DayActivityLevel | null;
+  sport: SportFrequency | null;
+  onDay: (next: DayActivityLevel) => void;
+  onSport: (next: SportFrequency) => void;
+  busy: boolean;
+  idPrefix: string;
+}) {
+  return (
+    <>
+      <TokenTiles
+        label={props.ownVoice
+          ? "setup.day_activity.label"
+          : "setup.day_activity.member_label"}
+        hint={props.hint}
+        tokens={DAY_ACTIVITY_LEVELS}
+        keys={DAY_ACTIVITY_KEYS}
+        value={props.day}
+        onChange={props.onDay}
+        busy={props.busy}
+        idPrefix={`${props.idPrefix}-day`}
+      />
+      <TokenTiles
+        label={props.ownVoice ? "setup.sport.label" : "setup.sport.member_label"}
+        hint={props.hint === null ? null : "setup.sport.hint"}
+        tokens={SPORT_FREQUENCIES}
+        keys={SPORT_KEYS}
+        value={props.sport}
+        onChange={props.onSport}
+        busy={props.busy}
+        idPrefix={`${props.idPrefix}-sport`}
+      />
+    </>
+  );
+}
 
 /** Le libellé court et l'aide d'un cran. `Record` complet: un cran ajouté sans
  *  ses mots ne compile pas — la même garde que `GOAL_KEYS` au-dessus. */
@@ -2471,9 +3467,24 @@ const ACTIVITY_KEYS: Record<ActivityLevel, { label: MessageKey; hint: MessageKey
  * `line-strong` pour les autres, `aria-pressed` parce que la couleur ne peut
  * pas être la seule porteuse de l'information (WCAG 1.4.1).
  */
+// ⚠️ SANS APPELANT D'ÉCRAN, ET C'EST DÉLIBÉRÉ: voir le bloc au-dessus
+// d'`ACTIVITY_KEYS`. Le cran d'avant reste le repli NOMMÉ de toute fiche qui
+// n'a répondu qu'à lui (`activityFactorOf`, source `legacy`), donc son
+// vocabulaire doit rester lisible à côté du neuf. Le jour où plus aucune fiche
+// ne porte de `legacy`, `ACTIVITY_KEYS`, ce composant et cette dérogation
+// partent ENSEMBLE.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function ActivityTiles(props: {
   label: MessageKey;
-  hint: MessageKey;
+  /**
+   * L'AIDE SOUS LES TUILES, ou `null` pour ne rien mettre.
+   *
+   * ⚠️ `null` EXPLICITE, JAMAIS UNE CHAÎNE VIDE. Vider la clé dans le catalogue
+   * a été essayé le 2026-08-19 et la garde de parité l'a refusé, à raison: deux
+   * catalogues avec la même valeur vide sont indiscernables d'une traduction
+   * oubliée. L'absence d'aide est une décision d'ÉCRAN, elle se dit ici.
+   */
+  hint: MessageKey | null;
   /** `null` = personne n'a répondu. Aucune tuile n'est alors marquée. */
   value: ActivityLevel | null;
   onChange: (next: ActivityLevel) => void;
@@ -2482,7 +3493,10 @@ function ActivityTiles(props: {
   idPrefix: string;
 }) {
   return (
-    <Field label={t(props.label)} hint={t(props.hint)}>
+    <Field
+      label={t(props.label)}
+      hint={props.hint === null ? undefined : t(props.hint)}
+    >
       {/* Deux colonnes et pas quatre: à quatre, chaque tuile tombe sous 80 px
           au format de la carte et l'aide se casse en cinq lignes. Une seule
           colonne à 320 px — pas de `whitespace-nowrap`, le texte se replie. */}
@@ -2574,7 +3588,13 @@ export function SelfStep(props: {
   return (
     <Card>
       <SectionLabel>{t("setup.people.title")}</SectionLabel>
-      <p className="mt-2 text-sm text-ink-soft">{t("setup.people.intro")}</p>
+      {/* ⛔ « Toi aussi, tu manges ici. Tu es la première place à table, pas
+          la personne qui la tient. » RETIRÉ LE 2026-08-19. Elle expliquait
+          le MODÈLE (le titulaire est une bouche comme les autres) à
+          quelqu'un qui remplit un formulaire. Le modèle est déjà rendu par
+          la structure de l'écran — sa carte est la première d'une liste de
+          cartes identiques —, et une phrase qui explique ce que la mise en
+          page dit déjà est du bruit. */}
 
       <div className="mt-4 space-y-4">
         {/* LE PRÉNOM N'EST DEMANDÉ QUE S'IL Y A UN FOYER — rien, dans le chemin
@@ -2655,12 +3675,19 @@ export function SelfStep(props: {
             dit combien on pèse, l'activité dit ce qu'on en fait, et
             `meal_envelope.ts` multiplie les deux. La ranger ailleurs (ou
             « plus tard ») en ferait une option, et l'écart entre ses deux
-            extrêmes est de 38 % de l'enveloppe. */}
-        <ActivityTiles
-          label="setup.activity.label"
-          hint="setup.activity.hint"
-          value={draft.activityLevel}
-          onChange={(next) => set({ activityLevel: next })}
+            extrêmes est de 38 % de l'enveloppe.
+
+            ⛔ DEUX GRILLES DEPUIS LE 2026-08-20, ET PLUS UNE. Les quatre crans
+            mélangeaient la journée et le sport, et forçaient à n'en dire qu'un:
+            239 kcal/jour fabriqués par la forme de la question. Voir
+            `ActivityAxesTiles`. */}
+        <ActivityAxesTiles
+          ownVoice
+          hint="setup.day_activity.hint"
+          day={draft.dayActivity}
+          sport={draft.sportFrequency}
+          onDay={(next) => set({ dayActivity: next })}
+          onSport={(next) => set({ sportFrequency: next })}
           busy={busy}
           idPrefix="setup-self"
         />
@@ -2729,6 +3756,9 @@ export function SelfStep(props: {
             // distincts, deux `id` identiques feraient qu'un libellé désigne le
             // contrôle de quelqu'un d'autre.
             idPrefix="setup-self"
+            // C'EST MA CARTE: la voix est « tu », et `who` ne sert donc jamais.
+            voice="self"
+            who=""
           />
         ) : null}
 
@@ -2765,6 +3795,8 @@ export function SelfStep(props: {
             draft={target.draft}
             busy={busy}
             onOpen={props.onOpenPreferences}
+            voice="self"
+            who=""
           />
         ) : null}
 
@@ -2805,8 +3837,26 @@ export function MouthsStep(props: {
   held: string | null;
   /** Le refus d'un geste de cette carte, ou `null`. REQUIS, même raison. */
   failure: string | null;
-  /** Vide le brouillon. REQUIS: sans lui, un brouillon rempli est un cul-de-sac. */
+  /**
+   * LE PRÉNOM QUE « CONTINUER » VIENT D'ENREGISTRER, ou `null`. REQUIS — et
+   * pour la même raison que les deux au-dessus: c'est la seule chose qui dise
+   * qu'un bouton d'AVANCEMENT a créé quelqu'un. Le rendre facultatif le
+   * laisserait non passé, et l'ajout redeviendrait muet sans que rien ne casse.
+   */
+  added: string | null;
+  /**
+   * Vide le brouillon ET REFERME la fiche. REQUIS: sans lui, une fiche ouverte
+   * est un cul-de-sac — c'est le « Retirer » demandé le 2026-08-19.
+   */
   onDiscard: () => void;
+  /**
+   * LA FICHE D'AJOUT EST-ELLE DÉPLIÉE ? REQUIS — jamais optionnel: non passé,
+   * il vaudrait `undefined`, la fiche serait toujours repliée, et le bouton
+   * d'ajout n'ouvrirait rien. Une garde facultative est une garde désarmée.
+   */
+  formOpen: boolean;
+  /** La déplie. REQUIS, même raison: c'est la seule porte d'entrée. */
+  onOpenForm: () => void;
   onGoal: (mouth: FunnelMouth, goal: MemberGoal | "") => void;
   onBirthDate: (mouth: FunnelMouth, date: string) => void;
   onAllergyAnswer: (mouth: FunnelMouth, labels: string[]) => void;
@@ -2819,6 +3869,13 @@ export function MouthsStep(props: {
    * ou `null`. C'est lui que le récapitulatif de sa ligne rend.
    */
   mouthPrefs: { memberId: string; draft: MouthFormDraft } | null;
+  /**
+   * CE QUE LA BASE PORTE POUR CETTE BOUCHE, en vocabulaire de brouillon.
+   *
+   * ⚠️ REQUISE: sans elle, le récapitulatif retombe sur un brouillon vide et
+   * annonce « rien de renseigné » à quelqu'un qui vient de tout remplir.
+   */
+  knownPrefs: (mouth: FunnelMouth) => MouthFormDraft;
   /** Enregistre ce brouillon-là. REQUIS: sans lui la fenêtre ne promet rien. */
   onSaveMouthPreferences: (mouth: FunnelMouth) => void;
   onBody: (
@@ -2827,8 +3884,48 @@ export function MouthsStep(props: {
     weightKg: string,
     gender: MemberGender | "",
     activityLevel: ActivityLevel | null,
+    // ② Les deux axes voyagent avec le corps: une seule porte, un seul geste.
+    dayActivity: DayActivityLevel | null,
+    sportFrequency: SportFrequency | null,
   ) => void;
   onRemove: (mouth: FunnelMouth) => void;
+  /**
+   * LA CARTE EN ÉDITION, ou `null`. REQUIS — jamais optionnel: non passé, il
+   * vaudrait `undefined`, aucune carte ne s'ouvrirait, et « Modifier » serait
+   * un bouton mort. Une garde facultative est une garde désarmée.
+   */
+  editingMemberId: string | null;
+  onToggleEdit: (mouth: FunnelMouth) => void;
+  /** Voir `MouthRow`: un seul geste écrit tout ce qui est prêt, puis referme. */
+  onSaveAndClose: (
+    mouth: FunnelMouth,
+    fields: {
+      birthDate: string;
+      heightCm: string;
+      weightKg: string;
+      gender: MemberGender | "";
+      activityLevel: ActivityLevel | null;
+      dayActivity: DayActivityLevel | null;
+      sportFrequency: SportFrequency | null;
+      targetWeightKg: string;
+      paceKgPerWeek: string;
+    },
+  ) => void;
+  /**
+   * LES CIBLES LUES, ou `null` tant que la lecture n'a pas eu lieu. REQUIS, et
+   * la garde compte double ici: `setMemberTarget` REMPLACE la paire.
+   */
+  targets: Map<string, MemberTargetView> | null;
+  /**
+   * LES DATES LUES, ou `null` tant que la lecture n'a pas eu lieu. REQUIS —
+   * `undefined` ferait taire la garde et le champ repartirait vide.
+   */
+  birthDates: Map<string, string> | null;
+  onTarget: (
+    mouth: FunnelMouth,
+    targetWeightKg: string,
+    paceKgPerWeek: string,
+  ) => void;
   confirmRemove: string | null;
   onConfirmRemove: (memberId: string | null) => void;
   inviteFor: string | null;
@@ -2845,11 +3942,56 @@ export function MouthsStep(props: {
     // le même tick partiraient sinon du même état et l'un écraserait l'autre.
     props.onDraftChange((prev) => ({ ...prev, ...patch }));
   const full = props.mouths.length + 1 >= HOUSEHOLD_MAX_MOUTHS;
+  /**
+   * LA FICHE EST-ELLE DÉPLIÉE ?
+   *
+   * ⚠️ « OU LE BROUILLON A DU CONTENU » N'EST PAS UNE COMMODITÉ, C'EST LA
+   * GARDE. Le brouillon survit à des gestes qui ne passent pas par ce
+   * composant (« Continuer » qui échoue, une reprise d'étape, un refus
+   * d'ajout): sans ce second membre, une fiche déjà remplie pourrait se
+   * retrouver REPLIÉE, donc invisible — et « Continuer » l'enregistrerait
+   * quand même, ce qui est très exactement le défaut qu'on referme.
+   */
+  const formOpen = props.formOpen || mouthDraftHasContent(draft);
 
   return (
     <Card>
       <SectionLabel>{t("setup.mouths.title")}</SectionLabel>
       <p className="mt-2 text-sm text-ink-soft">{t("setup.mouths.intro")}</p>
+
+      {/* ── ⛔ LE REFUS EST RENDU ICI, DEHORS, ET C'EST UNE CORRECTION ───────
+          Il ne vivait QUE dans l'encadré pointillé du formulaire d'ajout. Or ce
+          formulaire est REPLIÉ par défaut depuis le 2026-08-19 — donc tout
+          refus d'un geste de cette carte (enregistrer les préférences d'une
+          bouche, retirer quelqu'un, poser un corps) tombait dans un bloc que
+          personne ne voyait.
+          
+          C'est le mode d'échec n°1 de ce dépôt, et il a coûté une matinée: on a
+          cherché pourquoi les préférences « ne s'enregistraient pas » alors que
+          l'écran avait peut-être déjà dit pourquoi, dans un cadre fermé.
+
+          ⚠️ IL RESTE AUSSI À CÔTÉ DU FORMULAIRE D'AJOUT quand celui-ci est
+          ouvert: un refus d'ajout doit se lire à côté de la fiche fautive. Deux
+          rendus, deux portées, pas de doublon — celui-ci ne sort que hors
+          formulaire. */}
+      {props.failure !== null && !formOpen ? (
+        <p className="mt-4 rounded-card border border-rose-200 bg-rose-50 p-3 text-sm leading-6 text-rose-900">
+          {props.failure}
+        </p>
+      ) : null}
+
+      {/* ── « CONTINUER » VIENT DE CRÉER QUELQU'UN, ET IL LE DIT ────────────
+          L'absorption du brouillon par le bouton principal date du 2026-08-15
+          et reste voulue. Ce qui manquait est l'accusé: on appuyait sur un
+          bouton d'AVANCEMENT et une personne apparaissait, sans un mot.
+          Signalé le 2026-08-19 — « ça m'a rajouté une personne que je voulais
+          pas ». La phrase nomme la personne ET la sortie, parce qu'un accusé
+          qui ne dit pas comment le défaire est un fait accompli. */}
+      {props.added !== null ? (
+        <p className="mt-4 rounded-card border border-emerald-200 bg-emerald-50 p-3 text-xs leading-5 text-emerald-900">
+          {t("setup.mouths.added_by_next", { name: props.added })}
+        </p>
+      ) : null}
 
       {props.mouths.length > 0 ? (
         // ── UNE PERSONNE, UNE SECTION ENCADRÉE ──────────────────────────────
@@ -2874,12 +4016,36 @@ export function MouthsStep(props: {
                 onGoal={(goal) => props.onGoal(m, goal)}
                 onBirthDate={(date) => props.onBirthDate(m, date)}
                 onAllergyAnswer={(labels) => props.onAllergyAnswer(m, labels)}
+                // ── ⛔ LA BASE, PAS LE BROUILLON EN COURS D'ÉDITION ─────
+                // Cette ligne rendait `emptyMouthDraft()` pour toute bouche
+                // dont la fenêtre n'était PAS ouverte — donc le récapitulatif
+                // disait « Rien de renseigné pour l'instant » sur tout le
+                // monde, tout le temps, quoi qu'on ait saisi. Signalé le
+                // 2026-08-19: « toutes les préférences alimentaires de tout le
+                // monde ont sauté ». Elles avaient bien sauté en base (autre
+                // défaut, corrigé sur `onClose`), mais même remplies l'écran
+                // n'en aurait rien montré.
+                //
+                // Le brouillon ouvert gagne quand il existe: c'est ce qu'on est
+                // en train de taper, et il est plus frais que la lecture.
                 prefsDraft={props.mouthPrefs?.memberId === m.memberId
                   ? props.mouthPrefs.draft
-                  : emptyMouthDraft()}
+                  : props.knownPrefs(m)}
                 onOpenPreferences={() => props.onOpenMouthPreferences(m)}
                 onSavePreferences={() => props.onSaveMouthPreferences(m)}
-                onBody={(h, w, g, a) => props.onBody(m, h, w, g, a)}
+                onBody={(h, w, g, a, day, sport) =>
+                  props.onBody(m, h, w, g, a, day, sport)}
+                editing={props.editingMemberId === m.memberId}
+                onToggleEdit={() => props.onToggleEdit(m)}
+                onSaveAndClose={(fields) => props.onSaveAndClose(m, fields)}
+                birthDate={props.birthDates === null
+                  ? null
+                  : props.birthDates.get(m.memberId ?? "") ?? ""}
+                target={props.targets === null
+                  ? null
+                  : props.targets.get(m.memberId ?? "") ??
+                    { targetWeightKg: null, paceKgPerWeek: null }}
+                onTarget={(w, p) => props.onTarget(m, w, p)}
                 onRemove={() => props.onRemove(m)}
                 confirmRemove={props.confirmRemove === m.memberId}
                 onConfirmRemove={() =>
@@ -2904,12 +4070,42 @@ export function MouthsStep(props: {
         // LE PLAFOND EST EN BASE (`household_full`). Cet écran ne fait que le
         // DIRE — « une limite d'UI n'est pas une limite ».
         <p className="mt-4 text-xs text-ink-soft">{t("setup.mouths.full")}</p>
-      ) : (
+      ) : formOpen ? (
         // LE FORMULAIRE D'AJOUT EST ENCADRÉ EN POINTILLÉ, et les personnes déjà
         // là en trait plein: le pointillé dit « pas encore quelqu'un ». Sans
         // cadre, il se lisait comme la suite de la dernière carte — donc comme
         // des champs vides SUR une personne existante.
         <div className="mt-4 space-y-4 rounded-card border border-dashed border-line-strong p-4">
+          {/* ── CE BLOC N'EST PERSONNE, ET IL DOIT LE DIRE LUI-MÊME ─────────
+              ⚠️ LE POINTILLÉ NE SUFFIT PAS, ET C'EST MESURÉ. Signalé sur un
+              compte réel le 2026-08-19, capture à l'appui: « comment ça se
+              fait que je peux toujours pas supprimer le truc qui s'est ajouté
+              tout seul ? » — en montrant CE formulaire-ci, vide.
+
+              La confusion est entièrement fabriquée par l'écran. Une bouche
+              inscrite ouvre sur son PRÉNOM en tête de section (`MouthRow`,
+              « ici commence quelqu'un d'autre ») et porte « Retirer ». Ce
+              bloc-ci ouvrait directement sur « Prénom », avec exactement les
+              mêmes champs, le même bouton de préférences et la MÊME phrase
+              « Rien de renseigné pour l'instant — habitudes, allergies,
+              dégoûts, régime ». Deux blocs identiques au trait de bordure
+              près, dont un seul se retire: on cherche évidemment le bouton
+              manquant sur l'autre.
+
+              Il prend donc la même tête de section que ses voisines, et elle
+              répond à la question posée: personne n'est encore ici, donc il
+              n'y a rien à retirer. Quand un prénom est tapé, c'est LUI qui
+              s'affiche — la fiche montre alors de qui elle parle, et la phrase
+              d'à côté (`next_will_save`) dit ce que « Continuer » en fera. */}
+          <div>
+            <span className="block text-base font-semibold text-ink">
+              {draft.firstName.trim() || t("setup.mouths.new_card")}
+            </span>
+            <p className="mt-1 text-xs leading-5 text-ink-soft">
+              {t("setup.mouths.new_card_hint")}
+            </p>
+          </div>
+
           <Field
             label={t("setup.people.first_name")}
             hint={t("setup.mouths.first_name_hint")}
@@ -3002,14 +4198,19 @@ export function MouthsStep(props: {
               n'est PAS dans le tout-ou-rien: la RPC l'accepte seul, et une
               bouche sans cran compose sur l'hypothèse documentée. L'y coller
               ferait lire « quatre ou aucun » — faux, et bloquant. */}
-          <ActivityTiles
-            label="setup.activity.member_label"
-            hint="setup.activity.member_hint"
-            // Les deux traductions du cran — voir `MouthDraft`. `ActivityTiles`
-            // parle en `null`, le brouillon en `""`, et les deux disent
+          <ActivityAxesTiles
+            ownVoice={false}
+            // ⛔ PLUS D'AIDE ICI (2026-08-19). Elle répétait sous CHAQUE
+            // personne ce que les tuiles disent déjà, et « laisse vide » est de
+            // toute façon l'état par défaut: aucune tuile n'est marquée.
+            hint={null}
+            // Les deux traductions du cran — voir `MouthDraft`. Les tuiles
+            // parlent en `null`, le brouillon en `""`, et les deux disent
             // « personne n'a répondu ».
-            value={draft.activityLevel || null}
-            onChange={(next) => set({ activityLevel: next })}
+            day={draft.dayActivity || null}
+            sport={draft.sportFrequency || null}
+            onDay={(next) => set({ dayActivity: next })}
+            onSport={(next) => set({ sportFrequency: next })}
             busy={props.busy}
             idPrefix="setup-mouth"
           />
@@ -3066,6 +4267,11 @@ export function MouthsStep(props: {
               (`keel_household_set_member_target`), celle du titulaire dans
               `student_goals`. `addMouth` appelle la première. */}
           <TargetAndPaceFields
+            // LA FICHE D'AJOUT PARLE D'UNE AUTRE PERSONNE, et `who` vient du
+            // prénom en cours de saisie: tant qu'il est vide, le catalogue rend
+            // « cette personne » plutôt qu'un pronom deviné.
+            voice="other"
+            who={draft.firstName.trim() || t("household.mouth.who_fallback")}
             draft={draft}
             onChange={props.onDraftChange}
             todayLocalIso={browserLocalDate()}
@@ -3086,6 +4292,8 @@ export function MouthsStep(props: {
             draft={draft}
             busy={props.busy}
             onOpen={props.onOpenDraftPreferences}
+            voice="other"
+            who={draft.firstName.trim() || t("household.mouth.who_fallback")}
           />
 
           {/* ── LE REFUS VIT SUR LE GESTE QUI LE LÈVE ────────────────────────
@@ -3120,23 +4328,182 @@ export function MouthsStep(props: {
             </p>
           ) : null}
 
+          {/* ── CE QUE LE BOUTON PRINCIPAL FERA DE CETTE FICHE, DIT AVANT ────
+              Il y avait ici, avant le 2026-08-15, un avertissement qui disait
+              l'inverse: « "Continuer" ne l'enregistre pas ». Il est parti avec
+              le défaut qu'il avouait — le bouton absorbe désormais la fiche.
+              Mais la phrase est partie SANS ÊTRE REMPLACÉE, et c'est ce trou
+              qu'un compte réel a payé le 2026-08-19: « Continuer » a inscrit
+              quelqu'un que la personne ne voulait pas.
+              Un bouton qui crée quelqu'un doit le dire AVANT le clic, à côté
+              des champs qui le nourrissent — pas seulement après, en haut de
+              page. La phrase nomme aussi l'échappatoire, qui est le bouton
+              juste en dessous. */}
+          {draft.firstName.trim() !== "" ? (
+            <p className="text-xs leading-5 text-ink-soft">
+              {t("setup.mouths.next_will_save", { name: draft.firstName.trim() })}
+            </p>
+          ) : null}
+
           <div className="flex flex-wrap items-center gap-3">
             <Button variant="secondary" disabled={props.busy} onClick={props.onAdd}>
-              {t("setup.mouths.add")}
+              {t("setup.mouths.add_confirm")}
             </Button>
-            {/* IL N'APPARAÎT QUE QUAND IL Y A QUELQUE CHOSE À VIDER: un
-                « Effacer » posé sous un formulaire vide invite à se demander ce
-                qu'il effacerait. */}
-            {mouthDraftHasContent(draft) ? (
-              <Button variant="ghost" disabled={props.busy} onClick={props.onDiscard}>
-                {t("setup.mouths.discard")}
-              </Button>
-            ) : null}
+            {/* ── « RETIRER », ET IL EST LÀ QUOI QU'IL ARRIVE ────────────────
+                ⚠️ IL ÉTAIT CONDITIONNÉ À `mouthDraftHasContent(draft)`, sous
+                le libellé « Effacer cette fiche », au motif qu'un effacement
+                posé sous un formulaire vide « invite à se demander ce qu'il
+                effacerait ». L'argument tenait quand la fiche était toujours à
+                l'écran; il tombe dès qu'elle s'OUVRE sur un geste — parce
+                qu'alors elle a quelque chose à défaire même vide: elle-même.
+                Demandé mot pour mot après le signalement du 2026-08-19 —
+                « quand une personne clique sur ajouter sans faire exprès, ça
+                se déplie et il peut vouloir le supprimer tout simplement ».
+                Un geste qui s'ouvre sans se refermer est un piège.
+
+                Et il porte « Retirer », le MÊME mot que sur la carte d'une
+                personne inscrite. Les conséquences diffèrent (ici on referme
+                une fiche, là on retire quelqu'un de la base) mais l'intention
+                que l'utilisateur exprime est la même — « que ce bloc ne soit
+                plus là » —, et c'est elle qu'un libellé doit nommer. Le trait
+                plein contre le pointillé, et la confirmation en deux temps
+                côté personne, portent la différence. */}
+            <Button variant="ghost" disabled={props.busy} onClick={props.onDiscard}>
+              {t("setup.mouths.remove")}
+            </Button>
           </div>
+        </div>
+      ) : (
+        // ── REPLIÉ: RIEN QU'UN BOUTON ──────────────────────────────────────
+        // Le formulaire était monté EN PERMANENCE sous la liste des bouches,
+        // et c'est ce qui a produit le signalement: un bloc en forme de
+        // personne, avec les mêmes champs et le même bouton de préférences
+        // qu'une bouche inscrite, posé là sans que personne l'ait demandé.
+        // « Je peux toujours pas supprimer le truc qui s'est ajouté tout
+        // seul » — et il avait raison de chercher: on ne pouvait pas.
+        // Maintenant il n'existe que si on l'a ouvert, et « Retirer » le
+        // referme.
+        <div className="mt-4">
+          <Button variant="secondary" disabled={props.busy} onClick={props.onOpenForm}>
+            {t("setup.mouths.add")}
+          </Button>
         </div>
       )}
     </Card>
   );
+}
+
+/**
+ * CE QU'ON SAIT D'UNE BOUCHE, HORS ÉDITION.
+ *
+ * ⚠️ IL DIT AUSSI CE QU'ON NE SAIT PAS, ET C'EST LA MOITIÉ QUI COMPTE. Une
+ * carte qui n'énumère que les champs remplis laisse croire que le reste n'est
+ * pas demandé — alors que c'est très exactement ce qui manque au plan. Chaque
+ * ligne absente porte donc son « — », et le bouton « Modifier » est à trois
+ * centimètres au-dessus.
+ */
+function MouthRowSummary(
+  { mouth, target, birthDate }: {
+    mouth: FunnelMouth;
+    target: MemberTargetView | null;
+    /** `""` = pas de date, `null` = lecture pas faite. */
+    birthDate: string | null;
+  },
+) {
+  const dash = "—";
+  const rows: Array<{ label: string; value: string }> = [
+    {
+      label: t("setup.people.birth_date"),
+      // ⚠️ LA DATE, PAS « Renseignée ». Le résumé disait un ÉTAT là où il
+      // pouvait dire un FAIT — et l'état était la seule chose que l'écran
+      // savait, faute de porte de lecture. Elle existe depuis le 2026-08-19.
+      // Le repli reste l'état pour la seule fenêtre où il est vrai: la lecture
+      // n'a pas encore rendu.
+      value: birthDate
+        ? formatDate(birthDate)
+        : mouth.birthDate === BIRTH_DATE_ON_FILE
+        ? t("setup.mouths.summary_on_file")
+        : dash,
+    },
+    {
+      label: t("setup.mouths.goal"),
+      value: mouth.goal ? goalLabel(mouth.goal) : t("setup.mouths.goal_none"),
+    },
+    {
+      label: t("setup.mouths.body"),
+      // LES TROIS OU RIEN, comme la RPC: une taille seule ne dimensionne
+      // aucune part, et l'afficher laisserait croire que le corps est posé.
+      value: mouth.heightCm !== null && mouth.weightKg !== null && mouth.gender
+        ? `${mouth.heightCm} cm · ${mouth.weightKg} kg`
+        : dash,
+    },
+    {
+      label: t("setup.activity.member_label"),
+      value: mouth.activityLevel
+        ? t(ACTIVITY_KEYS[mouth.activityLevel].label)
+        : dash,
+    },
+  ];
+  // LA CIBLE N'APPARAÎT QUE SOUS UNE DIRECTION QUI BOUGE — même règle que les
+  // champs qu'elle résume: sur `maintenance`, elle n'a pas de sens et la base
+  // la refuse (`target_needs_direction_check`).
+  if (mouth.goal === "fat_loss" || mouth.goal === "muscle_gain") {
+    rows.push({
+      label: t("household.mouth.target_weight"),
+      value: target?.targetWeightKg == null
+        ? dash
+        : `${target.targetWeightKg} kg`,
+    });
+  }
+  return (
+    <dl className="grid gap-x-4 gap-y-1 text-sm sm:grid-cols-[auto_1fr]">
+      {rows.map((r) => (
+        <React.Fragment key={r.label}>
+          <dt className="text-xs uppercase tracking-wide text-ink-soft">
+            {r.label}
+          </dt>
+          <dd className="text-ink">{r.value}</dd>
+        </React.Fragment>
+      ))}
+    </dl>
+  );
+}
+
+/**
+ * LA FICHE D'UNE BOUCHE INSCRITE, DANS LE VOCABULAIRE DE `MouthFormDraft`.
+ *
+ * ⚠️ ELLE PORTE LE CORPS ET L'ÂGE, PAS SEULEMENT LES DEUX NOMBRES DE LA CIBLE,
+ * et ce n'est pas du zèle: `paceControlFor` borne le curseur SUR CE CORPS-LÀ.
+ * Un brouillon réduit à `{goal, targetWeightKg}` proposerait un rythme calculé
+ * sur un corps inexistant — c'est-à-dire un nombre inventé qui entrerait dans
+ * un calcul d'énergie avec l'autorité d'une mesure.
+ *
+ * ⚠️ LA DATE DE NAISSANCE NE TRAVERSE PAS, ET LE ROSTER EN EST LA CAUSE: il ne
+ * rend JAMAIS la date d'une bouche (le foyer doit savoir qu'il y a un enfant à
+ * table, pas son âge). `BIRTH_DATE_ON_FILE` est une MARQUE de présence, pas une
+ * date — la laisser passer ferait calculer un âge sur une chaîne sentinelle.
+ * Une bouche dont l'âge n'est pas lisible ici reçoit donc le plancher adulte,
+ * qui est le comportement documenté de `targetWeightStateFor` sans date.
+ */
+function mouthDraftFromRow(
+  m: FunnelMouth,
+  target: MemberTargetView | null,
+): MouthFormDraft {
+  return {
+    ...emptyMouthFormDraft(),
+    firstName: m.firstName,
+    goal: m.goal ?? "",
+    heightCm: m.heightCm === null ? "" : String(m.heightCm),
+    weightKg: m.weightKg === null ? "" : String(m.weightKg),
+    gender: m.gender ?? "",
+    activityLevel: m.activityLevel ?? "",
+    targetWeightKg: target?.targetWeightKg == null
+      ? ""
+      : String(target.targetWeightKg),
+    paceKgPerWeek: target?.paceKgPerWeek == null
+      ? ""
+      : String(target.paceKgPerWeek),
+  };
 }
 
 function MouthRow(props: {
@@ -3154,10 +4521,62 @@ function MouthRow(props: {
     weightKg: string,
     gender: MemberGender | "",
     activityLevel: ActivityLevel | null,
+    // ② Les deux axes voyagent avec le corps: une seule porte, un seul geste.
+    dayActivity: DayActivityLevel | null,
+    sportFrequency: SportFrequency | null,
   ) => void;
   onRemove: () => void;
   confirmRemove: boolean;
   onConfirmRemove: () => void;
+  /**
+   * CETTE CARTE EST-ELLE EN ÉDITION ? REQUIS — jamais optionnel.
+   *
+   * ── LE DÉFAUT QUE CE MODE FERME ─────────────────────────────────────────
+   * La carte d'une personne inscrite était un formulaire OUVERT en permanence:
+   * dix contrôles qui écrivent en base au moindre clic, empilés sous chaque
+   * prénom. Trois personnes, trente contrôles armés — et rien pour dire lequel
+   * on est en train de changer. Demandé le 2026-08-19: « si on clique pas sur
+   * modifier on peut rien modifier (à part "renseigner ses préférences
+   * alimentaires") ».
+   *
+   * ⚠️ LA FENÊTRE DES PRÉFÉRENCES RESTE OUVERTE HORS ÉDITION, et c'est une
+   * exception NOMMÉE, pas un oubli: elle a son propre bouton d'enregistrement,
+   * donc elle ne peut rien écrire par mégarde.
+   */
+  editing: boolean;
+  onToggleEdit: () => void;
+  /** Écrit ce qui est prêt — appelé à la SORTIE d'un champ, pas par un bouton. */
+  onSaveAndClose: (fields: {
+    birthDate: string;
+    heightCm: string;
+    weightKg: string;
+    gender: MemberGender | "";
+    activityLevel: ActivityLevel | null;
+  /**
+   * ② LES DEUX AXES (2026-08-20). `null` = pas répondu — le cran ci-dessus
+   * reste alors le repli nommé, et il rend le nombre d'avant.
+   */
+  dayActivity: DayActivityLevel | null;
+  sportFrequency: SportFrequency | null;
+    targetWeightKg: string;
+    paceKgPerWeek: string;
+  }) => void;
+  /**
+   * SA CIBLE ET SON RYTHME, TELS QU'ILS SONT EN BASE — `null` = pas encore lu.
+   *
+   * ⛔ LA GARDE DE LECTURE EST OBLIGATOIRE ICI, et elle ne protège pas un
+   * affichage: `keel_household_set_member_target` REMPLACE la paire. Un
+   * formulaire monté sur du vide non lu EFFACERAIT la cible déjà posée au
+   * premier enregistrement. Voir `loadMemberTargets`.
+   */
+  target: MemberTargetView | null;
+  /**
+   * SA DATE DE NAISSANCE — `""` quand il n'y en a pas, `null` quand la lecture
+   * n'a pas eu lieu. REQUIS, et les deux cas sont distincts: sur `null` on ne
+   * sème rien plutôt que d'écrire un vide par-dessus une date en base.
+   */
+  birthDate: string | null;
+  onTarget: (targetWeightKg: string, paceKgPerWeek: string) => void;
   inviteOpen: boolean;
   onInviteOpen: () => void;
   inviteEmail: string;
@@ -3167,21 +4586,143 @@ function MouthRow(props: {
   busy: boolean;
 }) {
   const m = props.mouth;
-  const [date, setDate] = React.useState("");
-  const [bodyHeight, setBodyHeight] = React.useState("");
-  const [bodyWeight, setBodyWeight] = React.useState("");
-  const [bodyGender, setBodyGender] = React.useState<MemberGender | "">("");
   /**
-   * LE CRAN EN COURS DE SAISIE — utilisé SEULEMENT quand le corps manque
-   * encore, où rien ne peut partir en base avant le bouton d'enregistrement
-   * (la RPC refuse `body_incomplete`). Quand le corps est déjà là, la tuile
-   * écrit tout de suite et ce brouillon ne sert pas: la valeur affichée est
-   * alors celle de la base, comme pour l'objectif juste au-dessus.
+   * LA DATE AFFICHÉE — SEMÉE DEPUIS LA BASE DEPUIS LE 2026-08-19.
+   *
+   * Elle partait vide, et le champ restait vide même sur une date enregistrée:
+   * « autant l'afficher — parce que quand je déplie, elle ne s'affiche pas non
+   * plus ». La cause n'était pas ici, elle était en base — le roster ne rend
+   * jamais la date d'une bouche. Une porte scopée au maître la rend maintenant
+   * (`keel_household_member_birth_date_for_owner`).
+   */
+  const [date, setDate] = React.useState(props.birthDate ?? "");
+  // ⚠️ UN `useState`, PAS UN `useRef`. C'est le motif « ajuster l'état pendant
+  // le rendu »: la clé de semence doit elle-même être un état, sinon elle ne
+  // participe pas au rendu qui la compare (`react-hooks/refs`).
+  const [dateSeededFrom, setDateSeededFrom] = React.useState(props.birthDate);
+  if (dateSeededFrom !== props.birthDate) {
+    setDateSeededFrom(props.birthDate);
+    setDate(props.birthDate ?? "");
+  }
+  // ── ⛔ SEMÉS DEPUIS LA BASE, ET C'EST LA MOITIÉ QUI MANQUAIT ─────────────
+  // Ces trois champs partaient VIDES, et le bloc qui les portait ne se rendait
+  // que si le corps était INCONNU. Conséquence, signalée le 2026-08-19 sur la
+  // capture d'une carte en édition: « on n'a pas accès à date de naissance,
+  // poids etc. » — une fois le corps saisi, plus aucun écran de l'entonnoir ne
+  // permettait de le CORRIGER. Une faute de frappe sur un poids était
+  // définitive.
+  //
+  // ⚠️ ET LA SEMENCE EST OBLIGATOIRE POUR OUVRIR LE BLOC:
+  // `keel_household_set_member_body` est tout-ou-rien. Rendre les champs vides
+  // sur un corps connu ferait qu'un « Enregistrer » les repose à vide — la
+  // cicatrice `mount-snapshot-forms-need-a-loading-gate`, prise par le bout qui
+  // coûte une donnée.
+  const [bodyHeight, setBodyHeight] = React.useState(
+    m.heightCm === null ? "" : String(m.heightCm),
+  );
+  const [bodyWeight, setBodyWeight] = React.useState(
+    m.weightKg === null ? "" : String(m.weightKg),
+  );
+  const [bodyGender, setBodyGender] = React.useState<MemberGender | "">(
+    m.gender ?? "",
+  );
+  /**
+   * LE CRAN, SEMÉ DEPUIS LA BASE.
+   *
+   * ── ⛔ IL PARTAIT DE `null`, ET C'EST CE QUI A FAIT CROIRE À UNE PERTE ────
+   * Ce brouillon ne servait QUE tant que le corps manquait; quand il était
+   * connu, une AUTRE branche rendait les tuiles sur `m.activityLevel`, donc la
+   * valeur enregistrée s'affichait. Cette branche a disparu le 2026-08-19 avec
+   * la réouverture du corps en édition — et les tuiles sont restées sur ce
+   * brouillon vide.
+   *
+   * Résultat, signalé le jour même: « j'ai l'impression que ses journées
+   * comment elles sont ne s'enregistre pas ». Vérifié en base: `trains_some`
+   * y était. Rien n'était perdu — l'écran ne relisait plus ce qu'il avait
+   * écrit, ce qui est la même chose du point de vue de qui remplit.
    */
   const [bodyActivity, setBodyActivity] = React.useState<ActivityLevel | null>(
-    null,
+    m.activityLevel,
   );
+  // ② LES DEUX AXES — même état, même re-semence, même écrivain que le cran
+  // au-dessus. Les séparer ferait deux gestes d'enregistrement sur une seule
+  // porte, et c'est celui qu'on regarde le moins qui écraserait l'autre.
+  const [bodyDayActivity, setBodyDayActivity] = React.useState<
+    DayActivityLevel | null
+  >(m.dayActivity);
+  const [bodySportFrequency, setBodySportFrequency] = React.useState<
+    SportFrequency | null
+  >(m.sportFrequency);
+  /**
+   * ── ⚠️ ET IL SE RE-SÈME APRÈS CHAQUE ÉCRITURE ────────────────────────────
+   * `load(false)` relit la base et rend une nouvelle valeur; un `useState`
+   * initialisé une fois garderait la photo d'avant l'enregistrement. Le
+   * symptôme serait le même que celui qu'on referme, décalé d'un geste.
+   */
+  const bodySeed = `${m.heightCm ?? ""}|${m.weightKg ?? ""}|${m.gender ?? ""}|` +
+    `${m.activityLevel ?? ""}|${m.dayActivity ?? ""}|${m.sportFrequency ?? ""}`;
+  const [bodySeededFrom, setBodySeededFrom] = React.useState(bodySeed);
+  if (bodySeededFrom !== bodySeed) {
+    setBodySeededFrom(bodySeed);
+    setBodyHeight(m.heightCm === null ? "" : String(m.heightCm));
+    setBodyWeight(m.weightKg === null ? "" : String(m.weightKg));
+    setBodyGender(m.gender ?? "");
+    setBodyActivity(m.activityLevel);
+    setBodyDayActivity(m.dayActivity);
+    setBodySportFrequency(m.sportFrequency);
+  }
   const onFile = m.birthDate === BIRTH_DATE_ON_FILE;
+  /**
+   * ÉCRIT CE QUI EST PRÊT — appelé à la SORTIE d'un champ, jamais par un bouton.
+   *
+   * ⚠️ `onBlur` ET PAS `onChange`, ET C'EST UNE MESURE, PAS UN GOÛT. Sur un
+   * champ numérique, `onChange` part à chaque frappe: taper « 169 » écrirait
+   * 1, puis 16, puis 169 — trois allers-retours, dont deux valeurs que personne
+   * n'a voulues et que la relecture pourrait rendre entre-temps. À la sortie du
+   * champ, la valeur est celle que la personne a fini d'écrire.
+   *
+   * ⚠️ ET IL PASSE TOUJOURS TOUT L'ÉTAT DE LA CARTE. Les trois du corps partent
+   * ensemble (la RPC est tout-ou-rien) et la cible a besoin du corps: envoyer
+   * seulement le champ qu'on vient de quitter ferait écrire une ligne partielle
+   * que la base refuse — ou pire, qu'elle accepte à moitié.
+   */
+  const saveNow = () =>
+    props.onSaveAndClose({
+      birthDate: date,
+      heightCm: bodyHeight,
+      weightKg: bodyWeight,
+      gender: bodyGender,
+      activityLevel: bodyActivity,
+      dayActivity: bodyDayActivity,
+      sportFrequency: bodySportFrequency,
+      targetWeightKg: targetDraft.targetWeightKg,
+      paceKgPerWeek: targetDraft.paceKgPerWeek,
+    });
+  /**
+   * LE BROUILLON DE SA CIBLE — SEMÉ SUR LA LECTURE, PAS SUR DU VIDE.
+   *
+   * ⚠️ `TargetAndPaceFields` parle le vocabulaire de `MouthFormDraft`: il lui
+   * faut le CORPS et l'ÂGE pour borner le curseur, pas seulement les deux
+   * nombres. On lui construit donc une fiche complète à partir de ce que la
+   * base a rendu pour cette bouche — jamais un brouillon vide, qui ferait
+   * proposer un rythme calculé sur un corps inexistant.
+   *
+   * ⚠️ ET IL SE RE-SÈME QUAND LA LECTURE CHANGE. Sans la clé, changer la
+   * direction dans le sélecteur juste au-dessus (qui écrit et relit) laisserait
+   * le brouillon sur l'ancienne, et les deux champs resteraient repliés sur une
+   * direction qui, elle, vient de bouger.
+   */
+  const [targetDraft, setTargetDraft] = React.useState<MouthFormDraft>(() =>
+    mouthDraftFromRow(m, props.target)
+  );
+  const targetSeed = `${m.goal ?? ""}|${props.target?.targetWeightKg ?? ""}|${
+    props.target?.paceKgPerWeek ?? ""
+  }|${m.heightCm ?? ""}|${m.weightKg ?? ""}|${m.gender ?? ""}`;
+  const [seededFrom, setSeededFrom] = React.useState(targetSeed);
+  if (seededFrom !== targetSeed) {
+    setSeededFrom(targetSeed);
+    setTargetDraft(mouthDraftFromRow(m, props.target));
+  }
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -3217,6 +4758,46 @@ function MouthRow(props: {
               Le maître n'a pas ce bouton (`m.claimed` est vrai pour lui et sa
               ligne ne descend pas ici), et la base refuserait de toute façon:
               `cannot_remove_owner`. */}
+          {/* ── « MODIFIER », ET IL EST LA PORTE DE TOUT LE RESTE ─────────
+              Hors édition, cette carte ne montre que ce qu'on SAIT d'elle.
+              Le bouton est ce qui arme les contrôles — sinon dix champs
+              écrivant en base au moindre clic restaient ouverts en permanence
+              sous chaque prénom. */}
+          {/* ── ⛔ UN SEUL ENREGISTREMENT PAR CARTE (2026-08-19) ────────────
+              Il y en avait QUATRE — un sous la date, un sous le corps, un sous
+              la cible, un sous les préférences —, et deux d'entre eux sont
+              apparus le jour même en rouvrant ces blocs en édition. Réaction
+              immédiate: « je comprends pas pourquoi d'un coup j'ai des
+              enregistrer pour l'activité et la date de naissance ».
+
+              Quatre boutons du même nom sur une carte, c'est quatre fois la
+              question « qu'est-ce que celui-là enregistre, au juste » — et
+              trois occasions d'en oublier un.
+
+              ⛔ ET LA RÉPONSE N'EST PAS « UN SEUL BOUTON » NON PLUS. Premier
+              essai le même jour: « Terminé » écrivait tout. Tranché dans la
+              foulée — « le seul bouton enregistrer c'est pour le shaker, le
+              reste s'enregistre automatiquement ». C'est juste: un formulaire
+              qui garde des réponses en mémoire jusqu'à un clic final est un
+              formulaire qui les perd au premier rechargement, et ce couloir en
+              a déjà fait perdre.
+
+              CHAQUE CHAMP ÉCRIT DONC TOUT SEUL — à la sortie du champ pour ce
+              qui se tape, au clic pour ce qui se choisit. « Terminé » ne fait
+              plus que REFERMER la carte, et il le dit.
+
+              ⚠️ SEUL LE SHAKER GARDE SON BOUTON: il n'est pas un champ de la
+              personne mais un OBJET qu'on ajoute, et il ne part qu'entier. */}
+          <Button
+            variant={props.editing ? "primary" : "secondary"}
+            size="sm"
+            disabled={props.busy}
+            onClick={props.onToggleEdit}
+          >
+            {props.editing
+              ? t("setup.mouths.edit_done")
+              : t("setup.mouths.edit")}
+          </Button>
           {props.confirmRemove ? (
             <Button
               variant="danger"
@@ -3239,18 +4820,41 @@ function MouthRow(props: {
         </div>
       </div>
 
+      {/* ═══ CE QUI SUIT NE S'OUVRE QU'AU BOUTON « MODIFIER » ═══════════════
+          Hors édition, la carte rend un RÉSUMÉ de ce qu'on sait — pas dix
+          champs armés. Voir la prop `editing`. */}
+      {props.editing ? (
+        <>
       {/* LA DATE NE SE PRÉREMPLIT PAS, ET C'EST LA BASE QUI LE DÉCIDE: le
           roster NE REND JAMAIS la date d'une bouche (le foyer doit savoir qu'il
           y a un enfant à table, pas son âge). On sait seulement qu'elle EXISTE,
           parce que l'âge n'est plus `unknown`. */}
-      {onFile ? (
-        <p className="text-xs text-ink-soft">{t("household.member.birth_date_kept")}</p>
-      ) : (
-        <Field
-          label={t("setup.people.birth_date")}
-          hint={t("setup.people.birth_date_hint")}
-          htmlFor={`setup-mouth-date-${m.memberId}`}
-        >
+      {/* ── ⛔ LE CHAMP EXISTE MÊME QUAND UNE DATE EST DÉJÀ EN BASE ──────────
+          Il n'était rendu que si la date MANQUAIT — et à la place, une phrase
+          disait « laisse ce champ vide pour la garder, ou choisis une nouvelle
+          date pour la remplacer ». Elle parlait d'un champ qui n'était PAS à
+          l'écran. On ne pouvait donc pas corriger une date de naissance, et la
+          phrase promettait le contraire.
+
+          ⚠️ IL RESTE VIDE, ET C'EST LA BASE QUI LE DÉCIDE: le roster ne rend
+          JAMAIS la date d'une bouche (le foyer doit savoir qu'il y a un enfant
+          à table, pas son âge). On ne peut donc pas la préremplir — d'où la
+          phrase, qui est maintenant vraie. */}
+      {/* ⚠️ L'AIDE DU CHAMP CHANGE SELON CE QUE LA BASE PORTE, et ce n'est pas
+          cosmétique: le champ reste VIDE même quand une date est enregistrée
+          (le roster ne rend jamais la date d'une bouche — le foyer doit savoir
+          qu'il y a un enfant à table, pas son âge). Un champ vide sous une aide
+          générique se lit donc comme « ça ne s'est pas enregistré », ce qui a
+          été signalé le 2026-08-19 alors que la date ÉTAIT en base. La phrase
+          « déjà enregistrée » était bien là — mais en paragraphe séparé
+          au-dessus, où elle ne se rattachait à rien. */}
+      <Field
+        label={t("setup.people.birth_date")}
+        hint={onFile
+          ? t("household.member.birth_date_kept")
+          : t("setup.people.birth_date_hint")}
+        htmlFor={`setup-mouth-date-${m.memberId}`}
+      >
           <div className="flex flex-wrap items-center gap-2">
             <input
               id={`setup-mouth-date-${m.memberId}`}
@@ -3258,22 +4862,14 @@ function MouthRow(props: {
               value={date}
               max={browserLocalDate()}
               onChange={(e) => setDate(e.target.value)}
+              onBlur={saveNow}
               // `min-w-0` EST LA CORRECTION, pas du confort: `min-width: auto`
               // sur un enfant flex l'empêche de rétrécir, et la ligne déborde à
               // 320 px.
               className={`${inputClass} min-w-0 flex-1`}
             />
-            <Button
-              variant="secondary"
-              size="sm"
-              disabled={props.busy || !date}
-              onClick={() => props.onBirthDate(date)}
-            >
-              {t("household.member.save")}
-            </Button>
           </div>
-        </Field>
-      )}
+      </Field>
 
       {/* ⚠️ UN ENFANT QUI A UN COMPTE VOIT LA MÊME CHOSE QUE LES AUTRES.
           Cette ligne portait `m.claimed && m.kind === "child" ? null : …`: sur
@@ -3312,8 +4908,19 @@ function MouthRow(props: {
           corps que rien ne permettrait de donner — un bouton gris et rien à
           faire. C'est le cas nominal d'une bouche saisie sur
           `/app/household`, ou d'une reprise. */}
-      {m.heightCm === null || m.weightKg === null || m.gender === null ? (
-        <Field label={t("setup.mouths.body")} hint={t("setup.mouths.body_hint")}>
+      {/* ── ⛔ LE CORPS SE RÉÉDITE, MÊME QUAND IL EST DÉJÀ LÀ ────────────────
+          Cette condition était `heightCm === null || weightKg === null ||
+          gender === null`: le bloc DISPARAISSAIT dès que les trois étaient
+          saisis. L'intention était bonne (ne pas redemander ce qu'on sait), le
+          résultat ne l'était pas — plus aucun écran de l'entonnoir ne
+          permettait de corriger un poids, et « Modifier » ouvrait une carte où
+          justement les faits qu'on veut modifier étaient absents. Signalé le
+          2026-08-19, capture à l'appui.
+
+          Ce qui reste vrai de l'intention est porté par la SEMENCE: les champs
+          arrivent remplis, donc on ne redemande rien — on montre, et on laisse
+          corriger. */}
+              <Field label={t("setup.mouths.body")} hint={t("setup.mouths.body_hint")}>
           <div className="space-y-2">
             <div className="grid gap-2 sm:grid-cols-3">
               <input
@@ -3325,6 +4932,7 @@ function MouthRow(props: {
                 aria-label={t("setup.people.height")}
                 value={bodyHeight}
                 onChange={(e) => setBodyHeight(e.target.value)}
+                onBlur={saveNow}
                 className={`${inputClass} min-w-0`}
               />
               <input
@@ -3337,12 +4945,28 @@ function MouthRow(props: {
                 aria-label={t("setup.people.weight")}
                 value={bodyWeight}
                 onChange={(e) => setBodyWeight(e.target.value)}
+                onBlur={saveNow}
                 className={`${inputClass} min-w-0`}
               />
               <select
                 aria-label={t("setup.people.gender")}
                 value={bodyGender}
-                onChange={(e) => setBodyGender(e.target.value as MemberGender)}
+                // UN `select` SE VALIDE AU CHOIX, pas à la sortie: il n'y a
+                // pas de frappe intermédiaire à attendre.
+                onChange={(e) => {
+                  setBodyGender(e.target.value as MemberGender);
+                  props.onSaveAndClose({
+                    birthDate: date,
+                    heightCm: bodyHeight,
+                    weightKg: bodyWeight,
+                    gender: e.target.value as MemberGender,
+                    activityLevel: bodyActivity,
+                    dayActivity: bodyDayActivity,
+                    sportFrequency: bodySportFrequency,
+                    targetWeightKg: targetDraft.targetWeightKg,
+                    paceKgPerWeek: targetDraft.paceKgPerWeek,
+                  });
+                }}
                 className={`${inputClass} min-w-0`}
               >
                 <option value="">{t("setup.people.gender")}</option>
@@ -3357,47 +4981,63 @@ function MouthRow(props: {
                 refuse `body_incomplete` tant que les trois ne sont pas là:
                 une tuile qui écrirait toute seule ici rendrait un refus
                 incompréhensible sur un geste qui a l'air d'avoir marché. */}
-            <ActivityTiles
-              label="setup.activity.member_label"
-              hint="setup.activity.member_hint"
-              value={bodyActivity}
-              onChange={setBodyActivity}
+            <ActivityAxesTiles
+              ownVoice={false}
+              hint={null}
+              day={bodyDayActivity}
+              sport={bodySportFrequency}
+              onDay={setBodyDayActivity}
+              onSport={setBodySportFrequency}
               busy={props.busy}
               idPrefix={`setup-row-${m.memberId}`}
             />
-            <Button
-              variant="secondary"
-              size="sm"
-              disabled={props.busy || !bodyGender || !bodyHeight || !bodyWeight}
-              onClick={() =>
-                props.onBody(bodyHeight, bodyWeight, bodyGender, bodyActivity)}
-            >
-              {t("household.member.save")}
-            </Button>
           </div>
         </Field>
-      ) : (
-        /* ── LE CORPS EST DÉJÀ EN BASE, ET LE CRAN PEUT MANQUER QUAND MÊME ──
-           Le bloc ci-dessus DISPARAÎT dès que les trois sont saisis: sans
-           celui-ci, une bouche décrite avant le 2026-08-18 (ou sur
-           `/app/household`) n'aurait AUCUN endroit où répondre à la question
-           que l'entonnoir prétend poser. C'est le mode d'échec habituel du
-           dépôt — une question posée sur un écran, et pas de champ sur
-           l'autre.
 
-           ⚠️ LA TUILE ÉCRIT TOUT DE SUITE, comme le sélecteur d'objectif de
-           cette même ligne, et elle REJOUE le corps déjà connu parce que la
-           RPC est tout-ou-rien. Les trois valeurs viennent de la lecture de
-           `keel_household_member_bodies`, donc on réécrit ce que la base a
-           déjà — jamais un brouillon d'écran, qui pourrait être périmé. */
-        <ActivityTiles
-          label="setup.activity.member_label"
-          hint="setup.activity.member_hint"
-          value={m.activityLevel}
-          onChange={(next) =>
-            props.onBody(String(m.heightCm), String(m.weightKg), m.gender!, next)}
-          busy={props.busy}
-          idPrefix={`setup-row-${m.memberId}`}
+
+          {/* ── OÙ VA SA BALANCE, ET À QUELLE VITESSE ──────────────────────
+              ⛔ CES DEUX CHAMPS N'EXISTAIENT PAS SUR CETTE CARTE, ET C'EST LA
+              DONNÉE QUI ÉTAIT INATTEIGNABLE. Ils ne vivaient que sur la fiche
+              d'AJOUT: une bouche inscrite sans direction, puis passée à
+              « Perdre du poids » depuis le sélecteur juste au-dessus, ne
+              pouvait JAMAIS recevoir de cible depuis cet écran — et rien ne le
+              disait. Signalé le 2026-08-19.
+
+              ⚠️ ILS SE REPLIENT TOUT SEULS SUR UNE DIRECTION QUI NE BOUGE PAS
+              (`TargetAndPaceFields` rend `null`), donc la carte ne pose la
+              question que quand elle a un sens.
+
+              ⚠️ ET LA GARDE DE LECTURE EST AU-DESSUS, pas ici: `props.target`
+              à `null` veut dire « pas encore lu », et on ne monte alors aucun
+              champ — `setMemberTarget` REMPLACE la paire, un formulaire ouvert
+              sur du vide non lu effacerait la cible déjà posée. */}
+          {props.target !== null ? (
+            <>
+              <div onBlur={saveNow}>
+              <TargetAndPaceFields
+                voice="other"
+                who={m.firstName.trim() || t("household.mouth.who_fallback")}
+                draft={targetDraft}
+                onChange={setTargetDraft}
+                todayLocalIso={browserLocalDate()}
+                // ⚠️ PRÉFIXE PAR MEMBRE. Trois cartes peuvent être à l'écran,
+                // et deux `id` identiques feraient qu'un libellé désigne le
+                // curseur de quelqu'un d'autre.
+                idPrefix={`setup-row-${m.memberId}`}
+              />
+              </div>
+            </>
+          ) : null}
+        </>
+      ) : (
+        // ── HORS ÉDITION: CE QU'ON SAIT, ET RIEN QU'ON PUISSE TOUCHER ──────
+        // ⚠️ UN RÉSUMÉ, PAS UN BLANC. « Il n'y a rien ici » et « ça se règle
+        // derrière Modifier » ne sont pas la même phrase — c'est la règle que
+        // cette page applique déjà à une bouche qui a un compte.
+        <MouthRowSummary
+          mouth={m}
+          target={props.target}
+          birthDate={props.birthDate}
         />
       )}
 
@@ -3425,17 +5065,12 @@ function MouthRow(props: {
           draft={props.prefsDraft}
           busy={props.busy}
           onOpen={props.onOpenPreferences}
+          voice="other"
+          who={m.firstName.trim() || t("household.mouth.who_fallback")}
         />
-        {filledPreferenceBlocks(props.prefsDraft).length > 0 ? (
-          <Button
-            variant="secondary"
-            size="sm"
-            disabled={props.busy}
-            onClick={props.onSavePreferences}
-          >
-            {t("household.member.save")}
-          </Button>
-        ) : null}
+        {/* ⛔ ET LE QUATRIÈME S'EN VA AUSSI. Il enregistrait ce qui avait été
+            saisi derrière le bouton des préférences — donc encore un
+            « Enregistrer » de plus, à côté d'un autre. « Terminé » le couvre. */}
       </div>
 
       {/* L'ACCÈS — UN AJOUT PAR-DESSUS, JAMAIS UNE ALTERNATIVE. On a déjà
@@ -4130,6 +5765,9 @@ function RequestStep({
   cookingShape,
   onCookingShape,
   askCookingShape,
+  envy,
+  onEnvy,
+  askEnvy,
 }: {
   draft: FunnelPlanAnswers;
   onChange: React.Dispatch<React.SetStateAction<FunnelPlanAnswers | null>>;
@@ -4161,6 +5799,21 @@ function RequestStep({
    * fait le réglage de profil que ce lot a refusé d'écrire.
    */
   cookingShape: CookingShape | null;
+  /**
+   * L'ENVIE DE LA MAISON POUR CETTE SEMAINE-CI.
+   *
+   * ⚠️ REQUISE, jamais optionnelle: un `?` ferait de la question un champ mort
+   * chez l'appelant qui l'oublie, et le premier plan se composerait sans envie
+   * — exactement l'état d'avant ce lot, sans un seul rouge.
+   */
+  envy: string;
+  onEnvy: (value: string) => void;
+  /**
+   * ⛔ SEULEMENT SUR LA LANE FOYER. La table est clé sur un foyer; un solo
+   * porte son envie dans `preferences`, un autre canal. La question posée à
+   * quelqu'un dont la réponse ne va nulle part est pire que pas de question.
+   */
+  askEnvy: boolean;
   onCookingShape: (next: CookingShape | null) => void;
   /**
    * LA QUESTION A-T-ELLE UN SUJET ? Décidé par l'appelant, qui connaît le
@@ -4335,6 +5988,50 @@ function RequestStep({
               />
             )
             : null}
+
+          {/* ══════════════════════════════════════════════════════════════
+              CE DONT LA MAISON A ENVIE — le champ qui manquait à l'étape 3.
+              ══════════════════════════════════════════════════════════════
+
+              ── LE DÉFAUT (2026-08-20) ──────────────────────────────────
+              La doctrine de l'entonnoir décrit `request` comme « quand je peux
+              cuisiner, combien de temps, combien je veux dépenser, ET CE DONT
+              J'AI ENVIE ». Les trois premières y étaient; la quatrième non.
+              Le premier plan d'un foyer se composait donc sans qu'on ait
+              jamais demandé ce qu'il avait envie de manger.
+
+              ⚠️ LE CANAL EXISTAIT DÉJÀ, ENTIER. `household_envy_submissions`
+              est lue par le générateur PAR SEMAINE (`envyLine`), et le même
+              champ vit dans `MealBuilder`. Il ne manquait que la question, ici.
+
+              ⛔ LE MÊME CHAMP, PAS UN SECOND. Même clé i18n, même écrivain
+              (`submitEnvy`), même ancre de semaine. Deux champs écrits
+              séparément divergeraient au premier libellé retouché — et ici la
+              divergence se lirait comme une envie qui disparaît d'un écran à
+              l'autre.
+
+              ⛔ SEULEMENT SUR LA LANE FOYER. `household_envy_submissions` est
+              clé sur un foyer; la lane individuelle porte son envie dans
+              `preferences`, un autre canal. Poser la question à un solo ferait
+              une réponse qui ne va nulle part. */}
+          {askEnvy
+            ? (
+              <Field
+                label={t("plan.envy.title")}
+                hint={t("plan.envy.body")}
+                htmlFor="setup-envy"
+              >
+                <textarea
+                  id="setup-envy"
+                  className={`${inputClass} min-h-16`}
+                  value={envy}
+                  maxLength={ENVY_MAX_CHARS}
+                  placeholder={t("plan.envy.placeholder")}
+                  onChange={(e) => onEnvy(e.target.value)}
+                />
+              </Field>
+            )
+            : null}
         </div>
       </Card>
 
@@ -4487,6 +6184,43 @@ function ComposingLabel() {
  * Le même bloc sert aux deux étapes qui peuvent retenir. Deux rendus, ce serait
  * deux vocabulaires pour un seul verdict: `canGenerateMisses`.
  */
+/**
+ * CE QUI RETIENT L'ÉTAPE 2, RANGÉ PAR PERSONNE.
+ *
+ * ⚠️ ELLE REMPLACE UNE LISTE PLATE, et c'est la demande du 2026-08-19: « ça
+ * doit signaler précisément chez qui manque quoi ». Avec quatre personnes à
+ * table, « il manque une date de naissance » envoyait relire quatre cartes.
+ *
+ * ⚠️ LE TITULAIRE EST NOMMÉ « toi », pas par son prénom: c'est la voix de tout
+ * l'écran depuis le même jour, et lire son propre prénom dans une liste de
+ * reproches se lit comme si l'écran parlait de quelqu'un d'autre.
+ */
+function BlockersCard({ blockers }: { blockers: readonly StepBlocker[] }) {
+  return (
+    <Card tone="dashed">
+      <SectionLabel>{t("setup.missing.before_next")}</SectionLabel>
+      <ul className="mt-2 space-y-3">
+        {blockers.map((b) => (
+          <li key={b.who ?? "\u0000self"}>
+            <span className="block text-sm font-semibold text-ink">
+              {b.who === null
+                ? t("setup.missing.for_you")
+                : b.who.trim() || t("household.mouth.who_fallback")}
+            </span>
+            <ul className="mt-1 space-y-1">
+              {b.missing.map((miss) => (
+                <li key={miss} className="text-sm leading-6 text-ink-soft">
+                  {t(setupMissKey(miss))}
+                </li>
+              ))}
+            </ul>
+          </li>
+        ))}
+      </ul>
+    </Card>
+  );
+}
+
 function MissingCard(
   { missing, title }: {
     missing: readonly FunnelMissId[];

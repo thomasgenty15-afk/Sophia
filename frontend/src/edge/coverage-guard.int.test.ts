@@ -127,7 +127,11 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       // _shared/keel/household_rls_test.sql.
       "generate-household-meal-v1",
       "generate-meal-v1",
-      "generate-week-plan-v1",
+      // `generate-week-plan-v1` est partie le 2026-08-19. Elle était déployée,
+      // testée et déclarée ICI — et sans un seul appelant: ni écran, ni cron,
+      // ni vue, ni policy autre que celle du propriétaire. Cette liste avait
+      // donc l'air d'une couverture alors qu'elle ne comptait qu'un
+      // répertoire. Ce test compte des dossiers, jamais des appelants.
       "get-coaching-intervention-scorecard",
       "get-coaching-intervention-trace",
       "get-memory-scorecard",
@@ -283,6 +287,14 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       // coach's 4-of-7 display gate on its own.
       "meal_ideas_food_groups_valid",
       "meal_plan_entries_touch",
+      // ③ LES JOURS DE TRADITION (20260820160000). `household_traditions_cap`
+      // tient le PLAFOND DE TROIS par foyer, et c'est une règle PRODUIT, pas
+      // une borne technique: au-delà, le foyer a verrouillé sa semaine et le
+      // produit ne fait plus rien pour lui — il lui rend son propre menu. Un
+      // CHECK ne peut pas compter les lignes voisines, d'où le trigger.
+      // Il n'écrit aucun `protocol_event` et ne touche à aucune autre table:
+      // il LÈVE, ou il laisse passer.
+      "household_traditions_cap",
       // `student_cards_render` est mort avec sa table (20260808070000, retrait
       // résidus grand public) — le nom reste ici parce que le scanner lit le
       // `create trigger` de l'HISTORIQUE des migrations, même règle que

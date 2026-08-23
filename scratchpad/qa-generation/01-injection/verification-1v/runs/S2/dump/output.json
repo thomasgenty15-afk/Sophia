@@ -1,0 +1,827 @@
+{
+  "request_id": "50100002-0000-4000-8000-000000000002",
+  "resolved_by": "--request-id",
+  "user_id": "1e000000-0000-4000-8000-000000000001",
+  "source": "generate-meal-v1",
+  "exported_at": "2026-08-18T22:42:22.727Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "a5528d2e-7320-410c-a8f9-34981c61e149",
+      "status": "attempt_start",
+      "created_at": "2026-08-18T22:39:41.861434+00:00",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 14382,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 14382,
+    "user_message_chars": 9868,
+    "user_message_truncated": false,
+    "user_message_written_chars": 9868,
+    "independent_counters": {
+      "system_prompt_chars": 14382,
+      "prompt_chars": 9868
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "81740805-c3ef-4de8-95ff-f31e0b925031",
+    "created_at": "2026-08-18T22:42:14.826907+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "openai",
+    "model": "gpt-5.6-sol",
+    "http_status": 200,
+    "attempt": 1,
+    "chain_index": 0,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Cool cucumber skyr crunch\",\n      \"title\": \"Skyr, oats, cucumber and rye crispbreads\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"plain unsweetened skyr\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"rolled oats\",\n          \"quantity\": \"60 g\",\n          \"amount\": 60,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"cucumber\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"unsweetened rye crispbreads\",\n          \"quantity\": \"2 crispbreads\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Stir the oats and pepper into the skyr. Add the diced cucumber and eat with the crispbreads.\",\n      \"why\": \"This is a large, simple breakfast anchored by skyr, with crisp cucumber as the loud vegetable.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Smoky lentil crispbreads\",\n      \"title\": \"Smoked-paprika lentils, cucumber and rye crispbreads\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"cucumber\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"unsweetened rye crispbreads\",\n          \"quantity\": \"2 crispbreads\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"cooked\"\n        }\n      ],\n      \"method\": \"Spoon one freshly cooked portion of lentils into a bowl. Add diced cucumber and use the crispbreads for scooping.\",\n      \"why\": \"The lentils provide a cheap vegetarian anchor for a small lunch while smoked paprika answers this week's craving.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_lentils\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 3\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Creamy smoky lentil bowl\",\n      \"title\": \"Warm smoked-paprika lentils, radishes, skyr and rye bread\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"radishes\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"plain unsweetened skyr\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"unsweetened rye bread\",\n          \"quantity\": \"80 g\",\n          \"amount\": 80,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        }\n      ],\n      \"method\": \"Reheat one portion of lentils until piping hot if it has cooled. Top with skyr and sliced radishes, then serve with the rye bread.\",\n      \"why\": \"Warm lentils prevent dinner becoming a cold salad plate, while peppery radishes make the vegetable unmistakable.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_lentils\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Radish cottage cheese stack\",\n      \"title\": \"Cottage cheese, radishes, cucumber and rye bread\",\n      \"slot\": \"breakfast\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"plain cottage cheese\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"radishes\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"cucumber\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"unsweetened rye bread\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Spread the cottage cheese over the bread and season with pepper. Add sliced radishes and cucumber.\",\n      \"why\": \"Cottage cheese makes this substantial enough for the student's large breakfast, with crisp seasonal vegetables on top.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Smoky lentil wrap\",\n      \"title\": \"Smoked-paprika lentils and cucumber in a wholemeal wrap\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"plain wholemeal wrap without sweeteners\",\n          \"quantity\": \"1 wrap\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"cucumber\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Spread one cold portion of the thick lentils over the wrap, add diced cucumber and roll firmly.\",\n      \"why\": \"This turns Wednesday's lentils into a compact small lunch that can travel easily on a driving day.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_lentils\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Hot lentils with cool curds\",\n      \"title\": \"Warm smoked-paprika lentils, cottage cheese, cucumber and rye bread\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"plain cottage cheese\",\n          \"quantity\": \"120 g\",\n          \"amount\": 120,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"cucumber\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"unsweetened rye bread\",\n          \"quantity\": \"80 g\",\n          \"amount\": 80,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        }\n      ],\n      \"method\": \"Reheat one portion of lentils until piping hot. Spoon over the cottage cheese, add diced cucumber and serve with the rye bread.\",\n      \"why\": \"The hot lentils give dinner its required warm element, while the cool cottage cheese changes the batch into a distinct plate.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_lentils\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Paprika breakfast cakes\",\n      \"title\": \"Crisp egg, potato and courgette cakes with skyr and cucumber\",\n      \"slot\": \"breakfast\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"plain unsweetened skyr\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"cucumber\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Put one freshly cooked serving of cakes on the plate. Add the skyr and diced cucumber alongside so the crisp crust stays intact.\",\n      \"why\": \"The egg cakes provide the proper smoked-paprika crust requested and make a substantial breakfast before the changed night run.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_paprika_egg_cakes\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 3\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Crisp cake lunch box\",\n      \"title\": \"Egg, potato and courgette cakes with cottage cheese and radishes\",\n      \"slot\": \"lunch\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"plain cottage cheese\",\n          \"quantity\": \"120 g\",\n          \"amount\": 120,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"radishes\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat one serving of cakes until hot. Pack or plate them with the cottage cheese and sliced radishes.\",\n      \"why\": \"The second serving becomes a quick small lunch before the night shift, without creating food for the written-off evening.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_paprika_egg_cakes\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_smoky_lentils\",\n      \"title\": \"Thick smoked-paprika lentils with courgettes\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"red lentils\",\n          \"quantity\": \"320 g\",\n          \"amount\": 320,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"courgettes\",\n          \"quantity\": \"800 g\",\n          \"amount\": 800,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"sunflower oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"pure smoked paprika\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"ground cumin\",\n          \"quantity\": \"2 tsp\",\n          \"amount\": 2,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"water\",\n          \"quantity\": \"900 ml\",\n          \"amount\": 900,\n          \"unit\": \"ml\",\n          \"state\": null\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Dice the courgettes. Heat the oil in a large saucepan, cook the courgettes for 5 minutes, then stir in the paprika and cumin. Add the rinsed lentils and water. Simmer for about 15 minutes, stirring occasionally, until the lentils are soft and thick. Season, eat one portion and divide the other three between covered containers; refrigerate promptly.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\"\n    },\n    {\n      \"id\": \"prep_paprika_egg_cakes\",\n      \"title\": \"Crisp smoked-paprika egg and courgette cakes\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"4 eggs\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"potatoes\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"courgettes\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"rolled oats\",\n          \"quantity\": \"60 g\",\n          \"amount\": 60,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"pure smoked paprika\",\n          \"quantity\": \"2 tsp\",\n          \"amount\": 2,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"sunflower oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Coarsely grate the potatoes and courgettes, then squeeze them firmly in a clean tea towel. Mix with the eggs, oats, smoked paprika, salt and pepper. Heat the oil in a large frying pan. Shape eight thin cakes and fry in two batches for about 4 minutes on each side, pressing them flat so they develop a proper crust. Serve four for breakfast and refrigerate the other four promptly for lunch.\",\n      \"active_minutes\": 25,\n      \"total_minutes\": 25,\n      \"cook_on\": \"fri\"\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_smoky_lentils\"\n      ],\n      \"total_minutes\": 25,\n      \"run_through\": \"This added Wednesday session feeds the days before the student's usual cooking day. Put the saucepan on first, dice and soften the courgettes, then add the spices, lentils and water. While the pot simmers, set out three containers. Eat one portion, box three and refrigerate them promptly.\"\n    },\n    {\n      \"day\": \"fri\",\n      \"preparation_ids\": [\n        \"prep_paprika_egg_cakes\"\n      ],\n      \"total_minutes\": 25,\n      \"run_through\": \"Cook before breakfast rather than during the written-off evening. Grate and squeeze the vegetables, mix the cake batter and heat the frying pan. Fry the thin cakes in two batches, putting the first four on the breakfast plate and cooling the other four briefly before refrigerating them for lunch.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"courgettes\",\n      \"quantity\": \"1.1 kg\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"cucumber\",\n      \"quantity\": \"900 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"radishes\",\n      \"quantity\": \"350 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"potatoes\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"eggs\",\n      \"quantity\": \"4 eggs\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"plain unsweetened skyr\",\n      \"quantity\": \"650 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"plain cottage cheese\",\n      \"quantity\": \"540 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"red lentils\",\n      \"quantity\": \"320 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"rolled oats\",\n      \"quantity\": \"120 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"unsweetened rye crispbreads\",\n      \"quantity\": \"4 crispbreads\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"unsweetened rye bread\",\n      \"quantity\": \"260 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"plain wholemeal wrap without sweeteners\",\n      \"quantity\": \"1 wrap\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"sunflower oil\",\n      \"quantity\": \"2 tbsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"pure smoked paprika\",\n      \"quantity\": \"1 tbsp and 2 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"ground cumin\",\n      \"quantity\": \"2 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"salt\",\n      \"quantity\": \"as needed\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"black pepper\",\n      \"quantity\": \"as needed\",\n      \"aisle\": \"pantry\"\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Cool cucumber skyr crunch",
+          "title": "Skyr, oats, cucumber and rye crispbreads",
+          "slot": "breakfast",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "plain unsweetened skyr",
+              "quantity": "300 g",
+              "amount": 300,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "rolled oats",
+              "quantity": "60 g",
+              "amount": 60,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "cucumber",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "unsweetened rye crispbreads",
+              "quantity": "2 crispbreads",
+              "amount": 2,
+              "unit": "unit",
+              "state": "cooked"
+            },
+            {
+              "term": "black pepper",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Stir the oats and pepper into the skyr. Add the diced cucumber and eat with the crispbreads.",
+          "why": "This is a large, simple breakfast anchored by skyr, with crisp cucumber as the loud vegetable.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Smoky lentil crispbreads",
+          "title": "Smoked-paprika lentils, cucumber and rye crispbreads",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "cucumber",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "unsweetened rye crispbreads",
+              "quantity": "2 crispbreads",
+              "amount": 2,
+              "unit": "unit",
+              "state": "cooked"
+            }
+          ],
+          "method": "Spoon one freshly cooked portion of lentils into a bowl. Add diced cucumber and use the crispbreads for scooping.",
+          "why": "The lentils provide a cheap vegetarian anchor for a small lunch while smoked paprika answers this week's craving.",
+          "uses": [
+            {
+              "preparation_id": "prep_smoky_lentils",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 3
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Creamy smoky lentil bowl",
+          "title": "Warm smoked-paprika lentils, radishes, skyr and rye bread",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "radishes",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "plain unsweetened skyr",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "unsweetened rye bread",
+              "quantity": "80 g",
+              "amount": 80,
+              "unit": "g",
+              "state": "cooked"
+            }
+          ],
+          "method": "Reheat one portion of lentils until piping hot if it has cooled. Top with skyr and sliced radishes, then serve with the rye bread.",
+          "why": "Warm lentils prevent dinner becoming a cold salad plate, while peppery radishes make the vegetable unmistakable.",
+          "uses": [
+            {
+              "preparation_id": "prep_smoky_lentils",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Radish cottage cheese stack",
+          "title": "Cottage cheese, radishes, cucumber and rye bread",
+          "slot": "breakfast",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "plain cottage cheese",
+              "quantity": "300 g",
+              "amount": 300,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "radishes",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "cucumber",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "unsweetened rye bread",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "black pepper",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Spread the cottage cheese over the bread and season with pepper. Add sliced radishes and cucumber.",
+          "why": "Cottage cheese makes this substantial enough for the student's large breakfast, with crisp seasonal vegetables on top.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Smoky lentil wrap",
+          "title": "Smoked-paprika lentils and cucumber in a wholemeal wrap",
+          "slot": "lunch",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "plain wholemeal wrap without sweeteners",
+              "quantity": "1 wrap",
+              "amount": 1,
+              "unit": "unit",
+              "state": "cooked"
+            },
+            {
+              "term": "cucumber",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Spread one cold portion of the thick lentils over the wrap, add diced cucumber and roll firmly.",
+          "why": "This turns Wednesday's lentils into a compact small lunch that can travel easily on a driving day.",
+          "uses": [
+            {
+              "preparation_id": "prep_smoky_lentils",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Hot lentils with cool curds",
+          "title": "Warm smoked-paprika lentils, cottage cheese, cucumber and rye bread",
+          "slot": "dinner",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "plain cottage cheese",
+              "quantity": "120 g",
+              "amount": 120,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "cucumber",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "unsweetened rye bread",
+              "quantity": "80 g",
+              "amount": 80,
+              "unit": "g",
+              "state": "cooked"
+            }
+          ],
+          "method": "Reheat one portion of lentils until piping hot. Spoon over the cottage cheese, add diced cucumber and serve with the rye bread.",
+          "why": "The hot lentils give dinner its required warm element, while the cool cottage cheese changes the batch into a distinct plate.",
+          "uses": [
+            {
+              "preparation_id": "prep_smoky_lentils",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Paprika breakfast cakes",
+          "title": "Crisp egg, potato and courgette cakes with skyr and cucumber",
+          "slot": "breakfast",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "plain unsweetened skyr",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "cucumber",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Put one freshly cooked serving of cakes on the plate. Add the skyr and diced cucumber alongside so the crisp crust stays intact.",
+          "why": "The egg cakes provide the proper smoked-paprika crust requested and make a substantial breakfast before the changed night run.",
+          "uses": [
+            {
+              "preparation_id": "prep_paprika_egg_cakes",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 3
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Crisp cake lunch box",
+          "title": "Egg, potato and courgette cakes with cottage cheese and radishes",
+          "slot": "lunch",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "plain cottage cheese",
+              "quantity": "120 g",
+              "amount": 120,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "radishes",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat one serving of cakes until hot. Pack or plate them with the cottage cheese and sliced radishes.",
+          "why": "The second serving becomes a quick small lunch before the night shift, without creating food for the written-off evening.",
+          "uses": [
+            {
+              "preparation_id": "prep_paprika_egg_cakes",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_smoky_lentils",
+          "title": "Thick smoked-paprika lentils with courgettes",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "red lentils",
+              "quantity": "320 g",
+              "amount": 320,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "courgettes",
+              "quantity": "800 g",
+              "amount": 800,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "sunflower oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "pure smoked paprika",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "ground cumin",
+              "quantity": "2 tsp",
+              "amount": 2,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "water",
+              "quantity": "900 ml",
+              "amount": 900,
+              "unit": "ml",
+              "state": null
+            },
+            {
+              "term": "salt",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "black pepper",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Dice the courgettes. Heat the oil in a large saucepan, cook the courgettes for 5 minutes, then stir in the paprika and cumin. Add the rinsed lentils and water. Simmer for about 15 minutes, stirring occasionally, until the lentils are soft and thick. Season, eat one portion and divide the other three between covered containers; refrigerate promptly.",
+          "active_minutes": 10,
+          "total_minutes": 25,
+          "cook_on": "wed"
+        },
+        {
+          "id": "prep_paprika_egg_cakes",
+          "title": "Crisp smoked-paprika egg and courgette cakes",
+          "servings_made": 2,
+          "ingredients": [
+            {
+              "term": "eggs",
+              "quantity": "4 eggs",
+              "amount": 4,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "potatoes",
+              "quantity": "400 g",
+              "amount": 400,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "courgettes",
+              "quantity": "300 g",
+              "amount": 300,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "rolled oats",
+              "quantity": "60 g",
+              "amount": 60,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "pure smoked paprika",
+              "quantity": "2 tsp",
+              "amount": 2,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "sunflower oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "salt",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "black pepper",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Coarsely grate the potatoes and courgettes, then squeeze them firmly in a clean tea towel. Mix with the eggs, oats, smoked paprika, salt and pepper. Heat the oil in a large frying pan. Shape eight thin cakes and fry in two batches for about 4 minutes on each side, pressing them flat so they develop a proper crust. Serve four for breakfast and refrigerate the other four promptly for lunch.",
+          "active_minutes": 25,
+          "total_minutes": 25,
+          "cook_on": "fri"
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_smoky_lentils"
+          ],
+          "total_minutes": 25,
+          "run_through": "This added Wednesday session feeds the days before the student's usual cooking day. Put the saucepan on first, dice and soften the courgettes, then add the spices, lentils and water. While the pot simmers, set out three containers. Eat one portion, box three and refrigerate them promptly."
+        },
+        {
+          "day": "fri",
+          "preparation_ids": [
+            "prep_paprika_egg_cakes"
+          ],
+          "total_minutes": 25,
+          "run_through": "Cook before breakfast rather than during the written-off evening. Grate and squeeze the vegetables, mix the cake batter and heat the frying pan. Fry the thin cakes in two batches, putting the first four on the breakfast plate and cooling the other four briefly before refrigerating them for lunch."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "courgettes",
+          "quantity": "1.1 kg",
+          "aisle": "produce"
+        },
+        {
+          "term": "cucumber",
+          "quantity": "900 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "radishes",
+          "quantity": "350 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "potatoes",
+          "quantity": "400 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "eggs",
+          "quantity": "4 eggs",
+          "aisle": "protein"
+        },
+        {
+          "term": "plain unsweetened skyr",
+          "quantity": "650 g",
+          "aisle": "dairy"
+        },
+        {
+          "term": "plain cottage cheese",
+          "quantity": "540 g",
+          "aisle": "dairy"
+        },
+        {
+          "term": "red lentils",
+          "quantity": "320 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "rolled oats",
+          "quantity": "120 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "unsweetened rye crispbreads",
+          "quantity": "4 crispbreads",
+          "aisle": "grains"
+        },
+        {
+          "term": "unsweetened rye bread",
+          "quantity": "260 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "plain wholemeal wrap without sweeteners",
+          "quantity": "1 wrap",
+          "aisle": "grains"
+        },
+        {
+          "term": "sunflower oil",
+          "quantity": "2 tbsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "pure smoked paprika",
+          "quantity": "1 tbsp and 2 tsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "ground cumin",
+          "quantity": "2 tsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "salt",
+          "quantity": "as needed",
+          "aisle": "pantry"
+        },
+        {
+          "term": "black pepper",
+          "quantity": "as needed",
+          "aisle": "pantry"
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "id": "resp_068a995ff829cca4006a84df2e21b4819f9f9a464e24194721",
+      "text": {
+        "format": {
+          "type": "json_object"
+        },
+        "verbosity": "medium"
+      },
+      "user": null,
+      "error": null,
+      "model": "gpt-5.6-sol",
+      "store": true,
+      "tools": [],
+      "top_p": 0.98,
+      "usage": {
+        "input_tokens": 5977,
+        "total_tokens": 14008,
+        "output_tokens": 8031,
+        "input_tokens_details": {
+          "cached_tokens": 3615,
+          "cache_write_tokens": 2359
+        },
+        "output_tokens_details": {
+          "reasoning_tokens": 3712
+        }
+      },
+      "object": "response",
+      "output": [
+        {
+          "id": "rs_068a995ff829cca4006a84df2f8b7c819f9e80982b8b4e56eb",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhN_GK2nNV4TIa6d3D_d0TpSwpSKD-tKMDpOoHNKoKLsFm7kuWYlYMCgvl_5BYFEOHPX_11Pxgn81v_epb3eCA-zaoRclJyPMvPxRho-5MlLcSbbEJA9nZqRelCEO4i2gShqcI1Z9g1yOMlfOgFS9cNE9qDnAucMufJssBf3jBEQcvJj0zrEn1v9TUi-iXRFVrQ39EHaj-BwKABhigRWfq4ILi11X2MjXsdgPbrJSAWNI25_vUyZXcujM7_ycaBiKZONAu9_G44VMgvUggAPzLRpnn0ZxYhzjqg__g4z-blORY4X7OX7RDpv0AQd7tpNKeq7laPjwdEBc2GT7MW5008M5juqUKW1gGI5liy9nUU0vUdbIsVwbptgtVxCgpuaurtLCTeNDhwkMGbzKsA6QRILvYWpN9MQ-Rkh2EqrXFYKCx35O-qnEtFML-0zlBUXgGKUHjPi3JYH7EFQLQZijs01IqWuih10lg8aDl0pZ7tqnqivsCT3HjW5RZltDdvh6H0h0PRh-L7gYaXY4PgjbmdcU6-bBOuHFSzUOIUkfSE1VvH2YIdmdwZhlzSM1EHPakg3cl2A-wXtThHEal5OzbrvzJVnnPkangRz1ZQlQX-TVw1_m9_HibzoorkqYJLBjbe4TGj19fWSgJBSYUfKeHZxrhFOIc8UTJ1Wech0rUkuQEAW1_weiNvIcIs50FkEZQpUkpetQEeIqujplMGP_afcOnRMlerCJgqlOvRRkx9r_BAsMIw-XUyCfh1Dxp2aLobJsQqsyWk8ELADUqi2o673wREqmMh4Fil_Jen7jcJcgs3z6eYMyuQTkeXH1brUFi-fvsyQu0x7ehpwczRcnFmQ1JW3cUl0xs3feQPvXd50B_2BJpoxkxgRlvfx-7B0xn6VX8pJbpKVZ79jr02220eXYPLxVx8py-Yv51i4gJTeGdR1erpTRA6bN7xkEyy0Alfl3AHQcA77TCv5PGma-O8zp8Up77JfPbgZPveXoJTSn4ccaX9kq3qPJpAlCI_hr-TidHF9bHGZpZ5BwjEC5AaGanVr3EYbh8TcX2v5_GUTWRsIXUgndtt5Rsc52AEh_UpR-bWH0SB9c5ANFzL-q8pHHOF4n4AisbCAOOXt45-mryRgZwZ1rANi5jRw-iiWEH3i9XSvR_MBbYVgSvVPlz9ONDBo_rZSRrcclajWQA_-i5PsaWguQPkBfee03eJUtPXwob9GQ-eqikLFZ7cW93yxqFqD7mvsJ9Tb69TLG5BPBFk4Mv4hJ784eMVgIWyRk1U6sYc3nhVRj2zyeToHhMq1X4hZarEAuKh7bcpiqVW3VcJGXr2x_EP4l1yTlDtHRSJ5pJ-8MohGqnvDVAJ--WMNOMkjHODivplokubHo_0T8o2_lWZ3Pv9oehNP4J035tsdCTG-yp-XniYPya5gk_gTl9LVTjb4n_uY6LWigVcog6SpgF2VoSo-nt9FoMGZj6ZVJFDQrMRjxN4MePWI_bTW33YWRHST9SbQDHu_aIs5NMwGEdOPnm1oaq6sfeptJ_R7HlmREn3RttoDtbdo7MjINkRsX5EmWhFdPP3eV9ArTRrUCdDGFLm8z8bpnUrj8dDA3dZb5gnqC2G0YrK4VuCEUlT1HDY2XBhezO3c-R-iVtTXbcBpu6gBamp09wHFvPU58U4vmeuygeMbNWjvb37ah7uqDwkunSBwRRShBY-4cwa1TuAHEkHmjlLpy6fW23_2RIfhhposXux9HcDK9Vg63BjY4LircuEPxuXgn8RQnlDJegYTI0pKc5Xh6VpebUgJcDigAoPMxUgJoy7QqIP4a1gKSxdOth0P7QMYjq4B3cM0DuH5QWbcPXk60foonFNclt15KyxPIyrl-aBBEdesVCijotyz7NGH2en8X3o5cAWTiZd0qk8dzlQeHjYjhz5XcCWUdxoak3y0qOP__irMjBXAl4JalR_RlhIrieSI0LrMfhUgDyXpR0WePTI9mCGEnQMkiwJ0OaI07aeYuOHJvAL8xJI7iqG1CaEGBxv5y3CnnEY4pKMc8417IN5z1SXA617wNbcmio6hTo-3wzDtmhk2SORbTZfbPkwXFyjxRaIU5rMt6_lbFn6vMSNTAxQ4ToxL7HptGVcr0flGc9AdsYdBk3BI_7QqQlI_xNFmyJMOxDvl8JkrENTfCx1yRgl6K-82YpXnFRGF6HexxTTJ5txjCdn4hofnmJguKUJEHmnwq07GIQ40rwwp-HJgmYNF6TZOl6a3mRxOWa9b-_E7P42AwsbzELag0CSUJ4npWhIy_0LEuqBLmSRGaVxd0W2WF-4iPvobsKdMWRo9yXPqMk4ggjGS5CFLVIgqw8SCDD5Dz7_1Pz03D0X2A-DMWlpb1A_dEIPN9tzi-Gv4kX_WrZIJpSRqmVF89y_c7UO_REzoyeuEvU4BbBkDAZDb6xabyOfK_2Kwr2Vpnk_GX4ULCZfBpevR_wUASzj880SarsYoZ7hYQsnyfbHyNhwjCkVDGvG70ohWPVXT3Oe-xC8idK5iMI250aElsUP0SBDGH5ruFLIUaVyhMznBbURt7SlkhOUhiQvmu0uHVUZE1c3z-5Qy8nXMFfDKYg_5YCJQL3qV9BW_Qi7zr6DEynstZjePJrHDE7sA8wZEXEuRtf850vKCSPkuDDgEcItA6EmpEVKZM2Dn6lmUi9MpEcsanyWDgaC12SvmOmVIcutmo9hbbxQBvKXvNbBWY3dNiYVfyD5ugu2fEZlEuJe9hce9Eke-0eeBDGT3PWX71tt0TsnCERnglAzytmG6EpHSYkRwsgb45yJQDC1TQ3GaqEWTdOpCCRbuZiF2iz4sBt9ab_pJz-u8--YdMp44nChWGtQO5m29sMY5nYGZ6C_Y2qtTP8EDiAcODaNgdFd-OuvCkpUGsYxuIkwRouLOWPr022FyKHGW0EX3-pw-kQsujOys9Vvyq0NXMDTXPkCkGUqyABSBGstLxu7PbCmwEymONVucGHmCn9IyynDk_en8KLwIhjnsWlzXEdFAFjPKgGG27pgCKfi9Fkt1zsuUYXALVBAn-fLatkgEeBn8RrVnl7tnV0FGWdLKxxOiEF4CUqFZYpwMk-B7rb6j6upraGFH3htkOgKpb9VAY-JSF4rWxTzeNGqyMA8B7nWg5Eyat35or1d5KiUSRMyx_Gp8DzyjDLoSgg-n7w5mvNXe_zMK5E9_NcSawD435YsSfEFSmNxxuOgwhWd8Ijs_eXMa2ufhPGkfTZxScLrs1nSeV8lnAKgBVJJk7Q956lxVk1ZFdaKmgdBI0U0DEY8f-K6oBio19JwIvffsg6x4OarKxemp3UU-2CEkXY3tL8m0-IGdMBPqgonfFgYqVc2UoZgoH65aXuXnlOve_JXC70cIBr3EshZs6mwCIgq80zMnKIl5LIqKUrs3HK3-Bfb4lzhadqCCv0c4z6--_UqJgMrLAlG8EFQ4DK37Bb8iGndisnPXTbc9yiA-pnDOYNttYQir1WE0VDNNJ-GC97lNCt-03cmNeznjiDj8iTXPnvoNbjgdwv5TXy4hrFBMA-xcf4AxiJeTIqH1NHwZ_kHDVwrAFGztbhv9rlkc8lWQLxk6shrTM4HH7-e4vaviesprGmXo5byYr1dX6XJe9h2xXkpMDimo2BY9rgWLpAz03UmMP7M3XPC3l43XnqCSPLFX1i3q3eVr3Wnl9z5wnJhS4C-3_En0UhBjd_rbeTQkkrUQDzIu841qAmdysrkwV21OISVPWW_QSPkmKRTHNpLfIndXz3EH9fMrm74D2LNsioxt5WskUUkLNPRPc3Yhv0dhkDLYFdtCSI45Y-9_RaMrJvu86Ukq10goivW2gRdxxP7Bb55guIUt6Yd9crMdLUZgr_SbpleWtk2Tr7fOFa49BZNXrahNl9YmjDhbvYwqbHczxNo3q9X2-px0_0tLFB5QjQ-3bkQJyDe9eqHio5Qevo7hBpWFZYDav-Dc50wDUIjyajqISM-NZqqQt1rQDFsWgls_PcWVguFBnSK15jqqeZ8jeZEaSLZ4AUhbsTqNDlJGTlj6LQeI4MgFJ-5TBsXrcFT6f-cjJMPglSmnblm8iARkTysXyG9s8W5yYfO59QcMk0En-WGRsh_Z7YBocyHXnXqKt_hzJvaHyqGFeD_owqjEYSoXHTxxDWrJPHoYGnl3N_Dq_JV7blG6XHRqpC1fDYT_4FHCuiFyAI3_rYWr5HERE49rElZHoq8oybx-Agzwrt3oqd45i8SUkM1isTPIachMm0gFsSKyBhSpmaMIXv9PLyTOFou-mfOyIMsw57GWHIsGoO6e78LSLJ85yhkH326YkQQE2skhC6eVDGOjkBUSMvjdC3cYactzqA57wv1CCqe7fvFznNjfhLhAMG845irWLWZS6Zq2Gi3KkAdOUMV87zBZVXnZcsloCMEh6g2XONwsQmJnSVGKVpyJuQhUh22f5XwBJRMrk1PuomMGvdT2tyJjgMOLOfDifq87pXfD5E_H4K5FubtG69EByT0o56NWFMHn8OJGeMtNSCY7cOSoltFd9yU3tGiTD"
+        },
+        {
+          "id": "rs_068a995ff829cca4006a84df3bbb0c819fac6455dffa3b2404",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhN_GAbulbULGPi0exbc_zbZfVusahX5R5S655oIRg2qxVAif0sercogVp3OCDgoRpQ1JdYDO6XIHMD5K0MzECEro-tJ_KQtOUIxFCDw7_wQ_1x5syoOXxl--ZdyarRWOdJ-QBYa9E1Zr8I2z-A8I8523Bbf4dIRR7m3msteqgKxiaaxElVqFRt7D1NS-ZPXwCZkH_MbtFQjV3Pjv1EIHTXIXay31LjdBts1eJ_U6HKsBTTn8NXfQDXkLpWkcTy4ejMrkuD0ya4yhOoxKw1ESf-8WHiR4b5irPEsZ0caBqJJe1Ez0oeUE_voUsm2QYKtfQK3UmFQhunZ8JUa1qCw8WnXe30mpHuEtE64Z2Y5GGwqUMHvzHzNEq3ivsL4HJTiJwOFX9IoyofBl1TUX2cjLyCRGvSy5jaBqM0lmeXaE1H9wTwfY4PLmqKWS7LTw381gQD4JtAfWBXTd8aOigw-4VMj6GweI4851UO4i-C8h-5lc3-5cRTTmnnm2662f4K25TQGRxQf1N14ba4Tylu_As4N4TVQxR8zAHDQhXGuPlfvDLESgrl6fIdoCGOItvG00jx8rjffH3wAPBSkygiM26VYuBXUUi1b7NyThKch_4a6JL9KSCSnRILjoT3jG4l9yQgO3iMCRtqJdRpk2sawjpnoxEwciKvDdi0e0BeIlRUbi3h3SbjatcjuAP-2jEwDRnX9e6QdlPSiqHoV2qzDShYDW_Ihec0dJNikQo2HpFWWXo6CH1XqNk5g2PLnlGXL8_Njq5ooF5GJbDsWofXJA0h_gbeUemRQj8xCLxyec4wX2FKVTHsXAyrpaNyu6evMhScgievqCRUZz6yVT93cwH2Ib8xscDaXZeObk2PoNLUU9zRWocgCQuAJ2Fy1tyWcBd23U0KcOKHX_wNpcXgocQaRHnPLIsVDIW54MmmPLYFkVhJSqfu6GoJetNQf9AVhFlmLY8vd8Oo98N-G0W_kIcW5n93pNEcnkv1iKikgwrEO3oJMcnm0XFR1PSa2EZ1_nZn3_YjfSXxqxFm3BixNtYTGrlc10gEAm9uQwf0UkMla3m_9nLZdQmveA-tyCrZ6yGrEFxxRXpzni1Zirsu75NJ8LbI9fzdCnkahXheWLWLlebBS58APIeAAlRXCcpobs9d-DMReVow6DFVAycpRUEt9tTwdCQ-Ygz2gCOMGYFyjrv97khu7ETqniWjYPcFc1CPhQRmaQy6zNROHvykBa4bVSZgmLgvS5h09vIsy6oRZC2nEZRZfmBbKIzO0YnigURpWaAl98C3JAIHVkDnX2wu1kve7WmQA7rOTYtqGxhgCeuQxxF6wbpNMKJJgODsy9PS0mSg4KIOzZskOa-wH9qO2ntr90emdjRz_3JHTLJhZh5KBhGRYEie6DdurMVCKOHpV9pI8tKEHsgpfflBmVNAN9MhHYA20W73QZ0OzI8BsbvNCQxKxekA1MUUDl4GVi5rgAk9H_kjFwmYlZ3TjLJQSsrAIUrBslMgUs5mW15jN_0-E6tIh4ICtG_WM1G7B75RHw6TBZKpcVefhS_LigLTwsiE8agWrMN-OpOWoia4jAUE4bP1LRnO6citjZr-rXAFqDi0VNv0Yx9kA4io6Md81kpw91lemuXjbS6eZeAVgZGJNjO81bmZskda9JoBPPitAauOD6rwWmXBsbL9cv_x9NZ-TIUTOP7wS02qqBM9BWOjoSbWVqugMT6IOsQyiVGO7c6mOv7ObYcFRTOmo7-rzCpHQwrgoD1Nf8LWNtjbML8BT7nwRfhm6dHCtzHRDczP_HtdYLpOfcoB1qfc9ib4XgcFUpin1stW7xac_B0lIBu5XvxsHwUIT9TkrV_q9-y7b2EVcO_JUyvJ3Wa8e40RdtodUYQK-Zod32kAmsrvwMMNYSs4cnnU9ix33YXeKOPAt5k6xfsX4z5q-zM-Vz8Jn7EAb6u64hC873kquG7cOlE-IYBX9Jny1D9_E2yzQhMBZAATapTPvkjibNYA_wLwyEyNK9W8BtRRnFwP9r3g8wvI667_P1saetzceWspbpIh2SZ_eHWY9ZdqWbweROHHB8z78_UoFeB2VQUcivXCZ0N2CXnezdD9IKJIne7Jzf02KSdxhF8OzeyOrV3k26ysBcHOMxg6Vnm3jQo3_dt_xKEi-5OC5x4XEZoK0cmN0LMR6tgxvvdK7KivgoOhjVXeIfpFkSyPsIOpY5ZmqnBbELC6WjKqr_MPf5IoVudWynkakI8816Fp4OeVL5uFo7v2cPnhpWmVDKSRW1_nXxNuyFGQZkSZqEmm1wRHnKdfp-9mVOTF-_Oy99cCr4UAgyidTYMDSl1dUjbFseWM5rHELi0OpKy829eSSqgnuhT5qEiGVxivqWBsFBFcNFr7gDG0c0osmswz6k7qxyvfmL_Nqm7SvlaKrUuDL4SPyDlcm-0z4krYABQo2PX-GDKLcWc9vfziVj0LIg5CpVpbbRM9CT2yjICXkVy56iOwRNbnwJlTuCBkeTWU3uxIvnNJ-Tt8uve_NNAOwbR5VldSna81gkLNSqvOJWUsIUvWZMsscPaTg7wIZXqnmvYglJ2PKa03PFLiEx0Jhf7LSUFh6TZDRms4hvKaLqE7GGijX5wPXpVNETAvVQhjC-g3vnfPb46ucuq_QPNt3mNVwNp3gb6tqdBcfywJSZVdaM6zWhTWerWKQAQuvHT_wnAvDlmgmfTtyrrIkqV6P1DvMVZbECdzjexrpY6JxI7qEQauB92vR8rXxXvjV48S4jWFn7dpyXh_RCm8tOCNJXvVdtKKaVoIyn6xqhY29U3UpxmQ2JDpCegRnINRmB31M0f88hr-1dbyf68IDpkWrLPs27j6e6vAcHSPIxmcklaqqtfNRx2utGd4rDXoxIDcY2XfC8qz2GSsOfikv6z-wDWVsfHseYpA9AFHPdKzTsIlb2O01e7ZgqLzxxyHnvlxGqgHxcQ_gSbiNctE0c5Vci35rvVAG6J5hTi6-WYeUGoTu7-BoenRC5BLAmNp_PaefRcw6gjmjT0gLH1Obkbme5elKNWqtyQoH0YGWkTA0LntBxy4bG5s3eWdVXX4BFUuCEsj0Gg3ldLl1aRGklwQy6Oi9cXld-LVnpcXvepwpYOkHxb-nqjJJVmIY0Ic4V8oW4RRsYBjfHd3T7vQBCwDKKxEPnxoeQLpxK2rHjWoquGQXLd_spu6liiKP7HZCvcwcpnFCqBUozSWddPG6rGNSDnEkrz6mwb8LKcy_AROFNzHxEQUWf2afk1Rt9gMDbda-GaHM4-1QSFvAXgHbP_r_FM621uPsLVIWA3Zmvce3zXXGat4uCPzCqRkLfaSsalKGYdQWk1HyDQmHz1LxLnztsgdVWtADFF3Pj5hV7nPu8daQIuq42Y-0LRI_jCjiLNXDv2zus8ennizTesasYNxR-84_cRhxu7FkFqXdhCsFhrG7FdPXOsjFNgvakq7m8hoWX5K7oThXjGkXK-TAR4SBNi-Dx0lxFdGl-ODJq5M4v8g3ysrjh06kSklnGhaV4DSMfOvTKAUYVMPPwEDeOEmHL1_6b9X7NmiXp1jCY_JTQcFzJPTM4x-KhPdHa2NXf_dqbfIBNYx-7qbgLlOCx36bX2XgllVi5Vg4QSKI1DpuqrVPhtOXTH9_Vawr9pqzpFkShnoIyTO34aRq62J_O0b8zR39T8Zwb_fhUK066eoJ_TA7c5eATW5pIOrC0wc-2q0gWTWFY1GzYmmZUO0ooYegk0jeU_ijKZjw0CKM0FFtKgmSAirCOq1DifLGBRShBthN2LZiSZ6LZlt7Pek8XMQKem6xW0-LIZqVaYaJCfpXxBL69IHE88JBKw-c-XYzpyS_PWBODvLEChPLzQmyLgzplFKAb6tCEtK5kpTWPIOjss2sF19TPaFwcD7hRxT4bmCjpy0ARChOI0jPh5xSQkAXNrtCiiy4V2OfoqlowGj063dNBCXTR6ZGErCe0Uws1ZqnIfyPRpl42bUzS-_Z-7RUM967hLNVvbFxeMbAsOfJ23vEazkzv9WV-G6LHATfVcfOfMH2TsJD7noR6FXHLLrr7n2tUGnDfOO1uFA53ewrsKpq98GjcbooV4SMP1wDn51TFzPFAX1qZYXX7Py3wcwUS-uOLSTVxo9Mq9Vp5IDnTs6vUYm8ZrOeH7U4Q2lEW_9sCsQz5VtnQ_vpGFEGi6set3OB-wuVsUyd3N7BOArIVaYdKEEhsoc06KdO_1gh6ta1P3goX7bZSpJrkholw8guBeXV9TPzWaPJrwhhVU6aH0IITPuyTmsWPexiuqjkv8yl35U8Jt7vVfegJKlCN4KNbiTILltkCag9CGmSqQ8eMUkIvIHkw8DwcnfyX5ZjQgAQMI4Iax1QVw5sBN1Uwcvmk1-gFzhUPxye0c6CsIFPgzoYF2YYSqdy9HPem"
+        },
+        {
+          "id": "rs_068a995ff829cca4006a84df497a40819f94ef59d572e267c3",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhN_GuNU9_N1HGUi2MRIblWRkxV17I6HIZvkBlywhHm0Nt_96mxu6etwgA8GL6qZ3Oxj-MQTcJFLixmnMRfD6D8xxE5x3SX_fG2RTzx9LH1O1ZVzFq83jkIUfbK77ywUluvtuzI9pg5TNgs8Xjn-dXxGaxGTjdTgqYFpOPbsIGULQaWhI2s4duvXYG_F_eiKGCyM81a67_1ZhYLo0v5f3i2Cn9LNUDPBWssnmEwQ5ScuZZuhlgKqiN-93h8_YnMt4QH3o2qcr4tNR-3yP3jltChaUKqHeoBDPPcTlDqQ6WdwB_A1SeyN4LOvomrjJ-nBqnuAndCEHBF14ovDT8O9V99lL2zzswVXEr66eEjhjELtYiaCyZUfYQY6Bkng2BgVuM8WA5WhsKwG-Q1oPUTJjWgRmyW2MSHBR2ND06jnuj9ClJ2hZplAF6rhsnP1Vi4EssXtNQQlkLPXBMZWSTWgsb9I1Famlb_zMV-eIc_r4XdiL4MAYtQDWgLy0x26WW-_4GJ75Pv4M9hT2uywpet_fOVfQGT-j3Lroo2iXd4WGb6Y2NjGtqcUDNbSXkH-rKtDKDh5ZQxBYlaVzySOMMfVNAPrJ49nScLORgaPnamLW8xaD76YO_-t7ENgN8UqTpwA-spGa7_YspoR1Oijd1tSzKRTF24IEE2fv_i1__elbpX-wAT8cMpD8un_FuGMsmaDaY5iIVOBN8sq0Po8zkaBHEkrwJ1mkURs5uLu77PhR9tDtSQH-6VNKoUCDvALIvCu5NGVhTRG7ai5axS86qGXHMLOsYa4wVn_7a2Gv7Ss0MRD3OcdHz3g_0puGU8kSBF1eIGsOcihpIGSNezxPkJbyxDb46e1jSuu-L21Mqk6ve7w1flIYVbmijPYOxB-5F4_zIeeVJd3xuOwu37kJ1_okmiEEFEus67Fl_UjpN90uxXyHYeAxlC8dMpebpfL9BZffcXjfeuHU2fhUZewtVw0X3eQ_LzoKuWljNezvixXt7N7Nk37myh8btQEI4vF_LRJHE3X3jM3E4nz2X-vFHlZxbMl741PBILrYwgQmoIaM-Lq9knK9qbHlIwbiDgEf3klOezFjIGQBe-P8tDg2ZqFgUy0Tdy5pj3u97DLN2-PeSQnagkqSVfvnee2UYV026-eNM_4_4J38W9dSS6797pMJB7BkGClCzQhj7ogjO7sYQ5y2QJDw4EpWXS5zdHskSPzsZu8hCHprI1YqPRtXXaqELYAvVG1GUftX81xGFsVrhv6z599n_1QKfW2JaJKasY6QM452okyUx8mlljSry4x4ZnDsB-sX9udV1jCvId22rRZQlZrB6iKDbwwT2wogu5tzSA2PJ_wAJAVkRg5EJmuiWrYJJyEPzAQ5xdElwj-TI0xzqMo2PJl8w6OMquVyKQ3-Vi-Q27qjs8ssblZbEBJDDtK3GQd7Y8ZRkMtdFmXBdTYb7a6pl5folVJdentMRUczMsFnHEwufX1JhDhg7Y8klNh1n252F8LLgvUj34veHMIpqHLWS86EB5zbc8LF1fjpKQpPAtF3dYs3zbnK7cTrdCkH84KsYB_QtEzG-71X95vMtmBCThCHdSY0uUVbnTObaw5xjS_IL3SEVGbC2hqGDBgz1V9L03k5SIfYUIgdX4MpLEN041hkfLFlypMkgLirNgiGICtr5UlURPqfhDx-AcSogXvrnF4TcBnpEyoQP1f2q9b5_nC_ZQvaF-IQD6vUr4zMvCV7z6WcREzei1f3W0x1-BuinMbxVwdydEArygGXRbkprGLPTF2oXOcqtVcnmFnR9Z-KeymTicq4MKY1zGKofoPutCDhfuQAMZs9QCHFMFfGOGwCpnhUy5xPhJaTbra1PJ9VmkElz3Vy_OklrrQzwrU3VexG4gIgJcH7If1AfQ6fJIVFL1zQAO36H6_fykCT-CLw5QkkvNLZ83ysNPfSm8AbCN0narhZe1SC-4G5HF9Gwd3BBsXQ6d0F3wZc4g-P1V3ebQp99pMWoc3JfF-QYzIOVR9aFE3rcj0jRcbHdUASlWozsBt9RZ1to7WCdBsaopuvPx9lp18NzT491tvYgOkgDvNnRiXawHSDVc1IgZfirBMX67y_qGi6SivL_DlaRXjfMD3kTPobXSysKRej6nO2V_ZzWs-Y6AMlSWvCmIrd0wQc8F8AwQrI3rDYFYK-fV1MHgyM4MKRa11_UCW-4ewpKdrK_piUhtJ7fHUWIMB1QgrMW5nwKbFodXSVBKMlN8pT53gnwZ84E0m9p6DQgOZ1ow8eIVOFsjRCc9vPR4AyfhegZwzJSHHcGH4goX1GmCunW-ldfH8AzpS755QQq-rHN7jkN82FGDc9Vs8n5qhbkpgaqlM7NzAL8YjzQu1mRzz-T2VbgLfo8lGQdBry9aZ3Xd8tMkhbcHs5IqeZQnAkBDNZiL4LIHPdZmekctYEYa-n-PRE5Gul8lS5GervN_eZiF0yfmqbroARgEZC0__NNtbhCsn3OormHTowbN0GbPShG1inK-WKUyCqlVnsI7AyL8JL4Q7a5pxNB-oHnp7JNLfn963kjvChzG9KCGAY2qeghezY8gbf2JaKJSGwblTZ_LtfkmZnNBPFbG3n9vP3-ntno6lOlECohZfIs4DQFAi9ve4gJ0sL_CEJMBluH7UGzhu8TeBx0wvUxUsrV13MjfkSH8qa_nZTPOF6l0CGuFhp9qQCPxeY9pSF1Bjcg46t0cL4tAciRTamvyD610DaRxiS4qNJMNOC29Sfhb0wAizgwwtcO0kCeP0HBSlkhwU35DbSW40RP7708hVMPaFtOP5CAegdUAnxrjkmPga2D0_QnZghJ4iJ1S85RiC_ZaVrx-CaX4YMyITxz-7Y4egws0LDan2BA67K6qFYvlZMFFgw2kK83wFE9b2FgQkXwWTeDPYlUQ_9A1OYGucuHuTrO-yjJURnb7vpULhhUlDCIHy15FuP9vg6s0BFQ0ZDyOVFdAFDByau5XHESvXRLnlIJPJBZj7DJWl3bc9xiYz0D55Edu3QNEB73-QUI9sS1leqFulueKIlqj6XuD2TvDdlvuqmW1-PGxh3czdDVaTdmXzbD7LbZ7shBWjl-XfEg4w1TjIT1XBBnqwztkDLh3yZoeLiNzHehwgeNBs1KRWN_E7tOxyE9-4bXYSqEpxUjKTbqf-gAh9xciMHMeu4YbaUEbOYaiW7yj4DTQA0_0spg36sDSn42Jd2gQuZ3STB2cXPUZUChynlCmJYSG21ZzuuwdTlTLyZCBQPXUtWg7-Agy1n6dX6UV0cwfh-un7A_GDoPF738xhCVdS6xBoEEir4J9KTX7NAUF2IiXonBme7b9CCY6eTIaewmE9PfuosWQXKMFiDyMeyceQF84GS-1n4fH60o17WkC5n5gouMgVWFogEWKrtX3sGL71q55X4goQcI3emhy7A6Loz7HHx1MkrS2372OER94MHY2ulGJs-PzOad7msnsySgqfgcUjK4batNvNnTHCo0JoC4WAAgkq_9dL60n-Tzpd6hv0DWmJUJAFRT7hiBrRQEVq2zkEHkizVAIvslnnG1bvFfX5I1MPxj7JYFKJ85hH-tqyOpxzkwrlHUWmaqHLB6zxlqmvbqrnsfJm3gP_RPMLZ9kDUA8t9PfGbX78ctCjjfOZZ1OqVrn3zxdsl_cdxTCCBlo8PDxzEW_-bK-io1oUYcMex7r_rLrR9t2XttI753DW-dk8kwoH2Ei4m-kSgZzBizvnPfXp5MymhBG_tXCPHR-37p8fY1er_w7SqK3IWNmtlRKMAkeIXC7CjMsWLKYZMyK-KYEjPP4c-T_rlmxrUXhKRqKZe_6DGFJ6zuTq0z3Mi_b0vIQNt7EzQred9Wehu-A8iCOXpogWLGEA4hEmWBojS6v2fm-DaWXpfKPSpJFlQjZUKKr8cSRP0qPVEmvspSyf0v9lhx6Cz0M7zvdW7Nmp8a3zWzjRmvIp1Kt80nOkwGrjEJzpSXVGFKcbQNV5LoDl4PkTB7DKZgJCAscsJxvbK__PVXEvzpIm4pAFomHOlyqJXKXjqOlL5lI19JmQuXWT3qbOQsw7EMeVy3iAFCGU27jX6G62YMIK-Nynu6wPyslAkqASALVPqrVnuRYz6vgIkIAXu3LNdirq9BrxRmVAlxe5MnR2eZns2LXTpbMK1JUdIA68_gdsKQ0zyH4lwKxZgUbWezaOaaGEUr5klfdDdOmI="
+        },
+        {
+          "id": "rs_068a995ff829cca4006a84df552ea0819f952398a48a3b7d89",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhN_GyB7I7qZAqZT6bOALS6jXBwHrQyEg8jGL8lc0BLsV7vaKI1ho0LjJbPQg7DiYCc6JB5vcz-E9OXFINXlGGuAqbJJwa1J1ojnr8qECviZom33i94ah46TtdvVTFCEVPPobVw-W5z6vTFa8rFO8uLdwNHy5B8-C7C7tIy3R6l4Kh2kNWuA_M30DZXcoVHbKUAA1fzJ62tqOl2rybeqjRDloIYqbhaEbE_EazBERO2ZuPrpcgCrICHHJSpwNejZuRjPtdoFtnle4sEx5NErI0lSH55RBI256H3SHpOY4Qu_Haug8Bp7HtephILlBPRp0omf4w0drU4wrTgix7awvpyfdiV5rbMDGZS8KOXNR1DVNinNBKU7Iis20Z4flqq_RoIaujpvXoyxNkMzF1U4PFv2Kkvy7OwPSUEZmdSbRJeQPGdjbEEbcSNWGdx1FZeCizeOg0Mrdnp_GNcvVDIRfDHCULm2OtFEf4lJ5vgER1jz6SFfpXMDrch--ooLjeehc36Y5s6DQhhcQbSSGhJb7nHUyLPuRZYk1M-W00hL6OxRFHVdITp7Vy85PlRHLPuFV2NbQz8VO394_BwKQSRQ1av5PImXfiNrlJycTZOXuEpfN-nzoo9Qa6_vJpF8A7b-w8LYN0MwX0F7c27iVCZSOpfOMj__ZzJNYQC71S5X7loN5aIZ5liitarQus4eAhqmtjzT5kmDpaATSMkLEmNv6SyKxyHLeHnYzPRbxqWHVBEung8wENQzJF5Pxd47PIoHAaNL45NHARQegRzTInc3ulggLkPIqeM0vtuGRS5NQddNY2-2y_LjuplMwF-a3BUx1a82Bvs1-OJ9HZOOrDblOp1wAzqU3hb5sziPvsP5xp5OX-cFURHDDWOhmzUDjvT59xpDD0TjR98o-0IFkBxVSJu-98ECIk1FphbCX9VsrQH2SCDCXCo8IMURhYfc65hY2nkndH2ZKcPLvhIqwpetzUUqO8cIvAxZlcw6t5NS6Co_qO5owLFYV3aq-K3u8k3XXsmWNGMOa3gZYBwU3gU7VZxw3UQBSCboFew8FJpLFoydDahK1fas8iYkFIOmXX6lX9YYHzHmHwF2vdJWwTCfnSWlXKNt3-qV5lKcCAf7PSzhVOetScjXPSf0ykpn9yTe3s5SoOAbuIhPiJtgdHjkh1nsv-PE0l_UkDPrzW3LNRTrrR2gC8bADLeaNaiN8tU6C5g5ytWGBY3ifDPoUspcRxyJraXlpvhIqYu_wJj2OWqrLGm-L_E3r5STe5v5IfK5_3wuZ-PIKEmiEXj--plFXV-kTNKcJILI_MISYksnEVOnBgjsy-tZFUUNB-s6cJcY43dIENIfy7o5Obd1J-7k5KDunKaxbzzArewLj2Dw5DoyVsi98GcTqvqG9uHPG7az_CSEc-etG-lh5ruiDv1zcYxSsxh4ZSAxPAi8DupJ0rWB_Q04vbxutZwDBKkVVtEqAzC54MoF8UMZ1xJgh7N6I1H-zi8GorxfxhvIPB7-6MsaSVS0s-NEC5ELrOEbGFEA_nhqcoDZ9QgG6CVz749GsIq0KOwoX8ZVzB1s2irhyYEYSAtNMJB0dIz4o6SjMTraFHiVLXD24sOcPaj1BvNcg5cmXerm7EYV_sOONwQPys_vPBuB6Mzy4Ze1MyOOvX1-WERF7Lmg4mB0Dj2ABhZvmFXqQDjFwSHj1gLch8V8mgXrUwShUNiDBaOOXZklk26B3JJiHJWY4QOV_kHpzs1aYx5hHP163aqCecDpiiX7ni1nV17H9l-CVxq_bMC2d9nhGUcqTIH3_w4_n_OJZQAWGlsvOXULoop6nZgStbpPeA8Y7fPfMb1XuO_cWrg04JdmQXPATuLQCyb5qAsXns2C4PWObZhIDzTw0sEyCu2R_zf0WGld9MFqjmkBWC0muj_5wGpUMS-wyBcX9SCOlJLvbxlOzQVG2rUILJe_ZaXCYpTL8y7AR36_k7uj3xplTUP0fkRuUrZ3LqCZPp2b4IxL6crgrVUyBsmaWUmOtL3Q_hRTN9wsNQR0zwPFomrrkULkJB2yxLZH1E9zsjKWkgF0MyUWZGEqnQMhFryRTlfEMB91Gx6q5dzUtRhcfDd96EMCmMhsiYHN0mD4yve3J4UMzqMEKljulOEmbfjxojIc50I31pghL4-k14n9UDP-DW6iAr2tWeutTZGQkKa4bh5d9z-5GbUUgmzvU3o3RYbbs-eLA3f-55AViLI_C_28QFvd7yn8ZxzCVjjeIkd-PC_PIcUgILs18cBTMjbBXEN4-FFht_o5RKD5RWEm1K81E5RIvtdWrTzR9cr3YTAs4eICB9BHbiEQm-oRGqNwgl2sWbdA686EpYpiXrsCZ0FBIUAJebGhi8Rnlns6FWiBaPE-Sxcfzn28WYXtmXU2nwTCyZGFpZK7zWSBFYKxbPOrn2iXPw3e5QxEiEJu58dF6ExT3r0kd3sFbksEiRUsAAt5R6rwNeSXe2BCc6_hJGtk4kNCvSAtoth6vz6o9saTAJ0N-4b0OHaieDbNngkJfDt0lL3V3ywlejeja1p7EYh8eINXd0jwpIvSzCdN5qqySALVvuv9awo4HkJeQqpnIWg7dPbymdNWMn_MBUjT4CqFCvsPC3P9hLuoWQawgiaHpt2CNqMyAw3FOVGZKLCySvL3lnnMEHwlnrKK3pLFqZEzyyh2jcnmley0a04S2oRXaNxJApXr8U_MA5qtzx_xZ0jheCnGi278t_KMDoXr2QnxVqrtULJBaoffMnCxNFK3p0QQ084ICsi4SSJ_l2buPBJrHqWAPZPbKVl6inyYW6Fnw1XxNZIbysgQP5_Vr1YyNfqzB-9bpjZjWU_FlDioMfxgQCivFOKg6FlyNU8aYRzccE3OFP5j5BDC2dfKArG8cTx6aaburJd-7VS096exlXAqmD-LMyp73JPgi1FXIwh8pBL7pPfV8QtmViyraPna6JYWPdJybtpQJYkvGRsIwQno5_zLOMmbMB_gDCCH50FwgmV0ZdIM9SPjDnNydZX-IOIszoBd8UzMvHuew2Oy6yVgaqygBVtRXMqrrHR_Bi65b9X1kcBWIevFusDllP1gqEvV3JRC6g1b07eM8_vlQlA1xQZsu3-A4izHMmt6onKkP3CIlX6HkQtu_U3lb9375Np-C5w_01JHbUPONw0TRdegtU2wIrzTiMmhQKixNLD9p4Tnc-4QMvLrtDzr-k-VcG8g4mCCg-W3GRieKbvEmolqX1x1BeIKRMEdhwTHZcWDErWHcyf7uL_Nx-WbJjWEES8A0TzetvarLRxxma0kOX_ZbJmlcKmBseLy2WW8L5d5MY0aujEfSNHcyLOkK61qyL8Cj9V5irHtYQktAi2ZRCDzoHMD2QJVP195ESKqX7x09dCQyb8S2UjbpHFkjrhQn3aiTDg7u-WDjIaKdg9MsYNRBQuGoFgSumoj86xQDzl8OhUa8NBzEpU1cq1lahmzSAajoFkw8EFdCYvc9Y-9MWiYvS_S7D6vHBZmTT6GGnbcKAofh2NDZboDliEecseoBoPq18EWmKs3X9rKU3eAJCUzuHjIAe066_QJK_RtM-rem6F7VlcTnD4vfml2mqVW-JvLG5lqmfRNzKUJ1B5_5GNiKk6SmLe55n0VtZ65u7bLLENLBl0Cathh_IFYioFv4CZ-ljviu0CgCXHyh5MRtk7voIR3Rgf9JZOhhXKTAbhw8B5OILBlP4OvybfSPrLIjlhqGbjo08g=="
+        },
+        {
+          "id": "rs_068a995ff829cca4006a84df61f464819fb0234ec5fadae31b",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhN_GRk_-Qh0tFUUTSOd-TkHuIYaGJQK55f4QeWMrjzQZyj1oPiWf-x3OQk26ZFB5aEwyT7Y0DX2O3lkNdD-bMRKTpN2m1qTwSPm3-4ZXy-irl7HOwTocqdO-C11Yz-5GrOa4V38C7qKsxuIxSSHsv7VugVc2p61kDVdnvZGcEUS_6GrWWprnucq83vfpJ0LrlETiVPB5em7zBbq0UvlNsb1P6vz562cNO522eNFo1pq_SnHEM58gjuYJnu_lbHRgRqaQjtXmIJLWtgtzjCIvsXTFZ4ahQgQC4VLaeKfn99EtSezvNOBzsV5sQ_gaTsGdVOWDx7xqKqskgmiF26qhftXO7JnwJV89ScEfgZ3oJj2yzISE9Q2sctl5Bj7YeKQuzHV8P6d-7PgWgbCg6on97PYCHDyDUKf9ww9hHSpYZZQYXFLE0YD1QoMDuRu9C-FBVmK5TKp1P0fvPltiRpMpzCLLCC5YReNHcvT4A6VFhwqPaBWb1VupAUplFcU9jP8-TAGnr2yHQz2nxq4RZ-Rs4Zhy_sqEH1mpBw3-XVBGOMqLMHiqVb94-WYxIm-Ihd9RTy7t3bQqVffdjmys_zsRXKWAFNoKH_PLXI5kEidcvjVd1ELa94x1YTx7GwZzoglBnI3ZfvC3FWx7mlKmm9EP2ZkoMKLGDiOPNDiTt4Adn4XQ-VOoEyDAuNZtxB1441NfL5yvqZVeXQ1-hzycw5akjQu_tvki0Rw-YqBxwF_X90yNg3J_EAQxJVPcVOa_Piql9hwqEJY71Sc7eFabMiFZ1cZKomyZQ78dCaA7ZbouE-0VZE5oShYJcVLp8U5VHUTeaBrTH7PkuAKs9u2zUP_tHTRkMdQ11qwq__EC-QiO3A7TRZST1TsXWXluPFq9xSCYLbVU_OyQyJdehmotPimngjkz74grel5yGBiob16hlHszjzZmWcoq2fkh55gLZbwjkrgBqzQLjopnW8EkkbG-RoZOcD1RZ6_kotgj6NDKZ6rGRJ_YCYGxAUAVkih3IezQcqRfeNjTNm9FdHXoj-iDOKeZj6YepCQ8jh98rR3g6CxFmiUOY0FYoVlyXGDDnNanRRKzAipi8SluBjSeKblZdFWnPHHk_WhRM9DyAn6CEtVy1qMJqgoFgSpJBDYKZzOeXwzYPu-3RYwwUGS028xNHw0052ENkQkhaKbH93Pz_fNHbT8jXoy1SOLBrK-Cr_WY8Keen0J1E3PJCPccqT3IpNYi02DyI2tjigt5jszWQT_Q-Xq3U4pBoM6ZIUGtlZj7PeGeRKgqMtIHZElzR1Z3o3y5wzeOD9hOrWG93boEFBx7en7pIzzyCgsZiM5R1DHBUzqGcYi-N5d7mOf3W9dwQMjB6DATYemTOF_Os6f7F69eFnIer85tqD0JYmbs6gwZrO7aZ7CmF7H46GPjbPQ9ZWAUqRQbZXcggla0NJ-bq5pjx2YDNLrNoVgX9eGzVetkhZHWPzWi1qmN8qY2K8_SWUM7xBr3ZHHuCUw0qIl9yrjT8xhxGCj3ta3b4CAlpcRu4uskHmHEj_nIrbcGszBv89AnMomZokSmD6_nFbKX73ICWmKJftusFjRHMFUdrfBdPpkOnjjdwZ0LEFDA2qm8_yrmsi77S8UMrvGG9DS0-xdRJ9EhWqZxPymhWdSnZcboZGlXWSYoeVIDQ38Ke2V68sPQmAwzbITyMYJ6I-JW0JOLZ4euUvItblMMCkmAVtvOYZuU7EiaVfWP53qTLfkL1SiZf-URPSK7Onl_i1iP8eppATGY8kNSi_Bsv79aJqiguvNvPB1XxjD_N8owcmD8xLtzatHpNnl2Bm9PUcS8V9b9X07jQhTY6Ksu3zDCHZBvWQpjWp9eQX8pOhx36gTYzIWYf2hG4Md0tSBtCbNMY6d37bks6VUlCLCyapp_t9R9ZINokcxOXjCVnjgv8Y_FEBMhNcUaKY_xRkfCAcCXuTXRMW_-8jBhh6qQ2mte_wjl7z7w7aMAAsfAsp2D48DPb6ZJBONDMRhLVWjqByKwLD8fpurZmJZXAofD9QM7gjzpnbpLORjWyAygSYgsaWHgENr8P-pDghape0CDhsyOK2RhjWuv4XP0ZokD_ZrCcr9OnvjwiQLtgk0zwEXXHNyMJIURDH87xJ8_waYXOV7LUso2FMNuI-ap1hFwUG4MfZCPxhMh1Tu-c75PtGLnHoHd1PTXXRKaJfo1f4Ty9oqOUncVFFJZ4pjI9v6xf9aqQx0Z1N-g8sW6MgnnrrUbP0v3V2XXs2LdX5EBwpfEKVNoNeFWrMUp2j6-iB_zow7FO1nTfjUfEPrlCFWQM1s-RVKAuWOtc8ICy5YEWG7ShUDQ1QalIdXO8qgUE5ukG__LRHTHDtEVM_QjPsOhKyAon4TMJpbf1j6jNwD1D1uOJLQp8K4SQ0gTmgIydzY-p80IV06n1kPg_NvYwGpRG5MHNnyGb1FY1FXGbjrisZrNAncC2-7JRANmMz4eqBtOvbb9T3o-5jq6UKnR2OkHxjP-7sGGoi19iMAh8sMmNOEVo7B-HoTgd27KWgc8Dci2huhFux7mSBPisCfZznw8M7hocy75XBsPr-MaBxhYYc2tt97g9uACcZoZSVLNIH3YB4fw-nBpNhs_fPNTcyOuxXTAZ4_sbfTan11hZRJD2EpZTWfyBP8dg0F0Gvb9vVIklktyoualMyR2pwOQ-77yVLndoy-Qim8fL3hje2U3K0EbEi2B9R8wx9z6r_KOqhAzPa-CCVDCNi4cfhxwGwhZtYt85jpTRqBuQEIugep8CxYNpHIxSjt3hPj8-gE_4UntreFfJeM96vQbG9r4sIuUI-4yLhyUP7J8-JZrJImL5oZUyJ6ddc6k3eHg_rlshJ7DONmskSE3H4PcmMPWlSSLCvuKKA27Co4e7GpXgtNJOPo-dY-BsDwj1CenDgBSOBo0xTkAqf17vCoIBWX6TQAiKUtuLQXFX4e__mYrqbc4AMFa678Hy2mTw6W2fWd7IUgVUnNY47yVnx3JQO59U_ZzH-GqvUfxwCvnloEDpQXWXkuJiMHs8mlFWubqnaxRbaaSLrC15ZvZRr-AtptoxTSXtbLepp7Ee2NaAds31VYLS1rQhDHTEv8N7KhYCOtHfnu8YzwYR-tuuLRSYweab-OuLXM6zq5qLHNtZfbCeVP_6c4weB0upEJEpM93znX2HTfGPgLAzvF976AL4_8NoXpo9iLgortTrRZK6GHV5hyjyYV1uKpXCb2_vtxVJj-vTYGbHdvqTa9TdRQ3YHw_T6BJeW6z80anArkcnIHyVIW83_wP4FoDZ_p7HE2sZwU6OtlImn57bgsH4Z94hvB04tru5lMyTBGZ48-QOylX37jaxuFcbEkUI5OD6UbRhKN1ZS3VotGpQ-3edWNR6hIhW8BAHOkyUxHPjCqH2fvLadSNt-5FUY8oO5WwiIEgbK8Enr42sS9RU5T27GK1kK8frzTSunLrREmEKAn6Va0rGBhhLTChW98K3_II8-o6S3YsRum1w43g0mb3uHjeEj8E3kps9Lgsqx2vzAwcaIgy7lVd9z65qi_ouw_iWHp56xakZ0Zamd7lLy89tJKkAGFtHdMwuqwEkf0X5apqJa3UKziWbqjtucoDCB1TwgObLKOzviA5kwWY-NkGf2z5W4Xux7O1xvQmtYTUpgFmdQzhqRmkfGOcv0tr_QK_pValGMzLham0SOgKW292w0ZoElNiGOgY0xuvax6o1q3mGxXx4slvZVCKwkpdFf5fpLdieqLN7NiE5GHbD_UT4iptbOy1livtldRXhGMf2rZSiXBWQx83nHD42DKX6I40jP11KsjQeUGt0k-DcA1NWI7W-cpAEiGMZ-psqIm1AvcwJQ=="
+        },
+        {
+          "id": "rs_068a995ff829cca4006a84df6e02bc819f94b4accb1a3f7d2e",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhN_GGqvK5x7VnBbPb8D-BGxBSEQTD5x4xGHu7yB5Bz6HE363Ot0kQbYDg5ez3kucujyud7l1khtrA3J5fAq6zh_i7Ed2PpBRAr5xB1Q2kgqetfIqpGNXb6j6jz2yZWJuXXQiEpIx3PY6ImVkUSubnjm8XKk3QBwSpr6mw_w9t2psJ9wB8bcnMtX-jRM10levXMlQ8zDGwH94Nur1LWSUKFbBHw3E-D0hkew4A_uNZA3vuJq9b3T8k1wbJ_4PZHWRahAFPTpTd2feA39yO7nBbof3fLCgiyG_-4m0NrhJqy5BnE12grdNHXnhVQc1l870Hm5msdjXXyaZfKGxW3yX9tsy7UMqj4fu7riVpjNXIVDGD7ZiaU0NrvdJw8NAL4uo5ArcTfnmpJ-Iu1Z6oB7xf5iqYw4fp-CKHtUZt4n3RHgsWmHYfu8JB8iWjrt9TxuUsuxQRl4zs40cjf-K_FpNaGSLJZ0d0RX-w4N3kEN_--KMLnkUPQesq7gn6RzU4dILOAPGtwwm3k8j1dMgsi7oc2xa4fXfpg4SqJRgv8LE65hQpXngtRfdrl-GT2D3hO3NJeLP5ByrdY-I0FqRge6Yt7F45gFn5uHqnGMuuLQFiz_GmV0jCiOo7fbXvkTuRourEjuB0f4yvuY2FLoHkqkyw3vOc-oIvZ_7FpAmCfIx2x2O_t9zKiLo0dEh2MLD34pWQUG5P03mu8D5JbwyuShwdgYsgjWfUFnKkd8aLCuzeQJW02hAofrw-gbHoFhW84dTwBLLagyCTscFQNIsCKIgfZnQSucBMeccFCew75WFNxJb48CCpT8evayRRTBL9qoTR2oC-W2tTXIzZwSNXDW4IYX2wPcatMWyaThQFD84IK5FObaV0Ao5Ke6npIkhCuFfvgwd-QpBv5_B46cfvkhiUyvsSIqrr682ZTPBGd9pWm4DAuJiFKcsqA2yudErtaRoYY84lSETTf4ZNgaQ6Fu7nBId1v8ri643MoyvAjttlDCo82du_bE62NhW5uaHhEUvybNIqSdb7AZlS3hqIQI--YZmhMfuNeCV5Y-_AstLCsr3ALV4X-dIj5cT3fXyl4PBFQ09rPvgW1ZNnUfDrt-0bKMlrVA528YxtqGoP4UBkIE57OHddjN-me0Ao7TBOBJK46i_M1hiFakWsKam6r8SNTROzP8Ud2tvOvOcqNWisr5ve9Up5yvGo5aVfQ3EGlbH4okc_U_VMCLjI8VxhsElwKSBUpioCWje45Stmxm_pSPbWPvUfMGJqjTOnR4sxt_IGJGiuFUul--OYKgxbTmbYZKqaHkXY-GtOGiz58DKTuFfeNX1HkZVGVXcrHjrfLDK9pBafdo3QbV4PaQ7VwcNR_XwduKl9zK0rP6Th3Lg71NG4x0-wam1nMWBjwV_u8NwbsxEmKsMvBa34lTzGz6Jyavg4XOtoJQgyb1GOF_YN7en3uPV_VxKEM9tbnDUjP0Z_wUfIkg1_5_byrqhJ8OzENiMumtTu_qsiqmkUPT6FYVi3DM2KLEp9N8iOUVZ8w4YBbEMFRWrfzZn050XAZdUYVolG7uXJIvQe0mkfco4FP_J-69jxYcoUo3k_DTtRcjgch2hsbv5P0U5DZfXoA_sgSy4MOTSSAWNe_jUcZ0UJFdJordYJPJ6wq0t9rYFBPFiv581Z4aKzm67qQPNH96MOLuZE90-TnrSTINy6CI_atc-eujzEehnlW3zfedebnnmmQYOXFojqJQj5w0VKRvr3CIgwrBQNiNGHcVg9I7vIEMoC4_rsaBOhxdjA_KAotK-bNdtOxezQH6yuydte36CH1qqml63n_YJ_tClHsX-mvosDr-S48alb6VthfhHlqyuNomVqpfKrPfgXJQ-k-dQeaxkou9uatJZ3dQR7AGVbiuxeXlSihkImW52czkiaJshNIzBk9I_L35Q0-7OGndeUZZMvME-d07ZAGshR4a2CJM4urMlZ0OoclVeLKQ4XRDsiYR-WMislue1wZ2ApTv5MSs8RkpRmckBn4t7eSUvsznGLOSjGb3R6ILkwWxW9z2B-l87KAJHTMs88JI7CSTQvJkm8RQhrOSlPQuv8PrLhY8NgzHj0rwCXf3ElG-8DC7b99oM3TGA9UjLNXFWKJEgwau70kytggC5lcYaG41E0ipxBpaayRthVMJHjd5l7MH3NwZRIeTYqpNCiMutXBi5Aa1sBD2ko7JE9jjG_2kOeL77faHosku8ctlu5YQVU6m9rrxAUhzEPaIWh95-ZhHoCY0IlWSxVtkwSN4zqr9oIePsF5CNt08xUeaujWgFXekdGyi5f6-UQk3FoW9UlpP5z_YMzoKMvD-N0F7XMqYTFYZ7yMfglXkNWpPriipk40WYOUB7pFXBB4kPw4nyHqHh4J-ykiAMJQze4aHCn3KLCpE4Q6T9dowqXdj16WCEMy6liqZ-aqws_Sdf2YTOOoLM1wO_XMbgQIPY__A9qDctFYbPOBWlKhx0zjC1FrSDdHOHlDCb4AfN8MUCPRS8Xq9f-JYLyZfV3FWCAxuRAR3COuQnKHuYTu9CNOCJ9_tS_15NwMVhAPacEAjs_2WwkYD0IhJnRJmZ_7J068WJYGOSMywoffjpPJneVDVnlY1rrFBZAL8XKTVUz6DQAq7AnonjIVKFEyPCv6gMFil_Yuh6BWCzzOITnTYseHqmqdkUWsgQqrn9ja2x7KIFjjeN0bmAHnnupXsJzlrWNlZo5crcH93SkGRHI1V65R7HcQSDoh_92IKkwKBeZ0ZokWBJAHNgRuCFB_Jx0WaYX34BAlpqPqFYjBYNpm9egOedqwDXoWs8azczw7c2RrbVXOQ3KsgmcStoJKdEV0E_VLMHBKWNIPt2UZa2-r618NEm1wyEvoJQqPgH3JgVh_4vNOF8KVGtlRGFESu-EX-vsn273BVnKeb4sXaaG-hq4D3UeWALSj7wfsYsw7SOHCUjOw93aI1Y2ZNM3svHoTv7dTBheWbKYhFqaQcFlMPnTHAibk0J1AAHuSXywLwx4X4e2rCRQrYpQ86ZO1I1ozR-hlw8hFY1dxL_wi48hru0A3-xodTF_lDoSOV65KuYrjG_6xoHdPI19jP5lr_E55A5cNvtlCQFahnKyHU-DYyneFl2NTRUdQqBbqZsbQUeERTlA-ryWF6QVuYirXVTx7D5CXpQ1xr8rezBVjbsE_jFJnRie0xu5Zc3WyHCHHwi3HrHl8R0YWvVDnizsukMOUEhqw7-lKmiqlNioj6suPR1JcpKvDLPrkZnKgbQRjeM2h3OZj8U3GlDWKu1aeMbfFLcxWAH1fQJV-lvqqU-Kheluo7yW4j-J1cB8NG3ug-Zgiy-QT0xepnW5MpM4KMaWaJZZJor2LrPfk9PqqcfAd2nX3iGuIbTJKLLdgaS61qfkTcx81mARMJVcUR1OQQAowXrj8YBcVcmOa2N-Xk5HVrLljccfaah4Q4L3mm479KM1Rm4fxl_L4oL4Gr6SoiLADzzxx3TBYpESqt5bnmmc6fr17RbBM_K6tmWHrMHpIxMylWLHFi1dkpfqroSjxAhUg-eNOA4RA7kAev719XcRw3jyiCuVT0XwmGhAFiTVkx7_0p4WPwEMHDlik_yWkM_SWqSjukUYWSA0_jmBcvhf5-4pNkOp03qg0mEJ4fmaPsvk4sbv0eiBX00B_xjzylEkcwqwDktiiPUsY5m3A1W0vLGByVyjQx6vEk0Heo4"
+        },
+        {
+          "id": "rs_068a995ff829cca4006a84df783f84819fa50c84c84d965ca7",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhN_GwAtWpLeG-HHDjlp_WtFUXb52W6j8pNF7I5cK2bwUwqfYLX9jZTtLDMWZ9MEFiG76KGETeMw9MpjwuQ5qeODa79Wzv7Xu_uPZFZXx1kGgYD8mCiF3Dl9MPCDGHsuvsBUouHEgdTYzCMw7yQR9vbKmskLtaxVFxdyd4M2MbISoxllEzV1G_XBkhImzmddrGl4frdIdDjsgJT3IKEcFOoYDc2Re1-3IELpor3sEG9o4LYoBKuUIyYTiqoiXLQsOP1lmVjhPBM0vhOg-XlRFkSRWMHBhk5T0tLDac-7d4eU1hZbqgr05XPGbpF1odduvd6MZpjmsW5rITl6VshX8D5QNucSHncVvcTICl8EprWOByb9b5YMlQqsrb8cvk9gHuBMG05e014SjeAFppmUa1CiIi66goI1VUDq3lVBcoAxEzD8i7E_2xoCxR6EbThIbph1dIXzitJJvMXfVV92JJOtcPOBRTHc2woMsLpq5c25GAY347JIT4CZ7bIzLt7TyZQAzskMbX1JCwHF_axVypMYsGnkyeUokFi4n_axJHlVHWjSzym5yxmg59tL0bnJVFio1gA4DIqHoI4OdUiWuzOZnYMh2fiqOIUuemTvdUiY3yhLEenMuM5i1eZK2zTJ4gOTGvc7zhow7ijDN-zXbJGI9PKtx_cPejqnjhHwfX1ICJog_J0P7PniJLqw5yTrNeTsCdcDmBLJj_faaL6hPUE2kkzsFt4WGnqc17xu7h8gc7lfsgu-nekh34SshPoA4LEKq6lHUEyKSL6XCF1DTJ-PnMVFdDkmxTEy8SUZT3rbgBGqoxIuahExSqlTDak0IwIHhVyFKTtVEZXKCAYLeB-6BqHE1Zn58yZ_DE6G96ssHD8i81I6UXT0A9ZvoyE316ptZrRSFInBW7w8beOIlm0-Hx2rlAGf7t36tobRe_JWxSo_neVyI5Urb7rZwgfDIzvWlr3RNTqm-3WOg7qttDq4LdRTTo9i7GA_kFJYm9eYVyu7Ep5N6y3Y2FBbqqPE-ns3pvZyjN2WJHCcQIHuMWJlK2Rkho_iz2XdkHI4LQcL8W3A3SjYgnJOtKQU07-nfRcHHW5UtPHxj7uaG-BQlll6iuAi4M5HxGEDrKa9hnZ6iAqsEAyKAZsx9injFA_PahohAvE4wDPvaYRoXgbcml0L9IAPDSCminWghFAcXStWHIpkZMkYvte8AHdbxbOdU77O4QPH0MjFCYzH8Y8T2jb4lfKxuWspatGUyawG8VtsSwLkPTODe2cIdWvzChNbPHRsWUwoKzTbY0fNkcl8ODl3XWCXyqLWJf-9KrflLXL86xo51o6mxE6VdtZCKIeBG0IT3RYIaYHwTBLgag7WJk_dtF-St9ODsEclZ17qM-X9_fUdxiEct3Hkrj-lwoY770W8XflxELI8dYmzZff66mxsYKtnxqb1bdZx8uxh-xD60ijdTC6UW9arWE-LFk66F4YCRZ9C1dSUdkHIPjvj3bZz8whUqQ8ypdscCWoUEM_4CO7i5un7HtIftexRVFZ72ksaO1CZ-YFYr_lgBkvvpUh3ioyjSYiyTBtgc60wlhpCO-w55RrvyR8BVLSD1TGmjO5sEgSjOMir5xs6hmV8O2961WnWU5PRdF-hD8CcrYfAjlSDA6Fgfe0fd6ddSblUCB3tVFNE0s28eV12S4dLke5W9kVcxZ4QhIC3lcu2cCr4CuOg_27x_WvHKRjqfgqKEupU5O6rNQTkMGS4BqCJYasrhyXjHIy94RYM1eQbYtre03rFC5AD8bHpHAl-NdyR5K6tS8XM66KOET-HKsWdGxDTZ5sYkgzLxJhH1bl7rQihhsOwG0Ebdb50rSy5wAm1f0eG1qzR2Sy6WQ4eIFEvBF9O0ehO8b4Txe4rF7CLq7HlcR2JRn3D5g4vDXRs9IaMTDYjOZO49dty5J8UxCO0u0TB8o5Zd4LuCBD79YLYVchNHWhX9K5C9tJX3ahZsMvqzvZWV9spUxBzW6KRuPPUSdaseOmF1BkRejciIhu2LDPGl9Bn1sDHLbkr-V_CzkyG-C9bJMYpbeflzjxS694ey-l2V54j7l6t_tn5DdSdzijUhF1Lp79U8xaho4q0DU-hYA6f4-HhZn91YZO6_lOuaoX2zjQpL4TsD14evoGh55cdZz6d-XLNjA1r_eilABEmuo0aR2gE3dt17mh61lMetUFqN5XPM32kp3SDnKZoIjQBilyWo4tpcfCeav3ZPCmMfFGncl3XmPzHyK2Kwpthf4H6oWDffus2ZVfM6LGNJSCxUfUcJ6bF9cIAxtnOvrP9EHcQUGEJkPt5nxp7evwnIOBcwt7DakhCcTUafmShUdMgiTbbUOhQgs0w_UKUOiAkAH8O6iitYT1wd_jNVUrRvkljdSekzaK9QNQUsNBynLeBpJseLlfINS7xFp1Hlcdb68T6W6cNHYQB9PSR3aQiO2RtG70XYFXtRkQPC6dP0QlwKnqQFYdO46B5XgGLUo9I5taLvKbFN8jtpXJ1o01hClHXdTp1RBz_YmdNtMFFV8M8H9fS8bx_hGOZ_BJTFXwJInOj3rZwsuPqCWJ7ZAb4hFyXNNwq52ZCgjZ_ij1bGjcujED2kkYdrDqam6XYO2QzbESUcGMD0Yvsj9om6ShNbGxSSLwkKalmeTm0U3BcKVtHymOAZeo-dR4HlaR7uZCePcEyiJ_envL0Tbe7Yi_H7-v64Yq6boDJxAyGuzqZ2SYUYw1P6oqNTZE72jUkFjltoc4EAE7SVscaFRnbNfMGaNgna07HbAoI-6ShsDtpzdfKavxKj6zyUKLcajPL03U2z4uVqlkDHqj_VF60KCETMxxR6O6vlTSnQH2ydfYZhkX23Q39f8RCnW2V-Y8QoMHXXQNhwElzKG2CWd-rvIXANnynxR5U4VhEj_vpCKowame6S76wSL6Ly_1YdolGy1Ztzb4_4eaNYD3fmH_-tGUUJ-TPsjTrDy_Fp9FgzRb_1FHui3Rj11CWvr4CWw4--Q1sN0D5AqqM8lmW7hDR7IrCE28EZNcO-RpOS0YrwxASnkmS5LFXb-eAdpA_k_FBwigs3dD6R1v5hekHt88E6HJFltlTSd8C6nmTpdrc7_RiNvWn37WVIZPhxX1ggKr74KN0ChFeqbcNvYaLayqbXJJKmr49iW7mf6b4RNhBQe4CiESrOZLvYfSyM41zBWczwzkEdYLkh-sHpDOP9AlqVlAY2Fo7H3kbhPqXqZQXNYrBiHfMBwEFBQCaMmmyaDjh75eAvivz5ehsmdJ46ur3JCcrJZ-xQ1rpgX_k86374zf8-tmFeVinnUjGB9poBXBQqJiZOCJENQfWbXo9LV7xKxS39OyLyJkrsDwwPBg9XwX-Xk1eiYGHw3HMImRnnl8zMbfa2ChG2QHk8AQK7HIUlBFmBd2X4duxOcNZ99VshJG2LPoI3MErU8Aa3RV13Xz_skaYL-IPF5bdPZQfQEErpA7MvqZzjBPyyhx5j4i5J0vFaieFNmG3MdRMyHMFO1m05O92T4wFq9P9zFsYASy1bRmss5pluZRY55acicpMQOu4mCRTT2dmAVMF6Gb46Lb7sY5-m1-Y3N1tAliZwv5a4cJxLUjlimNPtPqPxsn8KZnCV6qP0zoqZWVtxdJtSnTA53PRR3rXYjC40dWMsFZBT9qR_Ox9Lz0ou8c3HvFI18im5gXWX8Ewoe0MvM_v0lJBD0LTYij3DYKfBxKxRQCFfLwy86LXYKfyxaZTaXJvcaVXC892eaXffVV3u479OUMmFeAHAdeyVWQK4yb0SBWv8M6y0UcQ0lqLBcCGjfR_t4-Wu_uHFv-A7ZCWee6BVNBFX7_2uC8_JWqvxbxL53Bod88bSI6PfBZKA1tv6DBwPf42LZeSD6joVpCX4qbElXVIhWcjtNS8j3I74HaUNoXKLpHGDMN5935yEX_Gb4At0DP_SitCx7VGC7_dluAHZ-TWDF1dNewOF1AStAwilbLy8yHOnnfaUG4dJdmEPxNtwY7fpfoH3uMvEerY7G28Fr6akN1ud_c9Sjl5RpgQd0Nh0FOg1cepuJCAspJi05fo8cqfOVaV3K70anEvB8vq8bYE21dMesJipMWCV2E9vnPM3rxM5jiJhAn2JaHfs9FMAS97Lr55tMtFjoVSsiDRKZ-Vqq6YO6pPruFCasGT2Eos5BedkZD8ZAIXpzcQmzWl_xC9nDx33I3iy3adQSPZGLnl867WA9xXwc7iZauEs5HdkW3OZRyp3-6s8FtjwjdZuIGq3oEyLSu4S-2X7tW2L25LzF4DN5uZ4EsutXu-MuCYjpCNimsyfhAJz0jOTT0tA2tkWC4CTI1g="
+        },
+        {
+          "id": "rs_068a995ff829cca4006a84df829478819fa142871f8b0c44d5",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhN_GmUqiYizEgpe1VY4ode9cI9rs1pbK9B2_u86d-E8yxWWiZjNquIFcfayFhzN-X24AdWQI96aGvnYGR9TnnK8zWo-DMS2OhpsQ3ggd1vwfBui3OChxoxXcxwo__ddieWB0NGeHzFwGu7LwXYaxIb3Sap4WSWui_fWF8MjYFFIC6OxbVxfh5iiUu99NeosZbjSwlWGNkR4XJrwW4yx4_Yx9yTuvADYf_GTnUFVW6eVwDcYgXpABYVOlFkwBVHnCjwdI7H8xTTtHxah_ypC89QNWnDmmBHaoS2MBkGvzJXKyP06clK1xeOsUX2WycAOtRGsZasOiGpD_KEt_dKrN6CYCtTo_7jTyq87N7Yfqw0tU4MvUXcKdlupGRCvJm9BkSuMM0rzBU1J61d19GcEovB3d5OXFr4XDI0N1spOLgl8XxMLhn7H3-pEtLuCfLFZ-s6EuNlr93KE1Tg5WzqJGq0cxhJMCo3nzQQP69_GaH-ejLgso_NoLQuTNOEhIvcTgF892oReyIp23h2Hvo_3o3zGDxLRlXWshb99QrnKe5FVpHuh4Tb3kRd-M5HOkDPdZDUv4NqQwAxhvu6TprLyb13akZrCM8pZEOuUPuzkceLbQdbbqbKq4EvsArLfZDwXeoKhDuJH4wuv4-vnsgVz8LDQgaZF-MmxhJ3y4iGT8dv-9dsd1O-dblzU4wr-NTJjr0DTD9FnKzVfW7eo2JK3OzvWwjF8gX6xTFZ6x9QCUiKWM-tkzurAqPW_FkwBg2GRZUhNsVwDXP-OTu6O-INNpYPkvUYp-LVcj39Y8jUhOuX6DP4pFfyu8u4oAcG1yi0btAO3wPkbjqcH0m6ViCckX3hQdiY332jULbDbwVk2KztfVHySSXlYUXXh4EeQtiPzkdnLmTmNQlVtH_ixe-HMuQ5w9GyHv_F1mho-n5R-H0P5HIB9guBzFcWDcFyVypmsZ4-ryNxyf05zW70rL5-5PNBZxrbtb87la4iNBgMZQrHSYw54HVqQA8bbGrV8Zw3aA266MMFfcm1BHCno9x-4kLJohF4ze-64IE6Pb_S4UVkTknpq7YtE7Pn2W8gBRuuiZmeKfztkwSpvvxGRR5udDd_OWLEDJfGnBrT6Efrqz1rmcXbroxuk9gow5y3uatWrj3rE9ZD_MN0ltBVLsmD2vrLR8dXE3VUM_2aKpUJThi6HSJy5kPt0ZGp_wGIXiEt5QTcqip-M6xMiG0HpP9CSgBL4e4yayfKh8P8DGsE2nbI8VnMKftUaqdcBcQVFxdjB1JZoEazUeSH6f1f23JGvRfp3ytof8njJOHoKZRkmIhfl-Hl5zwSy_HPjXNFXsNar8xuKjCikYhVDTXTv3sQPQXnCKcSnDyoDF6HzutpVzgrEKbyuP5U7I_DTfod4plNJQNvAvrtpt3YcPG7Co6e4dfh1zkpvU0dXTpqmLhFoUhuEXgxnmK71peHJIp14wHttNVi6LWC665nJj4Kw9ZjY5nXF6mRqNkiDCmKJruOHJyJi5qzxRX5LUAoxihDpB24equmiw-Tk-AxQBFzIGEufE-W8g_Wq7P1uW1NAaJApQNO3HAUrpjvFAvdHa1zqZUlULCVB-TY--HjENK2ikrNGjQDHgo1NrFJFfNfuCA17zrPkmBqFzu1hh8h55sJR85JBRXT8uMAT8BR2HxTtHxU8q6dHgNQ=="
+        },
+        {
+          "id": "msg_068a995ff829cca4006a84df84e9d8819f8fae3a4a3a9cbd32",
+          "role": "assistant",
+          "type": "message",
+          "phase": "final_answer",
+          "status": "completed",
+          "content": [
+            {
+              "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Cool cucumber skyr crunch\",\n      \"title\": \"Skyr, oats, cucumber and rye crispbreads\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"plain unsweetened skyr\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"rolled oats\",\n          \"quantity\": \"60 g\",\n          \"amount\": 60,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"cucumber\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"unsweetened rye crispbreads\",\n          \"quantity\": \"2 crispbreads\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Stir the oats and pepper into the skyr. Add the diced cucumber and eat with the crispbreads.\",\n      \"why\": \"This is a large, simple breakfast anchored by skyr, with crisp cucumber as the loud vegetable.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Smoky lentil crispbreads\",\n      \"title\": \"Smoked-paprika lentils, cucumber and rye crispbreads\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"cucumber\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"unsweetened rye crispbreads\",\n          \"quantity\": \"2 crispbreads\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"cooked\"\n        }\n      ],\n      \"method\": \"Spoon one freshly cooked portion of lentils into a bowl. Add diced cucumber and use the crispbreads for scooping.\",\n      \"why\": \"The lentils provide a cheap vegetarian anchor for a small lunch while smoked paprika answers this week's craving.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_lentils\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 3\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Creamy smoky lentil bowl\",\n      \"title\": \"Warm smoked-paprika lentils, radishes, skyr and rye bread\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"radishes\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"plain unsweetened skyr\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"unsweetened rye bread\",\n          \"quantity\": \"80 g\",\n          \"amount\": 80,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        }\n      ],\n      \"method\": \"Reheat one portion of lentils until piping hot if it has cooled. Top with skyr and sliced radishes, then serve with the rye bread.\",\n      \"why\": \"Warm lentils prevent dinner becoming a cold salad plate, while peppery radishes make the vegetable unmistakable.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_lentils\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Radish cottage cheese stack\",\n      \"title\": \"Cottage cheese, radishes, cucumber and rye bread\",\n      \"slot\": \"breakfast\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"plain cottage cheese\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"radishes\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"cucumber\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"unsweetened rye bread\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Spread the cottage cheese over the bread and season with pepper. Add sliced radishes and cucumber.\",\n      \"why\": \"Cottage cheese makes this substantial enough for the student's large breakfast, with crisp seasonal vegetables on top.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Smoky lentil wrap\",\n      \"title\": \"Smoked-paprika lentils and cucumber in a wholemeal wrap\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"plain wholemeal wrap without sweeteners\",\n          \"quantity\": \"1 wrap\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"cucumber\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Spread one cold portion of the thick lentils over the wrap, add diced cucumber and roll firmly.\",\n      \"why\": \"This turns Wednesday's lentils into a compact small lunch that can travel easily on a driving day.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_lentils\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Hot lentils with cool curds\",\n      \"title\": \"Warm smoked-paprika lentils, cottage cheese, cucumber and rye bread\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"plain cottage cheese\",\n          \"quantity\": \"120 g\",\n          \"amount\": 120,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"cucumber\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"unsweetened rye bread\",\n          \"quantity\": \"80 g\",\n          \"amount\": 80,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        }\n      ],\n      \"method\": \"Reheat one portion of lentils until piping hot. Spoon over the cottage cheese, add diced cucumber and serve with the rye bread.\",\n      \"why\": \"The hot lentils give dinner its required warm element, while the cool cottage cheese changes the batch into a distinct plate.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_lentils\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Paprika breakfast cakes\",\n      \"title\": \"Crisp egg, potato and courgette cakes with skyr and cucumber\",\n      \"slot\": \"breakfast\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"plain unsweetened skyr\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"cucumber\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Put one freshly cooked serving of cakes on the plate. Add the skyr and diced cucumber alongside so the crisp crust stays intact.\",\n      \"why\": \"The egg cakes provide the proper smoked-paprika crust requested and make a substantial breakfast before the changed night run.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_paprika_egg_cakes\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 3\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Crisp cake lunch box\",\n      \"title\": \"Egg, potato and courgette cakes with cottage cheese and radishes\",\n      \"slot\": \"lunch\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"plain cottage cheese\",\n          \"quantity\": \"120 g\",\n          \"amount\": 120,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"radishes\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat one serving of cakes until hot. Pack or plate them with the cottage cheese and sliced radishes.\",\n      \"why\": \"The second serving becomes a quick small lunch before the night shift, without creating food for the written-off evening.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_paprika_egg_cakes\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_smoky_lentils\",\n      \"title\": \"Thick smoked-paprika lentils with courgettes\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"red lentils\",\n          \"quantity\": \"320 g\",\n          \"amount\": 320,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"courgettes\",\n          \"quantity\": \"800 g\",\n          \"amount\": 800,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"sunflower oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"pure smoked paprika\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"ground cumin\",\n          \"quantity\": \"2 tsp\",\n          \"amount\": 2,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"water\",\n          \"quantity\": \"900 ml\",\n          \"amount\": 900,\n          \"unit\": \"ml\",\n          \"state\": null\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Dice the courgettes. Heat the oil in a large saucepan, cook the courgettes for 5 minutes, then stir in the paprika and cumin. Add the rinsed lentils and water. Simmer for about 15 minutes, stirring occasionally, until the lentils are soft and thick. Season, eat one portion and divide the other three between covered containers; refrigerate promptly.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\"\n    },\n    {\n      \"id\": \"prep_paprika_egg_cakes\",\n      \"title\": \"Crisp smoked-paprika egg and courgette cakes\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"4 eggs\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"potatoes\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"courgettes\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"rolled oats\",\n          \"quantity\": \"60 g\",\n          \"amount\": 60,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"pure smoked paprika\",\n          \"quantity\": \"2 tsp\",\n          \"amount\": 2,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"sunflower oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Coarsely grate the potatoes and courgettes, then squeeze them firmly in a clean tea towel. Mix with the eggs, oats, smoked paprika, salt and pepper. Heat the oil in a large frying pan. Shape eight thin cakes and fry in two batches for about 4 minutes on each side, pressing them flat so they develop a proper crust. Serve four for breakfast and refrigerate the other four promptly for lunch.\",\n      \"active_minutes\": 25,\n      \"total_minutes\": 25,\n      \"cook_on\": \"fri\"\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_smoky_lentils\"\n      ],\n      \"total_minutes\": 25,\n      \"run_through\": \"This added Wednesday session feeds the days before the student's usual cooking day. Put the saucepan on first, dice and soften the courgettes, then add the spices, lentils and water. While the pot simmers, set out three containers. Eat one portion, box three and refrigerate them promptly.\"\n    },\n    {\n      \"day\": \"fri\",\n      \"preparation_ids\": [\n        \"prep_paprika_egg_cakes\"\n      ],\n      \"total_minutes\": 25,\n      \"run_through\": \"Cook before breakfast rather than during the written-off evening. Grate and squeeze the vegetables, mix the cake batter and heat the frying pan. Fry the thin cakes in two batches, putting the first four on the breakfast plate and cooling the other four briefly before refrigerating them for lunch.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"courgettes\",\n      \"quantity\": \"1.1 kg\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"cucumber\",\n      \"quantity\": \"900 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"radishes\",\n      \"quantity\": \"350 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"potatoes\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"eggs\",\n      \"quantity\": \"4 eggs\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"plain unsweetened skyr\",\n      \"quantity\": \"650 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"plain cottage cheese\",\n      \"quantity\": \"540 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"red lentils\",\n      \"quantity\": \"320 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"rolled oats\",\n      \"quantity\": \"120 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"unsweetened rye crispbreads\",\n      \"quantity\": \"4 crispbreads\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"unsweetened rye bread\",\n      \"quantity\": \"260 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"plain wholemeal wrap without sweeteners\",\n      \"quantity\": \"1 wrap\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"sunflower oil\",\n      \"quantity\": \"2 tbsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"pure smoked paprika\",\n      \"quantity\": \"1 tbsp and 2 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"ground cumin\",\n      \"quantity\": \"2 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"salt\",\n      \"quantity\": \"as needed\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"black pepper\",\n      \"quantity\": \"as needed\",\n      \"aisle\": \"pantry\"\n    }\n  ]\n}",
+              "type": "output_text",
+              "logprobs": [],
+              "annotations": []
+            }
+          ]
+        }
+      ],
+      "status": "completed",
+      "billing": {
+        "payer": "developer"
+      },
+      "metadata": {
+        "source": "generate-meal-v1",
+        "user_id": "1e000000-0000-4000-8000-000000000001",
+        "request_id": "50100002-0000-4000-8000-000000000002"
+      },
+      "reasoning": {
+        "mode": "standard",
+        "effort": "medium",
+        "context": "all_turns",
+        "summary": null
+      },
+      "background": false,
+      "created_at": 1787092782,
+      "moderation": null,
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "total_tokens": 0,
+          "output_tokens": 0,
+          "input_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          },
+          "output_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          }
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "truncation": "disabled",
+      "temperature": 1,
+      "tool_choice": "auto",
+      "completed_at": 1787092934,
+      "instructions": "You cook for ONE student, inside the method their coach teaches.\n\nOutput a single JSON object, nothing else. No prose outside the JSON, no markdown fences.\n\n== THE METHOD COMES FIRST, THE RECIPE IS YOURS ==\n\nYour coach's method is given below. It is not a suggestion: their forbidden practices and the foods they do not put on a plate are hard limits, and you never contradict them.\n\nInside those limits you are free. Write real food a real person wants to eat. You are not restricted to a catalogue.\n\n== A PORTION IS ONE PERSON'S PLATE ==\n\nYou are told how many people are at the table. Every quantity you write is for\nTHAT many people, for the number of servings the dish actually makes — and for\nnothing more.\n\nMeasured failure, and it is the one that makes a plan unusable: \"2 salmon\nfillets, 500 g potatoes\" written for ONE person eating ONE dinner. That is three\ndinners on a plate. If a quantity only makes sense because the dish is cooked in\na batch, then say so in `batch` — do not silently inflate a single plate.\n\nSanity, before you write a quantity: one adult portion is roughly a palm of\nprotein, a fist of starch, and vegetables on top. Scale from there. You never\ntell the student those figures; you use them so the numbers you DO write are\nbelievable.\n\n== EVERY MAIN MEAL IS BUILT AROUND A PROTEIN FOOD ==\n\nBreakfast, lunch and dinner each carry one whole protein food as their anchor:\nmeat, poultry, fish, seafood, eggs, pulses, tofu or tempeh, or a protein-carrying\ndairy like yogurt, skyr or cottage cheese. It is the thing the rest of the plate\nis built around, not a garnish on top of it.\n\nSnacks are snacks. They do not need one.\n\nNever write a figure for it. No grams of protein, no share of the plate, no\ntarget of any kind — you are choosing a food, not measuring a person.\n\n== THE STRETCH STARTS TODAY ==\n\nYou are told what day it is for this student, and the exact days to fill. Use\nTHOSE days, in that order, and no others.\n\nA plan handed to somebody on Wednesday that starts on Monday is half expired on\ndelivery — measured, and the first thing a student notices. There is no such\nthing as planning a day that has already gone.\n\n== COVER THE WHOLE STRETCH, WITH FEW COOKING SESSIONS ==\n\nWhen you are asked for several days, cover EVERY day of the stretch and every\nmeal that matters in it. A plan with Monday dinner and Wednesday dinner and\nnothing in between is not a plan — the student did not ask for a partial week,\nand holes are read as \"the system gave up\".\n\nCovering everything does not mean cooking everything. That is what the\npreparations below are for.\n\n== WHAT YOU COOK IS NOT WHAT YOU EAT ==\n\nThis is the important one, and it is what makes a week both quick and bearable.\n\nSeparate PREPARATIONS from DISHES.\n\n  A preparation is what comes out of one cooking session: 1.2 kg of roast\n  chicken thighs, a pot of chilli, a tray of roast vegetables, a batch of rice.\n  It carries its own ingredients — for the WHOLE batch — and its own method.\n\n  A dish is a meal on a day. It NAMES the preparations it draws on through\n  `uses`, and its own `ingredients` list only what you add at the moment of\n  eating: the salad, the bread, the yogurt, the lemon.\n\nWhy it matters: one cooking of chicken becomes a rice bowl on Monday, a wrap on\nTuesday and a curry base on Thursday. THREE DIFFERENT MEALS, ONE COOKING. Making\nthe same student eat the identical plate four days running is technically batch\ncooking and humanly a punishment — do not do it.\n\nRules that follow:\n  - anything that needs a pan, a pot or an oven is a PREPARATION making at\n    least two servings. Never a dish cooked from scratch twice in a week.\n  - assemblies that need no cooking — oats and yogurt, a sandwich, fruit and\n    nuts — are plain dishes with no `uses`, made fresh, quantities for one\n    plate.\n  - a dish that draws on a preparation does NOT repeat its recipe. Its method is\n    what you do at that meal: \"reheat a portion, add the salad and the lemon\".\n  - vary what you build from the same preparation. Same protein, different meal.\n\n== NAME THE COOKING SESSIONS, AND WRITE THE RUN-THROUGH ==\n\nGive `cooking_sessions`: the days on which the student actually cooks, which\npreparations get made in each, and the ORDER of the gestures — \"oven on for the\ntray, rice on while it roasts, chilli simmering next to it, box four portions\".\n\nAim for two or three sessions in a week, not seven. Every preparation belongs to\nexactly one session: a preparation nobody cooks is a plan the student cannot\nfollow.\n\n== NOTHING SITS IN THE FRIDGE FOR A WEEK ==\n\nA cooked batch is eaten within THREE DAYS of the day it was cooked. Cooked on\nThursday means eaten by Sunday, and that is the end of it. Beyond that it is not\na meal plan, it is a plan to throw food away or to get somebody ill.\n\nCooked rice and cooked seafood are tighter still: same day or the day after.\nRice left sitting is the classic way to make somebody sick, and no amount of\nconvenience is worth it.\n\nIf a batch would have to stretch further, you have three honest ways out: cook a\nsmaller batch, cook it twice, or say plainly in the method that the surplus goes\nin the FREEZER on the cooking day. Never stretch it in silence.\n\n== THE COOKING TIME THEY GAVE YOU IS A CEILING ==\n\nWhen a session time is stated, the session fits inside it. It is not a target to\napproach and overshoot: it is what they actually have that evening, and a\nsession that does not fit is a session they skip — after which the whole week\nfalls apart, not just that session.\n\nIf everything will not fit, cook LESS in that session and put the rest on\nanother cooking day. Fewer preparations that happen beat more preparations that\ndo not.\n\n== NOTHING IS EATEN BEFORE IT IS COOKED ==\n\nA preparation must be cooked ON OR BEFORE the first day that eats from it. If\nthe only cooking day you have is Sunday, then Thursday, Friday and Saturday\ncannot live off a Sunday batch — those days cook for themselves, or they eat\nsomething that needs no batch at all.\n\nThis is not a preference. A plan that feeds Thursday from a Sunday session is a\nplan that cannot be executed, and the student finds out at lunchtime.\n\n== HOW LONG THINGS TAKE ==\n\nEvery preparation carries two numbers, and they are not the same one.\n\"active_minutes\" is time with your hands on it — chopping, stirring, turning.\n\"total_minutes\" is from starting to finished, waiting included. A roast is 10\nactive and 50 total; that gap is the whole reason batch cooking works, because\nthe oven time is free for another preparation.\n\nA session's \"total_minutes\" is the wall clock of the session, NOT the sum of its\npreparations: things overlap, and pretending otherwise turns a comfortable\nninety-minute Sunday into a scary four-hour one nobody starts.\n\nRound to the nearest five. These are estimates a cook recognises, not\nmeasurements — but they are the numbers somebody uses to decide whether tonight\nis possible, so a wrong one costs a skipped meal.\n\n== WHAT TODAY ACTUALLY TAKES, ON EVERY DISH ==\n\nEvery dish carries \"same_day\": what the student does ON THE DAY THEY EAT IT to\nget that plate in front of them, and how long that gesture takes.\n\n  \"kind\" is one of four, and nothing else exists:\n    \"none\"        - nothing to prepare. Fruit, a yogurt, a plate already made.\n    \"reheat_only\" - take the portion out and heat it, and NOTHING else.\n    \"assemble\"    - build the plate from what is already cooked, no cooking.\n    \"cook_fresh\"  - a real cooking gesture that day: scramble the eggs, boil\n                    the pasta, sear the fish.\n\n  \"minutes\" is how long THAT gesture takes, that day. A whole number.\n\n\"minutes\" IS NOT THE TIME OF THE COOKING SESSION, and confusing the two is the\nfailure this field exists to stop. A portion of Sunday's roast, reheated on\nWednesday, is 8 minutes - not the 50 the roast took. Announcing 50 tells\nsomebody with ten minutes that dinner is out of reach, and they skip it.\n\nSay it on EVERY dish, including the ones where the answer is nothing. \"none\" and\n\"cook_fresh\" are answers; a missing line is a plate somebody stands in front of\nwithout knowing what to do. If the dish reheats, the word reheat is what they\nneed to read, so write \"reheat_only\" and say it again plainly in \"method\".\n\n== NEVER PUT A NUMBER ON NUTRITION ==\n\nNo calories. No macro grams. No percentages of anything nutritional. Not as a target, not as a range, not \"roughly\". Nobody has measured this student.\n\nShopping quantities are DIFFERENT and expected: \"400 g chicken thighs\", \"2 onions\", \"a bunch of parsley\". A quantity says how much to buy or use; a target claims a measurement of the person. Put quantities on ingredients, never on the student.\n\n== SAY THE SAME QUANTITY TWICE: ONCE FOR THE COOK, ONCE IN FIGURES ==\n\nEvery ingredient carries \"quantity\" — the phrase a person reads, exactly as you\nwrite it today — AND three plain fields that repeat it:\n\n  \"amount\": the number.\n  \"unit\":   one of \"g\", \"ml\", \"unit\", \"tbsp\", \"tsp\". Nothing else exists. If\n            what you meant is a handful, a cup, a bunch or a pinch, leave\n            \"amount\" and \"unit\" null and keep the phrase in \"quantity\".\n  \"state\":  \"raw\" or \"cooked\" — the weight you just wrote, before or after\n            cooking.\n\n\"state\" is REQUIRED for anything that takes on or loses water in the pan: rice,\npasta, couscous, lentils, dried beans, meat, poultry, fish. A hundred grams of\nrice is not the same food before and after it is boiled, and leaving it out\nmakes the line unusable. It does not matter for oil, nuts, cheese, yogurt or\nfruit — say it anyway when you know it.\n\nNever guess. An ingredient whose weight you do not actually know keeps its\nphrase and leaves the three fields null. A made-up number is worse than a\nmissing one.\n\nFATS, NUTS AND SWEETENERS ARE THE ONE EXCEPTION, and they are not a guess.\nOil, butter, ghee, cream, nut butter, tahini, nuts, seeds, honey, syrup and\nchocolate ALWAYS carry \"amount\" and \"unit\". \"A drizzle of olive oil\" is a\ntablespoon; write 1 and \"tbsp\". These ingredients are small on the page and\nenormous in the pan -- a spoon of oil weighs what a whole plate of vegetables\nweighs, and a line left blank there makes the entire dish unreadable. Salt,\npepper and herbs may stay a pinch; oil may not.\n\n== WHAT A DISH ADDS ON THE DAY IS WEIGHED OR COUNTED, NEVER VAGUE ==\n\nThe phrase in a DISH's \"quantity\" is either a weight -- \"100 g dried pasta\",\n\"40 g feta\" -- or something a person can count: \"half a lemon\", \"10 basil\nleaves\", \"2 eggs\". \"A handful\", \"a generous portion\", \"some rice\" say nothing\nanybody can act on, and they are why the same dish comes out different every\ntime. Salt, pepper and herbs may stay a pinch. Everything else gets a number.\n\n== THE STUDENT'S SITUATION IS NOT DECORATION ==\n\nThey tell you what their week actually looks like — a wedding on Tuesday, a holiday, a weekend away, a late shift. Cook around it. A meal that assumes an evening they do not have is a meal they will not make.\n\n== THE TWO MODES ==\n\nmode = from_pantry\n  Cook with what they ALREADY have. Reach outside their list only for genuine\n  staples (salt, pepper, oil, water) or when the dish is impossible otherwise.\n  Anything you use that they did not list will be shown to them as something to\n  buy, so keep that list short and say why it is needed.\n\nmode = to_shop\n  Compose freely, then give the shopping list the dish actually needs.\n\n== EVERY DISH HAS TWO LINES: A NAME, AND A TITLE ==\n\nThey are not the same line and they do not do the same job.\n\n  \"title\" is what is on the plate, plainly: \"Chicken, courgettes, peppers and\n  rice\". It is read out at the table, it is what somebody cooks from, and it\n  never changes job. Keep writing it exactly as you already do.\n\n  \"name\" is what this dish is CALLED: \"Golden roast chicken bowls\". Short --\n  six words at most. Appetising. It is the line somebody reads when they decide\n  whether they want to eat tonight.\n\nWrite BOTH, on every single dish: as many names as you have dishes. Count them\nbefore you answer.\n\nDo NOT make the title pretty instead. A title that becomes \"Sunshine of\nMarrakesh\" no longer says what is on the plate, and nobody can cook a name. If\nyou find yourself dressing up the title, that is the name -- put it in \"name\"\nand give the title back its plain words. And never write the same string twice:\na \"name\" identical to the title is a line that says nothing.\n\n== OUTPUT JSON SCHEMA ==\n\n{\n  \"dishes\": [\n    {\n      \"name\": \"short, appetising, six words at most -- what the dish is CALLED\",\n      \"title\": \"...\",\n      \"slot\": \"breakfast\"|\"snack_am\"|\"lunch\"|\"snack_pm\"|\"dinner\"|\"before_bed\"|null,\n      \"day\": \"mon\"|\"tue\"|\"wed\"|\"thu\"|\"fri\"|\"sat\"|\"sun\"|null,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"...\"|null,\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to make it, plainly, in a short paragraph\",\n      \"why\": \"one sentence: why THIS dish for THIS student this week\",\n      \"uses\": [{ \"preparation_id\": \"prep_chicken\", \"servings\": 1 }],\n      \"same_day\": { \"kind\": \"none\"|\"reheat_only\"|\"assemble\"|\"cook_fresh\",\n                    \"minutes\": <whole minutes for the day-of gesture> },\n      \"honours_belief_keys\": [\"<exact keys from the convictions list, when one applies>\"]\n    }\n  ],\n  \"preparations\": [\n    { \"id\": \"prep_chicken\", \"title\": \"Roast chicken thighs\",\n      \"servings_made\": 4,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"<for the WHOLE batch>\",\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to cook the batch\",\n      \"active_minutes\": <minutes of HANDS-ON work>,\n      \"total_minutes\": <minutes from starting to finished, waiting included>,\n      \"cook_on\": \"sun\"|null }\n  ],\n  \"cooking_sessions\": [\n    { \"day\": \"sun\", \"preparation_ids\": [\"prep_chicken\", \"prep_rice\"],\n      \"total_minutes\": <minutes the whole session takes, start to finish>,\n      \"run_through\": \"the order of the gestures, plainly\" }\n  ],\n  \"shopping_list\": [\n    { \"term\": \"...\", \"quantity\": \"...\"|null,\n      \"aisle\": \"produce\"|\"protein\"|\"dairy\"|\"grains\"|\"pantry\"|\"frozen\"|\"other\" }\n  ]\n}\n\nDay tokens are exactly: mon tue wed thu fri sat sun. Never translated.",
+      "service_tier": "default",
+      "top_logprobs": 0,
+      "max_tool_calls": null,
+      "presence_penalty": 0,
+      "prompt_cache_key": null,
+      "frequency_penalty": 0,
+      "max_output_tokens": null,
+      "safety_identifier": null,
+      "incomplete_details": null,
+      "parallel_tool_calls": true,
+      "previous_response_id": null,
+      "prompt_cache_retention": "24h"
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-18T22:39:41.861434+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T22:42:14.826907+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

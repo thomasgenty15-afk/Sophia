@@ -1,0 +1,1 @@
+{"error":"empty_meal","lock":"blocked_medical_constraint","issues":["shopping_list_unattributed: 2/14 lines match no kept and no dropped ingredient -- kept, not guessed","structured_quantity_missing: 1/3 ingredients"],"request_id":"7ce40002-0000-4000-8000-000000000002"}

@@ -1,0 +1,4 @@
+ langue | plan_kind | millesime | count 
+--------+-----------+-----------+-------
+(0 rows)
+

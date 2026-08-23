@@ -57,6 +57,11 @@ import {
 // de valeurs que `ACTIVITY_FACTORS` rendrait `undefined`.
 import {
   ACTIVITY_LEVELS,
+  DAY_ACTIVITY_LEVELS,
+  type AppetiteLevel,
+  type DayActivityLevel,
+  SPORT_FREQUENCIES,
+  type SportFrequency,
   type ActivityLevel,
 } from "../../../../supabase/functions/_shared/keel/tokens.ts";
 // ⚠️ `./allergenSlug` ET SURTOUT PAS `../copy/allergens`, QUI RÉEXPORTE LE MÊME
@@ -393,6 +398,12 @@ export const FUNNEL_QUESTIONS: readonly FunnelQuestion[] = Object.freeze([
     // de prompt et nomme ce qu'il rend incouvrable; `generate-meal-v1` le lit
     // à chaque composition. Il manquait la porte d'écriture — ni
     // `CONSTRAINT_KINDS` ni `refField` ne connaissaient `diet`.
+    // ⚠️ ÉTAPE `people` DEPUIS LE 2026-08-19, ET C'EST OÙ ELLE EST POSÉE. Le
+    // régime a rejoint la fiche de chaque bouche (première section, parce qu'il
+    // écarte des familles entières d'aliments). Le laisser sur `table` — étape
+    // supprimée le même jour — l'aurait rattaché à un écran qui ne se rend
+    // plus: `missesForStep` n'aurait plus jamais rendu ce motif, et
+    // `canGenerate` aurait refusé sans qu'aucune étape ne puisse le lever.
     id: "own_diet",
     consumer: "supabase/functions/_shared/keel/dietary_regime.ts#dietaryRegimePromptLine",
     weight: "wrong",
@@ -404,7 +415,7 @@ export const FUNNEL_QUESTIONS: readonly FunnelQuestion[] = Object.freeze([
     // tout / Végétarien / Végane / Pescatarien » est la seconde question, pas
     // la première. La laisser là posait la même question à deux endroits de
     // l'entonnoir selon qu'elle concerne le maître ou une autre bouche.
-    step: "table",
+    step: "people",
     scope: "self",
   },
   {
@@ -515,11 +526,15 @@ export const FUNNEL_QUESTIONS: readonly FunnelQuestion[] = Object.freeze([
     // Sans rythme, les deux côtés (consigne ET parseur) retombent sur trois
     // repas. Quelqu'un qui en fait cinq reçoit un plan qui en oublie deux — ce
     // n'est pas « moins bon », c'est faux.
+    // ⚠️ ÉTAPE `people` DEPUIS LE 2026-08-19, même raison que `own_diet`. La
+    // question « combien de fois elle mange » est dans la fiche, juste au-dessus
+    // de « ce qu'elle mange déjà », qu'elle dimensionne. La réponse du TITULAIRE
+    // écrit celle de la maison — voir `saveSelf`.
     id: "eating_rhythm",
     consumer: "supabase/functions/_shared/keel/meal_generation.ts#parseEatingRhythm",
     weight: "wrong",
     branches: ALL_BRANCHES,
-    step: "table",
+    step: "people",
     scope: "household",
   },
   {
@@ -692,6 +707,17 @@ export interface FunnelPerson {
    * écrire.
    */
   activityLevel: ActivityLevel | null;
+  /**
+   * ② LES DEUX AXES (2026-08-20). `null` = pas répondu — le cran ci-dessus
+   * reste alors le repli nommé, et il rend le nombre d'avant.
+   */
+  dayActivity: DayActivityLevel | null;
+  sportFrequency: SportFrequency | null;
+  /** ① ce qu'il y a d'autre dans l'assiette · ⑤ l'appétit (2026-08-20). */
+  takesDessert: boolean | null;
+  takesCheese: boolean | null;
+  takesBread: boolean | null;
+  appetite: AppetiteLevel | null;
   kind: "adult" | "child";
   /** ISO `YYYY-MM-DD`, ou `null`. */
   birthDate: string | null;
@@ -904,7 +930,30 @@ export interface FunnelStep {
   questions: readonly FunnelQuestion[];
 }
 
-const STEP_ORDER: readonly FunnelStepId[] = ["situate", "people", "table", "request"];
+/**
+ * ── ⛔ `"table"` A ÉTÉ RETIRÉ LE 2026-08-19 ────────────────────────────────
+ *
+ * L'étape ne posait plus que deux questions bloquantes — le régime et les
+ * moments —, et les deux ont rejoint la FICHE de chaque bouche, où elles ont un
+ * sens: le régime écarte des familles d'aliments avant qu'on parle de dégoûts,
+ * et les moments dimensionnent « ce qu'elle mange déjà » qui les suit
+ * immédiatement. Les demander deux écrans plus loin faisait poser six repas à
+ * quelqu'un sans lui avoir demandé combien il en fait.
+ *
+ * Ce qu'elle portait d'autre a suivi le même raisonnement, pas une symétrie:
+ *   · le DÉJEUNER AU BOULOT et l'ÉQUIPEMENT DE CUISINE sont passés sur l'étape
+ *     `request`, avec les jours où l'on cuisine, le temps et le budget — c'est
+ *     la même famille: avec quoi, quand, combien.
+ *
+ * ⚠️ LE FICHIER `FunnelStepId` GARDE `"table"`. Le retirer du TYPE forcerait à
+ * toucher tout ce qui l'a jamais nommé, et l'étape peut revenir; ce qui compte
+ * est qu'aucune question ne s'y rattache — `funnelSteps` écarte de toute façon
+ * une étape sans question, donc l'entrée serait inerte même si elle restait.
+ * La ceinture est `missesForStep`: un motif rattaché à une étape non rendue
+ * bloquerait l'entonnoir sans rien pour le lever, et `stepOfMiss` ne peut plus
+ * en produire.
+ */
+const STEP_ORDER: readonly FunnelStepId[] = ["situate", "people", "request"];
 
 /**
  * LES ÉTAPES DE CETTE BRANCHE, DANS L'ORDRE.
@@ -1026,7 +1075,7 @@ function canGenerateMisses(
       "own_goal",
       "own_first_name",
       "own_allergies",
-      { skipFirstName: true },
+      { skipFirstName: true, requireAllergies: false },
     ),
   );
   if (asks("own_height_cm") && !isUsableHeight(state.self.heightCm)) {
@@ -1036,7 +1085,10 @@ function canGenerateMisses(
     missing.push("own_weight_kg");
   }
   if (asks("own_gender") && state.self.gender === null) missing.push("own_gender");
-  if (asks("own_diet") && state.self.diet === null) missing.push("own_diet");
+  // ⛔ LE RÉGIME NE BLOQUE PLUS — même décision, même date, même raison. Il
+  // est la PREMIÈRE section de la fiche (il écarte des familles entières
+  // d'aliments), donc il est demandé tôt et bien; il n'a pas à retenir
+  // quelqu'un qui n'a pas encore ouvert la fenêtre.
   // ── ⚠️ `own_activity_level` / `member_activity_level` NE SONT PAS ICI, ET
   //    C'EST UN ARBITRAGE ÉCRIT, PAS UN OUBLI ──────────────────────────────
   //
@@ -1080,7 +1132,7 @@ function canGenerateMisses(
           "member_goal",
           "member_first_name",
           "member_allergies",
-          { skipFirstName: false },
+          { skipFirstName: false, requireAllergies: false },
         ),
       );
       // LE CORPS, BOUCHE PAR BOUCHE. Les bornes sont celles de la RPC de foyer
@@ -1093,7 +1145,11 @@ function canGenerateMisses(
   }
 
   // ── ÉTAPE 3 ────────────────────────────────────────────────────────────
-  if (state.plan.eatingRhythm.length === 0) missing.push("eating_rhythm");
+  // ⛔ LES MOMENTS NE BLOQUENT PLUS (2026-08-19), même décision que les
+  // allergies et le régime. Ils sont demandés dans la fiche, juste au-dessus de
+  // « ce qu'elle mange déjà » qu'ils dimensionnent — et rien coché veut dire
+  // « aux moments de la maison », qui est une réponse par défaut sûre. Retenir
+  // quelqu'un dessus faisait un mur sur une question qui a un repli.
   if (state.plan.cookDays.length === 0) missing.push("cook_days");
   if (
     state.plan.cookingTimeMin === null ||
@@ -1135,7 +1191,7 @@ function personMisses(
   goalId: FunnelMissId,
   firstNameId: FunnelMissId,
   allergiesId: FunnelMissId,
-  opts: { skipFirstName: boolean },
+  opts: { skipFirstName: boolean; requireAllergies: boolean },
 ): FunnelMissId[] {
   const missing: FunnelMissId[] = [];
   if (!opts.skipFirstName && person.firstName.trim() === "") {
@@ -1150,7 +1206,25 @@ function personMisses(
     missing.push(carriesGoal ? "adult_without_birth_date" : birthDateId);
   }
   if (person.kind === "adult" && !isKnownGoal(person.goal)) missing.push(goalId);
-  if (!person.allergiesReviewed) missing.push(allergiesId);
+  // ── ⛔ LES ALLERGIES NE BLOQUENT PLUS (2026-08-19) ───────────────────────
+  //
+  // ⚠️ CE N'EST PAS UN OUBLI, ET IL FAUT LIRE CE QUE ÇA COÛTE AVANT DE LE
+  // « RÉPARER ». Cette ligne exigeait l'ACCUSÉ d'allergie — « aucune » compte
+  // comme une réponse — parce que ce dépôt traite l'allergie comme MÉDICALE et
+  // fail-closed: sans la question posée, un plan entier se compose sans jamais
+  // avoir demandé. C'est la raison d'être de `allergy_check`.
+  //
+  // Décision humaine du 2026-08-19, demandée trois fois: le seul refus de
+  // l'étape 2 est l'IDENTITÉ, LE CORPS ET LA DIRECTION d'une personne. Ses
+  // mots: « le seul truc qui bloque continuer c'est nom, date de naissance,
+  // taille, poids, objectif ».
+  //
+  // La question reste POSÉE (elle est en tête de la fiche de préférences); elle
+  // ne RETIENT plus. La contrepartie est nommée: un foyer peut composer son
+  // premier plan sans qu'on ait jamais su si quelqu'un est allergique.
+  if (opts.requireAllergies && !person.allergiesReviewed) {
+    missing.push(allergiesId);
+  }
   return missing;
 }
 
@@ -1240,6 +1314,12 @@ export function emptyFunnelState(): FunnelState {
       weightKg: null,
       gender: null,
       activityLevel: null,
+      dayActivity: null,
+      sportFrequency: null,
+      takesDessert: null,
+      takesCheese: null,
+      takesBread: null,
+      appetite: null,
     },
     others: [],
     plan: {
@@ -1264,6 +1344,12 @@ export function emptyFunnelPerson(): FunnelPerson {
     weightKg: null,
     gender: null,
     activityLevel: null,
+    dayActivity: null,
+    sportFrequency: null,
+    takesDessert: null,
+    takesCheese: null,
+    takesBread: null,
+    appetite: null,
   };
 }
 
@@ -1472,7 +1558,7 @@ export async function readFunnelFacts(userId: string): Promise<FunnelFacts> {
   const [profileRes, goalRes, household] = await Promise.all([
     supabase
       .from("profiles")
-      .select("full_name, birth_date, height_cm, gender, activity_level")
+      .select("full_name, birth_date, height_cm, gender, activity_level, day_activity, sport_frequency")
       .eq("id", userId)
       .maybeSingle(),
     supabase
@@ -1567,6 +1653,15 @@ export async function readFunnelFacts(userId: string): Promise<FunnelFacts> {
       // moteur tienne compte. Une bouche sans compte n'a pas de `profiles` où
       // le chercher.
       activityLevel: bodies.get(m.memberId)?.activityLevel ?? null,
+      // ② LUS SUR LA MÊME LIGNE QUE LE CRAN, par la même RPC. Les lire ailleurs
+      // ferait deux lectures d'un même corps, et c'est celle qu'on regarde le
+      // moins qui rendrait une valeur périmée.
+      dayActivity: bodies.get(m.memberId)?.dayActivity ?? null,
+      sportFrequency: bodies.get(m.memberId)?.sportFrequency ?? null,
+      takesDessert: bodies.get(m.memberId)?.takesDessert ?? null,
+      takesCheese: bodies.get(m.memberId)?.takesCheese ?? null,
+      takesBread: bodies.get(m.memberId)?.takesBread ?? null,
+      appetite: bodies.get(m.memberId)?.appetite ?? null,
     }));
 
   // Un foyer d'une seule bouche est un foyer qu'on a commencé et pas rempli:
@@ -1634,6 +1729,32 @@ export async function readFunnelFacts(userId: string): Promise<FunnelFacts> {
         )
         ? (String(profile.activity_level).trim() as ActivityLevel)
         : null,
+      // ── ② LES DEUX AXES, MÊME SOURCE ET MÊME RAISON QUE LE CRAN ─────────
+      // Ils vivent sur `profiles` (20260820200000) parce que la lane
+      // individuelle ne lit QUE `profiles`. Lire la ligne de corps ici rendrait
+      // `null` à tout compte solo, c'est-à-dire à la majorité.
+      // Lecture fail-soft: hors vocabulaire ⇒ `null`, jamais un repli.
+      dayActivity: (DAY_ACTIVITY_LEVELS as readonly string[]).includes(
+          String(profile.day_activity ?? "").trim(),
+        )
+        ? (String(profile.day_activity).trim() as DayActivityLevel)
+        : null,
+      sportFrequency: (SPORT_FREQUENCIES as readonly string[]).includes(
+          String(profile.sport_frequency ?? "").trim(),
+        )
+        ? (String(profile.sport_frequency).trim() as SportFrequency)
+        : null,
+      // ── ① ET ⑤ VIENNENT DE MA LIGNE DE CORPS, PAS DE `profiles` ─────────
+      // ⛔ ET C'EST L'INVERSE DES DEUX AXES JUSTE AU-DESSUS. Les axes sont
+      // écrits AUX DEUX ENDROITS (profil pour la lane solo, ligne de corps pour
+      // le foyer) parce que deux moteurs les lisent. Ces quatre-là n'ont qu'UN
+      // lecteur — `generate-household-meal-v1` — et il ne lit que la ligne de
+      // corps. Les poser aussi sur `profiles` ferait une colonne que personne
+      // n'interroge, c'est-à-dire un champ décoratif.
+      takesDessert: ownMemberId ? bodies.get(ownMemberId)?.takesDessert ?? null : null,
+      takesCheese: ownMemberId ? bodies.get(ownMemberId)?.takesCheese ?? null : null,
+      takesBread: ownMemberId ? bodies.get(ownMemberId)?.takesBread ?? null : null,
+      appetite: ownMemberId ? bodies.get(ownMemberId)?.appetite ?? null : null,
     },
     others: mouths,
     plan: readPlanAnswers(pc),
@@ -1778,6 +1899,12 @@ export async function saveOwnProfile(args: {
    * défaut en base, pas de défaut ici.
    */
   activityLevel: ActivityLevel | null;
+  /**
+   * ② LES DEUX AXES (2026-08-20). `null` = pas répondu — le cran ci-dessus
+   * reste alors le repli nommé, et il rend le nombre d'avant.
+   */
+  dayActivity: DayActivityLevel | null;
+  sportFrequency: SportFrequency | null;
 }): Promise<void> {
   const patch: Record<string, unknown> = {
     height_cm: args.heightCm,
@@ -1792,6 +1919,16 @@ export async function saveOwnProfile(args: {
   // de cinquième tuile —, donc l'absence dans le patch n'enlève rien à
   // personne.
   if (args.activityLevel !== null) patch.activity_level = args.activityLevel;
+  // ── ② LES DEUX AXES, ÉCRITS PAR LE MÊME GESTE (2026-08-20) ───────────────
+  // ⛔ ET ILS S'ÉCRIVENT MÊME À `null`, contrairement au cran juste au-dessus.
+  // Le cran n'a aucune façon d'être dé-répondu (aucun écran ne le propose),
+  // donc son `null` veut dire « ne touche pas ». Les axes, eux, sont posés par
+  // des tuiles qu'on peut corriger, et `activity_axes_asked_at` sépare « pas
+  // posé » de « pas répondu » — sans écrire les nulls, ce marqueur mentirait
+  // dès la première correction.
+  patch.day_activity = args.dayActivity;
+  patch.sport_frequency = args.sportFrequency;
+  patch.activity_axes_asked_at = new Date().toISOString();
   const name = args.firstName.trim();
   if (name) patch.full_name = name;
   const { data, error } = await supabase
@@ -1950,6 +2087,17 @@ export async function saveMouthBody(args: {
   weightKg: number;
   gender: MemberGender;
   activityLevel: ActivityLevel | null;
+  /**
+   * ② LES DEUX AXES (2026-08-20). `null` = pas répondu — le cran ci-dessus
+   * reste alors le repli nommé, et il rend le nombre d'avant.
+   */
+  dayActivity: DayActivityLevel | null;
+  sportFrequency: SportFrequency | null;
+  /** ① ce qu'il y a d'autre dans l'assiette · ⑤ l'appétit (2026-08-20). */
+  takesDessert: boolean | null;
+  takesCheese: boolean | null;
+  takesBread: boolean | null;
+  appetite: AppetiteLevel | null;
 }): Promise<void> {
   const result = await setMemberBody(
     args.memberId,
@@ -1957,6 +2105,46 @@ export async function saveMouthBody(args: {
     args.weightKg,
     args.gender,
     args.activityLevel,
+    // ── ⛔ L'ENTONNOIR NE POSE PAS LES DEUX AXES NI LES TROIS CASES ───────
+    //
+    // Le lot du 2026-08-20 les pose dans la FICHE (`MouthFormDialog`), pas
+    // ici: `FUNNEL_QUESTIONS` porte `own_activity_level` /
+    // `member_activity_level`, c'est-à-dire le cran MÉLANGÉ, et rien d'autre.
+    //
+    // ⚠️ LES DEUX DRAPEAUX SONT DONC `false`, ET C'EST LA VÉRITÉ, PAS UN
+    // OUBLI. `false` veut dire « cet écran n'a rien demandé », et la base ne
+    // touche alors à AUCUNE des sept colonnes — ni pour écrire, ni pour
+    // effacer. Les passer à `true` ferait horodater une question jamais posée:
+    // toute la base basculerait de `not_asked` à `not_answered`, et le
+    // compteur dirait « ils ont refusé de répondre » de gens à qui on n'a
+    // jamais rien demandé.
+    {
+      // ── ⛔ LES TROIS DRAPEAUX SONT À `true` DEPUIS LE 2026-08-20 (soir) ────
+      //
+      // Ils valaient `false`, et c'était juste tant que l'entonnoir ne posait
+      // AUCUNE de ces questions: `false` veut dire « cet écran n'a rien
+      // demandé », donc la base ne touche à rien.
+      //
+      // L'entonnoir les pose maintenant toutes: les deux axes à l'étape 2, à la
+      // place du cran mélangé, et les trois cases + l'appétit dans la fenêtre
+      // des préférences. Laisser `false` aurait rendu ces champs DÉCORATIFS —
+      // saisis à l'écran, jetés avant la base, sans un refus. C'est le mode
+      // d'échec n°1 de ce dépôt, et c'est très exactement ce que ce lot répare.
+      //
+      // ⚠️ `true` NE VEUT PAS DIRE « ELLE A RÉPONDU », mais « on lui a
+      // demandé ». C'est ce qui autorise l'écriture d'un `null` — donc une
+      // correction — et ce qui sépare `not_answered` de `not_asked` dans les
+      // compteurs de `generated_from`.
+      dayActivity: args.dayActivity,
+      sportFrequency: args.sportFrequency,
+      axesAsked: true,
+      takesDessert: args.takesDessert,
+      takesCheese: args.takesCheese,
+      takesBread: args.takesBread,
+      structureAsked: true,
+      appetite: args.appetite,
+      appetiteAsked: true,
+    },
   );
   if (!result.ok) throw new Error(String(result.reason));
 }
@@ -2116,11 +2304,40 @@ export async function saveMouthAllergies(args: {
   });
 }
 
-/** Les quatre réponses de l'étape 3, en une écriture fusionnée. */
-export async function savePlanAnswers(args: {
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * LE RYTHME A SON PROPRE ÉCRIVAIN — ET IL EST LE SEUL.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ── LE DÉFAUT, MESURÉ EN BASE LE 2026-08-19 ──────────────────────────────
+ * L'utilisateur a retiré le goûter de l'après-midi, vérifié que le retrait
+ * tenait, vérifié que la grille de l'étape 3 ne le montrait plus, puis composé
+ * un plan — et le plan portait des créneaux d'après-midi. Relu en base juste
+ * après: `eating_rhythm` valait de nouveau `[breakfast, lunch, snack_pm,
+ * dinner]`. Ses mots: « il y a un bug à ce niveau-là pour sûr ».
+ *
+ * ── LA CAUSE ────────────────────────────────────────────────────────────
+ * `savePlanAnswers` écrivait `eating_rhythm` À PARTIR DE `answers`, et son
+ * appelant du bouton « composer » lui passe l'état REACT de l'étape 3
+ * (`plan`). Or l'étape 3 NE POSE PLUS la question depuis le 2026-08-19 — elle
+ * a déménagé dans la fiche de chaque personne, et `TableStep` a été retiré
+ * précisément pour qu'il n'y ait pas « deux formulaires sur les mêmes
+ * colonnes ». Le FORMULAIRE est parti; l'ÉCRIVAIN est resté.
+ *
+ * Composer réécrivait donc le rythme depuis une valeur que plus aucun écran ne
+ * montrait et que plus aucun geste ne mettait à jour. Cette écriture-là ne
+ * pouvait pas être plus juste que la base: au mieux elle la recopiait, au pire
+ * — et c'est le cas mesuré — elle y remettait un moment retiré entre-temps.
+ *
+ * ⛔ NE PAS RÉINTRODUIRE `eating_rhythm` DANS `savePlanAnswers`. C'est la
+ * cicatrice `stale-current-erases-the-previous-write` prise par l'autre bout:
+ * là-bas c'était `current` qui était périmé, ici c'est `answers`. Un champ
+ * n'appartient qu'au geste qui le montre.
+ */
+export async function saveEatingRhythm(args: {
   userId: string;
   current: Record<string, unknown> | null;
-  answers: FunnelPlanAnswers;
+  rhythm: readonly EatingOccasionSlot[];
 }): Promise<void> {
   await mergePracticalConstraints({
     userId: args.userId,
@@ -2136,12 +2353,33 @@ export async function savePlanAnswers(args: {
       // de toi ») l'écrit; ce `null` l'effaçait à chaque passage de l'entonnoir,
       // sans qu'aucun écran ne le montre.
       //
-      // L'ORDRE DE LA JOURNÉE, pas celui des clics — même règle que `cook_days`
-      // juste en dessous, et que le parseur du moteur qui relit derrière.
+      // L'ORDRE DE LA JOURNÉE, pas celui des clics — même règle que `cook_days`,
+      // et que le parseur du moteur qui relit derrière.
       eating_rhythm: EATING_OCCASIONS
-        .map((slot) => args.answers.eatingRhythm.find((o) => o.slot === slot))
+        .map((slot) => args.rhythm.find((o) => o.slot === slot))
         .filter((o): o is EatingOccasionSlot => o !== undefined)
         .map(({ slot, size }) => ({ slot, size })),
+    },
+    source: "onboarding/eating-rhythm",
+  });
+}
+
+/**
+ * Les réponses de l'étape 3, en une écriture fusionnée.
+ *
+ * ⛔ SANS LE RYTHME — voir `saveEatingRhythm` juste au-dessus. L'étape 3 ne pose
+ * plus cette question; écrire un champ qu'on ne montre pas ne peut que restaurer
+ * une valeur périmée.
+ */
+export async function savePlanAnswers(args: {
+  userId: string;
+  current: Record<string, unknown> | null;
+  answers: FunnelPlanAnswers;
+}): Promise<void> {
+  await mergePracticalConstraints({
+    userId: args.userId,
+    current: args.current,
+    patch: {
       // L'ORDRE DE LA SEMAINE, pas celui des clics.
       cook_days: DAY_TOKENS.filter((d) => args.answers.cookDays.includes(d)),
       cooking_time_min: args.answers.cookingTimeMin,
@@ -2149,4 +2387,79 @@ export async function savePlanAnswers(args: {
     },
     source: "onboarding/plan",
   });
+}
+
+/**
+ * CE QUI RETIENT L'ÉTAPE 2, **PERSONNE PAR PERSONNE**.
+ *
+ * ── LE DÉFAUT QUE ÇA FERME ────────────────────────────────────────────────
+ * La liste « Avant de continuer » était PLATE: « Si tu as des allergies… »,
+ * « Les moments où tu manges, sur ta carte ». Avec quatre personnes à table,
+ * elle ne disait pas laquelle — donc on relisait quatre cartes pour trouver le
+ * champ vide. Demandé le 2026-08-19: « ça doit signaler précisément chez qui
+ * manque quoi ».
+ *
+ * ⚠️ ET LE SUJET EST NOMMÉ, PAS DÉDUIT. Le maître reçoit `null` (l'écran dira
+ * « toi »), une bouche reçoit son prénom. Rendre l'index de la personne aurait
+ * marché aussi — et se serait décalé au premier retrait.
+ */
+export interface StepBlocker {
+  /** `null` = le titulaire. Sinon le prénom, ou `""` s'il n'est pas encore posé. */
+  who: string | null;
+  missing: FunnelMissId[];
+}
+
+export function peopleStepBlockers(
+  state: FunnelState,
+  branch: FunnelBranch,
+): StepBlocker[] {
+  const out: StepBlocker[] = [];
+  const asks = (id: FunnelQuestionId) =>
+    FUNNEL_QUESTIONS.some(
+      (q) => q.id === id && q.weight === "wrong" && q.branches.includes(branch),
+    );
+
+  // ── MOI ─────────────────────────────────────────────────────────────────
+  const mine: FunnelMissId[] = [];
+  if (asks("own_first_name") && state.self.firstName.trim() === "") {
+    mine.push("own_first_name");
+  }
+  if (state.self.birthDate === null || state.self.birthDate.trim() === "") {
+    mine.push("own_birth_date");
+  }
+  if (asks("own_height_cm") && !isUsableHeight(state.self.heightCm)) {
+    mine.push("own_height_cm");
+  }
+  if (asks("own_weight_kg") && !isUsableWeight(state.self.weightKg)) {
+    mine.push("own_weight_kg");
+  }
+  if (asks("own_gender") && state.self.gender === null) mine.push("own_gender");
+  if (!isKnownGoal(state.self.goal)) mine.push("own_goal");
+  if (mine.length > 0) out.push({ who: null, missing: mine });
+
+  // ── LES AUTRES ──────────────────────────────────────────────────────────
+  if (branch !== "solo") {
+    for (const person of state.others) {
+      const hers: FunnelMissId[] = [];
+      if (person.firstName.trim() === "") hers.push("member_first_name");
+      if (person.birthDate === null || person.birthDate.trim() === "") {
+        // ⚠️ LE MOTIF NOMMÉ GAGNE, comme dans `personMisses`: un adulte qui
+        // porte une direction sans date reçoit `adult_without_birth_date`, qui
+        // dit POURQUOI la date manque plutôt que de constater qu'elle manque.
+        hers.push(
+          person.kind === "adult" && isKnownGoal(person.goal)
+            ? "adult_without_birth_date"
+            : "member_birth_date",
+        );
+      }
+      if (!isUsableMouthHeight(person.heightCm)) hers.push("member_height_cm");
+      if (!isUsableMouthWeight(person.weightKg)) hers.push("member_weight_kg");
+      if (person.gender === null) hers.push("member_gender");
+      if (person.kind === "adult" && !isKnownGoal(person.goal)) {
+        hers.push("member_goal");
+      }
+      if (hers.length > 0) out.push({ who: person.firstName, missing: hers });
+    }
+  }
+  return out;
 }

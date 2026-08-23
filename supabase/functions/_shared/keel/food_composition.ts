@@ -27,6 +27,7 @@
 
 import { normalizeForMatch } from "./forbidden_matcher.ts";
 import type { FoodGroupRef } from "./tokens.ts";
+import { readQuantityFromProse } from "./quantity_from_prose.ts";
 
 // ---------------------------------------------------------------------------
 // LES CLASSES DE RENDEMENT — la base porte la classe, ce fichier porte le nombre
@@ -117,11 +118,55 @@ const ML_TO_G = 1.0;
 // L'INDEX
 // ---------------------------------------------------------------------------
 
+/**
+ * D'OÙ VIENT LA COMPOSITION D'UNE LIGNE — et pourquoi c'est un champ et pas
+ * une note de bas de page (LOT 18).
+ *
+ * ⛔ TROIS DES CINQ VALEURS VIVENT EN BASE, DEUX N'EXISTENT QU'EN MÉMOIRE, et
+ * la distinction est tout l'intérêt du champ:
+ *
+ *   `ciqual` · `manual`  — le référentiel HUMAIN. Une mesure, ou une entrée
+ *                          curée à la main. C'est le compteur ①.
+ *   `sas`                — une ligne PROMUE depuis `food_composition_pending`:
+ *                          un modèle l'a écrite, trois plans l'ont revue, et sa
+ *                          valeur tient dans la bande mesurée de son groupe.
+ *                          C'est le compteur ③.
+ *   `model`              — remplie à la volée par l'appel de secours de CE
+ *                          plan. Jamais en base. C'est le compteur ②.
+ *   `group_bounds`       — l'appel de secours a échoué (ou a rendu une valeur
+ *                          hors bande) et on a pris le MILIEU de la bande du
+ *                          groupe. Jamais en base, jamais promue.
+ *
+ * ⚠️ `group_bounds` EST COMPTÉ À PART DE `model`, ET C'EST LE CHIFFRE QUI DIT
+ * SI LE LOT A ÉCHOUÉ. Les fondre ferait passer « l'appel de secours ne répond
+ * plus » pour « l'appel de secours travaille » — c'est-à-dire un point de
+ * rupture déguisé en fonctionnement, et le prompt du lot le nomme en toutes
+ * lettres: « si cet appel devient un point de rupture, le lot a échoué ».
+ */
+export const COMPOSITION_SOURCES = [
+  "ciqual",
+  "manual",
+  "sas",
+  "model",
+  "group_bounds",
+] as const;
+export type CompositionSource = (typeof COMPOSITION_SOURCES)[number];
+
 /** Une ligne de `food_composition_refs`, telle que le code la lit. */
 export interface CompositionRef {
   slug: string;
   foodGroupRef: FoodGroupRef;
   label: string;
+  /**
+   * LA PROVENANCE DE CETTE COMPOSITION. REQUIS, jamais `?`.
+   *
+   * ⛔ Un champ facultatif ici ferait retomber tous les appelants sur un défaut
+   * silencieux, et les quatre compteurs du LOT 18 compteraient alors la même
+   * chose pour tout le monde: le lot serait construit, branché, désarmé. C'est
+   * le mode d'échec n°1 de ce dépôt (`optional-gate-params-are-disarmed-gates`),
+   * et le compilateur est le seul recenseur d'appelants qui ne mente pas.
+   */
+  source: CompositionSource;
   /** Pour 100 g CRUS. */
   energyKcal: number;
   /** `null` = la source ne donne pas la valeur. Jamais 0 par défaut. */
@@ -149,6 +194,15 @@ export interface CompositionRef {
    * reste `null`: un dénombrement converti à l'estime est un nombre inventé.
    */
   unitGrams: number | null;
+  /**
+   * LA MASSE CONVENTIONNELLE D'UN CONDIMENT — voir `condimentMassFor`.
+   *
+   * `null` sur 906 des 923 lignes, et c'est le cas normal. Le champ est
+   * REQUIS et non optionnel: un `?` ne ferait remonter aucun appelant au
+   * compilateur, et le dépôt paie en boucle les gardes qu'un paramètre
+   * facultatif désarme en silence.
+   */
+  condimentGrams: number | null;
 }
 
 /**
@@ -294,6 +348,100 @@ const PREPARATION_MODIFIERS: readonly string[] = [
   "petites",
   "moyen",
   "moyenne",
+  // ══════════════════════════════════════════════════════════════════════
+  // LA MOITIÉ FRANÇAISE QUI MANQUAIT — 2026-08-20, MESURÉE SUR UN RUN RÉEL
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ LA LISTE ÉTAIT BILINGUE ET ASYMÉTRIQUE, ce qui est pire qu'unilingue:
+  // elle avait l'air de couvrir le français. `boneless` y était, `desossees`
+  // non; `roasted` y était, `rotis` non; `whole` y était, `complet` non.
+  //
+  // Le coût, mesuré le 2026-08-20 sur une génération réelle du foyer
+  // `5600347f` (contenu FR): **« cuisses de poulet desossees » ne résolvait
+  // pas**, alors que « cuisses de poulet » est un alias existant. C'est la
+  // protéine principale du plan — elle éteignait l'énergie de SEPT plats sur
+  // neuf, donc toute la chaîne d'ancrage, donc les grammes identiques.
+  //
+  // ⚠️ CE N'EST PAS UN MATCHER: c'est un vocabulaire FERMÉ de mots retirés, et
+  // chaque entrée ajoutée ici est la traduction d'une entrée anglaise DÉJÀ
+  // présente. Aucune morphologie n'est dérivée, aucune règle n'est inventée —
+  // la symétrie est la seule justification, et elle se vérifie à l'œil.
+  "desosse",
+  "desossee",
+  "desosses",
+  "desossees", // = boneless
+  "roti",
+  "rotie",
+  "rotis",
+  "roties", // = roasted
+  "grille",
+  "grillee",
+  "grilles",
+  "grillees", // = grilled
+  "bouilli",
+  "bouillie",
+  "bouillis",
+  "bouillies", // = boiled
+  // ══════════════════════════════════════════════════════════════════════════
+  // ⛔ `complet` / `complete` / `complets` / `completes` SONT SORTIS D'ICI.
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // Ils étaient entrés « par symétrie » avec l'anglais `whole`. La symétrie
+  // est FAUSSE, et c'est une propriété de la langue, pas un choix:
+  //
+  //   • en anglais, le mot du complet est SOUDÉ au nom — `wholemeal bread`,
+  //     `wholewheat pasta`, `brown rice`. Retirer `whole` d'un nom anglais ne
+  //     produit presque jamais le raffiné, parce que le raffiné ne s'écrit pas
+  //     comme le complet moins un mot;
+  //   • en français, `complet` est un adjectif SÉPARÉ, et le raffiné EST
+  //     littéralement le complet moins ce mot: `pain complet` → `pain`,
+  //     `riz complet` → `riz`, `pates completes` → `pates`.
+  //
+  // ⇒ En français, retirer `complet` NE RÉDUIT PAS UNE FORME: il CHANGE
+  // L'ALIMENT, de `whole_grain` à `refined_grain`, en silence. C'est très
+  // exactement le test d'admission que l'en-tête de cette liste énonce
+  // (« la réduction change-t-elle l'aliment ? Si oui, elle n'entre pas »),
+  // et ces quatre mots le violaient.
+  //
+  // ── MESURÉ, le 2026-08-22, sur la base locale (lot `L19b`) ───────────────
+  //   `pain complet grille`   → `white_bread` (refined_grain, 278, 35 g/unité)
+  //                             au lieu de `wholemeal_bread` — **7 occurrences
+  //                             réelles** dans les 182 plans du corpus;
+  //   `tortilla complete`     → `white_bread`  (**2 occurrences**);
+  //   `pain pita complet`     → `pita_bread` raffiné (**2 occurrences**);
+  //   `pain de mie complet`, `muffin anglais complet …`, `pates completes`,
+  //   `riz complet`: quatre réductions latentes de plus, toutes
+  //   `whole_grain → refined_grain`, sur les 38 que `07-modificateurs.ts`
+  //   dénombre.
+  //
+  // ⚠️ CE QUE ÇA COÛTE, ET C'EST VOULU: sans la réduction, une forme française
+  // en `complet` que la table d'alias n'énumère pas ne résout plus RIEN au lieu
+  // de résoudre le RAFFINÉ. Le module s'abstient plutôt que de rendre un
+  // aliment faux — c'est son arbitrage fondateur. Les formes qui comptent sont
+  // écrites en alias, une par une, par la migration
+  // `20260822*_lot19b_les_alias_verifies`.
+  "moulu",
+  "moulue",
+  "moulus",
+  "moulues", // = ground
+  "melange",
+  "melangee",
+  "melanges",
+  "melangees", // = mixed
+  "effiloche",
+  "effilochee",
+  "effiloches",
+  "effilochees", // = shredded
+  "ecrase",
+  "ecrasee",
+  "ecrases",
+  "ecrasees", // = crushed
+  "nature", // = plain / natural
+  "vierge", // = virgin
+  "entier",
+  "entiere",
+  "entiers",
+  "entieres", // = whole
 ];
 
 const MODIFIER_SET = new Set(PREPARATION_MODIFIERS);
@@ -322,11 +470,35 @@ const AMBIGUITY_MARKERS = /(?:^| )(?:or|ou|\/) (?:| )/;
  * c'est exactement le genre d'écart qui fait rater un appariement sans que
  * rien ne le dise. Les clés de la table d'alias passent par la même fonction à
  * la construction de l'index: les deux côtés ne peuvent pas diverger.
+ *
+ * ⚠️ ── L'APOSTROPHE TYPOGRAPHIQUE EST LA MÊME APOSTROPHE ──────────────────
+ * Mesuré le 2026-08-19 (lot 0-B): `huile d'olive` écrit avec U+0027 résolvait,
+ * la même chaîne écrite avec U+2019 — la forme que produisent les claviers et
+ * les correcteurs — ne résolvait pas. Deux clés pour un seul aliment, et cet
+ * aliment-là est une **huile**: 21 plats pliés perdaient en silence
+ * l'ingrédient le plus énergétique de leur liste, ce qui est le mode de
+ * défaillance n°1 de tout ce module (cf. `unweighedEnergyDense`).
+ *
+ * `normalizeForMatch` ne le rattrape pas: il déplie les diacritiques (NFD) et
+ * met en minuscules, et U+2019 n'est pas un diacritique. La liste ci-dessous
+ * est FERMÉE et ne contient que des caractères qui, dans un nom d'aliment,
+ * n'ont pas d'autre emploi que celui d'apostrophe: U+2018 et U+2019, les deux
+ * guillemets simples. Ni U+02BC (lettre modificative) ni U+00B4 (accent aigu
+ * isolé) n'y sont, et ce n'est pas un oubli: `normalizeForMatch` les retire
+ * DÉJÀ en amont comme diacritiques (`huile dʼolive` → `huile dolive`), donc
+ * rien ne les atteint ici — les mettre dans la liste ferait une branche morte
+ * qui aurait l'air d'une couverture. Elle replie vers U+0027 et
+ * non vers une espace: `d'olive` doit rester un seul mot, sans quoi le retrait
+ * des modificateurs et la réduction du pluriel travailleraient sur un
+ * découpage différent des 2 587 alias déjà écrits.
  */
+const APOSTROPHE_FORMS = /[‘’]/g;
+
 export function normalizeTerm(term: string): string {
   return normalizeForMatch(String(term ?? "").trim())
     .replace(/œ/g, "oe")
     .replace(/æ/g, "ae")
+    .replace(APOSTROPHE_FORMS, "'")
     .replace(/[.,;:()\-–—]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
@@ -371,6 +543,17 @@ const MEDIUM_PREPOSITIONS: readonly string[] = [
   " a l huile",
   " à l huile",
   " dans ",
+  // ⚠️ LE MILIEU FRANÇAIS DE « in »: `haricots blancs en conserve egouttes` doit
+  // pouvoir atteindre `haricots blancs`. Mesuré le 2026-08-20 sur un run réel —
+  // c'était l'un des deux derniers termes qui éteignaient un plat.
+  //
+  // ⛔ SEULEMENT `en conserve` ET `en boite`, JAMAIS ` en ` NU. « en » est un
+  // mot-outil français très courant, et couper dessus rendrait des têtes
+  // arbitraires sur des termes qu'on ne peut pas énumérer. Le milieu qu'on
+  // coupe est un CONDITIONNEMENT nommé, pas une préposition.
+  " en conserve",
+  " en boite",
+  " en boîte",
 ];
 
 function candidateForms(term: string): string[] {
@@ -390,6 +573,12 @@ function candidateForms(term: string): string[] {
     }
   }
 
+  // ⚠️ LES FORMES *AVANT* RETRAIT DES MODIFICATEURS — le pluriel français ne
+  // s'appliquera QU'À ELLES. Voir sa justification plus bas: c'est la chaîne
+  // « modificateur retiré PUIS pluriel réduit » qui atteint les lignes de
+  // MOYENNE du référentiel, et c'est elle qu'on refuse.
+  const beforeModifiers = [...forms];
+
   // Chaque forme obtenue passe aussi par le retrait des modificateurs.
   for (const f of [...forms]) {
     const words = f.split(" ");
@@ -403,6 +592,38 @@ function candidateForms(term: string): string[] {
   // plurielles sont écrites en clair dans la table d'alias plutôt que
   // dérivées: dériver une morphologie serait un second moteur à côté du
   // matcher partagé.
+  //
+  //
+  // ⚠️ ── LE `e?` EST GOURMAND, ET LE RÉPARER A ÉTÉ MESURÉ PUIS REFUSÉ ──────
+  // `replace(/e?s$/, "")` mange toujours le « e » quand il est là:
+  // `aubergines → aubergin`, `cakes → cak`, `wedges → wedg`, `prunes → prun`.
+  // La règle est donc MUETTE sur tout singulier terminé par « e » — une grosse
+  // part du référentiel — et le lot 0-B est tombé dedans sur ses deux propres
+  // slugs (`corn_cake`, `lemon_wedge`), débloqués par des alias écrits à la
+  // main.
+  //
+  // Le lot 0-C a écrit le correctif (ajouter `-s` seul et `-ies → -y` après la
+  // forme existante, donc strictement additif) et l'a mesuré terme par terme
+  // sur les 605 termes du corpus, les 2 587 alias et les 923 slugs. Diff:
+  // 0 appariement perdu, 0 déplacé, **5 gagnés — dont 4 FAUX**.
+  //
+  //     roasted vegetables ×8 · roast vegetables ×2 · mixed roast vegetables ×2
+  //         → `vegetable` (moyenne générique). 10 de ces 12 lignes portent
+  //           aussi un `uses` vers la casserole de légumes du même plat, et
+  //           `foldPreparationsIntoDishes` AJOUTE les ingrédients de la
+  //           casserole aux siens: les légumes seraient comptés DEUX FOIS.
+  //     baguettes ×1 → `white_bread`, dont l'`unit_grams` vaut 35 g (UNE
+  //           TRANCHE). « 2 unit » pèserait 70 g au lieu de ~500 g.
+  //     pork sausages ×1 → `sausage`. Le seul gain honnête des cinq.
+  //
+  // Ce que ça dit du référentiel, et c'est le vrai enseignement: il porte des
+  // lignes de MOYENNE (`vegetable`, `white_bread`) qu'aucune forme fidèle
+  // n'atteint et que seule une RÉDUCTION peut atteindre. Élargir la réduction
+  // les ouvre donc aux composés du produit (« roasted vegetables » est un plat
+  // de reprise, pas un aliment), et un plat qui s'abstenait rend alors un
+  // nombre faux — l'inverse exact de l'arbitrage de ce module. La règle
+  // gourmande RESTE, avec son défaut, jusqu'à ce que le double comptage soit
+  // traité là où il vit (le pliage), pas ici.
   for (const f of [...forms]) {
     const w = f.split(" ");
     const last = w[w.length - 1];
@@ -410,6 +631,66 @@ function candidateForms(term: string): string[] {
       w[w.length - 1] = last.replace(/e?s$/, "");
       forms.push(w.join(" "));
     }
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // LE PLURIEL FRANÇAIS — TOUS LES MOTS, ET SEULEMENT LE `-s` NU
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ LE DÉFAUT, MESURÉ SUR UN RUN RÉEL LE 2026-08-20. Le commentaire ci-dessus
+  // affirme que « les formes plurielles françaises sont écrites en clair dans la
+  // table d'alias plutôt que dérivées ». C'est une INTENTION, pas un fait:
+  // `abricots` et `tortillas de ble complet` n'y sont pas, et le référentiel ne
+  // peut pas énumérer un pluriel pour chacune de ses 2 587 entrées. Le produit
+  // compose en français; chaque pluriel non énuméré éteint l'énergie d'un plat.
+  //
+  // ⚠️ ET C'EST DÉLIBÉRÉMENT PLUS ÉTROIT QUE LA RÈGLE ANGLAISE AU-DESSUS. Le
+  // lot 0-C a mesuré puis REFUSÉ un élargissement en `-es` (4 gains FAUX sur 5),
+  // parce que réduire davantage ouvre les lignes de MOYENNE du référentiel
+  // (`vegetable`, `white_bread`) aux composés du produit. On ne touche donc pas
+  // au `e`: seul le `-s` nu tombe, et seulement sur les mots d'au moins quatre
+  // lettres.
+  //
+  //   `abricots`                  -> `abricot`                 ✓
+  //   `tortillas de ble complet`  -> `tortilla de ble complet` ✓
+  //   `aubergines`                -> INCHANGÉ (le `e` reste)
+  //
+  // ⚠️ UNE FORME RÉDUITE N'EST QU'UNE CANDIDATE: elle n'est retenue que si elle
+  // EXISTE dans l'index. Un `pois -> poi` ne peut donc rien casser — il ne
+  // s'apparie à rien. Le seul risque serait un singulier réduit qui désigne un
+  // AUTRE aliment réel, et le diff d'appariement est la mesure qui le dirait.
+  //
+  // Mesuré sur les 605 termes du corpus, 2 587 alias, 923 slugs:
+  // **0 appariement perdu, 0 déplacé.**
+  //
+  // ⛔ ET IL NE S'APPLIQUE QU'AUX FORMES D'AVANT LE RETRAIT DES MODIFICATEURS.
+  // Mesuré: appliqué à TOUTES les formes, il rendait `roasted vegetables` ->
+  // (modificateur) `vegetables` -> (pluriel) `vegetable`, c'est-à-dire la ligne
+  // de MOYENNE du référentiel — très exactement les quatre gains FAUX que le
+  // lot 0-C avait mesurés puis refusés, réintroduits par une autre porte. La
+  // chaîne « modificateur PUIS pluriel » est la combinaison dangereuse; chacune
+  // séparément ne l'est pas.
+  //
+  // Diff après restriction, sur les 605 termes du corpus:
+  // **0 perdu, 0 déplacé, 0 gain douteux.**
+  for (const f of beforeModifiers) {
+    const w = f.split(" ");
+    let changed = false;
+    for (let i = 0; i < w.length; i++) {
+      if (w[i].length > 3 && w[i].endsWith("s") && !w[i].endsWith("ss")) {
+        w[i] = w[i].slice(0, -1);
+        changed = true;
+      }
+    }
+    if (!changed) continue;
+    // ⛔ ET LA FORME RÉDUITE NE REPASSE PAS PAR LE RETRAIT DES MODIFICATEURS.
+    // Mesuré: l'y faire repasser rendait `roasted vegetables` -> (pluriel)
+    // `roasted vegetable` -> (modificateur) `vegetable`, la ligne de MOYENNE,
+    // c'est-à-dire le gain FAUX que le lot 0-C avait refusé. Les deux
+    // réductions sont sûres séparément et dangereuses composées; on refuse la
+    // composition, et les formes qu'elle seule atteignait sont écrites en
+    // alias, à la main, une par une.
+    forms.push(w.join(" "));
   }
   return [...new Set(forms)];
 }
@@ -499,6 +780,102 @@ export function gramsRawOf(args: {
   if (state === "cooked") return grams / YIELD_FACTORS[yieldClass];
   // `state` absent: acceptable seulement là où il ne change rien.
   return stateMattersFor(yieldClass) ? null : grams;
+}
+
+// ---------------------------------------------------------------------------
+// LA CLASSE DES CONDIMENTS — peser une pincée, plutôt que l'ignorer
+// ---------------------------------------------------------------------------
+
+/**
+ * ── LE DÉFAUT QUE CETTE CLASSE RÉPARE, MESURÉ ────────────────────────────
+ * Sur les 1 204 plats de foyer en base, résolus après `foldPreparationsIntoDishes`,
+ * 485 seulement rendaient une énergie. Les bloqueurs dominants n'étaient pas des
+ * aliments: `salt` ×217, `black pepper` ×103, `parsley` ×68, `water` ×29,
+ * `sel` ×21, `poivre` ×21. Le générateur les écrit sans quantité — et le prompt
+ * lui demande explicitement de le faire (« une pincée reste une pincée »), parce
+ * qu'exiger un chiffre partout ferait inventer des nombres.
+ *
+ * ⚠️ ── PESER, JAMAIS IGNORER ──────────────────────────────────────────────
+ * Une pincée de sel PESÉE à 0,5 g rend 0 kcal et un plat calculable. La même
+ * pincée IGNORÉE rendrait aussi un plat calculable, mais par une règle
+ * d'abstention relâchée — et cette règle-là laisserait passer, mesuré sur le
+ * même corpus, du riz cuit (145 kcal/100 g), des pois chiches, du thon et du
+ * pain complet sur 38 plats. Aucune abstention n'est relâchée ici: un terme
+ * hors classe qui n'a pas de quantité éteint toujours son plat.
+ *
+ * ── LA CLASSE VIT DANS LE RÉFÉRENTIEL, PAS DANS UNE LISTE DE MOTS ────────
+ * L'appartenance est portée par la LIGNE (`condiment_grams`), donc par le SLUG,
+ * atteint par le résolveur partagé. Aucun matcher maison n'est écrit: le dépôt a
+ * mesuré 12 faux positifs sur 12 avec un matcher artisanal (« lait » se trouve
+ * dans « laitue »). C'est aussi ce qui la rend BILINGUE gratuitement — `sel`,
+ * `poivre` et `ail` sont déjà des alias, ils arrivent sur la même ligne que
+ * `salt`, `black pepper` et `garlic`.
+ *
+ * ── LA RÈGLE EST RÉAPPLIQUÉE ICI, ET CE N'EST PAS UNE DOUBLURE INUTILE ────
+ * Le CHECK SQL est la même règle, et il est le bon endroit pour l'écrire. Mais
+ * une ligne écrite AVANT un CHECK survit au CHECK (`food_composition_io` le dit
+ * déjà pour `yield_class`), et l'index se construit aussi dans des tests et des
+ * rejeux hors base. Ce qui protège au moment du calcul, c'est ce prédicat-ci.
+ */
+
+/**
+ * ① UNE MASSE D'ASSAISONNEMENT, PAS UNE PORTION.
+ *
+ * 5 g est la borne, et c'est celle de l'herbe fraîche: une petite poignée de
+ * persil. Au-delà, on ne saupoudre plus, on sert — un citron entier (60 g), un
+ * cube de bouillon (10 g), un filet de vinaigre (15 ml) tombent tous ici.
+ */
+export const CONDIMENT_MAX_GRAMS = 5;
+
+/**
+ * ② LA MAIN GÉNÉREUSE — le facteur auquel on vérifie le plafond.
+ *
+ * La convention dit ce qu'on met d'ordinaire; le plafond doit tenir sur ce qu'on
+ * met au maximum. Trois fois la convention est la borne haute plausible d'un
+ * geste d'assaisonnement (trois pincées, trois brins, trois poignées).
+ */
+export const CONDIMENT_PLAUSIBLE_MULTIPLE = 3;
+
+/**
+ * ③ CE QU'UN CONDIMENT A LE DROIT DE PESER EN ÉNERGIE, AU MAXIMUM.
+ *
+ * ── LA DÉRIVATION, SUR LES DONNÉES ────────────────────────────────────────
+ * Sur les 485 plats aujourd'hui calculables (mesure pliée, 2026-08-19), le 5e
+ * centile est à 269 kcal et la médiane à 1 086 kcal. 10 kcal y valent 3,7 % et
+ * 0,9 % — donc, dans le pire cas, moins de la moitié de la bande d'erreur de
+ * ±10-15 % que ce module assume déjà pour lui-même (cf. `ML_TO_G`). Un condiment
+ * pesé par convention au lieu d'être mesuré ne peut pas sortir un plat de la
+ * tolérance qui était déjà supposée.
+ *
+ * ── CE QUE CE NOMBRE REFUSE, ET C'EST LÀ QU'IL SE PROUVE ─────────────────
+ * `garlic` (111 kcal/100 g, ×39 plats bloqués) est LE cas limite du lot: une
+ * gousse pèse 5 g, la ligne porte déjà `unitGrams = 5`, elle passe donc la borne
+ * ①. Elle échoue celle-ci — trois gousses font 15 g, soit 16,6 kcal. L'ail est
+ * un aliment qu'on mange, pas un assaisonnement qu'on saupoudre. **Refusé par la
+ * règle, pas par le goût**, et les 39 plats restent bloqués.
+ */
+export const CONDIMENT_MAX_KCAL = 10;
+
+/**
+ * COMBIEN PÈSE CE CONDIMENT QUAND PERSONNE N'A ÉCRIT DE QUANTITÉ ?
+ * `null` dès que la ligne n'est pas un condiment — c'est-à-dire presque toujours.
+ *
+ * ⚠️ ── `energyDense` EST LA CONTRE-ÉPREUVE, ET ELLE EST STRUCTURELLE ──────
+ * Aucune ligne dense ne peut recevoir de masse conventionnelle, à AUCUNE masse.
+ * C'est ce qui garantit qu'une huile sans quantité continue d'éteindre son plat
+ * par `unweighedEnergyDense` — le premier poste de perte d'énergie du produit
+ * (82 lignes d'huile sans quantité mesurées sur 80 générations). Une classe de
+ * condiments qui pourrait avaler une huile serait exactement la règle relâchée
+ * que ce lot existe pour ne pas écrire.
+ */
+export function condimentMassFor(ref: CompositionRef): number | null {
+  const grams = ref.condimentGrams;
+  if (grams === null || !Number.isFinite(grams)) return null;
+  if (grams <= 0 || grams > CONDIMENT_MAX_GRAMS) return null;
+  if (ref.energyDense) return null;
+  const maxKcal = (grams * CONDIMENT_PLAUSIBLE_MULTIPLE * ref.energyKcal) / 100;
+  if (!(maxKcal <= CONDIMENT_MAX_KCAL)) return null;
+  return grams;
 }
 
 // ---------------------------------------------------------------------------
@@ -637,6 +1014,35 @@ export interface ResolutionResult {
   unresolvedTerms: string[];
   /** Les termes résolus dont on n'a pas su calculer les grammes. */
   unweighedTerms: string[];
+  /**
+   * LES TERMES PESÉS PAR CONVENTION, et pas par ce que le générateur a écrit.
+   *
+   * ── UN TROISIÈME COMPTEUR, PARCE QUE DEUX MENTENT ────────────────────────
+   * Sans lui, « 40 g de riz mesurés » et « une pincée de sel conventionnée » se
+   * ressemblent parfaitement dans `resolved`, et la classe des condiments
+   * devient invisible: personne ne peut plus voir qu'elle a mordu, ni sur quoi.
+   * C'est le zéro ambigu que ce dépôt paie en boucle — le patron en place est
+   * `unweighedTerms` / `unresolvedTerms`, et celui-ci est le troisième du même
+   * jeu, pas un compteur d'un autre genre.
+   *
+   * ⚠️ Ces termes SONT dans `resolved` et comptent dans toutes les sommes. Ce
+   * champ dit d'où vient leur masse, il ne retire rien.
+   */
+  conventionalTerms: string[];
+  /**
+   * ⟳ LOT `L-1-b` — LES TERMES PESÉS PARCE QUE LA PROSE PORTAIT LE NOMBRE.
+   *
+   * ⛔ UN QUATRIÈME COMPTEUR, ET C'EST LA MOITIÉ NÉGATIVE DU LOT. Sans lui,
+   * « le modèle a écrit `amount: 150, unit: g` » et « le modèle ne l'a écrit
+   * qu'en prose, et on a su le lire » rendent le même `resolved`, donc le même
+   * taux de pesée. Un modèle qui cesserait d'obéir à FF-038 deviendrait alors
+   * indiscernable d'un lecteur réparé — et les deux appellent des corrections
+   * opposées (durcir la consigne d'un côté, rien de l'autre).
+   *
+   * ⚠️ Ces termes SONT dans `resolved` et comptent dans toutes les sommes,
+   * comme `conventionalTerms`. Ce champ dit d'où vient leur masse.
+   */
+  proseQuantityTerms: string[];
   /** Au moins un terme non résolu appartient-il à la classe dense ? */
   unresolvedEnergyDense: boolean;
   /**
@@ -686,6 +1092,33 @@ export interface CompositionInput {
   state?: CompositionState | null;
   /** Le poids d'une unité, quand il est connu (`food_items.typical_amount`). */
   unitGrams?: number | null;
+  /**
+   * ⟳ LOT `L-1-b` — LA COPIE EN PROSE DE LA MÊME QUANTITÉ (FF-038, 2026-08-22).
+   *
+   * ⛔ LUE SEULEMENT QUAND LA COPIE STRUCTURÉE MANQUE, ET JAMAIS COMME DU TEXTE.
+   * Le prompt demande la quantité DEUX FOIS (`== SAY THE SAME QUANTITY TWICE ==`)
+   * et, sur 3 850 lignes sans `amount`, **3 833 portent un `quantity` non vide**:
+   * le modèle a écrit la copie en prose et pas la copie structurée. La lecture
+   * se fait dans `quantity_from_prose.ts`, qui ne lit **aucun mot** — un nombre
+   * suivi d'un symbole de mesure, ancré des deux bouts, ou rien.
+   *
+   * ⚠️ OPTIONNEL, ET UN APPELANT QUI NE LE PASSE PAS RETROUVE EXACTEMENT LE
+   * COMPORTEMENT D'AVANT. Il n'y a donc pas de « paramètre de garde optionnel
+   * jamais passé » ici: le champ n'arme pas une garde, il ouvre une seconde
+   * lecture, et son absence ne rend rien de faux — seulement moins.
+   */
+  quantity?: string | null;
+  /**
+   * ⟳ LOT `L-1-b` — LA PROVENANCE DÉJÀ TRANCHÉE EN AMONT.
+   *
+   * ⛔ POSÉE PAR LE PLIAGE, ET C'EST SA RAISON D'ÊTRE.
+   * `foldPreparationsIntoDishes` doit CONSOMMER la prose pour lui appliquer le
+   * prorata — sinon un lot fait pour 4 dîners compterait sa masse entière dans
+   * chacun des 4 plats. La copie pliée n'a donc plus de `quantity` à relire, et
+   * sans ce champ une ligne rattrapée deviendrait indiscernable d'une ligne que
+   * le modèle avait structurée: **les deux populations se fondraient**.
+   */
+  quantitySource?: "structured" | "prose" | null;
 }
 
 /**
@@ -776,6 +1209,8 @@ export function resolveIngredients(
   const resolved: ResolvedIngredient[] = [];
   const unresolvedTerms: string[] = [];
   const unweighedTerms: string[] = [];
+  const conventionalTerms: string[] = [];
+  const proseQuantityTerms: string[] = [];
   let unweighedEnergyDense = false;
   for (const input of inputs) {
     const term = String(input?.term ?? "").trim();
@@ -796,6 +1231,52 @@ export function resolveIngredients(
       unitGrams: input.unitGrams ?? ref.unitGrams,
     });
     if (grams === null) {
+      // ══════════════════════════════════════════════════════════════════════
+      // ⟳ LOT `L-1-b` · LA QUANTITÉ QUE LE MODÈLE A ÉCRITE EN CLAIR — 2026-08-22
+      // ══════════════════════════════════════════════════════════════════════
+      //
+      // ⛔ AVANT LA CONVENTION, APRÈS LE STRUCTURÉ, ET L'ORDRE EST LA RÈGLE.
+      // Le structuré a déjà eu sa chance juste au-dessus et a rendu `null`.
+      // La prose passe donc maintenant — et AVANT `condimentMassFor`, parce
+      // qu'une quantité ÉCRITE gagne toujours contre une convention (c'est déjà
+      // la règle du condiment, écrite dans son propre bloc).
+      //
+      // ⛔ AUCUN MOT N'EST LU ICI, ET CE N'EST PAS UNE PROMESSE: la lecture est
+      // dans `quantity_from_prose.ts`, elle est ancrée des deux bouts, et son
+      // test tient une liste de 60+ chaînes qui DOIVENT rendre `null`
+      // (`a handful`, `2 tbsp`, `1 large onion`, `75 g dry`…). Le refus écrit
+      // au-dessus de `unquantified_dish_ingredients` vise la lecture SÉMANTIQUE
+      // de la prose; il n'est pas renversé — voir §⑨ n° 51 du plan.
+      //
+      // ⚠️ `state` N'EST TOUJOURS PAS DEVINÉ. « 150 g » de riz sans `state`
+      // reste non pesé: `stateMattersFor` mord, facteur 2,6, toujours dans le
+      // sens qui gonfle.
+      const prose = readQuantityFromProse(input.quantity ?? null);
+      if (prose) {
+        const proseGrams = gramsRawOf({
+          amount: prose.amount,
+          unit: prose.unit,
+          state: input.state ?? null,
+          yieldClass: ref.yieldClass,
+          unitGrams: input.unitGrams ?? ref.unitGrams,
+        });
+        if (proseGrams !== null) {
+          resolved.push({ ref, gramsRaw: proseGrams });
+          proseQuantityTerms.push(normalizeTerm(term));
+          continue;
+        }
+      }
+      // ── LE CONDIMENT SE PÈSE PAR CONVENTION, AVANT DE COMPTER COMME PERDU ──
+      // Et seulement ici, quand aucune quantité n'a pu être lue: une quantité
+      // écrite gagne toujours contre la convention. Voir `condimentMassFor`
+      // pour la règle d'admission — hors classe, on tombe dans la branche
+      // suivante et le plat s'éteint, exactement comme avant.
+      const conventional = condimentMassFor(ref);
+      if (conventional !== null) {
+        resolved.push({ ref, gramsRaw: conventional });
+        conventionalTerms.push(normalizeTerm(term));
+        continue;
+      }
       // RÉSOLU MAIS NON PESÉ. Les deux compteurs sont distincts exprès: l'un
       // pilote la curation d'alias, l'autre dit si le contrat de quantités
       // structurées est respecté. Les confondre ferait chercher des alias pour
@@ -807,6 +1288,11 @@ export function resolveIngredients(
       if (ref.energyDense) unweighedEnergyDense = true;
       continue;
     }
+    // ⟳ LOT `L-1-b` — LA PROVENANCE POSÉE EN AMONT SURVIT AU PLIAGE.
+    // Le pliage a consommé la prose pour lui appliquer le prorata; la ligne
+    // arrive donc ici avec un `amount` structuré. Sans cette ligne, elle serait
+    // comptée « écrite par le modèle » et les deux populations se fondraient.
+    if (input.quantitySource === "prose") proseQuantityTerms.push(normalizeTerm(term));
     resolved.push({ ref, gramsRaw: grams });
   }
   const total = inputs.filter((i) => String(i?.term ?? "").trim()).length;
@@ -815,6 +1301,8 @@ export function resolveIngredients(
     resolved,
     unresolvedTerms,
     unweighedTerms,
+    conventionalTerms,
+    proseQuantityTerms,
     unresolvedEnergyDense: unresolvedTerms.some(looksEnergyDense),
     unweighedEnergyDense,
     total,

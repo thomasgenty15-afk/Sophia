@@ -481,6 +481,9 @@ Deno.test("every goal has a named branch (R6)", () => {
 
 Deno.test("the prompt carries the convictions and forbids numbers", () => {
   const { userMessage, allowedKeys, systemPrompt } = buildWeekPlanPrompt({ contentLocale: "en-US",
+    // Aucun régime déclaré: `""` est une réponse, pas une omission (le
+    // paramètre est REQUIS depuis le 2026-08-18).
+    dietBlock: "",
     principles: PRINCIPLES,
     situation: {
       goal: "fat_loss",
@@ -542,6 +545,9 @@ Deno.test("a non-JSON model output throws instead of shipping an empty plan", ()
 
 function promptWith(over: Record<string, unknown>): string {
   return buildWeekPlanPrompt({ contentLocale: "en-US",
+    // Aucun régime déclaré: `""` est une réponse, pas une omission (le
+    // paramètre est REQUIS depuis le 2026-08-18).
+    dietBlock: "",
     principles: PRINCIPLES,
     situation: {
       goal: "maintenance",
@@ -614,6 +620,9 @@ Deno.test("FF-027 — avec signal, le bloc est dans le prompt, après l'élève"
     windowEnd: "2026-08-07",
   })!;
   const msg = buildWeekPlanPrompt({ contentLocale: "en-US",
+    // Aucun régime déclaré: `""` est une réponse, pas une omission (le
+    // paramètre est REQUIS depuis le 2026-08-18).
+    dietBlock: "",
     principles: PRINCIPLES,
     situation: {
       goal: "fat_loss",

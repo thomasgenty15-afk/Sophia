@@ -125,6 +125,8 @@ export async function loadHouseholdMemberBodies(
   const loaded = await Promise.all(
     params.members.map(async (member) => {
       const issues: string[] = [];
+      // ⛔ PLUS DE `return null` ICI. La fiche est lue en bloc après cette
+      // boucle: une bouche sans compte n'a pas de PROFIL, mais elle a un CORPS.
       if (!member.userId) return { member, body: null, issues };
 
       // FAIL-CLOSED. `true` tant qu'une lecture réussie ne l'a pas abaissé.
@@ -167,15 +169,99 @@ export async function loadHouseholdMemberBodies(
     }),
   );
 
+  // ── LE CORPS DE LA FICHE, POUR LES BOUCHES SANS COMPTE (2026-08-19) ───────
+  //
+  // ⛔ LE DÉFAUT QUE CE BLOC FERME, ET LA PHRASE QUI L'A CAUSÉ. L'en-tête de ce
+  // module affirmait qu'« une bouche sans compte n'a ni profil ni mesures, et
+  // l'interroger quand même serait N requêtes garanties vides ». La première
+  // moitié est vraie, la seconde est FAUSSE: `household_member_bodies` porte
+  // taille, poids et sexe en NOT NULL, saisis à l'ajout du membre, pour toute
+  // bouche — compte ou pas.
+  //
+  // Mesuré par le propriétaire sur son propre foyer: `169 cm · 59 kg · femme`
+  // en base, et le brief portait « - Christèle: » suivi de RIEN. Le modèle a
+  // servi à une femme de 59 kg la boîte d'un homme de 73 kg qui s'entraîne —
+  // `140/140`, `180/180`, `220/220`, identiques à chaque préparation. Il n'a
+  // rien différencié parce qu'il n'avait rien pour le faire.
+  //
+  // UNE SEULE REQUÊTE pour tout le foyer, pas N: c'est l'objection de coût de
+  // l'en-tête, et elle reste valable — c'est la conclusion qui était fausse.
+  let fichesEnEchec = false;
+  const sansCompte = params.members.filter((m) => !m.userId).map((m) => m.memberId);
+  const fiches = new Map<string, { h: number | null; w: number | null; g: string | null }>();
+  if (sansCompte.length > 0) {
+    try {
+      const res = await counted
+        .from("household_member_bodies")
+        .select("member_id, height_cm, weight_kg, gender")
+        .in("member_id", sansCompte);
+      if (res.error) throw res.error;
+      for (const row of (res.data ?? []) as Array<Record<string, unknown>>) {
+        const id = String(row.member_id ?? "").trim();
+        if (!id) continue;
+        const h = Number(row.height_cm);
+        const w = Number(row.weight_kg);
+        const g = String(row.gender ?? "").trim();
+        fiches.set(id, {
+          h: Number.isFinite(h) ? h : null,
+          w: Number.isFinite(w) ? w : null,
+          g: g === "male" || g === "female" || g === "other" ? g : null,
+        });
+      }
+    } catch (error) {
+      // NOMMÉ, jamais silencieux: sans cette ligne, une lecture qui échoue en
+      // boucle est indiscernable d'un foyer dont personne n'a rempli sa fiche.
+      console.warn(JSON.stringify({
+        tag: "keel.household_meal.sheet_bodies_unreadable",
+        error: error instanceof Error ? error.message : String(error),
+        effect: "les bouches sans compte restent sans fait corporel",
+      }));
+      fichesEnEchec = true;
+    }
+  }
+
   const byMember = new Map<string, MealBodyContext>();
   const issues: string[] = [];
   // L'ORDRE SUIT LES MEMBRES, pas l'ordre d'arrivée des promesses. Deux
   // générations du même foyer doivent produire la même ligne `issues`, sinon
   // relire « pourquoi Marc a-t-il eu une part standard ? » trois jours plus
   // tard dépend de qui a répondu le premier ce soir-là.
+  if (fichesEnEchec) issues.push("sheet_bodies_unreadable");
   for (const entry of loaded) {
-    if (entry.body) byMember.set(entry.member.memberId, entry.body);
+    if (entry.body) {
+      byMember.set(entry.member.memberId, entry.body);
+      issues.push(...entry.issues);
+      continue;
+    }
     issues.push(...entry.issues);
+    // ── LA FICHE PREND LE RELAIS, ET SEULEMENT ALORS ────────────────────────
+    // Un compte qui a échoué garde son `null` fail-closed: la fiche ne répare
+    // pas une lecture ratée, elle sert la bouche qui n'a jamais eu de compte.
+    if (entry.member.userId) continue;
+    const fiche = fiches.get(entry.member.memberId);
+    if (!fiche) continue;
+    if (fiche.h === null && fiche.w === null && fiche.g === null) continue;
+    byMember.set(entry.member.memberId, {
+      heightCm: fiche.h,
+      // AUCUNE BANDE D'ÂGE: la fiche ne porte pas de date de naissance, et
+      // `householdBodyFacts` reçoit de toute façon `ageState` à part — c'est
+      // lui qui ferme sur un mineur, pas ce champ.
+      ageBand: null,
+      gender: fiche.g as MealBodyContext["gender"],
+      // AUCUNE PESÉE DATÉE: une fiche n'est pas une série. Le poids part par
+      // `declaredWeightKg`, et la ligne rendue dit « as stated on their sheet ».
+      latestWeight: null,
+      latestWaist: null,
+      declaredWeightKg: fiche.w,
+      // ⚠️ `false`, ET CE N'EST PAS UN ASSOUPLISSEMENT. Le plancher TCA vit sur
+      // un COMPTE (`evaluateRestrictionForStudent(userId)`); une bouche qui n'en
+      // a pas n'a pas de plancher levé à respecter. Le `true` fail-closed
+      // couvre « je n'ai pas pu lire », pas « il n'y a rien à lire » — les
+      // confondre est ce qui fermait le calcul sur exactement la population
+      // qu'il devait servir.
+      restrictionFlag: false,
+      activityLevel: null,
+    });
   }
   return { byMember, issues, reads: tally.reads };
 }

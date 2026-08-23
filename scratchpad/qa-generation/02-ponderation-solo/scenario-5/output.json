@@ -1,0 +1,1033 @@
+{
+  "request_id": "2a000000-5100-4000-8000-000000000001",
+  "resolved_by": "--request-id",
+  "user_id": "2a000000-0000-4000-8000-000000000005",
+  "source": "generate-meal-v1",
+  "exported_at": "2026-08-18T23:19:41.493Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "260c3ef1-2495-469f-b017-ed7d90afba64",
+      "status": "attempt_start",
+      "created_at": "2026-08-18T23:06:09.502138+00:00",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 14382,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 14382,
+    "user_message_chars": 9548,
+    "user_message_truncated": false,
+    "user_message_written_chars": 9548,
+    "independent_counters": {
+      "system_prompt_chars": 14382,
+      "prompt_chars": 9548
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "f7d2160e-3d0b-4d31-a8c8-13cb7a2cc018",
+    "created_at": "2026-08-18T23:15:10.910869+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "openai",
+    "model": "gpt-5.6-sol",
+    "http_status": 200,
+    "attempt": 1,
+    "chain_index": 0,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Cocoa oat crunch\",\n      \"title\": \"Soy yoghurt, gluten-free oats, cocoa and pumpkin seeds\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"plain unsweetened soy yoghurt\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"certified gluten-free oats\",\n          \"quantity\": \"40 g\",\n          \"amount\": 40,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"pumpkin seeds\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"unsweetened cocoa powder\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Spoon the yoghurt into a bowl and scatter over the oats, pumpkin seeds and cocoa.\",\n      \"why\": \"This is a substantial no-cook breakfast before the extra Wednesday kitchen session.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 3\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Chickpea crunch plate\",\n      \"title\": \"Chickpeas, cucumber, green pepper and rice cakes\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"tinned chickpeas, drained\",\n          \"quantity\": \"130 g cooked\",\n          \"amount\": 130,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"cucumber\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"small green pepper\",\n          \"quantity\": \"1\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"plain certified gluten-free rice cakes\",\n          \"quantity\": \"3\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"rapeseed oil\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Slice the cucumber and pepper. Toss them with the chickpeas, lemon juice, rapeseed oil, salt and pepper, then eat with the rice cakes.\",\n      \"why\": \"The chickpeas anchor a quick lunch while cucumber and green pepper provide the green crunch requested.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 7\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Smoky lentil skillet\",\n      \"title\": \"Warm lentils, potatoes, courgette and green pepper\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Cook the smoky lentil and potato skillet during the Wednesday session and serve one portion immediately while hot. Cool and refrigerate the second portion promptly for Thursday.\",\n      \"why\": \"The hot lentil skillet gives dinner a warm anchor without turning Wednesday into a long batch-cooking evening.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_lentil_potato_skillet\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 35\n      },\n      \"honours_belief_keys\": [\n        \"a_warm_anchor_every_evening\",\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Cinnamon chia oat pot\",\n      \"title\": \"Soy yoghurt, gluten-free oats, chia seeds and cinnamon\",\n      \"slot\": \"breakfast\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"plain unsweetened soy yoghurt\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"certified gluten-free oats\",\n          \"quantity\": \"40 g\",\n          \"amount\": 40,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"chia seeds\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"ground cinnamon\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Stir the oats, chia seeds and cinnamon into the soy yoghurt. Leave for five minutes to soften slightly before eating.\",\n      \"why\": \"This keeps breakfast straightforward on the student's usual cooking day while soy yoghurt remains the anchor.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 6\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Lentil crunch cakes\",\n      \"title\": \"Lentil and potato skillet, cucumber and rice cakes\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"cucumber\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"plain certified gluten-free rice cakes\",\n          \"quantity\": \"3\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"cooked\"\n        }\n      ],\n      \"method\": \"Take the chilled skillet portion from the fridge and spoon it onto the rice cakes. Slice the cucumber and serve it alongside for contrast.\",\n      \"why\": \"Yesterday's lentil preparation becomes a cool, crisp lunch rather than a repeat of the warm dinner plate.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_lentil_potato_skillet\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Ginger tofu grain bowl\",\n      \"title\": \"Warm ginger tofu, vegetables, quinoa and cucumber\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"cucumber\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Cook the tofu tray and quinoa during the Thursday session. Put one hot portion of each in a bowl, add sliced cucumber and finish with lemon juice. Cool and refrigerate the remaining portions promptly.\",\n      \"why\": \"Hot quinoa forms a warm anchor, while cucumber keeps the midsummer dinner green and crunchy.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_ginger_tofu_tray\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_quinoa\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 40\n      },\n      \"honours_belief_keys\": [\n        \"a_warm_anchor_every_evening\",\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Savoury tofu crunch cakes\",\n      \"title\": \"Tofu, cucumber and rice cakes with tamari\",\n      \"slot\": \"breakfast\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"plain firm tofu\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"plain certified gluten-free rice cakes\",\n          \"quantity\": \"3\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"cucumber\",\n          \"quantity\": \"120 g\",\n          \"amount\": 120,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"certified gluten-free tamari\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Pat the tofu dry and slice it thinly. Arrange it on the rice cakes with sliced cucumber and spoon over the tamari.\",\n      \"why\": \"This savoury breakfast brings variety and a firm tofu anchor without adding another cooking session.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 6\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Lemony tofu crunch plate\",\n      \"title\": \"Ginger tofu, cucumber and rice cakes\",\n      \"slot\": \"lunch\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"cucumber\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"plain certified gluten-free rice cakes\",\n          \"quantity\": \"3\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Eat one chilled portion of ginger tofu with sliced cucumber and rice cakes. Squeeze the lemon over the tofu just before serving.\",\n      \"why\": \"The tray-baked tofu becomes a portable-feeling crunchy lunch suited to days spent building towards longer walks.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_ginger_tofu_tray\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Hot tofu quinoa supper\",\n      \"title\": \"Warm ginger tofu, vegetables and quinoa\",\n      \"slot\": \"dinner\",\n      \"day\": \"fri\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the remaining tofu and quinoa portions together until piping hot, then serve immediately.\",\n      \"why\": \"Reheated quinoa supplies a warm anchor and puts Friday dinner on the table with almost no work.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_ginger_tofu_tray\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_quinoa\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 7\n      },\n      \"honours_belief_keys\": [\n        \"a_warm_anchor_every_evening\",\n        \"the_basket_decides_the_week\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_lentil_potato_skillet\",\n      \"title\": \"Smoky lentil and potato skillet\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"tinned green or brown lentils, drained\",\n          \"quantity\": \"240 g cooked\",\n          \"amount\": 240,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"new potatoes\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"courgette\",\n          \"quantity\": \"250 g\",\n          \"amount\": 250,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"small green pepper\",\n          \"quantity\": \"1\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"rapeseed oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"ground cumin\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"water\",\n          \"quantity\": \"150 ml\",\n          \"amount\": 150,\n          \"unit\": \"ml\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Cut the potatoes into small cubes and slice the courgette and pepper. Heat the oil in a wide lidded pan, add the potatoes and cook for five minutes. Add the pepper, courgette, paprika and cumin and cook for another five minutes. Add the water, cover and simmer for twelve minutes, then fold in the lentils and cook uncovered for five minutes until hot and lightly saucy. Season and divide into two portions.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 35,\n      \"cook_on\": \"wed\"\n    },\n    {\n      \"id\": \"prep_ginger_tofu_tray\",\n      \"title\": \"Ginger tofu and summer vegetables\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"plain firm tofu\",\n          \"quantity\": \"450 g\",\n          \"amount\": 450,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"green beans\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"courgette\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"carrots\",\n          \"quantity\": \"240 g\",\n          \"amount\": 240,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"rapeseed oil\",\n          \"quantity\": \"1.5 tbsp\",\n          \"amount\": 1.5,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"certified gluten-free tamari\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"fresh ginger\",\n          \"quantity\": \"15 g\",\n          \"amount\": 15,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Heat the oven to 220°C, or 200°C fan. Pat the tofu dry and cut it into cubes. Trim the beans, slice the courgette and cut the carrots into thin batons. Grate the ginger, then toss everything with the oil, tamari, paprika and pepper on a large tray. Roast for 25 to 30 minutes, turning once, until the tofu is browned and the vegetables retain a little bite. Divide into three portions.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 40,\n      \"cook_on\": \"thu\"\n    },\n    {\n      \"id\": \"prep_quinoa\",\n      \"title\": \"Fluffy quinoa\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"quinoa\",\n          \"quantity\": \"100 g raw\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"water\",\n          \"quantity\": \"220 ml\",\n          \"amount\": 220,\n          \"unit\": \"ml\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Rinse the quinoa thoroughly. Put it in a small saucepan with the water and salt, bring to the boil, then cover and simmer gently for 15 minutes. Remove from the heat, stand covered for five minutes and fluff with a fork. Divide into two portions.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 25,\n      \"cook_on\": \"thu\"\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_lentil_potato_skillet\"\n      ],\n      \"total_minutes\": 35,\n      \"run_through\": \"This is the extra cooking day before the student's usual Thursday session. Chop the potatoes first and start them in the wide pan; prepare the courgette and pepper while they cook, add the seasonings and water, then drain the lentils while the vegetables simmer. Finish with the lentils, eat one portion hot and refrigerate the second promptly.\"\n    },\n    {\n      \"day\": \"thu\",\n      \"preparation_ids\": [\n        \"prep_ginger_tofu_tray\",\n        \"prep_quinoa\"\n      ],\n      \"total_minutes\": 45,\n      \"run_through\": \"Heat the oven and rinse the quinoa. Put the quinoa on the hob, then cut the tofu and vegetables and dress the tray. Roast the tray while the quinoa simmers; let the quinoa stand, turn the tray once, then portion both preparations. Eat one portion of each hot and refrigerate the Friday portions promptly.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"plain unsweetened soy yoghurt\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"plain firm tofu\",\n      \"quantity\": \"600 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"tinned chickpeas\",\n      \"quantity\": \"1 small 210 g tin\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"tinned green or brown lentils\",\n      \"quantity\": \"1 x 400 g tin\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"certified gluten-free oats\",\n      \"quantity\": \"80 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"plain certified gluten-free rice cakes\",\n      \"quantity\": \"12\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"quinoa\",\n      \"quantity\": \"100 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"pumpkin seeds\",\n      \"quantity\": \"1 tbsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"chia seeds\",\n      \"quantity\": \"1 tbsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"unsweetened cocoa powder\",\n      \"quantity\": \"1 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"ground cinnamon\",\n      \"quantity\": \"1 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"smoked paprika\",\n      \"quantity\": \"2 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"ground cumin\",\n      \"quantity\": \"1 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"certified gluten-free tamari\",\n      \"quantity\": \"5 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"rapeseed oil\",\n      \"quantity\": \"3 tbsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"new potatoes\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"courgettes\",\n      \"quantity\": \"550 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"small green peppers\",\n      \"quantity\": \"2\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"cucumbers\",\n      \"quantity\": \"about 720 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"green beans\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"carrots\",\n      \"quantity\": \"240 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"lemons\",\n      \"quantity\": \"2\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"fresh ginger\",\n      \"quantity\": \"15 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"salt\",\n      \"quantity\": \"1 small pack\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"black pepper\",\n      \"quantity\": \"1 small pack\",\n      \"aisle\": \"pantry\"\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Cocoa oat crunch",
+          "title": "Soy yoghurt, gluten-free oats, cocoa and pumpkin seeds",
+          "slot": "breakfast",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "plain unsweetened soy yoghurt",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "certified gluten-free oats",
+              "quantity": "40 g",
+              "amount": 40,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "pumpkin seeds",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "unsweetened cocoa powder",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Spoon the yoghurt into a bowl and scatter over the oats, pumpkin seeds and cocoa.",
+          "why": "This is a substantial no-cook breakfast before the extra Wednesday kitchen session.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 3
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Chickpea crunch plate",
+          "title": "Chickpeas, cucumber, green pepper and rice cakes",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "tinned chickpeas, drained",
+              "quantity": "130 g cooked",
+              "amount": 130,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "cucumber",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "small green pepper",
+              "quantity": "1",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "plain certified gluten-free rice cakes",
+              "quantity": "3",
+              "amount": 3,
+              "unit": "unit",
+              "state": "cooked"
+            },
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "rapeseed oil",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            },
+            {
+              "term": "salt",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "black pepper",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Slice the cucumber and pepper. Toss them with the chickpeas, lemon juice, rapeseed oil, salt and pepper, then eat with the rice cakes.",
+          "why": "The chickpeas anchor a quick lunch while cucumber and green pepper provide the green crunch requested.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 7
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Smoky lentil skillet",
+          "title": "Warm lentils, potatoes, courgette and green pepper",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [],
+          "method": "Cook the smoky lentil and potato skillet during the Wednesday session and serve one portion immediately while hot. Cool and refrigerate the second portion promptly for Thursday.",
+          "why": "The hot lentil skillet gives dinner a warm anchor without turning Wednesday into a long batch-cooking evening.",
+          "uses": [
+            {
+              "preparation_id": "prep_lentil_potato_skillet",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 35
+          },
+          "honours_belief_keys": [
+            "a_warm_anchor_every_evening",
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Cinnamon chia oat pot",
+          "title": "Soy yoghurt, gluten-free oats, chia seeds and cinnamon",
+          "slot": "breakfast",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "plain unsweetened soy yoghurt",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "certified gluten-free oats",
+              "quantity": "40 g",
+              "amount": 40,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "chia seeds",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "ground cinnamon",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Stir the oats, chia seeds and cinnamon into the soy yoghurt. Leave for five minutes to soften slightly before eating.",
+          "why": "This keeps breakfast straightforward on the student's usual cooking day while soy yoghurt remains the anchor.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 6
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Lentil crunch cakes",
+          "title": "Lentil and potato skillet, cucumber and rice cakes",
+          "slot": "lunch",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "cucumber",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "plain certified gluten-free rice cakes",
+              "quantity": "3",
+              "amount": 3,
+              "unit": "unit",
+              "state": "cooked"
+            }
+          ],
+          "method": "Take the chilled skillet portion from the fridge and spoon it onto the rice cakes. Slice the cucumber and serve it alongside for contrast.",
+          "why": "Yesterday's lentil preparation becomes a cool, crisp lunch rather than a repeat of the warm dinner plate.",
+          "uses": [
+            {
+              "preparation_id": "prep_lentil_potato_skillet",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Ginger tofu grain bowl",
+          "title": "Warm ginger tofu, vegetables, quinoa and cucumber",
+          "slot": "dinner",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "cucumber",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Cook the tofu tray and quinoa during the Thursday session. Put one hot portion of each in a bowl, add sliced cucumber and finish with lemon juice. Cool and refrigerate the remaining portions promptly.",
+          "why": "Hot quinoa forms a warm anchor, while cucumber keeps the midsummer dinner green and crunchy.",
+          "uses": [
+            {
+              "preparation_id": "prep_ginger_tofu_tray",
+              "servings": 1
+            },
+            {
+              "preparation_id": "prep_quinoa",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 40
+          },
+          "honours_belief_keys": [
+            "a_warm_anchor_every_evening",
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Savoury tofu crunch cakes",
+          "title": "Tofu, cucumber and rice cakes with tamari",
+          "slot": "breakfast",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "plain firm tofu",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "plain certified gluten-free rice cakes",
+              "quantity": "3",
+              "amount": 3,
+              "unit": "unit",
+              "state": "cooked"
+            },
+            {
+              "term": "cucumber",
+              "quantity": "120 g",
+              "amount": 120,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "certified gluten-free tamari",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Pat the tofu dry and slice it thinly. Arrange it on the rice cakes with sliced cucumber and spoon over the tamari.",
+          "why": "This savoury breakfast brings variety and a firm tofu anchor without adding another cooking session.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 6
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Lemony tofu crunch plate",
+          "title": "Ginger tofu, cucumber and rice cakes",
+          "slot": "lunch",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "cucumber",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "plain certified gluten-free rice cakes",
+              "quantity": "3",
+              "amount": 3,
+              "unit": "unit",
+              "state": "cooked"
+            },
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Eat one chilled portion of ginger tofu with sliced cucumber and rice cakes. Squeeze the lemon over the tofu just before serving.",
+          "why": "The tray-baked tofu becomes a portable-feeling crunchy lunch suited to days spent building towards longer walks.",
+          "uses": [
+            {
+              "preparation_id": "prep_ginger_tofu_tray",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Hot tofu quinoa supper",
+          "title": "Warm ginger tofu, vegetables and quinoa",
+          "slot": "dinner",
+          "day": "fri",
+          "ingredients": [],
+          "method": "Reheat the remaining tofu and quinoa portions together until piping hot, then serve immediately.",
+          "why": "Reheated quinoa supplies a warm anchor and puts Friday dinner on the table with almost no work.",
+          "uses": [
+            {
+              "preparation_id": "prep_ginger_tofu_tray",
+              "servings": 1
+            },
+            {
+              "preparation_id": "prep_quinoa",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 7
+          },
+          "honours_belief_keys": [
+            "a_warm_anchor_every_evening",
+            "the_basket_decides_the_week"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_lentil_potato_skillet",
+          "title": "Smoky lentil and potato skillet",
+          "servings_made": 2,
+          "ingredients": [
+            {
+              "term": "tinned green or brown lentils, drained",
+              "quantity": "240 g cooked",
+              "amount": 240,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "new potatoes",
+              "quantity": "300 g",
+              "amount": 300,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "courgette",
+              "quantity": "250 g",
+              "amount": 250,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "small green pepper",
+              "quantity": "1",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "rapeseed oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            },
+            {
+              "term": "ground cumin",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            },
+            {
+              "term": "water",
+              "quantity": "150 ml",
+              "amount": 150,
+              "unit": "ml",
+              "state": "raw"
+            },
+            {
+              "term": "salt",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "black pepper",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Cut the potatoes into small cubes and slice the courgette and pepper. Heat the oil in a wide lidded pan, add the potatoes and cook for five minutes. Add the pepper, courgette, paprika and cumin and cook for another five minutes. Add the water, cover and simmer for twelve minutes, then fold in the lentils and cook uncovered for five minutes until hot and lightly saucy. Season and divide into two portions.",
+          "active_minutes": 15,
+          "total_minutes": 35,
+          "cook_on": "wed"
+        },
+        {
+          "id": "prep_ginger_tofu_tray",
+          "title": "Ginger tofu and summer vegetables",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "plain firm tofu",
+              "quantity": "450 g",
+              "amount": 450,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "green beans",
+              "quantity": "300 g",
+              "amount": 300,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "courgette",
+              "quantity": "300 g",
+              "amount": 300,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "carrots",
+              "quantity": "240 g",
+              "amount": 240,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "rapeseed oil",
+              "quantity": "1.5 tbsp",
+              "amount": 1.5,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "certified gluten-free tamari",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "fresh ginger",
+              "quantity": "15 g",
+              "amount": 15,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            },
+            {
+              "term": "black pepper",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Heat the oven to 220°C, or 200°C fan. Pat the tofu dry and cut it into cubes. Trim the beans, slice the courgette and cut the carrots into thin batons. Grate the ginger, then toss everything with the oil, tamari, paprika and pepper on a large tray. Roast for 25 to 30 minutes, turning once, until the tofu is browned and the vegetables retain a little bite. Divide into three portions.",
+          "active_minutes": 15,
+          "total_minutes": 40,
+          "cook_on": "thu"
+        },
+        {
+          "id": "prep_quinoa",
+          "title": "Fluffy quinoa",
+          "servings_made": 2,
+          "ingredients": [
+            {
+              "term": "quinoa",
+              "quantity": "100 g raw",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "water",
+              "quantity": "220 ml",
+              "amount": 220,
+              "unit": "ml",
+              "state": "raw"
+            },
+            {
+              "term": "salt",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Rinse the quinoa thoroughly. Put it in a small saucepan with the water and salt, bring to the boil, then cover and simmer gently for 15 minutes. Remove from the heat, stand covered for five minutes and fluff with a fork. Divide into two portions.",
+          "active_minutes": 5,
+          "total_minutes": 25,
+          "cook_on": "thu"
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_lentil_potato_skillet"
+          ],
+          "total_minutes": 35,
+          "run_through": "This is the extra cooking day before the student's usual Thursday session. Chop the potatoes first and start them in the wide pan; prepare the courgette and pepper while they cook, add the seasonings and water, then drain the lentils while the vegetables simmer. Finish with the lentils, eat one portion hot and refrigerate the second promptly."
+        },
+        {
+          "day": "thu",
+          "preparation_ids": [
+            "prep_ginger_tofu_tray",
+            "prep_quinoa"
+          ],
+          "total_minutes": 45,
+          "run_through": "Heat the oven and rinse the quinoa. Put the quinoa on the hob, then cut the tofu and vegetables and dress the tray. Roast the tray while the quinoa simmers; let the quinoa stand, turn the tray once, then portion both preparations. Eat one portion of each hot and refrigerate the Friday portions promptly."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "plain unsweetened soy yoghurt",
+          "quantity": "400 g",
+          "aisle": "dairy"
+        },
+        {
+          "term": "plain firm tofu",
+          "quantity": "600 g",
+          "aisle": "protein"
+        },
+        {
+          "term": "tinned chickpeas",
+          "quantity": "1 small 210 g tin",
+          "aisle": "pantry"
+        },
+        {
+          "term": "tinned green or brown lentils",
+          "quantity": "1 x 400 g tin",
+          "aisle": "pantry"
+        },
+        {
+          "term": "certified gluten-free oats",
+          "quantity": "80 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "plain certified gluten-free rice cakes",
+          "quantity": "12",
+          "aisle": "grains"
+        },
+        {
+          "term": "quinoa",
+          "quantity": "100 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "pumpkin seeds",
+          "quantity": "1 tbsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "chia seeds",
+          "quantity": "1 tbsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "unsweetened cocoa powder",
+          "quantity": "1 tsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "ground cinnamon",
+          "quantity": "1 tsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "smoked paprika",
+          "quantity": "2 tsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "ground cumin",
+          "quantity": "1 tsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "certified gluten-free tamari",
+          "quantity": "5 tsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "rapeseed oil",
+          "quantity": "3 tbsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "new potatoes",
+          "quantity": "300 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "courgettes",
+          "quantity": "550 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "small green peppers",
+          "quantity": "2",
+          "aisle": "produce"
+        },
+        {
+          "term": "cucumbers",
+          "quantity": "about 720 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "green beans",
+          "quantity": "300 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "carrots",
+          "quantity": "240 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "lemons",
+          "quantity": "2",
+          "aisle": "produce"
+        },
+        {
+          "term": "fresh ginger",
+          "quantity": "15 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "salt",
+          "quantity": "1 small pack",
+          "aisle": "pantry"
+        },
+        {
+          "term": "black pepper",
+          "quantity": "1 small pack",
+          "aisle": "pantry"
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "id": "resp_045205e27c69c9a7006a84e6e6ab1487d2b1204d7d3b6ed82f",
+      "text": {
+        "format": {
+          "type": "json_object"
+        },
+        "verbosity": "medium"
+      },
+      "user": null,
+      "error": null,
+      "model": "gpt-5.6-sol",
+      "store": true,
+      "tools": [],
+      "top_p": 0.98,
+      "usage": {
+        "input_tokens": 5899,
+        "total_tokens": 14639,
+        "output_tokens": 8740,
+        "input_tokens_details": {
+          "cached_tokens": 5896,
+          "cache_write_tokens": 0
+        },
+        "output_tokens_details": {
+          "reasoning_tokens": 3515
+        }
+      },
+      "object": "response",
+      "output": [
+        {
+          "id": "rs_045205e27c69c9a7006a84e6e7499c87d2a58481d250bf5c01",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOd-R6sQRI1Ia0o3WhDbQJ4i1zzrhQKscKxwHzHWUcqlN2uBpaxgc8wQ0oxCLI6YdsBS_UHX2CZLCBjJfXrkrlDeTvh01ut8gcXVCXsQ62iiN54AD9Fc5I_X6zPoISxWTanzXZi-FdZjE9fRjL1BAI-Km5G60A9dvHk6E7cCfc_RNn30yxEvqGhZkHdCArHVfduaAf3fPHvGbKkzxARHIPL3X2TYdJB_6xbTp5SVTmAaMhN92CbfT7Myrhe8FwtVbko0ybtulRnavssKfOa_d9VmnGVk_h24TJzYr6PWQsIGsrvtyjsBcIct72lcu5HziNIkDDaj2w5k6Z0otDgF6InRWzci51o1b1GAn8vbrn5r1OLvWa0JalxUl9qqazlQ3wL6WuQVm-j0qTJWtu2yi2robmJ84m7jmfdJ49EfCLpZW3OjTQB6SYTbInZ9LragFs6Dq2CuDI2yds6v6DoYEE9T0sYFSTdT5UHEawwTfQDU9ckEEgYCVoDZ75c-gv8iR_XC3appp8cB4TkDA7FVGOUy6nZYF86DGA_v-6fSsWv78ciT3GVG8yk3tOAURxoiIGL1cCAhJqPVzkEcIMClet-jP8T7b_Fll-A1D4zh4VreK3Ir9axlqv2egNvWZFl7qcmgsijyg56ysaUqcjmvyeFUeLkZx1l0jQzH57zfYmzQFINsMRAwvhe0YNxZkjam-Z4MzagErUELON14wtx_PcF2WOIsuEYceZw1QmQQtQD0c1i6-ZE2c89UHG0lZr0ZHycVn445d7CCOj7rUKE7a2-toJaxNAJdEsj5bG7L4N429c5sT95rsMNhZdWZIjfEQBRhZUJhYgHY5TknIHPWQj42jHz7q3wipwuQ5wbYD1jj9_xrzi_iBMtnCcw2FV8Fsd_YUaeaVglgp0-YgZ-45SuXoCZDtnOTzbGB4WRPloMgNujvT3EUQxiRP_3xIpd8qcoG2SfuvCIGYsp35066y75a6-pvUBffq7nKoxmn1-7rBOsOAJLXXoe7ywCkENj8c6-HiECWXjzTcQunh1byJBMvqXJoLcNApgf9QYn6bLsOrZkN5fwd_gkznWHf4GLTKXU0oljvOiTbfxGLbxFadgdGI1qYC8Q1Hq9v1s1sCR01Z0Xg_cJBGyXHvmOVuB9WrJv3fhRrrErjtZmgfIPiHjihpDTD5crZU93gq7ckfWXbR21uN-8w7PP-hY-FgtDlOE7fh5pmbhkNCMIYXPCnCcf2pGXOmd3LSIb4b_mYyYUL2pPTqt9ACUt9OWgkkocGVB9509KnwY9Vuxed2afvCv956J9Wm5CNyaKZxxmjzP6tfQfE0gS3ny99dcSpBsF6PpIfUqKkko_AVyZ5euX0A455-eN_btpgTI6cgQNX8yivc9PaaDNZOT8D4aC4Dqmo3fx5bToz8N5myi3yg6bytifM97u95Ky7fyKgqIUuDgoNsQfoc3Ansh8_6tNvkLI-1IvOjn-Tt_9S-7vxEXZFxc6ldyMufKGuSl4oBuKz6zWZTUqoeJaEV-gzpIixF7M7ImzdtepqZGuH4JSPIx3ED4OHeyz33rDRSKhGoOm_aYyBEdk8LpHGn0foeNq7zkvrZl8IyUPXizAaqPflvQC_2Q1hG3i923XXikJ0U43sEIPNE_N90TA4iRdV6-RhDvXxq06hxmI--0gRKvgHfUQHSNzsINeKQAdr6MQ_X47lIpDgijzTWYd7V1b3fxSh6uQcEz4_0VbRltceD5kAqHcA0WWpX-GNJ6jUz3EteFM4lOW4XzkOVE1VpkHg71W2CZY0XbpI570NW8QR5xrqiIeFsp7W4iiAgroXUlFlYBmWwz8yl_xgYlJgWBjvaiUSpXdPO4pcSLH_015gHbr7jL2PQvIi5ZByoM01Cdw7wIw3I7-hvgDpQRhugsM83JldwkMGa8f7aVp30OwWInpULzCoVLdD21pKH8HzGBdSV15WwzRL-XwO_SAfCo-3E9rIBpmVGgNEWBDp3Itbwfo44eNJk3JRq-TZN4uJAUr04Ww7nNScJNLM-hG3D8Ehx9RPNSXdvQfjlHDSS1D4s0DKPvc3ezImrMeUavD7u1bHOfEj5zy4aJVOgSH--H5AQIHa3_w9zOUF7zwoHosLEcisfKMuRYdfn-IBwGVZKL74crM6NVWCfq_GnBvsb7i3np9l5pV1Tw8-LzzhwX1Hlb3nmze-2PqhehEHcnAsW1pR9o0GQx1K_8HCvj0wT6SnZmxGdVL_eRoWIv2o-Iy6wYddndydZGeRgSx43wURvGR4yU7-0w3BSCOC-fmt_P0U6_mP3whbRQRfWToKnLA0pR3FYAWEWhyaSwz9MVfDvPv6L9cSLPTAEtJu4jImP-B8_Og-npvCWOQwUTtwO-4x23vorKiwjBy7o4NfgITiqs-9iPZgrJeN8vLrUy6CEsmjVuQcwzQ57qyO1KtlRICFuH7Wvo5xnshwCxkOohE2fuSNmLtn6j5p30PEVxXI4hp5oMkP0ksjgtGbVwcFVAQyLmm_LsMOsLw6ztU6MuACeErQytrlbI4r3hZuWtzckA5Auglzd9ElwQd09mRHibzWoEJ_Om2NhRg9pFqofEbhe8iJUTYQV_Ee6brXYerVzy7XCgJDgkJ89r0rfougFC1SngF1JYSuC6l7UILFBYBEWb3dHCt3FEDGYwaOoYttAE5N05rLQPzzwdBuNAzgl4NcUc79J8ttF7-eoPIMu1tDRp_-dsG0GMjj-ZI8Z3Wxb3qpPPQt41PYrjljzDCAaWpHONKFODJeaVc7kHbB-n1sAb2U6PUECywVAopcro16Pbeow5sz2lEdCChhrKLI1JNveuzjZIWHSv9WevsZA2219veNOZqeFQ6g213c7Ju0fJdLIdCZ3R4a1xNOe8AwVPUbh_1AJb14xqQEN340AqGb03FOY-W7pG84UCOExZP5yacig_drInIgPar9GWXXP1GKT9nZ4UJsjE9wB11mDjpSPmCEhXuN-SNruunjVGiusBLTm90qNlKEbYYc-T2Aokp6fYOe0pkcSFwSpARiM4IUSaU_kedLB5oHz25Thv3jyYTXdCCzXG_0KzKaypOa9WcAO-Ei2FDcPYS7XW_PHXrs1CqxRYzsXiJEpHMdFn3ozg3JS52aUXg9V9oZzhtPsmGs60zqubmmISS-zZRzei1DShs1Gg8G7E66UK1xFIcrDy6tSRjsI3W1CMtDvsWCH8Lge9jCGTO3sFMBEiyKU68triL_an_2KN3zX0q9AfIq_yZrCe8zQbJW_ujeIKU9W7c9pqEpl2GuaGyDRT_snWZHLB1xTYIugj__LhVP_XhNNwzJRXaMuo4Gwcn89u-WkZ8R88l7KRbYIp4BtRPzYqOty5CrcBeqzIK--nHuoeireXVJt3K-NkvhcflAMn-uyvb6SUpuUjk56u7tdA1DJZZFDWYv9yBfk3PGRqnpu5Z1Dej8FE77Wi3jjdENVfIVwhaeAeGo1MlB-IO3nyp8-tXi9n0IbChab2PX-G6C9BOZoVDzGuZpqU1FVA-5zgylg0PQQKiS2-H88WCHprNz3qBa_HDdyqu1QWd0jJVjmyG5OdUX5QZ_j9ZjFwScO88-MyTWeVkMs0na1wWlVHUnnBlx9QtnWIje7ZVLYxYW2sJ2jPlXiQlLn-ksQlqExo9DPRMZC05Cpkn_4x3J19ZA-8Zx_SSqF0mhs0TqABxrfl_YR9hlXXzKBVwSxNzVWEiD4XWPGKJdxhiFMR_hAPjm9f9JX4mFvIXUpUVz1Il5ow1ecsyRVH3fa3vKV1l7jm5kwBR-hhCts9sTcWZFgqaPtEmScm81b8q7fLr-VGlmrfg4Nl0sijPL_Tg4kT3wt1-gaeVtSfsjc5Fqs49nX4KPy1a3XLXIVbzR7OeHrQWHdCPKYoXQQ7nd0Uc81BW967vg17stNdJ-x1bae4LGV08LIf2HW86P9t1XcVH0mLXua4tjgvCCPtl0hFBxLXD0Mooftkg6vdOrxKnTDidztB4VXpEUIqCab_NwakjCnQbhceDZwmtoUcKoXLaZbal4Z5A4IgH0j9-KZdTrBnZ9d-ONZvyYHkpma3CViI9BvxuHrG2IlwWT4y6n3sKW0zflxWwbmWeuk8UYL5M3CjXQjTWlxBo-C1Eyhoiz4mfSC5fS3nmv680h5aFyLmwsQ7_CRKgb5g-idk-FnPH7ducsTqMIWyVpJs_cLwziTmTZMYI-GzgHACqMzp5cvhdT_yjF23j0SQeYAHmWovVobJI0sqWi2r2kHOTj7VGYjheOa0ETBcoKkq5BDIAz2r5uy168gxgO9xixoBCDqa-VYk0baaF2XR4Cvm30Qk4lCC98qE3BuQhZMaHShKlDb_6SpzuZA4za2nOutUn6tgGzHaT5h0QRB5bP7bDXAB7EUXoNhlo1E6juZKaj__lvGLfYfrPayphl0yiZU_1fGKV1q64Ubk4yMywcM6PdtMA9WjS0cOD-GX2bUHw5mlDlCWUas9Qpi6jSlNkw4La6XP39rudpsKM85LdEdX-Jdg8DoldOWLWZHGFlj0LdylbXAgcH8lR5chHQgvSu6YL5woFxuI-9JWiTIaF_v3Wwjm0rk0hIBy8="
+        },
+        {
+          "id": "rs_045205e27c69c9a7006a84e6f73a2087d2b10f5306b0050fc1",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOd-C7rymf0EX7sGUFN_OPB7Y2skSo_7IUkiykEa8RyhVUYo_ZSXic9h1uef5zrUVUMyJ67wqLakHnQtllo9nRdPa7OYVRqBgGpTkP94DwrKNQxKE03wPvt89dpl61AjWauuiIfBLob1gYwvLy6ahzy-ighYiZROekbkx7WQT3ryG-hZDbsXh0Yjkfn_PJV878jS9OUmbUa9iw66n0Vd6FnEDRUyNqWpRI3_0sm4Y1RGjh4-OJ7UUFmMB6cXaQ387GZ_-9grDPxjM1qM1hq05siC-XhTFydBw16I6Et6gmaaXaDidem9GuCOniGvBLiAJGJzKNqhPxMJ63SQPhFLHMQN388OSJQ7o-LeehuxvXZSbQKK4K8wDQ07-3SzvtO6ZxOWKUIZxsyuXDJf0xgMTE-rTHMPdn5KwUFlcl48IWtq8kg5yQChtke8OxjeartumLY-UUZI1y76E2cD9Ix_G0zGuQ072NxFWnzlAmVoIXPY3bPnvbb7bcodD81-7FnTFiYMfvtJphVjiJ9DVr5bqHCh5kzZUoheaFFAT2hl7v0SdyoMPm8WKxjoxYv6ZfrLuTNiPVuxKm-DiV-3LPjLn-AA5rPRSFrzYOneQa3xCroVGJ9KUMelGH5ehWYZyPP1iLmuy2C3iclQYfelWDlYn0xeVmOAJ8dGR3R4ra1-UW12-pHQVsOZOJMA-nt6f63pKTQJtE4bEDXQ_WUh55vVDErJbpLn56IxNhQ9dZQc8hQ3gQ8S6_qon3n7311JOlaRR-_gNvua488haBuMNIoyh4If0G6bd46wwKh9Arxmb-lVp9JMzL4zpIBK0o72-PfenghCheqEUWouQoh_O1n7c2Onq_Z2rKNIMbSO8M6ghJG2CAaZEC1IUjpIk7R7beTTupKr64yp1hOEtQ9K9SMbpian8hvq6U_tykI_cp4gnJQ6_wFarHjI6dfu4TR05WxvIzRTGHahot23Jc0JdRPD_v9FRD8TgxKHyg2Act3DroVzhZgah8InTCuUlxInMx8HUNqRVNqIb0HkpHDIcEWTY9RKZGcsERd7l6UxqQWfF7AOaSw-WzlFUsaP0pNDsRairY9HN1A6n8G4dCrc5WdU0TMwRM8OA-3G-B7WWpFytmeheZQXpOUK0Vo8kO4JBI47HdTyacVQKd2uRREXOHNoJcn3rtvLYbTu7FwqLXCDYOL4ed3kOKrHOqwz93xIEdUNVIoaQ3_UkXBpb--xJfG1eX0XuR5hD5pTSg4hYIWgzm6pQ1buKUGKNXqqrzpMUinWXbyVKxE_bPXL5Wwbe0cNrra1D7YPqsiioLmC5Qi3jj2hUdzaJe6z8-GlOUAe4FJaqchThOLZiXT6gSujTwmXJ0IUf9EPpUGYM9xdhFa3HsimHkr6i9P728MVXMPAjXWY3e7_siuhPTLC1_t9pccdkhynVeyJateopX-axqAnxeoLVu4CU8NrD9zzOFRSwrY09irIo-Xye6sI6d5n1J3g1U40OY-eZYabaP1UPtj12LzabMyBYW6aI-QTtM8gQ4F_JLn5sivv9vT2k1EUsKaqgCqJ301yNwlJp7Ph2HTDBey_2BcP1W_DWP16cdAgd9wsXgUn1s_FZk032CSOVj2pgBwxtjEk1pwV7c-gWMkvgc2NuXJiwf3WCkoOxYJHNciRfWaAZOsk2-26-UmbBPK__HkD8Xs1bWhlD2mwbv44eymX7f3ZTpbfy9azvyNvavTjtXxPNg6gaK7manYJjH7CgxFbaopHkivPBEKDYsod_cur4e87nGPsPNP93Bpc_My7HYStLIJVlKi-wyVCJagKAh7xyXdRlfmITbDneUKpIMOMhHWUOEIX3JZ5UVXfVNuj3zuuw760q77LmWuOVtURsyjV1iOxwASm_BxoOQoYHu73oKGRaa3BKpKG2DYp4KArh_HBnDkM5oSWcGC9c9QoPGTKYfm-x1kRJQATHsPyhpUwGLUMmd3_2Mmea4EcLkqNxZFqbFrFJJ-kDwOrgB1iLwu8ukIaiWbPVOQkWqSvQW5OwDeSJKptsA7Jjx8WJ_cd18jdXmUMgmka_rS8jLaFLAOQph8nrGOK0XJNdG6p6AHcn3RebWOFy3DA24pV815tu_MgLSwfgNm1GAqn5nMe9f2trtOWWAHtm4cF9kXf7rc3FggCt_3HN1xxWDGz6IPgwww_PUly14gbScXk-gmWy2R7QATDhPfZhWP-8rhrnZYqk4L4vUiLA08MKOuSCwgrkU6utoHBcfe0zvCMPPJjSZ2coNh8qnucXyMothZZQmJtVIJhrgj67HgR7dgE9s8PFqDsTGYVpDe3_qw5I2O4IrE1nBPbhudDxpvuJpBRPN5bGUameH3b5mH7CqHMdx0WlXsQKBPCzXThYhA8OxN-IrouOw1Uqn2llPtMcjQtaYPZY2AI9UPkDYO4hMD6DQ9cpq_AT8UXIjlVkIoTnNi4VGxiztq4ALJSVGvdhoaBMSGXkFB467O0ecnmdGFa4Vu1ri2ggvHpgPb85snIDY-P9Tkqg3wlFYPw-vo8yQiEGamuYgr6Km-jnXdLGn4aQYA2WohP0Qsx86f4LODUFxanIHu5hc0-Sod8YKu3aOc_z80ogprbJtgClQ2zGoQc2qy8L55rN8kMpmcRhPSn9BKeIi9bTll7l6Iri35LeKdB3kzADr-9s_D3z0DbuUnkeY9irDdxdbXXiDZb71yZ5pxCNq49Cnlcj7OR_GS6UDrWvMgO4Nkba9SYh_Tv5A5TRqMtan0KAl7WjfCM99mXg_wXNPenyy5mUWroPbnnlkOqQ2xB2h1tdI0_J2O4_bsD8nQp7LByPWuq8mqMCZ5q81y6pNCvrT_Gzuubwecy6SUYpzoh3UomJu7GkVORf5TT6649m4f4rlRfutr_y1BMgt6epVtXJr0MlcIWlI4dYD1Lq_oyvYZDuG0qhrFFmaVNBIv6muY0S77KDG0A9e9ZdWzPkxQtbF3fZDQ2LT2wFrS9EkfCTjnoaJXbk-1TgyfpxNEwzfdVZ4nPFDRCU1o997F1RR9OPPUsBbc-7AMVzL4H5D_4LhZBN2lRKy1Ltcsbf1zQG3b8XDCi8Vw-M7lQHo6cVua3jNXvuHn-9UsIXWp_9k7fUitktcSuT2q6qxA3XsnY9lsitB5OCnYP_ljtjp9X0MViDHlx5uI2WEOlbsGSOf72FFjd8nEAarmBM7bEnt5btGlBiBeepUN8jHDu1Hkx5HBwyoXTMP4_fsjWS_UkmK15tww02HFr8knA0lQCq7nDZEsqP88w7ZYX9PY9pjKL-blEe8rTaFij65z70YiTt7Bp2iDBMQIA1U4eGyP80fDpmJzmqUUkJe06uVAurSh-4VJBBRYzupRy7HLgqmGXaisE3exLnBEoNdyx8f7ydzHWDIqNwilnhpZNGzBD95p89vlUFHLunvRSEGRn3r35vVKi7sX2Y_E3SMeXmDthZ0ymreXkoYMFV6SALxR7KSEerMwmJhl1NcdFy05NWVOWbNab2X3gACJRMl57gr1mRvhg_JnUqanuZc0cfuCIDoHL3QAq98wOSnrHyhTJtcEuepqvJFC6QaWC6kj7CqjpbrYpkah6ZuebkXHEIYq0VrwY-oNlcxh3O9Uyk8I_AD7aR7vmRJs6YdJheMhMC--2WWXVbUaOUoyqv0BIDXK4uuKPlNM2-BPyjLNThmsiEO1oxYLoyb8c5pBug3zc_ioRBX376LTs0hwDaHZdJ6PtDNCysEeMu1DLi9oCCEfuVm_yK1toHoIZVeestitG3EI-oDVd0D4COR66-E8O8eQTqmxWox-ts0LWIThZ89fILipdTLwzP-1qyWdBeolsAd6G-VAFR4uxUHhruWPL2oEUNV4i1ZlxSlgFkS9s1AcAHIqWpkfZADehS18hI_UQQKYBRiypNUbN3LAmVVfJnR_pr54bAkYopbfq-yh6ACNS6GDeQI_te757mCXdeKb3f-9nUdBDBRFAQ30bTuGYFexM2Y591DrPQbAgFxmEeQPwZIvZdpTMrHAAquMc5h86AbDpCOCVvrg7BKmgQvY62oBSTDhcFQpvcgxc-OWLoNIthj0QVuN1hoX5Tiheu17_nzW8R5gdus8rhL7VlUZpV3h0m68uwtB7VlPyAAuIWYWl-jHemBHxaw5YdJEzpLGUhqzncibfIBNA"
+        },
+        {
+          "id": "rs_045205e27c69c9a7006a84e7057fb887d284745c299c62e64f",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOd-HMeNsUnTy9aLOg0Ih5WCM-zXbp_k5IfeDa770rsSQ7DJhGuDlpLycvAypaFmL0OQYMowKTxDpNqNM8hVC_IviB3HWxEQdxUYeHshzsC-t15bHTWCuSkobq6DVycaaw4HZdEIp_GQaPFgwRzistNmLg0XBK1zdKGiBY79GElK8dWi2UW4cJavfeCqAQleINJmO99Q8J0NfyrOEdWi84L3WaGa-4WU-_uebicXZDtaXSzhVD5GOJCWgSVlzhGu_P8AHn976tH8Y4RNwoZC98w1-7XdguAiGfIe08vsJRTR0bxP1TzEwA3sSr2LlS3ALcpoXjtBm59agvT6-BpRN-oNa_u-ntxX3JRqsm8Bi4DcYVlX08tpJnUSLjgyEaVoG0bCFFY7_nFX9dw9gyHdgsrRDa2rkvVK8fkq6hjwGXdc7nNUkUX7mKcW3aQeQ3r7iJOf0Ie0YH8k2NmX9uNi1XeEACFBMSA3WnMUZILwNU7YE8Z-C84rldqBYmruHmoPGEuAjX2NhZaoZZCDG58R_yHM3NEy89fS9tvX_cnyqSfU_W_hnx8a-IrclGhBxEv0GrMlT5CozPZ8FikrIipw-hSRwnH5AbF2Q_0i99tC7VX7TvDFXeT9cycd53gQxyxaQ0i6okpmk9F0_d0afK6_WVwqlf4kRjdXB-SMX42gkmPcEfEJN116xjC233tMxISlX4dQvZboFGw-FXJ3wHnHk5BxssLZ4enQipg6l50Cn7ysAjFwivexUnR-HNuN9iDjzFnKvYmZpJTAMnpE94JO6FDdGRdLbBDiJQ2R8w89XLZV2jo4vY170oeZQiMCLb5-izgC2QBhd7yx5cGA98nm8Oxm_gpUzszGTb1Yf1eyuxl-AjvpB-jXFr8KdVn1cuOE10Nijo2UlP0LcGytFWHU57AiZxdH7bEmK1v5voHGx_ENcGEn9-axi8KUXpzrudEtMBKIeFZUmqDi2Mr2Ouiy1UU0mcm5LCfmdxLy1gNeCiou6ejpUIlJwm-xDrgpgkOz3rz_fnCQTN_LAItMMHBlrCokPXy_tDsapcTJZcpsqz_aeNzYPTvBZ64hG5tyT7yaP79XzC4v5qihSgpazcHiHRy8Aq_dbL8GsiKJDZ7Qo8oAsOv1IUHfPZhL1bP_72VK5hcW0rYSZ0VT3mLj2g03ggkepS0x1n2ELg05uOGtoq7JtPdMi9e1vX1V9bzuzsMk6VpzQQTSiq70RkOKPBRhO4TFIoG4F3iB1dFRO5EEx_SWxJrFXS8bDFdtwdw43bscdoR3jXr-MS_jMdMFGD46rkHRDAZ48yzzEy0aL3zd24j1zEr4fgARIkCFU6e15jF5YOAlIknpdd9-AQtjVXM8xsxj10bguCnn3ygzLNGyJDncq7iHDy_sG-BftuPpA-b297QZQsIHYoraQU0OE7KE_YcTa9i7imsa9gC8deoXGOP-7lKTQbyGUBnJU005r26-tArJ3BAvPAnzbvQAlkEa0SmYtkN3feJ_O5kW8g020RWAOJwepnRwdtvJNSULJ3wIUEmmsiHi-IU5EjfnpkeaJj09DsU6S81rF-ZHXHmdWrEbNwz8_AQop0igdz3YVfkNPrVajifdA9yd5PXerS_Yc7F9aeBa_9shhgisrXKSPYnhtPwCRpz41cHZ56tuxbxbNLXMwCwMhUURnB_i00oP5VmH8vlpVZQVIR78KPGweqZRkDZ8hB0qmqBUlZSUC4fAzdPYCKjQaM-aIrD3b8J7qres86XtvMP4s_xnUbIP_rTlDOhOGEfx8iMx2nOfEdvQgbyLjbKq2IGpZy4KyPo8wWEti8tV3dtYEQBGSpyc_Irepyu3RdPgOZBaQOowLM1QxBOTirgjH8c9UCoaXu9s_q9bbSGBPe586JXd6DWRe3Z8femGmvYUZ2bEeml0kCm8Z2BYphuM_lMW3dPvxAfffdHBU0eas6ejWzE6VeEB5F0i-soem2mVEYQGpgyDRq5fFhamdvsE9WP2_2Ly0X1nJ6R9rf8LKi9N-1xK1IAQKox4xew8qszPS43RVZnuWw9hEeMHLAJ-fA8c3bLDSP87Z6NjhoK5JR1aV65GSQVDcLfzhwxsPZICCjPHKQEpjasytTYmk0LkaZ7p7sbv2_Bz1s10i2_gW18vvh6HgO70Erv4qgYQb6wbhDwCejtlXHLeZCKWVUZJ2_lt643qp-VM4W6-JFB3vTSukuKNcOlsiB42tA8Pww1b--qoI0kPEWPT8ERAP9o9BAmqbKrkBaYUFHpItzEtlOE8c68as8BTlsK_edxKeKpZic5YENP1KwEYwlJ7etDPh0C4I4plqsns7fPmzU7IQP2EjfE5ECqCC-0t7KpuYh3YwTZlw6epz1QB9DxooWoJ-00TxPtcLvXUmRkfNUfSFQ2MuFKPe3cuedUryF274aBDBl5ZyQ5qf5AwwYWc3sySMPEt-sYu93KxQqgwRAqasFhbOjAB3T2AdDu4IccLfhTAz_Dj3PfFQCLusoap2lEDyaB7n0GlnIssY9ohR9ldZS8bnGWT5s-xVy9uVs_GvDiu-QU9KKfud9B0WgK6UXWxks0Z0vSB0esC5NLf52ta_kK5BSPeP2olDm3gH15NpPzhnrBfpwcTXM4H7kfBRCGIuEQ-vB440-eOMykbDfNxu7kiHDFiU40w71pyT2VBBQ7QSINd9bbI8CiR0RgSMyeMR81Usm3aS1_po-krJlGCwXQsdwFN0286SESKKGh50zkI05XR58XAkYN9A_vUT0_SIErtglImfN2ze1HUS6kDBx1netsEFUTOQeAnyvFEumc2cVmT1YwWaCD_Q4Xg0Yw0JrtQoKhB9IhuNVxHCxUQ_ahq22RnWS-m8qnuIHM95Mwru4m9fbCsPOyp0YKLL7zi85q3b5OLzrQMXpcaJswD7oyxWijykybW9GseVE7aQX8Hz5KAQXkeQur8sNxYNN76_AdAR9G9UlMsdl3oWR3tiTVJezvsbSY2eq8lfS4jQYEsFtkYMXPqvbPW6To2KVmq-UFVuQl9Nzk7Nev2GzIoO4BH5KHTpzFCHXyCR2rlf4j4SkUcOmO0Nfg0pWdLPqmztFCxZyYmgOrpPi3kpVvoT38DdQOrfuUxnkHi_OKlj625ynJEbmWxJWckoJceNLLv69cN-SzWArc-aFzO-XetTzAI4OeF0MSFamLxHUYAUNPAw_dwla4h2KgsqAxF3o8FhCGdikp6fCviCrwdb12yL1HapGckaPG4V_sJ2uOduPoLAotXkZxbfJcppacQumeLM4uWMZsSgeU_TYi_h-ZUh8zyxIoLRUhHJe61DemLzJtxMMi_6ozkJMcda4EFTmKO6Mr0OeYKam-7N4uRH6w6yBd83NNOUJhEJN5ryCavIjtHajINPwfEGh2D1WxdEpk73n9X4CzvimckwquNuKWw7PHz4G0jozpOCmS7YDXweGWNS5bWnbsCqorlhAkZ8foLGhHg3kjD-h6T8yNTflygzQq78CxTs3tidCIFEDFxpX0WH0jZGOSgWEqaQabEBSPsGC5okRIk3KHZDuIQHNudAvXt41U0COgPvqgb6P7Go8MQxJJU1JLdtrkBowWkbwx2VaqlGzmzHMBIOfH0Pcr3CD0Nccq-qgUUIyHytg1CBuwNim1DOPHeU7AcZhMOxViVIcRD8tjLBjwFWA6ZaDussRWn2_IEjuJjxzCNd6gocOdwbPDYHTebCi4Eb0YAaX7ah_-0QTJmt0wMbVNvDXBepOS75rUBBSwGMxeJBuAlewkSx9JInY_5qc-vbiAE99HLWTZIe0e_pAfKlZTiVValj7o6o4pNskFP2iwtuznzD058sPC3_U8a5AW92Tuo8lGWG5AoARo8CeOOMJwr_G6QtJ9NNgHAbyWU35L-cHSLpzaRK3q5t1Ihr-ziQ3l26qZgCRqsQsvB4UV3Iu-iccRQmyEVE6tDUlEno6KxAcMlKy4zEax1nbopB4Wncf4ZqAN-n7Stnp1jgroUsMQ72UY-pZMbdx9Vj77-3wY-SCsBogNLbP4B9P6pPW_xnXPcn3oOH0U115QSRJgVsEm7UJ97uK_DWzXrl-hPhjz8J1sw8OVKP-lSKSHW_68hT6gC"
+        },
+        {
+          "id": "rs_045205e27c69c9a7006a84e7120e2887d2895556b8d438cf7a",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOd-YmOpDYuoiQmjbf7EF9ckZMcqTVZzH875-ACbLToSu9y3aI48TFyqcnCXMLXhXczuVGn_TELDpdc2dSVqQ4THVsS0OrH3iCkzi1HYk0kiOLvkdSIVINEm6iII8ieN77A0fQ80HtyIw3P7dhsseeDWfMJ_Xd6VesTudaWPKzT8MLSka-27jtfMpgv6cdZlBtMKfdv5B2zHz8RpXeoFvLGCsd1gxOJZ4YdO00d_udhmmdRk1oQ8NUeHN7uqd175Gab1pEq1suad5kjv54EKl-eoLZKnGFMHM_YaJuigi6KorZS_gU9YtljKAcJzlYJGoXSBJtHXyV92Jux3FIcRpg07Y3xksvXuOwVIwG9mMA0PWbPEY_SkQU88Ozvb80dyhKGTIJv4bxxwgkh1ordBW93-85QK0fdupBzVHtdJbELad8x1Hh5iMQJT8Ew16PxPfLoncmKLlCf_Gs0ygE4q0Mh4joU5S1aI9NKZBKOAgH_K1BY5F2LInT4hCWV35L0-h0spW3baYSnzI9_jUjXZBAjaJWW7r5JyT2wDRuugJRM3SE3RRLBSO04pP10TNLJKj2GytkZgqvr22xjApBzfKJlxQzNigYRAR-Y6wMdje0bFBqNCtj3c3ExSla-9noipuHv0nkzs2PeidJHl3ibv_Lo9HG2a5ESs49_Y7vniWv4Jpo94yxlaqg5XX1_dZCiZ7cUXqpdPkrN2nV9Ze6i0mwfkdG33Nf_nUWHYTrEA9czPf0fKTN1iEasRuDx6vHbUVmFFLhUiIbdu7NKX8PgsmV5j-L8aDOsMYxc2O33kDwiEvkJw-6c6NbYxqnea8IJCdGSmv2bo8QB0nEFSwMLF657tZpP8c53fX_sjDxbxp4X-kEL_5JYxzwFl_odIHXOnAll_C8zOL0KVRJkKoFrbDWoIaAQhJ6npmDQTaDuNRZyw8pS7l0QQNTFgvTMmPyc6vbXT5NouT4gGuW1nFaWSNRo8z6wUYlY9UtNJps3W6i0P2NFkCoYBwjZmBoks-cuQ6voF3ShPkiftJcYXKfmtrzPhtsfudo9gpSS5WJqEPg2YBvR_3shhUjhh794pA16rvMgPWnQszdan3rO9bNrVzn1O3lABZpaprndLRys1q4HmHtwBJfRwUR-VkTqnMUnA1VVLjzItdmdl9Mifi_KK7iJ-Es7teusg3VwqVPX-q_IvUM2ObAcTBgiSTtfxy5n_oaTPLB-iuDMhGCh5v4fo3GBqV5YoorG2aygMjLU5tSN-ZfQvBYo5EDCounMAi728t7_7OX56ClfwCQelWGW3hCRdEk0H5cJ1H_zkjmEtS8-bgeEpPVkAqcGkK7KSDVJ5Qg1KExP7s0LqC_y9IfxzfbCD6HGeuFE9QShaGyG_8mpz9JtCWal-Gw8fkAmlpqZN12V-syHggm2gF0R8yAJCyRVsROuqdJTAUSJOevGI915pKZ7gwFhKrUC4BsxXbbV3JfChu4H5YaC4sErp0vOzD5sGoXPvPiE_zAI70iYrnumdSIvFReeS-PBUZMM4LCKwHoo_16sK9Fyu1-cRPuUBzuXD0j-jz8EPxWxJErPexd1r8e-FGyuYFt54Z-eu6_aTOujzCsYON5cKf1jbhzGI-MQ6KrAE4Z7fb5S_xc1M3o1EtN5sVvCZDMSWZOU7ouy6JTqMfuaxeha7sQYqQSmaH0py30zq1KZHxeUU16CdJjPoZ9uBbFG0qkCWJ2ek9e_umMJ1HiFnR0QTGIvJwtfBoKTAUGjtAFNXtRw1BNDcCDR_lytKJbCoG7Nb9hc8xsuEnEJmv7UFi5Z4qME2idvmyHqJPvmpV3ZDw5C3lB-SjwnDFE-VmzmTwrVdl81P1-6Jpfs1HxjbcHPvSSRjPXlTPDo7vifDfhdoA7ONNeXr8c93WjhKxwsFVxDBGhxznkbln3y4Q9CF6_X9okg12wv-6zQzwX5yCtQvlGTboNaWIxQoWPJUIzDGohDpQs67eKaCfYp8vblshZWWChRyIX_Uw3vvb_YVo42gp-6An3sv2RIvgEL-yz4kQehuDtbRnAe9V5zcaMbaCYfg-qI4Vgy95YluDLf5w7Faztvux5OGgu1meSyV6kAhZDhKtBVGRWfg8rvRGtjG1NUBjGpy9dVvXTTJKEZQlYGhkzsT4mceymyWTzBzACSL0DawMLDK_vX_kUsqoh9zS5mmRSzHOsHqc15IBvL5SKrFYQ-GdoBHRcjAid4b3cGSuhg2vwvHN1hoPTr8FsxuLGQ7QVgFsVsia0jwyyk1EmFOz6Nw5s14kwX7l_fQg9GTeDxqy2Wxy2GlHOjcHPyt-RXg-zgFRZIJpT1U6p4oxMgcWNqjSy82bdrB-n_oGOJHeGh7Cd3uha6VxkORd6g9cRrH7jx7PX7dY3B_NEa-cS7jUGubslxqPzyv-1QLK2PbIak4AY8il9KIGeehKLI3OiNpHSDnA_8GXK9NuCLKIFOaiPtIO62GFvpan3u63_edxx2SUm--FK4Pwt2J4qjjqvI5utgXKgykYGb0IalvVQ9cukDsaDvMUkTMoMddWmY0Wzl4O6GSCZ2a8CFaJKvil_iqfJmPQMCswQkxh7CBcHNwUp5O_d73sTACzu-D5g3KVtlfADluLvzF74c3H8Fm5iH-hztwKRmUq5Ech8x9alLw3I1CiCBABFd2ZzDZOLWF3U4Gqasc7O7UeBR_4eJtL20W64BytWsE7oa94mz1Rr37EGz4R-QSJ6Y1Fz3hYT8jP6D9pYwNwf8nLrbNptQTAuovRS7s06fVjUoi-fDFQTylByoYB1fAIPEZ7mLsJNsTcu9-LV0zTH6FZ0N6u_w7D2TLObZMmyvv8PgHA4nZXLVaGDj5jXdXdNMzLO7vZsa8SBUXJPcSF6c3mCg-rwoBXUjRedzM8d7bourX6UpRx5m0EM9qVAZpkbaKuRMvr-IImHTIXY3N6ZDxwOlT6Txgq6lTHqb57QWw8YGwFywBjjHsy6n62ZpD4dE0cvIBodiKktjwmtHs2elEsSFehzYrKp-PG6dg0R-8skmCA_7V40sZczQGeq5jxf1qx-jr1C67m7S9rJ06Zwq1qz_OqdZ1_Ci-JBXqZDLxNfNn79ZeKxEFp3NOCI4oNCIuIgQUXuUiZnD1gwDqPfSxgFDtEQF8Dr2JZJYamY1WtNaI-eTy9zqSSsg10TKHHEIgip9UHdBOPIhtWsJZjUWAMmcWdE_GbxM6hT9PRw4R6AmrCoF_ZZTzHtLihG-l5xpzwvPo-kK985CUzs36J5BWdpwReVd_bGRx10K0nRL1K1oUz0TtM0pW-r0r0EOUABCUE5Yao6CDJLEWNPmW3GNaXwnaY4VPn7ly8ZHfkP9pOkDPuQtLvlwMQdQVxXutVNxA9Br32bRovJWmVni5zkvZFc9O652Q6eXAfD5wr-Fw5DhAaJIRLEhwWwBaF2I_EdYawIZ8w_tvxm-T7qDNZbmZKK8lEr4g_XGGR_KkKwsiQDWDRLN-WNufV6UVnz-wZzjH3CD82GLXX276KVhBwzJCtsPd0pHmc7aPlg96fFs3tj6EnsL52zdyE8mO4Fw4Tt-cHvGt8C7XPnEuk5_0VdYhT00bX3rDMZx00xw7-SwfXl4_08qRTyZN7TwVfAU7w1Ie9Spz0drpAovJFTq0hyB_JC2BGgW29dgIca-KTvRWH0LyVIQUb4T64nU0E0VIVdZWf2oRI3RLnPuyD4pL4fDrucMceVjZWW17ijuukbtMsuM7-bE-ViKax9fEPlA9lr-B9vYOfkv5MQXzRCm9UHRrjOzWnX-qK2i69FrUy7OZSUAsBwvhfc_odBtUnX-G3oDALgk="
+        },
+        {
+          "id": "rs_045205e27c69c9a7006a84e71de19c87d2814742e900fcedf2",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOd-6W_TUZ-dG5Q5e7gPHpBH-QCuy4FCtxl55W_YVL55klKV2AFTEf2Fm00Qx4YZRZOxn7IwAP_msduJE4Cko40GD2MPOhIdE4C7ozsokT1dgNpomK4_pNW4EhxsAmRwp3s6VsYvpH9VIECYfUlNEupJiAVv531AhIkElC4ISqFvcyOq6cfWArA9ib1U61X9a7vWNNCK9rioICXxScDU2TLONl2euCKcijQDe0BENs5f0XBt74eTyUqZoG_rMQSOuXEmND6IExEYWId9m7bz0bGEFjCx2seGBryAH2F4nqgcJlkAJPzyJ62SYPVTnvkdHyVFew_BNZ5qUMr75OxnuDBkZTFAlMRHb3XX0h13H3rY24gfs2jHWD8rb78mRZp3lM0TtGITFAmCd3ujVG45_wF-y82zHoQr0VTbUQnYGPOppkl3irivXhJCeDyEiX0CZjGHSK151Gxv3p9NxxbJdjg4jaC1r1PieuTiq_RIc6kq5xb-w5n2BBwSyJATFhutevl7f5w4j5Rj4c1sVFGwzdWAz-dJQRDQGPkb7gdma6klQVAflHjXv1ncYOIMH_AMZtsF-HeTW4cHHHJhStZ84eoIYW8Xqe4kv8t-3VuR_lVQgxXMyFo_vEo_Lv2kA0BhIwTphFb6Vq6c-1I8QQ2kjLkX9FiBLywBfKV5uYUmkAOfWw_X8tOmU2z9Go_GJ89AK4xdW5zFZ6wIZHJevErJdP6QlQeHkZSBotxURidHlMkpxUpDN25RHxX5TrGU5JOhp0LVdYxHAR0ftyVVGPe4LyxE9fSK4QtzQISUXB-22yfD5JnUuRNt2tTUfYpFg6cjUL9pAxGirP-0GoHr7HTIRCXmGXpeTApXm6ssvpl25b6sm6PMYMAGpx8otfALmirgHRQWIz5p5nyN3wTNxOGGHuajjGuuneGZCK9sXwfvMNbXBvE44ct7I_Jwaz-AEnU3cjZzDyJ8zX3RXrmeQ0h8XGXnHi4VxwPAXQgkRGgWeKuDmFR3xMZ5QVhfmiMi9T-QWMY1ALvJDojCvxdODHxJj3kor3gS2SmpmYEEcnPAebPX8dIJ5UHUQiy06wxNikL7ndL9d7GoHgaqSTYmJnG5r_PghaIJokf5Fl0v72Ih7dD-_RfE1bjnUg-ppe0gmSt6D5XEsudXPktN5xihKksexk5S3IHLmXQEwQGN58SK1mGw-PVmc3Q10O7NHw5T7FCLmxmkqck7PgWDc20ojT7FAQ-zjsyhMJcAq1E4JsnJkmvAJUamZieFWa-S0Hr_Jd_tR5W4d74EQ-LaUMHnss4d4RFINQfKubsYTgTEnoKgaB1PT3YhvYKHSP5zFkCWxXkHMRSh0H-pO_NPf6tEhhl-4wNszVUjp8mWZp9yvmXQGXP5T1k5Amp-4KyF6T9BK7N3mdoOGi7UNb07bqXYsCHPGkpLoejjwClkPrddk9X7GJhtyfmF7kiraLXiHDR6uTvtDlMCMfuFAeaDnDifVh3GCKdDZscyFghoKQ1iS6fnxizU8A5wCMnpYZ77qrrTmYYF-ytjQcIvcZWha4khcXS_NiwB4ycda4hpxIyLoYhkMoTnpPNENu_4kEgujpr3UnKuwXsRf1hEpK3TxQFUwA2re2x5ye1bvuoAQN0VoBO04vWIXby2btv2fv7xD347FhGTwnZSvlE-Vmi2ve8uSw023L72uXLlzSH6BKmQO4rO90d8TxxmwYotwG4rrLAeiKdZWAYpEP8uxpqCHaKhz9i0jpese6SImH9mQsE1AyOfQM4ER1MzaSA6412mB3xxQ1uVnBnVOUdLYng1f1sPCwqEHg2ArLzpWp6UnVz5VktNn_dVdWrItQBkwFayydFNyjRzwzoOmyyXsGIoIPSr4oQt7Xmu_2bTG3UR81jM-GnIWRPqDyO7jIJIzzA4_FgqWolKTUw37QG0c4t6OJzJRywZ1vRIgQCNalnsJpKU2LcEpufWCFgANR1nRr5wB5EA4C-ofVcMRx3zrH8ByZQy6zoHEMOfHr7zo97GUaUGm8dgLtj9J6QcQNYQiafPSgF53e0IrMIfdQl4Lto3Et8wXAakHbpG1duwxEm5k_4C9CojOAQrIkXB-sNPQytYDkQ_Q_KQ5VCGMWl9f0DNj9cKS_6l6NPtC6ixYtYTX5ZnsQxjNcAqc88TmgBvdIBJIdrWMk6bhhSL6B88VO2vHJ-1Mw76BqOJToeswphxWBs34hAx5iYmagC_7s16lMNFuSZV52j6qGYfjC_lDocRQBUDpysXzxdk7vrq6Hi4Ylg18UOBz3EJ3eGBGN4z4NUwZ8tp6QgTV3eR7VqWWj4mTeyvDsh8pjRp8wj7OynWt1wzChOnte5r0PlOKcx2_0cQl4X_aioZGoHwutYJoq6ITs29UZQnWZnGkGZvC0malsG7zwyeXZJMvwROcRJNSBU8hnyE798arfvux3uX4KS3flGDD6YBhWLeLi9ZH46Km-0o39EXq2-J620x_S9Dcseq0QZhL_kIIxQXJK3lWoXDyaQaGDLnWkysqo0dnU3X-bNL9DMUYiThHagRsx2eS_k1Tz37UZav6m6Fh-wmKRTUmJmPWZHsZw_-1zNtckWC5Jz6tMBCjQu7dqohG29Lsk_KgvBCKRCpIdvr7_N0IB33X82cH5saDk49JdeTu2EawUARwiN7VxIUzVrc3ihBeRALoaS_PbY4npyqjqNvsXsfa_hW8QXbY-2TMSFXTxfa2eq8yIYItdcLnuG3mMsxesRwJQfcvfWZe4e0qEf-AQ0bEKt3AVTeNSVjVOpmaYytT9dPzCVKTq_0xq-lL3NHB48KJGUQa--ihleJJNjiGyvpaYZRmW-tfSgOO0TUgkedxTuNM7L90ZDGWpqkyMSEFDVLcWcC5UEp2iKzaBPDurURxKOAo0UMbe98StMB4T_R-ocxrlRKcxmly9H_5M5Rxtudnz7FZTz1jgu8-pwv4Ki2j22RV7R9u-cUmXs3L1VWLdZ3SlvLxDb2H19yqD6Z-ar6SJ3WQZZcd9yOHKtHxP9NefHNtUfCUXkKQ-XRB9QAeOGzVJicOHdpctD478TgO0lfA1vi8nZ7nl1q3OjnH6nnOVSjqxUb3cB2KEQApNiFO3oGOT4mn6jY31NcMqq2baP-uJeEfzZoHcou3n8fUdkylg8Cz7ihWLEzLEWyr-5o5Xodt250eXd51sCAn51n8PulBi2dUUtYaFIV0hcqgCN36cAO4XNI1SbEH_jpmPQ40RV5LU-fwUnqo4g7PbBkJ1EVaFK1FJ19q3Pfcd46W2yr1adNzdziBuT_2K_XNO8h2R9KvvVR1k3gjyNOQdeBJbmNGqjDaJERFLWAZpNZYtFCYWPseoL9pyyW7BPVDX7_-5JeBTGGdF2Nv0DbsApdjXuBL_WoJJqROHk9uGd-jEKZzS_U2mQCel1znNMm2oDmFWF5CErjAlkjp1aiN4BxKLS5TVsIpQg-RGiuSLNHa5fV2pqp6Zam8PcPDO84K2MGRWiJdDeFK7w1jdBFjNOnhx6cVBLwbsqhBrtT2_JvLYW8S8MXlvIAxayKzKY3gqgNMUtMIo6THhqB_2hcjasFEFuHW78OPdebhycsk5VrtO45CLZ2NkfddoC5TqUWJfupMQSAHngWeyCvVTV3VlzhSSG4kcIWyWwsJE_lWxDuKjvOryD3T4A_iRjDTrdW5JKLbv0bMyIc9hKnm4zFjODFGcfeAVOzH0eEPJTcPls2XsKrfbdBgWH2dOpaWkDCnEr23jolVJdemBh6ZJKYdhODZddinOJLsNTjMdKtIBSaZkwnDMihxjWb-UsDecaNsaAuN3tWjgflSzvbNlV7pdbAOX6rFU3k5X9jgeYu-IHlsHrvk7mw3KNOF458qctJZ7bJ-OQzUsCOMPM3sw2IOLJ0eONXpANy7RYuu8FvxnFd70VXzceSA9GNyfmIXw=="
+        },
+        {
+          "id": "rs_045205e27c69c9a7006a84e72a986487d28f19ed62e6f2938f",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOd-pwlpZ2xOSVSE1LpMnHqmBc3pI9sE9KPycf5pfEsM9xNc1kwD_LzwBJyMrO7c6YOyWgRzy2sI3cwvrWsR4oFb6uhA0zff77KSmt_lK2neqQPgxEV0XpzQ_8nwuYtXbuOQhyriWqLLPBo2dh7rSBp89VsESxbE8JiHjYg6JdftzbTj5MKWD27CB-Rcf-jWxYQDGpkzzU3YjADAF1Zve5BoYWTd4GwzSWDgRfj_LW9i_md27eeLysnYFHEYxPqqjswurt5ikVDvx4bxIFAWhhHNf8OoRkt5hR75luMLefXzJms_DFT4mdolRK5UfY33M4303NJQNeY1vrio7WQOTi6VIDnyApQPNL0iFRP4FLYVAUvxOxzXfvLOMMqLUcReuQyMoaFSn27R-rBj3v95RmG4i7Y-f9xAYKXZ8e6zDv80HbBF7eZSHNen7BroDJ4gD6WlaUaz47gwq1EVxsZj4Ase8NSnAOcXgZVa_UnnJO6fk9FXMgdTuql-G8l1qRvmWvAj8t0G659wqSgwRqmXpelMniIN9_xqIxVSlWyMe5EttXNjA0VQ_OJMfSqzMheALLThUzETg2LqFNE1Xi_LRLx5nmo5CamejwtqhrzWj001lZMfAQORl_vav6rQ6ADa3d5f5swpl-VkIl0kMunUk4Wy-7r2fK4s9lFkBxKaZ7KbkoTxnkrMSQrXkIgIjrMKkP7XuGHt_KcuSPrxQSqI2GAGqMBOAY-Ih520AjeClpv9zCtVz5jDiJbHNY5iQQGVK62EGot1pxnoPX6Q2tKQfg3c2gumXORluuvl0FWpid8J4Z7bhby8uKsy7Wa2QqJH05TPPxPZIuao3UVq1b_7QNZsokVT32MmDcnNvVJ-kBabz0eCaQfyWXku-wUxF686R5fxfZJQGN8dLuAv8RFawvOohBw9bWyV11pmdzX-XfdFBzU996dE58Gc6JBZak8XARDGkgLC1MCFmJoYjH0aQ6IfKqGqFfzp5QdPp_ewGN74ceZGkHexxVDpL2km1S_AvMTuxCBFslrcTnCbfUETKAS9yqwdcDgojzfMY78CNv9pi9bQt1vhRQErTGJHftj8fEjHHdeJUrcN1EEn3zodlFIEEOQSWmbZokRD58N5ihyh0Uc2MD5aDOurJ3Hlwubw7SnIya1OTAy25PlsZzi1GNy1nYmzr0nLmw_wlqL8rhgVgKGhsKmbIwAOlAsa4fuWjNpKLrLKuUjXwXJ3f8icm7OOZJ_eiZE-hGQLuXHxLfweBKCsffBshfoGUrxcjSNnPyt515op2uf9ZqlMN4LE6TPK_pExoj5hPuRj_u4vQSOL_qKWDEEF53jfy9XhYXCLgbXJ44U63aU4BTG2h6v-MC8BFC56DwTuXKsonueHhiH-WcYCav_sqgZYeJupWtVwZkAFiXxzwIqo-S3_0h6vHE-irZW8NI0je20jhv2O-VEiaJs0IyM9MSm6uH9tg947Wf7jSmCRFT5ClRrp-pm1ZxWY-Q-_MWHjzyCQ7O4xwpci0OviDjkMSUj_8E0mZDPFdyYu6mL7zYdvx1cUhUn2qqJsD4JxEqrHE83s6K55Dgmk1aqSCbjEgyiEh_zw9sg0t57X9jG7nEg7GJ8JvzUqnYimdD_2Z5O2x13A1ILBr0GPhk6SCHVs9XB4JKNQrUwuvrT6kSiXa4r9lF_OKO9JOBf5QSqpTD3qGkbAYQLbDSAQvvz-QImhUccHsdJz4Gn0CaJjRqqmMuv8cSR_21iYBLzlnqrS7gsgQo-z-53Il2dmw2tmLARvLfdCzBkyZU7ov3VXLD0jA_YyXBGyak1PQiUfic1EjP6rNY0QwJxFeQZwUdsdpgFdDAW2upF6aTA8XFG3OjfqMxBj3YfiA0THlekCQoH-oJmotDtPYYzJ5BTkGB_ArVGyqcVnssrdr1W2cZckOTWTyyrcejgESemRQmyfq4DKkpeyUY9yAqvIIb9fHRe7tEfdpqNnzEcgIQh1yJ1-OTXbMBz4koI-gcWbopJSVNwMVYiDZnCFtYRd1p1bnsuDcDa0s15-Zf3aMKf65M4am1euhOWdj6Kw_b10SQRAEMh_G4CmMOKvLvsgAr2vzkrQTly46amUHwfVwe1BWbqNbwe5A573cuEkilYvyVNXE-UQTFuGlQ7hKnFvoJ_mXsfQ0mzvCwqWGu2ZUyS9DoIvcSSr4VZNBmvacXesDKzidLAf3r_aWV_MpaqzP5Z95pd_746qJxTmewX3Ct6cXkQpqGi-vEU3payYV10UhC8Liv5Xj0lQgIaNfoLWqzoTr7wboPzr8pzkVal_C-Cmm0PBxaBUhit4wnenhHGNAmVXpbZ_x_Kuh7bI06qI50b4il-pyAvXRijc8MCxhOiYGpYGI9aDTHhkqFoTjnz8VmlsnCzDWqabKc7XwXQiltpMA37uPLKRkN3lE8IfF5LVxh055qidWTw-bV9I8IfjHciqkZWqXkTI6D00XstuPDSJOmR0WsY0EIL-A9E7rx2hIlTe6bY44YcEQfzZIAVHogONm2FJvYc-Sj-u5qwEnd0hCntqGba7GKOpMsFWH6E8RtlGWAfCFNZYaJYP1uXg7MKfwdd19fyqVa-fRf_TZH8sVj0xMnS2bDXp2IlljOXLJp1fyt2iGcViqyuRouiHiz244Xb1qE4YOI3XVgnewyRYMDUdWjDZsJ425YM53PDRvlmm9w9guBbTKIuPp7qBSSi1ylkqMzGbHdS8vfCk8-jmFZUaqoe5DhKTi2-wS6vt_e2LyOxlsu1hZNBBoGg1X09kw7Feb5IDbRrr5XaCNEk3FLBd2or4sBDf7Ncrq82rXR390JIfi7X5AdE8MLToMjZe4lYl49SFX_Pqp2BDbU9Yn3gn1RLXOlsmdFNGNQtX2LyqSXPBxOgGYg9DNsGtrR7wUjpBAihopyyPx5JMBx_Iufg8v9CzG9bfg_TOyI1j1RgSR2UWyeRp6dtZvi_lDBiGI94yyB2BJM9qQ5H47_REJd1c1tg94NI5VbPKQC9PwyDH2iFqLEgvUS3KKdr5Liih_0v_Jfgqma83ioQ3VZ20eWkHpLgnJoM7myUti69R6-TbGlU1kaCa30oyCypYi3VS8ERAygp6MWkPSF1aEhV_FNJyjm9atRhxu9UyEiitIvC7m3v6rO8V3Hl2SyusSaFyZE2Ev_gfeAU0rv5vvbEZI3yThVWxeL54Xs8k0ykeohgMLCQW0oYEsXVVzsihQLpHJR8byh8YvNw7yZ-TI1TPIgQAo6ZHI3Y5wlbxB5Y_xfdb8M0cUIt62JNLHwD5kANXJSqa6fyC-wgdIBmvqLPgDfckqmbgdA-aC7Hm9ccRbeC92pyIR9Z5PsbLL2_-4jtf1fEbk-dG88h4guzV8WWInlzCOiP-neinMktBtOfofIUdrMVsaIdM8nIhhKGSEn5m8ECGvX5gbKYHXHFSy_2Rlhk1s_yW_YWp0tKRTojdGqi1KdMq7sQr4RGmogAnnFxvV770HKuIfQueyW3G07339WFCIIW2B33y5ZaxffLWkGfF_KPhuXojqbql5dP86f2H7-lqGgoEbWhdimSpdsAJ7KgEybgKeegO8fOkLPSLgpcjs8Plk4aA2M8JsUqiZlnda4x7gwjo1JXtRonr0vf4rOZS1ffna_JzPFXhkhGYKu4glFXb3DsLFcKazVudAFWaBoYkhH1AzkVErDibBosimuBLq5HwrqEiuBqZIL7KYrEGXoh04Ky1M6WmyElB866VuUCh7grX0bYUEmOc7NQ8BNNm1ssOsMYmHoDCCCHUt5LOSQgilcO4IFbFIluy7H4SRhIGq2H8qf2URswOZlVyc0WOAeLpuSBcUC1VO6Ml7FmBuYjrQSUD26TQS2A9OfrtcxyUE4cowsMCV2mu6LW7ILbvlJxRWIcR2unfH84XPxGjU6W7_lJxz3rCEkDQyFZWvs4RkMbcjY980KKkjZ0WxTfJTTkN6t69ckt_fJAi3p-dqyMUx95kdzanLnNUy6eKBRzLDs2sMddLn13D3SnldM8fxaWxh7gM0rc7298Y6uEhKmUn20fRsn_ehrLqIGhmQGeWfjn9iZBUSKeFyTwJr75ziKBml2Liopf9F6FqXunQQCwSmUabjLTr4gVqvjVtT2Z3fR-M0OC7PGrUNcfjduuYI6mFsHXNu-ks9rjbPBG7"
+        },
+        {
+          "id": "rs_045205e27c69c9a7006a84e738195487d2937e844d85cbc65a",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOd-WFZ_jKFgdPyBNpVn0pcCvE6H-l2ndo1n0FPjoSa6WinAiumOENVE4W5XEMvAcVJwSTlprxe8bsyS3DSLjfYCe4qP2J2ZeIeYl_SH17UDT_wmXYuxpPtJtQAdPB-BslZRp55Qrm2IkounPMOJnToBRwhLG7IYbVJvE4S-VQaMUdJy57g6DSTUn8ktjO1vQgWmAFfn42ZNwm7oqvmTM-xk3jX4HGcTl1gCYvUjSg7AqcGs7RdhoKV6IQIPCDyn61y10RiPgMZpIgwyqiXmk4OQ3DApsb1prUXduJ1kls0Vy-rxRD_VnjKTcaXLmNYfClbx4XKkCbmAqysfB4TI4pNJYrE4rtsJAXCZFmZDSqcZtVB3vDg0vxWhetpgrw2RRfgEYLhs06tB_3DiFkLXa048YBd6lCYqIQC80ZqcAVsvRxF21bQ3LpOJRd6tVH2OwtgFtcWWq8yfhgnxNiEvL1euiDjH19bB3gmkuBT38na2RN_h4hv-uhAjvrjMf4xgNTnJxfaCNlyb25v_RF81CypbbzNPtjUMmnQtdQvLE6ELpjPyx-_Nd_ojc2k7eA-EflUXSVdhzMvIwAQHdLAlSukW1P3X8xs8_vk1Tfr0Vv7e5G8LrRGuIx0pueMN-fPAB_FqMxp5XIRoVzjiJ9BsDYZaVELsbXnvfr9v8E0hVp_VBMz7tVn-Vvdc30cDbhBrA5isk1qZUnH-CjynAu8iOxOw74v9z5zjSlmDOV_XSy-1gzAB9LOmlSaqIsUwMP-Y0LhCASXnrZFVcBLn9czVAP7Lw-9-na0TY1qqbj3-p6bnpo5nAA3Kt0ohAsyuy-KyfxyrCYh--XbRGrwAJjvKk2z8geRIIPQaj7wT8Tr4ZTz3S432r2VcXR_35kzy1fV0avSgf0Wtey0OQgS7-sk7ZKViCqEDKqzFDR9COehOlIpRBJlOdBMpIT3u5_yctoUOjvtlXPDRjqYe9mjrRyCCIX0ZWlEzjdIPi4VDSLaxmlQYkq-yW00VGACKMCpBC3of4DglxUNlsr_zmCM4jSxwKcxfpaOyFJdX5Gr4h7U_AoTgeS2sFh8_uE6LVjiAxAwgS0RvDxgtUqly32LsOj-DYhkP1HSDpZtPYF9A1kh98r4kPvp_iLfMHnJVD5gkCzYVqhh8KXztyElm4CKH__rVri6Ctzew3CT27d-tE-Mg3OPkeUAqSH8Ra5VkpGrh_fSIAgjBswbZKRepJ_PUgxk5ls-TPib_Wajbut8Lq971fHi0jTyxp4FLEoNq6cZJpj9H7NUFQeHpuG7ri4VwE6To54dT3tZirYJJxUNF3cCJHREA-nHcNKn07FHYlLqkLEZ32959_-8mK8Lpf5fYUz2buvnmIAc8sKggqaKNzxrWsLQh8M9cEvqhcjHbh3vFZ_Imd0W_vkSzQUWUi5EGPldL_elwVrM0cAfCzgmyeD-9YFwO_gYS3cGiF7672x0nBb-F2vc69xVeY7ZjxPLtEbUENFsKNkfytALM2djkZJDaaBo58SUFvJzSYSp7q5u1ZKxObrpGkN3q-WnnwrmjljxYWMM6T9LOC1AhergzTCT7LUoeywpqNCg_Rh2D0tqyqcKBWZexLJSFelPpsPCHPMgH8tLgtajVXxJl2BWgpBvmjXHD0dlTCcNA_84qJKBMOjH_DT0HTEmT1g3JUbs7MNRMppyfaVUw3nDmGurFwolt39OvOOWye0Egtv2Fyp8-0ti_hgDiVDgEVdGxCFYmPASDtHOp-2gRzOchC8qGfJgPZi2PXsXTW-KJR60PV05GP-4y02VHdT_9J6cT_LlWk8BvXSgwSM3u4WGbRSnhRirQl2Zmm_FCXG7SF2EAeAIeHpReT5UR_Xule0MpcshY9JLpnGaDiBTxpriyltKUN2FMlNIjU6KFuufUYSm6bMeZDudcP4Lfr_wv7LVsWS2wLf4iY6pPZ1PbFNBMYCN1duLxNX47JSYcwfchZb9uzvARWGZdXUL3wwauMX7UR8zmp4JghdZLSGqnvy4_2pxNLgFPi2GE3f3WlJ3jpfRFbHOXXD5qmPVAAHRu0wehDMWToslbw6H_qzGEP453Zrm8aZZsdGTr4S6lGV-mhFGuPFOPnsQgE0VKm0bLwBurMgDrt_E3vPRwMIwIV2UaQhcZcYKuCfIErKNSTNZ264WExts9vnAJ-PiEvhCQkRzH3MA9956dky1Z7lwO7cCPPiY0-gZVUmGr1ieWrjidq_055iGFJmYlg0qrctxKNsD8Qu-fDcP9nciaBKYvKVdhyMwPU6NaWy11JVkfPPOT8UkeYaAuuBUr0hj4wUZxWlcX7cVmfu9xsKhjzKIpEvk_SLdivMTy4DcZm6KD3d55v2aGx93QO1yEnBW5QgPczL7Y3H8RegWJKyHQSZglYM5tYTA89Nc342FZQ6BxlagKNhNmLv2l2SW3-BkARA1s3jrwgF1SOLweukN18XK3VTUiO2nWWgQ7zduOhHK6Hq0WE9iAciUhiIBpCJNlieDuzpjdGDmJlgW4NSGP3H-5otM5BZ7w_2ca8IeG0ItvhQ3XV50V6KYyOeQV0f5HUjBvwT_72T1nmQKzmT2xU0CC7vhnLGGIXnkPkPfRJI8kfIqeZi3ihJnAYrsrnLLrBbp6CHkOeDermpy3DlcT5H0N70ybEjYqFjOjalASTxN1XtJHXJKqjCM1WF2D0kPEIczKA-xl2HI16KUNxf6-9Y9KsFuh5moJTbeD8JvMeYYC-RpnNyhp_X68b3U1ZfMCbcwFDnULDnn3MUdbBwefb0xJlk_HnnK5K8H8Pjdm5vBHFoHTtMhJC8-2Ls53cav6i50UEYHODmFsRcjj5pPsOk3zSKYBLF2advpf9PP7W-obLzvqvhTgqmN86PKd30wNBXzLmhLiWbr7ffG9_R2ArwfAVx2RA_lw1AiLPn8xDsC3WQ1Sx7GHSeLe3fjiGF5gG19u3lkH2FpoWrmz_jycOy_pMqx0tjIX6NLU9xPIcm1MZKogrGl7OoIf-UcGrntUui9TqIsliX552xKPznUdSxzJrVB0859oIF-vpwH_157y7Z1KdCU9G5Tz904sk_Jead0aGpa4T5jwxkbLVgcF6PvOY8yl2w3E4RlOjsYu9Z2QOovOiJvAQNNlVYBvzS6njvojAAhx-64XJhfE6jvTgJhvwta48-cYpfPyB26_fUVoZTftfJhk7X58StvHs1otZ8UfMgUq9Vmqh3kwiuEqXLNdY9HW7ww6i6Am2fPhQwqrFw5CiACUfIOV7rmjyPE9PWDUGmFK0rLZeC3RJJPmPnY11g2zzIIIKbo0bj1Azk4ggCiSWb8U8GghQisRY8AkvIZjz7LKbfo7KOCBhn1rv3G3l5GEG3dO1phjz9ELTVrgqrV0j1PapAzrGUvyyuc9YoRbqlN1kHKSSGoeThGegjfD7p2MUBm_oApHFtlhzpnIS0L5fYXiKstl_5JkC3FVi4_gt1yCeU1mbf5WeXcHwxQZ89WNRxUXp_xxQtb8CkmcJMvuO66B6D9RmqkJA3fZ6oP528QJX-cgc5qJC53-3pCROjsY78NW4VH2nkxHODrCscibLLZuJtbtzbivtBVz4nSrA08qT_sHknOl3pEWjLzmKJqn4jCF2M702BFrqw88ea_5AoZ0YdXEe21V10-XxJ1S_H1E9qG64brStQP8c-jzz7FPRC_yfMvCPsrJie9AsU64IWDAeG-MbN90XA6rznTjNbQnYeDjeqlpBwwQ5ruZm3CswaqtllD6PkQ6cfEQ5y308AScdka20EaUMZfnE2zHxMEoTBWNnP77TsAY7DirTuW3PpnjEGXnMpvSsQA="
+        },
+        {
+          "id": "msg_045205e27c69c9a7006a84e741e4e087d286499331aa96f0f6",
+          "role": "assistant",
+          "type": "message",
+          "phase": "final_answer",
+          "status": "completed",
+          "content": [
+            {
+              "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Cocoa oat crunch\",\n      \"title\": \"Soy yoghurt, gluten-free oats, cocoa and pumpkin seeds\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"plain unsweetened soy yoghurt\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"certified gluten-free oats\",\n          \"quantity\": \"40 g\",\n          \"amount\": 40,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"pumpkin seeds\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"unsweetened cocoa powder\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Spoon the yoghurt into a bowl and scatter over the oats, pumpkin seeds and cocoa.\",\n      \"why\": \"This is a substantial no-cook breakfast before the extra Wednesday kitchen session.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 3\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Chickpea crunch plate\",\n      \"title\": \"Chickpeas, cucumber, green pepper and rice cakes\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"tinned chickpeas, drained\",\n          \"quantity\": \"130 g cooked\",\n          \"amount\": 130,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"cucumber\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"small green pepper\",\n          \"quantity\": \"1\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"plain certified gluten-free rice cakes\",\n          \"quantity\": \"3\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"rapeseed oil\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Slice the cucumber and pepper. Toss them with the chickpeas, lemon juice, rapeseed oil, salt and pepper, then eat with the rice cakes.\",\n      \"why\": \"The chickpeas anchor a quick lunch while cucumber and green pepper provide the green crunch requested.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 7\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Smoky lentil skillet\",\n      \"title\": \"Warm lentils, potatoes, courgette and green pepper\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Cook the smoky lentil and potato skillet during the Wednesday session and serve one portion immediately while hot. Cool and refrigerate the second portion promptly for Thursday.\",\n      \"why\": \"The hot lentil skillet gives dinner a warm anchor without turning Wednesday into a long batch-cooking evening.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_lentil_potato_skillet\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 35\n      },\n      \"honours_belief_keys\": [\n        \"a_warm_anchor_every_evening\",\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Cinnamon chia oat pot\",\n      \"title\": \"Soy yoghurt, gluten-free oats, chia seeds and cinnamon\",\n      \"slot\": \"breakfast\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"plain unsweetened soy yoghurt\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"certified gluten-free oats\",\n          \"quantity\": \"40 g\",\n          \"amount\": 40,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"chia seeds\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"ground cinnamon\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Stir the oats, chia seeds and cinnamon into the soy yoghurt. Leave for five minutes to soften slightly before eating.\",\n      \"why\": \"This keeps breakfast straightforward on the student's usual cooking day while soy yoghurt remains the anchor.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 6\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Lentil crunch cakes\",\n      \"title\": \"Lentil and potato skillet, cucumber and rice cakes\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"cucumber\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"plain certified gluten-free rice cakes\",\n          \"quantity\": \"3\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"cooked\"\n        }\n      ],\n      \"method\": \"Take the chilled skillet portion from the fridge and spoon it onto the rice cakes. Slice the cucumber and serve it alongside for contrast.\",\n      \"why\": \"Yesterday's lentil preparation becomes a cool, crisp lunch rather than a repeat of the warm dinner plate.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_lentil_potato_skillet\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Ginger tofu grain bowl\",\n      \"title\": \"Warm ginger tofu, vegetables, quinoa and cucumber\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"cucumber\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Cook the tofu tray and quinoa during the Thursday session. Put one hot portion of each in a bowl, add sliced cucumber and finish with lemon juice. Cool and refrigerate the remaining portions promptly.\",\n      \"why\": \"Hot quinoa forms a warm anchor, while cucumber keeps the midsummer dinner green and crunchy.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_ginger_tofu_tray\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_quinoa\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 40\n      },\n      \"honours_belief_keys\": [\n        \"a_warm_anchor_every_evening\",\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Savoury tofu crunch cakes\",\n      \"title\": \"Tofu, cucumber and rice cakes with tamari\",\n      \"slot\": \"breakfast\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"plain firm tofu\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"plain certified gluten-free rice cakes\",\n          \"quantity\": \"3\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"cucumber\",\n          \"quantity\": \"120 g\",\n          \"amount\": 120,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"certified gluten-free tamari\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Pat the tofu dry and slice it thinly. Arrange it on the rice cakes with sliced cucumber and spoon over the tamari.\",\n      \"why\": \"This savoury breakfast brings variety and a firm tofu anchor without adding another cooking session.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 6\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Lemony tofu crunch plate\",\n      \"title\": \"Ginger tofu, cucumber and rice cakes\",\n      \"slot\": \"lunch\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"cucumber\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"plain certified gluten-free rice cakes\",\n          \"quantity\": \"3\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Eat one chilled portion of ginger tofu with sliced cucumber and rice cakes. Squeeze the lemon over the tofu just before serving.\",\n      \"why\": \"The tray-baked tofu becomes a portable-feeling crunchy lunch suited to days spent building towards longer walks.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_ginger_tofu_tray\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Hot tofu quinoa supper\",\n      \"title\": \"Warm ginger tofu, vegetables and quinoa\",\n      \"slot\": \"dinner\",\n      \"day\": \"fri\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the remaining tofu and quinoa portions together until piping hot, then serve immediately.\",\n      \"why\": \"Reheated quinoa supplies a warm anchor and puts Friday dinner on the table with almost no work.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_ginger_tofu_tray\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_quinoa\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 7\n      },\n      \"honours_belief_keys\": [\n        \"a_warm_anchor_every_evening\",\n        \"the_basket_decides_the_week\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_lentil_potato_skillet\",\n      \"title\": \"Smoky lentil and potato skillet\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"tinned green or brown lentils, drained\",\n          \"quantity\": \"240 g cooked\",\n          \"amount\": 240,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"new potatoes\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"courgette\",\n          \"quantity\": \"250 g\",\n          \"amount\": 250,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"small green pepper\",\n          \"quantity\": \"1\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"rapeseed oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"ground cumin\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"water\",\n          \"quantity\": \"150 ml\",\n          \"amount\": 150,\n          \"unit\": \"ml\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Cut the potatoes into small cubes and slice the courgette and pepper. Heat the oil in a wide lidded pan, add the potatoes and cook for five minutes. Add the pepper, courgette, paprika and cumin and cook for another five minutes. Add the water, cover and simmer for twelve minutes, then fold in the lentils and cook uncovered for five minutes until hot and lightly saucy. Season and divide into two portions.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 35,\n      \"cook_on\": \"wed\"\n    },\n    {\n      \"id\": \"prep_ginger_tofu_tray\",\n      \"title\": \"Ginger tofu and summer vegetables\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"plain firm tofu\",\n          \"quantity\": \"450 g\",\n          \"amount\": 450,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"green beans\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"courgette\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"carrots\",\n          \"quantity\": \"240 g\",\n          \"amount\": 240,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"rapeseed oil\",\n          \"quantity\": \"1.5 tbsp\",\n          \"amount\": 1.5,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"certified gluten-free tamari\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"fresh ginger\",\n          \"quantity\": \"15 g\",\n          \"amount\": 15,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Heat the oven to 220°C, or 200°C fan. Pat the tofu dry and cut it into cubes. Trim the beans, slice the courgette and cut the carrots into thin batons. Grate the ginger, then toss everything with the oil, tamari, paprika and pepper on a large tray. Roast for 25 to 30 minutes, turning once, until the tofu is browned and the vegetables retain a little bite. Divide into three portions.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 40,\n      \"cook_on\": \"thu\"\n    },\n    {\n      \"id\": \"prep_quinoa\",\n      \"title\": \"Fluffy quinoa\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"quinoa\",\n          \"quantity\": \"100 g raw\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"water\",\n          \"quantity\": \"220 ml\",\n          \"amount\": 220,\n          \"unit\": \"ml\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Rinse the quinoa thoroughly. Put it in a small saucepan with the water and salt, bring to the boil, then cover and simmer gently for 15 minutes. Remove from the heat, stand covered for five minutes and fluff with a fork. Divide into two portions.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 25,\n      \"cook_on\": \"thu\"\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_lentil_potato_skillet\"\n      ],\n      \"total_minutes\": 35,\n      \"run_through\": \"This is the extra cooking day before the student's usual Thursday session. Chop the potatoes first and start them in the wide pan; prepare the courgette and pepper while they cook, add the seasonings and water, then drain the lentils while the vegetables simmer. Finish with the lentils, eat one portion hot and refrigerate the second promptly.\"\n    },\n    {\n      \"day\": \"thu\",\n      \"preparation_ids\": [\n        \"prep_ginger_tofu_tray\",\n        \"prep_quinoa\"\n      ],\n      \"total_minutes\": 45,\n      \"run_through\": \"Heat the oven and rinse the quinoa. Put the quinoa on the hob, then cut the tofu and vegetables and dress the tray. Roast the tray while the quinoa simmers; let the quinoa stand, turn the tray once, then portion both preparations. Eat one portion of each hot and refrigerate the Friday portions promptly.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"plain unsweetened soy yoghurt\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"plain firm tofu\",\n      \"quantity\": \"600 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"tinned chickpeas\",\n      \"quantity\": \"1 small 210 g tin\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"tinned green or brown lentils\",\n      \"quantity\": \"1 x 400 g tin\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"certified gluten-free oats\",\n      \"quantity\": \"80 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"plain certified gluten-free rice cakes\",\n      \"quantity\": \"12\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"quinoa\",\n      \"quantity\": \"100 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"pumpkin seeds\",\n      \"quantity\": \"1 tbsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"chia seeds\",\n      \"quantity\": \"1 tbsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"unsweetened cocoa powder\",\n      \"quantity\": \"1 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"ground cinnamon\",\n      \"quantity\": \"1 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"smoked paprika\",\n      \"quantity\": \"2 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"ground cumin\",\n      \"quantity\": \"1 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"certified gluten-free tamari\",\n      \"quantity\": \"5 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"rapeseed oil\",\n      \"quantity\": \"3 tbsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"new potatoes\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"courgettes\",\n      \"quantity\": \"550 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"small green peppers\",\n      \"quantity\": \"2\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"cucumbers\",\n      \"quantity\": \"about 720 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"green beans\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"carrots\",\n      \"quantity\": \"240 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"lemons\",\n      \"quantity\": \"2\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"fresh ginger\",\n      \"quantity\": \"15 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"salt\",\n      \"quantity\": \"1 small pack\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"black pepper\",\n      \"quantity\": \"1 small pack\",\n      \"aisle\": \"pantry\"\n    }\n  ]\n}",
+              "type": "output_text",
+              "logprobs": [],
+              "annotations": []
+            }
+          ]
+        }
+      ],
+      "status": "completed",
+      "billing": {
+        "payer": "developer"
+      },
+      "metadata": {
+        "source": "generate-meal-v1",
+        "user_id": "2a000000-0000-4000-8000-000000000005",
+        "request_id": "2a000000-5100-4000-8000-000000000001"
+      },
+      "reasoning": {
+        "mode": "standard",
+        "effort": "medium",
+        "context": "all_turns",
+        "summary": null
+      },
+      "background": false,
+      "created_at": 1787094758,
+      "moderation": null,
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "total_tokens": 0,
+          "output_tokens": 0,
+          "input_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          },
+          "output_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          }
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "truncation": "disabled",
+      "temperature": 1,
+      "tool_choice": "auto",
+      "completed_at": 1787094910,
+      "instructions": "You cook for ONE student, inside the method their coach teaches.\n\nOutput a single JSON object, nothing else. No prose outside the JSON, no markdown fences.\n\n== THE METHOD COMES FIRST, THE RECIPE IS YOURS ==\n\nYour coach's method is given below. It is not a suggestion: their forbidden practices and the foods they do not put on a plate are hard limits, and you never contradict them.\n\nInside those limits you are free. Write real food a real person wants to eat. You are not restricted to a catalogue.\n\n== A PORTION IS ONE PERSON'S PLATE ==\n\nYou are told how many people are at the table. Every quantity you write is for\nTHAT many people, for the number of servings the dish actually makes — and for\nnothing more.\n\nMeasured failure, and it is the one that makes a plan unusable: \"2 salmon\nfillets, 500 g potatoes\" written for ONE person eating ONE dinner. That is three\ndinners on a plate. If a quantity only makes sense because the dish is cooked in\na batch, then say so in `batch` — do not silently inflate a single plate.\n\nSanity, before you write a quantity: one adult portion is roughly a palm of\nprotein, a fist of starch, and vegetables on top. Scale from there. You never\ntell the student those figures; you use them so the numbers you DO write are\nbelievable.\n\n== EVERY MAIN MEAL IS BUILT AROUND A PROTEIN FOOD ==\n\nBreakfast, lunch and dinner each carry one whole protein food as their anchor:\nmeat, poultry, fish, seafood, eggs, pulses, tofu or tempeh, or a protein-carrying\ndairy like yogurt, skyr or cottage cheese. It is the thing the rest of the plate\nis built around, not a garnish on top of it.\n\nSnacks are snacks. They do not need one.\n\nNever write a figure for it. No grams of protein, no share of the plate, no\ntarget of any kind — you are choosing a food, not measuring a person.\n\n== THE STRETCH STARTS TODAY ==\n\nYou are told what day it is for this student, and the exact days to fill. Use\nTHOSE days, in that order, and no others.\n\nA plan handed to somebody on Wednesday that starts on Monday is half expired on\ndelivery — measured, and the first thing a student notices. There is no such\nthing as planning a day that has already gone.\n\n== COVER THE WHOLE STRETCH, WITH FEW COOKING SESSIONS ==\n\nWhen you are asked for several days, cover EVERY day of the stretch and every\nmeal that matters in it. A plan with Monday dinner and Wednesday dinner and\nnothing in between is not a plan — the student did not ask for a partial week,\nand holes are read as \"the system gave up\".\n\nCovering everything does not mean cooking everything. That is what the\npreparations below are for.\n\n== WHAT YOU COOK IS NOT WHAT YOU EAT ==\n\nThis is the important one, and it is what makes a week both quick and bearable.\n\nSeparate PREPARATIONS from DISHES.\n\n  A preparation is what comes out of one cooking session: 1.2 kg of roast\n  chicken thighs, a pot of chilli, a tray of roast vegetables, a batch of rice.\n  It carries its own ingredients — for the WHOLE batch — and its own method.\n\n  A dish is a meal on a day. It NAMES the preparations it draws on through\n  `uses`, and its own `ingredients` list only what you add at the moment of\n  eating: the salad, the bread, the yogurt, the lemon.\n\nWhy it matters: one cooking of chicken becomes a rice bowl on Monday, a wrap on\nTuesday and a curry base on Thursday. THREE DIFFERENT MEALS, ONE COOKING. Making\nthe same student eat the identical plate four days running is technically batch\ncooking and humanly a punishment — do not do it.\n\nRules that follow:\n  - anything that needs a pan, a pot or an oven is a PREPARATION making at\n    least two servings. Never a dish cooked from scratch twice in a week.\n  - assemblies that need no cooking — oats and yogurt, a sandwich, fruit and\n    nuts — are plain dishes with no `uses`, made fresh, quantities for one\n    plate.\n  - a dish that draws on a preparation does NOT repeat its recipe. Its method is\n    what you do at that meal: \"reheat a portion, add the salad and the lemon\".\n  - vary what you build from the same preparation. Same protein, different meal.\n\n== NAME THE COOKING SESSIONS, AND WRITE THE RUN-THROUGH ==\n\nGive `cooking_sessions`: the days on which the student actually cooks, which\npreparations get made in each, and the ORDER of the gestures — \"oven on for the\ntray, rice on while it roasts, chilli simmering next to it, box four portions\".\n\nAim for two or three sessions in a week, not seven. Every preparation belongs to\nexactly one session: a preparation nobody cooks is a plan the student cannot\nfollow.\n\n== NOTHING SITS IN THE FRIDGE FOR A WEEK ==\n\nA cooked batch is eaten within THREE DAYS of the day it was cooked. Cooked on\nThursday means eaten by Sunday, and that is the end of it. Beyond that it is not\na meal plan, it is a plan to throw food away or to get somebody ill.\n\nCooked rice and cooked seafood are tighter still: same day or the day after.\nRice left sitting is the classic way to make somebody sick, and no amount of\nconvenience is worth it.\n\nIf a batch would have to stretch further, you have three honest ways out: cook a\nsmaller batch, cook it twice, or say plainly in the method that the surplus goes\nin the FREEZER on the cooking day. Never stretch it in silence.\n\n== THE COOKING TIME THEY GAVE YOU IS A CEILING ==\n\nWhen a session time is stated, the session fits inside it. It is not a target to\napproach and overshoot: it is what they actually have that evening, and a\nsession that does not fit is a session they skip — after which the whole week\nfalls apart, not just that session.\n\nIf everything will not fit, cook LESS in that session and put the rest on\nanother cooking day. Fewer preparations that happen beat more preparations that\ndo not.\n\n== NOTHING IS EATEN BEFORE IT IS COOKED ==\n\nA preparation must be cooked ON OR BEFORE the first day that eats from it. If\nthe only cooking day you have is Sunday, then Thursday, Friday and Saturday\ncannot live off a Sunday batch — those days cook for themselves, or they eat\nsomething that needs no batch at all.\n\nThis is not a preference. A plan that feeds Thursday from a Sunday session is a\nplan that cannot be executed, and the student finds out at lunchtime.\n\n== HOW LONG THINGS TAKE ==\n\nEvery preparation carries two numbers, and they are not the same one.\n\"active_minutes\" is time with your hands on it — chopping, stirring, turning.\n\"total_minutes\" is from starting to finished, waiting included. A roast is 10\nactive and 50 total; that gap is the whole reason batch cooking works, because\nthe oven time is free for another preparation.\n\nA session's \"total_minutes\" is the wall clock of the session, NOT the sum of its\npreparations: things overlap, and pretending otherwise turns a comfortable\nninety-minute Sunday into a scary four-hour one nobody starts.\n\nRound to the nearest five. These are estimates a cook recognises, not\nmeasurements — but they are the numbers somebody uses to decide whether tonight\nis possible, so a wrong one costs a skipped meal.\n\n== WHAT TODAY ACTUALLY TAKES, ON EVERY DISH ==\n\nEvery dish carries \"same_day\": what the student does ON THE DAY THEY EAT IT to\nget that plate in front of them, and how long that gesture takes.\n\n  \"kind\" is one of four, and nothing else exists:\n    \"none\"        - nothing to prepare. Fruit, a yogurt, a plate already made.\n    \"reheat_only\" - take the portion out and heat it, and NOTHING else.\n    \"assemble\"    - build the plate from what is already cooked, no cooking.\n    \"cook_fresh\"  - a real cooking gesture that day: scramble the eggs, boil\n                    the pasta, sear the fish.\n\n  \"minutes\" is how long THAT gesture takes, that day. A whole number.\n\n\"minutes\" IS NOT THE TIME OF THE COOKING SESSION, and confusing the two is the\nfailure this field exists to stop. A portion of Sunday's roast, reheated on\nWednesday, is 8 minutes - not the 50 the roast took. Announcing 50 tells\nsomebody with ten minutes that dinner is out of reach, and they skip it.\n\nSay it on EVERY dish, including the ones where the answer is nothing. \"none\" and\n\"cook_fresh\" are answers; a missing line is a plate somebody stands in front of\nwithout knowing what to do. If the dish reheats, the word reheat is what they\nneed to read, so write \"reheat_only\" and say it again plainly in \"method\".\n\n== NEVER PUT A NUMBER ON NUTRITION ==\n\nNo calories. No macro grams. No percentages of anything nutritional. Not as a target, not as a range, not \"roughly\". Nobody has measured this student.\n\nShopping quantities are DIFFERENT and expected: \"400 g chicken thighs\", \"2 onions\", \"a bunch of parsley\". A quantity says how much to buy or use; a target claims a measurement of the person. Put quantities on ingredients, never on the student.\n\n== SAY THE SAME QUANTITY TWICE: ONCE FOR THE COOK, ONCE IN FIGURES ==\n\nEvery ingredient carries \"quantity\" — the phrase a person reads, exactly as you\nwrite it today — AND three plain fields that repeat it:\n\n  \"amount\": the number.\n  \"unit\":   one of \"g\", \"ml\", \"unit\", \"tbsp\", \"tsp\". Nothing else exists. If\n            what you meant is a handful, a cup, a bunch or a pinch, leave\n            \"amount\" and \"unit\" null and keep the phrase in \"quantity\".\n  \"state\":  \"raw\" or \"cooked\" — the weight you just wrote, before or after\n            cooking.\n\n\"state\" is REQUIRED for anything that takes on or loses water in the pan: rice,\npasta, couscous, lentils, dried beans, meat, poultry, fish. A hundred grams of\nrice is not the same food before and after it is boiled, and leaving it out\nmakes the line unusable. It does not matter for oil, nuts, cheese, yogurt or\nfruit — say it anyway when you know it.\n\nNever guess. An ingredient whose weight you do not actually know keeps its\nphrase and leaves the three fields null. A made-up number is worse than a\nmissing one.\n\nFATS, NUTS AND SWEETENERS ARE THE ONE EXCEPTION, and they are not a guess.\nOil, butter, ghee, cream, nut butter, tahini, nuts, seeds, honey, syrup and\nchocolate ALWAYS carry \"amount\" and \"unit\". \"A drizzle of olive oil\" is a\ntablespoon; write 1 and \"tbsp\". These ingredients are small on the page and\nenormous in the pan -- a spoon of oil weighs what a whole plate of vegetables\nweighs, and a line left blank there makes the entire dish unreadable. Salt,\npepper and herbs may stay a pinch; oil may not.\n\n== WHAT A DISH ADDS ON THE DAY IS WEIGHED OR COUNTED, NEVER VAGUE ==\n\nThe phrase in a DISH's \"quantity\" is either a weight -- \"100 g dried pasta\",\n\"40 g feta\" -- or something a person can count: \"half a lemon\", \"10 basil\nleaves\", \"2 eggs\". \"A handful\", \"a generous portion\", \"some rice\" say nothing\nanybody can act on, and they are why the same dish comes out different every\ntime. Salt, pepper and herbs may stay a pinch. Everything else gets a number.\n\n== THE STUDENT'S SITUATION IS NOT DECORATION ==\n\nThey tell you what their week actually looks like — a wedding on Tuesday, a holiday, a weekend away, a late shift. Cook around it. A meal that assumes an evening they do not have is a meal they will not make.\n\n== THE TWO MODES ==\n\nmode = from_pantry\n  Cook with what they ALREADY have. Reach outside their list only for genuine\n  staples (salt, pepper, oil, water) or when the dish is impossible otherwise.\n  Anything you use that they did not list will be shown to them as something to\n  buy, so keep that list short and say why it is needed.\n\nmode = to_shop\n  Compose freely, then give the shopping list the dish actually needs.\n\n== EVERY DISH HAS TWO LINES: A NAME, AND A TITLE ==\n\nThey are not the same line and they do not do the same job.\n\n  \"title\" is what is on the plate, plainly: \"Chicken, courgettes, peppers and\n  rice\". It is read out at the table, it is what somebody cooks from, and it\n  never changes job. Keep writing it exactly as you already do.\n\n  \"name\" is what this dish is CALLED: \"Golden roast chicken bowls\". Short --\n  six words at most. Appetising. It is the line somebody reads when they decide\n  whether they want to eat tonight.\n\nWrite BOTH, on every single dish: as many names as you have dishes. Count them\nbefore you answer.\n\nDo NOT make the title pretty instead. A title that becomes \"Sunshine of\nMarrakesh\" no longer says what is on the plate, and nobody can cook a name. If\nyou find yourself dressing up the title, that is the name -- put it in \"name\"\nand give the title back its plain words. And never write the same string twice:\na \"name\" identical to the title is a line that says nothing.\n\n== OUTPUT JSON SCHEMA ==\n\n{\n  \"dishes\": [\n    {\n      \"name\": \"short, appetising, six words at most -- what the dish is CALLED\",\n      \"title\": \"...\",\n      \"slot\": \"breakfast\"|\"snack_am\"|\"lunch\"|\"snack_pm\"|\"dinner\"|\"before_bed\"|null,\n      \"day\": \"mon\"|\"tue\"|\"wed\"|\"thu\"|\"fri\"|\"sat\"|\"sun\"|null,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"...\"|null,\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to make it, plainly, in a short paragraph\",\n      \"why\": \"one sentence: why THIS dish for THIS student this week\",\n      \"uses\": [{ \"preparation_id\": \"prep_chicken\", \"servings\": 1 }],\n      \"same_day\": { \"kind\": \"none\"|\"reheat_only\"|\"assemble\"|\"cook_fresh\",\n                    \"minutes\": <whole minutes for the day-of gesture> },\n      \"honours_belief_keys\": [\"<exact keys from the convictions list, when one applies>\"]\n    }\n  ],\n  \"preparations\": [\n    { \"id\": \"prep_chicken\", \"title\": \"Roast chicken thighs\",\n      \"servings_made\": 4,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"<for the WHOLE batch>\",\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to cook the batch\",\n      \"active_minutes\": <minutes of HANDS-ON work>,\n      \"total_minutes\": <minutes from starting to finished, waiting included>,\n      \"cook_on\": \"sun\"|null }\n  ],\n  \"cooking_sessions\": [\n    { \"day\": \"sun\", \"preparation_ids\": [\"prep_chicken\", \"prep_rice\"],\n      \"total_minutes\": <minutes the whole session takes, start to finish>,\n      \"run_through\": \"the order of the gestures, plainly\" }\n  ],\n  \"shopping_list\": [\n    { \"term\": \"...\", \"quantity\": \"...\"|null,\n      \"aisle\": \"produce\"|\"protein\"|\"dairy\"|\"grains\"|\"pantry\"|\"frozen\"|\"other\" }\n  ]\n}\n\nDay tokens are exactly: mon tue wed thu fri sat sun. Never translated.",
+      "service_tier": "default",
+      "top_logprobs": 0,
+      "max_tool_calls": null,
+      "presence_penalty": 0,
+      "prompt_cache_key": null,
+      "frequency_penalty": 0,
+      "max_output_tokens": null,
+      "safety_identifier": null,
+      "incomplete_details": null,
+      "parallel_tool_calls": true,
+      "previous_response_id": null,
+      "prompt_cache_retention": "24h"
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-18T23:06:09.502138+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:07:16.227791+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:07:48.06823+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:08:38.927369+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:09:34.708092+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:10:04.256591+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:11:02.663419+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:12:38.33287+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:15:10.910869+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

@@ -48,6 +48,10 @@ function person(over: Partial<MemberPortionView> = {}): MemberPortionView {
     memberId: "mem-kid",
     displayName: "Kid",
     portionNote: null,
+    // ⚠️ `null` = elle n'a rien déclaré, donc elle suit la maison — le cas
+    // nominal. Un test qui veut prouver qu'une bouche est ABSENTE d'un moment
+    // le dit explicitement (`eatingSlots: ["lunch", "dinner"]`).
+    eatingSlots: null,
     shares: [],
     ...over,
   };

@@ -469,6 +469,7 @@ const PROMPT_ARGS = {
     gender: "male",
     latestWeight: { weekStart: "2026-08-10", value: 74 },
     latestWaist: null,
+    declaredWeightKg: null,
     restrictionFlag: false,
   } as never,
   focusAxis: null,
@@ -490,7 +491,7 @@ const PROMPT_ARGS = {
  * est idempotent et ne change rien à ce que ce test mesure).
  */
 function turnMessage(note: string | null): string {
-  const built = buildMealPrompt({ ...PROMPT_ARGS });
+  const built = buildMealPrompt({ ...PROMPT_ARGS, safetyConstraintTable: null });
   const suffix = note === null ? "" : `\n\n${draftNoteInstruction(note)}`;
   return `${built.userMessage}${suffix}`;
 }

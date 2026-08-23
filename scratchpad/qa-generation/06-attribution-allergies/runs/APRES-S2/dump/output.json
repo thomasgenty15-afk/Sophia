@@ -1,0 +1,886 @@
+{
+  "request_id": "a2000002-0000-4000-8000-000000000002",
+  "resolved_by": "--request-id",
+  "user_id": "1e000000-0000-4000-8000-000000000012",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-19T00:25:54.074Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "e65acb10-7d91-4383-909a-ccec36184868",
+      "status": "attempt_start",
+      "created_at": "2026-08-19T00:24:34.679317+00:00",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 16134,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 16134,
+    "user_message_chars": 17373,
+    "user_message_truncated": false,
+    "user_message_written_chars": 17373,
+    "independent_counters": {
+      "system_prompt_chars": 16134,
+      "prompt_chars": 17373
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "86ce9125-9612-4e32-b60c-7567954d5051",
+    "created_at": "2026-08-19T00:25:53.524317+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "gemini",
+    "model": "gemini-3-flash-preview",
+    "http_status": 200,
+    "attempt": 1,
+    "chain_index": 1,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Lemon and Seed Morning Oats\",\n      \"title\": \"Porridge with lemon zest and sunflower seeds\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"rolled oats\",\n          \"quantity\": \"40 g\",\n          \"amount\": 40,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"milk\",\n          \"quantity\": \"200 ml\",\n          \"amount\": 200,\n          \"unit\": \"ml\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"sunflower seeds\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon zest\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Simmer the oats and milk in a small pan until creamy. Stir in the lemon zest and top with sunflower seeds.\",\n      \"why\": \"A warm, zesty start that avoids tree nuts while providing steady energy for the day.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Golden Seed Butter Toast\",\n      \"title\": \"Toasted bread with sunflower seed butter\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [\n        {\n          \"term\": \"bread\",\n          \"quantity\": \"1 slice\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"sunflower seed butter\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Toast the bread until golden and spread generously with the sunflower seed butter.\",\n      \"why\": \"I have swapped the requested nut butter for sunflower seed butter to keep the entire household safe from medical allergens.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 2\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Zesty Nut-Free Oats\",\n      \"title\": \"Porridge with lemon zest and sunflower seeds\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [\n        {\n          \"term\": \"rolled oats\",\n          \"quantity\": \"40 g\",\n          \"amount\": 40,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"milk\",\n          \"quantity\": \"200 ml\",\n          \"amount\": 200,\n          \"unit\": \"ml\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"sunflower seeds\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon zest\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Simmer the oats and milk in a pan. Stir in the lemon zest and top with the seeds, ensuring no cross-contamination with nuts.\",\n      \"why\": \"A safe, nut-free breakfast that provides the energy needed for a large lunch later.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Sizzling Beef & Pepper Rice\",\n      \"title\": \"Stir-fried beef and peppers with fluffy rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Reheat a portion of the beef and pepper mix in a pan until piping hot. Serve over the reheated rice.\",\n      \"why\": \"A high-protein lunch with vibrant peppers to meet the loud vegetable requirement.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_peppers\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_marceau\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_marceau\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"starch_follows_the_session\"\n      ]\n    },\n    {\n      \"name\": \"Hearty Beef & Pepper Power Bowl\",\n      \"title\": \"Stir-fried beef and peppers with rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the beef and rice in a pan. Ensure a larger portion of both for muscle gain support.\",\n      \"why\": \"Extra starch and protein at lunch to fuel the day's activity.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_peppers\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_bertille\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_bertille\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"starch_follows_the_session\"\n      ]\n    },\n    {\n      \"name\": \"Vibrant Beef & Pepper Stir-fry\",\n      \"title\": \"Stir-fried beef and peppers with rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the beef and peppers in a pan. Serve with a smaller portion of rice and extra peppers.\",\n      \"why\": \"Focuses on generous vegetables and full protein while managing starch intake.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_peppers\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_ysoline\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_ysoline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"starch_follows_the_session\"\n      ]\n    },\n    {\n      \"name\": \"Zesty Lemon Chicken & Mash\",\n      \"title\": \"Pan-seared lemon chicken with courgettes and potato mash\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the chicken and courgettes in a pan with a splash of water. Warm the mash in a separate pan and serve.\",\n      \"why\": \"A warm, comforting dinner that avoids the broken oven by using the hob.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_courgettes\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_marceau\"\n        },\n        {\n          \"preparation_id\": \"prep_mash\",\n          \"servings\": 1,\n          \"box_id\": \"box_mash_marceau\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Muscle-Fuel Lemon Chicken & Mash\",\n      \"title\": \"Lemon chicken and courgettes with extra mash\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the chicken and a generous portion of mash in pans until hot. Serve with the seared courgettes.\",\n      \"why\": \"Increased protein and starch for recovery and muscle growth.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_courgettes\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_bertille\"\n        },\n        {\n          \"preparation_id\": \"prep_mash\",\n          \"servings\": 1,\n          \"box_id\": \"box_mash_bertille\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Garden-Fresh Lemon Chicken & Mash\",\n      \"title\": \"Lemon chicken with extra courgettes and mash\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the chicken and courgettes. Serve with a small portion of mash, ensuring no fennel or nuts are present.\",\n      \"why\": \"A safe dinner focusing on generous portions of the 'loud' green vegetable.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_courgettes\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_ysoline\"\n        },\n        {\n          \"preparation_id\": \"prep_mash\",\n          \"servings\": 1,\n          \"box_id\": \"box_mash_ysoline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_rice\",\n      \"title\": \"Steamed Basmati Rice\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"basmati rice\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Rinse the rice. Boil in salted water for 10-12 minutes until tender. Drain and fluff with a fork.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_rice_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_rice_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_rice_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 250\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_beef_peppers\",\n      \"title\": \"Sizzling Beef and Bell Peppers\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"beef steak strips\",\n          \"quantity\": \"500 g\",\n          \"amount\": 500,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"bell peppers\",\n          \"quantity\": \"3 units\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Slice peppers into strips. Sear the beef in a hot pan with oil until browned. Add peppers and fry for 5 minutes until tender-crisp.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 15,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_beef_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_beef_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_beef_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 250\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_chicken_courgettes\",\n      \"title\": \"Lemon and Seed Pan-Seared Chicken\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"chicken thighs, boneless\",\n          \"quantity\": \"600 g\",\n          \"amount\": 600,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"courgettes\",\n          \"quantity\": \"3 units\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"sunflower seeds\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Slice courgettes into rounds. Sear chicken thighs in a pan until cooked through. Add courgettes, lemon juice, and sunflower seeds for the last 5 minutes.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_chicken_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_chicken_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_chicken_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 200\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_mash\",\n      \"title\": \"Smooth Potato Mash\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"potatoes\",\n          \"quantity\": \"600 g\",\n          \"amount\": 600,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Peel and boil potatoes until soft. Drain and mash thoroughly with olive oil and a pinch of salt.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_mash_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_mash_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_mash_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 200\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_rice\",\n        \"prep_beef_peppers\",\n        \"prep_chicken_courgettes\",\n        \"prep_mash\"\n      ],\n      \"total_minutes\": 50,\n      \"run_through\": \"Start the rice and potatoes boiling in separate pots. While they cook, slice the peppers and courgettes. Sear the beef and peppers in a large pan, then box. Sear the chicken, courgettes, and seeds in the same pan with lemon. Drain and mash the potatoes. Box all components separately for the day's meals.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"rolled oats\",\n      \"quantity\": \"100 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"milk\",\n      \"quantity\": \"500 ml\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"sunflower seeds\",\n      \"quantity\": \"100 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"lemons\",\n      \"quantity\": \"3 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"bread\",\n      \"quantity\": \"1 loaf\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"sunflower seed butter\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"basmati rice\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"beef steak strips\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"bell peppers\",\n      \"quantity\": \"3 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"chicken thighs, boneless\",\n      \"quantity\": \"600 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"potatoes\",\n      \"quantity\": \"600 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"courgettes\",\n      \"quantity\": \"3 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"100 ml\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"portion_note\": \"Larger protein and starch share, with standard vegetables.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"one full box\"\n        },\n        {\n          \"preparation_id\": \"prep_beef_peppers\",\n          \"note\": \"one full box\"\n        },\n        {\n          \"preparation_id\": \"prep_chicken_courgettes\",\n          \"note\": \"one full box\"\n        },\n        {\n          \"preparation_id\": \"prep_mash\",\n          \"note\": \"one full box\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"2a937736-693a-45f1-97a6-110f535ae004\",\n      \"portion_note\": \"A smaller share of both the protein and the starch components.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"two-thirds of the box\"\n        },\n        {\n          \"preparation_id\": \"prep_beef_peppers\",\n          \"note\": \"two-thirds of the box\"\n        },\n        {\n          \"preparation_id\": \"prep_chicken_courgettes\",\n          \"note\": \"two-thirds of the box\"\n        },\n        {\n          \"preparation_id\": \"prep_mash\",\n          \"note\": \"two-thirds of the box\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"portion_note\": \"Generous vegetables, full protein share, and a smaller starch share.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"half of the box\"\n        },\n        {\n          \"preparation_id\": \"prep_beef_peppers\",\n          \"note\": \"one full box, focusing on the peppers\"\n        },\n        {\n          \"preparation_id\": \"prep_chicken_courgettes\",\n          \"note\": \"one full box, focusing on the courgettes\"\n        },\n        {\n          \"preparation_id\": \"prep_mash\",\n          \"note\": \"half of the box\"\n        }\n      ]\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Lemon and Seed Morning Oats",
+          "title": "Porridge with lemon zest and sunflower seeds",
+          "slot": "breakfast",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "rolled oats",
+              "quantity": "40 g",
+              "amount": 40,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "milk",
+              "quantity": "200 ml",
+              "amount": 200,
+              "unit": "ml",
+              "state": "raw"
+            },
+            {
+              "term": "sunflower seeds",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            },
+            {
+              "term": "lemon zest",
+              "quantity": "half a lemon",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Simmer the oats and milk in a small pan until creamy. Stir in the lemon zest and top with sunflower seeds.",
+          "why": "A warm, zesty start that avoids tree nuts while providing steady energy for the day.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Golden Seed Butter Toast",
+          "title": "Toasted bread with sunflower seed butter",
+          "slot": "breakfast",
+          "day": "wed",
+          "for_member_id": "8917f344-51d8-4177-8c54-ff4460ef9122",
+          "ingredients": [
+            {
+              "term": "bread",
+              "quantity": "1 slice",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "sunflower seed butter",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Toast the bread until golden and spread generously with the sunflower seed butter.",
+          "why": "I have swapped the requested nut butter for sunflower seed butter to keep the entire household safe from medical allergens.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 2
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Zesty Nut-Free Oats",
+          "title": "Porridge with lemon zest and sunflower seeds",
+          "slot": "breakfast",
+          "day": "wed",
+          "for_member_id": "db0dcc2f-a0f4-46d7-90ab-980b8be0189c",
+          "ingredients": [
+            {
+              "term": "rolled oats",
+              "quantity": "40 g",
+              "amount": 40,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "milk",
+              "quantity": "200 ml",
+              "amount": 200,
+              "unit": "ml",
+              "state": "raw"
+            },
+            {
+              "term": "sunflower seeds",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            },
+            {
+              "term": "lemon zest",
+              "quantity": "half a lemon",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Simmer the oats and milk in a pan. Stir in the lemon zest and top with the seeds, ensuring no cross-contamination with nuts.",
+          "why": "A safe, nut-free breakfast that provides the energy needed for a large lunch later.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Sizzling Beef & Pepper Rice",
+          "title": "Stir-fried beef and peppers with fluffy rice",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [],
+          "method": "Reheat a portion of the beef and pepper mix in a pan until piping hot. Serve over the reheated rice.",
+          "why": "A high-protein lunch with vibrant peppers to meet the loud vegetable requirement.",
+          "uses": [
+            {
+              "preparation_id": "prep_beef_peppers",
+              "servings": 1,
+              "box_id": "box_beef_marceau"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_rice_marceau"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "starch_follows_the_session"
+          ]
+        },
+        {
+          "name": "Hearty Beef & Pepper Power Bowl",
+          "title": "Stir-fried beef and peppers with rice",
+          "slot": "lunch",
+          "day": "wed",
+          "for_member_id": "8917f344-51d8-4177-8c54-ff4460ef9122",
+          "ingredients": [],
+          "method": "Reheat the beef and rice in a pan. Ensure a larger portion of both for muscle gain support.",
+          "why": "Extra starch and protein at lunch to fuel the day's activity.",
+          "uses": [
+            {
+              "preparation_id": "prep_beef_peppers",
+              "servings": 1,
+              "box_id": "box_beef_bertille"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_rice_bertille"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "starch_follows_the_session"
+          ]
+        },
+        {
+          "name": "Vibrant Beef & Pepper Stir-fry",
+          "title": "Stir-fried beef and peppers with rice",
+          "slot": "lunch",
+          "day": "wed",
+          "for_member_id": "db0dcc2f-a0f4-46d7-90ab-980b8be0189c",
+          "ingredients": [],
+          "method": "Reheat the beef and peppers in a pan. Serve with a smaller portion of rice and extra peppers.",
+          "why": "Focuses on generous vegetables and full protein while managing starch intake.",
+          "uses": [
+            {
+              "preparation_id": "prep_beef_peppers",
+              "servings": 1,
+              "box_id": "box_beef_ysoline"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_rice_ysoline"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "starch_follows_the_session"
+          ]
+        },
+        {
+          "name": "Zesty Lemon Chicken & Mash",
+          "title": "Pan-seared lemon chicken with courgettes and potato mash",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [],
+          "method": "Reheat the chicken and courgettes in a pan with a splash of water. Warm the mash in a separate pan and serve.",
+          "why": "A warm, comforting dinner that avoids the broken oven by using the hob.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_courgettes",
+              "servings": 1,
+              "box_id": "box_chicken_marceau"
+            },
+            {
+              "preparation_id": "prep_mash",
+              "servings": 1,
+              "box_id": "box_mash_marceau"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Muscle-Fuel Lemon Chicken & Mash",
+          "title": "Lemon chicken and courgettes with extra mash",
+          "slot": "dinner",
+          "day": "wed",
+          "for_member_id": "8917f344-51d8-4177-8c54-ff4460ef9122",
+          "ingredients": [],
+          "method": "Reheat the chicken and a generous portion of mash in pans until hot. Serve with the seared courgettes.",
+          "why": "Increased protein and starch for recovery and muscle growth.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_courgettes",
+              "servings": 1,
+              "box_id": "box_chicken_bertille"
+            },
+            {
+              "preparation_id": "prep_mash",
+              "servings": 1,
+              "box_id": "box_mash_bertille"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Garden-Fresh Lemon Chicken & Mash",
+          "title": "Lemon chicken with extra courgettes and mash",
+          "slot": "dinner",
+          "day": "wed",
+          "for_member_id": "db0dcc2f-a0f4-46d7-90ab-980b8be0189c",
+          "ingredients": [],
+          "method": "Reheat the chicken and courgettes. Serve with a small portion of mash, ensuring no fennel or nuts are present.",
+          "why": "A safe dinner focusing on generous portions of the 'loud' green vegetable.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_courgettes",
+              "servings": 1,
+              "box_id": "box_chicken_ysoline"
+            },
+            {
+              "preparation_id": "prep_mash",
+              "servings": 1,
+              "box_id": "box_mash_ysoline"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_rice",
+          "title": "Steamed Basmati Rice",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "basmati rice",
+              "quantity": "300 g",
+              "amount": 300,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Rinse the rice. Boil in salted water for 10-12 minutes until tender. Drain and fluff with a fork.",
+          "active_minutes": 5,
+          "total_minutes": 20,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_rice_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 250
+            },
+            {
+              "id": "box_rice_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 250
+            },
+            {
+              "id": "box_rice_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 250
+            }
+          ]
+        },
+        {
+          "id": "prep_beef_peppers",
+          "title": "Sizzling Beef and Bell Peppers",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "beef steak strips",
+              "quantity": "500 g",
+              "amount": 500,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "bell peppers",
+              "quantity": "3 units",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Slice peppers into strips. Sear the beef in a hot pan with oil until browned. Add peppers and fry for 5 minutes until tender-crisp.",
+          "active_minutes": 10,
+          "total_minutes": 15,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_beef_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 250
+            },
+            {
+              "id": "box_beef_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 250
+            },
+            {
+              "id": "box_beef_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 250
+            }
+          ]
+        },
+        {
+          "id": "prep_chicken_courgettes",
+          "title": "Lemon and Seed Pan-Seared Chicken",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "chicken thighs, boneless",
+              "quantity": "600 g",
+              "amount": 600,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "courgettes",
+              "quantity": "3 units",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "sunflower seeds",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "lemon",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Slice courgettes into rounds. Sear chicken thighs in a pan until cooked through. Add courgettes, lemon juice, and sunflower seeds for the last 5 minutes.",
+          "active_minutes": 10,
+          "total_minutes": 20,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_chicken_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 200
+            },
+            {
+              "id": "box_chicken_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 200
+            },
+            {
+              "id": "box_chicken_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 200
+            }
+          ]
+        },
+        {
+          "id": "prep_mash",
+          "title": "Smooth Potato Mash",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "potatoes",
+              "quantity": "600 g",
+              "amount": 600,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Peel and boil potatoes until soft. Drain and mash thoroughly with olive oil and a pinch of salt.",
+          "active_minutes": 10,
+          "total_minutes": 25,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_mash_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 200
+            },
+            {
+              "id": "box_mash_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 200
+            },
+            {
+              "id": "box_mash_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 200
+            }
+          ]
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_rice",
+            "prep_beef_peppers",
+            "prep_chicken_courgettes",
+            "prep_mash"
+          ],
+          "total_minutes": 50,
+          "run_through": "Start the rice and potatoes boiling in separate pots. While they cook, slice the peppers and courgettes. Sear the beef and peppers in a large pan, then box. Sear the chicken, courgettes, and seeds in the same pan with lemon. Drain and mash the potatoes. Box all components separately for the day's meals."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "rolled oats",
+          "quantity": "100 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "milk",
+          "quantity": "500 ml",
+          "aisle": "dairy"
+        },
+        {
+          "term": "sunflower seeds",
+          "quantity": "100 g",
+          "aisle": "pantry"
+        },
+        {
+          "term": "lemons",
+          "quantity": "3 units",
+          "aisle": "produce"
+        },
+        {
+          "term": "bread",
+          "quantity": "1 loaf",
+          "aisle": "grains"
+        },
+        {
+          "term": "sunflower seed butter",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "basmati rice",
+          "quantity": "300 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "beef steak strips",
+          "quantity": "500 g",
+          "aisle": "protein"
+        },
+        {
+          "term": "bell peppers",
+          "quantity": "3 units",
+          "aisle": "produce"
+        },
+        {
+          "term": "chicken thighs, boneless",
+          "quantity": "600 g",
+          "aisle": "protein"
+        },
+        {
+          "term": "potatoes",
+          "quantity": "600 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "courgettes",
+          "quantity": "3 units",
+          "aisle": "produce"
+        },
+        {
+          "term": "olive oil",
+          "quantity": "100 ml",
+          "aisle": "pantry"
+        }
+      ],
+      "member_portions": [
+        {
+          "member_id": "8917f344-51d8-4177-8c54-ff4460ef9122",
+          "portion_note": "Larger protein and starch share, with standard vegetables.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_rice",
+              "note": "one full box"
+            },
+            {
+              "preparation_id": "prep_beef_peppers",
+              "note": "one full box"
+            },
+            {
+              "preparation_id": "prep_chicken_courgettes",
+              "note": "one full box"
+            },
+            {
+              "preparation_id": "prep_mash",
+              "note": "one full box"
+            }
+          ]
+        },
+        {
+          "member_id": "2a937736-693a-45f1-97a6-110f535ae004",
+          "portion_note": "A smaller share of both the protein and the starch components.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_rice",
+              "note": "two-thirds of the box"
+            },
+            {
+              "preparation_id": "prep_beef_peppers",
+              "note": "two-thirds of the box"
+            },
+            {
+              "preparation_id": "prep_chicken_courgettes",
+              "note": "two-thirds of the box"
+            },
+            {
+              "preparation_id": "prep_mash",
+              "note": "two-thirds of the box"
+            }
+          ]
+        },
+        {
+          "member_id": "db0dcc2f-a0f4-46d7-90ab-980b8be0189c",
+          "portion_note": "Generous vegetables, full protein share, and a smaller starch share.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_rice",
+              "note": "half of the box"
+            },
+            {
+              "preparation_id": "prep_beef_peppers",
+              "note": "one full box, focusing on the peppers"
+            },
+            {
+              "preparation_id": "prep_chicken_courgettes",
+              "note": "one full box, focusing on the courgettes"
+            },
+            {
+              "preparation_id": "prep_mash",
+              "note": "half of the box"
+            }
+          ]
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "candidates": [
+        {
+          "index": 0,
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Lemon and Seed Morning Oats\",\n      \"title\": \"Porridge with lemon zest and sunflower seeds\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"rolled oats\",\n          \"quantity\": \"40 g\",\n          \"amount\": 40,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"milk\",\n          \"quantity\": \"200 ml\",\n          \"amount\": 200,\n          \"unit\": \"ml\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"sunflower seeds\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon zest\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Simmer the oats and milk in a small pan until creamy. Stir in the lemon zest and top with sunflower seeds.\",\n      \"why\": \"A warm, zesty start that avoids tree nuts while providing steady energy for the day.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Golden Seed Butter Toast\",\n      \"title\": \"Toasted bread with sunflower seed butter\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [\n        {\n          \"term\": \"bread\",\n          \"quantity\": \"1 slice\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"sunflower seed butter\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Toast the bread until golden and spread generously with the sunflower seed butter.\",\n      \"why\": \"I have swapped the requested nut butter for sunflower seed butter to keep the entire household safe from medical allergens.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 2\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Zesty Nut-Free Oats\",\n      \"title\": \"Porridge with lemon zest and sunflower seeds\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [\n        {\n          \"term\": \"rolled oats\",\n          \"quantity\": \"40 g\",\n          \"amount\": 40,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"milk\",\n          \"quantity\": \"200 ml\",\n          \"amount\": 200,\n          \"unit\": \"ml\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"sunflower seeds\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon zest\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Simmer the oats and milk in a pan. Stir in the lemon zest and top with the seeds, ensuring no cross-contamination with nuts.\",\n      \"why\": \"A safe, nut-free breakfast that provides the energy needed for a large lunch later.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Sizzling Beef & Pepper Rice\",\n      \"title\": \"Stir-fried beef and peppers with fluffy rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Reheat a portion of the beef and pepper mix in a pan until piping hot. Serve over the reheated rice.\",\n      \"why\": \"A high-protein lunch with vibrant peppers to meet the loud vegetable requirement.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_peppers\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_marceau\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_marceau\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"starch_follows_the_session\"\n      ]\n    },\n    {\n      \"name\": \"Hearty Beef & Pepper Power Bowl\",\n      \"title\": \"Stir-fried beef and peppers with rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the beef and rice in a pan. Ensure a larger portion of both for muscle gain support.\",\n      \"why\": \"Extra starch and protein at lunch to fuel the day's activity.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_peppers\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_bertille\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_bertille\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"starch_follows_the_session\"\n      ]\n    },\n    {\n      \"name\": \"Vibrant Beef & Pepper Stir-fry\",\n      \"title\": \"Stir-fried beef and peppers with rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the beef and peppers in a pan. Serve with a smaller portion of rice and extra peppers.\",\n      \"why\": \"Focuses on generous vegetables and full protein while managing starch intake.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_peppers\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_ysoline\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_ysoline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"starch_follows_the_session\"\n      ]\n    },\n    {\n      \"name\": \"Zesty Lemon Chicken & Mash\",\n      \"title\": \"Pan-seared lemon chicken with courgettes and potato mash\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the chicken and courgettes in a pan with a splash of water. Warm the mash in a separate pan and serve.\",\n      \"why\": \"A warm, comforting dinner that avoids the broken oven by using the hob.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_courgettes\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_marceau\"\n        },\n        {\n          \"preparation_id\": \"prep_mash\",\n          \"servings\": 1,\n          \"box_id\": \"box_mash_marceau\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Muscle-Fuel Lemon Chicken & Mash\",\n      \"title\": \"Lemon chicken and courgettes with extra mash\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the chicken and a generous portion of mash in pans until hot. Serve with the seared courgettes.\",\n      \"why\": \"Increased protein and starch for recovery and muscle growth.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_courgettes\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_bertille\"\n        },\n        {\n          \"preparation_id\": \"prep_mash\",\n          \"servings\": 1,\n          \"box_id\": \"box_mash_bertille\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Garden-Fresh Lemon Chicken & Mash\",\n      \"title\": \"Lemon chicken with extra courgettes and mash\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the chicken and courgettes. Serve with a small portion of mash, ensuring no fennel or nuts are present.\",\n      \"why\": \"A safe dinner focusing on generous portions of the 'loud' green vegetable.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_courgettes\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_ysoline\"\n        },\n        {\n          \"preparation_id\": \"prep_mash\",\n          \"servings\": 1,\n          \"box_id\": \"box_mash_ysoline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_rice\",\n      \"title\": \"Steamed Basmati Rice\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"basmati rice\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Rinse the rice. Boil in salted water for 10-12 minutes until tender. Drain and fluff with a fork.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_rice_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_rice_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_rice_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 250\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_beef_peppers\",\n      \"title\": \"Sizzling Beef and Bell Peppers\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"beef steak strips\",\n          \"quantity\": \"500 g\",\n          \"amount\": 500,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"bell peppers\",\n          \"quantity\": \"3 units\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Slice peppers into strips. Sear the beef in a hot pan with oil until browned. Add peppers and fry for 5 minutes until tender-crisp.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 15,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_beef_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_beef_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_beef_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 250\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_chicken_courgettes\",\n      \"title\": \"Lemon and Seed Pan-Seared Chicken\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"chicken thighs, boneless\",\n          \"quantity\": \"600 g\",\n          \"amount\": 600,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"courgettes\",\n          \"quantity\": \"3 units\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"sunflower seeds\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Slice courgettes into rounds. Sear chicken thighs in a pan until cooked through. Add courgettes, lemon juice, and sunflower seeds for the last 5 minutes.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_chicken_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_chicken_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_chicken_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 200\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_mash\",\n      \"title\": \"Smooth Potato Mash\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"potatoes\",\n          \"quantity\": \"600 g\",\n          \"amount\": 600,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Peel and boil potatoes until soft. Drain and mash thoroughly with olive oil and a pinch of salt.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_mash_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_mash_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_mash_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 200\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_rice\",\n        \"prep_beef_peppers\",\n        \"prep_chicken_courgettes\",\n        \"prep_mash\"\n      ],\n      \"total_minutes\": 50,\n      \"run_through\": \"Start the rice and potatoes boiling in separate pots. While they cook, slice the peppers and courgettes. Sear the beef and peppers in a large pan, then box. Sear the chicken, courgettes, and seeds in the same pan with lemon. Drain and mash the potatoes. Box all components separately for the day's meals.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"rolled oats\",\n      \"quantity\": \"100 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"milk\",\n      \"quantity\": \"500 ml\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"sunflower seeds\",\n      \"quantity\": \"100 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"lemons\",\n      \"quantity\": \"3 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"bread\",\n      \"quantity\": \"1 loaf\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"sunflower seed butter\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"basmati rice\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"beef steak strips\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"bell peppers\",\n      \"quantity\": \"3 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"chicken thighs, boneless\",\n      \"quantity\": \"600 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"potatoes\",\n      \"quantity\": \"600 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"courgettes\",\n      \"quantity\": \"3 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"100 ml\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"portion_note\": \"Larger protein and starch share, with standard vegetables.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"one full box\"\n        },\n        {\n          \"preparation_id\": \"prep_beef_peppers\",\n          \"note\": \"one full box\"\n        },\n        {\n          \"preparation_id\": \"prep_chicken_courgettes\",\n          \"note\": \"one full box\"\n        },\n        {\n          \"preparation_id\": \"prep_mash\",\n          \"note\": \"one full box\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"2a937736-693a-45f1-97a6-110f535ae004\",\n      \"portion_note\": \"A smaller share of both the protein and the starch components.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"two-thirds of the box\"\n        },\n        {\n          \"preparation_id\": \"prep_beef_peppers\",\n          \"note\": \"two-thirds of the box\"\n        },\n        {\n          \"preparation_id\": \"prep_chicken_courgettes\",\n          \"note\": \"two-thirds of the box\"\n        },\n        {\n          \"preparation_id\": \"prep_mash\",\n          \"note\": \"two-thirds of the box\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"portion_note\": \"Generous vegetables, full protein share, and a smaller starch share.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"half of the box\"\n        },\n        {\n          \"preparation_id\": \"prep_beef_peppers\",\n          \"note\": \"one full box, focusing on the peppers\"\n        },\n        {\n          \"preparation_id\": \"prep_chicken_courgettes\",\n          \"note\": \"one full box, focusing on the courgettes\"\n        },\n        {\n          \"preparation_id\": \"prep_mash\",\n          \"note\": \"half of the box\"\n        }\n      ]\n    }\n  ]\n}",
+                "thoughtSignature": "[redacted]"
+              }
+            ]
+          },
+          "finishReason": "STOP"
+        }
+      ],
+      "responseId": "4PeEarKwKsrkxN8P1en5sAI",
+      "modelVersion": "gemini-3-flash-preview",
+      "usageMetadata": {
+        "serviceTier": "standard",
+        "totalTokenCount": 19502,
+        "promptTokenCount": 8676,
+        "thoughtsTokenCount": 4707,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 8676
+          }
+        ],
+        "candidatesTokenCount": 6119
+      }
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-19T00:24:34.679317+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T00:24:35.222057+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:24:39.004628+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:24:39.011284+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:24:39.015372+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:25:00.467003+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T00:25:01.152557+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:25:04.483657+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:25:04.491601+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:25:04.49618+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:25:53.524317+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

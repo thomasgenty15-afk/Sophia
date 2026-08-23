@@ -59,6 +59,14 @@ export const ALLERGEN_OPTIONS: readonly AllergenOption[] = [
   { slug: "soy", labelKey: "allergen.soy" },
   { slug: "pork", labelKey: "allergen.pork" },
   { slug: "alcohol", labelKey: "allergen.alcohol" },
+  // ── LES QUATRE MAJEURS RÉGLEMENTAIRES AJOUTÉS LE 2026-08-19 ──────────────
+  // EN QUEUE, ET DANS CET ORDRE: le test de dérive compare les deux listes
+  // POSITION PAR POSITION (`toEqual`, pas un ensemble). Les intercaler par
+  // fréquence aurait déplacé douze cases sous les doigts des élèves existants.
+  { slug: "celery", labelKey: "allergen.celery" },
+  { slug: "mustard", labelKey: "allergen.mustard" },
+  { slug: "sulphite", labelKey: "allergen.sulphite" },
+  { slug: "lupin", labelKey: "allergen.lupin" },
 ];
 
 const BY_SLUG = new Map(ALLERGEN_OPTIONS.map((o) => [o.slug, o]));
@@ -107,6 +115,24 @@ export const WIDE_COVERAGE_SLUGS: readonly string[] = [
   "alcohol",
   "pork",
   "shrimp",
+  // Les six clés du lot du 2026-08-19. Quatre sont proposées à l'écran;
+  // `celeriac` et `sulfite` ne le sont PAS — ce sont les graphies qu'un élève
+  // tape en saisie libre, et sans elles il s'entendrait dire « reconnu
+  // seulement sous ce mot » sur un slug que le verrou couvre largement.
+  "celery",
+  "celeriac",
+  "mustard",
+  "sulphite",
+  "sulfite",
+  "lupin",
+  // LA CLÉ DU LOT `S1b` (2026-08-22), et elle N'EST PAS proposée à l'écran non
+  // plus. `fruits_de_mer` est le slug de DEUX lignes réelles de
+  // `student_safety_constraints`, écrites le 2026-08-04 en saisie libre —
+  // c'est-à-dire avant que la table d'alias ne ramène ce mot sur `shellfish`.
+  // Rien ne les réécrit (une allergie déclarée appartient à la personne), donc
+  // la couverture leur vient de la clé miroir côté moteur, et l'écran doit dire
+  // la même chose que le verrou: reconnu SOUS SES AUTRES NOMS.
+  "fruits_de_mer",
 ];
 
 const WIDE = new Set(WIDE_COVERAGE_SLUGS);

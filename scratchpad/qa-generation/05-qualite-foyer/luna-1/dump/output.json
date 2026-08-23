@@ -1,0 +1,770 @@
+{
+  "request_id": "lu000001-0000-4000-8000-000000000001",
+  "resolved_by": "--request-id",
+  "user_id": "5a000000-0000-4000-8000-000000000001",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-19T08:40:16.462Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "b5838fee-0fbe-4144-9bfb-9210b742eae9",
+      "status": "attempt_start",
+      "created_at": "2026-08-19T08:39:22.231416+00:00",
+      "provider": "openai",
+      "model": "gpt-5.6-luna",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 16129,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 16129,
+    "user_message_chars": 18596,
+    "user_message_truncated": false,
+    "user_message_written_chars": 18596,
+    "independent_counters": {
+      "system_prompt_chars": 16129,
+      "prompt_chars": 18596
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "a00ae907-f6c3-42b6-9c34-422183e92d6b",
+    "created_at": "2026-08-19T08:40:15.330499+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "openai",
+    "model": "gpt-5.6-luna",
+    "http_status": 200,
+    "attempt": 1,
+    "chain_index": 0,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Peppery lentil lunch bowl\",\n      \"title\": \"Lentils, courgette, peppers and cucumber\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"cucumber\",\n          \"quantity\": \"100 g cucumber\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon juice\",\n          \"quantity\": \"1 tbsp lemon juice\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"flat-leaf parsley\",\n          \"quantity\": \"10 parsley leaves\",\n          \"amount\": 10,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the lentil portion, then add the cucumber, lemon juice and parsley at the table. Put the courgette and peppers on the plate first, followed by the lentils and the fresh cucumber.\",\n      \"why\": \"This is a warm, clearly named lunch with a loud vegetable and a fresh finish that reheats well at work.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_lunch_lentils\",\n          \"servings\": 1,\n          \"box_id\": \"box_prep_lunch_lentils_zoe\"\n        },\n        {\n          \"preparation_id\": \"prep_lunch_lentils\",\n          \"servings\": 1,\n          \"box_id\": \"box_prep_lunch_lentils_lubna\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Roxane's lemon lentil bowl\",\n      \"title\": \"Lentils, courgette, peppers and cucumber\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\n      \"ingredients\": [\n        {\n          \"term\": \"cucumber\",\n          \"quantity\": \"100 g cucumber\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon juice\",\n          \"quantity\": \"1 tbsp lemon juice\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"flat-leaf parsley\",\n          \"quantity\": \"10 parsley leaves\",\n          \"amount\": 10,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat Roxane's boxed lentils, then add the cucumber, lemon juice and parsley. Serve the vegetables first, then the lentils, followed by the cucumber.\",\n      \"why\": \"This keeps the warm lentil plate simple while following the requested serving order.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_lunch_lentils\",\n          \"servings\": 1,\n          \"box_id\": \"box_prep_lunch_lentils_roxane\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Tomato chickpea supper\",\n      \"title\": \"Chickpeas, aubergine, tomatoes and spinach\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon juice\",\n          \"quantity\": \"1 tbsp lemon juice\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"flat-leaf parsley\",\n          \"quantity\": \"10 parsley leaves\",\n          \"amount\": 10,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the chickpea stew until piping hot, then finish with the lemon juice and parsley. Put the aubergine and spinach on the plate first, followed by the chickpeas and tomatoes.\",\n      \"why\": \"This is the comforting reheatable dinner; we traded extra variety for one practical 50-minute cooking session for everyone.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_dinner_chickpeas\",\n          \"servings\": 1,\n          \"box_id\": \"box_prep_dinner_chickpeas_zoe\"\n        },\n        {\n          \"preparation_id\": \"prep_dinner_chickpeas\",\n          \"servings\": 1,\n          \"box_id\": \"box_prep_dinner_chickpeas_lubna\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Roxane's aubergine chickpeas\",\n      \"title\": \"Chickpeas, aubergine, tomatoes and spinach\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon juice\",\n          \"quantity\": \"1 tbsp lemon juice\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"flat-leaf parsley\",\n          \"quantity\": \"10 parsley leaves\",\n          \"amount\": 10,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat Roxane's boxed chickpeas until piping hot, then add the lemon juice and parsley. Serve the aubergine and spinach first, then the chickpeas and tomatoes.\",\n      \"why\": \"This gives Roxane the same warm, comforting supper with her specified serving order.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_dinner_chickpeas\",\n          \"servings\": 1,\n          \"box_id\": \"box_prep_dinner_chickpeas_roxane\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Ivar's hearty chickpea supper\",\n      \"title\": \"Chickpeas, aubergine, tomatoes and spinach\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"12362957-32c9-43a5-82ef-66b8d5732171\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon juice\",\n          \"quantity\": \"1 tbsp lemon juice\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"flat-leaf parsley\",\n          \"quantity\": \"10 parsley leaves\",\n          \"amount\": 10,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat Ivar's boxed chickpeas until piping hot, then add the lemon juice and parsley. Serve the chickpeas and tomatoes first, followed by the aubergine and spinach.\",\n      \"why\": \"This is a warm, filling plate ready quickly after the evening routine.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_dinner_chickpeas\",\n          \"servings\": 1,\n          \"box_id\": \"box_prep_dinner_chickpeas_ivar\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_lunch_lentils\",\n      \"title\": \"Courgette and pepper lentils\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"green or brown lentils\",\n          \"quantity\": \"180 g dry lentils\",\n          \"amount\": 180,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"onion\",\n          \"quantity\": \"1 onion\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"courgettes\",\n          \"quantity\": \"2 courgettes\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red peppers\",\n          \"quantity\": \"2 red peppers\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"chopped tomatoes\",\n          \"quantity\": \"400 g chopped tomatoes\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp olive oil\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tsp smoked paprika\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"water\",\n          \"quantity\": \"600 ml water\",\n          \"amount\": 600,\n          \"unit\": \"ml\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Rinse the lentils. Soften the onion and peppers in the oil for five minutes, add the courgettes and paprika, then stir in the tomatoes, lentils and water. Simmer covered for 25 minutes until the lentils are tender, then divide the ready stew into three named boxes.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 35,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_prep_lunch_lentils_roxane\",\n          \"member_ids\": [\n            \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\"\n          ],\n          \"grams\": 280\n        },\n        {\n          \"id\": \"box_prep_lunch_lentils_zoe\",\n          \"member_ids\": [\n            \"5fd38cfd-3895-4152-92a2-e62f9b7fc74e\"\n          ],\n          \"grams\": 280\n        },\n        {\n          \"id\": \"box_prep_lunch_lentils_lubna\",\n          \"member_ids\": [\n            \"86129e3c-2f50-480f-a359-077165b6232b\"\n          ],\n          \"grams\": 280\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_dinner_chickpeas\",\n      \"title\": \"Aubergine and spinach chickpeas\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"cooked chickpeas\",\n          \"quantity\": \"800 g cooked chickpeas\",\n          \"amount\": 800,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"onion\",\n          \"quantity\": \"1 onion\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"aubergines\",\n          \"quantity\": \"2 aubergines\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"chopped tomatoes\",\n          \"quantity\": \"800 g chopped tomatoes\",\n          \"amount\": 800,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"spinach\",\n          \"quantity\": \"240 g spinach\",\n          \"amount\": 240,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp olive oil\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"ground cumin\",\n          \"quantity\": \"2 tsp ground cumin\",\n          \"amount\": 2,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"water\",\n          \"quantity\": \"250 ml water\",\n          \"amount\": 250,\n          \"unit\": \"ml\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Soften the onion and aubergine in the oil for eight minutes. Add the cumin, tomatoes, chickpeas and water, cover and simmer for 15 minutes, then fold in the spinach until wilted. Divide the ready stew into four named boxes.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_prep_dinner_chickpeas_roxane\",\n          \"member_ids\": [\n            \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\"\n          ],\n          \"grams\": 360\n        },\n        {\n          \"id\": \"box_prep_dinner_chickpeas_zoe\",\n          \"member_ids\": [\n            \"5fd38cfd-3895-4152-92a2-e62f9b7fc74e\"\n          ],\n          \"grams\": 360\n        },\n        {\n          \"id\": \"box_prep_dinner_chickpeas_lubna\",\n          \"member_ids\": [\n            \"86129e3c-2f50-480f-a359-077165b6232b\"\n          ],\n          \"grams\": 360\n        },\n        {\n          \"id\": \"box_prep_dinner_chickpeas_ivar\",\n          \"member_ids\": [\n            \"12362957-32c9-43a5-82ef-66b8d5732171\"\n          ],\n          \"grams\": 360\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_lunch_lentils\",\n        \"prep_dinner_chickpeas\"\n      ],\n      \"total_minutes\": 50,\n      \"run_through\": \"Start the lentils first: soften the onion and peppers, add the courgettes, tomatoes, lentils and water, and leave them simmering. While they simmer, chop the onion and aubergines for the chickpeas. Start the second pan when the lentils are nearly tender, wilt in its spinach at the end, then weigh the lentils into three lunch boxes and the chickpeas into four dinner boxes.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"green or brown lentils\",\n      \"quantity\": \"180 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"cooked chickpeas\",\n      \"quantity\": \"800 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"onions\",\n      \"quantity\": \"2\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"courgettes\",\n      \"quantity\": \"2\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red peppers\",\n      \"quantity\": \"2\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"aubergines\",\n      \"quantity\": \"2\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"spinach\",\n      \"quantity\": \"240 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"chopped tomatoes\",\n      \"quantity\": \"1.2 kg\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"cucumber\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"lemons\",\n      \"quantity\": \"3\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"flat-leaf parsley\",\n      \"quantity\": \"1 small bunch\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"3 tbsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"smoked paprika\",\n      \"quantity\": \"1 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"ground cumin\",\n      \"quantity\": \"2 tsp\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\n      \"portion_note\": \"Use Roxane's named box for each plate; serve the vegetables first, then the protein, then the starch where present.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_lunch_lentils\",\n          \"note\": \"Use the Roxane box of courgette, peppers and lentils.\"\n        },\n        {\n          \"preparation_id\": \"prep_dinner_chickpeas\",\n          \"note\": \"Use the Roxane box of aubergine, spinach, tomatoes and chickpeas.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"5fd38cfd-3895-4152-92a2-e62f9b7fc74e\",\n      \"portion_note\": \"Use Zoe's named box and place all components together.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_lunch_lentils\",\n          \"note\": \"Use the Zoe box of courgette, peppers and lentils.\"\n        },\n        {\n          \"preparation_id\": \"prep_dinner_chickpeas\",\n          \"note\": \"Use the Zoe box of aubergine, spinach, tomatoes and chickpeas.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"86129e3c-2f50-480f-a359-077165b6232b\",\n      \"portion_note\": \"Use Lubna's named box and place all components together.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_lunch_lentils\",\n          \"note\": \"Use the Lubna box of courgette, peppers and lentils.\"\n        },\n        {\n          \"preparation_id\": \"prep_dinner_chickpeas\",\n          \"note\": \"Use the Lubna box of aubergine, spinach, tomatoes and chickpeas.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"12362957-32c9-43a5-82ef-66b8d5732171\",\n      \"portion_note\": \"Use Ivar's named dinner box; put the protein and starch first where present, then the vegetables.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_dinner_chickpeas\",\n          \"note\": \"Use the Ivar box of aubergine, spinach, tomatoes and chickpeas.\"\n        }\n      ]\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Peppery lentil lunch bowl",
+          "title": "Lentils, courgette, peppers and cucumber",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "cucumber",
+              "quantity": "100 g cucumber",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "lemon juice",
+              "quantity": "1 tbsp lemon juice",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "flat-leaf parsley",
+              "quantity": "10 parsley leaves",
+              "amount": 10,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the lentil portion, then add the cucumber, lemon juice and parsley at the table. Put the courgette and peppers on the plate first, followed by the lentils and the fresh cucumber.",
+          "why": "This is a warm, clearly named lunch with a loud vegetable and a fresh finish that reheats well at work.",
+          "uses": [
+            {
+              "preparation_id": "prep_lunch_lentils",
+              "servings": 1,
+              "box_id": "box_prep_lunch_lentils_zoe"
+            },
+            {
+              "preparation_id": "prep_lunch_lentils",
+              "servings": 1,
+              "box_id": "box_prep_lunch_lentils_lubna"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Roxane's lemon lentil bowl",
+          "title": "Lentils, courgette, peppers and cucumber",
+          "slot": "lunch",
+          "day": "wed",
+          "for_member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+          "ingredients": [
+            {
+              "term": "cucumber",
+              "quantity": "100 g cucumber",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "lemon juice",
+              "quantity": "1 tbsp lemon juice",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "flat-leaf parsley",
+              "quantity": "10 parsley leaves",
+              "amount": 10,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat Roxane's boxed lentils, then add the cucumber, lemon juice and parsley. Serve the vegetables first, then the lentils, followed by the cucumber.",
+          "why": "This keeps the warm lentil plate simple while following the requested serving order.",
+          "uses": [
+            {
+              "preparation_id": "prep_lunch_lentils",
+              "servings": 1,
+              "box_id": "box_prep_lunch_lentils_roxane"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Tomato chickpea supper",
+          "title": "Chickpeas, aubergine, tomatoes and spinach",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "lemon juice",
+              "quantity": "1 tbsp lemon juice",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "flat-leaf parsley",
+              "quantity": "10 parsley leaves",
+              "amount": 10,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the chickpea stew until piping hot, then finish with the lemon juice and parsley. Put the aubergine and spinach on the plate first, followed by the chickpeas and tomatoes.",
+          "why": "This is the comforting reheatable dinner; we traded extra variety for one practical 50-minute cooking session for everyone.",
+          "uses": [
+            {
+              "preparation_id": "prep_dinner_chickpeas",
+              "servings": 1,
+              "box_id": "box_prep_dinner_chickpeas_zoe"
+            },
+            {
+              "preparation_id": "prep_dinner_chickpeas",
+              "servings": 1,
+              "box_id": "box_prep_dinner_chickpeas_lubna"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Roxane's aubergine chickpeas",
+          "title": "Chickpeas, aubergine, tomatoes and spinach",
+          "slot": "dinner",
+          "day": "wed",
+          "for_member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+          "ingredients": [
+            {
+              "term": "lemon juice",
+              "quantity": "1 tbsp lemon juice",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "flat-leaf parsley",
+              "quantity": "10 parsley leaves",
+              "amount": 10,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat Roxane's boxed chickpeas until piping hot, then add the lemon juice and parsley. Serve the aubergine and spinach first, then the chickpeas and tomatoes.",
+          "why": "This gives Roxane the same warm, comforting supper with her specified serving order.",
+          "uses": [
+            {
+              "preparation_id": "prep_dinner_chickpeas",
+              "servings": 1,
+              "box_id": "box_prep_dinner_chickpeas_roxane"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Ivar's hearty chickpea supper",
+          "title": "Chickpeas, aubergine, tomatoes and spinach",
+          "slot": "dinner",
+          "day": "wed",
+          "for_member_id": "12362957-32c9-43a5-82ef-66b8d5732171",
+          "ingredients": [
+            {
+              "term": "lemon juice",
+              "quantity": "1 tbsp lemon juice",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "flat-leaf parsley",
+              "quantity": "10 parsley leaves",
+              "amount": 10,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat Ivar's boxed chickpeas until piping hot, then add the lemon juice and parsley. Serve the chickpeas and tomatoes first, followed by the aubergine and spinach.",
+          "why": "This is a warm, filling plate ready quickly after the evening routine.",
+          "uses": [
+            {
+              "preparation_id": "prep_dinner_chickpeas",
+              "servings": 1,
+              "box_id": "box_prep_dinner_chickpeas_ivar"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_lunch_lentils",
+          "title": "Courgette and pepper lentils",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "green or brown lentils",
+              "quantity": "180 g dry lentils",
+              "amount": 180,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "onion",
+              "quantity": "1 onion",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "courgettes",
+              "quantity": "2 courgettes",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "red peppers",
+              "quantity": "2 red peppers",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "chopped tomatoes",
+              "quantity": "400 g chopped tomatoes",
+              "amount": 400,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp olive oil",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "1 tsp smoked paprika",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            },
+            {
+              "term": "water",
+              "quantity": "600 ml water",
+              "amount": 600,
+              "unit": "ml",
+              "state": "raw"
+            }
+          ],
+          "method": "Rinse the lentils. Soften the onion and peppers in the oil for five minutes, add the courgettes and paprika, then stir in the tomatoes, lentils and water. Simmer covered for 25 minutes until the lentils are tender, then divide the ready stew into three named boxes.",
+          "active_minutes": 15,
+          "total_minutes": 35,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_prep_lunch_lentils_roxane",
+              "member_ids": [
+                "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec"
+              ],
+              "grams": 280
+            },
+            {
+              "id": "box_prep_lunch_lentils_zoe",
+              "member_ids": [
+                "5fd38cfd-3895-4152-92a2-e62f9b7fc74e"
+              ],
+              "grams": 280
+            },
+            {
+              "id": "box_prep_lunch_lentils_lubna",
+              "member_ids": [
+                "86129e3c-2f50-480f-a359-077165b6232b"
+              ],
+              "grams": 280
+            }
+          ]
+        },
+        {
+          "id": "prep_dinner_chickpeas",
+          "title": "Aubergine and spinach chickpeas",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "cooked chickpeas",
+              "quantity": "800 g cooked chickpeas",
+              "amount": 800,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "onion",
+              "quantity": "1 onion",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "aubergines",
+              "quantity": "2 aubergines",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "chopped tomatoes",
+              "quantity": "800 g chopped tomatoes",
+              "amount": 800,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "spinach",
+              "quantity": "240 g spinach",
+              "amount": 240,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "2 tbsp olive oil",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "ground cumin",
+              "quantity": "2 tsp ground cumin",
+              "amount": 2,
+              "unit": "tsp",
+              "state": "raw"
+            },
+            {
+              "term": "water",
+              "quantity": "250 ml water",
+              "amount": 250,
+              "unit": "ml",
+              "state": "raw"
+            }
+          ],
+          "method": "Soften the onion and aubergine in the oil for eight minutes. Add the cumin, tomatoes, chickpeas and water, cover and simmer for 15 minutes, then fold in the spinach until wilted. Divide the ready stew into four named boxes.",
+          "active_minutes": 15,
+          "total_minutes": 30,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_prep_dinner_chickpeas_roxane",
+              "member_ids": [
+                "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec"
+              ],
+              "grams": 360
+            },
+            {
+              "id": "box_prep_dinner_chickpeas_zoe",
+              "member_ids": [
+                "5fd38cfd-3895-4152-92a2-e62f9b7fc74e"
+              ],
+              "grams": 360
+            },
+            {
+              "id": "box_prep_dinner_chickpeas_lubna",
+              "member_ids": [
+                "86129e3c-2f50-480f-a359-077165b6232b"
+              ],
+              "grams": 360
+            },
+            {
+              "id": "box_prep_dinner_chickpeas_ivar",
+              "member_ids": [
+                "12362957-32c9-43a5-82ef-66b8d5732171"
+              ],
+              "grams": 360
+            }
+          ]
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_lunch_lentils",
+            "prep_dinner_chickpeas"
+          ],
+          "total_minutes": 50,
+          "run_through": "Start the lentils first: soften the onion and peppers, add the courgettes, tomatoes, lentils and water, and leave them simmering. While they simmer, chop the onion and aubergines for the chickpeas. Start the second pan when the lentils are nearly tender, wilt in its spinach at the end, then weigh the lentils into three lunch boxes and the chickpeas into four dinner boxes."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "green or brown lentils",
+          "quantity": "180 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "cooked chickpeas",
+          "quantity": "800 g",
+          "aisle": "pantry"
+        },
+        {
+          "term": "onions",
+          "quantity": "2",
+          "aisle": "produce"
+        },
+        {
+          "term": "courgettes",
+          "quantity": "2",
+          "aisle": "produce"
+        },
+        {
+          "term": "red peppers",
+          "quantity": "2",
+          "aisle": "produce"
+        },
+        {
+          "term": "aubergines",
+          "quantity": "2",
+          "aisle": "produce"
+        },
+        {
+          "term": "spinach",
+          "quantity": "240 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "chopped tomatoes",
+          "quantity": "1.2 kg",
+          "aisle": "pantry"
+        },
+        {
+          "term": "cucumber",
+          "quantity": "300 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "lemons",
+          "quantity": "3",
+          "aisle": "produce"
+        },
+        {
+          "term": "flat-leaf parsley",
+          "quantity": "1 small bunch",
+          "aisle": "produce"
+        },
+        {
+          "term": "olive oil",
+          "quantity": "3 tbsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "smoked paprika",
+          "quantity": "1 tsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "ground cumin",
+          "quantity": "2 tsp",
+          "aisle": "pantry"
+        }
+      ],
+      "member_portions": [
+        {
+          "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+          "portion_note": "Use Roxane's named box for each plate; serve the vegetables first, then the protein, then the starch where present.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_lunch_lentils",
+              "note": "Use the Roxane box of courgette, peppers and lentils."
+            },
+            {
+              "preparation_id": "prep_dinner_chickpeas",
+              "note": "Use the Roxane box of aubergine, spinach, tomatoes and chickpeas."
+            }
+          ]
+        },
+        {
+          "member_id": "5fd38cfd-3895-4152-92a2-e62f9b7fc74e",
+          "portion_note": "Use Zoe's named box and place all components together.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_lunch_lentils",
+              "note": "Use the Zoe box of courgette, peppers and lentils."
+            },
+            {
+              "preparation_id": "prep_dinner_chickpeas",
+              "note": "Use the Zoe box of aubergine, spinach, tomatoes and chickpeas."
+            }
+          ]
+        },
+        {
+          "member_id": "86129e3c-2f50-480f-a359-077165b6232b",
+          "portion_note": "Use Lubna's named box and place all components together.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_lunch_lentils",
+              "note": "Use the Lubna box of courgette, peppers and lentils."
+            },
+            {
+              "preparation_id": "prep_dinner_chickpeas",
+              "note": "Use the Lubna box of aubergine, spinach, tomatoes and chickpeas."
+            }
+          ]
+        },
+        {
+          "member_id": "12362957-32c9-43a5-82ef-66b8d5732171",
+          "portion_note": "Use Ivar's named dinner box; put the protein and starch first where present, then the vegetables.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_dinner_chickpeas",
+              "note": "Use the Ivar box of aubergine, spinach, tomatoes and chickpeas."
+            }
+          ]
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "id": "resp_093b12f1c9913e53006a856bbaa824819f8f90e857635083c3",
+      "text": {
+        "format": {
+          "type": "json_object"
+        },
+        "verbosity": "medium"
+      },
+      "user": null,
+      "error": null,
+      "model": "gpt-5.6-luna",
+      "store": true,
+      "tools": [],
+      "top_p": 0.98,
+      "usage": {
+        "input_tokens": 8618,
+        "total_tokens": 16096,
+        "output_tokens": 7478,
+        "input_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 8615
+        },
+        "output_tokens_details": {
+          "reasoning_tokens": 3098
+        }
+      },
+      "object": "response",
+      "output": [
+        {
+          "id": "rs_093b12f1c9913e53006a856bbb9e48819faa61124fe172705e",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhWvvI_VtRbckUNCyRLFQhowEJsOZxzspIBNplx-64nZ3GFmden2tbtzXFjrJ2IZP4JDrueN3V1WXaHdglGUJv6TMbB8UlaOzh7pPZbuUWOYPppovB9wdYkZ2L6CWOoMHpqZw7RDHV4ld5h3OudySa9BgQhFg20_YBU8qScvLNBiZ6iexAxSlhV15ztoB9UYI9dBQI4Fy4gAf0eQaZAWS6M9DsqM3gDkwrWB-E4UZrvRPM-Iq-e47VOpohFPkIUUatnrMcuW4jtN1loOr-yT_gsvM_dcU_hMFeuaQ_LhyflbGmphrOGQXVSTplj-HVfC_Ix6QMkK4LIGb1MFPwP4q7muRbPO40ayMJvzq4G7y_KObPCA845L6BqSPfMTXMQ95xdlZtSkKh3WF4h84_WBo5Omku9tsVBf2hAn-Fjkmjczwa_mVdcuCVwvfgQgD2ZHJD1I7wxg8mm8U_R6JivPA0_yHC111ZhrYoR6bqE7WOpynlImTXQjWOvtqtr0fm6jaLVaO4zCIXNUtw0bqS6ibWlaTmxo41KavLmN5kIlBT-V1CHiWHKu8jdjiIg0UJwcwUwhO6sqtsjDiYhl0Dreb1wqPm8mgFviwvERpYB0hma0KLpYq7OqK1P1g9e5ChtMva1S6mGlZRdWMaHTIhbfM_KVhlMJFMuGdCmKvCdpqU60RQXh2yRmz1GGonH45NhsGytbIDSqdc2NQggmqRKaAapRDaEpA8d5lM0YttE9hIsdWzfiKILFwgT-4IX6UOE1Qkz1BC1qSBILa-3-1q5tLh-Gy7vZhjOiZq6OeQxNcWkETmqjjp6CvZ9RqVU3bM5wWtcFb2wi8OZ4iqnTlS5eOoQoyBe_G4HQPUR3cPQzaevbcYh1dkHrmh_IXVa7ahyCG9NklROLF2ZHhxPJgCfiNW8Xvrif03TWP4PIkGm_jF-q8NhCOCkfSQXg5PRy2-t4lzpDxapeSFk8ltCKEjki6bc6ekoYTpSckIe9zh_bWzbl6nWLc6gjPEC8vMhxzKIVyj5KQJqT1K5EIvnDUU2riRlxMP_EkSaCO9LDkbERvW3hC3dwaSaDA74t9U6gTRmivKVCldIsCxKzS5ZVMmrmtn7BMeA48BuZNRrfwjz0pfRp0iM6ZazsIZAry9W-JSw-JDzmV2QwWybz8SWwhX4Ltp6gayRprRYl9KO9EE1vTmHrEWnizZFWdd1j7bbUvCijjTlZnr663Ayiwo-J94rKgJmvKJiFspicwFSCzdbl_zEmS8nrmqP24PN3cbpnpNpgGzt8tTmUHJ-GtRSWLGzoZgz-9vCLqAkaPOgdvI13fgip8t5RobSdgnP3DjW3MoGggKj3IQWElvBCH9z994g5dxe4BiUiajeqcPDv4WFRy9QjnfUSfe46_NB4zk9n37d5KFy23a6q3pjAy5km5-IIAEMLy17MYcwrB0Wubag52NAZyr4oOX1EP0llCf5I5Pt5RYPAG652NxtQucCi4RgR6jJ7D9xuywNZwacAhoohzqT0FcYUR4O1KHuuGYsALTso0HnnCARo0Fs0qMN5A4Uu9Gs-uD6zEnTua_VLUnTnz7snHldOw8lPCTrEK1XH69U0Df_xeSKRPZTR4yrxX2doVt5HuUzfeNvvTJmQjiDD1P1qiFEBIohS-bQ4tYtFGUzc2TEwORlSJgwpQIo0B54jOeZ_zBkFXQwy4zJFpdAqtrntGGXGSph4F6VTMJ61D4Y-V35YLWXxeZDSYW4RGY83ty20JgGGj5AI3BScK9kMzx16J8mf34ywimkyh3JXlhNotMIUQUbCYCjvWVHqaHwIUXJ0aQrCLwq8Xr3l51W8Kj6L7-_-kBIhjiJ_q7iMl4kCE_18RGCx_SfSyyc9pb_pK-Xot1lO1mVxQuX6GpAQjvWu5wgIUdnW3BydNUV0NCh0GzCJsksTR67cHZLz7wRq2ucKd5AmMu4tvOWajQdBgt0j3Dt98LUGp2vrlctbg07KkGhnEOYeZwCauFlNhRaSAlNwWs_0-DelCTlkcp3LboyRcp-OyC2BOZAK4-Eh9JeuePL6cqqPizwBK8oL863DcCTaAauF9Q5JMwep8-09CLWuMld_nVehdW8A7mEimqU60HbJ97Ooic7Rs0a3FqxiLDZ7kktNa287TZLm1aAM_ozafWTbw27OaQd2NhocGj7Es8K_1kDIVK5D_RSOzi_SP0hu4Ksl3gzfXIR1t3aLLjMIYEqmMEWWGvIYIkHEz1Bzu6Q3JMYpcyvoyibzDuiB4TqtzzEXGuyq4XTfHgtNFc5do5ZaCxYoJEn6earUTHBkE_chQI7bBJoEnJ0HykhqY_M4LlDVdN-a6ii0wF0yBnvc6yLyxPD4952LiQYcAKVMM6mmpFZNddNeVZIdyts89-5h08rqlGvj1DZJL7Zzg1LGCXl0Xx0VNNL3f8KY1w_khV3UHaiV9XrNQjaGyl9f8okQu_78ovLphot4eXTEDbRW2c8nNOlaFg4dme_i_GOFnkGyxETgJfjHLuDWG7rCBC9pQ5umS7i7OLb-nQwp413aQn7vJwiAsQ3XmMVoAdDpWt0y8zAGjXxINfuTpT2Mi299ZAEt7uWvGdp-kXu8_9DDhta3I2GKk883Sj6HpUZ68HnoMeqfErb5nVaIQxkBfjfZql0ik_zlq2nLYAKlERs66eHLwC-LnRTzS_uwI_w2aolHT9kkuPLAK2EF1MeG3ORdrcCLe3hgrRA3vJlTx574NtlInlViMbBjqC1x1sdWrzSNrkNAgz1ddzZC3UCL3Hm-yvBVF6HqEajPJD7_vA5N-AHpAgJI500DIXPUkQKyhugre_amjOpuKjg5Mkiw0Iym4tQWheE-aSBNgCGllvVwYUyNcD2_WrlL95xN6IzwSUIYZBSyqeIXJp6Yv0EmAhdsYRcylhuRgcmGv19ajpJ91CdRjU9pp_ilZRaxbVNxS9XYXl7uqAL5a7L33NljHolaxx-S0Kqf8NpJOJHk3_zrBSOQB_9eMHtNXE7VTkrTY5weiKl-U5RSECuHGi61a_87u2qQII3T3YcpYZ9g2UPQr0_3TI97B9SOfVhu7qj2NYRHLD9Hl-zeOy2kWUUIafzI2WqdpSk8r_sTgI0jZjRhAK7q25gze_DoAlDi6mDjCqbMyWsH4-qTrFU0i26ETZbiNakunbKi3g-qBqyYsmdUF_CvI2s9bXQStvWxUSoI1qZ78a6j-E4YD4ZcEuvlgAYnRBc573mj3idASdb59jByOrJcoeWTxll-R9xJXgBeq3grAdPHvjIPbCht3UJeZZDbToN8zxMaOsv7iIZc241w1BeTbWIGm_vkJcZGo8V7KXk0LdeoBim7AKf4KMN4z-5aOy-hEMWTdVoqjbK2qkV_MnDGvL3HGpmcTFzkBbuu0F21YyAxBCHq0PVqq3ESbHrEbpNeIber-Knr3FJ77seTZbi3T0qHJdL4reIVxZ4gp-t9cIylZzwgPUnTTCIqrpqk7Ah8sSgBTY9Mkk6M8biYH1dhvI0KuAeVHcsR-wHZKLr_USfmZHulx40-E_8853T4TttcdWOI_26Sy7FQHmH_mLkWPM5OAliYnWCIXCaMCWki3ICa2evE5w8c4E1vS0MUgXX3C52-EAhm1wq-wJmPENwcdog3JbzYp-2CxV2mAXLfjMuvQEK1v59BTiumvtblWbYQR1q67m1ScZDBOzvKHZc76ASEf3Vu4XsMCK99KXPKuSdlZZ5joGuRAO9uSZ1DCQw0UCcMvRAQnJTt1Ps0EwnRSjmepx6W9o0WtZt2Rlrq3vLCWNi7FHhu7XXfLE8NbzmIcII0uG2MazkFs2YFrBFcvd-EUjpNvMbSFzrtYhQXalq2nxHJXQ1e27n1P_UXlJ13LfRAFwPrOwEvb5Mc5kc9CEWRmcn45E9ONLHbpSi6pXc-5JGj9agaVs12xB8vGAbCp8Kk842cVNZFslMdnYGcRHPq7aZ9Quf8s-1NwSWo-u7ZUcaWEvPC7anBuzpqvhQ=="
+        },
+        {
+          "id": "rs_093b12f1c9913e53006a856bc0c8cc819fbbffe0346fb53092",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhWvv3W6_Z_JHz7J9LwlX3cgb7aPVaGGvnYABok6yaF-M9taN06Ot29p9U2JwmpBgpVwfiGx9XG-DK7xGMwbDAm0Rm6G7SyAffNR56eFZLGLXE89toUKblvXh1h8_dBXaQH26NRxR086Gw2RKIXNjLzr_paZAxOBDHtALvuGaRE2y00U2SE_bCfvGgwPn9mwXV78V4pXgRFQKCHoZ_-zqf6eVrNy2mQa8YpJGyPgi5KWvzOYgh4feEsGnctZXK2Ndj0-zVszb5fZ-oECqFOMNtcps0EvtqyyfnM_tlyfMKe6Be_S1YCO-bFum99qP8mZZbBH-ZJhNcac6TIAcLnm_RNaObETHOjAD5s1tDWpKeuo_uO9yegthevKgDlcvGnwmhzMFvHbqpiMGeebq2WLyMMQP8cogJo1UnJmpb8JVDk1orwtll2v0hNFm6aJ0kM3AFuctt1W7npCc-8Cc9IPuG-W24nmW62UhSJdRPGOdtybNccr89fq9rATD3xF0P88_UV_aOi7ezLFgXSEkLdrs6Xa1H-B1HjfNRSAqY_S0ektP9jjBdOf1O9DlSkB15gm3mTK4HdyG7qoAPDH3-AaR0lwex8y4QxhjsnZvPlsCFrwtUaNqV5GGpBA3oT97npj9a46_V5fsSH8LuFTOolah6oCfBzt1IQQn14Pa8NnV1TAGexD0-h-QnOPJgvmrpwJYeLm0UtYJe2FMczMYYNB-MPhy5yO5RdWocoAV1Ir-0tzGb_sJdMbgXp6DVNRbTPfO13lUNIHfX65OkzASZW7kz5seRL70EyxVC5jiCCCCfUpZqNA_zKeIXUbbpyLhupGAwrL3ppjd9_mG6wXOq_0if1inP7_3JLCeLFdf3MZz0aqRDQHaRTY_IBy0jrihVXfhlh5FlcP8zEHyCVHLG3Zse0nIG-8BpEH2AbxzMMRpaLonruw-JWaFTlw4QU6SiP_oop3YHReDZOhOvZgaLRoGF8yBdKkSXJ4PhpNGj_-ASUkOsETZMKEZtnvnBG7SoSAsh9SdQ9WNmx7quPv4ooNeCiOYiIj4PpbW6vVLzHhbhMcdm-wPmrxHC1ObUJE8AK09BZq3Gn2dZfKxAdXcXEUsI8Ho6jGqGB_ZpkwVi3nlXBbyDwYRT9kv-MVkwO8tg32flm79GWuv-rM_YSW-YFxrh2VsU0lcBHSW5PFVl4Nwf85DVY-GxDdrPyL9wfnZQ-JmwKWpq63SVBNTTHBiWIvNuxUcVYrs6AbKqxHBtQxfg-bf073MgYiAKLxGJfn-0L4a1PmCvi4rhjfzRzv9tP9twqfg_v21xJy-wrrEl3888Yz1A-hrRN5yx-TOtAArGCNEOJ0PAUpPecjnRBy4OaeuXJPYC-4d7idENl37vT4M6CY8IDm8s03l7itJ3zo-d4b6f2hDHN2ioOTaMCcmSlhhFwHkiA7bjBe2yPtIMjPpetC-Ca8wBVYtUSeTXJSYfaCeLjKv67pdpkDwAwb3p0f-kvT4NOHgUFizlfc2ULMD62TqaCOtBj6swznK7C8vov8Jq1Kn4v2m4_ruzBKtfVzoHmZS__I1qJkULQjtY_BMXh-58f4auj4S-IGvyyVQbP-ucqk_dnZ3315ZNk8VEABuy0ClHwzx2xBL7nCu989aipUcC3NKfHKAB_DD2rstMrlqNDt0WCPdXeU7rGFM7V2_jzHxsX89AeoZV2CxDQs3bQPfCt_moDyswlYqpYtedVIgdOeSe37PsWL9JKAhFKiLtzr1EXTTua-Vxyq8cbU3vvSEf0-yTyEFp56eFL9P2gJi7gUeRNjQAmt1wqQP8ZJyHdUsIZ2A5GhsBWQAD8uG_Sj7wjUYRlQyHFKpiWVlCh5a5av28lv5kSYwlQsI9yx8vIPK92DOAoEqcem5dS0y4iuZrFlK_Fz1Nxf6ASr7mkdMW8yFW9svoZFV18pPdisxA02Phk5aR28pdXflhTtVDWQqzJMEZAdPgVRjkvv-0qZj5Feyno_50fcXjyDzSq3TvFvBhj_H8vUM8F9V6EtVGzugUq5EuBQL7g9nZLIt6ebyYO9SPrtNLJS6GNQ0Lr1RADxyCx9NmFQ5tQSrxG_GMeWjcMsU2IaYKmKVgOKeIDhCdM65g74QTPJcSoZsvWRqngMbyk6ogGO8LwAJ16gJMEgNHQ166N8twwuaB58jDCmv69F-Igcp0Vrnwm0FL1_GoWeDKgSHi34qXXCI_JomdZ3vySNLhTgSKl6xjOzn6kqy-CfrwwkEZXxQxMWF3kvIgnxou85MWNb6XgLNWunPnCSQlwp-js9lez71LQ7BVrksLbIG8R4rqNWZbePljwM6340S4LErnudKq5Pvbn6Ag1yoLmgGZUYsXn5WiezHAfIecgVZ77hTHl_4XkmhJ0JVsNwaVol2uzDnD2l0N45bnVH40ImDDFVMYWqqZwB-XNJFbOpIovw2kLbQq1Lu7oITIPT3C5bqXT5x4uy-ZJ2th3b--rrJJw7dzM75lGeM0sBFjilaQv06YlpEKy9d7cPk-KKwPI-M9QwBNAqCaUUSTGrw4NqE2x8qaNbIB-2RchBQJQI4-s9_AbG-xyTVUZ1NNe1nfgEA_h4Y84EbZdTte2JlRC3WQ_MWX4H250EIFT1h9nyeqfdy3mmtYelenyRJtN2HaIjunh2PBUmzlTzkEjn_hJjP7tcwP_lNJmYfQWs2b4viMSbXAwBSfD5smyAQM5NN9Dwiy6reTmLQuQ3c2YtMsOH-EC5HHLZRAxpsKF2ylYQ0IjhBMeyDqzkPP9KwCux-cLR8araFfc355D2qX539rYX8YC_dk6Rd69l4BbPrSJrXBH8zHJ6p7BycIynkendH50ZhaLS62I8dz0Khcl_G4-U7-mSNOK3KZrXZQ_-pGIDwG61vaxxhIfOFFjZsfVT6Ov83J9Ph5_G1H5DZUzZy1iY5uHKyLDxMcL6B3beZ4w0CuPsTrailFd89ZcJ1wZ4CHvw0ODA5wxixTZnCbOczoPHBJwzPKCUsJGHox5Jfo5vN5Dny8JTC3TQAhCSqyEIOm5CQyIED-dwQtnpWD2quAC9u1fEMaVHl3ORFGupg-kseewtPKIMl1WR1tHzfPNABwmpcZDKNCd7u4EEz3b2x7NiM5UxHT0NYfmfLsmc31pJfKHV1ZGyw_cp1ISA3xF-fqHSDUwVQLRRwCi1PEVuowt1Ef88m5t-_UyG7VYLHDOVA9JrsE0e_R0IX-OM6hG81pFb_uzAWY6rz_VwB8HbamPpHw7BPXyGzHcETcwJnVRdBZNE6_6rGPd5f4jxRavCe3aQPK9mMVwu7khoK8lA35sGrm4Ln4PO7lmDAgiIM0tXInf0jaihfWQDRQ2wF-hxeU_ArGHZWnmbzaWk_3KBrn7wpO2VQWyJ26nlhbXq1aLdp5daiF-Dchw1h0hn5sBnAQTt8wswrIWK-gmOFploB-aYQYaTmwL_r7v6AHzHksWsLCc3o6W07_W8UbEMV8Iw3gFzUWDqgK_mXSceBdljlGI6AUFDXsRBI_-5WRByDcg_kuAviWHbn1RwIDzDH6_aP-QUJ8AcM3Op4Wjy0EKVl2430S3ZC19wjMhg9np2HgB2BpGgXKfa2sfO2LgTh6squLk1D76y6nrvn5F0-7z_89dzj_lskyz_Io_40sBclot8qNXdsc_PBye3Ctvubgs-DFW8bo_Slsu9RGYxqswn_KKFxLIK4qG_K3vOVhfyfLCgeHvfowpfK77_V5QjnTxDPZX9YL_mQvZwWvhygoKG8aCn5iRxItzdRauRMRQJXF8XZdK4FVOQB-enwNyVbwt3VsxNygtOMuTcw3v-sO6F-QWgN9sPCHOTGSvwARM_WzjUsDhaJ84642-vKz_RX96LxyPjfgEV5LpvueRwYoiVVaJuIgWdgywCGZ7j682CUfzUW--KE9RRrtrLtunVrVJ8Ib93zyANv6z3llarI4h9NoQz7BV2SwZyFM-3jdhZtYwa01ubFuq3zILQYTC1Khl2izCPtfL5hXHI3b0rXPVSJuxefDzw6saB4I1FaPKh3uUbKzApnF8cKr607JJYm2KXRElgUwd7Zf7c_eyO3E43cbhaAthsfNDZJ9AU9J3lpEjpacS-X3J4XgWg7fqgCG7hw7yLUZ6gbpjH6teBfOBjCpIIiUF1hecqt89Euep8CQ5F95YBdJOZ72AGjsEZ9N9zoI3x8hSz2oUySNIsB2J11P8xqZb7ov-lwTdf5yeEc-ohhXjrhbGLKX3Cn1dlagG8acg=="
+        },
+        {
+          "id": "rs_093b12f1c9913e53006a856bc6d280819f86d7f62445b4fc4d",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhWvvcqG-Jbs8giPD-0__uTi2upVuwOPr6sbpg7xHt-KW5hmqZFCPnbPG2_-7uXMjz44J_J7Aormme8P88-wPkWc_1hNGTEIf64GUKcm_C_2aAxvMktPSYg9sZ42YXvoOM_wphqYecWEsW0LiU5Mwg0UUAFp1RGjvg_TnlHtaLyBbLTjhpdKVnu1sxzCk__YZIftH5NKTyt7ab157HHV-KAcnNjmo3yeFN0SvxortnGeEPKbBNE_KSACQIp9axrM3_nmM69fPktUstmRym6ZZOlKLzeovCtbTBmHHdNLjWB0gorBgyCbLY7S2mua0yuGz6Z0RMok64KRj7Q0cmwsbxzzL12-HhR3cFTzeIzLULmMgMKTqbGHCFreq7SmSH3JzeeDdNlTmxhr2w40uMKeKDgyN8aYAea204YZdpbTxR4vNrQthD9aedBYepma5IcuZAf-Dsf1-raNOrmqs4HrLRE-bX1oRALbpOvKc6U0-U-Kyr5COGLOxKhUTf0Rxz0FI6yzcgWyLd5c9mFVoq5vP1oeIy5dLBmiTHr5VBFXdhiH9KcGx4Gu2iWZ0iOvxroco6fGJh3NAcg7zbKWByCJWBwHo-p--x3-sjUBXMjOGkmrAGXi8mn2UQHCB9Wc_-66GwgQKUctxH7WJ3HWcSTMRseh7cpSu4w39h9JG23JVCHvI2Dow1TQWQveNLeqz9QB2lUaRMcSgZ_VnxTM-ZuRx1EkqBnKw9NQIrPN1WBP7Pxx1lrP-huhDqeOlyNVv14hY89QWJH7axFJqHoSNv5y_gwXoqeLy7y5r5boau8xBmptfFhaD01S0eue0CisVpvGLOjjxYn018MJG5m9V2M7hoIDOkBIOSZZQlSgE8Xl8bYW7rnEnCJGRLq1fSm_kWwNrWckCb2jFffe8Auxep-eFTMcn8SlMgfUpJweCB-PWZyRzI71dJ4md9cIJGw7q-mEYEDue1s872n5tqXrP7BJEcCYeubqZsoDn5g9_9nhRK69kMwG1rq42alhb9qZjcrN6rLQ6_7NoAlomRxJafJNCmcejThVMLEuQs6-94RO6kvP_hLBNXHrXFtAbOyih7lh6D50OI3RdJq1M03NXikyJg-0e7gKidGfM4bLfzx5WIzbxTKXQJMlk33l8FRf5ZenhHHDlt2dtRoMTbp2FJIJE06uEcfLmpwBO6U1QyMh_4iH6CKb04CQ8893Z986hXgZMKfJ8je1A_cwVHJTmncrAIZ6UwLuMUwlJZhcG6oFNYIfrwH8z0MSRs1iKG__RLLnMWJZ3--y4i6Fix2X2DoGp034jFYJuhXeUoBxjy8UtevHZuIGWoywiFQ9tsGLtVWrLrtB_iTQyIY06l8R8fxzKy1dN_7MxJ67dbwoRwUHNpo1fQLY1-noohL3AZl6arqWRzv6UpfWeC9WI9-4G5rqn1u-x95opcuQBFzi_0aNykzHFZEYPpMDfpx-LYAMZ3aCpMRWY-aAapF0VvwfgPZYQ1oVst8L_0TlK26ZTXDPN_rD7q0yze9TqXOAOmIWxrmJ3irT1oO0_uoccwcm1dRB8iZirq_fCBAtUy1OwQ6L4yK3g4nLv_h6Rno0_FOBBaZuxHs2kAQNK-OgrCTtaNx6SNekEzNRb2llxIoParLTwPgpi4raxMZh8yM6zk17s-blAKHpwfQSzg1OLCwga5xC-EAGp2W4JcjY_sRfTPmKGhxYM_b_DemRUeAA7XR0RpobOpT0KHr5rY6jOD28J98lFnNUwc-J4we6uzuNbLPZnnzU5gOSox2HvS8sP4X_rBeeaDPx1GWX7899oaN9SL9rAp_e66t98P4_3gqRt4_OJxdbSCWmqhXXXGys9ZM9glm-WTw6_yDMl7JOhdjvfJkr0drAql1iFJOfSl8xdUYRMiirl7vHUsQ_r4c3ZA9aKInk6XM0i5Dh9tnbmgfOh3sJe6tZ-1o9-bxP97_l1iVlJr4mLUejfrbaATc-8Dg7kshUzA_wPGtQTYkPHxx7NgqgqtAmJowPNx-cVFA97dy33MM_x7NadZGlFW7x8obMeGHv6mpc0MPxECuUpl8hopC_PZw3rdiQzO2kQHWTi830heAFCzG99brXAbhDIaz7KmDSIH8tZ2C--hxcV6dy0fb2xWhOfoUiV-VYA_t2iBQCrcvpezTYp2wde6WEFaDRgaIGQyPMPezhDYPCZLfaAlQjyt6l3b8IsiKZuUQxImWfHwtRT_LszlR3WaKNlmpy9X975BprLpAesEI2oJQmnWT7wpg7EH_zUeYHbooH5QOOilbuJPy2RqC6B7LtShAUiTabkw7ds4_Bz3kjuc1zX3_10KiLAWz-DRtpwyAGhzt-Y279T956FaaK0kA66YPbcH674HcBNIHQCRR6sIaxa7RqERv5woAAAOVq-vh5hrY3Li81fkLuLJtXifdbTlFRJ2J6ATmfGZzzZVvr4D4Q5KPZFRs343JOQCJiAwIsd7tpbtpVnqtCUxiuZcY9jmwARUHCjWyAkSuqDxlfMVZuD3K4xbz238Edk0kxfKQDgQGHZd6P7L2qsHGik7l76QfWkyySD3kGbv_6nYOs2BtGqNPdZ2LXYap8osjo-7Xvl9IFAnzEpuKfcTyfuXqj_ZEknJilDwqRXfAEwiLgH8fEonO94LEhkGDc_d9FhmGx4SrDwr0Vf1BdZ0Gcb0RL11t3imXe3qYyw2kIYDEmV0pkTfoMlkovTHG33aYyLESkBhSk7NrnOoC6kqNRGuH8-Ioce89h_nBN8YaerbbWHK7Ji-hq65Y_dHv53Sj-A0OiA2rFzcUrMbFfIYO4Lq0SaSe0QnQdGA4XD6Xt0RwcHV_D7yjI-qKd-5zlXR4XZT2f4_TbgcClHZuFLVgNgBlOCiaoVs3gW_cnZHmgPbh6bk7RcYlohzXLPpHvI8Ka6iJgVW7JA4xQBm9BTYaL5lnJtgQXw3hXKaILE4gaDLB7Sh8ev4KPZup3EiHnL_ulWTlmIUawHcV4RJGEhK31EZ08OZ1gRgXuKwzQi-hcfmk1_rx3H07K56FOK_2zJN53EYQDWnha3Iniiq70BriRbNiwMMKb9yL1TgothWlyK-WkSIrMKRQqIeLUgB7XXF4nAZji6_bHArGbBjVs2sJXili1fosoY4jH4QwVDRq6AHbnckThLY1V0-Zjx4VI24qcALu_MRxluQ5lGyehF2RwhDElhrrtYL-qfSVn-hOxJB3EcY9vuQE2pCoL2t-mYxN6rbfFUSfT88hOuXMddt8Q2C8-qn_U0opQmr7AliRGFoaw_HGLnqbgoLkBG6wdANOe_FY75xxlKWSur8-9P-e42QzKKV5QKk93ELelk-tKia-vYjEoupUeT827a-LGAGeu4nGc0MuPk2hB5ur6_HYem9JqpPRlh7zoWYEmXE3H9dehkD-n-qRd6viffjI-ye-QNnpWQBC-SJA4O1lTq_sDmpZJ4NgD2WlzE77pD4ScJ2SsqDD7GDkQb7AyKy0E7sVLMK2A0Iwvi4Su8MfUF0FXuKvaoO8wyTWsTGUa0VsbyHvjSp63fspN_DGXNs4A2G13LYZSlnsB3BBj-Pu2i3VW_iLnSwHWaTZxQ8883b64UU5EhJLDed-10o75Rn39sEmRTzLQUOpgK8SZlQPtPt2hsfT3LeEoy-yN2-KhBj50r3XNEsZfa67itNANDMfCrKDzuJpbqWk7gIEJBEIwbDezYfOkoHLY3RdlFxTjRNQo4VG3BEjYR32OnoBcnGZ6dU69Hzk7uuMhOKBW42yEkVRH39YYtyOBi0T-mn250h0igUWtJ_jaSP8sCnRrm8uFKViR7ycEiic4AXKWPjmpUDeCRyx8u1U6Zbk3XNFM4W_n6ewqGx3k0gzEY4T-_LeBAiMLiQdxFrq77KXzHHeXUeIvhn-YTzl-42_cJ23y0XnD_7lVFPGhzHMpI75ohsvMjWsdoOfuXz1Jl0-ZuMbeFOMtZia1karhUy4srQOTYQYmFuh8D5J4NBfz-wTpWejNrjgxKSn98Uprs3e1v4W8bzKSJVdrLQ-gjBDN0VNGGoJeOnUyhcJzIxWd2sNDBi3Sr1ruLnoei0DCYQ-W2jbxaAIkjcD4CyyAo3ZA3fgQPuOtbYZKn3X-QU4MeS1a3vmk1f_cW2kds6L1fEnrZaaahvV_Za8y4ggDIHNpZUvpzHQJqaaf0uu3zKMXAs4QjDTtv5LyF1iq1kovlndjrWHmnvID3Dhd83uXRhYwoVMqx"
+        },
+        {
+          "id": "rs_093b12f1c9913e53006a856bcb27a8819fa7ad35e33c11364c",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhWvv6STeGcsAHr4AU9d32N79zp_H8Lz33McabBYLH5R4ta7hg8Cy3stgfIcoT6kG0GazbtSCsVvoNI_aHLnPPuUq5zQ7dv6kocJiHoGhh6v6_CR38YQk5l39gLEMQ4udPOU7dD8gFFYKhiTzXjF8c2H67Y8-edLKWBv1bNvieyAUeCCLxx-IbWGlp-4xtk-cIh0dj_jlSIBkz5_qdEcagSV5UpvmESoQCKxor7z1TlcQUYPJ20_HhNDeSyA7Z_jAHsPjbil_9lNj1qyuhTvzKKaWaSTBvIP7Nz1t1LdLkNdSVigys-H833ixQY3gTUdOW3skXIILrZrDV73s7uwMkq1pPQVPyZr3a7Lq88JDRtlgSvFwLMo8q9uqftmkAFcXdnzdjVF_8V_VRwPqP9pSCHUxhyEyHtjaKtQyJBz3V9ZilraOjH-jG-l0W8a9hZWfNjzOXco1IVh8f-LMlHej9jIa_UegjwpCVQkIHTTvG6JDQaMlpMvVxJXtCTvffUPBnPrFDQIY73EWujm6jabyIuF_qVLC4I8AOzkHv7MVHEL3oTVc7dENhTn4Q-l3kG-KXwR5qKzKZ-ILV0xY910Jp26O-ll2h-Zz8iuCHdmKkYBlpR7AFoCBL0-QubU1-sF8bZK2fJ-Fmap5RZ0NIeMEe339pfV4mKGBH9r86kX6zXkLUbHDm78_gR8KwsjlyWtNaedBLYPTUbjqI9uOt4GPvP5XgW2bpMFmhydJSDwoysB-izV8SZKUkamgOxvA5cGbLYQPpTD9UA77wTXRx9SO01JPI-6KmuXGmLdf-DrndlJCFqtPiiIpxhpSVv_HG3mMp-bfvRv4h9YQyNfnV7KfTV__HySBpIma7D28YTIY2oEEQtclJ69WIVOM05GazdqKx3jyRpzikSfj8iuXpeteafdxHOEPG0IxFcWu9Fn3onj0tbVllwkmnYqG__-ccO1inEB-ZU4N8d6I63tRBE8dBoFNgZ1x0_qkeSjmt0QeZiiLGbEL99-TLwSVx-pG10Xhj7TDbGYPlCA9QoQSGFhB0qpIhQaJXXeUAHNPS4qcgpfRDQWLxO4bE3crdROhjXfYW7Z34FuFqTTdySuV2EJS2ThoknWZrp9jC8sZqd5oVacWt98EIlj01khGr5wBQm_N29kz4O_w76vtMB-KyFpB26lxCjJTguz3gNPBn7h6JjvSzJMFOLPm_Z5-JwKatGIEa-E2oubXky3MMme-2VO8_s5HS27zVANrD--SfcOaWKXPGxloWZ8PeVpr3LJ5UJ6L9SyKCIAj5LU5XpDwdmYNPqeCb2eE6JYQr3hYopg7PUM8ILgfMQSS3uUviX2n8OKXYfh_BANsR2b0S8eF2LmSYX2Q9zJh3kGjZ_B0YxilHC4tNJ9qrgtHtbWoHWAyaZhq5YlYEk5KQkun-o9l4lJdx6Xfgc14PPOeh1k0ZWZGePlR7DIZXOatlNPSvOCjC7vFw0uiuahNZDjZK83cYYmjtrKQleeKTmY9egRZhsWrbKbyuW5bk-P_Bnh2CrLlLCrRvhmZ3LPeCjSkOvGcQt-BBHq-2EKzeq4P2BbtTtfbiDcFOcvAvnE2zqz-nT1CZSzh3r_jxDbeqLrckM7SYDZf-Qu1t3aSdxT18LKK4n_3IvBGiVXkG17eiBdf65IwvZionsp3BxlQX-qLSX2YQuPGew9X7eNb_Zb1HMZjM7bYSZKIKgM7xPhE2qI3K88YiuJ6TV4eSfKudq7BrJ8iJxa3w_f10gRVIycAmbLoom3duZasox_trxKlCAfJh2dz91-xoaKcvFPDDa-hozCY7NB8UfvDGd2a_EU__AahblgzUnX2h0t0Fw_UQgcC8DyhskV6szVx4LlViluOWnSNCQH6cbcwOnJEnCbBU6V2JtKIsEKQCf2NNBwPXkP28oRbp-x66aG7fu1aQAkxtP4h-50F3OHWVcmAqXK9CLUvEi-Pp15AMq3wBGhDDZOFLPjgeDyqLTPDEbYRVKKHZ7NeW7UgUU0n30iLoQS98LRWl3rqef_azw7DLFoKtGL1bev6GB_1IXAvzIGvyRw-XV4SQIwNjMTblWVKkiv6RaHLZKIsJu7WUSEwYs05i8wdqRmCDJE9fb3bIzKp7f3BoykIMz2vHiFawrUAWCEmVyBOJ2qMmdQjsWd87WjjgzX4t5OckZ1s_-5MUMc5zWzeJVMIrtqnHyxORc8iMMPXMPlclB7gx6Otlz_wbAXxcYq_FmrPQaTS8CYE6nkTqgSdV499aagBbZmMCmKp5JI5h_b1P6RLnOS39z8Pevo0Uzc03h_vvpOqKuj7dfZZdAKqwBzQlTKul1huFEa7SSkcwQcEj3TtYSsRxH4YlD_mTFB4l5_Qw4k4eeNqBp954wgaOsoUKCPR2VLO_1T-_cUBXgQaiI8SmmRF_wihQIc-9jKWrqDga5f5pbYA7sO_ndWsWzg40jT2enxqPL9VIRdJi6RcN-dtBtWknT42Juev_F3gM4tpj1Ty9QcgteIivRQwD97rWjB6DQxCr_1CrhgM3U4WVN1hPI0og82yJ6FhCAbjo9WxsPw0xrxmXeqyuiVlJ3XWouokJTXF_9av21PNGPCKLHTv5qcFGLDEwo12Bjk565AVItdAk9bHBtPgZMEYXsMM31hmX0UtJainTKdoobsKxwkpcZQinfV_mg1H0L2_c9gRI-7thCg3Wj9DD8__Jsp4746zKoONJj7tPInugf6XmZ2DJpfsDJ-Bg4eC-0yrkArllALwEdtoMN5woBgm3Jb6U3cuFPJv31GI8m0QS0ssDGoxYAXL-Nc_QYOeMHmPQ5OmK75rLJT2Z7A2U06fVAKDl9tq9umc_0Xl6e0dLHjo3blwhHaENN4JmemjymEkKUqKdjioe_FgctQFelTzjHr83Xy4W-uNd7wIvVl_PwqDoYv2VRV9y3ujlHOBVhqXdYFej3LMMLF3iRVAZ6V4T6mEG89SIcgu4UYfa3uzPmFCyogVcZ_qSjOBsxyEIQJH4PqTv_Jbd8a-HJUO_eUzM5QgpOc0oqr8uAdpubn7t9_xFfXluRDhEAQIHQTuA2AkYeMhsXYGb1gVQvgVeqYe-aZozURLv8kb54HSwjwBfeB-Atm4gK5BC0tjo0BU70l7-cVTLnxs36WsEZrvZDUYOK4S1VB27TGNLB-2EcCzJmKY7cHJ4_tQFcHnKAHR-VAyQWQbqyXWmxN2A2jWIJKsv-hObUkb86IBtNN-al0UfsdztV3y4bSm8FZQRdOQ7rmJobjRiTXWSJ8kSa9qPgxFMntzzVqnyPohWXwcHeLXHDJV6Tdi9E_Q5-VxMf04ujrmw-hwrE8INEfYGVUFroMXIrFeGv8YZnY1hPOf18o2hyhyxUprrgDIU4VK-9BoC3P4p-9IPppxTKtrArYZfVkgOvlF0IzDDrkosTEZWZmiyE_kGN3vAyVtz6lqmCKSTCCVzAq4SZ7-cgGb1zm6TVHNEl1GegFNh1l4DU9FrZo4WyWbpiRj1Lf5bcUJo4qdD4yjDgopRuoNyXuU10KKeIfs8t98IOHgdEghyDjnRfF7HgsfTxNXjQCqGIjSZUj4OL6QRp_YiaRzptmFC73dprDnyFhxdRrz1V0P11_bNyTYyXOEZWk7DewHhRWp_5cu9K60WMb-D1ARIR8NMv0Ybx4EwvsI9-jzZEj0r6w47vkipHQWyCA6D6K039zl0VxpugBgllI6bLD0a3blBAwYy18DFfsGcDnFyL8ztzGKXokmctfvFWBKSAswL4NMWXKIBo8HmuowhwGsk7WCeo0plbuKVG0Ux5_aOQM5nFeYOtomeriDkS5gG2dqxwQLKF1Bv7ylP2JaWYcDc8Jyl4D0ubTUZEka-8nhvR60mpnPbFuUAhqa28AqNkPZrNw7LesZYS41kRNasayPYSrmiJRGsHujrVEjeCt9CI2Eaph-z6uZW13P13iUCgCEsk7suVPmBDjYETK07cccIfLjnhZ-J4xvTOAppG4d-AiyQa1WHh05jIG2-OwT8qJa0raVcTmQuEcMlTklg3iiGMYGewnqw2QGuldO0k9oJiiXvkK_xewL9WuVk6ZsZsPpuRfpDaUhWXxdOEuKnz7msEeZ4BOzR8DyEYMAveQOwyzOCGd7qHjkk-5XdFsW6_2QHe7YC85cqME692YNPb6LTC54MybZJbVSC7lDQRYnzMIFGTHx8SKdxNitH4VyqmY2VQw24TXzSGUpAVCKfRlu8CjGuuYJ3PSMGTe_CC2Bo2J0q-Q0sdse0VwCy7nSNeEW8IA="
+        },
+        {
+          "id": "rs_093b12f1c9913e53006a856bd0b250819f978382db52363bd5",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhWvvx9oeKpTkWEiODkg3xNbajqLbnXHgm-cDx7f0vuBUS-OpZlWiTBUpfXg770Z-4IlJNJURxNYjnld55oGNTLTSegEGqR1YvSgq0d2kE4QX4j1OibYfhbrCSTXauXWT_pnXIhVMXJQLnEvu4BZGdjx9DEGumpC_ImqgaVckBi_BUL7xOd4JgMvsH8agYzmm9013txqJqNRxy4GXkbmEn0YnJTBDUHCdnuUQJTaqysKzOijmSiiVj5r8LDGBe8XJ-U_PsIirQK2z8b9xEriIZ4LydCf5IUXxRFaqtbOcduUkwQKPWdkbkKOdoCnxQyZNU1Z_ckch6A0B6fgXXH4nh6H2cHppq1P4orIIXVSS0L-f8h-yU5XAadHbS_VDVFRUJvv4EwskO-tzws6L6OIDZzjBSzxOAup1tnx9yDKw6MMbEzzp1Sgo1DqSJbidhWkHtxsX9-OrQcg-SbtSZnIUOUgPqPz3LawC0O8Ovny-JSZ1nzmOm674YPjFEZpz8RQdHoGp3mrh4OudLgDG1XF4W2n0O6mbNEDlY7MSG5uM5dBQ_Aahf79yf9lJq_CoDZ5cjoLlwrc6qo4i9NCRa5zw_49usn5oseXJnsNbSmYvFEFXvWcz3PiFN4waA6y-Pah_SFsC88KBO7tv5vehngoOrosgvZNm8YwdowLwY4Hn5EglL1qSIzpF_SzJm1TlVVmeR920M7yjTBKyAtqd_PFryzbkt29VtIIYsXu9TKA8eT8rJMIQipe3q3v4tTsWgEDTnjUEaBzW55NTTRtD6-ljkMkoV1Wm0ot2nGpQxwkOStQNqiauyC2d0bkjXwvPhgnfQ5-IJgikbJrHhNsBvlnHeF946MBvePCU9-ku5CoLkmTgAx9VIyXtYs1FChi6qPSzCytOq7R2KEGxLqz7GuIKpGMlzYK76tCUM9utl-eyrM3ox-9WNonc7MiN4b-1FaY3KJrfJm0BNqhKUgj6gRIib8eQQR2Jc0_bR0vEFzz-9rfTZjg6MHyPtnL5Dmq6zHiT04uCTuuIlJsOZpTOxDcaMSjv8EQP-O2UbT9-En1EOqWAvkvj7Aub215c9arAH-nZiSoqKv6gaMGPYKQaOfJ6lt4ayQy7mKqReIbPWL0fMU3PU35n1fa8Jzm-RU_NwlQtB1vGBVAVn4TMvV7Uv-FuHoZinKZW3XuF4Q5X7-z7ND2R5rp1rvuyBpPxy0TOKIplOsSBlVA6jiTXomju8LS3kPb2uhCXQ_N6QjxFzJrjCu3MNvCtElnA634-scUBsWc5Lk5n1A4kc8xyaWXON42lQ3-DzVOBepfZgJNp3YhRuLZPsP0dxoTO-r0ZHyVUmgSlRvadrXYo-V5FmxMKGxo759p5roHb3NLllpVCUHAYm57VeVtRR0vJqtzdMSUEqCfb83JxK9HqndX5b8fvROiHcmGF60OTaA2v6g9oFhkKRjf4Ef7V40AnJ3nKUFzGcvgqqw-LjmPDcl1LsfBRBCbE4gnC0HdO84Vo2itdDJ-VSMxAYWz6TeOSA9Ckw_6RVpscbOjuCXSsu73KodEwls51HMYTDotN0Bxo8Wr0ny63b5cBkc4qEG01lRFr0mhhf8okdSu3gUkztcOc9pR6XrO4yYHdWvh524RtNnrf8-SJx0KpjX4fHGrPj_6jXzbSJTzfgC1cBo9CEjL2XqoKSfHFdnbNlw-Q63-v2kSwKG3w5xzHk065OZUT3ftj2z8NTFPQ8FlEwg2yCWopnCdgZQ1yWueUb9UQeA3w4QhkYT7PJ421ivcsKJ-sDCFHQQaQlVHlSGHBMEowEP9z8ll_V7elxMIwEPcNpBbsVHsXSNY_0GXXd145SvnUHhtIjcGS6gQqXuv04R9pbVZbMO5Sof5HK3UAfSf9lEjPec-S65z0WJwTWNDYowtysxjAbmnu3aZrqe_VgeIQ_ED00MsALu-dpT0LALEPFcz6CUVNblVbth74tLeJ1wYvF71ydYcw84eJC4ax0VsTnyeQlFWeQm7BTUlMAaFUQrR3brEqNtGWEgt6w6HXjiyFW_VBv_WmnjKYrhVQpODtBs9fLHKmbOH1QnXtto2NvHNOPI3rukuptkEv3pEwF4_IiG-372yQ8nCQ3Uq9JuWEmCWFG1fN8b2M1fmPP51XtHexM8znFGd7cWrkjvSlITxJ8rj09lnp_6yNrBsR2mTwPoo57Z7SMolVy8N3T7O2-lY8yaQB2MW8utw8YJM5GSC_ifiQJCxafpvrBNzVRHZPSQLbWkD2GeTSkFMxP7_QWZvtq-pgLrySd4D5xHGGFVoa9SgtxNOjN4B_rHxVRizyWZWU1H-MznWg5LGuBJ3UQ6ylAFro80_FJP7OfQatj4JD2fWeWwTymzDoavFDDu1RM8iyrP1zytQbn4y1Gb2J06rgt9Mo9v5CEzJogsCuUFd1N9qVy6N9rDOSGy6t3JS2s8Fw9ADBWu1dBrjzf4IwZ_RgdUG_nqi6cJeG0ZfJ6AjlT2zY2H9OUBclsg8h-36MAXLF8dePgrd8rlVW5_pokFbUUZnDK2W0cYMy1xv7DYdSkqYGWdnN3Q28--67odVz4DKeOroQtVW48443LCRAk5g7NzE3RR_oYUs__4XMjl-shJBmBNXhq-rrwnXW08Jw4aQ6PAfCVEVze2IUrko_CdDLkqODLBy6FaAdcMJsjahOhkZnBmbEyK-F3HqU3PbRu_5CL6yfRBjdQHoQWdERnq1c_3nYO9uhtCjNoczxz2SJbKoSA_MeQ7hzuMhvUu7Mlytus6jqfJH104Wdk_vYUNeygwCBoNQb5AsvcYLPleU1GmEtmTevKHR0poM_U8UobLZGxGgxsUpvHRoNxWIbNc6Z0kxrRUnSWc23byHM21IuxR1XKn0Mvl_aedOhEUH07qgHOef8HXO9Pq5ny6TLWaRNDMOgw2cHsGR4bZnr1sLgMmDCzAKOnzy_A6OtD4KcKVskKmKx2DkDpxYukZ35z-78tsQFTC9oh6mXDA6NEkW-QJVZiGdvU_1a4qA4kgY4qRFvr9DZvYJVHQ82MaQGhiRWgazkF0RLYJsSZa2vNjCYkFyjTvUGBtg8HfnOFkbcHs7NSPrNJlc1PyduOT-DAZl-Z6UanO-rg8b2erUzxC1nlKfTUoyPLwyU3vPQbQhP01YqL1cm8UQ88aStTCc5f3zYyO14pTbZzpqeI2TWDVVfbU-H7VZooMwikHpqbDN_WVPpXwcO1F7bPbcU4M2nI7FDyNLHPct51FdLuRVsv3penX-pkSgSP0vo0GIVIfcqv34z1VT7Nwljg1XX2osPySn04ewZLQxz98wSNwKscNNs332wO3WdQa-WnXXsI321qGGN25ETZi0PRM5NGeDAyJ4FaJsR3hUO9m5de72frJ5i_71SZlIMiu-qAsnuS7pra0KjivQD-ADIDG1xnHrsXoe4LzHwOJ6DMsgxs36zuLvEC8m8cCSBa3-t1Pz5qi7H7vE1Dco_rNaDE2nFZeBwfSJ9CeS3G6PYV4XM6Rm198OBCrAhX-6uiGHCunYxgFBk_VhqRgGoTIhUbiplLtnt0WA4s5SoDGhmOkbNPz6z2U-irEWQOqvCOyHctA0ZGTVFYXdw55dOY6xijovpab6XC_IPGE6VmUEgBKkxwD_WNjGt-n7wsNxDUzq8D9tkfaih4mc5ZIcERwgTlwgJFCRa09Yt7UDJr8xkGH4SUJa-QrMii4i8fE6jm4hLTYxdbMUUhz_lZANXeFW0rgB5rTrvWfAMuPXwQuPIV6ZELlJTeRwavhPFMbILNfLdTn9JjbxX3Weqs0tVbkZzWuvyrtVPKK3861QuD-ZgqocMaDHNN5HtBlgd2HAw9PB_5RFDSPuboiFbMSWaObUGTIOjqaZUWSUbTO34VlHZXzLo9pqhbj3jx9x849EOZy1M27MTI_MqkfXy2aGXGhy2kFJA5QHn-KilVp5Qvf1tmrN2Mygeib7N9hjdRNm8FaM1gqhYZiGPZwMjnwY_Wv6Bw4Nj3OfmVnsWucezuwqdsVFjEmagdJnEmi4yc3N_OV8OHnnJgNRfmLYo9hX4RGgDJe33tCFz2s83CnWsGl29U-s9u9nfBaqgBHbw_TqP7sYFS4ZBQ8sC0LvNBGI2zRwtUM_rYBZEBeMfbqgoAoSqnuqyR88="
+        },
+        {
+          "id": "rs_093b12f1c9913e53006a856bd611b8819fa93af3660e86cefe",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhWvv7wdxNUQmAIGEhHpyWM-YBO3tZ-ClID1bz80y1t6G4C9AS8mwwVA17T3ia5xYz-zqe8xZcmR-_KfA5VqO9o-RZJzYHWdDMLonr2AiBn4kTlWLOLzhH22ks14vkAGV3W76fimXil_74fZS0qj-JJxtNSAn0NAaTBj5EDOKEuq28Jk5nVct2JbHgeLFFv3FrUrtgyfBpvAI67uoOtkQcbIQwYeoj9y-HMHGKOHLxem6alYfJxV5RxOAsg7UxAWYvtvtjvYe8tsB3aGJA1iXYPqqls7k0XNbW8OzxI1GcJT3h-NX9Ke4s1qIWvrjC0TG_vfMVMycYCMl4MV32PbVdWj_BUzRB_1LZsDvhI_ib5Pcp5kNN8VgPUeTnFaj4qGeznVEuut7FV6VtzoKWE6FqB9mJ_PzIRAuumE7hK6A0EzQrT-L7U1Sd3NUSujrRa6iNrA3ZgHygWtKpKZH6Bvz3dt4cXo-36NF5ttlOADDH9dQ-gQ_LJ-3_d68B0b88qhZQWiiFvLh86MHpdQlTHM0SZjK7doOI4Xns0G9RFop-SkXa6TKL1tihQsbD7BtTwL5mMkgUX11KNvfb4e4BUU97sPGNl2zCX56dgW_-y8bOMaWncZMxQjPUZTnDi1Gi00xm58zuRibNZwZv6L0gJC41DpNGWEV0bIs-T5ve463Qe8Y8gjWqAzz4itFNTaZFWMOUH1L-Oebjf1mVrXd0INJIqMSVIyyGBQXfuIRbOCS8zX2hM9uiVGjLy7AtQ8WWPEw_HToK_KlBznPaEsImX1cE7NF8SzuVKk8gJywSmhFAViBS4HmYJONWZbX6HD1DJMxXkDKQb6Km_CRQ7ei-GPRUFaV0l32p6FkQUNTQihQApjQjzAT4vRSaLyZCu-I-V3tyQqbvptDlIyK6gY1yGztLhHBIswZm7PRnnnFbNWTLb5utzjxwZ_gtnpGf8ZWRv4BnUsDXH70LwtHQfNAseTAtJOqnK4dAJPazmFL94miONlOiHGkAms8V6pTjLgTDX5fI7rXgfRySGyth1Du5-rlfZveoehoq3mGoa_0m2REwl1wUqWBSxYCw1vRhmaPOXzJhT_VMjHXpAW5r1LMCBy-gcLZ0GjyJTU2dhSZkufsodtB7h7lACtwgFCy_MirPcaOi7JjEgEFfOeLr-ufGaTOgisKCEkZGLzh9lqT3CG2GTLTgQpL9IC8MmByVUfOMj2ysL0XE9CFFEAsdGXCgV0xq6a0_6DlFWITnv3UwWA6ZP38Mfu8E_GljNecpp13-rpWJwNCVm6XU3KNE_DmwQ0zYLD9VF2js2rW9PO6Z7sUm-LJ6fFtkptCXQ_jbqPGVdiVGN0WxpLoz62C-0jwwg_R9cE7chvnl212KJGr517qwqogZpcLyKYKMOIPsTGb7_oFr-rP-RNZo_v5gt-15pZUBB7Ks2r36ZGB4mcKKkD9wjtzqsn_qpcdq-PER58ImKqKyNuxtAdJ7JKACjX6WKem5-lB-1SJ-xS-aVyoims6QqehK1esLh81J3q1c0L8uqB7XTlOygkAlEnccNntpYiBd4sI_q1yBX0n7s4RqjGCsQuzWOWitBdbtNjvaJXLRw-5zwhRegcH3YD1wufKGmjpztl7zICIfsf8YoYLCI6P6b7CWrKWDv4dv_VtVC1pK0RbkGThGt_6_NFxIyEjVZPD8LwnZL5fYTfG9a-dhaDXx8E6k6n5ziUjlKE3iU8J4hRUFqgygAN_jKQLEzQHenw8DX4WRGBLQpBiF0V6oGG2b_bF4dpCg_y9VMuvnqWyf0oz_1uzEJ9ehp0yUhwh33EYO6gmxSLkLJSne5BY_fpebFw47o4cDunGD329xRhySkI85cguyG3M0kPzc_I9pATBlQ3_3yMUhsgmu5wN9qPUlg5CZ92rmUoaK43WSuZLlT5c3PNKcDm7L4xj4DSSD1D6ItpFHCftpdJixnNFck2NLAgkz37dcpOzehzaQ4D0J6mExFEwtm21JeQLeZ3UJtIfRyNs586tfJkephwUwHa3E6BXE1L1vwLNr2RXuHeo2J0w2_si7hSA7RQva9m7BmkWJVMrE6T7QlzkT9RD9H0hh15ptQdBkSo0qDWdcwq66XR1RjzIZf15abEzEPR8MBA5RqKE4ZTpJFDJZ-jEMpFGUIsyvgPQh-cgyRkXNjsNkeFiv0pSTZnT1usYXE8VH5IvQt65HAAARfB4W0nT12MRJz95Ai7Ij4cZxgmjWRtLEvXcz7Gaoer6SMX5a0-b7BlMRg30Xv496DQ0bgflyqaEuqevfCW17Z78iS_lFSqewlj9BXmhstOSOh5gUVNqFLfzbg8E_dbKY6KGg1KxteK5m_mR8Ip0Sl08PN-ybqAgfXOKWOr0pqGvST1n-uXxAtFIwmCYv-0-zw-rz4zvpF5lIeMQ4YsJ5xT8782qmg0S_dXt3KFTmSPhXdFQ7zgAGY8Lptz6uNvKOM-bZrwI10oMebGLkeLvel3u_3MCXw0gOqBZFCd8QLgMvtJIq66t_MKXn1V92CIdn26X5rroLIyqhJ-FSrkghv_39WxjXS25BFrpvt0IOmLlPyA2hMZcTkWC-mLdo_J6sptcll9am1zWmi9akgxvoJh6VcNcPRdYVuXfgDuaU1Si3eZ3oV23l1JTPVvVhncdp858xfgh1LBWYX44R7TUM5z3d7dwrXi0Gz9-A9zOFYJYCl1z4KEggZTTXs0mOjdu9MzW-ACRc2TjNirfoMMXec2bQV90Y82xZDUJ12XcvQ8ue_Yh_hHca0NpSrehjZl6bnyamlNRZMtTHZ293oBZ0kFfx-0Mgs8nq7hIKaF9HQu87aSZznLg812X6szRqzoyaj7Cn-2XjWFcQz_x0OHa0KgMOR8m7PVxylQzVAU3qs8siwPrRWXKWVnkaJKUMAyOmche32lrZwDpy8UludShtWwdiPA4ukY8ARHQdnWL8LmN_h3ftcySYGjapfwt-EgpQhFPUC-Jm0ojsS7sCgQbjRXEzThpnLVWUTvOXxBP1KEJlHobvZhCibopUp5ZJs5lNWa0kiZ_XTIwH3SCVlEfNc5tLa47d_58N4jgVXAX6fFbVWpXxxqoZGSUdfSmHgPYWC4MHApgQ_j4M_zZldT2fit4kz2xyaKgMTIxZy8KCmj9KmGEfssf86mPTAA8GeHX53595Sc9zrPN4dnQY1Z_sgjfKuDO-QwWunmKtkzveRC0kcN0mg-RRjSxjcc_MSCNdeDRtjeFzWKz49AzGsRg2wMkI4hdpPP7NuYDvWo6YLNVjQjo4tr42nF7VnjS4bec1G4ec3k60Tc8_9xJmlXxOmAgrmCUuMQnt4_E7NEG93GiZYg5rjmMmfvj4rePXeOiGsO1fuu2O8ICpIbG-sNXw-gd70v6olXvz-ipNko49NGB3bFImYxeBTzBKU_KkIrTGe0Dsh3m4-2YuvTDe9vyYcv_YMoGYdG7DEq2Raa78JfXMByEcf3RmopIc_wZHddu_YhM2w8dOYqxY2_tJxVyrX4113ltn-lB-AQ_O6JwzLKSrAKwgVHnxKQeBn9z1ENUTVLcTnpUfHdd5wP8fo1JpmxapQDpeYz5pXku4DbLEL8ZKSF3Uhl1isDjo3Wqf3YIW2wo2B7e8lkzAcf5NEUiR_bZbVe-k3tSBlkWD77YpeBzZIYTn1u9Z0LOjk3CoeMJnCO6XxzOpqFIwhQnL9y0DkiSaY1nTe-C98GjoyfH6ZiEF9CWUn-W5AadkK8TVHtoEpyXFqCAL85NMcIPiWNGssJLiAEQgsiFkrC6fII-F56RrIr3Xio207b1QkPYyt_MhYMDRbFX-GGqJXT8nUmGHS0V8_lE9NMBF0m4UMUFaW-D5JBb0LU_QYFscN08X83rRmobTrFCBIsB76ONqSAvV_3Lb3YV8JD-FhDfHjpowhsdqbsToVKZMTxooxJ3FuUdBxJB8eygzbYFY1uO5CACZU2syZTZc_zOooCtsAb2eV69Xrtg-SFokCjygT38oUrWD0GeiaxgNHigGP27NfX2rjCa-tmgFPxVzEVarP4XWWyKYFeYuOkCFsMHzerzWt35bYeFVsvqOGXWPVbtXaxVn8Q4Vdwb6aUX51RnrpqaBjm2JOfPZpyPa14oxJPFYOtxksRXkkWN9zieJ05IKx9arBWjdhbWq6-OiyLxCyO3T5kceSfEONZftRmojFP1A3ONZGroFt5FwJ2F01qq730tn4jJHB_7VXc0l1abJ67rkgiAgXal4hUt6CAJSP8hTM4Bfcq0-RyBOlyzC8TfBPAE3cT1h7cMhLYvIzKgwbRoteqzVqybeggKeI-k36sJta4UP1Sx61wyro_dep46v9VM-YD68qV2mhq1e7n9dSKMUE7Bvq7YX2vXkCaP_jxcCA=="
+        },
+        {
+          "id": "msg_093b12f1c9913e53006a856bdbd360819fa3af8365820dfe20",
+          "role": "assistant",
+          "type": "message",
+          "phase": "final_answer",
+          "status": "completed",
+          "content": [
+            {
+              "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Peppery lentil lunch bowl\",\n      \"title\": \"Lentils, courgette, peppers and cucumber\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"cucumber\",\n          \"quantity\": \"100 g cucumber\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon juice\",\n          \"quantity\": \"1 tbsp lemon juice\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"flat-leaf parsley\",\n          \"quantity\": \"10 parsley leaves\",\n          \"amount\": 10,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the lentil portion, then add the cucumber, lemon juice and parsley at the table. Put the courgette and peppers on the plate first, followed by the lentils and the fresh cucumber.\",\n      \"why\": \"This is a warm, clearly named lunch with a loud vegetable and a fresh finish that reheats well at work.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_lunch_lentils\",\n          \"servings\": 1,\n          \"box_id\": \"box_prep_lunch_lentils_zoe\"\n        },\n        {\n          \"preparation_id\": \"prep_lunch_lentils\",\n          \"servings\": 1,\n          \"box_id\": \"box_prep_lunch_lentils_lubna\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Roxane's lemon lentil bowl\",\n      \"title\": \"Lentils, courgette, peppers and cucumber\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\n      \"ingredients\": [\n        {\n          \"term\": \"cucumber\",\n          \"quantity\": \"100 g cucumber\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon juice\",\n          \"quantity\": \"1 tbsp lemon juice\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"flat-leaf parsley\",\n          \"quantity\": \"10 parsley leaves\",\n          \"amount\": 10,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat Roxane's boxed lentils, then add the cucumber, lemon juice and parsley. Serve the vegetables first, then the lentils, followed by the cucumber.\",\n      \"why\": \"This keeps the warm lentil plate simple while following the requested serving order.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_lunch_lentils\",\n          \"servings\": 1,\n          \"box_id\": \"box_prep_lunch_lentils_roxane\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Tomato chickpea supper\",\n      \"title\": \"Chickpeas, aubergine, tomatoes and spinach\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon juice\",\n          \"quantity\": \"1 tbsp lemon juice\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"flat-leaf parsley\",\n          \"quantity\": \"10 parsley leaves\",\n          \"amount\": 10,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the chickpea stew until piping hot, then finish with the lemon juice and parsley. Put the aubergine and spinach on the plate first, followed by the chickpeas and tomatoes.\",\n      \"why\": \"This is the comforting reheatable dinner; we traded extra variety for one practical 50-minute cooking session for everyone.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_dinner_chickpeas\",\n          \"servings\": 1,\n          \"box_id\": \"box_prep_dinner_chickpeas_zoe\"\n        },\n        {\n          \"preparation_id\": \"prep_dinner_chickpeas\",\n          \"servings\": 1,\n          \"box_id\": \"box_prep_dinner_chickpeas_lubna\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Roxane's aubergine chickpeas\",\n      \"title\": \"Chickpeas, aubergine, tomatoes and spinach\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon juice\",\n          \"quantity\": \"1 tbsp lemon juice\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"flat-leaf parsley\",\n          \"quantity\": \"10 parsley leaves\",\n          \"amount\": 10,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat Roxane's boxed chickpeas until piping hot, then add the lemon juice and parsley. Serve the aubergine and spinach first, then the chickpeas and tomatoes.\",\n      \"why\": \"This gives Roxane the same warm, comforting supper with her specified serving order.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_dinner_chickpeas\",\n          \"servings\": 1,\n          \"box_id\": \"box_prep_dinner_chickpeas_roxane\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Ivar's hearty chickpea supper\",\n      \"title\": \"Chickpeas, aubergine, tomatoes and spinach\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"12362957-32c9-43a5-82ef-66b8d5732171\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon juice\",\n          \"quantity\": \"1 tbsp lemon juice\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"flat-leaf parsley\",\n          \"quantity\": \"10 parsley leaves\",\n          \"amount\": 10,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat Ivar's boxed chickpeas until piping hot, then add the lemon juice and parsley. Serve the chickpeas and tomatoes first, followed by the aubergine and spinach.\",\n      \"why\": \"This is a warm, filling plate ready quickly after the evening routine.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_dinner_chickpeas\",\n          \"servings\": 1,\n          \"box_id\": \"box_prep_dinner_chickpeas_ivar\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_lunch_lentils\",\n      \"title\": \"Courgette and pepper lentils\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"green or brown lentils\",\n          \"quantity\": \"180 g dry lentils\",\n          \"amount\": 180,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"onion\",\n          \"quantity\": \"1 onion\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"courgettes\",\n          \"quantity\": \"2 courgettes\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red peppers\",\n          \"quantity\": \"2 red peppers\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"chopped tomatoes\",\n          \"quantity\": \"400 g chopped tomatoes\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp olive oil\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tsp smoked paprika\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"water\",\n          \"quantity\": \"600 ml water\",\n          \"amount\": 600,\n          \"unit\": \"ml\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Rinse the lentils. Soften the onion and peppers in the oil for five minutes, add the courgettes and paprika, then stir in the tomatoes, lentils and water. Simmer covered for 25 minutes until the lentils are tender, then divide the ready stew into three named boxes.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 35,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_prep_lunch_lentils_roxane\",\n          \"member_ids\": [\n            \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\"\n          ],\n          \"grams\": 280\n        },\n        {\n          \"id\": \"box_prep_lunch_lentils_zoe\",\n          \"member_ids\": [\n            \"5fd38cfd-3895-4152-92a2-e62f9b7fc74e\"\n          ],\n          \"grams\": 280\n        },\n        {\n          \"id\": \"box_prep_lunch_lentils_lubna\",\n          \"member_ids\": [\n            \"86129e3c-2f50-480f-a359-077165b6232b\"\n          ],\n          \"grams\": 280\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_dinner_chickpeas\",\n      \"title\": \"Aubergine and spinach chickpeas\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"cooked chickpeas\",\n          \"quantity\": \"800 g cooked chickpeas\",\n          \"amount\": 800,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"onion\",\n          \"quantity\": \"1 onion\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"aubergines\",\n          \"quantity\": \"2 aubergines\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"chopped tomatoes\",\n          \"quantity\": \"800 g chopped tomatoes\",\n          \"amount\": 800,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"spinach\",\n          \"quantity\": \"240 g spinach\",\n          \"amount\": 240,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp olive oil\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"ground cumin\",\n          \"quantity\": \"2 tsp ground cumin\",\n          \"amount\": 2,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"water\",\n          \"quantity\": \"250 ml water\",\n          \"amount\": 250,\n          \"unit\": \"ml\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Soften the onion and aubergine in the oil for eight minutes. Add the cumin, tomatoes, chickpeas and water, cover and simmer for 15 minutes, then fold in the spinach until wilted. Divide the ready stew into four named boxes.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_prep_dinner_chickpeas_roxane\",\n          \"member_ids\": [\n            \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\"\n          ],\n          \"grams\": 360\n        },\n        {\n          \"id\": \"box_prep_dinner_chickpeas_zoe\",\n          \"member_ids\": [\n            \"5fd38cfd-3895-4152-92a2-e62f9b7fc74e\"\n          ],\n          \"grams\": 360\n        },\n        {\n          \"id\": \"box_prep_dinner_chickpeas_lubna\",\n          \"member_ids\": [\n            \"86129e3c-2f50-480f-a359-077165b6232b\"\n          ],\n          \"grams\": 360\n        },\n        {\n          \"id\": \"box_prep_dinner_chickpeas_ivar\",\n          \"member_ids\": [\n            \"12362957-32c9-43a5-82ef-66b8d5732171\"\n          ],\n          \"grams\": 360\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_lunch_lentils\",\n        \"prep_dinner_chickpeas\"\n      ],\n      \"total_minutes\": 50,\n      \"run_through\": \"Start the lentils first: soften the onion and peppers, add the courgettes, tomatoes, lentils and water, and leave them simmering. While they simmer, chop the onion and aubergines for the chickpeas. Start the second pan when the lentils are nearly tender, wilt in its spinach at the end, then weigh the lentils into three lunch boxes and the chickpeas into four dinner boxes.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"green or brown lentils\",\n      \"quantity\": \"180 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"cooked chickpeas\",\n      \"quantity\": \"800 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"onions\",\n      \"quantity\": \"2\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"courgettes\",\n      \"quantity\": \"2\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red peppers\",\n      \"quantity\": \"2\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"aubergines\",\n      \"quantity\": \"2\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"spinach\",\n      \"quantity\": \"240 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"chopped tomatoes\",\n      \"quantity\": \"1.2 kg\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"cucumber\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"lemons\",\n      \"quantity\": \"3\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"flat-leaf parsley\",\n      \"quantity\": \"1 small bunch\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"3 tbsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"smoked paprika\",\n      \"quantity\": \"1 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"ground cumin\",\n      \"quantity\": \"2 tsp\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\",\n      \"portion_note\": \"Use Roxane's named box for each plate; serve the vegetables first, then the protein, then the starch where present.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_lunch_lentils\",\n          \"note\": \"Use the Roxane box of courgette, peppers and lentils.\"\n        },\n        {\n          \"preparation_id\": \"prep_dinner_chickpeas\",\n          \"note\": \"Use the Roxane box of aubergine, spinach, tomatoes and chickpeas.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"5fd38cfd-3895-4152-92a2-e62f9b7fc74e\",\n      \"portion_note\": \"Use Zoe's named box and place all components together.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_lunch_lentils\",\n          \"note\": \"Use the Zoe box of courgette, peppers and lentils.\"\n        },\n        {\n          \"preparation_id\": \"prep_dinner_chickpeas\",\n          \"note\": \"Use the Zoe box of aubergine, spinach, tomatoes and chickpeas.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"86129e3c-2f50-480f-a359-077165b6232b\",\n      \"portion_note\": \"Use Lubna's named box and place all components together.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_lunch_lentils\",\n          \"note\": \"Use the Lubna box of courgette, peppers and lentils.\"\n        },\n        {\n          \"preparation_id\": \"prep_dinner_chickpeas\",\n          \"note\": \"Use the Lubna box of aubergine, spinach, tomatoes and chickpeas.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"12362957-32c9-43a5-82ef-66b8d5732171\",\n      \"portion_note\": \"Use Ivar's named dinner box; put the protein and starch first where present, then the vegetables.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_dinner_chickpeas\",\n          \"note\": \"Use the Ivar box of aubergine, spinach, tomatoes and chickpeas.\"\n        }\n      ]\n    }\n  ]\n}",
+              "type": "output_text",
+              "logprobs": [],
+              "annotations": []
+            }
+          ]
+        }
+      ],
+      "status": "completed",
+      "billing": {
+        "payer": "developer"
+      },
+      "metadata": {
+        "source": "generate-household-meal-v1",
+        "user_id": "5a000000-0000-4000-8000-000000000001",
+        "request_id": "lu000001-0000-4000-8000-000000000001"
+      },
+      "reasoning": {
+        "mode": "standard",
+        "effort": "medium",
+        "context": "all_turns",
+        "summary": null
+      },
+      "background": false,
+      "created_at": 1787128762,
+      "moderation": null,
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "total_tokens": 0,
+          "output_tokens": 0,
+          "input_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          },
+          "output_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          }
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "truncation": "disabled",
+      "temperature": 1,
+      "tool_choice": "auto",
+      "completed_at": 1787128814,
+      "instructions": "You cook for ONE student, inside the method their coach teaches.\n\nOutput a single JSON object, nothing else. No prose outside the JSON, no markdown fences.\n\n== THE METHOD COMES FIRST, THE RECIPE IS YOURS ==\n\nYour coach's method is given below. It is not a suggestion: their forbidden practices and the foods they do not put on a plate are hard limits, and you never contradict them.\n\nInside those limits you are free. Write real food a real person wants to eat. You are not restricted to a catalogue.\n\n== A PORTION IS ONE PERSON'S PLATE ==\n\nYou are told how many people are at the table. Every quantity you write is for\nTHAT many people, for the number of servings the dish actually makes — and for\nnothing more.\n\nMeasured failure, and it is the one that makes a plan unusable: \"2 salmon\nfillets, 500 g potatoes\" written for ONE person eating ONE dinner. That is three\ndinners on a plate. If a quantity only makes sense because the dish is cooked in\na batch, then say so in `batch` — do not silently inflate a single plate.\n\nSanity, before you write a quantity: one adult portion is roughly a palm of\nprotein, a fist of starch, and vegetables on top. Scale from there. You never\ntell the student those figures; you use them so the numbers you DO write are\nbelievable.\n\n== EVERY MAIN MEAL IS BUILT AROUND A PROTEIN FOOD ==\n\nBreakfast, lunch and dinner each carry one whole protein food as their anchor:\nmeat, poultry, fish, seafood, eggs, pulses, tofu or tempeh, or a protein-carrying\ndairy like yogurt, skyr or cottage cheese. It is the thing the rest of the plate\nis built around, not a garnish on top of it.\n\nSnacks are snacks. They do not need one.\n\nNever write a figure for it. No grams of protein, no share of the plate, no\ntarget of any kind — you are choosing a food, not measuring a person.\n\n== THE STRETCH STARTS TODAY ==\n\nYou are told what day it is for this student, and the exact days to fill. Use\nTHOSE days, in that order, and no others.\n\nA plan handed to somebody on Wednesday that starts on Monday is half expired on\ndelivery — measured, and the first thing a student notices. There is no such\nthing as planning a day that has already gone.\n\n== COVER THE WHOLE STRETCH, WITH FEW COOKING SESSIONS ==\n\nWhen you are asked for several days, cover EVERY day of the stretch and every\nmeal that matters in it. A plan with Monday dinner and Wednesday dinner and\nnothing in between is not a plan — the student did not ask for a partial week,\nand holes are read as \"the system gave up\".\n\nCovering everything does not mean cooking everything. That is what the\npreparations below are for.\n\n== WHAT YOU COOK IS NOT WHAT YOU EAT ==\n\nThis is the important one, and it is what makes a week both quick and bearable.\n\nSeparate PREPARATIONS from DISHES.\n\n  A preparation is what comes out of one cooking session: 1.2 kg of roast\n  chicken thighs, a pot of chilli, a tray of roast vegetables, a batch of rice.\n  It carries its own ingredients — for the WHOLE batch — and its own method.\n\n  A dish is a meal on a day. It NAMES the preparations it draws on through\n  `uses`, and its own `ingredients` list only what you add at the moment of\n  eating: the salad, the bread, the yogurt, the lemon.\n\nWhy it matters: one cooking of chicken becomes a rice bowl on Monday, a wrap on\nTuesday and a curry base on Thursday. THREE DIFFERENT MEALS, ONE COOKING. Making\nthe same student eat the identical plate four days running is technically batch\ncooking and humanly a punishment — do not do it.\n\nRules that follow:\n  - anything that needs a pan, a pot or an oven is a PREPARATION making at\n    least two servings. Never a dish cooked from scratch twice in a week.\n  - assemblies that need no cooking — oats and yogurt, a sandwich, fruit and\n    nuts — are plain dishes with no `uses`, made fresh, quantities for one\n    plate.\n  - a dish that draws on a preparation does NOT repeat its recipe. Its method is\n    what you do at that meal: \"reheat a portion, add the salad and the lemon\".\n  - vary what you build from the same preparation. Same protein, different meal.\n\n== NAME THE COOKING SESSIONS, AND WRITE THE RUN-THROUGH ==\n\nGive `cooking_sessions`: the days on which the student actually cooks, which\npreparations get made in each, and the ORDER of the gestures — \"oven on for the\ntray, rice on while it roasts, chilli simmering next to it, box four portions\".\n\nAim for two or three sessions in a week, not seven. Every preparation belongs to\nexactly one session: a preparation nobody cooks is a plan the student cannot\nfollow.\n\n== NOTHING SITS IN THE FRIDGE FOR A WEEK ==\n\nA cooked batch is eaten within THREE DAYS of the day it was cooked. Cooked on\nThursday means eaten by Sunday, and that is the end of it. Beyond that it is not\na meal plan, it is a plan to throw food away or to get somebody ill.\n\nCooked rice and cooked seafood are tighter still: same day or the day after.\nRice left sitting is the classic way to make somebody sick, and no amount of\nconvenience is worth it.\n\nIf a batch would have to stretch further, you have three honest ways out: cook a\nsmaller batch, cook it twice, or say plainly in the method that the surplus goes\nin the FREEZER on the cooking day. Never stretch it in silence.\n\n== THE COOKING TIME THEY GAVE YOU IS A CEILING ==\n\nWhen a session time is stated, the session fits inside it. It is not a target to\napproach and overshoot: it is what they actually have that evening, and a\nsession that does not fit is a session they skip — after which the whole week\nfalls apart, not just that session.\n\nIf everything will not fit, cook LESS in that session and put the rest on\nanother cooking day. Fewer preparations that happen beat more preparations that\ndo not.\n\n== NOTHING IS EATEN BEFORE IT IS COOKED ==\n\nA preparation must be cooked ON OR BEFORE the first day that eats from it. If\nthe only cooking day you have is Sunday, then Thursday, Friday and Saturday\ncannot live off a Sunday batch — those days cook for themselves, or they eat\nsomething that needs no batch at all.\n\nThis is not a preference. A plan that feeds Thursday from a Sunday session is a\nplan that cannot be executed, and the student finds out at lunchtime.\n\n== HOW LONG THINGS TAKE ==\n\nEvery preparation carries two numbers, and they are not the same one.\n\"active_minutes\" is time with your hands on it — chopping, stirring, turning.\n\"total_minutes\" is from starting to finished, waiting included. A roast is 10\nactive and 50 total; that gap is the whole reason batch cooking works, because\nthe oven time is free for another preparation.\n\nA session's \"total_minutes\" is the wall clock of the session, NOT the sum of its\npreparations: things overlap, and pretending otherwise turns a comfortable\nninety-minute Sunday into a scary four-hour one nobody starts.\n\nRound to the nearest five. These are estimates a cook recognises, not\nmeasurements — but they are the numbers somebody uses to decide whether tonight\nis possible, so a wrong one costs a skipped meal.\n\n== WHAT TODAY ACTUALLY TAKES, ON EVERY DISH ==\n\nEvery dish carries \"same_day\": what the student does ON THE DAY THEY EAT IT to\nget that plate in front of them, and how long that gesture takes.\n\n  \"kind\" is one of four, and nothing else exists:\n    \"none\"        - nothing to prepare. Fruit, a yogurt, a plate already made.\n    \"reheat_only\" - take the portion out and heat it, and NOTHING else.\n    \"assemble\"    - build the plate from what is already cooked, no cooking.\n    \"cook_fresh\"  - a real cooking gesture that day: scramble the eggs, boil\n                    the pasta, sear the fish.\n\n  \"minutes\" is how long THAT gesture takes, that day. A whole number.\n\n\"minutes\" IS NOT THE TIME OF THE COOKING SESSION, and confusing the two is the\nfailure this field exists to stop. A portion of Sunday's roast, reheated on\nWednesday, is 8 minutes - not the 50 the roast took. Announcing 50 tells\nsomebody with ten minutes that dinner is out of reach, and they skip it.\n\nSay it on EVERY dish, including the ones where the answer is nothing. \"none\" and\n\"cook_fresh\" are answers; a missing line is a plate somebody stands in front of\nwithout knowing what to do. If the dish reheats, the word reheat is what they\nneed to read, so write \"reheat_only\" and say it again plainly in \"method\".\n\n== NEVER PUT A NUMBER ON NUTRITION ==\n\nNo calories. No macro grams. No percentages of anything nutritional. Not as a target, not as a range, not \"roughly\". Nobody has measured this student.\n\nShopping quantities are DIFFERENT and expected: \"400 g chicken thighs\", \"2 onions\", \"a bunch of parsley\". A quantity says how much to buy or use; a target claims a measurement of the person. Put quantities on ingredients, never on the student.\n\n== SAY THE SAME QUANTITY TWICE: ONCE FOR THE COOK, ONCE IN FIGURES ==\n\nEvery ingredient carries \"quantity\" — the phrase a person reads, exactly as you\nwrite it today — AND three plain fields that repeat it:\n\n  \"amount\": the number.\n  \"unit\":   one of \"g\", \"ml\", \"unit\", \"tbsp\", \"tsp\". Nothing else exists. If\n            what you meant is a handful, a cup, a bunch or a pinch, leave\n            \"amount\" and \"unit\" null and keep the phrase in \"quantity\".\n  \"state\":  \"raw\" or \"cooked\" — the weight you just wrote, before or after\n            cooking.\n\n\"state\" is REQUIRED for anything that takes on or loses water in the pan: rice,\npasta, couscous, lentils, dried beans, meat, poultry, fish. A hundred grams of\nrice is not the same food before and after it is boiled, and leaving it out\nmakes the line unusable. It does not matter for oil, nuts, cheese, yogurt or\nfruit — say it anyway when you know it.\n\nNever guess. An ingredient whose weight you do not actually know keeps its\nphrase and leaves the three fields null. A made-up number is worse than a\nmissing one.\n\nFATS, NUTS AND SWEETENERS ARE THE ONE EXCEPTION, and they are not a guess.\nOil, butter, ghee, cream, nut butter, tahini, nuts, seeds, honey, syrup and\nchocolate ALWAYS carry \"amount\" and \"unit\". \"A drizzle of olive oil\" is a\ntablespoon; write 1 and \"tbsp\". These ingredients are small on the page and\nenormous in the pan -- a spoon of oil weighs what a whole plate of vegetables\nweighs, and a line left blank there makes the entire dish unreadable. Salt,\npepper and herbs may stay a pinch; oil may not.\n\n== WHAT A DISH ADDS ON THE DAY IS WEIGHED OR COUNTED, NEVER VAGUE ==\n\nThe phrase in a DISH's \"quantity\" is either a weight -- \"100 g dried pasta\",\n\"40 g feta\" -- or something a person can count: \"half a lemon\", \"10 basil\nleaves\", \"2 eggs\". \"A handful\", \"a generous portion\", \"some rice\" say nothing\nanybody can act on, and they are why the same dish comes out different every\ntime. Salt, pepper and herbs may stay a pinch. Everything else gets a number.\n\n== THE STUDENT'S SITUATION IS NOT DECORATION ==\n\nThey tell you what their week actually looks like — a wedding on Tuesday, a holiday, a weekend away, a late shift. Cook around it. A meal that assumes an evening they do not have is a meal they will not make.\n\n== THE TWO MODES ==\n\nmode = from_pantry\n  Cook with what they ALREADY have. Reach outside their list only for genuine\n  staples (salt, pepper, oil, water) or when the dish is impossible otherwise.\n  Anything you use that they did not list will be shown to them as something to\n  buy, so keep that list short and say why it is needed.\n\nmode = to_shop\n  Compose freely, then give the shopping list the dish actually needs.\n\n== EVERY DISH HAS TWO LINES: A NAME, AND A TITLE ==\n\nThey are not the same line and they do not do the same job.\n\n  \"title\" is what is on the plate, plainly: \"Chicken, courgettes, peppers and\n  rice\". It is read out at the table, it is what somebody cooks from, and it\n  never changes job. Keep writing it exactly as you already do.\n\n  \"name\" is what this dish is CALLED: \"Golden roast chicken bowls\". Short --\n  six words at most. Appetising. It is the line somebody reads when they decide\n  whether they want to eat tonight.\n\nWrite BOTH, on every single dish: as many names as you have dishes. Count them\nbefore you answer.\n\nDo NOT make the title pretty instead. A title that becomes \"Sunshine of\nMarrakesh\" no longer says what is on the plate, and nobody can cook a name. If\nyou find yourself dressing up the title, that is the name -- put it in \"name\"\nand give the title back its plain words. And never write the same string twice:\na \"name\" identical to the title is a line that says nothing.\n\n== OUTPUT JSON SCHEMA ==\n\n{\n  \"dishes\": [\n    {\n      \"name\": \"short, appetising, six words at most -- what the dish is CALLED\",\n      \"title\": \"...\",\n      \"slot\": \"breakfast\"|\"snack_am\"|\"lunch\"|\"snack_pm\"|\"dinner\"|\"before_bed\"|null,\n      \"day\": \"mon\"|\"tue\"|\"wed\"|\"thu\"|\"fri\"|\"sat\"|\"sun\"|null,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"...\"|null,\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to make it, plainly, in a short paragraph\",\n      \"why\": \"one sentence: why THIS dish for THIS student this week\",\n      \"uses\": [{ \"preparation_id\": \"prep_chicken\", \"servings\": 1 }],\n      \"same_day\": { \"kind\": \"none\"|\"reheat_only\"|\"assemble\"|\"cook_fresh\",\n                    \"minutes\": <whole minutes for the day-of gesture> },\n      \"honours_belief_keys\": [\"<exact keys from the convictions list, when one applies>\"]\n    }\n  ],\n  \"preparations\": [\n    { \"id\": \"prep_chicken\", \"title\": \"Roast chicken thighs\",\n      \"servings_made\": 4,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"<for the WHOLE batch>\",\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to cook the batch\",\n      \"active_minutes\": <minutes of HANDS-ON work>,\n      \"total_minutes\": <minutes from starting to finished, waiting included>,\n      \"cook_on\": \"sun\"|null }\n  ],\n  \"cooking_sessions\": [\n    { \"day\": \"sun\", \"preparation_ids\": [\"prep_chicken\", \"prep_rice\"],\n      \"total_minutes\": <minutes the whole session takes, start to finish>,\n      \"run_through\": \"the order of the gestures, plainly\" }\n  ],\n  \"shopping_list\": [\n    { \"term\": \"...\", \"quantity\": \"...\"|null,\n      \"aisle\": \"produce\"|\"protein\"|\"dairy\"|\"grains\"|\"pantry\"|\"frozen\"|\"other\" }\n  ]\n}\n\nDay tokens are exactly: mon tue wed thu fri sat sun. Never translated.\n\n== ADDITIONAL OUTPUT FIELD (household) ==\nAdd ONE more top-level key to the JSON you return:\n  \"member_portions\": [\n    { \"member_id\": \"<exact id given above>\",\n      \"portion_note\": \"how much of what goes on this plate\",\n      \"preparation_shares\": [{ \"preparation_id\": \"prep_x\", \"note\": \"...\" }] }\n  ]\nOne entry per person listed, using their EXACT member_id. Serving\ninstructions only — never a reason, a goal, a calorie count, or anything\nabout a person's body.\n\n== BOXES, ON EVERY PREPARATION (household) ==\nEach preparation carries one more key: \"boxes\".\n  \"boxes\": [{ \"id\": \"box_<preparation>_<name>\",\n              \"member_ids\": [\"<exact ids from the list above>\"],\n              \"grams\": <whole grams of READY food in that box> }]\nIds are lowercase ASCII, invented by you, and each one is used once in the\nwhole plan. The grams are what goes IN the box once cooked, not the raw\nweight of the shopping.\nA dish that eats from a box says so: each entry of its \"uses\" then carries\n\"box_id\", set to that exact box id. A box can only be cited by a meal on or\nafter the day its preparation is cooked.\n\n== WHOSE DISH IS IT (household) ==\nA dish can carry one more key: \"for_member_id\".\nThe serving plan names the people who cannot be served from the shared pot\nand orders a dish of their own. EVERY one of those dishes MUST carry\n\"for_member_id\", set to that person's EXACT member_id. It is not optional:\ntheir dish without that key is served to the whole household by mistake,\nand the person it was cooked for never sees it.\nLeave it out of every dish the table shares — a dish with\nno for_member_id is the table's dish, and that is the normal case.\n  Roxane = 5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec\n  Ivar = 12362957-32c9-43a5-82ef-66b8d5732171",
+      "service_tier": "default",
+      "top_logprobs": 0,
+      "max_tool_calls": null,
+      "presence_penalty": 0,
+      "prompt_cache_key": null,
+      "frequency_penalty": 0,
+      "max_output_tokens": null,
+      "safety_identifier": null,
+      "incomplete_details": null,
+      "parallel_tool_calls": true,
+      "previous_response_id": null,
+      "prompt_cache_retention": "24h"
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-19T08:39:22.231416+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-luna",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T08:40:15.330499+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "openai",
+      "model": "gpt-5.6-luna",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

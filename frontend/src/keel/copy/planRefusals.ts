@@ -282,6 +282,19 @@ export const HOUSEHOLD_REFUSAL_KEYS: Record<string, MessageKey> = {
   bad_weight: "household.error.bad_weight",
   bad_gender: "household.error.bad_gender",
   bad_activity_level: "household.error.bad_activity_level",
+  bad_day_activity: "household.error.bad_day_activity",
+  bad_sport_frequency: "household.error.bad_sport_frequency",
+  bad_appetite: "household.error.bad_appetite",
+  // ── ③ LES JOURS DE TRADITION (20260820160000) ────────────────────────────
+  // ⚠️ EN LITTÉRAL, comme leurs voisins: ce fichier est scanné par
+  // `planRefusals.int.test.ts`, qui ne lit QUE les littéraux — un motif calculé
+  // devient orphelin en silence (cicatrice « la garde des refus ne lit que les
+  // littéraux »).
+  bad_weekday: "household.error.bad_weekday",
+  bad_slot: "household.error.bad_slot",
+  empty_label: "household.error.empty_label",
+  label_too_long: "household.error.label_too_long",
+  too_many_traditions: "household.error.too_many_traditions",
   // Les trois de `keel_household_set_reference_member` — même défaut, même
   // remède, et ils sont ANTÉRIEURS au pop-up (FF-043).
   minor_cannot_be_reference: "household.error.minor_cannot_be_reference",

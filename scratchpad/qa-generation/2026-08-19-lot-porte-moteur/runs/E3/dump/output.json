@@ -1,0 +1,934 @@
+{
+  "request_id": "e030000c-0000-4000-8000-000000000001",
+  "resolved_by": "--request-id",
+  "user_id": "1e000000-0000-4000-8000-000000000002",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-19T00:11:51.078Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "5fd3a941-1507-418d-8b84-d3a48f83ae23",
+      "status": "attempt_start",
+      "created_at": "2026-08-19T00:11:02.918104+00:00",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 15486,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 15486,
+    "user_message_chars": 14902,
+    "user_message_truncated": false,
+    "user_message_written_chars": 14902,
+    "independent_counters": {
+      "system_prompt_chars": 15486,
+      "prompt_chars": 14902
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "dcb11a55-389f-42d5-bdc4-f4bf56415b2c",
+    "created_at": "2026-08-19T00:11:50.46491+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "gemini",
+    "model": "gemini-3-flash-preview",
+    "http_status": 200,
+    "attempt": 1,
+    "chain_index": 1,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Sunshine Scrambled Eggs\",\n      \"title\": \"Scrambled eggs with vine tomatoes on sourdough\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        { \"term\": \"eggs\", \"quantity\": \"8\", \"amount\": 8, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"cherry vine tomatoes\", \"quantity\": \"200 g\", \"amount\": 200, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"sourdough bread\", \"quantity\": \"4 slices\", \"amount\": 4, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"butter\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" },\n        { \"term\": \"blackcurrant jam\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Whisk the eggs and scramble them gently in a pan with butter. Toast the sourdough and serve with the fresh tomatoes on the side.\",\n      \"why\": \"A high-protein, warm start to the muscle gain stretch that uses fresh summer tomatoes.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"cook_fresh\", \"minutes\": 10 },\n      \"honours_belief_keys\": [\"name_the_plate_out_loud\"]\n    },\n    {\n      \"name\": \"Summer Roast Chicken Bowls\",\n      \"title\": \"Roast chicken thighs with courgettes, peppers and quinoa\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        { \"term\": \"lemon\", \"quantity\": \"half\", \"amount\": 0.5, \"unit\": \"unit\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Take one portion of the roasted chicken and vegetables and one portion of quinoa. Assemble in a bowl and finish with a squeeze of lemon.\",\n      \"why\": \"Utilises the fresh batch of roast chicken and loud summer vegetables for a balanced lunch.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_chicken_veg\", \"servings\": 1, \"box_id\": \"box_chicken_odalric\" },\n        { \"preparation_id\": \"prep_herby_quinoa\", \"servings\": 1, \"box_id\": \"box_quinoa_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 5 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\"]\n    },\n    {\n      \"name\": \"Spiced Beef Quinoa Skillet\",\n      \"title\": \"Spiced beef mince with wilted spinach and quinoa\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Warm a portion of the spiced beef and a portion of quinoa in a pan until steaming. Toss together and serve warm.\",\n      \"why\": \"A warm, protein-heavy dinner to fuel muscle recovery after the first day of the stretch.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_spiced_beef\", \"servings\": 1, \"box_id\": \"box_beef_odalric\" },\n        { \"preparation_id\": \"prep_herby_quinoa\", \"servings\": 1, \"box_id\": \"box_quinoa_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"reheat_only\", \"minutes\": 8 },\n      \"honours_belief_keys\": [\"starch_follows_the_session\"]\n    },\n    {\n      \"name\": \"Berry Protein Yogurt Bowl\",\n      \"title\": \"Greek yogurt with fresh raspberries and toasted oats\",\n      \"slot\": \"breakfast\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        { \"term\": \"Greek yogurt\", \"quantity\": \"600 g\", \"amount\": 600, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"fresh raspberries\", \"quantity\": \"250 g\", \"amount\": 250, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"rolled oats\", \"quantity\": \"120 g\", \"amount\": 120, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"honey\", \"quantity\": \"2 tbsp\", \"amount\": 2, \"unit\": \"tbsp\", \"state\": \"raw\" },\n        { \"term\": \"blackcurrant jam\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" },\n        { \"term\": \"sourdough bread\", \"quantity\": \"1 slice\", \"amount\": 1, \"unit\": \"unit\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Toast the oats in a dry pan for 2 minutes. Layer the yogurt, raspberries, and oats in bowls. Drizzle with honey.\",\n      \"why\": \"A clean, high-protein breakfast that requires no heavy cooking while the kitchen is being painted.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"cook_fresh\", \"minutes\": 5 },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Harvest Chicken Salad\",\n      \"title\": \"Cold roast chicken with quinoa and bell peppers\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        { \"term\": \"olive oil\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Combine a portion of cold roast chicken and vegetables with quinoa. Drizzle with olive oil and eat as a hearty salad.\",\n      \"why\": \"Easy to eat while the kitchen table is covered, providing sustained energy for the afternoon.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_chicken_veg\", \"servings\": 1, \"box_id\": \"box_chicken_odalric\" },\n        { \"preparation_id\": \"prep_herby_quinoa\", \"servings\": 1, \"box_id\": \"box_quinoa_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 5 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\"]\n    },\n    {\n      \"name\": \"Warm Beef and Spinach Wraps\",\n      \"title\": \"Spiced beef and spinach in toasted tortillas\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        { \"term\": \"tortilla wraps\", \"quantity\": \"8\", \"amount\": 8, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"hot sauce\", \"quantity\": \"2 tbsp\", \"amount\": 2, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Reheat the spiced beef in a pan. Warm the tortillas in a dry pan, then fill with the beef and spinach mixture.\",\n      \"why\": \"A warm, handheld dinner that is practical for a household with a disrupted kitchen space.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_spiced_beef\", \"servings\": 1, \"box_id\": \"box_beef_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"reheat_only\", \"minutes\": 10 },\n      \"honours_belief_keys\": [\"name_the_plate_out_loud\"]\n    },\n    {\n      \"name\": \"Zesty Lemon Poppy Morning\",\n      \"title\": \"Greek yogurt with lemon, poppy seeds and oats\",\n      \"slot\": \"breakfast\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        { \"term\": \"Greek yogurt\", \"quantity\": \"600 g\", \"amount\": 600, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"lemon\", \"quantity\": \"1\", \"amount\": 1, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"poppy seeds\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" },\n        { \"term\": \"rolled oats\", \"quantity\": \"120 g\", \"amount\": 120, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"honey\", \"quantity\": \"2 tbsp\", \"amount\": 2, \"unit\": \"tbsp\", \"state\": \"raw\" },\n        { \"term\": \"blackcurrant jam\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" },\n        { \"term\": \"sourdough bread\", \"quantity\": \"1 slice\", \"amount\": 1, \"unit\": \"unit\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Mix lemon zest, poppy seeds, and honey into the yogurt. Top with oats and serve fresh.\",\n      \"why\": \"Nods to the Sunday traybake request with lemon and poppy seed flavours in a high-protein format.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 5 },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Golden Beef and Herb Quinoa\",\n      \"title\": \"Spiced beef with spinach and herby quinoa\",\n      \"slot\": \"lunch\",\n      \"day\": \"fri\",\n      \"ingredients\": [],\n      \"method\": \"Reheat a portion of spiced beef and quinoa in a pan together. Serve warm.\",\n      \"why\": \"High-protein lunch to support muscle gain as the stretch nears its end.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_spiced_beef\", \"servings\": 1, \"box_id\": \"box_beef_odalric\" },\n        { \"preparation_id\": \"prep_herby_quinoa\", \"servings\": 1, \"box_id\": \"box_quinoa_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"reheat_only\", \"minutes\": 8 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\"]\n    },\n    {\n      \"name\": \"Beef and Spinach Toasties\",\n      \"title\": \"Spiced beef and spinach on thick-cut sourdough\",\n      \"slot\": \"dinner\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        { \"term\": \"sourdough bread\", \"quantity\": \"4 slices\", \"amount\": 4, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"butter\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Toast the sourdough with butter. Reheat the remaining spiced beef and spinach and pile it high on the toast.\",\n      \"why\": \"A warm, comforting end to the week that ensures no batch food goes to waste.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_spiced_beef\", \"servings\": 1, \"box_id\": \"box_beef_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"reheat_only\", \"minutes\": 10 },\n      \"honours_belief_keys\": [\"starch_follows_the_session\"]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_chicken_veg\",\n      \"title\": \"Roast chicken thighs with courgettes and peppers\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        { \"term\": \"chicken thighs\", \"quantity\": \"8\", \"amount\": 8, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"courgettes\", \"quantity\": \"4 large\", \"amount\": 4, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"red bell peppers\", \"quantity\": \"4\", \"amount\": 4, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"olive oil\", \"quantity\": \"2 tbsp\", \"amount\": 2, \"unit\": \"tbsp\", \"state\": \"raw\" },\n        { \"term\": \"dried oregano\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Preheat oven to 200°C. Chop courgettes and peppers into large chunks. Toss veg and chicken with oil and oregano. Roast for 35-40 minutes until chicken is cooked through.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 45,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_chicken_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 450 },\n        { \"id\": \"box_chicken_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 450 },\n        { \"id\": \"box_chicken_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 450 },\n        { \"id\": \"box_chicken_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 450 }\n      ]\n    },\n    {\n      \"id\": \"prep_herby_quinoa\",\n      \"title\": \"Herby steamed quinoa\",\n      \"servings_made\": 16,\n      \"ingredients\": [\n        { \"term\": \"quinoa\", \"quantity\": \"800 g\", \"amount\": 800, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"parsley\", \"quantity\": \"1 bunch\", \"amount\": null, \"unit\": null, \"state\": \"raw\" }\n      ],\n      \"method\": \"Rinse quinoa and boil in salted water for 12-15 minutes. Drain and fluff with a fork, then stir through chopped parsley.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_quinoa_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 500 },\n        { \"id\": \"box_quinoa_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 500 },\n        { \"id\": \"box_quinoa_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 500 },\n        { \"id\": \"box_quinoa_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 500 }\n      ]\n    },\n    {\n      \"id\": \"prep_spiced_beef\",\n      \"title\": \"Spiced beef mince with spinach\",\n      \"servings_made\": 16,\n      \"ingredients\": [\n        { \"term\": \"beef mince\", \"quantity\": \"1.6 kg\", \"amount\": 1.6, \"unit\": \"kg\", \"state\": \"raw\" },\n        { \"term\": \"fresh spinach\", \"quantity\": \"800 g\", \"amount\": 800, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"ground cumin\", \"quantity\": \"2 tbsp\", \"amount\": 2, \"unit\": \"tbsp\", \"state\": \"raw\" },\n        { \"term\": \"smoked paprika\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Brown the beef in a large pan. Add spices and cook for 5 minutes. Stir in the spinach in batches until wilted.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_beef_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 450 },\n        { \"id\": \"box_beef_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 450 },\n        { \"id\": \"box_beef_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 450 },\n        { \"id\": \"box_beef_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 450 }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\"prep_chicken_veg\", \"prep_herby_quinoa\", \"prep_spiced_beef\"],\n      \"total_minutes\": 50,\n      \"run_through\": \"Preheat the oven and start the chicken and vegetables roasting. While they roast, get the quinoa boiling on the hob. In a second large pan, brown the beef mince and wilt the spinach. Once all components are ready, weigh them into the named boxes for each person.\"\n    }\n  ],\n  \"shopping_list\": [\n    { \"term\": \"chicken thighs\", \"quantity\": \"8\", \"aisle\": \"protein\" },\n    { \"term\": \"beef mince\", \"quantity\": \"1.6 kg\", \"aisle\": \"protein\" },\n    { \"term\": \"eggs\", \"quantity\": \"8\", \"aisle\": \"dairy\" },\n    { \"term\": \"Greek yogurt\", \"quantity\": \"1.2 kg\", \"aisle\": \"dairy\" },\n    { \"term\": \"courgettes\", \"quantity\": \"4 large\", \"aisle\": \"produce\" },\n    { \"term\": \"red bell peppers\", \"quantity\": \"4\", \"aisle\": \"produce\" },\n    { \"term\": \"cherry vine tomatoes\", \"quantity\": \"200 g\", \"aisle\": \"produce\" },\n    { \"term\": \"fresh spinach\", \"quantity\": \"800 g\", \"aisle\": \"produce\" },\n    { \"term\": \"fresh raspberries\", \"quantity\": \"250 g\", \"aisle\": \"produce\" },\n    { \"term\": \"lemon\", \"quantity\": \"2\", \"aisle\": \"produce\" },\n    { \"term\": \"parsley\", \"quantity\": \"1 bunch\", \"aisle\": \"produce\" },\n    { \"term\": \"quinoa\", \"quantity\": \"800 g\", \"aisle\": \"grains\" },\n    { \"term\": \"rolled oats\", \"quantity\": \"250 g\", \"aisle\": \"grains\" },\n    { \"term\": \"sourdough bread\", \"quantity\": \"1 loaf\", \"aisle\": \"grains\" },\n    { \"term\": \"tortilla wraps\", \"quantity\": \"8\", \"aisle\": \"grains\" },\n    { \"term\": \"blackcurrant jam\", \"quantity\": \"1 jar\", \"aisle\": \"pantry\" },\n    { \"term\": \"honey\", \"quantity\": \"1 jar\", \"aisle\": \"pantry\" },\n    { \"term\": \"poppy seeds\", \"quantity\": \"1 packet\", \"aisle\": \"pantry\" },\n    { \"term\": \"hot sauce\", \"quantity\": \"1 bottle\", \"aisle\": \"pantry\" }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"85acac95-312b-4d0e-a4da-02558e8a182f\",\n      \"portion_note\": \"Serve a larger share of protein and starch, standard vegetables. Add a slice of toast with blackcurrant jam to breakfasts.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_chicken_veg\", \"note\": \"Two thighs and a generous scoop of veg per meal.\" },\n        { \"preparation_id\": \"prep_herby_quinoa\", \"note\": \"A large fist-sized scoop per meal.\" },\n        { \"preparation_id\": \"prep_spiced_beef\", \"note\": \"A large palm-sized scoop per meal.\" }\n      ]\n    },\n    {\n      \"member_id\": \"f190856d-d573-42e9-a026-b6a37b9f7471\",\n      \"portion_note\": \"Serve a smaller child-sized share of all components. Always remove crusts from any bread served.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_chicken_veg\", \"note\": \"One thigh and a small scoop of veg per meal.\" },\n        { \"preparation_id\": \"prep_herby_quinoa\", \"note\": \"A small scoop per meal.\" },\n        { \"preparation_id\": \"prep_spiced_beef\", \"note\": \"A small scoop per meal.\" }\n      ]\n    },\n    {\n      \"member_id\": \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\",\n      \"portion_note\": \"Serve a larger share of protein and starch, standard vegetables. Ensure no carrots or fennel are present.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_chicken_veg\", \"note\": \"Two thighs and a generous scoop of veg per meal.\" },\n        { \"preparation_id\": \"prep_herby_quinoa\", \"note\": \"A large fist-sized scoop per meal.\" },\n        { \"preparation_id\": \"prep_spiced_beef\", \"note\": \"A large palm-sized scoop per meal.\" }\n      ]\n    },\n    {\n      \"member_id\": \"536e683d-64a8-4dc2-a69b-6ee1925b206c\",\n      \"portion_note\": \"Serve a smaller child-sized share of all components. Provide hot sauce on the side for every meal.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_chicken_veg\", \"note\": \"One thigh and a small scoop of veg per meal.\" },\n        { \"preparation_id\": \"prep_herby_quinoa\", \"note\": \"A small scoop per meal.\" },\n        { \"preparation_id\": \"prep_spiced_beef\", \"note\": \"A small scoop per meal.\" }\n      ]\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Sunshine Scrambled Eggs",
+          "title": "Scrambled eggs with vine tomatoes on sourdough",
+          "slot": "breakfast",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "eggs",
+              "quantity": "8",
+              "amount": 8,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "cherry vine tomatoes",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "sourdough bread",
+              "quantity": "4 slices",
+              "amount": 4,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "butter",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "blackcurrant jam",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Whisk the eggs and scramble them gently in a pan with butter. Toast the sourdough and serve with the fresh tomatoes on the side.",
+          "why": "A high-protein, warm start to the muscle gain stretch that uses fresh summer tomatoes.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Summer Roast Chicken Bowls",
+          "title": "Roast chicken thighs with courgettes, peppers and quinoa",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "lemon",
+              "quantity": "half",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Take one portion of the roasted chicken and vegetables and one portion of quinoa. Assemble in a bowl and finish with a squeeze of lemon.",
+          "why": "Utilises the fresh batch of roast chicken and loud summer vegetables for a balanced lunch.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_veg",
+              "servings": 1,
+              "box_id": "box_chicken_odalric"
+            },
+            {
+              "preparation_id": "prep_herby_quinoa",
+              "servings": 1,
+              "box_id": "box_quinoa_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Spiced Beef Quinoa Skillet",
+          "title": "Spiced beef mince with wilted spinach and quinoa",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [],
+          "method": "Warm a portion of the spiced beef and a portion of quinoa in a pan until steaming. Toss together and serve warm.",
+          "why": "A warm, protein-heavy dinner to fuel muscle recovery after the first day of the stretch.",
+          "uses": [
+            {
+              "preparation_id": "prep_spiced_beef",
+              "servings": 1,
+              "box_id": "box_beef_odalric"
+            },
+            {
+              "preparation_id": "prep_herby_quinoa",
+              "servings": 1,
+              "box_id": "box_quinoa_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "starch_follows_the_session"
+          ]
+        },
+        {
+          "name": "Berry Protein Yogurt Bowl",
+          "title": "Greek yogurt with fresh raspberries and toasted oats",
+          "slot": "breakfast",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "Greek yogurt",
+              "quantity": "600 g",
+              "amount": 600,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "fresh raspberries",
+              "quantity": "250 g",
+              "amount": 250,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "rolled oats",
+              "quantity": "120 g",
+              "amount": 120,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "honey",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "blackcurrant jam",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "sourdough bread",
+              "quantity": "1 slice",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Toast the oats in a dry pan for 2 minutes. Layer the yogurt, raspberries, and oats in bowls. Drizzle with honey.",
+          "why": "A clean, high-protein breakfast that requires no heavy cooking while the kitchen is being painted.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 5
+          },
+          "honours_belief_keys": []
+        },
+        {
+          "name": "Harvest Chicken Salad",
+          "title": "Cold roast chicken with quinoa and bell peppers",
+          "slot": "lunch",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Combine a portion of cold roast chicken and vegetables with quinoa. Drizzle with olive oil and eat as a hearty salad.",
+          "why": "Easy to eat while the kitchen table is covered, providing sustained energy for the afternoon.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_veg",
+              "servings": 1,
+              "box_id": "box_chicken_odalric"
+            },
+            {
+              "preparation_id": "prep_herby_quinoa",
+              "servings": 1,
+              "box_id": "box_quinoa_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Warm Beef and Spinach Wraps",
+          "title": "Spiced beef and spinach in toasted tortillas",
+          "slot": "dinner",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "tortilla wraps",
+              "quantity": "8",
+              "amount": 8,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "hot sauce",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the spiced beef in a pan. Warm the tortillas in a dry pan, then fill with the beef and spinach mixture.",
+          "why": "A warm, handheld dinner that is practical for a household with a disrupted kitchen space.",
+          "uses": [
+            {
+              "preparation_id": "prep_spiced_beef",
+              "servings": 1,
+              "box_id": "box_beef_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Zesty Lemon Poppy Morning",
+          "title": "Greek yogurt with lemon, poppy seeds and oats",
+          "slot": "breakfast",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "Greek yogurt",
+              "quantity": "600 g",
+              "amount": 600,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "lemon",
+              "quantity": "1",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "poppy seeds",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "rolled oats",
+              "quantity": "120 g",
+              "amount": 120,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "honey",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "blackcurrant jam",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "sourdough bread",
+              "quantity": "1 slice",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Mix lemon zest, poppy seeds, and honey into the yogurt. Top with oats and serve fresh.",
+          "why": "Nods to the Sunday traybake request with lemon and poppy seed flavours in a high-protein format.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": []
+        },
+        {
+          "name": "Golden Beef and Herb Quinoa",
+          "title": "Spiced beef with spinach and herby quinoa",
+          "slot": "lunch",
+          "day": "fri",
+          "ingredients": [],
+          "method": "Reheat a portion of spiced beef and quinoa in a pan together. Serve warm.",
+          "why": "High-protein lunch to support muscle gain as the stretch nears its end.",
+          "uses": [
+            {
+              "preparation_id": "prep_spiced_beef",
+              "servings": 1,
+              "box_id": "box_beef_odalric"
+            },
+            {
+              "preparation_id": "prep_herby_quinoa",
+              "servings": 1,
+              "box_id": "box_quinoa_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Beef and Spinach Toasties",
+          "title": "Spiced beef and spinach on thick-cut sourdough",
+          "slot": "dinner",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "sourdough bread",
+              "quantity": "4 slices",
+              "amount": 4,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "butter",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Toast the sourdough with butter. Reheat the remaining spiced beef and spinach and pile it high on the toast.",
+          "why": "A warm, comforting end to the week that ensures no batch food goes to waste.",
+          "uses": [
+            {
+              "preparation_id": "prep_spiced_beef",
+              "servings": 1,
+              "box_id": "box_beef_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "starch_follows_the_session"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_chicken_veg",
+          "title": "Roast chicken thighs with courgettes and peppers",
+          "servings_made": 8,
+          "ingredients": [
+            {
+              "term": "chicken thighs",
+              "quantity": "8",
+              "amount": 8,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "courgettes",
+              "quantity": "4 large",
+              "amount": 4,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "red bell peppers",
+              "quantity": "4",
+              "amount": 4,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "dried oregano",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Preheat oven to 200°C. Chop courgettes and peppers into large chunks. Toss veg and chicken with oil and oregano. Roast for 35-40 minutes until chicken is cooked through.",
+          "active_minutes": 15,
+          "total_minutes": 45,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_chicken_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 450
+            },
+            {
+              "id": "box_chicken_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 450
+            },
+            {
+              "id": "box_chicken_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 450
+            },
+            {
+              "id": "box_chicken_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 450
+            }
+          ]
+        },
+        {
+          "id": "prep_herby_quinoa",
+          "title": "Herby steamed quinoa",
+          "servings_made": 16,
+          "ingredients": [
+            {
+              "term": "quinoa",
+              "quantity": "800 g",
+              "amount": 800,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "parsley",
+              "quantity": "1 bunch",
+              "amount": null,
+              "unit": null,
+              "state": "raw"
+            }
+          ],
+          "method": "Rinse quinoa and boil in salted water for 12-15 minutes. Drain and fluff with a fork, then stir through chopped parsley.",
+          "active_minutes": 5,
+          "total_minutes": 20,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_quinoa_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 500
+            },
+            {
+              "id": "box_quinoa_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 500
+            },
+            {
+              "id": "box_quinoa_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 500
+            },
+            {
+              "id": "box_quinoa_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 500
+            }
+          ]
+        },
+        {
+          "id": "prep_spiced_beef",
+          "title": "Spiced beef mince with spinach",
+          "servings_made": 16,
+          "ingredients": [
+            {
+              "term": "beef mince",
+              "quantity": "1.6 kg",
+              "amount": 1.6,
+              "unit": "kg",
+              "state": "raw"
+            },
+            {
+              "term": "fresh spinach",
+              "quantity": "800 g",
+              "amount": 800,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "ground cumin",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Brown the beef in a large pan. Add spices and cook for 5 minutes. Stir in the spinach in batches until wilted.",
+          "active_minutes": 15,
+          "total_minutes": 25,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_beef_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 450
+            },
+            {
+              "id": "box_beef_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 450
+            },
+            {
+              "id": "box_beef_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 450
+            },
+            {
+              "id": "box_beef_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 450
+            }
+          ]
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_chicken_veg",
+            "prep_herby_quinoa",
+            "prep_spiced_beef"
+          ],
+          "total_minutes": 50,
+          "run_through": "Preheat the oven and start the chicken and vegetables roasting. While they roast, get the quinoa boiling on the hob. In a second large pan, brown the beef mince and wilt the spinach. Once all components are ready, weigh them into the named boxes for each person."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "chicken thighs",
+          "quantity": "8",
+          "aisle": "protein"
+        },
+        {
+          "term": "beef mince",
+          "quantity": "1.6 kg",
+          "aisle": "protein"
+        },
+        {
+          "term": "eggs",
+          "quantity": "8",
+          "aisle": "dairy"
+        },
+        {
+          "term": "Greek yogurt",
+          "quantity": "1.2 kg",
+          "aisle": "dairy"
+        },
+        {
+          "term": "courgettes",
+          "quantity": "4 large",
+          "aisle": "produce"
+        },
+        {
+          "term": "red bell peppers",
+          "quantity": "4",
+          "aisle": "produce"
+        },
+        {
+          "term": "cherry vine tomatoes",
+          "quantity": "200 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "fresh spinach",
+          "quantity": "800 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "fresh raspberries",
+          "quantity": "250 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "lemon",
+          "quantity": "2",
+          "aisle": "produce"
+        },
+        {
+          "term": "parsley",
+          "quantity": "1 bunch",
+          "aisle": "produce"
+        },
+        {
+          "term": "quinoa",
+          "quantity": "800 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "rolled oats",
+          "quantity": "250 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "sourdough bread",
+          "quantity": "1 loaf",
+          "aisle": "grains"
+        },
+        {
+          "term": "tortilla wraps",
+          "quantity": "8",
+          "aisle": "grains"
+        },
+        {
+          "term": "blackcurrant jam",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "honey",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "poppy seeds",
+          "quantity": "1 packet",
+          "aisle": "pantry"
+        },
+        {
+          "term": "hot sauce",
+          "quantity": "1 bottle",
+          "aisle": "pantry"
+        }
+      ],
+      "member_portions": [
+        {
+          "member_id": "85acac95-312b-4d0e-a4da-02558e8a182f",
+          "portion_note": "Serve a larger share of protein and starch, standard vegetables. Add a slice of toast with blackcurrant jam to breakfasts.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken_veg",
+              "note": "Two thighs and a generous scoop of veg per meal."
+            },
+            {
+              "preparation_id": "prep_herby_quinoa",
+              "note": "A large fist-sized scoop per meal."
+            },
+            {
+              "preparation_id": "prep_spiced_beef",
+              "note": "A large palm-sized scoop per meal."
+            }
+          ]
+        },
+        {
+          "member_id": "f190856d-d573-42e9-a026-b6a37b9f7471",
+          "portion_note": "Serve a smaller child-sized share of all components. Always remove crusts from any bread served.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken_veg",
+              "note": "One thigh and a small scoop of veg per meal."
+            },
+            {
+              "preparation_id": "prep_herby_quinoa",
+              "note": "A small scoop per meal."
+            },
+            {
+              "preparation_id": "prep_spiced_beef",
+              "note": "A small scoop per meal."
+            }
+          ]
+        },
+        {
+          "member_id": "65eb7490-adae-40c2-8b43-b10a0cc0ab05",
+          "portion_note": "Serve a larger share of protein and starch, standard vegetables. Ensure no carrots or fennel are present.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken_veg",
+              "note": "Two thighs and a generous scoop of veg per meal."
+            },
+            {
+              "preparation_id": "prep_herby_quinoa",
+              "note": "A large fist-sized scoop per meal."
+            },
+            {
+              "preparation_id": "prep_spiced_beef",
+              "note": "A large palm-sized scoop per meal."
+            }
+          ]
+        },
+        {
+          "member_id": "536e683d-64a8-4dc2-a69b-6ee1925b206c",
+          "portion_note": "Serve a smaller child-sized share of all components. Provide hot sauce on the side for every meal.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken_veg",
+              "note": "One thigh and a small scoop of veg per meal."
+            },
+            {
+              "preparation_id": "prep_herby_quinoa",
+              "note": "A small scoop per meal."
+            },
+            {
+              "preparation_id": "prep_spiced_beef",
+              "note": "A small scoop per meal."
+            }
+          ]
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "candidates": [
+        {
+          "index": 0,
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Sunshine Scrambled Eggs\",\n      \"title\": \"Scrambled eggs with vine tomatoes on sourdough\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        { \"term\": \"eggs\", \"quantity\": \"8\", \"amount\": 8, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"cherry vine tomatoes\", \"quantity\": \"200 g\", \"amount\": 200, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"sourdough bread\", \"quantity\": \"4 slices\", \"amount\": 4, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"butter\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" },\n        { \"term\": \"blackcurrant jam\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Whisk the eggs and scramble them gently in a pan with butter. Toast the sourdough and serve with the fresh tomatoes on the side.\",\n      \"why\": \"A high-protein, warm start to the muscle gain stretch that uses fresh summer tomatoes.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"cook_fresh\", \"minutes\": 10 },\n      \"honours_belief_keys\": [\"name_the_plate_out_loud\"]\n    },\n    {\n      \"name\": \"Summer Roast Chicken Bowls\",\n      \"title\": \"Roast chicken thighs with courgettes, peppers and quinoa\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        { \"term\": \"lemon\", \"quantity\": \"half\", \"amount\": 0.5, \"unit\": \"unit\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Take one portion of the roasted chicken and vegetables and one portion of quinoa. Assemble in a bowl and finish with a squeeze of lemon.\",\n      \"why\": \"Utilises the fresh batch of roast chicken and loud summer vegetables for a balanced lunch.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_chicken_veg\", \"servings\": 1, \"box_id\": \"box_chicken_odalric\" },\n        { \"preparation_id\": \"prep_herby_quinoa\", \"servings\": 1, \"box_id\": \"box_quinoa_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 5 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\"]\n    },\n    {\n      \"name\": \"Spiced Beef Quinoa Skillet\",\n      \"title\": \"Spiced beef mince with wilted spinach and quinoa\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Warm a portion of the spiced beef and a portion of quinoa in a pan until steaming. Toss together and serve warm.\",\n      \"why\": \"A warm, protein-heavy dinner to fuel muscle recovery after the first day of the stretch.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_spiced_beef\", \"servings\": 1, \"box_id\": \"box_beef_odalric\" },\n        { \"preparation_id\": \"prep_herby_quinoa\", \"servings\": 1, \"box_id\": \"box_quinoa_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"reheat_only\", \"minutes\": 8 },\n      \"honours_belief_keys\": [\"starch_follows_the_session\"]\n    },\n    {\n      \"name\": \"Berry Protein Yogurt Bowl\",\n      \"title\": \"Greek yogurt with fresh raspberries and toasted oats\",\n      \"slot\": \"breakfast\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        { \"term\": \"Greek yogurt\", \"quantity\": \"600 g\", \"amount\": 600, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"fresh raspberries\", \"quantity\": \"250 g\", \"amount\": 250, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"rolled oats\", \"quantity\": \"120 g\", \"amount\": 120, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"honey\", \"quantity\": \"2 tbsp\", \"amount\": 2, \"unit\": \"tbsp\", \"state\": \"raw\" },\n        { \"term\": \"blackcurrant jam\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" },\n        { \"term\": \"sourdough bread\", \"quantity\": \"1 slice\", \"amount\": 1, \"unit\": \"unit\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Toast the oats in a dry pan for 2 minutes. Layer the yogurt, raspberries, and oats in bowls. Drizzle with honey.\",\n      \"why\": \"A clean, high-protein breakfast that requires no heavy cooking while the kitchen is being painted.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"cook_fresh\", \"minutes\": 5 },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Harvest Chicken Salad\",\n      \"title\": \"Cold roast chicken with quinoa and bell peppers\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        { \"term\": \"olive oil\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Combine a portion of cold roast chicken and vegetables with quinoa. Drizzle with olive oil and eat as a hearty salad.\",\n      \"why\": \"Easy to eat while the kitchen table is covered, providing sustained energy for the afternoon.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_chicken_veg\", \"servings\": 1, \"box_id\": \"box_chicken_odalric\" },\n        { \"preparation_id\": \"prep_herby_quinoa\", \"servings\": 1, \"box_id\": \"box_quinoa_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 5 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\"]\n    },\n    {\n      \"name\": \"Warm Beef and Spinach Wraps\",\n      \"title\": \"Spiced beef and spinach in toasted tortillas\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        { \"term\": \"tortilla wraps\", \"quantity\": \"8\", \"amount\": 8, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"hot sauce\", \"quantity\": \"2 tbsp\", \"amount\": 2, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Reheat the spiced beef in a pan. Warm the tortillas in a dry pan, then fill with the beef and spinach mixture.\",\n      \"why\": \"A warm, handheld dinner that is practical for a household with a disrupted kitchen space.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_spiced_beef\", \"servings\": 1, \"box_id\": \"box_beef_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"reheat_only\", \"minutes\": 10 },\n      \"honours_belief_keys\": [\"name_the_plate_out_loud\"]\n    },\n    {\n      \"name\": \"Zesty Lemon Poppy Morning\",\n      \"title\": \"Greek yogurt with lemon, poppy seeds and oats\",\n      \"slot\": \"breakfast\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        { \"term\": \"Greek yogurt\", \"quantity\": \"600 g\", \"amount\": 600, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"lemon\", \"quantity\": \"1\", \"amount\": 1, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"poppy seeds\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" },\n        { \"term\": \"rolled oats\", \"quantity\": \"120 g\", \"amount\": 120, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"honey\", \"quantity\": \"2 tbsp\", \"amount\": 2, \"unit\": \"tbsp\", \"state\": \"raw\" },\n        { \"term\": \"blackcurrant jam\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" },\n        { \"term\": \"sourdough bread\", \"quantity\": \"1 slice\", \"amount\": 1, \"unit\": \"unit\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Mix lemon zest, poppy seeds, and honey into the yogurt. Top with oats and serve fresh.\",\n      \"why\": \"Nods to the Sunday traybake request with lemon and poppy seed flavours in a high-protein format.\",\n      \"uses\": [],\n      \"same_day\": { \"kind\": \"assemble\", \"minutes\": 5 },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Golden Beef and Herb Quinoa\",\n      \"title\": \"Spiced beef with spinach and herby quinoa\",\n      \"slot\": \"lunch\",\n      \"day\": \"fri\",\n      \"ingredients\": [],\n      \"method\": \"Reheat a portion of spiced beef and quinoa in a pan together. Serve warm.\",\n      \"why\": \"High-protein lunch to support muscle gain as the stretch nears its end.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_spiced_beef\", \"servings\": 1, \"box_id\": \"box_beef_odalric\" },\n        { \"preparation_id\": \"prep_herby_quinoa\", \"servings\": 1, \"box_id\": \"box_quinoa_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"reheat_only\", \"minutes\": 8 },\n      \"honours_belief_keys\": [\"one_loud_vegetable\"]\n    },\n    {\n      \"name\": \"Beef and Spinach Toasties\",\n      \"title\": \"Spiced beef and spinach on thick-cut sourdough\",\n      \"slot\": \"dinner\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        { \"term\": \"sourdough bread\", \"quantity\": \"4 slices\", \"amount\": 4, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"butter\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Toast the sourdough with butter. Reheat the remaining spiced beef and spinach and pile it high on the toast.\",\n      \"why\": \"A warm, comforting end to the week that ensures no batch food goes to waste.\",\n      \"uses\": [\n        { \"preparation_id\": \"prep_spiced_beef\", \"servings\": 1, \"box_id\": \"box_beef_odalric\" }\n      ],\n      \"same_day\": { \"kind\": \"reheat_only\", \"minutes\": 10 },\n      \"honours_belief_keys\": [\"starch_follows_the_session\"]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_chicken_veg\",\n      \"title\": \"Roast chicken thighs with courgettes and peppers\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        { \"term\": \"chicken thighs\", \"quantity\": \"8\", \"amount\": 8, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"courgettes\", \"quantity\": \"4 large\", \"amount\": 4, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"red bell peppers\", \"quantity\": \"4\", \"amount\": 4, \"unit\": \"unit\", \"state\": \"raw\" },\n        { \"term\": \"olive oil\", \"quantity\": \"2 tbsp\", \"amount\": 2, \"unit\": \"tbsp\", \"state\": \"raw\" },\n        { \"term\": \"dried oregano\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Preheat oven to 200°C. Chop courgettes and peppers into large chunks. Toss veg and chicken with oil and oregano. Roast for 35-40 minutes until chicken is cooked through.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 45,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_chicken_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 450 },\n        { \"id\": \"box_chicken_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 450 },\n        { \"id\": \"box_chicken_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 450 },\n        { \"id\": \"box_chicken_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 450 }\n      ]\n    },\n    {\n      \"id\": \"prep_herby_quinoa\",\n      \"title\": \"Herby steamed quinoa\",\n      \"servings_made\": 16,\n      \"ingredients\": [\n        { \"term\": \"quinoa\", \"quantity\": \"800 g\", \"amount\": 800, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"parsley\", \"quantity\": \"1 bunch\", \"amount\": null, \"unit\": null, \"state\": \"raw\" }\n      ],\n      \"method\": \"Rinse quinoa and boil in salted water for 12-15 minutes. Drain and fluff with a fork, then stir through chopped parsley.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_quinoa_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 500 },\n        { \"id\": \"box_quinoa_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 500 },\n        { \"id\": \"box_quinoa_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 500 },\n        { \"id\": \"box_quinoa_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 500 }\n      ]\n    },\n    {\n      \"id\": \"prep_spiced_beef\",\n      \"title\": \"Spiced beef mince with spinach\",\n      \"servings_made\": 16,\n      \"ingredients\": [\n        { \"term\": \"beef mince\", \"quantity\": \"1.6 kg\", \"amount\": 1.6, \"unit\": \"kg\", \"state\": \"raw\" },\n        { \"term\": \"fresh spinach\", \"quantity\": \"800 g\", \"amount\": 800, \"unit\": \"g\", \"state\": \"raw\" },\n        { \"term\": \"ground cumin\", \"quantity\": \"2 tbsp\", \"amount\": 2, \"unit\": \"tbsp\", \"state\": \"raw\" },\n        { \"term\": \"smoked paprika\", \"quantity\": \"1 tbsp\", \"amount\": 1, \"unit\": \"tbsp\", \"state\": \"raw\" }\n      ],\n      \"method\": \"Brown the beef in a large pan. Add spices and cook for 5 minutes. Stir in the spinach in batches until wilted.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        { \"id\": \"box_beef_odalric\", \"member_ids\": [\"85acac95-312b-4d0e-a4da-02558e8a182f\"], \"grams\": 450 },\n        { \"id\": \"box_beef_wilfrid\", \"member_ids\": [\"f190856d-d573-42e9-a026-b6a37b9f7471\"], \"grams\": 450 },\n        { \"id\": \"box_beef_peregrine\", \"member_ids\": [\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"], \"grams\": 450 },\n        { \"id\": \"box_beef_casimir\", \"member_ids\": [\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"], \"grams\": 450 }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\"prep_chicken_veg\", \"prep_herby_quinoa\", \"prep_spiced_beef\"],\n      \"total_minutes\": 50,\n      \"run_through\": \"Preheat the oven and start the chicken and vegetables roasting. While they roast, get the quinoa boiling on the hob. In a second large pan, brown the beef mince and wilt the spinach. Once all components are ready, weigh them into the named boxes for each person.\"\n    }\n  ],\n  \"shopping_list\": [\n    { \"term\": \"chicken thighs\", \"quantity\": \"8\", \"aisle\": \"protein\" },\n    { \"term\": \"beef mince\", \"quantity\": \"1.6 kg\", \"aisle\": \"protein\" },\n    { \"term\": \"eggs\", \"quantity\": \"8\", \"aisle\": \"dairy\" },\n    { \"term\": \"Greek yogurt\", \"quantity\": \"1.2 kg\", \"aisle\": \"dairy\" },\n    { \"term\": \"courgettes\", \"quantity\": \"4 large\", \"aisle\": \"produce\" },\n    { \"term\": \"red bell peppers\", \"quantity\": \"4\", \"aisle\": \"produce\" },\n    { \"term\": \"cherry vine tomatoes\", \"quantity\": \"200 g\", \"aisle\": \"produce\" },\n    { \"term\": \"fresh spinach\", \"quantity\": \"800 g\", \"aisle\": \"produce\" },\n    { \"term\": \"fresh raspberries\", \"quantity\": \"250 g\", \"aisle\": \"produce\" },\n    { \"term\": \"lemon\", \"quantity\": \"2\", \"aisle\": \"produce\" },\n    { \"term\": \"parsley\", \"quantity\": \"1 bunch\", \"aisle\": \"produce\" },\n    { \"term\": \"quinoa\", \"quantity\": \"800 g\", \"aisle\": \"grains\" },\n    { \"term\": \"rolled oats\", \"quantity\": \"250 g\", \"aisle\": \"grains\" },\n    { \"term\": \"sourdough bread\", \"quantity\": \"1 loaf\", \"aisle\": \"grains\" },\n    { \"term\": \"tortilla wraps\", \"quantity\": \"8\", \"aisle\": \"grains\" },\n    { \"term\": \"blackcurrant jam\", \"quantity\": \"1 jar\", \"aisle\": \"pantry\" },\n    { \"term\": \"honey\", \"quantity\": \"1 jar\", \"aisle\": \"pantry\" },\n    { \"term\": \"poppy seeds\", \"quantity\": \"1 packet\", \"aisle\": \"pantry\" },\n    { \"term\": \"hot sauce\", \"quantity\": \"1 bottle\", \"aisle\": \"pantry\" }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"85acac95-312b-4d0e-a4da-02558e8a182f\",\n      \"portion_note\": \"Serve a larger share of protein and starch, standard vegetables. Add a slice of toast with blackcurrant jam to breakfasts.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_chicken_veg\", \"note\": \"Two thighs and a generous scoop of veg per meal.\" },\n        { \"preparation_id\": \"prep_herby_quinoa\", \"note\": \"A large fist-sized scoop per meal.\" },\n        { \"preparation_id\": \"prep_spiced_beef\", \"note\": \"A large palm-sized scoop per meal.\" }\n      ]\n    },\n    {\n      \"member_id\": \"f190856d-d573-42e9-a026-b6a37b9f7471\",\n      \"portion_note\": \"Serve a smaller child-sized share of all components. Always remove crusts from any bread served.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_chicken_veg\", \"note\": \"One thigh and a small scoop of veg per meal.\" },\n        { \"preparation_id\": \"prep_herby_quinoa\", \"note\": \"A small scoop per meal.\" },\n        { \"preparation_id\": \"prep_spiced_beef\", \"note\": \"A small scoop per meal.\" }\n      ]\n    },\n    {\n      \"member_id\": \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\",\n      \"portion_note\": \"Serve a larger share of protein and starch, standard vegetables. Ensure no carrots or fennel are present.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_chicken_veg\", \"note\": \"Two thighs and a generous scoop of veg per meal.\" },\n        { \"preparation_id\": \"prep_herby_quinoa\", \"note\": \"A large fist-sized scoop per meal.\" },\n        { \"preparation_id\": \"prep_spiced_beef\", \"note\": \"A large palm-sized scoop per meal.\" }\n      ]\n    },\n    {\n      \"member_id\": \"536e683d-64a8-4dc2-a69b-6ee1925b206c\",\n      \"portion_note\": \"Serve a smaller child-sized share of all components. Provide hot sauce on the side for every meal.\",\n      \"preparation_shares\": [\n        { \"preparation_id\": \"prep_chicken_veg\", \"note\": \"One thigh and a small scoop of veg per meal.\" },\n        { \"preparation_id\": \"prep_herby_quinoa\", \"note\": \"A small scoop per meal.\" },\n        { \"preparation_id\": \"prep_spiced_beef\", \"note\": \"A small scoop per meal.\" }\n      ]\n    }\n  ]\n}",
+                "thoughtSignature": "[redacted]"
+              }
+            ]
+          },
+          "finishReason": "STOP"
+        }
+      ],
+      "responseId": "nPSEavjADa6SxN8P5KCgyAQ",
+      "modelVersion": "gemini-3-flash-preview",
+      "usageMetadata": {
+        "serviceTier": "standard",
+        "totalTokenCount": 18346,
+        "promptTokenCount": 7786,
+        "cacheTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 4047
+          }
+        ],
+        "thoughtsTokenCount": 4890,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 7786
+          }
+        ],
+        "candidatesTokenCount": 5670,
+        "cachedContentTokenCount": 4047
+      }
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-19T00:11:02.918104+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T00:11:03.392956+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:11:07.930841+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:11:07.940692+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:11:07.945839+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:11:50.46491+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

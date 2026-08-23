@@ -61,8 +61,8 @@ import ShoppingListPanel from "./ShoppingListPanel";
 import CookingSessions from "./CookingSessions";
 import MealPickerGrid from "./MealPickerGrid";
 import { } from "../api/mealStretch";
-import { addDays, daysBetween, weekStartFor } from "../api/dates";
-import { browserLocalDate, useMealTicks } from "../lib/useMealTicks";
+import { addDays, daysBetween, isIsoDate, weekStartFor } from "../api/dates";
+import { browserLocalDate, useMealTicks, catchUpWindowStart } from "../lib/useMealTicks";
 import { useMealEnergy } from "../lib/useMealEnergy";
 import { EnergyTargetNote } from "./plan/EnergyReadout";
 import { groupByDay, parsePantry } from "../lib/mealBuilderModel";
@@ -225,6 +225,54 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
     if (windowEnd < windowStart) setWindowEnd(windowStart);
     else if (windowEnd > maxEnd) setWindowEnd(maxEnd);
   }, [windowStart, windowEnd]);
+
+  // ── MINUIT, ET C'EST LE MÊME DÉFAUT QUE SUR `SetupPage` ────────────────
+  // `windowStart` est évalué UNE FOIS, au montage. Un onglet ouvert la veille
+  // tient encore hier quand le serveur, sur le même fuseau, est déjà
+  // aujourd'hui — et `resolveRequestedWindow` refuse un début dans le passé
+  // (`bad_window`, HTTP 400, « Ces jours n'ont pas pu être lus »). Mesuré sur
+  // la lane FOYER le 2026-08-20 à 00h03; cette lane-ci portait exactement le
+  // même instantané, et son `truncationWarning` avalait déjà l'exception en
+  // silence (`catch { return null }`) — donc l'écran ne prévenait de rien avant
+  // le clic.
+  //
+  // ⚠️ SEUL LE PASSÉ EST CORRIGÉ. Une fenêtre posée plus loin volontairement
+  // reste où la personne l'a mise. La règle vit dans `catchUpWindowStart`, une
+  // seule fois pour les deux écrans: deux copies divergeraient, et c'est celle
+  // qu'on relit le moins qui laisserait revenir le 400.
+  React.useEffect(() => {
+    const catchUp = () => {
+      const today = browserLocalDate();
+      setWindowStart((current) => catchUpWindowStart(current, today));
+    };
+    document.addEventListener("visibilitychange", catchUp);
+    globalThis.addEventListener("focus", catchUp);
+    catchUp();
+    return () => {
+      document.removeEventListener("visibilitychange", catchUp);
+      globalThis.removeEventListener("focus", catchUp);
+    };
+  }, []);
+
+  // ── CE QUI EST TAPÉ N'EST PAS ENCORE UNE DATE ─────────────────────────
+  // Un `<input type="date">` passe par des valeurs VIDES et incomplètes
+  // pendant qu'on l'édite au clavier. Écrire `e.target.value` directement
+  // dans l'état ci-dessus revenait à faire entrer une demi-date dans
+  // `addDays` et `daysBetween` — qui la donnent à `assertIsoDate`, qui jette
+  // (R7: une date malformée est un throw, jamais un jour décalé en silence).
+  // Le throw partait PENDANT LE RENDU, donc l'ErrorBoundary emportait la page
+  // entière. Mesuré le 2026-08-18: la fenêtre du plan était inéditable au
+  // clavier, et rien à l'écran ne disait pourquoi.
+  //
+  // La garde n'est pas touchée. Le BROUILLON porte ce qui est tapé, l'ÉTAT
+  // porte ce qui est valide, et rien ne se décale en silence: une date
+  // incomplète ne bouge simplement pas encore la fenêtre. Les deux effets
+  // ci-dessous rendent au champ ce que le bornage a corrigé — sans eux,
+  // l'écran afficherait une date que le calcul n'utilise pas.
+  const [startDraft, setStartDraft] = React.useState(windowStart);
+  const [endDraft, setEndDraft] = React.useState(windowEnd);
+  React.useEffect(() => setStartDraft(windowStart), [windowStart]);
+  React.useEffect(() => setEndDraft(windowEnd), [windowEnd]);
 
   /**
    * LES JOURS DE LA FENÊTRE DEMANDÉE — ceux que la grille montre.
@@ -604,15 +652,20 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
    * ne coûte rien à personne. L'élève peut le ramener plus tôt; l'écran lui dira
    * alors ce que ça retire.
    */
+  // ⚠️ EXTRAIT AVANT LES MÉMOS. `plans` est un `useState`, pas un `useRef` —
+  // mais `plans.current` porte le nom d'un ref, et la règle des hooks refuse
+  // par principe une dépendance qui s'écrit `.current`. Le nommer ici lève
+  // l'ambiguïté sans changer ce qui est comparé.
+  const currentPlan = plans.current;
   const nextDefaultStart = React.useMemo(() => {
     const today = browserLocalDate();
-    if (!plans.current?.startsOn) return today;
+    if (!currentPlan?.startsOn) return today;
     const after = addDays(
-      planEndsOn(plans.current.startsOn, plans.current.durationDays),
+      planEndsOn(currentPlan.startsOn, currentPlan.durationDays),
       1,
     );
     return after > today ? after : today;
-  }, [plans.current]);
+  }, [currentPlan]);
 
   /**
    * CE QUE LA FENÊTRE DEMANDÉE RETIRERAIT AU PLAN COURANT.
@@ -622,7 +675,7 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
    * rembourse pas. `null` quand rien ne bouge.
    */
   const truncationWarning = React.useMemo(() => {
-    const current = plans.current;
+    const current = currentPlan;
     if (!current?.startsOn) return null;
     let asked: { startsOn: string; durationDays: number };
     try {
@@ -647,7 +700,7 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
       .replace("{days}", String(lost))
       .replace("{from}", String(current.durationDays))
       .replace("{to}", String(kept));
-  }, [plans.current, windowRequest]);
+  }, [currentPlan, windowRequest]);
   const ticks = useMealTicks({
     userId,
     mealId: result?.mealId ?? null,
@@ -749,6 +802,26 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
           // Aucune garde n'est jouée ici — le plafond vit côté serveur, à un
           // seul endroit (`capCookingShape`).
           cookingShape,
+          // ── LOT D · L'ENVIE PART AUSSI QUAND LE MAÎTRE COMPOSE ──────────
+          // Le champ « ce dont ils ont envie pour ces repas » est rendu SANS
+          // garde de lane (plus bas): un maître de foyer le voit et le
+          // remplit. Il ne partait pas — ni ici, ni dans la signature, ni dans
+          // le corps de la requête — alors que le serveur le lit depuis
+          // toujours (`generate-household-meal-v1`: prompt, compte-rendu
+          // FF-061, colonne écrite). Un champ visible qui ne va nulle part est
+          // pire qu'un champ absent: il promet.
+          //
+          // ⚠️ MÊME EXPRESSION QUE LA LANE INDIVIDUELLE, à l'octet près
+          // (`.trim() || null`). Deux normalisations pour un seul champ
+          // finissent par diverger, et c'est celle qu'on relit le moins qui
+          // garde l'ancienne — un espace tapé partirait d'un côté et pas de
+          // l'autre.
+          //
+          // ⚠️ CE N'EST PAS `envy`. L'envie du FOYER (`submitEnvy`, juste
+          // au-dessus) est la ligne que les membres écrivent pour la semaine,
+          // sous une `week_start`; celle-ci est ce que le compositeur tape à
+          // la seconde où il compose. Trois durées de vie, trois portes.
+          preferences: preferences.trim() || null,
         });
         // Un 200 qui dit `ok: false` n'est pas une panne de transport, et il ne
         // doit pas non plus atterrir comme un succès: il rejoint la même table
@@ -932,8 +1005,12 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                         // Ce `max` évite seulement de proposer le geste, comme
                         // le `max` du champ de fin évite de proposer huit jours.
                         max={lastNameableStart(browserLocalDate())}
-                        value={windowStart}
-                        onChange={(e) => setWindowStart(e.target.value)}
+                        value={startDraft}
+                        onChange={(e) => {
+                          const next = e.target.value;
+                          setStartDraft(next);
+                          if (isIsoDate(next)) setWindowStart(next);
+                        }}
                         className={`${inputClass} mt-1 w-auto`}
                       />
                     </div>
@@ -949,8 +1026,12 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                         type="date"
                         min={windowStart}
                         max={addDays(windowStart, MAX_WINDOW_DAYS - 1)}
-                        value={windowEnd}
-                        onChange={(e) => setWindowEnd(e.target.value)}
+                        value={endDraft}
+                        onChange={(e) => {
+                          const next = e.target.value;
+                          setEndDraft(next);
+                          if (isIsoDate(next)) setWindowEnd(next);
+                        }}
                         className={`${inputClass} mt-1 w-auto`}
                       />
                     </div>

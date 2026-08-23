@@ -1,0 +1,1154 @@
+{
+  "request_id": "2a000001-2100-4000-8000-000000000001",
+  "resolved_by": "--request-id",
+  "user_id": "2a000000-0000-4000-8000-000000000002",
+  "source": "generate-meal-v1",
+  "exported_at": "2026-08-18T23:35:41.754Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "b914febb-d61c-4a08-8202-335dc3afd3f9",
+      "status": "attempt_start",
+      "created_at": "2026-08-18T23:28:39.832623+00:00",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 14382,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 14382,
+    "user_message_chars": 6544,
+    "user_message_truncated": false,
+    "user_message_written_chars": 6544,
+    "independent_counters": {
+      "system_prompt_chars": 14382,
+      "prompt_chars": 6544
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "a7ad9517-0a44-48a2-a0f0-8d4252566189",
+    "created_at": "2026-08-18T23:32:24.630216+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "openai",
+    "model": "gpt-5.6-sol",
+    "http_status": 200,
+    "attempt": 1,
+    "chain_index": 0,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Berry honey yoghurt pot\",\n      \"title\": \"Greek yoghurt, oats, berries and honey\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"Greek yoghurt\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"rolled oats\",\n          \"quantity\": \"40 g\",\n          \"amount\": 40,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"British berries\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"honey\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Spoon the yoghurt into a bowl, add the oats and berries, then finish with the honey.\",\n      \"why\": \"The yoghurt makes this quick breakfast substantial, while seasonal berries keep it fresh.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 3\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Lemony chicken bulgur bowl\",\n      \"title\": \"Chicken, bulgur, roasted vegetables, cucumber and yoghurt\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"Greek yoghurt\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"cucumber\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Put one freshly cooked portion each of chicken, bulgur and roasted vegetables in a bowl. Add sliced cucumber and yoghurt, then squeeze over the lemon.\",\n      \"why\": \"The first cooking session immediately supplies a proper lunch rather than creating boxes with no meal attached.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_lemon_chicken\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_bulgur\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_roasted_vegetables\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 4\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Golden chicken supper\",\n      \"title\": \"Chicken, warm bulgur, roasted vegetables and feta\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"feta\",\n          \"quantity\": \"30 g\",\n          \"amount\": 30,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Build the plate with one still-warm portion each of chicken, bulgur and roasted vegetables. Crumble over the feta and squeeze over the lemon; the warm bulgur is a warm anchor.\",\n      \"why\": \"Warm bulgur and roasted summer vegetables make dinner satisfying without turning an August evening into a heavy cooking project.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_lemon_chicken\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_bulgur\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_roasted_vegetables\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 4\n      },\n      \"honours_belief_keys\": [\n        \"a_warm_anchor_every_evening\",\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Tomato cottage crunch\",\n      \"title\": \"Cottage cheese, rye crispbread and tomato\",\n      \"slot\": \"breakfast\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"cottage cheese\",\n          \"quantity\": \"180 g\",\n          \"amount\": 180,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"rye crispbread\",\n          \"quantity\": \"2 crispbreads\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"tomato\",\n          \"quantity\": \"120 g\",\n          \"amount\": 120,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"basil leaves\",\n          \"quantity\": \"6 basil leaves\",\n          \"amount\": 6,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Spoon the cottage cheese onto the crispbreads and top with sliced tomato and basil.\",\n      \"why\": \"Cottage cheese provides the anchor for a breakfast that needs no morning cooking.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 4\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Smoky bean garden pitta\",\n      \"title\": \"Butter beans, roasted vegetables, rocket and wholemeal pitta\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"wholemeal pitta\",\n          \"quantity\": \"1 pitta\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"rocket\",\n          \"quantity\": \"30 g\",\n          \"amount\": 30,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Fill the pitta with one freshly cooked portion of smoky butter beans, one portion of roasted vegetables and the rocket.\",\n      \"why\": \"Butter beans turn the remaining roasted vegetables into a new lunch rather than a repeat of Wednesday's chicken bowl.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_butter_beans\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_roasted_vegetables\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 4\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Herby meatball couscous\",\n      \"title\": \"Turkey meatballs, warm couscous, cucumber and yoghurt\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"cucumber\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Greek yoghurt\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"mint leaves\",\n          \"quantity\": \"8 mint leaves\",\n          \"amount\": 8,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Put one freshly cooked portion of meatballs and one portion of couscous on the plate. Add sliced cucumber, yoghurt and torn mint; the couscous is a warm anchor.\",\n      \"why\": \"The second short cooking session gives dinner a warm anchor and also prepares Friday's meals.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_turkey_meatballs\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_couscous\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 4\n      },\n      \"honours_belief_keys\": [\n        \"a_warm_anchor_every_evening\",\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Peach oat yoghurt bowl\",\n      \"title\": \"Greek yoghurt, peach, oats and pumpkin seeds\",\n      \"slot\": \"breakfast\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"Greek yoghurt\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"peach\",\n          \"quantity\": \"1 peach\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"rolled oats\",\n          \"quantity\": \"40 g\",\n          \"amount\": 40,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"pumpkin seeds\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Spoon the yoghurt into a bowl and top with sliced peach, oats and pumpkin seeds.\",\n      \"why\": \"This uses the breakfast staples already in the basket while making seasonal fruit the main flavour.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 3\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Meatball tomato pocket\",\n      \"title\": \"Turkey meatballs, tomato, rocket and yoghurt pitta\",\n      \"slot\": \"lunch\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"wholemeal pitta\",\n          \"quantity\": \"1 pitta\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"tomato\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"rocket\",\n          \"quantity\": \"30 g\",\n          \"amount\": 30,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Greek yoghurt\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Halve the cold meatballs and tuck them into the pitta with sliced tomato, rocket and yoghurt.\",\n      \"why\": \"Yesterday's meatballs become a portable fresh lunch instead of repeating the couscous plate.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_turkey_meatballs\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Smoky bean couscous bowl\",\n      \"title\": \"Warm butter beans, spinach, tomatoes and couscous\",\n      \"slot\": \"dinner\",\n      \"day\": \"fri\",\n      \"ingredients\": [],\n      \"method\": \"Reheat one portion of smoky butter beans and one portion of couscous until piping hot, then serve together. The pan-warmed couscous is a warm anchor.\",\n      \"why\": \"The final dinner uses the second session completely and keeps the evening plate warm without requiring another cooking session.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_butter_beans\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_couscous\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 6\n      },\n      \"honours_belief_keys\": [\n        \"a_warm_anchor_every_evening\",\n        \"the_basket_decides_the_week\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_lemon_chicken\",\n      \"title\": \"Lemon and paprika chicken thighs\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"boneless skinless chicken thighs\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic clove\",\n          \"quantity\": \"1 garlic clove\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Heat the oven to 220°C, or 200°C fan. Coat the chicken with the oil, lemon juice, crushed garlic, paprika, salt and pepper. Roast for 25 minutes until browned and cooked through, then divide into two portions.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\"\n    },\n    {\n      \"id\": \"prep_bulgur\",\n      \"title\": \"Fluffy bulgur wheat\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"bulgur wheat\",\n          \"quantity\": \"120 g\",\n          \"amount\": 120,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"water\",\n          \"quantity\": \"300 ml\",\n          \"amount\": 300,\n          \"unit\": \"ml\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Put the bulgur, water and salt in a saucepan. Bring to the boil, cover and simmer gently for 10 minutes. Take off the heat, stand for 5 minutes and fluff with a fork. Divide into two portions.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\"\n    },\n    {\n      \"id\": \"prep_roasted_vegetables\",\n      \"title\": \"Roasted courgettes, peppers and onion\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"courgettes\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red peppers\",\n          \"quantity\": \"2 peppers\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red onion\",\n          \"quantity\": \"1 red onion\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"dried oregano\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Cut the courgettes, peppers and onion into bite-sized pieces. Toss with the oil, oregano, salt and pepper, spread on a tray and roast at 220°C, or 200°C fan, for 25 minutes. Divide into three portions.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\"\n    },\n    {\n      \"id\": \"prep_smoky_butter_beans\",\n      \"title\": \"Smoky butter beans with spinach\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"drained butter beans\",\n          \"quantity\": \"480 g\",\n          \"amount\": 480,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"tomatoes\",\n          \"quantity\": \"250 g\",\n          \"amount\": 250,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"spinach\",\n          \"quantity\": \"120 g\",\n          \"amount\": 120,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic clove\",\n          \"quantity\": \"1 garlic clove\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"water\",\n          \"quantity\": \"100 ml\",\n          \"amount\": 100,\n          \"unit\": \"ml\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Chop the tomatoes. Warm the oil in a saucepan and cook the crushed garlic and paprika for 30 seconds. Add the tomatoes, beans, water, salt and pepper; simmer for 12 minutes. Stir in the spinach until wilted, then divide into two portions.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 20,\n      \"cook_on\": \"thu\"\n    },\n    {\n      \"id\": \"prep_turkey_meatballs\",\n      \"title\": \"Herby turkey meatballs\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"turkey mince\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"rolled oats\",\n          \"quantity\": \"20 g\",\n          \"amount\": 20,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"egg\",\n          \"quantity\": \"1 egg\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic clove\",\n          \"quantity\": \"1 garlic clove\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"flat-leaf parsley\",\n          \"quantity\": \"10 g\",\n          \"amount\": 10,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Heat the oven to 220°C, or 200°C fan. Mix the turkey, oats, egg, crushed garlic, chopped parsley, salt and pepper. Shape into 10 meatballs, coat with the oil and bake for 18 minutes until browned and cooked through. Divide into two portions of five.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 25,\n      \"cook_on\": \"thu\"\n    },\n    {\n      \"id\": \"prep_couscous\",\n      \"title\": \"Lemon-free fluffy couscous\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"couscous\",\n          \"quantity\": \"120 g\",\n          \"amount\": 120,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"boiling water\",\n          \"quantity\": \"150 ml\",\n          \"amount\": 150,\n          \"unit\": \"ml\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Put the couscous and salt in a heatproof bowl. Pour over the boiling water, cover and leave for 8 minutes. Fluff thoroughly with a fork and divide into two portions.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 10,\n      \"cook_on\": \"thu\"\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_lemon_chicken\",\n        \"prep_bulgur\",\n        \"prep_roasted_vegetables\"\n      ],\n      \"total_minutes\": 40,\n      \"run_through\": \"Heat the oven first. Season the chicken, chop and dress the vegetables, then put both trays in together. Start the bulgur while they roast. Fluff the bulgur, check the chicken is cooked, then divide all three preparations into their stated portions; keep today's food warm and refrigerate Thursday's vegetable portion promptly.\"\n    },\n    {\n      \"day\": \"thu\",\n      \"preparation_ids\": [\n        \"prep_smoky_butter_beans\",\n        \"prep_turkey_meatballs\",\n        \"prep_couscous\"\n      ],\n      \"total_minutes\": 35,\n      \"run_through\": \"Heat the oven and mix and shape the meatballs first, then put them in to bake. Start the smoky beans on the hob. Pour boiling water over the couscous while the beans simmer and the meatballs bake. Fluff the couscous, finish the beans with spinach, then divide everything into two portions; refrigerate Friday's portions promptly.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"Greek yoghurt\",\n      \"quantity\": \"550 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"cottage cheese\",\n      \"quantity\": \"180 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"feta\",\n      \"quantity\": \"30 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"egg\",\n      \"quantity\": \"1\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"boneless skinless chicken thighs\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"turkey mince\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"butter beans\",\n      \"quantity\": \"2 × 400 g tins\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"rolled oats\",\n      \"quantity\": \"100 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"bulgur wheat\",\n      \"quantity\": \"120 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"couscous\",\n      \"quantity\": \"120 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"rye crispbread\",\n      \"quantity\": \"1 pack\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"wholemeal pittas\",\n      \"quantity\": \"2\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"British berries\",\n      \"quantity\": \"100 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"peach\",\n      \"quantity\": \"1\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"lemons\",\n      \"quantity\": \"2\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"courgettes\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red peppers\",\n      \"quantity\": \"2\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red onion\",\n      \"quantity\": \"1\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"tomatoes\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"cucumber\",\n      \"quantity\": \"200 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"spinach\",\n      \"quantity\": \"120 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"rocket\",\n      \"quantity\": \"60 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"garlic\",\n      \"quantity\": \"1 bulb\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"flat-leaf parsley\",\n      \"quantity\": \"1 small bunch\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"mint\",\n      \"quantity\": \"1 small bunch\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"basil\",\n      \"quantity\": \"1 small pot\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"4 tbsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"honey\",\n      \"quantity\": \"1 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"pumpkin seeds\",\n      \"quantity\": \"1 tbsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"smoked paprika\",\n      \"quantity\": \"2 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"dried oregano\",\n      \"quantity\": \"1 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"salt\",\n      \"quantity\": \"1 pack\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"black pepper\",\n      \"quantity\": \"1 pack\",\n      \"aisle\": \"pantry\"\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Berry honey yoghurt pot",
+          "title": "Greek yoghurt, oats, berries and honey",
+          "slot": "breakfast",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "Greek yoghurt",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "rolled oats",
+              "quantity": "40 g",
+              "amount": 40,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "British berries",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "honey",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Spoon the yoghurt into a bowl, add the oats and berries, then finish with the honey.",
+          "why": "The yoghurt makes this quick breakfast substantial, while seasonal berries keep it fresh.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 3
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Lemony chicken bulgur bowl",
+          "title": "Chicken, bulgur, roasted vegetables, cucumber and yoghurt",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "Greek yoghurt",
+              "quantity": "50 g",
+              "amount": 50,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "cucumber",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Put one freshly cooked portion each of chicken, bulgur and roasted vegetables in a bowl. Add sliced cucumber and yoghurt, then squeeze over the lemon.",
+          "why": "The first cooking session immediately supplies a proper lunch rather than creating boxes with no meal attached.",
+          "uses": [
+            {
+              "preparation_id": "prep_lemon_chicken",
+              "servings": 1
+            },
+            {
+              "preparation_id": "prep_bulgur",
+              "servings": 1
+            },
+            {
+              "preparation_id": "prep_roasted_vegetables",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 4
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Golden chicken supper",
+          "title": "Chicken, warm bulgur, roasted vegetables and feta",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "feta",
+              "quantity": "30 g",
+              "amount": 30,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Build the plate with one still-warm portion each of chicken, bulgur and roasted vegetables. Crumble over the feta and squeeze over the lemon; the warm bulgur is a warm anchor.",
+          "why": "Warm bulgur and roasted summer vegetables make dinner satisfying without turning an August evening into a heavy cooking project.",
+          "uses": [
+            {
+              "preparation_id": "prep_lemon_chicken",
+              "servings": 1
+            },
+            {
+              "preparation_id": "prep_bulgur",
+              "servings": 1
+            },
+            {
+              "preparation_id": "prep_roasted_vegetables",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 4
+          },
+          "honours_belief_keys": [
+            "a_warm_anchor_every_evening",
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Tomato cottage crunch",
+          "title": "Cottage cheese, rye crispbread and tomato",
+          "slot": "breakfast",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "cottage cheese",
+              "quantity": "180 g",
+              "amount": 180,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "rye crispbread",
+              "quantity": "2 crispbreads",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "tomato",
+              "quantity": "120 g",
+              "amount": 120,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "basil leaves",
+              "quantity": "6 basil leaves",
+              "amount": 6,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Spoon the cottage cheese onto the crispbreads and top with sliced tomato and basil.",
+          "why": "Cottage cheese provides the anchor for a breakfast that needs no morning cooking.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 4
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Smoky bean garden pitta",
+          "title": "Butter beans, roasted vegetables, rocket and wholemeal pitta",
+          "slot": "lunch",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "wholemeal pitta",
+              "quantity": "1 pitta",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "rocket",
+              "quantity": "30 g",
+              "amount": 30,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Fill the pitta with one freshly cooked portion of smoky butter beans, one portion of roasted vegetables and the rocket.",
+          "why": "Butter beans turn the remaining roasted vegetables into a new lunch rather than a repeat of Wednesday's chicken bowl.",
+          "uses": [
+            {
+              "preparation_id": "prep_smoky_butter_beans",
+              "servings": 1
+            },
+            {
+              "preparation_id": "prep_roasted_vegetables",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 4
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Herby meatball couscous",
+          "title": "Turkey meatballs, warm couscous, cucumber and yoghurt",
+          "slot": "dinner",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "cucumber",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Greek yoghurt",
+              "quantity": "50 g",
+              "amount": 50,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "mint leaves",
+              "quantity": "8 mint leaves",
+              "amount": 8,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Put one freshly cooked portion of meatballs and one portion of couscous on the plate. Add sliced cucumber, yoghurt and torn mint; the couscous is a warm anchor.",
+          "why": "The second short cooking session gives dinner a warm anchor and also prepares Friday's meals.",
+          "uses": [
+            {
+              "preparation_id": "prep_turkey_meatballs",
+              "servings": 1
+            },
+            {
+              "preparation_id": "prep_couscous",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 4
+          },
+          "honours_belief_keys": [
+            "a_warm_anchor_every_evening",
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Peach oat yoghurt bowl",
+          "title": "Greek yoghurt, peach, oats and pumpkin seeds",
+          "slot": "breakfast",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "Greek yoghurt",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "peach",
+              "quantity": "1 peach",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "rolled oats",
+              "quantity": "40 g",
+              "amount": 40,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "pumpkin seeds",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Spoon the yoghurt into a bowl and top with sliced peach, oats and pumpkin seeds.",
+          "why": "This uses the breakfast staples already in the basket while making seasonal fruit the main flavour.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 3
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Meatball tomato pocket",
+          "title": "Turkey meatballs, tomato, rocket and yoghurt pitta",
+          "slot": "lunch",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "wholemeal pitta",
+              "quantity": "1 pitta",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "tomato",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "rocket",
+              "quantity": "30 g",
+              "amount": 30,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Greek yoghurt",
+              "quantity": "50 g",
+              "amount": 50,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Halve the cold meatballs and tuck them into the pitta with sliced tomato, rocket and yoghurt.",
+          "why": "Yesterday's meatballs become a portable fresh lunch instead of repeating the couscous plate.",
+          "uses": [
+            {
+              "preparation_id": "prep_turkey_meatballs",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Smoky bean couscous bowl",
+          "title": "Warm butter beans, spinach, tomatoes and couscous",
+          "slot": "dinner",
+          "day": "fri",
+          "ingredients": [],
+          "method": "Reheat one portion of smoky butter beans and one portion of couscous until piping hot, then serve together. The pan-warmed couscous is a warm anchor.",
+          "why": "The final dinner uses the second session completely and keeps the evening plate warm without requiring another cooking session.",
+          "uses": [
+            {
+              "preparation_id": "prep_smoky_butter_beans",
+              "servings": 1
+            },
+            {
+              "preparation_id": "prep_couscous",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 6
+          },
+          "honours_belief_keys": [
+            "a_warm_anchor_every_evening",
+            "the_basket_decides_the_week"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_lemon_chicken",
+          "title": "Lemon and paprika chicken thighs",
+          "servings_made": 2,
+          "ingredients": [
+            {
+              "term": "boneless skinless chicken thighs",
+              "quantity": "300 g",
+              "amount": 300,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "garlic clove",
+              "quantity": "1 garlic clove",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            },
+            {
+              "term": "salt",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "black pepper",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Heat the oven to 220°C, or 200°C fan. Coat the chicken with the oil, lemon juice, crushed garlic, paprika, salt and pepper. Roast for 25 minutes until browned and cooked through, then divide into two portions.",
+          "active_minutes": 10,
+          "total_minutes": 30,
+          "cook_on": "wed"
+        },
+        {
+          "id": "prep_bulgur",
+          "title": "Fluffy bulgur wheat",
+          "servings_made": 2,
+          "ingredients": [
+            {
+              "term": "bulgur wheat",
+              "quantity": "120 g",
+              "amount": 120,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "water",
+              "quantity": "300 ml",
+              "amount": 300,
+              "unit": "ml",
+              "state": "raw"
+            },
+            {
+              "term": "salt",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Put the bulgur, water and salt in a saucepan. Bring to the boil, cover and simmer gently for 10 minutes. Take off the heat, stand for 5 minutes and fluff with a fork. Divide into two portions.",
+          "active_minutes": 5,
+          "total_minutes": 20,
+          "cook_on": "wed"
+        },
+        {
+          "id": "prep_roasted_vegetables",
+          "title": "Roasted courgettes, peppers and onion",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "courgettes",
+              "quantity": "300 g",
+              "amount": 300,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "red peppers",
+              "quantity": "2 peppers",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "red onion",
+              "quantity": "1 red onion",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "dried oregano",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            },
+            {
+              "term": "salt",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "black pepper",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Cut the courgettes, peppers and onion into bite-sized pieces. Toss with the oil, oregano, salt and pepper, spread on a tray and roast at 220°C, or 200°C fan, for 25 minutes. Divide into three portions.",
+          "active_minutes": 10,
+          "total_minutes": 30,
+          "cook_on": "wed"
+        },
+        {
+          "id": "prep_smoky_butter_beans",
+          "title": "Smoky butter beans with spinach",
+          "servings_made": 2,
+          "ingredients": [
+            {
+              "term": "drained butter beans",
+              "quantity": "480 g",
+              "amount": 480,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "tomatoes",
+              "quantity": "250 g",
+              "amount": 250,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "spinach",
+              "quantity": "120 g",
+              "amount": 120,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "garlic clove",
+              "quantity": "1 garlic clove",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            },
+            {
+              "term": "water",
+              "quantity": "100 ml",
+              "amount": 100,
+              "unit": "ml",
+              "state": "raw"
+            },
+            {
+              "term": "salt",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "black pepper",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Chop the tomatoes. Warm the oil in a saucepan and cook the crushed garlic and paprika for 30 seconds. Add the tomatoes, beans, water, salt and pepper; simmer for 12 minutes. Stir in the spinach until wilted, then divide into two portions.",
+          "active_minutes": 10,
+          "total_minutes": 20,
+          "cook_on": "thu"
+        },
+        {
+          "id": "prep_turkey_meatballs",
+          "title": "Herby turkey meatballs",
+          "servings_made": 2,
+          "ingredients": [
+            {
+              "term": "turkey mince",
+              "quantity": "300 g",
+              "amount": 300,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "rolled oats",
+              "quantity": "20 g",
+              "amount": 20,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "egg",
+              "quantity": "1 egg",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "garlic clove",
+              "quantity": "1 garlic clove",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "flat-leaf parsley",
+              "quantity": "10 g",
+              "amount": 10,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "salt",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "black pepper",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Heat the oven to 220°C, or 200°C fan. Mix the turkey, oats, egg, crushed garlic, chopped parsley, salt and pepper. Shape into 10 meatballs, coat with the oil and bake for 18 minutes until browned and cooked through. Divide into two portions of five.",
+          "active_minutes": 15,
+          "total_minutes": 25,
+          "cook_on": "thu"
+        },
+        {
+          "id": "prep_couscous",
+          "title": "Lemon-free fluffy couscous",
+          "servings_made": 2,
+          "ingredients": [
+            {
+              "term": "couscous",
+              "quantity": "120 g",
+              "amount": 120,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "boiling water",
+              "quantity": "150 ml",
+              "amount": 150,
+              "unit": "ml",
+              "state": "raw"
+            },
+            {
+              "term": "salt",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Put the couscous and salt in a heatproof bowl. Pour over the boiling water, cover and leave for 8 minutes. Fluff thoroughly with a fork and divide into two portions.",
+          "active_minutes": 5,
+          "total_minutes": 10,
+          "cook_on": "thu"
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_lemon_chicken",
+            "prep_bulgur",
+            "prep_roasted_vegetables"
+          ],
+          "total_minutes": 40,
+          "run_through": "Heat the oven first. Season the chicken, chop and dress the vegetables, then put both trays in together. Start the bulgur while they roast. Fluff the bulgur, check the chicken is cooked, then divide all three preparations into their stated portions; keep today's food warm and refrigerate Thursday's vegetable portion promptly."
+        },
+        {
+          "day": "thu",
+          "preparation_ids": [
+            "prep_smoky_butter_beans",
+            "prep_turkey_meatballs",
+            "prep_couscous"
+          ],
+          "total_minutes": 35,
+          "run_through": "Heat the oven and mix and shape the meatballs first, then put them in to bake. Start the smoky beans on the hob. Pour boiling water over the couscous while the beans simmer and the meatballs bake. Fluff the couscous, finish the beans with spinach, then divide everything into two portions; refrigerate Friday's portions promptly."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "Greek yoghurt",
+          "quantity": "550 g",
+          "aisle": "dairy"
+        },
+        {
+          "term": "cottage cheese",
+          "quantity": "180 g",
+          "aisle": "dairy"
+        },
+        {
+          "term": "feta",
+          "quantity": "30 g",
+          "aisle": "dairy"
+        },
+        {
+          "term": "egg",
+          "quantity": "1",
+          "aisle": "protein"
+        },
+        {
+          "term": "boneless skinless chicken thighs",
+          "quantity": "300 g",
+          "aisle": "protein"
+        },
+        {
+          "term": "turkey mince",
+          "quantity": "300 g",
+          "aisle": "protein"
+        },
+        {
+          "term": "butter beans",
+          "quantity": "2 × 400 g tins",
+          "aisle": "pantry"
+        },
+        {
+          "term": "rolled oats",
+          "quantity": "100 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "bulgur wheat",
+          "quantity": "120 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "couscous",
+          "quantity": "120 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "rye crispbread",
+          "quantity": "1 pack",
+          "aisle": "grains"
+        },
+        {
+          "term": "wholemeal pittas",
+          "quantity": "2",
+          "aisle": "grains"
+        },
+        {
+          "term": "British berries",
+          "quantity": "100 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "peach",
+          "quantity": "1",
+          "aisle": "produce"
+        },
+        {
+          "term": "lemons",
+          "quantity": "2",
+          "aisle": "produce"
+        },
+        {
+          "term": "courgettes",
+          "quantity": "300 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "red peppers",
+          "quantity": "2",
+          "aisle": "produce"
+        },
+        {
+          "term": "red onion",
+          "quantity": "1",
+          "aisle": "produce"
+        },
+        {
+          "term": "tomatoes",
+          "quantity": "500 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "cucumber",
+          "quantity": "200 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "spinach",
+          "quantity": "120 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "rocket",
+          "quantity": "60 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "garlic",
+          "quantity": "1 bulb",
+          "aisle": "produce"
+        },
+        {
+          "term": "flat-leaf parsley",
+          "quantity": "1 small bunch",
+          "aisle": "produce"
+        },
+        {
+          "term": "mint",
+          "quantity": "1 small bunch",
+          "aisle": "produce"
+        },
+        {
+          "term": "basil",
+          "quantity": "1 small pot",
+          "aisle": "produce"
+        },
+        {
+          "term": "olive oil",
+          "quantity": "4 tbsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "honey",
+          "quantity": "1 tsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "pumpkin seeds",
+          "quantity": "1 tbsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "smoked paprika",
+          "quantity": "2 tsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "dried oregano",
+          "quantity": "1 tsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "salt",
+          "quantity": "1 pack",
+          "aisle": "pantry"
+        },
+        {
+          "term": "black pepper",
+          "quantity": "1 pack",
+          "aisle": "pantry"
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "id": "resp_09a3c745cc180e63006a84eaf84d34819e8e2b548fe1838879",
+      "text": {
+        "format": {
+          "type": "json_object"
+        },
+        "verbosity": "medium"
+      },
+      "user": null,
+      "error": null,
+      "model": "gpt-5.6-sol",
+      "store": true,
+      "tools": [],
+      "top_p": 0.98,
+      "usage": {
+        "input_tokens": 5189,
+        "total_tokens": 14245,
+        "output_tokens": 9056,
+        "input_tokens_details": {
+          "cached_tokens": 5186,
+          "cache_write_tokens": 0
+        },
+        "output_tokens_details": {
+          "reasoning_tokens": 2641
+        }
+      },
+      "object": "response",
+      "output": [
+        {
+          "id": "rs_09a3c745cc180e63006a84eaf91178819e817f68d8f7d43719",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOuIJX5nV0U6zqwDuiGT9JeoikT9gIcmp1bdn0A-zibBZwe29SZ4KAOn7Jmsd9zgvxWZkUjUAkQTUlQz_ewbY-U1JLQUeLzGnm5KHmg-DHf9lGJNAXgncA5Q78ZSi9kfSyH9LiRze7SLQQG0B6tk-BaIBZHZbkR1A66TQSR8m9NUlBCMnuD-zEZCWxhuRQ-LDlWJzY6T_KANM4LHGzRBqJwXBp31MhBNjFkxHMKQryrs4jNYqmyhqCQBZplzGZedtZeSjVaiX-zA7KgBWT2xQyebSbLTzOhXf9T0jQTU5bW5ZH8EBYlM0lasX_ro01JtSjgtn0Usmn0gqTZWTvztm1K7e07QEdkkfu-FPuHOboNUF5Lndwrn7i-8tkFEojfywc6iykILi_XNT_Go4EUGRDSY6egbrwM1vQQcUKnr2CFo7gy2DeXQl7LmLSMcW7_SzgIFiSEsy6orhbAMUpzOXcwpIMXqvWlHqfZtqMm70udkT5jK2-Ij1AMNJbmd3thi9TMI53SW6bpztZTpayZUxvXSkypQmf9BJ4XsN1THjnIinkRiWN1pyD93sPgOiHjy09sEIKSZHB3fEe0xZcpTMHqBkPh5mdBKveNTRlGW_ypiMA85T1ccWOlcGyBGHKjqykX8K4WiuP-fkZ1fSEv3rgxBs6oFQlyd3m_n9RV-dIGxv9SAIbAfYXqI7jSV0eZ3L7UQwFeZ_1HrRNBdLNldn-x6UN_j8TRs2jinQRvQGRU7ryB3wXZkTNr-V57-t5ixOLbyn6f3wyq_tiwphjEd9EJyjmgovXI145BAZQrHVBLv4TkNtQapcPnIcoJ8Af8WqaI2pzJpsUfxpeZDEKYDU0GOTlrNJeS0AQw6kgrAi7UnGSy5N-rPB-AtDF7IVE5c38VJ1EUWJlxO7mQHZyce5RnVT-3GOo_90askUl4aHENiWkoeAHQcWu0iINn_6PEIDx87EeEo22In7xA8dO1o-JfjeDfUtyq08MVIRdWE5fmozaNbRP44-sUf2mKW9LYCNWvBynV_2iskYVUNivdwi6x7F4QwuFttZbf88Q2DF8XokXT3xXyBM5OX6KXYvkxk3xF8fhOwbJ6ftAhj3xT-YE1TSbDUogg1WJ7sTmEavkyedvu8RXzdwM3iJPPQnLlmjH7-Rn58w7AQxnPXIQwllrNV3oB4QV9g-5Obe0yXeJJ_AqGUB6eTGSJK5lYgj8bSxocKBK3jHuls396fVBClz7Q1JAUY9a-nkPw7i4aVIz9AdXe_iSPp1oF_xnTQc47j34QGrB85fk9IKUugGcfVFMTImoxireIMMCJz_8CVuYj6_WDN3By5We0BNJ7DLwJeN8qrak9Bi74ZdqpCRum4rxOOnZG5Fe9adgWKOBLG_v3axcNU683z-puISCfsl2e3We5Hosnn-DNUhklafdIp4zpAb5BZbAViZxkxjI5vQV6Juehn30ugfZutlE0253gl9Xa17DlBmBUgPkRjBRBRFiyigY9pZunjq73JgOsLSU_tnW5JUkQTYlBdo_GTDyY08hf-GGyeLMWdwOIVeSxHdrYW9eEmOVtpkhIKxvpPx6u9OFCCVoIdfCVrVnyCMOLTgglW4ru8-dN7EjxWNM3GvYvg-UViVAvOsT3wtt_aRSA0kP0XGCT5aa0N-aJ8Aq1-UzpBRubYSqZbEjmKgGrieNZxZGqo3cXqN5ZkqHGjGdVoX5JDVsqRWEn564WaOkzKsLJwwdBjJapz8b2qUfVdMtTcl-VxKPfsnx860MYzVeNsJn-0mmNzPc0OA3SChTMtQMZWu1woHwRXHtS64PWkxL8bfRnb_R9Wf-uCh-uz1CHMct1uRZc1Ig3Q5G8FfVOjxxg5_DZ3uiyd1AH8fxPPJ5jBWlmP96rkA-lyI4bS6vovpZ3IS0vIEPwc8mEc1ZJjUagR3vGirtLjLcwFKEqQpY5o7LEgUmRLc6BPsfdKevE69MW1GcihvnuVkM2mNjLR1bBhYWrkt5e4wGZQSRb2HXziOm1wG3jK1gMfFcaqbgrXzDYn8OWW0-Il2lr6DWnoHy8l3Q_-5DQYrZ19x2cgg1Vtxa1Ov5IrL-RndnaTGaTH3C-vPazMdt8yrTfmOGHpBTONBp_y9uG85ofbaM7MMF3-M2gSS0wMppEA8ApFmMvOyDyanUnlmc0_mi-89pM4A-rWuW0Bo07OnXhC22Jjg_mRCoztCvVFmqY0l6hA5tTY1aZZweHbqBHfhmKRpAMlodawT4M0E2ckUADzpPq_-s0BRMMjVzrJS1RN9I4IP8x3AbonVbJuzMLqgwG83ckTBJ2pSESTdhNZu_2WCF6DO4UprJP238wrunPaQB62G3iLCi4FUxTs1108b5R0SPkJYTK-TsBkKi6nwH_-dIxZhy-M3YU3RYhMCATZHiz0KYs977S_FiabCGhvQ5_CQ9Q29eFjwzYqR4QOlHhFrOJKjD0DCueTPFmm5PRY0qfWhFtD0g0GSOK2CHg6GiGvJlSEDxRT8qs8nTbqZ9imFbXVo8NGdkO5BGveZjgAq-G0ooFeoxqsrApIZGqCkHaO0KlasC_RaDF89XUNfhRhWMb4QWc35e4aGEid8uPP-CbWMhH-gKKMe9Z-ri6PjM2HOyaPqatcCXP8h2z5vb2S3J-PgIaFEG8xDy9C532Wo3KYb3NI7b8-uksC-LaRRzEcWdhj4ROgf7RZaYI9hESIOct1PSYoSUtyfvpe6YIsKxTBHWqIv2KlZVqVhyJI0rjGMMjnXa0fX0uNJtDdK3lwGXuVF9h3sLUIOz6e7hrXpy8EyRO-XNT3RGvYs1Hi1RN6_zyqLzKbbSNCrsAD2ZncVwIXIXCEPRf-R3p1dKCozsGY0moJsTofvMzsrsQCtovarQBQGbIevVMwbTXRCEGB_WXcCQn4oy_8RcFLwHSnsahyKVTRKmJ10IyNpzgzq7AkrXPxGM98szxuvzD394rlCR2uyl6_xsqUEphaol41nxa4sKl-yjNkuZQSWV2z4qWRhD32UMt7xe93gI8ciFhabivOBM0bk0HQtKPNsC9RlRMcmjzsa4ndusQjtZyzGM-R8urCnHx-WqVZ7wNhoJ-CN4b1JKgvZ5BS3Br_7578vv2c91UJjQWBKYo4n9L8ITPWB9I3T_Fl25ZWSuxF_6CgQJT5tRX5it6JlqxWYctGg6VsJ8JvbYdpV6bI2uFi_DQNoL2EyCDw8VgwsCOjmgmDonrGfVKBbHrQxAaqqq-sSBvoXja5R0cfHCW2UYsqbTnzHoTUlO8PrNkGvn0A7wFQ5959eEniYBu63yYLpw6OHAVxmHMf_FHqlOdnEuFmUBl4hriquvc_REQ49I-eM5LAi7QjiMreoA8AwANuNQhAUoE_gQ4KCj_b9-3hAqIUJCLVnX40YXxYuPfRaJ12a_xRBkNmnmrkK6U79dQ5MoU2B8rRSleL86nJKjJXdzrVYOq8kjkD6Iqpp69PrYFhZVTuI7wDFqzHG3qhebkRIVzjuDorpWvLzBjD6AM0qDmi95zUV6do5OSY7mycm40kMYCSn_9KkrTxUSkns4f9PrGIF4e62MibRwIHoJbU_sHJU54eGpH_8Gi0kMoFVRIqa99QZj_c1FQ-U_NRadKRbajIdOvm0LRcBxPRuohqrKNyxkmMTk05eD_nl_Z5pHgRJDTbUN7IdTYH9psY3yp9mEKQmdykG9-UUsCjPe3tOrT1XIwD0ttbk6PHKfoa-h2WJhuPeN-Kjrn1W3N0rnpAfOTyKaVE4DPuSkPXKBaziKPH9coV2KLqAeE_RcBn3OgyW55iaP5nlpWHQ5tc5hLy7I2F-s2zxSD0H7Eqhstwe9onISOLTTmh4siPkJyFthd9WmMFS64WNAD1RLnbhGTflZTTkKM97vnvzMUNOLkphe0hii2AJP4gvTX-Z6XiFhQNq00d_NPtuwLsG_VrSxy3eBx6rNFEOYXJ68rL1uOJ4FyzTHet5XGasraDL6daVmiSt1kPANmhansyhc3ClUjM7BlI00XS2ceXEbOW9i1FygLF2Bt2n4ALWoULNuogaaEtQ6UIhS9L02QEG-dh5v1DOkZqs-8f7RekdPeZOZMZ_S8I9EHoEDpPJ0IX7QUHmMiQXCeu2B_dI8xvIa8JUDQBxbW-SmtCM20VaDQ6ruFHqcuFwIcF-MvZC33fDY0qmPUfcNV0eJvkCTDtr567sGGzEiqyTselyR2bcbJqFrB6uOAdZRIp4QJur1QUJHhl97KzNmZoRfEqR7bJ6KzVb0PUo237cR_DJTY9T_8="
+        },
+        {
+          "id": "rs_09a3c745cc180e63006a84eb06469c819ea16a9eb89e52e1eb",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOuI49XK_9sq9UW_J3auZuP0dMyuaTkLBHH4zWX_-bbDh8t2xiDh5HXuR7fMkotrpwp92MYhVYNYAC4rgyxSGfmt5z3T3xTwfObvDKk-L_5onVRTfrlVirj1LAfYDLNtp3_zawYoY7t80pHSa35EL8RLh_5LnuosflL6lqc8YiofiZr1_M71qxBPlHQIRBq2cddlWTrolSDvszFPhS_2vzH4PlFz41NF2DqekR5iOxI-t4bgO_wMJoFowDEYJax-Cz4-4YjNEwGw8kEGNrL7eJuh9E8jWhbg7Pj7oCqMKNVHjB3ZGQATQy3FQr0odhBnidkOBpVtwtwkLLO4MttPtqQFxZjM5DjPw82HWyZeho2dt6lJc_NvrpusUDZn0CWbTKkGZ4pf3iRsrlqJ0qeBH0Qdo0YKE7lSKS73WSTl_TxtrL-F3UgPfd_qHZtdkVXJ1F0BpXXFpLvKkEvHOIyWoxOB4yCrIrpULao1SOcBsoSPAif_WiWozVVTBAJKB81ih23Dwv6CtmmCGf1PtMPWR-8P4GuSRZqGKbyO9WiAOF0xbpCKD6T98xizKIkcBuVmxMTQFZOrnWonLaALzJQgf-a7i33Aar8lQ5PzACzK9MvUcXQHwJrZxAOtHXzppkH2bZNHdkDiLo97ekyRaC2lTz7nfKz_Sh4gxSW6DPt2-9BrQUrbVeoafLclXJgRVlkcN4PZ6vmXvcFFzAATD0kJZL0nkmCmtW6u9o3HyL-RXnXEocU-yS8otKQMQm_OH6i1jR5gX3a-lq3k5nT4LrfH7zj2vyA7iOnaUKFEUYE0jXdVld4kxdo9kc1Lht88PElmzlMM9wj_1V9W80vBHqn7I9heNjeCtUDqYzNPPxk-SIfZ_r3hf6T4lyIKMsa51W3Pcj2iBe5YDaCTSBD35B0QKUhczUEF59fbsJ-76nQqvp_ltRFITUyxFcjHJmSG381qtOlcCSuA9c4U7kSQwNHn-DxoMhT6KpKmitpB4R8esBsPmA4KpRRePEtaOeV-e9RO96AkTJb3kzWT99iRgQr3dUj4e9pLy9DOEtvphUamkRuntNGdB5LiCzBgBrGFPhZxM9Pvt-6nr1_ihPQekARORQDRA58P7hw6-SRRcZLFK-Qnx9_UrSI-HbSgTPmR-7gxk-3bauSJmNi6r4Twse0fR-t_1YK7thK_TqDLgwM_v3ydY_bP8HSJ6_YSVk-wd7n3quho4LdVLGCf5FHcvhrWjlpwFz5L9ry0DL8AdH3Ng0-uEczz5ou74U3cutgvsbtKetjWsZaKkK1MIx9_rfcUg_OFw32sVRaw2-1QAs8qOhfLgxNaRQAOZ9wOIbIqjSpeADThIHNVWHvrjVNeik8J08y7c5vE6AIVapFX8TLQeP4OW4AUT8lo2b6PNBnL-Q0VtarOIxpvOxr25JmKZootCg4hqLSiiUiimmhT_soo6j3byJjE2TyOnCaeR-3vJ6RZUzT-of-9y0De18LT6CmUV_8MtCoj9shCL3yZzB69s7To0ctC4-Jwk03oxdtcBajcPSzt_QhDwBB0vkY8Weh0T9RaAr8I8083gNHNH4EczcsAOi4xvlW98sMWdoLsCMkWG_YYw1aHegRId7IlxBTpLimatYd7oXR2nk7Mwd6g3QNJPyFqIbD4mMhqw9npTp6RrQoA0RVwjPOog7g4Xybsk983mnbwEZE54D86_hk6ASGJrcj577NQzoeOV5vmtSypk3PR2OZo7LLR7AtZEniwcM9_ziAlPJ1gcyBdyRH_MaQchKQX_h4gSGr6-nRdB1ma9hhrd95nJTxmlPtuRpKGZvoQMvi8YpA4Xual429LTYzddh603JKm4XrcQjcjVkW8R5kDz3RPm-iIbmUhsDw0wzjxsNMN4_ncTZALxqUsahmpddnp55N46bnWTB0XDjSwQ4-E7PSXmtz6tWpNZEeoWQaYJ9Ag5mY9TsHSgqt6vIOez_IyFrOTH7ZfCnujm6UfvfXUSI8b8RLhDayjdCncTfczHivMd7OpEUKaQKMnZ-qL2hJmanxiD_7v--74goLQiSiWKxqYgMLPMVVCFxB_xJZxDbKGLvF0YL5T7vVGIe1VIN0dxB6EIP3a8x1rOHtdFgRYVjUasImVi2FcaViuCyDFLdaqo2U_OzFwJmBsu8MYOFh2fs8bqkbORRZzA-HQcyV_HgBylBxU4sP-_4oKr2Z27D61Kmh0PhBtA3xfyDL0rUyLl-mdDPJKAwM--1KKk50m6-1RAuB0KwKUqJgriE8ss2BH4baEX0azh-WDZlI-IqtgQb90k_R0DPfDUT75e1vRM0SwVuBYfs9UdKVUTvgxKBKCx04MMl3-h31Mo-0UGRkBFOTBAv7fnxvdbmbu1diZolo8McZReeEoyFu0deYY_SSq5dOQGSi_59Rgkw3MtynkQnkSrBFHJvztw69peBshrpKckVegLUST3wlMbOjGbFgWqh49s6mZE__UFyQu6MdS0-79JxB-h7m2Oifd4Sf-WE-Jj9zxcT5nTYRhkJzl6Af4FfX1TlDIJvNWZvTcYklIWkZmSWFRAY71wc3jhP4GZpC7GzWr51GiiRhFOfN0C60QD7nMkLEUW0uBGwBy2edA4bAyp-SvH6Bmy9FKvx7Nv8-ebQ7RHCtS5qST4yXa_q9Hm2zwRyPOxmyaVLErtrkDk3BbuT3Pw76NPXEWqKJuRotZrtqzpFw3QCU28dLfG2OgAvIIa8jiKhlmwDreGZqbxe39ExZ6hGivng8GH2vUdV_n2giN1nk7sOMxpxjFA3CVWf-Ik5xW7uhlB7iLSleLrbpn6qPaZSFNuAbptlKT40DLUusuxPRL0HkSeJtwaHvCEvbC74CZk8KZtIJQviVr3O3obC_3afm5GlvaC_0bU8qfq9HhbJBkc90O935QP8FNAs--woT6vRriAnWQlKvR2YaNXytGOjbx2PYoRYi5GxPptJNnXI7TEVOC8fxkgZcYAzgt2UHgGgA2OB43rBkqgWDGv64NmuyN5OtCFQ7Z_XAf3upwW6Eph2P7EYAcw3BZ07Pdp9atbrSuE2ymehGhAip2r7Cbl1P23nA13Hj0zN-j-hIu7nIQhuidjtQLhveSeaUmLVE4c8UlaqRvWweGB5UWN6EDf_0jhTXi8O6D7tA9AYwJnO0rIUt23KXaHQv2uTLgRv5zlFfC0teZ9wbVFbA14gm7d44NTbNVmT9xahWLN285F4PN6ICFmuOY85QY3dVwxD-QJpbNktKSuGhtpEsaVD6OP6umIDFj1PQQZueD-Hal_vVtjOjYuFUZg9n9rEbfXXGliFWroSKIelQS5JxsMPxzxePLa0Z1mbqFNX3MDt4JcY7QTKz6ITgJAUacrWoNfc4z-8xMlleAQ45N651Ha0RRd0hEQuzSkImPoSEZYRUIeJbfSIGuS73xTsG0zinBRrqkWq3TqWPs1tdaT2sLXAWkK-W0INMrFGwwgZKDYVgaDv8gTmfwJveARaKFVv8ibPjm8iQZlH_rGtQxD_XqypRIIdqTp8Jo7hNxJ-eEDVSPedMzHN42J5_jEnSDloWLVHQzxrGHQBuIwqg05KYtJk0yw_oFlqkN5C0EX01SoZ-FxiCf8F4oukcHj3srdBSl9fw1BX1wQNFmg9MCaHgDzaoXgdidVp2t7I_rxBCARuw8yq7t7hTw6P9kfY5lU64RDYTHJwVl2H6HaG_38aP6i7rutEiG632t7aC6GRhivir5MJZzxllRaIKug_9StLGwbLBMgIvtf3nhXKRbFREwDtAcj6nUCrGLUaAXo4uKIy0bpCgIM8dKD4h6DJFETKrFgs7415Sr39oCtp_APwMBJJT_CnTUBaHuRlsyWP6BDw1QTaAtJCOKVZyoT-xTl0d7ZZ5WfadyhcHPtLBXWsYX9IVqEbVL-GB57b6qR5GiSKEjqS5Gabik5wf_VKgdaTsTjUTSEO-h2EFSW6N4-iDiauY5CR4Q_LnovhzO5kw2hlVw4-BX6Ihnysk32CSSiONt6xj-9JIH9zgKT1RCyeTNFr0OcTaprqiT6jz2peGAD7Q5wnSToLvqJX3rreDA11Cc_D-0KqudLNyh-Yw_4DGDeMRLAw1AvspuiR9vGpGTQ-T0pjx6SN7J6Adk-nsn8bUGtGIJQ-vAMHFHKzc-3PWjwdVVqLLojuOhQ7DGNZAGNt81pffO5P5qTYG2L0jRbd122dDOWxe_VzqQIdAZ8WP5VIRnJ_AQG8tsLiDoCeCzYme3E1eYzexHvNcfwus1Xq-iGsytWQc3GyhuyHtM7nDTmsTpTezSUMfL9gJD274fFBa_Kmul29z8C4ptU1zNSNVB4AfwMr-0OKZtLpo="
+        },
+        {
+          "id": "rs_09a3c745cc180e63006a84eb13771c819e9434bb88cfdfda5d",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOuIzhUYkQwL385-1Ei61QBZyKLMG42HP1BV82DYLfBVhayzqXMU9SxHTpRxFAzNVZKZAkL_9qGffylBMcmE7Fk3UEBev09o7JAMg9hptkUCsAljtD94n0UHZ7UkHroU-jGwb5zs5D2rJ6vPQRadO7kgwMq156kkr-_t9gzmMsFI0WnuP9eziVN4q4gz5x4OBPl6ApJm4FSd9z9DlRLFh1fgAlR7SkV9d7joUXxrL3xbiRFRLTZMqfHcxwqplVBtQt_mpKHGnUOIo9R3iJ-krVPYkcVFuc-pG_8buiV_hR4Q3oZk8jhm3DVDWeMyXv6danEEXS3J23fVQc5-qCXmdp8beYeDtswLtZhzYEoollWko0DMbnBczDk-zZiHrhDr3FI5yk6IeZcdFJRJdgTMWniEtDiOqSWbv55ZWHGJYOuCV_Rp-IQ_3JUgvE3vhO05ieJYbYGgK7rqatPXH6sq0MjoKtI8GQR1GKQ_8hayBGys2N1jpBA425jKXRAp8KZEYBjnkWpNxszrCctRoNzw-kTdvxXRBPFDwOjXoBCJUB70fI3dNCXm_2uUZ-ey1OPb9wxI2rA4V6q6wDkj2a5reB4Et1rTIfb798puSAzEzoQFgxS_JHl8RnyY1142kSCb9-LgBeKbanizTGSp2BBnZGU8cmWa_Qwx9725ckhqOSLLwAPbkt_JpaAXOuSDsbB_-d0slk_R7T1ISmebLPMoegjs_cKLyPjAelRmJCRBdX31K-PPLUPvJm51ExY4aDWuCIUq2BtNzwFAWjg7fisH0srwIOOZi3WWTXT-3IQ8Vc5xnOApTeceszxH4rYu6xN3KnLuM0-BcYl-5dcjuXG4NOhgv7ZtDnQwzHGW07MFRJMBlUTunfTUAyqrCME4pHOAF2f2YcoTaxB1e9jOIU8DUJyC24vcpQO_zlNfBroJRgQgSzgmP-caTiglm1UyiQs13ZFB2OJAsfvoZfStrcRCChXEQBK2soLBZFTIupTXPqmR9Cb3_PKELTp_9wtdlw4-1vI2mWGA_u5oZaXJJzqF82ZnJcLEgXI8WL3M1bvHqbekYlHnVQa4zdxMUtFdiXIvHJ4bPCsVboEh6lOLs3Tq9P3qCP0tiXKD_4grxNlm5bwAQwYh71ae1HoveMg7VParplGcn6iOUR9dpXxJDr7Vtww1RvJjuAHtl2y9BhO0AZYVd8xasW5OiamO1PxIv131Asrn2Cv7LLE56rAK1K949rUE00GJ8pJolA_qkPHRcUU-51yGruUqzEBADNfp1aUbgzCQUesQurfbaiKadNEx-4NZ9kq4VCyhb-1mc9UUmvw8TFttT0pQ7I2s57nNZYhYoXQpbzz_cezR7U8eApHTeI1qgoT-SWEGxtYHwI39Q2Y1XmxLNvEwYdcs7E9ce1H4hXfmtzujatUZe9mlR-M10VwXRxcSMR5CpMmad1sqTZ6ccgANCFyRT7-snb_nV1Vsho7V0jedmAVx_zIkbovhs_rmlLX3hZmuPWY28-QaGx7SCciUU8ZAYVGKmN4GcVT49opDVoRZYLLr3Z5Lre3b4KicaQaFIvze5GjZRLHLZ1yG3LaxLpZ96wsscuUKUU3tmropwPnPZVexYSF5etzlGnoPGrdHyPtjhGAxxOH5ZWZtcn_nT78YRory5bDewBHfdO6h-0uA7YwuIJC9LrKmdfVmyAcLvqHPK9fnTX1ICskoMbHmWz7-mH2DvPgmfY7-h-jkxv5O_Vqoehr0EWrqLMPsy3oBM_Pgp_PPXryjURd7hhmZ1fTXDL2mgS3UCCb-KfS09p_WB5CVJAQnQM3stLxXoFQR6iwPtOST5bjXYGVN948BXn4xN2oSv9CWDlpqr53QrncFnXmYsqh88vXyEjl1GkaWI3wbkNcDH_sMJFHcWXmcxXvbzYvHpgnvhkg5pXwMN9-GspKSTbgWYP_T7QAgqwgIVrQTin09KR_o3jdnKdTh9rDxwqhBWWleKe-9wl7qZ86tr9RXHzS36JpnlzBByo8-tb5RTBhZkt-3pwEGx1LdU2JQl-YVbAqpmoydTE6tXEmwUiZq7C4sdDz6dUPDaaaH_8iOdpjvMqiO5MGCWQsitRcnao20q72zfDgotsXhKwV8Os4TcD4_sIO6boYwbFjL2LIwuXJ2BdQCLfHeq3ujAPNyPBBg7A2JqwZU7Y0AhUIUjdrFDq4zM22pkIBSKPciHB-qNPW7m1e1pF1gIv3OcrDfbW0wSQC9fsqJXWp4Az6UlaHZZZCWDj57p-XNZjdElq16UolWxySEZgIbFBkNV7qA4HV8TilVpFUVlLnFUbspOGspQG8X1ZbNtzZ42h7gq7h6ez705lWv1pa4t5GeM6cgBXg9kyqMsG53oL7aNc7k4aCjzvIvP-GTnKvWger_rmP7CvdRdN1oMHUVb5uwmvrBEJUgRi_5e9Hqh_yi2b8heXX-cUdKXrfeP1Yyvo53X005KZoq8W9ueCMDGIrmbFpqCZ2hfJ10jgYuvRNq_bDx-UTVn_yNnZhOzEmMOXNnfAp_ywc1oPgNXbfqKSyp3VSCG7feGuWkCMB-hxUa2KQk9070865MJippPiFh2SmOgppTgSfJhihkYJ7E6yOY7H8XYpX4SAtGUY60ZECv2LL3IGZogxcyIinn3MBf6KR7R03dIxHTYNRHPs6iB0Mx5BJR0-8Zdk2-4FFaPURDBx6s6xhNLcL3N4cOW9xLYOLnmA1zzYeUYleIjsYgliM8pPo7JSnlVyCbW9w_l58myGyKyBj8puAeGxQNnGmrjbBE3fbYeiuSBprr4HqCv_qGeif6wEopADDjHDdLExrV7ISoMdaX_0lsoiAhTZC8Nryb-FHBRpgh9_77oaXyk3CaM6beSI_zhgrJbdc-r084WszmhuqPtpSwMb5sFn9k3U9VDlcuWjlcfIpT6nxO6AfsK_YPE2irGNdPgmS78gllC8gTtPJN1jEEtXMBNDP_cPB45SiNC02jiSSsd2Xd0HpiSJCGumCfcXGqX3vYoASAiF3Q971VN-ISRNAmdINGHxpayEpAPwzpyAvEVIeYa7e-xNQM9afVS-Q13FF4CZc3yg7iW2iYpIQcPhjUgkqDbDqz3PvdDiHI97gU4vjuAPunSGbYdbLWQtNw93jeJpWo4SVbDkp1YeqUZnenP9kgG4KECcZXpl3VsEFQoMaZES28W_VtRKeaoYIOALqJtKR0CU-UPtivxJXrk-OtCEu0S2dtxpfe4LY5sNlfAzPVlffkzOi_U7L3Dhb10a-QQ22LeKwAFY2fZjTpBU6bMZRZ4jyA1raUoiRSie6RYzBqFAALpRoEGAbJWNFrdFR_9baOYehIDODxLNbsdtX_BIPqfbuE90SQWdkMdjR2yi4uI0uN4vycTwOMH4HUWHOGPHq8bOTXRDoiym4f-y6vKEbNojshbBwG9ZONgsZ-RRzJstmLBThqkH8DPFxkQerUEl2SJpxZnAZn2j2IoUCccN4w7ylj5FvZx6AzDn6dPoc8ZIcJmdDCUQJ2NNG6mWVlk0JGbb8oslk82jnbF-n6ccCj-ISNlpxaQeDy0poUrTaO6uEaq0bD2Zdb2z2XkT7t0bjjOEV5zsSKrbUXwNY58XMVW4mOdKwBwJ1a5kv0YCVsF1yobl18TlUN1VHq-k9UbXu3zx_6IOqIMxc9eS0UnCaag7zvhOopWhAkdAWu51sLu3qEGVq2suQW9DNN1WJFcltNS_wK82u8ORdf6prfg3OmZh9TdFoOx6iP22YQStGbMX613nGU4GLLe7ayNeavi42VvSUuCPDU3ndTJT2rBmiNKpY9H7ye-DfUnaOrqcZmBm6xUG_IsEmwHFZdsP7L_KDUUYqMznwL5qdMvq4Ya8tRgibSBW1p4dZPEdG7sXpI2VV2PK1eg1zqYH2dWX11-NNf6N6uOZhzSWkbJqdCGh2A_QDHV4nn6mwsK54QmAEayKlkm5Tl7-LXUl3EsR8QzAF-LtLSPTSLIOleLEVpILYw9KWJusyElWJK-bNLzThOnJfBzCk7NHehTPy-4JqpfBKCBStK53xRDzsEsd5Be4akWLdlSBjPDU9AHIwlWgtwgys8BJJttnVV3zRvrrgYN6VirreQSdq83GV65jaMzANAgjqO9Xy-LW1EiheOu2V8IVDIKPVMvXVm1ap0obTZui_xQda_KUS4yV2OEi0L39d9lIUR7unkSBjTvGJInhTHuPNpvMvs2n7gp0Ks2twPE3fEuep9aSr39fOwy5wp749BsU6nhbmboOOia1pexGg_euJGqAfUbxUhgY02FMKD-IzCOCO_YWtjiITtsyyCu8RW8Rz1jVZTiGbHiCEh2MkSgxLN9Wvj-6vJyECRj5JZsTZL6aIXU8B516vFNFM19EOl-imCeJtkKTcSFuuoyyEs4HI="
+        },
+        {
+          "id": "rs_09a3c745cc180e63006a84eb212ae0819e90b083b18cb377a9",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOuIrI-DmS4_VZ7OpZ71A3JM1unajRmDttSbxJPK7dJ1y0tgjmYEbD-LbrlZwdJnez-GZ46Pu5rpoVAc3CfzPM8oB9jNCUmpUh2ymatedvSN8vFIXr7j4Uac7rFvyLIm7dqLA_Zw6cGip76ZGDNweFehzHbLJeR1eKGNGwaAkEJ0Qu5QemOFzLDFs4qe9gahwd8ALSwD0AwjQ_oJ8Ebd3TH8w5ZSjJZrqNQCLs093iTVJwnSpBHv8nqtJSrn8GbowckKVlrgoA_oSnbe8TIumfVkZ0w_Z8iaphH60UVk64qmvMVrtrnboig0drCSe6GikWMs-VpB-5YvGveltEI2wFxjrGG6C1-wDLXRVQEmXlKZhKTSxJZ2lPAMzAWOxwWsMCQPJkgwq9BnAJ5ICHdCpiduxJ9ohNDo4XvkJf7Km5KL_X0Q2JXbKcn5d3zTPkaLFxvU7Axe95LPuBNtBNOxWc_eFxcIbUFX6soBn94lFj6q2AA1R7I9hwE8i_j5YStH7EIFmhNHsSIJTXlV092AxWO8Zhh6D0hYrE-JGxiq7BUDezAf1NAwEStRF_lzWvjimyATqWa3_8bhBu78MlyQd5casXlguDzA0oVNfSHRWDMnbYM14OctC1GtkaXTgPDIRyz708_QPXQB1gfmom23Xs4-LiBVEF-pCvV2HhlYDvSijfWjudtPIBmuepAqbi7eBwSn6cUCaso2tGy2AX6__flkzO-ens7Gz9Vfy1ZzEzu0VtGsyEvdCXdCm9NOshXgFOU7gTGPd_NohOc-sbNG8_hPBDo8WuA-TJC5Hb8WUd3pAEw3FRQluXIixcURcsa6pKFnGvcpEe67VEPNjC0bjit6xbyjLZQsnAaE0cjpHok1zyUqGjLMVLjcnYB-b23mFFTfspVDAn19GZb2KGgxNYoJ1EKBTJspkXhXCjTaNxJqauRoIYg1hEphBKeBxVdS-sel7CuCnxci6VbleeCG3732qW-MuHj1Z51trjPbEc1bjAV5kFLkA-JouAu5sXmp2HiGjlBVMx8wxFYFdzVBwG7-24-QYnL0IYQIxRpmhLA3MkPTXOy4x0Hc-iW1fhCMGRh39HmlpEqNZn8Zwbw9H-ajG8O9jLnMYroJRCHP77aUJ74bi1EsFq8Qwtr-EK95S7X3qmrXrDI8PGEhDQnEocM7odLcwbGtbTVXKiZhc_JOu6XnFe7JFr9uMIA9Hq5Vo-5uTCdym1bBezrpNxfKpPCA9FGhI1RCQsrbipxLc9sSpFMH36CDIOBksG9XFA_3DCoqAqVyrC1EVsJSKRNCfjKrYvYfOc4vtl91M7xv-XsJR5tlINKbgsOdvbG5t31aiNbkoRPjI-d8TPdvs76P7bOjiyIDrh9oAzUZZwloFoBBes2UTcFZNCPWaYTfyYxtgszozT_jNJ3R4ESSRapvnqtCd8csPQtR_o5kDIuUK7p4exGTAXNHbCXhvU1scw6E0S5l2c5NA8Bge0KOpU7gvdRv9U7ymaLCz1KmVeK7SoXohcVmyJ_1TTe93s321MJYI9IihG9rA2NjkgX54Otz9MXNqBPp76zO7yoT_iMmOpH0pRVrFzFPumOyhKSoBd0I5dKU5dBjgvjIN_eveayBfEj3wAArNas3GOYat4rh5BWs7X11Ljh42mkYlDQ2rFi5WJLt1tKsqfu4cvU7ZB8PzIqS-7ljMutOg8KqJE9YNM4ECww4EIw22n9flT22GNjUEn_GOal52vnVde7ahlDGAL1D6y7eR31tAKRwocJJ4zbCcWtoRJ_7bKaEAEvsSo3upUesLXSw2y7tAAE1yN39Qdd8benwHLNzeUvpOiUL97_Rue9tZS0jlm9u8ZwcyhfWy1J0Hn56wi3-nQ6Q8C6UWlOTyQdMRZD4ZQIDq9qH1nDVVnV3eSk-ojENvR5KMvHqab22pgkX4qE3Gqdk9Z61BUec7Uj65DPxvl5bnOabxp54OLE33jdkxeJFSpQMAxyQHlnT7k7dd1klj1WrUrlJSAN5mWZXUm7eUjJxCkXt4UQIpc-BWPKLYOJpHXnq4M6TuMRAFJs7fiUZ1i5rCnuZ9NueT3NrXitkVhQIaZKfqdyoCtiLKIKhBcDiu7l1vSnyCyvuCxxH-avHaS8e9Id_PzPHh-f7YOuHHbJmDzlSnnLjipdmKw0DYJztDYw_4uzlImNHqxC2WIkR8wUUYNMlnCIzDxrS_5D3qf9biNSteOIV_M4NbX75nfXL0vUUjS4dmRLhuelv0cznSs2r1a5Hw4OT9wrWO7xBoJsKqnbp6z0eS4j5HrMRkphIp3IOLFuUrqlz7kDvNue13B0-0asv-8BS0vmdb42ktaDeTEkbaWn7d3kyo646usnZ8mZmEoB_wQQle4Eck3s5cCbCwmHcxvNil1h-xcCdkKY0hCBECxJ4VfPQBWU_NL9e-7Zas1hycA-U3F6rM2h3JP7cjg-iZietmtnXey66ZQQynijz3Zd0BLKY4XNLsIMWt002Cv0PvipZqGtXXugTEe4zso2LbOFa_SdvMT57f6gIlAGpb7T0MAUvV_UXuPDV-o7QRMBr10RgaQ9l76gcCl0Y3ZPfEh0GkZml5sgfYO2bn_0RynuAkejcdHevOCwneAyUbq_VVSZoNV1SFmebA3sLYrce2blJtJON7qAC8B27bBkkNiKo4XFoxAOuE6CxmwFICOrtT5KtmbzXwNZlnrTdmXBGzRaYHbHQre0X8e_sMxCh2vkRz2gpWAbo-X0RUldwCmRhTIve92e-ijYQ9VZTzH69WXS_Xf4S3mO5PXwylnTrxT5UAVp-a3Fd5nI244yre2Z0L_wfS5iCz7yTXBzEDETm1bHmh1ibBh8obwyiXBPsumuaP9Lr9ktOaWhd7ymg6z2JSsA99lk24Hs1eAGt7xQKoi60HtYMhHprOQ7SjiyFV-Yligun0Qqi53848c9rYtOazw0wE025aI76cFq0gbxolQfJ_nBYjR0fEyHYKXOs67vIPRo4IJsI0UOpFpUwg-Bo1Qq_c1M92aBQQMs5Bhar7uzoBKXSP5B8WW2u82bWpSQHSfEJfqK9jWMNRtZUdxJfA6cygakTNIU-kdZ4b8qC0xEqtXV2uEvNDYRpZ9m8lxne0RIU5eYkOGNvx-RLt_Nji3ssxjJ4QmeGEf_gWTD-SxkZwlfFCLU-WZFsN5RyJjJLSlqXxvUVyZ2e3_D6iqIlm_nhz8u5MM2Sho4Gxpjb8rV_gWBzWPW-SmEpLdu2mr_FkSTll_XJUDhmR8CXMLwvPoz-GH2Ra6kRoiYen3NvWhgvdDsoDR3B7l0gmqAHdW-j5pXpiNSkp3ljSQ0fbcL0cAPtEEbktn-wJbdHAPuKzGnwJUdXYpyVp_p3IY1Q6T8ZHt9lqQMCKXsSkUAZbzvhovFuvf3CAK22FRZ4Bop6sIpfoQjTPhGkVwMC1YpxkQnJP1mcox6R4wh8lsKpLTeImJ9nu_v_X6kqFD3U5McsUZVvmsyDvEA-HZNwxTViw2F15zX-4SCbemLxMnlUmRGaTFp7X1sg_kVML-_CIPwFA-zSduIGbWEhlBjh_Qh9B7Vlr2xGhqRyUh27hMTxxA7d-nvFcjCCctxJM8mFN4LrG0BhhtG1i6QgBifMN7PMSJQhl41XvL7J37oYEAEweAu--jYYOqLtcDqjXALfTJodkBl6kx-R99CU9QU7_Fm8FI8DBoM1BsC59S-U9Perz2gaUhnnegxM3PAgx7IPtQZueg58lemVP5A43FN7tZmPf4mygxPloZs0my_9cKjVYTbkxiqiGRRgacQQ4sQ8DF9Buw_rrL1M9i1DPOqgvv_giIiQN74="
+        },
+        {
+          "id": "rs_09a3c745cc180e63006a84eb2fed84819eac054c9f544586e4",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOuIR2AP7D1uXeaqmVlHrXqjUxtHWe5vqIVK8MJWYGiC8iXGBSiFQnKJKI9kwMeVPQCXQ7t_DG4ldNVmIHlPqL1-5y0EtRqTEY7LqL-n4jV68C7TzuPVuWRppjQtdmQ9rx2ApbdKzLgdavZVzPQLixNaDg2nWrWp4VCrzexhOfhP1zIRimOkpHxOuO0yKpecue-L4PAV1ro_Hj8I9U5r-gSVpTNbN52On7qquyTDz4376IpTmQipUTaFqRHI_oqXg8sMhhd_Af4aTqkPzBk6xC_gD-zdp8YpF4pRwUeDt3aE205RPTEHkrK6sQqgLcNQRoanZ4bGaUTcGGDkmxctp_AusLVyd9v8LZfB9n0nxxs9htO2n-cXklj0SYrdLGyCcVe-r6SV6kuN3K8TmKN1yYeV5IG6vG40Dlfs9VAeH3QiFzP-VFYQEUQkV8lYrYJcSXOsBVDZx2y4kFIVeOaiLCfY3DCgs5Azfq9-1lzATSErPvGDiqYym9D7sQS6FE5PRPVsQ9XajfaIoZeodAQqshTIrOFuwEzV5z7eMgTzfL25ZGXuYE-zaMcO5pNBu_6J2O38yzxAjORx7hSnbNLI9NCNc6u1TlF7MikvgU4WKmpYVx4FWYN_CsRKNqI0vOUFz5B8qPE-wz4hgaLpy-Apc_L2Zrz07MWEMlvXuNsHKB3OQij6pomLqKaOtqwtiW-HWkQr5YS91icPNDflBxce5yFGMyGObmo9RsuVZpymCww688aEuoWnO0dU9xIuyBkoAZGemzDbDHNGs79XkkBKdNDYFed42mpoHzC1Ik3x81vyc-zmI6w_oQx9qXmcEnzZQOnFQMJNVdU5xZ-oMdSpQOUpOwrNZDVbZbgJy8dmeQ-hjq7HhOrq9P5l1bjL7OQdqgdXM-ydPOmSa7r8t_2pLzdV8CkO_Q9VI57bpWvT3jJI0kr1u11xdQRH246BbtlOW0sgM2W71wvMUCWCxv2OobnYZqjqDgeBfnPKuzsSfX5zFuPTSw1i8ZJ0rz9pD9VzSWqrE1o10fp-zQyY-i78fwn7dor1M9CJzYpCbnQgUlGsiN7npewlkk4SKUY1j1PeM8SYo5D6nCxAyzRpbcrGO6NfcE6iUtHa0uM2NIR1btmhm3A8CGhag_18U59EgahZPN9JKbZpy2X0N8yNaXhD41Z_x0hYRWwwRT6loVOCZ9fomfQjsue5Iywu27ZrGU_Yv6NeTnTvvLcJW5c4MMhFJUzF0M-tmNMxTE8385qczC1rQmHt8V0zSlES1GuZrNr_4mc5P41J7GsCB10-PhIgMJme6mzWPubk8bNqPTI9sjup-zovVNWIo3rCPJuuZVy_w9KCze_kZe0vGTtc-Xcuvcuv6CIL8dnmAPhKiTOy55QOMd8xXnBdQ8ZV-w9Yqj1Ig5lSRAL4GvzsrRpYt1irqSKagf-OeIRIxIkj5gO6p0XAdpv2PwIxudWZbck6m7gWJZ1owUDoEOz3xO3_LvbYg9SYHg1Ly82iNohYlZeQWoaUs5uqOhq460znrrikN6kIFKni4kS4bgzm54FAoIoPHYgYILOQ4Tr32cTYlFcFroweEO4JsO3axKg0yM2_rVgClEIAaGLNG7-Nxbi7LzrfCM8Z9aqgH5vu1tkHcy49unj0pYg_put8eDmomVXVh1H8hqyLqoMVi38vAYkCEFyylI_EP1tbu5HfjOREfZFnwh0UG6PTTEBaCjEN2Uicna6iIa65C00I-7VPhApPK_gjl7AU7LHr_P-sQTRDE7MKePS02m5alD5m2Zum1PWrRbop9P1i4SyEI4rhPkIMPbT5-pXKZ2zALuHHGmugH-Rxsmrn95_TX4JlZ7wsZef_iAyxVCK6TLHA4ZHq4dgKAGtcAAgqx3gh_K6cZ4CuETUeepB88JDi6FJ0xRa4vTDgbBjUZJsE49fQaIxW7zzZI9-EjaEO2eBPh5ITLyT7V3FRjVo9xQvCMn75NdkGRiKBemgOi2GYT-2CFbOtIaLmJqtt71p2mzqrHet8daDRMoCaqPFnnIFcVF2aduuqNiwLok-0LZopSVii98tSPKAoaIPrHmdVGdUlRibGKpUptQ7xRcQ7FYfymUOp61QQwNB36yIyTgSrbWns1dGtftQ4RR88-Eq46fgMGsn-ZvnH-xnNoeay_JfUn0kr7S_h4pnZrBaz3untEDAz3-Q4qWz_sCcnQbjYeJ7jq8-URCPAqXn3IFlUdbHjrfm9JKzXrBWIn7Q5Jt2evvlwvuhf8ukneozEpLY-8S4nJL8b95DD61yabVMXmLpSuHo4jQJpHdX_vLeRnA-wXvDo4cqIb5mKtEx9I85xS9Lyz6ICFELFO1rZEYYQKF5ktzN_qVXS32al7gd99tq8dCucAr7coDw_XZAXPHB-WKuX5kOXbHXdNNCb1LZ4ntSpcqgDKAypJoQcs_lnLYlRtkbbus1MA-ozIzTpJwmpp7i1VC-OH8vJcqhcpkFmU6Y4EW0krh-SnMmFZq5-372dUTCgvKvMyOlW-UE0fIVqklu8AGdnPzfn5wdvwcQeJCId0YB9MvaEaxOYcXbbVJRvQBRCHHYmKptlfdU4um0Fnv6CY6KfEgJ449mR0_vipNfWVqCSyq58RJgXFpiB5-ivF9hUJ6arWX2zj0x_pRluiScIUAmWzC4uDlBEMZeWM1oEfnSs-2tLku86NrFWbWyrVgDyPGGzSBm-WCUqGbg8wI93TSk23DwLHCmh6FWyw6euFUTnqyGA7KLDlojJtoprH4BkPTrp0IPYCO3dJOfj_bJp13cGHupy0roUmQBES9QBxLZPF_KJrqRg9_JyOsk8tBiTqnVyzuTOLW9DwfMccSuDSl4ErrmBmcZ6moD78DmP1bBVR6IzZC9YLtkxD_ugkdCdfxB-ysp90gEjJFf_Wa5PGcE7xjVt7xXnbzO1VM0JQE927OzWgMoEaK4qQgLfDyTktptdq4bRghDd36tkVUXnP4_ov3gtd22eUz2mbQ1CDCEjl_o1i5GQUGsLO2crtlvW8HF1OYO5hsYaCVoiROxeCOOZ6_kq6ToCf6_-kNWMrJo9lIB1FrFHremr5kt1aAdWNuG4RKf96TJ00oRUN8btcqk9hMm1fjgQDxsqy8L_IybqsXvdaTx22m_Kk_wUbWjKKnuL-2TUSiSnQMVpe5BhT5RMomrTqa_CRKWzsFQKXsHs0d_pJM6MrstTsGbZABCfx5VZP46mg2eEs6GdrkA8Oly7sZbFbukF-71k1dWBs2th9_pzvNj9AlkLwMmxS1MdLTDQNhUANBXw1e4VODVy4ILpeAVL8guS472i7MHbo0uJ2H20W9Bh2JxwSJ6sZYm2XgaofL2LRKcul0eUyHUNQBhmFWvIM86vHtp_GrW0tdYR4pcLmS7wo7nhJwjyNiajrn_KZYoTJHbmj7W1VxbBiPnZcVe8UpurtwVWCFVF5Hh1wzW3suCewzvlXxDTwcGBtfA9XA-xkiSAFmcl0ipFCfjR5c0g4m7ZsuVtgR8tiE_QiVgb5o675BOTfVlHXaSuYGAIe2a_zLxKgLsvo6xA0i35IWzyiVLbi8JvCupVMt4TWhHlvVRSdMgzV40B2Nq8tXo8LSEQavxfb1zkRq24FukG3z1sD0tvhvdAZJw3dPf1sEFN98hu6ZAbGEJmbzBqmLi5VNTC06AObNA0ukPEhiQ6PxftN3qPWXFsbYDRKXzJusmUnUWwvbJp3cRFiNJxw-CGohh29CKQ3E0tbfholBjIixxljTAHYiHoOKu-39SCeAeMRiztFz-Wl_gJUSOzJvvF4OPOPMUwweeYvzvwfefHBFmD8WNQKJQs6lPIDDWkEOftGCb6Bu4WuGaZyNbd9HRp2AIlbFxSD2u88DSa4Zktc0xiZSb9Oa8DayZ50RUi0IWKzKgtTO3NluWU7BaEvsWvTawZVkqYTP1Epg=="
+        },
+        {
+          "id": "rs_09a3c745cc180e63006a84eb3d718c819e85f71ed831d46770",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOuIIATXRdyPddriJqEZldEFSvCCeDLAxNcT3RIfbRFyMEtxzu56Mqgr5Y0AwruupVWwiSgLbQfSd7SB1qy5lBgJCnmV9zXahUsciyCQbn2GUysOxHOSdxaGrHrPgArt8Mz6xquBC3REEAnIslRRxWqsqcSAc9XlBra_FgzCUb1_eq5gVh2i0ePRaVGqkkbSmR3yr8QBxfiLzVKB0b_DJhnhCcwXgyqWlRNMw4bHKkjDHYv1yjk7TCpSeVxwOP3J8lxztphfq4jORn8Lnt22Ct0kwt1dwqrgNg7I9mnRicopf4RIDbbI8Nmx9FNL4Or1eKr-w0wNbSa3NU0e2U66TufVKHybNG4NcpMHqCuMNT6GI3bvVKET6U4e0JUECvxVRYJG3gKZQWhca15y7e16j3etv7hT6ise1ZJtI2YqA8BBOq4T030BbWSxTv5VguHN6smSjVuiWHpIyxEwc4umU8bLPdXR_OWf3685sneFf-V92Dk22-yDnnki3Cr0eSWm0MfX_6c-pO-Vjor9-lZKN1bo3R5AgxilaebsKlhZt0U5lN-hevNO2Nlxgi8xVidh8-uHukOA6ISegvgRpX_DcGIrvFISchJQiPF0-yAPFAtltJ_qCk3DNE4Os1wtjhNJ-h411ZgBRQFqaMoTnZz-AY3OsHdPm1np5fEXqpMbh-UDC7Whb073JXxqDpXBZA6UVwFGjjWLQg4jLa2b8H0XxOJ-URvEfJrCH3ZzyG4Lx6O9honU6_97eV4MuoJuiC-9gJIuVE75dGW6qroyNwGvamu_5fGtbPTvwJ1Lu4O12vNZ2u7-eUBw7r2gVK3feEc8-iurBekndjCKAdqMR9zqXMHoAnphdr0vwSE6FK2ey8W2ZHCf5s2dML_m14VzdzdUDidGLDxbvz1V75f9jxHJKu6_ZCpJZRthelP6M1661EAu_zJGGx5HPgWZNcRo5GcZyYbBEIyrjmfvTbWM0BD3WxC_9O88wFwMltJMpBmXcj_CycUv8jWZQM5nNVp0k0jdEhk8JTEbvU68Txcg-sM-Fd_BLZ4VmH88NrjeEQUd-TO6J3b8sMIKuNSZ_z9iJJLM_MHUqNVaMQQIBfDa2POhZDG6m5DOrNymYCntiLXhhia-uI5i_Y71kDmz3Ux8Qj0VO8l17nKxbLwBIZS35KuQBeMub18tfe4HvURg81DPAKqE9TImG8oztTvS-Ej9GLahr63vqPDfNatijmDL1NQ5bLZmtJTHk61hZWqU3r7epun6A84_DWJg4tk4BHmYxgUCUvTnA7t0wwVijM2b9-HCzjLMtzAkSRG7DPdMNv5qAKceXGaU8rQHE-ikFHnmoAC_BOZymHuY4ooBgUMlEHqLcYS0lQ=="
+        },
+        {
+          "id": "msg_09a3c745cc180e63006a84eb3e85cc819e9c487b84e533d207",
+          "role": "assistant",
+          "type": "message",
+          "phase": "final_answer",
+          "status": "completed",
+          "content": [
+            {
+              "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Berry honey yoghurt pot\",\n      \"title\": \"Greek yoghurt, oats, berries and honey\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"Greek yoghurt\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"rolled oats\",\n          \"quantity\": \"40 g\",\n          \"amount\": 40,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"British berries\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"honey\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Spoon the yoghurt into a bowl, add the oats and berries, then finish with the honey.\",\n      \"why\": \"The yoghurt makes this quick breakfast substantial, while seasonal berries keep it fresh.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 3\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Lemony chicken bulgur bowl\",\n      \"title\": \"Chicken, bulgur, roasted vegetables, cucumber and yoghurt\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"Greek yoghurt\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"cucumber\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Put one freshly cooked portion each of chicken, bulgur and roasted vegetables in a bowl. Add sliced cucumber and yoghurt, then squeeze over the lemon.\",\n      \"why\": \"The first cooking session immediately supplies a proper lunch rather than creating boxes with no meal attached.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_lemon_chicken\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_bulgur\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_roasted_vegetables\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 4\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Golden chicken supper\",\n      \"title\": \"Chicken, warm bulgur, roasted vegetables and feta\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"feta\",\n          \"quantity\": \"30 g\",\n          \"amount\": 30,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Build the plate with one still-warm portion each of chicken, bulgur and roasted vegetables. Crumble over the feta and squeeze over the lemon; the warm bulgur is a warm anchor.\",\n      \"why\": \"Warm bulgur and roasted summer vegetables make dinner satisfying without turning an August evening into a heavy cooking project.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_lemon_chicken\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_bulgur\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_roasted_vegetables\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 4\n      },\n      \"honours_belief_keys\": [\n        \"a_warm_anchor_every_evening\",\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Tomato cottage crunch\",\n      \"title\": \"Cottage cheese, rye crispbread and tomato\",\n      \"slot\": \"breakfast\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"cottage cheese\",\n          \"quantity\": \"180 g\",\n          \"amount\": 180,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"rye crispbread\",\n          \"quantity\": \"2 crispbreads\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"tomato\",\n          \"quantity\": \"120 g\",\n          \"amount\": 120,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"basil leaves\",\n          \"quantity\": \"6 basil leaves\",\n          \"amount\": 6,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Spoon the cottage cheese onto the crispbreads and top with sliced tomato and basil.\",\n      \"why\": \"Cottage cheese provides the anchor for a breakfast that needs no morning cooking.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 4\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Smoky bean garden pitta\",\n      \"title\": \"Butter beans, roasted vegetables, rocket and wholemeal pitta\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"wholemeal pitta\",\n          \"quantity\": \"1 pitta\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"rocket\",\n          \"quantity\": \"30 g\",\n          \"amount\": 30,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Fill the pitta with one freshly cooked portion of smoky butter beans, one portion of roasted vegetables and the rocket.\",\n      \"why\": \"Butter beans turn the remaining roasted vegetables into a new lunch rather than a repeat of Wednesday's chicken bowl.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_butter_beans\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_roasted_vegetables\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 4\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Herby meatball couscous\",\n      \"title\": \"Turkey meatballs, warm couscous, cucumber and yoghurt\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"cucumber\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Greek yoghurt\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"mint leaves\",\n          \"quantity\": \"8 mint leaves\",\n          \"amount\": 8,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Put one freshly cooked portion of meatballs and one portion of couscous on the plate. Add sliced cucumber, yoghurt and torn mint; the couscous is a warm anchor.\",\n      \"why\": \"The second short cooking session gives dinner a warm anchor and also prepares Friday's meals.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_turkey_meatballs\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_couscous\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 4\n      },\n      \"honours_belief_keys\": [\n        \"a_warm_anchor_every_evening\",\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Peach oat yoghurt bowl\",\n      \"title\": \"Greek yoghurt, peach, oats and pumpkin seeds\",\n      \"slot\": \"breakfast\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"Greek yoghurt\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"peach\",\n          \"quantity\": \"1 peach\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"rolled oats\",\n          \"quantity\": \"40 g\",\n          \"amount\": 40,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"pumpkin seeds\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Spoon the yoghurt into a bowl and top with sliced peach, oats and pumpkin seeds.\",\n      \"why\": \"This uses the breakfast staples already in the basket while making seasonal fruit the main flavour.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 3\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Meatball tomato pocket\",\n      \"title\": \"Turkey meatballs, tomato, rocket and yoghurt pitta\",\n      \"slot\": \"lunch\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"wholemeal pitta\",\n          \"quantity\": \"1 pitta\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"tomato\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"rocket\",\n          \"quantity\": \"30 g\",\n          \"amount\": 30,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Greek yoghurt\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Halve the cold meatballs and tuck them into the pitta with sliced tomato, rocket and yoghurt.\",\n      \"why\": \"Yesterday's meatballs become a portable fresh lunch instead of repeating the couscous plate.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_turkey_meatballs\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Smoky bean couscous bowl\",\n      \"title\": \"Warm butter beans, spinach, tomatoes and couscous\",\n      \"slot\": \"dinner\",\n      \"day\": \"fri\",\n      \"ingredients\": [],\n      \"method\": \"Reheat one portion of smoky butter beans and one portion of couscous until piping hot, then serve together. The pan-warmed couscous is a warm anchor.\",\n      \"why\": \"The final dinner uses the second session completely and keeps the evening plate warm without requiring another cooking session.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_butter_beans\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_couscous\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 6\n      },\n      \"honours_belief_keys\": [\n        \"a_warm_anchor_every_evening\",\n        \"the_basket_decides_the_week\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_lemon_chicken\",\n      \"title\": \"Lemon and paprika chicken thighs\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"boneless skinless chicken thighs\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic clove\",\n          \"quantity\": \"1 garlic clove\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Heat the oven to 220°C, or 200°C fan. Coat the chicken with the oil, lemon juice, crushed garlic, paprika, salt and pepper. Roast for 25 minutes until browned and cooked through, then divide into two portions.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\"\n    },\n    {\n      \"id\": \"prep_bulgur\",\n      \"title\": \"Fluffy bulgur wheat\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"bulgur wheat\",\n          \"quantity\": \"120 g\",\n          \"amount\": 120,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"water\",\n          \"quantity\": \"300 ml\",\n          \"amount\": 300,\n          \"unit\": \"ml\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Put the bulgur, water and salt in a saucepan. Bring to the boil, cover and simmer gently for 10 minutes. Take off the heat, stand for 5 minutes and fluff with a fork. Divide into two portions.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\"\n    },\n    {\n      \"id\": \"prep_roasted_vegetables\",\n      \"title\": \"Roasted courgettes, peppers and onion\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"courgettes\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red peppers\",\n          \"quantity\": \"2 peppers\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red onion\",\n          \"quantity\": \"1 red onion\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"dried oregano\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Cut the courgettes, peppers and onion into bite-sized pieces. Toss with the oil, oregano, salt and pepper, spread on a tray and roast at 220°C, or 200°C fan, for 25 minutes. Divide into three portions.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\"\n    },\n    {\n      \"id\": \"prep_smoky_butter_beans\",\n      \"title\": \"Smoky butter beans with spinach\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"drained butter beans\",\n          \"quantity\": \"480 g\",\n          \"amount\": 480,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"tomatoes\",\n          \"quantity\": \"250 g\",\n          \"amount\": 250,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"spinach\",\n          \"quantity\": \"120 g\",\n          \"amount\": 120,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic clove\",\n          \"quantity\": \"1 garlic clove\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"water\",\n          \"quantity\": \"100 ml\",\n          \"amount\": 100,\n          \"unit\": \"ml\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Chop the tomatoes. Warm the oil in a saucepan and cook the crushed garlic and paprika for 30 seconds. Add the tomatoes, beans, water, salt and pepper; simmer for 12 minutes. Stir in the spinach until wilted, then divide into two portions.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 20,\n      \"cook_on\": \"thu\"\n    },\n    {\n      \"id\": \"prep_turkey_meatballs\",\n      \"title\": \"Herby turkey meatballs\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"turkey mince\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"rolled oats\",\n          \"quantity\": \"20 g\",\n          \"amount\": 20,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"egg\",\n          \"quantity\": \"1 egg\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic clove\",\n          \"quantity\": \"1 garlic clove\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"flat-leaf parsley\",\n          \"quantity\": \"10 g\",\n          \"amount\": 10,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Heat the oven to 220°C, or 200°C fan. Mix the turkey, oats, egg, crushed garlic, chopped parsley, salt and pepper. Shape into 10 meatballs, coat with the oil and bake for 18 minutes until browned and cooked through. Divide into two portions of five.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 25,\n      \"cook_on\": \"thu\"\n    },\n    {\n      \"id\": \"prep_couscous\",\n      \"title\": \"Lemon-free fluffy couscous\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"couscous\",\n          \"quantity\": \"120 g\",\n          \"amount\": 120,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"boiling water\",\n          \"quantity\": \"150 ml\",\n          \"amount\": 150,\n          \"unit\": \"ml\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Put the couscous and salt in a heatproof bowl. Pour over the boiling water, cover and leave for 8 minutes. Fluff thoroughly with a fork and divide into two portions.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 10,\n      \"cook_on\": \"thu\"\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_lemon_chicken\",\n        \"prep_bulgur\",\n        \"prep_roasted_vegetables\"\n      ],\n      \"total_minutes\": 40,\n      \"run_through\": \"Heat the oven first. Season the chicken, chop and dress the vegetables, then put both trays in together. Start the bulgur while they roast. Fluff the bulgur, check the chicken is cooked, then divide all three preparations into their stated portions; keep today's food warm and refrigerate Thursday's vegetable portion promptly.\"\n    },\n    {\n      \"day\": \"thu\",\n      \"preparation_ids\": [\n        \"prep_smoky_butter_beans\",\n        \"prep_turkey_meatballs\",\n        \"prep_couscous\"\n      ],\n      \"total_minutes\": 35,\n      \"run_through\": \"Heat the oven and mix and shape the meatballs first, then put them in to bake. Start the smoky beans on the hob. Pour boiling water over the couscous while the beans simmer and the meatballs bake. Fluff the couscous, finish the beans with spinach, then divide everything into two portions; refrigerate Friday's portions promptly.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"Greek yoghurt\",\n      \"quantity\": \"550 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"cottage cheese\",\n      \"quantity\": \"180 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"feta\",\n      \"quantity\": \"30 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"egg\",\n      \"quantity\": \"1\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"boneless skinless chicken thighs\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"turkey mince\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"butter beans\",\n      \"quantity\": \"2 × 400 g tins\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"rolled oats\",\n      \"quantity\": \"100 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"bulgur wheat\",\n      \"quantity\": \"120 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"couscous\",\n      \"quantity\": \"120 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"rye crispbread\",\n      \"quantity\": \"1 pack\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"wholemeal pittas\",\n      \"quantity\": \"2\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"British berries\",\n      \"quantity\": \"100 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"peach\",\n      \"quantity\": \"1\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"lemons\",\n      \"quantity\": \"2\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"courgettes\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red peppers\",\n      \"quantity\": \"2\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red onion\",\n      \"quantity\": \"1\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"tomatoes\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"cucumber\",\n      \"quantity\": \"200 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"spinach\",\n      \"quantity\": \"120 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"rocket\",\n      \"quantity\": \"60 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"garlic\",\n      \"quantity\": \"1 bulb\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"flat-leaf parsley\",\n      \"quantity\": \"1 small bunch\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"mint\",\n      \"quantity\": \"1 small bunch\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"basil\",\n      \"quantity\": \"1 small pot\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"4 tbsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"honey\",\n      \"quantity\": \"1 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"pumpkin seeds\",\n      \"quantity\": \"1 tbsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"smoked paprika\",\n      \"quantity\": \"2 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"dried oregano\",\n      \"quantity\": \"1 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"salt\",\n      \"quantity\": \"1 pack\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"black pepper\",\n      \"quantity\": \"1 pack\",\n      \"aisle\": \"pantry\"\n    }\n  ]\n}",
+              "type": "output_text",
+              "logprobs": [],
+              "annotations": []
+            }
+          ]
+        }
+      ],
+      "status": "completed",
+      "billing": {
+        "payer": "developer"
+      },
+      "metadata": {
+        "source": "generate-meal-v1",
+        "user_id": "2a000000-0000-4000-8000-000000000002",
+        "request_id": "2a000001-2100-4000-8000-000000000001"
+      },
+      "reasoning": {
+        "mode": "standard",
+        "effort": "medium",
+        "context": "all_turns",
+        "summary": null
+      },
+      "background": false,
+      "created_at": 1787095800,
+      "moderation": null,
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "total_tokens": 0,
+          "output_tokens": 0,
+          "input_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          },
+          "output_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          }
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "truncation": "disabled",
+      "temperature": 1,
+      "tool_choice": "auto",
+      "completed_at": 1787095944,
+      "instructions": "You cook for ONE student, inside the method their coach teaches.\n\nOutput a single JSON object, nothing else. No prose outside the JSON, no markdown fences.\n\n== THE METHOD COMES FIRST, THE RECIPE IS YOURS ==\n\nYour coach's method is given below. It is not a suggestion: their forbidden practices and the foods they do not put on a plate are hard limits, and you never contradict them.\n\nInside those limits you are free. Write real food a real person wants to eat. You are not restricted to a catalogue.\n\n== A PORTION IS ONE PERSON'S PLATE ==\n\nYou are told how many people are at the table. Every quantity you write is for\nTHAT many people, for the number of servings the dish actually makes — and for\nnothing more.\n\nMeasured failure, and it is the one that makes a plan unusable: \"2 salmon\nfillets, 500 g potatoes\" written for ONE person eating ONE dinner. That is three\ndinners on a plate. If a quantity only makes sense because the dish is cooked in\na batch, then say so in `batch` — do not silently inflate a single plate.\n\nSanity, before you write a quantity: one adult portion is roughly a palm of\nprotein, a fist of starch, and vegetables on top. Scale from there. You never\ntell the student those figures; you use them so the numbers you DO write are\nbelievable.\n\n== EVERY MAIN MEAL IS BUILT AROUND A PROTEIN FOOD ==\n\nBreakfast, lunch and dinner each carry one whole protein food as their anchor:\nmeat, poultry, fish, seafood, eggs, pulses, tofu or tempeh, or a protein-carrying\ndairy like yogurt, skyr or cottage cheese. It is the thing the rest of the plate\nis built around, not a garnish on top of it.\n\nSnacks are snacks. They do not need one.\n\nNever write a figure for it. No grams of protein, no share of the plate, no\ntarget of any kind — you are choosing a food, not measuring a person.\n\n== THE STRETCH STARTS TODAY ==\n\nYou are told what day it is for this student, and the exact days to fill. Use\nTHOSE days, in that order, and no others.\n\nA plan handed to somebody on Wednesday that starts on Monday is half expired on\ndelivery — measured, and the first thing a student notices. There is no such\nthing as planning a day that has already gone.\n\n== COVER THE WHOLE STRETCH, WITH FEW COOKING SESSIONS ==\n\nWhen you are asked for several days, cover EVERY day of the stretch and every\nmeal that matters in it. A plan with Monday dinner and Wednesday dinner and\nnothing in between is not a plan — the student did not ask for a partial week,\nand holes are read as \"the system gave up\".\n\nCovering everything does not mean cooking everything. That is what the\npreparations below are for.\n\n== WHAT YOU COOK IS NOT WHAT YOU EAT ==\n\nThis is the important one, and it is what makes a week both quick and bearable.\n\nSeparate PREPARATIONS from DISHES.\n\n  A preparation is what comes out of one cooking session: 1.2 kg of roast\n  chicken thighs, a pot of chilli, a tray of roast vegetables, a batch of rice.\n  It carries its own ingredients — for the WHOLE batch — and its own method.\n\n  A dish is a meal on a day. It NAMES the preparations it draws on through\n  `uses`, and its own `ingredients` list only what you add at the moment of\n  eating: the salad, the bread, the yogurt, the lemon.\n\nWhy it matters: one cooking of chicken becomes a rice bowl on Monday, a wrap on\nTuesday and a curry base on Thursday. THREE DIFFERENT MEALS, ONE COOKING. Making\nthe same student eat the identical plate four days running is technically batch\ncooking and humanly a punishment — do not do it.\n\nRules that follow:\n  - anything that needs a pan, a pot or an oven is a PREPARATION making at\n    least two servings. Never a dish cooked from scratch twice in a week.\n  - assemblies that need no cooking — oats and yogurt, a sandwich, fruit and\n    nuts — are plain dishes with no `uses`, made fresh, quantities for one\n    plate.\n  - a dish that draws on a preparation does NOT repeat its recipe. Its method is\n    what you do at that meal: \"reheat a portion, add the salad and the lemon\".\n  - vary what you build from the same preparation. Same protein, different meal.\n\n== NAME THE COOKING SESSIONS, AND WRITE THE RUN-THROUGH ==\n\nGive `cooking_sessions`: the days on which the student actually cooks, which\npreparations get made in each, and the ORDER of the gestures — \"oven on for the\ntray, rice on while it roasts, chilli simmering next to it, box four portions\".\n\nAim for two or three sessions in a week, not seven. Every preparation belongs to\nexactly one session: a preparation nobody cooks is a plan the student cannot\nfollow.\n\n== NOTHING SITS IN THE FRIDGE FOR A WEEK ==\n\nA cooked batch is eaten within THREE DAYS of the day it was cooked. Cooked on\nThursday means eaten by Sunday, and that is the end of it. Beyond that it is not\na meal plan, it is a plan to throw food away or to get somebody ill.\n\nCooked rice and cooked seafood are tighter still: same day or the day after.\nRice left sitting is the classic way to make somebody sick, and no amount of\nconvenience is worth it.\n\nIf a batch would have to stretch further, you have three honest ways out: cook a\nsmaller batch, cook it twice, or say plainly in the method that the surplus goes\nin the FREEZER on the cooking day. Never stretch it in silence.\n\n== THE COOKING TIME THEY GAVE YOU IS A CEILING ==\n\nWhen a session time is stated, the session fits inside it. It is not a target to\napproach and overshoot: it is what they actually have that evening, and a\nsession that does not fit is a session they skip — after which the whole week\nfalls apart, not just that session.\n\nIf everything will not fit, cook LESS in that session and put the rest on\nanother cooking day. Fewer preparations that happen beat more preparations that\ndo not.\n\n== NOTHING IS EATEN BEFORE IT IS COOKED ==\n\nA preparation must be cooked ON OR BEFORE the first day that eats from it. If\nthe only cooking day you have is Sunday, then Thursday, Friday and Saturday\ncannot live off a Sunday batch — those days cook for themselves, or they eat\nsomething that needs no batch at all.\n\nThis is not a preference. A plan that feeds Thursday from a Sunday session is a\nplan that cannot be executed, and the student finds out at lunchtime.\n\n== HOW LONG THINGS TAKE ==\n\nEvery preparation carries two numbers, and they are not the same one.\n\"active_minutes\" is time with your hands on it — chopping, stirring, turning.\n\"total_minutes\" is from starting to finished, waiting included. A roast is 10\nactive and 50 total; that gap is the whole reason batch cooking works, because\nthe oven time is free for another preparation.\n\nA session's \"total_minutes\" is the wall clock of the session, NOT the sum of its\npreparations: things overlap, and pretending otherwise turns a comfortable\nninety-minute Sunday into a scary four-hour one nobody starts.\n\nRound to the nearest five. These are estimates a cook recognises, not\nmeasurements — but they are the numbers somebody uses to decide whether tonight\nis possible, so a wrong one costs a skipped meal.\n\n== WHAT TODAY ACTUALLY TAKES, ON EVERY DISH ==\n\nEvery dish carries \"same_day\": what the student does ON THE DAY THEY EAT IT to\nget that plate in front of them, and how long that gesture takes.\n\n  \"kind\" is one of four, and nothing else exists:\n    \"none\"        - nothing to prepare. Fruit, a yogurt, a plate already made.\n    \"reheat_only\" - take the portion out and heat it, and NOTHING else.\n    \"assemble\"    - build the plate from what is already cooked, no cooking.\n    \"cook_fresh\"  - a real cooking gesture that day: scramble the eggs, boil\n                    the pasta, sear the fish.\n\n  \"minutes\" is how long THAT gesture takes, that day. A whole number.\n\n\"minutes\" IS NOT THE TIME OF THE COOKING SESSION, and confusing the two is the\nfailure this field exists to stop. A portion of Sunday's roast, reheated on\nWednesday, is 8 minutes - not the 50 the roast took. Announcing 50 tells\nsomebody with ten minutes that dinner is out of reach, and they skip it.\n\nSay it on EVERY dish, including the ones where the answer is nothing. \"none\" and\n\"cook_fresh\" are answers; a missing line is a plate somebody stands in front of\nwithout knowing what to do. If the dish reheats, the word reheat is what they\nneed to read, so write \"reheat_only\" and say it again plainly in \"method\".\n\n== NEVER PUT A NUMBER ON NUTRITION ==\n\nNo calories. No macro grams. No percentages of anything nutritional. Not as a target, not as a range, not \"roughly\". Nobody has measured this student.\n\nShopping quantities are DIFFERENT and expected: \"400 g chicken thighs\", \"2 onions\", \"a bunch of parsley\". A quantity says how much to buy or use; a target claims a measurement of the person. Put quantities on ingredients, never on the student.\n\n== SAY THE SAME QUANTITY TWICE: ONCE FOR THE COOK, ONCE IN FIGURES ==\n\nEvery ingredient carries \"quantity\" — the phrase a person reads, exactly as you\nwrite it today — AND three plain fields that repeat it:\n\n  \"amount\": the number.\n  \"unit\":   one of \"g\", \"ml\", \"unit\", \"tbsp\", \"tsp\". Nothing else exists. If\n            what you meant is a handful, a cup, a bunch or a pinch, leave\n            \"amount\" and \"unit\" null and keep the phrase in \"quantity\".\n  \"state\":  \"raw\" or \"cooked\" — the weight you just wrote, before or after\n            cooking.\n\n\"state\" is REQUIRED for anything that takes on or loses water in the pan: rice,\npasta, couscous, lentils, dried beans, meat, poultry, fish. A hundred grams of\nrice is not the same food before and after it is boiled, and leaving it out\nmakes the line unusable. It does not matter for oil, nuts, cheese, yogurt or\nfruit — say it anyway when you know it.\n\nNever guess. An ingredient whose weight you do not actually know keeps its\nphrase and leaves the three fields null. A made-up number is worse than a\nmissing one.\n\nFATS, NUTS AND SWEETENERS ARE THE ONE EXCEPTION, and they are not a guess.\nOil, butter, ghee, cream, nut butter, tahini, nuts, seeds, honey, syrup and\nchocolate ALWAYS carry \"amount\" and \"unit\". \"A drizzle of olive oil\" is a\ntablespoon; write 1 and \"tbsp\". These ingredients are small on the page and\nenormous in the pan -- a spoon of oil weighs what a whole plate of vegetables\nweighs, and a line left blank there makes the entire dish unreadable. Salt,\npepper and herbs may stay a pinch; oil may not.\n\n== WHAT A DISH ADDS ON THE DAY IS WEIGHED OR COUNTED, NEVER VAGUE ==\n\nThe phrase in a DISH's \"quantity\" is either a weight -- \"100 g dried pasta\",\n\"40 g feta\" -- or something a person can count: \"half a lemon\", \"10 basil\nleaves\", \"2 eggs\". \"A handful\", \"a generous portion\", \"some rice\" say nothing\nanybody can act on, and they are why the same dish comes out different every\ntime. Salt, pepper and herbs may stay a pinch. Everything else gets a number.\n\n== THE STUDENT'S SITUATION IS NOT DECORATION ==\n\nThey tell you what their week actually looks like — a wedding on Tuesday, a holiday, a weekend away, a late shift. Cook around it. A meal that assumes an evening they do not have is a meal they will not make.\n\n== THE TWO MODES ==\n\nmode = from_pantry\n  Cook with what they ALREADY have. Reach outside their list only for genuine\n  staples (salt, pepper, oil, water) or when the dish is impossible otherwise.\n  Anything you use that they did not list will be shown to them as something to\n  buy, so keep that list short and say why it is needed.\n\nmode = to_shop\n  Compose freely, then give the shopping list the dish actually needs.\n\n== EVERY DISH HAS TWO LINES: A NAME, AND A TITLE ==\n\nThey are not the same line and they do not do the same job.\n\n  \"title\" is what is on the plate, plainly: \"Chicken, courgettes, peppers and\n  rice\". It is read out at the table, it is what somebody cooks from, and it\n  never changes job. Keep writing it exactly as you already do.\n\n  \"name\" is what this dish is CALLED: \"Golden roast chicken bowls\". Short --\n  six words at most. Appetising. It is the line somebody reads when they decide\n  whether they want to eat tonight.\n\nWrite BOTH, on every single dish: as many names as you have dishes. Count them\nbefore you answer.\n\nDo NOT make the title pretty instead. A title that becomes \"Sunshine of\nMarrakesh\" no longer says what is on the plate, and nobody can cook a name. If\nyou find yourself dressing up the title, that is the name -- put it in \"name\"\nand give the title back its plain words. And never write the same string twice:\na \"name\" identical to the title is a line that says nothing.\n\n== OUTPUT JSON SCHEMA ==\n\n{\n  \"dishes\": [\n    {\n      \"name\": \"short, appetising, six words at most -- what the dish is CALLED\",\n      \"title\": \"...\",\n      \"slot\": \"breakfast\"|\"snack_am\"|\"lunch\"|\"snack_pm\"|\"dinner\"|\"before_bed\"|null,\n      \"day\": \"mon\"|\"tue\"|\"wed\"|\"thu\"|\"fri\"|\"sat\"|\"sun\"|null,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"...\"|null,\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to make it, plainly, in a short paragraph\",\n      \"why\": \"one sentence: why THIS dish for THIS student this week\",\n      \"uses\": [{ \"preparation_id\": \"prep_chicken\", \"servings\": 1 }],\n      \"same_day\": { \"kind\": \"none\"|\"reheat_only\"|\"assemble\"|\"cook_fresh\",\n                    \"minutes\": <whole minutes for the day-of gesture> },\n      \"honours_belief_keys\": [\"<exact keys from the convictions list, when one applies>\"]\n    }\n  ],\n  \"preparations\": [\n    { \"id\": \"prep_chicken\", \"title\": \"Roast chicken thighs\",\n      \"servings_made\": 4,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"<for the WHOLE batch>\",\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to cook the batch\",\n      \"active_minutes\": <minutes of HANDS-ON work>,\n      \"total_minutes\": <minutes from starting to finished, waiting included>,\n      \"cook_on\": \"sun\"|null }\n  ],\n  \"cooking_sessions\": [\n    { \"day\": \"sun\", \"preparation_ids\": [\"prep_chicken\", \"prep_rice\"],\n      \"total_minutes\": <minutes the whole session takes, start to finish>,\n      \"run_through\": \"the order of the gestures, plainly\" }\n  ],\n  \"shopping_list\": [\n    { \"term\": \"...\", \"quantity\": \"...\"|null,\n      \"aisle\": \"produce\"|\"protein\"|\"dairy\"|\"grains\"|\"pantry\"|\"frozen\"|\"other\" }\n  ]\n}\n\nDay tokens are exactly: mon tue wed thu fri sat sun. Never translated.",
+      "service_tier": "default",
+      "top_logprobs": 0,
+      "max_tool_calls": null,
+      "presence_penalty": 0,
+      "prompt_cache_key": null,
+      "frequency_penalty": 0,
+      "max_output_tokens": null,
+      "safety_identifier": null,
+      "incomplete_details": null,
+      "parallel_tool_calls": true,
+      "previous_response_id": null,
+      "prompt_cache_retention": "24h"
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-18T23:28:39.832623+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:29:59.965971+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:32:24.630216+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

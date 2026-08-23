@@ -1,0 +1,660 @@
+{
+    "scope": "day",
+    "dishes": [
+        {
+            "day": "wed",
+            "why": "This is a quick named plate with a loud vegetable for the two people eating lunch at home.",
+            "name": "Pepper Chickpea Smash",
+            "slot": "lunch",
+            "uses": [
+            ],
+            "title": "Chickpeas, avocado, red pepper and cucumber",
+            "method": "Roughly crush the chickpeas and avocado with the lemon, olive oil and black pepper. Fold through diced red pepper and cucumber, then divide between two plates.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 10
+            },
+            "member_id": null,
+            "ingredients": [
+                {
+                    "term": "cooked chickpeas",
+                    "unit": "g",
+                    "state": "cooked",
+                    "amount": 240,
+                    "quantity": "240 g cooked chickpeas",
+                    "grams_raw": 240,
+                    "in_pantry": false
+                },
+                {
+                    "term": "avocado",
+                    "unit": "unit",
+                    "state": null,
+                    "amount": 1,
+                    "quantity": "1 avocado",
+                    "grams_raw": 100,
+                    "in_pantry": false
+                },
+                {
+                    "term": "red pepper",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 red pepper",
+                    "grams_raw": 150,
+                    "in_pantry": false
+                },
+                {
+                    "term": "cucumber",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 0.5,
+                    "quantity": "half a cucumber",
+                    "grams_raw": 150,
+                    "in_pantry": false
+                },
+                {
+                    "term": "lemon",
+                    "unit": "unit",
+                    "state": null,
+                    "amount": 0.5,
+                    "quantity": "half a lemon",
+                    "grams_raw": 30,
+                    "in_pantry": false
+                },
+                {
+                    "term": "olive oil",
+                    "unit": "tbsp",
+                    "state": null,
+                    "amount": 1,
+                    "quantity": "1 tbsp olive oil",
+                    "grams_raw": 15,
+                    "in_pantry": false
+                },
+                {
+                    "term": "black pepper",
+                    "unit": null,
+                    "state": null,
+                    "amount": null,
+                    "quantity": "a pinch of black pepper",
+                    "grams_raw": null,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "wed",
+            "why": "This keeps lunch fresh and simple while giving Roxane a separate named plate from the shared dish.",
+            "name": "Cucumber Chickpea Plate",
+            "slot": "lunch",
+            "uses": [
+            ],
+            "title": "Chickpeas, avocado, cucumber and red pepper",
+            "method": "Mix the chickpeas, avocado, lemon, olive oil and black pepper. Add diced cucumber and red pepper and serve.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 10
+            },
+            "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+            "ingredients": [
+                {
+                    "term": "cooked chickpeas",
+                    "unit": "g",
+                    "state": "cooked",
+                    "amount": 120,
+                    "quantity": "120 g cooked chickpeas",
+                    "grams_raw": 120,
+                    "in_pantry": false
+                },
+                {
+                    "term": "avocado",
+                    "unit": "unit",
+                    "state": null,
+                    "amount": 0.5,
+                    "quantity": "half an avocado",
+                    "grams_raw": 50,
+                    "in_pantry": false
+                },
+                {
+                    "term": "cucumber",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 0.5,
+                    "quantity": "half a cucumber",
+                    "grams_raw": 150,
+                    "in_pantry": false
+                },
+                {
+                    "term": "red pepper",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 0.5,
+                    "quantity": "half a red pepper",
+                    "grams_raw": 75,
+                    "in_pantry": false
+                },
+                {
+                    "term": "lemon",
+                    "unit": "unit",
+                    "state": null,
+                    "amount": 0.5,
+                    "quantity": "half a lemon",
+                    "grams_raw": 30,
+                    "in_pantry": false
+                },
+                {
+                    "term": "olive oil",
+                    "unit": "tsp",
+                    "state": null,
+                    "amount": 1,
+                    "quantity": "1 tsp olive oil",
+                    "grams_raw": 5,
+                    "in_pantry": false
+                },
+                {
+                    "term": "black pepper",
+                    "unit": null,
+                    "state": null,
+                    "amount": null,
+                    "quantity": "a pinch of black pepper",
+                    "grams_raw": null,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "wed",
+            "why": "For the table, we traded separate hot lunch cooking for a fresh chickpea plate, while dinner carries the warm reheatable element everyone asked for.",
+            "name": "Aubergine Lentil Rice Bowls",
+            "slot": "dinner",
+            "uses": [
+                {
+                    "box_id": "box_prep_aubergine_lentil_stew_zoe",
+                    "servings": 1,
+                    "preparation_id": "prep_aubergine_lentil_stew"
+                },
+                {
+                    "box_id": "box_prep_aubergine_lentil_stew_lubna",
+                    "servings": 1,
+                    "preparation_id": "prep_aubergine_lentil_stew"
+                },
+                {
+                    "box_id": "box_prep_rice_zoe",
+                    "servings": 1,
+                    "preparation_id": "prep_rice"
+                },
+                {
+                    "box_id": "box_prep_rice_lubna",
+                    "servings": 1,
+                    "preparation_id": "prep_rice"
+                }
+            ],
+            "title": "Aubergine lentil stew, spinach and rice",
+            "method": "Reheat the two named portions of aubergine lentil stew and rice until piping hot, then serve the stew over the rice.",
+            "same_day": {
+                "kind": "reheat_only",
+                "minutes": 10
+            },
+            "member_id": null,
+            "ingredients": [
+                {
+                    "term": "aubergine lentil stew",
+                    "unit": "g",
+                    "state": "cooked",
+                    "amount": 600,
+                    "quantity": "600 g ready aubergine lentil stew",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "cooked rice",
+                    "unit": "g",
+                    "state": "cooked",
+                    "amount": 300,
+                    "quantity": "300 g cooked rice",
+                    "grams_raw": 300,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "wed",
+            "why": "This gives Roxane a separate plate with a fresh contrast to the warm batch.",
+            "name": "Herby Aubergine Rice Bowl",
+            "slot": "dinner",
+            "uses": [
+                {
+                    "box_id": "box_prep_aubergine_lentil_stew_roxane",
+                    "servings": 1,
+                    "preparation_id": "prep_aubergine_lentil_stew"
+                },
+                {
+                    "box_id": "box_prep_rice_roxane",
+                    "servings": 1,
+                    "preparation_id": "prep_rice"
+                }
+            ],
+            "title": "Aubergine lentil stew, rice and cucumber",
+            "method": "Reheat the named stew and rice until piping hot. Top with diced cucumber and parsley before serving.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 10
+            },
+            "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+            "ingredients": [
+                {
+                    "term": "aubergine lentil stew",
+                    "unit": "g",
+                    "state": "cooked",
+                    "amount": 300,
+                    "quantity": "300 g ready aubergine lentil stew",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "cooked rice",
+                    "unit": "g",
+                    "state": "cooked",
+                    "amount": 150,
+                    "quantity": "150 g cooked rice",
+                    "grams_raw": 150,
+                    "in_pantry": false
+                },
+                {
+                    "term": "cucumber",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 100,
+                    "quantity": "100 g cucumber",
+                    "grams_raw": 100,
+                    "in_pantry": false
+                },
+                {
+                    "term": "fresh parsley",
+                    "unit": "unit",
+                    "state": null,
+                    "amount": 10,
+                    "quantity": "10 parsley leaves",
+                    "grams_raw": null,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        }
+    ],
+    "plan_id": "42bc75bb-e37d-499a-8143-326081e4ec49",
+    "servings": 4,
+    "starts_on": "2026-08-19",
+    "created_at": "2026-08-19T08:41:17.859101+00:00",
+    "preparations": [
+        {
+            "id": "prep_aubergine_lentil_stew",
+            "boxes": [
+                {
+                    "id": "box_prep_aubergine_lentil_stew_roxane",
+                    "grams": 236,
+                    "member_ids": [
+                        "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec"
+                    ]
+                },
+                {
+                    "id": "box_prep_aubergine_lentil_stew_zoe",
+                    "grams": 206,
+                    "member_ids": [
+                        "5fd38cfd-3895-4152-92a2-e62f9b7fc74e"
+                    ]
+                },
+                {
+                    "id": "box_prep_aubergine_lentil_stew_lubna",
+                    "grams": 231,
+                    "member_ids": [
+                        "86129e3c-2f50-480f-a359-077165b6232b"
+                    ]
+                },
+                {
+                    "id": "box_prep_aubergine_lentil_stew_ivar",
+                    "grams": 435,
+                    "member_ids": [
+                        "12362957-32c9-43a5-82ef-66b8d5732171"
+                    ]
+                }
+            ],
+            "title": "Aubergine lentil stew",
+            "method": "Dice the aubergines and onions. Warm the oil in a large pot, soften the onions for 5 minutes, then add aubergine and cumin for 5 minutes. Stir in lentils, tomatoes, water, salt and pepper; simmer for 25 minutes until tender. Fold in spinach for the final 2 minutes, then weigh 300 g ready stew into each named box.",
+            "cook_on": "wed",
+            "ingredients": [
+                {
+                    "term": "red lentils",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 240,
+                    "quantity": "240 g red lentils",
+                    "grams_raw": 240,
+                    "in_pantry": false
+                },
+                {
+                    "term": "aubergines",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 aubergines",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "onions",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 onions",
+                    "grams_raw": 220,
+                    "in_pantry": false
+                },
+                {
+                    "term": "chopped tomatoes",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 800,
+                    "quantity": "800 g chopped tomatoes",
+                    "grams_raw": 800,
+                    "in_pantry": false
+                },
+                {
+                    "term": "spinach",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 200,
+                    "quantity": "200 g spinach",
+                    "grams_raw": 200,
+                    "in_pantry": false
+                },
+                {
+                    "term": "olive oil",
+                    "unit": "tbsp",
+                    "state": null,
+                    "amount": 2,
+                    "quantity": "2 tbsp olive oil",
+                    "grams_raw": 30,
+                    "in_pantry": false
+                },
+                {
+                    "term": "ground cumin",
+                    "unit": "tsp",
+                    "state": null,
+                    "amount": 2,
+                    "quantity": "2 tsp ground cumin",
+                    "grams_raw": 10,
+                    "in_pantry": false
+                },
+                {
+                    "term": "water",
+                    "unit": "ml",
+                    "state": null,
+                    "amount": 600,
+                    "quantity": "600 ml water",
+                    "grams_raw": 600,
+                    "in_pantry": false
+                },
+                {
+                    "term": "salt",
+                    "unit": null,
+                    "state": null,
+                    "amount": null,
+                    "quantity": "a pinch of salt",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "black pepper",
+                    "unit": null,
+                    "state": null,
+                    "amount": null,
+                    "quantity": "a pinch of black pepper",
+                    "grams_raw": null,
+                    "in_pantry": false
+                }
+            ],
+            "servings_made": 4,
+            "total_minutes": 40,
+            "active_minutes": 20
+        },
+        {
+            "id": "prep_rice",
+            "boxes": [
+                {
+                    "id": "box_prep_rice_roxane",
+                    "grams": 118,
+                    "member_ids": [
+                        "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec"
+                    ]
+                },
+                {
+                    "id": "box_prep_rice_zoe",
+                    "grams": 103,
+                    "member_ids": [
+                        "5fd38cfd-3895-4152-92a2-e62f9b7fc74e"
+                    ]
+                },
+                {
+                    "id": "box_prep_rice_lubna",
+                    "grams": 115,
+                    "member_ids": [
+                        "86129e3c-2f50-480f-a359-077165b6232b"
+                    ]
+                },
+                {
+                    "id": "box_prep_rice_ivar",
+                    "grams": 218,
+                    "member_ids": [
+                        "12362957-32c9-43a5-82ef-66b8d5732171"
+                    ]
+                }
+            ],
+            "title": "Steamed rice",
+            "method": "Rinse the rice, add it to a covered pot with water and salt, bring to the boil, then simmer for 15 minutes and rest covered for 5 minutes. Weigh 150 g cooked rice into each named box and refrigerate promptly.",
+            "cook_on": "wed",
+            "ingredients": [
+                {
+                    "term": "long-grain rice",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 240,
+                    "quantity": "240 g long-grain rice",
+                    "grams_raw": 240,
+                    "in_pantry": false
+                },
+                {
+                    "term": "water",
+                    "unit": "ml",
+                    "state": null,
+                    "amount": 360,
+                    "quantity": "360 ml water",
+                    "grams_raw": 360,
+                    "in_pantry": false
+                },
+                {
+                    "term": "salt",
+                    "unit": null,
+                    "state": null,
+                    "amount": null,
+                    "quantity": "a pinch of salt",
+                    "grams_raw": null,
+                    "in_pantry": false
+                }
+            ],
+            "servings_made": 4,
+            "total_minutes": 25,
+            "active_minutes": 5
+        }
+    ],
+    "duration_days": 1,
+    "shopping_list": [
+        {
+            "term": "cooked chickpeas",
+            "aisle": "pantry",
+            "quantity": "360 g drained cooked chickpeas"
+        },
+        {
+            "term": "avocados",
+            "aisle": "produce",
+            "quantity": "2 avocados"
+        },
+        {
+            "term": "red peppers",
+            "aisle": "produce",
+            "quantity": "2 red peppers"
+        },
+        {
+            "term": "cucumbers",
+            "aisle": "produce",
+            "quantity": "2 cucumbers"
+        },
+        {
+            "term": "lemons",
+            "aisle": "produce",
+            "quantity": "2 lemons"
+        },
+        {
+            "term": "aubergines",
+            "aisle": "produce",
+            "quantity": "2 aubergines"
+        },
+        {
+            "term": "onions",
+            "aisle": "produce",
+            "quantity": "2 onions"
+        },
+        {
+            "term": "spinach",
+            "aisle": "produce",
+            "quantity": "200 g spinach"
+        },
+        {
+            "term": "red lentils",
+            "aisle": "grains",
+            "quantity": "240 g red lentils"
+        },
+        {
+            "term": "chopped tomatoes",
+            "aisle": "pantry",
+            "quantity": "800 g chopped tomatoes"
+        },
+        {
+            "term": "long-grain rice",
+            "aisle": "grains",
+            "quantity": "240 g long-grain rice"
+        },
+        {
+            "term": "fresh parsley",
+            "aisle": "produce",
+            "quantity": "1 bunch fresh parsley"
+        },
+        {
+            "term": "olive oil",
+            "aisle": "pantry",
+            "quantity": "3 tbsp olive oil"
+        },
+        {
+            "term": "ground cumin",
+            "aisle": "pantry",
+            "quantity": "2 tsp ground cumin"
+        },
+        {
+            "term": "salt",
+            "aisle": "pantry",
+            "quantity": "1 small pot of salt"
+        },
+        {
+            "term": "black pepper",
+            "aisle": "pantry",
+            "quantity": "1 small pot of black pepper"
+        }
+    ],
+    "member_portions": [
+        {
+            "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+            "display_name": "Roxane",
+            "portion_note": "At lunch, serve the chickpeas first, then avocado and the red pepper and cucumber. At dinner, serve the aubergine lentil stew first, then rice, with cucumber and parsley added last. — Aubergine lentil stew 236 g · Steamed rice 118 g",
+            "preparation_shares": [
+                {
+                    "note": "Use the named aubergine lentil stew box.",
+                    "preparation_id": "prep_aubergine_lentil_stew"
+                },
+                {
+                    "note": "Use the named rice box after the stew.",
+                    "preparation_id": "prep_rice"
+                }
+            ]
+        },
+        {
+            "member_id": "5fd38cfd-3895-4152-92a2-e62f9b7fc74e",
+            "display_name": "Zoe",
+            "portion_note": "At lunch, place the chickpeas, avocado, red pepper and cucumber together. At dinner, place the reheated stew and rice together in one bowl. — Aubergine lentil stew 206 g · Steamed rice 103 g",
+            "preparation_shares": [
+                {
+                    "note": "Use the named aubergine lentil stew box.",
+                    "preparation_id": "prep_aubergine_lentil_stew"
+                },
+                {
+                    "note": "Use the named rice box.",
+                    "preparation_id": "prep_rice"
+                }
+            ]
+        },
+        {
+            "member_id": "86129e3c-2f50-480f-a359-077165b6232b",
+            "display_name": "Lubna",
+            "portion_note": "At lunch, place the chickpeas, avocado, red pepper and cucumber together. At dinner, place the reheated stew over the rice together in one bowl. — Aubergine lentil stew 231 g · Steamed rice 115 g",
+            "preparation_shares": [
+                {
+                    "note": "Use the named aubergine lentil stew box.",
+                    "preparation_id": "prep_aubergine_lentil_stew"
+                },
+                {
+                    "note": "Use the named rice box.",
+                    "preparation_id": "prep_rice"
+                }
+            ]
+        },
+        {
+            "member_id": "12362957-32c9-43a5-82ef-66b8d5732171",
+            "display_name": "Ivar",
+            "portion_note": "At dinner, place the rice first, then the aubergine lentil stew, with cucumber and parsley added after the warm components. — Aubergine lentil stew 435 g · Steamed rice 218 g",
+            "preparation_shares": [
+                {
+                    "note": "Use the named aubergine lentil stew box.",
+                    "preparation_id": "prep_aubergine_lentil_stew"
+                },
+                {
+                    "note": "Use the named rice box first.",
+                    "preparation_id": "prep_rice"
+                }
+            ]
+        }
+    ],
+    "cooking_sessions": [
+        {
+            "day": "wed",
+            "run_through": "Start the rice first and leave it covered to cook. While it heats, dice the aubergines and onions and begin the stew. Simmer the stew while the rice rests, fold in the spinach, then weigh 300 g stew and 150 g rice into each named dinner box and refrigerate promptly.",
+            "total_minutes": 50,
+            "preparation_ids": [
+                "prep_aubergine_lentil_stew",
+                "prep_rice"
+            ]
+        }
+    ]
+}

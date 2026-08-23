@@ -466,16 +466,24 @@ describe("le poids visé — le refus est NOMMÉ", () => {
     });
   });
 
-  it("accepté → la DATE D'ARRIVÉE, en semaines", () => {
+  it("⛔ L3 — accepté → UN JETON, jamais un nombre de semaines", () => {
+    // ⚠️ CE TEST A CHANGÉ DE CAMP LE 2026-08-22 (lot `L3`). Il exigeait
+    // `expect(state.weeks).toBe(12)` — 5 kg à 0,45 kg/semaine, arrondi au
+    // supérieur. Mesuré le même jour: l'écart quotidien prescrit vaut
+    // 495 kcal/j et notre erreur d'estimation ±580 kcal/j, donc l'écart
+    // RÉELLEMENT exécuté vit dans [-85 … 1075] kcal/j — il traverse zéro, et
+    // les semaines réellement possibles allaient « de 6 à JAMAIS ». Le 12
+    // n'était pas imprécis, il était indéfendable.
     const state = targetWeightStateFor(
       draftOf({ ...LOSING, targetWeightKg: "55" }),
       TODAY,
     );
     expect(state.kind).toBe("accepted");
     if (state.kind !== "accepted") return;
-    // 5 kg à 0,45 kg/semaine = 11,1 → 12 semaines, ARRONDI AU SUPÉRIEUR: une
-    // date annoncée trop tôt est une déception programmée.
-    expect(state.weeks).toBe(12);
+    // ⛔ LA SURFACE RESTE — même prémisse qu'avant, contenu différent.
+    expect(state.horizon).toBe("no_arrival_date");
+    // ⛔ ET IL N'EXISTE PLUS DE CHAMP OÙ UN NOMBRE DE SEMAINES S'ÉCRIRAIT.
+    expect(Object.keys(state).sort()).toEqual(["horizon", "kind"]);
   });
 
   it("un refus RETIENT le bouton — sinon le refus arriverait du serveur", () => {
@@ -633,6 +641,17 @@ describe("le parseur ne fabrique pas de zéro", () => {
       // ⚠️ AUCUN DÉFAUT: un défaut ferait d'une non-réponse une réponse, et
       // cette réponse pèserait dans une estimation d'énergie.
       activityLevel: null,
+      // ── ② LES DEUX AXES (2026-08-20) ────────────────────────────────
+      // ⛔ `asked: true` ET DEUX `null`, ET LES TROIS SONT LE SUJET DE CE
+      // TEST. `asked` ne dit PAS « elle a répondu »: il dit « ce formulaire
+      // pose les deux questions ». C'est lui qui sépare « pas répondu » de
+      // « pas posé » dans le compteur du moteur — un `false` ici ferait
+      // passer une fiche qu'on vient d'interroger pour une fiche plus
+      // vieille que le lot. Les deux `null`, eux, restent la non-réponse.
+      activityAxes: { day: null, sport: null, asked: true },
+      // ⑤ — `null` = pas répondu ⇒ ×1,00. Le formulaire demande le cran, il ne
+      // l'invente pas quand il manque.
+      appetite: null,
     });
   });
 

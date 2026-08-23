@@ -1,0 +1,21 @@
+# LOT 19 — CORRECTIONS D'ALIAS EXISTANTS (2026-08-21)
+#
+# ⛔ RIEN N'EST APPLIQUÉ. Ce sont des UPDATE, pas des INSERT : un alias déjà en base pointe
+#    sur une ligne qui n'est pas celle qu'il désigne. Les neuf ont été trouvés par l'épreuve
+#    de parité, pas cherchés — il y en a probablement d'autres.
+#
+# ⚠️ `baguette` → `bread_french_bread_baguette` ÉCHANGE une erreur contre une abstention :
+#    la ligne visée n'a pas d'`unit_grams`, donc « 1 baguette » ne pèsera plus rien au lieu
+#    de peser 35 g (une tranche de pain de mie). C'est l'arbitrage du module — s'abstenir
+#    plutôt que rendre un nombre faux — mais il doit être choisi, pas subi.
+#
+alias	slug actuel	→ slug proposé	libellé actuel	libellé proposé	groupe actuel → proposé	kcal actuel → proposé	unit_g actuel → proposé	preuve
+oignon rouge	onion	red_onion	Onion	Red onion, raw	non_starchy_veg → non_starchy_veg	38.4 → 36.3	110 → 110	Le PLURIEL `oignons rouges` pointe déjà sur `red_onion`. Le singulier et le pluriel du même mot désignent deux aliments différents dans la même table.
+semoule complete	couscous	couscous_wholemeal	Couscous	Wholemeal couscous	refined_grain → whole_grain	352 → 345	— → —	`complet` veut dire complet. La ligne `couscous_wholemeal` (Wholemeal couscous, whole_grain, 345) existe ; l'alias envoie sur le couscous RAFFINÉ. Le groupe est faux.
+wrap	white_bread	tortilla_wrap	White bread	Tortilla wrap (wheat)	refined_grain → refined_grain	278 → 305	35 → 60	20 occurrences du corpus (« wraps » ×19, « wrap » ×1). `tortilla_wrap` existe et porte `unit_grams` 60 g ; `white_bread` en porte 35 g — UNE TRANCHE. « 2 wraps » pèse 70 g au lieu de 120 g.
+tortilla	white_bread	tortilla_wrap	White bread	Tortilla wrap (wheat)	refined_grain → refined_grain	278 → 305	35 → 60	Une tortilla n'est pas du pain de mie. `tortilla_wrap` (Tortilla wrap (wheat), 305 kcal, unit 60 g) est la ligne exacte.
+pitta	white_bread	pita_bread	White bread	Pita bread	refined_grain → refined_grain	278 → 275	35 → 60	`pita_bread` existe (Pita bread, 275 kcal, unit 60 g). L'alias `pita bread` n'atteint la bonne ligne QUE parce que la forme est aussi un slug ; `pitta` seul tombe sur le pain de mie.
+toast	white_bread	toasted_bread	White bread	Toasted bread, home-made	refined_grain → refined_grain	278 → 317	35 → —	6 occurrences. `toasted_bread` existe (Toasted bread, home-made, 317 kcal) : le grillage retire de l'eau, donc de la densité — 278 vs 317 kcal.
+baguette	white_bread	bread_french_bread_baguette	White bread	Bread, French bread, baguette	refined_grain → refined_grain	278 → 287	35 → —	`bread_french_bread_baguette` existe (287 kcal). Surtout, `white_bread` porte `unit_grams` 35 g : « 1 baguette » pèserait 35 g.
+crusty baguette	white_bread	bread_french_bread_baguette	White bread	Bread, French bread, baguette	refined_grain → refined_grain	278 → 287	35 → —	Même ligne, même raison.
+pain	white_bread	bread	White bread	Bread (average)	refined_grain → refined_grain	278 → 276	35 → 35	`bread` = « Bread (average) », la ligne de moyenne. L'anglais générique « bread » l'atteint ; le français générique « pain » atteint le pain BLANC. Deux généricités, deux lignes.

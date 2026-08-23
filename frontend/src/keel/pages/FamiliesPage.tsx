@@ -387,8 +387,20 @@ function Age() {
           <Kicker>{t("families.age.kicker")}</Kicker>
           {/* fact: C10 — household.ts:115-121 `goalApplies` */}
           <SectionTitle>{t("families.age.title")}</SectionTitle>
-          {/* fact: C10 — student_age.ts:199-202 `weekPlanAgeGate` ·
-              generate-week-plan-v1:435-457 (409 `minor_student`) */}
+          {/* fact: C10 — student_age.ts:199-202 `weekPlanAgeGate`, appelée par
+              energy_gate.ts:275 (porte ② — un mineur ferme la porte, et une
+              porte fermée ne rend AUCUN chiffre: property test « a closed gate
+              sends no number at all ») et par household_portions.ts pour la
+              part du foyer.
+              ⚠️ LA COPIE A CHANGÉ LE 2026-08-19, ET C'ÉTAIT OBLIGATOIRE. Elle
+              disait « une semaine qui viserait un enfant est refusée là où elle
+              se fabrique »: ce refus était le 409 `minor_student` de
+              `generate-week-plan-v1:435-457`, SEUL producteur de cette
+              phrase — la lane a été retirée (aucun appelant vivant), et ni
+              generate-meal-v1 ni generate-household-meal-v1 ne portent de
+              garde `minor_student`. La promesse serait restée sans objet.
+              ⛔ Ne la réécris pas vers un refus de lane: dis la porte qui
+              existe (le chiffre), pas celle qui est partie. */}
           <p className="mt-5 max-w-[62ch]">{t("families.age.body")}</p>
           {/* LA RÉSERVE de cette bande.
               fact: C16 / silence S6 — household_member_bodies, 20260812220000:118

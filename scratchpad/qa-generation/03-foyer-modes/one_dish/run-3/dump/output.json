@@ -1,0 +1,1079 @@
+{
+  "request_id": "3a010001-0000-4000-8000-000000030001",
+  "resolved_by": "--request-id",
+  "user_id": "3a000000-0000-4000-8000-000000000001",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-19T02:07:21.742Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "c97b2eee-e160-49e2-b224-ff227d70b5f3",
+      "status": "attempt_start",
+      "created_at": "2026-08-19T02:02:30.747614+00:00",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 15486,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 15486,
+    "user_message_chars": 16108,
+    "user_message_truncated": false,
+    "user_message_written_chars": 16108,
+    "independent_counters": {
+      "system_prompt_chars": 15486,
+      "prompt_chars": 16108
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "e224d499-93ca-407a-b192-1b01d0882751",
+    "created_at": "2026-08-19T02:07:21.111085+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "gemini",
+    "model": "gemini-3-flash-preview",
+    "http_status": 200,
+    "attempt": 4,
+    "chain_index": 1,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Golden Smoky Bean Bowls\",\n      \"title\": \"Smoky black bean and sweet potato chilli with brown rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"fresh coriander\",\n          \"quantity\": \"10 g\",\n          \"amount\": 10,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lime\",\n          \"quantity\": \"half a lime\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Assemble the bowls by combining the pre-cooked smoky black bean chilli and brown rice. Top with freshly chopped coriander and a squeeze of lime juice.\",\n      \"why\": \"A smoky, protein-rich bowl that satisfies the house request for slow-cooked depth using only the hob to keep the oven free.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chilli_lunch\",\n          \"servings\": 1,\n          \"box_id\": \"box_chilli_lunch_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_chilli_lunch\",\n          \"servings\": 1,\n          \"box_id\": \"box_chilli_lunch_marceline\"\n        },\n        {\n          \"preparation_id\": \"prep_chilli_lunch\",\n          \"servings\": 1,\n          \"box_id\": \"box_chilli_lunch_solveig\"\n        },\n        {\n          \"preparation_id\": \"prep_chilli_lunch\",\n          \"servings\": 1,\n          \"box_id\": \"box_chilli_lunch_theodule\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_marceline\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_solveig\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_theodule\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Charred Summer Vegetable Chilli\",\n      \"title\": \"Smoky black bean chilli with roasted courgettes and peppers\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"lime\",\n          \"quantity\": \"half a lime\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the smoky black bean chilli and the roasted vegetables together in a wide pan over a medium heat for 8 minutes until bubbling and hot. Serve with a squeeze of lime.\",\n      \"why\": \"This warm dinner features charred loud vegetables and smoky beans, meeting the coach's requirement for a warm element at the end of the day.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chilli_dinner\",\n          \"servings\": 1,\n          \"box_id\": \"box_chilli_dinner_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_chilli_dinner\",\n          \"servings\": 1,\n          \"box_id\": \"box_chilli_dinner_marceline\"\n        },\n        {\n          \"preparation_id\": \"prep_chilli_dinner\",\n          \"servings\": 1,\n          \"box_id\": \"box_chilli_dinner_solveig\"\n        },\n        {\n          \"preparation_id\": \"prep_chilli_dinner\",\n          \"servings\": 1,\n          \"box_id\": \"box_chilli_dinner_theodule\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_veg\",\n          \"servings\": 1,\n          \"box_id\": \"box_veg_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_veg\",\n          \"servings\": 1,\n          \"box_id\": \"box_veg_marceline\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_veg\",\n          \"servings\": 1,\n          \"box_id\": \"box_veg_solveig\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_veg\",\n          \"servings\": 1,\n          \"box_id\": \"box_veg_theodule\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_chilli_lunch\",\n      \"title\": \"Smoky Black Bean & Sweet Potato Chilli (Lunch Batch)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"black beans\",\n          \"quantity\": \"2 tins (400g each)\",\n          \"amount\": 800,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"sweet potatoes\",\n          \"quantity\": \"450 g\",\n          \"amount\": 450,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"chopped tomatoes\",\n          \"quantity\": \"1 tin (400g)\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red onion\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic\",\n          \"quantity\": \"3 cloves\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"chipotle paste\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Sauté diced onion and garlic in olive oil. Add diced sweet potato, smoked paprika, and chipotle paste. Stir in tomatoes and beans with a splash of vegetable stock. Simmer for 30 minutes until the potato is tender and the sauce is thick and smoky.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 40,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_chilli_lunch_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 400\n        },\n        {\n          \"id\": \"box_chilli_lunch_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 400\n        },\n        {\n          \"id\": \"box_chilli_lunch_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 400\n        },\n        {\n          \"id\": \"box_chilli_lunch_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 400\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_chilli_dinner\",\n      \"title\": \"Smoky Black Bean & Sweet Potato Chilli (Dinner Batch)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"black beans\",\n          \"quantity\": \"2 tins (400g each)\",\n          \"amount\": 800,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"sweet potatoes\",\n          \"quantity\": \"450 g\",\n          \"amount\": 450,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"chopped tomatoes\",\n          \"quantity\": \"1 tin (400g)\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red onion\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic\",\n          \"quantity\": \"3 cloves\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"chipotle paste\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Cook alongside the lunch batch in the same large pot following the same method. This ensures a consistent slow-cooked depth of flavour.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 40,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_chilli_dinner_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 400\n        },\n        {\n          \"id\": \"box_chilli_dinner_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 400\n        },\n        {\n          \"id\": \"box_chilli_dinner_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 400\n        },\n        {\n          \"id\": \"box_chilli_dinner_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 400\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_rice\",\n      \"title\": \"Steamed Brown Rice\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"brown rice\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Rinse the rice and boil in salted water for 25-30 minutes until tender. Drain well and fluff with a fork.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_rice_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_rice_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_rice_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_rice_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 250\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_roasted_veg\",\n      \"title\": \"Charred Courgettes & Peppers\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"courgettes\",\n          \"quantity\": \"3 unit\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"bell peppers\",\n          \"quantity\": \"3 unit\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Slice the courgettes and peppers into thick chunks. Toss with olive oil, salt, and pepper on the single oven tray. Roast at 200°C for 25 minutes until softened and charred at the edges.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_veg_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 175\n        },\n        {\n          \"id\": \"box_veg_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 175\n        },\n        {\n          \"id\": \"box_veg_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 175\n        },\n        {\n          \"id\": \"box_veg_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 175\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_rice\",\n        \"prep_chilli_lunch\",\n        \"prep_chilli_dinner\",\n        \"prep_roasted_veg\"\n      ],\n      \"total_minutes\": 50,\n      \"run_through\": \"Start the rice on the hob. While it boils, chop all vegetables. Sauté the onions and sweet potatoes for the large batch of chilli in one big pot, then add the beans and tomatoes to simmer. Arrange the courgettes and peppers on the single oven tray and roast them. Once the rice and chilli are done, divide the chilli into lunch and dinner portions and box everything up.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"brown rice\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"black beans\",\n      \"quantity\": \"4 tins (400g each)\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"sweet potatoes\",\n      \"quantity\": \"3 large\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red onions\",\n      \"quantity\": \"2 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"garlic\",\n      \"quantity\": \"1 bulb\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"chopped tomatoes\",\n      \"quantity\": \"2 tins (400g each)\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"smoked paprika\",\n      \"quantity\": \"1 tin\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"chipotle paste\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"courgettes\",\n      \"quantity\": \"3 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"bell peppers\",\n      \"quantity\": \"3 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"limes\",\n      \"quantity\": \"4 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"fresh coriander\",\n      \"quantity\": \"1 bunch\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"1 bottle\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"vegetable stock cubes\",\n      \"quantity\": \"1 pack\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\",\n      \"portion_note\": \"Serve the roasted vegetables first, then the smoky black bean chilli, and finally the brown rice.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chilli_lunch\",\n          \"note\": \"Take your lunch box.\"\n        },\n        {\n          \"preparation_id\": \"prep_chilli_dinner\",\n          \"note\": \"Take your dinner box.\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"Take your rice box.\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_veg\",\n          \"note\": \"Take your vegetable box.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"f5c81e2b-7f57-4fac-a30f-067fa587262d\",\n      \"portion_note\": \"Place the smoky black bean chilli and brown rice on the plate first, then add the roasted vegetables.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chilli_lunch\",\n          \"note\": \"Take your lunch box.\"\n        },\n        {\n          \"preparation_id\": \"prep_chilli_dinner\",\n          \"note\": \"Take your dinner box.\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"Take your rice box.\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_veg\",\n          \"note\": \"Take your vegetable box.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\",\n      \"portion_note\": \"Arrange the smoky black bean chilli and brown rice first, then top with the roasted vegetables.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chilli_lunch\",\n          \"note\": \"Take your lunch box.\"\n        },\n        {\n          \"preparation_id\": \"prep_chilli_dinner\",\n          \"note\": \"Take your dinner box.\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"Take your rice box.\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_veg\",\n          \"note\": \"Take your vegetable box.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"1fea4f51-a4e9-4066-8d09-49881ee58f38\",\n      \"portion_note\": \"Serve all components together, mixing the smoky black bean chilli with the rice and roasted vegetables.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chilli_lunch\",\n          \"note\": \"Take your lunch box.\"\n        },\n        {\n          \"preparation_id\": \"prep_chilli_dinner\",\n          \"note\": \"Take your dinner box.\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"Take your rice box.\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_veg\",\n          \"note\": \"Take your vegetable box.\"\n        }\n      ]\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Golden Smoky Bean Bowls",
+          "title": "Smoky black bean and sweet potato chilli with brown rice",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "fresh coriander",
+              "quantity": "10 g",
+              "amount": 10,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "lime",
+              "quantity": "half a lime",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Assemble the bowls by combining the pre-cooked smoky black bean chilli and brown rice. Top with freshly chopped coriander and a squeeze of lime juice.",
+          "why": "A smoky, protein-rich bowl that satisfies the house request for slow-cooked depth using only the hob to keep the oven free.",
+          "uses": [
+            {
+              "preparation_id": "prep_chilli_lunch",
+              "servings": 1,
+              "box_id": "box_chilli_lunch_aurele"
+            },
+            {
+              "preparation_id": "prep_chilli_lunch",
+              "servings": 1,
+              "box_id": "box_chilli_lunch_marceline"
+            },
+            {
+              "preparation_id": "prep_chilli_lunch",
+              "servings": 1,
+              "box_id": "box_chilli_lunch_solveig"
+            },
+            {
+              "preparation_id": "prep_chilli_lunch",
+              "servings": 1,
+              "box_id": "box_chilli_lunch_theodule"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_rice_aurele"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_rice_marceline"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_rice_solveig"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_rice_theodule"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Charred Summer Vegetable Chilli",
+          "title": "Smoky black bean chilli with roasted courgettes and peppers",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "lime",
+              "quantity": "half a lime",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the smoky black bean chilli and the roasted vegetables together in a wide pan over a medium heat for 8 minutes until bubbling and hot. Serve with a squeeze of lime.",
+          "why": "This warm dinner features charred loud vegetables and smoky beans, meeting the coach's requirement for a warm element at the end of the day.",
+          "uses": [
+            {
+              "preparation_id": "prep_chilli_dinner",
+              "servings": 1,
+              "box_id": "box_chilli_dinner_aurele"
+            },
+            {
+              "preparation_id": "prep_chilli_dinner",
+              "servings": 1,
+              "box_id": "box_chilli_dinner_marceline"
+            },
+            {
+              "preparation_id": "prep_chilli_dinner",
+              "servings": 1,
+              "box_id": "box_chilli_dinner_solveig"
+            },
+            {
+              "preparation_id": "prep_chilli_dinner",
+              "servings": 1,
+              "box_id": "box_chilli_dinner_theodule"
+            },
+            {
+              "preparation_id": "prep_roasted_veg",
+              "servings": 1,
+              "box_id": "box_veg_aurele"
+            },
+            {
+              "preparation_id": "prep_roasted_veg",
+              "servings": 1,
+              "box_id": "box_veg_marceline"
+            },
+            {
+              "preparation_id": "prep_roasted_veg",
+              "servings": 1,
+              "box_id": "box_veg_solveig"
+            },
+            {
+              "preparation_id": "prep_roasted_veg",
+              "servings": 1,
+              "box_id": "box_veg_theodule"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_chilli_lunch",
+          "title": "Smoky Black Bean & Sweet Potato Chilli (Lunch Batch)",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "black beans",
+              "quantity": "2 tins (400g each)",
+              "amount": 800,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "sweet potatoes",
+              "quantity": "450 g",
+              "amount": 450,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "chopped tomatoes",
+              "quantity": "1 tin (400g)",
+              "amount": 400,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "red onion",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "garlic",
+              "quantity": "3 cloves",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "chipotle paste",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Sauté diced onion and garlic in olive oil. Add diced sweet potato, smoked paprika, and chipotle paste. Stir in tomatoes and beans with a splash of vegetable stock. Simmer for 30 minutes until the potato is tender and the sauce is thick and smoky.",
+          "active_minutes": 10,
+          "total_minutes": 40,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_chilli_lunch_aurele",
+              "member_ids": [
+                "c278b5dc-680f-43f1-b54f-f9da630fcb2f"
+              ],
+              "grams": 400
+            },
+            {
+              "id": "box_chilli_lunch_marceline",
+              "member_ids": [
+                "f5c81e2b-7f57-4fac-a30f-067fa587262d"
+              ],
+              "grams": 400
+            },
+            {
+              "id": "box_chilli_lunch_solveig",
+              "member_ids": [
+                "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+              ],
+              "grams": 400
+            },
+            {
+              "id": "box_chilli_lunch_theodule",
+              "member_ids": [
+                "1fea4f51-a4e9-4066-8d09-49881ee58f38"
+              ],
+              "grams": 400
+            }
+          ]
+        },
+        {
+          "id": "prep_chilli_dinner",
+          "title": "Smoky Black Bean & Sweet Potato Chilli (Dinner Batch)",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "black beans",
+              "quantity": "2 tins (400g each)",
+              "amount": 800,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "sweet potatoes",
+              "quantity": "450 g",
+              "amount": 450,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "chopped tomatoes",
+              "quantity": "1 tin (400g)",
+              "amount": 400,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "red onion",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "garlic",
+              "quantity": "3 cloves",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "chipotle paste",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Cook alongside the lunch batch in the same large pot following the same method. This ensures a consistent slow-cooked depth of flavour.",
+          "active_minutes": 5,
+          "total_minutes": 40,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_chilli_dinner_aurele",
+              "member_ids": [
+                "c278b5dc-680f-43f1-b54f-f9da630fcb2f"
+              ],
+              "grams": 400
+            },
+            {
+              "id": "box_chilli_dinner_marceline",
+              "member_ids": [
+                "f5c81e2b-7f57-4fac-a30f-067fa587262d"
+              ],
+              "grams": 400
+            },
+            {
+              "id": "box_chilli_dinner_solveig",
+              "member_ids": [
+                "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+              ],
+              "grams": 400
+            },
+            {
+              "id": "box_chilli_dinner_theodule",
+              "member_ids": [
+                "1fea4f51-a4e9-4066-8d09-49881ee58f38"
+              ],
+              "grams": 400
+            }
+          ]
+        },
+        {
+          "id": "prep_rice",
+          "title": "Steamed Brown Rice",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "brown rice",
+              "quantity": "400 g",
+              "amount": 400,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Rinse the rice and boil in salted water for 25-30 minutes until tender. Drain well and fluff with a fork.",
+          "active_minutes": 5,
+          "total_minutes": 30,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_rice_aurele",
+              "member_ids": [
+                "c278b5dc-680f-43f1-b54f-f9da630fcb2f"
+              ],
+              "grams": 250
+            },
+            {
+              "id": "box_rice_marceline",
+              "member_ids": [
+                "f5c81e2b-7f57-4fac-a30f-067fa587262d"
+              ],
+              "grams": 250
+            },
+            {
+              "id": "box_rice_solveig",
+              "member_ids": [
+                "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+              ],
+              "grams": 250
+            },
+            {
+              "id": "box_rice_theodule",
+              "member_ids": [
+                "1fea4f51-a4e9-4066-8d09-49881ee58f38"
+              ],
+              "grams": 250
+            }
+          ]
+        },
+        {
+          "id": "prep_roasted_veg",
+          "title": "Charred Courgettes & Peppers",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "courgettes",
+              "quantity": "3 unit",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "bell peppers",
+              "quantity": "3 unit",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Slice the courgettes and peppers into thick chunks. Toss with olive oil, salt, and pepper on the single oven tray. Roast at 200°C for 25 minutes until softened and charred at the edges.",
+          "active_minutes": 10,
+          "total_minutes": 30,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_veg_aurele",
+              "member_ids": [
+                "c278b5dc-680f-43f1-b54f-f9da630fcb2f"
+              ],
+              "grams": 175
+            },
+            {
+              "id": "box_veg_marceline",
+              "member_ids": [
+                "f5c81e2b-7f57-4fac-a30f-067fa587262d"
+              ],
+              "grams": 175
+            },
+            {
+              "id": "box_veg_solveig",
+              "member_ids": [
+                "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+              ],
+              "grams": 175
+            },
+            {
+              "id": "box_veg_theodule",
+              "member_ids": [
+                "1fea4f51-a4e9-4066-8d09-49881ee58f38"
+              ],
+              "grams": 175
+            }
+          ]
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_rice",
+            "prep_chilli_lunch",
+            "prep_chilli_dinner",
+            "prep_roasted_veg"
+          ],
+          "total_minutes": 50,
+          "run_through": "Start the rice on the hob. While it boils, chop all vegetables. Sauté the onions and sweet potatoes for the large batch of chilli in one big pot, then add the beans and tomatoes to simmer. Arrange the courgettes and peppers on the single oven tray and roast them. Once the rice and chilli are done, divide the chilli into lunch and dinner portions and box everything up."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "brown rice",
+          "quantity": "400 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "black beans",
+          "quantity": "4 tins (400g each)",
+          "aisle": "pantry"
+        },
+        {
+          "term": "sweet potatoes",
+          "quantity": "3 large",
+          "aisle": "produce"
+        },
+        {
+          "term": "red onions",
+          "quantity": "2 unit",
+          "aisle": "produce"
+        },
+        {
+          "term": "garlic",
+          "quantity": "1 bulb",
+          "aisle": "produce"
+        },
+        {
+          "term": "chopped tomatoes",
+          "quantity": "2 tins (400g each)",
+          "aisle": "pantry"
+        },
+        {
+          "term": "smoked paprika",
+          "quantity": "1 tin",
+          "aisle": "pantry"
+        },
+        {
+          "term": "chipotle paste",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "courgettes",
+          "quantity": "3 unit",
+          "aisle": "produce"
+        },
+        {
+          "term": "bell peppers",
+          "quantity": "3 unit",
+          "aisle": "produce"
+        },
+        {
+          "term": "limes",
+          "quantity": "4 unit",
+          "aisle": "produce"
+        },
+        {
+          "term": "fresh coriander",
+          "quantity": "1 bunch",
+          "aisle": "produce"
+        },
+        {
+          "term": "olive oil",
+          "quantity": "1 bottle",
+          "aisle": "pantry"
+        },
+        {
+          "term": "vegetable stock cubes",
+          "quantity": "1 pack",
+          "aisle": "pantry"
+        }
+      ],
+      "member_portions": [
+        {
+          "member_id": "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+          "portion_note": "Serve the roasted vegetables first, then the smoky black bean chilli, and finally the brown rice.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chilli_lunch",
+              "note": "Take your lunch box."
+            },
+            {
+              "preparation_id": "prep_chilli_dinner",
+              "note": "Take your dinner box."
+            },
+            {
+              "preparation_id": "prep_rice",
+              "note": "Take your rice box."
+            },
+            {
+              "preparation_id": "prep_roasted_veg",
+              "note": "Take your vegetable box."
+            }
+          ]
+        },
+        {
+          "member_id": "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+          "portion_note": "Place the smoky black bean chilli and brown rice on the plate first, then add the roasted vegetables.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chilli_lunch",
+              "note": "Take your lunch box."
+            },
+            {
+              "preparation_id": "prep_chilli_dinner",
+              "note": "Take your dinner box."
+            },
+            {
+              "preparation_id": "prep_rice",
+              "note": "Take your rice box."
+            },
+            {
+              "preparation_id": "prep_roasted_veg",
+              "note": "Take your vegetable box."
+            }
+          ]
+        },
+        {
+          "member_id": "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7",
+          "portion_note": "Arrange the smoky black bean chilli and brown rice first, then top with the roasted vegetables.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chilli_lunch",
+              "note": "Take your lunch box."
+            },
+            {
+              "preparation_id": "prep_chilli_dinner",
+              "note": "Take your dinner box."
+            },
+            {
+              "preparation_id": "prep_rice",
+              "note": "Take your rice box."
+            },
+            {
+              "preparation_id": "prep_roasted_veg",
+              "note": "Take your vegetable box."
+            }
+          ]
+        },
+        {
+          "member_id": "1fea4f51-a4e9-4066-8d09-49881ee58f38",
+          "portion_note": "Serve all components together, mixing the smoky black bean chilli with the rice and roasted vegetables.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chilli_lunch",
+              "note": "Take your lunch box."
+            },
+            {
+              "preparation_id": "prep_chilli_dinner",
+              "note": "Take your dinner box."
+            },
+            {
+              "preparation_id": "prep_rice",
+              "note": "Take your rice box."
+            },
+            {
+              "preparation_id": "prep_roasted_veg",
+              "note": "Take your vegetable box."
+            }
+          ]
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "candidates": [
+        {
+          "index": 0,
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Golden Smoky Bean Bowls\",\n      \"title\": \"Smoky black bean and sweet potato chilli with brown rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"fresh coriander\",\n          \"quantity\": \"10 g\",\n          \"amount\": 10,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lime\",\n          \"quantity\": \"half a lime\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Assemble the bowls by combining the pre-cooked smoky black bean chilli and brown rice. Top with freshly chopped coriander and a squeeze of lime juice.\",\n      \"why\": \"A smoky, protein-rich bowl that satisfies the house request for slow-cooked depth using only the hob to keep the oven free.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chilli_lunch\",\n          \"servings\": 1,\n          \"box_id\": \"box_chilli_lunch_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_chilli_lunch\",\n          \"servings\": 1,\n          \"box_id\": \"box_chilli_lunch_marceline\"\n        },\n        {\n          \"preparation_id\": \"prep_chilli_lunch\",\n          \"servings\": 1,\n          \"box_id\": \"box_chilli_lunch_solveig\"\n        },\n        {\n          \"preparation_id\": \"prep_chilli_lunch\",\n          \"servings\": 1,\n          \"box_id\": \"box_chilli_lunch_theodule\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_marceline\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_solveig\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_theodule\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Charred Summer Vegetable Chilli\",\n      \"title\": \"Smoky black bean chilli with roasted courgettes and peppers\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"lime\",\n          \"quantity\": \"half a lime\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the smoky black bean chilli and the roasted vegetables together in a wide pan over a medium heat for 8 minutes until bubbling and hot. Serve with a squeeze of lime.\",\n      \"why\": \"This warm dinner features charred loud vegetables and smoky beans, meeting the coach's requirement for a warm element at the end of the day.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chilli_dinner\",\n          \"servings\": 1,\n          \"box_id\": \"box_chilli_dinner_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_chilli_dinner\",\n          \"servings\": 1,\n          \"box_id\": \"box_chilli_dinner_marceline\"\n        },\n        {\n          \"preparation_id\": \"prep_chilli_dinner\",\n          \"servings\": 1,\n          \"box_id\": \"box_chilli_dinner_solveig\"\n        },\n        {\n          \"preparation_id\": \"prep_chilli_dinner\",\n          \"servings\": 1,\n          \"box_id\": \"box_chilli_dinner_theodule\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_veg\",\n          \"servings\": 1,\n          \"box_id\": \"box_veg_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_veg\",\n          \"servings\": 1,\n          \"box_id\": \"box_veg_marceline\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_veg\",\n          \"servings\": 1,\n          \"box_id\": \"box_veg_solveig\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_veg\",\n          \"servings\": 1,\n          \"box_id\": \"box_veg_theodule\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_chilli_lunch\",\n      \"title\": \"Smoky Black Bean & Sweet Potato Chilli (Lunch Batch)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"black beans\",\n          \"quantity\": \"2 tins (400g each)\",\n          \"amount\": 800,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"sweet potatoes\",\n          \"quantity\": \"450 g\",\n          \"amount\": 450,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"chopped tomatoes\",\n          \"quantity\": \"1 tin (400g)\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red onion\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic\",\n          \"quantity\": \"3 cloves\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"chipotle paste\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Sauté diced onion and garlic in olive oil. Add diced sweet potato, smoked paprika, and chipotle paste. Stir in tomatoes and beans with a splash of vegetable stock. Simmer for 30 minutes until the potato is tender and the sauce is thick and smoky.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 40,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_chilli_lunch_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 400\n        },\n        {\n          \"id\": \"box_chilli_lunch_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 400\n        },\n        {\n          \"id\": \"box_chilli_lunch_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 400\n        },\n        {\n          \"id\": \"box_chilli_lunch_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 400\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_chilli_dinner\",\n      \"title\": \"Smoky Black Bean & Sweet Potato Chilli (Dinner Batch)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"black beans\",\n          \"quantity\": \"2 tins (400g each)\",\n          \"amount\": 800,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"sweet potatoes\",\n          \"quantity\": \"450 g\",\n          \"amount\": 450,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"chopped tomatoes\",\n          \"quantity\": \"1 tin (400g)\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red onion\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic\",\n          \"quantity\": \"3 cloves\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"chipotle paste\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Cook alongside the lunch batch in the same large pot following the same method. This ensures a consistent slow-cooked depth of flavour.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 40,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_chilli_dinner_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 400\n        },\n        {\n          \"id\": \"box_chilli_dinner_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 400\n        },\n        {\n          \"id\": \"box_chilli_dinner_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 400\n        },\n        {\n          \"id\": \"box_chilli_dinner_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 400\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_rice\",\n      \"title\": \"Steamed Brown Rice\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"brown rice\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Rinse the rice and boil in salted water for 25-30 minutes until tender. Drain well and fluff with a fork.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_rice_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_rice_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_rice_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_rice_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 250\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_roasted_veg\",\n      \"title\": \"Charred Courgettes & Peppers\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"courgettes\",\n          \"quantity\": \"3 unit\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"bell peppers\",\n          \"quantity\": \"3 unit\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Slice the courgettes and peppers into thick chunks. Toss with olive oil, salt, and pepper on the single oven tray. Roast at 200°C for 25 minutes until softened and charred at the edges.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_veg_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 175\n        },\n        {\n          \"id\": \"box_veg_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 175\n        },\n        {\n          \"id\": \"box_veg_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 175\n        },\n        {\n          \"id\": \"box_veg_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 175\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_rice\",\n        \"prep_chilli_lunch\",\n        \"prep_chilli_dinner\",\n        \"prep_roasted_veg\"\n      ],\n      \"total_minutes\": 50,\n      \"run_through\": \"Start the rice on the hob. While it boils, chop all vegetables. Sauté the onions and sweet potatoes for the large batch of chilli in one big pot, then add the beans and tomatoes to simmer. Arrange the courgettes and peppers on the single oven tray and roast them. Once the rice and chilli are done, divide the chilli into lunch and dinner portions and box everything up.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"brown rice\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"black beans\",\n      \"quantity\": \"4 tins (400g each)\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"sweet potatoes\",\n      \"quantity\": \"3 large\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red onions\",\n      \"quantity\": \"2 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"garlic\",\n      \"quantity\": \"1 bulb\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"chopped tomatoes\",\n      \"quantity\": \"2 tins (400g each)\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"smoked paprika\",\n      \"quantity\": \"1 tin\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"chipotle paste\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"courgettes\",\n      \"quantity\": \"3 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"bell peppers\",\n      \"quantity\": \"3 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"limes\",\n      \"quantity\": \"4 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"fresh coriander\",\n      \"quantity\": \"1 bunch\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"1 bottle\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"vegetable stock cubes\",\n      \"quantity\": \"1 pack\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\",\n      \"portion_note\": \"Serve the roasted vegetables first, then the smoky black bean chilli, and finally the brown rice.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chilli_lunch\",\n          \"note\": \"Take your lunch box.\"\n        },\n        {\n          \"preparation_id\": \"prep_chilli_dinner\",\n          \"note\": \"Take your dinner box.\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"Take your rice box.\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_veg\",\n          \"note\": \"Take your vegetable box.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"f5c81e2b-7f57-4fac-a30f-067fa587262d\",\n      \"portion_note\": \"Place the smoky black bean chilli and brown rice on the plate first, then add the roasted vegetables.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chilli_lunch\",\n          \"note\": \"Take your lunch box.\"\n        },\n        {\n          \"preparation_id\": \"prep_chilli_dinner\",\n          \"note\": \"Take your dinner box.\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"Take your rice box.\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_veg\",\n          \"note\": \"Take your vegetable box.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\",\n      \"portion_note\": \"Arrange the smoky black bean chilli and brown rice first, then top with the roasted vegetables.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chilli_lunch\",\n          \"note\": \"Take your lunch box.\"\n        },\n        {\n          \"preparation_id\": \"prep_chilli_dinner\",\n          \"note\": \"Take your dinner box.\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"Take your rice box.\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_veg\",\n          \"note\": \"Take your vegetable box.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"1fea4f51-a4e9-4066-8d09-49881ee58f38\",\n      \"portion_note\": \"Serve all components together, mixing the smoky black bean chilli with the rice and roasted vegetables.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chilli_lunch\",\n          \"note\": \"Take your lunch box.\"\n        },\n        {\n          \"preparation_id\": \"prep_chilli_dinner\",\n          \"note\": \"Take your dinner box.\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"Take your rice box.\"\n        },\n        {\n          \"preparation_id\": \"prep_roasted_veg\",\n          \"note\": \"Take your vegetable box.\"\n        }\n      ]\n    }\n  ]\n}",
+                "thoughtSignature": "[redacted]"
+              }
+            ]
+          },
+          "finishReason": "STOP"
+        }
+      ],
+      "responseId": "ng-FapvNEq-2kdUPl5vzqQw",
+      "modelVersion": "gemini-3-flash-preview",
+      "usageMetadata": {
+        "serviceTier": "standard",
+        "totalTokenCount": 23533,
+        "promptTokenCount": 8109,
+        "cacheTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 6082
+          }
+        ],
+        "thoughtsTokenCount": 9764,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 8109
+          }
+        ],
+        "candidatesTokenCount": 5660,
+        "cachedContentTokenCount": 6082
+      }
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-19T02:02:30.747614+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T02:02:31.350024+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:02:35.26626+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:02:35.283456+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:02:35.290571+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:03:35.325643+00:00",
+      "status": "timeout_or_abort",
+      "outcome": "error",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": "Signal timed out.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:03:35.348002+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 1,
+      "chain_index": 2,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:03:35.8746+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 1,
+      "chain_index": 2,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:03:40.456142+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 2,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:03:41.007368+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 2,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:03:46.35924+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:03:46.379837+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:03:46.396229+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:04:46.424623+00:00",
+      "status": "timeout_or_abort",
+      "outcome": "error",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": "Signal timed out.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:04:46.445771+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 2,
+      "chain_index": 2,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:04:46.873891+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 2,
+      "chain_index": 2,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:04:54.068556+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 3,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:04:54.755247+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 3,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:05:01.312401+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 3,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:05:01.315505+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 3,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:05:01.317639+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 3,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:06:01.335714+00:00",
+      "status": "timeout_or_abort",
+      "outcome": "error",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 3,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": "Signal timed out.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:06:01.347789+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 3,
+      "chain_index": 2,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:06:01.811483+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 3,
+      "chain_index": 2,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:06:11.879224+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 4,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:06:12.341105+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 4,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:06:22.077252+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 4,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:06:22.090626+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 4,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:06:22.102799+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 4,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T02:07:21.111085+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 4,
+      "chain_index": 1,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

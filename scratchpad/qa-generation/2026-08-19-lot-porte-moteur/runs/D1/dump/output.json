@@ -1,0 +1,1131 @@
+{
+  "request_id": "d010000a-0000-4000-8000-000000000001",
+  "resolved_by": "--request-id",
+  "user_id": "1e000000-0000-4000-8000-000000000002",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-18T23:51:13.935Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "7d5af994-d358-47d8-806d-d133ad982be0",
+      "status": "breaker_skip",
+      "created_at": "2026-08-18T23:49:30.105151+00:00",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 15486,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 15486,
+    "user_message_chars": 14538,
+    "user_message_truncated": false,
+    "user_message_written_chars": 14538,
+    "independent_counters": {
+      "system_prompt_chars": 15486,
+      "prompt_chars": 14538
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "349358a3-5974-4ac4-83d4-fd53d5935187",
+    "created_at": "2026-08-18T23:51:13.340184+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "gemini",
+    "model": "gemini-3-flash-preview",
+    "http_status": 200,
+    "attempt": 1,
+    "chain_index": 1,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Lemon and Poppy Seed Loaf\",\n      \"title\": \"Lemon and poppy seed yogurt loaf with Greek yogurt\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"Greek yogurt\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Slice a portion of the loaf. Serve with a generous dollop of fresh Greek yogurt on the side.\",\n      \"why\": \"We brought the Sunday traybake dream forward to Wednesday to brighten the kitchen while it's still usable.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_yogurt_loaf\",\n          \"servings\": 1,\n          \"box_id\": \"box_loaf_wilfrid\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 2\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Odalric's Jam and Egg Toast\",\n      \"title\": \"Blackcurrant jam on toast with boiled eggs\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"wholemeal bread\",\n          \"quantity\": \"2 slices\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"blackcurrant jam\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"2\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Boil the eggs for 7 minutes. Toast the bread and spread with blackcurrant jam. Serve together.\",\n      \"why\": \"Odalric has his own breakfast routine, but we've added eggs to ensure the coach's protein anchor rule is met.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Garlic Chicken and Couscous Bowl\",\n      \"title\": \"Lemon and garlic chicken with roasted courgettes and giant couscous\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"fresh parsley\",\n          \"quantity\": \"a small handful\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Combine a portion of the warm roasted chicken and courgettes with the herby giant couscous. Top with fresh parsley.\",\n      \"why\": \"Courgette is our loud vegetable today, providing a fresh crunch against the garlic chicken.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_garlic_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_odalric\"\n        },\n        {\n          \"preparation_id\": \"prep_herby_couscous\",\n          \"servings\": 1,\n          \"box_id\": \"box_couscous_odalric\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"starch_follows_the_session\"\n      ]\n    },\n    {\n      \"name\": \"Beef and Lentil Keema\",\n      \"title\": \"Beef and brown lentil keema with roasted potatoes\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"spinach\",\n          \"quantity\": \"30 g\",\n          \"amount\": 30,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Serve the warm beef and lentil keema over the roasted potatoes. Stir through the fresh spinach so it wilts in the heat.\",\n      \"why\": \"A hearty, warm dinner that anchors the day with beef and iron-rich lentils.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_keema\",\n          \"servings\": 1,\n          \"box_id\": \"box_keema_odalric\"\n        },\n        {\n          \"preparation_id\": \"prep_roast_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_potatoes_odalric\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Odalric's Jam and Egg Toast\",\n      \"title\": \"Blackcurrant jam on toast with boiled eggs\",\n      \"slot\": \"breakfast\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"wholemeal bread\",\n          \"quantity\": \"2 slices\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"blackcurrant jam\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"2\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Boil the eggs for 7 minutes. Toast the bread and spread with jam.\",\n      \"why\": \"Easy to eat while Odalric stands by the window watching the hallway being painted.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Lemon and Poppy Seed Loaf\",\n      \"title\": \"Lemon and poppy seed yogurt loaf with Greek yogurt\",\n      \"slot\": \"breakfast\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"Greek yogurt\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Slice the loaf and serve with Greek yogurt. Can be eaten by hand if the table is busy.\",\n      \"why\": \"A portable breakfast for a day when the kitchen table is out of action.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_yogurt_loaf\",\n          \"servings\": 1,\n          \"box_id\": \"box_loaf_wilfrid\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 2\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Reheated Beef Keema Bowl\",\n      \"title\": \"Beef and lentil keema with potatoes\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"hot sauce\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the keema and potatoes in a large frying pan with a splash of water until piping hot. Serve in bowls.\",\n      \"why\": \"A bowl-based lunch that doesn't require a table to enjoy.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_keema\",\n          \"servings\": 1,\n          \"box_id\": \"box_keema_casimir\"\n        },\n        {\n          \"preparation_id\": \"prep_roast_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_potatoes_casimir\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Warm Chicken and Herb Couscous\",\n      \"title\": \"Roasted chicken and courgettes with giant couscous\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon juice\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the chicken, courgettes, and couscous together in a pan. Finish with a squeeze of fresh lemon.\",\n      \"why\": \"Warm elements are essential for dinner, even on a busy DIY day.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_garlic_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_peregrine\"\n        },\n        {\n          \"preparation_id\": \"prep_herby_couscous\",\n          \"servings\": 1,\n          \"box_id\": \"box_couscous_peregrine\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Final Lemon Loaf Breakfast\",\n      \"title\": \"Lemon and poppy seed yogurt loaf with Greek yogurt\",\n      \"slot\": \"breakfast\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"Greek yogurt\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"The final slices of the yogurt loaf served with fresh Greek yogurt.\",\n      \"why\": \"Completing the batch of the house-requested lemon treat.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_yogurt_loaf\",\n          \"servings\": 1,\n          \"box_id\": \"box_loaf_casimir\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 2\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Odalric's Jam and Egg Toast\",\n      \"title\": \"Blackcurrant jam on toast with boiled eggs\",\n      \"slot\": \"breakfast\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"wholemeal bread\",\n          \"quantity\": \"2 slices\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"blackcurrant jam\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"2\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Boil the eggs and prepare the jam toast as usual.\",\n      \"why\": \"Consistent protein-fuelled start for Odalric's morning.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Friday Keema Lunch\",\n      \"title\": \"Beef and lentil keema with potatoes\",\n      \"slot\": \"lunch\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"fresh coriander\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Pan-reheat the last of the keema and potatoes. Garnish with fresh coriander.\",\n      \"why\": \"Using the last of the beef batch for a high-protein lunch.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_keema\",\n          \"servings\": 1,\n          \"box_id\": \"box_keema_wilfrid\"\n        },\n        {\n          \"preparation_id\": \"prep_roast_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_potatoes_wilfrid\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Pan-Seared Pork and Couscous\",\n      \"title\": \"Quick garlic pork medallions with herby giant couscous\",\n      \"slot\": \"dinner\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"pork medallions\",\n          \"quantity\": \"600 g\",\n          \"amount\": 600,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic clove\",\n          \"quantity\": \"1\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Sear the pork medallions in oil with crushed garlic for 3-4 minutes per side. Reheat the couscous in the same pan to pick up the juices.\",\n      \"why\": \"A fresh-cooked protein to end the stretch, utilizing the remaining giant couscous batch.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_herby_couscous\",\n          \"servings\": 1,\n          \"box_id\": \"box_couscous_wilfrid\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 12\n      },\n      \"honours_belief_keys\": [\n        \"starch_follows_the_session\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_yogurt_loaf\",\n      \"title\": \"Lemon and Poppy Seed Breakfast Loaf\",\n      \"servings_made\": 9,\n      \"ingredients\": [\n        {\n          \"term\": \"Greek yogurt\",\n          \"quantity\": \"500 g\",\n          \"amount\": 500,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"3\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"self-raising flour\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"poppy seeds\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemons\",\n          \"quantity\": \"2\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"honey\",\n          \"quantity\": \"100 ml\",\n          \"amount\": 100,\n          \"unit\": \"ml\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Whisk yogurt, eggs, honey, and lemon zest. Fold in flour and poppy seeds. Bake at 180°C for 45 minutes until golden.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 55,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_loaf_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 0\n        },\n        {\n          \"id\": \"box_loaf_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 240\n        },\n        {\n          \"id\": \"box_loaf_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 360\n        },\n        {\n          \"id\": \"box_loaf_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 240\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_garlic_chicken\",\n      \"title\": \"Garlic and Lemon Roasted Chicken and Courgettes\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        {\n          \"term\": \"chicken thighs, boneless\",\n          \"quantity\": \"1.6 kg\",\n          \"amount\": 1.6,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"courgettes\",\n          \"quantity\": \"4 large\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic cloves\",\n          \"quantity\": \"4\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Toss chicken and sliced courgettes with oil, crushed garlic, and lemon juice. Roast at 200°C for 30 minutes.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 40,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_chicken_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 500\n        },\n        {\n          \"id\": \"box_chicken_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_chicken_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 500\n        },\n        {\n          \"id\": \"box_chicken_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 300\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_beef_keema\",\n      \"title\": \"Beef and Brown Lentil Keema\",\n      \"servings_made\": 12,\n      \"ingredients\": [\n        {\n          \"term\": \"minced beef\",\n          \"quantity\": \"1 kg\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red lentils\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"beef stock\",\n          \"quantity\": \"500 ml\",\n          \"amount\": 500,\n          \"unit\": \"ml\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"ground cumin\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Brown the beef. Add lentils, cumin, and stock. Simmer for 25 minutes until lentils are soft and the mixture is thick and brown.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 35,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_keema_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 750\n        },\n        {\n          \"id\": \"box_keema_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 450\n        },\n        {\n          \"id\": \"box_keema_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 750\n        },\n        {\n          \"id\": \"box_keema_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 450\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_herby_couscous\",\n      \"title\": \"Lemon and Herb Giant Couscous\",\n      \"servings_made\": 12,\n      \"ingredients\": [\n        {\n          \"term\": \"giant couscous\",\n          \"quantity\": \"500 g\",\n          \"amount\": 500,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon juice\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"dried oregano\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Boil couscous in salted water for 8 minutes. Drain and toss with lemon juice and oregano.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 15,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_couscous_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 600\n        },\n        {\n          \"id\": \"box_couscous_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_couscous_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 600\n        },\n        {\n          \"id\": \"box_couscous_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 300\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_roast_potatoes\",\n      \"title\": \"Simple Roasted Potato Wedges\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        {\n          \"term\": \"potatoes\",\n          \"quantity\": \"1.5 kg\",\n          \"amount\": 1.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Cut potatoes into wedges. Toss with oil and salt. Roast at 200°C for 35 minutes until crisp.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 40,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_potatoes_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 400\n        },\n        {\n          \"id\": \"box_potatoes_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_potatoes_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 400\n        },\n        {\n          \"id\": \"box_potatoes_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 200\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_yogurt_loaf\",\n        \"prep_garlic_chicken\",\n        \"prep_beef_keema\",\n        \"prep_herby_couscous\",\n        \"prep_roast_potatoes\"\n      ],\n      \"total_minutes\": 55,\n      \"run_through\": \"Oven on. Prep the yogurt loaf and get it in first. Chop potatoes and courgettes; roast them on separate trays with the chicken. Start the beef keema on the hob. Boil the giant couscous last. Box everything once cooled.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"Greek yogurt\",\n      \"quantity\": \"1 kg\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"eggs\",\n      \"quantity\": \"12\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"self-raising flour\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"poppy seeds\",\n      \"quantity\": \"50 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"lemons\",\n      \"quantity\": \"4\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"honey\",\n      \"quantity\": \"100 ml\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"chicken thighs, boneless\",\n      \"quantity\": \"1.6 kg\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"courgettes\",\n      \"quantity\": \"4 large\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"minced beef\",\n      \"quantity\": \"1 kg\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"red lentils\",\n      \"quantity\": \"200 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"giant couscous\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"potatoes\",\n      \"quantity\": \"1.5 kg\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"pork medallions\",\n      \"quantity\": \"600 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"spinach\",\n      \"quantity\": \"250 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"wholemeal bread\",\n      \"quantity\": \"1 loaf\",\n      \"aisle\": \"other\"\n    },\n    {\n      \"term\": \"blackcurrant jam\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"85acac95-312b-4d0e-a4da-02558e8a182f\",\n      \"portion_note\": \"Larger portions of chicken, keema, and starch. Eats toast and jam with eggs for breakfast.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_garlic_chicken\",\n          \"note\": \"Large share of chicken and courgettes\"\n        },\n        {\n          \"preparation_id\": \"prep_beef_keema\",\n          \"note\": \"Large share of keema\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"f190856d-d573-42e9-a026-b6a37b9f7471\",\n      \"portion_note\": \"Child-size portions. Cut the crusts off the yogurt loaf slices.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_yogurt_loaf\",\n          \"note\": \"Small slice, no crusts\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\",\n      \"portion_note\": \"Larger protein and starch share. Ensure no orange-coloured foods on the plate.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_beef_keema\",\n          \"note\": \"Large share, ensure it is brown/dark\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"536e683d-64a8-4dc2-a69b-6ee1925b206c\",\n      \"portion_note\": \"Child-size portions. Add hot sauce to all lunch and dinner dishes.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_roast_potatoes\",\n          \"note\": \"Small share with hot sauce\"\n        }\n      ]\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Lemon and Poppy Seed Loaf",
+          "title": "Lemon and poppy seed yogurt loaf with Greek yogurt",
+          "slot": "breakfast",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "Greek yogurt",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Slice a portion of the loaf. Serve with a generous dollop of fresh Greek yogurt on the side.",
+          "why": "We brought the Sunday traybake dream forward to Wednesday to brighten the kitchen while it's still usable.",
+          "uses": [
+            {
+              "preparation_id": "prep_yogurt_loaf",
+              "servings": 1,
+              "box_id": "box_loaf_wilfrid"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 2
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Odalric's Jam and Egg Toast",
+          "title": "Blackcurrant jam on toast with boiled eggs",
+          "slot": "breakfast",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "wholemeal bread",
+              "quantity": "2 slices",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "blackcurrant jam",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "eggs",
+              "quantity": "2",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Boil the eggs for 7 minutes. Toast the bread and spread with blackcurrant jam. Serve together.",
+          "why": "Odalric has his own breakfast routine, but we've added eggs to ensure the coach's protein anchor rule is met.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 10
+          },
+          "honours_belief_keys": []
+        },
+        {
+          "name": "Garlic Chicken and Couscous Bowl",
+          "title": "Lemon and garlic chicken with roasted courgettes and giant couscous",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "fresh parsley",
+              "quantity": "a small handful",
+              "amount": null,
+              "unit": null,
+              "state": "raw"
+            }
+          ],
+          "method": "Combine a portion of the warm roasted chicken and courgettes with the herby giant couscous. Top with fresh parsley.",
+          "why": "Courgette is our loud vegetable today, providing a fresh crunch against the garlic chicken.",
+          "uses": [
+            {
+              "preparation_id": "prep_garlic_chicken",
+              "servings": 1,
+              "box_id": "box_chicken_odalric"
+            },
+            {
+              "preparation_id": "prep_herby_couscous",
+              "servings": 1,
+              "box_id": "box_couscous_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "starch_follows_the_session"
+          ]
+        },
+        {
+          "name": "Beef and Lentil Keema",
+          "title": "Beef and brown lentil keema with roasted potatoes",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "spinach",
+              "quantity": "30 g",
+              "amount": 30,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Serve the warm beef and lentil keema over the roasted potatoes. Stir through the fresh spinach so it wilts in the heat.",
+          "why": "A hearty, warm dinner that anchors the day with beef and iron-rich lentils.",
+          "uses": [
+            {
+              "preparation_id": "prep_beef_keema",
+              "servings": 1,
+              "box_id": "box_keema_odalric"
+            },
+            {
+              "preparation_id": "prep_roast_potatoes",
+              "servings": 1,
+              "box_id": "box_potatoes_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Odalric's Jam and Egg Toast",
+          "title": "Blackcurrant jam on toast with boiled eggs",
+          "slot": "breakfast",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "wholemeal bread",
+              "quantity": "2 slices",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "blackcurrant jam",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "eggs",
+              "quantity": "2",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Boil the eggs for 7 minutes. Toast the bread and spread with jam.",
+          "why": "Easy to eat while Odalric stands by the window watching the hallway being painted.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 10
+          },
+          "honours_belief_keys": []
+        },
+        {
+          "name": "Lemon and Poppy Seed Loaf",
+          "title": "Lemon and poppy seed yogurt loaf with Greek yogurt",
+          "slot": "breakfast",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "Greek yogurt",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Slice the loaf and serve with Greek yogurt. Can be eaten by hand if the table is busy.",
+          "why": "A portable breakfast for a day when the kitchen table is out of action.",
+          "uses": [
+            {
+              "preparation_id": "prep_yogurt_loaf",
+              "servings": 1,
+              "box_id": "box_loaf_wilfrid"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 2
+          },
+          "honours_belief_keys": []
+        },
+        {
+          "name": "Reheated Beef Keema Bowl",
+          "title": "Beef and lentil keema with potatoes",
+          "slot": "lunch",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "hot sauce",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the keema and potatoes in a large frying pan with a splash of water until piping hot. Serve in bowls.",
+          "why": "A bowl-based lunch that doesn't require a table to enjoy.",
+          "uses": [
+            {
+              "preparation_id": "prep_beef_keema",
+              "servings": 1,
+              "box_id": "box_keema_casimir"
+            },
+            {
+              "preparation_id": "prep_roast_potatoes",
+              "servings": 1,
+              "box_id": "box_potatoes_casimir"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": []
+        },
+        {
+          "name": "Warm Chicken and Herb Couscous",
+          "title": "Roasted chicken and courgettes with giant couscous",
+          "slot": "dinner",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "lemon juice",
+              "quantity": "half a lemon",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the chicken, courgettes, and couscous together in a pan. Finish with a squeeze of fresh lemon.",
+          "why": "Warm elements are essential for dinner, even on a busy DIY day.",
+          "uses": [
+            {
+              "preparation_id": "prep_garlic_chicken",
+              "servings": 1,
+              "box_id": "box_chicken_peregrine"
+            },
+            {
+              "preparation_id": "prep_herby_couscous",
+              "servings": 1,
+              "box_id": "box_couscous_peregrine"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": []
+        },
+        {
+          "name": "Final Lemon Loaf Breakfast",
+          "title": "Lemon and poppy seed yogurt loaf with Greek yogurt",
+          "slot": "breakfast",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "Greek yogurt",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "The final slices of the yogurt loaf served with fresh Greek yogurt.",
+          "why": "Completing the batch of the house-requested lemon treat.",
+          "uses": [
+            {
+              "preparation_id": "prep_yogurt_loaf",
+              "servings": 1,
+              "box_id": "box_loaf_casimir"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 2
+          },
+          "honours_belief_keys": []
+        },
+        {
+          "name": "Odalric's Jam and Egg Toast",
+          "title": "Blackcurrant jam on toast with boiled eggs",
+          "slot": "breakfast",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "wholemeal bread",
+              "quantity": "2 slices",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "blackcurrant jam",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "eggs",
+              "quantity": "2",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Boil the eggs and prepare the jam toast as usual.",
+          "why": "Consistent protein-fuelled start for Odalric's morning.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 10
+          },
+          "honours_belief_keys": []
+        },
+        {
+          "name": "Friday Keema Lunch",
+          "title": "Beef and lentil keema with potatoes",
+          "slot": "lunch",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "fresh coriander",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": "raw"
+            }
+          ],
+          "method": "Pan-reheat the last of the keema and potatoes. Garnish with fresh coriander.",
+          "why": "Using the last of the beef batch for a high-protein lunch.",
+          "uses": [
+            {
+              "preparation_id": "prep_beef_keema",
+              "servings": 1,
+              "box_id": "box_keema_wilfrid"
+            },
+            {
+              "preparation_id": "prep_roast_potatoes",
+              "servings": 1,
+              "box_id": "box_potatoes_wilfrid"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": []
+        },
+        {
+          "name": "Pan-Seared Pork and Couscous",
+          "title": "Quick garlic pork medallions with herby giant couscous",
+          "slot": "dinner",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "pork medallions",
+              "quantity": "600 g",
+              "amount": 600,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "garlic clove",
+              "quantity": "1",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Sear the pork medallions in oil with crushed garlic for 3-4 minutes per side. Reheat the couscous in the same pan to pick up the juices.",
+          "why": "A fresh-cooked protein to end the stretch, utilizing the remaining giant couscous batch.",
+          "uses": [
+            {
+              "preparation_id": "prep_herby_couscous",
+              "servings": 1,
+              "box_id": "box_couscous_wilfrid"
+            }
+          ],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 12
+          },
+          "honours_belief_keys": [
+            "starch_follows_the_session"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_yogurt_loaf",
+          "title": "Lemon and Poppy Seed Breakfast Loaf",
+          "servings_made": 9,
+          "ingredients": [
+            {
+              "term": "Greek yogurt",
+              "quantity": "500 g",
+              "amount": 500,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "eggs",
+              "quantity": "3",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "self-raising flour",
+              "quantity": "300 g",
+              "amount": 300,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "poppy seeds",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "lemons",
+              "quantity": "2",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "honey",
+              "quantity": "100 ml",
+              "amount": 100,
+              "unit": "ml",
+              "state": "raw"
+            }
+          ],
+          "method": "Whisk yogurt, eggs, honey, and lemon zest. Fold in flour and poppy seeds. Bake at 180°C for 45 minutes until golden.",
+          "active_minutes": 10,
+          "total_minutes": 55,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_loaf_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 0
+            },
+            {
+              "id": "box_loaf_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 240
+            },
+            {
+              "id": "box_loaf_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 360
+            },
+            {
+              "id": "box_loaf_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 240
+            }
+          ]
+        },
+        {
+          "id": "prep_garlic_chicken",
+          "title": "Garlic and Lemon Roasted Chicken and Courgettes",
+          "servings_made": 8,
+          "ingredients": [
+            {
+              "term": "chicken thighs, boneless",
+              "quantity": "1.6 kg",
+              "amount": 1.6,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "courgettes",
+              "quantity": "4 large",
+              "amount": 4,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "garlic cloves",
+              "quantity": "4",
+              "amount": 4,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Toss chicken and sliced courgettes with oil, crushed garlic, and lemon juice. Roast at 200°C for 30 minutes.",
+          "active_minutes": 10,
+          "total_minutes": 40,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_chicken_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 500
+            },
+            {
+              "id": "box_chicken_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 300
+            },
+            {
+              "id": "box_chicken_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 500
+            },
+            {
+              "id": "box_chicken_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 300
+            }
+          ]
+        },
+        {
+          "id": "prep_beef_keema",
+          "title": "Beef and Brown Lentil Keema",
+          "servings_made": 12,
+          "ingredients": [
+            {
+              "term": "minced beef",
+              "quantity": "1 kg",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "red lentils",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "beef stock",
+              "quantity": "500 ml",
+              "amount": 500,
+              "unit": "ml",
+              "state": "raw"
+            },
+            {
+              "term": "ground cumin",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Brown the beef. Add lentils, cumin, and stock. Simmer for 25 minutes until lentils are soft and the mixture is thick and brown.",
+          "active_minutes": 10,
+          "total_minutes": 35,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_keema_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 750
+            },
+            {
+              "id": "box_keema_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 450
+            },
+            {
+              "id": "box_keema_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 750
+            },
+            {
+              "id": "box_keema_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 450
+            }
+          ]
+        },
+        {
+          "id": "prep_herby_couscous",
+          "title": "Lemon and Herb Giant Couscous",
+          "servings_made": 12,
+          "ingredients": [
+            {
+              "term": "giant couscous",
+              "quantity": "500 g",
+              "amount": 500,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "lemon juice",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "dried oregano",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Boil couscous in salted water for 8 minutes. Drain and toss with lemon juice and oregano.",
+          "active_minutes": 5,
+          "total_minutes": 15,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_couscous_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 600
+            },
+            {
+              "id": "box_couscous_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 300
+            },
+            {
+              "id": "box_couscous_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 600
+            },
+            {
+              "id": "box_couscous_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 300
+            }
+          ]
+        },
+        {
+          "id": "prep_roast_potatoes",
+          "title": "Simple Roasted Potato Wedges",
+          "servings_made": 8,
+          "ingredients": [
+            {
+              "term": "potatoes",
+              "quantity": "1.5 kg",
+              "amount": 1.5,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Cut potatoes into wedges. Toss with oil and salt. Roast at 200°C for 35 minutes until crisp.",
+          "active_minutes": 5,
+          "total_minutes": 40,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_potatoes_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 400
+            },
+            {
+              "id": "box_potatoes_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 200
+            },
+            {
+              "id": "box_potatoes_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 400
+            },
+            {
+              "id": "box_potatoes_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 200
+            }
+          ]
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_yogurt_loaf",
+            "prep_garlic_chicken",
+            "prep_beef_keema",
+            "prep_herby_couscous",
+            "prep_roast_potatoes"
+          ],
+          "total_minutes": 55,
+          "run_through": "Oven on. Prep the yogurt loaf and get it in first. Chop potatoes and courgettes; roast them on separate trays with the chicken. Start the beef keema on the hob. Boil the giant couscous last. Box everything once cooled."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "Greek yogurt",
+          "quantity": "1 kg",
+          "aisle": "dairy"
+        },
+        {
+          "term": "eggs",
+          "quantity": "12",
+          "aisle": "dairy"
+        },
+        {
+          "term": "self-raising flour",
+          "quantity": "500 g",
+          "aisle": "pantry"
+        },
+        {
+          "term": "poppy seeds",
+          "quantity": "50 g",
+          "aisle": "pantry"
+        },
+        {
+          "term": "lemons",
+          "quantity": "4",
+          "aisle": "produce"
+        },
+        {
+          "term": "honey",
+          "quantity": "100 ml",
+          "aisle": "pantry"
+        },
+        {
+          "term": "chicken thighs, boneless",
+          "quantity": "1.6 kg",
+          "aisle": "protein"
+        },
+        {
+          "term": "courgettes",
+          "quantity": "4 large",
+          "aisle": "produce"
+        },
+        {
+          "term": "minced beef",
+          "quantity": "1 kg",
+          "aisle": "protein"
+        },
+        {
+          "term": "red lentils",
+          "quantity": "200 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "giant couscous",
+          "quantity": "500 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "potatoes",
+          "quantity": "1.5 kg",
+          "aisle": "produce"
+        },
+        {
+          "term": "pork medallions",
+          "quantity": "600 g",
+          "aisle": "protein"
+        },
+        {
+          "term": "spinach",
+          "quantity": "250 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "wholemeal bread",
+          "quantity": "1 loaf",
+          "aisle": "other"
+        },
+        {
+          "term": "blackcurrant jam",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        }
+      ],
+      "member_portions": [
+        {
+          "member_id": "85acac95-312b-4d0e-a4da-02558e8a182f",
+          "portion_note": "Larger portions of chicken, keema, and starch. Eats toast and jam with eggs for breakfast.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_garlic_chicken",
+              "note": "Large share of chicken and courgettes"
+            },
+            {
+              "preparation_id": "prep_beef_keema",
+              "note": "Large share of keema"
+            }
+          ]
+        },
+        {
+          "member_id": "f190856d-d573-42e9-a026-b6a37b9f7471",
+          "portion_note": "Child-size portions. Cut the crusts off the yogurt loaf slices.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_yogurt_loaf",
+              "note": "Small slice, no crusts"
+            }
+          ]
+        },
+        {
+          "member_id": "65eb7490-adae-40c2-8b43-b10a0cc0ab05",
+          "portion_note": "Larger protein and starch share. Ensure no orange-coloured foods on the plate.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_beef_keema",
+              "note": "Large share, ensure it is brown/dark"
+            }
+          ]
+        },
+        {
+          "member_id": "536e683d-64a8-4dc2-a69b-6ee1925b206c",
+          "portion_note": "Child-size portions. Add hot sauce to all lunch and dinner dishes.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_roast_potatoes",
+              "note": "Small share with hot sauce"
+            }
+          ]
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "candidates": [
+        {
+          "index": 0,
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Lemon and Poppy Seed Loaf\",\n      \"title\": \"Lemon and poppy seed yogurt loaf with Greek yogurt\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"Greek yogurt\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Slice a portion of the loaf. Serve with a generous dollop of fresh Greek yogurt on the side.\",\n      \"why\": \"We brought the Sunday traybake dream forward to Wednesday to brighten the kitchen while it's still usable.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_yogurt_loaf\",\n          \"servings\": 1,\n          \"box_id\": \"box_loaf_wilfrid\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 2\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Odalric's Jam and Egg Toast\",\n      \"title\": \"Blackcurrant jam on toast with boiled eggs\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"wholemeal bread\",\n          \"quantity\": \"2 slices\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"blackcurrant jam\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"2\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Boil the eggs for 7 minutes. Toast the bread and spread with blackcurrant jam. Serve together.\",\n      \"why\": \"Odalric has his own breakfast routine, but we've added eggs to ensure the coach's protein anchor rule is met.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Garlic Chicken and Couscous Bowl\",\n      \"title\": \"Lemon and garlic chicken with roasted courgettes and giant couscous\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"fresh parsley\",\n          \"quantity\": \"a small handful\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Combine a portion of the warm roasted chicken and courgettes with the herby giant couscous. Top with fresh parsley.\",\n      \"why\": \"Courgette is our loud vegetable today, providing a fresh crunch against the garlic chicken.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_garlic_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_odalric\"\n        },\n        {\n          \"preparation_id\": \"prep_herby_couscous\",\n          \"servings\": 1,\n          \"box_id\": \"box_couscous_odalric\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"starch_follows_the_session\"\n      ]\n    },\n    {\n      \"name\": \"Beef and Lentil Keema\",\n      \"title\": \"Beef and brown lentil keema with roasted potatoes\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"spinach\",\n          \"quantity\": \"30 g\",\n          \"amount\": 30,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Serve the warm beef and lentil keema over the roasted potatoes. Stir through the fresh spinach so it wilts in the heat.\",\n      \"why\": \"A hearty, warm dinner that anchors the day with beef and iron-rich lentils.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_keema\",\n          \"servings\": 1,\n          \"box_id\": \"box_keema_odalric\"\n        },\n        {\n          \"preparation_id\": \"prep_roast_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_potatoes_odalric\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Odalric's Jam and Egg Toast\",\n      \"title\": \"Blackcurrant jam on toast with boiled eggs\",\n      \"slot\": \"breakfast\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"wholemeal bread\",\n          \"quantity\": \"2 slices\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"blackcurrant jam\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"2\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Boil the eggs for 7 minutes. Toast the bread and spread with jam.\",\n      \"why\": \"Easy to eat while Odalric stands by the window watching the hallway being painted.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Lemon and Poppy Seed Loaf\",\n      \"title\": \"Lemon and poppy seed yogurt loaf with Greek yogurt\",\n      \"slot\": \"breakfast\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"Greek yogurt\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Slice the loaf and serve with Greek yogurt. Can be eaten by hand if the table is busy.\",\n      \"why\": \"A portable breakfast for a day when the kitchen table is out of action.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_yogurt_loaf\",\n          \"servings\": 1,\n          \"box_id\": \"box_loaf_wilfrid\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 2\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Reheated Beef Keema Bowl\",\n      \"title\": \"Beef and lentil keema with potatoes\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"hot sauce\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the keema and potatoes in a large frying pan with a splash of water until piping hot. Serve in bowls.\",\n      \"why\": \"A bowl-based lunch that doesn't require a table to enjoy.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_keema\",\n          \"servings\": 1,\n          \"box_id\": \"box_keema_casimir\"\n        },\n        {\n          \"preparation_id\": \"prep_roast_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_potatoes_casimir\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Warm Chicken and Herb Couscous\",\n      \"title\": \"Roasted chicken and courgettes with giant couscous\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon juice\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the chicken, courgettes, and couscous together in a pan. Finish with a squeeze of fresh lemon.\",\n      \"why\": \"Warm elements are essential for dinner, even on a busy DIY day.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_garlic_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_peregrine\"\n        },\n        {\n          \"preparation_id\": \"prep_herby_couscous\",\n          \"servings\": 1,\n          \"box_id\": \"box_couscous_peregrine\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Final Lemon Loaf Breakfast\",\n      \"title\": \"Lemon and poppy seed yogurt loaf with Greek yogurt\",\n      \"slot\": \"breakfast\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"Greek yogurt\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"The final slices of the yogurt loaf served with fresh Greek yogurt.\",\n      \"why\": \"Completing the batch of the house-requested lemon treat.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_yogurt_loaf\",\n          \"servings\": 1,\n          \"box_id\": \"box_loaf_casimir\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 2\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Odalric's Jam and Egg Toast\",\n      \"title\": \"Blackcurrant jam on toast with boiled eggs\",\n      \"slot\": \"breakfast\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"wholemeal bread\",\n          \"quantity\": \"2 slices\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"blackcurrant jam\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"2\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Boil the eggs and prepare the jam toast as usual.\",\n      \"why\": \"Consistent protein-fuelled start for Odalric's morning.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Friday Keema Lunch\",\n      \"title\": \"Beef and lentil keema with potatoes\",\n      \"slot\": \"lunch\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"fresh coriander\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Pan-reheat the last of the keema and potatoes. Garnish with fresh coriander.\",\n      \"why\": \"Using the last of the beef batch for a high-protein lunch.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_keema\",\n          \"servings\": 1,\n          \"box_id\": \"box_keema_wilfrid\"\n        },\n        {\n          \"preparation_id\": \"prep_roast_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_potatoes_wilfrid\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Pan-Seared Pork and Couscous\",\n      \"title\": \"Quick garlic pork medallions with herby giant couscous\",\n      \"slot\": \"dinner\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"pork medallions\",\n          \"quantity\": \"600 g\",\n          \"amount\": 600,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic clove\",\n          \"quantity\": \"1\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Sear the pork medallions in oil with crushed garlic for 3-4 minutes per side. Reheat the couscous in the same pan to pick up the juices.\",\n      \"why\": \"A fresh-cooked protein to end the stretch, utilizing the remaining giant couscous batch.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_herby_couscous\",\n          \"servings\": 1,\n          \"box_id\": \"box_couscous_wilfrid\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 12\n      },\n      \"honours_belief_keys\": [\n        \"starch_follows_the_session\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_yogurt_loaf\",\n      \"title\": \"Lemon and Poppy Seed Breakfast Loaf\",\n      \"servings_made\": 9,\n      \"ingredients\": [\n        {\n          \"term\": \"Greek yogurt\",\n          \"quantity\": \"500 g\",\n          \"amount\": 500,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"3\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"self-raising flour\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"poppy seeds\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemons\",\n          \"quantity\": \"2\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"honey\",\n          \"quantity\": \"100 ml\",\n          \"amount\": 100,\n          \"unit\": \"ml\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Whisk yogurt, eggs, honey, and lemon zest. Fold in flour and poppy seeds. Bake at 180°C for 45 minutes until golden.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 55,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_loaf_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 0\n        },\n        {\n          \"id\": \"box_loaf_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 240\n        },\n        {\n          \"id\": \"box_loaf_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 360\n        },\n        {\n          \"id\": \"box_loaf_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 240\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_garlic_chicken\",\n      \"title\": \"Garlic and Lemon Roasted Chicken and Courgettes\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        {\n          \"term\": \"chicken thighs, boneless\",\n          \"quantity\": \"1.6 kg\",\n          \"amount\": 1.6,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"courgettes\",\n          \"quantity\": \"4 large\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic cloves\",\n          \"quantity\": \"4\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Toss chicken and sliced courgettes with oil, crushed garlic, and lemon juice. Roast at 200°C for 30 minutes.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 40,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_chicken_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 500\n        },\n        {\n          \"id\": \"box_chicken_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_chicken_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 500\n        },\n        {\n          \"id\": \"box_chicken_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 300\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_beef_keema\",\n      \"title\": \"Beef and Brown Lentil Keema\",\n      \"servings_made\": 12,\n      \"ingredients\": [\n        {\n          \"term\": \"minced beef\",\n          \"quantity\": \"1 kg\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red lentils\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"beef stock\",\n          \"quantity\": \"500 ml\",\n          \"amount\": 500,\n          \"unit\": \"ml\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"ground cumin\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Brown the beef. Add lentils, cumin, and stock. Simmer for 25 minutes until lentils are soft and the mixture is thick and brown.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 35,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_keema_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 750\n        },\n        {\n          \"id\": \"box_keema_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 450\n        },\n        {\n          \"id\": \"box_keema_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 750\n        },\n        {\n          \"id\": \"box_keema_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 450\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_herby_couscous\",\n      \"title\": \"Lemon and Herb Giant Couscous\",\n      \"servings_made\": 12,\n      \"ingredients\": [\n        {\n          \"term\": \"giant couscous\",\n          \"quantity\": \"500 g\",\n          \"amount\": 500,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon juice\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"dried oregano\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Boil couscous in salted water for 8 minutes. Drain and toss with lemon juice and oregano.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 15,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_couscous_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 600\n        },\n        {\n          \"id\": \"box_couscous_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_couscous_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 600\n        },\n        {\n          \"id\": \"box_couscous_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 300\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_roast_potatoes\",\n      \"title\": \"Simple Roasted Potato Wedges\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        {\n          \"term\": \"potatoes\",\n          \"quantity\": \"1.5 kg\",\n          \"amount\": 1.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Cut potatoes into wedges. Toss with oil and salt. Roast at 200°C for 35 minutes until crisp.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 40,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_potatoes_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 400\n        },\n        {\n          \"id\": \"box_potatoes_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_potatoes_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 400\n        },\n        {\n          \"id\": \"box_potatoes_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 200\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_yogurt_loaf\",\n        \"prep_garlic_chicken\",\n        \"prep_beef_keema\",\n        \"prep_herby_couscous\",\n        \"prep_roast_potatoes\"\n      ],\n      \"total_minutes\": 55,\n      \"run_through\": \"Oven on. Prep the yogurt loaf and get it in first. Chop potatoes and courgettes; roast them on separate trays with the chicken. Start the beef keema on the hob. Boil the giant couscous last. Box everything once cooled.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"Greek yogurt\",\n      \"quantity\": \"1 kg\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"eggs\",\n      \"quantity\": \"12\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"self-raising flour\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"poppy seeds\",\n      \"quantity\": \"50 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"lemons\",\n      \"quantity\": \"4\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"honey\",\n      \"quantity\": \"100 ml\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"chicken thighs, boneless\",\n      \"quantity\": \"1.6 kg\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"courgettes\",\n      \"quantity\": \"4 large\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"minced beef\",\n      \"quantity\": \"1 kg\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"red lentils\",\n      \"quantity\": \"200 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"giant couscous\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"potatoes\",\n      \"quantity\": \"1.5 kg\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"pork medallions\",\n      \"quantity\": \"600 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"spinach\",\n      \"quantity\": \"250 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"wholemeal bread\",\n      \"quantity\": \"1 loaf\",\n      \"aisle\": \"other\"\n    },\n    {\n      \"term\": \"blackcurrant jam\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"85acac95-312b-4d0e-a4da-02558e8a182f\",\n      \"portion_note\": \"Larger portions of chicken, keema, and starch. Eats toast and jam with eggs for breakfast.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_garlic_chicken\",\n          \"note\": \"Large share of chicken and courgettes\"\n        },\n        {\n          \"preparation_id\": \"prep_beef_keema\",\n          \"note\": \"Large share of keema\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"f190856d-d573-42e9-a026-b6a37b9f7471\",\n      \"portion_note\": \"Child-size portions. Cut the crusts off the yogurt loaf slices.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_yogurt_loaf\",\n          \"note\": \"Small slice, no crusts\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\",\n      \"portion_note\": \"Larger protein and starch share. Ensure no orange-coloured foods on the plate.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_beef_keema\",\n          \"note\": \"Large share, ensure it is brown/dark\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"536e683d-64a8-4dc2-a69b-6ee1925b206c\",\n      \"portion_note\": \"Child-size portions. Add hot sauce to all lunch and dinner dishes.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_roast_potatoes\",\n          \"note\": \"Small share with hot sauce\"\n        }\n      ]\n    }\n  ]\n}",
+                "thoughtSignature": "[redacted]"
+              }
+            ]
+          },
+          "finishReason": "STOP"
+        }
+      ],
+      "responseId": "u--EasquOJexnsEPupyPuQw",
+      "modelVersion": "gemini-3-flash-preview",
+      "usageMetadata": {
+        "serviceTier": "standard",
+        "totalTokenCount": 21717,
+        "promptTokenCount": 7772,
+        "cacheTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 4047
+          }
+        ],
+        "thoughtsTokenCount": 5913,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 7772
+          }
+        ],
+        "candidatesTokenCount": 8032,
+        "cachedContentTokenCount": 4047
+      }
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-18T23:49:30.105151+00:00",
+      "status": "breaker_skip",
+      "outcome": "skipped",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": "LLM breaker open for provider/model",
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:49:30.112548+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:49:30.114625+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:49:30.116377+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:50:14.688544+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:50:14.72464+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:50:16.184166+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:50:19.686096+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:50:19.696926+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:50:19.705553+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:51:13.340184+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

@@ -15,7 +15,11 @@ import { assert, assertEquals } from "jsr:@std/assert@1";
 
 import {
   buildCompositionIndex,
+  CONDIMENT_MAX_GRAMS,
+  CONDIMENT_MAX_KCAL,
+  CONDIMENT_PLAUSIBLE_MULTIPLE,
   type CompositionRef,
+  condimentMassFor,
   FRY_OIL_UPTAKE_RATIO,
   gramsRawOf,
   isFriedMethod,
@@ -32,6 +36,10 @@ function ref(over: Partial<CompositionRef> & { slug: string }): CompositionRef {
   return {
     foodGroupRef: "non_starchy_veg",
     label: over.slug,
+    // LOT 18 — la provenance par défaut d'un décor de test est le référentiel
+    // HUMAIN: c'est ce que ces cas décrivent. Un défaut à `model` ferait lire
+    // « le modèle a rempli » à toute la suite existante.
+    source: "ciqual",
     energyKcal: 100,
     proteinG: 2,
     carbsG: 10,
@@ -48,6 +56,7 @@ function ref(over: Partial<CompositionRef> & { slug: string }): CompositionRef {
     atwaterDiscount: 1,
     energyDense: false,
     unitGrams: null,
+    condimentGrams: null,
     ...over,
   } as CompositionRef;
 }
@@ -370,6 +379,7 @@ Deno.test("normalizeTerm déplie la ligature et retire les accents", () => {
 import {
   MEAL_SYSTEM_PROMPT,
   parseGeneratedMeal,
+  UNQUANTIFIED_TERMS_NAMED,
 } from "./meal_generation.ts";
 
 const PARSE_DOCTRINE = { forbidden: [], foods: { recommended: [], discouraged: [] } };
@@ -405,6 +415,8 @@ function parseWith(
     dayProperties: [],
     merge: null,
     boxMemberIds: [],
+    weighedMemberIds: [],
+  boxMemberDiets: [],
     ...over,
   });
 }
@@ -482,6 +494,45 @@ Deno.test("l'issue de quantité est AGRÉGÉE, une seule ligne", () => {
   const lines = meal.issues.filter((i) => i.startsWith("structured_quantity_missing"));
   assertEquals(lines.length, 1);
   assert(lines[0].includes("3/3"));
+});
+
+Deno.test("les termes sans quantité sont NOMMÉS — le zéro ambigu du compteur agrégé", () => {
+  // ── LE DÉFAUT QUE CE COMPTEUR FERME, MESURÉ LE 2026-08-19 ───────────────
+  // `structured_quantity_missing: 30/94` ne distingue pas « 30 pincées de
+  // persil » — le produit voulu — de « roast chicken thighs », une protéine
+  // entière sans nombre. Rejoué sur les 1 204 plats de foyer en base: 307
+  // bloqués par un terme sans `amount`, et la liste est dominée par des
+  // ALIMENTS, pas par des condiments.
+  const meal = parseWith([
+    { term: "parsley", quantity: "a pinch" },
+    { term: "roast chicken thighs", quantity: "some" },
+  ]);
+  const named = meal.issues.filter((i) => i.startsWith("unquantified_terms:"));
+  assertEquals(named.length, 1);
+  // C'est L'ALIMENT qu'on doit pouvoir lire, au milieu du condiment.
+  assert(named[0].includes("roast chicken thighs"), named[0]);
+  assert(named[0].includes("parsley"), named[0]);
+});
+
+Deno.test("le plafond des termes nommés est DIT, jamais une troncature muette", () => {
+  // Une liste coupée en silence se lit « il n'y avait que douze termes », ce
+  // qui est le contraire du constat. Le reste est compté et annoncé.
+  const many = Array.from(
+    { length: UNQUANTIFIED_TERMS_NAMED + 3 },
+    (_, i) => ({ term: `mystery food ${i}`, quantity: "some" }),
+  );
+  const line = parseWith(many).issues
+    .find((i) => i.startsWith("unquantified_terms:"))!;
+  assert(line.includes("(+3 more)"), line);
+});
+
+Deno.test("un ingrédient QUANTIFIÉ ne parait dans aucun des deux canaux", () => {
+  // La contre-épreuve: sans elle, « la liste est pleine » et « la garde est
+  // cassée » se ressemblent.
+  const meal = parseWith([
+    { term: "rice", quantity: "100 g", amount: 100, unit: "g", state: "raw" },
+  ]);
+  assertEquals(meal.issues.filter((i) => i.startsWith("unquantified_terms:")), []);
 });
 
 Deno.test("la part DENSE sans grammes est NOMMÉE, à part du compteur", () => {
@@ -617,4 +668,196 @@ Deno.test("désarmement: un terme sans milieu se résout comme avant", () => {
   // Et un terme inconnu reste inconnu: la réduction n'invente pas.
   assertEquals(resolveIngredient(INDEX, "wholemeal tortilla"), null);
   assertEquals(resolveIngredient(INDEX, "kombu in dashi"), null);
+});
+
+// ===========================================================================
+// LOT 0-C — LA CLASSE DES CONDIMENTS
+//
+// CE QUE CES TESTS PROTÈGENT, et l'ordre est celui du coût:
+//
+//   * LA CONTRE-ÉPREUVE DE L'HUILE — si la classe pouvait avaler une matière
+//     grasse, elle cesserait d'être une classe de condiments pour devenir une
+//     abstention relâchée, et le premier poste de perte d'énergie du produit
+//     (82 lignes d'huile sans quantité mesurées sur 80 générations) redeviendrait
+//     muet. Une garde sans cas qui MORD n'est pas une garde;
+//   * LE PLAFOND QUI REFUSE L'AIL — le cas limite du lot. Une gousse pèse 5 g et
+//     la ligne porte déjà `unitGrams = 5`: seule la règle l'écarte;
+//   * LA BILINGUITÉ — `sel` et `poivre` doivent peser exactement comme `salt` et
+//     `black pepper`. Une garde testée dans une seule langue est une garde à
+//     moitié armée, cicatrice connue du dépôt;
+//   * L'ABSTENTION INTACTE — aucun aliment non pesé ne doit se mettre à passer.
+//
+// ⚠️ Les seuils sont écrits en LITTÉRAL dans les assertions, jamais par la
+// constante importée: un test paramétré par la valeur qu'il garde reste vert
+// quand on change cette valeur.
+// ===========================================================================
+
+/** Les vraies lignes du référentiel, valeurs comprises. */
+const COND_REFS: CompositionRef[] = [
+  ref({ slug: "salt", foodGroupRef: "sauce_dressing", energyKcal: 0, condimentGrams: 0.5 }),
+  ref({ slug: "black_pepper", foodGroupRef: "sauce_dressing", energyKcal: 330, condimentGrams: 0.5 }),
+  ref({ slug: "herbs_parsley", foodGroupRef: "leafy_greens", energyKcal: 43, condimentGrams: 5 }),
+  ref({ slug: "herbs_mint", foodGroupRef: "leafy_greens", energyKcal: 57.6, condimentGrams: 5 }),
+  ref({ slug: "water", foodGroupRef: "water", energyKcal: 0, condimentGrams: 1 }),
+  // HORS CLASSE, et chacun pour une raison différente.
+  ref({ slug: "garlic", energyKcal: 111, unitGrams: 5, condimentGrams: null }),
+  ref({ slug: "lemon", foodGroupRef: "citrus", energyKcal: 27.6, unitGrams: 60, condimentGrams: null }),
+  ref({ slug: "olive_oil", foodGroupRef: "olive_oil", energyKcal: 900, fatG: 100, energyDense: true, condimentGrams: null }),
+  ref({ slug: "cooked_rice", foodGroupRef: "refined_grain", energyKcal: 145, condimentGrams: null }),
+];
+
+const COND_INDEX = buildCompositionIndex(COND_REFS, [
+  { alias: "sel", slug: "salt" },
+  { alias: "poivre", slug: "black_pepper" },
+  { alias: "parsley", slug: "herbs_parsley" },
+  { alias: "persil", slug: "herbs_parsley" },
+  { alias: "ail", slug: "garlic" },
+  { alias: "olive oil", slug: "olive_oil" },
+  { alias: "huile d'olive", slug: "olive_oil" },
+]);
+
+const bySlug = (slug: string) => COND_REFS.find((r) => r.slug === slug)!;
+
+Deno.test("condiment: un terme SANS quantité est PESÉ, pas ignoré", () => {
+  const r = resolveIngredients(COND_INDEX, [
+    { term: "cooked rice", amount: 200, unit: "g", state: "cooked" },
+    { term: "salt" },
+    { term: "black pepper" },
+    { term: "parsley" },
+  ]);
+  // Les trois condiments sont DANS la somme, avec leur masse conventionnelle.
+  assertEquals(r.resolved.length, 4);
+  assertEquals(r.resolved.find((x) => x.ref.slug === "salt")?.gramsRaw, 0.5);
+  assertEquals(r.resolved.find((x) => x.ref.slug === "black_pepper")?.gramsRaw, 0.5);
+  assertEquals(r.resolved.find((x) => x.ref.slug === "herbs_parsley")?.gramsRaw, 5);
+  // Ils sont NOMMÉS: sans ce compteur, une masse conventionnelle et une masse
+  // mesurée sont indiscernables dans `resolved`.
+  assertEquals([...r.conventionalTerms].sort(), ["black pepper", "parsley", "salt"]);
+  // Et surtout: plus RIEN ne bloque. C'est tout l'objet du lot.
+  assertEquals(r.unweighedTerms, []);
+  assertEquals(r.unresolvedTerms, []);
+});
+
+Deno.test("condiment: la classe est BILINGUE, et pèse pareil dans les deux langues", () => {
+  const en = resolveIngredients(COND_INDEX, [{ term: "salt" }, { term: "black pepper" }, { term: "parsley" }]);
+  const fr = resolveIngredients(COND_INDEX, [{ term: "sel" }, { term: "poivre" }, { term: "persil" }]);
+  assertEquals(fr.resolved.map((x) => [x.ref.slug, x.gramsRaw]), en.resolved.map((x) => [x.ref.slug, x.gramsRaw]));
+  assertEquals(fr.unweighedTerms, []);
+  assertEquals(fr.conventionalTerms.length, 3);
+  // L'appartenance passe par le SLUG, jamais par la chaîne: c'est ce qui rend la
+  // bilinguité gratuite et interdit un second matcher à côté du résolveur.
+  assertEquals(resolveIngredient(COND_INDEX, "sel")?.slug, "salt");
+  assertEquals(resolveIngredient(COND_INDEX, "poivre")?.slug, "black_pepper");
+});
+
+Deno.test("condiment: CONTRE-ÉPREUVE — une huile sans quantité s'abstient TOUJOURS", () => {
+  const r = resolveIngredients(COND_INDEX, [
+    { term: "cooked rice", amount: 200, unit: "g", state: "cooked" },
+    { term: "salt" },
+    { term: "olive oil" },
+  ]);
+  // Le sel passe, l'huile NON. La classe ne relâche aucune abstention.
+  assertEquals(r.conventionalTerms, ["salt"]);
+  assertEquals(r.unweighedTerms, ["olive oil"]);
+  assert(r.unweighedEnergyDense, "l'huile non pesée doit lever le drapeau dense");
+  // Et c'est STRUCTUREL: même si quelqu'un écrivait une masse en base, le code
+  // refuse toute ligne dense, à n'importe quelle masse.
+  assertEquals(condimentMassFor({ ...bySlug("olive_oil"), condimentGrams: 0.1 }), null);
+  assertEquals(condimentMassFor({ ...bySlug("olive_oil"), condimentGrams: 5 }), null);
+});
+
+Deno.test("condiment: le plafond d'énergie refuse l'AIL à sa masse honnête", () => {
+  // Une gousse pèse 5 g — la ligne le dit elle-même (`unitGrams`). 5 × 3 × 111
+  // / 100 = 16,65 kcal, au-dessus des 10 kcal admis. L'ail est un ALIMENT.
+  assertEquals(bySlug("garlic").unitGrams, 5);
+  assertEquals(condimentMassFor({ ...bySlug("garlic"), condimentGrams: 5 }), null);
+  // Le citron tombe sur l'autre borne: 60 g, ce n'est plus un assaisonnement.
+  assertEquals(condimentMassFor({ ...bySlug("lemon"), condimentGrams: 60 }), null);
+  // Et le riz, l'aliment que toute règle relâchée laisserait passer.
+  assertEquals(condimentMassFor({ ...bySlug("cooked_rice"), condimentGrams: 5 }), null);
+  // Dans le résolveur: l'ail sans quantité éteint toujours son plat.
+  const r = resolveIngredients(COND_INDEX, [{ term: "garlic" }, { term: "salt" }]);
+  assertEquals(r.unweighedTerms, ["garlic"]);
+  assertEquals(r.conventionalTerms, ["salt"]);
+});
+
+Deno.test("condiment: les trois bornes de la règle d'admission, en littéral", () => {
+  assertEquals(CONDIMENT_MAX_GRAMS, 5);
+  assertEquals(CONDIMENT_PLAUSIBLE_MULTIPLE, 3);
+  assertEquals(CONDIMENT_MAX_KCAL, 10);
+  // ① La borne des grammes: 5 passe, 5,1 non.
+  const nul = ref({ slug: "x", energyKcal: 0 });
+  assertEquals(condimentMassFor({ ...nul, condimentGrams: 5 }), 5);
+  assertEquals(condimentMassFor({ ...nul, condimentGrams: 5.1 }), null);
+  assertEquals(condimentMassFor({ ...nul, condimentGrams: 0 }), null);
+  assertEquals(condimentMassFor({ ...nul, condimentGrams: -1 }), null);
+  // ② La classe dense, à masse identique: admise sans, refusée avec.
+  assertEquals(condimentMassFor({ ...nul, condimentGrams: 1, energyDense: false }), 1);
+  assertEquals(condimentMassFor({ ...nul, condimentGrams: 1, energyDense: true }), null);
+  // ③ Le plafond d'énergie mord EXACTEMENT à 10 kcal pour 3× la masse:
+  //    1 g × 3 × 333 kcal/100 g = 9,99 → admis; 334 → 10,02 → refusé.
+  assertEquals(condimentMassFor({ ...nul, condimentGrams: 1, energyKcal: 333 }), 1);
+  assertEquals(condimentMassFor({ ...nul, condimentGrams: 1, energyKcal: 334 }), null);
+  // Une masse illisible n'est pas un condiment: le repli est l'abstention.
+  assertEquals(condimentMassFor({ ...nul, condimentGrams: Number.NaN }), null);
+  assertEquals(condimentMassFor({ ...nul, condimentGrams: null }), null);
+  // Les 17 lignes de la classe tiennent le plafond, la menthe en tête (8,64).
+  assertEquals(condimentMassFor(bySlug("herbs_mint")), 5);
+});
+
+Deno.test("condiment: une quantité ÉCRITE gagne contre la convention", () => {
+  // La convention comble un vide; elle n'écrase jamais ce que le générateur a
+  // su écrire. Sinon une cuillère de sel pèserait une pincée.
+  const r = resolveIngredients(COND_INDEX, [
+    { term: "salt", amount: 1, unit: "tsp", state: "raw" },
+    { term: "parsley", amount: 30, unit: "g", state: "raw" },
+  ]);
+  assertEquals(r.resolved.find((x) => x.ref.slug === "salt")?.gramsRaw, 5);
+  assertEquals(r.resolved.find((x) => x.ref.slug === "herbs_parsley")?.gramsRaw, 30);
+  // Aucune convention n'a servi: le compteur le dit.
+  assertEquals(r.conventionalTerms, []);
+});
+
+Deno.test("condiment: aucune abstention n'est relâchée sur un ALIMENT", () => {
+  // Le riz cuit (145 kcal/100 g) est exactement ce qu'une règle d'abstention
+  // relâchée sur `!unweighedEnergyDense` laisserait tomber: 38 plats mesurés.
+  const r = resolveIngredients(COND_INDEX, [{ term: "cooked rice" }, { term: "salt" }]);
+  assertEquals(r.unweighedTerms, ["cooked rice"]);
+  assert(!r.unweighedEnergyDense, "le riz n'est pas dense — et il bloque quand même");
+  // `coverage` ne bouge pas: il compte les CONNUS, et les deux le sont.
+  assertEquals(r.coverage, 1);
+});
+
+Deno.test("condiment: l'eau cesse de bloquer, et sa masse ne fuit pas dans la friture", () => {
+  const r = resolveIngredients(COND_INDEX, [{ term: "water" }, { term: "salt" }]);
+  assertEquals(r.unweighedTerms, []);
+  assertEquals(r.resolved.find((x) => x.ref.slug === "water")?.gramsRaw, 1);
+  // 1 g, et le petit nombre est délibéré: toute masse résolue entre dans le
+  // poids cuit qui impute l'huile de friture (12 %, 9 kcal/g). Une convention
+  // « une tasse » ferait ~108 kcal d'huile fantôme sur un plat frit.
+  const frit = nutrientsOf(r.resolved, { friedMethod: true });
+  assert(frit !== "unknown");
+  assertEquals(frit.energyKcal, Math.round(1.5 * FRY_OIL_UPTAKE_RATIO * 9));
+});
+
+Deno.test("normalisation: l'apostrophe TYPOGRAPHIQUE est la même apostrophe", () => {
+  // Mesuré le 2026-08-19: `huile d'olive` en U+0027 résolvait, la même chaîne en
+  // U+2019 — celle que produisent claviers et correcteurs — non. Deux clés pour
+  // un seul aliment, et cet aliment-là est une HUILE: 21 plats pliés perdaient
+  // en silence l'ingrédient le plus énergétique de leur liste.
+  assertEquals(normalizeTerm("huile d’olive"), "huile d'olive");
+  assertEquals(normalizeTerm("huile d‘olive"), "huile d'olive");
+  // ⚠️ U+02BC et U+00B4 ne sont PAS dans la liste, et ce n'est pas un oubli:
+  // `normalizeForMatch` les retire en amont comme DIACRITIQUES, donc ils
+  // n'atteignent jamais ce repli. Les y mettre ferait une branche morte qui
+  // aurait l'air d'une couverture. Comportement du matcher partagé, hors lot.
+  assertEquals(normalizeTerm("huile dʼolive"), "huile dolive");
+  assertEquals(normalizeTerm("huile d´olive"), "huile dolive");
+  // Et ça se voit là où ça compte: sur la résolution.
+  assertEquals(resolveIngredient(COND_INDEX, "huile d’olive")?.slug, "olive_oil");
+  assertEquals(resolveIngredient(COND_INDEX, "huile d'olive")?.slug, "olive_oil");
+  // ⚠️ L'apostrophe se replie sur U+0027, PAS sur une espace: `d'olive` doit
+  // rester UN mot, sans quoi le retrait des modificateurs et la réduction du
+  // pluriel travailleraient sur un autre découpage que les 2 587 alias écrits.
+  assert(!normalizeTerm("huile d’olive").includes("d olive"));
 });

@@ -58,9 +58,57 @@
  * de la fonction moteur et compare les DEUX SORTIES sur un corpus — c'est une
  * équivalence de comportement, pas une ressemblance de texte.
  */
+/**
+ * ⚠️ MISE À JOUR DU 2026-08-19 — LES DEUX MOITIÉS DOIVENT BOUGER ENSEMBLE.
+ * Le moteur a gagné le repli des accents ET la table d'alias français. Cette
+ * copie les porte à l'identique. `allergens.int.test.ts` compare les deux
+ * SORTIES sur un corpus: il a attrapé la divergence dans la minute où le
+ * moteur a bougé seul — c'est exactement ce pour quoi il existe.
+ *
+ * Le défaut réparé, mesuré: « œuf » donnait `uf`, « blé » donnait `bl`, et un
+ * identifiant propre mais inconnu du catalogue (`oeuf`) rendait **zéro forme de
+ * surface**, c'est-à-dire aucune protection. Le produit est en `fr-FR`.
+ */
+const ALLERGEN_REF_ALIASES: Readonly<Record<string, string>> = {
+  arachide: "peanut",
+  arachides: "peanut",
+  cacahuete: "peanut",
+  cacahuetes: "peanut",
+  fruits_a_coque: "tree_nut",
+  fruit_a_coque: "tree_nut",
+  noix: "tree_nut",
+  ble: "wheat",
+  froment: "wheat",
+  lait: "dairy",
+  produits_laitiers: "dairy",
+  lactose: "dairy",
+  oeuf: "egg",
+  oeufs: "egg",
+  poisson: "fish",
+  poissons: "fish",
+  crustaces: "shellfish",
+  fruits_de_mer: "shellfish",
+  mollusques: "mollusc",
+  soja: "soy",
+  celeri: "celery",
+  moutarde: "mustard",
+  sulfite: "sulphite",
+  sulfites: "sulphite",
+  anhydride_sulfureux: "sulphite",
+  porc: "pork",
+  alcool: "alcohol",
+};
+
 export function normalizeAllergenInput(value: string): string | null {
   const raw = String(value ?? "").trim().toLowerCase();
   if (!raw) return null;
-  const slug = raw.replace(/[\s-]+/g, "_").replace(/[^a-z0-9_]/g, "");
-  return slug || null;
+  // Les ligatures d'abord: `œ` et `æ` ne sont pas des accents composés et
+  // survivent à `NFD` — sans cette ligne, « œuf » resterait `uf`.
+  const unligatured = raw
+    .replace(/\u0153/g, "oe")
+    .replace(/\u00e6/g, "ae");
+  const folded = unligatured.normalize("NFD").replace(/\p{M}+/gu, "");
+  const slug = folded.replace(/[\s-]+/g, "_").replace(/[^a-z0-9_]/g, "");
+  if (!slug) return null;
+  return ALLERGEN_REF_ALIASES[slug] ?? slug;
 }

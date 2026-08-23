@@ -18,6 +18,7 @@ import {
   funnelSteps,
   HOUSEHOLD_MAX_MOUTHS,
   missesForStep,
+  peopleStepBlockers,
   nameAlreadyEating,
   nextIncomplete,
   normalizedMouthName,
@@ -229,12 +230,13 @@ describe("funnelSteps", () => {
       expect(funnelSteps(branch).map((s) => s.id)).toEqual([
         "situate",
         "people",
-        // ── LA COUPURE DU 2026-08-13 ────────────────────────────────────
-        // `table` porte les faits de la maison (qui mange, à quels moments),
-        // `request` la demande de CE plan-là (jours de cuisine, durée, budget).
-        // Les deux vivaient dans la même carte, et on lisait un bouton gris
-        // sans faire le lien avec des rangées vides plus haut.
-        "table",
+        // ── ⛔ `table` A DISPARU LE 2026-08-19 ───────────────────────────
+        // Elle ne portait plus que le régime et les moments, et les deux sont
+        // dans la FICHE de chaque bouche (étape `people`) — le régime en tête
+        // parce qu'il exclut, les moments juste au-dessus de « ce qu'elle mange
+        // déjà » parce qu'ils le dimensionnent. Ses deux cartes de MOYENS
+        // (équipement, déjeuner au boulot) ont rejoint `request`, avec les
+        // jours de cuisine, le temps et le budget.
         "request",
       ]);
     }
@@ -311,12 +313,18 @@ describe("canGenerate — l'état complet", () => {
         "household_size",
         "own_birth_date",
         "own_goal",
-        "own_diet",
-        "own_allergies",
+        // ⛔ `own_diet`, `own_allergies` ET `eating_rhythm` NE SONT PLUS LÀ.
+        // Décision humaine du 2026-08-19, demandée trois fois: le seul refus
+        // porte sur l'identité, le corps et la direction d'une personne.
+        //
+        // ⚠️ CE QUE ÇA COÛTE, ÉCRIT ICI POUR QUE PERSONNE NE LE REDÉCOUVRE
+        // COMME UN BUG: un foyer peut composer son premier plan sans qu'on ait
+        // jamais su si quelqu'un est allergique. L'accusé `allergy_check` vit
+        // toujours, la question reste en tête de la fiche — elle n'est plus une
+        // porte.
         "own_height_cm",
         "own_weight_kg",
         "own_gender",
-        "eating_rhythm",
         "cook_days",
         "cooking_time_min",
         "budget_amount",
@@ -395,22 +403,10 @@ describe("canGenerate — étape par étape", () => {
       "own_goal",
     ],
     [
-      "mes allergies jamais demandées",
-      "solo",
-      (s) => ({ ...s, self: { ...s.self, allergiesReviewed: false } }),
-      "own_allergies",
-    ],
-    [
       "un prénom de bouche vide",
       "pair",
       (s) => ({ ...s, others: [adult({ firstName: "" })] }),
       "member_first_name",
-    ],
-    [
-      "les allergies d'une bouche jamais demandées",
-      "pair",
-      (s) => ({ ...s, others: [adult({ allergiesReviewed: false })] }),
-      "member_allergies",
     ],
     [
       "l'objectif d'un adulte absent",
@@ -430,12 +426,6 @@ describe("canGenerate — étape par étape", () => {
       "family",
       (s) => ({ ...s, others: [adult()] }),
       "missing_mouths",
-    ],
-    [
-      "le rythme jamais déclaré",
-      "solo",
-      (s) => ({ ...s, plan: { ...s.plan, eatingRhythm: [] } }),
-      "eating_rhythm",
     ],
     [
       "aucun jour de cuisine",
@@ -615,12 +605,19 @@ describe("nextIncomplete", () => {
     expect(nextIncomplete(state, "pair")?.id).toBe("people");
   });
 
-  it("renvoie à la TABLE quand seuls les moments de la maison manquent", () => {
+  it("⛔ NE RENVOIE PLUS NULLE PART sur les seuls moments de la maison", () => {
+    // ⚠️ `people`, PAS `table`, DEPUIS LE 2026-08-19. La question vit dans la
+    // fiche du titulaire, dont la réponse écrit AUSSI celle de la maison —
+    // c'est lui la première bouche. Renvoyer à une étape supprimée aurait
+    // bloqué l'entonnoir sans rien pour lever le refus.
+    // ⛔ LES MOMENTS NE RETIENNENT PLUS (2026-08-19). Rien coché veut dire
+    // « aux moments de la maison », qui est une réponse par défaut sûre — et
+    // retenir quelqu'un dessus faisait un mur sur une question qui a un repli.
     const state: FunnelState = {
       ...complete("family"),
       plan: { ...complete("family").plan, eatingRhythm: [] },
     };
-    expect(nextIncomplete(state, "family")?.id).toBe("table");
+    expect(nextIncomplete(state, "family")).toBeNull();
   });
 
   it("renvoie à la DEMANDE quand seules les entrées de plan manquent", () => {
@@ -671,6 +668,10 @@ describe("missesForStep", () => {
       ...complete("family"),
       plan: { eatingRhythm: [], cookDays: [], cookingTimeMin: null, budgetAmount: null },
     };
+    // ⛔ ET ELLE NE RETIENT PLUS SUR LES MOMENTS NON PLUS (2026-08-19): ce
+    // `plan` les laisse vides, et c'est une réponse — « aux moments de la
+    // maison ». Ce que le test garde reste qu'aucun motif ne se perd: la somme
+    // des étapes est le verdict entier.
     expect(missesForStep(state, "family", "people")).toEqual([]);
     expect(missesForStep(state, "family", "request").length).toBeGreaterThan(0);
   });
@@ -958,7 +959,21 @@ describe("le niveau d'activité, de la question au calcul", () => {
       gender: "male" as const,
     };
     const bmr = 10 * 70 + 6.25 * 175 - 5 * 37 + 5;
-    expect(estimatedMaintenanceKcal({ ...body, activityLevel: null })).toBe(
+    expect(
+      estimatedMaintenanceKcal({
+        ...body,
+        activityLevel: null,
+        // ⛔ AUCUN AXE RÉPONDU: le lot du 2026-08-20 ne doit RIEN déplacer
+        // pour qui n'a rien dit. C'est la moitié de ce test qui compte —
+        // « sans réponse, EXACTEMENT le comportement d'avant le lot » vaut
+        // désormais pour deux lots empilés, pas un.
+        activityAxes: { day: null, sport: null, asked: false },
+        // ⑤ — aucun appétit déclaré: ×1,00, un neutre VRAI. « Sans réponse,
+        // EXACTEMENT le comportement d'avant le lot » vaut désormais pour
+        // trois lots empilés.
+        appetite: null,
+      }),
+    ).toBe(
       Math.round(bmr * 1.5),
     );
 
@@ -1021,5 +1036,75 @@ describe("le niveau d'activité, de la question au calcul", () => {
     const empty = misses(emptyFunnelState(), "solo");
     expect(empty).not.toContain("own_activity_level");
     expect(empty).not.toContain("member_activity_level");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// CE QUI RETIENT L'ÉTAPE 2, ET **CHEZ QUI**
+//
+// Demandé le 2026-08-19: « le seul truc qui bloque continuer c'est nom, date de
+// naissance, taille, poids, objectif d'une personne — et ça doit signaler
+// précisément chez qui manque quoi ».
+// ---------------------------------------------------------------------------
+
+describe("peopleStepBlockers", () => {
+  it("un état complet ne retient personne", () => {
+    // ⚠️ LE CAS QUI PASSE. Sans lui, une fonction qui retiendrait TOUJOURS
+    // laisserait tous les autres cas verts.
+    expect(peopleStepBlockers(complete("family"), "family")).toEqual([]);
+  });
+
+  it("⛔ les allergies, le régime et les moments ne retiennent PLUS", () => {
+    // Les trois motifs que l'écran affichait, et que l'utilisateur a demandé
+    // trois fois de retirer. La contrepartie est écrite dans `personMisses`.
+    const state: FunnelState = {
+      ...complete("family"),
+      self: { ...complete("family").self, allergiesReviewed: false, diet: null },
+      plan: { ...complete("family").plan, eatingRhythm: [] },
+    };
+    expect(peopleStepBlockers(state, "family")).toEqual([]);
+  });
+
+  it("nomme le TITULAIRE par `null`, pas par son prénom", () => {
+    // L'écran rend « Toi ». Lire son propre prénom dans une liste de reproches
+    // se lit comme si l'écran parlait de quelqu'un d'autre.
+    const base = complete("family");
+    const state: FunnelState = {
+      ...base,
+      self: { ...base.self, heightCm: null },
+    };
+    expect(peopleStepBlockers(state, "family")).toEqual([
+      { who: null, missing: ["own_height_cm"] },
+    ]);
+  });
+
+  it("⛔ nomme la BOUCHE, et ne mélange pas deux personnes", () => {
+    // C'est tout l'objet du lot: avec quatre personnes à table, une liste plate
+    // envoyait relire quatre cartes.
+    const base = complete("family");
+    const [first, ...rest] = base.others;
+    const state: FunnelState = {
+      ...base,
+      others: [{ ...first, firstName: "Christèle", weightKg: null }, ...rest],
+    };
+    expect(peopleStepBlockers(state, "family")).toEqual([
+      { who: "Christèle", missing: ["member_weight_kg"] },
+    ]);
+  });
+
+  it("le motif NOMMÉ gagne: une direction sans date le dit", () => {
+    // Même règle que `personMisses`: `adult_without_birth_date` explique
+    // POURQUOI la date manque, là où `member_birth_date` ne fait que constater.
+    const base = complete("family");
+    const [first, ...rest] = base.others;
+    const state: FunnelState = {
+      ...base,
+      others: [
+        { ...first, firstName: "Christèle", kind: "adult", goal: "fat_loss", birthDate: null },
+        ...rest,
+      ],
+    };
+    expect(peopleStepBlockers(state, "family")[0].missing)
+      .toContain("adult_without_birth_date");
   });
 });

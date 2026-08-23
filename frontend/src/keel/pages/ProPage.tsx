@@ -18,8 +18,10 @@ import { t, type MessageKey } from "../i18n/t";
  * retire, puis il s'arrête — l'argument complet d'un acheteur appartient à SA
  * page, et les trois portes descendent pour ça dans la clôture. Un hall qui
  * grossit vend aux trois acheteurs à la fois, c'est-à-dire à personne: ≤ 245
- * lignes, pas plus de mots qu'avant, et une GRILLE DE SIX LIGNES au lieu des
- * quatre bandes d'une page segment.
+ * lignes, pas plus de mots qu'avant, et une GRILLE DE CINQ LIGNES au lieu des
+ * quatre bandes d'une page segment. ⚠️ SIX à l'origine: la ligne « chaque ligne
+ * cite la conviction » (B27) a été retirée le 2026-08-19 avec la lane qui la
+ * tenait — voir le commentaire à sa place, et n'en réécris pas l'équivalent.
  *
  * ⚠️ LE VOCABULAIRE EST LE PIÈGE DE CETTE PAGE: les gens qu'un pro accompagne
  * sont des CLIENTS ici, « élèves » étant le mot de `/coaches` SEULEMENT —
@@ -184,9 +186,12 @@ export function ProPage() {
               ⏳ Le chemin existe, le CONTENU de la doctrine maison s'écrit
               encore — la ligne le DIT au lieu de le taire. */}
           <Line n="01" pain="pro.line.method.pain" title="pro.line.method.title" body="pro.line.method.body" />
-          {/* fact: B10 — quatre points d'injection: run.ts:2414 ·
-              generate-week-plan-v1:618 · generate-meal-v1:1122 ·
-              generate-household-meal-v1:2338 — les quatre sont `doctrineBlockFor(doctrine)`.
+          {/* fact: B10 — TROIS points d'injection depuis le 2026-08-19:
+              run.ts:2448 · generate-meal-v1:1729 · generate-household-meal-v1:3569
+              — les trois sont `doctrineBlockFor(doctrine)`, relus ce jour-là.
+              ⚠️ Le quatrième (`generate-week-plan-v1:618`) est parti avec sa lane,
+              retirée faute d'un seul appelant vivant: la copie disait « quatre
+              endroits » dont un que l'élève ne pouvait pas atteindre.
               ⚠️ Les huit numéros recopiés de l'audit pointaient des fragments de commentaire:
               revérifiés un par un le 2026-08-13. */}
           <Line n="02" pain="pro.line.daily.pain" title="pro.line.daily.title" body="pro.line.daily.body" />
@@ -209,16 +214,26 @@ export function ProPage() {
               48 h et 120 h sur le dernier message ENTRANT · fact: B17 —
               coach_synthesis_io.ts:171-187, cohorte scopée. ⛔ Rien de S9/B15. */}
           <Line n="04" pain="pro.line.monday.pain" title="pro.line.monday.title" body="pro.line.monday.body" />
-          {/* fact: B27 — CHECK `student_week_plans_doctrine_traceable_check`
-              (20260803210000:87-113). ⚠️ Portée: la SEMAINE seulement, les
-              plats ne citent pas, délibérément (DishCard.tsx:27-34). */}
-          <Line n="05" pain="pro.line.cite.pain" title="pro.line.cite.title" body="pro.line.cite.body" />
+          {/* ⚠️ LA LIGNE 05 A ÉTÉ RETIRÉE LE 2026-08-19, ET ELLE NE REVIENT PAS
+              REFORMULÉE. Elle portait B27 — « chaque ligne cite la conviction
+              qu'elle applique » — adossée au CHECK
+              `student_week_plans_doctrine_traceable_check`
+              (20260803210000:87-113). Ce CHECK n'a plus d'écrivain: la lane
+              `generate-week-plan-v1` a été retirée le même jour, faute d'un
+              seul appelant vivant. La garantie n'était donc déjà tenue pour
+              PERSONNE — la garder ne l'honorait pas, elle en donnait
+              l'apparence.
+              ⛔ NE PAS LA REMPLACER PAR UNE PROMESSE ÉQUIVALENTE SUR LES PLATS:
+              `generated_from.belief_keys` porte la provenance du PLAN, pas
+              d'une ligne, et c'est annoté « jamais exigé, jamais vérifié par un
+              CHECK » (_shared/keel/meal_generation.ts). Une page de vente ne
+              redit cette garantie que le jour où un CHECK la tient. */}
           {/* fact: B1 (le siège est le seul poste) · fact: B4 —
               stripe-reconcile-seats:18-35 RECALCULE depuis le ledger, jamais un
               incrément. ⛔ Pas de « 6 € quand votre client a payé son année » (B2,
               FAUX: l'intervalle est celui du COACH), ⛔ pas de « positif dès le
               premier client » (B6: zéro client refusé au checkout). */}
-          <Line n="06" pain="pro.line.seat.pain" title="pro.line.seat.title" body="pro.line.seat.body" />
+          <Line n="05" pain="pro.line.seat.pain" title="pro.line.seat.title" body="pro.line.seat.body" />
         </ul>
       </Section>
 

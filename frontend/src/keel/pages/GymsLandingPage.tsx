@@ -184,9 +184,10 @@ function Pain() {
       <div className={TWO_COL.replace("mt-8", "mt-14 border-t border-line pt-10")}>
         <div className="max-w-[62ch]">
           <h2 className="font-display text-sub">{t("gyms.day.title")}</h2>
-          {/* fact: B10 — quatre points d'injection: run.ts:2414 (chat) ·
-              generate-week-plan-v1:618 · generate-meal-v1:1122 ·
-              generate-household-meal-v1:2338 — les quatre sont `doctrineBlockFor(doctrine)`.
+          {/* fact: B10 — TROIS points d'injection depuis le 2026-08-19:
+              run.ts:2448 (chat) · generate-meal-v1:1729 ·
+              generate-household-meal-v1:3569 — les trois sont `doctrineBlockFor(doctrine)`.
+              ⚠️ Le quatrième (`generate-week-plan-v1`) est parti avec sa lane.
               ⚠️ Les huit numéros recopiés de l'audit pointaient des fragments de commentaire:
               revérifiés un par un le 2026-08-13. ⛔ Jamais « chaque message » (B7/B8). */}
           <p className={`mt-4 ${BODY} text-ink-soft`}>{t("gyms.day.body")}</p>

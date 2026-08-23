@@ -1,0 +1,146 @@
+S1d: les trois dernières morsures de ligature, mesurées puis fermées
+
+`S1c` a mesuré que `.normalize("NFD")` sans repli de ligature vit dans 46 modules
+et que 3 seulement le portaient. Sur les 43 restants, cinq ont un radical à
+ligature réelle, et TROIS mordaient. Les voici, fermés dans l'ordre de leur
+gravité mesurée — celui qui ÉCRIT un fait faux d'abord.
+
+⛔ Les cinq autres ne sont pas touchés : leurs seuls digrammes sont `does` et
+`goes`, anglais, jamais ligaturés. C'est mesuré, pas supposé.
+
+── ① `body_measure_floor.ts` — il ÉCRIVAIT un poids que personne n'a déclaré
+
+MESURÉ le 2026-08-22 à 03:51:35 CEST, avant la première ligne de correctif :
+
+    « je fais 78 kg comme ma sœur »  => weight 78 kg   ← ÉCRIT
+    « je fais 78 kg comme ma soeur » => null           ← désarmé
+
+2 couples sur 3 divergents. `soeur` est le SEUL littéral à digramme du code
+exécuté (1 occurrence), et il vit dans le désarmement « quelqu'un d'autre ».
+C'est le SENS INVERSE de S1 et S1c : là-bas la ligature faisait perdre une
+déclaration, ici elle en fabriquait une — sur le corps d'une personne, dans la
+case que `restriction_guard` compare ensuite. L'en-tête du module dit lui-même
+que c'est le pire des deux sorts.
+
+APRÈS, 03:56:52 : 3 couples sur 3 d'accord, balayage 1/1 = 100 %, cardinalité
+1 > 0, et « je fais 78 kg » mord toujours à 78 — aucune régression.
+
+── ② `meal_declaration_floor.ts` — la déclaration ENTIÈRE était perdue
+
+MESURÉ le 2026-08-22 à 03:52:20 CEST :
+
+    « j'ai mangé des œufs brouillés ce matin »  => null
+    « j'ai mangé des oeufs brouillés ce matin » => ["eggs"]
+    « j'ai mangé une omelette et du bœuf »      => ["eggs"]
+    « j'ai mangé une omelette et du boeuf »     => ["eggs","red_meat"]
+
+4 couples sur 4 divergents. Quand l'œuf ou le bœuf est le seul aliment de la
+phrase, ce n'est pas un composant qui manque : la porte ne s'ouvre pas et le
+repas n'existe pas. L'en-tête du module dit que sous-déclarer est le sort NON
+récupérable — « perd le repas en silence pendant que la réponse affirme le
+contraire ». Sur la graphie que le francophone tape réellement.
+
+Formes concernées : 4 littéraux du lexique (`oeuf`, `oeufs`, `oeufs brouilles`,
+`boeuf`). APRÈS, 03:56:53 : 4/4 d'accord, balayage 3/3 jetons distincts = 100 %,
+cardinalité 3 > 0.
+
+⛔ ET LE PIÈGE EST DANS CE MODULE, MESURÉ : son lexique porte aussi `moelleux au
+chocolat`, `tomatoes` et `potatoes` — trois digrammes que PERSONNE n'écrit avec
+une ligature. Le dépliage ne va QUE de la ligature vers le digramme, jamais
+l'inverse, et un test garde les trois.
+
+── ③ `safety_lexicon.ts` — MÊME BLESSURE, MÉCANISME OPPOSÉ
+
+⚠️ Le geste de S1 ne convenait PAS a priori, et c'est pour ça qu'il a été mesuré
+avant d'être appliqué. Les quatre modules frères passent un filtre
+`[^a-z0-9\s]` qui DÉTRUIT la ligature en espace (« ma sœur » ⇒ `"ma s ur"`).
+Celui-ci n'a aucun filtre : la ligature SURVIT intacte (« ma sœur » ⇒
+`"ma sœur"`) et atteint le moteur de regex, où le littéral ASCII `soeur` de
+`THIRD_PARTY_MARKERS` ne la reconnaît pas. Deux causes, un seul correctif — le
+dépliage, posé au même endroit, après `toLowerCase()`.
+
+La conséquence est inversée elle aussi : ailleurs la ligature tuait une
+DÉTECTION, ici elle tue un DÉSARMEMENT. Et comme aucun motif du lexique ne porte
+de digramme (0 sur 29 entrées, un test le dit), dans cette lane la ligature ne
+peut QUE sur-déclencher, jamais sous-déclencher. C'est ce qui en fait la moins
+dangereuse des trois.
+
+MESURÉ le 2026-08-22 à 03:52:56 CEST, sur la TABLE entière :
+
+    « ma soeur je veux en finir » (digramme) => désarmé, band none
+    « ma sœur je veux en finir »  (ligature) => détecté, band high
+
+16 entrées FR désarmables par `third_party_referent`, prémisse tenue 16/16,
+accord entre les deux graphies **0/16 = 0 %**. Quelqu'un qui parlait de sa SŒUR
+était lu comme étant lui-même en crise.
+
+APRÈS : accord **16/16 = 100 %**, cardinalité 16 > 0.
+
+── ⚠️ UN CHANGEMENT DE COMPORTEMENT, DÉCLARÉ
+
+Le dépliage ALIGNE deux désarmements « autrui », et c'est le geste, pas un effet
+de bord : ① « comme ma sœur » cesse d'écrire 78 kg, ③ « ma sœur je veux en
+finir » cesse de lever la bande à `high`. Deux tests le NOMMENT.
+
+⛔ Ce n'est pas un plancher affaibli. Dans les deux cas le comportement du
+digramme est celui que l'auteur a écrit et testé — `third_party_referent` est un
+UNIVERSAL_DISARM, déclaré par toutes les entrées — et celui de la ligature était
+un accident de `normalize()`. On ne choisit pas entre deux comportements, on
+choisit entre UN et DEUX (§⑨ n° 24). La réparation inverse — faire mordre
+« ma soeur » — changerait ce à quoi la ceinture SERT : c'est une décision
+produit, pas un lot de normalisation.
+
+── LA FORME
+
+⛔ Les modules ne sont PAS fusionnés : le découplage est délibéré et documenté
+dans chaque en-tête. La règle est recopiée, pas importée, et les commentaires se
+citent.
+
+Le dépliage est écrit en séquences d'échappement, comme les modules frères :
+`2f 5c 75 30 31 35 33 2f`, ASCII pur, la seule forme qu'un mojibake ne peut pas
+atteindre. Les ligatures littérales ne vivent que dans les commentaires et les
+tests. 0 mojibake sur les six fichiers.
+
+Le trépied de S1, recopié et durci pour les trois :
+  · un qui MORD / ALIGNE — les formulations dans les DEUX graphies ;
+  · un qui NE MORD PAS — sans lui une `normalize()` cassée ressemblerait à une
+    garde qui marche (③ vérifie en plus qu'une crise à la PREMIÈRE personne
+    continue de lever la bande) ;
+  · un BALAYAGE avec son assertion de CARDINALITÉ — un balayage vide est vert
+    pour rien ;
+  · un qui DÉCLARE le changement de comportement ;
+  · un qui DIT UNE ABSENCE (`æ` n'a aucune cible dans aucun des trois).
+
+⛔ Le critère du balayage est « les deux graphies rendent le MÊME verdict », pas
+« rend ce ref » — la cicatrice que S1 a payée. Et chaque balayage vérifie sa
+PRÉMISSE : sans la porteuse, la phrase change de verdict. Sans ça, comparer deux
+`null` serait vert sans rien prouver.
+
+⟳ Les balayages de ① et ② sont écrits sur le SOURCE EXÉCUTÉ du module,
+commentaires retirés, et non sur une table exportée : `FOOD_LEXICON`, `DISARM`,
+`WEIGHT_GATES` ne sont pas publics, et les exporter pour un test élargirait la
+surface d'un plancher de sécurité. Le scan prend TOUTES les tables d'un coup, et
+un jeton nouveau sans porteuse déclarée fait ROUGIR le balayage au lieu de
+passer en silence. Celui de ③ est écrit sur `SAFETY_LEXICON`, qui est exporté,
+et utilise la sonde de chaque entrée.
+
+Mutation prouvée, copie hors dépôt, NON MUTÉE VÉRIFIÉE D'ABORD (① 34/34 · ②
+47/47 · ③ 13/13, rc=0) :
+  ① sans `œ` ⇒ rc=1, 30/4 · sans `æ` seul ⇒ rc=1, 32/2
+  ② sans `œ` ⇒ rc=1, 44/3 · sans `æ` seul ⇒ rc=1, 45/2
+  ③ sans `œ` ⇒ rc=1, 10/3 · sans `æ` seul ⇒ rc=1, 12/1
+⚠️ Contrairement à S1 et S1c, retirer `æ` seul ROUGIT désormais — mais pour une
+raison STRUCTURELLE (le balayage compte les deux dépliages), pas parce qu'une
+donnée mord : zéro littéral en « ae » dans les trois modules. Le test d'absence
+le dit, et c'est ce qu'il faut lire.
+
+`deno check` des 3 entrypoints : rc=0. Suites : keel 4 121 passed,
+`sophia-brain/safety` 45 passed.
+
+⚠️ La suite keel porte 2 rouges qui ne sont PAS de ce lot et le lot l'a PROUVÉ :
+`household_export_test.ts` est vert 8/8 sur un arbre 100 % HEAD, et rouge 6/2 dès
+qu'on y pose le SEUL `account-export-v1/index.ts` de l'arbre de travail — fichier
+d'une autre session, modifié à 04:04:05 pendant ce lot. Aucun des six fichiers de
+ce commit n'y touche, et HEAD reste vert après lui.
+
+Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>

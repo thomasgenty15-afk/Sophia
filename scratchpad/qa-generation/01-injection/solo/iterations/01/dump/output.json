@@ -1,0 +1,792 @@
+{
+  "request_id": "798c5cd6-acbf-43e3-8dcc-97128d3edd78",
+  "resolved_by": "--request-id",
+  "user_id": "1a000000-0000-4000-8000-000000000001",
+  "source": "generate-meal-v1",
+  "exported_at": "2026-08-18T21:18:06.822Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "168eed1c-055d-4d08-8a13-a76aa0e86611",
+      "status": "attempt_start",
+      "created_at": "2026-08-18T21:13:47.927212+00:00",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 14382,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 14382,
+    "user_message_chars": 9791,
+    "user_message_truncated": false,
+    "user_message_written_chars": 9791,
+    "independent_counters": {
+      "system_prompt_chars": 14382,
+      "prompt_chars": 9791
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "bbaa35e1-820d-4049-8b3b-1abc68cc07c4",
+    "created_at": "2026-08-18T21:17:35.979017+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "openai",
+    "model": "gpt-5.6-sol",
+    "http_status": 200,
+    "attempt": 1,
+    "chain_index": 0,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Tomato egg breakfast\",\n      \"title\": \"Boiled eggs, wholemeal toast, tomato and orange\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"sesame-free wholemeal bread\",\n          \"quantity\": \"90 g sesame-free wholemeal bread\",\n          \"amount\": 90,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"tomato\",\n          \"quantity\": \"120 g tomato\",\n          \"amount\": 120,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"orange\",\n          \"quantity\": \"1 orange\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tsp olive oil\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Peel one portion of eggs, toast the bread, and serve with the sliced tomato, orange and olive oil.\",\n      \"why\": \"The eggs anchor your small breakfast, while toast, fruit and olive oil make it more substantial without making the morning complicated.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_boiled_eggs\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"three_real_meals_anchor_the_day\",\n        \"protein_and_something_that_grew\"\n      ]\n    },\n    {\n      \"name\": \"Harissa chickpea roast\",\n      \"title\": \"Harissa chickpeas, roast potatoes, courgette and peppers\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Reheat one portion of the chickpea and vegetable roast until piping hot.\",\n      \"why\": \"This gives you the proper smoky roast you wanted, with chickpeas as the full protein anchor and a generous serving of potatoes.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_harissa_chickpea_roast\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"three_real_meals_anchor_the_day\",\n        \"protein_and_something_that_grew\"\n      ]\n    },\n    {\n      \"name\": \"Cucumber egg toast\",\n      \"title\": \"Boiled eggs, wholemeal toast, cucumber and apple\",\n      \"slot\": \"breakfast\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"sesame-free wholemeal bread\",\n          \"quantity\": \"90 g sesame-free wholemeal bread\",\n          \"amount\": 90,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"cucumber\",\n          \"quantity\": \"120 g cucumber\",\n          \"amount\": 120,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"apple\",\n          \"quantity\": \"1 apple\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tsp olive oil\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Peel one portion of eggs, toast the bread, and serve with sliced cucumber, the apple and olive oil.\",\n      \"why\": \"It keeps your breakfast small and quick while still starting with eggs and including fruit, vegetables and a generous starch.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_boiled_eggs\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"three_real_meals_anchor_the_day\",\n        \"protein_and_something_that_grew\"\n      ]\n    },\n    {\n      \"name\": \"Crunchy harissa wraps\",\n      \"title\": \"Harissa chickpeas, roast vegetables, potatoes and cabbage wraps\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"small sesame-free wholemeal wraps\",\n          \"quantity\": \"2 small sesame-free wholemeal wraps\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"red cabbage\",\n          \"quantity\": \"100 g red cabbage\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tsp olive oil\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Roughly crush the cold chickpeas and potatoes with a fork. Toss the cabbage with lemon juice and olive oil, then divide everything between the wraps and roll tightly.\",\n      \"why\": \"Your large lunch turns the roast into a different meal, retaining its chickpea anchor while adding crisp cabbage and extra starch.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_harissa_chickpea_roast\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 7\n      },\n      \"honours_belief_keys\": [\n        \"three_real_meals_anchor_the_day\",\n        \"protein_and_something_that_grew\"\n      ]\n    },\n    {\n      \"name\": \"Smoky lentil rice\",\n      \"title\": \"Harissa lentils, peas, spinach and basmati rice\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [],\n      \"method\": \"Reheat one portion each of the lentils and rice until piping hot, then serve together.\",\n      \"why\": \"The lentils provide a full protein anchor, and the prepared rice makes dinner manageable after your chaotic evening.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_lentils\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_basmati_rice\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 6\n      },\n      \"honours_belief_keys\": [\n        \"three_real_meals_anchor_the_day\",\n        \"protein_and_something_that_grew\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_boiled_eggs\",\n      \"title\": \"Hard-boiled eggs\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"4 eggs\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Put the eggs in a saucepan, cover with cold water and bring to the boil. Simmer for 9 minutes, cool promptly under cold running water and refrigerate in their shells as two portions of two eggs.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 15,\n      \"cook_on\": \"tue\"\n    },\n    {\n      \"id\": \"prep_harissa_chickpea_roast\",\n      \"title\": \"Harissa chickpea and vegetable roast\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"tinned chickpeas, drained\",\n          \"quantity\": \"480 g tinned chickpeas, drained\",\n          \"amount\": 480,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"potatoes\",\n          \"quantity\": \"500 g potatoes\",\n          \"amount\": 500,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"courgette\",\n          \"quantity\": \"250 g courgette\",\n          \"amount\": 250,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red peppers\",\n          \"quantity\": \"300 g red peppers\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red onion\",\n          \"quantity\": \"1 red onion\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic\",\n          \"quantity\": \"2 garlic cloves\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"certified sesame-free harissa paste\",\n          \"quantity\": \"2 tbsp certified sesame-free harissa paste\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tsp smoked paprika\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp olive oil\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch of salt\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch of black pepper\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Heat the oven to 220°C, or 200°C fan. Cut the potatoes into small chunks and roast with 1 tbsp olive oil for 10 minutes. Chop the courgette, peppers and onion; mix them with the drained chickpeas, garlic, harissa, paprika, remaining oil, salt and pepper. Add to the tray and roast for another 25 minutes, turning once. Divide into two portions, cool promptly and refrigerate.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 40,\n      \"cook_on\": \"tue\"\n    },\n    {\n      \"id\": \"prep_smoky_lentils\",\n      \"title\": \"Smoky harissa lentils\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"dried red lentils\",\n          \"quantity\": \"180 g dried red lentils\",\n          \"amount\": 180,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"chopped tomatoes\",\n          \"quantity\": \"400 g chopped tomatoes\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"frozen peas\",\n          \"quantity\": \"200 g frozen peas\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"spinach\",\n          \"quantity\": \"150 g spinach\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"onion\",\n          \"quantity\": \"1 onion\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic\",\n          \"quantity\": \"1 garlic clove\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"certified sesame-free harissa paste\",\n          \"quantity\": \"1 tbsp certified sesame-free harissa paste\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tsp smoked paprika\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1.5 tbsp olive oil\",\n          \"amount\": 1.5,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"water\",\n          \"quantity\": \"450 ml water\",\n          \"amount\": 450,\n          \"unit\": \"ml\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch of salt\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch of black pepper\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Finely chop the onion and garlic. Soften them in the olive oil for 5 minutes, then stir in the harissa and paprika. Add the lentils, tomatoes and water; simmer for 18 minutes, stirring occasionally. Add the peas and spinach and cook for 4 minutes more. Season, keep one portion for dinner and cool and freeze the second portion on Thursday.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 30,\n      \"cook_on\": \"thu\"\n    },\n    {\n      \"id\": \"prep_basmati_rice\",\n      \"title\": \"Basmati rice\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"basmati rice\",\n          \"quantity\": \"180 g basmati rice\",\n          \"amount\": 180,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"water\",\n          \"quantity\": \"360 ml water\",\n          \"amount\": 360,\n          \"unit\": \"ml\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch of salt\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Rinse the rice, put it in a covered saucepan with the water and salt, and bring to the boil. Simmer gently for 12 minutes, then take it off the heat and leave covered for 5 minutes. Keep one portion for dinner; spread the second portion on a clean plate to cool quickly, then freeze it on Thursday.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 20,\n      \"cook_on\": \"thu\"\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"tue\",\n      \"preparation_ids\": [\n        \"prep_boiled_eggs\",\n        \"prep_harissa_chickpea_roast\"\n      ],\n      \"total_minutes\": 40,\n      \"run_through\": \"Heat the oven and put the eggs on first. Cut and start roasting the potatoes while the eggs cook. Cool and refrigerate the eggs, then prepare the chickpeas and remaining vegetables, add them to the tray and finish the roast. Divide the roast into two portions, cool promptly and refrigerate.\"\n    },\n    {\n      \"day\": \"thu\",\n      \"preparation_ids\": [\n        \"prep_smoky_lentils\",\n        \"prep_basmati_rice\"\n      ],\n      \"total_minutes\": 35,\n      \"run_through\": \"Start the onion and garlic for the lentils, then rinse the rice and put it on beside them. Add the lentils, tomatoes and water while the rice cooks. Rest the rice as the peas and spinach finish in the lentils. Keep one portion of each for dinner, then cool and freeze the surplus portions on Thursday.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"eggs\",\n      \"quantity\": \"4 eggs\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"sesame-free wholemeal bread\",\n      \"quantity\": \"180 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"small sesame-free wholemeal wraps\",\n      \"quantity\": \"2 small wraps\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"potatoes\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"courgette\",\n      \"quantity\": \"250 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red peppers\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"onions\",\n      \"quantity\": \"2 onions\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"garlic\",\n      \"quantity\": \"3 cloves\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"tomato\",\n      \"quantity\": \"120 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"cucumber\",\n      \"quantity\": \"120 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red cabbage\",\n      \"quantity\": \"100 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"spinach\",\n      \"quantity\": \"150 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"orange\",\n      \"quantity\": \"1 orange\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"apple\",\n      \"quantity\": \"1 apple\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"lemon\",\n      \"quantity\": \"1 lemon\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"dried red lentils\",\n      \"quantity\": \"180 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"chopped tomatoes\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"certified sesame-free harissa paste\",\n      \"quantity\": \"1 small jar\",\n      \"aisle\": \"pantry\"\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Tomato egg breakfast",
+          "title": "Boiled eggs, wholemeal toast, tomato and orange",
+          "slot": "breakfast",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "sesame-free wholemeal bread",
+              "quantity": "90 g sesame-free wholemeal bread",
+              "amount": 90,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "tomato",
+              "quantity": "120 g tomato",
+              "amount": 120,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "orange",
+              "quantity": "1 orange",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tsp olive oil",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Peel one portion of eggs, toast the bread, and serve with the sliced tomato, orange and olive oil.",
+          "why": "The eggs anchor your small breakfast, while toast, fruit and olive oil make it more substantial without making the morning complicated.",
+          "uses": [
+            {
+              "preparation_id": "prep_boiled_eggs",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "three_real_meals_anchor_the_day",
+            "protein_and_something_that_grew"
+          ]
+        },
+        {
+          "name": "Harissa chickpea roast",
+          "title": "Harissa chickpeas, roast potatoes, courgette and peppers",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [],
+          "method": "Reheat one portion of the chickpea and vegetable roast until piping hot.",
+          "why": "This gives you the proper smoky roast you wanted, with chickpeas as the full protein anchor and a generous serving of potatoes.",
+          "uses": [
+            {
+              "preparation_id": "prep_harissa_chickpea_roast",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "three_real_meals_anchor_the_day",
+            "protein_and_something_that_grew"
+          ]
+        },
+        {
+          "name": "Cucumber egg toast",
+          "title": "Boiled eggs, wholemeal toast, cucumber and apple",
+          "slot": "breakfast",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "sesame-free wholemeal bread",
+              "quantity": "90 g sesame-free wholemeal bread",
+              "amount": 90,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "cucumber",
+              "quantity": "120 g cucumber",
+              "amount": 120,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "apple",
+              "quantity": "1 apple",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tsp olive oil",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Peel one portion of eggs, toast the bread, and serve with sliced cucumber, the apple and olive oil.",
+          "why": "It keeps your breakfast small and quick while still starting with eggs and including fruit, vegetables and a generous starch.",
+          "uses": [
+            {
+              "preparation_id": "prep_boiled_eggs",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "three_real_meals_anchor_the_day",
+            "protein_and_something_that_grew"
+          ]
+        },
+        {
+          "name": "Crunchy harissa wraps",
+          "title": "Harissa chickpeas, roast vegetables, potatoes and cabbage wraps",
+          "slot": "lunch",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "small sesame-free wholemeal wraps",
+              "quantity": "2 small sesame-free wholemeal wraps",
+              "amount": 2,
+              "unit": "unit",
+              "state": "cooked"
+            },
+            {
+              "term": "red cabbage",
+              "quantity": "100 g red cabbage",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tsp olive oil",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Roughly crush the cold chickpeas and potatoes with a fork. Toss the cabbage with lemon juice and olive oil, then divide everything between the wraps and roll tightly.",
+          "why": "Your large lunch turns the roast into a different meal, retaining its chickpea anchor while adding crisp cabbage and extra starch.",
+          "uses": [
+            {
+              "preparation_id": "prep_harissa_chickpea_roast",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 7
+          },
+          "honours_belief_keys": [
+            "three_real_meals_anchor_the_day",
+            "protein_and_something_that_grew"
+          ]
+        },
+        {
+          "name": "Smoky lentil rice",
+          "title": "Harissa lentils, peas, spinach and basmati rice",
+          "slot": "dinner",
+          "day": "thu",
+          "ingredients": [],
+          "method": "Reheat one portion each of the lentils and rice until piping hot, then serve together.",
+          "why": "The lentils provide a full protein anchor, and the prepared rice makes dinner manageable after your chaotic evening.",
+          "uses": [
+            {
+              "preparation_id": "prep_smoky_lentils",
+              "servings": 1
+            },
+            {
+              "preparation_id": "prep_basmati_rice",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 6
+          },
+          "honours_belief_keys": [
+            "three_real_meals_anchor_the_day",
+            "protein_and_something_that_grew"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_boiled_eggs",
+          "title": "Hard-boiled eggs",
+          "servings_made": 2,
+          "ingredients": [
+            {
+              "term": "eggs",
+              "quantity": "4 eggs",
+              "amount": 4,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Put the eggs in a saucepan, cover with cold water and bring to the boil. Simmer for 9 minutes, cool promptly under cold running water and refrigerate in their shells as two portions of two eggs.",
+          "active_minutes": 5,
+          "total_minutes": 15,
+          "cook_on": "tue"
+        },
+        {
+          "id": "prep_harissa_chickpea_roast",
+          "title": "Harissa chickpea and vegetable roast",
+          "servings_made": 2,
+          "ingredients": [
+            {
+              "term": "tinned chickpeas, drained",
+              "quantity": "480 g tinned chickpeas, drained",
+              "amount": 480,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "potatoes",
+              "quantity": "500 g potatoes",
+              "amount": 500,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "courgette",
+              "quantity": "250 g courgette",
+              "amount": 250,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "red peppers",
+              "quantity": "300 g red peppers",
+              "amount": 300,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "red onion",
+              "quantity": "1 red onion",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "garlic",
+              "quantity": "2 garlic cloves",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "certified sesame-free harissa paste",
+              "quantity": "2 tbsp certified sesame-free harissa paste",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "1 tsp smoked paprika",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "2 tbsp olive oil",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "salt",
+              "quantity": "a pinch of salt",
+              "amount": null,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "black pepper",
+              "quantity": "a pinch of black pepper",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Heat the oven to 220°C, or 200°C fan. Cut the potatoes into small chunks and roast with 1 tbsp olive oil for 10 minutes. Chop the courgette, peppers and onion; mix them with the drained chickpeas, garlic, harissa, paprika, remaining oil, salt and pepper. Add to the tray and roast for another 25 minutes, turning once. Divide into two portions, cool promptly and refrigerate.",
+          "active_minutes": 15,
+          "total_minutes": 40,
+          "cook_on": "tue"
+        },
+        {
+          "id": "prep_smoky_lentils",
+          "title": "Smoky harissa lentils",
+          "servings_made": 2,
+          "ingredients": [
+            {
+              "term": "dried red lentils",
+              "quantity": "180 g dried red lentils",
+              "amount": 180,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "chopped tomatoes",
+              "quantity": "400 g chopped tomatoes",
+              "amount": 400,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "frozen peas",
+              "quantity": "200 g frozen peas",
+              "amount": 200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "spinach",
+              "quantity": "150 g spinach",
+              "amount": 150,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "onion",
+              "quantity": "1 onion",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "garlic",
+              "quantity": "1 garlic clove",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "certified sesame-free harissa paste",
+              "quantity": "1 tbsp certified sesame-free harissa paste",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "1 tsp smoked paprika",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1.5 tbsp olive oil",
+              "amount": 1.5,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "water",
+              "quantity": "450 ml water",
+              "amount": 450,
+              "unit": "ml",
+              "state": "raw"
+            },
+            {
+              "term": "salt",
+              "quantity": "a pinch of salt",
+              "amount": null,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "black pepper",
+              "quantity": "a pinch of black pepper",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Finely chop the onion and garlic. Soften them in the olive oil for 5 minutes, then stir in the harissa and paprika. Add the lentils, tomatoes and water; simmer for 18 minutes, stirring occasionally. Add the peas and spinach and cook for 4 minutes more. Season, keep one portion for dinner and cool and freeze the second portion on Thursday.",
+          "active_minutes": 15,
+          "total_minutes": 30,
+          "cook_on": "thu"
+        },
+        {
+          "id": "prep_basmati_rice",
+          "title": "Basmati rice",
+          "servings_made": 2,
+          "ingredients": [
+            {
+              "term": "basmati rice",
+              "quantity": "180 g basmati rice",
+              "amount": 180,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "water",
+              "quantity": "360 ml water",
+              "amount": 360,
+              "unit": "ml",
+              "state": "raw"
+            },
+            {
+              "term": "salt",
+              "quantity": "a pinch of salt",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Rinse the rice, put it in a covered saucepan with the water and salt, and bring to the boil. Simmer gently for 12 minutes, then take it off the heat and leave covered for 5 minutes. Keep one portion for dinner; spread the second portion on a clean plate to cool quickly, then freeze it on Thursday.",
+          "active_minutes": 5,
+          "total_minutes": 20,
+          "cook_on": "thu"
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "tue",
+          "preparation_ids": [
+            "prep_boiled_eggs",
+            "prep_harissa_chickpea_roast"
+          ],
+          "total_minutes": 40,
+          "run_through": "Heat the oven and put the eggs on first. Cut and start roasting the potatoes while the eggs cook. Cool and refrigerate the eggs, then prepare the chickpeas and remaining vegetables, add them to the tray and finish the roast. Divide the roast into two portions, cool promptly and refrigerate."
+        },
+        {
+          "day": "thu",
+          "preparation_ids": [
+            "prep_smoky_lentils",
+            "prep_basmati_rice"
+          ],
+          "total_minutes": 35,
+          "run_through": "Start the onion and garlic for the lentils, then rinse the rice and put it on beside them. Add the lentils, tomatoes and water while the rice cooks. Rest the rice as the peas and spinach finish in the lentils. Keep one portion of each for dinner, then cool and freeze the surplus portions on Thursday."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "eggs",
+          "quantity": "4 eggs",
+          "aisle": "protein"
+        },
+        {
+          "term": "sesame-free wholemeal bread",
+          "quantity": "180 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "small sesame-free wholemeal wraps",
+          "quantity": "2 small wraps",
+          "aisle": "grains"
+        },
+        {
+          "term": "potatoes",
+          "quantity": "500 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "courgette",
+          "quantity": "250 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "red peppers",
+          "quantity": "300 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "onions",
+          "quantity": "2 onions",
+          "aisle": "produce"
+        },
+        {
+          "term": "garlic",
+          "quantity": "3 cloves",
+          "aisle": "produce"
+        },
+        {
+          "term": "tomato",
+          "quantity": "120 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "cucumber",
+          "quantity": "120 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "red cabbage",
+          "quantity": "100 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "spinach",
+          "quantity": "150 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "orange",
+          "quantity": "1 orange",
+          "aisle": "produce"
+        },
+        {
+          "term": "apple",
+          "quantity": "1 apple",
+          "aisle": "produce"
+        },
+        {
+          "term": "lemon",
+          "quantity": "1 lemon",
+          "aisle": "produce"
+        },
+        {
+          "term": "dried red lentils",
+          "quantity": "180 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "chopped tomatoes",
+          "quantity": "400 g",
+          "aisle": "pantry"
+        },
+        {
+          "term": "certified sesame-free harissa paste",
+          "quantity": "1 small jar",
+          "aisle": "pantry"
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "id": "resp_038797019e053c1e006a84cb86a2308191bb11b3b750bd8312",
+      "text": {
+        "format": {
+          "type": "json_object"
+        },
+        "verbosity": "medium"
+      },
+      "user": null,
+      "error": null,
+      "model": "gpt-5.6-sol",
+      "store": true,
+      "tools": [],
+      "top_p": 0.98,
+      "usage": {
+        "input_tokens": 5983,
+        "total_tokens": 12701,
+        "output_tokens": 6718,
+        "input_tokens_details": {
+          "cached_tokens": 3615,
+          "cache_write_tokens": 2365
+        },
+        "output_tokens_details": {
+          "reasoning_tokens": 2588
+        }
+      },
+      "object": "response",
+      "output": [
+        {
+          "id": "rs_038797019e053c1e006a84cb8792548191a4856249b03722ac",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhMvvvc9N6uPU0w2dECJYUjgErUP1oPOoVCsokQWMYWipWNcpUGMi1pimt3qzATJoKI_Sso_bGbf-x70PpJkewJrA7o24fT4cHTXZ-hgOl9R87HXtm9RYnX_OYXNXfMZQY6UH8dCafuuHWuVHbnePenlC6bVLbjMOgKmZWuGFSsAGQV6SkAdsuHS1rBpLx5jHc8tasnYt5JxfBfGhaRfFdiuetUPuAqUfgCj_1ATDEaSwGhvTBuC3C3t4Waxun3GRs0CgRtR9wJItwjwNF3LkF9mV6ZvSHzgHt-vVmzg4b1fzrgUTLLymVdVR7RaBPAf3vQvweH2dpI6YcfPoSLAWDfQ5ysV0FrboA6NDs7ZM3TYaf3xj4h4YQ09wDz1mw-3Q6_A27KTiwmrWCQndoFgU0uTUtVd69EtdBis_dgXXqGNuk3NAY1lBg1x0w6KgojnkfmhiF8lPdJQ-QmRwYk4eMr_XTUzHclN8IAQNsyu8sImORunk_lT7kjN5Lyqf3JrcWgdAhGxhiagrB0Fp8umIRsyhFqtT8s6fmpLNALYxc7JVbtlC8_BApDTBqFkH6LUFz6mpi681h8KOpa-Z4FqMesusjqNMOUj31FEMRyaxC6SlN-IzHkjVmhuzI7NByOEdspkkvfbLgTfLMb0IwnfGwoH_0PBRyIqy_r4V1isOm3Wfe8ewgCUHSn08NQzJUz1AwXq9daqvFCCEZT8OZatB2w4z0IQBNCpwCsctPYz8XEuVAHjRIQcqfy8_0Nb43-xRFDLcn-1LBPnkt6SEghYKp_4ffj0u2Ftbze-mFuRrKC9mqrJPUy0XSONRCe0ji-Qkki-C-7SMczl6uil3HCJWTCpDqbkcY3Ka1jz_cTpsRr1YbDl13mtJhqfzsMghAC-eGp_coJ13Socg0QS-ES2kp5jVEInLTtVoJBbbq8rjh1_4iE8_iodvzr16-V0PdcAj_TM2zWxwXKNYEE23BAqlpyknv_iEDNySax9OfRUm_Vc0mpixt-Nl1TjLfsoUskDedE-avMajqn8es3oAgrECRhgLjcBWGdwlnmpJBcoF4nBINmxAZPujofkKZRmzG1pOnIxA0FO_1ehjGzEprhIyTOtJXItrJ29ctavd-7Nd8N8Ld3hwZEwCV1uwSC6Ujn3dbIECHoJtAdNSADj2pR1MWf7J0gX4fJlWnetU1jOrb6Xm-3AegZ2zZoH1NoU3DEdxPYJkfF95MD7obufpTxDa0UNXtfldR4Fm1xqkem2SI3gJGfuszNVs3l08M4sZcmR-e7l4x0mXt6AUxkb_auGGThWgWl74xwSsHAwcE5FSbdDdgz-yFNzI0NlMQQV5oTpbaaI1MKddzdJvpqVmo5PNMTlVaHDenAZpL7uVC79vc2IxDCfb9pkWf6S-p2GOcR2r3cgeD8JCxpTT47iATeSivjvwRNcrE-_dFWsudSwn6GHI8mGmYvkryx-h-jAKA-xIgi4yYXy6oItXf2rXWaFc6FxRUOWNH8zj2evlH_f8lMmJMERNJWAt9syuaSNQIqD_pxTER0rFyOJE41LxAgrgaTWtwccncWD1tvkaIwXJxNaoLZozp35KJEJ75F-OuL680CNOzXxLNfuBzz4YzaSdlC3bY_6a3rellC5xctG-Wstj1y5mtTzK8PLgokt83yGw4xl81co7OjQmyoqLSpoxy5L_jUvOGksK-SZsgzzG1I3t5vSCsZSQ0ELwQVUai1m_9ZI8MrDpAaEwUnHHoclVO9WHhk6N4rbBBGOgDIA7nK9j1q2wlEAcUl0cJOQ729-Lq8_qUSJ3ej8gKUDOeVHOd5nkpIyWZvDntsCyl6HvsjX7lzv1s1TNPXXLyRukW8WTFqJ61Zeob5XYDtyph7lu8NXfwwDyP84j9-zOtktJvUN-4b__CeKLueXwMfwFR2JDCVGLOsUPkUtKjvy0945hWvpT_6GqJvoWsHSK6VnBn3xS89khc4jK_9eV6pv4WBPc_dRia0GUbKoS5pfQtpv8OFFF6R88IK0lzn3HHtX_73WOYa7gd2F_7XL6U5qAxW6VUXIVaa3JI-zfrwnVpUZMer3mu6fgfaKAj5-ZGcrH9TNxs9Y44FOjkdVYg52MmSduXfiFrjyiplumjA0S9J59jKLybuPXHquCzURoTrGnfO9OUvhiIX0wS6ZuQWQjrfkgxxIyEYdQw9kpmXiaygPEcGwhU8Et7GCx5hRWB7kKYmjUCHDJy3zO4FQo3IvyUtMu415iWIFIdEci9_OANp6n_IzuaUAntWeQgKOqTO_5l8krdmE0pkuD1Aj8FCvsRzJFfZIqz4L5l7XEOrP4A8kD41uGKiLfiwOxzKc0ICsxp72XfIK7JBw1I2UVRFZHScTfK6CFtAoO1q-lvABEMwQRLgFc0ACX6KKthGbkNArAD0ZzFgq7YdS8rwp0FgQPGk8EYeVtYP_u77F7Q-cFRrD8ZhN1kMvVwxxVAKT6K-SDVCyMsSAJWWF1-MVk7SLsAMrwMDBdNACCAg3b1qwqYZYaEjwx43hN6B_T4GHTsFOR9gm9jY-CjDPc7l01ICGS1-wtvT0qwAx9_UiIRpM-msMcMfa6xuWPCjd2qrroska95gYqnAFcFdEHxB4a39HPje37R2I5fwXr_q-KgHmBri7zCOWAYMd9Vwk-QJ0l2g_6LU-IAaeAzktak339VHaQ_jS0Ctt3XvVGS-HwdqhFLJZRmxy3he6-xJNrknUOHvtUjyv3P8KRG39M_XVxb6JJ0lGu_WKYIdVj2PUAjhM5zh9_-JrQSj98uDItbdO8W5YZNmKy_VMsLbMtmW_aFLlgXKUBnEXzbFIoftm-P0M3MHkY7onQe56QcgdDrw95PwXuEu3sWcNT7h3qW8hlsmIwIipVEwh0zrFkc5gm8JVSQ5FHD6YYTemm1_CdfQ7aSAwsEvne8XPni-WLEy4ghpJMizigpVxkP6mCweZEDJpdNg8ta4j_LuWNLHknC1kSxj34K6zKeaw7cjmL39lmDdxvYjtoPbdaW6PP6NNMVxs646Uy6OUlVFmXorZBazICEB232EUYFCglqt8tluahSy1kCXMd8M_bCVujP0WmgZ-2vm5UY4dILVHkoqYIEi0KISmtSqstZ1jaeBls_xVHJJChlZn4Nxz8exOVI8XzdAe-CFyNJxMPG9fmcBFclw4V4raw_I2BtNsrPiDdKUew03H1uesmftYVjsr0vZg78R1jRMqALCzvsU5w951Rq1p7z0Wz16Cg9PeKfq5zHxTV293Cs4f0UQ0ctq6KxDOxxYOrKIVPfuaJmqV9FUIm8O5zASSzXEhIxmHF812jnQml8g8lPg_t398VrmZZYyh6sjq5ycJ4oO3b6Bd0wt5mHTfTp6dHfqYweiMa2LKNLpj9W2CvxC5ICPb0EggG-LrMHqENZaobURrYsgJHLFZBL7QH-_sY3QZ2kjMfEKnzsGqG2J0XSQ8uiK4yZkTQ30iTzkJRPKKvOVeV1-6r_POcNCZ2jYmhjmQRZOAhCmGXZeek7UcYGXlFN5IysIJoRfTSjweA3sy3zk-IafBQ7jGZQnVPaqWv2UfV3UQMmpcJILVnjs4OYuGqSUPN9pl0OJg-IJ3V4T-uPpuJWMJ_wCNdSFy_twv1K5U5D51ukQb5TagF_5GlDfEuv2NnLT3MJ0cLOXSe9reCqLBy3M0Ajw-bdeEEPzbxqeeYGUsjzmp9InGnsVbqpAWIcFXhzcPBv1NQyvLjPaL9Il98sif0gnMW1qP3ZKXHMVFLLzbtKdNmvyrlW07UEybF-Z1TgQcK4N3aoxABnJ3Db3X4nCp-oWAD-gY1JhbvCa7QHp9hApPt97JoXHBABiTb6eOrRyqpHlpaub6EGkYAkvId-FjizTtLzQASv2eQKuBL0B00Yg3ydZ-yWdKrsi-dwDXv5LWpnajd8GjKLiXZ1hrpQLViJtMutSjgOo0nekDOxFrhaLRbScS_C16wEv79bPB4YBUQFR54Waxlryut49H_ONsHFBdzJir5dBPuU_pz0dTBxFyOH8vVk1dB19Zb0obTlkeerQ0FlB9vEbNAzs6fmaCVA03oVPPbiPQFX4T1CzXyAl7wCcZbl0o-QzB4OGF-w3IDKKSqu0pRUmB3KLnR7wr7M39Mx8XZhOCGdRrqe1FWm5ijNMpc7SIGrZpVz3jFBXNpFX3NpZKjBwNYSN21XuSHnxVcIrno3JSZZcwJc5hwTqU3CP6p9O9FrmzIsptHhIcBMHe59Cb7hdFF_sFQoym8RU7ltIpA_Va046NZXHfET3Xq-nOIv_Ka9MuAbarjZFGeJpWYQ44UV03K3w8qPJqDvaSnPumsGHv0M8bzYvYb_ByJseFX015Qzm0qhwEg3C54bc-M97Qqa303eNLLlYLItO46LSH79hfSxQ6HF_JrIGorJkSyR6ym36a_qexU8BV9-IsRpQhiVkGwbN4LKX8F7o5VplR6XU5qYb7rOShCRUqAQHdOb76jbGJodCGSeBE8pYbcZ2wzi7MvYI6Pdw=="
+        },
+        {
+          "id": "rs_038797019e053c1e006a84cb94f04c8191a805c222ccca3545",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhMvv_aF6bnftPy4Kpgtc8Kc-IlZmX0hrqqiXUjFMZLV0HPwhelUlR1iNfrA-HJTlM7fIsew0bnfwdCgKn0JoPLQ-kFBIGYlfrLcV55S03eYgc7cH_lKSo9dp4tAy1K16XxHXnShwfs8zqIAb9IW-8QHTHHMS4sBLrphnK1TGzXku8V-u3o-w3X28hsRjL1m8gAVbqlMTltXmQ1ITGwPCredpLLE0MeQCiVs2PuWt4Vl_voe9WbeXKLIJegsGBuFPWvHITWArEeyBiZwRZZq7w4iw1ERF1d8LmaFF18o11xntghZOb-kLblTtFOEkxixwGhh6MI_YaXEIueAX0rzZ3WgRCwo-hCAenLE80jRKZJTw_G3ydHrpjQEukyE97NJjNDE2v8coTlQCtpkKKw0YfexP6xbtgBinuhXH9mtgyctvPDhIg7TIbW3a0IVk51nU8NbuPllsCWw7XTJggFUR_7JMIBqPMgycWS7UZxoErf0ipN3eFyORhoesIxDoVUmqlfVx3JQxmZjtKcFhgiBiKl7Zrnrj0_FcHOlfMN-c2cwPrbyQ5ArJg7khVAiSgXsjc5d80maytZtyy-8gzy0-j2TH_RsWceXPnFyyulJr0RKwJEULu9R5WrtuceTh4XQasLvMHMj6KI-5q6HAlFckVjT8uVUbj2N6U3z-S-WsBd3ZpbfO8KeMgC8aAX1KD4Lu7A6Pe3PBrwQgE5Xn8FsAdEGqWW42oZNv95NNw0ALVJ1Ok2_YN-KmP9xGbQroS3WuN1F7W55P8kk4mKOIug2kCKp2vrhA4Rxx7TqQJ37b8rnL00OmpKJtjw5LWUb9bBsR9_ClFK_59tJScxuUJZ4ETLpvoeNHDfoPb45dV9HJesDBgXlC_jd9zpT9ldGGZDuh31ANsch0YGvj2pCNH-ELDjMUaHw15kZSPH5jVD6p0qZlYRi8q6a2duPYfgTvakXmrvR-zhSorRJH6_HPopV4DPMlE8swVt3wsfUurfRzFK5s0FXrLjj3Xd7h9uzYuhfOdRQHHIgOUvIrjcHcLea6dLdU0_cAX2VkJ2SMUpYCk3u3h_Nxi4x0l5wtIwGEGN0q3tMzPkvK1kYz7lc9N7x6Yo_ktZ8GcGvswvNSvtAHehjCcVW6F4QSjDhhx5lsPmDHw9g7So-Rd8H6ubUi63tj3bZdyUtvDDldFK0-jPxBMdjIUNSW3vXoTPz2RN-HgmUtnAxGPnhCprX5QJJMefth4xmzZyNhsmpRE97xwXCAd4Q684w7ya0pZuQKy8hCcgGEeeAVNqt392-7vKYk_i-HVHWO-RMLLoZ9DVrpLA-BXww9DqwUvSJm2l3C08IBNMCjSKAturUW8CZ8VayoXO5BAvxNYfe-NejPol8Au4Fv1sNsPVie2t0zBiOu3FH3a3cGldub0_-BpORBPE1B4Uh_3GTydctkLXsx1si8gz3Pp3Wq07AJFEYNG9R1PFrDNOX4hrwSqPEumrO2yGoKWnEu9Q0_mhIyZjUqcC6YMt7_trL2b6pFw4W-ll8e5M6FYElJzjVN54NoyMkbRy3-J4XKFH1KlH8FqzqpJVRW0qjqKuXjdqrpHo55AjrArwM39MxXUdBRvuOqOVmve6lLbLGfA-Stg3RY3lFurbgZ7bX04zfHfp5pRlDC3oBlT-NKxuO39CLHvC8vEKEDnTLXwsEYt48Y4dM8xR9T03usiX5MCFJ7RDv9nN54kB7NlRNbrSsZGEn_pX0H-OGO1VEKyhqoBJ26EfCnmLRDnlAzznROwoP-g-mMLOWrus4N_lrRkd-c0IkPO9s9rERjvCqheiajbV2L7Itsj0Ee7jBXiN4AonxXmqmJVBLHFPFxJnRbPxze9xbEK1abuZ92OhhpGzm64ShlthQ0KIilsj1BW2ewruPfRL_5ApaOtvxmg9MeQ4X-anUwY31LAgWKD7TmcvI6DUuALXmM-BB9a6a2WuEeBv19fZ_fPK8hM88GHJlb1waenTlkAeGwv7WEoMd_ZrIB6KulkSCabbfh2l-0dUvJbmnFN6MbjBJrXoFY_nTmF13GY2n61NtR2Nkq-z10tgmwKD1mRLXQXqSvLYyV-88oJrRThig-Gy2FbcErEe1wf-sh6DRdjA17kn84MI2a_jr10s6oZCsAD1tYH3b4-DP4lrjMVE9IOzfYXlWC_HTuyP7Pi04dg8Bfpi_18e1DZSsdZ-FDlXOPlanZWVq10JQQ2IXXXwcqaLIy8HN8XlQQHkG_1Z8GCq4pLLZbOj4NeeT9qDfZxh8jDLSS1LU3LDef0FOWwlKVDNay6_lOtOk4JDGIfl0AL0zXvQNCv5xOc2ElHORYnwbZ_06DYJcYCwZ81b1JUbwJftTOKkahdjIzNkk0beOVfOgwNhTZ8cIBGQvBoO3TpycUA5ugGBJn3l-H9IsnwStxJlP3o9SUurmMTbWSdpqWrtxkc8O_2AsudteSpIYi0Wzekg0uUlPzVBA2E3f9mxKLBBo4mmd999PUHjVyoXIjTaAH3LO7YPM-D3fMZx1eUvw2kYkasn5MyGMAcBgeqV-RMoeP5yMo0unrzP75-zsvLte0weCnJHsZ5jGq8HrW9eOIJf-ZiUYBThS7iBopIamoSbYdT1CiWXdxXTZ609qwADCAWKXlq1vo-mb8BAXfWySjkl4IEdEx0lRlMi8TJh3e898fmxAEFqziQPoGuWJ1xXs9PJeQv1qwJj04KxVH4c0sFmRnG-JommwVb6hWC7ttlVaEeey-VnhCg5fy95bQlOQ3E5cMQS0Ar8NyLO0FOqJHDJXyJk628Pu88nqFN-F8g26A8hvmVA92bAz8wia_R7M8xNQI-1zTX2O9CaCO3YwU8E5htiFArSJkRHp-LfrwK_4VBNr75bwnbGNCu2Efzt7iIpHpO_rxKLSp9-i5PywBB3YkdKqKD6KBahWrBM8BqSGSjIbnTFRH4tt5i8hU2-hkzXxAy6mpDfolVAYOABdjrNbNyJbeyucEjRuy_cVBH3hX5wLAKq7v8yxeXeJntFJV2nS9UvH6J0OrafXniKEb_n_GIPAd8JZnOIs5bddI3E2pDVMVTC2h15h3MEPIpl5gUeX3_Ij28odiD6vNy2efqfdz27mtJDu6vK7ovU9lzvDXg3AlXyiuKax74GuP2qaFUl_nTqWQfLAthgj-MRPm1GMDskxdhHQWxXvw6A8C-_DzXMdJzd8ZlhP1IRTA11mCGHvB35IkbLY7auLAANAUgbsL8OXLJmNKNFIALGo1XIp3TnwH9jTj7YCyaQWrgvhsqR1ZvXIush-ntRhbE6rY1YgmXfbEUMDJtHw0P5YAUFceWHpisSrI-vK9peTjlNBkK1iqYaPNerSXAbRSLYPyaqb5927QYQq_w-oHqD3RUucOpHPAb5Own4r_yEBENDinjf02tTEMOAIZoBiRjmnBbVEQH3IeTqf6zH0fPbbjBfa_oeFngbCaEZRKw7QOC0uFkNNg6Cx6eKqXKKF9cKJNw29L-b5NyHVL6LRtJgf0B41b-PSU8Z8TVcQRsu4-4O3JQzarhy2a5YTgr5rhpXcZ6KtEsP-UnyvgrKaydXGg4FkOhdq2jNQpW-k3mS1AGkyE861YBDxr_olbepfCQ_3ngXZXcmDUMGb8U89jcUGOIZMuQpyJ-XeEewy_vjOT1M10Z5JfreLDq6xDuELwJqkETTaRxLVFB6n_FSIdAV5wb701h2X4ugIyFhMy16hpetyuZhfOj_N_RivxIXc70qYh9tMok-xBkX9OhY-YjODmdQ_coNoWuSvVSl0Av1w3MtcK0eHv7Z__G9ubVXNxKFYc3vhG0AfZnQ8WlqmQDEisigGhVNsN4DLSOG_sa1_-HDMCvgPzpACxQ3-E8-Tc-k_eWbQv7nKZJ-qOGuVj_KR1zbSq13wGeI71gj2WDAhYuoXTAjLsXpZvNf_wUqp4FnocsvpFiZ8zHjJvDUQ2lowa8wJtnPdawc7BLadRw3b8BbxhGgbdKxbGXfLkGzQ4nxD-JeBL6wYk1cIlyCiMeSgX1HtPLJlWdlswXJCrYSu-8U1lfaPwiaS63SqwUs4ubH7OGt9io_e7BeAsAiH8T3YE-mm3dQYOcBe2Gi3mIj2bNESczP4IKVuhMesTYoof51_RMtMuF0PUz9znj5GjaDYqHTpoHxH-sp42SCYwg6XqhiLrwEE6YqTTPa4YB3qNU8nbTXDptzgDACKhf3PMPnpBxjFLYVBWiwFltXPea3WSybtMRU3Fsa0nGNLeeSsDtUUUxylMWpdMjmkO8PYw1Lgrsqo8L32qmhy8iD8rvwrHWLHOg6akLPiKeAYHGeZ1fDqwhKAC2O96ANSDyO2WBgaRg_SKADA6BYQpe9xsFhvNCzhqk9t2AZ1P0intC5AnkltVRQtpDgSEhHVNCJlG8Gh1_Bz-9MokswqllC-EJx5vK3KABs5dVP8_aLhgpP0TYSm98AHg8QtDq7fBj6xDBU4="
+        },
+        {
+          "id": "rs_038797019e053c1e006a84cba118688191a942116d262d609c",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhMvvyjmhiIQg5E_-uIIP6r6HCryakTb8pWLKnHuMIMNo1asSpXNc-fuijxzufMVONTeLjUkDK9UDsna_3dQqwTF1Y4aKLD4cCLk1quIeVe3pw6rMucCyQX4othZKgtQj4fZs7atMPqnDZZkeyIeTujNaXil6Fjwqic9cbxiZNxreiE5yg_1LJnzHY3Z_Y7hQ2hrixmcmcKgzlwjQlG2V2vSsQXXBDP8GPxG11xtCrBIAHgHT1eUdm9GG84f0kQa4Fe1Fij2MhOt-yY44fDcTjj_Ik_yabKEUmumupvFRKsEXPowEs5YOeApwv-vp7IL1jOGWEy8wtoef8dQHSnRhoykEgiidAgRmCpZrwXeMVW-6NrgAuel2OVOg7_6AiX8gvZ8Jbd8O-PVmuVRY3Wh1SwPoH63kCvOVUy3NQbj9BWjjbYgNWwdIo1opQ2LHzup-MJwMpX56tS8vbUYkdjK2nIMP5w9EINPz3qnQxFmhZV3nzj6GI4U1zufviXBN0tkyUbTuTk4dKtdNk4Ygvn9CYaiiLtSbcC8MLn5l7wK-1d4vSas8kbTxQh3XuYrQm3uYK2YQLrvBl0EF8d_cJaBMaeV-6eD30KQUfIHwauwyimTBAPV_vyCuu5DvB5d0ynGH9DAcoZ1pIFLcxMIEw_J2i5O8XQEn3UHscglStXGe-6I1YPowCpsiYj_4ImOl1C0KBwfDYeS1qJqMZDP4EpXjyGY0HL2DArjePST6gnfOJj3rdrbs70qoHGH3X3eJt8hgKfVRJb23FC1YGFufJYOaKnOe6ARp0qsr1yXCQpLW_7XtvHc0MqwSX9gFJyoAHtDfoncGy_UQ0WPfffhj_4KIVZpyE9r7uD7r9BG9Uf-SBB7z6QFOzmf-VclhGie6hkCfUUJV5FscfwEnc2aiuHvwqrg9RKY3IdySULJELTmisfXOz-jZ2bKgRHAm18xXMdk8MddLC_ulw7pOSCLha5jh4eUP9fX3Aty5w72Sf3v2wKdh_Oq52nsuYoA9q10g4L4fceiQnC_0W5g18rmmQ68bz0CE5bjH1djdKKs1K2iPg0jMYqQz2vZvNqubSv1YN3lIhP1bkuvcWf6YpR6KMFgQjQ6l6BOi5KyaLsIIsIoD6PzdpMiInd2EP1gCgQVuTE-KPqi_G2Ya0riWs-wVGd5larqyjJ2eDEH-fppo9vuGZIhTG1WnWL27q0CnETs6uVhp9pAU9rQyDQsUQHIwtblTsEAuF3rexFd1-aNgeYy8r-zd9segqfpTbWl_TvTxqMw_4bBQEbobSe4V63ZQSuoxkFX9zcFDgDmSoJRY1bxE6NiisonzMjXhM7S-RndzffHzPwVjaRU1TRfHCQyYDAAGtHmWeUopFT8utn0_sB3srKVtCWgEheqHurbjIZLHiLszKj7jlMSjUFJ6cvrPcEPqZZisgSnGBZNv_ID6ESkxvZ6WoKdyvuEuJwtmEM5TosqhtPzoJSplvMNDBeZUyHr9c5XMqDNWzt-kY6QyE526YNm47kNH7gr6rOqd-AmjYCy0lJAcRlU15Zv2aKiilKNhyppkVEjuy2OkiUFOa3mhtkIMZtBakyotbEooJfEwJ9y9rs8GjGWYph6zK_WmWdSvbH4B70bCCQIQL3moNoRtERA5yLyUsjggNTMy6ooAB_XwENBM02-rYVpgxnsQn3kyBaVpDTUaAniA4Hljr5BNbXa5kJPHJYePJqTV9t-lWtmq--s3trJy8AfR-XoReS7YQS40wcDPRCktz1fPiXKVkAEBDs5J5aYujkeCwSy10oLcD-OM9TLNNpZWfmQ_f-1w7FNcczoU6m8P9jZWiWyfWqcMY6bjn0EPLR4qnWSuI0RBAR-HbNmVgCeMiSO3GFRE-9Tl_vqO7waFnYu4Pg1S1ht13rX8I7kZ165PoQ4JWsTMfImnlaZe--9hKaQV3LeziidGGoUK6bR_EMSNLURsn69U8JpYD-_fy_eqc-Mm54TYjM62AjJpYCuwD4HHINv7YddeGn5KNkCrwYyOYZDUqvEULOnWJAcaJ5O8EQnBDkZnCUtrqRe1KlCL4bD4tDq3BZBomITgZ0-7x21ZcfBVEpKpwN3zBcIL2QxC_dtPUomECiV8QDeY-fFtuUTv_FRZzhVv6lcon8EGybVrW06pBL0MTCCvIrO05IweC7T-fR1sasCl2pFsqY2rh1GXv5NN6MSLiuJ09v2M2YZmqYE7P_1B3AspGevpUecb9NucLjl1U4vz3CuegUj6Q3w_ylvPhIwVTAQQDUoo69WzEn6RLJ35oO1ulagw4GwKQ9P1T3WOG9qAxgYLDiJoukiCNsZJS9kGJQCLJ6ro64tsp9LVAZhShfU-6tweL5C20IGfCqGQlfinO-c3Jm4vSw5sM49-QsNVF5FYaggjP4kKJmGamaFIN3Uu5tmP5g7SbOutldQQKudGUxG2usctrEoR0lmHvrLHJnD8yfC25O5M2DmZLb-KgnCLoKfPajvyIafXHY4g1CLLgi6Ty6vsiPmZH_jDORFlqxXCH666XQQ-MXpK50sM3b4TvP5fVSNT6qiz0-eWkl8NiR_qieCFR3ICaWJBVh4dMbFTrFD2Vhu-6dMKNcKHzbHS0HjkzrXEbHTZO6s92nvd4a9aMLIjM6MuE_S0P4mVoX91Ozt0RuWwcjpQqoW9_x6c457p19BYY4RAiiN5CIUyBE1uHrBcZRu1-0yCqZAbmaXZ_t5Mn7lftxaPvj7bYUwizrFuyVKq8dQOjJTXW8JlZ_tzuPkyQdD3Czo3KV92G6cyziDdo-uEBo-Wg_7QIZzFGsR1awZHC6he4Zyt7mBzlIaIbk9Aw3vxoc3rUHFl1GkqP-d5hRHyQM_4im4_IhMRQVbNglSgXFoNoKF9cCkeSMjoYyaiG0F-eyQSWc6J3GC_RpN1D5-mUrdl02h0sLQLSkA18eFsNhIBPNIgYamoa69MnJ5fjtoLubcXDEamWEirlt_-ic4-oRBFAnStRnUOeFNKCkKN6QV-zSXMxu8-IBc18AhkfM7UrRWW67mOxW4VvfcEXataF6m3ejhzqIa4Ixvi9BBXD1_QmCuRse4ZWiYYxPi0hDZ1gljrXCwffIi9lFgfr0vv9e0PoVNqS4u4M1M2aZrwmgsarLRrg78Z4YhaXR5zYXuJmxswh9jVfmdTkwvfSaaJaIdR6I4rTHKo8OOY2zHWnd9382wCXRcGIyqA_axy-vwoHt1cPUsLitqlnJNIIpDox-SpD0coM3H-GL9DK0xL6XUyxpLgoE--7JYpwScmTylajsCU-xBsp17TPnh_3pvJ4OvzBFcTfh1T7PUmjr9cba5NRzIQkhEKM8ci3A3bu8sEqanM0xSkms89qErybh5efieHZ_Wj9Naxl9WZIK9IEcFZ8JsFm14utyn8D8QbCTRUlP_mSKfdumB31qvB9E20m4plIHWoCzdicbmm_J5G5Hgy8q4pRjuQVOxF-oVP1Ms751piEVD1-pVNvN87sHlzPgYFaryeCLzBQbQqSrYdwbP8vBM7rBKHsNOW2Eooed-cDgC6JI-ToWnlQC6m4Tb8FUX-bFY5EkwSPbkflFoiHfg_LKc5IqyH066GVQIlHvUPpqJnTbnBuI4lYshLyG7Rg2tmj7NlTPxqqIZaCiWrlDAzWnPpMTTkO9x-GhvI46-nO1A9pY3hQb4DQDFCFbyIUkaOwttG2ITU9E1ymPax1Cyv-0ZacfLq1lzPxOlpsdKFK7EkaX1eT8aC8h2deqTKGN-Lg293zVGnh_AUOFK9bnGL_mm-GZyhL58Mw4eSdUmHvE_879t_YbDEbXl9F9C65TDGjPXjOAdZMdnZOST4TXxEYoBwd-TCdqV7jn45pbx9u8c1RHKrsaFCzL4yeOmlikuLF7z4U4GI_TEqpkJa2EqZ61gcxu6eIYJ0MtCFcTwkrH9ti-Xsqf4Qa4Tv8w3-9RLcUTC29HNmxN31mQrFAEgSmurJ9_UJotwGmkCXPmMWYzjcdmNnobhNau4BIwcgNp00tBaqTD_GO2UcviXF4J_vuvi-8zdV7GemLvI9D8rmwmvwuFQ1AffjPP3bg4gtYFP3NHF2Js0r29M6-CvHB6g8n4nhuPqfThQQwjPMccUWzTj2n6415wMsI7J84GhZtjzEIDn5wUp38MBJ9jpMeD4d2I4NQGXg"
+        },
+        {
+          "id": "rs_038797019e053c1e006a84cbac67248191a20bc7592a15383c",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhMvvste97lnegTeg-wL61TRWZRq2GXUlq-peka6oj_0UNt3PZniZR6v_95mUkPoju93HEtf4PiIZtHMbD0XhQ8bYiunwBqbz0DAq3xutNEMTmn7STi_2BsHcaNEEgYSg0AbIvlgj_YLiZftVgekJw43DZyO6_ad2Ty6cLI55cpymb4zf0Sc2Ge6bC3ruv4_L5AMdjkfIp2qR-dcZZ7Do_HGHTF3xBszY7uqKdqR6IJSXwgdMAZsAn45OWWgz7V31XPEtftuRp5CipD3Xv98qkcFy0G3FGBaOiOVsbfvYPPu9d_iyclfP8yBKkrAhwDWlJ8iHbs_rzma_QxSb5701e5pa995j_wWJvgmCH9Dtk3TOfmjBshWG-Z7Cpv_J3RABPYTL7kG9-EiLLjPczgXUU7zFxR0Mp72u2QON1P77cF4f1968ULXr1JHgebJfGOpVhpwNI0jVTLc88txrfkUAUhbquJlLC9m2aY3iXWtQdlX12iFKXuCioRrsodOq_M-cv0k6nIirxTsdN1pPWnkbrWwPYPv4P48anFcLYm0S5qPHmNhMopNt98KLH3V3N3-sarZCuhdZ_NvRix6_B7c4Q5nljijAjcd1N1wlElaYixjsntKa43xnubnei0_nqoJYiUR-N2bjoyxqq5_HMGanlYS3mDgEZE2BIYppMj-LSO0utMNtXbhz-ZODcF7DtJBKFr9_In9G-eHPx9JByJGUFFdzpWxuIEYCE9WiO0SgMVDxtZJS4rSa4cwoQR6QOT1_KxVQIwT119CtWVUL3uEQTJM4r5taBSsm8HnnUQdXFcCFIAvlzu630GMHTbsU-9H0h3Xk6Hw8H5moI-1d1QziHPBCQ0DD1TOyba6mqMWqqHaXb35eiGBNNOwTkZW0qp8XuIa7jIe9L_IOyFJUtArVJojqyJwJtTy5OAAc7J2gV_2QPrPIamzqsNlbGsQ-ROyXXemhAhRg3XELNRkuPEHnTQcbtzEd-5CZZ9Xe3DoWy0_K8mAivnyyDduxq_5E8VkAtnh6SkixaLcfYqIhhBxQMVJ-GCHVtiWHVu_89ueZ78wTdoJRqoRSprYJy1CsW_tITY7Ey_-B7q4JIbMpqYREry9BDzG2x9q3PEURSWBBMLVtrsJRiS6nlEmvN_hBfPGKZ2wqoF-TdDu-PWrDiwlo_bU4GrPmoFWr4C7TMcGJzBNT6Vrbd1-QpmjFGStTt-D6hCqqLYcaCjdgb1uF7aXtjocsO7jebnjdxiCM8SiXt2HhCkQHQ9Ih382yrkiIwuoF-4F5QtSuZvAzJHKPZxNx5VXk5_s4iNUI35EOd5WfthYrIvjS5BpJswf2jQvkS0RCXm3PEffVf_aXR_0ZZRJ9PySlJqb-D1dn2z7-kd32IHnbT70H7dvMdnsIy9_1cGh5h4pbChttHFb_ysutpeZk4PJpIksHbMFLta9c-F2JPsrQ6xjlXd2yrzBI1-8w9cuTl09_3tviOEfDwEzUgjPde89U5E70nNpvprs5LO9Iwyd0i9dUjwtZPS-745lNaG7xC_4lpmrBOsBONUCFqxNmssJlyUIBY6yIDzOqZoXiu8s4cJkfKEupE-MlpLWAHewMvFiU4a1g-4gkIw4q12ITc3mmCQgHPDITeaoJuM_USv2515zgzoHd4pXThuYFBzwyJueY9IuGqY1sM6ykr77O9RZvsWuYFVJ8xTrtmj0qSNhMZ6ml5xqiug_bhlcy1OvHqvMBHUt1PTQCzL9l-6--jSkBlEfmgyumnZpIB1JV-tG7EZUZzSgH9Imp-f5WOFchsUkV6dcDYmU8vCRM2SoI-FsHsJPQ-NowGa2YmGlWXllB0Mv6akDBA-oW4wl3imaygVrF9v9wCrPdh6Jre2pitkwfMvdv9lgn4GUBiAA6GHlLAoCKQgGA5bZBbYP-mZ6uE7eyjeWTAqdj263O59DCDmULMSU9FO-guyHA8NCewv66QOMwAW2PZQpfDUjv3WlxiNMmiaWvfyu5COjta21ymSJdfXzCp9ZHBEvZIqzMrXyp0EViEkIZdSiiRF7viaIlN3ZBhBg-7KUjmdR_CyMGMJQXoXLZw_3YmCswcEhELkG14cY8eNIMvtTRqwuYnbiKfEE2UMg8L734O0M_uiuhlU0Zs5A6gIBZ25tSq5eBpfvSOmHuww_vfLLvC9ICzgqeyucGW86Sr0f5CnpAvTtDsJ7YWt5s4vQSpQL7QvMWFTjKOL3LqcCg8-Uc8eMt3Ju19MpQTAOUu1Fg2GIrRng5SnjvqVbTHqTqKL4BWI8nmkXshs6VCewpMCybxMJHhx7yULdyf0a4HLJyeusEGW0pTb9f3BdeeJB0_TdJDNj0-xhR-o4rsmjpG5vrBHNVMh3nwDebzXxshpJHZHylqg-mL5ovnqq2O_5DYzKXECvolybuFLXYXq-7u_yuZs0YzhLHCRDGF469lGv-tdKyxApWu0_S2G1TKVV0_6h2j2VS5GCT3TAp6OrYCZSYPtg7Xc18X6qVEc37Yb-aq5Y8hNh1r_ZsWDNM56ZGSYP7jqxAm0Ch-R2vV8XAibAvBj6mygOeCXbq9jx9iBY-7oihNC0X9U7jmKZj4lDSFOu5x6tx6ORKrumnP-u7FVetgbbqjxzxzITDONhY0NF5rCIEKCIQa2M9FIrxt0DdATXpf4gj6evXDEFzqYaB2UnTNwmw7zcHPMHys9Kf6u6LXtboSbgO-gtoBGq1IVwJ4CrWJ2xF7Ww3zPXF-AKyiTdJNKr4Avm3J9FGSkEoIXAVChuZ0m9vAvpKfTwIb9GlbGpKx9NjiCqTelIPGiLXHhlcne-pO-q84u4F9P2r-CqIMHy3zhzbHlgAhc-zajZowB_RzcxzlO1Bv-xgSzzE5nkFbDy-aiSY0OP0Qli3XoNDvXoXUKAxVCNg6HUQQaKiTpqeEILP0B6V1a2mh1BfwkdW3MBhO7CZTDvGfcB6YB2bhSuKq-Tc357wy6X4tydq_o2-9nVat9N-YVLa4OkhBW9POpzx6cZajIbMcLM9z3s1xs1Nk6VdCjo3TOKT4yfvWJBcy1NH2tUsjeqODjqDXvP8sImYWQoqXF-ARpaRvglRDXfDvpraMowi4JUBDQnD-wbPTFyK6rDYrKfzhZ2mFDWKb_6rCPEjNwEs9fLHcdDG2JGKjPzgJi9kZ6XDOFf4TU6URNKHWvinyjt7UjR1qxhUbVl5QxVw-zrUXfEgBEbUHlyc0k-jfye9YFBvxmRilzSEMFurXzmpADV8HNalu_M6rFDKXtIzoLekFR3wxlZisFNdvaCMnKkaYDUW5CObciD_errW36Ttkj-7BWamxEREo6bVuMurEUJo2tP0KndKJkOadcxwOGKmfuaumAevkZf2Cr5DQOM8CT2d3H0HS5QvqX4ABgd4Tl3FiQdjf0Nz38R6eu-GBt5rM9J53hE3zU9gRHqT1eA9b3j2JOo6jv3PF9v6-jE_gaNvSuOqZ7GX69MNO5yo6jPnkgdX9I7sGjc_yx9k_SFrJtBXOtztyXSH6oi69PLxkpnEYxUTC0hpWa_6SSBItxwEQ0tN9Htn0dIJdxJeYlT1QIoNHP5IMdVQwyqLNMZX4w66gPIlnCuwOAt9sDvv7zOHFofCQzhb8oN80r7Fur_TCJZhIAfNow_qc63ZAq7VzRSGd4vQqqeaHF6JCK372Vxu6QXMdzsWu2Y5XNuHQtUjvNgkxDByujMfMLGbFhIYwxWBoaA6tDdoZq7nPJsMkUTCP8--3gM_SX1dUqI4Enh6tUn_r-gYwpOhMs1sZuur_YyXMjTX-OcUotufdLJZdlTcJunCIzawHDB4fQxGaDlwCX9h5azVCrqqg45vASY_r0LdiHdryEsNZH17PlHvozsUKRht6aUwkwQ-ZhEvXgxnExIkwDfxDDqre_c29PvrboT8SE422tHDdMqfGNyDNUxorA=="
+        },
+        {
+          "id": "rs_038797019e053c1e006a84cbb6bfd081919387754a2ce29a99",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhMvvxXFvgqX4q8_s_52fdoXUkKKp6nYtY8qewgqemHogSI_wo6oe5KEt0YdvG3ANRVzz1xbyaaTL1O1svLQR4LBuqCoae8ksQJsGIF2uSCjB4ZH_svLd_ny47N0D0eTrwNZ7FSdqvTCgRhGnXIksOQGoLSxNRkDYYdWk-Mvtrs54zkytexL0WgKCdInVB0QQ0iYBidcsaYGOUHJ62Q4gWNSaZaMibNDCP1fMUBOrXrgsJb4j7k7GBJSkBlExl996YTklhmIK9DWExjsTSF0Lyheq0iW7SJUq1WkSSu5bBfxqhn_lvS3rb7TN5vCUYN6HLJKZcOf-y9-YiySK1uQ4XhZywHr6eDbU7svzoDEk3idSu5cMnIxjODmegIsRcAvkyhw4avZnJbG-SxKVW_7mkdZTXETmHyfER_bV118pCC6ZR_dOPwlEPiBOrzPOWQ0NMYH33RCI9zjSo09-ILMtUW_gwRPBkS6iQvs6XU_boZezETQsyoyhRddUVheCoJcCxCu1hlxy08Gh_jJM154PESA8NuNytkmMTrTTguolFxcjO-M1NWMmegHvifO6ysOqNBRXKi5gbK5P7bC0bVU23Klfd_XxEimK-HSKbCPMEiafgOwH4sudnLJBwNDAM1GWlHilAv5-HpBAGvmfw18fcnHPQ5TB5cZHAjYjBJhwUo_A692LTF3NASmnuKDUGC0Fl-X5DKB5ozjhbfQPmSfkKelmG_Ae5x5ZI2IbeFSOZu-qmCI1L4gCpSL7wpsVbXtPeXboLCZbEFqjaEB8AQFGJQuTaDiQchXnAcrMZD4pnbBh0DGFNS_y0kx7zpblhjf1oqIXFby4OsNg4IDbicEZn9cDweS_CAFCuIodY148tCX2Tod_rXS5b6gPk850Blt6PsxWKUfyqqIZ6Y189ywNc4S_tUGNJhKPf6l3b0Sq116NGO433LmWCSYweyjB8Ffd_GGyPWuo7lfEYlOj_O2l0qp6wQmxK_Ti9giCiiUTHzkL46TPwFt-JxwOM3dxyAyyopPmHyLwAY7xyMzy-srwipzzquD67cSPsis-odUDGegqkeSuO5ky8OUk4IhO09BQ4suXH74Y5Qrcf5jOPFrXJgP_K8QNcWoCq2UZUV2Vq1Q1epcFhW0F2L0XesVsSmD3-jyPvr4bEHxu5d41mFCw5NsRJxwVqrT879aJ1B-NHa4GQ3MmywHPZWQHkTXSLMJiViQPOoqX2pgKZhwQxXHpHE5EJkLVHpfOnqEGjVFpgjNOkkgX6pIwUOm3biZflDa_foR6w2xu99DEB0-0Px-YDSv1B8ayio8KzVFDIx95ysZBgCxa-44GrxJIB0dGOA-C7uR-O7nId1hQU4r-VuD0EHnR4RJ5UGx5g2oSanl3qLEINBMI1fTPfzokwipQdUVx_5Sp1iP77gpLZlu4w0Zyhv90xMJwyX2vdjqhat9TjmLoEBmRCkszZKJdqZWmKAgfyVTw_8EtOXsA0oUW0Jd91DSW7GzORfbwnJpS7XKdflUw-kIcu5TnpXyOElSP7HtNR13beUe9RUyTeiNC9VH2uYhToJfi64-HQhk3Lk0xvVvfrVQ92ZvzsrB7CVYbSx6dEOkceQovUGsRuiTwYqfaWVBEAixDrs2LRS3CE_tk2P5lttTfVSVMujg79SGaIOlTTeqJv9qs8OVypemN5tjTuWlrmmOeGU-BdeoolbG8mmYSjOLEixFy0lPQXEZNiQayPRMJDqSxyFTTRU0nHBIX7HhhQuoGkSexzys_00TzBk9O0AdPGAQIsi-lgY6WuNZpFy22DVj5M0Leny1AjlOMQqUq6dOPwsvTq3WU5rd1Xtj21fcCbT0mC5R2seQooqQOqzPgzX0j3rs7c15kkV1vqgwaCMPfiKZH3DKguqFgTZpzaF2dvqR_sEauvZoWKSoQA_0I91BsW9ITv5KCGidNQZzyRTmZQsn9V-TsJYohktUz6a2njufraDKl5LPJqooI-nlKhGGFCZHPYTU5F6O-kdbXmY1KjT9h5-bmY4gcPVJvOaVTMkOU9br0u0pwbzFNYnWJPp9IYcaK50etr17ds05iF5yTegAPnjV1i7XGEWivV0D_jVbcX-3NVTjfwz40DSFjEjZ0OnzobFakhBpd9Jpt7eH20ZTc4W5hKU0YgEq4Cg96DbazEeCzP5GAQl8LUIb3WO5H8OEgnxjBnMIOqoQpzxy_hNzr_jGRMrThAtUTH0CjQnutCbzfh8-8VwAHVOp1rKnysyKp2zIu2uj1Nxr7fkxCcpK79vSC2g6TYa-km2RuRw1D3Y-hdOb-JACZKy9gtXXnQxeXLKrvUcIq2qAH8qFmrJiZlmE1ovwELcS4-MdS12fvLuuybSc8QhgIooAYC03hFDCQsfkdP7N0WjEcilt3NdgD4bjEKCmE5X8z6a5c9AyAuhFC5I6-lOV8-23p4LGW_ZqLvDchoqvf4GrFDO4w7uRWg4J4OT61Lc9R8JUDOmEG1rdpd5K7v5qNXusCOJBPCIA7FrGFiw0uSi0nq7N03T8k9N33mDINSvb9Y5UlZDr19Cz_xaby8Gr-ww9HQm2kAR2SX0s0N1d_jrwSUtUhhi1P8BegOddIUW6pZIhfdC6_K98DEXmFIUZwi9vdsCY0lfOCSBqHTcWDVl20QDyi9y7u1MfZ3o1dVBV39K4wo8AUdjHg2qVuH7KlguaHjUU8KN0pI06wGzKPuuoNTe6GoQav7481rCGOaWo5txwLys5Ec009pC--dVjwcii9AaS4GcXCh6IC7lDF1cfpn120IJRwn-juba7QG4VPYXDgwDp46lG_UFyD8CyVWlONw60sr9NMGVmwFrPCd2fKXsnuIYDlJprYcTJsZKt-SLWzvb4f3JKGGT2dM-fsncLyOvt4SBzrpQvGQVBt6YuQuKjcc0ZXO9Rj3EZ1ldp69d386tHxphMObTb8dWlvBxIvnq0HJSXu1SuZTo6sKMYZtkJ7SRMWkw2AE8yjjuBSj7BZCUtClWhRfzuYAyVUXtq3itHPjjSqjXO4TcN3uvcZCf6cur-zNTFjv99YF6W6QF216d3feaHLzP1MfFbWpLGpuQSMyppxZl8xJlsV3lKanJcUZOlQuOovli7RCD5OFCmV_kPPEM9HWGDn-XrQY8EGtfKXn24X0hxt0E5HHdPs9F6i1cdB6qP-Hv7m7FqlvIKpkFNbtjj42MsT_sHke7hLLwRzC-c96YdbB9wPmrcDjrwz36TQhp0c7ldVbQ5oOOUHdQH8V212bQPwn4_LzJ9du533HytfseBZrU-USisebaO-plNgk1S3NSVRWKSBC8fWNE2mYtbOQJbj2-gqwaUb38QJ9PTODp3gBjEX5t6eH9VXfQIqFOQOcLcZRCytPOHHj83eNyRZYRisEmMqeYaWwcPGgyVA1yAR9w2Keij18Zki3LMhMbWrM_YbCXEtgFrqGbNshcwIBqyAyDuEgKu6Qqujue4YZ_xXbpkmn2lbhWD9P34NDQw771Gtt6hKHEx0CvZjZMjfbNlLnFvOJ4THboiXMBK56Ovr2-cgBXlBz-lnpVNzZaHCLXWTPT4CH_4vInL_ZDKAOhrYxUamL7sQcEqBKBLVbZ4UJD8yAHNkHR5I53lpu8Yrgs3KTXBJ9ZIuCYjjd1t1ByqJxItfeQPnlEgUIWBHUX0h4nsaWwxGIz6X1H_ibWWKrf7ly6blHfZGzj1qkkxlW5_HM-1bUTycRW-nTizxJnjzmDY6eUVAM_w2eqa_mEHg4gE7_u0gu91gGOYJssIc7mpbLTd9ZPJvjtcaqBSASae2xu5JhK7l4fhO0AvxNDXKoJgtUDsqP5mz5nAauhruZ87ULKt88bq6u3GsXcTkTDsC58gzVPMIxts485sCddzs8WNGYkG_9GC47Y921y5DmlLfAX8g6n0VPQYUoW4BedO5tlb7eNW-98RHF-O6qX_Lomd3sBTNVBoFL0CXJG-jNwWM49ZRJlR7lESvEePMWOizDzp1b9F987Fi593VDMEHvZfR1iPOCONhRaoOQD-qhY3L7exK91rIItC-KJ5jKBtIOqAIeMD4L_6jBwkyDdM8b0AVRzV5fA3bsHKZ3edQZVHa72-lFZ_CW9vhhIl8V6F_NZ1KiXbzCZqBLxfRJCETteKx-ZB99OK1iJfYxwuDh6Ly3zkK2_z6vLYKmxeRpMX4YSdiCS3PGgGG3Hl7h7ZufHAg4i0kEOeRJ2p1ayDYvOGTCfj43gHVorb2M5wgYjO7Qfr_0d0wgiohdWO541gZd0pyC-15LrE-tyE3e3JlEX7n_7pE7zAsg2In6c-DecYksdp2xS9b_OPB-S5YQRyObu39skCELslL1MVXKKdOUbRNWIMg2Tl2"
+        },
+        {
+          "id": "msg_038797019e053c1e006a84cbc2921c8191b4f66395fa788f58",
+          "role": "assistant",
+          "type": "message",
+          "phase": "final_answer",
+          "status": "completed",
+          "content": [
+            {
+              "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Tomato egg breakfast\",\n      \"title\": \"Boiled eggs, wholemeal toast, tomato and orange\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"sesame-free wholemeal bread\",\n          \"quantity\": \"90 g sesame-free wholemeal bread\",\n          \"amount\": 90,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"tomato\",\n          \"quantity\": \"120 g tomato\",\n          \"amount\": 120,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"orange\",\n          \"quantity\": \"1 orange\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tsp olive oil\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Peel one portion of eggs, toast the bread, and serve with the sliced tomato, orange and olive oil.\",\n      \"why\": \"The eggs anchor your small breakfast, while toast, fruit and olive oil make it more substantial without making the morning complicated.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_boiled_eggs\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"three_real_meals_anchor_the_day\",\n        \"protein_and_something_that_grew\"\n      ]\n    },\n    {\n      \"name\": \"Harissa chickpea roast\",\n      \"title\": \"Harissa chickpeas, roast potatoes, courgette and peppers\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Reheat one portion of the chickpea and vegetable roast until piping hot.\",\n      \"why\": \"This gives you the proper smoky roast you wanted, with chickpeas as the full protein anchor and a generous serving of potatoes.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_harissa_chickpea_roast\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"three_real_meals_anchor_the_day\",\n        \"protein_and_something_that_grew\"\n      ]\n    },\n    {\n      \"name\": \"Cucumber egg toast\",\n      \"title\": \"Boiled eggs, wholemeal toast, cucumber and apple\",\n      \"slot\": \"breakfast\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"sesame-free wholemeal bread\",\n          \"quantity\": \"90 g sesame-free wholemeal bread\",\n          \"amount\": 90,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"cucumber\",\n          \"quantity\": \"120 g cucumber\",\n          \"amount\": 120,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"apple\",\n          \"quantity\": \"1 apple\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tsp olive oil\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Peel one portion of eggs, toast the bread, and serve with sliced cucumber, the apple and olive oil.\",\n      \"why\": \"It keeps your breakfast small and quick while still starting with eggs and including fruit, vegetables and a generous starch.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_boiled_eggs\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"three_real_meals_anchor_the_day\",\n        \"protein_and_something_that_grew\"\n      ]\n    },\n    {\n      \"name\": \"Crunchy harissa wraps\",\n      \"title\": \"Harissa chickpeas, roast vegetables, potatoes and cabbage wraps\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"small sesame-free wholemeal wraps\",\n          \"quantity\": \"2 small sesame-free wholemeal wraps\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"red cabbage\",\n          \"quantity\": \"100 g red cabbage\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tsp olive oil\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Roughly crush the cold chickpeas and potatoes with a fork. Toss the cabbage with lemon juice and olive oil, then divide everything between the wraps and roll tightly.\",\n      \"why\": \"Your large lunch turns the roast into a different meal, retaining its chickpea anchor while adding crisp cabbage and extra starch.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_harissa_chickpea_roast\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 7\n      },\n      \"honours_belief_keys\": [\n        \"three_real_meals_anchor_the_day\",\n        \"protein_and_something_that_grew\"\n      ]\n    },\n    {\n      \"name\": \"Smoky lentil rice\",\n      \"title\": \"Harissa lentils, peas, spinach and basmati rice\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [],\n      \"method\": \"Reheat one portion each of the lentils and rice until piping hot, then serve together.\",\n      \"why\": \"The lentils provide a full protein anchor, and the prepared rice makes dinner manageable after your chaotic evening.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_lentils\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_basmati_rice\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 6\n      },\n      \"honours_belief_keys\": [\n        \"three_real_meals_anchor_the_day\",\n        \"protein_and_something_that_grew\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_boiled_eggs\",\n      \"title\": \"Hard-boiled eggs\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"4 eggs\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Put the eggs in a saucepan, cover with cold water and bring to the boil. Simmer for 9 minutes, cool promptly under cold running water and refrigerate in their shells as two portions of two eggs.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 15,\n      \"cook_on\": \"tue\"\n    },\n    {\n      \"id\": \"prep_harissa_chickpea_roast\",\n      \"title\": \"Harissa chickpea and vegetable roast\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"tinned chickpeas, drained\",\n          \"quantity\": \"480 g tinned chickpeas, drained\",\n          \"amount\": 480,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"potatoes\",\n          \"quantity\": \"500 g potatoes\",\n          \"amount\": 500,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"courgette\",\n          \"quantity\": \"250 g courgette\",\n          \"amount\": 250,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red peppers\",\n          \"quantity\": \"300 g red peppers\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red onion\",\n          \"quantity\": \"1 red onion\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic\",\n          \"quantity\": \"2 garlic cloves\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"certified sesame-free harissa paste\",\n          \"quantity\": \"2 tbsp certified sesame-free harissa paste\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tsp smoked paprika\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp olive oil\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch of salt\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch of black pepper\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Heat the oven to 220°C, or 200°C fan. Cut the potatoes into small chunks and roast with 1 tbsp olive oil for 10 minutes. Chop the courgette, peppers and onion; mix them with the drained chickpeas, garlic, harissa, paprika, remaining oil, salt and pepper. Add to the tray and roast for another 25 minutes, turning once. Divide into two portions, cool promptly and refrigerate.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 40,\n      \"cook_on\": \"tue\"\n    },\n    {\n      \"id\": \"prep_smoky_lentils\",\n      \"title\": \"Smoky harissa lentils\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"dried red lentils\",\n          \"quantity\": \"180 g dried red lentils\",\n          \"amount\": 180,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"chopped tomatoes\",\n          \"quantity\": \"400 g chopped tomatoes\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"frozen peas\",\n          \"quantity\": \"200 g frozen peas\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"spinach\",\n          \"quantity\": \"150 g spinach\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"onion\",\n          \"quantity\": \"1 onion\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic\",\n          \"quantity\": \"1 garlic clove\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"certified sesame-free harissa paste\",\n          \"quantity\": \"1 tbsp certified sesame-free harissa paste\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tsp smoked paprika\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1.5 tbsp olive oil\",\n          \"amount\": 1.5,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"water\",\n          \"quantity\": \"450 ml water\",\n          \"amount\": 450,\n          \"unit\": \"ml\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch of salt\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch of black pepper\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Finely chop the onion and garlic. Soften them in the olive oil for 5 minutes, then stir in the harissa and paprika. Add the lentils, tomatoes and water; simmer for 18 minutes, stirring occasionally. Add the peas and spinach and cook for 4 minutes more. Season, keep one portion for dinner and cool and freeze the second portion on Thursday.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 30,\n      \"cook_on\": \"thu\"\n    },\n    {\n      \"id\": \"prep_basmati_rice\",\n      \"title\": \"Basmati rice\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"basmati rice\",\n          \"quantity\": \"180 g basmati rice\",\n          \"amount\": 180,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"water\",\n          \"quantity\": \"360 ml water\",\n          \"amount\": 360,\n          \"unit\": \"ml\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch of salt\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Rinse the rice, put it in a covered saucepan with the water and salt, and bring to the boil. Simmer gently for 12 minutes, then take it off the heat and leave covered for 5 minutes. Keep one portion for dinner; spread the second portion on a clean plate to cool quickly, then freeze it on Thursday.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 20,\n      \"cook_on\": \"thu\"\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"tue\",\n      \"preparation_ids\": [\n        \"prep_boiled_eggs\",\n        \"prep_harissa_chickpea_roast\"\n      ],\n      \"total_minutes\": 40,\n      \"run_through\": \"Heat the oven and put the eggs on first. Cut and start roasting the potatoes while the eggs cook. Cool and refrigerate the eggs, then prepare the chickpeas and remaining vegetables, add them to the tray and finish the roast. Divide the roast into two portions, cool promptly and refrigerate.\"\n    },\n    {\n      \"day\": \"thu\",\n      \"preparation_ids\": [\n        \"prep_smoky_lentils\",\n        \"prep_basmati_rice\"\n      ],\n      \"total_minutes\": 35,\n      \"run_through\": \"Start the onion and garlic for the lentils, then rinse the rice and put it on beside them. Add the lentils, tomatoes and water while the rice cooks. Rest the rice as the peas and spinach finish in the lentils. Keep one portion of each for dinner, then cool and freeze the surplus portions on Thursday.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"eggs\",\n      \"quantity\": \"4 eggs\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"sesame-free wholemeal bread\",\n      \"quantity\": \"180 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"small sesame-free wholemeal wraps\",\n      \"quantity\": \"2 small wraps\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"potatoes\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"courgette\",\n      \"quantity\": \"250 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red peppers\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"onions\",\n      \"quantity\": \"2 onions\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"garlic\",\n      \"quantity\": \"3 cloves\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"tomato\",\n      \"quantity\": \"120 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"cucumber\",\n      \"quantity\": \"120 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red cabbage\",\n      \"quantity\": \"100 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"spinach\",\n      \"quantity\": \"150 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"orange\",\n      \"quantity\": \"1 orange\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"apple\",\n      \"quantity\": \"1 apple\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"lemon\",\n      \"quantity\": \"1 lemon\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"dried red lentils\",\n      \"quantity\": \"180 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"chopped tomatoes\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"certified sesame-free harissa paste\",\n      \"quantity\": \"1 small jar\",\n      \"aisle\": \"pantry\"\n    }\n  ]\n}",
+              "type": "output_text",
+              "logprobs": [],
+              "annotations": []
+            }
+          ]
+        }
+      ],
+      "status": "completed",
+      "billing": {
+        "payer": "developer"
+      },
+      "metadata": {
+        "source": "generate-meal-v1.composition_retry",
+        "user_id": "1a000000-0000-4000-8000-000000000001",
+        "request_id": "798c5cd6-acbf-43e3-8dcc-97128d3edd78"
+      },
+      "reasoning": {
+        "mode": "standard",
+        "effort": "medium",
+        "context": "all_turns",
+        "summary": null
+      },
+      "background": false,
+      "created_at": 1787087750,
+      "moderation": null,
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "total_tokens": 0,
+          "output_tokens": 0,
+          "input_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          },
+          "output_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          }
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "truncation": "disabled",
+      "temperature": 1,
+      "tool_choice": "auto",
+      "completed_at": 1787087855,
+      "instructions": "You cook for ONE student, inside the method their coach teaches.\n\nOutput a single JSON object, nothing else. No prose outside the JSON, no markdown fences.\n\n== THE METHOD COMES FIRST, THE RECIPE IS YOURS ==\n\nYour coach's method is given below. It is not a suggestion: their forbidden practices and the foods they do not put on a plate are hard limits, and you never contradict them.\n\nInside those limits you are free. Write real food a real person wants to eat. You are not restricted to a catalogue.\n\n== A PORTION IS ONE PERSON'S PLATE ==\n\nYou are told how many people are at the table. Every quantity you write is for\nTHAT many people, for the number of servings the dish actually makes — and for\nnothing more.\n\nMeasured failure, and it is the one that makes a plan unusable: \"2 salmon\nfillets, 500 g potatoes\" written for ONE person eating ONE dinner. That is three\ndinners on a plate. If a quantity only makes sense because the dish is cooked in\na batch, then say so in `batch` — do not silently inflate a single plate.\n\nSanity, before you write a quantity: one adult portion is roughly a palm of\nprotein, a fist of starch, and vegetables on top. Scale from there. You never\ntell the student those figures; you use them so the numbers you DO write are\nbelievable.\n\n== EVERY MAIN MEAL IS BUILT AROUND A PROTEIN FOOD ==\n\nBreakfast, lunch and dinner each carry one whole protein food as their anchor:\nmeat, poultry, fish, seafood, eggs, pulses, tofu or tempeh, or a protein-carrying\ndairy like yogurt, skyr or cottage cheese. It is the thing the rest of the plate\nis built around, not a garnish on top of it.\n\nSnacks are snacks. They do not need one.\n\nNever write a figure for it. No grams of protein, no share of the plate, no\ntarget of any kind — you are choosing a food, not measuring a person.\n\n== THE STRETCH STARTS TODAY ==\n\nYou are told what day it is for this student, and the exact days to fill. Use\nTHOSE days, in that order, and no others.\n\nA plan handed to somebody on Wednesday that starts on Monday is half expired on\ndelivery — measured, and the first thing a student notices. There is no such\nthing as planning a day that has already gone.\n\n== COVER THE WHOLE STRETCH, WITH FEW COOKING SESSIONS ==\n\nWhen you are asked for several days, cover EVERY day of the stretch and every\nmeal that matters in it. A plan with Monday dinner and Wednesday dinner and\nnothing in between is not a plan — the student did not ask for a partial week,\nand holes are read as \"the system gave up\".\n\nCovering everything does not mean cooking everything. That is what the\npreparations below are for.\n\n== WHAT YOU COOK IS NOT WHAT YOU EAT ==\n\nThis is the important one, and it is what makes a week both quick and bearable.\n\nSeparate PREPARATIONS from DISHES.\n\n  A preparation is what comes out of one cooking session: 1.2 kg of roast\n  chicken thighs, a pot of chilli, a tray of roast vegetables, a batch of rice.\n  It carries its own ingredients — for the WHOLE batch — and its own method.\n\n  A dish is a meal on a day. It NAMES the preparations it draws on through\n  `uses`, and its own `ingredients` list only what you add at the moment of\n  eating: the salad, the bread, the yogurt, the lemon.\n\nWhy it matters: one cooking of chicken becomes a rice bowl on Monday, a wrap on\nTuesday and a curry base on Thursday. THREE DIFFERENT MEALS, ONE COOKING. Making\nthe same student eat the identical plate four days running is technically batch\ncooking and humanly a punishment — do not do it.\n\nRules that follow:\n  - anything that needs a pan, a pot or an oven is a PREPARATION making at\n    least two servings. Never a dish cooked from scratch twice in a week.\n  - assemblies that need no cooking — oats and yogurt, a sandwich, fruit and\n    nuts — are plain dishes with no `uses`, made fresh, quantities for one\n    plate.\n  - a dish that draws on a preparation does NOT repeat its recipe. Its method is\n    what you do at that meal: \"reheat a portion, add the salad and the lemon\".\n  - vary what you build from the same preparation. Same protein, different meal.\n\n== NAME THE COOKING SESSIONS, AND WRITE THE RUN-THROUGH ==\n\nGive `cooking_sessions`: the days on which the student actually cooks, which\npreparations get made in each, and the ORDER of the gestures — \"oven on for the\ntray, rice on while it roasts, chilli simmering next to it, box four portions\".\n\nAim for two or three sessions in a week, not seven. Every preparation belongs to\nexactly one session: a preparation nobody cooks is a plan the student cannot\nfollow.\n\n== NOTHING SITS IN THE FRIDGE FOR A WEEK ==\n\nA cooked batch is eaten within THREE DAYS of the day it was cooked. Cooked on\nThursday means eaten by Sunday, and that is the end of it. Beyond that it is not\na meal plan, it is a plan to throw food away or to get somebody ill.\n\nCooked rice and cooked seafood are tighter still: same day or the day after.\nRice left sitting is the classic way to make somebody sick, and no amount of\nconvenience is worth it.\n\nIf a batch would have to stretch further, you have three honest ways out: cook a\nsmaller batch, cook it twice, or say plainly in the method that the surplus goes\nin the FREEZER on the cooking day. Never stretch it in silence.\n\n== THE COOKING TIME THEY GAVE YOU IS A CEILING ==\n\nWhen a session time is stated, the session fits inside it. It is not a target to\napproach and overshoot: it is what they actually have that evening, and a\nsession that does not fit is a session they skip — after which the whole week\nfalls apart, not just that session.\n\nIf everything will not fit, cook LESS in that session and put the rest on\nanother cooking day. Fewer preparations that happen beat more preparations that\ndo not.\n\n== NOTHING IS EATEN BEFORE IT IS COOKED ==\n\nA preparation must be cooked ON OR BEFORE the first day that eats from it. If\nthe only cooking day you have is Sunday, then Thursday, Friday and Saturday\ncannot live off a Sunday batch — those days cook for themselves, or they eat\nsomething that needs no batch at all.\n\nThis is not a preference. A plan that feeds Thursday from a Sunday session is a\nplan that cannot be executed, and the student finds out at lunchtime.\n\n== HOW LONG THINGS TAKE ==\n\nEvery preparation carries two numbers, and they are not the same one.\n\"active_minutes\" is time with your hands on it — chopping, stirring, turning.\n\"total_minutes\" is from starting to finished, waiting included. A roast is 10\nactive and 50 total; that gap is the whole reason batch cooking works, because\nthe oven time is free for another preparation.\n\nA session's \"total_minutes\" is the wall clock of the session, NOT the sum of its\npreparations: things overlap, and pretending otherwise turns a comfortable\nninety-minute Sunday into a scary four-hour one nobody starts.\n\nRound to the nearest five. These are estimates a cook recognises, not\nmeasurements — but they are the numbers somebody uses to decide whether tonight\nis possible, so a wrong one costs a skipped meal.\n\n== WHAT TODAY ACTUALLY TAKES, ON EVERY DISH ==\n\nEvery dish carries \"same_day\": what the student does ON THE DAY THEY EAT IT to\nget that plate in front of them, and how long that gesture takes.\n\n  \"kind\" is one of four, and nothing else exists:\n    \"none\"        - nothing to prepare. Fruit, a yogurt, a plate already made.\n    \"reheat_only\" - take the portion out and heat it, and NOTHING else.\n    \"assemble\"    - build the plate from what is already cooked, no cooking.\n    \"cook_fresh\"  - a real cooking gesture that day: scramble the eggs, boil\n                    the pasta, sear the fish.\n\n  \"minutes\" is how long THAT gesture takes, that day. A whole number.\n\n\"minutes\" IS NOT THE TIME OF THE COOKING SESSION, and confusing the two is the\nfailure this field exists to stop. A portion of Sunday's roast, reheated on\nWednesday, is 8 minutes - not the 50 the roast took. Announcing 50 tells\nsomebody with ten minutes that dinner is out of reach, and they skip it.\n\nSay it on EVERY dish, including the ones where the answer is nothing. \"none\" and\n\"cook_fresh\" are answers; a missing line is a plate somebody stands in front of\nwithout knowing what to do. If the dish reheats, the word reheat is what they\nneed to read, so write \"reheat_only\" and say it again plainly in \"method\".\n\n== NEVER PUT A NUMBER ON NUTRITION ==\n\nNo calories. No macro grams. No percentages of anything nutritional. Not as a target, not as a range, not \"roughly\". Nobody has measured this student.\n\nShopping quantities are DIFFERENT and expected: \"400 g chicken thighs\", \"2 onions\", \"a bunch of parsley\". A quantity says how much to buy or use; a target claims a measurement of the person. Put quantities on ingredients, never on the student.\n\n== SAY THE SAME QUANTITY TWICE: ONCE FOR THE COOK, ONCE IN FIGURES ==\n\nEvery ingredient carries \"quantity\" — the phrase a person reads, exactly as you\nwrite it today — AND three plain fields that repeat it:\n\n  \"amount\": the number.\n  \"unit\":   one of \"g\", \"ml\", \"unit\", \"tbsp\", \"tsp\". Nothing else exists. If\n            what you meant is a handful, a cup, a bunch or a pinch, leave\n            \"amount\" and \"unit\" null and keep the phrase in \"quantity\".\n  \"state\":  \"raw\" or \"cooked\" — the weight you just wrote, before or after\n            cooking.\n\n\"state\" is REQUIRED for anything that takes on or loses water in the pan: rice,\npasta, couscous, lentils, dried beans, meat, poultry, fish. A hundred grams of\nrice is not the same food before and after it is boiled, and leaving it out\nmakes the line unusable. It does not matter for oil, nuts, cheese, yogurt or\nfruit — say it anyway when you know it.\n\nNever guess. An ingredient whose weight you do not actually know keeps its\nphrase and leaves the three fields null. A made-up number is worse than a\nmissing one.\n\nFATS, NUTS AND SWEETENERS ARE THE ONE EXCEPTION, and they are not a guess.\nOil, butter, ghee, cream, nut butter, tahini, nuts, seeds, honey, syrup and\nchocolate ALWAYS carry \"amount\" and \"unit\". \"A drizzle of olive oil\" is a\ntablespoon; write 1 and \"tbsp\". These ingredients are small on the page and\nenormous in the pan -- a spoon of oil weighs what a whole plate of vegetables\nweighs, and a line left blank there makes the entire dish unreadable. Salt,\npepper and herbs may stay a pinch; oil may not.\n\n== WHAT A DISH ADDS ON THE DAY IS WEIGHED OR COUNTED, NEVER VAGUE ==\n\nThe phrase in a DISH's \"quantity\" is either a weight -- \"100 g dried pasta\",\n\"40 g feta\" -- or something a person can count: \"half a lemon\", \"10 basil\nleaves\", \"2 eggs\". \"A handful\", \"a generous portion\", \"some rice\" say nothing\nanybody can act on, and they are why the same dish comes out different every\ntime. Salt, pepper and herbs may stay a pinch. Everything else gets a number.\n\n== THE STUDENT'S SITUATION IS NOT DECORATION ==\n\nThey tell you what their week actually looks like — a wedding on Tuesday, a holiday, a weekend away, a late shift. Cook around it. A meal that assumes an evening they do not have is a meal they will not make.\n\n== THE TWO MODES ==\n\nmode = from_pantry\n  Cook with what they ALREADY have. Reach outside their list only for genuine\n  staples (salt, pepper, oil, water) or when the dish is impossible otherwise.\n  Anything you use that they did not list will be shown to them as something to\n  buy, so keep that list short and say why it is needed.\n\nmode = to_shop\n  Compose freely, then give the shopping list the dish actually needs.\n\n== EVERY DISH HAS TWO LINES: A NAME, AND A TITLE ==\n\nThey are not the same line and they do not do the same job.\n\n  \"title\" is what is on the plate, plainly: \"Chicken, courgettes, peppers and\n  rice\". It is read out at the table, it is what somebody cooks from, and it\n  never changes job. Keep writing it exactly as you already do.\n\n  \"name\" is what this dish is CALLED: \"Golden roast chicken bowls\". Short --\n  six words at most. Appetising. It is the line somebody reads when they decide\n  whether they want to eat tonight.\n\nWrite BOTH, on every single dish: as many names as you have dishes. Count them\nbefore you answer.\n\nDo NOT make the title pretty instead. A title that becomes \"Sunshine of\nMarrakesh\" no longer says what is on the plate, and nobody can cook a name. If\nyou find yourself dressing up the title, that is the name -- put it in \"name\"\nand give the title back its plain words. And never write the same string twice:\na \"name\" identical to the title is a line that says nothing.\n\n== OUTPUT JSON SCHEMA ==\n\n{\n  \"dishes\": [\n    {\n      \"name\": \"short, appetising, six words at most -- what the dish is CALLED\",\n      \"title\": \"...\",\n      \"slot\": \"breakfast\"|\"snack_am\"|\"lunch\"|\"snack_pm\"|\"dinner\"|\"before_bed\"|null,\n      \"day\": \"mon\"|\"tue\"|\"wed\"|\"thu\"|\"fri\"|\"sat\"|\"sun\"|null,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"...\"|null,\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to make it, plainly, in a short paragraph\",\n      \"why\": \"one sentence: why THIS dish for THIS student this week\",\n      \"uses\": [{ \"preparation_id\": \"prep_chicken\", \"servings\": 1 }],\n      \"same_day\": { \"kind\": \"none\"|\"reheat_only\"|\"assemble\"|\"cook_fresh\",\n                    \"minutes\": <whole minutes for the day-of gesture> },\n      \"honours_belief_keys\": [\"<exact keys from the convictions list, when one applies>\"]\n    }\n  ],\n  \"preparations\": [\n    { \"id\": \"prep_chicken\", \"title\": \"Roast chicken thighs\",\n      \"servings_made\": 4,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"<for the WHOLE batch>\",\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to cook the batch\",\n      \"active_minutes\": <minutes of HANDS-ON work>,\n      \"total_minutes\": <minutes from starting to finished, waiting included>,\n      \"cook_on\": \"sun\"|null }\n  ],\n  \"cooking_sessions\": [\n    { \"day\": \"sun\", \"preparation_ids\": [\"prep_chicken\", \"prep_rice\"],\n      \"total_minutes\": <minutes the whole session takes, start to finish>,\n      \"run_through\": \"the order of the gestures, plainly\" }\n  ],\n  \"shopping_list\": [\n    { \"term\": \"...\", \"quantity\": \"...\"|null,\n      \"aisle\": \"produce\"|\"protein\"|\"dairy\"|\"grains\"|\"pantry\"|\"frozen\"|\"other\" }\n  ]\n}\n\nDay tokens are exactly: mon tue wed thu fri sat sun. Never translated.",
+      "service_tier": "default",
+      "top_logprobs": 0,
+      "max_tool_calls": null,
+      "presence_penalty": 0,
+      "prompt_cache_key": null,
+      "frequency_penalty": 0,
+      "max_output_tokens": null,
+      "safety_identifier": null,
+      "incomplete_details": null,
+      "parallel_tool_calls": true,
+      "previous_response_id": null,
+      "prompt_cache_retention": "24h"
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-18T21:13:47.927212+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T21:15:49.996682+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T21:15:50.047691+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T21:17:35.979017+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

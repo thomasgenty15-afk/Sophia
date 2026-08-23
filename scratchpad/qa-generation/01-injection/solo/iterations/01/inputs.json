@@ -1,0 +1,122 @@
+{
+    "note": "ITERATION 01 — etat des entrees AU MOMENT DU RUN 798c5cd6. Le tour de taille, la seance d activite et l aspiration ont ete saisis APRES ce run (voir iterations/02/inputs.json).",
+    "coach": {
+        "beliefs": 5,
+        "coach_email": "qa0805.coach.marc@keeltest.dev",
+        "doctrine_published": true
+    },
+    "account": {
+        "email": "qa1a.solo@keeltest.dev",
+        "gender": "female",
+        "locale": "en-GB",
+        "country": "GB",
+        "user_id": "1a000000-0000-4000-8000-000000000001",
+        "timezone": "Europe/London",
+        "height_cm": 173,
+        "birth_date": "1989-03-14",
+        "activity_level": "trains_hard"
+    },
+    "body_measures": [
+        {
+            "kind": "weight",
+            "value": 68.4,
+            "source": "setup",
+            "local_date": "2026-08-18"
+        }
+    ],
+    "student_goals": {
+        "goal": "muscle_gain",
+        "situation": null,
+        "aspiration": null,
+        "focus_axis": null,
+        "target_weight_kg": 74,
+        "practical_constraints": {
+            "variety": "varied",
+            "away_days": [
+                {
+                    "day": "wed",
+                    "slots": [
+                        "lunch"
+                    ]
+                }
+            ],
+            "cook_days": [
+                "tue",
+                "thu"
+            ],
+            "budget_amount": 63,
+            "eating_rhythm": [
+                {
+                    "size": "small",
+                    "slot": "breakfast"
+                },
+                {
+                    "size": "large",
+                    "slot": "lunch"
+                },
+                {
+                    "size": "medium",
+                    "slot": "dinner"
+                }
+            ],
+            "fixed_intakes": [
+                {
+                    "unit": "g",
+                    "label": "Vanilla whey shake",
+                    "amount": 31,
+                    "protein_g_per_serving": 24,
+                    "energy_kcal_per_serving": 118
+                }
+            ],
+            "cooking_time_min": 45,
+            "kitchen_equipment": [
+                "stovetop",
+                "microwave",
+                "blender"
+            ],
+            "recipe_difficulty": "keen"
+        },
+        "target_pace_kg_per_week": 0.25
+    },
+    "safety_constraints": [
+        {
+            "kind": "allergy",
+            "severity": "medical",
+            "allergen_ref": "sesame"
+        },
+        {
+            "kind": "diet",
+            "diet_ref": "pescatarian",
+            "severity": "strict"
+        },
+        {
+            "kind": "intolerance",
+            "notes": "hard cheese in small amounts is fine",
+            "severity": "strict",
+            "allergen_ref": "dairy"
+        },
+        {
+            "kind": "dislike",
+            "severity": "preference",
+            "allergen_ref": "beetroot"
+        },
+        {
+            "kind": "medical",
+            "severity": "medical",
+            "medication_class": "levothyroxine"
+        }
+    ],
+    "request_body_fields": {
+        "mode": "from_pantry",
+        "pantry": [
+            "tinned chickpeas",
+            "basmati rice",
+            "frozen peas",
+            "smoked paprika"
+        ],
+        "window": "2026-08-18 -> 2026-08-20",
+        "context": "two late meetings, Thursday evening is chaotic",
+        "servings": 1,
+        "preferences": "smoky harissa flavours, and one proper roast"
+    }
+}

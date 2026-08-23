@@ -79,6 +79,9 @@ function html(patch: Record<string, unknown> = {}): string {
       onAdd: () => {},
       held: null,
       failure: null,
+      added: null,
+      formOpen: true,
+      onOpenForm: () => {},
       onDiscard: () => {},
       onGoal: () => {},
       onBirthDate: () => {},
@@ -86,9 +89,15 @@ function html(patch: Record<string, unknown> = {}): string {
       onOpenDraftPreferences: () => {},
       onOpenMouthPreferences: () => {},
       mouthPrefs: null,
+      knownPrefs: () => emptyMouthDraft(),
       onSaveMouthPreferences: () => {},
       onBody: () => {},
       onRemove: () => {},
+      editingMemberId: null,
+      onToggleEdit: () => {},
+      targets: new Map(),
+      birthDates: new Map(),
+      onTarget: () => {},
       confirmRemove: null,
       onConfirmRemove: () => {},
       inviteFor: null,
@@ -98,8 +107,7 @@ function html(patch: Record<string, unknown> = {}): string {
       onInvite: () => {},
       invite: null,
       busy: false,
-      // deno-lint-ignore no-explicit-any
-    } as any),
+    } as unknown as Parameters<typeof MouthsStep>[0]),
   );
 }
 
@@ -294,7 +302,7 @@ describe("et la cible d'une bouche a son écrivain", () => {
 // ===========================================================================
 describe("la porte des préférences, et plus aucun champ en ligne", () => {
   it("le formulaire d'ajout porte le bouton", () => {
-    expect(html()).toContain(en["household.mouth.preferences_open"]);
+    expect(html()).toContain(en["household.mouth.preferences_open"].replace(/\{who\}/g, en["household.mouth.who_fallback"]));
   });
 
   it("et plus aucun sélecteur d'allergies en ligne", () => {
@@ -331,6 +339,9 @@ describe("la porte des préférences, et plus aucun champ en ligne", () => {
         onAdd: () => {},
         held: null,
         failure: null,
+        added: null,
+        formOpen: true,
+        onOpenForm: () => {},
         onDiscard: () => {},
         onGoal: () => {},
         onBirthDate: () => {},
@@ -338,9 +349,21 @@ describe("la porte des préférences, et plus aucun champ en ligne", () => {
         onOpenDraftPreferences: () => {},
         onOpenMouthPreferences: () => {},
         mouthPrefs: null,
+        knownPrefs: () => emptyMouthDraft(),
         onSaveMouthPreferences: () => {},
         onBody: () => {},
         onRemove: () => {},
+        editingMemberId: null,
+        onToggleEdit: () => {},
+        targets: new Map(),
+      birthDates: new Map(),
+        birthDates: new Map(),
+        onTarget: () => {},
+      editingMemberId: null,
+      onToggleEdit: () => {},
+      targets: new Map(),
+      birthDates: new Map(),
+      onTarget: () => {},
         confirmRemove: null,
         onConfirmRemove: () => {},
         inviteFor: null,
@@ -350,11 +373,10 @@ describe("la porte des préférences, et plus aucun champ en ligne", () => {
         onInvite: () => {},
         invite: null,
         busy: false,
-        // deno-lint-ignore no-explicit-any
-      } as any),
+      } as unknown as Parameters<typeof MouthsStep>[0]),
     );
     // Deux boutons: celui de sa ligne, et celui du formulaire d'ajout.
-    expect(markup.split(en["household.mouth.preferences_open"]).length - 1)
+    expect(markup.split(en["household.mouth.preferences_open"].replace(/\{who\}/g, en["household.mouth.who_fallback"])).length - 1)
       .toBe(2);
     expect(markup).not.toContain(en["setup.people.allergies_none"]);
   });

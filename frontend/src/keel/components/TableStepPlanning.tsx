@@ -7,6 +7,7 @@ import type { WorkLunch } from "../lib/presenceMarks";
 import { commitWorkLunch, readWorkLunchAnswers } from "../lib/workLunchCommit";
 import type { WorkLunchPerson } from "../lib/workLunchForm";
 import KitchenEquipmentCard from "./KitchenEquipmentCard";
+import HouseholdTraditionsCard from "./HouseholdTraditionsCard";
 import WorkLunchCard from "./WorkLunchCard";
 import { Card, SectionLabel } from "./ui/Card";
 
@@ -126,6 +127,16 @@ export default function TableStepPlanning(props: TableStepPlanningProps) {
         hasGoal={props.hasGoal}
         onSaved={props.onSaved}
       />
+
+      {/* ③ LES JOURS QUE LE FOYER NE DÉPLACE PAS — JUSTE APRÈS L'ÉQUIPEMENT.
+          Les deux répondent à la MÊME question — ce que cette cuisine peut et
+          ce qu'elle fait DÉJÀ — avant que l'étape ne demande ce qu'on veut
+          cette semaine. Les séparer par le midi au travail ferait lire une
+          habitude permanente comme une envie du moment.
+
+          Elle écrit elle-même et relit après, comme sa voisine du dessus: on ne
+          lui passe donc rien d'autre que de quoi prévenir l'étape. */}
+      <HouseholdTraditionsCard onSaved={props.onSaved} />
 
       {/* ② QUI EST LÀ LE MIDI — ENSUITE, ET JAMAIS AVANT. */}
       {readError !== null

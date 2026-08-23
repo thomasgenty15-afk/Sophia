@@ -650,7 +650,6 @@ Deno.test("PROPERTY: the target reaches a generator ONLY through the gate, and o
     const fn of [
       "generate-meal-v1",
       "generate-household-meal-v1",
-      "generate-week-plan-v1",
     ]
   ) {
     const source = stripComments(

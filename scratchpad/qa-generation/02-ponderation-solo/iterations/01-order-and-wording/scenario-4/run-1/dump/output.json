@@ -1,0 +1,1048 @@
+{
+  "request_id": "2a000001-4100-4000-8000-000000000001",
+  "resolved_by": "--request-id",
+  "user_id": "2a000000-0000-4000-8000-000000000004",
+  "source": "generate-meal-v1",
+  "exported_at": "2026-08-18T23:35:43.110Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "96fb8721-147d-4239-a548-718a377bfc68",
+      "status": "attempt_start",
+      "created_at": "2026-08-18T23:28:39.814916+00:00",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 14382,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 14382,
+    "user_message_chars": 9540,
+    "user_message_truncated": false,
+    "user_message_written_chars": 9540,
+    "independent_counters": {
+      "system_prompt_chars": 14382,
+      "prompt_chars": 9540
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "f1ee406a-c961-429a-b5a0-c013da7395ec",
+    "created_at": "2026-08-18T23:32:19.95693+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "openai",
+    "model": "gpt-5.6-sol",
+    "http_status": 200,
+    "attempt": 1,
+    "chain_index": 0,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Banana oat yogurt pot\",\n      \"title\": \"Yogurt, oats and banana\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"natural yogurt\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": null\n        },\n        {\n          \"term\": \"rolled oats\",\n          \"quantity\": \"30 g\",\n          \"amount\": 30,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"banana\",\n          \"quantity\": \"1\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Spoon the yogurt into a bowl, stir in the oats and slice the banana over them.\",\n      \"why\": \"It is a small, filling breakfast that can be assembled before a long ward shift.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 3\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Crisp morning apple\",\n      \"title\": \"Apple\",\n      \"slot\": \"snack_am\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"apple\",\n          \"quantity\": \"1\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Wash the apple and take it with you.\",\n      \"why\": \"It is inexpensive, portable and easy to eat during a short ward break.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"none\",\n        \"minutes\": 0\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Golden lentil lunch bowl\",\n      \"title\": \"Lentil couscous and shredded cabbage\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"white cabbage\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Put one portion of golden lentil couscous into a container and top it with finely shredded cabbage.\",\n      \"why\": \"The lentils provide an affordable protein anchor, while the cabbage keeps the packed lunch crisp.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_golden_lentil_couscous\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 3\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Cool yogurt break\",\n      \"title\": \"Natural yogurt\",\n      \"slot\": \"snack_pm\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"natural yogurt\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Spoon the yogurt into a small lidded container.\",\n      \"why\": \"This needs no cooking and fits a brief afternoon break.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"none\",\n        \"minutes\": 0\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Golden lentil comfort bowl\",\n      \"title\": \"Warm lentils, tomatoes, carrots and couscous\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Reheat one portion of golden lentil couscous in a covered pan with a splash of water until steaming throughout.\",\n      \"why\": \"A warm anchor of golden couscous echoes saffron risotto, but costly saffron and slow lamb shanks do not fit this week's budget or 15-minute kitchen limit.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_golden_lentil_couscous\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"a_warm_anchor_every_evening\",\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Apple cinnamon yogurt oats\",\n      \"title\": \"Yogurt, oats, apple and cinnamon\",\n      \"slot\": \"breakfast\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"natural yogurt\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": null\n        },\n        {\n          \"term\": \"rolled oats\",\n          \"quantity\": \"30 g\",\n          \"amount\": 30,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"apple\",\n          \"quantity\": \"half an apple\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"ground cinnamon\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Stir the oats into the yogurt, then add the chopped apple and cinnamon.\",\n      \"why\": \"It keeps breakfast small while making yogurt the meal's quick protein anchor.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 3\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Pocket banana\",\n      \"title\": \"Banana\",\n      \"slot\": \"snack_am\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"banana\",\n          \"quantity\": \"1\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Take the banana with you and peel it when ready to eat.\",\n      \"why\": \"It is cheap, portable and requires no preparation during a shift.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"none\",\n        \"minutes\": 0\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Crunchy lentil cabbage cups\",\n      \"title\": \"Lentil couscous, cabbage and yogurt\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"white cabbage\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"natural yogurt\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Separate the cabbage into sturdy pieces, fill them with one cold portion of lentil couscous and spoon over the yogurt and pepper.\",\n      \"why\": \"This turns the same inexpensive lentil batch into a crisp packed lunch rather than another identical bowl.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_golden_lentil_couscous\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Carrot yogurt crunch\",\n      \"title\": \"Carrot sticks and yogurt\",\n      \"slot\": \"snack_pm\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"carrot\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"natural yogurt\",\n          \"quantity\": \"60 g\",\n          \"amount\": 60,\n          \"unit\": \"g\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Cut the carrot into sticks and pack it with the yogurt for dipping.\",\n      \"why\": \"The low-cost ingredients provide a fresh afternoon bite without another cooking job.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 3\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Quick braised chickpea pot\",\n      \"title\": \"Warm chickpeas, tomatoes, cabbage and carrots\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [],\n      \"method\": \"Reheat one portion of chickpea and cabbage braise in a covered pan until bubbling and steaming throughout.\",\n      \"why\": \"The warm anchor has the savoury character of a braise, using chickpeas instead of lamb because money and cooking time are tight.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chickpea_cabbage_braise\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"a_warm_anchor_every_evening\",\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Orchard yogurt oat pot\",\n      \"title\": \"Yogurt, oats, apple and cinnamon\",\n      \"slot\": \"breakfast\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"natural yogurt\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": null\n        },\n        {\n          \"term\": \"rolled oats\",\n          \"quantity\": \"30 g\",\n          \"amount\": 30,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"apple\",\n          \"quantity\": \"half an apple\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"ground cinnamon\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Stir the oats into the yogurt, then add the chopped apple and cinnamon.\",\n      \"why\": \"The yogurt anchors a small breakfast that takes only minutes before work.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 3\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Easy shift banana\",\n      \"title\": \"Banana\",\n      \"slot\": \"snack_am\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"banana\",\n          \"quantity\": \"1\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Take the banana with you and peel it when ready to eat.\",\n      \"why\": \"It is a reliable bite that can sit in a work bag until the break arrives.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"none\",\n        \"minutes\": 0\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Chickpea pitta pocket\",\n      \"title\": \"Chickpeas, cabbage, tomatoes and wholemeal pitta\",\n      \"slot\": \"lunch\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"wholemeal pitta\",\n          \"quantity\": \"1 pitta\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Spoon one cold portion of chickpea and cabbage braise into the pitta and pack it in a lidded container.\",\n      \"why\": \"The chickpeas make a substantial protein anchor, while the pitta turns the braise into a portable ward lunch.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chickpea_cabbage_braise\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 3\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Friday crisp apple\",\n      \"title\": \"Apple\",\n      \"slot\": \"snack_pm\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"apple\",\n          \"quantity\": \"1\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Wash the apple and take it with you.\",\n      \"why\": \"It is a simple, budget-conscious bite for the final afternoon shift.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"none\",\n        \"minutes\": 0\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Smoky chickpea supper\",\n      \"title\": \"Warm chickpeas, tomatoes, cabbage and carrots\",\n      \"slot\": \"dinner\",\n      \"day\": \"fri\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the remaining portion of chickpea and cabbage braise in a covered pan until bubbling and steaming throughout.\",\n      \"why\": \"This repeated warm anchor keeps Friday dinner dependable after a long shift without demanding another cooking session.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chickpea_cabbage_braise\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"a_warm_anchor_every_evening\",\n        \"the_basket_decides_the_week\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_golden_lentil_couscous\",\n      \"title\": \"Golden lentil and tomato couscous\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"tinned green lentils, drained\",\n          \"quantity\": \"480 g\",\n          \"amount\": 480,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"couscous\",\n          \"quantity\": \"180 g\",\n          \"amount\": 180,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"tinned chopped tomatoes\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"onion\",\n          \"quantity\": \"1\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"carrots\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"vegetable oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"ground turmeric\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"vegetable stock cube\",\n          \"quantity\": \"1\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": null\n        },\n        {\n          \"term\": \"boiling water\",\n          \"quantity\": \"250 ml\",\n          \"amount\": 250,\n          \"unit\": \"ml\",\n          \"state\": null\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Heat the oil in a wide lidded pan. Finely chop the onion, grate the carrots and cook both for 3 minutes. Add the turmeric, tomatoes, drained lentils, crumbled stock cube and boiling water. Bring to a brisk simmer, stir in the couscous, cover and remove from the heat. Leave for 5 minutes, fluff well, then divide into three portions and refrigerate two promptly.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 15,\n      \"cook_on\": \"wed\"\n    },\n    {\n      \"id\": \"prep_chickpea_cabbage_braise\",\n      \"title\": \"Chickpea and cabbage tomato braise\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"tinned chickpeas, drained\",\n          \"quantity\": \"480 g\",\n          \"amount\": 480,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"tinned chopped tomatoes\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"white cabbage\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"carrots\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"onion\",\n          \"quantity\": \"1\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"vegetable oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"vegetable stock cube\",\n          \"quantity\": \"1\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": null\n        },\n        {\n          \"term\": \"water\",\n          \"quantity\": \"100 ml\",\n          \"amount\": 100,\n          \"unit\": \"ml\",\n          \"state\": null\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Heat the oil in a wide lidded pan. Finely chop the onion, shred the cabbage and grate the carrots. Cook them for 4 minutes, stirring. Add the paprika, tomatoes, drained chickpeas, crumbled stock cube and water. Cover and simmer briskly for 8 minutes, stirring once. Divide into three portions and refrigerate two promptly.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 15,\n      \"cook_on\": \"thu\"\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_golden_lentil_couscous\"\n      ],\n      \"total_minutes\": 15,\n      \"run_through\": \"Put the kettle on first. Heat the pan, chop the onion and grate the carrots while it warms, then soften them in the oil. Add the remaining ingredients in order, cover the couscous off the heat for the final 5 minutes, fluff it and box the portions.\"\n    },\n    {\n      \"day\": \"thu\",\n      \"preparation_ids\": [\n        \"prep_chickpea_cabbage_braise\"\n      ],\n      \"total_minutes\": 15,\n      \"run_through\": \"Heat the pan immediately. Chop the onion, shred the cabbage and grate the carrots, then cook them in the oil. Drain the chickpeas while the vegetables soften, add everything else, cover for the short simmer and box the portions.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"natural yogurt\",\n      \"quantity\": \"660 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"rolled oats\",\n      \"quantity\": \"90 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"bananas\",\n      \"quantity\": \"3\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"apples\",\n      \"quantity\": \"3\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"carrots\",\n      \"quantity\": \"600 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"white cabbage\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"onions\",\n      \"quantity\": \"2\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"tinned green lentils\",\n      \"quantity\": \"2 x 400 g tins\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"tinned chickpeas\",\n      \"quantity\": \"2 x 400 g tins\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"tinned chopped tomatoes\",\n      \"quantity\": \"2 x 400 g tins\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"couscous\",\n      \"quantity\": \"180 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"wholemeal pitta\",\n      \"quantity\": \"1\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"vegetable oil\",\n      \"quantity\": \"2 tbsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"ground turmeric\",\n      \"quantity\": \"1 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"smoked paprika\",\n      \"quantity\": \"1 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"ground cinnamon\",\n      \"quantity\": \"2 pinches\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"vegetable stock cubes\",\n      \"quantity\": \"2\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"salt\",\n      \"quantity\": \"as needed\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"black pepper\",\n      \"quantity\": \"as needed\",\n      \"aisle\": \"pantry\"\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Banana oat yogurt pot",
+          "title": "Yogurt, oats and banana",
+          "slot": "breakfast",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "natural yogurt",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": null
+            },
+            {
+              "term": "rolled oats",
+              "quantity": "30 g",
+              "amount": 30,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "banana",
+              "quantity": "1",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Spoon the yogurt into a bowl, stir in the oats and slice the banana over them.",
+          "why": "It is a small, filling breakfast that can be assembled before a long ward shift.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 3
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Crisp morning apple",
+          "title": "Apple",
+          "slot": "snack_am",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "apple",
+              "quantity": "1",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Wash the apple and take it with you.",
+          "why": "It is inexpensive, portable and easy to eat during a short ward break.",
+          "uses": [],
+          "same_day": {
+            "kind": "none",
+            "minutes": 0
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Golden lentil lunch bowl",
+          "title": "Lentil couscous and shredded cabbage",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "white cabbage",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Put one portion of golden lentil couscous into a container and top it with finely shredded cabbage.",
+          "why": "The lentils provide an affordable protein anchor, while the cabbage keeps the packed lunch crisp.",
+          "uses": [
+            {
+              "preparation_id": "prep_golden_lentil_couscous",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 3
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Cool yogurt break",
+          "title": "Natural yogurt",
+          "slot": "snack_pm",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "natural yogurt",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": null
+            }
+          ],
+          "method": "Spoon the yogurt into a small lidded container.",
+          "why": "This needs no cooking and fits a brief afternoon break.",
+          "uses": [],
+          "same_day": {
+            "kind": "none",
+            "minutes": 0
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Golden lentil comfort bowl",
+          "title": "Warm lentils, tomatoes, carrots and couscous",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [],
+          "method": "Reheat one portion of golden lentil couscous in a covered pan with a splash of water until steaming throughout.",
+          "why": "A warm anchor of golden couscous echoes saffron risotto, but costly saffron and slow lamb shanks do not fit this week's budget or 15-minute kitchen limit.",
+          "uses": [
+            {
+              "preparation_id": "prep_golden_lentil_couscous",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "a_warm_anchor_every_evening",
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Apple cinnamon yogurt oats",
+          "title": "Yogurt, oats, apple and cinnamon",
+          "slot": "breakfast",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "natural yogurt",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": null
+            },
+            {
+              "term": "rolled oats",
+              "quantity": "30 g",
+              "amount": 30,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "apple",
+              "quantity": "half an apple",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "ground cinnamon",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Stir the oats into the yogurt, then add the chopped apple and cinnamon.",
+          "why": "It keeps breakfast small while making yogurt the meal's quick protein anchor.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 3
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Pocket banana",
+          "title": "Banana",
+          "slot": "snack_am",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "banana",
+              "quantity": "1",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Take the banana with you and peel it when ready to eat.",
+          "why": "It is cheap, portable and requires no preparation during a shift.",
+          "uses": [],
+          "same_day": {
+            "kind": "none",
+            "minutes": 0
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Crunchy lentil cabbage cups",
+          "title": "Lentil couscous, cabbage and yogurt",
+          "slot": "lunch",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "white cabbage",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "natural yogurt",
+              "quantity": "50 g",
+              "amount": 50,
+              "unit": "g",
+              "state": null
+            },
+            {
+              "term": "black pepper",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Separate the cabbage into sturdy pieces, fill them with one cold portion of lentil couscous and spoon over the yogurt and pepper.",
+          "why": "This turns the same inexpensive lentil batch into a crisp packed lunch rather than another identical bowl.",
+          "uses": [
+            {
+              "preparation_id": "prep_golden_lentil_couscous",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Carrot yogurt crunch",
+          "title": "Carrot sticks and yogurt",
+          "slot": "snack_pm",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "carrot",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "natural yogurt",
+              "quantity": "60 g",
+              "amount": 60,
+              "unit": "g",
+              "state": null
+            }
+          ],
+          "method": "Cut the carrot into sticks and pack it with the yogurt for dipping.",
+          "why": "The low-cost ingredients provide a fresh afternoon bite without another cooking job.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 3
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Quick braised chickpea pot",
+          "title": "Warm chickpeas, tomatoes, cabbage and carrots",
+          "slot": "dinner",
+          "day": "thu",
+          "ingredients": [],
+          "method": "Reheat one portion of chickpea and cabbage braise in a covered pan until bubbling and steaming throughout.",
+          "why": "The warm anchor has the savoury character of a braise, using chickpeas instead of lamb because money and cooking time are tight.",
+          "uses": [
+            {
+              "preparation_id": "prep_chickpea_cabbage_braise",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "a_warm_anchor_every_evening",
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Orchard yogurt oat pot",
+          "title": "Yogurt, oats, apple and cinnamon",
+          "slot": "breakfast",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "natural yogurt",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": null
+            },
+            {
+              "term": "rolled oats",
+              "quantity": "30 g",
+              "amount": 30,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "apple",
+              "quantity": "half an apple",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "ground cinnamon",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Stir the oats into the yogurt, then add the chopped apple and cinnamon.",
+          "why": "The yogurt anchors a small breakfast that takes only minutes before work.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 3
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Easy shift banana",
+          "title": "Banana",
+          "slot": "snack_am",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "banana",
+              "quantity": "1",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Take the banana with you and peel it when ready to eat.",
+          "why": "It is a reliable bite that can sit in a work bag until the break arrives.",
+          "uses": [],
+          "same_day": {
+            "kind": "none",
+            "minutes": 0
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Chickpea pitta pocket",
+          "title": "Chickpeas, cabbage, tomatoes and wholemeal pitta",
+          "slot": "lunch",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "wholemeal pitta",
+              "quantity": "1 pitta",
+              "amount": 1,
+              "unit": "unit",
+              "state": null
+            }
+          ],
+          "method": "Spoon one cold portion of chickpea and cabbage braise into the pitta and pack it in a lidded container.",
+          "why": "The chickpeas make a substantial protein anchor, while the pitta turns the braise into a portable ward lunch.",
+          "uses": [
+            {
+              "preparation_id": "prep_chickpea_cabbage_braise",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 3
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Friday crisp apple",
+          "title": "Apple",
+          "slot": "snack_pm",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "apple",
+              "quantity": "1",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Wash the apple and take it with you.",
+          "why": "It is a simple, budget-conscious bite for the final afternoon shift.",
+          "uses": [],
+          "same_day": {
+            "kind": "none",
+            "minutes": 0
+          },
+          "honours_belief_keys": [
+            "the_basket_decides_the_week"
+          ]
+        },
+        {
+          "name": "Smoky chickpea supper",
+          "title": "Warm chickpeas, tomatoes, cabbage and carrots",
+          "slot": "dinner",
+          "day": "fri",
+          "ingredients": [],
+          "method": "Reheat the remaining portion of chickpea and cabbage braise in a covered pan until bubbling and steaming throughout.",
+          "why": "This repeated warm anchor keeps Friday dinner dependable after a long shift without demanding another cooking session.",
+          "uses": [
+            {
+              "preparation_id": "prep_chickpea_cabbage_braise",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "a_warm_anchor_every_evening",
+            "the_basket_decides_the_week"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_golden_lentil_couscous",
+          "title": "Golden lentil and tomato couscous",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "tinned green lentils, drained",
+              "quantity": "480 g",
+              "amount": 480,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "couscous",
+              "quantity": "180 g",
+              "amount": 180,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "tinned chopped tomatoes",
+              "quantity": "400 g",
+              "amount": 400,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "onion",
+              "quantity": "1",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "carrots",
+              "quantity": "300 g",
+              "amount": 300,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "vegetable oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "ground turmeric",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "vegetable stock cube",
+              "quantity": "1",
+              "amount": 1,
+              "unit": "unit",
+              "state": null
+            },
+            {
+              "term": "boiling water",
+              "quantity": "250 ml",
+              "amount": 250,
+              "unit": "ml",
+              "state": null
+            },
+            {
+              "term": "salt",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "black pepper",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Heat the oil in a wide lidded pan. Finely chop the onion, grate the carrots and cook both for 3 minutes. Add the turmeric, tomatoes, drained lentils, crumbled stock cube and boiling water. Bring to a brisk simmer, stir in the couscous, cover and remove from the heat. Leave for 5 minutes, fluff well, then divide into three portions and refrigerate two promptly.",
+          "active_minutes": 10,
+          "total_minutes": 15,
+          "cook_on": "wed"
+        },
+        {
+          "id": "prep_chickpea_cabbage_braise",
+          "title": "Chickpea and cabbage tomato braise",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "tinned chickpeas, drained",
+              "quantity": "480 g",
+              "amount": 480,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "tinned chopped tomatoes",
+              "quantity": "400 g",
+              "amount": 400,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "white cabbage",
+              "quantity": "300 g",
+              "amount": 300,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "carrots",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "onion",
+              "quantity": "1",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "vegetable oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "vegetable stock cube",
+              "quantity": "1",
+              "amount": 1,
+              "unit": "unit",
+              "state": null
+            },
+            {
+              "term": "water",
+              "quantity": "100 ml",
+              "amount": 100,
+              "unit": "ml",
+              "state": null
+            },
+            {
+              "term": "salt",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "black pepper",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Heat the oil in a wide lidded pan. Finely chop the onion, shred the cabbage and grate the carrots. Cook them for 4 minutes, stirring. Add the paprika, tomatoes, drained chickpeas, crumbled stock cube and water. Cover and simmer briskly for 8 minutes, stirring once. Divide into three portions and refrigerate two promptly.",
+          "active_minutes": 10,
+          "total_minutes": 15,
+          "cook_on": "thu"
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_golden_lentil_couscous"
+          ],
+          "total_minutes": 15,
+          "run_through": "Put the kettle on first. Heat the pan, chop the onion and grate the carrots while it warms, then soften them in the oil. Add the remaining ingredients in order, cover the couscous off the heat for the final 5 minutes, fluff it and box the portions."
+        },
+        {
+          "day": "thu",
+          "preparation_ids": [
+            "prep_chickpea_cabbage_braise"
+          ],
+          "total_minutes": 15,
+          "run_through": "Heat the pan immediately. Chop the onion, shred the cabbage and grate the carrots, then cook them in the oil. Drain the chickpeas while the vegetables soften, add everything else, cover for the short simmer and box the portions."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "natural yogurt",
+          "quantity": "660 g",
+          "aisle": "dairy"
+        },
+        {
+          "term": "rolled oats",
+          "quantity": "90 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "bananas",
+          "quantity": "3",
+          "aisle": "produce"
+        },
+        {
+          "term": "apples",
+          "quantity": "3",
+          "aisle": "produce"
+        },
+        {
+          "term": "carrots",
+          "quantity": "600 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "white cabbage",
+          "quantity": "500 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "onions",
+          "quantity": "2",
+          "aisle": "produce"
+        },
+        {
+          "term": "tinned green lentils",
+          "quantity": "2 x 400 g tins",
+          "aisle": "pantry"
+        },
+        {
+          "term": "tinned chickpeas",
+          "quantity": "2 x 400 g tins",
+          "aisle": "pantry"
+        },
+        {
+          "term": "tinned chopped tomatoes",
+          "quantity": "2 x 400 g tins",
+          "aisle": "pantry"
+        },
+        {
+          "term": "couscous",
+          "quantity": "180 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "wholemeal pitta",
+          "quantity": "1",
+          "aisle": "grains"
+        },
+        {
+          "term": "vegetable oil",
+          "quantity": "2 tbsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "ground turmeric",
+          "quantity": "1 tsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "smoked paprika",
+          "quantity": "1 tsp",
+          "aisle": "pantry"
+        },
+        {
+          "term": "ground cinnamon",
+          "quantity": "2 pinches",
+          "aisle": "pantry"
+        },
+        {
+          "term": "vegetable stock cubes",
+          "quantity": "2",
+          "aisle": "pantry"
+        },
+        {
+          "term": "salt",
+          "quantity": "as needed",
+          "aisle": "pantry"
+        },
+        {
+          "term": "black pepper",
+          "quantity": "as needed",
+          "aisle": "pantry"
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "id": "resp_07cb2dec65b549b9006a84eaf85310819c9262f6dd31607569",
+      "text": {
+        "format": {
+          "type": "json_object"
+        },
+        "verbosity": "medium"
+      },
+      "user": null,
+      "error": null,
+      "model": "gpt-5.6-sol",
+      "store": true,
+      "tools": [],
+      "top_p": 0.98,
+      "usage": {
+        "input_tokens": 5906,
+        "total_tokens": 14001,
+        "output_tokens": 8095,
+        "input_tokens_details": {
+          "cached_tokens": 5903,
+          "cache_write_tokens": 0
+        },
+        "output_tokens_details": {
+          "reasoning_tokens": 2756
+        }
+      },
+      "object": "response",
+      "output": [
+        {
+          "id": "rs_07cb2dec65b549b9006a84eaf9553c819c941a5a3442ad5633",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOuDfT5BXkIE0M3Ta1yCz0hc6iqug7sxMEsOmxfo_JayPrlgtDyPklErw8_dn_g8IZEgEACrzbGj7Dc2HN12gfiCTJNLGN5oQytZ3wttDL96h5Wl0ZiFCuIf9LwwIhUXxALYtWX1ahYhv11K3ZznGLklCZhn-0PpFkE-qDqScX2Asw6pah5KMNNDuxaR4XVHfZHK_bcPBEZ9sn8n9mbnXlmWI4eY1Nw6GYZ7RA23-S5PtNeHkceshpFR2KVPlKubIXsQnLzi_vj9uSExBo4pwYrzNBkyTD0HAKCBti6Jiyxhcibbdko5HHV4w6-mmbZuAkm2U0p6Z9Czkg_Iai4Piu3acgRcng-HvuJIqjg-cO85YxWuAiipHfdVK-im4gH9aoA1Zvtq4Fn53zeLFjJP-1F_mX1GOz4MOz6mD6nqT_CPy5NsbQ2gbTbj-b6FdjYVWqvsakCcX-esCggRtP9JJHziei1SHW9kRjmaCYIgkIPWDgyrsWtxBQ-XWaODdW_qNc0khlOTQ-EKgp5HS7hPELX_e0HSdJgISZxaRsFw7KQoGLyK485epHTFPKVX2o0u_Rby4Fd1RXQq3Khphi4dRq1Q3_ZoP4S6ZWZqLp0IYeAC0w5yNuZHW9QWSHSxyZiJvxP4GbvmsdIQMjqGBRvxqhc7C65-MH7adXDgbjGmirU-D28oYUTWhBOd0CvBkTpilp9-bv3cqfc97s3si9Gxb9fpK29kGL1XOZ8CB7-YnKwMvlQCopR2IpezhAfM7q4-5blbXdcd2PaheFQG0u2DvVQl6RpVdXeAi8NGdESvTz5kgfdmcdBSbDpUMFGvDBCzk5GbIH3WazR3pgASwEyqkaV2GR4lKQYloyr4AVaBmRbA4k6z-e_DhN8NWLstsD8tufy5lNZL-YCREvHtH-xfDFXyyytl2WvU0XiwlmHKwVzintEKSqWfrH_gPr4WCbI8Besm4kNZskwQ9p8_DS82vvyx9XgZMrinjTZcXhVlAmS1epBMSMjS6-0by7e0BDrd--WBlLvjeiHAMv8ZbyTqHpF1frKDO2rXXSWQkuN-EDwGtZHeBi6_ZG7JbcfQnQgJWJ-EnaYQuQvSUNDCuTUiqQc2Xzt60IDnPVPCAIy-j-cnjmENR3TkOHyPzcA_GNcO78h9YfTSd2YPEKuuzFlQyfVrTI7HRUbB4RYO1P041OEGpnudDxc984LslDR0zK6p4k7CcxILo_fP8umWSTJIP1ds6tr5tHgIWHiz8AqgNdr9VRF-vG1LjCijG29pnf4B-UwbqepknqM0ix8LNk5qRLbiBaUXFXSN2-ko4W7PNwD3h93Ky3pTrtOu00FvhbIVxySdTBMQB37vD3UbWu4WTnX7nlGVOIE0i4urvN-CMJKwRpgQ6JrTQpUsthThjdN8iA2UDjKH4peYAuYrW-m-vq6b0eyjzWwzTmbAzBT6qLoRB8RIJaABEVlog7puc7-BznT_rrTXIYe4PtZjmbEWo5e_sD_mS4k7uvtcR2L2uI6cxBC_08UV4F2BRkA8VF62p82oNyaWseY4jZP3-ZD1A5pBpfKS-uw9EMZvrMABbcMuf1ANyF2DLTha6vBa_EKTcribKuONdQrMJE7lUbkzFOMmcYSZWywx4dop88_UOOFMRwmkN-MXADA71EeGdzs45KvdQCqsW7GrODIyBf4jPUE2F-_imaOtu3h-lRA_f6mSlXXp-wPDAV_3fiBQoytt1O67UzsgmKM2qgRq8qdQy5kSpnj8yiARid32niQaJfR6XUBdcS4oYoqt1qIxHojpgjEAdiJymUPunjABjBwu5Kc9H7uJ2dIqt9DrK5CfCo9qWseM4Op2H2Pye3ra9ihMhI-Tr9Svxnfro5CSbPkNYOSgdFaBbQR2d7Qzlg9SS85KGPdn6wxE6_OiKxQImuE1M2VTisoh5z0TfpqvlJ0zkSZIrN_njVI-DEfASLVCOoICsxguA3XPjasHlPCFuf2oaDq8oeArSpUCBy7g7-cFm4jBhNHV23GpNi5EuxBa3FKmSHFjGIQQVa6IFUnJ5uYbby8xaihm3evhvwGp_T36KPN1uLHwKAEa5wNkMpuuwHD-61Lg5ofBPOjrlqGb74GJJXxtgaYXzxkXUF2bfdmfZi3H9XUpe1uoXgnkb5mN_Hkh9Ecbx8TZAbKh3M-0NQd7UM44-JfrhaA9046Pm7prM6R6Snc_BUeU5U5HMFrJICwLFbjblpOVV20RKYxFXjVW99xjshTybdV8En16kJ00gG3OqUq3D3fZ8ErFDr6v2JkVvVhpgqncHI0kg4uTy9fzFksGwPCJtHIelV0dH7zwsfzwmN1edhulAKpum02cyIP-vIOqLlN2OvL8zf9Y48wXeRGGQjIfKKAV8GqCCK6YKCzL07bXdwpMlOWxZU5uD5BGDAaZwdNRDPVWVyJ_IkA7AZk47k4I1w4z-unc5hKovqszCmwed6ZxMo3AkCSPDGZpI1i7Sz9oTzMFOoCSLvT6sqkwb5oIdAW5cek-Es6t-USsht1YgXs6yUxxkbsaZdpO-xtgat-TCV88E7q4FlVDtd476Lt0U0Blf4SJ_Hqh1zzItTg4pRiVOhN-Tt1fQEFpwzeeWbtJNTec0Dr3p5FwVvcJVEJOP9Urn0HgCdrM816knqWOoBXLiTW6CcXmlyye9F0sCod84KB3cHwQgeQnXlYWjJ4ywF8LKbAhYYXFjU9GY8-vNX_48Hd82MWWxaAxQGinb7r9I2dRDwK8wkkVkyyVtyvz1KHBr7ygF5441cqWgHsfViZRXAsDIPQpm_jWBNkJHb4bx4fzWw58svSoAfhDk61KXRVSeXQ6RMJNrKzI7gv2q9Rw3p0YUM2iKBuB_EZ6y-5ZjG-kHsP9m-2n8MhXNtZ868drSWCjPq--VmJDWJH_X6I9wrLn3vtb4XWSZgdDUCO3UhvoVQDngkBm0FADFEhjoKmTVPNRMbJe3v3bGRw-bIwjoEvw5bXEPl7IDIVwP3SFr3cJxtIT6hMEAcVfgHBO6U0PuX76wp0uMIkgsbkXi1VFgUszaPd_eRw44uMn3UG5X7OlgMCqRrEnSA94TLUJbdFCw1Dm91szrpQ03jmkp1xkusYDRkbLqpsuPFl7KpVFDsyU0xeLeie8AMCaOAb-7AjEmuQbB-eHWzlqT-Ia4LjiEqLTCMM2-DFhXHDbIDNotz1DPu4l95D4WbAY1k2dyxVfVMENnsAk6iY-nocZEWbCHUXVl7bNrIyDz7BrZ6YDRNrqT5tF-aEjAQRunw2fA9DHFSW7606Twq818dMoDgaDL_lU_QsHHp_X7cNigP-YDzASxKBAiyvCtsZETWgx3KPOs6m8HSxB2nmnmZcLoBbiOVUR8f1mTClUjxTPQDZB_11qCYLXCtEskylbhbP-oSu2piCHYOlCBJjHcgzwCLc4r0xpWQo8897_i4uM9tgXVCzqA_jU1SkvKMm_gbG4MSowG8Hq0gH9ECiEHGKK9pVQF78J3W-AsjSsknEUGLtXIUkIZMAPgZcYwbHeszqaiQlKXijv7hqS56MOlV8wEXIIXMVFwbHLdBRzFlJaMGj_yz6E5DO-_StbgrwJ9RKN0H11qfedlGp98Uq3F2CHTOTR_iDufX7jXN92ePbuKaUT-6q_GOZxhs-_gVt-cUGmZRY7_2kuDabctamdGuYLQlNl-nWEYLOdsJmYqAx0he8JtLLrBNWTjPOYcK4NBYBPz4H9X0h2C_ENVXowQHYFXb1VpaKGiF-ESs2FpXPne8diPb5D2nB-jZewQZWESXiQH1JW5xvxLsDQoI1PBonnRTSGJ8wyMR9Mkqrd10o4fWKiXZ0FYyxI1-3Yt4tyGg24_xRGC-rdnrBF8qXysxGc__IrxWtecNqWDClwY-TsMVq9L0XhAZH4TwCuJXQyriaG2efe8Zz4N-8F9hKkSf4x1b_F5tmDLbK0CWy57mr5WQpqjJUwsL8VdrhSWTgF6y_xXTtty3_8uI_3rmhogqxvzntj31To-LkuSFecWsOpT4Dc9wIUt9h4P0uP7Tpj"
+        },
+        {
+          "id": "rs_07cb2dec65b549b9006a84eb06f780819ca7a8bd9bea4b3ef7",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOuD2e7_StTZ2l2Jy7FZoMzexX3tlRretTtRQsGy9xpCF0uXdAipUcoTQZpRwh1YP3UZ5Q1J9MTTJzSjHg4vXK3Qnphe8DmMb8okFsjqOJ_uQhCueBF4-FQ5vQVxbbbUgZy1-YS79PZ7Mo20yb2EfHmXVYBEK6FR8ADrM2alM_lGU4ZpdpDid6xS3xaUUg2Dx89IlMQqtQIPSJThttYdBtoo_9_N6Uy3MIa4472FZ2kyUgISx2r8JLi9UOC-eTjKQtr7zFNQTKnNQ2bX-vkVS1fuPm6Uv_10aRLQ1tgvJHJxO0Dc6F5N0534yfogB3oXwxFI45KlNs3WYj3TX78639i4xZGapnV00_OQSpEIePAX9orKhRwFwje4cqeLIOLSwLErFTL90nCUxw9wYmJOgQ34OEHMPrvdRlG1h0i8JeyyjStkfsr4a6OUWQ7NXS3b8hF8h1MIfS3W9F4Gi7WlqusOpXymBYz-0XX9nWlMgbgkZNU4r8nkPcCrX-JjXV2wMCU89ATjp_O5TkWa9hZM1RRChRfLyM_hktmrtF120JxjltkVoMl2tKNUujSseRqt8eQOKZk60VR-DYADpu0XyJ-n5yXKE0_6L3aQWoKOMMXMtZq6gozUS2CE2MI2qol9ea0VaHaMUOQDMkLaNlyVo97wYwcYwURlGHhPE_a4TZFA9DL7hEyuAMQlwfW5Fn1KcWtXlZIz_iVox4fmeiA4HwYsvJihLaU905y2sRHTTY1UAppIq5ml3OEkXwq27GtKgKJsXwmWPuqTKsePc1yW6YrPnoF2hdidHO3zm1n3GsnEnuYOswwkOY3eZdhTZKu5D-jIzqE_yvD2NTJNsaQxvBzn9VYVBWnQ-MDz7IVVm43r75L8L2bCnuqV_qHyutwxPjGe9sYIdSmJII_Oxh-FtINvJbpO7tqb4H94hIoNtV2c7iRiWIMZBUvNyJ1cpoA4_OH3FK8mbggdRBvUHU3YOiQ43ZnryIZ3xTqFQ1GlBEskPWiP_Ivit467cSKvZcvrsMVte5enR4smU1ZWNv7_WCV31ST8RqS5CQ6jYGiaBRdl0RcbHgSiimixxOSsAOfw7TgysdwHbQ9Wb-o6bADgvA2FDyZe2KbjUyuJFBtNKjxZ8zCfPlZKbatPpbgVlo2jzI9hGY45HSaHy3fzw5fkFJa5NJBOFTlxAZvZNY58CD8YaLs5M0rqeLGvU65c11mseO-Wc5mAUfm9s5mbjWifyqlKP4dX2cMKNqsVSovU4qK3edxIRK5pxRxEjRNT4YT6ON2JiTrXU0PUXpI9LCKnDX1xt5bdn_Frp1i5KSEysreU8DpOxzWUHfDfnymp01_kRQajwWGaasww26kKb98QcP0fSulI6wLtiHhF8onJVt-dxW4wLWKvzktdE_LEk7E5WYJ-6bUSJDu5MZ9h96y5XiJnnnAmuKQ3nnS_xZth9ANPKtISY7U40jM--b4J8Vusk6n_gpIS5Ppsl_--rHHMDYfjnSFfzsCObUwaQey1oALNJ0Gxi4thlVvMfwc1EYiGusVj_qUWyEzditrMd_6nj_LoqddYmLLxpEeHtYJPZxL8BsPOo0agBYY8AURhp_tOC85jWsU4gD7pXJa7ShsROSF9RHoBcfmaZV9YaEYCFPd_x17ipjYeaR3RdY_aa25j-BtwlPj55jNEYxQs5tZE5DrZy81DBi0Ax_7OnBwlnkMFIqCjr9qbljcFqL8aLr5GpZd5WtXlqlcIldQahLDaEYxuEX6uqeQqreGEBX3Jy1UVNE0RLWOLmnreAK_bluB7OSmkOGCSBD5Drahm3PBk_wc6TClvSs6sL3mIySzSLX9NUXQ7uMQyV1FYk4zB8wl9dHG-O7CKKWOm-hUlIBobANu3wzxTXDLwG7G8rTFemFbCZqQh5bo0SinWqcn3g-a3GcgPpvt9CQ1UYWn3hJZrpWYoIJ4yMcHgMP1BSM14PSGgalCAzOgq4pGKpNLbY5TUaDVF3aFHquEgl-piFWWVt-E-7NPbwRUcRJFp-ucjV1By9ChEQlMw6vz3XEyK_ECDNvAnWTzezqVOP5Z1JNQOPuzNYoDwh61_cJstOd03A9AKqnJWqfc2WX_vMgg-RHEdVbMhaRZd2Nmtp4VqZ6ZnaSfvyJ2ALMiwjEd975Tj4GK2uqELZ8sy77MigsRZLRhLXKJP9riLv2fm2C_RMwVtVZfrb2VL5CwpSILu_GVlia2tFKKX6zZaF7tTXohvxSwZSkhve6BfjzlBSO9ESfYxul41ajIt1d4XDhv0lTYUSJmgdZ90oDh_mJh18cUXEaaGeGYeh9iOTDUAcoSzV-2n1l9EOlA4OLXi3I4-RRA5XR7BPTqMIru24nN53tE3HcfYmD5eep9n2c4ceieJ7xhh5cUxSBVU4MjwJI4mKFZh_59MCrf8BXQ535-uIcoiu1r2y7CNnPjQSGJrs64wAfIJa64EWRkU44yRQuAr8et04_VDbqm5RPifThVFOaZsbdCn0vrz-15KxTYbIydR70HIPZNWrGcU9wS6fR5r9G9X75BzdWKQNyzZUC9WB73jfA7aW-ISHHE134ZXXVYv8Hzs-P_o-17yqeEv26B57QUKp3t16ZUxjBbSlR6K8PvNXWA_n_5PAogSL2yd_lvRxPHRxO5N0DfWVsHUCs6jfzMiKZ5DKdBp91JUKb4ri5odp-qcOkfi4NtRBnxgsEN0Ggls_CxtpNoalzlQPly1fTiXQtHB3l8Z_634P9deVJg0JS3TtNvLWQV8K-bu7tjAemcJFbaXoMST3KyI6elG5bkWUJfh2aB4An89BsAp2jv3kCmwP37DwjqmQ6mx20KlV-ipKIfTS6rttz8Npq8U6PNoM1gUzRewQ_-_G1mbJ7bomjayCsQLEelYtB9-4bsZlxrj6MrWfC-EJgJ6n27ICGnAarWr6yGu7vdsfESVJNJIKI9XU1a_cHHLIkBWYmnSuuXH0uVQR-qWDC2zdp7mKtvopTk9f3RRyXC47Uyi9sczqBrF1HO9R2lwPYEXEwP8VDx4KyF0hArIn8C-maB5ny3yLaiHi9lVkU5xnJ5TBxwyaGgQXmqQmnwgDagzfiW8_XvN7v0gXmnacqPpIyIk6PZ9lAooWcdkjkoZljRnmt3N0cOt36SMi9ozwhciPNSp_RpA9SNRQeGoPb-p0mAu60dceD29_KUKF7_CG1th9OWiCvMIPryKWT0OjkoEA-ir872bMCZwaeQSDcpkPaexZZ-pcCg4VdbQAU47vmrrJ8eu6AM5W9xEnahF4lCIdMYIcoS20pVsn_Ig7UOY6oyjfNMPTrJdUFoC7WTri2u9oXAspmziaMqYjc7AJtHQdTsxIAgmmb6FX2DRIGwZpcimAtQ42FDViggYPJIDUKAIVjoRuXlqewOpum_QMAuymwRfS-8Ye14NMxXWifqJDIvb9_lyIXNvbu5Xt8ghYtpdMt5B3aSRSEaI97oV8_PpwQGORISvS4QgA6qhK3rkJjq0ZyfmXDqQ1HQuVpVefUwV3RFWZDM1JJoq4YMfM3_K1XtsQPsSuriTfBGYXGX30qzAxzM4t0FtfPvezMLZef8sHLZwGFmmyzEgrTxY8llQG6rdPSsIxOJJY1_8rglLfMntm5XEHz8bdMbeCiFL659GxwZA48aXSf-k-vhRA7TQ77XpDue_ZtXWPrNIv8LvXYZd16LafGlorK6IjPXXcfVSdXgt09JEtaaQjzNK4B0asp86J3w0HIDM5WclfG9Brarv5EkBkMTRpaIYeGtd8v7hwZ_UH80wANyU7Ha9eD1c0KWS-hJni-9UtLeh5_1NMniiKBI7zpnGy1PoRNiV_CtDzZ5PC9uEd_5jJKhuPbpgYnPK_CLTHEThOgSPNdqaMj7BIQlqmb3YL3FM8fdRQePLO3-R4O4x4HOI3johN_MORra5WdySGeRdjuYnGT2sxwNEf8MuMNVz7a8="
+        },
+        {
+          "id": "rs_07cb2dec65b549b9006a84eb149108819cbcf82088a3efc16a",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOuDodGCIMeajZN37mxmp94Bgmog-feaVQIIZZnEWpbE3xyxSsoMKx_1yAHkhgKw693sgnoTfv7eisKpIOImM4D9rR2cAnqUX5oRIcTRwsbdGd6cQdFE90tNqXmovPzf84F1b-QwnA7itoAqvXeY7FzzgqDO6qgpPm6Z00d0DMD4l3mcKWrMTQmIcp5zpKYYm76prEpGTRcw9ijpvuGX2FbKQhAdErsLNuF4mrN6HCp_c6urVuiEleU06FaPPQLTHgFF8c14fEowwiGlK8GIzDaa4F3lcZPVhBxGah2jSMlsJooaJAcGp8Pu90uO5T-gyZy5ibKaxegPFB8zbBEpyvRbG5bUDUOqWIZ3MtWrKZGWccVaDvWW4uFBnbveroU4bXBT3lbg1mXflnvxnB4h7yWJWw_Sf5rjgPHUUXkG-ffbND330uvcOgSkdlHhFdFj8rjghtLbEAnjQkd3-Af_N6dGqSb3V9pOMJ_W1bJoIcp9bM19N18rMIQy8WToOsPHz1YgTEqDJ3JzVqQMR61eH1jPzY_Fv9MptUk5OaXotboBbOxbptkw8Hft8LaHHrH1GLZzQaysyVzDqsJsJBFK49_zNL_-X2hCGJ6FK0YRdygeppETkhymtpZHPACQGa_Iu6wQUVEHCLtQ5PAjXaad6RnDd01mz8Z5K2ZDunax5Oy4cGfIJtIRKJY5DC9uQwFBCVpLZy14woddWciiOjfQd78qKslaUcqmS1lXHCkCpTXrp6avjkCEHkhW6g_49bU7dQ5zln9RLCqyn2C2dFKmX7p-8xLhaWPjrOHELEg7kPV2nyHErw7Jou-ONtpM8Q5w4034GAIqJvyfI5VY5q08UljIVQLLy_Bj2rgoKcxe31mcci88kIj6EkMMJgACozEjvEl4YjfJB7AWlMzkQs-Vxqy-9131RhKHzDDQRdGR8eK-5o9jKmXM8ZMd20wk5seH3OLo_e_bPHm1_Nes3cDEdB6rbVjP7HdCil_PEXctLqox3IBJdmyKHWwat-zKhrza4zvdIYBFyYgqJX6mzDy7QucOX2alGZd4rg-QMvz25jQ0FnmlWL22hZrIrMnP3OdkSmb0kBVTcF6jTcZcIShLRZA0ELpCnxlJcp0Gh4ji2Muffshwy3qBSqyW_3fsG4SOXozrPN7I_zC_hUMbOWJSS0stccxOnFQ3qfo3-Ex3ni7wm6rAoYY0hivWd5gRlnmj-jOhhWIwHaegXCH-lPQzNmTvL_RJ2kbD4a39DLUTlmz-5bY122h_KjCjTGO7aqxpDs_pX3agWEuhf84yceB5mMc_UPFrOMLZw02Y9fr35ozTv2E3Q7p4WmJE836KxTb-mavpoIPMqVGicqEf487pgT4qYYD9kvkZUD-uQtgA33wY3q0I73Sr3K5a5HTsgrZx3dPsiGwFSd6yxQwFOK3cajRRgsHs2mMfqw-EHrqjbtj0jvnDCVKXTixyzaaM0pBPd3QEMx-6-e1TzbCtyg0Ap-kVWqj_RfdEB43m3bXCvahyt2ACjwX6DLeVnpwODSo-l3u4VXArT_sY7Q25Gb4JZSGCsASdXR1RyCWquZ-w9Ck4ztiYrQ9V59Q0SGaE0nRt5n2IDOYFHpR3r1XVJw66IJfTeYsjNvZmwSlclA8jYc7o7JVHGla60BQlUHRplaQGcHz8q2-29OHItKTep2aPtd9Qj8f5v9caTqPgEe2qW4nzoK4Ipa5-FqABLRKmwRHJ4zSH-yr9tk6QI9qPcLm6zshsI74b6Eo0b741bOzAWI3byKFlX-eHQvvMHXmNExDaS3M1_4sGf7dAKMnTRs45G0IfWMUfOoLBxhAFjzw2tqcp6oppE2R63ohVX68WOI_IY0vtpwRdu0AdqQR4R4cOZAsG-XMcdnLAwTYG3oFhWmWYeB7oFUzbwB5S2xm-C25EJCgi9z6XYRXVp5tMcEK6wBU6IIt3WzXat9M1bqkosBQiqv6I3zlMsOrkVtnn_zTBkGEq9OQjxmd8VTuNxtnSjo653DHEPIn4IQdQLHUMT9RGv-VUdPZ1hpYAashvh0y40QwB2gODID52XAVIygEQaCMReWTj5zdrmvgBpVTdTNxjxVH4bVihMYytFzbYdoUL2CxAmh6tUCDVc3wjQ7gbWsaewVt52AkcegiMy6l4bF7zBIkcO4G78aBHSHDfetuNamNdEgtGxniAL1x8o-8phRvloOy5AJf0nkUUyLuyuaRW90ui0k3fBaklZwGEJlHKqYQrfrj6RklHAN7HZHjZMmcHC09_WeR4qtu7wnfilmePWS5Psz7dBhMJiYvwTlxNcPQklBpH4WNdVDWX9K88hiPB2ME5j8KBtG74xuaIML2pU8Iff-aqbdgxCv5hXTzGuLBnp0WGutvZmMR-952kFUUTT6mOpS-IzTDawpnizLWdU00lpeHKIKL8dEJNB5DVPCdjcHVFMb13m4DauNHaR95gFFVQkt8wt9xCaLBv3Wt9lybQ-xCylIRTuO6ZWelo0KyNXoVEljahvzzoSBsaBY--45sZwieE9-gifHJOZ3pHVP8t_bHuOM3tLv3wq5y_tuW057ylrULwAv5Vl9hthdqW-RFRDtfOv2DCWoV5sy7RSVL7pxNH0vFLXZXZG-tLot63w2kPjx5Yzn5z0Egjf8f8UXBUPyJqKRgRbWOxR4aSX-94uQ3KQrVKVYULovjxk7s8mHjLuUmDxKzvVASaydSMRC2hZI44FkkpuNbVrC2CTPmrR0HKK9Fw99Bwn1yI51OZ-tmUm4zMoQG7r1gdw98hZRLFFH8ODAdN49mVmPlvWWN3D5ovo5zmpMVTNcFQJvBbyiDUAwiXLVd6_I1TTUEBfjseQBcQv5ONYgS5zdhl8Qa5JaPqmd7GLk36XbOtlqB8DG3rkPY6E69jGVU8-IXXBnPxeDFNKi8Nr-lhugxIcklhhMfxOgB3_aqjc0WHp2_ZuQyvXvEgn9ZnqaVgl2dGo5hgPZUnMmsbvJQxn0t4iqm-HJ8QIHZo7jEm1AUxvlk1DeaAI2ynpLTGKTpZAypuCsi7yKO2xlgC1B8DT1JxjHRNaXrb7W21gC7vG5IA7TelcXHNvb-yNAAnCOqDG2YgUoDirQ_DJbb6-02DocZFXtlbgIUhYCrzD8CJW6HIZbydh3P5BQtTSzwYptLF1E59Ro5jjSseDnhbo_2rkNv6S7UKmgxEM3bB_xmmOH390d_7QiMHX21FFimCVOW_u_e9ufqk46XmmeOlFTMDFAc3s7XOiRDzh7EQk_DjIv5cCkCgVfa0e1s80J2xI1Dc77T5T5LP9BQnXG3g1VgrvsQ8pAaf5MRjgGFwtYEOsI64h00iAHU4PXZ_Nh2MbFo0JAmZAFjWDzxnwaaG7tmj3OVmZ2CJ00UGuTLQczoIsT_28kBIxJvOKHqCv8HhQ6oxtkyDInj1UBa4_etQISO-FZJeUeR6TJp_5qvhfV64Lu90980d3VbPeYdQZBLpYCAR1SUHvZLnd0O4P1KL7krjhUVYx9JUfQQxHzIH-n-sYm9h7-cqsu2NK7knt3EILTZaYKSTdn9lOgv2PD4b0-8MYUsT2yYN9Rdnpr4XCOXCV1tgMclyrltZGVqz2pd7PNc9UaWqTtxAZfQUgctEvCRW781VqKkU8vjMOJ5qf4-Y-4Syxd-zLl0qkENJQonm5Vv5CfI55LBJlHTnJtvldrw7-Wvw7qgUTVGVKkhWhIaqTnoXMXMnV8p9GaIUP1NtonB16CcgCSP4apQcOL_dq4c3Z71CwXXmd9Qeg86qLDAjqXIsFjgoyUm6_PA-wRP6KvmrISPyXmrf2y7tVI1qSAG9pZjo8ibc08dRvdUNJ5Z-WY_uKc7yzU2NFAcudH9HQrNRTU2kdNjCyP0rSt1J7t_XFnohKkrhChwnzSH9pCwsHFlKenpY4ZhsYAqSEa-cBBC7gRLzAhR0oI2oPM1lQp3JWGthkH3ZrcZmoJ6e27Gxo0Rw6l3vB4ow4ccnuo2qefLYIzXznIHC-kvGFoAru7YpWziXUskc2c0rx2_i-PCG9LmKkCJmQH9DKcBD5W_vry2H4sNYHPNxEpPiYEMbiCiP-2xRWfSv2tYGjsuZtaaxd5M2FsQrBOw4fvEk5PjEY8PjwkqMynzl96POdoHcGHo_fvzZMx1SRZwpFW2TmNXK-gbyYZMPnR_ps2sXyQ4NhAjn4o759QXedAb3oTDbozMND9O7tj6sfrZ5bkMRrBCmJ1mqL85JymYf3UWlhGGLsQxU-nKVA6KgWvjQ2G1fjtaL8B4BwUElKInL0KcmijlN8SaiuQQS44F5A78GOW5zb5yjDF3i0HhSL0YZTsNf_HSa-tHoPYF8-ZrXVjgZsTnOc2VeMhqcHuA0d4WdT6h-fpwOkZzZpw=="
+        },
+        {
+          "id": "rs_07cb2dec65b549b9006a84eb22d4fc819c8cbb7de911b54fe7",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOuDjJwSY_E3zV6QGdUUPK_wqK54smaE87wj7nxPyrOHnKH8VdxvT2-Dli5JcZU7KFKhpN8nxmdjgGwAw-hvmo9U-fGRFWEcUW86Nip_dMUKdt9er4o4gruBRjmVLqy-J32NnLp6xo6J1B7OwfL7T3yySlpG1rT13rZpUsudftplUc-ZdROpUkWwT_uCl8e70bAsrzVA4vRBT82f4DzqeyrLuXodvEl3o2rs26A0dNSxRSUTsCQ8ae1qxrlduWchFUy9JwzHiPc0DBs6OsvbWqUXR_EG2JP6PQhmbpaGAahOWZ_ZfdKfHbWG03Kq3gwJJzug0tl4eRQ6T4fxVd9Oees8bqas0CVq87T9Jnwdrsf2-HpDbvxmZzRPkmSfnklvvssoHDJ4hXJ28FXgQ_C30mzWGDD7Y7tPY66eSKJYAXk7P-1K72Li5_S8ZI_XCIqtuHT9m-FczsXj_uaei6Q5Ubka_HXp_PLO5gE2kvRghjjSvTDjR0jOXwg06LpRIRqLR5p0iZVjDiNWBTUR1lZrIr3s7Oc7bMHk62IBibXNm0H-2QGg-e835_H-_ld4isAIdKaSumSsZIvKxLCMxHjOUJzcjTw2b1LsebkQ818SWZu1isXCuGeXR4h1zhqDmY9z6GWvWhmcVpdH5LlYJY5Tz0J5J4nOvj5JbRz9zXQRl00Ea6HdVhdMb61pK4KSA9zBiH91iSyaMLuNJ83sggVobX98iknlljtn0E060YFiK8HJhGrPBg3qMVZbu-WeYINZjlEv0n5Y7UWyf97_uSfo7KI-vObncmxtt9RIaTn9QWhnvxk8Fn51Vib3X0haxa0VDAUqK51pJWc9O3WDSzcj9aG9gWLh2ZZgeKETE5N1uaeLERxeEE3Sy0iYfct6PrgaVj67uXIeTZ3iqp8gkBz1DJli_7YocBypOCwH-hD6nDqQFdhm8JoddD4SjamT4TE55Gw9sWZ49fKSI0KyA-ES-qvvw-HOGbbnhcER4_7bPLqy2XTQemiTk2sf0M_dr2ok3dSvsLVuKN8-gABkgb23ArYaP_T1_GBi29oSKqTczkfdeJ713sKILfaSFauaxZhAZV5tZAe-yn62xmcyQC-xoxaivWQRuBOvL6mWjqpfX7x2zIfI_D6_JVPqCVsMrBZ0nmOlwdPIbxd35v5NjmjCQSErhUhP4ZWG7WT616bnMTHJXMu1qbtnnPgX6hO75WicS3Rc6ZE4MRhayqAWySC2pEC6hk0cmELRnRoMO6clgJspNeheEQd88n5cXCyJ6TFJ3xUCQ9O7cYCENkRachG7KhdYNXhFdFZ1XGEa61jq01Qz6xMt18XBHxQhAiwX6sUhBFaAHO2t0CV_ctXyaQgZnMS66szGLJR3-U9sxc_MnaIOKotkKr_L5kkW8FhPSW0QF0yw9Z-2TrMyCBxhvHEhqdhsTdli3k8kICm6oovvRB-fmmQfutF7BjfDSy7pqCAQ4hzjS6YRMPQZ9tPrmEaeAu2C8NKi_60gE90JLScWxcs2isahSKgWILy4ZtoRdCaE5EOCXi_FwphMfOeMc0LkbAmBjKtDqRUY2hjwQ7Fy7HuGRSQfEEEoDOTYz4j8hOyvAlYyOAsSRSkSDXDtU0At0BzZIHvJHUtiRYacabEZid__q-6VxEQHwRJAvIyz444bEAcZ6yJjs4jXODocybZTVfWpEUDIhRf01gUe49mj_LwD9JG-609iyhWSXAHNFAQq1WxegEPaVYgzZiztWLz-rtTrwFuZwYj78svk5ETc_dSTGAhyIrcsRHRlTXE5bC5knWteDfTGR8DqegNNqtIp7sfNPH-yO3fLvqOhpfokUzjWj3rVgIpeX5QkIIDwgJomMZPEsPhYByANl9u4fOQCqP7ocfY-ssdJosvO_r-i7WazWcwDzgd7swIdhTeuJKvEWUeaVxcXhCmQxk8H669dj0n1G5PrD0_JnkpVnuVFNjaxp1fYipHSEjQFtQUsMHjiCe0m4MO109Mc9eGFFFy1ywfLAE2annKSFp_o3pbLs8VdemQ4WDjAkpCNBxjKZ3zDtA8oBhC1ATSdwJUZ3Lz_k-TmwN1kmCKj1m0z8FIEZA8d-BV0W81subdjwd3BczNsyd5H6Vde1y8tMD5LdMsaT6zYks-qDgY04R2LHVdeidNO3s4-Yr_ZrwWJpSPQaxgQFTYMiOv0Kq3w1A1rxbTm9h9NvlgDCWmq4uJ8Datw8vyjM0aaZ7TkJH7E9_D9YcxOf5R2o9mlpYRSyq7lv0IJk_lnKnIpsq6UXxoiycj2E3y1T6oI_p8KJb7hT4kX-al0HG3hcGuTsNf_pBwZ3lfJBI7YE5CG4JyygWe9xDB0wOyrM-HVeDjVbxznTmV7bgrYZMxoyRocyFPgBd_5Kt24jm4yMYSZHs5hiHzhfGcGhR1_NXr_XtqxNAR7ia6qDUj_q5G2EG2KE4Io_Lxne0gDtv-WNf53Fb4BCCldykPujeE_bDzhPU_LBN-kyivRp-t3nCB2V0zMo3bZbQFKekzYUtW9cqB6g709B3CEVKMPVpOaprvXpW1RN6dnSaBEgWag49u8UUBSjhmhq8-Ue0Dne5awVfL_pbsEnBT_DqZTABASrDMsgy6vIlGyL2EbaiKxJlWleU-QwY3njYyBK-FWwNJryez_igkDGOKfNyLHn24SkBKG4o2AlR6qBhDmJb_MyCzdWpC7WH_BCu9tgSKiu1CvrR7gpvCT2bFWdXwKFUVVUXrN-mym8Yul_1JIiU7SOLuk73bzTjnSF0Odj2-HpC5OKQubC9A5qOJ-MaTU0TBFd20ix6-bXM9OAJUnFkndBJf_3aJWCtTqMSeD1DphtkANX5vZuSRIFx2QpLes4RNKLOImyGR9izyY4ZuCKcjkFGm1fNAtm3AXAV6faIWf5dmrVv_7gBsG_oJVq5FLzZPa8NOcI7KO63BWDf__ONvH3mSUnwG9l0seXRxzJvwXKrvTzTQK7E3BhmJ1b3CCf9_1xz8o74n1fEgoSu86xllHyImyXymiTWYXz6oCqCeBzwmumR7-pGEW_GuOyIGGVkgyik5bwdMAePfUWIAJXTq44gpWiAXRWVwGkPvgf_j8qPlFfEwrUvgfMdYdQCAAlJ1Xg7smn9yyFFRBh4cQyX7DjsD9hTuFrIHsDqjLO5InWcz4Gp4Wpft0zIwT5Hn1GL1FS_YkqGlUyno534HZcSHIeNRvd4e6fEcVuI4MyWCMVlKpgLrHVCtToO5-EeZ7k-w48uA4w7MuvUZudKEzT_qdKPOT-_uPmeHxrANfkMAeB18c6XgSskHzr64X4ScjVwDr3VAzIjofsnHBb2WTpzmA-zfHDCY2herYMUm2kELwelYzbGkpzfoKUc4oUgJa2Tc0lX723uXdhoCqbpE1mS2oNzIaU7hivxkPS1yLyjt6D3vxzEn9oAanAV5WUCvHlQwQt-r1CMDIgw5lrEfbTbrHpKwOR6MA66qsyHFgFLYYiivrpFxSk616ArFLmRZg29aZJiWU55dXld9Zo03AmhKDbG39QnhaoDg1R-N_XpM0oolPFEEdz256rtv16FudeC0ekvRs56fjEnBTCSL2rGKvbfKmarnvx-4lDUdEKo6nA1B0l74grpyCabU60EdLFfdfzlNwRHURJj_qm-AJm26R_LuyU6OMQDUg0ezxEpGExqRnJh9B1Bv2QQIbD68kH-z7-1aKoofi454QKLeE3fU7V-ktmlm33tHKygwyIj0k5NusA-u2odqmTBw9OjEUnAWAbQburelGAEeum93iRbq4y9gGZFtaVNX7rsaHYBQ4BvWSPTjsDeormeV9FDYxXfwEdPSWRl9n-rdMx7KFANzZqhGcqIWwU7TmgipgtOisH2UChq2LLGzZhq0w_951AgOXvD966C-WnUI67hb4YnO1lK3JRSravsiox8eTHsYNMAuOhWLXv0DhHo2yDz6EPcx5MltUG6Ou2eiPprxxryTQxaIo"
+        },
+        {
+          "id": "rs_07cb2dec65b549b9006a84eb2fdcdc819cade3cb965608c566",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOuDQAe75pzq7_okrB8n62_9ZA88m9OQUfPQtjx_J28P28UENk5glJztnAoIlOH2FO34FmYNLuH_KhSysCiJb54ohbd8f8MFbpEzg_GEZewfkmN8kuwCIAwiYofDv7NXWnysmezbbrrRrp0SkTegWyvenCv1c8eBuJSSW93aZAyfsm9XgiSgZTVR0C-FFflYYuwTQCZ_cisad714jBDPEq9qbPQ-K2zfl1JglZUXlMWORogiEV9c8W4dhdYU5HVW6piTzbFMS0QTdiH09Dvr14gQ8KFdzNNQwTgiXESw0HSSvVm3AuRp8aeH7pA4rerKzxAts8HWMG_UlQlIBuMFr6vzBJONEFZ4AdK9yD7HTBZmnMRepl009URFX94wozLc1oRQ2yuoFGSAlEkjDp3XZFfeDh5pxn2Jf5xS3K88TZmTnScv0EmtgZN399ku5ot1YNF3Gu4BH0OElc18h5504gh-TsqyKwPiKor70aQUCzHlsJFGulxgxeqIECR7l_tQTfKn2WnuH1h2RzbkIjTgxuwzbLKNTE2ji2v0emoRv5IeJROwdt4kcIpD6j2kjp2fzOccR1SAF5h2RSqjB80AzxglVq4wQgFqJavtOp3lWFgpJ-7EXC_eryQKiAoro45bXFS44ZnGH-5N0Aq5z0T5l-8NWQX3-aXeqHoO8oqZqFkiDfxStEO58TTHRZTOnZLhUsyXwD9-RiltJUxat6VC88yZon31PP3zcT6ZSviUKOG-2vzS6ScXq_S2j_hJDQGhv7obmDyEpBHQ5_YS3Z0ADJ3CSf4HUfSgEdAoxBoZByWUQZI8GC8CUPNxz0ZnsoYqBdaV-I-SYVeOtukfd06HxapihX6nVwcsz8gFgJW-YAX1BtQVadvyTl47bI6f_i0MpDLDtgZk2kEVQJV3ULC0eQ1ZszgdaLHdSf3tdC1cZE1BUDHzO4-iyfJOUgwzWypiVVBEVeCUWEDJqVPW43MkXYJVqvTNHMKL-UI5PFVs__UCjrJUtXUHvipV7sLCcRLtu3aQszhlzOOxsq6Z4uCKwBFwT0X8yc5KFVv9jQpQR4cc-_JoiVis9moCYCgCpONewzE9T7lO2w2ryIO-ZqDJoQ722k095jfnlRhWUJ2wBxd2Ub87oK0CZiyvs9kyzC4gQmlEONBbnZbY4I0wk6HH1PaDrtFAR0sTwMTJ6DsvqGycDJU2H0gmyFJLlRhFa8030lVK2J9BB0NVzXorLV0UnAF9C--r4OO5xRiKbenEnkUIApzX1XwAELqf_GGlTlVhrdyDmLqofdWzDAO11kJoUAZvlnM7t1DXCAzo1pdu4OMgMG-jeYA3qfCDP6ENVi4rmBbItnEEl2RoCsMOW8rs8cxRs_exKR5WHgbQirEvKW01IPOZCQODWrb1Y-ZUBjg-QD1uja_9bzy9OsKkU1AOXeijnehy0aYapKfTt2zJjBuMT-BPXX00eh76E0AEfJDluUTkIfs4Pp_pi8uvYXnyjzBlyUnXXhWYKhsx1HBHyhGFt63COdBfef5hLF7mZrSedX_CEKFizPMuE6m8z9a8kSBU0NwTcEXbMc6UbL3MEO-V0ceCrebXvmOVb1d4XhZknD_pVyySm-5H8MIiu5dZ0qM2ZHpOl-4mvo-IR0fMIFOPPPPtkJ7iS-bov39OR39mAuDACchLrkCF_BEU_KAG4C748vZ7VOGYer0_AqCAMSelajrUN272-HtRVuGXf5Q6Jn2BU4Sg2MAdr3cSpPIKSZYQr3Lv_RnxRk-DJICfCQn3wKkdIH6GD-iUjSIJTuXx3T_8oQ0Hocm6zeUiHETI5zSLhjL52xqAQHDI6KY0ZEXUE8gV-74hnzZ6CT8OypGIfkXS2Uq4TuonGVeSeVYUfQsL0bPgUytZkMz8QG7F-EOJWaDE6YEd6HO73LYFutKZ9CSFy7J4zcWcNiNIDbazH7bSm8hyD8t1TkAUHShir8xSJjRkt1OZ9_nK7_QXd5uIrwGeTKZxegMd6xvuZURhIYUvTyzcg8vgPpO3XEktb-HSeXnRPP6MphSvgI2LAS9ZTFNkb0ofBMj14JjV40NsDsLoNVzgYuZtR0Wjl0aKXFBdI48Id82S4i2eouLkcLgCaUPjWjfMtEMX8BO9IscoILqoiwg8m15bwEamIq_eM3dVNaPhOncP_i6uKStNKbnI7-OPi2h-OUNd90k3AEbGroqaYNuE9txwPp-zdRqEg9bNvxEZqK2N-FB8lxU7LvzBU9B_CIgYyliiHbWQNFUTz1d7JNA_-AEHSrCf_Y82BOiuF2jsjKgZiAPmHSk9cg2qY03GB-6sAYi12QhicwejxzOLOTAHBKjtPhrjvAmt1aTT7ZUufTdDeLVqKhXk2qyi2mLuxaTarK4ZXRSR3KDvy6QgLeg3swXqDprqoNL_PfmDTFKBeNoDPv5x1_6S1M5zSykJ2x4P6v9oYqS4OvD-MHwmSk6sjyRrbyDyGfkSbmw2JSNZ0jkvJTAsN0x0pBIU85-wWRM82vPtjw1LFD_ktITQaloXilDqpnU5gCquCJqACkKLKNbIuxa6O38tZjIDJMfop13kw4p-EGGXD2mu6NuElxcAZdtP0pD4WQJt4MXGDpgYr5W6nGQP_ZywePLq15l3QQUArpxCEQluG11qsIo36_CIh9hNq3piL5Ok74WakFCASpwSIeMTTyKcgryv9MBgTczW5oaZEebkmwviubFc8ZWtyse-rEqRteCevV8yldd4tlgdEXR8TjsM_CDS_6QJGGsN-d2o5GzIaUsRFznnFU5kyztUFuVA89FQmlsFEZ-S37sr8VhgEdgTiKl_EBMtZVDKj_2tlNxryvHz7d0jPbp1baw-NOAJNWU3FSb3njimYFm2NSwHmK_EdFpJG2M1BqkkmrSY3cUBcqXwG0csoKOqY_bHno4SAXo7_i_PcawnLAF29IVfzJrpNIOMCbSQKPPhg_lTVNfsIj2O-itZDQukwpcCUBfbDAxdJMlW3apM4r2s1gXz7Rhbb05XSy85EGFqK0NvarLXeeCOZGcw1AgF9iAEnZS3N8SoJRlurlcJGtvDXmjb3oyObirWhF_g7c5NPILkacBTy5J0bRi8ITKJPqKoO96ImCZRVJkkm9x7lYrn56WRO9mvVbHc59tirYlqGUqPcqrBTc_A0zOBEZeuPIimXooCdFP7zsij5kiAJk8977Mv17_VWi9q9fPMKF1IYqgZWfLAEf3Vi23gzEMTL8_mzRr6Q4h3y0GADhbaHwX22QuyNKiN_bbeUINHKQTIwY8pMLKr4Q-3amPwnMXIT84Z8QamXordZ-dbbZt0H1vmK_ZdGUKWfHKj3p4aUSzAhE02RCNCdmMt-wc-C4Bffx7wYmbIhw1xkMNEYuC2XoFxag2q07R6gZ4QL55mh68i2NQ8JvQ8sT7fn66TGsMCsX7jOrhff9e_Blw756pCPzIZUTN3N0uj0lFUyxaNn94VVYMFPZzRcwIHyMHEDkc_9YxtMGE8PnZ0kis5S8sTIp2Orf9XPyzV3bWarTkIBVLbhcPshAGFEuLTDGYWlm1Ac4aErH0DcmM6hj9y0OuIvmP_SQA-p78fUHuwept0CX4xGk18Gq2Z_t8kmXsRKKoknIKEWy9VSTjjdfvGO0MR-biK6tuWK2333hWG0IU_3IlmsZRvzaFMNKN-z7xJh2b4tLCGbFVMIAkYytIvhG7aiL39x7pAHEXX8M8kmFk-Kp9yQ_m1es1rlTYETJvW6l5sbYCfZKfmI8e1sgE7mmOjKKPMAc_BlqaBafgfmmLnLHSiypUfj2yjFgQtqSDHFQ19OPIWSNuKpNlp9VOEhFHBrSIpsuFtVOCw8SljAzbucWspNmJhy-St54EU8iOUftw9bvb7HCj62qiP5gUsiBGt3pwWiVGOgMfvbTJzb5-A0EVF7Q5Ol5LHHsQarDWlcSkPL0abkMIDivSzfWEUYUtZvM1RAiGl3uxLHjYJeuJMXdPAlk0TAohx-GctLJ4XQw=="
+        },
+        {
+          "id": "rs_07cb2dec65b549b9006a84eb3e5d5c819c8b703f2b4411d030",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhOuDl8PkN_24-5sUdpNPdH3QDXdHoMk8x4mn4bvgb8I7g1tJxpx-GS46V-6zdO3BRjX8_dID-UlbCgPi1EHAET8bw0KUKBShyyrNyimAQeUsmEqc1tZlFDARpS20n_nNl_zwKLv-5Jjtp1c0AwAB6UnNjZeVO7NwPlmebVa6V4qw5RXamBF667iSozvRbHHI7Gsov0MbYmLO3-EO07pdwfim5dXHMeefU3KY7GPeSn4f9Ms2AwajA8CIkPnZU3LlIRe5ghXsdGtjMfLGrTbNXtY_tUPxx0izhI39OT_ICcLo2liSwv4Z7zKXEPx7NENiLXYvr5GwoehbzZzjtHP30yUZ01zlBxsSnArDSvqo5NSc2q1YAizOkaRpTN5YDWrADh6Nf4IMEcIfZD_KbkLmmn3n1s2d-98lrxb4nIm8f_8STmw38P6JTtyjJ-MFFowiYuuPS94nLDNOBz4aXBmSi-78TJPhZsNB149LmV0g7-9TVYkrc_h1IDZq3izXHyfoOpWGbCV7uvUxvbO_AsT5BmnnkqQLyvTDp326YgvFJieMVlqFEg_MUtff0sgCyQlnPNKdNfuMeNQZ3ZkZmXVTtcxhRtZiJDgbKxnhXsPuNjdXYcvbtGU17aC31fAb9URGrvzUPfOyRPHANy8FS1FTEcwZa-omueg3pJXhycKJPs0DLHtdGHNIikiCkMJvBSaX4-v74X3N_XWhGJEP9_qr_Peu9pfqeX0PzP2Z4iyh9CC4kK3V_I-SeJM0eukRHpmH-PoWGqMB9_t-WvqGF5gPyNaV4Oj-v3L-HFuWqU6Nunrnnmkycqiooy7HsgL0VapZpw6AeSwvtLR0sO9KarLBYzV7UNclfCD0kRdXGajfr0K3jAmjAXnGFiz3FVmGH_HiWDo255ECqNKCCQKI0zhUvYCfVvSKrx0pAJUoY5oBRWFZwRm0NR6St29xeO-fSfJd11QRfBE2IgEJGjX37yO0Q46icksi2ty_fEuMX6oTyKVv9Cnbd05wU__CTv1rBhQ9FLvvPDAvM5-eti1tpK4UkEeJFQttIUNV1dFNrR7eoQPyDW7FpjSMIMKMCtK2ts4hMJ-1QpusWj-48yDQZoikvQEgEoSeuu8Wqk1R89mwTOEmIU-iABGvtXAeRp_CdBskO7OL-GhUn9WMcQQEHP3QlnvwD7dQ-zhpIVfuNGjav8RkQHiG0A_1t2FBJBG_Jt7Ykz0UZVokbh5OTlEvtvhel_0EfIumYnoTRZ2Tk8YyudeTnFzguDmS8_roCiKsLWrs84IIHPzu4nTSRFGZa0IJze1LvAFyV5lEPAeUG7nRjGlIDDa3imdaHpv88EuN20oMi4mUuL7YKVa6bL_cg1DTonR4YlJX7p4b1VZ2oVBsREYHXLNeVxiUshyWEUgL9B4IxIZkrnc_FQotHUboNhCRyAlbT7858J6yImjKZbppLP9zQ1mqGjsUy5b9NA4HtbFbPk0-RN4HivzsXf56etG9lVOEcMPbQBq3DqupoBpAjWmFBILkwzerykLnCqPGNfQlQnfuc0yJotVBpgYSmtpYVf6EpJ_v0fJuJR1A1WN8oHhYmntieM5HuTRb5IIg2ngDFc40NzxibtZ9EFrsqk_V9oW6SUP5mDFhLsjngazw3jWqw1v6FDgJ1_67fVdixsTd2Bub_9BRzpSHAFtpoLR9Sr2MWl_SA7M9WsFb-PIzQFu65QrFKjfDrZKNZb7ZneIVrj5xju4u37gGEafNLD0OrWK5HuVwLSfJzv9vn7M9y8Ng6QtrnUO7C1DqFpLTO7RL6Llnue0q-KuqgZncUOK0xl6oobFlQxlHxfvtFjld8hzdVJCV0nKkkwD8bGK8sNRJ6TuTol6S6fTgTg21wgi2AvYeIJNQUgKkSYvBSBmpMvP9lYoMa1cyhBGwr87lL27j_CRuxoiPv4IErg_iPELVDBlFXBJsFii20GPBKf_5BQmZ8tcNKH-3PoONaE1DvuxUDGcBOcus-aQ51fi2iUx1dygBpc1bJlpsH5S-GNy15T3wEhk99bsNrN0yLPmNKwk8Kc1_fmMUB0OBCOxdvnWT2hioSqSDvGypdVO-LQ0fGeueAfAQ2-vDO75JgXQkaL59R3CefzfzkR0iI6ip-UVNSL7PsU1PWgIl0v17JyoHUO_-LGs4SRrNiYkypB1RjNjo1D5e-nLY40pcLR06XKpsO4-AAD1ntM8M2TM7ht1pjqp0LNY="
+        },
+        {
+          "id": "msg_07cb2dec65b549b9006a84eb43ac54819c980693686dcd6ead",
+          "role": "assistant",
+          "type": "message",
+          "phase": "final_answer",
+          "status": "completed",
+          "content": [
+            {
+              "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Banana oat yogurt pot\",\n      \"title\": \"Yogurt, oats and banana\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"natural yogurt\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": null\n        },\n        {\n          \"term\": \"rolled oats\",\n          \"quantity\": \"30 g\",\n          \"amount\": 30,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"banana\",\n          \"quantity\": \"1\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Spoon the yogurt into a bowl, stir in the oats and slice the banana over them.\",\n      \"why\": \"It is a small, filling breakfast that can be assembled before a long ward shift.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 3\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Crisp morning apple\",\n      \"title\": \"Apple\",\n      \"slot\": \"snack_am\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"apple\",\n          \"quantity\": \"1\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Wash the apple and take it with you.\",\n      \"why\": \"It is inexpensive, portable and easy to eat during a short ward break.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"none\",\n        \"minutes\": 0\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Golden lentil lunch bowl\",\n      \"title\": \"Lentil couscous and shredded cabbage\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"white cabbage\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Put one portion of golden lentil couscous into a container and top it with finely shredded cabbage.\",\n      \"why\": \"The lentils provide an affordable protein anchor, while the cabbage keeps the packed lunch crisp.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_golden_lentil_couscous\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 3\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Cool yogurt break\",\n      \"title\": \"Natural yogurt\",\n      \"slot\": \"snack_pm\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"natural yogurt\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Spoon the yogurt into a small lidded container.\",\n      \"why\": \"This needs no cooking and fits a brief afternoon break.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"none\",\n        \"minutes\": 0\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Golden lentil comfort bowl\",\n      \"title\": \"Warm lentils, tomatoes, carrots and couscous\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Reheat one portion of golden lentil couscous in a covered pan with a splash of water until steaming throughout.\",\n      \"why\": \"A warm anchor of golden couscous echoes saffron risotto, but costly saffron and slow lamb shanks do not fit this week's budget or 15-minute kitchen limit.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_golden_lentil_couscous\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"a_warm_anchor_every_evening\",\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Apple cinnamon yogurt oats\",\n      \"title\": \"Yogurt, oats, apple and cinnamon\",\n      \"slot\": \"breakfast\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"natural yogurt\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": null\n        },\n        {\n          \"term\": \"rolled oats\",\n          \"quantity\": \"30 g\",\n          \"amount\": 30,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"apple\",\n          \"quantity\": \"half an apple\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"ground cinnamon\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Stir the oats into the yogurt, then add the chopped apple and cinnamon.\",\n      \"why\": \"It keeps breakfast small while making yogurt the meal's quick protein anchor.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 3\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Pocket banana\",\n      \"title\": \"Banana\",\n      \"slot\": \"snack_am\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"banana\",\n          \"quantity\": \"1\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Take the banana with you and peel it when ready to eat.\",\n      \"why\": \"It is cheap, portable and requires no preparation during a shift.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"none\",\n        \"minutes\": 0\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Crunchy lentil cabbage cups\",\n      \"title\": \"Lentil couscous, cabbage and yogurt\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"white cabbage\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"natural yogurt\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Separate the cabbage into sturdy pieces, fill them with one cold portion of lentil couscous and spoon over the yogurt and pepper.\",\n      \"why\": \"This turns the same inexpensive lentil batch into a crisp packed lunch rather than another identical bowl.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_golden_lentil_couscous\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Carrot yogurt crunch\",\n      \"title\": \"Carrot sticks and yogurt\",\n      \"slot\": \"snack_pm\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"carrot\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"natural yogurt\",\n          \"quantity\": \"60 g\",\n          \"amount\": 60,\n          \"unit\": \"g\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Cut the carrot into sticks and pack it with the yogurt for dipping.\",\n      \"why\": \"The low-cost ingredients provide a fresh afternoon bite without another cooking job.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 3\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Quick braised chickpea pot\",\n      \"title\": \"Warm chickpeas, tomatoes, cabbage and carrots\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [],\n      \"method\": \"Reheat one portion of chickpea and cabbage braise in a covered pan until bubbling and steaming throughout.\",\n      \"why\": \"The warm anchor has the savoury character of a braise, using chickpeas instead of lamb because money and cooking time are tight.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chickpea_cabbage_braise\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"a_warm_anchor_every_evening\",\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Orchard yogurt oat pot\",\n      \"title\": \"Yogurt, oats, apple and cinnamon\",\n      \"slot\": \"breakfast\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"natural yogurt\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": null\n        },\n        {\n          \"term\": \"rolled oats\",\n          \"quantity\": \"30 g\",\n          \"amount\": 30,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"apple\",\n          \"quantity\": \"half an apple\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"ground cinnamon\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Stir the oats into the yogurt, then add the chopped apple and cinnamon.\",\n      \"why\": \"The yogurt anchors a small breakfast that takes only minutes before work.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 3\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Easy shift banana\",\n      \"title\": \"Banana\",\n      \"slot\": \"snack_am\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"banana\",\n          \"quantity\": \"1\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Take the banana with you and peel it when ready to eat.\",\n      \"why\": \"It is a reliable bite that can sit in a work bag until the break arrives.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"none\",\n        \"minutes\": 0\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Chickpea pitta pocket\",\n      \"title\": \"Chickpeas, cabbage, tomatoes and wholemeal pitta\",\n      \"slot\": \"lunch\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"wholemeal pitta\",\n          \"quantity\": \"1 pitta\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Spoon one cold portion of chickpea and cabbage braise into the pitta and pack it in a lidded container.\",\n      \"why\": \"The chickpeas make a substantial protein anchor, while the pitta turns the braise into a portable ward lunch.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chickpea_cabbage_braise\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 3\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Friday crisp apple\",\n      \"title\": \"Apple\",\n      \"slot\": \"snack_pm\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"apple\",\n          \"quantity\": \"1\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Wash the apple and take it with you.\",\n      \"why\": \"It is a simple, budget-conscious bite for the final afternoon shift.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"none\",\n        \"minutes\": 0\n      },\n      \"honours_belief_keys\": [\n        \"the_basket_decides_the_week\"\n      ]\n    },\n    {\n      \"name\": \"Smoky chickpea supper\",\n      \"title\": \"Warm chickpeas, tomatoes, cabbage and carrots\",\n      \"slot\": \"dinner\",\n      \"day\": \"fri\",\n      \"ingredients\": [],\n      \"method\": \"Reheat the remaining portion of chickpea and cabbage braise in a covered pan until bubbling and steaming throughout.\",\n      \"why\": \"This repeated warm anchor keeps Friday dinner dependable after a long shift without demanding another cooking session.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chickpea_cabbage_braise\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"a_warm_anchor_every_evening\",\n        \"the_basket_decides_the_week\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_golden_lentil_couscous\",\n      \"title\": \"Golden lentil and tomato couscous\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"tinned green lentils, drained\",\n          \"quantity\": \"480 g\",\n          \"amount\": 480,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"couscous\",\n          \"quantity\": \"180 g\",\n          \"amount\": 180,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"tinned chopped tomatoes\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"onion\",\n          \"quantity\": \"1\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"carrots\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"vegetable oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"ground turmeric\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"vegetable stock cube\",\n          \"quantity\": \"1\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": null\n        },\n        {\n          \"term\": \"boiling water\",\n          \"quantity\": \"250 ml\",\n          \"amount\": 250,\n          \"unit\": \"ml\",\n          \"state\": null\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Heat the oil in a wide lidded pan. Finely chop the onion, grate the carrots and cook both for 3 minutes. Add the turmeric, tomatoes, drained lentils, crumbled stock cube and boiling water. Bring to a brisk simmer, stir in the couscous, cover and remove from the heat. Leave for 5 minutes, fluff well, then divide into three portions and refrigerate two promptly.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 15,\n      \"cook_on\": \"wed\"\n    },\n    {\n      \"id\": \"prep_chickpea_cabbage_braise\",\n      \"title\": \"Chickpea and cabbage tomato braise\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"tinned chickpeas, drained\",\n          \"quantity\": \"480 g\",\n          \"amount\": 480,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"tinned chopped tomatoes\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"white cabbage\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"carrots\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"onion\",\n          \"quantity\": \"1\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"vegetable oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"vegetable stock cube\",\n          \"quantity\": \"1\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": null\n        },\n        {\n          \"term\": \"water\",\n          \"quantity\": \"100 ml\",\n          \"amount\": 100,\n          \"unit\": \"ml\",\n          \"state\": null\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Heat the oil in a wide lidded pan. Finely chop the onion, shred the cabbage and grate the carrots. Cook them for 4 minutes, stirring. Add the paprika, tomatoes, drained chickpeas, crumbled stock cube and water. Cover and simmer briskly for 8 minutes, stirring once. Divide into three portions and refrigerate two promptly.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 15,\n      \"cook_on\": \"thu\"\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_golden_lentil_couscous\"\n      ],\n      \"total_minutes\": 15,\n      \"run_through\": \"Put the kettle on first. Heat the pan, chop the onion and grate the carrots while it warms, then soften them in the oil. Add the remaining ingredients in order, cover the couscous off the heat for the final 5 minutes, fluff it and box the portions.\"\n    },\n    {\n      \"day\": \"thu\",\n      \"preparation_ids\": [\n        \"prep_chickpea_cabbage_braise\"\n      ],\n      \"total_minutes\": 15,\n      \"run_through\": \"Heat the pan immediately. Chop the onion, shred the cabbage and grate the carrots, then cook them in the oil. Drain the chickpeas while the vegetables soften, add everything else, cover for the short simmer and box the portions.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"natural yogurt\",\n      \"quantity\": \"660 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"rolled oats\",\n      \"quantity\": \"90 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"bananas\",\n      \"quantity\": \"3\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"apples\",\n      \"quantity\": \"3\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"carrots\",\n      \"quantity\": \"600 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"white cabbage\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"onions\",\n      \"quantity\": \"2\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"tinned green lentils\",\n      \"quantity\": \"2 x 400 g tins\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"tinned chickpeas\",\n      \"quantity\": \"2 x 400 g tins\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"tinned chopped tomatoes\",\n      \"quantity\": \"2 x 400 g tins\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"couscous\",\n      \"quantity\": \"180 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"wholemeal pitta\",\n      \"quantity\": \"1\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"vegetable oil\",\n      \"quantity\": \"2 tbsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"ground turmeric\",\n      \"quantity\": \"1 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"smoked paprika\",\n      \"quantity\": \"1 tsp\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"ground cinnamon\",\n      \"quantity\": \"2 pinches\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"vegetable stock cubes\",\n      \"quantity\": \"2\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"salt\",\n      \"quantity\": \"as needed\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"black pepper\",\n      \"quantity\": \"as needed\",\n      \"aisle\": \"pantry\"\n    }\n  ]\n}",
+              "type": "output_text",
+              "logprobs": [],
+              "annotations": []
+            }
+          ]
+        }
+      ],
+      "status": "completed",
+      "billing": {
+        "payer": "developer"
+      },
+      "metadata": {
+        "source": "generate-meal-v1",
+        "user_id": "2a000000-0000-4000-8000-000000000004",
+        "request_id": "2a000001-4100-4000-8000-000000000001"
+      },
+      "reasoning": {
+        "mode": "standard",
+        "effort": "medium",
+        "context": "all_turns",
+        "summary": null
+      },
+      "background": false,
+      "created_at": 1787095800,
+      "moderation": null,
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "total_tokens": 0,
+          "output_tokens": 0,
+          "input_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          },
+          "output_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          }
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "truncation": "disabled",
+      "temperature": 1,
+      "tool_choice": "auto",
+      "completed_at": 1787095939,
+      "instructions": "You cook for ONE student, inside the method their coach teaches.\n\nOutput a single JSON object, nothing else. No prose outside the JSON, no markdown fences.\n\n== THE METHOD COMES FIRST, THE RECIPE IS YOURS ==\n\nYour coach's method is given below. It is not a suggestion: their forbidden practices and the foods they do not put on a plate are hard limits, and you never contradict them.\n\nInside those limits you are free. Write real food a real person wants to eat. You are not restricted to a catalogue.\n\n== A PORTION IS ONE PERSON'S PLATE ==\n\nYou are told how many people are at the table. Every quantity you write is for\nTHAT many people, for the number of servings the dish actually makes — and for\nnothing more.\n\nMeasured failure, and it is the one that makes a plan unusable: \"2 salmon\nfillets, 500 g potatoes\" written for ONE person eating ONE dinner. That is three\ndinners on a plate. If a quantity only makes sense because the dish is cooked in\na batch, then say so in `batch` — do not silently inflate a single plate.\n\nSanity, before you write a quantity: one adult portion is roughly a palm of\nprotein, a fist of starch, and vegetables on top. Scale from there. You never\ntell the student those figures; you use them so the numbers you DO write are\nbelievable.\n\n== EVERY MAIN MEAL IS BUILT AROUND A PROTEIN FOOD ==\n\nBreakfast, lunch and dinner each carry one whole protein food as their anchor:\nmeat, poultry, fish, seafood, eggs, pulses, tofu or tempeh, or a protein-carrying\ndairy like yogurt, skyr or cottage cheese. It is the thing the rest of the plate\nis built around, not a garnish on top of it.\n\nSnacks are snacks. They do not need one.\n\nNever write a figure for it. No grams of protein, no share of the plate, no\ntarget of any kind — you are choosing a food, not measuring a person.\n\n== THE STRETCH STARTS TODAY ==\n\nYou are told what day it is for this student, and the exact days to fill. Use\nTHOSE days, in that order, and no others.\n\nA plan handed to somebody on Wednesday that starts on Monday is half expired on\ndelivery — measured, and the first thing a student notices. There is no such\nthing as planning a day that has already gone.\n\n== COVER THE WHOLE STRETCH, WITH FEW COOKING SESSIONS ==\n\nWhen you are asked for several days, cover EVERY day of the stretch and every\nmeal that matters in it. A plan with Monday dinner and Wednesday dinner and\nnothing in between is not a plan — the student did not ask for a partial week,\nand holes are read as \"the system gave up\".\n\nCovering everything does not mean cooking everything. That is what the\npreparations below are for.\n\n== WHAT YOU COOK IS NOT WHAT YOU EAT ==\n\nThis is the important one, and it is what makes a week both quick and bearable.\n\nSeparate PREPARATIONS from DISHES.\n\n  A preparation is what comes out of one cooking session: 1.2 kg of roast\n  chicken thighs, a pot of chilli, a tray of roast vegetables, a batch of rice.\n  It carries its own ingredients — for the WHOLE batch — and its own method.\n\n  A dish is a meal on a day. It NAMES the preparations it draws on through\n  `uses`, and its own `ingredients` list only what you add at the moment of\n  eating: the salad, the bread, the yogurt, the lemon.\n\nWhy it matters: one cooking of chicken becomes a rice bowl on Monday, a wrap on\nTuesday and a curry base on Thursday. THREE DIFFERENT MEALS, ONE COOKING. Making\nthe same student eat the identical plate four days running is technically batch\ncooking and humanly a punishment — do not do it.\n\nRules that follow:\n  - anything that needs a pan, a pot or an oven is a PREPARATION making at\n    least two servings. Never a dish cooked from scratch twice in a week.\n  - assemblies that need no cooking — oats and yogurt, a sandwich, fruit and\n    nuts — are plain dishes with no `uses`, made fresh, quantities for one\n    plate.\n  - a dish that draws on a preparation does NOT repeat its recipe. Its method is\n    what you do at that meal: \"reheat a portion, add the salad and the lemon\".\n  - vary what you build from the same preparation. Same protein, different meal.\n\n== NAME THE COOKING SESSIONS, AND WRITE THE RUN-THROUGH ==\n\nGive `cooking_sessions`: the days on which the student actually cooks, which\npreparations get made in each, and the ORDER of the gestures — \"oven on for the\ntray, rice on while it roasts, chilli simmering next to it, box four portions\".\n\nAim for two or three sessions in a week, not seven. Every preparation belongs to\nexactly one session: a preparation nobody cooks is a plan the student cannot\nfollow.\n\n== NOTHING SITS IN THE FRIDGE FOR A WEEK ==\n\nA cooked batch is eaten within THREE DAYS of the day it was cooked. Cooked on\nThursday means eaten by Sunday, and that is the end of it. Beyond that it is not\na meal plan, it is a plan to throw food away or to get somebody ill.\n\nCooked rice and cooked seafood are tighter still: same day or the day after.\nRice left sitting is the classic way to make somebody sick, and no amount of\nconvenience is worth it.\n\nIf a batch would have to stretch further, you have three honest ways out: cook a\nsmaller batch, cook it twice, or say plainly in the method that the surplus goes\nin the FREEZER on the cooking day. Never stretch it in silence.\n\n== THE COOKING TIME THEY GAVE YOU IS A CEILING ==\n\nWhen a session time is stated, the session fits inside it. It is not a target to\napproach and overshoot: it is what they actually have that evening, and a\nsession that does not fit is a session they skip — after which the whole week\nfalls apart, not just that session.\n\nIf everything will not fit, cook LESS in that session and put the rest on\nanother cooking day. Fewer preparations that happen beat more preparations that\ndo not.\n\n== NOTHING IS EATEN BEFORE IT IS COOKED ==\n\nA preparation must be cooked ON OR BEFORE the first day that eats from it. If\nthe only cooking day you have is Sunday, then Thursday, Friday and Saturday\ncannot live off a Sunday batch — those days cook for themselves, or they eat\nsomething that needs no batch at all.\n\nThis is not a preference. A plan that feeds Thursday from a Sunday session is a\nplan that cannot be executed, and the student finds out at lunchtime.\n\n== HOW LONG THINGS TAKE ==\n\nEvery preparation carries two numbers, and they are not the same one.\n\"active_minutes\" is time with your hands on it — chopping, stirring, turning.\n\"total_minutes\" is from starting to finished, waiting included. A roast is 10\nactive and 50 total; that gap is the whole reason batch cooking works, because\nthe oven time is free for another preparation.\n\nA session's \"total_minutes\" is the wall clock of the session, NOT the sum of its\npreparations: things overlap, and pretending otherwise turns a comfortable\nninety-minute Sunday into a scary four-hour one nobody starts.\n\nRound to the nearest five. These are estimates a cook recognises, not\nmeasurements — but they are the numbers somebody uses to decide whether tonight\nis possible, so a wrong one costs a skipped meal.\n\n== WHAT TODAY ACTUALLY TAKES, ON EVERY DISH ==\n\nEvery dish carries \"same_day\": what the student does ON THE DAY THEY EAT IT to\nget that plate in front of them, and how long that gesture takes.\n\n  \"kind\" is one of four, and nothing else exists:\n    \"none\"        - nothing to prepare. Fruit, a yogurt, a plate already made.\n    \"reheat_only\" - take the portion out and heat it, and NOTHING else.\n    \"assemble\"    - build the plate from what is already cooked, no cooking.\n    \"cook_fresh\"  - a real cooking gesture that day: scramble the eggs, boil\n                    the pasta, sear the fish.\n\n  \"minutes\" is how long THAT gesture takes, that day. A whole number.\n\n\"minutes\" IS NOT THE TIME OF THE COOKING SESSION, and confusing the two is the\nfailure this field exists to stop. A portion of Sunday's roast, reheated on\nWednesday, is 8 minutes - not the 50 the roast took. Announcing 50 tells\nsomebody with ten minutes that dinner is out of reach, and they skip it.\n\nSay it on EVERY dish, including the ones where the answer is nothing. \"none\" and\n\"cook_fresh\" are answers; a missing line is a plate somebody stands in front of\nwithout knowing what to do. If the dish reheats, the word reheat is what they\nneed to read, so write \"reheat_only\" and say it again plainly in \"method\".\n\n== NEVER PUT A NUMBER ON NUTRITION ==\n\nNo calories. No macro grams. No percentages of anything nutritional. Not as a target, not as a range, not \"roughly\". Nobody has measured this student.\n\nShopping quantities are DIFFERENT and expected: \"400 g chicken thighs\", \"2 onions\", \"a bunch of parsley\". A quantity says how much to buy or use; a target claims a measurement of the person. Put quantities on ingredients, never on the student.\n\n== SAY THE SAME QUANTITY TWICE: ONCE FOR THE COOK, ONCE IN FIGURES ==\n\nEvery ingredient carries \"quantity\" — the phrase a person reads, exactly as you\nwrite it today — AND three plain fields that repeat it:\n\n  \"amount\": the number.\n  \"unit\":   one of \"g\", \"ml\", \"unit\", \"tbsp\", \"tsp\". Nothing else exists. If\n            what you meant is a handful, a cup, a bunch or a pinch, leave\n            \"amount\" and \"unit\" null and keep the phrase in \"quantity\".\n  \"state\":  \"raw\" or \"cooked\" — the weight you just wrote, before or after\n            cooking.\n\n\"state\" is REQUIRED for anything that takes on or loses water in the pan: rice,\npasta, couscous, lentils, dried beans, meat, poultry, fish. A hundred grams of\nrice is not the same food before and after it is boiled, and leaving it out\nmakes the line unusable. It does not matter for oil, nuts, cheese, yogurt or\nfruit — say it anyway when you know it.\n\nNever guess. An ingredient whose weight you do not actually know keeps its\nphrase and leaves the three fields null. A made-up number is worse than a\nmissing one.\n\nFATS, NUTS AND SWEETENERS ARE THE ONE EXCEPTION, and they are not a guess.\nOil, butter, ghee, cream, nut butter, tahini, nuts, seeds, honey, syrup and\nchocolate ALWAYS carry \"amount\" and \"unit\". \"A drizzle of olive oil\" is a\ntablespoon; write 1 and \"tbsp\". These ingredients are small on the page and\nenormous in the pan -- a spoon of oil weighs what a whole plate of vegetables\nweighs, and a line left blank there makes the entire dish unreadable. Salt,\npepper and herbs may stay a pinch; oil may not.\n\n== WHAT A DISH ADDS ON THE DAY IS WEIGHED OR COUNTED, NEVER VAGUE ==\n\nThe phrase in a DISH's \"quantity\" is either a weight -- \"100 g dried pasta\",\n\"40 g feta\" -- or something a person can count: \"half a lemon\", \"10 basil\nleaves\", \"2 eggs\". \"A handful\", \"a generous portion\", \"some rice\" say nothing\nanybody can act on, and they are why the same dish comes out different every\ntime. Salt, pepper and herbs may stay a pinch. Everything else gets a number.\n\n== THE STUDENT'S SITUATION IS NOT DECORATION ==\n\nThey tell you what their week actually looks like — a wedding on Tuesday, a holiday, a weekend away, a late shift. Cook around it. A meal that assumes an evening they do not have is a meal they will not make.\n\n== THE TWO MODES ==\n\nmode = from_pantry\n  Cook with what they ALREADY have. Reach outside their list only for genuine\n  staples (salt, pepper, oil, water) or when the dish is impossible otherwise.\n  Anything you use that they did not list will be shown to them as something to\n  buy, so keep that list short and say why it is needed.\n\nmode = to_shop\n  Compose freely, then give the shopping list the dish actually needs.\n\n== EVERY DISH HAS TWO LINES: A NAME, AND A TITLE ==\n\nThey are not the same line and they do not do the same job.\n\n  \"title\" is what is on the plate, plainly: \"Chicken, courgettes, peppers and\n  rice\". It is read out at the table, it is what somebody cooks from, and it\n  never changes job. Keep writing it exactly as you already do.\n\n  \"name\" is what this dish is CALLED: \"Golden roast chicken bowls\". Short --\n  six words at most. Appetising. It is the line somebody reads when they decide\n  whether they want to eat tonight.\n\nWrite BOTH, on every single dish: as many names as you have dishes. Count them\nbefore you answer.\n\nDo NOT make the title pretty instead. A title that becomes \"Sunshine of\nMarrakesh\" no longer says what is on the plate, and nobody can cook a name. If\nyou find yourself dressing up the title, that is the name -- put it in \"name\"\nand give the title back its plain words. And never write the same string twice:\na \"name\" identical to the title is a line that says nothing.\n\n== OUTPUT JSON SCHEMA ==\n\n{\n  \"dishes\": [\n    {\n      \"name\": \"short, appetising, six words at most -- what the dish is CALLED\",\n      \"title\": \"...\",\n      \"slot\": \"breakfast\"|\"snack_am\"|\"lunch\"|\"snack_pm\"|\"dinner\"|\"before_bed\"|null,\n      \"day\": \"mon\"|\"tue\"|\"wed\"|\"thu\"|\"fri\"|\"sat\"|\"sun\"|null,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"...\"|null,\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to make it, plainly, in a short paragraph\",\n      \"why\": \"one sentence: why THIS dish for THIS student this week\",\n      \"uses\": [{ \"preparation_id\": \"prep_chicken\", \"servings\": 1 }],\n      \"same_day\": { \"kind\": \"none\"|\"reheat_only\"|\"assemble\"|\"cook_fresh\",\n                    \"minutes\": <whole minutes for the day-of gesture> },\n      \"honours_belief_keys\": [\"<exact keys from the convictions list, when one applies>\"]\n    }\n  ],\n  \"preparations\": [\n    { \"id\": \"prep_chicken\", \"title\": \"Roast chicken thighs\",\n      \"servings_made\": 4,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"<for the WHOLE batch>\",\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to cook the batch\",\n      \"active_minutes\": <minutes of HANDS-ON work>,\n      \"total_minutes\": <minutes from starting to finished, waiting included>,\n      \"cook_on\": \"sun\"|null }\n  ],\n  \"cooking_sessions\": [\n    { \"day\": \"sun\", \"preparation_ids\": [\"prep_chicken\", \"prep_rice\"],\n      \"total_minutes\": <minutes the whole session takes, start to finish>,\n      \"run_through\": \"the order of the gestures, plainly\" }\n  ],\n  \"shopping_list\": [\n    { \"term\": \"...\", \"quantity\": \"...\"|null,\n      \"aisle\": \"produce\"|\"protein\"|\"dairy\"|\"grains\"|\"pantry\"|\"frozen\"|\"other\" }\n  ]\n}\n\nDay tokens are exactly: mon tue wed thu fri sat sun. Never translated.",
+      "service_tier": "default",
+      "top_logprobs": 0,
+      "max_tool_calls": null,
+      "presence_penalty": 0,
+      "prompt_cache_key": null,
+      "frequency_penalty": 0,
+      "max_output_tokens": null,
+      "safety_identifier": null,
+      "incomplete_details": null,
+      "parallel_tool_calls": true,
+      "previous_response_id": null,
+      "prompt_cache_retention": "24h"
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-18T23:28:39.814916+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:29:59.993835+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:32:19.95693+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:32:20.001827+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:33:00.140455+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:33:27.050127+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:33:51.055904+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:34:22.08464+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    }
+  ]
+}

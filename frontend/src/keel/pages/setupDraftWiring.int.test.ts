@@ -155,3 +155,38 @@ describe("l'aperçu du plan reste le rendu unique, et il n'écrit rien", () => {
     expect(dialog).toContain("<PlanResult");
   });
 });
+
+describe("le prénom du maître atteint la colonne que le prompt lit", () => {
+  /**
+   * ── LE DÉFAUT MESURÉ LE 2026-08-18, SUR UN PROMPT RÉEL ──────────────────
+   * `/app/setup` §2 rend « FIRST NAME — How the plan names your serving ». Il
+   * n'écrivait que `profiles.full_name`. Or le roster
+   * (`keel_household_roster_for`) ne rend QUE `household_members.first_name`,
+   * et c'est ce prénom-là que le brief de portions, la liste d'ids et les
+   * règles de maison citent au modèle.
+   *
+   * `keel_household_create` n'y recopie le premier mot du `full_name` QU'UNE
+   * FOIS — l'arbitrage est écrit dans la RPC: « s'il renomme son profil plus
+   * tard, son prénom au foyer ne suit pas; il le change au foyer ».
+   *
+   * Résultat mesuré: « Sacha » tapé à l'écran, `Student` servi au modèle six
+   * fois. Le champ réaffichait même « Student » au retour, puisqu'il LIT le
+   * roster et ÉCRIVAIT le profil.
+   *
+   * ⚠️ Ce test lit la SOURCE, comme les autres de ce fichier: ce qu'il faut
+   * garder est un câblage, et `saveSelf` ne se monte pas sans base ni session.
+   */
+  it("`saveSelf` appelle `setMemberName`, pas seulement `saveOwnProfile`", () => {
+    const src = code("frontend/src/keel/pages/SetupPage.tsx");
+    expect(src, "la porte du prénom de foyer est importée").toContain(
+      "setMemberName",
+    );
+    const save = src.slice(src.indexOf("function saveSelf("));
+    const body = save.slice(0, save.indexOf("\n  function "));
+    expect(body, "`saveSelf` écrit le profil").toContain("saveOwnProfile(");
+    expect(
+      body,
+      "`saveSelf` écrit AUSSI la ligne de foyer — sans quoi le plan nomme le maître avec le prénom figé à la création",
+    ).toContain("setMemberName(");
+  });
+});

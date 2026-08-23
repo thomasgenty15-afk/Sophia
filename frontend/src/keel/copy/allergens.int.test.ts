@@ -125,7 +125,14 @@ describe("wide-coverage mirror", () => {
     for (const slug of engineSurfaceFormSlugs()) {
       expect(hasWideCoverage(slug)).toBe(true);
     }
-    for (const outside of ["kiwi", "fruits_de_mer", "metformin", "nut_butter"]) {
+    // ⚠️ `fruits_de_mer` A QUITTÉ CETTE LISTE LE 2026-08-22 (lot `S1b`), et
+    // c'est le sujet du lot, pas un ajustement de test. Il y figurait comme
+    // exemple de saisie libre non couverte — or c'est le slug de DEUX lignes
+    // réelles de `student_safety_constraints`, écrites le 2026-08-04, dont une
+    // active. Le moteur porte désormais sa clé miroir; ce test rougissait
+    // exactement comme il devait, et l'assertion qui compte est celle du
+    // dessus: le miroir suit le moteur dans les DEUX sens.
+    for (const outside of ["kiwi", "metformin", "nut_butter"]) {
       expect(hasWideCoverage(outside)).toBe(false);
     }
   });
@@ -163,8 +170,26 @@ function engineNormalizer(): (value: unknown) => string | null {
   if (!block) {
     throw new Error("normalizeAllergenRef not found in allergen_catalog.ts");
   }
+  // ⚠️ LA FONCTION DÉPEND D'UNE CONSTANTE DE MODULE (2026-08-19). Le moteur a
+  // gagné une table d'alias vivant hors du corps extrait; sans elle, le corps
+  // se CONSTRUIT sans erreur puis jette `ReferenceError` À L'APPEL — c'est-à-dire
+  // après le `try` ci-dessous, donc sans le message qui explique quoi faire.
+  // On emporte donc la table avec le corps, en retirant son annotation de type.
+  const aliases = source.match(
+    /const ALLERGEN_REF_ALIASES[^=]*=\s*(\{[\s\S]*?\n\});/,
+  );
+  const prelude = aliases ? `const ALLERGEN_REF_ALIASES = ${aliases[1]};\n` : "";
+  if (!aliases) {
+    throw new Error(
+      "ALLERGEN_REF_ALIASES introuvable dans allergen_catalog.ts — si la table " +
+        "a été renommée ou retirée, adapter ce test AVANT de conclure que le " +
+        "front est bon.",
+    );
+  }
   try {
-    return new Function("value", block[1]) as (value: unknown) => string | null;
+    return new Function("value", prelude + block[1]) as (
+      value: unknown,
+    ) => string | null;
   } catch (error) {
     // Le corps a cessé d'être du JS exécutable tel quel (une annotation de
     // type sur une locale, un import). Le dire ainsi plutôt que de laisser une
@@ -226,10 +251,16 @@ describe("free-text normalisation", () => {
   it("still pins the cases a reader needs to see", () => {
     // L'équivalence ci-dessus attraperait une dérive, mais elle ne dit pas ce
     // que la règle FAIT. Ces quatre-là restent lisibles à l'œil nu.
-    expect(normalizeAllergenInput("Fruits de mer")).toBe("fruits_de_mer");
+    // ⚠️ CHANGÉ LE 2026-08-19: « Fruits de mer » se ramène désormais sur le
+    // jeton `shellfish` (table d'alias fermée) au lieu de rester un slug sans
+    // aucune couverture de formes de surface — donc sans protection.
+    expect(normalizeAllergenInput("Fruits de mer")).toBe("shellfish");
     expect(normalizeAllergenInput("  tree-nut ")).toBe("tree_nut");
     expect(normalizeAllergenInput("Peanut!")).toBe("peanut");
-    expect(normalizeAllergenInput("café  au lait")).toBe("caf_au_lait");
+    // ⚠️ CHANGÉ LE 2026-08-19: les accents sont désormais REPLIÉS et non
+    // supprimés — « café » garde son `e`. Le défaut réparé mutilait cinq des
+    // quatorze allergènes majeurs tapés en français.
+    expect(normalizeAllergenInput("café  au lait")).toBe("cafe_au_lait");
   });
 
   it("returns null on anything that cannot become a slug", () => {

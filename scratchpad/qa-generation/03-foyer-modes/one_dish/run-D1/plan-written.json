@@ -1,0 +1,61 @@
+{
+    "cooking": {
+        "asked": "one_dish",
+        "capped": true,
+        "served": "one_dish",
+        "unused": false,
+        "computed": "one_session",
+        "diverging": [
+            "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+            "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+            "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+        ],
+        "dish_bearing": [
+        ]
+    },
+    "plan_id": "097693a2-c8e0-4171-a540-b3f8a3f64a48",
+    "rationale": {
+        "lines": [
+            "This plan covers today.",
+            "You cook on Wednesday and Saturday, and that is what was kept.",
+            "Quantities are made for 4 people.",
+            "The shared dish is vegan: that is what Theodule eats.",
+            "You asked for one dish for everyone, and that is what was cooked. The shares of Aurele, Marceline and Solveig do not come out of the shared dish: they are served as close as they can be, with no dish apart.",
+            "The shopping budget is 115.",
+            "To stay inside it, expensive proteins give first, then out-of-season produce, then variety — never the portions."
+        ],
+        "refusal": null
+    },
+    "box_sizing": {
+        "boxes": 20,
+        "share": {
+            "sized": 4,
+            "no_body": 0,
+            "age_unknown": 0,
+            "no_reference": 0,
+            "restriction_floor": 0,
+            "restriction_unknown": 0,
+            "doctrine_no_counting": 0
+        },
+        "sized": 20,
+        "mouths": {
+            "minor": 1,
+            "sized": 1,
+            "no_body": 0,
+            "no_pace": 2,
+            "age_unknown": 0,
+            "no_direction": 0,
+            "restriction_floor": 0,
+            "implausible_factor": 0,
+            "restriction_unknown": 0,
+            "doctrine_no_counting": 0
+        },
+        "unchanged": 0,
+        "shared_mixed": 0,
+        "unverifiable": 2,
+        "capped_by_pot": 0,
+        "share_clamped": 0
+    },
+    "created_at": "2026-08-19T02:23:03.750002+00:00",
+    "attribution": null
+}

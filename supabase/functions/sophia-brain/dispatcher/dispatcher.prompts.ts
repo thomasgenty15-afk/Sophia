@@ -20,9 +20,34 @@ import {
 // declares une seule fois (contrat de l'effet); le prompt les interpole depuis
 // cette source, jamais une copie.
 import { DEVIATION_KINDS } from "../tools/always_on/declare_deviation/contract.ts";
+// LOT 4A — le vocabulaire de `plan_feedback.kind` qui ARME le renvoi du sizing.
+// ⚠️ INTERPOLE DEPUIS SA SOURCE, jamais recopie: c'est `sizingFeedbackDetected`
+// qui juge, et un prompt qui enseignerait un jeton que cette liste ne contient
+// pas produirait un signal detecte, parse, compte… et sans effet. Cicatrice
+// §7.4: « une cle declaree deux fois que rien ne relie ».
+import { SIZING_FEEDBACK_KINDS } from "../../_shared/keel/conversation_retained.ts";
 
+// LOT 4A — LA VERSION BOUGE PARCE QUE LE PROMPT A BOUGÉ. Un libellé qui ne suit
+// pas rendrait indiscernables deux assemblages différents dans les stats, et
+// toute mesure « avant / après » sur ce chantier serait ininterprétable.
+// ⚠️ NEUTRE EXPRÈS: le champ part AUSSI pour le legacy, dont l'assemblage n'a
+// pas changé — le nommer d'après une lane KEEL étiquetterait de travers un
+// prompt qui ne la porte pas.
 export const DISPATCHER_V2_PROMPT_VERSION =
-  "dispatcher_v2_prompt_2026_07_keel_durable_effects_v1";
+  "dispatcher_v2_prompt_2026_08_v2";
+
+/**
+ * LE JETON QUE LE PROMPT ENSEIGNE POUR UN RETOUR DE PART.
+ *
+ * ⚠️ IL N'EST PAS ÉCRIT À LA MAIN: il est PRIS dans la liste fermée que
+ * `sizingFeedbackDetected` applique. Un lot qui renommerait le jeton d'un seul
+ * côté aurait un signal détecté, parsé, compté — et aucun renvoi.
+ *
+ * ⚠️ ET IL EST QUAND MÊME ÉPINGLÉ À SON LITTÉRAL PAR UN TEST. Sans ce second
+ * clou, réordonner `SIZING_FEEDBACK_KINDS` ferait suivre le prompt ET le test
+ * en silence — c'est la cicatrice « test paramétré par sa propre constante ».
+ */
+export const PLAN_FEEDBACK_SIZING_KIND: string = SIZING_FEEDBACK_KINDS[0];
 
 function domainRegistryPromptLines(): string[] {
   const prefixes = [
@@ -134,7 +159,17 @@ Contrat effectif unique:
   },
   {
     when: ALWAYS,
-    text: `- skill_signals.plan_question (KEEL uniquement — voir regle 6-bis)
+    text: (audience) =>
+      audience.keelStudent
+        ? `- skill_signals.plan_question (KEEL uniquement — voir regle 6-bis)
+- skill_signals.plan_feedback (KEEL uniquement — voir regle 6-ter)
+- skill_signals.presence_conversation
+- memory_plan
+- needs_research
+
+Interdits:
+- Ne produis jamais les anciens champs de scoring, opportunite de flow, ou intents outil.`
+        : `- skill_signals.plan_question (KEEL uniquement — voir regle 6-bis)
 - skill_signals.presence_conversation
 - memory_plan
 - needs_research
@@ -146,9 +181,24 @@ Interdits:
     // Meme raison qu'au bloc du contrat: la liste reste entiere. Un
     // « n'emets jamais coaching_recommendation » ici contredirait mot pour mot
     // l'anti-faux-positif de presence qui, trois ecrans plus bas, y envoie.
+    //
+    // ── LOT 4A · LA CONTRAINTE EST LEVÉE, EXPLICITEMENT ────────────────────
+    // Cette ligne interdisait TOUT signal hors `plan_question`. C'est elle, et
+    // rien d'autre, qui rendait `plan_feedback` inatteignable: le contrat
+    // pouvait le déclarer, le parseur pouvait le lire, le modèle n'avait pas le
+    // droit de l'écrire. On la LÈVE plutôt que de la contourner par un champ
+    // racine: un signal posé ailleurs pour esquiver une phrase du prompt
+    // laisserait cette phrase dire au modèle l'inverse de la règle d'à côté, et
+    // ce dépôt a déjà mesuré ce que coûte un ordre et son contraire.
+    //
+    // ⚠️ ELLE N'EST LEVÉE QUE POUR UN ÉLÈVE KEEL, et pour un seul signal de
+    // plus. Le prompt legacy reste octet pour octet ce qu'il était — c'est ce
+    // que `dispatcher_prompt_contract_test.ts` vérifie.
     when: ALWAYS,
-    text:
-      `- Ne produis jamais de skill signal hors plan_question.`,
+    text: (audience) =>
+      audience.keelStudent
+        ? `- Ne produis jamais de skill signal hors plan_question et plan_feedback.`
+        : `- Ne produis jamais de skill signal hors plan_question.`,
   },
   {
     when: ALWAYS,
@@ -306,6 +356,43 @@ ${oneShotReminderCanonicalDispatcherPromptLines().join("\n")}`,
     text: `6-bis. skill_signals.plan_question UNIQUEMENT si le payload porte keel_plan_context (sinon la lane n'existe pas: aucun commitment, aucune swap_policy, rien a resoudre — n'emets alors jamais ce signal). Le message porte une question d'EXECUTION a l'interieur du plan publie: substitution d'un aliment, contexte de repas exterieur, repas decale. Priorite sur plan_realignment quand les deux semblent possibles: une question concrete sur UNE ligne du plan n'est pas un decrochage. Reste sous product_help et coaching_recommendation: ces deux-la sont des pulls explicites (comprendre le produit, demander un levier).`,
   },
   {
+    // ══════════════════════════════════════════════════════════════════════
+    // LOT 4A · L'ÉCRIVAIN DE `plan_feedback`
+    //
+    // ⚠️ PLACÉ ICI, COLLÉ À 6-bis, ET C'EST DÉLIBÉRÉ. La panne à éviter est la
+    // CAPTURE: `plan_question` prend une part importante des tours (38 %
+    // mesurés), et un retour de sizing ressemble de loin à une question de
+    // plan. La frontière ne se tient que si elle est LUE au même endroit que
+    // la lane voisine — la règle 3k-b(3) fait déjà exactement ça pour
+    // declare_deviation.
+    //
+    // ⚠️ ET LES DEUX PEUVENT COEXISTER. Ce signal ne ROUTE rien: le renvoi est
+    // ajouté par le runtime dans `finalVisibleText`, par-dessus la réponse de
+    // la lane qui a parlé. Interdire la coexistence ferait perdre le retour
+    // chaque fois que le modèle penche pour plan_question.
+    //
+    // ⚠️ BILINGUE. Les exemples sont donnés dans les DEUX langues, et
+    // l'anti-faux-positif aussi: une garde testée dans une seule langue ne mord
+    // pas dans l'autre (« not » ne couvre pas « doesn't »).
+    // ══════════════════════════════════════════════════════════════════════
+    when: (a: DispatcherPromptAudience) => a.keelStudent === true,
+    text: `6-ter. skill_signals.plan_feedback = l'eleve DONNE UN RETOUR sur ce que son plan lui a servi. C'est un CONSTAT sur du deja-vecu, pas une question: il ne demande aucune conduite, il dit comment c'etait. Ce signal ne remplace jamais l'owner du tour et ne le prend jamais: il s'emet EN PLUS, exactement comme un effet transverse.
+   Exemples FR: "les portions etaient beaucoup trop grosses cette semaine", "j'ai eu faim tout l'apres-midi, les parts du midi sont trop petites", "on a jete la moitie du plat hier soir, c'est trop pour nous".
+   Exemples EN: "the portions were way too big this week", "I was starving all afternoon, lunch servings are too small", "we threw half of it out last night, it's too much food".
+   payload:
+   - detected: true.
+   - kind: OBLIGATOIRE, et c'est LUI qui decide de la suite. Le runtime ne reconnait qu'une liste FERMEE de jetons pour un retour de PART/QUANTITE SERVIE: ${SIZING_FEEDBACK_KINDS.join(", ")}. Emets "${PLAN_FEEDBACK_SIZING_KIND}" des que le retour porte sur la TAILLE de ce qui a ete servi (trop, pas assez, reste jete, faim juste apres). Tout AUTRE retour de plan porte un autre jeton, court et libre: taste (gout, texture), difficulty (trop long, trop complique a preparer), other. Un jeton hors de la liste fermee ne declenche RIEN, et c'est voulu: le silence est la bonne reponse quand on ne sait pas de quoi le tour parlait.
+   - sentiment: positive, negative ou neutral, tel que l'eleve le formule.
+   - detail: SES mots, courts (160 caracteres max). N'invente ni chiffre ni prenom.
+   - target_item_id / target_title: la ligne visee quand il la nomme sans ambiguite; null sinon. Un id se RECOPIE depuis keel_plan_context, il ne se devine jamais (meme regle qu'en 3k-a(3-bis)).
+   REGLES DURES:
+   (1) UN RETOUR N'EST PAS UNE QUESTION, ET C'EST LA FRONTIERE AVEC plan_question. "les parts etaient trop grosses" = un constat => plan_feedback. "je peux prendre une plus petite part ce soir ?" demande une CONDUITE => plan_question. Si le message fait LES DEUX ("c'etait trop copieux hier, je fais quoi ce soir ?"), emets LES DEUX signaux: le retour ne se perd pas parce que la question l'accompagne.
+   (2) NE CONFONDS PAS AVEC UN FAIT RAPPORTE. "j'ai mange du poulet ce midi" est un fait => log_protocol_event, aucun plan_feedback. Un plan_feedback JUGE ce qui a ete servi; un fait dit seulement que ca a eu lieu. Les deux peuvent coexister quand l'eleve rapporte ET juge ("j'ai mange le poulet du midi, la part etait enorme").
+   (3) NE CONFONDS PAS AVEC UNE ENVIE NI UNE PREFERENCE. "j'aimerais plus de poisson la semaine prochaine", "je deteste le brocoli" ne jugent pas une part: aucun plan_feedback (la memoire ordinaire les capte).
+   (4) ANTI-FAUX-POSITIF DE LA FAIM. Une faim qui ne designe PAS ce que le plan a servi ("j'ai une faim de loup ce matin", "I'm hungry, what should I eat ?") n'est pas un retour: c'est une demande de proposition, aucun signal. Il faut que l'eleve parle de CE QU'IL A EU.
+   (5) TU N'ANNONCES RIEN ET TU NE RANGES RIEN. Le runtime seul decide quoi en faire; ne promets a l'eleve aucun enregistrement.`,
+  },
+  {
     when: ALWAYS,
     text: `8. needs_research.value=true si la reponse finale exige des infos fraiches/exterieures/verifiables ou si le user demande de chercher/verifier sur internet. Remplis query avec une requete de recherche autonome et precise (le runtime EXECUTE cette recherche et injecte le resultat au composeur). Une MISE EN DOUTE explicite d'une affirmation factuelle en domaine sante/nutrition/science ("est-ce que c'est vrai que... ?", "t'as une source ?", "je veux du concret, pas des generalites") = value=true (nina-global20 T2): la reponse doit etre groundee, pas parametrique. Une question personnelle ("verifie ou j'en suis") ou de coaching sans besoin d'infos externes → value=false.
 9. memory_plan est toujours present. Il sert a charger le contexte pour repondre maintenant; il ne sert jamais a ecrire en memoire.
@@ -424,6 +511,33 @@ export function buildDispatcherPrompt(input: {
                 slot_hint: "slot_vocabulary key|null",
                 reason: "string",
               },
+            },
+          }
+          : {}),
+        // LOT 4A — LA CASE DU SIGNAL, ET ELLE SUIT `keel_student`, PAS
+        // `keel_plan_context`.
+        //
+        // ⚠️ CE N'EST PAS UNE INCOHÉRENCE AVEC LA LIGNE DU DESSUS. La lane
+        // `plan_question` n'a rien à résoudre sans plan publié; le renvoi du
+        // sizing, lui, est gaté au runtime sur `isKeelStudent` seul
+        // (`sizingRedirectFor`). Faire suivre la case à `keel_plan_context`
+        // fermerait le signal aux élèves dont le plan n'a PAS pu être lu ce
+        // tour — c'est-à-dire précisément aux tours où on ne le saurait pas.
+        //
+        // ⚠️ ET ELLE EST ICI, DANS LA FORME ATTENDUE, PAS SEULEMENT DANS LA
+        // RÈGLE. « Promesse et clé de schéma doivent se toucher »: une règle
+        // qui nomme un champ absent de `expected_shape` a été mesurée à 0 %
+        // dans ce dépôt.
+        ...(keelStudent
+          ? {
+            plan_feedback: {
+              detected: false,
+              kind: `${SIZING_FEEDBACK_KINDS.join("|")}|taste|difficulty|other`,
+              confidence: 0,
+              sentiment: "positive|negative|neutral",
+              detail: "string|null",
+              target_item_id: "keel_plan_context id|null",
+              target_title: "string|null",
             },
           }
           : {}),
@@ -968,6 +1082,169 @@ export function buildDispatcherPrompt(input: {
             "Indisponibilite annoncee A L'AVANCE: une ligne planned_deviations, ce jour sort du denominateur. KEEL uniquement.",
         },
       },
+      // ── LOT 4A — plan_feedback. QUATRE exemples, et pas trois:
+      //    (1) FR positif, (2) EN positif, (3) le NON-sizing qui est quand
+      //    même un retour, (4) le NÉGATIF qui n'est pas un retour du tout.
+      //
+      // ⚠️ LES DEUX LANGUES, PARCE QU'UN EXEMPLE ENSEIGNE AUTANT QU'UNE RÈGLE
+      // et qu'une garde apprise dans une seule langue ne mord pas dans
+      // l'autre. Le gabarit de renvoi est bilingue; la détection doit l'être.
+      //
+      // ⚠️ (4) EST LA CONTRE-ÉPREUVE, ET ELLE VIT DANS LE PROMPT. Une garde
+      // sans cas qui échoue ne prouve rien — et ici le cas qui échoue est
+      // aussi le faux positif le plus vraisemblable (la faim).
+      ...(keelStudent
+        ? [
+          {
+            user_message:
+              "les portions du midi etaient beaucoup trop grosses cette semaine, j'ai jete la moitie",
+            expected: {
+              direct_effects: [],
+              skill_signals: {
+                plan_feedback: {
+                  detected: true,
+                  kind: PLAN_FEEDBACK_SIZING_KIND,
+                  confidence: 0.9,
+                  sentiment: "negative",
+                  detail: "portions du midi trop grosses, moitie jetee",
+                  target_item_id: null,
+                  target_title: null,
+                },
+              },
+              note:
+                "CONSTAT sur une PART deja servie: plan_feedback, kind de sizing. Aucune conduite demandee => surtout PAS plan_question.",
+            },
+          },
+          {
+            user_message:
+              "honestly the dinner servings are way too small, I'm starving an hour later",
+            expected: {
+              direct_effects: [],
+              skill_signals: {
+                plan_feedback: {
+                  detected: true,
+                  kind: PLAN_FEEDBACK_SIZING_KIND,
+                  confidence: 0.88,
+                  sentiment: "negative",
+                  detail: "dinner servings too small, hungry an hour later",
+                  target_item_id: null,
+                  target_title: null,
+                },
+              },
+              note:
+                "MEME REGLE EN ANGLAIS. La faim est ici rattachee a CE QUI A ETE SERVI, ce qui en fait un retour de part et pas une demande.",
+            },
+          },
+          {
+            user_message: "le plat d'hier soir etait vraiment bon",
+            expected: {
+              direct_effects: [],
+              skill_signals: {
+                plan_feedback: {
+                  detected: true,
+                  kind: "taste",
+                  confidence: 0.8,
+                  sentiment: "positive",
+                  detail: "plat d'hier soir tres bon",
+                  target_item_id: null,
+                  target_title: null,
+                },
+              },
+              note:
+                "RETOUR DE PLAN, mais PAS de part: kind hors liste de sizing. Le signal existe, le renvoi ne part pas — c'est exactement la frontiere.",
+            },
+          },
+          {
+            user_message: "j'ai une faim de loup, je me fais quoi ce soir ?",
+            expected: {
+              direct_effects: [],
+              skill_signals: {},
+              note:
+                "AUCUN SIGNAL. L'eleve ne juge rien de ce qui lui a ete servi: il demande une proposition. C'est le faux positif le plus cher des deux lanes (voir aussi plan_question).",
+            },
+          },
+          // ⚠️ LE CAS MESURE INSTABLE, ET C'EST POUR LUI QUE CET EXEMPLE EXISTE.
+          // Sonde du 2026-08-19, modele reel, 4 passes sur la phrase mixte:
+          // 1 passe a rendu LES DEUX signaux, 1 seulement plan_question,
+          // 1 seulement plan_feedback, 1 aucun des deux. La regle 6-ter(1) le
+          // dit deja en toutes lettres — un exemple enseigne ce qu'une regle
+          // seule n'obtient pas, et c'est le prompt lui-meme qui le constate
+          // ailleurs (« un exemple enseigne un signal aussi surement qu'une
+          // regle »). Le retour de part est la moitie qui se perd, et elle se
+          // perd EN SILENCE: la question, elle, recoit toujours une reponse.
+          {
+            user_message:
+              "la part de riz d'hier midi etait vraiment trop copieuse, du coup ce soir je peux remplacer le riz par des pates ?",
+            expected: {
+              direct_effects: [],
+              skill_signals: {
+                plan_feedback: {
+                  detected: true,
+                  kind: PLAN_FEEDBACK_SIZING_KIND,
+                  confidence: 0.85,
+                  sentiment: "negative",
+                  detail: "part de riz d'hier midi trop copieuse",
+                  target_item_id: null,
+                  target_title: null,
+                },
+                plan_question: {
+                  detected: true,
+                  confidence_band: "high",
+                  reason: "named_swap_request",
+                  context: {
+                    kind: "food_swap",
+                    requested_food_group: "refined_grains",
+                    prescribed_food_group: "whole_grains",
+                    slot_hint: "dinner",
+                    reason: "L'eleve nomme un remplacement precis.",
+                  },
+                },
+              },
+              note:
+                "LES DEUX, TOUJOURS. Un constat sur une part passee ET une question de conduite pour ce soir sont deux intentions distinctes dans un seul message. N'en aplatis aucune dans l'autre: le runtime sert la question ET renvoie le retour vers le bilan.",
+            },
+          },
+          // ⚠️ LE MEME EXEMPLE EN ANGLAIS, ET IL N'EST PAS REDONDANT — c'est
+          // la cicatrice « une garde testee dans une seule langue ne mord pas
+          // dans l'autre », mesuree ICI, sur CE cas. Apres l'ajout du seul
+          // exemple francais: FR 3/3 rendaient LES DEUX signaux, EN 1/3
+          // seulement — les 2 autres passes anglaises ne gardaient que la
+          // question et perdaient le retour de part. Le modele apprend la
+          // co-emission par la LANGUE de l'exemple, pas seulement par sa forme.
+          {
+            user_message:
+              "yesterday's rice portion was way too big. So tonight can I swap the rice for pasta?",
+            expected: {
+              direct_effects: [],
+              skill_signals: {
+                plan_feedback: {
+                  detected: true,
+                  kind: PLAN_FEEDBACK_SIZING_KIND,
+                  confidence: 0.85,
+                  sentiment: "negative",
+                  detail: "yesterday's rice portion too big",
+                  target_item_id: null,
+                  target_title: null,
+                },
+                plan_question: {
+                  detected: true,
+                  confidence_band: "high",
+                  reason: "named_swap_request",
+                  context: {
+                    kind: "food_swap",
+                    requested_food_group: "refined_grains",
+                    prescribed_food_group: "whole_grains",
+                    slot_hint: "dinner",
+                    reason: "The student names a precise replacement.",
+                  },
+                },
+              },
+              note:
+                "SAME RULE IN ENGLISH. Deux intentions, deux signaux — la langue du message ne change rien.",
+            },
+          },
+        ]
+        : []),
     ],
   });
 }

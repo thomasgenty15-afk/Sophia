@@ -210,6 +210,33 @@ const SLOT_WORDS: Record<EatingOccasion, string> = {
  *
  * Rend `""` quand il n'y a rien à dire — et c'est le cas majoritaire.
  */
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * LES MOMENTS OÙ CETTE BOUCHE MANGE SON PROPRE REPAS.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ── POURQUOI CE PRÉDICAT SORT DE `habitFragment` (2026-08-19) ────────────
+ * La phrase « — has their own at lunch: une salade froide » et la DÉCISION
+ * « cette bouche porte un plat à elle » lisaient la même chose à deux endroits
+ * différents — sauf que la seconde ne la lisait pas du tout: seul un écart de
+ * RÉGIME rendait porteur de plat. Le modèle écrivait donc la salade (il avait
+ * la phrase), et le plafond de plats la coupait (il n'avait pas la place).
+ *
+ * Mesuré sur le run de 19h03: SIX salades écrites, SIX coupées, zéro à
+ * l'écran. « Elle est où la salade froide de thon ? »
+ *
+ * ⛔ UN SEUL PRÉDICAT POUR LES DEUX. La phrase du brief et le budget qui lui
+ * fait de la place ne peuvent pas être en désaccord — c'est très exactement ce
+ * désaccord-là qui a produit le défaut.
+ */
+export function ownMealSlots(
+  habits: readonly MemberHabit[],
+): EatingOccasion[] {
+  return habits
+    .filter((h) => h.kind === "own_usual" && h.usual.trim().length > 0)
+    .map((h) => h.slot);
+}
+
 export function habitFragment(habits: readonly MemberHabit[]): string {
   const own = habits.filter((h) => h.kind === "own_usual" && h.usual.trim().length > 0);
   if (own.length === 0) return "";
@@ -272,6 +299,20 @@ export const HABIT_CONSEQUENCE = [
   'When a person "has their own" at a moment, do NOT serve them the table\'s',
   "dish then. Cook for the others as usual, and count their own thing in the",
   "shopping list.",
+  // ── ET ÉCRIS-LE COMME UN PLAT, AVEC SON PROPRIÉTAIRE (2026-08-19) ────────
+  // ⛔ CES DEUX LIGNES FERMENT UNE CONTRADICTION MESURÉE. Le bloc disait
+  // « ne leur sers pas le plat de la table » et « compte leur truc dans les
+  // courses » — donc: pas de plat pour elles. Le modèle en écrivait quand même
+  // (six salades sur le run de 19h03), sans `for_member_id`, et le plafond les
+  // coupait toutes: la personne n'avait AUCUN déjeuner à l'écran.
+  //
+  // Le plat est la bonne sortie: c'est la seule chose qui montre à quelqu'un ce
+  // qu'il mange ce midi-là. Ce qui manquait, c'est de le DEMANDER, et de dire
+  // avec quelle clé — la moitié « schéma » vit dans `dishOwnerSchemaBlock`, et
+  // elle ne partait que pour un écart de régime.
+  "Write that meal as a dish of its own, on that day and that moment, carrying",
+  '"for_member_id" set to that person. It is their meal: without it they read a',
+  "day with nothing to eat at that hour.",
 ] as const;
 
 /**

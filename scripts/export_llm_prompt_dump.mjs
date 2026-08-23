@@ -45,7 +45,10 @@ export_llm_prompt_dump.mjs — écrit prompt-system.txt / prompt-user.txt / outp
   --request-id <id>   identifiant de requête (colonne request_id)
   --user-id <uuid>    dernier run de cet utilisateur
   --source <lane>     filtre / choisit la lane (generate-meal-v1,
-                      generate-week-plan-v1, generate-household-meal-v1, ...)
+                      generate-household-meal-v1, ...)
+                      ⚠️ generate-week-plan-v1 a été RETIRÉE le 2026-08-19 : la
+                      passer ici ne rend rien et, sans correspondance, --source
+                      vide SILENCIEUSEMENT une autre lane avec un code 0.
   --out <dossier>     dossier de sortie (créé si absent)
   --list              n'écrit rien : liste les derniers runs tracés
   --limit <n>         taille de la liste (défaut 20)
@@ -377,6 +380,47 @@ async function main() {
     );
   }
 
+  // ── LE CÔTÉ QUI MANQUAIT, ET CE QU'IL LAISSAIT PASSER ──────────────────
+  // Les deux contrôles ci-dessus comparent la COLONNE au compteur indépendant
+  // de `gemini.ts`. Aucun ne regardait les octets réellement ÉCRITS dans les
+  // fichiers. Mesuré le 2026-08-18: une amputation en aval de la capture
+  // ressortait en « Longueurs confirmées », code de sortie 0, avec deux
+  // fichiers courts — c'est-à-dire exactement le mensonge que ce script
+  // existe pour rendre impossible.
+  //
+  // La règle tient en deux cas. Hors troncature, les octets écrits DOIVENT
+  // égaler `*_chars`. Sous troncature ils doivent être STRICTEMENT plus
+  // courts: un texte marqué coupé mais de longueur pleine est tout aussi
+  // suspect qu'un texte court qui se prétend entier.
+  for (
+    const [label, text, chars, truncated] of [
+      [
+        "system_prompt",
+        promptRow.system_prompt,
+        promptRow.system_prompt_chars,
+        promptRow.system_prompt_truncated,
+      ],
+      [
+        "user_message",
+        promptRow.user_message,
+        promptRow.user_message_chars,
+        promptRow.user_message_truncated,
+      ],
+    ]
+  ) {
+    if (chars == null) continue;
+    const written = String(text ?? "").length;
+    const broken = truncated
+      ? written >= Number(chars)
+      : written !== Number(chars);
+    if (broken) {
+      mismatch.push(
+        `${label}: octets écrits=${written} vs annoncés=${chars}` +
+          (truncated ? " (ligne marquée COUPÉE)" : ""),
+      );
+    }
+  }
+
   console.log(`request_id : ${requestId}   (${how})`);
   console.log(`lane       : ${promptRow.source ?? "-"}   modèle: ${resultRow?.model ?? promptRow.model}`);
   console.log(
@@ -397,7 +441,10 @@ async function main() {
     console.log(`\n⚠️ ÉCART avec le compteur indépendant — la capture ment:\n  - ${mismatch.join("\n  - ")}`);
     process.exitCode = 2;
   } else {
-    console.log("\nLongueurs confirmées par le compteur indépendant de gemini.ts.");
+    console.log(
+    "\nLongueurs confirmées des DEUX côtés: compteur indépendant de gemini.ts,\n" +
+      "et octets réellement écrits dans les fichiers.",
+  );
   }
 }
 

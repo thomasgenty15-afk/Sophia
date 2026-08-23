@@ -1,0 +1,931 @@
+{
+  "request_id": "b2000002-0000-4000-8000-000000000002",
+  "resolved_by": "--request-id",
+  "user_id": "1e000000-0000-4000-8000-000000000012",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-19T00:02:42.622Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "16d786a8-cc30-4d54-8dfc-ac65d61cc427",
+      "status": "attempt_start",
+      "created_at": "2026-08-19T00:01:14.057646+00:00",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 16134,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 16134,
+    "user_message_chars": 15190,
+    "user_message_truncated": false,
+    "user_message_written_chars": 15190,
+    "independent_counters": {
+      "system_prompt_chars": 16134,
+      "prompt_chars": 15190
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "29183356-2e51-4199-b5db-3dbb45e2bb5d",
+    "created_at": "2026-08-19T00:02:42.035411+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "gemini",
+    "model": "gemini-3-flash-preview",
+    "http_status": 200,
+    "attempt": 1,
+    "chain_index": 1,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Golden Honey Porridge\",\n      \"title\": \"Creamy oats with honey and milk\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"rolled oats\",\n          \"quantity\": \"40 g\",\n          \"amount\": 40,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"whole milk\",\n          \"quantity\": \"200 ml\",\n          \"amount\": 200,\n          \"unit\": \"ml\",\n          \"state\": null\n        },\n        {\n          \"term\": \"honey\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Simmer the oats and milk in a small pan until creamy, then stir in the honey.\",\n      \"why\": \"A warm, manageable breakfast for the household that fits the stovetop-only requirement.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Toasted Seed Butter Sourdough\",\n      \"title\": \"Sourdough toast with sunflower seed butter\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [\n        {\n          \"term\": \"sourdough bread\",\n          \"quantity\": \"2 slices\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": null\n        },\n        {\n          \"term\": \"sunflower seed butter\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Toast the sourdough in a dry pan or toaster and spread generously with the sunflower seed butter.\",\n      \"why\": \"I have substituted sunflower seed butter for the requested pistachio butter because pistachio is a medical allergy for this household.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Cool Skyr and Seed Bowl\",\n      \"title\": \"Skyr with sunflower seeds and honey\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [\n        {\n          \"term\": \"skyr\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": null\n        },\n        {\n          \"term\": \"sunflower seeds\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"honey\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Spoon the skyr into a bowl, top with the seeds and a drizzle of honey.\",\n      \"why\": \"A high-protein, lower-starch breakfast that avoids tree nuts and fennel entirely.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 2\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Zesty Chicken and Pea Rice\",\n      \"title\": \"Poached chicken with lemon and pea rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon juice\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Reheat the chicken and rice in a pan with a splash of water and the lemon juice until steaming.\",\n      \"why\": \"A loud vegetable meal using bright peas, providing the fuel needed for a large lunch.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_marceau\"\n        },\n        {\n          \"preparation_id\": \"prep_rice_peas\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_marceau\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Hearty Zesty Chicken Rice\",\n      \"title\": \"Large portion of lemon chicken and pea rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon juice\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Reheat the large chicken and rice portion in a pan with the lemon juice.\",\n      \"why\": \"A larger share of both protein and starch to support Bertille's muscle gain goal.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_bertille\"\n        },\n        {\n          \"preparation_id\": \"prep_rice_peas\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_bertille\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Green-Heavy Chicken Bowl\",\n      \"title\": \"Lemon chicken with extra peas and light rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon juice\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Reheat the chicken and pea-heavy rice in a pan with the lemon juice.\",\n      \"why\": \"Prioritises a full protein share and generous vegetables with less starch for Ysoline.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_ysoline\"\n        },\n        {\n          \"preparation_id\": \"prep_rice_peas\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_ysoline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Pan-Seared Cod and Crushed Roots\",\n      \"title\": \"Seared cod with crushed potatoes and green beans\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"green beans\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"butter\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Steam the beans for 4 minutes. Reheat the potatoes and fish in a pan with butter until warm.\",\n      \"why\": \"A medium dinner that uses the stovetop to avoid the broken oven door.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_fish\",\n          \"servings\": 1,\n          \"box_id\": \"box_fish_marceau\"\n        },\n        {\n          \"preparation_id\": \"prep_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_potatoes_marceau\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Buttery Cod and Potato Mash\",\n      \"title\": \"Large cod portion with extra crushed potatoes\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [\n        {\n          \"term\": \"green beans\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"butter\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Steam the beans. Reheat the large portions of fish and potatoes in a pan with butter.\",\n      \"why\": \"Ensures Bertille gets a larger starch and protein share for muscle gain while keeping the meal warm.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_fish\",\n          \"servings\": 1,\n          \"box_id\": \"box_fish_bertille\"\n        },\n        {\n          \"preparation_id\": \"prep_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_potatoes_bertille\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Seared Cod with Garden Beans\",\n      \"title\": \"Cod with generous green beans and light potatoes\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [\n        {\n          \"term\": \"green beans\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"butter\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Steam the large portion of beans. Reheat the fish and small potato portion in a pan with butter.\",\n      \"why\": \"Honours Ysoline's preference for generous vegetables and smaller starch while avoiding fennel.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_fish\",\n          \"servings\": 1,\n          \"box_id\": \"box_fish_ysoline\"\n        },\n        {\n          \"preparation_id\": \"prep_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_potatoes_ysoline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"name_the_plate_out_loud\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_chicken\",\n      \"title\": \"Poached lemon chicken breasts\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"chicken breast\",\n          \"quantity\": \"500 g\",\n          \"amount\": 500,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Slice the chicken. Heat oil in a pan, sear the chicken briefly, then add a splash of water, cover, and steam-poach for 10 minutes until cooked through.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 15,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_chicken_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_chicken_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 80\n        },\n        {\n          \"id\": \"box_chicken_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 120\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_rice_peas\",\n      \"title\": \"Savoury rice with garden peas\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"white rice\",\n          \"quantity\": \"225 g\",\n          \"amount\": 225,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"frozen peas\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Boil the rice in salted water for 10 minutes. Add the peas for the final 2 minutes, then drain.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 15,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_rice_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_rice_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_rice_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 250\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_potatoes\",\n      \"title\": \"Boiled and crushed potatoes\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"potatoes\",\n          \"quantity\": \"600 g\",\n          \"amount\": 600,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Chop potatoes into chunks and boil in salted water for 15-20 minutes until tender. Drain and lightly crush with a fork.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_potatoes_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_potatoes_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 100\n        },\n        {\n          \"id\": \"box_potatoes_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 150\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_fish\",\n      \"title\": \"Pan-seared cod fillets\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"cod fillets\",\n          \"quantity\": \"450 g\",\n          \"amount\": 450,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Season the fish. Heat oil in a pan and sear the cod for 3-4 minutes per side until opaque and flaky.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 10,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_fish_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 160\n        },\n        {\n          \"id\": \"box_fish_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 90\n        },\n        {\n          \"id\": \"box_fish_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 140\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_chicken\",\n        \"prep_rice_peas\",\n        \"prep_potatoes\",\n        \"prep_fish\"\n      ],\n      \"total_minutes\": 45,\n      \"run_through\": \"Start the potatoes boiling. While they cook, start the rice. Pan-sear the chicken and the fish in separate pans (or sequentially). Drain the rice and potatoes, crush the potatoes, and box everything into the named containers immediately.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"chicken breast\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"cod fillets\",\n      \"quantity\": \"450 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"white rice\",\n      \"quantity\": \"225 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"potatoes\",\n      \"quantity\": \"600 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"frozen peas\",\n      \"quantity\": \"200 g\",\n      \"aisle\": \"frozen\"\n    },\n    {\n      \"term\": \"green beans\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"rolled oats\",\n      \"quantity\": \"40 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"whole milk\",\n      \"quantity\": \"200 ml\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"skyr\",\n      \"quantity\": \"150 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"sourdough bread\",\n      \"quantity\": \"1 loaf\",\n      \"aisle\": \"other\"\n    },\n    {\n      \"term\": \"sunflower seed butter\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"sunflower seeds\",\n      \"quantity\": \"100 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"honey\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"lemon\",\n      \"quantity\": \"2 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"butter\",\n      \"quantity\": \"250 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"1 bottle\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"portion_note\": \"A larger portion of protein and starch for every meal to support muscle gain.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"note\": \"Full large share\"\n        },\n        {\n          \"preparation_id\": \"prep_rice_peas\",\n          \"note\": \"Generous starch scoop\"\n        },\n        {\n          \"preparation_id\": \"prep_potatoes\",\n          \"note\": \"Large crushed potato portion\"\n        },\n        {\n          \"preparation_id\": \"prep_fish\",\n          \"note\": \"Large cod fillet share\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"2a937736-693a-45f1-97a6-110f535ae004\",\n      \"portion_note\": \"A standard child-sized share of the shared preparations.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"note\": \"Small portion\"\n        },\n        {\n          \"preparation_id\": \"prep_rice_peas\",\n          \"note\": \"Small rice scoop\"\n        },\n        {\n          \"preparation_id\": \"prep_potatoes\",\n          \"note\": \"Half portion of potatoes\"\n        },\n        {\n          \"preparation_id\": \"prep_fish\",\n          \"note\": \"Small fish fillet share\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"portion_note\": \"Generous vegetables, full protein share, and a smaller starch portion.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"note\": \"Full protein share\"\n        },\n        {\n          \"preparation_id\": \"prep_rice_peas\",\n          \"note\": \"Light rice scoop, heavy on peas\"\n        },\n        {\n          \"preparation_id\": \"prep_potatoes\",\n          \"note\": \"Small potato portion\"\n        },\n        {\n          \"preparation_id\": \"prep_fish\",\n          \"note\": \"Full fish share\"\n        }\n      ]\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Golden Honey Porridge",
+          "title": "Creamy oats with honey and milk",
+          "slot": "breakfast",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "rolled oats",
+              "quantity": "40 g",
+              "amount": 40,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "whole milk",
+              "quantity": "200 ml",
+              "amount": 200,
+              "unit": "ml",
+              "state": null
+            },
+            {
+              "term": "honey",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": null
+            }
+          ],
+          "method": "Simmer the oats and milk in a small pan until creamy, then stir in the honey.",
+          "why": "A warm, manageable breakfast for the household that fits the stovetop-only requirement.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Toasted Seed Butter Sourdough",
+          "title": "Sourdough toast with sunflower seed butter",
+          "slot": "breakfast",
+          "day": "wed",
+          "for_member_id": "8917f344-51d8-4177-8c54-ff4460ef9122",
+          "ingredients": [
+            {
+              "term": "sourdough bread",
+              "quantity": "2 slices",
+              "amount": 2,
+              "unit": "unit",
+              "state": null
+            },
+            {
+              "term": "sunflower seed butter",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Toast the sourdough in a dry pan or toaster and spread generously with the sunflower seed butter.",
+          "why": "I have substituted sunflower seed butter for the requested pistachio butter because pistachio is a medical allergy for this household.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Cool Skyr and Seed Bowl",
+          "title": "Skyr with sunflower seeds and honey",
+          "slot": "breakfast",
+          "day": "wed",
+          "for_member_id": "db0dcc2f-a0f4-46d7-90ab-980b8be0189c",
+          "ingredients": [
+            {
+              "term": "skyr",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": null
+            },
+            {
+              "term": "sunflower seeds",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "honey",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": null
+            }
+          ],
+          "method": "Spoon the skyr into a bowl, top with the seeds and a drizzle of honey.",
+          "why": "A high-protein, lower-starch breakfast that avoids tree nuts and fennel entirely.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 2
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Zesty Chicken and Pea Rice",
+          "title": "Poached chicken with lemon and pea rice",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "lemon juice",
+              "quantity": "half a lemon",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": null
+            }
+          ],
+          "method": "Reheat the chicken and rice in a pan with a splash of water and the lemon juice until steaming.",
+          "why": "A loud vegetable meal using bright peas, providing the fuel needed for a large lunch.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken",
+              "servings": 1,
+              "box_id": "box_chicken_marceau"
+            },
+            {
+              "preparation_id": "prep_rice_peas",
+              "servings": 1,
+              "box_id": "box_rice_marceau"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Hearty Zesty Chicken Rice",
+          "title": "Large portion of lemon chicken and pea rice",
+          "slot": "lunch",
+          "day": "wed",
+          "for_member_id": "8917f344-51d8-4177-8c54-ff4460ef9122",
+          "ingredients": [
+            {
+              "term": "lemon juice",
+              "quantity": "half a lemon",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": null
+            }
+          ],
+          "method": "Reheat the large chicken and rice portion in a pan with the lemon juice.",
+          "why": "A larger share of both protein and starch to support Bertille's muscle gain goal.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken",
+              "servings": 1,
+              "box_id": "box_chicken_bertille"
+            },
+            {
+              "preparation_id": "prep_rice_peas",
+              "servings": 1,
+              "box_id": "box_rice_bertille"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Green-Heavy Chicken Bowl",
+          "title": "Lemon chicken with extra peas and light rice",
+          "slot": "lunch",
+          "day": "wed",
+          "for_member_id": "db0dcc2f-a0f4-46d7-90ab-980b8be0189c",
+          "ingredients": [
+            {
+              "term": "lemon juice",
+              "quantity": "half a lemon",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": null
+            }
+          ],
+          "method": "Reheat the chicken and pea-heavy rice in a pan with the lemon juice.",
+          "why": "Prioritises a full protein share and generous vegetables with less starch for Ysoline.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken",
+              "servings": 1,
+              "box_id": "box_chicken_ysoline"
+            },
+            {
+              "preparation_id": "prep_rice_peas",
+              "servings": 1,
+              "box_id": "box_rice_ysoline"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Pan-Seared Cod and Crushed Roots",
+          "title": "Seared cod with crushed potatoes and green beans",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "green beans",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "butter",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Steam the beans for 4 minutes. Reheat the potatoes and fish in a pan with butter until warm.",
+          "why": "A medium dinner that uses the stovetop to avoid the broken oven door.",
+          "uses": [
+            {
+              "preparation_id": "prep_fish",
+              "servings": 1,
+              "box_id": "box_fish_marceau"
+            },
+            {
+              "preparation_id": "prep_potatoes",
+              "servings": 1,
+              "box_id": "box_potatoes_marceau"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Buttery Cod and Potato Mash",
+          "title": "Large cod portion with extra crushed potatoes",
+          "slot": "dinner",
+          "day": "wed",
+          "for_member_id": "8917f344-51d8-4177-8c54-ff4460ef9122",
+          "ingredients": [
+            {
+              "term": "green beans",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "butter",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Steam the beans. Reheat the large portions of fish and potatoes in a pan with butter.",
+          "why": "Ensures Bertille gets a larger starch and protein share for muscle gain while keeping the meal warm.",
+          "uses": [
+            {
+              "preparation_id": "prep_fish",
+              "servings": 1,
+              "box_id": "box_fish_bertille"
+            },
+            {
+              "preparation_id": "prep_potatoes",
+              "servings": 1,
+              "box_id": "box_potatoes_bertille"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Seared Cod with Garden Beans",
+          "title": "Cod with generous green beans and light potatoes",
+          "slot": "dinner",
+          "day": "wed",
+          "for_member_id": "db0dcc2f-a0f4-46d7-90ab-980b8be0189c",
+          "ingredients": [
+            {
+              "term": "green beans",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "butter",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Steam the large portion of beans. Reheat the fish and small potato portion in a pan with butter.",
+          "why": "Honours Ysoline's preference for generous vegetables and smaller starch while avoiding fennel.",
+          "uses": [
+            {
+              "preparation_id": "prep_fish",
+              "servings": 1,
+              "box_id": "box_fish_ysoline"
+            },
+            {
+              "preparation_id": "prep_potatoes",
+              "servings": 1,
+              "box_id": "box_potatoes_ysoline"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "name_the_plate_out_loud"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_chicken",
+          "title": "Poached lemon chicken breasts",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "chicken breast",
+              "quantity": "500 g",
+              "amount": 500,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Slice the chicken. Heat oil in a pan, sear the chicken briefly, then add a splash of water, cover, and steam-poach for 10 minutes until cooked through.",
+          "active_minutes": 10,
+          "total_minutes": 15,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_chicken_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_chicken_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 80
+            },
+            {
+              "id": "box_chicken_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 120
+            }
+          ]
+        },
+        {
+          "id": "prep_rice_peas",
+          "title": "Savoury rice with garden peas",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "white rice",
+              "quantity": "225 g",
+              "amount": 225,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "frozen peas",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Boil the rice in salted water for 10 minutes. Add the peas for the final 2 minutes, then drain.",
+          "active_minutes": 5,
+          "total_minutes": 15,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_rice_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 300
+            },
+            {
+              "id": "box_rice_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_rice_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 250
+            }
+          ]
+        },
+        {
+          "id": "prep_potatoes",
+          "title": "Boiled and crushed potatoes",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "potatoes",
+              "quantity": "600 g",
+              "amount": 600,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Chop potatoes into chunks and boil in salted water for 15-20 minutes until tender. Drain and lightly crush with a fork.",
+          "active_minutes": 5,
+          "total_minutes": 25,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_potatoes_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 300
+            },
+            {
+              "id": "box_potatoes_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 100
+            },
+            {
+              "id": "box_potatoes_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 150
+            }
+          ]
+        },
+        {
+          "id": "prep_fish",
+          "title": "Pan-seared cod fillets",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "cod fillets",
+              "quantity": "450 g",
+              "amount": 450,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Season the fish. Heat oil in a pan and sear the cod for 3-4 minutes per side until opaque and flaky.",
+          "active_minutes": 10,
+          "total_minutes": 10,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_fish_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 160
+            },
+            {
+              "id": "box_fish_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 90
+            },
+            {
+              "id": "box_fish_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 140
+            }
+          ]
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_chicken",
+            "prep_rice_peas",
+            "prep_potatoes",
+            "prep_fish"
+          ],
+          "total_minutes": 45,
+          "run_through": "Start the potatoes boiling. While they cook, start the rice. Pan-sear the chicken and the fish in separate pans (or sequentially). Drain the rice and potatoes, crush the potatoes, and box everything into the named containers immediately."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "chicken breast",
+          "quantity": "500 g",
+          "aisle": "protein"
+        },
+        {
+          "term": "cod fillets",
+          "quantity": "450 g",
+          "aisle": "protein"
+        },
+        {
+          "term": "white rice",
+          "quantity": "225 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "potatoes",
+          "quantity": "600 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "frozen peas",
+          "quantity": "200 g",
+          "aisle": "frozen"
+        },
+        {
+          "term": "green beans",
+          "quantity": "400 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "rolled oats",
+          "quantity": "40 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "whole milk",
+          "quantity": "200 ml",
+          "aisle": "dairy"
+        },
+        {
+          "term": "skyr",
+          "quantity": "150 g",
+          "aisle": "dairy"
+        },
+        {
+          "term": "sourdough bread",
+          "quantity": "1 loaf",
+          "aisle": "other"
+        },
+        {
+          "term": "sunflower seed butter",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "sunflower seeds",
+          "quantity": "100 g",
+          "aisle": "pantry"
+        },
+        {
+          "term": "honey",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "lemon",
+          "quantity": "2 units",
+          "aisle": "produce"
+        },
+        {
+          "term": "butter",
+          "quantity": "250 g",
+          "aisle": "dairy"
+        },
+        {
+          "term": "olive oil",
+          "quantity": "1 bottle",
+          "aisle": "pantry"
+        }
+      ],
+      "member_portions": [
+        {
+          "member_id": "8917f344-51d8-4177-8c54-ff4460ef9122",
+          "portion_note": "A larger portion of protein and starch for every meal to support muscle gain.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken",
+              "note": "Full large share"
+            },
+            {
+              "preparation_id": "prep_rice_peas",
+              "note": "Generous starch scoop"
+            },
+            {
+              "preparation_id": "prep_potatoes",
+              "note": "Large crushed potato portion"
+            },
+            {
+              "preparation_id": "prep_fish",
+              "note": "Large cod fillet share"
+            }
+          ]
+        },
+        {
+          "member_id": "2a937736-693a-45f1-97a6-110f535ae004",
+          "portion_note": "A standard child-sized share of the shared preparations.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken",
+              "note": "Small portion"
+            },
+            {
+              "preparation_id": "prep_rice_peas",
+              "note": "Small rice scoop"
+            },
+            {
+              "preparation_id": "prep_potatoes",
+              "note": "Half portion of potatoes"
+            },
+            {
+              "preparation_id": "prep_fish",
+              "note": "Small fish fillet share"
+            }
+          ]
+        },
+        {
+          "member_id": "db0dcc2f-a0f4-46d7-90ab-980b8be0189c",
+          "portion_note": "Generous vegetables, full protein share, and a smaller starch portion.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken",
+              "note": "Full protein share"
+            },
+            {
+              "preparation_id": "prep_rice_peas",
+              "note": "Light rice scoop, heavy on peas"
+            },
+            {
+              "preparation_id": "prep_potatoes",
+              "note": "Small potato portion"
+            },
+            {
+              "preparation_id": "prep_fish",
+              "note": "Full fish share"
+            }
+          ]
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "candidates": [
+        {
+          "index": 0,
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Golden Honey Porridge\",\n      \"title\": \"Creamy oats with honey and milk\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"rolled oats\",\n          \"quantity\": \"40 g\",\n          \"amount\": 40,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"whole milk\",\n          \"quantity\": \"200 ml\",\n          \"amount\": 200,\n          \"unit\": \"ml\",\n          \"state\": null\n        },\n        {\n          \"term\": \"honey\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Simmer the oats and milk in a small pan until creamy, then stir in the honey.\",\n      \"why\": \"A warm, manageable breakfast for the household that fits the stovetop-only requirement.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Toasted Seed Butter Sourdough\",\n      \"title\": \"Sourdough toast with sunflower seed butter\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [\n        {\n          \"term\": \"sourdough bread\",\n          \"quantity\": \"2 slices\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": null\n        },\n        {\n          \"term\": \"sunflower seed butter\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Toast the sourdough in a dry pan or toaster and spread generously with the sunflower seed butter.\",\n      \"why\": \"I have substituted sunflower seed butter for the requested pistachio butter because pistachio is a medical allergy for this household.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Cool Skyr and Seed Bowl\",\n      \"title\": \"Skyr with sunflower seeds and honey\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [\n        {\n          \"term\": \"skyr\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": null\n        },\n        {\n          \"term\": \"sunflower seeds\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"honey\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Spoon the skyr into a bowl, top with the seeds and a drizzle of honey.\",\n      \"why\": \"A high-protein, lower-starch breakfast that avoids tree nuts and fennel entirely.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 2\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Zesty Chicken and Pea Rice\",\n      \"title\": \"Poached chicken with lemon and pea rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon juice\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Reheat the chicken and rice in a pan with a splash of water and the lemon juice until steaming.\",\n      \"why\": \"A loud vegetable meal using bright peas, providing the fuel needed for a large lunch.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_marceau\"\n        },\n        {\n          \"preparation_id\": \"prep_rice_peas\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_marceau\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Hearty Zesty Chicken Rice\",\n      \"title\": \"Large portion of lemon chicken and pea rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon juice\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Reheat the large chicken and rice portion in a pan with the lemon juice.\",\n      \"why\": \"A larger share of both protein and starch to support Bertille's muscle gain goal.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_bertille\"\n        },\n        {\n          \"preparation_id\": \"prep_rice_peas\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_bertille\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Green-Heavy Chicken Bowl\",\n      \"title\": \"Lemon chicken with extra peas and light rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon juice\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Reheat the chicken and pea-heavy rice in a pan with the lemon juice.\",\n      \"why\": \"Prioritises a full protein share and generous vegetables with less starch for Ysoline.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_ysoline\"\n        },\n        {\n          \"preparation_id\": \"prep_rice_peas\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_ysoline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Pan-Seared Cod and Crushed Roots\",\n      \"title\": \"Seared cod with crushed potatoes and green beans\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"green beans\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"butter\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Steam the beans for 4 minutes. Reheat the potatoes and fish in a pan with butter until warm.\",\n      \"why\": \"A medium dinner that uses the stovetop to avoid the broken oven door.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_fish\",\n          \"servings\": 1,\n          \"box_id\": \"box_fish_marceau\"\n        },\n        {\n          \"preparation_id\": \"prep_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_potatoes_marceau\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Buttery Cod and Potato Mash\",\n      \"title\": \"Large cod portion with extra crushed potatoes\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [\n        {\n          \"term\": \"green beans\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"butter\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Steam the beans. Reheat the large portions of fish and potatoes in a pan with butter.\",\n      \"why\": \"Ensures Bertille gets a larger starch and protein share for muscle gain while keeping the meal warm.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_fish\",\n          \"servings\": 1,\n          \"box_id\": \"box_fish_bertille\"\n        },\n        {\n          \"preparation_id\": \"prep_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_potatoes_bertille\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Seared Cod with Garden Beans\",\n      \"title\": \"Cod with generous green beans and light potatoes\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [\n        {\n          \"term\": \"green beans\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"butter\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Steam the large portion of beans. Reheat the fish and small potato portion in a pan with butter.\",\n      \"why\": \"Honours Ysoline's preference for generous vegetables and smaller starch while avoiding fennel.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_fish\",\n          \"servings\": 1,\n          \"box_id\": \"box_fish_ysoline\"\n        },\n        {\n          \"preparation_id\": \"prep_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_potatoes_ysoline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"name_the_plate_out_loud\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_chicken\",\n      \"title\": \"Poached lemon chicken breasts\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"chicken breast\",\n          \"quantity\": \"500 g\",\n          \"amount\": 500,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Slice the chicken. Heat oil in a pan, sear the chicken briefly, then add a splash of water, cover, and steam-poach for 10 minutes until cooked through.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 15,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_chicken_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_chicken_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 80\n        },\n        {\n          \"id\": \"box_chicken_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 120\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_rice_peas\",\n      \"title\": \"Savoury rice with garden peas\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"white rice\",\n          \"quantity\": \"225 g\",\n          \"amount\": 225,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"frozen peas\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Boil the rice in salted water for 10 minutes. Add the peas for the final 2 minutes, then drain.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 15,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_rice_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_rice_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_rice_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 250\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_potatoes\",\n      \"title\": \"Boiled and crushed potatoes\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"potatoes\",\n          \"quantity\": \"600 g\",\n          \"amount\": 600,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Chop potatoes into chunks and boil in salted water for 15-20 minutes until tender. Drain and lightly crush with a fork.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_potatoes_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_potatoes_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 100\n        },\n        {\n          \"id\": \"box_potatoes_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 150\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_fish\",\n      \"title\": \"Pan-seared cod fillets\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"cod fillets\",\n          \"quantity\": \"450 g\",\n          \"amount\": 450,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Season the fish. Heat oil in a pan and sear the cod for 3-4 minutes per side until opaque and flaky.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 10,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_fish_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 160\n        },\n        {\n          \"id\": \"box_fish_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 90\n        },\n        {\n          \"id\": \"box_fish_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 140\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_chicken\",\n        \"prep_rice_peas\",\n        \"prep_potatoes\",\n        \"prep_fish\"\n      ],\n      \"total_minutes\": 45,\n      \"run_through\": \"Start the potatoes boiling. While they cook, start the rice. Pan-sear the chicken and the fish in separate pans (or sequentially). Drain the rice and potatoes, crush the potatoes, and box everything into the named containers immediately.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"chicken breast\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"cod fillets\",\n      \"quantity\": \"450 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"white rice\",\n      \"quantity\": \"225 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"potatoes\",\n      \"quantity\": \"600 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"frozen peas\",\n      \"quantity\": \"200 g\",\n      \"aisle\": \"frozen\"\n    },\n    {\n      \"term\": \"green beans\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"rolled oats\",\n      \"quantity\": \"40 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"whole milk\",\n      \"quantity\": \"200 ml\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"skyr\",\n      \"quantity\": \"150 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"sourdough bread\",\n      \"quantity\": \"1 loaf\",\n      \"aisle\": \"other\"\n    },\n    {\n      \"term\": \"sunflower seed butter\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"sunflower seeds\",\n      \"quantity\": \"100 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"honey\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"lemon\",\n      \"quantity\": \"2 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"butter\",\n      \"quantity\": \"250 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"1 bottle\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"portion_note\": \"A larger portion of protein and starch for every meal to support muscle gain.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"note\": \"Full large share\"\n        },\n        {\n          \"preparation_id\": \"prep_rice_peas\",\n          \"note\": \"Generous starch scoop\"\n        },\n        {\n          \"preparation_id\": \"prep_potatoes\",\n          \"note\": \"Large crushed potato portion\"\n        },\n        {\n          \"preparation_id\": \"prep_fish\",\n          \"note\": \"Large cod fillet share\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"2a937736-693a-45f1-97a6-110f535ae004\",\n      \"portion_note\": \"A standard child-sized share of the shared preparations.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"note\": \"Small portion\"\n        },\n        {\n          \"preparation_id\": \"prep_rice_peas\",\n          \"note\": \"Small rice scoop\"\n        },\n        {\n          \"preparation_id\": \"prep_potatoes\",\n          \"note\": \"Half portion of potatoes\"\n        },\n        {\n          \"preparation_id\": \"prep_fish\",\n          \"note\": \"Small fish fillet share\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"portion_note\": \"Generous vegetables, full protein share, and a smaller starch portion.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"note\": \"Full protein share\"\n        },\n        {\n          \"preparation_id\": \"prep_rice_peas\",\n          \"note\": \"Light rice scoop, heavy on peas\"\n        },\n        {\n          \"preparation_id\": \"prep_potatoes\",\n          \"note\": \"Small potato portion\"\n        },\n        {\n          \"preparation_id\": \"prep_fish\",\n          \"note\": \"Full fish share\"\n        }\n      ]\n    }\n  ]\n}",
+                "thoughtSignature": "[redacted]"
+              }
+            ]
+          },
+          "finishReason": "STOP"
+        }
+      ],
+      "responseId": "aPKEau7vHcKIxN8P_tCigQ8",
+      "modelVersion": "gemini-3-flash-preview",
+      "usageMetadata": {
+        "serviceTier": "standard",
+        "totalTokenCount": 20848,
+        "promptTokenCount": 8119,
+        "thoughtsTokenCount": 6409,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 8119
+          }
+        ],
+        "candidatesTokenCount": 6320
+      }
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-19T00:01:14.057646+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T00:01:14.617687+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:01:17.861101+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:01:17.867117+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:01:17.871076+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:01:40.596143+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T00:01:41.055955+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:01:44.217281+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:01:44.220873+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:01:44.22495+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:02:42.035411+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

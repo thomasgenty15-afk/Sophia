@@ -115,13 +115,13 @@ describe("readDishes", () => {
       ],
     }]);
     expect(dish.uses).toEqual([
-      // LOT 4 — `box_id` est relu sur CHAQUE reprise, et vaut `null` quand le
-      // plan n'en porte pas: une clé absente ne se distingue pas d'un lecteur
-      // débranché, et c'est exactement la posture du moteur qui l'écrit.
-      { preparation_id: "prep_poulet", servings: 2, box_id: null },
+      // ⚠️ `box_id` A QUITTÉ LA REPRISE LE 2026-08-19. Le repas porte sa boîte
+      // (`dishes[].box`), plus rien ne la cite: une reprise dit d'où vient le
+      // lot, et c'est tout ce qu'elle a jamais eu à dire.
+      { preparation_id: "prep_poulet", servings: 2 },
       // Sans portion nommée, une part: le plat en prélève, la question est
       // combien, et zéro serait un prélèvement qui n'a pas lieu.
-      { preparation_id: "prep_riz", servings: 1, box_id: null },
+      { preparation_id: "prep_riz", servings: 1 },
     ]);
   });
 

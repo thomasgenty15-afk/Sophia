@@ -648,6 +648,7 @@ const PROMPT_ARGS = {
   servings: 1,
   pantry: [],
   safetyConstraints: null,
+  safetyConstraintTable: null,
   body: null,
   focusAxis: null,
   // LE CAS FONDATEUR: déclaré `sun, wed`, fenêtre jeudi→dimanche.

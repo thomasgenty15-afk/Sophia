@@ -1,0 +1,68 @@
+{
+  "request_id": "a1000001-0000-4000-8000-000000000001",
+  "resolved_by": "--request-id",
+  "user_id": "1e000000-0000-4000-8000-000000000012",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-18T23:18:29.348Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "fb9b929d-a8c4-4332-93e1-c0f9a722c974",
+      "status": "attempt_start",
+      "created_at": "2026-08-18T23:18:05.724871+00:00",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 16134,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 16134,
+    "user_message_chars": 14728,
+    "user_message_truncated": false,
+    "user_message_written_chars": 14728,
+    "independent_counters": {
+      "system_prompt_chars": 16134,
+      "prompt_chars": 14728
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "fb9b929d-a8c4-4332-93e1-c0f9a722c974",
+    "created_at": "2026-08-18T23:18:05.724871+00:00",
+    "status": "attempt_start",
+    "outcome": "pending",
+    "provider": "openai",
+    "model": "gpt-5.4-mini",
+    "http_status": null,
+    "attempt": 1,
+    "chain_index": 0,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": null,
+    "output_text_json": null,
+    "raw_response_truncated": false,
+    "raw_response": null
+  },
+  "events": [
+    {
+      "created_at": "2026-08-18T23:18:05.724871+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    }
+  ]
+}

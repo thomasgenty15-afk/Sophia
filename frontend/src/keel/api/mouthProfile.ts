@@ -38,12 +38,16 @@
 // `{"ok": false}` avec le message de PostgREST, et l'écran le rend comme
 // n'importe quel refus — jamais comme un succès.
 
+import type { EatingOccasionSlot } from "./mealGeneration";
 import { supabase } from "../../lib/supabase";
 import { mergePracticalConstraints } from "./practicalConstraints";
 import {
   type ActivityLevel,
+  type AppetiteLevel,
+  type DayActivityLevel,
   GOAL_TOKENS,
   type GoalToken,
+  type SportFrequency,
 } from "../../../../supabase/functions/_shared/keel/tokens.ts";
 import {
   declaredSlugFor,
@@ -64,6 +68,50 @@ function asResult(data: unknown): RpcResult {
 // ---------------------------------------------------------------------------
 // LA CIBLE ET LE RYTHME
 // ---------------------------------------------------------------------------
+//
+// ═══════════════════════════════════════════════════════════════════════════
+// OÙ CES DEUX CHAMPS SONT LUS — ET OÙ ILS SONT DÉLIBÉRÉMENT MUETS
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// ⚠️ POSÉ ICI, À LA PORTE D'ÉCRITURE, ET C'EST LE POINT. Le 2026-08-19, un
+// audit a rangé ces deux colonnes parmi les « champs collectés et jamais lus »
+// et a demandé de leur ajouter un lecteur de prompt. La conclusion était FAUSSE
+// pour l'un et INTERDITE pour l'autre, et rien, depuis cette porte-ci, ne
+// permettait de le voir: il faut lire quatre fichiers ailleurs. La liste vit
+// donc à côté de l'écrivain, là où la question se pose.
+//
+// `target_pace_kg_per_week` — DEUX lecteurs vivants, et AUCUN n'est un prompt:
+//   · `generate-household-meal-v1/index.ts` le charge par bouche
+//     (`household_members` puis `student_goals`, dans cet ordre de précédence)
+//     et le donne au DIMENSIONNEMENT (`household_portions.ts`). Il décide des
+//     GRAMMES d'une assiette.
+//   · `meal-energy-v1/index.ts` le lit pour le rythme EXÉCUTÉ du conseil du
+//     midi (`executedPaceFor`).
+//   ⛔ IL N'ENTRE PAS DANS LA CONSIGNE, ET IL NE DOIT PAS. Deux raisons, et
+//   chacune suffirait: (1) « 0,5 kg par semaine » EST un taux de déficit —
+//   c'est la phrase d'un tracker, le terrain d'énergie que `CONTRACT.md`
+//   clôture, et sur un MINEUR ce serait un défaut bloquant (« le corps d'un
+//   mineur ne s'énonce jamais »); (2) le curseur agit DÉJÀ, en grammes: le
+//   redire au modèle ferait compter deux fois le même cran, et c'est toujours
+//   la moitié qu'on relit le moins qui gagne.
+//
+// `target_weight_kg` — lecteurs vivants, tous côté ÉCRAN:
+//   · l'estimation d'arrivée du formulaire (`household.mouth.arrival`,
+//     `MouthFormDialog`), qui est très exactement ce que le libellé promet
+//     (« With the pace below, this gives a date to arrive on »);
+//   · le résumé de `/app/plan` (`plan.summary.aiming_weight`) et la bande de
+//     progression (`api/bodyMeasures.ts`);
+//   · l'export RGPD.
+//   ⛔ EXCLU DE LA CONSIGNE PAR ÉCRIT, ET LA RAISON TIENT TOUJOURS. FF-030 R7,
+//   en tête de `_shared/keel/meal_body.ts`: « le nombre visé ne change pas ce
+//   qu'on met dans l'assiette, et un modèle qui lit "vise 72, en pèse 98"
+//   raisonne en écart, en déficit et en délai ». La DIRECTION passe, elle, et
+//   elle passe déjà — par le jeton `goal` et par `focus_axis`.
+//
+// ⚠️ CES DEUX EXCLUSIONS SONT DES PROPRIÉTÉS À MAINTENIR, pas des trous. Elles
+// sont ARMÉES par `mouthProfileReaders.int.test.ts`, qui échoue aussi bien si
+// un lecteur de prompt apparaît que si les lecteurs ci-dessus disparaissent.
+// Les renverser est une décision produit, pas un correctif de câblage.
 
 /**
  * LE POIDS VISÉ ET LE RYTHME D'UNE BOUCHE SANS COMPTE — LES DEUX ENSEMBLE.
@@ -518,6 +566,29 @@ export interface MouthWriters {
     weightKg: number,
     gender: "male" | "female" | "other",
     activityLevel: ActivityLevel | null,
+    /**
+     * ── LES DEUX AXES ET LES TROIS CASES (2026-08-20) ──────────────────────
+     *
+     * ⚠️ REQUIS, comme le cran juste au-dessus, et pour la même cicatrice: il
+     * n'y a qu'UNE porte de corps, et un paramètre facultatif aurait laissé
+     * l'écran qui la connaît mal enregistrer un corps complet sans jamais
+     * porter ce que ce lot collecte.
+     *
+     * ⛔ `axesAsked` / `structureAsked` NE SONT PAS DÉCORATIFS: c'est eux que
+     * la base lit pour décider d'écrire, et eux qui séparent « pas posé » de
+     * « pas répondu » dans le compteur du moteur.
+     */
+    extras: {
+      dayActivity: DayActivityLevel | null;
+      sportFrequency: SportFrequency | null;
+      axesAsked: boolean;
+      takesDessert: boolean | null;
+      takesCheese: boolean | null;
+      takesBread: boolean | null;
+      structureAsked: boolean;
+      appetite: AppetiteLevel | null;
+      appetiteAsked: boolean;
+    },
   ) => Promise<RpcResult>;
   setHabits: (
     memberId: string,
@@ -544,6 +615,18 @@ export interface MouthWriters {
   addAllergy: (memberId: string, label: string) => Promise<RpcResult>;
   addRestriction: (memberId: string, label: string) => Promise<RpcResult>;
   setDiet: (memberId: string, diet: string | null) => Promise<RpcResult>;
+  /**
+   * SES MOMENTS. `null` = « comme la maison », et c'est une ÉCRITURE — la seule
+   * façon de revenir à ce repli après avoir coché quelque chose.
+   *
+   * ⚠️ REQUIS, jamais `null` comme écrivain: la question est posée dans la
+   * fiche depuis le 2026-08-19, et un appelant qui n'en fournirait pas
+   * afficherait six cases qui ne vont nulle part.
+   */
+  setRhythm: (
+    memberId: string,
+    rhythm: readonly EatingOccasionSlot[] | null,
+  ) => Promise<RpcResult>;
 }
 
 export interface MouthToPersist {
@@ -556,8 +639,19 @@ export interface MouthToPersist {
   weightKg: number;
   gender: "male" | "female" | "other";
   activityLevel: ActivityLevel | null;
+  /** ② Les deux axes. `null` = pas répondu — le cran ci-dessus reprend la main. */
+  dayActivity: DayActivityLevel | null;
+  sportFrequency: SportFrequency | null;
+  /** ① Les trois cases. TRI-ÉTAT: `false` répond, `null` ne répond pas. */
+  takesDessert: boolean | null;
+  takesCheese: boolean | null;
+  takesBread: boolean | null;
+  /** ⑤ (2026-08-20), TRANSITOIRE — voir `APPETITE_FACTORS`. */
+  appetite: AppetiteLevel | null;
   targetWeightKg: number | null;
   paceKgPerWeek: number | null;
+  /** Ses moments, ou `null` pour « comme la maison ». Voir `setRhythm`. */
+  rhythm: readonly EatingOccasionSlot[] | null;
   habits: readonly { slot: string; kind: "own_usual"; usual: string }[];
   /** L'apport fixe déclaré, ou `null` quand la quantité n'est pas connue. */
   shaker: ShakerToWrite | null;
@@ -631,6 +725,23 @@ export async function persistMouth(
     mouth.weightKg,
     mouth.gender,
     mouth.activityLevel,
+    // ⚠️ `axesAsked` / `structureAsked` À `true` PARCE QUE LE POP-UP PORTE LES
+    // CINQ QUESTIONS. Ce n'est pas « elle a répondu »: c'est « on lui a
+    // demandé ». C'est ce drapeau qui autorise la base à écrire un `null` —
+    // donc à DÉ-répondre —, et c'est lui qui sépare `not_answered` de
+    // `not_asked` dans le compteur. Un `false` ici ferait passer une fiche
+    // qu'on vient d'interroger pour une fiche plus vieille que le lot.
+    {
+      dayActivity: mouth.dayActivity,
+      sportFrequency: mouth.sportFrequency,
+      axesAsked: true,
+      takesDessert: mouth.takesDessert,
+      takesCheese: mouth.takesCheese,
+      takesBread: mouth.takesBread,
+      structureAsked: true,
+      appetite: mouth.appetite,
+      appetiteAsked: true,
+    },
   );
   if (!body.ok) return body;
 
@@ -692,10 +803,131 @@ export async function persistMouth(
   // que personne n'a posé n'apporte rien; surtout, la base refuse
   // `has_account`, et une bouche qui en a un ne doit pas voir passer ce refus
   // pour une case qu'on ne lui a jamais montrée.
+  // ── SES MOMENTS ──────────────────────────────────────────────────────────
+  // ⛔ JAMAIS UN TABLEAU VIDE: la base refuse `empty_rhythm`, et elle a raison
+  // — « elle ne mange jamais » n'est pas une réponse. Le vide, ici, veut dire
+  // « comme la maison », c'est-à-dire `null`.
+  const rhythm = await writers.setRhythm(
+    memberId,
+    mouth.rhythm && mouth.rhythm.length > 0 ? mouth.rhythm : null,
+  );
+  if (!rhythm.ok) return rhythm;
+
   if (mouth.diet !== null) {
     const diet = await writers.setDiet(memberId, mouth.diet);
     if (!diet.ok) return diet;
   }
 
   return { ok: true, reason: "", member_id: memberId };
+}
+
+// ---------------------------------------------------------------------------
+// LA CIBLE ET LE RYTHME D'UNE BOUCHE — LE LECTEUR QUI MANQUAIT
+// ---------------------------------------------------------------------------
+
+/**
+ * OÙ VA LA BALANCE DE CHAQUE BOUCHE DU FOYER, ET À QUELLE VITESSE.
+ *
+ * ── ⛔ CE LECTEUR N'EXISTAIT PAS, ET SON ABSENCE RENDAIT UNE DONNÉE
+ *    INATTEIGNABLE ─────────────────────────────────────────────────────────
+ * Signalé le 2026-08-19: « si je mets "perdre du poids", ça demande pas le
+ * poids de target ni le rythme de perte ». Vérifié — et c'est pire qu'une gêne:
+ * la carte d'une personne DÉJÀ INSCRITE ne portait aucun des deux champs (ils
+ * n'existaient que sur la fiche d'AJOUT). Quelqu'un ajouté sans direction, puis
+ * passé à « Perdre du poids » depuis sa carte, ne pouvait donc JAMAIS recevoir
+ * de cible depuis cet écran — et rien ne le disait.
+ *
+ * Poser les champs sans ce lecteur aurait été pire: `setMemberTarget` REMPLACE
+ * la paire, donc une carte ouverte sur un brouillon vide aurait EFFACÉ la cible
+ * déjà posée au premier enregistrement. La cicatrice
+ * `mount-snapshot-forms-need-a-loading-gate`, prise par le bout qui coûte une
+ * donnée.
+ *
+ * ⚠️ `household_members`, PAS `student_goals`. Les deux colonnes portent le
+ * même nom des deux côtés et n'habitent pas ensemble: la cible du TITULAIRE
+ * vit dans `student_goals` (`loadOwnMouth` juste au-dessus), celle d'une bouche
+ * sur SA ligne. Lire la mauvaise table rendrait la valeur de quelqu'un d'autre.
+ *
+ * ⚠️ RLS EST LA FRONTIÈRE, et `.eq` n'est pas de trop: la lecture est scopée
+ * par la politique du foyer, mais un compte à la fois maître et membre d'autre
+ * chose lirait sinon deux maisons dans la même Map.
+ */
+export interface MemberTargetView {
+  targetWeightKg: number | null;
+  paceKgPerWeek: number | null;
+}
+
+export async function loadMemberTargets(
+  householdId: string,
+): Promise<Map<string, MemberTargetView>> {
+  const out = new Map<string, MemberTargetView>();
+  if (!householdId) return out;
+  const res = await supabase
+    .from("household_members")
+    .select("member_id, target_weight_kg, target_pace_kg_per_week")
+    .eq("household_id", householdId);
+  if (res.error) throw new Error(res.error.message);
+  const asNumber = (v: unknown) => {
+    if (v === null || v === undefined || v === "") return null;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  };
+  for (const row of (res.data ?? []) as Record<string, unknown>[]) {
+    out.set(String(row.member_id), {
+      targetWeightKg: asNumber(row.target_weight_kg),
+      paceKgPerWeek: asNumber(row.target_pace_kg_per_week),
+    });
+  }
+  return out;
+}
+
+/**
+ * LE SHAKER D'UNE BOUCHE SANS COMPTE — LA PORTE QUI N'EXISTAIT PAS.
+ *
+ * ── ⚠️ POURQUOI ELLE A DÛ ÊTRE CRÉÉE ─────────────────────────────────────
+ * `addShakerToOwnIntakes` écrit dans `student_goals.practical_constraints`,
+ * donc sur `user_id`. Une bouche sans compte — un enfant, un conjoint saisi,
+ * le cas NOMINAL du foyer — n'a pas de ligne `student_goals`: le bloc lui était
+ * simplement caché, et l'afficher aurait posé SON shaker sur la ligne du
+ * MAÎTRE. Demandé quatre fois le 2026-08-19.
+ *
+ * Le stock est `household_members.fixed_intakes` (migration `20260819170000`),
+ * et il porte la MÊME FORME que celui d'un compte parce que `parseFixedIntakes`
+ * est le seul lecteur du produit — deux formes auraient forcé deux parseurs.
+ *
+ * ⚠️ IL REMPLACE LA LIGNE DE MÊME `food_ref`, comme son jumeau: deux « mon
+ * shaker » saisis deux fois sont une correction, pas deux boissons.
+ */
+export async function addShakerToMemberIntakes(args: {
+  memberId: string;
+  current: readonly unknown[] | null | undefined;
+  shaker: ShakerToWrite;
+}): Promise<RpcResult> {
+  const existing = Array.isArray(args.current) ? args.current : [];
+  const json = shakerIntakeJson(args.shaker);
+  const slug = json.food_ref;
+  const kept = existing.filter((entry) => {
+    const e = (entry ?? {}) as Record<string, unknown>;
+    return String(e.food_ref ?? "") !== slug;
+  });
+  const { data, error } = await supabase.rpc(
+    "keel_household_set_member_fixed_intakes",
+    { p_member: args.memberId, p_intakes: [...kept, json] },
+  );
+  if (error) throw new Error(error.message);
+  return asResult(data);
+}
+
+/** Ce que la ligne d'une bouche porte déjà. `[]` quand elle n'a rien. */
+export async function loadMemberFixedIntakes(
+  memberId: string,
+): Promise<unknown[]> {
+  const { data, error } = await supabase
+    .from("household_members")
+    .select("fixed_intakes")
+    .eq("member_id", memberId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  const raw = (data as { fixed_intakes?: unknown } | null)?.fixed_intakes;
+  return Array.isArray(raw) ? raw : [];
 }

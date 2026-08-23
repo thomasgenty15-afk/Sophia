@@ -436,6 +436,8 @@ export function estimatedMaintenanceFor(subject: PaceSubject): number | null {
       ageYears: body.ageYears,
       gender: body.gender,
       activityLevel: body.activityLevel,
+      activityAxes: body.activityAxes,
+      appetite: body.appetite,
     })
     : estimatedMaintenanceKcal({
       weightKg,
@@ -443,6 +445,14 @@ export function estimatedMaintenanceFor(subject: PaceSubject): number | null {
       ageBand: ageBandOf(body.ageYears),
       gender: body.gender,
       activityLevel: body.activityLevel,
+      // ⚠️ LE MÊME CORPS, LES MÊMES AXES. C'est le dénominateur de tout
+      // l'ancrage; y perdre les axes ferait diverger la cible servie et la
+      // cible affichée sans qu'aucun test de module ne le voie.
+      activityAxes: body.activityAxes,
+      // ⑤ MÊME CHEMIN. C'est le dénominateur de tout l'ancrage: un appétit qui
+      // n'arriverait pas jusqu'ici serait un cran coché à l'écran et jeté avant
+      // le calcul — le mode d'échec n°1 de ce dépôt.
+      appetite: body.appetite,
     });
   return maintenance !== null && maintenance > 0 ? maintenance : null;
 }
@@ -574,9 +584,18 @@ export type TargetWeightRefusal = (typeof TARGET_WEIGHT_REFUSALS)[number];
  * LES MÊMES BORNES DE PLAUSIBILITÉ QUE PARTOUT — `energy_target.ts` les porte
  * pour la fourchette, le point hebdo pour la pesée. Recopiées ici, elles se
  * mettraient à diverger; importées, elles restent le même refus.
+ *
+ * ⚠️ CE COMMENTAIRE A DÉCRIT UN IMPORT PENDANT QUE LE CODE RECOPIAIT. Corrigé
+ * par le lot `X1′` (2026-08-22): la phrase ci-dessus était juste, la ligne
+ * en-dessous disait le contraire, et pendant ce temps `student_body_io.ts`
+ * portait 350. Elles sont maintenant réellement importées de
+ * `weight_bounds.ts`.
  */
-export const TARGET_WEIGHT_KG_MIN = 25;
-export const TARGET_WEIGHT_KG_MAX = 400;
+import {
+  WEIGHT_KG_MAX as TARGET_WEIGHT_KG_MAX,
+  WEIGHT_KG_MIN as TARGET_WEIGHT_KG_MIN,
+} from "./weight_bounds.ts";
+export { TARGET_WEIGHT_KG_MAX, TARGET_WEIGHT_KG_MIN };
 
 /**
  * LE POIDS VISÉ EST-IL ACCEPTABLE ?
@@ -627,6 +646,8 @@ export function targetWeightRefusal(
       ageBand: ageBandOf(subject.body.ageYears),
       gender: subject.body.gender,
       activityLevel: subject.body.activityLevel,
+      activityAxes: subject.body.activityAxes,
+      appetite: subject.body.appetite,
     });
     // Corps inconnu: on n'a rien à opposer, et refuser sur une ignorance
     // serait bloquer quelqu'un dont on ne sait rien. Les autres gardes

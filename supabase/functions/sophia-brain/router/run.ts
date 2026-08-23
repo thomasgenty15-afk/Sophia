@@ -2406,7 +2406,14 @@ export function withKeelDoctrineBlock(
   // ingrédient: il passe donc devant.
   if (keel.declared_medical_condition) blocks.push(CLINICAL_DEFERRAL_BLOCK);
 
-  const safetyBlock = safetyConstraintsPromptBlock(keel.safety_constraints);
+  // `null` = UNE SEULE BOUCHE, dit explicitement (paramètre REQUIS, jamais
+  // optionnel). `keel.safety_constraints` est la table du LOCUTEUR seul: c'est
+  // par construction une seule bouche, et son titre le dit déjà. Les
+  // contraintes des AUTRES bouches de son foyer arrivent par leur propre bloc,
+  // juste en dessous — `householdAllergyPromptBlock`, qui a sa propre politique
+  // d'attribution (il refuse de nommer, exprès: dire à quelqu'un qu'IL est
+  // allergique quand c'est son enfant est un fait faux sur une personne).
+  const safetyBlock = safetyConstraintsPromptBlock(keel.safety_constraints, null);
   if (safetyBlock && safetyBlock.trim()) blocks.push(safetyBlock);
 
   // LES CONTRAINTES DURES DU FOYER, JUSTE DERRIÈRE CELLES DU LOCUTEUR.
@@ -2824,7 +2831,25 @@ export function finalVisibleText(
     // ⚠️ LE TEXTE EST BILINGUE ET FERMÉ, résolu chez `sizingRedirectFor` à
     // partir de `content_locale`. Une garde testée dans une seule langue ne mord
     // pas dans l'autre, et ce produit a `fr-FR` par défaut.
+    const beforeSizingRedirect = out;
     out = appendSizingRedirect(out, keel.sizing_redirect);
+    // ── LOT 4A · LE TROISIÈME NOMBRE, MESURÉ LÀ OÙ LA PHRASE EST DITE ────────
+    //
+    // ⚠️ « ARMÉ » N'EST PAS « DIT », et c'est exactement la distinction que ce
+    // dépôt paie cher: `reply visible ≠ rendu d'un outil`. Un compteur posé au
+    // seul armement dirait « ça marche » sur un tour où la ceinture aurait
+    // rendu le texte inchangé (phrase déjà présente, chemin de sortie qui ne
+    // traverse pas d'ici). On compare donc le texte AVANT et APRÈS: la ligne
+    // ne part que si la sortie a réellement grossi de la phrase.
+    if (out !== beforeSizingRedirect) {
+      console.info(JSON.stringify({
+        tag: "keel/sizing_redirect",
+        event: "said",
+        turn_id: turnFrame?.turn_id ?? null,
+        response_owner: routeDecision?.response_owner ?? null,
+        locale: keel.content_locale ?? null,
+      }));
+    }
   }
   out = out.trim();
 
@@ -6452,22 +6477,37 @@ export async function processMessage(
     // fin de plan, donc rien vers quoi renvoyer.
     isKeelStudent: keelTurn.is_student === true,
   });
-  // ⚠️ LE COMPTEUR, ET IL EST OBLIGATOIRE. « Champ déclaré par le modèle =
-  // compteur obligatoire »: sans lui, une lane jamais atteinte ressemble trait
-  // pour trait à une lane qui marche. Les deux nombres se lisent ENSEMBLE —
-  // `detected` sans `armed` dit que le tour parlait du plan mais pas d'une
-  // part; `detected: 0` sur toute une population dit que le PRODUCTEUR du
-  // signal est mort, pas que personne ne parle de ses portions.
-  if (dispatcherSignals.plan_feedback?.detected === true) {
-    console.info(JSON.stringify({
-      tag: "keel/sizing_redirect",
-      event: "plan_feedback_seen",
-      request_id: requestId,
-      kind: String(dispatcherSignals.plan_feedback?.kind ?? ""),
-      is_student: keelTurn.is_student === true,
-      armed: keelTurn.sizing_redirect !== null,
-    }));
-  }
+  // ── LE COMPTEUR, ET IL EST OBLIGATOIRE ────────────────────────────────────
+  //
+  // « Champ déclaré par le modèle = compteur obligatoire »: sans lui, une lane
+  // jamais atteinte ressemble trait pour trait à une lane qui marche.
+  //
+  // ⚠️ LOT 4A — LA LIGNE PART À CHAQUE TOUR, PAS SEULEMENT QUAND `detected`.
+  // C'était le défaut du compteur précédent: il ne pouvait produire AUCUNE
+  // ligne tant que le signal n'avait pas d'écrivain, et un journal vide se lit
+  // exactement comme « personne ne parle de ses portions ». Le DÉNOMINATEUR
+  // doit exister avant le numérateur. Les trois nombres se comptent en
+  // filtrant ce tag: `seen` (toutes les lignes), `detected: true`, et
+  // l'événement `said` posé par `finalVisibleText`.
+  //
+  // ⚠️ `plan_question` EST DANS LA MÊME LIGNE, ET C'EST LA PREUVE DE NON-CAPTURE.
+  // La lane voisine capture une part importante des tours; savoir qu'elle a
+  // aussi mordu sur un tour où `plan_feedback` est sorti est la seule façon de
+  // distinguer « les deux coexistent » (voulu) de « plan_question a avalé le
+  // tour et le retour est perdu » (la panne). Ça se lit sur un nombre, pas sur
+  // une relecture du prompt.
+  console.info(JSON.stringify({
+    tag: "keel/sizing_redirect",
+    event: "seen",
+    request_id: requestId,
+    turn_id: turnFrame.turn_id,
+    is_student: keelTurn.is_student === true,
+    plan_feedback_detected: dispatcherSignals.plan_feedback?.detected === true,
+    plan_feedback_kind: String(dispatcherSignals.plan_feedback?.kind ?? ""),
+    plan_question_detected:
+      turnFrame.skill_signals?.plan_question?.detected === true,
+    armed: keelTurn.sizing_redirect !== null,
+  }));
   const onDemandTriggers = buildOnDemandTriggersFromDispatcherSignals(
     dispatcherSignals,
   );

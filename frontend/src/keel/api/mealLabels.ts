@@ -27,6 +27,7 @@
 // décision produit documentée sur chacune.
 
 import { en } from "../i18n/en";
+import { uiLocale } from "../i18n/runtime";
 import { type MessageKey, t } from "../i18n/t";
 
 /**
@@ -108,4 +109,28 @@ export function dishSlotLabel(slot: string | null): string | null {
   if (!slot) return null;
   const key = `meals.slot.${slot}`;
   return isMealCopyKey(key) ? mealCopy(key) : slot;
+}
+
+/**
+ * PLUSIEURS PRÉNOMS EN UNE ÉNUMÉRATION — « Christèle et iku », « Zoé, Marc et
+ * Nina ».
+ *
+ * ⛔ `Intl.ListFormat`, ET SURTOUT PAS UN `join(" et ")`. L'énumération n'a pas
+ * la même forme d'une langue à l'autre: le français ne met pas de virgule avant
+ * « et », l'anglais en met une avant « and » dès trois éléments. Un séparateur
+ * mis en catalogue i18n aurait produit « Zoé, Marc et Nina » ET « Zoe, Marc and
+ * Nina » avec la même règle — faux dans une des deux langues, toujours.
+ *
+ * ⚠️ LE PRÉNOM N'EST PAS TRADUIT, SEULE LA CONJONCTION L'EST. Les prénoms
+ * viennent de la ligne membre (F5) et traversent tels quels.
+ *
+ * ⚠️ LA LANGUE EST CELLE DE LA PAGE (`uiLocale`), pas celle du navigateur:
+ * `/app/plan` peut être lu en anglais par un navigateur français, et l'écran a
+ * déjà tranché ce que « la langue d'écran » veut dire.
+ */
+export function nameList(names: readonly string[]): string {
+  return new Intl.ListFormat(uiLocale(), {
+    style: "long",
+    type: "conjunction",
+  }).format(names);
 }

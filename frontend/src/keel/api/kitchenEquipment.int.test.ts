@@ -338,13 +338,37 @@ describe("④ la donnée vit dans la colonne, et nulle part ailleurs", () => {
     }
   });
 
-  it("⛔ ce lot ne parle pas au modèle — c'est le lot L7", () => {
-    // La consigne est regroupée en UN bump de version. Une ligne de prompt
-    // écrite ici serait invisible au compte de blocs de L7, et la lane foyer
-    // expire déjà à 4 minutes.
-    expect(
-      code("supabase/functions/_shared/keel/meal_generation.ts"),
-      "L2-A a touché au prompt: c'est le périmètre de L7",
-    ).not.toContain("kitchen_equipment");
+  // ⚠️ CE TEST A ÉTÉ RENVERSÉ LE 2026-08-18 (QA 01-injection, lane solo).
+  //
+  // Il gardait la frontière de lot L2-A: « ce lot COLLECTE, il ne parle pas au
+  // modèle — c'est le lot L7 ». Il a tenu exactement ce qu'on lui demandait, et
+  // ce qu'on lui demandait a fini par coûter: sur le run réel
+  // `798c5cd6-acbf-43e3-8dcc-97128d3edd78`, un élève qui venait de cocher
+  // « plaque, micro-ondes, blender » a reçu un plan dont la première session
+  // commence par « Heat the oven » et dont le dîner est « roast potatoes ».
+  //
+  // Une contrainte documentée survit à sa cause: la garde disait toujours
+  // « pas encore », personne ne revenait, et l'écran promettait « Your next
+  // plan is built around this ». Le geste juste n'est pas de supprimer le test,
+  // c'est de lui faire garder LA NOUVELLE VÉRITÉ — le tronc parle, et il ne dit
+  // que des ABSENCES déclarées.
+  it("le tronc PARLE au modèle, et seulement de ce qui MANQUE", () => {
+    const engine = code("supabase/functions/_shared/keel/meal_generation.ts");
+    // La ligne vient du module qui porte le jeton et le lecteur, jamais d'une
+    // phrase réécrite dans le constructeur de prompt.
+    expect(engine).toContain("kitchenEquipmentPromptLines");
+    // ⚠️ ET LE CONSTRUCTEUR N'ÉCRIT AUCUNE PHRASE D'INTERDICTION LUI-MÊME: une
+    // seconde formulation dériverait de la liste fermée sans que rien ne
+    // l'attrape. (Le mot « oven » existe ailleurs dans ce fichier — le prompt
+    // système explique qu'une cuisson au four est une PRÉPARATION. Ce qu'on
+    // interdit ici, c'est une phrase qui INTERDIRAIT un outil.)
+    for (const tool of KITCHEN_TOOLS) {
+      expect(engine, `une phrase « no ${tool} » est écrite dans le tronc`)
+        .not.toContain(`no ${tool}`);
+    }
+    // La lane foyer garde SON bloc (`kitchenBlock`, enveloppe v16): elle ne
+    // passe pas l'équipement au tronc, sinon la consigne partirait deux fois.
+    expect(code("supabase/functions/generate-meal-v1/index.ts"))
+      .toContain("readKitchenEquipment");
   });
 });

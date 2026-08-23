@@ -24,7 +24,12 @@
  *
  * The validator is the second half of the same idea: prompts are advisory, so
  * the guarantee cannot live in the prompt. After generation, any visible text
- * that names a `severity='medical'` token is rejected, deterministically.
+ * that names a BLOCKING token is rejected, deterministically.
+ *
+ * ⛔ « BLOCKING » = `BELT_BLOCKING_SEVERITIES` (voir plus bas), c'est-à-dire
+ * `medical` ET `strict` depuis le 2026-08-22 — plus `medical` seul. La
+ * contrainte de l'élève qui dit « je ne digère pas le lactose » vaut
+ * vérification, pas seulement consigne. `preference` n'y entre pas.
  */
 
 import {
@@ -231,6 +236,69 @@ export async function loadStudentSafetyConstraints(
 // ---------------------------------------------------------------------------
 
 /**
+ * ══════════════════════════════════════════════════════════════════════════
+ * À QUI EST CHAQUE CONTRAINTE, QUAND IL Y A PLUSIEURS BOUCHES.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ── LE DÉFAUT MESURÉ LE 2026-08-19, SUR LA LANE FOYER ──────────────────────
+ * Le bloc s'intitulait « THIS STUDENT'S HARD CONSTRAINTS » — au SINGULIER,
+ * pour une tablée de quatre — et chaque ligne était `- pistachio — allergy…`,
+ * sans une bouche. Deux runs réels, deux erreurs OPPOSÉES:
+ *
+ *   F1 (`f0100001-…`) le modèle DEVINE la bouche et devine juste par chance:
+ *       « keep it away from the rest of the table and serve it only to
+ *       Odalric ».
+ *   F2 (`f0100002-…`) il INVERSE: 120 g de traybake au pistachio dans la
+ *       boîte de l'ALLERGIQUE, et l'avertissement « with no pistachio » écrit
+ *       sur l'assiette du VOISIN.
+ *
+ * Le contraste était dans le MÊME prompt, dix lignes plus bas: les règles de
+ * maison s'écrivent `- Peregrine: never serve fennel` — ATTACHÉES — et le
+ * modèle les a appliquées 4 fois sur 4. On copie le patron qui marche.
+ *
+ * ── POURQUOI CE N'EST PAS UN `userId` QU'ON REMPLIT ────────────────────────
+ * Une bouche sans compte n'a pas d'identifiant de compte, et ranger son
+ * `member_id` dans un champ de COMPTE ferait une donnée qui ment (voir
+ * `household_safety.ts`, qui laisse `userId: ""` pour cette raison). La bouche
+ * arrive donc par une TABLE À PART, construite par l'appelant qui, lui, tient
+ * le roster.
+ *
+ * ── REQUIS, `T | null`, JAMAIS `T?` ───────────────────────────────────────
+ * « Un paramètre de garde optionnel est une garde désarmée » est une cicatrice
+ * de ce dépôt (`safetyBand`, jamais passé). Le paramètre est donc REQUIS et
+ * `null` est une VALEUR: elle dit « une seule bouche, le bloc sait déjà de qui
+ * il parle », et le compilateur oblige chaque lane à la dire.
+ */
+export type SafetyConstraintTable = {
+  /**
+   * `constraint.id` → le prénom de la bouche qui la porte.
+   *
+   * Clé sur l'`id` de la CONTRAINTE et pas sur son `userId`: sur la lane
+   * foyer, la moitié des contraintes vient de `household_member_allergies`,
+   * dont les lignes n'ont pas de compte. L'`id` est le seul identifiant que
+   * les deux sources partagent.
+   */
+  nameOf: ReadonlyMap<string, string>;
+  /**
+   * Combien de bouches mangent de ce plan. Sert à UNE chose: ne pas écrire
+   * « the mouths at this table » pour une personne qui vit seule.
+   */
+  mouths: number;
+};
+
+/**
+ * CE QU'ON ÉCRIT QUAND LE ROSTER NE REND PAS DE NOM.
+ *
+ * Jamais un nom inventé, jamais un silence: une ligne sans bouche est
+ * exactement le défaut qu'on répare, et elle doit rester LISIBLE dans le
+ * prompt comme dans le compteur de l'appelant (déclaré / attribué / non
+ * attribué). « someone at this table » ne désigne personne et ne restreint
+ * donc rien — ce qui est le comportement sûr, puisque la phrase du dessous
+ * dit que la contrainte gouverne toute la casserole de toute façon.
+ */
+export const UNATTRIBUTED_MOUTH = "someone at this table";
+
+/**
  * Les contraintes dures de l'élève, rendues pour le PROMPT.
  *
  * ── POURQUOI CETTE FONCTION N'EXISTAIT PAS, ET CE QUE ÇA COÛTAIT ──────────
@@ -261,19 +329,41 @@ export async function loadStudentSafetyConstraints(
  * les deux moitiés du verrou doivent avoir la MÊME politique de négation,
  * sinon le prompt produit un texte que la ceinture rejette.
  *
+ * ── ET DEPUIS LE 2026-08-19, IL DIT DE QUI EST CHAQUE LIGNE ──────────────
+ * Quand `table` porte au moins deux bouches. Le pourquoi, les deux runs qui
+ * l'ont mesuré et le piège de l'attribution-sans-casserole sont écrits sur
+ * `SafetyConstraintTable`, juste au-dessus. Une seule bouche rend le bloc
+ * d'avant, octet pour octet.
+ *
  * Rend `null` quand il n'y a rien à dire — un bloc vide dans un prompt est du
  * bruit qui coûte du cache.
  */
 export function safetyConstraintsPromptBlock(
   constraints: readonly StudentSafetyConstraint[] | null,
+  /**
+   * REQUIS, `T | null`. `null` ⇒ une seule bouche: le bloc parle d'elle et il
+   * le dit déjà par son titre. Non-null ⇒ chaque ligne porte son prénom.
+   */
+  table: SafetyConstraintTable | null,
 ): string | null {
   if (!constraints || constraints.length === 0) return null;
+  // « Plusieurs bouches » est ce qui décide, pas « lane foyer »: l'entrée du
+  // produit est un foyer À UNE personne (§5), et lui écrire « the mouths at
+  // this table » serait faux. Un foyer d'une bouche rend donc EXACTEMENT le
+  // bloc d'avant, octet pour octet, et un test le tient.
+  const attributed = table !== null && table.mouths >= 2;
   const lines: string[] = [];
   for (const constraint of constraints) {
     const refs = safetyConstraintTokens(constraint);
     if (refs.length === 0) continue;
+    // LE PRÉNOM DEVANT, comme `- Peregrine: never serve fennel` — le seul
+    // patron de ce prompt dont on ait mesuré qu'il est appliqué à la bonne
+    // personne, 4 fois sur 4.
+    const mouth = attributed
+      ? `${table!.nameOf.get(constraint.id)?.trim() || UNATTRIBUTED_MOUTH}: `
+      : "";
     lines.push(
-      `- ${refs.join(", ")} — ${constraint.kind}, severity=${constraint.severity}` +
+      `- ${mouth}${refs.join(", ")} — ${constraint.kind}, severity=${constraint.severity}` +
         ` (declared by ${constraint.declaredBy})`,
     );
   }
@@ -285,15 +375,30 @@ export function safetyConstraintsPromptBlock(
   // disait « I have type 2 diabetes » au tour 1 et recevait au tour 3 un plan
   // de repas sans la moindre trace de sa maladie. Ce n'était pas de la
   // retenue, c'était de l'amnésie.
+  //
+  // ⚠️ UNE MALADIE AUSSI EST « THIS STUDENT'S » AU SINGULIER. Sur une tablée,
+  // la même phrase dirait à un parent que SA maison a un diabète, et le modèle
+  // choisirait tout seul de qui. Quand la table est là, on nomme; sinon la
+  // ligne reste octet pour octet celle d'avant.
   const conditions = constraints
-    .map((c) => String(c.conditionRef ?? "").trim())
-    .filter((ref) => ref !== "");
+    .map((c) => ({
+      ref: String(c.conditionRef ?? "").trim(),
+      mouth: attributed
+        ? (table!.nameOf.get(c.id)?.trim() || UNATTRIBUTED_MOUTH)
+        : "",
+    }))
+    .filter((c) => c.ref !== "");
+  const conditionHeader = attributed
+    ? `=== DIAGNOSED CONDITIONS THE PEOPLE AT THIS TABLE HAVE TOLD YOU ABOUT: ${
+      [...new Set(conditions.map((c) => `${c.mouth} — ${c.ref}`))].join("; ")
+    } ===`
+    : `=== DIAGNOSED CONDITIONS THIS STUDENT HAS TOLD YOU ABOUT: ${
+      [...new Set(conditions.map((c) => c.ref))].join(", ")
+    } ===`;
   const conditionLines = conditions.length > 0
     ? [
       "",
-      `=== DIAGNOSED CONDITIONS THIS STUDENT HAS TOLD YOU ABOUT: ${
-        [...new Set(conditions)].join(", ")
-      } ===`,
+      conditionHeader,
       "Do not prescribe for these: no target numbers, no foods-to-avoid list for",
       "the condition, no meal timing to manage it, and nothing about medication",
       "or dose. The clinician who has their results decides that.",
@@ -310,9 +415,48 @@ export function safetyConstraintsPromptBlock(
   // en-tête « hard constraints » vide au-dessus de rien.
   if (lines.length === 0) return conditionLines.slice(1).join("\n");
   return [
-    "=== THIS STUDENT'S HARD CONSTRAINTS (source: student_safety_constraints) ===",
+    attributed
+      ? "=== THE HARD CONSTRAINTS OF THE MOUTHS AT THIS TABLE (source: " +
+        "student_safety_constraints + household_member_allergies) ==="
+      : "=== THIS STUDENT'S HARD CONSTRAINTS (source: student_safety_constraints) ===",
     "These are not preferences. They are loaded fresh every turn.",
     ...lines,
+    // ⚠️ LA MOITIÉ QUI EMPÊCHE LE PRÉNOM DE DEVENIR UNE PERMISSION.
+    //
+    // Nommer la bouche SANS cette phrase ferait EMPIRER le défaut mesuré: F1
+    // avait déjà lu la liste détachée comme « je le sers à l'autre », et un
+    // prénom devant la ligne serait l'autorisation explicite de le faire.
+    // L'attribution sert à poser l'avertissement sur la BONNE assiette; elle
+    // ne rétrécit jamais la règle à une assiette.
+    //
+    // ⚠️ ET ELLE TRANCHE LA CONTRADICTION DU MÊME MESSAGE. Le brief du foyer
+    // ORDONNE dix lignes plus bas de servir l'habitude d'une personne (« count
+    // their own thing in the shopping list ») et de composer l'envie de la
+    // maison — pendant que ce bloc-ci interdit l'aliment que l'une ou l'autre
+    // nomme. Deux consignes opposées dans le même prompt, et c'est la
+    // contradiction qui a produit les 120 g de traybake au pistachio dans la
+    // boîte de l'allergique. La ceinture de sortie, elle, est BINAIRE sur tout
+    // le texte du plan: un seul plat qui nomme l'allergène vide la semaine
+    // entière (422 `empty_meal`). Cette phrase est ce qui aligne la consigne
+    // sur le verrou — elle ne desserre rien, elle dit au modèle ce que le
+    // verrou exigeait déjà.
+    ...(attributed
+      ? [
+        "",
+        "WHOSE EACH ONE IS — AND WHY IT STILL GOVERNS THE WHOLE POT.",
+        "The name says who would be harmed, so a warning lands on the right",
+        "plate and never on someone else's. It does NOT narrow the rule to that",
+        "person: ONE MOUTH'S HARD CONSTRAINT GOVERNS EVERYTHING this household",
+        "cooks, buys, boxes or serves — for everyone, at every moment.",
+        "So there is no plate any of these foods may be on. Never plan one and",
+        "keep it away from the person it belongs to, never serve it 'only to'",
+        "someone else, never put it in one box and not another.",
+        "That includes what a person 'has their own' at a moment, and what the",
+        "house asked for this week: if either names one of the foods above, do",
+        "not cook it, do not buy it, do not write it anywhere. Put something",
+        "else in that spot instead, and simply write the replacement.",
+      ]
+      : []),
     "",
     "NEVER suggest, recommend or include any of the above, and never suggest a",
     "food that ordinarily contains one (a nut butter for a peanut constraint, a",
@@ -326,6 +470,36 @@ export function safetyConstraintsPromptBlock(
         "question turns on it clinically, say so and point to a doctor.",
       ]
       : []),
+    // ⚠️ CE BLOC NE DIT PAS « NE NOMME PAS L'ALIMENT DANS UN PLAN », ET C'EST
+    // UNE DÉCISION DE PÉRIMÈTRE, PRISE SUR UNE MESURE.
+    //
+    // ITÉRATIONS 2 ET 3 DE CE LOT, RETIRÉES. Deux runs réels ont montré que le
+    // 422 `empty_meal` a DEUX causes distinctes, et qu'une seule est la mienne:
+    //
+    //   · l'ALIMENT est réellement dans le plan — pistachio butter cuisiné,
+    //     mis en boîte et acheté pour un foyer où quelqu'un y est allergique
+    //     (`b0000001-…`: 10 morsures, dont 4 sur des ingrédients et la liste
+    //     de courses). C'est le défaut d'ATTRIBUTION, celui que ce bloc-ci
+    //     répare;
+    //   · l'aliment est correctement RETIRÉ, et le modèle l'explique:
+    //     « I have swapped the requested pistachio butter for… »
+    //     (`b2000001-…`, `b2000002-…`, `b2000003-…`: 1 morsure chacun, toutes
+    //     dans `dishes[].why`). Ce défaut-là appartient au lot voisin, qui l'a
+    //     mesuré sur la lane solo et l'a réparé DANS LE MÊME MESSAGE, douze
+    //     lignes plus bas — `NAMING ONE OF THEM IN A PLAN IS NOT A WARNING`
+    //     (`meal_generation.ts`), avec une échappatoire nommée et mesurée à
+    //     zéro morsure: « one of the foods on your medical list ».
+    //
+    // J'avais écrit la même règle ici. Elle est partie: deux consignes qui
+    // disent la même chose à dix lignes d'écart, avec deux formulations
+    // d'échappatoire différentes, sont un générateur de divergence — et la
+    // preuve que la leur suffit est dans le run `a3000001-…`, où le modèle a
+    // recopié LEUR phrase mot pour mot alors que la mienne ne la contenait pas.
+    //
+    // ⚠️ DÉPENDANCE À CONNAÎTRE: leur bloc est posé sous la MÊME condition que
+    // celui-ci (`safetyBlock` non nul, `meal_generation.ts`). S'il disparaît,
+    // la règle de nommage disparaît avec lui — et c'est alors ici qu'il faudra
+    // la réécrire, pas ailleurs.
     ...conditionLines,
   ].join("\n");
 }
@@ -333,6 +507,71 @@ export function safetyConstraintsPromptBlock(
 // ---------------------------------------------------------------------------
 // Deterministic post-generation validator
 // ---------------------------------------------------------------------------
+
+/**
+ * ⛔ S2 — LES SÉVÉRITÉS QUI ARMENT LA CEINTURE DE SORTIE, ÉCRITES UNE FOIS.
+ *
+ * ── LE DÉFAUT QUE CETTE CONSTANTE FERME ───────────────────────────────────
+ * La ceinture ne lisait que `severity='medical'`, et le filtre était RECOPIÉ à
+ * deux endroits de ce fichier (`medicalConstraintTokens` l. 541 et
+ * `findMedicalConstraintViolations` l. 591 — les seuls des SIX sites énumérés
+ * qui appartiennent à la ceinture ; les quatre autres — `safety_constraints.ts`
+ * l. 408, `generate-household-meal-v1/index.ts` l. 2505, `allergen_bridge.ts`
+ * l. 131 et l. 146 — sont des blocs de PROMPT ou des gardes Tier 0, et ils
+ * gardent leur `medical` seul, chacun pour une raison écrite chez lui).
+ * Mesuré le 2026-08-22 sur la base vivante:
+ * **6 contraintes actives** portaient un jeton que rien ne vérifiait —
+ * `dairy`, `lactose`, `gluten`, `fructose`, `fruits_de_mer`, `mustard`. Le
+ * compteur de la ceinture rendait `bit 0 / 6`: armée, muette, et impossible à
+ * distinguer d'une ceinture qui n'a rien trouvé.
+ *
+ * ── ET CE N'ÉTAIT DÉJÀ PLUS COHÉRENT AVEC LE RESTE DU PRODUIT ─────────────
+ * `plan_question/allergen_bridge.ts:76` porte `BLOCKING_SEVERITIES = {medical,
+ * strict}` depuis longtemps: un `strict` BLOQUAIT déjà l'échange d'un plat,
+ * pendant que le même `strict` laissait passer le TEXTE qui le nomme. Élargir
+ * ici ne crée pas une divergence, ça en referme une.
+ *
+ * ── CE QUI N'ENTRE PAS, ET POURQUOI CE N'EST PAS UN OUBLI ─────────────────
+ *   · `preference` — 9 lignes actives (`aubergine`, `beetroot`, `coriander`,
+ *     `okra`, `olive`, `fructose`). Une déception n'est pas un danger, et le
+ *     prompt le dit déjà mot pour mot (`SEVERITY_READING_BLOCK`: « it is NOT a
+ *     safety matter »). Une ceinture qui viderait la semaine d'un élève parce
+ *     qu'un plat nomme l'olive est une ceinture qu'on débranche.
+ *   · `dietRef` — les **8** lignes `kind='diet'` des 14 `strict` (vegan 2,
+ *     vegetarian 3, pescatarian 3) n'entrent pas, parce que
+ *     `safetyConstraintTokens` ne les rend pas. C'est la cicatrice `diabetes`:
+ *     armer sur le NOM d'un régime ferait rejeter la réponse qui explique le
+ *     régime. La ceinture reçoit l'EXPANSION (viande, poisson, œuf…), jamais le
+ *     nom. ⇒ « couvrir `strict` » veut dire **6 lignes sur 14**, et c'est le
+ *     seuil du lot.
+ *   · `conditionRef` — voir le bloc sur `safetyConstraintTokens` juste dessous.
+ *
+ * ⚠️ CE QUE CET ÉLARGISSEMENT COÛTE, ET IL EST ASSUMÉ (plan §⑨ n° 4). Le taux
+ * de blocage MONTE. En conversation, le texte est remplacé — d'où le SECOND
+ * repli, `STRICT_BLOCK_FALLBACK_EN` (`keel_output_locks.ts`): servir « pose la
+ * question à un médecin » à un intolérant au lactose est faux 100 % des fois
+ * où ça sort. Sur les deux lanes de génération, une morsure VIDE le plan
+ * (HTTP 422 `empty_meal`) — d'où la correction jumelle de
+ * `SEVERITY_READING_BLOCK` dans `meal_generation.ts`, qui disait au modèle que
+ * seul un nom `severity=medical` détruit la semaine.
+ *
+ * Le retour arrière tient en une ligne: retirer `"strict"` de ce `Set`.
+ */
+export const BELT_BLOCKING_SEVERITIES: ReadonlySet<SafetyConstraintSeverity> =
+  new Set<SafetyConstraintSeverity>(["medical", "strict"]);
+
+/**
+ * Le prédicat, pour que les deux sites n'aient plus rien à recopier.
+ *
+ * Il prend `string` et non `SafetyConstraintSeverity` À DESSEIN: les lignes
+ * arrivent de la base par un `as` (voir l'en-tête `kind`), donc une valeur hors
+ * union est possible au runtime. Elle doit alors répondre `false` — ne PAS
+ * armer sur une sévérité qu'on ne connaît pas — et pas faire passer le
+ * compilateur pour un garde.
+ */
+export function isBeltBlockingSeverity(severity: string): boolean {
+  return BELT_BLOCKING_SEVERITIES.has(severity as SafetyConstraintSeverity);
+}
 
 /**
  * Every identifier carried by a constraint (prose `notes` excluded, R1).
@@ -364,12 +603,29 @@ export function safetyConstraintTokens(
   ].filter((token): token is string => Boolean(token && token.trim()));
 }
 
+/**
+ * Les jetons que la ceinture refuse de voir écrits, tous porteurs confondus.
+ *
+ * ⚠️ LE NOM DIT ENCORE `medical` ET LA FONCTION COUVRE `medical` + `strict`.
+ * C'est délibéré, et c'est un arbitrage écrit (plan §⑨). Renommer coûterait
+ * une passe sur cinq symboles exportés et une dizaine de fichiers d'un dépôt
+ * partagé qui porte 313 fichiers modifiés par d'autres sessions — un
+ * générateur de collisions pour un gain de lecture. Ce que le lecteur doit
+ * savoir est donc écrit ici, et le SEUL endroit qui décide reste
+ * `BELT_BLOCKING_SEVERITIES`, dix lignes plus haut.
+ *
+ * ⚠️ Cette fonction-ci n'a AUCUN appelant de production (mesuré le 2026-08-22,
+ * commentaires et tests écartés): elle est lue par trois fichiers de test comme
+ * « ce qui arme la ceinture ». Raison de plus pour qu'elle ne diverge pas du
+ * site qui arme vraiment: une liste de diagnostic qui ne dit pas la même chose
+ * que la garde est un mensonge que personne ne détecte.
+ */
 export function medicalConstraintTokens(
   constraints: readonly StudentSafetyConstraint[],
 ): string[] {
   const seen = new Set<string>();
   for (const constraint of constraints) {
-    if (constraint.severity !== "medical") continue;
+    if (!isBeltBlockingSeverity(constraint.severity)) continue;
     for (const token of safetyConstraintTokens(constraint)) {
       seen.add(token.trim().toLowerCase());
     }
@@ -379,6 +635,21 @@ export function medicalConstraintTokens(
 
 export type MedicalConstraintViolation = {
   constraintId: string;
+  /**
+   * ⛔ S2 — LA SÉVÉRITÉ DE LA LIGNE QUI A MORDU, ET POURQUOI ELLE EST ICI.
+   *
+   * Depuis que la ceinture couvre `medical` ET `strict`, l'appelant ne peut
+   * plus DÉDUIRE la sévérité: il en voit deux. Et il en a besoin, parce que le
+   * texte de remplacement n'est pas le même — servir « pose la question à un
+   * médecin » à un intolérant au lactose est faux à chaque fois.
+   *
+   * ⚠️ Elle est PORTÉE, pas re-cherchée. L'alternative était de rejoindre
+   * `constraintId` sur la liste de contraintes chez l'appelant; ce dépôt a déjà
+   * payé cette forme (`constraint_ref oublie condition_ref`): une jointure par
+   * identifiant qui rate rend un défaut MUET, ici un repli médical servi pour
+   * une intolérance ou l'inverse. La valeur voyage avec la morsure.
+   */
+  severity: SafetyConstraintSeverity;
   /** The slug that matched, canonical form. */
   token: string;
   /** The literal substring of the generated text that matched. */
@@ -391,8 +662,12 @@ export class MedicalConstraintViolationError extends Error {
   constructor(violations: MedicalConstraintViolation[]) {
     super(
       `[keel/safety_constraints] Generated text names ${violations.length} ` +
-        `medical-severity constraint token(s): ` +
-        violations.map((v) => `${v.token} ("${v.matchedText}")`).join(", ") +
+        `blocking constraint token(s): ` +
+        // La SÉVÉRITÉ est dans le message: l'incident se lit dans un log, et
+        // « peanut » à `medical` et « lactose » à `strict` n'appellent pas la
+        // même lecture.
+        violations.map((v) => `${v.token}/${v.severity} ("${v.matchedText}")`)
+          .join(", ") +
         ". Output rejected; regenerate.",
     );
     this.name = "MedicalConstraintViolationError";
@@ -404,9 +679,16 @@ export class MedicalConstraintViolationError extends Error {
 export type MedicalConstraintCheckOptions = ForbiddenMatchOptions;
 
 /**
- * Pure, deterministic, zero-I/O. Returns every medical-token occurrence that
+ * Pure, deterministic, zero-I/O. Returns every blocking-token occurrence that
  * survives the negation exceptions. Callers that regenerate use this one;
  * callers that must fail loudly use `assertNoMedicalConstraintViolation`.
+ *
+ * ⛔ S2 — CE QU'ELLE COUVRE DEPUIS LE 2026-08-22: `BELT_BLOCKING_SEVERITIES`,
+ * donc `medical` ET `strict`, et rien d'autre. Le nom garde son `Medical`
+ * historique — l'arbitrage et sa raison sont écrits sur
+ * `medicalConstraintTokens`. Chaque morsure PORTE sa `severity`: c'est ce qui
+ * permet à l'appelant de choisir le bon texte de remplacement au lieu de
+ * servir un renvoi au médecin pour une intolérance.
  */
 export function findMedicalConstraintViolations(
   text: string,
@@ -418,8 +700,13 @@ export function findMedicalConstraintViolations(
   // exact tests; what it no longer keeps is a private second copy of the
   // normalization and negation rules that the coach-doctrine lock also needs.
   const terms: ForbiddenTerm[] = [];
+  // La sévérité de CHAQUE règle, par son identifiant — le moteur ne rend que
+  // `ruleId`, et une jointure faite chez l'appelant serait la jointure qui
+  // rate en silence.
+  const severityByRule = new Map<string, SafetyConstraintSeverity>();
   for (const constraint of constraints) {
-    if (constraint.severity !== "medical") continue;
+    if (!isBeltBlockingSeverity(constraint.severity)) continue;
+    severityByRule.set(constraint.id, constraint.severity);
     for (const token of safetyConstraintTokens(constraint)) {
       // LES FORMES DE SURFACE, et leur absence était le trou (QA agent 4).
       //
@@ -443,6 +730,12 @@ export function findMedicalConstraintViolations(
   }
   return findForbiddenMatches(text, terms, options).map((m) => ({
     constraintId: m.ruleId,
+    // ⛔ LE REPLI EST `medical`, JAMAIS `strict`. Un identifiant introuvable
+    // dans la table ci-dessus est impossible par construction (les règles en
+    // viennent) — mais si ça arrivait, la seule valeur sûre est la plus
+    // protectrice. Un `strict` par défaut ferait servir le texte le plus doux
+    // à l'élève le plus fragile.
+    severity: severityByRule.get(m.ruleId) ?? "medical",
     token: m.token,
     matchedText: m.matchedText,
     index: m.index,
@@ -463,6 +756,11 @@ export function assertNoMedicalConstraintViolation(
   console.error("keel.safety_constraints.medical_violation", {
     violation_count: violations.length,
     tokens: [...new Set(violations.map((v) => v.token))].join(","),
+    // ⛔ S2 — LA VENTILATION PAR SÉVÉRITÉ, sinon le compteur de la ceinture ne
+    // sait pas dire ce que l'élargissement a ajouté. Le nom de l'événement,
+    // lui, ne bouge pas: c'est une clé de télémétrie, et la renommer casserait
+    // les tableaux de bord qui la suivent.
+    severities: [...new Set(violations.map((v) => v.severity))].sort().join(","),
     detail: "Generated output rejected before delivery; regenerate.",
   });
   throw new MedicalConstraintViolationError(violations);

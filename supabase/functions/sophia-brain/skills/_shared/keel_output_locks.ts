@@ -34,6 +34,18 @@
  *       ("...c'est une bonne source de protéines") peut porter la suggestion
  *       à lui seul. Le seul rendu sûr est un rendu qui ne prétend rien.
  *
+ *   ⛔ S2 (2026-08-22) — STRICT (`severity='strict'`: une intolérance, une
+ *   règle de maison) est vérifié PAR LE MÊME VERROU, depuis
+ *   `BELT_BLOCKING_SEVERITIES` dans `safety_constraints.ts`.
+ *     → le message entier est également remplacé, mais par
+ *       `STRICT_BLOCK_FALLBACK_EN`, PAS par le texte médical. Servir « pose la
+ *       question à un médecin » à quelqu'un qui ne digère pas le lactose est
+ *       faux 100 % des fois où ça sort. Un texte qui mord les deux crans à la
+ *       fois rend le repli MÉDICAL: le plus protecteur gagne.
+ *     ⚠️ Ce que ça a fermé: `plan_question/allergen_bridge.ts` bloquait DÉJÀ
+ *       l'échange d'un plat sur `strict`, pendant que le TEXTE qui nomme la
+ *       même chose passait. Deux copies divergeaient; il n'en reste qu'une.
+ *
  *   INTERDIT COACH (l'agent recommande ce que le coach proscrit)
  *     → le message entier est également remplacé, mais par un texte DIFFÉRENT
  *       qui renvoie au coach. Raison produit: une contradiction publique avec
@@ -52,6 +64,10 @@
  *      chargée ni coach: les deux verrous n'ont rien à comparer.
  *   2. `disarmed_no_constraints` — aucune contrainte médicale ET aucune
  *      doctrine: la ceinture ne peut pas mordre, par construction.
+ *   2bis. `disarmed_constraints_unreadable` — la table des contraintes n'a PAS
+ *      pu être lue (`safetyConstraints` vaut `null`/absent). Voir le bloc
+ *      « CE QUE `null` VEUT DIRE » dans le corps: ce n'est pas la même chose
+ *      que « rien à vérifier », et ça ne doit surtout pas se lire `clean`.
  *   3. `disarmed_negated_mention` — « évite les cacahuètes », « Marc ne fait
  *      pas de 6 petits repas »: le mécanisme de négation partagé
  *      (`forbidden_matcher.ts`) laisse passer. Sans ça, le plan d'un élève
@@ -76,8 +92,25 @@ export const OUTPUT_LOCK_REASONS = [
   "clean",
   "disarmed_not_keel_student",
   "disarmed_no_constraints",
+  "disarmed_constraints_unreadable",
   "disarmed_empty_text",
   "blocked_medical_constraint",
+  // ⛔ S2 — LE VERDICT DU CRAN `strict`, SÉPARÉ DE CELUI DU CRAN `medical`.
+  //
+  // Les deux remplacent le message, mais ils ne remplacent pas par le même
+  // texte et ils ne se lisent pas pareil en télémétrie: `blocked_medical_*`
+  // dit « on a frôlé un événement de santé », `blocked_strict_*` dit « on a
+  // frôlé une mauvaise soirée ». Les confondre rendrait l'élargissement de la
+  // ceinture INVISIBLE — on ne saurait pas dire, après coup, combien de
+  // blocages viennent des 6 lignes que `S2` a fait entrer.
+  //
+  // ⚠️ SANS EFFET SUR CE QUI PASSE. Les trois appelants de production
+  // décident avec `reason === "clean" || reason.startsWith("disarmed")`
+  // (`meal_generation.ts:6178`, `week_plan_generation.ts:842`, et
+  // `router/run.ts` qui rend `locked.text`): un verdict neuf qui ne commence
+  // ni par `clean` ni par `disarmed` se comporte exactement comme
+  // `blocked_medical_constraint`, ce qui est le comportement voulu.
+  "blocked_strict_constraint",
   "blocked_coach_interdit",
 ] as const;
 export type OutputLockReason = (typeof OUTPUT_LOCK_REASONS)[number];
@@ -147,6 +180,50 @@ export interface OutputLockResult {
  */
 export const MEDICAL_BLOCK_FALLBACK_EN =
   "I would rather not answer that one from memory - it touches something medical, and that is not mine to guess at. That is one to put to a doctor.";
+
+/**
+ * ⛔ S2 — LE SECOND REPLI, POUR LE CRAN `strict`. SANS LUI, LE LOT DÉGRADE LA
+ *     CONVERSATION QU'IL PRÉTEND PROTÉGER.
+ *
+ * ── LE DÉFAUT QU'IL FERME, MESURÉ AVANT D'ÉCRIRE UNE LIGNE ────────────────
+ * Jusqu'au 2026-08-22 la ceinture n'avait qu'UN texte de remplacement, celui
+ * juste au-dessus. Il est juste pour une allergie anaphylactique. Servi à
+ * quelqu'un qui a déclaré une intolérance au lactose, juste après une phrase
+ * qui parlait de yaourt, il est **faux à chaque fois qu'il sort**: il n'y a
+ * rien de médical à décider, aucun médecin à consulter, et la seule chose que
+ * l'élève apprend est que l'agent s'est dérobé.
+ *
+ * Élargir la ceinture à `strict` sans ce texte-ci aurait donc fait exactement
+ * ce que le dépôt appelle « une garde qui protège en cassant »: 6 contraintes
+ * actives entrent sous la ceinture, et les 6 reçoivent un renvoi au médecin.
+ *
+ * ── CE QU'IL DIT, ET CE QU'IL REFUSE DE DIRE ─────────────────────────────
+ *   · IL NE NOMME PAS LE JETON. Même raison que le repli médical: rendre
+ *     l'incident visible est anxiogène et n'aide en rien. « quelque chose que
+ *     tu m'as dit de garder hors de ton assiette » suffit et reste vrai.
+ *   · IL N'ENVOIE NI CHEZ LE MÉDECIN NI CHEZ LE COACH. Le premier serait faux;
+ *     le second désignerait une porte qui n'existe pas — il n'y a aucun canal
+ *     1:1 coach → élève dans ce produit (voir CLAUDE.md).
+ *   · IL DONNE UNE SORTIE. C'est la moitié qui compte, et elle vient d'une
+ *     cicatrice mesurée: un dispositif qu'on ne peut pas quitter est un piège
+ *     (condition de désarmement n°5, le tour de rétractation). « Redemande-moi »
+ *     est une action que l'élève peut faire tout de suite, seul.
+ *
+ * ⚠️ CE TEXTE N'EST VU QUE DANS LA CONVERSATION. Les deux lanes de génération
+ * jettent `lock.text` et ne lisent que `lock.reason` (`meal_generation.ts`,
+ * `week_plan_generation.ts`): là-bas une morsure VIDE le plan. C'est pourquoi
+ * `S2` corrige aussi `SEVERITY_READING_BLOCK` dans `meal_generation.ts`, qui
+ * annonçait au modèle que seul un nom `severity=medical` détruit la semaine.
+ *
+ * ⚠️ IL EST EN ANGLAIS, COMME SON JUMEAU, ET CE N'EST PAS UN OUBLI. Les deux
+ * replis sont des littéraux de ce module — il n'existe aucune couche i18n sur
+ * ce chemin, et en poser une pour une seule phrase impliquerait `en.ts`/`fr.ts`,
+ * interdits de commit. Ce que ça coûte est écrit dans la fiche du lot: un élève
+ * francophone lit une phrase anglaise, exactement comme aujourd'hui pour le
+ * repli médical. Le lot ne CRÉE pas ce défaut, il ne le répare pas non plus.
+ */
+export const STRICT_BLOCK_FALLBACK_EN =
+  "I am not going to stand behind that one - it had something in it that you have told me to keep off your plate. Ask me again and I will work around it.";
 
 /**
  * Le repli de doctrine quand le coach n'a pas dit ce qu'il fait À LA PLACE.
@@ -264,6 +341,55 @@ export function applyKeelOutputLocks(input: OutputLockInput): OutputLockResult {
   // porte au sésame. Et le désarmement vient d'un EFFET DU TOUR, pas d'une
   // heuristique sur le texte: c'est la demande de l'élève, pas une phrase que
   // le modèle aurait pu produire tout seul.
+  // ── CE QUE `null` VEUT DIRE, ET POURQUOI IL A SON PROPRE VERDICT ─────────
+  //
+  // Le type porte la distinction depuis toujours
+  // (`readonly StudentSafetyConstraint[] | null`) et les appelants la
+  // maintiennent exprès: `generate-meal-v1:887-891` avale l'échec de lecture
+  // dans un `catch` muet et laisse `constraints = null`; `router/run.ts:2874`
+  // écrit noir sur blanc qu'il PRÉSERVE le `null` plutôt que de le piétiner
+  // avec un `[]` de complaisance, « qui le ferait passer pour une lecture
+  // réussie sans contrainte ». Jusqu'ici cette moitié ne servait à rien: la
+  // ceinture faisait `?? []` et perdait l'information au premier geste.
+  //
+  // ── LE DÉFAUT MESURÉ (agent 2V, 2026-08-19) ──────────────────────────────
+  // La condition de désarmement n°2 exige LES TROIS listes vides. Pour un
+  // coach qui a des lignes rouges — c'est-à-dire le cas normal du produit et
+  // celui de la fixture — un `constraints = null` ne rendait donc PAS
+  // `disarmed_no_constraints`: il traversait tout et ressortait `clean`.
+  //
+  // Et `clean` est pire qu'un désarmement. `disarmed_*` est un AVEU, qui se
+  // lit en télémétrie comme « je n'ai rien vérifié ». `clean` est une
+  // AFFIRMATION POSITIVE — « j'ai vérifié, c'est bon » — posée sur un texte
+  // qui n'a été confronté à rien. La panne devenait indiscernable non pas
+  // d'une absence de contrainte, mais d'un contrôle RÉUSSI. Ce dépôt porte
+  // déjà deux cicatrices de cette famille (« ceinture armée sur coffre vide »,
+  // « paramètre de garde optionnel = garde désarmée »); celle-ci en est la
+  // troisième forme, la garde muette qui se déclare verte.
+  //
+  // ⚠️ CE VERDICT NE CHANGE RIEN À CE QUI PASSE OU NE PASSE PAS, et c'est
+  // délibéré. Il commence par `disarmed` parce que les trois appelants de
+  // production décident avec `reason === "clean" || reason.startsWith(
+  // "disarmed")` (`meal_generation.ts:4676`, `week_plan_generation.ts:841`,
+  // `router/run.ts` qui rend `locked.text`): un préfixe neuf y aurait VIDÉ le
+  // plan d'un élève dont la table est injoignable, c'est-à-dire un changement
+  // de comportement produit glissé dans un lot d'observabilité. La question
+  // « faut-il aussi BLOQUER un texte non vérifié ? » appartient à un humain et
+  // reste ouverte.
+  //
+  // `undefined` compte comme `null`: un appelant qui n'a pas rempli le champ
+  // n'a pas non plus lu la table, et le lire autrement serait exactement le
+  // « paramètre optionnel = garde désarmée » qu'on refuse ici.
+  const constraintsUnreadable = input.safetyConstraints === null ||
+    input.safetyConstraints === undefined;
+  if (constraintsUnreadable) {
+    console.error("keel.output_lock.constraints_unreadable", {
+      detail:
+        "Safety constraints could not be read; the medical half of the belt " +
+        "checked NOTHING this turn. Text delivered unchanged.",
+    });
+  }
+
   const retracted = new Set(
     (input.retractedConstraintRefs ?? [])
       .map((r) => String(r ?? "").trim().toLowerCase())
@@ -286,19 +412,43 @@ export function applyKeelOutputLocks(input: OutputLockInput): OutputLockResult {
     constraints.length === 0 && forbidden.length === 0 &&
     discouragedFoods.length === 0
   ) {
-    return { text, reason: "disarmed_no_constraints", tokens: [] };
+    // Deux causes, deux verdicts. « la table dit qu'il n'y a rien » et « je
+    // n'ai pas pu lire la table » rendaient le même `disarmed_no_constraints`,
+    // et c'est le second qui a besoin d'être vu.
+    return {
+      text,
+      reason: constraintsUnreadable
+        ? "disarmed_constraints_unreadable"
+        : "disarmed_no_constraints",
+      tokens: [],
+    };
   }
 
   const medical = findMedicalConstraintViolations(text, constraints);
   if (medical.length > 0) {
-    console.error("keel.output_lock.medical", {
+    // ⛔ S2 — LEQUEL DES DEUX TEXTES, ET L'ORDRE EST LE CONTRAT.
+    //
+    // La ceinture couvre maintenant deux crans. Un texte qui mord les DEUX
+    // (« du beurre de cacahuète et un yaourt ») doit produire le repli
+    // MÉDICAL, le plus protecteur — jamais le plus doux. C'est le même
+    // raisonnement que l'ordre médical-avant-doctrine quelques lignes plus
+    // bas, appliqué à l'intérieur du verrou médical.
+    //
+    // ⚠️ LA SÉVÉRITÉ VIENT DE LA MORSURE, PAS D'UNE RECHERCHE ICI.
+    // `findMedicalConstraintViolations` la porte sur chaque violation
+    // (`MedicalConstraintViolation.severity`) précisément pour qu'aucun
+    // appelant n'ait à rejoindre `constraintId` sur la liste de contraintes:
+    // une jointure qui rate rendrait le mauvais texte, en silence.
+    const hasMedical = medical.some((v) => v.severity === "medical");
+    console.error(hasMedical ? "keel.output_lock.medical" : "keel.output_lock.strict", {
       violation_count: medical.length,
       tokens: [...new Set(medical.map((v) => v.token))].join(","),
+      severities: [...new Set(medical.map((v) => v.severity))].sort().join(","),
       detail: "Visible text replaced before delivery.",
     });
     return {
-      text: MEDICAL_BLOCK_FALLBACK_EN,
-      reason: "blocked_medical_constraint",
+      text: hasMedical ? MEDICAL_BLOCK_FALLBACK_EN : STRICT_BLOCK_FALLBACK_EN,
+      reason: hasMedical ? "blocked_medical_constraint" : "blocked_strict_constraint",
       tokens: [...new Set(medical.map((v) => v.token))],
     };
   }
@@ -339,5 +489,13 @@ export function applyKeelOutputLocks(input: OutputLockInput): OutputLockResult {
     }
   }
 
-  return { text, reason: "clean", tokens: [] };
+  // ⚠️ `clean` SE MÉRITE. On n'arrive ici que si RIEN n'a mordu — mais « rien
+  // n'a mordu » n'a de valeur que si la moitié médicale avait quelque chose à
+  // quoi se confronter. Sans la table, ce texte n'a traversé QUE le verrou de
+  // doctrine, et le dire `clean` signerait un contrôle qui n'a pas eu lieu.
+  return {
+    text,
+    reason: constraintsUnreadable ? "disarmed_constraints_unreadable" : "clean",
+    tokens: [],
+  };
 }

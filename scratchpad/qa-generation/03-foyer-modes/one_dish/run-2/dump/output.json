@@ -1,0 +1,652 @@
+{
+  "request_id": "3a010001-0000-4000-8000-000000020001",
+  "resolved_by": "--request-id",
+  "user_id": "3a000000-0000-4000-8000-000000000001",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-19T01:57:48.813Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "41a1db75-812c-4a0f-852b-0c79cced2cb2",
+      "status": "attempt_start",
+      "created_at": "2026-08-19T01:57:06.504199+00:00",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 15486,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 15486,
+    "user_message_chars": 16108,
+    "user_message_truncated": false,
+    "user_message_written_chars": 16108,
+    "independent_counters": {
+      "system_prompt_chars": 15486,
+      "prompt_chars": 16108
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "f13421f3-5b9c-41af-8070-798300135de4",
+    "created_at": "2026-08-19T01:57:48.200575+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "gemini",
+    "model": "gemini-3-flash-preview",
+    "http_status": 200,
+    "attempt": 1,
+    "chain_index": 1,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Smoky Sweet Potato Harvest Bowls\",\n      \"title\": \"Smoky black beans, roasted sweet potato and brown rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"avocado\",\n          \"quantity\": \"0.5 unit\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"fresh coriander\",\n          \"quantity\": \"a small handful\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lime\",\n          \"quantity\": \"0.25 unit\",\n          \"amount\": 0.25,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Assemble the bowl by combining the smoky bean and sweet potato base with the brown rice. Top with sliced avocado, fresh coriander, and a squeeze of lime juice.\",\n      \"why\": \"This dish provides a hearty, protein-rich vegan lunch using smoky flavours that the household requested, while staying entirely sesame-free.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_stew_lunch\",\n          \"servings\": 1,\n          \"box_id\": \"box_stew_l_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_aurele\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Zesty Bean and Charred Corn Tacos\",\n      \"title\": \"Smoky black beans, charred corn and corn tortillas\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"corn tortillas\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"tinned sweetcorn\",\n          \"quantity\": \"80 g\",\n          \"amount\": 80,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red cabbage\",\n          \"quantity\": \"40 g\",\n          \"amount\": 40,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lime\",\n          \"quantity\": \"0.25 unit\",\n          \"amount\": 0.25,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the bean base in a pan. In a separate dry pan, char the sweetcorn until golden and warm the tortillas. Shred the cabbage and serve everything together with lime.\",\n      \"why\": \"The warm element of the charred corn and heated beans satisfies the coach's requirement for a warm dinner, even in summer.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_stew_dinner\",\n          \"servings\": 1,\n          \"box_id\": \"box_stew_d_aurele\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 12\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_stew_lunch\",\n      \"title\": \"Smoky Sweet Potato and Black Bean Stew (Lunch)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"sweet potato\",\n          \"quantity\": \"600 g\",\n          \"amount\": 600,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"black beans\",\n          \"quantity\": \"360 g\",\n          \"amount\": 360,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"chopped tomatoes\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"onion\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"sesame-free chipotle paste\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Roast diced sweet potatoes with oil and smoked paprika. Sauté onions and garlic, add chipotle paste, tomatoes, and beans. Simmer for 15 minutes then stir in the roasted potatoes.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 40,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_stew_l_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 350\n        },\n        {\n          \"id\": \"box_stew_l_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 350\n        },\n        {\n          \"id\": \"box_stew_l_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 350\n        },\n        {\n          \"id\": \"box_stew_l_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 350\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_stew_dinner\",\n      \"title\": \"Smoky Sweet Potato and Black Bean Stew (Dinner)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"sweet potato\",\n          \"quantity\": \"600 g\",\n          \"amount\": 600,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"black beans\",\n          \"quantity\": \"360 g\",\n          \"amount\": 360,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"chopped tomatoes\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"onion\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"sesame-free chipotle paste\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Follow the same method as the lunch stew, simmering the base with spices and beans before adding the roasted sweet potatoes.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 40,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_stew_d_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 350\n        },\n        {\n          \"id\": \"box_stew_d_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 350\n        },\n        {\n          \"id\": \"box_stew_d_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 350\n        },\n        {\n          \"id\": \"box_stew_d_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 350\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_rice\",\n      \"title\": \"Steamed Brown Rice\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"brown rice\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Boil the rice in salted water until tender, then drain and fluff with a fork.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_rice_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_rice_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_rice_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_rice_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 180\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_stew_lunch\",\n        \"prep_stew_dinner\",\n        \"prep_rice\"\n      ],\n      \"total_minutes\": 50,\n      \"run_through\": \"Preheat the oven for the sweet potatoes. Get the brown rice simmering on the hob. Chop and roast the sweet potatoes on the single oven tray. While they roast, sauté the onions and prepare the smoky bean base in a large pot. Divide the base into two batches and stir in the roasted potatoes once finished. Portion everything into boxes.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"sweet potato\",\n      \"quantity\": \"1.2 kg\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"black beans\",\n      \"quantity\": \"3 tins (400g each)\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"brown rice\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"chopped tomatoes\",\n      \"quantity\": \"2 tins (400g each)\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"brown onions\",\n      \"quantity\": \"2 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"garlic\",\n      \"quantity\": \"1 bulb\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"sesame-free chipotle paste\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"smoked paprika\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"avocado\",\n      \"quantity\": \"2 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"lime\",\n      \"quantity\": \"3 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"fresh coriander\",\n      \"quantity\": \"1 bunch\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"corn tortillas\",\n      \"quantity\": \"1 pack (8-12 units)\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"tinned sweetcorn\",\n      \"quantity\": \"1 tin (340g)\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"red cabbage\",\n      \"quantity\": \"0.5 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"vegetable stock cubes\",\n      \"quantity\": \"1 pack\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\",\n      \"portion_note\": \"Place the vegetables (avocado, cabbage, or charred corn) on the plate first, followed by the smoky bean stew, then the rice or tortillas.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_stew_lunch\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_stew_dinner\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"one box\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"f5c81e2b-7f57-4fac-a30f-067fa587262d\",\n      \"portion_note\": \"Serve the smoky bean stew and rice or tortillas first, then top with the vegetables (avocado, cabbage, or charred corn).\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_stew_lunch\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_stew_dinner\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"one box\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\",\n      \"portion_note\": \"Serve the smoky bean stew and rice or tortillas first, then top with the vegetables (avocado, cabbage, or charred corn).\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_stew_lunch\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_stew_dinner\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"one box\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"1fea4f51-a4e9-4066-8d09-49881ee58f38\",\n      \"portion_note\": \"Serve the smoky bean stew, rice or tortillas, and all vegetables mixed together on the plate.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_stew_lunch\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_stew_dinner\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"one box\"\n        }\n      ]\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Smoky Sweet Potato Harvest Bowls",
+          "title": "Smoky black beans, roasted sweet potato and brown rice",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "avocado",
+              "quantity": "0.5 unit",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "fresh coriander",
+              "quantity": "a small handful",
+              "amount": null,
+              "unit": null,
+              "state": "raw"
+            },
+            {
+              "term": "lime",
+              "quantity": "0.25 unit",
+              "amount": 0.25,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Assemble the bowl by combining the smoky bean and sweet potato base with the brown rice. Top with sliced avocado, fresh coriander, and a squeeze of lime juice.",
+          "why": "This dish provides a hearty, protein-rich vegan lunch using smoky flavours that the household requested, while staying entirely sesame-free.",
+          "uses": [
+            {
+              "preparation_id": "prep_stew_lunch",
+              "servings": 1,
+              "box_id": "box_stew_l_aurele"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_rice_aurele"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Zesty Bean and Charred Corn Tacos",
+          "title": "Smoky black beans, charred corn and corn tortillas",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "corn tortillas",
+              "quantity": "2 units",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "tinned sweetcorn",
+              "quantity": "80 g",
+              "amount": 80,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "red cabbage",
+              "quantity": "40 g",
+              "amount": 40,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "lime",
+              "quantity": "0.25 unit",
+              "amount": 0.25,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the bean base in a pan. In a separate dry pan, char the sweetcorn until golden and warm the tortillas. Shred the cabbage and serve everything together with lime.",
+          "why": "The warm element of the charred corn and heated beans satisfies the coach's requirement for a warm dinner, even in summer.",
+          "uses": [
+            {
+              "preparation_id": "prep_stew_dinner",
+              "servings": 1,
+              "box_id": "box_stew_d_aurele"
+            }
+          ],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 12
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_stew_lunch",
+          "title": "Smoky Sweet Potato and Black Bean Stew (Lunch)",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "sweet potato",
+              "quantity": "600 g",
+              "amount": 600,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "black beans",
+              "quantity": "360 g",
+              "amount": 360,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "chopped tomatoes",
+              "quantity": "400 g",
+              "amount": 400,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "onion",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "sesame-free chipotle paste",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Roast diced sweet potatoes with oil and smoked paprika. Sauté onions and garlic, add chipotle paste, tomatoes, and beans. Simmer for 15 minutes then stir in the roasted potatoes.",
+          "active_minutes": 15,
+          "total_minutes": 40,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_stew_l_aurele",
+              "member_ids": [
+                "c278b5dc-680f-43f1-b54f-f9da630fcb2f"
+              ],
+              "grams": 350
+            },
+            {
+              "id": "box_stew_l_marceline",
+              "member_ids": [
+                "f5c81e2b-7f57-4fac-a30f-067fa587262d"
+              ],
+              "grams": 350
+            },
+            {
+              "id": "box_stew_l_solveig",
+              "member_ids": [
+                "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+              ],
+              "grams": 350
+            },
+            {
+              "id": "box_stew_l_theodule",
+              "member_ids": [
+                "1fea4f51-a4e9-4066-8d09-49881ee58f38"
+              ],
+              "grams": 350
+            }
+          ]
+        },
+        {
+          "id": "prep_stew_dinner",
+          "title": "Smoky Sweet Potato and Black Bean Stew (Dinner)",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "sweet potato",
+              "quantity": "600 g",
+              "amount": 600,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "black beans",
+              "quantity": "360 g",
+              "amount": 360,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "chopped tomatoes",
+              "quantity": "400 g",
+              "amount": 400,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "onion",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "sesame-free chipotle paste",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Follow the same method as the lunch stew, simmering the base with spices and beans before adding the roasted sweet potatoes.",
+          "active_minutes": 10,
+          "total_minutes": 40,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_stew_d_aurele",
+              "member_ids": [
+                "c278b5dc-680f-43f1-b54f-f9da630fcb2f"
+              ],
+              "grams": 350
+            },
+            {
+              "id": "box_stew_d_marceline",
+              "member_ids": [
+                "f5c81e2b-7f57-4fac-a30f-067fa587262d"
+              ],
+              "grams": 350
+            },
+            {
+              "id": "box_stew_d_solveig",
+              "member_ids": [
+                "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+              ],
+              "grams": 350
+            },
+            {
+              "id": "box_stew_d_theodule",
+              "member_ids": [
+                "1fea4f51-a4e9-4066-8d09-49881ee58f38"
+              ],
+              "grams": 350
+            }
+          ]
+        },
+        {
+          "id": "prep_rice",
+          "title": "Steamed Brown Rice",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "brown rice",
+              "quantity": "300 g",
+              "amount": 300,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Boil the rice in salted water until tender, then drain and fluff with a fork.",
+          "active_minutes": 5,
+          "total_minutes": 30,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_rice_aurele",
+              "member_ids": [
+                "c278b5dc-680f-43f1-b54f-f9da630fcb2f"
+              ],
+              "grams": 180
+            },
+            {
+              "id": "box_rice_marceline",
+              "member_ids": [
+                "f5c81e2b-7f57-4fac-a30f-067fa587262d"
+              ],
+              "grams": 180
+            },
+            {
+              "id": "box_rice_solveig",
+              "member_ids": [
+                "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7"
+              ],
+              "grams": 180
+            },
+            {
+              "id": "box_rice_theodule",
+              "member_ids": [
+                "1fea4f51-a4e9-4066-8d09-49881ee58f38"
+              ],
+              "grams": 180
+            }
+          ]
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_stew_lunch",
+            "prep_stew_dinner",
+            "prep_rice"
+          ],
+          "total_minutes": 50,
+          "run_through": "Preheat the oven for the sweet potatoes. Get the brown rice simmering on the hob. Chop and roast the sweet potatoes on the single oven tray. While they roast, sauté the onions and prepare the smoky bean base in a large pot. Divide the base into two batches and stir in the roasted potatoes once finished. Portion everything into boxes."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "sweet potato",
+          "quantity": "1.2 kg",
+          "aisle": "produce"
+        },
+        {
+          "term": "black beans",
+          "quantity": "3 tins (400g each)",
+          "aisle": "pantry"
+        },
+        {
+          "term": "brown rice",
+          "quantity": "300 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "chopped tomatoes",
+          "quantity": "2 tins (400g each)",
+          "aisle": "pantry"
+        },
+        {
+          "term": "brown onions",
+          "quantity": "2 units",
+          "aisle": "produce"
+        },
+        {
+          "term": "garlic",
+          "quantity": "1 bulb",
+          "aisle": "produce"
+        },
+        {
+          "term": "sesame-free chipotle paste",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "smoked paprika",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "avocado",
+          "quantity": "2 units",
+          "aisle": "produce"
+        },
+        {
+          "term": "lime",
+          "quantity": "3 units",
+          "aisle": "produce"
+        },
+        {
+          "term": "fresh coriander",
+          "quantity": "1 bunch",
+          "aisle": "produce"
+        },
+        {
+          "term": "corn tortillas",
+          "quantity": "1 pack (8-12 units)",
+          "aisle": "pantry"
+        },
+        {
+          "term": "tinned sweetcorn",
+          "quantity": "1 tin (340g)",
+          "aisle": "pantry"
+        },
+        {
+          "term": "red cabbage",
+          "quantity": "0.5 unit",
+          "aisle": "produce"
+        },
+        {
+          "term": "vegetable stock cubes",
+          "quantity": "1 pack",
+          "aisle": "pantry"
+        }
+      ],
+      "member_portions": [
+        {
+          "member_id": "c278b5dc-680f-43f1-b54f-f9da630fcb2f",
+          "portion_note": "Place the vegetables (avocado, cabbage, or charred corn) on the plate first, followed by the smoky bean stew, then the rice or tortillas.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_stew_lunch",
+              "note": "one box"
+            },
+            {
+              "preparation_id": "prep_stew_dinner",
+              "note": "one box"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "note": "one box"
+            }
+          ]
+        },
+        {
+          "member_id": "f5c81e2b-7f57-4fac-a30f-067fa587262d",
+          "portion_note": "Serve the smoky bean stew and rice or tortillas first, then top with the vegetables (avocado, cabbage, or charred corn).",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_stew_lunch",
+              "note": "one box"
+            },
+            {
+              "preparation_id": "prep_stew_dinner",
+              "note": "one box"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "note": "one box"
+            }
+          ]
+        },
+        {
+          "member_id": "c9656ee5-6b39-4fd0-95f2-3f4bf70899d7",
+          "portion_note": "Serve the smoky bean stew and rice or tortillas first, then top with the vegetables (avocado, cabbage, or charred corn).",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_stew_lunch",
+              "note": "one box"
+            },
+            {
+              "preparation_id": "prep_stew_dinner",
+              "note": "one box"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "note": "one box"
+            }
+          ]
+        },
+        {
+          "member_id": "1fea4f51-a4e9-4066-8d09-49881ee58f38",
+          "portion_note": "Serve the smoky bean stew, rice or tortillas, and all vegetables mixed together on the plate.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_stew_lunch",
+              "note": "one box"
+            },
+            {
+              "preparation_id": "prep_stew_dinner",
+              "note": "one box"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "note": "one box"
+            }
+          ]
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "candidates": [
+        {
+          "index": 0,
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Smoky Sweet Potato Harvest Bowls\",\n      \"title\": \"Smoky black beans, roasted sweet potato and brown rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"avocado\",\n          \"quantity\": \"0.5 unit\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"fresh coriander\",\n          \"quantity\": \"a small handful\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lime\",\n          \"quantity\": \"0.25 unit\",\n          \"amount\": 0.25,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Assemble the bowl by combining the smoky bean and sweet potato base with the brown rice. Top with sliced avocado, fresh coriander, and a squeeze of lime juice.\",\n      \"why\": \"This dish provides a hearty, protein-rich vegan lunch using smoky flavours that the household requested, while staying entirely sesame-free.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_stew_lunch\",\n          \"servings\": 1,\n          \"box_id\": \"box_stew_l_aurele\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_aurele\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Zesty Bean and Charred Corn Tacos\",\n      \"title\": \"Smoky black beans, charred corn and corn tortillas\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"corn tortillas\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"tinned sweetcorn\",\n          \"quantity\": \"80 g\",\n          \"amount\": 80,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red cabbage\",\n          \"quantity\": \"40 g\",\n          \"amount\": 40,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lime\",\n          \"quantity\": \"0.25 unit\",\n          \"amount\": 0.25,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the bean base in a pan. In a separate dry pan, char the sweetcorn until golden and warm the tortillas. Shred the cabbage and serve everything together with lime.\",\n      \"why\": \"The warm element of the charred corn and heated beans satisfies the coach's requirement for a warm dinner, even in summer.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_stew_dinner\",\n          \"servings\": 1,\n          \"box_id\": \"box_stew_d_aurele\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 12\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_stew_lunch\",\n      \"title\": \"Smoky Sweet Potato and Black Bean Stew (Lunch)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"sweet potato\",\n          \"quantity\": \"600 g\",\n          \"amount\": 600,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"black beans\",\n          \"quantity\": \"360 g\",\n          \"amount\": 360,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"chopped tomatoes\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"onion\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"sesame-free chipotle paste\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Roast diced sweet potatoes with oil and smoked paprika. Sauté onions and garlic, add chipotle paste, tomatoes, and beans. Simmer for 15 minutes then stir in the roasted potatoes.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 40,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_stew_l_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 350\n        },\n        {\n          \"id\": \"box_stew_l_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 350\n        },\n        {\n          \"id\": \"box_stew_l_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 350\n        },\n        {\n          \"id\": \"box_stew_l_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 350\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_stew_dinner\",\n      \"title\": \"Smoky Sweet Potato and Black Bean Stew (Dinner)\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"sweet potato\",\n          \"quantity\": \"600 g\",\n          \"amount\": 600,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"black beans\",\n          \"quantity\": \"360 g\",\n          \"amount\": 360,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"chopped tomatoes\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"onion\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"sesame-free chipotle paste\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Follow the same method as the lunch stew, simmering the base with spices and beans before adding the roasted sweet potatoes.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 40,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_stew_d_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 350\n        },\n        {\n          \"id\": \"box_stew_d_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 350\n        },\n        {\n          \"id\": \"box_stew_d_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 350\n        },\n        {\n          \"id\": \"box_stew_d_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 350\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_rice\",\n      \"title\": \"Steamed Brown Rice\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"brown rice\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Boil the rice in salted water until tender, then drain and fluff with a fork.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_rice_aurele\",\n          \"member_ids\": [\n            \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_rice_marceline\",\n          \"member_ids\": [\n            \"f5c81e2b-7f57-4fac-a30f-067fa587262d\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_rice_solveig\",\n          \"member_ids\": [\n            \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_rice_theodule\",\n          \"member_ids\": [\n            \"1fea4f51-a4e9-4066-8d09-49881ee58f38\"\n          ],\n          \"grams\": 180\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_stew_lunch\",\n        \"prep_stew_dinner\",\n        \"prep_rice\"\n      ],\n      \"total_minutes\": 50,\n      \"run_through\": \"Preheat the oven for the sweet potatoes. Get the brown rice simmering on the hob. Chop and roast the sweet potatoes on the single oven tray. While they roast, sauté the onions and prepare the smoky bean base in a large pot. Divide the base into two batches and stir in the roasted potatoes once finished. Portion everything into boxes.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"sweet potato\",\n      \"quantity\": \"1.2 kg\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"black beans\",\n      \"quantity\": \"3 tins (400g each)\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"brown rice\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"chopped tomatoes\",\n      \"quantity\": \"2 tins (400g each)\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"brown onions\",\n      \"quantity\": \"2 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"garlic\",\n      \"quantity\": \"1 bulb\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"sesame-free chipotle paste\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"smoked paprika\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"avocado\",\n      \"quantity\": \"2 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"lime\",\n      \"quantity\": \"3 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"fresh coriander\",\n      \"quantity\": \"1 bunch\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"corn tortillas\",\n      \"quantity\": \"1 pack (8-12 units)\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"tinned sweetcorn\",\n      \"quantity\": \"1 tin (340g)\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"red cabbage\",\n      \"quantity\": \"0.5 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"vegetable stock cubes\",\n      \"quantity\": \"1 pack\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"c278b5dc-680f-43f1-b54f-f9da630fcb2f\",\n      \"portion_note\": \"Place the vegetables (avocado, cabbage, or charred corn) on the plate first, followed by the smoky bean stew, then the rice or tortillas.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_stew_lunch\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_stew_dinner\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"one box\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"f5c81e2b-7f57-4fac-a30f-067fa587262d\",\n      \"portion_note\": \"Serve the smoky bean stew and rice or tortillas first, then top with the vegetables (avocado, cabbage, or charred corn).\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_stew_lunch\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_stew_dinner\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"one box\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"c9656ee5-6b39-4fd0-95f2-3f4bf70899d7\",\n      \"portion_note\": \"Serve the smoky bean stew and rice or tortillas first, then top with the vegetables (avocado, cabbage, or charred corn).\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_stew_lunch\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_stew_dinner\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"one box\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"1fea4f51-a4e9-4066-8d09-49881ee58f38\",\n      \"portion_note\": \"Serve the smoky bean stew, rice or tortillas, and all vegetables mixed together on the plate.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_stew_lunch\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_stew_dinner\",\n          \"note\": \"one box\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"one box\"\n        }\n      ]\n    }\n  ]\n}",
+                "thoughtSignature": "[redacted]"
+              }
+            ]
+          },
+          "finishReason": "STOP"
+        }
+      ],
+      "responseId": "dw2Fap-CIdmexN8Ph7yuyAc",
+      "modelVersion": "gemini-3-flash-preview",
+      "usageMetadata": {
+        "serviceTier": "standard",
+        "totalTokenCount": 17761,
+        "promptTokenCount": 8109,
+        "cacheTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 6082
+          }
+        ],
+        "thoughtsTokenCount": 5295,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 8109
+          }
+        ],
+        "candidatesTokenCount": 4357,
+        "cachedContentTokenCount": 6082
+      }
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-19T01:57:06.504199+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T01:57:07.163741+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:57:11.303597+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:57:11.314262+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:57:11.320637+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:57:48.200575+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

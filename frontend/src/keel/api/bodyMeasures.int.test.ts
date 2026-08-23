@@ -34,7 +34,15 @@ import {
   WEIGHT_KG_MAX as FORM_WEIGHT_MAX,
   WEIGHT_KG_MIN as FORM_WEIGHT_MIN,
 } from "./weeklyCheckIn";
-import { GOAL_TOKENS } from "../../../../supabase/functions/_shared/keel/tokens.ts";
+import {
+  GOAL_TOKENS,
+  parseGoalToken,
+  RETIRED_GOAL_TOKENS,
+} from "../../../../supabase/functions/_shared/keel/tokens.ts";
+// ⚠️ L'ÉCRAN LUI-MÊME, pas une copie de sa liste. C'est tout l'objet du test
+// ci-dessous: la seule chose qui distingue « les jetons sont bons » de « les
+// fiches proposées sont bonnes » est d'aller chercher ce que l'écran propose.
+import { goalOptions } from "../lib/goalOptions";
 
 function review(week: string, bio: Record<string, unknown>, out: Record<string, unknown> = {}): ReviewRow {
   return { week_start_date: week, biofeedback: bio, outcomes: out };
@@ -144,6 +152,50 @@ describe("les mesures viennent de la table datée, le bilan hebdo comble", () =>
     // retombe sur le libellé de semaine.
     expect(lastMeasuredOn([], "weight")).toBeNull();
     expect(lastMeasuredOn(measures, "waist")).toBeNull();
+  });
+});
+
+// ===========================================================================
+// LES DIRECTIONS QUE `/app/plan` PROPOSE VRAIMENT
+//
+// ⚠️ CE BLOC EXISTE PARCE QUE LE RESTE DU FICHIER EST RESTÉ VERT SUR UN ÉCRAN
+// CASSÉ. Les tests d'`indicatorFor` itèrent `GOAL_TOKENS`; l'écran, lui,
+// itérait SA PROPRE constante locale de six jetons (`GOAL_VALUES`, dont
+// `recomposition`, `performance`, `health`). Deux listes, une seule mesurée:
+// cliquer une des trois fiches mortes déréférençait `undefined` dans l'
+// `onChange`, et l'enregistrement aurait envoyé un jeton que le `CHECK` de
+// `student_goals.goal` refuse — sans qu'aucune suite ne bouge.
+//
+// Le geste qui arme la garde n'est PAS d'itérer `GOAL_TOKENS` une fois de
+// plus: c'est d'aller chercher CE QUE L'ÉCRAN PROPOSE (`goalOptions()`) et de
+// le confronter à la liste que la base accepte. Remettre une liste locale à
+// l'écran fait tomber ce test; ajouter un jeton au socle le laisse passer,
+// parce que l'écran suit alors le socle. C'est le sens de « une seule source ».
+// ===========================================================================
+describe("les directions que l'ÉCRAN propose", () => {
+  it("exactement les jetons que la base accepte — ni un de plus, ni un de moins", () => {
+    const offered = goalOptions().map((o) => o.value);
+    expect(offered).toEqual([...GOAL_TOKENS]);
+  });
+
+  it("chaque fiche proposée passe le parseur du socle ET a un indicateur", () => {
+    for (const { value } of goalOptions()) {
+      // `parseGoalToken` LÈVE sur un jeton inconnu: c'est la même porte que le
+      // `CHECK` de la colonne, donc « proposé à l'écran » ⇒ « écrivable ».
+      expect(() => parseGoalToken(value), value).not.toThrow();
+      // `indicatorFor` est un `switch` SANS `default`: un jeton en trop en
+      // sort `undefined`, et c'est très exactement ce que l'`onChange` de la
+      // fiche déréférençait.
+      expect(indicatorFor(value), value).toBeDefined();
+      expect(indicatorFor(value).reading.length, value).toBeGreaterThan(0);
+    }
+  });
+
+  it("aucune des dynamiques RETIRÉES le 2026-08-18 n'est encore offerte", () => {
+    const offered = goalOptions().map((o) => o.value as string);
+    for (const retired of Object.keys(RETIRED_GOAL_TOKENS)) {
+      expect(offered, retired).not.toContain(retired);
+    }
   });
 });
 

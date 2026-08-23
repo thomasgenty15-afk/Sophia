@@ -36,19 +36,43 @@ ni écran. Vérifié : aucune fonction edge de message coach→élève n'existe.
 ## CE QUE L'ÉLÈVE COMPOSE (personnel, jamais écrit par le coach)
 
 L'élève dit ce qu'il vise (`student_goals` : objectif + situation), et Sophia **applique la
-doctrine du coach** à cette vie-là pour composer sa semaine : `generate-week-plan-v1` →
-`student_week_plans`, en `draft`, que l'élève lit et **adopte** ou non.
-
-Chaque ligne alimentaire porte la conviction du coach dont elle dérive
-(`source_belief_key`). Ce n'est pas décoratif : **la base REFUSE** une ligne nutrition sans
-cette clé (CHECK, migration C1), et le prompt serveur le dit à la première ligne —
-
-> *« Your coach teaches a method. They did NOT write a per-student meal plan, and you must not
-> pretend they did. »*
-> — `_shared/keel/week_plan_generation.ts`, `WEEK_PLAN_SYSTEM_PROMPT`
+doctrine du coach** à cette vie-là pour composer ses repas : `generate-meal-v1` →
+`student_generated_meals`, sur une fenêtre de 1 à 7 jours (`MAX_WINDOW_DAYS`). L'écran est
+`/app/plan`, qui héberge le constructeur de repas.
 
 L'autorité du coach n'est pas affaiblie, elle **change de canal** : elle passe par la doctrine
 (interdits inclus, avec leur double verrou) et par le contenu du programme.
+
+### ⚠️ CE QUE LE RETRAIT DE LA LANE DE SEMAINE A COÛTÉ (2026-08-19)
+
+Jusqu'au 2026-08-19, ce paragraphe décrivait une autre chaîne :
+`generate-week-plan-v1` → `student_week_plans`, en `draft`, que l'élève **adoptait**. Elle
+produisait des **lignes de conduite**, pas des plats, et **chaque ligne nutrition portait la
+conviction du coach dont elle dérivait** (`source_belief_key`) — pas décorativement : **la base
+REFUSAIT** la ligne qui ne la nommait pas (CHECK `student_week_plans_doctrine_traceable_check`,
+migration C1).
+
+Cette lane a été retirée parce qu'elle était **inatteignable** : ni `generateWeekPlan` ni
+`adoptWeekPlan` n'avaient d'appelant, donc aucun élève ne pouvait produire une ligne ni
+l'adopter. Les 246 lignes en base étaient des comptes de test, à l'unité près.
+
+**Le trou que ça laisse, et il est réel :** le produit n'a plus d'objet où une consigne nomme
+la conviction qu'elle applique et où la base refuse celle qui ne la nomme pas.
+`student_generated_meals.generated_from.belief_keys` porte la provenance du **plan entier**,
+jamais celle d'une **ligne**, et aucun CHECK ne l'exige — c'est écrit dans le dépôt lui-même
+(`_shared/keel/meal_generation.ts` : *« Informatif… Jamais exigé, jamais vérifié par un
+CHECK »*). **La traçabilité par ligne n'existe plus.**
+
+Ce qui reste en place, exprès : la **table** `student_week_plans`, ses quatre CHECK, sa policy,
+et ses **cinq lecteurs** — `coach_synthesis_io.ts` (la synthèse du lundi),
+`hunger_signal_io.ts` (`countSatietyAdaptations`), `following_io.ts`
+(`resolveStudentFollowing`, 3ᵉ branche), `account-export-v1` (export RGPD), et
+`api/weekPlan.ts` → `TodayPage`. Aucun ne régresse : le rôle de *signal* — « cet élève suit
+quelque chose » — avait déjà été repris par `student_generated_meals` au commit `99697610`.
+C'est le rôle de *producteur* qui n'a pas de repreneur.
+
+Il y en avait un **sixième**, retiré dans le même lot : `StudentWeekPlanPage.tsx` lisait la
+table sans jamais utiliser le résultat — mais son `.error` pouvait faire tomber la page.
 
 ---
 

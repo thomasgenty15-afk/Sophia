@@ -216,10 +216,11 @@ const Day = () => (
             répond le mardi soir répond sans toi. */}
         <p className="mt-6 max-w-[62ch] leading-7">{t("coaches.day.reserve")}</p>
       </div>
-      {/* fact: B10 — QUATRE points d'injection, vérifiés le 2026-08-13 :
-          sophia-brain/router/run.ts:2414 (le chat, via `doctrineBlockFor`) ·
-          generate-week-plan-v1/index.ts:618 · generate-meal-v1/index.ts:1122 ·
-          generate-household-meal-v1/index.ts:2338.
+      {/* fact: B10 — TROIS points d'injection depuis le 2026-08-19 :
+          sophia-brain/router/run.ts:2448 (le chat, via `doctrineBlockFor`) ·
+          generate-meal-v1/index.ts:1729 · generate-household-meal-v1/index.ts:3569.
+          ⚠️ Le quatrième, `generate-week-plan-v1`, a été RETIRÉ : aucun appelant
+          vivant. La figure ci-contre est passée de quatre sorties à trois.
           ⚠️ « la doctrine entre à chaque message » serait FAUX (B7) :
           `withKeelDoctrineBlock` (run.ts:2353) n'a qu'UN appelant, le composeur
           (run.ts:7386). D'où « quatre endroits », jamais « partout ». */}
@@ -555,12 +556,12 @@ const AfterFigure = () => (
 );
 
 /**
- * BANDE 2 — LA MÉTHODE ET LES QUATRE CHOSES QU'ELLE COMPOSE.
+ * BANDE 2 — LA MÉTHODE ET LES TROIS CHOSES QU'ELLE COMPOSE.
  *
- * La distribution est un BUS à 0° et 90° : quatre obliques vers quatre hauteurs
- * n'auraient pas pu tomber sur des angles fermés. Les quatre sorties sont le
- * même rectangle, quatre fois — une taille dessinée est une affirmation de
- * mesure, et rien ici ne mesure laquelle des quatre pèse le plus.
+ * La distribution est un BUS à 0° et 90° : des obliques vers des hauteurs
+ * différentes n'auraient pas pu tomber sur des angles fermés. Les sorties sont
+ * le même rectangle, répété — une taille dessinée est une affirmation de
+ * mesure, et rien ici ne mesure laquelle pèse le plus.
  */
 const MethodFigure = () => (
   <svg viewBox="0 0 480 240" className="h-auto w-full max-w-[560px]" role="img"
@@ -574,19 +575,23 @@ const MethodFigure = () => (
     <Tx x={40} y={130} s={13}>{t("coaches.fig.method.l2")}</Tx>
     <Tx x={40} y={154} s={13}>{t("coaches.fig.method.l3")}</Tx>
     <Tx x={40} y={178} s={13}>{t("coaches.fig.method.l4")}</Tx>
+    {/* ⚠️ TROIS SORTIES DEPUIS LE 2026-08-19, ET LA GÉOMÉTRIE A SUIVI. La
+        quatrième était « la semaine qu'ils composent »: sa lane a été retirée
+        (aucun appelant vivant). Le pas de 48 et la largeur sont inchangés;
+        seul le bus se recentre sur 136, qui est le milieu du bloc d'entrée
+        (y=56, h=160). Une figure qui garde quatre boîtes pour trois sorties
+        affirme une mesure que le produit ne rend plus. */}
     <g fill="none" stroke={SOFT} strokeWidth="1" strokeLinecap="round">
       <path d="M 216 136 L 252 136" />
-      <path d="M 252 64 L 252 208" />
-      {[64, 112, 160, 208].map((y) => <path key={y} d={`M 252 ${y} L 284 ${y}`} />)}
+      <path d="M 252 88 L 252 184" />
+      {[88, 136, 184].map((y) => <path key={y} d={`M 252 ${y} L 284 ${y}`} />)}
     </g>
-    <rect x="284" y="44" width="172" height="40" rx="12" fill={PAPER} stroke={INK} strokeWidth="2" />
-    <Tx x={300} y={69} s={13}>{t("coaches.fig.method.out1")}</Tx>
-    <rect x="284" y="92" width="172" height="40" rx="12" fill={PAPER} stroke={INK} strokeWidth="2" />
-    <Tx x={300} y={117} s={13}>{t("coaches.fig.method.out2")}</Tx>
-    <rect x="284" y="140" width="172" height="40" rx="12" fill={PAPER} stroke={INK} strokeWidth="2" />
-    <Tx x={300} y={165} s={13}>{t("coaches.fig.method.out3")}</Tx>
-    <rect x="284" y="188" width="172" height="40" rx="12" fill={PAPER} stroke={INK} strokeWidth="2" />
-    <Tx x={300} y={213} s={13}>{t("coaches.fig.method.out4")}</Tx>
+    <rect x="284" y="68" width="172" height="40" rx="12" fill={PAPER} stroke={INK} strokeWidth="2" />
+    <Tx x={300} y={93} s={13}>{t("coaches.fig.method.out1")}</Tx>
+    <rect x="284" y="116" width="172" height="40" rx="12" fill={PAPER} stroke={INK} strokeWidth="2" />
+    <Tx x={300} y={141} s={13}>{t("coaches.fig.method.out2")}</Tx>
+    <rect x="284" y="164" width="172" height="40" rx="12" fill={PAPER} stroke={INK} strokeWidth="2" />
+    <Tx x={300} y={189} s={13}>{t("coaches.fig.method.out3")}</Tx>
   </svg>
 );
 

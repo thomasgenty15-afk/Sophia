@@ -1,0 +1,10 @@
+01	foyer	3eae73ac-373d-41c4-af3a-9e6c895ee86c	60|60|0|60|60|60|60|OK — seuil atteint
+02	foyer	09240cb5-7ca3-4080-a028-e364974e5b91	37|37|0|37|37|37|37|OK — seuil atteint
+03	foyer	8f498609-48b5-4faf-8349-a8d7be262006	79|73|6|73|79|79|73|OK — seuil atteint
+04	foyer	d46c4dad-ec3b-4bc1-af5e-8660b0c22b41	99|95|4|95|99|99|95|OK — seuil atteint
+05	foyer	4ef89334-81c0-40ec-895a-73b550de30da	50|50|0|50|52|52|50|OK — seuil atteint
+06	foyer	9ec54e51-4bf2-42b3-aa30-038e38e598ce	55|54|1|54|56|56|54|OK — seuil atteint
+07	foyer	5058be6a-3728-47f3-8685-9334519ad41f	120|120|0|120|122|122|120|OK — seuil atteint
+08	foyer	612ac898-cfe0-45b7-b538-2152719f08b8	91|91|0|91|91|91|91|OK — seuil atteint
+09	foyer	a5b2a817-fd34-4f22-8632-8f47cb985146	64|64|0|64|72|72|64|OK — seuil atteint
+10	foyer	9f02838a-7fc4-4e48-9653-6d226f6bfa64	145|125|20|125|146|146|125|OK — seuil atteint

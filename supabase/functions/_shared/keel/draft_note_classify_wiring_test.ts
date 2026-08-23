@@ -57,11 +57,11 @@
 // diverger le jour où l'une des deux bouge.
 //
 // ⚠️ `generate-week-plan-v1` EST ABSENT DE CE FICHIER, ET C'EST UN CONSTAT, PAS
-// UN OUBLI. Cette lane ne lit AUCUNE note de brouillon: `draft_note`,
-// `draftNote`, `DraftNote` et même `intent` ont ZÉRO occurrence dans son
-// `index.ts` (948 lignes). Elle prend `body.context` et `body.local_date`, et
-// ne connaît pas la notion d'aperçu. Y poser l'appel par symétrie classerait
-// une note qui n'existe pas.
+// UN OUBLI. Cette lane ne lisait AUCUNE note de brouillon: `draft_note`,
+// `draftNote`, `DraftNote` et même `intent` avaient ZÉRO occurrence dans son
+// `index.ts` (948 lignes). Elle a été RETIRÉE le 2026-08-19 — elle n'avait
+// aucun appelant vivant — et le constat qui l'épinglait est parti avec elle
+// (voir le bas de ce fichier). Il reste DEUX générateurs, pas trois.
 // ═══════════════════════════════════════════════════════════════════════════
 
 import {
@@ -638,34 +638,14 @@ for (const lane of LANES) {
 }
 
 // ---------------------------------------------------------------------------
-// LA LANE QUI N'EN A PAS — un CONSTAT, épinglé pour qu'il reste vrai
+// LA LANE QUI N'EN AVAIT PAS — retirée avec sa lane le 2026-08-19
 // ---------------------------------------------------------------------------
-
-Deno.test(
-  "LANE WEEK-PLAN — elle ne lit AUCUNE note de brouillon, donc elle n'est pas câblée",
-  async () => {
-    // ⚠️ CE TEST EST UN CONSTAT, PAS UNE INTERDICTION. Il ne dit pas « ne
-    // câblez jamais cette lane »: il dit que RIEN n'y est aujourd'hui à
-    // classer. Le jour où quelqu'un y ajoute une note de brouillon, il
-    // rougira — et c'est exactement le moment où il faut relire ce fichier
-    // plutôt que d'ajouter l'appel par symétrie.
-    //
-    // ⛔ L'ERREUR QU'IL EMPÊCHE: le lot 1C câblait les TROIS générateurs. Un
-    // lecteur pressé conclurait que celui-ci en manque un.
-    const week = await source("generate-week-plan-v1/index.ts");
-    for (const token of ["draft_note", "draftNote", "DraftNote"]) {
-      assert(
-        !week.includes(token),
-        `LANE WEEK-PLAN — \`${token}\` EST APPARU. Cette lane a désormais une ` +
-          `note de brouillon, et le classifieur n'y est pas branché: ce que ` +
-          `la personne y écrit part au modèle et n'est jamais rangé.`,
-      );
-    }
-    assert(
-      !week.includes(CALLEE),
-      "LANE WEEK-PLAN — le classifieur y a été câblé par symétrie. Il n'y a " +
-        "pas de note de brouillon sur cette lane: l'appel classerait une " +
-        "note qui n'existe pas, et rendrait `no_note` à chaque plan.",
-    );
-  },
-);
+//
+// Il y avait ici un test « LANE WEEK-PLAN — elle ne lit AUCUNE note de
+// brouillon, donc elle n'est pas câblée ». C'était un CONSTAT posé sur le
+// source de `generate-week-plan-v1/index.ts`. Cette lane a été retirée: le
+// test ne pouvait plus lire son fichier, et un constat sur un fichier absent
+// n'épingle rien. Il part avec elle, il n'est pas remplacé.
+//
+// Ce qu'il gardait reste vrai des DEUX lanes restantes, et c'est la boucle
+// ci-dessus qui le tient.

@@ -1,0 +1,10 @@
+# alias existant	slug ACTUEL	slug PROPOSÉ	preuve
+oignon rouge	onion	red_onion	Le PLURIEL `oignons rouges` pointe déjà sur `red_onion`. Le singulier et le pluriel du même mot désignent deux aliments différents dans la même table.
+semoule complete	couscous	couscous_wholemeal	`complet` veut dire complet. La ligne `couscous_wholemeal` (Wholemeal couscous, whole_grain, 345) existe ; l'alias envoie sur le couscous RAFFINÉ. Le groupe est faux.
+wrap	white_bread	tortilla_wrap	20 occurrences du corpus (« wraps » ×19, « wrap » ×1). `tortilla_wrap` existe et porte `unit_grams` 60 g ; `white_bread` en porte 35 g — UNE TRANCHE. « 2 wraps » pèse 70 g au lieu de 120 g.
+tortilla	white_bread	tortilla_wrap	Une tortilla n'est pas du pain de mie. `tortilla_wrap` (Tortilla wrap (wheat), 305 kcal, unit 60 g) est la ligne exacte.
+pitta	white_bread	pita_bread	`pita_bread` existe (Pita bread, 275 kcal, unit 60 g). L'alias `pita bread` n'atteint la bonne ligne QUE parce que la forme est aussi un slug ; `pitta` seul tombe sur le pain de mie.
+toast	white_bread	toasted_bread	6 occurrences. `toasted_bread` existe (Toasted bread, home-made, 317 kcal) : le grillage retire de l'eau, donc de la densité — 278 vs 317 kcal.
+baguette	white_bread	bread_french_bread_baguette	`bread_french_bread_baguette` existe (287 kcal). Surtout, `white_bread` porte `unit_grams` 35 g : « 1 baguette » pèserait 35 g.
+crusty baguette	white_bread	bread_french_bread_baguette	Même ligne, même raison.
+pain	white_bread	bread	`bread` = « Bread (average) », la ligne de moyenne. L'anglais générique « bread » l'atteint ; le français générique « pain » atteint le pain BLANC. Deux généricités, deux lignes.

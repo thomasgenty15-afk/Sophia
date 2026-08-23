@@ -24,6 +24,14 @@ import type {
   CompositionUnit,
 } from "./food_composition.ts";
 import type { EatingOccasion, MealSlot } from "./meal_generation.ts";
+// L4 — LE GROUPE VIENT DE LA DÉCLARATION, ET SON VOCABULAIRE EST CELUI DE
+// TOUT LE RESTE. Ce module reste PUR: `declared_food_group.ts` ne fait aucune
+// I/O et n'importe que `tokens.ts` et `food_group_write.ts`, tous deux purs.
+import {
+  declaredIntakeGroupOf,
+  ungroupedFoodGroup,
+} from "./declared_food_group.ts";
+import type { FoodGroupRef } from "./tokens.ts";
 
 /**
  * LES MOMENTS ET LES JOURS, RECOPIÉS PLUTÔT QU'IMPORTÉS.
@@ -158,6 +166,25 @@ export type FixedIntake =
        * C'est UN chiffre de plus, sur la même ligne de la même étiquette.
        */
       energyKcalPerServing: number;
+      /**
+       * ── L4 · LE GROUPE, QUAND LA DÉCLARATION LE NOMME ────────────────────
+       *
+       * ⚠️ OPTIONNEL, ET C'EST LA SEULE FORME HONNÊTE. Les 8 apports en base le
+       * 2026-08-22 n'en portent aucun: le rendre obligatoire ferait tomber
+       * huit déclarations valides — dont six shakers dont la protéine est la
+       * raison d'être de cette branche — pour un champ qu'aucun écran n'écrit
+       * encore.
+       *
+       * ⛔ ET SON ABSENCE N'EST PAS `lean_protein`. C'était le cas jusqu'à ce
+       * lot, et le Barleycup malt drink en base (18,4 % de protéines dans son
+       * énergie) prouve que le défaut mentait déjà. `absent` veut dire « la
+       * déclaration ne dit pas », et `augmentedIndexFor` le rend au neutre
+       * hors vocabulaire, jamais à une affirmation.
+       *
+       * Un slug hors de `FOOD_GROUP_REFS` est lu comme absent — voir
+       * `declaredIntakeGroupOf`, qui ne lève jamais et compte le refus.
+       */
+      foodGroup?: FoodGroupRef;
     }
   )
   & (
@@ -333,6 +360,7 @@ export function parseFixedIntakes(raw: unknown): FixedIntakeParse {
         servingGrams: number;
         proteinGPerServing: number;
         energyKcalPerServing: number;
+        foodGroup?: FoodGroupRef;
       } = { nutrition: "referential" };
     if (declaresNutrition) {
       // ⚠️ `Number(null)` VAUT 0, ET `Number("")` AUSSI. Lire ces trois champs
@@ -355,11 +383,21 @@ export function parseFixedIntakes(raw: unknown): FixedIntakeParse {
         discarded++;
         continue;
       }
+      // ── L4 · LE GROUPE NE FAIT PAS PARTIE DU TOUT-OU-RIEN ────────────────
+      // Les trois NOMBRES sont solidaires: une déclaration à moitié chiffrée
+      // ne pèse rien, donc elle se jette. Le groupe, lui, est une étiquette de
+      // plus sur une déclaration déjà complète: la jeter ferait tomber une
+      // déclaration entière — six shakers en base — pour un mot mal
+      // orthographié, et remettrait leur protéine hors du calcul. Un slug
+      // inventé retombe donc sur l'absence, comptée par
+      // `declaredIntakeGroupCounts` sous `refused`.
+      const foodGroup = declaredIntakeGroupOf(e);
       nutritionBranch = {
         nutrition: "declared",
         servingGrams,
         proteinGPerServing: proteinG,
         energyKcalPerServing: energyKcal,
+        ...(foodGroup === null ? {} : { foodGroup }),
       };
     }
 
@@ -510,20 +548,38 @@ export function augmentedIndexFor(
     const per100 = 100 / intake.servingGrams;
     bySlug.set(intake.foodRef, {
       slug: intake.foodRef,
-      // ── LE GROUPE EST LE MOINS FAUX D'UNE LISTE FERMÉE SANS NEUTRE ─────
-      // `FOOD_GROUP_REFS` n'a pas de case « inconnu »: chaque valeur AFFIRME
-      // quelque chose. `lean_protein` est celle qu'un apport déclaré a le plus
-      // de chances de rendre vraie — c'est la raison même pour laquelle on
-      // déclare un apport (la protéine que le référentiel ne sait pas peser).
+      // ── ⟳ L4 · LE GROUPE VIENT DE LA DÉCLARATION, OU DE NULLE PART ─────
       //
-      // ⚠️ CE QUE ÇA COÛTE, ET C'EST ASSUMÉ: une barre sucrée ou une boisson
-      // déclarée serait comptée comme protéine maigre par un engagement de
-      // groupe (`evaluator.ts`). Le jour où des apports déclarés NON
-      // protéiques apparaissent, ce champ doit venir de la déclaration, pas
-      // d'ici. Il n'y a pas de meilleur défaut tant que la liste n'a pas de
-      // neutre.
-      foodGroupRef: "lean_protein",
+      // Ce champ valait `"lean_protein"` EN DUR, et le commentaire d'alors
+      // nommait sa propre date de péremption: *« le jour où des apports
+      // déclarés NON protéiques apparaissent, ce champ doit venir de la
+      // déclaration, pas d'ici »*. Ce jour-là était PASSÉ quand on l'a
+      // mesuré: sur les 7 apports déclarés en base le 2026-08-22, un
+      // Barleycup malt drink porte 18,4 % de protéines dans son énergie,
+      // contre 80 % pour une poudre.
+      //
+      // ⛔ ET DEPUIS `L17`, UN GROUPE FAUX BORNE UNE ÉNERGIE. Mesuré: UNE
+      // seule déclaration faisait passer la borne d'un terme inconnu
+      // `lean_protein` de 201 à 538 kcal à 150 g (×2,7), et faisait tomber
+      // `lean_protein` de la liste des porteurs de zinc (2/3 → 2/4, sous
+      // `SENTINEL_CARRIER_SHARE`).
+      //
+      // ⚠️ LE REPLI N'EST PAS UN GROUPE, ET LES LECTEURS LE SAVENT DÉJÀ:
+      // `groupBandsFrom` saute une valeur hors `FOOD_GROUP_REFS`, et
+      // `sentinelCarriersOf` la range dans un seau que personne n'interroge.
+      // Le neutre que la liste fermée n'a pas, ses lecteurs l'avaient.
+      //
+      // ⛔ ET LA LIGNE RESTE DANS L'INDEX. Son énergie et sa protéine sont
+      // intactes: seule l'affirmation de groupe part. La retirer remettrait
+      // les 24 g de protéine du shaker hors du verdict, c'est-à-dire le trou
+      // que cette branche existe pour fermer.
+      foodGroupRef: intake.foodGroup ?? ungroupedFoodGroup(),
       label: intake.label,
+      // ⚠️ `manual` ET PAS UNE SIXIÈME VALEUR. Un apport déclaré vient d'une
+      // ÉTIQUETTE que l'élève a lue — c'est la source la plus humaine du
+      // produit. Lui donner `model` gonflerait le compteur ② du LOT 18 avec
+      // une valeur qu'aucun modèle n'a écrite.
+      source: "manual",
       energyKcal: intake.energyKcalPerServing * per100,
       proteinG: intake.proteinGPerServing * per100,
       // `null`, PAS `0`: l'étiquette n'a pas été lue là-dessus, et `null` est
@@ -543,6 +599,11 @@ export function augmentedIndexFor(
       atwaterDiscount: 1.0,
       energyDense: false,
       unitGrams: intake.servingGrams,
+      // JAMAIS un condiment. Un apport déclaré est le contraire exact: on le
+      // déclare parce qu'il porte de la protéine que le référentiel ne sait pas
+      // peser. Lui poser une masse conventionnelle ferait passer un shaker pour
+      // une pincée de sel — et ferait taire l'abstention qui le signale.
+      condimentGrams: null,
     });
   }
   // `byAlias` NE BOUGE PAS. Un alias vers un slug déclaré donnerait au libellé

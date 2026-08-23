@@ -47,6 +47,10 @@ function dish(over: Partial<GeneratedDish> = {}): GeneratedDish {
     why: "Simple à préparer.",
     honours_belief_keys: [],
     uses: [],
+    // 2026-08-19 — `null` = rien n'a été pesé d'avance pour ce repas, et c'est le
+    // cas d'un plat qui ne prélève sur aucun lot. Le PDF de courses ne lit pas
+    // ce champ: on achète du CRU, et une boîte porte du PRÊT.
+    boxes: [],
     // LOT C — `null` = le plat de la table, et c'est le cas nominal. Le PDF de
     // courses ne lit pas ce champ: on achète pour la maison, pas par bouche.
     memberId: null,
@@ -59,7 +63,9 @@ function dish(over: Partial<GeneratedDish> = {}): GeneratedDish {
 }
 
 function item(over: Partial<ShoppingItem> = {}): ShoppingItem {
-  return { term: "poulet", quantity: "600 g", aisle: "protein", ...over };
+  // ⟳ `L0-a` — `food_group` est REQUIS sur `ShoppingItem`: il porte la fenêtre
+  // crue, donc la date de courses. `null` ici, le PDF ne le lit pas.
+  return { term: "poulet", quantity: "600 g", aisle: "protein", food_group: null, ...over };
 }
 
 function input(over: Record<string, unknown> = {}) {

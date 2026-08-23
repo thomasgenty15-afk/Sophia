@@ -195,7 +195,57 @@ export async function loadHouseholdFixedIntakes(
         demoted: 0,
         issues: [] as string[],
       };
-      if (!mouth.userId) return empty;
+      // ── ⛔ UNE BOUCHE SANS COMPTE A SON PROPRE STOCK DEPUIS LE 2026-08-19 ──
+      //
+      // Cette ligne était `if (!mouth.userId) return empty;` — un retour sec,
+      // et il était JUSTE tant que `fixed_intakes` ne vivait que dans
+      // `student_goals.practical_constraints`, c'est-à-dire sur `user_id`.
+      //
+      // Le produit a le défaut symétrique depuis toujours: un enfant, un
+      // conjoint saisi — le cas NOMINAL du foyer — n'avait aucun endroit où
+      // poser un shaker, et l'écran ne le proposait donc pas. Demandé quatre
+      // fois. La colonne `household_members.fixed_intakes` (migration
+      // `20260819170000`) est ce qui manquait.
+      //
+      // ⚠️ MÊME PARSEUR DES DEUX CÔTÉS. `parseFixedIntakes` est le seul lecteur
+      // du produit et il est tout-ou-rien sur la composition déclarée; lire ce
+      // stock-ci avec autre chose aurait fait diverger les deux au premier
+      // ajustement, et l'écart se serait vu dans une assiette.
+      if (!mouth.userId) {
+        try {
+          const res = await counted
+            .from("household_members")
+            .select("fixed_intakes")
+            .eq("member_id", mouth.memberId)
+            .maybeSingle();
+          if (res.error) throw new Error(String(res.error.message ?? res.error));
+          const parse = parseFixedIntakes(
+            (res.data as { fixed_intakes?: unknown } | null)?.fixed_intakes,
+          );
+          let demoted = 0;
+          const intakes = parse.intakes.map((intake) => {
+            if (intake.placement === "at_slot" && intake.replacesMeal) demoted++;
+            return attributedIntake(intake, mouth.displayName);
+          });
+          return {
+            mouth,
+            intakes,
+            discarded: parse.discarded,
+            demoted,
+            issues: [] as string[],
+          };
+        } catch (error) {
+          // MÊME DISCIPLINE QUE LA BRANCHE D'À CÔTÉ: un échec de lecture ne
+          // fait pas tomber le foyer entier, il rend cette bouche vide et le
+          // journalise. Une bouche sans apport lisible mange son plat normal.
+          console.warn(JSON.stringify({
+            tag: "keel.household_meal.fixed_intakes_unreadable",
+            member_id: mouth.memberId,
+            error: String(error instanceof Error ? error.message : error),
+          }));
+          return empty;
+        }
+      }
       try {
         const res = await counted
           .from("student_goals")

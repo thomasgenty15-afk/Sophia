@@ -43,6 +43,12 @@ function dish(over: Partial<GeneratedDish> = {}): GeneratedDish {
     why: "",
     ingredients: [],
     uses: [],
+    // ⚠️ `boxes: []` EST OBLIGATOIRE, ET LE `as GeneratedDish` CI-DESSOUS EST
+    // CE QUI L'A CACHÉ. Le cast fait taire tsc sur un champ manquant, et
+    // `boxLinesForDish` lève alors un `TypeError` au montage — écran blanc.
+    // Cette fixture-ci ne met AUCUN contenant, exprès: elle juge la séparation
+    // par personne, pas les boîtes. Mais elle doit dire « aucun », pas se taire.
+    boxes: [],
     same_day: null,
     member_id: null,
     ...over,
@@ -54,6 +60,10 @@ function person(over: Partial<MemberPortionView> = {}): MemberPortionView {
     memberId: "mem-zoe",
     displayName: "Zoé",
     portionNote: null,
+    // ⚠️ `null` = elle n'a rien déclaré, donc elle suit la maison — le cas
+    // nominal. Un test qui veut prouver qu'une bouche est ABSENTE d'un moment
+    // le dit explicitement (`eatingSlots: ["lunch", "dinner"]`).
+    eatingSlots: null,
     shares: [],
     ...over,
   };
@@ -106,12 +116,50 @@ describe("LOT 3 · deux plats au même moment, deux blocs séparés", () => {
     portions: [ZOE, KID],
   };
 
-  it("⛔ les deux en-têtes sont rendus, chacun UNE fois", () => {
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * ⛔ CE TEST DISAIT LE CONTRAIRE, ET IL AVAIT TORT (corrigé le 2026-08-19).
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * Il exigeait « For the table » sur ce montage-là. Or Zoé mange son plat à
+   * elle deux centimètres plus bas: la casserole commune n'est mangée QUE par
+   * Kid, et « pour la table » désignait donc UNE personne sur deux. C'est la
+   * même erreur que C4 a corrigée sur les PARTS le 2026-08-17 — les parts
+   * disaient déjà « Kid » pendant que l'en-tête au-dessus disait « la table ».
+   *
+   * Signalé à l'écran: « je comprends pas non plus "pour la table" ».
+   */
+  it("⛔ la voie commune est nommée par CEUX QUI Y MANGENT, jamais « la table »", () => {
     const html = textOf(split);
-    expect(html, "« pour la table » manque").toContain("For the table");
+    expect(html, "la casserole commune n'est pas rendue à Kid seul")
+      .toContain("For Kid");
     expect(html, "la bouche n'est pas nommée").toContain("For Zoé");
-    expect(occurrences(html, "For the table")).toBe(1);
+    expect(
+      html,
+      "« la table » désigne une personne sur deux",
+    ).not.toContain("For the table");
+    expect(occurrences(html, "For Kid")).toBe(1);
     expect(occurrences(html, "For Zoé")).toBe(1);
+  });
+
+  /**
+   * ⚠️ LE REPLI, ET IL EST ATTEIGNABLE. Chaque bouche nommée mange son plat:
+   * plus personne à mettre sur la casserole commune. On ne sait alors QUE
+   * `member_id === null` — littéralement « pas à quelqu'un » — et le mot
+   * « table » redevient le seul vrai qu'on ait.
+   */
+  it("⚠️ quand plus aucune bouche nommée ne mange le plat commun, le repli est « la table »", () => {
+    const html = textOf({
+      dishes: [
+        dish(),
+        dish({ member_id: "mem-zoe" }),
+        dish({ member_id: "mem-kid" }),
+      ],
+      portions: [ZOE, KID],
+    });
+    expect(html).toContain("For the table");
+    expect(html).toContain("For Zoé");
+    expect(html).toContain("For Kid");
   });
 
   it("⛔ chaque plat est rendu UNE fois — le plat commun ne se répète pas", () => {
@@ -122,9 +170,11 @@ describe("LOT 3 · deux plats au même moment, deux blocs séparés", () => {
     expect(occurrences(html, TABLE_DISH)).toBe(2);
   });
 
-  it("⛔ l'ordre est celui qu'on lit: la table, puis la bouche, chacune avec SON plat", () => {
+  it("⛔ l'ordre est celui qu'on lit: la voie commune, puis la bouche, chacune avec SON plat", () => {
     const html = textOf(split);
-    const table = html.indexOf("For the table");
+    // La voie commune s'appelle « For Kid » depuis le 2026-08-19 — c'est bien
+    // elle qui porte le plat sans `member_id`, et elle vient toujours d'abord.
+    const table = html.indexOf("For Kid");
     const zoe = html.indexOf("For Zoé");
     expect(table).toBeGreaterThan(-1);
     expect(zoe).toBeGreaterThan(table);
@@ -152,12 +202,52 @@ describe("LOT 3 · deux plats au même moment, deux blocs séparés", () => {
   });
 });
 
+describe("2026-08-19 · les marqueurs sous un plat commun", () => {
+  /**
+   * « Quand le repas est commun, il faudrait des genre de marqueur pour les
+   * personnes. » Un plat commun ne portait AUCUN prénom: on lisait le titre
+   * sans savoir si le foyer entier était servi ou si quelqu'un manquait.
+   */
+  it("⛔ un plat commun porte le prénom de chaque bouche", () => {
+    const html = markup({ dishes: [dish()], portions: [ZOE, KID] });
+    expect(html).toContain('data-eater-member-id="mem-zoe"');
+    expect(html).toContain('data-eater-member-id="mem-kid"');
+    const text = textOf({ dishes: [dish()], portions: [ZOE, KID] });
+    expect(text).toContain("Zoé");
+    expect(text).toContain("Kid");
+  });
+
+  /**
+   * ⛔ ET ILS NE SE RÉPÈTENT PAS SOUS UNE VOIE DÉJÀ NOMMÉE. L'en-tête de la
+   * voie dit le prénom; une pastille trois centimètres plus bas le redirait,
+   * sur la surface même que le lot 3 existe pour rendre lisible.
+   */
+  it("⛔ dans une voie nommée, aucun marqueur — l'en-tête a déjà nommé", () => {
+    const html = markup({
+      dishes: [dish(), dish({ member_id: "mem-zoe" })],
+      portions: [ZOE, KID],
+    });
+    expect(html).not.toContain("data-eater-member-id");
+  });
+
+  /**
+   * ⚠️ MUET À UNE SEULE BOUCHE — le chemin MAJORITAIRE du produit. « Pour
+   * Zoé » sur un plan d'une personne seule serait une évidence répétée vingt
+   * fois par semaine.
+   */
+  it("⚠️ à une seule bouche, aucun marqueur", () => {
+    const html = markup({ dishes: [dish()], portions: [ZOE] });
+    expect(html).not.toContain("data-eater-member-id");
+  });
+});
+
 describe("LOT 3 · le cas majoritaire ne paie rien", () => {
   it("⚠️ LE CAS QUI PASSE — un seul plat commun, aucun en-tête, et le plat est là", () => {
     const html = textOf({ dishes: [dish()], portions: [ZOE, KID] });
     expect(html, "un dîner que tout le monde mange porte une étiquette")
       .not.toContain("For the table");
-    expect(html).not.toContain("For Zoé");
+    expect(html, "une VOIE nommée est apparue sans plat dédié")
+      .not.toContain("For Zoé");
     expect(html, "le plat a disparu du jour").toContain(TABLE_DISH);
   });
 
@@ -262,6 +352,52 @@ describe("LOT 3 · les parts, sous le plat et dans le jour", () => {
     expect(occurrences(html, "1 small portion of chicken")).toBe(1);
     expect(html, "un en-tête est apparu sur le chemin majoritaire")
       .not.toContain("For the table");
+  });
+
+  /**
+   * ══════════════════════════════════════════════════════════════════════
+   * 2026-08-19 — LE PRÉNOM NE SORT PAS TROIS FOIS DANS QUATRE LIGNES.
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * Mesuré sur le rendu après le lot: une voie dédiée disait « For Zoé »
+   * (l'en-tête), « Box Zoé — 340 g » (la carte) puis « Zoé — 2 portions of
+   * chicken » (la part). La part perd son prénom quand l'en-tête l'a déjà
+   * écrit — et SEULEMENT là.
+   */
+  it("⛔ dans une voie qui ne nomme QU'UNE bouche, la part ne redit pas le prénom", () => {
+    // ⚠️ LE TITRE NE PORTE PAS LE PRÉNOM ICI, et c'est nécessaire: on COMPTE
+    // les occurrences de « Zoé » à l'écran, et un titre qui la nomme rendrait
+    // le compte impossible à interpréter.
+    const own = { ...bowls, title: "Tofu bowl", member_id: "mem-zoe" } as GeneratedDish;
+    const html = markup({ dishes: [bowls, own], portions: [zoeShare, kidShare] });
+    const text = textOf({ dishes: [bowls, own], portions: [zoeShare, kidShare] });
+    // Le prénom ne se lit qu'une fois dans le bloc: dans l'en-tête.
+    expect(occurrences(text, "Zoé")).toBe(1);
+    expect(text, "la part elle-même a disparu").toContain("2 portions of chicken");
+    // ⚠️ LA JOINTURE RESTE AUDITABLE même quand le prénom ne se lit plus.
+    expect(html).toContain('data-share-member-id="mem-zoe"');
+  });
+
+  /**
+   * ⚠️ LE CAS QUI PASSE, ET IL EST LE VRAI SUJET DE LA RÈGLE. Quand l'en-tête
+   * nomme DEUX bouches, effacer les prénoms rendrait deux lignes identiques
+   * pour deux assiettes différentes — bien pire que la répétition. Un troisième
+   * convive mange à part, donc l'en-tête commun nomme Zoé ET Kid.
+   */
+  it("⚠️ quand l'en-tête nomme DEUX bouches, les parts gardent leurs prénoms", () => {
+    const NINA_ID = "mem-nina";
+    const html = textOf({
+      dishes: [bowls, { ...bowls, title: "Nina's bowl", member_id: NINA_ID } as GeneratedDish],
+      portions: [
+        zoeShare,
+        kidShare,
+        person({ memberId: NINA_ID, displayName: "Nina" }),
+      ],
+    });
+    expect(html, "l'en-tête commun ne nomme pas ses deux mangeurs")
+      .toContain("For Zoé and Kid");
+    expect(html).toContain("Zoé — 2 portions of chicken");
+    expect(html).toContain("Kid — 1 small portion of chicken");
   });
 });
 

@@ -1,0 +1,129 @@
+COOKED	cruciferous_veg	broccoli_water_crunchy	Broccoli, boiled/cooked in water, crunchy
+COOKED	cruciferous_veg	broccoli_water_tender	Broccoli, boiled/cooked in water, tender
+COOKED	cruciferous_veg	brussels_sprout_water	Brussels sprout, boiled/cooked in water
+COOKED	cruciferous_veg	green_cabbage_water	Green cabbage, boiled/cooked in water
+COOKED	cruciferous_veg	romanesco_cauliflower_romanesco_broccoli	Romanesco cauliflower or romanesco broccoli, cooked
+COOKED	cruciferous_veg	turnip_water	Turnip, boiled/cooked in water
+COOKED	cruciferous_veg	white_cabbage_water	White cabbage, boiled/cooked in water
+COOKED	dairy_yogurt	floating_island_refrigerated	Floating island (meringue poached in milk and served in a light custard cream)
+COOKED	eggs	egg_added_fat	Egg, fried without added fat
+COOKED	eggs	egg_hard	Egg, hard-boiled
+COOKED	eggs	egg_soft	Egg, soft-boiled
+COOKED	leafy_greens	spinach_water	Spinach, boiled/cooked in water
+COOKED	leafy_greens	swiss_chard_leaf_stalk	Swiss chard, leaf and stalk, boiled/cooked in water
+COOKED	legumes	baked_beans	Baked beans
+COOKED	legumes	lentils_cooked	Lentils (cooked)
+COOKED	non_starchy_veg	artichoke	Artichoke, steamed
+COOKED	non_starchy_veg	asparagus_green_water	Asparagus, green, boiled/cooked in water
+COOKED	non_starchy_veg	asparagus_white_water	Asparagus, white, boiled/cooked in water
+COOKED	non_starchy_veg	butter_bean_yellow_bean	Butter bean or yellow bean, boiled/cooked in water
+COOKED	non_starchy_veg	carrot_water_crunchy	Carrot, boiled/cooked in water, crunchy
+COOKED	non_starchy_veg	carrot_water_tender	Carrot, boiled/cooked in water, tender
+COOKED	non_starchy_veg	celeriac_water	Celeriac, boiled/cooked in water
+COOKED	non_starchy_veg	chayote_island_la_reunion	Chayote, without skin, steamed, from the Island La Réunion (Sechium edule)
+COOKED	non_starchy_veg	chinese_cabbageor_bok_choi	Chinese cabbageor bok choï bredes, rods and leafs, steamed, from the island La
+COOKED	non_starchy_veg	chinese_japanese_artichokes	Chinese or Japanese artichokes, cooked
+COOKED	non_starchy_veg	eggplant_pulp	Eggplant, pulp and skin, roasted/baked
+COOKED	non_starchy_veg	french_bean_water	French bean, boiled/cooked in water
+COOKED	non_starchy_veg	garden_peas_water	Garden peas, boiled/cooked in water
+COOKED	non_starchy_veg	leek_water	Leek, boiled/cooked in water
+COOKED	non_starchy_veg	onion_red_sauteed_pan	Onion, red, sautéed/pan-fried, without fat
+COOKED	non_starchy_veg	onion_white_yellow_sauteed	Onion, white or yellow, sautéed/pan-fried, without fat
+COOKED	non_starchy_veg	pepper_sweet_green_sauteed	Pepper, sweet, green, sautéed/pan-fried, without fat
+COOKED	non_starchy_veg	pepper_sweet_red_sauteed	Pepper, sweet, red, sautéed/pan-fried, without fat
+COOKED	non_starchy_veg	pepper_sweet_yellow_sauteed	Pepper, sweet, yellow, sautéed/pan-fried, without fat
+COOKED	non_starchy_veg	pumpkin	Pumpkin, roasted/baked
+COOKED	non_starchy_veg	pumpkin_pulp	Pumpkin (cucurbita moschata), pulp, cooked
+COOKED	non_starchy_veg	red_kuri_squash_pulp	Red kuri squash, pulp, braised
+COOKED	non_starchy_veg	salsify_water	Salsify, boiled/cooked in water
+COOKED	non_starchy_veg	shallot_pan_fat	Shallot, grilled/pan-fried, without fat
+COOKED	non_starchy_veg	snow_pea_water	Snow pea, boiled/cooked in water
+COOKED	non_starchy_veg	spring_onion_sauteed_pan	Spring onion, sautéed/pan-fried, without fat
+COOKED	non_starchy_veg	vegetable	Vegetable, cooked (average)
+COOKED	poultry	chicken_ham_slices	Chicken cooked ham, in slices
+COOKED	poultry	chicken_leg_meat_water	Chicken leg, meat, boiled/cooked in water
+COOKED	poultry	chicken_marinated_wing	Chicken, marinated wing, roasted/baked
+COOKED	poultry	duck_magret_pan	Duck, magret, cooked in pan
+COOKED	poultry	poultry	Poultry, cooked (average)
+COOKED	poultry	salt_curing_roast_poultry	Salt curing roast poultry, cooked
+COOKED	poultry	turkey_escalope_sauteed_pan	Turkey, escalope, sautéed/pan-fried, with salt
+COOKED	poultry	turkey_ham_slices	Turkey cooked ham, in slices
+COOKED	red_meat	beef	Beef, braised
+COOKED	red_meat	beef_bolar_blade_pan	Beef, bolar-blade, grilled/pan-fried
+COOKED	red_meat	beef_flank_steak_pan	Beef, flank steak, grilled/pan-fried
+COOKED	red_meat	beef_ground	Beef, ground, cooked (average)
+COOKED	red_meat	beef_knuckle_water	Beef, knuckle, boiled/cooked in water
+COOKED	red_meat	beef_meat_balls	Beef, meat balls, cooked
+COOKED	red_meat	beef_oxtail_water	Beef, oxtail, boiled/cooked in water
+COOKED	red_meat	beef_rib_steak_lean	Beef, rib steak, lean, grilled/pan-fried
+COOKED	red_meat	beef_roast_beef	Beef, roast beef, roasted/baked
+COOKED	red_meat	beef_sirloin_steak_pan	Beef, sirloin steak, grilled/pan-fried
+COOKED	red_meat	beef_thin_flank_pan	Beef, thin flank, grilled/pan-fried
+COOKED	red_meat	beef_topside_pan	Beef, topside, grilled/pan-fried
+COOKED	red_meat	black_pudding_sauteed_pan	Black pudding (blood sausage), sautéed/pan-fried
+COOKED	red_meat	black_white_pudding_sauteed	Black or white pudding (blood sausage), sautéed (average)
+COOKED	red_meat	calf_head_water	Calf, head, boiled/cooked in water
+COOKED	red_meat	chipolata_sausage	Chipolata sausage, cooked
+COOKED	red_meat	chitterling_sausage_sauteed_pan	Chitterling sausage, sautéed/pan-fried
+COOKED	red_meat	feathered_game_meat	Feathered game, meat, cooked (average)
+COOKED	red_meat	game	Game, cooked (average)
+COOKED	red_meat	ham_choice	Cooked ham, choice
+COOKED	red_meat	ham_choice_rind_less	Cooked ham, choice, rind less and fatless
+COOKED	red_meat	ham_choice_w_rind	Cooked ham, choice, w rind
+COOKED	red_meat	ham_on_bone	Braised ham on the bone
+COOKED	red_meat	ham_parisian_style_rind	Cooked ham, Parisian-style, rind less and fatless
+COOKED	red_meat	ham_smoked	Cooked ham, smoked
+COOKED	red_meat	ham_superior_quality	Cooked ham, superior quality
+COOKED	red_meat	ham_superior_quality_reduced	Cooked ham, superior quality, reduced salt
+COOKED	red_meat	ham_superior_quality_rind	Cooked ham, superior quality, with rind
+COOKED	red_meat	horse_rib_steak_pan	Horse, rib steak, grilled/pan-fried
+COOKED	red_meat	horse_sirloin_steak_pan	Horse, sirloin steak, grilled/pan-fried
+COOKED	red_meat	horse_topside_pan	Horse, topside, grilled/pan-fried
+COOKED	red_meat	kidney_all_types	Kidney, all types, cooked
+COOKED	red_meat	kidney_veal_sauteed_pan	Kidney, veal, sautéed/pan-fried
+COOKED	red_meat	knuckle_ham	Knuckle of ham, cooked
+COOKED	red_meat	lamb_chop_fillet_pan	Lamb, chop fillet, grilled/pan-fried
+COOKED	red_meat	lamb_leg_pan	Lamb, leg, grilled/pan-fried
+COOKED	red_meat	lamb_meat	Lamb, meat, cooked (average)
+COOKED	red_meat	lamb_rib_chop_pan	Lamb, rib chop, grilled/pan-fried
+COOKED	red_meat	lamb_saddle_lean	Lamb, saddle, lean, roasted/baked
+COOKED	red_meat	lamb_saddle_pan	Lamb, saddle, grilled/pan-fried
+COOKED	red_meat	meat	Meat, cooked (average)
+COOKED	red_meat	morteaux_sausage_water	Morteaux sausage, boiled/cooked in water
+COOKED	red_meat	offal	Offal, cooked (average)
+COOKED	red_meat	pigeon_meat	Pigeon, meat, roasted/baked
+COOKED	red_meat	pork_ham_intended_be	Pork ham, intended to be cooked or pork ham, intended to be roast/bake
+COOKED	red_meat	pork_meat	Pork, meat, cooked (average)
+COOKED	red_meat	pork_shoulder_choice	Cooked pork shoulder, choice
+COOKED	red_meat	pork_shoulder_standard_rind	Cooked pork shoulder, standard, rind less and fatless
+COOKED	red_meat	pork_tenderloin_roast	Pork tenderloin roast, cooked
+COOKED	red_meat	red_meat	Red meat, cooked (average)
+COOKED	red_meat	round_ham	Round of ham, cooked
+COOKED	red_meat	sausage_brioche_crust	Sausage in a brioche crust, cooked
+COOKED	red_meat	sausage_pure_pork	Cooked sausage, pure pork
+COOKED	red_meat	sweetbread_calf_sauteed_pan	Sweetbread, calf, sautéed/pan-fried
+COOKED	red_meat	veal_bread_escalope	Veal, bread escalope, cooked
+COOKED	red_meat	veal_chop_pan	Veal, chop, grilled/pan-fried
+COOKED	red_meat	veal_loin_sauteed_pan	Veal, loin, sautéed/pan-fried
+COOKED	red_meat	veal_meat	Veal, meat, cooked (average)
+COOKED	red_meat	veal_shoulder_pan	Veal, shoulder, grilled/pan-fried
+COOKED	red_meat	veal_tenderloin_pan	Veal, tenderloin, grilled/pan-fried
+COOKED	red_meat	white_meat	white meat, cooked (average)
+COOKED	refined_grain	cooked_rice	Cooked rice
+COOKED	refined_grain	crispbread_extruded	Crispbread, extruded and grilled
+COOKED	starchy_veg	early_potato_water	Early potato, boiled/cooked in water, peeled
+COOKED	starchy_veg	french_fries_chips	French fries or chips, frozen, roasted/baked
+COOKED	starchy_veg	french_fries_chips_aw	French fries or chips, frozen, pre-fried, aw, intended to be microwaved
+COOKED	starchy_veg	french_fries_chips_deep	French fries or chips, frozen, deep-fried
+COOKED	starchy_veg	french_fries_chips_intended	French fries or chips, frozen, pre-fried, raw, intended to be deep-fried
+COOKED	starchy_veg	mashed_potato_balls	Mashed potato balls pre-fried, frozen, raw
+COOKED	starchy_veg	plantain_banana	Plantain banana, cooked
+COOKED	starchy_veg	potato_chip_quarter_spiced	Potato chip, quarter, spiced, frozen, cooked
+COOKED	starchy_veg	potato_into_cubes	Potato, pre-fried into cubes, frozen, raw
+COOKED	starchy_veg	potato_sauteed_pan	Potato, sautéed/pan-fried
+COOKED	starchy_veg	potato_sauteed_pan_goose	Potato, sautéed/pan-fried, with goose fat
+COOKED	starchy_veg	potato_vacuum	Potato, steamed, vacuum-packed
+COOKED	starchy_veg	potato_water	Potato, boiled/cooked in water
+COOKED	starchy_veg	sweet_potato_puree_cream	Sweet potato, puree, cooked with cream
+COOKED	starchy_veg	ware_potato_water	Ware potato, boiled/cooked in water, peeled
+COOKED	starchy_veg	yam_indian_potato_water	Yam or Indian potato, peeled, boiled/cooked in water

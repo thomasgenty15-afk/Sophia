@@ -7,10 +7,19 @@ import { getRequestId, jsonResponse } from "../_shared/http.ts";
 import { logEdgeFunctionError, readableErrorMessage } from "../_shared/error-log.ts";
 import { generateWithGemini } from "../_shared/gemini.ts";
 import {
+  keelGenerationModel,
+  PLAN_HTTP_TIMEOUT_MS,
+  PLAN_REASONING_EFFORT,
+} from "../_shared/keel/generation_model.ts";
+import {
   doctrineBeliefsFor,
   doctrineBlockFor,
-  loadPublishedDoctrine,
 } from "../_shared/keel/doctrine_loader.ts";
+// LOT C ① — LA PORTE DU FOYER, ET SON PARAMÈTRE EST REQUIS. Voir
+// `loadHouseholdDoctrine`: l'option est facultative sur le chargeur générique
+// pour que les lanes sans table gardent le comportement d'avant; ici l'oubli
+// doit casser à la compilation.
+import { loadHouseholdDoctrine } from "../_shared/keel/household_doctrine.ts";
 import { coachNotePromptBlock, loadCoachNote } from "../_shared/keel/coach_note.ts";
 import { loadPublishedProtocol, protocolBlockFor } from "../_shared/keel/protocol_loader.ts";
 import {
@@ -71,6 +80,7 @@ import {
 // POURQUOI CES JOURS-LÀ — déterministe, assemblé par le serveur, jamais
 // demandé au modèle.
 import { explainPlanChoices } from "../_shared/keel/plan_rationale.ts";
+import { explainPlanTradeoffs } from "../_shared/keel/plan_tradeoffs.ts";
 // FF-061 — CE QUI A ÉTÉ FAIT DE CE QUI AVAIT ÉTÉ DEMANDÉ. Les quatre portes
 // vivent DANS le module.
 import { reportOnRequest } from "../_shared/keel/request_report.ts";
@@ -136,6 +146,8 @@ import {
   BOX_SUM_TOLERANCE_RATIO,
   preparationReadyGrams,
 } from "../_shared/keel/meal_generation.ts";
+// ⟳ LOT `L0-a` — les deux nombres de la fenêtre CRUE, sur la liste de courses.
+import { rawWindowCounts } from "../_shared/keel/grocery_waves.ts";
 import {
   appendContentLanguageBlock,
   resolveArtifactLocale,
@@ -196,6 +208,20 @@ import {
 import { proteinAnchorRetryInstruction } from "../_shared/keel/protein_anchor.ts";
 import type { CompositionIndex } from "../_shared/keel/food_composition.ts";
 import { loadCompositionIndex } from "../_shared/keel/food_composition_io.ts";
+// LOT 18 — la réparation du référentiel, un seul appel par plan, un repli qui
+// ne peut pas échouer, et AUCUN alias écrit. Voir `composition_fill.ts`.
+import {
+  compositionFillColumns,
+  fillPlanComposition,
+  repairPlanComposition,
+} from "../_shared/keel/composition_fill_io.ts";
+// ⟳ LOT `L17-0` — les DEUX populations du groupe déclaré: ce que le modèle
+// écrit, et ce qui atteint la base. Le compteur lit la charge ÉCRITE.
+import { foodGroupWriteCounts } from "../_shared/keel/food_group_write.ts";
+// LE PLIAGE EST IMPORTÉ, JAMAIS RECOPIÉ — 41 % de l'énergie et 51 % de la
+// protéine vivent dans les préparations, et une seconde écriture du prorata
+// divergerait de celle qui rend le chiffre affiché.
+import { foldPreparationsIntoDishes } from "../_shared/keel/meal_verdict.ts";
 import {
   MEMBER_AGE_STATES,
   type MemberAgeState,
@@ -216,20 +242,48 @@ import {
 import type { DietaryRegime } from "../_shared/keel/dietary_regime.ts";
 import {
   type HouseholdAllergyRow,
+  householdConstraintMouths,
   householdHardConstraints,
   loadHouseholdAllergies,
 } from "../_shared/keel/household_safety.ts";
 import {
   buildHouseholdPromptBlocks,
+  // LOT C ② — LE COMPTEUR DE L'ATTRIBUTION D'UNE RÈGLE DANS UN `why`.
+  countWhyRuleAttributions,
   extractMemberPortions,
   HOUSEHOLD_PROMPT_VERSION,
   type HouseholdRestriction,
 } from "../_shared/keel/household_meal_generation.ts";
+// ⛔ C1 — LE TAG DU COMPTEUR DE CONTAMINATION CROISÉE. Le BLOC, lui, n'est pas
+// importé ici: il est écrit par le module qui porte la règle et assemblé par
+// `buildHouseholdPromptBlocks`, qui décide sa position. L'appeler d'ici en
+// ferait une seconde évaluation des mêmes prémisses.
+import { CROSS_CONTACT_BLOCK_TAG } from "../_shared/keel/cross_contact.ts";
+// ── `D3′` · L'ARBITRAGE ENTRE DEUX BOUCHES QUI VEULENT LE CONTRAIRE ────────
+// ⛔ MODULE NEUF, COMMITÉ, QUI N'IMPORTE RIEN (règle §⑨ n° 92) — 15 épreuves,
+// 9 mutations attrapées sur 9, vertes depuis un arbre qui ne contient QUE ces
+// deux fichiers. Le texte du bloc, son déplacement en queue, le verdict de
+// position et le compteur à deux populations vivent tous là-bas: ici il n'y a
+// que le câblage et les objets de CE prompt.
+import {
+  countPrecedenceRanks,
+  movePrecedenceToTail,
+  PRECEDENCE_COUNTER_TAG,
+  type PrecedenceObjects,
+  precedenceTailVerdict,
+} from "../_shared/keel/precedence_tail.ts";
 // L7 ① — LE LECTEUR À TROIS VALEURS DES MOYENS DE CUISSON (L2, 2026-08-18).
 // ⛔ `hasKitchenTool` N'EST PAS IMPORTÉ ICI, ET C'EST VOULU: le seul chemin qui
 // décide d'une interdiction est `missingKitchenTools()`, appelé dans le module
 // qui écrit le bloc. Voir l'en-tête de `kitchenBlock`.
 import { readKitchenEquipment } from "../_shared/keel/kitchen_equipment.ts";
+// ③ — LES JOURS QUE LE FOYER NE DÉPLACE PAS (2026-08-20).
+import {
+  type HouseholdTradition,
+  parseTraditions,
+  traditionCounts,
+  traditionOutcomes,
+} from "../_shared/keel/household_traditions.ts";
 import {
   // C6 — COMBIEN DE PLATS DÉDIÉS, DÉCIDÉ EN UN SEUL ENDROIT.
   dedicatedDishesFor,
@@ -258,11 +312,44 @@ import {
   // assemblerait la chaine lui-meme choisirait de quel age et de quel plancher
   // il se sert — et la propriete R6 (retournee) le refuse par un test de source.
   // ══════════════════════════════════════════════════════════════════════════
+  BODY_SHARE_REASONS,
+  countPortionNoteDrift,
+  bodyShareFactors,
+  type BodyShareReason,
   BOX_SIZING_REASONS,
   type BoxSizingReason,
-  memberTargetFactor,
+  householdMouthFactors,
+  type MouthRestrictionState,
   sizeBoxesFromTarget,
+  householdAppetite,
+  weighedPortionMembers,
+  weightGroupCount,
 } from "../_shared/keel/household_portions.ts";
+// ── L0bis — LE GARDE D'ÉNERGIE DES CONDITIONS DÉCLARÉES ───────────────────
+// Il ne touche QUE le calcul. `conditionRef` n'entre dans aucune ceinture de
+// sortie: l'y mettre a déjà bâillonné un message d'urgence en run réel.
+import {
+  conditionGatePopulationOf,
+  evictsPregnancyFoods,
+  goalUnderConditionGate,
+  newConditionGateCounter,
+  pregnancyFoodBlockFor,
+} from "../_shared/keel/condition_energy_gate.ts";
+// ══════════════════════════════════════════════════════════════════════════
+// LE CHANTIER DU GRAMMAGE — l'ancrage absolu (`scratchpad/…-MASTER-PROMPT-
+// GRAMMAGE.md`). `mouth_energy` dit ce que la journée LIVRE, `mouth_anchor` ce
+// que le corps DEMANDE, et le second REMPLACE le facteur relatif quand il tire.
+// ══════════════════════════════════════════════════════════════════════════
+import {
+  ANCHOR_REASONS,
+  householdAnchors,
+  MEAL_STRUCTURE_STATES,
+  type MealStructure,
+  mealStructureState,
+} from "../_shared/keel/mouth_anchor.ts";
+import { mouthDayEnergy } from "../_shared/keel/mouth_energy.ts";
+// LA DIRECTION D'UN OBJECTIF, LUE UNE SEULE FOIS DANS LE DÉPÔT.
+import { scaleDirectionOf } from "../_shared/keel/weight_pace.ts";
 // L8 — LA POSITION DU COACH SUR `counting`, REDUITE. C'est une LECTURE de
 // doctrine, pas la porte: elle ne decide rien seule, elle rend l'un des trois
 // etats que le module pur fera passer par `energySafetyGates`.
@@ -273,6 +360,8 @@ import { countingStanceFrom } from "../_shared/keel/energy_gate.ts";
 import {
   gateMemberHabits,
   type MemberHabit,
+  // LE MÊME PRÉDICAT QUE LE BRIEF, APPELÉ — voir `dishBearingMembers`.
+  ownMealSlots,
   parseMemberHabits,
 } from "../_shared/keel/household_habits.ts";
 import { loadHouseholdMemberBodies } from "../_shared/keel/household_bodies.ts";
@@ -288,6 +377,10 @@ import {
 } from "../_shared/keel/household_composition.ts";
 import {
   envelopeFor,
+  ACTIVITY_ANSWER_STATES,
+  ACTIVITY_FACTOR_SOURCES,
+  activityAnswerState,
+  activityFactorOf,
   type MouthBody,
   type PortionAdjustFor,
   winningPortionAdjust,
@@ -296,8 +389,14 @@ import { MEAL_BODY_GENDERS } from "../_shared/keel/meal_body.ts";
 import {
   ACTIVITY_LEVELS,
   type ActivityLevel,
+  APPETITE_LEVELS,
+  type AppetiteLevel,
+  DAY_ACTIVITY_LEVELS,
+  type DayActivityLevel,
   GOAL_TOKENS,
   type GoalToken,
+  SPORT_FREQUENCIES,
+  type SportFrequency,
 } from "../_shared/keel/tokens.ts";
 import { weekStartOf } from "../_shared/keel/weekly_flow_io.ts";
 
@@ -1844,6 +1943,11 @@ Deno.serve(async (req) => {
     });
     if (lineBodyRes.error) throw lineBodyRes.error;
     const lineBodies = new Map<string, MouthBody>();
+    const lineStructures = new Map<string, MealStructure>();
+    // ⑤ — LES FICHES À QUI LA QUESTION A ÉTÉ POSÉE. C'est ce booléen, et lui
+    // seul, qui sépare « pas posé » de « pas répondu »: la valeur est `null`
+    // dans les deux cas.
+    const row_appetite_asked = new Set<string>();
     for (const row of (lineBodyRes.data ?? []) as Array<Record<string, unknown>>) {
       const memberId = String(row.member_id ?? "").trim();
       if (!memberId) continue;
@@ -1877,8 +1981,80 @@ Deno.serve(async (req) => {
             )
             ? (String(row.activity_level).trim() as ActivityLevel)
             : null,
+        // ── ② LES DEUX AXES (2026-08-20) ──────────────────────────────
+        // MÊME règle de lecture que le cran juste au-dessus: hors vocabulaire
+        // ⇒ `null`, jamais un repli. `asked` vient d'un BOOLÉEN rendu par la
+        // RPC (`activity_axes_asked_at is not null`), et c'est lui — lui seul —
+        // qui sépare « pas posé » de « pas répondu » dans le compteur.
+        activityAxes: {
+          day: (DAY_ACTIVITY_LEVELS as readonly string[]).includes(
+              String(row.day_activity ?? "").trim(),
+            )
+            ? (String(row.day_activity).trim() as DayActivityLevel)
+            : null,
+          sport: (SPORT_FREQUENCIES as readonly string[]).includes(
+              String(row.sport_frequency ?? "").trim(),
+            )
+            ? (String(row.sport_frequency).trim() as SportFrequency)
+            : null,
+          asked: row.activity_axes_asked === true,
+        },
+        // ── ⑤ L'APPÉTIT (2026-08-20) ─────────────────────────────────
+        // MÊME règle de lecture: hors vocabulaire ⇒ `null`, jamais un repli
+        // sur un cran. `null` rend x1,00, un neutre VRAI.
+        appetite: (APPETITE_LEVELS as readonly string[]).includes(
+            String(row.appetite ?? "").trim(),
+          )
+          ? (String(row.appetite).trim() as AppetiteLevel)
+          : null,
       });
+      // ── ① CE QU'ELLE PREND À CÔTÉ DU PLAT (2026-08-20) ──────────────────
+      //
+      // ⛔ DANS UNE MAP À PART, PAS SUR `MouthBody`. Une structure de repas
+      // n'est pas une mesure du corps: elle ne rentre dans AUCUNE équation
+      // d'entretien, elle n'est lue que par `composedDishShare`. Les mêler
+      // ferait passer une déclaration sur l'assiette pour un fait corporel —
+      // et `MouthBody` traverse des chemins (Schofield, Mifflin) où rien de ce
+      // genre n'a à entrer.
+      //
+      // ⚠️ ET LA LIGNE EXISTE MÊME QUAND LA QUESTION N'A PAS ÉTÉ POSÉE. La map
+      // ne porte une entrée que si `meal_structure_asked` est vrai; l'ABSENCE
+      // d'entrée est ce que `AnchorMouth.structure = null` veut dire, c'est-à-
+      // dire `not_asked`. Poser un objet à trois `null` ici ferait lire « on a
+      // demandé, personne n'a répondu » sur toute la base d'avant le lot.
+      if (row.appetite_asked === true) row_appetite_asked.add(memberId);
+      if (row.meal_structure_asked === true) {
+        lineStructures.set(memberId, {
+          dessert: typeof row.takes_dessert === "boolean" ? row.takes_dessert : null,
+          cheese: typeof row.takes_cheese === "boolean" ? row.takes_cheese : null,
+          bread: typeof row.takes_bread === "boolean" ? row.takes_bread : null,
+        });
+      }
     }
+    // ── ③ LES JOURS QUE LE FOYER NE DÉPLACE PAS (2026-08-20) ────────────
+    //
+    // « Le dimanche c'est rôti. » Casser un de ces jours fait fermer l'app —
+    // pas parce que le plat est mauvais, parce qu'il est DÉPLACÉ.
+    //
+    // ⚠️ `keel_household_traditions_for` PREND LE FOYER EN ARGUMENT, comme
+    // `keel_household_bodies_for` et pour la même raison: `auth.uid()` est NULL
+    // sous la clé de service, et une RPC gatée dessus serait morte ici.
+    //
+    // ⚠️ FAIL-SOFT, ET LA DIRECTION EST CHOISIE. Une lecture en panne rend `[]`
+    // — c'est-à-dire le produit d'avant ce lot. La direction inverse (refuser
+    // de composer) ferait qu'une table indisponible empêche un foyer de dîner.
+    let traditions: HouseholdTradition[] = [];
+    {
+      const traditionRes = await admin.rpc("keel_household_traditions_for", {
+        p_household: householdId,
+      });
+      if (traditionRes.error) {
+        issues.push("household_traditions_unreadable");
+      } else {
+        traditions = parseTraditions(traditionRes.data ?? []);
+      }
+    }
+
     // ── LES RESTRICTIONS DE MAISON ──────────────────────────────────────
     // Lues telles quelles. Le fait qu'elles soient LÉGITIMES a déjà été tranché
     // à l'écriture (`keel_household_add_restriction`: compte maître, membre de
@@ -1930,7 +2106,39 @@ Deno.serve(async (req) => {
     // Un foyer suit UNE méthode. Mélanger celles de deux coachs produirait un
     // plan qu'aucun des deux n'a écrit, signé des deux — exactement ce que le
     // verrou existe pour empêcher.
-    const doctrine = await loadPublishedDoctrine(admin, userId);
+    //
+    // ══════════════════════════════════════════════════════════════════════
+    // LOT C ① — LA MÉTHODE NE BOUGE PAS; LE FILTRE PAR OBJECTIF SUIT LA BOUCHE.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ CETTE LIGNE ÉTAIT `loadPublishedDoctrine(admin, userId)`, ET C'EST LE
+    // DÉFAUT MESURÉ LE 2026-08-19. La variante servie était compilée sur
+    // `student_goals.goal` du TITULAIRE seul: sur un foyer dont la maîtresse de
+    // maison est en `fat_loss` et dont l'athlète est en `muscle_gain`, la
+    // croyance que le coach a écrite POUR la prise de muscle était absente des
+    // 6 prompts sur 6. Le coach, lui, reste le même — c'est le seul point qui
+    // n'était pas négociable.
+    //
+    // ⚠️ `composedMembers` ET PAS `members`: les bouches que CETTE composition
+    // couvre, après les prises de main et les défusions. Une personne qui
+    // compose sa semaine de son côté ne doit pas tirer une ligne de doctrine
+    // dans la casserole d'un foyer où elle ne mange pas.
+    //
+    // ⛔ LES MINEURS N'Y ENTRENT PAS, ET C'EST UNE DÉCISION, PAS UN OUBLI.
+    // `goalApplies` ouvre bien la direction de service d'un mineur depuis le
+    // 2026-08-14 — une direction est une consigne de service. Mais ce bloc-ci
+    // écrirait, dans le prompt, le PRÉNOM D'UN ENFANT à côté d'un jeton
+    // d'objectif (« Zoe (fat_loss) »), et le prompt est la seule chose qui se
+    // retrouve, mesurée quatre runs sur quatre, recopiée dans un champ lu à
+    // voix haute à table. « Le corps d'un mineur ne s'énonce jamais » couvre
+    // aussi la direction qu'on lui prête. Un enfant reçoit la variante du
+    // titulaire, comme avant ce lot.
+    const doctrine = await loadHouseholdDoctrine(admin, {
+      ownerUserId: userId,
+      tableGoals: composedMembers
+        .filter((m) => m.ageState === "adult" && m.goal !== null && !m.isOwner)
+        .map((m) => ({ goal: m.goal as GoalToken, who: m.displayName })),
+    });
     if (!doctrine.coachId) {
       return jsonResponse(req, { error: "no_coach", request_id: requestId }, { status: 409 });
     }
@@ -1938,6 +2146,69 @@ Deno.serve(async (req) => {
       .map((b) => String(b.key ?? "").trim())
       .filter(Boolean);
     const coachNote = await loadCoachNote(admin, userId);
+
+    // ── ③ LA POSITION DU COACH, RÉDUITE ──────────────────────────────────
+    // Le foyer suit UNE méthode, celle du compte maître (c'est déjà la règle du
+    // verrou de doctrine, juste au-dessus). `doctrine.coachId` est non nul ici
+    // — la fonction a rendu 409 sinon. Une doctrine ILLISIBLE vaut
+    // `no_counting`: fail-closed, exactement comme `countingStanceFrom` le
+    // documente.
+    //
+    // ⚠️ HISSÉ ICI LE 2026-08-19, ET LE DÉPLACEMENT EST LA MOITIÉ DU LOT. Ce
+    // bloc vivait APRÈS l'appel modèle, avec le dimensionnement des boîtes. Or
+    // le PROMPT a besoin de savoir combien de poids différents la table sert:
+    // sans ce nombre, le modèle écrit une boîte par CLASSE (adultes ensemble,
+    // mineurs ensemble) et `sizeBoxesFromTarget` ne peut plus rien appliquer
+    // (`shared_mixed`). Un seul `const`, deux lecteurs.
+    const coachCounting = countingStanceFrom({
+      hasCoach: true,
+      doctrineReadable: doctrine.doctrine !== null,
+      forbiddenTokens: (doctrine.doctrine?.forbidden ?? [])
+        .map((f) => String(f.token ?? "").trim())
+        .filter(Boolean),
+    });
+
+    // ══════════════════════════════════════════════════════════════════════
+    // ⛔ LA CEINTURE TCA D'UNE BOUCHE — QUATRE ÉTATS, ET C'EST LE CORRECTIF
+    //    DU 2026-08-19.
+    // ══════════════════════════════════════════════════════════════════════
+    // C'était `member.body?.restrictionFlag ?? true`, DANS le module pur:
+    // l'objet du COMPTE (`MealBodyContext`) décidait du sort du corps de la
+    // FICHE. Toute bouche sans compte valait `true`, donc `restriction_floor`,
+    // donc aucun dimensionnement — et le journal annonçait un plancher
+    // alimentaire là où il n'y avait qu'une absence de compte. Mesuré sur
+    // 4 plans / 3 foyers: `{"sized":1,"restriction_floor":3,"no_body":0}`.
+    //
+    // ⚠️ LA DISTINCTION SE FAIT ICI PARCE QUE C'EST ICI QU'ON SAIT. `userId`
+    // n'existe pas sur `PortionMember` (c'est voulu: une bouche EST un
+    // `member_id`), et le module pur ne peut donc pas savoir si le `null` de
+    // `body` veut dire « pas de compte » ou « compte illisible ». Le
+    // générateur, lui, a la ligne de roster sous la main.
+    //
+    // ⚠️ LE FAIL-CLOSED N'EST PAS LEVÉ, IL EST RESSERRÉ SUR L'INCONNU: un
+    // compte dont la lecture de corps a échoué, ou dont le verdict de plancher
+    // est illisible, reste fermé — sous le nom `restriction_unknown`.
+    const restrictionOf = (m: LoadedMember): MouthRestrictionState => {
+      if (m.userId === null) return "no_account";
+      if (m.body === null || m.body.restrictionFlag === null) return "unreadable";
+      return m.body.restrictionFlag ? "raised" : "clear";
+    };
+    // COMBIEN DE POIDS DIFFÉRENTS LA TABLE SERT — le seul résultat du moteur
+    // qui entre dans le prompt, et il n'y entre que comme un NOMBRE DE BOÎTES.
+    // ⚠️ Le cran de rythme (`paceByMember`) n'est lu qu'APRÈS le modèle: ce
+    // compte porte donc la part de FICHE seule. Il ne peut être que bas d'une
+    // unité, jamais haut — voir `weightGroupCount`.
+    const promptWeightGroups = weightGroupCount(
+      bodyShareFactors(
+        members.map((m) => ({
+          memberId: m.memberId,
+          ageState: m.ageState,
+          restriction: restrictionOf(m),
+          body: lineBodies.get(m.memberId) ?? null,
+        })),
+        coachCounting,
+      ),
+    );
 
     // ── LES INTERDITS DU COACH, DANS LA FORME DU MATCHER ─────────────────
     // Miroir de `findDoctrineViolations` (`doctrine.ts:1088-1099`), qui n'exporte
@@ -2117,6 +2388,208 @@ Deno.serve(async (req) => {
         refs: householdSplit.safetyConstraints.length,
       }));
     }
+
+    // ── À QUI EST CHAQUE CONTRAINTE DURE (2026-08-19) ────────────────────
+    //
+    // ⛔ LE DÉFAUT QUE CE BLOC FERME, MESURÉ SUR DEUX RUNS RÉELS. Les lignes
+    // partaient au modèle DÉTACHÉES de leur bouche — `- pistachio — allergy`,
+    // sous un en-tête AU SINGULIER pour une tablée de quatre. F1
+    // (`f0100001-…`) a deviné la bouche et deviné juste par chance; F2
+    // (`f0100002-…`) a mis 120 g de traybake au pistachio dans la boîte de
+    // l'ALLERGIQUE et écrit l'avertissement sur l'assiette du VOISIN. Les deux
+    // runs sont morts en 422 `empty_meal` sur le verrou binaire: le foyer
+    // payait sa sécurité en semaines vides.
+    //
+    // Le patron copié est celui des RÈGLES DE MAISON, dix lignes plus bas dans
+    // le même prompt: `- Peregrine: never serve fennel`, attachée, appliquée
+    // 4 fois sur 4.
+    //
+    // ⚠️ DEUX CLÉS, PARCE QU'IL Y A DEUX PROVENANCES. `student_safety_
+    // constraints` porte un `user_id`; `household_member_allergies` porte un
+    // `member_id` et sa bouche n'a peut-être aucun compte — c'est toute la
+    // raison d'être de cette table. Le roster (`members`) est la seule source
+    // qui tient les deux clés, et il les tient déjà.
+    const nameOfMember = new Map(
+      members.map((m) => [m.memberId, m.displayName]),
+    );
+    const nameOfAccount = new Map(
+      members
+        .filter((m) => typeof m.userId === "string" && m.userId !== "")
+        .map((m) => [m.userId as string, m.displayName]),
+    );
+    const constraintMouths = householdConstraintMouths({
+      constraints,
+      memberIdOf: householdSplit.memberIdOf,
+      nameOfMember,
+      nameOfAccount,
+    });
+    // ⚠️ TROIS NOMBRES, JAMAIS DEUX (cicatrice du dépôt): « déclaré / attribué »
+    // rendrait le même zéro pour « aucune contrainte » et pour « quatre
+    // contraintes, aucune bouche retrouvée ». Sans `unattributed`, un lot
+    // désarmé ressemble exactement à un lot qui marche.
+    if (constraintMouths.declared > 0) {
+      console.log(JSON.stringify({
+        tag: "keel.household_meal.constraint_attribution",
+        user_id: userId,
+        household_id: householdId,
+        declared: constraintMouths.declared,
+        attributed: constraintMouths.attributed,
+        unattributed: constraintMouths.unattributed,
+      }));
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    // L0bis — LES CONDITIONS DÉCLARÉES DE CHAQUE BOUCHE, ET LEUR COMPTEUR
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ UNE SEULE PROVENANCE, ET ELLE EXCLUT UNE POPULATION ENTIÈRE. À la
+    // différence de `constraintMouths` juste au-dessus, il n'y a PAS deux
+    // sources ici: `student_safety_constraints.condition_ref` est clée sur
+    // `user_id`, et il n'existe AUCUNE table `household_member_conditions`.
+    // Une bouche SANS COMPTE ne peut donc porter aucune condition, et la garde
+    // de grossesse ne peut pas la protéger. C'est un trou NOMMÉ — fiche
+    // `L0bis-a`, décision produit n° 5 du registre foyer — pas un oubli.
+    //
+    // ⚠️ LE COMPTEUR A QUATRE POPULATIONS, PAS DEUX. « la garde a mordu / n'a
+    // pas mordu » rendrait le même zéro pour « personne n'a déclaré » et pour
+    // « quatre personnes ont un diabète et la garde les laisse passer »: un
+    // branchement mort et un branchement sain donneraient le même journal.
+    // `other` est la colonne qui prouve que la garde NE MORD PAS TROP LARGE.
+    const conditionRefsByMember = new Map<string, string[]>();
+    for (const constraint of constraints) {
+      const ref = String(constraint.conditionRef ?? "").trim();
+      if (ref === "") continue;
+      const member = members.find((m) => m.userId === constraint.userId);
+      if (!member) continue;
+      const bag = conditionRefsByMember.get(member.memberId) ?? [];
+      bag.push(ref);
+      conditionRefsByMember.set(member.memberId, bag);
+    }
+    const conditionRefsOf = (memberId: string): readonly string[] =>
+      conditionRefsByMember.get(memberId) ?? [];
+    const conditionGate = newConditionGateCounter();
+    const pregnantMouthNames: string[] = [];
+    for (const m of members) {
+      const population = conditionGatePopulationOf(conditionRefsOf(m.memberId));
+      conditionGate[population]++;
+      if (evictsPregnancyFoods(population)) pregnantMouthNames.push(m.displayName);
+    }
+    console.log(JSON.stringify({
+      tag: "keel.household_meal.condition_gate",
+      user_id: userId,
+      household_id: householdId,
+      // ⚠️ JOURNALISÉ SUR TOUS LES PLANS, y compris ceux où il ne compte que
+      // des `none`. Un compteur qui ne parle que lorsqu'il mord ne distingue
+      // pas « aucune grossesse déclarée » de « le compteur n'a pas tourné ».
+      ...conditionGate,
+    }));
+    // ── L'ÉVICTION LISTERIA, POUR ELLE SEULE ────────────────────────────
+    // ⚠️ CE N'EST PAS UNE ALLERGIE. Une allergie gouverne LA CASSEROLE; ceci
+    // gouverne UNE assiette. Le bloc le dit en toutes lettres au modèle, et il
+    // ne sort que pour la population `pregnancy` — l'allaitement ne le reçoit
+    // pas (voir `pregnancyFoodBlockFor`).
+    const pregnancyBlock = pregnancyFoodBlockFor(pregnantMouthNames);
+    const pregnancySuffix = pregnancyBlock === null ? "" : `\n\n${pregnancyBlock}`;
+
+    // ══════════════════════════════════════════════════════════════════════
+    // ⛔ C1 — QUI, À CETTE TABLE, EST À RISQUE MÉDICAL. LA PREMIÈRE DES DEUX
+    //         PRÉMISSES DU BLOC DE CONTAMINATION CROISÉE.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ LA SÉVÉRITÉ, ET RIEN D'AUTRE. `severity='medical'` est le seul cran où
+    // une trace compte: une préférence contrariée est une déception, une
+    // intolérance est une mauvaise soirée, une allergie médicale est une
+    // hospitalisation. Élargir à `strict` ferait sortir ce bloc sur des plans
+    // qui n'en ont pas besoin et le banaliserait — c'est le mécanisme par
+    // lequel une consigne cesse d'être lue.
+    //
+    // ⚠️ LES DEUX PROVENANCES, ET C'EST LE MÊME PONT QUE `constraintMouths`
+    // dix lignes plus haut: `household_member_allergies` porte un `member_id`
+    // (résolu par `memberIdOf`), `student_safety_constraints` porte un
+    // `user_id` (résolu par le roster). Une seule des deux ferait un bloc qui
+    // ignore soit les bouches sans compte, soit les titulaires.
+    //
+    // ⛔ ET LES NON ATTRIBUÉES SONT COMPTÉES, PAS OMISES. Une contrainte
+    // médicale dont la bouche ne se résout pas en prénom reste une contrainte
+    // médicale; l'omettre retirerait la règle pour cause de prénom manquant,
+    // c'est-à-dire exactement pour la population la plus fragile. Le module
+    // écrit alors « someone at this table », comme le bloc des contraintes
+    // dures juste au-dessus dans le même prompt.
+    const medicalMouthByMember = new Map<string, string>();
+    let unnamedMedicalConstraints = 0;
+    for (const c of constraints) {
+      if (c.severity !== "medical") continue;
+      const byMember = householdSplit.memberIdOf.get(c.id);
+      if (byMember) {
+        const name = String(nameOfMember.get(byMember) ?? "").trim();
+        if (name !== "") {
+          medicalMouthByMember.set(byMember, name);
+          continue;
+        }
+        unnamedMedicalConstraints += 1;
+        continue;
+      }
+      const owner = members.find((m) => m.userId && m.userId === c.userId);
+      const ownerName = String(owner?.displayName ?? "").trim();
+      if (owner && ownerName !== "") {
+        medicalMouthByMember.set(owner.memberId, ownerName);
+        continue;
+      }
+      unnamedMedicalConstraints += 1;
+    }
+    // ORDRE DU ROSTER, ET PAS ORDRE DE DÉCOUVERTE — la même raison que la liste
+    // des porteurs de règle juste en dessous: le prompt nomme déjà ces bouches
+    // ailleurs dans l'ordre du roster, et une liste dans un autre ordre se lit
+    // comme une autre liste.
+    const medicalMouths = members
+      .filter((m) => medicalMouthByMember.has(m.memberId))
+      .map((m) => ({ memberId: m.memberId, displayName: m.displayName }));
+
+    // ══════════════════════════════════════════════════════════════════════
+    // LOT C ② — QUI, À CETTE TABLE, PORTE UNE RÈGLE DONT UN `why` POURRAIT SE
+    //           RÉCLAMER. LA LISTE FERMÉE, RÉSOLUE UNE FOIS.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ TROIS PROVENANCES, ET IL FAUT LES TROIS. Une règle qui fait choisir un
+    // plat vient d'une contrainte dure (`student_safety_constraints` +
+    // `household_member_allergies`), d'un régime déclaré, ou d'une règle de
+    // maison. N'en prendre que deux ferait REFUSER une attribution juste: une
+    // bouche omnivore dont la seule règle est « jamais de champignon » sortirait
+    // de la liste, et le compteur compterait comme une mauvaise attribution ce
+    // qui n'en est pas une. Un compteur qui crie faux est un compteur qu'on
+    // cesse de lire.
+    //
+    // ⚠️ ELLE SERT AUX DEUX BOUTS — le prompt la montre au modèle, le compteur
+    // valide contre elle. C'est le `const` unique du patron `dishBearers`: deux
+    // résolutions feraient refuser un id que le prompt vient d'écrire.
+    //
+    // ⚠️ ORDRE DU ROSTER, ET PAS ORDRE DE DÉCOUVERTE. Le prompt nomme déjà ces
+    // bouches quatre fois ailleurs dans l'ordre du roster (la liste d'ids, le
+    // brief de portions, les absences, les règles de maison); une cinquième
+    // liste dans un autre ordre se lit comme une autre liste.
+    const ruleHolderIds = new Set<string>();
+    for (const c of constraints) {
+      const byMember = householdSplit.memberIdOf.get(c.id);
+      if (byMember) {
+        ruleHolderIds.add(byMember);
+        continue;
+      }
+      // Une contrainte venue de `student_safety_constraints` porte un `user_id`
+      // et pas de `member_id`: c'est le roster qui fait le pont, et c'est le
+      // même pont que `householdConstraintMouths` juste au-dessus.
+      const owner = members.find((m) => m.userId && m.userId === c.userId);
+      if (owner) ruleHolderIds.add(owner.memberId);
+    }
+    for (const m of members) {
+      // `diet` est déjà `null` pour « personne n'a rien demandé » et ne vaut
+      // jamais `omnivore` (`DIETARY_REGIMES` n'en contient pas): un omnivore
+      // n'exclut rien, donc il n'a rien qu'un `why` puisse invoquer.
+      if (m.diet !== null) ruleHolderIds.add(m.memberId);
+    }
+    for (const r of restrictions) ruleHolderIds.add(r.memberId);
+    const ruleHolders = members
+      .filter((m) => ruleHolderIds.has(m.memberId))
+      .map((m) => ({ memberId: m.memberId, displayName: m.displayName }));
 
     // ── CE QUE L'ÉLÈVE A DÉMENTI DEPUIS — LE TROISIÈME CHEMIN ─────────────
     // `generate-meal-v1` porte ce raccord avec cette raison écrite: « Une garde
@@ -2307,13 +2780,22 @@ Deno.serve(async (req) => {
           // Elle porte la série de pesées et le plancher TCA, et c'est pour ça
           // qu'elle gagne toujours dans `mouthEnvelope`, y compris dégradée.
           m.goal === null || m.body === null ? null : envelopeFor(
-            (GOAL_TOKENS as readonly string[]).includes(m.goal)
-              ? (m.goal as GoalToken)
-              // Repli du 2026-08-18: valait `"health"`, qui n'existe plus.
-              // `maintenance` est ce sur quoi `health` se replie, et c'est la
-              // seule lecture sûre d'un jeton illisible — elle ne creuse aucun
-              // déficit et n'ouvre aucun surplus.
-              : "maintenance",
+            // ── L0bis · LA GROSSESSE ANNULE LE DÉFICIT DE **CETTE** BOUCHE ──
+            // ⛔ PAR BOUCHE, jamais pour la table: une condition déclarée par
+            // une personne ne doit pas rabattre l'objectif de son conjoint.
+            // C'est la même clause C8 que la chaîne de grammage, appliquée à
+            // l'enveloppe. Et seul `fat_loss` est coercé — voir
+            // `goalUnderConditionGate`.
+            goalUnderConditionGate(
+              (GOAL_TOKENS as readonly string[]).includes(m.goal)
+                ? (m.goal as GoalToken)
+                // Repli du 2026-08-18: valait `"health"`, qui n'existe plus.
+                // `maintenance` est ce sur quoi `health` se replie, et c'est la
+                // seule lecture sûre d'un jeton illisible — elle ne creuse aucun
+                // déficit et n'ouvre aucun surplus.
+                : "maintenance",
+              conditionGatePopulationOf(conditionRefsOf(m.memberId)),
+            ).goal,
             m.body,
             m.body.ageBand,
             // FAIL-CLOSED, comme sur la lane individuelle.
@@ -2334,6 +2816,17 @@ Deno.serve(async (req) => {
             // lot qui fait entrer la cible dans les grammages (L8), qui
             // traverse déjà cette résolution.
             lineBodies.get(m.memberId)?.activityLevel ?? null,
+            // ── ② LES DEUX AXES, PAR LE MÊME CHEMIN QUE LE CRAN ──────────
+            // Même source (`keel_household_bodies_for`), même limite: cette
+            // lane lit des CORPS par `member_id`, pas des profils. Une bouche
+            // sans corps de fiche rend `{null, null, asked: false}`, et
+            // `activityFactorOf` retombe alors sur le cran, puis sur
+            // l'hypothèse — c'est-à-dire EXACTEMENT le nombre d'avant ce lot.
+            lineBodies.get(m.memberId)?.activityAxes ??
+              { day: null, sport: null, asked: false },
+            // ⑤ — même source, même limite. Une bouche sans corps de fiche rend
+            // `null`, c'est-à-dire x1,00: le nombre d'avant ce lot.
+            lineBodies.get(m.memberId)?.appetite ?? null,
             // ── `portion.adjust` · BRANCHÉ (lot 1G) ───────────────────────
             // Le défaut n'était PAS une traduction manquante, c'était un ORDRE:
             // cette résolution vivait ~430 lignes AU-DESSUS de la lecture des
@@ -2944,24 +3437,57 @@ Deno.serve(async (req) => {
     const strictestHeldBy = strictestRegime === null ? [] : platedMembers
       .filter((m) => m.diet === strictestRegime)
       .map((m) => m.displayName);
-    const divergingMembers = merge !== null || !timeAllowsASecondDish(weeklyMinutes)
+    // ═══════════════════════════════════════════════════════════════════════
+    // ⛔ UN PLAT DÉDIÉ SE DÉCLENCHE SUR UNE IMPOSSIBILITÉ, PLUS SUR UN ÉCART
+    //    DE PORTION (2026-08-19)
+    // ═══════════════════════════════════════════════════════════════════════
+    //
+    // ── LE FAIT MESURÉ ───────────────────────────────────────────────────
+    // Foyer de deux, aperçu de plan sous les yeux de l'utilisateur: au
+    // petit-déjeuner, le MÊME yaourt écrit DEUX fois — 200 g « pour la table »,
+    // 250 g « pour iku ». Ses mots: « pourquoi deux boîtes à chaque fois par
+    // personne, c'est pas normal ».
+    //
+    // La chaîne était: `servingConflicts` voit que la part d'iku (prendre du
+    // muscle) ne sort pas de la même casserole que celle de Christèle
+    // (maintenir) ⇒ il devient porteur de plat ⇒ le prompt lui promet DEUX
+    // plats à CHAQUE repas ⇒ le modèle recopie le plat commun avec d'autres
+    // grammes. Il a obéi: c'est la consigne qui était fausse.
+    //
+    // ── CE QUI ÉTAIT CONFONDU ────────────────────────────────────────────
+    // « Il lui en faut plus » n'est PAS « il ne peut pas manger ça ». Le
+    // premier est une PART, et le moteur a déjà le canal exact pour ça —
+    // `member_portions`, « un plat pour la table, une ligne par personne ». Le
+    // second est une IMPOSSIBILITÉ, et lui seul demande une seconde assiette.
+    //
+    // Effet de bord réparé au passage: la divergence se calculait sur les corps
+    // et les objectifs, donc éditer un poids entre deux générations faisait
+    // apparaître ou disparaître les plats dédiés. « Une fois il séparait les
+    // portions, la 2e fois non » — vu par l'utilisateur le même jour. Ce
+    // n'était pas de l'aléatoire, c'était cette règle-là.
+    //
+    // ⛔ ET LA FORME DE CUISINE NE GARDE PLUS LA PORTE. `timeAllowsASecondDish`
+    // et `asksForASecondDish` disaient « cette semaine, on ne fait qu'un plat ».
+    // C'est une préférence d'EFFORT, et elle ne peut pas primer sur « cette
+    // personne ne peut pas manger le plat commun »: un végane à qui la maison
+    // répond « pas le temps » ne mange pas. Arbitré le 2026-08-19.
+    //
+    // Le temps et la forme continuent de gouverner tout le reste — le nombre de
+    // sessions, la longueur des recettes, le budget de plats. Ils ne peuvent
+    // simplement plus supprimer le repas de quelqu'un.
+    const divergingMembers = merge !== null
       ? []
       : platedMembers.filter((m) =>
-        servingConflicts(
-          platedMembers.filter((other) => other.memberId !== m.memberId).map(servingDemandsFor),
-          servingDemandsFor(m),
-        ).length > 0 ||
-        // ── R5 · LE RÉGIME EST LA SECONDE SOURCE DE DIVERGENCE ────────────
-        // Sans elle, un seul végane impose le végane à six personnes, en
-        // silence. Avec, la bouche dont la direction ne sort plus de la
-        // casserole descendue au plus strict reçoit son plat à elle — et le
-        // temps garde la main, puisque cette expression entière est déjà sous
-        // `timeAllowsASecondDish` deux lignes plus haut.
+        // ── R5 · LE RÉGIME, ET DÉSORMAIS LUI SEUL ─────────────────────────
+        // Sans lui, un seul végane impose le végane à six personnes en
+        // silence — ou mange le plat de viande. C'est la seule impossibilité
+        // que ce niveau connaît: une allergie, elle, ne demande pas de second
+        // plat, parce que l'union de sécurité a déjà retiré l'allergène de LA
+        // CASSEROLE (fail-closed). Le plat commun est donc sûr pour tout le
+        // monde; il n'est pas MANGEABLE par qui exclut plus large que lui.
         //
-        // ⚠️ UN `||` ET PAS UNE SECONDE LISTE. Les deux critères répondent à la
-        // MÊME question — « cette bouche sort-elle de la casserole commune ? » —
-        // et deux listes distinctes auraient donné deux plats dédiés à qui
-        // diverge des deux façons, pour un seul repas.
+        // ⛔ `servingConflicts` A ÉTÉ RETIRÉ D'ICI — voir le pavé au-dessus.
+        // Une part plus grande n'est pas un autre plat, et elle a son canal.
         dietDiverges({
           strictest: strictestRegime,
           own: m.diet,
@@ -2999,9 +3525,51 @@ Deno.serve(async (req) => {
     // son propre plat » sur la même page que « ne propose pas de plats
     // séparés » — deux ordres contradictoires dans un seul prompt, et c'est
     // toujours celui qu'on ne relit pas qui gagne.
-    const dishBearingMembers = asksForASecondDish(cookingShape)
-      ? divergingMembers
-      : [];
+    // ⛔ ET LE PLAFOND DE FORME NE LES COUPE PLUS (2026-08-19). Cette ligne
+    // était `asksForASecondDish(cookingShape) ? divergingMembers : []`: un
+    // foyer qui répond « un seul plat cette semaine » perdait le plat de sa
+    // bouche végane, donc son repas.
+    //
+    // La contradiction que le commentaire d'origine craignait — « X reçoit son
+    // propre plat » sur la même page que « ne propose pas de plats séparés » —
+    // n'existe plus, parce que ce n'est plus la même question: la forme dit
+    // combien de plats on veut BIEN cuisiner, la divergence dit lesquels on ne
+    // PEUT PAS servir depuis la casserole. Une préférence d'effort ne supprime
+    // pas un repas.
+    //
+    // ⚠️ LA LISTE RESTE DISTINCTE de `divergingMembers` malgré l'égalité
+    // actuelle: l'une est le CONSTAT, l'autre ce que la CONSIGNE promet. Les
+    // fondre rendrait invisible le jour où un plafond devra de nouveau les
+    // séparer — et il y en aura un.
+    // ══════════════════════════════════════════════════════════════════════
+    // ⛔ UN REPAS DÉCLARÉ À SOI REND PORTEUR DE PLAT, LUI AUSSI (2026-08-19)
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ── LE DÉFAUT, MESURÉ SUR LE RUN DE 19h03 ────────────────────────────
+    // Une bouche déclare « à midi, ma salade froide ». Le brief le DIT au
+    // modèle (`— has their own at lunch: …`), et le modèle obéit: SIX salades,
+    // une par déjeuner de la fenêtre. Aucune n'atteint l'écran.
+    //
+    // Parce que la liste ci-dessous ne connaissait qu'un motif — l'écart de
+    // RÉGIME. Sans ce motif: pas de bloc `for_member_id` dans le schéma (donc
+    // ses salades sortent attribuées à la TABLE), et surtout aucune place dans
+    // le budget de plats. 24 plats écrits, plafond à 18, et ce sont les six
+    // siennes qui tombent. « Elle est où la salade froide de thon ? »
+    //
+    // ⚠️ C'EST LA MÊME RÈGLE QUE LE RÉGIME, PAS UNE EXCEPTION. Les deux disent
+    // « cette personne ne mange pas la casserole commune à ce moment-là ».
+    // L'une parce qu'elle ne PEUT pas, l'autre parce qu'elle a dit qu'elle
+    // mangeait autre chose. Dans les deux cas, lui refuser un plat lui retire
+    // son repas.
+    //
+    // ⚠️ LE PRÉDICAT EST CELUI DU BRIEF, APPELÉ. `ownMealSlots` est ce que lit
+    // `habitFragment` pour écrire la phrase; deux lectures séparées se
+    // seraient contredites, et c'est ce désaccord-là qui a produit le défaut.
+    const ownMealBearers = merge !== null ? [] : platedMembers.filter((m) =>
+      ownMealSlots(m.habits ?? []).length > 0 &&
+      !divergingMembers.some((d) => d.memberId === m.memberId)
+    );
+    const dishBearingMembers = [...divergingMembers, ...ownMealBearers];
     // Une FUSION reprend UNE personne, jamais deux: `1` rend la ligne de forme
     // byte-identique à celle d'avant ce lot. Voir `cookingShapeLines`.
     const divergingCount = ladder === null
@@ -3072,22 +3640,46 @@ Deno.serve(async (req) => {
     // demande « un seul plat » n'ouvre AUCUNE place de plus, et c'est ce qui
     // rend son choix réel: sans ça, le plafond dirait « un plat » pendant que le
     // budget en promettrait neuf.
-    const compositionEaterCells = dishBearingMembers.flatMap((m) =>
-      memberMealCells({
+    // ⚠️ LES CELLULES SUIVENT LE MOTIF, PAS LA PERSONNE. Une bouche qui
+    // diverge sur le RÉGIME ne peut manger la casserole à AUCUN moment: tous
+    // ses repas comptent. Une bouche qui a déclaré son propre déjeuner ne sort
+    // du commun QU'À CE MOMENT-LÀ — lui ouvrir un budget sur ses trois repas
+    // ferait promettre dix-huit plats pour six, et `dishCapFor` dit ce qu'un
+    // modèle fait d'un budget trop grand: il « déborde poliment » pour le
+    // remplir.
+    const compositionEaterCells = dishBearingMembers.flatMap((m) => {
+      const houseRhythm = eatingRhythm.length > 0
+        ? eatingRhythm
+        : DEFAULT_EATING_RHYTHM;
+      const own = ownMealSlots(m.habits ?? []);
+      const divergesOnDiet = divergingMembers.some((d) =>
+        d.memberId === m.memberId
+      );
+      return memberMealCells({
         away: m.away.effective,
-        rhythm: eatingRhythm.length > 0 ? eatingRhythm : DEFAULT_EATING_RHYTHM,
+        rhythm: divergesOnDiet
+          ? houseRhythm
+          : houseRhythm.filter((r) => own.includes(r.slot)),
         windowDays: daysToFill,
-      })
-    );
+      });
+    });
     const compositionBudget: MergedEater | null = dishBearingMembers.length === 0
       ? null
       : {
         shape: cookingShape,
         ownDishesShown: 0,
-        dedicatedDishesAsked: dedicatedDishesFor(
-          cookingShape,
-          compositionEaterCells.length,
-        ),
+        // ⛔ ET LA FORME DE CUISINE NE REFERME PLUS CE BUDGET (2026-08-19).
+        // `dedicatedDishesFor` rend 0 à `one_dish`; la liste des porteurs, elle,
+        // a cessé d'écouter la forme hier — « une préférence d'effort ne prime
+        // pas sur une impossibilité ». Les deux moitiés étaient donc en
+        // désaccord: on nommait des porteurs de plat ET on leur ouvrait zéro
+        // place. Le modèle écrivait les plats promis, le plafond les coupait,
+        // et personne ne voyait rien. C'est la moitié qui manquait à ce lot.
+        //
+        // ⚠️ LA FORME GOUVERNE TOUT LE RESTE — sessions, longueur des recettes,
+        // budget de plats de la TABLE. Elle ne peut simplement plus supprimer
+        // le repas de quelqu'un.
+        dedicatedDishesAsked: Math.max(1, compositionEaterCells.length),
         dedicatedCells: compositionEaterCells,
         // LOT C — LES MÊMES BOUCHES QUE LA CONSIGNE NOMME, et pas le calcul
         // brut: `dishBearingMembers` est déjà la liste plafonnée. Attribuer à
@@ -3409,6 +4001,22 @@ Deno.serve(async (req) => {
       // assumé et nommé (FF-052 §11 Q3).
       dayProperties: [],
       safetyConstraints: constraints,
+      // ── LA BOUCHE DE CHAQUE CONTRAINTE DURE ─────────────────────────────
+      //
+      // C'est la lane qui a MESURÉ le défaut, donc c'est la seule des trois
+      // qui passe autre chose que `null`. `mouths` décide le SINGULIER: un
+      // foyer d'une seule bouche (l'entrée du produit, §5) rend le bloc
+      // d'avant octet pour octet, parce que « the mouths at this table » y
+      // serait faux.
+      //
+      // ⚠️ `composedMembers`, PAS `members` (L3): ce sont les bouches pour qui
+      // ce plan compose. Une bouche qui a pris la main sur sa semaine n'est pas
+      // à cette table — son allergie, elle, reste dans l'union: la casserole
+      // est commune même quand l'assiette ne l'est pas.
+      safetyConstraintTable: {
+        nameOf: constraintMouths.nameOf,
+        mouths: composedMembers.length,
+      },
       // ── TOUJOURS AUCUN CORPS *ICI*, ET C'EST TOUJOURS UNE DÉCISION ─────
       // (FF-030 R7, inchangé par le lot 3B.)
       //
@@ -3548,9 +4156,22 @@ Deno.serve(async (req) => {
         }
         return { ...m, habits: gated.kept, habitNote: gated.note };
       }),
+      // ③ — LES TRADITIONS, ET LES JOURS QUE LA FENÊTRE COUVRE.
+      //
+      // ⛔ `daysInWindow` EST `daysToFill`, LA MÊME LISTE QUE TOUT LE RESTE DU
+      // FICHIER. En recalculer une seconde ici ferait demander un dimanche à un
+      // plan qui ne le couvre pas — et le vérificateur d'en bas, qui lit
+      // `daysToFill`, déclarerait alors « manqué » une case qui n'existe pas.
+      traditions,
+      daysInWindow: daysToFill,
       // G5 — LA FORME DE CUISINE, DÉCIDÉE PLUS HAUT ET PAR UN SEUL ENDROIT.
       cooking: cookingShape,
       divergingCount,
+      // COMBIEN DE POIDS DIFFÉRENTS LA TABLE SERT — calculé par le MOTEUR, dit
+      // au modèle comme un nombre de BOÎTES et rien d'autre. Sans lui, le
+      // modèle écrit une boîte par classe (adultes ensemble, mineurs ensemble)
+      // et le dimensionnement par bouche n'a plus rien à quoi s'appliquer.
+      weightGroups: promptWeightGroups,
       // ── LOT C · QUI PEUT PORTER UN `for_member_id` ─────────────────────
       // LA MÊME LISTE QUE `divergingCount` ET QUE `divergingNames`, et pas un
       // troisième calcul: la ligne de forme promet un plat de plus à N
@@ -3572,6 +4193,12 @@ Deno.serve(async (req) => {
           memberId: m.memberId,
           displayName: m.displayName,
         })),
+      // ── C1 · LA PREMIÈRE PRÉMISSE DE LA CONTAMINATION CROISÉE ─────────
+      // Résolue UNE fois plus haut, avec l'union de sécurité. La seconde
+      // (`dishBearers`) est juste au-dessus, et c'est la MÊME liste — le module
+      // ne recalcule ni l'une ni l'autre.
+      medicalMouths,
+      crossContactUnnamedMedical: unnamedMedicalConstraints,
       // ── LOT 3C · COMBIEN, ET C'EST LE MÊME NOMBRE QUE LE BUDGET ────────
       // `eaterBudget` est déjà le seul nombre que la consigne et le plafond
       // lisent (voir le `??` qui le compose plus haut). Le recalculer ici
@@ -3625,6 +4252,13 @@ Deno.serve(async (req) => {
         ...retainedCravings.lines,
       ].join(" · ") || null,
       restrictions,
+      // ── LOT C ② · QUI PORTE UNE RÈGLE À CETTE TABLE ──────────────────────
+      // Calculée UNE fois, plus haut (`ruleHolders`), et lue ici comme à la
+      // sortie: la liste que le prompt montre au modèle est EXACTEMENT celle
+      // contre laquelle le compteur valide. Deux résolutions feraient refuser
+      // un id que le prompt vient d'écrire — un compteur qui ment sur sa propre
+      // consigne.
+      ruleHolders,
       presence,
       merge: merge === null || ladder === null || mergedMember === null
         ? null
@@ -3811,13 +4445,103 @@ Deno.serve(async (req) => {
     // dernier, parce que c'est lui qui doit survivre à une envie contradictoire
     // — et une phrase de reprise EST une envie. Dans le tronc et pas dans
     // `extra`, pour qu'une relance ne la perde pas.
+    // ══════════════════════════════════════════════════════════════════════
+    // ⛔ `D3′` (2026-08-22) — L'ARBITRAGE REPASSE EN QUEUE, ET IL Y ARRIVE ICI.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ── CE QUI ÉTAIT MESURÉ, ET QUI N'EST PAS CE QUE LA FICHE DISAIT ──────
+    // `buildMealPrompt` pose `PRECEDENCE_BLOCK` en queue de SON message. Cette
+    // ligne-ci lui colle ensuite quatre suffixes, dont le suffixe de foyer tout
+    // entier: mesuré le 2026-08-22, 2 à 9 blocs de CONTENU se retrouvaient
+    // après l'arbitrage (`scripts/keel_d3_position_du_bloc_20260822.ts`); sur
+    // 228 prompts archivés, 2 à 7, moyenne 3,3. La lane solo, elle, rendait 0
+    // sur 74 — le défaut est celui de CETTE lane, et lui seul.
+    //
+    // ⛔ ET LE PIRE N'ÉTAIT PAS LA POSITION. Le rang 1 du bloc disait « the
+    // hard constraints and the diet at the VERY TOP of this message », alors
+    // que `== WHAT THE SHARED DISH MUST RESPECT ==` et `HOUSE RULES` sont 63 à
+    // 101 lignes PLUS BAS. Le bloc envoyait le modèle chercher le régime là où
+    // il n'est pas. La variante foyer nomme désormais ses blocs de verrou.
+    //
+    // ── CE QUE ÇA PREND, ET À QUI ────────────────────────────────────────
+    // La dernière place appartenait à `crossContact.block`, qui l'avait
+    // réclamée avec trois raisons écrites (règle de niveau hospitalier). Elle
+    // lui est prise, et l'échange est écrit au §⑨ du plan. Ce qui le rend
+    // honnête: ce bloc est le SEUL dont le contenu EST le rang des verrous, et
+    // son dernier paragraphe parle encore d'allergie et de liste médicale — un
+    // test l'exige (`precedence_tail_test.ts`, épreuve ⑤).
+    //
+    // ⚠️ `movePrecedenceToTail` EST DÉPLAÇABLE, PAS SEULEMENT IDEMPOTENT —
+    // même cicatrice que `appendContentLanguageBlock`: il RETIRE l'occurrence
+    // du tronc (variante solo) avant de poser la variante foyer, sinon le
+    // message porterait deux hiérarchies.
+    //
+    // ⚠️ ET L'ORDRE DES DEUX APPELS EST LE SUJET: l'arbitrage d'abord, la
+    // langue ensuite. `appendContentLanguageBlock` se replace toujours en
+    // queue, donc l'arbitrage finit avant-dernier — exactement la place que ce
+    // fichier déclarait déjà pour `crossContact.block`.
     const householdUserMessage = (extra: string): string =>
       appendContentLanguageBlock(
-        `${built.userMessage}${draftNoteSuffix}${hungerSuffix}${household.userSuffix}${extra}`,
+        movePrecedenceToTail(
+          `${built.userMessage}${draftNoteSuffix}${hungerSuffix}${household.userSuffix}${pregnancySuffix}${extra}`,
+          "household",
+        ),
         built.contentLocale,
         MEAL_TRANSLATABLE_FIELDS,
         MEAL_TOKEN_FIELDS,
       );
+
+    // ── ⛔ LE COMPTEUR DE `D3′` — DEUX POPULATIONS, ET IL EST OBLIGATOIRE ──
+    //
+    // La fiche l'écrit en toutes lettres: « un lot qui ne vit que dans un
+    // prompt n'a aucune preuve d'exécution ». Il n'existe AUCUNE surface de
+    // sortie légale pour cet arbitrage — `dishes[].why` et
+    // `member_portions[].portion_note` portent tous deux un interdit
+    // d'énonciation écrit par des lots antérieurs (porte `G-disclosure`, NON
+    // tranchée). Le seul compteur possible est donc un compteur d'ENTRÉE, et
+    // il compte des OBJETS, pas des déclarations du modèle.
+    //
+    // ⛔ `ranks_without_object` EST LE NOMBRE QUI COMPTE. Un bloc qui promet
+    // cinq rangs sur un prompt qui n'en porte qu'un demande au modèle
+    // d'arbitrer entre des choses absentes. Sans les deux populations, « le
+    // rang n'a pas mordu » et « le rang n'avait rien à mordre » rendent le même
+    // zéro.
+    //
+    // ⚠️ RANG 2 = `beliefKeys.length`, ET C'EST UN MINORANT ASSUMÉ: la note du
+    // coach et le protocole ne sont pas comptés, parce que les recompter ici
+    // serait une SECONDE lecture des mêmes prémisses, et ce fichier a déjà payé
+    // deux fois le prix de deux lectures qui divergent. Fiche `D3′-b`.
+    const precedenceObjects: PrecedenceObjects = {
+      locks: constraints.length + restrictions.length +
+        (strictestRegime === null ? 0 : 1),
+      coachLines: beliefKeys.length,
+      kitchenAndWeek: (capacity.cookDays ?? []).length +
+        (capacity.cookingTimeMin === null ? 0 : 1) +
+        household.kitchenMissing.length,
+      writtenBySelf: household.voiceCounts.linesUsed,
+      wantedThisTime: (household.envyLineUsed ? 1 : 0) +
+        (hungerSuffix.trim().length > 0 ? 1 : 0),
+    };
+    const precedenceRanks = countPrecedenceRanks(precedenceObjects);
+    // LA POSITION, MESURÉE SUR LE MESSAGE RÉELLEMENT ENVOYÉ — pas sur une
+    // intention. C'est le seuil de la `mesure APRÈS`, et il se lit sans
+    // aucune génération.
+    const precedencePlace = precedenceTailVerdict(householdUserMessage(""));
+    // ⛔ JOURNALISÉ EN PLUS D'ÊTRE ÉCRIT (cicatrice `V0-B-bis`): un
+    // `intent: "draft"` ne persiste pas `generated_from`, donc la seule trace
+    // d'un prompt d'aperçu serait perdue. Aucun `member_id`, aucun terme.
+    console.log(JSON.stringify({
+      tag: PRECEDENCE_COUNTER_TAG,
+      user_id: userId,
+      household_id: householdId,
+      intent,
+      place: precedencePlace.verdict,
+      exact: precedencePlace.exact,
+      blocks_after: precedencePlace.contentBlocksAfter,
+      ranks_with_object: precedenceRanks.withObject,
+      ranks_without_object: precedenceRanks.withoutObject,
+      by_rank: precedenceRanks.byRank,
+    }));
 
     const result = await generateWithGemini(
       built.systemPrompt + household.systemSuffix,
@@ -3830,7 +4554,25 @@ Deno.serve(async (req) => {
       true,
       [],
       "auto",
-      { source: FN_NAME, requestId, userId },
+      // ── LE MODÈLE DE COMPOSITION, ET PAS CELUI DU CHAT (2026-08-19) ────
+      // Cette lane passait `GLOBAL_AI_MODEL` (`gpt-5.4-mini`) faute de nommer
+      // un modèle: le cas le PLUS complexe du produit — plusieurs bouches, des
+      // allergies, des régimes qui se croisent dans une casserole — était
+      // composé par le modèle du chat. Or le banc du 2026-08-11 a mesuré que
+      // `gpt-5.4-mini` est le SEUL des cinq candidats à servir des aliments
+      // interdits (yaourt grec à un intolérant au lactose 3 fois sur 3, poulet
+      // et bœuf à un végétarien, sauce soja à un foyer sans gluten).
+      //
+      // ⚠️ LA TENTATIVE PRÉCÉDENTE A ÉCHOUÉ, ET ON SAIT ENFIN POURQUOI: le
+      // timeout HTTP par défaut est de 110 s (`GEMINI_HTTP_TIMEOUT_MS`) alors
+      // que le banc mesure un modèle 5.6 à 164 s de MÉDIANE sur un plan lourd.
+      // Elle expirait avant la réponse. La latence de `gpt-5.6-luna` n'est PAS
+      // mesurée; si les expirations reviennent, le retour arrière est
+      // `KEEL_GENERATION_MODEL`, sans redéploiement — mais ⛔ PAS vers
+      // `gpt-5.4-mini`, voir l'en-tête de `generation_model.ts`.
+      { source: FN_NAME, requestId, userId, model: keelGenerationModel(),
+            httpTimeoutMs: PLAN_HTTP_TIMEOUT_MS,
+            reasoningEffort: PLAN_REASONING_EFFORT },
     );
     if (typeof result !== "string") {
       return jsonResponse(req, {
@@ -3883,11 +4625,62 @@ Deno.serve(async (req) => {
       // deux blocs. Un second calcul ferait promettre une boîte à quelqu'un que
       // le parseur refuse, ou l'inverse.
       //
-      // ⚠️ TOUT LE MONDE, PAS `dishBearerIds`. Une bouche qui mange le plat de
-      // la table a quand même SA part, donc SA boîte; seules quelques-unes ont
-      // un plat à elles. Passer les porteurs ici retirerait sa boîte à toute la
-      // tablée, en silence, et le lot ressemblerait à un modèle qui n'obéit pas.
+      // ══════════════════════════════════════════════════════════════════════
+      // ⛔ LE ROSTER ENTIER À NOUVEAU — v4, 2026-08-20
+      // ══════════════════════════════════════════════════════════════════════
+      //
+      // Entre le 08-19 et le 08-20, cette liste valait
+      // `weighedPortionMembers(members)`: v3 ne donnait un contenant qu'aux
+      // bouches à objectif et laissait les autres dans un silence
+      // (`docs/keel/BOITES-PAR-REPAS.md`). v4 renverse ce silence — « plat
+      // commun » ne disait ni combien de bacs remplir dimanche, ni lequel
+      // ouvrir jeudi, et devant le frigo il ne décidait rien pour trois
+      // personnes sur quatre.
+      //
+      // Le bac commun NOMME donc les autres, et le parseur doit les accepter
+      // sur un couvercle. Ce qui reste réservé aux objectifs est la PORTION
+      // MILLIMÉTRÉE, et c'est `weighedMemberIds` juste en dessous qui la porte.
+      //
+      // ⚠️ CETTE LISTE RESTE UNE GARDE DE PARSEUR, PAS SEULEMENT UNE CONSIGNE.
+      // Un nom qui n'est pas du foyer est refusé, avec un motif et un compteur.
       boxMemberIds: members.map((m) => m.memberId),
+      // ══════════════════════════════════════════════════════════════════════
+      // LES BOUCHES DONT L'OBJECTIF OUVRE UNE PORTION MILLIMÉTRÉE
+      // ══════════════════════════════════════════════════════════════════════
+      //
+      // ⛔ LA MÊME EXPRESSION QUE LA CONSIGNE, ET C'EST LA MOITIÉ « PARSEUR »
+      // D'UNE GARDE QUI A DÉJÀ SA MOITIÉ « PROMPT » (`boxSchemaBlock`). Les deux
+      // lisent `weighedPortionMembers(members)`; un second calcul ferait
+      // promettre un contenant nommé à quelqu'un que le compteur n'attend pas,
+      // ou l'inverse.
+      //
+      // ⚠️ CE N'EST PAS UNE LISTE FERMÉE DE PLUS: c'est le seul moyen de dériver
+      // `box_counts.expected` sans le modèle. Sans elle, zéro contenant rendu
+      // serait indiscernable d'un foyer où personne n'en demande.
+      weighedMemberIds: weighedPortionMembers(members).map((m) => m.memberId),
+      // ══════════════════════════════════════════════════════════════════════
+      // LA CEINTURE DE RÉGIME — LA MÊME LISTE, AVEC SA LIGNE DÉCLARÉE.
+      // ══════════════════════════════════════════════════════════════════════
+      //
+      // ⛔ `members`, EXACTEMENT LA MÊME SOURCE QUE `boxMemberIds` JUSTE
+      // AU-DESSUS, et lue dans la même expression: deux listes construites
+      // séparément finiraient par ne plus décrire le même roster, et la seule
+      // preuve serait une ceinture qui n'a jamais rien vu (le parseur compte
+      // `regime_belt.unknown_mouth` pour ce cas-là, précisément parce qu'il ne
+      // doit jamais rester muet).
+      //
+      // ⚠️ LA LIGNE DE CHACUN, PAS LA PLUS STRICTE DE LA TABLE.
+      // `strictestRegime` gouverne le plat COMMUN (R4) — mais dès que le
+      // barreau ② ouvre un plat DÉDIÉ, ce plat n'est plus borné par elle, et
+      // c'est là que la viande arrive. La question à ce moment-là n'est plus
+      // « que peut contenir la casserole ? » mais « cette bouche-ci peut-elle
+      // manger CETTE préparation-là ? », et seule sa propre ligne y répond. Un
+      // végétarien qui diverge d'une table végane est le cas qui sépare les
+      // deux lectures.
+      boxMemberDiets: members.map((m) => ({
+        memberId: m.memberId,
+        regime: m.diet,
+      })),
     } as const;
 
     // ══════════════════════════════════════════════════════════════════════
@@ -3994,7 +4787,17 @@ Deno.serve(async (req) => {
           true,
           [],
           "auto",
-          { source: `${FN_NAME}.protein_anchor_retry`, requestId, userId },
+          // MÊME MODÈLE QUE LA COMPOSITION: une relance servie par un autre
+          // modèle ne répare pas le plan qu'elle relit, elle en compose un
+          // autre — et le verdict porterait alors sur deux modèles mêlés.
+          {
+            source: `${FN_NAME}.protein_anchor_retry`,
+            requestId,
+            userId,
+            model: keelGenerationModel(),
+            httpTimeoutMs: PLAN_HTTP_TIMEOUT_MS,
+            reasoningEffort: PLAN_REASONING_EFFORT,
+          },
         );
         if (typeof retryResult === "string") {
           const retried = parseGeneratedMeal(retryResult, parseArgs);
@@ -4041,6 +4844,111 @@ Deno.serve(async (req) => {
         missing_before: anchorMissingBefore,
         missing_after: meal.protein_anchor_missing.length,
         retried: proteinAnchorRetry,
+      }));
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    // LOT 18 · L'INGRÉDIENT INCONNU NE CONDAMNE PLUS LA JOURNÉE
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ── OÙ C'EST POSÉ, ET C'EST LE CHOIX QUI COMPTE ───────────────────────
+    // APRÈS la relance d'ancre protéique — donc sur le plan qu'on va ÉCRIRE, pas
+    // sur un intermédiaire que la relance a peut-être remplacé (même arbitrage
+    // que `observeMergeShape` juste en dessous) — et AVANT `mouthDayEnergy` +
+    // `householdAnchors`.
+    //
+    // ⛔ C'EST **CETTE** LANE QUE LE LOT VISE, et la raison est mesurée. Les
+    // deux lanes portent deux implémentations de « cible ÷ livré » qui ne
+    // partagent rien: la lane solo passe par `verdictFor` (une DIRECTION, qui
+    // survit à une marge), celle-ci par `anchorFactorFor` — dont la garde
+    // `day_incomplete` est BINAIRE et se referme dès qu'UN plat du jour n'a pas
+    // rendu son énergie. C'est là que le tout-ou-rien coûte le plus: mesuré sur
+    // les 319 journées de foyer en base, 27,9 % seulement sont calculables.
+    //
+    // Les deux lanes sont câblées quand même, parce que le point de branchement
+    // est l'INDEX — le seul objet qu'elles partagent — et qu'en câbler une seule
+    // aurait fait deux référentiels différents pour deux plans du même foyer.
+    //
+    // ⛔ IL NE PEUT PAS FAIRE TOMBER LE PLAN: `repairPlanComposition` n'a aucun
+    // chemin qui lève. Le `try` que `fillPlanComposition` pose autour est une
+    // TROISIÈME ceinture.
+    //
+    // ── ⛔ V0-B-bis · « PAS MESURÉ » N'EST PAS « MESURÉ À ZÉRO » ───────────
+    // Cette variable valait `{ unknowns: 0, shares: {}, counts: {} }` au départ,
+    // et DEUX chemins la laissaient telle quelle: `composition` absent, et le
+    // `catch`. Les colonnes du plan recevaient donc `0` et `{}` — « mesuré,
+    // aucun inconnu » — sur un plan que le sas n'a jamais regardé. Le défaut
+    // était le MÊME, à la virgule près, dans les deux lanes; il est réparé au
+    // même endroit pour qu'une troisième lane ne le réintroduise pas.
+    const filledComposition = await fillPlanComposition({
+      baseIndex: composition,
+      attempt: (baseIndex) =>
+        repairPlanComposition({
+          db: admin,
+          baseIndex,
+          // LA WORKLIST: plats ET préparations, non pliés, avec le groupe que
+          // le modèle a pu déclarer sur la ligne (`DishIngredient.group`).
+          inputs: [
+            ...meal.dishes.flatMap((d) => d.ingredients),
+            ...meal.preparations.flatMap((p) => p.ingredients),
+          ].map((i) => ({
+            term: i.term,
+            amount: i.amount,
+            unit: i.unit,
+            state: i.state,
+            group: i.group,
+          })),
+          // LES PARTS: préparations PLIÉES et au prorata — 41 % de l'énergie
+          // vit dedans, et une casserole faite pour quatre dîners compterait
+          // quatre fois sans le pliage.
+          energyInputs: foldPreparationsIntoDishes({
+            dishes: meal.dishes.map((d) => ({
+              slot: d.slot,
+              method: d.method,
+              ingredients: d.ingredients,
+              uses: d.uses,
+            })),
+            preparations: meal.preparations.map((prep) => ({
+              id: prep.id,
+              servingsMade: prep.servingsMade,
+              ingredients: prep.ingredients,
+            })),
+          }).flatMap((d) => d.ingredients),
+          meta: {
+            source: `${FN_NAME}.composition_fill`,
+            requestId,
+            userId,
+          },
+        }),
+      // ⛔ LE `catch` CESSE D'ÊTRE MUET. Un `console.warn` ne se compte pas: un
+      // remplissage qui lève en boucle ressemblait à un remplissage qui marche.
+      onMiss: (reason, error) => {
+        console.error(JSON.stringify({
+          tag: "keel.household_meal.composition_fill_missed",
+          user_id: userId,
+          household_id: householdId,
+          intent,
+          reason,
+          // ⛔ `readableErrorMessage` ET PAS `String(error)`: une
+          // `PostgrestError` est un objet nu, et le raccourci rendait
+          // « [object Object] ». Un compteur d'échec qui ne dit pas DE QUOI
+          // n'est qu'un compteur de silence. (Cicatrice C5 ⑥, déjà gardée.)
+          error: readableErrorMessage(error),
+        }));
+      },
+    });
+    composition = filledComposition.index;
+    const compositionFill = filledComposition.outcome;
+    if (compositionFill.measured) {
+      console.log(JSON.stringify({
+        tag: "keel.household_meal.composition_fill",
+        user_id: userId,
+        household_id: householdId,
+        intent,
+        measured: true,
+        unknowns: compositionFill.unknowns,
+        ...compositionFill.counts,
+        shares: compositionFill.shares,
       }));
     }
 
@@ -4091,6 +4999,63 @@ Deno.serve(async (req) => {
         preparations: meal.preparations.length,
       }));
     }
+
+    // ══════════════════════════════════════════════════════════════════════
+    // LE JOURNAL DE LA CEINTURE DE RÉGIME — AVANT LE PREMIER REFUS.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ SA POSITION EST LA MOITIÉ DU COMPTEUR, ET ELLE A ÉTÉ MESURÉE FAUSSE.
+    // Écrit trente lignes plus bas — à côté de la trace `generated_from` — il
+    // ne sortait PAS sur le run réel `7ce40002-…0002` (2026-08-19, `one_dish`):
+    // le verrou médical avait vidé le plan, la fonction rendait
+    // `422 empty_meal` juste en dessous, et la ceinture de régime restait
+    // MUETTE — c'est-à-dire précisément le jour où on la consulte.
+    //
+    // `generated_from` n'existe que sur une ligne ÉCRITE. Sur un plan refusé,
+    // sur un aperçu, sur un `meal_unparseable`, ce journal est la SEULE trace
+    // de ce que la ceinture a lu et retiré. Il part donc avant le premier
+    // `return`, et rien ne doit s'insérer entre lui et le parseur.
+    //
+    // ⚠️ SANS `shares_refused` ICI, ET C'EST ASSUMÉ: `reconcilePortions` tourne
+    // cent lignes plus bas, et un plan vide n'a de toute façon aucune part.
+    // Ce nombre-là vit dans la trace (`boxTrace.shares.regime_refused`), sur
+    // les deux chemins qui écrivent quelque chose.
+    console.log(JSON.stringify({
+      tag: "keel.household_meal.dietary_regime",
+      user_id: userId,
+      household_id: householdId,
+      lock: meal.lock.reason,
+      dishes: meal.dishes.length,
+      ...meal.regime_belt,
+    }));
+
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ LOT `L0-a` — LA CONSERVATION, EN CINQ NOMBRES
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ TROIS POPULATIONS POUR LA FENÊTRE DU CUIT, ET C'EST LE POINT DU LOT.
+    // Sans `within`, on ne distingue pas « la fenêtre a tourné et rien n'a
+    // mordu » de « la fenêtre n'a pas tourné »: les deux rendent
+    // `violations: 0`, et le second est un lot désarmé qui ressemble à un lot
+    // qui marche. Seuils: `violations` 0 sur un plan sain, `within` non nul,
+    // `not_evaluated` 0.
+    //
+    // ⚠️ DEUX DE PLUS POUR LA FENÊTRE CRUE, et pour la même raison: une liste
+    // de courses dont aucun article n'a de groupe rend exactement la même
+    // chose qu'une liste parfaitement routée. `unknown_group` est ce qui
+    // sépare les deux.
+    //
+    // ⚠️ Il part AVANT le premier `return`, comme la ceinture de régime: un
+    // plan vidé par le verrou de sortie doit quand même dire ce que la fenêtre
+    // a refusé.
+    console.log(JSON.stringify({
+      tag: "keel.household_meal.fridge_window",
+      user_id: userId,
+      household_id: householdId,
+      dishes: meal.dishes.length,
+      ...meal.fridge_window,
+      ...rawWindowCounts(meal.shopping_list),
+    }));
 
     if (meal.dishes.length === 0) {
       // Sur un APERÇU, le mot change: la question de la personne n'est pas
@@ -4147,6 +5112,32 @@ Deno.serve(async (req) => {
     const dishes = lock.dishes;
     for (const s of lock.scrubbed) issues.push(`house_rule_commented:${s}`);
 
+    // ══════════════════════════════════════════════════════════════════════
+    // LOT C ② — LE `why` A-T-IL NOMMÉ LA RÈGLE DE QUELQU'UN, ET DE QUI ?
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ `mealSourceText`, JAMAIS `result`. Même raison que `extractMemberPortions`
+    // vingt lignes plus bas, et elle est mesurée: une relance d'ancre remplace
+    // `meal` et laisserait ce compteur sur la réponse d'AVANT — il compterait
+    // des plats que personne ne mange.
+    //
+    // ⚠️ IL NE JETTE RIEN. Un `why` mal attribué reste un plat qui se cuisine.
+    // Ce qu'on corrige est le PROMPT; ici on constate, on nomme, et on compte.
+    const whyRule = countWhyRuleAttributions(mealSourceText, ruleHolders);
+    issues.push(...whyRule.issues);
+    if (whyRule.counts.declared > 0 || ruleHolders.length > 0) {
+      console.log(JSON.stringify({
+        tag: "keel.household_meal.why_rule",
+        user_id: userId,
+        household_id: householdId,
+        // LE DÉNOMINATEUR DE LA CONSIGNE: à combien de bouches le prompt a
+        // ouvert la clé. À zéro, aucun bloc n'a été servi — et « le modèle n'a
+        // rien déclaré » cesse alors de ressembler à « on ne lui a rien demandé ».
+        holders: ruleHolders.length,
+        ...whyRule.counts,
+      }));
+    }
+
     // ── LES PORTIONS, RÉCONCILIÉES AVEC LE FOYER RÉEL ───────────────────
     // `platedMembers`, PAS `members`: la boucle de réconciliation réattribue
     // une portion standard à toute bouche que le modèle a omise
@@ -4177,7 +5168,14 @@ Deno.serve(async (req) => {
       // Le 2026-08-17, le modèle a écrit « Use box_prep_chicken_shared. » dans
       // une note lue à voix haute à table; sans cette liste, la ceinture ne
       // peut pas distinguer un slug d'une phrase.
-      meal.preparations.flatMap((p) => p.boxes.map((b) => b.id)),
+      meal.dishes.flatMap((d) => d.boxes.map((b) => b.id)),
+      // ⛔ LA CEINTURE DE RÉGIME, SUR LA SECONDE SURFACE. Le scan a eu lieu UNE
+      // fois, dans le parseur, avec la liste fermée et le désamorçage des
+      // analogues végétaux; ici on ne fait que le LIRE. Sans cette ligne, la
+      // boîte de bœuf disparaît de la part d'une bouche végane et la ligne
+      // « une portion de bœuf » reste accrochée sous le plat — la cicatrice
+      // « garde posée sur un seul des deux champs », rejouée.
+      meal.regime_refusals,
     );
 
     // ── L5/D8 · TOUTES LES REPRISES QUE CE PLAN PORTE ─────────────────────
@@ -4326,6 +5324,137 @@ Deno.serve(async (req) => {
       issues.push("rationale_unavailable");
     }
 
+    // ══ L35-a · CE QUE CE PLAN A SACRIFIÉ ═════════════════════════════════
+    //
+    // Le bloc ci-dessus explique un CALENDRIER. Celui-ci nomme les COMPROMIS,
+    // et il vit dans son propre module (`plan_tradeoffs.ts`) pour une raison
+    // écrite là-bas: sa quatrième phrase est l'INVERSE d'une prémisse armée,
+    // et la poser au milieu de gabarits gouvernés par la règle opposée
+    // garantirait qu'un futur lecteur la « répare ».
+    //
+    // ⚠️ MÊME POSTURE QUE LE BLOC AU-DESSUS: il ne peut pas coûter un dîner. Il
+    // JETTE sur un champ manquant, l'échec est attrapé, NOMMÉ dans `issues` et
+    // journalisé — et le plan sort quand même, avec ses lignes de calendrier.
+    try {
+      // ── LES JOURS OÙ IL MANQUE UN REPAS À UNE BOUCHE ─────────────────────
+      //
+      // ⚠️ PAR `memberMealCells`, LA MÊME PRIMITIVE QUE `absentAllWindow`, et
+      // jamais un second parcours: un compte sur `away_days` brut aurait sa
+      // propre idée de la fenêtre et du rythme, et finirait par nommer un jour
+      // que le plan compose.
+      //
+      // ⚠️ « IL MANQUE AU MOINS UN REPAS », PAS « LA JOURNÉE ENTIÈRE », ET
+      // C'EST UNE MESURE QUI A TRANCHÉ (2026-08-22): sur les 8 bouches du
+      // corpus qui portent une absence déclarée, AUCUNE ne manque une journée
+      // pleine — ce sont des midis. Une famille armée sur la journée pleine ne
+      // mordrait jamais, et une famille qui ne mord jamais est indiscernable
+      // d'une famille débranchée.
+      const rhythmForPresence = eatingRhythm.length > 0
+        ? eatingRhythm
+        : DEFAULT_EATING_RHYTHM;
+      const awayMouths = composedMembers
+        .map((m) => {
+          const cells = memberMealCells({
+            away: m.away.effective,
+            rhythm: rhythmForPresence,
+            windowDays: daysToFill,
+          });
+          const eatenPerDay = new Map<string, number>();
+          for (const cell of cells) {
+            eatenPerDay.set(cell.day, (eatenPerDay.get(cell.day) ?? 0) + 1);
+          }
+          return {
+            // DES PRÉNOMS, jamais des identifiants: la phrase se lit à voix
+            // haute à table. Une bouche sans prénom résolu est écartée par le
+            // module lui-même.
+            name: String(m.displayName ?? "").trim(),
+            // ⚠️ AUCUN `as` ICI, ET C'EST DÉLIBÉRÉ. `daysToFill` est DÉJÀ
+            // `DayToken[]` (`windowDayOrder`); un cast ferait exactement ce que
+            // ce dépôt a mesuré — « `as` sur un type étranger désarme le
+            // typecheck », 200 en log et `null` en silence.
+            days: daysToFill.filter((d) =>
+              (eatenPerDay.get(d) ?? 0) < rhythmForPresence.length
+            ),
+            allWindow: presence.absentAllWindow.includes(m.memberId),
+          };
+        })
+        .filter((m) => m.allWindow || m.days.length > 0);
+
+      // ── LES BOUCHES DONT LE PLAN NE SAIT RIEN ────────────────────────────
+      //
+      // ⛔ « AUCUN POIDS CONNU », ET PAS « ENVELOPPE ABSENTE ». La distinction
+      // est une garde, pas un détail: une enveloppe peut être absente ou
+      // dégradée PARCE QU'UN PLANCHER EST LEVÉ, et nommer ces bouches-là ferait
+      // de cette phrase l'exact contraire de ce qu'elle est — un désignateur.
+      // Une bouche sous plancher A des pesées; elle n'entre donc jamais ici.
+      //
+      // Les deux sources de poids sont lues, comme partout: la SÉRIE d'un
+      // compte (`latestWeight`) et la FICHE d'une bouche sans compte
+      // (`declaredWeightKg`). N'en lire qu'une nommerait la moitié du foyer.
+      const mouthsWithoutBody = platedMembers
+        .filter((m) =>
+          m.body === null ||
+          (m.body.latestWeight === null && m.body.declaredWeightKg === null)
+        )
+        .map((m) => String(m.displayName ?? "").trim())
+        .filter(Boolean);
+
+      const tradeoffs = explainPlanTradeoffs({
+        locale: reportLocale,
+        facts: {
+          // LA MÊME VALEUR que celle passée au module frère, jamais un second
+          // calcul: deux comptes de bouches feraient parler deux plans.
+          mouthsServed: Math.min(12, Math.max(1, presence.servings)),
+          awayMouths,
+          mouthsWithoutBody,
+          // R4 — LE MÊME COUPLE que celui servi au prompt et au module frère.
+          sharedDishRegime: strictestRegime === null
+            ? null
+            : { regime: strictestRegime },
+          // LES DEUX BOOLÉENS VIENNENT DE `capCookingShape`, jamais d'une
+          // seconde comparaison écrite ici.
+          cookingShapeChoice: askedCookingShape === null ? null : {
+            capped: shapeCap.capped,
+            unused: shapeCap.unused,
+          },
+          weeklyCookingMinutes: weeklyMinutes,
+          // ⛔ LE VERROU DE LANE, ET C'EST SON PREMIER LECTEUR VISIBLE.
+          // `resolution.mode` est la sortie de `householdLaneMode`, qui mélange
+          // DEUX populations par construction. Il n'est JAMAIS rendu tel quel:
+          // le module s'en sert pour ouvrir UNE des quatre portes d'une phrase
+          // FIXE, dont trois autres sont anodines.
+          laneMode: resolution.mode,
+        },
+      });
+      rationaleLines = [...rationaleLines, ...tradeoffs.lines];
+      // ⛔ LE COMPTEUR, ET IL EST OBLIGATOIRE. « Un champ déclaré sans compteur
+      // ressemble trait pour trait à un lot qui marche »: sans cette ligne, une
+      // famille qui cesse de mordre est indiscernable d'un foyer sans
+      // compromis. Les FAMILLES, jamais les phrases: le texte se lit à voix
+      // haute à table, un log n'a pas à le porter.
+      console.log(JSON.stringify({
+        tag: "keel.household_meal.plan_tradeoffs",
+        user_id: userId,
+        household_id: householdId,
+        families: tradeoffs.families,
+        lines: tradeoffs.lines.length,
+        refusal: tradeoffs.refusal,
+        // LES POPULATIONS, côte à côte avec la sortie: c'est ce qui permet de
+        // lire « la famille n'a pas mordu » comme « la prémisse était vide »
+        // plutôt que comme « le lot est débranché ».
+        away_mouths: awayMouths.length,
+        mouths_without_body: mouthsWithoutBody.length,
+        shape_capped: shapeCap.capped,
+        lane_mode: resolution.mode,
+      }));
+      if (tradeoffs.refusal !== null) {
+        issues.push(`plan_tradeoffs_refused:${tradeoffs.refusal}`);
+      }
+    } catch (error) {
+      console.error(`[${FN_NAME}] plan tradeoffs unavailable`, error);
+      issues.push("plan_tradeoffs_unavailable");
+    }
+
     let reportLines: string[] = [];
     let reportRefusal: string | null = null;
     try {
@@ -4463,19 +5592,10 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ── ③ LA POSITION DU COACH, RÉDUITE ──────────────────────────────────
-    // Le foyer suit UNE méthode, celle du compte maître (c'est déjà la règle du
-    // verrou de doctrine, cent lignes plus haut). `doctrine.coachId` est non nul
-    // ici — la fonction a rendu 409 sinon. Une doctrine ILLISIBLE vaut
-    // `no_counting`: fail-closed, exactement comme `countingStanceFrom` le
-    // documente.
-    const coachCounting = countingStanceFrom({
-      hasCoach: true,
-      doctrineReadable: doctrine.doctrine !== null,
-      forbiddenTokens: (doctrine.doctrine?.forbidden ?? [])
-        .map((f) => String(f.token ?? "").trim())
-        .filter(Boolean),
-    });
+    // ── ③ LA POSITION DU COACH ────────────────────────────────────────────
+    // `coachCounting` est calculé AVANT le prompt (voir son bloc, juste après
+    // le chargement de la doctrine): le brief de portions en descend, et deux
+    // lectures d'une même position finiraient par diverger.
 
     // ── LE FACTEUR DE CHAQUE BOUCHE, ET LE MOTIF DE CHACUNE ───────────────
     // ⚠️ TOUTES LES BOUCHES, MOTIF COMPRIS — y compris celles à `1`. Un compteur
@@ -4485,18 +5605,226 @@ Deno.serve(async (req) => {
     const sizingFactors = new Map<string, number>();
     const sizingReasons: Record<string, number> = {};
     for (const reason of BOX_SIZING_REASONS) sizingReasons[reason] = 0;
-    for (const m of members) {
-      const sizing = memberTargetFactor(m, {
-        coachCounting,
-        paceKgPerWeek: paceByMember.get(m.memberId) ?? null,
+    const shareReasons: Record<string, number> = {};
+    for (const reason of BODY_SHARE_REASONS) shareReasons[reason] = 0;
+    let shareClamped = 0;
+    const mouthFactors = householdMouthFactors(
+      members.map((m) => ({
+        member: m,
+        restriction: restrictionOf(m),
         // Le corps de SA fiche. `mouthEnvelope` lit déjà le même objet pour
         // servir une maintenance pédiatrique par bouche; on ne fabrique pas une
         // seconde lecture de corps.
         body: lineBodies.get(m.memberId) ?? null,
-      });
-      sizingReasons[sizing.reason] = (sizingReasons[sizing.reason] ?? 0) + 1;
+        paceKgPerWeek: paceByMember.get(m.memberId) ?? null,
+        // L0bis — ses conditions declarees. `[]` pour toute bouche sans compte:
+        // `student_safety_constraints` est clee sur `user_id` et il n'existe
+        // pas de `household_member_conditions` (fiche `L0bis-a`).
+        conditionRefs: conditionRefsOf(m.memberId),
+      })),
+      coachCounting,
+    );
+    for (const m of members) {
+      const sizing = mouthFactors.get(m.memberId);
+      if (!sizing) continue;
+      sizingReasons[sizing.target.reason] = (sizingReasons[sizing.target.reason] ?? 0) + 1;
+      shareReasons[sizing.share.reason] = (shareReasons[sizing.share.reason] ?? 0) + 1;
+      if (sizing.clamped) shareClamped++;
       if (sizing.factor !== 1) sizingFactors.set(m.memberId, sizing.factor);
     }
+
+    // ══════════════════════════════════════════════════════════════════════
+    // L'ANCRAGE ABSOLU — `cible / livré`, et il REMPLACE le facteur relatif
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ── POURQUOI UNE BASCULE EXCLUSIVE, ET PAS UN RETRAIT ─────────────────
+    // Le chantier prescrivait « retire la couche relative, ne l'empile pas ».
+    // La mesure inverse la conclusion: l'ancrage s'abstient sur toute journée
+    // dont un plat n'a pas rendu son énergie, et la couverture mesurée le
+    // 2026-08-20 est de 55,4 % — donc la majorité des journées sont
+    // incomplètes. Retirer `bodyShareFactors` maintenant rendrait 450/450 là
+    // où le produit rend 612/344 aujourd'hui: une RÉGRESSION livrée sous le
+    // nom d'un progrès.
+    //
+    // ⛔ ET JAMAIS LE PRODUIT DES DEUX. Le double comptage mesuré sur trois
+    // runs (le modèle découpait par classe, le moteur multipliait par-dessus,
+    // et l'ado dont le corps demande 2,03x la part de l'adulte en recevait
+    // 1,02x) vient de la MULTIPLICATION, pas de la coexistence. Une bascule
+    // exclusive l'évite entièrement.
+    //
+    //     ancrage tiré  ->  son facteur REMPLACE le relatif
+    //     sinon         ->  le relatif reste, seul
+    //
+    // ⚠️ PAR JOUR, ET LE PLUS PRUDENT GAGNE. `sizeBoxesFromTarget` prend UN
+    // facteur par bouche pour tout le plan, alors que l'ancrage en produit un
+    // par jour. On retient le plus PROCHE DE 1: servir à toute la semaine le
+    // facteur du jour le plus extrême est le seul geste qui puisse nuire, et
+    // c'est celui qu'un `max` ferait. La granularité par jour appartient au
+    // lot qui fera descendre `sizeBoxesFromTarget` au niveau du repas.
+    const anchorReasons: Record<string, number> = {};
+    for (const reason of ANCHOR_REASONS) anchorReasons[reason] = 0;
+    let anchorApplied = 0;
+
+    // ══════════════════════════════════════════════════════════════════════
+    // LES DEUX COMPTEURS DE REPLI DES LOTS ①② (2026-08-20)
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ ILS SE COMPTENT SUR LES BOUCHES, PAS SUR LES BOUCHES-JOURS, et ils se
+    // comptent ICI — hors du `if (composition)`. Les deux lots posent des
+    // questions sur une FICHE; un compteur qui ne parlerait que sur les
+    // journées ancrées rendrait « personne n'a répondu » sur un foyer où tout
+    // le monde a répondu et où la composition n'a pas pu être lue. C'est très
+    // exactement le zéro ambigu que le voisin `anchor` documente au-dessus.
+    //
+    // ⛔ ET ILS ONT QUATRE CASES, PAS DEUX. `not_asked` (fiche plus vieille que
+    // le lot) et `not_answered` (question posée, refusée) ne se réparent pas du
+    // tout de la même façon: la première demande d'aller poser la question, la
+    // seconde demande de ne rien faire. Les fondre est la faute que ce chantier
+    // paie en boucle.
+    //
+    // ⛔ AUCUN `member_id`, comme ses trois voisins: ce sont des histogrammes.
+    const activityAnswers: Record<string, number> = {};
+    for (const state of ACTIVITY_ANSWER_STATES) activityAnswers[state] = 0;
+    const activitySources: Record<string, number> = {};
+    for (const source of ACTIVITY_FACTOR_SOURCES) activitySources[source] = 0;
+    const structureAnswers: Record<string, number> = {};
+    for (const state of MEAL_STRUCTURE_STATES) structureAnswers[state] = 0;
+    const appetiteAnswers: Record<string, number> = {
+      declared: 0,
+      not_answered: 0,
+      not_asked: 0,
+    };
+    for (const m of members) {
+      const body = lineBodies.get(m.memberId) ?? null;
+      const axes = body?.activityAxes ?? { day: null, sport: null, asked: false };
+      activityAnswers[activityAnswerState(axes)] += 1;
+      // ⚠️ LA SOURCE EST COMPTÉE À PART DE L'ÉTAT, ET LES DEUX NE DISENT PAS LA
+      // MÊME CHOSE. `not_asked` dit ce que la FICHE porte; `legacy` dit quel
+      // nombre a réellement multiplié un métabolisme de base. Une fiche
+      // `not_asked` qui porte un ancien cran sort `legacy` — c'est-à-dire le
+      // produit d'hier, à l'identique — et une fiche `not_asked` sans cran sort
+      // `assumed`, c'est-à-dire l'hypothèse 1,5. Un seul histogramme
+      // confondrait les deux, et la compatibilité ascendante serait invérifiable.
+      activitySources[activityFactorOf(axes, body?.activityLevel ?? null).source] += 1;
+      structureAnswers[mealStructureState(lineStructures.get(m.memberId) ?? null)] += 1;
+      // ── ⑤ L'APPÉTIT — TROIS ÉTATS, ET LE TROISIÈME EST LE SUJET ────────
+      // `declared` / `not_answered` / `not_asked`. `average` et « pas
+      // répondu » rendent le MÊME facteur (x1,00) et ne sont pas le même état:
+      // sans la distinction, on ne peut pas savoir si la question sert à
+      // quelque chose. C'est le zéro ambigu, pour la troisième fois de ce
+      // chantier.
+      appetiteAnswers[
+        body?.appetite != null
+          ? "declared"
+          : (row_appetite_asked.has(m.memberId) ? "not_answered" : "not_asked")
+      ] += 1;
+    }
+    if (composition) {
+      const dayEnergy = mouthDayEnergy({
+        index: composition,
+        dishes: meal.dishes.map((dish) => ({
+          day: dish.day,
+          method: dish.method,
+          slot: dish.slot,
+          ingredients: dish.ingredients,
+          uses: dish.uses,
+          boxes: dish.boxes,
+        })),
+        preparations: meal.preparations.map((prep) => ({
+          id: prep.id,
+          servingsMade: prep.servingsMade,
+          ingredients: prep.ingredients,
+        })),
+      });
+      const anchors = householdAnchors(
+        members.map((m) => ({
+          memberId: m.memberId,
+          ageState: m.ageState,
+          restriction: restrictionOf(m),
+          body: lineBodies.get(m.memberId) ?? null,
+          // La MÊME lecture de direction que `memberTargetFactor`, jamais une
+          // seconde: `goalApplies` porte déjà la règle du mineur et de l'âge
+          // inconnu, et `scaleDirectionOf` celle des trois directions.
+          direction: m.goal === null ? null : scaleDirectionOf(m.goal),
+          paceKgPerWeek: paceByMember.get(m.memberId) ?? null,
+          // L0bis — la MEME lecture que `householdMouthFactors` ci-dessus, et
+          // c'est ce qui garantit que les deux chaines s'abstiennent ensemble.
+          conditionRefs: conditionRefsOf(m.memberId),
+          // ⛔ LES MOMENTS QU'ELLE A DÉCLARÉS, ET LA RAISON EST MESURÉE. Le
+          // 2026-08-20, Christèle déclare `lunch`+`dinner` et le plan ne lui
+          // compose que `dinner`: sans cette liste, sa cible de JOURNÉE
+          // ENTIÈRE était confrontée à un seul dîner, et son facteur brut
+          // sortait à 6,28 — une assiette de deux kilos, ou, une fois rabotée
+          // au plafond, la même que celle de tout le monde.
+          // Vide = les moments de la maison, c'est-à-dire les trois.
+          declaredSlots: (m.eatingSlots ?? []).map((o) => o.slot),
+          // ── ① CE QU'ELLE PREND À CÔTÉ DU PLAT ────────────────────────
+          // `null` (aucune entrée dans la map) = ces trois questions n'ont
+          // jamais été posées à cette fiche, et `composedDishShare` rend alors
+          // `COMPOSED_DISH_MEAL_SHARE` — la moyenne d'hier, au bit près.
+          structure: lineStructures.get(m.memberId) ?? null,
+        })),
+        dayEnergy,
+        coachCounting,
+      );
+      const best = new Map<string, number>();
+      for (const [key, anchor] of anchors) {
+        anchorReasons[anchor.reason] = (anchorReasons[anchor.reason] ?? 0) + 1;
+        if (anchor.reason !== "anchored" && anchor.reason !== "clamped") continue;
+        const memberId = key.slice(0, key.lastIndexOf(" "));
+        const current = best.get(memberId);
+        if (current === undefined || Math.abs(anchor.factor - 1) < Math.abs(current - 1)) {
+          best.set(memberId, anchor.factor);
+        }
+      }
+      for (const [memberId, factor] of best) {
+        anchorApplied++;
+        // LE REMPLACEMENT, et c'est tout le geste: `set` écrase la valeur que
+        // la chaîne relative avait posée, il ne la multiplie pas.
+        if (factor === 1) sizingFactors.delete(memberId);
+        else sizingFactors.set(memberId, factor);
+      }
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    // L'APPÉTIT DE LA TABLE — MESURÉ, PAS ENCORE BRANCHÉ (2026-08-19)
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ CE NOMBRE NE PILOTE RIEN AUJOURD'HUI, ET C'EST DÉLIBÉRÉ. La casserole
+    // reste dimensionnée par `presence.servings`, le compte de têtes.
+    //
+    // ── POURQUOI ON MESURE AVANT DE STEERING ─────────────────────────────
+    // `REFERENCE_ADULT_MAINTENANCE_KCAL` vaut 2000, et c'est une unité GROSSIÈRE
+    // choisie faute de socle chiffré (le vrai est un chantier à part). Mesuré
+    // sur le foyer 5600347f: deux adultes rendent un équivalent de **3**. Le
+    // brancher tel quel ferait cuire 50 % de plus pour deux personnes —
+    // c'est-à-dire exactement le gaspillage que ce champ existe pour éviter.
+    //
+    // Un foyer d'un adulte et deux jeunes enfants rend **2,5** contre un compte
+    // de 3: là, le gain est réel. Le signal est donc bon et son ÉTALON est
+    // faux. On journalise les deux nombres côte à côte pour savoir, sur des
+    // plans réels, de combien l'étalon doit bouger.
+    //
+    // ⚠️ LE JOUR OÙ ON BRANCHE, C'EST UNE LIGNE — et ce commentaire dit quoi
+    // regarder avant de la changer.
+    const appetite = householdAppetite(
+      members.map((m) => ({
+        ageState: m.ageState,
+        body: lineBodies.get(m.memberId) ?? null,
+      })),
+    );
+    console.log(JSON.stringify({
+      tag: "keel.household_meal.table_appetite",
+      user_id: userId,
+      household_id: householdId,
+      // LES DEUX NOMBRES CÔTE À CÔTE: sans le compte de têtes, l'équivalent ne
+      // dit pas de combien l'étalon se trompe.
+      servings_headcount: presence.servings,
+      appetite_equivalent: appetite.equivalent,
+      bodies_known: appetite.known,
+      mouths: appetite.mouths,
+      steering: false,
+    }));
 
     // ── LES BOÎTES, REDIMENSIONNÉES ──────────────────────────────────────
     // ⚠️ APRÈS LA RELANCE D'ANCRE PROTÉIQUE, PAS AVANT. `meal` est remplacé par
@@ -4505,9 +5833,22 @@ Deno.serve(async (req) => {
     // la cicatrice du `current` périmé, mesurée sur dix-huit parts orphelines le
     // 2026-08-17, et elle vaut ici mot pour mot.
     const boxSizing = sizeBoxesFromTarget(
+      // LES REPAS EN BOÎTE, TELS QUE LE PARSEUR LES A GARDÉS. `uses` descend avec
+      // eux parce que le plafond du récipient se pose casserole par casserole, et
+      // qu'une boîte de repas mélange les casseroles: c'est la fonction qui fait
+      // le prorata, pas cet appelant — un second calcul ici finirait par diverger
+      // de celui du parseur.
+      meal.dishes.flatMap((dish) =>
+        dish.boxes.map((box) => ({
+          boxId: box.id,
+          memberIds: box.memberIds,
+          items: box.items,
+          uses: dish.uses,
+        }))
+      ),
       meal.preparations.map((prep) => ({
         id: prep.id,
-        boxes: prep.boxes,
+        servingsMade: prep.servingsMade,
         // `null` quand un ingrédient n'est pas convertible: on redimensionne
         // sans pouvoir vérifier la somme, et on le compte. C'est le patron des
         // trois cas de `gramsRaw`, un cran plus haut.
@@ -4518,13 +5859,200 @@ Deno.serve(async (req) => {
       sizingFactors,
       BOX_SUM_TOLERANCE_RATIO,
     );
-    for (const prep of meal.preparations) {
-      for (const box of prep.boxes) {
-        const next = boxSizing.grams.get(box.id);
-        if (next !== undefined) box.grams = next;
+    for (const dish of meal.dishes) {
+      for (const box of dish.boxes) {
+        const next = boxSizing.items.get(box.id);
+        if (!next) continue;
+        // ⚠️ PAR INDEX, ET C'EST LE CONTRAT DE `SizableMeal.items`: il n'existe
+        // aucune clé stable pour un composant — deux `term` identiques sur un
+        // couvercle sont légitimes — et c'est le MÊME tableau qui est descendu.
+        for (const [index, item] of box.items.entries()) {
+          const grams = next.get(index);
+          if (grams !== undefined) item.grams = grams;
+        }
       }
     }
+
+    // ══════════════════════════════════════════════════════════════════════
+    // ⛔ LE MÊME OBJET, JOURNALISÉ — PARCE QUE `generated_from` N'EXISTE QUE
+    //    SUR UNE LIGNE ÉCRITE
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // Le voisin `generated_from.box_sizing` porte ces nombres, et il ne sort
+    // QUE pour `intent` autre que `draft`. Or toute vérification en situation
+    // réelle de ce chantier se fait en `draft` — et le fichier écrit déjà, mot
+    // pour mot, ce que ça coûte: « toute mesure faite par `intent: "draft"`
+    // était aveugle, et un diagnostic entier s'est trompé dessus le
+    // 2026-08-17 ». Un nombre qu'on ne journalise pas est un nombre que
+    // personne ne verra bouger.
+    //
+    // ⛔ AUCUN `member_id`, AUCUN kcal, AUCUN gramme nominatif: ce sont les
+    // mêmes histogrammes que `generated_from`, pas une seconde surface. Les
+    // deux lisent les MÊMES variables — les recalculer ici en ferait deux
+    // mesures qui divergent.
+    console.log(JSON.stringify({
+      tag: "keel.household_meal.box_sizing",
+      user_id: userId,
+      household_id: householdId,
+      intent,
+      ...boxSizing.counts,
+      mouths: sizingReasons,
+      share: shareReasons,
+      share_clamped: shareClamped,
+      anchor: anchorReasons,
+      anchor_applied: anchorApplied,
+      activity: activityAnswers,
+      activity_source: activitySources,
+      meal_structure: structureAnswers,
+      appetite: appetiteAnswers,
+    }));
+
+    // ══════════════════════════════════════════════════════════════════════
+    // ③ LE VERROU DÉTERMINISTE DES TRADITIONS — il VÉRIFIE et il COMPTE
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ IL NE RETIRE RIEN, ET C'EST UN ARBITRAGE ÉCRIT, PAS UN RENONCEMENT.
+    // Le jumeau négatif de ce verrou (`applyHouseRuleLock`) PEUT retirer: un
+    // plat qui sert du nutella part, et le foyer mange autre chose. Un verrou
+    // POSITIF ne peut pas la symétrie — on ne fabrique pas un rôti
+    // déterministe, il faudrait inventer des ingrédients, des quantités et une
+    // méthode, c'est-à-dire composer. Retirer le plat que le modèle a mis là
+    // parce qu'un matcher n'y a pas trouvé un mot serait la cicatrice
+    // « 12 faux positifs sur 12 » dans sa direction la plus chère: un dîner de
+    // moins pour un mot mal lu.
+    //
+    // Ce qu'il fait donc: il rend le manquement VISIBLE — dans les `issues` et
+    // dans `generated_from` — au lieu d'une promesse qu'on croit tenue. Et il
+    // rend le CHIFFRE qui permettra de trancher: si le taux d'honneur mesuré
+    // est bas, la case devra être RÉSERVÉE (retirée de ce que le modèle
+    // compose). C'est une décision qui se prend sur une mesure.
+    const traditionResults = traditionOutcomes(
+      traditions,
+      // LA MÊME FENÊTRE QUE LE PROMPT. Deux listes de jours calculées
+      // séparément déclareraient « manqué » une case que le prompt n'a jamais
+      // demandée.
+      daysToFill,
+      meal.dishes,
+    );
+    const traditionVerdicts = traditionCounts(traditionResults);
+    // ⛔ UNE SEULE `issue`, ET LE CHOIX EST UNE MESURE — NE PAS EN RAJOUTER.
+    //
+    // La version d'il y a une heure remontait aussi `tradition_missed`. Premier
+    // run réel avec « vendredi poisson » posé: le modèle a composé
+    // « Cabillaud, pommes de terre et haricots verts » — la tradition HONORÉE —
+    // et l'écran a reçu `tradition_missed: 1`. Le vérificateur cherche le mot
+    // « poisson »; un cabillaud ne le porte pas. On annonçait à un foyer que
+    // son vendredi était cassé pendant que son poisson était dans l'assiette.
+    //
+    // `not_composed` reste, et c'est le SEUL verdict sans matcher: la case est
+    // vide ou elle ne l'est pas. `composed_without_label`, lui, ne sort plus
+    // qu'en journal et dans `generated_from` — c'est un signal à regarder, pas
+    // un fait à afficher.
+    //
+    // ⚠️ L'`issue` NE NOMME NI LE JOUR NI LE LIBELLÉ. « Le foyer n'a pas eu son
+    // rôti dominical » dans une liste lisible par toute la maison serait un
+    // reproche adressé à quelqu'un.
+    if (traditionVerdicts.not_composed > 0) {
+      issues.push(`tradition_not_composed:${traditionVerdicts.not_composed}`);
+    }
+    // ⛔ JOURNALISÉ MÊME À ZÉRO TRADITION, comme ses voisins. `honoured: 0` et
+    // « aucune tradition posée » rendraient le même silence si on ne comptait
+    // que les succès — le zéro ambigu que ce chantier paie en boucle. Les
+    // quatre verdicts sont toujours là.
+    console.log(JSON.stringify({
+      tag: "keel.household_meal.traditions",
+      user_id: userId,
+      household_id: householdId,
+      intent,
+      declared: traditions.length,
+      ...traditionVerdicts,
+    }));
+
+    // ══════════════════════════════════════════════════════════════════════
+    // ⛔ ET LA CHARGE RENDUE, QUI EST UN AUTRE OBJET — LE DÉFAUT LE PLUS CHER
+    //    DE TOUT LE CHANTIER, MESURÉ LE 2026-08-20
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // `dishes` (la charge servie à l'écran) est un INSTANTANÉ pris ~500 lignes
+    // plus haut: `applyHouseRuleLock(mealDishesPayload(meal), …)`. Le
+    // dimensionnement, lui, écrit dans `meal.dishes`. Les deux ne partagent
+    // aucune référence.
+    //
+    // Le coût, sur un run réel: le moteur calculait **iku 544 g / Christèle
+    // 306 g**, l'écran affichait **400 g / 400 g**. Tout le chantier — la
+    // couverture, l'ancrage, les portes, les compteurs — était juste, et le
+    // nombre juste n'atteignait pas l'assiette. Le journal `box_sizing`
+    // annonçait `sized: 12` en toute bonne foi: il compte ce que le moteur a
+    // produit, pas ce que la réponse porte.
+    //
+    // ⚠️ C'EST LA CICATRICE DU `current` PÉRIMÉ, À L'ENVERS. Là-bas une lecture
+    // périmée écrasait une écriture; ici une écriture n'atteint jamais la copie
+    // qu'on sert. Même famille, même remède: on ne garde pas deux objets qui
+    // décrivent la même chose sans les recoller EXPLICITEMENT.
+    //
+    // ⛔ ON RECOLLE, ON NE RECONSTRUIT PAS. Refaire `mealDishesPayload(meal)`
+    // ici perdrait le travail d'`applyHouseRuleLock` (les `why` nettoyés, les
+    // violations retirées), qui n'existe que sur cette copie-là.
+    {
+      const sizedByBox = new Map<string, number[]>();
+      for (const dish of meal.dishes) {
+        for (const box of dish.boxes) {
+          sizedByBox.set(box.id, box.items.map((it) => it.grams));
+        }
+      }
+      let relinked = 0;
+      for (const payload of dishes as Array<Record<string, unknown>>) {
+        for (const raw of (Array.isArray(payload.boxes) ? payload.boxes : [])) {
+          const box = (raw ?? {}) as Record<string, unknown>;
+          if (typeof box.id !== "string") continue;
+          const sized = sizedByBox.get(box.id);
+          if (!sized || !Array.isArray(box.items)) continue;
+          // ⚠️ PAR INDEX, comme le recollage juste au-dessus: la charge est une
+          // COPIE de `meal.dishes` prise ~500 lignes plus haut, et les deux
+          // tableaux sortent du même parseur dans le même ordre. Une longueur
+          // qui diverge ne se rattrape pas en silence — on ne touche que les
+          // positions que les deux portent.
+          for (const [index, entry] of (box.items as Array<Record<string, unknown>>).entries()) {
+            const grams = sized[index];
+            if (grams !== undefined && grams !== entry.grams) {
+              entry.grams = grams;
+              relinked++;
+            }
+          }
+        }
+      }
+      // COMPTÉ, parce qu'un recollage silencieux qui cesse de fonctionner
+      // ressemblerait EXACTEMENT au défaut qu'il répare.
+      console.log(JSON.stringify({
+        tag: "keel.household_meal.sized_shares_relinked",
+        user_id: userId,
+        household_id: householdId,
+        relinked,
+        boxes: sizedByBox.size,
+      }));
+    }
     issues.push(...boxSizing.issues);
+
+    // ══════════════════════════════════════════════════════════════════════
+    // CE QUE LA PHRASE DE TABLE PORTE ENCORE — mesuré, sur TOUS les plans.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ LE GRAMME N'EST PLUS RECOLLÉ À LA PHRASE, ET CE N'EST PAS UN RECUL.
+    // `attachSizedQuantities` écrivait « Poulet rôti 150 g · Quinoa 80 g » à la
+    // fin de la note, parce qu'une boîte pendait à UNE casserole et qu'une bouche
+    // y avait exactement une part — un nombre vrai pour toute la semaine. Depuis
+    // que la boîte porte un REPAS, la part d'iku sur le poulet du jeudi midi
+    // n'est plus celle du vendredi soir: le même geste écrirait un gramme faux,
+    // lu à voix haute à table. Le nombre vit désormais sur le couvercle du repas,
+    // avec le nom de la personne, et c'est là qu'on l'exécute.
+    //
+    // ⚠️ ET LA MESURE, ELLE, SE PREND MAINTENANT SUR TOUS LES PLANS. L'ancien
+    // compteur ne tournait que dans la branche « une cible a mordu »: un foyer
+    // sans corps saisi pouvait écrire n'importe quoi dans sa phrase de table sans
+    // qu'aucun nombre ne bouge. Une mesure qui ne se prend que quand tout va bien
+    // ne mesure rien.
+    const portionQuantityTrace = countPortionNoteDrift(portions);
+    const portionsOut = portions;
 
     const dishOwnersTrace = {
       asked: eaterBudget?.dedicatedDishesAsked ?? 0,
@@ -4543,14 +6071,56 @@ Deno.serve(async (req) => {
     // venue la conclusion fausse du 2026-08-17. Une seule expression pour les
     // deux chemins, pour que la mesure d'un brouillon prédise celle d'un plan.
     //
-    // ⚠️ `boxes.asked` EST À CÔTÉ DES AUTRES, ET IL VIENT DE LA MÊME LISTE QUE
-    // LA CONSIGNE: le brief nomme `members.length` bouches à peser sur chaque
-    // préparation, `boxMemberIds` valide contre la même liste, et ce nombre-ci
-    // est celle-là encore. Trois lectures d'un même roster ne peuvent pas
-    // diverger tant qu'elles lisent le même tableau.
+    // ⚠️ `boxes.mouths` EST À CÔTÉ DES AUTRES, ET IL VIENT DE LA MÊME LISTE QUE
+    // LA CONSIGNE: le brief nomme `members.length` bouches à placer sur chaque
+    // repas, `boxMemberIds` valide contre la même liste, et ce nombre-ci est
+    // celle-là encore. Trois lectures d'un même roster ne peuvent pas diverger
+    // tant qu'elles lisent le même tableau.
+    //
+    // ⛔ `box_uses` A DISPARU DE CETTE TRACE, ET C'EST LE LOT. Il comptait les
+    // reprises qui CITAIENT une boîte (`uses[].box_id`); plus rien ne cite rien
+    // depuis que le repas porte la sienne. Ce qu'il mesurait — « la boîte
+    // atteint-elle un repas ? » — est désormais `boxes.with_box / boxes.meals`,
+    // et c'est un compteur OBLIGATOIRE (`docs/keel/BOITES-PAR-REPAS.md`).
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ LOT `L17-0` — LE GROUPE DÉCLARÉ, ET CE QUI EN ATTEINT LA BASE
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ DEUX POPULATIONS, ET SANS ELLES LE LOT EST INDISCERNABLE D'UN LOT MORT.
+    // `declared` dit ce que le MODÈLE a écrit, `persisted` ce que la LIGNE
+    // porte. Le 2026-08-22, l'écart valait 100 % — 242 déclarés sur les trois
+    // plans v16+, zéro en base — et le seul nombre visible était le premier.
+    // Un modèle qui cesserait de déclarer et une écriture réparée rendent le
+    // même zéro final: il faut les deux nombres pour les distinguer.
+    //
+    // ⛔ LU SUR LA CHARGE ÉCRITE, JAMAIS SUR `meal.dishes`. C'est très
+    // exactement la recopie qui perdait le champ; un compteur branché sur la
+    // structure interne aurait rendu 242 pendant que la base en portait 0.
+    // `dishes` est ici la charge d'après `applyHouseRuleLock` et d'après le
+    // recollage des grammes — la MÊME variable que celle envoyée à la RPC.
+    //
+    // ⚠️ `preparationsWritten` EST HISSÉ POUR ÇA: les préparations sont 32 %
+    // des lignes d'ingrédient de la base, et le compteur doit lire le tableau
+    // que la RPC reçoit, pas un second appel.
+    const preparationsWritten = mealPreparationsPayload(meal);
+    const foodGroups = foodGroupWriteCounts(meal.regime_belt, {
+      dishes,
+      preparations: preparationsWritten,
+    });
+    // ⛔ JOURNALISÉ EN PLUS DE `generated_from`, et c'est la moitié qui manquait
+    // au lot: `generated_from` n'existe que sur une ligne ÉCRITE, or l'écart de
+    // 100 % a été découvert par une requête SQL sur un plan déjà en base — donc
+    // deux jours trop tard. Aucun terme, aucun `member_id`: cinq nombres.
+    console.log(JSON.stringify({
+      tag: "keel.household_meal.food_groups",
+      user_id: userId,
+      household_id: householdId,
+      intent,
+      ...foodGroups,
+    }));
+
     const boxTrace = {
       boxes: { ...meal.box_counts, mouths: members.length },
-      box_uses: meal.box_use_counts,
       unquantified_dish_ingredients: meal.unquantified_dish_ingredients,
       vague_portions: portionVagueCounts,
       // LOT 4C ① — RENDU SUR L'APERÇU COMME SUR LA LIGNE ÉCRITE, par la même
@@ -4558,6 +6128,20 @@ Deno.serve(async (req) => {
       // bouche ne s'affiche pas » n'est visible qu'en relisant le `jsonb` à la
       // main — c'est-à-dire pas.
       shares: portionShareCounts,
+      // ══════════════════════════════════════════════════════════════════════
+      // LA CEINTURE DE RÉGIME — RENDUE, SUR L'APERÇU COMME SUR LA LIGNE ÉCRITE.
+      // ══════════════════════════════════════════════════════════════════════
+      //
+      // ⛔ SANS CE NOMBRE, UN RUN VERT ET UN RUN QUI SERT DE LA VIANDE À UN
+      // ENFANT VÉGANE SONT LE MÊME RUN. C'est la phrase exacte du rapport du
+      // 2026-08-19, et c'est ce qui rendait la brèche invisible cinq plans sur
+      // cinq: aucune `issue`, aucun compteur, aucun journal.
+      //
+      // ⚠️ `mouths` EST LE NOMBRE QUI DÉSARME L'AMBIGUÏTÉ. `refused: 0` ne dit
+      // pas si la ceinture a laissé passer ou si personne n'avait déclaré de
+      // ligne; `mouths: 0` le dit. Même discipline que les cinq compteurs
+      // au-dessus, et que `dish_owners` avant eux.
+      regime_belt: meal.regime_belt,
       // ══════════════════════════════════════════════════════════════════════
       // L8 — CE QUE LA CIBLE A RÉELLEMENT DIMENSIONNÉ.
       // ══════════════════════════════════════════════════════════════════════
@@ -4578,11 +6162,86 @@ Deno.serve(async (req) => {
       // ⛔ ET IL NE PORTE AUCUN `member_id`: c'est un HISTOGRAMME de motifs. Une
       // ligne « membre X: minor » dans `generated_from` désignerait un enfant
       // dans une colonne lisible par tout le foyer.
+      // ⚠️ DEUX HISTOGRAMMES, PAS UN. `mouths` est la chaîne d'OBJECTIF (perte
+      // ou prise + cran de rythme); `share` est la chaîne de MAINTENANCE (le
+      // corps saisi sur la fiche, mineurs et bouches sans compte compris). Les
+      // fondre rendrait un seul motif pour deux décisions — et c'est très
+      // exactement le défaut d'observabilité corrigé le 2026-08-19, où
+      // `restriction_floor: 3` désignait trois personnes sans compte.
+      // ⛔ AUCUN `member_id` NI DANS L'UN NI DANS L'AUTRE: ce sont des
+      // histogrammes de motifs. « membre X: minor » dans `generated_from`
+      // désignerait un enfant dans une colonne lisible par tout le foyer.
       box_sizing: {
         ...boxSizing.counts,
         mouths: sizingReasons,
+        share: shareReasons,
+        share_clamped: shareClamped,
+        // ⚠️ L'ANCRAGE EST COMPTÉ À PART DES DEUX AUTRES CHAÎNES, et il le
+        // reste même à zéro: `anchored: 0, day_incomplete: 12` et « l'ancrage
+        // n'est pas branché » rendraient le même silence si on ne comptait que
+        // les succès. C'est le zéro ambigu que ce dépôt paie en boucle.
+        // ⛔ AUCUN `member_id`, AUCUN kcal: un histogramme de motifs, comme ses
+        // deux voisins. Une cible en kcal dans `generated_from` serait un
+        // chiffre corporel dans une colonne lisible par tout le foyer.
+        anchor: anchorReasons,
+        anchor_applied: anchorApplied,
+        // ── LES DEUX LOTS DU 2026-08-20, COMPTÉS À PART L'UN DE L'AUTRE ───
+        // ⚠️ TROIS HISTOGRAMMES ET PAS UN. `activity` dit ce que la fiche
+        // PORTE (quatre états, `not_asked` compris); `activity_source` dit quel
+        // nombre a réellement multiplié le métabolisme de base; `meal_structure`
+        // dit la même chose pour les trois cases du repas. Les fondre rendrait
+        // un seul motif pour trois décisions — le défaut d'observabilité que
+        // `mouths` / `share` documentent juste au-dessus.
+        activity: activityAnswers,
+        activity_source: activitySources,
+        meal_structure: structureAnswers,
+        // ⑤ — TRANSITOIRE, et le compteur le sera aussi: le jour où ⑦ tourne
+        // pour une bouche, `declared` devra cesser de gouverner pour elle.
+        appetite: appetiteAnswers,
       },
+      // ── ③ LES JOURS QUE LE FOYER NE DÉPLACE PAS (2026-08-20) ────────────
+      // ⛔ UN HISTOGRAMME, AUCUN JOUR, AUCUN LIBELLÉ — comme ses voisins. Un
+      // « dimanche: rôti manqué » dans une colonne lisible par tout le foyer
+      // serait un reproche nominatif.
+      // ⚠️ `declared` EST À CÔTÉ DES QUATRE VERDICTS, et il n'est pas
+      // redondant: `honoured: 0` sur un foyer qui n'a rien posé et sur un
+      // foyer dont rien n'a été honoré sont deux situations opposées.
+      traditions: { declared: traditions.length, ...traditionVerdicts },
+      // ⚠️ LA SECONDE SURFACE, COMPTÉE À PART DES BOÎTES. `box_sizing` dit ce
+      // que le BAC porte; celui-ci dit ce que la PHRASE porte, et les deux ont
+      // divergé trois plans sur trois avant le 2026-08-19. `null` = le moteur
+      // n'a rien dimensionné, donc la phrase est celle du modèle, inchangée.
+      // ⛔ `model_quantity` EST LE NOMBRE À REGARDER: c'est la désobéissance au
+      // brief (« names the food and the change -- never a weight »), et donc le
+      // nombre de plans où deux chiffres se contredisent dans la même phrase.
+      portion_quantities: portionQuantityTrace,
     } as const;
+
+    // ══════════════════════════════════════════════════════════════════════
+    // ⛔ LE MÊME OBJET, JOURNALISÉ — PARCE QUE `generated_from` N'EXISTE QUE
+    //    SUR UNE LIGNE ÉCRITE (2026-08-20)
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // `boxTrace` part dans `generated_from`, qui n'est écrit que pour un
+    // `intent` autre que `draft`. Or TOUTE vérification en situation réelle de
+    // ce chantier se fait en `draft` — écrire un plan RETIRE celui du persona.
+    // Mesuré le 2026-08-20 sur le premier run v4: la sortie était juste, les
+    // contenants étaient là, et `boxes / expected` — le compteur que
+    // `docs/keel/BOITES-PAR-REPAS.md` rend OBLIGATOIRE — n'apparaissait nulle
+    // part. C'est très exactement la cicatrice que son voisin `box_sizing`
+    // porte déjà en toutes lettres: « un nombre qu'on ne journalise pas est un
+    // nombre que personne ne verra bouger ».
+    //
+    // ⛔ AUCUN `member_id`, AUCUN kcal, AUCUN gramme nominatif: c'est le MÊME
+    // histogramme que `generated_from`, lu sur la MÊME variable — le recalculer
+    // ici en ferait deux mesures qui divergent.
+    console.log(JSON.stringify({
+      tag: "keel.household_meal.box_counts",
+      user_id: userId,
+      household_id: householdId,
+      intent,
+      ...boxTrace,
+    }));
 
     // ══════════════════════════════════════════════════════════════════════
     // L7 — CE QUE LES TROIS BLOCS ONT RÉELLEMENT DIT, ET CE QUE ÇA A RENDU.
@@ -4616,7 +6275,84 @@ Deno.serve(async (req) => {
         missing: household.kitchenMissing,
       },
       eating_out: household.eatingOut,
+      // ── LOT C ② · LE `why` ET LA RÈGLE DE QUELQU'UN ───────────────────────
+      // TROIS NOMBRES ET LEUR DÉNOMINATEUR, et la forme est celle de `names`
+      // au-dessus parce que la cause est la même: `why_rule_of` est un CHAMP
+      // que le modèle remplit. `{holders: 0}` veut dire que le prompt n'a rien
+      // demandé (personne ne porte de règle à cette table); `{holders: 2,
+      // declared: 0}` veut dire qu'on a demandé et que rien n'a été déclaré —
+      // ce qui est le résultat VOULU, et pas la même chose du tout.
+      //
+      // ⚠️ `refused` EST LE NOMBRE DU DÉFAUT: une règle épinglée sur une bouche
+      // qui n'en porte aucune. C'est la mesure du 2026-08-19, trois `why` sur
+      // huit, et c'est elle qui doit rester à zéro.
+      why_rule: { holders: household.whyRuleHolders, ...whyRule.counts },
+      // ── ⛔ C1 · LE COMPTEUR DE LA CONTAMINATION CROISÉE ───────────────────
+      //
+      // ⛔ TROIS POPULATIONS, JAMAIS UN BOOLÉEN. Un seul `emitted` rendrait le
+      // même « faux » pour « personne n'est à risque médical à cette table »
+      // et pour « le bloc est débranché » — et c'est le second état qu'on veut
+      // voir. `skipped_no_dedicated` dit « tout le monde mange la même
+      // casserole, il n'y a pas de seconde poêle »; `skipped_no_medical` dit
+      // « il y a bien deux plats, mais aucune bouche à risque ». Un plan compte
+      // pour exactement UN des trois, et la somme des trois fait le corpus.
+      //
+      // ⛔ ET `emitted` COMPTE UNE PHRASE ENVOYÉE, PAS UNE POÊLE LAVÉE. Il
+      // n'existe AUCUNE vérification en sortie pour cette règle: on ne prouve
+      // pas depuis un JSON qu'un couteau a été rincé. Un lecteur qui lirait
+      // `emitted: 12` comme « douze repas séparés » lirait ce compteur à
+      // l'envers — il dit « douze fois, on l'a demandé ». Voir l'en-tête de
+      // `_shared/keel/cross_contact.ts`.
+      cross_contact_block: {
+        emitted: household.crossContact.emitted ? 1 : 0,
+        skipped_no_medical: household.crossContact.skipped === "no_medical" ? 1 : 0,
+        skipped_no_dedicated: household.crossContact.skipped === "no_dedicated" ? 1 : 0,
+      },
+      // ── ⛔ `D3′` · OÙ EST L'ARBITRAGE, ET SUR QUOI IL PORTE ──────────────
+      //
+      // ⛔ `place` EST UNE MESURE, PAS UNE INTENTION: il est lu sur le message
+      // RÉELLEMENT composé (`householdUserMessage("")`), jamais déduit du fait
+      // qu'on a appelé `movePrecedenceToTail`. Un jour où un lot voisin
+      // collerait un bloc après, `place` passerait à `buried` et le dirait —
+      // c'est très exactement l'`armé par` de la fiche.
+      //
+      // ⛔ ET LES DEUX POPULATIONS DE RANGS, JAMAIS UN SEUL NOMBRE. `with` seul
+      // rendrait le même 5 pour « ce foyer porte les cinq rangs » et pour « le
+      // compteur est cloué »; `without` seul confondrait « rien à arbitrer »
+      // et « rien de branché ». Leur somme est 5, et c'est une propriété
+      // testée.
+      //
+      // ⚠️ IL N'Y A AUCUN CHAMP DÉCLARÉ PAR LE MODÈLE ICI, ET C'EST LE POINT
+      // DU LOT: il n'existe pas de surface de sortie légale pour cet arbitrage
+      // (porte `G-disclosure`). `D3′` est un lot d'ENTRÉE, et ce compteur est
+      // la seule preuve d'exécution qu'il peut porter.
+      precedence: {
+        place: precedencePlace.verdict,
+        exact: precedencePlace.exact,
+        blocks_after: precedencePlace.contentBlocksAfter,
+        ranks_with_object: precedenceRanks.withObject,
+        ranks_without_object: precedenceRanks.withoutObject,
+        by_rank: precedenceRanks.byRank,
+      },
     } as const;
+
+    // ⚠️ JOURNALISÉ EN PLUS D'ÊTRE ÉCRIT, et c'est la cicatrice `V0-B-bis`: un
+    // `intent: "draft"` ne persiste pas `generated_from`, donc la seule trace
+    // d'un bloc servi sur un aperçu serait perdue. Le log sort sur les TROIS
+    // populations — un log qui ne sortirait qu'à l'émission ferait ressembler
+    // « jamais servi » à « jamais appelé ».
+    console.log(JSON.stringify({
+      tag: CROSS_CONTACT_BLOCK_TAG,
+      user_id: userId,
+      household_id: householdId,
+      ...promptTrace.cross_contact_block,
+      // LES DEUX PRÉMISSES, RENDUES PAR LE MODULE QUI LES A ÉVALUÉES — pas
+      // recomptées ici. Deux lectures divergeraient au premier prénom blanc, et
+      // le journal dirait alors autre chose que le prompt.
+      medical_mouths: household.crossContact.medicalMouthsSeen,
+      unnamed_medical: unnamedMedicalConstraints,
+      dish_bearers: household.crossContact.dishBearersSeen,
+    }));
 
     if (isDraft) {
       return jsonResponse(req, {
@@ -4634,6 +6370,16 @@ Deno.serve(async (req) => {
         // d'un côté et à la racine de l'autre n'est lisible par aucune requête
         // qui regarde toute la population.
         names: meal.name_counts,
+        // ⟳ LOT `L17-0` — À LA RACINE, ET POUR LA RAISON ÉCRITE JUSTE AU-DESSUS.
+        // `FOOD_GROUP_DECLARATION_BLOCK` est une consigne du TRONC (elle voyage
+        // avec `dietaryRegimePromptLine`, partagé par les deux lanes): son
+        // compteur se range donc au même endroit des deux côtés, sinon aucune
+        // requête ne peut lire toute la population.
+        //
+        // ⛔ RENDU SUR L'APERÇU AUSSI, par la MÊME expression que sur la ligne
+        // écrite: `generated_from` n'existe que sur un plan écrit, et toute
+        // vérification en situation réelle de ce chantier se fait en `draft`.
+        food_groups: foodGroups,
         household: {
           id: householdId,
           member_count: members.length,
@@ -4642,10 +6388,10 @@ Deno.serve(async (req) => {
           ...boxTrace,
         },
         dishes,
-        preparations: mealPreparationsPayload(meal),
+        preparations: preparationsWritten,
         cooking_sessions: mealSessionsPayload(meal),
         shopping_list: mealShoppingPayload(meal),
-        member_portions: memberPortionsPayload(portions),
+        member_portions: memberPortionsPayload(portionsOut),
         member_deltas: memberDeltasPayload(resolution.deltas),
         merged_members: mergedFromAll.map((e) => e.member_id),
         issues: [...issues, ...meal.issues, ...portionIssues],
@@ -4676,18 +6422,35 @@ Deno.serve(async (req) => {
           preferences: String(body.preferences ?? "").trim().slice(0, 2000) || null,
           pantry: [],
           dishes,
-          preparations: mealPreparationsPayload(meal),
+          // ⟳ `L17-0` — LE MÊME TABLEAU QUE CELUI QUE LE COMPTEUR A LU. Un
+          // second appel rendrait un tableau égal aujourd'hui et un compteur
+          // qui décrit autre chose que la ligne le jour où quelqu'un touche à
+          // `meal.preparations` entre les deux.
+          preparations: preparationsWritten,
           cooking_sessions: mealSessionsPayload(meal),
           shopping_list: mealShoppingPayload(meal),
           // La MÊME expression que celle qui a écrit le prompt.
           content_locale: built.contentLocale,
+          // ── LOT 18 · LES QUATRE COMPTEURS, SUR LA LIGNE DU PLAN ─────────
+          // ⛔ PAS DANS `generated_from`: le voisin `box_sizing` écrit déjà
+          // pourquoi — ce champ ne sort QUE hors `draft`, et toute vérification
+          // en situation réelle se fait en `draft`. Deux colonnes dédiées sont
+          // écrites sur CHAQUE plan persisté, quel que soit l'intent.
+          //
+          // ⛔ V0-B-bis — LES DEUX CLÉS PEUVENT VALOIR `null`, et c'est le
+          // point: `null` = « personne n'a mesuré », qui n'est PAS zéro. La
+          // RPC `write_student_meal_plan` laisse passer l'absence depuis la
+          // migration 20260821231500 — avant elle, un `null` envoyé d'ici
+          // ressortait en `0` / `{}` côté base, et le correctif aurait été
+          // invisible.
+          ...compositionFillColumns(compositionFill),
           household_id: householdId,
           // LA NATURE EST EXIGÉE DÈS QU'IL Y A UN FOYER (lot 3, 2026-08-11).
           // `write_student_meal_plan` refuse `plan_kind_required` sans elle: un
           // plan commun rangé comme personnel écraserait la fenêtre du plan
           // perso du maître au lieu de vivre à côté.
           plan_kind: "household",
-          member_portions: memberPortionsPayload(portions),
+          member_portions: memberPortionsPayload(portionsOut),
           // FF-043 — LES ADD-ONS, EN GRAMMES D'ALIMENT.
           //
           // ⚠️ NE SORTENT JAMAIS: la raison d'un delta, l'objectif d'un
@@ -4753,6 +6516,12 @@ Deno.serve(async (req) => {
             // regarde toute la population lit donc les deux lanes d'un coup —
             // c'était le seul point de la décision de placement.
             names: meal.name_counts,
+            // ⟳ LOT `L17-0` — LES DEUX POPULATIONS DU GROUPE DÉCLARÉ, à la
+            // racine comme `names`, et pour la même raison: la consigne qui les
+            // produit est du TRONC. `declared` / `valid` / `refused` disent si
+            // le modèle obéit; `persisted` dit ce que la ligne porte VRAIMENT.
+            // L'écart entre `valid` et `persisted` valait 100 % avant ce lot.
+            food_groups: foodGroups,
             household: {
               id: householdId,
               member_count: members.length,
@@ -5257,7 +7026,7 @@ Deno.serve(async (req) => {
       preparations: mealPreparationsPayload(meal),
       cooking_sessions: mealSessionsPayload(meal),
       shopping_list: mealShoppingPayload(meal),
-      member_portions: memberPortionsPayload(portions),
+      member_portions: memberPortionsPayload(portionsOut),
       member_deltas: memberDeltasPayload(resolution.deltas),
       // ── L4 — CE QUE LA FUSION A FAIT, DANS LA RÉPONSE ────────────────────
       // Rendu parce que l'appelant ne peut le déduire de RIEN d'autre: la

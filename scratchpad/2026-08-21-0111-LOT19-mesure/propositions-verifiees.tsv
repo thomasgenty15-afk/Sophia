@@ -1,0 +1,87 @@
+alias	slug	libellé CIQUAL	ciqual_code	groupe	kcal/100 g crus	aujourd'hui	raison
+pain naan	naan_bread	Naan bread	(absent)	refined_grain	320	∅ rien	Le nom français du pain naan. « naan bread » atteint la ligne par son slug ; aucune forme française ne l'atteint.
+naan	naan_bread	Naan bread	(absent)	refined_grain	320	∅ rien	Forme nue, écrite dans les deux langues. Rate aujourd'hui : le slug est `naan_bread`, la réduction ne coupe pas « bread ».
+sauce piquante	hot_sauce	Hot sauce (chilli)	(absent)	sauce_dressing	45	∅ rien	Nom français usuel de la sauce piquante au piment. Le libellé « Hot sauce (chilli) » nomme exactement cet objet.
+sauce pimentee	hot_sauce	Hot sauce (chilli)	(absent)	sauce_dressing	45	∅ rien	Seconde formulation française courante, même objet.
+chilli sauce	hot_sauce	Hot sauce (chilli)	(absent)	sauce_dressing	45	∅ rien	Forme anglaise courante absente : seul « hot sauce » atteint la ligne.
+graines melangees	mixed_seeds	Mixed seeds	(absent)	nuts_seeds	580	∅ rien	Traduction directe de « Mixed seeds ». Aucune forme française n'atteint la ligne.
+melange de graines	mixed_seeds	Mixed seeds	(absent)	nuts_seeds	580	∅ rien	Seconde formulation française du même produit de rayon.
+seed mix	mixed_seeds	Mixed seeds	(absent)	nuts_seeds	580	∅ rien	Forme anglaise courante absente.
+graines de pavot	poppy_seeds	Poppy seeds	(absent)	nuts_seeds	525	∅ rien	Traduction directe de « Poppy seeds ». Aucune forme française.
+curcuma	turmeric	Turmeric, ground	(absent)	sauce_dressing	312	∅ rien	Nom français du curcuma. « Turmeric, ground » est la même épice ; le corpus l'écrit 6 fois en anglais.
+curcuma moulu	turmeric	Turmeric, ground	(absent)	sauce_dressing	312	∅ rien	Le libellé dit « ground » : la forme française qualifiée doit atteindre la même ligne.
+puree de graines de tournesol	sunflower_seed_butter	Sunflower seed butter	(absent)	nuts_seeds	617	∅ rien	Nom français du produit ; « Sunflower seed butter » n'a aucune forme française.
+beurre de graines de tournesol	sunflower_seed_butter	Sunflower seed butter	(absent)	nuts_seeds	617	∅ rien	Calque français courant sur les étiquettes, même produit.
+pate de campagne	pate	Paté (average)	(absent)	red_meat	325	∅ rien	Le libellé est « Paté (average) » : la moyenne des pâtés couvre le pâté de campagne.
+pate de foie	pate	Paté (average)	(absent)	red_meat	325	∅ rien	Même ligne de moyenne, autre formulation française courante.
+liver pate	pate	Paté (average)	(absent)	red_meat	325	∅ rien	Forme anglaise courante absente : seul « pate » nu atteint la ligne.
+loaf of bread	bread	Bread (average)	(absent)	refined_grain	276	∅ rien	« Bread (average) » est la ligne générique ; « loaf » n'y mène pas.
+bread loaf	bread	Bread (average)	(absent)	refined_grain	276	∅ rien	Forme écrite telle quelle dans les listes de courses du corpus (« white bread loaf », « bread loaf »).
+braised beef	beef_braising	Braising beef	(absent)	red_meat	144	∅ rien	11 occurrences. La ligne « Braising beef » est exactement ce morceau ; « braised » n'est pas un modificateur, la forme complète rate.
+chicken thigh meat	chicken_thigh	Chicken thigh	(absent)	poultry	114	∅ rien	10 occurrences via « cooked chicken thigh meat ». « meat » n'est pas un modificateur ; la tête reste hors index.
+chicken thigh fillets	chicken_thigh	Chicken thigh	(absent)	poultry	114	∅ rien	Même coupe, formulation de rayon britannique ; rate aujourd'hui.
+lamb mince	lamb	Lamb	(absent)	red_meat	128	∅ rien	4 occurrences. Aucune ligne d'agneau haché n'existe ; « Lamb » (128 kcal, cru) est la ligne honnête pour de l'agneau haché cru.
+tuna tins	tuna_tinned	Tinned tuna	(absent)	white_fish	111	∅ rien	5 occurrences. Désigne le thon en conserve ; le conditionnement ne change pas l'aliment.
+tuna cans	tuna_tinned	Tinned tuna	(absent)	white_fish	111	∅ rien	1 occurrence, même objet, orthographe américaine.
+italian herbs	dried_herbs	Dried mixed herbs	(absent)	sauce_dressing	265	∅ rien	2 occurrences. « Dried mixed herbs » est la ligne de mélange d'herbes sèches.
+crackers	wheat_crackers	Wheat crackers	(absent)	refined_grain	450	∅ rien	1 occurrence nue. « Wheat crackers » est la seule ligne de cracker du référentiel.
+mixed greens	lettuce	Lettuce	(absent)	leafy_greens	14.7	∅ rien	2 occurrences. « mixed salad leaves » atteint déjà `lettuce` 68 fois : même objet, autre formulation.
+mixed salad greens	lettuce	Lettuce	(absent)	leafy_greens	14.7	∅ rien	2 occurrences, formulation américaine de la même chose.
+lettuce leaves	lettuce	Lettuce	(absent)	leafy_greens	14.7	∅ rien	2 occurrences. Les feuilles de laitue sont de la laitue.
+salad greens	lettuce	Lettuce	(absent)	leafy_greens	14.7	∅ rien	Formulation courante du même produit de rayon.
+pommes de terre nouvelles	potato	Potato	(absent)	starchy_veg	76.4	∅ rien	1 occurrence, dans le seul plan français du corpus. « new potatoes » atteint déjà `potato` 60 fois.
+melange de legumes	mixed_vegetables	Mixed vegetables, frozen, raw	(absent)	non_starchy_veg	65.1	∅ rien	Nom français de « Mixed vegetables, frozen, raw ». Aucune forme française n'atteint la ligne.
+pain blanc	white_bread	White bread	(absent)	refined_grain	278	∅ rien	Traduction directe de « White bread ».
+herbes sechees	dried_herbs	Dried mixed herbs	(absent)	sauce_dressing	265	∅ rien	Traduction directe de « Dried mixed herbs ».
+herbes seches	dried_herbs	Dried mixed herbs	(absent)	sauce_dressing	265	∅ rien	Variante d'accord, très fréquemment écrite.
+cube de bouillon	stock_cube	Stock	(absent)	sauce_dressing	240	∅ rien	Nom français du cube de bouillon ; le libellé « Stock » (240 kcal) est bien le cube déshydraté.
+tortilla de mais	corn_tortilla_wrap_be	Corn tortilla wrap, to be filled	(absent)	refined_grain	313	∅ rien	Traduction directe de « Corn tortilla wrap, to be filled ».
+tortillas de mais	corn_tortilla_wrap_be	Corn tortilla wrap, to be filled	(absent)	refined_grain	313	∅ rien	Le pluriel français ne se dérive pas ici (le -s tombe mais « tortilla de mais » n'existe pas encore).
+aneth	herbs_dill	Dill	(absent)	leafy_greens	43	∅ rien	Nom français de l'aneth. « dill » atteint la ligne, « aneth » n'atteint rien.
+quartier de citron	lemon_wedge	Lemon wedge	(absent)	citrus	27.6	∅ rien	Traduction directe de « Lemon wedge » ; la ligne porte un `unit_grams`, donc elle pèse.
+quartiers de citron	lemon_wedge	Lemon wedge	(absent)	citrus	27.6	∅ rien	Pluriel français, écrit tel quel dans une recette.
+feuille de laurier	herbs_bay_leaf	Bay leaf, dried	(absent)	leafy_greens	313	∅ rien	Traduction directe de « Bay leaf, dried ».
+feuilles de laurier	herbs_bay_leaf	Bay leaf, dried	(absent)	leafy_greens	313	∅ rien	Pluriel français.
+laurier	herbs_bay_leaf	Bay leaf, dried	(absent)	leafy_greens	313	∅ rien	Forme nue, la plus fréquente dans une recette française.
+paleron de boeuf	beef_chuck	Beef, chuck, raw	(absent)	red_meat	144	∅ rien	« Beef, chuck, raw » est le paleron. Aujourd'hui la forme nue « paleron » tombe sur `beef_braising` (même énergie, autre ligne).
+ciboulette	herbs_chives	Chives	(absent)	leafy_greens	30	∅ rien	Nom français de la ciboulette.
+galette de mais	corn_cake	Corn cake (puffed)	(absent)	refined_grain	385	∅ rien	Traduction de « Corn cake (puffed) ».
+galettes de mais	corn_cake	Corn cake (puffed)	(absent)	refined_grain	385	∅ rien	Pluriel français.
+melange de fruits secs	mixed_nuts	Mixed nuts	(absent)	nuts_seeds	607	∅ rien	Nom français de « Mixed nuts ».
+fruits secs melanges	mixed_nuts	Mixed nuts	(absent)	nuts_seeds	607	∅ rien	Seconde formulation, même produit.
+yaourt de coco	coconut_yogurt	Coconut yogurt, plain	(absent)	dairy_yogurt	140	∅ rien	Nom français de « Coconut yogurt, plain ».
+yaourt au lait de coco	coconut_yogurt	Coconut yogurt, plain	(absent)	dairy_yogurt	140	∅ rien	Formulation d'étiquette, même produit.
+tomates en conserve	tinned_tomatoes	Tinned tomatoes	(absent)	non_starchy_veg	18.3	≠ tomato (Tomato, 19.3 kcal)	Sans cet alias, « en conserve » est coupé comme un CONDITIONNEMENT et la tête « tomates » tombe sur la tomate FRAÎCHE.
+pain pita complet	pita_wholemeal	Wholemeal pita bread	(absent)	whole_grain	265	≠ pita_bread (Pita bread, 275 kcal)	Sans cet alias, `complet` est retiré comme modificateur et la forme tombe sur `pita_bread` (raffiné). Le GROUPE change.
+pita complet	pita_wholemeal	Wholemeal pita bread	(absent)	whole_grain	265	≠ pita_bread (Pita bread, 275 kcal)	Même raison, forme courte.
+tortilla complete	tortilla_wholemeal	Wholemeal tortilla wrap	(absent)	whole_grain	290	≠ white_bread (White bread, 278 kcal)	Sans cet alias, `complet` est retiré et la forme tombe sur `white_bread`. Le GROUPE change.
+tortillas completes	tortilla_wholemeal	Wholemeal tortilla wrap	(absent)	whole_grain	290	≠ tortilla_wrap (Tortilla wrap (wheat), 305 kcal)	Même raison, au pluriel.
+couscous complet	couscous_wholemeal	Wholemeal couscous	(absent)	whole_grain	345	≠ couscous (Couscous, 352 kcal)	Sans cet alias, `complet` est retiré et la forme tombe sur `couscous` (raffiné). Le GROUPE change.
+piment moulu	chilli_powder	Chilli powder	(absent)	sauce_dressing	282	≠ chilli (Chilli, 44.5 kcal)	Sans cet alias, la forme tombe sur `chilli` (piment FRAIS, 44,5 kcal) au lieu de la poudre (282 kcal) : ×6,3 d'énergie.
+ground chilli	chilli_powder	Chilli powder	(absent)	sauce_dressing	282	≠ chilli (Chilli, 44.5 kcal)	Même erreur côté anglais, mesurée : « ground chilli » tombe sur le piment frais.
+sel fin	salt	Salt	(absent)	sauce_dressing	0	∅ rien	Formulation française courante ; « sel » nu atteint la ligne, « sel fin » non.
+pain de ble complet	wholemeal_bread	Wholemeal bread	(absent)	whole_grain	262	∅ rien	Formulation française complète de « Wholemeal bread ».
+paprika doux	paprika	Paprika	(absent)	sauce_dressing	319	∅ rien	« paprika fume » atteint la ligne, « paprika doux » non : même épice.
+persil plat	herbs_parsley	Parsley	(absent)	leafy_greens	43	∅ rien	Le persil plat est du persil ; la forme qualifiée rate.
+melange de fruits rouges	mixed_berries	Mixed berries	(absent)	berries	49.4	∅ rien	Nom français de « Mixed berries ».
+viande hachee de dinde	turkey_mince	Turkey mince	(absent)	poultry	110	∅ rien	Formulation française complète de « Turkey mince » (« dinde hachee » atteint déjà la ligne).
+viande hachee de boeuf	beef_mince	Beef mince (5%)	(absent)	red_meat	130	∅ rien	Formulation française complète de « Beef mince (5%) » (« boeuf hache » atteint déjà la ligne).
+sauce de soja	soy_sauce	Soy sauce	(absent)	sauce_dressing	45.5	∅ rien	Variante française de « sauce soja », qui atteint déjà la ligne.
+puree de cacahuete	peanut_butter	Peanut butter	(absent)	nuts_seeds	635.7	∅ rien	Nom français du beurre de cacahuète sans sucre ajouté ; même produit.
+cerneaux de noix	walnuts	Walnuts	(absent)	nuts_seeds	377.8	∅ rien	Les cerneaux sont la partie comestible de la noix ; « Walnuts » est la ligne.
+coulis de tomates	passata	Passata	(absent)	non_starchy_veg	47.1	∅ rien	Le singulier « coulis de tomate » atteint la ligne, le pluriel non.
+galette de ble	tortilla_wrap	Tortilla wrap (wheat)	(absent)	refined_grain	305	∅ rien	Nom français de la tortilla de blé (« Tortilla wrap (wheat) »).
+galettes de ble	tortilla_wrap	Tortilla wrap (wheat)	(absent)	refined_grain	305	∅ rien	Pluriel français.
+filet de cabillaud	cod	Cod	(absent)	white_fish	77.6	∅ rien	Formulation française usuelle ; « cabillaud » nu atteint la ligne, la forme qualifiée non.
+filets de cabillaud	cod	Cod	(absent)	white_fish	77.6	∅ rien	Pluriel français de la même forme.
+pates au ble complet	wholewheat_pasta	Wholewheat pasta	(absent)	whole_grain	353	∅ rien	Formulation française complète ; « pates completes » atteint déjà la ligne.
+confiture de cassis	jam	Jam	(absent)	sugar_sweets	308	∅ rien	Le corpus écrit « blackcurrant jam » 13 fois et atteint `jam` (moyenne des confitures) ; la forme française doit y arriver aussi.
+bifteck	beef_steak	Beef steak	(absent)	red_meat	223	∅ rien	Synonyme français de « steak de boeuf », qui atteint déjà la ligne.
+cafe noir	coffee	Coffee	(absent)	coffee_tea	6.9	∅ rien	« black coffee » atteint la ligne 6 fois ; sa traduction non.
+garbanzo beans	chickpeas_tinned	Chickpeas (tinned)	(absent)	legumes	122	∅ rien	Nom américain du pois chiche ; « chickpeas » atteint déjà la ligne.
+oatmeal	oats	Oats	(absent)	whole_grain	367	∅ rien	Nom américain des flocons d'avoine ; « rolled oats » atteint déjà la ligne.
+capsicum	bell_pepper	Bell pepper	(absent)	non_starchy_veg	26	∅ rien	Nom australien du poivron ; « bell pepper » atteint déjà la ligne.
+pepitas	pumpkin_seeds	Pumpkin seeds	(absent)	nuts_seeds	559	∅ rien	Nom courant des graines de courge décortiquées.
+sieved tomatoes	passata	Passata	(absent)	non_starchy_veg	47.1	∅ rien	Définition même de la passata, écrite en anglais de cuisine.
+canned plum tomatoes	tinned_tomatoes	Tinned tomatoes	(absent)	non_starchy_veg	18.3	≠ tomato (Tomato, 19.3 kcal)	Sans cet alias la forme tombe sur la tomate FRAÎCHE : « plum tomatoes » réduit à « tomatoes ».
+panko breadcrumbs	breadcrumbs	Breadcrumbs	(absent)	refined_grain	374	∅ rien	Le panko est de la chapelure ; la ligne « Breadcrumbs » est la seule du référentiel.

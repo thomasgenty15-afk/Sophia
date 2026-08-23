@@ -1,0 +1,12 @@
+idx	lane	locale	intent	replaces	http	secondes	plan_id	gen_cumul
+01	foyer	fr-FR	replace_current	66de9046-7b8e-48f9-958c-aa8086d65d66	DRY	-	-	-
+02	foyer	fr-FR	replace_current	66de9046-7b8e-48f9-958c-aa8086d65d66	DRY	-	-	-
+03	foyer	fr-FR	replace_current	66de9046-7b8e-48f9-958c-aa8086d65d66	DRY	-	-	-
+04	foyer	fr-FR	replace_current	66de9046-7b8e-48f9-958c-aa8086d65d66	DRY	-	-	-
+05	foyer	fr-FR	replace_current	66de9046-7b8e-48f9-958c-aa8086d65d66	DRY	-	-	-
+06	foyer	en-GB	replace_current	66de9046-7b8e-48f9-958c-aa8086d65d66	DRY	-	-	-
+07	foyer	en-GB	replace_current	66de9046-7b8e-48f9-958c-aa8086d65d66	DRY	-	-	-
+08	foyer	en-GB	replace_current	66de9046-7b8e-48f9-958c-aa8086d65d66	DRY	-	-	-
+09	foyer	en-GB	replace_current	66de9046-7b8e-48f9-958c-aa8086d65d66	DRY	-	-	-
+10	foyer	en-GB	replace_current	66de9046-7b8e-48f9-958c-aa8086d65d66	DRY	-	-	-
+11	solo	fr-FR	prepare_next	—	DRY	-	-	-

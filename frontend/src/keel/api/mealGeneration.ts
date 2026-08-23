@@ -244,35 +244,87 @@ export interface MealPreparation {
   active_minutes: number | null;
   total_minutes: number | null;
   cook_on: string | null;
-  /**
-   * LOT 4 — LA MISE EN BOÎTES, C'EST-À-DIRE LA SEULE PESÉE DE LA SEMAINE.
-   *
-   * `[]` sur tout plan écrit AVANT le 2026-08-17 (la clé n'existait pas), sur
-   * toute lane individuelle (elle n'a pas de bouches à départager), et sur tout
-   * foyer où le modèle n'a rien rendu. L'écran se tait alors — il n'invente pas
-   * de table de pesée, exactement comme il n'invente pas de bandeau du jour J.
-   */
-  boxes: PreparationBox[];
 }
 
 /**
  * ══════════════════════════════════════════════════════════════════════════
- * UNE BOÎTE: DES BOUCHES, ET DES GRAMMES. Recopiée du moteur.
+ * UN CONTENANT: UN REPAS, UN GROUPE DE MANGEURS, ET CE QU'ON MET DEDANS.
  * ══════════════════════════════════════════════════════════════════════════
  *
+ * v4, 2026-08-20 (`docs/keel/BOITES-PAR-REPAS.md`). Un repas produit N
+ * contenants — un par GROUPE: chaque bouche à objectif SEULE, puis tout le
+ * reste présent ENSEMBLE. Un foyer de quatre dont une bouche a un objectif
+ * sort donc deux contenants par repas, pas un.
+ *
+ * ⛔ ELLE PEND AU PLAT, PLUS À LA PRÉPARATION — DEPUIS LE 2026-08-19. Trois
+ * défauts mesurés tenaient à l'ancienne jointure (`uses[].box_id`): la moitié
+ * des boîtes n'atteignait aucun repas, une même boîte servait trois repas, et
+ * « Boîte iku » ne disait pas quand l'ouvrir. Le repas porte donc sa boîte, et
+ * l'étiquette nomme son jour et son moment — ceux du plat qui la porte.
+ *
  * ⛔ CE SONT DES GRAMMES D'ALIMENT, ET LA FRONTIÈRE EST STRUCTURELLE ICI AUSSI.
- * « Boîte Zoé — 150 g » est une instruction de cuisine, du même côté que
+ * « iku — jeudi midi, 300 g » est une instruction de cuisine, du même côté que
  * « 400 g de cuisses de poulet » sur une liste de courses. Ce type n'a AUCUN
  * champ où mettre un pourquoi, un objectif ou un chiffre de corps — et c'est ce
  * qui rend impossible de les afficher par accident.
  *
- * ⚠️ `member_ids` ET PAS DES PRÉNOMS. Le prénom vient de la ligne membre (F5),
+ * ⚠️ `member_id` ET PAS UN PRÉNOM. Le prénom vient de la ligne membre (F5),
  * recopiée dans `member_portions[].display_name`; la jointure se fait par ID, et
  * jamais par titre ni par texte — « jamais de matcher maison ».
  */
-export interface PreparationBox {
+export interface MealBox {
   id: string;
+  /**
+   * LE GROUPE QUI OUVRE CE CONTENANT. Jamais vide — un bac pour personne n'est
+   * pas une instruction, et le lecteur le jette.
+   *
+   * ⛔ C'EST LE SEUL MARQUEUR, ET IL DÉCIDE DE LA LECTURE DES GRAMMES:
+   *   · UN SEUL id → une PRESCRIPTION. Le contenant EST sa portion: on
+   *     l'ouvre, on mange, personne ne pèse.
+   *   · PLUSIEURS → une QUANTITÉ DE BAC. C'est ce qu'on met dedans pour n
+   *     personnes, et ça ne vise personne. ⛔ Jamais une part par personne
+   *     là-dedans: c'est exactement ce qui a tué v2 — la balance de retour au
+   *     service.
+   *
+   * ⚠️ AUCUN BOOLÉEN `is_common`, ET C'EST VOULU. Un second marqueur finirait
+   * par contredire la liste des noms, et c'est la liste qu'on croirait. La
+   * liste EST déjà la réponse.
+   */
   member_ids: string[];
+  /**
+   * CE QU'ON MET DEDANS, COMPOSANT PAR COMPOSANT. Vide sur un plan v2 relu
+   * (voir `legacy_total_grams`).
+   *
+   * ⚠️ DES `items`, PAS UN NOMBRE. « 300 g » ne se sert pas: c'est
+   * `100 + 100 + 100` de trois choses différentes, et un total seul ne dit pas
+   * lesquelles. Le total est DÉRIVÉ, jamais déclaré — deux nombres qui doivent
+   * s'accorder finissent par diverger.
+   */
+  items: BoxItem[];
+  /**
+   * LE TOTAL D'UN PLAN v2 RELU, ET RIEN D'AUTRE.
+   *
+   * ⚠️ `null` SUR TOUT PLAN v4 — le total s'y dérive des `items`. Ce champ
+   * n'existe que pour qu'un plan déjà en base NE PERDE PAS SES GRAMMES quand
+   * la forme change sous lui: v2 portait une part par personne et aucune
+   * ventilation par composant, donc la seule chose vraie qu'on puisse en tirer
+   * est la somme — qui est bien, elle, une quantité de bac.
+   */
+  legacy_total_grams: number | null;
+}
+
+/** UN COMPOSANT DANS UN CONTENANT. Recopié du moteur. */
+export interface BoxItem {
+  /**
+   * LA JOINTURE VERS LA CASSEROLE. `null` = ajouté frais le jour même (le
+   * pain), donc hors du contrôle de fournée.
+   */
+  preparation_id: string | null;
+  /**
+   * L'ÉTIQUETTE, ET RIEN D'AUTRE. Elle ne sert JAMAIS à retrouver quoi que ce
+   * soit — « jamais de matcher maison ».
+   */
+  term: string;
   /** Grammes d'aliment PRÊT. Entier > 0 — le moteur ne rend jamais zéro. */
   grams: number;
 }
@@ -336,14 +388,23 @@ export interface GeneratedDish {
   uses: Array<{
     preparation_id: string;
     servings: number;
-    /**
-     * LOT 4 — LA BOÎTE QUE CE PLAT SORT DU FRIGO, validée par le moteur contre
-     * les boîtes qui existent ET contre le jour (une boîte remplie samedi ne se
-     * cite pas jeudi). `null` = « une portion de ce lot », ce que toutes les
-     * reprises étaient avant ce lot.
-     */
-    box_id: string | null;
   }>;
+  /**
+   * LES CONTENANTS DE CE REPAS — un par groupe de mangeurs (v4, 2026-08-20).
+   *
+   * `[]` sur tout plan écrit AVANT le 2026-08-19 (la clé n'existait pas: les
+   * boîtes vivaient sous `preparations[].boxes`, et ce lecteur ne va PAS les y
+   * chercher — une boîte de casserole rendue sous un repas serait un gramme
+   * affiché au mauvais endroit), sur toute lane individuelle, et sur tout plat
+   * qui se cuisine de zéro. L'écran se tait alors: il n'invente pas de
+   * contenant, exactement comme il n'invente pas de bandeau du jour J.
+   *
+   * ⚠️ TABLEAU, JAMAIS `MealBox | null`. Un `null` obligeait chaque lecteur à
+   * choisir entre « pas de contenant » et « un contenant » — et le pluriel est
+   * précisément ce que v4 ajoute. `[]` dit les deux d'un coup, et aucun
+   * appelant n'a de branche à écrire pour le cas vide.
+   */
+  boxes: MealBox[];
   /**
    * LOT 2 — CE QU'ON FAIT LE JOUR MÊME, tel que le moteur l'a validé.
    *
@@ -411,6 +472,31 @@ export interface MemberPortionView {
   /** `null` = part standard. L'écran rend son propre libellé. */
   portionNote: string | null;
   shares: Array<{ preparationId: string; note: string }>;
+  /**
+   * ══════════════════════════════════════════════════════════════════════
+   * LES MOMENTS OÙ CETTE BOUCHE MANGE, À LA COMPOSITION.
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * ── LE DÉFAUT QUE ÇA FERME (2026-08-19) ──────────────────────────────
+   * L'écran nommait TOUTES les bouches sous chaque plat, sans demander si
+   * elles mangent à ce moment-là. Christèle, qui a déclaré déjeuner et dîner,
+   * se lisait au petit-déjeuner à côté d'iku.
+   *
+   * ⛔ IL VIENT DU PLAN, ET SURTOUT PAS D'UNE RELECTURE DU FOYER. « Il faut
+   * que le plan respecte les créneaux renseignés AU MOMENT DE FAIRE LE PLAN. »
+   * Relire le roster à l'affichage montrerait les créneaux d'aujourd'hui sous
+   * un plan composé la semaine dernière.
+   *
+   * ⚠️ `null` = elle n'a rien déclaré, donc elle suit la maison — et ce n'est
+   * PAS `[]`, qui voudrait dire « elle ne mange à aucun moment ». Les
+   * confondre ferait disparaître une bouche muette de tous ses repas, ou
+   * l'inverse.
+   *
+   * ⚠️ DES JETONS DE MOMENT, ET RIEN D'AUTRE. Pas de taille: `member_portions`
+   * est lisible par tout le foyer, et une taille de part est un fait de corps.
+   * Ce type n'a structurellement aucun champ où en mettre une.
+   */
+  eatingSlots: string[] | null;
 }
 
 /**
@@ -430,6 +516,13 @@ export function readMemberPortions(raw: unknown): MemberPortionView[] {
       displayName: String(p.display_name ?? ""),
       portionNote: typeof p.portion_note === "string" && p.portion_note.trim()
         ? p.portion_note
+        : null,
+      // ⚠️ DÉFENSIF DANS UNE SEULE DIRECTION, comme tout ce fichier. Ce qui
+      // n'est pas un tableau de chaînes redevient `null` — « suit la maison »,
+      // c'est-à-dire le comportement d'avant ce champ. Un plan écrit avant le
+      // 2026-08-19 n'en porte pas, et il doit se lire exactement comme avant.
+      eatingSlots: Array.isArray(p.eating_slots)
+        ? p.eating_slots.filter((s): s is string => typeof s === "string")
         : null,
       shares: shares.map((s) => {
         const share = (s ?? {}) as Record<string, unknown>;
@@ -833,17 +926,11 @@ export function readDishes(raw: unknown): GeneratedDish[] {
           return {
             preparation_id: String(u.preparation_id ?? ""),
             servings: Number(u.servings) || 1,
-            // LOT 4 — LA BOÎTE CITÉE, RELUE TELLE QUELLE. Une chaîne vide vaut
-            // `null`: « aucune boîte » et « la boîte nommée par la chaîne
-            // vide » se liraient pareil à l'écran, et la seconde ferait
-            // chercher un couvercle qui n'existe pas.
-            box_id: typeof u.box_id === "string" && u.box_id.trim() !== ""
-              ? u.box_id.trim()
-              : null,
           };
         }).filter((u) => u.preparation_id !== "")
         : [],
       ingredients: readIngredients(d.ingredients),
+      boxes: readBoxes(d),
       same_day: readSameDay(d.same_day),
       // LOT 3 — L'ATTRIBUTION, RELUE TELLE QUELLE. Une chaîne vide vaut
       // `null`: « attribué à personne » et « attribué à la chaîne vide » se
@@ -919,41 +1006,130 @@ export function readPreparations(raw: unknown): MealPreparation[] {
       total_minutes: readMinutes(p.total_minutes),
       cook_on: p.cook_on === null || p.cook_on === undefined ? null : String(p.cook_on),
       ingredients: readIngredients(p.ingredients),
-      boxes: readBoxes(p.boxes),
     };
   }).filter((p) => p.id !== "" && p.title !== "");
 }
 
 /**
- * LOT 4 — LES BOÎTES D'UNE PRÉPARATION, RELUES ET REVALIDÉES ICI.
+ * LA BOÎTE D'UN REPAS, RELUE ET REVALIDÉE ICI.
  *
  * ⚠️ LA REVALIDATION N'EST PAS DE LA PARANOÏA, c'est le même arbitrage que
  * `readSameDay` et `uses` juste au-dessus: ce lecteur monte aussi des lignes
  * `student_generated_meals` écrites par une AUTRE version du moteur, où la clé
- * n'existait pas du tout. Un `as PreparationBox[]` sur ce JSONB compilerait et
- * jurerait que `box.member_ids` est un tableau; l'écran ferait
- * `box.member_ids.map(...)` et casserait à l'ouverture du plan, sans qu'aucun
- * test de type n'ait pu le voir. C'est le défaut que ce fichier documente déjà
- * deux fois.
+ * n'existait pas du tout. Un `as MealBox` sur ce JSONB compilerait et jurerait
+ * que `box.shares` est un tableau; l'écran ferait `box.shares.map(...)` et
+ * casserait à l'ouverture du plan, sans qu'aucun test de type n'ait pu le voir.
+ * C'est le défaut que ce fichier documente déjà deux fois.
  *
  * ⛔ ET LES GRAMMES SONT REFUSÉS PLUTÔT QUE DÉFAUT-ÉS À ZÉRO. « 0 g » se lit
- * « ne mange rien », ce qui est une affirmation; une boîte sans poids lisible
+ * « ne mange rien », ce qui est une affirmation; une part sans poids lisible
  * n'est pas une instruction de pesée, et l'écran ne la rend pas. Précédent
  * `readMinutes`, mot pour mot.
+ *
+ * ⛔ ET IL NE VA PAS CHERCHER LES BOÎTES D'AVANT. Un plan écrit avant le
+ * 2026-08-19 porte ses boîtes sous `preparations[].boxes`, en grammes de
+ * casserole: les remonter ici afficherait la part d'un bac sous un repas, ce qui
+ * est un gramme JUSTE au mauvais endroit — le seul repli vraiment dangereux. Ces
+ * plans-là n'ont pas de table de pesée, et l'écran se tait.
  */
-function readBoxes(raw: unknown): PreparationBox[] {
-  if (!Array.isArray(raw)) return [];
-  return raw.map((entry) => {
-    const b = (entry ?? {}) as Record<string, unknown>;
-    const grams = Number(b.grams);
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * LES CONTENANTS D'UN PLAT — v4 AU PLURIEL, ET LE REPLI SUR LES PLANS v2.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⚠️ IL LIT LE PLAT ENTIER, PAS UN CHAMP. C'est ce qui lui permet de servir
+ * les deux formes sans qu'aucun appelant ait à savoir laquelle il regarde:
+ * `boxes[]` (v4) si elle est là, sinon `box` (v2) replié.
+ *
+ * ⛔ LE REPLI v2 N'INVENTE AUCUNE VENTILATION. v2 portait une part PAR
+ * PERSONNE (`shares[]`) et aucun découpage par composant. La seule chose vraie
+ * qu'on puisse en tirer est la SOMME — et une somme sur un bac partagé est
+ * exactement ce que v4 appelle une quantité de bac. Elle sort donc en
+ * `legacy_total_grams`, jamais en `items` fabriqués: un `item` inventé
+ * porterait un `term` que personne n'a écrit.
+ *
+ * ⚠️ ET LES NOMS SURVIVENT AU REPLI. Les `member_id` des parts deviennent le
+ * groupe du contenant: un plan déjà en base garde son couvercle nommé.
+ */
+function readBoxes(dish: Record<string, unknown>): MealBox[] {
+  // ── LE CHEMIN v4 ────────────────────────────────────────────────────────
+  if (Array.isArray(dish.boxes)) {
+    return dish.boxes
+      .map((entry) => readBoxV4(entry))
+      .filter((b): b is MealBox => b !== null);
+  }
+  // ── LE REPLI v2 ─────────────────────────────────────────────────────────
+  const folded = readBoxV2(dish.box);
+  return folded === null ? [] : [folded];
+}
+
+function readBoxV4(raw: unknown): MealBox | null {
+  if (raw === null || raw === undefined || typeof raw !== "object") return null;
+  const b = raw as Record<string, unknown>;
+  const id = String(b.id ?? "");
+  if (id === "") return null;
+  const memberIds = (Array.isArray(b.member_ids) ? b.member_ids : [])
+    .map((v) => String(v ?? "").trim())
+    .filter((v) => v !== "");
+  // ⚠️ UN CONTENANT SANS PERSONNE N'EST PAS UNE INSTRUCTION. On le jette
+  // plutôt que de rendre un couvercle anonyme: « sers-toi » se dit par
+  // l'ABSENCE de contenant, pas par un contenant vide.
+  if (memberIds.length === 0) return null;
+  const items = (Array.isArray(b.items) ? b.items : []).map((entry) => {
+    const it = (entry ?? {}) as Record<string, unknown>;
+    const grams = Number(it.grams);
+    const prep = String(it.preparation_id ?? "").trim();
     return {
-      id: String(b.id ?? ""),
-      member_ids: Array.isArray(b.member_ids)
-        ? b.member_ids.map((v) => String(v)).filter((v) => v !== "")
-        : [],
+      // `null` = ajouté frais le jour même, et c'est une information: ce
+      // composant n'est pas sorti d'une casserole de la session.
+      preparation_id: prep === "" ? null : prep,
+      term: String(it.term ?? "").trim(),
       grams: Number.isFinite(grams) && grams > 0 ? Math.round(grams) : 0,
     };
-  }).filter((b) => b.id !== "" && b.member_ids.length > 0 && b.grams > 0);
+  }).filter((it) => it.term !== "" && it.grams > 0);
+  // ══════════════════════════════════════════════════════════════════════════
+  // ⛔ LE TOTAL v2 SURVIT AU PLIAGE FAIT PAR LE MOTEUR (2026-08-20)
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // Le moteur plie lui-même un `box` singulier v2 en UN contenant v4: il écrit
+  // alors `items: []` et `legacy_total_grams: <la somme des parts>`. Sans cette
+  // lecture, ce lecteur-ci jetterait le contenant pour `items.length === 0`, et
+  // tout plan écrit tant que le prompt n'est pas passé en v4 perdrait ses
+  // grammes À L'ÉCRAN — le moteur ayant raison, l'écran muet, et rien pour dire
+  // lequel des deux a bougé.
+  //
+  // ⚠️ IL N'INVENTE TOUJOURS AUCUN `item`: un `term` que personne n'a écrit
+  // serait un mensonge. Le total est rendu tel quel, et `boxLidLabel` /
+  // `boxLinesForDish` le rendent comme une quantité de bac — ce qu'il est.
+  const legacyRaw = Number((raw as Record<string, unknown>).legacy_total_grams);
+  const legacyTotal = Number.isFinite(legacyRaw) && legacyRaw > 0
+    ? Math.round(legacyRaw)
+    : null;
+  if (items.length === 0 && legacyTotal === null) return null;
+  return { id, member_ids: memberIds, items, legacy_total_grams: items.length > 0 ? null : legacyTotal };
+}
+
+/** Un `box` singulier de plan v2 — un bac, une part par nom. */
+function readBoxV2(raw: unknown): MealBox | null {
+  if (raw === null || raw === undefined || typeof raw !== "object") return null;
+  const b = raw as Record<string, unknown>;
+  const id = String(b.id ?? "");
+  if (id === "") return null;
+  const shares = (Array.isArray(b.shares) ? b.shares : []).map((entry) => {
+    const sh = (entry ?? {}) as Record<string, unknown>;
+    const grams = Number(sh.grams);
+    return {
+      member_id: String(sh.member_id ?? ""),
+      grams: Number.isFinite(grams) && grams > 0 ? Math.round(grams) : 0,
+    };
+  }).filter((sh) => sh.member_id !== "" && sh.grams > 0);
+  if (shares.length === 0) return null;
+  return {
+    id,
+    member_ids: shares.map((sh) => sh.member_id),
+    items: [],
+    legacy_total_grams: shares.reduce((sum, sh) => sum + sh.grams, 0),
+  };
 }
 
 /** `export` pour `api/planDraft.ts` — même raison que `readFixedIntakes`. */

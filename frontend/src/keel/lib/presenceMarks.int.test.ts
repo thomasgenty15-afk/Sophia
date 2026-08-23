@@ -207,9 +207,58 @@ describe("L3 — la réponse hebdomadaire", () => {
     expect(parseWorkLunch({ at_work: true, mode: "outside", microwave: true }))
       .toEqual({ atWork: true, mode: "outside", microwave: null });
     expect(workLunchPayload({ atWork: true, mode: "outside", microwave: true }))
-      .toEqual({ at_work: true, mode: "outside", microwave: null });
+      .toEqual({ at_work: true, mode: "outside" });
     expect(workLunchPayload({ atWork: false, mode: null, microwave: null }))
       .toEqual({ at_work: false });
+  });
+
+  it("UNE RÉPONSE MANQUANTE EST UNE CLÉ ABSENTE, jamais un `null`", () => {
+    // ⚠️ CE TEST EST LA MOITIÉ QUI MANQUAIT. La version d'avant affirmait
+    // `microwave: null` et restait verte pendant que la base refusait
+    // `bad_work_lunch` sur CE payload exact: `jsonb_typeof(… -> 'microwave')`
+    // vaut `'null'` pour un `null` JSON, et la garde exige `'boolean'`.
+    // Conséquence mesurée à l'écran le 2026-08-18: `mode='outside'` n'était
+    // écrivable par AUCUN écran, et « oui » sans mode rendait « We could not
+    // read that answer. »
+    //
+    // On vérifie donc la PRÉSENCE DES CLÉS, pas seulement leurs valeurs:
+    // `toEqual` traite `{a: undefined}` et `{}` comme égaux, ce qui laisserait
+    // repasser exactement le défaut qu'on vient de réparer.
+    const outside = workLunchPayload({
+      atWork: true,
+      mode: "outside",
+      microwave: null,
+    });
+    expect(Object.keys(outside).sort()).toEqual(["at_work", "mode"]);
+    expect(JSON.stringify(outside)).not.toContain("null");
+
+    const modeNotChosenYet = workLunchPayload({
+      atWork: true,
+      mode: null,
+      microwave: null,
+    });
+    expect(Object.keys(modeNotChosenYet)).toEqual(["at_work"]);
+    expect(JSON.stringify(modeNotChosenYet)).not.toContain("null");
+
+    const lunchboxNotAnsweredYet = workLunchPayload({
+      atWork: true,
+      mode: "lunchbox",
+      microwave: null,
+    });
+    expect(Object.keys(lunchboxNotAnsweredYet).sort()).toEqual([
+      "at_work",
+      "mode",
+    ]);
+    expect(JSON.stringify(lunchboxNotAnsweredYet)).not.toContain("null");
+
+    // ET LE CAS QUI PASSE — sans lui, une garde qui refuse tout ressemble à une
+    // garde qui marche. `false` est une RÉPONSE, il doit partir.
+    expect(
+      workLunchPayload({ atWork: true, mode: "lunchbox", microwave: false }),
+    ).toEqual({ at_work: true, mode: "lunchbox", microwave: false });
+    expect(
+      workLunchPayload({ atWork: true, mode: "lunchbox", microwave: true }),
+    ).toEqual({ at_work: true, mode: "lunchbox", microwave: true });
   });
 
   it("LA GAMELLE NE COCHE AUCUN MIDI, et c'est le piège du lot", () => {

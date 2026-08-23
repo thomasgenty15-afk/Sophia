@@ -116,5 +116,13 @@ function selfAsMouth(self: PresenceSelf): FunnelMouth {
     weightKg: null,
     gender: null,
     activityLevel: null,
+    // ② Cette fabrique ne sert QUE la grille de présence: elle ne lit aucun
+    // corps, donc elle ne peut rien dire de l'activité. `null` = pas répondu.
+    dayActivity: null,
+    sportFrequency: null,
+    takesDessert: null,
+    takesCheese: null,
+    takesBread: null,
+    appetite: null,
   };
 }

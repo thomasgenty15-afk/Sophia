@@ -1,0 +1,1040 @@
+{
+  "request_id": "a5000001-0000-4000-8000-000000000001",
+  "resolved_by": "--request-id",
+  "user_id": "1e000000-0000-4000-8000-000000000012",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-19T01:13:33.864Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "aafcfe24-af51-43dd-8de2-117da50c5bc1",
+      "status": "breaker_skip",
+      "created_at": "2026-08-19T01:10:25.869495+00:00",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 16134,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 16134,
+    "user_message_chars": 17196,
+    "user_message_truncated": false,
+    "user_message_written_chars": 17196,
+    "independent_counters": {
+      "system_prompt_chars": 16134,
+      "prompt_chars": 17196
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "7fe77b8c-8522-4569-90f6-ad3a17c0f5f6",
+    "created_at": "2026-08-19T01:13:33.157463+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "gemini",
+    "model": "gemini-3-flash-preview",
+    "http_status": 200,
+    "attempt": 1,
+    "chain_index": 1,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Morning Spinach and Egg Toast\",\n      \"title\": \"Scrambled eggs with spinach on toasted bread\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": null\n        },\n        {\n          \"term\": \"spinach\",\n          \"quantity\": \"40 g\",\n          \"amount\": 40,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"wholemeal bread\",\n          \"quantity\": \"1 slice\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": null\n        },\n        {\n          \"term\": \"butter\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Whisk the egg and scramble in a pan with the butter and spinach until wilted. Serve on top of the toasted bread.\",\n      \"why\": \"A warm, protein-focused start that uses the stovetop while your oven door is out of action.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Sunflower Seed Butter and Egg Toast\",\n      \"title\": \"Eggs, spinach and sunflower seed butter on toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": null\n        },\n        {\n          \"term\": \"spinach\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"wholemeal bread\",\n          \"quantity\": \"1 slice\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": null\n        },\n        {\n          \"term\": \"sunflower seed butter\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Scramble the eggs with spinach in a pan. Spread the sunflower seed butter on the toast and top with the egg mixture.\",\n      \"why\": \"I swapped one of the foods on your medical list for sunflower seed butter to keep the kitchen safe for everyone.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Green Start Egg Toast\",\n      \"title\": \"Scrambled eggs with spinach on toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": null\n        },\n        {\n          \"term\": \"spinach\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"wholemeal bread\",\n          \"quantity\": \"1 slice\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Scramble the eggs and spinach in a pan until set. Serve on the toasted bread.\",\n      \"why\": \"A simple, nut-free breakfast that provides the protein needed for muscle gain.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Golden Chicken and Pepper Rice\",\n      \"title\": \"Pan-seared chicken thighs with bell peppers and rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"0.25 unit\",\n          \"amount\": 0.25,\n          \"unit\": \"unit\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Reheat the chicken and rice portions in a pan with a splash of water until steaming. Serve with a squeeze of lemon.\",\n      \"why\": \"A large, starch-heavy lunch to fuel your day without needing the oven.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_marceau\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_marceau\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"starch_follows_the_session\"\n      ]\n    },\n    {\n      \"name\": \"Bertille's Chicken Rice Bowl\",\n      \"title\": \"Chicken thighs, peppers and basmati rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"0.25 unit\",\n          \"amount\": 0.25,\n          \"unit\": \"unit\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Warm the chicken and rice in a pan on the stove. Squeeze the lemon over the top before serving.\",\n      \"why\": \"A balanced meal with plenty of protein, avoiding all medical allergens.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_bertille\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_bertille\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"starch_follows_the_session\"\n      ]\n    },\n    {\n      \"name\": \"Ysoline's Pepper and Chicken Plate\",\n      \"title\": \"Pan-seared chicken with peppers and rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"0.25 unit\",\n          \"amount\": 0.25,\n          \"unit\": \"unit\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Gently reheat the chicken and rice in a pan. Plate the vegetables first as requested.\",\n      \"why\": \"Nut-free and fennel-free, this dish provides the large lunch portion you need.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_ysoline\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_ysoline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Beef and Broccoli Potato Mash\",\n      \"title\": \"Beef mince and broccoli stir-fry with new potatoes\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"1 pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Reheat the beef mixture and potatoes in a pan. Mash the potatoes slightly on the plate and top with the beef.\",\n      \"why\": \"A warm, satisfying dinner that meets the Osric Thelwall standard for a cooked evening meal.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_broccoli\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_marceau\"\n        },\n        {\n          \"preparation_id\": \"prep_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_potatoes_marceau\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Bertille's Beef and Potato Plate\",\n      \"title\": \"Stir-fried beef, broccoli and boiled potatoes\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"1 pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Warm the beef and potatoes in a pan. Plate the beef and potatoes first, then add the broccoli.\",\n      \"why\": \"A safe, celeriac-free dinner that supports muscle gain goals.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_broccoli\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_bertille\"\n        },\n        {\n          \"preparation_id\": \"prep_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_potatoes_bertille\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Ysoline's Broccoli and Beef Supper\",\n      \"title\": \"Beef and broccoli stir-fry with potatoes\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"1 pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Reheat everything in a pan. Plate the broccoli first, followed by the beef and potatoes.\",\n      \"why\": \"A warm, fennel-free dinner that is safe for your tree nut allergy.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_broccoli\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_ysoline\"\n        },\n        {\n          \"preparation_id\": \"prep_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_potatoes_ysoline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_chicken\",\n      \"title\": \"Pan-seared chicken and peppers\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"chicken thighs\",\n          \"quantity\": \"600 g\",\n          \"amount\": 600,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"bell peppers\",\n          \"quantity\": \"3 units\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Slice chicken and peppers. Sear in a hot pan with olive oil until the chicken is cooked through and peppers are softened.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_chicken_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_chicken_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_chicken_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 180\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_rice\",\n      \"title\": \"Boiled basmati rice\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"basmati rice\",\n          \"quantity\": \"250 g\",\n          \"amount\": 250,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Rinse rice and boil in salted water for 10-12 minutes until tender. Drain well.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 15,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_rice_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_rice_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_rice_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 200\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_beef_broccoli\",\n      \"title\": \"Beef and broccoli stir-fry\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"beef mince\",\n          \"quantity\": \"500 g\",\n          \"amount\": 500,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"broccoli\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Brown the beef in a pan. Add broccoli florets and a splash of water, cover and steam-fry until broccoli is tender.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 15,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_beef_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_beef_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_beef_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 250\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_potatoes\",\n      \"title\": \"Boiled new potatoes\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"new potatoes\",\n          \"quantity\": \"600 g\",\n          \"amount\": 600,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Boil potatoes in salted water for 15-20 minutes until soft. Drain.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_potatoes_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_potatoes_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_potatoes_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 180\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_chicken\",\n        \"prep_rice\",\n        \"prep_beef_broccoli\",\n        \"prep_potatoes\"\n      ],\n      \"total_minutes\": 45,\n      \"run_through\": \"Get the potatoes and rice boiling in separate pots. While they cook, sear the chicken and peppers in a large pan. Once done, remove them and stir-fry the beef and broccoli in the same pan. Drain the grains and box everything up.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"chicken thighs\",\n      \"quantity\": \"600 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"beef mince\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"eggs\",\n      \"quantity\": \"6 units\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"bell peppers\",\n      \"quantity\": \"3 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"broccoli\",\n      \"quantity\": \"2 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"new potatoes\",\n      \"quantity\": \"600 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"spinach\",\n      \"quantity\": \"200 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"lemon\",\n      \"quantity\": \"1 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"basmati rice\",\n      \"quantity\": \"250 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"wholemeal bread\",\n      \"quantity\": \"1 loaf\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"sunflower seed butter\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"100 ml\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"portion_note\": \"Serve chicken/beef and rice/potatoes first, then add the vegetables. Tea served scalding.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"note\": \"one box of chicken and peppers\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"one box of rice\"\n        },\n        {\n          \"preparation_id\": \"prep_beef_broccoli\",\n          \"note\": \"one box of beef and broccoli\"\n        },\n        {\n          \"preparation_id\": \"prep_potatoes\",\n          \"note\": \"one box of potatoes\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"2a937736-693a-45f1-97a6-110f535ae004\",\n      \"portion_note\": \"All components served together on the plate.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"note\": \"one box of chicken and peppers\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"one box of rice\"\n        },\n        {\n          \"preparation_id\": \"prep_beef_broccoli\",\n          \"note\": \"one box of beef and broccoli\"\n        },\n        {\n          \"preparation_id\": \"prep_potatoes\",\n          \"note\": \"one box of potatoes\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"portion_note\": \"Vegetables served first, then the protein and starch.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"note\": \"one box of chicken and peppers\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"one box of rice\"\n        },\n        {\n          \"preparation_id\": \"prep_beef_broccoli\",\n          \"note\": \"one box of beef and broccoli\"\n        },\n        {\n          \"preparation_id\": \"prep_potatoes\",\n          \"note\": \"one box of potatoes\"\n        }\n      ]\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Morning Spinach and Egg Toast",
+          "title": "Scrambled eggs with spinach on toasted bread",
+          "slot": "breakfast",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "eggs",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": null
+            },
+            {
+              "term": "spinach",
+              "quantity": "40 g",
+              "amount": 40,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "wholemeal bread",
+              "quantity": "1 slice",
+              "amount": 1,
+              "unit": "unit",
+              "state": null
+            },
+            {
+              "term": "butter",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": null
+            }
+          ],
+          "method": "Whisk the egg and scramble in a pan with the butter and spinach until wilted. Serve on top of the toasted bread.",
+          "why": "A warm, protein-focused start that uses the stovetop while your oven door is out of action.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Sunflower Seed Butter and Egg Toast",
+          "title": "Eggs, spinach and sunflower seed butter on toast",
+          "slot": "breakfast",
+          "day": "wed",
+          "for_member_id": "8917f344-51d8-4177-8c54-ff4460ef9122",
+          "ingredients": [
+            {
+              "term": "eggs",
+              "quantity": "2 units",
+              "amount": 2,
+              "unit": "unit",
+              "state": null
+            },
+            {
+              "term": "spinach",
+              "quantity": "50 g",
+              "amount": 50,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "wholemeal bread",
+              "quantity": "1 slice",
+              "amount": 1,
+              "unit": "unit",
+              "state": null
+            },
+            {
+              "term": "sunflower seed butter",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Scramble the eggs with spinach in a pan. Spread the sunflower seed butter on the toast and top with the egg mixture.",
+          "why": "I swapped one of the foods on your medical list for sunflower seed butter to keep the kitchen safe for everyone.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Green Start Egg Toast",
+          "title": "Scrambled eggs with spinach on toast",
+          "slot": "breakfast",
+          "day": "wed",
+          "for_member_id": "db0dcc2f-a0f4-46d7-90ab-980b8be0189c",
+          "ingredients": [
+            {
+              "term": "eggs",
+              "quantity": "2 units",
+              "amount": 2,
+              "unit": "unit",
+              "state": null
+            },
+            {
+              "term": "spinach",
+              "quantity": "50 g",
+              "amount": 50,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "wholemeal bread",
+              "quantity": "1 slice",
+              "amount": 1,
+              "unit": "unit",
+              "state": null
+            }
+          ],
+          "method": "Scramble the eggs and spinach in a pan until set. Serve on the toasted bread.",
+          "why": "A simple, nut-free breakfast that provides the protein needed for muscle gain.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Golden Chicken and Pepper Rice",
+          "title": "Pan-seared chicken thighs with bell peppers and rice",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "lemon",
+              "quantity": "0.25 unit",
+              "amount": 0.25,
+              "unit": "unit",
+              "state": null
+            }
+          ],
+          "method": "Reheat the chicken and rice portions in a pan with a splash of water until steaming. Serve with a squeeze of lemon.",
+          "why": "A large, starch-heavy lunch to fuel your day without needing the oven.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken",
+              "servings": 1,
+              "box_id": "box_chicken_marceau"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_rice_marceau"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "starch_follows_the_session"
+          ]
+        },
+        {
+          "name": "Bertille's Chicken Rice Bowl",
+          "title": "Chicken thighs, peppers and basmati rice",
+          "slot": "lunch",
+          "day": "wed",
+          "for_member_id": "8917f344-51d8-4177-8c54-ff4460ef9122",
+          "ingredients": [
+            {
+              "term": "lemon",
+              "quantity": "0.25 unit",
+              "amount": 0.25,
+              "unit": "unit",
+              "state": null
+            }
+          ],
+          "method": "Warm the chicken and rice in a pan on the stove. Squeeze the lemon over the top before serving.",
+          "why": "A balanced meal with plenty of protein, avoiding all medical allergens.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken",
+              "servings": 1,
+              "box_id": "box_chicken_bertille"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_rice_bertille"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "starch_follows_the_session"
+          ]
+        },
+        {
+          "name": "Ysoline's Pepper and Chicken Plate",
+          "title": "Pan-seared chicken with peppers and rice",
+          "slot": "lunch",
+          "day": "wed",
+          "for_member_id": "db0dcc2f-a0f4-46d7-90ab-980b8be0189c",
+          "ingredients": [
+            {
+              "term": "lemon",
+              "quantity": "0.25 unit",
+              "amount": 0.25,
+              "unit": "unit",
+              "state": null
+            }
+          ],
+          "method": "Gently reheat the chicken and rice in a pan. Plate the vegetables first as requested.",
+          "why": "Nut-free and fennel-free, this dish provides the large lunch portion you need.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken",
+              "servings": 1,
+              "box_id": "box_chicken_ysoline"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_rice_ysoline"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Beef and Broccoli Potato Mash",
+          "title": "Beef mince and broccoli stir-fry with new potatoes",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "black pepper",
+              "quantity": "1 pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Reheat the beef mixture and potatoes in a pan. Mash the potatoes slightly on the plate and top with the beef.",
+          "why": "A warm, satisfying dinner that meets the Osric Thelwall standard for a cooked evening meal.",
+          "uses": [
+            {
+              "preparation_id": "prep_beef_broccoli",
+              "servings": 1,
+              "box_id": "box_beef_marceau"
+            },
+            {
+              "preparation_id": "prep_potatoes",
+              "servings": 1,
+              "box_id": "box_potatoes_marceau"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Bertille's Beef and Potato Plate",
+          "title": "Stir-fried beef, broccoli and boiled potatoes",
+          "slot": "dinner",
+          "day": "wed",
+          "for_member_id": "8917f344-51d8-4177-8c54-ff4460ef9122",
+          "ingredients": [
+            {
+              "term": "black pepper",
+              "quantity": "1 pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Warm the beef and potatoes in a pan. Plate the beef and potatoes first, then add the broccoli.",
+          "why": "A safe, celeriac-free dinner that supports muscle gain goals.",
+          "uses": [
+            {
+              "preparation_id": "prep_beef_broccoli",
+              "servings": 1,
+              "box_id": "box_beef_bertille"
+            },
+            {
+              "preparation_id": "prep_potatoes",
+              "servings": 1,
+              "box_id": "box_potatoes_bertille"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Ysoline's Broccoli and Beef Supper",
+          "title": "Beef and broccoli stir-fry with potatoes",
+          "slot": "dinner",
+          "day": "wed",
+          "for_member_id": "db0dcc2f-a0f4-46d7-90ab-980b8be0189c",
+          "ingredients": [
+            {
+              "term": "black pepper",
+              "quantity": "1 pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Reheat everything in a pan. Plate the broccoli first, followed by the beef and potatoes.",
+          "why": "A warm, fennel-free dinner that is safe for your tree nut allergy.",
+          "uses": [
+            {
+              "preparation_id": "prep_beef_broccoli",
+              "servings": 1,
+              "box_id": "box_beef_ysoline"
+            },
+            {
+              "preparation_id": "prep_potatoes",
+              "servings": 1,
+              "box_id": "box_potatoes_ysoline"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_chicken",
+          "title": "Pan-seared chicken and peppers",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "chicken thighs",
+              "quantity": "600 g",
+              "amount": 600,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "bell peppers",
+              "quantity": "3 units",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Slice chicken and peppers. Sear in a hot pan with olive oil until the chicken is cooked through and peppers are softened.",
+          "active_minutes": 15,
+          "total_minutes": 20,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_chicken_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 180
+            },
+            {
+              "id": "box_chicken_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 180
+            },
+            {
+              "id": "box_chicken_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 180
+            }
+          ]
+        },
+        {
+          "id": "prep_rice",
+          "title": "Boiled basmati rice",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "basmati rice",
+              "quantity": "250 g",
+              "amount": 250,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Rinse rice and boil in salted water for 10-12 minutes until tender. Drain well.",
+          "active_minutes": 5,
+          "total_minutes": 15,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_rice_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 200
+            },
+            {
+              "id": "box_rice_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 200
+            },
+            {
+              "id": "box_rice_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 200
+            }
+          ]
+        },
+        {
+          "id": "prep_beef_broccoli",
+          "title": "Beef and broccoli stir-fry",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "beef mince",
+              "quantity": "500 g",
+              "amount": 500,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "broccoli",
+              "quantity": "2 units",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Brown the beef in a pan. Add broccoli florets and a splash of water, cover and steam-fry until broccoli is tender.",
+          "active_minutes": 10,
+          "total_minutes": 15,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_beef_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 250
+            },
+            {
+              "id": "box_beef_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 250
+            },
+            {
+              "id": "box_beef_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 250
+            }
+          ]
+        },
+        {
+          "id": "prep_potatoes",
+          "title": "Boiled new potatoes",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "new potatoes",
+              "quantity": "600 g",
+              "amount": 600,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Boil potatoes in salted water for 15-20 minutes until soft. Drain.",
+          "active_minutes": 5,
+          "total_minutes": 20,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_potatoes_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 180
+            },
+            {
+              "id": "box_potatoes_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 180
+            },
+            {
+              "id": "box_potatoes_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 180
+            }
+          ]
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_chicken",
+            "prep_rice",
+            "prep_beef_broccoli",
+            "prep_potatoes"
+          ],
+          "total_minutes": 45,
+          "run_through": "Get the potatoes and rice boiling in separate pots. While they cook, sear the chicken and peppers in a large pan. Once done, remove them and stir-fry the beef and broccoli in the same pan. Drain the grains and box everything up."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "chicken thighs",
+          "quantity": "600 g",
+          "aisle": "protein"
+        },
+        {
+          "term": "beef mince",
+          "quantity": "500 g",
+          "aisle": "protein"
+        },
+        {
+          "term": "eggs",
+          "quantity": "6 units",
+          "aisle": "dairy"
+        },
+        {
+          "term": "bell peppers",
+          "quantity": "3 units",
+          "aisle": "produce"
+        },
+        {
+          "term": "broccoli",
+          "quantity": "2 units",
+          "aisle": "produce"
+        },
+        {
+          "term": "new potatoes",
+          "quantity": "600 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "spinach",
+          "quantity": "200 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "lemon",
+          "quantity": "1 unit",
+          "aisle": "produce"
+        },
+        {
+          "term": "basmati rice",
+          "quantity": "250 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "wholemeal bread",
+          "quantity": "1 loaf",
+          "aisle": "grains"
+        },
+        {
+          "term": "sunflower seed butter",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "olive oil",
+          "quantity": "100 ml",
+          "aisle": "pantry"
+        }
+      ],
+      "member_portions": [
+        {
+          "member_id": "8917f344-51d8-4177-8c54-ff4460ef9122",
+          "portion_note": "Serve chicken/beef and rice/potatoes first, then add the vegetables. Tea served scalding.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken",
+              "note": "one box of chicken and peppers"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "note": "one box of rice"
+            },
+            {
+              "preparation_id": "prep_beef_broccoli",
+              "note": "one box of beef and broccoli"
+            },
+            {
+              "preparation_id": "prep_potatoes",
+              "note": "one box of potatoes"
+            }
+          ]
+        },
+        {
+          "member_id": "2a937736-693a-45f1-97a6-110f535ae004",
+          "portion_note": "All components served together on the plate.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken",
+              "note": "one box of chicken and peppers"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "note": "one box of rice"
+            },
+            {
+              "preparation_id": "prep_beef_broccoli",
+              "note": "one box of beef and broccoli"
+            },
+            {
+              "preparation_id": "prep_potatoes",
+              "note": "one box of potatoes"
+            }
+          ]
+        },
+        {
+          "member_id": "db0dcc2f-a0f4-46d7-90ab-980b8be0189c",
+          "portion_note": "Vegetables served first, then the protein and starch.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken",
+              "note": "one box of chicken and peppers"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "note": "one box of rice"
+            },
+            {
+              "preparation_id": "prep_beef_broccoli",
+              "note": "one box of beef and broccoli"
+            },
+            {
+              "preparation_id": "prep_potatoes",
+              "note": "one box of potatoes"
+            }
+          ]
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "candidates": [
+        {
+          "index": 0,
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Morning Spinach and Egg Toast\",\n      \"title\": \"Scrambled eggs with spinach on toasted bread\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": null\n        },\n        {\n          \"term\": \"spinach\",\n          \"quantity\": \"40 g\",\n          \"amount\": 40,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"wholemeal bread\",\n          \"quantity\": \"1 slice\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": null\n        },\n        {\n          \"term\": \"butter\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Whisk the egg and scramble in a pan with the butter and spinach until wilted. Serve on top of the toasted bread.\",\n      \"why\": \"A warm, protein-focused start that uses the stovetop while your oven door is out of action.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Sunflower Seed Butter and Egg Toast\",\n      \"title\": \"Eggs, spinach and sunflower seed butter on toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": null\n        },\n        {\n          \"term\": \"spinach\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"wholemeal bread\",\n          \"quantity\": \"1 slice\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": null\n        },\n        {\n          \"term\": \"sunflower seed butter\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Scramble the eggs with spinach in a pan. Spread the sunflower seed butter on the toast and top with the egg mixture.\",\n      \"why\": \"I swapped one of the foods on your medical list for sunflower seed butter to keep the kitchen safe for everyone.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Green Start Egg Toast\",\n      \"title\": \"Scrambled eggs with spinach on toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": null\n        },\n        {\n          \"term\": \"spinach\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"wholemeal bread\",\n          \"quantity\": \"1 slice\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Scramble the eggs and spinach in a pan until set. Serve on the toasted bread.\",\n      \"why\": \"A simple, nut-free breakfast that provides the protein needed for muscle gain.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Golden Chicken and Pepper Rice\",\n      \"title\": \"Pan-seared chicken thighs with bell peppers and rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"0.25 unit\",\n          \"amount\": 0.25,\n          \"unit\": \"unit\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Reheat the chicken and rice portions in a pan with a splash of water until steaming. Serve with a squeeze of lemon.\",\n      \"why\": \"A large, starch-heavy lunch to fuel your day without needing the oven.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_marceau\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_marceau\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"starch_follows_the_session\"\n      ]\n    },\n    {\n      \"name\": \"Bertille's Chicken Rice Bowl\",\n      \"title\": \"Chicken thighs, peppers and basmati rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"0.25 unit\",\n          \"amount\": 0.25,\n          \"unit\": \"unit\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Warm the chicken and rice in a pan on the stove. Squeeze the lemon over the top before serving.\",\n      \"why\": \"A balanced meal with plenty of protein, avoiding all medical allergens.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_bertille\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_bertille\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"starch_follows_the_session\"\n      ]\n    },\n    {\n      \"name\": \"Ysoline's Pepper and Chicken Plate\",\n      \"title\": \"Pan-seared chicken with peppers and rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"0.25 unit\",\n          \"amount\": 0.25,\n          \"unit\": \"unit\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Gently reheat the chicken and rice in a pan. Plate the vegetables first as requested.\",\n      \"why\": \"Nut-free and fennel-free, this dish provides the large lunch portion you need.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_ysoline\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_ysoline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Beef and Broccoli Potato Mash\",\n      \"title\": \"Beef mince and broccoli stir-fry with new potatoes\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"1 pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Reheat the beef mixture and potatoes in a pan. Mash the potatoes slightly on the plate and top with the beef.\",\n      \"why\": \"A warm, satisfying dinner that meets the Osric Thelwall standard for a cooked evening meal.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_broccoli\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_marceau\"\n        },\n        {\n          \"preparation_id\": \"prep_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_potatoes_marceau\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Bertille's Beef and Potato Plate\",\n      \"title\": \"Stir-fried beef, broccoli and boiled potatoes\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"1 pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Warm the beef and potatoes in a pan. Plate the beef and potatoes first, then add the broccoli.\",\n      \"why\": \"A safe, celeriac-free dinner that supports muscle gain goals.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_broccoli\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_bertille\"\n        },\n        {\n          \"preparation_id\": \"prep_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_potatoes_bertille\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Ysoline's Broccoli and Beef Supper\",\n      \"title\": \"Beef and broccoli stir-fry with potatoes\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"1 pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Reheat everything in a pan. Plate the broccoli first, followed by the beef and potatoes.\",\n      \"why\": \"A warm, fennel-free dinner that is safe for your tree nut allergy.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_broccoli\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_ysoline\"\n        },\n        {\n          \"preparation_id\": \"prep_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_potatoes_ysoline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_chicken\",\n      \"title\": \"Pan-seared chicken and peppers\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"chicken thighs\",\n          \"quantity\": \"600 g\",\n          \"amount\": 600,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"bell peppers\",\n          \"quantity\": \"3 units\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Slice chicken and peppers. Sear in a hot pan with olive oil until the chicken is cooked through and peppers are softened.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_chicken_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_chicken_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_chicken_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 180\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_rice\",\n      \"title\": \"Boiled basmati rice\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"basmati rice\",\n          \"quantity\": \"250 g\",\n          \"amount\": 250,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Rinse rice and boil in salted water for 10-12 minutes until tender. Drain well.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 15,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_rice_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_rice_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_rice_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 200\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_beef_broccoli\",\n      \"title\": \"Beef and broccoli stir-fry\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"beef mince\",\n          \"quantity\": \"500 g\",\n          \"amount\": 500,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"broccoli\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Brown the beef in a pan. Add broccoli florets and a splash of water, cover and steam-fry until broccoli is tender.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 15,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_beef_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_beef_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_beef_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 250\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_potatoes\",\n      \"title\": \"Boiled new potatoes\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"new potatoes\",\n          \"quantity\": \"600 g\",\n          \"amount\": 600,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Boil potatoes in salted water for 15-20 minutes until soft. Drain.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_potatoes_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_potatoes_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_potatoes_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 180\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_chicken\",\n        \"prep_rice\",\n        \"prep_beef_broccoli\",\n        \"prep_potatoes\"\n      ],\n      \"total_minutes\": 45,\n      \"run_through\": \"Get the potatoes and rice boiling in separate pots. While they cook, sear the chicken and peppers in a large pan. Once done, remove them and stir-fry the beef and broccoli in the same pan. Drain the grains and box everything up.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"chicken thighs\",\n      \"quantity\": \"600 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"beef mince\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"eggs\",\n      \"quantity\": \"6 units\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"bell peppers\",\n      \"quantity\": \"3 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"broccoli\",\n      \"quantity\": \"2 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"new potatoes\",\n      \"quantity\": \"600 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"spinach\",\n      \"quantity\": \"200 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"lemon\",\n      \"quantity\": \"1 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"basmati rice\",\n      \"quantity\": \"250 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"wholemeal bread\",\n      \"quantity\": \"1 loaf\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"sunflower seed butter\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"100 ml\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"portion_note\": \"Serve chicken/beef and rice/potatoes first, then add the vegetables. Tea served scalding.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"note\": \"one box of chicken and peppers\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"one box of rice\"\n        },\n        {\n          \"preparation_id\": \"prep_beef_broccoli\",\n          \"note\": \"one box of beef and broccoli\"\n        },\n        {\n          \"preparation_id\": \"prep_potatoes\",\n          \"note\": \"one box of potatoes\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"2a937736-693a-45f1-97a6-110f535ae004\",\n      \"portion_note\": \"All components served together on the plate.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"note\": \"one box of chicken and peppers\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"one box of rice\"\n        },\n        {\n          \"preparation_id\": \"prep_beef_broccoli\",\n          \"note\": \"one box of beef and broccoli\"\n        },\n        {\n          \"preparation_id\": \"prep_potatoes\",\n          \"note\": \"one box of potatoes\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"portion_note\": \"Vegetables served first, then the protein and starch.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"note\": \"one box of chicken and peppers\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"one box of rice\"\n        },\n        {\n          \"preparation_id\": \"prep_beef_broccoli\",\n          \"note\": \"one box of beef and broccoli\"\n        },\n        {\n          \"preparation_id\": \"prep_potatoes\",\n          \"note\": \"one box of potatoes\"\n        }\n      ]\n    }\n  ]\n}",
+                "thoughtSignature": "[redacted]"
+              }
+            ]
+          },
+          "finishReason": "STOP"
+        }
+      ],
+      "responseId": "DwOFat-AFMaBvdIP9KPYqQg",
+      "modelVersion": "gemini-3-flash-preview",
+      "usageMetadata": {
+        "serviceTier": "standard",
+        "totalTokenCount": 20650,
+        "promptTokenCount": 8635,
+        "cacheTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 6606
+          }
+        ],
+        "thoughtsTokenCount": 5869,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 8635
+          }
+        ],
+        "candidatesTokenCount": 6146,
+        "cachedContentTokenCount": 6606
+      }
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-19T01:10:25.869495+00:00",
+      "status": "breaker_skip",
+      "outcome": "skipped",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": "LLM breaker open for provider/model",
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T01:10:25.875582+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:10:25.877254+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:10:25.880228+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:11:14.253025+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:11:14.28748+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T01:11:14.917673+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:11:19.308071+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:11:19.323328+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:11:19.336128+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:11:59.879959+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T01:12:14.386822+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T01:12:15.027015+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:12:28.736644+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T01:12:29.35998+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:12:43.294465+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T01:12:43.868692+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:12:47.037423+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:12:47.043567+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:12:47.048001+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:13:33.157463+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

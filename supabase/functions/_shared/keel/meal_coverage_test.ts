@@ -31,6 +31,10 @@ function ref(over: Partial<CompositionRef> & { slug: string }): CompositionRef {
   return {
     foodGroupRef: "non_starchy_veg",
     label: over.slug,
+    // LOT 18 — la provenance par défaut d'un décor de test est le référentiel
+    // HUMAIN: c'est ce que ces cas décrivent. Un défaut à `model` ferait lire
+    // « le modèle a rempli » à toute la suite existante.
+    source: "ciqual",
     energyKcal: 100,
     proteinG: 2,
     carbsG: 10,
@@ -47,6 +51,7 @@ function ref(over: Partial<CompositionRef> & { slug: string }): CompositionRef {
     atwaterDiscount: 1,
     energyDense: false,
     unitGrams: null,
+    condimentGrams: null,
     ...over,
   } as CompositionRef;
 }

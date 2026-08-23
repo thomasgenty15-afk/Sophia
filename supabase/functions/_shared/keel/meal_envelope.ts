@@ -28,7 +28,13 @@
 
 import type { MealBodyContext } from "./meal_body.ts";
 import { type AgeBand, ageBandOf, KEEL_MINOR_AGE } from "./student_age.ts";
-import type { ActivityLevel, GoalToken } from "./tokens.ts";
+import type {
+  ActivityLevel,
+  AppetiteLevel,
+  DayActivityLevel,
+  GoalToken,
+  SportFrequency,
+} from "./tokens.ts";
 import {
   applyPiloting,
   type SteeringEntry,
@@ -41,6 +47,7 @@ import {
   type PortionMagnitude,
   subjectsForPortionAdjust,
 } from "./retained_item.ts";
+import { proteinReferenceWeightKg } from "./protein_reference_weight.ts";
 
 // ---------------------------------------------------------------------------
 // LE TYPE
@@ -160,6 +167,280 @@ export const ACTIVITY_FACTORS: Readonly<Record<ActivityLevel, number>> = Object
     trains_some: 1.80,
     trains_hard: 2.00,
   });
+
+// ---------------------------------------------------------------------------
+// LE FACTEUR QUAND LA JOURNÉE ET LE SPORT SONT DEMANDÉS SÉPARÉMENT (2026-08-20)
+// ---------------------------------------------------------------------------
+//
+// `ACTIVITY_FACTORS` ci-dessus indexe QUATRE crans qui mélangent deux axes
+// (voir `DAY_ACTIVITY_LEVELS` / `SPORT_FREQUENCIES` dans `tokens.ts`). Ce qui
+// suit indexe les deux axes séparément, et le facteur se DÉRIVE du croisement
+// au lieu d'être recopié d'une tuile.
+//
+// ══════════════════════════════════════════════════════════════════════════
+// LA DÉRIVATION, ET ELLE EST ENTIÈREMENT FAO/WHO/UNU 2004
+// ══════════════════════════════════════════════════════════════════════════
+//
+// ① LES BANDES. Le rapport conjoint « Human energy requirements » range les
+//    adultes par PAL (multiplicateur du métabolisme de base):
+//
+//        sédentaire ou activité légère   1,40 - 1,69
+//        modérément actif                1,70 - 1,99
+//        vigoureusement actif            2,00 - 2,40
+//
+//    Il pose aussi le PLANCHER: en dessous de 1,40, un mode de vie libre n'est
+//    pas soutenable. Aucune case de la table ci-dessous ne descend sous 1,45 ni
+//    ne monte au-dessus de 2,13 — la bande vigoureuse n'est jamais servie à son
+//    sommet, pour la raison déjà écrite pour `trains_hard`: ce qui vit à 2,40
+//    est un travail de force huit heures par jour.
+//
+// ② LA BASE DE JOURNÉE, sport exclu. Les deux premières valeurs sont
+//    EXACTEMENT celles de `ACTIVITY_FACTORS` — même phrase, même nombre, et
+//    c'est ce qui rend le remplacement lisible plutôt que silencieux:
+//
+//        seated        1,45   bas de la bande sédentaire
+//        on_feet       1,65   haut de la MÊME bande — debout n'est pas du sport
+//        physical_job  1,85   milieu de « modérément actif », sans une séance
+//
+// ③ L'INCRÉMENT PAR SÉANCE, par la méthode PAR du rapport lui-même:
+//
+//        PAL = somme(PAR_i x t_i) / 24 h
+//
+//    Une séance occupe ~1,5 h porte à porte (échauffement et trajet compris) à
+//    PAR ~7,0 — la bande du rapport pour course, vélo, sport collectif ou
+//    circuit en résistance —, et elle REMPLACE 1,5 h qui aurait valu ~1,4, la
+//    base de la journée elle-même. L'écart d'un JOUR de séance vaut donc:
+//
+//        (7,0 - 1,4) x 1,5 / 24 = 0,35 PAL
+//
+//    Étalé sur les sept jours de la semaine: **0,05 PAL par séance
+//    hebdomadaire**. C'est `SPORT_PAL_PER_WEEKLY_SESSION`.
+//
+// ⚠️ CE N'EST PAS UNE MESURE, ET C'EST TOUJOURS ÉCRIT. Un croisement reste une
+// bande de ±0,15 PAL, exactement comme un cran. Ce qu'on gagne n'est pas de la
+// précision: c'est de ne plus servir 1,80 à quelqu'un d'assis qui court deux
+// fois par semaine, ni de faire choisir entre sa journée et son sport.
+//
+// ⚠️ L'ORDRE DE GRANDEUR QUI A MOTIVÉ LE LOT, ET QUI EST TESTÉ: journée assise
+// + deux ou trois séances tombe entre **1,53 et 1,63** — c'est-à-dire ~1,60, et
+// non 1,80. Les deux bandes de séances encadrent « 2 à 3 », et c'est voulu:
+// personne ne vit sa semaine sur une moyenne.
+
+/**
+ * LA BASE DE JOURNÉE, SPORT EXCLU. Voir ② ci-dessus.
+ *
+ * ⚠️ `seated` VAUT `ACTIVITY_FACTORS.sedentary` ET `on_feet` VAUT
+ * `ACTIVITY_FACTORS.on_feet`, AU CHIFFRE PRÈS — et un test le vérifie. Deux
+ * copies d'un même nombre qui divergent est un mode d'échec que ce dépôt a déjà
+ * payé; ici elles ne peuvent pas diverger sans qu'un rouge le dise.
+ */
+export const DAY_ACTIVITY_BASE: Readonly<Record<DayActivityLevel, number>> =
+  Object.freeze({
+    seated: 1.45,
+    on_feet: 1.65,
+    physical_job: 1.85,
+  });
+
+/**
+ * L'INCRÉMENT DE PAL PAR SÉANCE HEBDOMADAIRE. Voir ③ ci-dessus.
+ *
+ * DÉRIVÉ, jamais choisi: `(7,0 - 1,4) x 1,5 / 24 / 7`. Un test refait
+ * l'arithmétique à partir des quatre nombres, pour qu'un « ajustement » de
+ * confort ne puisse pas se glisser sous une dérivation qui ne le porte plus.
+ */
+export const SPORT_PAL_PER_WEEKLY_SESSION = 0.05;
+
+/**
+ * LE MILIEU DE CHAQUE BANDE DE SÉANCES.
+ *
+ * ⚠️ `5_plus` VAUT 5,5 ET PAS 7. La bande est ouverte vers le haut, et prendre
+ * son sommet servirait davantage à celui dont on est le moins sûr — c'est la
+ * MÊME direction d'erreur que le rapport refuse pour `trains_hard`, écrite
+ * juste au-dessus.
+ */
+export const SPORT_SESSIONS_PER_WEEK: Readonly<Record<SportFrequency, number>> =
+  Object.freeze({
+    none: 0,
+    "1_2": 1.5,
+    "3_4": 3.5,
+    "5_plus": 5.5,
+  });
+
+/**
+ * LE CROISEMENT JOURNÉE x SPORT, EN PAL.
+ *
+ *                  aucun    1-2      3-4      5+
+ *     seated        1,45    1,53     1,63     1,73
+ *     on_feet       1,65    1,73     1,83     1,93
+ *     physical_job  1,85    1,93     2,03     2,13
+ *
+ * CALCULÉ, jamais tabulé: `base + 0,05 x séances`. Une table écrite à la main
+ * se met à mentir sur sa propre dérivation dès la première retouche.
+ *
+ * ⚠️ ARRONDI À DEUX DÉCIMALES, et l'arrondi est DANS la fonction: `1,45 +
+ * 0,05 x 1,5` vaut `1.5250000000000001` en virgule flottante, et un facteur
+ * qui traîne quinze décimales rend deux runs identiques comparables « à
+ * l'octet près » impossibles à lire.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function crossedActivityFactor(
+  day: DayActivityLevel,
+  sport: SportFrequency,
+): number {
+  const raw = DAY_ACTIVITY_BASE[day] +
+    SPORT_PAL_PER_WEEKLY_SESSION * SPORT_SESSIONS_PER_WEEK[sport];
+  return Math.round(raw * 100) / 100;
+}
+
+/**
+ * DANS QUEL ÉTAT SE TROUVE LA RÉPONSE D'UNE BOUCHE AUX DEUX AXES.
+ *
+ * ⛔ QUATRE ÉTATS, PAS DEUX, ET C'EST LA CICATRICE DU DÉPÔT. « Deux nombres pour
+ * trois états » est le zéro ambigu que ce chantier paie en boucle: sans
+ * `not_asked`, une fiche créée AVANT ce lot et une fiche dont le maître a
+ * refusé de répondre rendraient le même silence, et personne ne saurait s'il
+ * faut aller poser la question ou accepter la réponse.
+ *
+ *   `answered`      les DEUX axes sont là — le croisement gouverne
+ *   `partial`       un seul des deux — le cran d'avant reprend la main
+ *   `not_answered`  la question a été POSÉE et aucun axe n'a été coché
+ *   `not_asked`     la fiche n'a jamais vu ces deux questions
+ *
+ * ⛔ ET `partial` NE FABRIQUE RIEN. Une journée sans sport déclaré n'est pas
+ * une journée sans sport: compléter l'axe manquant serait inventer une réponse
+ * que personne n'a donnée — la faute exacte que ce dépôt documente sous
+ * « paramètre de garde optionnel = garde désarmée ».
+ */
+export const ACTIVITY_ANSWER_STATES = [
+  "answered",
+  "partial",
+  "not_answered",
+  "not_asked",
+] as const;
+export type ActivityAnswerState = (typeof ACTIVITY_ANSWER_STATES)[number];
+
+/**
+ * LES DEUX AXES D'UNE BOUCHE, TELS QUE SA LIGNE LES PORTE.
+ *
+ * ⚠️ `asked` EST REQUIS ET N'A PAS DE DÉFAUT. C'est lui, et lui seul, qui
+ * sépare `not_asked` de `not_answered`; un `?` en ferait un `false` silencieux,
+ * et toute la base répondue passerait pour « jamais interrogée ».
+ */
+export interface ActivityAxes {
+  day: DayActivityLevel | null;
+  sport: SportFrequency | null;
+  /** La fiche a-t-elle DÉJÀ été enregistrée par un écran qui pose les deux ? */
+  asked: boolean;
+}
+
+/** PURE: no I/O, no clock, no randomness. */
+export function activityAnswerState(axes: ActivityAxes): ActivityAnswerState {
+  if (axes.day !== null && axes.sport !== null) return "answered";
+  if (axes.day !== null || axes.sport !== null) return "partial";
+  return axes.asked ? "not_answered" : "not_asked";
+}
+
+/**
+ * D'OÙ VIENT LE FACTEUR D'ACTIVITÉ RÉELLEMENT APPLIQUÉ.
+ *
+ * ⚠️ TROIS SOURCES COMPTÉES, y compris `assumed`. Un compteur qui ne nommerait
+ * que les succès ne distingue pas « le croisement a gouverné » de « le lot
+ * n'est pas branché »: c'est le zéro ambigu, encore.
+ */
+export const ACTIVITY_FACTOR_SOURCES = ["crossed", "legacy", "assumed"] as const;
+export type ActivityFactorSource = (typeof ACTIVITY_FACTOR_SOURCES)[number];
+
+/**
+ * LE FACTEUR D'ACTIVITÉ D'UNE BOUCHE — croisement, sinon cran, sinon hypothèse.
+ *
+ * ⛔ L'ORDRE EST LA COMPATIBILITÉ ASCENDANTE, ET IL EST IRRÉVERSIBLE DANS
+ * L'AUTRE SENS. Des fiches portent déjà un cran de l'ancien vocabulaire. On ne
+ * les MIGRE pas: « assis + sport 2-3x » n'est PAS reconstructible depuis
+ * `trains_some` — l'information n'a jamais été saisie, et la fabriquer serait
+ * écrire un fait que personne n'a dit. On garde donc l'ancien cran comme REPLI
+ * NOMMÉ, et le compteur dit combien de fiches sont dans ce cas.
+ *
+ *     les deux axes  ->  `crossed`   le croisement gouverne
+ *     un cran d'avant ->  `legacy`   EXACTEMENT le nombre d'hier
+ *     rien du tout   ->  `assumed`   EXACTEMENT le nombre d'avant-hier (1,5)
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function activityFactorOf(
+  axes: ActivityAxes,
+  legacyLevel: ActivityLevel | null,
+): { factor: number; source: ActivityFactorSource } {
+  if (axes.day !== null && axes.sport !== null) {
+    return { factor: crossedActivityFactor(axes.day, axes.sport), source: "crossed" };
+  }
+  if (legacyLevel !== null) {
+    return { factor: ACTIVITY_FACTORS[legacyLevel], source: "legacy" };
+  }
+  return { factor: ACTIVITY_FACTOR, source: "assumed" };
+}
+
+// ---------------------------------------------------------------------------
+// ⑤ L'APPÉTIT — ±10 %, ET IL EST TRANSITOIRE (2026-08-20)
+// ---------------------------------------------------------------------------
+//
+// ⛔ LIRE `APPETITE_LEVELS` (tokens.ts) AVANT DE TOUCHER À CECI: **ce lot est
+// destiné à mourir**. Le lot ⑦ (la boucle de poids) le remplace pour toute
+// bouche qui a un compte et une série de pesées — une stabilité est une
+// MESURE, ces trois crans sont une DÉCLARATION, et la mesure gagne toujours.
+//
+// ── ⛔ IL CORRIGE L'ESTIMATION, JAMAIS LES GRAMMES ────────────────────────
+// C'est la garde de conception du lot, et elle a une raison mécanique précise:
+// un multiplicateur posé sur les GRAMMES se composerait avec l'ancrage absolu
+// (`mouth_anchor.ts`, `cible / livré`) — deux couches qui dimensionnent, très
+// exactement le double comptage que ce chantier a mesuré et retiré. Posé sur
+// l'ENTRETIEN, il entre dans la chaîne existante par le haut et la traverse
+// entière, bornes comprises: bandes d'énergie, plafond de déficit A1, plancher
+// protéique, plafond par repas. Rien n'est doublé, rien n'est contourné.
+//
+// ── ⛔ ET LE PLANCHER TCA RESTE DESSOUS, INTACT ───────────────────────────
+// `small` ne peut pas servir à se sous-alimenter, et ce n'est pas un
+// raisonnement: `mouthTargetKcal` évalue ① (le plancher) AVANT de calculer le
+// moindre entretien, et rend `restriction_floor` sans jamais atteindre ce
+// facteur. Une bouche sous plancher a un facteur d'ancrage de 1, quel que soit
+// son appétit. Un test le vérifie plutôt que de le supposer.
+
+/**
+ * LES TROIS CRANS, EN FRACTION DE L'ENTRETIEN ESTIMÉ.
+ *
+ * ⚠️ SYMÉTRIQUE ET FERMÉ. `1 - 0,10` et `1 + 0,10` autour d'un neutre VRAI.
+ * L'asymétrie serait une opinion sur le sens dans lequel les gens se trompent,
+ * et l'ouverture ferait de l'incertitude d'une formule un réglage d'appétit.
+ */
+export const APPETITE_FACTORS: Readonly<Record<AppetiteLevel, number>> = Object
+  .freeze({
+    small: 0.90,
+    average: 1.00,
+    large: 1.10,
+  });
+
+/**
+ * D'OÙ VIENT LE FACTEUR D'APPÉTIT APPLIQUÉ — trois sources, comptées.
+ *
+ * ⚠️ `unanswered` ET `average` RENDENT LE MÊME NOMBRE ET NE SONT PAS LE MÊME
+ * ÉTAT. Le premier veut dire « personne n'a répondu », le second « on m'a
+ * demandé et je suis dans la moyenne ». Les fondre rendrait impossible de
+ * savoir si la question sert à quelque chose — le zéro ambigu, encore.
+ */
+export const APPETITE_SOURCES = ["declared", "unanswered"] as const;
+export type AppetiteSource = (typeof APPETITE_SOURCES)[number];
+
+/**
+ * LE FACTEUR D'APPÉTIT D'UNE BOUCHE. `null` ⇒ ×1,00, un NEUTRE VRAI.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function appetiteFactorOf(
+  appetite: AppetiteLevel | null,
+): { factor: number; source: AppetiteSource } {
+  if (appetite === null) return { factor: 1, source: "unanswered" };
+  return { factor: APPETITE_FACTORS[appetite], source: "declared" };
+}
 
 /**
  * LE GONFLEMENT DE LA BANDE POUR LE RÉGIME « DIRECTION ».
@@ -531,6 +812,20 @@ export function estimatedMaintenanceKcal(args: {
   ageBand: AgeBand | null;
   gender: "male" | "female" | "other" | null;
   activityLevel: ActivityLevel | null;
+  /**
+   * ⚠️ REQUIS DEPUIS LE 2026-08-20, jamais optionnel. Les deux axes gouvernent
+   * quand ils sont là; `{day: null, sport: null, asked: false}` retombe sur
+   * `activityLevel`, c'est-à-dire sur le nombre EXACT d'avant ce lot. C'est la
+   * casse de compilation qui recense les appelants — un défaut aurait laissé la
+   * chaîne construite et désarmée.
+   */
+  activityAxes: ActivityAxes;
+  /**
+   * ⑤ REQUIS (2026-08-20). `null` ⇒ ×1,00, un neutre VRAI — donc exactement le
+   * nombre d'avant ce lot pour toute la base. TRANSITOIRE: voir
+   * `APPETITE_FACTORS`.
+   */
+  appetite: AppetiteLevel | null;
 }): number | null {
   const { weightKg, heightCm, ageBand, gender, activityLevel } = args;
   if (!weightKg || !heightCm || !ageBand) return null;
@@ -555,10 +850,17 @@ export function estimatedMaintenanceKcal(args: {
     : (offsetMale + offsetFemale) / 2;
   const bmr = base + offset;
   if (!Number.isFinite(bmr) || bmr <= 0) return null;
-  const factor = activityLevel === null
-    ? ACTIVITY_FACTOR
-    : ACTIVITY_FACTORS[activityLevel];
-  return Math.round(bmr * factor);
+  // ⛔ UNE SEULE RÉSOLUTION, APPELÉE ET PAS RECOPIÉE. Les trois `if` de
+  // `activityFactorOf` sont la compatibilité ascendante du lot; les rejouer ici
+  // ferait deux points de décision, et c'est le second qu'on oublierait de
+  // corriger.
+  const { factor } = activityFactorOf(args.activityAxes, activityLevel);
+  // ── ⑤ L'APPÉTIT, APPLIQUÉ ICI ET NULLE PART AILLEURS ──────────────────
+  // Sur l'ESTIMATION, jamais sur les grammes: posé plus bas, il se composerait
+  // avec l'ancrage absolu et ferait deux couches qui dimensionnent. Ici, il
+  // entre par le haut et traverse toute la chaîne — bandes, plafond de déficit
+  // A1, plancher protéique, plafond par repas — sans rien doubler.
+  return Math.round(bmr * factor * appetiteFactorOf(args.appetite).factor);
 }
 
 // ---------------------------------------------------------------------------
@@ -626,6 +928,21 @@ export function envelopeFor(
    */
   activityLevel: ActivityLevel | null,
   /**
+   * ── LES DEUX AXES (2026-08-20), JUSTE APRÈS LE CRAN QU'ILS PRÉCÈDENT ────
+   * Requis et positionnel, pour la raison écrite au paramètre du dessus: c'est
+   * le compilateur qui recense les appelants. `{day: null, sport: null,
+   * asked: false}` rend l'enveloppe d'avant ce lot, au caractère près.
+   */
+  activityAxes: ActivityAxes,
+  /**
+   * ── ⑤ L'APPÉTIT (2026-08-20), JUSTE APRÈS L'ACTIVITÉ ──────────────────
+   * Requis et positionnel, pour la raison écrite deux paramètres plus haut.
+   * `null` rend l'enveloppe d'avant ce lot, au caractère près.
+   *
+   * ⚠️ IL EST TRANSITOIRE — le lot ⑦ le remplace. Voir `APPETITE_FACTORS`.
+   */
+  appetite: AppetiteLevel | null,
+  /**
    * ── LES `portion.adjust` RETENUS, ET LA BOUCHE QU'ILS VISENT ───────────
    * `null` = aucun ajustement. Requis et positionnel, comme les cinq
    * paramètres au-dessus: un `?` ici aurait laissé le lecteur construit et non
@@ -661,6 +978,8 @@ export function envelopeFor(
     steering,
     restrictionFlag,
     activityLevel,
+    activityAxes,
+    appetite,
     portion,
   });
 }
@@ -691,6 +1010,15 @@ function envelopeCore(args: {
   steering: SteeringEntry | null;
   restrictionFlag: boolean;
   activityLevel: ActivityLevel | null;
+  /**
+   * ⚠️ REQUIS (2026-08-20), pour la même raison que partout ailleurs dans ce
+   * fichier: la casse de compilation est le mécanisme qui recense les
+   * appelants. `{day: null, sport: null, asked: false}` rend exactement
+   * l'enveloppe d'avant ce lot.
+   */
+  activityAxes: ActivityAxes;
+  /** ⑤ (2026-08-20). Requis; `null` = neutre vrai. Voir `APPETITE_FACTORS`. */
+  appetite: AppetiteLevel | null;
   portion: PortionAdjustFor | null;
 }): Envelope {
   const {
@@ -702,6 +1030,8 @@ function envelopeCore(args: {
     steering,
     restrictionFlag,
     activityLevel,
+    activityAxes,
+    appetite,
     portion,
   } = args;
   const maintenance = estimatedMaintenanceKcal({
@@ -710,6 +1040,8 @@ function envelopeCore(args: {
     ageBand,
     gender,
     activityLevel,
+    activityAxes,
+    appetite,
   });
 
   const band = ENERGY_BANDS[goal];
@@ -753,7 +1085,32 @@ function envelopeCore(args: {
     PROTEIN_FLOOR_G_PER_KG[goal],
     ageBand === "60_plus" ? SENIOR_PROTEIN_FLOOR_G_PER_KG : 0,
   );
-  const proteinFloorG = Math.round(weightKg * floorPerKg);
+  /**
+   * `L1` (2026-08-22) — LE POIDS DE RÉFÉRENCE, ET C'EST LUI QU'ON MULTIPLIE.
+   *
+   * Les g/kg ci-dessus descendent d'une littérature qui parle en MASSE MAIGRE;
+   * appliqués au poids total ils servent à quelqu'un de corpulent une fois et
+   * demie ce qu'ils servent à quelqu'un de mince, par kilo de masse maigre.
+   * `proteinReferenceWeightKg` referme cet écart, et il ne mord QU'À CE
+   * BOUT-LÀ: sous son plafond il rend le poids réel au kilo près, donc un
+   * corps grand et mince ne perd pas un gramme.
+   *
+   * ⛔ IL NE PORTE QUE SUR CETTE LIGNE. `maintenance`, la bande d'énergie, son
+   * plancher A1 et le plafond de densité gardent le poids réel — un plafond
+   * protéique n'est pas un régime.
+   *
+   * ⚠️ `suspended: false` est écrit en dur et EXPLICITEMENT: `O6` (GLP-1)
+   * demandera de suspendre ce plafond, et c'est ici que la case se branchera.
+   * Le champ est requis dans le type pour que la casse de compilation recense
+   * les appelants ce jour-là.
+   */
+  const referenceWeightKg = proteinReferenceWeightKg({
+    weightKg,
+    heightCm,
+    ageBand,
+    suspended: false,
+  }).referenceWeightKg;
+  const proteinFloorG = Math.round(referenceWeightKg * floorPerKg);
 
   // LES TROIS CAS, ET SEULEMENT EUX.
   let proteinPerMealG: number | null = null;
@@ -813,6 +1170,31 @@ export interface MouthBody {
    * d'entre eux servir l'hypothèse à quelqu'un qui a répondu.
    */
   activityLevel: ActivityLevel | null;
+  /**
+   * LES DEUX AXES (2026-08-20) — journée et sport, demandés séparément.
+   *
+   * REQUIS dans le type, jamais optionnel, et pour la MÊME raison que le champ
+   * juste au-dessus: c'est le compilateur qui recense les lecteurs de corps du
+   * foyer. Un `?` ici aurait laissé la moitié d'entre eux appliquer le cran
+   * mélangé à quelqu'un qui a répondu aux deux questions.
+   *
+   * ⚠️ IL NE REMPLACE PAS `activityLevel`, IL LE PRÉCÈDE. Voir
+   * `activityFactorOf`: le cran reste le repli nommé des fiches qui n'ont pas
+   * répondu, et il rend EXACTEMENT le nombre d'hier.
+   */
+  activityAxes: ActivityAxes;
+  /**
+   * ⑤ L'APPÉTIT (2026-08-20) — ±10 % sur l'ESTIMATION, et TRANSITOIRE.
+   *
+   * REQUIS dans le type, jamais optionnel, pour la même raison que les deux
+   * champs au-dessus: c'est le compilateur qui recense les lecteurs de corps.
+   * `null` = personne n'a répondu ⇒ ×1,00, un neutre VRAI.
+   *
+   * ⚠️ IL VIT SUR LE CORPS ET IL N'EST PAS UNE MESURE DU CORPS. C'est une
+   * déclaration sur soi, comme l'activité juste au-dessus — et c'est pour ça
+   * qu'ils voyagent ensemble: une seule fiche, une seule porte d'écriture.
+   */
+  appetite: AppetiteLevel | null;
 }
 
 /**
@@ -854,6 +1236,10 @@ export function maintenanceEnvelopeFromBody(body: MouthBody): Envelope | null {
     steering: null,
     restrictionFlag: false,
     activityLevel: body.activityLevel,
+    // Les deux axes descendent AVEC le corps: c'est la ligne qui les porte, et
+    // les perdre ici referait servir le cran mélangé à qui a répondu aux deux.
+    activityAxes: body.activityAxes,
+    appetite: body.appetite,
     portion: null,
   });
 }
@@ -974,6 +1360,14 @@ export function estimatedChildMaintenanceKcal(args: {
    * Requis, pour la même raison que partout ailleurs dans ce lot.
    */
   activityLevel: ActivityLevel | null;
+  /** Requis (2026-08-20), même doctrine que sur le chemin adulte. */
+  activityAxes: ActivityAxes;
+  /**
+   * ⑤ REQUIS — ET IL NE PEUT QUE MONTER SUR UN ENFANT. Voir
+   * `childAppetiteFactor`: c'est la MÊME décision que `childActivityFactor`, et
+   * pour la même raison.
+   */
+  appetite: AppetiteLevel | null;
 }): number | null {
   const band = pediatricBandOf(args.ageYears);
   if (band === null || !args.weightKg) return null;
@@ -987,7 +1381,8 @@ export function estimatedChildMaintenanceKcal(args: {
     : (male + female) / 2;
   if (!Number.isFinite(bmr) || bmr <= 0) return null;
   return Math.round(
-    bmr * childActivityFactor(args.activityLevel) *
+    bmr * childActivityFactor(args.activityLevel, args.activityAxes) *
+      childAppetiteFactor(args.appetite) *
       (1 + CHILD_GROWTH_ALLOWANCE),
   );
 }
@@ -1012,9 +1407,45 @@ export function estimatedChildMaintenanceKcal(args: {
  * Ce qu'on garde: un enfant qui s'entraîne quatre fois par semaine monte
  * vraiment à 2,00, et c'est le cas que le renversement du 2026-08-18 sert.
  */
-export function childActivityFactor(level: ActivityLevel | null): number {
-  if (level === null) return CHILD_ACTIVITY_FACTOR;
-  return Math.max(CHILD_ACTIVITY_FACTOR, ACTIVITY_FACTORS[level]);
+export function childActivityFactor(
+  level: ActivityLevel | null,
+  /**
+   * ⚠️ LES DEUX AXES ENTRENT PAR LE MÊME `Math.max` (2026-08-20), et pas par
+   * une seconde branche. Le plancher de 1,60 est la moitié la plus importante
+   * de cette fonction; un croisement `seated x none` (1,45) doit s'y heurter
+   * exactement comme `sedentary` s'y heurte aujourd'hui, sinon le lot ② aurait
+   * rouvert, par une porte neuve, la question que ce plancher a fermée.
+   */
+  axes: ActivityAxes,
+): number {
+  const { factor, source } = activityFactorOf(axes, level);
+  // `assumed` = personne n'a répondu: le défaut de l'enfant, pas celui de
+  // l'adulte. `activityFactorOf` rendrait 1,5, qui est SOUS le plancher — le
+  // `Math.max` le rattraperait, mais s'en remettre à lui ferait dépendre le
+  // défaut de l'enfant d'une comparaison au lieu d'une déclaration.
+  if (source === "assumed") return CHILD_ACTIVITY_FACTOR;
+  return Math.max(CHILD_ACTIVITY_FACTOR, factor);
+}
+
+/**
+ * ⑤ L'APPÉTIT D'UN ENFANT — ET IL NE PEUT QUE MONTER.
+ *
+ * ⛔ MÊME DÉCISION QUE `childActivityFactor`, ET MÊME RAISON, ÉCRITE À NOUVEAU
+ * PARCE QU'ELLE SE PERD. Le cran est coché par le COMPTE MAÎTRE, pas par
+ * l'enfant. Laisser « petit appétit » retirer 10 % du besoin d'un corps en
+ * croissance, c'est servir moins à quelqu'un sur la foi d'une case cochée par
+ * quelqu'un d'autre que lui — et cette fois sans même l'excuse d'une équation:
+ * ±10 % est l'incertitude de la FORMULE, et la formule pédiatrique n'est pas
+ * celle de l'adulte.
+ *
+ * Ce qu'on garde: un enfant dont le parent constate qu'il mange vraiment plus
+ * monte bien à 1,10, et c'est le cas utile.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function childAppetiteFactor(appetite: AppetiteLevel | null): number {
+  const { factor } = appetiteFactorOf(appetite);
+  return Math.max(1, factor);
 }
 
 /**
@@ -1070,6 +1501,8 @@ export function childEnvelopeFromBody(body: MouthBody): Envelope | null {
     ageYears: body.ageYears,
     gender: body.gender,
     activityLevel: body.activityLevel,
+    activityAxes: body.activityAxes,
+    appetite: body.appetite,
   });
   if (maintenance === null || !body.weightKg) return null;
   const band = ENERGY_BANDS.maintenance;

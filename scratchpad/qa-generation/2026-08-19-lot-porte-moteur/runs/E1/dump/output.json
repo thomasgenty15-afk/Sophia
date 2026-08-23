@@ -1,0 +1,1079 @@
+{
+  "request_id": "e010000a-0000-4000-8000-000000000002",
+  "resolved_by": "--request-id",
+  "user_id": "1e000000-0000-4000-8000-000000000002",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-19T00:07:10.255Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "e27ad003-11c5-4cb5-9c9c-f94e44bbda98",
+      "status": "attempt_start",
+      "created_at": "2026-08-19T00:04:02.077612+00:00",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 15486,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 15486,
+    "user_message_chars": 14758,
+    "user_message_truncated": false,
+    "user_message_written_chars": 14758,
+    "independent_counters": {
+      "system_prompt_chars": 15486,
+      "prompt_chars": 14758
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "2041c5ad-00e8-4449-bc30-f0218dc38ca8",
+    "created_at": "2026-08-19T00:07:09.645409+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "gemini",
+    "model": "gemini-3-flash-preview",
+    "http_status": 200,
+    "attempt": 2,
+    "chain_index": 1,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Honeyed Seed and Yogurt Bowls\",\n      \"title\": \"Greek yogurt with sunflower seeds and honey\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"Greek yogurt\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"sunflower seeds\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"honey\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"blackcurrant jam\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Spoon the yogurt into bowls, top with sunflower seeds and a drizzle of honey. For Odalric, serve with his own blackcurrant jam on the side.\",\n      \"why\": \"A high-protein start to the day that requires no cooking, perfect for a busy Wednesday morning.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Sizzling Beef and Pepper Bowls\",\n      \"title\": \"Beef and green pepper stir-fry with basmati rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"hot sauce\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Serve the freshly cooked beef and pepper stir-fry over a bed of steamed rice. Add hot sauce for Casimir.\",\n      \"why\": \"The loud green peppers provide a visual and textural anchor for this high-protein muscle-building lunch.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_peppers\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_odalric\"\n        },\n        {\n          \"preparation_id\": \"prep_basmati_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_odalric\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"starch_follows_the_session\"\n      ]\n    },\n    {\n      \"name\": \"Golden Chicken and Broccoli Roast\",\n      \"title\": \"Roast chicken thighs with broccoli and white potatoes\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"hot sauce\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Plate the warm roasted chicken thighs alongside the broccoli and potatoes straight from the oven. Add hot sauce for Casimir.\",\n      \"why\": \"A warm, comforting dinner with a loud vegetable that satisfies the coach's requirement for a cooked evening meal.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_broccoli\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_odalric\"\n        },\n        {\n          \"preparation_id\": \"prep_boiled_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_potatoes_odalric\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Soft Scrambled Eggs on Toast\",\n      \"title\": \"Scrambled eggs on white toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"white bread\",\n          \"quantity\": \"2 slices\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"butter\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"blackcurrant jam\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Whisk and scramble the eggs in a pan with butter. Serve on toasted bread, removing crusts for Wilfrid. Odalric has jam on his toast.\",\n      \"why\": \"A warm breakfast with high-quality protein to fuel the day while the kitchen table is occupied.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Reheated Beef and Pepper Rice\",\n      \"title\": \"Warm beef and pepper stir-fry with rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"hot sauce\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat a portion of the beef and rice in a pan with a splash of water until steaming. Serve in bowls. Add hot sauce for Casimir.\",\n      \"why\": \"Easy to eat from a bowl while the hallway is being repainted and the kitchen table is covered.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_peppers\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_odalric\"\n        },\n        {\n          \"preparation_id\": \"prep_basmati_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_odalric\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Warm Roasted Chicken and Potatoes\",\n      \"title\": \"Roasted chicken thighs with broccoli and potatoes\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"hot sauce\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the chicken, broccoli, and potatoes in the oven at 180C for 15 minutes. Serve in bowls. Add hot sauce for Casimir.\",\n      \"why\": \"A warm dinner that avoids the dust-covered table, providing a solid protein anchor for the evening.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_broccoli\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_odalric\"\n        },\n        {\n          \"preparation_id\": \"prep_boiled_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_potatoes_odalric\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 15\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Creamy Yogurt and Berry Bowl\",\n      \"title\": \"Greek yogurt with frozen berries and seeds\",\n      \"slot\": \"breakfast\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"Greek yogurt\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"frozen berries\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"sunflower seeds\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"blackcurrant jam\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Mix the yogurt with berries and seeds. Odalric adds his blackcurrant jam.\",\n      \"why\": \"A refreshing, high-protein breakfast to start the final day of the stretch.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Final Chicken and Broccoli Bowl\",\n      \"title\": \"Roast chicken and broccoli with potatoes\",\n      \"slot\": \"lunch\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"hot sauce\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the remaining chicken, broccoli, and potatoes in a pan or oven. Add hot sauce for Casimir.\",\n      \"why\": \"Finishing the batch of chicken and loud broccoli ensures no waste and high protein for lunch.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_broccoli\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_odalric\"\n        },\n        {\n          \"preparation_id\": \"prep_boiled_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_potatoes_odalric\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Pan-Seared White Fish and Beans\",\n      \"title\": \"Seared cod fillets with steamed green beans and bread\",\n      \"slot\": \"dinner\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"cod fillets\",\n          \"quantity\": \"4 units\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"green beans\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"white bread\",\n          \"quantity\": \"4 slices\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Sear the cod in olive oil until flaky. Steam the green beans. Serve with a squeeze of lemon and bread (crusts off for Wilfrid).\",\n      \"why\": \"A fresh fish dinner with loud green beans to end the stretch. White fish is used to respect Peregrine's colour preference.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 15\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"name_the_plate_out_loud\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_chicken_broccoli\",\n      \"title\": \"Roast chicken thighs and broccoli\",\n      \"servings_made\": 12,\n      \"ingredients\": [\n        {\n          \"term\": \"chicken thighs\",\n          \"quantity\": \"12 units\",\n          \"amount\": 12,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"broccoli\",\n          \"quantity\": \"3 large heads\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Toss chicken and broccoli florets in olive oil, salt, and pepper. Roast at 200C for 35-40 minutes until chicken is golden and cooked through.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 45,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_chicken_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 540\n        },\n        {\n          \"id\": \"box_chicken_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 360\n        },\n        {\n          \"id\": \"box_chicken_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 540\n        },\n        {\n          \"id\": \"box_chicken_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 360\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_beef_peppers\",\n      \"title\": \"Beef and green pepper stir-fry\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        {\n          \"term\": \"beef strips\",\n          \"quantity\": \"800 g\",\n          \"amount\": 800,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"green bell peppers\",\n          \"quantity\": \"4 units\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Slice peppers into strips. Stir-fry beef and peppers in a hot pan with oil until beef is browned and peppers are tender-crisp.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 15,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_beef_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_beef_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_beef_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_beef_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 200\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_boiled_potatoes\",\n      \"title\": \"Boiled white potatoes\",\n      \"servings_made\": 12,\n      \"ingredients\": [\n        {\n          \"term\": \"white potatoes\",\n          \"quantity\": \"1.5 kg\",\n          \"amount\": 1.5,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Peel and chop potatoes into chunks. Boil in salted water for 15-20 minutes until tender. Drain and cool.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_potatoes_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 414\n        },\n        {\n          \"id\": \"box_potatoes_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 276\n        },\n        {\n          \"id\": \"box_potatoes_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 414\n        },\n        {\n          \"id\": \"box_potatoes_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 276\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_basmati_rice\",\n      \"title\": \"Steamed basmati rice\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        {\n          \"term\": \"basmati rice\",\n          \"quantity\": \"500 g\",\n          \"amount\": 500,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Rinse rice and boil in double the volume of water for 10-12 minutes until fluffy. Drain and cool.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_rice_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 360\n        },\n        {\n          \"id\": \"box_rice_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 240\n        },\n        {\n          \"id\": \"box_rice_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 360\n        },\n        {\n          \"id\": \"box_rice_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 240\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_chicken_broccoli\",\n        \"prep_beef_peppers\",\n        \"prep_boiled_potatoes\",\n        \"prep_basmati_rice\"\n      ],\n      \"total_minutes\": 55,\n      \"run_through\": \"Preheat oven for chicken and potatoes. Prep potatoes and broccoli. Get potatoes boiling and chicken/broccoli roasting. While they cook, start the rice. Prep peppers and beef, then stir-fry. Box the rice and beef first, then the chicken and potatoes once finished.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"chicken thighs\",\n      \"quantity\": \"12 units\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"beef strips\",\n      \"quantity\": \"800 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"cod fillets\",\n      \"quantity\": \"4 units\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"eggs\",\n      \"quantity\": \"6 units\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"Greek yogurt\",\n      \"quantity\": \"1 kg\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"broccoli\",\n      \"quantity\": \"3 large heads\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"green bell peppers\",\n      \"quantity\": \"4 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"green beans\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"white potatoes\",\n      \"quantity\": \"1.5 kg\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"basmati rice\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"white bread\",\n      \"quantity\": \"1 loaf\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"sunflower seeds\",\n      \"quantity\": \"1 bag\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"honey\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"blackcurrant jam\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"hot sauce\",\n      \"quantity\": \"1 bottle\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"frozen mixed berries\",\n      \"quantity\": \"1 bag\",\n      \"aisle\": \"frozen\"\n    },\n    {\n      \"term\": \"lemon\",\n      \"quantity\": \"1 unit\",\n      \"aisle\": \"produce\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"85acac95-312b-4d0e-a4da-02558e8a182f\",\n      \"portion_note\": \"A larger share of protein and starch, with a spoonful of blackcurrant jam on breakfast toast.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken_broccoli\",\n          \"note\": \"A larger portion of chicken and broccoli.\"\n        },\n        {\n          \"preparation_id\": \"prep_beef_peppers\",\n          \"note\": \"A larger portion of beef and peppers.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"f190856d-d573-42e9-a026-b6a37b9f7471\",\n      \"portion_note\": \"A child-sized share of the dish with all bread crusts removed.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken_broccoli\",\n          \"note\": \"A child-sized portion.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\",\n      \"portion_note\": \"A larger share of protein and starch, ensuring no orange-coloured foods (like carrots) or fennel are served.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken_broccoli\",\n          \"note\": \"A larger portion, strictly green broccoli only.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"536e683d-64a8-4dc2-a69b-6ee1925b206c\",\n      \"portion_note\": \"A child-sized share of the dish, served with hot sauce on the side.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_beef_peppers\",\n          \"note\": \"A child-sized portion with extra hot sauce.\"\n        }\n      ]\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Honeyed Seed and Yogurt Bowls",
+          "title": "Greek yogurt with sunflower seeds and honey",
+          "slot": "breakfast",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "Greek yogurt",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "sunflower seeds",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "honey",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "blackcurrant jam",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Spoon the yogurt into bowls, top with sunflower seeds and a drizzle of honey. For Odalric, serve with his own blackcurrant jam on the side.",
+          "why": "A high-protein start to the day that requires no cooking, perfect for a busy Wednesday morning.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Sizzling Beef and Pepper Bowls",
+          "title": "Beef and green pepper stir-fry with basmati rice",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "hot sauce",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Serve the freshly cooked beef and pepper stir-fry over a bed of steamed rice. Add hot sauce for Casimir.",
+          "why": "The loud green peppers provide a visual and textural anchor for this high-protein muscle-building lunch.",
+          "uses": [
+            {
+              "preparation_id": "prep_beef_peppers",
+              "servings": 1,
+              "box_id": "box_beef_odalric"
+            },
+            {
+              "preparation_id": "prep_basmati_rice",
+              "servings": 1,
+              "box_id": "box_rice_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "starch_follows_the_session"
+          ]
+        },
+        {
+          "name": "Golden Chicken and Broccoli Roast",
+          "title": "Roast chicken thighs with broccoli and white potatoes",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "hot sauce",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Plate the warm roasted chicken thighs alongside the broccoli and potatoes straight from the oven. Add hot sauce for Casimir.",
+          "why": "A warm, comforting dinner with a loud vegetable that satisfies the coach's requirement for a cooked evening meal.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_broccoli",
+              "servings": 1,
+              "box_id": "box_chicken_odalric"
+            },
+            {
+              "preparation_id": "prep_boiled_potatoes",
+              "servings": 1,
+              "box_id": "box_potatoes_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Soft Scrambled Eggs on Toast",
+          "title": "Scrambled eggs on white toast",
+          "slot": "breakfast",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "eggs",
+              "quantity": "2 units",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "white bread",
+              "quantity": "2 slices",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "butter",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "blackcurrant jam",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Whisk and scramble the eggs in a pan with butter. Serve on toasted bread, removing crusts for Wilfrid. Odalric has jam on his toast.",
+          "why": "A warm breakfast with high-quality protein to fuel the day while the kitchen table is occupied.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Reheated Beef and Pepper Rice",
+          "title": "Warm beef and pepper stir-fry with rice",
+          "slot": "lunch",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "hot sauce",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat a portion of the beef and rice in a pan with a splash of water until steaming. Serve in bowls. Add hot sauce for Casimir.",
+          "why": "Easy to eat from a bowl while the hallway is being repainted and the kitchen table is covered.",
+          "uses": [
+            {
+              "preparation_id": "prep_beef_peppers",
+              "servings": 1,
+              "box_id": "box_beef_odalric"
+            },
+            {
+              "preparation_id": "prep_basmati_rice",
+              "servings": 1,
+              "box_id": "box_rice_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Warm Roasted Chicken and Potatoes",
+          "title": "Roasted chicken thighs with broccoli and potatoes",
+          "slot": "dinner",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "hot sauce",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the chicken, broccoli, and potatoes in the oven at 180C for 15 minutes. Serve in bowls. Add hot sauce for Casimir.",
+          "why": "A warm dinner that avoids the dust-covered table, providing a solid protein anchor for the evening.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_broccoli",
+              "servings": 1,
+              "box_id": "box_chicken_odalric"
+            },
+            {
+              "preparation_id": "prep_boiled_potatoes",
+              "servings": 1,
+              "box_id": "box_potatoes_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 15
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Creamy Yogurt and Berry Bowl",
+          "title": "Greek yogurt with frozen berries and seeds",
+          "slot": "breakfast",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "Greek yogurt",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "frozen berries",
+              "quantity": "50 g",
+              "amount": 50,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "sunflower seeds",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "blackcurrant jam",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Mix the yogurt with berries and seeds. Odalric adds his blackcurrant jam.",
+          "why": "A refreshing, high-protein breakfast to start the final day of the stretch.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Final Chicken and Broccoli Bowl",
+          "title": "Roast chicken and broccoli with potatoes",
+          "slot": "lunch",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "hot sauce",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the remaining chicken, broccoli, and potatoes in a pan or oven. Add hot sauce for Casimir.",
+          "why": "Finishing the batch of chicken and loud broccoli ensures no waste and high protein for lunch.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_broccoli",
+              "servings": 1,
+              "box_id": "box_chicken_odalric"
+            },
+            {
+              "preparation_id": "prep_boiled_potatoes",
+              "servings": 1,
+              "box_id": "box_potatoes_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Pan-Seared White Fish and Beans",
+          "title": "Seared cod fillets with steamed green beans and bread",
+          "slot": "dinner",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "cod fillets",
+              "quantity": "4 units",
+              "amount": 4,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "green beans",
+              "quantity": "400 g",
+              "amount": 400,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "white bread",
+              "quantity": "4 slices",
+              "amount": 4,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "lemon",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Sear the cod in olive oil until flaky. Steam the green beans. Serve with a squeeze of lemon and bread (crusts off for Wilfrid).",
+          "why": "A fresh fish dinner with loud green beans to end the stretch. White fish is used to respect Peregrine's colour preference.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 15
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "name_the_plate_out_loud"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_chicken_broccoli",
+          "title": "Roast chicken thighs and broccoli",
+          "servings_made": 12,
+          "ingredients": [
+            {
+              "term": "chicken thighs",
+              "quantity": "12 units",
+              "amount": 12,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "broccoli",
+              "quantity": "3 large heads",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Toss chicken and broccoli florets in olive oil, salt, and pepper. Roast at 200C for 35-40 minutes until chicken is golden and cooked through.",
+          "active_minutes": 10,
+          "total_minutes": 45,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_chicken_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 540
+            },
+            {
+              "id": "box_chicken_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 360
+            },
+            {
+              "id": "box_chicken_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 540
+            },
+            {
+              "id": "box_chicken_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 360
+            }
+          ]
+        },
+        {
+          "id": "prep_beef_peppers",
+          "title": "Beef and green pepper stir-fry",
+          "servings_made": 8,
+          "ingredients": [
+            {
+              "term": "beef strips",
+              "quantity": "800 g",
+              "amount": 800,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "green bell peppers",
+              "quantity": "4 units",
+              "amount": 4,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Slice peppers into strips. Stir-fry beef and peppers in a hot pan with oil until beef is browned and peppers are tender-crisp.",
+          "active_minutes": 15,
+          "total_minutes": 15,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_beef_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 300
+            },
+            {
+              "id": "box_beef_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 200
+            },
+            {
+              "id": "box_beef_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 300
+            },
+            {
+              "id": "box_beef_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 200
+            }
+          ]
+        },
+        {
+          "id": "prep_boiled_potatoes",
+          "title": "Boiled white potatoes",
+          "servings_made": 12,
+          "ingredients": [
+            {
+              "term": "white potatoes",
+              "quantity": "1.5 kg",
+              "amount": 1.5,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Peel and chop potatoes into chunks. Boil in salted water for 15-20 minutes until tender. Drain and cool.",
+          "active_minutes": 5,
+          "total_minutes": 25,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_potatoes_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 414
+            },
+            {
+              "id": "box_potatoes_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 276
+            },
+            {
+              "id": "box_potatoes_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 414
+            },
+            {
+              "id": "box_potatoes_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 276
+            }
+          ]
+        },
+        {
+          "id": "prep_basmati_rice",
+          "title": "Steamed basmati rice",
+          "servings_made": 8,
+          "ingredients": [
+            {
+              "term": "basmati rice",
+              "quantity": "500 g",
+              "amount": 500,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Rinse rice and boil in double the volume of water for 10-12 minutes until fluffy. Drain and cool.",
+          "active_minutes": 5,
+          "total_minutes": 20,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_rice_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 360
+            },
+            {
+              "id": "box_rice_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 240
+            },
+            {
+              "id": "box_rice_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 360
+            },
+            {
+              "id": "box_rice_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 240
+            }
+          ]
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_chicken_broccoli",
+            "prep_beef_peppers",
+            "prep_boiled_potatoes",
+            "prep_basmati_rice"
+          ],
+          "total_minutes": 55,
+          "run_through": "Preheat oven for chicken and potatoes. Prep potatoes and broccoli. Get potatoes boiling and chicken/broccoli roasting. While they cook, start the rice. Prep peppers and beef, then stir-fry. Box the rice and beef first, then the chicken and potatoes once finished."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "chicken thighs",
+          "quantity": "12 units",
+          "aisle": "protein"
+        },
+        {
+          "term": "beef strips",
+          "quantity": "800 g",
+          "aisle": "protein"
+        },
+        {
+          "term": "cod fillets",
+          "quantity": "4 units",
+          "aisle": "protein"
+        },
+        {
+          "term": "eggs",
+          "quantity": "6 units",
+          "aisle": "protein"
+        },
+        {
+          "term": "Greek yogurt",
+          "quantity": "1 kg",
+          "aisle": "dairy"
+        },
+        {
+          "term": "broccoli",
+          "quantity": "3 large heads",
+          "aisle": "produce"
+        },
+        {
+          "term": "green bell peppers",
+          "quantity": "4 units",
+          "aisle": "produce"
+        },
+        {
+          "term": "green beans",
+          "quantity": "400 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "white potatoes",
+          "quantity": "1.5 kg",
+          "aisle": "produce"
+        },
+        {
+          "term": "basmati rice",
+          "quantity": "500 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "white bread",
+          "quantity": "1 loaf",
+          "aisle": "grains"
+        },
+        {
+          "term": "sunflower seeds",
+          "quantity": "1 bag",
+          "aisle": "pantry"
+        },
+        {
+          "term": "honey",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "blackcurrant jam",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "hot sauce",
+          "quantity": "1 bottle",
+          "aisle": "pantry"
+        },
+        {
+          "term": "frozen mixed berries",
+          "quantity": "1 bag",
+          "aisle": "frozen"
+        },
+        {
+          "term": "lemon",
+          "quantity": "1 unit",
+          "aisle": "produce"
+        }
+      ],
+      "member_portions": [
+        {
+          "member_id": "85acac95-312b-4d0e-a4da-02558e8a182f",
+          "portion_note": "A larger share of protein and starch, with a spoonful of blackcurrant jam on breakfast toast.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken_broccoli",
+              "note": "A larger portion of chicken and broccoli."
+            },
+            {
+              "preparation_id": "prep_beef_peppers",
+              "note": "A larger portion of beef and peppers."
+            }
+          ]
+        },
+        {
+          "member_id": "f190856d-d573-42e9-a026-b6a37b9f7471",
+          "portion_note": "A child-sized share of the dish with all bread crusts removed.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken_broccoli",
+              "note": "A child-sized portion."
+            }
+          ]
+        },
+        {
+          "member_id": "65eb7490-adae-40c2-8b43-b10a0cc0ab05",
+          "portion_note": "A larger share of protein and starch, ensuring no orange-coloured foods (like carrots) or fennel are served.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken_broccoli",
+              "note": "A larger portion, strictly green broccoli only."
+            }
+          ]
+        },
+        {
+          "member_id": "536e683d-64a8-4dc2-a69b-6ee1925b206c",
+          "portion_note": "A child-sized share of the dish, served with hot sauce on the side.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_beef_peppers",
+              "note": "A child-sized portion with extra hot sauce."
+            }
+          ]
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "candidates": [
+        {
+          "index": 0,
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Honeyed Seed and Yogurt Bowls\",\n      \"title\": \"Greek yogurt with sunflower seeds and honey\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"Greek yogurt\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"sunflower seeds\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"honey\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"blackcurrant jam\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Spoon the yogurt into bowls, top with sunflower seeds and a drizzle of honey. For Odalric, serve with his own blackcurrant jam on the side.\",\n      \"why\": \"A high-protein start to the day that requires no cooking, perfect for a busy Wednesday morning.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Sizzling Beef and Pepper Bowls\",\n      \"title\": \"Beef and green pepper stir-fry with basmati rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"hot sauce\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Serve the freshly cooked beef and pepper stir-fry over a bed of steamed rice. Add hot sauce for Casimir.\",\n      \"why\": \"The loud green peppers provide a visual and textural anchor for this high-protein muscle-building lunch.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_peppers\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_odalric\"\n        },\n        {\n          \"preparation_id\": \"prep_basmati_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_odalric\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"starch_follows_the_session\"\n      ]\n    },\n    {\n      \"name\": \"Golden Chicken and Broccoli Roast\",\n      \"title\": \"Roast chicken thighs with broccoli and white potatoes\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"hot sauce\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Plate the warm roasted chicken thighs alongside the broccoli and potatoes straight from the oven. Add hot sauce for Casimir.\",\n      \"why\": \"A warm, comforting dinner with a loud vegetable that satisfies the coach's requirement for a cooked evening meal.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_broccoli\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_odalric\"\n        },\n        {\n          \"preparation_id\": \"prep_boiled_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_potatoes_odalric\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Soft Scrambled Eggs on Toast\",\n      \"title\": \"Scrambled eggs on white toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"white bread\",\n          \"quantity\": \"2 slices\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"butter\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"blackcurrant jam\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Whisk and scramble the eggs in a pan with butter. Serve on toasted bread, removing crusts for Wilfrid. Odalric has jam on his toast.\",\n      \"why\": \"A warm breakfast with high-quality protein to fuel the day while the kitchen table is occupied.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Reheated Beef and Pepper Rice\",\n      \"title\": \"Warm beef and pepper stir-fry with rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"hot sauce\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat a portion of the beef and rice in a pan with a splash of water until steaming. Serve in bowls. Add hot sauce for Casimir.\",\n      \"why\": \"Easy to eat from a bowl while the hallway is being repainted and the kitchen table is covered.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_peppers\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_odalric\"\n        },\n        {\n          \"preparation_id\": \"prep_basmati_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_odalric\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Warm Roasted Chicken and Potatoes\",\n      \"title\": \"Roasted chicken thighs with broccoli and potatoes\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"hot sauce\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the chicken, broccoli, and potatoes in the oven at 180C for 15 minutes. Serve in bowls. Add hot sauce for Casimir.\",\n      \"why\": \"A warm dinner that avoids the dust-covered table, providing a solid protein anchor for the evening.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_broccoli\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_odalric\"\n        },\n        {\n          \"preparation_id\": \"prep_boiled_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_potatoes_odalric\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 15\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Creamy Yogurt and Berry Bowl\",\n      \"title\": \"Greek yogurt with frozen berries and seeds\",\n      \"slot\": \"breakfast\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"Greek yogurt\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"frozen berries\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"sunflower seeds\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"blackcurrant jam\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Mix the yogurt with berries and seeds. Odalric adds his blackcurrant jam.\",\n      \"why\": \"A refreshing, high-protein breakfast to start the final day of the stretch.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Final Chicken and Broccoli Bowl\",\n      \"title\": \"Roast chicken and broccoli with potatoes\",\n      \"slot\": \"lunch\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"hot sauce\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the remaining chicken, broccoli, and potatoes in a pan or oven. Add hot sauce for Casimir.\",\n      \"why\": \"Finishing the batch of chicken and loud broccoli ensures no waste and high protein for lunch.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_broccoli\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_odalric\"\n        },\n        {\n          \"preparation_id\": \"prep_boiled_potatoes\",\n          \"servings\": 1,\n          \"box_id\": \"box_potatoes_odalric\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Pan-Seared White Fish and Beans\",\n      \"title\": \"Seared cod fillets with steamed green beans and bread\",\n      \"slot\": \"dinner\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"cod fillets\",\n          \"quantity\": \"4 units\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"green beans\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"white bread\",\n          \"quantity\": \"4 slices\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Sear the cod in olive oil until flaky. Steam the green beans. Serve with a squeeze of lemon and bread (crusts off for Wilfrid).\",\n      \"why\": \"A fresh fish dinner with loud green beans to end the stretch. White fish is used to respect Peregrine's colour preference.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 15\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"name_the_plate_out_loud\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_chicken_broccoli\",\n      \"title\": \"Roast chicken thighs and broccoli\",\n      \"servings_made\": 12,\n      \"ingredients\": [\n        {\n          \"term\": \"chicken thighs\",\n          \"quantity\": \"12 units\",\n          \"amount\": 12,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"broccoli\",\n          \"quantity\": \"3 large heads\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Toss chicken and broccoli florets in olive oil, salt, and pepper. Roast at 200C for 35-40 minutes until chicken is golden and cooked through.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 45,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_chicken_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 540\n        },\n        {\n          \"id\": \"box_chicken_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 360\n        },\n        {\n          \"id\": \"box_chicken_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 540\n        },\n        {\n          \"id\": \"box_chicken_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 360\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_beef_peppers\",\n      \"title\": \"Beef and green pepper stir-fry\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        {\n          \"term\": \"beef strips\",\n          \"quantity\": \"800 g\",\n          \"amount\": 800,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"green bell peppers\",\n          \"quantity\": \"4 units\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Slice peppers into strips. Stir-fry beef and peppers in a hot pan with oil until beef is browned and peppers are tender-crisp.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 15,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_beef_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_beef_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_beef_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_beef_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 200\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_boiled_potatoes\",\n      \"title\": \"Boiled white potatoes\",\n      \"servings_made\": 12,\n      \"ingredients\": [\n        {\n          \"term\": \"white potatoes\",\n          \"quantity\": \"1.5 kg\",\n          \"amount\": 1.5,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Peel and chop potatoes into chunks. Boil in salted water for 15-20 minutes until tender. Drain and cool.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_potatoes_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 414\n        },\n        {\n          \"id\": \"box_potatoes_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 276\n        },\n        {\n          \"id\": \"box_potatoes_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 414\n        },\n        {\n          \"id\": \"box_potatoes_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 276\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_basmati_rice\",\n      \"title\": \"Steamed basmati rice\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        {\n          \"term\": \"basmati rice\",\n          \"quantity\": \"500 g\",\n          \"amount\": 500,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Rinse rice and boil in double the volume of water for 10-12 minutes until fluffy. Drain and cool.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_rice_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 360\n        },\n        {\n          \"id\": \"box_rice_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 240\n        },\n        {\n          \"id\": \"box_rice_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 360\n        },\n        {\n          \"id\": \"box_rice_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 240\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_chicken_broccoli\",\n        \"prep_beef_peppers\",\n        \"prep_boiled_potatoes\",\n        \"prep_basmati_rice\"\n      ],\n      \"total_minutes\": 55,\n      \"run_through\": \"Preheat oven for chicken and potatoes. Prep potatoes and broccoli. Get potatoes boiling and chicken/broccoli roasting. While they cook, start the rice. Prep peppers and beef, then stir-fry. Box the rice and beef first, then the chicken and potatoes once finished.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"chicken thighs\",\n      \"quantity\": \"12 units\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"beef strips\",\n      \"quantity\": \"800 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"cod fillets\",\n      \"quantity\": \"4 units\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"eggs\",\n      \"quantity\": \"6 units\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"Greek yogurt\",\n      \"quantity\": \"1 kg\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"broccoli\",\n      \"quantity\": \"3 large heads\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"green bell peppers\",\n      \"quantity\": \"4 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"green beans\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"white potatoes\",\n      \"quantity\": \"1.5 kg\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"basmati rice\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"white bread\",\n      \"quantity\": \"1 loaf\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"sunflower seeds\",\n      \"quantity\": \"1 bag\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"honey\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"blackcurrant jam\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"hot sauce\",\n      \"quantity\": \"1 bottle\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"frozen mixed berries\",\n      \"quantity\": \"1 bag\",\n      \"aisle\": \"frozen\"\n    },\n    {\n      \"term\": \"lemon\",\n      \"quantity\": \"1 unit\",\n      \"aisle\": \"produce\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"85acac95-312b-4d0e-a4da-02558e8a182f\",\n      \"portion_note\": \"A larger share of protein and starch, with a spoonful of blackcurrant jam on breakfast toast.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken_broccoli\",\n          \"note\": \"A larger portion of chicken and broccoli.\"\n        },\n        {\n          \"preparation_id\": \"prep_beef_peppers\",\n          \"note\": \"A larger portion of beef and peppers.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"f190856d-d573-42e9-a026-b6a37b9f7471\",\n      \"portion_note\": \"A child-sized share of the dish with all bread crusts removed.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken_broccoli\",\n          \"note\": \"A child-sized portion.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\",\n      \"portion_note\": \"A larger share of protein and starch, ensuring no orange-coloured foods (like carrots) or fennel are served.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken_broccoli\",\n          \"note\": \"A larger portion, strictly green broccoli only.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"536e683d-64a8-4dc2-a69b-6ee1925b206c\",\n      \"portion_note\": \"A child-sized share of the dish, served with hot sauce on the side.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_beef_peppers\",\n          \"note\": \"A child-sized portion with extra hot sauce.\"\n        }\n      ]\n    }\n  ]\n}",
+                "thoughtSignature": "[redacted]"
+              }
+            ]
+          },
+          "finishReason": "STOP"
+        }
+      ],
+      "responseId": "d_OEaqC5F-_zvdIP36OS-Ak",
+      "modelVersion": "gemini-3-flash-preview",
+      "usageMetadata": {
+        "serviceTier": "standard",
+        "totalTokenCount": 21997,
+        "promptTokenCount": 7827,
+        "cacheTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 4047
+          }
+        ],
+        "thoughtsTokenCount": 7545,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 7827
+          }
+        ],
+        "candidatesTokenCount": 6625,
+        "cachedContentTokenCount": 4047
+      }
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-19T00:04:02.077612+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T00:04:02.610099+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:04:06.567233+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:04:06.582917+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:04:06.591507+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:05:01.236493+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:05:01.271646+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T00:05:01.772386+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:05:04.98745+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:05:04.996379+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:05:05.00289+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:06:05.083689+00:00",
+      "status": "timeout_or_abort",
+      "outcome": "error",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": "Signal timed out.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:06:05.090949+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 1,
+      "chain_index": 2,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:06:05.652766+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 1,
+      "chain_index": 2,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:06:10.817382+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 2,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:06:11.30506+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 2,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:06:15.080463+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:06:15.09319+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:06:15.100137+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:07:09.645409+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

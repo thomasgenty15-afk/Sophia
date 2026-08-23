@@ -88,6 +88,8 @@ Deno.test("les listes recopiées sont ÉGALES à celles d'origine", () => {
         dayProperties: [],
         merge: null,
         boxMemberIds: [],
+        weighedMemberIds: [],
+  boxMemberDiets: [],
       }).dishes[0]?.day,
       d,
       `${d} n'est pas un jeton de jour du parseur`,
@@ -296,6 +298,8 @@ Deno.test("LES DEUX BOUTS — le parseur DROP le plat, la consigne ne suffit pas
     dayProperties: [],
     merge: null,
     boxMemberIds: [],
+    weighedMemberIds: [],
+  boxMemberDiets: [],
   });
   // Le lundi tombe, le samedi reste. Un seul plat survit.
   assertEquals(meal.dishes.length, 1);
@@ -331,6 +335,10 @@ function ref(over: Partial<CompositionRef> & { slug: string }): CompositionRef {
   return {
     foodGroupRef: "non_starchy_veg",
     label: over.slug,
+    // LOT 18 — la provenance par défaut d'un décor de test est le référentiel
+    // HUMAIN: c'est ce que ces cas décrivent. Un défaut à `model` ferait lire
+    // « le modèle a rempli » à toute la suite existante.
+    source: "ciqual",
     energyKcal: 100,
     proteinG: 2,
     carbsG: 10,
@@ -347,6 +355,7 @@ function ref(over: Partial<CompositionRef> & { slug: string }): CompositionRef {
     atwaterDiscount: 1,
     energyDense: false,
     unitGrams: null,
+    condimentGrams: null,
     ...over,
   } as CompositionRef;
 }
@@ -364,12 +373,13 @@ function body(over: Partial<MealBodyContext> = {}): MealBodyContext {
     gender: "male",
     latestWeight: { weekStart: "2026-08-03", value: 80 },
     latestWaist: null,
+    declaredWeightKg: null,
     restrictionFlag: false,
     ...over,
   };
 }
 
-const PER_KG = envelopeFor("muscle_gain", body(), "30_44", false, null, null, null);
+const PER_KG = envelopeFor("muscle_gain", body(), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null);
 
 const DISH = {
   slot: "dinner",
@@ -492,6 +502,8 @@ Deno.test("R3 — sous restriction, la branche 1 SURVIT et l'enveloppe n'existe 
     true,
     null,
   null,
+  { day: null, sport: null, asked: false },
+  null,
   null,
 );
   assertEquals(restricted.mode, "per_portion");
@@ -520,6 +532,7 @@ const PROMPT_ARGS = {
   contentLocale: "en-US",
   budgetAmount: null,
   safetyConstraints: null,
+  safetyConstraintTable: null,
   body: null,
   focusAxis: null,
   dietBlock: "",
@@ -545,6 +558,8 @@ const PROMPT_ARGS = {
   dayProperties: [],
   merge: null,
   boxMemberIds: [],
+  weighedMemberIds: [],
+  boxMemberDiets: [],
 };
 
 Deno.test("R6 — DÉSARMEMENT: sans apport, la consigne est identique AU CARACTÈRE PRÈS", () => {
@@ -711,6 +726,7 @@ Deno.test("un apport déclaré ne MASQUE aucune entrée du référentiel", () =>
     slug: "milk",
     foodGroupRef: "dairy_yogurt" as const,
     label: "Milk",
+    source: "ciqual" as const,
     energyKcal: 64,
     proteinG: 3.2,
     carbsG: 4.8,
@@ -727,6 +743,7 @@ Deno.test("un apport déclaré ne MASQUE aucune entrée du référentiel", () =>
     atwaterDiscount: 1.0,
     energyDense: false,
     unitGrams: null,
+    condimentGrams: null,
   };
   const { intakes } = parseFixedIntakes([{ ...DECLARED_SHAKER, label: "milk" }]);
   const index = augmentedIndexFor(buildCompositionIndex([milk], []), intakes);

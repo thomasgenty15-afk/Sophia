@@ -212,13 +212,18 @@ describe("un formulaire figé au montage a besoin d'une porte", () => {
     expect(markup).toContain(en["setup.equipment.loading"]);
   });
 
-  it("et son bouton d'enregistrement ne peut pas partir", () => {
+  it("⛔ et AUCUNE pastille n'est appuyable tant que la lecture court", () => {
+    // ── LE BOUTON « ENREGISTRER » A DISPARU LE 2026-08-19 ─────────────────
+    // Ce cas gardait qu'il restait rendu ET grisé pendant la lecture. Il
+    // n'existe plus: les pastilles écrivent au clic, comme tout le reste de
+    // l'entonnoir depuis ce matin.
+    //
+    // Ce qui doit rester vrai est la MÊME garde, déplacée sur ce qui écrit
+    // maintenant: tant que la colonne n'est pas lue, il n'y a AUCUNE pastille à
+    // cliquer — donc rien qui puisse écrire du vide non lu par-dessus une
+    // sélection existante. Cicatrice `mount-snapshot-forms-need-a-loading-gate`.
     const markup = html({ practicalConstraints: null });
-    const save = chips(decode(markup)).find((c) =>
-      c.label === en["setup.equipment.save"]
-    );
-    expect(save, "le bouton d'enregistrement a disparu").toBeTruthy();
-    expect(hasDisabledAttribute(markup)).toBe(true);
+    expect(count(decode(markup), "aria-pressed=")).toBe(0);
   });
 });
 
@@ -227,10 +232,10 @@ describe("un formulaire figé au montage a besoin d'une porte", () => {
 // ---------------------------------------------------------------------------
 
 describe("le refus d'une sélection vide n'est PAS un bouton gris", () => {
-  it("rien de coché, et le bouton reste appuyable", () => {
+  it("rien de coché, et les pastilles restent appuyables", () => {
     // « Un refus loin du geste se lit comme un bouton mort » — trois fois dans
-    // `SetupPage`. Un bouton gris ne dit pas POURQUOI il est gris; on appuie,
-    // on lit le refus juste en dessous.
+    // `SetupPage`. Rien de coché n'est pas une impossibilité: on clique, et le
+    // refus se lit juste en dessous.
     const markup = html({ practicalConstraints: READ_EMPTY });
     expect(hasDisabledAttribute(markup)).toBe(false);
   });
@@ -240,6 +245,10 @@ describe("le refus d'une sélection vide n'est PAS un bouton gris", () => {
     // ligne à mettre à jour, et un update qui ne matche rien répond 204 sans
     // erreur — l'écran afficherait « Enregistré » sur une saisie partie nulle
     // part.
+    // ⚠️ CE SONT LES PASTILLES QUI SONT COUPÉES depuis le 2026-08-19: ce sont
+    // elles qui écrivent. Sans ligne d'objectif il n'y a rien à mettre à jour,
+    // et un update qui ne matche rien répond 204 — l'écran dirait
+    // « Enregistré » sur une saisie partie nulle part.
     const markup = decode(html({ practicalConstraints: READ_EMPTY, hasGoal: false }));
     expect(markup).toContain(en["setup.equipment.no_goal"]);
     expect(hasDisabledAttribute(markup)).toBe(true);
@@ -260,10 +269,8 @@ describe("la carte se rend entièrement dans les deux langues", () => {
         expect(markup, key).toContain(fr[key]);
       }
       expect(markup).toContain(fr["setup.equipment.hint"]);
-      expect(markup).toContain(fr["setup.equipment.save"]);
       // Une couture se voit ici: un mot anglais au milieu d'un écran français.
       expect(markup).not.toContain(en["setup.equipment.tool_freezer"]);
-      expect(markup).not.toContain(en["setup.equipment.save"]);
     } finally {
       setChosenUiLocaleForTest("en");
     }

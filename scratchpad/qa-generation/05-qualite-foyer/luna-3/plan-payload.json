@@ -1,0 +1,558 @@
+{
+    "scope": "day",
+    "dishes": [
+        {
+            "day": "wed",
+            "why": "The trade-off is a vegan shared base for Lubna, with separate finishes for Roxane and Ivar rather than one richer shared pot.",
+            "name": "Courgette chickpea rice bowl",
+            "slot": "lunch",
+            "uses": [
+                {
+                    "box_id": "box_lunch_chickpea_rice_zoe",
+                    "servings": 1,
+                    "preparation_id": "prep_lunch_chickpea_rice"
+                },
+                {
+                    "box_id": "box_lunch_chickpea_rice_lubna",
+                    "servings": 1,
+                    "preparation_id": "prep_lunch_chickpea_rice"
+                }
+            ],
+            "title": "Chickpeas, courgettes, peppers and rice",
+            "method": "Reheat the two labelled table portions together until piping hot, then finish with parsley and lemon.",
+            "same_day": {
+                "kind": "reheat_only",
+                "minutes": 8
+            },
+            "member_id": null,
+            "ingredients": [
+                {
+                    "term": "fresh parsley",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 10,
+                    "quantity": "10 leaves",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "lemon",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 0.5,
+                    "quantity": "half a lemon",
+                    "grams_raw": 30,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "wed",
+            "why": "It keeps lunch warm and comforting while giving Roxane a distinct herby finish from the shared batch.",
+            "name": "Herby chickpea rice plate",
+            "slot": "lunch",
+            "uses": [
+                {
+                    "box_id": "box_lunch_chickpea_rice_roxane",
+                    "servings": 1,
+                    "preparation_id": "prep_lunch_chickpea_rice"
+                }
+            ],
+            "title": "Chickpeas, courgettes, peppers and rice with herbs",
+            "method": "Reheat the labelled portion until piping hot. Put the courgettes and peppers on the plate first, then the chickpeas, then the rice, and finish with parsley and lemon.",
+            "same_day": {
+                "kind": "reheat_only",
+                "minutes": 8
+            },
+            "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+            "ingredients": [
+                {
+                    "term": "fresh parsley",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 15,
+                    "quantity": "15 leaves",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "lemon",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 0.5,
+                    "quantity": "half a lemon",
+                    "grams_raw": 30,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "wed",
+            "why": "A warm one-pot dinner makes the reheatable workday plan feel comforting, with courgette as the loud vegetable.",
+            "name": "Smoky lentil rice bowl",
+            "slot": "dinner",
+            "uses": [
+                {
+                    "box_id": "box_dinner_lentil_rice_zoe",
+                    "servings": 1,
+                    "preparation_id": "prep_dinner_lentil_rice"
+                },
+                {
+                    "box_id": "box_dinner_lentil_rice_lubna",
+                    "servings": 1,
+                    "preparation_id": "prep_dinner_lentil_rice"
+                }
+            ],
+            "title": "Lentils, courgettes, peppers and rice",
+            "method": "Reheat the two labelled table portions until piping hot, then add coriander and lime.",
+            "same_day": {
+                "kind": "reheat_only",
+                "minutes": 8
+            },
+            "member_id": null,
+            "ingredients": [
+                {
+                    "term": "fresh coriander",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 10,
+                    "quantity": "10 leaves",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "lime",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 0.5,
+                    "quantity": "half a lime",
+                    "grams_raw": 22.5,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "wed",
+            "why": "This gives Roxane a fresh, citrusy version of the warm lentil dinner without another cooking session.",
+            "name": "Lime lentil rice plate",
+            "slot": "dinner",
+            "uses": [
+                {
+                    "box_id": "box_dinner_lentil_rice_roxane",
+                    "servings": 1,
+                    "preparation_id": "prep_dinner_lentil_rice"
+                }
+            ],
+            "title": "Lentils, courgettes, peppers and rice with lime",
+            "method": "Reheat the labelled portion until piping hot. Put the courgettes and peppers on the plate first, then the lentils, then the rice, and finish with coriander and lime.",
+            "same_day": {
+                "kind": "reheat_only",
+                "minutes": 8
+            },
+            "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+            "ingredients": [
+                {
+                    "term": "fresh coriander",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 15,
+                    "quantity": "15 leaves",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "lime",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 0.5,
+                    "quantity": "half a lime",
+                    "grams_raw": 22.5,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        }
+    ],
+    "plan_id": "4a40fde0-4e70-4c1b-a042-fe47e028b1e7",
+    "servings": 4,
+    "starts_on": "2026-08-19",
+    "created_at": "2026-08-19T08:42:22.28574+00:00",
+    "preparations": [
+        {
+            "id": "prep_lunch_chickpea_rice",
+            "boxes": [
+                {
+                    "id": "box_lunch_chickpea_rice_roxane",
+                    "grams": 354,
+                    "member_ids": [
+                        "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec"
+                    ]
+                },
+                {
+                    "id": "box_lunch_chickpea_rice_zoe",
+                    "grams": 310,
+                    "member_ids": [
+                        "5fd38cfd-3895-4152-92a2-e62f9b7fc74e"
+                    ]
+                },
+                {
+                    "id": "box_lunch_chickpea_rice_lubna",
+                    "grams": 346,
+                    "member_ids": [
+                        "86129e3c-2f50-480f-a359-077165b6232b"
+                    ]
+                }
+            ],
+            "title": "Chickpea courgette rice pot",
+            "method": "Fry the onion, courgettes and peppers in the oil for 5 minutes. Stir in the tomatoes, chickpeas, rice, paprika and water, bring to a simmer, cover and cook until the rice is tender. Stir, then weigh the ready food into three labelled boxes.",
+            "cook_on": "wed",
+            "ingredients": [
+                {
+                    "term": "cooked chickpeas",
+                    "unit": "g",
+                    "state": "cooked",
+                    "amount": 600,
+                    "quantity": "600 g cooked chickpeas",
+                    "grams_raw": 600,
+                    "in_pantry": false
+                },
+                {
+                    "term": "long-grain rice",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 180,
+                    "quantity": "180 g raw rice",
+                    "grams_raw": 180,
+                    "in_pantry": false
+                },
+                {
+                    "term": "courgettes",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 courgettes",
+                    "grams_raw": 400,
+                    "in_pantry": false
+                },
+                {
+                    "term": "red peppers",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 red peppers",
+                    "grams_raw": 300,
+                    "in_pantry": false
+                },
+                {
+                    "term": "onion",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 onion",
+                    "grams_raw": 110,
+                    "in_pantry": false
+                },
+                {
+                    "term": "chopped tomatoes",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 400,
+                    "quantity": "400 g chopped tomatoes",
+                    "grams_raw": 400,
+                    "in_pantry": false
+                },
+                {
+                    "term": "olive oil",
+                    "unit": "tbsp",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 tbsp olive oil",
+                    "grams_raw": 15,
+                    "in_pantry": false
+                },
+                {
+                    "term": "smoked paprika",
+                    "unit": "tsp",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 tsp smoked paprika",
+                    "grams_raw": 5,
+                    "in_pantry": false
+                }
+            ],
+            "servings_made": 3,
+            "total_minutes": 25,
+            "active_minutes": 15
+        },
+        {
+            "id": "prep_dinner_lentil_rice",
+            "boxes": [
+                {
+                    "id": "box_dinner_lentil_rice_roxane",
+                    "grams": 394,
+                    "member_ids": [
+                        "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec"
+                    ]
+                },
+                {
+                    "id": "box_dinner_lentil_rice_zoe",
+                    "grams": 344,
+                    "member_ids": [
+                        "5fd38cfd-3895-4152-92a2-e62f9b7fc74e"
+                    ]
+                },
+                {
+                    "id": "box_dinner_lentil_rice_lubna",
+                    "grams": 384,
+                    "member_ids": [
+                        "86129e3c-2f50-480f-a359-077165b6232b"
+                    ]
+                },
+                {
+                    "id": "box_dinner_lentil_rice_ivar",
+                    "grams": 725,
+                    "member_ids": [
+                        "12362957-32c9-43a5-82ef-66b8d5732171"
+                    ]
+                }
+            ],
+            "title": "Lentil courgette rice pot",
+            "method": "Fry the onion, courgettes and peppers in the oil for 5 minutes. Add the lentils, tomatoes, rice, cumin and water, cover and simmer until the lentils and rice are tender. Stir well, then weigh the ready food into four labelled boxes.",
+            "cook_on": "wed",
+            "ingredients": [
+                {
+                    "term": "green lentils",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 280,
+                    "quantity": "280 g raw green lentils",
+                    "grams_raw": 280,
+                    "in_pantry": false
+                },
+                {
+                    "term": "long-grain rice",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 240,
+                    "quantity": "240 g raw rice",
+                    "grams_raw": 240,
+                    "in_pantry": false
+                },
+                {
+                    "term": "courgettes",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 courgettes",
+                    "grams_raw": 400,
+                    "in_pantry": false
+                },
+                {
+                    "term": "red peppers",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 red peppers",
+                    "grams_raw": 300,
+                    "in_pantry": false
+                },
+                {
+                    "term": "onion",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 onion",
+                    "grams_raw": 110,
+                    "in_pantry": false
+                },
+                {
+                    "term": "chopped tomatoes",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 600,
+                    "quantity": "600 g chopped tomatoes",
+                    "grams_raw": 600,
+                    "in_pantry": false
+                },
+                {
+                    "term": "olive oil",
+                    "unit": "tbsp",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 tbsp olive oil",
+                    "grams_raw": 15,
+                    "in_pantry": false
+                },
+                {
+                    "term": "ground cumin",
+                    "unit": "tsp",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 tsp ground cumin",
+                    "grams_raw": 10,
+                    "in_pantry": false
+                }
+            ],
+            "servings_made": 4,
+            "total_minutes": 35,
+            "active_minutes": 20
+        }
+    ],
+    "duration_days": 1,
+    "shopping_list": [
+        {
+            "term": "cooked chickpeas",
+            "aisle": "pantry",
+            "quantity": "600 g"
+        },
+        {
+            "term": "green lentils",
+            "aisle": "pantry",
+            "quantity": "280 g"
+        },
+        {
+            "term": "long-grain rice",
+            "aisle": "grains",
+            "quantity": "420 g"
+        },
+        {
+            "term": "courgettes",
+            "aisle": "produce",
+            "quantity": "4 courgettes"
+        },
+        {
+            "term": "red peppers",
+            "aisle": "produce",
+            "quantity": "4 red peppers"
+        },
+        {
+            "term": "onions",
+            "aisle": "produce",
+            "quantity": "2 onions"
+        },
+        {
+            "term": "chopped tomatoes",
+            "aisle": "pantry",
+            "quantity": "1 kg"
+        },
+        {
+            "term": "fresh parsley",
+            "aisle": "produce",
+            "quantity": "1 small bunch"
+        },
+        {
+            "term": "fresh coriander",
+            "aisle": "produce",
+            "quantity": "1 small bunch"
+        },
+        {
+            "term": "lemons",
+            "aisle": "produce",
+            "quantity": "1 lemon"
+        },
+        {
+            "term": "limes",
+            "aisle": "produce",
+            "quantity": "1 lime"
+        },
+        {
+            "term": "olive oil",
+            "aisle": "pantry",
+            "quantity": "30 ml"
+        },
+        {
+            "term": "smoked paprika",
+            "aisle": "pantry",
+            "quantity": "1 tsp"
+        },
+        {
+            "term": "ground cumin",
+            "aisle": "pantry",
+            "quantity": "2 tsp"
+        }
+    ],
+    "member_portions": [
+        {
+            "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+            "display_name": "Roxane",
+            "portion_note": "At lunch and dinner, place the courgettes and peppers first, then the chickpeas or lentils, then the rice. — Chickpea courgette rice pot 354 g · Lentil courgette rice pot 394 g",
+            "preparation_shares": [
+                {
+                    "note": "Use the box labelled Roxane.",
+                    "preparation_id": "prep_lunch_chickpea_rice"
+                },
+                {
+                    "note": "Use the box labelled Roxane.",
+                    "preparation_id": "prep_dinner_lentil_rice"
+                }
+            ]
+        },
+        {
+            "member_id": "5fd38cfd-3895-4152-92a2-e62f9b7fc74e",
+            "display_name": "Zoe",
+            "portion_note": "At lunch and dinner, put all the components together on the plate. — Chickpea courgette rice pot 310 g · Lentil courgette rice pot 344 g",
+            "preparation_shares": [
+                {
+                    "note": "Use the box labelled Zoe.",
+                    "preparation_id": "prep_lunch_chickpea_rice"
+                },
+                {
+                    "note": "Use the box labelled Zoe.",
+                    "preparation_id": "prep_dinner_lentil_rice"
+                }
+            ]
+        },
+        {
+            "member_id": "86129e3c-2f50-480f-a359-077165b6232b",
+            "display_name": "Lubna",
+            "portion_note": "At lunch and dinner, put all the components together on the plate. — Chickpea courgette rice pot 346 g · Lentil courgette rice pot 384 g",
+            "preparation_shares": [
+                {
+                    "note": "Use the box labelled Lubna.",
+                    "preparation_id": "prep_lunch_chickpea_rice"
+                },
+                {
+                    "note": "Use the box labelled Lubna.",
+                    "preparation_id": "prep_dinner_lentil_rice"
+                }
+            ]
+        },
+        {
+            "member_id": "12362957-32c9-43a5-82ef-66b8d5732171",
+            "display_name": "Ivar",
+            "portion_note": "At dinner, place the lentils and rice first, then add the courgettes and peppers. — Lentil courgette rice pot 725 g",
+            "preparation_shares": [
+                {
+                    "note": "Use the box labelled Ivar.",
+                    "preparation_id": "prep_dinner_lentil_rice"
+                }
+            ]
+        }
+    ],
+    "cooking_sessions": [
+        {
+            "day": "wed",
+            "run_through": "Chop all onions, courgettes and peppers first. Start the chickpea rice pot, cover it and simmer while washing the lentils and measuring the second rice pot. Box the lunch pot as soon as it is ready, then cook and box the lentil pot, labelling every box for its member.",
+            "total_minutes": 50,
+            "preparation_ids": [
+                "prep_lunch_chickpea_rice",
+                "prep_dinner_lentil_rice"
+            ]
+        }
+    ]
+}

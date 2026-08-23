@@ -7,10 +7,14 @@ import {
   // LOT D — les envies apparues en cours de plan, et leur seul lecteur.
   newEnvyIsAsked,
   OPTION_LABELS,
+  // LOT 4C — la relance « pour qui ? », qui doit suivre les QUATRE réponses
+  // non neutres de l'échelle à cinq crans.
+  portionSubjectIsAsked,
   QUESTION_LABELS,
   QUESTION_OPTIONS,
   QUESTION_READERS,
   questionsFor,
+  VARIETY_AXIS_QUESTION,
 } from "./plan_feedback.ts";
 import { STUDENT_GOALS } from "./week_plan_generation.ts";
 
@@ -173,9 +177,9 @@ Deno.test("chaque réponse atteint un lecteur — aucune n'est décorative", () 
   assertEquals(partly.simplifyRecipes, false);
 
   // Les portions donnent le SENS du ré-ancrage — la vérité terrain du moteur.
-  assertEquals(effectOf({ portions: "too_much" }).portionDirection, "down");
-  assertEquals(effectOf({ portions: "not_enough" }).portionDirection, "up");
-  assertEquals(effectOf({ portions: "right" }).portionDirection, null);
+  assertEquals(effectOf({ portions: "too_much" }).portionAdjust?.direction, "down");
+  assertEquals(effectOf({ portions: "not_enough" }).portionAdjust?.direction, "up");
+  assertEquals(effectOf({ portions: "right" }).portionAdjust, null);
 
   // Les plats refusés partent aux préférences.
   assertEquals(
@@ -199,30 +203,254 @@ Deno.test("aucun accent suggéré ne porte de chiffre", () => {
   // `NUMERIC_TARGET_PATTERNS` rejette en sortie toute masse accolée à une
   // macro: un accent chiffré produirait des lignes systématiquement filtrées,
   // c'est-à-dire une génération dégradée par le retour censé l'améliorer.
-  for (const answer of ["often", "sometimes", "no", "flat", "good", "mixed"]) {
-    const hint = effectOf({ axisAnswer: answer }).emphasisHint;
+  // ⚠️ LE JETON EST PASSÉ, sinon la boucle est VIDE de sens: sans question,
+  // `emphasisHint` est `null` partout et ce test resterait vert en ne mesurant
+  // plus rien.
+  let seen = 0;
+  for (const answer of ["often", "sometimes", "no"]) {
+    const hint = effectOf({
+      axisQuestion: "hunger_between_meals",
+      axisAnswer: answer,
+    }).emphasisHint;
     if (hint === null) continue;
+    seen += 1;
     assertEquals(
       /\d/.test(hint),
       false,
       `l'accent pour « ${answer} » porte un chiffre: ${hint}`,
     );
   }
+  assert(seen > 0, "aucun accent produit: la boucle ne mesure plus rien");
 });
 
-Deno.test("une réponse ambiguë ne produit AUCUN accent inventé", () => {
+Deno.test("⛔ une réponse SANS SON JETON ne produit AUCUN accent inventé", () => {
   // `no` veut dire « pas eu faim » pour hunger_between_meals et « pas fini »
   // pour could_finish. Deviner produirait l'accent inverse une fois sur deux.
   assertEquals(effectOf({ axisAnswer: "no" }).emphasisHint, null);
+  assertEquals(effectOf({ axisAnswer: "often" }).emphasisHint, null);
+
+  // ── LE DÉFAUT MESURÉ LE 2026-08-19 ────────────────────────────────────
+  // `emphasisHintFor` ne recevait que la réponse: « parfois » à la question de
+  // VARIÉTÉ rendait l'accent de SATIÉTÉ, c'est-à-dire une consigne de
+  // `fat_loss` sur un plan de `maintenance`. Inerte (aucun appelant), et prête
+  // à mordre au premier câblage.
+  assertEquals(
+    effectOf({ axisQuestion: VARIETY_AXIS_QUESTION, axisAnswer: "sometimes" })
+      .emphasisHint,
+    null,
+  );
+  assertEquals(
+    effectOf({ axisQuestion: "could_finish", axisAnswer: "no" }).emphasisHint,
+    null,
+  );
+});
+
+// ---------------------------------------------------------------------------
+// LOT 4C — LES DEUX CRANS DE L'ÉCHELLE DES PORTIONS
+// ---------------------------------------------------------------------------
+
+Deno.test("LOT 4C — LES DEUX CRANS, CÔTE À CÔTE, dans le même test", () => {
+  // ⚠️ LE DÉFAUT FERMÉ ICI: le questionnaire est le SEUL producteur de
+  // `portion.adjust`, un nouvel ajustement REMPLACE le précédent (jamais de
+  // somme), donc un seul cran par sens bloquait à −5 % pour toujours — et le
+  // `clear` (−10 %) du moteur était inatteignable par TOUT le produit.
+  //
+  // ⚠️ LITTÉRAUX EN DUR des deux côtés, jamais `PORTION_ANSWER_ADJUST` comparée
+  // à elle-même: un test paramétré par sa propre constante reste vert quand on
+  // change la constante.
+  assertEquals(effectOf({ portions: "too_much" }).portionAdjust, {
+    direction: "down",
+    magnitude: "slight",
+  });
+  assertEquals(effectOf({ portions: "way_too_much" }).portionAdjust, {
+    direction: "down",
+    magnitude: "clear",
+  });
+  assertEquals(effectOf({ portions: "not_enough" }).portionAdjust, {
+    direction: "up",
+    magnitude: "slight",
+  });
+  assertEquals(effectOf({ portions: "way_not_enough" }).portionAdjust, {
+    direction: "up",
+    magnitude: "clear",
+  });
+  // Et la case neutre ne bouge rien: c'est elle qui rend l'échelle lisible.
+  assertEquals(effectOf({ portions: "right" }).portionAdjust, null);
+});
+
+Deno.test("⛔ LOT 4C — AUCUN JETON EXISTANT N'A CHANGÉ DE SENS", () => {
+  // C'EST LA GARDE LA PLUS IMPORTANTE DU LOT, et elle protège des lignes DÉJÀ
+  // ÉCRITES: `meal_plan_feedback` ne réécrit jamais une réponse d'hier (même
+  // doctrine que la question retirée `energy_around_sessions`). Traduire
+  // `too_much` en `clear` retirerait de la nourriture, rétroactivement, à des
+  // gens qui n'ont jamais dit « vraiment trop ».
+  //
+  // ⚠️ LE CRAN EST ÉPINGLÉ, PAS SEULEMENT LE SENS. Un test qui ne regarderait
+  // que `direction` resterait vert sur exactement le remappage qu'on interdit.
+  assertEquals(effectOf({ portions: "too_much" }).portionAdjust?.magnitude, "slight");
+  assertEquals(effectOf({ portions: "not_enough" }).portionAdjust?.magnitude, "slight");
+  assertEquals(effectOf({ portions: "too_much" }).portionAdjust?.direction, "down");
+  assertEquals(effectOf({ portions: "not_enough" }).portionAdjust?.direction, "up");
+  assertEquals(effectOf({ portions: "right" }).portionAdjust, null);
+
+  // ── ET LE LIBELLÉ N'EST PAS LE JETON ────────────────────────────────────
+  // Ré-libeller « Trop » en « Un peu trop » décrit la POSITION sur une échelle
+  // qui porte maintenant cinq crans; le jeton stocké, lui, garde sa
+  // traduction. Les deux moitiés dans le même test, sinon on ne distingue pas
+  // « le libellé a bougé » de « le sens a bougé ».
+  assertEquals(OPTION_LABELS.too_much, { en: "A bit too much", fr: "Un peu trop" });
+  assertEquals(OPTION_LABELS.way_too_much, {
+    en: "Really too much",
+    fr: "Vraiment trop",
+  });
+  assertEquals(OPTION_LABELS.right, {
+    en: "About right",
+    fr: "Ce qu'il fallait",
+  });
+  assertEquals(OPTION_LABELS.not_enough, { en: "A bit short", fr: "Un peu juste" });
+  assertEquals(OPTION_LABELS.way_not_enough, {
+    en: "Really not enough",
+    fr: "Vraiment pas assez",
+  });
+});
+
+Deno.test("LOT 4C — l'échelle porte CINQ crans, dans l'ordre, et un seul neutre", () => {
+  // L'ordre est celui de l'affichage: une échelle qui ne se lit pas de bout en
+  // bout se coche au hasard. Littéral en dur — la liste voyage jusqu'au CHECK
+  // de la colonne `portions` et jusqu'aux boutons de l'écran.
+  assertEquals(QUESTION_OPTIONS.portions, [
+    "way_too_much",
+    "too_much",
+    "right",
+    "not_enough",
+    "way_not_enough",
+  ]);
+  // Une seule case ne produit rien: si deux ne produisaient rien, on poserait
+  // une question à cinq réponses dont deux ne changent rien.
+  const inert = QUESTION_OPTIONS.portions.filter((o) =>
+    effectOf({ portions: o }).portionAdjust === null
+  );
+  assertEquals(inert, ["right"]);
+});
+
+Deno.test("⛔ LOT 4C — « POUR QUI ? » SE POSE SUR LES **QUATRE** RÉPONSES NON NEUTRES", () => {
+  // ⚠️ LE PIÈGE DU LOT. `portionSubjectIsAsked` aurait pu relire `portions`
+  // elle-même (« `too_much` ou `not_enough` »): les deux jetons NEUFS
+  // auraient alors produit un `portion.adjust` de FOYER sans qu'on demande
+  // jamais pour qui — c'est-à-dire baisser l'assiette de toute la table sur le
+  // cran FORT, en silence, dans un foyer de quatre.
+  for (
+    const answer of ["way_too_much", "too_much", "not_enough", "way_not_enough"]
+  ) {
+    assertEquals(
+      portionSubjectIsAsked({ portions: answer, mouths: 4 }),
+      true,
+      `« ${answer} » n'appelle pas la question « pour qui ? »`,
+    );
+  }
+  // LES DEUX MOITIÉS QUI MORDENT, sinon la garde ne mesure rien.
+  assertEquals(portionSubjectIsAsked({ portions: "right", mouths: 4 }), false);
+  assertEquals(portionSubjectIsAsked({ portions: null, mouths: 4 }), false);
+  // Un jeton forgé n'ouvre pas la question — et « constructor » est le cas
+  // qui mord: sur un objet littéral il rend une FONCTION, donc « il y a un
+  // ajustement », sur une charge qui vient d'un corps de requête HTTP.
+  for (const forged of ["constructor", "toString", "TOO_MUCH", " too_much "]) {
+    assertEquals(
+      portionSubjectIsAsked({ portions: forged, mouths: 4 }),
+      false,
+      `« ${forged} » a ouvert la question « pour qui ? »`,
+    );
+    assertEquals(effectOf({ portions: forged }).portionAdjust, null, forged);
+  }
+  // ⚠️ ET LE SOLO NE LA VOIT TOUJOURS PAS, y compris sur le cran fort: il n'a
+  // AUCUNE ligne `household_members`, donc aucun `member:<uuid>` à nommer.
+  // Lui poser la question serait lui présenter un choix à une seule issue.
+  assertEquals(
+    portionSubjectIsAsked({ portions: "way_too_much", mouths: 1 }),
+    false,
+  );
+});
+
+Deno.test("⛔ LOT 4C — le plancher TCA retire toujours la question ENTIÈRE", () => {
+  // Le second cran n'ouvre aucune porte: `portions` est retirée AVANT d'être
+  // graduée, et la sortie reste indiscernable de celle d'une dynamique
+  // inconnue. Les cinq crans ne changent rien à ça — c'est la question qui
+  // part, pas ses options.
+  const unknownGoal = questionsFor(null, true);
+  assertEquals(unknownGoal.includes("portions"), false);
+  for (const goal of STUDENT_GOALS) {
+    assertEquals(
+      JSON.stringify(questionsFor(goal, true)),
+      JSON.stringify(unknownGoal),
+      `${goal} sous plancher est distinguable d'une dynamique inconnue`,
+    );
+  }
+  // ET LA MOITIÉ QUI PASSE: hors plancher, la question est bien posée — sans
+  // elle, ce test resterait vert sur un produit qui ne demande plus jamais les
+  // portions à personne.
+  for (const goal of STUDENT_GOALS) {
+    assert(questionsFor(goal, false).includes("portions"), goal);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// LA 4ᵉ QUESTION — L'AXE FERMÉ, ET LES DEUX QUI NE LE SONT PAS
+// ---------------------------------------------------------------------------
+
+Deno.test("épingle: le jeton de l'axe fermé est `enough_variety`", () => {
+  // ⚠️ LITTÉRAL EN DUR, pas la constante comparée à elle-même. Le jeton voyage
+  // jusqu'à la colonne `axis_question` et jusqu'à l'écran: un renommage d'un
+  // seul côté rend un questionnaire qui écrit et n'est plus lu.
+  assertEquals(VARIETY_AXIS_QUESTION, "enough_variety");
+  assert(
+    (FEEDBACK_QUESTIONS as readonly string[]).includes(VARIETY_AXIS_QUESTION),
+    "le jeton de l'axe fermé n'est plus une question du vocabulaire",
+  );
+});
+
+Deno.test("la pression de variété sort du JETON, jamais de la seule réponse", () => {
+  // Ce que ce test garde: `no` est une option des TROIS axes. Router sur la
+  // réponse seule ferait entrer une réponse à `hunger_between_meals` — celle
+  // que le plancher TCA retire — dans le réglage de variété.
+  assertEquals(
+    effectOf({ axisQuestion: "enough_variety", axisAnswer: "no" })
+      .varietyPressure,
+    "more",
+  );
+  assertEquals(
+    effectOf({ axisQuestion: "enough_variety", axisAnswer: "sometimes" })
+      .varietyPressure,
+    "more",
+  );
+  // « Oui, assez de variété » ne change rien: il n'existe AUCUN `"less"`.
+  assertEquals(
+    effectOf({ axisQuestion: "enough_variety", axisAnswer: "yes" })
+      .varietyPressure,
+    null,
+  );
+  // LES DEUX AUTRES AXES, ET LEURS RÉPONSES LES PLUS PROCHES.
+  for (const question of ["hunger_between_meals", "could_finish"]) {
+    for (const answer of ["no", "sometimes", "often", "yes", "mostly"]) {
+      assertEquals(
+        effectOf({ axisQuestion: question, axisAnswer: answer })
+          .varietyPressure,
+        null,
+        `${question}/${answer} a produit une pression de variété`,
+      );
+    }
+  }
+  // Sans jeton: rien. L'oubli est FAIL-CLOSED.
+  assertEquals(effectOf({ axisAnswer: "no" }).varietyPressure, null);
 });
 
 Deno.test("désarmement : aucun retour ⇒ aucun effet", () => {
   const none = effectOf({});
   assertEquals(none.easeCookingBy, 0);
   assertEquals(none.simplifyRecipes, false);
-  assertEquals(none.portionDirection, null);
+  assertEquals(none.portionAdjust, null);
   assertEquals(none.refusedDishes, []);
   assertEquals(none.emphasisHint, null);
+  assertEquals(none.varietyPressure, null);
 });
 
 Deno.test("toutes les questions du vocabulaire sont atteignables", () => {

@@ -1,4 +1,4 @@
-import { assert, assertEquals } from "jsr:@std/assert@^1.0.0";
+import { assert, assertEquals, assertStringIncludes } from "jsr:@std/assert@^1.0.0";
 import {
   DIETARY_REGIMES,
   dietaryRegimePromptLine,
@@ -6,6 +6,7 @@ import {
   excludedSurfaceFormsFor,
   isPlantAnalogue,
   parseDietaryRegime,
+  scanDietaryRegime,
   uncoverableSentinelsFor,
 } from "./dietary_regime.ts";
 import { FOOD_GROUP_REFS } from "./tokens.ts";
@@ -228,4 +229,155 @@ Deno.test("la B12 est signalée incouvrable pour le végan, et pour lui seul", (
   assertEquals(uncoverableSentinelsFor("vegan"), ["b12_source"]);
   assertEquals(uncoverableSentinelsFor("vegetarian"), []);
   assertEquals(uncoverableSentinelsFor("pescatarian"), []);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LE GROUPE DÉCLARÉ PAR LE MODÈLE (2026-08-19) — LA CORRECTION HONNÊTE
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Le compteur de régime restait faux sur une classe résiduelle NOMMÉE:
+//   · homonyme        — « butter beans » compté en brèche laitière sur `butter`
+//   · marqueur végétal — « Vegan sausage » compté en brèche carnée sur `sausage`
+//
+// ⛔ LA CORRECTION N'EST PAS UN APPARIEMENT PLUS MALIN. Une liste de plus
+// aurait rejoué « laitue ≠ lait ». Le modèle DÉCLARE le groupe, on le valide
+// contre la liste fermée, et aucune chaîne n'est interrogée pour en décider.
+
+Deno.test("HOMONYME — « butter beans » déclaré `legumes` n'est plus une brèche laitière", () => {
+  const sansGroupe = scanDietaryRegime("vegan", { terms: ["butter beans"] });
+  assertEquals(
+    sansGroupe.breaches.length,
+    1,
+    "prémisse: sans groupe déclaré, l'homonyme mord — c'est le défaut mesuré",
+  );
+  assertEquals(sansGroupe.group.undecided, 1);
+
+  const avecGroupe = scanDietaryRegime("vegan", {
+    items: [{ term: "butter beans", group: "legumes" }],
+  });
+  assertEquals(avecGroupe.breaches, []);
+  assertEquals(avecGroupe.silencedByPlantAnalogue.length, 1);
+  assertEquals(avecGroupe.group.plantOnly, 1);
+});
+
+Deno.test("MARQUEUR VÉGÉTAL — « Vegan sausage » déclaré `tofu_tempeh` ne mord plus", () => {
+  const avecGroupe = scanDietaryRegime("vegetarian", {
+    items: [{ term: "Vegan sausage", group: "tofu_tempeh" }],
+  });
+  assertEquals(avecGroupe.breaches, []);
+  assertEquals(avecGroupe.group.plantOnly, 1);
+
+  // ⚠️ LA PROSE RESTE LA PROSE. Le groupe est déclaré SUR UN ALIMENT; un titre
+  // porte plusieurs aliments et n'a pas de groupe. C'est l'asymétrie déjà
+  // écrite pour `isPlantAnalogue`, et elle ne bouge pas.
+  const enProse = scanDietaryRegime("vegetarian", {
+    prose: ["Vegan sausage and mash"],
+  });
+  assertEquals(enProse.group.undecided, 0, "aucun aliment déclaré dans une prose");
+});
+
+Deno.test("LE GROUPE AJOUTE DE LA COUVERTURE: « coq au vin » déclaré `poultry` mord", () => {
+  // Ce que les formes de surface n'attrapaient PAS. `coq` n'est dans aucune
+  // liste, et il n'a rien à y faire — l'écrire à la main aurait été une
+  // quatorzième forme, puis une quinzième. La déclaration règle la classe.
+  const sansGroupe = scanDietaryRegime("vegetarian", { terms: ["coq au vin"] });
+  assertEquals(sansGroupe.breaches, [], "prémisse: aucune forme de surface ne porte « coq »");
+
+  const avecGroupe = scanDietaryRegime("vegetarian", {
+    items: [{ term: "coq au vin", group: "poultry" }],
+  });
+  assertEquals(avecGroupe.breaches.length, 1);
+  assertEquals(avecGroupe.breaches[0].token, "poultry");
+  assertEquals(avecGroupe.group.excluded, 1);
+});
+
+Deno.test("⛔ LE GROUPE NE DESSERRE RIEN: `lean_protein` ne blanchit pas le poulet", () => {
+  // LE PIÈGE DE CE LOT. `EXCLUDED_GROUPS` est GROSSIER et son en-tête le dit:
+  // `lean_protein` désigne aussi bien un blanc de poulet qu'un tofu. En faire
+  // un groupe « végétal » aurait désarmé la ceinture sur la viande — c'est-à-
+  // dire desserré la seule chose que ce fichier existe pour tenir.
+  const scan = scanDietaryRegime("vegan", {
+    items: [{ term: "chicken breast", group: "lean_protein" }],
+  });
+  assertEquals(scan.breaches.length, 1, "le poulet mord toujours sur son mot");
+  assertEquals(scan.group.undecided, 1, "`lean_protein` ne tranche pas: on retombe sur la prose");
+  assertEquals(scan.group.plantOnly, 0);
+
+  // Les autres groupes ambigus, un par un, avec ce qu'ils cachent.
+  for (
+    const [group, term] of [
+      ["sauce_dressing", "fish sauce"],
+      ["other_added_fat", "butter"],
+      ["sugar_sweets", "honey"],
+      ["coffee_tea", "latte with milk"],
+    ] as const
+  ) {
+    const ambiguous = scanDietaryRegime("vegan", { items: [{ term, group }] });
+    assertEquals(
+      ambiguous.group.plantOnly,
+      0,
+      `'${group}' ne doit JAMAIS blanchir: il porte « ${term} »`,
+    );
+    assert(
+      ambiguous.breaches.length > 0,
+      `'${group}' a laissé passer « ${term} »`,
+    );
+  }
+});
+
+Deno.test("un groupe déclaré HORS LISTE FERMÉE ne décide rien — il ne peut pas mentir", () => {
+  // Le type interdit déjà le slug inventé côté moteur; c'est le PARSEUR de
+  // `meal_generation.ts` qui rend `null` sur ce que le modèle invente. Ici on
+  // épingle le contrat de repli: `null` ⇒ comportement d'avant ce lot.
+  const scan = scanDietaryRegime("vegan", {
+    items: [{ term: "chicken stock", group: null }],
+  });
+  assertEquals(scan.group.undecided, 1);
+  assertEquals(scan.breaches.length, 1);
+});
+
+Deno.test("`terms` est exactement `items` avec `group: null` — aucun appelant ne change", () => {
+  // La preuve d'INNOCUITÉ pour la population qui ne déclare rien. Les deux
+  // canaux doivent rendre la même chose, sinon migrer un appelant changerait
+  // son comptage en silence.
+  const corpus = ["lardons", "soy yoghurt", "butter beans", "tofu", "chicken stock"];
+  const viaTerms = scanDietaryRegime("vegan", { terms: corpus });
+  const viaItems = scanDietaryRegime("vegan", {
+    items: corpus.map((term) => ({ term, group: null })),
+  });
+  assertEquals(
+    viaTerms.breaches.map((b) => b.matchedText),
+    viaItems.breaches.map((b) => b.matchedText),
+  );
+  assertEquals(
+    viaTerms.silencedByPlantAnalogue.length,
+    viaItems.silencedByPlantAnalogue.length,
+  );
+  assertEquals(viaTerms.group, viaItems.group);
+});
+
+Deno.test("la consigne PORTE la clé de schéma, son compte et son échappatoire", () => {
+  // ⛔ « LA PROMESSE ET LA CLÉ DOIVENT SE TOUCHER »: un champ dont la promesse
+  // vit dans le message et la clé dans le prompt système sort à 0 %. Mesuré
+  // deux fois dans ce dépôt. Ce test tient les trois moitiés du correctif.
+  for (const regime of DIETARY_REGIMES) {
+    const line = dietaryRegimePromptLine(regime);
+    // ① LA CLÉ, littéralement, et où la mettre.
+    assertStringIncludes(line, '"group"');
+    assertStringIncludes(line, "dishes AND in");
+    assertStringIncludes(line, "preparations");
+    // ② LE NOMBRE ATTENDU.
+    assertStringIncludes(line, "every single one");
+    // ③ L'ÉCHAPPATOIRE, NOMMÉE.
+    assertStringIncludes(line, "write null");
+    // ④ Le vocabulaire fermé est ÉCRIT, pas sous-entendu — sinon le modèle
+    //    invente des slugs plausibles, et un slug inventé est refusé en
+    //    silence par le parseur.
+    for (const group of ["legumes", "tofu_tempeh", "poultry", "dairy_cheese"]) {
+      assertStringIncludes(line, group);
+    }
+    // ⑤ Les deux cas mesurés sont nommés dans la consigne elle-même.
+    assertStringIncludes(line, "Butter beans are legumes");
+    assertStringIncludes(line, "vegan sausage is tofu_tempeh");
+  }
 });

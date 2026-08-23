@@ -1,0 +1,33 @@
+{
+  "promptVersion": "meal.en.v13_what_they_can_actually_do",
+  "scenario-1": {
+    "userChars": 9813,
+    "systemChars": 14382,
+    "jsonWordInSystem": true,
+    "jsonWordInUser": true
+  },
+  "scenario-2": {
+    "userChars": 4951,
+    "systemChars": 14382,
+    "jsonWordInSystem": true,
+    "jsonWordInUser": true
+  },
+  "scenario-3": {
+    "userChars": 8876,
+    "systemChars": 14382,
+    "jsonWordInSystem": true,
+    "jsonWordInUser": true
+  },
+  "scenario-4": {
+    "userChars": 7833,
+    "systemChars": 14382,
+    "jsonWordInSystem": true,
+    "jsonWordInUser": true
+  },
+  "scenario-5": {
+    "userChars": 9063,
+    "systemChars": 14382,
+    "jsonWordInSystem": true,
+    "jsonWordInUser": true
+  }
+}

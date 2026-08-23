@@ -62,6 +62,7 @@ Deno.test("le prompt annonce le plafond de la fenêtre, pas celui de sept jours"
   const { userMessage } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true,
     budgetAmount: null,
     safetyConstraints: null,
+    safetyConstraintTable: null,
     body: null,
     focusAxis: null,
     dietBlock: "",
@@ -99,6 +100,7 @@ Deno.test("un jour de cuisine hors fenêtre ne survit pas à la consigne", () =>
   const { userMessage } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true,
     budgetAmount: null,
     safetyConstraints: null,
+    safetyConstraintTable: null,
     body: null,
     focusAxis: null,
     dietBlock: "",
@@ -135,6 +137,7 @@ Deno.test("aucun jour de cuisine dans la fenêtre: on ne reste pas sans session"
   const { userMessage } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true,
     budgetAmount: null,
     safetyConstraints: null,
+    safetyConstraintTable: null,
     body: null,
     focusAxis: null,
     dietBlock: "",
@@ -211,6 +214,8 @@ Deno.test("un lot mangé AVANT d'être cuisiné est signalé", () => {
       dayProperties: [],
       merge: null,
       boxMemberIds: [],
+      weighedMemberIds: [],
+  boxMemberDiets: [],
     },
   );
   assert(
@@ -260,6 +265,8 @@ Deno.test("cuisiner AVANT de manger ne déclenche rien", () => {
       dayProperties: [],
       merge: null,
       boxMemberIds: [],
+      weighedMemberIds: [],
+  boxMemberDiets: [],
     },
   );
   assertEquals(meal.issues.filter((i) => i.includes("after the meal")), []);
@@ -281,6 +288,10 @@ function planWith(args: {
   eatDay: string;
   sessionMinutes?: number;
   declaredMinutes?: number | null;
+  /** ⟳ `L0-a`: un plat composé le jour même, qui ne reprend aucun lot. */
+  withoutUses?: boolean;
+  /** ⟳ `L0-a`: aucune session ne nomme la casserole — son jour reste inconnu. */
+  withoutSession?: boolean;
 }) {
   return parseGeneratedMeal(
     {
@@ -291,7 +302,7 @@ function planWith(args: {
         ingredients: [{ term: "courgette", quantity: "2" }],
         method: "roast them",
       }],
-      cooking_sessions: [{
+      cooking_sessions: args.withoutSession ? [] : [{
         day: args.cookDay,
         preparation_ids: ["prep_veg"],
         run_through: "roast, then portion",
@@ -303,7 +314,7 @@ function planWith(args: {
         day: args.eatDay,
         ingredients: [{ term: "leaves", quantity: "1 handful" }],
         method: "assemble",
-        uses: [{ preparation_id: "prep_veg", servings: 1 }],
+        uses: args.withoutUses ? [] : [{ preparation_id: "prep_veg", servings: 1 }],
       }],
       shopping_list: [],
     },
@@ -323,28 +334,78 @@ function planWith(args: {
       dayProperties: [],
       merge: null,
       boxMemberIds: [],
+      weighedMemberIds: [],
+  boxMemberDiets: [],
     },
   );
 }
 
-Deno.test("un lot gardé plus de trois jours est signalé", () => {
+
+/** Le même plan, mais dont le plat ne PUISE dans aucune casserole. */
+function planWithoutUses(args: { cookDay: string; eatDay: string }) {
+  return planWith({ ...args, withoutUses: true });
+}
+
+Deno.test("un lot gardé plus de trois jours est REFUSÉ, plus seulement signalé", () => {
   // LE CAS MESURÉ, mot pour mot: légumes rôtis cuisinés jeudi, encore mangés le
   // mercredi suivant. Six jours.
+  //
+  // ⟳ LOT `L0-a`, 2026-08-22 — CE PLAT NE SURVIT PLUS. La règle SIGNALAIT; elle
+  // REFUSE. Le plat est jeté, comme un plat posé un jour d'absence: un créneau
+  // vide se voit et se comble, un lot de six jours servi rend malade.
   const meal = planWith({ cookDay: "thu", eatDay: "wed" });
   assert(
     meal.issues.some((i) => i.includes("days in the fridge")),
     JSON.stringify(meal.issues),
   );
+  assertEquals(meal.dishes.length, 0, "le plat est JETÉ, pas seulement compté");
+  assertEquals(meal.fridge_window, { violations: 1, within: 0, not_evaluated: 0 });
 });
 
-Deno.test("trois jours passent, quatre non — la borne est celle qu'on annonce", () => {
+Deno.test("JOUR DE CUISSON + 2 — décision n° 14, et le J+3 tombe", () => {
+  // ⟳ ⛔ CE TEST EST CELUI QUE LE LOT `L0-a` A FAIT ROUGIR, ET C'ÉTAIT VOULU.
+  // Il affirmait exactement l'inverse: « thu -> sun = J+3: à la limite, et ça
+  // passe ». La comparaison était `> MAX_FRIDGE_DAYS`, donc elle accordait
+  // QUATRE jours pendant que la constante en annonçait trois.
+  //
+  // Décision produit n° 14 du 2026-08-21: la conservation, c'est le JOUR DE
+  // CUISSON + 2. Cuit vendredi ⇒ mangé vendredi, samedi, dimanche; lundi est
+  // trop tard. Donc un écart de 0, 1 ou 2 — jamais 3.
   assertEquals(MAX_FRIDGE_DAYS, 3);
-  // thu -> sun = J+3: à la limite, et ça passe.
-  const ok = planWith({ cookDay: "thu", eatDay: "sun" });
+
+  // thu -> sat = J+2: le dernier jour qui tient.
+  const ok = planWith({ cookDay: "thu", eatDay: "sat" });
   assertEquals(ok.issues.filter((i) => i.includes("fridge")), []);
-  // thu -> mon = J+4: dehors.
-  const late = planWith({ cookDay: "thu", eatDay: "mon" });
+  assertEquals(ok.dishes.length, 1);
+  // ⛔ `within` NON NUL, ET C'EST LA MOITIÉ QUI COMPTE. Sans lui, « la fenêtre
+  // a tourné et rien n'a mordu » et « la fenêtre n'a pas tourné » rendraient le
+  // même `violations: 0`.
+  assertEquals(ok.fridge_window, { violations: 0, within: 1, not_evaluated: 0 });
+
+  // thu -> sun = J+3: dehors, et le plat tombe.
+  const late = planWith({ cookDay: "thu", eatDay: "sun" });
   assert(late.issues.some((i) => i.includes("fridge")), JSON.stringify(late.issues));
+  assertEquals(late.dishes.length, 0);
+  assertEquals(late.fridge_window, { violations: 1, within: 0, not_evaluated: 0 });
+});
+
+Deno.test("une casserole SANS JOUR DE CUISSON est NON ÉVALUÉE, jamais tenue", () => {
+  // ⛔ LE TROU QUE LA MUTATION A RÉVÉLÉ. Le couple était silencieusement sauté:
+  // la fenêtre ne tournait pas, et le plan sortait avec l'air d'avoir été
+  // vérifié. `not_evaluated` est ce qui sépare « rien n'a mordu » de « rien n'a
+  // été regardé », et son seuil est zéro.
+  const meal = planWith({ cookDay: "thu", eatDay: "wed", withoutSession: true });
+  assertEquals(meal.fridge_window, { violations: 0, within: 0, not_evaluated: 1 });
+  assertEquals(meal.dishes.length, 1, "on compte, on ne retire pas un repas sur une ignorance");
+});
+
+Deno.test("une occasion qui ne PUISE dans rien n'entre dans aucune population", () => {
+  // ⚠️ LA FENÊTRE NE S'APPLIQUE QU'À CE QUI EST CUISINÉ À L'AVANCE. Sur cinq
+  // jours, cinq des quinze occasions sortent du problème; les compter donnerait
+  // quinze là où dix sont en jeu.
+  const meal = planWithoutUses({ cookDay: "thu", eatDay: "wed" });
+  assertEquals(meal.fridge_window, { violations: 0, within: 0, not_evaluated: 0 });
+  assertEquals(meal.dishes.length, 1, "le plat du jour même reste servi");
 });
 
 Deno.test("une session qui déborde le temps déclaré est signalée", () => {
@@ -395,6 +456,7 @@ Deno.test("un jour de cuisine qui arrive APRÈS les repas ouvre le premier jour"
   const { userMessage } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true,
     budgetAmount: null,
     safetyConstraints: null,
+    safetyConstraintTable: null,
     body: null,
     focusAxis: null,
     dietBlock: "",
@@ -434,6 +496,7 @@ Deno.test("un jour de cuisine assez tôt n'ouvre rien du tout", () => {
   const { userMessage } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true,
     budgetAmount: null,
     safetyConstraints: null,
+    safetyConstraintTable: null,
     body: null,
     focusAxis: null,
     dietBlock: "",

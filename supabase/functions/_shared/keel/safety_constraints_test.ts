@@ -231,7 +231,13 @@ Deno.test("safety constraints are loaded OUTSIDE the LLM memory path", async () 
 // Deterministic medical validator
 // ---------------------------------------------------------------------------
 
-Deno.test("medicalConstraintTokens — only severity='medical', identifiers only", () => {
+// ⛔ S2 (2026-08-22) — CE TEST DISAIT « only severity='medical' », ET C'EST
+// EXACTEMENT LA PHRASE QUI A CHANGÉ. La ceinture couvre `medical` ET `strict`
+// (`BELT_BLOCKING_SEVERITIES`), et `shellfish/strict` — qui était ici comme
+// témoin d'EXCLUSION — est devenu un témoin d'INCLUSION. L'ancienne assertion
+// est conservée juste en dessous, retournée: `preference` reste dehors, et
+// c'est elle qui tient désormais la frontière.
+Deno.test("medicalConstraintTokens — les crans BLOQUANTS (medical + strict), identifiants seuls", () => {
   const tokens = medicalConstraintTokens([
     constraint({ id: "a", allergenRef: "peanut" }),
     constraint({ id: "b", allergenRef: "shellfish", severity: "strict" }),
@@ -245,7 +251,37 @@ Deno.test("medicalConstraintTokens — only severity='medical', identifiers only
       notes: "gluten is fine actually",
     }),
   ]);
-  assertEquals(tokens.sort(), ["peanut", "ssri", "st_johns_wort"]);
+  assertEquals(tokens.sort(), ["peanut", "shellfish", "ssri", "st_johns_wort"]);
+});
+
+// LA FRONTIÈRE, DANS LES DEUX SENS. Un test qui ne montre que ce qui entre ne
+// prouve pas qu'il existe encore quelque chose qui reste dehors.
+Deno.test("medicalConstraintTokens — `preference` reste dehors, et `diet` n'a pas de jeton", () => {
+  assertEquals(
+    medicalConstraintTokens([
+      constraint({ id: "p", allergenRef: "olive", severity: "preference" }),
+    ]),
+    [],
+  );
+  // Les 8 lignes `kind='diet'` des 14 `strict` de la base: elles portent leur
+  // régime dans `dietRef`, que `safetyConstraintTokens` ne rend jamais. Elles
+  // n'entrent donc pas sous la ceinture même élargie, et c'est voulu — armer
+  // sur le MOT « vegan » ferait rejeter la réponse qui explique le végétalisme.
+  assertEquals(
+    medicalConstraintTokens([
+      constraint({
+        id: "d",
+        kind: "diet",
+        severity: "strict",
+        allergenRef: null,
+        substanceRef: null,
+        medicationClass: null,
+        conditionRef: null,
+        dietRef: "vegan",
+      }),
+    ]),
+    [],
+  );
 });
 
 Deno.test("assertNoMedicalConstraintViolation — rejects a medical token", () => {
@@ -262,9 +298,27 @@ Deno.test("assertNoMedicalConstraintViolation — rejects a medical token", () =
   assertEquals(error.violations[0].constraintId, "c1");
 });
 
-Deno.test("assertNoMedicalConstraintViolation — non-medical severities pass through", () => {
+// ⛔ S2 — LE CAS QUI MORD, du côté `strict`. C'est le comportement NEUF, et il
+// est asserté sur la sévérité PORTÉE par la morsure, pas seulement sur le fait
+// qu'il y a une morsure: c'est cette valeur qui décide, chez l'appelant, quel
+// texte de remplacement l'élève lit.
+Deno.test("assertNoMedicalConstraintViolation — un `strict` MORD, et sa morsure porte sa sévérité", () => {
+  const error = assertThrows(
+    () =>
+      assertNoMedicalConstraintViolation("Some peanut butter.", [
+        constraint({ severity: "strict" }),
+      ]),
+    MedicalConstraintViolationError,
+  ) as MedicalConstraintViolationError;
+  assertEquals(error.violations.length, 1);
+  assertEquals(error.violations[0].token, "peanut");
+  assertEquals(error.violations[0].severity, "strict");
+});
+
+// LE CAS QUI PASSE, ET IL EST SEUL DE SON ESPÈCE MAINTENANT. Une garde qui
+// mord sur tout ressemble trait pour trait à une garde qui marche.
+Deno.test("assertNoMedicalConstraintViolation — `preference` passe, toujours", () => {
   assertNoMedicalConstraintViolation("Some peanut butter.", [
-    constraint({ severity: "strict" }),
     constraint({ severity: "preference" }),
   ]);
 });
@@ -510,7 +564,7 @@ Deno.test("le bloc de prompt porte les contraintes, et autorise à les nommer po
   const block = safetyConstraintsPromptBlock([
     constraint(),
     constraint({ id: "c2", allergenRef: "sesame", severity: "strict", kind: "intolerance" }),
-  ]);
+  ], null);
   assertEquals(typeof block, "string");
   const text = String(block);
   assertEquals(text.includes("peanut"), true);
@@ -528,8 +582,8 @@ Deno.test("le bloc de prompt distingue « rien à dire » de « lecture en panne
   // n'écrit JAMAIS « cet élève n'a aucune contrainte » dans un prompt, parce
   // qu'on ne peut pas le prouver depuis une lecture ratée. Un bloc absent est
   // muet; un bloc qui affirme l'absence serait un mensonge.
-  assertEquals(safetyConstraintsPromptBlock(null), null);
-  assertEquals(safetyConstraintsPromptBlock([]), null);
+  assertEquals(safetyConstraintsPromptBlock(null, null), null);
+  assertEquals(safetyConstraintsPromptBlock([], null), null);
   // Une contrainte sans aucun identifiant ne produit pas de ligne vide.
   assertEquals(
     safetyConstraintsPromptBlock([
@@ -540,7 +594,7 @@ Deno.test("le bloc de prompt distingue « rien à dire » de « lecture en panne
         conditionRef: null,
         dietRef: null,
       }),
-    ]),
+    ], null),
     null,
   );
 });

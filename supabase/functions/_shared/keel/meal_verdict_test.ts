@@ -44,6 +44,10 @@ function ref(over: Partial<CompositionRef> & { slug: string }): CompositionRef {
   return {
     foodGroupRef: "non_starchy_veg",
     label: over.slug,
+    // LOT 18 — la provenance par défaut d'un décor de test est le référentiel
+    // HUMAIN: c'est ce que ces cas décrivent. Un défaut à `model` ferait lire
+    // « le modèle a rempli » à toute la suite existante.
+    source: "ciqual",
     energyKcal: 100,
     proteinG: 2,
     carbsG: 10,
@@ -60,6 +64,7 @@ function ref(over: Partial<CompositionRef> & { slug: string }): CompositionRef {
     atwaterDiscount: 1,
     energyDense: false,
     unitGrams: null,
+    condimentGrams: null,
     ...over,
   } as CompositionRef;
 }
@@ -91,13 +96,14 @@ function body(over: Partial<MealBodyContext> = {}): MealBodyContext {
     gender: "male",
     latestWeight: { weekStart: "2026-08-03", value: 80 },
     latestWaist: null,
+    declaredWeightKg: null,
     restrictionFlag: false,
     ...over,
   };
 }
 
-const PER_KG = envelopeFor("fat_loss", body(), "30_44", false, null, null, null);
-const PER_PORTION = envelopeFor("fat_loss", body({ restrictionFlag: true }), "30_44", true, null, null, null);
+const PER_KG = envelopeFor("fat_loss", body(), "30_44", false, null, null, { day: null, sport: null, asked: false }, null, null);
+const PER_PORTION = envelopeFor("fat_loss", body({ restrictionFlag: true }), "30_44", true, null, null, { day: null, sport: null, asked: false }, null, null);
 
 // ---------------------------------------------------------------------------
 // L'ABSTENTION AVANT L'ERREUR
@@ -370,7 +376,7 @@ Deno.test("per_portion et corps inconnu rendent le MÊME verdict", () => {
   const flagged = verdictFor({ dishes, envelope: PER_PORTION, index: INDEX, daysCovered: 1, uncoverableSentinels: [], fixedIntakeInputs: [] });
   const unknownBody = verdictFor({
     dishes,
-    envelope: envelopeFor("fat_loss", null, null, false, null, null, null),
+    envelope: envelopeFor("fat_loss", null, null, false, null, null, { day: null, sport: null, asked: false }, null, null),
     index: INDEX,
     daysCovered: 1,
     uncoverableSentinels: [],
@@ -570,6 +576,7 @@ Deno.test("la sortie du parseur est IDENTIQUE avec et sans calcul de verdict", (
   const args = {
     doctrine: { forbidden: [], foods: { recommended: [], discouraged: [] } },
     safetyConstraints: [],
+    safetyConstraintTable: null,
     mode: "to_shop" as const,
     scope: "day" as const,
     pantry: [],
@@ -583,6 +590,8 @@ Deno.test("la sortie du parseur est IDENTIQUE avec et sans calcul de verdict", (
     dayProperties: [],
     merge: null,
     boxMemberIds: [],
+    weighedMemberIds: [],
+  boxMemberDiets: [],
   };
   const before = parseGeneratedMeal(structuredClone(payload), args);
   // Le calcul du verdict tourne ICI, entre les deux parses.

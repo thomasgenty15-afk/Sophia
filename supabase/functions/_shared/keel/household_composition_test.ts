@@ -372,11 +372,13 @@ Deno.test("sous verrou de lane, AUCUN delta n'est dimensionné", () => {
 // ---------------------------------------------------------------------------
 
 const CHILD_8: MouthBody = {
+  appetite: null,
   heightCm: 128,
   weightKg: 26,
   gender: "male",
   ageYears: 8,
   activityLevel: null,
+  activityAxes: { day: null, sport: null, asked: false },
 };
 
 Deno.test("L'ENVELOPPE DU COMPTE GAGNE TOUJOURS, y compris DÉGRADÉE", () => {
@@ -387,7 +389,7 @@ Deno.test("L'ENVELOPPE DU COMPTE GAGNE TOUJOURS, y compris DÉGRADÉE", () => {
   const e = mouthEnvelope({
     ageState: "adult",
     accountEnvelope: DEGRADED,
-    lineBody: { heightCm: 175, weightKg: 70, gender: "male", ageYears: 40, activityLevel: null },
+    lineBody: { appetite: null, heightCm: 175, weightKg: 70, gender: "male", ageYears: 40, activityLevel: null , activityAxes: { day: null, sport: null, asked: false }},
   });
   assertEquals(e, DEGRADED);
 });
@@ -448,7 +450,7 @@ Deno.test("un ÂGE INCONNU n'a pas d'enveloppe, même avec un corps complet", ()
     mouthEnvelope({
       ageState: "unknown",
       accountEnvelope: null,
-      lineBody: { heightCm: 150, weightKg: 45, gender: "female", ageYears: null, activityLevel: null },
+      lineBody: { appetite: null, heightCm: 150, weightKg: 45, gender: "female", ageYears: null, activityLevel: null , activityAxes: { day: null, sport: null, asked: false }},
     }),
     null,
   );
@@ -461,10 +463,11 @@ Deno.test("le corps de la FICHE n'achète qu'une MAINTENANCE, jamais un objectif
   const e = mouthEnvelope({
     ageState: "adult",
     accountEnvelope: null,
-    lineBody: { heightCm: 162, weightKg: 55, gender: "female", ageYears: 38, activityLevel: null },
+    lineBody: { appetite: null, heightCm: 162, weightKg: 55, gender: "female", ageYears: 38, activityLevel: null , activityAxes: { day: null, sport: null, asked: false }},
   });
   assert(e !== null && e.mode === "per_kg" && e.energy !== null);
-  const maintenance = estimatedMaintenanceKcal({ activityLevel: null,
+  const maintenance = estimatedMaintenanceKcal({ appetite: null, activityLevel: null,
+    activityAxes: { day: null, sport: null, asked: false },
     weightKg: 55,
     heightCm: 162,
     ageBand: "30_44",
@@ -518,7 +521,8 @@ Deno.test("LA CONTRE-ÉPREUVE PÉDIATRIQUE — Schofield contre Mifflin-St Jeor"
   // un enfant de huit ans, elle sous-estime lourdement son besoin: la servir
   // reviendrait à lui prescrire une restriction en croyant lui servir un besoin
   // normal — le préjudice exact que ce lot existe pour fermer, retourné.
-  const pediatric = estimatedChildMaintenanceKcal({ activityLevel: null,
+  const pediatric = estimatedChildMaintenanceKcal({ appetite: null, activityLevel: null,
+    activityAxes: { day: null, sport: null, asked: false },
     weightKg: CHILD_8.weightKg,
     ageYears: CHILD_8.ageYears,
     gender: CHILD_8.gender,
@@ -527,7 +531,8 @@ Deno.test("LA CONTRE-ÉPREUVE PÉDIATRIQUE — Schofield contre Mifflin-St Jeor"
   // elle rend `null`. C'est la première moitié de la preuve — le chemin adulte
   // est FERMÉ à un mineur, il ne se contente pas d'être découragé.
   assertEquals(
-    estimatedMaintenanceKcal({ activityLevel: null,
+    estimatedMaintenanceKcal({ appetite: null, activityLevel: null,
+      activityAxes: { day: null, sport: null, asked: false },
       weightKg: CHILD_8.weightKg,
       heightCm: CHILD_8.heightCm,
       ageBand: ageBandOf(CHILD_8.ageYears),
@@ -539,7 +544,8 @@ Deno.test("LA CONTRE-ÉPREUVE PÉDIATRIQUE — Schofield contre Mifflin-St Jeor"
   // La seconde moitié: ce qu'elle rendrait SI on la forçait, en lui donnant la
   // bande d'adulte la plus jeune. C'est le chiffre qu'un lecteur pressé aurait
   // livré.
-  const forcedMifflin = estimatedMaintenanceKcal({ activityLevel: null,
+  const forcedMifflin = estimatedMaintenanceKcal({ appetite: null, activityLevel: null,
+    activityAxes: { day: null, sport: null, asked: false },
     weightKg: CHILD_8.weightKg,
     heightCm: CHILD_8.heightCm,
     ageBand: "18_29",
@@ -574,10 +580,10 @@ Deno.test("les tranches pédiatriques suivent le découpage FAO 0-3 / 3-10 / 10-
 Deno.test("`other` prend la MOYENNE des deux jeux, jamais un repli sur `male`", () => {
   // Choisir serait assigner — et la décision porterait ici sur le corps d'un
   // enfant. Même arbitrage que Mifflin pour l'adulte.
-  const male = estimatedChildMaintenanceKcal({ activityLevel: null, weightKg: 26, ageYears: 8, gender: "male" });
-  const female = estimatedChildMaintenanceKcal({ activityLevel: null, weightKg: 26, ageYears: 8, gender: "female" });
-  const other = estimatedChildMaintenanceKcal({ activityLevel: null, weightKg: 26, ageYears: 8, gender: "other" });
-  const none = estimatedChildMaintenanceKcal({ activityLevel: null, weightKg: 26, ageYears: 8, gender: null });
+  const male = estimatedChildMaintenanceKcal({ appetite: null, activityAxes: { day: null, sport: null, asked: false }, activityLevel: null, weightKg: 26, ageYears: 8, gender: "male" });
+  const female = estimatedChildMaintenanceKcal({ appetite: null, activityAxes: { day: null, sport: null, asked: false }, activityLevel: null, weightKg: 26, ageYears: 8, gender: "female" });
+  const other = estimatedChildMaintenanceKcal({ appetite: null, activityAxes: { day: null, sport: null, asked: false }, activityLevel: null, weightKg: 26, ageYears: 8, gender: "other" });
+  const none = estimatedChildMaintenanceKcal({ appetite: null, activityAxes: { day: null, sport: null, asked: false }, activityLevel: null, weightKg: 26, ageYears: 8, gender: null });
   assert(male !== null && female !== null && other !== null && none !== null);
   assert(male !== female, "les coefficients par sexe sont identiques — banc inutile");
   assert(other > female && other < male, `other=${other} hors de [${female}, ${male}]`);

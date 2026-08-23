@@ -1,0 +1,1071 @@
+{
+  "request_id": "a4000003-0000-4000-8000-000000000003",
+  "resolved_by": "--request-id",
+  "user_id": "1e000000-0000-4000-8000-000000000012",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-19T01:14:47.203Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "b1c3d58a-4a7a-4a2d-8574-337823adb5d6",
+      "status": "attempt_start",
+      "created_at": "2026-08-19T01:11:59.673807+00:00",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 16134,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 16134,
+    "user_message_chars": 17196,
+    "user_message_truncated": false,
+    "user_message_written_chars": 17196,
+    "independent_counters": {
+      "system_prompt_chars": 16134,
+      "prompt_chars": 17196
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "88babf00-20b4-44ee-877a-b4190f9a14eb",
+    "created_at": "2026-08-19T01:14:46.618061+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "gemini",
+    "model": "gemini-3-flash-preview",
+    "http_status": 200,
+    "attempt": 2,
+    "chain_index": 1,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Zesty Morning Oats\",\n      \"title\": \"Lemon and sunflower seed porridge\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon zest\",\n          \"quantity\": \"1 tsp\"\n        },\n        {\n          \"term\": \"sunflower seeds\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1.0,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Reheat one portion of the prepared oats in a small pan with a splash of water. Stir in the lemon zest and top with sunflower seeds.\",\n      \"why\": \"A warm, energising start that respects the broken oven by using the hob.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_oats\",\n          \"servings\": 1,\n          \"box_id\": \"box_oats_marceau\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Golden Seed Butter Toast\",\n      \"title\": \"Sourdough toast with sunflower seed butter and lemon\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [\n        {\n          \"term\": \"sourdough bread\",\n          \"quantity\": \"2 slices\"\n        },\n        {\n          \"term\": \"sunflower seed butter\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1.0,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"lemon marmalade\",\n          \"quantity\": \"1 tsp\"\n        }\n      ],\n      \"method\": \"Toast the sourdough slices. Spread generously with sunflower seed butter and a thin layer of lemon marmalade.\",\n      \"why\": \"I have substituted the nut butter for sunflower seed butter to ensure the entire house remains safe for Ysoline.\",\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Zesty Morning Oats\",\n      \"title\": \"Lemon and sunflower seed porridge\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon zest\",\n          \"quantity\": \"1 tsp\"\n        },\n        {\n          \"term\": \"sunflower seeds\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1.0,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Reheat one portion of the oats in a pan. Stir in the lemon zest and sunflower seeds, ensuring no fennel-based toppings are used.\",\n      \"why\": \"A warm breakfast that avoids the oven and adheres to the fennel-free requirement.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_oats\",\n          \"servings\": 1,\n          \"box_id\": \"box_oats_ysoline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Pan-Seared Chicken and Rice\",\n      \"title\": \"Chicken thighs with garlicky green beans and rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon wedge\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1.0,\n          \"unit\": \"unit\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Reheat the chicken, rice, and green beans in a pan with a drop of water. Serve with a fresh squeeze of lemon.\",\n      \"why\": \"A large, protein-rich lunch to support muscle gain using only the hob.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_marceau\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_marceau\"\n        },\n        {\n          \"preparation_id\": \"prep_veg_lunch\",\n          \"servings\": 1,\n          \"box_id\": \"box_veg_marceau_l\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Pan-Seared Chicken and Rice\",\n      \"title\": \"Chicken thighs with garlicky green beans and rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon wedge\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1.0,\n          \"unit\": \"unit\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Reheat the components. Plate the chicken and rice first, then add the green beans on the side.\",\n      \"why\": \"A safe, celeriac-free meal plated in the specific order requested.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_bertille\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_bertille\"\n        },\n        {\n          \"preparation_id\": \"prep_veg_lunch\",\n          \"servings\": 1,\n          \"box_id\": \"box_veg_bertille_l\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Pan-Seared Chicken and Rice\",\n      \"title\": \"Chicken thighs with garlicky green beans and rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon wedge\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1.0,\n          \"unit\": \"unit\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Reheat the chicken, rice, and beans. Plate the green beans first, followed by the chicken and rice.\",\n      \"why\": \"A nut-free and fennel-free lunch that meets the vegetable-first plating requirement.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_ysoline\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_ysoline\"\n        },\n        {\n          \"preparation_id\": \"prep_veg_lunch\",\n          \"servings\": 1,\n          \"box_id\": \"box_veg_ysoline_l\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Beef and Broccoli Sizzle\",\n      \"title\": \"Stir-fried beef with ginger and broccoli\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"soy sauce\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1.0,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Toss the beef and broccoli in a hot pan with soy sauce until warmed through. Serve immediately.\",\n      \"why\": \"A warm dinner that provides a loud vegetable and high protein for muscle gain.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_marceau\"\n        },\n        {\n          \"preparation_id\": \"prep_veg_dinner\",\n          \"servings\": 1,\n          \"box_id\": \"box_veg_marceau_d\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 6\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Beef and Broccoli Sizzle\",\n      \"title\": \"Stir-fried beef with ginger and broccoli\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [\n        {\n          \"term\": \"soy sauce\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1.0,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Warm the beef and broccoli in a pan. Plate the beef first, then the broccoli.\",\n      \"why\": \"A warm, celeriac-free dinner served in Bertille's preferred order.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_bertille\"\n        },\n        {\n          \"preparation_id\": \"prep_veg_dinner\",\n          \"servings\": 1,\n          \"box_id\": \"box_veg_bertille_d\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 6\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Beef and Broccoli Sizzle\",\n      \"title\": \"Stir-fried beef with ginger and broccoli\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [\n        {\n          \"term\": \"soy sauce\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1.0,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Warm the beef and broccoli in a pan. Plate the broccoli first, then the beef.\",\n      \"why\": \"A warm, nut-free and fennel-free dinner for Ysoline.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_ysoline\"\n        },\n        {\n          \"preparation_id\": \"prep_veg_dinner\",\n          \"servings\": 1,\n          \"box_id\": \"box_veg_ysoline_d\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 6\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_rice\",\n      \"title\": \"Steamed Basmati Rice\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"basmati rice\",\n          \"quantity\": \"225 g\",\n          \"amount\": 225.0,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Rinse the rice. Boil in salted water for 10-12 minutes until tender. Drain and fluff.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_rice_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_rice_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_rice_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 150\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_chicken\",\n      \"title\": \"Pan-Seared Chicken Thighs\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"chicken thighs, boneless\",\n          \"quantity\": \"450 g\",\n          \"amount\": 450.0,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1.0,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Season chicken with salt and pepper. Sear in a hot pan with oil for 6-8 minutes per side until cooked through.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_chicken_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 130\n        },\n        {\n          \"id\": \"box_chicken_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 130\n        },\n        {\n          \"id\": \"box_chicken_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 130\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_beef\",\n      \"title\": \"Ginger Stir-Fry Beef\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"beef stir-fry strips\",\n          \"quantity\": \"450 g\",\n          \"amount\": 450.0,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"fresh ginger, grated\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1.0,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"garlic, minced\",\n          \"quantity\": \"2 cloves\"\n        }\n      ],\n      \"method\": \"Stir-fry the beef in a very hot pan with ginger and garlic for 3-4 minutes until browned.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 10,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_beef_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 130\n        },\n        {\n          \"id\": \"box_beef_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 130\n        },\n        {\n          \"id\": \"box_beef_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 130\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_veg_lunch\",\n      \"title\": \"Garlicky Green Beans\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"green beans\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300.0,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic, minced\",\n          \"quantity\": \"1 clove\"\n        }\n      ],\n      \"method\": \"Blanch the green beans in boiling water for 3 minutes, then toss in a pan with garlic for 1 minute.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 10,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_veg_bertille_l\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 90\n        },\n        {\n          \"id\": \"box_veg_marceau_l\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 90\n        },\n        {\n          \"id\": \"box_veg_ysoline_l\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 90\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_veg_dinner\",\n      \"title\": \"Steamed Broccoli Florets\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"broccoli\",\n          \"quantity\": \"2 heads\",\n          \"amount\": 2.0,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Cut broccoli into florets and steam over boiling water for 4-5 minutes until bright green and tender.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 10,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_veg_bertille_d\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 120\n        },\n        {\n          \"id\": \"box_veg_marceau_d\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 120\n        },\n        {\n          \"id\": \"box_veg_ysoline_d\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 120\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_oats\",\n      \"title\": \"Warm Base Porridge\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"rolled oats\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100.0,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"water\",\n          \"quantity\": \"400 ml\",\n          \"amount\": 400.0,\n          \"unit\": \"ml\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Simmer oats in water for 5-7 minutes until creamy. Box immediately.\",\n      \"active_minutes\": 2,\n      \"total_minutes\": 10,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_oats_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_oats_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 200\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_rice\",\n        \"prep_chicken\",\n        \"prep_beef\",\n        \"prep_veg_lunch\",\n        \"prep_veg_dinner\",\n        \"prep_oats\"\n      ],\n      \"total_minutes\": 50,\n      \"run_through\": \"Start the rice boiling. While that cooks, make the porridge and box it. Sear the chicken thighs in one pan and the beef strips in another. While the meats rest, steam the broccoli and finish the green beans. Box everything into the named portions.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"boneless chicken thighs\",\n      \"quantity\": \"450 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"beef stir-fry strips\",\n      \"quantity\": \"450 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"basmati rice\",\n      \"quantity\": \"225 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"rolled oats\",\n      \"quantity\": \"100 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"broccoli\",\n      \"quantity\": \"2 heads\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"green beans\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"lemons\",\n      \"quantity\": \"2 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"sunflower seeds\",\n      \"quantity\": \"50 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"sunflower seed butter\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"sourdough bread\",\n      \"quantity\": \"1 loaf\",\n      \"aisle\": \"other\"\n    },\n    {\n      \"term\": \"fresh ginger\",\n      \"quantity\": \"1 knob\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"garlic\",\n      \"quantity\": \"1 head\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"soy sauce\",\n      \"quantity\": \"1 bottle\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"lemon marmalade\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"portion_note\": \"Serve the chicken or beef and the rice first, then add the vegetables to the side.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"note\": \"One whole box\"\n        },\n        {\n          \"preparation_id\": \"prep_beef\",\n          \"note\": \"One whole box\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"One whole box\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"2a937736-693a-45f1-97a6-110f535ae004\",\n      \"portion_note\": \"Mix all components together on the plate.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"note\": \"One whole box\"\n        },\n        {\n          \"preparation_id\": \"prep_beef\",\n          \"note\": \"One whole box\"\n        },\n        {\n          \"preparation_id\": \"prep_oats\",\n          \"note\": \"One whole box\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"portion_note\": \"Serve the vegetables first, followed by the protein and then the rice.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"note\": \"One whole box\"\n        },\n        {\n          \"preparation_id\": \"prep_beef\",\n          \"note\": \"One whole box\"\n        },\n        {\n          \"preparation_id\": \"prep_veg_lunch\",\n          \"note\": \"One whole box\"\n        }\n      ]\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Zesty Morning Oats",
+          "title": "Lemon and sunflower seed porridge",
+          "slot": "breakfast",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "lemon zest",
+              "quantity": "1 tsp"
+            },
+            {
+              "term": "sunflower seeds",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Reheat one portion of the prepared oats in a small pan with a splash of water. Stir in the lemon zest and top with sunflower seeds.",
+          "why": "A warm, energising start that respects the broken oven by using the hob.",
+          "uses": [
+            {
+              "preparation_id": "prep_oats",
+              "servings": 1,
+              "box_id": "box_oats_marceau"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 5
+          },
+          "honours_belief_keys": []
+        },
+        {
+          "name": "Golden Seed Butter Toast",
+          "title": "Sourdough toast with sunflower seed butter and lemon",
+          "slot": "breakfast",
+          "day": "wed",
+          "for_member_id": "8917f344-51d8-4177-8c54-ff4460ef9122",
+          "ingredients": [
+            {
+              "term": "sourdough bread",
+              "quantity": "2 slices"
+            },
+            {
+              "term": "sunflower seed butter",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "lemon marmalade",
+              "quantity": "1 tsp"
+            }
+          ],
+          "method": "Toast the sourdough slices. Spread generously with sunflower seed butter and a thin layer of lemon marmalade.",
+          "why": "I have substituted the nut butter for sunflower seed butter to ensure the entire house remains safe for Ysoline.",
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": []
+        },
+        {
+          "name": "Zesty Morning Oats",
+          "title": "Lemon and sunflower seed porridge",
+          "slot": "breakfast",
+          "day": "wed",
+          "for_member_id": "db0dcc2f-a0f4-46d7-90ab-980b8be0189c",
+          "ingredients": [
+            {
+              "term": "lemon zest",
+              "quantity": "1 tsp"
+            },
+            {
+              "term": "sunflower seeds",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Reheat one portion of the oats in a pan. Stir in the lemon zest and sunflower seeds, ensuring no fennel-based toppings are used.",
+          "why": "A warm breakfast that avoids the oven and adheres to the fennel-free requirement.",
+          "uses": [
+            {
+              "preparation_id": "prep_oats",
+              "servings": 1,
+              "box_id": "box_oats_ysoline"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 5
+          },
+          "honours_belief_keys": []
+        },
+        {
+          "name": "Pan-Seared Chicken and Rice",
+          "title": "Chicken thighs with garlicky green beans and rice",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "lemon wedge",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": null
+            }
+          ],
+          "method": "Reheat the chicken, rice, and green beans in a pan with a drop of water. Serve with a fresh squeeze of lemon.",
+          "why": "A large, protein-rich lunch to support muscle gain using only the hob.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken",
+              "servings": 1,
+              "box_id": "box_chicken_marceau"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_rice_marceau"
+            },
+            {
+              "preparation_id": "prep_veg_lunch",
+              "servings": 1,
+              "box_id": "box_veg_marceau_l"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Pan-Seared Chicken and Rice",
+          "title": "Chicken thighs with garlicky green beans and rice",
+          "slot": "lunch",
+          "day": "wed",
+          "for_member_id": "8917f344-51d8-4177-8c54-ff4460ef9122",
+          "ingredients": [
+            {
+              "term": "lemon wedge",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": null
+            }
+          ],
+          "method": "Reheat the components. Plate the chicken and rice first, then add the green beans on the side.",
+          "why": "A safe, celeriac-free meal plated in the specific order requested.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken",
+              "servings": 1,
+              "box_id": "box_chicken_bertille"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_rice_bertille"
+            },
+            {
+              "preparation_id": "prep_veg_lunch",
+              "servings": 1,
+              "box_id": "box_veg_bertille_l"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Pan-Seared Chicken and Rice",
+          "title": "Chicken thighs with garlicky green beans and rice",
+          "slot": "lunch",
+          "day": "wed",
+          "for_member_id": "db0dcc2f-a0f4-46d7-90ab-980b8be0189c",
+          "ingredients": [
+            {
+              "term": "lemon wedge",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": null
+            }
+          ],
+          "method": "Reheat the chicken, rice, and beans. Plate the green beans first, followed by the chicken and rice.",
+          "why": "A nut-free and fennel-free lunch that meets the vegetable-first plating requirement.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken",
+              "servings": 1,
+              "box_id": "box_chicken_ysoline"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1,
+              "box_id": "box_rice_ysoline"
+            },
+            {
+              "preparation_id": "prep_veg_lunch",
+              "servings": 1,
+              "box_id": "box_veg_ysoline_l"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Beef and Broccoli Sizzle",
+          "title": "Stir-fried beef with ginger and broccoli",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "soy sauce",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Toss the beef and broccoli in a hot pan with soy sauce until warmed through. Serve immediately.",
+          "why": "A warm dinner that provides a loud vegetable and high protein for muscle gain.",
+          "uses": [
+            {
+              "preparation_id": "prep_beef",
+              "servings": 1,
+              "box_id": "box_beef_marceau"
+            },
+            {
+              "preparation_id": "prep_veg_dinner",
+              "servings": 1,
+              "box_id": "box_veg_marceau_d"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 6
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Beef and Broccoli Sizzle",
+          "title": "Stir-fried beef with ginger and broccoli",
+          "slot": "dinner",
+          "day": "wed",
+          "for_member_id": "8917f344-51d8-4177-8c54-ff4460ef9122",
+          "ingredients": [
+            {
+              "term": "soy sauce",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Warm the beef and broccoli in a pan. Plate the beef first, then the broccoli.",
+          "why": "A warm, celeriac-free dinner served in Bertille's preferred order.",
+          "uses": [
+            {
+              "preparation_id": "prep_beef",
+              "servings": 1,
+              "box_id": "box_beef_bertille"
+            },
+            {
+              "preparation_id": "prep_veg_dinner",
+              "servings": 1,
+              "box_id": "box_veg_bertille_d"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 6
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Beef and Broccoli Sizzle",
+          "title": "Stir-fried beef with ginger and broccoli",
+          "slot": "dinner",
+          "day": "wed",
+          "for_member_id": "db0dcc2f-a0f4-46d7-90ab-980b8be0189c",
+          "ingredients": [
+            {
+              "term": "soy sauce",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Warm the beef and broccoli in a pan. Plate the broccoli first, then the beef.",
+          "why": "A warm, nut-free and fennel-free dinner for Ysoline.",
+          "uses": [
+            {
+              "preparation_id": "prep_beef",
+              "servings": 1,
+              "box_id": "box_beef_ysoline"
+            },
+            {
+              "preparation_id": "prep_veg_dinner",
+              "servings": 1,
+              "box_id": "box_veg_ysoline_d"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 6
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_rice",
+          "title": "Steamed Basmati Rice",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "basmati rice",
+              "quantity": "225 g",
+              "amount": 225,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Rinse the rice. Boil in salted water for 10-12 minutes until tender. Drain and fluff.",
+          "active_minutes": 5,
+          "total_minutes": 20,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_rice_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_rice_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_rice_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 150
+            }
+          ]
+        },
+        {
+          "id": "prep_chicken",
+          "title": "Pan-Seared Chicken Thighs",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "chicken thighs, boneless",
+              "quantity": "450 g",
+              "amount": 450,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Season chicken with salt and pepper. Sear in a hot pan with oil for 6-8 minutes per side until cooked through.",
+          "active_minutes": 15,
+          "total_minutes": 20,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_chicken_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 130
+            },
+            {
+              "id": "box_chicken_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 130
+            },
+            {
+              "id": "box_chicken_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 130
+            }
+          ]
+        },
+        {
+          "id": "prep_beef",
+          "title": "Ginger Stir-Fry Beef",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "beef stir-fry strips",
+              "quantity": "450 g",
+              "amount": 450,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "fresh ginger, grated",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "garlic, minced",
+              "quantity": "2 cloves"
+            }
+          ],
+          "method": "Stir-fry the beef in a very hot pan with ginger and garlic for 3-4 minutes until browned.",
+          "active_minutes": 10,
+          "total_minutes": 10,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_beef_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 130
+            },
+            {
+              "id": "box_beef_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 130
+            },
+            {
+              "id": "box_beef_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 130
+            }
+          ]
+        },
+        {
+          "id": "prep_veg_lunch",
+          "title": "Garlicky Green Beans",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "green beans",
+              "quantity": "300 g",
+              "amount": 300,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "garlic, minced",
+              "quantity": "1 clove"
+            }
+          ],
+          "method": "Blanch the green beans in boiling water for 3 minutes, then toss in a pan with garlic for 1 minute.",
+          "active_minutes": 5,
+          "total_minutes": 10,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_veg_bertille_l",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 90
+            },
+            {
+              "id": "box_veg_marceau_l",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 90
+            },
+            {
+              "id": "box_veg_ysoline_l",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 90
+            }
+          ]
+        },
+        {
+          "id": "prep_veg_dinner",
+          "title": "Steamed Broccoli Florets",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "broccoli",
+              "quantity": "2 heads",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Cut broccoli into florets and steam over boiling water for 4-5 minutes until bright green and tender.",
+          "active_minutes": 5,
+          "total_minutes": 10,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_veg_bertille_d",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 120
+            },
+            {
+              "id": "box_veg_marceau_d",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 120
+            },
+            {
+              "id": "box_veg_ysoline_d",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 120
+            }
+          ]
+        },
+        {
+          "id": "prep_oats",
+          "title": "Warm Base Porridge",
+          "servings_made": 2,
+          "ingredients": [
+            {
+              "term": "rolled oats",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "water",
+              "quantity": "400 ml",
+              "amount": 400,
+              "unit": "ml",
+              "state": null
+            }
+          ],
+          "method": "Simmer oats in water for 5-7 minutes until creamy. Box immediately.",
+          "active_minutes": 2,
+          "total_minutes": 10,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_oats_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 200
+            },
+            {
+              "id": "box_oats_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 200
+            }
+          ]
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_rice",
+            "prep_chicken",
+            "prep_beef",
+            "prep_veg_lunch",
+            "prep_veg_dinner",
+            "prep_oats"
+          ],
+          "total_minutes": 50,
+          "run_through": "Start the rice boiling. While that cooks, make the porridge and box it. Sear the chicken thighs in one pan and the beef strips in another. While the meats rest, steam the broccoli and finish the green beans. Box everything into the named portions."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "boneless chicken thighs",
+          "quantity": "450 g",
+          "aisle": "protein"
+        },
+        {
+          "term": "beef stir-fry strips",
+          "quantity": "450 g",
+          "aisle": "protein"
+        },
+        {
+          "term": "basmati rice",
+          "quantity": "225 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "rolled oats",
+          "quantity": "100 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "broccoli",
+          "quantity": "2 heads",
+          "aisle": "produce"
+        },
+        {
+          "term": "green beans",
+          "quantity": "300 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "lemons",
+          "quantity": "2 units",
+          "aisle": "produce"
+        },
+        {
+          "term": "sunflower seeds",
+          "quantity": "50 g",
+          "aisle": "pantry"
+        },
+        {
+          "term": "sunflower seed butter",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "sourdough bread",
+          "quantity": "1 loaf",
+          "aisle": "other"
+        },
+        {
+          "term": "fresh ginger",
+          "quantity": "1 knob",
+          "aisle": "produce"
+        },
+        {
+          "term": "garlic",
+          "quantity": "1 head",
+          "aisle": "produce"
+        },
+        {
+          "term": "soy sauce",
+          "quantity": "1 bottle",
+          "aisle": "pantry"
+        },
+        {
+          "term": "lemon marmalade",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        }
+      ],
+      "member_portions": [
+        {
+          "member_id": "8917f344-51d8-4177-8c54-ff4460ef9122",
+          "portion_note": "Serve the chicken or beef and the rice first, then add the vegetables to the side.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken",
+              "note": "One whole box"
+            },
+            {
+              "preparation_id": "prep_beef",
+              "note": "One whole box"
+            },
+            {
+              "preparation_id": "prep_rice",
+              "note": "One whole box"
+            }
+          ]
+        },
+        {
+          "member_id": "2a937736-693a-45f1-97a6-110f535ae004",
+          "portion_note": "Mix all components together on the plate.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken",
+              "note": "One whole box"
+            },
+            {
+              "preparation_id": "prep_beef",
+              "note": "One whole box"
+            },
+            {
+              "preparation_id": "prep_oats",
+              "note": "One whole box"
+            }
+          ]
+        },
+        {
+          "member_id": "db0dcc2f-a0f4-46d7-90ab-980b8be0189c",
+          "portion_note": "Serve the vegetables first, followed by the protein and then the rice.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken",
+              "note": "One whole box"
+            },
+            {
+              "preparation_id": "prep_beef",
+              "note": "One whole box"
+            },
+            {
+              "preparation_id": "prep_veg_lunch",
+              "note": "One whole box"
+            }
+          ]
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "candidates": [
+        {
+          "index": 0,
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Zesty Morning Oats\",\n      \"title\": \"Lemon and sunflower seed porridge\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon zest\",\n          \"quantity\": \"1 tsp\"\n        },\n        {\n          \"term\": \"sunflower seeds\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1.0,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Reheat one portion of the prepared oats in a small pan with a splash of water. Stir in the lemon zest and top with sunflower seeds.\",\n      \"why\": \"A warm, energising start that respects the broken oven by using the hob.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_oats\",\n          \"servings\": 1,\n          \"box_id\": \"box_oats_marceau\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Golden Seed Butter Toast\",\n      \"title\": \"Sourdough toast with sunflower seed butter and lemon\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [\n        {\n          \"term\": \"sourdough bread\",\n          \"quantity\": \"2 slices\"\n        },\n        {\n          \"term\": \"sunflower seed butter\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1.0,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"lemon marmalade\",\n          \"quantity\": \"1 tsp\"\n        }\n      ],\n      \"method\": \"Toast the sourdough slices. Spread generously with sunflower seed butter and a thin layer of lemon marmalade.\",\n      \"why\": \"I have substituted the nut butter for sunflower seed butter to ensure the entire house remains safe for Ysoline.\",\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Zesty Morning Oats\",\n      \"title\": \"Lemon and sunflower seed porridge\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon zest\",\n          \"quantity\": \"1 tsp\"\n        },\n        {\n          \"term\": \"sunflower seeds\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1.0,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Reheat one portion of the oats in a pan. Stir in the lemon zest and sunflower seeds, ensuring no fennel-based toppings are used.\",\n      \"why\": \"A warm breakfast that avoids the oven and adheres to the fennel-free requirement.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_oats\",\n          \"servings\": 1,\n          \"box_id\": \"box_oats_ysoline\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Pan-Seared Chicken and Rice\",\n      \"title\": \"Chicken thighs with garlicky green beans and rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon wedge\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1.0,\n          \"unit\": \"unit\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Reheat the chicken, rice, and green beans in a pan with a drop of water. Serve with a fresh squeeze of lemon.\",\n      \"why\": \"A large, protein-rich lunch to support muscle gain using only the hob.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_marceau\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_marceau\"\n        },\n        {\n          \"preparation_id\": \"prep_veg_lunch\",\n          \"servings\": 1,\n          \"box_id\": \"box_veg_marceau_l\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Pan-Seared Chicken and Rice\",\n      \"title\": \"Chicken thighs with garlicky green beans and rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon wedge\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1.0,\n          \"unit\": \"unit\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Reheat the components. Plate the chicken and rice first, then add the green beans on the side.\",\n      \"why\": \"A safe, celeriac-free meal plated in the specific order requested.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_bertille\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_bertille\"\n        },\n        {\n          \"preparation_id\": \"prep_veg_lunch\",\n          \"servings\": 1,\n          \"box_id\": \"box_veg_bertille_l\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Pan-Seared Chicken and Rice\",\n      \"title\": \"Chicken thighs with garlicky green beans and rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon wedge\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1.0,\n          \"unit\": \"unit\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Reheat the chicken, rice, and beans. Plate the green beans first, followed by the chicken and rice.\",\n      \"why\": \"A nut-free and fennel-free lunch that meets the vegetable-first plating requirement.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_ysoline\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_ysoline\"\n        },\n        {\n          \"preparation_id\": \"prep_veg_lunch\",\n          \"servings\": 1,\n          \"box_id\": \"box_veg_ysoline_l\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Beef and Broccoli Sizzle\",\n      \"title\": \"Stir-fried beef with ginger and broccoli\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"soy sauce\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1.0,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Toss the beef and broccoli in a hot pan with soy sauce until warmed through. Serve immediately.\",\n      \"why\": \"A warm dinner that provides a loud vegetable and high protein for muscle gain.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_marceau\"\n        },\n        {\n          \"preparation_id\": \"prep_veg_dinner\",\n          \"servings\": 1,\n          \"box_id\": \"box_veg_marceau_d\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 6\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Beef and Broccoli Sizzle\",\n      \"title\": \"Stir-fried beef with ginger and broccoli\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"ingredients\": [\n        {\n          \"term\": \"soy sauce\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1.0,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Warm the beef and broccoli in a pan. Plate the beef first, then the broccoli.\",\n      \"why\": \"A warm, celeriac-free dinner served in Bertille's preferred order.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_bertille\"\n        },\n        {\n          \"preparation_id\": \"prep_veg_dinner\",\n          \"servings\": 1,\n          \"box_id\": \"box_veg_bertille_d\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 6\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Beef and Broccoli Sizzle\",\n      \"title\": \"Stir-fried beef with ginger and broccoli\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"for_member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"ingredients\": [\n        {\n          \"term\": \"soy sauce\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1.0,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Warm the beef and broccoli in a pan. Plate the broccoli first, then the beef.\",\n      \"why\": \"A warm, nut-free and fennel-free dinner for Ysoline.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_ysoline\"\n        },\n        {\n          \"preparation_id\": \"prep_veg_dinner\",\n          \"servings\": 1,\n          \"box_id\": \"box_veg_ysoline_d\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 6\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_rice\",\n      \"title\": \"Steamed Basmati Rice\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"basmati rice\",\n          \"quantity\": \"225 g\",\n          \"amount\": 225.0,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Rinse the rice. Boil in salted water for 10-12 minutes until tender. Drain and fluff.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_rice_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_rice_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_rice_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 150\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_chicken\",\n      \"title\": \"Pan-Seared Chicken Thighs\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"chicken thighs, boneless\",\n          \"quantity\": \"450 g\",\n          \"amount\": 450.0,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1.0,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Season chicken with salt and pepper. Sear in a hot pan with oil for 6-8 minutes per side until cooked through.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_chicken_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 130\n        },\n        {\n          \"id\": \"box_chicken_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 130\n        },\n        {\n          \"id\": \"box_chicken_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 130\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_beef\",\n      \"title\": \"Ginger Stir-Fry Beef\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"beef stir-fry strips\",\n          \"quantity\": \"450 g\",\n          \"amount\": 450.0,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"fresh ginger, grated\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1.0,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"garlic, minced\",\n          \"quantity\": \"2 cloves\"\n        }\n      ],\n      \"method\": \"Stir-fry the beef in a very hot pan with ginger and garlic for 3-4 minutes until browned.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 10,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_beef_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 130\n        },\n        {\n          \"id\": \"box_beef_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 130\n        },\n        {\n          \"id\": \"box_beef_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 130\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_veg_lunch\",\n      \"title\": \"Garlicky Green Beans\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"green beans\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300.0,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"garlic, minced\",\n          \"quantity\": \"1 clove\"\n        }\n      ],\n      \"method\": \"Blanch the green beans in boiling water for 3 minutes, then toss in a pan with garlic for 1 minute.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 10,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_veg_bertille_l\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 90\n        },\n        {\n          \"id\": \"box_veg_marceau_l\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 90\n        },\n        {\n          \"id\": \"box_veg_ysoline_l\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 90\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_veg_dinner\",\n      \"title\": \"Steamed Broccoli Florets\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"broccoli\",\n          \"quantity\": \"2 heads\",\n          \"amount\": 2.0,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Cut broccoli into florets and steam over boiling water for 4-5 minutes until bright green and tender.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 10,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_veg_bertille_d\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 120\n        },\n        {\n          \"id\": \"box_veg_marceau_d\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 120\n        },\n        {\n          \"id\": \"box_veg_ysoline_d\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 120\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_oats\",\n      \"title\": \"Warm Base Porridge\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"rolled oats\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100.0,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"water\",\n          \"quantity\": \"400 ml\",\n          \"amount\": 400.0,\n          \"unit\": \"ml\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Simmer oats in water for 5-7 minutes until creamy. Box immediately.\",\n      \"active_minutes\": 2,\n      \"total_minutes\": 10,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_oats_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 200\n        },\n        {\n          \"id\": \"box_oats_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 200\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_rice\",\n        \"prep_chicken\",\n        \"prep_beef\",\n        \"prep_veg_lunch\",\n        \"prep_veg_dinner\",\n        \"prep_oats\"\n      ],\n      \"total_minutes\": 50,\n      \"run_through\": \"Start the rice boiling. While that cooks, make the porridge and box it. Sear the chicken thighs in one pan and the beef strips in another. While the meats rest, steam the broccoli and finish the green beans. Box everything into the named portions.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"boneless chicken thighs\",\n      \"quantity\": \"450 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"beef stir-fry strips\",\n      \"quantity\": \"450 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"basmati rice\",\n      \"quantity\": \"225 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"rolled oats\",\n      \"quantity\": \"100 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"broccoli\",\n      \"quantity\": \"2 heads\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"green beans\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"lemons\",\n      \"quantity\": \"2 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"sunflower seeds\",\n      \"quantity\": \"50 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"sunflower seed butter\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"sourdough bread\",\n      \"quantity\": \"1 loaf\",\n      \"aisle\": \"other\"\n    },\n    {\n      \"term\": \"fresh ginger\",\n      \"quantity\": \"1 knob\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"garlic\",\n      \"quantity\": \"1 head\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"soy sauce\",\n      \"quantity\": \"1 bottle\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"lemon marmalade\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"portion_note\": \"Serve the chicken or beef and the rice first, then add the vegetables to the side.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"note\": \"One whole box\"\n        },\n        {\n          \"preparation_id\": \"prep_beef\",\n          \"note\": \"One whole box\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"One whole box\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"2a937736-693a-45f1-97a6-110f535ae004\",\n      \"portion_note\": \"Mix all components together on the plate.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"note\": \"One whole box\"\n        },\n        {\n          \"preparation_id\": \"prep_beef\",\n          \"note\": \"One whole box\"\n        },\n        {\n          \"preparation_id\": \"prep_oats\",\n          \"note\": \"One whole box\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"portion_note\": \"Serve the vegetables first, followed by the protein and then the rice.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"note\": \"One whole box\"\n        },\n        {\n          \"preparation_id\": \"prep_beef\",\n          \"note\": \"One whole box\"\n        },\n        {\n          \"preparation_id\": \"prep_veg_lunch\",\n          \"note\": \"One whole box\"\n        }\n      ]\n    }\n  ]\n}",
+                "thoughtSignature": "[redacted]"
+              }
+            ]
+          },
+          "finishReason": "STOP"
+        }
+      ],
+      "responseId": "VgOFatXBBbK6xN8PnqX18A4",
+      "modelVersion": "gemini-3-flash-preview",
+      "usageMetadata": {
+        "serviceTier": "standard",
+        "totalTokenCount": 21301,
+        "promptTokenCount": 8635,
+        "cacheTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 6606
+          }
+        ],
+        "thoughtsTokenCount": 5881,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 8635
+          }
+        ],
+        "candidatesTokenCount": 6785,
+        "cachedContentTokenCount": 6606
+      }
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-19T01:11:59.673807+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T01:12:14.38526+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T01:12:15.02694+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:12:28.736606+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T01:12:29.319438+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:12:43.295176+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T01:12:43.835216+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:12:47.229594+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:12:47.235076+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:12:47.238171+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:13:47.288515+00:00",
+      "status": "timeout_or_abort",
+      "outcome": "error",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": "Signal timed out.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:13:47.302085+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 1,
+      "chain_index": 2,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:13:47.819883+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 1,
+      "chain_index": 2,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:13:52.426827+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 2,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:13:53.215197+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 2,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:13:57.832589+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:13:57.843935+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:13:57.857741+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:14:46.618061+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

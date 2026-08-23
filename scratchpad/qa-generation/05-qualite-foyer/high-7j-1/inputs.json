@@ -1,0 +1,189 @@
+{
+    "roster": [
+        {
+            "body": {
+                "gender": "female",
+                "height_cm": 166.0,
+                "weight_kg": 61.0,
+                "activity_level": "on_feet"
+            },
+            "diet": "omnivore",
+            "goal": "fat_loss",
+            "role": "owner",
+            "dislikes": [
+            ],
+            "age_state": "adult",
+            "allergies": [
+            ],
+            "away_days": [
+            ],
+            "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+            "first_name": "Roxane",
+            "has_account": true,
+            "eating_rhythm": [
+                {
+                    "size": "medium",
+                    "slot": "lunch"
+                },
+                {
+                    "size": "large",
+                    "slot": "dinner"
+                }
+            ]
+        },
+        {
+            "body": {
+                "gender": "female",
+                "height_cm": 122.0,
+                "weight_kg": 23.0,
+                "activity_level": "on_feet"
+            },
+            "diet": "omnivore",
+            "goal": null,
+            "role": "member",
+            "dislikes": [
+                "mushroom"
+            ],
+            "age_state": "minor",
+            "allergies": [
+            ],
+            "away_days": [
+            ],
+            "member_id": "5fd38cfd-3895-4152-92a2-e62f9b7fc74e",
+            "first_name": "Zoe",
+            "has_account": false,
+            "eating_rhythm": [
+                {
+                    "size": "medium",
+                    "slot": "lunch"
+                },
+                {
+                    "size": "medium",
+                    "slot": "dinner"
+                }
+            ]
+        },
+        {
+            "body": {
+                "gender": "female",
+                "height_cm": 160.0,
+                "weight_kg": 57.0,
+                "activity_level": "sedentary"
+            },
+            "diet": "vegan",
+            "goal": null,
+            "role": "member",
+            "dislikes": [
+            ],
+            "age_state": "adult",
+            "allergies": [
+                "gluten"
+            ],
+            "away_days": [
+            ],
+            "member_id": "86129e3c-2f50-480f-a359-077165b6232b",
+            "first_name": "Lubna",
+            "has_account": false,
+            "eating_rhythm": [
+                {
+                    "size": "medium",
+                    "slot": "lunch"
+                },
+                {
+                    "size": "medium",
+                    "slot": "dinner"
+                }
+            ]
+        },
+        {
+            "body": {
+                "gender": "male",
+                "height_cm": 186.0,
+                "weight_kg": 88.0,
+                "activity_level": "trains_hard"
+            },
+            "diet": "omnivore",
+            "goal": "muscle_gain",
+            "role": "member",
+            "dislikes": [
+            ],
+            "age_state": "adult",
+            "allergies": [
+            ],
+            "away_days": [
+                {
+                    "day": "wed",
+                    "kind": "eating_out",
+                    "slots": [
+                        "lunch"
+                    ],
+                    "source": "household"
+                },
+                {
+                    "day": "thu",
+                    "kind": "eating_out",
+                    "slots": [
+                        "lunch"
+                    ],
+                    "source": "household"
+                },
+                {
+                    "day": "fri",
+                    "kind": "eating_out",
+                    "slots": [
+                        "lunch"
+                    ],
+                    "source": "household"
+                }
+            ],
+            "member_id": "12362957-32c9-43a5-82ef-66b8d5732171",
+            "first_name": "Ivar",
+            "has_account": false,
+            "eating_rhythm": [
+                {
+                    "size": "large",
+                    "slot": "lunch"
+                },
+                {
+                    "size": "large",
+                    "slot": "dinner"
+                }
+            ]
+        }
+    ],
+    "window": {
+        "starts_on": "2026-08-19",
+        "duration_days": 7
+    },
+    "asked_at": "2026-08-19T09:10:27.66523+00:00",
+    "owner_goal": "fat_loss",
+    "request_id": "hi000001-0000-4000-8000-000000000001",
+    "household_id": "9e90b53d-2ed5-4d25-8682-4cdd5532d07e",
+    "cooking_shape_asked": "one_session",
+    "practical_constraints": {
+        "variety": "varied",
+        "cook_days": [
+            "wed",
+            "sat"
+        ],
+        "diet_asked": true,
+        "budget_amount": 95,
+        "eating_rhythm": [
+            {
+                "size": "medium",
+                "slot": "lunch"
+            },
+            {
+                "size": "large",
+                "slot": "dinner"
+            }
+        ],
+        "cooking_time_min": 50,
+        "kitchen_equipment": [
+            "stovetop",
+            "microwave",
+            "blender"
+        ],
+        "recipe_difficulty": "simple"
+    }
+}

@@ -287,6 +287,152 @@ Deno.test("disarmed with no constraints and no doctrine", () => {
   assertEquals(result.reason, "disarmed_no_constraints");
 });
 
+// ---------------------------------------------------------------------------
+// AGENT 2V — LA CEINTURE DÉSARMÉE QUI ANNONÇAIT UN CONTRÔLE RÉUSSI
+// ---------------------------------------------------------------------------
+//
+// `null` = « je n'ai pas pu lire la table » (le `catch` muet de
+// `generate-meal-v1:887-891`). `[]` = « la table dit qu'il n'y a rien ». Les
+// deux rendaient le même verdict pour un élève sans coach — et, pour un élève
+// AVEC coach, le `null` ressortait `clean`, c'est-à-dire une affirmation
+// positive de contrôle sur un texte jamais confronté.
+//
+// LES TROIS VERDICTS SONT ÉPROUVÉS ICI, dont celui qu'on ajoute, et la seule
+// variable qui bouge d'un cas à l'autre est `safetyConstraints`.
+
+/** La doctrine de la fixture: un coach QUI A des lignes rouges. */
+const COACH_WITH_RED_LINES = DOCTRINE;
+
+Deno.test("2V — trois verdicts, une seule variable: la table lue, vide, ou injoignable", () => {
+  const text = "A bowl of oats with berries.";
+
+  // ① LUE ET PLEINE, rien ne mord → `clean` se mérite.
+  assertEquals(
+    applyKeelOutputLocks({
+      text,
+      isKeelStudent: true,
+      safetyConstraints: [constraint()],
+      doctrine: COACH_WITH_RED_LINES,
+    }).reason,
+    "clean",
+  );
+
+  // ② LUE ET VIDE, coach sans rien → il n'y avait rien à vérifier.
+  assertEquals(
+    applyKeelOutputLocks({
+      text,
+      isKeelStudent: true,
+      safetyConstraints: [],
+      doctrine: null,
+    }).reason,
+    "disarmed_no_constraints",
+  );
+
+  // ③ INJOIGNABLE → le verdict neuf, et il n'est ni l'un ni l'autre.
+  const unreadable = applyKeelOutputLocks({
+    text,
+    isKeelStudent: true,
+    safetyConstraints: null,
+    doctrine: COACH_WITH_RED_LINES,
+  });
+  assertEquals(unreadable.reason, "disarmed_constraints_unreadable");
+});
+
+Deno.test("2V — SANS doctrine non plus, « rien à vérifier » et « rien pu lire » divergent", () => {
+  // L'autre porte de sortie de la fonction, et elle rendait le même
+  // `disarmed_no_constraints` pour deux états opposés: une table LUE qui ne
+  // porte rien, et une table qu'on n'a pas su ouvrir. Le premier est un fait
+  // sur l'élève, le second est une panne — et seul le second demande qu'on
+  // aille voir.
+  const readEmpty = applyKeelOutputLocks({
+    text: "A bowl of oats with berries.",
+    isKeelStudent: true,
+    safetyConstraints: [],
+    doctrine: null,
+  });
+  const unread = applyKeelOutputLocks({
+    text: "A bowl of oats with berries.",
+    isKeelStudent: true,
+    safetyConstraints: null,
+    doctrine: null,
+  });
+  assertEquals(readEmpty.reason, "disarmed_no_constraints");
+  assertEquals(unread.reason, "disarmed_constraints_unreadable");
+});
+
+Deno.test("2V — un élève à coach À LIGNES ROUGES avec table injoignable ne ressort PLUS `clean`", () => {
+  // LE DÉFAUT, dans sa forme exacte. La condition n°2 exige LES TROIS listes
+  // vides; `forbidden` ne l'est pas, donc le `null` traversait tout et sortait
+  // `clean`. C'est le cas normal du produit, pas un cas limite.
+  const result = applyKeelOutputLocks({
+    text: "Add a spoon of peanut butter to your morning oats.",
+    isKeelStudent: true,
+    safetyConstraints: null,
+    doctrine: COACH_WITH_RED_LINES,
+  });
+  assertEquals(result.reason, "disarmed_constraints_unreadable");
+  assert(result.reason !== "clean");
+  assert(result.reason !== "disarmed_no_constraints");
+});
+
+Deno.test("2V — le champ ABSENT vaut le champ `null`: un paramètre optionnel n'est pas une garde", () => {
+  const omitted = applyKeelOutputLocks({
+    text: "Add a spoon of peanut butter to your morning oats.",
+    isKeelStudent: true,
+    doctrine: COACH_WITH_RED_LINES,
+  });
+  assertEquals(omitted.reason, "disarmed_constraints_unreadable");
+});
+
+Deno.test("2V — le verdict neuf ne DESSERRE ni ne DURCIT rien: même texte, même sort chez l'appelant", () => {
+  // ⚠️ CE TEST TIENT LE PÉRIMÈTRE DU LOT. Le verdict rend l'observabilité
+  // honnête; il ne change pas ce qui part à l'élève.
+  const text = "Add a spoon of peanut butter to your morning oats.";
+  const result = applyKeelOutputLocks({
+    text,
+    isKeelStudent: true,
+    safetyConstraints: null,
+    doctrine: COACH_WITH_RED_LINES,
+  });
+  // 1. Le texte sort intact, comme avant.
+  assertEquals(result.text, text);
+  assertEquals(result.tokens, []);
+  // 2. Le prédicat des TROIS appelants de production le laisse passer, comme
+  //    avant. `meal_generation.ts:4676`, `week_plan_generation.ts:841`.
+  //    Un préfixe autre que `disarmed` aurait vidé le plan — un durcissement
+  //    de comportement produit, qui n'appartient pas à ce lot.
+  assert(result.reason === "clean" || result.reason.startsWith("disarmed"));
+});
+
+Deno.test("2V — la table injoignable NE désarme PAS le verrou de doctrine", () => {
+  // La contre-épreuve, et elle est la moitié qui compte: sans elle, un verdict
+  // « je n'ai pas pu contrôler » pourrait masquer un lot qui a cessé de
+  // contrôler quoi que ce soit. La moitié DOCTRINE, elle, avait toute sa
+  // matière — elle doit mordre exactement comme avant.
+  const result = applyKeelOutputLocks({
+    text: "Try 6 petits repas spread through the day.",
+    isKeelStudent: true,
+    safetyConstraints: null,
+    doctrine: COACH_WITH_RED_LINES,
+  });
+  assertEquals(result.reason, "blocked_coach_interdit");
+  assertEquals(result.text, DOCTRINE_BLOCK_FALLBACK_EN);
+});
+
+Deno.test("2V — une table LUE ET VIDE chez un coach à lignes rouges reste `clean`", () => {
+  // La symétrique: le verdict neuf doit distinguer `null` de `[]`, pas
+  // repeindre en gris tout ce qui n'a pas de contrainte. Un élève qui n'a
+  // simplement rien déclaré A ÉTÉ vérifié — contre une liste vide, ce qui est
+  // le résultat correct — et son tour doit rester lisible comme tel.
+  const result = applyKeelOutputLocks({
+    text: "A bowl of oats with berries.",
+    isKeelStudent: true,
+    safetyConstraints: [],
+    doctrine: COACH_WITH_RED_LINES,
+  });
+  assertEquals(result.reason, "clean");
+});
+
 Deno.test("disarmed on empty text", () => {
   assertEquals(applyKeelOutputLocks({ text: "  ", isKeelStudent: true }).reason, "disarmed_empty_text");
 });

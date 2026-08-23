@@ -20,6 +20,8 @@ import {
   buildCompositionIndex,
   type CompositionIndex,
   type CompositionRef,
+  COMPOSITION_SOURCES,
+  type CompositionSource,
   YIELD_CLASSES,
   type YieldClass,
 } from "./food_composition.ts";
@@ -59,6 +61,17 @@ function toRef(row: Record<string, unknown>): CompositionRef | null {
     slug,
     foodGroupRef: String(row.food_group_ref ?? "") as FoodGroupRef,
     label: String(row.label ?? slug),
+    // LA PROVENANCE, LUE ET PAS DEVINÉE. Le CHECK SQL n'autorise que trois
+    // valeurs; une quatrième (ou un `null` d'une ligne écrite avant le CHECK)
+    // retombe sur `manual` — c'est-à-dire « une main humaine », le repli qui
+    // ne peut PAS gonfler le compteur du sas ni celui du modèle. Se tromper
+    // dans l'autre sens ferait croire que le lot 18 remplit le référentiel
+    // alors qu'il ne fait rien.
+    source: (COMPOSITION_SOURCES as readonly string[]).includes(
+        String(row.source ?? ""),
+      )
+      ? String(row.source) as CompositionSource
+      : "manual",
     energyKcal: energy,
     proteinG: readNumber(row.protein_g),
     carbsG: readNumber(row.carbs_g),
@@ -77,6 +90,10 @@ function toRef(row: Record<string, unknown>): CompositionRef | null {
     atwaterDiscount: readNumber(row.atwater_discount) ?? 1.0,
     energyDense: row.energy_dense === true,
     unitGrams: readNumber(row.unit_grams),
+    // La masse conventionnelle du condiment (lot 0-C). Illisible ⇒ `null`,
+    // c'est-à-dire « pas un condiment »: le repli est l'ABSTENTION, jamais une
+    // masse par défaut. Une colonne mal lue ne doit pas se mettre à peser.
+    condimentGrams: readNumber(row.condiment_grams),
   };
 }
 
@@ -152,10 +169,10 @@ export async function loadCompositionIndex(
     fetchAll(
       db,
       "food_composition_refs",
-      "slug, food_group_ref, label, energy_kcal, protein_g, carbs_g, fat_g, " +
+      "slug, food_group_ref, label, source, energy_kcal, protein_g, carbs_g, fat_g, " +
         "fiber_g, omega3_marine, iron_source, calcium_source, iodine_source, " +
         "zinc_source, b12_source, folate_source, yield_class, " +
-        "atwater_discount, energy_dense, unit_grams",
+        "atwater_discount, energy_dense, unit_grams, condiment_grams",
     ),
     fetchAll(db, "food_composition_aliases", "alias, slug"),
   ]);

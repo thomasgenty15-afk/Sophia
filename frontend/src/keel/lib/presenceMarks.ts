@@ -298,17 +298,40 @@ export function parseWorkLunch(raw: unknown): WorkLunch | null {
   };
 }
 
-/** Ce que la réponse écrit en base. L'inverse exact de `parseWorkLunch`. */
+/**
+ * Ce que la réponse écrit en base. L'inverse exact de `parseWorkLunch`.
+ *
+ * ⚠️ « PAS ENCORE RÉPONDU » S'ÉCRIT PAR UNE CLÉ ABSENTE, JAMAIS PAR `null`.
+ * `keel_household_set_member_work_lunch` refuse `bad_work_lunch` dès que
+ * `jsonb_typeof(p_work_lunch -> 'microwave')` n'est pas `boolean` — et un
+ * `null` JavaScript traverse `JSON.stringify` en `null` JSON, dont le
+ * `jsonb_typeof` vaut `'null'`, pas `'boolean'`. Une clé absente, elle, rend
+ * SQL NULL et passe la garde.
+ *
+ * Mesuré le 2026-08-18 à l'écran (`/app/setup` §3, carte du déjeuner) :
+ *   · « oui » puis « dehors »  ⟶ `bad_work_lunch`, RIEN n'est écrit.
+ *     `mode='outside'` n'était donc atteignable par AUCUN écran, alors que
+ *     c'est le seul mode qui produise un effet (le pré-remplissage
+ *     `away_days.kind='eating_out'` de la migration 20260818120000 §3).
+ *   · « oui » seul, et « oui » + « gamelle » avant la question du micro-ondes
+ *     ⟶ même refus, rendu à l'écran par « We could not read that answer. »
+ *     alors que la base accepte explicitement une réponse à moitié descendue
+ *     (elle en fait `v_mode := null`, sans pré-remplissage).
+ * Seul `gamelle + micro-ondes répondu` passait, c'est-à-dire une branche sur
+ * quatre.
+ *
+ * On garde l'intention d'origine — le micro-ondes ne part QUE pour la gamelle,
+ * pour ne pas laisser traîner une contrainte de réchauffage sur un repas que le
+ * plan ne compose pas — mais on l'écrit en n'émettant pas la clé.
+ */
 export function workLunchPayload(answer: WorkLunch): Record<string, unknown> {
   if (!answer.atWork) return { at_work: false };
-  return {
-    at_work: true,
-    mode: answer.mode,
-    // On n'émet le micro-ondes QUE pour la gamelle: le garder sur « dehors »
-    // laisserait traîner une contrainte de réchauffage sur un repas que le plan
-    // ne compose pas, et un lecteur finirait par la lire.
-    microwave: answer.mode === "lunchbox" ? answer.microwave : null,
-  };
+  const payload: Record<string, unknown> = { at_work: true };
+  if (answer.mode !== null) payload.mode = answer.mode;
+  if (answer.mode === "lunchbox" && answer.microwave !== null) {
+    payload.microwave = answer.microwave;
+  }
+  return payload;
 }
 
 /**

@@ -1,0 +1,961 @@
+{
+  "request_id": "dc1326d5-a813-4c9e-9a17-266a99b35c30",
+  "resolved_by": "--request-id",
+  "user_id": "1a000000-0000-4000-8000-000000000001",
+  "source": "generate-meal-v1",
+  "exported_at": "2026-08-18T21:42:17.059Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "503eca6b-7233-40bf-a161-eedd58cc6521",
+      "status": "attempt_start",
+      "created_at": "2026-08-18T21:38:40.458667+00:00",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 14382,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 14382,
+    "user_message_chars": 10820,
+    "user_message_truncated": false,
+    "user_message_written_chars": 10820,
+    "independent_counters": {
+      "system_prompt_chars": 14382,
+      "prompt_chars": 10820
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "d6041221-5ad7-401b-a60a-53ceade8eef1",
+    "created_at": "2026-08-18T21:41:04.778203+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "openai",
+    "model": "gpt-5.6-sol",
+    "http_status": 200,
+    "attempt": 1,
+    "chain_index": 0,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Smoky chickpea breakfast toast\",\n      \"title\": \"Chickpeas, tomatoes and wholemeal toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"tinned chickpeas, drained\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"ripe tomatoes, chopped\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"wholemeal bread confirmed safe for your allergy\",\n          \"quantity\": \"1 slice\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": null\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"half a teaspoon\",\n          \"amount\": 0.5,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Crush the chickpeas with the lemon juice, smoked paprika and pepper. Fold in the tomatoes and spoon over the bread.\",\n      \"why\": \"It gives your small breakfast a clear protein anchor without creating an extra cooking job.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"three_real_meals_anchor_the_day\",\n        \"protein_and_something_that_grew\"\n      ]\n    },\n    {\n      \"name\": \"Smoky chickpea rice bowl\",\n      \"title\": \"Smoky chickpeas, courgette and basmati rice\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Spoon one freshly cooked portion of rice into a bowl, add one portion of smoky chickpeas and finish with the lemon juice.\",\n      \"why\": \"The first Wednesday session gives you a built plate tonight and prepares Thursday's large lunch at the same time.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_chickpeas\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_basmati_rice\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 3\n      },\n      \"honours_belief_keys\": [\n        \"three_real_meals_anchor_the_day\",\n        \"protein_and_something_that_grew\"\n      ]\n    },\n    {\n      \"name\": \"Peppered mackerel crispbreads\",\n      \"title\": \"Smoked mackerel, cucumber and rye crispbreads\",\n      \"slot\": \"breakfast\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"plain smoked mackerel\",\n          \"quantity\": \"80 g\",\n          \"amount\": 80,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"cucumber, sliced\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"rye crispbreads confirmed safe for your allergy\",\n          \"quantity\": \"2 crispbreads\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": null\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Top the crispbreads with flaked mackerel and cucumber, then squeeze over the lemon and add pepper.\",\n      \"why\": \"This is a quick protein-led breakfast for the morning before your chaotic evening.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"three_real_meals_anchor_the_day\",\n        \"protein_and_something_that_grew\"\n      ]\n    },\n    {\n      \"name\": \"Harissa-style crunch wrap\",\n      \"title\": \"Smoky chickpeas, rice, cabbage and cucumber wrap\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"wholemeal tortilla confirmed safe for your allergy\",\n          \"quantity\": \"1 large tortilla\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": null\n        },\n        {\n          \"term\": \"red cabbage, finely sliced\",\n          \"quantity\": \"80 g\",\n          \"amount\": 80,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"cucumber, cut into sticks\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Use the chickpeas and rice cold from the fridge. Toss the cabbage and cucumber with lemon, pile everything onto the tortilla and roll tightly.\",\n      \"why\": \"The crunchy wrap turns Wednesday's batch into a different, substantial lunch with no Thursday cooking.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_chickpeas\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_basmati_rice\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 7\n      },\n      \"honours_belief_keys\": [\n        \"three_real_meals_anchor_the_day\",\n        \"protein_and_something_that_grew\"\n      ]\n    },\n    {\n      \"name\": \"Proper pan-roast salmon\",\n      \"title\": \"Pan-roasted salmon, crushed potatoes and green beans\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Plate one freshly cooked portion of salmon, potatoes and beans, then squeeze over the lemon. Refrigerate the second portion promptly for Friday.\",\n      \"why\": \"The hob gives you the proper roast character you wanted while the compact session fits around your late meetings.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_pan_roast_salmon\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 3\n      },\n      \"honours_belief_keys\": [\n        \"three_real_meals_anchor_the_day\",\n        \"protein_and_something_that_grew\"\n      ]\n    },\n    {\n      \"name\": \"Sardine tomato toast\",\n      \"title\": \"Sardines, tomatoes and wholemeal toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"tinned sardines in spring water, drained\",\n          \"quantity\": \"90 g\",\n          \"amount\": 90,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"ripe tomatoes, sliced\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"wholemeal bread confirmed safe for your allergy\",\n          \"quantity\": \"1 slice\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": null\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Mash the sardines with the lemon juice and pepper, spoon them over the bread and add the sliced tomatoes.\",\n      \"why\": \"It keeps Friday breakfast small and practical while still beginning with a whole protein food.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"three_real_meals_anchor_the_day\",\n        \"protein_and_something_that_grew\"\n      ]\n    },\n    {\n      \"name\": \"Lemony salmon potato salad\",\n      \"title\": \"Salmon, potatoes, green beans, cucumber and tomatoes\",\n      \"slot\": \"lunch\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"cucumber, chopped\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"ripe tomatoes, chopped\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 teaspoon\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Flake the cold salmon and break up the potatoes. Toss them with the beans, cucumber, tomatoes, lemon juice, olive oil and pepper.\",\n      \"why\": \"Thursday's pan roast becomes a fresh, large lunch rather than a repeat of the previous night's plate.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_pan_roast_salmon\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 7\n      },\n      \"honours_belief_keys\": [\n        \"three_real_meals_anchor_the_day\",\n        \"protein_and_something_that_grew\"\n      ]\n    },\n    {\n      \"name\": \"Tuna chickpea summer plate\",\n      \"title\": \"Tuna, chickpeas, tomatoes, cabbage and wholemeal bread\",\n      \"slot\": \"dinner\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"tinned tuna in spring water, drained\",\n          \"quantity\": \"110 g\",\n          \"amount\": 110,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"tinned chickpeas, drained\",\n          \"quantity\": \"120 g\",\n          \"amount\": 120,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"ripe tomatoes, chopped\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red cabbage, finely sliced\",\n          \"quantity\": \"80 g\",\n          \"amount\": 80,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"wholemeal bread confirmed safe for your allergy\",\n          \"quantity\": \"2 slices\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": null\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 teaspoon\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Mix the tuna, chickpeas, tomatoes and cabbage with the lemon juice, olive oil and pepper. Serve with the bread.\",\n      \"why\": \"This no-cook built plate closes the stretch without forcing an unnecessary batch or leaving surplus food.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"three_real_meals_anchor_the_day\",\n        \"protein_and_something_that_grew\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_smoky_chickpeas\",\n      \"title\": \"Smoky harissa-style chickpeas\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"tinned chickpeas, drained\",\n          \"quantity\": \"480 g\",\n          \"amount\": 480,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"onion, finely chopped\",\n          \"quantity\": \"1 onion\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"courgette, diced\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"tinned chopped tomatoes\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"tomato purée\",\n          \"quantity\": \"1 tablespoon\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"2 teaspoons\",\n          \"amount\": 2,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"chilli flakes\",\n          \"quantity\": \"half a teaspoon\",\n          \"amount\": 0.5,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tablespoon\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"water\",\n          \"quantity\": \"100 ml\",\n          \"amount\": 100,\n          \"unit\": \"ml\",\n          \"state\": null\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Heat the oil in a saucepan and soften the onion for 5 minutes. Add the courgette, smoked paprika and chilli flakes; cook for 3 minutes. Stir in the tomato purée, chopped tomatoes, water and chickpeas, then simmer briskly for 15 minutes until thick. Season and divide into two portions.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\"\n    },\n    {\n      \"id\": \"prep_basmati_rice\",\n      \"title\": \"Basmati rice\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"basmati rice\",\n          \"quantity\": \"120 g dry\",\n          \"amount\": 120,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"water\",\n          \"quantity\": \"240 ml\",\n          \"amount\": 240,\n          \"unit\": \"ml\",\n          \"state\": null\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Rinse the rice, place it in a covered saucepan with the water and salt, and bring to the boil. Reduce the heat and cook for 10 minutes, then turn off the heat and leave covered for 5 minutes. Serve one portion immediately and cool the second promptly before refrigerating.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\"\n    },\n    {\n      \"id\": \"prep_pan_roast_salmon\",\n      \"title\": \"Pan-roasted salmon, potatoes and beans\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"salmon fillets\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"new potatoes, halved\",\n          \"quantity\": \"500 g\",\n          \"amount\": 500,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"green beans, trimmed\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"frozen peas\",\n          \"quantity\": \"160 g\",\n          \"amount\": 160,\n          \"unit\": \"g\",\n          \"state\": null\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 teaspoon\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tablespoon\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Boil the potatoes in salted water for 15 minutes, adding the green beans and peas for the final 4 minutes. Drain, crush the potatoes lightly and season the vegetables. Rub the salmon with smoked paprika and pepper. Heat the oil in a frying pan and cook the salmon for 4 to 5 minutes on the first side and 3 to 4 minutes on the second, until just cooked. Divide everything into two portions and refrigerate the second promptly.\",\n      \"active_minutes\": 20,\n      \"total_minutes\": 35,\n      \"cook_on\": \"thu\"\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_smoky_chickpeas\",\n        \"prep_basmati_rice\"\n      ],\n      \"total_minutes\": 35,\n      \"run_through\": \"This is the extra cooking day before your usual Thursday session. Start the rice first. While it cooks, chop the onion and courgette and start the chickpea pan. Leave the rice covered while the chickpeas simmer. Plate one portion of each for dinner, then cool and refrigerate the other portions promptly for Thursday lunch.\"\n    },\n    {\n      \"day\": \"thu\",\n      \"preparation_ids\": [\n        \"prep_pan_roast_salmon\"\n      ],\n      \"total_minutes\": 35,\n      \"run_through\": \"Fit this session in before the late meetings rather than leaving it for the chaotic evening. Put the potatoes on first, trim the beans while they boil, then season the salmon. Add the beans and peas to the potato pan near the end and pan-roast the salmon alongside. Plate one portion and refrigerate the second promptly for Friday lunch.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"ripe tomatoes\",\n      \"quantity\": \"450 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"lemon\",\n      \"quantity\": \"3\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"cucumber\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red cabbage\",\n      \"quantity\": \"160 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"onion\",\n      \"quantity\": \"1\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"courgette\",\n      \"quantity\": \"200 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"new potatoes\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"green beans\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"plain smoked mackerel\",\n      \"quantity\": \"80 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"salmon fillets\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"tinned sardines in spring water\",\n      \"quantity\": \"1 tin yielding 90 g drained\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"tinned tuna in spring water\",\n      \"quantity\": \"1 tin yielding 110 g drained\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"wholemeal bread confirmed safe for your allergy\",\n      \"quantity\": \"4 slices\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"rye crispbreads confirmed safe for your allergy\",\n      \"quantity\": \"2\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"wholemeal tortilla confirmed safe for your allergy\",\n      \"quantity\": \"1 large\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"tinned chopped tomatoes\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"tomato purée\",\n      \"quantity\": \"1 tablespoon\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"chilli flakes\",\n      \"quantity\": \"half a teaspoon\",\n      \"aisle\": \"pantry\"\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Smoky chickpea breakfast toast",
+          "title": "Chickpeas, tomatoes and wholemeal toast",
+          "slot": "breakfast",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "tinned chickpeas, drained",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "ripe tomatoes, chopped",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "wholemeal bread confirmed safe for your allergy",
+              "quantity": "1 slice",
+              "amount": 1,
+              "unit": "unit",
+              "state": null
+            },
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "half a teaspoon",
+              "amount": 0.5,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "black pepper",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Crush the chickpeas with the lemon juice, smoked paprika and pepper. Fold in the tomatoes and spoon over the bread.",
+          "why": "It gives your small breakfast a clear protein anchor without creating an extra cooking job.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "three_real_meals_anchor_the_day",
+            "protein_and_something_that_grew"
+          ]
+        },
+        {
+          "name": "Smoky chickpea rice bowl",
+          "title": "Smoky chickpeas, courgette and basmati rice",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Spoon one freshly cooked portion of rice into a bowl, add one portion of smoky chickpeas and finish with the lemon juice.",
+          "why": "The first Wednesday session gives you a built plate tonight and prepares Thursday's large lunch at the same time.",
+          "uses": [
+            {
+              "preparation_id": "prep_smoky_chickpeas",
+              "servings": 1
+            },
+            {
+              "preparation_id": "prep_basmati_rice",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 3
+          },
+          "honours_belief_keys": [
+            "three_real_meals_anchor_the_day",
+            "protein_and_something_that_grew"
+          ]
+        },
+        {
+          "name": "Peppered mackerel crispbreads",
+          "title": "Smoked mackerel, cucumber and rye crispbreads",
+          "slot": "breakfast",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "plain smoked mackerel",
+              "quantity": "80 g",
+              "amount": 80,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "cucumber, sliced",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "rye crispbreads confirmed safe for your allergy",
+              "quantity": "2 crispbreads",
+              "amount": 2,
+              "unit": "unit",
+              "state": null
+            },
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "black pepper",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Top the crispbreads with flaked mackerel and cucumber, then squeeze over the lemon and add pepper.",
+          "why": "This is a quick protein-led breakfast for the morning before your chaotic evening.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "three_real_meals_anchor_the_day",
+            "protein_and_something_that_grew"
+          ]
+        },
+        {
+          "name": "Harissa-style crunch wrap",
+          "title": "Smoky chickpeas, rice, cabbage and cucumber wrap",
+          "slot": "lunch",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "wholemeal tortilla confirmed safe for your allergy",
+              "quantity": "1 large tortilla",
+              "amount": 1,
+              "unit": "unit",
+              "state": null
+            },
+            {
+              "term": "red cabbage, finely sliced",
+              "quantity": "80 g",
+              "amount": 80,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "cucumber, cut into sticks",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Use the chickpeas and rice cold from the fridge. Toss the cabbage and cucumber with lemon, pile everything onto the tortilla and roll tightly.",
+          "why": "The crunchy wrap turns Wednesday's batch into a different, substantial lunch with no Thursday cooking.",
+          "uses": [
+            {
+              "preparation_id": "prep_smoky_chickpeas",
+              "servings": 1
+            },
+            {
+              "preparation_id": "prep_basmati_rice",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 7
+          },
+          "honours_belief_keys": [
+            "three_real_meals_anchor_the_day",
+            "protein_and_something_that_grew"
+          ]
+        },
+        {
+          "name": "Proper pan-roast salmon",
+          "title": "Pan-roasted salmon, crushed potatoes and green beans",
+          "slot": "dinner",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Plate one freshly cooked portion of salmon, potatoes and beans, then squeeze over the lemon. Refrigerate the second portion promptly for Friday.",
+          "why": "The hob gives you the proper roast character you wanted while the compact session fits around your late meetings.",
+          "uses": [
+            {
+              "preparation_id": "prep_pan_roast_salmon",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 3
+          },
+          "honours_belief_keys": [
+            "three_real_meals_anchor_the_day",
+            "protein_and_something_that_grew"
+          ]
+        },
+        {
+          "name": "Sardine tomato toast",
+          "title": "Sardines, tomatoes and wholemeal toast",
+          "slot": "breakfast",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "tinned sardines in spring water, drained",
+              "quantity": "90 g",
+              "amount": 90,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "ripe tomatoes, sliced",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "wholemeal bread confirmed safe for your allergy",
+              "quantity": "1 slice",
+              "amount": 1,
+              "unit": "unit",
+              "state": null
+            },
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "black pepper",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Mash the sardines with the lemon juice and pepper, spoon them over the bread and add the sliced tomatoes.",
+          "why": "It keeps Friday breakfast small and practical while still beginning with a whole protein food.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "three_real_meals_anchor_the_day",
+            "protein_and_something_that_grew"
+          ]
+        },
+        {
+          "name": "Lemony salmon potato salad",
+          "title": "Salmon, potatoes, green beans, cucumber and tomatoes",
+          "slot": "lunch",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "cucumber, chopped",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "ripe tomatoes, chopped",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 teaspoon",
+              "amount": 1,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "black pepper",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Flake the cold salmon and break up the potatoes. Toss them with the beans, cucumber, tomatoes, lemon juice, olive oil and pepper.",
+          "why": "Thursday's pan roast becomes a fresh, large lunch rather than a repeat of the previous night's plate.",
+          "uses": [
+            {
+              "preparation_id": "prep_pan_roast_salmon",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 7
+          },
+          "honours_belief_keys": [
+            "three_real_meals_anchor_the_day",
+            "protein_and_something_that_grew"
+          ]
+        },
+        {
+          "name": "Tuna chickpea summer plate",
+          "title": "Tuna, chickpeas, tomatoes, cabbage and wholemeal bread",
+          "slot": "dinner",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "tinned tuna in spring water, drained",
+              "quantity": "110 g",
+              "amount": 110,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "tinned chickpeas, drained",
+              "quantity": "120 g",
+              "amount": 120,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "ripe tomatoes, chopped",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "red cabbage, finely sliced",
+              "quantity": "80 g",
+              "amount": 80,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "wholemeal bread confirmed safe for your allergy",
+              "quantity": "2 slices",
+              "amount": 2,
+              "unit": "unit",
+              "state": null
+            },
+            {
+              "term": "lemon",
+              "quantity": "half a lemon",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 teaspoon",
+              "amount": 1,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "black pepper",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Mix the tuna, chickpeas, tomatoes and cabbage with the lemon juice, olive oil and pepper. Serve with the bread.",
+          "why": "This no-cook built plate closes the stretch without forcing an unnecessary batch or leaving surplus food.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "three_real_meals_anchor_the_day",
+            "protein_and_something_that_grew"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_smoky_chickpeas",
+          "title": "Smoky harissa-style chickpeas",
+          "servings_made": 2,
+          "ingredients": [
+            {
+              "term": "tinned chickpeas, drained",
+              "quantity": "480 g",
+              "amount": 480,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "onion, finely chopped",
+              "quantity": "1 onion",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "courgette, diced",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "tinned chopped tomatoes",
+              "quantity": "400 g",
+              "amount": 400,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "tomato purée",
+              "quantity": "1 tablespoon",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "2 teaspoons",
+              "amount": 2,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "chilli flakes",
+              "quantity": "half a teaspoon",
+              "amount": 0.5,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tablespoon",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "water",
+              "quantity": "100 ml",
+              "amount": 100,
+              "unit": "ml",
+              "state": null
+            },
+            {
+              "term": "salt",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "black pepper",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Heat the oil in a saucepan and soften the onion for 5 minutes. Add the courgette, smoked paprika and chilli flakes; cook for 3 minutes. Stir in the tomato purée, chopped tomatoes, water and chickpeas, then simmer briskly for 15 minutes until thick. Season and divide into two portions.",
+          "active_minutes": 15,
+          "total_minutes": 30,
+          "cook_on": "wed"
+        },
+        {
+          "id": "prep_basmati_rice",
+          "title": "Basmati rice",
+          "servings_made": 2,
+          "ingredients": [
+            {
+              "term": "basmati rice",
+              "quantity": "120 g dry",
+              "amount": 120,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "water",
+              "quantity": "240 ml",
+              "amount": 240,
+              "unit": "ml",
+              "state": null
+            },
+            {
+              "term": "salt",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Rinse the rice, place it in a covered saucepan with the water and salt, and bring to the boil. Reduce the heat and cook for 10 minutes, then turn off the heat and leave covered for 5 minutes. Serve one portion immediately and cool the second promptly before refrigerating.",
+          "active_minutes": 5,
+          "total_minutes": 20,
+          "cook_on": "wed"
+        },
+        {
+          "id": "prep_pan_roast_salmon",
+          "title": "Pan-roasted salmon, potatoes and beans",
+          "servings_made": 2,
+          "ingredients": [
+            {
+              "term": "salmon fillets",
+              "quantity": "300 g",
+              "amount": 300,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "new potatoes, halved",
+              "quantity": "500 g",
+              "amount": 500,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "green beans, trimmed",
+              "quantity": "300 g",
+              "amount": 300,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "frozen peas",
+              "quantity": "160 g",
+              "amount": 160,
+              "unit": "g",
+              "state": null
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "1 teaspoon",
+              "amount": 1,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tablespoon",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "salt",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            },
+            {
+              "term": "black pepper",
+              "quantity": "a pinch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Boil the potatoes in salted water for 15 minutes, adding the green beans and peas for the final 4 minutes. Drain, crush the potatoes lightly and season the vegetables. Rub the salmon with smoked paprika and pepper. Heat the oil in a frying pan and cook the salmon for 4 to 5 minutes on the first side and 3 to 4 minutes on the second, until just cooked. Divide everything into two portions and refrigerate the second promptly.",
+          "active_minutes": 20,
+          "total_minutes": 35,
+          "cook_on": "thu"
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_smoky_chickpeas",
+            "prep_basmati_rice"
+          ],
+          "total_minutes": 35,
+          "run_through": "This is the extra cooking day before your usual Thursday session. Start the rice first. While it cooks, chop the onion and courgette and start the chickpea pan. Leave the rice covered while the chickpeas simmer. Plate one portion of each for dinner, then cool and refrigerate the other portions promptly for Thursday lunch."
+        },
+        {
+          "day": "thu",
+          "preparation_ids": [
+            "prep_pan_roast_salmon"
+          ],
+          "total_minutes": 35,
+          "run_through": "Fit this session in before the late meetings rather than leaving it for the chaotic evening. Put the potatoes on first, trim the beans while they boil, then season the salmon. Add the beans and peas to the potato pan near the end and pan-roast the salmon alongside. Plate one portion and refrigerate the second promptly for Friday lunch."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "ripe tomatoes",
+          "quantity": "450 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "lemon",
+          "quantity": "3",
+          "aisle": "produce"
+        },
+        {
+          "term": "cucumber",
+          "quantity": "300 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "red cabbage",
+          "quantity": "160 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "onion",
+          "quantity": "1",
+          "aisle": "produce"
+        },
+        {
+          "term": "courgette",
+          "quantity": "200 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "new potatoes",
+          "quantity": "500 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "green beans",
+          "quantity": "300 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "plain smoked mackerel",
+          "quantity": "80 g",
+          "aisle": "protein"
+        },
+        {
+          "term": "salmon fillets",
+          "quantity": "300 g",
+          "aisle": "protein"
+        },
+        {
+          "term": "tinned sardines in spring water",
+          "quantity": "1 tin yielding 90 g drained",
+          "aisle": "protein"
+        },
+        {
+          "term": "tinned tuna in spring water",
+          "quantity": "1 tin yielding 110 g drained",
+          "aisle": "protein"
+        },
+        {
+          "term": "wholemeal bread confirmed safe for your allergy",
+          "quantity": "4 slices",
+          "aisle": "grains"
+        },
+        {
+          "term": "rye crispbreads confirmed safe for your allergy",
+          "quantity": "2",
+          "aisle": "grains"
+        },
+        {
+          "term": "wholemeal tortilla confirmed safe for your allergy",
+          "quantity": "1 large",
+          "aisle": "grains"
+        },
+        {
+          "term": "tinned chopped tomatoes",
+          "quantity": "400 g",
+          "aisle": "pantry"
+        },
+        {
+          "term": "tomato purée",
+          "quantity": "1 tablespoon",
+          "aisle": "pantry"
+        },
+        {
+          "term": "chilli flakes",
+          "quantity": "half a teaspoon",
+          "aisle": "pantry"
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "id": "resp_010d3f03420bf61e006a84d0e12dd08191b3f23a2a590adca8",
+      "text": {
+        "format": {
+          "type": "json_object"
+        },
+        "verbosity": "medium"
+      },
+      "user": null,
+      "error": null,
+      "model": "gpt-5.6-sol",
+      "store": true,
+      "tools": [],
+      "top_p": 0.98,
+      "usage": {
+        "input_tokens": 6183,
+        "total_tokens": 15244,
+        "output_tokens": 9061,
+        "input_tokens_details": {
+          "cached_tokens": 3615,
+          "cache_write_tokens": 2565
+        },
+        "output_tokens_details": {
+          "reasoning_tokens": 3828
+        }
+      },
+      "object": "response",
+      "output": [
+        {
+          "id": "rs_010d3f03420bf61e006a84d0e1fd8c81918ff3491b838a8c72",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhNFwTFjvstrXkdU5ry2lYRokjPwoi6Mef5JgNAOFdXTJqb9wR6n4aJvpH4Pxt--z6oiAkTANc-yrcO_a1xV8xcabeBc42ZMC7rJgoGl5MxGyWYyeMpKcddl4z9Mzt2MjsDHKNqDkL-S38Typad12a5Ufg6jZF6q5BFIsIjF9tw7ityshmfdneJTR9nP_ptIR3IenRD_4FxG2_aFmRZBb-BAM0iNhx3J-O0tHTkvf251CqOI96g6G-rIYFQmA_XTDmokufzUuk80x7nn2UmwKg9cHO9SrpvqT4eUKfVs-pkiTMDgk4bmetLia8pjjOxtJN7Xeyg1F8w-pW4W-NPKLleDuX9i-T5rYtrlRuUXRk-0lELIvdPaEqG9ay2ssdk4A9xQrAkniAiQR42No5eCvv2D52-qbnPLXh8ggWo_s5fObo2GohI_PlSvZ1R1YXRcmYoQzhW7EKbFkq5oLTWF-NL1-qc8g2qL9qcWkAfo3yzRY8gcoYDOZW9Sm2NbJl4NDgOJvLKux2s7qrCTBhCqnH_IWz_1bKS3auEwPY5tgTFNwrgBSCtgCL3Yfmx71ui_upMSp-HjlGzWgvzhakYOWg0XBMBnOskWJ7uzK5S9aF6cfVKKtNRyGE0en3dJfLfUgivt3ZOwpDQTufVGXMWcqe_WrHX-bgpxpTOPwSjOvKN6vsDKogetYex7D9g0f9PVx17BcLbF_poJ7OytJgqsAsoNSavkoKptPNwIvm9OUsMcFrNCFqxxkXcP_JTuHyjDBTI5EnwWZdFr8vzkFlX_mCFnQbdLd_Iq-8nK8sDeiFsCXc0XcGQve9yA7CdLTtFH6AYldi2r-xjcvoNJ20XSod9v_U9LYa6qV0axHKo_vpD18akDPjrEppPsREyZlagZV5aCOkrB_a_x9BhojajU5oA91SJu96NYxeqFsTTDcJ0ngq-vwBsAF3Dz4X56FAWa-oi4bf_VyTf0LKltZcj9M0AohaIyjl0Eaj5y2e9BDeuNy7wPN6oS8PNeZrvLkbNaySkfim6I_OySl2KiGXaxTdYtCREajYAEestbQnr7orHjpcNQ_LyhufLPYFOU9wzHDeny635xzFNKG9NvVpLYuebUtQpAtxqIvrXhQNpZGWAH3ldNskz5yIQMsVgPEBewGZ4RnFWSjj4WGBDAVEwyhXqi8dNDDhL-Sgf4PmAe8Nsn0EMngzUibUue9cwm1YFqUaQ9zW7k_n46gXUHr7YpV79IFnDoWZrLpGrWDfRhtr6t2JGzVIo7mK6PcL9FWOD5uxQieqwViL9490_2pKYfQU8SIhvxC6mo3zZei66EQ3YGKIUcxUbA9ySnFvdZh6NJXM6XprSsaQipY9QatDMqjpTtlKiUP4U7VkOJjYkHCYzbln-MTiQNqE3e7eHyK48sYywGuo1JmYpDP2v3bfjA4DqSCWfI4l3k-LBeuCiabGPniaM3oeExEUXM8TA9rPeAsF7skGXIISps5aITg2M6JHClOdI-IjYz-bFNYKksKzKe69V0TyJx9o0WOUBCkQzqxkBLXgaVmpBtMqpsTwzORrFaDn_bgicg5ATR7pTWGhEKD3x6X1jIgWjtFdVAobVR8R__zWja3q9kWH0Ja_b8FIoejio2YXcbS-uuTPkgwTIU5MAi8Etf3USOAIOCFn79McdsJBMoQzSWgd8vnDRnQcc06RbuXDhmMetmnbd8AtbvYucso50oZENRfZj5mIzPZQ5BGQIVJ5ff667RLlpejaJQwzqL7WjDETlmETss3T-cUS7gwE7xS149SVIs6OGD6QdWGQAzHLXaxHv631tM6wRyfAdJ5T0PbLJa3V8Y3f5kAsxGWc6bXUti1RkwxfL3Aa6WtB_GhAaU6lomD6cGLjWlRnBXLcVoB0SBBvTavl_PLEBWX0BREPSycHa2DKV95JzlcfMdWZ2kX3HzPvX8e_0lNrvQiBDRiAOnrzmR2Wf3mk7nn7l9L2pMQT3BsOzk6oj_hTzqXwF55mLoJbirxd7rzXIi7QWHm_zxEy1fY0Ao658jk-tlKN2xV5xj0Gv0lC5WYuDxO3-71QIdTWTq_cJOhzU9gUU29Lfwii1qn7Ljs__au3lMqeawGR6AhlMbwgCiQL6oAF_uifBM81s2KmIMg_zzWh1poWxTO2cKQmxgRpca6khPtVWmLHZDw7HhBNDsj7iEm_Wy_DhI2djJn9r0xEfBon7GxTe9VZHGp2AYitFA1gct8fVKxId0yAwlSyqaBA-rVb11faxuSFVhI52PFE0g753TtuF_sdxUicKzDY6bOxT8mjbBTmPeWSfhoQtjfXYGitstND50kXDxz29j5nCwi7O3VKZhgWhXcGBiqiWHm3roxCYgnR1COS85xXv5LRhPRwqQ-2qfWPCjfC8RRbVVHEDqQSvCADtmySwKF_ZjPvXTVKSp-KMr9FAkGx0tlY5GAWVs3eYXolymfMFAmbkxdT9lytWShl9vYpQWm9MhkBjDUU4VBk-kh4S1MwaRjAdbZEb_UuwKtjmEu98WhQIAP--SvPEgqRNJt0HVT1YwfMd8RzIrIzTQ3heQo-8ANnkSqDtovk0z3URIZptUhD-CN2AizXG0efLCbkZ2jEqgJk9wQF0JXIWJUhe6Tl1z12Wp0J36z1aWnQtmIMju4BlUiCMZS9EuCYzCm3o-ACt6WHysAyuUin86wMDrvep8OdP7u6gz5ey6sOHRTJwap0MerYzK9-KCLzh9RJOOpQOCuSLfDy7al2G2GREbaUm0GmXFE8P1TXEOmu19qownFr5VAkH3PIbIoezCTcR-Td42uPvMwV-akV-zwtSA7oriNz2AGXlZRfZ_DsG3EdAdxb1JLjWZC6OYYsHndC7TQh82y2X7RwYOdvTuoK7H0Qt8EDgKqwqZjly4G7zNXKq6Uk7dVzpBDqCazEk-lNW4o41xBeJlorXNqI1s70NMaGjzMya48LLXmcgIvHa0HJr0gsyoR3RNkW5sgf_LKY6QMFjoaQfyIC5me_ppZmoZuKT1e3kkIgvv9CQ4RySaT4GUejqKLwXwBNNeWunWFzMH4caikKSA6Oi3tievNDCG6u_QYco1wRhNVp3FMSIOl5s5npMoSpl3PfbX3Ub3i4w3eFdRqi8n2a4NApS6WJ4VivQM1w4uoPPotVyFZud618KGi9twTcQEaQ849041YdByf5sKZTxVbc580NVNoLOcyB-pRVTjtuGTYazgSAoRglwrlDx6luQEc_7X1r-hIuTsVpqi4cbTTm4I0egYp-PLXxWzTk-ZiEIIUcidr3rKm68uBvHGRDVXdXU9npvqJko3OffalgI72-6OV0YSMgtOVY9CdDx5MIBBF4YyxUHEy2EREDW6vKDq7JVeKcVszMSJSq_lkPIHv4KH3BImBmmvYItUaW5WHzyuLoS71Enk21CC0h7oOR6wc4hTnLl49d-b2RRTKPsQMZfj55uf1YS-5RNv3MLWwwcFIwEbIIFBisYJK7wZeymRO8z9ufGD3pF4UbHpc1WCrCthfLN72l4LwwBIurqNwlnBo5lDHZipumLs5SkFS-WfIRFUSASleAcbKR29F9cLY8fyX-Pvu7HPO8-eBwP7TfGAAqhf7B-mAwBrwgkfDvT6YJVD_EQxa0OMf6gIXDauv7lUJxFob9lrXj04OVp16jAtLbYJs7FyzcF1wQFwf9EvQ6zuVvIwlzjEs1UAU30zgNOs5En0fKsKfY2ZFX0y44uqhG_8hN9tw1p8IzAQ1w_SNXmDVDdrq2emIcCjMWY_U4CqpAonfeK3JamL3j6ZJLA1SXvnMPTpKxanmmTXLd-EfLejeWdsGOQYlQ9cCpS8FuNMtBwRDSDNM1DNwDI-MerVi82cZiVhq4THIV9V2cAic6rqErFCoZC7pkfKigoX07k6LFBJg8Wn6mRVWKjBjblOkGLgSX8qRLZ1tXv2pkTasm-UP06hJ3w5_0CJgDP-AN2HnK4J-vTXZhApIgsTkwk0Yby4EPxxnZFeuj7ZqCMbH2DLXHlri7rpn1JK8uO4r4iipVISS41tRJb2Fg6j0Tuone4cXiqW8YE9coFCxjPKdfE7dn14LbnhrFvimm-fREJXycSzmrYjCZnM61baS2tywwi99ODclfrRTkJxuNap1J5CQeSMbZKsPHp9ohL3YPGL5UYReMvvnYwXsP0BJgdiAtQQdG7NXt2lf-vqRTEBv0D66T_fLhUFiRB_odVrzIMpi6EdyyoP52tieHgerMbC8qL6YA70QpObxO2v0t4853TPi8YsG1Lg-nn2qkVsdjtTbgmXJA1Ocdy11-d7qwVZtoTLL9eLT-7iZEqeMiqGKvqe7gHtpVV5F9CRuuCIGuIyhCUkzCgXjoZFENsybER0Sam--zJRJYd0Edv-KlwAXipUwG_d-AHb1EgvdLKLzJqKUz4kgxmovUTOV6X5m3xwm3CxvPXbSp_PAnLVxecQswA-b6u8ljfttvIY="
+        },
+        {
+          "id": "rs_010d3f03420bf61e006a84d0edb24481918174f81bb3628c76",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhNFwAtDbqYlrMxvEld_P5BpfplS15vIRHaju1ZeVL1FbrdG-COW2MEDDohywscwcPZM54Zhi5JVZZwl5_9QpVEw_ppJme3c0ksQpOJEcVznOhwKXNAOyblohMSXxDm6j92bqZzDm80d-soJB_QLPJYjVdw98EWryOPagUyfBPEHIZDAeOD5eOdsqqGMc_E4mVvFRoaLy1rIXXIT3Ed8AgSTI4k8UYTKVmtdkMUe0vIobhSzX9Hx2x20VMBxlhp2DQ83-K3QUJngWuWiXIdoftO667PHRdSiU7LHSBwWNVttwJ8QUYOB46SAu9942TZGVJT1_ODk-Kq7karmf8UPxqUSybXQkbvg3VStS3If9QLOeQYeWp1jIkLAiQkAEFUhfBxvs5tKsj1xNurEGIUD8bVfOwmiW5sPZNtoL1YbQBiqvxOw20GBCRTQBo8AAzQ9iOS24F1OjNYZaKpba99jqrHeAkBDxjOZC8GiQDFR2V6Gv94qVb07kdpXsbEHdqVUwQsfNygTOVZwo1-3r4gC79jk_LYydPV7chsRseW1a7qdU-YUjG0hdEGE9KWifKjsO1GMgE0-8tDdNg7dF6jN9WuBVMbHkFLjUvjOV63wKS51Wu8S4XoBOcuDP8SjGcxC6GBN_IjuS5aQBC-Lmz1-85pScc0KSlwT40Cbc90vBRglLFQWpXGdwbQwFG6bmmWb-HGE67oWLLLKbxpTUNUF8cQTuxrndvQkiZawMTl4T1nKcFC8cK_p4HSbXzUMf1IHCgEB8MrysyTDdv1QFvPbkwdrxPPlNm6wSH--G3IV2WUATx6iNL8rZNPQ_8_uekaWevY5ULB1W0qj0JKya3p5t6HUmtYwqOuXvW1bXgTmNBxd80-iycgBkQpDieLS5ogqfdvKFuVIYCByL620WbluoHFlgwP4qAOuYg9J-_2-vsV2D_-c4XltiWmn81cTyTmX-lxlgUeEdc7jZ0-KNGYYb-baUjCis0eGbSS0snWEVTU0uq-q52NUummaCSrsZU1DmXAIG3MoPdxnIt2mfW7Btq_veRNpEuPormYXz0Mme08ugcLFm6oV8nP6e9gOSsEDQ4NBPdDOdUUGl2aJzG8O0vk4Khbx1KPjkY5euP1oCn9CajB5bVnMvfU7W86odlYX7e5cGbczIrcDwO7hWhj1n4bWqACu2cpPrsh8JiweDkc4GOdmJV0PMFxJZ0v7dDt6uX31sQdbtKEYQ2qNd48ww8rZAR57bGGOXlJtvVDIbX9B6PnKiOl5d3sEvprgI_IcI70aPKnSR4Qcra_3YA-TUs1dNig32Jxk-PFZXMqxdzM9qXAKWPhfx4Hhjrd8I6jPFHHS702X_4U9CXzyy7GP7fcLkXrn8vwqHebY_VXV3uUqFXwG_OSyFEFA_KH61H24opcHdTqXfKEqYHQb1vbzzHkZum_V8xF8D7uMzR34hQ2ynZl13OatLSaXWz3xfDNTAabRhK45YIWQM53IzKWjf85Z38m8RvXUWjdY_tG7brUOpMRLrjL_f5MeDOlGjxyH25gZWpivgC-f72UHqmYL4XybjnTBlW2x-dJKru3rrjro-pqz1OrGQVCJ9lSEzVNKaThAQKqVu2Y0CQZclNaRQ0ltjiLtQgsmfVkCsQlZ9u8ZxJdN1LcwfOuWwSbJtDnu5vGS9HhR7-OgiB1c_z22ScfqjS0MCvB8UwanWmC3GupwyTTblGcGHExqj38X9ieI2n8aqdRqD-IdQ1NtPcyMeKYLQQfNQypiRWNxkP8Y-9a9FLZAEZD_XtAgxchYqoJFMazm2MGlmLkb96wHTEHl_EFwu97bDHSKY3mBC0qHhHTcNhrDGK_-dtOxqn1LDS8Gyr0PDGAXT0OAgSl-9i6JuAe3cbCelkVFcDF1T6MjZsi9ZcnK0azRNxZE4M2-5pulnyjG4v3iQKHBH4eDwgbcBG0IlaJdy6z08BKPBuldD6p8RKFe3KuD43wx4tliTkpVJH1zwQU156l0YfMs90E1QzZ784tiDIBqKnUBTPjVCCFi-PNrAbc2MWcoiTNWoSu5ppoGq6T44kiodC6tW3Qnzfso8daowt7oy_EQgeiPDza3BJNo0rpJ-YdrqOlR9qm8zDEqBVmOgU4cu4nkxe6icKT0iPo-Cf6ynk_C3TGsH3XeSmO6IRTxvT1KuyONlzZFZGeoWrRPxMGUm9hc2haT3TnvVAcJ_mEd7ez3TtC55KMDT10qSbzqyv0oq1160sXUYcC0Qvwa43BRUgxy2fBdUjFI-xLx4qy8s9U345gQszalL-taXhWAnXL4JMHKo6my2znDKx3z7hJT9pQQpWse-sTjk51uoWXXtaKL2SnPrkQOm5AZ8NEF-Z58HrGXT_KoO-JgZFB8rY5NYkv6ojKVmjpyfZW-oHBTffUUpD8lJHnEsysGilKcY_LxBCGN8igeStRe0BwFJHWNGKMvd1I9TPq_9-Xm94XR2slWD9FARL6XclOL492AKLVhAswlC2qHaeEdzHJ64YJb_wbLuv_H72_elPU3Qkhepn4HdiDwKYNeLXqw02qNnMWJyJvnfiPyNPSJlzZFiiTRqVorYU2Qa21Lcbdvq5PXW0EEPVikkEok2FC5QNcUpHKH4D56Lb871FV-c2H4UXzOQc5o5q0KgtBnmHQruFjIgF8jL59vLQjwaMmAfJWpJhXz7xYDtG2pdVr_hBlMFjTxjlxaNjA9-t8QqiWH5uvw0g2k4aVBeDYgCDHzM9dPyifW8OdOU8Poo0hIIXE3_c0EYi2yq7u-iKCJFbAZN-NW6nzo7GO7RBqcVm5VQWMeOnCh4Sb7kZCG9h833mDEIItzAmGTYkYEITFkEsDBmnZRmAOwLFl_VwtKf1z5kXhhD1_dM5WSqlnU4F6KQdfqtDXQ5dz1t7QMKrdKnro31uZVcooRDSWtUROvxjL11hzdmu3DtnI8TrimR-XbaT7XZbvJB2-oiBr3SAnXlomZ4EQjXLCIYUXx4WifFYHHKPYNFdScCYvYSWLqDX9varsC6rN1cVmTNKbvTXSNu7B-SkezkvWvH_gpCKjB4fm9Vr6JoxWbld0UZLEC4o-S6J6t2s-PMfFJ2GbKmmjzxjY21e_uEe_FGO98tYnCsrSX7FS4PIek6WOuAxMwjZWP4ECgRkEyDWkOgmFO32S6RU0IBvIBNk29SjA7SsblEhsOV9LnVykNgpCRTI6bNP_PpKDFgBNrWCbe5ZpEDwGMPVgzIF-NY_HTn__rIYv6y-MU8dvUq0lo1ut5acql1QYFIbfuvBNhLkd3cmkeuD7R5uLLOEldGWr5YX0kQFiP_UPpp2RBYddhNyl6VjBzgupHkeSqmiy8reEr4vY_Tl8uPSBSDHXclqSNm8GlHlTol3sLwmk16S9IH7ceuz2lKLfDtBSK3wAC_bE5uTgWq_vndunIHYq52X14qOfslA4hPt3ztYZiM-ealIQ-r11VNk5yFXUEzPBwrakY2s0PLCtEiHlKvSCj2JtEDM1p9fg-a1CPKCM134_JJpyQmFtwyhoIxMmxK-c8gOzQ5xQCDRdMAoRhFS0bnMuayfo1iIXec6A-unPn_4PXIco1pEDPNn14jpeK3QDsTyTkVjaHpu64UA8P3g-c9o4YvpvIThcAP5Cgc_pQIzkYCaitlo5GMqjCnnMHynudZ4arp0sw7-dznonalq4ZKJNdtbGD8-ksABRMjdITx4bue1WP-BqTn7xUL_PFIrxIVv18Ugx3sw-kJ56XYxTwR8ul2LtQmRivuxG3JZ5B8Qz8PwLUBdetoj8zKoLQmPoXQVI0GqaaukuIpJtE3pT7B_3inE5Zn9LcjdPE99FOvI9IgXJ2IcjMTXSLiOXX99AxD44wVtivBriinCNfQvRdq82NtOHeRgwjoi37i6cBZS0PeLGPZObWe2MFxdg6J-yUuJtpbGpiMaMIkLMLKTaAm0oo9rG93tg7WGHb-vX9xRUuKyVYfAO-A7-4BhWSMFkv_H2u9v5AuieP_AceyNGwWLAa2iHAzft2pIIOU-lO_FEjeKcTzS1sYFCfMG2btdHheAgbqY6IYNhv7qNXV9cuZ_Jvar6QvQVNchPlf-6sxeAbNsxbHWviGGy-cuzv1sHGszlnCeYwRTtqr2ONgyMir5EDtflC_J6NtRp7V-cjO-pcNwxiEN1_Umu9fmPPcr3eGVEi_saTwI0Hk9J9aNrkNdQC4YLjOWoIi13bI2Ad1rv3sNkSjX2EIPtkq3kFeLv1bhalzTrGqTi_DRpNBLApOvlmo7wKBp_hIf2HdeyiH2KXrjdE3r6WT3K3IyRbnV5QzmtkkOifxIXNAUpQkF8BWCOEH5vTM_J_lB5yFk0JpYevHhG7vVVniexadIPsBhlzQYRrDNJW0Tay3pvgI6iFJnPFwTSKtrdOm1aw="
+        },
+        {
+          "id": "rs_010d3f03420bf61e006a84d0fa52fc8191a39a7daf6132f9ed",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhNFwgCD3MADov24hIgljiBfbujmomFtPIfBdw360bSSR5Yha7bpKru6rHBVHPU5n3c_aRXMxZZ-UtTntXg_5pap7MfpvSt9YKYqpEosc3m-dYZRbJNWNVe4H-2SlOxAy7mc2vYLtbRO1QxIwX4YQyZwnS3r5DfGiRTsLYcub45gulPjTj31XH2knqfetbRB4KKJxZlYpJKP4iQ7nOwuYqcQBBUvZ7RNC7GaCzqOqHUUAyrwz1P-2UQ-Vr6yTShBxkjqaOHIKBg3wN6fGDAERL5CDceD9TEIRZqVM1nB1VFhmrRHCJ2bnCZo3HGslY60TSvKhFaQEHIxrp_rEm3Fv5Uumbd3pHG_uJ0Ye6zBORRwt_n79wc87ytyCsat1epyQFLYBVei3zRJBXIl4m7-tDyOVd64eEKSZCKoQA4I0nHjDyETJNOihGb-E7qw4C5AbfJ59PXZBeQfL4-A1HYZ6j2V-WVXWfFN0nOPxkpBlzGetdoRZ0ZGCIJV5yjDDayeQvgkufqy73gsZEeOLrwahc87SblqbHL96lnONGKXwWAwhdEqplthJcWAvCjkZ1naWQeopwZOhP4ZJRv5ILHS_anuhCG8xGo8qdjRavvUL00i9aQdzIbP3pcGQ7TM3jdBVdIqFdhXxzRLEfNT3bWP6waFc-i6ZnmVyrOLQkQSmKcBtSamSoOlCNSq5nQwDFCvizhnExUM5FY1ClOoetFY_92rstphgrSqTIYPlhCKIYSkeCpElcaTO1RlUPFAWdJqawUfvVGntZkR5pXXn3qH21yDt7xzfFQzpCfx_8j2slA4p8-k0ZVoxMVRmsJo9fq2VRSKUlcVY_CTrFBGyKzkIOc9ScNz6dDPqO-T8lIDqLcJ2gpUerSIAc_q_LYXlS-mAH-iLUxBdG93m3_dpgPQnhMtXY9GDFe5GWws0blceAG8Lb_G00cycPbgG1oxMQw6eD-fGheTHIMkWZHAGnOL6iIBcIE80uMCRW6YHjCM_mDB9iJsWXfSw8kuFKhf1X1R1zp8c1yDfDiQYYlI3znyJUkwPSOJsjQX0UZgV3O0gukCv1HqOt3QLPIMpOQsUXup7SdUafk2AJcP4poPDiQnSqQ84WyyhFNnJ_zg6zhpgEfN-3QnylDAROhw3e17FH9dwRo7EaC0ExXAkGSlxafNoFJ2bN1TVf9pJ6vf_VtyxQWsfWbyXkPRYwG-ZM1LHvUyjrUC7UIjHQ1s8wc9_F7_YbIQZxZiA3PovU2q1J81VMQNcW77kHpDQ2ybFN4VF4AP9zxRG1Xslj3fG6EXutvROs1sjaA4j9Or03Xh9AFd1JYadiV-m9EpWkQZeaFl_S_ZsRb5h62NQlJs4sE18Zwj6Cjast7NXNVLV20MTJRrVkLNZZVyeMKBmMsEZM-1qOvQpz9jipkmx7_6xRR8gl-HNxRAxP-GTMNVocGJGJF7A7oGAbxHPw29_Lr8qN0h3ONpBtLMTSV_eezDiJmt0V-5hzPCwuHnZRwoX-t6B-HMVmBNZCgk35vY_iMxbhGY8Va5R3zyHo7_XBxu8v4NmpJB9VNNrbYKZ3wFsyoYaGYMp3WA3vjxu8Zm5yeKmzyxYoeodbD3cHNjXB_BVF5ONySTAqv0VYsZFKhHU1lpvT8l60ofmNJO_TomPx6CH3wiKwfcxN2frv0_aBTPCeKLXDt_ICAkFJqWzN5wcK35iwhxnDdNjOjsJwe0IOt_ySGTNIt1rZ8BxK6f8ewXq2LsUR45wZLqJPiLbHqSCQOu16NRifB13P5iFrVfyqJS4ho4w8ZPS8BrI9A_Dh9nzV7yLVnsBvF6Wrijwio__qX6D1WyPgZ4m0FjJa3ufYsAeD-mQ2FLvauaL-lgILYtTnsven_PvgZiSbm-6JBInfRzPGconPXXKH_LtoF00F6BLjr8m05D-55Uk-AuJnvDvYmCeQu4pLUkIGfX9zRZyCQufar-C1UqUaKKxordXBYjHjmnGbFt38vCCNVmFY0l1Mv_iJHEapuAfsQPHtQvnMlLAtlZ4C81gs_ASxJxKaAxXxha7Mc-UGC_mvyOXvxqoH_LPpSZaNZWCmxMKrivvq3BCcJcRGxvlqUyuoQN2lgdo0pk6mPYMlzR5LZfJmjK7FT0QIoWNcc1nACDQYzD1Y950ov4aOY_hkVzLbfXKaCNN91BPkPrsdv6FVeYal5hnUyFrb06Tqzq-i7xCGg645GTq3BA2cacbqqX-aXfA2zj9HGXZZ3PvZ-Eq2OCG4FzOTNyVMdIqT_9bz0utx1JhhY6h4szp1Fe5F6EILAqFzJ08tYD-OzC04jU-2RS6Ut0IM-hkV4wGv-DVook76MIKydTG1hk_GehWdf-x7NBj4eJWMbWQ9nk4cFsIdPUcpx3c8ktUMDv1BYAvN0g2RFBwn2BG3A2pEUZsR8gI6ZGwzVAo1I0qOxFLK9ARkXpJal5rupVHuWLMHizFYqDc3JNMRFOz5TUiXMHdAmS_w_9h0xB6t53INpBkcGRqPhDhtnYom8FDOixEWShtA-3TwC2eCha1BOpzNMxL-EKvegDqN3mihKBS1auwhzN4WD1wiYl8RlBwp8y_SUvOJK9OJQEzcVx1-3KpmFy1BmLtruS1wrm1JwBSFo2kxFscn0LHuaJHR8NjlvukdSOLxQhKiWiK03wHPYkWCvw25lnPLdvn1URUaf3hhDcxdJQvCu-zYTsG2qDwYgyZ0PaOln0OqpbRpZiYQtFieFP7n0rphju8qqA_88B6VfE_RB2JDbBW38d1r0yTI-hvGfT3WCzGdvezORgKKEAuTdDJ4n8YW9rX2GRT9CeBpcfMEpm6PR7XdR_Vtx71XnQZ0JKw2-CdWWmBni6GBFc5GngDhef4s9PLZHmkne-LYsak1lGxWoeqc2Cff7pk7BU9E0491BTj-cfvbTzZpNamROmjVXyV1H4AMNe2XdLFimCu7K5dJ1w2Edf5UVyfwzyom1Hx6H2ongt6xE2rps7YJEpeHPz3mTf8-DAn3Vk92IGyW1zct29xoybqD-LUqr0SuDRVSoUTf1mW7wFOTrB28IG-MoQDTI71ql4TTx75mkygHPFx1JhV7ePcLO362aZAfgwwHJrP2g4mBhWrFTn342g6HQSw9qfoVrfKG_qslaSq9WSXsJBC-DYCAC2nnNOe2r1aTPm0ZP13OIrgEAQUP-q55M14Mje_3pOp0Fu6WZLLpirg2lbOit6cZ9fVXIPTGCZcKOhWaTIgi0GvH-cASIWj1Mq3x4fgDYCS5IPHg_qM5Ac4suppVs1NPjhBGBnogqhmNPnISG9enIX1kKSvdDylJdir8yLaVh4bf2sn-AKUKMhhE0ooMxpGuxu_-6QtFDHkaMsIQY99fnvODym3xGRf5QBL0Of1uIAzvyIglE1HrLJegYbDlF2pWCdRzIJMhlEF2iJZs0H4xu6LdwWr8mkJNKvRtxWhd6Yhjj59z7a-XuE9onWpsz4WTPdkIlt1_33HsUeBE1_S9Ic7v0ltUfR8uadaLO3SbRWqEjDkPc5Ey-juDGQe0na01SPToYaF_HH1mfFwv7kUwisnFHh1vc4jHTd15rH3SlieK2foueawyWEMm8VvGXZTc6pmv2HNZBI0zgGVNPOKqtMb62ZdtupcVUMACupDUZxw70Pb5vktyTCE8Ep_mo6zl0Ro8q5F3MldK7A2KV2HsZCfCijdS5Pj8DichCb-ZOdWpCJzIMwOsE3BN5fupMsqctL3zwV7DsPW7WNEY9wAhZqIfRupyfZgpersQsLLdMvyX9upgKQ24MximMIdvcWJYS74IhGP-pA3J73PfxUKwMqR8xznhBQuRxJG9_v1F0TRg4aovIawgXkLrfXOg8j6SearrSPxULGOUE_9KustuMZwejS4BFoy77ooBz5xnn1MFSHT13TSEDPBDil5ANn9WSW_S0OZmg7lmkdLaFmlDz91k7f7mchlVj29z_3m34zV8_EYQa2QwfPNLcS3KxVvC2J9x94TQUPPAvz191diCAJkDlorxA1lYS5pXeZd5khS9TW-3cA9qFLqwmHMxxK6MNLW8lp_SiB3XHq2DjTgapzNEHQtrRscDCtMMpwoNoPYKJZL4dsmwXItd-C9EMUNWh_J4YVazuEGfpmXb3j829l4-D1i4P8wT7TTT87z9ryXqW5esSmVtt7J8xti2CPNO6Rn-67LwiUGHCF00HHJ-iSFRBJwvDo2X7wH0UuH8pnAi1koFllERwVu8NI0v3uvFx94OlaQ5lz9Aw=="
+        },
+        {
+          "id": "rs_010d3f03420bf61e006a84d1060f2c81918379c85c3ebe821b",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhNFwt6jpvXxuT5uKMA_Cnxo7k49XXlyO3uJWLL2tDkOhZpu4H-miRSiNiHS4IXnPu6v4X82ug1S6aRWBYpAQpWk5DBhdJAeuR3wtBA-V8nE93JdKP4C568c0l1HBnvzmCundapmYyHOIryntHYHayaPTPqWozHxf57CdN_XV4_WjaxsbtPDTrC0z6f_tz8g6QrzGdnAis5aYIU3pk8w4X3JXwjNFp1l1AhtuBnDMu7Fy-pViU1NgqeftCZn9RlHj4-uNN1-WnVQtuFyzwdNgRHa_PkdTWVhcn1tNtxyZbs49OCuccYsvdRe4FDLcpO8L2gPMnEKuuPkG6xrRzFh53Kc2_oZS6C0nwWtXedfXTO_MMrKdn1ay2-6C5UUqSbQR3SCC9cezDnKEQuqK_haliaXMEKxk-IR5NqPGvdhp_tPKVRjm7jVNX8Yw5cpBBjOAZOJ2l1moSSEwxXFdL7znhU-71d2YQXjBLreY3DXNgF0Gqe0PJ-age539-cZZs56BP8L1GTpgBeDMzp_UJwNMkccg43HTTsuZnxDVywJl_xXTA4ZqTW8zcfADM6fM-AeS2JI7ksEyrQzAfZLtyqmb0Wow9pS-w0UI5heFjT3YS0LjZK24-iLTO4mIaHLNu5eMmIfL76FBx4JfZJtN5tdZIdAzEmGJVVBjGBv6gCjat_76FUHu0U9lV0CqVpU75E86o0c8njq0ZwNkCFizClIf1ox9YU-CzE2bi99R0MPC600ogpA5RJdKP-kF8Y0Oq97q7M7ifKSASoYCZlqKG_VMqbfO4StwpWtpFFvEchuXp5uHM7uKrZV-BiZvy-K6LDKg4iJbYzNem6EAaKf3Hy1i36QAcWj_6ird6p04KCT5XkThSGD264a0iPlYxb_INo9sSklqvThKyF0YFBlg0zfsT1zYo_6olKk4N6n5eRxQg7y2jLbY6_WliB3v22iqul6en8yJcWwXa2a_KH6GWAiCTMG9-GtTxe_dU8RyiMH03nDJS319RXaw-lBlA0Fym1mTArZ9yUSfAI8f57DJgxmh7rywrPEqOULBj7HgZotNPEQ2uv6Lt5PpBafBEOXtgaf-d_5X67BGZDFCCqFHorcoDqpV81scqBUeHB4ctteoIsFQ3rDs7B_yGxdRDctaDdSDxUH-MgKjKzmeJF7ciQf9tqLaHjZjwqYo8GKv59V1MCqe8y1T1H4_VbwEDdjxFP_3S7smGiqKgmr8ZsThdH-V0l-87Xo6MjamMMHc0T-L2klBaHel8kmPmEu3w3OJhmwZ8QVHZoMP6gXhU8GAUl1nXQpr_KT8SCx4wVQmEZMzeuv2nqNUq_eKrtMaUxwpJ6suCMrjoJZ6S_ozbVO0SWBLIQ5hY97ZCf-gxMNLRjRF4ljGK9nJNJBu4q-AHlEgEENrvOklWDYeDkfKat2MfiUhgforhWbBzLvXZMKhe_F4MdHrIZYzVewFZSCIWJ_humXiKG934fjlJV7PIz5FR5hG7uq8NJG5uAFffLnyT6vGVlnkryJUXc7NgHA10yRKsS9B_ELUvSFY2maPCXhaEZOgAdTH71WzrWTFquLl2iV79GCrgwA9Ec9OrHcT9dAGLbOKzJ3raNkjwdZd5N3sKkfFNggeRYgGnmne091JJUkiTAX31Zg2GEm4WmiimDSOAz7NB0Ms9QUOVfIURpe8UqUIxPvX5MKuLA89n2U7m9Wjb0_g0HOjcdDBtMINRe8rtpIchP1Y7ihs5P13myWvBhJ5GRuIwIo9RNTciSY6s0UNoX_1z2DcNT8RqjW4CPMDyopXYXJ2Z9MkrG-Ci-5Hsz5DJoduQ2QmKDCio-9OL2eVeXfcHS3NPEWkMW8NrpjIgm4l3FzehPZieFqe3UhCXMrjkT5Woyrnu3DCrZ3wjP0jwzfWoR6bKhjk8gAGvPmaKYEVXCNIvkqKNGcSw9biLuHeQ1mH0hanDt7yy2V-tHV6wRW3Ue7ZUbf_TP0c7PDppE6zj99ebJjtpzCD9ec0XGdsDh5zyNnFGUFGmhAqs1MmF267mgGHDYb4jVVdoP72vaPYe8KhC5V0fHLY2qDKLk5sox8WCKd7qIbd5CicQove4jtUzgPvL5j2NR7UZOpow5RmP1O4IP4h9YsL-AD61To0q6DnPwSnSv0zm54KyjtEfGmBxE5TjdkItmRV8MTQH2bFZfsTxVjk9M888GnlFF_bje8MbBoYD-J89XcOY1h_ZxXu86dyU382eF4PzN_tmJAhVHKxqfn2_yKu2HB98NYl6anTHEOkYe4x1_d7I96zDa5-KFAcWpSevuOLdErtX6BIxIEvdhBIxbfzTGQ9VBcD0YZJOR63VVMSZW6wAjOe9RILkLDdie2JyaJWHD57zKHjsNdY90Fjb2VCXX4Nt2wJU9BsPWhlcH5daNv6vlqE77YyV4B2K8KYkMp6XXSWHzSM69QUkaNPHoosEBzI0kD_cjdwRbSFSZ5WSp9LahM-ycUU9NwqcUwpcdWRBBe-FfIQrI8WNDxJN63k12UtD3uCGmUfh7usbBrr_bxR1SCmSqPtq_ynN2CwOw6uk0_h9EugfYen98_ShEQ1QIzGHHG4_8E1T9dIYsxLBWBuAM-N-6hPbkjN5O4T6KhalKKAdLpJEi4reDWD5qRFIPAO5AKOUTl8UQEMkoRsML9iD7vyA8sjodvcKqQETseiZsR-zLwUw22VFwskroj9HsR927-BQh63FSk5TtTA5sx6UcPnfgSbFNo2WBsogpP1gfyrtO_ceLL-6W0OrfX3Q0Uc5LBbvu1s_emTglA8BFAj-mNeLHvKdBrJBoboExJnvEhJEo2QF-Gt-xabNGdvqPWkTERHd5DxkopF_bYPpttmpCBWmOsmjWGI_c6Yv1PU-MbiEDPnOdPWjD66sLmJJK9bt-M4zAam_6zgfFPE5xz7VztJVqkjjsKHHkmTV9HMYwXkBJSyJzfXZ2og7F0EIgjM2WzY5A5wALCzQFs9ZLmM7AhFFztQFavlcUbsj3FVQmAZXRw_ihCSaVa9kEolbyhyQ0_a0BIdkv6hV-1H-ZuG97ZQbXxcvhhhebCLrtKzBrcb2atfI8YhQCGp0VQ9MwOnTxurffWvHAarDzmuyoS8N1cGQGhDsaVHAMRV2Q_qwkyPcoLfxJgsLtKBxH3I--C8PJTbsgXppUJOsvl9SeCf4y6Ze74dW0oNeqyPgiFDm9u2m8HLAFBRh8coJffxYG-9672SFSXd6G_wft9PW8glRPaXhttZliUCLn0G2-4WMUebeLwBqKKOdgLEsZfkxqxSvEfRcsbKsahtcOH_lamUwtwhn4J9HXloByGQkViACkJ3n74nFpCacek3v-qegPDu0uZ6PQmqtXbL89v9NPMAE6SwIH4zBjw-O3ndCxDOqpDDL0i7EbCK1ZU7MmqK9miTryqU9PswfIKsOW7JCy1fJWb9ykqvilB6s-hFMuEznIaX5R2qC_ZJQ3HZCEC_jkXeVPKN5SHCClH2tD8Vhgs82TjXC6pbI4XaqMWgnNgDqIPWP0IVvCDsEd3r93V04zgY5iXURWDTRI5Gh6KL5YD5koxwS3Hpr4Ge0U1bRTzILyZKkdwXcdSjv9UskJk5Jmj-wNWer0wlzAhyacHkx04cBA4o9JzGa5yUD2dsHWvHDdE2IMAL_DCujGQP-qQevDV9isF-D1uwsr2vtLcCZkkzMDYwoV_utkUVF4FEgkK8au8j-RipFEMEgUrQWiLV1IhzxYln3n21cDO0wHo9AcVjO5H9-062fMo_XkOFtpFbIiZmdxlkwIpS7PYP0TvUQT4bq9lyqltqXoltkdUMOHuSwmIlGV8liITVe-pUmDVZ5_9eIg0A4ls9DMP4_rjwmIdSR1zx3yWskixpIfG_vVpT9bPJvALCTHwE91uVSeEnu-al_bGIcNSB0IuyXmNbrLS14OAWLTx4PlEUp6bXDC5W4cEs-8SioqGR2TuNE8owGvjBL8CRE-UNXYKXNhMWB6bQlEbuOqFz9A=="
+        },
+        {
+          "id": "rs_010d3f03420bf61e006a84d113a3748191aa05aee60b5c8843",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhNFw6pSCEZBtq0KH8REyyY5DUm2FxzvLzG1r5YORWi_GhY_alAT0sGVPIIQ3ixNLDuY34qYwBuKTvmE_ZPkhxXQMNGJK6XEFNuEwlTMJYHpVSOqAUn2R617Dns6IYZE4eoOtpsq4FJR96Vh87vVzmNux71eNaJ0Rhos5hMC0WnsyTjyaf0Ij3wt3I9oU85l8TXY_nStDJmL0mmYS6KCeLgOZipeW_Sm-zSUrqkE4o73cqNywjEi7x0TnllpZKFsd6NMJXeSYjfR_yvH7jvU0pgt2K6S_f5fHzB-e4ibKaQizneRD3gcyXPWpjDeMm9Oja96pgjVDBU8NV4nbpdwwXp4tDmgyi7jw0E6Y9n3Bzqzv_ggwviiRnc8X2Csyukvu4IVX9XoaviYcHRB-XLLgj4HX3mXS9HhALi0x7rn5Slt6R0E4JroP7SGkKZ0BpDCImMyk8gnCLDP-aJWnfaJ-KvcBjvzWiHnjXUSuUrcSOAQv-68QGbBQ8cwKnuQg2ytJIPlVQo96rRRMQStQa1O-5a3a51R26SScqN6C1gh2JAW9m_dJIQgrkot_yjF0v7MaVwWmGG-VM8mxxkRTZEMsKw_914qScuGoeSU3r8y9K3W155QW4u4YjxcW8Kl5amUryv0tIh3udL2LJpPdJbxjXeuzvPSz8nHxgyrnqDH3WrQsPEECn7UGrwtQIbh5O7puXXev_2AVOwXJazeyj-w-bIL5TpZDpFm-OwhqII9gmP8mE8y78DR25Nz4EyueVTi87_SGrkcqubaFQQ34F84VleUap4rkbrPYmjx9TgjxFtKPUh-4pRDKMAPmi1bjBigz-hjib_yG7QAhroKQvAvtM2ssl84nugVHY3JecbWLHJlKRteTCRa7FGPlbgPxdXo8JGPnZ7ppxiCbR5R9qx7TQjFs8WQPesZOzt68LPGiVkX_TeFZPeNPt0i68JrGIehIQALBppvzpXKEJ9wEfVXMzklp6vsC6LCsftUwbf8GjlGI7QTtJDjKJJP208-J6w4sTPsgdR1_0i3KR-f3HP1Go72ykJLr0RPN5ZJpq1ms41aUeGhhnMfcUdWiF8ACQJb9YR2-VUmJQmGh3GjPKIpKiu801-G--Ne62OnM3NcTSI9HKTS7PuSH2esee8PLoWfXvK5KQexVbS6iN8LUL3YegAxpPqTUvkpCLm_NwrTcupJPjlTrgui5tx30fqa7xjdov6d8805J95FFCGZxxIVoPD3ImwYfxIXb2ZH7ml5to2fuG2nacrvgc_E520zM2YAw84JoJEVUlS7GXyqA14L1cl9mXflo-sM7KFhfv8EBtfJGaep1Qpfuk0ZB8dZRqhozy8M8b1x4EvQyH2Y4fMs_xj_QkKfK4qAE-tiQUqS9K_dBcwWgLTOiHBidW312hWzITUq3R1IyXtPo-iMq6EcgaI9eIBZV8Zn1ilCb_SqJs5kk04b8uHHxGkmha108M8b54TKVmC6oWe3P1XW0Rs3hqHYfUXw3dwHOnyJGLTJRn_-uA5SPPWXbmMYJf-jaW0-RA8-K1JHQxSyLeG7b-dFJHwvZoM5SB-lJRvneeWk30jPh2eE6ItoZauI_1aZuTBlfKryv3-SH5PtvspoPfkWJ9wJv_FUOhievIg8dZtIUzkQRoYkCEhAUbiHmypVpNCi24AFCbb2c6d4fYbcoGclSarwILRY4LabGChgQoc6xptb5qj1bZrxiwtZIJQHei4DsPOaWa-yU7y2T-Ldx55pMTOl78buhnWSrjfkwetM9uKqXF5g5zNFpCmETYzYPWyFEFWVKt63g-UnjI0JBdcqpsroe27vDDxp_XDnYCm3H52ElvSqK57xscsKuIsN5l8GODVwOOpWCvIJuTIXbW9HIka91s9OQpff6AtZfByM750w5zcDz-TsKAskeE6Y9m5v76Yl_lclYSd-aNsldR0p-v947efInBQxWLlH-5F_2NbkdjXUk2w9K6jZBXRoBf6nk_Brqo9Db0xprkUa0T7edJQCQu4LJlBQYgJpFTSAbUezpEe4Ecdv0yqoqg2kRhpOKfkpcBBH8Qp4R88HANm0PZAlPB2l0ePWhxLY4Y6A4wL23L00xnrDzwflroOVozVXpre3GsdmsndHRuoXcqavK7wrMyeCxdGtWkxzjmannQaxAX8fOANzGYVPInp4McDdm5PsrEi9KxUx0hG3OzSCcbPeOjnYZDwwiPWndXb1Db90aby1xfVdbOHI_rOPPckuTVNl79_CE5Qosbb0Yww9jfN4kWBdi9gucispKBsAIMWzh3k1FhAA7XEUbHzkFXIKVtdiGl6kxZAM6vm4iPW5tV33pedTvbhinPft8ExJEFM1JjwmwPEV3AGh9r3eaAoFRQqNDpExJVyhlTtOZXkzJXdlN2wF_vmZkxqOQ9eeUR2-FoI6nYePURVhDu9eTe-EwJae3IDddc9J5_qnq-0HXKHu2eUcg-h6rPPdbPpOeHq2gBJu7Pnu75vrI2IDu_zugIaOiWXB_mimi5rsqrw8r83ursz8STQu3Kdj2OCQvaUzK3Qlqsb1yRQYZVxRySVciV8Lzq47Ec8NDjdLtvMwPUnKw_bic0v7hUJi1Cjxm00l2YeZQR-edXUgZeJMmhoG4SJ7c1ewB9Ehcfdw4pMUs2G0ZwKDzqLX2sduIRkx0FAi_yd5YO3Fz95wTxkShajEmOSRDa8aG9S0GnFtj7VmWaq9fQtvbmCCaUWnw2Y-oZriPkeq3sdOIxpSudeWyyzSqRsFblX8g07J1mgCaK0WgeJvN7xYyOgVPzIu5CDEeyhDABYfktFR8QXSqNm3PuGv22vY38Fn3rsDuJcuaFTx9Cnqead4QZrY5mH3t-C6RzGR-tYpMTzkNjSwDL53rAKPDI8hYdpF-7AVHr_MsjADH8iT2LRhj00LdSXJ2dif61xRmDYHCFuxbA1DmIN4yvmLM06FfbYvjEndMQqpo8d8Cmt0ziWE3r6CfkYDFLwXHOORd4y6rmMbP4yE1Au0Z5H1-zqbPzSZL75FkeGSabeodPtLzFygwDGTqoGq4EveEg0yd9ajEj1vk-rdqGks7gwVeEoyW0d_KWTeIUUwjQR0KmWSTibNAnj2gl7Xy6nuJfI3iXlj8SRYSOH1si66Vg9peZhmZ1PMhhEzqZ_BEu6ITKVtD6C04d5Acy4Dbyh-h0kL6vO6Tx4cVC3d-rjGAAnrMq9hrn6VVgYr6f_shct_N0CAxIOtAHVpNT9mo-c0IHOT-73MilyuLXnFr0UlhXUwpAYayWLxHdbGbSHShXR2Y3H40b8tXaH6DQwlFvIVT9yeROX5xpcS1Lktqh98WIiuz0sMA2XFQXB-nnfP7GY9lRbY7MyhbVi1qTiw9ovgAnAdMhajmHGBj50OpfVzq-Z31VQSL_Et6ylhWpVmpLh11ie28AclDIpQvC1Mc5NZnuBUdYXvDChJ3KmKwMWKUSb8HHo1ls8tn0RMpgg-u6CWLmQejSQm2pQqu6do_bCYE4jCIY4ZvEEgpQqLSU6Z6lt7633TqKRZ8EVV_WyPiYKrBzisZa9XZLd-Lywz36zPQ6gh1PyJkf2aM29RnXZH_q2c40K5RtPBEKBjY8Yc3Gif2SyS1zh_58SdHZ5ZxgLeK1YI1pz_oXNDTqSOEMJr52PAH_6F-9ecKVF5-SH0txGziceqNTi-28UbshweTJ8JPDzLYYIw8KhXB9Os1d1RpHxGBcr9h_-4eJzK2R8V-rBcrBUAQrttxlE51ADCRgmF-4TN1NrAg3A1Mf5l8EdRYEWebJcM4GAvtu0vYxjYwn1TwbOi_XLL5v6UHpHuYjaLxZ2jQQlFC47uUfudGeVJOwdL8yjMiiCEFLp5TYvLwb0JEKsKx4A=="
+        },
+        {
+          "id": "rs_010d3f03420bf61e006a84d11f27cc81919be9e6b51967b525",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhNFwIvD90fFCNxqyY5LIdQ-Nru8Mo_AtkX5c_83jExX9_80XNva3rgRXPnUIiDlTSrYdz09Z2qvA7Dkrky4mGxVHSWqUia3KYGbiBDmBsEorhXWF9utJk3ntQmm69l-KwfNktqFNnUKd0ovWX7fCDE-llJeI581uSuAm1ItYrA-Fb3KXOIlxpPgPB_1zyO5_PbCo3lwtpDegqcq65q0IGbVDaPo1wwgC37_vb9wwF8R2-h-srHlP45vdj_nyQFYRpDGyMsjGWfJuHIbNX8lajM8JQcgCYdeTrOMV7oNnxEuB3XaNOxAR-lGvBFzd15yHqERTj-we_3DfSf_xl6hYvQZQ2PbmUeSbWP-VYbr9oMl7UZ3-26T6sz35VE8QTzzywkSKDIA4HxnbUosDvikQ0VlcsihCR9XDOz5CbvrDC4YHFyNaYh83u9uIXIsfGMTaA1rLCrJlxBZKEFi_-iuo8JzIqH4NjZa9gjOjQ4zalNsfv-CzzFFDHdbDLoJJv80qCdJ5Kf3YwtLzPEwhXrgL31klXqk7ltzntap32yP-42CXBU9tcBWe5UdGGvyN00IzYFj9_KrnKC7dY0WmjNYLhxwiD5Epn651BPCymL7B0Dc6loVXpNpw24ckL53q05sBeTpqIzQ6tAU6Z7bC8XVntb_m4zyKB_WOS42nUdTt8TBfbnTgoStmaBV_t_sySjndWyaEyORD5d2h4EZSCa0RRsAlX97wMz62b_O49iWsbwiPoe6tJ7d5KKk4BYPPNEsVo6r1jU7rEuYLJT-PQDzdzvmswJOmWNX1bSQ4wVLJXspMVFHwCpNDL2s-G7wdQX07BWyocwCKkFq9709pbJmrQANfTE8xxSNhk82pOWuEDLY_qQ0Tblsv-MBq5xmwjcRi2XorkLRANZu86-NsfxNgxkiXd8pIsvwHZgvYaMgIm1FQk4TNPT5XdDWVwfzuDoG9eLDRGKky0ZUx9mZwB-mSVwcTCGvF3obeoid7vxRV46bqDXpBlG_UU72AzeL8AuCcFS5mPc6T-Ml_A9FZnRSbDcqGpWOGBZUD27qtUu-F5y2B8IBK22rpvel3ZwjyjgRkxdobnSWK8xejpEwIcgtcXCi97C0iRVz1ZlkfRbKlcTe2_bMMLwnNUy2tkMIK-uZ62-rJxCzdX9Rf46ZHeC-TOfftVu67jpsDYdydmW22svhxyk7rCLNWv8qxm_r3VpT1czm3oyJNEr_TeRUkCO8ilhQEBg7ztFgrE8GrNMEA5X43drJWSmnlZG3SiVN4zKSjSzHIx-DPUpP_geQ-lEgNAKMGu5-UBe_jFp_jb9OHTgYJMVdKQcqU974_L1iSWklH9ciuGJsgwGWtm-uH9dxGJ7c8eclehAPsOzTxo5McEGzcDWTUslcDbfxYigq5egrHRWYpjZLpmX8jkLd9mRdvysZUxKdxLIMVpabQ7aO3nbJ_vDHPTzOadX2ZgyskTaNtVjzhqc67fDrAr80kBfBFCawEPrUMTIE04KLutx5WB5rQa4ZtnG4lhBXL-CxpuSPO2xnvyUXTinX5dxANHV17dQNBjbZtZWgxAGIla7fguRdYZA4watG9Xo2pOaJIzG-RwdtAbC538I1rhkdycDmFgXnhUJdcBShnzNitdW5cqAi5g_QAyiRztcvhO2GZab0p_J_OKph5gx3MrAe49sud9RbjSOby-1v6WF9jhFZdutcU_J2LaJgn_sdImDZyDYfG51wIuZaGo01u8dc5eQh9rXJQMqoZoXYi3vaSR0zB98ViKrKAw6G8_80sfAdSH5PbntXIPBeJ8NRsfBhEtiQU8dVUtnwU8f4joW5WJ_MX9W2dvWKNR1woSsOdbkRrnAJODGsCShMEBJdA8foL_ZRhKJ44X38VsfmQXvywrcS_Y5QqbdEcDMZcqW2h9ResXn0zu0yW1P0zWmvEpsFON23s0QbglXR1KUYgTRSlDqIcYRyfA7vsiwOaXGiIQv73RAwGXMSp_heizGAAdXYS4cWsYvczzfiv-7JipmZqWOBNen3CUmdDsmroE78Wt_82_3v2KudlqVYxc_INyCELhocP1c5DPEWkv-Jb_Meyd-8s7eJYKfUnF0zkX8PYVyBaaw0aO9gxAx4NomZMA4rB2-2hrXJ2QkHdJLtTYgTmtxqYmVC9nolrj0JQqhXhnzo9NsUbxqDZBeb-jxI_oxRjlSVcaV1W4Vldi014oHnImAj0jYGdd0FVtxa6LeYySeocVoZEHUhg2e9CcVMShtLTCzy4Jiu52HXhS8EHPHlXCztwfiDHwVcmVYksKptGDY414tN0LD8ixyqMhSw8jHlI-Yxgf7ak9I1CrOc7ymVZ-2oxabtm6K7e_QTjW2PEYVGm6T2OhqkjFS8-v9zgh3JiYz0Gk3mFxi8JkCNEJxAbgF9XfJ5okWAvZxsJif4K64YtSZKIDz_c1YlPzJpmJeP3OYx2P2v0bhYPSZS8v5gBU8UIAaoh3M2cXGCNlsXXU5nCiQGlWhYBq1jbdpQR3NIYP4Z1u8MbnMqy1EHBPfnh8aKa1c17VnTyWNGug8BtR__I5rTZ679poIvj0OCvaLkYeMwZtFTuOf24opGiKP8kSuWtLxmN6QWZgOualZ61060DhTX4P0Cb31xlHuQ5cH4HMUhxyYrjEO_6p6yaoKMZEVjrUOCQ89sskOUv11dLjbipVbwrZuhu9bjgzZDcqa6Et7GBeNTBiRpk0ZiZXHJPpjP-hKCVtE2AkvBFiM2qrxQSgcG-K_2IPWK_2i1e_ELhuxTcEE0CoEVXbiK-tNrw0q2-uJBzmbqES86JyocbJa2hlHFZnTNLnzPP-HiREfAui0kX8JMx9xnG41YVR5thlb_XqQYa4aEsgB_yLkBLGIuSLlF6kmXpOvAFhNmev8uhyDAEQqTRYby5hmMdr7mscxYQkiMYA6QNF_79iBY5MizF9wBMWvRa-Ir5wdBWAnh_G8ErJisN90lwQXDRQ653jrVDdaLvj9ntP5zjs4eRKswI6g3FqMbqTpnrGuWob6IbvSc1Z9s1QrqkZiXlFmElepsN3_SmKzVRTwtE8qnduHqLviYzt3a5fMhpH3njkLAe5HecWTGKLq2ds0dCSvtnG1H2YtByCae9yh6a-WNCxWPnKybOnIPbFP9RnbkzhUgmNrELQR-y_zSaGogzFJDIdNRf_GizH7iZrzUwdGh_JXI94B24ACj0FDFLc5lRJYlVE86ruP9RJpfhwvbmVV-29Q8LqFlzDiE7tGqDNSwz2uW1LajBjM-Tic-LVhfZShQyR1zxAIUyq4AdqzFCNGr8k4v0XM_lCCLPNcxsSFri8xe5LPVrN6REQp-EJQN4-S8EFR9JbWfd2tS2fOmrD_gAsEgTb1OW5vLY9Ik0SjP6OGnlgBRf0bOL8xIHGL5fOoif6s3wqCnH3W7-xMHPAcOB1Mxs2zZ32sMOApjxGEGUKjQw3mpy2jkwKKMs0JyDmlilKdsd-t1Be9TgcE84ZyTQqpxIuONVuswLqvUkBVE6CpYHDoZj7IFs6v_QMkklIYZJYz3gav03v300XPwdlAYaESbCKelVIiqpEut18VdoNs-l6USfuY8gJVUS7uhT8JtGdn9IjmFF8cZam5o6NR5kf80OWCESQQFdUszD60DHGCwly8kHYWtNoqXw1fdCRHvIg7AGXOmNwADKjSXuwt_txIfvPdehXtQjTa74rJZL2poL5vW_OSI8-78lhWiAia2LHAE_qfYaGbgZ9fs4CbayBaeATo2OtXIy6dWoycl2qsUHVcfdzJD1Ny8WDCxLkUIn00Rf8TSioK9JslKF72HtmALXSoXQF6SsYCTZx-XAfNB8YXAkXuFk3fJCQoaugvuTVs3DF5_GwoGYAm-eFrzwlC_h3rSjQBwEm3XFMRJrfZAC9n4VQERRKKLbYYXoqdk4uZx-ROodAXtmUKhujJmIkYv1TlhtU0DTVBp8NODC1d5mR-N7sXorqnsjMk2USReyrV5Iq-KdY06Gp5dBDMyDdjFOmJvD2JWdL5JvarY4phJqJJ-dpBuwJBLkwn-IdvOCqsZwuuJCQa25dJ_7IFGwjnBOV0dLnKyCy_4pgR0NyfLc5-vvetpLts3BTxCjNH79O6UEOsNodjbmsDMl1kDit51jkjz6FEJCD8iH15lZoHrvN-9J_0ThJ0akmGFjgGerLhBlqpnAvg=="
+        },
+        {
+          "id": "rs_010d3f03420bf61e006a84d12a9d448191b16a18119a5c41af",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhNFwCzL0nQGaTnJImXNBBD24GQ5i1DEmBKTP-tN0TIvzvo--1KD71qePiMB_xTA1QD5SpP52lUloThyAdEn3cd5kDsxI-FGh_YtTNwYQ6IOFojaiOuSu7mmAcOQJxonWx51DdHOLqKAZLGTilTghuAd_YZEV0MaYXnyOAcv6hv9xP9K5g7eV4pNR45bZYFfweJyzOiHjYGhWsQTi4aITrdcZq8g8cLy7a_y9vY070Tp_j-0NizWp377-Lk8mT3EVejkRR7MDOmHnGJsoUqcPq0nrK04i1QF_uYdlCdFDWMjv7AfnQJav5Gc08Jt2cWdTOM-E865fZgN4xu2GmTd_eVLUUaDGst6VZicl-qlQPviyPDZLIjGiiQ3X51f1OYh9sSire71E4xjTkyJUdvGDvyiXso8tEnzGqJY-8cWug_nW3W13uYfJrG5wYprFHpUBvdceIGWAjTrXV9d3zl8FuC8yLop6U8tRbyPa7GelX3G6XDEGgz0J6SKsT3lPhb2czaJIH1zsD5ctR3RuXUGRBtngD4IYixiF4p0fJUay3Sj3oxq0kqipbBw85ELjmTTfrZxfvglUAkSPOA6TNULYMQuxQsTV5lI0ltNl-i2AlUplqjDUMjbvHcwSqsYZXFsbAwecw9aW9lMBLsfeFlEnU63apTbi1JdN3veds7du-ef_q2zhFuZ9JWLQKLkl504El5C_ItokD3JjZFgmEVreBzeErLUA1yNT5-06TX9FHrjBlE69f2EbvpFCJBlBMGFR9ttiLF9hIkJ1y_Lg3xw1tjzBO5FNTkIVEBh7kRtEcLBdxBkNy8y5y9bhXgw9oXvzstm5NES85GevaneJl0uo431Zj4DAePXVBKoGD5XRrFJC6UHGnhBy5TKcoMNtl__GzhWnTq3Mo4WDIAZxZshm8zNE5hPtooJ4_BEZ_jrxFUAleXFw7ngqoSu7VFWNS9w7NrKOrESK8w7mNL1pgT1JYFDTQZ76e0n-vFI9BoozdNJO6MlNA4oszCTuOIuM91adQcGE1AWWBAGSGUUF__Pz0DzCp4q0VnGKHHcznQe58hsFpIskc-j6BpmE-UuejYt16H_SIOJ3aDjSnFdxVi0C49hWJUDTUS6xW38Hmm08YJIaR0flJ_i57_DnGT88J1CkrnJmwKne3We_niaoozfjLyb6e8x7poxklIUMXb0jrxop9NLzKMR96pVh3_WnYu8eVGJNaE19Z3yueK-_TlBmb_bfaJxvgwKILAZ0cVjhyjfMqbMHRcOb9ugnAcLTf0rQxpDf_wMai-HZLWrw_YKtsZkSg0V4oVophkPYUn4D8h9RZXbqw6zU0DjD03duWfngrfPPCrcmNoV5Up8I-SxdtQy-xLTj88Hl7BsWD8a1C6lMKS0uk6PNUWQ-yHW8lTpcaKdhRDV1zL4ycmen5gIL8wZ0MCUd7_oglVmtqzxufLFI_b9Tmtb2hOe1NuXvDXNwNV84eqc-xX9qK_44pplJ035g_bovR6-oFxJ-xA2q_87_r-wmviNC18OSB4rcuQ_dEPl9zjXi_9O-DVncq4BE9jmfARCVjWUSxkzCRlnmpdXTH-HtmO3WOwxZ8_WT946nY77v-nAakItoTQllwZ3zKxbiOwCsAWh006_gJR79NHffENeJzGA4WbP8PCjERitlU-zeECylFEtXJcVdiRs05b-zgHGIkODsG8-D3MkR0fjIBpAnwW-_iu3w2J-J8Q4dzOFly7KOWbNPrYkSQ21_ibQTKSNkJ_B798yi4qaK6we7G19zILLj5w0J7hJQUFQChhLzCgTUL6XiQn8Z8cb6lsuJ6Nbna8aDuQrCK9Do0_xgnt-C0X-OboKg0dvTZMVBPmzNO2Ly5AGGL2q6Kr-qC25xbL2niJ-xYGVXWCDOUkbdlJp8vBq2Caezmi0J0oxYS6RVvyo8hoUCeOhSYQm5TqG7vU-UHSrjOXk5N15h9LNKrnStENhlx6HVJA5dbx7wsZ0781BbYMohMu6Tq2EgJvOWPs0kl9nWKEMj2upZooZtTlHGm98xdmrs2Ktis3F16m_rv_rqTk_h9CyJ3N3S_tcDJPBQMKEa_a1aWK5fHbh7iB5mArXcKsNIKtyR57NIT2GD6-18jkKu33tdyyn1HqvSqCTUk9LvyR_537xqjO5qtCs7_jm9pjSN7XHUa0zvf6Be7dziP3T29AvEiFJBnERhPXYvn1zUFXp8cpnXAXjFnILfXfPxME7Fc5Ab_hj1jzK5C1K2OzXXmeeMPoCyrKk-t5ujc45URwiSXKA4LJ0oMpvIVxdSmEPHOEE3cZ9ISR54OvKGRHU5aDWhFOXxOPVnJyHQ7EzXm5G2Cv735y6Ug2vDJR2ucLUxh8ucE5juwq3rcCNObdpOu22-RAPiLvlnXca7H9jmS11s4EeLVICFvMseK9ciKPukrpcadtu7Dr90sYle4rK8-nmdKdoswUZHsZQ1uhhB1xd77pwL9ZtnnS7mj4Ei-2OiYxGVJHmJk2oUm0n7cxqfL0DkpN37A_h_vYme-yyYndSUGSMq5ISLStdfDm7caH18cVqoOeUB7n9vQrIaW1xJwsvkEqtzWmjGjRJl1KI-bnPxG3l_I69o3WruSvC1RBxaKN_I_kb3o2mwehgpmTSSowBcynSaDHSoIv9HVA6YGCwBdx72a8Yvg0rbM2u1CYwNEbZ7P04WRueAYja5jOTaaU3Vhw_H4pfbIhA5siGvvyWCKXpRdfqsRNgGkQw9leHzjQm0svo4D5-52AK_80e9xF9h2CGI_H5voPqlW0Xzav6ssI8547Zh86yaLT71Lh7UEhrbyCFHFgN8-EWroWRqI2gVg-P0iIlqtNRlDuVfn8lbnNCcZGGn4uemRkC1zDKb0kL5_V6LBq0avJUuCLsPzOsnJRRlCBeI_DZV6nZ-_37daK7J0noNl4mas1IwiMfj5MzboMuotc7U1_8mnKLDFbDMxpzwtYjgo7djKjRyb2bdUGFj0YFT-hQbELpljLBZIraMsRj10Vo-5_PPI9zfj2XVB807fOA-bFLBI3UPDH7CMnUsd1JB24FAR3GonGpUIiSSwv1Xh6NGVYFvsZp0AYINJjcQmFjh5u8PMmQ759QDIe428PBotES_HiuPpw7GTDTe2pidovX9Vqge2uMo7ENbhhTxlqROvlUQhVEx7CRqaT1BA-Lkm6xAJhgYQDqEEvSPNI75MkqgR8w8B6w1s8S9hQSRXRGRU5COgjE05KQNlKgmuEPbfJDoGhrAo_TmkF5RVOM2WfaxLumal3rRRpaGWM-gsLZFgDuJ3DpIJFutj_85Cths-2epVOQTEDOqUjVJ_eJKEBWAW8YfLsbpmhWbXxUtG_tpEHSms4usxM8AuhWvNFhmzzAlWzgA1OesEjiUQkIGRwb4ImUYqynL1nPhXLmW4WO1afSw5_RNCdAzGTUeWZIJ4nvmljdfh5Hws8mvOKeecG9UrBg6JkZN_hFE7UFXrV5DNsDUFxoD76Vs6uBQQkb8wyc1wW9ljiJwTZSd-4ucsbMThSH66-eRfjuQZ-OH2KfWS9FHItb3OYfbT8bi01RcjUUbjhSzLPCzvKdhVGrYhurn1wOFRb-_GYiOEsBtIKKJpMvKxcy_UB90stLHRB3hs0Efrmeva1j0UlFeBdK1UdhQ5Ej6a4kc6eJdD-9bck5MrMAvbpfQ31zqVG-ldktwRDh6TFnTpbBBP5S9uzg9617alb2F-Oh6GnciEEZmgYD4CqT6-J5Sa4LdG6lxRjPA_qgdXBZBmNU75nBVT6cBL2GsSXXpv9QssukMdE3DireB8jMbgx81mZ8v3EjuAGu6IiEeMBJvOs-KxIoS7UAHwhfnYMZNrnSuGwVz1AwzMKc0ryMwrzFvvD9jncIS77WsQDXUUU5cnpIeNFHZ77tiaA2e6P_ddQd7kJMSL40D_83NMDWaA7GIu-4466bzeWb0IxZVekcJGK6pC_lI4F3PcSNe86o83PEcRHg98ok9DLLa9vCZEeGEIkpyWAyJRAK00aujDbQq0GetaBMOaEuuX7c780g-piXmP-Wm3cR84vKSJO9iUJh2Vi0doz7NHZu6aBNUqdof14JV0MbCtvCJSEmCiy2j6sHNVn-tdKf1TpD069Au33YhbfN_b6slSVx_qWYCnSnd6GlXr9Ju2o38u-koaqNlkVTv3VgpC1OxST1SKYEyKG0OTsxG97GVKcjJ-xxsMQMIJqWs98YBRsZnk-OKZ4TgwzIm4ry7N9xx_3cWyrUs2Ms0g8FuTiovBmR5osww6lBiqvDnp97mw54hlDiuXSXP1X1RWVrjUSUNhczbZs0erMNF41KVzSWmd4mCrOWWiD5cf7jUptcPSO2XHhqq52V4SFuLtJvCcsj5vUryHBfCGM3SftNyJOE7gtOXRwNgTkYldHIhxF0xuMmlH0U5IYDj4fVsd0X-OBRKO4uF7sAGi5RQiP5g9OtT1QRxByw="
+        },
+        {
+          "id": "rs_010d3f03420bf61e006a84d136c8388191bf844b575beb6a7e",
+          "type": "reasoning",
+          "content": [],
+          "summary": [],
+          "encrypted_content": "gAAAAABqhNFwszBb6AWaMlGBDHexzCB57x-szkncEYtp7Xt-WFW8TbJBBqgM2wE_zrmctLhNu6LsAAebiMl-0V-KHU-xh8eNDdVbCvzBZfxeQ8b3YlNaY1hY7F4d4XoDmS0sTe7fdqgwQ-r7ukn8J-VGJP9W2ie6am98SD3DQnFqYGwitla0a_YGN5g6GQS6qVf4gri8G6xlKeGs-jFwgLNnYTLCVQZkextvtfBDMhiVXL1r-8pC0S8zg5v-oEwv9u5XNIKNuZPszOp_uPtbwUQSidAJ9LB8Eryz6EP9byIh9KE7844iJRIRAR8QY7jRJkz4PTlYYE44q7AC2jfSCrHRac1CJR0gip-e3iwE8Y61-spRsI-e4iKXhaDaqo_zB9_S-QA1cvsFcP9vaoawbquQgxhSktiGb5ldQUqesENTymwImXTYx2eYGU6RKjfUFmFq4-JMetJPLlA82XdZC8Owik3DSyxTXRsznijQigD8KP0lZsDbSqepQaR3QY1Nuoem2Gspgh7C2xMNhXhbulGtlUQ1t5vFUBmQrzH8-Sa7skKUK5Y5_8KfBC_PntUdiR3en1BU7zqfIS0LfzJEMYVI7j5nCnowC8n4DrhgCPQIgGm9kt74UxXQ7qWnKTTXfpPRHK84S9ERygu-H9pn0PIIWiyYoRmKdra6DjMWs5fTJ2z6DBJPOQWS2E0Q0RYEuUW1PpdYxA26sa1XsFdIjq23ncCfhezmEWNLv85p9D5PCj9R_t43mCJCFYD5Hh8C2W5EVwR0SEYtfk14pdnqtdD1CM8VmMuyWTxUicRp4ur6h5wdRERmsvuzpcj9orp4WSovJlNAFw38EhQHlW1EMeDN8Ern4JeDQbE52SrYEYbyzg8fBSkJO3rc25sTcR6e7KiN1jvLGPRQsRPULy4q9WY3FCK5h7-D4DigDhdghm-huZIzW-jTlVV4HnY8pt0N8KdzVr7DgKLdADmMZLBCSpkt5Ho1vxb-AM9bgrcBt9GmrMaIgEDijgymtKPwnm902me2xP58rA0IJ1xjfO0E2977_dcBwh4LDZ7xRqEbeVG4r4pL1qLf6n2WR49XrdzdUZ8vsZ5qzotPVOzOgWzVPCYDxSQHB_q8yU-FC0XayYBF-i12zVkYwfaOkukKkC61rQ5sUHkDWyf8pEqzCJ4k_Gqeh9g_gTTdOqpcnX51Zef4sMleuSsGHF8DGx4Et30WN4aTyvDtbiBkLW0adcJ68Tfr4KrvFcwCBoHpeE4IHGxkPPKRTBeKfaBHLtE4M8536zTD1-KbjgmKgYlvElIN-H7ILcCRa-M2mluYDq85Wk9zxP1-Q25x51aMFpinWkbiaPl2CwRW3B4SNvlrfuLtJYkNk7YX6tzAYhkcnEGG_55R4tk_mHuMn92ReBgILQhnOSTc2Hk5G-Nv4ayKfl41q-vOrWk2UMwpv-cBApx7SXM2bk2eX1PmcT_xc_4XyffZBMPjpx1E1hJo33FsvKK_EA1ZfL7Pv8iYjvhI81wUs8FZ9HrQkpvgH8swpew2fhVOVsZJl2cxKIzDRKxWAIycTIu-pQHoaNemoyoCmUYo0h-1bo3breNdnfpzTyM3d7_rLWSPVS_bd9cIcRDIbbncDmRBEErO-QhzFkZ_dcm74xzW_zl4nZmxwGb_ODo2HFDQ0OO2B4AqUbgh2EL28GSChwzSc395E629XedOk66lxGCVSrMO0I33949ynFK9v5uVsAR9w76I2BRZTK7lxP5bmkUEFN44TpAGxPZuYgE9Mh28E6pNZBDJ2CpH3vMaVp2WxKS2znSDqx9tilSIsp5wFKhpKKdZkkLBX3JSFxC_cho86aPDpF-GNXkejRD3gQnDd3QqD8DbtelThsIBFTxY2AUseUGVlvHrMN1fWnTt8zlduTT2FvYXHLmCdY089CR1RzuT99cCajeKwqRk2udnlCHOepkM4DGAVyebTts3LpnsqldICqK4FY642PlONGE9gf96A2JJEEtSRMknqFGQxlNW2PVKQVf5-TEip6nFSTQkpFhm6LJcbThNw4WLhJL_3KXjWin7p3Idsa7DzmKzMx357nF7GBjiQqFPELrp7ZcX_x-OFU2hQhNDLSaXJ67wdZK9Llc08YrzmmQAJtjWZyoH6biISzs9tsZQtKTgjBF7alc7_hd81XHflY6LFdItiC1s1-lt--q0bxxGRzx7TWOMVZxovocX8KoewpLiqS_OOl8OxeqCF81oNzsSrs7ReTG-xbcqcnwC-oi2om_eFI8sZQh6364OUg-pZlmqVtiVlSYKj5v1kU-4-swVKUI6TBtogoPeTtISobWw2dzJ0N1aDvlSxUZVMdg4T44m4gUrnLaWJ6t7c6Z-0muP2RW-hHrIfbyci9PnANUNzHztEltGk8db9FmVeWIj43XYTxLqrjL6YxRBLYR5ERpwYP3FZ24snn2Tnwqil2Yl7cHsPZns_eNnqrbXZIMxxNBnVyvcIkXLA1NbfwpN8m8TKjdwuPPk9PWyGsswoRMuya2gML7ZCCZe8dZGPGXawrTVDVq0PL6JnU4csw9CZ4-KYIaW00esq1RDgKxY"
+        },
+        {
+          "id": "msg_010d3f03420bf61e006a84d13a78348191b317fe328194f67a",
+          "role": "assistant",
+          "type": "message",
+          "phase": "final_answer",
+          "status": "completed",
+          "content": [
+            {
+              "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Smoky chickpea breakfast toast\",\n      \"title\": \"Chickpeas, tomatoes and wholemeal toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"tinned chickpeas, drained\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"ripe tomatoes, chopped\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"wholemeal bread confirmed safe for your allergy\",\n          \"quantity\": \"1 slice\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": null\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"half a teaspoon\",\n          \"amount\": 0.5,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Crush the chickpeas with the lemon juice, smoked paprika and pepper. Fold in the tomatoes and spoon over the bread.\",\n      \"why\": \"It gives your small breakfast a clear protein anchor without creating an extra cooking job.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"three_real_meals_anchor_the_day\",\n        \"protein_and_something_that_grew\"\n      ]\n    },\n    {\n      \"name\": \"Smoky chickpea rice bowl\",\n      \"title\": \"Smoky chickpeas, courgette and basmati rice\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Spoon one freshly cooked portion of rice into a bowl, add one portion of smoky chickpeas and finish with the lemon juice.\",\n      \"why\": \"The first Wednesday session gives you a built plate tonight and prepares Thursday's large lunch at the same time.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_chickpeas\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_basmati_rice\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 3\n      },\n      \"honours_belief_keys\": [\n        \"three_real_meals_anchor_the_day\",\n        \"protein_and_something_that_grew\"\n      ]\n    },\n    {\n      \"name\": \"Peppered mackerel crispbreads\",\n      \"title\": \"Smoked mackerel, cucumber and rye crispbreads\",\n      \"slot\": \"breakfast\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"plain smoked mackerel\",\n          \"quantity\": \"80 g\",\n          \"amount\": 80,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"cucumber, sliced\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"rye crispbreads confirmed safe for your allergy\",\n          \"quantity\": \"2 crispbreads\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": null\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Top the crispbreads with flaked mackerel and cucumber, then squeeze over the lemon and add pepper.\",\n      \"why\": \"This is a quick protein-led breakfast for the morning before your chaotic evening.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"three_real_meals_anchor_the_day\",\n        \"protein_and_something_that_grew\"\n      ]\n    },\n    {\n      \"name\": \"Harissa-style crunch wrap\",\n      \"title\": \"Smoky chickpeas, rice, cabbage and cucumber wrap\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"wholemeal tortilla confirmed safe for your allergy\",\n          \"quantity\": \"1 large tortilla\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": null\n        },\n        {\n          \"term\": \"red cabbage, finely sliced\",\n          \"quantity\": \"80 g\",\n          \"amount\": 80,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"cucumber, cut into sticks\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Use the chickpeas and rice cold from the fridge. Toss the cabbage and cucumber with lemon, pile everything onto the tortilla and roll tightly.\",\n      \"why\": \"The crunchy wrap turns Wednesday's batch into a different, substantial lunch with no Thursday cooking.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_smoky_chickpeas\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_basmati_rice\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 7\n      },\n      \"honours_belief_keys\": [\n        \"three_real_meals_anchor_the_day\",\n        \"protein_and_something_that_grew\"\n      ]\n    },\n    {\n      \"name\": \"Proper pan-roast salmon\",\n      \"title\": \"Pan-roasted salmon, crushed potatoes and green beans\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Plate one freshly cooked portion of salmon, potatoes and beans, then squeeze over the lemon. Refrigerate the second portion promptly for Friday.\",\n      \"why\": \"The hob gives you the proper roast character you wanted while the compact session fits around your late meetings.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_pan_roast_salmon\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 3\n      },\n      \"honours_belief_keys\": [\n        \"three_real_meals_anchor_the_day\",\n        \"protein_and_something_that_grew\"\n      ]\n    },\n    {\n      \"name\": \"Sardine tomato toast\",\n      \"title\": \"Sardines, tomatoes and wholemeal toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"tinned sardines in spring water, drained\",\n          \"quantity\": \"90 g\",\n          \"amount\": 90,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"ripe tomatoes, sliced\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"wholemeal bread confirmed safe for your allergy\",\n          \"quantity\": \"1 slice\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": null\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Mash the sardines with the lemon juice and pepper, spoon them over the bread and add the sliced tomatoes.\",\n      \"why\": \"It keeps Friday breakfast small and practical while still beginning with a whole protein food.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"three_real_meals_anchor_the_day\",\n        \"protein_and_something_that_grew\"\n      ]\n    },\n    {\n      \"name\": \"Lemony salmon potato salad\",\n      \"title\": \"Salmon, potatoes, green beans, cucumber and tomatoes\",\n      \"slot\": \"lunch\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"cucumber, chopped\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"ripe tomatoes, chopped\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 teaspoon\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Flake the cold salmon and break up the potatoes. Toss them with the beans, cucumber, tomatoes, lemon juice, olive oil and pepper.\",\n      \"why\": \"Thursday's pan roast becomes a fresh, large lunch rather than a repeat of the previous night's plate.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_pan_roast_salmon\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 7\n      },\n      \"honours_belief_keys\": [\n        \"three_real_meals_anchor_the_day\",\n        \"protein_and_something_that_grew\"\n      ]\n    },\n    {\n      \"name\": \"Tuna chickpea summer plate\",\n      \"title\": \"Tuna, chickpeas, tomatoes, cabbage and wholemeal bread\",\n      \"slot\": \"dinner\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"tinned tuna in spring water, drained\",\n          \"quantity\": \"110 g\",\n          \"amount\": 110,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"tinned chickpeas, drained\",\n          \"quantity\": \"120 g\",\n          \"amount\": 120,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"ripe tomatoes, chopped\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red cabbage, finely sliced\",\n          \"quantity\": \"80 g\",\n          \"amount\": 80,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"wholemeal bread confirmed safe for your allergy\",\n          \"quantity\": \"2 slices\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": null\n        },\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"half a lemon\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 teaspoon\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Mix the tuna, chickpeas, tomatoes and cabbage with the lemon juice, olive oil and pepper. Serve with the bread.\",\n      \"why\": \"This no-cook built plate closes the stretch without forcing an unnecessary batch or leaving surplus food.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"three_real_meals_anchor_the_day\",\n        \"protein_and_something_that_grew\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_smoky_chickpeas\",\n      \"title\": \"Smoky harissa-style chickpeas\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"tinned chickpeas, drained\",\n          \"quantity\": \"480 g\",\n          \"amount\": 480,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"onion, finely chopped\",\n          \"quantity\": \"1 onion\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"courgette, diced\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"tinned chopped tomatoes\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"tomato purée\",\n          \"quantity\": \"1 tablespoon\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"2 teaspoons\",\n          \"amount\": 2,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"chilli flakes\",\n          \"quantity\": \"half a teaspoon\",\n          \"amount\": 0.5,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tablespoon\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"water\",\n          \"quantity\": \"100 ml\",\n          \"amount\": 100,\n          \"unit\": \"ml\",\n          \"state\": null\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Heat the oil in a saucepan and soften the onion for 5 minutes. Add the courgette, smoked paprika and chilli flakes; cook for 3 minutes. Stir in the tomato purée, chopped tomatoes, water and chickpeas, then simmer briskly for 15 minutes until thick. Season and divide into two portions.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\"\n    },\n    {\n      \"id\": \"prep_basmati_rice\",\n      \"title\": \"Basmati rice\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"basmati rice\",\n          \"quantity\": \"120 g dry\",\n          \"amount\": 120,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"water\",\n          \"quantity\": \"240 ml\",\n          \"amount\": 240,\n          \"unit\": \"ml\",\n          \"state\": null\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Rinse the rice, place it in a covered saucepan with the water and salt, and bring to the boil. Reduce the heat and cook for 10 minutes, then turn off the heat and leave covered for 5 minutes. Serve one portion immediately and cool the second promptly before refrigerating.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\"\n    },\n    {\n      \"id\": \"prep_pan_roast_salmon\",\n      \"title\": \"Pan-roasted salmon, potatoes and beans\",\n      \"servings_made\": 2,\n      \"ingredients\": [\n        {\n          \"term\": \"salmon fillets\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"new potatoes, halved\",\n          \"quantity\": \"500 g\",\n          \"amount\": 500,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"green beans, trimmed\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"frozen peas\",\n          \"quantity\": \"160 g\",\n          \"amount\": 160,\n          \"unit\": \"g\",\n          \"state\": null\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"1 teaspoon\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tablespoon\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        },\n        {\n          \"term\": \"black pepper\",\n          \"quantity\": \"a pinch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Boil the potatoes in salted water for 15 minutes, adding the green beans and peas for the final 4 minutes. Drain, crush the potatoes lightly and season the vegetables. Rub the salmon with smoked paprika and pepper. Heat the oil in a frying pan and cook the salmon for 4 to 5 minutes on the first side and 3 to 4 minutes on the second, until just cooked. Divide everything into two portions and refrigerate the second promptly.\",\n      \"active_minutes\": 20,\n      \"total_minutes\": 35,\n      \"cook_on\": \"thu\"\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_smoky_chickpeas\",\n        \"prep_basmati_rice\"\n      ],\n      \"total_minutes\": 35,\n      \"run_through\": \"This is the extra cooking day before your usual Thursday session. Start the rice first. While it cooks, chop the onion and courgette and start the chickpea pan. Leave the rice covered while the chickpeas simmer. Plate one portion of each for dinner, then cool and refrigerate the other portions promptly for Thursday lunch.\"\n    },\n    {\n      \"day\": \"thu\",\n      \"preparation_ids\": [\n        \"prep_pan_roast_salmon\"\n      ],\n      \"total_minutes\": 35,\n      \"run_through\": \"Fit this session in before the late meetings rather than leaving it for the chaotic evening. Put the potatoes on first, trim the beans while they boil, then season the salmon. Add the beans and peas to the potato pan near the end and pan-roast the salmon alongside. Plate one portion and refrigerate the second promptly for Friday lunch.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"ripe tomatoes\",\n      \"quantity\": \"450 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"lemon\",\n      \"quantity\": \"3\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"cucumber\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red cabbage\",\n      \"quantity\": \"160 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"onion\",\n      \"quantity\": \"1\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"courgette\",\n      \"quantity\": \"200 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"new potatoes\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"green beans\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"plain smoked mackerel\",\n      \"quantity\": \"80 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"salmon fillets\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"tinned sardines in spring water\",\n      \"quantity\": \"1 tin yielding 90 g drained\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"tinned tuna in spring water\",\n      \"quantity\": \"1 tin yielding 110 g drained\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"wholemeal bread confirmed safe for your allergy\",\n      \"quantity\": \"4 slices\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"rye crispbreads confirmed safe for your allergy\",\n      \"quantity\": \"2\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"wholemeal tortilla confirmed safe for your allergy\",\n      \"quantity\": \"1 large\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"tinned chopped tomatoes\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"tomato purée\",\n      \"quantity\": \"1 tablespoon\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"chilli flakes\",\n      \"quantity\": \"half a teaspoon\",\n      \"aisle\": \"pantry\"\n    }\n  ]\n}",
+              "type": "output_text",
+              "logprobs": [],
+              "annotations": []
+            }
+          ]
+        }
+      ],
+      "status": "completed",
+      "billing": {
+        "payer": "developer"
+      },
+      "metadata": {
+        "source": "generate-meal-v1",
+        "user_id": "1a000000-0000-4000-8000-000000000001",
+        "request_id": "dc1326d5-a813-4c9e-9a17-266a99b35c30"
+      },
+      "reasoning": {
+        "mode": "standard",
+        "effort": "medium",
+        "context": "all_turns",
+        "summary": null
+      },
+      "background": false,
+      "created_at": 1787089121,
+      "moderation": null,
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "total_tokens": 0,
+          "output_tokens": 0,
+          "input_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          },
+          "output_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          }
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "truncation": "disabled",
+      "temperature": 1,
+      "tool_choice": "auto",
+      "completed_at": 1787089264,
+      "instructions": "You cook for ONE student, inside the method their coach teaches.\n\nOutput a single JSON object, nothing else. No prose outside the JSON, no markdown fences.\n\n== THE METHOD COMES FIRST, THE RECIPE IS YOURS ==\n\nYour coach's method is given below. It is not a suggestion: their forbidden practices and the foods they do not put on a plate are hard limits, and you never contradict them.\n\nInside those limits you are free. Write real food a real person wants to eat. You are not restricted to a catalogue.\n\n== A PORTION IS ONE PERSON'S PLATE ==\n\nYou are told how many people are at the table. Every quantity you write is for\nTHAT many people, for the number of servings the dish actually makes — and for\nnothing more.\n\nMeasured failure, and it is the one that makes a plan unusable: \"2 salmon\nfillets, 500 g potatoes\" written for ONE person eating ONE dinner. That is three\ndinners on a plate. If a quantity only makes sense because the dish is cooked in\na batch, then say so in `batch` — do not silently inflate a single plate.\n\nSanity, before you write a quantity: one adult portion is roughly a palm of\nprotein, a fist of starch, and vegetables on top. Scale from there. You never\ntell the student those figures; you use them so the numbers you DO write are\nbelievable.\n\n== EVERY MAIN MEAL IS BUILT AROUND A PROTEIN FOOD ==\n\nBreakfast, lunch and dinner each carry one whole protein food as their anchor:\nmeat, poultry, fish, seafood, eggs, pulses, tofu or tempeh, or a protein-carrying\ndairy like yogurt, skyr or cottage cheese. It is the thing the rest of the plate\nis built around, not a garnish on top of it.\n\nSnacks are snacks. They do not need one.\n\nNever write a figure for it. No grams of protein, no share of the plate, no\ntarget of any kind — you are choosing a food, not measuring a person.\n\n== THE STRETCH STARTS TODAY ==\n\nYou are told what day it is for this student, and the exact days to fill. Use\nTHOSE days, in that order, and no others.\n\nA plan handed to somebody on Wednesday that starts on Monday is half expired on\ndelivery — measured, and the first thing a student notices. There is no such\nthing as planning a day that has already gone.\n\n== COVER THE WHOLE STRETCH, WITH FEW COOKING SESSIONS ==\n\nWhen you are asked for several days, cover EVERY day of the stretch and every\nmeal that matters in it. A plan with Monday dinner and Wednesday dinner and\nnothing in between is not a plan — the student did not ask for a partial week,\nand holes are read as \"the system gave up\".\n\nCovering everything does not mean cooking everything. That is what the\npreparations below are for.\n\n== WHAT YOU COOK IS NOT WHAT YOU EAT ==\n\nThis is the important one, and it is what makes a week both quick and bearable.\n\nSeparate PREPARATIONS from DISHES.\n\n  A preparation is what comes out of one cooking session: 1.2 kg of roast\n  chicken thighs, a pot of chilli, a tray of roast vegetables, a batch of rice.\n  It carries its own ingredients — for the WHOLE batch — and its own method.\n\n  A dish is a meal on a day. It NAMES the preparations it draws on through\n  `uses`, and its own `ingredients` list only what you add at the moment of\n  eating: the salad, the bread, the yogurt, the lemon.\n\nWhy it matters: one cooking of chicken becomes a rice bowl on Monday, a wrap on\nTuesday and a curry base on Thursday. THREE DIFFERENT MEALS, ONE COOKING. Making\nthe same student eat the identical plate four days running is technically batch\ncooking and humanly a punishment — do not do it.\n\nRules that follow:\n  - anything that needs a pan, a pot or an oven is a PREPARATION making at\n    least two servings. Never a dish cooked from scratch twice in a week.\n  - assemblies that need no cooking — oats and yogurt, a sandwich, fruit and\n    nuts — are plain dishes with no `uses`, made fresh, quantities for one\n    plate.\n  - a dish that draws on a preparation does NOT repeat its recipe. Its method is\n    what you do at that meal: \"reheat a portion, add the salad and the lemon\".\n  - vary what you build from the same preparation. Same protein, different meal.\n\n== NAME THE COOKING SESSIONS, AND WRITE THE RUN-THROUGH ==\n\nGive `cooking_sessions`: the days on which the student actually cooks, which\npreparations get made in each, and the ORDER of the gestures — \"oven on for the\ntray, rice on while it roasts, chilli simmering next to it, box four portions\".\n\nAim for two or three sessions in a week, not seven. Every preparation belongs to\nexactly one session: a preparation nobody cooks is a plan the student cannot\nfollow.\n\n== NOTHING SITS IN THE FRIDGE FOR A WEEK ==\n\nA cooked batch is eaten within THREE DAYS of the day it was cooked. Cooked on\nThursday means eaten by Sunday, and that is the end of it. Beyond that it is not\na meal plan, it is a plan to throw food away or to get somebody ill.\n\nCooked rice and cooked seafood are tighter still: same day or the day after.\nRice left sitting is the classic way to make somebody sick, and no amount of\nconvenience is worth it.\n\nIf a batch would have to stretch further, you have three honest ways out: cook a\nsmaller batch, cook it twice, or say plainly in the method that the surplus goes\nin the FREEZER on the cooking day. Never stretch it in silence.\n\n== THE COOKING TIME THEY GAVE YOU IS A CEILING ==\n\nWhen a session time is stated, the session fits inside it. It is not a target to\napproach and overshoot: it is what they actually have that evening, and a\nsession that does not fit is a session they skip — after which the whole week\nfalls apart, not just that session.\n\nIf everything will not fit, cook LESS in that session and put the rest on\nanother cooking day. Fewer preparations that happen beat more preparations that\ndo not.\n\n== NOTHING IS EATEN BEFORE IT IS COOKED ==\n\nA preparation must be cooked ON OR BEFORE the first day that eats from it. If\nthe only cooking day you have is Sunday, then Thursday, Friday and Saturday\ncannot live off a Sunday batch — those days cook for themselves, or they eat\nsomething that needs no batch at all.\n\nThis is not a preference. A plan that feeds Thursday from a Sunday session is a\nplan that cannot be executed, and the student finds out at lunchtime.\n\n== HOW LONG THINGS TAKE ==\n\nEvery preparation carries two numbers, and they are not the same one.\n\"active_minutes\" is time with your hands on it — chopping, stirring, turning.\n\"total_minutes\" is from starting to finished, waiting included. A roast is 10\nactive and 50 total; that gap is the whole reason batch cooking works, because\nthe oven time is free for another preparation.\n\nA session's \"total_minutes\" is the wall clock of the session, NOT the sum of its\npreparations: things overlap, and pretending otherwise turns a comfortable\nninety-minute Sunday into a scary four-hour one nobody starts.\n\nRound to the nearest five. These are estimates a cook recognises, not\nmeasurements — but they are the numbers somebody uses to decide whether tonight\nis possible, so a wrong one costs a skipped meal.\n\n== WHAT TODAY ACTUALLY TAKES, ON EVERY DISH ==\n\nEvery dish carries \"same_day\": what the student does ON THE DAY THEY EAT IT to\nget that plate in front of them, and how long that gesture takes.\n\n  \"kind\" is one of four, and nothing else exists:\n    \"none\"        - nothing to prepare. Fruit, a yogurt, a plate already made.\n    \"reheat_only\" - take the portion out and heat it, and NOTHING else.\n    \"assemble\"    - build the plate from what is already cooked, no cooking.\n    \"cook_fresh\"  - a real cooking gesture that day: scramble the eggs, boil\n                    the pasta, sear the fish.\n\n  \"minutes\" is how long THAT gesture takes, that day. A whole number.\n\n\"minutes\" IS NOT THE TIME OF THE COOKING SESSION, and confusing the two is the\nfailure this field exists to stop. A portion of Sunday's roast, reheated on\nWednesday, is 8 minutes - not the 50 the roast took. Announcing 50 tells\nsomebody with ten minutes that dinner is out of reach, and they skip it.\n\nSay it on EVERY dish, including the ones where the answer is nothing. \"none\" and\n\"cook_fresh\" are answers; a missing line is a plate somebody stands in front of\nwithout knowing what to do. If the dish reheats, the word reheat is what they\nneed to read, so write \"reheat_only\" and say it again plainly in \"method\".\n\n== NEVER PUT A NUMBER ON NUTRITION ==\n\nNo calories. No macro grams. No percentages of anything nutritional. Not as a target, not as a range, not \"roughly\". Nobody has measured this student.\n\nShopping quantities are DIFFERENT and expected: \"400 g chicken thighs\", \"2 onions\", \"a bunch of parsley\". A quantity says how much to buy or use; a target claims a measurement of the person. Put quantities on ingredients, never on the student.\n\n== SAY THE SAME QUANTITY TWICE: ONCE FOR THE COOK, ONCE IN FIGURES ==\n\nEvery ingredient carries \"quantity\" — the phrase a person reads, exactly as you\nwrite it today — AND three plain fields that repeat it:\n\n  \"amount\": the number.\n  \"unit\":   one of \"g\", \"ml\", \"unit\", \"tbsp\", \"tsp\". Nothing else exists. If\n            what you meant is a handful, a cup, a bunch or a pinch, leave\n            \"amount\" and \"unit\" null and keep the phrase in \"quantity\".\n  \"state\":  \"raw\" or \"cooked\" — the weight you just wrote, before or after\n            cooking.\n\n\"state\" is REQUIRED for anything that takes on or loses water in the pan: rice,\npasta, couscous, lentils, dried beans, meat, poultry, fish. A hundred grams of\nrice is not the same food before and after it is boiled, and leaving it out\nmakes the line unusable. It does not matter for oil, nuts, cheese, yogurt or\nfruit — say it anyway when you know it.\n\nNever guess. An ingredient whose weight you do not actually know keeps its\nphrase and leaves the three fields null. A made-up number is worse than a\nmissing one.\n\nFATS, NUTS AND SWEETENERS ARE THE ONE EXCEPTION, and they are not a guess.\nOil, butter, ghee, cream, nut butter, tahini, nuts, seeds, honey, syrup and\nchocolate ALWAYS carry \"amount\" and \"unit\". \"A drizzle of olive oil\" is a\ntablespoon; write 1 and \"tbsp\". These ingredients are small on the page and\nenormous in the pan -- a spoon of oil weighs what a whole plate of vegetables\nweighs, and a line left blank there makes the entire dish unreadable. Salt,\npepper and herbs may stay a pinch; oil may not.\n\n== WHAT A DISH ADDS ON THE DAY IS WEIGHED OR COUNTED, NEVER VAGUE ==\n\nThe phrase in a DISH's \"quantity\" is either a weight -- \"100 g dried pasta\",\n\"40 g feta\" -- or something a person can count: \"half a lemon\", \"10 basil\nleaves\", \"2 eggs\". \"A handful\", \"a generous portion\", \"some rice\" say nothing\nanybody can act on, and they are why the same dish comes out different every\ntime. Salt, pepper and herbs may stay a pinch. Everything else gets a number.\n\n== THE STUDENT'S SITUATION IS NOT DECORATION ==\n\nThey tell you what their week actually looks like — a wedding on Tuesday, a holiday, a weekend away, a late shift. Cook around it. A meal that assumes an evening they do not have is a meal they will not make.\n\n== THE TWO MODES ==\n\nmode = from_pantry\n  Cook with what they ALREADY have. Reach outside their list only for genuine\n  staples (salt, pepper, oil, water) or when the dish is impossible otherwise.\n  Anything you use that they did not list will be shown to them as something to\n  buy, so keep that list short and say why it is needed.\n\nmode = to_shop\n  Compose freely, then give the shopping list the dish actually needs.\n\n== EVERY DISH HAS TWO LINES: A NAME, AND A TITLE ==\n\nThey are not the same line and they do not do the same job.\n\n  \"title\" is what is on the plate, plainly: \"Chicken, courgettes, peppers and\n  rice\". It is read out at the table, it is what somebody cooks from, and it\n  never changes job. Keep writing it exactly as you already do.\n\n  \"name\" is what this dish is CALLED: \"Golden roast chicken bowls\". Short --\n  six words at most. Appetising. It is the line somebody reads when they decide\n  whether they want to eat tonight.\n\nWrite BOTH, on every single dish: as many names as you have dishes. Count them\nbefore you answer.\n\nDo NOT make the title pretty instead. A title that becomes \"Sunshine of\nMarrakesh\" no longer says what is on the plate, and nobody can cook a name. If\nyou find yourself dressing up the title, that is the name -- put it in \"name\"\nand give the title back its plain words. And never write the same string twice:\na \"name\" identical to the title is a line that says nothing.\n\n== OUTPUT JSON SCHEMA ==\n\n{\n  \"dishes\": [\n    {\n      \"name\": \"short, appetising, six words at most -- what the dish is CALLED\",\n      \"title\": \"...\",\n      \"slot\": \"breakfast\"|\"snack_am\"|\"lunch\"|\"snack_pm\"|\"dinner\"|\"before_bed\"|null,\n      \"day\": \"mon\"|\"tue\"|\"wed\"|\"thu\"|\"fri\"|\"sat\"|\"sun\"|null,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"...\"|null,\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to make it, plainly, in a short paragraph\",\n      \"why\": \"one sentence: why THIS dish for THIS student this week\",\n      \"uses\": [{ \"preparation_id\": \"prep_chicken\", \"servings\": 1 }],\n      \"same_day\": { \"kind\": \"none\"|\"reheat_only\"|\"assemble\"|\"cook_fresh\",\n                    \"minutes\": <whole minutes for the day-of gesture> },\n      \"honours_belief_keys\": [\"<exact keys from the convictions list, when one applies>\"]\n    }\n  ],\n  \"preparations\": [\n    { \"id\": \"prep_chicken\", \"title\": \"Roast chicken thighs\",\n      \"servings_made\": 4,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"<for the WHOLE batch>\",\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to cook the batch\",\n      \"active_minutes\": <minutes of HANDS-ON work>,\n      \"total_minutes\": <minutes from starting to finished, waiting included>,\n      \"cook_on\": \"sun\"|null }\n  ],\n  \"cooking_sessions\": [\n    { \"day\": \"sun\", \"preparation_ids\": [\"prep_chicken\", \"prep_rice\"],\n      \"total_minutes\": <minutes the whole session takes, start to finish>,\n      \"run_through\": \"the order of the gestures, plainly\" }\n  ],\n  \"shopping_list\": [\n    { \"term\": \"...\", \"quantity\": \"...\"|null,\n      \"aisle\": \"produce\"|\"protein\"|\"dairy\"|\"grains\"|\"pantry\"|\"frozen\"|\"other\" }\n  ]\n}\n\nDay tokens are exactly: mon tue wed thu fri sat sun. Never translated.",
+      "service_tier": "default",
+      "top_logprobs": 0,
+      "max_tool_calls": null,
+      "presence_penalty": 0,
+      "prompt_cache_key": null,
+      "frequency_penalty": 0,
+      "max_output_tokens": null,
+      "safety_identifier": null,
+      "incomplete_details": null,
+      "parallel_tool_calls": true,
+      "previous_response_id": null,
+      "prompt_cache_retention": "24h"
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-18T21:38:40.458667+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T21:41:04.778203+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "openai",
+      "model": "gpt-5.6-sol",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

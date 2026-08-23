@@ -63,10 +63,19 @@ Deno.test("chaque membre apparaît avec son id EXACT, une fois", () => {
   // fait tomber la consigne dans `portion_for_unknown_member` et la personne se
   // retrouve en part standard sans qu'on sache pourquoi.
   const { userSuffix } = buildHouseholdPromptBlocks({
+    // LOT C ② — personne ne porte de règle à cette table: aucun des deux
+    // blocs n'est servi, et le prompt est byte-identique à v18.
+    ruleHolders: [],
+    // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
+    // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
+    // ce fichier — c'est ce qui rend les assertions d'octet encore vraies.
+    traditions: [],
+    daysInWindow: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     members: [DAD, SON, KID], envyLine: null, restrictions: [], presence: NOBODY_AWAY, merge: null,
     // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
     // contrat historique du foyer, donc le prompt d'avant le lot G.
-    cooking: "one_dish", divergingCount: 0, dishBearers: [], dedicatedDishesAsked: 0,
+    cooking: "one_dish", divergingCount: 0, weightGroups: 1, dishBearers: [], dedicatedDishesAsked: 0,
+    medicalMouths: [], crossContactUnnamedMedical: 0,
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
     unmerge: null,
@@ -93,10 +102,19 @@ Deno.test("LES RÈGLES DE MAISON NE SONT JAMAIS UNE RAISON NUTRITIONNELLE", () =
     { memberId: "m-kid", memberDisplayName: "Léa", label: "nutella" },
   ];
   const { userSuffix } = buildHouseholdPromptBlocks({
+    // LOT C ② — personne ne porte de règle à cette table: aucun des deux
+    // blocs n'est servi, et le prompt est byte-identique à v18.
+    ruleHolders: [],
+    // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
+    // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
+    // ce fichier — c'est ce qui rend les assertions d'octet encore vraies.
+    traditions: [],
+    daysInWindow: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     members: [DAD, KID], envyLine: null, restrictions, presence: NOBODY_AWAY, merge: null,
     // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
     // contrat historique du foyer, donc le prompt d'avant le lot G.
-    cooking: "one_dish", divergingCount: 0, dishBearers: [], dedicatedDishesAsked: 0,
+    cooking: "one_dish", divergingCount: 0, weightGroups: 1, dishBearers: [], dedicatedDishesAsked: 0,
+    medicalMouths: [], crossContactUnnamedMedical: 0,
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
     unmerge: null,
@@ -119,12 +137,21 @@ Deno.test("LES RÈGLES DE MAISON NE SONT JAMAIS UNE RAISON NUTRITIONNELLE", () =
 
 Deno.test("les restrictions d'une même personne sont regroupées", () => {
   const { userSuffix } = buildHouseholdPromptBlocks({
+    // LOT C ② — personne ne porte de règle à cette table: aucun des deux
+    // blocs n'est servi, et le prompt est byte-identique à v18.
+    ruleHolders: [],
+    // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
+    // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
+    // ce fichier — c'est ce qui rend les assertions d'octet encore vraies.
+    traditions: [],
+    daysInWindow: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     members: [KID],
     envyLine: null,
     presence: NOBODY_AWAY, merge: null,
     // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
     // contrat historique du foyer, donc le prompt d'avant le lot G.
-    cooking: "one_dish", divergingCount: 0, dishBearers: [], dedicatedDishesAsked: 0,
+    cooking: "one_dish", divergingCount: 0, weightGroups: 1, dishBearers: [], dedicatedDishesAsked: 0,
+    medicalMouths: [], crossContactUnnamedMedical: 0,
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
     unmerge: null,
@@ -144,12 +171,21 @@ Deno.test("LES RÈGLES DE MAISON PASSENT APRÈS LES ENVIES", () => {
   // du Nutella » puis « on ne sert pas de Nutella à Léa »), et un modèle lit la
   // contrainte la plus proche de la fin comme la plus contraignante.
   const { userSuffix } = buildHouseholdPromptBlocks({
+    // LOT C ② — personne ne porte de règle à cette table: aucun des deux
+    // blocs n'est servi, et le prompt est byte-identique à v18.
+    ruleHolders: [],
+    // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
+    // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
+    // ce fichier — c'est ce qui rend les assertions d'octet encore vraies.
+    traditions: [],
+    daysInWindow: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     members: [KID],
     envyLine: "du nutella partout",
     presence: NOBODY_AWAY, merge: null,
     // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
     // contrat historique du foyer, donc le prompt d'avant le lot G.
-    cooking: "one_dish", divergingCount: 0, dishBearers: [], dedicatedDishesAsked: 0,
+    cooking: "one_dish", divergingCount: 0, weightGroups: 1, dishBearers: [], dedicatedDishesAsked: 0,
+    medicalMouths: [], crossContactUnnamedMedical: 0,
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
     unmerge: null,
@@ -167,10 +203,19 @@ Deno.test("sans restriction, aucun bloc de règles n'apparaît", () => {
   // Un en-tête « règles de maison » vide ferait croire au modèle qu'il y a des
   // interdits, et il composerait prudemment sans savoir contre quoi.
   const { userSuffix } = buildHouseholdPromptBlocks({
+    // LOT C ② — personne ne porte de règle à cette table: aucun des deux
+    // blocs n'est servi, et le prompt est byte-identique à v18.
+    ruleHolders: [],
+    // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
+    // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
+    // ce fichier — c'est ce qui rend les assertions d'octet encore vraies.
+    traditions: [],
+    daysInWindow: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     members: [DAD], envyLine: null, restrictions: [], presence: NOBODY_AWAY, merge: null,
     // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
     // contrat historique du foyer, donc le prompt d'avant le lot G.
-    cooking: "one_dish", divergingCount: 0, dishBearers: [], dedicatedDishesAsked: 0,
+    cooking: "one_dish", divergingCount: 0, weightGroups: 1, dishBearers: [], dedicatedDishesAsked: 0,
+    medicalMouths: [], crossContactUnnamedMedical: 0,
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
     unmerge: null,
@@ -183,10 +228,19 @@ Deno.test("sans restriction, aucun bloc de règles n'apparaît", () => {
 
 Deno.test("le schéma supplémentaire n'est demandé que côté système", () => {
   const { systemSuffix, userSuffix } = buildHouseholdPromptBlocks({
+    // LOT C ② — personne ne porte de règle à cette table: aucun des deux
+    // blocs n'est servi, et le prompt est byte-identique à v18.
+    ruleHolders: [],
+    // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
+    // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
+    // ce fichier — c'est ce qui rend les assertions d'octet encore vraies.
+    traditions: [],
+    daysInWindow: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     members: [DAD], envyLine: null, restrictions: [], presence: NOBODY_AWAY, merge: null,
     // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
     // contrat historique du foyer, donc le prompt d'avant le lot G.
-    cooking: "one_dish", divergingCount: 0, dishBearers: [], dedicatedDishesAsked: 0,
+    cooking: "one_dish", divergingCount: 0, weightGroups: 1, dishBearers: [], dedicatedDishesAsked: 0,
+    medicalMouths: [], crossContactUnnamedMedical: 0,
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
     unmerge: null,
@@ -203,13 +257,22 @@ Deno.test("le schéma supplémentaire n'est demandé que côté système", () =>
 
 Deno.test("le brief de portions et la ligne d'envies sont tous les deux là", () => {
   const { userSuffix, envyLineUsed } = buildHouseholdPromptBlocks({
+    // LOT C ② — personne ne porte de règle à cette table: aucun des deux
+    // blocs n'est servi, et le prompt est byte-identique à v18.
+    ruleHolders: [],
+    // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
+    // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
+    // ce fichier — c'est ce qui rend les assertions d'octet encore vraies.
+    traditions: [],
+    daysInWindow: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     members: [DAD, SON],
     envyLine: "un curry, et Tom en a marre du poulet",
     restrictions: [],
     presence: NOBODY_AWAY, merge: null,
     // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
     // contrat historique du foyer, donc le prompt d'avant le lot G.
-    cooking: "one_dish", divergingCount: 0, dishBearers: [], dedicatedDishesAsked: 0,
+    cooking: "one_dish", divergingCount: 0, weightGroups: 1, dishBearers: [], dedicatedDishesAsked: 0,
+    medicalMouths: [], crossContactUnnamedMedical: 0,
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
     unmerge: null,
@@ -229,10 +292,19 @@ Deno.test("SANS LIGNE D'ENVIES, aucun en-tête d'envies n'apparaît", () => {
   // n'y en a pas. Un en-tête « voici ce que le foyer a demandé » suivi de rien
   // ferait composer le modèle contre une demande imaginaire.
   const { userSuffix, envyLineUsed } = buildHouseholdPromptBlocks({
+    // LOT C ② — personne ne porte de règle à cette table: aucun des deux
+    // blocs n'est servi, et le prompt est byte-identique à v18.
+    ruleHolders: [],
+    // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
+    // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
+    // ce fichier — c'est ce qui rend les assertions d'octet encore vraies.
+    traditions: [],
+    daysInWindow: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     members: [DAD, SON], envyLine: null, restrictions: [], presence: NOBODY_AWAY, merge: null,
     // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
     // contrat historique du foyer, donc le prompt d'avant le lot G.
-    cooking: "one_dish", divergingCount: 0, dishBearers: [], dedicatedDishesAsked: 0,
+    cooking: "one_dish", divergingCount: 0, weightGroups: 1, dishBearers: [], dedicatedDishesAsked: 0,
+    medicalMouths: [], crossContactUnnamedMedical: 0,
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
     unmerge: null,
@@ -261,6 +333,14 @@ Deno.test("le bloc de présence entre dans le prompt, JUSTE APRÈS le brief de p
     windowDays: ["fri", "sat"],
   });
   const { userSuffix } = buildHouseholdPromptBlocks({
+    // LOT C ② — personne ne porte de règle à cette table: aucun des deux
+    // blocs n'est servi, et le prompt est byte-identique à v18.
+    ruleHolders: [],
+    // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
+    // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
+    // ce fichier — c'est ce qui rend les assertions d'octet encore vraies.
+    traditions: [],
+    daysInWindow: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     members: [DAD, SON],
     envyLine: "un curry",
     restrictions: [],
@@ -268,7 +348,8 @@ Deno.test("le bloc de présence entre dans le prompt, JUSTE APRÈS le brief de p
     merge: null,
     // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
     // contrat historique du foyer, donc le prompt d'avant le lot G.
-    cooking: "one_dish", divergingCount: 0, dishBearers: [], dedicatedDishesAsked: 0,
+    cooking: "one_dish", divergingCount: 0, weightGroups: 1, dishBearers: [], dedicatedDishesAsked: 0,
+    medicalMouths: [], crossContactUnnamedMedical: 0,
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
     unmerge: null,
@@ -292,10 +373,19 @@ Deno.test("SANS ABSENCE, aucun en-tête de présence n'apparaît", () => {
   // « certains ne sont pas là » suivi de rien ferait cuisiner le modèle pour un
   // nombre qu'il devine — c'est-à-dire moins que le foyer, un jour sur deux.
   const { userSuffix } = buildHouseholdPromptBlocks({
+    // LOT C ② — personne ne porte de règle à cette table: aucun des deux
+    // blocs n'est servi, et le prompt est byte-identique à v18.
+    ruleHolders: [],
+    // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
+    // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
+    // ce fichier — c'est ce qui rend les assertions d'octet encore vraies.
+    traditions: [],
+    daysInWindow: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     members: [DAD, SON], envyLine: null, restrictions: [], presence: NOBODY_AWAY, merge: null,
     // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
     // contrat historique du foyer, donc le prompt d'avant le lot G.
-    cooking: "one_dish", divergingCount: 0, dishBearers: [], dedicatedDishesAsked: 0,
+    cooking: "one_dish", divergingCount: 0, weightGroups: 1, dishBearers: [], dedicatedDishesAsked: 0,
+    medicalMouths: [], crossContactUnnamedMedical: 0,
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
     unmerge: null,
@@ -370,6 +460,14 @@ Deno.test("CHANGER LES BLOCS SANS BUMPER LA VERSION DOIT ÊTRE ROUGE", () => {
     windowDays: ["mon", "tue"],
   });
   const { userSuffix } = buildHouseholdPromptBlocks({
+    // LOT C ② — personne ne porte de règle à cette table: aucun des deux
+    // blocs n'est servi, et le prompt est byte-identique à v18.
+    ruleHolders: [],
+    // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
+    // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
+    // ce fichier — c'est ce qui rend les assertions d'octet encore vraies.
+    traditions: [],
+    daysInWindow: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     members: [DAD, SON],
     envyLine: "des pâtes",
     restrictions: [{ memberId: "m-son", memberDisplayName: "Tom", label: "no nutella" }],
@@ -377,7 +475,8 @@ Deno.test("CHANGER LES BLOCS SANS BUMPER LA VERSION DOIT ÊTRE ROUGE", () => {
     merge: null,
     // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
     // contrat historique du foyer, donc le prompt d'avant le lot G.
-    cooking: "one_dish", divergingCount: 0, dishBearers: [], dedicatedDishesAsked: 0,
+    cooking: "one_dish", divergingCount: 0, weightGroups: 1, dishBearers: [], dedicatedDishesAsked: 0,
+    medicalMouths: [], crossContactUnnamedMedical: 0,
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
     unmerge: null,
@@ -397,7 +496,7 @@ Deno.test("CHANGER LES BLOCS SANS BUMPER LA VERSION DOIT ÊTRE ROUGE", () => {
     // PERSONNE ET L'INTERDIT DU « POURQUOI ». Sa place est la moitié du lot: la
     // promesse de peser est ce brief-ci, et un ordre séparé de sa promesse a
     // déjà été mesuré à zéro effet le 2026-08-17.
-    "WEIGH IT ONCE, INTO NAMED BOXES.",
+    "WEIGH IT ONCE, INTO BOXES NAMED BY MEAL.",
     "WHO IS NOT AT THE TABLE",
     "WHAT THIS HOUSEHOLD ASKED FOR",
     "HOUSE RULES",
@@ -472,11 +571,20 @@ Deno.test("SANS FUSION, LE PROMPT EST CELUI D'AVANT L4, À L'OCTET PRÈS", () =>
   // assertion, chaque foyer du produit aurait changé de consigne pour un geste
   // que personne n'a fait.
   const { userSuffix } = buildHouseholdPromptBlocks({
+    // LOT C ② — personne ne porte de règle à cette table: aucun des deux
+    // blocs n'est servi, et le prompt est byte-identique à v18.
+    ruleHolders: [],
+    // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
+    // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
+    // ce fichier — c'est ce qui rend les assertions d'octet encore vraies.
+    traditions: [],
+    daysInWindow: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     members: [DAD, SON], envyLine: null, restrictions: [], presence: NOBODY_AWAY,
     merge: null,
     // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
     // contrat historique du foyer, donc le prompt d'avant le lot G.
-    cooking: "one_dish", divergingCount: 0, dishBearers: [], dedicatedDishesAsked: 0,
+    cooking: "one_dish", divergingCount: 0, weightGroups: 1, dishBearers: [], dedicatedDishesAsked: 0,
+    medicalMouths: [], crossContactUnnamedMedical: 0,
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
     unmerge: null,
@@ -504,6 +612,14 @@ Deno.test("le bloc de fusion entre APRÈS la présence et AVANT l'envie", () => 
     windowDays: ["fri", "sat"],
   });
   const { userSuffix } = buildHouseholdPromptBlocks({
+    // LOT C ② — personne ne porte de règle à cette table: aucun des deux
+    // blocs n'est servi, et le prompt est byte-identique à v18.
+    ruleHolders: [],
+    // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
+    // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
+    // ce fichier — c'est ce qui rend les assertions d'octet encore vraies.
+    traditions: [],
+    daysInWindow: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     members: [DAD, SON],
     envyLine: "un curry",
     restrictions: [{ memberId: "m-son", memberDisplayName: "Tom", label: "no nutella" }],
@@ -511,7 +627,8 @@ Deno.test("le bloc de fusion entre APRÈS la présence et AVANT l'envie", () => 
     merge: MERGE_PROMPT,
     // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
     // contrat historique du foyer, donc le prompt d'avant le lot G.
-    cooking: "one_dish", divergingCount: 0, dishBearers: [], dedicatedDishesAsked: 0,
+    cooking: "one_dish", divergingCount: 0, weightGroups: 1, dishBearers: [], dedicatedDishesAsked: 0,
+    medicalMouths: [], crossContactUnnamedMedical: 0,
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
     unmerge: null,
@@ -552,6 +669,14 @@ Deno.test("O5 — L'ANCRE ARRIVE DANS LE VRAI PROMPT, ET LA VERSION A BOUGÉ", (
   // liste. Un test sur le module pur ne suffit pas: le bloc doit ARRIVER dans
   // le suffixe que le générateur envoie.
   const { userSuffix } = buildHouseholdPromptBlocks({
+    // LOT C ② — personne ne porte de règle à cette table: aucun des deux
+    // blocs n'est servi, et le prompt est byte-identique à v18.
+    ruleHolders: [],
+    // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
+    // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
+    // ce fichier — c'est ce qui rend les assertions d'octet encore vraies.
+    traditions: [],
+    daysInWindow: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     members: [DAD, SON],
     envyLine: null,
     restrictions: [],
@@ -559,7 +684,8 @@ Deno.test("O5 — L'ANCRE ARRIVE DANS LE VRAI PROMPT, ET LA VERSION A BOUGÉ", (
     merge: MERGE_PROMPT,
     // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
     // contrat historique du foyer, donc le prompt d'avant le lot G.
-    cooking: "one_dish", divergingCount: 0, dishBearers: [], dedicatedDishesAsked: 0,
+    cooking: "one_dish", divergingCount: 0, weightGroups: 1, dishBearers: [], dedicatedDishesAsked: 0,
+    medicalMouths: [], crossContactUnnamedMedical: 0,
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
     unmerge: null,
@@ -609,6 +735,14 @@ Deno.test("LE BARREAU DE L'ÉCHELLE CHANGE LA LIGNE « COMBIEN DE PLATS »", () 
   // prompt, et c'est celle de la fin que le modèle suit — donc au hasard.
   const of = (shape: "one_dish" | "one_session" | "separate_sessions") =>
     buildHouseholdPromptBlocks({
+    // LOT C ② — personne ne porte de règle à cette table: aucun des deux
+    // blocs n'est servi, et le prompt est byte-identique à v18.
+    ruleHolders: [],
+    // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
+    // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
+    // ce fichier — c'est ce qui rend les assertions d'octet encore vraies.
+    traditions: [],
+    daysInWindow: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
       members: [DAD, SON],
       envyLine: null,
       restrictions: [],
@@ -618,7 +752,8 @@ Deno.test("LE BARREAU DE L'ÉCHELLE CHANGE LA LIGNE « COMBIEN DE PLATS »", () 
       // divergents vaut TOUJOURS 1: une fusion reprend UNE personne, jamais
       // deux. C'est très exactement ce qui rend la ligne de forme d'une fusion
       // byte-identique à celle d'avant le lot G.
-      cooking: shape, divergingCount: shape === "one_dish" ? 0 : 1, dishBearers: [], dedicatedDishesAsked: 0,
+      cooking: shape, divergingCount: shape === "one_dish" ? 0 : 1, weightGroups: 1, dishBearers: [], dedicatedDishesAsked: 0,
+      medicalMouths: [], crossContactUnnamedMedical: 0,
       // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
       kitchenEquipment: null,
       unmerge: null,
@@ -656,11 +791,20 @@ Deno.test("SANS DÉFUSION, LE PROMPT EST CELUI D'AVANT L5, À L'OCTET PRÈS", ()
   // ET pour une fusion. Sans cette assertion, chaque foyer du produit aurait
   // changé de consigne pour un geste que personne n'a fait.
   const plain = buildHouseholdPromptBlocks({
+    // LOT C ② — personne ne porte de règle à cette table: aucun des deux
+    // blocs n'est servi, et le prompt est byte-identique à v18.
+    ruleHolders: [],
+    // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
+    // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
+    // ce fichier — c'est ce qui rend les assertions d'octet encore vraies.
+    traditions: [],
+    daysInWindow: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     members: [DAD, SON], envyLine: null, restrictions: [], presence: NOBODY_AWAY,
     merge: null,
     // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
     // contrat historique du foyer, donc le prompt d'avant le lot G.
-    cooking: "one_dish", divergingCount: 0, dishBearers: [], dedicatedDishesAsked: 0,
+    cooking: "one_dish", divergingCount: 0, weightGroups: 1, dishBearers: [], dedicatedDishesAsked: 0,
+    medicalMouths: [], crossContactUnnamedMedical: 0,
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
     unmerge: null,
@@ -669,11 +813,20 @@ Deno.test("SANS DÉFUSION, LE PROMPT EST CELUI D'AVANT L5, À L'OCTET PRÈS", ()
     voices: [],
   }).userSuffix;
   const merged = buildHouseholdPromptBlocks({
+    // LOT C ② — personne ne porte de règle à cette table: aucun des deux
+    // blocs n'est servi, et le prompt est byte-identique à v18.
+    ruleHolders: [],
+    // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
+    // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
+    // ce fichier — c'est ce qui rend les assertions d'octet encore vraies.
+    traditions: [],
+    daysInWindow: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     members: [DAD, SON], envyLine: null, restrictions: [], presence: NOBODY_AWAY,
     merge: MERGE_PROMPT,
     // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
     // contrat historique du foyer, donc le prompt d'avant le lot G.
-    cooking: "one_dish", divergingCount: 0, dishBearers: [], dedicatedDishesAsked: 0,
+    cooking: "one_dish", divergingCount: 0, weightGroups: 1, dishBearers: [], dedicatedDishesAsked: 0,
+    medicalMouths: [], crossContactUnnamedMedical: 0,
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
     unmerge: null,
@@ -702,6 +855,14 @@ Deno.test("le bloc de défusion entre APRÈS la présence et AVANT l'envie", () 
     windowDays: ["fri", "sat"],
   });
   const { userSuffix } = buildHouseholdPromptBlocks({
+    // LOT C ② — personne ne porte de règle à cette table: aucun des deux
+    // blocs n'est servi, et le prompt est byte-identique à v18.
+    ruleHolders: [],
+    // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
+    // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
+    // ce fichier — c'est ce qui rend les assertions d'octet encore vraies.
+    traditions: [],
+    daysInWindow: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     members: [DAD, SON],
     envyLine: "un curry",
     restrictions: [{ memberId: "m-son", memberDisplayName: "Tom", label: "no nutella" }],
@@ -709,7 +870,8 @@ Deno.test("le bloc de défusion entre APRÈS la présence et AVANT l'envie", () 
     merge: null,
     // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
     // contrat historique du foyer, donc le prompt d'avant le lot G.
-    cooking: "one_dish", divergingCount: 0, dishBearers: [], dedicatedDishesAsked: 0,
+    cooking: "one_dish", divergingCount: 0, weightGroups: 1, dishBearers: [], dedicatedDishesAsked: 0,
+    medicalMouths: [], crossContactUnnamedMedical: 0,
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
     unmerge: UNMERGE_PROMPT,
@@ -747,11 +909,20 @@ Deno.test("UNE DÉFUSION NE DEMANDE JAMAIS UN SECOND PLAT", () => {
   // dirait « cuisine un plat séparé » pour quelqu'un qu'on vient de sortir de
   // la table — et le plafond de plats lui ouvrirait de la place.
   const { userSuffix } = buildHouseholdPromptBlocks({
+    // LOT C ② — personne ne porte de règle à cette table: aucun des deux
+    // blocs n'est servi, et le prompt est byte-identique à v18.
+    ruleHolders: [],
+    // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
+    // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
+    // ce fichier — c'est ce qui rend les assertions d'octet encore vraies.
+    traditions: [],
+    daysInWindow: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     members: [DAD, SON], envyLine: null, restrictions: [], presence: NOBODY_AWAY,
     merge: null,
     // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
     // contrat historique du foyer, donc le prompt d'avant le lot G.
-    cooking: "one_dish", divergingCount: 0, dishBearers: [], dedicatedDishesAsked: 0,
+    cooking: "one_dish", divergingCount: 0, weightGroups: 1, dishBearers: [], dedicatedDishesAsked: 0,
+    medicalMouths: [], crossContactUnnamedMedical: 0,
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
     unmerge: UNMERGE_PROMPT,
@@ -782,6 +953,13 @@ Deno.test("SANS VOIX, LE PROMPT EST CELUI D'AVANT L6, À L'OCTET PRÈS", () => {
   // pour un lot qui ne le concerne pas. C'est aussi ce qui rend le bump de
   // version lisible: il ne parle QUE des foyers dont au moins une bouche parle.
   const base = {
+    // LOT C ② — personne ne porte de règle: aucun des deux blocs, prompt de v18.
+    ruleHolders: [],
+    // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
+    // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
+    // ce fichier — c'est ce qui rend les assertions d'octet encore vraies.
+    traditions: [],
+    daysInWindow: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     members: [DAD, SON], envyLine: null, restrictions: [], presence: NOBODY_AWAY,
     merge: null,
     // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
@@ -789,7 +967,8 @@ Deno.test("SANS VOIX, LE PROMPT EST CELUI D'AVANT L6, À L'OCTET PRÈS", () => {
     // ⚠️ `as const` SUR LA FORME: sans lui l'objet porte `cooking: string`, et
     // `CookingShape` refuse une chaîne large. C'est le typecheck qui fait son
     // travail — la forme est une liste FERMÉE, et le rester est le sujet.
-    cooking: "one_dish" as const, divergingCount: 0, dishBearers: [], dedicatedDishesAsked: 0,
+    cooking: "one_dish" as const, divergingCount: 0, weightGroups: 1, dishBearers: [], dedicatedDishesAsked: 0,
+    medicalMouths: [], crossContactUnnamedMedical: 0,
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
     unmerge: null,
@@ -849,6 +1028,14 @@ Deno.test("le bloc des voix entre APRÈS la tablée et AVANT l'envie", () => {
   // Nutella » se lirait comme plus contraignant que « on ne sert pas de Nutella
   // à Léa ».
   const { userSuffix, voicesHeard } = buildHouseholdPromptBlocks({
+    // LOT C ② — personne ne porte de règle à cette table: aucun des deux
+    // blocs n'est servi, et le prompt est byte-identique à v18.
+    ruleHolders: [],
+    // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
+    // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
+    // ce fichier — c'est ce qui rend les assertions d'octet encore vraies.
+    traditions: [],
+    daysInWindow: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     members: [DAD, SON],
     envyLine: "des pâtes",
     restrictions: [{ memberId: "m-son", memberDisplayName: "Tom", label: "no nutella" }],
@@ -856,7 +1043,8 @@ Deno.test("le bloc des voix entre APRÈS la tablée et AVANT l'envie", () => {
     merge: null,
     // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
     // contrat historique du foyer, donc le prompt d'avant le lot G.
-    cooking: "one_dish", divergingCount: 0, dishBearers: [], dedicatedDishesAsked: 0,
+    cooking: "one_dish", divergingCount: 0, weightGroups: 1, dishBearers: [], dedicatedDishesAsked: 0,
+    medicalMouths: [], crossContactUnnamedMedical: 0,
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
     unmerge: null,
@@ -909,11 +1097,20 @@ Deno.test("le bloc des voix entre APRÈS la tablée et AVANT l'envie", () => {
 
   // ET APRÈS LA FUSION, qui parle encore de « qui est à cette table ».
   const withMerge = buildHouseholdPromptBlocks({
+    // LOT C ② — personne ne porte de règle à cette table: aucun des deux
+    // blocs n'est servi, et le prompt est byte-identique à v18.
+    ruleHolders: [],
+    // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
+    // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
+    // ce fichier — c'est ce qui rend les assertions d'octet encore vraies.
+    traditions: [],
+    daysInWindow: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     members: [DAD, SON], envyLine: null, restrictions: [], presence: NOBODY_AWAY,
     merge: MERGE_PROMPT,
     // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
     // contrat historique du foyer, donc le prompt d'avant le lot G.
-    cooking: "one_dish", divergingCount: 0, dishBearers: [], dedicatedDishesAsked: 0,
+    cooking: "one_dish", divergingCount: 0, weightGroups: 1, dishBearers: [], dedicatedDishesAsked: 0,
+    medicalMouths: [], crossContactUnnamedMedical: 0,
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
     unmerge: null,
@@ -936,11 +1133,20 @@ Deno.test("LA GARDE DE NON-DIVULGATION EST DANS LE CONSTRUCTEUR, PAS EN AMONT", 
   // le monde apprend qu'une personne a repris un régime. Rien n'échouerait: un
   // prompt n'a pas de compilateur.
   const { userSuffix, voiceIssues } = buildHouseholdPromptBlocks({
+    // LOT C ② — personne ne porte de règle à cette table: aucun des deux
+    // blocs n'est servi, et le prompt est byte-identique à v18.
+    ruleHolders: [],
+    // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
+    // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
+    // ce fichier — c'est ce qui rend les assertions d'octet encore vraies.
+    traditions: [],
+    daysInWindow: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     members: [DAD, SON], envyLine: null, restrictions: [], presence: NOBODY_AWAY,
     merge: null,
     // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
     // contrat historique du foyer, donc le prompt d'avant le lot G.
-    cooking: "one_dish", divergingCount: 0, dishBearers: [], dedicatedDishesAsked: 0,
+    cooking: "one_dish", divergingCount: 0, weightGroups: 1, dishBearers: [], dedicatedDishesAsked: 0,
+    medicalMouths: [], crossContactUnnamedMedical: 0,
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
     unmerge: null,
@@ -1004,6 +1210,14 @@ Deno.test("C6 — LE COMPTE ET LA MATIÈRE ARRIVENT DANS LE VRAI PROMPT", () => 
   // 37 lignes de courses. Un test sur le module pur ne suffit pas: les deux
   // moitiés doivent ARRIVER dans le suffixe que le générateur envoie.
   const { userSuffix } = buildHouseholdPromptBlocks({
+    // LOT C ② — personne ne porte de règle à cette table: aucun des deux
+    // blocs n'est servi, et le prompt est byte-identique à v18.
+    ruleHolders: [],
+    // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
+    // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
+    // ce fichier — c'est ce qui rend les assertions d'octet encore vraies.
+    traditions: [],
+    daysInWindow: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     members: [DAD, SON],
     envyLine: null,
     restrictions: [],
@@ -1011,7 +1225,8 @@ Deno.test("C6 — LE COMPTE ET LA MATIÈRE ARRIVENT DANS LE VRAI PROMPT", () => 
     merge: MERGE_PROMPT,
     // G5 — la forme vient de l'APPELANT. `one_dish` + 0 divergent est le
     // contrat historique du foyer, donc le prompt d'avant le lot G.
-    cooking: "one_dish", divergingCount: 0, dishBearers: [], dedicatedDishesAsked: 0,
+    cooking: "one_dish", divergingCount: 0, weightGroups: 1, dishBearers: [], dedicatedDishesAsked: 0,
+    medicalMouths: [], crossContactUnnamedMedical: 0,
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
     unmerge: null,
@@ -1053,6 +1268,14 @@ Deno.test("C6 — LE BRIEF DE PORTIONS NE PROMET PLUS « never more than two »"
   // que le modèle a suivie.
   const of = (shape: "one_dish" | "one_session" | "separate_sessions") =>
     buildHouseholdPromptBlocks({
+    // LOT C ② — personne ne porte de règle à cette table: aucun des deux
+    // blocs n'est servi, et le prompt est byte-identique à v18.
+    ruleHolders: [],
+    // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
+    // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
+    // ce fichier — c'est ce qui rend les assertions d'octet encore vraies.
+    traditions: [],
+    daysInWindow: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
       members: [DAD, SON],
       envyLine: null,
       restrictions: [],
@@ -1062,7 +1285,8 @@ Deno.test("C6 — LE BRIEF DE PORTIONS NE PROMET PLUS « never more than two »"
       // divergents vaut TOUJOURS 1: une fusion reprend UNE personne, jamais
       // deux. C'est très exactement ce qui rend la ligne de forme d'une fusion
       // byte-identique à celle d'avant le lot G.
-      cooking: shape, divergingCount: shape === "one_dish" ? 0 : 1, dishBearers: [], dedicatedDishesAsked: 0,
+      cooking: shape, divergingCount: shape === "one_dish" ? 0 : 1, weightGroups: 1, dishBearers: [], dedicatedDishesAsked: 0,
+      medicalMouths: [], crossContactUnnamedMedical: 0,
       // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
       kitchenEquipment: null,
       unmerge: null,
@@ -1123,9 +1347,17 @@ Deno.test("SANS RÉGIME, LE PROMPT EST CELUI D'AVANT v11, À L'OCTET PRÈS", () 
   // Un foyer où personne n'a répondu à « comment vous mangez » ne doit pas
   // changer d'un octet pour un lot qui ne le concerne pas.
   const base = {
+    // LOT C ② — personne ne porte de règle: aucun des deux blocs, prompt de v18.
+    ruleHolders: [],
+    // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
+    // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
+    // ce fichier — c'est ce qui rend les assertions d'octet encore vraies.
+    traditions: [],
+    daysInWindow: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     members: [DAD, SON], envyLine: null, restrictions: [], presence: NOBODY_AWAY,
     merge: null,
-    cooking: "one_dish" as const, divergingCount: 0, dishBearers: [], dedicatedDishesAsked: 0,
+    cooking: "one_dish" as const, divergingCount: 0, weightGroups: 1, dishBearers: [], dedicatedDishesAsked: 0,
+    medicalMouths: [], crossContactUnnamedMedical: 0,
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
     unmerge: null,
@@ -1165,10 +1397,19 @@ Deno.test("le régime passe AVANT les règles de maison, qui restent DERNIÈRES"
   // place: la lui donner démoterait en silence la seule consigne qui doit
   // survivre à tout, depuis un lot qui n'en a pas besoin.
   const { userSuffix } = buildHouseholdPromptBlocks({
+    // LOT C ② — personne ne porte de règle à cette table: aucun des deux
+    // blocs n'est servi, et le prompt est byte-identique à v18.
+    ruleHolders: [],
+    // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
+    // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
+    // ce fichier — c'est ce qui rend les assertions d'octet encore vraies.
+    traditions: [],
+    daysInWindow: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     members: [DAD, SON], envyLine: "on a envie de bœuf bourguignon",
     restrictions: [{ memberId: "m-son", memberDisplayName: "Tom", label: "pas de Nutella" }],
     presence: NOBODY_AWAY, merge: null,
-    cooking: "one_dish" as const, divergingCount: 0, dishBearers: [], dedicatedDishesAsked: 0,
+    cooking: "one_dish" as const, divergingCount: 0, weightGroups: 1, dishBearers: [], dedicatedDishesAsked: 0,
+    medicalMouths: [], crossContactUnnamedMedical: 0,
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
     unmerge: null,
@@ -1198,18 +1439,28 @@ Deno.test("LOT C — sans porteur, le prompt est BYTE-IDENTIQUE à v11", () => {
   // un. C'est le raisonnement de `buildPortionBrief` sur `anyHabit`/`anyRhythm`,
   // mot pour mot: on n'énonce pas une contrainte que personne n'a posée.
   const base = {
+    // LOT C ② — personne ne porte de règle: aucun des deux blocs, prompt de v18.
+    ruleHolders: [],
+    // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
+    // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
+    // ce fichier — c'est ce qui rend les assertions d'octet encore vraies.
+    traditions: [],
+    daysInWindow: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     members: [DAD, SON],
     envyLine: null,
     restrictions: [],
     presence: NOBODY_AWAY,
     merge: null,
     cooking: "one_dish" as const,
-    divergingCount: 0,
+    divergingCount: 0, weightGroups: 1,
     unmerge: null,
     dietBlock: "",
     voices: [],
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
+    // C1 — aucune bouche médicale: le bloc de contamination croisée ne sort
+    // pas, et le prompt reste celui d'avant ce lot au caractère près.
+    medicalMouths: [], crossContactUnnamedMedical: 0,
   };
   const sans = buildHouseholdPromptBlocks({ ...base, dishBearers: [], dedicatedDishesAsked: 0 });
   assert(
@@ -1226,15 +1477,24 @@ Deno.test("LOT C — avec un porteur, le bloc nomme la bouche et SON id exact", 
   // ⚠️ LE CAS QUI PASSE. Une garde qu'on ne sait pas faire dire « oui » bloque
   // tout en ressemblant à une garde qui marche.
   const out = buildHouseholdPromptBlocks({
+    // LOT C ② — personne ne porte de règle à cette table: aucun des deux
+    // blocs n'est servi, et le prompt est byte-identique à v18.
+    ruleHolders: [],
+    // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
+    // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
+    // ce fichier — c'est ce qui rend les assertions d'octet encore vraies.
+    traditions: [],
+    daysInWindow: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     members: [DAD, SON],
     envyLine: null,
     restrictions: [],
     presence: NOBODY_AWAY,
     merge: null,
     cooking: "one_session" as const,
-    divergingCount: 1,
+    divergingCount: 1, weightGroups: 1,
     dishBearers: [{ memberId: "m-son", displayName: "Théo" }],
     dedicatedDishesAsked: 3,
+    medicalMouths: [], crossContactUnnamedMedical: 0,
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
     unmerge: null,
@@ -1276,13 +1536,21 @@ const BEARER_BASE = {
   presence: NOBODY_AWAY,
   merge: null,
   cooking: "one_session" as const,
-  divergingCount: 1,
+  divergingCount: 1, weightGroups: 1,
   unmerge: null,
   dietBlock: "",
   voices: [],
   dedicatedDishesAsked: 3,
+  medicalMouths: [], crossContactUnnamedMedical: 0,
   // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
   kitchenEquipment: null,
+  // LOT C ② — personne ne porte de règle: aucun des deux blocs, prompt de v18.
+  ruleHolders: [],
+  // ③ — AUCUNE TRADITION, et c'est la prémisse de toutes les assertions
+  // d'octet de ce fichier: un foyer qui n'en pose pas ne doit pas voir une
+  // ligne de plus dans son prompt.
+  traditions: [],
+  daysInWindow: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
 };
 
 Deno.test("LOT 3C — sans porteur, le message utilisateur ne parle d'AUCUN plat dédié", () => {
@@ -1293,8 +1561,9 @@ Deno.test("LOT 3C — sans porteur, le message utilisateur ne parle d'AUCUN plat
   const sans = buildHouseholdPromptBlocks({
     ...BEARER_BASE,
     cooking: "one_dish",
-    divergingCount: 0,
+    divergingCount: 0, weightGroups: 1,
     dishBearers: [], dedicatedDishesAsked: 0,
+    medicalMouths: [], crossContactUnnamedMedical: 0,
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
   });
@@ -1327,6 +1596,7 @@ Deno.test("LOT 3C — avec un porteur, l'ORDRE est dans le message utilisateur, 
     ...BEARER_BASE,
     dishBearers: [{ memberId: "m-son", displayName: "Tom" }],
     dedicatedDishesAsked: 3,
+    medicalMouths: [], crossContactUnnamedMedical: 0,
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
   });
@@ -1348,6 +1618,7 @@ Deno.test("LOT 3C — l'ordre NOMME la sortie que le modèle prenait à la place
     ...BEARER_BASE,
     dishBearers: [{ memberId: "m-son", displayName: "Tom" }],
     dedicatedDishesAsked: 3,
+    medicalMouths: [], crossContactUnnamedMedical: 0,
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
   });
@@ -1369,6 +1640,7 @@ Deno.test("LOT 3C — l'ordre est COLLÉ au brief qui promet le plat, et avant l
     ],
     dishBearers: [{ memberId: "m-son", displayName: "Tom" }],
     dedicatedDishesAsked: 3,
+    medicalMouths: [], crossContactUnnamedMedical: 0,
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
   });
@@ -1387,6 +1659,7 @@ Deno.test("LOT 3C — le schéma système COMMANDE la clé, il ne la permet plus
     ...BEARER_BASE,
     dishBearers: [{ memberId: "m-son", displayName: "Tom" }],
     dedicatedDishesAsked: 3,
+    medicalMouths: [], crossContactUnnamedMedical: 0,
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
   });
@@ -1410,12 +1683,13 @@ Deno.test("LOT 3C — DEUX porteurs sont nommés tous les deux, chacun avec SON 
   // retirerait alors à toute la table.
   const out = buildHouseholdPromptBlocks({
     ...BEARER_BASE,
-    divergingCount: 2,
+    divergingCount: 2, weightGroups: 1,
     dishBearers: [
       { memberId: "m-dad", displayName: "Marc" },
       { memberId: "m-son", displayName: "Tom" },
     ],
     dedicatedDishesAsked: 6,
+    medicalMouths: [], crossContactUnnamedMedical: 0,
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
   });
@@ -1438,6 +1712,7 @@ Deno.test("LOT 3C — l'ordre dit COMBIEN de plats, et le nombre vient de l'appe
     ...BEARER_BASE,
     dishBearers: [{ memberId: "m-son", displayName: "Tom" }],
     dedicatedDishesAsked: 3,
+    medicalMouths: [], crossContactUnnamedMedical: 0,
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
   });
@@ -1446,6 +1721,7 @@ Deno.test("LOT 3C — l'ordre dit COMBIEN de plats, et le nombre vient de l'appe
     ...BEARER_BASE,
     dishBearers: [{ memberId: "m-son", displayName: "Tom" }],
     dedicatedDishesAsked: 21,
+    medicalMouths: [], crossContactUnnamedMedical: 0,
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
   });
@@ -1456,6 +1732,7 @@ Deno.test("LOT 3C — l'ordre dit COMBIEN de plats, et le nombre vient de l'appe
     ...BEARER_BASE,
     dishBearers: [{ memberId: "m-son", displayName: "Tom" }],
     dedicatedDishesAsked: 1,
+    medicalMouths: [], crossContactUnnamedMedical: 0,
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
   });
@@ -1471,6 +1748,7 @@ Deno.test("LOT 3C — un compte à ZÉRO avec un porteur ne réclame JAMAIS zér
     ...BEARER_BASE,
     dishBearers: [{ memberId: "m-son", displayName: "Tom" }],
     dedicatedDishesAsked: 0,
+    medicalMouths: [], crossContactUnnamedMedical: 0,
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
   });
@@ -1512,7 +1790,27 @@ Deno.test("LOT 4 — la version de la lane foyer a bougé d'UN cran", () => {
   // tronc, lui, ne gagne pas un octet: il reste à `meal.en.v12_a_dish_has_a_name`.
   // Population concernée: les foyers où une bouche ATTABLÉE a un compte ET a
   // déclaré un apport. Ailleurs, prompt byte-identique à v16.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v17_what_each_mouth_already_has");
+  // ⚠️ LOT D (2026-08-19) — `v18_what_they_feel_like_this_time`: le champ
+  // d'envie de l'écran de composition ne traversait pas jusqu'au tronc. Même
+  // forme que v17 — un PARAMÈTRE du tronc que la lane laissait vide — et aucun
+  // bloc de ce fichier ne bouge.
+  // ⚠️ LOT C ② (2026-08-19) — `v19_a_why_names_no_ones_rule`: DEUX blocs neufs,
+  // et cette fois ils sont bien dans cette enveloppe-ci. La moitié consigne dit
+  // qu'un `why` ne nomme la règle de personne (mesuré: 3 `why` sur 8
+  // attribuaient l'évitement du gluten à quelqu'un qui n'a aucune contrainte);
+  // la moitié schéma déclare `why_rule_of` et sa liste fermée. Population
+  // concernée: les foyers où au moins une bouche porte une règle. `[]` ⇒ les
+  // deux blocs tombent du `filter` et le prompt est byte-identique à v18 —
+  // c'est ce que tient le test d'égalité de chaîne juste en dessous. Le tronc
+  // ne gagne pas un octet.
+  // ⚠️ 2026-08-19 — `v20_the_box_belongs_to_the_meal`: LES DEUX MOITIÉS DU
+  // PROTOCOLE DES BOÎTES CHANGENT ENSEMBLE. Le schéma déplace `boxes` de la
+  // préparation vers le PLAT et lui donne une part par nom; la consigne cesse de
+  // compter des bouches par casserole et compte des REPAS. Population inchangée
+  // depuis v14: les foyers d'au moins deux bouches. Le tronc bouge AUSSI
+  // (`meal.en.v17`), pour la ligne des jetons que les quatre populations voient:
+  // deux portées, deux axes, comme au LOT 4.
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v21_one_box_per_group");
 });
 
 // ===========================================================================
@@ -1535,12 +1833,20 @@ const KITCHEN_BASE = {
   merge: null,
   unmerge: null,
   cooking: "one_dish" as const,
-  divergingCount: 0,
+  divergingCount: 0, weightGroups: 1,
   dishBearers: [],
   dedicatedDishesAsked: 0,
+  medicalMouths: [], crossContactUnnamedMedical: 0,
   dietBlock: "",
   voices: [],
   kitchenEquipment: null,
+  // LOT C ② — personne ne porte de règle: aucun des deux blocs, prompt de v18.
+  ruleHolders: [],
+  // ③ — AUCUNE TRADITION, et c'est la prémisse de toutes les assertions
+  // d'octet de ce fichier: un foyer qui n'en pose pas ne doit pas voir une
+  // ligne de plus dans son prompt.
+  traditions: [],
+  daysInWindow: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
 };
 
 Deno.test("L7 ① — jamais demandé: prompt BYTE-IDENTIQUE, et c'est 175 comptes sur 175", () => {
@@ -1855,4 +2161,173 @@ Deno.test("L7 ② — une bouche que le prompt ne nomme pas n'est ni écrite ni 
   assert(!block.includes("Nina"), block);
   assert(!block.includes("m-ghost"), block);
   assertEquals(mixte.eatingOut, { mouths: 1, cells: 1 });
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 2026-08-19 — LES IDENTIFIANTS SONT DANS LE MESSAGE QUI LES RÉCLAME.
+//
+// ── LE DÉFAUT, MESURÉ SUR LA RÉPONSE ARCHIVÉE ─────────────────────────────
+// Trois clés du prompt SYSTÈME demandent un `member_id`, et les trois
+// disaient « the exact id given above ». Il n'y avait AUCUN id au-dessus: la
+// liste des bouches vit dans le message UTILISATEUR (vérifié sur
+// `llm_raw_response_events` — zéro uuid dans le prompt système, présents dans
+// le message utilisateur).
+//
+// Le modèle a donc écrit le seul identifiant qu'il avait sous les yeux: le
+// PRÉNOM. `member_ids: ["iku"]`, `member_portions[].member_id: "iku"`. Seize
+// boîtes sur seize refusées, zéro consigne de portion gardée, zéro gramme à
+// l'écran — pendant que chaque méthode disait « portionner dans les boîtes
+// nommées ». Signalé: « je vois pas les boîtes nommées ».
+//
+// ⚠️ CE N'EST PAS UNE DÉSOBÉISSANCE: les 21 reprises portaient un `box_id` et
+// chaque préparation portait ses deux boîtes. Il manquait la seule chose qu'on
+// ne lui avait pas donnée DANS CE MESSAGE.
+// ═══════════════════════════════════════════════════════════════════════════
+
+function suffixesFor(members: PortionMember[]) {
+  return buildHouseholdPromptBlocks({
+    ruleHolders: [],
+    // ③ — AUCUNE TRADITION: le prompt doit rester celui d'hier au caractère
+    // près. C'est la contre-épreuve du lot, et elle vaut pour CHAQUE test de
+    // ce fichier — c'est ce qui rend les assertions d'octet encore vraies.
+    traditions: [],
+    daysInWindow: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
+    members,
+    envyLine: null,
+    restrictions: [],
+    presence: NOBODY_AWAY,
+    merge: null,
+    cooking: "one_dish",
+    divergingCount: 0,
+    weightGroups: 1,
+    dishBearers: [],
+    dedicatedDishesAsked: 0,
+    medicalMouths: [], crossContactUnnamedMedical: 0,
+    kitchenEquipment: null,
+    unmerge: null,
+    dietBlock: "",
+    voices: [],
+  });
+}
+
+Deno.test("⛔ le prompt SYSTÈME porte les ids exacts des bouches", () => {
+  const { systemSuffix } = suffixesFor([DAD, SON]);
+  assert(
+    systemSuffix.includes("THE MEMBER IDS"),
+    "la liste d'ids ne rejoint pas le schéma qui la réclame",
+  );
+  // Les ids EUX-MÊMES, pas une promesse qu'ils existent ailleurs.
+  assert(systemSuffix.includes("m-dad"), "l'id de Marc manque au prompt système");
+  assert(systemSuffix.includes("m-son"), "l'id de Tom manque au prompt système");
+  // Et le prénom reste lisible à côté: sans lui, le modèle ne peut pas savoir
+  // QUELLE bouche il sert quand le brief plus bas parle d'elle par son nom.
+  assert(systemSuffix.includes("Marc"));
+});
+
+Deno.test("⛔ plus aucune clé ne renvoie à une liste d'un AUTRE message", () => {
+  const { systemSuffix } = suffixesFor([DAD, SON]);
+  // La formulation exacte qui a produit zéro. Elle pointait hors du message.
+  assert(
+    !systemSuffix.includes("exact ids from the list above"),
+    "une clé renvoie encore à une liste qui n'est pas dans ce message",
+  );
+  assert(
+    !systemSuffix.includes("exact id given above"),
+    "une clé renvoie encore à une liste qui n'est pas dans ce message",
+  );
+  // ⛔ ET LE PRÉNOM EST NOMMÉ COMME L'ÉCHAPPATOIRE MESURÉE. Interdire en
+  // général ne suffit pas: c'est CETTE substitution-là que le modèle a faite.
+  assert(systemSuffix.includes("never a first name"));
+});
+
+Deno.test("⚠️ LE CAS QUI PASSE — une bouche seule et SANS objectif: aucun bloc d'ids", () => {
+  // Le bloc d'ids sert à DISTINGUER des bouches entre elles: à une seule qui ne
+  // vise rien, il n'a pas de sujet, et rien n'y renvoie.
+  const calm = { ...DAD, goal: "maintenance" as const };
+  const { systemSuffix } = suffixesFor([calm]);
+  assert(!systemSuffix.includes("THE MEMBER IDS"), systemSuffix);
+  assert(!systemSuffix.includes("m-dad"), systemSuffix);
+});
+
+Deno.test("⛔ un SOLO à objectif reçoit la liste d'ids — parce qu'un bloc y renvoie", () => {
+  // ══════════════════════════════════════════════════════════════════════════
+  // LA CICATRICE, RÉINTRODUITE PAR UN CAS NEUF LE JOUR MÊME OÙ ELLE A ÉTÉ
+  // FERMÉE — et rattrapée par ce test.
+  // ══════════════════════════════════════════════════════════════════════════
+  // Le bloc des boîtes dit « ids from THE MEMBER IDS ». La liste ne sortait
+  // qu'à partir de DEUX bouches. Depuis que la pesée se déclenche sur
+  // l'OBJECTIF et plus sur la taille du foyer, un solo en `fat_loss` recevait
+  // ce bloc — donc l'ordre d'utiliser un id « de la liste ci-dessus », sans
+  // liste au-dessus. C'est exactement ce qui a fait écrire des PRÉNOMS au
+  // modèle et jeter 16 boîtes sur 16 ce matin.
+  const { systemSuffix } = suffixesFor([DAD]);
+  assert(systemSuffix.includes("ONE BOX PER GROUP"), systemSuffix);
+  assert(
+    systemSuffix.includes("THE MEMBER IDS"),
+    "un bloc renvoie à une liste qui n'est pas dans ce message",
+  );
+  // Et la liste porte bien l'id, pas seulement son titre.
+  const roster = systemSuffix.slice(systemSuffix.indexOf("THE MEMBER IDS"));
+  assert(roster.includes("m-dad"), roster);
+});
+
+Deno.test("⛔ aucun objectif à table ⇒ UN BAC COMMUN, ET AUCUNE PORTION MILLIMÉTRÉE", () => {
+  // ══════════════════════════════════════════════════════════════════════════
+  // ⚠️ CE TEST A ÉTÉ RENVERSÉ LE 2026-08-20, ET C'EST LE LOT v4.
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // Il disait: « un foyer entier qui se maintient ne reçoit AUCUN protocole ».
+  // Son défaut, mesuré devant un frigo: « plat commun » ne disait ni combien de
+  // bacs remplir dimanche, ni lequel ouvrir jeudi — il ne décidait rien pour
+  // trois personnes sur quatre.
+  //
+  // Ce que la décision du 2026-08-19 protégeait — `maintenance` n'ouvre PAS de
+  // portion millimétrée — est conservé en entier: le bloc sort, mais il ne
+  // nomme personne « seul sur le couvercle », et les grammes qu'il demande
+  // décrivent un RÉCIPIENT.
+  const calm = { ...DAD, goal: "maintenance" as const };
+  const calmSon = { ...SON, goal: "maintenance" as const };
+  const { systemSuffix } = suffixesFor([calm, calmSon]);
+  assert(systemSuffix.includes("ONE BOX PER GROUP"), systemSuffix);
+  assert(systemSuffix.includes("exactly ONE"), systemSuffix);
+  // ⛔ ET PERSONNE N'EST NOMMÉ SEUL SUR UN COUVERCLE: c'est ce qui reste de la
+  // décision du 08-19, et c'est ce qu'il ne faut pas « réparer ».
+  assertEquals(systemSuffix.includes("alone on the lid"), false, systemSuffix);
+});
+
+Deno.test("⛔ UN SOLO SANS OBJECTIF NE VOIT TOUJOURS AUCUN BLOC DE BOÎTES", () => {
+  // Le plancher qui reste après v4: une seule bouche, aucun objectif. Il n'y a
+  // ni groupe à former ni pesée demandée, et lui servir le bloc lui apprendrait
+  // qu'un marquage par personne existe.
+  const calm = { ...DAD, goal: "maintenance" as const };
+  const { systemSuffix } = suffixesFor([calm]);
+  assert(!systemSuffix.includes("ONE BOX PER GROUP"), systemSuffix);
+  assert(!systemSuffix.includes('"boxes"'), systemSuffix);
+});
+
+Deno.test("⛔ le bloc nomme QUI a droit à une boîte, et personne d'autre", () => {
+  // La moitié « consigne » d'une garde dont la moitié « parseur » est
+  // `boxMemberIds`. Les deux doivent nommer la MÊME liste: un prompt qui
+  // réclame une boîte pour tout le monde pendant que le parseur n'en accepte
+  // que pour un produit un plan amputé en silence.
+  const calmSon = { ...SON, goal: "maintenance" as const };
+  const { systemSuffix } = suffixesFor([DAD, calmSon]);
+  assert(systemSuffix.includes("ONE BOX PER GROUP"), systemSuffix);
+  assert(systemSuffix.includes("m-dad"), systemSuffix);
+  const block = systemSuffix.slice(systemSuffix.indexOf("ONE BOX PER GROUP"));
+  // ⚠️ LA LIGNE QUI NOMME « SEUL SUR LE COUVERCLE » NE PORTE QUE LES OBJECTIFS.
+  // Le fils en `maintenance` est dans le bac commun — il a bien un contenant,
+  // il n'a simplement aucun nombre qui le vise.
+  const named = block.slice(0, block.indexOf("Everyone else eating that meal"));
+  assert(named.includes("alone on the lid"), named);
+  assert(!named.includes("m-son"), `une bouche en maintenance est nommée: ${named}`);
+  // ⛔ ET L'ÉCHAPPATOIRE MESURÉE EST NOMMÉE — elle a changé avec le modèle. Hier:
+  // peser la tablée entière. Aujourd'hui: écrire une part par personne dans un
+  // bac partagé, ce qui remettrait la balance au service (ce qui a tué v2).
+  assert(block.includes("Do NOT write a per-person figure on a lid"), block);
+  // ⛔ ET LA PHRASE DE v3 A DISPARU, MOT POUR MOT: « leaving them out is the
+  // answer, not an omission » disait que les autres n'ont RIEN. v4 leur donne un
+  // contenant nommé.
+  assertEquals(block.includes("Nobody else does"), false, block);
+  assertEquals(block.includes("not an omission"), false, block);
 });

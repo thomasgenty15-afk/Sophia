@@ -10,6 +10,13 @@
 // L'autre moitié est le CAS QUI PASSE des lectures: `none` ne se prononce que
 // quand une lecture a répondu, et répondu non. Sinon un compteur grossirait à
 // chaque panne de base, et on « mesurerait » un trou qui n'existe pas.
+//
+// ⚠️ IL N'Y A PLUS QU'UNE PORTE SOLO DEPUIS LE 2026-08-19. Les quatre tests de
+// source ci-dessous balayaient `generate-meal-v1` ET `generate-week-plan-v1`;
+// la seconde lane a été retirée (aucun appelant vivant). Les boucles sont
+// GARDÉES sur un seul élément, exprès: la propriété est « sur CHAQUE porte
+// solo », pas « sur generate-meal-v1 », et le jour où une seconde revient elle
+// s'ajoute à la liste au lieu de rouvrir un test.
 // ===========================================================================
 
 import { assert, assertEquals } from "jsr:@std/assert@1";
@@ -187,13 +194,13 @@ async function generatorSource(fn: string): Promise<string> {
   return await Deno.readTextFile(new URL(`${fn}/index.ts`, FUNCTIONS_DIR));
 }
 
-Deno.test("C3 ① — AUCUNE DES DEUX PORTES NE REFUSE SUR CE DROIT", async () => {
+Deno.test("C3 ① — LA PORTE SOLO NE REFUSE PAS SUR CE DROIT", async () => {
   // ⚠️ LE PIÈGE NOMMÉ. `has_app_write_access` précède KEEL: la brancher comme
   // garde couperait, dès le déploiement, les membres de foyer (dont le droit
   // est celui du foyer) et les élèves dont le siège est payé par leur coach.
   // « Un refus qui coupe un client qui paie ne se répare par aucun nouvel
   // essai. » Ce test tient l'ABSENCE de ce refus.
-  for (const fn of ["generate-meal-v1", "generate-week-plan-v1"]) {
+  for (const fn of ["generate-meal-v1"]) {
     const src = await generatorSource(fn);
     const at = src.indexOf("describeAccess(");
     assert(at >= 0, `${fn}: la mesure a disparu`);
@@ -223,7 +230,7 @@ Deno.test("C3 ① — LA MESURE EST ÉCRITE SUR LA LIGNE, pas seulement journali
   // ⚠️ ÉCRITE MÊME QUAND TOUT VA BIEN: une clé qui n'apparaîtrait que sur le
   // cas `none` ne se distinguerait pas d'un lot débranché — ce dépôt paie en
   // boucle la garde construite puis silencieusement débranchée.
-  for (const fn of ["generate-meal-v1", "generate-week-plan-v1"]) {
+  for (const fn of ["generate-meal-v1"]) {
     const src = await generatorSource(fn);
     assert(
       /\n\s+access,\n/.test(src),
@@ -240,7 +247,7 @@ Deno.test("C3 ① — LA MESURE EST ÉCRITE SUR LA LIGNE, pas seulement journali
 Deno.test("C3 ① — LA MESURE EST FAITE AVANT TOUT APPEL MODÈLE", async () => {
   // Sinon elle ne dirait rien du cas qu'elle existe pour compter: un compte
   // sans droit qui a déjà dépensé.
-  for (const fn of ["generate-meal-v1", "generate-week-plan-v1"]) {
+  for (const fn of ["generate-meal-v1"]) {
     const src = await generatorSource(fn);
     const measured = src.indexOf("describeAccess(");
     const model = src.indexOf("generateWithGemini(");
@@ -249,11 +256,13 @@ Deno.test("C3 ① — LA MESURE EST FAITE AVANT TOUT APPEL MODÈLE", async () =>
   }
 });
 
-Deno.test("C3 ① — LES DEUX PORTES COMPTENT SOUS LE MÊME TAG", async () => {
+Deno.test("C3 ① — LA PORTE COMPTE SOUS LE TAG PARTAGÉ", async () => {
   // La question porte sur un COMPTE, pas sur une porte: deux tags ne se
-  // totalisent pas, et personne ne s'en aperçoit.
+  // totalisent pas, et personne ne s'en aperçoit. Le tag reste une CONSTANTE
+  // partagée et pas un littéral recopié — c'est ce qui gardera le total juste
+  // le jour où une seconde porte revient.
   assertEquals(ACCESS_LOG_TAG, "keel.access.observed");
-  for (const fn of ["generate-meal-v1", "generate-week-plan-v1"]) {
+  for (const fn of ["generate-meal-v1"]) {
     const src = await generatorSource(fn);
     assert(
       src.includes("tag: ACCESS_LOG_TAG"),

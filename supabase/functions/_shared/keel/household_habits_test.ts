@@ -17,6 +17,7 @@ import {
   HABIT_TEXT_MAX_CHARS,
   habitFragment,
   habitNoteFragment,
+  ownMealSlots,
   type MemberHabit,
   parseMemberHabits,
   readHabitText,
@@ -379,7 +380,7 @@ Deno.test("SANS HABITUDE, LE BRIEF EST CELUI D'AVANT LE LOT G, À L'OCTET PRÈS"
   // ⚠️ LA SECONDE MOITIÉ DE LA GARANTIE D'ADDITIVITÉ. Les fragments sont vides,
   // la conséquence ne sort pas, et rien d'autre n'a bougé: un foyer qui n'a
   // rien déclaré reçoit le prompt d'hier.
-  const brief = buildPortionBrief([MERE, FILS], "one_dish", 0);
+  const brief = buildPortionBrief([MERE, FILS], "one_dish", 0, 1);
   assertEquals(
     brief,
     [
@@ -411,24 +412,43 @@ Deno.test("SANS HABITUDE, LE BRIEF EST CELUI D'AVANT LE LOT G, À L'OCTET PRÈS"
       // ⚠️ ET IL EST AVANT LES TROIS DERNIÈRES LIGNES, jamais après: l'interdit
       // du « pourquoi » reste la dernière chose lue, et c'est précisément quand
       // le brief se met à porter des nombres par personne que ça compte.
-      "WEIGH IT ONCE, INTO NAMED BOXES.",
+      "WEIGH IT ONCE, INTO BOXES NAMED BY MEAL.",
       "Nobody weighs anything at mealtime. Everything is weighed at the cooking",
-      "session, straight into boxes with a name on the lid, and a meal later just",
-      'takes its box out. Every preparation you write carries "boxes": one entry',
-      "per box, with the exact member_ids it belongs to and its weight in grams of",
-      "READY food.",
-      "That is 2 people to weigh out on EVERY preparation: Christèle, Thomas.",
-      "Count them before you answer — a person missing from a preparation's boxes",
-      "is a person standing at the fridge with nothing that says how much.",
-      // ── LOT 4C ③ · CE QUE `grams` DÉSIGNE, ET UNE SEULE BOÎTE PAR BOUCHE ─
-      // EN REMPLACEMENT des deux lignes de v14, pas en ajout. Treize bouches se
-      // sont retrouvées dans deux boîtes de la même casserole, trois dans
-      // aucune, et `grams` ne disait pas s'il valait pour une personne ou pour
-      // le bac.
-      '"grams" is what ONE person takes out, never the size of the tub. Two people',
-      "on the same weight share ONE box that lists both ids; when their shares",
-      "differ they get one box each. Every name above is in exactly ONE box of each",
-      "preparation -- never two, never none.",
+      "session, straight into containers, and a meal later just takes its box out.",
+      // ── v4 (2026-08-20) · UN CONTENANT PAR GROUPE ───────────────────────
+      // La clé passe au pluriel, et l'unité est le GROUPE: chaque bouche à
+      // objectif seule, puis tout le reste ensemble.
+      'Every dish that takes from a preparation carries "boxes": one container per',
+      "GROUP of people eating that meal, each holding everything that group takes",
+      "out -- all its preparations together in the same box, not one tub per pan.",
+      "That is 2 people to place at every such meal: Christèle, Thomas. Each of",
+      "them who eats that meal is named on EXACTLY one of that meal's boxes --",
+      "never two, never none.",
+      // ── LA RÈGLE DE GROUPEMENT, AVEC LES PRÉNOMS ────────────────────────
+      // Thomas vise une prise de muscle: il a sa boîte. Christèle se maintient
+      // (`goal: null` sur MERE), donc elle est « tout le reste ».
+      "These people each get a box of their OWN, alone on the lid: Thomas.",
+      "Everyone else who eats that meal shares ONE box, named with all of them.",
+      // ── LES DEUX GRAMMES, ET C'EST TOUTE LA SPEC v4 ─────────────────────
+      // ⛔ « Give every share of a meal the SAME ordinary figure » et
+      // « "grams" is what THAT person takes out of the box » ONT DISPARU: elles
+      // décrivaient une part par personne dans un bac partagé, c'est-à-dire la
+      // balance de retour au service, très exactement ce qui a tué v2.
+      "When ONE name is on the lid, its grams are that person's portion: they open",
+      "it and eat, and nothing is weighed at the table.",
+      "When SEVERAL names are on the lid, its grams are how much goes IN the tub for",
+      "all of them together. That number aims at nobody: never split it per person,",
+      "never write a figure next to a name on a shared lid.",
+      // ── 2026-08-19 · LE DÉROULÉ NE PORTE PLUS DE GRAMMES ────────────────
+      // Mesuré à l'écran: « répartir six portions de 450 g » sur un foyer de
+      // DEUX — un grammage qui ne nommait aucun aliment et ne correspondait à
+      // aucune boîte. L'interdit existait pour `member_portions` seulement.
+      // Ces cinq lignes sont servies à TOUT foyer, comme les quatre du 4C ②.
+      "The cooking session run_through is the ORDER of the gestures, and nothing",
+      "else: no weights, no gram figures, no portion counts. Those live in the",
+      "boxes, where each one already carries the name of what is in it and whose",
+      "it is. A weight written in the run_through names no food and matches no",
+      'lid — say "portion it into the named boxes" and let the boxes speak.',
       "A line in member_portions is NOT a box. It is a sentence read aloud at the",
       "table; a box has a weight and a name on it, and it is what stops the weighing",
       "from happening again at every meal. Writing the serving instruction instead",
@@ -456,6 +476,7 @@ Deno.test("L'HABITUDE ENTRE SUR SA LIGNE, ET SA CONSÉQUENCE EST DITE UNE FOIS",
     ],
     "one_dish",
     0,
+    1,
   );
   assert(
     brief.includes(
@@ -474,7 +495,7 @@ Deno.test("SANS PERSONNE DE MARQUÉE, la conséquence N'EST PAS énoncée", () =
   // ⚠️ MÊME DISCIPLINE QUE `anyBodyFacts` / `anyRhythm`: une consigne « quand
   // quelqu'un a son habitude… » servie à un foyer où personne n'en a apprend au
   // modèle qu'il existe un marquage, et l'invite à en inventer un.
-  const brief = buildPortionBrief([MERE, FILS], "one_dish", 0);
+  const brief = buildPortionBrief([MERE, FILS], "one_dish", 0, 1);
   for (const line of HABIT_CONSEQUENCE) {
     assert(!brief.includes(line), `la conséquence sort sans prémisse: ${line}`);
   }
@@ -488,9 +509,62 @@ Deno.test("LA LIGNE LIBRE N'ARME PAS LA CONSÉQUENCE — elle ne marque personne
     [{ ...MERE, habitNote: "elle prend son cafe avant" }, FILS],
     "one_dish",
     0,
+    1,
   );
   assert(brief.includes("— usually: elle prend son cafe avant"), brief);
   for (const line of HABIT_CONSEQUENCE) {
     assert(!brief.includes(line), `une note seule arme la conséquence: ${line}`);
   }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 2026-08-19 — UN REPAS DÉCLARÉ À SOI EST UN PLAT, ET IL A UNE PLACE.
+//
+// ── LE DÉFAUT, MESURÉ SUR LE RUN DE 19h03 ─────────────────────────────────
+// Une bouche déclare « à midi, ma salade froide ». Le brief le dit au modèle,
+// et le modèle obéit: SIX salades, une par déjeuner. Aucune n'atteint l'écran.
+// Seul un écart de RÉGIME rendait porteur de plat, donc: pas de clé
+// `for_member_id` dans le schéma, et surtout aucune place dans le budget.
+// 24 plats écrits, plafond à 18, les six siennes coupées en silence.
+// « Elle est où la salade froide de thon ? »
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("⛔ `ownMealSlots` et la phrase du brief lisent la MÊME chose", () => {
+  const habits = [
+    { slot: "lunch", kind: "own_usual", usual: "une salade froide" },
+    { slot: "dinner", kind: "household_dish", usual: "" },
+    // ⚠️ UN TEXTE VIDE N'EST PAS UNE DÉCLARATION. Le compter ouvrirait un
+    // budget de plats pour un repas que personne n'a décrit.
+    { slot: "breakfast", kind: "own_usual", usual: "   " },
+  ] as const;
+  assertEquals(ownMealSlots(habits), ["lunch"]);
+  // LA GARANTIE QUI COMPTE: la phrase et la décision ne peuvent pas diverger.
+  // C'est très exactement ce désaccord-là qui a produit le défaut.
+  const said = habitFragment(habits);
+  assertEquals(said.includes("lunch"), true);
+  assertEquals(said.includes("breakfast"), false);
+  assertEquals(ownMealSlots(habits).length > 0, said !== "");
+});
+
+Deno.test("⚠️ LE CAS QUI PASSE — sans repas à soi, aucun moment, aucune phrase", () => {
+  // Le chemin MAJORITAIRE. Sans ce cas, une règle qui rendrait tout le monde
+  // porteur de plat ressemblerait trait pour trait à la règle juste — et
+  // ouvrirait un budget de plats dédiés pour un foyer qui n'en veut aucun.
+  const habits = [{ slot: "dinner", kind: "household_dish", usual: "" }] as const;
+  assertEquals(ownMealSlots(habits), []);
+  assertEquals(habitFragment(habits), "");
+  assertEquals(ownMealSlots([]), []);
+});
+
+Deno.test("⛔ la consigne RÉCLAME le plat et nomme sa clé", () => {
+  const said = HABIT_CONSEQUENCE.join(" ");
+  // Sans la demande, le modèle écrivait le plat quand même — mais rien ne lui
+  // faisait de place, et rien ne lui disait à qui l'attribuer.
+  assert(said.includes("for_member_id"), `la clé n'est pas nommée: ${said}`);
+  assert(/dish of its own/i.test(said), "le plat n'est pas réclamé");
+  // ⚠️ ET LES DEUX MOITIÉS D'ORIGINE RESTENT. « Cook for the others as usual »
+  // empêche le modèle de retirer le moment à TOUTE LA TABLE; la ligne des
+  // courses empêche que sa salade ne soit achetée par personne.
+  assert(said.includes("Cook for the others as usual"));
+  assert(said.includes("shopping list"));
 });

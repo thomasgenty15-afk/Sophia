@@ -1,0 +1,576 @@
+{
+    "scope": "day",
+    "dishes": [
+        {
+            "day": "wed",
+            "why": "This is a warm, clearly named lunch with a loud vegetable and a fresh finish that reheats well at work.",
+            "name": "Peppery lentil lunch bowl",
+            "slot": "lunch",
+            "uses": [
+                {
+                    "box_id": "box_prep_lunch_lentils_zoe",
+                    "servings": 1,
+                    "preparation_id": "prep_lunch_lentils"
+                },
+                {
+                    "box_id": "box_prep_lunch_lentils_lubna",
+                    "servings": 1,
+                    "preparation_id": "prep_lunch_lentils"
+                }
+            ],
+            "title": "Lentils, courgette, peppers and cucumber",
+            "method": "Reheat the lentil portion, then add the cucumber, lemon juice and parsley at the table. Put the courgette and peppers on the plate first, followed by the lentils and the fresh cucumber.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 5
+            },
+            "member_id": null,
+            "ingredients": [
+                {
+                    "term": "cucumber",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 100,
+                    "quantity": "100 g cucumber",
+                    "grams_raw": 100,
+                    "in_pantry": false
+                },
+                {
+                    "term": "lemon juice",
+                    "unit": "tbsp",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 tbsp lemon juice",
+                    "grams_raw": 15,
+                    "in_pantry": false
+                },
+                {
+                    "term": "flat-leaf parsley",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 10,
+                    "quantity": "10 parsley leaves",
+                    "grams_raw": null,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "wed",
+            "why": "This keeps the warm lentil plate simple while following the requested serving order.",
+            "name": "Roxane's lemon lentil bowl",
+            "slot": "lunch",
+            "uses": [
+                {
+                    "box_id": "box_prep_lunch_lentils_roxane",
+                    "servings": 1,
+                    "preparation_id": "prep_lunch_lentils"
+                }
+            ],
+            "title": "Lentils, courgette, peppers and cucumber",
+            "method": "Reheat Roxane's boxed lentils, then add the cucumber, lemon juice and parsley. Serve the vegetables first, then the lentils, followed by the cucumber.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 5
+            },
+            "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+            "ingredients": [
+                {
+                    "term": "cucumber",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 100,
+                    "quantity": "100 g cucumber",
+                    "grams_raw": 100,
+                    "in_pantry": false
+                },
+                {
+                    "term": "lemon juice",
+                    "unit": "tbsp",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 tbsp lemon juice",
+                    "grams_raw": 15,
+                    "in_pantry": false
+                },
+                {
+                    "term": "flat-leaf parsley",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 10,
+                    "quantity": "10 parsley leaves",
+                    "grams_raw": null,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "wed",
+            "why": "This is the comforting reheatable dinner; we traded extra variety for one practical 50-minute cooking session for everyone.",
+            "name": "Tomato chickpea supper",
+            "slot": "dinner",
+            "uses": [
+                {
+                    "box_id": "box_prep_dinner_chickpeas_zoe",
+                    "servings": 1,
+                    "preparation_id": "prep_dinner_chickpeas"
+                },
+                {
+                    "box_id": "box_prep_dinner_chickpeas_lubna",
+                    "servings": 1,
+                    "preparation_id": "prep_dinner_chickpeas"
+                }
+            ],
+            "title": "Chickpeas, aubergine, tomatoes and spinach",
+            "method": "Reheat the chickpea stew until piping hot, then finish with the lemon juice and parsley. Put the aubergine and spinach on the plate first, followed by the chickpeas and tomatoes.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 5
+            },
+            "member_id": null,
+            "ingredients": [
+                {
+                    "term": "lemon juice",
+                    "unit": "tbsp",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 tbsp lemon juice",
+                    "grams_raw": 15,
+                    "in_pantry": false
+                },
+                {
+                    "term": "flat-leaf parsley",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 10,
+                    "quantity": "10 parsley leaves",
+                    "grams_raw": null,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        },
+        {
+            "day": "wed",
+            "why": "This gives Roxane the same warm, comforting supper with her specified serving order.",
+            "name": "Roxane's aubergine chickpeas",
+            "slot": "dinner",
+            "uses": [
+                {
+                    "box_id": "box_prep_dinner_chickpeas_roxane",
+                    "servings": 1,
+                    "preparation_id": "prep_dinner_chickpeas"
+                }
+            ],
+            "title": "Chickpeas, aubergine, tomatoes and spinach",
+            "method": "Reheat Roxane's boxed chickpeas until piping hot, then add the lemon juice and parsley. Serve the aubergine and spinach first, then the chickpeas and tomatoes.",
+            "same_day": {
+                "kind": "assemble",
+                "minutes": 5
+            },
+            "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+            "ingredients": [
+                {
+                    "term": "lemon juice",
+                    "unit": "tbsp",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 tbsp lemon juice",
+                    "grams_raw": 15,
+                    "in_pantry": false
+                },
+                {
+                    "term": "flat-leaf parsley",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 10,
+                    "quantity": "10 parsley leaves",
+                    "grams_raw": null,
+                    "in_pantry": false
+                }
+            ],
+            "honours_belief_keys": [
+                "name_the_plate_out_loud",
+                "one_loud_vegetable"
+            ]
+        }
+    ],
+    "plan_id": "649d8ba5-be67-44ac-acd5-65599948656e",
+    "servings": 4,
+    "starts_on": "2026-08-19",
+    "created_at": "2026-08-19T08:40:15.415016+00:00",
+    "preparations": [
+        {
+            "id": "prep_lunch_lentils",
+            "boxes": [
+                {
+                    "id": "box_prep_lunch_lentils_roxane",
+                    "grams": 220,
+                    "member_ids": [
+                        "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec"
+                    ]
+                },
+                {
+                    "id": "box_prep_lunch_lentils_zoe",
+                    "grams": 193,
+                    "member_ids": [
+                        "5fd38cfd-3895-4152-92a2-e62f9b7fc74e"
+                    ]
+                },
+                {
+                    "id": "box_prep_lunch_lentils_lubna",
+                    "grams": 215,
+                    "member_ids": [
+                        "86129e3c-2f50-480f-a359-077165b6232b"
+                    ]
+                }
+            ],
+            "title": "Courgette and pepper lentils",
+            "method": "Rinse the lentils. Soften the onion and peppers in the oil for five minutes, add the courgettes and paprika, then stir in the tomatoes, lentils and water. Simmer covered for 25 minutes until the lentils are tender, then divide the ready stew into three named boxes.",
+            "cook_on": "wed",
+            "ingredients": [
+                {
+                    "term": "green or brown lentils",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 180,
+                    "quantity": "180 g dry lentils",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "onion",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 onion",
+                    "grams_raw": 110,
+                    "in_pantry": false
+                },
+                {
+                    "term": "courgettes",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 courgettes",
+                    "grams_raw": 400,
+                    "in_pantry": false
+                },
+                {
+                    "term": "red peppers",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 red peppers",
+                    "grams_raw": 300,
+                    "in_pantry": false
+                },
+                {
+                    "term": "chopped tomatoes",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 400,
+                    "quantity": "400 g chopped tomatoes",
+                    "grams_raw": 400,
+                    "in_pantry": false
+                },
+                {
+                    "term": "olive oil",
+                    "unit": "tbsp",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 tbsp olive oil",
+                    "grams_raw": 15,
+                    "in_pantry": false
+                },
+                {
+                    "term": "smoked paprika",
+                    "unit": "tsp",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 tsp smoked paprika",
+                    "grams_raw": 5,
+                    "in_pantry": false
+                },
+                {
+                    "term": "water",
+                    "unit": "ml",
+                    "state": "raw",
+                    "amount": 600,
+                    "quantity": "600 ml water",
+                    "grams_raw": 600,
+                    "in_pantry": false
+                }
+            ],
+            "servings_made": 3,
+            "total_minutes": 35,
+            "active_minutes": 15
+        },
+        {
+            "id": "prep_dinner_chickpeas",
+            "boxes": [
+                {
+                    "id": "box_prep_dinner_chickpeas_roxane",
+                    "grams": 283,
+                    "member_ids": [
+                        "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec"
+                    ]
+                },
+                {
+                    "id": "box_prep_dinner_chickpeas_zoe",
+                    "grams": 248,
+                    "member_ids": [
+                        "5fd38cfd-3895-4152-92a2-e62f9b7fc74e"
+                    ]
+                },
+                {
+                    "id": "box_prep_dinner_chickpeas_lubna",
+                    "grams": 277,
+                    "member_ids": [
+                        "86129e3c-2f50-480f-a359-077165b6232b"
+                    ]
+                },
+                {
+                    "id": "box_prep_dinner_chickpeas_ivar",
+                    "grams": 522,
+                    "member_ids": [
+                        "12362957-32c9-43a5-82ef-66b8d5732171"
+                    ]
+                }
+            ],
+            "title": "Aubergine and spinach chickpeas",
+            "method": "Soften the onion and aubergine in the oil for eight minutes. Add the cumin, tomatoes, chickpeas and water, cover and simmer for 15 minutes, then fold in the spinach until wilted. Divide the ready stew into four named boxes.",
+            "cook_on": "wed",
+            "ingredients": [
+                {
+                    "term": "cooked chickpeas",
+                    "unit": "g",
+                    "state": "cooked",
+                    "amount": 800,
+                    "quantity": "800 g cooked chickpeas",
+                    "grams_raw": 800,
+                    "in_pantry": false
+                },
+                {
+                    "term": "onion",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 1,
+                    "quantity": "1 onion",
+                    "grams_raw": 110,
+                    "in_pantry": false
+                },
+                {
+                    "term": "aubergines",
+                    "unit": "unit",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 aubergines",
+                    "grams_raw": null,
+                    "in_pantry": false
+                },
+                {
+                    "term": "chopped tomatoes",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 800,
+                    "quantity": "800 g chopped tomatoes",
+                    "grams_raw": 800,
+                    "in_pantry": false
+                },
+                {
+                    "term": "spinach",
+                    "unit": "g",
+                    "state": "raw",
+                    "amount": 240,
+                    "quantity": "240 g spinach",
+                    "grams_raw": 240,
+                    "in_pantry": false
+                },
+                {
+                    "term": "olive oil",
+                    "unit": "tbsp",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 tbsp olive oil",
+                    "grams_raw": 30,
+                    "in_pantry": false
+                },
+                {
+                    "term": "ground cumin",
+                    "unit": "tsp",
+                    "state": "raw",
+                    "amount": 2,
+                    "quantity": "2 tsp ground cumin",
+                    "grams_raw": 10,
+                    "in_pantry": false
+                },
+                {
+                    "term": "water",
+                    "unit": "ml",
+                    "state": "raw",
+                    "amount": 250,
+                    "quantity": "250 ml water",
+                    "grams_raw": 250,
+                    "in_pantry": false
+                }
+            ],
+            "servings_made": 4,
+            "total_minutes": 30,
+            "active_minutes": 15
+        }
+    ],
+    "duration_days": 1,
+    "shopping_list": [
+        {
+            "term": "green or brown lentils",
+            "aisle": "grains",
+            "quantity": "180 g"
+        },
+        {
+            "term": "cooked chickpeas",
+            "aisle": "pantry",
+            "quantity": "800 g"
+        },
+        {
+            "term": "onions",
+            "aisle": "produce",
+            "quantity": "2"
+        },
+        {
+            "term": "courgettes",
+            "aisle": "produce",
+            "quantity": "2"
+        },
+        {
+            "term": "red peppers",
+            "aisle": "produce",
+            "quantity": "2"
+        },
+        {
+            "term": "aubergines",
+            "aisle": "produce",
+            "quantity": "2"
+        },
+        {
+            "term": "spinach",
+            "aisle": "produce",
+            "quantity": "240 g"
+        },
+        {
+            "term": "chopped tomatoes",
+            "aisle": "pantry",
+            "quantity": "1.2 kg"
+        },
+        {
+            "term": "cucumber",
+            "aisle": "produce",
+            "quantity": "300 g"
+        },
+        {
+            "term": "lemons",
+            "aisle": "produce",
+            "quantity": "3"
+        },
+        {
+            "term": "flat-leaf parsley",
+            "aisle": "produce",
+            "quantity": "1 small bunch"
+        },
+        {
+            "term": "olive oil",
+            "aisle": "pantry",
+            "quantity": "3 tbsp"
+        },
+        {
+            "term": "smoked paprika",
+            "aisle": "pantry",
+            "quantity": "1 tsp"
+        },
+        {
+            "term": "ground cumin",
+            "aisle": "pantry",
+            "quantity": "2 tsp"
+        }
+    ],
+    "member_portions": [
+        {
+            "member_id": "5ba01540-a6ba-4fc1-8ae3-6d7540f5aeec",
+            "display_name": "Roxane",
+            "portion_note": "Use Roxane's named box for each plate; serve the vegetables first, then the protein, then the starch where present. — Courgette and pepper lentils 220 g · Aubergine and spinach chickpeas 283 g",
+            "preparation_shares": [
+                {
+                    "note": "Use the Roxane box of courgette, peppers and lentils.",
+                    "preparation_id": "prep_lunch_lentils"
+                },
+                {
+                    "note": "Use the Roxane box of aubergine, spinach, tomatoes and chickpeas.",
+                    "preparation_id": "prep_dinner_chickpeas"
+                }
+            ]
+        },
+        {
+            "member_id": "5fd38cfd-3895-4152-92a2-e62f9b7fc74e",
+            "display_name": "Zoe",
+            "portion_note": "Use Zoe's named box and place all components together. — Courgette and pepper lentils 193 g · Aubergine and spinach chickpeas 248 g",
+            "preparation_shares": [
+                {
+                    "note": "Use the Zoe box of courgette, peppers and lentils.",
+                    "preparation_id": "prep_lunch_lentils"
+                },
+                {
+                    "note": "Use the Zoe box of aubergine, spinach, tomatoes and chickpeas.",
+                    "preparation_id": "prep_dinner_chickpeas"
+                }
+            ]
+        },
+        {
+            "member_id": "86129e3c-2f50-480f-a359-077165b6232b",
+            "display_name": "Lubna",
+            "portion_note": "Use Lubna's named box and place all components together. — Courgette and pepper lentils 215 g · Aubergine and spinach chickpeas 277 g",
+            "preparation_shares": [
+                {
+                    "note": "Use the Lubna box of courgette, peppers and lentils.",
+                    "preparation_id": "prep_lunch_lentils"
+                },
+                {
+                    "note": "Use the Lubna box of aubergine, spinach, tomatoes and chickpeas.",
+                    "preparation_id": "prep_dinner_chickpeas"
+                }
+            ]
+        },
+        {
+            "member_id": "12362957-32c9-43a5-82ef-66b8d5732171",
+            "display_name": "Ivar",
+            "portion_note": "Use Ivar's named dinner box; put the protein and starch first where present, then the vegetables. — Aubergine and spinach chickpeas 522 g",
+            "preparation_shares": [
+                {
+                    "note": "Use the Ivar box of aubergine, spinach, tomatoes and chickpeas.",
+                    "preparation_id": "prep_dinner_chickpeas"
+                }
+            ]
+        }
+    ],
+    "cooking_sessions": [
+        {
+            "day": "wed",
+            "run_through": "Start the lentils first: soften the onion and peppers, add the courgettes, tomatoes, lentils and water, and leave them simmering. While they simmer, chop the onion and aubergines for the chickpeas. Start the second pan when the lentils are nearly tender, wilt in its spinach at the end, then weigh the lentils into three lunch boxes and the chickpeas into four dinner boxes.",
+            "total_minutes": 50,
+            "preparation_ids": [
+                "prep_lunch_lentils",
+                "prep_dinner_chickpeas"
+            ]
+        }
+    ]
+}

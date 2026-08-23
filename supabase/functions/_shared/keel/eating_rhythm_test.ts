@@ -188,6 +188,7 @@ Deno.test("le plafond du PROMPT et celui du PARSEUR ne peuvent pas diverger", ()
   const { userMessage } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true,
     budgetAmount: null,
     safetyConstraints: null,
+    safetyConstraintTable: null,
     body: null,
     focusAxis: null,
     dietBlock: "",
@@ -242,6 +243,8 @@ Deno.test("le plafond du PROMPT et celui du PARSEUR ne peuvent pas diverger", ()
       dayProperties: [],
       merge: null,
       boxMemberIds: [],
+      weighedMemberIds: [],
+  boxMemberDiets: [],
     },
   );
   assertEquals(meal.dishes.length, 5);
@@ -284,6 +287,7 @@ Deno.test("la TAILLE d'un moment arrive jusqu'à la consigne", () => {
   const { userMessage } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true,
     budgetAmount: null,
     safetyConstraints: null,
+    safetyConstraintTable: null,
     body: null,
     focusAxis: null,
     dietBlock: "",

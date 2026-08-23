@@ -1,0 +1,1430 @@
+{
+  "request_id": "b0000002-0000-4000-8000-000000000002",
+  "resolved_by": "--request-id",
+  "user_id": "1e000000-0000-4000-8000-000000000012",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-18T23:32:12.838Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "08c0aaaa-5711-4c4d-82f7-eebde5acb5c1",
+      "status": "attempt_start",
+      "created_at": "2026-08-18T23:30:52.540775+00:00",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 16134,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 16134,
+    "user_message_chars": 15401,
+    "user_message_truncated": false,
+    "user_message_written_chars": 15401,
+    "independent_counters": {
+      "system_prompt_chars": 16134,
+      "prompt_chars": 15401
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "0555b3f5-e62a-4f0f-8f79-eab675f4d956",
+    "created_at": "2026-08-18T23:32:12.207156+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "openai",
+    "model": "gpt-5.4-mini",
+    "http_status": 200,
+    "attempt": 1,
+    "chain_index": 0,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"member_portions\": [\n    {\n      \"member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"portion_note\": \"For Bertille, serve the shared plate with a larger helping of chicken and rice, the same vegetables as everyone else, and at breakfast serve her own pistachio butter on toast instead of the shared breakfast.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken_tray\",\n          \"note\": \"Take a larger share from the chicken tray.\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"Take a larger share from the rice pot.\"\n        },\n        {\n          \"preparation_id\": \"prep_roast_veg\",\n          \"note\": \"Take the same vegetables as the table.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"2a937736-693a-45f1-97a6-110f535ae004\",\n      \"portion_note\": \"For Marceau, serve the shared plate with a child-size share of the same main food and sides at each meal.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken_tray\",\n          \"note\": \"Take a smaller share from the chicken tray.\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"Take a smaller share from the rice pot.\"\n        },\n        {\n          \"preparation_id\": \"prep_roast_veg\",\n          \"note\": \"Take the same vegetables as the table.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"portion_note\": \"For Ysoline, serve the shared plate with a full share of the protein, generous vegetables, and a smaller share of starch.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken_tray\",\n          \"note\": \"Take a full share from the chicken tray.\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"Take a smaller share from the rice pot.\"\n        },\n        {\n          \"preparation_id\": \"prep_roast_veg\",\n          \"note\": \"Take extra vegetables from the tray.\"\n        }\n      ]\n    }\n  ],\n  \"dishes\": [\n    {\n      \"name\": \"Eggy toast start\",\n      \"title\": \"Scrambled eggs, spinach and toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"6 eggs\",\n          \"amount\": 6,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"baby spinach\",\n          \"quantity\": \"120 g\",\n          \"amount\": 120,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"wholemeal bread\",\n          \"quantity\": \"6 slices\",\n          \"amount\": 6,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"butter\",\n          \"quantity\": \"20 g\",\n          \"amount\": 20,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Whisk the eggs, melt the butter in a pan and scramble the eggs with the spinach until just set. Toast the bread and serve straight away.\",\n      \"why\": \"It gives the week a named, warm start and keeps the breakfast protein anchor in place without relying on the broken oven.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 15\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Chicken rice bowls\",\n      \"title\": \"Chicken, rice, roast peppers and courgette\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"1 lemon\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"parsley\",\n          \"quantity\": \"a small bunch of parsley\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Reheat one portion each of chicken, rice and roast vegetables, then finish with lemon and parsley.\",\n      \"why\": \"It uses the first batch on the day it is cooked and gives the table a loud vegetable with the main protein anchor.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_tray\",\n          \"servings\": 3\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 3\n        },\n        {\n          \"preparation_id\": \"prep_roast_veg\",\n          \"servings\": 3\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"starch_follows_the_session\"\n      ]\n    },\n    {\n      \"name\": \"Bertille's breakfast toast\",\n      \"title\": \"Toast with pistachio butter\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"wholemeal bread\",\n          \"quantity\": \"2 slices\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"pistachio butter\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Toast the bread and spread with pistachio butter.\",\n      \"why\": \"It keeps Bertille's own breakfast separate, as asked, while the shared breakfast stays egg-based for the others.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 5\n      },\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Chicken salad wraps\",\n      \"title\": \"Chicken, roast vegetables and salad wraps\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"mixed salad leaves\",\n          \"quantity\": \"60 g\",\n          \"amount\": 60,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"wholemeal wraps\",\n          \"quantity\": \"3 wraps\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat one portion each of chicken and roast vegetables, then tuck into wraps with salad leaves.\",\n      \"why\": \"It changes the same cooked chicken into a different lunch so the student is not eating the same plate twice.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_tray\",\n          \"servings\": 3\n        },\n        {\n          \"preparation_id\": \"prep_roast_veg\",\n          \"servings\": 3\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Bertille's chicken wrap\",\n      \"title\": \"Chicken, roast vegetables and salad wrap\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"mixed salad leaves\",\n          \"quantity\": \"20 g\",\n          \"amount\": 20,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"wholemeal wrap\",\n          \"quantity\": \"1 wrap\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat Bertille's portion of chicken and roast vegetables, then roll into a wrap with salad leaves.\",\n      \"why\": \"It gives Bertille her own plated lunch and keeps her away from the shared serving.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_tray\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_roast_veg\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Traybake supper\",\n      \"title\": \"Chicken, rice, roast peppers and courgette\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"1 lemon\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the portions of chicken, rice and roast vegetables, then finish with lemon.\",\n      \"why\": \"It keeps dinner warm, protein-led and built from the same cook-up, which fits the week and the kitchen.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_tray\",\n          \"servings\": 3\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 3\n        },\n        {\n          \"preparation_id\": \"prep_roast_veg\",\n          \"servings\": 3\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"starch_follows_the_session\"\n      ]\n    },\n    {\n      \"name\": \"Bertille's supper plate\",\n      \"title\": \"Chicken, rice, roast peppers and courgette\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"1/2 lemon\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat Bertille's portion of chicken, rice and roast vegetables, then finish with lemon.\",\n      \"why\": \"It gives Bertille her own evening plate while keeping the table's dinner shared for everyone else.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_tray\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_roast_veg\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"starch_follows_the_session\"\n      ]\n    },\n    {\n      \"name\": \"Oat pots\",\n      \"title\": \"Greek yoghurt, oats and berries\",\n      \"slot\": \"breakfast\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"Greek yoghurt\",\n          \"quantity\": \"750 g\",\n          \"amount\": 750,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"rolled oats\",\n          \"quantity\": \"180 g\",\n          \"amount\": 180,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"blueberries\",\n          \"quantity\": \"180 g\",\n          \"amount\": 180,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"honey\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Stir the oats into the yoghurt and top with berries and honey.\",\n      \"why\": \"It is quick on the repainting day and still gives breakfast a protein anchor without needing the oven.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Egg noodle bowls\",\n      \"title\": \"Egg noodles, broccoli and sesame-free peanut chilli\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"garlic\",\n          \"quantity\": \"2 cloves\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"spring onions\",\n          \"quantity\": \"4 spring onions\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Cook the noodles and broccoli, scramble in the eggs, then stir through the peanut chilli and top with spring onions.\",\n      \"why\": \"It gives a full protein lunch with a loud green vegetable on a day when the oven is not useful.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_egg_noodles\",\n          \"servings\": 3\n        },\n        {\n          \"preparation_id\": \"prep_peanut_chilli\",\n          \"servings\": 3\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 20\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Rice salad boxes\",\n      \"title\": \"Rice, tuna, cucumber and tomatoes\",\n      \"slot\": \"lunch\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"1 lemon\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Open the rice and tuna box, add cucumber, tomatoes, lemon and olive oil, and eat cold.\",\n      \"why\": \"It uses the rice and tuna on the same or next day only, which fits the food-safety rule and keeps lunch fast.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_tuna_rice\",\n          \"servings\": 3\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Bertille's rice salad\",\n      \"title\": \"Rice, tuna, cucumber and tomatoes\",\n      \"slot\": \"lunch\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"1/2 lemon\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Open Bertille's box, add cucumber, tomatoes and lemon, and eat cold.\",\n      \"why\": \"It gives Bertille her own packed lunch while the shared batch still covers everyone.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_tuna_rice\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Cottage cheese supper\",\n      \"title\": \"Baked potatoes, cottage cheese and salad\",\n      \"slot\": \"dinner\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"mixed salad leaves\",\n          \"quantity\": \"90 g\",\n          \"amount\": 90,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"cheddar\",\n          \"quantity\": \"60 g\",\n          \"amount\": 60,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the baked potatoes in a pan with a lid, then split and top with cottage cheese and salad.\",\n      \"why\": \"It gives the last night a warm main element without needing the broken oven and still keeps protein at the centre.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_baked_potatoes\",\n          \"servings\": 3\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Bertille's potato supper\",\n      \"title\": \"Baked potatoes, cottage cheese and salad\",\n      \"slot\": \"dinner\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"mixed salad leaves\",\n          \"quantity\": \"30 g\",\n          \"amount\": 30,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"cheddar\",\n          \"quantity\": \"20 g\",\n          \"amount\": 20,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat Bertille's potatoes in a pan with a lid, then split and top with cottage cheese and salad.\",\n      \"why\": \"It gives Bertille her own dinner plate and keeps the shared meal plan intact.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_baked_potatoes\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_chicken_tray\",\n      \"title\": \"Roast chicken thighs with peppers and courgette\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        {\n          \"term\": \"chicken thighs\",\n          \"quantity\": \"1.6 kg\",\n          \"amount\": 1600,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red peppers\",\n          \"quantity\": \"4 red peppers\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"courgettes\",\n          \"quantity\": \"4 courgettes\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red onions\",\n          \"quantity\": \"2 red onions\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"2 tsp\",\n          \"amount\": 2,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Toss the chicken thighs with olive oil, paprika, salt and pepper. Spread in a large roasting tin with the peppers, courgettes and onions, then roast until cooked through and browned.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 45,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_prep_chicken_tray_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 430\n        },\n        {\n          \"id\": \"box_prep_chicken_tray_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_prep_chicken_tray_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 410\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_rice\",\n      \"title\": \"Rice for bowls\",\n      \"servings_made\": 6,\n      \"ingredients\": [\n        {\n          \"term\": \"basmati rice\",\n          \"quantity\": \"450 g\",\n          \"amount\": 450,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"water\",\n          \"quantity\": \"900 ml\",\n          \"amount\": 900,\n          \"unit\": \"ml\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Rinse the rice, simmer it in salted water until tender, then spread it out to cool quickly before boxing.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_prep_rice_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 240\n        },\n        {\n          \"id\": \"box_prep_rice_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_prep_rice_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 210\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_roast_veg\",\n      \"title\": \"Roast vegetables\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        {\n          \"term\": \"broccoli\",\n          \"quantity\": \"2 large heads\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"courgettes\",\n          \"quantity\": \"2 courgettes\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red peppers\",\n          \"quantity\": \"2 red peppers\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Roast the vegetables until browned at the edges and still a little firm, then box while hot.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 35,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_prep_roast_veg_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_prep_roast_veg_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 120\n        },\n        {\n          \"id\": \"box_prep_roast_veg_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 180\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_peanut_chilli\",\n      \"title\": \"Peanut chilli sauce\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"red lentils\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smooth peanut butter\",\n          \"quantity\": \"80 g\",\n          \"amount\": 80,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"tomato passata\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"chilli flakes\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Simmer the lentils in the passata with water until soft, then stir in peanut butter and chilli to make a thick sauce.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 25,\n      \"cook_on\": \"thu\",\n      \"boxes\": [\n        {\n          \"id\": \"box_prep_peanut_chilli_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_prep_peanut_chilli_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_prep_peanut_chilli_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 220\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_egg_noodles\",\n      \"title\": \"Egg noodles with broccoli\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"egg noodles\",\n          \"quantity\": \"250 g\",\n          \"amount\": 250,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"6 eggs\",\n          \"amount\": 6,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"broccoli\",\n          \"quantity\": \"1 large head\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"soy sauce\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"sesame oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Boil the noodles, steam or blanch the broccoli, scramble in the eggs, then finish with soy sauce and sesame oil.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 20,\n      \"cook_on\": \"thu\",\n      \"boxes\": [\n        {\n          \"id\": \"box_prep_egg_noodles_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 330\n        },\n        {\n          \"id\": \"box_prep_egg_noodles_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 220\n        },\n        {\n          \"id\": \"box_prep_egg_noodles_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 300\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_tuna_rice\",\n      \"title\": \"Rice with tuna and cucumber\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"basmati rice\",\n          \"quantity\": \"240 g\",\n          \"amount\": 240,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"tinned tuna\",\n          \"quantity\": \"3 tins\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"cucumber\",\n          \"quantity\": \"1 cucumber\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"cherry tomatoes\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon juice\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Cook and cool the rice on the day, then flake through the tuna and mix with chopped cucumber and tomatoes once cold.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 30,\n      \"cook_on\": \"thu\",\n      \"boxes\": [\n        {\n          \"id\": \"box_prep_tuna_rice_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 320\n        },\n        {\n          \"id\": \"box_prep_tuna_rice_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 230\n        },\n        {\n          \"id\": \"box_prep_tuna_rice_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 300\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_baked_potatoes\",\n      \"title\": \"Baked potatoes\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"large potatoes\",\n          \"quantity\": \"6 large potatoes\",\n          \"amount\": 6,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Bake the potatoes until soft and fluffy, then cool and box them for a quick reheat later.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 45,\n      \"cook_on\": \"thu\",\n      \"boxes\": [\n        {\n          \"id\": \"box_prep_baked_potatoes_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 360\n        },\n        {\n          \"id\": \"box_prep_baked_potatoes_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 240\n        },\n        {\n          \"id\": \"box_prep_baked_potatoes_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 300\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_chicken_tray\",\n        \"prep_rice\",\n        \"prep_roast_veg\"\n      ],\n      \"total_minutes\": 50,\n      \"run_through\": \"Oven on for the chicken tray, rice on the hob while the tray roasts, vegetables added to a second tray or alongside the chicken as space allows, then everything boxed up into named portions before the kitchen is cleared.\"\n    },\n    {\n      \"day\": \"thu\",\n      \"preparation_ids\": [\n        \"prep_peanut_chilli\",\n        \"prep_egg_noodles\",\n        \"prep_tuna_rice\",\n        \"prep_baked_potatoes\"\n      ],\n      \"total_minutes\": 50,\n      \"run_through\": \"Start the potato bake first, then cook the rice for the tuna salad while it is in the oven, make the peanut chilli sauce on the hob, and finish with the noodle-and-egg pan so the hottest jobs overlap and the boxes are ready before the hour is up.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"chicken thighs\",\n      \"quantity\": \"1.6 kg\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"eggs\",\n      \"quantity\": \"12 eggs\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"tinned tuna\",\n      \"quantity\": \"3 tins\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"Greek yoghurt\",\n      \"quantity\": \"750 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"cottage cheese\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"wholemeal bread\",\n      \"quantity\": \"1 loaf\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"wholemeal wraps\",\n      \"quantity\": \"1 pack\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"egg noodles\",\n      \"quantity\": \"250 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"basmati rice\",\n      \"quantity\": \"690 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"rolled oats\",\n      \"quantity\": \"180 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"large potatoes\",\n      \"quantity\": \"6 large potatoes\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red peppers\",\n      \"quantity\": \"6 red peppers\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"courgettes\",\n      \"quantity\": \"6 courgettes\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"broccoli\",\n      \"quantity\": \"3 large heads\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red onions\",\n      \"quantity\": \"2 red onions\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"baby spinach\",\n      \"quantity\": \"120 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"mixed salad leaves\",\n      \"quantity\": \"180 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"cucumber\",\n      \"quantity\": \"1 cucumber\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"cherry tomatoes\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"blueberries\",\n      \"quantity\": \"180 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"parsley\",\n      \"quantity\": \"a small bunch\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"spring onions\",\n      \"quantity\": \"4 spring onions\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"lemons\",\n      \"quantity\": \"5 lemons\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"smooth peanut butter\",\n      \"quantity\": \"80 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"tomato passata\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"smoked paprika\",\n      \"quantity\": \"1 small jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"soy sauce\",\n      \"quantity\": \"1 bottle\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"sesame oil\",\n      \"quantity\": \"1 small bottle\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"honey\",\n      \"quantity\": \"1 small jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"1 bottle\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"butter\",\n      \"quantity\": \"1 pack\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"pistachio butter\",\n      \"quantity\": \"1 small jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"salt\",\n      \"quantity\": \"1 pack\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"black pepper\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    }\n  ]\n}",
+    "output_text_json": {
+      "member_portions": [
+        {
+          "member_id": "8917f344-51d8-4177-8c54-ff4460ef9122",
+          "portion_note": "For Bertille, serve the shared plate with a larger helping of chicken and rice, the same vegetables as everyone else, and at breakfast serve her own pistachio butter on toast instead of the shared breakfast.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken_tray",
+              "note": "Take a larger share from the chicken tray."
+            },
+            {
+              "preparation_id": "prep_rice",
+              "note": "Take a larger share from the rice pot."
+            },
+            {
+              "preparation_id": "prep_roast_veg",
+              "note": "Take the same vegetables as the table."
+            }
+          ]
+        },
+        {
+          "member_id": "2a937736-693a-45f1-97a6-110f535ae004",
+          "portion_note": "For Marceau, serve the shared plate with a child-size share of the same main food and sides at each meal.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken_tray",
+              "note": "Take a smaller share from the chicken tray."
+            },
+            {
+              "preparation_id": "prep_rice",
+              "note": "Take a smaller share from the rice pot."
+            },
+            {
+              "preparation_id": "prep_roast_veg",
+              "note": "Take the same vegetables as the table."
+            }
+          ]
+        },
+        {
+          "member_id": "db0dcc2f-a0f4-46d7-90ab-980b8be0189c",
+          "portion_note": "For Ysoline, serve the shared plate with a full share of the protein, generous vegetables, and a smaller share of starch.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken_tray",
+              "note": "Take a full share from the chicken tray."
+            },
+            {
+              "preparation_id": "prep_rice",
+              "note": "Take a smaller share from the rice pot."
+            },
+            {
+              "preparation_id": "prep_roast_veg",
+              "note": "Take extra vegetables from the tray."
+            }
+          ]
+        }
+      ],
+      "dishes": [
+        {
+          "name": "Eggy toast start",
+          "title": "Scrambled eggs, spinach and toast",
+          "slot": "breakfast",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "eggs",
+              "quantity": "6 eggs",
+              "amount": 6,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "baby spinach",
+              "quantity": "120 g",
+              "amount": 120,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "wholemeal bread",
+              "quantity": "6 slices",
+              "amount": 6,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "butter",
+              "quantity": "20 g",
+              "amount": 20,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Whisk the eggs, melt the butter in a pan and scramble the eggs with the spinach until just set. Toast the bread and serve straight away.",
+          "why": "It gives the week a named, warm start and keeps the breakfast protein anchor in place without relying on the broken oven.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 15
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Chicken rice bowls",
+          "title": "Chicken, rice, roast peppers and courgette",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "lemon",
+              "quantity": "1 lemon",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "parsley",
+              "quantity": "a small bunch of parsley",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Reheat one portion each of chicken, rice and roast vegetables, then finish with lemon and parsley.",
+          "why": "It uses the first batch on the day it is cooked and gives the table a loud vegetable with the main protein anchor.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_tray",
+              "servings": 3
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 3
+            },
+            {
+              "preparation_id": "prep_roast_veg",
+              "servings": 3
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "starch_follows_the_session"
+          ]
+        },
+        {
+          "name": "Bertille's breakfast toast",
+          "title": "Toast with pistachio butter",
+          "slot": "breakfast",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "wholemeal bread",
+              "quantity": "2 slices",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "pistachio butter",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Toast the bread and spread with pistachio butter.",
+          "why": "It keeps Bertille's own breakfast separate, as asked, while the shared breakfast stays egg-based for the others.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 5
+          },
+          "for_member_id": "8917f344-51d8-4177-8c54-ff4460ef9122",
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Chicken salad wraps",
+          "title": "Chicken, roast vegetables and salad wraps",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "mixed salad leaves",
+              "quantity": "60 g",
+              "amount": 60,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "wholemeal wraps",
+              "quantity": "3 wraps",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat one portion each of chicken and roast vegetables, then tuck into wraps with salad leaves.",
+          "why": "It changes the same cooked chicken into a different lunch so the student is not eating the same plate twice.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_tray",
+              "servings": 3
+            },
+            {
+              "preparation_id": "prep_roast_veg",
+              "servings": 3
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Bertille's chicken wrap",
+          "title": "Chicken, roast vegetables and salad wrap",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "mixed salad leaves",
+              "quantity": "20 g",
+              "amount": 20,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "wholemeal wrap",
+              "quantity": "1 wrap",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat Bertille's portion of chicken and roast vegetables, then roll into a wrap with salad leaves.",
+          "why": "It gives Bertille her own plated lunch and keeps her away from the shared serving.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_tray",
+              "servings": 1
+            },
+            {
+              "preparation_id": "prep_roast_veg",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "for_member_id": "8917f344-51d8-4177-8c54-ff4460ef9122",
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Traybake supper",
+          "title": "Chicken, rice, roast peppers and courgette",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "lemon",
+              "quantity": "1 lemon",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the portions of chicken, rice and roast vegetables, then finish with lemon.",
+          "why": "It keeps dinner warm, protein-led and built from the same cook-up, which fits the week and the kitchen.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_tray",
+              "servings": 3
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 3
+            },
+            {
+              "preparation_id": "prep_roast_veg",
+              "servings": 3
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "starch_follows_the_session"
+          ]
+        },
+        {
+          "name": "Bertille's supper plate",
+          "title": "Chicken, rice, roast peppers and courgette",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "lemon",
+              "quantity": "1/2 lemon",
+              "amount": null,
+              "unit": null,
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat Bertille's portion of chicken, rice and roast vegetables, then finish with lemon.",
+          "why": "It gives Bertille her own evening plate while keeping the table's dinner shared for everyone else.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_tray",
+              "servings": 1
+            },
+            {
+              "preparation_id": "prep_rice",
+              "servings": 1
+            },
+            {
+              "preparation_id": "prep_roast_veg",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "for_member_id": "8917f344-51d8-4177-8c54-ff4460ef9122",
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "starch_follows_the_session"
+          ]
+        },
+        {
+          "name": "Oat pots",
+          "title": "Greek yoghurt, oats and berries",
+          "slot": "breakfast",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "Greek yoghurt",
+              "quantity": "750 g",
+              "amount": 750,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "rolled oats",
+              "quantity": "180 g",
+              "amount": 180,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "blueberries",
+              "quantity": "180 g",
+              "amount": 180,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "honey",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Stir the oats into the yoghurt and top with berries and honey.",
+          "why": "It is quick on the repainting day and still gives breakfast a protein anchor without needing the oven.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Egg noodle bowls",
+          "title": "Egg noodles, broccoli and sesame-free peanut chilli",
+          "slot": "lunch",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "garlic",
+              "quantity": "2 cloves",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "spring onions",
+              "quantity": "4 spring onions",
+              "amount": 4,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Cook the noodles and broccoli, scramble in the eggs, then stir through the peanut chilli and top with spring onions.",
+          "why": "It gives a full protein lunch with a loud green vegetable on a day when the oven is not useful.",
+          "uses": [
+            {
+              "preparation_id": "prep_egg_noodles",
+              "servings": 3
+            },
+            {
+              "preparation_id": "prep_peanut_chilli",
+              "servings": 3
+            }
+          ],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 20
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Rice salad boxes",
+          "title": "Rice, tuna, cucumber and tomatoes",
+          "slot": "lunch",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "lemon",
+              "quantity": "1 lemon",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Open the rice and tuna box, add cucumber, tomatoes, lemon and olive oil, and eat cold.",
+          "why": "It uses the rice and tuna on the same or next day only, which fits the food-safety rule and keeps lunch fast.",
+          "uses": [
+            {
+              "preparation_id": "prep_tuna_rice",
+              "servings": 3
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Bertille's rice salad",
+          "title": "Rice, tuna, cucumber and tomatoes",
+          "slot": "lunch",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "lemon",
+              "quantity": "1/2 lemon",
+              "amount": null,
+              "unit": null,
+              "state": "raw"
+            }
+          ],
+          "method": "Open Bertille's box, add cucumber, tomatoes and lemon, and eat cold.",
+          "why": "It gives Bertille her own packed lunch while the shared batch still covers everyone.",
+          "uses": [
+            {
+              "preparation_id": "prep_tuna_rice",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "for_member_id": "8917f344-51d8-4177-8c54-ff4460ef9122",
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Cottage cheese supper",
+          "title": "Baked potatoes, cottage cheese and salad",
+          "slot": "dinner",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "mixed salad leaves",
+              "quantity": "90 g",
+              "amount": 90,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "cheddar",
+              "quantity": "60 g",
+              "amount": 60,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat the baked potatoes in a pan with a lid, then split and top with cottage cheese and salad.",
+          "why": "It gives the last night a warm main element without needing the broken oven and still keeps protein at the centre.",
+          "uses": [
+            {
+              "preparation_id": "prep_baked_potatoes",
+              "servings": 3
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Bertille's potato supper",
+          "title": "Baked potatoes, cottage cheese and salad",
+          "slot": "dinner",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "mixed salad leaves",
+              "quantity": "30 g",
+              "amount": 30,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "cheddar",
+              "quantity": "20 g",
+              "amount": 20,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Reheat Bertille's potatoes in a pan with a lid, then split and top with cottage cheese and salad.",
+          "why": "It gives Bertille her own dinner plate and keeps the shared meal plan intact.",
+          "uses": [
+            {
+              "preparation_id": "prep_baked_potatoes",
+              "servings": 1
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "for_member_id": "8917f344-51d8-4177-8c54-ff4460ef9122",
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_chicken_tray",
+          "title": "Roast chicken thighs with peppers and courgette",
+          "servings_made": 8,
+          "ingredients": [
+            {
+              "term": "chicken thighs",
+              "quantity": "1.6 kg",
+              "amount": 1600,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "red peppers",
+              "quantity": "4 red peppers",
+              "amount": 4,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "courgettes",
+              "quantity": "4 courgettes",
+              "amount": 4,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "red onions",
+              "quantity": "2 red onions",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "smoked paprika",
+              "quantity": "2 tsp",
+              "amount": 2,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Toss the chicken thighs with olive oil, paprika, salt and pepper. Spread in a large roasting tin with the peppers, courgettes and onions, then roast until cooked through and browned.",
+          "active_minutes": 15,
+          "total_minutes": 45,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_prep_chicken_tray_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 430
+            },
+            {
+              "id": "box_prep_chicken_tray_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 250
+            },
+            {
+              "id": "box_prep_chicken_tray_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 410
+            }
+          ]
+        },
+        {
+          "id": "prep_rice",
+          "title": "Rice for bowls",
+          "servings_made": 6,
+          "ingredients": [
+            {
+              "term": "basmati rice",
+              "quantity": "450 g",
+              "amount": 450,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "water",
+              "quantity": "900 ml",
+              "amount": 900,
+              "unit": "ml",
+              "state": "raw"
+            },
+            {
+              "term": "salt",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Rinse the rice, simmer it in salted water until tender, then spread it out to cool quickly before boxing.",
+          "active_minutes": 10,
+          "total_minutes": 30,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_prep_rice_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 240
+            },
+            {
+              "id": "box_prep_rice_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_prep_rice_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 210
+            }
+          ]
+        },
+        {
+          "id": "prep_roast_veg",
+          "title": "Roast vegetables",
+          "servings_made": 8,
+          "ingredients": [
+            {
+              "term": "broccoli",
+              "quantity": "2 large heads",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "courgettes",
+              "quantity": "2 courgettes",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "red peppers",
+              "quantity": "2 red peppers",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Roast the vegetables until browned at the edges and still a little firm, then box while hot.",
+          "active_minutes": 10,
+          "total_minutes": 35,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_prep_roast_veg_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 180
+            },
+            {
+              "id": "box_prep_roast_veg_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 120
+            },
+            {
+              "id": "box_prep_roast_veg_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 180
+            }
+          ]
+        },
+        {
+          "id": "prep_peanut_chilli",
+          "title": "Peanut chilli sauce",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "red lentils",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "smooth peanut butter",
+              "quantity": "80 g",
+              "amount": 80,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "tomato passata",
+              "quantity": "400 g",
+              "amount": 400,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "chilli flakes",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Simmer the lentils in the passata with water until soft, then stir in peanut butter and chilli to make a thick sauce.",
+          "active_minutes": 10,
+          "total_minutes": 25,
+          "cook_on": "thu",
+          "boxes": [
+            {
+              "id": "box_prep_peanut_chilli_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 250
+            },
+            {
+              "id": "box_prep_peanut_chilli_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 180
+            },
+            {
+              "id": "box_prep_peanut_chilli_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 220
+            }
+          ]
+        },
+        {
+          "id": "prep_egg_noodles",
+          "title": "Egg noodles with broccoli",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "egg noodles",
+              "quantity": "250 g",
+              "amount": 250,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "eggs",
+              "quantity": "6 eggs",
+              "amount": 6,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "broccoli",
+              "quantity": "1 large head",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "soy sauce",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "sesame oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Boil the noodles, steam or blanch the broccoli, scramble in the eggs, then finish with soy sauce and sesame oil.",
+          "active_minutes": 15,
+          "total_minutes": 20,
+          "cook_on": "thu",
+          "boxes": [
+            {
+              "id": "box_prep_egg_noodles_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 330
+            },
+            {
+              "id": "box_prep_egg_noodles_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 220
+            },
+            {
+              "id": "box_prep_egg_noodles_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 300
+            }
+          ]
+        },
+        {
+          "id": "prep_tuna_rice",
+          "title": "Rice with tuna and cucumber",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "basmati rice",
+              "quantity": "240 g",
+              "amount": 240,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "tinned tuna",
+              "quantity": "3 tins",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "cucumber",
+              "quantity": "1 cucumber",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "cherry tomatoes",
+              "quantity": "300 g",
+              "amount": 300,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "lemon juice",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Cook and cool the rice on the day, then flake through the tuna and mix with chopped cucumber and tomatoes once cold.",
+          "active_minutes": 15,
+          "total_minutes": 30,
+          "cook_on": "thu",
+          "boxes": [
+            {
+              "id": "box_prep_tuna_rice_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 320
+            },
+            {
+              "id": "box_prep_tuna_rice_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 230
+            },
+            {
+              "id": "box_prep_tuna_rice_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 300
+            }
+          ]
+        },
+        {
+          "id": "prep_baked_potatoes",
+          "title": "Baked potatoes",
+          "servings_made": 3,
+          "ingredients": [
+            {
+              "term": "large potatoes",
+              "quantity": "6 large potatoes",
+              "amount": 6,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "salt",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Bake the potatoes until soft and fluffy, then cool and box them for a quick reheat later.",
+          "active_minutes": 10,
+          "total_minutes": 45,
+          "cook_on": "thu",
+          "boxes": [
+            {
+              "id": "box_prep_baked_potatoes_bertille",
+              "member_ids": [
+                "8917f344-51d8-4177-8c54-ff4460ef9122"
+              ],
+              "grams": 360
+            },
+            {
+              "id": "box_prep_baked_potatoes_marceau",
+              "member_ids": [
+                "2a937736-693a-45f1-97a6-110f535ae004"
+              ],
+              "grams": 240
+            },
+            {
+              "id": "box_prep_baked_potatoes_ysoline",
+              "member_ids": [
+                "db0dcc2f-a0f4-46d7-90ab-980b8be0189c"
+              ],
+              "grams": 300
+            }
+          ]
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_chicken_tray",
+            "prep_rice",
+            "prep_roast_veg"
+          ],
+          "total_minutes": 50,
+          "run_through": "Oven on for the chicken tray, rice on the hob while the tray roasts, vegetables added to a second tray or alongside the chicken as space allows, then everything boxed up into named portions before the kitchen is cleared."
+        },
+        {
+          "day": "thu",
+          "preparation_ids": [
+            "prep_peanut_chilli",
+            "prep_egg_noodles",
+            "prep_tuna_rice",
+            "prep_baked_potatoes"
+          ],
+          "total_minutes": 50,
+          "run_through": "Start the potato bake first, then cook the rice for the tuna salad while it is in the oven, make the peanut chilli sauce on the hob, and finish with the noodle-and-egg pan so the hottest jobs overlap and the boxes are ready before the hour is up."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "chicken thighs",
+          "quantity": "1.6 kg",
+          "aisle": "protein"
+        },
+        {
+          "term": "eggs",
+          "quantity": "12 eggs",
+          "aisle": "protein"
+        },
+        {
+          "term": "tinned tuna",
+          "quantity": "3 tins",
+          "aisle": "protein"
+        },
+        {
+          "term": "Greek yoghurt",
+          "quantity": "750 g",
+          "aisle": "dairy"
+        },
+        {
+          "term": "cottage cheese",
+          "quantity": "500 g",
+          "aisle": "dairy"
+        },
+        {
+          "term": "wholemeal bread",
+          "quantity": "1 loaf",
+          "aisle": "grains"
+        },
+        {
+          "term": "wholemeal wraps",
+          "quantity": "1 pack",
+          "aisle": "grains"
+        },
+        {
+          "term": "egg noodles",
+          "quantity": "250 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "basmati rice",
+          "quantity": "690 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "rolled oats",
+          "quantity": "180 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "large potatoes",
+          "quantity": "6 large potatoes",
+          "aisle": "produce"
+        },
+        {
+          "term": "red peppers",
+          "quantity": "6 red peppers",
+          "aisle": "produce"
+        },
+        {
+          "term": "courgettes",
+          "quantity": "6 courgettes",
+          "aisle": "produce"
+        },
+        {
+          "term": "broccoli",
+          "quantity": "3 large heads",
+          "aisle": "produce"
+        },
+        {
+          "term": "red onions",
+          "quantity": "2 red onions",
+          "aisle": "produce"
+        },
+        {
+          "term": "baby spinach",
+          "quantity": "120 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "mixed salad leaves",
+          "quantity": "180 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "cucumber",
+          "quantity": "1 cucumber",
+          "aisle": "produce"
+        },
+        {
+          "term": "cherry tomatoes",
+          "quantity": "300 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "blueberries",
+          "quantity": "180 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "parsley",
+          "quantity": "a small bunch",
+          "aisle": "produce"
+        },
+        {
+          "term": "spring onions",
+          "quantity": "4 spring onions",
+          "aisle": "produce"
+        },
+        {
+          "term": "lemons",
+          "quantity": "5 lemons",
+          "aisle": "produce"
+        },
+        {
+          "term": "smooth peanut butter",
+          "quantity": "80 g",
+          "aisle": "pantry"
+        },
+        {
+          "term": "tomato passata",
+          "quantity": "400 g",
+          "aisle": "pantry"
+        },
+        {
+          "term": "smoked paprika",
+          "quantity": "1 small jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "soy sauce",
+          "quantity": "1 bottle",
+          "aisle": "pantry"
+        },
+        {
+          "term": "sesame oil",
+          "quantity": "1 small bottle",
+          "aisle": "pantry"
+        },
+        {
+          "term": "honey",
+          "quantity": "1 small jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "olive oil",
+          "quantity": "1 bottle",
+          "aisle": "pantry"
+        },
+        {
+          "term": "butter",
+          "quantity": "1 pack",
+          "aisle": "dairy"
+        },
+        {
+          "term": "pistachio butter",
+          "quantity": "1 small jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "salt",
+          "quantity": "1 pack",
+          "aisle": "pantry"
+        },
+        {
+          "term": "black pepper",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "id": "resp_02c762ec3e85637e006a84eb49b900819e8966b5ef79228af7",
+      "text": {
+        "format": {
+          "type": "json_object"
+        },
+        "verbosity": "medium"
+      },
+      "user": null,
+      "error": null,
+      "model": "gpt-5.4-mini-2026-03-17",
+      "store": true,
+      "tools": [],
+      "top_p": 0.98,
+      "usage": {
+        "input_tokens": 7904,
+        "total_tokens": 16758,
+        "output_tokens": 8854,
+        "input_tokens_details": {
+          "cached_tokens": 7424,
+          "cache_write_tokens": 0
+        },
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "object": "response",
+      "output": [
+        {
+          "id": "msg_02c762ec3e85637e006a84eb4a4b24819ebd965638ffa3db18",
+          "role": "assistant",
+          "type": "message",
+          "phase": "final_answer",
+          "status": "completed",
+          "content": [
+            {
+              "text": "{\n  \"member_portions\": [\n    {\n      \"member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"portion_note\": \"For Bertille, serve the shared plate with a larger helping of chicken and rice, the same vegetables as everyone else, and at breakfast serve her own pistachio butter on toast instead of the shared breakfast.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken_tray\",\n          \"note\": \"Take a larger share from the chicken tray.\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"Take a larger share from the rice pot.\"\n        },\n        {\n          \"preparation_id\": \"prep_roast_veg\",\n          \"note\": \"Take the same vegetables as the table.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"2a937736-693a-45f1-97a6-110f535ae004\",\n      \"portion_note\": \"For Marceau, serve the shared plate with a child-size share of the same main food and sides at each meal.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken_tray\",\n          \"note\": \"Take a smaller share from the chicken tray.\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"Take a smaller share from the rice pot.\"\n        },\n        {\n          \"preparation_id\": \"prep_roast_veg\",\n          \"note\": \"Take the same vegetables as the table.\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\",\n      \"portion_note\": \"For Ysoline, serve the shared plate with a full share of the protein, generous vegetables, and a smaller share of starch.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken_tray\",\n          \"note\": \"Take a full share from the chicken tray.\"\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"note\": \"Take a smaller share from the rice pot.\"\n        },\n        {\n          \"preparation_id\": \"prep_roast_veg\",\n          \"note\": \"Take extra vegetables from the tray.\"\n        }\n      ]\n    }\n  ],\n  \"dishes\": [\n    {\n      \"name\": \"Eggy toast start\",\n      \"title\": \"Scrambled eggs, spinach and toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"6 eggs\",\n          \"amount\": 6,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"baby spinach\",\n          \"quantity\": \"120 g\",\n          \"amount\": 120,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"wholemeal bread\",\n          \"quantity\": \"6 slices\",\n          \"amount\": 6,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"butter\",\n          \"quantity\": \"20 g\",\n          \"amount\": 20,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Whisk the eggs, melt the butter in a pan and scramble the eggs with the spinach until just set. Toast the bread and serve straight away.\",\n      \"why\": \"It gives the week a named, warm start and keeps the breakfast protein anchor in place without relying on the broken oven.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 15\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Chicken rice bowls\",\n      \"title\": \"Chicken, rice, roast peppers and courgette\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"1 lemon\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"parsley\",\n          \"quantity\": \"a small bunch of parsley\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Reheat one portion each of chicken, rice and roast vegetables, then finish with lemon and parsley.\",\n      \"why\": \"It uses the first batch on the day it is cooked and gives the table a loud vegetable with the main protein anchor.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_tray\",\n          \"servings\": 3\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 3\n        },\n        {\n          \"preparation_id\": \"prep_roast_veg\",\n          \"servings\": 3\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"starch_follows_the_session\"\n      ]\n    },\n    {\n      \"name\": \"Bertille's breakfast toast\",\n      \"title\": \"Toast with pistachio butter\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"wholemeal bread\",\n          \"quantity\": \"2 slices\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"pistachio butter\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Toast the bread and spread with pistachio butter.\",\n      \"why\": \"It keeps Bertille's own breakfast separate, as asked, while the shared breakfast stays egg-based for the others.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 5\n      },\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Chicken salad wraps\",\n      \"title\": \"Chicken, roast vegetables and salad wraps\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"mixed salad leaves\",\n          \"quantity\": \"60 g\",\n          \"amount\": 60,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"wholemeal wraps\",\n          \"quantity\": \"3 wraps\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat one portion each of chicken and roast vegetables, then tuck into wraps with salad leaves.\",\n      \"why\": \"It changes the same cooked chicken into a different lunch so the student is not eating the same plate twice.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_tray\",\n          \"servings\": 3\n        },\n        {\n          \"preparation_id\": \"prep_roast_veg\",\n          \"servings\": 3\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Bertille's chicken wrap\",\n      \"title\": \"Chicken, roast vegetables and salad wrap\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"mixed salad leaves\",\n          \"quantity\": \"20 g\",\n          \"amount\": 20,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"wholemeal wrap\",\n          \"quantity\": \"1 wrap\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat Bertille's portion of chicken and roast vegetables, then roll into a wrap with salad leaves.\",\n      \"why\": \"It gives Bertille her own plated lunch and keeps her away from the shared serving.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_tray\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_roast_veg\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Traybake supper\",\n      \"title\": \"Chicken, rice, roast peppers and courgette\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"1 lemon\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the portions of chicken, rice and roast vegetables, then finish with lemon.\",\n      \"why\": \"It keeps dinner warm, protein-led and built from the same cook-up, which fits the week and the kitchen.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_tray\",\n          \"servings\": 3\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 3\n        },\n        {\n          \"preparation_id\": \"prep_roast_veg\",\n          \"servings\": 3\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"starch_follows_the_session\"\n      ]\n    },\n    {\n      \"name\": \"Bertille's supper plate\",\n      \"title\": \"Chicken, rice, roast peppers and courgette\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"1/2 lemon\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat Bertille's portion of chicken, rice and roast vegetables, then finish with lemon.\",\n      \"why\": \"It gives Bertille her own evening plate while keeping the table's dinner shared for everyone else.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_tray\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_rice\",\n          \"servings\": 1\n        },\n        {\n          \"preparation_id\": \"prep_roast_veg\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"starch_follows_the_session\"\n      ]\n    },\n    {\n      \"name\": \"Oat pots\",\n      \"title\": \"Greek yoghurt, oats and berries\",\n      \"slot\": \"breakfast\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"Greek yoghurt\",\n          \"quantity\": \"750 g\",\n          \"amount\": 750,\n          \"unit\": \"g\",\n          \"state\": \"cooked\"\n        },\n        {\n          \"term\": \"rolled oats\",\n          \"quantity\": \"180 g\",\n          \"amount\": 180,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"blueberries\",\n          \"quantity\": \"180 g\",\n          \"amount\": 180,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"honey\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Stir the oats into the yoghurt and top with berries and honey.\",\n      \"why\": \"It is quick on the repainting day and still gives breakfast a protein anchor without needing the oven.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\"\n      ]\n    },\n    {\n      \"name\": \"Egg noodle bowls\",\n      \"title\": \"Egg noodles, broccoli and sesame-free peanut chilli\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"garlic\",\n          \"quantity\": \"2 cloves\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"spring onions\",\n          \"quantity\": \"4 spring onions\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Cook the noodles and broccoli, scramble in the eggs, then stir through the peanut chilli and top with spring onions.\",\n      \"why\": \"It gives a full protein lunch with a loud green vegetable on a day when the oven is not useful.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_egg_noodles\",\n          \"servings\": 3\n        },\n        {\n          \"preparation_id\": \"prep_peanut_chilli\",\n          \"servings\": 3\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 20\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Rice salad boxes\",\n      \"title\": \"Rice, tuna, cucumber and tomatoes\",\n      \"slot\": \"lunch\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"1 lemon\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Open the rice and tuna box, add cucumber, tomatoes, lemon and olive oil, and eat cold.\",\n      \"why\": \"It uses the rice and tuna on the same or next day only, which fits the food-safety rule and keeps lunch fast.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_tuna_rice\",\n          \"servings\": 3\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Bertille's rice salad\",\n      \"title\": \"Rice, tuna, cucumber and tomatoes\",\n      \"slot\": \"lunch\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"lemon\",\n          \"quantity\": \"1/2 lemon\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Open Bertille's box, add cucumber, tomatoes and lemon, and eat cold.\",\n      \"why\": \"It gives Bertille her own packed lunch while the shared batch still covers everyone.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_tuna_rice\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Cottage cheese supper\",\n      \"title\": \"Baked potatoes, cottage cheese and salad\",\n      \"slot\": \"dinner\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"mixed salad leaves\",\n          \"quantity\": \"90 g\",\n          \"amount\": 90,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"cheddar\",\n          \"quantity\": \"60 g\",\n          \"amount\": 60,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat the baked potatoes in a pan with a lid, then split and top with cottage cheese and salad.\",\n      \"why\": \"It gives the last night a warm main element without needing the broken oven and still keeps protein at the centre.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_baked_potatoes\",\n          \"servings\": 3\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Bertille's potato supper\",\n      \"title\": \"Baked potatoes, cottage cheese and salad\",\n      \"slot\": \"dinner\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"mixed salad leaves\",\n          \"quantity\": \"30 g\",\n          \"amount\": 30,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"cheddar\",\n          \"quantity\": \"20 g\",\n          \"amount\": 20,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Reheat Bertille's potatoes in a pan with a lid, then split and top with cottage cheese and salad.\",\n      \"why\": \"It gives Bertille her own dinner plate and keeps the shared meal plan intact.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_baked_potatoes\",\n          \"servings\": 1\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"for_member_id\": \"8917f344-51d8-4177-8c54-ff4460ef9122\",\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_chicken_tray\",\n      \"title\": \"Roast chicken thighs with peppers and courgette\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        {\n          \"term\": \"chicken thighs\",\n          \"quantity\": \"1.6 kg\",\n          \"amount\": 1600,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red peppers\",\n          \"quantity\": \"4 red peppers\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"courgettes\",\n          \"quantity\": \"4 courgettes\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red onions\",\n          \"quantity\": \"2 red onions\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smoked paprika\",\n          \"quantity\": \"2 tsp\",\n          \"amount\": 2,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Toss the chicken thighs with olive oil, paprika, salt and pepper. Spread in a large roasting tin with the peppers, courgettes and onions, then roast until cooked through and browned.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 45,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_prep_chicken_tray_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 430\n        },\n        {\n          \"id\": \"box_prep_chicken_tray_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_prep_chicken_tray_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 410\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_rice\",\n      \"title\": \"Rice for bowls\",\n      \"servings_made\": 6,\n      \"ingredients\": [\n        {\n          \"term\": \"basmati rice\",\n          \"quantity\": \"450 g\",\n          \"amount\": 450,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"water\",\n          \"quantity\": \"900 ml\",\n          \"amount\": 900,\n          \"unit\": \"ml\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Rinse the rice, simmer it in salted water until tender, then spread it out to cool quickly before boxing.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 30,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_prep_rice_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 240\n        },\n        {\n          \"id\": \"box_prep_rice_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_prep_rice_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 210\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_roast_veg\",\n      \"title\": \"Roast vegetables\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        {\n          \"term\": \"broccoli\",\n          \"quantity\": \"2 large heads\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"courgettes\",\n          \"quantity\": \"2 courgettes\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"red peppers\",\n          \"quantity\": \"2 red peppers\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Roast the vegetables until browned at the edges and still a little firm, then box while hot.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 35,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_prep_roast_veg_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_prep_roast_veg_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 120\n        },\n        {\n          \"id\": \"box_prep_roast_veg_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 180\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_peanut_chilli\",\n      \"title\": \"Peanut chilli sauce\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"red lentils\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"smooth peanut butter\",\n          \"quantity\": \"80 g\",\n          \"amount\": 80,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"tomato passata\",\n          \"quantity\": \"400 g\",\n          \"amount\": 400,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"chilli flakes\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Simmer the lentils in the passata with water until soft, then stir in peanut butter and chilli to make a thick sauce.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 25,\n      \"cook_on\": \"thu\",\n      \"boxes\": [\n        {\n          \"id\": \"box_prep_peanut_chilli_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 250\n        },\n        {\n          \"id\": \"box_prep_peanut_chilli_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 180\n        },\n        {\n          \"id\": \"box_prep_peanut_chilli_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 220\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_egg_noodles\",\n      \"title\": \"Egg noodles with broccoli\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"egg noodles\",\n          \"quantity\": \"250 g\",\n          \"amount\": 250,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"eggs\",\n          \"quantity\": \"6 eggs\",\n          \"amount\": 6,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"broccoli\",\n          \"quantity\": \"1 large head\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"soy sauce\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"sesame oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Boil the noodles, steam or blanch the broccoli, scramble in the eggs, then finish with soy sauce and sesame oil.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 20,\n      \"cook_on\": \"thu\",\n      \"boxes\": [\n        {\n          \"id\": \"box_prep_egg_noodles_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 330\n        },\n        {\n          \"id\": \"box_prep_egg_noodles_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 220\n        },\n        {\n          \"id\": \"box_prep_egg_noodles_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 300\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_tuna_rice\",\n      \"title\": \"Rice with tuna and cucumber\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"basmati rice\",\n          \"quantity\": \"240 g\",\n          \"amount\": 240,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"tinned tuna\",\n          \"quantity\": \"3 tins\",\n          \"amount\": 3,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"cucumber\",\n          \"quantity\": \"1 cucumber\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"cherry tomatoes\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"lemon juice\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Cook and cool the rice on the day, then flake through the tuna and mix with chopped cucumber and tomatoes once cold.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 30,\n      \"cook_on\": \"thu\",\n      \"boxes\": [\n        {\n          \"id\": \"box_prep_tuna_rice_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 320\n        },\n        {\n          \"id\": \"box_prep_tuna_rice_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 230\n        },\n        {\n          \"id\": \"box_prep_tuna_rice_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 300\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_baked_potatoes\",\n      \"title\": \"Baked potatoes\",\n      \"servings_made\": 3,\n      \"ingredients\": [\n        {\n          \"term\": \"large potatoes\",\n          \"quantity\": \"6 large potatoes\",\n          \"amount\": 6,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"salt\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Bake the potatoes until soft and fluffy, then cool and box them for a quick reheat later.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 45,\n      \"cook_on\": \"thu\",\n      \"boxes\": [\n        {\n          \"id\": \"box_prep_baked_potatoes_bertille\",\n          \"member_ids\": [\n            \"8917f344-51d8-4177-8c54-ff4460ef9122\"\n          ],\n          \"grams\": 360\n        },\n        {\n          \"id\": \"box_prep_baked_potatoes_marceau\",\n          \"member_ids\": [\n            \"2a937736-693a-45f1-97a6-110f535ae004\"\n          ],\n          \"grams\": 240\n        },\n        {\n          \"id\": \"box_prep_baked_potatoes_ysoline\",\n          \"member_ids\": [\n            \"db0dcc2f-a0f4-46d7-90ab-980b8be0189c\"\n          ],\n          \"grams\": 300\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_chicken_tray\",\n        \"prep_rice\",\n        \"prep_roast_veg\"\n      ],\n      \"total_minutes\": 50,\n      \"run_through\": \"Oven on for the chicken tray, rice on the hob while the tray roasts, vegetables added to a second tray or alongside the chicken as space allows, then everything boxed up into named portions before the kitchen is cleared.\"\n    },\n    {\n      \"day\": \"thu\",\n      \"preparation_ids\": [\n        \"prep_peanut_chilli\",\n        \"prep_egg_noodles\",\n        \"prep_tuna_rice\",\n        \"prep_baked_potatoes\"\n      ],\n      \"total_minutes\": 50,\n      \"run_through\": \"Start the potato bake first, then cook the rice for the tuna salad while it is in the oven, make the peanut chilli sauce on the hob, and finish with the noodle-and-egg pan so the hottest jobs overlap and the boxes are ready before the hour is up.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"chicken thighs\",\n      \"quantity\": \"1.6 kg\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"eggs\",\n      \"quantity\": \"12 eggs\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"tinned tuna\",\n      \"quantity\": \"3 tins\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"Greek yoghurt\",\n      \"quantity\": \"750 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"cottage cheese\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"wholemeal bread\",\n      \"quantity\": \"1 loaf\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"wholemeal wraps\",\n      \"quantity\": \"1 pack\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"egg noodles\",\n      \"quantity\": \"250 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"basmati rice\",\n      \"quantity\": \"690 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"rolled oats\",\n      \"quantity\": \"180 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"large potatoes\",\n      \"quantity\": \"6 large potatoes\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red peppers\",\n      \"quantity\": \"6 red peppers\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"courgettes\",\n      \"quantity\": \"6 courgettes\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"broccoli\",\n      \"quantity\": \"3 large heads\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"red onions\",\n      \"quantity\": \"2 red onions\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"baby spinach\",\n      \"quantity\": \"120 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"mixed salad leaves\",\n      \"quantity\": \"180 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"cucumber\",\n      \"quantity\": \"1 cucumber\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"cherry tomatoes\",\n      \"quantity\": \"300 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"blueberries\",\n      \"quantity\": \"180 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"parsley\",\n      \"quantity\": \"a small bunch\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"spring onions\",\n      \"quantity\": \"4 spring onions\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"lemons\",\n      \"quantity\": \"5 lemons\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"smooth peanut butter\",\n      \"quantity\": \"80 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"tomato passata\",\n      \"quantity\": \"400 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"smoked paprika\",\n      \"quantity\": \"1 small jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"soy sauce\",\n      \"quantity\": \"1 bottle\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"sesame oil\",\n      \"quantity\": \"1 small bottle\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"honey\",\n      \"quantity\": \"1 small jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"olive oil\",\n      \"quantity\": \"1 bottle\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"butter\",\n      \"quantity\": \"1 pack\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"pistachio butter\",\n      \"quantity\": \"1 small jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"salt\",\n      \"quantity\": \"1 pack\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"black pepper\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    }\n  ]\n}",
+              "type": "output_text",
+              "logprobs": [],
+              "annotations": []
+            }
+          ]
+        }
+      ],
+      "status": "completed",
+      "billing": {
+        "payer": "developer"
+      },
+      "metadata": {
+        "source": "generate-household-meal-v1.protein_anchor_retry",
+        "user_id": "1e000000-0000-4000-8000-000000000012",
+        "request_id": "b0000002-0000-4000-8000-000000000002"
+      },
+      "reasoning": {
+        "mode": "standard",
+        "effort": "none",
+        "context": "current_turn",
+        "summary": null
+      },
+      "background": false,
+      "created_at": 1787095881,
+      "moderation": null,
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "total_tokens": 0,
+          "output_tokens": 0,
+          "input_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          },
+          "output_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          }
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "truncation": "disabled",
+      "temperature": 1,
+      "tool_choice": "auto",
+      "completed_at": 1787095931,
+      "instructions": "You cook for ONE student, inside the method their coach teaches.\n\nOutput a single JSON object, nothing else. No prose outside the JSON, no markdown fences.\n\n== THE METHOD COMES FIRST, THE RECIPE IS YOURS ==\n\nYour coach's method is given below. It is not a suggestion: their forbidden practices and the foods they do not put on a plate are hard limits, and you never contradict them.\n\nInside those limits you are free. Write real food a real person wants to eat. You are not restricted to a catalogue.\n\n== A PORTION IS ONE PERSON'S PLATE ==\n\nYou are told how many people are at the table. Every quantity you write is for\nTHAT many people, for the number of servings the dish actually makes — and for\nnothing more.\n\nMeasured failure, and it is the one that makes a plan unusable: \"2 salmon\nfillets, 500 g potatoes\" written for ONE person eating ONE dinner. That is three\ndinners on a plate. If a quantity only makes sense because the dish is cooked in\na batch, then say so in `batch` — do not silently inflate a single plate.\n\nSanity, before you write a quantity: one adult portion is roughly a palm of\nprotein, a fist of starch, and vegetables on top. Scale from there. You never\ntell the student those figures; you use them so the numbers you DO write are\nbelievable.\n\n== EVERY MAIN MEAL IS BUILT AROUND A PROTEIN FOOD ==\n\nBreakfast, lunch and dinner each carry one whole protein food as their anchor:\nmeat, poultry, fish, seafood, eggs, pulses, tofu or tempeh, or a protein-carrying\ndairy like yogurt, skyr or cottage cheese. It is the thing the rest of the plate\nis built around, not a garnish on top of it.\n\nSnacks are snacks. They do not need one.\n\nNever write a figure for it. No grams of protein, no share of the plate, no\ntarget of any kind — you are choosing a food, not measuring a person.\n\n== THE STRETCH STARTS TODAY ==\n\nYou are told what day it is for this student, and the exact days to fill. Use\nTHOSE days, in that order, and no others.\n\nA plan handed to somebody on Wednesday that starts on Monday is half expired on\ndelivery — measured, and the first thing a student notices. There is no such\nthing as planning a day that has already gone.\n\n== COVER THE WHOLE STRETCH, WITH FEW COOKING SESSIONS ==\n\nWhen you are asked for several days, cover EVERY day of the stretch and every\nmeal that matters in it. A plan with Monday dinner and Wednesday dinner and\nnothing in between is not a plan — the student did not ask for a partial week,\nand holes are read as \"the system gave up\".\n\nCovering everything does not mean cooking everything. That is what the\npreparations below are for.\n\n== WHAT YOU COOK IS NOT WHAT YOU EAT ==\n\nThis is the important one, and it is what makes a week both quick and bearable.\n\nSeparate PREPARATIONS from DISHES.\n\n  A preparation is what comes out of one cooking session: 1.2 kg of roast\n  chicken thighs, a pot of chilli, a tray of roast vegetables, a batch of rice.\n  It carries its own ingredients — for the WHOLE batch — and its own method.\n\n  A dish is a meal on a day. It NAMES the preparations it draws on through\n  `uses`, and its own `ingredients` list only what you add at the moment of\n  eating: the salad, the bread, the yogurt, the lemon.\n\nWhy it matters: one cooking of chicken becomes a rice bowl on Monday, a wrap on\nTuesday and a curry base on Thursday. THREE DIFFERENT MEALS, ONE COOKING. Making\nthe same student eat the identical plate four days running is technically batch\ncooking and humanly a punishment — do not do it.\n\nRules that follow:\n  - anything that needs a pan, a pot or an oven is a PREPARATION making at\n    least two servings. Never a dish cooked from scratch twice in a week.\n  - assemblies that need no cooking — oats and yogurt, a sandwich, fruit and\n    nuts — are plain dishes with no `uses`, made fresh, quantities for one\n    plate.\n  - a dish that draws on a preparation does NOT repeat its recipe. Its method is\n    what you do at that meal: \"reheat a portion, add the salad and the lemon\".\n  - vary what you build from the same preparation. Same protein, different meal.\n\n== NAME THE COOKING SESSIONS, AND WRITE THE RUN-THROUGH ==\n\nGive `cooking_sessions`: the days on which the student actually cooks, which\npreparations get made in each, and the ORDER of the gestures — \"oven on for the\ntray, rice on while it roasts, chilli simmering next to it, box four portions\".\n\nAim for two or three sessions in a week, not seven. Every preparation belongs to\nexactly one session: a preparation nobody cooks is a plan the student cannot\nfollow.\n\n== NOTHING SITS IN THE FRIDGE FOR A WEEK ==\n\nA cooked batch is eaten within THREE DAYS of the day it was cooked. Cooked on\nThursday means eaten by Sunday, and that is the end of it. Beyond that it is not\na meal plan, it is a plan to throw food away or to get somebody ill.\n\nCooked rice and cooked seafood are tighter still: same day or the day after.\nRice left sitting is the classic way to make somebody sick, and no amount of\nconvenience is worth it.\n\nIf a batch would have to stretch further, you have three honest ways out: cook a\nsmaller batch, cook it twice, or say plainly in the method that the surplus goes\nin the FREEZER on the cooking day. Never stretch it in silence.\n\n== THE COOKING TIME THEY GAVE YOU IS A CEILING ==\n\nWhen a session time is stated, the session fits inside it. It is not a target to\napproach and overshoot: it is what they actually have that evening, and a\nsession that does not fit is a session they skip — after which the whole week\nfalls apart, not just that session.\n\nIf everything will not fit, cook LESS in that session and put the rest on\nanother cooking day. Fewer preparations that happen beat more preparations that\ndo not.\n\n== NOTHING IS EATEN BEFORE IT IS COOKED ==\n\nA preparation must be cooked ON OR BEFORE the first day that eats from it. If\nthe only cooking day you have is Sunday, then Thursday, Friday and Saturday\ncannot live off a Sunday batch — those days cook for themselves, or they eat\nsomething that needs no batch at all.\n\nThis is not a preference. A plan that feeds Thursday from a Sunday session is a\nplan that cannot be executed, and the student finds out at lunchtime.\n\n== HOW LONG THINGS TAKE ==\n\nEvery preparation carries two numbers, and they are not the same one.\n\"active_minutes\" is time with your hands on it — chopping, stirring, turning.\n\"total_minutes\" is from starting to finished, waiting included. A roast is 10\nactive and 50 total; that gap is the whole reason batch cooking works, because\nthe oven time is free for another preparation.\n\nA session's \"total_minutes\" is the wall clock of the session, NOT the sum of its\npreparations: things overlap, and pretending otherwise turns a comfortable\nninety-minute Sunday into a scary four-hour one nobody starts.\n\nRound to the nearest five. These are estimates a cook recognises, not\nmeasurements — but they are the numbers somebody uses to decide whether tonight\nis possible, so a wrong one costs a skipped meal.\n\n== WHAT TODAY ACTUALLY TAKES, ON EVERY DISH ==\n\nEvery dish carries \"same_day\": what the student does ON THE DAY THEY EAT IT to\nget that plate in front of them, and how long that gesture takes.\n\n  \"kind\" is one of four, and nothing else exists:\n    \"none\"        - nothing to prepare. Fruit, a yogurt, a plate already made.\n    \"reheat_only\" - take the portion out and heat it, and NOTHING else.\n    \"assemble\"    - build the plate from what is already cooked, no cooking.\n    \"cook_fresh\"  - a real cooking gesture that day: scramble the eggs, boil\n                    the pasta, sear the fish.\n\n  \"minutes\" is how long THAT gesture takes, that day. A whole number.\n\n\"minutes\" IS NOT THE TIME OF THE COOKING SESSION, and confusing the two is the\nfailure this field exists to stop. A portion of Sunday's roast, reheated on\nWednesday, is 8 minutes - not the 50 the roast took. Announcing 50 tells\nsomebody with ten minutes that dinner is out of reach, and they skip it.\n\nSay it on EVERY dish, including the ones where the answer is nothing. \"none\" and\n\"cook_fresh\" are answers; a missing line is a plate somebody stands in front of\nwithout knowing what to do. If the dish reheats, the word reheat is what they\nneed to read, so write \"reheat_only\" and say it again plainly in \"method\".\n\n== NEVER PUT A NUMBER ON NUTRITION ==\n\nNo calories. No macro grams. No percentages of anything nutritional. Not as a target, not as a range, not \"roughly\". Nobody has measured this student.\n\nShopping quantities are DIFFERENT and expected: \"400 g chicken thighs\", \"2 onions\", \"a bunch of parsley\". A quantity says how much to buy or use; a target claims a measurement of the person. Put quantities on ingredients, never on the student.\n\n== SAY THE SAME QUANTITY TWICE: ONCE FOR THE COOK, ONCE IN FIGURES ==\n\nEvery ingredient carries \"quantity\" — the phrase a person reads, exactly as you\nwrite it today — AND three plain fields that repeat it:\n\n  \"amount\": the number.\n  \"unit\":   one of \"g\", \"ml\", \"unit\", \"tbsp\", \"tsp\". Nothing else exists. If\n            what you meant is a handful, a cup, a bunch or a pinch, leave\n            \"amount\" and \"unit\" null and keep the phrase in \"quantity\".\n  \"state\":  \"raw\" or \"cooked\" — the weight you just wrote, before or after\n            cooking.\n\n\"state\" is REQUIRED for anything that takes on or loses water in the pan: rice,\npasta, couscous, lentils, dried beans, meat, poultry, fish. A hundred grams of\nrice is not the same food before and after it is boiled, and leaving it out\nmakes the line unusable. It does not matter for oil, nuts, cheese, yogurt or\nfruit — say it anyway when you know it.\n\nNever guess. An ingredient whose weight you do not actually know keeps its\nphrase and leaves the three fields null. A made-up number is worse than a\nmissing one.\n\nFATS, NUTS AND SWEETENERS ARE THE ONE EXCEPTION, and they are not a guess.\nOil, butter, ghee, cream, nut butter, tahini, nuts, seeds, honey, syrup and\nchocolate ALWAYS carry \"amount\" and \"unit\". \"A drizzle of olive oil\" is a\ntablespoon; write 1 and \"tbsp\". These ingredients are small on the page and\nenormous in the pan -- a spoon of oil weighs what a whole plate of vegetables\nweighs, and a line left blank there makes the entire dish unreadable. Salt,\npepper and herbs may stay a pinch; oil may not.\n\n== WHAT A DISH ADDS ON THE DAY IS WEIGHED OR COUNTED, NEVER VAGUE ==\n\nThe phrase in a DISH's \"quantity\" is either a weight -- \"100 g dried pasta\",\n\"40 g feta\" -- or something a person can count: \"half a lemon\", \"10 basil\nleaves\", \"2 eggs\". \"A handful\", \"a generous portion\", \"some rice\" say nothing\nanybody can act on, and they are why the same dish comes out different every\ntime. Salt, pepper and herbs may stay a pinch. Everything else gets a number.\n\n== THE STUDENT'S SITUATION IS NOT DECORATION ==\n\nThey tell you what their week actually looks like — a wedding on Tuesday, a holiday, a weekend away, a late shift. Cook around it. A meal that assumes an evening they do not have is a meal they will not make.\n\n== THE TWO MODES ==\n\nmode = from_pantry\n  Cook with what they ALREADY have. Reach outside their list only for genuine\n  staples (salt, pepper, oil, water) or when the dish is impossible otherwise.\n  Anything you use that they did not list will be shown to them as something to\n  buy, so keep that list short and say why it is needed.\n\nmode = to_shop\n  Compose freely, then give the shopping list the dish actually needs.\n\n== EVERY DISH HAS TWO LINES: A NAME, AND A TITLE ==\n\nThey are not the same line and they do not do the same job.\n\n  \"title\" is what is on the plate, plainly: \"Chicken, courgettes, peppers and\n  rice\". It is read out at the table, it is what somebody cooks from, and it\n  never changes job. Keep writing it exactly as you already do.\n\n  \"name\" is what this dish is CALLED: \"Golden roast chicken bowls\". Short --\n  six words at most. Appetising. It is the line somebody reads when they decide\n  whether they want to eat tonight.\n\nWrite BOTH, on every single dish: as many names as you have dishes. Count them\nbefore you answer.\n\nDo NOT make the title pretty instead. A title that becomes \"Sunshine of\nMarrakesh\" no longer says what is on the plate, and nobody can cook a name. If\nyou find yourself dressing up the title, that is the name -- put it in \"name\"\nand give the title back its plain words. And never write the same string twice:\na \"name\" identical to the title is a line that says nothing.\n\n== OUTPUT JSON SCHEMA ==\n\n{\n  \"dishes\": [\n    {\n      \"name\": \"short, appetising, six words at most -- what the dish is CALLED\",\n      \"title\": \"...\",\n      \"slot\": \"breakfast\"|\"snack_am\"|\"lunch\"|\"snack_pm\"|\"dinner\"|\"before_bed\"|null,\n      \"day\": \"mon\"|\"tue\"|\"wed\"|\"thu\"|\"fri\"|\"sat\"|\"sun\"|null,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"...\"|null,\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to make it, plainly, in a short paragraph\",\n      \"why\": \"one sentence: why THIS dish for THIS student this week\",\n      \"uses\": [{ \"preparation_id\": \"prep_chicken\", \"servings\": 1 }],\n      \"same_day\": { \"kind\": \"none\"|\"reheat_only\"|\"assemble\"|\"cook_fresh\",\n                    \"minutes\": <whole minutes for the day-of gesture> },\n      \"honours_belief_keys\": [\"<exact keys from the convictions list, when one applies>\"]\n    }\n  ],\n  \"preparations\": [\n    { \"id\": \"prep_chicken\", \"title\": \"Roast chicken thighs\",\n      \"servings_made\": 4,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"<for the WHOLE batch>\",\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to cook the batch\",\n      \"active_minutes\": <minutes of HANDS-ON work>,\n      \"total_minutes\": <minutes from starting to finished, waiting included>,\n      \"cook_on\": \"sun\"|null }\n  ],\n  \"cooking_sessions\": [\n    { \"day\": \"sun\", \"preparation_ids\": [\"prep_chicken\", \"prep_rice\"],\n      \"total_minutes\": <minutes the whole session takes, start to finish>,\n      \"run_through\": \"the order of the gestures, plainly\" }\n  ],\n  \"shopping_list\": [\n    { \"term\": \"...\", \"quantity\": \"...\"|null,\n      \"aisle\": \"produce\"|\"protein\"|\"dairy\"|\"grains\"|\"pantry\"|\"frozen\"|\"other\" }\n  ]\n}\n\nDay tokens are exactly: mon tue wed thu fri sat sun. Never translated.\n\n== ADDITIONAL OUTPUT FIELD (household) ==\nAdd ONE more top-level key to the JSON you return:\n  \"member_portions\": [\n    { \"member_id\": \"<exact id given above>\",\n      \"portion_note\": \"how much of what goes on this plate\",\n      \"preparation_shares\": [{ \"preparation_id\": \"prep_x\", \"note\": \"...\" }] }\n  ]\nOne entry per person listed, using their EXACT member_id. Serving\ninstructions only — never a reason, a goal, a calorie count, or anything\nabout a person's body.\n\n== BOXES, ON EVERY PREPARATION (household) ==\nEach preparation carries one more key: \"boxes\".\n  \"boxes\": [{ \"id\": \"box_<preparation>_<name>\",\n              \"member_ids\": [\"<exact ids from the list above>\"],\n              \"grams\": <whole grams of READY food in that box> }]\nIds are lowercase ASCII, invented by you, and each one is used once in the\nwhole plan. The grams are what goes IN the box once cooked, not the raw\nweight of the shopping.\nA dish that eats from a box says so: each entry of its \"uses\" then carries\n\"box_id\", set to that exact box id. A box can only be cited by a meal on or\nafter the day its preparation is cooked.\n\n== WHOSE DISH IS IT (household) ==\nA dish can carry one more key: \"for_member_id\".\nThe serving plan names the people who cannot be served from the shared pot\nand orders a dish of their own. EVERY one of those dishes MUST carry\n\"for_member_id\", set to that person's EXACT member_id. It is not optional:\ntheir dish without that key is served to the whole household by mistake,\nand the person it was cooked for never sees it.\nLeave it out of every dish the table shares — a dish with\nno for_member_id is the table's dish, and that is the normal case.\n  Bertille = 8917f344-51d8-4177-8c54-ff4460ef9122\n  Ysoline = db0dcc2f-a0f4-46d7-90ab-980b8be0189c",
+      "service_tier": "default",
+      "top_logprobs": 0,
+      "max_tool_calls": null,
+      "presence_penalty": 0,
+      "prompt_cache_key": null,
+      "frequency_penalty": 0,
+      "max_output_tokens": null,
+      "safety_identifier": null,
+      "incomplete_details": null,
+      "parallel_tool_calls": true,
+      "previous_response_id": null,
+      "prompt_cache_retention": "24h"
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-18T23:30:52.540775+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:31:21.440725+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:31:21.472644+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:32:12.207156+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

@@ -413,102 +413,25 @@ Deno.test("O7 — LE GÉNÉRATEUR PASSE PAR LA PORTE, et ne rouvre pas le chemin
   );
 });
 
-Deno.test("O7 — LE PLAN DE LA SEMAINE PASSE PAR LA MÊME PORTE (C2 ①)", async () => {
-  // ⚠️ C'EST **LE** CHEMIN DU MODÈLE PRODUIT, ET C1 L'AVAIT LAISSÉ FERMÉ.
-  // `CLAUDE.md` le nomme en toutes lettres: `student_goals` →
-  // `generate-week-plan-v1` → `student_week_plans`. Mesuré en HTTP réel le
-  // 2026-08-12, sur le MÊME compte secondaire qui venait de composer un repas
-  // complet par le repli de C1: `409 no_coach` en 0,34 s. Un secondaire pouvait
-  // composer son dîner et toujours pas sa semaine.
-  //
-  // ⚠️ LE MÊME MODULE, PAS UNE SECONDE RÉSOLUTION. C'est la moitié qui compte:
-  // deux définitions de « quelle doctrine pour cet appelant » auraient divergé
-  // au premier ajustement, et les deux réponses auraient été plausibles.
-  const src = stripComments(
-    await Deno.readTextFile(
-      new URL("../../generate-week-plan-v1/index.ts", import.meta.url),
-    ),
-  );
-  // ⚠️ L'APPEL, PAS LE NOM. Une mutation l'a exigé: `loadDoctrineForCallerX`
-  // contient `loadDoctrineForCaller`, donc un `includes` sur le nom seul reste
-  // VERT sur un repli débranché. On cherche la forme d'appel.
-  assert(
-    /loadDoctrineForCaller\(\s*admin,\s*\{/.test(src),
-    "le générateur de semaine n'appelle pas la résolution par le foyer: un " +
-      "membre de foyer sans coach reçoit encore `no_coach` sur le chemin que " +
-      "CLAUDE.md désigne comme LE chemin du produit.",
-  );
-  assert(
-    /householdId,/.test(src),
-    "le foyer n'est plus passé à la résolution: le repli ne peut plus s'ouvrir.",
-  );
-  assert(
-    !src.includes("loadPublishedDoctrine"),
-    "le générateur de semaine a rouvert le chemin direct vers le chargeur de " +
-      "doctrine: le repli par le foyer est alors contournable.",
-  );
-  // ⚠️ LA LECTURE DIRECTE DE `coach_clients` DOIT AVOIR DISPARU. Elle doublait
-  // celle du chargeur (même prédicat, `status = 'active'`), donc elle refusait
-  // `no_coach` AVANT que le repli n'ait la parole: le repli aurait été posé et
-  // inatteignable, ce qui est le mode d'échec n°1 de ce chantier.
-  assert(
-    !src.includes("coach_clients"),
-    "la lecture directe de `coach_clients` est revenue: elle refuse `no_coach` " +
-      "avant que le repli par le foyer n'ait la parole.",
-  );
-  assert(
-    !src.includes("keel_role"),
-    "le générateur de semaine touche le rôle: le repli ne crée aucun siège.",
-  );
-  // LE FOYER N'EST RÉSOLU QU'UNE FOIS (import compris), comme sur la lane repas.
-  assertEquals(
-    src.split("resolveHouseholdIdFor").length - 1,
-    2,
-    "`resolveHouseholdIdFor` n'est plus appelée exactement une fois: une " +
-      "seconde résolution du foyer a été ajoutée.",
-  );
-  // ⚠️ ET LE GEL 402 ARRIVE AVEC LE REPLI. Sans lui, C2 ouvrait une porte de
-  // génération GRATUITE: un membre de foyer gelé se voit refuser
-  // `generate-meal-v1` (402) et obtiendrait ici une semaine entière sous la
-  // doctrine empruntée à son maître — le contournement exact que L1 a mesuré et
-  // fermé par une porte voisine (19 805 jetons). D13 est écrit sans nuance.
-  const model = src.indexOf("generateWithGemini(");
-  assert(model >= 0, "appel modèle introuvable — test à réviser");
-  // ⚠️ LA FORME DE LA GARDE, PAS SON NOM QUELQUE PART. Deux mutations sont
-  // passées au vert contre la première rédaction de ce test:
-  // `keel_household_is_coveredX` CONTIENT `keel_household_is_covered`, et
-  // `if (false) { … }` laisse tous les marqueurs à leur place. On exige donc la
-  // condition en tête du `if`, l'appel RPC exact, et le refus dans son corps.
-  for (
-    const guard of [
-      "if (householdId && !householdLookupFailed) {",
-      /loadDoctrineForCaller\(\s*admin,\s*\{/,
-    ]
-  ) {
-    const at = typeof guard === "string"
-      ? src.indexOf(guard)
-      : src.search(guard);
-    assert(
-      at >= 0,
-      `la garde « ${guard} » a disparu ou a été DÉSARMÉE dans le générateur ` +
-        `de semaine — c'est exactement ce que ce test existe pour attraper.`,
-    );
-    assert(
-      at < model,
-      `« ${guard} » est APRÈS le premier appel modèle: la garde se paie au ` +
-        `prix d'une génération.`,
-    );
-  }
-  const frozenAt = src.indexOf('error: "household_frozen"');
-  assert(frozenAt > 0 && frozenAt < model, "le 402 du gel a disparu");
-  assert(
-    /rpc\(\s*"keel_household_is_covered",/.test(src.slice(0, model)),
-    "la couverture n'est plus lue par la définition unique du dépôt " +
-      "(`keel_household_is_covered`): une règle réécrite en TypeScript " +
-      "divergerait au premier ajustement.",
-  );
-  assert(
-    src.slice(0, model).includes("coverRes.data === false"),
-    "le verdict de couverture n'est plus lu: la garde ne mord plus.",
-  );
-});
+// ---------------------------------------------------------------------------
+// O7 — LE PLAN DE LA SEMAINE : TEST RETIRÉ AVEC SA LANE, LE 2026-08-19
+// ---------------------------------------------------------------------------
+//
+// Il y avait ici « O7 — LE PLAN DE LA SEMAINE PASSE PAR LA MÊME PORTE (C2 ①) ».
+// Il lisait `generate-week-plan-v1/index.ts` de bout en bout et gardait, sur
+// CETTE lane, quatre propriétés: le repli de doctrine par le foyer, l'absence
+// de lecture directe de `coach_clients`, la résolution unique du foyer, et le
+// gel 402 avant le premier appel modèle.
+//
+// La lane a été retirée (aucun appelant vivant, décision du 2026-08-19). Le
+// test ne pouvait plus ouvrir son fichier.
+//
+// ⚠️ AUCUNE de ces propriétés n'a été abandonnée — VÉRIFIÉ, pas supposé, et
+// chacune est nommée avec son gardien restant:
+//   · repli par le foyer, `loadPublishedDoctrine` fermé, `coach_clients` et
+//     `keel_role` absents, foyer résolu UNE fois → « O7 — LE GÉNÉRATEUR PASSE
+//     PAR LA PORTE », juste au-dessus, sur `generate-meal-v1`;
+//   · gel 402 AVANT le premier appel modèle, motif nommé, `skipErrorLog` →
+//     `household_freeze_test.ts`, sur `generate-meal-v1` ET
+//     `generate-household-meal-v1`.
+// Ce qui disparaît est la TROISIÈME copie, pas la garde.

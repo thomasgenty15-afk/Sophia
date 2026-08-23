@@ -39,6 +39,7 @@ import {
   resolveIngredients,
 } from "./food_composition.ts";
 import type { FoodGroupRef } from "./tokens.ts";
+import { weighableQuantityOf } from "./quantity_from_prose.ts";
 
 // ---------------------------------------------------------------------------
 // LE VERDICT
@@ -323,14 +324,37 @@ export function foldPreparationsIntoDishes(args: {
       const made = Math.max(1, Number(prep.servingsMade) || 1);
       const share = (Number(use.servings) || 1) / made;
       for (const i of prep.ingredients) {
+        // ══════════════════════════════════════════════════════════════════
+        // ⟳ LOT `L-1-b` · LA PROSE EST CONSOMMÉE ICI, PAS EN AVAL — 2026-08-22
+        // ══════════════════════════════════════════════════════════════════
+        //
+        // ⛔ LE PIÈGE EST LE PRORATA, ET IL EST GROS. Une ligne de préparation
+        // sans `amount` mais dont la prose dit « 150 g » serait relue PLUS TARD
+        // par `resolveIngredients` — c'est-à-dire APRÈS le pliage, donc SANS le
+        // facteur. Un lot de poulet fait pour 4 dîners compterait 150 g dans
+        // CHACUN des 4 plats: ×4, et toujours dans le sens qui gonfle. C'est la
+        // cicatrice « un facteur ne porte que sur la part mobile », à l'endroit
+        // où elle mord.
+        //
+        // On lit donc la prose ICI, on lui applique le même `share` qu'à une
+        // quantité structurée, et on RETIRE la prose de la copie pliée pour
+        // qu'aucun lecteur aval ne la relise. La provenance, elle, survit
+        // (`quantitySource`) — sans quoi une ligne rattrapée deviendrait
+        // indiscernable d'une ligne que le modèle avait structurée.
+        const lue = weighableQuantityOf({
+          amount: i.amount,
+          unit: i.unit,
+          quantity: i.quantity,
+        });
         ingredients.push({
           ...i,
           // `null` RESTE `null`. Une quantité absente ne devient pas 0 au
           // passage du prorata: c'est la règle R2 du moteur, et un 0 traverse
           // toutes les additions sans rien signaler.
-          amount: i.amount === null || i.amount === undefined
-            ? null
-            : i.amount * share,
+          amount: lue.amount === null ? null : lue.amount * share,
+          unit: lue.unit,
+          quantity: null,
+          quantitySource: lue.source,
         });
       }
     }

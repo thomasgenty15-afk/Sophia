@@ -11,12 +11,13 @@ import MouthFormDialog, {
 import {
   emptyMouthDraft,
   missingRequiredBlocks,
-  type MouthFormBlock,
   type MouthFormDraft,
 } from "../lib/mouthForm";
 import { en } from "../i18n/en";
+import { EATING_OCCASIONS, type EatingOccasion } from "../api/mealGeneration";
 import { fr } from "../i18n/fr";
 import { setChosenUiLocaleForTest } from "../i18n/runtime";
+import { ARRIVAL_HORIZON_COPY } from "../lib/arrivalHorizon";
 import {
   PACE_SATURATION_LABELS,
   PACE_WARNING_LABELS,
@@ -58,8 +59,8 @@ const dialogSource = readFileSync(
   "utf-8",
 );
 
-const NO_ACCOUNT: MouthSubject = { existing: false, hasAccount: false };
-const WITH_ACCOUNT: MouthSubject = { existing: true, hasAccount: true };
+const NO_ACCOUNT: MouthSubject = { existing: false, hasAccount: false, isSelf: false };
+const WITH_ACCOUNT: MouthSubject = { existing: true, hasAccount: true, isSelf: false };
 
 /**
  * ── ⚠️ DEUX SURFACES DEPUIS LE 2026-08-18, ET CE RENDU LES CONCATÈNE ──────
@@ -83,8 +84,17 @@ function scene(args: {
   draft?: Partial<MouthFormDraft>;
   subject?: MouthSubject;
   locale?: "en" | "fr";
-  openBlock?: MouthFormBlock | null;
   busy?: boolean;
+  /** Les moments interrogés. Par défaut les six — voir `habitSlotsFor`. */
+  slots?: readonly EatingOccasion[];
+  onSaveShaker?: ((s: never) => void) | null;
+  /**
+   * LA FENÊTRE A-T-ELLE UNE LIGNE DE FOYER ? Lu par `prefsHtml` seul — la fiche
+   * en ligne (`coreHtml`) ne s'en sert pas. Déclaré ICI plutôt que passé de
+   * force: un `as any` au point d'appel désarmait la vérification de TOUS les
+   * autres champs de la scène, pas seulement de celui-là.
+   */
+  memberScoped?: boolean;
 }) {
   // `uiLocale()` lit le CHEMIN COURANT — la langue d'une page dépend de la
   // page, pas seulement du visiteur —, donc un rendu sans `location` sort en
@@ -98,8 +108,13 @@ function scene(args: {
   return {
     draft: { ...emptyMouthDraft(), ...(args.draft ?? {}) },
     subject: args.subject ?? NO_ACCOUNT,
+    slots: args.slots ?? [...EATING_OCCASIONS],
+    // `undefined` = pas précisé ⇒ le port existe. `null` = le sujet n'en a
+    // pas, et c'est un CAS DE TEST, pas un défaut d'argument.
+    onSaveShaker: args.onSaveShaker === undefined
+      ? () => {}
+      : args.onSaveShaker,
     busy: args.busy ?? false,
-    openBlock: args.openBlock ?? null,
   };
 }
 
@@ -130,13 +145,13 @@ function prefsHtml(args: Parameters<typeof scene>[0]): string {
       subject: s.subject,
       busy: s.busy,
       onClose: () => {},
-      openBlock: s.openBlock,
-      onOpenBlock: () => {},
+      slots: s.slots ?? [...EATING_OCCASIONS],
+      onSaveShaker: s.onSaveShaker,
       // ⚠️ `true` PARCE QUE C'EST LE CAS NOMINAL DE CETTE FENÊTRE: elle
       // s'ouvre sur `/app/household`, donc il y a un foyer, donc une ligne
       // membre. `false` est l'état d'un compte SOLO, et il a son propre cas
       // juste en dessous — « une garde a besoin d'un cas qui passe ».
-      memberScoped: (args as { memberScoped?: boolean }).memberScoped ?? true,
+      memberScoped: args.memberScoped ?? true,
     }),
   );
 }
@@ -147,8 +162,9 @@ function html(args: {
   locale?: "en" | "fr";
   open?: boolean;
   failure?: string | null;
-  openBlock?: MouthFormBlock | null;
   busy?: boolean;
+  slots?: readonly EatingOccasion[];
+  onSaveShaker?: ((s: never) => void) | null;
 }): string {
   return coreHtml(args) + prefsHtml(args);
 }
@@ -224,6 +240,21 @@ afterEach(() => setChosenUiLocaleForTest("en"));
 // LES SIX BLOCS SONT LÀ
 // ---------------------------------------------------------------------------
 
+/**
+ * LE TEXTE D'UNE CLÉ VOISÉE, `{who}` RÉSOLU — comme l'écran le rend.
+ *
+ * ⚠️ DEPUIS LE 2026-08-19, une clé de la fiche n'est plus une constante: elle
+ * existe en deux voix (« tu » sur ma carte, le PRÉNOM sur celle des autres) et
+ * porte un trou `{who}`. Comparer la chaîne BRUTE mesurerait un texte que
+ * personne ne voit jamais. Voir `lib/mouthVoice.ts`.
+ */
+function voicedText(
+  cat: typeof en | typeof fr,
+  key: keyof typeof en & keyof typeof fr,
+): string {
+  return cat[key].replace(/\{who\}/g, cat["household.mouth.who_fallback"]);
+}
+
 describe("les six blocs se rendent, dans l'ordre de la conception", () => {
   it("les six titres sont à l'écran", () => {
     const body = text(html({}));
@@ -232,34 +263,59 @@ describe("les six blocs se rendent, dans l'ordre de la conception", () => {
         en["household.mouth.identity"],
         en["household.mouth.direction"],
         en["household.mouth.body"],
-        en["household.mouth.habits"],
-        en["setup.mouths.allergies"],
-        en["household.mouth.tastes"],
+        en["household.mouth.habits"].replace(/\{who\}/g, en["household.mouth.who_fallback"]),
+        en["setup.mouths.allergies"].replace(/\{who\}/g, en["household.mouth.who_fallback"]),
+        en["household.mouth.tastes"].replace(/\{who\}/g, en["household.mouth.who_fallback"]),
       ]
     ) {
       expect(body).toContain(decode(label));
     }
   });
 
-  it("les trois obligatoires sont DÉPLIÉS, les sautables non", () => {
+  it("TOUS les champs sont à l'écran — plus rien n'est replié", () => {
+    // ── ⛔ LE REPLI EST PARTI LE 2026-08-19 ────────────────────────────────
+    // Ce test affirmait l'inverse: « les trois obligatoires sont DÉPLIÉS, les
+    // sautables non ». Décision de l'utilisateur — « il faut arrêter avec le
+    // dépliable ». Ce que le repli coûtait: une réponse repliée est une
+    // réponse INVISIBLE, sur un écran dont le seul travail est de dire ce
+    // qu'on sait de quelqu'un.
     const markup = html({});
-    // Les champs des blocs obligatoires sont dans le markup.
     expect(markup).toContain('id="mouth-first-name"');
     expect(markup).toContain('id="mouth-birth-date"');
     expect(markup).toContain('id="mouth-height"');
     expect(markup).toContain('id="mouth-weight"');
     expect(markup).toContain('id="mouth-gender"');
-    // Un bloc sautable REPLIÉ ne rend AUCUN de ses champs.
-    expect(markup).not.toContain('id="mouth-dislike"');
-    expect(markup).not.toContain('id="mouth-diet"');
+    // Et ce qui se cachait derrière un en-tête fermé est là aussi, sans clic.
+    expect(markup).toContain('id="mouth-diet"');
+    expect(markup).toContain('id="mouth-dislike"');
+    expect(markup).toContain('id="mouth-habit-breakfast"');
   });
 
-  it("un bloc sautable déplié rend ses champs", () => {
-    const markup = html({ draft: { goal: "muscle_gain" } });
-    // Le bloc `habits` s'ouvre TOUT SEUL en prise (§Bloc 4).
-    expect(markup).toContain('id="mouth-habit-breakfast"');
-    // Et les deux autres s'ouvrent quand on les nomme.
-    expect(html({ openBlock: "tastes" })).toContain('id="mouth-dislike"');
+  it("l'ordre des sections va du plus EXCLUANT au plus informatif", () => {
+    // ⚠️ C'EST UNE DÉCISION, PAS UNE MISE EN PAGE, et c'est ce qui remplace le
+    // repli: le régime écarte des familles entières d'aliments, donc il passe
+    // avant les dégoûts (sinon on note des dégoûts sur ce qu'on ne servira
+    // jamais); et « ce qu'elle mange déjà » vient en DERNIER parce que ses
+    // lignes dépendent du nombre de repas déclaré au-dessus.
+    const markup = html({});
+    const at = (needle: string) => markup.indexOf(needle);
+    expect(at('id="mouth-diet"')).toBeGreaterThan(-1);
+    expect(at('id="mouth-diet"')).toBeLessThan(at('id="mouth-dislike"'));
+    expect(at('id="mouth-dislike"'))
+      .toBeLessThan(at('id="mouth-habit-breakfast"'));
+  });
+
+  it("« ce qu'elle mange déjà » ne pose QUE les moments déclarés", () => {
+    // ⛔ LE DÉFAUT SIGNALÉ, CAPTURE À L'APPUI, LE 2026-08-19: « par défaut on a
+    // mis les 6 plages et ça n'a pas de sens pour une personne qui indique
+    // qu'elle mange que 2 fois par jour ». Un champ laissé vide sur un moment
+    // qui n'existe pas se lit comme un oubli, pas comme une réponse.
+    const twice = html({ slots: ["lunch", "dinner"] });
+    expect(twice).toContain('id="mouth-habit-lunch"');
+    expect(twice).toContain('id="mouth-habit-dinner"');
+    expect(twice).not.toContain('id="mouth-habit-breakfast"');
+    expect(twice).not.toContain('id="mouth-habit-snack_am"');
+    expect(twice).not.toContain('id="mouth-habit-before_bed"');
   });
 });
 
@@ -363,12 +419,26 @@ describe("le curseur — quatre états, et deux d'entre eux sont des PHRASES", (
     expect(markup).toContain('step="0.05"');
   });
 
-  it("la DATE D'ARRIVÉE se rend quand elle est calculable", () => {
-    const body = text(html({
-      draft: { ...ADULT_COMPLETE, goal: "fat_loss", targetWeightKg: "55" },
-    }));
-    // 5 kg à 0,45 kg/semaine → 12 semaines (arrondi au supérieur).
-    expect(body).toContain("About 12 weeks");
+  it("⛔ L3 — AUCUNE DATE D'ARRIVÉE NE SE REND, dans aucune langue", () => {
+    // ⚠️ CE TEST EST L'ARME DU LOT `L3` (2026-08-22), ET IL LIT LE HTML RENDU.
+    // Il remplace `expect(body).toContain("About 12 weeks")`: la même fenêtre,
+    // sur le même brouillon, affichait un nombre de semaines EXACT.
+    for (const locale of ["en", "fr"] as const) {
+      const body = text(html({
+        draft: { ...ADULT_COMPLETE, goal: "fat_loss", targetWeightKg: "55" },
+        locale,
+      }));
+      // ① l'ancienne phrase est partie, et son gabarit avec.
+      expect(body).not.toContain("About 12 weeks");
+      expect(body).not.toContain("Environ 12 semaines");
+      // ② et AUCUN nombre de semaines, quel qu'il soit, ne se rend.
+      expect(body).not.toMatch(/\d+\s*(weeks?|semaines?)/i);
+      // ③ ⛔ MAIS LA SURFACE N'A PAS DISPARU: la phrase de remplacement est
+      // là, elle nomme la direction, la raison, et ce qui donnera le rythme.
+      expect(body).toContain(
+        decode(ARRIVAL_HORIZON_COPY.no_arrival_date[locale]),
+      );
+    }
   });
 });
 
@@ -436,36 +506,26 @@ describe("en prise, le curseur DIT sans interdire", () => {
   // plus — 415 kcal à 0,40, à 0,50, à 0,75 et à 1,0. Les trois cinquièmes de la
   // course ne changent pas un gramme dans une boîte.
   const SATURATED = "0.75";
-  /** ⚠️ LE CAS QUI PASSE. À 0,35, ce corps exécute encore le cran choisi. */
-  const STILL_MOVING = "0.35";
 
-  it("③ au-delà de la saturation, LA PHRASE DU MODULE — en anglais", () => {
-    const body = text(html({ draft: { ...LIFTER, paceKgPerWeek: SATURATED } }));
-    expect(body).toContain(
-      decode(PACE_SATURATION_LABELS.plate_stops_changing.en),
-    );
-  });
-
-  it("③ … ET EN FRANÇAIS, sans l'anglais à côté", () => {
-    const body = text(html({
-      draft: { ...LIFTER, paceKgPerWeek: SATURATED },
-      locale: "fr",
-    }));
-    expect(body).toContain(
-      decode(PACE_SATURATION_LABELS.plate_stops_changing.fr),
-    );
-    expect(body).not.toContain(
-      decode(PACE_SATURATION_LABELS.plate_stops_changing.en),
-    );
-  });
-
-  it("③ ⚠️ TANT QUE LE CRAN CHANGE QUELQUE CHOSE, AUCUNE PHRASE", () => {
-    // Sans ce cas, une fonction qui dirait « ça ne bouge plus » PARTOUT
-    // laisserait le banc vert et l'écran mentirait sur tous les crans.
-    const body = text(html({ draft: { ...LIFTER, paceKgPerWeek: STILL_MOVING } }));
-    expect(body).not.toContain(
-      decode(PACE_SATURATION_LABELS.plate_stops_changing.en),
-    );
+  it("⛔ LA PHRASE DE SATURATION N'EST PLUS RENDUE, DANS AUCUNE LANGUE", () => {
+    // ── RETIRÉE DE L'ÉCRAN LE 2026-08-19 ──────────────────────────────────
+    // « À partir de ce cran, l'assiette ne change plus… » décrivait le
+    // comportement interne du plafond à quelqu'un qui pousse un curseur DÉJÀ
+    // borné par ce même plafond: le contrôle ne monte pas plus haut, ce qui est
+    // l'information — la phrase la répétait en trente mots.
+    //
+    // ⚠️ CE TEST GARDE LE RETRAIT, il ne le constate pas: `PACE_SATURATION_LABELS`
+    // reste dans le module moteur avec ses tests à lui, donc rien n'empêcherait
+    // de rebrancher l'affichage sans s'en rendre compte.
+    for (const locale of ["en", "fr"] as const) {
+      const body = text(html({
+        draft: { ...LIFTER, paceKgPerWeek: SATURATED },
+        locale,
+      }));
+      expect(body).not.toContain(
+        decode(PACE_SATURATION_LABELS.plate_stops_changing[locale]),
+      );
+    }
   });
 
   it("③ une PERTE ne sature pas: la même borne y est lue deux fois", () => {
@@ -477,16 +537,15 @@ describe("en prise, le curseur DIT sans interdire", () => {
     );
   });
 
-  it("③ les DEUX phrases cohabitent — aucune n'avale l'autre", () => {
-    // C'est la raison d'être du jeton séparé: à 0,75 sur ce corps, « le surplus
-    // part surtout en gras » (physiologie) ET « l'assiette ne change plus »
-    // (exécution) sont vraies en même temps. Un champ unique en tairait une.
+  it("③ l'avertissement de PHYSIOLOGIE, lui, reste", () => {
+    // ⚠️ LES DEUX N'ONT JAMAIS DIT LA MÊME CHOSE, et c'est pour ça qu'une seule
+    // part: « le surplus part surtout en gras » est un fait sur le CORPS, que
+    // le curseur ne montre pas. « L'assiette ne change plus » était un fait sur
+    // le CONTRÔLE, que le curseur montre déjà en refusant de monter.
     const body = text(html({ draft: { ...LIFTER, paceKgPerWeek: SATURATED } }));
     expect(body).toContain(decode(PACE_WARNING_LABELS.surplus_becomes_fat.en));
-    expect(body).toContain(
-      decode(PACE_SATURATION_LABELS.plate_stops_changing.en),
-    );
   });
+
 });
 
 // ---------------------------------------------------------------------------
@@ -598,26 +657,24 @@ describe("le niveau d'activité — quatre crans, jamais un nombre", () => {
 // ---------------------------------------------------------------------------
 
 describe("le shaker demande CE QU'IL APPORTE", () => {
-  it("il n'existe QUE pour une bouche qui a un compte", () => {
-    // `fixed_intakes` est clé sur `user_id`, et la lane foyer passe
-    // `fixedIntakes: []` en dur. Le montrer ailleurs serait promettre.
-    const withAccount = html({
-      draft: { goal: "muscle_gain" },
-      subject: WITH_ACCOUNT,
-    });
-    expect(text(withAccount)).toContain(
-      decode(en["household.mouth.shaker_foreground"]),
-    );
-    const without = html({
-      draft: { goal: "muscle_gain" },
-      subject: NO_ACCOUNT,
-    });
-    expect(text(without)).not.toContain(
-      decode(en["household.mouth.shaker_foreground"]),
-    );
-    expect(text(without)).not.toContain(
-      decode(en["household.mouth.shaker_background"]),
-    );
+  it("⛔ il existe POUR TOUT LE MONDE — compte ou pas", () => {
+    // ── RENVERSÉ LE 2026-08-19, APRÈS QUATRE DEMANDES ─────────────────────
+    // La règle d'avant était juste tant que `fixed_intakes` ne vivait que dans
+    // `student_goals.practical_constraints`, c'est-à-dire sur `user_id`: une
+    // bouche sans compte n'avait nulle part où le ranger, et afficher le bloc
+    // aurait écrit SON shaker sur la ligne du MAÎTRE.
+    //
+    // `household_members.fixed_intakes` a fermé ce trou (migration
+    // `20260819170000`), le moteur lit les deux stocks
+    // (`household_fixed_intakes.ts`), et l'écran a maintenant deux portes.
+    //
+    // ⚠️ CE QUI DÉCIDE EST LE PORT, PAS LE COMPTE: `onSaveShaker` à `null`
+    // retire le bloc — c'est le cas de la fiche d'AJOUT, dont la ligne n'existe
+    // pas encore. Le cas est gardé plus bas.
+    expect(text(html({ subject: WITH_ACCOUNT })))
+      .toContain(decode(en["household.mouth.shaker_add"]));
+    expect(text(html({ subject: NO_ACCOUNT })))
+      .toContain(decode(en["household.mouth.shaker_add"]));
   });
 
   it("mis en AVANT pour qui prend du poids, proposé aux autres", () => {
@@ -668,7 +725,12 @@ describe("le shaker demande CE QU'IL APPORTE", () => {
       },
       subject: WITH_ACCOUNT,
     }));
-    expect(body).toContain(decode(en["household.mouth.shaker_incomplete"]));
+    // ⚠️ LA PHRASE A CHANGÉ DE PLACE LE 2026-08-19. L'avertissement AMBRE
+    // (« il faut un nom et les trois nombres… ») a été retiré: il doublait la
+    // ligne d'état sous « Enregistrer », qui dit exactement le même fait sans
+    // ressembler à un refus. Ce qui doit rester vrai est que l'incomplétude est
+    // DITE — pas où elle l'est.
+    expect(body).toContain(decode(en["household.mouth.shaker_kept_not_counted"]));
   });
 });
 
@@ -677,19 +739,22 @@ describe("le shaker demande CE QU'IL APPORTE", () => {
 // ---------------------------------------------------------------------------
 
 describe("les goûts et le régime", () => {
-  it("le régime n'est offert QU'À une bouche sans compte", () => {
-    // La base refuse `has_account`: le régime de quelqu'un qui a un compte vit
-    // dans SON « about you ». Afficher le champ montrerait un contrôle qui
-    // échoue à tous les coups.
+  it("le régime est offert À TOUT LE MONDE, compte ou pas", () => {
+    // ── ⚠️ RENVERSÉ LE 2026-08-19, ET LE MOTIF D'AVANT ÉTAIT MAL LU ────────
+    // Ce test affirmait l'inverse: « le régime n'est offert QU'À une bouche
+    // sans compte », parce que `keel_household_set_member_diet` refuse
+    // `has_account`. Le refus de CETTE porte-là est réel, et il ne dit rien de
+    // l'écran: le régime de quelqu'un qui a un compte EXISTE, il vit
+    // simplement dans une autre table (`student_safety_constraints`, via
+    // `saveOwnDiet`) — et cet écrivain est branché sur ce même champ de
+    // brouillon depuis toujours.
     //
-    // ⚠️ LE BLOC EST OUVERT ICI, ET C'EST CE QUI REND CE TEST RÉEL. Sur un bloc
-    // replié, `id="mouth-diet"` est absent DES DEUX CÔTÉS: la première version
-    // de ce test passait quoi qu'on fasse, et une mutation qui montrait le
-    // champ à tout le monde restait verte.
-    const withAccount = html({ subject: WITH_ACCOUNT, openBlock: "tastes" });
-    expect(withAccount).not.toContain('id="mouth-diet"');
-    const without = html({ subject: NO_ACCOUNT, openBlock: "tastes" });
-    expect(without).toContain('id="mouth-diet"');
+    // Ce que la version d'avant coûtait: le TITULAIRE, seul de la maison, ne
+    // voyait nulle part la question qui écarte le plus d'aliments. C'est
+    // l'inverse de la règle de cette fenêtre — « sans quoi celui qui tient la
+    // maison serait le seul dont on ne sait rien ».
+    expect(html({ subject: WITH_ACCOUNT })).toContain('id="mouth-diet"');
+    expect(html({ subject: NO_ACCOUNT })).toContain('id="mouth-diet"');
   });
 
   it("un dégoût N'EST PAS une allergie, et ça se lit BLOC REPLIÉ", () => {
@@ -702,7 +767,7 @@ describe("les goûts et le régime", () => {
     // C'EST UNE CORRECTION MESURÉE: sous le champ, elle n'était lisible
     // qu'après avoir déplié — c'est-à-dire après avoir choisi le mauvais bloc.
     const body = text(html({}));
-    expect(body).toContain(decode(en["household.mouth.tastes_hint"]));
+    expect(body).toContain(decode(en["household.mouth.tastes_hint"].replace(/\{who\}/g, en["household.mouth.who_fallback"])));
     expect(body).toContain("Dislike, not allergy");
     const bodyFr = text(html({ locale: "fr" }));
     expect(bodyFr).toContain("Dégoût, pas allergie");
@@ -727,8 +792,17 @@ describe("la fenêtre se ferme, et ce qui retient est NOMMÉ", () => {
       .toBeGreaterThanOrEqual(1);
     // ET LE FRONTON PORTE BIEN SA SORTIE: prouvé sur la SOURCE du wrapper,
     // faute de DOM pour monter le portail. C'est la seule assertion de source
-    // du fichier, et elle est bornée à une ligne.
-    expect(dialogSource).toContain('closeLabel={t("household.mouth.later")}');
+    // du fichier, et elle est bornée à deux lignes.
+    //
+    // ⛔ C'EST UNE CROIX DEPUIS LE 2026-08-19, plus « plus tard ». Ce libellé
+    // rassurait — « la fiche se reprend, tu ne perds rien » — et il n'a plus
+    // lieu d'être: la fenêtre ÉCRIT à la fermeture. Il n'y a pas de « plus
+    // tard », il y a « c'est enregistré ».
+    //
+    // ⚠️ ET LE NOM ACCESSIBLE RESTE: une croix sans `aria-label` est un bouton
+    // muet pour un lecteur d'écran, ce qui serait un recul, pas un allègement.
+    expect(dialogSource).toContain("closeAsIcon");
+    expect(dialogSource).toContain('closeLabel={t("common.close")}');
   });
 
   it("⛔ LA SORTIE N'EST JAMAIS RETENUE, ALORS QUE L'INSCRIPTION L'EST", () => {
@@ -807,7 +881,15 @@ describe("la fenêtre se ferme, et ce qui retient est NOMMÉ", () => {
     const markup = html({ draft: ADULT_COMPLETE });
     const body = text(markup);
     expect(body).not.toContain(decode(en["household.mouth.block_identity"]));
-    expect(withoutClasses(markup)).not.toMatch(/\sdisabled(=""|\s|>)/);
+    // ⚠️ L'ASSERTION PORTE SUR LA FICHE, PAS SUR TOUT LE MARKUP, ET C'EST UNE
+    // CORRECTION DU 2026-08-19. Elle balayait la page entière à la recherche
+    // d'un `disabled` — ce qui ne marchait QUE parce que les sections de
+    // préférences étaient repliées. Dépliées (le repli est parti), le bouton
+    // « Ajouter » du champ de dégoût est légitimement désactivé tant qu'aucun
+    // aliment n'est tapé, et ce test rougissait sur un contrôle sain.
+    // On coupe donc au niveau de `MouthCoreFields`, qui est ce dont il parle.
+    const core = withoutClasses(markup).split("None of this is required")[0];
+    expect(core).not.toMatch(/\sdisabled(=""|\s|>)/);
   });
 
   it("un refus du serveur se rend, à côté du geste", () => {
@@ -831,8 +913,8 @@ describe("la fenêtre se ferme, et ce qui retient est NOMMÉ", () => {
           todayLocalIso: TODAY,
           busy: false,
           failure: null,
-          openBlock: null,
-          onOpenBlock: () => {},
+          slots: [...EATING_OCCASIONS],
+          onSaveShaker: () => {},
           memberScoped: true,
           onSubmit: () => {},
         }),
@@ -866,9 +948,11 @@ describe("les deux langues, sur la valeur", () => {
         "household.mouth.activity",
       ] as const
     ) {
-      expect(body).toContain(decode(fr[key]));
+      expect(body).toContain(decode(voicedText(fr, key)));
       // ET PAS L'ANGLAIS À LA PLACE.
-      if (fr[key] !== en[key]) expect(body).not.toContain(decode(en[key]));
+      if (fr[key] !== en[key]) {
+        expect(body).not.toContain(decode(voicedText(en, key)));
+      }
     }
   });
 
@@ -914,11 +998,13 @@ describe("un mineur porte les six blocs, comme les autres", () => {
         "household.mouth.identity",
         "household.mouth.direction",
         "household.mouth.body",
-        "household.mouth.habits",
-        "household.mouth.tastes",
+        // ⛔ `habits` ET `tastes` NE SONT PLUS DANS CETTE LISTE: ce cas rend la
+        // FICHE EN LIGNE (blocs 1-3), et les deux vivent dans la FENÊTRE
+        // (`prefsHtml`), où le cas d'à côté les mesure déjà. Ils y étaient par
+        // héritage de l'époque où le rendu était d'un seul tenant.
       ] as const
     ) {
-      expect(body).toContain(decode(en[key]));
+      expect(body).toContain(decode(voicedText(en, key)));
     }
   });
 
@@ -981,7 +1067,9 @@ describe("la cloison entre les deux surfaces", () => {
   it("la fenêtre porte les trois blocs qui affinent, et rien d'autre", () => {
     const body = text(prefsHtml({}));
     for (const key of [TITLES.habits, TITLES.allergies, TITLES.tastes]) {
-      expect(body, `${key} a quitté la fenêtre`).toContain(decode(en[key]));
+      expect(body, `${key} a quitté la fenêtre`).toContain(
+        decode(voicedText(en, key)),
+      );
     }
     for (const key of [TITLES.identity, TITLES.direction, TITLES.body]) {
       expect(body, `${key} est redescendu dans la fenêtre`).not.toContain(
@@ -1025,10 +1113,10 @@ describe("la cloison entre les deux surfaces", () => {
 
   it("le bouton qui ouvre la fenêtre est sur la fiche, dans les deux langues", () => {
     expect(text(coreHtml({}))).toContain(
-      decode(en["household.mouth.preferences_open"]),
+      decode(en["household.mouth.preferences_open"].replace(/\{who\}/g, en["household.mouth.who_fallback"])),
     );
     expect(text(coreHtml({ locale: "fr" }))).toContain(
-      decode(fr["household.mouth.preferences_open"]),
+      decode(fr["household.mouth.preferences_open"].replace(/\{who\}/g, fr["household.mouth.who_fallback"])),
     );
   });
 
@@ -1161,36 +1249,237 @@ describe("un écran sans ligne de foyer ne montre que ce qu'il sait écrire", ()
     const body = text(
       prefsHtml({
         subject: WITH_ACCOUNT,
-        openBlock: "habits",
-        // deno-lint-ignore no-explicit-any
-        ...({ memberScoped: false } as any),
+        memberScoped: false,
       }),
     );
     // `fixed_intakes` est clé sur `user_id`: le shaker part sans foyer.
     expect(body).toContain(decode(en["household.mouth.shaker_add"]));
-    expect(body).not.toContain(decode(en["household.mouth.habit_placeholder"]));
+    // ⚠️ LA CLÉ GÉNÉRIQUE A DISPARU LE 2026-08-19: il y a maintenant UN exemple
+    // par moment (le même partout mettait « un café et deux tartines » sous
+    // DÎNER). On vérifie donc qu'AUCUN des six n'est là — un seul suffirait à
+    // prouver que la section s'est rendue quand même.
+    for (const slot of EATING_OCCASIONS) {
+      expect(body).not.toContain(
+        decode(en[`household.mouth.habit_placeholder_${slot}` as const]),
+      );
+    }
   });
 
   it("le bloc des goûts et du régime disparaît en entier", () => {
     const body = text(
       prefsHtml({
-        openBlock: "tastes",
-        // deno-lint-ignore no-explicit-any
-        ...({ memberScoped: false } as any),
+        memberScoped: false,
       }),
     );
-    expect(body).not.toContain(decode(en["household.mouth.tastes"]));
+    expect(body).not.toContain(decode(en["household.mouth.tastes"].replace(/\{who\}/g, en["household.mouth.who_fallback"])));
   });
 
   /** ET LES ALLERGIES RESTENT — `student_safety_constraints` est sur `user_id`. */
   it("les allergies, elles, restent: elles n'ont pas besoin d'un foyer", () => {
     const body = text(
       prefsHtml({
-        openBlock: "allergies",
-        // deno-lint-ignore no-explicit-any
-        ...({ memberScoped: false } as any),
+        memberScoped: false,
       }),
     );
-    expect(body).toContain(decode(en["setup.mouths.allergies"]));
+    expect(body).toContain(decode(en["setup.mouths.allergies"].replace(/\{who\}/g, en["household.mouth.who_fallback"])));
+  });
+});
+
+// ---------------------------------------------------------------------------
+// « COMBIEN DE FOIS ELLE MANGE » A CHANGÉ D'ÉCRAN (2026-08-19)
+//
+// La question vivait à l'étape 3 — deux écrans APRÈS « ce qu'elle mange déjà »,
+// qu'elle dimensionne. On demandait donc six repas à quelqu'un sans lui avoir
+// demandé combien il en fait. Elle est maintenant la section juste au-dessus,
+// et son effet est immédiat: décocher un moment retire sa ligne DANS LE MÊME
+// GESTE, sans aller-retour en base.
+// ---------------------------------------------------------------------------
+
+describe("les moments se cochent dans la fiche, et ils commandent la suite", () => {
+  it("la section est là, au-dessus de « ce qu'elle mange déjà »", () => {
+    const markup = html({});
+    expect(markup).toContain('id="mouth-rhythm-breakfast"');
+    expect(markup.indexOf('id="mouth-rhythm-breakfast"'))
+      .toBeLessThan(markup.indexOf('id="mouth-habit-breakfast"'));
+  });
+
+  it("⛔ le brouillon GAGNE sur la cascade lue", () => {
+    // Sans cette priorité, cocher une case n'aurait aucun effet visible avant
+    // un aller-retour en base — « un geste qui ne fait rien est indiscernable
+    // d'un geste qui a marché ».
+    const markup = html({
+      slots: [...EATING_OCCASIONS],
+      draft: { rhythm: [{ slot: "dinner", size: null }] },
+    });
+    expect(markup).toContain('id="mouth-habit-dinner"');
+    expect(markup).not.toContain('id="mouth-habit-breakfast"');
+  });
+
+  it("rien coché = « comme la maison », et l'écran le DIT", () => {
+    // ⛔ PAS « elle ne mange jamais ». C'est le repli documenté de la ligne
+    // membre, et la base refuse de toute façon un tableau vide
+    // (`empty_rhythm`). Sans la phrase, une rangée décochée se lit comme un
+    // oubli.
+    const markup = html({ draft: { rhythm: null } });
+    expect(markup).toContain(en["household.mouth.rhythm_house"].replace(/\{who\}/g, en["household.mouth.who_fallback"]));
+    // Et les lignes d'habitudes retombent sur la cascade lue, pas sur zéro.
+    expect(markup).toContain('id="mouth-habit-breakfast"');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// L'APPORT CHIFFRÉ — UN OBJET LISIBLE, PAS UNE SUITE DE CASES
+//
+// « La partie ajouter un shaker, on ne comprend pas […] refais la partie UI
+// parce qu'on comprend vraiment pas » (2026-08-19). Quatre causes distinctes,
+// quatre assertions.
+// ---------------------------------------------------------------------------
+
+const SHAKER_DRAFT = {
+  label: "mon shaker",
+  servingGrams: "30",
+  proteinGPerServing: "24",
+  energyKcalPerServing: "120",
+  slot: "",
+};
+
+describe("l'apport chiffré se lit", () => {
+  it("replié: il porte un NOM, pas juste un bouton", () => {
+    const markup = html({ subject: WITH_ACCOUNT });
+    expect(markup).toContain(en["household.mouth.shaker_title"]);
+    expect(markup).toContain(en["household.mouth.shaker_add"]);
+  });
+
+  it("⛔ déplié: CHAQUE nombre porte son étiquette VISIBLE", () => {
+    // C'est le défaut le plus coûteux des quatre: le `placeholder` disparaît à
+    // la première frappe, donc trois cases de chiffres sans étiquette
+    // deviennent illisibles — et une protéine saisie dans la case des calories
+    // est une donnée FAUSSE, pas seulement une gêne.
+    const markup = html({ subject: WITH_ACCOUNT, draft: { shaker: SHAKER_DRAFT } });
+    for (const id of ["grams", "protein", "kcal"]) {
+      expect(markup).toContain(`for="mouth-shaker-${id}"`);
+    }
+  });
+
+  it("complet: le récapitulatif REJOUE les trois nombres avec leur unité", () => {
+    // La seconde moitié des étiquettes: trois champs remplis ne montrent pas
+    // une inversion, une phrase si.
+    const markup = html({ subject: WITH_ACCOUNT, draft: { shaker: SHAKER_DRAFT } });
+    const summary = en["household.mouth.shaker_summary"]
+      .replace("{grams}", "30")
+      .replace("{protein}", "24")
+      .replace("{kcal}", "120");
+    expect(markup).toContain(summary);
+  });
+
+  it("incomplet: l'avertissement, et PAS le récapitulatif", () => {
+    const markup = html({
+      subject: WITH_ACCOUNT,
+      draft: { shaker: { ...SHAKER_DRAFT, proteinGPerServing: "" } },
+    });
+    expect(markup).toContain(en["household.mouth.shaker_kept_not_counted"]);
+    expect(markup).not.toContain("30 g ·");
+  });
+
+  it("il porte SON bouton d'enregistrement, et son retrait", () => {
+    // ⚠️ RENVERSÉ LE 2026-08-19. Ce bloc n'avait pas de bouton — la fenêtre
+    // édite le brouillon de la fiche, et un second écrivain sur les mêmes
+    // colonnes est une plaie connue. L'utilisateur l'a refusé deux fois, et il
+    // a raison sur le fond: ce bloc est un OBJET qu'on ajoute et qu'on retire,
+    // pas un champ de la personne.
+    const markup = html({ subject: WITH_ACCOUNT, draft: { shaker: SHAKER_DRAFT } });
+    expect(markup).toContain(en["household.mouth.shaker_save"]);
+    expect(markup).toContain(en["household.mouth.shaker_remove"]);
+  });
+
+  it("complet: il DIT qu'il est compté", () => {
+    const markup = html({ subject: WITH_ACCOUNT, draft: { shaker: SHAKER_DRAFT } });
+    expect(markup).toContain(en["household.mouth.shaker_counted"]);
+  });
+
+  it("⛔ une seule mesure: enregistrable, MAIS pas compté — et il le dit", () => {
+    // C'est le point qui empêche « Enregistrer » de mentir. Le moteur est
+    // tout-ou-rien sur les trois nombres (`parseFixedIntakes` jette une
+    // déclaration incomplète), donc un shaker à une mesure part en base et
+    // n'est PAS compté. Le bouton reste actif — c'est la règle demandée — et
+    // la phrase dit l'état réel.
+    const markup = html({
+      subject: WITH_ACCOUNT,
+      draft: {
+        shaker: { ...SHAKER_DRAFT, proteinGPerServing: "", energyKcalPerServing: "" },
+      },
+    });
+    expect(markup).toContain(en["household.mouth.shaker_kept_not_counted"]);
+    expect(markup).not.toContain(en["household.mouth.shaker_counted"]);
+  });
+
+  it("aucune mesure: le bouton est désactivé, et il dit ce qu'il attend", () => {
+    const markup = html({
+      subject: WITH_ACCOUNT,
+      draft: {
+        shaker: {
+          ...SHAKER_DRAFT,
+          servingGrams: "",
+          proteinGPerServing: "",
+          energyKcalPerServing: "",
+        },
+      },
+    });
+    expect(markup).toContain(en["household.mouth.shaker_needs_one"]);
+  });
+
+  it("sans port d'écriture, le bloc ne se rend pas du tout", () => {
+    // `fixed_intakes` est clé sur `user_id`. Un bouton qui écrirait « son »
+    // shaker le poserait sur la ligne du MAÎTRE: on retire le bloc plutôt que
+    // de rendre un contrôle qui échoue à tous les coups.
+    const markup = html({
+      subject: WITH_ACCOUNT,
+      draft: { shaker: SHAKER_DRAFT },
+      onSaveShaker: null,
+    });
+    // ⚠️ ON VISE UN `id` DU BLOC, PAS LE MOT « Save »: le libellé du bouton
+    // d'enregistrement de la FICHE est le même mot, et l'assertion serait
+    // verte pour la mauvaise raison.
+    expect(markup).not.toContain('id="mouth-shaker-label"');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// « CE QU'ELLE MANGE DÉJÀ » SUIT LES MOMENTS DÉCLARÉS, SANS CONTRÔLE EN PLUS
+//
+// ── ⛔ CE QU'ON A ESSAYÉ, ET POURQUOI ON L'A RETIRÉ ────────────────────────
+// Un bouton « Voir les N autres moments » a vécu quelques heures le 2026-08-19.
+// Il existait pour qu'une ligne ne disparaisse pas en silence quand on décoche
+// un moment. Retiré le jour même, à la demande — et l'argument était juste:
+//
+//   · il n'apparaissait QUE sur une bouche au rythme déclaré, jamais sur la
+//     carte du maître (rien de déclaré ⇒ rien de caché). Deux fiches identiques
+//     cessaient de se ressembler, sans raison lisible;
+//   · et ce qu'il rouvrait sont des moments dont la personne vient de dire
+//     qu'ils n'existent pas.
+//
+// Ce qui change les lignes est la liste de cases juste au-dessus, et elle est
+// à trois centimètres.
+// ---------------------------------------------------------------------------
+
+describe("les lignes suivent les moments déclarés", () => {
+  it("deux moments déclarés: deux lignes, et AUCUN contrôle en plus", () => {
+    const markup = html({
+      draft: { rhythm: [{ slot: "lunch", size: null }, { slot: "dinner", size: null }] },
+    });
+    expect(markup).toContain('id="mouth-habit-lunch"');
+    expect(markup).toContain('id="mouth-habit-dinner"');
+    expect(markup).not.toContain('id="mouth-habit-breakfast"');
+    // ⛔ LE CONTRÔLE NE DOIT PAS REVENIR: c'est lui qui faisait diverger la
+    // fiche d'une bouche et celle du maître.
+    expect(markup).not.toMatch(/other moments|autres moments/);
+  });
+
+  it("rien de déclaré: les six, comme sur la carte du maître", () => {
+    const markup = html({ slots: [...EATING_OCCASIONS], draft: { rhythm: null } });
+    for (const slot of EATING_OCCASIONS) {
+      expect(markup).toContain(`id="mouth-habit-${slot}"`);
+    }
+    expect(markup).not.toMatch(/other moments|autres moments/);
   });
 });

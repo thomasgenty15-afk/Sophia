@@ -50,13 +50,32 @@ import {
   buildPortionBrief,
   type CookingShape,
   type PortionMember,
+  // LE MÊME PRÉDICAT QUE `boxMemberIds` CÔTÉ PARSEUR — appelé, jamais recopié.
+  weighedPortionMembers,
 } from "./household_portions.ts";
 import { buildEnvyBlock } from "./household_envies.ts";
+// ── C1 · LA CONTAMINATION CROISÉE VIT DANS SON MODULE ────────────────────
+// Comme `household_traditions.ts` et `fridge_window.ts`: la règle, son texte
+// et son compteur au même endroit. L'écrire ici en ferait une phrase de plus
+// dans un fichier qui en compte trois cents, sans compteur — et « une règle
+// qui ne vit que dans un prompt régresse en réel sans que personne le voie ».
+import {
+  crossContactBlock,
+  type CrossContactMouth,
+  type CrossContactOutcome,
+} from "./cross_contact.ts";
 import type { MealCell, WindowPresence } from "./household_presence.ts";
 // L7 ① — LA PROSE DES JOURS ET DES MOMENTS VIENT DU TRONC, comme dans
 // `household_presence.ts` (D14). Une seconde table dirait « Saturday » ici et
 // « Sat » là, dans deux blocs que le modèle lit à la suite.
 import { dayProse, OCCASION_PROSE } from "./meal_generation.ts";
+// ③ — LE BLOC DES TRADITIONS VIT DANS SON MODULE, avec sa règle et son
+// vérificateur. L'écrire ici en ferait un texte sans garde, et le verrou
+// déterministe lirait une autre liste que celle que le prompt a dite.
+import {
+  type HouseholdTradition,
+  traditionBlock,
+} from "./household_traditions.ts";
 import {
   type KitchenTool,
   missingKitchenTools,
@@ -488,7 +507,97 @@ import {
 // de v3: c'est la PRÉSENCE du bloc qui distingue les deux populations dans la
 // colonne, et une version qui ne bouge que « quand ça se voit » ne se relit
 // pas trois jours plus tard.
-export const HOUSEHOLD_PROMPT_VERSION = "v17_what_each_mouth_already_has";
+// ── v18 (2026-08-19) — L'ENVIE TAPÉE AU MOMENT DE COMPOSER (LOT D) ─────────
+//
+// AUCUN BLOC DE CE FICHIER NE BOUGE, et c'est le MÊME cas que v17 juste
+// au-dessus: ce qui change est un PARAMÈTRE DU TRONC que cette lane recevait
+// vide, non pas parce qu'un `[]` était écrit à la main mais parce que RIEN NE
+// L'ENVOYAIT. La ligne « what they feel like eating THIS TIME » existe dans le
+// tronc depuis toujours et la lane individuelle la sert déjà; côté foyer,
+// `body.preferences` valait `null` sur tous les appels — le champ de l'écran
+// (« ce dont ils ont envie pour ces repas », rendu SANS garde de lane) ne
+// traversait ni le submit, ni la signature du client, ni le corps de la requête.
+//
+// LA POPULATION QUI VOIT UNE CONSIGNE DIFFÉRENTE: les compositions de foyer où
+// quelqu'un a TAPÉ quelque chose dans ce champ. Partout ailleurs `preferences`
+// vaut `null`, `buildMealPrompt` n'écrit alors AUCUNE ligne, et le prompt est
+// byte-identique à v17 au caractère près.
+//
+// ⚠️ LA LIGNE PORTE DÉJÀ SON RANG, et c'est ce qui rend ce branchement sûr.
+// L'axe ② de `meal_generation.ts` (2026-08-18) lui a donné « never at the cost
+// of a hard constraint, of their diet, or of this coach's method » après avoir
+// mesuré, sur le run `2a000000-3100-…`, qu'une envie nue qui nomme l'allergène
+// MÉDICAL de la personne ressort 21 fois dans la sortie. Brancher ce champ
+// AVANT ce correctif aurait armé cette gueule-là sur une table entière.
+//
+// ⚠️ `MEAL_PROMPT_VERSION` NE BOUGE PAS: pas un octet du tronc ne change, et la
+// lane individuelle envoyait déjà ce champ. Le bumper re-stamperait toute une
+// population qui ne voit strictement rien de neuf — la faute que la note de v2
+// décrit.
+// ── v19 (2026-08-19) — LE « why » NE PORTE PLUS LA RÈGLE DE QUELQU'UN (LOT C ②)
+//
+// DEUX BLOCS NEUFS, et ils ne paraissent QUE si au moins une bouche de la table
+// porte une règle (contrainte dure, régime déclaré, règle de maison). La moitié
+// consigne rejoint le groupe des verrous dans le message utilisateur; la moitié
+// schéma déclare `why_rule_of` et sa liste fermée. Sur un foyer où personne n'a
+// rien déclaré — et sur toute la lane individuelle, qui ne monte jamais cette
+// enveloppe — `ruleHolders` vaut `[]`, les deux blocs tombent du `filter`, et le
+// prompt est byte-identique à v18 au caractère près. Un test le tient par
+// égalité de chaîne.
+//
+// LA POPULATION CONCERNÉE: les foyers où quelqu'un a déclaré une allergie, un
+// régime ou une règle de maison. Mesuré sur le foyer de l'étape ⑤ — TROIS
+// `dishes[].why` sur huit attribuaient l'évitement du gluten à une personne qui
+// n'a aucune contrainte, alors que le prompt attribue correctement.
+//
+// ⚠️ `MEAL_PROMPT_VERSION` NE BOUGE PAS: pas un octet du tronc ne change. Le
+// champ `why` est défini dans le schéma du tronc et n'y gagne pas une ligne —
+// tout ce qui est neuf vit dans l'enveloppe foyer, qui est aussi la seule
+// population où la question se pose (un plan individuel n'a qu'une bouche, donc
+// aucune règle à attribuer de travers).
+//
+// ⚠️ LE MOT « json » RESTE PRÉSENT DANS LES DEUX MOITIÉS — vérifié après ce lot.
+// `gemini.ts:549-567` réécrit le prompt APRÈS la capture quand il manque, et
+// l'instrument se met alors à mentir en silence. Aucun de ces deux blocs ne
+// retire quoi que ce soit; ils s'ajoutent.
+// ── v20 (2026-08-19) — LA BOÎTE APPARTIENT AU REPAS ───────────────────────
+//
+// LES DEUX MOITIÉS DU PROTOCOLE CHANGENT ENSEMBLE, et c'est la seule façon de le
+// faire: le SCHÉMA (`boxSchemaBlock`, prompt système) déplace `boxes` de la
+// préparation vers le plat et lui donne une part par nom; la CONSIGNE
+// (`boxingOrderLines`, dans le brief de portions) cesse de compter des bouches
+// par casserole et compte des REPAS. Une moitié sans l'autre est un champ
+// réclamé nulle part ou un ordre sans clé où le ranger — mesuré à 0 % les deux
+// fois (`promise-and-schema-key-must-be-adjacent`).
+//
+// ⚠️ POPULATION EXACTE, INCHANGÉE DEPUIS v14: les foyers d'AU MOINS DEUX BOUCHES.
+// Les deux blocs restent muets sous ce seuil, et un foyer d'une bouche voit le
+// prompt de v19 au caractère près — sauf la ligne de jetons du tronc, qui bouge
+// pour tout le monde (`MEAL_PROMPT_VERSION` v17).
+//
+// ⛔ CE QUE CE LOT NE FAIT PAS: revenir sur « on pèse une fois ». La balance ne
+// ressort QUE sur une boîte à PLUSIEURS noms, et sous forme d'étiquette qui
+// porte déjà le partage. Un seul nom sur le couvercle ⇒ aucune pesée, jamais.
+// ── v21 (2026-08-20) — UN CONTENANT PAR GROUPE DE MANGEURS ───────────────
+//
+// LES DEUX MOITIÉS CHANGENT ENSEMBLE, une fois de plus et pour la même raison:
+// le SCHÉMA (`boxSchemaBlock`) passe `box` au pluriel — `boxes[]`, chacune avec
+// son groupe (`member_ids[]`) et son contenu (`items[]`) — et la CONSIGNE
+// (`boxingOrderLines`) cesse d'ordonner « le même chiffre ordinaire pour tout le
+// monde » pour distinguer les DEUX GRAMMES: prescription sur un couvercle à un
+// nom, quantité de bac sur un couvercle à plusieurs.
+//
+// ⚠️ LA POPULATION S'ÉLARGIT, ET C'EST LE LOT. Sous v20, `boxSchemaBlock` se
+// taisait dès que personne n'avait d'objectif — un foyer de quatre qui se
+// maintient recevait ZÉRO contenant, et « plat commun » ne disait ni combien de
+// bacs remplir dimanche ni lequel ouvrir jeudi. Le bloc sert désormais à tout
+// foyer d'au moins deux bouches, avec ou sans objectif. Un foyer d'UNE bouche
+// sans objectif voit toujours le prompt de v19 au caractère près.
+//
+// ⛔ CE QUE CE LOT NE FAIT PAS: remettre une part par personne dans un bac
+// partagé. C'est exactement ce qui a tué v2 — la balance de retour au service —
+// et le bloc l'interdit maintenant en toutes lettres.
+export const HOUSEHOLD_PROMPT_VERSION = "v21_one_box_per_group";
 
 export interface HouseholdRestriction {
   memberId: string;
@@ -498,6 +607,24 @@ export interface HouseholdRestriction {
 
 export interface HouseholdPromptInput {
   members: readonly PortionMember[];
+  /**
+   * ③ LES JOURS QUE LE FOYER NE DÉPLACE PAS (2026-08-20).
+   *
+   * ⚠️ REQUIS, jamais optionnel, et c'est la doctrine de tout ce fichier: la
+   * casse de compilation est le mécanisme qui recense les appelants. `[]` rend
+   * le prompt d'hier AU CARACTÈRE PRÈS — c'est la contre-épreuve du lot, et
+   * elle est tenue par un test.
+   */
+  traditions: readonly HouseholdTradition[];
+  /**
+   * LES JOURS DE SEMAINE QUE LA FENÊTRE COUVRE (`windowDayOrder`). REQUIS.
+   *
+   * ⛔ IL N'A PAS DE DÉFAUT À « TOUTE LA SEMAINE ». Un défaut ferait demander un
+   * rôti dominical à un plan qui va de jeudi à samedi — c'est-à-dire poser une
+   * contrainte impossible, et une contrainte impossible apprend au modèle que
+   * les contraintes sont facultatives.
+   */
+  daysInWindow: readonly string[];
   /**
    * G5 — LA FORME DE CUISINE, DÉCIDÉE PAR L'APPELANT ET PAR LUI SEUL.
    *
@@ -528,6 +655,19 @@ export interface HouseholdPromptInput {
    * Voir `cookingShapeLines` (`household_portions.ts`), qui porte la règle.
    */
   divergingCount: number;
+  /**
+   * COMBIEN DE POIDS DIFFÉRENTS CETTE TABLE SERT (`weightGroupCount`). REQUIS.
+   *
+   * ⚠️ REQUIS ET NON DÉFAUT-É, pour la raison mesurée de tout ce fichier: un `?`
+   * n'aurait fait remonter AUCUN appelant au compilateur, le nombre ne serait
+   * jamais entré dans le prompt, et le moteur de grammages resterait armé et
+   * inerte — `shared_mixed` sur toutes les boîtes, `sized: 0`, l'enfant de
+   * 7 ans et l'adulte de 79 kg dans la même boîte. Mesuré au run A1 du
+   * 2026-08-19.
+   *
+   * `1` = un seul poids, ou aucun corps saisi ⇒ brief byte-identique à v13.
+   */
+  weightGroups: number;
   /**
    * LOT C — LES BOUCHES À QUI LA CONSIGNE PROMET UN PLAT À ELLES, avec leur id
    * EXACT. `[]` = personne, et le bloc d'attribution n'existe alors pas.
@@ -565,6 +705,31 @@ export interface HouseholdPromptInput {
    * façon (`dishBearers` est vide), et le prompt est celui de v12.
    */
   dedicatedDishesAsked: number;
+  /**
+   * ── C1 · LES BOUCHES QUI PORTENT UNE CONTRAINTE `severity='medical'` ─────
+   *
+   * ⚠️ REQUIS, jamais optionnel, et c'est la doctrine de tout ce fichier: la
+   * casse de compilation est le mécanisme qui recense les appelants. Un `?`
+   * n'aurait fait remonter AUCUN appelant, le bloc serait absent de tous les
+   * prompts, et le lot serait « construit, branché et désarmé » — une ceinture
+   * armée sur un coffre vide. `[]` avec `crossContactUnnamedMedical: 0` rend le
+   * prompt d'avant ce lot AU CARACTÈRE PRÈS, et c'est la contre-épreuve.
+   *
+   * ⚠️ CE MODULE NE LES CALCULE PAS. La sévérité vit dans l'union de sécurité
+   * (`student_safety_constraints` + `household_member_allergies`), que
+   * l'appelant tient déjà résolue avec ses prénoms — la lire ici mettrait la
+   * connaissance des contraintes dans le module qui assemble le prompt.
+   */
+  medicalMouths: readonly CrossContactMouth[];
+  /**
+   * C1 — COMBIEN DE CONTRAINTES MÉDICALES N'ONT PAS TROUVÉ LEUR PRÉNOM.
+   *
+   * ⛔ REQUIS, ET CE N'EST PAS UN DÉTAIL DE COMPTAGE. Une contrainte médicale
+   * `unattributed` reste une contrainte médicale. L'omettre désarmerait le bloc
+   * pour la population qui ne peut pas se redéclarer elle-même — la bouche sans
+   * compte, cas nominal de `household_member_allergies`.
+   */
+  crossContactUnnamedMedical: number;
   /**
    * R4/R5 — CE QUE LE PLAT PARTAGÉ DOIT RESPECTER. `""` = personne n'a déclaré
    * de régime, et le prompt est alors byte-identique à celui d'avant ce lot.
@@ -606,6 +771,23 @@ export interface HouseholdPromptInput {
    */
   envyLine: string | null;
   restrictions: readonly HouseholdRestriction[];
+  /**
+   * LOT C ② — LES BOUCHES QUI PORTENT UNE RÈGLE, ET ELLES SEULES.
+   *
+   * Une contrainte dure, un régime déclaré, une règle de maison: les trois
+   * provenances comptent, et l'appelant les réunit parce que lui seul les tient
+   * toutes les trois. `[]` = personne n'a rien déclaré, aucun des deux blocs
+   * n'est servi, et le prompt est byte-identique à celui de v18.
+   *
+   * ⚠️ REQUIS, jamais optionnel. C'est la même phrase que `dietBlock`,
+   * `presence`, `merge`, `cooking` et `dishBearers` au-dessus, et elle a été
+   * payée à chaque fois: un `?` ici ne ferait remonter AUCUN appelant au
+   * compilateur, les deux blocs seraient absents de tous les prompts, le modèle
+   * n'aurait aucune clé à écrire, le compteur n'aurait rien à valider — et
+   * `why_rule_counts` rendrait des zéros parfaits sur un lot désarmé. « Une
+   * ceinture armée sur un coffre vide », énième fois.
+   */
+  ruleHolders: readonly HouseholdRuleHolder[];
   /**
    * QUI N'EST PAS LÀ, ET QUAND (D14, 2026-08-12).
    *
@@ -780,15 +962,72 @@ function restrictionBlock(restrictions: readonly HouseholdRestriction[]): string
  * portion pour une personne seule, c'est-à-dire du bruit sur le chemin
  * majoritaire (l'entrée du produit est à 1, §5).
  */
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⛔ LES IDENTIFIANTS, DANS LE MESSAGE QUI LES RÉCLAME.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ── LE DÉFAUT, MESURÉ SUR LA RÉPONSE ARCHIVÉE (2026-08-19) ───────────────
+ * Trois clés du prompt SYSTÈME demandent un `member_id`: `member_portions`,
+ * `boxes[].member_ids`, `for_member_id`. Les trois disaient « the exact id
+ * given above » / « from the list above ». Or **il n'y avait aucun id
+ * au-dessus**: la liste des bouches vit dans le message UTILISATEUR. Vérifié
+ * sur `llm_raw_response_events`: le prompt système ne contenait pas un seul
+ * uuid, le message utilisateur oui.
+ *
+ * Le modèle a donc écrit le seul identifiant qu'il avait sous les yeux — le
+ * PRÉNOM. Sur le run `76be8ce3`: `member_ids: ["iku"]`, `["Christèle"]`, et
+ * `member_portions[].member_id: "iku"`. Résultat: **16 boîtes sur 16
+ * refusées** par le parseur (qui a raison: deux bouches peuvent porter le même
+ * prénom, et « jamais de matcher maison »), zéro consigne de portion gardée,
+ * zéro gramme à l'écran — pendant que chaque méthode finissait par
+ * « portionner dans les boîtes nommées ». Signalé: « là tu vois je vois pas
+ * les boîtes nommées ».
+ *
+ * ⚠️ CE N'EST PAS UNE DÉSOBÉISSANCE DU MODÈLE. Les 21 reprises portaient un
+ * `box_id`, et chaque préparation portait ses deux boîtes: il avait compris le
+ * protocole entier. Il lui manquait la seule chose qu'on ne lui avait pas
+ * donnée dans ce message-là.
+ *
+ * ⛔ CICATRICE `promise-and-schema-key-must-be-adjacent`, À LA LETTRE: une
+ * promesse et sa clé de schéma doivent se toucher, sinon 0 %. Ici c'était une
+ * RÉFÉRENCE (« above ») qui pointait hors du message. Le taux mesuré est bien
+ * zéro.
+ */
+function memberIdRosterLines(
+  members: readonly { memberId: string; displayName: string }[],
+  /**
+   * ⛔ VRAI DÈS QU'UN AUTRE BLOC RENVOIE À CETTE LISTE (2026-08-19).
+   *
+   * Le bloc des boîtes dit « ids from THE MEMBER IDS ». À une seule bouche, la
+   * liste ne sortait pas — et depuis que la pesée se déclenche sur l'OBJECTIF
+   * et non sur la taille du foyer, un solo qui perd du poids reçoit ce bloc.
+   * On lui demandait donc un id « de la liste ci-dessus » sans liste au-dessus:
+   * très exactement la cicatrice `promise-and-schema-key-must-be-adjacent`,
+   * réintroduite par un cas neuf le jour même où elle a été fermée.
+   */
+  referenced: boolean,
+): readonly string[] {
+  if (members.length < 2 && !referenced) return [];
+  return [
+    "== THE MEMBER IDS (household) ==",
+    "Every member_id below is ONE of these exact strings, copied character for",
+    "character. A first name is NEVER a member_id: two people can share one, and",
+    "a plan that names people instead of ids is thrown away in full.",
+    ...members.map((m) => `  ${m.memberId}  = ${m.displayName}`),
+  ];
+}
+
 const PORTION_SCHEMA_BLOCK = [
   "== ADDITIONAL OUTPUT FIELD (household) ==",
   "Add ONE more top-level key to the JSON you return:",
   '  "member_portions": [',
-  '    { "member_id": "<exact id given above>",',
+  '    { "member_id": "<one of the ids listed just above>",',
   '      "portion_note": "how much of what goes on this plate",',
   '      "preparation_shares": [{ "preparation_id": "prep_x", "note": "..." }] }',
   "  ]",
-  "One entry per person listed, using their EXACT member_id. Serving",
+  "One entry per person listed, using their EXACT member_id from that list.",
+  "Serving",
   "instructions only — never a reason, a goal, a calorie count, or anything",
   "about a person's body.",
 ] as const;
@@ -810,31 +1049,101 @@ const PORTION_SCHEMA_BLOCK = [
  * `boxingOrderLines`. Une seule bouche rend un `systemSuffix` byte-identique à
  * celui de v13, et un test le tient.
  *
- * ⚠️ `box_id` SUR `uses`, PAS UNE SECONDE LISTE. Le plat dit déjà de quel lot il
- * prend (`uses[].preparation_id`); la boîte est une précision sur cette même
- * reprise. En faire un champ à part du plat obligerait à tenir deux jointures
- * d'accord, et c'est celle qu'on regarde le moins qui garderait l'ancienne.
+ * ⚠️ SUR LE PLAT, ET SANS AUCUNE JOINTURE — DEPUIS LE 2026-08-19. Jusque-là une
+ * boîte pendait à une préparation et une reprise la citait par `box_id`. Trois
+ * défauts mesurés sur le run `76be8ce3` (8 boîtes sur 16 orphelines, une boîte
+ * citée par 3 repas, un nom qui ne dit pas quand ouvrir) sont tous les trois des
+ * conséquences de cette jointure-là, et aucun ne se répare en aval. Le repas
+ * PORTE donc sa boîte: rien à rapprocher, rien à orpheliner, et l'étiquette
+ * nomme le jour et le moment du plat qui la porte.
+ *
+ * ⚠️ ET SON CONTENU EST LE REPAS ENTIER. C'est un changement d'UNITÉ: hier un bac
+ * par casserole, aujourd'hui un contenant par repas. Ne « répare » pas en
+ * redemandant une boîte par préparation — c'est le contenant en moins qui est
+ * voulu (`docs/keel/BOITES-PAR-REPAS.md`).
  */
 function boxSchemaBlock(
   members: readonly { memberId: string; displayName: string }[],
+  /**
+   * ⛔ LES BOUCHES QUI ONT DROIT À UNE PORTION PESÉE — ET ELLES SEULES.
+   *
+   * Décision du 2026-08-19 (`docs/keel/BOITES-PAR-REPAS.md`): un objectif de
+   * poids ouvre une portion millimétrée, `maintenance` n'ouvre rien.
+   *
+   * ⚠️ REQUISE, ET C'EST LA MOITIÉ « CONSIGNE » D'UNE GARDE QUI A DÉJÀ SA
+   * MOITIÉ « PARSEUR » (`boxMemberIds`). Les deux doivent nommer la MÊME
+   * liste: un prompt qui réclame une boîte pour tout le monde pendant que le
+   * parseur n'en accepte que pour deux produit un plan amputé en silence —
+   * c'est très exactement le défaut du jour, pris par l'autre bout.
+   */
+  weighed: readonly { memberId: string; displayName: string }[],
 ): readonly string[] {
-  if (members.length < 2) return [];
+  // ⚠️ LE PLANCHER EST REVENU, ET IL EST DOUBLE (v4, 2026-08-20). Le bloc sert
+  // dès qu'il y a un GROUPE à former — donc dès deux bouches — ou dès qu'une
+  // seule bouche a demandé une portion à elle. Un solo sans objectif n'a ni
+  // groupe ni pesée: il rend un `systemSuffix` byte-identique, et un test le
+  // tient.
+  if (members.length < 2 && weighed.length === 0) return [];
+  const names = weighed.map((m) => `${m.memberId} (${m.displayName})`).join(", ");
+  // ══════════════════════════════════════════════════════════════════════════
+  // ⛔ CE QUE CE BLOC A CESSÉ DE DIRE LE 2026-08-20, MOT POUR MOT
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  //     « Nobody else does. Everyone else eats from the shared dish, and their
+  //       servings are never weighed, never named and never written down --
+  //       leaving them out is the answer, not an omission. »
+  //
+  // C'était v3, et elle est RENVERSÉE, pas oubliée. Son défaut, mesuré devant
+  // un frigo: « plat commun » ne disait ni combien de bacs remplir dimanche, ni
+  // lequel ouvrir jeudi — elle ne décidait rien pour trois personnes sur
+  // quatre. Ce qu'elle protégeait (« une personne qui se maintient ne reçoit
+  // aucun grammage qu'elle n'a pas demandé ») est préservé AUTREMENT: son bac
+  // porte une quantité de RÉCIPIENT, jamais un nombre qui la vise.
+  const groupLines = names === ""
+    ? [
+      "Nobody here asked for a portion of their own, so a meal has exactly ONE",
+      "box, with every person eating it named on the lid.",
+    ]
+    : [
+      `These people each get a box of their OWN, alone on the lid: ${names}.`,
+      "Everyone else eating that meal shares ONE box, named with all of them.",
+    ];
   return [
-    "== BOXES, ON EVERY PREPARATION (household) ==",
-    'Each preparation carries one more key: "boxes".',
-    '  "boxes": [{ "id": "box_<preparation>_<name>",',
-    '              "member_ids": ["<exact ids from the list above>"],',
-    '              "grams": <whole grams of READY food in that box> }]',
+    "== ONE BOX PER GROUP OF EATERS (household) ==",
+    'Every dish that takes from a preparation carries one more key: "boxes" --',
+    "one container per group of people eating that meal.",
+    '  "boxes": [{ "id": "box_<day>_<slot>[_<name>]",',
+    '              "member_ids": ["<id from THE MEMBER IDS, never a first name>"],',
+    '              "items": [{ "preparation_id": "prep_x" or null,',
+    '                          "term": "what is in it",',
+    '                          "grams": <whole grams of READY food> }] }]',
     "Ids are lowercase ASCII, invented by you, and each one is used once in the",
-    "whole plan. The grams are what goes IN the box once cooked, not the raw",
-    "weight of the shopping.",
+    "whole plan. The grams are what goes IN the container once cooked, not the raw",
+    "weight of the shopping. preparation_id is null when that item is added fresh",
+    "on the day, so no batch holds it.",
+    ...groupLines,
+    // ⛔ LE SECOND CRITÈRE DE SÉPARATION, ET IL A LA MÊME FORME QUE LE PREMIER.
+    // C'est un GROUPEMENT À L'ASSEMBLAGE, pas un retrait après coup: un bac dont
+    // on retire un nom est un bac mal composé, et le parseur ne sait pas
+    // fabriquer celui qui manque (il faudrait décider si ce qui reste est un
+    // repas ou une assiette de riz).
+    "If a dish carries something one person's food line refuses, that person gets",
+    "their own box for it too. If nothing clashes, everyone shares the same one.",
     // ⚠️ « carries », JAMAIS « may carry ». La formulation permissive a été
     // mesurée le 2026-08-17 comme une permission qu'on décline — zéro
     // déclaration sur douze runs — et un test de ce fichier interdit désormais
     // la tournure dans tout le suffixe système.
-    'A dish that eats from a box says so: each entry of its "uses" then carries',
-    '"box_id", set to that exact box id. A box can only be cited by a meal on or',
-    "after the day its preparation is cooked.",
+    "One box holds that WHOLE meal for its group -- every preparation it takes",
+    "from goes in the same container, not one tub per pan. A dish that cooks from",
+    'scratch on the day has no "boxes": nothing was weighed ahead for it.',
+    // ⛔ L'ÉCHAPPATOIRE MESURÉE, NOMMÉE — et ce n'est plus la même qu'hier.
+    // Hier: peser la tablée entière. Aujourd'hui: écrire une part par personne
+    // dans un bac partagé, ce qui remettrait la balance au service (c'est
+    // exactement ce qui a tué v2). Le dire coûte deux lignes, et c'est le geste
+    // le plus rentable de ce dépôt.
+    "Do NOT write a per-person figure on a lid that carries several names: its",
+    "grams describe the tub, not anybody's plate. And do NOT name the same person",
+    "on two boxes of one meal.",
   ];
 }
 
@@ -947,6 +1256,204 @@ function dedicatedDishBlock(
     "dish. Writing them a serving instruction instead of a dish leaves them",
     "without a meal.",
   ].join("\n");
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * LOT C ② — UNE BOUCHE QUI PORTE UNE RÈGLE, ET SON PRÉNOM.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * La LISTE FERMÉE contre laquelle `why_rule_of` est validé. Elle est construite
+ * par l'appelant, qui tient les trois provenances d'une règle (une contrainte
+ * dure, un régime déclaré, une règle de maison) et le roster qui les nomme.
+ *
+ * ⚠️ ELLE NE DIT PAS LAQUELLE. Le prompt nomme déjà les contraintes dures avec
+ * leur bouche, et le régime avec la sienne; répéter ici « Lubna: gluten » ferait
+ * une SECONDE source pour un fait déjà écrit, et c'est celle qu'on regarde le
+ * moins qui garderait l'ancienne valeur. Ce bloc-ci ne répond qu'à une question:
+ * QUI, à cette table, a une règle dont un `why` pourrait se réclamer.
+ */
+export interface HouseholdRuleHolder {
+  memberId: string;
+  displayName: string;
+}
+
+/**
+ * ⛔ LE DÉFAUT MESURÉ, ET IL EST DANS LA PROSE — PAS DANS LE PROMPT.
+ *
+ * Plan réel du 2026-08-19 (`05-qualite-foyer/plan-4`), foyer de quatre, une
+ * seule allergie au gluten et elle est à Lubna. Le prompt l'attribue
+ * correctement, en toutes lettres: `- Lubna: gluten — allergy, severity=medical`.
+ * TROIS `dishes[].why` sur huit l'ont mise ailleurs:
+ *
+ *     "A high-protein, gluten-free meal designed specifically for Roxane's
+ *      midday energy needs."
+ *     "A quick, warm lunch for Roxane that avoids gluten and fits her
+ *      portioning needs."
+ *     "A warm, comforting dinner for Roxane that is entirely gluten-free."
+ *
+ * Roxane n'a aucune contrainte. Inoffensif sur ce plan-là — le gluten est
+ * absent de TOUTE la table de toute façon, c'est la règle d'union — mais c'est
+ * la même faiblesse qui, deux runs plus tôt sur un autre foyer, a mis 120 g de
+ * traybake au pistachio dans la boîte de l'ALLERGIQUE en écrivant
+ * l'avertissement sur l'assiette du voisin.
+ *
+ * ── POURQUOI DEUX MOITIÉS, ET PAS UNE ──────────────────────────────────────
+ * ① LE `why` NE PORTE AUCUNE RÈGLE. C'est la correction, et elle est absolue:
+ *    ce champ est rendu à l'écran sous le plat (`DishCard.tsx:211`), donc lu par
+ *    toute la maison. Quatre runs sur quatre y ont écrit le régime ou la
+ *    contrainte médicale de quelqu'un, dont DEUX en recopiant l'échappatoire du
+ *    prompt elle-même (« one of the foods on your medical list »). Le prompt
+ *    donnait cette formule pour NE PAS nommer l'allergène; il n'était écrit
+ *    nulle part qu'elle ne devait pas finir sur la table non plus.
+ * ② SI UNE RÈGLE PASSE QUAND MÊME, ELLE EST DÉCLARÉE ET ATTRIBUÉE. Sans ②, ①
+ *    est une phrase de plus dans un prompt qui en compte trois cents, et sa
+ *    désobéissance est MUETTE: un run où le modèle obéit et un run où il écrit
+ *    la maladie cœliaque d'une adulte au dîner rendent exactement les mêmes
+ *    octets d'instrumentation. Voir `countWhyRuleAttributions`.
+ *
+ * ⛔ ET PAS DE MATCHER. Chercher « gluten » ou « vegan » dans une prose que le
+ * modèle rend en anglais, en français ou en néerlandais, avec ou sans négation,
+ * est très exactement le geste que ce dépôt a payé douze faux positifs sur douze
+ * (« laitue » ≠ « lait »). Le champ est DÉCLARÉ par le modèle et validé contre
+ * la liste fermée ci-dessus — le patron de `for_member_id`, de `same_day` et de
+ * `preparation_id`, qui fonctionnent en production.
+ */
+function whyRuleSchemaBlock(
+  ruleHolders: readonly HouseholdRuleHolder[],
+): readonly string[] {
+  if (ruleHolders.length === 0) return [];
+  return [
+    "== WHOSE RULE IS IN A \"why\" (household) ==",
+    'A dish can carry one more key: "why_rule_of".',
+    "Set it ONLY when the dish's \"why\" still names somebody's diet, allergy,",
+    "medical list or house rule. Its value is the EXACT member_id of the person",
+    "that rule belongs to -- the one who would be harmed, never the person the",
+    "dish happens to be for.",
+    "Leave it out when the \"why\" names nobody's rule. That is the normal case,",
+    "and it is the case this plan asks for.",
+    ...ruleHolders.map((h) => `  ${h.displayName} = ${h.memberId}`),
+  ];
+}
+
+/** LOT C ② — LA MOITIÉ CONSIGNE, dans le groupe des verrous. Voir ci-dessus. */
+function whyRuleBlock(ruleHolders: readonly HouseholdRuleHolder[]): string {
+  if (ruleHolders.length === 0) return "";
+  return [
+    "== WHAT A \"why\" IS ALLOWED TO SAY ==",
+    "Every dish's \"why\" is shown under that dish to the WHOLE household. It",
+    "says what the FOOD is: warm, quick, cheap, in season, it reheats, it uses",
+    "up what is already there. That is all it ever says.",
+    "It NEVER says whose diet, whose allergy, whose medical list or whose house",
+    "rule made you pick it. Not the rule, not the family word for it, not the",
+    'phrase "one of the foods on your medical list" -- that phrase exists so you',
+    "can avoid naming a food to the STUDENT, and it is not a sentence to put on",
+    "the table either.",
+    "And you do not know whose rule it is beyond what is written above. On the",
+    "plan this instruction was written for, three dishes explained that a meal",
+    "avoided a food \"for\" a person who had no such constraint; the one person",
+    "at that table who did have it was somebody else. A rule pinned on the wrong",
+    "person is worse than a rule not mentioned: it is read out, it is wrong, and",
+    "nobody in the room can correct it.",
+    "If a \"why\" you wrote still names a rule, that dish MUST carry",
+    "\"why_rule_of\" with the exact member_id of the person whose rule it is,",
+    "from the list in the schema. A rule named at this table without that key",
+    "is a rule nobody can check.",
+  ].join("\n");
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * LOT C ② — LE COMPTEUR, ET IL A TROIS NOMBRES PARCE QUE DEUX MENTENT.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * `{déclaré, attribué}` rend le MÊME zéro pour « aucun `why` n'a nommé de
+ * règle » — ce qu'on veut — et pour « le modèle ignore la clé » — ce qui rend la
+ * consigne invérifiable. Les deux appellent des corrections opposées, et ce
+ * dépôt a déjà payé ce zéro ambigu deux fois (`dish_owners`, `same_day`).
+ *
+ *   · `dishes`   — les plats de la RÉPONSE DU MODÈLE. Le dénominateur.
+ *   · `declared` — ceux qui portent un `why_rule_of` non vide, avant validation.
+ *   · `valid`    — ceux dont l'id est une bouche qui porte VRAIMENT une règle.
+ *   · `refused`  — ceux dont l'id n'en est pas une. **C'est la mauvaise
+ *                  attribution**, et c'est le nombre du défaut.
+ *
+ * ⚠️ LA POPULATION EST LA RÉPONSE DU MODÈLE, PAS LE PLAN GARDÉ, et le nom du
+ * champ le dit. `dish_owner_counts` compte les plats survivants parce que sa clé
+ * traverse le parseur; `why_rule_of` n'y entre pas — le parseur est le TRONC,
+ * partagé avec la lane individuelle, et lui ajouter un paramètre requis
+ * toucherait quinze fichiers de tests appartenant à quatre lots parallèles. Les
+ * quatre nombres sont donc comptés sur la MÊME liste, ce qui est la seule
+ * propriété qui compte pour qu'un compteur ne mente pas.
+ *
+ * ⚠️ `declared === valid + refused` EST UNE PROPRIÉTÉ QU'UN TEST VÉRIFIE, pas
+ * une définition. Dériver `refused` de la soustraction est la cicatrice
+ * `withheld`/`over_cap`: deux nombres du même objet, gonflé et dégonflé en sens
+ * inverses, sans que rien n'échoue.
+ *
+ * ⚠️ NE REJETTE RIEN, NE RÉÉCRIT RIEN. Posture `for_member_id` / `same_day`: un
+ * `why` mal attribué reste un plat qui se cuisine et se mange, et « on ne
+ * répare jamais un plan à la main ». Ce module CONSTATE; ce qui se corrige est
+ * le prompt.
+ */
+export interface WhyRuleCounts {
+  dishes: number;
+  declared: number;
+  valid: number;
+  refused: number;
+}
+
+export function countWhyRuleAttributions(
+  rawJsonText: string,
+  ruleHolders: readonly HouseholdRuleHolder[],
+): { counts: WhyRuleCounts; issues: string[] } {
+  const empty: WhyRuleCounts = { dishes: 0, declared: 0, valid: 0, refused: 0 };
+  const text = String(rawJsonText ?? "");
+  const start = text.indexOf("{");
+  const end = text.lastIndexOf("}");
+  if (start < 0 || end <= start) return { counts: empty, issues: [] };
+  let dishes: unknown;
+  try {
+    const parsed = JSON.parse(text.slice(start, end + 1)) as Record<string, unknown>;
+    dishes = parsed?.dishes;
+  } catch {
+    // ILLISIBLE ⇒ ZÉRO PARTOUT, ET AUCUNE `issue`. Une réponse que ce module
+    // n'arrive pas à relire est une réponse que `parseGeneratedMeal` a déjà
+    // refusée en amont — la requête est morte avant d'arriver ici. Lever ferait
+    // perdre un dîner pour un compteur.
+    return { counts: empty, issues: [] };
+  }
+  if (!Array.isArray(dishes)) return { counts: empty, issues: [] };
+
+  const holders = new Map(
+    ruleHolders
+      .map((h) => [String(h.memberId ?? "").trim(), String(h.displayName ?? "").trim()])
+      .filter(([id]) => id.length > 0) as [string, string][],
+  );
+  const counts: WhyRuleCounts = { dishes: dishes.length, declared: 0, valid: 0, refused: 0 };
+  const issues: string[] = [];
+  for (let i = 0; i < dishes.length; i++) {
+    const d = (dishes[i] ?? {}) as Record<string, unknown>;
+    const declared = String(d.why_rule_of ?? "").trim();
+    if (!declared) continue;
+    counts.declared += 1;
+    if (holders.has(declared)) {
+      counts.valid += 1;
+      // ⚠️ UNE `issue` MÊME QUAND L'ID EST BON, et c'est délibéré. Le bloc
+      // demande qu'AUCUN `why` ne nomme de règle: un id valide veut dire « une
+      // règle a bien été nommée, et au moins sur la bonne personne ». C'est
+      // moins grave, ce n'est pas ce qu'on a demandé, et le taire ferait de la
+      // consigne ① une phrase sans lecteur.
+      issues.push(`why_rule_named:${declared}`);
+    } else {
+      counts.refused += 1;
+      issues.push(
+        `why_rule_of ${JSON.stringify(declared)} on dishes[${i}] is not a mouth ` +
+          `that holds a rule at this table`,
+      );
+    }
+  }
+  return { counts, issues };
 }
 
 /**
@@ -1174,6 +1681,32 @@ export interface HouseholdPromptBlocks {
    * `{mouths: 0, cells: 0}` ⇒ aucun bloc servi.
    */
   eatingOut: { mouths: number; cells: number };
+  /**
+   * LOT C ② — COMBIEN DE BOUCHES LE BLOC DES `why` A NOMMÉES.
+   *
+   * `0` ⇒ aucun bloc servi (personne ne porte de règle), et le prompt est alors
+   * byte-identique à celui de v18. C'est le DÉNOMINATEUR de `why_rule_counts`
+   * côté sortie: sans lui, « le modèle n'a rien déclaré » et « on ne lui a rien
+   * demandé » rendent le même zéro, deux fois de suite.
+   */
+  whyRuleHolders: number;
+  /**
+   * ── C1 · CE QUE LE BLOC DE CONTAMINATION CROISÉE A FAIT, ET POURQUOI ─────
+   *
+   * ⛔ RENDU PAR LE MODULE QUI ÉCRIT LE BLOC, jamais recalculé par l'appelant:
+   * deux évaluations des mêmes prémisses divergeraient, et la trace dirait
+   * « on l'a demandé » sur un prompt qui ne l'a jamais dit.
+   *
+   * ⛔ ET IL PORTE SA RAISON, PAS UN BOOLÉEN. `emitted: false` seul rendrait le
+   * même « non » pour « personne n'est à risque » et pour « la règle n'a pas
+   * tourné ». C'est `outcome.skipped` qui les sépare, et c'est tout l'objet du
+   * compteur à trois populations.
+   *
+   * ⚠️ `emitted` COMPTE UNE PHRASE ENVOYÉE, PAS UNE POÊLE LAVÉE. Voir
+   * `cross_contact.ts`: on ne prouve pas depuis un JSON qu'un couteau a été
+   * rincé, et ce champ ne prétend pas le contraire.
+   */
+  crossContact: CrossContactOutcome;
 }
 
 /**
@@ -1190,15 +1723,46 @@ export function buildHouseholdPromptBlocks(
   const envyBlock = buildEnvyBlock(input.envyLine);
   const voices = buildHouseholdVoices(input.voices);
   const dishOwner = dishOwnerSchemaBlock(input.dishBearers);
+  // LOT C ② — LES DEUX MOITIÉS, CALCULÉES DEPUIS LA MÊME LISTE. Le patron est
+  // celui de `dishOwnerSchemaBlock` / `dedicatedDishBlock`, qui MARCHE en
+  // production (4 déclarés, 4 attribués sur le plan mesuré): la clé et sa liste
+  // fermée dans le schéma, l'ordre dans le message utilisateur. Deux listes
+  // calculées séparément nommeraient dans l'une quelqu'un que l'autre ignore.
+  const whyRuleSchema = whyRuleSchemaBlock(input.ruleHolders);
   // LOT 4 — LA MOITIÉ SCHÉMA DES BOÎTES. Même prémisse que sa moitié consigne
   // (`boxingOrderLines`, dans le brief): deux bouches au moins. Un foyer d'une
   // seule rend les deux vides, et le prompt est celui de v13 au caractère près.
-  const boxSchema = boxSchemaBlock(input.members);
+  // LA MÊME LISTE QUE `boxMemberIds` CÔTÉ PARSEUR — dérivée ici de `members`
+  // par le MÊME prédicat, jamais recopiée à la main.
+  const boxSchema = boxSchemaBlock(input.members, weighedPortionMembers(input.members));
+  // LA MÊME LISTE QUE `boxSchema` ET `dishOwner` RÉCLAMENT, imprimée une fois
+  // au-dessus d'eux. Même plancher de deux bouches: à une seule, le suffixe
+  // système reste identique à l'octet près (un test le tient).
+  // ⚠️ LA LISTE SORT DÈS QUE QUELQUE CHOSE Y RENVOIE. `boxSchema` la cite
+  // nommément; l'émettre sans elle serait promettre une liste absente.
+  const idRoster = memberIdRosterLines(input.members, boxSchema.length > 0);
   // L7 — LES DEUX BLOCS NEUFS, CALCULÉS UNE FOIS. Leur trace sort par le même
   // objet que leur texte: c'est ce qui empêche la mesure de mentir sur ce que
   // le prompt a réellement dit.
   const kitchen = kitchenBlock(input.kitchenEquipment);
   const eatingOut = eatingOutBlock(input.members, input.presence.eatingOut);
+  // ③ — LE BLOC EST CALCULÉ PAR LE MODULE QUI PORTE LA RÈGLE, jamais écrit ici.
+  // Sa trace (`cells`) sort par le même objet que son texte: c'est ce qui
+  // empêche la mesure de mentir sur ce que le prompt a réellement dit.
+  const traditions = traditionBlock(input.traditions, input.daysInWindow);
+  // ── C1 · LA RÈGLE EST CALCULÉE PAR LE MODULE QUI LA PORTE ───────────────
+  // Sa trace (`emitted`/`skipped`) sort par le MÊME objet que son texte: c'est
+  // ce qui empêche la mesure de mentir sur ce que le prompt a réellement dit.
+  const crossContact = crossContactBlock({
+    medicalMouths: input.medicalMouths,
+    unnamedMedical: input.crossContactUnnamedMedical,
+    // ⛔ LA MÊME LISTE QUE `dedicatedDishBlock` ET `dishOwnerSchemaBlock`, pas
+    // un second calcul. La seconde poêle existe exactement quand la consigne
+    // promet un plat à quelqu'un: dériver la prémisse d'ailleurs ferait sortir
+    // la règle sur des plans sans second plat, ou la taire sur des plans qui en
+    // ont un.
+    dishBearers: input.dishBearers,
+  });
 
   const idLines = input.members.map((m) => `- ${m.displayName} = ${m.memberId}`);
 
@@ -1212,13 +1776,18 @@ export function buildHouseholdPromptBlocks(
     // de boîtes.
     boxSchema.length === 0
       ? "Exact ids to use in member_portions:"
-      : "Exact ids to use in member_portions and in every preparation's boxes:",
+      : "Exact ids to use in member_portions and on every meal's box lids:",
     ...idLines,
     "",
     // LA FORME DE CUISINE VIENT DE L'APPELANT, ET DE LUI SEUL (G5). Elle
     // valait `input.merge?.shape ?? "one_dish"`, et cette ligne-là clouait
     // toute composition ordinaire au barreau ① sans que rien ne le dise.
-    buildPortionBrief(input.members, input.cooking, input.divergingCount),
+    buildPortionBrief(
+      input.members,
+      input.cooking,
+      input.divergingCount,
+      input.weightGroups,
+    ),
     // ── LOT 3C · COLLÉ AU BRIEF, ET LA POSITION EST LA MOITIÉ DU LOT ────────
     // La ligne de forme PROMET un plat dédié à l'intérieur du brief ci-dessus;
     // ce bloc-ci le COMMANDE, nomme les bouches et dit quelle clé le porte. Les
@@ -1248,6 +1817,20 @@ export function buildHouseholdPromptBlocks(
     // 3C, où une promesse et sa clé séparées par le prompt ont rendu zéro
     // déclaration sur 291 plats.
     eatingOut.block,
+    // ── ③ · COLLÉ AU BLOC « DEHORS », ET LA POSITION EST LA MOITIÉ DU LOT ───
+    // Les deux parlent de la MÊME chose et d'aucune autre: ce qu'une case
+    // précise de la grille porte. Le voisin du dessus dit « ne compose RIEN
+    // ici »; celui-ci dit « compose ÇA ici ». Les séparer par la fusion, les
+    // voix ou l'envie ferait lire deux consignes de case à deux endroits du
+    // prompt — c'est la mesure de 3C, où une promesse et sa clé séparées ont
+    // rendu zéro déclaration sur 291 plats.
+    //
+    // ⚠️ IL NE PREND PAS LA DERNIÈRE PLACE. « La contrainte la plus proche de
+    // la fin est lue comme la plus contraignante » est l'invariant qui protège
+    // les règles de maison — une allergie doit survivre à une tradition, pas
+    // l'inverse. Un dimanche sans rôti est une déception; un dimanche avec de
+    // l'arachide est un accident.
+    traditions.block,
     // APRÈS LA PRÉSENCE, AVANT L'ENVIE (D6). Le bloc dit qui revient à table:
     // c'est encore « qui mange quoi », donc il reste dans le groupe des trois
     // premiers. Le mettre après l'envie ferait lire « untel revient » comme une
@@ -1300,6 +1883,55 @@ export function buildHouseholdPromptBlocks(
     // sa position pour être lu.
     input.dietBlock,
     restrictionBlock(input.restrictions),
+    // ── LOT C ② · APRÈS LES DEUX VERROUS, ET C'EST SA PLACE ────────────────
+    // Ce bloc ne dit pas ce que la casserole a le droit de contenir — les deux
+    // au-dessus le disent, et ils gardent leur rang. Il dit ce qu'on a le droit
+    // d'ÉCRIRE à propos d'eux. Il vient donc juste après les règles qu'il
+    // encadre, au plus près de ce qu'il commente: un interdit d'énonciation
+    // posé trois cents lignes avant la règle qu'il vise est un interdit que le
+    // modèle a oublié en arrivant à la règle.
+    //
+    // ⚠️ ET IL NE DÉMOTE RIEN. « La contrainte la plus proche de la fin est lue
+    // comme la plus contraignante » protège les RÈGLES DE MAISON, c'est-à-dire
+    // ce qu'on met dans une assiette. Ce bloc-ci ne met rien dans aucune
+    // assiette et ne contredit aucune ligne de maison: il n'y a pas de plan
+    // qu'il puisse rendre impossible, seulement une phrase qu'il empêche.
+    whyRuleBlock(input.ruleHolders),
+    // ══════════════════════════════════════════════════════════════════════
+    // ── C1 · EN DERNIER, ET C'EST LA MOITIÉ DU LOT ────────────────────────
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // « La contrainte la plus proche de la fin est lue comme la plus
+    // contraignante » est l'invariant écrit par le lot qui a posé
+    // `restrictionBlock`, et tous les blocs ajoutés depuis ont refusé cette
+    // place — le régime, la cuisine, les traditions, les plats dédiés, les
+    // `why`. Celui-ci la PREND, et voici les trois raisons.
+    //
+    // ① C'EST LA SEULE RÈGLE DE CE PROMPT DONT LA VIOLATION ENVOIE QUELQU'UN À
+    //    L'HÔPITAL. Le fichier tranche déjà dans ce sens, mot pour mot, sur le
+    //    bloc des traditions: « une allergie doit survivre à une tradition, pas
+    //    l'inverse. Un dimanche sans rôti est une déception; un dimanche avec
+    //    de l'arachide est un accident. » Une règle de maison est du pouvoir
+    //    domestique; celle-ci est une contrainte médicale.
+    //
+    // ② ELLE NE DÉMOTE RIEN, PARCE QU'ELLE NE MET RIEN DANS AUCUNE ASSIETTE.
+    //    Ce que la place finale protège, c'est ce qui décide le CONTENU d'un
+    //    plat: « on ne sert pas de Nutella à Léa » doit survivre à « on a envie
+    //    de Nutella ». Ce bloc-ci ne retire aucun aliment, n'en ajoute aucun et
+    //    ne rend aucun plan impossible: il dit comment on cuit deux plats qui
+    //    existent déjà tous les deux. Il n'y a aucun plan que les règles de
+    //    maison autorisent et qu'il interdise.
+    //
+    // ③ ET IL EST RARE. Il ne sort que sur la DOUBLE prémisse — une bouche
+    //    médicale ET un plat dédié dans la même session. Sur tous les autres
+    //    plans, la chaîne se termine exactement comme avant, à l'octet près,
+    //    et les règles de maison retrouvent la dernière place.
+    //
+    // ⚠️ CE QUI PASSE APRÈS, ET QUI RESTE APRÈS: `appendContentLanguageBlock`,
+    // qui est idempotent et se replace toujours en queue (voir le point de
+    // composition unique dans `generate-household-meal-v1/index.ts`). C'est une
+    // consigne de LANGUE, pas de contenu; elle ne concurrence rien ici.
+    crossContact.block,
   ].filter((p) => p && p.trim().length > 0);
 
   return {
@@ -1308,14 +1940,26 @@ export function buildHouseholdPromptBlocks(
     // quand un plat dédié est réclamé (voir `dishOwnerSchemaBlock`).
     systemSuffix: `\n\n${
       [
+        // ⛔ LES IDS D'ABORD, ET DANS CE MESSAGE-CI. Les trois blocs qui suivent
+        // disent « l'id ci-dessus »; sans cette liste, « ci-dessus » pointait
+        // vers le message UTILISATEUR et le modèle recopiait des prénoms. Voir
+        // `memberIdRosterLines`.
+        ...(idRoster.length === 0 ? [] : [...idRoster, ""]),
         ...PORTION_SCHEMA_BLOCK,
         // LOT 4 — LE SCHÉMA DES BOÎTES REJOINT LE SCHÉMA DES PORTIONS, et il
         // vient JUSTE APRÈS lui: les deux disent « qui reçoit combien », l'un en
         // prose lue à table, l'autre en grammes sur un couvercle. Les séparer
         // par l'attribution des plats ferait lire la boîte comme une précision
-        // du plat dédié, alors qu'elle porte sur TOUTE préparation.
+        // du plat dédié, alors qu'elle porte sur TOUT repas pris sur un lot.
         ...(boxSchema.length === 0 ? [] : ["", ...boxSchema]),
         ...(dishOwner.length === 0 ? [] : ["", ...dishOwner]),
+        // LOT C ② — LA MOITIÉ SCHÉMA DE `why_rule_of`, EN DERNIER DANS CE
+        // GROUPE. Elle vient après l'attribution des plats parce que les deux
+        // portent un `member_id` sur un plat et que celle-ci se lit contre
+        // l'autre: `for_member_id` dit à QUI ce plat est destiné,
+        // `why_rule_of` dit DE QUI la phrase parle, et le défaut mesuré est
+        // très exactement de les confondre.
+        ...(whyRuleSchema.length === 0 ? [] : ["", ...whyRuleSchema]),
       ].join("\n")
     }`,
     envyLineUsed: envyBlock.length > 0,
@@ -1324,6 +1968,10 @@ export function buildHouseholdPromptBlocks(
     voiceCounts: voices.counts,
     kitchenMissing: kitchen.missing,
     eatingOut: { mouths: eatingOut.mouths, cells: eatingOut.cells },
+    whyRuleHolders: input.ruleHolders.length,
+    // C1 — LA TRACE SORT PAR LE MÊME OBJET QUE LE TEXTE. Voir `crossContact`
+    // dans `HouseholdPromptBlocks`: `emitted` compte une phrase envoyée.
+    crossContact,
   };
 }
 

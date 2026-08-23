@@ -801,7 +801,6 @@ Deno.test("C4 — CHAQUE APPELANT DIT S'IL ÉCRIT, ET LA LANE FOYER DIT NON", as
   // en base pour toujours, visible dans la carte et dans l'export RGPD.
   for (
     const rel of [
-      "generate-week-plan-v1/index.ts",
       "generate-meal-v1/index.ts",
       "generate-household-meal-v1/index.ts",
     ]

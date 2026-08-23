@@ -2667,7 +2667,7 @@ export const en = {
   "pro.hero.kicker": "For people who sell a method, not hours",
   "pro.hero.title": "Your method, working on the days you are not there.",
   "pro.hero.lede":
-    "Coaches, gyms, paid communities — six things that have to hold when you are not there.",
+    "Coaches, gyms, paid communities — five things that have to hold when you are not there.",
   "pro.hero.cta": "Start the 14-day trial",
   // B5 (14 jours / 3 clients) + B1 (le siège est le seul poste).
   "pro.hero.note":
@@ -2677,7 +2677,36 @@ export const en = {
   // ⚠️ « Six pains » se lit comme une plainte médicale en anglais — et surtout,
   // personne ne se dit « j’ai six douleurs ». C’était le nom de NOTRE grille,
   // servi au lecteur.
-  "pro.lines.title": "Six places it breaks without you. Six answers.",
+  // ⚠️ CINQ, ET C'ÉTAIT « SIX » JUSQU'AU 2026-08-19. Le compte n'est pas un
+  // effet de style: la grille en dessous rend exactement autant de lignes, et
+  // un titre qui en promet une de plus est la première phrase fausse de la
+  // page. La ligne 05 « chaque ligne cite la conviction qu'elle applique »
+  // (B27) a été retirée le 2026-08-19 avec ses clés — voir le bloc juste en
+  // dessous et le commentaire à sa place dans `ProPage.tsx`. Le `lede` du hero
+  // porte le même compte, et il a bougé avec.
+  "pro.lines.title": "Five places it breaks without you. Five answers.",
+
+  // ── ⛔ `pro.line.cite.*` — RETIRÉES LE 2026-08-19, ET ELLES NE REVIENNENT
+  // PAS REFORMULÉES ─────────────────────────────────────────────────────────
+  // Elles portaient B27, « chaque ligne cite la conviction qu'elle applique »,
+  // adossé au CHECK `student_week_plans_doctrine_traceable_check`. Vérifié le
+  // 2026-08-19: le CHECK existe TOUJOURS et il est armé — et il n'a plus aucun
+  // écrivain, la lane `generate-week-plan-v1` ayant été retirée le même jour
+  // faute d'un seul appelant vivant. Il ne reste que des LECTEURS
+  // (`following_io`, `coach_synthesis_io`, `hunger_signal_io`, l'export RGPD).
+  //
+  // ⛔ ET PAS D'ÉQUIVALENT SUR LES PLATS. Sur la seule lane vivante,
+  // `honours_belief_keys` est INFORMATIF par arbitrage produit du 2026-08-04
+  // (« un plat est une application libre », `meal_generation.ts`): aucun CHECK
+  // ne l'exige, et un plat qui invente une clé est CONSERVÉ, sa clé jetée
+  // (`meal_generation_test.ts`, « an invented conviction key is dropped but
+  // does NOT cost the dish »). Mesuré en base le 2026-08-19: 1 598 plats sur
+  // 1 816 citent au moins une conviction — 88 %, et 31 plans sur 179 n'en
+  // citent aucune. « Chaque ligne » n'est donc pas vrai, et le rendre vrai
+  // serait vendre CONTRE le modèle produit, pas le rattraper.
+  //
+  // La règle qui en sort: une page de vente ne redit cette garantie que le
+  // jour où un CHECK la tient.
 
   // 01 — la seule page du site qui dit que la méthode peut être la nôtre.
   "pro.line.method.pain":
@@ -2690,7 +2719,7 @@ export const en = {
   "pro.line.daily.pain": "Your clients have questions between two sessions.",
   "pro.line.daily.title": "Daily support, held by your method.",
   "pro.line.daily.body":
-    "It reaches four places: the chat, the week they build, the meal they cook, and the one they cook for a table.",
+    "It reaches three places: the chat, the meal they cook, and the one they cook for a table.",
 
   // 03 — FORMULATION B8b, IMPOSÉE. « Chaque message sortant est vérifié » est
   // faux (4 surfaces scannées, 4 non scannées) et « la doctrine entre à chaque
@@ -2708,13 +2737,15 @@ export const en = {
   "pro.line.monday.body":
     "Who answered, who went quiet after two days, who has been silent for five. Computed, never written by a model — and only your own clients.",
 
-  // 05 — B27. Portée: la semaine seulement.
-  "pro.line.cite.pain": "How do you know it is your method being applied?",
-  "pro.line.cite.title": "Every line cites the conviction behind it.",
-  "pro.line.cite.body":
-    "The database refuses a line in a week that cites none. That holds for the week; dishes do not cite, deliberately.",
-
-  // 06 — B1, B4.
+  // ⚠️ LA LIGNE 05 (B27, « chaque ligne cite la conviction ») A ÉTÉ RETIRÉE LE
+  // 2026-08-19, AVEC SES TROIS CLÉS. Elle vendait une garantie adossée au CHECK
+  // `student_week_plans_doctrine_traceable_check`, tenu par la lane de semaine
+  // — retirée le même jour faute d'un seul appelant. La garantie n'était donc
+  // déjà tenue pour personne. ⛔ NE PAS LA REFORMULER: aucune copie ne doit
+  // annoncer une traçabilité par ligne tant qu'aucun CHECK ne la tient. Les
+  // plats portent `generated_from.belief_keys`, à l'échelle du PLAN, informatif
+  // et jamais vérifié.
+  // 05 — B1, B4.
   "pro.line.seat.pain": "Platforms bill you by tier.",
   // « poste » = *line item*. « line » seul ne veut rien dire ici.
   "pro.line.seat.title": "The seat is the only line item.",
@@ -3112,7 +3143,7 @@ export const en = {
   "families.age.kicker": "Children",
   "families.age.title": "Your goal stops at the adults.",
   "families.age.body":
-    "A minor is never a nutritional target: a week aimed at one is refused where it is built, not filtered on the screen. Their share follows their age.",
+    "A minor is never a nutritional target: the number is closed where it is computed, not filtered on the screen. Their share follows their age.",
   "families.age.reserve":
     "No weight curve for anyone here: nothing keeps a series. And numbers stay off by default, behind a chain of guards where being a minor is one.",
 
@@ -3273,10 +3304,13 @@ export const en = {
   "coaches.fig.method.l2": "your red lines",
   "coaches.fig.method.l3": "what you say instead",
   "coaches.fig.method.l4": "your vocabulary",
+  // ⚠️ TROIS SORTIES DEPUIS LE 2026-08-19, pas quatre. « the week they build »
+  // était la lane `generate-week-plan-v1`, retirée faute d'appelant vivant.
+  // Les trois restantes sont vérifiées: run.ts:2448 · generate-meal-v1:1729 ·
+  // generate-household-meal-v1:3569, les trois `doctrineBlockFor(doctrine)`.
   "coaches.fig.method.out1": "their chat",
-  "coaches.fig.method.out2": "the week they build",
-  "coaches.fig.method.out3": "the meals she drafts",
-  "coaches.fig.method.out4": "their household meals",
+  "coaches.fig.method.out2": "the meals she drafts",
+  "coaches.fig.method.out3": "their household meals",
 
   // ── BANDE 3 — DOULEUR 03 · LE BLOC SOMBRE ───────────────────────────────
   "coaches.lock.kicker": "The part you should be most afraid of",
@@ -3287,7 +3321,7 @@ export const en = {
   // n'est qu'une consigne protège la seule phrase de la page qui est une
   // garantie. « Chaque message sortant est vérifié » est FAUX (B8).
   "coaches.lock.scope":
-    "So your method is written into the chat, into every week and into every meal Sophia drafts. That much is an instruction. This part is not: what she writes in the chat is read back against your red lines before it is sent, by code, with no model in that loop.",
+    "So your method is written into the chat and into every meal Sophia drafts. That much is an instruction. This part is not: what she writes in the chat is read back against your red lines before it is sent, by code, with no model in that loop.",
   // La réserve honnête, sous la démonstration: le repli générique n'est JAMAIS
   // signé (`keel_output_locks.ts:202-209`), et il n'y a pas de porte de retour.
   "coaches.lock.reserve":
@@ -3407,7 +3441,7 @@ export const en = {
   // nommés ici (chat, semaine, repas). Ne pas écrire « chaque message ».
   "gyms.day.title": "It is awake at nine on a Tuesday evening. You are at home.",
   "gyms.day.body":
-    "A client asks their question when they have it, and the answer is built from the method behind their account — in the chat, in the week they compose, and in every meal Sophia writes.",
+    "A client asks their question when they have it, and the answer is built from the method behind their account — in the chat, and in every meal Sophia writes.",
 
   // L'arithmétique. B30: l'exemple est juste ET étiqueté « exemple ». Les deux
   // ensemble sont ce qui le rend crédible — retirer l'étiquette en ferait une
@@ -3888,6 +3922,19 @@ export const en = {
   // L5-B (2026-08-18). `keel_household_set_member_body` rend ce jeton depuis le
   // lot L0, et aucune phrase ne l'attendait — le pop-up « une bouche » l'aurait
   // rendu tel quel, en anglais brut, à côté du champ.
+  "household.error.bad_day_activity":
+    "That day-to-day answer is not one we know. Pick one of the three.",
+  "household.error.bad_sport_frequency":
+    "That sport answer is not one we know. Pick one of the four.",
+  "household.error.bad_appetite":
+    "That appetite answer is not one we know. Pick one of the three.",
+  "household.error.bad_weekday": "That is not a day of the week.",
+  "household.error.bad_slot": "That is not a meal we can hold a habit on.",
+  "household.error.empty_label":
+    "Tell us what that meal is, in your own words -- a blank would match any dish.",
+  "household.error.label_too_long": "Sixty characters at most.",
+  "household.error.too_many_traditions":
+    "Three standing days is the most we take. Remove one to add another.",
   "household.error.bad_activity_level":
     "That is not one of the four activity answers.",
   // ── LE MEMBRE DE RÉFÉRENCE (FF-043) — EN COURS DE DÉMÉNAGEMENT ──────────
@@ -4563,6 +4610,23 @@ export const en = {
   // table; ce qui suit ne règle que lui, et son plan est le sien.
   "setup.situate.member":
     "Someone else runs this household and composes for it. What follows is about you only — your servings, your direction, and a plan of your own if you want one.",
+  // ── LE RETOUR AU SOLO, ET POURQUOI IL A SES SIX PHRASES ─────────────────
+  // « Juste moi » était grisé dès qu'un foyer existait, SANS UN MOT: répondre
+  // « on est deux » était sans retour dans tout le produit, et l'étape 2
+  // retenait ensuite sur `missing_mouths`. Le verrou garde sa raison — on
+  // n'efface pas des bouches sur un clic d'entonnoir — et il la DIT; quand il
+  // n'y a plus personne à effacer, il s'ouvre derrière une confirmation qui
+  // nomme ce qui part et ce qui reste.
+  "setup.situate.solo_locked":
+    "“Just me” is off while other people are still at this table. Remove them below, one at a time, and it comes back.",
+  "setup.situate.dissolve_confirm":
+    "This undoes the household. Your own place at the table goes with it: your household servings, your kitchen habits, the foods you keep off the table and the allergies recorded here. Your profile, your direction and your target stay exactly as they are — you carry on alone.",
+  "setup.situate.dissolve_do": "Undo the household",
+  "setup.situate.dissolve_cancel": "Keep it",
+  "setup.situate.dissolve_not_alone":
+    "Someone else is still at this table. Remove them first — nothing is undone here while a place is taken.",
+  "setup.situate.dissolve_has_plans":
+    "This household has already cooked. Its plans stay, so it cannot be undone from here.",
 
   // ── ÉTAPE 2 — LES GENS ──────────────────────────────────────────────────
   "setup.people.title": "You",
@@ -4603,6 +4667,63 @@ export const en = {
   // aide changent de personne — c'est le défaut mesuré le 2026-08-12 sur
   // `setup.mouths.first_name_hint`, où le formulaire d'une AUTRE bouche
   // promettait de nommer la portion de qui remplit le champ.
+  // ── ② LES DEUX AXES REMPLACENT LES QUATRE CRANS DANS L'ENTONNOIR ──────
+  // Les quatre crans mélangeaient une JOURNÉE et un SPORT: quelqu'un d'assis
+  // qui court deux fois par semaine ne pouvait dire que l'un des deux, et
+  // héritait de PAL 1,80 au lieu de ~1,60 — 239 kcal/jour fabriqués par la
+  // forme de la question. Les clés `setup.activity.*` restent en dessous: la
+  // colonne d'avant reste le repli nommé de qui a déjà répondu.
+  // ── ③ LES JOURS QUE LE FOYER NE DÉPLACE PAS (2026-08-20) ──────────────
+  // ⚠️ LES MOTS DISENT « CE QU'ON FAIT », PAS « CE QU'ON AIME ». Les gens
+  // répondent à « qu'est-ce que tu aimes » en idéal (« j'aime le poisson »),
+  // pas en réalité (une fois par mois). La question porte donc sur l'habitude
+  // installée, et le libellé d'exemple est un plat, jamais un goût.
+  "setup.traditions.title": "The days you never move",
+  "setup.traditions.hint":
+    "Sunday roast, fish on Friday. Tell us and the plan builds around it instead of over it. Two or three is plenty -- three at most.",
+  "setup.traditions.weekday": "Day",
+  "setup.traditions.slot": "Meal",
+  "setup.traditions.slot_breakfast": "Breakfast",
+  "setup.traditions.slot_lunch": "Lunch",
+  "setup.traditions.slot_dinner": "Dinner",
+  "setup.traditions.label": "What is it, in your words",
+  "setup.traditions.label_placeholder": "roast, fish, pizza...",
+  "setup.traditions.add": "Add",
+  "setup.traditions.remove": "Remove",
+  "setup.traditions.empty": "Nothing set -- the plan composes every meal.",
+  "setup.traditions.full":
+    "Three is the most we take. Remove one to add another.",
+  "setup.traditions.day_mon": "Monday",
+  "setup.traditions.day_tue": "Tuesday",
+  "setup.traditions.day_wed": "Wednesday",
+  "setup.traditions.day_thu": "Thursday",
+  "setup.traditions.day_fri": "Friday",
+  "setup.traditions.day_sat": "Saturday",
+  "setup.traditions.day_sun": "Sunday",
+  "setup.day_activity.label": "What do your days look like?",
+  "setup.day_activity.member_label": "What do their days look like?",
+  "setup.day_activity.hint":
+    "Work and daily life, sport aside -- sport is the next question.",
+  "setup.day_activity.seated": "Mostly sitting",
+  "setup.day_activity.seated_hint": "Sitting all day, not much walking.",
+  "setup.day_activity.on_feet": "Up and about",
+  "setup.day_activity.on_feet_hint":
+    "Standing or moving for a good part of the day.",
+  "setup.day_activity.physical_job": "Physical job",
+  "setup.day_activity.physical_job_hint":
+    "Carrying, walking, climbing -- all day.",
+  "setup.sport.label": "And sport?",
+  "setup.sport.member_label": "And sport, for them?",
+  "setup.sport.hint":
+    "Sessions per week, the day aside. \"No sport\" is an answer, and it counts.",
+  "setup.sport.none": "No sport",
+  "setup.sport.none_hint": "None at the moment.",
+  "setup.sport.1_2": "1 to 2 a week",
+  "setup.sport.1_2_hint": "One or two sessions in a usual week.",
+  "setup.sport.3_4": "3 to 4 a week",
+  "setup.sport.3_4_hint": "Three or four sessions in a usual week.",
+  "setup.sport.5_plus": "5 or more a week",
+  "setup.sport.5_plus_hint": "Five sessions a week or more.",
   "setup.activity.label": "How active are your days?",
   "setup.activity.hint":
     "It sizes every serving you get. Sitting eight hours and training four " +
@@ -4610,8 +4731,8 @@ export const en = {
     "assume something in the middle, which is what we did until now.",
   "setup.activity.member_label": "How active are their days?",
   "setup.activity.member_hint":
-    "Same thing, for their share. Leave it blank if you are not sure — we " +
-    "assume the middle rather than guess for them.",
+    "Same for their share. Leave it empty if you are not sure — we assume the " +
+    "middle rather than guessing for them.",
   "setup.activity.sedentary": "Mostly sitting",
   "setup.activity.sedentary_hint": "Sitting all day, not much walking.",
   "setup.activity.on_feet": "Up and about",
@@ -4667,12 +4788,21 @@ export const en = {
   "setup.mouths.title": "Who else eats here",
   "setup.mouths.intro":
     "Three things per person, and tonight's plan already counts them in.",
-  "setup.mouths.discard": "Clear this form",
+  // ── « Clear this form » EST PARTI LE 2026-08-19, ET SON BOUTON AUSSI ────
+  // La fiche d'ajout se REPLIE désormais: elle n'existe que si on l'a ouverte,
+  // et le geste qui la referme porte le mot que l'utilisateur a demandé —
+  // « Remove », le même que sur la carte d'une personne inscrite. Deux
+  // conséquences différentes, une seule intention à nommer: « que ce bloc ne
+  // soit plus là ».
   "setup.mouths.add": "Add someone who eats here",
+  "setup.mouths.add_confirm": "Add to the table",
   // ⚠️ PAS `setup.people.first_name_hint`. Celui-là dit « ta » portion, et il
   // était réutilisé ici: le formulaire d'une AUTRE bouche promettait de nommer
   // la portion de qui remplit le champ. Vu à l'écran le 2026-08-12.
-  "setup.mouths.first_name_hint": "How the plan names their serving.",
+  "setup.mouths.first_name_hint":
+    "How the plan names their serving.",
+  "setup.mouths.first_name_hint_you":
+    "How the plan names your serving.",
   "setup.mouths.kind": "Are they an adult or a child?",
   "setup.mouths.kind_adult": "An adult",
   "setup.mouths.kind_child": "A child",
@@ -4692,17 +4822,26 @@ export const en = {
   // ⚠️ LES TROIS OU AUCUN, et la phrase le dit parce que la base le fait: la
   // RPC refuse un corps partiel, et le moteur SAUTE une bouche sans corps —
   // elle reçoit alors la part de tout le monde, en silence.
-  "setup.mouths.body_hint":
-    "All three, or none of them. It is what lets the plan give them their own share instead of everyone's.",
+  "setup.mouths.body_hint": "All three together, or none of them.",
   "setup.mouths.goal": "What they are after",
   "setup.mouths.goal_none": "No particular direction",
   "setup.mouths.goal_from_profile":
     "Set in their own profile — it follows them everywhere, not just at this table.",
-  "setup.mouths.allergies": "Anything they are allergic to?",
+  "setup.mouths.allergies":
+    "Is {who} allergic to anything?",
+  "setup.mouths.allergies_you":
+    "Are you allergic to anything?",
   // ⚠️ CETTE CLÉ A ÉTÉ ÉCRITE AVANT SON BOUTON, et le bouton n'est arrivé que
   // le 2026-08-13 — après qu'un compte réel s'est retrouvé avec la même
   // personne saisie TROIS FOIS et aucun moyen d'en retirer deux. Une phrase
   // sans contrôle est une fonctionnalité qu'on croit livrée.
+  // ── LE MODE ÉDITION D'UNE CARTE (2026-08-19) ────────────────────────────
+  // La carte d'une personne inscrite était un formulaire ouvert en permanence:
+  // dix contrôles qui écrivent en base au moindre clic, sous chaque prénom.
+  // Demandé: « si on clique pas sur modifier on peut rien modifier ».
+  "setup.mouths.edit": "Edit",
+  "setup.mouths.edit_done": "Done",
+  "setup.mouths.summary_on_file": "On file",
   "setup.mouths.remove": "Remove",
   "setup.mouths.remove_confirm": "Remove for good?",
   "setup.mouths.duplicate":
@@ -4710,6 +4849,26 @@ export const en = {
     "the same line in the plan — give the second one a name you can tell apart.",
   "setup.mouths.full":
     "Eight is the most a household can hold. Every mouth is another serving to compose at each generation.",
+  // ── LES DEUX MOITIÉS DE CE QUE « CONTINUER » FAIT DE LA FICHE ───────────
+  // Le bouton l'absorbe depuis le 2026-08-15, et c'est voulu. Ce qui manquait
+  // est qu'il le DISE — avant, à côté des champs, et après, à côté du nom qui
+  // vient d'apparaître. Sans les deux, un bouton d'avancement crée quelqu'un
+  // en silence: « ça m'a rajouté une personne que je voulais pas »
+  // (compte réel, 2026-08-19).
+  // ── LA TÊTE DU FORMULAIRE D'AJOUT, ET POURQUOI ELLE EXISTE ─────────────
+  // Le bloc vide était un SOSIE d'une bouche inscrite: mêmes champs, même
+  // bouton de préférences, même phrase « rien de renseigné », et pour seule
+  // différence un trait de bordure en pointillé. Signalé capture à l'appui le
+  // 2026-08-19 — « je peux toujours pas supprimer le truc qui s'est ajouté
+  // tout seul », en montrant ce formulaire-là. La phrase répond exactement à
+  // ça: il n'y a personne, donc rien à retirer.
+  "setup.mouths.new_card": "An empty card",
+  "setup.mouths.new_card_hint":
+    "Nobody is here yet — this card only becomes a person when you add it, with the button at the bottom. Until then there is nothing to remove.",
+  "setup.mouths.next_will_save":
+    "“Continue” saves this card too, and {name} joins the table. Use “Clear this card” if that is not what you want.",
+  "setup.mouths.added_by_next":
+    "{name} is now at the table — “Continue” saved this card before moving on. “Remove” on their card undoes it.",
 
   // ── L'ACCÈS — UN AJOUT PAR-DESSUS ───────────────────────────────────────
   "setup.access.title": "Give them their own access?",
@@ -4841,7 +5000,11 @@ export const en = {
   "household.mouth.block_habits": "what they already eat",
   "household.mouth.block_allergies": "allergies",
   "household.mouth.block_tastes": "dislikes and diet",
-  "household.mouth.preferences_open": "Fill in their food preferences",
+  "household.mouth.preferences_open":
+    "Fill in their food preferences",
+  "household.mouth.preferences_open_you":
+    "Fill in your food preferences",
+  "household.mouth.preferences_saved": "{name}’s preferences are saved.",
   "household.mouth.preferences_title": "Food preferences",
   "household.mouth.preferences_title_named": "{name} — food preferences",
   "household.mouth.preferences_intro":
@@ -4849,8 +5012,6 @@ export const en = {
   "household.mouth.preferences_empty":
     "Nothing noted yet — habits, allergies, dislikes, diet.",
   "household.mouth.preferences_filled": "Already noted: {blocks}.",
-  "household.mouth.preferences_kept":
-    "Closing this window keeps what you typed. It is written with the rest when you save the sheet.",
   "household.mouth.preferences_done": "Done",
   "household.mouth.save": "Save",
   "household.mouth.add": "Add them",
@@ -4866,6 +5027,8 @@ export const en = {
   "household.mouth.identity": "Who they are",
   "household.mouth.identity_hint":
     "The name is how the plan labels their serving — a serving with no name is dropped in silence.",
+  "household.mouth.identity_hint_you":
+    "Your name is how the plan labels your serving — a serving with no name is dropped in silence.",
   "household.mouth.birth_date_hint":
     "We never ask whether someone is an adult or a child: the birth date says it.",
   "household.mouth.age_unknown":
@@ -4886,6 +5049,8 @@ export const en = {
   "household.mouth.pace": "How fast",
   "household.mouth.pace_hint":
     "The top of this slider is set by their body — it is the fastest pace the plan can actually cook.",
+  "household.mouth.pace_hint_you":
+    "The top of this slider is set by your body — it is the fastest pace the plan can actually cook.",
   "household.mouth.pace_value": "{pace} kg a week",
   // ⚠️ DEUX ÉCRANS DIFFÉRENTS, ET C'EST LE CONTRAT DU TYPE `PaceCeiling`:
   // `null` = « je ne connais pas ce corps », `0` = « je le connais, et il n'a
@@ -4897,10 +5062,17 @@ export const en = {
     "There is no room to lose weight from this body without going under the energy floor. The direction still shapes their servings.",
   "household.mouth.arrival": "About {weeks} weeks at this pace.",
   // ── BLOC 3 ──────────────────────────────────────────────────────────────
-  "household.mouth.body": "Their body",
+  "household.mouth.who_fallback": "this person",
+  "household.mouth.body":
+    "Their body",
+  "household.mouth.body_you":
+    "Your body",
   "household.mouth.body_hint":
     "Used to size servings. It is never said out loud, and never printed next to a name at the table.",
-  "household.mouth.activity": "How active they are",
+  "household.mouth.activity":
+    "How active they are",
+  "household.mouth.activity_you":
+    "How active you are",
   // ⛔ QUATRE CRANS, PAS CINQ. Aucun « je ne sais pas »: ne pas répondre EST
   // déjà cette réponse, et elle vit dans la colonne. Et jamais un nombre — un
   // nombre demandé est un nombre inventé.
@@ -4910,21 +5082,117 @@ export const en = {
   "household.mouth.activity_on_feet": "On their feet or moving a good part of the day",
   "household.mouth.activity_trains_some": "Training 2 to 3 times a week",
   "household.mouth.activity_trains_hard": "Training 4 times or more, or a physical job",
+  // ── ② L'ACTIVITÉ EN DEUX AXES (2026-08-20) ────────────────────────────
+  // Les quatre crans du dessus mélangent DEUX axes: les deux premiers décrivent
+  // une JOURNÉE, les deux derniers un SPORT. Quelqu'un d'assis qui court deux
+  // fois par semaine ne pouvait dire que l'un des deux, et héritait de 1,80 au
+  // lieu de ~1,60 — 239 kcal/jour fabriqués par la forme de la question.
+  "household.mouth.day_activity": "{who}'s day",
+  "household.mouth.day_activity_you": "Your day",
+  "household.mouth.day_activity_hint":
+    "Work and daily life, sport aside. Sport is the next question.",
+  "household.mouth.day_activity_seated": "Sitting most of the day, little walking",
+  "household.mouth.day_activity_on_feet": "On their feet or moving a good part of the day",
+  "household.mouth.day_activity_physical_job":
+    "A physical job: carrying, walking, climbing, all day",
+  "household.mouth.sport": "Sport, for {who}",
+  "household.mouth.sport_you": "Sport, for you",
+  "household.mouth.sport_hint":
+    "Sessions per week, the day aside. \"None\" is an answer, and it counts.",
+  "household.mouth.sport_none": "No sport",
+  "household.mouth.sport_1_2": "1 to 2 times a week",
+  "household.mouth.sport_3_4": "3 to 4 times a week",
+  "household.mouth.sport_5_plus": "5 times a week or more",
+  // ── ① LA STRUCTURE DU REPAS (2026-08-20) ───────────────────────────────
+  // Le plan ne compose QUE le plat. Sans ces trois réponses, il fait porter au
+  // seul plat une part MOYENNE du repas — juste par accident pour qui prend
+  // pain, fromage et dessert, et près de deux fois trop petite pour qui ne
+  // prend que du pain.
+  "household.mouth.meal_structure": "What else is on {who}'s plate",
+  "household.mouth.meal_structure_you": "What else is on your plate",
+  "household.mouth.meal_structure_hint":
+    "The plan only builds the main dish. Answering all three lets it size that dish for this plate rather than for an average one.",
+  "household.mouth.takes_dessert": "A dessert, a fruit or a yoghurt?",
+  "household.mouth.takes_cheese": "Cheese?",
+  "household.mouth.takes_bread": "Bread?",
+  "household.mouth.answer_yes": "Yes",
+  "household.mouth.answer_no": "No",
+  // ── ⑤ L'APPÉTIT (2026-08-20) — ET IL EST TRANSITOIRE ──────────────────
+  // ⚠️ LES LIBELLÉS NE DEMANDENT PAS « as-tu faim ». Les ±10 % sont
+  // l'incertitude inter-individuelle de Mifflin-St Jeor, pas un curseur de
+  // confort: la question est « la formule tombe-t-elle juste sur moi ? ».
+  // Demander l'appétit obtiendrait une réponse à une autre question.
+  "household.mouth.appetite": "How much {who} usually eats",
+  "household.mouth.appetite_you": "How much you usually eat",
+  "household.mouth.appetite_hint":
+    "A formula estimates a need to within about 10%. This is where you say which side of it you are on -- it is not a dial for eating more or less.",
+  "household.mouth.appetite_small": "Less than people of the same build",
+  "household.mouth.appetite_average": "About the same as people of the same build",
+  "household.mouth.appetite_large": "More than people of the same build",
   // ── BLOC 4 ──────────────────────────────────────────────────────────────
-  "household.mouth.habits": "What they already eat",
+  // ── LA QUESTION DES MOMENTS A CHANGÉ D'ÉCRAN LE 2026-08-19 ────────────
+  // Elle vivait à l'étape 3, deux écrans après « ce qu'elle mange déjà » —
+  // qu'elle dimensionne. On demandait donc six repas à quelqu'un sans lui avoir
+  // demandé combien il en fait.
+  "household.mouth.rhythm":
+    "How many times a day {who} eats",
+  "household.mouth.rhythm_you":
+    "How many times a day you eat",
+  "household.mouth.rhythm_hint":
+    "Tick the moments when {who} actually eats.",
+  "household.mouth.rhythm_hint_you":
+    "Tick the moments when you actually eat.",
+  "household.mouth.rhythm_house":
+    "Nothing ticked means {who} eats at the house’s moments — not that {who} never eats.",
+  "household.mouth.rhythm_house_you":
+    "Nothing ticked means you eat at the house’s moments — not that you never eat.",
+  "household.mouth.habits":
+    "What {who} already eats",
+  "household.mouth.habits_you":
+    "What you already eat",
   "household.mouth.habits_hint":
-    "Anything they have almost every day? A plan once served scrambled eggs seven mornings running to someone who eats an apple.",
-  "household.mouth.habit_placeholder": "an apple, nothing, whatever the house cooks…",
+    "Anything {who} eats almost every day that should not change?",
+  "household.mouth.habits_hint_you":
+    "Anything you eat almost every day that you do not want changed?",
+  "household.mouth.habits_only_declared":
+    "Show only their moments",
+  "household.mouth.habits_only_declared_you":
+    "Show only your moments",
+  // Voir la note de `fr.ts`: un exemple par moment, parce qu'un exemple qui ne
+  // va pas avec la question apprend surtout que l'écran ne suit pas.
+  "household.mouth.habit_placeholder_breakfast": "coffee and two slices of toast, a bowl of cereal…",
+  "household.mouth.habit_placeholder_snack_am": "a piece of fruit, a handful of almonds…",
+  "household.mouth.habit_placeholder_lunch": "a salad at the desk, yesterday's leftovers…",
+  "household.mouth.habit_placeholder_snack_pm": "a yoghurt, a square of chocolate…",
+  "household.mouth.habit_placeholder_dinner": "soup, pasta thrown together…",
+  "household.mouth.habit_placeholder_before_bed": "herbal tea, some fromage blanc…",
   // ⚠️ MIS EN AVANT POUR QUI PREND DU POIDS, PROPOSÉ SANS INSISTANCE AUX
   // AUTRES: quelqu'un qui perd du poids peut très bien en prendre un, et ne pas
   // le demander le rendrait invisible au calcul.
+  // ── LE BLOC DE L'APPORT CHIFFRÉ, REFAIT LE 2026-08-19 ─────────────────
+  // « On ne comprend vraiment pas. » Il lui manquait un nom, un cadre, des
+  // étiquettes sur ses trois nombres, et une phrase disant où il part.
+  "household.mouth.shaker_title":
+    "Their shake or snack",
+  "household.mouth.shaker_title_you":
+    "Your shake or snack",
+  "household.mouth.shaker_summary":
+    "One serving: {grams} g · {protein} g of protein · {kcal} kcal. Read it back — a protein typed into the calorie box looks exactly like a filled-in form.",
+  "household.mouth.shaker_kept":
+    "It is saved with the rest of the sheet, by the button at the bottom — there is nothing to save here.",
   "household.mouth.shaker_foreground":
     "Putting weight on usually means a shake or a measured snack. Add it and it counts inside the day instead of on top of it.",
   "household.mouth.shaker_background":
     "A shake or a measured snack? Add it and it counts inside the day.",
   "household.mouth.shaker_add": "Add a shake or measured snack",
-  "household.mouth.shaker_label": "What they call it",
-  "household.mouth.shaker_label_hint": "« my shake », « the morning thing » — their words.",
+  "household.mouth.shaker_label":
+    "What {who} calls it",
+  "household.mouth.shaker_label_you":
+    "What you call it",
+  "household.mouth.shaker_label_hint":
+    "« my shake », « the morning thing » — their words, not yours.",
+  "household.mouth.shaker_label_hint_you":
+    "« my shake », « the morning thing » — your words.",
   "household.mouth.shaker_grams": "grams per serving",
   "household.mouth.shaker_protein": "protein (g)",
   "household.mouth.shaker_kcal": "energy (kcal)",
@@ -4932,19 +5200,39 @@ export const en = {
   // produit, pas un verdict sur la personne.
   "household.mouth.shaker_label_source":
     "All three are on the tub's label. Without them the shake is worked around instead of counted.",
-  "household.mouth.shaker_incomplete":
-    "Needs a name and all three numbers, or it is dropped without a word.",
+  // Voir la note de `fr.ts`: le bouton s'active à une mesure, le moteur en
+  // exige trois, et l'écran dit dans lequel des deux états on est.
+  "household.mouth.shaker_save": "Save",
+  "household.mouth.shaker_counted":
+    "Saved, and counted inside the day: all three numbers are there.",
+  "household.mouth.shaker_kept_not_counted":
+    "Saveable, but not counted yet: the plan needs all three numbers to fold it in rather than cook around it. What you typed is kept.",
+  "household.mouth.shaker_needs_one":
+    "It needs a name and at least one of the three numbers to be saved.",
   "household.mouth.shaker_remove": "Remove it",
   // ── BLOC 6 ──────────────────────────────────────────────────────────────
-  "household.mouth.tastes": "What they will not eat, and how they eat",
-  "household.mouth.tastes_hint": "Dislikes, and a diet if they have one. Dislike, not allergy — allergies are in the block above, where they are treated as medical.",
+  "household.mouth.tastes":
+    "What {who} will not eat",
+  "household.mouth.tastes_you":
+    "What you will not eat",
+  "household.mouth.tastes_hint":
+    "Food {who} refuses. A dislike, not an allergy — allergies are the section above, where they are treated as medical.",
+  "household.mouth.tastes_hint_you":
+    "Food you refuse. A dislike, not an allergy — allergies are the section above, where they are treated as medical.",
   "household.mouth.dislikes": "Food they refuse",
   // ⚠️ UN DÉGOÛT N'EST PAS UNE ALLERGIE, et la phrase le dit à l'écran: les
   // fondre promettrait une garde de sécurité sur une préférence.
   "household.mouth.dislikes_hint":
     "Dislike, not allergy — allergies go in the block above, where they are treated as medical.",
   "household.mouth.dislikes_placeholder": "mushrooms",
-  "household.mouth.diet": "How they eat",
+  // ── LE RÉGIME EST LA PREMIÈRE SECTION DEPUIS LE 2026-08-19 ──────────────
+  // Il écarte des familles entières d'aliments: le poser après les dégoûts
+  // faisait noter des dégoûts sur ce qu'on ne servirait jamais.
+  "household.mouth.diet_hint": "Vegetarian, vegan, pescatarian, or none of those.",
+  "household.mouth.diet":
+    "How {who} eats",
+  "household.mouth.diet_you":
+    "How you eat",
   "household.mouth.diet_unset": "Nobody has said",
   "setup.table.from_profile":
     "They have their own account — their moments are in their own settings.",
@@ -5073,6 +5361,7 @@ export const en = {
   // vaut que pour l'étape qui CONSTRUIT; on lisait « before we can build it
   // — when you eat » sous un formulaire qui pose la question et qui ne
   // construit rien.
+  "setup.missing.for_you": "You",
   "setup.missing.before_next": "Before moving on",
   "setup.missing.household_size": "Tell us how many people you cook for.",
   "setup.missing.own_first_name": "Your first name — the plan names your serving with it.",
@@ -5157,7 +5446,7 @@ export const en = {
   "setup.goal.recomposition": "Same weight, different shape",
   "setup.goal.performance": "Train better",
   "setup.goal.health": "Eat better",
-  "setup.goal.maintenance": "Hold what I have",
+  "setup.goal.maintenance": "Keep my weight steady",
 
   // Les moments du jour. Vocabulaire du GÉNÉRATEUR de repas
   // (`api/mealGeneration.ts :: EATING_OCCASIONS`), plus court que celui des
@@ -5209,6 +5498,10 @@ export const en = {
   "allergen.soy": "Soy",
   "allergen.pork": "Pork",
   "allergen.alcohol": "Alcohol",
+  "allergen.celery": "Celery",
+  "allergen.mustard": "Mustard",
+  "allergen.sulphite": "Sulphites",
+  "allergen.lupin": "Lupin",
 
   // ═════════════════════════════════════════════════════════════════════════
   // /email-verified — LE RETOUR DU LIEN DE CONFIRMATION
@@ -5251,6 +5544,11 @@ export const en = {
   // `mealLabels.ts`, et elle vaut toujours après l'extraction.
   // ═════════════════════════════════════════════════════════════════════════
   "meals.result.in_pantry": "You have it",
+  // ⚠️ IL NE PARAÎT QUE SI LE PLAT PUISE DANS UN LOT. Sans lot, ces ingrédients
+  // SONT la recette entière, et ce titre affirmerait un lot qui n'existe pas.
+  // Le défaut (2026-08-20): la liste sortait nue sous le titre du plat, on y
+  // lisait la recette complète, et on croyait qu'il manquait le poulet.
+  "meals.result.extra_ingredients": "On top of the batch",
   "meals.result.method": "How",
   // ── LE GESTE DU SOIR (2026-08-14) ───────────────────────────────────────
   // ⚠️ UNE CLÉ À PART, ET C'EST TOUT LE POINT. « How » ouvre une RECETTE —
@@ -5319,6 +5617,14 @@ export const en = {
   // Le prénom est INTERPOLÉ, jamais traduit: il vient de la ligne membre (F5).
   "meals.day_person.table": "For the table",
   "meals.day_person.member": "For {name}",
+  // ⛔ « POUR LA TABLE » N'EST PLUS DIT DÈS QU'UNE BOUCHE MANGE À PART. Sur un
+  // foyer de deux, il désignait alors UNE personne. La voie commune se nomme
+  // donc par CEUX QUI Y MANGENT, et « la table » redevient un repli.
+  "meals.day_person.members": "For {names}",
+  // Les marqueurs sous un plat COMMUN — « quand le repas est commun, il
+  // faudrait des genre de marqueur pour les personnes » (2026-08-19). Les
+  // prénoms se voient; ce libellé-ci ne sert qu'aux lecteurs d'écran.
+  "meals.day_person.marks_label": "Who eats this dish",
   // ── FF-053 · LA VUE GLOBALE ─────────────────────────────────────────────
   "meals.grid.title": "Your week at a glance",
   // Le lot, dit sur la case. Sans lui, trois cases identiques se lisent comme
@@ -5365,17 +5671,44 @@ export const en = {
   // langues et qu'aucun suffixe ne se fabrique en code (R7).
   "meals.sessions.makes": "— {n} servings",
   "meals.sessions.makes_one": "— {n} serving",
-  // ── LOT 4 · LA TABLE DE PESÉE ─────────────────────────────────────────────
-  // La seule pesée de la semaine, sous la préparation qui la produit. Ce sont
-  // des grammes d'ALIMENT — la même famille que « 400 g de cuisses de poulet »
-  // sur une liste de courses — et il n'y a JAMAIS de pourquoi à côté.
-  "meals.boxes.title": "Weigh it out",
-  "meals.boxes.line": "Box {names} — {n} g",
+  // ── LE BOXING (v4, 2026-08-20) ────────────────────────────────────────────
+  // La seule pesée de la semaine, en DERNIER BLOC de la session de cuisine. Ce
+  // sont des grammes d'ALIMENT — la même famille que « 400 g de cuisses de
+  // poulet » sur une liste de courses — et il n'y a JAMAIS de pourquoi à côté.
+  //
+  // ⚠️ « Boxing » EST LE MÊME MOT DANS LES DEUX PACKS, et c'est une décision du
+  // 2026-08-20, pas une traduction oubliée. C'est le nom que le produit donne au
+  // geste; le traduire d'un seul côté ferait deux noms pour la même chose entre
+  // une capture d'écran et une phrase de support.
+  "meals.boxes.title": "Boxing",
+  // Sur la carte d'un PLAT, ce ne sont pas des instructions de pesée — elle a eu
+  // lieu à la session. Ce sont les bacs à aller chercher dans le frigo.
+  "meals.boxes.title_dish": "Boxes to take out",
+  "meals.dish.who_eats": "Who eats this",
+  // ⚠️ LE COMPTE EST EN TÊTE PARCE QU'ON SORT SES BACS AVANT DE COMMENCER.
+  // C'est la seule chose qu'on veuille savoir avant d'avoir lu une ligne. Deux
+  // clés et pas un suffixe fabriqué en code (R7), comme les courses du jour.
+  "meals.boxes.count_one": "1 container to fill",
+  "meals.boxes.count_many": "{n} containers to fill",
+  // ⚠️ DE QUEL GRAMME ON PARLE, UNE FOIS POUR TOUT LE BLOC. Trois centimètres
+  // plus haut, les casseroles affichent leurs quantités de CRU, pour la fournée
+  // entière. Sans cette ligne, deux séries de nombres voisines se lisent comme
+  // une contradiction — c'est le défaut du 2026-08-19 pris par l'autre bout.
+  "meals.boxes.ready_not_raw":
+    "Grams of cooked food, per container. The pan quantities above are raw, for the whole batch.",
+  // ⛔ CE QUI DIT QUE LE NOMBRE DÉCRIT UN BAC, PAS UNE PERSONNE. Il ne paraît QUE
+  // sur un contenant à plusieurs noms: sur un seul nom, la boîte EST la portion
+  // et « for 1 » n'apprendrait rien. C'est la seule marque de la distinction
+  // entre les deux grammes, et elle reste minuscule — un badge ou une couleur en
+  // ferait un statut, alors que c'est une précision de lecture.
+  "meals.boxes.for_n": "· for {n}",
+  // Au-delà de quatre prénoms, le couvercle dit combien ils sont: six noms ne se
+  // lisent ni sur un bac ni sur un téléphone à 320 px.
+  "meals.boxes.rest_of_table": "The rest of the table ({n})",
   // Un plan relu sans ses parts n'a aucun prénom à joindre: l'instruction de
   // pesée reste vraie, et un identifiant brut n'a rien à faire à table.
-  "meals.boxes.line_unnamed": "One box — {n} g",
-  // Sous une part, le prénom est déjà écrit à gauche: la boîte n'a plus qu'à
-  // dire son poids. « g » est le symbole international du gramme.
+  "meals.boxes.lid_unnamed": "One container",
+  // « g » est le symbole international du gramme.
   "meals.boxes.grams": "{n} g",
   // ── LE TEMPS ──────────────────────────────────────────────────────────────
   // Deux nombres, jamais fondus en un. « 10 min hands-on » décide si on s'y met

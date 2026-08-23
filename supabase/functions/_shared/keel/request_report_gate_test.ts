@@ -21,6 +21,7 @@ import { parseGeneratedMeal } from "./meal_generation.ts";
 const PARSE_ARGS = {
   doctrine: { forbidden: [], foods: { recommended: [], discouraged: [] } },
   safetyConstraints: [],
+  safetyConstraintTable: null,
   mode: "to_shop",
   scope: "day",
   pantry: [],
@@ -41,6 +42,8 @@ const PARSE_ARGS = {
   // fichier de test. Le cast n'est pas retiré ici — il n'appartient pas à ce
   // lot — mais il est nommé, et le rapport du LOT 4 le porte.
   boxMemberIds: [],
+  weighedMemberIds: [],
+  boxMemberDiets: [],
 } as never;
 
 const DISHES: ReportableDish[] = [

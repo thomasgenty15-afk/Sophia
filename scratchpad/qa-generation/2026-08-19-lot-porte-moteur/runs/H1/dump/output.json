@@ -1,0 +1,1022 @@
+{
+  "request_id": "h010000a-0000-4000-8000-000000000001",
+  "resolved_by": "--request-id",
+  "user_id": "1e000000-0000-4000-8000-000000000002",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-19T01:00:57.797Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "5135a9ac-8f73-4096-a5b1-9a6bee42d566",
+      "status": "breaker_skip",
+      "created_at": "2026-08-19T00:58:54.009199+00:00",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 15486,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 15486,
+    "user_message_chars": 17666,
+    "user_message_truncated": false,
+    "user_message_written_chars": 17666,
+    "independent_counters": {
+      "system_prompt_chars": 15486,
+      "prompt_chars": 17666
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "6d34c394-7281-40e4-85a4-344ceee24951",
+    "created_at": "2026-08-19T01:00:57.120753+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "gemini",
+    "model": "gemini-3-flash-preview",
+    "http_status": 200,
+    "attempt": 2,
+    "chain_index": 1,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Zesty Oregano Chicken and Couscous\",\n      \"title\": \"Lemon and oregano chicken with roasted vegetables and giant couscous\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"Fresh parsley\",\n          \"quantity\": \"a small bunch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Assemble the plate by taking a portion of chicken, roasted vegetables and giant couscous from their boxes. Serve cold or at room temperature, garnished with chopped parsley.\",\n      \"why\": \"A high-protein lunch that uses the fresh batch of preparations from today's session.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_odalric\"\n        },\n        {\n          \"preparation_id\": \"prep_veg\",\n          \"servings\": 1,\n          \"box_id\": \"box_veg_odalric\"\n        },\n        {\n          \"preparation_id\": \"prep_couscous\",\n          \"servings\": 1,\n          \"box_id\": \"box_couscous_odalric\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Fragrant Beef and Lentil Keema\",\n      \"title\": \"Spiced beef and lentil keema with basmati rice\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"Basmati rice\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Fresh coriander\",\n          \"quantity\": \"a few sprigs\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Boil the rice in salted water until tender. While it cooks, reheat a portion of the keema in a small pan with a splash of water until piping hot. Serve the keema over the rice with coriander.\",\n      \"why\": \"The warm element makes this a proper Osric-approved dinner, providing starch after a day of activity.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_keema\",\n          \"servings\": 1,\n          \"box_id\": \"box_keema_odalric\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 15\n      },\n      \"honours_belief_keys\": [\n        \"starch_follows_the_session\"\n      ]\n    },\n    {\n      \"name\": \"Simple Scrambled Eggs on Toast\",\n      \"title\": \"Scrambled eggs on buttered wholemeal toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"Eggs\",\n          \"quantity\": \"8 units\",\n          \"amount\": 8,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Wholemeal bread\",\n          \"quantity\": \"4 slices\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Butter\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Whisk the eggs and scramble them in a pan with a little butter. Toast the bread and serve the eggs on top.\",\n      \"why\": \"A warm, protein-focused start to the day that is quick to prepare.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Honey and Seed Greek Yogurt\",\n      \"title\": \"Greek yogurt with honey and pumpkin seeds\",\n      \"slot\": \"breakfast\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"Greek yogurt\",\n          \"quantity\": \"500 g\",\n          \"amount\": 500,\n          \"unit\": \"g\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Honey\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Pumpkin seeds\",\n          \"quantity\": \"4 tbsp\",\n          \"amount\": 4,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Divide the yogurt into bowls. Drizzle with honey and sprinkle with pumpkin seeds.\",\n      \"why\": \"A no-cook breakfast that works perfectly while the kitchen table is out of use.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Keema and Spinach Flatbreads\",\n      \"title\": \"Beef keema and fresh spinach in warm flatbreads\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"Flatbreads\",\n          \"quantity\": \"4 units\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Fresh spinach\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Warm the flatbreads in a dry pan. Reheat the keema in another pan until hot. Fill the flatbreads with spinach and the keema. These can be eaten easily without a table.\",\n      \"why\": \"Hand-held food is essential today with the kitchen table under a dust sheet.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_keema\",\n          \"servings\": 1,\n          \"box_id\": \"box_keema_odalric\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Warm Mediterranean Chicken Bowl\",\n      \"title\": \"Warm chicken, roasted vegetables and giant couscous\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"Olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Place the chicken, vegetables, and couscous in a large pan with a splash of water and oil. Cover and heat through over a medium flame until hot. Serve in bowls.\",\n      \"why\": \"A warm dinner that is easy to eat from a bowl while the hallway is being painted.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_odalric\"\n        },\n        {\n          \"preparation_id\": \"prep_veg\",\n          \"servings\": 1,\n          \"box_id\": \"box_veg_odalric\"\n        },\n        {\n          \"preparation_id\": \"prep_couscous\",\n          \"servings\": 1,\n          \"box_id\": \"box_couscous_odalric\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 12\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Protein-Packed Keema Rice\",\n      \"title\": \"Beef and lentil keema with basmati rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"Basmati rice\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Cook the rice fresh. Reheat the final portion of keema in a pan until steaming. Combine and serve.\",\n      \"why\": \"Utilises the final portion of the keema batch for a substantial lunch.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_keema\",\n          \"servings\": 1,\n          \"box_id\": \"box_keema_odalric\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 15\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Golden Pan-Fried Fish\",\n      \"title\": \"Pan-seared white fish with roasted vegetables and couscous\",\n      \"slot\": \"dinner\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"White fish fillets\",\n          \"quantity\": \"4 units\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Butter\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Lemon\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Season the fish and sear in butter for 3 minutes per side. Reheat the remaining vegetables and couscous in a separate pan. Serve the fish on top with a squeeze of lemon.\",\n      \"why\": \"Fresh fish adds variety at the end of the stretch while finishing the batches.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_veg\",\n          \"servings\": 1,\n          \"box_id\": \"box_veg_odalric\"\n        },\n        {\n          \"preparation_id\": \"prep_couscous\",\n          \"servings\": 1,\n          \"box_id\": \"box_couscous_odalric\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 15\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Quick Morning Eggs\",\n      \"title\": \"Scrambled eggs on wholemeal toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"Eggs\",\n          \"quantity\": \"8 units\",\n          \"amount\": 8,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Wholemeal bread\",\n          \"quantity\": \"4 slices\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Butter\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Scramble the eggs in butter and serve on toasted wholemeal bread.\",\n      \"why\": \"A reliable, high-protein breakfast to finish the working week.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": []\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_chicken\",\n      \"title\": \"Roasted Lemon and Oregano Chicken Thighs\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        {\n          \"term\": \"Chicken thighs, bone-in\",\n          \"quantity\": \"12 units\",\n          \"amount\": 12,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Dried oregano\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Lemon juice\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Rub the chicken with oil, oregano, lemon juice, salt, and pepper. Roast at 200°C for 40-45 minutes until the skin is crisp and the meat is cooked through.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 55,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_chicken_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_chicken_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_chicken_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_chicken_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 300\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_veg\",\n      \"title\": \"Roasted Red Peppers and Courgettes\",\n      \"servings_made\": 12,\n      \"ingredients\": [\n        {\n          \"term\": \"Red peppers\",\n          \"quantity\": \"6 units\",\n          \"amount\": 6,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Courgettes\",\n          \"quantity\": \"6 units\",\n          \"amount\": 6,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Olive oil\",\n          \"quantity\": \"3 tbsp\",\n          \"amount\": 3,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Chop the peppers and courgettes into large chunks. Toss with olive oil and salt. Roast alongside the chicken for 30-35 minutes until softened and slightly charred.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 40,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_veg_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_veg_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_veg_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_veg_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 300\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_keema\",\n      \"title\": \"Beef and Lentil Keema with Peas\",\n      \"servings_made\": 12,\n      \"ingredients\": [\n        {\n          \"term\": \"Beef mince\",\n          \"quantity\": \"1 kg\",\n          \"amount\": 1000,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Tinned green lentils\",\n          \"quantity\": \"2 tins\",\n          \"amount\": 800,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Frozen peas\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Onions\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Garlic cloves\",\n          \"quantity\": \"4 units\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Garam masala\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Turmeric\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Sauté diced onions and garlic in oil. Add beef mince and brown. Stir in the lentils, spices, and peas. Simmer for 20 minutes until flavours are well combined.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 35,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_keema_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 400\n        },\n        {\n          \"id\": \"box_keema_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 400\n        },\n        {\n          \"id\": \"box_keema_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 400\n        },\n        {\n          \"id\": \"box_keema_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 400\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_couscous\",\n      \"title\": \"Giant Couscous in Vegetable Stock\",\n      \"servings_made\": 12,\n      \"ingredients\": [\n        {\n          \"term\": \"Giant couscous\",\n          \"quantity\": \"500 g\",\n          \"amount\": 500,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Vegetable stock\",\n          \"quantity\": \"800 ml\",\n          \"amount\": 800,\n          \"unit\": \"ml\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Bring the stock to a boil. Add the giant couscous, reduce heat, and simmer for 10-12 minutes until the liquid is absorbed and the pearls are tender.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 15,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_couscous_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_couscous_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_couscous_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_couscous_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 300\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_chicken\",\n        \"prep_veg\",\n        \"prep_keema\",\n        \"prep_couscous\"\n      ],\n      \"total_minutes\": 55,\n      \"run_through\": \"Preheat the oven to 200°C. Prepare the chicken and vegetables; place them in the oven on separate trays. While they roast, start the keema on the hob by sautéing onions and browning the beef. Once the keema is simmering, boil the stock and cook the giant couscous. When everything is cooked, weigh the preparations into the named boxes for the week.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"Chicken thighs, bone-in\",\n      \"quantity\": \"12 units\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"Beef mince\",\n      \"quantity\": \"1 kg\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"White fish fillets\",\n      \"quantity\": \"4 units\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"Eggs\",\n      \"quantity\": \"24 units\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"Greek yogurt\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"Red peppers\",\n      \"quantity\": \"6 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Courgettes\",\n      \"quantity\": \"6 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Onions\",\n      \"quantity\": \"2 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Fresh spinach\",\n      \"quantity\": \"100 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Fresh parsley and coriander\",\n      \"quantity\": \"1 bunch each\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Giant couscous\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"Basmati rice\",\n      \"quantity\": \"600 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"Wholemeal bread\",\n      \"quantity\": \"1 loaf\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"Flatbreads\",\n      \"quantity\": \"4 units\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"Tinned green lentils\",\n      \"quantity\": \"2 tins\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Frozen peas\",\n      \"quantity\": \"200 g\",\n      \"aisle\": \"frozen\"\n    },\n    {\n      \"term\": \"Pumpkin seeds\",\n      \"quantity\": \"1 pack\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Honey\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Hot sauce\",\n      \"quantity\": \"1 bottle\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"85acac95-312b-4d0e-a4da-02558e8a182f\",\n      \"portion_note\": \"Serve the chicken or beef and the rice or couscous first, then add the roasted vegetables. Enjoy the jam on toast at breakfast.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"note\": \"One-eighth of the batch per meal\"\n        },\n        {\n          \"preparation_id\": \"prep_keema\",\n          \"note\": \"One-twelfth of the batch per meal\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"f190856d-d573-42e9-a026-b6a37b9f7471\",\n      \"portion_note\": \"Serve all components together on the plate. Ensure the bread for breakfast has the crusts removed.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"note\": \"One-eighth of the batch per meal\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\",\n      \"portion_note\": \"Serve the protein and starch first, followed by the green courgettes and red peppers. This plate is free of fennel and orange-coloured foods.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_veg\",\n          \"note\": \"One-twelfth of the batch per meal\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"536e683d-64a8-4dc2-a69b-6ee1925b206c\",\n      \"portion_note\": \"Serve all components together on the plate and provide the hot sauce on the side for every meal.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_keema\",\n          \"note\": \"One-twelfth of the batch per meal\"\n        }\n      ]\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Zesty Oregano Chicken and Couscous",
+          "title": "Lemon and oregano chicken with roasted vegetables and giant couscous",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "Fresh parsley",
+              "quantity": "a small bunch",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Assemble the plate by taking a portion of chicken, roasted vegetables and giant couscous from their boxes. Serve cold or at room temperature, garnished with chopped parsley.",
+          "why": "A high-protein lunch that uses the fresh batch of preparations from today's session.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken",
+              "servings": 1,
+              "box_id": "box_chicken_odalric"
+            },
+            {
+              "preparation_id": "prep_veg",
+              "servings": 1,
+              "box_id": "box_veg_odalric"
+            },
+            {
+              "preparation_id": "prep_couscous",
+              "servings": 1,
+              "box_id": "box_couscous_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Fragrant Beef and Lentil Keema",
+          "title": "Spiced beef and lentil keema with basmati rice",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "Basmati rice",
+              "quantity": "300 g",
+              "amount": 300,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Fresh coriander",
+              "quantity": "a few sprigs",
+              "amount": null,
+              "unit": null,
+              "state": null
+            }
+          ],
+          "method": "Boil the rice in salted water until tender. While it cooks, reheat a portion of the keema in a small pan with a splash of water until piping hot. Serve the keema over the rice with coriander.",
+          "why": "The warm element makes this a proper Osric-approved dinner, providing starch after a day of activity.",
+          "uses": [
+            {
+              "preparation_id": "prep_keema",
+              "servings": 1,
+              "box_id": "box_keema_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 15
+          },
+          "honours_belief_keys": [
+            "starch_follows_the_session"
+          ]
+        },
+        {
+          "name": "Simple Scrambled Eggs on Toast",
+          "title": "Scrambled eggs on buttered wholemeal toast",
+          "slot": "breakfast",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "Eggs",
+              "quantity": "8 units",
+              "amount": 8,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "Wholemeal bread",
+              "quantity": "4 slices",
+              "amount": 4,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "Butter",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Whisk the eggs and scramble them in a pan with a little butter. Toast the bread and serve the eggs on top.",
+          "why": "A warm, protein-focused start to the day that is quick to prepare.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 10
+          },
+          "honours_belief_keys": []
+        },
+        {
+          "name": "Honey and Seed Greek Yogurt",
+          "title": "Greek yogurt with honey and pumpkin seeds",
+          "slot": "breakfast",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "Greek yogurt",
+              "quantity": "500 g",
+              "amount": 500,
+              "unit": "g",
+              "state": null
+            },
+            {
+              "term": "Honey",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "Pumpkin seeds",
+              "quantity": "4 tbsp",
+              "amount": 4,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Divide the yogurt into bowls. Drizzle with honey and sprinkle with pumpkin seeds.",
+          "why": "A no-cook breakfast that works perfectly while the kitchen table is out of use.",
+          "uses": [],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": []
+        },
+        {
+          "name": "Keema and Spinach Flatbreads",
+          "title": "Beef keema and fresh spinach in warm flatbreads",
+          "slot": "lunch",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "Flatbreads",
+              "quantity": "4 units",
+              "amount": 4,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "Fresh spinach",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Warm the flatbreads in a dry pan. Reheat the keema in another pan until hot. Fill the flatbreads with spinach and the keema. These can be eaten easily without a table.",
+          "why": "Hand-held food is essential today with the kitchen table under a dust sheet.",
+          "uses": [
+            {
+              "preparation_id": "prep_keema",
+              "servings": 1,
+              "box_id": "box_keema_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": []
+        },
+        {
+          "name": "Warm Mediterranean Chicken Bowl",
+          "title": "Warm chicken, roasted vegetables and giant couscous",
+          "slot": "dinner",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "Olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Place the chicken, vegetables, and couscous in a large pan with a splash of water and oil. Cover and heat through over a medium flame until hot. Serve in bowls.",
+          "why": "A warm dinner that is easy to eat from a bowl while the hallway is being painted.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken",
+              "servings": 1,
+              "box_id": "box_chicken_odalric"
+            },
+            {
+              "preparation_id": "prep_veg",
+              "servings": 1,
+              "box_id": "box_veg_odalric"
+            },
+            {
+              "preparation_id": "prep_couscous",
+              "servings": 1,
+              "box_id": "box_couscous_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 12
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Protein-Packed Keema Rice",
+          "title": "Beef and lentil keema with basmati rice",
+          "slot": "lunch",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "Basmati rice",
+              "quantity": "300 g",
+              "amount": 300,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Cook the rice fresh. Reheat the final portion of keema in a pan until steaming. Combine and serve.",
+          "why": "Utilises the final portion of the keema batch for a substantial lunch.",
+          "uses": [
+            {
+              "preparation_id": "prep_keema",
+              "servings": 1,
+              "box_id": "box_keema_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 15
+          },
+          "honours_belief_keys": []
+        },
+        {
+          "name": "Golden Pan-Fried Fish",
+          "title": "Pan-seared white fish with roasted vegetables and couscous",
+          "slot": "dinner",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "White fish fillets",
+              "quantity": "4 units",
+              "amount": 4,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "Butter",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "Lemon",
+              "quantity": "1 unit",
+              "amount": 1,
+              "unit": "unit",
+              "state": null
+            }
+          ],
+          "method": "Season the fish and sear in butter for 3 minutes per side. Reheat the remaining vegetables and couscous in a separate pan. Serve the fish on top with a squeeze of lemon.",
+          "why": "Fresh fish adds variety at the end of the stretch while finishing the batches.",
+          "uses": [
+            {
+              "preparation_id": "prep_veg",
+              "servings": 1,
+              "box_id": "box_veg_odalric"
+            },
+            {
+              "preparation_id": "prep_couscous",
+              "servings": 1,
+              "box_id": "box_couscous_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 15
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Quick Morning Eggs",
+          "title": "Scrambled eggs on wholemeal toast",
+          "slot": "breakfast",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "Eggs",
+              "quantity": "8 units",
+              "amount": 8,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "Wholemeal bread",
+              "quantity": "4 slices",
+              "amount": 4,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "Butter",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Scramble the eggs in butter and serve on toasted wholemeal bread.",
+          "why": "A reliable, high-protein breakfast to finish the working week.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 10
+          },
+          "honours_belief_keys": []
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_chicken",
+          "title": "Roasted Lemon and Oregano Chicken Thighs",
+          "servings_made": 8,
+          "ingredients": [
+            {
+              "term": "Chicken thighs, bone-in",
+              "quantity": "12 units",
+              "amount": 12,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "Dried oregano",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "Lemon juice",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "Olive oil",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Rub the chicken with oil, oregano, lemon juice, salt, and pepper. Roast at 200°C for 40-45 minutes until the skin is crisp and the meat is cooked through.",
+          "active_minutes": 10,
+          "total_minutes": 55,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_chicken_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 300
+            },
+            {
+              "id": "box_chicken_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 300
+            },
+            {
+              "id": "box_chicken_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 300
+            },
+            {
+              "id": "box_chicken_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 300
+            }
+          ]
+        },
+        {
+          "id": "prep_veg",
+          "title": "Roasted Red Peppers and Courgettes",
+          "servings_made": 12,
+          "ingredients": [
+            {
+              "term": "Red peppers",
+              "quantity": "6 units",
+              "amount": 6,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "Courgettes",
+              "quantity": "6 units",
+              "amount": 6,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "Olive oil",
+              "quantity": "3 tbsp",
+              "amount": 3,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Chop the peppers and courgettes into large chunks. Toss with olive oil and salt. Roast alongside the chicken for 30-35 minutes until softened and slightly charred.",
+          "active_minutes": 15,
+          "total_minutes": 40,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_veg_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 300
+            },
+            {
+              "id": "box_veg_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 300
+            },
+            {
+              "id": "box_veg_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 300
+            },
+            {
+              "id": "box_veg_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 300
+            }
+          ]
+        },
+        {
+          "id": "prep_keema",
+          "title": "Beef and Lentil Keema with Peas",
+          "servings_made": 12,
+          "ingredients": [
+            {
+              "term": "Beef mince",
+              "quantity": "1 kg",
+              "amount": 1000,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Tinned green lentils",
+              "quantity": "2 tins",
+              "amount": 800,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Frozen peas",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Onions",
+              "quantity": "2 units",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "Garlic cloves",
+              "quantity": "4 units",
+              "amount": 4,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "Garam masala",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": null
+            },
+            {
+              "term": "Turmeric",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": null
+            },
+            {
+              "term": "Olive oil",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": null
+            }
+          ],
+          "method": "Sauté diced onions and garlic in oil. Add beef mince and brown. Stir in the lentils, spices, and peas. Simmer for 20 minutes until flavours are well combined.",
+          "active_minutes": 15,
+          "total_minutes": 35,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_keema_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 400
+            },
+            {
+              "id": "box_keema_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 400
+            },
+            {
+              "id": "box_keema_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 400
+            },
+            {
+              "id": "box_keema_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 400
+            }
+          ]
+        },
+        {
+          "id": "prep_couscous",
+          "title": "Giant Couscous in Vegetable Stock",
+          "servings_made": 12,
+          "ingredients": [
+            {
+              "term": "Giant couscous",
+              "quantity": "500 g",
+              "amount": 500,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Vegetable stock",
+              "quantity": "800 ml",
+              "amount": 800,
+              "unit": "ml",
+              "state": null
+            }
+          ],
+          "method": "Bring the stock to a boil. Add the giant couscous, reduce heat, and simmer for 10-12 minutes until the liquid is absorbed and the pearls are tender.",
+          "active_minutes": 5,
+          "total_minutes": 15,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_couscous_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 300
+            },
+            {
+              "id": "box_couscous_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 300
+            },
+            {
+              "id": "box_couscous_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 300
+            },
+            {
+              "id": "box_couscous_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 300
+            }
+          ]
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_chicken",
+            "prep_veg",
+            "prep_keema",
+            "prep_couscous"
+          ],
+          "total_minutes": 55,
+          "run_through": "Preheat the oven to 200°C. Prepare the chicken and vegetables; place them in the oven on separate trays. While they roast, start the keema on the hob by sautéing onions and browning the beef. Once the keema is simmering, boil the stock and cook the giant couscous. When everything is cooked, weigh the preparations into the named boxes for the week."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "Chicken thighs, bone-in",
+          "quantity": "12 units",
+          "aisle": "protein"
+        },
+        {
+          "term": "Beef mince",
+          "quantity": "1 kg",
+          "aisle": "protein"
+        },
+        {
+          "term": "White fish fillets",
+          "quantity": "4 units",
+          "aisle": "protein"
+        },
+        {
+          "term": "Eggs",
+          "quantity": "24 units",
+          "aisle": "dairy"
+        },
+        {
+          "term": "Greek yogurt",
+          "quantity": "500 g",
+          "aisle": "dairy"
+        },
+        {
+          "term": "Red peppers",
+          "quantity": "6 units",
+          "aisle": "produce"
+        },
+        {
+          "term": "Courgettes",
+          "quantity": "6 units",
+          "aisle": "produce"
+        },
+        {
+          "term": "Onions",
+          "quantity": "2 units",
+          "aisle": "produce"
+        },
+        {
+          "term": "Fresh spinach",
+          "quantity": "100 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "Fresh parsley and coriander",
+          "quantity": "1 bunch each",
+          "aisle": "produce"
+        },
+        {
+          "term": "Giant couscous",
+          "quantity": "500 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "Basmati rice",
+          "quantity": "600 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "Wholemeal bread",
+          "quantity": "1 loaf",
+          "aisle": "grains"
+        },
+        {
+          "term": "Flatbreads",
+          "quantity": "4 units",
+          "aisle": "grains"
+        },
+        {
+          "term": "Tinned green lentils",
+          "quantity": "2 tins",
+          "aisle": "pantry"
+        },
+        {
+          "term": "Frozen peas",
+          "quantity": "200 g",
+          "aisle": "frozen"
+        },
+        {
+          "term": "Pumpkin seeds",
+          "quantity": "1 pack",
+          "aisle": "pantry"
+        },
+        {
+          "term": "Honey",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "Hot sauce",
+          "quantity": "1 bottle",
+          "aisle": "pantry"
+        }
+      ],
+      "member_portions": [
+        {
+          "member_id": "85acac95-312b-4d0e-a4da-02558e8a182f",
+          "portion_note": "Serve the chicken or beef and the rice or couscous first, then add the roasted vegetables. Enjoy the jam on toast at breakfast.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken",
+              "note": "One-eighth of the batch per meal"
+            },
+            {
+              "preparation_id": "prep_keema",
+              "note": "One-twelfth of the batch per meal"
+            }
+          ]
+        },
+        {
+          "member_id": "f190856d-d573-42e9-a026-b6a37b9f7471",
+          "portion_note": "Serve all components together on the plate. Ensure the bread for breakfast has the crusts removed.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken",
+              "note": "One-eighth of the batch per meal"
+            }
+          ]
+        },
+        {
+          "member_id": "65eb7490-adae-40c2-8b43-b10a0cc0ab05",
+          "portion_note": "Serve the protein and starch first, followed by the green courgettes and red peppers. This plate is free of fennel and orange-coloured foods.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_veg",
+              "note": "One-twelfth of the batch per meal"
+            }
+          ]
+        },
+        {
+          "member_id": "536e683d-64a8-4dc2-a69b-6ee1925b206c",
+          "portion_note": "Serve all components together on the plate and provide the hot sauce on the side for every meal.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_keema",
+              "note": "One-twelfth of the batch per meal"
+            }
+          ]
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "candidates": [
+        {
+          "index": 0,
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Zesty Oregano Chicken and Couscous\",\n      \"title\": \"Lemon and oregano chicken with roasted vegetables and giant couscous\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"Fresh parsley\",\n          \"quantity\": \"a small bunch\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Assemble the plate by taking a portion of chicken, roasted vegetables and giant couscous from their boxes. Serve cold or at room temperature, garnished with chopped parsley.\",\n      \"why\": \"A high-protein lunch that uses the fresh batch of preparations from today's session.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_odalric\"\n        },\n        {\n          \"preparation_id\": \"prep_veg\",\n          \"servings\": 1,\n          \"box_id\": \"box_veg_odalric\"\n        },\n        {\n          \"preparation_id\": \"prep_couscous\",\n          \"servings\": 1,\n          \"box_id\": \"box_couscous_odalric\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Fragrant Beef and Lentil Keema\",\n      \"title\": \"Spiced beef and lentil keema with basmati rice\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"Basmati rice\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Fresh coriander\",\n          \"quantity\": \"a few sprigs\",\n          \"amount\": null,\n          \"unit\": null,\n          \"state\": null\n        }\n      ],\n      \"method\": \"Boil the rice in salted water until tender. While it cooks, reheat a portion of the keema in a small pan with a splash of water until piping hot. Serve the keema over the rice with coriander.\",\n      \"why\": \"The warm element makes this a proper Osric-approved dinner, providing starch after a day of activity.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_keema\",\n          \"servings\": 1,\n          \"box_id\": \"box_keema_odalric\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 15\n      },\n      \"honours_belief_keys\": [\n        \"starch_follows_the_session\"\n      ]\n    },\n    {\n      \"name\": \"Simple Scrambled Eggs on Toast\",\n      \"title\": \"Scrambled eggs on buttered wholemeal toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"Eggs\",\n          \"quantity\": \"8 units\",\n          \"amount\": 8,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Wholemeal bread\",\n          \"quantity\": \"4 slices\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Butter\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Whisk the eggs and scramble them in a pan with a little butter. Toast the bread and serve the eggs on top.\",\n      \"why\": \"A warm, protein-focused start to the day that is quick to prepare.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Honey and Seed Greek Yogurt\",\n      \"title\": \"Greek yogurt with honey and pumpkin seeds\",\n      \"slot\": \"breakfast\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"Greek yogurt\",\n          \"quantity\": \"500 g\",\n          \"amount\": 500,\n          \"unit\": \"g\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Honey\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Pumpkin seeds\",\n          \"quantity\": \"4 tbsp\",\n          \"amount\": 4,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Divide the yogurt into bowls. Drizzle with honey and sprinkle with pumpkin seeds.\",\n      \"why\": \"A no-cook breakfast that works perfectly while the kitchen table is out of use.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Keema and Spinach Flatbreads\",\n      \"title\": \"Beef keema and fresh spinach in warm flatbreads\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"Flatbreads\",\n          \"quantity\": \"4 units\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Fresh spinach\",\n          \"quantity\": \"100 g\",\n          \"amount\": 100,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Warm the flatbreads in a dry pan. Reheat the keema in another pan until hot. Fill the flatbreads with spinach and the keema. These can be eaten easily without a table.\",\n      \"why\": \"Hand-held food is essential today with the kitchen table under a dust sheet.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_keema\",\n          \"servings\": 1,\n          \"box_id\": \"box_keema_odalric\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Warm Mediterranean Chicken Bowl\",\n      \"title\": \"Warm chicken, roasted vegetables and giant couscous\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"Olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Place the chicken, vegetables, and couscous in a large pan with a splash of water and oil. Cover and heat through over a medium flame until hot. Serve in bowls.\",\n      \"why\": \"A warm dinner that is easy to eat from a bowl while the hallway is being painted.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_odalric\"\n        },\n        {\n          \"preparation_id\": \"prep_veg\",\n          \"servings\": 1,\n          \"box_id\": \"box_veg_odalric\"\n        },\n        {\n          \"preparation_id\": \"prep_couscous\",\n          \"servings\": 1,\n          \"box_id\": \"box_couscous_odalric\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 12\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Protein-Packed Keema Rice\",\n      \"title\": \"Beef and lentil keema with basmati rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"Basmati rice\",\n          \"quantity\": \"300 g\",\n          \"amount\": 300,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Cook the rice fresh. Reheat the final portion of keema in a pan until steaming. Combine and serve.\",\n      \"why\": \"Utilises the final portion of the keema batch for a substantial lunch.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_keema\",\n          \"servings\": 1,\n          \"box_id\": \"box_keema_odalric\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 15\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Golden Pan-Fried Fish\",\n      \"title\": \"Pan-seared white fish with roasted vegetables and couscous\",\n      \"slot\": \"dinner\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"White fish fillets\",\n          \"quantity\": \"4 units\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Butter\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Lemon\",\n          \"quantity\": \"1 unit\",\n          \"amount\": 1,\n          \"unit\": \"unit\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Season the fish and sear in butter for 3 minutes per side. Reheat the remaining vegetables and couscous in a separate pan. Serve the fish on top with a squeeze of lemon.\",\n      \"why\": \"Fresh fish adds variety at the end of the stretch while finishing the batches.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_veg\",\n          \"servings\": 1,\n          \"box_id\": \"box_veg_odalric\"\n        },\n        {\n          \"preparation_id\": \"prep_couscous\",\n          \"servings\": 1,\n          \"box_id\": \"box_couscous_odalric\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 15\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Quick Morning Eggs\",\n      \"title\": \"Scrambled eggs on wholemeal toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"Eggs\",\n          \"quantity\": \"8 units\",\n          \"amount\": 8,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Wholemeal bread\",\n          \"quantity\": \"4 slices\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Butter\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Scramble the eggs in butter and serve on toasted wholemeal bread.\",\n      \"why\": \"A reliable, high-protein breakfast to finish the working week.\",\n      \"uses\": [],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": []\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_chicken\",\n      \"title\": \"Roasted Lemon and Oregano Chicken Thighs\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        {\n          \"term\": \"Chicken thighs, bone-in\",\n          \"quantity\": \"12 units\",\n          \"amount\": 12,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Dried oregano\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Lemon juice\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Rub the chicken with oil, oregano, lemon juice, salt, and pepper. Roast at 200°C for 40-45 minutes until the skin is crisp and the meat is cooked through.\",\n      \"active_minutes\": 10,\n      \"total_minutes\": 55,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_chicken_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_chicken_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_chicken_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_chicken_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 300\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_veg\",\n      \"title\": \"Roasted Red Peppers and Courgettes\",\n      \"servings_made\": 12,\n      \"ingredients\": [\n        {\n          \"term\": \"Red peppers\",\n          \"quantity\": \"6 units\",\n          \"amount\": 6,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Courgettes\",\n          \"quantity\": \"6 units\",\n          \"amount\": 6,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Olive oil\",\n          \"quantity\": \"3 tbsp\",\n          \"amount\": 3,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Chop the peppers and courgettes into large chunks. Toss with olive oil and salt. Roast alongside the chicken for 30-35 minutes until softened and slightly charred.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 40,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_veg_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_veg_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_veg_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_veg_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 300\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_keema\",\n      \"title\": \"Beef and Lentil Keema with Peas\",\n      \"servings_made\": 12,\n      \"ingredients\": [\n        {\n          \"term\": \"Beef mince\",\n          \"quantity\": \"1 kg\",\n          \"amount\": 1000,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Tinned green lentils\",\n          \"quantity\": \"2 tins\",\n          \"amount\": 800,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Frozen peas\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Onions\",\n          \"quantity\": \"2 units\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Garlic cloves\",\n          \"quantity\": \"4 units\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Garam masala\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Turmeric\",\n          \"quantity\": \"1 tsp\",\n          \"amount\": 1,\n          \"unit\": \"tsp\",\n          \"state\": null\n        },\n        {\n          \"term\": \"Olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Sauté diced onions and garlic in oil. Add beef mince and brown. Stir in the lentils, spices, and peas. Simmer for 20 minutes until flavours are well combined.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 35,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_keema_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 400\n        },\n        {\n          \"id\": \"box_keema_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 400\n        },\n        {\n          \"id\": \"box_keema_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 400\n        },\n        {\n          \"id\": \"box_keema_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 400\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_couscous\",\n      \"title\": \"Giant Couscous in Vegetable Stock\",\n      \"servings_made\": 12,\n      \"ingredients\": [\n        {\n          \"term\": \"Giant couscous\",\n          \"quantity\": \"500 g\",\n          \"amount\": 500,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Vegetable stock\",\n          \"quantity\": \"800 ml\",\n          \"amount\": 800,\n          \"unit\": \"ml\",\n          \"state\": null\n        }\n      ],\n      \"method\": \"Bring the stock to a boil. Add the giant couscous, reduce heat, and simmer for 10-12 minutes until the liquid is absorbed and the pearls are tender.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 15,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_couscous_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_couscous_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_couscous_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 300\n        },\n        {\n          \"id\": \"box_couscous_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 300\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_chicken\",\n        \"prep_veg\",\n        \"prep_keema\",\n        \"prep_couscous\"\n      ],\n      \"total_minutes\": 55,\n      \"run_through\": \"Preheat the oven to 200°C. Prepare the chicken and vegetables; place them in the oven on separate trays. While they roast, start the keema on the hob by sautéing onions and browning the beef. Once the keema is simmering, boil the stock and cook the giant couscous. When everything is cooked, weigh the preparations into the named boxes for the week.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"Chicken thighs, bone-in\",\n      \"quantity\": \"12 units\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"Beef mince\",\n      \"quantity\": \"1 kg\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"White fish fillets\",\n      \"quantity\": \"4 units\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"Eggs\",\n      \"quantity\": \"24 units\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"Greek yogurt\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"Red peppers\",\n      \"quantity\": \"6 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Courgettes\",\n      \"quantity\": \"6 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Onions\",\n      \"quantity\": \"2 units\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Fresh spinach\",\n      \"quantity\": \"100 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Fresh parsley and coriander\",\n      \"quantity\": \"1 bunch each\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Giant couscous\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"Basmati rice\",\n      \"quantity\": \"600 g\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"Wholemeal bread\",\n      \"quantity\": \"1 loaf\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"Flatbreads\",\n      \"quantity\": \"4 units\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"Tinned green lentils\",\n      \"quantity\": \"2 tins\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Frozen peas\",\n      \"quantity\": \"200 g\",\n      \"aisle\": \"frozen\"\n    },\n    {\n      \"term\": \"Pumpkin seeds\",\n      \"quantity\": \"1 pack\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Honey\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Hot sauce\",\n      \"quantity\": \"1 bottle\",\n      \"aisle\": \"pantry\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"85acac95-312b-4d0e-a4da-02558e8a182f\",\n      \"portion_note\": \"Serve the chicken or beef and the rice or couscous first, then add the roasted vegetables. Enjoy the jam on toast at breakfast.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"note\": \"One-eighth of the batch per meal\"\n        },\n        {\n          \"preparation_id\": \"prep_keema\",\n          \"note\": \"One-twelfth of the batch per meal\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"f190856d-d573-42e9-a026-b6a37b9f7471\",\n      \"portion_note\": \"Serve all components together on the plate. Ensure the bread for breakfast has the crusts removed.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken\",\n          \"note\": \"One-eighth of the batch per meal\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\",\n      \"portion_note\": \"Serve the protein and starch first, followed by the green courgettes and red peppers. This plate is free of fennel and orange-coloured foods.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_veg\",\n          \"note\": \"One-twelfth of the batch per meal\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"536e683d-64a8-4dc2-a69b-6ee1925b206c\",\n      \"portion_note\": \"Serve all components together on the plate and provide the hot sauce on the side for every meal.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_keema\",\n          \"note\": \"One-twelfth of the batch per meal\"\n        }\n      ]\n    }\n  ]\n}",
+                "thoughtSignature": "[redacted]"
+              }
+            ]
+          },
+          "finishReason": "STOP"
+        }
+      ],
+      "responseId": "DwCFarLJNaiEvdIPhcr0gAw",
+      "modelVersion": "gemini-3-flash-preview",
+      "usageMetadata": {
+        "serviceTier": "standard",
+        "totalTokenCount": 21283,
+        "promptTokenCount": 8498,
+        "thoughtsTokenCount": 5805,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 8498
+          }
+        ],
+        "candidatesTokenCount": 6980
+      }
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-19T00:58:54.009199+00:00",
+      "status": "breaker_skip",
+      "outcome": "skipped",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": "LLM breaker open for provider/model",
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-19T00:58:54.016369+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:58:54.018167+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:58:54.020958+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:59:54.038669+00:00",
+      "status": "timeout_or_abort",
+      "outcome": "error",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": "Signal timed out.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:59:54.050127+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 1,
+      "chain_index": 2,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:59:54.566409+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-nano",
+      "attempt": 1,
+      "chain_index": 2,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:59:59.604917+00:00",
+      "status": "breaker_skip",
+      "outcome": "skipped",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 2,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": "LLM breaker open for provider/model",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:59:59.614013+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:59:59.619849+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T00:59:59.624845+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-19T01:00:57.120753+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 2,
+      "chain_index": 1,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

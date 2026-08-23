@@ -62,12 +62,25 @@ export interface ModalProps {
    * « fermer » mais « jeter ce brouillon » doit pouvoir le dire.
    */
   closeLabel?: string;
+  /**
+   * LA SORTIE EST UNE CROIX PLUTÔT QU'UN MOT.
+   *
+   * ⚠️ OPT-IN, ET PAS LE DÉFAUT: une fenêtre dont la sortie n'est pas
+   * « fermer » mais « jeter ce brouillon » doit pouvoir le DIRE, et la croix
+   * n'a pas de mots. Les fenêtres qui portent une décision gardent donc leur
+   * libellé; celles qui ne font que se refermer prennent la croix.
+   *
+   * ⛔ LE TEXTE NE DISPARAÎT PAS POUR AUTANT: il devient l'`aria-label`. Une
+   * croix sans nom accessible est un bouton muet pour un lecteur d'écran.
+   */
+  closeAsIcon?: boolean;
   size?: ModalSize;
   children: React.ReactNode;
 }
 
 export default function Modal(
-  { open, onClose, title, closeLabel, size = "md", children }: ModalProps,
+  { open, onClose, title, closeLabel, closeAsIcon, size = "md", children }:
+    ModalProps,
 ) {
   // Résolu au RENDU et pas dans la signature: `t()` lit la locale courante à
   // l'appel, et une valeur par défaut de paramètre l'évaluerait aussi à chaque
@@ -136,13 +149,29 @@ export default function Modal(
               display ne descend jamais sous 20. Et pas d'équerre — la signature
               ouvre une SECTION, elle ne redouble pas un titre de dialogue. */}
           <h2 className="text-base font-semibold text-ink">{title}</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-part px-2 py-1 text-sm text-ink-soft underline underline-offset-2 hover:text-ink"
-          >
-            {closeText}
-          </button>
+          {closeAsIcon
+            ? (
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label={closeText}
+                // ⚠️ 40px DE CIBLE, pas la taille du glyphe. Une croix dessinée
+                // à 14px est une cible de 14px: sous le minimum tactile, et la
+                // première chose qu'on rate sur un téléphone.
+                className="-mr-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-part text-xl leading-none text-ink-soft hover:bg-fig-50 hover:text-ink"
+              >
+                <span aria-hidden="true">×</span>
+              </button>
+            )
+            : (
+              <button
+                type="button"
+                onClick={onClose}
+                className="rounded-part px-2 py-1 text-sm text-ink-soft underline underline-offset-2 hover:text-ink"
+              >
+                {closeText}
+              </button>
+            )}
         </div>
 
         {/* LE DÉFILEMENT EST ICI, pas sur la page: une liste de courses ou une

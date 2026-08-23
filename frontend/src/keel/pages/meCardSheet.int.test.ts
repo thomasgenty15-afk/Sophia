@@ -89,7 +89,9 @@ describe("la fiche du maître — quel formulaire la carte montre", () => {
       'id="mouth-first-name"',
     );
     expect(html, "le bouton des préférences a disparu").toContain(
-      en["household.mouth.preferences_open"],
+      // ⚠️ LA JUMELLE « tu »: c'est MA carte, et la fiche parle à la deuxième
+      // personne depuis le 2026-08-19. Voir `lib/mouthVoice.ts`.
+      en["household.mouth.preferences_open_you"],
     );
     // ⚠️ L'ANCRE EST UN COMPTE, PAS UNE ABSENCE, ET C'EST MESURÉ. Les deux
     // formulaires disent les MÊMES MOTS — « First name », « Save » —, donc

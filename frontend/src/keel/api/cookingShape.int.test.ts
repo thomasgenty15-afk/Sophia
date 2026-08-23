@@ -117,8 +117,15 @@ describe("le câblage — le jeton part des trois écrans qui composent", () => 
     expect(src, "le champ est monté hors du foyer").toContain(
       "composingForHousehold && (",
     );
+    // ⚠️ L'ANCRE ÉTAIT `/cookingShape,\s*\}\);/`, C'EST-À-DIRE « DERNIÈRE
+    // PROPRIÉTÉ DE L'OBJET ». Elle a rougi le 2026-08-19 quand le lot D a
+    // branché l'envie du foyer JUSTE APRÈS — un champ de plus dans le même
+    // appel, et la garde tombait sans que le jeton ait bougé d'un octet. Une
+    // garde qui dépend de l'ORDRE des propriétés d'un littéral surveille la
+    // mise en page, pas le câblage. Ce qui compte est: le jeton part DANS
+    // l'appel de la lane foyer.
     expect(src, "le jeton ne part plus avec la demande").toMatch(
-      /cookingShape,\s*\}\);/,
+      /generateHouseholdMeal\(\{[\s\S]*?\bcookingShape,[\s\S]*?\n\s*\}\);/,
     );
   });
 

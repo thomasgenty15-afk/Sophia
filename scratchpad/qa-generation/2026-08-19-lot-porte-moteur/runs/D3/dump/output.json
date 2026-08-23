@@ -1,0 +1,1090 @@
+{
+  "request_id": "d030000c-0000-4000-8000-000000000001",
+  "resolved_by": "--request-id",
+  "user_id": "1e000000-0000-4000-8000-000000000002",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-18T23:59:29.961Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "917525d8-98b7-4cf5-a7c4-b77f3aa74058",
+      "status": "attempt_start",
+      "created_at": "2026-08-18T23:57:40.583449+00:00",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 15486,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 15486,
+    "user_message_chars": 14538,
+    "user_message_truncated": false,
+    "user_message_written_chars": 14538,
+    "independent_counters": {
+      "system_prompt_chars": 15486,
+      "prompt_chars": 14538
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "d5fdac12-55a0-461e-aa98-7567cee07d66",
+    "created_at": "2026-08-18T23:59:29.369759+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "gemini",
+    "model": "gemini-3-flash-preview",
+    "http_status": 200,
+    "attempt": 1,
+    "chain_index": 1,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Zesty Honey & Seed Yogurt\",\n      \"title\": \"Greek yogurt with honey and sunflower seeds\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"Greek yogurt\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Honey\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Sunflower seeds\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Spoon the yogurt into a bowl, drizzle with honey and top with seeds. For Odalric, serve with his specific toast and jam.\",\n      \"why\": \"A high-protein start to the day that requires no cooking while you prepare for the first session.\",\n      \"uses\": null,\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Golden Roast Chicken Bowls\",\n      \"title\": \"Roasted chicken, peppers, courgettes and rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Combine a portion of roasted chicken and vegetables with a portion of steamed rice. Reheat in a pan with a splash of water until steaming.\",\n      \"why\": \"Uses the fresh batch of chicken and rice for a high-protein, starch-supported lunch.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_peppers\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_wed_odalric\"\n        },\n        {\n          \"preparation_id\": \"prep_steamed_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_wed_odalric\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\",\n        \"starch_follows_the_session\"\n      ]\n    },\n    {\n      \"name\": \"Hearty Beef & Spinach Hash\",\n      \"title\": \"Savoury ground beef, spinach and sautéed potatoes\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"Potatoes\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Dice the potatoes and sauté in oil until golden and soft. Add the pre-cooked beef and spinach mixture to the pan to heat through.\",\n      \"why\": \"A warm, comforting dinner with a loud green vegetable and fresh potatoes for muscle gain fuel.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_spinach\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_wed_odalric\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 20\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Simple Egg & Toast Soldiers\",\n      \"title\": \"Hard-boiled eggs with buttered toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"Bread\",\n          \"quantity\": \"2 slices\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Butter\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Toast the bread and butter it. Peel the pre-boiled eggs and serve alongside. For Wilfrid, ensure the crusts are removed.\",\n      \"why\": \"A simple, protein-rich breakfast that works even while the kitchen table is under a dust sheet.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_boiled_eggs\",\n          \"servings\": 1,\n          \"box_id\": \"box_eggs_thu_odalric\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Summer Chicken Veggie Wraps\",\n      \"title\": \"Roasted chicken and peppers in soft tortillas\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"Tortillas\",\n          \"quantity\": \"2 unit\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Fill the tortillas with the cold roasted chicken and peppers. Roll up and eat; no reheating or table required.\",\n      \"why\": \"Designed for a day where the kitchen is busy, providing a portable and easy lunch.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_peppers\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_thu_odalric\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Savoury Beef & Rice Pot\",\n      \"title\": \"Ground beef and spinach over steamed rice\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [],\n      \"method\": \"Combine the beef mixture and rice in a pan. Heat thoroughly with a splash of water until the spinach is vibrant and the beef is hot.\",\n      \"why\": \"A warm dinner that can be eaten from a bowl while the hallway is being painted.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_spinach\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_thu_odalric\"\n        },\n        {\n          \"preparation_id\": \"prep_steamed_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_thu_odalric\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"starch_follows_the_session\"\n      ]\n    },\n    {\n      \"name\": \"Berry & Yogurt Morning Bowl\",\n      \"title\": \"Greek yogurt with fresh blueberries\",\n      \"slot\": \"breakfast\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"Greek yogurt\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Blueberries\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Top the yogurt with fresh berries. For Odalric, serve with his jam on toast.\",\n      \"why\": \"Quick and fresh protein to start the final day of the stretch.\",\n      \"uses\": null,\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 3\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Beef & Spinach Soft Tacos\",\n      \"title\": \"Savoury beef and spinach in toasted tortillas\",\n      \"slot\": \"lunch\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"Tortillas\",\n          \"quantity\": \"2 unit\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Briefly warm the tortillas in a dry pan. Reheat the beef and spinach in a separate pan and fill the tortillas.\",\n      \"why\": \"Varies the starch from rice to tortillas using the last of the beef batch.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_spinach\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_fri_odalric\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Zesty Pan-Fried Sea Bass\",\n      \"title\": \"Pan-seared sea bass with steamed broccoli\",\n      \"slot\": \"dinner\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"Sea bass fillets\",\n          \"quantity\": \"2 unit\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Broccoli\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Lemon\",\n          \"quantity\": \"0.5 unit\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Steam the broccoli until tender. Meanwhile, sear the sea bass skin-side down in oil for 3-4 minutes, then flip for 1 minute. Serve with a squeeze of lemon.\",\n      \"why\": \"A fresh, warm seafood dinner to end the week, providing high-quality protein and loud greens.\",\n      \"uses\": null,\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 15\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_chicken_peppers\",\n      \"title\": \"Roasted chicken and peppers\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        {\n          \"term\": \"Chicken thighs, bone-out\",\n          \"quantity\": \"1.6 kg\",\n          \"amount\": 1600,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Red peppers\",\n          \"quantity\": \"4 unit\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Courgettes\",\n          \"quantity\": \"2 unit\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Olive oil\",\n          \"quantity\": \"3 tbsp\",\n          \"amount\": 3,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Chop peppers and courgettes into large chunks. Toss with chicken thighs, oil, and salt on a large tray. Roast at 200C for 40-45 minutes until the chicken is cooked through and the vegetables are charred.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 55,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_chicken_wed_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 280\n        },\n        {\n          \"id\": \"box_chicken_wed_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 140\n        },\n        {\n          \"id\": \"box_chicken_wed_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 280\n        },\n        {\n          \"id\": \"box_chicken_wed_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 140\n        },\n        {\n          \"id\": \"box_chicken_thu_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 280\n        },\n        {\n          \"id\": \"box_chicken_thu_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 140\n        },\n        {\n          \"id\": \"box_chicken_thu_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 280\n        },\n        {\n          \"id\": \"box_chicken_thu_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 140\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_beef_spinach\",\n      \"title\": \"Savoury beef and spinach mince\",\n      \"servings_made\": 12,\n      \"ingredients\": [\n        {\n          \"term\": \"Ground beef\",\n          \"quantity\": \"1.2 kg\",\n          \"amount\": 1200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Spinach\",\n          \"quantity\": \"500 g\",\n          \"amount\": 500,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Onions\",\n          \"quantity\": \"2 unit\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Finely dice onions and sauté in oil. Add ground beef and brown thoroughly. Stir in the spinach at the end until just wilted. Season with salt and pepper.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_beef_wed_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_beef_wed_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 75\n        },\n        {\n          \"id\": \"box_beef_wed_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_beef_wed_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 75\n        },\n        {\n          \"id\": \"box_beef_thu_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_beef_thu_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 75\n        },\n        {\n          \"id\": \"box_beef_thu_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_beef_thu_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 75\n        },\n        {\n          \"id\": \"box_beef_fri_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_beef_fri_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 75\n        },\n        {\n          \"id\": \"box_beef_fri_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_beef_fri_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 75\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_steamed_rice\",\n      \"title\": \"Steamed basmati rice\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        {\n          \"term\": \"Basmati rice\",\n          \"quantity\": \"600 g\",\n          \"amount\": 600,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Rinse rice until water runs clear. Boil in salted water for 10-12 minutes, drain, and let steam with a lid on for 5 minutes.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_rice_wed_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 220\n        },\n        {\n          \"id\": \"box_rice_wed_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 110\n        },\n        {\n          \"id\": \"box_rice_wed_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 220\n        },\n        {\n          \"id\": \"box_rice_wed_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 110\n        },\n        {\n          \"id\": \"box_rice_thu_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 220\n        },\n        {\n          \"id\": \"box_rice_thu_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 110\n        },\n        {\n          \"id\": \"box_rice_thu_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 220\n        },\n        {\n          \"id\": \"box_rice_thu_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 110\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_boiled_eggs\",\n      \"title\": \"Hard-boiled eggs\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"Eggs\",\n          \"quantity\": \"8 unit\",\n          \"amount\": 8,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Place eggs in boiling water for 9 minutes. Transfer to cold water immediately, then store in the fridge.\",\n      \"active_minutes\": 2,\n      \"total_minutes\": 12,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_eggs_thu_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 100\n        },\n        {\n          \"id\": \"box_eggs_thu_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 50\n        },\n        {\n          \"id\": \"box_eggs_thu_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 100\n        },\n        {\n          \"id\": \"box_eggs_thu_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 50\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_chicken_peppers\",\n        \"prep_beef_spinach\",\n        \"prep_steamed_rice\",\n        \"prep_boiled_eggs\"\n      ],\n      \"total_minutes\": 55,\n      \"run_through\": \"Preheat oven to 200C. Prepare chicken and peppers and put them in the oven. Start the rice on the stove. While rice cooks, brown the beef and onions, adding spinach at the end. Boil the eggs in a small pot. Once everything is cooked and slightly cooled, weigh out into the named boxes for the week.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"Chicken thighs, bone-out\",\n      \"quantity\": \"1.6 kg\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"Ground beef\",\n      \"quantity\": \"1.2 kg\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"Sea bass fillets\",\n      \"quantity\": \"6 unit\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"Eggs\",\n      \"quantity\": \"18 unit\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"Greek yogurt\",\n      \"quantity\": \"1 kg\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"Red peppers\",\n      \"quantity\": \"4 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Courgettes\",\n      \"quantity\": \"2 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Spinach\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Onions\",\n      \"quantity\": \"2 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Potatoes\",\n      \"quantity\": \"1 kg\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Broccoli\",\n      \"quantity\": \"2 heads\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Blueberries\",\n      \"quantity\": \"200 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Lemons\",\n      \"quantity\": \"4 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Basmati rice\",\n      \"quantity\": \"1 kg\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"White bread loaf\",\n      \"quantity\": \"1 unit\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"Tortillas\",\n      \"quantity\": \"1 pack\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"Honey\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Sunflower seeds\",\n      \"quantity\": \"100 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Blackcurrant jam\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Hot sauce\",\n      \"quantity\": \"1 bottle\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Poppy seeds\",\n      \"quantity\": \"50 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Self-raising flour\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Caster sugar\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Butter\",\n      \"quantity\": \"250 g\",\n      \"aisle\": \"dairy\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"85acac95-312b-4d0e-a4da-02558e8a182f\",\n      \"portion_note\": \"Larger protein and starch share. Serve breakfast with two slices of toast and a spoonful of blackcurrant jam.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken_peppers\",\n          \"note\": \"Larger portion\"\n        },\n        {\n          \"preparation_id\": \"prep_beef_spinach\",\n          \"note\": \"Larger portion\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"f190856d-d573-42e9-a026-b6a37b9f7471\",\n      \"portion_note\": \"Child-size share. Always serve bread with the crusts cut off.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken_peppers\",\n          \"note\": \"Small portion\"\n        },\n        {\n          \"preparation_id\": \"prep_beef_spinach\",\n          \"note\": \"Small portion\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\",\n      \"portion_note\": \"Larger protein and starch share. No fennel or carrots to be included.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken_peppers\",\n          \"note\": \"Larger portion\"\n        },\n        {\n          \"preparation_id\": \"prep_beef_spinach\",\n          \"note\": \"Larger portion\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"536e683d-64a8-4dc2-a69b-6ee1925b206c\",\n      \"portion_note\": \"Child-size share. Serve with hot sauce on the side for every meal.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken_peppers\",\n          \"note\": \"Small portion\"\n        },\n        {\n          \"preparation_id\": \"prep_beef_spinach\",\n          \"note\": \"Small portion\"\n        }\n      ]\n    }\n  ]\n}",
+    "output_text_json": {
+      "dishes": [
+        {
+          "name": "Zesty Honey & Seed Yogurt",
+          "title": "Greek yogurt with honey and sunflower seeds",
+          "slot": "breakfast",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "Greek yogurt",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Honey",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "Sunflower seeds",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Spoon the yogurt into a bowl, drizzle with honey and top with seeds. For Odalric, serve with his specific toast and jam.",
+          "why": "A high-protein start to the day that requires no cooking while you prepare for the first session.",
+          "uses": null,
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": []
+        },
+        {
+          "name": "Golden Roast Chicken Bowls",
+          "title": "Roasted chicken, peppers, courgettes and rice",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [],
+          "method": "Combine a portion of roasted chicken and vegetables with a portion of steamed rice. Reheat in a pan with a splash of water until steaming.",
+          "why": "Uses the fresh batch of chicken and rice for a high-protein, starch-supported lunch.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_peppers",
+              "servings": 1,
+              "box_id": "box_chicken_wed_odalric"
+            },
+            {
+              "preparation_id": "prep_steamed_rice",
+              "servings": 1,
+              "box_id": "box_rice_wed_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud",
+            "one_loud_vegetable",
+            "starch_follows_the_session"
+          ]
+        },
+        {
+          "name": "Hearty Beef & Spinach Hash",
+          "title": "Savoury ground beef, spinach and sautéed potatoes",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "Potatoes",
+              "quantity": "200 g",
+              "amount": 200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Dice the potatoes and sauté in oil until golden and soft. Add the pre-cooked beef and spinach mixture to the pan to heat through.",
+          "why": "A warm, comforting dinner with a loud green vegetable and fresh potatoes for muscle gain fuel.",
+          "uses": [
+            {
+              "preparation_id": "prep_beef_spinach",
+              "servings": 1,
+              "box_id": "box_beef_wed_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 20
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Simple Egg & Toast Soldiers",
+          "title": "Hard-boiled eggs with buttered toast",
+          "slot": "breakfast",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "Bread",
+              "quantity": "2 slices",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "Butter",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Toast the bread and butter it. Peel the pre-boiled eggs and serve alongside. For Wilfrid, ensure the crusts are removed.",
+          "why": "A simple, protein-rich breakfast that works even while the kitchen table is under a dust sheet.",
+          "uses": [
+            {
+              "preparation_id": "prep_boiled_eggs",
+              "servings": 1,
+              "box_id": "box_eggs_thu_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": []
+        },
+        {
+          "name": "Summer Chicken Veggie Wraps",
+          "title": "Roasted chicken and peppers in soft tortillas",
+          "slot": "lunch",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "Tortillas",
+              "quantity": "2 unit",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Fill the tortillas with the cold roasted chicken and peppers. Roll up and eat; no reheating or table required.",
+          "why": "Designed for a day where the kitchen is busy, providing a portable and easy lunch.",
+          "uses": [
+            {
+              "preparation_id": "prep_chicken_peppers",
+              "servings": 1,
+              "box_id": "box_chicken_thu_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Savoury Beef & Rice Pot",
+          "title": "Ground beef and spinach over steamed rice",
+          "slot": "dinner",
+          "day": "thu",
+          "ingredients": [],
+          "method": "Combine the beef mixture and rice in a pan. Heat thoroughly with a splash of water until the spinach is vibrant and the beef is hot.",
+          "why": "A warm dinner that can be eaten from a bowl while the hallway is being painted.",
+          "uses": [
+            {
+              "preparation_id": "prep_beef_spinach",
+              "servings": 1,
+              "box_id": "box_beef_thu_odalric"
+            },
+            {
+              "preparation_id": "prep_steamed_rice",
+              "servings": 1,
+              "box_id": "box_rice_thu_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "starch_follows_the_session"
+          ]
+        },
+        {
+          "name": "Berry & Yogurt Morning Bowl",
+          "title": "Greek yogurt with fresh blueberries",
+          "slot": "breakfast",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "Greek yogurt",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Blueberries",
+              "quantity": "50 g",
+              "amount": 50,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Top the yogurt with fresh berries. For Odalric, serve with his jam on toast.",
+          "why": "Quick and fresh protein to start the final day of the stretch.",
+          "uses": null,
+          "same_day": {
+            "kind": "assemble",
+            "minutes": 3
+          },
+          "honours_belief_keys": []
+        },
+        {
+          "name": "Beef & Spinach Soft Tacos",
+          "title": "Savoury beef and spinach in toasted tortillas",
+          "slot": "lunch",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "Tortillas",
+              "quantity": "2 unit",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Briefly warm the tortillas in a dry pan. Reheat the beef and spinach in a separate pan and fill the tortillas.",
+          "why": "Varies the starch from rice to tortillas using the last of the beef batch.",
+          "uses": [
+            {
+              "preparation_id": "prep_beef_spinach",
+              "servings": 1,
+              "box_id": "box_beef_fri_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        },
+        {
+          "name": "Zesty Pan-Fried Sea Bass",
+          "title": "Pan-seared sea bass with steamed broccoli",
+          "slot": "dinner",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "Sea bass fillets",
+              "quantity": "2 unit",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "Broccoli",
+              "quantity": "150 g",
+              "amount": 150,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Lemon",
+              "quantity": "0.5 unit",
+              "amount": 0.5,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "Olive oil",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Steam the broccoli until tender. Meanwhile, sear the sea bass skin-side down in oil for 3-4 minutes, then flip for 1 minute. Serve with a squeeze of lemon.",
+          "why": "A fresh, warm seafood dinner to end the week, providing high-quality protein and loud greens.",
+          "uses": null,
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 15
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_chicken_peppers",
+          "title": "Roasted chicken and peppers",
+          "servings_made": 8,
+          "ingredients": [
+            {
+              "term": "Chicken thighs, bone-out",
+              "quantity": "1.6 kg",
+              "amount": 1600,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Red peppers",
+              "quantity": "4 unit",
+              "amount": 4,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "Courgettes",
+              "quantity": "2 unit",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "Olive oil",
+              "quantity": "3 tbsp",
+              "amount": 3,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Chop peppers and courgettes into large chunks. Toss with chicken thighs, oil, and salt on a large tray. Roast at 200C for 40-45 minutes until the chicken is cooked through and the vegetables are charred.",
+          "active_minutes": 15,
+          "total_minutes": 55,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_chicken_wed_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 280
+            },
+            {
+              "id": "box_chicken_wed_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 140
+            },
+            {
+              "id": "box_chicken_wed_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 280
+            },
+            {
+              "id": "box_chicken_wed_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 140
+            },
+            {
+              "id": "box_chicken_thu_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 280
+            },
+            {
+              "id": "box_chicken_thu_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 140
+            },
+            {
+              "id": "box_chicken_thu_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 280
+            },
+            {
+              "id": "box_chicken_thu_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 140
+            }
+          ]
+        },
+        {
+          "id": "prep_beef_spinach",
+          "title": "Savoury beef and spinach mince",
+          "servings_made": 12,
+          "ingredients": [
+            {
+              "term": "Ground beef",
+              "quantity": "1.2 kg",
+              "amount": 1200,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Spinach",
+              "quantity": "500 g",
+              "amount": 500,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "Onions",
+              "quantity": "2 unit",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "Olive oil",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Finely dice onions and sauté in oil. Add ground beef and brown thoroughly. Stir in the spinach at the end until just wilted. Season with salt and pepper.",
+          "active_minutes": 15,
+          "total_minutes": 25,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_beef_wed_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_beef_wed_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 75
+            },
+            {
+              "id": "box_beef_wed_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_beef_wed_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 75
+            },
+            {
+              "id": "box_beef_thu_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_beef_thu_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 75
+            },
+            {
+              "id": "box_beef_thu_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_beef_thu_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 75
+            },
+            {
+              "id": "box_beef_fri_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_beef_fri_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 75
+            },
+            {
+              "id": "box_beef_fri_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_beef_fri_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 75
+            }
+          ]
+        },
+        {
+          "id": "prep_steamed_rice",
+          "title": "Steamed basmati rice",
+          "servings_made": 8,
+          "ingredients": [
+            {
+              "term": "Basmati rice",
+              "quantity": "600 g",
+              "amount": 600,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Rinse rice until water runs clear. Boil in salted water for 10-12 minutes, drain, and let steam with a lid on for 5 minutes.",
+          "active_minutes": 5,
+          "total_minutes": 20,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_rice_wed_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 220
+            },
+            {
+              "id": "box_rice_wed_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 110
+            },
+            {
+              "id": "box_rice_wed_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 220
+            },
+            {
+              "id": "box_rice_wed_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 110
+            },
+            {
+              "id": "box_rice_thu_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 220
+            },
+            {
+              "id": "box_rice_thu_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 110
+            },
+            {
+              "id": "box_rice_thu_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 220
+            },
+            {
+              "id": "box_rice_thu_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 110
+            }
+          ]
+        },
+        {
+          "id": "prep_boiled_eggs",
+          "title": "Hard-boiled eggs",
+          "servings_made": 4,
+          "ingredients": [
+            {
+              "term": "Eggs",
+              "quantity": "8 unit",
+              "amount": 8,
+              "unit": "unit",
+              "state": "raw"
+            }
+          ],
+          "method": "Place eggs in boiling water for 9 minutes. Transfer to cold water immediately, then store in the fridge.",
+          "active_minutes": 2,
+          "total_minutes": 12,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_eggs_thu_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 100
+            },
+            {
+              "id": "box_eggs_thu_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 50
+            },
+            {
+              "id": "box_eggs_thu_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 100
+            },
+            {
+              "id": "box_eggs_thu_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 50
+            }
+          ]
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_chicken_peppers",
+            "prep_beef_spinach",
+            "prep_steamed_rice",
+            "prep_boiled_eggs"
+          ],
+          "total_minutes": 55,
+          "run_through": "Preheat oven to 200C. Prepare chicken and peppers and put them in the oven. Start the rice on the stove. While rice cooks, brown the beef and onions, adding spinach at the end. Boil the eggs in a small pot. Once everything is cooked and slightly cooled, weigh out into the named boxes for the week."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "Chicken thighs, bone-out",
+          "quantity": "1.6 kg",
+          "aisle": "protein"
+        },
+        {
+          "term": "Ground beef",
+          "quantity": "1.2 kg",
+          "aisle": "protein"
+        },
+        {
+          "term": "Sea bass fillets",
+          "quantity": "6 unit",
+          "aisle": "protein"
+        },
+        {
+          "term": "Eggs",
+          "quantity": "18 unit",
+          "aisle": "dairy"
+        },
+        {
+          "term": "Greek yogurt",
+          "quantity": "1 kg",
+          "aisle": "dairy"
+        },
+        {
+          "term": "Red peppers",
+          "quantity": "4 unit",
+          "aisle": "produce"
+        },
+        {
+          "term": "Courgettes",
+          "quantity": "2 unit",
+          "aisle": "produce"
+        },
+        {
+          "term": "Spinach",
+          "quantity": "500 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "Onions",
+          "quantity": "2 unit",
+          "aisle": "produce"
+        },
+        {
+          "term": "Potatoes",
+          "quantity": "1 kg",
+          "aisle": "produce"
+        },
+        {
+          "term": "Broccoli",
+          "quantity": "2 heads",
+          "aisle": "produce"
+        },
+        {
+          "term": "Blueberries",
+          "quantity": "200 g",
+          "aisle": "produce"
+        },
+        {
+          "term": "Lemons",
+          "quantity": "4 unit",
+          "aisle": "produce"
+        },
+        {
+          "term": "Basmati rice",
+          "quantity": "1 kg",
+          "aisle": "grains"
+        },
+        {
+          "term": "White bread loaf",
+          "quantity": "1 unit",
+          "aisle": "grains"
+        },
+        {
+          "term": "Tortillas",
+          "quantity": "1 pack",
+          "aisle": "grains"
+        },
+        {
+          "term": "Honey",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "Sunflower seeds",
+          "quantity": "100 g",
+          "aisle": "pantry"
+        },
+        {
+          "term": "Blackcurrant jam",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "Hot sauce",
+          "quantity": "1 bottle",
+          "aisle": "pantry"
+        },
+        {
+          "term": "Poppy seeds",
+          "quantity": "50 g",
+          "aisle": "pantry"
+        },
+        {
+          "term": "Self-raising flour",
+          "quantity": "500 g",
+          "aisle": "pantry"
+        },
+        {
+          "term": "Caster sugar",
+          "quantity": "500 g",
+          "aisle": "pantry"
+        },
+        {
+          "term": "Butter",
+          "quantity": "250 g",
+          "aisle": "dairy"
+        }
+      ],
+      "member_portions": [
+        {
+          "member_id": "85acac95-312b-4d0e-a4da-02558e8a182f",
+          "portion_note": "Larger protein and starch share. Serve breakfast with two slices of toast and a spoonful of blackcurrant jam.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken_peppers",
+              "note": "Larger portion"
+            },
+            {
+              "preparation_id": "prep_beef_spinach",
+              "note": "Larger portion"
+            }
+          ]
+        },
+        {
+          "member_id": "f190856d-d573-42e9-a026-b6a37b9f7471",
+          "portion_note": "Child-size share. Always serve bread with the crusts cut off.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken_peppers",
+              "note": "Small portion"
+            },
+            {
+              "preparation_id": "prep_beef_spinach",
+              "note": "Small portion"
+            }
+          ]
+        },
+        {
+          "member_id": "65eb7490-adae-40c2-8b43-b10a0cc0ab05",
+          "portion_note": "Larger protein and starch share. No fennel or carrots to be included.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken_peppers",
+              "note": "Larger portion"
+            },
+            {
+              "preparation_id": "prep_beef_spinach",
+              "note": "Larger portion"
+            }
+          ]
+        },
+        {
+          "member_id": "536e683d-64a8-4dc2-a69b-6ee1925b206c",
+          "portion_note": "Child-size share. Serve with hot sauce on the side for every meal.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_chicken_peppers",
+              "note": "Small portion"
+            },
+            {
+              "preparation_id": "prep_beef_spinach",
+              "note": "Small portion"
+            }
+          ]
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "candidates": [
+        {
+          "index": 0,
+          "content": {
+            "role": "model",
+            "parts": [
+              {
+                "text": "{\n  \"dishes\": [\n    {\n      \"name\": \"Zesty Honey & Seed Yogurt\",\n      \"title\": \"Greek yogurt with honey and sunflower seeds\",\n      \"slot\": \"breakfast\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"Greek yogurt\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Honey\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Sunflower seeds\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Spoon the yogurt into a bowl, drizzle with honey and top with seeds. For Odalric, serve with his specific toast and jam.\",\n      \"why\": \"A high-protein start to the day that requires no cooking while you prepare for the first session.\",\n      \"uses\": null,\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Golden Roast Chicken Bowls\",\n      \"title\": \"Roasted chicken, peppers, courgettes and rice\",\n      \"slot\": \"lunch\",\n      \"day\": \"wed\",\n      \"ingredients\": [],\n      \"method\": \"Combine a portion of roasted chicken and vegetables with a portion of steamed rice. Reheat in a pan with a splash of water until steaming.\",\n      \"why\": \"Uses the fresh batch of chicken and rice for a high-protein, starch-supported lunch.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_peppers\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_wed_odalric\"\n        },\n        {\n          \"preparation_id\": \"prep_steamed_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_wed_odalric\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"name_the_plate_out_loud\",\n        \"one_loud_vegetable\",\n        \"starch_follows_the_session\"\n      ]\n    },\n    {\n      \"name\": \"Hearty Beef & Spinach Hash\",\n      \"title\": \"Savoury ground beef, spinach and sautéed potatoes\",\n      \"slot\": \"dinner\",\n      \"day\": \"wed\",\n      \"ingredients\": [\n        {\n          \"term\": \"Potatoes\",\n          \"quantity\": \"200 g\",\n          \"amount\": 200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Dice the potatoes and sauté in oil until golden and soft. Add the pre-cooked beef and spinach mixture to the pan to heat through.\",\n      \"why\": \"A warm, comforting dinner with a loud green vegetable and fresh potatoes for muscle gain fuel.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_spinach\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_wed_odalric\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 20\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Simple Egg & Toast Soldiers\",\n      \"title\": \"Hard-boiled eggs with buttered toast\",\n      \"slot\": \"breakfast\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"Bread\",\n          \"quantity\": \"2 slices\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Butter\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Toast the bread and butter it. Peel the pre-boiled eggs and serve alongside. For Wilfrid, ensure the crusts are removed.\",\n      \"why\": \"A simple, protein-rich breakfast that works even while the kitchen table is under a dust sheet.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_boiled_eggs\",\n          \"servings\": 1,\n          \"box_id\": \"box_eggs_thu_odalric\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Summer Chicken Veggie Wraps\",\n      \"title\": \"Roasted chicken and peppers in soft tortillas\",\n      \"slot\": \"lunch\",\n      \"day\": \"thu\",\n      \"ingredients\": [\n        {\n          \"term\": \"Tortillas\",\n          \"quantity\": \"2 unit\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Fill the tortillas with the cold roasted chicken and peppers. Roll up and eat; no reheating or table required.\",\n      \"why\": \"Designed for a day where the kitchen is busy, providing a portable and easy lunch.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_chicken_peppers\",\n          \"servings\": 1,\n          \"box_id\": \"box_chicken_thu_odalric\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 5\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Savoury Beef & Rice Pot\",\n      \"title\": \"Ground beef and spinach over steamed rice\",\n      \"slot\": \"dinner\",\n      \"day\": \"thu\",\n      \"ingredients\": [],\n      \"method\": \"Combine the beef mixture and rice in a pan. Heat thoroughly with a splash of water until the spinach is vibrant and the beef is hot.\",\n      \"why\": \"A warm dinner that can be eaten from a bowl while the hallway is being painted.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_spinach\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_thu_odalric\"\n        },\n        {\n          \"preparation_id\": \"prep_steamed_rice\",\n          \"servings\": 1,\n          \"box_id\": \"box_rice_thu_odalric\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 8\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\",\n        \"starch_follows_the_session\"\n      ]\n    },\n    {\n      \"name\": \"Berry & Yogurt Morning Bowl\",\n      \"title\": \"Greek yogurt with fresh blueberries\",\n      \"slot\": \"breakfast\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"Greek yogurt\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Blueberries\",\n          \"quantity\": \"50 g\",\n          \"amount\": 50,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Top the yogurt with fresh berries. For Odalric, serve with his jam on toast.\",\n      \"why\": \"Quick and fresh protein to start the final day of the stretch.\",\n      \"uses\": null,\n      \"same_day\": {\n        \"kind\": \"assemble\",\n        \"minutes\": 3\n      },\n      \"honours_belief_keys\": []\n    },\n    {\n      \"name\": \"Beef & Spinach Soft Tacos\",\n      \"title\": \"Savoury beef and spinach in toasted tortillas\",\n      \"slot\": \"lunch\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"Tortillas\",\n          \"quantity\": \"2 unit\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Briefly warm the tortillas in a dry pan. Reheat the beef and spinach in a separate pan and fill the tortillas.\",\n      \"why\": \"Varies the starch from rice to tortillas using the last of the beef batch.\",\n      \"uses\": [\n        {\n          \"preparation_id\": \"prep_beef_spinach\",\n          \"servings\": 1,\n          \"box_id\": \"box_beef_fri_odalric\"\n        }\n      ],\n      \"same_day\": {\n        \"kind\": \"reheat_only\",\n        \"minutes\": 10\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    },\n    {\n      \"name\": \"Zesty Pan-Fried Sea Bass\",\n      \"title\": \"Pan-seared sea bass with steamed broccoli\",\n      \"slot\": \"dinner\",\n      \"day\": \"fri\",\n      \"ingredients\": [\n        {\n          \"term\": \"Sea bass fillets\",\n          \"quantity\": \"2 unit\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Broccoli\",\n          \"quantity\": \"150 g\",\n          \"amount\": 150,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Lemon\",\n          \"quantity\": \"0.5 unit\",\n          \"amount\": 0.5,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Olive oil\",\n          \"quantity\": \"1 tbsp\",\n          \"amount\": 1,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Steam the broccoli until tender. Meanwhile, sear the sea bass skin-side down in oil for 3-4 minutes, then flip for 1 minute. Serve with a squeeze of lemon.\",\n      \"why\": \"A fresh, warm seafood dinner to end the week, providing high-quality protein and loud greens.\",\n      \"uses\": null,\n      \"same_day\": {\n        \"kind\": \"cook_fresh\",\n        \"minutes\": 15\n      },\n      \"honours_belief_keys\": [\n        \"one_loud_vegetable\"\n      ]\n    }\n  ],\n  \"preparations\": [\n    {\n      \"id\": \"prep_chicken_peppers\",\n      \"title\": \"Roasted chicken and peppers\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        {\n          \"term\": \"Chicken thighs, bone-out\",\n          \"quantity\": \"1.6 kg\",\n          \"amount\": 1600,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Red peppers\",\n          \"quantity\": \"4 unit\",\n          \"amount\": 4,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Courgettes\",\n          \"quantity\": \"2 unit\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Olive oil\",\n          \"quantity\": \"3 tbsp\",\n          \"amount\": 3,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Chop peppers and courgettes into large chunks. Toss with chicken thighs, oil, and salt on a large tray. Roast at 200C for 40-45 minutes until the chicken is cooked through and the vegetables are charred.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 55,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_chicken_wed_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 280\n        },\n        {\n          \"id\": \"box_chicken_wed_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 140\n        },\n        {\n          \"id\": \"box_chicken_wed_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 280\n        },\n        {\n          \"id\": \"box_chicken_wed_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 140\n        },\n        {\n          \"id\": \"box_chicken_thu_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 280\n        },\n        {\n          \"id\": \"box_chicken_thu_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 140\n        },\n        {\n          \"id\": \"box_chicken_thu_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 280\n        },\n        {\n          \"id\": \"box_chicken_thu_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 140\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_beef_spinach\",\n      \"title\": \"Savoury beef and spinach mince\",\n      \"servings_made\": 12,\n      \"ingredients\": [\n        {\n          \"term\": \"Ground beef\",\n          \"quantity\": \"1.2 kg\",\n          \"amount\": 1200,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Spinach\",\n          \"quantity\": \"500 g\",\n          \"amount\": 500,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Onions\",\n          \"quantity\": \"2 unit\",\n          \"amount\": 2,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        },\n        {\n          \"term\": \"Olive oil\",\n          \"quantity\": \"2 tbsp\",\n          \"amount\": 2,\n          \"unit\": \"tbsp\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Finely dice onions and sauté in oil. Add ground beef and brown thoroughly. Stir in the spinach at the end until just wilted. Season with salt and pepper.\",\n      \"active_minutes\": 15,\n      \"total_minutes\": 25,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_beef_wed_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_beef_wed_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 75\n        },\n        {\n          \"id\": \"box_beef_wed_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_beef_wed_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 75\n        },\n        {\n          \"id\": \"box_beef_thu_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_beef_thu_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 75\n        },\n        {\n          \"id\": \"box_beef_thu_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_beef_thu_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 75\n        },\n        {\n          \"id\": \"box_beef_fri_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_beef_fri_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 75\n        },\n        {\n          \"id\": \"box_beef_fri_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 150\n        },\n        {\n          \"id\": \"box_beef_fri_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 75\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_steamed_rice\",\n      \"title\": \"Steamed basmati rice\",\n      \"servings_made\": 8,\n      \"ingredients\": [\n        {\n          \"term\": \"Basmati rice\",\n          \"quantity\": \"600 g\",\n          \"amount\": 600,\n          \"unit\": \"g\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Rinse rice until water runs clear. Boil in salted water for 10-12 minutes, drain, and let steam with a lid on for 5 minutes.\",\n      \"active_minutes\": 5,\n      \"total_minutes\": 20,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_rice_wed_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 220\n        },\n        {\n          \"id\": \"box_rice_wed_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 110\n        },\n        {\n          \"id\": \"box_rice_wed_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 220\n        },\n        {\n          \"id\": \"box_rice_wed_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 110\n        },\n        {\n          \"id\": \"box_rice_thu_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 220\n        },\n        {\n          \"id\": \"box_rice_thu_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 110\n        },\n        {\n          \"id\": \"box_rice_thu_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 220\n        },\n        {\n          \"id\": \"box_rice_thu_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 110\n        }\n      ]\n    },\n    {\n      \"id\": \"prep_boiled_eggs\",\n      \"title\": \"Hard-boiled eggs\",\n      \"servings_made\": 4,\n      \"ingredients\": [\n        {\n          \"term\": \"Eggs\",\n          \"quantity\": \"8 unit\",\n          \"amount\": 8,\n          \"unit\": \"unit\",\n          \"state\": \"raw\"\n        }\n      ],\n      \"method\": \"Place eggs in boiling water for 9 minutes. Transfer to cold water immediately, then store in the fridge.\",\n      \"active_minutes\": 2,\n      \"total_minutes\": 12,\n      \"cook_on\": \"wed\",\n      \"boxes\": [\n        {\n          \"id\": \"box_eggs_thu_odalric\",\n          \"member_ids\": [\n            \"85acac95-312b-4d0e-a4da-02558e8a182f\"\n          ],\n          \"grams\": 100\n        },\n        {\n          \"id\": \"box_eggs_thu_wilfrid\",\n          \"member_ids\": [\n            \"f190856d-d573-42e9-a026-b6a37b9f7471\"\n          ],\n          \"grams\": 50\n        },\n        {\n          \"id\": \"box_eggs_thu_peregrine\",\n          \"member_ids\": [\n            \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"\n          ],\n          \"grams\": 100\n        },\n        {\n          \"id\": \"box_eggs_thu_casimir\",\n          \"member_ids\": [\n            \"536e683d-64a8-4dc2-a69b-6ee1925b206c\"\n          ],\n          \"grams\": 50\n        }\n      ]\n    }\n  ],\n  \"cooking_sessions\": [\n    {\n      \"day\": \"wed\",\n      \"preparation_ids\": [\n        \"prep_chicken_peppers\",\n        \"prep_beef_spinach\",\n        \"prep_steamed_rice\",\n        \"prep_boiled_eggs\"\n      ],\n      \"total_minutes\": 55,\n      \"run_through\": \"Preheat oven to 200C. Prepare chicken and peppers and put them in the oven. Start the rice on the stove. While rice cooks, brown the beef and onions, adding spinach at the end. Boil the eggs in a small pot. Once everything is cooked and slightly cooled, weigh out into the named boxes for the week.\"\n    }\n  ],\n  \"shopping_list\": [\n    {\n      \"term\": \"Chicken thighs, bone-out\",\n      \"quantity\": \"1.6 kg\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"Ground beef\",\n      \"quantity\": \"1.2 kg\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"Sea bass fillets\",\n      \"quantity\": \"6 unit\",\n      \"aisle\": \"protein\"\n    },\n    {\n      \"term\": \"Eggs\",\n      \"quantity\": \"18 unit\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"Greek yogurt\",\n      \"quantity\": \"1 kg\",\n      \"aisle\": \"dairy\"\n    },\n    {\n      \"term\": \"Red peppers\",\n      \"quantity\": \"4 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Courgettes\",\n      \"quantity\": \"2 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Spinach\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Onions\",\n      \"quantity\": \"2 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Potatoes\",\n      \"quantity\": \"1 kg\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Broccoli\",\n      \"quantity\": \"2 heads\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Blueberries\",\n      \"quantity\": \"200 g\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Lemons\",\n      \"quantity\": \"4 unit\",\n      \"aisle\": \"produce\"\n    },\n    {\n      \"term\": \"Basmati rice\",\n      \"quantity\": \"1 kg\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"White bread loaf\",\n      \"quantity\": \"1 unit\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"Tortillas\",\n      \"quantity\": \"1 pack\",\n      \"aisle\": \"grains\"\n    },\n    {\n      \"term\": \"Honey\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Sunflower seeds\",\n      \"quantity\": \"100 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Blackcurrant jam\",\n      \"quantity\": \"1 jar\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Hot sauce\",\n      \"quantity\": \"1 bottle\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Poppy seeds\",\n      \"quantity\": \"50 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Self-raising flour\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Caster sugar\",\n      \"quantity\": \"500 g\",\n      \"aisle\": \"pantry\"\n    },\n    {\n      \"term\": \"Butter\",\n      \"quantity\": \"250 g\",\n      \"aisle\": \"dairy\"\n    }\n  ],\n  \"member_portions\": [\n    {\n      \"member_id\": \"85acac95-312b-4d0e-a4da-02558e8a182f\",\n      \"portion_note\": \"Larger protein and starch share. Serve breakfast with two slices of toast and a spoonful of blackcurrant jam.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken_peppers\",\n          \"note\": \"Larger portion\"\n        },\n        {\n          \"preparation_id\": \"prep_beef_spinach\",\n          \"note\": \"Larger portion\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"f190856d-d573-42e9-a026-b6a37b9f7471\",\n      \"portion_note\": \"Child-size share. Always serve bread with the crusts cut off.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken_peppers\",\n          \"note\": \"Small portion\"\n        },\n        {\n          \"preparation_id\": \"prep_beef_spinach\",\n          \"note\": \"Small portion\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"65eb7490-adae-40c2-8b43-b10a0cc0ab05\",\n      \"portion_note\": \"Larger protein and starch share. No fennel or carrots to be included.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken_peppers\",\n          \"note\": \"Larger portion\"\n        },\n        {\n          \"preparation_id\": \"prep_beef_spinach\",\n          \"note\": \"Larger portion\"\n        }\n      ]\n    },\n    {\n      \"member_id\": \"536e683d-64a8-4dc2-a69b-6ee1925b206c\",\n      \"portion_note\": \"Child-size share. Serve with hot sauce on the side for every meal.\",\n      \"preparation_shares\": [\n        {\n          \"preparation_id\": \"prep_chicken_peppers\",\n          \"note\": \"Small portion\"\n        },\n        {\n          \"preparation_id\": \"prep_beef_spinach\",\n          \"note\": \"Small portion\"\n        }\n      ]\n    }\n  ]\n}",
+                "thoughtSignature": "[redacted]"
+              }
+            ]
+          },
+          "finishReason": "STOP"
+        }
+      ],
+      "responseId": "qPGEaob_EI2mnsEPl_i5sAw",
+      "modelVersion": "gemini-3-flash-preview",
+      "usageMetadata": {
+        "serviceTier": "standard",
+        "totalTokenCount": 22962,
+        "promptTokenCount": 7775,
+        "cacheTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 4047
+          }
+        ],
+        "thoughtsTokenCount": 7322,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 7775
+          }
+        ],
+        "candidatesTokenCount": 7865,
+        "cachedContentTokenCount": 4047
+      }
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-18T23:57:40.583449+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:57:41.054653+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:57:45.015524+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:57:45.026588+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:57:45.034086+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:58:28.263192+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:58:28.290899+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:58:28.748443+00:00",
+      "status": "retryable_status",
+      "outcome": "error",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 429,
+      "error_message": "You have no credits remaining. Add credits to continue using the API at https://platform.openai.com/settings/organization/billing/.",
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:58:31.964841+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:58:31.984448+00:00",
+      "status": "limiter_wait_start",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:58:32.004569+00:00",
+      "status": "limiter_acquired",
+      "outcome": "pending",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:59:29.369759+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "gemini",
+      "model": "gemini-3-flash-preview",
+      "attempt": 1,
+      "chain_index": 1,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    }
+  ]
+}

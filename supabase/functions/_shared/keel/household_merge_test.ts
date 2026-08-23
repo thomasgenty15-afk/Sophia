@@ -11,6 +11,7 @@
 // ===========================================================================
 
 import { assert, assertEquals } from "jsr:@std/assert@1";
+import type { DietaryRegime } from "./dietary_regime.ts";
 
 // Le banc de propriété de D1 balaie des décalages de jours: `addDays` est la
 // MÊME arithmétique que le module sous test, pas une seconde.
@@ -172,7 +173,7 @@ Deno.test("LA FUSION LIT EXACTEMENT LA DIRECTION QUE LE BRIEF ÉCRIT", () => {
       memberOf({ ageState: "unknown", goal: "maintenance" }),
     ]
   ) {
-    const brief = buildPortionBrief([member], "one_dish", 0);
+    const brief = buildPortionBrief([member], "one_dish", 0, 1);
     assert(
       brief.includes(`- ${member.displayName}: ${servingDirectionFor(member)}`),
       `le brief n'écrit pas la direction que la fusion lit: ${brief}`,
@@ -1423,6 +1424,7 @@ const BASE_CAP_15 = 15;
 const PARSE_BASE = {
   doctrine: null,
   safetyConstraints: [],
+  safetyConstraintTable: null,
   mode: "to_shop" as const,
   scope: "several_days" as const,
   pantry: [],
@@ -1439,6 +1441,8 @@ const PARSE_BASE = {
   // le plafond, la garde de préparation et l'attribution, pas sur les grammes.
   // Un test qui veut des boîtes le remplace explicitement.
   boxMemberIds: [] as readonly string[],
+  weighedMemberIds: [] as readonly string[],
+  boxMemberDiets: [] as readonly { memberId: string; regime: DietaryRegime | null }[],
 };
 
 const PROMPT_BASE = {
@@ -1446,6 +1450,7 @@ const PROMPT_BASE = {
   contentLocale: "en-US",
   budgetAmount: null,
   safetyConstraints: null,
+  safetyConstraintTable: null,
   body: null,
   eatingSlots: null,
   habits: [],
@@ -2655,6 +2660,276 @@ Deno.test("C8 ③ — HORS FUSION AUSSI, UNE CASE VIDE PASSE AVANT UN SECOND PLA
   );
 });
 
+// ---------------------------------------------------------------------------
+// LOT B ③ — L'ÉVICTION NE TOMBE PLUS TOUJOURS SUR LA MÊME PERSONNE
+// ---------------------------------------------------------------------------
+
+/**
+ * LE DÉCOR: une fenêtre d'un jour, deux repas, TROIS porteurs — et le modèle
+ * qui écrit UNE ASSIETTE DE TROP pour le premier porteur de chaque case.
+ *
+ * ⚠️ LA PRESSION VIENT DU MODÈLE, PAS D'UN BUDGET RABOTÉ À LA MAIN, et c'est
+ * délibéré: le plafond est en train d'être retouché par un autre lot (le budget
+ * de plats), donc un banc qui écrirait « cap = 4 » en dur mesurerait ce lot-là
+ * et pas celui-ci. Ici la seule prémisse est « le modèle a écrit plus que le
+ * budget », et elle est ASSERTÉE avant chaque mesure.
+ */
+const LOTB_RHYTHM = [
+  { slot: "lunch" as const, size: null },
+  { slot: "dinner" as const, size: null },
+];
+const LOTB_CELLS = cellsOf(["wed"], ["lunch", "dinner"]);
+const LOTB_BEARERS = ["m-aurele", "m-marceline", "m-solveig"];
+const lotbBudget: MergedEater = {
+  shape: "one_session",
+  ownDishesShown: 0,
+  // 3 porteurs × 2 repas — le nombre que la consigne réclame, et celui de la
+  // mesure du 2026-08-19 (`dish_owners.asked = 6`).
+  dedicatedDishesAsked: 6,
+  dedicatedCells: LOTB_CELLS,
+  dishBearerIds: LOTB_BEARERS,
+};
+const lotbParseBase = {
+  ...PARSE_BASE,
+  scope: "day" as const,
+  eatingRhythm: LOTB_RHYTHM,
+  daysToFill: ["wed"],
+  merge: lotbBudget,
+};
+const LOTB_CAP = dishBudgetFor({
+  scope: "day",
+  rhythm: LOTB_RHYTHM,
+  daysToFill: 1,
+  merge: lotbBudget,
+});
+
+/** Le flot du modèle: la table, puis les porteurs dans l'ordre où on les nomme. */
+function lotbDishes(bearers: readonly string[], extraFor: string | null) {
+  return LOTB_CELLS.flatMap((c) => [
+    c7Table(c.day, c.slot),
+    ...bearers.flatMap((id) => {
+      const one = c7Dedicated(c.day, c.slot, {
+        title: `${id} ${c.day} ${c.slot}`,
+        for_member_id: id,
+      });
+      return id === extraFor
+        ? [
+          one,
+          c7Dedicated(c.day, c.slot, {
+            title: `${id} ${c.day} ${c.slot} bis`,
+            for_member_id: id,
+          }),
+        ]
+        : [one];
+    }),
+  ]);
+}
+
+/** Combien de plats chaque porteur garde, sur le plan RENDU. */
+function lotbTally(meal: ReturnType<typeof parseGeneratedMeal>) {
+  const tally = new Map<string, number>(LOTB_BEARERS.map((id) => [id, 0]));
+  for (const d of meal.dishes) {
+    if (d.memberId) tally.set(d.memberId, (tally.get(d.memberId) ?? 0) + 1);
+  }
+  return tally;
+}
+
+Deno.test("⛔ LOT B ③ — LE PLAFOND NE DONNE PLUS TOUT AU PREMIER NOMMÉ", () => {
+  // ══════════════════════════════════════════════════════════════════════════
+  // LE DÉFAUT, ARCHIVÉ QUATRE FOIS DE SUITE (2026-08-19, trois runs + un plan
+  // orphelin): `dish_owners {asked: 6, declared: 2, attributed: 2}` — six plats
+  // promis, deux livrés, et TOUJOURS à la même personne. Par bouche: 2 · 2 · 2
+  // pour la première du roster, 0 · 0 · 0 pour les deux autres. Sur sept jours,
+  // 11 plats jetés.
+  //
+  // LA CAUSE, EN DEUX MOITIÉS: le rang `1` (le créneau protégé d'une case)
+  // allait au SECOND plat ÉCRIT — et le modèle écrit les bouches dans l'ordre
+  // du roster à chaque case; et un plat de rang 2 qui arrivait ne pouvait
+  // JAMAIS prendre la place d'un autre plat de rang 2, donc le dernier nommé
+  // tombait toujours.
+  // ══════════════════════════════════════════════════════════════════════════
+  const dishes = lotbDishes(LOTB_BEARERS, LOTB_BEARERS[0]);
+  // PRÉMISSE — sans elle, ce banc pourrait passer sur un plafond qui ne mord
+  // pas, c'est-à-dire en ne mesurant rien.
+  assert(dishes.length > LOTB_CAP, `${dishes.length} plats pour un plafond de ${LOTB_CAP}`);
+
+  const meal = parseGeneratedMeal(
+    { preparations: [], dishes, shopping_list: [] },
+    lotbParseBase,
+  );
+  assertEquals(meal.dishes.length, LOTB_CAP);
+  // Les deux assiettes de la table sont toujours servies: la couverture des
+  // créneaux passe avant l'équité entre les porteurs.
+  assertEquals(meal.dishes.filter((d) => d.memberId === null).length, 2);
+  assertEquals(meal.empty_slots, []);
+
+  // ⛔ LE FAIT QUI CHANGE: les plats dédiés se répartissent, au lieu de
+  // s'accumuler sur le nom écrit en premier.
+  const tally = lotbTally(meal);
+  const counts = [...tally.values()];
+  assertEquals(
+    Math.max(...counts) - Math.min(...counts) <= 1,
+    true,
+    JSON.stringify([...tally]),
+  );
+  // Et personne n'est à zéro sur ce décor: il y a assez de place pour les trois.
+  assert(Math.min(...counts) >= 1, JSON.stringify([...tally]));
+});
+
+Deno.test("⛔ LOT B ③ — PROPRIÉTÉ: PERSONNE NE GARDE DEUX PLATS D'AVANCE SUR UNE AUTRE BOUCHE", () => {
+  // ⚠️ C'EST L'INVARIANT, ET IL EST PLUS FORT QUE LE CAS PARTICULIER AU-DESSUS.
+  // Il est balayé sur ce que le défaut SUIVAIT: l'ordre d'écriture du modèle,
+  // et l'identité de la bouche pour qui il écrit une assiette de trop. Aucune
+  // combinaison ne doit produire une table où quelqu'un a deux plats d'avance.
+  for (let r = 0; r < LOTB_BEARERS.length; r++) {
+    const bearers = [...LOTB_BEARERS.slice(r), ...LOTB_BEARERS.slice(0, r)];
+    for (const extra of [...LOTB_BEARERS, null]) {
+      const dishes = lotbDishes(bearers, extra);
+      const meal = parseGeneratedMeal(
+        { preparations: [], dishes, shopping_list: [] },
+        lotbParseBase,
+      );
+      const counts = [...lotbTally(meal).values()];
+      assert(
+        Math.max(...counts) - Math.min(...counts) <= 1,
+        `ordre ${r}, extra ${extra}: ${JSON.stringify([...lotbTally(meal)])}`,
+      );
+    }
+  }
+});
+
+/**
+ * LE DÉCOR **ARCHIVÉ**, celui des sorties de modèle du 2026-08-19: deux cases,
+ * une assiette de table et UNE assiette par porteur dans chacune, et un plafond
+ * de 4. C'est celui qui a produit `dish_owners {asked: 6, declared: 2,
+ * attributed: 2}` avec 2 · 0 · 0 par bouche, quatre fois de suite.
+ *
+ * ⚠️ CE BANC EXISTE PARCE QUE LE DÉCOR SYNTHÉTIQUE CI-DESSUS NE SUFFISAIT PAS,
+ * ET C'EST LA LEÇON DU LOT. La mutation qui désarme le rang par porteur
+ * (`return 1` inconditionnel dans `dishRank`) ne fait tomber AUCUN des trois
+ * bancs du dessus — leur décor produit un surplus par bouche, où la porte
+ * d'équité de `sacrificeFor` rééquilibre seule. Sur CE décor-ci, la même
+ * mutation rend exactement `2 · 0 · 0`. Une garde qu'on n'a pas vue tomber
+ * n'est pas une garde; celle-ci a d'abord été supprimée pour cette raison, puis
+ * remise quand le rejeu des archives l'a fait mordre.
+ *
+ * ⚠️ LE PLAFOND EST CHERCHÉ, PAS ÉCRIT EN DUR, et c'est délibéré: le budget de
+ * plats est retouché par un autre lot en vol. Ce banc mesure QUI s'assied, pas
+ * COMBIEN de places il y a — il retrouve donc le `dedicatedDishesAsked` qui
+ * rend le plafond historique de 4, et échoue bruyamment s'il n'existe plus.
+ */
+const LOTB_ARCHIVED_CAP = 4;
+const lotbArchivedAsked = (() => {
+  for (let a = 0; a <= 24; a++) {
+    const merge: MergedEater = {
+      shape: "one_session",
+      ownDishesShown: 0,
+      dedicatedDishesAsked: a,
+      dedicatedCells: LOTB_CELLS,
+      dishBearerIds: LOTB_BEARERS,
+    };
+    if (
+      dishBudgetFor({ scope: "day", rhythm: LOTB_RHYTHM, daysToFill: 1, merge }) ===
+        LOTB_ARCHIVED_CAP
+    ) return a;
+  }
+  return -1;
+})();
+
+Deno.test("⛔ LOT B ③ — LE DÉCOR ARCHIVÉ: DEUX PLATS LIVRÉS, DEUX PERSONNES DIFFÉRENTES", () => {
+  // PRÉMISSE — sans elle, le banc pourrait tourner sur un plafond qui ne mord
+  // pas, c'est-à-dire en ne mesurant rien.
+  assert(
+    lotbArchivedAsked >= 0,
+    "le plafond historique de 4 n'est plus atteignable — ce banc ne mesure plus rien",
+  );
+  const merge: MergedEater = {
+    shape: "one_session",
+    ownDishesShown: 0,
+    dedicatedDishesAsked: lotbArchivedAsked,
+    dedicatedCells: LOTB_CELLS,
+    dishBearerIds: LOTB_BEARERS,
+  };
+  // Le flot EXACT des sorties archivées: table, puis les trois porteurs, par case.
+  const dishes = LOTB_CELLS.flatMap((c) => [
+    c7Table(c.day, c.slot),
+    ...LOTB_BEARERS.map((id) =>
+      c7Dedicated(c.day, c.slot, {
+        title: `${id} ${c.day} ${c.slot}`,
+        for_member_id: id,
+      })
+    ),
+  ]);
+  assertEquals(dishes.length, 8);
+
+  const meal = parseGeneratedMeal(
+    { preparations: [], dishes, shopping_list: [] },
+    { ...lotbParseBase, merge },
+  );
+  assertEquals(meal.dishes.length, LOTB_ARCHIVED_CAP);
+  // Les deux assiettes de la table survivent: la couverture passe d'abord.
+  assertEquals(meal.dishes.filter((d) => d.memberId === null).length, 2);
+  assertEquals(meal.empty_slots, []);
+
+  // ⛔ LE FAIT ARCHIVÉ ÉTAIT `2 · 0 · 0`. Il devient `1 · 0 · 1`: le même
+  // nombre de plats livrés, deux personnes différentes servies. Trois porteurs
+  // pour deux places, quelqu'un reste à zéro — mais plus personne n'en prend
+  // deux pendant qu'une autre bouche n'en a aucune.
+  const tally = lotbTally(meal);
+  const counts = [...tally.values()];
+  assertEquals(meal.dish_owner_counts.attributed, 2);
+  assertEquals(Math.max(...counts), 1, JSON.stringify([...tally]));
+  const owners = meal.dishes.map((d) => d.memberId).filter((id) => id !== null);
+  assertEquals(new Set(owners).size, 2, `deux plats pour ${owners.join(" et ")}`);
+});
+
+Deno.test("⛔ LOT B ③ — MUTATION: SANS PORTEUR DÉCLARÉ, LE DÉFAUT MESURÉ REVIENT", () => {
+  // ⚠️ LA MUTATION EST FAITE PAR LES DONNÉES, PAS PAR LE CODE, et c'est ce qui
+  // la rend honnête: on retire les `for_member_id` du MÊME flot de plats. Le
+  // rang et l'éviction redeviennent alors ceux d'avant ce lot — et on voit le
+  // plan que le défaut produisait: les plats dédiés survivants portent tous le
+  // MÊME nom de bouche, celui écrit en premier.
+  const dishes = lotbDishes(LOTB_BEARERS, LOTB_BEARERS[0]);
+  const anonymous = dishes.map((d) => {
+    const { for_member_id: _drop, ...rest } = d as Record<string, unknown>;
+    return rest;
+  });
+  const meal = parseGeneratedMeal(
+    { preparations: [], dishes: anonymous, shopping_list: [] },
+    lotbParseBase,
+  );
+  assertEquals(meal.dishes.length, LOTB_CAP);
+  // Les TITRES disent qui aurait dû manger, et ils sont CONCENTRÉS: quatre
+  // assiettes pour la bouche écrite en premier, une pour chacune des deux
+  // autres. C'est très exactement la forme du plan archivé.
+  const kept = meal.dishes.map((d) => d.title).filter((t) => t.startsWith("m-"));
+  const byName = new Map<string, number>(LOTB_BEARERS.map((id) => [id, 0]));
+  for (const t of kept) {
+    const id = t.split(" ")[0];
+    byName.set(id, (byName.get(id) ?? 0) + 1);
+  }
+  const blind = [...byName.values()];
+  assert(
+    Math.max(...blind) - Math.min(...blind) >= 3,
+    `sans porteur, l'écart devrait rester celui du défaut: ${JSON.stringify([...byName])}`,
+  );
+  // ⛔ ET LE MÊME FLOT, AVEC LES PORTEURS, TIENT L'ÉCART À 1 — les deux moitiés
+  // de la mutation dans le même banc, sinon « le correctif marche » et « le
+  // décor n'avait pas de pression » se liraient pareil.
+  const named = parseGeneratedMeal(
+    { preparations: [], dishes, shopping_list: [] },
+    lotbParseBase,
+  );
+  const namedCounts = [...lotbTally(named).values()];
+  assert(
+    Math.max(...namedCounts) - Math.min(...namedCounts) <= 1,
+    JSON.stringify([...lotbTally(named)]),
+  );
+  // Et rien n'est attribué: sans `for_member_id`, la table n'a personne à qui
+  // rendre son plat — c'est ce qui rendait le défaut invisible au compteur.
+  assertEquals(meal.dish_owner_counts.attributed, 0);
+});
+
 Deno.test("C8 ③ — LA LANE INDIVIDUELLE GARDE SA VERSION DE PROMPT", () => {
   // ⚠️ LE PRÉCÉDENT INVOQUÉ EST CELUI DE `HOUSEHOLD_PROMPT_VERSION` v4: la
   // règle est « quelle POPULATION voit une CONSIGNE différente », et v4 a bumpé
@@ -2695,7 +2970,25 @@ Deno.test("C8 ③ — LA LANE INDIVIDUELLE GARDE SA VERSION DE PROMPT", () => {
   // individuelle, le foyer ordinaire, la fusion et le secondaire les voient
   // tous. Le même bump paie la ligne `dishes[].name` ajoutée à
   // `MEAL_TRANSLATABLE_FIELDS`, rendue dans le bloc de langue des deux lanes.
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v12_a_dish_has_a_name");
+  // ⚠️ v13 (2026-08-18) — QA 01-injection, LANE SOLO. Le tronc bumpe une
+  // troisième fois pour la même raison que v10 et v11: des OCTETS DE CONSIGNE
+  // changent dans le message utilisateur. Quatre, tous mesurés sur le run réel
+  // `798c5cd6-…` avant d'être écrits — moyens de cuisson, cran d'activité,
+  // aspiration, et l'en-tête du garde-manger qui doublait celui des apports
+  // fixes. Les trois premiers ne concernent QUE la lane solo; le quatrième
+  // traverse les deux. Un compte qui n'a répondu à aucune des trois questions
+  // reçoit un message byte-identique à v12 — mais le cache doit quand même
+  // distinguer les deux, sinon un compte qui vient de répondre se voit rendre
+  // le prompt d'avant sa réponse.
+  // ⚠️ v16 (2026-08-19) — LE GROUPE ALIMENTAIRE EST DÉCLARÉ, PLUS DEVINÉ.
+  // La population qui voit une consigne différente: celle qui a un RÉGIME
+  // déclaré, sur les deux lanes. Le bloc voyage avec `dietaryRegimePromptLine`
+  // et PAS dans `MEAL_SYSTEM_PROMPT`, donc une composition sans régime rend un
+  // message byte-identique à v15 (`dietary_regime_solo_lane_test.ts :: « v16 —
+  // la demande de GROUPE n QUE dans le bloc de régime »`). Le bump vaut
+  // quand même — règle de v3/v5 de l foyer: c la PRÉSENCE du bloc qui
+  // distingue deux populations dans la colonne.
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v18_one_box_per_group");
   // ⚠️ v10 DEPUIS LE LOT G (2026-08-14), ET C'EST LA MOITIÉ DU LOT QUI COMPTE
   // ICI: le TRONC ne bouge toujours pas (la ligne au-dessus le tient), la lane
   // du FOYER si. Deux populations neuves y voient une consigne différente —
@@ -2755,7 +3048,7 @@ Deno.test("C8 ③ — LA LANE INDIVIDUELLE GARDE SA VERSION DE PROMPT", () => {
   // tronc, lui, ne gagne pas un octet: il reste à `meal.en.v12_a_dish_has_a_name`.
   // Population concernée: les foyers où une bouche ATTABLÉE a un compte ET a
   // déclaré un apport. Ailleurs, prompt byte-identique à v16.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v17_what_each_mouth_already_has");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v21_one_box_per_group");
 });
 
 Deno.test("C7 ③ — LA LIGNE DE COURSES D'UN PLAT JETÉ NE PART PLUS AU MAGASIN", () => {

@@ -14,17 +14,24 @@
 // `student_goals.practical_constraints` — la maison des faits de la maison —
 // et pas sur `household_members`.
 //
-// ── ⛔ CE MODULE NE PARLE PAS AU MODÈLE, ET C'EST UNE FRONTIÈRE DE LOT ──────
-// Il n'y a ici NI ligne de prompt, NI branche de génération. L'exploitation
-// appartient au lot L7, qui regroupe tous les changements de consigne en un
-// seul bump de version (la lane foyer expire déjà à 4 min: chaque bloc ajouté
-// coûte). Ce fichier lui livre trois choses et s'arrête: les jetons, le
-// lecteur, et la logique à TROIS valeurs ci-dessous.
+// ── ⚠️ CE PAVÉ A CHANGÉ LE 2026-08-18 (QA 01-injection, lane solo) ─────────
+// Il disait « ⛔ CE MODULE NE PARLE PAS AU MODÈLE », et laissait l'exploitation
+// au « lot L7 ». C'était vrai, et ça a coûté exactement ce que le paragraphe
+// du dessus annonce: sur le run réel `798c5cd6-…`, un élève venait de déclarer
+// n'avoir NI four NI congélateur, et le plan rendu ouvre par « Heat the oven »
+// avec des « roast potatoes ». Un champ collecté sans lecteur ressemble
+// exactement à un champ ignoré — ici il l'était.
 //
-// ⚠️ Écrire ici une `equipmentLines()` inerte serait exactement le défaut que
-// `coach_food_rules` a produit: un écran, des gardes, trente tests, et aucun
-// lecteur au runtime. Tant que L7 n'a pas branché, ce module est une COLLECTE
-// assumée, nommée comme telle, avec sa date.
+// `kitchenEquipmentPromptLines()`, en BAS de ce fichier, est donc branchée sur
+// la LANE SOLO (`generate-meal-v1` → `buildMealPrompt`). Elle n'est PAS
+// branchée sur la lane foyer, qui lit déjà ce module par ailleurs et dont le
+// prompt expire à 4 min: c'est un lot à part, à son propre coût mesuré.
+//
+// ⚠️ La règle que le pavé portait reste vraie et vaut toujours: une
+// `equipmentLines()` INERTE serait le défaut de `coach_food_rules` (un écran,
+// des gardes, trente tests, aucun lecteur). Une ligne écrite ici sans appelant
+// est un mensonge; c'est le test de SOURCE sur le site d'appel solo
+// (`kitchen_equipment_solo_lane_test.ts`) qui empêche qu'elle le redevienne.
 //
 // ── MODULE PUR ─────────────────────────────────────────────────────────────
 // Aucun accès base, aucun import de `meal_generation.ts` (cycle au chargement,
@@ -194,4 +201,73 @@ export function missingKitchenTools(
 ): readonly KitchenTool[] {
   if (equipment === null) return [];
   return KITCHEN_TOOLS.filter((tool) => !equipment.includes(tool));
+}
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * LA CONSIGNE — branchée le 2026-08-18 sur la lane SOLO, et sur elle seule.
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * ⚠️ LE PAVÉ EN TÊTE DE CE FICHIER DISAIT « CE MODULE NE PARLE PAS AU MODÈLE ».
+ * Ce n'est plus vrai, et la raison du changement est une MESURE, pas un avis:
+ * run réel `798c5cd6-acbf-43e3-8dcc-97128d3edd78`, élève ayant coché
+ * « plaque, micro-ondes, blender » et rien d'autre. Le plan rendu ouvre sa
+ * première session par « Heat the oven » et sert des « roast potatoes ». Le
+ * champ était collecté, stocké, relu par la lane foyer — et la lane solo
+ * composait sans jamais l'avoir vu. C'est le trou que le pavé du haut décrit
+ * lui-même, laissé au « lot L7 »; il se ferme ici pour la lane solo.
+ *
+ * ── POURQUOI CES LIGNES VIVENT DANS CE MODULE ─────────────────────────────
+ * Même patron que `fixed_intakes.ts` et `day_properties.ts`: le jeton, le
+ * lecteur et la PHRASE qui le dit au modèle se tiennent au même endroit. Une
+ * phrase écrite dans `meal_generation.ts` dériverait de la liste fermée sans
+ * que rien ne l'attrape.
+ *
+ * ── LA DIRECTION D'ERREUR, ET ELLE EST TENUE PAR `missingKitchenTools` ────
+ * On n'énonce QUE des absences déclarées. `null` (jamais demandé) rend `[]`,
+ * donc AUCUNE ligne, donc le prompt d'avant ce lot, au caractère près, pour
+ * tous les comptes qui n'ont pas vu la question. C'est le chemin que le pavé
+ * ci-dessus désigne comme « sans piège »: ni `!` ni oubli du troisième cas ne
+ * peuvent en tirer une interdiction que personne n'a énoncée.
+ *
+ * ⚠️ ON N'ÉCRIT JAMAIS CE QU'IL A. Lister « il a une plaque » invite le modèle
+ * à composer AUTOUR de l'inventaire; lister ce qui manque interdit un geste,
+ * ce qui est la seule chose dont la composition a besoin. Et un inventaire
+ * positif serait aussi deux fois plus long dans le cas courant.
+ */
+const TOOL_ABSENCE_LINE: Readonly<Record<KitchenTool, string>> = Object.freeze({
+  // Les trois qui décident (voir le §2.1 rappelé en tête de fichier).
+  oven: "no oven: nothing roasted, baked or gratinated, and no tray that goes " +
+    "in one. Long unattended cooking is not available to them.",
+  freezer: "no freezer: nothing is frozen for later. A batch has to be eaten " +
+    "within the few days a fridge gives, or it is waste.",
+  microwave: "no microwave: 'reheat it' means a pan on the hob, and that " +
+    "costs real minutes on the day it is eaten.",
+  // Les quatre qui affinent.
+  stovetop: "no hob: nothing simmered, boiled, fried or sauteed on a ring.",
+  air_fryer: "no air fryer.",
+  pressure_cooker: "no pressure cooker: dried pulses and slow cuts take their " +
+    "full time, or come from a tin.",
+  blender: "no blender or food processor: no smoothie, no blitzed soup, no " +
+    "sauce that has to be blended.",
+});
+
+/**
+ * CE QUE LE MODÈLE DOIT S'INTERDIRE, une ligne par outil DÉCLARÉ ABSENT.
+ *
+ * Rend `[]` quand rien n'a été déclaré (`null`) et quand tout est là — dans
+ * les deux cas il n'y a rien à interdire, et le bloc appelant ne change pas.
+ * L'ORDRE est celui de `KITCHEN_TOOLS`, jamais celui du stockage: deux
+ * générations pour une même déclaration doivent rendre le même prompt.
+ */
+export function kitchenEquipmentPromptLines(
+  equipment: readonly KitchenTool[] | null,
+): readonly string[] {
+  const missing = missingKitchenTools(equipment);
+  if (missing.length === 0) return [];
+  return [
+    "what their kitchen does NOT have -- never compose a dish, a batch or a " +
+    "session that needs one of these:",
+    ...missing.map((tool) => `- ${TOOL_ABSENCE_LINE[tool]}`),
+  ];
 }

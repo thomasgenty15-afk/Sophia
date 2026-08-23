@@ -1,0 +1,293 @@
+{
+    "run": {
+        "lane": "generate-household-meal-v1",
+        "model": "gpt-5.4-mini",
+        "iteration": 3,
+        "request_id": "ac79471a-0ac9-4bfc-85eb-bc34ce99997b"
+    },
+    "envy": [
+        {
+            "body": "the house is craving something with aubergine on Saturday",
+            "week_start": "2026-08-17"
+        }
+    ],
+    "bodies": [
+        {
+            "gender": "male",
+            "height_cm": 178.0,
+            "member_id": "5e61b4af-f14f-494e-8555-9d25778b7b56",
+            "weight_kg": 88.0,
+            "activity_level": "sedentary"
+        },
+        {
+            "gender": "female",
+            "height_cm": 165.0,
+            "member_id": "b9415944-06b0-4246-b1f4-76c93b6afbc7",
+            "weight_kg": 54.0,
+            "activity_level": "trains_hard"
+        },
+        {
+            "gender": "male",
+            "height_cm": 138.0,
+            "member_id": "0c3e9590-ff9d-46bd-bca2-d056c211f61a",
+            "weight_kg": 33.0,
+            "activity_level": "on_feet"
+        }
+    ],
+    "habits": [
+        {
+            "note": "will not touch coriander, ever",
+            "slots": [
+                {
+                    "kind": "own_usual",
+                    "slot": "snack_pm",
+                    "usual": "a bowl of skyr with walnuts"
+                }
+            ],
+            "member_id": "b9415944-06b0-4246-b1f4-76c93b6afbc7"
+        },
+        {
+            "note": "only eats vegetables when they are not touching each other",
+            "slots": [
+            ],
+            "member_id": "0c3e9590-ff9d-46bd-bca2-d056c211f61a"
+        },
+        {
+            "note": "eats standing up on Tuesdays",
+            "slots": [
+                {
+                    "kind": "own_usual",
+                    "slot": "breakfast",
+                    "usual": "black coffee and two boiled eggs"
+                }
+            ],
+            "member_id": "5e61b4af-f14f-494e-8555-9d25778b7b56"
+        }
+    ],
+    "safety": [
+        {
+            "kind": "allergy",
+            "status": "active",
+            "diet_ref": null,
+            "allergen_ref": "peanut"
+        }
+    ],
+    "members": [
+        {
+            "diet": "pescatarian",
+            "goal": "muscle_gain",
+            "role": "member",
+            "user_id": null,
+            "away_days": [
+                {
+                    "day": "mon",
+                    "kind": "eating_out",
+                    "slots": [
+                        "lunch"
+                    ]
+                },
+                {
+                    "day": "tue",
+                    "kind": "eating_out",
+                    "slots": [
+                        "lunch"
+                    ]
+                },
+                {
+                    "day": "wed",
+                    "kind": "eating_out",
+                    "slots": [
+                        "lunch"
+                    ]
+                },
+                {
+                    "day": "thu",
+                    "kind": "eating_out",
+                    "slots": [
+                        "lunch"
+                    ]
+                },
+                {
+                    "day": "fri",
+                    "kind": "eating_out",
+                    "slots": [
+                        "lunch"
+                    ]
+                }
+            ],
+            "member_id": "b9415944-06b0-4246-b1f4-76c93b6afbc7",
+            "birth_date": "1994-09-23",
+            "first_name": "Livia",
+            "work_lunch": {
+                "mode": "outside",
+                "at_work": true
+            },
+            "eating_rhythm": [
+                {
+                    "at": null,
+                    "size": "large",
+                    "slot": "lunch"
+                },
+                {
+                    "at": null,
+                    "size": null,
+                    "slot": "snack_pm"
+                },
+                {
+                    "at": null,
+                    "size": "medium",
+                    "slot": "dinner"
+                }
+            ],
+            "target_weight_kg": null,
+            "target_pace_kg_per_week": null
+        },
+        {
+            "diet": null,
+            "goal": null,
+            "role": "member",
+            "user_id": null,
+            "away_days": [
+                {
+                    "day": "sat",
+                    "kind": "away",
+                    "slots": [
+                        "dinner"
+                    ]
+                }
+            ],
+            "member_id": "0c3e9590-ff9d-46bd-bca2-d056c211f61a",
+            "birth_date": "2016-03-05",
+            "first_name": "Tino",
+            "work_lunch": null,
+            "eating_rhythm": [
+                {
+                    "at": null,
+                    "size": null,
+                    "slot": "breakfast"
+                },
+                {
+                    "at": null,
+                    "size": null,
+                    "slot": "lunch"
+                },
+                {
+                    "at": null,
+                    "size": null,
+                    "slot": "snack_pm"
+                },
+                {
+                    "at": null,
+                    "size": null,
+                    "slot": "dinner"
+                }
+            ],
+            "target_weight_kg": null,
+            "target_pace_kg_per_week": null
+        },
+        {
+            "diet": null,
+            "goal": null,
+            "role": "owner",
+            "user_id": "8494a2e4-c31c-52e7-7f71-7bf9f3506f95",
+            "away_days": [
+            ],
+            "member_id": "5e61b4af-f14f-494e-8555-9d25778b7b56",
+            "birth_date": null,
+            "first_name": "Sacha",
+            "work_lunch": {
+                "at_work": false
+            },
+            "eating_rhythm": null,
+            "target_weight_kg": null,
+            "target_pace_kg_per_week": null
+        }
+    ],
+    "form_payload": {
+        "meals_envy": "the house is craving something with aubergine on Saturday",
+        "window_end": "2026-08-24",
+        "window_start": "2026-08-18",
+        "cooking_shape": "one_dish",
+        "meals_context": "Livia is on a late shift on Wednesday and nobody is home before nine",
+        "meals_preferences": "we fancy roasted brussels sprouts and a lentil dahl this time"
+    },
+    "household_id": "f83fbc89-8c0f-47e6-9085-540463f77fb5",
+    "restrictions": [
+        {
+            "label": "mushrooms",
+            "member_id": "b9415944-06b0-4246-b1f4-76c93b6afbc7"
+        }
+    ],
+    "owner_profile": {
+        "gender": "male",
+        "locale": "en-GB",
+        "country": "GB",
+        "timezone": "Europe/London",
+        "full_name": "Sacha",
+        "height_cm": 178,
+        "birth_date": "1986-04-12",
+        "activity_level": "sedentary"
+    },
+    "owner_user_id": "8494a2e4-c31c-52e7-7f71-7bf9f3506f95",
+    "student_goals": {
+        "goal": "fat_loss",
+        "situation": "QA fixture cohort f1b",
+        "target_weight_kg": 80,
+        "practical_constraints": {
+            "cooks": true,
+            "variety": "varied",
+            "cook_days": [
+                "mon",
+                "wed",
+                "sat"
+            ],
+            "diet_asked": true,
+            "allergy_check": {
+                "self": true,
+                "members": [
+                    "b9415944-06b0-4246-b1f4-76c93b6afbc7",
+                    "0c3e9590-ff9d-46bd-bca2-d056c211f61a"
+                ]
+            },
+            "budget_amount": 137,
+            "eating_rhythm": [
+                {
+                    "size": "small",
+                    "slot": "breakfast"
+                },
+                {
+                    "size": "medium",
+                    "slot": "lunch"
+                },
+                {
+                    "size": "large",
+                    "slot": "dinner"
+                }
+            ],
+            "fixed_intakes": [
+                {
+                    "days": [
+                    ],
+                    "unit": "g",
+                    "label": "the evening tub",
+                    "amount": 32,
+                    "food_ref": "declared_the_evening_tub",
+                    "nutrition": "declared",
+                    "serving_grams": 32,
+                    "protein_g_per_serving": 24,
+                    "energy_kcal_per_serving": 128
+                }
+            ],
+            "cooking_time_min": 60,
+            "kitchen_equipment": [
+                "oven",
+                "stovetop",
+                "freezer"
+            ],
+            "recipe_difficulty": "keen"
+        },
+        "target_pace_kg_per_week": 0.3
+    },
+    "allergies_member": [
+    ]
+}

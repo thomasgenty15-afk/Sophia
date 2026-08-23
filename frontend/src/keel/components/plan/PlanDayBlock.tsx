@@ -15,7 +15,7 @@ import { sessionForDish } from "../../lib/dishSession";
 import { groupByAisle } from "../../lib/mealBuilderModel";
 import { type DayMoment } from "../../lib/planDayView";
 import { groupDayBySlot } from "../../lib/planDaySlots";
-import { boxLineForUse, boxLinesFor } from "../../lib/preparationBoxes";
+import { boxLinesForDish, boxLinesForSession } from "../../lib/mealBoxes";
 import { BoxTable } from "./BoxTable";
 import DayPersonSplit from "./DayPersonSplit";
 import DishCard from "../DishCard";
@@ -60,6 +60,19 @@ export interface PlanDayBlockProps {
   date: string | null;
   today: string;
   preparations: readonly MealPreparation[];
+  /**
+   * LES PLATS DU PLAN ENTIER — pour les CONTENANTS d'une session de cuisine.
+   *
+   * ⚠️ PAS `group.dishes`, ET C'EST LA RAISON D'ÊTRE DE LA PROP. Une session du
+   * dimanche remplit des boîtes pour des repas du mardi et du jeudi: la table de
+   * pesée d'une session lit donc TOUS les repas qui prélèvent sur ses
+   * casseroles, pas ceux du jour où elle tombe.
+   *
+   * ⚠️ REQUISE, `[]` pour « aucun », jamais `T?`. « Paramètre de garde optionnel
+   * = garde désarmée »: un `?` n'aurait fait remonter aucun appelant au
+   * compilateur, et la carte de session aurait perdu sa pesée en silence.
+   */
+  allDishes: readonly GeneratedDish[];
   cookingSessions: readonly CookingSession[];
   /**
    * LA VAGUE DE COURSES QUI TOMBE CE JOUR — résolue par le parent
@@ -107,10 +120,6 @@ export default function PlanDayBlock(props: PlanDayBlockProps) {
   const slotGroups = groupDayBySlot({
     dishes: group.dishes,
     portions: props.portions,
-    // LOT 4 — pour que la part d'une bouche cite SA boîte. Même tableau que
-    // celui qui résout `sources` plus bas: une seule liste de préparations dans
-    // ce bloc, jamais deux.
-    preparations: props.preparations,
   });
   const quiet = group.dishes.length === 0 && sessions.length === 0 &&
     props.wave === null && silences.length === 0;
@@ -147,29 +156,50 @@ export default function PlanDayBlock(props: PlanDayBlockProps) {
         </h3>
       )}
       <div className="space-y-3">
-        {/* ── LA SESSION DE CUISINE DU JOUR, EN TÊTE ─────────────────────────
-            C'est la première chose qu'on fait ce jour-là — avant de manger, on
-            cuisine. Carte compacte, dépliable vers le déroulé; la fenêtre
-            « tes sessions de cuisine » reste la vue d'ensemble. */}
-        {sessions.map((session, index) => (
-          <DaySessionCard
-            key={`${session.day}-${index}`}
-            session={session}
-            preparations={props.preparations}
-            // LOT 4 — LES PRÉNOMS DES BOÎTES. Même source que la séparation par
-            // personne juste en dessous (`props.portions`): une seule liste de
-            // bouches pour tout ce bloc, jamais deux.
-            portions={props.portions}
-          />
-        ))}
-        {/* ── LES COURSES DU JOUR ────────────────────────────────────────────
+        {/* ══════════════════════════════════════════════════════════════════
+            LE BLOC D'UN JOUR SUIT L'ORDRE DES GESTES: ACHETER, CUISINER, MANGER.
+            ══════════════════════════════════════════════════════════════════
+
+            ── CE QUI A CHANGÉ LE 2026-08-20 ────────────────────────────────
+            Les courses étaient SOUS la session de cuisine. On lisait donc quoi
+            faire des casseroles avant de savoir s'il fallait encore aller
+            chercher de quoi les remplir. Demandé: « la liste de course doit
+            toujours être en haut de la journée ».
+
+            ⛔ ET ON NE POSE PAS DE MARQUEUR D'ÉTAPE (1/2/3) SUR CES TROIS
+            BLOCS. Deux des trois manquent la plupart des jours — la majorité
+            des jours n'ont ni vague de courses ni session — et un « 1 » sur le
+            seul bloc présent affirmerait une séquence qui n'existe pas ce
+            jour-là. L'ordre porte l'information; le numéro mentirait. */}
+        {/* ── LES COURSES DU JOUR, EN TÊTE ───────────────────────────────────
             La vague qui TOMBE ce jour-là, dépliable vers sa liste par rayons.
+            ⚠️ PLIÉE, AVEC SON COMPTE. Dépliée en tête, elle enterrerait la
+            cuisine sous vingt lignes; le compte suffit à décider si on sort.
             La fenêtre de courses complète reste — et c'est elle qui porte les
             ratures: en tenir un second jeu ici ferait deux mémoires pour la
             même liste, et c'est celle qu'on ne regarde pas qui gagnerait. */}
         {props.wave && props.wave.indices.length > 0 && (
           <DayGroceriesCard wave={props.wave} shoppingList={props.shoppingList} />
         )}
+        {/* ── LA SESSION DE CUISINE DU JOUR ───────────────────────────────────
+            Ce qu'on fait avant de manger. Carte compacte, dépliable vers le
+            déroulé; la fenêtre « tes sessions de cuisine » reste la vue
+            d'ensemble. Son dernier bloc est le Boxing. */}
+        {sessions.map((session, index) => (
+          <DaySessionCard
+            key={`${session.day}-${index}`}
+            session={session}
+            preparations={props.preparations}
+            // LES REPAS QUE CETTE SESSION MET EN BOÎTES — tout le plan, jamais
+            // le seul jour rendu: une session du dimanche remplit les boîtes du
+            // mardi.
+            allDishes={props.allDishes}
+            // LES PRÉNOMS DES BOÎTES. Même source que la séparation par personne
+            // juste en dessous (`props.portions`): une seule liste de bouches
+            // pour tout ce bloc, jamais deux.
+            portions={props.portions}
+          />
+        ))}
         {/* ── LOT 3 · LES PLATS, MOMENT PAR MOMENT ───────────────────────────
             Le regroupement est PUR (`groupDayBySlot`) et il ne lit aucun titre:
             l'attribution vient de `dish.member_id`, le prénom de la ligne
@@ -177,52 +207,95 @@ export default function PlanDayBlock(props: PlanDayBlockProps) {
             dédié se rend comme avant — c'est le cas majoritaire, et il ne paie
             rien. */}
         {slotGroups.map((slotGroup) => (
-          <DayPersonSplit
-            key={`${group.day}-${slotGroup.slot ?? "no_slot"}`}
-            group={slotGroup}
-            // LE CÂBLAGE DE LA CARTE RESTE ICI, où il était déjà: `DayPersonSplit`
-            // PLACE les cartes sous le bon en-tête et ne lit aucun champ d'un
-            // plat — c'est ce qui rend structurellement impossible qu'un
-            // objectif ou un chiffre de corps entre dans la séparation.
-            renderDish={(dish, key) => (
-              <DishCard
-                key={key}
-                dish={dish}
-                // LES PRÉPARATIONS QUE CE PLAT CONSOMME, résolues ici: le plat
-                // ne porte que des `id`, et une carte qui irait les chercher
-                // elle-même dupliquerait la résolution sur les deux écrans qui
-                // la montent.
-                sources={dish.uses
-                  .map((u) => ({
-                    use: u,
-                    prep: props.preparations.find((p) => p.id === u.preparation_id),
-                  }))
-                  .filter((e): e is { use: typeof e.use; prep: MealPreparation } =>
-                    Boolean(e.prep)
-                  )
-                  .map(({ use, prep }) => ({
-                    title: prep.title,
-                    cookOn: prep.cook_on,
-                    // ── LOT 4 · LA BOÎTE DE CETTE REPRISE, JOINTE PAR ID ───
-                    // Résolue ICI, comme `title` et `cookOn` juste au-dessus, et
-                    // pour la même raison: le plat ne porte que des
-                    // identifiants, et une carte qui irait les chercher
-                    // elle-même dupliquerait la résolution sur les deux écrans
-                    // qui la montent. La jointure est `uses[].box_id` →
-                    // `preparations[].boxes[].id`, jamais un titre.
-                    box: boxLineForUse(use, props.preparations, props.portions),
-                  }))}
-                tick={props.tick?.(dish, date)}
-                energy={props.energy?.(dish) ?? null}
-                // ── LA SESSION QUI A FAIT SON LOT (2026-08-14) ───────────────
-                // RÉSOLUE ICI, comme `sources` juste au-dessus, et pour la même
-                // raison: le plat ne porte que des `id`, et une carte qui irait
-                // chercher les sessions elle-même dupliquerait la résolution sur
-                // les deux écrans qui la montent.
-                session={sessionForDish(dish, props.cookingSessions, props.preparations)}
-              />
+          <section key={`${group.day}-${slotGroup.slot ?? "no_slot"}`}>
+            {/* ══════════════════════════════════════════════════════════════
+                LE MOMENT EST UN TITRE, PLUS UNE PASTILLE SUR LA CARTE.
+                ══════════════════════════════════════════════════════════════
+                « Au lieu d'avoir des tags "petit déjeuner", il faudrait que ce
+                soit des sections claires » (2026-08-19). Le regroupement
+                existait déjà (`groupDayBySlot`); il n'était pas MONTRÉ, donc
+                pour savoir ce qu'on mange à midi il fallait balayer les cartes
+                et lire chaque pastille.
+
+                ⚠️ MUET SUR UN PLAT SANS MOMENT, et c'est le seul cas où la
+                pastille manquait aussi: `dishSlotLabel(null)` rend `null`, et
+                inventer « Repas » prescrirait un horaire que le moteur n'a pas
+                écrit. Ces plats-là ferment la marche, sans titre.
+
+                ⚠️ UN JETON INCONNU GARDE SON MOT. `dishSlotLabel` rend le jeton
+                brut plutôt que de jeter — des plats en base portent `snack`, et
+                les faire disparaître d'un plan vivant coûterait plus cher qu'un
+                titre imparfait. */}
+            {slotGroup.slot !== null && (
+              <h4 className="mb-2 text-label font-semibold uppercase tracking-wide text-ink-soft">
+                {dishSlotLabel(slotGroup.slot)}
+              </h4>
             )}
-          />
+            <DayPersonSplit
+              group={slotGroup}
+              // LE CÂBLAGE DE LA CARTE RESTE ICI, où il était déjà:
+              // `DayPersonSplit` PLACE les cartes sous le bon en-tête et ne lit
+              // aucun champ d'un plat — c'est ce qui rend structurellement
+              // impossible qu'un objectif ou un chiffre de corps entre dans la
+              // séparation.
+              renderDish={(dish, key, annotation) => (
+                <DishCard
+                  key={key}
+                  dish={dish}
+                  // ── QUI EST À TABLE, ET CE QUE CHACUN EN FAIT ─────────────
+                  //
+                  // ⛔ DESCENDUS DANS LA CARTE LE 2026-08-21, ET C'EST LE
+                  // CORRECTIF. Ils se rendaient SOUS elle, dans
+                  // `DayPersonSplit`, rattachés par la seule proximité — et
+                  // contre une bordure, aucun écart ne rattache rien: « c'est
+                  // entre les deux, on comprend pas ».
+                  //
+                  // ⚠️ CALCULÉS LÀ-BAS, RENDUS ICI, et le partage est le même
+                  // que pour `boxes`: seul `DayPersonSplit` sait ce que l'en-tête
+                  // de la voie a déjà nommé (`annotation.shares[].name === null`)
+                  // et si le plat s'annonce lui-même. La carte reçoit une liste
+                  // prête, jamais la règle.
+                  eaters={annotation.eaters}
+                  shares={annotation.shares}
+                  // LES PRÉPARATIONS QUE CE PLAT CONSOMME, résolues ici: le
+                  // plat ne porte que des `id`, et une carte qui irait les
+                  // chercher elle-même dupliquerait la résolution sur les deux
+                  // écrans qui la montent.
+                  sources={dish.uses
+                    .map((u) => ({
+                      use: u,
+                      prep: props.preparations.find((p) => p.id === u.preparation_id),
+                    }))
+                    .filter((e): e is { use: typeof e.use; prep: MealPreparation } =>
+                      Boolean(e.prep)
+                    )
+                    .map(({ prep }) => ({
+                      title: prep.title,
+                      cookOn: prep.cook_on,
+                    }))}
+                  // ── LA BOÎTE DE CE REPAS, RÉSOLUE ICI ────────────────────
+                  // Résolue ICI, comme `sources` juste au-dessus, et pour la
+                  // même raison: la jointure boîte → prénoms passe par
+                  // `member_portions`, que la carte ne reçoit pas. Une carte
+                  // qui irait les chercher elle-même dupliquerait la résolution
+                  // sur les deux écrans qui la montent.
+                  boxes={boxLinesForDish(dish, props.portions)}
+                  tick={props.tick?.(dish, date)}
+                  energy={props.energy?.(dish) ?? null}
+                  // ── LA SESSION QUI A FAIT SON LOT (2026-08-14) ─────────────
+                  // RÉSOLUE ICI, comme `sources` juste au-dessus, et pour la
+                  // même raison: le plat ne porte que des `id`, et une carte
+                  // qui irait chercher les sessions elle-même dupliquerait la
+                  // résolution sur les deux écrans qui la montent.
+                  session={sessionForDish(dish, props.cookingSessions, props.preparations)}
+                  // LE TITRE DE SECTION JUSTE AU-DESSUS A DÉJÀ NOMMÉ LE MOMENT.
+                  // Garder la pastille ferait dire « Déjeuner » deux fois à
+                  // trois centimètres d'écart, sur chaque carte du plan.
+                  slotBadge={false}
+                />
+              )}
+            />
+          </section>
         ))}
         {/* ── LES MOMENTS SANS PLAT, ET LEUR MOTIF ───────────────────────────
             Les trois silences voulus se ressemblent entre eux (« rien ici, et
@@ -294,6 +367,7 @@ export default function PlanDayBlock(props: PlanDayBlockProps) {
 function DaySessionCard(props: {
   session: CookingSession;
   preparations: readonly MealPreparation[];
+  allDishes: readonly GeneratedDish[];
   portions: readonly MemberPortionView[];
 }) {
   const [open, setOpen] = React.useState(false);
@@ -304,11 +378,7 @@ function DaySessionCard(props: {
   const preps = session.preparation_ids
     .map((id) => props.preparations.find((p) => p.id === id))
     .filter((p): p is MealPreparation => p !== undefined);
-  const titles = preps.map((p) => p.title).filter((title) => title !== "");
-  // LOT 4 — TOUTES LES BOÎTES DE CETTE SESSION, dans l'ordre de ses
-  // préparations. La pesée est le geste de CE jour-là: elle se lit avec le
-  // reste du jour, pas dans une fenêtre qu'il faut aller ouvrir.
-  const boxes = preps.flatMap((p) => boxLinesFor(p, props.portions));
+
   return (
     <Card>
       <div className="flex flex-wrap items-baseline gap-2">
@@ -342,18 +412,99 @@ function DaySessionCard(props: {
           </button>
         )}
       </div>
-      {/* CE QU'ON Y CUIT, toujours visible: c'est ce qui dit pourquoi ce jour
-          compte. Muet quand la session ne nomme aucune préparation connue. */}
-      {titles.length > 0 && (
-        <p className="mt-1 text-sm text-ink-soft">{titles.join(" · ")}</p>
-      )}
-      {/* ── LA TABLE DE PESÉE DU JOUR (LOT 4) ─────────────────────────────
-          TOUJOURS VISIBLE, jamais sous le dépliant: c'est l'instruction du
-          jour — « pèse ça, dans ces boîtes-là » — et la replier reviendrait à
-          demander d'ouvrir un panneau pour savoir quoi faire de la casserole
-          qu'on vient de vider. Le dépliant, lui, porte le DÉROULÉ, qui est un
-          autre geste. */}
-      <BoxTable lines={boxes} />
+      {/* ══════════════════════════════════════════════════════════════════
+          UNE CASSEROLE À LA FOIS: SON NOM, COMMENT ON LA CUIT, SES BOÎTES.
+          ══════════════════════════════════════════════════════════════════
+
+          ── CE QU'ON LISAIT AVANT (2026-08-19) ──────────────────────────
+          Les titres collés par un point médian — « Poulet rôti et légumes
+          d'été · Œufs durs » — puis UNE table de pesée qui aplatissait les
+          boîtes des DEUX casseroles. On lisait donc quatre lignes de prénoms
+          et de grammes sans savoir laquelle allait dans quel bac. Signalé:
+          « il dit de faire des barquettes de 450 grammes mais on sait pas à
+          quoi ça correspond ».
+
+          ⛔ ET LE `method` N'ÉTAIT NULLE PART SUR CETTE CARTE. Il est écrit
+          par le modèle (« comment cuire la fournée »), et il ne s'affichait
+          que dans « Tes sessions de cuisine ». La question posée était « les
+          cuissons seront plus détaillées que ça, pas en mode preview ? » — la
+          réponse est non, c'est le même objet: le détail existait, il n'était
+          pas rendu ici.
+
+          ⚠️ CHAQUE PESÉE SOUS SA CASSEROLE, et c'est ce qui règle le « 450 g
+          de quoi ». `BoxTable` n'ajoute plus son propre sous-titre quand elle
+          ne reçoit qu'une préparation: le titre est déjà juste au-dessus.
+
+          ⚠️ LE `method` EST VISIBLE, PAS SOUS LE DÉPLIANT. C'est l'instruction
+          du jour; la replier reviendrait à demander d'ouvrir un panneau pour
+          savoir quoi faire de la casserole qu'on a devant soi. Le dépliant
+          porte le DÉROULÉ — l'ORDRE des gestes entre les casseroles —, qui est
+          une autre question. */}
+      {preps.map((prep) => (
+        <div key={prep.id} className="mt-3 first:mt-2">
+          {prep.title !== "" && (
+            <p className="text-sm font-semibold text-ink">{prep.title}</p>
+          )}
+          {/* ── CE QU'IL Y A DEDANS, AVANT DE DIRE QUOI EN FAIRE ───────────
+              « Dans cette session de cuisine on comprend pas du tout qu'est-ce
+              que ça concerne comme légume, les légumes rôtis » (2026-08-19).
+              La carte donnait un titre et un mode d'emploi, jamais la matière:
+              « Légumes d'été rôtis » ne dit ni lesquels ni combien, et on ne
+              peut pas cuisiner ça.
+
+              ⚠️ LES QUANTITÉS SONT CELLES DE LA FOURNÉE ENTIÈRE — le moteur
+              les demande ainsi (`"quantity": "<for the WHOLE batch>"`). Ce
+              sont les grammes qu'on ACHÈTE et qu'on met dans la casserole; les
+              grammes de la pesée, juste en dessous, sont ceux qui sortent en
+              boîtes. Les deux nombres sont différents et le restent: c'est
+              cru contre prêt.
+
+              ⚠️ MUET SANS QUANTITÉ, jamais « ? ». Un terme sans nombre reste
+              une matière qu'on reconnaît en rayon; un point d'interrogation
+              donnerait à un silence l'air d'une panne. */}
+          {prep.ingredients.length > 0 && (
+            <ul className="mt-1 flex flex-col gap-0.5">
+              {prep.ingredients.map((ing, i) => (
+                <li
+                  key={`${ing.term}-${i}`}
+                  className="flex flex-wrap items-baseline gap-2 break-words text-sm text-ink"
+                >
+                  <span>{ing.term}</span>
+                  {ing.quantity && (
+                    <span className="tabular-nums text-ink-soft">{ing.quantity}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+          {prep.method && (
+            <p className="mt-2 text-sm leading-6 text-ink-soft">{prep.method}</p>
+          )}
+
+        </div>
+      ))}
+      {/* ══════════════════════════════════════════════════════════════════
+          LES CONTENANTS QUE CETTE SESSION DOIT REMPLIR.
+          ══════════════════════════════════════════════════════════════════
+
+          ── CE QUI A CHANGÉ LE 2026-08-19 ────────────────────────────────
+          La pesée était SOUS CHAQUE CASSEROLE, et elle listait des bacs par
+          aliment: « Christèle 340 g / iku 420 g » sous le poulet, puis la même
+          chose sous le quinoa. Devant le frigo, ces couvercles ne décidaient
+          rien — « Boîte iku » était sur cinq d'entre eux.
+
+          ⚠️ ELLE EST DONC UNE FOIS, EN BAS, ET ELLE LISTE DES REPAS. Ce qu'une
+          session produit, ce sont des contenants: « jeudi midi », « jeudi
+          soir ». Chacun tient tout ce que son repas sortira, toutes casseroles
+          confondues — c'est un contenant en MOINS, et c'est voulu.
+
+          ⚠️ DEHORS DU DÉPLIANT, avec les durées: c'est ce qu'on lit en décidant
+          de se mettre à cuisiner. Le dépliant porte le DÉROULÉ, qui est une
+          autre question. */}
+      <BoxTable
+        lines={boxLinesForSession(session.preparation_ids, props.allDishes, props.portions)}
+        context="session"
+      />
       {open && session.run_through && (
         <p id={panelId} className="mt-2 text-sm leading-6 text-ink">
           {session.run_through}

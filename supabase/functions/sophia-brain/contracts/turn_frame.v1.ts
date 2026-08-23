@@ -114,6 +114,38 @@ export type PlanQuestionSignalContext = {
   reason: string;
 };
 
+/**
+ * LE RETOUR SUR UNE LIGNE DU PLAN — lot 4A du chantier « mémoire structurée ».
+ *
+ * ⚠️ CE TYPE N'EST PAS NEUF: il porte, champ pour champ, celui que
+ * `router/dispatcher.ts` déclarait déjà pour `DispatcherSignals.plan_feedback`
+ * — et ce dernier l'IMPORTE désormais d'ici au lieu de le recopier. Il n'existe
+ * donc qu'UNE définition. Motif, et c'est la cicatrice §7.4 du contrat de
+ * phase 0: « une clé déclarée deux fois que rien ne relie » laissait 86 tests
+ * verts pendant que l'écriture partait dans une clé que plus personne ne lisait.
+ *
+ * ⛔ CE SIGNAL NE ROUTE RIEN. `routers/routers.ts` ne lit que `plan_question`
+ * pour choisir un `response_owner`; celui-ci est PASSIF — il informe le tour,
+ * il ne le possède jamais. C'est voulu: le retour de sizing doit pouvoir sortir
+ * PAR-DESSUS la lane qui a parlé, pas à sa place.
+ *
+ * ⚠️ `kind` EST UNE CHAÎNE LIBRE ET RESTE BRUTE ICI. La liste fermée qui décide
+ * si le tour parle d'une PART vit dans `_shared/keel/conversation_retained.ts`
+ * (`SIZING_FEEDBACK_KINDS`), avec la phrase de renvoi qu'elle arme. La valider
+ * ici ferait un second juge, et le jour où la liste bougerait un seul des deux
+ * suivrait.
+ */
+export type DispatcherPlanFeedbackSignal = {
+  detected: boolean;
+  /** Brut. La liste fermée qui MORD est `SIZING_FEEDBACK_KINDS`. */
+  kind?: string | null;
+  confidence?: number;
+  target_item_id?: string | null;
+  target_title?: string | null;
+  detail?: string | null;
+  sentiment?: string | null;
+};
+
 export type DispatcherSkillSignals = {
   // W2.A: `feature_opportunity` (initiatives / coach_preferences) est retiré
   // du contrat de signaux — la lane n'est plus routable. Le type de contexte
@@ -125,6 +157,11 @@ export type DispatcherSkillSignals = {
   plan_question?: SkillSignal & {
     context?: PlanQuestionSignalContext;
   };
+  // LOT 4A — l'écrivain qui manquait. Le renvoi du sizing est câblé, testé et
+  // bilingue depuis le lot 2C, et il ne pouvait JAMAIS partir: rien ne mettait
+  // `plan_feedback.detected` à `true`. Ce champ est la porte d'entrée du
+  // modèle vers ce signal.
+  plan_feedback?: DispatcherPlanFeedbackSignal;
 };
 
 export type DispatcherMemoryTargetType =

@@ -7,6 +7,7 @@ import type {
   DispatcherMemoryPlan,
   DispatcherMemoryRetrievalPolicy,
   DispatcherMemoryTargetType,
+  DispatcherPlanFeedbackSignal,
   DispatcherResearchSignal,
   Explicitness,
   PlanQuestionKind,
@@ -597,6 +598,50 @@ function sanitizeDirectEffects(raw: unknown): TurnFrame["direct_effects"] {
   return effects;
 }
 
+/**
+ * LOT 4A — LE PARSEUR DE `plan_feedback`, ET IL EST À PART.
+ *
+ * ⚠️ IL NE PASSE PAS PAR `sanitizeSkillSignal`, exprès: ce dernier impose
+ * `confidence_band` et jette tout le reste. `plan_feedback` porte `kind`,
+ * `sentiment`, `detail` et une cible — les quatre champs que le runtime lit.
+ * Les faire transiter par un parseur qui ne les connaît pas rendrait un signal
+ * `detected: true` VIDE, c'est-à-dire un signal qui compte et n'arme rien.
+ *
+ * ⚠️ `kind` N'EST PAS VALIDÉ CONTRE LA LISTE FERMÉE ICI. Le juge est
+ * `sizingFeedbackDetected` (`_shared/keel/conversation_retained.ts`), un seul,
+ * et il refuse déjà tout jeton inconnu. Deux juges, c'est un jour où l'un dit
+ * oui et l'autre non sans que personne ne sache lequel a parlé.
+ *
+ * ⚠️ RIEN N'EST DEVINÉ QUAND `detected` EST ABSENT OU FAUX: on rend `null`, et
+ * l'appelant n'écrit pas la clé. Un `{detected:false}` posé dans le frame ferait
+ * un signal « vu » dans les traces pour tous les tours du produit.
+ */
+function sanitizePlanFeedbackSignal(
+  raw: unknown,
+): DispatcherPlanFeedbackSignal | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const signal = raw as Record<string, unknown>;
+  if (signal.detected !== true) return null;
+  const kind = String(signal.kind ?? "").trim().toLowerCase().slice(0, 40);
+  const sentimentRaw = String(signal.sentiment ?? "").trim().toLowerCase();
+  const sentiment = sentimentRaw === "positive" || sentimentRaw === "negative"
+    ? sentimentRaw
+    : "neutral";
+  const detail = String(signal.detail ?? "").trim().slice(0, 160);
+  const targetItemId = String(signal.target_item_id ?? "").trim().slice(0, 64);
+  const targetTitle = String(signal.target_title ?? "").trim().slice(0, 120);
+  const confidence = optionalScore(signal.confidence);
+  return {
+    detected: true,
+    kind: kind || null,
+    sentiment,
+    detail: detail || null,
+    target_item_id: targetItemId || null,
+    target_title: targetTitle || null,
+    ...(confidence !== undefined ? { confidence } : {}),
+  };
+}
+
 function sanitizeSkillSignal(
   raw: unknown,
   kind?:
@@ -663,6 +708,19 @@ function sanitizeSkillSignals(
   const signals: NonNullable<TurnFrame["skill_signals"]> = {};
   if (planQuestion?.detected === true) {
     signals.plan_question = planQuestion as any;
+  }
+  // LOT 4A — l'écrivain. Le signal est lu au MÊME endroit que `plan_question`
+  // et au même niveau: c'est ce qui rend la coexistence des deux possible sur
+  // un même tour, et la coexistence est la moitié qui empêche la capture (« ça
+  // m'a fait trop de riz, je fais quoi ce soir ? » porte les deux).
+  //
+  // ⚠️ MÊME TOLÉRANCE `entry` QUE LES AUTRES: le modèle a été mesuré capable de
+  // ranger ses signaux sous `skill_signals.entry`. Ne lire que la racine ferait
+  // un lot désarmé un tour sur N, sans trace.
+  const planFeedback = sanitizePlanFeedbackSignal(root.plan_feedback) ??
+    sanitizePlanFeedbackSignal(entryRoot.plan_feedback);
+  if (planFeedback) {
+    signals.plan_feedback = planFeedback;
   }
   // W2.A: un signal `feature_opportunity` émis par le LLM est désormais DROPPÉ
   // ici (le sanitizer ne le lit plus) — la lane n'existe plus.

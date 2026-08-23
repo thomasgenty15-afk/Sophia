@@ -1,0 +1,1061 @@
+{
+  "request_id": "a0200001-0000-4000-8000-000000000001",
+  "resolved_by": "--request-id",
+  "user_id": "1e000000-0000-4000-8000-000000000002",
+  "source": "generate-household-meal-v1",
+  "exported_at": "2026-08-18T23:24:56.041Z",
+  "prompt": {
+    "captured_on_event": {
+      "id": "450717a5-6a78-4087-8934-1528ec98e1dd",
+      "status": "attempt_start",
+      "created_at": "2026-08-18T23:24:05.585968+00:00",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0
+    },
+    "system_prompt_chars": 15486,
+    "system_prompt_truncated": false,
+    "system_prompt_written_chars": 15486,
+    "user_message_chars": 13953,
+    "user_message_truncated": false,
+    "user_message_written_chars": 13953,
+    "independent_counters": {
+      "system_prompt_chars": 15486,
+      "prompt_chars": 13953
+    },
+    "not_captured": [
+      "tools",
+      "temperature",
+      "response_schema"
+    ],
+    "json_mode": true,
+    "tool_choice": "auto",
+    "has_tools": false
+  },
+  "result": {
+    "id": "cdcad959-6e1d-40ad-9f80-67b316c8fac6",
+    "created_at": "2026-08-18T23:24:31.421158+00:00",
+    "status": "success",
+    "outcome": "text",
+    "provider": "openai",
+    "model": "gpt-5.4-mini",
+    "http_status": 200,
+    "attempt": 1,
+    "chain_index": 0,
+    "error_message": null,
+    "output_tool_name": null,
+    "output_tool_args": null,
+    "output_text": "{\"member_portions\":[{\"member_id\":\"85acac95-312b-4d0e-a4da-02558e8a182f\",\"portion_note\":\"Breakfast: 2 slices toast with 1 tbsp blackcurrant jam; lunch: 220 g cooked pasta, 180 g tomato-beef sauce and 120 g roasted broccoli; dinner: 180 g cooked pasta, 140 g tomato-beef sauce and 100 g roasted broccoli.\",\"preparation_shares\":[{\"preparation_id\":\"prep_pasta\",\"note\":\"Take 220 g cooked pasta at lunch and 180 g cooked pasta at dinner.\"},{\"preparation_id\":\"prep_ragu\",\"note\":\"Take 180 g sauce at lunch and 140 g sauce at dinner.\"},{\"preparation_id\":\"prep_broccoli\",\"note\":\"Take 120 g broccoli at lunch and 100 g broccoli at dinner.\"}]},{\"member_id\":\"f190856d-d573-42e9-a026-b6a37b9f7471\",\"portion_note\":\"Breakfast: 1 slice toast with butter and a fried egg; lunch: 140 g cooked pasta, 120 g tomato-beef sauce and 80 g roasted broccoli; dinner: 120 g cooked pasta, 100 g tomato-beef sauce and 70 g roasted broccoli.\",\"preparation_shares\":[{\"preparation_id\":\"prep_pasta\",\"note\":\"Take 140 g cooked pasta at lunch and 120 g cooked pasta at dinner.\"},{\"preparation_id\":\"prep_ragu\",\"note\":\"Take 120 g sauce at lunch and 100 g sauce at dinner.\"},{\"preparation_id\":\"prep_broccoli\",\"note\":\"Take 80 g broccoli at lunch and 70 g broccoli at dinner.\"}]},{\"member_id\":\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\",\"portion_note\":\"Breakfast: 2 slices toast with butter and a fried egg; lunch: 220 g cooked pasta, 180 g tomato-beef sauce and 120 g roasted broccoli; dinner: 180 g cooked pasta, 140 g tomato-beef sauce and 100 g roasted broccoli.\",\"preparation_shares\":[{\"preparation_id\":\"prep_pasta\",\"note\":\"Take 220 g cooked pasta at lunch and 180 g cooked pasta at dinner.\"},{\"preparation_id\":\"prep_ragu\",\"note\":\"Take 180 g sauce at lunch and 140 g sauce at dinner.\"},{\"preparation_id\":\"prep_broccoli\",\"note\":\"Take 120 g broccoli at lunch and 100 g broccoli at dinner.\"}]},{\"member_id\":\"536e683d-64a8-4dc2-a69b-6ee1925b206c\",\"portion_note\":\"Breakfast: 1 slice toast with butter and a fried egg; lunch: 140 g cooked pasta, 120 g tomato-beef sauce and 80 g roasted broccoli; dinner: 120 g cooked pasta, 100 g tomato-beef sauce and 70 g roasted broccoli.\",\"preparation_shares\":[{\"preparation_id\":\"prep_pasta\",\"note\":\"Take 140 g cooked pasta at lunch and 120 g cooked pasta at dinner.\"},{\"preparation_id\":\"prep_ragu\",\"note\":\"Take 120 g sauce at lunch and 100 g sauce at dinner.\"},{\"preparation_id\":\"prep_broccoli\",\"note\":\"Take 80 g broccoli at lunch and 70 g broccoli at dinner.\"}]}],\"dishes\":[{\"name\":\"Jam toast breakfast\",\"title\":\"Toast with blackcurrant jam\",\"slot\":\"breakfast\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"toast\",\"quantity\":\"2 slices\",\"amount\":2,\"unit\":\"unit\",\"state\":\"cooked\"},{\"term\":\"blackcurrant jam\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"cooked\"}],\"method\":\"Toast the bread and spread the jam over both slices.\",\"why\":\"A quick breakfast keeps the day moving while Odalric eats his own breakfast at the table.\",\"uses\":[],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":5},\"honours_belief_keys\":[\"name_the_plate_out_loud\"]},{\"name\":\"Egg toast\",\"title\":\"Toast with fried egg\",\"slot\":\"breakfast\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"toast\",\"quantity\":\"1 slice\",\"amount\":1,\"unit\":\"unit\",\"state\":\"cooked\"},{\"term\":\"egg\",\"quantity\":\"1 egg\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"butter\",\"quantity\":\"5 g\",\"amount\":5,\"unit\":\"g\",\"state\":\"raw\"}],\"method\":\"Fry the egg in butter and serve it on the toast.\",\"why\":\"A warm breakfast fits the coach's rule that breakfast should not be absent, and it is fast enough for a weekday.\",\"uses\":[],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\"]},{\"name\":\"Pasta with beef ragu\",\"title\":\"Pasta with tomato-beef sauce and broccoli\",\"slot\":\"lunch\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"cooked pasta\",\"quantity\":\"220 g\",\"amount\":220,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"tomato-beef sauce\",\"quantity\":\"180 g\",\"amount\":180,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"roasted broccoli\",\"quantity\":\"120 g\",\"amount\":120,\"unit\":\"g\",\"state\":\"cooked\"}],\"method\":\"Reheat the pasta and sauce, then top with the broccoli box.\",\"why\":\"This gives a loud vegetable, a proper protein anchor and a sturdy lunch with very little day-of work.\",\"uses\":[{\"preparation_id\":\"prep_pasta\",\"servings\":1,\"box_id\":\"box_prep_pasta_odalric\"},{\"preparation_id\":\"prep_ragu\",\"servings\":1,\"box_id\":\"box_prep_ragu_odalric\"},{\"preparation_id\":\"prep_broccoli\",\"servings\":1,\"box_id\":\"box_prep_broccoli_odalric\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":8},\"honours_belief_keys\":[\"one_loud_vegetable\",\"starch_follows_the_session\"]},{\"name\":\"Pasta supper bowl\",\"title\":\"Pasta with tomato-beef sauce and broccoli\",\"slot\":\"dinner\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"cooked pasta\",\"quantity\":\"180 g\",\"amount\":180,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"tomato-beef sauce\",\"quantity\":\"140 g\",\"amount\":140,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"roasted broccoli\",\"quantity\":\"100 g\",\"amount\":100,\"unit\":\"g\",\"state\":\"cooked\"}],\"method\":\"Reheat the pasta and sauce, then add the broccoli box on top.\",\"why\":\"It keeps dinner warm and simple, with the same batch serving a second meal without feeling repetitive.\",\"uses\":[{\"preparation_id\":\"prep_pasta\",\"servings\":1,\"box_id\":\"box_prep_pasta_odalric\"},{\"preparation_id\":\"prep_ragu\",\"servings\":1,\"box_id\":\"box_prep_ragu_odalric\"},{\"preparation_id\":\"prep_broccoli\",\"servings\":1,\"box_id\":\"box_prep_broccoli_odalric\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":8},\"honours_belief_keys\":[\"one_loud_vegetable\",\"starch_follows_the_session\"]},{\"name\":\"Toast and eggs\",\"title\":\"Toast with fried egg\",\"slot\":\"breakfast\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"toast\",\"quantity\":\"2 slices\",\"amount\":2,\"unit\":\"unit\",\"state\":\"cooked\"},{\"term\":\"egg\",\"quantity\":\"2 eggs\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"butter\",\"quantity\":\"10 g\",\"amount\":10,\"unit\":\"g\",\"state\":\"raw\"}],\"method\":\"Fry the eggs in butter and serve them with the toast.\",\"why\":\"Thursday is awkward in the kitchen, so breakfast stays self-contained and fast.\",\"uses\":[],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":10},\"honours_belief_keys\":[\"name_the_plate_out_loud\"]},{\"name\":\"Ragu lunch boxes\",\"title\":\"Pasta with tomato-beef sauce and broccoli\",\"slot\":\"lunch\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"cooked pasta\",\"quantity\":\"140 g\",\"amount\":140,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"tomato-beef sauce\",\"quantity\":\"120 g\",\"amount\":120,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"roasted broccoli\",\"quantity\":\"80 g\",\"amount\":80,\"unit\":\"g\",\"state\":\"cooked\"}],\"method\":\"Reheat the box contents and serve straight away.\",\"why\":\"It uses the fresh batch before Thursday's dust-sheet disruption gets in the way.\",\"uses\":[{\"preparation_id\":\"prep_pasta\",\"servings\":1,\"box_id\":\"box_prep_pasta_wilfrid\"},{\"preparation_id\":\"prep_ragu\",\"servings\":1,\"box_id\":\"box_prep_ragu_wilfrid\"},{\"preparation_id\":\"prep_broccoli\",\"servings\":1,\"box_id\":\"box_prep_broccoli_wilfrid\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":8},\"honours_belief_keys\":[\"one_loud_vegetable\",\"starch_follows_the_session\"]},{\"name\":\"Ragu evening bowls\",\"title\":\"Pasta with tomato-beef sauce and broccoli\",\"slot\":\"dinner\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"cooked pasta\",\"quantity\":\"120 g\",\"amount\":120,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"tomato-beef sauce\",\"quantity\":\"100 g\",\"amount\":100,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"roasted broccoli\",\"quantity\":\"70 g\",\"amount\":70,\"unit\":\"g\",\"state\":\"cooked\"}],\"method\":\"Warm the portions through in a pan and plate with the broccoli.\",\"why\":\"The warm element satisfies the coach's dinner rule even when the kitchen table is out of action.\",\"uses\":[{\"preparation_id\":\"prep_pasta\",\"servings\":1,\"box_id\":\"box_prep_pasta_wilfrid\"},{\"preparation_id\":\"prep_ragu\",\"servings\":1,\"box_id\":\"box_prep_ragu_wilfrid\"},{\"preparation_id\":\"prep_broccoli\",\"servings\":1,\"box_id\":\"box_prep_broccoli_wilfrid\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"one_loud_vegetable\",\"starch_follows_the_session\"]},{\"name\":\"Egg toast two\",\"title\":\"Toast with blackcurrant jam\",\"slot\":\"breakfast\",\"day\":\"fri\",\"ingredients\":[{\"term\":\"toast\",\"quantity\":\"2 slices\",\"amount\":2,\"unit\":\"unit\",\"state\":\"cooked\"},{\"term\":\"blackcurrant jam\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"cooked\"}],\"method\":\"Toast the bread and spread the jam on top.\",\"why\":\"Friday breakfast stays simple so the week still feels easy, not like a project.\",\"uses\":[],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":5},\"honours_belief_keys\":[\"name_the_plate_out_loud\"]},{\"name\":\"Pasta midday\",\"title\":\"Pasta with tomato-beef sauce and broccoli\",\"slot\":\"lunch\",\"day\":\"fri\",\"ingredients\":[{\"term\":\"cooked pasta\",\"quantity\":\"220 g\",\"amount\":220,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"tomato-beef sauce\",\"quantity\":\"180 g\",\"amount\":180,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"roasted broccoli\",\"quantity\":\"120 g\",\"amount\":120,\"unit\":\"g\",\"state\":\"cooked\"}],\"method\":\"Reheat the lunch box and serve it hot.\",\"why\":\"This repeats the batch only once more, staying within the cooked-within-three-days rule.\",\"uses\":[{\"preparation_id\":\"prep_pasta\",\"servings\":1,\"box_id\":\"box_prep_pasta_casimir\"},{\"preparation_id\":\"prep_ragu\",\"servings\":1,\"box_id\":\"box_prep_ragu_casimir\"},{\"preparation_id\":\"prep_broccoli\",\"servings\":1,\"box_id\":\"box_prep_broccoli_casimir\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":8},\"honours_belief_keys\":[\"one_loud_vegetable\",\"starch_follows_the_session\"]},{\"name\":\"Pasta dinner\",\"title\":\"Pasta with tomato-beef sauce and broccoli\",\"slot\":\"dinner\",\"day\":\"fri\",\"ingredients\":[{\"term\":\"cooked pasta\",\"quantity\":\"180 g\",\"amount\":180,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"tomato-beef sauce\",\"quantity\":\"140 g\",\"amount\":140,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"roasted broccoli\",\"quantity\":\"100 g\",\"amount\":100,\"unit\":\"g\",\"state\":\"cooked\"}],\"method\":\"Reheat the pasta and sauce in a pan, then add the broccoli.\",\"why\":\"Friday dinner finishes the batch cleanly before it gets old.\",\"uses\":[{\"preparation_id\":\"prep_pasta\",\"servings\":1,\"box_id\":\"box_prep_pasta_casimir\"},{\"preparation_id\":\"prep_ragu\",\"servings\":1,\"box_id\":\"box_prep_ragu_casimir\"},{\"preparation_id\":\"prep_broccoli\",\"servings\":1,\"box_id\":\"box_prep_broccoli_casimir\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"one_loud_vegetable\",\"starch_follows_the_session\"]}],\"preparations\":[{\"id\":\"prep_pasta\",\"title\":\"Cooked pasta\",\"servings_made\":8,\"ingredients\":[{\"term\":\"dry pasta\",\"quantity\":\"700 g\",\"amount\":700,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"salt\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\"}],\"method\":\"Boil the pasta in salted water until just tender, drain well and toss with a little oil so it stays separate.\",\"active_minutes\":15,\"total_minutes\":20,\"cook_on\":\"wed\",\"boxes\":[{\"id\":\"box_prep_pasta_odalric\",\"member_ids\":[\"85acac95-312b-4d0e-a4da-02558e8a182f\"],\"grams\":400},{\"id\":\"box_prep_pasta_wilfrid\",\"member_ids\":[\"f190856d-d573-42e9-a026-b6a37b9f7471\"],\"grams\":260},{\"id\":\"box_prep_pasta_peregrine\",\"member_ids\":[\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"],\"grams\":400},{\"id\":\"box_prep_pasta_casimir\",\"member_ids\":[\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"],\"grams\":260}]},{\"id\":\"prep_ragu\",\"title\":\"Tomato-beef ragu\",\"servings_made\":8,\"ingredients\":[{\"term\":\"beef mince\",\"quantity\":\"600 g\",\"amount\":600,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"onion\",\"quantity\":\"2\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"carrots\",\"quantity\":\"2\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"tinned chopped tomatoes\",\"quantity\":\"2 x 400 g tins\",\"amount\":800,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"tomato purée\",\"quantity\":\"2 tbsp\",\"amount\":2,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"2 tbsp\",\"amount\":2,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"garlic\",\"quantity\":\"3 cloves\",\"amount\":3,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"dried oregano\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\"}],\"method\":\"Soften the onion and garlic in oil, brown the beef, add the carrots, tomatoes and tomato purée, then simmer until thick and rich.\",\"active_minutes\":20,\"total_minutes\":45,\"cook_on\":\"wed\",\"boxes\":[{\"id\":\"box_prep_ragu_odalric\",\"member_ids\":[\"85acac95-312b-4d0e-a4da-02558e8a182f\"],\"grams\":320},{\"id\":\"box_prep_ragu_wilfrid\",\"member_ids\":[\"f190856d-d573-42e9-a026-b6a37b9f7471\"],\"grams\":220},{\"id\":\"box_prep_ragu_peregrine\",\"member_ids\":[\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"],\"grams\":320},{\"id\":\"box_prep_ragu_casimir\",\"member_ids\":[\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"],\"grams\":220}]},{\"id\":\"prep_broccoli\",\"title\":\"Roasted broccoli\",\"servings_made\":8,\"ingredients\":[{\"term\":\"broccoli\",\"quantity\":\"1.5 kg\",\"amount\":1500,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"2 tbsp\",\"amount\":2,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"salt\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\"},{\"term\":\"black pepper\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\"}],\"method\":\"Break the broccoli into florets, toss with oil, salt and pepper, then roast hard until browned at the edges.\",\"active_minutes\":15,\"total_minutes\":25,\"cook_on\":\"wed\",\"boxes\":[{\"id\":\"box_prep_broccoli_odalric\",\"member_ids\":[\"85acac95-312b-4d0e-a4da-02558e8a182f\"],\"grams\":220},{\"id\":\"box_prep_broccoli_wilfrid\",\"member_ids\":[\"f190856d-d573-42e9-a026-b6a37b9f7471\"],\"grams\":150},{\"id\":\"box_prep_broccoli_peregrine\",\"member_ids\":[\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"],\"grams\":220},{\"id\":\"box_prep_broccoli_casimir\",\"member_ids\":[\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"],\"grams\":150}]}],\"cooking_sessions\":[{\"day\":\"wed\",\"preparation_ids\":[\"prep_pasta\",\"prep_ragu\",\"prep_broccoli\"],\"total_minutes\":55,\"run_through\":\"Put the oven on for the broccoli. Set salted water for the pasta, start the onion and garlic for the ragu in a pan, then brown the beef and let the sauce simmer while the pasta boils and the broccoli roasts. Drain the pasta, portion the ragu and broccoli into the four named boxes, then chill everything ready for the next two days.\"}],\"shopping_list\":[{\"term\":\"dry pasta\",\"quantity\":\"700 g\",\"aisle\":\"grains\"},{\"term\":\"beef mince\",\"quantity\":\"600 g\",\"aisle\":\"protein\"},{\"term\":\"onion\",\"quantity\":\"2\",\"aisle\":\"produce\"},{\"term\":\"carrots\",\"quantity\":\"2\",\"aisle\":\"produce\"},{\"term\":\"tinned chopped tomatoes\",\"quantity\":\"2 x 400 g tins\",\"aisle\":\"pantry\"},{\"term\":\"tomato purée\",\"quantity\":\"1 tube\",\"aisle\":\"pantry\"},{\"term\":\"broccoli\",\"quantity\":\"1.5 kg\",\"aisle\":\"produce\"},{\"term\":\"garlic\",\"quantity\":\"1 bulb\",\"aisle\":\"produce\"},{\"term\":\"blackcurrant jam\",\"quantity\":\"1 jar\",\"aisle\":\"pantry\"},{\"term\":\"bread\",\"quantity\":\"1 loaf\",\"aisle\":\"grains\"},{\"term\":\"eggs\",\"quantity\":\"6\",\"aisle\":\"protein\"},{\"term\":\"butter\",\"quantity\":\"1 pack\",\"aisle\":\"dairy\"},{\"term\":\"olive oil\",\"quantity\":\"1 bottle\",\"aisle\":\"pantry\"},{\"term\":\"dried oregano\",\"quantity\":\"1 jar\",\"aisle\":\"pantry\"},{\"term\":\"salt\",\"quantity\":\"1 pack\",\"aisle\":\"pantry\"},{\"term\":\"black pepper\",\"quantity\":\"1 jar\",\"aisle\":\"pantry\"}]}",
+    "output_text_json": {
+      "member_portions": [
+        {
+          "member_id": "85acac95-312b-4d0e-a4da-02558e8a182f",
+          "portion_note": "Breakfast: 2 slices toast with 1 tbsp blackcurrant jam; lunch: 220 g cooked pasta, 180 g tomato-beef sauce and 120 g roasted broccoli; dinner: 180 g cooked pasta, 140 g tomato-beef sauce and 100 g roasted broccoli.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_pasta",
+              "note": "Take 220 g cooked pasta at lunch and 180 g cooked pasta at dinner."
+            },
+            {
+              "preparation_id": "prep_ragu",
+              "note": "Take 180 g sauce at lunch and 140 g sauce at dinner."
+            },
+            {
+              "preparation_id": "prep_broccoli",
+              "note": "Take 120 g broccoli at lunch and 100 g broccoli at dinner."
+            }
+          ]
+        },
+        {
+          "member_id": "f190856d-d573-42e9-a026-b6a37b9f7471",
+          "portion_note": "Breakfast: 1 slice toast with butter and a fried egg; lunch: 140 g cooked pasta, 120 g tomato-beef sauce and 80 g roasted broccoli; dinner: 120 g cooked pasta, 100 g tomato-beef sauce and 70 g roasted broccoli.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_pasta",
+              "note": "Take 140 g cooked pasta at lunch and 120 g cooked pasta at dinner."
+            },
+            {
+              "preparation_id": "prep_ragu",
+              "note": "Take 120 g sauce at lunch and 100 g sauce at dinner."
+            },
+            {
+              "preparation_id": "prep_broccoli",
+              "note": "Take 80 g broccoli at lunch and 70 g broccoli at dinner."
+            }
+          ]
+        },
+        {
+          "member_id": "65eb7490-adae-40c2-8b43-b10a0cc0ab05",
+          "portion_note": "Breakfast: 2 slices toast with butter and a fried egg; lunch: 220 g cooked pasta, 180 g tomato-beef sauce and 120 g roasted broccoli; dinner: 180 g cooked pasta, 140 g tomato-beef sauce and 100 g roasted broccoli.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_pasta",
+              "note": "Take 220 g cooked pasta at lunch and 180 g cooked pasta at dinner."
+            },
+            {
+              "preparation_id": "prep_ragu",
+              "note": "Take 180 g sauce at lunch and 140 g sauce at dinner."
+            },
+            {
+              "preparation_id": "prep_broccoli",
+              "note": "Take 120 g broccoli at lunch and 100 g broccoli at dinner."
+            }
+          ]
+        },
+        {
+          "member_id": "536e683d-64a8-4dc2-a69b-6ee1925b206c",
+          "portion_note": "Breakfast: 1 slice toast with butter and a fried egg; lunch: 140 g cooked pasta, 120 g tomato-beef sauce and 80 g roasted broccoli; dinner: 120 g cooked pasta, 100 g tomato-beef sauce and 70 g roasted broccoli.",
+          "preparation_shares": [
+            {
+              "preparation_id": "prep_pasta",
+              "note": "Take 140 g cooked pasta at lunch and 120 g cooked pasta at dinner."
+            },
+            {
+              "preparation_id": "prep_ragu",
+              "note": "Take 120 g sauce at lunch and 100 g sauce at dinner."
+            },
+            {
+              "preparation_id": "prep_broccoli",
+              "note": "Take 80 g broccoli at lunch and 70 g broccoli at dinner."
+            }
+          ]
+        }
+      ],
+      "dishes": [
+        {
+          "name": "Jam toast breakfast",
+          "title": "Toast with blackcurrant jam",
+          "slot": "breakfast",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "toast",
+              "quantity": "2 slices",
+              "amount": 2,
+              "unit": "unit",
+              "state": "cooked"
+            },
+            {
+              "term": "blackcurrant jam",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "cooked"
+            }
+          ],
+          "method": "Toast the bread and spread the jam over both slices.",
+          "why": "A quick breakfast keeps the day moving while Odalric eats his own breakfast at the table.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Egg toast",
+          "title": "Toast with fried egg",
+          "slot": "breakfast",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "toast",
+              "quantity": "1 slice",
+              "amount": 1,
+              "unit": "unit",
+              "state": "cooked"
+            },
+            {
+              "term": "egg",
+              "quantity": "1 egg",
+              "amount": 1,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "butter",
+              "quantity": "5 g",
+              "amount": 5,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Fry the egg in butter and serve it on the toast.",
+          "why": "A warm breakfast fits the coach's rule that breakfast should not be absent, and it is fast enough for a weekday.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Pasta with beef ragu",
+          "title": "Pasta with tomato-beef sauce and broccoli",
+          "slot": "lunch",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "cooked pasta",
+              "quantity": "220 g",
+              "amount": 220,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "tomato-beef sauce",
+              "quantity": "180 g",
+              "amount": 180,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "roasted broccoli",
+              "quantity": "120 g",
+              "amount": 120,
+              "unit": "g",
+              "state": "cooked"
+            }
+          ],
+          "method": "Reheat the pasta and sauce, then top with the broccoli box.",
+          "why": "This gives a loud vegetable, a proper protein anchor and a sturdy lunch with very little day-of work.",
+          "uses": [
+            {
+              "preparation_id": "prep_pasta",
+              "servings": 1,
+              "box_id": "box_prep_pasta_odalric"
+            },
+            {
+              "preparation_id": "prep_ragu",
+              "servings": 1,
+              "box_id": "box_prep_ragu_odalric"
+            },
+            {
+              "preparation_id": "prep_broccoli",
+              "servings": 1,
+              "box_id": "box_prep_broccoli_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "starch_follows_the_session"
+          ]
+        },
+        {
+          "name": "Pasta supper bowl",
+          "title": "Pasta with tomato-beef sauce and broccoli",
+          "slot": "dinner",
+          "day": "wed",
+          "ingredients": [
+            {
+              "term": "cooked pasta",
+              "quantity": "180 g",
+              "amount": 180,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "tomato-beef sauce",
+              "quantity": "140 g",
+              "amount": 140,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "roasted broccoli",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "cooked"
+            }
+          ],
+          "method": "Reheat the pasta and sauce, then add the broccoli box on top.",
+          "why": "It keeps dinner warm and simple, with the same batch serving a second meal without feeling repetitive.",
+          "uses": [
+            {
+              "preparation_id": "prep_pasta",
+              "servings": 1,
+              "box_id": "box_prep_pasta_odalric"
+            },
+            {
+              "preparation_id": "prep_ragu",
+              "servings": 1,
+              "box_id": "box_prep_ragu_odalric"
+            },
+            {
+              "preparation_id": "prep_broccoli",
+              "servings": 1,
+              "box_id": "box_prep_broccoli_odalric"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "starch_follows_the_session"
+          ]
+        },
+        {
+          "name": "Toast and eggs",
+          "title": "Toast with fried egg",
+          "slot": "breakfast",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "toast",
+              "quantity": "2 slices",
+              "amount": 2,
+              "unit": "unit",
+              "state": "cooked"
+            },
+            {
+              "term": "egg",
+              "quantity": "2 eggs",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "butter",
+              "quantity": "10 g",
+              "amount": 10,
+              "unit": "g",
+              "state": "raw"
+            }
+          ],
+          "method": "Fry the eggs in butter and serve them with the toast.",
+          "why": "Thursday is awkward in the kitchen, so breakfast stays self-contained and fast.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Ragu lunch boxes",
+          "title": "Pasta with tomato-beef sauce and broccoli",
+          "slot": "lunch",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "cooked pasta",
+              "quantity": "140 g",
+              "amount": 140,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "tomato-beef sauce",
+              "quantity": "120 g",
+              "amount": 120,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "roasted broccoli",
+              "quantity": "80 g",
+              "amount": 80,
+              "unit": "g",
+              "state": "cooked"
+            }
+          ],
+          "method": "Reheat the box contents and serve straight away.",
+          "why": "It uses the fresh batch before Thursday's dust-sheet disruption gets in the way.",
+          "uses": [
+            {
+              "preparation_id": "prep_pasta",
+              "servings": 1,
+              "box_id": "box_prep_pasta_wilfrid"
+            },
+            {
+              "preparation_id": "prep_ragu",
+              "servings": 1,
+              "box_id": "box_prep_ragu_wilfrid"
+            },
+            {
+              "preparation_id": "prep_broccoli",
+              "servings": 1,
+              "box_id": "box_prep_broccoli_wilfrid"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "starch_follows_the_session"
+          ]
+        },
+        {
+          "name": "Ragu evening bowls",
+          "title": "Pasta with tomato-beef sauce and broccoli",
+          "slot": "dinner",
+          "day": "thu",
+          "ingredients": [
+            {
+              "term": "cooked pasta",
+              "quantity": "120 g",
+              "amount": 120,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "tomato-beef sauce",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "roasted broccoli",
+              "quantity": "70 g",
+              "amount": 70,
+              "unit": "g",
+              "state": "cooked"
+            }
+          ],
+          "method": "Warm the portions through in a pan and plate with the broccoli.",
+          "why": "The warm element satisfies the coach's dinner rule even when the kitchen table is out of action.",
+          "uses": [
+            {
+              "preparation_id": "prep_pasta",
+              "servings": 1,
+              "box_id": "box_prep_pasta_wilfrid"
+            },
+            {
+              "preparation_id": "prep_ragu",
+              "servings": 1,
+              "box_id": "box_prep_ragu_wilfrid"
+            },
+            {
+              "preparation_id": "prep_broccoli",
+              "servings": 1,
+              "box_id": "box_prep_broccoli_wilfrid"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "starch_follows_the_session"
+          ]
+        },
+        {
+          "name": "Egg toast two",
+          "title": "Toast with blackcurrant jam",
+          "slot": "breakfast",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "toast",
+              "quantity": "2 slices",
+              "amount": 2,
+              "unit": "unit",
+              "state": "cooked"
+            },
+            {
+              "term": "blackcurrant jam",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "cooked"
+            }
+          ],
+          "method": "Toast the bread and spread the jam on top.",
+          "why": "Friday breakfast stays simple so the week still feels easy, not like a project.",
+          "uses": [],
+          "same_day": {
+            "kind": "cook_fresh",
+            "minutes": 5
+          },
+          "honours_belief_keys": [
+            "name_the_plate_out_loud"
+          ]
+        },
+        {
+          "name": "Pasta midday",
+          "title": "Pasta with tomato-beef sauce and broccoli",
+          "slot": "lunch",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "cooked pasta",
+              "quantity": "220 g",
+              "amount": 220,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "tomato-beef sauce",
+              "quantity": "180 g",
+              "amount": 180,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "roasted broccoli",
+              "quantity": "120 g",
+              "amount": 120,
+              "unit": "g",
+              "state": "cooked"
+            }
+          ],
+          "method": "Reheat the lunch box and serve it hot.",
+          "why": "This repeats the batch only once more, staying within the cooked-within-three-days rule.",
+          "uses": [
+            {
+              "preparation_id": "prep_pasta",
+              "servings": 1,
+              "box_id": "box_prep_pasta_casimir"
+            },
+            {
+              "preparation_id": "prep_ragu",
+              "servings": 1,
+              "box_id": "box_prep_ragu_casimir"
+            },
+            {
+              "preparation_id": "prep_broccoli",
+              "servings": 1,
+              "box_id": "box_prep_broccoli_casimir"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 8
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "starch_follows_the_session"
+          ]
+        },
+        {
+          "name": "Pasta dinner",
+          "title": "Pasta with tomato-beef sauce and broccoli",
+          "slot": "dinner",
+          "day": "fri",
+          "ingredients": [
+            {
+              "term": "cooked pasta",
+              "quantity": "180 g",
+              "amount": 180,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "tomato-beef sauce",
+              "quantity": "140 g",
+              "amount": 140,
+              "unit": "g",
+              "state": "cooked"
+            },
+            {
+              "term": "roasted broccoli",
+              "quantity": "100 g",
+              "amount": 100,
+              "unit": "g",
+              "state": "cooked"
+            }
+          ],
+          "method": "Reheat the pasta and sauce in a pan, then add the broccoli.",
+          "why": "Friday dinner finishes the batch cleanly before it gets old.",
+          "uses": [
+            {
+              "preparation_id": "prep_pasta",
+              "servings": 1,
+              "box_id": "box_prep_pasta_casimir"
+            },
+            {
+              "preparation_id": "prep_ragu",
+              "servings": 1,
+              "box_id": "box_prep_ragu_casimir"
+            },
+            {
+              "preparation_id": "prep_broccoli",
+              "servings": 1,
+              "box_id": "box_prep_broccoli_casimir"
+            }
+          ],
+          "same_day": {
+            "kind": "reheat_only",
+            "minutes": 10
+          },
+          "honours_belief_keys": [
+            "one_loud_vegetable",
+            "starch_follows_the_session"
+          ]
+        }
+      ],
+      "preparations": [
+        {
+          "id": "prep_pasta",
+          "title": "Cooked pasta",
+          "servings_made": 8,
+          "ingredients": [
+            {
+              "term": "dry pasta",
+              "quantity": "700 g",
+              "amount": 700,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "salt",
+              "quantity": "1 tbsp",
+              "amount": 1,
+              "unit": "tbsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Boil the pasta in salted water until just tender, drain well and toss with a little oil so it stays separate.",
+          "active_minutes": 15,
+          "total_minutes": 20,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_prep_pasta_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 400
+            },
+            {
+              "id": "box_prep_pasta_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 260
+            },
+            {
+              "id": "box_prep_pasta_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 400
+            },
+            {
+              "id": "box_prep_pasta_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 260
+            }
+          ]
+        },
+        {
+          "id": "prep_ragu",
+          "title": "Tomato-beef ragu",
+          "servings_made": 8,
+          "ingredients": [
+            {
+              "term": "beef mince",
+              "quantity": "600 g",
+              "amount": 600,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "onion",
+              "quantity": "2",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "carrots",
+              "quantity": "2",
+              "amount": 2,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "tinned chopped tomatoes",
+              "quantity": "2 x 400 g tins",
+              "amount": 800,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "tomato purée",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "garlic",
+              "quantity": "3 cloves",
+              "amount": 3,
+              "unit": "unit",
+              "state": "raw"
+            },
+            {
+              "term": "dried oregano",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Soften the onion and garlic in oil, brown the beef, add the carrots, tomatoes and tomato purée, then simmer until thick and rich.",
+          "active_minutes": 20,
+          "total_minutes": 45,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_prep_ragu_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 320
+            },
+            {
+              "id": "box_prep_ragu_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 220
+            },
+            {
+              "id": "box_prep_ragu_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 320
+            },
+            {
+              "id": "box_prep_ragu_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 220
+            }
+          ]
+        },
+        {
+          "id": "prep_broccoli",
+          "title": "Roasted broccoli",
+          "servings_made": 8,
+          "ingredients": [
+            {
+              "term": "broccoli",
+              "quantity": "1.5 kg",
+              "amount": 1500,
+              "unit": "g",
+              "state": "raw"
+            },
+            {
+              "term": "olive oil",
+              "quantity": "2 tbsp",
+              "amount": 2,
+              "unit": "tbsp",
+              "state": "raw"
+            },
+            {
+              "term": "salt",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            },
+            {
+              "term": "black pepper",
+              "quantity": "1 tsp",
+              "amount": 1,
+              "unit": "tsp",
+              "state": "raw"
+            }
+          ],
+          "method": "Break the broccoli into florets, toss with oil, salt and pepper, then roast hard until browned at the edges.",
+          "active_minutes": 15,
+          "total_minutes": 25,
+          "cook_on": "wed",
+          "boxes": [
+            {
+              "id": "box_prep_broccoli_odalric",
+              "member_ids": [
+                "85acac95-312b-4d0e-a4da-02558e8a182f"
+              ],
+              "grams": 220
+            },
+            {
+              "id": "box_prep_broccoli_wilfrid",
+              "member_ids": [
+                "f190856d-d573-42e9-a026-b6a37b9f7471"
+              ],
+              "grams": 150
+            },
+            {
+              "id": "box_prep_broccoli_peregrine",
+              "member_ids": [
+                "65eb7490-adae-40c2-8b43-b10a0cc0ab05"
+              ],
+              "grams": 220
+            },
+            {
+              "id": "box_prep_broccoli_casimir",
+              "member_ids": [
+                "536e683d-64a8-4dc2-a69b-6ee1925b206c"
+              ],
+              "grams": 150
+            }
+          ]
+        }
+      ],
+      "cooking_sessions": [
+        {
+          "day": "wed",
+          "preparation_ids": [
+            "prep_pasta",
+            "prep_ragu",
+            "prep_broccoli"
+          ],
+          "total_minutes": 55,
+          "run_through": "Put the oven on for the broccoli. Set salted water for the pasta, start the onion and garlic for the ragu in a pan, then brown the beef and let the sauce simmer while the pasta boils and the broccoli roasts. Drain the pasta, portion the ragu and broccoli into the four named boxes, then chill everything ready for the next two days."
+        }
+      ],
+      "shopping_list": [
+        {
+          "term": "dry pasta",
+          "quantity": "700 g",
+          "aisle": "grains"
+        },
+        {
+          "term": "beef mince",
+          "quantity": "600 g",
+          "aisle": "protein"
+        },
+        {
+          "term": "onion",
+          "quantity": "2",
+          "aisle": "produce"
+        },
+        {
+          "term": "carrots",
+          "quantity": "2",
+          "aisle": "produce"
+        },
+        {
+          "term": "tinned chopped tomatoes",
+          "quantity": "2 x 400 g tins",
+          "aisle": "pantry"
+        },
+        {
+          "term": "tomato purée",
+          "quantity": "1 tube",
+          "aisle": "pantry"
+        },
+        {
+          "term": "broccoli",
+          "quantity": "1.5 kg",
+          "aisle": "produce"
+        },
+        {
+          "term": "garlic",
+          "quantity": "1 bulb",
+          "aisle": "produce"
+        },
+        {
+          "term": "blackcurrant jam",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "bread",
+          "quantity": "1 loaf",
+          "aisle": "grains"
+        },
+        {
+          "term": "eggs",
+          "quantity": "6",
+          "aisle": "protein"
+        },
+        {
+          "term": "butter",
+          "quantity": "1 pack",
+          "aisle": "dairy"
+        },
+        {
+          "term": "olive oil",
+          "quantity": "1 bottle",
+          "aisle": "pantry"
+        },
+        {
+          "term": "dried oregano",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        },
+        {
+          "term": "salt",
+          "quantity": "1 pack",
+          "aisle": "pantry"
+        },
+        {
+          "term": "black pepper",
+          "quantity": "1 jar",
+          "aisle": "pantry"
+        }
+      ]
+    },
+    "raw_response_truncated": false,
+    "raw_response": {
+      "id": "resp_07f90c798a4d0eb2006a84e995e89487d29f1f8e98c3d88b2d",
+      "text": {
+        "format": {
+          "type": "json_object"
+        },
+        "verbosity": "medium"
+      },
+      "user": null,
+      "error": null,
+      "model": "gpt-5.4-mini-2026-03-17",
+      "store": true,
+      "tools": [],
+      "top_p": 0.98,
+      "usage": {
+        "input_tokens": 7284,
+        "total_tokens": 11586,
+        "output_tokens": 4302,
+        "input_tokens_details": {
+          "cached_tokens": 5888,
+          "cache_write_tokens": 0
+        },
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        }
+      },
+      "object": "response",
+      "output": [
+        {
+          "id": "msg_07f90c798a4d0eb2006a84e996786487d29d9211757f88130b",
+          "role": "assistant",
+          "type": "message",
+          "phase": "final_answer",
+          "status": "completed",
+          "content": [
+            {
+              "text": "{\"member_portions\":[{\"member_id\":\"85acac95-312b-4d0e-a4da-02558e8a182f\",\"portion_note\":\"Breakfast: 2 slices toast with 1 tbsp blackcurrant jam; lunch: 220 g cooked pasta, 180 g tomato-beef sauce and 120 g roasted broccoli; dinner: 180 g cooked pasta, 140 g tomato-beef sauce and 100 g roasted broccoli.\",\"preparation_shares\":[{\"preparation_id\":\"prep_pasta\",\"note\":\"Take 220 g cooked pasta at lunch and 180 g cooked pasta at dinner.\"},{\"preparation_id\":\"prep_ragu\",\"note\":\"Take 180 g sauce at lunch and 140 g sauce at dinner.\"},{\"preparation_id\":\"prep_broccoli\",\"note\":\"Take 120 g broccoli at lunch and 100 g broccoli at dinner.\"}]},{\"member_id\":\"f190856d-d573-42e9-a026-b6a37b9f7471\",\"portion_note\":\"Breakfast: 1 slice toast with butter and a fried egg; lunch: 140 g cooked pasta, 120 g tomato-beef sauce and 80 g roasted broccoli; dinner: 120 g cooked pasta, 100 g tomato-beef sauce and 70 g roasted broccoli.\",\"preparation_shares\":[{\"preparation_id\":\"prep_pasta\",\"note\":\"Take 140 g cooked pasta at lunch and 120 g cooked pasta at dinner.\"},{\"preparation_id\":\"prep_ragu\",\"note\":\"Take 120 g sauce at lunch and 100 g sauce at dinner.\"},{\"preparation_id\":\"prep_broccoli\",\"note\":\"Take 80 g broccoli at lunch and 70 g broccoli at dinner.\"}]},{\"member_id\":\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\",\"portion_note\":\"Breakfast: 2 slices toast with butter and a fried egg; lunch: 220 g cooked pasta, 180 g tomato-beef sauce and 120 g roasted broccoli; dinner: 180 g cooked pasta, 140 g tomato-beef sauce and 100 g roasted broccoli.\",\"preparation_shares\":[{\"preparation_id\":\"prep_pasta\",\"note\":\"Take 220 g cooked pasta at lunch and 180 g cooked pasta at dinner.\"},{\"preparation_id\":\"prep_ragu\",\"note\":\"Take 180 g sauce at lunch and 140 g sauce at dinner.\"},{\"preparation_id\":\"prep_broccoli\",\"note\":\"Take 120 g broccoli at lunch and 100 g broccoli at dinner.\"}]},{\"member_id\":\"536e683d-64a8-4dc2-a69b-6ee1925b206c\",\"portion_note\":\"Breakfast: 1 slice toast with butter and a fried egg; lunch: 140 g cooked pasta, 120 g tomato-beef sauce and 80 g roasted broccoli; dinner: 120 g cooked pasta, 100 g tomato-beef sauce and 70 g roasted broccoli.\",\"preparation_shares\":[{\"preparation_id\":\"prep_pasta\",\"note\":\"Take 140 g cooked pasta at lunch and 120 g cooked pasta at dinner.\"},{\"preparation_id\":\"prep_ragu\",\"note\":\"Take 120 g sauce at lunch and 100 g sauce at dinner.\"},{\"preparation_id\":\"prep_broccoli\",\"note\":\"Take 80 g broccoli at lunch and 70 g broccoli at dinner.\"}]}],\"dishes\":[{\"name\":\"Jam toast breakfast\",\"title\":\"Toast with blackcurrant jam\",\"slot\":\"breakfast\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"toast\",\"quantity\":\"2 slices\",\"amount\":2,\"unit\":\"unit\",\"state\":\"cooked\"},{\"term\":\"blackcurrant jam\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"cooked\"}],\"method\":\"Toast the bread and spread the jam over both slices.\",\"why\":\"A quick breakfast keeps the day moving while Odalric eats his own breakfast at the table.\",\"uses\":[],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":5},\"honours_belief_keys\":[\"name_the_plate_out_loud\"]},{\"name\":\"Egg toast\",\"title\":\"Toast with fried egg\",\"slot\":\"breakfast\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"toast\",\"quantity\":\"1 slice\",\"amount\":1,\"unit\":\"unit\",\"state\":\"cooked\"},{\"term\":\"egg\",\"quantity\":\"1 egg\",\"amount\":1,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"butter\",\"quantity\":\"5 g\",\"amount\":5,\"unit\":\"g\",\"state\":\"raw\"}],\"method\":\"Fry the egg in butter and serve it on the toast.\",\"why\":\"A warm breakfast fits the coach's rule that breakfast should not be absent, and it is fast enough for a weekday.\",\"uses\":[],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":8},\"honours_belief_keys\":[\"name_the_plate_out_loud\"]},{\"name\":\"Pasta with beef ragu\",\"title\":\"Pasta with tomato-beef sauce and broccoli\",\"slot\":\"lunch\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"cooked pasta\",\"quantity\":\"220 g\",\"amount\":220,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"tomato-beef sauce\",\"quantity\":\"180 g\",\"amount\":180,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"roasted broccoli\",\"quantity\":\"120 g\",\"amount\":120,\"unit\":\"g\",\"state\":\"cooked\"}],\"method\":\"Reheat the pasta and sauce, then top with the broccoli box.\",\"why\":\"This gives a loud vegetable, a proper protein anchor and a sturdy lunch with very little day-of work.\",\"uses\":[{\"preparation_id\":\"prep_pasta\",\"servings\":1,\"box_id\":\"box_prep_pasta_odalric\"},{\"preparation_id\":\"prep_ragu\",\"servings\":1,\"box_id\":\"box_prep_ragu_odalric\"},{\"preparation_id\":\"prep_broccoli\",\"servings\":1,\"box_id\":\"box_prep_broccoli_odalric\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":8},\"honours_belief_keys\":[\"one_loud_vegetable\",\"starch_follows_the_session\"]},{\"name\":\"Pasta supper bowl\",\"title\":\"Pasta with tomato-beef sauce and broccoli\",\"slot\":\"dinner\",\"day\":\"wed\",\"ingredients\":[{\"term\":\"cooked pasta\",\"quantity\":\"180 g\",\"amount\":180,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"tomato-beef sauce\",\"quantity\":\"140 g\",\"amount\":140,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"roasted broccoli\",\"quantity\":\"100 g\",\"amount\":100,\"unit\":\"g\",\"state\":\"cooked\"}],\"method\":\"Reheat the pasta and sauce, then add the broccoli box on top.\",\"why\":\"It keeps dinner warm and simple, with the same batch serving a second meal without feeling repetitive.\",\"uses\":[{\"preparation_id\":\"prep_pasta\",\"servings\":1,\"box_id\":\"box_prep_pasta_odalric\"},{\"preparation_id\":\"prep_ragu\",\"servings\":1,\"box_id\":\"box_prep_ragu_odalric\"},{\"preparation_id\":\"prep_broccoli\",\"servings\":1,\"box_id\":\"box_prep_broccoli_odalric\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":8},\"honours_belief_keys\":[\"one_loud_vegetable\",\"starch_follows_the_session\"]},{\"name\":\"Toast and eggs\",\"title\":\"Toast with fried egg\",\"slot\":\"breakfast\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"toast\",\"quantity\":\"2 slices\",\"amount\":2,\"unit\":\"unit\",\"state\":\"cooked\"},{\"term\":\"egg\",\"quantity\":\"2 eggs\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"butter\",\"quantity\":\"10 g\",\"amount\":10,\"unit\":\"g\",\"state\":\"raw\"}],\"method\":\"Fry the eggs in butter and serve them with the toast.\",\"why\":\"Thursday is awkward in the kitchen, so breakfast stays self-contained and fast.\",\"uses\":[],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":10},\"honours_belief_keys\":[\"name_the_plate_out_loud\"]},{\"name\":\"Ragu lunch boxes\",\"title\":\"Pasta with tomato-beef sauce and broccoli\",\"slot\":\"lunch\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"cooked pasta\",\"quantity\":\"140 g\",\"amount\":140,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"tomato-beef sauce\",\"quantity\":\"120 g\",\"amount\":120,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"roasted broccoli\",\"quantity\":\"80 g\",\"amount\":80,\"unit\":\"g\",\"state\":\"cooked\"}],\"method\":\"Reheat the box contents and serve straight away.\",\"why\":\"It uses the fresh batch before Thursday's dust-sheet disruption gets in the way.\",\"uses\":[{\"preparation_id\":\"prep_pasta\",\"servings\":1,\"box_id\":\"box_prep_pasta_wilfrid\"},{\"preparation_id\":\"prep_ragu\",\"servings\":1,\"box_id\":\"box_prep_ragu_wilfrid\"},{\"preparation_id\":\"prep_broccoli\",\"servings\":1,\"box_id\":\"box_prep_broccoli_wilfrid\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":8},\"honours_belief_keys\":[\"one_loud_vegetable\",\"starch_follows_the_session\"]},{\"name\":\"Ragu evening bowls\",\"title\":\"Pasta with tomato-beef sauce and broccoli\",\"slot\":\"dinner\",\"day\":\"thu\",\"ingredients\":[{\"term\":\"cooked pasta\",\"quantity\":\"120 g\",\"amount\":120,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"tomato-beef sauce\",\"quantity\":\"100 g\",\"amount\":100,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"roasted broccoli\",\"quantity\":\"70 g\",\"amount\":70,\"unit\":\"g\",\"state\":\"cooked\"}],\"method\":\"Warm the portions through in a pan and plate with the broccoli.\",\"why\":\"The warm element satisfies the coach's dinner rule even when the kitchen table is out of action.\",\"uses\":[{\"preparation_id\":\"prep_pasta\",\"servings\":1,\"box_id\":\"box_prep_pasta_wilfrid\"},{\"preparation_id\":\"prep_ragu\",\"servings\":1,\"box_id\":\"box_prep_ragu_wilfrid\"},{\"preparation_id\":\"prep_broccoli\",\"servings\":1,\"box_id\":\"box_prep_broccoli_wilfrid\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"one_loud_vegetable\",\"starch_follows_the_session\"]},{\"name\":\"Egg toast two\",\"title\":\"Toast with blackcurrant jam\",\"slot\":\"breakfast\",\"day\":\"fri\",\"ingredients\":[{\"term\":\"toast\",\"quantity\":\"2 slices\",\"amount\":2,\"unit\":\"unit\",\"state\":\"cooked\"},{\"term\":\"blackcurrant jam\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"cooked\"}],\"method\":\"Toast the bread and spread the jam on top.\",\"why\":\"Friday breakfast stays simple so the week still feels easy, not like a project.\",\"uses\":[],\"same_day\":{\"kind\":\"cook_fresh\",\"minutes\":5},\"honours_belief_keys\":[\"name_the_plate_out_loud\"]},{\"name\":\"Pasta midday\",\"title\":\"Pasta with tomato-beef sauce and broccoli\",\"slot\":\"lunch\",\"day\":\"fri\",\"ingredients\":[{\"term\":\"cooked pasta\",\"quantity\":\"220 g\",\"amount\":220,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"tomato-beef sauce\",\"quantity\":\"180 g\",\"amount\":180,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"roasted broccoli\",\"quantity\":\"120 g\",\"amount\":120,\"unit\":\"g\",\"state\":\"cooked\"}],\"method\":\"Reheat the lunch box and serve it hot.\",\"why\":\"This repeats the batch only once more, staying within the cooked-within-three-days rule.\",\"uses\":[{\"preparation_id\":\"prep_pasta\",\"servings\":1,\"box_id\":\"box_prep_pasta_casimir\"},{\"preparation_id\":\"prep_ragu\",\"servings\":1,\"box_id\":\"box_prep_ragu_casimir\"},{\"preparation_id\":\"prep_broccoli\",\"servings\":1,\"box_id\":\"box_prep_broccoli_casimir\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":8},\"honours_belief_keys\":[\"one_loud_vegetable\",\"starch_follows_the_session\"]},{\"name\":\"Pasta dinner\",\"title\":\"Pasta with tomato-beef sauce and broccoli\",\"slot\":\"dinner\",\"day\":\"fri\",\"ingredients\":[{\"term\":\"cooked pasta\",\"quantity\":\"180 g\",\"amount\":180,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"tomato-beef sauce\",\"quantity\":\"140 g\",\"amount\":140,\"unit\":\"g\",\"state\":\"cooked\"},{\"term\":\"roasted broccoli\",\"quantity\":\"100 g\",\"amount\":100,\"unit\":\"g\",\"state\":\"cooked\"}],\"method\":\"Reheat the pasta and sauce in a pan, then add the broccoli.\",\"why\":\"Friday dinner finishes the batch cleanly before it gets old.\",\"uses\":[{\"preparation_id\":\"prep_pasta\",\"servings\":1,\"box_id\":\"box_prep_pasta_casimir\"},{\"preparation_id\":\"prep_ragu\",\"servings\":1,\"box_id\":\"box_prep_ragu_casimir\"},{\"preparation_id\":\"prep_broccoli\",\"servings\":1,\"box_id\":\"box_prep_broccoli_casimir\"}],\"same_day\":{\"kind\":\"reheat_only\",\"minutes\":10},\"honours_belief_keys\":[\"one_loud_vegetable\",\"starch_follows_the_session\"]}],\"preparations\":[{\"id\":\"prep_pasta\",\"title\":\"Cooked pasta\",\"servings_made\":8,\"ingredients\":[{\"term\":\"dry pasta\",\"quantity\":\"700 g\",\"amount\":700,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"salt\",\"quantity\":\"1 tbsp\",\"amount\":1,\"unit\":\"tbsp\",\"state\":\"raw\"}],\"method\":\"Boil the pasta in salted water until just tender, drain well and toss with a little oil so it stays separate.\",\"active_minutes\":15,\"total_minutes\":20,\"cook_on\":\"wed\",\"boxes\":[{\"id\":\"box_prep_pasta_odalric\",\"member_ids\":[\"85acac95-312b-4d0e-a4da-02558e8a182f\"],\"grams\":400},{\"id\":\"box_prep_pasta_wilfrid\",\"member_ids\":[\"f190856d-d573-42e9-a026-b6a37b9f7471\"],\"grams\":260},{\"id\":\"box_prep_pasta_peregrine\",\"member_ids\":[\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"],\"grams\":400},{\"id\":\"box_prep_pasta_casimir\",\"member_ids\":[\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"],\"grams\":260}]},{\"id\":\"prep_ragu\",\"title\":\"Tomato-beef ragu\",\"servings_made\":8,\"ingredients\":[{\"term\":\"beef mince\",\"quantity\":\"600 g\",\"amount\":600,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"onion\",\"quantity\":\"2\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"carrots\",\"quantity\":\"2\",\"amount\":2,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"tinned chopped tomatoes\",\"quantity\":\"2 x 400 g tins\",\"amount\":800,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"tomato purée\",\"quantity\":\"2 tbsp\",\"amount\":2,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"2 tbsp\",\"amount\":2,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"garlic\",\"quantity\":\"3 cloves\",\"amount\":3,\"unit\":\"unit\",\"state\":\"raw\"},{\"term\":\"dried oregano\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\"}],\"method\":\"Soften the onion and garlic in oil, brown the beef, add the carrots, tomatoes and tomato purée, then simmer until thick and rich.\",\"active_minutes\":20,\"total_minutes\":45,\"cook_on\":\"wed\",\"boxes\":[{\"id\":\"box_prep_ragu_odalric\",\"member_ids\":[\"85acac95-312b-4d0e-a4da-02558e8a182f\"],\"grams\":320},{\"id\":\"box_prep_ragu_wilfrid\",\"member_ids\":[\"f190856d-d573-42e9-a026-b6a37b9f7471\"],\"grams\":220},{\"id\":\"box_prep_ragu_peregrine\",\"member_ids\":[\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"],\"grams\":320},{\"id\":\"box_prep_ragu_casimir\",\"member_ids\":[\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"],\"grams\":220}]},{\"id\":\"prep_broccoli\",\"title\":\"Roasted broccoli\",\"servings_made\":8,\"ingredients\":[{\"term\":\"broccoli\",\"quantity\":\"1.5 kg\",\"amount\":1500,\"unit\":\"g\",\"state\":\"raw\"},{\"term\":\"olive oil\",\"quantity\":\"2 tbsp\",\"amount\":2,\"unit\":\"tbsp\",\"state\":\"raw\"},{\"term\":\"salt\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\"},{\"term\":\"black pepper\",\"quantity\":\"1 tsp\",\"amount\":1,\"unit\":\"tsp\",\"state\":\"raw\"}],\"method\":\"Break the broccoli into florets, toss with oil, salt and pepper, then roast hard until browned at the edges.\",\"active_minutes\":15,\"total_minutes\":25,\"cook_on\":\"wed\",\"boxes\":[{\"id\":\"box_prep_broccoli_odalric\",\"member_ids\":[\"85acac95-312b-4d0e-a4da-02558e8a182f\"],\"grams\":220},{\"id\":\"box_prep_broccoli_wilfrid\",\"member_ids\":[\"f190856d-d573-42e9-a026-b6a37b9f7471\"],\"grams\":150},{\"id\":\"box_prep_broccoli_peregrine\",\"member_ids\":[\"65eb7490-adae-40c2-8b43-b10a0cc0ab05\"],\"grams\":220},{\"id\":\"box_prep_broccoli_casimir\",\"member_ids\":[\"536e683d-64a8-4dc2-a69b-6ee1925b206c\"],\"grams\":150}]}],\"cooking_sessions\":[{\"day\":\"wed\",\"preparation_ids\":[\"prep_pasta\",\"prep_ragu\",\"prep_broccoli\"],\"total_minutes\":55,\"run_through\":\"Put the oven on for the broccoli. Set salted water for the pasta, start the onion and garlic for the ragu in a pan, then brown the beef and let the sauce simmer while the pasta boils and the broccoli roasts. Drain the pasta, portion the ragu and broccoli into the four named boxes, then chill everything ready for the next two days.\"}],\"shopping_list\":[{\"term\":\"dry pasta\",\"quantity\":\"700 g\",\"aisle\":\"grains\"},{\"term\":\"beef mince\",\"quantity\":\"600 g\",\"aisle\":\"protein\"},{\"term\":\"onion\",\"quantity\":\"2\",\"aisle\":\"produce\"},{\"term\":\"carrots\",\"quantity\":\"2\",\"aisle\":\"produce\"},{\"term\":\"tinned chopped tomatoes\",\"quantity\":\"2 x 400 g tins\",\"aisle\":\"pantry\"},{\"term\":\"tomato purée\",\"quantity\":\"1 tube\",\"aisle\":\"pantry\"},{\"term\":\"broccoli\",\"quantity\":\"1.5 kg\",\"aisle\":\"produce\"},{\"term\":\"garlic\",\"quantity\":\"1 bulb\",\"aisle\":\"produce\"},{\"term\":\"blackcurrant jam\",\"quantity\":\"1 jar\",\"aisle\":\"pantry\"},{\"term\":\"bread\",\"quantity\":\"1 loaf\",\"aisle\":\"grains\"},{\"term\":\"eggs\",\"quantity\":\"6\",\"aisle\":\"protein\"},{\"term\":\"butter\",\"quantity\":\"1 pack\",\"aisle\":\"dairy\"},{\"term\":\"olive oil\",\"quantity\":\"1 bottle\",\"aisle\":\"pantry\"},{\"term\":\"dried oregano\",\"quantity\":\"1 jar\",\"aisle\":\"pantry\"},{\"term\":\"salt\",\"quantity\":\"1 pack\",\"aisle\":\"pantry\"},{\"term\":\"black pepper\",\"quantity\":\"1 jar\",\"aisle\":\"pantry\"}]}",
+              "type": "output_text",
+              "logprobs": [],
+              "annotations": []
+            }
+          ]
+        }
+      ],
+      "status": "completed",
+      "billing": {
+        "payer": "developer"
+      },
+      "metadata": {
+        "source": "generate-household-meal-v1",
+        "user_id": "1e000000-0000-4000-8000-000000000002",
+        "request_id": "a0200001-0000-4000-8000-000000000001"
+      },
+      "reasoning": {
+        "mode": "standard",
+        "effort": "none",
+        "context": "current_turn",
+        "summary": null
+      },
+      "background": false,
+      "created_at": 1787095445,
+      "moderation": null,
+      "tool_usage": {
+        "image_gen": {
+          "input_tokens": 0,
+          "total_tokens": 0,
+          "output_tokens": 0,
+          "input_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          },
+          "output_tokens_details": {
+            "text_tokens": 0,
+            "image_tokens": 0
+          }
+        },
+        "web_search": {
+          "num_requests": 0
+        }
+      },
+      "truncation": "disabled",
+      "temperature": 1,
+      "tool_choice": "auto",
+      "completed_at": 1787095471,
+      "instructions": "You cook for ONE student, inside the method their coach teaches.\n\nOutput a single JSON object, nothing else. No prose outside the JSON, no markdown fences.\n\n== THE METHOD COMES FIRST, THE RECIPE IS YOURS ==\n\nYour coach's method is given below. It is not a suggestion: their forbidden practices and the foods they do not put on a plate are hard limits, and you never contradict them.\n\nInside those limits you are free. Write real food a real person wants to eat. You are not restricted to a catalogue.\n\n== A PORTION IS ONE PERSON'S PLATE ==\n\nYou are told how many people are at the table. Every quantity you write is for\nTHAT many people, for the number of servings the dish actually makes — and for\nnothing more.\n\nMeasured failure, and it is the one that makes a plan unusable: \"2 salmon\nfillets, 500 g potatoes\" written for ONE person eating ONE dinner. That is three\ndinners on a plate. If a quantity only makes sense because the dish is cooked in\na batch, then say so in `batch` — do not silently inflate a single plate.\n\nSanity, before you write a quantity: one adult portion is roughly a palm of\nprotein, a fist of starch, and vegetables on top. Scale from there. You never\ntell the student those figures; you use them so the numbers you DO write are\nbelievable.\n\n== EVERY MAIN MEAL IS BUILT AROUND A PROTEIN FOOD ==\n\nBreakfast, lunch and dinner each carry one whole protein food as their anchor:\nmeat, poultry, fish, seafood, eggs, pulses, tofu or tempeh, or a protein-carrying\ndairy like yogurt, skyr or cottage cheese. It is the thing the rest of the plate\nis built around, not a garnish on top of it.\n\nSnacks are snacks. They do not need one.\n\nNever write a figure for it. No grams of protein, no share of the plate, no\ntarget of any kind — you are choosing a food, not measuring a person.\n\n== THE STRETCH STARTS TODAY ==\n\nYou are told what day it is for this student, and the exact days to fill. Use\nTHOSE days, in that order, and no others.\n\nA plan handed to somebody on Wednesday that starts on Monday is half expired on\ndelivery — measured, and the first thing a student notices. There is no such\nthing as planning a day that has already gone.\n\n== COVER THE WHOLE STRETCH, WITH FEW COOKING SESSIONS ==\n\nWhen you are asked for several days, cover EVERY day of the stretch and every\nmeal that matters in it. A plan with Monday dinner and Wednesday dinner and\nnothing in between is not a plan — the student did not ask for a partial week,\nand holes are read as \"the system gave up\".\n\nCovering everything does not mean cooking everything. That is what the\npreparations below are for.\n\n== WHAT YOU COOK IS NOT WHAT YOU EAT ==\n\nThis is the important one, and it is what makes a week both quick and bearable.\n\nSeparate PREPARATIONS from DISHES.\n\n  A preparation is what comes out of one cooking session: 1.2 kg of roast\n  chicken thighs, a pot of chilli, a tray of roast vegetables, a batch of rice.\n  It carries its own ingredients — for the WHOLE batch — and its own method.\n\n  A dish is a meal on a day. It NAMES the preparations it draws on through\n  `uses`, and its own `ingredients` list only what you add at the moment of\n  eating: the salad, the bread, the yogurt, the lemon.\n\nWhy it matters: one cooking of chicken becomes a rice bowl on Monday, a wrap on\nTuesday and a curry base on Thursday. THREE DIFFERENT MEALS, ONE COOKING. Making\nthe same student eat the identical plate four days running is technically batch\ncooking and humanly a punishment — do not do it.\n\nRules that follow:\n  - anything that needs a pan, a pot or an oven is a PREPARATION making at\n    least two servings. Never a dish cooked from scratch twice in a week.\n  - assemblies that need no cooking — oats and yogurt, a sandwich, fruit and\n    nuts — are plain dishes with no `uses`, made fresh, quantities for one\n    plate.\n  - a dish that draws on a preparation does NOT repeat its recipe. Its method is\n    what you do at that meal: \"reheat a portion, add the salad and the lemon\".\n  - vary what you build from the same preparation. Same protein, different meal.\n\n== NAME THE COOKING SESSIONS, AND WRITE THE RUN-THROUGH ==\n\nGive `cooking_sessions`: the days on which the student actually cooks, which\npreparations get made in each, and the ORDER of the gestures — \"oven on for the\ntray, rice on while it roasts, chilli simmering next to it, box four portions\".\n\nAim for two or three sessions in a week, not seven. Every preparation belongs to\nexactly one session: a preparation nobody cooks is a plan the student cannot\nfollow.\n\n== NOTHING SITS IN THE FRIDGE FOR A WEEK ==\n\nA cooked batch is eaten within THREE DAYS of the day it was cooked. Cooked on\nThursday means eaten by Sunday, and that is the end of it. Beyond that it is not\na meal plan, it is a plan to throw food away or to get somebody ill.\n\nCooked rice and cooked seafood are tighter still: same day or the day after.\nRice left sitting is the classic way to make somebody sick, and no amount of\nconvenience is worth it.\n\nIf a batch would have to stretch further, you have three honest ways out: cook a\nsmaller batch, cook it twice, or say plainly in the method that the surplus goes\nin the FREEZER on the cooking day. Never stretch it in silence.\n\n== THE COOKING TIME THEY GAVE YOU IS A CEILING ==\n\nWhen a session time is stated, the session fits inside it. It is not a target to\napproach and overshoot: it is what they actually have that evening, and a\nsession that does not fit is a session they skip — after which the whole week\nfalls apart, not just that session.\n\nIf everything will not fit, cook LESS in that session and put the rest on\nanother cooking day. Fewer preparations that happen beat more preparations that\ndo not.\n\n== NOTHING IS EATEN BEFORE IT IS COOKED ==\n\nA preparation must be cooked ON OR BEFORE the first day that eats from it. If\nthe only cooking day you have is Sunday, then Thursday, Friday and Saturday\ncannot live off a Sunday batch — those days cook for themselves, or they eat\nsomething that needs no batch at all.\n\nThis is not a preference. A plan that feeds Thursday from a Sunday session is a\nplan that cannot be executed, and the student finds out at lunchtime.\n\n== HOW LONG THINGS TAKE ==\n\nEvery preparation carries two numbers, and they are not the same one.\n\"active_minutes\" is time with your hands on it — chopping, stirring, turning.\n\"total_minutes\" is from starting to finished, waiting included. A roast is 10\nactive and 50 total; that gap is the whole reason batch cooking works, because\nthe oven time is free for another preparation.\n\nA session's \"total_minutes\" is the wall clock of the session, NOT the sum of its\npreparations: things overlap, and pretending otherwise turns a comfortable\nninety-minute Sunday into a scary four-hour one nobody starts.\n\nRound to the nearest five. These are estimates a cook recognises, not\nmeasurements — but they are the numbers somebody uses to decide whether tonight\nis possible, so a wrong one costs a skipped meal.\n\n== WHAT TODAY ACTUALLY TAKES, ON EVERY DISH ==\n\nEvery dish carries \"same_day\": what the student does ON THE DAY THEY EAT IT to\nget that plate in front of them, and how long that gesture takes.\n\n  \"kind\" is one of four, and nothing else exists:\n    \"none\"        - nothing to prepare. Fruit, a yogurt, a plate already made.\n    \"reheat_only\" - take the portion out and heat it, and NOTHING else.\n    \"assemble\"    - build the plate from what is already cooked, no cooking.\n    \"cook_fresh\"  - a real cooking gesture that day: scramble the eggs, boil\n                    the pasta, sear the fish.\n\n  \"minutes\" is how long THAT gesture takes, that day. A whole number.\n\n\"minutes\" IS NOT THE TIME OF THE COOKING SESSION, and confusing the two is the\nfailure this field exists to stop. A portion of Sunday's roast, reheated on\nWednesday, is 8 minutes - not the 50 the roast took. Announcing 50 tells\nsomebody with ten minutes that dinner is out of reach, and they skip it.\n\nSay it on EVERY dish, including the ones where the answer is nothing. \"none\" and\n\"cook_fresh\" are answers; a missing line is a plate somebody stands in front of\nwithout knowing what to do. If the dish reheats, the word reheat is what they\nneed to read, so write \"reheat_only\" and say it again plainly in \"method\".\n\n== NEVER PUT A NUMBER ON NUTRITION ==\n\nNo calories. No macro grams. No percentages of anything nutritional. Not as a target, not as a range, not \"roughly\". Nobody has measured this student.\n\nShopping quantities are DIFFERENT and expected: \"400 g chicken thighs\", \"2 onions\", \"a bunch of parsley\". A quantity says how much to buy or use; a target claims a measurement of the person. Put quantities on ingredients, never on the student.\n\n== SAY THE SAME QUANTITY TWICE: ONCE FOR THE COOK, ONCE IN FIGURES ==\n\nEvery ingredient carries \"quantity\" — the phrase a person reads, exactly as you\nwrite it today — AND three plain fields that repeat it:\n\n  \"amount\": the number.\n  \"unit\":   one of \"g\", \"ml\", \"unit\", \"tbsp\", \"tsp\". Nothing else exists. If\n            what you meant is a handful, a cup, a bunch or a pinch, leave\n            \"amount\" and \"unit\" null and keep the phrase in \"quantity\".\n  \"state\":  \"raw\" or \"cooked\" — the weight you just wrote, before or after\n            cooking.\n\n\"state\" is REQUIRED for anything that takes on or loses water in the pan: rice,\npasta, couscous, lentils, dried beans, meat, poultry, fish. A hundred grams of\nrice is not the same food before and after it is boiled, and leaving it out\nmakes the line unusable. It does not matter for oil, nuts, cheese, yogurt or\nfruit — say it anyway when you know it.\n\nNever guess. An ingredient whose weight you do not actually know keeps its\nphrase and leaves the three fields null. A made-up number is worse than a\nmissing one.\n\nFATS, NUTS AND SWEETENERS ARE THE ONE EXCEPTION, and they are not a guess.\nOil, butter, ghee, cream, nut butter, tahini, nuts, seeds, honey, syrup and\nchocolate ALWAYS carry \"amount\" and \"unit\". \"A drizzle of olive oil\" is a\ntablespoon; write 1 and \"tbsp\". These ingredients are small on the page and\nenormous in the pan -- a spoon of oil weighs what a whole plate of vegetables\nweighs, and a line left blank there makes the entire dish unreadable. Salt,\npepper and herbs may stay a pinch; oil may not.\n\n== WHAT A DISH ADDS ON THE DAY IS WEIGHED OR COUNTED, NEVER VAGUE ==\n\nThe phrase in a DISH's \"quantity\" is either a weight -- \"100 g dried pasta\",\n\"40 g feta\" -- or something a person can count: \"half a lemon\", \"10 basil\nleaves\", \"2 eggs\". \"A handful\", \"a generous portion\", \"some rice\" say nothing\nanybody can act on, and they are why the same dish comes out different every\ntime. Salt, pepper and herbs may stay a pinch. Everything else gets a number.\n\n== THE STUDENT'S SITUATION IS NOT DECORATION ==\n\nThey tell you what their week actually looks like — a wedding on Tuesday, a holiday, a weekend away, a late shift. Cook around it. A meal that assumes an evening they do not have is a meal they will not make.\n\n== THE TWO MODES ==\n\nmode = from_pantry\n  Cook with what they ALREADY have. Reach outside their list only for genuine\n  staples (salt, pepper, oil, water) or when the dish is impossible otherwise.\n  Anything you use that they did not list will be shown to them as something to\n  buy, so keep that list short and say why it is needed.\n\nmode = to_shop\n  Compose freely, then give the shopping list the dish actually needs.\n\n== EVERY DISH HAS TWO LINES: A NAME, AND A TITLE ==\n\nThey are not the same line and they do not do the same job.\n\n  \"title\" is what is on the plate, plainly: \"Chicken, courgettes, peppers and\n  rice\". It is read out at the table, it is what somebody cooks from, and it\n  never changes job. Keep writing it exactly as you already do.\n\n  \"name\" is what this dish is CALLED: \"Golden roast chicken bowls\". Short --\n  six words at most. Appetising. It is the line somebody reads when they decide\n  whether they want to eat tonight.\n\nWrite BOTH, on every single dish: as many names as you have dishes. Count them\nbefore you answer.\n\nDo NOT make the title pretty instead. A title that becomes \"Sunshine of\nMarrakesh\" no longer says what is on the plate, and nobody can cook a name. If\nyou find yourself dressing up the title, that is the name -- put it in \"name\"\nand give the title back its plain words. And never write the same string twice:\na \"name\" identical to the title is a line that says nothing.\n\n== OUTPUT JSON SCHEMA ==\n\n{\n  \"dishes\": [\n    {\n      \"name\": \"short, appetising, six words at most -- what the dish is CALLED\",\n      \"title\": \"...\",\n      \"slot\": \"breakfast\"|\"snack_am\"|\"lunch\"|\"snack_pm\"|\"dinner\"|\"before_bed\"|null,\n      \"day\": \"mon\"|\"tue\"|\"wed\"|\"thu\"|\"fri\"|\"sat\"|\"sun\"|null,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"...\"|null,\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to make it, plainly, in a short paragraph\",\n      \"why\": \"one sentence: why THIS dish for THIS student this week\",\n      \"uses\": [{ \"preparation_id\": \"prep_chicken\", \"servings\": 1 }],\n      \"same_day\": { \"kind\": \"none\"|\"reheat_only\"|\"assemble\"|\"cook_fresh\",\n                    \"minutes\": <whole minutes for the day-of gesture> },\n      \"honours_belief_keys\": [\"<exact keys from the convictions list, when one applies>\"]\n    }\n  ],\n  \"preparations\": [\n    { \"id\": \"prep_chicken\", \"title\": \"Roast chicken thighs\",\n      \"servings_made\": 4,\n      \"ingredients\": [{ \"term\": \"...\", \"quantity\": \"<for the WHOLE batch>\",\n                        \"amount\": <number>|null,\n                        \"unit\": \"g\"|\"ml\"|\"unit\"|\"tbsp\"|\"tsp\"|null,\n                        \"state\": \"raw\"|\"cooked\"|null }],\n      \"method\": \"how to cook the batch\",\n      \"active_minutes\": <minutes of HANDS-ON work>,\n      \"total_minutes\": <minutes from starting to finished, waiting included>,\n      \"cook_on\": \"sun\"|null }\n  ],\n  \"cooking_sessions\": [\n    { \"day\": \"sun\", \"preparation_ids\": [\"prep_chicken\", \"prep_rice\"],\n      \"total_minutes\": <minutes the whole session takes, start to finish>,\n      \"run_through\": \"the order of the gestures, plainly\" }\n  ],\n  \"shopping_list\": [\n    { \"term\": \"...\", \"quantity\": \"...\"|null,\n      \"aisle\": \"produce\"|\"protein\"|\"dairy\"|\"grains\"|\"pantry\"|\"frozen\"|\"other\" }\n  ]\n}\n\nDay tokens are exactly: mon tue wed thu fri sat sun. Never translated.\n\n== ADDITIONAL OUTPUT FIELD (household) ==\nAdd ONE more top-level key to the JSON you return:\n  \"member_portions\": [\n    { \"member_id\": \"<exact id given above>\",\n      \"portion_note\": \"how much of what goes on this plate\",\n      \"preparation_shares\": [{ \"preparation_id\": \"prep_x\", \"note\": \"...\" }] }\n  ]\nOne entry per person listed, using their EXACT member_id. Serving\ninstructions only — never a reason, a goal, a calorie count, or anything\nabout a person's body.\n\n== BOXES, ON EVERY PREPARATION (household) ==\nEach preparation carries one more key: \"boxes\".\n  \"boxes\": [{ \"id\": \"box_<preparation>_<name>\",\n              \"member_ids\": [\"<exact ids from the list above>\"],\n              \"grams\": <whole grams of READY food in that box> }]\nIds are lowercase ASCII, invented by you, and each one is used once in the\nwhole plan. The grams are what goes IN the box once cooked, not the raw\nweight of the shopping.\nA dish that eats from a box says so: each entry of its \"uses\" then carries\n\"box_id\", set to that exact box id. A box can only be cited by a meal on or\nafter the day its preparation is cooked.",
+      "service_tier": "default",
+      "top_logprobs": 0,
+      "max_tool_calls": null,
+      "presence_penalty": 0,
+      "prompt_cache_key": null,
+      "frequency_penalty": 0,
+      "max_output_tokens": null,
+      "safety_identifier": null,
+      "incomplete_details": null,
+      "parallel_tool_calls": true,
+      "previous_response_id": null,
+      "prompt_cache_retention": "24h"
+    }
+  },
+  "events": [
+    {
+      "created_at": "2026-08-18T23:24:05.585968+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    },
+    {
+      "created_at": "2026-08-18T23:24:31.421158+00:00",
+      "status": "success",
+      "outcome": "text",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": 200,
+      "error_message": null,
+      "carries_prompt": false
+    },
+    {
+      "created_at": "2026-08-18T23:24:31.45761+00:00",
+      "status": "attempt_start",
+      "outcome": "pending",
+      "provider": "openai",
+      "model": "gpt-5.4-mini",
+      "attempt": 1,
+      "chain_index": 0,
+      "http_status": null,
+      "error_message": null,
+      "carries_prompt": true
+    }
+  ]
+}

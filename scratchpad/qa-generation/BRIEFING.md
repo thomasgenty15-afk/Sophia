@@ -9,18 +9,56 @@ compose sa semaine. **Aucun canal 1:1.** Aucune copie ne doit faire attendre
 l'élève. Détail : `CLAUDE.md`, `docs/keel/MODEL.md`.
 
 ## Les trois lanes de génération
-| Lane | Fonction edge | Modèle observé |
-|---|---|---|
-| solo repas | `supabase/functions/generate-meal-v1/index.ts` | `gpt-5.6-sol` |
-| solo semaine | `supabase/functions/generate-week-plan-v1/index.ts` | — |
-| foyer | `supabase/functions/generate-household-meal-v1/index.ts` | `gpt-5.6-sol` **expire à 4 min** → retombe sur `gpt-5.4-mini` |
+| Lane | Fonction edge | Modèle | Repli |
+|---|---|---|---|
+| solo repas | `supabase/functions/generate-meal-v1/index.ts` | `keelGenerationModel()` = `gpt-5.6-sol`, timeout 240 s | **oui** |
+| solo semaine | `supabase/functions/generate-week-plan-v1/index.ts` | idem (`index.ts:798`) | **oui** |
+| foyer | `supabase/functions/generate-household-meal-v1/index.ts` | `GLOBAL_AI_MODEL` = `gpt-5.4-mini` | non |
+
+⚠️ **CORRECTION du 2026-08-18, une version antérieure de ce briefing disait
+l'inverse.** Ce sont les lanes **solo** qui portent le modèle de composition et
+qui peuvent **replier** ; la lane **foyer saute `keelGenerationModel()`** et part
+directement sur le modèle du **chat**. Vérifié : `generate-meal-v1:1839`,
+`generate-week-plan-v1:798` l'appellent, `generate-household-meal-v1` non.
+
+✅ **Le repli est inoffensif pour la mesure** : prouvé par empreintes SHA-256
+relevées sur la socket, l'appel qui expire et celui qui produit portent le
+**même** prompt, y compris d'un fournisseur à l'autre. Le prompt archivé est
+bien celui qui a fabriqué la sortie. Seule scorie : la ligne de prompt nomme le
+modèle **échoué** — le script de vidage, lui, annonce le bon.
 
 Point de passage **unique** vers le modèle :
 `generateWithGemini(systemPrompt, userMessage, ...)` — `supabase/functions/_shared/gemini.ts:146`.
 
+## ⛔ DÉCISION DU 2026-08-19 — LE PÉRIMÈTRE « SOLO » EST UNE SEULE LANE
+Les étapes ② et ④ ne travaillent que sur **`generate-meal-v1`**.
+`generate-week-plan-v1` **sort du chantier**.
+
+Pourquoi, mesuré : la lane du repas est vivante et c'est l'écran de composition
+lui-même qui l'appelle —
+`MealBuilder.tsx:788` → `generateMeal()` (`api/mealGeneration.ts:615`) →
+`invoke("generate-meal-v1")`. La lane de la semaine, elle, n'a **aucun appelant
+vivant** : `generateWeekPlan` (`api/weekPlan.ts:137`) n'est appelée par aucun
+écran ni module, et côté serveur les seules occurrences restantes sont six
+fichiers de test et une ligne d'aide de script. Ses appels en base sont ceux des
+agents de QA, pas d'un usage.
+
+⚠️ **Ne la supprime pas et ne la « rebranche » pas** : ce dépôt garde exprès des
+chemins qui ressemblent à du code mort, et `student_week_plans` est nommée dans
+le modèle produit. La question « code mort ou lane à rebrancher ? » est posée
+ailleurs, à un humain.
+
+⚠️ Conséquence à connaître : le correctif « régime alimentaire absent du prompt
+de semaine » livré par l'agent 1A porte sur cette lane inatteignable. Il est
+juste, il n'a simplement aucun effet pour un utilisateur aujourd'hui.
+
+📌 **Le chat ne génère aucun repas.** Les seules mentions d'une lane de
+génération dans `sophia-brain` sont un harnais de test. Il n'existe pas de porte
+« repas sur le tas » par la conversation.
+
 ## Ce qui est déjà mesuré — ne le redécouvre pas
-- **La lane foyer expire à 4 min.** N'alourdis jamais le prompt sans nécessité
-  mesurée ; lis toute latence avec ça en tête.
+- **Les lanes solo peuvent expirer à 4 min** puis replier. N'alourdis jamais le
+  prompt sans nécessité mesurée ; lis toute latence avec ça en tête.
 - **La promesse et la clé doivent se toucher.** Un champ dont la *promesse* vit
   dans le message utilisateur et la *clé* dans le prompt système sort à **0 %**.
   Mesuré deux fois. Rapprochés + **nombre attendu** + **échappatoire nommée** ⇒
@@ -65,6 +103,42 @@ Point de passage **unique** vers le modèle :
 - DB locale : `docker exec supabase_db_Sophia_2 psql -U postgres -d postgres -c "..."`.
 - ⚠️ **Ne laisse jamais des exports `SUPABASE_*` dans ton shell** avant de lancer
   la suite de tests : 114 faux rouges mesurés.
+
+## L'instrument, et ses trois pièges mesurés
+Le prompt réellement envoyé est dans `public.llm_raw_response_events`
+(`system_prompt`, `user_message`, `_chars`, `_truncated`). Vidage :
+`node scripts/export_llm_prompt_dump.mjs --request-id <id> --out <dossier>`.
+
+1. ⚠️ **Un vidage vide n'est PAS une preuve d'absence.** L'instrument a déjà été
+   MORT sans le dire : un `revoke insert … from service_role` a fait refuser
+   **52 écritures, sans un signal** — le code ne lit pas le `.error` de son
+   insert. Avant de cocher, **prouve que la ligne de ton run existe** :
+   `select source, status, system_prompt_chars from llm_raw_response_events where request_id='<id>';`
+2. ⚠️ **`--source` sans correspondance vide silencieusement une AUTRE lane**,
+   code de sortie 0. Vérifie que le dossier produit porte la lane visée.
+3. ⛔ **Le mode JSON réécrit le prompt APRÈS la capture** (`gemini.ts:549-567`,
+   mesuré 77→102 caractères). L'écart est **nul aujourd'hui** parce que le mot
+   « json » figure déjà dans les trois prompts — mais **rien ne le garde**.
+   Conséquence directe pour quiconque RÉÉCRIT un prompt : si ta réécriture fait
+   disparaître ce mot, l'instrument se met à mentir **en silence**. Vérifie-le
+   après chaque modification de prompt.
+
+## Le poste partagé — quatre pièges mesurés le 2026-08-18
+1. ⚠️ **Le conteneur edge est recréé toutes les 2–3 minutes** par le
+   `functions serve` d'une session voisine : des runs meurent en **502 Kong**
+   en plein vol. Ce n'est ni le produit ni Kong (patché à 600 s, revérifié).
+   Relance — et ne conclus **jamais rien** d'un 502.
+2. ⚠️ **Le panneau de navigateur est partagé** entre agents. `computer.left_click`
+   peut cesser d'atteindre la page — aucun `mousedown` reçu par un écouteur en
+   capture — alors que le survol et le clavier passent. Repli légitime :
+   `form_input` + clic programmatique **sur les vrais boutons de l'écran**
+   (mêmes gestionnaires, mêmes validations, mêmes appels réseau). **Dis-le**
+   dans ton rapport si tu l'utilises.
+3. ⚠️ **Sur la lane foyer, un `request_id` porte souvent DEUX appels**
+   (`.protein_anchor_retry`) : `--source` est **obligatoire** au vidage.
+4. ⚠️ **Quatre tests front sont rouges et ÉTRANGERS à ce chantier**
+   (`coverage-guard` : 55 fonctions edge contre 52 déclarées ;
+   `household.int.test.ts:323`). Ne les réparent pas, ne les compte pas contre toi.
 
 ## Comptes et fixtures
 - Personas QA : `tests/real-personas/` — `qa-skill`, `paul`, `eva`, `alex`,

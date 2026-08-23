@@ -107,8 +107,21 @@ function callArgs(src: string, callee: string, from = 0): string[] {
   throw new Error(`appel non refermé: ${callee}(`);
 }
 
-/** La position du 7ᵉ paramètre d'`envelopeFor` — celui du lot 1E. */
-const PORTION_ARG = 6;
+/**
+ * La position des `portion.adjust` dans `envelopeFor` — le 8ᵉ paramètre.
+ *
+ * ⚠️ C'ÉTAIT LE 7ᵉ JUSQU'AU 2026-08-20. Les deux axes d'activité (journée x
+ * sport) se sont insérés JUSTE APRÈS le cran, donc avant celui-ci. La position
+ * est nommée plutôt que recopiée pour que ce genre de décalage se corrige en un
+ * seul endroit — et le test d'arité juste en dessous est ce qui l'attrape.
+ */
+const PORTION_ARG = 8;
+
+/** La position des deux axes journée x sport — le 7ᵉ paramètre (2026-08-20). */
+const AXES_ARG = 6;
+
+/** La position de l'appétit — le 8ᵉ paramètre (lot ⑤, 2026-08-20). */
+const APPETITE_ARG = 7;
 
 Deno.test("LE CÂBLAGE — les DEUX générateurs passent une bouche à `envelopeFor`", async () => {
   // ⚠️ LA MOITIÉ QUI REND CE TEST UTILE: il doit rougir si quelqu'un remet
@@ -125,8 +138,8 @@ Deno.test("LE CÂBLAGE — les DEUX générateurs passent une bouche à `envelop
     const args = callArgs(src, "envelopeFor");
     assertEquals(
       args.length,
-      7,
-      `lane ${lane}: \`envelopeFor\` n'est plus appelée avec ses 7 paramètres`,
+      9,
+      `lane ${lane}: \`envelopeFor\` n'est plus appelée avec ses 9 paramètres`,
     );
     assert(
       args[PORTION_ARG] !== "null",
@@ -135,6 +148,34 @@ Deno.test("LE CÂBLAGE — les DEUX générateurs passent une bouche à `envelop
         `arrive: un \`portion.adjust\` retenu n'a AUCUN effet, en silence.`,
     );
   }
+});
+
+Deno.test("LANE FOYER — les deux axes d'activité viennent de la FICHE, pas d'un littéral", async () => {
+  // ⛔ LA MOITIÉ QUI REND CE TEST UTILE, ET ELLE EST ASYMÉTRIQUE ENTRE LES DEUX
+  // LANES. Le lot ② du 2026-08-20 pose la journée et le sport sur la fiche
+  // d'une bouche de FOYER; la lane individuelle n'a pas ces colonnes et passe
+  // le littéral neutre, en le disant. Si la lane foyer se mettait à passer le
+  // même littéral, le lot serait construit, migré, affiché — et désarmé, sans
+  // qu'aucun autre test ne rougisse: le produit rendrait exactement les nombres
+  // d'avant, ce qui est précisément le mode d'échec n°1 de ce dépôt.
+  const household = await source("generate-household-meal-v1/index.ts");
+  const args = callArgs(household, "envelopeFor");
+  assert(
+    /lineBodies\.get\(m\.memberId\)\?\.activityAxes/.test(args[AXES_ARG]),
+    "LANE FOYER DÉBRANCHÉE: `envelopeFor` ne reçoit plus les axes LUS sur la " +
+      "fiche (`lineBodies…activityAxes`), donc la journée et le sport " +
+      `collectés n'atteignent aucune équation. Reçu: ${args[AXES_ARG]}`,
+  );
+  // ⑤ — MÊME GARDE, MÊME RAISON. L'appétit est TRANSITOIRE (le lot ⑦ le
+  // remplace), ce qui le rend d'autant plus facile à débrancher « en passant »
+  // le jour où ⑦ arrive: un littéral `null` ici et les trois crans deviennent
+  // décoratifs pour toutes les bouches SANS COMPTE, qui sont précisément celles
+  // que ⑦ ne couvrira jamais.
+  assert(
+    /lineBodies\.get\(m\.memberId\)\?\.appetite/.test(args[APPETITE_ARG]),
+    "LANE FOYER DÉBRANCHÉE: `envelopeFor` ne reçoit plus l'appétit LU sur la " +
+      `fiche. Reçu: ${args[APPETITE_ARG]}`,
+  );
 });
 
 Deno.test("LANE FOYER — la bouche porte son `ageState`, et la liste n'est pas pré-filtrée", async () => {
@@ -264,6 +305,7 @@ function body(over: Partial<MealBodyContext> = {}): MealBodyContext {
     gender: "male",
     latestWeight: { weekStart: "2026-08-03", value: 80 },
     latestWaist: null,
+    declaredWeightKg: null,
     restrictionFlag: false,
     ...over,
   };
@@ -316,6 +358,8 @@ Deno.test("DE BOUT EN BOUT — un `down`/`clear` de foyer baisse l'ADULTE, et LU
     false,
     null,
     null,
+    { day: null, sport: null, asked: false },
+    null,
     null,
   );
   assert(baseline.mode === "per_kg");
@@ -331,6 +375,8 @@ Deno.test("DE BOUT EN BOUT — un `down`/`clear` de foyer baisse l'ADULTE, et LU
     "30_44",
     false,
     null,
+    null,
+    { day: null, sport: null, asked: false },
     null,
     forMouth("adult", ADULT_ID, items),
   );
@@ -349,6 +395,8 @@ Deno.test("DE BOUT EN BOUT — un `down`/`clear` de foyer baisse l'ADULTE, et LU
     false,
     null,
     null,
+    { day: null, sport: null, asked: false },
+    null,
     forMouth("minor", KID_ID, items),
   );
   assert(kid.mode === "per_kg");
@@ -363,6 +411,8 @@ Deno.test("DE BOUT EN BOUT — un `down`/`clear` de foyer baisse l'ADULTE, et LU
     "30_44",
     false,
     null,
+    null,
+    { day: null, sport: null, asked: false },
     null,
     forMouth("unknown", KID_ID, items),
   );
@@ -383,6 +433,8 @@ Deno.test("DE BOUT EN BOUT — la lane individuelle: le verdict décide, pas un 
       "30_44",
       false,
       null,
+      null,
+      { day: null, sport: null, asked: false },
       null,
       forMouth(birthVerdictAge, "u-solo", items),
     );

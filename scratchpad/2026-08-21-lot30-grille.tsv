@@ -1,0 +1,923 @@
+olive_oil	12.60	11.54	R	R	A		Huile d'olive vierge extra 1 L, densite 0,91 prise en compte
+water	0.0043	0.0015	E	E	A		Eau du robinet 4,30 EUR/m3 FR et 1,45 USD/m3 US. Reelle mais negligeable devant tout aliment
+coffee	20.00	18.74	R	P	I	6.5	La ligne est le cafe INFUSE (6,9 kcal/100 g), pas la poudre. 6,5 g de moulu par 100 g de boisson
+tea	30.00	30.00	R	R	I	0.5	La ligne est le the INFUSE (0,1 kcal/100 g). 0,5 g de feuilles par 100 g de boisson
+beer	2.60	3.50	R	R	A
+wine	5.50	9.00	R	R	A
+chips_fries	2.20	3.30	R	R	D	120	Frites surgelees; la ligne est l'etat cuit au four (213 kcal). 120 g de surgele par 100 g cuit
+crisps	12.00	14.00	R	R	A
+cola	1.20	1.60	R	R	A
+orange_juice	2.20	3.43	R	P	A
+ham	15.00	10.80	R	P	A		Jambon blanc superieur FR / boneless ham US
+pork_loin	10.00	8.82	R	P	A
+turkey_breast	12.80	8.82	V	P	A		FR: escalope de dinde, RNM detail 12,80 EUR/kg
+soy_milk	1.80	1.30	R	R	A
+tempeh	16.00	12.13	E	R	A
+tofu	9.00	6.17	R	R	A
+crab	30.00	40.00	E	E	A		Chair de crabe, pas le crabe entier
+mussels	5.00	8.82	R	R	X	357	Moules vendues EN COQUILLE, rendement chair 28 pc
+prawns	24.00	20.94	R	P	A		Crevettes cuites decortiquees
+scallops	30.00	39.69	E	R	A		Noix sans corail
+squid	12.00	13.23	R	R	A
+cheddar	14.00	13.67	R	P	A
+cream_cheese	9.00	8.80	R	R	A
+feta	13.00	13.20	R	R	A
+goat_cheese	16.00	22.00	R	R	A
+halloumi	16.00	22.00	E	E	A
+mozzarella	9.50	9.90	R	R	A
+parmesan	28.00	22.00	R	R	A
+biscuits	8.00	9.00	R	R	A
+dark_chocolate	22.00	24.00	R	R	A		Niveau post-flambee du cacao 2024-2026
+honey	14.00	12.00	R	R	A
+ice_cream	6.00	6.00	R	R	A
+jam	5.00	6.00	R	R	A
+maple_syrup	30.00	22.00	E	R	A		Produit domestique aux Etats-Unis, importe en France
+sugar	1.30	2.43	R	P	A
+anchovy	30.00	40.00	R	E	A		Filets sales ou a l'huile, en boite
+herring	9.00	17.64	R	R	A
+mackerel	10.00	19.84	R	R	A
+salmon	26.00	25.35	R	R	A		Filet frais
+sardines	12.00	16.00	R	R	A		En boite
+smoked_salmon	42.00	48.00	R	R	A
+trout	14.00	17.64	R	R	A
+cod	22.00	22.05	R	R	A		Filet
+haddock	15.00	22.05	R	R	A
+hake	18.00	15.43	R	R	A
+plaice	14.00	14.33	R	R	A
+pollock	12.00	13.23	R	R	A
+sea_bass	24.00	30.86	R	R	A
+tuna_fresh	26.00	26.46	R	R	A
+tuna_tinned	14.00	11.50	R	R	A		Poids egoutte
+blackberry	24.00	17.64	R	R	A
+blueberries	22.00	11.02	R	R	A		Ecart FR/US structurel: production nord-americaine de masse
+blueberry	22.00	11.02	R	R	A
+cranberry_sugar	12.00	12.13	R	R	A
+mixed_berries	8.00	8.80	R	R	A		Surgeles
+raspberries	24.00	18.74	R	R	A
+raspberry	24.00	18.74	R	R	A
+strawberries	9.00	6.83	R	R	A
+strawberry	9.00	6.83	R	R	A
+clementine	3.20	4.85	R	R	A
+clementine_mandarin_orange_pulp	3.20	4.85	R	R	X	133	Le libelle dit PULP: 133 g de fruit entier par 100 g de pulpe
+grapefruit	2.80	3.31	R	R	A
+grapefruit_pulp	2.80	3.31	R	R	X	200	Le libelle dit PULP: ecorce et membranes = la moitie du fruit
+lemon	3.00	4.85	R	R	A
+lemon_pulp	3.00	4.85	R	R	X	154	Le libelle dit PULP
+lemon_wedge	3.00	4.85	R	R	A
+lime	6.00	4.41	R	R	A
+lime_pulp	6.00	4.41	R	R	X	143	Le libelle dit PULP
+orange	2.40	3.40	R	V	A		US: BLS navel oranges 1,542 USD/lb
+orange_pulp	2.40	3.40	R	V	X	145	Le libelle dit PULP
+baked_beans	3.50	3.30	R	R	A
+black_beans	5.00	4.40	R	R	A		Conserve, poids egoutte (132 kcal = deja hydrate)
+broad_beans	5.00	6.00	R	E	A		Feves surgelees
+chickpeas_dry	3.00	3.53	R	R	A
+chickpeas_tinned	5.40	4.71	R	R	A		Poids egoutte
+edamame	8.00	6.61	R	R	A		Surgeles decortiques
+green_peas	3.20	3.53	R	R	A		Petits pois surgeles
+hummus	8.00	12.13	R	R	A
+kidney_beans	5.00	4.40	R	R	A		Conserve, poids egoutte
+lentils_cooked	3.00	3.97	R	R	D	42	PIEGE CRU/CUIT: yield_class neutre, le runtime ne reconvertit pas. 42 g de lentilles seches par 100 g cuites
+lentils_dry	3.00	3.97	R	R	A
+white_beans	4.50	4.60	R	R	A		Conserve, poids egoutte
+almonds	22.00	17.64	R	R	A
+cashews	24.00	20.94	R	R	A
+chia_seeds	14.00	15.43	R	R	A
+flaxseed	8.00	7.72	R	R	A
+hazelnuts	24.00	26.46	R	R	A
+mixed_nuts	22.00	19.84	R	R	A
+mixed_seeds	12.00	11.00	R	R	A
+peanut_butter	12.00	6.83	R	P	A		Ecart structurel: le beurre de cacahuete est un basique americain
+peanuts	9.00	7.72	R	R	A
+poppy_seeds	20.00	22.05	E	E	A
+pumpkin_seeds	14.00	14.33	R	R	A
+sesame_seeds	12.00	13.23	R	R	A
+sunflower_seed_butter	16.00	17.64	E	R	A
+sunflower_seeds	8.00	7.72	R	R	A
+tahini	14.00	19.84	R	R	A
+walnuts	16.00	18.74	R	R	A
+broccoli	3.80	5.07	R	R	A
+broccoli_water_crunchy	3.80	5.07	R	R	D	110	Libelle CUIT, yield_class neutre: le runtime ne reconvertit pas
+broccoli_water_tender	3.80	5.07	R	R	D	115	Libelle CUIT, yield_class neutre
+brussels_sprout_water	4.50	6.61	R	R	D	110	Libelle CUIT, yield_class neutre
+brussels_sprouts	4.50	6.61	R	R	A
+cabbage	2.20	2.20	R	R	A
+cauliflower	3.00	5.73	R	R	A
+green_cabbage_water	2.20	2.20	R	R	D	115	Libelle CUIT, yield_class neutre
+kale	6.00	6.61	R	R	A
+pak_choi	5.00	5.51	R	R	A
+radish	4.00	5.51	R	R	A
+radish_black	3.50	6.00	R	E	A		Radis noir: quasi absent du rayon americain
+red_cabbage	2.60	2.65	R	R	A
+romanesco_cauliflower_romanesco_broccoli	5.00	7.72	R	E	D	115	Libelle CUIT, yield_class neutre
+turnip_water	2.20	3.31	R	R	D	115	Libelle CUIT, yield_class neutre
+white_cabbage	2.20	2.20	R	R	A
+white_cabbage_water	2.20	2.20	R	R	D	115	Libelle CUIT, yield_class neutre
+black_pepper	45.00	30.00	R	R	A
+chilli_powder	30.00	20.00	R	R	A
+cinnamon	40.00	26.00	R	R	A
+cumin	35.00	22.00	R	R	A
+curry_paste	16.00	18.00	R	R	A
+dried_herbs	50.00	40.00	R	R	A
+hot_sauce	12.00	12.00	R	R	A
+ketchup	4.00	4.40	R	R	A
+mayonnaise	6.00	7.00	R	R	A
+mustard	5.50	5.50	R	R	A
+paprika	28.00	20.00	R	R	A
+pesto	14.00	18.00	R	R	A
+salsa	6.00	6.00	R	R	A
+salt	0.90	1.30	R	R	A
+soy_sauce	7.00	7.00	R	R	A
+stock_cube	25.00	22.00	R	R	A		La ligne est le CUBE (240 kcal/100 g), pas le bouillon
+turmeric	25.00	18.00	R	R	A
+vegetable_stock	25.00	22.00	R	R	I	1.0	La ligne est le bouillon RECONSTITUE (4 kcal/100 g): 1 g de cube par 100 g de bouillon
+vinaigrette	5.00	6.60	R	R	A
+vinegar	1.80	2.20	R	R	A
+herbs_basil	60.00	100.00	R	R	A		Basilic frais en barquette; le rayon americain le vend en clamshell de 20 g
+herbs_bay_leaf	40.00	40.00	E	E	A		Seche
+herbs_chives	30.00	100.00	R	E	A
+herbs_coriander	16.00	25.00	R	R	A
+herbs_dill	30.00	60.00	R	E	A
+herbs_mint	20.00	40.00	R	E	A
+herbs_parsley	14.00	33.00	R	R	A
+herbs_thyme	45.00	40.00	E	E	A		Seche (285 kcal/100 g)
+lamb_s_lettuce	12.00	25.00	R	E	A		Mache: produit de niche aux Etats-Unis
+lettuce	5.00	7.85	R	V	A		US: BLS lettuce romaine 3,56 USD/lb
+lettuce_oak_leaf	6.00	8.00	R	E	A
+lettuce_sucrine	7.00	8.00	E	E	A
+lettuce_var_batavia	5.00	7.85	R	E	A
+mixed_leaves	10.00	11.00	R	R	A
+rocket	14.00	13.00	R	R	A
+spinach	8.00	9.92	R	R	A
+spinach_water	8.00	9.92	R	R	D	147	Libelle CUIT, yield_class neutre: 100 g d'epinards egouttes viennent de 147 g de frais
+spinach_young_leaves	12.00	13.00	R	R	A
+swiss_chard	5.00	6.61	R	R	A
+swiss_chard_leaf_stalk	5.00	6.61	R	R	D	130	Libelle CUIT, yield_class neutre
+watercress	12.00	13.00	R	R	A
+duck_egg	12.00	13.00	E	E	A
+egg	6.30	3.65	R	V	A		FR: 3,78 EUR la boite de 12, part comestible 50 g. US: BLS oeufs 2,19 USD/douzaine
+egg_added_fat	6.30	3.65	R	V	D	115	Libelle CUIT, yield_class neutre: perte d'eau a la cuisson
+egg_hard	6.30	3.65	R	V	D	100	Libelle CUIT mais cuit en coquille: masse conservee, facteur verifie a 1
+egg_powder	18.00	16.00	E	E	A
+egg_scrambled_added_fat	7.20	4.30	E	E	A		Prix de revient des ingredients (oeuf + matiere grasse), pas un prix de rayon
+egg_soft	6.30	3.65	R	V	D	100	Libelle CUIT mais cuit en coquille: masse conservee
+egg_white	5.00	5.50	R	R	A		Blanc liquide vendu en brique; pas derive du prix de l'oeuf entier
+egg_white_powder	30.00	28.00	E	E	A
+egg_yolk	6.30	3.65	R	V	X	555	Le jaune ne se vend pas seul: 100 g de jaune demandent 5,5 oeufs entiers achetes
+goose_egg	20.00	22.00	E	E	A
+omelette_cheese	9.00	7.00	E	E	A		Prix de revient des ingredients, pas un prix de rayon
+omelette_herbs	7.00	5.00	E	E	A		Prix de revient des ingredients
+omelette_lardoons	9.00	7.50	E	E	A		Prix de revient des ingredients
+omelette_mushrooms	7.50	5.50	E	E	A		Prix de revient des ingredients
+omelette_vegetables_cheese_meat	9.00	7.00	E	E	A		Prix de revient des ingredients
+quail_egg	30.00	35.00	E	E	A
+spanish_style_tortilla_onions	8.00	9.00	E	E	A
+turkey_egg	18.00	20.00	E	E	A
+whole_eggs	6.30	3.65	R	V	A
+barley	3.50	3.30	R	R	A
+bran_grain_bread	5.50	5.62	R	P	A
+bread_wholemeal_integral_bread	5.00	5.62	R	P	A		US: BLS bread whole wheat pan
+brown_rice	4.20	2.90	R	R	A
+buckwheat	6.00	6.00	R	R	A
+bulgur	3.50	4.40	R	R	A
+bulgur_wheat	3.50	4.40	R	R	A
+couscous_wholemeal	3.60	6.00	R	E	A
+crispbread_rye	8.00	12.00	R	R	A
+english_muffin_wholewheat_flour	7.00	6.00	R	R	A
+noodles_wholewheat	5.00	5.50	R	R	A
+oats	3.20	2.60	R	R	A
+pita_wholemeal	6.50	7.00	R	R	A
+puffed_rice_textured_bread	12.00	14.00	R	R	A
+quinoa	8.50	7.00	R	R	A
+rolls_hamburger_hotdog_wholemeal	6.00	5.50	R	R	A
+rusk_wholemeal_rich_fibre	8.00	10.00	R	E	A
+rye_bread	5.50	6.00	R	R	A
+rye_bread_wheat	5.50	6.00	R	R	A
+sandwich_loaf_bran_grain	4.50	5.62	R	P	A
+sandwich_loaf_wholemeal	4.50	5.62	R	P	A
+tortilla_wholemeal	8.00	6.50	R	R	A
+wheat_swedish_toast_wholemeal	8.00	10.00	R	E	A
+wholemeal_bread	5.00	5.62	R	P	A
+wholewheat_pasta	3.20	4.40	R	R	A
+bagel	8.00	6.60	R	R	A
+bread	3.62	4.41	P	P	A		FR: INSEE prix moyen pain baguette 1 kg. US: BLS bread white pan
+bread_flour_bread_preparation	1.40	1.37	R	P	D	169	Pain fait maison: on achete de la FARINE, pas du pain. 65 g de farine par 100 g de pain | Le ratio est exprime contre gramsRaw: 65 g d'achat par 100 g d'assiette, x 2.6 que le runtime applique deja via yield_class=grain_absorbs
+bread_french_bread_baguette	3.62	6.00	P	E	A		FR: INSEE prix moyen pain baguette 1 kg
+bread_french_bread_ball	3.62	6.00	P	E	A
+bread_french_bread_multigrain	5.00	7.00	R	E	A
+bread_french_bread_salt	4.50	7.00	E	E	A		Pain sans sel: produit de regime, peu diffuse
+bread_french_bread_yeast	3.62	6.00	P	E	A
+bread_gluten_free	12.00	11.00	R	R	A
+breadcrumbs	3.50	5.00	R	R	A
+breakfast_cereal	6.50	8.00	R	R	A
+brear_t55_t110_flour	3.62	6.00	P	E	A
+bretzel	9.00	8.00	R	R	A
+brioche_sandwich_bread	6.00	6.50	R	R	A
+brown_bread_french_bread	4.20	6.50	R	E	A
+cooked_rice	2.90	2.43	R	P	D	38	PIEGE CRU/CUIT NOMME PAR LE LOT: yield_class neutre, le runtime ne reconvertit pas. 38 g de riz SEC par 100 g de riz cuit
+corn_cake	12.00	12.00	R	R	A
+corn_tortilla_wrap_be	7.00	4.50	R	R	A
+country_style_bread	1.40	1.37	R	P	D	169	Pain fait maison: on achete de la farine | Le ratio est exprime contre gramsRaw: 65 g d'achat par 100 g d'assiette, x 2.6 que le runtime applique deja via yield_class=grain_absorbs
+country_style_bread_french	4.50	7.00	R	E	A
+couscous	2.60	5.50	R	R	A
+crispbread_extruded	10.00	12.00	R	R	A
+crouton_garlic_herbs_onions	8.00	9.00	R	R	A
+croutons	8.00	9.00	R	R	A
+croutons_spreads	8.00	9.00	R	R	A
+english_muffin	6.50	5.50	R	R	A
+granola	9.00	10.00	R	R	A
+grissini_bread_stick	9.00	10.00	R	R	A
+naan_bread	8.50	9.00	R	R	A
+noodles	4.00	4.40	R	R	Y		La ligne est CUITE (104 kcal) mais yield_class = grain_absorbs: le runtime reconvertit deja en poids sec. Prix du sec, sans seconde division
+panini_bread	6.00	7.00	R	R	A
+pita_bread	6.00	6.60	R	R	A
+polenta	3.00	3.00	R	R	A
+puffed_cereals_textured_bread	12.00	14.00	R	R	A
+rolls_hamburger_hotdog	5.00	5.00	R	R	A
+rusk	7.00	10.00	R	R	A
+rusk_eggs	8.00	10.00	R	E	A
+rusk_multigrain	8.00	10.00	R	E	A
+rusk_slice_multigrain	8.00	10.00	R	E	A
+rusk_slice_wheat	7.00	10.00	R	E	A
+rusk_w_eggs	8.00	10.00	R	E	A
+sandwich_loaf	4.20	4.41	R	P	A
+sandwich_loaf_crust_less	5.00	5.00	R	R	A
+sandwich_loaf_multigrain	4.80	5.50	R	R	A
+swedish_toast_fruits	9.00	11.00	E	E	A
+swedish_toast_linseeds	9.00	11.00	E	E	A
+toasted_bread	4.20	4.41	R	P	D	299	Pain de mie grille a la maison: 115 g de pain par 100 g de grille | Le ratio est exprime contre gramsRaw: 115 g d'achat par 100 g d'assiette, x 2.6 que le runtime applique deja via yield_class=grain_absorbs
+tortilla_wrap	8.00	6.00	R	R	A
+wheat_crackers	9.00	9.00	R	R	A
+wheat_swedish_toast	8.00	10.00	R	E	A
+wheat_tortilla_wrap_be	8.00	6.00	R	R	A
+white_bread	3.62	4.41	P	P	A
+white_pasta	2.20	3.42	R	P	A
+white_rice	2.90	2.43	R	P	A		US: BLS rice white long grain uncooked
+blended_fat_50_63	5.00	5.50	R	E	A
+blended_fat_spreadable_30	4.50	5.00	R	E	A
+butter	12.00	10.80	R	P	A		US: BLS butter salted grade AA
+butter_60_62_fat	9.00	9.00	R	E	A
+butter_80_fat	12.00	10.80	R	P	A
+butter_80_fat_lightly	12.00	10.80	R	P	A
+butter_82_fat	12.00	10.80	R	P	A
+butter_82_fat_easy	13.00	11.50	R	E	A
+butter_light_39_41	8.00	8.00	R	E	A
+butter_spread_low_fat	7.00	7.50	R	E	A
+butter_unknown_fat_content	12.00	10.80	R	P	A
+chicken_fat	6.00	8.00	E	E	A		Schmaltz: produit de rayon aux Etats-Unis, marginal en France
+coconut_milk	3.60	4.00	R	R	A
+coconut_oil	9.00	9.00	R	R	A
+cod_liver_oil	40.00	45.00	E	E	A		Complement alimentaire, pas un ingredient de cuisine
+creme_fraiche	4.80	6.00	R	R	A
+dairy_fat_20_fat	4.00	4.50	E	E	A
+dairy_fat_25_fat	4.20	4.70	E	E	A
+duck_fat	8.00	20.00	R	E	A		Basique en France, importe et cher aux Etats-Unis
+fat_spreadfat_content_unknown	5.00	5.50	E	E	A
+ghee	14.00	16.00	R	R	A
+goose_fat	12.00	28.00	R	E	A
+herring_oil			-	-	A		NON COTE: huile industrielle, aucun circuit de detail alimentaire
+lard_pork_fat	4.00	4.00	R	R	A
+paraffin_oil			-	-	A		NON COTE: ce n'est pas un aliment
+pork_fat	4.00	5.00	R	E	A		Bardiere
+rapeseed_oil	3.30	3.74	R	P	A		US: canola oil
+salmon_oil			-	-	A		NON COTE: huile industrielle ou complement, pas un ingredient
+sardine_oil			-	-	A		NON COTE: huile industrielle
+sesame_oil	13.20	15.40	R	R	A
+single_cream	3.60	6.60	R	R	A
+sunflower_oil	2.85	4.40	R	R	A
+turkey_fat			-	-	A		NON COTE: graisse fondue sans circuit de detail
+vegetable_fat_50_63	4.50	5.50	R	E	A
+vegetable_fat_60_fat	4.80	5.50	R	E	A
+vegetable_fat_70_fat	5.20	5.50	R	E	A
+vegetable_fat_80_fat	5.50	5.50	R	R	A
+vegetable_fat_spreadable_30	4.00	5.00	R	E	A
+vegetable_fat_spreadable_50	4.50	5.20	R	E	A
+vegetable_fat_spreadable_fat	4.80	5.30	E	E	A
+beetroot	2.80	3.31	R	R	A
+breadfruit	5.00	6.00	E	E	A
+butternut_squash	2.50	3.53	R	R	A
+cassava_manioc_roots	3.50	3.31	E	R	A
+dauphine_potato	3.50	5.00	R	E	A		Surgele, achete cru
+duchesse_potato	4.00	5.50	R	E	A		Surgele, achete cru
+early_potato_water	3.00	3.31	R	R	D	120	Libelle CUIT et EPLUCHE, yield_class neutre
+french_fries_chips	2.20	3.30	R	R	D	120	Libelle CUIT au four, yield_class neutre
+french_fries_chips_aw	3.00	4.00	R	E	A		Achete surgele et cru
+french_fries_chips_deep	2.20	3.30	R	R	D	115	Libelle FRIT: la matiere grasse absorbee n'est pas chiffree ici
+french_fries_chips_intended	2.20	3.30	R	R	A		Achete surgele et cru
+jerusalem_artichoke	5.00	8.82	R	E	A
+mashed_potato_balls	3.80	5.00	R	E	A		Surgele, achete cru
+mashed_potatoes	1.99	2.43	R	P	Y		Libelle CUIT mais yield_class veg_shrinks: le runtime reconvertit deja
+new_potato	3.00	3.31	R	R	A
+parsnip	3.20	4.41	R	R	A
+plantain_banana	3.00	2.87	R	R	D	110	Libelle CUIT, yield_class neutre
+potato	1.99	2.43	R	P	A		US: BLS potatoes white
+potato_chip_quarter_spiced	3.50	4.50	R	E	D	120	Achete surgele, la ligne est l'etat cuit
+potato_crisps_flavoured	12.00	14.00	R	R	A
+potato_crisps_l_ancienne	14.00	16.00	R	E	A
+potato_crisps_related_reduced	14.00	15.00	R	R	A
+potato_flakes	4.50	6.00	R	R	A
+potato_flakes_milk_cream	5.00	6.50	R	R	A
+potato_into_cubes	2.50	3.30	R	R	A		Surgele, achete cru
+potato_puree_flakes_reconstituted	4.50	6.00	R	R	D	12.6	Reconstituee: on achete des FLOCONS. Residuel connu: yield_class veg_shrinks ajoute 11 pc que le runtime applique en plus | Le ratio est exprime contre gramsRaw: 14 g d'achat par 100 g d'assiette, x 0.9 que le runtime applique deja via yield_class=veg_shrinks
+potato_puree_milk_butter	1.99	2.43	R	P	Y		Faite avec de vraies pommes de terre; yield_class veg_shrinks reconvertit deja
+potato_sauteed_pan	1.99	2.43	R	P	D	120	Libelle CUIT, yield_class neutre
+potato_sauteed_pan_goose	1.99	2.43	R	P	D	120	Libelle CUIT; la graisse d'oie n'est pas chiffree ici
+potato_vacuum	3.50	4.50	R	E	A		Achete cuit sous vide
+potato_water	1.99	2.43	R	P	D	118	Libelle CUIT, yield_class neutre
+rostis_potatoes_cake	4.00	5.00	R	E	A		Achete surgele
+sweet_potato	3.20	3.09	R	R	A
+sweet_potato_puree_cream	3.20	3.09	R	R	D	110	Libelle CUIT, yield_class neutre; la creme n'est pas chiffree
+sweetcorn	3.50	3.60	R	R	A		Conserve, poids egoutte
+tapioca	5.00	5.50	R	R	A
+taro_tuber	4.50	4.41	E	R	A
+ware_potato_water	1.99	2.43	R	P	D	125	Libelle CUIT et EPLUCHE, yield_class neutre
+yam_indian_potato	4.00	4.41	R	R	X	112.5	Le libelle dit PEELED | Le ratio est exprime contre gramsRaw: 125 g d'achat par 100 g d'assiette, x 0.9 que le runtime applique deja via yield_class=veg_shrinks
+yam_indian_potato_water	4.00	4.41	R	R	D	130	Libelle CUIT et EPLUCHE, yield_class neutre
+apple	2.77	3.86	R	P	A		US: BLS apples red delicious
+apple_compote	2.60	3.30	R	R	A
+apple_compote_reduced_sugar	3.00	3.60	R	R	A
+apple_var_chanteclerc_pulp	3.00	3.86	E	P	X	118	Le libelle dit PULP: trognon et pepins retires
+apple_var_gala_pulp	2.90	3.86	R	P	X	118	Le libelle dit PULP
+apple_var_golden_pulp	2.77	3.86	R	P	X	118	Le libelle dit PULP
+apple_var_granny_smith	3.00	4.41	R	R	X	118	Le libelle dit PULP
+apple_var_pink_lady	4.20	5.51	R	R	X	118	Le libelle dit PULP
+apricot_pitted	4.50	8.82	R	E	X	110	Le libelle dit PITTED: noyau retire
+apricot_pitted_rehydrated_35	9.00	15.43	R	R	D	55	Abricots SECS rehydrates: 55 g de sec par 100 g de rehydrate
+avocado	6.00	5.73	R	R	A
+banana	2.20	1.42	R	V	A		US: BLS bananas 0,646 USD/lb
+banana_pulp	2.20	1.42	R	V	X	154	Le libelle dit PULP: la peau fait 35 pc du fruit
+cherry_pitted	9.00	8.82	R	R	X	112	Le libelle dit PITTED
+colombo_papaya_mature_seeds	8.00		E	-	A		FR: fruit de La Reunion, vendu en metropole au prix des exotiques. US: aucun circuit
+dates	9.00	13.23	R	R	A
+dried_apricot	9.00	15.43	R	R	A
+fig	8.00	13.23	R	E	A
+fruit	3.50	4.00	E	E	A		Ligne MOYENNE, pas un aliment: prix median du rayon fruits
+fruit_compote_reduced_sugar	3.00	3.60	R	R	A
+fruits_compote_miscellaneous	2.80	3.40	R	R	A
+fruits_compote_miscellaneous_reduced	3.00	3.60	R	R	A
+fruits_puree_apple_sugar	2.80	3.40	R	R	A
+fruits_puree_sugar_added	2.80	3.40	R	R	A
+grape_chasselas	6.00	6.17	E	R	A
+grape_red_muscat	6.50	6.17	E	R	A
+grape_white	4.50	6.17	R	R	A
+grapes	4.50	6.17	R	R	A
+greengage_plum	5.00	5.29	E	E	A
+kiwi	4.00	6.61	R	R	A
+kiwi_fruit_pulp_seeds	4.00	6.61	R	R	X	118	Le libelle dit PULP
+lychee_pulp	9.00	13.00	E	E	X	167	Le libelle dit PULP: peau et noyau retires
+mango	5.00	3.97	R	R	A
+mango_jose_flesh_island	12.00		E	-	X	167	FR: mangue de La Reunion. US: aucun circuit pour ce cultivar
+mango_pulp	5.00	3.97	R	R	X	167	Le libelle dit PULP
+melon	3.00	1.98	R	R	A
+melon_cantaloupe_pulp	3.00	1.98	R	R	X	180	Le libelle dit PULP: ecorce et graines retirees
+mirabelle_plum	5.50		E	-	A		FR: production lorraine saisonniere. US: aucun circuit de detail
+nectarine_white_flesh	3.50	4.85	R	R	X	110	Le libelle dit FLESH AND SKIN: noyau retire
+nectarine_yellow_flesh	3.50	4.85	R	R	X	110	Le libelle dit FLESH AND SKIN
+papaya_pulp	6.00	5.51	R	R	X	150	Le libelle dit PULP
+passion_fruit_pulp_pips	15.00	17.64	R	E	X	200	Le libelle dit PULP: la coque fait la moitie du fruit
+peach	3.50	4.85	R	R	A
+peach_white_flesh_variety	3.50	4.85	R	R	X	112	Le libelle dit PULP
+peach_yellow_flesh_variety	3.50	4.85	R	R	X	112	Le libelle dit PULP
+pear	3.20	4.41	R	R	A
+pear_light_syrup	3.20	4.00	R	R	A		Conserve, poids egoutte
+pear_var_conference_pulp	3.20	4.41	R	R	X	115	Le libelle dit PULP
+pear_var_williams_pulp	3.40	4.41	R	E	X	115	Le libelle dit PULP
+persimmon_pulp	5.00	8.82	R	E	X	118	Le libelle dit PULP
+pineapple	2.40	2.87	R	R	A
+pineapple_pulp	2.40	2.87	R	R	X	182	Le libelle dit PULP: ecorce et coeur retires
+plum	4.00	5.29	R	R	X	106	Le libelle dit RAW mais denoyaute
+pomegranate_pulp_pips	5.00	6.61	R	R	X	182	Le libelle dit PULP AND PIPS: l'ecorce fait la moitie du fruit
+prune	7.00	9.92	R	R	A
+queen_vicoria_ananas_flesh	12.00		E	-	X	182	FR: ananas Victoria de La Reunion. US: aucun circuit
+raisin	6.00	7.94	R	R	A
+raisins	6.00	7.94	R	R	A
+red_currant	20.00	22.00	R	E	A
+tropical_fruit_mix_snack	12.00	13.23	R	R	A
+watermelon_pulp	1.60	1.32	R	R	X	200	Le libelle dit PULP: l'ecorce fait la moitie du fruit
+artichoke	4.00	5.51	R	R	D	280	Libelle CUIT + parage: 280 g d'artichaut entier par 100 g consomme
+artichoke_base	12.00	14.00	R	E	A		Conserve, poids egoutte
+artichoke_heart	12.00	14.00	R	E	A		Conserve, poids egoutte
+asparagus	9.00	8.82	R	R	A
+asparagus_green_water	9.00	8.82	R	R	D	115	Libelle CUIT, yield_class neutre
+asparagus_white_water	10.00	12.00	R	E	D	130	Libelle CUIT; l'asperge blanche s'epluche
+aubergine	3.50	4.85	R	R	A
+avocado_pulp	6.00	5.73	R	R	X	123.3	Le libelle dit PULP: peau et noyau retires | Le ratio est exprime contre gramsRaw: 137 g d'achat par 100 g d'assiette, x 0.9 que le runtime applique deja via yield_class=veg_shrinks
+bamboo_shoots	6.00	6.00	E	E	A		Vendu en conserve dans les deux marches
+bell_pepper	4.50	6.61	R	R	A
+butter_bean_yellow_bean	5.00	5.73	R	R	D	110	Libelle CUIT, yield_class neutre
+button_mushroom_cultivated_mushroom	5.00	7.94	R	R	A
+caesar_s_mushroom_royal	40.00		E	-	A		FR: champignon sauvage de cueillette. US: aucun circuit de detail
+carrot	1.80	2.87	R	R	A
+carrot_water_crunchy	1.80	2.87	R	R	D	112	Libelle CUIT, yield_class neutre
+carrot_water_tender	1.80	2.87	R	R	D	118	Libelle CUIT, yield_class neutre
+carrots_puree	1.80	2.87	R	R	D	108	Libelle CUIT | Le ratio est exprime contre gramsRaw: 120 g d'achat par 100 g d'assiette, x 0.9 que le runtime applique deja via yield_class=veg_shrinks
+carrots_puree_cream	2.20	3.30	R	R	D	108	Libelle CUIT; la creme n'est pas chiffree | Le ratio est exprime contre gramsRaw: 120 g d'achat par 100 g d'assiette, x 0.9 que le runtime applique deja via yield_class=veg_shrinks
+celeriac	2.50	4.41	R	E	A
+celeriac_water	2.50	4.41	R	E	D	125	Libelle CUIT et epluche
+celery	3.00	3.53	R	R	A
+celery_stalk	3.00	3.53	R	R	A
+cep_boletus_mushroom	30.00	40.00	E	E	A
+chanterelle_girolle_mushroom	25.00	35.00	E	E	A
+chayote_island_la_reunion	3.50	4.41	E	R	D	115	Libelle CUIT. US: la chayote est un basique des rayons latino
+chicory	3.50	8.82	R	E	A		Endive
+chilli	12.00	13.23	R	R	A
+chinese_cabbageor_bok_choi	5.00	5.51	E	E	D	115	Libelle CUIT
+chinese_japanese_artichokes	15.00		E	-	D	115	Crosnes: production francaise confidentielle. US: aucun circuit
+coleslaw_mix	4.50	4.41	R	R	A
+courgette	3.00	4.41	R	R	A
+courgette_zucchini_pulp_peel	3.00	4.41	R	R	X	94.5	Le libelle dit PULP AND PEEL: seules les extremites sont retirees | Le ratio est exprime contre gramsRaw: 105 g d'achat par 100 g d'assiette, x 0.9 que le runtime applique deja via yield_class=veg_shrinks
+cucumber	2.50	3.53	R	R	A
+cucumber_pulp	2.50	3.53	R	R	X	108	Le libelle dit PULP: la peau est retiree | Le ratio est exprime contre gramsRaw: 120 g d'achat par 100 g d'assiette, x 0.9 que le runtime applique deja via yield_class=veg_shrinks
+cucumber_pulp_peel	2.50	3.53	R	R	X	94.5	Le libelle dit PULP AND PEEL | Le ratio est exprime contre gramsRaw: 105 g d'achat par 100 g d'assiette, x 0.9 que le runtime applique deja via yield_class=veg_shrinks
+eggplant_pulp	3.50	4.85	R	R	D	130	Libelle ROASTED, yield_class neutre
+fennel	3.50	6.61	R	R	A
+field_mushroom	8.00	11.02	E	E	A
+french_bean	3.20	3.53	R	R	A		Surgele, achete cru
+french_bean_water	3.20	3.53	R	R	D	110	Libelle CUIT, yield_class neutre
+garden_peas	4.00	3.60	R	R	A		Conserve, poids egoutte
+garden_peas_carrots	3.80	3.60	R	R	A		Conserve, poids egoutte
+garden_peas_water	3.20	3.53	R	R	D	105	Libelle CUIT, yield_class neutre
+garlic	9.00	11.02	R	R	A
+ginger	8.00	8.82	R	R	A
+green_beans	5.50	5.73	R	R	A
+leek	3.00	6.61	R	R	A
+leek_water	3.00	6.61	R	R	D	115	Libelle CUIT, yield_class neutre
+lima_bean	6.00	5.51	E	R	A
+mixed_vegetables	2.60	3.30	R	R	A		Surgele, achete cru
+mixed_vegetables_couscous	2.80	3.50	R	E	A		Surgele, achete cru
+mixed_vegetables_soups	2.60	3.30	R	R	A		Surgele, achete cru
+morel	80.00	120.00	E	E	A		Morille FRAICHE; la sechee est cinq fois plus chere
+mushroom	5.00	7.94	R	R	A
+mushroom_all_types	6.00	8.82	R	R	A
+olives	9.00	10.00	R	R	A
+onion	2.00	3.09	R	R	A
+onion_red_sauteed_pan	2.60	3.53	R	R	D	135	Libelle CUIT, yield_class neutre: l'oignon perd un tiers de sa masse
+onion_white_yellow_sauteed	2.00	3.09	R	R	D	135	Libelle CUIT, yield_class neutre
+oyster_mushroom	12.00	13.23	R	R	A
+passata	2.20	3.00	R	R	A
+peas_frozen	2.60	3.30	R	R	A		Surgele, achete cru
+pepper_sweet_green_sauteed	4.00	6.61	R	R	D	125	Libelle CUIT, yield_class neutre
+pepper_sweet_red_sauteed	4.50	6.61	R	R	D	125	Libelle CUIT, yield_class neutre
+pepper_sweet_yellow_sauteed	4.50	6.61	R	R	D	125	Libelle CUIT, yield_class neutre
+pumpkin	2.20	3.31	R	R	D	130	Libelle ROASTED, yield_class neutre
+pumpkin_pulp	2.20	3.31	R	R	D	155	Libelle PULP et COOKED: ecorce retiree puis perte d'eau
+red_kuri_squash_pulp	2.80	4.41	R	E	D	140	Libelle PULP et BRAISED
+red_onion	2.60	3.53	R	R	A
+salsify_water	4.00		R	-	A		FR: achete en conserve ou surgele. US: aucun circuit de detail
+shallot	5.00	8.82	R	E	A
+shallot_pan_fat	5.00	8.82	R	E	D	135	Libelle CUIT, yield_class neutre
+shiitake_mushroom	60.00	55.00	R	R	A		Seche
+snow_pea_water	8.00	8.82	R	R	D	108	Libelle CUIT, yield_class neutre
+spring_onion	6.00	6.61	R	R	A
+spring_onion_sauteed_pan	6.00	6.61	R	R	D	130	Libelle CUIT, yield_class neutre
+sweet_corn	3.50	3.60	R	R	A		Conserve, poids egoutte
+sweet_pepper_green	4.00	6.61	R	R	A
+sweet_pepper_red	4.50	6.61	R	R	A
+sweet_pepper_yellow	4.50	6.61	R	R	A
+tinned_tomatoes	2.00	2.80	R	R	A
+tomato	4.20	4.85	V	P	A		FR: RNM detail 4,20 EUR/kg. US: BLS tomatoes field grown
+tomato_beef_heart	5.50	6.61	R	R	A
+tomato_bunch	4.20	5.51	V	R	A		FR: RNM detail
+tomato_cherry	6.50	6.61	R	R	A
+tomato_oil	14.00	18.00	R	R	A
+tomato_paste_concentrated	4.50	6.00	R	R	A
+tomato_paste_double_concentrate	5.50	7.00	R	R	A
+tomato_pulp	2.20	2.80	R	R	A		Conserve
+tomato_puree	2.20	3.00	R	R	A
+tomato_round	4.20	4.85	V	P	A		FR: RNM detail
+vegetable	3.00	4.00	E	E	D	115	Ligne MOYENNE, pas un aliment: median du rayon legumes, etat cuit
+vegetables_mashed	3.00	4.00	E	E	D	108	Ligne composee | Le ratio est exprime contre gramsRaw: 120 g d'achat par 100 g d'assiette, x 0.9 que le runtime applique deja via yield_class=veg_shrinks
+yellow_onion	2.00	3.09	R	R	A
+caramelized_custard_cream_refrigerated	8.00	9.00	R	E	A
+cheesecake	12.00	11.00	R	R	A
+chestnut_mousse	9.00	14.00	E	E	A
+chocolate_cake_w_melting	10.00	11.00	R	E	A
+chocolate_mousse_refrigerated	6.50	7.50	R	R	A
+coconut_yogurt	7.00	8.80	R	R	A
+cottage_cheese	5.00	4.40	R	R	A
+cream_cheese_around_3	3.00	4.40	R	E	A		Fromage blanc
+cream_cheese_creamy_around	3.60	4.80	R	E	A
+cream_cheese_fat_free	3.00	4.40	R	E	A
+custard_cream_caramel_sauce	4.50	5.50	R	E	A
+custard_cream_eggs_refrigerated	5.00	6.00	R	E	A
+custard_dessert	4.00	5.00	R	E	A
+custard_dessert_caramel_refrigerated	4.50	5.50	R	E	A
+custard_dessert_chocolate	4.00	5.00	R	E	A
+custard_dessert_chocolate_refrigerated	4.50	5.50	R	E	A
+custard_dessert_coffee_refrigerated	4.50	5.50	R	E	A
+custard_dessert_reduced_fat	4.50	5.50	R	E	A
+custard_dessert_refrigerated	4.50	5.50	R	E	A
+custard_dessert_vanilla	4.00	5.00	R	E	A
+custard_dessert_vanilla_refrigerated	4.50	5.50	R	E	A
+dairy_drink_fermented_milk	3.00	3.60	R	R	A
+eggnog_alcohol	4.00	4.20	E	R	A
+fermented_milk_dairy_specialty	3.20	4.40	R	R	A
+fermented_milk_drink_milk	3.00	3.60	R	R	A
+fermented_milk_drink_skimmed	3.00	3.60	R	R	A
+flan_eggs_refrigerated	5.00	6.00	R	E	A
+floating_island_refrigerated	6.00	8.00	R	E	A
+french_toast	6.00	7.00	E	E	A		Prix de revient des ingredients, pas un prix de rayon
+fromage_blanc	3.00	4.40	R	E	A
+fruit_liegeois	5.00	6.00	R	E	A
+fruit_mousse_refrigerated	5.50	6.50	R	E	A
+fruits_batter_pudding	6.00	7.00	E	E	A
+greek_yogurt	4.50	5.50	R	R	A
+kefir	3.50	5.50	R	R	A
+milk_jelly_flavoured_covered	5.00	6.00	E	E	A
+milk_semi	1.18	1.14	R	V	A		US: BLS lait entier 4,32 USD/gallon
+milkshake_fast_foods_restaurant	6.00	7.00	E	E	A
+mousse_chocolate	7.00	8.00	R	R	A
+mousse_chocolate_plant_based	9.00	10.00	R	R	A
+mousse_topped_whipped_cream	7.00	8.00	R	E	A
+panna_cotta_refrigerated	8.00	9.00	R	E	A
+pastry_cream_custard	5.00	6.00	E	E	A
+petit_suisse_cream_cheese	5.00	7.00	R	E	A
+petit_suisse_like_cream	5.50	7.00	R	E	A
+plain_yogurt	2.40	3.30	R	R	A
+plant_based_dessert_flavoured	6.00	7.00	R	R	A
+plant_based_dessert_soybean	6.00	7.00	R	R	A
+profiteroles_custard_chocolate_sauce	10.00	11.00	R	E	A
+quark_fruit	4.50	5.50	R	R	A
+rice_pudding_cake	4.00	5.00	R	E	A
+rice_pudding_refrigerated	4.00	5.00	R	R	A
+rice_pudding_w_caramel	4.50	5.50	R	E	A
+semolina_pudding	4.00	5.00	R	E	A
+semolina_pudding_raisins_caramel	4.50	5.50	R	E	A
+semolina_pudding_refrigerated	4.00	5.00	R	E	A
+skyr	6.00	7.50	R	R	A
+soft_cheese_around_6	3.50	4.80	R	E	A
+soy_dessert_flavoured_sweet	4.00	5.00	R	R	A
+soy_dessert_fortified_calcium	4.00	5.00	R	R	A
+soy_dessert_not_fortified	4.00	5.00	R	R	A
+soy_dessert_w_almonds	5.00	6.00	R	R	A
+soy_dessert_w_fruits	4.50	5.50	R	R	A
+tiramisu	8.00	9.00	R	R	A
+yoghurt	2.40	3.30	R	R	A
+yoghurt_fruit	3.00	3.80	R	R	A
+yoghurt_high_protein_on	6.00	7.00	R	R	A
+yogurt_ewe_s_milk	6.00	9.00	R	E	A
+yogurt_fermented_milk_dairy	2.40	3.30	R	R	A
+yogurt_goat_s_milk	6.00	9.00	R	E	A
+yogurt_greek_style_ewe	6.50	9.00	R	E	A
+capon_meat	14.00	13.00	E	E	A
+chicken_breast	12.50	9.15	R	V	A		US: BLS chicken breast boneless 4,15 USD/lb
+chicken_breast_label_rouge	16.00	15.43	V	E	A		FR: RNM poulet label rouge. US: aucune certification equivalente, prix du fermier premium
+chicken_breast_meat	9.00	6.61	R	R	A		Avec peau
+chicken_breast_organic	20.00	15.43	R	R	A
+chicken_drumstick	5.50	4.30	R	P	A
+chicken_eviscerated_offal	7.85	4.74	V	P	A		FR: RNM poulet entier 7,85 EUR/kg
+chicken_free_range_meat	10.50	11.02	V	R	A		FR: RNM poulet label rouge 10,50 EUR/kg
+chicken_ham_slices	10.00	11.02	R	E	A
+chicken_high_leg_meat	7.00	5.51	R	R	A
+chicken_leg_meat	6.50	4.30	R	P	A
+chicken_leg_meat_label	9.00	7.00	R	E	A
+chicken_leg_meat_organic	11.00	8.82	R	R	A
+chicken_leg_meat_water	6.50	4.30	R	P	D	143	Libelle CUIT et yield_class NEUTRE: le runtime ne reconvertit pas. 143 g de cru par 100 g de cuit
+chicken_marinated_wing	7.00	6.61	R	R	D	143	Libelle ROASTED, yield_class neutre: achete cru marine
+chicken_meat	8.00	6.17	R	R	A
+chicken_nugget_breaded_croquette	9.00	8.00	R	R	A
+chicken_stewing_leg	5.50	4.30	R	P	A
+chicken_thigh	7.00	5.51	R	R	A
+chicken_white_race_meat	8.00	6.17	R	R	A
+chicken_wing_meat	5.00	5.51	R	R	A
+duck_breast	20.00	26.46	R	E	A
+duck_breast_fillet	20.00	26.46	R	E	A
+duck_breast_fillet_smoked	30.00	44.00	R	E	A
+duck_confit_meat	14.00	26.46	R	E	A		Achete deja confit en conserve ou en bocal
+duck_leg_meat	9.00	15.43	R	E	A
+duck_magret_pan	20.00	26.46	R	E	D	143	Libelle CUIT, yield_class neutre
+duck_meat	12.00	17.64	R	E	A
+duck_mousse	14.00	22.00	R	E	A
+duck_terrine	16.00	26.00	R	E	A
+foie_gras_duck	60.00	110.00	R	E	A		Ecart FR/US structurel: production francaise de masse, importation reglementee aux Etats-Unis
+foie_gras_duck_s	60.00	110.00	R	E	A
+gizzard_chicken	8.00	5.51	R	R	A
+goose_liver_pate	45.00	80.00	E	E	A
+goose_meat	18.00	26.00	E	E	A
+guinea_fowl	12.00	22.00	R	E	A
+guinea_fowl_breast	18.00	30.00	R	E	A
+guinea_fowl_leg	10.00	22.00	R	E	A
+heart_chicken	7.00	6.61	R	E	A
+heart_turkey	7.00	6.61	E	E	A
+liver_chicken	8.00	5.51	R	R	A
+liver_duck	12.00	18.00	R	E	A
+liver_goose	20.00	30.00	E	E	A
+liver_poultry	8.00	5.51	R	R	A
+liver_turkey	8.00	6.61	E	E	A
+milanese_style_turkey_escalope	12.00	11.00	R	E	A
+poultry	9.00	7.00	E	E	D	143	Ligne MOYENNE, pas un aliment; libelle CUIT et yield_class neutre
+poultry_ham_cube	10.00	11.02	R	E	A
+poultry_liver_pate	10.00	13.00	R	E	A
+poultry_meat	10.00	7.72	R	R	A
+poultry_nuggets	9.00	8.00	R	R	A
+poultry_on_skewer	13.00	11.00	E	E	A
+poultry_quenelle	10.00		R	-	A		FR: specialite lyonnaise de rayon. US: aucun circuit de detail
+poultry_quenelle_sauce	7.00		R	-	A		US: aucun circuit de detail
+poultry_sausage	10.00	9.00	R	R	A
+poultry_sausage_delicatessen_style	12.00	11.00	R	E	A
+preserved_duck	16.00	30.00	R	E	A
+preserved_gizzards_duck	14.00		E	-	A		US: aucun circuit de detail
+preserved_poultry_liver	14.00		E	-	A		US: aucun circuit de detail
+rillettes_duck	18.00	35.00	R	E	A
+rillettes_goose	22.00	40.00	R	E	A
+rillettes_poultry	12.00		R	-	A		US: aucun circuit de detail
+rillettes_pure_goose	24.00	40.00	R	E	A
+salt_curing_roast_poultry	14.00	13.00	R	E	A
+turkey_breaded_escalope	11.00	10.00	R	R	A
+turkey_escalope	12.80	8.82	V	P	A		FR: RNM escalope de dinde 12,80 EUR/kg
+turkey_escalope_sauteed_pan	12.80	8.82	V	P	D	143	Libelle CUIT, yield_class neutre
+turkey_ham_slices	10.00	11.02	R	R	A
+turkey_leg_meat	7.00	4.41	R	R	A
+turkey_leg_meat_only	8.00	5.51	R	R	A
+turkey_meat	10.00	6.61	R	R	A
+turkey_mince	10.00	7.72	R	R	A
+turkey_wing	5.00	4.41	R	R	A
+bacon	11.00	15.43	R	P	A		US: BLS bacon sliced
+bacon_back	14.00	15.43	R	P	A
+bayonne_cured_ham_smoked	30.00	55.00	R	E	A
+beef	16.00	18.30	R	P	D	143	Libelle BRAISED et yield_class NEUTRE: le runtime ne reconvertit pas. 143 g de cru par 100 g de cuit
+beef_bolar_blade	15.00	16.53	R	P	A
+beef_bolar_blade_pan	15.00	16.53	R	P	D	143	Libelle CUIT, yield_class neutre
+beef_braising	16.00	18.30	R	P	A
+beef_cheek	14.00	15.43	R	E	A
+beef_chuck	15.00	18.30	R	P	A
+beef_chuck_steak	16.00	18.30	R	P	A
+beef_eye_round	17.00	16.76	R	P	A
+beef_flank_steak	22.00	22.05	R	R	A
+beef_flank_steak_pan	22.00	22.05	R	R	D	143	Libelle CUIT, yield_class neutre
+beef_ground	14.50	15.19	V	V	D	143	FR: RNM steak hache 15 pc. US: BLS ground beef 6,89 USD/lb. Libelle CUIT, yield_class neutre
+beef_hanger_steak	22.00	19.84	R	E	A
+beef_knuckle	15.00	16.76	R	P	A
+beef_knuckle_water	15.00	16.76	R	P	D	143	Libelle CUIT, yield_class neutre
+beef_meat_balls	12.00	13.23	R	R	D	143	Libelle CUIT, yield_class neutre; achete cru
+beef_mince	15.00	17.42	R	P	A		US: BLS ground beef lean and extra lean
+beef_neck	13.00	14.55	R	E	A
+beef_on_skewer	20.00	19.84	R	E	A
+beef_oxtail	10.00	13.23	R	R	A
+beef_oxtail_water	10.00	13.23	R	R	D	143	Libelle CUIT, yield_class neutre
+beef_rib	26.00	28.66	R	P	A
+beef_rib_steak	28.00	31.97	R	R	A
+beef_rib_steak_lean	28.00	31.97	R	R	D	143	Libelle CUIT, yield_class neutre
+beef_roast_beef	18.90	16.76	V	P	D	143	FR: RNM roti de boeuf 18,90 EUR/kg. Libelle ROASTED, yield_class neutre
+beef_round	17.00	16.76	R	P	A
+beef_rump_steak	24.00	18.08	R	P	A
+beef_short_ribs	14.00	19.84	R	R	A
+beef_shoulder	15.00	18.30	R	P	A
+beef_sirloin_steak	26.00	28.66	R	P	A		US: BLS steak sirloin USDA choice boneless
+beef_sirloin_steak_pan	26.00	28.66	R	P	D	143	Libelle CUIT, yield_class neutre
+beef_steak	22.00	22.05	R	R	A
+beef_steak_10_fat	14.00	15.19	R	V	A
+beef_steak_15_fat	14.50	15.19	V	V	A		FR: RNM steak hache 15 pc 14,50 EUR/kg
+beef_steak_20_fat	12.50	14.55	R	P	A
+beef_steak_5_fat	15.00	17.42	R	P	A
+beef_steak_beef_steak	22.00	22.05	R	R	A
+beef_stewing_meat	16.00	18.30	R	P	A
+beef_tenderloin	48.00	48.50	R	R	A
+beef_thin_flank	14.00	15.43	R	E	A
+beef_thin_flank_pan	14.00	15.43	R	E	D	143	Libelle CUIT, yield_class neutre
+beef_topside	18.00	16.76	R	P	A
+beef_topside_pan	18.00	16.76	R	P	D	143	Libelle CUIT, yield_class neutre
+black_pudding_refrigerated	9.00	12.00	R	E	A		US: le boudin cajun est le seul circuit
+black_pudding_sauteed_pan	9.00	12.00	R	E	D	115	Libelle CUIT, yield_class neutre
+black_white_pudding_sauteed	10.00	12.00	R	E	D	80.5	Libelle CUIT, yield_class neutre | Le ratio est exprime contre gramsRaw: 115 g d'achat par 100 g d'assiette, x 0.7 que le runtime applique deja via yield_class=meat_shrinks
+blood_beef			-	-	A		NON COTE: le sang n'a aucun circuit de detail, ni en France ni aux Etats-Unis
+brain_calf	25.00		E	-	A		FR: triperie. US: interdit a la vente depuis l'ESB
+brain_lamb	20.00		E	-	A		US: aucun circuit de detail
+brain_pork	12.00		E	-	A		US: aucun circuit de detail
+bresaola	45.00	55.00	R	E	A
+breton_pate	12.00	30.00	R	E	A
+calf_foot	5.00		E	-	A		US: aucun circuit de detail
+calf_head_water	12.00		E	-	D	143	FR: triperie, libelle CUIT et yield_class neutre. US: aucun circuit
+chipolata_sausage	11.00	12.00	R	E	D	130	Libelle CUIT, yield_class neutre; achete cru
+chipolata_slim_sausage	11.00	12.00	R	E	A
+chitterling_sausage	14.00		R	-	A		Andouillette: US aucun circuit de detail
+chitterling_sausage_guemene	30.00		E	-	A		US: aucun circuit
+chitterling_sausage_pan	14.00		R	-	D	110	Libelle CUIT, yield_class neutre. US: aucun circuit
+chitterling_sausage_sauteed_pan	14.00		R	-	D	110	Libelle CUIT, yield_class neutre. US: aucun circuit
+chitterling_sausage_troyes	18.00		E	-	A		US: aucun circuit
+chitterling_sausage_vire	20.00		E	-	A		US: aucun circuit
+chorizo	20.00	22.00	R	R	A
+cocktail_sausage	12.00	11.00	R	R	A
+coppa	35.00	44.00	R	E	A
+corned_beef	12.00	11.00	R	R	A		Conserve, achete cuit
+country_style_pate_mushrooms	13.00	30.00	R	E	A
+country_style_pate_terrine	12.00	30.00	R	E	A
+cured_ham	32.00	40.00	R	E	A
+cured_ham_smoked	32.00	40.00	R	E	A
+cured_ham_smoked_reduced	32.00	40.00	R	E	A
+cured_meat_sausages	20.00	22.00	E	E	A		Ligne MOYENNE, pas un aliment
+dry_cured_ham	32.00	40.00	R	E	A
+dry_cured_ham_fat	36.00	44.00	R	E	A
+dry_sausage	22.00	26.00	R	E	A
+dry_sausage_pure_pork	24.00	28.00	R	E	A
+dry_sausage_w_walnuts	28.00	32.00	E	E	A
+dry_spicy_pork_sausage	22.00	24.00	R	E	A
+feathered_game_meat	18.00	30.00	E	E	D	143	Ligne MOYENNE; libelle CUIT, yield_class neutre
+fish_quenelle	14.00		R	-	A		Specialite lyonnaise. US: aucun circuit de detail
+fish_quenelle_sauce	9.00		R	-	A		US: aucun circuit de detail
+foie_gras_block	70.00	130.00	R	E	A
+frankfurter_sausage	12.00	9.00	R	R	A
+galantine	14.00		R	-	A		US: aucun circuit de detail
+game	22.00	35.00	E	E	D	143	Ligne MOYENNE; libelle CUIT, yield_class neutre
+game_pate	18.00	40.00	E	E	A
+garlic_sausage	12.00	12.00	R	R	A
+ham_choice	13.00	10.80	R	P	A		Achete deja cuit
+ham_choice_rind_less	14.00	10.80	R	P	A		Achete deja cuit
+ham_choice_w_rind	12.00	10.80	R	P	A		Achete deja cuit
+ham_cube	13.00	11.00	R	R	A
+ham_on_bone	12.00	10.80	R	P	A		Achete deja cuit
+ham_parisian_style_rind	15.00	11.00	R	R	A		Achete deja cuit
+ham_pastry_crusty	16.00		R	-	A		US: aucun circuit de detail
+ham_sausage	10.00	9.00	R	R	A
+ham_smoked	16.00	11.00	R	P	A		Achete deja cuit
+ham_superior_quality	15.00	10.80	R	P	A		Achete deja cuit
+ham_superior_quality_reduced	16.00	11.00	R	R	A		Achete deja cuit
+ham_superior_quality_rind	14.00	10.80	R	P	A		Achete deja cuit
+hare_meat	18.00	30.00	E	E	A
+head_cheese_pate_brawn	10.00	14.00	R	E	A
+heart_beef	8.00	6.61	R	R	A
+heart_lamb	8.00	8.82	E	E	A
+heart_pork	6.00	6.61	E	E	A
+heart_veal	12.00	11.02	E	E	A
+hen_meat	6.00	4.74	R	P	A
+hen_meat_only	8.00	6.61	R	R	A
+horse_meat	18.00		R	-	A		US: la viande de cheval n'a aucun circuit de detail alimentaire
+horse_rib_steak	20.00		R	-	A		US: aucun circuit
+horse_rib_steak_pan	20.00		R	-	D	143	Libelle CUIT, yield_class neutre. US: aucun circuit
+horse_sirloin_steak	20.00		R	-	A		US: aucun circuit
+horse_sirloin_steak_pan	20.00		R	-	D	143	Libelle CUIT, yield_class neutre. US: aucun circuit
+horse_steak	18.00		R	-	A		US: aucun circuit
+horse_topside	17.00		R	-	A		US: aucun circuit
+horse_topside_pan	17.00		R	-	D	143	Libelle CUIT, yield_class neutre. US: aucun circuit
+kidney_all_types	10.00	8.82	R	E	D	130	Libelle CUIT, yield_class neutre
+kidney_beef	8.00	6.61	R	E	A
+kidney_calf	18.00	13.23	E	E	A
+kidney_lamb	12.00	11.02	E	E	A
+kidney_pork	6.00	6.61	E	E	A
+kidney_veal_sauteed_pan	18.00	13.23	E	E	D	130	Libelle CUIT, yield_class neutre
+knuckle_ham	9.00	8.82	R	E	A		Achete deja cuit
+lamb	18.00	17.64	R	P	A		US: BLS lamb leg
+lamb_chop	24.00	26.46	R	R	A
+lamb_chop_decouverte	18.00	22.05	R	E	A
+lamb_chop_fillet	28.00	30.86	R	E	A
+lamb_chop_fillet_pan	28.00	30.86	R	E	D	143	Libelle CUIT, yield_class neutre
+lamb_cutlet	26.00	28.66	R	R	A
+lamb_leg	20.00	17.64	R	P	A
+lamb_leg_pan	20.00	17.64	R	P	D	143	Libelle CUIT, yield_class neutre
+lamb_meat	20.00	19.84	R	R	D	143	Ligne MOYENNE; libelle CUIT, yield_class neutre
+lamb_neck	12.00	13.23	R	R	A
+lamb_on_skewer	20.00	22.05	R	E	A
+lamb_rib_chop	26.00	28.66	R	R	A
+lamb_rib_chop_pan	26.00	28.66	R	R	D	143	Libelle CUIT, yield_class neutre
+lamb_saddle	24.00	26.46	R	E	A
+lamb_saddle_lean	24.00	26.46	R	E	D	143	Libelle ROASTED, yield_class neutre
+lamb_saddle_pan	24.00	26.46	R	E	D	143	Libelle CUIT, yield_class neutre
+lamb_shoulder	16.00	15.43	R	R	A
+lamb_shoulder_lean	18.00	17.64	R	R	A
+lardoons	11.00	15.43	R	P	A
+liver_calf	22.00	15.43	R	E	A
+liver_lamb	12.00	11.02	R	E	A
+liver_pork	6.00	6.61	R	E	A
+liver_rabbit	12.00		E	-	A		US: aucun circuit de detail
+liver_sausage	10.00	12.00	R	R	A
+liver_young_cow	14.00	13.23	R	E	A
+meat	16.00	17.64	E	E	D	143	Ligne MOYENNE, pas un aliment; libelle CUIT, yield_class neutre
+meat_balls_beef_lamb	14.00	15.43	R	E	A		Achete cru
+meat_balls_pork_beef	12.00	13.23	R	R	A
+merguez_sausage	12.00	15.43	R	E	A
+merguez_sausage_beef_mutton	12.00	15.43	R	E	A
+mixed_meat_on_skewer	18.00	19.84	R	E	A
+montbeliard_sausage	16.00		R	-	A		US: aucun circuit de detail
+mortadella	12.00	15.43	R	R	A
+mortadella_pistachios_pure_pork	16.00	19.84	R	R	A
+mortadella_pure_pork	14.00	17.64	R	R	A
+morteaux_sausage	18.00		R	-	A		US: aucun circuit de detail
+morteaux_sausage_water	18.00		R	-	D	110	Libelle CUIT, yield_class neutre. US: aucun circuit
+mutton_leg	16.00	15.43	E	E	A
+mutton_meat	14.00	15.43	E	E	A
+mutton_shoulder	13.00	13.23	E	E	A
+offal	10.00	8.82	E	E	D	130	Ligne MOYENNE; libelle CUIT, yield_class neutre
+ostrich_meat	30.00	33.07	E	E	A
+ox_muzzle	9.00		E	-	A		US: aucun circuit de detail
+ox_muzzle_salad_dressing	12.00		E	-	A		US: aucun circuit de detail
+pancetta	25.00	26.46	R	R	A
+parma_dry_cured_ham	45.00	55.00	R	E	A
+pate	12.00	26.00	R	E	A		Ligne MOYENNE
+pate_crust	18.00		R	-	A		US: aucun circuit de detail
+pate_w_green_pepper	14.00	30.00	R	E	A
+pheasant_meat	15.00	26.00	E	E	A
+pigeon	20.00	33.07	E	E	A
+pigeon_meat	24.00	40.00	E	E	D	143	Libelle ROASTED, yield_class neutre
+plant_based_ham	16.00	17.64	R	R	A
+plant_based_pate	14.00	17.64	R	R	A
+plant_based_sausage_tofu	14.00	15.43	R	R	A
+plant_based_sausage_wheat	14.00	15.43	R	R	A
+pork_80_20_trimming	6.00	6.61	E	E	A		Chute de decoupe, pas un produit de rayon
+pork_90_10_trimming	8.00	8.82	E	E	A		Chute de decoupe, pas un produit de rayon
+pork_back_fat_rindless	4.00	5.00	E	E	A
+pork_beef_mortadella	12.00	15.43	R	R	A
+pork_belly	9.00	11.02	R	R	A
+pork_belly_flank_removed	10.00	12.13	R	E	A
+pork_belly_salt_cured	12.00	15.43	R	R	A
+pork_belly_smoked	12.00	15.43	R	R	A
+pork_chop	11.20	9.26	V	P	A		FR: RNM cote de porc 11,20 EUR/kg. US: BLS pork chops bone-in center cut
+pork_ear_sat_cured	6.00	8.00	R	E	A
+pork_filet_mignon	16.00	10.14	R	P	A
+pork_ham_escalope	12.00	10.14	R	P	A
+pork_ham_intended_be	9.00	8.82	R	R	A		Achete cru
+pork_ham_w_parsley	16.00		R	-	A		Jambon persille. US: aucun circuit de detail
+pork_jowl_rindless	6.00	8.82	E	E	A
+pork_knuckle_oh_ham	7.00	7.72	E	E	A
+pork_knuckle_shank	6.00	6.61	R	R	A
+pork_liver_mousse	9.00	20.00	R	E	A
+pork_liver_mousse_superior	11.00	24.00	R	E	A
+pork_liver_pate	9.00	20.00	R	E	A
+pork_liver_pate_superior	11.00	24.00	R	E	A
+pork_meat	10.00	9.26	R	P	D	143	Ligne MOYENNE; libelle CUIT, yield_class neutre
+pork_on_skewer	12.00	11.02	R	E	A
+pork_rack	11.00	9.26	R	P	A
+pork_roast	10.00	8.82	R	P	A
+pork_round_steak	11.00	9.26	R	P	A
+pork_shoulder	9.00	6.61	R	R	A
+pork_shoulder_choice	9.00	8.82	R	E	A		Achete deja cuit
+pork_shoulder_lower_rind	9.00	6.61	R	R	A
+pork_shoulder_standard_rind	9.00	8.82	R	E	A		Achete deja cuit
+pork_shoulder_upper_rind	9.00	6.61	R	R	A
+pork_snout_salad_dressing	8.00		E	-	A		US: aucun circuit de detail
+pork_spare_ribs	8.50	9.92	R	R	A
+pork_tenderloin_lean	16.00	10.14	R	P	A
+pork_tenderloin_roast	16.00	10.14	R	P	D	143	Libelle CUIT, yield_class neutre
+pork_trotters_salt_cured	5.00	5.51	E	E	A
+pork_way_leg_rind	10.00	8.82	E	E	A
+preserved_pork_liver	12.00		E	-	A		US: aucun circuit de detail
+prok_eye_shortloin	12.00	10.14	E	E	A
+quail_meat	18.00	22.05	E	E	A
+quenelle	8.00		R	-	A		Specialite lyonnaise. US: aucun circuit de detail
+rabbit_meat	12.00	19.84	R	E	A
+rabbit_pate	14.00	30.00	E	E	A
+rabbit_terrine	16.00	30.00	E	E	A
+rabbit_wild_meat	15.00	22.05	E	E	A
+red_meat	18.00	19.84	E	E	D	143	Ligne MOYENNE, pas un aliment; libelle CUIT, yield_class neutre
+rillettes_mans	14.00		R	-	A		US: aucun circuit de detail
+rillettes_pork	12.00	30.00	R	E	A
+rillettes_pure_pork	14.00	30.00	R	E	A
+rillettes_tours	16.00		R	-	A		US: aucun circuit de detail
+rolled_escalope_pork_pistachios	16.00		R	-	A		US: aucun circuit de detail
+rosette_dry_sausage	24.00	30.00	R	E	A
+round_ham	13.00	10.80	R	P	A		Achete deja cuit
+salami	20.00	22.05	R	R	A
+salami_danish_style	16.00	19.84	R	R	A
+salami_pork_beef	18.00	22.05	R	R	A
+salami_pure_pork	22.00	24.25	R	R	A
+sausage	12.00	11.02	R	R	A
+sausage_brioche_crust	18.00		R	-	A		US: aucun circuit de detail
+sausage_meat	10.00	9.92	R	R	A
+sausage_meat_pork_beef	10.00	9.92	R	R	A
+sausage_meat_pure_pork	11.00	11.02	R	R	A
+sausage_paris	12.00		R	-	A		US: aucun circuit de detail
+sausage_paris_smoked	13.00		R	-	A		US: aucun circuit de detail
+sausage_pure_pork	12.00	11.02	R	R	A		Achete deja cuit
+saveloy_cervelat	10.00	12.00	R	E	A
+saveloy_cervelat_pure_pork	12.00	13.00	R	E	A
+serrano_dry_cured_ham	30.00	40.00	R	E	A
+sheep_foot	5.00		E	-	A		US: aucun circuit de detail
+sheep_head	4.00		E	-	A		US: aucun circuit de detail
+smoked_lardoons	12.00	15.43	R	P	A
+spicy_pork_sausage_red	20.00	22.05	R	E	A
+strasbourg_sausage	12.00	11.02	R	R	A
+sweetbread_calf	45.00	44.00	E	E	A
+sweetbread_calf_sauteed_pan	45.00	44.00	E	E	D	143	Libelle CUIT, yield_class neutre
+sweetbread_lamb	25.00	30.00	E	E	A
+tongue_beef	14.00	15.43	R	R	A
+tongue_calf	18.00	17.64	E	E	A
+tongue_lamb	12.00		E	-	A		US: aucun circuit de detail
+tongue_pork	8.00	8.82	E	E	A
+toulouse_sausage	12.00	13.23	R	E	A
+tripe_beef	10.00	8.82	R	R	A
+veal_bread_escalope	20.00	22.05	R	E	D	120	Achete pane et cru; libelle CUIT, yield_class neutre
+veal_breast	14.00	15.43	R	E	A
+veal_chop	26.00	28.66	R	R	A
+veal_chop_pan	26.00	28.66	R	R	D	143	Libelle CUIT, yield_class neutre
+veal_escalope	28.00	30.86	R	R	A
+veal_escalope_cordon_bleu	12.00	13.23	R	E	A
+veal_fillet	40.00	44.09	R	E	A
+veal_knuckle_shank	14.00	15.43	R	R	A
+veal_loin	30.00	33.07	R	R	A
+veal_loin_sauteed_pan	30.00	33.07	R	R	D	143	Libelle CUIT, yield_class neutre
+veal_meat	24.00	26.46	R	R	D	143	Ligne MOYENNE; libelle CUIT, yield_class neutre
+veal_neck	16.00	17.64	R	R	A
+veal_quenelle_sauce	8.00		R	-	A		US: aucun circuit de detail
+veal_roast	24.00	26.46	R	R	A
+veal_shoulder	20.00	22.05	R	R	A
+veal_shoulder_pan	20.00	22.05	R	R	D	143	Libelle CUIT, yield_class neutre
+veal_steak_15_fat	16.00	17.64	R	E	A
+veal_steak_20_fat	15.00	16.53	R	E	A
+veal_tenderloin	40.00	44.09	R	E	A
+veal_tenderloin_pan	40.00	44.09	R	E	D	143	Libelle CUIT, yield_class neutre
+venison	25.00	33.07	E	E	A
+viande_des_grisons_bundnerfleisch	60.00	77.00	E	E	A
+white_meat	12.00	9.15	E	E	D	143	Ligne MOYENNE, pas un aliment; libelle CUIT, yield_class neutre
+white_pudding_truffled	25.00		E	-	A		US: aucun circuit de detail
+wild_boar	18.00	26.46	E	E	A
+young_goat	22.00	19.84	E	E	A
+egg_yolk_powder	45.00	42.00	E	E	A

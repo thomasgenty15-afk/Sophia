@@ -5,7 +5,9 @@ import { type DishEnergyView } from "../api/mealEnergy";
 import { dishDayLabel, dishSlotLabel, mealCopy } from "../api/mealLabels";
 import { MEAL_UNTICK_FORM_REASONS } from "../api/mealTicks";
 import { type DishSessionView } from "../lib/dishSession";
+import { type BoxLine } from "../lib/mealBoxes";
 import { type DishTick, type UntickPrompt } from "../lib/useMealTicks";
+import { BoxTable } from "./plan/BoxTable";
 import { DishEnergyLine } from "./plan/EnergyReadout";
 import { Badge } from "./ui/Badge";
 import { Button } from "./ui/Button";
@@ -74,34 +76,98 @@ export type ServedFrom = string | null;
 export interface DishSource {
   title: string;
   cookOn: string | null;
-  /**
-   * LOT 4 — LA BOÎTE QUE CETTE REPRISE SORT DU FRIGO, résolue par l'appelant.
-   *
-   * ⛔ RÉSOLUE PAR ID, ET LA JOINTURE N'EST PAS ICI. `uses[].box_id` pointe une
-   * `preparations[].boxes[].id`; l'appelant tient déjà les préparations (il en
-   * tire `title` et `cookOn` juste au-dessus) et les parts. Aller les chercher
-   * depuis cette carte en ferait un SECOND lecteur du même plan, et deux
-   * lecteurs finissent par se contredire — c'est l'argument écrit sur `session`
-   * dix lignes plus bas, mot pour mot.
-   *
-   * ⛔ ET JAMAIS PAR TITRE. Retrouver « la boîte de Zoé » en cherchant son
-   * prénom dans un titre se tromperait dès « Poulet pour Zoé et Marc » et ne
-   * trouverait rien en anglais. « Jamais de matcher maison. »
-   *
-   * `null` = ce plat prend une portion du lot sans boîte nommée — ce que
-   * TOUTES les reprises étaient avant le 2026-08-17, et ce que reste une lane
-   * individuelle. La carte se tait alors, elle n'invente pas de couvercle.
-   */
-  box: { names: string[]; grams: number } | null;
 }
 
 export default function DishCard(
-  { dish, tick, servedFrom = null, sources = [], energy = null, session = null }: {
+  {
+    dish,
+    tick,
+    servedFrom = null,
+    sources = [],
+    energy = null,
+    session = null,
+    slotBadge,
+    boxes = [],
+    eaters = [],
+    shares = [],
+  }: {
     dish: GeneratedDish;
     tick?: DishTick | null;
     servedFrom?: ServedFrom;
+    /**
+     * ══════════════════════════════════════════════════════════════════════
+     * LE CRÉNEAU SUR LA CARTE — ou déjà dit par la SECTION au-dessus.
+     * ══════════════════════════════════════════════════════════════════════
+     *
+     * ── LE DÉFAUT (2026-08-19) ───────────────────────────────────────────
+     * « Au lieu d'avoir des tags "petit déjeuner", il faudrait que ce soit des
+     * sections claires. » Sur `/app/plan`, les plats d'un jour se suivaient et
+     * chacun portait sa pastille de créneau: pour savoir ce qu'on mange à midi
+     * il fallait BALAYER les cartes et lire chaque pastille, au lieu de sauter
+     * à un titre. Le regroupement par moment existait déjà dans le modèle
+     * (`groupDayBySlot`) — il n'était simplement pas montré.
+     *
+     * ⚠️ REQUISE, ET C'EST LE POINT. Un défaut à `true` aurait laissé la
+     * pastille doubler le titre de section chez l'appelant qui l'oublie; un
+     * défaut à `false` aurait fait DISPARAÎTRE le créneau de `/app/today`, où
+     * les plats se rendent à plat et où la pastille est la seule chose qui dise
+     * quand on les mange. Aucun des deux défauts n'est sûr, donc il n'y en a
+     * pas: l'appelant déclare si quelque chose au-dessus a déjà nommé le
+     * moment.
+     */
+    slotBadge: boolean;
     /** Les préparations que ce plat consomme. Vide = il se fait de zéro. */
     sources?: readonly DishSource[];
+    /**
+     * LES CONTENANTS DE CE REPAS — un par GROUPE de mangeurs, résolus par
+     * l'appelant (v4, 2026-08-20).
+     *
+     * ⛔ RÉSOLUS DEHORS, ET C'EST LA MÊME RAISON QUE `sources` ET `session`: la
+     * jointure contenant → PRÉNOMS passe par `member_portions`, que cette carte
+     * ne reçoit pas. Aller les chercher ici en ferait un SECOND lecteur du même
+     * plan, et deux lecteurs finissent par se contredire.
+     *
+     * ⚠️ PLURIEL, ET C'EST TOUT L'OBJET DU LOT. Le jeudi soir d'un foyer où une
+     * bouche a un objectif sort DEUX bacs: le sien, et celui des autres. Un
+     * `BoxLine | null` ne pouvait pas les dire.
+     *
+     * `[]` = rien n'a été mis en boîte pour ce repas — le cas de tout plan
+     * écrit avant le 2026-08-19, de toute lane individuelle, et de tout plat
+     * cuisiné de zéro. La carte se tait alors: elle n'invente pas de couvercle.
+     */
+    boxes?: readonly BoxLine[];
+    /**
+     * ══════════════════════════════════════════════════════════════════════
+     * QUI EST À TABLE, ET CE QUE CHACUN EN FAIT — DANS LA CARTE (2026-08-21).
+     * ══════════════════════════════════════════════════════════════════════
+     *
+     * ── LE DÉFAUT, VU À L'ÉCRAN ──────────────────────────────────────────
+     * Ces deux listes se rendaient SOUS la carte, dans `DayPersonSplit`,
+     * rattachées à elle par la seule PROXIMITÉ — 4 px contre 12 px jusqu'à la
+     * carte suivante. « C'est entre les deux, on comprend pas. »
+     *
+     * ⛔ ET AUCUN ÉCART NE POUVAIT MARCHER. La carte porte une BORDURE et un
+     * fond: ce qui est dehors se lit comme n'appartenant à personne, quel que
+     * soit le nombre de pixels. Un pied encadré collé dessous a été essayé
+     * avant, et rejeté — un second bloc chromé À CÔTÉ d'une carte fait DEUX
+     * objets là où il n'y en a qu'un. La seule position qui rattache est
+     * DEDANS, et la carte range déjà trois blocs de cette famille.
+     *
+     * ⛔ RÉSOLUS DEHORS, comme `boxes` et `sources`, et pour la même raison: la
+     * jointure passe par `member_portions`, que cette carte ne reçoit pas. Elle
+     * reçoit une liste PRÊTE — jamais la règle qui l'a produite (voir
+     * `DishAnnotation`: le prénom d'une part vaut `null` quand l'en-tête de la
+     * voie l'a déjà écrit, et seul `DayPersonSplit` peut le savoir).
+     *
+     * ⛔ ET AUCUN POURQUOI, NI ICI NI AILLEURS SUR CETTE CARTE. Une part porte
+     * un prénom et une instruction de SERVICE; ces types n'ont structurellement
+     * aucun champ où un objectif, un corps ou une calorie pourrait entrer.
+     *
+     * `[]` est le défaut ET le cas majoritaire: `/app/today` ne les passe pas,
+     * et un plan d'une seule bouche n'a rien à marquer.
+     */
+    eaters?: readonly { memberId: string; name: string }[];
+    shares?: readonly { memberId: string; name: string | null; note: string }[];
     /**
      * LA SESSION DE CUISINE DONT CE PLAT TIRE SON LOT — résolue par l'appelant.
      *
@@ -148,7 +214,9 @@ export default function DishCard(
     <Card>
       <div className="flex flex-wrap items-center gap-2">
         <span className="font-medium text-ink">{dish.title}</span>
-        {dish.slot && <Badge tone="neutral">{dishSlotLabel(dish.slot)}</Badge>}
+        {slotBadge && dish.slot && (
+          <Badge tone="neutral">{dishSlotLabel(dish.slot)}</Badge>
+        )}
         {/* FF-059 — LE CHIFFRE, à côté du plat et pas au-dessus. C'est un fait
             SUR CE PLAT, du même rang que son créneau: le mettre en tête de
             carte en ferait le sujet, et le sujet reste le dîner. */}
@@ -208,7 +276,27 @@ export default function DishCard(
           leur surface, et les remonter donnerait à un assemblage le temps d'un
           rôti. La ceinture est dans `lib/dishSession.int.test.ts`. */}
       {dish.same_day && <SameDayLine sameDay={dish.same_day} method={dish.method} />}
-      {dish.why && <p className="mt-1 text-sm text-ink-soft">{dish.why}</p>}
+      {/* ══════════════════════════════════════════════════════════════════
+          ⛔ `dish.why` N'EST PLUS AFFICHÉ — ET IL EST TOUJOURS DEMANDÉ.
+          ══════════════════════════════════════════════════════════════════
+
+          ── CE QU'ON LISAIT ─────────────────────────────────────────────
+          Une phrase sous CHAQUE plat, et toujours la même matière: « Le même
+          batch devient un wrap, ce qui évite de répéter exactement le plat »,
+          « La collation garde la même heure avec une autre combinaison de
+          produits simples », « Un dîner déjà portionné rend le soir de cuisine
+          immédiatement praticable ». Jugé le 2026-08-19: « à chaque plat il y
+          a un truc comme ça qui sert à rien ».
+
+          ⚠️ ET LE CHAMP RESTE DANS LE SCHÉMA, PAR DÉCISION EXPLICITE. « Le why
+          aide peut-être le modèle donc garde-le mais l'affiche pas. » Demander
+          une justification par plat force le modèle à tenir la contrainte
+          pendant qu'il compose; la retirer du prompt changerait ce qu'il
+          écrit, pas seulement ce qu'on lit. Le retrait est donc à L'ÉCRAN, et
+          nulle part ailleurs.
+
+          ⚠️ CE CHAMP N'A PLUS AUCUN LECTEUR. C'était le seul. S'il en
+          réapparaît un, c'est cette décision-là qu'il renverse. */}
 
       {/* LE JOUR DE CUISSON, QUAND CE N'EST PAS AUJOURD'HUI. C'est la seule
           chose à faire ce jour-là, donc c'est la seule chose affichée.
@@ -230,27 +318,107 @@ export default function DishCard(
                       source.cookOn ?? "—",
                   )}
               </p>
-              {/* ── LOT 4 · LA BOÎTE, PAS LA BALANCE ─────────────────────────
-                  « Boîte Zoé — 120 g » est ce qui remplace la pesée du jour: la
-                  seule pesée de la semaine a eu lieu à la session de cuisine, et
-                  ici on cite le couvercle. La ligne se pose SOUS la provenance,
-                  parce qu'elle la précise: on dit d'abord d'où vient le lot,
-                  puis quelle boîte en sortir.
-                  ⛔ AUCUN POURQUOI À CÔTÉ DU GRAMME. `DishSource.box` ne porte
-                  que des prénoms et un nombre — la carte n'a structurellement
-                  aucun champ où un objectif pourrait entrer. */}
-              {source.box && (
-                <p className="mt-0.5 text-sm font-medium tabular-nums text-ink break-words">
-                  {source.box.names.length > 0
-                    ? mealCopy("meals.boxes.line", {
-                      names: source.box.names.join(", "),
-                      n: source.box.grams,
-                    })
-                    : mealCopy("meals.boxes.line_unnamed", { n: source.box.grams })}
-                </p>
-              )}
             </div>
           ))}
+        </div>
+      )}
+      {/* ══════════════════════════════════════════════════════════════════
+          LES CONTENANTS À SORTIR — LEURS NOMS, ET AUCUN CHIFFRE.
+          ══════════════════════════════════════════════════════════════════
+          Ils se posent SOUS la provenance, parce qu'ils la précisent: on dit
+          d'abord d'où vient le lot, puis ce qu'on sort du frigo.
+
+          ⚠️ N CONTENANTS, UN PAR GROUPE (v4, 2026-08-20). « Casimir + Odalric
+          + Wilfrid — jeudi soir — … » et « Peregrine — jeudi soir — … » sont
+          deux bacs différents, et c'est la carte qui dit lequel est à qui.
+
+          ⛔ ET PLUS AUCUN GRAMME ICI — arbitrage du 2026-08-20. Le contenant
+          EST la portion: on l'ouvre et on mange. Réafficher un chiffre au
+          moment du repas ferait ressortir la balance à table, c'est-à-dire
+          exactement ce que le protocole des boîtes existe pour supprimer. Le
+          détail des grammes vit dans le Boxing de la session de cuisine, là où
+          le geste se fait. C'est aussi ce qui a fait disparaître
+          `meals.boxes.covers_dish`: elle désambiguïsait un nombre qui n'est
+          plus là.
+
+          ⛔ AUCUN POURQUOI NON PLUS. `BoxLine` ne porte qu'un couvercle et des
+          prénoms — la carte n'a structurellement aucun champ où un objectif
+          pourrait entrer. `member_portions` est lisible par tout le foyer, et
+          une raison y divulguerait l'objectif d'un membre à ses colocataires. */}
+      <BoxTable lines={boxes} context="dish" />
+      {/* ══════════════════════════════════════════════════════════════════
+          QUI MANGE ÇA — quand aucun couvercle ne l'a déjà dit.
+          ══════════════════════════════════════════════════════════════════
+          C'est le point ④ du contrat de la carte (`docs/keel/BOITES-PAR-REPAS.md`,
+          « qui mange quoi »), et il a DEUX rédactions selon ce que le plan a
+          produit: la ligne des contenants juste au-dessus quand le repas est
+          mis en boîte, ces lignes-ci quand il ne l'est pas.
+
+          ⛔ JAMAIS LES DEUX, ET C'EST LA GARDE. Un couvercle NOMME déjà ses
+          mangeurs (« iku — vendredi déjeuner — … »); répéter les mêmes prénoms
+          trois lignes plus bas serait la répétition qu'on vient de retirer, et
+          une phrase qui les décrirait autrement CONTREDIRAIT le couvercle —
+          c'est ce qui a été mesuré le 2026-08-20 (« la boîte partagée avec
+          iku » sous un couvercle à un seul nom). Le nombre de noms sur le
+          couvercle est le seul marqueur de v4, et rien d'autre n'a le droit de
+          répondre à la même question.
+
+          ⚠️ LA MOITIÉ AMONT EXISTE DÉJÀ (`planDaySlots`, qui vide `shares` dès
+          que le plat porte des contenants) et celle-ci ne la double pas: elle
+          couvre les MARQUEURS, que l'amont laisse passer. Deux moitiés d'une
+          même règle à deux étages finiraient par diverger — celle-ci est la
+          dernière, celle qui rend, et c'est elle qui décide.
+
+          ⛔ PAS DE SECONDE FRONTIÈRE: le même bloc encastré que ses trois
+          voisins (charte §2 — la frontière est portée par le filet et l'espace).
+          La carte porte la seule bordure de ce jour. */}
+      {boxes.length === 0 && (eaters.length > 0 || shares.length > 0) && (
+        <div className="mt-3 rounded-card border border-line bg-paper-2 px-3 py-2">
+          <p className="text-label font-semibold uppercase tracking-wide text-ink-soft">
+            {mealCopy("meals.dish.who_eats")}
+          </p>
+          {eaters.length > 0 && (
+            <ul className="mt-1 flex flex-wrap gap-1">
+              {eaters.map((eater) => (
+                <li
+                  key={eater.memberId}
+                  // MÊME JOINTURE AUDITABLE DANS LE DOM que les contenants: par
+                  // identifiant, jamais par prénom rendu.
+                  data-eater-member-id={eater.memberId}
+                  // Une pastille NEUTRE, sans couleur d'état: qui mange n'est ni
+                  // un verdict ni une alerte. `break-words` — un prénom n'a
+                  // aucune longueur garantie, et la contrainte est 320 px.
+                  className="break-words rounded-full border border-line bg-paper px-2 py-0.5 text-xs text-ink-soft"
+                >
+                  {eater.name}
+                </li>
+              ))}
+            </ul>
+          )}
+          {shares.length > 0 && (
+            <ul className="mt-1 flex flex-col gap-0.5">
+              {shares.map((share) => (
+                <li
+                  key={share.memberId}
+                  data-share-member-id={share.memberId}
+                  className="break-words text-xs leading-5 text-ink-soft"
+                >
+                  {/* Le prénom, puis l'instruction. Deux fragments et pas un
+                      gabarit: il n'y a aucune grammaire ici.
+                      ⚠️ `null` = l'en-tête de la voie l'a déjà écrit. La ligne
+                      garde son `data-share-member-id`: la jointure reste
+                      auditable même quand le prénom ne se lit plus. */}
+                  {share.name !== null && (
+                    <>
+                      <span className="font-medium text-ink">{share.name}</span>
+                      {" — "}
+                    </>
+                  )}
+                  {share.note}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
       {sources.length === 0 && servedFrom !== null && (
@@ -263,20 +431,43 @@ export default function DishCard(
       )}
 
       {dish.ingredients.length > 0 && (
-        <ul className="mt-3 space-y-1">
-          {dish.ingredients.map((ing, i) => (
-            <li
-              key={`${ing.term}-${i}`}
-              className="flex flex-wrap items-baseline gap-2 text-sm text-ink"
-            >
-              <span>{ing.term}</span>
-              {ing.quantity && <span className="text-ink-soft">{ing.quantity}</span>}
-              {ing.in_pantry && (
-                <Badge tone="positive">{mealCopy("meals.result.in_pantry")}</Badge>
-              )}
-            </li>
-          ))}
-        </ul>
+        <div className="mt-3">
+          {/* ══════════════════════════════════════════════════════════════
+              CES INGRÉDIENTS S'AJOUTENT AU LOT — ILS NE LE REDISENT PAS.
+              ══════════════════════════════════════════════════════════════
+
+              ── LE DÉFAUT (2026-08-20) ─────────────────────────────────────
+              La liste sortait nue, juste sous le titre du plat. Un plat qui
+              prélève sur une casserole n'y met QUE ses ajouts du jour — la
+              feta, le citron, le pain — et cette liste-là, sans un mot,
+              se lit comme la recette entière: on croit qu'il manque le poulet.
+
+              ⛔ LE TITRE NE S'AFFICHE QUE SI LE PLAT PUISE DANS UN LOT
+              (`uses.length > 0`). Un plat cuisiné de zéro le jour même n'a
+              aucun lot, ses ingrédients SONT la recette complète, et écrire
+              « en plus du lot » au-dessus affirmerait un lot qui n'existe pas.
+              C'est la même discipline que `same_day: null` — on se tait plutôt
+              que d'écrire un fait que personne n'a écrit. */}
+          {dish.uses.length > 0 && (
+            <p className="text-label font-semibold uppercase tracking-wide text-ink-soft">
+              {mealCopy("meals.result.extra_ingredients")}
+            </p>
+          )}
+          <ul className="mt-1 space-y-1">
+            {dish.ingredients.map((ing, i) => (
+              <li
+                key={`${ing.term}-${i}`}
+                className="flex flex-wrap items-baseline gap-2 text-sm text-ink"
+              >
+                <span>{ing.term}</span>
+                {ing.quantity && <span className="text-ink-soft">{ing.quantity}</span>}
+                {ing.in_pantry && (
+                  <Badge tone="positive">{mealCopy("meals.result.in_pantry")}</Badge>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
       {/* ── LE GESTE À FAIRE DEVANT CE PLAT-LÀ (2026-08-14) ─────────────────
           `method` était masqué sur EXACTEMENT les plats qui en ont le plus

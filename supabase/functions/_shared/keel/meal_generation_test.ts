@@ -8,7 +8,12 @@
 //     grave que le faux négatif, il tue juste la fonctionnalité au lieu de
 //     l'élève).
 
-import { assert, assertEquals, assertThrows } from "jsr:@std/assert@1";
+import {
+  assert,
+  assertEquals,
+  assertStringIncludes,
+  assertThrows,
+} from "jsr:@std/assert@1";
 
 import {
   buildMealPrompt,
@@ -26,6 +31,7 @@ import {
   SHOPPING_AISLES,
 } from "./meal_generation.ts";
 import type { StudentSafetyConstraint } from "./safety_constraints.ts";
+import { parseFixedIntakes } from "./fixed_intakes.ts";
 
 const DOCTRINE = {
   forbidden: [
@@ -93,6 +99,8 @@ function parse(payload: Record<string, unknown>, over: Record<string, unknown> =
     dayProperties: [],
     merge: null,
     boxMemberIds: [],
+    weighedMemberIds: [],
+  boxMemberDiets: [],
     ...over,
   });
 }
@@ -335,6 +343,7 @@ Deno.test("the prompt separates the STABLE situation from the DATED context", ()
   const { userMessage, systemPrompt } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true,
     budgetAmount: null,
     safetyConstraints: null,
+    safetyConstraintTable: null,
     body: null,
     focusAxis: null,
     dietBlock: "",
@@ -373,6 +382,7 @@ Deno.test("le prompt EXIGE une quantité sur les matières grasses", () => {
   const { systemPrompt } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true,
     budgetAmount: null,
     safetyConstraints: null,
+    safetyConstraintTable: null,
     body: null,
     focusAxis: null,
     dietBlock: "",
@@ -392,13 +402,65 @@ Deno.test("le prompt EXIGE une quantité sur les matières grasses", () => {
     servings: 1,
     pantry: [],
   });
-  assert(systemPrompt.includes('ALWAYS carry "amount" and "unit"'));
-  assert(systemPrompt.includes("A drizzle of olive oil"));
-  // La consigne ne doit PAS s'étendre au sel: une pincée reste une pincée, et
+  // ⚠️ RETOURNÉ LE 2026-08-19, ET L'INTENTION D'ORIGINE EST INTACTE. La version
+  // d'avant épinglait « FATS … ARE THE ONE EXCEPTION »: les matières grasses
+  // étaient le SEUL cas où les champs structurés étaient obligatoires, donc
+  // tout le reste pouvait les laisser à `null` en règle. Mesuré sur les 1 204
+  // plats de foyer en base: 307 plats bloqués par un terme SANS `amount`, dont
+  // « roast chicken thighs » VINGT-SIX fois — une protéine entière sans nombre.
+  //
+  // Le défaut vivait dans la COUTURE entre deux blocs: « WHAT A DISH ADDS ON
+  // THE DAY » exige une quantité dénombrable dans la PHRASE (`quantity`), et
+  // celui-ci gouverne les champs STRUCTURÉS. Le modèle satisfaisait les deux à
+  // la fois — `quantity: "2 chicken thighs"`, `amount: null` — et le nombre
+  // n'atteignait jamais le moteur.
+  //
+  // ⛔ CE QUI N'A PAS BOUGÉ, et c'est le point de la ligne d'origine: la
+  // consigne ne s'étend TOUJOURS pas au sel. Une pincée reste une pincée, et
   // exiger un chiffre partout ferait inventer des nombres — ce que le même
-  // prompt interdit deux paragraphes plus haut.
-  assert(systemPrompt.includes("pepper and herbs may stay a pinch; oil may not"));
-  assert(systemPrompt.includes("A made-up number is worse than a"));
+  // prompt interdit deux paragraphes plus haut. L'exception est simplement
+  // NOMMÉE comme la seule, au lieu d'être la règle par défaut.
+  assert(systemPrompt.includes('ALWAYS CARRIES "amount" AND "unit"'));
+  assert(systemPrompt.includes("may stay a pinch; nothing else may"));
+  // ── `pepper` NU EST DÉSAMBIGUÏSÉ À LA SOURCE (2026-08-20) ──────────────
+  // ⛔ POURQUOI ICI ET PAS PAR UN ALIAS DE RÉFÉRENTIEL. Mesuré: 16 lignes de
+  // « pepper » nu, 16/16 dans un plat qui porte aussi du sel, 16/16 sans
+  // quantité — c'est du poivre, et un alias vers `black_pepper` vaudrait 55
+  // plats calculables.
+  //
+  // Il est refusé quand même, et c'est CE LOT-CI qui rend le refus obligatoire.
+  // La masse conventionnelle d'un condiment s'applique dès qu'aucune quantité
+  // n'est lisible (`resolveIngredients`), et `black_pepper` n'a pas de poids
+  // d'unité. Donc « 1 unit pepper » — un POIVRON — ne serait pas pesé, tomberait
+  // dans la branche conventionnelle, et vaudrait 0,3 g de poivre noir: une perte
+  // d'énergie SILENCIEUSE sur un plat qui se présenterait comme complet.
+  //
+  // ⚠️ ET LE RISQUE MONTE À CAUSE DE CE LOT: depuis qu'une quantité est exigée
+  // sur tout ce qui n'est pas un condiment, un poivron VA porter un nombre —
+  // c'est-à-dire exactement le cas qui se perdrait. On ferme donc à la source.
+  assert(systemPrompt.includes('Write "black\npepper", never bare "pepper"'));
+  // ── `state` COUVRE AUSSI LES LÉGUMES CUITS (2026-08-20) ────────────────
+  // ⛔ LE DÉSACCORD QUE CETTE LIGNE FERME, MESURÉ SUR UN RUN RÉEL. Le prompt
+  // n'exigeait `state` que pour « rice, pasta, couscous, lentils, dried beans,
+  // meat, poultry, fish ». Le RÉFÉRENTIEL, lui, range `onion`, `spinach`,
+  // `courgette`, `bell_pepper` et `broccoli` en `veg_shrinks` — donc
+  // `gramsRawOf` REFUSE de les peser sans `state`, et un `180 g d'épinards`
+  // parfaitement quantifié n'était pas pesable. Deux contrats sur le même
+  // champ, et celui qui décide n'était pas celui qui parlait au modèle.
+  //
+  // ⚠️ ON NE DEVINE PAS `raw` À LA PLACE: le repli est interdit et documenté
+  // (`gramsRawOf`), parce qu'il vaut un facteur 2,6 sur du riz, toujours dans
+  // le sens qui gonfle. On demande, on ne suppose pas.
+  assert(systemPrompt.includes("AND every\nvegetable that is cooked"));
+  assert(systemPrompt.includes("A drizzle of olive oil"));
+  assert(systemPrompt.includes("made-up number is worse than a missing one"));
+  // L'échappatoire est nommée LITTÉRALEMENT: « je n'ai pas écrit de nombre »
+  // n'est pas « je ne sais pas ». Sans elle, la première rédaction se fait
+  // satisfaire par une paraphrase (cicatrice du LOT 4C, run E1).
+  assert(systemPrompt.includes('is not "I do not know"'));
+  // Et la forme dénombrable atteint les champs structurés, pas seulement la
+  // phrase: c'est très exactement ce qui manquait.
+  assert(systemPrompt.includes("half a lemon is 0.5"));
 });
 
 Deno.test("from_pantry puts the pantry in the prompt, to_shop does not pretend to", () => {
@@ -407,6 +469,7 @@ Deno.test("from_pantry puts the pantry in the prompt, to_shop does not pretend t
     firstDayCookable: true,
     budgetAmount: null,
     safetyConstraints: null,
+    safetyConstraintTable: null,
     body: null,
     focusAxis: null,
     dietBlock: "",
@@ -416,6 +479,8 @@ Deno.test("from_pantry puts the pantry in the prompt, to_shop does not pretend t
     dayProperties: [],
     merge: null,
     boxMemberIds: [],
+    weighedMemberIds: [],
+  boxMemberDiets: [],
     protocolBlock: "",
     beliefKeys: [],
     goal: "health",
@@ -426,12 +491,70 @@ Deno.test("from_pantry puts the pantry in the prompt, to_shop does not pretend t
     pantry: [{ term: "eggs", quantity: "6" }],
   } as const;
   const fromPantry = buildMealPrompt({ ...base, mode: "from_pantry", scope: "day" });
-  assert(fromPantry.userMessage.includes("WHAT THEY ALREADY HAVE"));
+  assert(fromPantry.userMessage.includes("WHAT IS ALREADY IN THEIR CUPBOARDS"));
   assert(fromPantry.userMessage.includes("eggs (6)"));
 
   const toShop = buildMealPrompt({ ...base, mode: "to_shop", scope: "day" });
   assert(toShop.userMessage.includes("HAVE NOT SHOPPED YET"));
-  assert(!toShop.userMessage.includes("WHAT THEY ALREADY HAVE"));
+  assert(!toShop.userMessage.includes("WHAT IS ALREADY IN THEIR CUPBOARDS"));
+});
+
+// ⚠️ LA COLLISION D'EN-TÊTE, ÉPINGLÉE SUR LE CAS QUI LA PRODUIT.
+//
+// Mesurée sur le run réel `798c5cd6-…`: un élève avec un apport fixe qui
+// compose en `from_pantry` recevait DEUX sections `-- WHAT THEY ALREADY
+// HAVE --` dans le même message, l'une disant « ne les mets pas sur la liste
+// de courses », l'autre « cuisine avec ». Le test qui existait ne pouvait pas
+// l'attraper: il ne montait jamais les deux en même temps.
+Deno.test("le placard et les apports fixes ne portent PAS le même en-tête", () => {
+  const { userMessage } = buildMealPrompt({
+    contentLocale: "en-US",
+    firstDayCookable: true,
+    budgetAmount: null,
+    safetyConstraints: null,
+    safetyConstraintTable: null,
+    body: null,
+    focusAxis: null,
+    dietBlock: "",
+    doctrineBlock: "d",
+    coachNoteBlock: null,
+    // LE SHAKER PASSE PAR SON PROPRE PARSEUR, jamais par un objet écrit à la
+    // main: une forme inventée ici pourrait cesser de ressembler à ce que la
+    // base rend sans que ce test s'en aperçoive.
+    fixedIntakes: parseFixedIntakes([{
+      label: "Vanilla whey shake",
+      amount: 31,
+      unit: "g",
+      days: [],
+      nutrition: "declared",
+      serving_grams: 31,
+      protein_g_per_serving: 24,
+      energy_kcal_per_serving: 118,
+      food_ref: "declared_vanilla_whey_shake",
+    }]).intakes,
+    dayProperties: [],
+    merge: null,
+    protocolBlock: "",
+    beliefKeys: [],
+    goal: "health",
+    situation: null,
+    context: null,
+    slot: null,
+    servings: 1,
+    pantry: [{ term: "eggs", quantity: "6" }],
+    mode: "from_pantry",
+    scope: "day",
+  });
+  // Les deux sections sont bien là...
+  assertStringIncludes(userMessage, "-- WHAT THEY ALREADY HAVE --");
+  assertStringIncludes(userMessage, "-- WHAT IS ALREADY IN THEIR CUPBOARDS --");
+  // ...et l'en-tête des apports fixes n'apparaît qu'UNE fois. C'est ce compte
+  // qui tient le lot: renommer le placard en quoi que ce soit qui recommence
+  // par le même en-tête le fait repasser à deux.
+  assertEquals(
+    userMessage.split("-- WHAT THEY ALREADY HAVE --").length - 1,
+    1,
+  );
 });
 
 Deno.test("a non-JSON model output throws instead of shipping an empty meal", () => {
@@ -451,6 +574,8 @@ Deno.test("a non-JSON model output throws instead of shipping an empty meal", ()
     dayProperties: [],
     merge: null,
     boxMemberIds: [],
+    weighedMemberIds: [],
+  boxMemberDiets: [],
   }));
 });
 
@@ -477,6 +602,7 @@ Deno.test("les préférences confirmées entrent dans le prompt, dans les mots d
   const withPrefs = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true,
     budgetAmount: null,
     safetyConstraints: null,
+    safetyConstraintTable: null,
     body: null,
     focusAxis: null,
     dietBlock: "",
@@ -510,6 +636,7 @@ Deno.test("sans préférence, le prompt est EXACTEMENT celui d'avant", () => {
     firstDayCookable: true,
     budgetAmount: null,
     safetyConstraints: null,
+    safetyConstraintTable: null,
     body: null,
     focusAxis: null,
     dietBlock: "",
@@ -519,6 +646,8 @@ Deno.test("sans préférence, le prompt est EXACTEMENT celui d'avant", () => {
     dayProperties: [],
     merge: null,
     boxMemberIds: [],
+    weighedMemberIds: [],
+  boxMemberDiets: [],
     protocolBlock: "",
     beliefKeys: [],
     goal: "health" as const,
@@ -1007,4 +1136,233 @@ Deno.test("L7 ③ — AUCUNE garde ne lit le nom: l'attribution passe par l'id",
   assertEquals(nomme.dishes[0].memberId, nu.dishes[0].memberId);
   assertEquals(nomme.dishes[0].memberId, "m-zoe");
   assertEquals(nomme.dish_owner_counts, nu.dish_owner_counts);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LES DEUX SURFACES QUE LA CEINTURE NE LISAIT PAS (2026-08-19)
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Mesuré sur un plan réel: `applyKeelOutputLocks` ne recevait QUE les plats et
+// les courses — zéro titre de préparation, zéro `portion_note`. Un contact
+// croisé DÉCLARÉ (« roast on the other half of the chicken tray ») vivait dans
+// une surface que rien ne lisait.
+//
+// ⛔ ET LE PIÈGE DE L'EXTENSION, qui a sa propre épreuve plus bas: la négation
+// doit rester tolérée. `portion_note` porte légitimement « Ensure no sesame is
+// present » sur l'assiette de la personne allergique — c'est le BON
+// comportement, et l'étendre sans le prouver ferait mourir la semaine en 422
+// sur une phrase correcte.
+
+const SESAME: StudentSafetyConstraint = {
+  id: "c_sesame",
+  userId: "u1",
+  kind: "allergy",
+  allergenRef: "sesame",
+  substanceRef: null,
+  medicationClass: null,
+  conditionRef: null,
+  dietRef: null,
+  severity: "medical",
+  declaredBy: "student",
+  notes: null,
+  contentLocale: "en-GB",
+};
+
+Deno.test("un allergène médical dans un TITRE DE PRÉPARATION ne part pas", () => {
+  const meal = parse({
+    dishes: [dish({ uses: [{ preparation_id: "prep_x", servings: 1 }] })],
+    preparations: [{
+      id: "prep_x",
+      title: "Peanut butter satay base",
+      servings_made: 4,
+      ingredients: [{ term: "chicken thighs", quantity: "800 g" }],
+      method: "Roast the thighs.",
+      active_minutes: 10,
+      total_minutes: 40,
+    }],
+    shopping_list: [],
+  }, { safetyConstraints: [PEANUT] });
+  assertEquals(meal.lock.reason, "blocked_medical_constraint");
+  assertEquals(meal.dishes, []);
+  assertEquals(meal.preparations, []);
+});
+
+Deno.test("un allergène médical dans la MÉTHODE d'une préparation ne part pas", () => {
+  // La recette d'un lot ne vit QUE dans la préparation: le prompt système
+  // interdit au plat de la répéter. Ne ceinturer que le titre laisserait donc
+  // la seule surface où « l'autre moitié du plateau » peut s'écrire.
+  const meal = parse({
+    dishes: [dish({ uses: [{ preparation_id: "prep_x", servings: 1 }] })],
+    preparations: [{
+      id: "prep_x",
+      title: "Roast chicken thighs",
+      servings_made: 4,
+      ingredients: [{ term: "chicken thighs", quantity: "800 g" }],
+      method: "Roast on the other half of the tray, next to the peanut butter glaze.",
+      active_minutes: 10,
+      total_minutes: 40,
+    }],
+    shopping_list: [],
+  }, { safetyConstraints: [PEANUT] });
+  assertEquals(meal.lock.reason, "blocked_medical_constraint");
+  assertEquals(meal.dishes, []);
+});
+
+Deno.test("un allergène médical dans une PORTION_NOTE ne part pas — la phrase lue à table", () => {
+  const meal = parse({
+    dishes: [dish()],
+    shopping_list: [],
+    member_portions: [
+      { member_id: "m1", portion_note: "A generous spoon of tahini over the bowl." },
+    ],
+  }, { safetyConstraints: [SESAME] });
+  assertEquals(meal.lock.reason, "blocked_medical_constraint");
+  assertEquals(meal.dishes, []);
+});
+
+Deno.test("un allergène médical dans une NOTE DE PART ne part pas non plus", () => {
+  // Une ligne plus bas que `portion_note`, et c'est exactement la surface du
+  // contact croisé mesuré: « prends dans le plateau à… ».
+  const meal = parse({
+    dishes: [dish()],
+    shopping_list: [],
+    member_portions: [
+      {
+        member_id: "m1",
+        portion_note: "The usual share.",
+        preparation_shares: [
+          { preparation_id: "prep_x", note: "Take from the peanut butter tray." },
+        ],
+      },
+    ],
+  }, { safetyConstraints: [PEANUT] });
+  assertEquals(meal.lock.reason, "blocked_medical_constraint");
+  assertEquals(meal.dishes, []);
+});
+
+Deno.test("⛔ LA NÉGATION SURVIT: « Ensure no sesame is present » ne tue pas la semaine", () => {
+  // LE PIÈGE DE CE LOT, ET IL EST MESURÉ. C'est la phrase CORRECTE — la
+  // consigne de contact croisé sur l'assiette de la personne allergique. Sans
+  // cette tolérance, étendre la ceinture aux notes ferait mourir chaque plan
+  // dont une note protège quelqu'un, c'est-à-dire exactement les plans qu'on
+  // veut. La règle n'est pas réécrite ici: c'est celle du moteur commun
+  // (`allowNegatedMentions`, condition de désarmement n°3), la même qui laisse
+  // déjà passer « avoid nut butter » sur un plat.
+  const meal = parse({
+    dishes: [dish()],
+    shopping_list: [],
+    member_portions: [
+      { member_id: "m1", portion_note: "Ensure no sesame is present on this plate." },
+      { member_id: "m2", portion_note: "Salad without sesame, dressed with lemon." },
+    ],
+  }, { safetyConstraints: [SESAME] });
+  assertEquals(meal.lock.reason, "clean");
+  assertEquals(meal.dishes.length, 1);
+});
+
+Deno.test("une préparation propre et des notes propres rendent le plan d'avant, octet pour octet", () => {
+  // La preuve d'INNOCUITÉ de l'extension. Deux surfaces de plus dans le
+  // haystack ne doivent rien changer à un plan qui n'a rien à se reprocher —
+  // sinon la garde aurait un coût pour tout le monde au lieu de mordre sur le
+  // seul cas qui la justifie.
+  const payload = {
+    dishes: [dish({ uses: [{ preparation_id: "prep_x", servings: 1 }] })],
+    preparations: [{
+      id: "prep_x",
+      title: "Roast chicken thighs",
+      servings_made: 4,
+      ingredients: [{ term: "chicken thighs", quantity: "800 g" }],
+      method: "Roast the thighs at 200C.",
+      active_minutes: 10,
+      total_minutes: 40,
+    }],
+    shopping_list: [{ term: "chicken thighs", quantity: "800 g", aisle: "protein" }],
+    member_portions: [
+      { member_id: "m1", portion_note: "A bigger share of the chicken." },
+    ],
+  };
+  const meal = parse(payload, { safetyConstraints: [PEANUT, SESAME] });
+  assertEquals(meal.lock.reason, "clean");
+  assertEquals(meal.dishes.length, 1);
+  assertEquals(meal.preparations.length, 1);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 2026-08-19 — LE DÉROULÉ DE SESSION NE PORTE PAS LES GRAMMES DES BOÎTES.
+//
+// ── LE FAIT, LU À L'ÉCRAN ─────────────────────────────────────────────────
+// « Sortir le plat après 45 minutes, répartir six portions de 450 g et ranger
+// au réfrigérateur », sur un foyer de DEUX personnes. Le nombre de portions ne
+// correspondait à rien, le grammage à aucune boîte, et la phrase ne disait pas
+// de QUOI étaient ces 450 g. Ses mots: « il dit de faire des barquettes de 450
+// grammes mais on sait pas à quoi ça correspond ».
+//
+// ⛔ ON COMPTE, ON NE COUPE PAS. Le déroulé est la seule chose qui dise
+// l'ORDRE des gestes entre deux casseroles; jeter la session pour une faute de
+// rédaction coûterait cet ordre-là. Et réécrire la prose du modèle serait un
+// matcher maison sur du texte libre.
+//
+// ⚠️ SANS CE COMPTEUR, LA CONSIGNE SERAIT INVÉRIFIABLE: « le modèle a obéi » et
+// « on n'a rien mesuré » rendent le même silence.
+// ═══════════════════════════════════════════════════════════════════════════
+
+function sessionPayload(runThrough: string): Record<string, unknown> {
+  return {
+    dishes: [{
+      title: "Chicken bowls",
+      slot: "lunch",
+      day: "mon",
+      method: "Assemble.",
+      why: "",
+      ingredients: [],
+      uses: [{ preparation_id: "prep_chicken", servings: 1 }],
+    }],
+    preparations: [{
+      id: "prep_chicken",
+      title: "Roast chicken",
+      servings_made: 4,
+      ingredients: [],
+      method: "Roast it.",
+      active_minutes: 10,
+      total_minutes: 50,
+      cook_on: "mon",
+    }],
+    cooking_sessions: [{
+      day: "mon",
+      preparation_ids: ["prep_chicken"],
+      total_minutes: 60,
+      run_through: runThrough,
+    }],
+    shopping_list: [],
+  };
+}
+
+Deno.test("⛔ un déroulé qui porte un grammage est COMPTÉ, et la session est gardée", () => {
+  const out = parse(sessionPayload(
+    "Roast the chicken, then portion six servings of 450 g into the boxes.",
+  ));
+  // La session survit: l'ordre des gestes est ce qu'on vient chercher.
+  assertEquals(out.cooking_sessions.length, 1);
+  // Et le compteur sort AVEC SA POPULATION — « 3 déroulés chiffrés » ne veut
+  // rien dire sans le dénominateur.
+  assert(
+    out.issues.some((i: string) =>
+      i.includes("run_through carry a weight or a portion count") &&
+      i.includes("1/1")
+    ),
+    `le compteur ne sort pas: ${JSON.stringify(out.issues)}`,
+  );
+});
+
+Deno.test("⚠️ LE CAS QUI PASSE — un déroulé sans chiffre ne déclenche rien", () => {
+  // Sans ce cas, un compteur qui s'allumerait sur TOUT déroulé ressemblerait
+  // trait pour trait au compteur juste.
+  const out = parse(sessionPayload(
+    "Heat the oven, roast the chicken, then portion it into the named boxes.",
+  ));
+  assertEquals(out.cooking_sessions.length, 1);
+  assert(
+    !out.issues.some((i: string) => i.includes("run_through carry a weight")),
+    `un déroulé propre a été compté: ${JSON.stringify(out.issues)}`,
+  );
 });

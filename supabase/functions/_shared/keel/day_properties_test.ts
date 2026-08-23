@@ -122,6 +122,7 @@ Deno.test("les jetons de jour sont ceux que le PARSEUR accepte", () => {
 const PARSE_BASE = {
   doctrine: null,
   safetyConstraints: [],
+  safetyConstraintTable: null,
   mode: "to_shop" as const,
   scope: "several_days" as const,
   pantry: [],
@@ -134,6 +135,8 @@ const PARSE_BASE = {
   fixedIntakes: [],
   merge: null,
   boxMemberIds: [],
+  weighedMemberIds: [],
+  boxMemberDiets: [],
 };
 
 const BATCH_PREP = {
@@ -312,6 +315,7 @@ const PROMPT_ARGS = {
   contentLocale: "en-US",
   budgetAmount: null,
   safetyConstraints: null,
+  safetyConstraintTable: null,
   body: null,
   focusAxis: null,
   dietBlock: "",
@@ -337,6 +341,8 @@ const PROMPT_ARGS = {
   fixedIntakes: [],
   merge: null,
   boxMemberIds: [],
+  weighedMemberIds: [],
+  boxMemberDiets: [],
 };
 
 Deno.test("R5 — DÉSARMEMENT: rien de déclaré, consigne identique AU CARACTÈRE PRÈS", () => {

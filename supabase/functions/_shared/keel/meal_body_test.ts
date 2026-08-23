@@ -28,6 +28,8 @@ const PROMPT_BASE = {
   dayProperties: [],
   merge: null,
   boxMemberIds: [],
+  weighedMemberIds: [],
+  boxMemberDiets: [],
   protocolBlock: "",
   beliefKeys: [],
   goal: "health" as const,
@@ -39,6 +41,7 @@ const PROMPT_BASE = {
   servings: 1,
   pantry: [],
   safetyConstraints: null,
+  safetyConstraintTable: null,
   body: null,
   focusAxis: null,
 };
@@ -50,6 +53,7 @@ const KNOWN_BODY: MealBodyContext = {
   gender: "female",
   latestWeight: { weekStart: "2026-08-03", value: 74 },
   latestWaist: { weekStart: "2026-08-03", value: 88 },
+  declaredWeightKg: null,
   restrictionFlag: false,
 };
 
@@ -133,6 +137,8 @@ Deno.test("le VERROU DE SORTIE mord toujours — la consigne ne l'a pas remplac�
     dayProperties: [],
     merge: null,
     boxMemberIds: [],
+    weighedMemberIds: [],
+  boxMemberDiets: [],
   });
   assertEquals(meal.dishes.length, 0);
   assert(meal.lock.reason !== "clean", meal.lock.reason);
@@ -239,6 +245,7 @@ Deno.test("l'âge est dérivé de birth_date, et part en BANDE", () => {
     heightCm: 172,
     gender: "female" as const,
     activityLevel: null,
+    activityAxes: { day: null, sport: null, asked: false },
     weights: [],
     waists: [],
   };
@@ -306,6 +313,7 @@ Deno.test("un élève dont on ne sait rien reçoit la même consigne qu'un corps
       gender: null,
       latestWeight: null,
       latestWaist: null,
+      declaredWeightKg: null,
       restrictionFlag: false,
     },
   });
@@ -326,6 +334,7 @@ Deno.test("un corps entièrement inconnu SOUS plancher rend la même chose encor
       gender: null,
       latestWeight: null,
       latestWaist: null,
+      declaredWeightKg: null,
       restrictionFlag: false,
     },
   });
@@ -337,6 +346,7 @@ Deno.test("un corps entièrement inconnu SOUS plancher rend la même chose encor
       gender: null,
       latestWeight: null,
       latestWaist: null,
+      declaredWeightKg: null,
       restrictionFlag: true,
     },
   });

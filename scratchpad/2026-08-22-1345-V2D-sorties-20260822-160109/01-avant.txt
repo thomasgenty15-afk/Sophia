@@ -1,0 +1,24 @@
+V2-D — ÉTAT D'AVANT · 2026-08-22T14:01:17Z
+plan de référence 66de9046-7b8e-48f9-958c-aa8086d65d66 : retired_at=NULL duration_days=7
+plan V0-D         3c781a71-da7c-4abe-8a99-4a6ed7445c99 : retired_at=NULL duration_days=1
+générations déjà en base (source sans point) : 380
+food_composition_pending : 12
+profiles.locale : fr-FR
+
+— plans VIVANTS de la fixture —
+                  id                  | plan_kind | starts_on  | duration_days |          retired_at           | content_locale |                              pv                               
+--------------------------------------+-----------+------------+---------------+-------------------------------+----------------+---------------------------------------------------------------
+ 3c781a71-da7c-4abe-8a99-4a6ed7445c99 | household | 2026-08-21 |             1 |                               | fr-FR          | meal.en.v18_one_box_per_group+household.v21_one_box_per_group
+ 66de9046-7b8e-48f9-958c-aa8086d65d66 | household | 2026-08-22 |             7 |                               | fr-FR          | meal.en.v18_one_box_per_group+household.v21_one_box_per_group
+ 3eae73ac-373d-41c4-af3a-9e6c895ee86c | household | 2026-08-22 |             7 | 2026-08-22 12:40:13.119602+00 | fr-FR          | meal.en.v18_one_box_per_group+household.v21_one_box_per_group
+ 09240cb5-7ca3-4080-a028-e364974e5b91 | household | 2026-08-22 |             7 | 2026-08-22 12:41:44.580127+00 | fr-FR          | meal.en.v18_one_box_per_group+household.v21_one_box_per_group
+ 8f498609-48b5-4faf-8349-a8d7be262006 | household | 2026-08-22 |             7 | 2026-08-22 12:43:22.467381+00 | fr-FR          | meal.en.v18_one_box_per_group+household.v21_one_box_per_group
+ d46c4dad-ec3b-4bc1-af5e-8660b0c22b41 | household | 2026-08-22 |             7 | 2026-08-22 12:44:23.602493+00 | fr-FR          | meal.en.v18_one_box_per_group+household.v21_one_box_per_group
+ 4ef89334-81c0-40ec-895a-73b550de30da | household | 2026-08-22 |             7 | 2026-08-22 12:45:51.637184+00 | fr-FR          | meal.en.v18_one_box_per_group+household.v21_one_box_per_group
+ 9ec54e51-4bf2-42b3-aa30-038e38e598ce | household | 2026-08-22 |             7 | 2026-08-22 12:47:19.655423+00 | en-GB          | meal.en.v18_one_box_per_group+household.v21_one_box_per_group
+ 5058be6a-3728-47f3-8685-9334519ad41f | household | 2026-08-22 |             7 | 2026-08-22 12:48:49.064719+00 | en-GB          | meal.en.v18_one_box_per_group+household.v21_one_box_per_group
+ 612ac898-cfe0-45b7-b538-2152719f08b8 | household | 2026-08-22 |             7 | 2026-08-22 12:50:01.7261+00   | en-GB          | meal.en.v18_one_box_per_group+household.v21_one_box_per_group
+ a5b2a817-fd34-4f22-8632-8f47cb985146 | household | 2026-08-22 |             7 | 2026-08-22 12:51:38.021866+00 | en-GB          | meal.en.v18_one_box_per_group+household.v21_one_box_per_group
+ 9f02838a-7fc4-4e48-9653-6d226f6bfa64 | household | 2026-08-22 |             7 | 2026-08-22 12:52:15.604065+00 | en-GB          | meal.en.v18_one_box_per_group+household.v21_one_box_per_group
+(12 rows)
+

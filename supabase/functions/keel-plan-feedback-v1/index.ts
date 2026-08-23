@@ -243,6 +243,16 @@ Deno.serve(async (req) => {
           ? Number(pc?.cooking_time_min)
           : null,
         recipeDifficulty: nullableText(pc?.recipe_difficulty),
+        // ⚠️ LA VALEUR COURANTE DE LA 4ᵉ QUESTION — et depuis la décision du
+        // 2026-08-19, la débrancher ne rend plus zéro item: elle rend
+        // `varied` À TOUT LE MONDE. Sans base, une plainte de variété déclare
+        // le haut de l'échelle (motif dans `plan_feedback_retained.ts`); la
+        // règle « un seul cran au-dessus de ce qu'on sait d'elle » n'existe
+        // QUE si cette ligne apporte ce qu'on sait. Passer `null` ici
+        // remplacerait un pas par un saut, sur la clé que les deux
+        // générateurs servent au modèle.
+        // `wiringGapsIn` (plan_feedback_retained_test.ts) tient cette ligne.
+        varietyLevel: nullableText(pc?.variety),
       });
 
       if (retained.items.length > 0) {

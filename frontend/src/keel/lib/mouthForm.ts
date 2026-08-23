@@ -45,8 +45,18 @@ import {
   scaleDirectionOf,
   type TargetWeightRefusal,
   targetWeightRefusal,
-  weeksToTarget,
 } from "../../../../supabase/functions/_shared/keel/weight_pace.ts";
+// ⛔ `weeksToTarget` N'EST PLUS IMPORTÉ ICI — lot `L3`, 2026-08-22. La fonction
+// reste dans `weight_pace.ts` avec ses tests: c'est de l'arithmétique juste, et
+// ce n'est pas elle qu'on retire. Ce qui est retiré, c'est la PROMESSE — un
+// nombre de semaines rendu à quelqu'un alors que notre erreur d'estimation
+// (±580 kcal/j) est plus grande que le déficit qu'on vise (500 kcal/j), au
+// point que la borne haute du nombre de semaines est l'infini. Voir
+// `lib/arrivalHorizon.ts` pour la mesure et la phrase qui la remplace.
+import {
+  type ArrivalHorizon,
+  arrivalHorizonFor,
+} from "./arrivalHorizon";
 import type { MouthBody } from "../../../../supabase/functions/_shared/keel/meal_envelope.ts";
 import {
   assessBirthDate,
@@ -54,7 +64,10 @@ import {
 } from "../../../../supabase/functions/_shared/keel/student_age.ts";
 import {
   type ActivityLevel,
+  type AppetiteLevel,
+  type DayActivityLevel,
   GOAL_TOKENS,
+  type SportFrequency,
 } from "../../../../supabase/functions/_shared/keel/tokens.ts";
 import type { MemberGender, MemberGoal } from "../api/household";
 // ⚠️ `import type` ET RIEN D'AUTRE. `api/mouthProfile` tire le client Supabase;
@@ -62,6 +75,7 @@ import type { MemberGender, MemberGoal } from "../api/household";
 // Le type, lui, est effacé à l'exécution — et le partager est ce qui empêche
 // une SECONDE forme du shaker de naître ici et de diverger de l'écrivain.
 import type { ShakerToWrite } from "../api/mouthProfile";
+import type { EatingOccasionSlot } from "../api/mealGeneration";
 
 // ---------------------------------------------------------------------------
 // LES SIX BLOCS
@@ -136,6 +150,40 @@ export interface MouthFormDraft {
   weightKg: string;
   gender: MemberGender | "";
   activityLevel: ActivityLevel | "";
+  /**
+   * ── LES DEUX AXES (2026-08-20) — journée et sport, demandés séparément ──
+   *
+   * ⛔ ILS NE REMPLACENT PAS `activityLevel` DANS LE BROUILLON. Le cran d'avant
+   * reste sur la fiche parce qu'il est le REPLI NOMMÉ de qui n'a pas répondu
+   * aux deux nouvelles questions; le retirer d'ici ferait perdre, au premier
+   * enregistrement, la réponse que la base porte déjà.
+   *
+   * `""` = pas répondu. C'est la même décision que le cran: aucun défaut, parce
+   * qu'un défaut ferait d'une non-réponse une réponse, et cette réponse
+   * pèserait dans une estimation d'énergie.
+   */
+  dayActivity: DayActivityLevel | "";
+  sportFrequency: SportFrequency | "";
+  /**
+   * ── LES TROIS CASES DU REPAS (2026-08-20) ───────────────────────────────
+   *
+   * ⛔ TRI-ÉTAT, ET C'EST LA DÉCISION DU LOT. `false` = « non, je n'en prends
+   * pas », une réponse qui fait MONTER la part du plat composé; `null` = pas
+   * répondu, et la moyenne 0,42 reprend la main. Une case décochée ne peut pas
+   * dire les deux — sinon un formulaire enregistré sans être lu écrirait « ni
+   * pain ni fromage ni dessert », c'est-à-dire un plat qui porte 100 % du
+   * repas, c'est-à-dire deux fois et demie la part d'aujourd'hui.
+   */
+  takesDessert: boolean | null;
+  takesCheese: boolean | null;
+  takesBread: boolean | null;
+  /**
+   * ── ⑤ L'APPÉTIT (2026-08-20) — ET IL EST TRANSITOIRE ───────────────────
+   * `""` = pas répondu ⇒ ×1,00, un neutre VRAI. Même décision que les crans
+   * au-dessus: aucun défaut, parce qu'un défaut ferait d'une non-réponse une
+   * réponse. Le lot ⑦ (boucle de poids) le remplacera pour qui a un compte.
+   */
+  appetite: AppetiteLevel | "";
   // ── Bloc 4 · ce qu'elle mange déjà ──────────────────────────────────────
   /** Une ligne libre par moment nommé. La clé est le moment. */
   habits: Readonly<Record<string, string>>;
@@ -149,6 +197,26 @@ export interface MouthFormDraft {
   /** Aliments refusés par DÉGOÛT. Jamais une allergie — voir `blockSummary`. */
   dislikes: readonly string[];
   diet: string;
+  /**
+   * LES MOMENTS OÙ ELLE MANGE — `null` = « aux moments de la maison ».
+   *
+   * ── ⚠️ `null` N'EST PAS UNE ABSENCE DE DONNÉE ────────────────────────────
+   * C'est une RÉPONSE, et c'est celle du repli documenté: la ligne membre à
+   * `null` fait manger cette bouche au rythme du foyer, et c'est ce que le
+   * moteur applique. Le confondre avec « pas encore demandé » ferait pré-cocher
+   * les moments de la maison sur la ligne de quelqu'un — un fait que personne
+   * n'a énoncé.
+   *
+   * ⛔ ET JAMAIS UN TABLEAU VIDE. La base le refuse (`empty_rhythm`) et elle a
+   * raison: « elle ne mange jamais » n'est pas une réponse. Décocher le dernier
+   * moment veut dire « finalement, comme la maison » — donc `null`.
+   *
+   * Ce champ est arrivé le 2026-08-19 avec le déplacement de la question dans
+   * la fiche: « ce qu'elle mange déjà peut être directement relié au nb de
+   * repas dans la journée, parce que là par défaut on a mis les 6 plages et ça
+   * n'a pas de sens pour une personne qui indique qu'elle mange que 2 fois ».
+   */
+  rhythm: readonly EatingOccasionSlot[] | null;
 }
 
 /**
@@ -188,12 +256,22 @@ export function emptyMouthDraft(): MouthFormDraft {
     // ferait d'une non-réponse une réponse, et cette réponse pèserait dans une
     // estimation d'énergie. Voir `profiles.activity_level`.
     activityLevel: "",
+    // Même décision, et pour la même raison — voir le champ.
+    dayActivity: "",
+    sportFrequency: "",
+    takesDessert: null,
+    takesCheese: null,
+    takesBread: null,
+    appetite: "",
     habits: {},
     shaker: null,
     allergies: [],
     allergiesNone: false,
     dislikes: [],
     diet: "",
+    // `null` = « comme la maison », qui est la réponse par défaut du modèle —
+    // pas un vide à remplir. Voir le champ.
+    rhythm: null,
   };
 }
 
@@ -218,8 +296,33 @@ export interface KnownMouth {
   weightKg: number | null;
   gender: MemberGender | null;
   activityLevel: ActivityLevel | null;
+  /**
+   * ── CE QUE LA FICHE PORTE DÉJÀ DES DEUX AXES ET DES TROIS CASES ────────
+   *
+   * ⛔ SANS CETTE SEMENCE, LA FICHE EFFACERAIT SES RÉPONSES. La porte
+   * d'écriture accepte désormais de DÉ-répondre (le drapeau `…_asked`), donc
+   * un écran qui rouvre une fiche sur des cases vierges non lues les écrit
+   * vraiment. C'est le défaut « formulaire figé au montage », et il mord deux
+   * fois plus fort ici que sur les champs qui, eux, ne s'effacent jamais.
+   */
+  dayActivity: DayActivityLevel | null;
+  sportFrequency: SportFrequency | null;
+  takesDessert: boolean | null;
+  takesCheese: boolean | null;
+  takesBread: boolean | null;
+  appetite: AppetiteLevel | null;
   /** Les habitudes DÉJÀ écrites, par moment. Voir l'avertissement ci-dessous. */
   habits: Readonly<Record<string, string>>;
+  /**
+   * SES MOMENTS, tels que la base les porte — `null` = « comme la maison ».
+   *
+   * ⛔ SANS CETTE SEMENCE, LA FICHE EFFACERAIT SON RYTHME. La porte
+   * (`keel_household_set_member_rhythm`) REMPLACE la ligne, et la fiche écrit
+   * ce qu'elle a: ouverte sur `null` alors que la base porte trois moments,
+   * enregistrer les rendrait « comme la maison » sans un mot. Même cicatrice
+   * que les habitudes deux lignes plus haut.
+   */
+  rhythm: readonly EatingOccasionSlot[] | null;
 }
 
 /**
@@ -287,6 +390,8 @@ const ROSTER_NO_NAME = "—";
  * le champ vide plutôt que de proposer une valeur que le CHECK refuse.
  */
 export function knownMouthForOwner(input: {
+  /** Ses moments, ou `null`/absent quand la lecture ne les porte pas. */
+  rhythm?: readonly EatingOccasionSlot[] | null;
   isOwner: boolean;
   displayName: string;
   ownMouth: {
@@ -301,6 +406,12 @@ export function knownMouthForOwner(input: {
     weightKg: number;
     gender: MemberGender;
     activityLevel: ActivityLevel | null;
+    dayActivity: DayActivityLevel | null;
+    sportFrequency: SportFrequency | null;
+    takesDessert: boolean | null;
+    takesCheese: boolean | null;
+    takesBread: boolean | null;
+    appetite: AppetiteLevel | null;
   } | null;
   /** `null` = PAS LU. `[]` = lu, et elle n'en a aucune. */
   habits: readonly { slot: string; usual: string }[] | null;
@@ -317,7 +428,19 @@ export function knownMouthForOwner(input: {
     weightKg: input.body?.weightKg ?? null,
     gender: input.body?.gender ?? null,
     activityLevel: input.body?.activityLevel ?? null,
+    dayActivity: input.body?.dayActivity ?? null,
+    sportFrequency: input.body?.sportFrequency ?? null,
+    takesDessert: input.body?.takesDessert ?? null,
+    takesCheese: input.body?.takesCheese ?? null,
+    takesBread: input.body?.takesBread ?? null,
+    appetite: input.body?.appetite ?? null,
     habits: Object.fromEntries(input.habits.map((h) => [h.slot, h.usual])),
+    // ⚠️ `undefined` DEVIENT `null`, ET LES DEUX DISENT LA MÊME CHOSE ICI:
+    // « rien sur sa ligne » = « aux moments de la maison ». L'appelant qui ne
+    // sait pas encore passe donc la même réponse que celui qui sait qu'elle
+    // n'a rien dit — et c'est juste: la fiche ne peut rien effacer avec `null`,
+    // la porte le lit comme « ne touche pas ».
+    rhythm: input.rhythm ?? null,
   };
 }
 
@@ -334,7 +457,18 @@ export function draftFromKnown(known: KnownMouth): MouthFormDraft {
     weightKg: asText(known.weightKg),
     gender: known.gender ?? "",
     activityLevel: known.activityLevel ?? "",
+    dayActivity: known.dayActivity ?? "",
+    sportFrequency: known.sportFrequency ?? "",
+    // `?? null` ET PAS UNE LECTURE DIRECTE: un appelant JavaScript (ou un banc
+    // d'essai) qui omet la clé rendrait `undefined`, et `undefined` n'est ni
+    // « oui », ni « non », ni « pas répondu » — c'est une quatrième valeur qui
+    // ne veut rien dire et que `toEqual` ne compare pas comme `null`.
+    takesDessert: known.takesDessert ?? null,
+    takesCheese: known.takesCheese ?? null,
+    takesBread: known.takesBread ?? null,
+    appetite: known.appetite ?? "",
     habits: { ...known.habits },
+    rhythm: known.rhythm ?? null,
   };
 }
 
@@ -397,6 +531,18 @@ export function bodyOfDraft(
     gender: draft.gender === "" ? null : draft.gender,
     ageYears: usableAge(verdict),
     activityLevel: draft.activityLevel === "" ? null : draft.activityLevel,
+    // ⚠️ `asked: true` PARCE QUE CE FORMULAIRE PORTE LES DEUX QUESTIONS. Ce
+    // n'est pas « il a répondu »: c'est « on lui a demandé », et c'est ce qui
+    // sépare `not_answered` de `not_asked` dans le compteur du moteur. Un
+    // `false` ici ferait passer une fiche qu'on vient d'interroger pour une
+    // fiche plus vieille que le lot.
+    activityAxes: {
+      day: draft.dayActivity === "" ? null : draft.dayActivity,
+      sport: draft.sportFrequency === "" ? null : draft.sportFrequency,
+      asked: true,
+    },
+    // ⑤ — `""` redevient `null`: ×1,00, un neutre vrai.
+    appetite: draft.appetite === "" ? null : draft.appetite,
   };
 }
 
@@ -522,15 +668,25 @@ export function paceControlFor(
  * ⚠️ LE REFUS EST RENDU À CÔTÉ DU CHAMP, ET C'EST LE CONTRAT DE PASSATION DU
  * SOCLE. Trois fois dans `SetupPage`, un refus rendu loin du geste s'est lu
  * comme un bouton mort — cicatrice `refusal-far-from-the-gesture-reads-as-a-
- * dead-button`. Ce type porte donc le refus ET la date d'arrivée sur le même
- * objet, pour qu'un rendu ne puisse pas prendre l'un sans l'autre.
+ * dead-button`. Ce type porte donc le refus ET ce qui se dit du chemin sur le
+ * même objet, pour qu'un rendu ne puisse pas prendre l'un sans l'autre.
+ *
+ * ⛔ `weeks` A DISPARU DE CE TYPE — lot `L3`, 2026-08-22, décision produit.
+ * Il portait un nombre de semaines exact; l'erreur d'estimation (±580 kcal/j)
+ * est plus grande que le déficit visé (500 kcal/j), donc l'intervalle réel de
+ * l'écart quotidien TRAVERSE ZÉRO et la borne haute du nombre de semaines est
+ * l'infini. Un jeton le remplace: il n'existe plus de champ où un nombre de
+ * semaines pourrait être réécrit. Voir `lib/arrivalHorizon.ts`.
  */
 export type TargetWeightState =
   /** Pas de direction, ou champ vide: rien à dire. */
   | { kind: "idle" }
   | { kind: "refused"; refusal: TargetWeightRefusal }
-  /** Accepté. `weeks` est `null` quand aucune date n'est calculable. */
-  | { kind: "accepted"; weeks: number | null };
+  /**
+   * Accepté. `horizon` est `null` quand il n'y a pas de curseur vivant — la
+   * MÊME prémisse qu'avant, pour que la surface reste comparable à l'avant.
+   */
+  | { kind: "accepted"; horizon: ArrivalHorizon | null };
 
 export function targetWeightStateFor(
   draft: MouthFormDraft,
@@ -555,8 +711,13 @@ export function targetWeightStateFor(
   if (refusal !== null) return { kind: "refused", refusal };
 
   const pace = paceControlFor(draft, todayLocalIso);
-  const paceValue = pace.kind === "slider" ? pace.value : 0;
-  return { kind: "accepted", weeks: weeksToTarget(current, target, paceValue) };
+  return {
+    kind: "accepted",
+    horizon: arrivalHorizonFor({
+      targetAccepted: true,
+      paceKgPerWeek: pace.kind === "slider" ? pace.value : null,
+    }),
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -836,8 +997,17 @@ export interface MouthPersistPayload {
   weightKg: number;
   gender: "male" | "female" | "other";
   activityLevel: ActivityLevel | null;
+  dayActivity: DayActivityLevel | null;
+  sportFrequency: SportFrequency | null;
+  takesDessert: boolean | null;
+  takesCheese: boolean | null;
+  takesBread: boolean | null;
+  /** ⑤ (2026-08-20), TRANSITOIRE. `null` = pas répondu ⇒ ×1,00. */
+  appetite: AppetiteLevel | null;
   targetWeightKg: number | null;
   paceKgPerWeek: number | null;
+  /** Ses moments, ou `null` pour « comme la maison ». Jamais `[]`. */
+  rhythm: readonly EatingOccasionSlot[] | null;
   habits: readonly { slot: string; kind: "own_usual"; usual: string }[];
   /**
    * LE SHAKER, OU `null` — ET IL EST ARRIVÉ ICI LE 2026-08-18 (D1).
@@ -869,6 +1039,18 @@ export function mouthToPersist(
     weightKg: numberOrNull(draft.weightKg) ?? 0,
     gender: draft.gender === "" ? "other" : draft.gender,
     activityLevel: draft.activityLevel === "" ? null : draft.activityLevel,
+    // ⛔ `""` REDEVIENT `null` — « pas répondu ». Les trois booléens, eux,
+    // traversent TELS QUELS: `false` est une réponse et il pèse, `null` n'en
+    // est pas une et il retombe sur la moyenne.
+    dayActivity: draft.dayActivity === "" ? null : draft.dayActivity,
+    sportFrequency: draft.sportFrequency === "" ? null : draft.sportFrequency,
+    takesDessert: draft.takesDessert,
+    takesCheese: draft.takesCheese,
+    takesBread: draft.takesBread,
+    appetite: draft.appetite === "" ? null : draft.appetite,
+    // ⛔ LE VIDE REDEVIENT `null`: la base refuse `empty_rhythm`, et « rien
+    // coché » veut dire « comme la maison », pas « elle ne mange jamais ».
+    rhythm: draft.rhythm && draft.rhythm.length > 0 ? draft.rhythm : null,
     targetWeightKg: target.targetWeightKg,
     paceKgPerWeek: target.paceKgPerWeek,
     // ⚠️ UNE HABITUDE VIDE N'EST PAS UNE HABITUDE. La base refuse un `usual`
@@ -890,5 +1072,105 @@ export function mouthToPersist(
     allergies: [...draft.allergies],
     dislikes: [...draft.dislikes],
     diet: draft.diet === "" ? null : draft.diet,
+  };
+}
+
+/**
+ * CE QUE LA FENÊTRE DES PRÉFÉRENCES REND AU BROUILLON DU TITULAIRE.
+ *
+ * ── ⛔ POURQUOI CETTE LISTE EST UNE DÉCISION, ET PAS UNE COPIE ────────────
+ * Le brouillon du titulaire (`selfMouthDraft`, dans `SetupPage`) est DÉRIVÉ de
+ * son état à chaque rendu. Un champ édité dans la fenêtre qui ne figure pas ici
+ * est donc recalculé à l'ancienne au rendu suivant: le contrôle revient tout
+ * seul sur sa valeur d'avant, et le geste a l'air REFUSÉ alors qu'il n'a même
+ * pas été retenu.
+ *
+ * C'est exactement ce qui est arrivé au RÉGIME le 2026-08-19 — « comment elle
+ * mange, quand je sélectionne il n'y a rien qui bouge ». Le champ venait d'être
+ * ouvert au titulaire; sa remontée ne l'avait pas suivi. Un oubli de ce genre
+ * est INVISIBLE en relecture (la fonction a l'air complète) et ne casse aucun
+ * type: d'où cette liste nommée, et le test qui la mesure champ par champ.
+ *
+ * ⚠️ CE QUI N'EST PAS ICI N'EST PAS UN OUBLI. Le prénom, la date, le corps, la
+ * direction et le cran d'activité appartiennent à la CARTE, pas à la fenêtre:
+ * tout remonter ferait de la fenêtre un second formulaire sur les colonnes que
+ * la carte tient déjà. Le poids visé et le rythme, eux, sont des FAITS RELUS et
+ * vivent dans leur propre état.
+ */
+export const SELF_SHEET_FIELDS = [
+  "allergies",
+  "allergiesNone",
+  "habits",
+  "dislikes",
+  "shaker",
+  "rhythm",
+  "diet",
+] as const;
+
+export type SelfSheetField = (typeof SELF_SHEET_FIELDS)[number];
+
+/**
+ * PEUT-ON ENREGISTRER CE SHAKER ? — UN NOM, ET **UNE** DES TROIS MESURES.
+ *
+ * ── ⚠️ CE N'EST PAS `shakerIsComplete`, ET LA DIFFÉRENCE EST VOULUE ───────
+ * `shakerIsComplete` répond « est-ce que le MOTEUR le comptera » — et lui exige
+ * les trois nombres, parce que `parseFixedIntakes` est tout-ou-rien: « une
+ * déclaration à moitié lisible n'est pas une déclaration […] ferait perdre la
+ * protéine en silence ».
+ *
+ * Cette fonction-ci répond à une autre question: « est-ce que l'utilisateur a
+ * dit assez pour qu'on garde sa saisie ». Règle demandée le 2026-08-19 — « ça
+ * enregistre peu importe si tout est complété, il faut au moins une des 3
+ * mesures ». Refuser d'enregistrer un shaker à moitié rempli, c'est lui faire
+ * perdre ce qu'il vient de taper au premier rechargement.
+ *
+ * ⛔ LES DEUX NE DOIVENT JAMAIS FUSIONNER. Assouplir `shakerIsComplete` ferait
+ * partir des lignes que le moteur jette en silence; durcir celle-ci ramènerait
+ * le bouton mort. L'écran, lui, DIT dans lequel des deux états on se trouve —
+ * c'est ce qui rend l'écart honnête plutôt que trompeur.
+ */
+export function shakerCanBeSaved(shaker: ShakerDraft | null): boolean {
+  if (shaker === null) return false;
+  if (shaker.label.trim() === "") return false;
+  return [
+    shaker.servingGrams,
+    shaker.proteinGPerServing,
+    shaker.energyKcalPerServing,
+    // ⚠️ `>= 0` ET PAS `> 0`: une protéine de zéro est un fait ordinaire (un
+    // soda), et une énergie de zéro aussi. C'est l'ABSENCE qu'on refuse, pas le
+    // zéro — les distinguer est tout l'objet de `numberOrNull`.
+  ].some((raw) => {
+    const n = numberOrNull(raw);
+    return n !== null && n >= 0;
+  });
+}
+
+/**
+ * LE SHAKER TEL QU'IL PART EN BASE, MÊME INCOMPLET.
+ *
+ * ── ⚠️ POURQUOI IL EXISTE À CÔTÉ DE `shakerToWrite` ───────────────────────
+ * `shakerToWrite` rend `null` tant que les trois nombres n'y sont pas: c'est la
+ * frontière du MOTEUR, et elle est juste — `parseFixedIntakes` jette une
+ * déclaration à moitié lisible plutôt que de perdre la protéine en silence.
+ *
+ * Mais l'écran a maintenant un bouton « Enregistrer » qui s'active à UNE
+ * mesure (demande du 2026-08-19). Passer `shakerToWrite` à ce bouton en aurait
+ * fait un geste qui ne fait rien — « indiscernable d'un geste qui a marché »,
+ * le mode d'échec n°1 de ce dépôt. Celui-ci écrit donc ce qu'il a.
+ *
+ * ⛔ ET IL N'INVENTE AUCUN NOMBRE. Un champ vide part à `0`, ce qui est la
+ * valeur que `parseFixedIntakes` refusera de compter (`serving_grams` à zéro
+ * fait tomber l'entrée) — c'est-à-dire que l'incomplet reste incomplet aux yeux
+ * du moteur, exactement comme il doit l'être. Le remplir d'une estimation
+ * ferait entrer un nombre inventé dans un calcul d'énergie avec l'autorité
+ * d'une mesure.
+ */
+export function shakerPartialToWrite(shaker: ShakerDraft): ShakerToWrite {
+  return {
+    label: shaker.label.trim(),
+    servingGrams: numberOrNull(shaker.servingGrams) ?? 0,
+    proteinGPerServing: numberOrNull(shaker.proteinGPerServing) ?? 0,
+    energyKcalPerServing: numberOrNull(shaker.energyKcalPerServing) ?? 0,
+    slot: shaker.slot.trim() === "" ? null : shaker.slot.trim(),
   };
 }

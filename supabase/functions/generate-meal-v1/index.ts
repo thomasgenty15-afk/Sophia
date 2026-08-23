@@ -6,7 +6,11 @@ import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
 import { logEdgeFunctionError, readableErrorMessage } from "../_shared/error-log.ts";
 import { generateWithGemini } from "../_shared/gemini.ts";
-import { keelGenerationModel } from "../_shared/keel/generation_model.ts";
+import {
+  keelGenerationModel,
+  PLAN_HTTP_TIMEOUT_MS,
+  PLAN_REASONING_EFFORT,
+} from "../_shared/keel/generation_model.ts";
 import {
   doctrineBeliefsFor,
   doctrineBlockFor,
@@ -22,6 +26,14 @@ import {
   protocolBlockFor,
 } from "../_shared/keel/protocol_loader.ts";
 import { loadStudentSafetyConstraints } from "../_shared/keel/safety_constraints.ts";
+// ── L0bis · LE GARDE D'ÉNERGIE DES CONDITIONS DÉCLARÉES ────────────────
+// ⛔ Il touche le CALCUL, jamais le verrou de texte: `conditionRef` n'entre
+// dans aucune ceinture de sortie — l'y mettre a bâillonné un message d'urgence
+// en run réel le 2026-08-06.
+import {
+  conditionGatePopulationOf,
+  goalUnderConditionGate,
+} from "../_shared/keel/condition_energy_gate.ts";
 import { evaluateRestrictionForStudent } from "../_shared/keel/restriction_runtime.ts";
 import {
   loadStudentBody,
@@ -60,6 +72,16 @@ import {
   ageStateFromVerdict,
   type MemberAgeState,
 } from "../_shared/keel/household.ts";
+// ══ S3 · LA CEINTURE D'ÂGE, CÂBLÉE DANS CETTE LANE ═════════════════════════
+// `escalateMinorStudent` avait ZÉRO appelant depuis le retrait de
+// `generate-week-plan-v1` (2026-08-19). Le câblage passe par un module partagé
+// et pas par du code écrit ici: la décision doit survivre dans l'histoire même
+// quand ce fichier ne peut pas être commité. Voir `student_age_wiring.ts`.
+import { assessBirthDate } from "../_shared/keel/student_age.ts";
+import {
+  ageGateLogLine,
+  escalateMinorIfNeeded,
+} from "../_shared/keel/student_age_wiring.ts";
 import {
   checkWrittenInstructions,
   silentInstructions,
@@ -92,10 +114,12 @@ import { explainPlanChoices } from "../_shared/keel/plan_rationale.ts";
 // dépôt. Les quatre portes vivent DANS le module, pas ici.
 import { reportOnRequest } from "../_shared/keel/request_report.ts";
 import { gateRequestReport } from "../_shared/keel/request_report_gate.ts";
-import {
-  findForbiddenMatches,
-  type ForbiddenTerm,
-} from "../_shared/keel/forbidden_matcher.ts";
+// ⚠️ `findForbiddenMatches` N'EST PLUS IMPORTÉ ICI, et l'absence est le
+// correctif: le compteur de régime l'appelait à plat, sans le désamorçage des
+// analogues végétaux. Il vit maintenant DANS `dietary_regime.ts`, du même côté
+// que la liste fermée qui le tempère — comme `doctrine.ts` et
+// `safety_constraints.ts` le font déjà pour leurs propres listes.
+import { type ForbiddenTerm } from "../_shared/keel/forbidden_matcher.ts";
 // LA PHRASE ÉCRITE SUR UN BROUILLON — gardée À L'ENTRÉE, parce qu'elle part au
 // modèle dans le même message que la doctrine du coach et les contraintes de
 // sécurité. Les quatre portes vivent DANS le module, pas ici.
@@ -174,10 +198,23 @@ import {
   parseGeneratedMeal,
   usableBudget,
 } from "../_shared/keel/meal_generation.ts";
+// ⟳ LOT `L0-a` — les deux nombres de la fenêtre CRUE, sur la liste de courses.
+import { rawWindowCounts } from "../_shared/keel/grocery_waves.ts";
 import { proteinAnchorRetryInstruction } from "../_shared/keel/protein_anchor.ts";
 import type { CompositionIndex } from "../_shared/keel/food_composition.ts";
 import { loadCompositionIndex } from "../_shared/keel/food_composition_io.ts";
 import { isFriedMethod, resolveIngredients } from "../_shared/keel/food_composition.ts";
+// LOT 18 — la réparation du référentiel, un seul appel par plan, et un repli
+// qui ne peut pas échouer. Voir `composition_fill.ts` pour la règle 3.
+import {
+  compositionFillColumns,
+  fillPlanComposition,
+  repairPlanComposition,
+} from "../_shared/keel/composition_fill_io.ts";
+// ⟳ LOT `L17-0` — les DEUX populations du groupe déclaré: ce que le modèle
+// écrit, et ce qui atteint la base. Le compteur lit la charge ÉCRITE.
+import { foodGroupWriteCounts } from "../_shared/keel/food_group_write.ts";
+import { declaredIntakeGroupCounts } from "../_shared/keel/declared_food_group.ts";
 import {
   envelopeFor,
   type PortionAdjustFor,
@@ -194,6 +231,9 @@ import {
   parseFixedIntakes,
 } from "../_shared/keel/fixed_intakes.ts";
 import { parseDayProperties } from "../_shared/keel/day_properties.ts";
+// LES MOYENS DE CUISSON. Le module porte le jeton, le lecteur à TROIS valeurs
+// et la phrase; cette lane n'en écrit aucune de son côté.
+import { readKitchenEquipment } from "../_shared/keel/kitchen_equipment.ts";
 import {
   correctionPlanFor,
   correctionRetryInstruction,
@@ -202,11 +242,17 @@ import {
   assessCoverage,
   coverageFlagAfterCorrection,
 } from "../_shared/keel/meal_coverage.ts";
-import { type ActivityLevel, GOAL_TOKENS, type GoalToken } from "../_shared/keel/tokens.ts";
+import {
+  type ActivityLevel,
+  type FoodGroupRef,
+  GOAL_TOKENS,
+  type GoalToken,
+} from "../_shared/keel/tokens.ts";
 import {
   dietaryRegimePromptLine,
   excludedSurfaceFormsFor,
   parseDietaryRegime,
+  scanDietaryRegime,
   uncoverableSentinelsFor,
 } from "../_shared/keel/dietary_regime.ts";
 import {
@@ -679,7 +725,13 @@ Deno.serve(async (req) => {
       // son CHECK, et cette lane ne la nommait nulle part: pour un élève en
       // `health` ou en `performance`, le jeton `goal` est le SEUL indicateur de
       // direction, et il ne dit rien de plus que « santé ».
-      .select("goal, situation, focus_axis, practical_constraints, content_locale")
+      .select(
+        // `aspiration` AJOUTÉE LE 2026-08-18: la colonne existait, `/app/plan`
+        // l'écrivait, `generate-week-plan-v1` l'injectait — et cette lane-ci ne
+        // la SÉLECTIONNAIT même pas. Un champ qu'un `select` oublie est
+        // indiscernable d'un champ que personne ne remplit.
+        "goal, situation, aspiration, focus_axis, practical_constraints, content_locale",
+      )
       .eq("user_id", userId)
       .maybeSingle();
     if (goalRes.error) throw goalRes.error;
@@ -1406,10 +1458,14 @@ Deno.serve(async (req) => {
     // `discarded` est LOGUÉ, jamais rendu à l'élève: c'est le compteur qui
     // distingue « il n'a rien déclaré » de « on n'a pas su lire ce qu'il a
     // déclaré », et il n'a de sens que pour qui peut corriger la forme.
-    const fixedIntakeParse = parseFixedIntakes(
+    // ⟳ L4 — LE JSONB BRUT EST GARDÉ, et ce n'est pas de la commodité: c'est la
+    // PREMIÈRE des deux populations du compteur de groupe déclaré. Le relire
+    // plus bas serait une seconde lecture du même jsonb, donc une occasion de
+    // diverger — la raison même pour laquelle ce `const` est hissé.
+    const fixedIntakesRaw =
       (goalRow.practical_constraints as Record<string, unknown> | null)
-        ?.fixed_intakes,
-    );
+        ?.fixed_intakes;
+    const fixedIntakeParse = parseFixedIntakes(fixedIntakesRaw);
     const fixedIntakes = fixedIntakeParse.intakes;
     if (fixedIntakeParse.discarded > 0) {
       console.log(
@@ -1430,6 +1486,26 @@ Deno.serve(async (req) => {
     // diverger, et la divergence se paierait sur le seul contrôle qui dit à
     // l'élève que sa session ne tient pas.
     const capacity = readCookingCapacity(
+      goalRow.practical_constraints as Record<string, unknown> | null,
+    );
+
+    // ── LES MOYENS DE CUISSON, LUS ICI ET DITS AU MODÈLE ──────────────────
+    //
+    // Mesuré le 2026-08-18 sur le run réel `798c5cd6-…`: un élève venait de
+    // cocher « plaque, micro-ondes, blender » à l'étape 3 de `/app/setup`, et
+    // le plan rendu ouvre sa première session par « Heat the oven » avec des
+    // « roast potatoes ». La colonne était écrite, le module `kitchen_equipment`
+    // existait, la lane FOYER le lisait — et cette lane-ci ne l'avait jamais vu.
+    //
+    // ⚠️ LA LECTURE EST HISSÉE AU-DESSUS DE `buildMealPrompt`, comme
+    // `declaredRegime`: la redescendre sous la construction rendrait le
+    // câblage inopérant SANS casser un seul test de composition, la consigne
+    // partirait vide et le plan sortirait. `kitchen_equipment_solo_lane_test.ts`
+    // tient cet ordre-là.
+    //
+    // `null` quand la question n'a jamais été posée: aucune ligne ajoutée, et
+    // le prompt d'un compte d'avant ce lot ne bouge pas d'un caractère.
+    const kitchenEquipment = readKitchenEquipment(
       goalRow.practical_constraints as Record<string, unknown> | null,
     );
 
@@ -1575,9 +1651,26 @@ Deno.serve(async (req) => {
      * plus confondre.
      */
     let studentAgeState: MemberAgeState = "unknown";
+    /**
+     * ── S3 · LE VERDICT LUI-MÊME, GARDÉ À CÔTÉ DE SA PROJECTION ────────────
+     *
+     * `studentAgeState` réduit six statuts à trois; c'est ce dont le socle de
+     * portions a besoin. Le COMPTEUR et l'ESCALADE, eux, ont besoin de plus:
+     * l'âge (pour la ligne du coach) et la distinction date-manquante /
+     * date-illisible (pour que le journal envoie chercher la réparation au bon
+     * endroit). On garde donc le verdict entier plutôt que de le reconstruire
+     * — une seconde arithmétique d'âge diverge au premier fuseau horaire.
+     *
+     * `assessBirthDate(null, …)` est la valeur initiale, PAS un littéral
+     * `{status:"absent"}`: un corps illisible (le `catch` ci-dessous) doit
+     * donner exactement le même verdict qu'un dossier vide — « on ne sait
+     * pas » — et il doit le devoir à la vraie fonction.
+     */
+    let studentAgeVerdict = assessBirthDate(null, todayDate);
     try {
       const snapshot = await loadStudentBody(admin, userId, todayDate);
       studentActivityLevel = snapshot.activityLevel;
+      studentAgeVerdict = snapshot.verdict;
       studentAgeState = ageStateFromVerdict(snapshot.verdict);
       studentBody = mealBodyContextFrom(snapshot, restrictionFlag);
     } catch (error) {
@@ -1586,6 +1679,55 @@ Deno.serve(async (req) => {
         user_id: userId,
         error: readableErrorMessage(error),
         effect: "composition sans corps (comportement d'avant FF-030)",
+      }));
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    // ── S3 · LA CEINTURE D'ÂGE, CÂBLÉE — le compteur, puis le coach ───────
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ CE BLOC NE REFUSE RIEN, ET C'EST TOUT SON SENS. Il n'y a pas de
+    // `return` ici, pas de 409, pas de `throw`. Le plan continue: un mineur
+    // reçoit son repas, une personne sans date reçoit le sien. Ce qu'ils ne
+    // reçoivent pas est un CHIFFRE, et cette décision-là est prise en amont,
+    // sans I/O, par `energySafetyGates` (portes ② et ②bis).
+    //
+    // ⚠️ POURQUOI IL EXISTE, ET IL FAUT LE SAVOIR AVANT DE LE SUPPRIMER:
+    //   ① `escalateMinorStudent` avait **ZÉRO appelant** au 2026-08-22,
+    //      commentaires et tests retirés. Son appelant historique
+    //      (`generate-week-plan-v1`) a été retiré le 2026-08-19 et a emporté
+    //      la ligne d'appel sans emporter la fonction. Une seule ligne
+    //      `minor_student` existe en base, du 2026-08-12: la garde avait mordu
+    //      une fois, puis plus jamais — indiscernable d'une garde qui protège.
+    //   ② Le compteur est le seul moyen de distinguer un lot armé d'un lot
+    //      désarmé: il rend les TROIS populations, y compris celle qui passe.
+    //      Un journal qui ne nomme que les refus ne dit pas si la porte a
+    //      tourné.
+    console.log(JSON.stringify(ageGateLogLine(userId, studentAgeVerdict)));
+    try {
+      const escalation = await escalateMinorIfNeeded(admin, {
+        userId,
+        verdict: studentAgeVerdict,
+      });
+      if (escalation.escalated || escalation.reason === "already_open") {
+        console.log(JSON.stringify({
+          tag: "keel.meal.minor_escalation",
+          user_id: userId,
+          escalated: escalation.escalated,
+          reason: escalation.reason,
+          contract_change_request_id: escalation.contractChangeRequestId,
+        }));
+      }
+    } catch (error) {
+      // BEST-EFFORT, ET C'EST ÉCRIT: un hoquet d'écriture sur
+      // `contract_change_requests` ne doit pas refuser le dîner d'un enfant.
+      // Le chiffre est déjà fermé en amont, sans I/O — c'est là qu'est la
+      // protection, pas ici.
+      console.warn(JSON.stringify({
+        tag: "keel.meal.minor_escalation_failed",
+        user_id: userId,
+        error: readableErrorMessage(error),
+        effect: "le coach n'est pas prévenu; le chiffre reste fermé",
       }));
     }
 
@@ -1654,6 +1796,29 @@ Deno.serve(async (req) => {
       // (`resolveIngredients`, `verdictFor`) ne connaît pas ce cas et n'a pas
       // à le connaître: elle voit une référence ordinaire.
       composition = augmentedIndexFor(composition, fixedIntakes);
+      // ── ⟳ L4 · LES DEUX POPULATIONS DU GROUPE D'UN APPORT DÉCLARÉ ───────
+      //
+      // ⛔ LU SUR L'INDEX ÉCRIT, PAS SUR LA LISTE D'INTENTIONS. C'est la
+      // cicatrice de `L17-0`, du même matin: 242 groupes déclarés par le
+      // modèle et **zéro** en base, parce qu'une recopie perdait la clé — et
+      // un compteur branché sur la structure d'entrée aurait rendu 242 des
+      // deux côtés. Ici la déclaration vient d'une PERSONNE, pas d'un modèle,
+      // et le mode d'échec est identique: le jour où l'écran cesse d'écrire
+      // `food_group`, `reaches_index: 0` doit se distinguer d'un lecteur
+      // cassé. `declares_group` est ce que le jsonb PORTE.
+      const declaredIntakeGroups = declaredIntakeGroupCounts(
+        Array.isArray(fixedIntakesRaw) ? fixedIntakesRaw : [],
+        fixedIntakes
+          .filter((i) => i.nutrition === "declared")
+          .map((i) => composition?.bySlug.get(i.foodRef)?.foodGroupRef),
+      );
+      if (declaredIntakeGroups.declared > 0) {
+        console.log(JSON.stringify({
+          tag: "keel.meal.declared_intake_groups",
+          user_id: userId,
+          ...declaredIntakeGroups,
+        }));
+      }
     } catch (error) {
       console.warn(`[${FN_NAME}] composition index unavailable`, error);
     }
@@ -1669,6 +1834,13 @@ Deno.serve(async (req) => {
       // double verrou du §3.3 du pivot: la consigne informe, la ceinture
       // garantit. `null` (lecture en panne) reste `null` des deux côtés.
       safetyConstraints: constraints,
+      // `null` = UNE SEULE BOUCHE, DIT EXPLICITEMENT. Le paramètre est REQUIS
+      // (`T | null`, jamais `T?`) pour que le compilateur oblige chaque lane à
+      // le dire: « un paramètre de garde optionnel est une garde désarmée ».
+      // Cette lane compose pour l'élève seul, toutes les contraintes du bloc
+      // sont les siennes, et son en-tête le dit déjà. Le bloc rendu ici est
+      // donc byte-identique à celui d'avant ce lot, et un test le tient.
+      safetyConstraintTable: null,
       // ── FF-042 · LE RÉGIME ENTRE DANS LA CONSIGNE ──────────────────────
       // La MOITIÉ AMONT du double verrou, et elle manquait entièrement sur
       // cette lane: `dietary_regime.ts` était importé ici pour son seul
@@ -1696,6 +1868,9 @@ Deno.serve(async (req) => {
       beliefKeys,
       goal: String(goalRow.goal ?? "health"),
       situation: goalRow.situation ? String(goalRow.situation) : null,
+      // CE QU'IL VEUT VRAIMENT, dans ses mots. Même champ, même phrase et même
+      // rang que sur la lane semaine.
+      aspiration: goalRow.aspiration ? String(goalRow.aspiration) : null,
       context,
       // L'ENVIE DU MOMENT, distincte des goûts durables lus plus bas dans
       // `foodPreferences`: l'une a été tapée il y a dix secondes, les autres
@@ -1735,6 +1910,11 @@ Deno.serve(async (req) => {
       // rempli reçoit exactement la semaine d'hier. C'est ce qui rend l'ajout
       // additif plutôt que régressif.
       ...capacity,
+      // LES MOYENS DE CUISSON — cinquième entrée de « ce qu'il peut vraiment
+      // faire », et la seule qui interdise un GESTE plutôt qu'un jour ou un
+      // montant. Lue plus haut, passée nommément: `...capacity` ne la porte pas
+      // (elle vient d'un autre module, avec sa propre logique à trois valeurs).
+      kitchenEquipment,
       // CE QUE L'ÉLÈVE A CONFIRMÉ sur sa bouffe, promu depuis la conversation.
       // Passé NOMMÉMENT parce que ce générateur lit des clés nommées: une clé
       // de plus dans le jsonb y serait invisible (contrairement au plan hebdo,
@@ -1836,7 +2016,9 @@ Deno.serve(async (req) => {
       // négatives, et c'est le seul endroit où la capacité du modèle se paie en
       // assiettes fausses. `KEEL_GENERATION_MODEL` est la soupape de retour
       // arrière — nécessaire parce que ce chemin n'a PAS de repli automatique.
-      { source: FN_NAME, requestId, userId, model: keelGenerationModel() },
+      { source: FN_NAME, requestId, userId, model: keelGenerationModel(),
+            httpTimeoutMs: PLAN_HTTP_TIMEOUT_MS,
+            reasoningEffort: PLAN_REASONING_EFFORT },
     );
     if (typeof result !== "string") {
       return jsonResponse(req, { error: "model_returned_tool_call", request_id: requestId }, { status: 502 });
@@ -1901,6 +2083,27 @@ Deno.serve(async (req) => {
       // inventer un (raisonnement `dishOwnerSchemaBlock`), sur une lane où le
       // champ n'apporte rien.
       boxMemberIds: [],
+      // ── LA PORTION MILLIMÉTRÉE · `[]` POUR LA MÊME RAISON ────────────────
+      //
+      // Sans roster il n'y a aucun groupe à former, donc aucun contenant
+      // attendu: `box_counts.expected` reste à zéro sur cette lane, et c'est
+      // une affirmation — pas un compteur muet.
+      weighedMemberIds: [],
+      // ── LA CEINTURE DE RÉGIME · `[]` EST UNE AFFIRMATION, PAS UN OUBLI ────
+      //
+      // ⚠️ DEUX RAISONS, ET LA SECONDE EST LA VRAIE. ① Sans boîte, il n'y a
+      // aucune appartenance à refuser: la ceinture du parseur n'aurait rien à
+      // lire. ② Cette lane porte DÉJÀ sa lecture de régime, sur les PLATS, six
+      // cents lignes plus bas (`scanDietaryRegime(declaredRegime, …)`), avec
+      // son propre compteur à quatre nombres. La brancher ici compterait deux
+      // fois la même morsure, et deux compteurs sur une même population est
+      // exactement ce que ce dépôt écrit trois fois pour l'avoir payé.
+      //
+      // ⛔ Le régime de CETTE lane est celui d'une seule personne, et il est
+      // déjà dans le prompt (`dietBlock`). Ce qui manquait — et que le foyer
+      // vient d'obtenir — est la question qu'une lane à une bouche ne pose
+      // jamais: « plusieurs lignes déclarées autour d'une seule casserole ».
+      boxMemberDiets: [],
     } as const;
 
     let meal: GeneratedMeal;
@@ -1944,7 +2147,9 @@ Deno.serve(async (req) => {
           true,
           [],
           "auto",
-          { source: `${FN_NAME}.protein_anchor_retry`, requestId, userId, model: keelGenerationModel() },
+          { source: `${FN_NAME}.protein_anchor_retry`, requestId, userId, model: keelGenerationModel(),
+            httpTimeoutMs: PLAN_HTTP_TIMEOUT_MS,
+            reasoningEffort: PLAN_REASONING_EFFORT },
         );
         if (typeof retryResult === "string") {
           const retried = parseGeneratedMeal(retryResult, parseArgs);
@@ -1986,6 +2191,29 @@ Deno.serve(async (req) => {
         // aucun surplus. Un repli sur `fat_loss` ferait exécuter une
         // restriction à quelqu'un dont on n'a pas su lire l'objectif.
         : "maintenance";
+    // ── L0bis · LA GROSSESSE ANNULE LE DÉFICIT, ET RIEN D'AUTRE ──────────
+    //
+    // ⚠️ LU DEPUIS LES CONTRAINTES DÉJÀ CHARGÉES, jamais par une seconde
+    // requête — même règle que `declaredRegime` 1 200 lignes plus haut: deux
+    // lectures de la même table divergent, et c'est celle qu'on regarde le
+    // moins qui garde l'ancien comportement.
+    //
+    // ⛔ IL NE COERCE QUE `fat_loss`. Un `muscle_gain` reste entier: ce garde
+    // retire des déficits, il n'en crée pas à l'envers en rabattant un surplus.
+    const conditionPopulation = conditionGatePopulationOf(
+      (constraints ?? []).map((c) => c.conditionRef),
+    );
+    const gatedGoal = goalUnderConditionGate(goalToken, conditionPopulation);
+    console.log(JSON.stringify({
+      tag: "keel.meal.condition_gate",
+      user_id: userId,
+      population: conditionPopulation,
+      goal: goalToken,
+      // Ce que l'enveloppe recevra réellement. Sans ce second champ, un lot
+      // désarmé ressemblerait trait pour trait à un lot qui marche.
+      served_goal: gatedGoal.goal,
+      cancelled: gatedGoal.cancelled,
+    }));
     // FAIL-CLOSED: une lecture du plancher en panne a déjà rendu
     // `restrictionFlag = true` en amont (FF-030 R6), et `studentBody` absent
     // dégrade de toute façon par la MÊME branche de `envelopeFor`.
@@ -2078,12 +2306,26 @@ Deno.serve(async (req) => {
       }),
     }));
     const envelope = envelopeFor(
-      goalToken,
+      gatedGoal.goal,
       studentBody,
       studentBody?.ageBand ?? null,
       studentBody?.restrictionFlag ?? true,
       steering,
       studentActivityLevel,
+      // ── ⚠️ LES DEUX AXES NE SONT PAS COLLECTÉS SUR CETTE LANE ────────────
+      // Le lot du 2026-08-20 les pose sur la FICHE d'une bouche de foyer
+      // (`household_member_bodies`); l'entonnoir solo n'a que le cran mélangé
+      // de `profiles.activity_level`. `asked: false` dit la vérité — la
+      // question n'a pas été posée ici —, et `activityFactorOf` retombe alors
+      // sur le cran, c'est-à-dire sur le nombre EXACT d'avant ce lot. On ne
+      // dérive pas une journée et un sport depuis `trains_some`: l'information
+      // n'a jamais été saisie.
+      { day: null, sport: null, asked: false },
+      // ── ⑤ L'APPÉTIT N'EST PAS COLLECTÉ SUR CETTE LANE NON PLUS ──────────
+      // Il vit sur la FICHE d'une bouche de foyer, à côté du cran d'activité.
+      // `null` = x1,00, un neutre VRAI — donc exactement le nombre d'avant ce
+      // lot. La limite est nommée ici plutôt que comblée par une invention.
+      null,
       // ── `portion.adjust` · BRANCHÉ (lot 1G) ──────────────────────────────
       // ⛔ L'AUDIENCE N'EST PAS CALCULÉE ICI, et elle ne l'est nulle part dans
       // ce fichier: `winningPortionAdjust` appelle `subjectsForPortionAdjust`
@@ -2184,6 +2426,97 @@ Deno.serve(async (req) => {
       return { verdict, coverage, resolution };
     };
 
+    // ══════════════════════════════════════════════════════════════════════
+    // LOT 18 · L'INGRÉDIENT INCONNU NE CONDAMNE PLUS LA JOURNÉE
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ── OÙ C'EST POSÉ, ET POURQUOI ICI ────────────────────────────────────
+    // AVANT `measure`, donc avant le verdict, la couverture et la boucle de
+    // correction. Un terme rempli ici est un terme que TOUTE la chaîne aval lit
+    // comme un aliment ordinaire — c'est le même geste que `augmentedIndexFor`
+    // vingt lignes plus haut pour les apports déclarés, et il n'oblige aucun
+    // appelant à savoir que ce lot existe.
+    //
+    // ⚠️ CE QUE ÇA CHANGE POUR LE VERDICT, DIT ICI PLUTÔT QUE DÉCOUVERT: la
+    // porte des 80 % de FF-039 voit désormais des lignes remplies par un
+    // modèle. C'est l'objet du lot — un plan ne doit plus s'abstenir en entier
+    // pour un mot — et la contrepartie est que `composition_energy_sources` dit,
+    // plan par plan, quelle PART du chiffre vient d'où. Un verdict rendu à 60 %
+    // sur des valeurs de modèle est lisible; il ne l'était pas quand la seule
+    // alternative était l'abstention muette.
+    //
+    // ⛔ IL NE PEUT PAS FAIRE TOMBER LE PLAN. `repairPlanComposition` n'a
+    // aucun chemin qui lève: appel en erreur, timeout, sortie illisible et sas
+    // en panne rendent tous une valeur, jamais une exception. Le `try` que
+    // `fillPlanComposition` pose autour est une TROISIÈME ceinture, pas la
+    // première — et s'il attrape quelque chose un jour, c'est que la promesse
+    // du module a été cassée en amont.
+    //
+    // ── ⛔ V0-B-bis · « PAS MESURÉ » N'EST PAS « MESURÉ À ZÉRO » ───────────
+    // Cette variable valait `{ unknowns: 0, shares: {}, counts: {} }` au départ,
+    // et DEUX chemins la laissaient telle quelle: `composition` absent, et le
+    // `catch`. Les colonnes du plan recevaient donc `0` et `{}` — « mesuré,
+    // aucun inconnu » — sur un plan que le sas n'a jamais regardé. C'est
+    // exactement le mensonge que `V0-B` a effacé de 180 lignes le 2026-08-21,
+    // et le premier run réel l'aurait réécrit le lendemain. L'issue est
+    // désormais NOMMÉE, l'absence de mesure est `null`, et l'échec est COMPTÉ.
+    const filledComposition = await fillPlanComposition({
+      baseIndex: composition,
+      attempt: (baseIndex) =>
+        repairPlanComposition({
+          db: admin,
+          baseIndex,
+          // LA WORKLIST: plats ET préparations, non pliés, avec le groupe que
+          // le modèle a pu déclarer sur la ligne (`DishIngredient.group`).
+          inputs: [
+            ...meal.dishes.flatMap((d) => d.ingredients),
+            ...meal.preparations.flatMap((p) => p.ingredients),
+          ].map((i) => ({
+            term: i.term,
+            amount: i.amount,
+            unit: i.unit,
+            state: i.state,
+            group: i.group,
+          })),
+          // LES PARTS: la MÊME assiette que le verdict, préparations pliées et
+          // au prorata. Une préparation faite pour quatre dîners compterait
+          // quatre fois autrement.
+          energyInputs: verdictDishesOf(meal).flatMap((d) => d.ingredients),
+          meta: {
+            source: `${FN_NAME}.composition_fill`,
+            requestId,
+            userId,
+          },
+        }),
+      // ⛔ LE `catch` CESSE D'ÊTRE MUET. Un `console.warn` ne se compte pas: un
+      // remplissage qui lève en boucle ressemblait à un remplissage qui marche.
+      // Ligne structurée, `console.error`, motif nommé — c'est ce qu'on compte.
+      onMiss: (reason, error) => {
+        console.error(JSON.stringify({
+          tag: "keel.meal.composition_fill_missed",
+          user_id: userId,
+          reason,
+          // ⛔ `readableErrorMessage` ET PAS `String(error)`: une
+          // `PostgrestError` est un objet nu, et le raccourci rendait
+          // « [object Object] ». Un compteur d'échec qui ne dit pas DE QUOI
+          // n'est qu'un compteur de silence. (Cicatrice C5 ⑥, déjà gardée.)
+          error: readableErrorMessage(error),
+        }));
+      },
+    });
+    composition = filledComposition.index;
+    const compositionFill = filledComposition.outcome;
+    if (compositionFill.measured) {
+      console.log(JSON.stringify({
+        tag: "keel.meal.composition_fill",
+        user_id: userId,
+        measured: true,
+        unknowns: compositionFill.unknowns,
+        ...compositionFill.counts,
+        shares: compositionFill.shares,
+      }));
+    }
+
     let measured = measure(meal);
     let correctionTokens: string[] = [];
     let correctionRetried = false;
@@ -2234,6 +2567,8 @@ Deno.serve(async (req) => {
               requestId,
               userId,
               model: keelGenerationModel(),
+            httpTimeoutMs: PLAN_HTTP_TIMEOUT_MS,
+            reasoningEffort: PLAN_REASONING_EFFORT,
             },
           );
           if (typeof retryResult === "string") {
@@ -2328,29 +2663,68 @@ Deno.serve(async (req) => {
     // refus poli ci-dessus.
     if (declaredRegime) {
       const excludedForms = excludedSurfaceFormsFor(declaredRegime);
-      const regimeTerms = excludedForms.map((form) => ({
-        ruleId: `diet:${declaredRegime}`,
-        token: form,
-      }));
       // LE PLAT ENTIER, ingrédients COMPRIS. Le titre seul laisserait passer
       // « risotto crémeux » dont la liste porte du parmesan et du bouillon de
       // volaille — c'est-à-dire le cas que la consigne nomme en toutes lettres.
+      //
+      // ⚠️ ── LE HAYSTACK CONCATÉNÉ EST PARTI, ET C'ÉTAIT LE DÉFAUT ─────────
+      // Ce bloc collait titre + `why` + ingrédients en UNE chaîne et lançait
+      // `findForbiddenMatches` dessus. Le moteur est juste; les aiguilles
+      // aussi. Ce qui manquait était le DÉSAMORÇAGE des analogues végétaux —
+      // `isPlantAnalogue`, écrit à la main et fermé depuis le run réel du
+      // 2026-08-11, et qui n'avait AUCUN lecteur en production. Résultat
+      // mesuré par 2V chez une végane: `yoghurt` dans « Soy yoghurt »,
+      // `milk` dans « oat milk » et « coconut milk », `butter` dans « peanut
+      // butter » — le garde-manger végane courant compté en brèches.
+      //
+      // `scanDietaryRegime` porte les deux moitiés et distingue la PROSE (où
+      // l'on ne retire que la morsure couverte par un analogue) des TERMES
+      // (un ingrédient, où l'analogue vaut pour la chaîne entière). Le
+      // découpage remplace la concaténation: recoller les champs faisait
+      // aussi de « ... · vegan sausage · ... » une seule prose.
+      //
+      // ⛔ ── ET DEPUIS LE 2026-08-19, L'INGRÉDIENT ARRIVE AVEC SON GROUPE ───
+      // La classe résiduelle sur laquelle ce compteur restait faux avait un
+      // nom: les HOMONYMES (« butter beans » compté sur `butter`) et les
+      // MARQUEURS VÉGÉTAUX (« Vegan sausage » compté sur `sausage`). La
+      // correction honnête n'est pas un appariement plus malin — ce serait
+      // « laitue ≠ lait », douze faux positifs sur douze. C'est le modèle qui
+      // DÉCLARE le groupe, validé contre les trente `FOOD_GROUP_REFS` par le
+      // parseur. Un plan sans groupe déclaré passe `group: null` partout et
+      // rend le compte d'avant ce lot, à l'unité près.
       const breaches: string[] = [];
+      let silenced = 0;
+      const groupTally = { excluded: 0, plantOnly: 0, undecided: 0 };
       for (const dish of meal.dishes) {
-        const haystack = [
-          dish.title,
-          dish.why,
-          ...(dish.ingredients ?? []).map((i) =>
-            typeof i === "string" ? i : String((i as { term?: string })?.term ?? "")
+        const scan = scanDietaryRegime(declaredRegime, {
+          prose: [dish.title, dish.why].filter((s) =>
+            typeof s === "string" && s.trim() !== ""
           ),
-        ].filter((s) => typeof s === "string" && s.trim() !== "").join(" · ");
-        for (const hit of findForbiddenMatches(haystack, regimeTerms)) {
+          items: (dish.ingredients ?? [])
+            .map((i) =>
+              typeof i === "string"
+                ? { term: i, group: null }
+                : {
+                  term: String((i as { term?: string })?.term ?? ""),
+                  group: (i as { group?: FoodGroupRef | null })?.group ?? null,
+                }
+            )
+            .filter((i) => i.term.trim() !== ""),
+        });
+        for (const hit of scan.breaches) {
           breaches.push(`${dish.title}: ${hit.matchedText}`);
         }
+        silenced += scan.silencedByPlantAnalogue.length;
+        groupTally.excluded += scan.group.excluded;
+        groupTally.plantOnly += scan.group.plantOnly;
+        groupTally.undecided += scan.group.undecided;
       }
-      // TROIS NOMBRES, pas un booléen: un lot désarmé et un lot qui marche
-      // rendent le même `false`. `dishes` dit que la garde a eu de la matière,
-      // `forms` qu'elle avait des aiguilles, `breaches` ce qu'elle a trouvé.
+      // QUATRE NOMBRES, pas trois — et le quatrième est celui de ce lot.
+      // `dishes` dit que la garde a eu de la matière, `forms` qu'elle avait
+      // des aiguilles, `breaches` ce qu'elle retient. `analogues_silenced` dit
+      // ce que le désamorçage a RETIRÉ: sans lui, une garde qui blanchirait
+      // tout demain afficherait `breaches: 0`, c'est-à-dire l'image d'un
+      // régime parfaitement tenu.
       console.log(JSON.stringify({
         tag: "keel.meal.dietary_regime",
         user_id: userId,
@@ -2358,11 +2732,47 @@ Deno.serve(async (req) => {
         dishes: meal.dishes.length,
         forms: excludedForms.length,
         breaches: breaches.length,
+        analogues_silenced: silenced,
+        // ── LES TROIS NOMBRES DU CHAMP DÉCLARÉ ────────────────────────────
+        // `undecided` est celui qu'on lit EN PREMIER: tant qu'il reste haut,
+        // le modèle n'écrit pas le champ, et les deux autres ne veulent rien
+        // dire. Sans lui, un lot désarmé afficherait exactement ce qu'affiche
+        // un lot qui marche — zéro.
+        group_excluded: groupTally.excluded,
+        group_plant_only: groupTally.plantOnly,
+        group_undecided: groupTally.undecided,
       }));
       for (const breach of breaches) {
         issues.push(`dietary_regime_breach: ${breach}`);
       }
     }
+
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ LOT `L0-a` — LA CONSERVATION, EN CINQ NOMBRES
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ TROIS POPULATIONS POUR LA FENÊTRE DU CUIT, ET C'EST LE POINT DU LOT.
+    // Sans `within`, on ne distingue pas « la fenêtre a tourné et rien n'a
+    // mordu » de « la fenêtre n'a pas tourné »: les deux rendent
+    // `violations: 0`, et le second est un lot désarmé qui ressemble à un lot
+    // qui marche. Seuils: `violations` 0 sur un plan sain, `within` non nul,
+    // `not_evaluated` 0.
+    //
+    // ⚠️ DEUX DE PLUS POUR LA FENÊTRE CRUE, et pour la même raison: une liste
+    // de courses dont aucun article n'a de groupe rend exactement la même
+    // chose qu'une liste parfaitement routée. `unknown_group` est ce qui
+    // sépare les deux.
+    //
+    // ⚠️ Il part AVANT le premier `return`, comme la ceinture de régime: un
+    // plan vidé par le verrou de sortie doit quand même dire ce que la fenêtre
+    // a refusé.
+    console.log(JSON.stringify({
+      tag: "keel.meal.fridge_window",
+      user_id: userId,
+      dishes: meal.dishes.length,
+      ...meal.fridge_window,
+      ...rawWindowCounts(meal.shopping_list),
+    }));
 
     if (meal.dishes.length === 0) {
       // Rien n'est écrit. Même arbitrage que le plan vide: un brouillon sans
@@ -2549,11 +2959,47 @@ Deno.serve(async (req) => {
     //
     // ⚠️ UNE SEULE EXPRESSION POUR LES DEUX CHEMINS, étalée par `...`: deux
     // objets écrits séparément divergeraient au premier champ ajouté.
+    // ⛔ `box_uses` A DISPARU DE CETTE TRACE, ET C'EST LE LOT DU 2026-08-19. Il
+    // comptait les reprises qui CITAIENT une boîte (`uses[].box_id`); plus rien
+    // ne cite rien depuis que le repas porte la sienne. Ce qu'il mesurait — « la
+    // boîte atteint-elle un repas ? » — est devenu `boxes.with_box /
+    // boxes.meals`. Sur CETTE lane les deux valent zéro: aucune boîte n'y est
+    // demandée, et c'est ce que la trace doit continuer de dire.
     const boxTrace = {
       boxes: meal.box_counts,
-      box_uses: meal.box_use_counts,
       unquantified_dish_ingredients: meal.unquantified_dish_ingredients,
     } as const;
+
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ LOT `L17-0` — LE GROUPE DÉCLARÉ, ET CE QUI EN ATTEINT LA BASE
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ DEUX POPULATIONS. `declared` dit ce que le MODÈLE a écrit,
+    // `persisted` ce que la LIGNE porte. Jusqu'au 2026-08-22,
+    // `ingredientPayload()` recopiait sept clés sans `group`: 242 groupes
+    // déclarés sur les trois plans générés sous v16+, **zéro en base**. Un
+    // modèle qui cesserait de déclarer et une écriture réparée rendent le même
+    // zéro final — il faut les deux nombres pour les distinguer.
+    //
+    // ⚠️ LES DEUX CHARGES SONT HISSÉES ICI, et les trois chemins (aperçu,
+    // ligne écrite, réponse) lisent les MÊMES tableaux. Le compteur décrit
+    // alors exactement ce qui part en base, et pas un second appel qui lui
+    // ressemble.
+    const dishesWritten = mealDishesPayload(meal);
+    const preparationsWritten = mealPreparationsPayload(meal);
+    const foodGroups = foodGroupWriteCounts(meal.regime_belt, {
+      dishes: dishesWritten,
+      preparations: preparationsWritten,
+    });
+    // ⛔ JOURNALISÉ EN PLUS DE `generated_from`: celui-ci n'existe que sur une
+    // ligne ÉCRITE, et l'écart de 100 % n'a été vu que par une requête SQL sur
+    // un plan déjà persisté — deux jours trop tard. Cinq nombres, aucun terme.
+    console.log(JSON.stringify({
+      tag: "keel.meal.food_groups",
+      user_id: userId,
+      intent,
+      ...foodGroups,
+    }));
 
     if (isDraft) {
       return jsonResponse(req, {
@@ -2565,6 +3011,13 @@ Deno.serve(async (req) => {
         // l'autre n'est lisible par aucune requête qui regarde toute la
         // population. Voir le commentaire de l'archive, plus bas.
         names: meal.name_counts,
+        // ⟳ LOT `L17-0` — LES DEUX POPULATIONS DU GROUPE DÉCLARÉ, à la racine
+        // comme `names`, et pour la même raison: `FOOD_GROUP_DECLARATION_BLOCK`
+        // est une consigne du TRONC, donc son compteur se range au même endroit
+        // sur les deux lanes — sinon aucune requête ne lit toute la population.
+        // ⛔ RENDU SUR L'APERÇU par la MÊME expression que sur la ligne écrite:
+        // `generated_from` n'existe que sur un plan écrit.
+        food_groups: foodGroups,
         ...boxTrace,
         // `null` ET PAS UN IDENTIFIANT FABRIQUÉ: l'écran doit pouvoir
         // distinguer un aperçu d'un plan, et un id inventé serait la première
@@ -2574,8 +3027,8 @@ Deno.serve(async (req) => {
         suggested_window: suggestedWindow,
         rationale: { lines: rationaleLines, refusal: rationaleRefusal },
         request_report: { lines: reportLines, refusal: reportRefusal },
-        dishes: mealDishesPayload(meal),
-        preparations: mealPreparationsPayload(meal),
+        dishes: dishesWritten,
+        preparations: preparationsWritten,
         cooking_sessions: mealSessionsPayload(meal),
         shopping_list: mealShoppingPayload(meal),
         fixed_intakes: fixedIntakes.map((i) => ({
@@ -2632,8 +3085,8 @@ Deno.serve(async (req) => {
           context,
           preferences,
           pantry,
-          dishes: mealDishesPayload(meal),
-          preparations: mealPreparationsPayload(meal),
+          dishes: dishesWritten,
+          preparations: preparationsWritten,
           cooking_sessions: mealSessionsPayload(meal),
           shopping_list: mealShoppingPayload(meal),
           // LA MÊME EXPRESSION QUE CELLE QUI A ÉCRIT LE PROMPT. Elle valait
@@ -2641,6 +3094,23 @@ Deno.serve(async (req) => {
           // sur une AUTRE colonne, qui écrivait « en » d'un texte français —
           // et un tag de 2 lettres là où R2 demande du BCP-47.
           content_locale: built.contentLocale,
+          // ── LOT 18 · LES QUATRE COMPTEURS, SUR LA LIGNE DU PLAN ─────────
+          // ⛔ PAS DANS `generated_from`. Le voisin `box_sizing` de la lane
+          // foyer écrit noir sur blanc que ce champ ne sort QUE hors `draft`,
+          // et que toute vérification en situation réelle se fait en `draft`.
+          // Deux colonnes dédiées sont écrites sur CHAQUE plan persisté.
+          //
+          // ④ `composition_unknowns` est le SEUL chiffre qui dise si le lot
+          // réussit: il doit BAISSER semaine après semaine. La vue
+          // `composition_fill_weekly` est là pour qu'on le regarde.
+          //
+          // ⛔ V0-B-bis — LES DEUX CLÉS PEUVENT VALOIR `null`, et c'est le
+          // point: `null` = « personne n'a mesuré », qui n'est PAS zéro. La
+          // RPC `write_student_meal_plan` laisse passer l'absence depuis la
+          // migration 20260821231500 — avant elle, un `null` envoyé d'ici
+          // ressortait en `0` / `{}` côté base, et le correctif aurait été
+          // invisible.
+          ...compositionFillColumns(compositionFill),
           generated_from: {
             coach_id: doctrine.coachId,
             doctrine_version: doctrine.doctrine?.version ?? null,
@@ -2788,6 +3258,12 @@ Deno.serve(async (req) => {
             // ÉCRIT MÊME À ZÉRO, comme `same_day` juste au-dessus: une clé
             // absente ne se distingue pas d'un lot débranché.
             names: meal.name_counts,
+            // ⟳ LOT `L17-0` — LES DEUX POPULATIONS DU GROUPE DÉCLARÉ. Les
+            // trois premiers nombres disent si le modèle obéit, `persisted` dit
+            // ce que la ligne porte VRAIMENT. L'écart entre `valid` et
+            // `persisted` valait 100 % avant ce lot — 242 déclarés, 0 en base —
+            // et rien ne le rendait visible.
+            food_groups: foodGroups,
             // ── LOT 4 · LES GRAMMES, COMPTÉS SUR CETTE LANE AUSSI ──────────
             // La MÊME expression que celle rendue sur l'aperçu, quinze lignes
             // plus haut: deux comptages divergeraient au premier champ ajouté,
@@ -2947,8 +3423,8 @@ Deno.serve(async (req) => {
       // Deux formes pour une donnée, c'est la divergence silencieuse habituelle:
       // aucune erreur, aucun log, juste un champ vide chez le lecteur. Une seule
       // forme désormais, celle de la base.
-      dishes: mealDishesPayload(meal),
-      preparations: mealPreparationsPayload(meal),
+      dishes: dishesWritten,
+      preparations: preparationsWritten,
       cooking_sessions: mealSessionsPayload(meal),
       shopping_list: mealShoppingPayload(meal),
       // ── FF-053 · CE QUI EXPLIQUE UNE CASE VIDE ────────────────────────────

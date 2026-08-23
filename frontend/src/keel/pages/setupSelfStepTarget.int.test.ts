@@ -86,8 +86,7 @@ function html(target: MouthFormDraft | null): string {
         todayLocalIso: TODAY,
       },
       onOpenPreferences: target === null ? null : () => {},
-      // deno-lint-ignore no-explicit-any
-    } as any),
+    } as unknown as Parameters<typeof SelfStep>[0]),
   );
 }
 
@@ -250,7 +249,7 @@ describe("et ce que l'étape 2 collecte, elle l'écrit", () => {
 describe("les allergies ont quitté la ligne, et la porte est visible", () => {
   it("le bouton des préférences est rendu", () => {
     const markup = html(KNOWN_BODY);
-    expect(markup).toContain(en["household.mouth.preferences_open"]);
+    expect(markup).toContain(en["household.mouth.preferences_open_you"]);
   });
 
   /**

@@ -23,6 +23,7 @@ function promptWith(args: { today?: string | null; country?: string | null }): s
   return buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true,
     budgetAmount: null,
     safetyConstraints: null,
+    safetyConstraintTable: null,
     body: null,
     focusAxis: null,
     dietBlock: "",

@@ -58,12 +58,15 @@ import {
   HOUSEHOLD_SUBJECT,
   parseRetainedItem,
   parseRetainedSubject,
+  type PortionDirection,
+  type PortionMagnitude,
   RECIPE_DIFFICULTIES,
   type RetainedItem,
   type RetainedKind,
   type RetainedSubject,
+  VARIETY_LEVELS,
 } from "./retained_item.ts";
-import { effectOf } from "./plan_feedback.ts";
+import { effectOf, VARIETY_AXIS_QUESTION } from "./plan_feedback.ts";
 import { isFrenchLocale } from "./locale.ts";
 
 // ===========================================================================
@@ -173,6 +176,27 @@ export interface PlanFeedbackContext {
   readonly cookingTimeMin: number | null;
   /** `practical_constraints.recipe_difficulty` AUJOURD'HUI, ou `null`. */
   readonly recipeDifficulty: string | null;
+  /**
+   * `practical_constraints.variety` AUJOURD'HUI, ou `null`.
+   *
+   * ⚠️ REQUIS, JAMAIS `?`. Un champ optionnel ici aurait désarmé la fermeture
+   * de la 4ᵉ question sans qu'aucun appelant ne remonte au compilateur: la
+   * réponse d'axe serait repartie en `noBaseline` pour tout le monde, et un
+   * lot débranché est indiscernable d'un lot qui marche. Cicatrice nommée du
+   * dépôt (« paramètre de garde optionnel = garde désarmée »).
+   *
+   * `null` est fréquent et c'est ATTENDU: `variety` n'est collectée par AUCUNE
+   * étape de l'entonnoir (`onboarding.ts`, entrée `variety`, `step: null`) —
+   * seule `CookingCapacityCard` l'écrit.
+   *
+   * ⚠️ ET DEPUIS LE 2026-08-19, `null` NE VAUT PLUS « rien ne bouge ». Une
+   * PLAINTE sans base déclare le haut de l'échelle; une réponse satisfaite
+   * n'écrit toujours rien. Le motif complet — et l'asymétrie des dégâts qui
+   * l'autorise ici et nulle part ailleurs — est écrit au bloc de la réponse
+   * d'axe. ⛔ Ça ne rend PAS ce champ optionnel: avec une base, on ne monte
+   * que d'UN cran, et un `?` ferait sauter tout le monde au plafond.
+   */
+  readonly varietyLevel: string | null;
 }
 
 // ===========================================================================
@@ -200,13 +224,42 @@ export interface PlanFeedbackRetainedRefusals {
   readonly notInPlan: number;
   /** Le même plat marqué dans les deux sens: les DEUX tombent. */
   readonly bothPolarities: number;
-  /** Rien à faire bouger: la valeur courante est inconnue. */
+  /**
+   * Rien à faire bouger: la valeur courante est inconnue.
+   *
+   * ⚠️ IL NE COMPTE PLUS LA VARIÉTÉ DEPUIS LE 2026-08-19 — seulement
+   * `cooking_time_min` et `recipe_difficulty`. Ces deux-là portent un DELTA
+   * (« allège de 15 minutes », « un cran plus simple »): sans valeur courante,
+   * il n'y a littéralement aucun résultat à écrire, et en supposer un
+   * écrirait un réglage que personne n'a choisi. La variété, elle, a reçu une
+   * décision produit — voir le bloc de la réponse d'axe.
+   */
   readonly noBaseline: number;
   /** Déjà au plus bas: on ne descend pas sous le plancher. */
   readonly atFloor: number;
+  /**
+   * Déjà au plus haut: on ne monte pas au-dessus du dernier cran.
+   *
+   * ⚠️ UN COMPTEUR À PART, ET PAS `atFloor`. Les deux disent « le vocabulaire
+   * est épuisé », mais dans des sens opposés, et les fondre rendrait
+   * indistinguables « on a voulu simplifier une recette déjà simple » et « on a
+   * voulu varier un plan déjà au maximum ». Le second est le seul des deux qui
+   * ait besoin d'une décision produit (faut-il alors autre chose que la
+   * variété ?), et un chiffre qu'on ne peut pas isoler ne demande jamais rien.
+   */
+  readonly atCeiling: number;
   /** « Pour qui » illisible — un REFUS, jamais un repli sur `household`. */
   readonly badSubject: number;
-  /** La réponse d'axe n'a pas de famille. Voir le bloc `axisNotRetained`. */
+  /**
+   * La réponse d'axe n'a pas de famille — **les DEUX axes non fermés, et eux
+   * seuls**.
+   *
+   * ⚠️ IL DOIT RESTER NON NUL. `enough_variety` est fermée (elle produit un
+   * `logistics.set{variety}`), `hunger_between_meals` et `could_finish` ne le
+   * sont pas, et le motif est écrit dans le bloc de la réponse d'axe. Un
+   * compteur tombé à zéro partout dirait « tout est fermé » — y compris les
+   * deux axes dont le rabattement retirerait de la nourriture.
+   */
   readonly axisNotRetained: number;
   /** Le socle a refusé l'item construit (jour, sujet, portée, `value`). */
   readonly malformed: number;
@@ -235,13 +288,29 @@ export interface PlanFeedbackRetained {
  * renommage. Une phrase qui porterait « Zoé » resterait fausse pour toujours.
  */
 const TEXTS = {
+  // ── QUATRE PHRASES POUR QUATRE RÉPONSES, ET PAS DEUX ────────────────────
+  // ⚠️ LE CRAN SE LIT DANS `text`, PAS SEULEMENT DANS `value`. `text` est la
+  // vérité affichée sur la carte « Ce que Sophia sait de toi », et la règle du
+  // bloc ci-dessus est « la phrase dit ce que la PERSONNE a répondu ». Rendre
+  // la même phrase pour « un peu trop » et « vraiment trop » ferait deux
+  // réponses différentes indistinguables à l'écran: la personne y lirait sa
+  // ligne, la trouverait juste, et ne saurait jamais que le cran fort qu'elle
+  // a coché est bien celui qui a été retenu.
   portion_down: {
-    en: "The portions in the plan were too much",
-    fr: "Les portions du plan étaient trop grosses",
+    en: "The portions in the plan were a bit too much",
+    fr: "Les portions du plan étaient un peu trop grosses",
+  },
+  portion_down_clear: {
+    en: "The portions in the plan were really too much",
+    fr: "Les portions du plan étaient vraiment trop grosses",
   },
   portion_up: {
-    en: "The portions in the plan were not enough",
-    fr: "Les portions du plan n'étaient pas assez copieuses",
+    en: "The portions in the plan were a bit short",
+    fr: "Les portions du plan étaient un peu justes",
+  },
+  portion_up_clear: {
+    en: "The portions in the plan were really not enough",
+    fr: "Les portions du plan n'étaient vraiment pas assez copieuses",
   },
   recipe_simpler: {
     en: "Simpler recipes",
@@ -250,6 +319,14 @@ const TEXTS = {
   cooking_time: {
     en: "Shorter cooking sessions",
     fr: "Des sessions de cuisine plus courtes",
+  },
+  // ⚠️ LA PHRASE DIT CE QUE LA PERSONNE A RÉPONDU, PAS LE RÉGLAGE QU'ON EN
+  // DÉDUIT. Elle a coché « pas assez de variété »; écrire « Varie autant que
+  // possible » (le libellé du cran `varied`) lui attribuerait une demande plus
+  // forte que la sienne, et `text` est la vérité affichée sur sa carte.
+  variety_more: {
+    en: "More variety across the plan",
+    fr: "Plus de variété dans le plan",
   },
 } as const;
 
@@ -272,7 +349,9 @@ function say(key: keyof typeof TEXTS, locale: string): string {
  *                       porte un `subject` demandé.
  *   `never_again`     → `food.exclude`
  *   `make_again`      → `food.prefer`
- *   `axis_question` + `axis_answer` → ⛔ RIEN. Voir `axisNotRetained`.
+ *   `axis_question` + `axis_answer` → `logistics.set` (`variety`) POUR LE SEUL
+ *                       axe `enough_variety`; ⛔ RIEN pour les deux autres.
+ *                       Voir le bloc de la réponse d'axe, plus bas.
  *   `dismissed_at`    → ⛔ RIEN, et c'est la bonne réponse: refuser de répondre
  *                       ne déclare aucun goût. Compté quand même, sinon un
  *                       refus est indiscernable d'une extraction débranchée.
@@ -295,6 +374,7 @@ export function retainedItemsFromPlanFeedback(
     bothPolarities: 0,
     noBaseline: 0,
     atFloor: 0,
+    atCeiling: 0,
     badSubject: 0,
     axisNotRetained: 0,
     malformed: 0,
@@ -319,6 +399,10 @@ export function retainedItemsFromPlanFeedback(
     portions: row.portions,
     neverAgain: row.neverAgain,
     makeAgain: row.makeAgain,
+    // ⚠️ LE JETON PART AVEC LA RÉPONSE, ET C'EST CE QUI ARME LA GARDE D'AXE.
+    // Sans lui, `effectOf` ne peut pas distinguer le `no` de la variété du `no`
+    // de la faim — et il le disait lui-même: « ambigu par construction ».
+    axisQuestion: row.axisQuestion,
     axisAnswer: row.axisAnswer,
   });
 
@@ -371,7 +455,8 @@ export function retainedItemsFromPlanFeedback(
   }
 
   // ── `portion.adjust` — LA FAMILLE QUE CE PRODUCTEUR EST SEUL À ÉCRIRE ────
-  if (effect.portionDirection === null) {
+  const adjust = effect.portionAdjust;
+  if (adjust === null) {
     // « Ce qu'il fallait », ou la question retirée par le plancher TCA. Rien à
     // retenir, et c'est une réponse: on la compte.
     counts.neutral += 1;
@@ -383,23 +468,41 @@ export function retainedItemsFromPlanFeedback(
       // — exactement ce que l'axe 3 de la nomenclature interdit.
       counts.badSubject += 1;
     } else {
+      // ═══════════════════════════════════════════════════════════════════
+      // LES DEUX CRANS ARRIVENT D'`effectOf`, ET RIEN N'EST DÉCIDÉ ICI.
+      // ═══════════════════════════════════════════════════════════════════
+      //
+      // ⚠️ CE BLOC CODAIT `magnitude: "slight"` EN DUR JUSQU'AU 2026-08-19, et
+      // ça bloquait le produit ENTIER: le questionnaire est le seul producteur
+      // de `portion.adjust` (matrice §5, ②), un nouvel ajustement REMPLACE le
+      // précédent (`winningPortionAdjust`: jamais de somme), donc quelqu'un
+      // dont les parts sont énormément trop grosses recevait −5 %, recochait,
+      // recevait ENCORE −5 %, et restait là pour toujours. Le cran `clear` du
+      // moteur (−10 %) n'était atteignable par AUCUN chemin du produit.
+      //
+      // ⛔ LA TRADUCTION VIT DANS `effectOf`, PAS ICI — c'est la règle du
+      // fichier (« il ne décide rien, il traduit »). La relire ici ferait une
+      // seconde table de jetons, et c'est celle qu'on regarde le moins qui
+      // garderait trois entrées le jour d'un sixième cran.
+      //
+      // ⚠️ LES DEUX VARIABLES TYPÉES SONT LE LIEN AVEC LE SOCLE, et elles ne
+      // sont pas décoratives: `plan_feedback.ts` est monté par le FRONT et ne
+      // peut pas importer `retained_item.ts` (deux runtimes — le front tient
+      // exprès sa propre copie). Son vocabulaire est donc une RECOPIE, et
+      // c'est cette assignation qui l'empêche de dériver: un cran renommé, ou
+      // un troisième cran ajouté d'un seul côté, ne compile plus.
+      const direction: PortionDirection = adjust.direction;
+      const magnitude: PortionMagnitude = adjust.magnitude;
       push(items, counts, {
         kind: "portion.adjust",
         subject,
         text: say(
-          effect.portionDirection === "down" ? "portion_down" : "portion_up",
+          direction === "down"
+            ? (magnitude === "clear" ? "portion_down_clear" : "portion_down")
+            : (magnitude === "clear" ? "portion_up_clear" : "portion_up"),
           ctx.locale,
         ),
-        // ⚠️ `slight`, TOUJOURS — et c'est un arbitrage, pas un défaut.
-        // La question fermée n'a QU'UN cran par sens (« trop » / « pas
-        // assez »): rendre `clear` demanderait une intensité que la personne
-        // n'a pas donnée. OPTION ÉCARTÉE: dériver `clear` de l'accord de deux
-        // questions (« trop » + « assiettes difficiles à finir »). Refusée
-        // parce que la satiété et la quantité ne sont pas le même axe, et
-        // qu'un accent plus fort se paie en nourriture retirée. `clear` reste
-        // donc produit par la carte (`written`), là où quelqu'un peut dire
-        // « vraiment trop » de sa main.
-        value: { direction: effect.portionDirection, magnitude: "slight" },
+        value: { direction, magnitude },
         at: ctx.at,
       });
     }
@@ -448,24 +551,131 @@ export function retainedItemsFromPlanFeedback(
     }
   }
 
-  // ── ⛔ LA RÉPONSE D'AXE NE PRODUIT RIEN, ET C'EST UN TROU NOMMÉ ──────────
-  // `effectOf` en tire un `emphasisHint` — une ligne d'accent pour la consigne
-  // suivante. Ce n'est PAS une famille de la liste fermée, et il n'y en a pas
-  // de neuvième: « une catégorie dont aucun générateur ne sait quoi faire ne se
-  // crée pas ».
+  // ═════════════════════════════════════════════════════════════════════════
+  // LA RÉPONSE D'AXE — UN AXE FERMÉ SUR TROIS, ET LES DEUX AUTRES SONT NOMMÉS
+  // ═════════════════════════════════════════════════════════════════════════
   //
-  // Les deux reroutages plausibles sont refusés, et il faut que ce soit écrit:
-  //   · « resté sur ta faim » → `portion.adjust` up: la satiété n'est pas la
-  //     quantité (volume, ancrage protéique), et `portions` pose DÉJÀ la
-  //     question directement — l'ajouter compterait deux fois la même réponse;
-  //   · « assiettes difficiles à finir » → `portion.adjust` down: même défaut,
-  //     dans l'autre sens, et celui-là RETIRE de la nourriture.
+  // ── CE QUI A CHANGÉ LE 2026-08-19 ────────────────────────────────────────
+  // Le lot 2A ne retenait RIEN de la 4ᵉ question et le comptait
+  // (`axisNotRetained`), en écrivant que le seul lecteur nommé — `emphasisHint`
+  // — n'avait aucun appelant. Décision humaine: `enough_variety` est fermée par
+  // un levier EXISTANT. Les deux autres restent ouvertes, et leur motif est
+  // ci-dessous, sous leur propre titre, parce qu'un trou nommé vaut mieux qu'un
+  // rabattement.
   //
-  // ⚠️ CONSÉQUENCE, ET ELLE EST DICIBLE: la 4e question reste, à ce jour, une
-  // question dont le lecteur (`emphasisHint`) n'a AUCUN appelant. C'est
-  // exactement ce que `plan_feedback.ts` interdit en tête de fichier. Ce lot ne
-  // la referme pas — il la compte, pour qu'elle se voie.
-  if (String(row.axisAnswer ?? "").trim() !== "") counts.axisNotRetained += 1;
+  // ── ⛔ LA GARDE EST LE JETON, PAS LA RÉPONSE ─────────────────────────────
+  // `no` est une option des TROIS axes et `sometimes` de deux. Router sur la
+  // réponse seule ferait entrer une réponse à `hunger_between_meals` — la
+  // question que `RESTRICTED_OUT` retire sous plancher TCA — dans le magasin
+  // par la porte de la variété. La discrimination vit dans `effectOf`
+  // (`varietyPressureFor` lit le jeton en premier); ici on ne fait que compter
+  // ce qui n'a pas de famille.
+  //
+  // ── ⛔ `hunger_between_meals` (`fat_loss`): AUCUN LECTEUR HONNÊTE TROUVÉ ──
+  //   · → `portion.adjust` up: REFUSÉ. `portions` pose déjà la question
+  //     directement, et l'ajouter compterait deux fois la même réponse.
+  //   · → `rhythm.set{snack_*, present:true}`: REFUSÉ. « Sur ta faim entre les
+  //     repas » ne nomme AUCUN des six moments. Choisir `snack_am` plutôt que
+  //     `snack_pm` serait inventer la réponse à une question qu'on n'a pas
+  //     posée — et un moment ajouté n'est pas cosmétique: il change le nombre
+  //     de plats demandés au modèle ET acceptés par le parseur.
+  //   · → `food.prefer` / `method.prefer` « plus de volume, une ancre
+  //     protéique »: REFUSÉ. `text` est la vérité affichée: la carte dirait
+  //     « tu l'as coché au bilan » sous une phrase que la personne n'a jamais
+  //     écrite. Elle a dit qu'elle avait faim, pas qu'elle voulait des légumes.
+  //   Reste `emphasisHint`, qui n'a toujours aucun appelant. **TROU NOMMÉ.**
+  //
+  // ── ⛔ `could_finish` (`muscle_gain`): AUCUN LECTEUR HONNÊTE TROUVÉ ───────
+  //   · → `portion.adjust` down: REFUSÉ, et c'est le refus le plus important du
+  //     fichier — il RETIRERAIT DE LA NOURRITURE sur la foi d'une question qui
+  //     ne parlait pas de quantité, à la seule dynamique dont l'obstacle est de
+  //     manger assez.
+  //   · → une densité énergétique: REFUSÉ. Il n'existe aucun champ de densité
+  //     dans `LOGISTICS_FIELDS` ni ailleurs dans `practical_constraints`; en
+  //     créer un serait un neuvième `kind` déguisé, et la liste est fermée.
+  //   **TROU NOMMÉ.**
+  const axisAnswered = String(row.axisAnswer ?? "").trim() !== "";
+  const axisIsVariety = String(row.axisQuestion ?? "").trim() ===
+    VARIETY_AXIS_QUESTION;
+  if (axisAnswered && !axisIsVariety) {
+    counts.axisNotRetained += 1;
+  } else if (axisAnswered && effect.varietyPressure === null) {
+    // « Oui, assez de variété » — ou un jeton de réponse forgé. Rien à
+    // retenir, et c'est une réponse: on la compte comme « ce qu'il fallait ».
+    counts.neutral += 1;
+  } else if (effect.varietyPressure !== null) {
+    // ── UN CRAN PLUS HAUT, DEPUIS UNE VALEUR CONNUE ───────────────────────
+    // MÊME RÈGLE QUE LES MINUTES ET LA DIFFICULTÉ, quelques lignes plus haut,
+    // et pour la même raison: `logistics.set` porte une valeur ABSOLUE, pas un
+    // delta. `VARIETY_LEVELS` est ordonnée du plus répétitif au plus varié.
+    //
+    // ═══════════════════════════════════════════════════════════════════════
+    // ⚠️ SANS BASE, UNE **PLAINTE** DÉCLARE — ET ELLE DÉCLARE LE HAUT.
+    // ═══════════════════════════════════════════════════════════════════════
+    //
+    // Décision produit du 2026-08-19. Le défaut mesuré: `practical_constraints
+    // .variety` n'est écrit que par `CookingCapacityCard`, et AUCUNE étape de
+    // l'entonnoir ne le collecte (`onboarding.ts`, entrée `variety`,
+    // `step: null`). Un élève qui n'a jamais ouvert cette carte répondait
+    // « pas assez de variété » et obtenait ZÉRO item — une question posée,
+    // une réponse donnée, et rien.
+    //
+    // ── POURQUOI LE HAUT DE L'ÉCHELLE, ET PAS LE CRAN DU MILIEU ────────────
+    //  · Sans base, la personne ne CORRIGE pas, elle DÉCLARE pour la première
+    //    fois — et une déclaration n'a pas besoin d'une référence, elle a
+    //    besoin d'une valeur.
+    //  · « Pas assez » n'a qu'une lecture non ambiguë: PLUS QUE CE QU'ELLE A
+    //    EU. Écrire `some` affirmerait une position moyenne qu'elle n'a pas
+    //    exprimée — c'est-à-dire une invention, dans l'autre sens.
+    //  · L'ASYMÉTRIE DES DÉGÂTS AUTORISE CE RACCOURCI, et elle seule: la
+    //    variété NE RETIRE PAS DE NOURRITURE. Elle ne touche ni les calories,
+    //    ni un plancher, ni une enveloppe. Se tromper vers le haut coûte un
+    //    peu de diversité en cuisine. C'est ce qui rend acceptable ici un saut
+    //    que `portion.adjust` n'autoriserait JAMAIS.
+    //
+    // ── ⛔ ET CE QUI RESTE REFUSÉ, MOT POUR MOT ────────────────────────────
+    // Semer la base depuis le défaut d'AFFICHAGE de `CookingCapacityCard`
+    // (`some`) reste REFUSÉ: ce serait écrire un réglage que personne n'a
+    // choisi, sur la clé même que le prompt sert. Le lot précédent avait
+    // raison, et cette décision ne le renverse pas — elle n'écrit QUE sur une
+    // plainte, et ce qu'elle écrit est ce que la plainte dit.
+    //
+    // ⚠️ UNE RÉPONSE SATISFAITE SANS BASE N'ÉCRIT RIEN, et c'est la moitié qui
+    // fait tenir tout le reste. « Oui, assez de variété » n'atteint même pas
+    // ce bloc (`varietyPressure` est `null`, la branche `neutral` l'a pris):
+    // écrire un réglage à partir d'un « ça va » serait exactement le problème
+    // qu'on refuse.
+    //
+    // ⚠️ ET LE FILTRE RESTE LE JETON DE LA QUESTION, JAMAIS LA RÉPONSE. `no`
+    // est une option des TROIS axes; router sur la réponse laisserait une
+    // réponse à « sur ta faim » — que le plancher TCA retire — entrer par la
+    // porte de la variété. La garde vit dans `varietyPressureFor` (le jeton
+    // est lu EN PREMIER) et dans `axisIsVariety` ci-dessus; ce bloc ne
+    // s'atteint qu'après les deux.
+    //
+    // ── AVEC UNE BASE, RIEN NE CHANGE ─────────────────────────────────────
+    // Un cran vers le haut, jamais vers le bas, plafonné à `varied`
+    // (`atCeiling`). `VARIETY_LEVELS` est ordonnée du plus répétitif au plus
+    // varié, et `logistics.set` porte une valeur ABSOLUE, pas un delta.
+    const at = (VARIETY_LEVELS as readonly string[]).indexOf(
+      String(ctx.varietyLevel ?? "").trim().toLowerCase(),
+    );
+    if (at >= 0 && at >= VARIETY_LEVELS.length - 1) counts.atCeiling += 1;
+    else {
+      // `at < 0` — aucune base lisible: la plainte DÉCLARE le haut de
+      // l'échelle. Sinon: un seul cran au-dessus de ce qu'on sait d'elle.
+      const next = at < 0
+        ? VARIETY_LEVELS[VARIETY_LEVELS.length - 1]
+        : VARIETY_LEVELS[at + 1];
+      push(items, counts, {
+        kind: "logistics.set",
+        subject: HOUSEHOLD_SUBJECT,
+        text: say("variety_more", ctx.locale),
+        value: { field: "variety", value: next },
+        at: ctx.at,
+      });
+    }
+  }
 
   return { items, refused: withTotal(counts) };
 }

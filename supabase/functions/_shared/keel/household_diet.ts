@@ -327,6 +327,38 @@ export function householdDietBlock(args: {
       "(their line above says so): their OWN dish is not bound by the sentence",
       "above, and may use what the shared dish leaves out.",
     );
+    // ══ L'EXCEPTION À « NEVER NONE », NOMMÉE — ET ELLE EST LA CAUSE ═══════
+    //
+    // ⛔ MESURÉ CINQ PLANS SUR CINQ (2026-08-19): un enfant VÉGANE de 9 ans
+    // reçoit `Rich Smoky Beef Stew 207 g` dans la phrase lue à table. Le
+    // modèle n'a pas désobéi — IL A OBÉI. Le brief des boîtes lui ordonne, en
+    // toutes lettres, « That is 4 people to weigh out on EVERY preparation …
+    // Every name above is in exactly ONE box of each preparation -- never
+    // two, never none. » Dès que le barreau ② ouvre un plat DÉDIÉ (donc non
+    // borné par la ligne ci-dessus), cette consigne exige une boîte au nom du
+    // végane sur la casserole de bœuf. Deux ordres contradictoires dans un
+    // seul prompt, et c'est toujours celui qu'on ne relit pas qui gagne.
+    //
+    // ⚠️ TROIS LIGNES, ET SEULEMENT SOUS LA DIVERGENCE. La lane foyer frôle le
+    // mur de temps du worker: sans plat dédié, toute préparation suit la ligne
+    // stricte, il n'y a rien à excepter, et le prompt reste byte-identique à
+    // celui d'avant ce lot. Un test tient cette égalité.
+    //
+    // ⚠️ L'ÉCHAPPATOIRE EST NOMMÉE LITTÉRALEMENT (« never none »), parce que
+    // ce dépôt a mesuré qu'une consigne qui dit seulement « sois cohérent »
+    // se fait satisfaire par une paraphrase (run E1, découpage de classe
+    // réduit de 2,0:1 à 1,5:1 au lieu d'être abandonné).
+    //
+    // ⚠️ ET LA CEINTURE NE DÉPEND PAS DE CES LIGNES. Elles réduisent le
+    // travail du parseur; elles ne le remplacent pas. « Une consigne de prompt
+    // régresse en réel » est la phrase fondatrice du verrou voisin.
+    if (held.length > 0) {
+      lines.push(
+        `${held.join(", ")} take no box and no share of those own dishes: on a`,
+        "preparation that breaks the line above they are left out on purpose,",
+        'and the other names still get theirs -- the one exception to "never none".',
+      );
+    }
   }
   return lines.join("\n");
 }

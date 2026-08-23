@@ -716,6 +716,166 @@ export const parseActivityLevel = makeParser<ActivityLevel>(
   ACTIVITY_LEVELS,
 );
 
+// ---------------------------------------------------------------------------
+// L'ACTIVITÉ EN DEUX AXES — ce que les quatre crans ci-dessus ne savaient pas
+// dire (2026-08-20)
+// ---------------------------------------------------------------------------
+//
+// ── ⛔ LE DÉFAUT DES QUATRE CRANS, ET CE N'EST PAS LEUR LIBELLÉ ───────────
+// Les quatre sont factuels, aucun n'est flatteur. Le défaut est ailleurs, et
+// il est structurel: les DEUX PREMIERS décrivent une JOURNÉE (« assis toute la
+// journée », « debout une bonne partie du jour ») et les DEUX DERNIERS
+// décrivent un SPORT (« 2 à 3 fois par semaine », « 4 fois ou plus »). Ce sont
+// deux axes INDÉPENDANTS, et le formulaire n'en laissait cocher qu'un.
+//
+// Mesuré sur le foyer `5600347f` le 2026-08-20: Christèle est assise la
+// journée ET fait du sport deux à trois fois par semaine. Elle ne pouvait pas
+// dire les deux. Elle cochait `trains_some` et héritait de 1,80 — alors qu'une
+// journée assise plus deux ou trois séances vaut ~1,60. **239 kcal/jour
+// fabriqués par la forme de la question**, et ils traversaient tout le reste
+// de la chaîne avec l'autorité d'une mesure.
+//
+// ── LES MÊMES DEUX RÈGLES QUE LES QUATRE CRANS, ET POUR LES MÊMES RAISONS ─
+// ⚠️ DES CRANS, JAMAIS UN NOMBRE. On ne demande ni un PAL ni un nombre
+// d'heures: un nombre demandé est un nombre inventé, et l'inventé entre
+// ensuite dans un calcul avec l'autorité d'une mesure.
+//
+// ⚠️ L'ABSENCE RESTE UNE VALEUR, ET ELLE N'EST DANS AUCUNE DES DEUX LISTES.
+// `null` veut dire « personne n'a répondu », et il retombe sur le cran D'AVANT
+// de la fiche (`ACTIVITY_LEVELS`), nommé. Un jeton « je ne sais pas » ferait de
+// l'ignorance une réponse, et une réponse se met à peser dans les tables.
+//
+// ⛔ ET `none` DANS `SPORT_FREQUENCIES` N'EST PAS UNE ABSENCE: c'est
+// « je ne fais pas de sport », qui est une réponse, et qui pèse. La distinction
+// est portée par le TYPE (`SportFrequency | null`), pas par une convention.
+
+/**
+ * LE PREMIER AXE — CE QUE LA JOURNÉE FAIT FAIRE AU CORPS, sport exclu.
+ *
+ * ⚠️ `on_feet` PORTE LE MÊME NOM QUE LE CRAN DE `ACTIVITY_LEVELS`, ET C'EST
+ * VOULU: c'est la même phrase, et lui en donner une autre ferait croire à deux
+ * faits différents. Les deux listes ne fusionnent pas pour autant — l'une est
+ * un axe, l'autre est un mélange de deux axes, et elles vivent dans deux
+ * colonnes que deux CHECK séparent.
+ */
+export const DAY_ACTIVITY_LEVELS = [
+  /** Assis toute la journée, peu de marche. */
+  "seated",
+  /** Debout ou en mouvement une bonne partie du jour. */
+  "on_feet",
+  /** Métier physique: porter, marcher, monter, toute la journée. */
+  "physical_job",
+] as const;
+export type DayActivityLevel = (typeof DAY_ACTIVITY_LEVELS)[number];
+
+export const parseDayActivityLevel = makeParser<DayActivityLevel>(
+  "day_activity",
+  DAY_ACTIVITY_LEVELS,
+);
+
+/**
+ * LE SECOND AXE — COMBIEN DE SÉANCES PAR SEMAINE, journée exclue.
+ *
+ * ⚠️ QUATRE BANDES ET PAS UN COMPTE EXACT. « 3 à 4 » se reconnaît; « 3,5 » se
+ * calcule, et personne ne vit sa semaine en moyenne. La bande porte sa propre
+ * imprécision, et le facteur qui la lit prend son MILIEU (voir
+ * `SPORT_SESSIONS_PER_WEEK` dans `meal_envelope.ts`).
+ */
+export const SPORT_FREQUENCIES = [
+  /** Aucune séance. C'est une RÉPONSE, pas une absence de réponse. */
+  "none",
+  /** Une à deux séances par semaine. */
+  "1_2",
+  /** Trois à quatre séances par semaine. */
+  "3_4",
+  /** Cinq séances ou plus par semaine. */
+  "5_plus",
+] as const;
+export type SportFrequency = (typeof SPORT_FREQUENCIES)[number];
+
+export const parseSportFrequency = makeParser<SportFrequency>(
+  "sport_frequency",
+  SPORT_FREQUENCIES,
+);
+
+// ---------------------------------------------------------------------------
+// ⑤ L'APPÉTIT — TROIS CRANS, ET IL EST DESTINÉ À MOURIR (2026-08-20)
+// ---------------------------------------------------------------------------
+//
+// ⛔ ÉCRIT ICI PARCE QUE C'EST LA PREMIÈRE CHOSE À SAVOIR: **CE JETON EST
+// TRANSITOIRE.** Le lot ⑦ (la boucle de poids) le remplace. Si quelqu'un est
+// stable à 58 kg, alors ce qu'il mange EST sa maintenance — Mifflin rend une
+// ESTIMATION, sa stabilité est une MESURE, et la mesure gagne toujours. Ces
+// trois crans sont une valeur de DÉPART qu'on oublie, pas une vérité
+// permanente. Le jour où ⑦ tourne pour une bouche, l'appétit de cette
+// bouche-là ne doit plus rien corriger.
+//
+// ⚠️ ET IL NE MOURRA PAS POUR TOUT LE MONDE EN MÊME TEMPS. `student_body_measures`
+// est claveté sur `user_id`: une bouche SANS COMPTE n'a aucune série de pesées
+// — c'est le cas de Christèle, et c'est le cas nominal d'un foyer. Pour elles,
+// ⑤ reste la seule correction possible tant que le foyer n'a pas de moyen de
+// peser une bouche sans compte.
+//
+// ── D'OÙ VIENNENT LES ±10 %, ET CE N'EST PAS UN CURSEUR DE CONFORT ────────
+// C'est la variation inter-individuelle réelle autour d'une équation de
+// PRÉDICTION. Mifflin-St Jeor rend un besoin à ±10 % près pour une personne
+// prise au hasard; ces trois crans rendent cette incertitude-là RÉGLABLE par
+// la seule personne qui puisse la trancher — celle qui se connaît. Ce n'est
+// donc pas « manger plus si j'ai envie »: c'est « la formule me sous-estime ».
+//
+// ⛔ BORNÉE ET SYMÉTRIQUE, JAMAIS UNE ÉCHELLE OUVERTE. 0,90 / 1,00 / 1,10.
+// Un quatrième cran vers le haut, ou un curseur libre, ferait de l'incertitude
+// d'une formule un réglage d'appétit — et un réglage d'appétit qui descend est
+// exactement le mode d'échec d'un produit alimentaire.
+export const APPETITE_LEVELS = [
+  /** « La formule me surestime. » −10 %. */
+  "small",
+  /** Le neutre VRAI: ×1,00. C'est aussi ce que rend l'absence de réponse. */
+  "average",
+  /** « La formule me sous-estime. » +10 %. */
+  "large",
+] as const;
+export type AppetiteLevel = (typeof APPETITE_LEVELS)[number];
+
+export const parseAppetiteLevel = makeParser<AppetiteLevel>(
+  "appetite",
+  APPETITE_LEVELS,
+);
+
+// ---------------------------------------------------------------------------
+// LA STRUCTURE DU REPAS — ce qu'il y a dans l'assiette À CÔTÉ du plat composé
+// (2026-08-20)
+// ---------------------------------------------------------------------------
+//
+// ── ⛔ LE DÉFAUT ─────────────────────────────────────────────────────────
+// Le plan ne compose QUE le plat principal (mesuré: neuf plats sur neuf le
+// 2026-08-20, aucun dessert, aucun fromage, aucun pain). Le moteur faisait donc
+// porter au seul plat l'énergie du repas ENTIER, et
+// `COMPOSED_DISH_MEAL_SHARE = 0,42` a été posé pour l'en empêcher.
+//
+// C'est une MOYENNE FRANÇAISE, et elle se trompe dans les deux sens à la fois:
+//
+//     Christèle  plat 300 + pain 80 + fromage 120 + dessert 120 = 620 -> 48 %
+//     iku        plat 300 + pain 80                             = 380 -> 79 %
+//
+// Le moteur appliquait 42 % aux deux. Ces trois jetons sont ce qui remplace la
+// moyenne par un calcul, bouche par bouche.
+//
+// ⚠️ CE N'EST PAS UNE LISTE DE COURSES NI UNE PRESCRIPTION. C'est une clé de
+// répartition: elle ne dit à personne de prendre un dessert, elle lit ce que la
+// personne a dit qu'elle prend déjà. Les poids vivent dans
+// `MEAL_COMPONENT_KCAL` (`mouth_anchor.ts`), à côté de la constante qu'ils
+// remplacent.
+export const MEAL_COMPONENTS = [
+  /** Un dessert, ou un fruit, ou un yaourt — la fin du repas. */
+  "dessert",
+  /** Du fromage. */
+  "cheese",
+  /** Du pain. */
+  "bread",
+] as const;
+export type MealComponent = (typeof MEAL_COMPONENTS)[number];
+
 /**
  * Does an entry scoped to `goalScope` apply to a student whose goal is `goal`?
  *

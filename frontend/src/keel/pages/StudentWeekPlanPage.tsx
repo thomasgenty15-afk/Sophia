@@ -106,6 +106,10 @@ import type { GoalToken } from "../../../../supabase/functions/_shared/keel/toke
 import { formatDate } from "../i18n/format";
 import { plural } from "../i18n/plural";
 import { type MessageKey, t } from "../i18n/t";
+// ⚠️ `goalOptions` VIT DANS `lib/`, PAS ICI. Un fichier qui exporte des
+// composants ne peut rien exporter d'autre sans désarmer le rafraîchissement
+// à chaud (`react-refresh/only-export-components`).
+import { goalOptions } from "../lib/goalOptions";
 import { buildMeasuresToken } from "../../../../supabase/functions/_shared/keel/weekly_flow.ts";
 
 /**
@@ -209,47 +213,6 @@ type LoadState =
   | { kind: "ready" };
 
 
-/**
- * LES SIX DIRECTIONS, ET POURQUOI CHACUNE PORTE UNE PHRASE.
- *
- * Un mot seul ne se choisit pas. « Recomposition » est du jargon qu'un élève
- * n'a aucune raison de connaître, et « Performance » ressemble à un fourre-tout
- * où tombe quiconque s'entraîne — c'est très exactement là que la prise de
- * masse atterrissait avant d'avoir son propre jeton, alors que
- * `focusFor('performance')` parle de carburant de séance et jamais de surplus.
- *
- * Les trois premières descriptions sont écrites autour de LA MÊME CHOSE:
- * le sens de l'aiguille. C'est le seul critère qu'un élève peut appliquer à
- * lui-même sans se tromper (descendre / monter / ne pas bouger), et c'est
- * aussi, mot pour mot, ce que `directionIsWorking` mesure ensuite dans
- * `student_body.ts`. La phrase qui aide à choisir et la phrase qui sert de
- * repère sont donc la même — si l'une change, l'autre est fausse.
- *
- * L'ORDRE N'EST PAS ALPHABÉTIQUE ni celui de `GOAL_TOKENS`: il va du corps
- * (descendre, monter, changer de forme) vers le reste (s'entraîner, aller
- * mieux, tenir). Un élève trouve sa ligne dans les trois premières ou n'y est
- * pas du tout.
- */
-// ⚠️ LES JETONS RESTENT ANGLAIS ET SNAKE_CASE (R1): ils sont écrits dans le
-// CHECK de `student_goals.goal`, dans la doctrine du coach (`goalScope`) et dans
-// les lignes déjà en base. Seuls les MOTS vivent dans le seed.
-const GOAL_VALUES = [
-  "fat_loss",
-  "muscle_gain",
-  "recomposition",
-  "performance",
-  "health",
-  "maintenance",
-] as const;
-
-/** Une FONCTION: une table de module se figerait à la langue du démarrage. */
-function goalOptions(): Array<{ value: string; label: string; blurb: string }> {
-  return GOAL_VALUES.map((value) => ({
-    value,
-    label: t(`plan.goal.${value}.label` as MessageKey),
-    blurb: t(`plan.goal.${value}.blurb` as MessageKey),
-  }));
-}
 
 /**
  * Server error codes, in the student's words.
@@ -1305,7 +1268,7 @@ export default function StudentWeekPlanPage() {
     void refreshLivePlans(uid);
 
     // ── `user_id` SUR CHAQUE LECTURE, ET RLS N'EN DISPENSE PAS ──────────────
-    // Deux de ces trois tables portent une policy COACH en plus de celle du
+    // Deux de ces tables portent une policy COACH en plus de celle du
     // propriétaire (`student_goals_select_coach`, `weekly_reviews_select_coach`),
     // et les policies s'additionnent. Sans `user_id`, cette page rendait donc à
     // quelqu'un qui est À LA FOIS coach et mangeur — le parent qui pilote le
@@ -1323,16 +1286,14 @@ export default function StudentWeekPlanPage() {
     //     `restriction_flag` lisait le `watch` de son élève et retrouvait sous
     //     les yeux la carte qui propose de VISER un poids.
     //
-    // `student_week_plans` n'a pas de policy coach aujourd'hui. Elle est scopée
-    // pareil: ce qui protège cette page ne doit pas dépendre de la liste des
-    // policies d'une table voisine, qui change sans que ce fichier soit relu.
-    const [planRes, goalRes, reviewRes, measureRes, profileRes] = await Promise.all([
-      supabase
-        .from("student_week_plans")
-        .select("id, week_start, items, status, adopted_at")
-        .eq("user_id", uid)
-        .eq("week_start", weekStart)
-        .maybeSingle(),
+    // ⚠️ `student_week_plans` A ÉTÉ RETIRÉE DE CETTE LECTURE LE 2026-08-19, ET
+    // ELLE N'Y REVIENT PAS PAR SYMÉTRIE. La ligne était lue, son `.error`
+    // pouvait faire tomber la page entière — et sa `data` n'était JAMAIS
+    // utilisée: aucune des deux occurrences de `planRes` n'en lisait le
+    // contenu. Un aller-retour réseau et un mode de panne, pour rien. La lane
+    // qui écrivait cette table est partie le même jour (voir
+    // `api/weekPlan.ts`); la table, elle, reste.
+    const [goalRes, reviewRes, measureRes, profileRes] = await Promise.all([
       supabase
         .from("student_goals")
         .select(
@@ -1374,7 +1335,6 @@ export default function StudentWeekPlanPage() {
     // Fail loud: "you have no plan yet" and "we could not read it" are two
     // different sentences, and showing the first for the second invites the
     // student to regenerate over the top of something that exists.
-    if (planRes.error) throw new Error(planRes.error.message);
     if (goalRes.error) throw new Error(goalRes.error.message);
     if (reviewRes.error) throw new Error(reviewRes.error.message);
     if (measureRes.error) throw new Error(measureRes.error.message);
@@ -2177,15 +2137,20 @@ export default function StudentWeekPlanPage() {
                             // plus tard sur un tour de taille. On la garde
                             // seulement si les deux dynamiques attendent la
                             // même chose (perte de gras ↔ prise de masse).
+                            // ⚠️ PAS DE `as GoalToken` SUR `g.value`: il vient
+                            // de `GOAL_TOKENS`, donc il EST un `GoalToken`, et
+                            // l'exhaustivité de `indicatorFor` reste armée. Le
+                            // cast survit sur `p.goal`, qui vient d'une ligne
+                            // de base et n'est qu'une chaîne.
                             target:
                               indicatorFor(p.goal as GoalToken).target ===
-                                  indicatorFor(g.value as GoalToken).target
+                                  indicatorFor(g.value).target
                                 ? p.target
                                 : "",
                             // L'axe ne survit qu'entre dynamiques qui en ont
                             // un. L'aspiration, elle, survit toujours: elle ne
                             // dépend d'aucune dynamique.
-                            axis: indicatorFor(g.value as GoalToken).axisObjective
+                            axis: indicatorFor(g.value).axisObjective
                               ? p.axis
                               : "",
                           }))}

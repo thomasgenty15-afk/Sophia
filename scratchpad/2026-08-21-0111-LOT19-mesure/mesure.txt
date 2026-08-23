@@ -1,0 +1,157 @@
+═══ TAUX DE RÉSOLUTION PAR INGRÉDIENT ═══
+
+── corpus entier (plats + préparations, 2 lanes) ──
+langue   | occurrences  résolues  taux    | uniques  résolues  taux
+en       |        9075      8628  95.1 %  |     638       461  72.3 %
+fr       |          77        75  97.4 %  |      37        35  94.6 %
+neutre   |         641       632  98.6 %  |      39        34  87.2 %
+mixte    |           2         1  50.0 %  |       2         1  50.0 %
+TOTAL    |        9795      9336  95.3 %  |     716       531  74.2 %
+
+── lane solo ──
+langue   | occurrences  résolues  taux    | uniques  résolues  taux
+en       |        3537      3297  93.2 %  |     387       271  70.0 %
+fr       |           1         1  100.0 %  |       1         1  100.0 %
+neutre   |         168       163  97.0 %  |      23        21  91.3 %
+mixte    |           1         1  100.0 %  |       1         1  100.0 %
+TOTAL    |        3707      3462  93.4 %  |     412       294  71.4 %
+
+── lane foyer ──
+langue   | occurrences  résolues  taux    | uniques  résolues  taux
+en       |        5538      5331  96.3 %  |     456       384  84.2 %
+fr       |          76        74  97.4 %  |      37        35  94.6 %
+neutre   |         473       469  99.2 %  |      35        31  88.6 %
+mixte    |           1         0   0.0 %  |       1         0   0.0 %
+TOTAL    |        6088      5874  96.5 %  |     529       450  85.1 %
+
+═══ RÉSOLU **ET PESÉ** (ce que la porte du jour exige) ═══
+langue   | occurrences  résolues+pesées  taux
+en       |        9075              6073  66.9 %
+fr       |          77                61  79.2 %
+neutre   |         641               512  79.9 %
+mixte    |           2                 1  50.0 %
+TOTAL    |        9795              6647  67.9 %
+
+═══ LA JOURNÉE ═══
+
+### TOUS LES PLANS
+
+lane personal
+  journées                         248
+  ingrédients par journée (pliés)  médiane 21.5   moyenne 20.8   min 2   max 49
+  journées 100 % RÉSOLUES          112/248 = 45.2 %
+  journées 100 % résolues ET PESÉES 42/248 = 16.9 %   <- la porte réelle
+  p(résolu)=93.4 %  ⇒ p^n = 23.0 %
+  p(résolu ET pesé)=28.4 %  ⇒ p^n = 0.0 %
+
+lane household
+  journées                         303
+  ingrédients par journée (pliés)  médiane 29   moyenne 33.1   min 4   max 155
+  journées 100 % RÉSOLUES          160/303 = 52.8 %
+  journées 100 % résolues ET PESÉES 89/303 = 29.4 %   <- la porte réelle
+  p(résolu)=96.5 %  ⇒ p^n = 35.4 %
+  p(résolu ET pesé)=91.9 %  ⇒ p^n = 8.6 %
+
+### PLANS VIVANTS (retired_at is null)
+
+lane personal
+  journées                         53
+  ingrédients par journée (pliés)  médiane 26   moyenne 27.0   min 6   max 49
+  journées 100 % RÉSOLUES          20/53 = 37.7 %
+  journées 100 % résolues ET PESÉES 5/53 = 9.4 %   <- la porte réelle
+  p(résolu)=91.9 %  ⇒ p^n = 11.0 %
+  p(résolu ET pesé)=52.0 %  ⇒ p^n = 0.0 %
+
+lane household
+  journées                         77
+  ingrédients par journée (pliés)  médiane 29   moyenne 35.5   min 12   max 138
+  journées 100 % RÉSOLUES          38/77 = 49.4 %
+  journées 100 % résolues ET PESÉES 18/77 = 23.4 %   <- la porte réelle
+  p(résolu)=96.1 %  ⇒ p^n = 31.7 %
+  p(résolu ET pesé)=90.5 %  ⇒ p^n = 5.5 %
+
+### PLANS DU 2026-08-12 OU APRÈS (contrat de quantités en place)
+
+lane personal
+  journées                         72
+  ingrédients par journée (pliés)  médiane 8.5   moyenne 18.0   min 5   max 49
+  journées 100 % RÉSOLUES          47/72 = 65.3 %
+  journées 100 % résolues ET PESÉES 42/72 = 58.3 %   <- la porte réelle
+  p(résolu)=90.6 %  ⇒ p^n = 43.4 %
+  p(résolu ET pesé)=88.1 %  ⇒ p^n = 33.9 %
+
+lane household
+  journées                         303
+  ingrédients par journée (pliés)  médiane 29   moyenne 33.1   min 4   max 155
+  journées 100 % RÉSOLUES          160/303 = 52.8 %
+  journées 100 % résolues ET PESÉES 89/303 = 29.4 %   <- la porte réelle
+  p(résolu)=96.5 %  ⇒ p^n = 35.4 %
+  p(résolu ET pesé)=91.9 %  ⇒ p^n = 8.6 %
+
+═══ TOP 30 DES CHAÎNES QUI RATENT ═══
+chaînes uniques qui ratent : 185   occurrences perdues : 459
+  98  en      pepper
+  11  en      egg noodles
+  11  en      braised beef
+  10  en      sourdough bread
+  10  en      roasted vegetables
+  10  en      cooked chicken thigh meat
+   7  en      plain greek yogurt with allergy label checked
+   5  en      butter or olive oil
+   5  en      tuna tins
+   5  en      turkey chilli
+   4  en      sesame free chipotle paste
+   4  en      green or brown lentils
+   4  en      cooked chicken thigh and pepper batch
+   4  en      butter or oil
+   4  en      grated cheese
+   4  en      greens
+   4  en      roast vegetables
+   4  en      lamb mince
+   4  en      cooked chicken thighs from preparation
+   4  en      wholemeal bread with allergy label checked
+   4  en      lentil tomato sauce
+   3  en      beef strips
+   3  en      wholemeal bread confirmed safe for your allergy
+   3  en      wholegrain crackers
+   3  neutre  tzatziki
+   3  en      wholemeal bread without added sweetener
+   3  en      turkey chili from batch
+   3  en      fajita seasoning
+   3  en      marinara sauce
+   3  neutre  farro
+
+═══ RÉSOLUS MAIS NON PESÉS — top 20 ═══
+uniques : 241   occurrences : 2689
+ 172  olive oil
+ 126  lemon
+ 103  greek yogurt
+  90  garlic
+  71  cucumber
+  69  eggs
+  59  onion
+  54  rolled oats
+  53  rice
+  50  wholemeal bread
+  46  red onion
+  43  banana
+  41  peanut butter
+  38  spinach
+  38  apple
+  36  lettuce
+  35  tomato
+  34  broccoli
+  34  berries
+  34  chicken thighs
+
+═══ LES ÉCHECS SONT-ILS INDÉPENDANTS ? (répartition PAR PLAN) ═══
+
+lane personal — part des lignes PESÉES, par plan (54 plans)
+   0-20 %: 27   20-40 %: 7   40-60 %: 0   60-80 %: 3   80-100 %: 17
+lane personal — part des lignes RÉSOLUES, par plan
+   0-20 %: 0   20-40 %: 0   40-60 %: 0   60-80 %: 3   80-100 %: 51
+
+lane household — part des lignes PESÉES, par plan (97 plans)
+   0-20 %: 0   20-40 %: 0   40-60 %: 0   60-80 %: 3   80-100 %: 94
+lane household — part des lignes RÉSOLUES, par plan
+   0-20 %: 0   20-40 %: 0   40-60 %: 0   60-80 %: 1   80-100 %: 96

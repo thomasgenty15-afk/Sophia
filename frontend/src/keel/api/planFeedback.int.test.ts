@@ -5,8 +5,12 @@ import { resolve } from "node:path";
 import {
   FEEDBACK_QUESTIONS,
   newEnvyIsAsked,
+  // LOT 4C — l'échelle des portions et ses libellés, tous deux dans le module
+  // partagé et jamais dans `en.ts`/`fr.ts`.
+  OPTION_LABELS,
   portionSubjectIsAsked,
   QUESTION_LABELS,
+  QUESTION_OPTIONS,
   QUESTION_READERS,
   questionsFor,
 } from "../../../../supabase/functions/_shared/keel/plan_feedback.ts";
@@ -261,6 +265,78 @@ describe("⛔ les envies n'ouvrent aucun second canal", () => {
   });
 });
 
+describe("⛔ LOT 4C — l'échelle des portions porte CINQ crans, et l'écran les rend tous", () => {
+  /**
+   * ⚠️ CE QUE CE BLOC GARDE. Le questionnaire est le SEUL producteur de
+   * `portion.adjust`, et un nouvel ajustement REMPLACE le précédent (jamais de
+   * somme): avec un seul cran par sens, quelqu'un dont les parts étaient
+   * énormément trop grosses restait bloqué à −5 % pour toujours.
+   *
+   * Le second cran ne vaut que s'il est CLIQUABLE. Un module à cinq options
+   * derrière un écran qui n'en rend que trois est exactement le lot débranché
+   * qui ressemble à un lot qui marche.
+   */
+  it("les cinq options sont dans le module, dans l'ordre de l'échelle", () => {
+    expect(QUESTION_OPTIONS.portions).toEqual([
+      "way_too_much",
+      "too_much",
+      "right",
+      "not_enough",
+      "way_not_enough",
+    ]);
+    // ⛔ LES LIBELLÉS VIVENT DANS LE MODULE, PAS DANS `en.ts`/`fr.ts` — et les
+    // deux langues, parce que `profiles.locale` vaut `fr-FR` par défaut.
+    // Littéraux en dur: une boucle « chaque option a un libellé » resterait
+    // verte sur un libellé qui a changé de sens.
+    expect(OPTION_LABELS.way_too_much).toEqual({
+      en: "Really too much",
+      fr: "Vraiment trop",
+    });
+    expect(OPTION_LABELS.too_much).toEqual({
+      en: "A bit too much",
+      fr: "Un peu trop",
+    });
+    expect(OPTION_LABELS.right).toEqual({
+      en: "About right",
+      fr: "Ce qu'il fallait",
+    });
+    expect(OPTION_LABELS.not_enough).toEqual({
+      en: "A bit short",
+      fr: "Un peu juste",
+    });
+    expect(OPTION_LABELS.way_not_enough).toEqual({
+      en: "Really not enough",
+      fr: "Vraiment pas assez",
+    });
+  });
+
+  it("l'écran BOUCLE sur la liste du module — il n'écrit aucun bouton à la main", () => {
+    const view = code(
+      "frontend/src/keel/components/plan/PlanFeedbackDialog.tsx",
+    );
+    expect(view, "l'écran n'énumère plus les options du module").toContain(
+      "QUESTION_OPTIONS[q].map((opt)",
+    );
+    expect(view, "l'écran ne lit plus le libellé du module").toContain(
+      "OPTION_LABELS[opt]?.en",
+    );
+    // ⛔ AUCUN JETON DE PORTION ÉCRIT EN DUR DANS L'ÉCRAN: le premier qui y
+    // entre fait une seconde liste, et c'est celle-là — la seule que la
+    // personne voit — qui garderait trois crans.
+    for (const token of ["too_much", "not_enough", "way_too_much", "right"]) {
+      expect(view, `« ${token} » est écrit en dur dans l'écran`).not.toContain(
+        `"${token}"`,
+      );
+    }
+    // ⚠️ ET LES CINQ BOUTONS TIENNENT À 320 px: `flex-wrap` était déjà là, et
+    // le retirer ferait sortir le cinquième de l'écran — un bouton hors écran
+    // est un bouton absent.
+    expect(view, "la rangée d'options ne passe plus à la ligne").toContain(
+      "mt-2 flex flex-wrap gap-2",
+    );
+  });
+});
+
 describe("⛔ « pour qui ? » — la moitié qui rend la mesure attribuable", () => {
   /**
    * `portions` est la seule vérité terrain que le moteur n'a pas, et dans un
@@ -268,9 +344,15 @@ describe("⛔ « pour qui ? » — la moitié qui rend la mesure attribuable", (
    * ÉCRITE pour laquelle le questionnaire est le seul producteur de
    * `portion.adjust`.
    */
-  it("la question ne se pose que sur une mesure, et qu'à plusieurs bouches", () => {
+  it("la question se pose sur les QUATRE réponses non neutres, et qu'à plusieurs bouches", () => {
+    // ⚠️ LES QUATRE, ET PAS SEULEMENT LES DEUX ANCIENNES. `portionSubjectIsAsked`
+    // demande à `effectOf` s'il y a un ajustement; une seconde lecture de
+    // `portions` à l'écran (« too_much ou not_enough ») aurait laissé les deux
+    // crans NEUFS baisser l'assiette de TOUTE la table sans demander pour qui.
+    expect(portionSubjectIsAsked({ portions: "way_too_much", mouths: 4 })).toBe(true);
     expect(portionSubjectIsAsked({ portions: "too_much", mouths: 4 })).toBe(true);
     expect(portionSubjectIsAsked({ portions: "not_enough", mouths: 2 })).toBe(true);
+    expect(portionSubjectIsAsked({ portions: "way_not_enough", mouths: 2 })).toBe(true);
     // Neutre: rien à attribuer, puisqu'il n'y a pas d'ajustement.
     expect(portionSubjectIsAsked({ portions: "right", mouths: 4 })).toBe(false);
     expect(portionSubjectIsAsked({ portions: null, mouths: 4 })).toBe(false);
