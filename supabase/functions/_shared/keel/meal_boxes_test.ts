@@ -924,7 +924,16 @@ Deno.test("les deux axes de version ont bougé, chacun pour SA population", () =
   // rebumpe parce que le schéma ET la consigne changent ensemble, et parce que
   // sa POPULATION s'élargit (un foyer sans objectif reçoit désormais le bloc).
   assertEquals(MEAL_PROMPT_VERSION, "meal.en.v18_one_box_per_group");
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v21_one_box_per_group");
+  // ⚠️ D3′-c (2026-08-23) — `v22_precedence_in_tail`, ET LE BUMP EST EN RETARD
+  // D'UN JOUR. `D3′` (2026-08-22 18:51) a réécrit le bloc d'arbitrage de la lane
+  // foyer — passé en QUEUE du message, rang 1 qui NOMME ses trois blocs de
+  // verrou au lieu de dire « at the VERY TOP » — et n'a pas touché ce jeton. Les
+  // quatre épinglages de cette valeur sont restés VERTS: ils tiennent le jeton,
+  // aucun ne le reliait au TEXTE. C'est ce que `precedence_binding_test.ts`
+  // ferme. Population concernée: tous les foyers. Le TRONC ne bouge pas — le
+  // texte de la lane SOLO a survécu octet pour octet, mesuré sur 243 prompts
+  // archivés.
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v22_precedence_in_tail");
 });
 
 // ---------------------------------------------------------------------------

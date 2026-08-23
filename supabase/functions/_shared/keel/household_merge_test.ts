@@ -3048,7 +3048,16 @@ Deno.test("C8 ③ — LA LANE INDIVIDUELLE GARDE SA VERSION DE PROMPT", () => {
   // tronc, lui, ne gagne pas un octet: il reste à `meal.en.v12_a_dish_has_a_name`.
   // Population concernée: les foyers où une bouche ATTABLÉE a un compte ET a
   // déclaré un apport. Ailleurs, prompt byte-identique à v16.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v21_one_box_per_group");
+  // ⚠️ D3′-c (2026-08-23) — `v22_precedence_in_tail`, ET LE BUMP EST EN RETARD
+  // D'UN JOUR. `D3′` (2026-08-22 18:51) a réécrit le bloc d'arbitrage de la lane
+  // foyer — passé en QUEUE du message, rang 1 qui NOMME ses trois blocs de
+  // verrou au lieu de dire « at the VERY TOP » — et n'a pas touché ce jeton. Les
+  // quatre épinglages de cette valeur sont restés VERTS: ils tiennent le jeton,
+  // aucun ne le reliait au TEXTE. C'est ce que `precedence_binding_test.ts`
+  // ferme. Population concernée: tous les foyers. Le TRONC ne bouge pas — le
+  // texte de la lane SOLO a survécu octet pour octet, mesuré sur 243 prompts
+  // archivés.
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v22_precedence_in_tail");
 });
 
 Deno.test("C7 ③ — LA LIGNE DE COURSES D'UN PLAT JETÉ NE PART PLUS AU MAGASIN", () => {

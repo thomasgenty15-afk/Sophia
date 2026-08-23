@@ -597,7 +597,35 @@ import {
 // ⛔ CE QUE CE LOT NE FAIT PAS: remettre une part par personne dans un bac
 // partagé. C'est exactement ce qui a tué v2 — la balance de retour au service —
 // et le bloc l'interdit maintenant en toutes lettres.
-export const HOUSEHOLD_PROMPT_VERSION = "v21_one_box_per_group";
+// ── v22 (2026-08-23, lot `D3′-c`) — L'ARBITRAGE EN QUEUE, ET SON MILLÉSIME ─
+//
+// ⛔ CE BUMP EST EN RETARD D'UN JOUR, ET C'EST TOUT LE SUJET. Le prompt foyer a
+// changé le 2026-08-22 à 18:51 (`D3′`, commit `741c2021`): le bloc d'arbitrage
+// est passé en QUEUE du message utilisateur, et son rang 1 a cessé de dire
+// « at the VERY TOP » pour NOMMER ses trois blocs de verrou. Ce jeton, lui,
+// n'a pas bougé — donc rien ne distinguait en base un prompt d'avant d'un
+// prompt d'après.
+//
+// ⚠️ CE QUE ÇA A COÛTÉ: le 2026-08-23, « pourquoi la variante FOYER ne sort-elle
+// jamais ? » a demandé une heure et une entrée de registre fausse. La réponse
+// se lisait en une requête si la ligne avait porté son millésime — les 12
+// lignes `…+household.v21_one_box_per_group` s'arrêtent à 14:51:38, QUATRE
+// HEURES avant la livraison. Sans jeton, « le prompt neuf ne mord pas » et
+// « le prompt neuf n'a jamais tourné » rendent le même zéro.
+//
+// ✅ ET LE BUMP EST ENCORE SANS PERTE — il ne l'aurait plus été après un seul
+// run: aucune ligne `v21` n'a été écrite après 18:51:33, donc la population
+// `v21` est ENTIÈREMENT pré-`D3′` et le reste.
+//
+// ⛔ CE QUI L'ARME DÉSORMAIS: `precedence_binding.ts` inscrit l'empreinte du
+// texte servi par CHAQUE millésime, et `precedence_binding_test.ts` rougit si
+// le texte bouge sous un jeton immobile. Changer le bloc d'arbitrage foyer
+// sans toucher cette ligne fait échouer le gate.
+//
+// ⚠️ `MEAL_PROMPT_VERSION` NE BOUGE PAS, et c'est mesuré, pas supposé: le texte
+// de la lane SOLO a survécu octet pour octet au déménagement de `D3′` vers
+// `precedence_tail.ts` — 243 `user_message` archivés sur 243 le confirment.
+export const HOUSEHOLD_PROMPT_VERSION = "v22_precedence_in_tail";
 
 export interface HouseholdRestriction {
   memberId: string;
