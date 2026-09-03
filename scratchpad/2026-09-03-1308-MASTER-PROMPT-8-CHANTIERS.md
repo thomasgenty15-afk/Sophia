@@ -110,6 +110,15 @@ explorations ont trouvé. Un agent qui en viole une a **tort**, quel que soit le
     (`docker restart supabase_edge_runtime_Sophia_2`), puis
     `TIMEOUT_MS=900000 ./scripts/local_extend_kong_functions_timeout.sh` (Kong retombe à 150 s,
     trop court pour une génération). 500/503 partout avec PostgREST OK = runtime éteint.
+    ⚠️ **Rapporté par une session voisine le 2026-09-03 13:20** : `supabase functions serve`
+    (CLI 2.67.1, aucune option d'exclusion) **watche `supabase/functions/node_modules/`** ; le
+    cache Deno (`node_modules/.deno/.deno.lock.poll`) bouge à chaque démarrage à froid et le
+    conteneur est **recréé en boucle** (9 fois en 4 minutes mesurées) — aucun run de 40 à 120 s
+    ne survit. Tant que ce dossier vit sous `supabase/functions/`, le runtime est instable **par
+    construction**. Avant d'ouvrir une fenêtre de run réel, l'orchestrateur vérifie que le
+    conteneur a **plus de trois minutes** (`docker ps --format '{{.Names}} {{.Status}}'`) ; sinon il
+    ne lance rien, journalise, et remonte à l'humain **le sort de ce dossier** (le déplacer hors de
+    l'arbre watché est la seule sortie connue — décision humaine, pas geste d'agent).
 15. **`EMAIL_DELIVERY_ENABLED=1` avec une vraie clé Resend** : toute inscription jouée au
     navigateur **envoie un vrai mail**. Les comptes de test se créent **par SQL** (fixtures
     `docs/keel/qa-fixtures/*.sql`, colonnes de jeton `''` jamais NULL), mot de passe `1234567`.
@@ -166,6 +175,23 @@ explorations ont trouvé. Un agent qui en viole une a **tort**, quel que soit le
 - **C3 — les courses** : `shopping_list[].buy_on` toutes datées ; nombre de vagues = sessions ;
   la première vague tombe sur le rang 0 ; `servesCookOn` n'est **pas** `null` sur les vagues
   suivantes (piège P1).
+  > ⛔ **DÉMENTI PAR LA MESURE, 2026-09-04 (E, sur les runs réels de la lane CUISINE).**
+  > **Ce qui est faux** : « nombre de vagues = sessions ». **Ce qui est vrai** :
+  > **`vagues ≤ sessions`**. Le reste de C3 tient (toutes datées, première vague au rang 0,
+  > `servesCookOn` non `null` au-delà de la première).
+  > **Par quelle mesure** : quatre générations sous gel, à **jours de session identiques**
+  > (`thu`, `sun`) — R2 (`balanced`) achète les 09-03 **et** 09-04, **2 vagues** ; R4 (`minimal`)
+  > achète le 09-03 seul, **1 vague**. Les vagues ne se déduisent pas des sessions mais de la
+  > **conservation** de ce que le modèle a composé : `buyOn = max(startsOn, cuisson −
+  > fenêtreCrue(groupe))`. Un aliment à 3 jours cuit dimanche s'achète jeudi et **rejoint** la
+  > première vague ; un aliment à 2 jours en **ouvre** une seconde.
+  > **Et ce n'est pas un défaut** : qui demande UNE course et dont tout se conserve obtient UNE
+  > course, même s'il faut deux sessions — plus fidèle à sa demande que l'inverse.
+  > **D'où venait l'attendu faux, et c'est la leçon** : de l'**ANALYSE** (« 1 session = 1 vague,
+  > déduit »), **pas d'une lecture de `grocery_waves.ts`**. ⇒ Recopier une phrase de document est
+  > plus dangereux que recopier du code : une source documentaire a l'air d'une autorité.
+  > *(La phrase d'origine est laissée au-dessus : le dépôt écrit ses renversements là où la
+  > phrase inverse vivait.)*
 - **C4 — les personnes** : au moment M, chaque bouche présente a un plat commun ou dédié ; un
   membre réclamé voit **sa** part, avec **ses** cases (P8) ; le maître ne voit jamais la coche
   d'un profil réclamé.

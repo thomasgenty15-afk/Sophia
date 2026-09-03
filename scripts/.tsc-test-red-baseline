@@ -32,7 +32,11 @@ src/keel/api/mealGeneration.int.test.ts 2
 src/keel/api/mealStretch.int.test.ts 1
 src/keel/api/mouthProfile.int.test.ts 6
 src/keel/api/myShare.int.test.ts 3
-src/keel/api/onboarding.int.test.ts 2
+# ⟳ 2026-09-04, E (passe de cohérence des huit chantiers) — 2 → 0. Le gate le
+#    signalait à chaque passage. La ligne RESTE à 0 plutôt que de disparaître,
+#    comme setupMouthsStep plus bas: une ligne à 0 dit « ce fichier a été propre
+#    un jour », et le gate échoue pareil à la première erreur qui revient.
+src/keel/api/onboarding.int.test.ts 0
 src/keel/api/ownActivityLevel.int.test.ts 4
 src/keel/api/retainedItems.int.test.ts 2
 src/keel/api/weeklyCheckIn.int.test.ts 1
@@ -63,7 +67,10 @@ src/keel/components/mouthFormDialog.int.test.ts 2
 src/keel/components/planDaySeparation.int.test.ts 1
 src/keel/components/planGridEatingOut.int.test.ts 1
 src/keel/components/planWeekCarriedDays.int.test.ts 1
-src/keel/lib/planByPersonModel.int.test.ts 6
+# ⟳ 2026-09-04, E — 6 → 2. Quatre erreurs de moins, et je ne sais PAS lequel des
+#    onze lots les a réparées: je resserre sur la mesure, sans lui inventer un
+#    auteur. Les 2 qui restent sont de la dette à réduire, pas un plafond acquis.
+src/keel/lib/planByPersonModel.int.test.ts 2
 src/keel/lib/planDaySlots.int.test.ts 5
 src/keel/lib/planGridModel.int.test.ts 5
 src/keel/lib/presenceRoster.int.test.ts 1
