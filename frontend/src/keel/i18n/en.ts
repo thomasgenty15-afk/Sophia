@@ -8067,6 +8067,10 @@ export const en = {
   // ⛔ "Write", not "Send": this product sends no invitation email (FF-060 R7).
   "household.access.mail": "Write the message",
   "household.access.mail_subject": "Your access to the household",
+  // ── THE ADD WINDOW (A5, point 3) ─────────────────────────────────────────
+  // The button that opens it. One window now carries both the required blocks
+  // and the preferences, the latter in an accordion (⛔ never two nested modals).
+  "household.add.open": "Add someone",
   // ── chantier-0903/FOYER — fin ──
 
 } as const

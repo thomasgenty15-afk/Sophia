@@ -6935,6 +6935,11 @@ export const fr: TranslatedMessages = {
   // qui appuie sur envoyer, dans son propre logiciel de courrier.
   "household.access.mail": "Écrire le message",
   "household.access.mail_subject": "Ton accès au foyer",
+  // ── LA FENÊTRE D'AJOUT (A5, point 3) ─────────────────────────────────────
+  // Le bouton qui l'ouvre. La fiche était EN LIGNE sur la page et les goûts
+  // derrière un second écran: une seule fenêtre les porte maintenant tous les
+  // deux, les préférences en accordéon dedans (⛔ jamais deux `Modal` imbriqués).
+  "household.add.open": "Ajouter une personne",
   // ── chantier-0903/FOYER — fin ──
 
 };
