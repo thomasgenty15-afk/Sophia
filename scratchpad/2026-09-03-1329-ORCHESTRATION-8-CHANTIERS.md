@@ -396,3 +396,55 @@ Sans les six commits de réparation de cet après-midi, ces trois erreurs seraie
 A1 ✅ fusionné, **rouge, correctif attendu** · A8.1 ✅ fusionné, à vérifier · A8.2 partiellement entré, non annoncé.
 **En cours** : CUISINE correctif A1 puis A2 · MEMBRE A8.2 · FOYER A5 · SUIVI lot serveur.
 **Non fusionné exprès** : SUIVI front (`fd47c04c`) — casserait `/app/progress` jusqu'à son lot serveur.
+
+## 19:3x-20:0x — A8.2 fusionné, A1 rouge sur ses épinglages, deux erreurs de fusion corrigées
+
+**Fusion A8.2 (3/3) → `50783d65`**, le sha annoncé cette fois. La lane MEMBRE a **terminé** ses trois lots
+(`31148a5a`, `7c403607`, `5650ed9d`, `2e330f85`, `e25d8578`, `26ad59b9`), avec 16 mutations et un test RLS à 18
+assertions. **Elle nomme elle-même le trou** : le **câblage d'écran d'A8.2 n'est pas livré** — l'étape « Qui n'a pas
+mangé ? » est dérivée et éprouvée mais **pas rendue** ; la proposition de boîte et « boîte de {jour}, encore au frigo »
+ne sont pas à l'écran ; donc **aucune clé i18n** et `evening_strip_test` ne porte pas l'épreuve de l'étape.
+⇒ **Un agent A8.3 est lancé pour le finir** : c'est dans le mandat §5.9, ce n'est ni un supplément ni une option.
+Il ferme aussi les deux dettes que la lane a nommées : le bloc `do $$` dont les contrôles (e) et (f) interceptent
+`foreign_key_violation` **avant** le CHECK (un contrôle qui attrape deux erreurs ne prouve pas laquelle a mordu), et
+FF-054 §11 dont le « un seul retour par plan » est une propriété de schéma qu'aucune garde ne tient.
+
+### Deuxième erreur de fusion, corrigée proprement
+
+En fusionnant le correctif A1 annoncé (`82d49b60`), j'ai **encore** pris plus que le lot : ce commit est **postérieur à
+deux commits d'A2** sur la même branche, donc `cooking_plan.ts` et la migration `20260903171000` sont entrés en avance.
+Défait proprement : `git revert -m 1` du merge (jamais `reset`), puis `git cherry-pick` du **seul** correctif → `e43eab06`.
+**Règle affinée** : fusionner le sha annoncé ne suffit pas sur une branche linéaire ; il faut demander à la lane si son
+correctif est **isolable**, et cherry-picker sinon.
+
+### Le vrai rouge d'A1 : sept épinglages de version non mis à jour
+
+L'arbre reste rouge après le correctif, et **ce n'est pas A2** : A1 a posé
+`MEAL_PROMPT_VERSION = "meal.en.v25_the_day_before_is_derived"` et mis à jour **son** épinglage
+(`cook_the_day_before_test.ts:249`), mais **sept autres fichiers épinglent encore le littéral v24** :
+`meal_frozen_portion_test:314`, `meal_same_day_test:562`, `household_merge_test:3009`, `meal_boxes_test:1106`,
+`one_cooking_session_test:340`, `raw_keeping_test:271`, `meal_precedence_test:121`.
+**Pourquoi le `--no-run` de la lane ne l'a pas vu** : c'est une assertion, pas un type. Renvoyé à CUISINE, prioritaire
+sur A2, avec la consigne de **ne pas réparer mécaniquement** : ces tests s'appellent « la version de prompt a bougé
+**avec ce lot** » ; les passer tous à v25 rendrait leur nom faux. Qu'elle applique la convention du dépôt, et renomme ce
+qui mentirait.
+
+### Deux arbitrages de lane validés CONTRE la lettre du mandat
+
+- **CUISINE** : ne **pas** dériver `recipe_difficulty` et `variety` du style, parce qu'**aucun des deux générateurs ne les
+  lit** (seul `keel-plan-feedback-v1` lit la colonne). Écrire un réglage que rien ne consomme est un lot désarmé qui
+  ressemble à un lot qui marche. Validé, nommé au rapport final.
+- **SUIVI** : estimer un créneau avec `maintenanceRange` et **jamais** `directedRange` — estimer ce qu'une personne a
+  mangé à partir de sa **cible** est circulaire, et flatteur sur un tiers de journée non renseignée. Validé ; le mandat
+  avait tort. Et le plan de foyer **s'abstient** sur l'énergie plutôt que de réimplémenter l'arbitrage de présence.
+
+### SUIVI a terminé — et une NON-LIVRAISON nommée comme telle
+
+`0ae5ad03` : page « Suivi », `/app/health` → « Sécurité », `ProgressPage.tsx` et 36 clés mortes retirées, agrégat pur,
+`keel-tracking-v1`, les trois renversements écrits **en citant le texte d'origine et ce qui n'est PAS renversé**,
+neuf mutations. Elle a même trouvé chez elle **un test paramétré par son propre hasard** (fixture pesant exactement 1,00,
+donc la normalisation y était l'identité) et ajouté un second cas **avant** de rejouer.
+⛔ **D7.7 n'est pas livrée** : « Décrire » n'écrit aucun kcal, parce que le dépôt n'a **aucune** fonction qui trouve une
+quantité **dans** une phrase (`readQuantityFromProse` lit une chaîne ancrée des deux bouts). Refuser d'inventer un
+matcher maison est le bon geste ; mais le bouton fait moins que promis, et c'est **un trou connu**, pas un arbitrage.
+**Non fusionnée** tant que l'arbre est rouge.
