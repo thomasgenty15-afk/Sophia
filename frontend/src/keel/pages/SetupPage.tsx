@@ -124,6 +124,7 @@ import {
   writeSetupDraft,
 } from "../lib/setupDraftCache";
 import MouthFormDialog, {
+  MouthCoreFields,
   MouthPreferencesButton,
   type ShakerPort,
   TargetAndPaceFields,
@@ -4678,10 +4679,12 @@ export function MouthsStep(props: {
   busy: boolean;
 }) {
   const draft = props.draft;
-  const set = (patch: Partial<MouthDraft>) =>
-    // Fonctionnelle, pour la même raison que dans `SelfStep`: deux clics dans
-    // le même tick partiraient sinon du même état et l'un écraserait l'autre.
-    props.onDraftChange((prev) => ({ ...prev, ...patch }));
+  // ── ⛔ ICI SE TENAIT `set`, LE POSEUR DE CHAMP DE CETTE CARTE ─────────────
+  // Il écrivait le brouillon champ par champ pour les dix contrôles recopiés
+  // à la main. `MouthCoreFields` reçoit maintenant `onDraftChange` DIRECTEMENT
+  // et pose ses propres champs — avec sa propre mise à jour fonctionnelle, pour
+  // la même raison qu'ici: React groupe les mises à jour d'un même tick, et deux
+  // champs touchés coup sur coup partiraient sinon du même état de départ.
   const householdFull = props.mouths.length + 1 >= HOUSEHOLD_MAX_MOUTHS;
   const branchFull = props.mouths.length >= props.maxOthers;
   /**
@@ -4818,299 +4821,83 @@ export function MouthsStep(props: {
         // cadre, il se lisait comme la suite de la dernière carte — donc comme
         // des champs vides SUR une personne existante.
         <div className="mt-4 space-y-4 rounded-card border border-dashed border-line-strong p-4">
-          {/* ── ⛔ ICI SE TENAIT LA TÊTE DE FICHE « UNE FICHE VIDE » ────────
-              Un titre (`setup.mouths.new_card`) et une phrase
-              (`new_card_hint`): « Personne n'est encore ici — cette fiche ne
-              devient quelqu'un qu'au moment où tu l'ajoutes […]. D'ici là, il
-              n'y a rien à retirer. » Retirés le 2026-09-01, demandés à
-              l'écran: « ça sert à quoi ça ? […] il faut le supprimer. »
-
-              ⚠️ CE QU'ELLE RÉPARAIT EST DÉJÀ RÉPARÉ AILLEURS, et c'est la
-              seule raison de la retirer sans rouvrir le défaut. Elle datait du
-              signalement du 2026-08-19 — « je peux toujours pas supprimer le
-              truc qui s'est ajouté tout seul », capture montrant CE
-              formulaire-ci, vide — et le même lot a livré DEUX remèdes:
-                · celui-ci, qui EXPLIQUE qu'il n'y a rien à retirer;
-                · le bouton « Retirer », rendu INCONDITIONNEL, qui referme la
-                  fiche même vide.
-              Le second rend le premier faux: il y a désormais quelque chose à
-              retirer, et c'est le bouton du bas. Une phrase qui dit le
-              contraire du bouton d'à côté est pire qu'une phrase absente.
-
-              ⛔ NE PAS LA REMETTRE SANS RETIRER CE BOUTON — et ne pas retirer
-              ce bouton: « un geste qui s'ouvre sans se refermer est un piège »
-              (`setupSituateStep.int.test.ts`, qui le garde).
-
-              Le prénom en cours de saisie n'est pas perdu non plus: le champ
-              le porte, et `next_will_save` le NOMME juste au-dessus des deux
-              boutons pour dire ce que « Continuer » en fera. */}
-
           {/* ══════════════════════════════════════════════════════════════
-              LA MÊME DISPOSITION QUE LA CARTE DU TITULAIRE — 2026-09-01
+              UN SEUL FORMULAIRE DE PERSONNE DANS LE DÉPÔT — A5, 2026-09-03
               ══════════════════════════════════════════════════════════════
 
-              Demandé à l'écran, capture à l'appui: « j'aimerais que la partie
-              "J'ajoute quelqu'un qui mange ici" ait la même disposition que
-              celle du compte maître ». `SelfStep` fait foi, et l'ordre y
-              raconte quelque chose: d'abord CE QU'EST ce corps (naissance,
-              sexe, taille, poids), ensuite CE QU'IL VISE et où va sa balance,
-              ensuite CE QU'IL FAIT de ses journées.
+              ⛔ ICI VIVAIENT DIX CHAMPS RECOPIÉS À LA MAIN, et c'est le mode
+              d'échec n°1 de ce dépôt appliqué à un formulaire: prénom, date de
+              naissance, sexe, taille, poids, la ligne du tout-ou-rien du corps,
+              les tuiles de direction, la cible et son curseur, les deux axes
+              d'activité — puis le bouton des préférences, le refus, la retenue
+              et le bouton d'ajout. `/app/household` montait `MouthCoreFields`
+              pour EXACTEMENT la même personne, avec les mêmes colonnes et les
+              mêmes portes SQL derrière.
 
-              ⟳ CE QUI A BOUGÉ ICI ────────────────────────────────────────
-                · le sexe quitte la grille de trois et rejoint la date de
-                  naissance, en paire; la taille et le poids font paire à leur
-                  tour;
-                · chacun des quatre porte enfin une ÉTIQUETTE. Ils n'avaient
-                  qu'un `placeholder` — c'est-à-dire un libellé qui s'efface
-                  au moment où on saisit, donc absent de toute fiche remplie;
-                · l'activité DESCEND sous la direction et son curseur.
+              DEUX FORMULAIRES POUR LA MÊME PERSONNE, ET ILS AVAIENT DÉJÀ
+              DIVERGÉ. Trois écarts mesurés le 2026-09-03, avant ce lot:
+                · la fiche du foyer NOMME ce qui retient l'enregistrement
+                  (`household.mouth.held` + `missingRequiredBlocks`, bloc par
+                  bloc); celle-ci ne disait rien — le bouton partait, et la
+                  base refusait plus loin;
+                · la fiche du foyer groupe en TROIS blocs obligatoires nommés
+                  (`RequiredBlock`: qui c'est · son corps · sa direction);
+                  celle-ci empilait dix champs à plat, sans dire lesquels vont
+                  ensemble;
+                · l'appétit et les trois cases du repas (`MouthAppetiteFields`,
+                  dans le bloc du corps) n'étaient PAS collectables ici — une
+                  bouche ajoutée depuis l'entonnoir naissait sans eux, et le
+                  moteur retombait sur ses conventions sans que rien ne le dise.
 
-              ⚠️ LA VOIX RESTE « IL OU ELLE », et c'est la seule chose qui ne
-              se copie pas du titulaire (`setup.mouths.goal`,
-              `setup.day_activity.member_label`, `setup.sport.member_label`).
-              Les quatre libellés du corps sont des noms — Prénom, Date de
-              naissance, Sexe, Taille — qui ne portent aucune personne, et
-              c'est justement ce qui fait lire les deux cartes comme la même.
+              ⚠️ CE QUI NE CHANGE PAS, ET QUI EST LA MOITIÉ DU LOT: les bornes
+              du corps (30–260 cm, 2–400 kg) sont celles de
+              `keel_household_set_member_body`, pas celles de `profiles` — une
+              bouche peut être un enfant de trois ans. `MouthCoreFields` porte
+              DÉJÀ ces bornes-là, parce qu'il a toujours servi des bouches.
+              L'unification ne les élargit ni ne les resserre.
 
-              ⛔ LES BORNES NE SE COPIENT PAS. 30–260 cm et 2–400 kg sont
-              celles de `keel_household_set_member_body`, pas celles de
-              `profiles` (90–250 / 25–400): une bouche peut être un enfant de
-              trois ans, que les bornes adultes refuseraient. */}
-          <Field
-            label={t("setup.people.first_name")}
-            hint={t("setup.mouths.first_name_hint")}
-            htmlFor="setup-mouth-name"
-          >
-            <input
-              id="setup-mouth-name"
-              type="text"
-              maxLength={40}
-              value={draft.firstName}
-              onChange={(e) => set({ firstName: e.target.value })}
-              className={inputClass}
-            />
-          </Field>
+              ⚠️ LA VOIX RESTE « IL OU ELLE ». `subject.isSelf: false` fait
+              parler la fiche à la troisième personne, et `whoOf` NOMME la
+              personne au lieu de deviner son genre (`lib/mouthVoice.ts`). La
+              carte du titulaire, juste au-dessus, garde `voice="self"`.
 
-          {/* ── ⛔ ICI SE TENAIT « C'EST UN ADULTE OU UN ENFANT ? » ─────────
-              Retirée le 2026-08-18. La date de naissance juste en dessous le
-              dit, et elle le dit MIEUX: elle distingue « je ne sais pas » de
-              « majeur », ce qu'une paire de boutons ne peut pas faire.
-
-              Ce que la question faisait en plus, et qui était le vrai défaut:
-              repasser en « enfant » EFFAÇAIT l'objectif déjà choisi. Un mineur
-              porte les trois directions depuis la décision du 2026-08-18 — plus
-              rien ici ne touche à `goal`. */}
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field
-              label={t("setup.people.birth_date")}
-              hint={t("setup.people.birth_date_hint")}
-              htmlFor="setup-mouth-birth"
-            >
-              <input
-                id="setup-mouth-birth"
-                type="date"
-                value={draft.birthDate}
-                max={browserLocalDate()}
-                onChange={(e) => set({ birthDate: e.target.value })}
-                className={inputClass}
-              />
-            </Field>
-            <Field label={t("setup.people.gender")} htmlFor="setup-mouth-gender">
-              <select
-                id="setup-mouth-gender"
-                value={draft.gender}
-                onChange={(e) => set({ gender: e.target.value as MemberGender })}
-                className={inputClass}
-              >
-                <option value="">—</option>
-                {MEMBER_GENDERS.map((g) => (
-                  <option key={g} value={g}>
-                    {t(`household.body.gender_${g}` as "household.body.gender_female")}
-                  </option>
-                ))}
-              </select>
-            </Field>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={t("setup.people.height")} htmlFor="setup-mouth-height">
-              <input
-                id="setup-mouth-height"
-                type="number"
-                inputMode="numeric"
-                min={30}
-                max={260}
-                value={draft.heightCm}
-                onChange={(e) => set({ heightCm: e.target.value })}
-                className={inputClass}
-              />
-            </Field>
-            <Field label={t("setup.people.weight")} htmlFor="setup-mouth-weight">
-              <input
-                id="setup-mouth-weight"
-                type="number"
-                inputMode="decimal"
-                step="0.1"
-                min={2}
-                max={400}
-                value={draft.weightKg}
-                onChange={(e) => set({ weightKg: e.target.value })}
-                className={inputClass}
-              />
-            </Field>
-          </div>
-
-          {/* ── LE TOUT-OU-RIEN DU CORPS, ET IL LUI FAUT SA PROPRE LIGNE ────
-              Les trois champs vivaient sous UN `Field` dont l'étiquette était
-              « Taille, poids et sexe » et l'aide « Les trois ensemble, ou
-              aucun des trois ». La grille éclatée leur rend des étiquettes,
-              mais elle DISSOUT le groupe — et « les trois » n'aurait alors
-              plus rien à désigner.
-
-              ⛔ NE PAS LA SUPPRIMER SOUS PRÉTEXTE QUE LA CARTE DU TITULAIRE
-              N'EN A PAS. Elle nomme un refus de la BASE:
-              `keel_household_set_member_body` rend `body_incomplete` dès qu'un
-              des trois manque, et le moteur SAUTE une bouche sans corps — elle
-              reçoit la part de tout le monde, en silence. Taille et poids
-              saisis, sexe laissé sur « — », c'est un corps qui n'existe nulle
-              part; c'est le mode d'échec n°1 de ce dépôt, et cette ligne est
-              ce qui l'annonce avant le clic. */}
-          <p className="-mt-1 text-sm leading-6 text-ink-soft">
-            {t("setup.mouths.body_together")}
-          </p>
-
-          {/* ── LA LISTE SUIT L'ÂGE, ET L'ÂGE VIENT DE LA DATE (2026-09-03) ──
-              Du 2026-08-18 au 2026-09-03 ce champ déroulait `MEMBER_GOALS` à
-              tout le monde, plus une option vide « Aucune direction
-              particulière » que l'utilisateur a lue comme une quatrième
-              direction. Or depuis le 2026-08-22 (`20260822041500`, lot S4) la
-              porte d'ajout — date et direction dans le MÊME appel — refuse
-              `fat_loss` et `muscle_gain` sur un mineur: l'écran proposait ce
-              que la base refusait, et le refus arrivait en jeton brut.
-
-              `goalsForAge(ageStateOfDraft(draft))` filtre enfin: un mineur ne
-              voit que « Manger normalement », un âge inconnu voit les trois,
-              et rien n'est pré-coché. Le `kind` d'avant n'est pas revenu: la
-              date tapée trois champs plus haut est la seule source de l'âge.
-              Ce qui protège un mineur EN PLUS n'est pas à l'écran — son
-              énergie reste une maintenance calculée sur son âge, et son corps
-              n'est jamais énoncé (FF-047). */}
-          <Field label={t("setup.mouths.goal")} htmlFor="setup-mouth-goal">
-            <GoalTiles
-              id="setup-mouth-goal"
-              name="setup-mouth-goal"
-              ariaLabel={t("setup.mouths.goal")}
-              value={draft.goal}
-              ageState={ageStateOfDraft(draft, browserLocalDate())}
-              labelOf={goalLabel}
-              // Changer de direction vide la cible et le rythme — même geste
-              // que la fiche: les deux n'ont de sens que sous la direction qui
-              // les a produits.
-              onChange={(g) => set({ goal: g, targetWeightKg: "", paceKgPerWeek: "" })}
-            />
-          </Field>
-
-          {/* ── OÙ VA SA BALANCE, ET À QUELLE VITESSE ─────────────────────
-              LES MÊMES DEUX CHAMPS QUE POUR LE TITULAIRE, au même endroit
-              relatif: juste sous la direction qui les débloque. Une bouche
-              n'est pas une personne au rabais — « le maître serait sinon le
-              seul dont on sait quelque chose ».
-
-              ⚠️ SON CORPS EST DEMANDÉ AU-DESSUS, et c'est ce qui borne le
-              curseur.
-
-              ⚠️ ET SON ÉCRIVAIN N'EST PAS CELUI DU TITULAIRE: la cible d'une
-              bouche sans compte vit sur la LIGNE MEMBRE
-              (`keel_household_set_member_target`), celle du titulaire dans
-              `student_goals`. `addMouth` appelle la première. */}
-          <TargetAndPaceFields
-            // LA FICHE D'AJOUT PARLE D'UNE AUTRE PERSONNE, et `who` vient du
-            // prénom en cours de saisie: tant qu'il est vide, le catalogue rend
-            // « cette personne » plutôt qu'un pronom deviné.
-            voice="other"
-            who={draft.firstName.trim() || t("household.mouth.who_fallback")}
-            // Pliée à l'âge: sous une direction repliée, rien ne se déplie.
-            draft={foldMinorGoal(draft, browserLocalDate()).draft}
-            onChange={props.onDraftChange}
-            todayLocalIso={browserLocalDate()}
-            // ⚠️ PRÉFIXE DISTINCT DE CELUI DU TITULAIRE. Les deux jeux de
-            // contrôles sont sur LA MÊME PAGE — sa carte est juste au-dessus:
-            // deux `id` identiques feraient qu'un libellé désigne le curseur de
-            // quelqu'un d'autre.
-            idPrefix="setup-mouth"
-          />
-
-          {/* SON ACTIVITÉ, SOUS SA DIRECTION — la place qu'elle occupe sur la
-              carte du titulaire depuis le 2026-09-01, et pour la même raison:
-              le corps dit CE QU'ON EST, la direction CE QU'ON VISE, l'activité
-              CE QU'ON FAIT. C'est l'ordre de la lecture; celui du CALCUL reste
-              corps × activité (`meal_envelope.ts`), et l'écart entre les deux
-              extrêmes de l'activité n'a pas bougé d'un point: 38 % de
-              l'enveloppe.
-
-              ⚠️ ELLE N'EST PAS DANS LE TOUT-OU-RIEN DU CORPS. La RPC accepte
-              un cran seul, et une bouche sans cran compose sur l'hypothèse
-              documentée. La coller au bloc du corps ferait lire « quatre ou
-              aucun » — faux, et bloquant.
-
-              ⛔ DEUX GRILLES DEPUIS LE 2026-08-20, ET PLUS UNE. Les quatre
-              crans mélangeaient la journée et le sport, et forçaient à n'en
-              dire qu'un: 239 kcal/jour fabriqués par la forme de la question. */}
-          <ActivityAxesTiles
-            ownVoice={false}
-            // Les deux traductions du cran — voir `MouthDraft`. Les tuiles
-            // parlent en `null`, le brouillon en `""`, et les deux disent
-            // « personne n'a répondu ».
-            day={draft.dayActivity || null}
-            sport={draft.sportFrequency || null}
-            onDay={(next) => set({ dayActivity: next })}
-            onSport={(next) => set({ sportFrequency: next })}
-            busy={props.busy}
-            idPrefix="setup-mouth"
-          />
-
-          {/* ── ⛔ ICI SE TENAIENT LES ALLERGIES DE LA FICHE, EN LIGNE ──────
-              Même déplacement que sur la carte du titulaire, le même jour et
-              pour la même raison — voir le commentaire là-haut. Le bouton
-              est la SEULE porte, et son récapitulatif dit ce qui est déjà
-              renseigné: sans lui, refermer la fenêtre se lirait comme perdre ce
-              qu'on vient de taper. */}
-          <MouthPreferencesButton
+              ⚠️ ET LES `id` NE SE COGNENT PAS. `MouthCoreFields` porte les
+              `id` `mouth-*` (il était seul sur `/app/household`); sur cette
+              page, la carte du titulaire est en `setup-self-*` et chaque
+              bouche inscrite en `setup-row-<memberId>-*`. Vérifié: aucun
+              `mouth-*` ailleurs dans ce fichier. */}
+          <MouthCoreFields
             draft={draft}
+            onChange={props.onDraftChange}
+            // `existing: false` — on l'AJOUTE, donc le bouton dit « Ajouter »
+            // et non « Enregistrer ». `hasAccount: false` — une bouche qu'on
+            // saisit n'a jamais de compte au moment où on la saisit.
+            // `isSelf: false` — la carte du titulaire est une autre carte.
+            subject={{ existing: false, hasAccount: false, isSelf: false }}
+            todayLocalIso={browserLocalDate()}
             busy={props.busy}
-            onOpen={props.onOpenDraftPreferences}
-            voice="other"
-            who={draft.firstName.trim() || t("household.mouth.who_fallback")}
+            // ⚠️ LE REFUS DESCEND DANS LA FICHE, et il n'est pas rendu deux
+            // fois: le rendu du haut de carte est explicitement gardé par
+            // `!formOpen`. Un refus d'ajout se lit à côté de la fiche fautive.
+            failure={props.failure}
+            onOpenPreferences={props.onOpenDraftPreferences}
+            onSubmit={props.onAdd}
           />
 
-          {/* ── LE REFUS VIT SUR LE GESTE QUI LE LÈVE ────────────────────────
-              Mesuré sur un compte neuf le 2026-08-14, et les trois symptômes
-              rapportés n'en font qu'un: on répond « Trois ou plus », on SAISIT
-              une personne, on appuie sur « Continuer » — et le brouillon est
-              JETÉ en silence par le bouton d'à côté, pendant qu'une carte tout
-              en bas réclame « Ajoute les autres personnes qui mangent ici ».
-              Le prénom est à l'écran, tapé, sous les yeux de qui lit qu'il n'a
-              rien ajouté. Ses mots: « je ne peux pas passer à l'étape 3 ».
+          {/* ── CE QUI RETIENT LA BRANCHE, ET CE N'EST PAS CE QUI RETIENT LA
+              FICHE ────────────────────────────────────────────────────────
+              `MouthCoreFields` rend déjà sa propre retenue: « il manque son
+              corps », bloc par bloc, à côté du bouton qui les lève. CELLE-CI
+              est d'une autre nature — « il manque encore une personne », et
+              elle vient de la réponse à l'étape 1. Les deux se lisent ensemble
+              sans se répéter, et fondre l'une dans l'autre ferait disparaître
+              la sortie: pour qui n'est finalement que deux, elle passe par la
+              PREMIÈRE question, pas par ce formulaire.
 
-              Trois choses manquaient, et aucune n'est cosmétique:
-                · COMBIEN il en manque — le nombre vient de la réponse à
-                  l'étape 1, et personne ne faisait le lien;
-                · que le BROUILLON EN COURS n'est pas inscrit tant qu'on n'a
-                  pas appuyé ici — un geste qui ne fait rien est indiscernable
-                  d'un geste qui a marché, le mode d'échec n°1 de ce dépôt;
-                · LA SORTIE, pour qui n'est finalement que deux: rien ne disait
-                  qu'elle passe par la première question. Un refus qui ne dit
-                  pas ce qui le lèverait n'est pas un refus, c'est un mur. */}
-          {/* LE REFUS D'UN GESTE DE CETTE CARTE, À CÔTÉ DU GESTE. Il passe
-              AVANT `held`: « ton ajout a échoué pour telle raison » explique ce
-              que « il manque encore une personne » ne fait que constater. */}
-          {props.failure !== null ? (
-            <p className="mt-4 rounded-card border border-rose-200 bg-rose-50 p-3 text-xs leading-5 text-rose-900">
-              {props.failure}
-            </p>
-          ) : null}
+              ⚠️ REQUISE, JAMAIS OPTIONNELLE (voir la prop): un paramètre de
+              garde facultatif est une garde désarmée. */}
           {props.held !== null ? (
-            <p className="mt-4 rounded-card border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900">
+            <p className="rounded-card border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900">
               {props.held}
             </p>
           ) : null}
@@ -5122,10 +4909,12 @@ export function MouthsStep(props: {
               Mais la phrase est partie SANS ÊTRE REMPLACÉE, et c'est ce trou
               qu'un compte réel a payé le 2026-08-19: « Continuer » a inscrit
               quelqu'un que la personne ne voulait pas.
-              Un bouton qui crée quelqu'un doit le dire AVANT le clic, à côté
-              des champs qui le nourrissent — pas seulement après, en haut de
-              page. La phrase nomme aussi l'échappatoire, qui est le bouton
-              juste en dessous. */}
+
+              ⚠️ ELLE PARLE DE « CONTINUER », PAS DU BOUTON « AJOUTER » DE LA
+              FICHE. Les deux inscrivent la même personne — c'est justement ce
+              qu'elle existe pour dire: même si on ne touche pas « Ajouter »,
+              le bouton d'AVANCEMENT en bas de page le fera. Elle reste donc
+              sous la fiche, juste au-dessus de l'échappatoire qu'elle nomme. */}
           {draft.firstName.trim() !== "" ? (
             <p className="text-xs leading-5 text-ink-soft">
               {t("setup.mouths.next_will_save", { name: draft.firstName.trim() })}
@@ -5133,9 +4922,6 @@ export function MouthsStep(props: {
           ) : null}
 
           <div className="flex flex-wrap items-center gap-3">
-            <Button variant="secondary" disabled={props.busy} onClick={props.onAdd}>
-              {t("setup.mouths.add_confirm")}
-            </Button>
             {/* ── « RETIRER », ET IL EST LÀ QUOI QU'IL ARRIVE ────────────────
                 ⚠️ IL ÉTAIT CONDITIONNÉ À `mouthDraftHasContent(draft)`, sous
                 le libellé « Effacer cette fiche », au motif qu'un effacement

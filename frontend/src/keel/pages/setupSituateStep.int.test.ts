@@ -307,7 +307,13 @@ describe("la fiche d'ajout se replie", () => {
     // AUCUNE sortie. Un geste qui s'ouvre sans se refermer est un piège.
     const html = mouths({ formOpen: true });
     expect(html).toContain(en["setup.mouths.remove"]);
-    expect(html).toContain(en["setup.mouths.add_confirm"]);
+    // ⟳ A5, 2026-09-03 — LE BOUTON QUI INSCRIT PORTE LE LIBELLÉ DE LA FICHE.
+    // La fiche d'ajout monte `MouthCoreFields` depuis ce lot, et c'est LUI qui
+    // rend son bouton: « Add them » (`household.mouth.add`) au lieu de « Add to
+    // the table » (`setup.mouths.add_confirm`, désormais sans monteur). La
+    // propriété gardée ici est inchangée — une fiche ouverte offre le geste ET
+    // la sortie —, seul le mot du geste a suivi le composant.
+    expect(html).toContain(en["household.mouth.add"]);
   });
 
   it("un brouillon rempli la rouvre de force, même déclarée repliée", () => {

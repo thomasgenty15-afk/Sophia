@@ -822,53 +822,95 @@ export function MouthCoreFields(
           title={t(voiced("household.mouth.body", voice), { who })}
           hint={t("household.mouth.body_hint")}
         >
+          {/* ── ⟳ TROIS ÉTIQUETTES, PLUS TROIS PLACEHOLDERS — A5, 2026-09-03 ─
+              Les trois contrôles n'avaient qu'un `placeholder` (doublé d'un
+              `aria-label`), c'est-à-dire un libellé QUI S'EFFACE AU MOMENT OÙ
+              ON SAISIT: absent de toute fiche remplie, donc illisible dès
+              qu'on relit ce qu'on vient de taper.
+
+              La carte d'ajout de l'entonnoir avait été corrigée le 2026-09-01
+              — « chacun des quatre porte enfin une ÉTIQUETTE » — mais cette
+              fiche-ci ne l'avait pas suivie, et c'est cette fiche-ci qui reste
+              maintenant que l'entonnoir la monte à son tour (A5, unification).
+              La correction MONTE dans le composant partagé, elle ne redescend
+              pas dans une copie: c'est tout l'objet du lot.
+
+              ⚠️ LES `id` ET LES `aria-label` NE BOUGENT PAS. Le `<label for>`
+              s'ajoute par-dessus, il ne remplace rien — les tests qui visent
+              `mouth-height` continuent de viser le même contrôle.
+
+              ⚠️ BORNES DE `keel_household_set_member_body` (30–260 cm,
+              2–400 kg) et pas celles de `profiles`: une bouche peut être un
+              enfant de trois ans, que les bornes adultes refuseraient. */}
           <div className="grid gap-3 sm:grid-cols-3">
-            {/* Bornes de `keel_household_set_member_body` (30–260 cm, 2–400 kg)
-                et pas celles de `profiles`: une bouche peut être un enfant de
-                trois ans, que les bornes adultes refuseraient. */}
-            <input
-              id="mouth-height"
-              type="number"
-              inputMode="numeric"
-              min={30}
-              max={260}
-              placeholder={t("setup.people.height")}
-              aria-label={t("setup.people.height")}
-              value={draft.heightCm}
-              onChange={(e) => set({ heightCm: e.target.value })}
-              className={`${inputClass} min-w-0`}
-            />
-            <input
-              id="mouth-weight"
-              type="number"
-              inputMode="decimal"
-              step="0.1"
-              min={2}
-              max={400}
-              placeholder={t("setup.people.weight")}
-              aria-label={t("setup.people.weight")}
-              value={draft.weightKg}
-              onChange={(e) => set({ weightKg: e.target.value })}
-              className={`${inputClass} min-w-0`}
-            />
-            <select
-              id="mouth-gender"
-              aria-label={t("setup.people.gender")}
-              value={draft.gender}
-              onChange={(e) =>
-                set({ gender: e.target.value as MemberGender | "" })}
-              className={`${inputClass} min-w-0`}
-            >
-              <option value="">{t("setup.people.gender")}</option>
-              {MEMBER_GENDERS.map((g) => (
-                <option key={g} value={g}>
-                  {t(
-                    `household.body.gender_${g}` as "household.body.gender_female",
-                  )}
-                </option>
-              ))}
-            </select>
+            <Field label={t("setup.people.height")} htmlFor="mouth-height">
+              <input
+                id="mouth-height"
+                type="number"
+                inputMode="numeric"
+                min={30}
+                max={260}
+                aria-label={t("setup.people.height")}
+                value={draft.heightCm}
+                onChange={(e) => set({ heightCm: e.target.value })}
+                className={`${inputClass} min-w-0`}
+              />
+            </Field>
+            <Field label={t("setup.people.weight")} htmlFor="mouth-weight">
+              <input
+                id="mouth-weight"
+                type="number"
+                inputMode="decimal"
+                step="0.1"
+                min={2}
+                max={400}
+                aria-label={t("setup.people.weight")}
+                value={draft.weightKg}
+                onChange={(e) => set({ weightKg: e.target.value })}
+                className={`${inputClass} min-w-0`}
+              />
+            </Field>
+            <Field label={t("setup.people.gender")} htmlFor="mouth-gender">
+              <select
+                id="mouth-gender"
+                aria-label={t("setup.people.gender")}
+                value={draft.gender}
+                onChange={(e) =>
+                  set({ gender: e.target.value as MemberGender | "" })}
+                className={`${inputClass} min-w-0`}
+              >
+                <option value="">—</option>
+                {MEMBER_GENDERS.map((g) => (
+                  <option key={g} value={g}>
+                    {t(
+                      `household.body.gender_${g}` as "household.body.gender_female",
+                    )}
+                  </option>
+                ))}
+              </select>
+            </Field>
           </div>
+
+          {/* ── LE TOUT-OU-RIEN DU CORPS, ET IL EST NOMMÉ — A5, 2026-09-03 ───
+              ⛔ CETTE LIGNE NOMME UN REFUS DE LA BASE, pas une préférence de
+              mise en page. `keel_household_set_member_body` rend
+              `body_incomplete` dès qu'un des trois manque, et le moteur SAUTE
+              une bouche sans corps — elle reçoit la part de tout le monde, en
+              silence. Taille et poids saisis, sexe laissé sur « — », c'est un
+              corps qui n'existe nulle part.
+
+              Elle vivait sur la carte d'ajout de l'entonnoir
+              (`setup.mouths.body_together`), et cette carte vient d'être
+              remplacée par CETTE fiche (A5). Sans ce déménagement, la seule
+              phrase du produit qui annonce `body_incomplete` avant le clic
+              serait partie avec les champs qu'elle commentait.
+
+              ⛔ NE PAS LA SUPPRIMER PARCE QUE LES TROIS CHAMPS ONT DÉSORMAIS
+              DES ÉTIQUETTES. Les étiquettes disent ce QU'EST chaque champ;
+              elle seule dit que les trois vont ENSEMBLE. */}
+          <p className="-mt-1 text-sm leading-6 text-ink-soft">
+            {t("setup.mouths.body_together")}
+          </p>
 
           {/* ── LE NIVEAU D'ACTIVITÉ — le champ neuf ────────────────────────
               `energy_target.ts` servait une fourchette de 28 à 33 kcal/kg parce
