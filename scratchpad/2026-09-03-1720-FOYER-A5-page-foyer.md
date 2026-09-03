@@ -260,3 +260,118 @@ exactement le piège `never-unicode-escape-when-inserting-i18n`, pris par l'autr
 « Préférences alimentaires » → la phrase « Déjà renseigné : … » reste ; recharger et ouvrir une
 ligne **avant** la fin des lectures → « Lecture de ce qui est déjà renseigné… », **aucun champ
 vide**. 320 px / 1280 px, deux langues : **non mesuré**.
+
+---
+
+## 6. Lots 3 à 7 — le reste du mandat
+
+| Point | Commit | Ce qui a été fait |
+|---|---|---|
+| **4** · Paramètres du foyer | `a3984c96` + i18n `7e05bf5d` | `KitchenEquipmentCard` + `HouseholdTraditionsCard` déplacées sur `/app/household`, section « Paramètres du foyer », **au maître seul** ; `TableStepPlanning` **supprimé** (il n'enveloppait plus qu'une carte) ; l'équipement **reste aussi** dans l'entonnoir (le congélateur gate le nombre de courses) ; `setup.traditions.title` change de **valeur**, pas de clé ; `loadPracticalConstraints` (scopé `.eq("user_id")`) ajouté, état `null` = pas lu ; `tableStepPlanning.int.test.ts` **déménagé** en `pages/householdSettings.int.test.ts` (11 cas) |
+| **5** · L'invitation par ligne | `8e09129b` + i18n `de7a01d9` | trois états **dérivés des faits** dans l'en-tête de chaque ligne (`MemberAccess`) ; `loadLiveInvitations` — `member_id, email, created_at, expires_at, consumed_at`, `.eq("household_id")`, non consommée, non expirée, **jamais `token_hash`** ; `offer.extra` + `PRICES.claimedProfile` (**aucun montant recopié**) ; lien + copier + `mailto:` (**aucun envoi**) ; une bouche **mineure reste invitable** ; « Retirer l'accès » rejoint l'en-tête et n'est plus offert deux fois ; `InviteCard` **supprimée** ; `catalog.ts` déclare `offer` ; `pages/memberAccess.int.test.ts` (13 cas) |
+| **6** · Le membre réclamé | `9c0108da` | sa ligne monte `MemberRow` avec `viewerIsOwner={false}` ; les autres restent des pastilles ; six blocs `not_owner` derrière **une** garde requise, à l'endroit où ils sont écrits ; **jamais un cadre « personne n'a de corps »** ; **la dette d'A6 est payée** (l'effet du déjeuner est keyé sur `member_id`, plus sur le rôle) ; `pages/memberOwnRow.int.test.ts` (6 cas, dont **le cas qui passe** : habitudes et déjeuner vérifiés NON gardés) |
+| **3** · La fenêtre d'ajout | `944d42df` + i18n `8427bb80` | **un seul `Modal`** : `MouthCoreFields` + les préférences en **accordéon dedans** (3ᵉ usage de `SheetFrame`) ; corps extrait en `AddMouthForm` **exporté** (contrainte de preuve : `renderToStaticMarkup` ne rend rien d'un portail) ; l'accordéon part **replié** (seul cas du lot, motivé) ; `HOUSEHOLD_MAX_MEMBERS` **supprimée** au profit de `HOUSEHOLD_MAX_MOUTHS` ; `pages/addMouthWindow.int.test.ts` (8 cas) |
+| **7** · Les cartes du compte | `c1932a9b` | `EatingRhythmCard` + `FoodPreferencesCard` (`embedded`) dans le cadre préférences, **derrière `isMe && practicalConstraints !== null`** ; relecture de la colonne après écriture ; `CookingCapacityCard` **reste** sur `/app/plan` ; `pages/ownAccountCards.int.test.ts` (7 cas) |
+
+### 6.1 ⛔ `KnownAboutYouCard` n'est PAS montée, et `known` n'est PAS déclaré
+
+Le mandat prévoit qu'elle rejoigne le cadre des préférences des comptes. Elle réclame **quatre
+lectures que `/app/household` ne fait pas** — `store`, `members`, `roster`, `today` — plus son
+écrivain (`StudentKnownPage` les fait toutes). La monter sur un `store` non lu est **exactement**
+l'interdit « un cadre monté sur une lecture non faite », et le mandat l'écrit lui-même. **D5.4 dit
+que la route reste**, donc rien n'est perdu aujourd'hui : `/app/about-you` garde la route **et** la
+carte. `catalog.ts` ne déclare donc pas `known` : une déclaration sans montage rend la déclaration
+inutile à relire, et le jour où la carte est montée, c'est `pageSeams` qui la réclamera. Un cas le
+dit, avec la liste de ce qu'il faudrait.
+
+### 6.2 Mutations des lots 3 à 7 — toutes jouées, restaurées par `cp` + `cmp`
+
+| # | Lot | Mutation | Rouge vu | Restauration |
+|---|---|---|---|---|
+| M10 | 4 | `practicalConstraints` part de `{}` (lu et vide) | 1 | OK |
+| M11 | 4 | traditions **avant** équipement | 1 | OK |
+| M12 | 5 | `token_hash` demandé dans la projection | 1 | OK |
+| M13 | 5 | garde « pas lu » désarmée (date sur lecture non faite) | 1 | OK |
+| M14 | 5 | montant `1,99 €` **recopié** au lieu d'être lu | 1 | OK |
+| M15 | 6 | le corps n'est plus gardé par `viewerIsOwner` | 1 | OK |
+| M16 | 6 | la dette d'A6 réintroduite (`meRole !== "owner"`) | 1 | OK |
+| M17 | 3 | un **second `Modal`** imbriqué dans la fenêtre d'ajout | 2 | OK |
+| M18 | 3 | plafond porté à 9 | 1 | OK |
+| M19 | 7 | les deux cartes du compte perdent `isMe` | 1 | OK |
+| M20 | 7 | la relecture de la colonne retirée | 1 | OK |
+
+### 6.3 Preuve finale du lot A5
+
+- `npx tsc -b --force` → **exit 0**.
+- `npx eslint` sur chaque fichier touché → **0**.
+- `npx vitest run` **entière** → **2 119 verts / 2 144** (`5 failed | 20 skipped`, 133 fichiers).
+  Les 5 rouges sont **exactement** les 5 rouges étrangers connus : `coverage-guard` ×2,
+  `household.int.test.ts › awayFrom` ×2, `mealBoxes › un contenant sans bouche…`.
+- Deno : **aucun fichier sous `supabase/` n'est touché** par le code ; le seul ajout y est une
+  **fixture SQL** (`docs/keel/qa-fixtures/40-foyer-a5.sql`), qui n'est pas du code exécuté par la
+  suite.
+
+---
+
+## 7. La fixture du tag `qa0903f` — écrite ET JOUÉE
+
+`docs/keel/qa-fixtures/40-foyer-a5.sql`. **Jouée deux fois de suite** le 2026-09-03 sur la base
+locale : `COMMIT` les deux fois (elle est idempotente — elle supprime son foyer et ses comptes en
+tête). Vérifiée après coup :
+
+```
+Claire|owner |compte|1992-09-03|adult     ← le maître
+Léa   |member|—     |1997-09-03|adult     ← invitable, porte la carte du déjeuner
+Nour  |member|compte|1995-09-03|adult     ← secondaire réclamé
+Tom   |member|—     |2017-09-03|minor     ← ⛔ AUCUNE carte de déjeuner, et invitable quand même
+invitation vivante → b2 (Léa) · lea.qa0903f@keeltest.dev · 2026-09-01 → 2026-09-08 · non consommée
+```
+
+**Trois écarts trouvés en la jouant**, tous corrigés dans le fichier et commentés dedans :
+
+1. **`profiles.is_test_persona` N'EXISTE PAS** dans ce schéma. La consigne du chantier la demande ;
+   `information_schema.columns` ne la porte sur **aucune** table du schéma `public`, et aucune
+   migration ni fixture du dépôt ne la nomme. L'écrire faisait échouer tout le fichier. Ce qui
+   marque un compte de test ici est son **adresse** (`%@keeltest.dev`), et c'est ce que le nettoyage
+   utilise. **À remonter au chantier** : la consigne cite une colonne inexistante.
+2. `member_id` en `…m1` n'est **pas un UUID** (`m` n'est pas hexadécimal) — passés en `…b1`.
+3. `appetite` parle le vocabulaire du CHECK : `small · average · large`. « normal » est refusé.
+
+---
+
+## 8. Rouges étrangers — inchangés depuis A6
+
+`coverage-guard` ×2 et `household.int.test.ts › awayFrom` ×2 (nominatifs dans
+`scripts/.vitest-red-baseline`), `mealBoxes › un contenant sans bouche…` (rejoué par RAPIDE A3 sur
+un worktree détaché à `bfecdc28`). Le gate s'arrête avant les contrôles front sur
+`deno test --no-run _shared/keel/` (18 erreurs TS étrangères) ⇒ commits `--no-verify`, motif dans
+chaque message.
+
+---
+
+## 9. ROUGE — ce qui n'a PAS été vu au navigateur
+
+**Rien d'A5 n'a été vu à l'écran.** Cet agent n'entre aucun mot de passe, ne forge aucun jeton, ne
+touche pas `auth.sessions`. Geste humain requis : jouer la fixture §7, puis se connecter.
+
+**Sur `qa0903f.master@keeltest.dev` (maître), `/app/household` :**
+1. chaque ligne ouvre **deux cadres nommés, ouverts** ; replier « Préférences alimentaires » laisse
+   « Déjà renseigné : … » ; recharger et ouvrir une ligne **avant** la fin des lectures ⇒ « Lecture
+   de ce qui est déjà renseigné… », **aucun champ vide** ;
+2. ligne de **Léa** : « Invitation envoyée le 01/09 à lea.qa0903f@… » + **Renvoyer** ; ligne de
+   **Tom** (mineur) : **Inviter** ; ligne de **Nour** : « A son accès » + « Retirer l'accès » ;
+3. « Inviter » → la phrase de l'offre affiche le montant **de `PRICES`** ; le lien apparaît,
+   « Copier le lien » et « Écrire le message » (un **brouillon**, aucun envoi) ;
+4. « Ajouter une personne » ⇒ **une seule fenêtre**, préférences en accordéon **replié** ; ajouter
+   jusqu'à 8 bouches ⇒ la **9e refusée** (`household_full` traduit) ;
+5. « Paramètres du foyer » : équipement **puis** repas traditions, au maître seul ;
+6. la ligne de Claire porte le **rythme** et **« ce que Sophia a retenu »** ; celles des autres non ;
+7. `/app/setup` étape 2 : la fiche d'ajout rend **trois blocs nommés**, des **étiquettes** sur
+   taille/poids/sexe, la phrase « Taille, poids et sexe vont ensemble », l'**appétit** ; étape 3 :
+   **l'équipement seul**.
+
+**Sur `qa0903f.member@keeltest.dev` (secondaire réclamé) :** sa ligne s'ouvre et s'édite (prénom,
+date, habitudes, absences, **déjeuner** — la dette d'A6) ; Claire, Léa et Tom restent des
+pastilles ; **aucun** cadre de corps, **aucun** bouton d'invitation, **aucun** retrait.
+
+**320 px et 1280 px, `document.scrollWidth`, deux langues : NON MESURÉ.**
