@@ -194,6 +194,27 @@ export interface PlanEnergyView {
 }
 
 /**
+ * ⟳ LOT 4 (2026-09-01) — LES DEUX FORMES DE FOURCHETTE, VOCABULAIRE FERMÉ.
+ *
+ * ⚠️ LA BASE N'EST PAS DÉCORATIVE, C'EST ELLE QUI CHOISIT LA PHRASE. « Autour
+ * de 2 100–2 500 pour ton poids » et « … pour ta perte de poids » ne sont pas
+ * le même énoncé, même quand les nombres coïncident. Un jeton inconnu retombe
+ * sur `weight_range`, c'est-à-dire sur le comportement d'hier — jamais sur une
+ * phrase inventée.
+ */
+export const ENERGY_TARGET_BASES = [
+  "weight_range",
+  "weight_range_with_direction",
+] as const;
+
+/**
+ * ⟳ LOT 4 — LA DIRECTION QUE LA FOURCHETTE A SUIVIE. Vocabulaire FERMÉ, aligné
+ * sur `ScaleDirection` du back (`weight_pace.ts`).
+ */
+export const ENERGY_TARGET_DIRECTIONS = ["up", "down"] as const;
+export type EnergyTargetDirection = (typeof ENERGY_TARGET_DIRECTIONS)[number];
+
+/**
  * FF-059 LOT 3 — LA CIBLE, NIVEAU C.
  *
  * ⚠️ UNE FOURCHETTE, JAMAIS UN POINT, et c'est la forme qui décide si ce
@@ -204,8 +225,12 @@ export interface PlanEnergyView {
  * kcal » est LA phrase d'un tracker. Le total et la fourchette se posent côte à
  * côte, et c'est l'élève qui lit.
  *
- * C'est une MAINTENANCE — ce que ce corps dépense — jamais un déficit. Aucun
- * objectif n'entre dedans.
+ * ⟳ **CE N'EST PLUS TOUJOURS UNE MAINTENANCE (lot 4, 2026-09-01).** Quand la
+ * personne vise une perte ou une prise, le serveur décale la fourchette de
+ * l'écart que le MOTEUR exécute déjà sur ses grammages — pas d'un écart calculé
+ * pour l'écran. Ce qui reste vrai, et qui ne bougera pas: la largeur ne change
+ * pas, rien n'est soustrait du total du jour, et aucun verdict n'accompagne le
+ * nombre.
  */
 export interface EnergyTargetView {
   /** `null` avec un `gap` nommé: `no_weight` ou `implausible_weight`. */
@@ -215,6 +240,25 @@ export interface EnergyTargetView {
   gap: string | null;
   /** La semaine de la pesée qui a servi. Aucune fraîcheur n'en est dérivée. */
   weightWeekStart: string | null;
+  /**
+   * ⟳ LOT 4 — `null` = c'est une maintenance, et c'est le cas nominal.
+   *
+   * ⚠️ IL PART AVEC `basis`, JAMAIS SEUL — voir `readTarget`. Une direction
+   * sans sa base ferait dire « pour ta perte de poids » à des nombres
+   * d'entretien: le défaut d'origine, avec l'étiquette en plus.
+   */
+  direction: EnergyTargetDirection | null;
+  /**
+   * ⟳ LOT 4 — POURQUOI ELLE N'A PAS SUIVI: `no_pace` · `below_energy_floor` ·
+   * `condition_cancelled`. `null` quand il n'y a rien à expliquer.
+   *
+   * ⛔ AUCUN DES TROIS NE SE RACONTE À L'ÉCRAN AUJOURD'HUI, et c'est délibéré:
+   * « ta fourchette n'a pas bougé parce que tu es enceinte » serait parler de
+   * déficit à quelqu'un à qui on vient de le retirer, et « … parce que ça
+   * passerait sous ton plancher » serait nommer un nombre de famine pour dire
+   * qu'on refuse de l'afficher. Le champ voyage pour être COMPTÉ, pas dit.
+   */
+  directionGap: string | null;
 }
 
 export type EnergyReading =
@@ -470,14 +514,40 @@ export function readTarget(raw: unknown): EnergyTargetView | null {
   const low = finiteEnergyNumber(t.low);
   const high = finiteEnergyNumber(t.high);
   const both = low !== null && high !== null;
+
+  // ── ⟳ LOT 4 · LA DIRECTION EST TOUT-OU-RIEN AVEC SA BASE ET SES BORNES ──
+  //
+  // TROIS conditions, toutes requises, et chacune ferme un énoncé faux:
+  //
+  //   · le jeton doit être DANS le vocabulaire fermé — sinon la phrase sortirait
+  //     avec « undefined » dedans, comme `EATING_OUT_SLOT_LABELS` l'a déjà fait;
+  //   · la BASE doit dire `weight_range_with_direction` — une direction posée
+  //     sur une base d'entretien ferait dire « pour ta perte de poids » à des
+  //     nombres qui n'ont pas bougé, c'est-à-dire le défaut que ce lot répare,
+  //     avec une étiquette qui le rend indétectable;
+  //   · les DEUX bornes doivent exister — une direction annoncée au-dessus d'un
+  //     `no_weight` promettrait une fourchette adaptée là où il n'y a rien.
+  //
+  // Le repli est `null`, c'est-à-dire EXACTEMENT le comportement d'avant ce
+  // champ: la phrase de maintenance, qui était vraie et le reste.
+  const declaredBasis = String(t.basis ?? "");
+  const declaredDirection = String(t.direction ?? "");
+  const directed = both &&
+    declaredBasis === "weight_range_with_direction" &&
+    (ENERGY_TARGET_DIRECTIONS as readonly string[]).includes(declaredDirection);
+
   return {
     low: both ? low : null,
     high: both ? high : null,
-    basis: String(t.basis ?? ""),
+    basis: declaredBasis,
     gap: t.gap === null || t.gap === undefined ? null : String(t.gap),
     weightWeekStart: t.weight_week_start === null || t.weight_week_start === undefined
       ? null
       : String(t.weight_week_start),
+    direction: directed ? (declaredDirection as EnergyTargetDirection) : null,
+    directionGap: t.direction_gap === null || t.direction_gap === undefined
+      ? null
+      : String(t.direction_gap),
   };
 }
 

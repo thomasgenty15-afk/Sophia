@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Identifiant** | `FF-059-le-chiffre-affiche` |
-| **Statut** | 🟡 Spécifiée — **renverse une décision produit**, voir §1 |
+| **Statut** | 🟢 Lots 1-4 construits. Lot 4 (2026-09-01) : la direction ouvre le chiffre, et la fourchette la suit |
 | **Date** | 2026-08-12 |
 | **Autorité produit** | Décision humaine du 2026-08-12 · [CALORIE_REVERSAL.md](../../keel/CALORIE_REVERSAL.md) (le cadre) · [CONTRACT.md](../../keel/CONTRACT.md) amendement non-input #4 |
 | **Dépend de** | `_shared/keel/student_body_io.ts` (poids, taille, sexe, âge) · `doctrine_starter.ts` axe `counting` · `restriction_guard.ts` (le plancher) · `meal_generation.ts` (les quantités du plan) |
@@ -62,9 +62,26 @@ ordre :
 | # | Porte | Qui décide | Si fermée |
 |---|---|---|---|
 | **1** | **Plancher TCA** — `restriction_flag` levé | **personne.** Ni le coach, ni l'élève, ni un réglage | aucun chiffre, nulle part, sans exception |
-| **2** | **Mineur** | personne | aucun chiffre |
+| **2** | **Mineur**, et **2bis l'âge inconnu** (⟳ S3) | personne | aucun chiffre |
 | **3** | **La doctrine du coach** — axe `counting` | le coach | `no_counting` → aucun chiffre |
-| **4** | **L'interrupteur de l'élève** | l'élève | il éteint, ça se tait |
+| **4** | **L'interrupteur de l'élève** — ⟳ **tri-état** | l'élève | il éteint, ça se tait |
+
+⟳ **LOT 4 (2026-09-01) — LA PORTE 4 S'OUVRE TOUTE SEULE QUAND LA DIRECTION EST
+DÉCLARÉE.** Décision humaine : *« dès qu'une personne dit qu'elle veut gagner ou
+perdre du poids, elle doit être en capacité de voir ces chiffres. Comme ça c'est
+pas compliqué et ça se fait automatiquement. »*
+
+`profiles.energy_display_enabled` et `energy_target_enabled` sont des **tri-états** :
+`null` = personne n'a choisi ⇒ `fat_loss` et `muscle_gain` ouvrent, `maintenance`
+et l'absence ferment ; `true`/`false` = choix explicite, et **`false` gagne pour
+toujours** (R7). La dérivation s'écrit **une seule fois**, dans `energySwitchFrom`
+(`_shared/keel/energy_gate.ts`), et elle entre en **quatrième position** : elle ne
+desserre ni 1, ni 2, ni 3. On ne pose la question à personne — on lit une réponse
+déjà donnée, celle que `canGenerate` exige de tout adulte à l'entonnoir.
+
+⚠️ **Ce que ça n'ouvre pas :** la porte 2bis reste fermée sans date de naissance,
+et le bouton reste alors invisible (`switch_offerable: false`) — délibérément :
+« donne ta date, reçois des calories » serait un marchandage.
 
 ⚠️ **La porte 1 n'est pas l'exception dont parle la décision.** Le coach décide
 de la porte 3 ; **il ne peut pas ouvrir la porte 1**. Un coach qui compte et un
@@ -85,6 +102,30 @@ inventer** — il faut la lire, pas la construire.
 | **A — par plat** | « ce plat : ~550 kcal » | un **fait** sur l'aliment | quantités écrites par le produit — CALCUL, 2,3 % |
 | **B — par jour** | « la journée : ~1 950 kcal » | la somme de A | même base |
 | **C — contre une cible** | « 1 420 / 2 100 aujourd'hui » | un **jugement** sur la personne | A + B + une cible estimée |
+
+⟳ **LOT 4 — LE NIVEAU C SUIT DÉSORMAIS LA DIRECTION.** La fourchette était une
+MAINTENANCE nue : quelqu'un qui visait une perte lisait, sous le total de sa
+journée, ce que son corps dépense — et devait faire la soustraction lui-même.
+Pendant ce temps le moteur, lui, dimensionnait déjà ses grammages sur une cible
+EN DÉFICIT (`mouthTargetKcal`). Deux nombres, sur le même écran, en désaccord
+sur ce que cette personne cherche.
+
+`directedRange` (`_shared/keel/energy_target.ts`) décale la fourchette de
+**l'écart que le moteur EXÉCUTE** (`executedPaceFor().dailyDeltaKcal`), et de
+rien d'autre. Ce qui ne change pas, et ne changera pas :
+
+- **la largeur** — les deux bornes bougent du même nombre, arrondi aux 50 AVANT
+  le décalage. Une fourchette qui se resserre se lit comme une cible ;
+- **la base** — elle reste le POIDS. `directedRange` n'appelle ni
+  `estimatedMaintenanceFor`, ni Mifflin-St Jeor, et un test lit sa source pour
+  le refuser ;
+- **le plancher** — si le décalage passait sous `ENERGY_FLOOR_KCAL`, on rend la
+  MAINTENANCE avec `below_energy_floor`. **On ne rabote pas** : une borne rabotée
+  serait à la fois une fourchette rétrécie et un nombre que le moteur n'exécute
+  pas ;
+- **la grossesse** — `condition_energy_gate.ts` annule l'écart (`pregnancy`,
+  `breastfeeding`), sur la fourchette **et** sur le conseil du midi, qui ne le
+  consultait pas.
 
 **A et B sont des propriétés de la nourriture. C est un tracker.** La distinction
 n'est pas rhétorique : elle décide du traitement. `count_briefly` peut
@@ -177,7 +218,7 @@ Seul le **niveau d'activité** manque réellement.
 | **R3** | Un chiffre vit dans un champ typé qui **porte sa base**, ou il n'existe pas | la règle de `CALORIE_REVERSAL`, inchangée. Ici la base est `plan_quantities` |
 | **R4** | Le chiffre en **prose libre** reste interdit et supprimé | seule forme où un nombre voyage sans sa base |
 | **R5** | Le chiffre se **calcule**, ne se stocke pas | un chiffre stocké survit au plan qui l'a produit et ment |
-| **R6** | La cible (C) est **informative**, jamais pilotante | un plan qui vise un chiffre est un régime chiffré |
+| **R6** | ~~La cible (C) est **informative**, jamais pilotante~~ **RENVERSÉ le 2026-08-18** : elle contraint les GRAMMAGES (lot L8). ⟳ Depuis le lot 4 la fourchette AFFICHÉE le dit — la copie qui promettait l'inverse est partie | un chiffre affiché qui contredit la casserole est pire que pas de chiffre |
 | **R7** | L'élève peut éteindre, et ça se tait partout | « un chiffre qu'on ne peut pas faire taire est un tracker » |
 | **R8** | Aucun chiffre chez un mineur | garde existante, deux langues |
 | **R9** | Le test de propriété se **retourne**, il ne se supprime pas | de « aucun chiffre n'atteint l'élève » à « aucun chiffre **sans base** n'atteint l'élève » |
@@ -283,9 +324,13 @@ l'interdiction d'origine voulait éviter.
 2. **`count_briefly`** autorise-t-il A et B seulement, ou aussi C ? La position
    du coach dit « deux semaines, c'est une leçon » — un **temps** est peut-être
    à respecter, pas seulement un booléen.
-3. **L'interrupteur** est-il par défaut allumé ou éteint ? Allumé suit la
-   décision ; éteint est plus prudent pour un produit qui n'a jamais montré de
-   chiffre.
+3. ~~**L'interrupteur** est-il par défaut allumé ou éteint ?~~ **TRANCHÉ le
+   2026-09-01 (lot 4) : ni l'un ni l'autre — un TRI-ÉTAT.** Éteint par défaut
+   avait un coût mesurable : sur la base locale, **0 compte sur 38 ayant un plan
+   n'avait jamais allumé**, et la seule porte d'entrée était un bouton en bas de
+   l'écran du plan, invisible tant qu'aucun plan n'existe. Allumé pour tout le
+   monde aurait appliqué le renversement à des gens qui ne visent rien. Le
+   tri-état lit la direction déjà déclarée. Voir §3.
 4. **Le foyer** : les chiffres des autres bouches sont-ils visibles du maître ?
    La règle existante dit *ce qui touche le corps est à soi* — un chiffre par
    portion est-il « le corps » ou « le repas » ?

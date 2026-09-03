@@ -12,8 +12,22 @@ import {
   canShowTarget,
   countingStanceFrom,
   type EnergyGateReason,
+  energySwitchFrom,
 } from "../_shared/keel/energy_gate.ts";
-import { maintenanceRange } from "../_shared/keel/energy_target.ts";
+import {
+  directedRange,
+  maintenanceRange,
+  type TargetDirectionGap,
+} from "../_shared/keel/energy_target.ts";
+// ⟳ LOT 4 — LE GARDE DE GROSSESSE, SUR LE CHIFFRE AFFICHÉ CETTE FOIS. Il
+// existait depuis L0bis et ne gardait que le DIMENSIONNEMENT: `mouthTargetKcal`
+// l'appelle, cette lane-ci ne l'appelait pas. Tant que la fourchette affichée
+// était une maintenance nue, ça n'avait pas d'importance — elle ne portait
+// aucun déficit à annuler. Le lot 4 lui en donne un, donc il faut le garde.
+import {
+  cancelsEnergyDeficit,
+  conditionGatePopulationOf,
+} from "../_shared/keel/condition_energy_gate.ts";
 import { ACTIVITY_LEVELS, type ActivityLevel } from "../_shared/keel/tokens.ts";
 import { latest, loadStudentBody } from "../_shared/keel/student_body_io.ts";
 import { evaluateRestrictionForStudent } from "../_shared/keel/restriction_runtime.ts";
@@ -45,7 +59,15 @@ import {
 } from "../_shared/keel/meal_generation.ts";
 // ① — LE CONSEIL DU MIDI. La fonction et ses gardes existent depuis L8-B et
 // n'avaient AUCUN appelant. Les cinq portes vivent DANS le module, jamais ici.
-import { eatingOutAdvice } from "../_shared/keel/household_portions.ts";
+// ⟳ LOT 4 — `DEFAULT_PACE_KG_PER_WEEK` VIENT DE LÀ, ET IL EST IMPORTÉ. Le
+// moteur qui pèse les grammes l'applique déjà quand personne n'a réglé de
+// curseur (`household_portions.ts`, « LOT B ① »); un second `0.25` écrit ici
+// divergerait au premier ajustement, et c'est celui qu'on relit le moins qui
+// garderait l'ancien.
+import {
+  DEFAULT_PACE_KG_PER_WEEK,
+  eatingOutAdvice,
+} from "../_shared/keel/household_portions.ts";
 import {
   type MemberAway,
   presenceStateFor,
@@ -54,8 +76,10 @@ import { ageStateFromVerdict } from "../_shared/keel/household.ts";
 import type { MouthBody } from "../_shared/keel/meal_envelope.ts";
 import { effectiveRhythm } from "../_shared/keel/daily_recommendation.ts";
 import {
+  energyFloorFor,
   executedPaceFor,
   maintenancePaceFor,
+  type ScaleDirection,
   scaleDirectionOf,
 } from "../_shared/keel/weight_pace.ts";
 import { type BirthDateVerdict, usableAge } from "../_shared/keel/student_age.ts";
@@ -140,6 +164,27 @@ type ResponseReason = EnergyGateReason | "unavailable" | "no_plan";
  * dépendre d'aucune trace.
  */
 const HOUSEHOLD_ABSTENTION = "household_portions_not_numeric";
+
+/**
+ * ⟳ LOT 4 — UNE COLONNE TRI-ÉTAT, LUE SANS L'ÉCRASER.
+ *
+ * ── LE PIÈGE EXACT QUE CETTE FONCTION EXISTE POUR FERMER ──────────────────
+ * `Boolean(null)` vaut `false`, et `col === true` vaut `false` sur `null`
+ * AUSSI. Les deux raccourcis transforment donc « personne n'a choisi » en
+ * « la personne a éteint » — c'est-à-dire qu'ils annulent tout le lot 4 sans
+ * qu'aucun type ne bronche et sans qu'aucun test de la garde ne rougisse. Ce
+ * dépôt a déjà payé exactement ce mode d'échec sur `Number(null) === 0`
+ * (`finiteEnergyNumber`, côté client): l'absence devenue une valeur.
+ *
+ * ⚠️ ET UNE VALEUR INCONNUE REND `false`, PAS `null`. Se fermer coûte un
+ * chiffre absent; s'ouvrir met un chiffre sous les yeux de quelqu'un dont on
+ * n'a pas su lire le choix. C'est la même direction d'échec que partout ici.
+ */
+function readTriState(value: unknown): boolean | null {
+  if (value === null || value === undefined) return null;
+  if (typeof value === "boolean") return value;
+  return false;
+}
 
 function requireEnv(name: string): string {
   const v = Deno.env.get(name);
@@ -558,16 +603,38 @@ Deno.serve(async (req) => {
     // seconde définition de « mineur » dans le même fichier — celle qui, un
     // jour, ne serait pas ajustée.
     let ageVerdict: BirthDateVerdict | null = null;
+    // ⟳ LOT 4 — LA LIGNE D'OBJECTIF, LUE UNE SEULE FOIS ET RÉUTILISÉE.
+    //
+    // ⚠️ ELLE REMONTE AVANT LA CHAÎNE, ET CE N'EST PAS UN RELÂCHEMENT DE LA
+    // GARDE. La règle du 2026-08-18 dit « la garde ne PRODUIT jamais le
+    // chiffre »: ce qui reste derrière la porte ⑤ est tout ce qui DÉRIVE DU
+    // CORPS — le poids, la taille, l'entretien, la cible. Un objectif n'est pas
+    // un corps: c'est une réponse que la personne a écrite elle-même, au même
+    // rang que sa date de naissance et la doctrine de son coach, qui sont déjà
+    // lues ici pour décider les portes. Aucun kcal n'existe encore à cette
+    // ligne, et il n'y a donc rien à filtrer plus bas.
+    //
+    // ⛔ ET UNE SEULE LECTURE, PAS DEUX. `student_goals` était relue plus bas
+    // pour le conseil du midi; deux lectures de la même table divergent, et
+    // c'est celle qu'on regarde le moins qui garde l'ancien comportement.
+    let goalsRow: Record<string, unknown> | null = null;
+    let direction: ScaleDirection | null = null;
     try {
-      const [profileRes, loaded] = await Promise.all([
+      const [profileRes, loaded, goalsRes] = await Promise.all([
         admin
           .from("profiles")
           .select("timezone, birth_date, energy_display_enabled, energy_target_enabled")
           .eq("id", userId)
           .maybeSingle(),
         loadPublishedDoctrine(admin, userId),
+        admin
+          .from("student_goals")
+          .select("goal, target_pace_kg_per_week, practical_constraints")
+          .eq("user_id", userId)
+          .maybeSingle(),
       ]);
       if (profileRes.error) throw profileRes.error;
+      if (goalsRes.error) throw goalsRes.error;
       const profile = (profileRes.data ?? null) as Record<string, unknown> | null;
       if (!profile) return closed(req, requestId, "unavailable");
 
@@ -604,21 +671,45 @@ Deno.serve(async (req) => {
         });
 
       ageVerdict = assessBirthDate(profile.birth_date, today);
+
+      // ⟳ LOT 4 — LA DIRECTION DE SA BALANCE, RÉDUITE UNE FOIS.
+      //
+      // ⚠️ ELLE VIENT DE `scaleDirectionOf`, jamais d'une table réécrite ici:
+      // la règle des trois directions est écrite une seule fois dans
+      // `weight_pace.ts`, et `maintenance` y rend `null` — c'est-à-dire que
+      // viser la stabilité n'ouvre RIEN, ce qui est exactement la décision.
+      goalsRow = (goalsRes.data ?? null) as Record<string, unknown> | null;
+      const goalToken = String(goalsRow?.goal ?? "").trim();
+      direction = (GOAL_TOKENS as readonly string[]).includes(goalToken)
+        ? scaleDirectionOf(goalToken as (typeof GOAL_TOKENS)[number])
+        : null;
+
       gate = canShowEnergy({
         restrictionFlag: floor.restriction_flag === true,
         ageVerdict,
+        // ⟳ LOT 4 — LA COLONNE EST UN TRI-ÉTAT, ET ELLE NE SE LIT PLUS
+        // `=== true`. `null` veut dire « personne n'a choisi », et c'est alors
+        // la direction qui décide. Un `=== true` ici refermerait le chiffre à
+        // tous ceux que leur objectif devait ouvrir, en silence.
+        //
+        // ⛔ ET LA DÉRIVATION N'EST PAS ÉCRITE ICI. `energySwitchFrom` est la
+        // seule écriture de la règle; deux `??` posés dans deux fonctions edge
+        // divergeraient au premier jeton d'objectif ajouté.
         coachCounting,
-        // La colonne est `not null default false`; le `=== true` couvre la
-        // ligne qu'un backfill futur laisserait nulle, et il se ferme dans le
-        // bon sens.
-        studentSwitch: profile.energy_display_enabled === true,
+        studentSwitch: energySwitchFrom({
+          stored: readTriState(profile.energy_display_enabled),
+          direction,
+        }).on,
       });
       // ⑤ LA CIBLE. Elle prend le RÉSULTAT de la chaîne A/B, pas ses entrées:
       // il n'existe donc aucun chemin vers une cible qui ne traverse pas
       // d'abord les quatre portes.
       targetGate = canShowTarget({
         energy: gate,
-        targetSwitch: profile.energy_target_enabled === true,
+        targetSwitch: energySwitchFrom({
+          stored: readTriState(profile.energy_target_enabled),
+          direction,
+        }).on,
       });
     } catch (error) {
       // FAIL-CLOSED. Un plancher TCA ILLISIBLE vaut un plancher LEVÉ — même
@@ -724,45 +815,16 @@ Deno.serve(async (req) => {
           weightWeekStart: last?.weekStart ?? null,
           activityLevel,
         });
-        target = {
-          // ⚠️ UNE FOURCHETTE, JAMAIS UN POINT — c'est la forme qui décide si
-          // ce chiffre devient un objectif. Et AUCUN RESTE: la fonction ne
-          // soustrait rien du total du jour, et l'écran non plus. « Il te reste
-          // 680 kcal » est la phrase d'un tracker, et elle n'existe sur aucun
-          // chemin de ce produit.
-          low: range.range?.low ?? null,
-          high: range.range?.high ?? null,
-          basis: range.basis,
-          gap: range.gap,
-          // La date de la pesée, pour que l'élève sache sur QUAND la fourchette
-          // est posée. Aucune fraîcheur n'est calculée: ce serait un verdict de
-          // plus sur son corps.
-          weight_week_start: range.weightWeekStart,
-        };
 
         // ── ① LE CONTEXTE DU CONSEIL DU MIDI ─────────────────────────────
         //
-        // UNE SEULE REQUÊTE POUR TROIS COLONNES de `student_goals`: l'objectif,
-        // le cran du curseur, et le rythme déclaré. Deux lectures de la même
-        // table divergent, et c'est celle qu'on regarde le moins qui garde
-        // l'ancien comportement.
-        const goalsRes = await admin
-          .from("student_goals")
-          .select("goal, target_pace_kg_per_week, practical_constraints")
-          .eq("user_id", userId)
-          .maybeSingle();
-        if (goalsRes.error) throw goalsRes.error;
-        const goals = (goalsRes.data ?? null) as Record<string, unknown> | null;
-        const pc = (goals?.practical_constraints ?? null) as
+        // ⟳ LOT 4 — `goalsRow` ET `direction` SONT DÉJÀ LUS, plus haut, parce
+        // que la porte ④ en a besoin. La seconde requête qui vivait ici a
+        // disparu: deux lectures de la même table divergent, et c'est celle
+        // qu'on regarde le moins qui garde l'ancien comportement.
+        const pc = (goalsRow?.practical_constraints ?? null) as
           | Record<string, unknown>
           | null;
-        const goal = String(goals?.goal ?? "").trim();
-        // ⚠️ LA DIRECTION VIENT DE `scaleDirectionOf`, jamais d'une table
-        // réécrite ici: la règle des trois directions est écrite une seule fois
-        // dans `weight_pace.ts`, et `maintenance` y rend `null`.
-        const direction = (GOAL_TOKENS as readonly string[]).includes(goal)
-          ? scaleDirectionOf(goal as (typeof GOAL_TOKENS)[number])
-          : null;
         const mouthBody: MouthBody = {
           heightCm: body.heightCm,
           weightKg: last?.value ?? null,
@@ -793,7 +855,135 @@ Deno.serve(async (req) => {
           body: mouthBody,
           isMinor: ageVerdict.status === "minor",
         };
-        const pace = Number(goals?.target_pace_kg_per_week);
+        const pace = Number(goalsRow?.target_pace_kg_per_week);
+
+        // ── ⟳ LOT 4 · LES CONDITIONS DÉCLARÉES DU LECTEUR ────────────────
+        //
+        // ⛔ LUES ICI, ET PAS PLUS HAUT. Elles ne décident aucune PORTE — une
+        // grossesse n'a jamais fermé le chiffre, et ce lot ne le lui fait pas
+        // dire. Elles décident si un ÉCART a le droit d'exister, ce qui est une
+        // question qui ne se pose que derrière la porte ⑤.
+        //
+        // ⚠️ FAIL-CLOSED SUR LA LECTURE: une panne annule l'écart plutôt que de
+        // le laisser passer. Une fourchette d'entretien servie à quelqu'un qui
+        // vise une perte est décevante; un déficit servi à une femme enceinte
+        // qu'on n'a pas su lire est le défaut que `condition_energy_gate.ts`
+        // existe pour empêcher, et il est décrit là-bas avec sa mesure.
+        //
+        // ⚠️ UNE SEULE PROVENANCE, et elle exclut une population entière:
+        // `student_safety_constraints.condition_ref` est clée sur `user_id`. Ce
+        // n'est pas un trou de CE lot — le lecteur d'une réponse `meal-energy`
+        // a toujours un compte, par construction (le JWT).
+        let conditionCancelled: TargetDirectionGap | null = null;
+        try {
+          const condRes = await admin
+            .from("student_safety_constraints")
+            .select("condition_ref")
+            .eq("user_id", userId)
+            .not("condition_ref", "is", null);
+          if (condRes.error) throw condRes.error;
+          const refs = ((condRes.data ?? []) as Record<string, unknown>[])
+            .map((row) => String(row.condition_ref ?? "").trim())
+            .filter((ref) => ref !== "");
+          conditionCancelled =
+            cancelsEnergyDeficit(conditionGatePopulationOf(refs)) &&
+              direction === "down"
+              // ⛔ `direction === "down"` ET RIEN D'AUTRE, même règle qu'à
+              // l'octet près dans `mouthTargetKcal`: rabattre un SURPLUS
+              // retirerait de l'énergie à une femme enceinte qui en demande,
+              // sous le nom d'une protection. Ce garde retire des déficits.
+              ? "condition_cancelled"
+              : null;
+        } catch (condError) {
+          await logEdgeFunctionError({
+            functionName: FN_NAME,
+            requestId,
+            error: condError,
+            metadata: { source: "condition_gate" },
+          });
+          conditionCancelled = direction === "down" ? "condition_cancelled" : null;
+        }
+
+        // ── ⟳ LOT 4 · L'ÉCART QUE LE MOTEUR EXÉCUTE, ET RIEN D'AUTRE ─────
+        //
+        // ⚠️ CALCULÉ UNE FOIS, LU DEUX FOIS. La fourchette affichée et le
+        // conseil du midi descendent du MÊME `ExecutedPace`. Les calculer
+        // séparément ferait, sur le même écran, une fourchette qui suit un
+        // déficit et un conseil de déjeuner qui n'en suit pas.
+        //
+        // ⛔ ── LE DÉFAUT DE RYTHME, ET IL FERME UN ÉCART MESURÉ ────────────
+        //
+        // Cette ligne testait `pace > 0` et retombait sinon sur l'ENTRETIEN.
+        // Le moteur qui pèse les grammes, lui, applique
+        // `DEFAULT_PACE_KG_PER_WEEK` (`household_portions.ts`, « LOT B ① »)
+        // quand personne n'a réglé le curseur. Les deux ne parlaient donc pas
+        // de la même personne.
+        //
+        // MESURÉ SUR LA BASE LOCALE LE 2026-09-01: sur 47 comptes `fat_loss`,
+        // **7** ont un rythme; sur 18 `muscle_gain`, **6**. Autrement dit
+        // **87 %** des gens qui ont déclaré une direction avaient leurs
+        // portions dimensionnées en déficit pendant que cette lane-ci les
+        // traitait comme des gens qui ne visent rien. Sans cette correction, le
+        // lot 4 se serait appliqué à 13 % de sa population — c'est-à-dire un
+        // lot désarmé qui ressemble trait pour trait à un lot qui marche.
+        //
+        // ⚠️ CE N'EST PAS UN DÉFAUT INVENTÉ ICI. On lit celui du moteur, on ne
+        // le choisit pas — et une direction sans curseur n'est pas une absence
+        // de projet: c'est quelqu'un qui n'a pas touché un réglage optionnel.
+        const paceIsSet = Number.isFinite(pace) && pace > 0;
+        const executed = direction !== null
+          ? executedPaceFor(
+            direction,
+            subject,
+            paceIsSet ? pace : DEFAULT_PACE_KG_PER_WEEK,
+          )
+          : maintenancePaceFor(subject);
+        // ⛔ L'ANNULATION DE CONDITION S'APPLIQUE AUSSI AU CONSEIL DU MIDI, et
+        // c'est un défaut PRÉEXISTANT qu'on ferme en passant plutôt que de le
+        // dupliquer: cette lane appelait `executedPaceFor` sans jamais consulter
+        // le garde de grossesse, donc « au déjeuner, vise autour de 600 » était
+        // déjà posé sur un déficit pour une femme enceinte. Le laisser tel quel
+        // pendant qu'on retire ce même déficit de la fourchette produirait deux
+        // nombres contraires, à trois centimètres l'un de l'autre.
+        const executedForReading = conditionCancelled === null
+          ? executed
+          : (executed === null ? null : { ...executed, dailyDeltaKcal: 0, kgPerWeek: 0 });
+
+        // ── ⟳ LOT 4 · LA FOURCHETTE SUIT LA DIRECTION ────────────────────
+        //
+        // `directedRange` prend la maintenance en ENTRÉE et ne la recalcule
+        // pas: il n'existe donc qu'un seul endroit où « ce que ce corps
+        // dépense » se calcule, et un seul autre où un écart s'y ajoute.
+        const directed = directedRange({
+          maintenance: range,
+          direction,
+          // L'écart EXÉCUTÉ, jamais le cran choisi (cicatrice L8): le curseur
+          // d'une prise monte plus haut que ce que la casserole livre.
+          dailyDeltaKcal: executedForReading?.dailyDeltaKcal ?? 0,
+          energyFloorKcal: energyFloorFor(body.gender),
+          cancelled: conditionCancelled,
+        });
+        target = {
+          // ⚠️ UNE FOURCHETTE, JAMAIS UN POINT — c'est la forme qui décide si
+          // ce chiffre devient un objectif. Et AUCUN RESTE: la fonction ne
+          // soustrait rien du total du jour, et l'écran non plus. « Il te reste
+          // 680 kcal » est la phrase d'un tracker, et elle n'existe sur aucun
+          // chemin de ce produit.
+          low: directed.range?.low ?? null,
+          high: directed.range?.high ?? null,
+          // ⟳ LOT 4 — LA BASE DIT LAQUELLE DES DEUX FOURCHETTES C'EST, et
+          // l'écran en dépend pour choisir sa phrase. Un nombre sans sa base
+          // est très exactement ce que `CALORIE_REVERSAL` interdit.
+          basis: directed.basis,
+          gap: directed.gap,
+          direction: directed.direction,
+          direction_gap: directed.directionGap,
+          // La date de la pesée, pour que l'élève sache sur QUAND la fourchette
+          // est posée. Aucune fraîcheur n'est calculée: ce serait un verdict de
+          // plus sur son corps.
+          weight_week_start: directed.weightWeekStart,
+        };
+
         advice = {
           // LA CHAÎNE DU LECTEUR, TELLE QUELLE. `canShowTarget` a déjà tranché
           // les cinq portes; la repasser ici en ferait un second point de
@@ -808,9 +998,12 @@ Deno.serve(async (req) => {
           // curseur d'une prise monte plus haut que ce que la casserole livre.
           // Et sans direction ni cran, c'est l'entretien NU — « la cible EST
           // l'entretien », le cas de la majorité de la base.
-          executed: direction !== null && Number.isFinite(pace) && pace > 0
-            ? executedPaceFor(direction, subject, pace)
-            : maintenancePaceFor(subject),
+          //
+          // ⟳ LOT 4 — C'EST LE MÊME OBJET QUE CELUI DE LA FOURCHETTE, garde de
+          // grossesse comprise. Voir `executedForReading` plus haut: deux
+          // calculs séparés poseraient sur le même écran une fourchette qui a
+          // perdu son déficit et un conseil de déjeuner qui l'a gardé.
+          executed: executedForReading,
           direction,
         };
       } catch (error) {

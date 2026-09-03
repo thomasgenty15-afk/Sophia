@@ -64,7 +64,7 @@ import { } from "../api/mealStretch";
 import { addDays, daysBetween, isIsoDate, weekStartFor } from "../api/dates";
 import { browserLocalDate, useMealTicks, catchUpWindowStart } from "../lib/useMealTicks";
 import { useMealEnergy } from "../lib/useMealEnergy";
-import { EnergyTargetNote } from "./plan/EnergyReadout";
+import { EnergySwitches, EnergyTargetNote } from "./plan/EnergyReadout";
 import { groupByDay, parsePantry } from "../lib/mealBuilderModel";
 import { Button } from "./ui/Button";
 import { Card, SectionLabel } from "./ui/Card";
@@ -1660,11 +1660,6 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                 dayEnergy={energy.showing ? ((day) => energy.forDay(day)) : undefined}
               />
             )}
-          {/* L'INTERRUPTEUR — porte ④, et la seule que l'élève tient.
-              Il ne s'affiche QUE si les trois autres portes sont ouvertes
-              (`switchOfferable`): proposer « voir les calories » à quelqu'un
-              que le plancher TCA, son âge ou son coach protègent, ce serait
-              encore lui parler de calories. */}
           {/* FF-059 LOT 3 · LA FOURCHETTE. Sous les plats, avec la note de
               base — jamais collée au total du jour: deux nombres alignés se
               soustraient tout seuls dans la tête de qui les lit, et cette
@@ -1674,40 +1669,16 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
               <EnergyTargetNote target={energy.target} />
             </div>
           )}
-          {energy.ready && energy.switchOfferable && (
-            <div className="mt-4 flex flex-wrap items-center gap-3">
-              <Button
-                variant="secondary"
-                onClick={() => energy.toggle(!energy.showing)}
-              >
-                {energy.showing
-                  ? mealCopy("meals.energy.switch_off")
-                  : mealCopy("meals.energy.switch_on")}
-              </Button>
-              {/* LA SECONDE BASCULE, SÉPARÉE. Accepter de voir ce que pèse son
-                  dîner n'est pas accepter qu'on estime ce que son corps devrait
-                  manger. Elle ne s'affiche que si le SEUL refus de la cible est
-                  elle-même. */}
-              {energy.targetOfferable && (
-                <Button
-                  variant="secondary"
-                  onClick={() => energy.toggleTarget(energy.target === null)}
-                >
-                  {energy.target === null
-                    ? mealCopy("meals.energy.target_switch_on")
-                    : mealCopy("meals.energy.target_switch_off")}
-                </Button>
-              )}
-              <span className="text-xs text-ink-soft">
-                {mealCopy("meals.energy.switch_hint")}
-              </span>
-              {energy.error && (
-                <span className="text-xs text-red-700">
-                  {mealCopy("meals.energy.switch_failed")}
-                </span>
-              )}
-            </div>
-          )}
+          {/* ⟳ LOT 5 — LES DEUX INTERRUPTEURS, EXTRAITS. Ils vivaient en ligne
+              ici, et c'était leur SEULE adresse du produit: quelqu'un qui avait
+              éteint devait revenir sur un écran de plan et dérouler jusqu'en
+              bas pour rallumer. `EnergySwitches` est maintenant rendu ici ET
+              dans la fenêtre « À propos de toi » — une écriture, deux
+              adresses. La règle d'affichage n'a PAS bougé d'un octet: elle vit
+              dans le composant, et elle vient du serveur. */}
+          <div className="mt-4">
+            <EnergySwitches energy={energy} />
+          </div>
           {/* Un plan de foyer à plusieurs bouches n'a pas de chiffre, et on dit
               pourquoi: la part de chacun est une PHRASE, pas un nombre. Le
               silence se lirait comme une panne. */}

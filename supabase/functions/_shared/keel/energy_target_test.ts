@@ -17,10 +17,13 @@ import { fromFileUrl } from "https://deno.land/std@0.208.0/path/mod.ts";
 import { ACTIVITY_LEVELS } from "./tokens.ts";
 
 import {
+  directedRange,
   ENERGY_TARGET_BASIS,
+  ENERGY_TARGET_BASIS_DIRECTED,
   MAINTENANCE_KCAL_PER_KG_HIGH,
   MAINTENANCE_KCAL_PER_KG_LOW,
   maintenanceRange,
+  TARGET_DIRECTION_GAPS,
   TARGET_GAPS,
   TARGET_WEIGHT_KG_MAX,
   TARGET_WEIGHT_KG_MIN,
@@ -333,4 +336,314 @@ Deno.test("FF-059 lot 3 — la constante DEVINÉE reste interdite ici", () => {
   assert(!SOURCE.includes("ACTIVITY_FACTOR"));
   assert(!SOURCE.includes("estimatedMaintenanceKcal"));
   assert(SOURCE.includes("ACTIVITY_KCAL_PER_KG"));
+});
+
+// ===========================================================================
+// ⟳ LOT 4 (2026-09-01) — LA FOURCHETTE SUIT LA DIRECTION
+//
+// Ce que ces tests protègent, dans l'ordre de ce que ça coûte quand ça casse:
+//
+//   * LA LARGEUR QUI SE RESSERRE — une fourchette qui rétrécit en gagnant une
+//     direction se lit comme une cible qu'on vient de préciser, et « personne
+//     ne rate un intervalle » est la phrase qui tient tout ce module;
+//   * LE PLANCHER QUI SE FAIT RABOTER — raboter la borne basse produirait à la
+//     fois une fourchette rétrécie ET un nombre que le moteur n'exécute pas.
+//     On rend la MAINTENANCE, qui reste vraie;
+//   * LE GARDE DE GROSSESSE QUI NE MORD PAS — `condition_energy_gate.ts` a été
+//     écrit sur une mesure: une femme enceinte recevait une boîte pesée en
+//     déficit. Ce lot lui donne un chiffre AFFICHÉ à annuler aussi;
+//   * LA BASE QUI MENT — une direction posée sur une base d'entretien fait dire
+//     « pour perdre à ton rythme » à des nombres qui n'ont pas bougé: le défaut
+//     d'origine, avec une étiquette qui le rend indétectable.
+// ===========================================================================
+
+const FLOOR_FEMALE = 1200;
+
+/** 75 kg, aucune activité déclarée: 2 100 – 2 500. Le banc de tout ce bloc. */
+const BASE_75KG = maintenanceRange({
+  activityLevel: null,
+  weightKg: 75,
+  weightWeekStart: "2026-08-10",
+});
+
+Deno.test("FF-059 lot 4 — LE CAS QUI PASSE: une perte décale la fourchette VERS LE BAS", () => {
+  const t = directedRange({
+    maintenance: BASE_75KG,
+    direction: "down",
+    dailyDeltaKcal: 400,
+    energyFloorKcal: FLOOR_FEMALE,
+    cancelled: null,
+  });
+  assertEquals(t.range, { low: 1700, high: 2100 });
+  assertEquals(t.basis, ENERGY_TARGET_BASIS_DIRECTED);
+  assertEquals(t.direction, "down");
+  assertEquals(t.directionGap, null);
+  // Le poids et sa date SURVIVENT au décalage: l'élève doit toujours savoir
+  // sur quelle pesée sa fourchette est posée.
+  assertEquals(t.weightKg, 75);
+  assertEquals(t.weightWeekStart, "2026-08-10");
+});
+
+Deno.test("FF-059 lot 4 — une prise décale VERS LE HAUT, et le plancher ne s'en mêle pas", () => {
+  const t = directedRange({
+    maintenance: BASE_75KG,
+    direction: "up",
+    dailyDeltaKcal: 300,
+    energyFloorKcal: FLOOR_FEMALE,
+    cancelled: null,
+  });
+  assertEquals(t.range, { low: 2400, high: 2800 });
+  assertEquals(t.direction, "up");
+});
+
+Deno.test("FF-059 lot 4 — LA LARGEUR NE CHANGE JAMAIS, quel que soit l'écart", () => {
+  // ⛔ LA PROPRIÉTÉ QUI TIENT LE MODULE. Un décalage qui rétrécirait la
+  // fourchette la ferait glisser vers la forme qu'on refuse: le point.
+  const width = BASE_75KG.range!.high - BASE_75KG.range!.low;
+  for (const delta of [30, 50, 137, 200, 425, 500]) {
+    for (const direction of ["up", "down"] as const) {
+      const t = directedRange({
+        maintenance: BASE_75KG,
+        direction,
+        dailyDeltaKcal: delta,
+        energyFloorKcal: FLOOR_FEMALE,
+        cancelled: null,
+      });
+      if (t.range === null) continue;
+      assertEquals(
+        t.range.high - t.range.low,
+        width,
+        `largeur déplacée par ${direction} ${delta}`,
+      );
+      // Et les deux bornes restent des multiples de 50: l'arrondi porte sur
+      // l'ÉCART, jamais sur chaque borne séparément.
+      assertEquals(t.range.low % 50, 0, `borne basse non arrondie: ${t.range.low}`);
+      assertEquals(t.range.high % 50, 0, `borne haute non arrondie: ${t.range.high}`);
+    }
+  }
+});
+
+Deno.test("FF-059 lot 4 — un écart sous l'arrondi ne déplace RIEN, et le dit", () => {
+  // 24 kcal/jour ne déplacent pas une fourchette large de 400. Le motif est
+  // `no_pace` et pas un silence: c'est lui qu'on compte.
+  const t = directedRange({
+    maintenance: BASE_75KG,
+    direction: "down",
+    dailyDeltaKcal: 24,
+    energyFloorKcal: FLOOR_FEMALE,
+    cancelled: null,
+  });
+  assertEquals(t.range, BASE_75KG.range);
+  assertEquals(t.basis, ENERGY_TARGET_BASIS);
+  assertEquals(t.direction, null);
+  assertEquals(t.directionGap, "no_pace");
+});
+
+Deno.test("FF-059 lot 4 — AUCUNE direction: la fourchette ne bouge pas, et SANS motif", () => {
+  // Il n'y a rien à expliquer à quelqu'un qui ne vise rien. Un motif ici ferait
+  // compter comme « la direction n'a pas été appliquée » toute la population
+  // qui n'en a pas.
+  const t = directedRange({
+    maintenance: BASE_75KG,
+    direction: null,
+    dailyDeltaKcal: 400,
+    energyFloorKcal: FLOOR_FEMALE,
+    cancelled: null,
+  });
+  assertEquals(t.range, BASE_75KG.range);
+  assertEquals(t.basis, ENERGY_TARGET_BASIS);
+  assertEquals(t.direction, null);
+  assertEquals(t.directionGap, null);
+});
+
+Deno.test("FF-059 lot 4 — LE PLANCHER REFUSE, IL NE RABOTE PAS", () => {
+  // 45 kg → 1 250 – 1 500. Un déficit de 400 poserait la borne basse à 850,
+  // sous le plancher féminin de 1 200. On rend la MAINTENANCE — vraie, et qui
+  // n'est un nombre de famine pour personne — jamais une borne rabotée.
+  const light = maintenanceRange({
+    activityLevel: null,
+    weightKg: 45,
+    weightWeekStart: null,
+  });
+  assertEquals(light.range, { low: 1250, high: 1500 });
+  const t = directedRange({
+    maintenance: light,
+    direction: "down",
+    dailyDeltaKcal: 400,
+    energyFloorKcal: FLOOR_FEMALE,
+    cancelled: null,
+  });
+  assertEquals(t.range, light.range, "la fourchette a été rabotée au lieu d'être refusée");
+  assertEquals(t.basis, ENERGY_TARGET_BASIS);
+  assertEquals(t.direction, null);
+  assertEquals(t.directionGap, "below_energy_floor");
+});
+
+Deno.test("FF-059 lot 4 — le plancher ne ferme QUE la perte", () => {
+  // Une PRISE sur le même corps passe: le plancher garde le bas, pas le haut.
+  // Sans ce cas, la garde du dessus serait indistinguable d'un « on refuse
+  // toujours sur les corps légers ».
+  const light = maintenanceRange({
+    activityLevel: null,
+    weightKg: 45,
+    weightWeekStart: null,
+  });
+  const t = directedRange({
+    maintenance: light,
+    direction: "up",
+    dailyDeltaKcal: 400,
+    energyFloorKcal: FLOOR_FEMALE,
+    cancelled: null,
+  });
+  assertEquals(t.range, { low: 1650, high: 1900 });
+  assertEquals(t.direction, "up");
+});
+
+Deno.test("FF-059 lot 4 — une condition déclarée annule l'écart, et le motif la NOMME", () => {
+  // Le bon chiffre de déficit en grossesse est ZÉRO, pas « un déficit plus
+  // petit » — `condition_energy_gate.ts`, mesuré. Et le motif doit être
+  // `condition_cancelled` et pas `no_pace`: une femme enceinte dont le rythme
+  // est nul par ailleurs ne se répare pas comme quelqu'un sans rythme.
+  const t = directedRange({
+    maintenance: BASE_75KG,
+    direction: "down",
+    dailyDeltaKcal: 500,
+    energyFloorKcal: FLOOR_FEMALE,
+    cancelled: "condition_cancelled",
+  });
+  assertEquals(t.range, BASE_75KG.range);
+  assertEquals(t.direction, null);
+  assertEquals(t.directionGap, "condition_cancelled");
+});
+
+Deno.test("FF-059 lot 4 — l'annulation passe DEVANT le rythme", () => {
+  // Ordre des motifs: une condition avec un écart nul doit lire
+  // `condition_cancelled`, pas `no_pace`. Le motif rendu est celui qui se
+  // répare — et celui-ci ne se répare pas du tout.
+  const t = directedRange({
+    maintenance: BASE_75KG,
+    direction: "down",
+    dailyDeltaKcal: 0,
+    energyFloorKcal: FLOOR_FEMALE,
+    cancelled: "condition_cancelled",
+  });
+  assertEquals(t.directionGap, "condition_cancelled");
+});
+
+Deno.test("FF-059 lot 4 — sans fourchette, il n'y a rien à décaler et rien à expliquer", () => {
+  // `gap` dit déjà tout (« ajoute une pesée »). Un `directionGap` en plus
+  // ferait deux motifs pour une seule absence, et l'écran choisirait mal.
+  const none = maintenanceRange({
+    activityLevel: null,
+    weightKg: null,
+    weightWeekStart: null,
+  });
+  assertEquals(none.gap, "no_weight");
+  const t = directedRange({
+    maintenance: none,
+    direction: "down",
+    dailyDeltaKcal: 400,
+    energyFloorKcal: FLOOR_FEMALE,
+    cancelled: null,
+  });
+  assertEquals(t.range, null);
+  assertEquals(t.gap, "no_weight");
+  assertEquals(t.direction, null);
+  assertEquals(t.directionGap, null);
+});
+
+Deno.test("FF-059 lot 4 — `maintenanceRange` ne rend JAMAIS de direction", () => {
+  // L'en-tête de la fonction promet « aucun objectif n'entre ici », et le lot 4
+  // ne l'a pas ouverte: la direction s'applique APRÈS, sur son résultat. Si
+  // cette assertion casse, il existe deux endroits où un écart peut naître.
+  for (const level of [null, ...ACTIVITY_LEVELS]) {
+    for (const kg of [45, 75, 120]) {
+      const t = maintenanceRange({
+        activityLevel: level,
+        weightKg: kg,
+        weightWeekStart: null,
+      });
+      assertEquals(t.direction, null, `${level} ${kg}`);
+      assertEquals(t.directionGap, null, `${level} ${kg}`);
+      assertEquals(t.basis, ENERGY_TARGET_BASIS, `${level} ${kg}`);
+    }
+  }
+});
+
+Deno.test("FF-059 lot 4 — la BASE ne dit `with_direction` que si elle a bougé", () => {
+  // ⛔ L'ÉNONCÉ FAUX QU'ON FERME: « Autour de 2 100–2 500 pour perdre à ton
+  // rythme » posé sur des nombres d'entretien inchangés. Le front s'appuie sur
+  // la base pour choisir sa phrase (`readTarget`), donc une base qui mentirait
+  // ici mentirait à l'écran.
+  const cases = [
+    { delta: 400, cancelled: null, moved: true },
+    { delta: 0, cancelled: null, moved: false },
+    { delta: 400, cancelled: "condition_cancelled" as const, moved: false },
+  ];
+  for (const c of cases) {
+    const t = directedRange({
+      maintenance: BASE_75KG,
+      direction: "down",
+      dailyDeltaKcal: c.delta,
+      energyFloorKcal: FLOOR_FEMALE,
+      cancelled: c.cancelled,
+    });
+    const moved = t.range!.low !== BASE_75KG.range!.low;
+    assertEquals(moved, c.moved, JSON.stringify(c));
+    assertEquals(
+      t.basis === ENERGY_TARGET_BASIS_DIRECTED,
+      c.moved,
+      `la base et le mouvement ne sont plus d'accord: ${JSON.stringify(c)}`,
+    );
+  }
+});
+
+Deno.test("FF-059 lot 4 — tous les motifs de non-application sont ATTEIGNABLES", () => {
+  // Un vocabulaire qui déclare un motif que rien ne produit est un compteur
+  // désarmé qui ressemble à un compteur qui marche.
+  const light = maintenanceRange({ activityLevel: null, weightKg: 45, weightWeekStart: null });
+  const produced = new Set<string>([
+    directedRange({
+      maintenance: BASE_75KG,
+      direction: "down",
+      dailyDeltaKcal: 10,
+      energyFloorKcal: FLOOR_FEMALE,
+      cancelled: null,
+    }).directionGap!,
+    directedRange({
+      maintenance: light,
+      direction: "down",
+      dailyDeltaKcal: 400,
+      energyFloorKcal: FLOOR_FEMALE,
+      cancelled: null,
+    }).directionGap!,
+    directedRange({
+      maintenance: BASE_75KG,
+      direction: "down",
+      dailyDeltaKcal: 400,
+      energyFloorKcal: FLOOR_FEMALE,
+      cancelled: "condition_cancelled",
+    }).directionGap!,
+  ]);
+  assertEquals([...produced].sort(), [...TARGET_DIRECTION_GAPS].sort());
+});
+
+Deno.test("FF-059 lot 4 — `directedRange` n'invente aucun entretien: la source le prouve", () => {
+  // ⛔ LE RABBIT HOLE DE LA FICHE, ET IL VISAIT CE MODULE. `mouthTargetKcal`
+  // rend un POINT calculé sur Mifflin-St Jeor. Le décalage doit venir de
+  // l'écart EXÉCUTÉ passé en argument — jamais d'une équation recalculée ici,
+  // sinon la fourchette affichée cesserait d'être posée sur le POIDS et ce
+  // module perdrait la base qu'il annonce.
+  const source = Deno.readTextFileSync(
+    fromFileUrl(new URL("./energy_target.ts", import.meta.url)),
+  );
+  const start = source.indexOf("export function directedRange(");
+  assert(start > 0, "`directedRange` a disparu ou changé de nom");
+  const body = source.slice(start);
+  for (const forbidden of ["estimatedMaintenance", "Mifflin", "ACTIVITY_FACTOR", "KCAL_PER_KG_BODY_MASS"]) {
+    assert(
+      !body.includes(forbidden),
+      `« ${forbidden} » est entré dans directedRange — la base n'est plus le poids`,
+    );
+  }
 });

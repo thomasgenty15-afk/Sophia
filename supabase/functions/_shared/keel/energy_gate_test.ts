@@ -24,8 +24,11 @@ import {
   type CountingStance,
   ENERGY_GATE_INPUT_KEYS,
   ENERGY_GATE_REASONS,
+  ENERGY_SWITCH_INPUT_KEYS,
+  ENERGY_SWITCH_SOURCES,
   type EnergyGateInput,
   type EnergyGateReason,
+  energySwitchFrom,
   countingStanceFrom,
   NO_COUNTING_TOKEN,
 } from "./energy_gate.ts";
@@ -406,4 +409,199 @@ Deno.test("FF-059 — la porte ① n'est conjuguée à rien dans le code", () =>
   );
   assert(line, "le `if` du plancher a changé de forme — relire cette garde");
   assert(!line.includes("&&") && !line.includes("||"), line);
+});
+
+// ===========================================================================
+// ⟳ LOT 4 (2026-09-01) — LA DIRECTION OUVRE LA PORTE ④, ET RIEN D'AUTRE
+//
+// Ce que ces tests protègent, dans l'ordre de ce que ça coûte quand ça casse:
+//
+//   * L'EXTINCTION QUI TIENT — R7: « un chiffre qu'on ne peut pas faire taire
+//     est un tracker ». Un `false` explicite doit gagner contre la direction
+//     POUR TOUJOURS. Si cette ligne casse, changer d'objectif rallume les
+//     calories chez quelqu'un qui les avait coupées, et il ne le saura qu'en
+//     les revoyant;
+//   * `null` N'EST PAS `false` — c'est tout le lot. Un `=== true` posé chez un
+//     appelant referme le chiffre à tous ceux que leur objectif devait ouvrir,
+//     en silence et sans qu'aucun type ne bronche;
+//   * LA DÉRIVATION N'EST PAS UNE DÉROGATION — elle entre en QUATRIÈME
+//     position. La table ci-dessous le prouve sur les trois portes d'avant.
+// ===========================================================================
+
+const SWITCH_STORED: ReadonlyArray<{ label: string; stored: boolean | null }> = [
+  { label: "explicitement allumé", stored: true },
+  { label: "explicitement éteint", stored: false },
+  { label: "jamais choisi", stored: null },
+];
+
+const SWITCH_DIRECTIONS: ReadonlyArray<{ label: string; direction: "up" | "down" | null }> = [
+  { label: "perte", direction: "down" },
+  { label: "prise", direction: "up" },
+  { label: "aucune", direction: null },
+];
+
+Deno.test("FF-059 lot 4 — table de vérité EXHAUSTIVE de l'interrupteur (3 × 3)", () => {
+  const seen: string[] = [];
+  for (const s of SWITCH_STORED) {
+    for (const d of SWITCH_DIRECTIONS) {
+      const got = energySwitchFrom({ stored: s.stored, direction: d.direction });
+      const row = `${s.label} + ${d.label}`;
+      seen.push(row);
+
+      // ① LE CHOIX EXPLICITE GAGNE, DANS LES DEUX SENS ET CONTRE TOUT.
+      if (s.stored === true) {
+        assertEquals(got, { on: true, source: "explicit_on" }, row);
+        continue;
+      }
+      if (s.stored === false) {
+        // ⛔ LA LIGNE QUI COMPTE LE PLUS DE CE FICHIER. Une extinction que le
+        // prochain changement d'objectif rallumerait ne serait pas une
+        // extinction, et R7 tomberait sans qu'aucun écran ne le montre.
+        assertEquals(got, { on: false, source: "explicit_off" }, row);
+        continue;
+      }
+      // ② PERSONNE N'A CHOISI: la direction décide, et elle seule.
+      assertEquals(
+        got,
+        d.direction === null
+          ? { on: false, source: "no_direction" }
+          : { on: true, source: "direction" },
+        row,
+      );
+    }
+  }
+  assertEquals(seen.length, 9, "la table n'est plus exhaustive");
+});
+
+Deno.test("FF-059 lot 4 — `maintenance` n'ouvre RIEN, et c'est la décision", () => {
+  // `scaleDirectionOf("maintenance")` rend `null`, et cette fonction traite
+  // `null` comme « aucune direction ». Viser la stabilité n'est pas demander à
+  // compter — la décision du 2026-09-01 parle de gagner ou de perdre du poids.
+  assertEquals(
+    energySwitchFrom({ stored: null, direction: null }),
+    { on: false, source: "no_direction" },
+  );
+});
+
+Deno.test("FF-059 lot 4 — la dérivation n'ouvre AUCUNE des trois portes d'avant", () => {
+  // ⛔ L'ANGLE ADVERSARIAL DE CE LOT. Quelqu'un qui vise une perte de gras a
+  // `studentSwitch: true` par dérivation. Les portes ①, ② et ③ doivent
+  // continuer de le refuser, chacune avec SON motif — sinon un objectif
+  // deviendrait une dérogation au plancher TCA.
+  const derived = energySwitchFrom({ stored: null, direction: "down" });
+  assertEquals(derived.on, true, "prérequis du test: la dérivation ouvre bien ④");
+
+  const adult = assessBirthDate("1990-01-01", TODAY);
+  const minor = assessBirthDate("2015-01-01", TODAY);
+  const absent = assessBirthDate(null, TODAY);
+
+  assertEquals(
+    canShowEnergy({
+      restrictionFlag: true,
+      ageVerdict: adult,
+      coachCounting: "no_position",
+      studentSwitch: derived.on,
+    }),
+    { show: false, reason: "restriction_floor" },
+  );
+  assertEquals(
+    canShowEnergy({
+      restrictionFlag: false,
+      ageVerdict: minor,
+      coachCounting: "no_position",
+      studentSwitch: derived.on,
+    }),
+    { show: false, reason: "minor" },
+  );
+  assertEquals(
+    canShowEnergy({
+      restrictionFlag: false,
+      ageVerdict: absent,
+      coachCounting: "no_position",
+      studentSwitch: derived.on,
+    }),
+    { show: false, reason: "age_unknown" },
+  );
+  assertEquals(
+    canShowEnergy({
+      restrictionFlag: false,
+      ageVerdict: adult,
+      coachCounting: "no_counting",
+      studentSwitch: derived.on,
+    }),
+    { show: false, reason: "doctrine_no_counting" },
+  );
+  // ET LE CAS QUI PASSE — sans lui, les quatre assertions ci-dessus resteraient
+  // vertes si `energySwitchFrom` rendait toujours `false`. « Une garde a besoin
+  // d'un cas qui passe. »
+  assertEquals(
+    canShowEnergy({
+      restrictionFlag: false,
+      ageVerdict: adult,
+      coachCounting: "no_position",
+      studentSwitch: derived.on,
+    }),
+    { show: true, reason: "open" },
+  );
+});
+
+Deno.test("FF-059 lot 4 — chaque clé de l'interrupteur est REQUISE", () => {
+  const full = { stored: null, direction: "down" as const };
+  for (const key of ENERGY_SWITCH_INPUT_KEYS) {
+    const partial = { ...full } as Record<string, unknown>;
+    delete partial[key];
+    assertThrows(
+      () => energySwitchFrom(partial as never),
+      Error,
+      key,
+      `la clé ${key} est devenue facultative`,
+    );
+    assertThrows(
+      () => energySwitchFrom({ ...full, [key]: undefined } as never),
+      Error,
+      key,
+      `${key}: undefined ne lève plus`,
+    );
+  }
+});
+
+Deno.test("FF-059 lot 4 — une direction hors vocabulaire LÈVE, elle ne se lit pas « aucune »", () => {
+  // Se taire sur un jeton inconnu refermerait le chiffre en silence le jour où
+  // un quatrième objectif arrive dans `GOAL_TOKENS` sans passer par
+  // `scaleDirectionOf`. On veut le bruit, pas le repli.
+  assertThrows(
+    () => energySwitchFrom({ stored: null, direction: "sideways" as never }),
+    Error,
+    "unknown scale direction",
+  );
+  assertThrows(
+    () => energySwitchFrom({ stored: 1 as never, direction: null }),
+    Error,
+    "stored must be a boolean or null",
+  );
+});
+
+Deno.test("FF-059 lot 4 — l'interrupteur n'a AUCUN paramètre optionnel", () => {
+  // Même garde que `EnergyGateInput`: un `?` ferait de `no_direction` la
+  // réponse SILENCIEUSE de tout appelant qui oublierait de brancher l'objectif.
+  const start = GATE_SOURCE.indexOf("export function energySwitchFrom(");
+  assert(start > 0, "`energySwitchFrom` a disparu ou changé de nom");
+  const body = GATE_SOURCE.slice(start, GATE_SOURCE.indexOf("}", start + 200));
+  assert(
+    !/\b(stored|direction)\?\s*:/.test(body),
+    `un paramètre de garde est devenu optionnel:\n${body}`,
+  );
+  assertEquals(energySwitchFrom.length, 1);
+});
+
+Deno.test("FF-059 lot 4 — les motifs de l'interrupteur sont TOUS atteignables", () => {
+  // Un vocabulaire qui déclare un motif que rien ne produit est un compteur
+  // désarmé qui ressemble à un compteur qui marche.
+  const produced = new Set<string>();
+  for (const s of SWITCH_STORED) {
+    for (const d of SWITCH_DIRECTIONS) {
+      produced.add(energySwitchFrom({ stored: s.stored, direction: d.direction }).source);
+    }
+  }
+  assertEquals([...produced].sort(), [...ENERGY_SWITCH_SOURCES].sort());
 });

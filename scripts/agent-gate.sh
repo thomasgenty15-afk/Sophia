@@ -3,6 +3,68 @@ set -euo pipefail
 
 export PATH="/opt/homebrew/bin:/usr/local/bin:/Applications/Codex.app/Contents/Resources:$PATH"
 
+# ═══════════════════════════════════════════════════════════════════════════
+# LE NODE DU GATE — ET POURQUOI IL NE DOIT PAS ÊTRE CELUI QUI TRAÎNE
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# ── LE DÉFAUT, MESURÉ LE 2026-09-01 ────────────────────────────────────────
+# Un hook git part d'un PATH minimal (`/usr/gnu/bin:/usr/local/bin:/bin:/usr/bin`)
+# — et la ligne ci-dessus y ajoute encore `/usr/local/bin` en TÊTE. Sur ce poste
+# `/usr/local/bin/node` est en **v18.17.0**, un reliquat d'installation système,
+# alors que le node du développeur vit sous nvm en **v22.20.0**. Ni `.nvmrc` ni
+# `engines` ne disaient quoi que ce soit: le gate lançait donc TOUTE la suite
+# vitest sur un runtime que personne n'utilise pour écrire le code.
+#
+# Ce que ça a produit, et c'est le pire mode d'échec possible:
+#
+#     agent-gate: fail: des fichiers de test front ne se CHARGENT pas
+#         src/keel/lib/habitWriters.int.test.ts
+#
+# Le fichier passait en vert lancé à la main. La suite complète rendait 1 919
+# tests à la main et **1 915** sous le gate — exactement les 4 du fichier. La
+# vraie cause était `fs.globSync`, une API **Node 22+**, et rien dans le message
+# ne pouvait y mener. Trois sessions ont cru à une course entre sessions
+# parallèles avant que la commande de départage ne soit trouvée:
+#
+#     PATH="/opt/homebrew/bin:/usr/local/bin:$PATH" npx vitest run <le fichier>
+#
+# ⛔ ET LE COÛT NE S'ARRÊTE PAS AU FAUX ROUGE. Un fichier incompatible écrit par
+# n'importe quelle session bloque les commits de TOUT LE MONDE — la suite vitest
+# n'est pas filtrée sur les fichiers stagés. Symétriquement, et c'est plus grave:
+# un gate qui teste sur une version que personne n'utilise rendra un jour un
+# **VERT** que personne ne peut reproduire.
+#
+# ── LA RÈGLE, ET ELLE EST TENUE ICI PLUTÔT QUE DANS `package.json` ─────────
+# `engines.node` serait la place standard, mais Vercel le LIT pour choisir le
+# runtime de production: y écrire un minimum changerait un déploiement pour
+# réparer un hook local. Le besoin est celui du GATE, il est déclaré dans le
+# gate.
+FRONT_TEST_MIN_NODE_MAJOR=22
+
+# Le node le plus récent qu'on sache trouver, ou rien.
+#
+# ⚠️ ON NE DEVINE PAS, ON MESURE. On demande sa version à chaque candidat plutôt
+# que de lire un nom de dossier: un lien symbolique `v22` qui pointe ailleurs
+# rendrait un chemin plausible et un runtime faux.
+resolve_front_node_dir() {
+  local best_major=0 best_dir="" candidate major
+  for candidate in \
+    $(command -v node 2>/dev/null || true) \
+    "$HOME"/.nvm/versions/node/*/bin/node \
+    /opt/homebrew/bin/node \
+    /usr/local/bin/node
+  do
+    [ -x "$candidate" ] || continue
+    major="$("$candidate" --version 2>/dev/null | sed -n 's/^v\([0-9]*\).*/\1/p')"
+    [ -n "$major" ] || continue
+    if [ "$major" -gt "$best_major" ]; then
+      best_major="$major"
+      best_dir="$(dirname "$candidate")"
+    fi
+  done
+  printf '%s %s' "$best_major" "$best_dir"
+}
+
 ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 cd "$ROOT"
 
@@ -169,6 +231,24 @@ check_front_tests() {
   [ -f frontend/vitest.config.ts ] || return 0
   [ -f "$FRONT_TEST_BASELINE" ] || fail "missing $FRONT_TEST_BASELINE"
 
+  # ── LE RUNTIME, RÉSOLU ET NOMMÉ AVANT LE PREMIER TEST ────────────────────
+  # Voir le bloc `FRONT_TEST_MIN_NODE_MAJOR` en tête de fichier: sans ça, la
+  # suite tourne sur le node qui traîne dans le PATH d'un hook, et une API
+  # récente se raconte comme « un fichier ne se charge pas ».
+  local node_major node_dir resolved
+  resolved="$(resolve_front_node_dir)"
+  node_major="${resolved%% *}"
+  node_dir="${resolved#* }"
+  if [ "$node_major" -lt "$FRONT_TEST_MIN_NODE_MAJOR" ]; then
+    fail "le gate allait lancer vitest sur node v${node_major}, et le dépôt
+       demande au moins v${FRONT_TEST_MIN_NODE_MAJOR}. Ce n'est pas un détail
+       de version: une API plus récente utilisée dans un test s'y raconte
+       « des fichiers de test ne se CHARGENT pas », sans jamais nommer le
+       runtime. Installe un node >= v${FRONT_TEST_MIN_NODE_MAJOR} (nvm), ou
+       abaisse FRONT_TEST_MIN_NODE_MAJOR en connaissance de cause."
+  fi
+  info "frontend test runtime: node v${node_major} (${node_dir})"
+
   info "running frontend test suite (vitest)"
   local report
   report="$(mktemp -t agent-gate-vitest)"
@@ -179,7 +259,10 @@ check_front_tests() {
   (
     cd frontend
     for v in $(env | grep -o '^SUPABASE_[A-Z_]*' || true); do unset "$v"; done
-    npm exec -- vitest --config vitest.config.ts run \
+    # ⚠️ LE NODE RÉSOLU PASSE DEVANT, ET IL DOIT PASSER DEVANT `/usr/local/bin`
+    # que la ligne de PATH en tête de fichier y a mis. C'est le seul geste qui
+    # fait tourner la suite sur le runtime du développeur.
+    PATH="$node_dir:$PATH" npm exec -- vitest --config vitest.config.ts run \
       --reporter=json --outputFile="$report" >/dev/null 2>&1
   ) || true
 
@@ -190,7 +273,7 @@ check_front_tests() {
        (cd frontend && npm exec -- vitest --config vitest.config.ts run)"
   fi
 
-  if node scripts/agent-gate-front-tests.mjs "$report" "$FRONT_TEST_BASELINE"; then
+  if PATH="$node_dir:$PATH" node scripts/agent-gate-front-tests.mjs "$report" "$FRONT_TEST_BASELINE"; then
     rm -f "$report"
   else
     rm -f "$report"

@@ -5884,11 +5884,38 @@ export const en = {
   // laquelle la fourchette est posée. Sans ces trois mots, un élève croirait
   // qu'on a tenu compte de son activité — et rien ne la collecte.
   "meals.energy.target_range": "Around {low}–{high} a day for your weight",
+  // ── ⟳ LOT 4 (2026-09-01) · LA FOURCHETTE QUI A SUIVI LA DIRECTION ───────
+  //
+  // ⚠️ DEUX PHRASES ET PAS UNE INTERPOLATION. « for your {direction} » aurait
+  // demandé un mot injecté au milieu d'une phrase, et les deux langues ne le
+  // placent pas au même endroit — cicatrice « garde testée dans une seule
+  // langue ». Chaque direction porte sa phrase entière, dans les deux langues.
+  //
+  // ⚠️ « to lose weight at your pace », PAS « to lose weight ». Le décalage
+  // vaut le RYTHME que la personne a réglé, pas une perte en général: deux
+  // personnes de même poids aux rythmes différents lisent deux fourchettes
+  // différentes, et la phrase doit le porter sinon la seconde a l'air fausse.
+  "meals.energy.target_range_down":
+    "Around {low}–{high} a day to lose weight at your pace",
+  "meals.energy.target_range_up":
+    "Around {low}–{high} a day to gain at your pace",
   "meals.energy.target_measured": "based on your weigh-in of {date}",
   // La cible ne se raconte pas comme une consigne. « Roughly », « around »:
   // c'est une estimation de maintenance, pas un objectif qu'on atteint.
+  //
+  // ⛔ « your plan is not built to hit it » A ÉTÉ RETIRÉ, ET C'EST UNE
+  // CORRECTION DE FAIT, PAS DE TON. La phrase est fausse depuis le 2026-08-18:
+  // la cible contraint les GRAMMAGES (`household_portions.ts`, lot L8), donc le
+  // plan EST dimensionné dessus. Elle est restée treize jours à l'écran en
+  // promettant le contraire de ce que le moteur faisait.
   "meals.energy.target_note":
-    "Roughly what a body your size uses in a day. It is not a goal, nothing is counted against it, and your plan is not built to hit it.",
+    "Roughly what a body your size uses in a day. It is not a goal and nothing is counted against it.",
+  // ⟳ LOT 4 — LA MÊME NOTE, QUAND LA FOURCHETTE A SUIVI LA DIRECTION. Elle dit
+  // les deux choses que l'autre ne peut plus dire: d'où vient le décalage, et
+  // que les portions du plan sont déjà posées dessus — c'est-à-dire qu'il n'y a
+  // rien à compter soi-même.
+  "meals.energy.target_note_directed":
+    "Your weight range, shifted by the pace you set. Your portions are already sized for it — there is nothing to count.",
   "meals.energy.target_no_weight":
     "Add a weigh-in and this becomes a range for your size.",
   "meals.energy.target_implausible_weight":
@@ -7249,6 +7276,30 @@ export const en = {
   "plan.section.goal.title": "Your goal",
   "plan.section.goal.intro":
     "What you are after. It decides which parts of your coach's method get brought forward for you.",
+  // ── ⟳ LOT 5 · LES CHIFFRES, DANS LA FENÊTRE « À PROPOS DE TOI » ─────────
+  //
+  // ⚠️ « Numbers », PAS « Calories ». Le fronton est lu par quelqu'un qui vient
+  // régler autre chose; le mot « calories » y transformerait un réglage en
+  // sujet. Les deux BOUTONS, eux, disent « calories » — parce qu'ils sont le
+  // geste, et qu'un geste doit nommer ce qu'il fait.
+  //
+  // ⚠️ L'INTRO NE VEND RIEN ET NE PRÉVIENT DE RIEN. Ni « utile pour perdre du
+  // poids » (ce serait un argument pour compter), ni « attention aux troubles
+  // du comportement alimentaire » (ce serait un avertissement adressé à qui
+  // vient d'ouvrir un menu). Elle dit d'où vient le chiffre et qu'il obéit.
+  //
+  // ⚠️ PAS « Numbers » TOUT COURT — mesuré à l'écran le 2026-09-01: la carte
+  // rend déjà un libellé « Numbers » (`plan.about.numbers`, la taille et le
+  // poids) à trois centimètres de là. Deux frontons du même mot dans le même
+  // flux, pour deux choses sans rapport.
+  //
+  // ⚠️ ET L'INTRO NE REDIT PAS LA PHRASE DE LA RANGÉE. Elle portait « Turn it
+  // off and it goes quiet everywhere », que `meals.energy.switch_hint` dit déjà
+  // deux lignes plus bas — vu en double à l'écran. L'intro dit D'OÙ VIENT le
+  // chiffre; la rangée dit qu'il obéit.
+  "plan.section.numbers.title": "What your plan shows",
+  "plan.section.numbers.intro":
+    "Whether your plan shows what it adds up to — worked out from the quantities in it, never guessed.",
   "plan.section.day.title": "How your day runs",
   "plan.section.day.intro":
     "Tick the moments you actually eat. Nothing you did not name, none of yours dropped.",

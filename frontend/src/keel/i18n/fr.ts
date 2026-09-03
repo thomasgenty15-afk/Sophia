@@ -3570,9 +3570,30 @@ export const fr: TranslatedMessages = {
   // c’est la seule chose sur laquelle la fourchette est posée, et rien ne
   // collecte l’activité.
   "meals.energy.target_range": "Autour de {low}–{high} par jour pour ton poids",
+  // ── ⟳ LOT 4 (2026-09-01) · LA FOURCHETTE QUI A SUIVI LA DIRECTION ───────
+  //
+  // ⚠️ DEUX PHRASES ET PAS UNE INTERPOLATION — le mot ne se place pas au même
+  // endroit dans les deux langues, et une garde testée dans une seule langue
+  // est une cicatrice déjà payée par ce dépôt.
+  //
+  // ⚠️ « à ton rythme » N’EST PAS UN ORNEMENT. Le décalage vaut le rythme
+  // réglé, pas une perte en général: deux personnes du même poids aux rythmes
+  // différents lisent deux fourchettes différentes.
+  "meals.energy.target_range_down":
+    "Autour de {low}–{high} par jour pour perdre à ton rythme",
+  "meals.energy.target_range_up":
+    "Autour de {low}–{high} par jour pour prendre à ton rythme",
   "meals.energy.target_measured": "d’après ta pesée du {date}",
+  // ⛔ « ton plan n’est pas construit pour l’atteindre » A ÉTÉ RETIRÉ, ET C’EST
+  // UNE CORRECTION DE FAIT. La phrase est fausse depuis le 2026-08-18: la cible
+  // contraint les GRAMMAGES (lot L8), donc le plan EST dimensionné dessus.
   "meals.energy.target_note":
-    "À peu près ce qu’un corps de ta taille dépense en une journée. Ce n’est pas un objectif, rien n’est compté contre, et ton plan n’est pas construit pour l’atteindre.",
+    "À peu près ce qu’un corps de ta taille dépense en une journée. Ce n’est pas un objectif, et rien n’est compté contre.",
+  // ⟳ LOT 4 — LA MÊME NOTE QUAND LA FOURCHETTE A SUIVI LA DIRECTION: d’où vient
+  // le décalage, et que les portions sont déjà posées dessus — donc qu’il n’y a
+  // rien à compter soi-même.
+  "meals.energy.target_note_directed":
+    "Ta fourchette au poids, décalée du rythme que tu as réglé. Tes portions sont déjà calibrées dessus — tu n’as rien à compter.",
   "meals.energy.target_no_weight":
     "Ajoute une pesée et ceci devient une fourchette à ta taille.",
   "meals.energy.target_implausible_weight":
@@ -5616,6 +5637,10 @@ export const fr: TranslatedMessages = {
   "plan.section.goal.title": "Ton objectif",
   "plan.section.goal.intro":
     "Ce que tu cherches. Ça décide quelles parties de la méthode de ton coach sont mises en avant pour toi.",
+  // ── ⟳ LOT 5 · LES CHIFFRES (voir en.ts pour les deux arbitrages de ton) ──
+  "plan.section.numbers.title": "Ce que ton plan affiche",
+  "plan.section.numbers.intro":
+    "Si ton plan montre ce qu’il totalise — calculé depuis ses quantités, jamais deviné.",
   "plan.section.day.title": "Comment se passe ta journée",
   "plan.section.day.intro":
     "Coche les moments où tu manges vraiment. Rien que tu n’aies nommé, et aucun des tiens écarté.",

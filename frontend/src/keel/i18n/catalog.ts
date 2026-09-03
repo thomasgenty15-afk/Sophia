@@ -639,6 +639,16 @@ export const PAGE_NAMESPACES: Readonly<
     "timing",
     "today",
     "household",
+    // ⟳ LOT 5 (2026-09-01) — `setup` EST RENDU ICI, ET UNE SEULE CLÉ LE JUSTIFIE.
+    //
+    // La fenêtre « À propos de toi » prévient quand la date de naissance manque
+    // à quelqu'un qui porte une direction, avec la phrase de l'entonnoir:
+    // `setup.missing.adult_without_birth_date`. Elle n'est PAS recopiée sous
+    // `plan.*`, exprès — deux formulations du même manque divergent, et c'est
+    // celle qu'on relit le moins qui garde l'ancienne. Le namespace est traduit
+    // en entier (l'entonnoir en dépend), donc le déclarer ne cache aucun trou:
+    // il enregistre une réutilisation, il ne l'excuse pas.
+    "setup",
     "app",
     "shell",
     "chat",

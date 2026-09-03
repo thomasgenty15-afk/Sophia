@@ -1,10 +1,21 @@
 import type {
   DayEnergyView,
   DishEnergyView,
+  EnergyTargetDirection,
   EnergyTargetView,
 } from "../../api/mealEnergy";
 import { dayEnergySubjectClause } from "../../api/mealEnergy";
 import { mealCopy } from "../../api/mealLabels";
+// ⟳ LOT 5 — LE MÊME `Button` QUE PARTOUT. La rangée d'interrupteurs vient
+// d'être extraite de `MealBuilder`, où elle utilisait déjà celui-ci: l'importer
+// est ce qui garantit que les deux adresses de la rangée rendent le même
+// bouton, et pas deux qui se ressemblent.
+import { Button } from "../ui/Button";
+// ⟳ LOT 4 — `MealCopyKey`, PAS `MessageKey`. `mealCopy` n'accepte que le
+// sous-ensemble `meals.*`, et une fonction qui rendrait la clé LARGE ne
+// compilerait pas chez son appelant — c'est le compilateur qui recense ici
+// que ces deux choix ne peuvent désigner que de la copie de repas.
+import type { MealCopyKey } from "../../api/mealLabels";
 import { uiLocale } from "../../i18n/runtime";
 // ① — LA PHRASE DU CONSEIL DU MIDI, IMPORTÉE, JAMAIS RÉÉCRITE ICI. Elle vit
 // avec le nombre (`household_portions.ts`) pour la raison exacte de
@@ -256,10 +267,11 @@ export function EnergyTargetNote({ target }: { target: EnergyTargetView | null }
       : null;
     return label ? <p className="text-xs leading-5 text-ink-soft">{label}</p> : null;
   }
+  const rangeKey = energyTargetRangeKey(target.direction);
   return (
     <div className="text-xs leading-5 text-ink-soft">
       <p className="tabular-nums text-ink-soft">
-        {mealCopy("meals.energy.target_range")
+        {mealCopy(rangeKey)
           .replace("{low}", String(target.low))
           .replace("{high}", String(target.high))}
         {target.weightWeekStart && (
@@ -272,11 +284,147 @@ export function EnergyTargetNote({ target }: { target: EnergyTargetView | null }
           </span>
         )}
       </p>
-      {/* CE QUE LA FOURCHETTE N'EST PAS. Trois phrases, et elles ne sont pas
-          décoratives: sans elles, un intervalle affiché sous un total se lit
-          comme une cible à atteindre — ce qu'il n'est pas, et ce que le
-          générateur ne vise pas (R6). */}
-      <p className="mt-1">{mealCopy("meals.energy.target_note")}</p>
+      {/* CE QUE LA FOURCHETTE N'EST PAS. Ces phrases ne sont pas décoratives:
+          sans elles, un intervalle affiché sous un total se lit comme une cible
+          à atteindre.
+
+          ⟳ LOT 4 — LA NOTE SUIT LA MÊME BASCULE QUE LE NOMBRE, et elle DOIT la
+          suivre: la note d'entretien dit « à peu près ce qu'un corps de ta
+          taille dépense », ce qui est faux mot pour mot d'une fourchette qu'on
+          vient de décaler d'un déficit. Une phrase de garde qui survit à la
+          règle qui l'a fondée est pire que pas de phrase. */}
+      <p className="mt-1">{mealCopy(energyTargetNoteKey(target.direction))}</p>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// ⟳ LOT 4 (2026-09-01) — LES DEUX CHOIX DE PHRASE, EXTRAITS ET TESTABLES
+//
+// ── POURQUOI DEHORS PLUTÔT QU'EN LIGNE DANS LE JSX ────────────────────────
+// Ce dépôt n'a AUCUN harnais de rendu côté front — pas de testing-library, pas
+// de jsdom, aucun `.test.tsx`. Une décision laissée dans le JSX est donc une
+// décision qu'aucun test ne peut atteindre, et celle-ci choisit ce qu'un
+// chiffre de calories DIT à quelqu'un. Extraites, les deux tiennent dans un
+// `.int.test.ts` comme le reste du dépôt (`pageFrontier.int.test.ts` importe
+// déjà des composants).
+// ---------------------------------------------------------------------------
+
+/**
+ * LA PHRASE DU NOMBRE, CHOISIE PAR LA DIRECTION QUE LA FOURCHETTE A SUIVIE.
+ *
+ * ⚠️ `direction` EST DÉJÀ TOUT-OU-RIEN À LA LECTURE (`readTarget`): il n'est
+ * non nul que si la BASE dit `weight_range_with_direction` ET que les deux
+ * bornes existent. Cette fonction n'a donc rien à revérifier, et elle ne doit
+ * surtout pas refaire le test — deux points de décision sur « de quoi ce nombre
+ * parle » finiraient par ne plus dire la même chose du même nombre.
+ *
+ * Le repli est la phrase de maintenance: le comportement d'avant ce champ, vrai
+ * hier et vrai aujourd'hui.
+ */
+export function energyTargetRangeKey(
+  direction: EnergyTargetDirection | null,
+): MealCopyKey {
+  if (direction === "down") return "meals.energy.target_range_down";
+  if (direction === "up") return "meals.energy.target_range_up";
+  return "meals.energy.target_range";
+}
+
+/**
+ * LA NOTE SOUS LE NOMBRE, ET ELLE SUIT LA MÊME BASCULE — ELLE DOIT LA SUIVRE.
+ *
+ * ⛔ La note d'entretien dit « à peu près ce qu'un corps de ta taille dépense ».
+ * Posée sous une fourchette qu'on vient de décaler d'un déficit, elle est fausse
+ * mot pour mot. Une phrase de garde qui survit à la règle qui l'a fondée est
+ * pire que pas de phrase: elle rassure sur une propriété qui n'existe plus.
+ */
+export function energyTargetNoteKey(
+  direction: EnergyTargetDirection | null,
+): MealCopyKey {
+  return direction === null
+    ? "meals.energy.target_note"
+    : "meals.energy.target_note_directed";
+}
+
+// ---------------------------------------------------------------------------
+// ⟳ LOT 5 (2026-09-01) — LES DEUX INTERRUPTEURS, ET ILS N'EXISTENT QU'ICI
+//
+// ── LE DÉFAUT QUE CE COMPOSANT FERME ──────────────────────────────────────
+// Cette rangée vivait EN LIGNE dans `MealBuilder`, sous les plats, et c'était
+// sa seule adresse dans tout le produit. Conséquence mesurée le 2026-09-01:
+// quelqu'un qui avait éteint le chiffre devait revenir sur un écran de PLAN,
+// dérouler jusqu'en bas des repas, et retrouver un bouton dont rien n'annonce
+// qu'il est là. Le geste d'extinction était à un clic; le geste inverse était
+// une fouille.
+//
+// Elle est donc rendue à DEUX endroits — sous les plats (là où le chiffre se
+// lit) et dans la fenêtre « À propos de toi » (là où on va pour régler quelque
+// chose). ⛔ MAIS UNE SEULE ÉCRITURE: deux copies d'une rangée de boutons
+// divergent, et c'est celle qu'on regarde le moins qui garderait l'ancienne
+// copie, l'ancienne condition d'affichage, ou l'ancien libellé.
+//
+// ── ⚠️ CE COMPOSANT NE DÉCIDE TOUJOURS RIEN ──────────────────────────────
+// `switchOfferable` vient du SERVEUR et vaut vrai seulement quand le seul refus
+// est l'interrupteur lui-même. Proposer « voir les calories » à quelqu'un que
+// le plancher TCA, son âge ou son coach protègent, ce serait encore lui parler
+// de calories — et cette règle-là ne se réécrit pas ici, elle se lit.
+// ---------------------------------------------------------------------------
+
+/**
+ * LA RANGÉE DES DEUX BASCULES, ou rien.
+ *
+ * ⚠️ ELLE PREND L'OBJET ENTIER, pas six props éclatées. Les conditions
+ * d'affichage (`ready`, `switchOfferable`, `targetOfferable`) et les actions
+ * (`toggle`, `toggleTarget`) sont UNE décision: un appelant qui pourrait passer
+ * `switchOfferable` sans `toggle` fabriquerait un bouton mort, et un appelant
+ * qui pourrait forcer `switchOfferable: true` court-circuiterait la chaîne de
+ * gardes depuis le client.
+ */
+export function EnergySwitches(
+  { energy }: {
+    energy: {
+      ready: boolean;
+      showing: boolean;
+      switchOfferable: boolean;
+      targetOfferable: boolean;
+      target: EnergyTargetView | null;
+      error: boolean;
+      toggle: (next: boolean) => Promise<void>;
+      toggleTarget: (next: boolean) => Promise<void>;
+    };
+  },
+) {
+  if (!energy.ready || !energy.switchOfferable) return null;
+  return (
+    <div className="flex flex-wrap items-center gap-3">
+      <Button variant="secondary" onClick={() => energy.toggle(!energy.showing)}>
+        {energy.showing
+          ? mealCopy("meals.energy.switch_off")
+          : mealCopy("meals.energy.switch_on")}
+      </Button>
+      {/* LA SECONDE BASCULE, SÉPARÉE. Accepter de voir ce que pèse son dîner
+          n'est pas accepter qu'on estime ce que son corps devrait manger. Elle
+          ne s'affiche que si le SEUL refus de la cible est elle-même. */}
+      {energy.targetOfferable && (
+        <Button
+          variant="secondary"
+          onClick={() => energy.toggleTarget(energy.target === null)}
+        >
+          {energy.target === null
+            ? mealCopy("meals.energy.target_switch_on")
+            : mealCopy("meals.energy.target_switch_off")}
+        </Button>
+      )}
+      <span className="text-xs text-ink-soft">
+        {mealCopy("meals.energy.switch_hint")}
+      </span>
+      {/* UNE BASCULE QUI N'A PAS PRIS SE DIT. Le silence se lirait « c'est
+          enregistré », sur un réglage dont toute la valeur est qu'il obéit. */}
+      {energy.error && (
+        <span className="text-xs text-red-700">
+          {mealCopy("meals.energy.switch_failed")}
+        </span>
+      )}
     </div>
   );
 }

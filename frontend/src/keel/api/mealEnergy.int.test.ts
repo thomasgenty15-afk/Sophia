@@ -112,12 +112,92 @@ describe("readTarget — la fourchette de maintenance (niveau C)", () => {
       basis: "weight_range",
       gap: null,
       weightWeekStart: "2026-08-10",
+      // ⟳ LOT 4 — UNE MAINTENANCE N'A PAS DE DIRECTION, et elle n'a rien à
+      // expliquer non plus: `directionGap` ne sert qu'à dire pourquoi une
+      // direction QUI EXISTE n'a pas été suivie.
+      direction: null,
+      directionGap: null,
     });
   });
 
   it("porte ⑤ fermée: le serveur n'envoie aucune cible, et rien n'est inventé", () => {
     expect(readTarget(null)).toBeNull();
     expect(readTarget(undefined)).toBeNull();
+  });
+
+  // ── ⟳ LOT 4 (2026-09-01) · LA FOURCHETTE QUI A SUIVI LA DIRECTION ───────
+
+  it("LE CAS QUI PASSE: une fourchette décalée traverse avec sa direction", () => {
+    const target = readTarget({
+      low: 2100,
+      high: 2550,
+      basis: "weight_range_with_direction",
+      gap: null,
+      direction: "down",
+      direction_gap: null,
+      weight_week_start: "2026-08-10",
+    });
+    expect(target!.direction).toBe("down");
+    expect(target!.basis).toBe("weight_range_with_direction");
+    expect(target!.low).toBe(2100);
+  });
+
+  it("une direction SANS sa base ne survit pas — l'énoncé serait faux", () => {
+    // ⛔ LE DÉFAUT EXACT QU'ON FERME: « Autour de 2 600–3 050 par jour pour
+    // perdre à ton rythme » posé sur des nombres D'ENTRETIEN qui n'ont pas
+    // bougé. C'est le défaut d'origine avec une étiquette qui le rend
+    // indétectable — pire que le défaut d'origine.
+    const target = readTarget({
+      low: 2600,
+      high: 3050,
+      basis: "weight_range",
+      gap: null,
+      direction: "down",
+      weight_week_start: "2026-08-10",
+    });
+    expect(target!.direction).toBeNull();
+  });
+
+  it("un jeton de direction inconnu retombe sur la maintenance", () => {
+    // Sans ce filtre, la clé de copie serait construite sur un jeton libre et
+    // la phrase sortirait vide — ou avec « undefined » dedans.
+    const target = readTarget({
+      low: 2100,
+      high: 2550,
+      basis: "weight_range_with_direction",
+      gap: null,
+      direction: "sideways",
+    });
+    expect(target!.direction).toBeNull();
+  });
+
+  it("une direction annoncée SANS fourchette ne survit pas", () => {
+    // Promettre « pour perdre à ton rythme » au-dessus d'un `no_weight`
+    // annoncerait une fourchette adaptée là où il n'y a aucun nombre.
+    const target = readTarget({
+      low: null,
+      high: null,
+      basis: "weight_range_with_direction",
+      gap: "no_weight",
+      direction: "down",
+    });
+    expect(target!.direction).toBeNull();
+    expect(target!.gap).toBe("no_weight");
+  });
+
+  it("le motif de non-application voyage même quand la direction ne s'applique pas", () => {
+    // Il voyage pour être COMPTÉ (§10 de la fiche), jamais pour être dit: la
+    // copie ne le rend nulle part, exprès.
+    const target = readTarget({
+      low: 2100,
+      high: 2500,
+      basis: "weight_range",
+      gap: null,
+      direction: null,
+      direction_gap: "below_energy_floor",
+    });
+    expect(target!.direction).toBeNull();
+    expect(target!.directionGap).toBe("below_energy_floor");
   });
 });
 

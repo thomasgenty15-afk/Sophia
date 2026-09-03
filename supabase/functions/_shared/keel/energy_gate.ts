@@ -17,6 +17,13 @@
  *   ③ doctrine `counting`— la méthode du coach.   Rouvrable par le coach.
  *   ④ interrupteur élève — son choix.             Rouvrable par l'élève.
  *
+ * ⟳ **④ EST UN TRI-ÉTAT DEPUIS LE LOT 4 (2026-09-01), ET C'EST LA SEULE PORTE
+ * QUI S'OUVRE TOUTE SEULE.** `null` ne veut pas dire « éteint »: il veut dire
+ * « personne n'a choisi », et c'est alors la DIRECTION de la balance qui décide
+ * (`energySwitchFrom`). Un `false` reste un choix explicite et gagne pour
+ * toujours. ⛔ Cette dérivation n'entre QUE par `studentSwitch`, en quatrième
+ * position: elle ne desserre ni ①, ni ②, ni ③.
+ *
  * ⟳ **② A DEUX MOITIÉS DEPUIS `S3` (2026-08-22), et la seconde est celle qui
  * couvre 91 % de la base.** `minor` est un fait su; `age_unknown` est un fait
  * qu'on n'a pas. Les deux ferment le CHIFFRE et ne ferment RIEN d'autre — le
@@ -55,6 +62,14 @@
 
 import type { BirthDateVerdict } from "./student_age.ts";
 import { weekPlanAgeGate } from "./student_age.ts";
+/**
+ * ⚠️ IMPORT DE TYPE SEUL, ET C'EST CE QUI GARDE CE MODULE SANS CYCLE.
+ * `weight_pace.ts` n'importe pas `energy_gate.ts` aujourd'hui, mais
+ * `mouth_anchor.ts` importe les deux — un import de VALEUR ici mettrait la garde
+ * la plus sensible du produit à une arête de graphe près d'un cycle. Un `import
+ * type` est effacé à la compilation: il n'y a rien à cycler.
+ */
+import type { ScaleDirection } from "./weight_pace.ts";
 
 // ---------------------------------------------------------------------------
 // LE VOCABULAIRE — fermé, et chaque valeur a une branche nommée
@@ -145,7 +160,16 @@ export interface EnergyGateInput {
   ageVerdict: BirthDateVerdict;
   /** ③ La position du coach, telle que `countingStanceFrom` l'a réduite. */
   coachCounting: CountingStance;
-  /** ④ `profiles.energy_display_enabled`. `false` = l'élève a éteint. */
+  /**
+   * ④ L'ÉTAT EFFECTIF DE L'INTERRUPTEUR, tel que `energySwitchFrom` l'a rendu.
+   *
+   * ⚠️ CE N'EST PLUS `profiles.energy_display_enabled` LU EN DIRECT. Depuis le
+   * lot 4 la colonne est un TRI-ÉTAT, et `null` y veut dire « personne n'a
+   * choisi » — pas « éteint ». Un appelant qui écrirait `col === true` ici
+   * refermerait le chiffre à tous ceux que leur direction devait ouvrir, en
+   * silence et sans qu'aucun type ne bronche. La réduction passe par
+   * `energySwitchFrom`, et par elle seule.
+   */
   studentSwitch: boolean;
 }
 
@@ -198,6 +222,128 @@ export function countingStanceFrom(args: {
   return args.forbiddenTokens.includes(NO_COUNTING_TOKEN)
     ? "no_counting"
     : "no_position";
+}
+
+// ---------------------------------------------------------------------------
+// LES PORTES ④ ET ⑤ — CE QU'UNE DIRECTION DÉJÀ DÉCLARÉE VAUT COMME RÉPONSE
+//
+// ⟳ LOT 4 (2026-09-01). Décision humaine, en toutes lettres: « dès qu'une
+// personne dit qu'elle veut gagner ou perdre du poids, elle doit être en
+// capacité de voir ces chiffres. Comme ça c'est pas compliqué et ça se fait
+// automatiquement. »
+// ---------------------------------------------------------------------------
+
+/**
+ * D'OÙ VIENT L'ÉTAT D'UN INTERRUPTEUR. Nommé, jamais un booléen nu.
+ *
+ * Un `on: true` ne dit pas si la personne l'a demandé ou si sa direction l'a
+ * ouvert, et ces deux-là ne se comptent pas pareil: §10 de la fiche veut
+ * mesurer la DEMANDE, et une dérivation qui se mélangerait aux clics rendrait
+ * cette métrique illisible le jour où elle décidera de quelque chose.
+ */
+export const ENERGY_SWITCH_SOURCES = Object.freeze(
+  [
+    /** La personne a appuyé sur « Afficher ». */
+    "explicit_on",
+    /**
+     * Elle a appuyé sur « Masquer ». ⚠️ CE MOTIF GAGNE CONTRE LA DIRECTION, ET
+     * POUR TOUJOURS — R7: « un chiffre qu'on ne peut pas faire taire est un
+     * tracker ». Une extinction que le prochain changement d'objectif
+     * rallumerait ne serait pas une extinction.
+     */
+    "explicit_off",
+    /** Personne n'a choisi, et la balance de cette personne a une direction. */
+    "direction",
+    /** Personne n'a choisi, et il n'y a aucune direction à lire. */
+    "no_direction",
+  ] as const,
+);
+export type EnergySwitchSource = (typeof ENERGY_SWITCH_SOURCES)[number];
+
+/**
+ * Les clés que `energySwitchFrom` EXIGE. Exportée pour que le test puisse les
+ * retirer une par une — une liste recopiée à la main resterait verte le jour où
+ * quelqu'un ajoute un champ.
+ */
+export const ENERGY_SWITCH_INPUT_KEYS = Object.freeze(
+  ["stored", "direction"] as const,
+);
+
+/**
+ * L'ÉTAT EFFECTIF D'UN INTERRUPTEUR TRI-ÉTAT — LA SEULE ÉCRITURE DE LA RÈGLE.
+ *
+ * ── POURQUOI CETTE FONCTION EXISTE PLUTÔT QU'UN `??` CHEZ L'APPELANT ──────
+ * Parce que la migration `20260812230000` avait raison sur un point qu'on ne
+ * renverse pas: « un `null` obligerait à écrire le défaut à DEUX endroits ».
+ * La réponse n'est pas de renoncer au tri-état, c'est de n'avoir qu'UN endroit.
+ * Deux appelants qui écriraient `stored ?? (goal === "fat_loss")` chacun de leur
+ * côté divergeraient au premier jeton d'objectif ajouté — et celui qu'on relit
+ * le moins garderait l'ancienne liste.
+ *
+ * ── ⛔ ELLE NE PREND PAS UN OBJECTIF, ELLE PREND UNE DIRECTION ────────────
+ * `GOAL_TOKENS` vit dans `tokens.ts` et sa réduction en direction vit dans
+ * `scaleDirectionOf` (`weight_pace.ts`), où `maintenance` rend `null`. Recopier
+ * ici la liste des objectifs qui « comptent » ferait une TROISIÈME table de la
+ * même règle, et c'est celle-ci qui porterait la garde. L'appelant réduit, cette
+ * fonction décide.
+ *
+ * ── ⛔ ET ELLE N'OUVRE AUCUNE AUTRE PORTE ─────────────────────────────────
+ * Son résultat entre dans `canShowEnergy` comme `studentSwitch`, c'est-à-dire
+ * en QUATRIÈME position. Le plancher TCA, l'âge et la doctrine du coach sont
+ * évalués avant et gagnent contre elle. Une direction n'est pas une dérogation.
+ *
+ * ── LES DEUX ENTRÉES SONT REQUISES, ET UNE ENTRÉE INCOMPLÈTE LÈVE ─────────
+ * Même règle que tout ce module: « un paramètre de garde optionnel est une
+ * garde désarmée ». Un `direction?` aurait fait de `no_direction` la réponse
+ * SILENCIEUSE de tout appelant qui aurait oublié de brancher l'objectif — et un
+ * lot désarmé ressemble trait pour trait à un lot qui marche.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function energySwitchFrom(args: {
+  /**
+   * La colonne (`profiles.energy_display_enabled` ou `energy_target_enabled`),
+   * telle que la base la rend. `null` = personne n'a jamais choisi.
+   */
+  stored: boolean | null;
+  /**
+   * La direction de la balance de cette personne, telle que `scaleDirectionOf`
+   * l'a réduite. `null` = `maintenance`, ou aucun objectif lisible.
+   */
+  direction: ScaleDirection | null;
+}): { on: boolean; source: EnergySwitchSource } {
+  if (args === null || typeof args !== "object") {
+    fail("energySwitchFrom requires an input object");
+  }
+  const bag = args as unknown as Record<string, unknown>;
+  for (const key of ENERGY_SWITCH_INPUT_KEYS) {
+    if (!Object.hasOwn(bag, key)) {
+      fail(`missing required switch input: ${key}`);
+    }
+    if (bag[key] === undefined) {
+      fail(`switch input ${key} is undefined — an absent gate is a disarmed gate`);
+    }
+  }
+  if (args.stored !== null && typeof args.stored !== "boolean") {
+    fail("stored must be a boolean or null");
+  }
+  if (
+    args.direction !== null && args.direction !== "up" && args.direction !== "down"
+  ) {
+    fail(`unknown scale direction: ${JSON.stringify(args.direction)}`);
+  }
+
+  // LE CHOIX EXPLICITE, DANS LES DEUX SENS, AVANT TOUTE DÉRIVATION.
+  if (args.stored === true) return { on: true, source: "explicit_on" };
+  if (args.stored === false) return { on: false, source: "explicit_off" };
+
+  // PERSONNE N'A CHOISI. On ne pose la question à personne — on lit une réponse
+  // DÉJÀ donnée. L'entonnoir exige la direction de tout adulte (`personMisses`,
+  // `frontend/src/keel/api/onboarding.ts`): quelqu'un qui a écrit « je veux
+  // perdre du gras » a déjà dit qu'il compte.
+  return args.direction === null
+    ? { on: false, source: "no_direction" }
+    : { on: true, source: "direction" };
 }
 
 // ---------------------------------------------------------------------------

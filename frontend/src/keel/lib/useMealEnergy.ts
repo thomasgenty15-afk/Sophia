@@ -87,6 +87,45 @@ export interface MealEnergy {
 
 const NO_DISHES: readonly GeneratedDish[] = [];
 
+// ---------------------------------------------------------------------------
+// ⟳ LOT 5 (2026-09-01) — LES INSTANCES SE RECHARGENT TOUTES, OU ELLES MENTENT
+//
+// ── LE DÉFAUT, VU À L'ÉCRAN AVANT D'ÊTRE ÉCRIT ─────────────────────────────
+// Depuis que la rangée d'interrupteurs a une SECONDE adresse (la fenêtre « À
+// propos de toi »), deux instances de ce hook sont montées en même temps sur
+// `/app/plan`. Elles lisent la même colonne et écrivent la même colonne — mais
+// `flip` ne rechargeait que CELLE QU'ON AVAIT TOUCHÉE.
+//
+// Mesuré dans la vraie UI le 2026-09-01, après un clic sur « Masquer les
+// calories » sous les plats:
+//
+//     bouton sous les plats  → « Afficher les calories »   (à jour)
+//     bouton dans la fenêtre → « Masquer les calories »    (périmé)
+//
+// Deux boutons contraires, sur le même écran, pour le même réglage. Et le
+// périmé n'est pas seulement laid: appuyer dessus ÉCRIT `false` sur une colonne
+// qui vaut déjà `false`, donc il ne se répare pas tout seul — il faut deviner
+// qu'il faut recharger la page.
+//
+// ── POURQUOI UN SIGNAL, ET PAS UN ÉTAT REMONTÉ ─────────────────────────────
+// Remonter le hook obligerait à remonter aussi les PLATS (`MealBuilder` les
+// possède, et c'est lui qui rend le chiffre par plat). On déplacerait une
+// grosse pièce pour synchroniser un booléen.
+//
+// ⛔ ET CE SIGNAL NE PORTE AUCUNE VALEUR. Il ne dit pas « c'est allumé »: il
+// dit « quelque chose a bougé, redemande ». Chaque instance refait sa requête
+// et c'est le SERVEUR qui retranche — la règle « on recharge, on ne devine
+// pas » vaut entre deux instances exactement comme elle vaut après un clic.
+// ---------------------------------------------------------------------------
+const switchListeners = new Set<() => void>();
+
+/** Prévenir toutes les instances montées qu'un interrupteur vient d'être écrit. */
+function announceSwitchWrite(): void {
+  // La copie est délibérée: un abonné qui se démonte pendant la boucle
+  // modifierait le `Set` qu'on parcourt.
+  for (const notify of [...switchListeners]) notify();
+}
+
 export function useMealEnergy(args: {
   planId: string | null;
   dishes: readonly GeneratedDish[];
@@ -145,12 +184,26 @@ export function useMealEnergy(args: {
   // autres peuvent très bien refermer derrière lui, et un écran qui afficherait
   // des chiffres parce que l'élève vient de cliquer aurait court-circuité la
   // chaîne de gardes depuis le client.
+  // ⟳ LOT 5 — L'ABONNEMENT AU SIGNAL. Chaque instance montée se recharge quand
+  // n'importe laquelle écrit la colonne, y compris elle-même: `announceSwitchWrite`
+  // parcourt TOUS les abonnés, et celle qui a écrit en fait partie.
+  React.useEffect(() => {
+    const bump = () => setReloads((n) => n + 1);
+    switchListeners.add(bump);
+    return () => {
+      switchListeners.delete(bump);
+    };
+  }, []);
+
   const flip = React.useCallback(
     (write: (v: boolean) => Promise<void>) => async (next: boolean) => {
       setError(false);
       try {
         await write(next);
-        setReloads((n) => n + 1);
+        // ⚠️ PAS `setReloads` EN DIRECT. Ce geste-ci ne rechargeait QUE
+        // l'instance touchée, et l'autre rendait un bouton contraire sur le
+        // même écran — mesuré, voir le bloc en tête de fichier.
+        announceSwitchWrite();
       } catch {
         setError(true);
       }

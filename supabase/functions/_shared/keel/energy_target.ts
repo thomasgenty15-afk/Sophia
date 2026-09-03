@@ -150,6 +150,13 @@
  */
 
 import type { ActivityLevel } from "./tokens.ts";
+/**
+ * ⚠️ IMPORT DE TYPE SEUL. `weight_pace.ts` est le propriétaire de la règle des
+ * trois directions (`scaleDirectionOf`, où `maintenance` rend `null`), et une
+ * seconde table de cette règle ici serait celle qu'on oublie d'ajuster. Un
+ * `import type` est effacé à la compilation: ce module reste pur et sans arête.
+ */
+import type { ScaleDirection } from "./weight_pace.ts";
 
 /**
  * LA BASE, et elle nomme ce qu'elle SAIT — le poids, et rien d'autre.
@@ -160,7 +167,21 @@ import type { ActivityLevel } from "./tokens.ts";
  * exactement l'erreur que `CALORIE_REVERSAL` existe pour empêcher.
  */
 export const ENERGY_TARGET_BASIS = "weight_range";
-export type EnergyTargetBasis = typeof ENERGY_TARGET_BASIS;
+
+/**
+ * ⟳ LOT 4 (2026-09-01) — LA BASE DE LA FOURCHETTE QUI A SUIVI LA DIRECTION.
+ *
+ * Un second jeton, et pas un drapeau à côté du premier: R3 de la fiche dit
+ * qu'un chiffre vit dans un champ qui PORTE SA BASE. « 1 900–2 300 pour ton
+ * poids » et « 1 900–2 300 parce que tu vises une perte » ne sont pas le même
+ * nombre même quand ils s'écrivent pareil, et l'écran doit pouvoir le dire.
+ */
+export const ENERGY_TARGET_BASIS_DIRECTED = "weight_range_with_direction";
+
+export const ENERGY_TARGET_BASES = Object.freeze(
+  [ENERGY_TARGET_BASIS, ENERGY_TARGET_BASIS_DIRECTED] as const,
+);
+export type EnergyTargetBasis = (typeof ENERGY_TARGET_BASES)[number];
 
 /**
  * kcal par kg de poids corporel, QUAND ON NE SAIT PAS. Le bas couvre le
@@ -236,6 +257,39 @@ export const TARGET_GAPS = Object.freeze(
 );
 export type TargetGap = (typeof TARGET_GAPS)[number];
 
+/**
+ * ⟳ LOT 4 — POURQUOI LA DIRECTION N'A PAS ÉTÉ APPLIQUÉE À UNE FOURCHETTE QUI
+ * EXISTE POURTANT. Nommé, jamais un silence.
+ *
+ * ⚠️ CE N'EST PAS `TargetGap`, ET LES CONFONDRE SERAIT UN CONTRESENS. Un
+ * `TargetGap` dit « il n'y a AUCUNE fourchette » (pas de pesée, pesée absurde).
+ * Ceux-ci disent « il y en a une, c'est la maintenance, et voici pourquoi elle
+ * n'a pas bougé ». L'écran ne les rend pas pareil: le premier demande une
+ * réparation à la personne, le second ne demande rien du tout.
+ */
+export const TARGET_DIRECTION_GAPS = Object.freeze(
+  [
+    /**
+     * Le moteur n'exécute aucun écart: pas de rythme, pas de corps, ou un écart
+     * si petit qu'il disparaît à l'arrondi. La cible EST l'entretien, et c'est
+     * le cas de la majorité de la base.
+     */
+    "no_pace",
+    /**
+     * La fourchette décalée passerait sous le plancher d'énergie de ce corps.
+     * On rend la maintenance plutôt qu'un nombre de famine — voir `directedRange`.
+     */
+    "below_energy_floor",
+    /**
+     * Une condition déclarée annule tout déficit en amont (`pregnancy`,
+     * `breastfeeding` — `condition_energy_gate.ts`). Le bon chiffre de déficit
+     * y est ZÉRO, pas « un déficit plus petit ».
+     */
+    "condition_cancelled",
+  ] as const,
+);
+export type TargetDirectionGap = (typeof TARGET_DIRECTION_GAPS)[number];
+
 export interface EnergyTarget {
   /** `null` avec un `gap` nommé, ou la fourchette. JAMAIS un point. */
   range: { low: number; high: number } | null;
@@ -251,6 +305,21 @@ export interface EnergyTarget {
    */
   weightKg: number | null;
   weightWeekStart: string | null;
+  /**
+   * ⟳ LOT 4 — LA DIRECTION QUE CETTE FOURCHETTE A SUIVIE. `null` = c'est une
+   * maintenance, et c'est ce que `maintenanceRange` rend TOUJOURS.
+   *
+   * ⚠️ IL PART AVEC `basis`, JAMAIS SEUL. `basis === "weight_range"` et une
+   * direction non nulle serait une fourchette qui prétend deux choses
+   * contraires; `directedRange` les écrit ensemble ou pas du tout.
+   */
+  direction: ScaleDirection | null;
+  /**
+   * ⟳ LOT 4 — POURQUOI ELLE NE L'A PAS SUIVIE, alors que la personne en a une.
+   * `null` quand il n'y a rien à expliquer: soit elle l'a suivie, soit la
+   * personne n'a aucune direction.
+   */
+  directionGap: TargetDirectionGap | null;
 }
 
 function noTarget(gap: TargetGap): EnergyTarget {
@@ -260,6 +329,10 @@ function noTarget(gap: TargetGap): EnergyTarget {
     gap,
     weightKg: null,
     weightWeekStart: null,
+    // Une fourchette qui n'existe pas n'a suivi aucune direction, et il n'y a
+    // rien à expliquer de plus que `gap` — qui dit déjà tout.
+    direction: null,
+    directionGap: null,
   };
 }
 
@@ -273,11 +346,19 @@ function noTarget(gap: TargetGap): EnergyTarget {
  *
  * ⚠️ AUCUN OBJECTIF N'ENTRE ICI. Ni `fat_loss`, ni `muscle_gain`. Cette
  * fourchette est la MAINTENANCE — ce que ce corps dépense — et pas ce qu'il
- * « devrait » manger pour changer. Dériver un déficit reviendrait à prescrire un
- * régime chiffré à quelqu'un que personne n'a examiné, et le plafond de 500
- * kcal/j de `meal_envelope` existe précisément parce que ce calcul-là est
- * dangereux. L'objectif change la COMPOSITION de l'assiette (c'est FF-043 et le
- * générateur); il ne change pas ce que ce corps dépense.
+ * « devrait » manger pour changer.
+ *
+ * ⟳ **ET CETTE PHRASE RESTE VRAIE APRÈS LE LOT 4 (2026-09-01)**, parce qu'elle
+ * porte sur CETTE fonction. La direction s'applique dans `directedRange`, qui
+ * prend le résultat d'ici en entrée et ne le recalcule pas: il n'existe donc
+ * toujours qu'un seul endroit où « ce que ce corps dépense » se calcule, et un
+ * seul autre où un écart s'y ajoute. Le paragraphe qui suivait — « dériver un
+ * déficit reviendrait à prescrire un régime chiffré à quelqu'un que personne
+ * n'a examiné » — a été écrit quand l'écart aurait dû être INVENTÉ ici. Il ne
+ * l'est plus: `directedRange` reçoit l'écart que le moteur EXÉCUTE déjà sur les
+ * grammages de cette personne, avec le plafond de 500 kcal/j de `meal_envelope`
+ * et le plancher d'énergie déjà appliqués dessus. On n'a pas ouvert un calcul
+ * neuf; on a cessé d'afficher un autre nombre que celui qu'on sert.
  */
 export function maintenanceRange(args: {
   weightKg: number | null;
@@ -317,5 +398,146 @@ export function maintenanceRange(args: {
     gap: null,
     weightKg: w,
     weightWeekStart: args.weightWeekStart,
+    // ⚠️ TOUJOURS `null` ICI, ET C'EST LE CONTRAT DE CETTE FONCTION. Elle rend
+    // une MAINTENANCE, et le paragraphe ci-dessus reste vrai au mot près:
+    // aucun objectif n'entre. La direction s'applique APRÈS, dans
+    // `directedRange`, et sur son résultat à elle.
+    direction: null,
+    directionGap: null,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// ⟳ LOT 4 (2026-09-01) — LA FOURCHETTE SUIT LA DIRECTION
+// ---------------------------------------------------------------------------
+
+/**
+ * LA FOURCHETTE DE QUELQU'UN QUI VISE QUELQUE CHOSE.
+ *
+ * ══════════════════════════════════════════════════════════════════════════
+ * LE DÉFAUT QUE CETTE FONCTION FERME, ET IL ÉTAIT MESURABLE À L'ÉCRAN
+ * ══════════════════════════════════════════════════════════════════════════
+ * Run réel du 2026-09-01, compte `meals-demo@test.dev`, objectif `fat_loss`,
+ * les cinq portes ouvertes à la main:
+ *
+ *     target = {"low": 2600, "high": 3050, "basis": "weight_range"}
+ *
+ * 2 600–3 050 est l'ENTRETIEN de ce corps. La personne vise une perte, et le
+ * produit lui posait, sous le total de sa journée, la fourchette de quelqu'un
+ * qui ne vise rien — en la laissant faire la soustraction elle-même. Pendant ce
+ * temps le moteur, lui, dimensionnait déjà ses grammages sur une cible EN
+ * DÉFICIT (`mouthTargetKcal`, `mouth_anchor.ts`). Deux nombres, sur le même
+ * écran, en désaccord sur ce que cette personne cherche.
+ *
+ * ── ⛔ POURQUOI ON DÉCALE LA FOURCHETTE PLUTÔT QUE DE MONTRER LA CIBLE ─────
+ * `mouthTargetKcal` rend un POINT, et il le rend depuis `estimatedMaintenanceFor`
+ * — Mifflin-St Jeor × facteur d'activité. Ce module refuse ce chemin depuis le
+ * premier jour, dans son en-tête, et le refuse toujours: un point se rate, une
+ * fourchette non; et la base de ce module est le POIDS, pas une équation dont
+ * `energy_target_test.ts` interdit nommément la constante.
+ *
+ * Ce qu'on emprunte au moteur n'est donc PAS son entretien: c'est son ÉCART.
+ * `executedPaceFor().dailyDeltaKcal` est essentiellement le rythme choisi
+ * converti en kcal/jour (`kgPerWeek × 7700 / 7`), raboté par les bornes de ce
+ * corps — plafond de déficit, plancher d'énergie, bande de surplus, fraction du
+ * mineur. En décalant, on hérite de ces quatre protections sans en réécrire une
+ * seule, et le chiffre affiché bouge exactement de ce que la casserole bouge.
+ *
+ * ── LA LARGEUR NE CHANGE PAS, ET C'EST UNE DÉCISION ───────────────────────
+ * Les deux bornes se déplacent du MÊME nombre. Une fourchette qui se
+ * resserrerait en gagnant une direction se lirait comme une cible qu'on vient
+ * de préciser — et « personne ne rate un intervalle de 400 kcal » est la phrase
+ * qui tient tout ce module. L'écart est arrondi aux 50 AVANT le décalage, pas
+ * après: arrondir chaque borne séparément ferait respirer la largeur de ±50 au
+ * gré des rythmes.
+ *
+ * ── ⛔ ET SI LE DÉCALAGE PASSE SOUS LE PLANCHER, ON NE RABOTE PAS ─────────
+ * On rend la MAINTENANCE, avec `below_energy_floor`. Raboter la borne basse au
+ * plancher produirait deux torts à la fois: une fourchette rétrécie (qui se lit
+ * comme une cible) et un nombre que le moteur n'exécute pas. La maintenance,
+ * elle, reste VRAIE — c'est ce que ce corps dépense — et elle n'est un nombre
+ * de famine pour personne.
+ *
+ * ⚠️ Le plancher du moteur est calculé sur l'entretien de Mifflin; celui-ci est
+ * calculé sur la fourchette au poids. Les deux ne mordent donc pas au même
+ * moment, et c'est voulu: ce sont deux ceintures sur deux estimations, et deux
+ * ceintures ne divergent pas — elles se doublent.
+ *
+ * ── TOUTES LES ENTRÉES SONT REQUISES ──────────────────────────────────────
+ * Y compris `cancelled`, qui vaut `null` dans le cas nominal. « Un paramètre de
+ * garde optionnel est une garde désarmée »: un `cancelled?` aurait laissé le
+ * garde de grossesse être branché nulle part, et un déficit se serait affiché à
+ * une femme enceinte pendant que le moteur, lui, le lui retirait.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function directedRange(args: {
+  /** Ce que `maintenanceRange` a rendu. REQUIS: c'est la seule porte d'entrée. */
+  maintenance: EnergyTarget;
+  /**
+   * La direction de la balance, telle que `scaleDirectionOf` l'a réduite.
+   * `null` = `maintenance`, ou aucun objectif: la fourchette ne bouge pas, et
+   * SANS motif — il n'y a rien à expliquer à qui ne vise rien.
+   */
+  direction: ScaleDirection | null;
+  /**
+   * `executedPaceFor().dailyDeltaKcal` — l'écart que le moteur EXÉCUTE
+   * vraiment, toujours ≥ 0. Jamais le rythme choisi: le curseur d'une prise
+   * monte plus haut que ce que la casserole livre (cicatrice L8).
+   */
+  dailyDeltaKcal: number;
+  /** `energyFloorFor(gender)` — le plancher d'énergie de ce corps. */
+  energyFloorKcal: number;
+  /**
+   * Un motif d'annulation décidé EN AMONT, ou `null`. Aujourd'hui une seule
+   * valeur y arrive: `condition_cancelled`.
+   */
+  cancelled: TargetDirectionGap | null;
+}): EnergyTarget {
+  const base = args.maintenance;
+  const keep = (directionGap: TargetDirectionGap | null): EnergyTarget => ({
+    ...base,
+    // ⚠️ LA BASE NE BOUGE PAS NON PLUS. Une fourchette qui n'a pas suivi la
+    // direction est une maintenance, et elle doit se dire comme telle à
+    // l'écran — sinon la phrase « pour ta perte de poids » se poserait sur des
+    // nombres d'entretien, ce qui est le défaut d'origine avec l'étiquette en
+    // plus.
+    basis: ENERGY_TARGET_BASIS,
+    direction: null,
+    directionGap,
+  });
+
+  // AUCUNE FOURCHETTE: `gap` dit déjà tout, et une direction posée sur du vide
+  // n'ajouterait rien à lire.
+  if (base.range === null) return keep(null);
+  // AUCUNE DIRECTION: rien à expliquer. C'est le cas de `maintenance` et de
+  // toute personne sans objectif lisible.
+  if (args.direction === null) return keep(null);
+  // UNE CONDITION A ANNULÉ L'ÉCART EN AMONT. Évalué AVANT le rythme: une femme
+  // enceinte dont le rythme est nul doit lire l'annulation, pas `no_pace`.
+  if (args.cancelled !== null) return keep(args.cancelled);
+
+  const delta = Number(args.dailyDeltaKcal);
+  if (!Number.isFinite(delta) || delta <= 0) return keep("no_pace");
+  // ARRONDI AVANT LE DÉCALAGE — voir l'en-tête. Un écart sous 25 kcal/jour
+  // disparaît, et c'est juste: il ne déplace pas une fourchette large de 400.
+  const shift = Math.round(delta / 50) * 50;
+  if (shift <= 0) return keep("no_pace");
+
+  const signed = args.direction === "up" ? shift : -shift;
+  const low = base.range.low + signed;
+  const high = base.range.high + signed;
+
+  // LE PLANCHER, ET IL NE RABOTE RIEN — il refuse.
+  const floor = Number(args.energyFloorKcal);
+  if (!Number.isFinite(floor) || floor <= 0) return keep("no_pace");
+  if (args.direction === "down" && low < floor) return keep("below_energy_floor");
+
+  return {
+    ...base,
+    range: { low, high },
+    basis: ENERGY_TARGET_BASIS_DIRECTED,
+    direction: args.direction,
+    directionGap: null,
   };
 }

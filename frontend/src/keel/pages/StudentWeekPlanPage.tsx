@@ -110,6 +110,13 @@ import { type MessageKey, t } from "../i18n/t";
 // composants ne peut rien exporter d'autre sans désarmer le rafraîchissement
 // à chaud (`react-refresh/only-export-components`).
 import { goalOptions } from "../lib/goalOptions";
+// ⟳ LOT 5 — LES DEUX INTERRUPTEURS DU CHIFFRE, DANS LA FENÊTRE OÙ L'ON VIENT
+// RÉGLER QUELQUE CHOSE. Le composant et le hook sont ceux de `MealBuilder`,
+// importés et pas réécrits: la règle d'affichage vient du serveur, et deux
+// écritures de « qui a le droit de voir ce bouton » finiraient par diverger sur
+// la garde la plus sensible du produit.
+import { EnergySwitches } from "../components/plan/EnergyReadout";
+import { useMealEnergy } from "../lib/useMealEnergy";
 import { buildMeasuresToken } from "../../../../supabase/functions/_shared/keel/weekly_flow.ts";
 
 /**
@@ -910,6 +917,35 @@ function PersonalNumbers(props: {
         ))}
       </div>
 
+      {/* ══ ⟳ LOT 5 · LA DATE MANQUANTE, ET CE QU'ELLE COÛTE ══════════════
+          Sans `profiles.birth_date`, `goalApplies` (`_shared/keel/household.ts`)
+          exige `ageState === "adult"` et n'a pas de quoi le décider: la
+          direction est IGNORÉE, et les portions sortent standard sans qu'aucun
+          écran ne le dise. Un tiret dans la case « âge » ne raconte pas ça.
+
+          ⛔ ET CETTE PHRASE NE PARLE PAS DE CALORIES, JAMAIS. La porte ②bis
+          ferme aussi le chiffre, et `mealEnergy.ts` écrit pourquoi on se tait
+          là-dessus: « donne ta date, reçois des calories » se lit comme un
+          marchandage. La même décision ajoutait: « le jour où la date se
+          redemande, elle se redemandera depuis "about you" » — c'est ici, et
+          c'est sur le motif qui se dit sans rien monnayer.
+
+          ⚠️ MÊME PHRASE QUE L'ENTONNOIR (`setup.missing.adult_without_birth_date`),
+          importée et pas réécrite: deux formulations du même manque
+          divergeraient, et celle qu'on relit le moins garderait l'ancienne.
+
+          ⚠️ ELLE NE S'AFFICHE QU'AVEC UNE DIRECTION. `maintenance` n'a pas de
+          direction à perdre, et poser un reproche sous la case de quelqu'un
+          qui ne vise rien serait réclamer une donnée pour rien. */}
+      {props.savedBasics.birthDate.trim() === "" &&
+          (props.goal === "fat_loss" || props.goal === "muscle_gain")
+        ? (
+          <p className="text-xs leading-5 text-amber-700">
+            {t("setup.missing.adult_without_birth_date")}
+          </p>
+        )
+        : null}
+
       {/* La phrase n'apparaît QUE pendant la saisie: elle explique où va le
           chiffre, ce qui n'intéresse personne le reste du temps. */}
       {!props.restricted && (editing === "weight" || editing === "waist") ? (
@@ -1120,7 +1156,18 @@ export default function StudentWeekPlanPage() {
    * sur la première fenêtre LIBRE, c'est-à-dire sur la semaine qu'on prépare.
    */
   const [livePlans, setLivePlans] = React.useState<{
-    current: { startsOn: string; durationDays: number } | null;
+    /**
+     * ⟳ LOT 5 — `mealId` S'AJOUTE, ET IL NE SERT QU'AUX INTERRUPTEURS.
+     *
+     * ⚠️ PAS UNE SECONDE REQUÊTE. `loadMealPlans` rendait déjà le plan entier
+     * et cet état n'en gardait que les dates; on retient l'identifiant qu'il
+     * portait, rien de plus. Une lecture de plus ici pour un bouton serait le
+     * second point de vérité que `refreshLivePlans` existe pour éviter.
+     *
+     * `null` quand il n'y a pas de plan vivant — et il n'y a alors aucun
+     * chiffre à éteindre ni à rallumer, donc rien à proposer.
+     */
+    current: { startsOn: string; durationDays: number; mealId: string | null } | null;
     next: { startsOn: string; durationDays: number } | null;
   }>({ current: null, next: null });
   // `situation` a disparu du formulaire — voir le commentaire de `saveGoal`.
@@ -1176,6 +1223,30 @@ export default function StudentWeekPlanPage() {
    * fenêtre, en quatre sections colorées.
    */
   const [setupOpen, setSetupOpen] = React.useState(false);
+  /**
+   * ⟳ LOT 5 — L'ÉTAT DES DEUX INTERRUPTEURS, POUR LA FENÊTRE « À PROPOS DE TOI ».
+   *
+   * ── POURQUOI ICI ET PAS DANS `MealBuilder` ────────────────────────────────
+   * Parce que la fenêtre vit sur CETTE page, et que le hook doit être monté au
+   * même niveau que ce qu'il pilote. Les deux instances (celle-ci et celle de
+   * `MealBuilder`) lisent la même réponse serveur et écrivent la même colonne;
+   * elles ne peuvent pas diverger sur la DÉCISION, seulement se recharger
+   * chacune de son côté — ce qui est le comportement voulu: `flip` recharge, il
+   * ne devine pas.
+   *
+   * ⚠️ `dishes: []` EST EXACT, PAS UN RACCOURCI. Cette instance ne rend aucun
+   * chiffre par plat: elle n'a besoin que de `switchOfferable`, `showing` et
+   * les deux bascules. Lui passer les plats de l'écran l'obligerait à les
+   * suivre pour rien.
+   *
+   * ⚠️ SANS PLAN VIVANT, `planId` VAUT `null` et le hook rend `no_plan`: la
+   * rangée ne s'affiche pas. C'est exact — il n'y a alors aucun chiffre à
+   * éteindre ni à rallumer.
+   */
+  const energySwitches = useMealEnergy({
+    planId: livePlans.current?.mealId ?? null,
+    dishes: [],
+  });
   /** L'ouverture automatique n'a lieu qu'une fois — voir `refresh`. */
   const openedOnce = React.useRef(false);
   const [busy, setBusy] = React.useState<string | null>(null);
@@ -1249,6 +1320,7 @@ export default function StudentWeekPlanPage() {
           ? {
             startsOn: loaded.current.startsOn,
             durationDays: loaded.current.durationDays,
+            mealId: loaded.current.mealId,
           }
           : null,
         next: loaded.next
@@ -2247,6 +2319,35 @@ export default function StudentWeekPlanPage() {
             </Button>
           </div>
         </SetupSection>
+
+        {/* ⟳ LOT 5 · LES CHIFFRES — LA SECONDE ADRESSE DES DEUX INTERRUPTEURS.
+            ══════════════════════════════════════════════════════════════════
+            Ils vivaient UNIQUEMENT sous les plats, en bas de l'écran. Éteindre
+            était à un clic; rallumer demandait de revenir sur un plan et de
+            dérouler jusqu'au bout. Un réglage dont le geste inverse est une
+            fouille n'est pas un réglage — et R7 (« un chiffre qu'on ne peut
+            pas faire taire est un tracker ») a un corollaire: un chiffre qu'on
+            ne peut pas faire REVENIR est une porte à sens unique.
+
+            ⛔ ELLE SE PLACE APRÈS L'OBJECTIF, ET C'EST L'ARBITRAGE. C'est
+            l'objectif qui ouvre ces deux portes depuis le lot 4: les lire
+            l'une sous l'autre est ce qui rend la dérivation compréhensible
+            sans qu'on ait à l'expliquer.
+
+            ⚠️ LA SECTION ENTIÈRE DISPARAÎT quand `switchOfferable` est faux.
+            Un fronton « Les chiffres » posé au-dessus du vide dirait à
+            quelqu'un que son plancher TCA, son âge ou son coach protègent
+            qu'il existe un réglage de calories qu'on lui refuse — c'est-à-dire
+            encore lui parler de calories. `EnergySwitches` rend `null`, et le
+            `&&` retire le fronton avec. */}
+        {energySwitches.ready && energySwitches.switchOfferable && (
+          <SetupSection
+            title={t("plan.section.numbers.title")}
+            intro={t("plan.section.numbers.intro")}
+          >
+            <EnergySwitches energy={energySwitches} />
+          </SetupSection>
+        )}
 
         {/* LA FORME DE SA JOURNÉE — ce qui décide COMBIEN de plats il y aura et
             QUAND. Le moteur imposait trois repas à tout le monde, en dur; une
