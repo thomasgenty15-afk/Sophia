@@ -71,6 +71,18 @@ import {
   restrictionFloorFor,
   shiftProposalAfterShoppingLater,
 } from "./accident_tap.ts";
+// A8.2/A8.3 — le sort d'une part non mangée. Le vocabulaire est lu là-bas, les
+// écritures passent par la porte SQL, et ce routeur ne fait que router.
+import {
+  HAND_BACK_TO_ACCIDENT,
+  handleShareTap,
+  shareStepAfterUntick,
+} from "./share_outcome_tap.ts";
+import {
+  readShareReply,
+  renderShareAck,
+  SHARE_BUTTON_PREFIX,
+} from "../keel/share_step.ts";
 import {
   loadAccidentPlan,
   loadSessionStates,
@@ -154,7 +166,12 @@ import { handled, type InboundStepOutcome, PASS } from "./inbound_pipeline.ts";
 import type { InboundMessage } from "./inbound_message.ts";
 
 /**
- * LES CINQ VOCABULAIRES DÉTERMINISTES, en un seul endroit.
+ * LES VOCABULAIRES DÉTERMINISTES, en un seul endroit.
+ *
+ * ⚠️ SANS COMPTE DANS LE TITRE, ET C'EST DÉLIBÉRÉ. Il disait « les cinq »
+ * alors que la liste en portait sept: un nombre écrit dans un commentaire ne
+ * se met pas à jour, et il finit par affirmer le contraire du code qu'il
+ * décrit. La liste, elle, est juste en dessous.
  *
  * Ils sont DISJOINTS et chaque lecteur rend « rien » sur ce qui ne le concerne
  * pas — c'est ce qui rend l'ordre de lecture ci-dessous sans conséquence. Cette
@@ -176,6 +193,11 @@ export const DETERMINISTIC_BUTTON_PREFIXES: readonly string[] = Object.freeze([
   // être listée retomberait au dispatcher sur charge cassée — c'est-à-dire
   // qu'elle redeviendrait interprétable par un modèle.
   SLOT_MEAL_BUTTON_PREFIX,
+  // A8.3. Meme regle: ajoute AVEC son lecteur (`readShareReply`, route
+  // juste apres la bande). Sans cette ligne, une charge `KEEL_SHARE_` que le
+  // lecteur refuse — une charge tronquee, un `shifted` sans jour — retomberait
+  // au dispatcher et un modele repondrait a un bouton.
+  SHARE_BUTTON_PREFIX,
 ]);
 
 async function timezoneFor(
@@ -1076,6 +1098,31 @@ async function handleStripTap(
     // constate le fait (« X n'a pas eu lieu comme prévu »), donc une bulle
     // « C'est noté » de plus ne dirait rien et coûterait un message.
     if (reply.kind === "untick") {
+      // ── A8.3 · CE QU'UN ✗ OUVRE DANS UN FOYER ─────────────────────────
+      //
+      // Le MAITRE qui a des bouches sans compte recoit « qui n'a pas mange »;
+      // le MEMBRE recoit le sort de SA boite. Tout le reste — un maitre sans
+      // bouche sans compte, une personne sans foyer, un plan qui n'est pas
+      // celui du foyer — rend `null`, et la bande retombe EXACTEMENT sur son
+      // comportement d'avant ce lot: le formulaire accident, juste en dessous.
+      //
+      // ⚠️ ELLE REMPLACE LE FORMULAIRE, ELLE NE S'Y AJOUTE PAS. Deux questions
+      // ouvertes dans la meme bulle font choisir entre deux gestes dont l'un
+      // annule visuellement l'autre. Le formulaire n'est pas perdu: il est la
+      // SUITE — « tout le foyer » y rend la main, et une boite rangee n'ouvre
+      // plus rien, donc la chaine peut reprendre.
+      const shareStep = await shareStepAfterUntick(admin, {
+        userId: message.user_id,
+        mealId: reply.mealId,
+        dishIndex: reply.dishIndex,
+        language,
+        localDate,
+      });
+      if (shareStep) {
+        await say(shareStep.body, shareStep.buttons);
+        return handled(shareStep.handledAs);
+      }
+
       const form = await accidentFormAfterUntick(admin, {
         userId: message.user_id,
         mealId: reply.mealId,
@@ -1438,6 +1485,73 @@ export async function handleDeterministicButton(
       requestId: args.requestId,
       reply: strip,
     });
+  }
+
+  // ── A8.3 · LE SORT D'UNE PART NON MANGEE ─────────────────────────────────
+  //
+  // CINQUIEME vocabulaire, disjoint des quatre autres (`KEEL_RECO_` /
+  // `KEEL_STRIP_` / `KEEL_FIX_` / `KEEL_PULSE_`), et le meme test le pinne.
+  //
+  // ⚠️ `KEEL_SHARE_` N'EST PAS UN PREFIXE DE `KEEL_STRIP_`, ET C'EST LA SEULE
+  // CHOSE A VERIFIER ICI: les deux lecteurs se decident par `startsWith`, donc
+  // un prefixe qui en contiendrait un autre ferait repondre deux routeurs au
+  // meme tap — et le premier gagnerait en silence.
+  const share = readShareReply(message.button_payload);
+  if (share.kind !== "none") {
+    const now = new Date(message.received_at);
+    const localDate = localDateFor(now, await timezoneFor(admin, message.user_id));
+    const voice = await studentVoiceContext(admin, message.user_id);
+    const language: StripLanguage = isFrenchLocale(voice.contentLocale)
+      ? "fr"
+      : "en";
+    const outcome = await handleShareTap(admin, {
+      userId: message.user_id,
+      reply: share,
+      language,
+      localDate,
+    });
+    // « Tout le foyer » n'est pas une boite: c'est un plat que personne n'a
+    // mange, et sa reparation appartient a FF-057 (`shift_dish` vit dans
+    // `REALIGNMENT_ACTIONS`). On rend la main plutot que d'ecrire un second
+    // chemin de reparation dans un module qui n'a pas le droit de deplacer un
+    // plan (D8.4).
+    if (outcome.kind === HAND_BACK_TO_ACCIDENT) {
+      const form = await accidentFormAfterUntick(admin, {
+        userId: message.user_id,
+        mealId: share.mealId,
+        dishIndex: share.dishIndex,
+        language,
+        localDate,
+      });
+      if (form) {
+        await ack(admin, {
+          userId: message.user_id,
+          requestId: args.requestId,
+          purpose: "keel_share_outcome_ack",
+          body: form.body,
+          buttons: form.buttons,
+        });
+        return handled("keel_share_whole_household_to_accident");
+      }
+      // Pas de formulaire (plan disparu, plancher leve): on ne laisse pas la
+      // personne devant un silence apres un tap. `renderShareAck` est deja la
+      // phrase la plus plate des deux langues.
+      await ack(admin, {
+        userId: message.user_id,
+        requestId: args.requestId,
+        purpose: "keel_share_outcome_ack",
+        body: renderShareAck("stale", language),
+      });
+      return handled("keel_share_whole_household_stale");
+    }
+    await ack(admin, {
+      userId: message.user_id,
+      requestId: args.requestId,
+      purpose: "keel_share_outcome_ack",
+      body: outcome.result.body,
+      buttons: outcome.result.buttons,
+    });
+    return handled(outcome.result.handledAs);
   }
 
   // ── FF-057 · LES TAPS DE LA PROCÉDURE ACCIDENT ────────────────────────────

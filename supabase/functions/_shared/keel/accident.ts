@@ -1591,7 +1591,17 @@ const COPY: Readonly<Record<AccidentLanguage, AccidentCopy>> = {
   },
 };
 
-function dayName(language: AccidentLanguage, date: string): string {
+/**
+ * Le nom du jour d'une date, dans la langue de la personne.
+ *
+ * ⟳ 2026-09-03 (A8.3) — EXPORTÉE, ET C'EST DÉLIBÉRÉ. Les étapes du sort d'une
+ * boîte (`share_step.ts`) nomment des jours elles aussi: « ta boîte de mardi »,
+ * « la garder pour jeudi ». Recopier la table des sept jours là-bas en ferait
+ * une SECONDE, et deux tables de mots pour une même langue finissent par se
+ * contredire — celle qui reste vraie étant celle qu'on ne relit pas. L'export
+ * coûte une ligne; la copie coûte une divergence.
+ */
+export function dayName(language: AccidentLanguage, date: string): string {
   return COPY[language].days[dayTokenOf(date)] ?? date;
 }
 
