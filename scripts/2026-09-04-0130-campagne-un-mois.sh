@@ -13,11 +13,20 @@ set -uo pipefail
 # qu'on annonce autant de fois qu'on écrit — ni plus, ni moins ?
 #
 # ── DEUX LIMITES, ÉCRITES ICI POUR QU'ON NE LES REDÉCOUVRE PAS ────────────
-#   1. L'HORLOGE DU GÉNÉRATEUR N'EST PAS PILOTABLE. Une semaine se simule par
-#      une FENÊTRE future (`window: {kind:"exact", starts_on, duration_days:7}`)
-#      mais les lignes de mémoire portent `at = le jour RÉEL`. Le passage du
-#      temps n'est donc pas exercé; la mort de l'encart à `validated_at` l'a
-#      déjà été par la campagne du 2026-09-03.
+#   1. ⛔ QUATRE SEMAINES DE CALENDRIER SONT IMPOSSIBLES, ET C'EST UNE GARDE DU
+#      PRODUIT, PAS UNE LIMITE DU BANC. Mesuré au premier tir: une fenêtre qui
+#      commence après CE dimanche est refusée en 400 `window_beyond_this_week`
+#      — « A plan is written in day names (mon, tue...), and those only reach as
+#      far as this Sunday. » Le premier jet de ce script visait D+7, D+14, D+21:
+#      la semaine 1 est passée (samedi), la semaine 2 a été refusée trois fois.
+#
+#      ⚠️ CE QUE CE SCRIPT MESURE DONC: **quatre CYCLES**, pas quatre semaines
+#      de calendrier. Chaque cycle compose une fenêtre de SEPT JOURS à partir
+#      d'aujourd'hui et remplace le plan du cycle précédent. C'est
+#      l'ACCUMULATION qu'on veut voir — ce qu'on écrit au cycle 1 change-t-il le
+#      plan du cycle 3 ? — et le calendrier n'y ajoute rien. Le passage réel du
+#      temps n'est PAS exercé; la mort de l'encart à `validated_at` l'a déjà été
+#      par la campagne du 2026-09-03.
 #   2. UN RUN PAR PHRASE. 1/1 n'est pas un taux. Ce que cette campagne rend
 #      est un TABLEAU à relire, pas une statistique.
 #
@@ -31,7 +40,12 @@ ONLY="${2:-}"
 URL="http://127.0.0.1:54321"
 EMAIL="${CAMPAGNE_EMAIL:-qa-mois-20260904@keeltest.dev}"
 OUT="${CAMPAGNE_OUT:-/tmp/campagne-mois-20260904}"
+# ⛔ PAS la `Secret Key` de `supabase status` (403 muet) — voir le pré-vol du
+# banc frère. C'est `INTERNAL_FUNCTION_SECRET` de `supabase/.env`.
 SECRET="${BANC_INTERNAL_SECRET:-}"
+if [ -z "$SECRET" ] && [ -f supabase/.env ]; then
+  SECRET=$(grep "^INTERNAL_FUNCTION_SECRET=" supabase/.env | head -1 | cut -d= -f2- | tr -d "\"' \r")
+fi
 mkdir -p "$OUT"
 
 YEL=$'\033[33m'; OFF=$'\033[0m'; [ -t 1 ] || { YEL=""; OFF=""; }
@@ -65,13 +79,13 @@ gen() {
   before=$(plans)
   body=$(python3 -c "
 import json,sys
-intent, note, starts, last = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
+intent, note, last = sys.argv[1], sys.argv[2], sys.argv[3]
 b = {'operation':'compose','mode':'to_shop',
-     'window':{'kind':'exact','starts_on':starts,'duration_days':7},
+     'window':{'kind':'days','count':7},
      'intent':intent}
 if intent == 'replace_current' and last: b['replaces'] = last
 if note: b['draft_note'] = note
-print(json.dumps(b))" "$intent" "$note" "$starts" "$(last_meal)")
+print(json.dumps(b))" "$intent" "$note" "$(last_meal)")
   for try in 1 2 3; do
     : > "$OUT/$tag.log"
     docker logs --since 0m -f supabase_edge_runtime_Sophia_2 > "$OUT/$tag.log" 2>&1 &
@@ -87,7 +101,7 @@ print(json.dumps(b))" "$intent" "$note" "$starts" "$(last_meal)")
     [ "$after" -ne "$before" ] && { echo "   ${YEL}HTTP $code mais écrit — on n'insiste pas${OFF}"; break; }
     [ "$try" -lt 3 ] && { echo "   HTTP $code, rien d'écrit — reprise ($try/3)"; sleep 20; JWT=$(login); }
   done
-  echo "   $tag · HTTP $code en ${dt}s · Δplans=$((after-before)) · fenêtre $starts"
+  echo "   $tag · HTTP $code en ${dt}s · Δplans=$((after-before))"
   # ⚠️ LA FENÊTRE RÉELLEMENT POSÉE, RELUE. A1 peut reculer d'un jour: croire
   # `starts_on` sur parole ferait comparer des semaines qui se chevauchent.
   psql "select '   span: ' || starts_on || ' → ' || (starts_on + (duration_days-1)) from student_generated_meals where user_id='$USER_ID' order by created_at desc limit 1;"
@@ -256,12 +270,22 @@ import datetime,sys
 print(datetime.date.fromisoformat(sys.argv[1]) + datetime.timedelta(days=6))" "$W")
 
   echo
-  echo "════ SEMAINE $N · fenêtre $W (+7j) · bilan daté $TODAY_FB ════"
+  echo "════ CYCLE $N · fenêtre de 7 jours dès aujourd'hui · bilan daté $TODAY_FB ════"
   SINCE=$(now_iso)
   JWT=$(login)
 
   # ── A: la note sans ambiguïté ────────────────────────────────────────────
-  gen "S$N.A" prepare_next "$NOTE_A" "$W"
+  #
+  # ⛔ `prepare_next` NE MARCHE QU'AU PREMIER CYCLE, et c'est une garde du
+  # produit: dès qu'un plan vivant couvre les mêmes jours, il rend
+  # **409 `plan_overlaps_existing`** — « This household already has a plan that
+  # starts on that day or later. Replace it, or start your window before it. »
+  # Mesuré au cycle 2. Ce que fait une vraie personne au cycle suivant n'est
+  # d'ailleurs pas « préparer la suite », c'est REFAIRE son plan.
+  # (pas de `local` — cette boucle est au niveau du script, pas dans une fonction)
+  INTENT_A=prepare_next
+  [ -n "$(last_meal)" ] && INTENT_A=replace_current
+  gen "S$N.A" "$INTENT_A" "$NOTE_A" "$W"
 
   # ── B: la note ambiguë, sur le MÊME créneau ──────────────────────────────
   SINCE_B=$(now_iso)

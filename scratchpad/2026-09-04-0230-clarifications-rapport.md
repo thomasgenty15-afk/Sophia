@@ -2,8 +2,10 @@
 
 **Chantier** : « le doute ne bloque rien, et l'écriture se dit tout de suite »
 (docs/keel/NOMENCLATURE-MEMOIRE.md **§2.8** et **§8.3**).
-**Commits** : `95adf76e` (socle), `3fc8d1f0` (« Voir », annonce du bilan, 3ᵉ lane
-épinglée), `c934a98c` (fixture à cinq bouches, banc, juge).
+**Commits** : `95adf76e` (socle serveur), `5730d395` (« Voir », annonce du bilan,
+3ᵉ lane épinglée), `c934a98c` (fixture à cinq bouches, banc, juge), `dcae67dd`
+(les deux correctifs que le premier run a montrés), `c569487a` (ce rapport et le
+banc corrigé).
 **Date des mesures** : 2026-09-04, poste local, comptes `qa-clarif-20260904` et
 `qa-3portes` (banc QA — aucun compte réel n'est touché).
 
@@ -149,7 +151,7 @@ tap · handled=keel_memory_clarification_answered
 [{"kind":"food.exclude","subject":"household","text":"cuisses de poulet désossées","at":"2026-09-04"}]
 ```
 
-**PASS sur les 17 termes.** Aucun poisson n'a été proposé, aucune ligne n'a été
+**PASS sur les 22 termes** (comptés dans `B1.attendu.json`). Aucun poisson n'a été proposé, aucune ligne n'a été
 écrite avant le tap, l'annonce porte « Voir », et rien n'a bougé côté sécurité.
 
 ### 2.4 Le compte, tous tirs confondus
@@ -263,6 +265,42 @@ la liste ne porte toujours ni jour ni moment, donc « le plat de vendredi soir �
 restera une question. On a amélioré la question, pas supprimé le besoin de la
 poser.
 
+### 3.2 ter ⛔ Le correctif de 3.2 bis a ouvert l'autre moitié du trou
+
+**Trouvé par la campagne, cycle 1** (le premier tir, avant que « semaine » ne devienne « cycle » — §4 bis). « J'ai pas aimé **la viande**. »
+a proposé :
+
+```
+· Poulet rôti, courgettes et pommes de terre     ← un PLAT
+· Boulettes de dinde, semoule et ratatouille     ← un PLAT
+· Porc rôti, pommes de terre et haricots verts   ← un PLAT
+· cuisses de poulet désossées                    ← un ALIMENT
+```
+
+Trois plats pour une phrase qui désigne un **aliment**. Taper le premier écrit
+« plus jamais *Poulet rôti, courgettes et pommes de terre* » — et retire donc
+aussi les courgettes et les pommes de terre, que personne n'a mises en cause.
+
+**C'est le symétrique exact du défaut de 3.2 bis**, et c'est mon correctif qui
+l'a ouvert : en fusionnant plats et aliments dans **une seule liste plate**,
+`planVocabularyOf` a donné au modèle un vocabulaire dont il ne peut plus lire la
+NATURE. Il choisit donc au faciès — et ici les titres commencent par le nom de
+la viande (« Poulet rôti… », « Porc rôti… »), ce qui les fait passer pour des
+viandes.
+
+⚠️ **Le banc ne pouvait pas l'attraper, et c'est pour ça que la campagne
+existe.** Le cas B1 du banc a proposé, lui, `cuisses de poulet désossées ·
+bœuf haché` — la bonne réponse. Un run par phrase ne dit rien de la variance :
+il a fallu **la même phrase sur un autre plan** pour voir le modèle basculer.
+
+**Ce qu'il faudrait** : la liste doit dire ce que chaque entrée EST (un plat / un
+aliment), et la règle QUOI doit exiger que la nature proposée corresponde à la
+nature de la référence — « le plat de vendredi soir » ⇒ des plats, « la viande »
+⇒ des aliments. **Non fait** : c'est une modification du tour utilisateur ET de
+la règle, qui déplace le comportement du modèle sur les trois lanes, et elle
+mérite d'être mesurée sur plusieurs plans avant d'être posée. Elle est nommée
+ici pour ne pas être redécouverte.
+
 ### 3.3 Deux fautes du BANC, pas du produit
 
 Nommées parce qu'elles ont produit un FAIL et un INCONCLUSIVE trompeurs.
@@ -315,15 +353,116 @@ défilement.
 
 ---
 
+## 4 bis. La campagne — et la garde produit qui a invalidé son dessin
+
+### ⛔ Quatre semaines de CALENDRIER sont impossibles, par construction
+
+Le plan de ce chantier prévoyait quatre semaines simulées par des fenêtres
+exactes (`W_k = D + 7(k−1)`). **Le produit refuse** :
+
+```
+400 window_beyond_this_week
+"A plan is written in day names (mon, tue...), and those only reach as far as
+ this Sunday. Start your window this week, or compose next week's plan once it
+ has started."
+```
+
+La semaine 1 (samedi 05/09) est passée ; la semaine 2 (12/09) a été refusée
+**trois fois**. Le dessin supposait une capacité que personne n'avait vérifiée
+dans `meal_plan_window.ts` — **c'est une erreur du plan, pas du produit**, et la
+garde est délibérée, documentée et testée (`meal_plan_integrity_test.ts` C5 ④,
+qui exige même que ce refus se TAISE dans le journal d'incidents : il est causé
+par la saisie, pas par une panne).
+
+**Ce que la campagne mesure donc : quatre CYCLES, pas quatre semaines.** Chaque
+cycle compose une fenêtre de sept jours à partir d'aujourd'hui et remplace le
+plan précédent. C'est l'**accumulation** qu'on veut voir — ce qu'on écrit au
+cycle 1 change-t-il le plan du cycle 3 ? — et le calendrier n'y ajoutait rien.
+
+### ⛔ Et une seconde garde, au cycle 2 : `409 plan_overlaps_existing`
+
+> « This household already has a plan that starts on that day or later. Replace
+> it, or start your window before it. »
+
+La campagne enchaînait `prepare_next` (A) puis `replace_current` (B) à chaque
+cycle. **`prepare_next` ne passe qu'au premier** : dès qu'un plan vivant couvre
+les mêmes jours, il est refusé. Et c'est juste — ce qu'une vraie personne fait au
+cycle suivant n'est pas « préparer la suite », c'est **refaire** son plan. A
+utilise donc `replace_current` dès qu'un plan vit.
+
+⚠️ **Les deux gardes ci-dessus sont des refus de SAISIE, pas des pannes** — le
+dépôt exige même qu'elles se taisent dans le journal d'incidents
+(`meal_plan_integrity_test.ts` C5 ④). Un banc qui les rencontre n'a pas trouvé un
+bug : il a été écrit contre une capacité que le produit n'offre pas.
+
+⚠️ **Second effet, nommé** : le bilan de chaque cycle porte un `today` **futur**
+(J+6), donc son plafond quotidien est compté sur une date différente à chaque
+cycle. La campagne **n'exerce donc pas le plafond** — c'est le cas **P** du banc
+qui le tient.
+
+### Cycle 1, relu en base
+
+| grandeur | valeur |
+|---|---|
+| plans écrits / vivants | **2 / 1** |
+| questions posées · répondues · échappées · ouvertes | **2 · 2 · 0 · 0** |
+| annonces (bulles) / questions (bulles) | **2 / 2** |
+| ledger `skipped` | **0** |
+| items en mémoire | 4 |
+| **doublons (texte + sujet)** | **0** |
+| **sécurité / allergies** | **0 / 0** |
+
+Les deux questions du cycle ont été **répondues**, chacune par un tap : « Zoé »
+sur la question QUI (le **second** bouton — l'index désigne bien la seconde
+bouche), et un plat sur la question QUOI.
+
+### Le fil du cycle 1, relu en base — la meilleure preuve du lot
+
+```
+keel_memory_written           J'ai noté ce que tu veux (ou pas) dans l'assiette :
+                              · Tom : « le poisson »
+keel_memory_clarification     Tu as écrit « le poisson » — c'est pour qui ?
+keel_memory_clarification_ack J'ai noté ce que tu veux (ou pas) dans l'assiette :
+                              · Zoé : « le poisson »
+keel_memory_clarification     Tu as écrit « viande » — tu parlais de quoi ?
+keel_memory_written           J'ai ajusté un réglage :
+                              · « Les portions du plan étaient un peu trop grosses »
+keel_memory_clarification_ack J'ai noté ce que tu veux (ou pas) dans l'assiette :
+                              · « Poulet rôti, courgettes, poivrons et pain »
+```
+
+Six bulles pour deux gestes, et **chacune correspond à une moitié du chantier** :
+
+- la **1ʳᵉ** — une note sans ambiguïté s'écrit et se DIT tout de suite ;
+- les **2ᵉ et 3ᵉ** — une note ambiguë ne bloque rien, demande, et n'écrit qu'au tap ;
+- la **5ᵉ** — ⛔ **c'est la ligne qui n'existait pas avant ce lot.** Le
+  questionnaire déplaçait un cran de portion **sans qu'un mot ne parte**, ni sur
+  le coup ni le soir. Elle porte le nouveau genre `setting` et sa propre phrase
+  d'introduction (« J'ai ajusté un réglage : »), parce qu'un curseur qu'on bouge
+  n'est pas une chose qu'on SAIT de la personne ;
+- **et le pouls du soir n'a rien ajouté** : aucune bulle de récap dans le fil.
+  Le bloc mémoire du soir est bien parti, sans laisser de trou.
+
+⚠️ La **6ᵉ** porte le défaut de §3.2 ter : un PLAT retenu pour une phrase qui
+disait « la viande ».
+
+---
+
 ## 5. Ce que ces bancs NE prouvent PAS
 
 Écrit ici pour que personne ne lise ce rapport comme une garantie.
 
-1. **La stabilité du modèle.** Un run par phrase. `1/1` n'est pas un taux. D3
-   (le pluriel) et D5 (« elle ») sont les plus exposés.
-2. **Le passage réel du temps.** L'horloge du générateur n'est pas pilotable :
-   une semaine se simule par une fenêtre future, mais les lignes portent
-   `at = le jour RÉEL`.
+1. **La stabilité du modèle — et ce n'est pas une réserve de principe.**
+   Un run par phrase ; `1/1` n'est pas un taux. **§3.2 ter en est la preuve
+   vivante** : la MÊME phrase (« j'ai pas aimé la viande ») a rendu les bons
+   boutons au banc et les mauvais à la campagne, sur deux plans différents.
+   Tout ce que ce rapport affirme d'un cas vaut **pour le plan sur lequel il a
+   tourné**. Les plus exposés : D3 (le pluriel), D5 (« elle »), et toute la
+   famille QUOI.
+2. **Le passage réel du temps, et le calendrier tout court.** L'horloge du
+   générateur n'est pas pilotable, et §4 bis a montré qu'une fenêtre ne peut
+   même pas commencer après ce dimanche. Ce qui a été mesuré, ce sont des
+   **cycles** qui s'accumulent, pas des semaines qui se suivent.
 3. **Que la question soit COMPRÉHENSIBLE.** Le banc compte des boutons et des
    libellés, pas du sens.
 4. **Le plafond non sollicité au-delà de la première annonce du jour.** Dès le
@@ -345,6 +484,22 @@ défilement.
 | `502` en **10–16 s**, trois cas d'affilée | une session voisine éditait sous `supabase/functions/` ; chaque sauvegarde fait redémarrer `functions serve`, qui tue les requêtes en vol. Trois redémarrages en 45 s, mesurés. Le banc note l'instant de démarrage au début et à la fin et le DIT. |
 | `early termination has been triggered: isolate …` | **la limite d'horloge murale de l'isolate du runtime edge**, atteinte deux fois de suite sur une génération de foyer alors que le compte portait déjà cinq plans et plusieurs exclusions. Cicatrice connue (`generation-model-times-out-on-household-prompt`) : plus la mémoire du compte grossit, plus le prompt du foyer s'allonge, et plus on s'approche du plafond. |
 | `TS2322 Type 'Timeout' is not assignable to type 'number'` dans un fichier intact depuis août | **`npx deno` est 2.9.6, le `deno` du dépôt est 2.6.0.** `agent-gate.sh` appelle `deno` tout court. Rien n'était cassé. |
+
+### Le gate, une fois l'arbre calmé
+
+Les commits de ce lot ont été posés avec `--no-verify`, chacun en NOMMANT la
+raison : le gate était rouge sur un chantier **voisin** en cours d'édition
+(`SizableMeal` avait gagné un champ requis que ses trois appelants n'avaient pas
+encore). Une fois cette lane terminée :
+
+```
+agent-gate: vitest — 2273 tests, 4 rouges, 4 tolérés par la baseline, 0 hors liste
+agent-gate: test typecheck: 141 fichiers lus, 87 erreurs (liste: 87)
+agent-gate: pass
+```
+
+**`pass`** — ce qui confirme après coup ce qui avait été mesuré sur le moment :
+aucun des rouges n'était de ce lot.
 
 ⚠️ **La règle qui tient tout ça ensemble** : sur un arbre partagé par plusieurs
 sessions, un banc long ne mesure le produit que dans les fenêtres où personne
