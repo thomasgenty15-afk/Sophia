@@ -200,7 +200,7 @@ Aucun n'est faisable par un agent (hook de blocage). **Toujours à faire** — l
 liste complète des six chantiers est en fin de document.
 
 1. Créer deux prix Stripe récurrents mensuels : **12,99 € foyer** (quantité 1) et
-   **2,00 € profil réclamé** (quantité réconciliée).
+   **1,99 € profil réclamé** (quantité réconciliée).
 2. `supabase secrets set STRIPE_PRICE_ID_HOUSEHOLD_MONTHLY=price_… STRIPE_PRICE_ID_HOUSEHOLD_PROFILE_MONTHLY=price_…`
 3. `supabase db push`
 4. `supabase functions deploy stripe-create-checkout-session stripe-reconcile-households`
@@ -619,9 +619,20 @@ crise, et il ne devait pas être fait dans la foulée d'autre chose.
 Aucun n'est faisable par un agent (hook de blocage). **Ils sont désormais le
 seul obstacle entre le code et la facturation.**
 
+> ⟳ **2026-09-03 — LE MONTANT DU PROFIL RÉCLAMÉ EST 1,99 €, PAS 2,00 €.** Cette fiche et
+> [CHANTIER-FOYER-PROFILS.md](CHANTIER-FOYER-PROFILS.md) disaient encore 2 € à sept endroits, dont le geste n°1
+> ci-dessous — celui qui dit à un humain **quoi taper dans Stripe**. Le propriétaire a tranché **1,99 € le 2026-09-01**,
+> en même temps que le 12,99 €, et le motif est écrit dans la source unique (`frontend/src/keel/i18n/prices.ts:67-76`) :
+> ce n'est pas un arrondi, c'est la fin d'une confusion — `/families` vendait « un accompagnement à 1,99 € » pendant que
+> `/` et `/couples` vendaient « un profil réclamé à 2 € ». Deux noms, deux montants, **un seul objet**.
+> **Aucun écran ne recopie de montant** : tous lisent `PRICES.claimedProfile`. Un prix Stripe créé à 2,00 € aurait donc
+> été contredit par chaque écran **sur la seule surface où l'utilisateur voit les deux côte à côte : le checkout.**
+> Les sept lignes sont corrigées ; les occurrences de 2 € qui subsistent dans le front sont des commentaires qui
+> **racontent** cette incohérence, et doivent le rester.
+
 | # | Le geste | Pour quel chantier |
 |---|---|---|
-| 1 | Créer **deux** prix Stripe récurrents mensuels, **différents** : 12,99 € foyer (qté 1) et 2,00 € profil réclamé (qté réconciliée). La fonction **refuse** si les deux secrets portent le même id. | 1 |
+| 1 | Créer **deux** prix Stripe récurrents mensuels, **différents** : 12,99 € foyer (qté 1) et **1,99 €** profil réclamé (qté réconciliée). La fonction **refuse** si les deux secrets portent le même id. | 1 |
 | 2 | `supabase secrets set STRIPE_PRICE_ID_HOUSEHOLD_MONTHLY=price_… STRIPE_PRICE_ID_HOUSEHOLD_PROFILE_MONTHLY=price_…` | 1 |
 | 3 | `supabase db push` — **AVANT** tout deploy, jamais l'inverse | 1 · 2 · 3 · 4 |
 | 4 | `supabase functions deploy …` — **les listes nommées par leurs commits** : `stripe-create-checkout-session stripe-reconcile-households` (chantier 1) et `account-deletion-v1 account-restore-v1 purge-deleted-accounts` (chantier 2). ⚠️ Les chantiers 3 et 5 **n'ont pas nommé la leur** ; les fonctions qu'ils modifient sont `generate-household-meal-v1`, `keel-daily-recommendation-v1` et `sophia-brain` — **dérivé du diff, non écrit par l'auteur du lot, à confirmer avant de lancer**. | 1 · 2 · 3 · 5 |

@@ -93,7 +93,7 @@ sache que le chantier avait un modèle et pas une humeur.
 
 **Le modèle.** Un compte, un foyer. La personne qui cuisine crée son foyer, y
 ajoute des bouches, et **gouverne seule le menu**. 12,99 €/mois, foyer entier.
-Un adulte qui veut son propre accès **réclame son profil** à 2 €/mois. La
+Un adulte qui veut son propre accès **réclame son profil** à 1,99 €/mois. La
 colocation sort du produit.
 
 **L'identité.** Une seule table. `member_id` en clé, `user_id` optionnel — vide
@@ -605,7 +605,7 @@ où le fil s'arrête.
 > facturera ; les cinq gestes qui manquent sont humains, et aucun n'est faisable
 > par un agent.
 
-**Objet.** 12,99 €/mois foyer entier, +2 €/mois par profil réclamé.
+**Objet.** 12,99 €/mois foyer entier, +1,99 €/mois par profil réclamé.
 
 **Fait vérifié** : **zéro occurrence de `household`** dans `stripe-*` et
 `_shared/billing-tier.ts`. Le vocabulaire de siège existant est entièrement
@@ -619,10 +619,10 @@ part.
 2. **Stripe en dernier, détachable** : une décision commerciale réversible ne
    doit jamais bloquer une migration qui ne l'est pas.
 
-### Le +2 €, et le plafond
+### Le +1,99 €, et le plafond
 
 **Tranché : une ligne sur l'abonnement du maître.** Une seule carte dans tout le
-foyer, +2 € par profil réclamé. La machinerie existe :
+foyer, +1,99 € par profil réclamé. La machinerie existe :
 `stripe-reconcile-seats:27,54,230` sait déjà pousser une **quantité** sur un item
 d'abonnement, sans proration et avec clé d'idempotence.
 
@@ -659,7 +659,7 @@ est vendable :
 
 1. **Deux prix Stripe**, créés par un humain, puis posés en secrets :
    `STRIPE_PRICE_ID_HOUSEHOLD_MONTHLY` (12,99 €, quantité 1) et
-   `STRIPE_PRICE_ID_HOUSEHOLD_PROFILE_MONTHLY` (2,00 €, quantité réconciliée).
+   `STRIPE_PRICE_ID_HOUSEHOLD_PROFILE_MONTHLY` (1,99 €, quantité réconciliée).
 2. **Un jeton de palier.** `subscriptions_tier_check` n'admet que `coach` et les
    trois paliers grand public morts ; `profiles_access_tier_check` de même.
 3. **Une troisième forme de tunnel** (`plan='keel_household'`) dans
