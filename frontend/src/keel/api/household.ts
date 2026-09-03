@@ -1680,19 +1680,12 @@ export async function generateHouseholdMeal(args: {
    * arbitrage de semaine.
    */
   oneCookingSession: boolean;
-  /**
-   * « JE CUISINE LA VEILLE » — 2026-09-01.
-   *
-   * ⚠️ REQUIS, jamais `?`. Même arbitrage que `oneCookingSession` juste
-   * au-dessus: un champ facultatif n'aurait fait remonter AUCUN appelant au
-   * compilateur, et la case serait construite sans être transmise.
-   *
-   * ⛔ LE SERVEUR TRANCHE LA FAISABILITÉ (`withCookDayBefore`), et il le DIT
-   * quand il refuse. L'écran pose la même porte pour ne pas PROPOSER un geste
-   * qui sera refusé — le corps de la requête est écrit par le réseau, pas par
-   * l'écran.
-   */
-  cookTheDayBefore: boolean;
+  // ⟳ A1 (2026-09-03) — `cookTheDayBefore` A ÉTÉ RETIRÉ D'ICI, ET DU CORPS.
+  // La veille n'est plus une case: `generate-household-meal-v1` la DÉRIVE
+  // (`leadDayFor`) de la date de départ et de l'heure locale du maître,
+  // coupure à 18 h. Le navigateur ne connaît pas l'heure — il ne peut donc pas
+  // rejouer ce verdict, et il ne doit pas essayer. Ce que le serveur rend en
+  // échange est `timing`, que l'écran RÉPÈTE.
 }): Promise<HouseholdMealResult> {
   const { data, error } = await supabase.functions.invoke("generate-household-meal-v1", {
     body: {
@@ -1722,7 +1715,6 @@ export async function generateHouseholdMeal(args: {
       // `body.one_cooking_session === true`; une autre orthographe ici serait
       // une case cochée qui ne part nulle part, et rien ne le dirait.
       one_cooking_session: args.oneCookingSession,
-      cook_the_day_before: args.cookTheDayBefore,
     },
   });
   if (error) throw new Error(await namedEdgeRefusal(error) ?? error.message);

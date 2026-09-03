@@ -88,6 +88,9 @@ function input(over: Record<string, unknown> = {}) {
     mode: "to_shop" as const,
     dateLabel: "4 août 2026",
     buyDateLabels: {},
+    // ⟳ A1 — `null` = le plan n'a pas de veille; la feuille sort au caractère
+    // près comme avant ce lot, ce que ces tests vérifient déjà.
+    timingLine: null,
     locale: "fr-FR",
     ...over,
   };
@@ -209,6 +212,9 @@ Deno.test("les deux packs rendent, et rendent DIFFÉREMMENT", async () => {
     locale: "en-US",
     dateLabel: "4 August 2026",
     buyDateLabels: {},
+    // ⟳ A1 — `null` = le plan n'a pas de veille; la feuille sort au caractère
+    // près comme avant ce lot, ce que ces tests vérifient déjà.
+    timingLine: null,
   }));
   assert(fr.byteLength > 500);
   assert(en.byteLength > 500);
@@ -228,6 +234,9 @@ Deno.test("le mode from_pantry sans rien à acheter rend sa phrase dans les deux
       shoppingList: [],
       dateLabel: locale === "fr-FR" ? "4 août 2026" : "4 August 2026",
       buyDateLabels: {},
+    // ⟳ A1 — `null` = le plan n'a pas de veille; la feuille sort au caractère
+    // près comme avant ce lot, ce que ces tests vérifient déjà.
+    timingLine: null,
     }));
     assert(bytes.byteLength > 500, locale);
   }
@@ -331,6 +340,9 @@ Deno.test("⛔ UNE DATE SANS LIBELLÉ S'IMPRIME BRUTE, elle ne disparaît pas", 
   // On ne perd pas un jour d'achat parce qu'on n'a pas su l'écrire joliment.
   const bytes = await buildMealPdf(input({
     buyDateLabels: {},
+    // ⟳ A1 — `null` = le plan n'a pas de veille; la feuille sort au caractère
+    // près comme avant ce lot, ce que ces tests vérifient déjà.
+    timingLine: null,
     shoppingList: [item({ term: "riz", buy_on: "2026-09-03" })],
   }));
   assert(bytes.byteLength > 500);

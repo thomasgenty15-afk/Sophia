@@ -8,6 +8,7 @@ import type {
   MealPreparation,
   MemberPortionView,
   PlanDayProperty,
+  PlanTimingView,
   PlanFixedIntake,
   ShoppingItem,
 } from "../../api/mealGeneration";
@@ -24,6 +25,7 @@ import {
   waveForDate,
 } from "../../lib/planDayView";
 import { dishDate } from "../../api/mealStretch";
+import { dayTokenOf } from "../../api/dates";
 import { windowDates, windowDayOrder } from "../../api/mealWindow";
 import PlanDayBlock from "./PlanDayBlock";
 import PlanGrid from "./PlanGrid";
@@ -91,6 +93,23 @@ export interface PlanResultProps {
    * plancher de deux bouches, lui, est dans `groupDayBySlot`.
    */
   portions: readonly MemberPortionView[];
+  /**
+   * ═══════════════════════════════════════════════════════════════════════
+   * A1 (2026-09-03) — QUAND LA CUISINE A LIEU, DIT PAR LE SERVEUR.
+   * ═══════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ RENDU EN TÊTE, DONC SUR LES DEUX SURFACES (C6/FF-053 C8): l'aperçu et
+   * le plan validé montent ce MÊME composant, et la fenêtre qui a reculé d'un
+   * jour est le fait le plus visible d'un plan — le taire à l'aperçu ferait
+   * croire à une date perdue au moment précis où la personne décide.
+   *
+   * `undefined`/`null` = le serveur ne l'a pas dit (ligne d'avant ce lot):
+   * aucune carte, exactement comme hier.
+   *
+   * ⚠️ L'ÉCRAN NE LE RECALCULE PAS. Le verdict a besoin de l'heure dans le
+   * fuseau de la personne; le navigateur ne l'a pas.
+   */
+  timing?: PlanTimingView | null;
   /** Le premier jour de la fenêtre, en date locale. */
   startsOn: string;
   durationDays: number;
@@ -260,8 +279,31 @@ export default function PlanResult(props: PlanResultProps) {
     { day: shown, dishes: groups.find((g) => g.day === shown)?.dishes ?? [] },
   ];
 
+  // ── A1 · LA PHRASE DU TIMING, EN TÊTE ────────────────────────────────────
+  // `dishDayLabel(dayTokenOf(leadDay))` et pas une date formatée: tout le reste
+  // de ce rendu parle en jours de la semaine, et `toLocaleDateString` n'est pas
+  // utilisé ici (voir `HouseholdMergeCard`, laissé exprès). Un jour de veille
+  // sans jeton lisible retombe sur la phrase sans jour — jamais sur une date
+  // brute au milieu d'une phrase.
+  const timing = props.timing ?? null;
+  const timingLine = timing === null ? null : timing.kind === "day_before"
+    ? (() => {
+      const label = timing.leadDay === null
+        ? null
+        : dishDayLabel(dayTokenOf(timing.leadDay));
+      return label === null
+        ? mealCopy("meals.timing.same_morning")
+        : mealCopy("meals.timing.day_before", { day: label });
+    })()
+    : mealCopy("meals.timing.same_morning");
+
   return (
     <div className="space-y-6">
+      {timingLine === null ? null : (
+        <Card>
+          <p className="break-words text-sm text-ink">{timingLine}</p>
+        </Card>
+      )}
       {/* NIVEAU 1 — la semaine d'un coup d'œil, et le SÉLECTEUR naturel de la
           vue jour: cliquer une colonne filtre le détail dessous. */}
       <PlanGrid

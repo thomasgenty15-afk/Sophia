@@ -55,17 +55,22 @@ describe("le champ est monté sur les DEUX surfaces", () => {
     //
     // ⚠️ L'ORDRE ENTRE ELLES COMPTE AUSSI: d'abord QUAND commence la cuisine,
     // ensuite si elle tient en une fois.
+    //
+    // ⟳ A1 (2026-09-03) — IL N'EN RESTE QU'UNE. La case « je cuisine la
+    // veille » a été retirée: le serveur DÉRIVE le jour de cuisine de la date
+    // de départ et de l'heure locale (`leadDayFor`, coupure à 18 h). Ce test
+    // s'est donc retourné une seconde fois, et il tient toujours la même
+    // chose: la question de calendrier qui reste vit ENTRE les dates et le
+    // reste du formulaire.
     for (const [name, src, dateKey, afterKey] of [
       ["MealBuilder", BUILDER, "meals.form.window_label", "plan.cooking.time_label"],
       ["SetupPage", SETUP, "setup.request.from", "setup.plan.time"],
     ] as const) {
       const dates = src.indexOf(dateKey);
-      const before = src.indexOf("<CookDayBeforeField");
       const session = src.indexOf("<OneCookingSessionField");
       const after = src.indexOf(afterKey);
       expect(dates, name).toBeGreaterThan(-1);
-      expect(before, name).toBeGreaterThan(dates);
-      expect(session, name).toBeGreaterThan(before);
+      expect(session, name).toBeGreaterThan(dates);
       expect(session, name).toBeLessThan(after);
     }
   });
@@ -82,54 +87,91 @@ describe("le champ est monté sur les DEUX surfaces", () => {
   });
 });
 
-describe("« je cuisine la veille »", () => {
-  const FIELD_BEFORE = read("./CookDayBeforeField.tsx");
+describe("⟳ A1 — « je cuisine la veille » N'EST PLUS UNE CASE", () => {
+  // ══════════════════════════════════════════════════════════════════════════
+  // CE BLOC S'EST RETOURNÉ LE 2026-09-03, IL NE S'EST PAS SUPPRIMÉ.
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // Il exigeait `<CookDayBeforeField` sur les deux surfaces, la porte
+  // `cookDayBeforeAvailable`, le décochage automatique et quatre clés
+  // traduites. La règle produit du 03/09 (P1): les courses et la cuisson se
+  // font la veille, AUTOMATIQUEMENT, avec une coupure à 18 h — et quand la
+  // veille n'est plus possible, on le DIT.
+  //
+  // ⛔ CE QUE CE BLOC TIENT MAINTENANT, ET POURQUOI CE N'EST PAS « RIEN ». Une
+  // case retirée sans garde revient par une page oubliée: c'est exactement ce
+  // que le bloc « les jours où tu cuisines » juste au-dessus existe pour
+  // empêcher, et il a déjà servi. Ici en plus, une case ressuscitée LAISSERAIT
+  // LE SERVEUR DÉRIVER quand même — deux autorités sur la même fenêtre, dont
+  // une invisible.
 
-  it("est monté sur les DEUX surfaces", () => {
-    expect(BUILDER).toMatch(/<CookDayBeforeField/);
-    expect(SETUP).toMatch(/<CookDayBeforeField/);
+  it("le champ, ses clés et son état ont disparu des deux surfaces", () => {
+    for (const [name, src] of [["MealBuilder", BUILDER], ["SetupPage", SETUP]] as const) {
+      // ⚠️ MESURÉ SUR LA SOURCE PRIVÉE DE SES COMMENTAIRES. Le retrait est
+      // RACONTÉ dans un commentaire qui nomme `cookTheDayBefore`; un grep naïf
+      // y verrait un appelant vivant et ce test resterait vert le jour où
+      // quelqu'un rebranche la case.
+      const code = src
+        .split("\n")
+        .map((line) => (line.trimStart().startsWith("//") ? "" : line))
+        .join("\n");
+      expect(code, name).not.toMatch(/<CookDayBeforeField/);
+      expect(code, name).not.toMatch(/cookTheDayBefore/);
+      expect(code, name).not.toMatch(/plan\.cooking\.day_before_/);
+    }
   });
 
-  it("⛔ LA DISPONIBILITÉ VIENT DU MOTEUR, elle n'est pas recopiée", () => {
-    // `cookDayBeforeAvailable` rend le MÊME verdict que `withCookDayBefore`
-    // côté serveur — la même fonction, appelée. Une case cochable qui serait
-    // refusée ensuite promettrait un geste que le moteur ne fera pas.
-    expect(FIELD_BEFORE).toMatch(/cookDayBeforeAvailable\(/);
-    expect(FIELD_BEFORE).toMatch(/meal_plan_window\.ts/);
-    // Et le plafond de fenêtre est la constante partagée, jamais `7` en dur.
-    expect(FIELD_BEFORE).toMatch(/MAX_WINDOW_DAYS/);
-  });
-
-  it("le refus NOMME laquelle des deux conditions manque", () => {
-    // Les deux se réparent par des gestes OPPOSÉS — reculer la date de début,
-    // ou raccourcir la fenêtre. Une phrase commune ne dirait ni l'un ni
-    // l'autre, et se lirait comme un bouton mort.
-    expect(FIELD_BEFORE).toMatch(/day_before_no_room/);
-    expect(FIELD_BEFORE).toMatch(/day_before_starts_today/);
-    expect(fr["plan.cooking.day_before_no_room"]).not.toBe(
-      fr["plan.cooking.day_before_starts_today"],
-    );
-  });
-
-  it("elle se décoche quand la fenêtre cesse de le permettre", () => {
-    // Atteignable en UN geste: cocher la veille, puis pousser la date de fin à
-    // sept jours.
-    expect(FIELD_BEFORE).toMatch(/if \(!available && value\) onChange\(false\)/);
-  });
-
-  it("les quatre clés sont traduites, et pas recopiées", () => {
+  it("les quatre clés de la case sont parties des DEUX packs", () => {
+    // Une clé orpheline est une phrase que personne ne rend et que la parité
+    // fait vivre pour toujours.
     for (
       const key of [
         "plan.cooking.day_before_label",
         "plan.cooking.day_before_hint",
         "plan.cooking.day_before_starts_today",
         "plan.cooking.day_before_no_room",
+      ]
+    ) {
+      expect(fr, `fr: ${key}`).not.toHaveProperty(key);
+      expect(en, `en: ${key}`).not.toHaveProperty(key);
+    }
+  });
+
+  it("ce que l'écran dit du timing vient du SERVEUR, et il ne le recalcule pas", () => {
+    // ⛔ LA GARDE QUI COMPTE. Le navigateur ne connaît pas l'heure
+    // (`local_date.ts` refuse tout repli UTC): un écran qui devinerait
+    // annoncerait une soirée de cuisine à quelqu'un dont les magasins sont
+    // fermés. Deux phrases, deux clés, et AUCUN `getHours` nulle part.
+    const RESULT = read("./plan/PlanResult.tsx");
+    expect(RESULT).toMatch(/props\.timing/);
+    expect(RESULT).toMatch(/meals\.timing\.day_before/);
+    expect(RESULT).toMatch(/meals\.timing\.same_morning/);
+    for (
+      const [name, src] of [
+        ["PlanResult", RESULT],
+        ["MealBuilder", BUILDER],
+        ["SetupPage", SETUP],
+        ["KitchenToday", read("./KitchenToday.tsx")],
       ] as const
     ) {
+      expect(src, name).not.toMatch(/getHours\(/);
+      expect(src, name).not.toMatch(/SHOPPING_CUTOFF_HOUR/);
+    }
+    // Les deux surfaces le passent — C6: l'aperçu et le validé rendent le même
+    // corps de plan, et le timing en fait partie.
+    expect(BUILDER).toMatch(/timing=\{result\?\.timing \?\? null\}/);
+    expect(read("./plan/PlanDraftDialog.tsx")).toMatch(/timing=\{draft\.timing\}/);
+  });
+
+  it("les deux phrases neuves sont traduites, et pas recopiées", () => {
+    for (const key of ["meals.timing.day_before", "meals.timing.same_morning"] as const) {
       expect(fr[key], `fr: ${key}`).toBeTruthy();
       expect(en[key], `en: ${key}`).toBeTruthy();
       expect(fr[key], key).not.toBe(en[key]);
     }
+    // Et celle qui nomme un jour porte bien son trou.
+    expect(fr["meals.timing.day_before"]).toContain("{day}");
+    expect(en["meals.timing.day_before"]).toContain("{day}");
   });
 });
 
@@ -178,8 +220,8 @@ describe("la réponse part vraiment, sur les deux lanes", () => {
     // deux, sans qu'aucun test ne rougisse.
     const sends = BUILDER.match(/^\s+oneCookingSession,$/gm) ?? [];
     expect(sends.length).toBeGreaterThanOrEqual(2);
-    const before = BUILDER.match(/^\s+cookTheDayBefore,$/gm) ?? [];
-    expect(before.length).toBeGreaterThanOrEqual(2);
+    // ⟳ A1 — et `cookTheDayBefore` NE PART PLUS: il n'existe plus. La garde
+    // du bloc précédent le tient sur la source privée de ses commentaires.
   });
 
   it("l'entonnoir l'envoie sur les TROIS gestes", () => {
