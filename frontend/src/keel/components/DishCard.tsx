@@ -604,7 +604,17 @@ export default function DishCard(
  * `lib/useMealTicks.ts` derrière. Deux câblages parallèles auraient donné la
  * divergence que ce fichier-là existe pour empêcher.
  */
-function UntickForm({ prompt }: { prompt: UntickPrompt }) {
+/**
+ * A8.1 — EXPORTÉ, parce qu'une SECONDE surface porte désormais des cases: la
+ * part d'un profil réclamé (`plan/DishListByDay`, monté par `MyShareCard`).
+ *
+ * ⚠️ EXPORTÉ PLUTÔT QUE RECOPIÉ, ET C'EST LA MÊME RÈGLE QUE `useMealTicks`.
+ * Le formulaire de FF-057 est une liste FERMÉE de motifs, alignée sur le
+ * serveur et sur la CHECK de la table (`mealTicks.int.test.ts`). Une seconde
+ * copie divergerait au premier motif ajouté, et la divergence s'écrirait en
+ * base avant que quiconque la voie.
+ */
+export function UntickForm({ prompt }: { prompt: UntickPrompt }) {
   return (
     <div
       // Même bloc que `sources` et le dépliant de session: c'est la famille

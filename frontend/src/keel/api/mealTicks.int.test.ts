@@ -197,8 +197,19 @@ describe("la liaison unique porte le formulaire, pas les deux écrans", () => {
     expect(src.slice(write, open)).toContain("});");
   });
 
-  it("les deux écrans passent par `bind`, aucun n'écrit lui-même", () => {
-    for (const page of ["../pages/TodayPage.tsx", "../components/MealBuilder.tsx"]) {
+  it("les TROIS surfaces passent par la liaison, aucune n'écrit elle-même", () => {
+    // ⟳ A8.1 (2026-09-03) — UNE TROISIÈME SURFACE. La part d'un profil réclamé
+    // (`MyShareCard`) porte désormais des cases, sur le plan du FOYER. C'est
+    // la surface où le second câblage coûterait le plus cher: elle écrit sous
+    // le compte du MEMBRE une clé qui nomme le plan du MAÎTRE, et une écriture
+    // faite à côté du hook n'aurait aucune raison de garder ce couple droit.
+    for (
+      const page of [
+        "../pages/TodayPage.tsx",
+        "../components/MealBuilder.tsx",
+        "../components/plan/MyShareCard.tsx",
+      ]
+    ) {
       const src = readFileSync(new URL(page, import.meta.url), "utf8")
         .replace(/\{\s*\/\*[\s\S]*?\*\/\s*\}/g, "")
         .replace(/\/\*[\s\S]*?\*\//g, "")
@@ -209,6 +220,59 @@ describe("la liaison unique porte le formulaire, pas les deux écrans", () => {
       expect(src, `${page} rend le formulaire lui-même`).not.toContain(
         "meals.untick.",
       );
+      expect(src, `${page} écrit une coche directement`).not.toContain(
+        "tickMeal(",
+      );
     }
+  });
+
+  it("⛔ A8.1 — LA COCHE DU MEMBRE S'ÉCRIT SOUS SON COMPTE, JAMAIS SOUS CELUI DU MAÎTRE", () => {
+    // ══════════════════════════════════════════════════════════════════════
+    // LE DÉFAUT QUE CETTE ÉPREUVE FERME, ET IL EST À UN CARACTÈRE DE DISTANCE.
+    //
+    // La part d'un profil réclamé lie DEUX identités qui ne viennent pas du
+    // même endroit: le PLAN est celui du foyer (`householdMeal.mealId`, écrit
+    // sous le `user_id` du maître) et le COMPTE est le sien (`useAuth`). Les
+    // confondre au site de montage écrirait la déclaration du membre sur la
+    // ligne du maître — un fait sur quelqu'un qui n'a rien dit, dans une table
+    // append-only dont la RLS est owner-only, donc invisible à la victime.
+    // FF-058 R10: la cuisson est un fait de FOYER, la consommation un fait de
+    // PERSONNE.
+    //
+    // MUTATION QUI DOIT ROUGIR: au site de montage, écrire
+    // `userId={householdMeal?.mealId ?? null}` — ou n'importe quoi de dérivé
+    // du plan — à la place de `userId={userId}`.
+    // ══════════════════════════════════════════════════════════════════════
+    const page = readFileSync(
+      new URL("../pages/StudentWeekPlanPage.tsx", import.meta.url),
+      "utf8",
+    )
+      .replace(/\{\s*\/\*[\s\S]*?\*\/\s*\}/g, "")
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/^\s*\/\/.*$/gm, "");
+    const at = page.indexOf("<MyShareCard");
+    expect(at, "`MyShareCard` n'est plus monté").toBeGreaterThan(-1);
+    const block = page.slice(at, page.indexOf("/>", at) + 2);
+
+    // LE CAS QUI PASSE: les deux identités sont bien passées, et distinctes.
+    expect(block, "le compte du membre n'est plus passé").toMatch(
+      /userId=\{userId\}/,
+    );
+    expect(block, "l'identité du plan du foyer n'est plus passée").toContain(
+      "householdMealId={householdMeal?.mealId",
+    );
+
+    // LA GARDE: le compte ne vient JAMAIS du plan.
+    const userIdProp = /userId=\{([^}]*)\}/.exec(block)?.[1] ?? "";
+    expect(
+      userIdProp,
+      "le compte sous lequel la coche s'écrit est dérivé du PLAN: c'est le " +
+        "compte du maître, et le membre écrirait sur sa ligne",
+    ).not.toMatch(/household|mine|owner|member/i);
+
+    // ET IL VIENT DE LA SESSION, pas d'un état recopié qui pourrait retarder.
+    expect(page, "`userId` ne vient plus de la session").toMatch(
+      /const userId = user\?\.id \?\? null;/,
+    );
   });
 });

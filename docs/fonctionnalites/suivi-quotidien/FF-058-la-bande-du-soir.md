@@ -388,8 +388,18 @@ garde ses deux autres entrées.
   `.eq("household_id", …)`, jamais le retrait nu du `.eq("user_id")` — run
   adversarial H2). La cascade d'une session déclarée ratée par le maître
   ampute aussi sa bande (`loadSkippedDishIndexes` lit les états sous le compte
-  qui a écrit le plan, les coches sous la personne). Ce qui reste à A8.1 : ses
-  plats **seulement** (`dishIsFor`) et ses cases sur `MyShareCard`.
+  qui a écrit le plan, les coches sous la personne).
+  ✅ **Et ses cases, livrées le même jour (A8.1).** « Ta part » (`MyShareCard`,
+  `/app/plan`) porte désormais une case par plat — **ses** plats seulement
+  (`dishIsFor`, la règle unique), et un ✗ ouvre le formulaire A de §3
+  (`UntickForm`, les mêmes quatre motifs que partout : la liste est fermée et
+  alignée sur la CHECK de la table). La coche s'écrit sous **son** `user_id`
+  avec le plan du **foyer** pour nom de clé — R10 tenu des deux côtés, et
+  `protocol_events` étant unique sur `(user_id, source_message_id)` et
+  owner-only, maître ✓ et membre ✗ coexistent sans se contredire (R12). Les
+  **deux autres** listes du produit ne cochent pas, et le disent : « ce que la
+  maison cuisine » est une lecture, et la vue par personne du maître serait le
+  maître cochant pour un profil réclamé (**R11**).
 - Si un jour la consommation d'un enfant devient lue par quelque chose (un
   coach ? un suivi de croissance ?), R12 se rouvre — **par une décision
   écrite**, pas par un besoin de tableau.

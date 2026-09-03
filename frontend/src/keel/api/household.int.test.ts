@@ -12,6 +12,7 @@ import {
   type HouseholdView,
   MEMBER_GOALS,
   mergeCounterparts,
+  readHouseholdDishes,
   restrictionNotice,
 } from "./household";
 
@@ -550,5 +551,65 @@ describe("le vocabulaire d'objectifs du front est celui de la base", () => {
     // Et l'inverse: un jeton que la base accepte et que l'écran ne propose pas
     // est une direction que personne ne peut plus choisir.
     expect([...allowed].sort()).toEqual([...MEMBER_GOALS].sort());
+  });
+});
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * A8.1 — LA POSITION D'UN PLAT DANS LE PLAN, ET CE QU'ELLE COÛTE SI ELLE GLISSE
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * `meal_tick:<planId>:<idx>` est POSITIONNEL. Depuis A8.1, un profil réclamé
+ * coche sur le plan du foyer, et l'index qu'il écrit est celui que cette
+ * lecture lui a donné. Un cran d'écart, et le fait « j'ai mangé » se pose sur
+ * un AUTRE plat: daté, plausible, append-only, et invisible — les deux plats
+ * existent, les deux titres sont crédibles (cicatrice
+ * `auto-tick-writes-undeniable-false-facts`).
+ *
+ * Le piège est à deux lignes de distance: cette fonction FILTRE les entrées
+ * sans titre. Prendre l'index après le filtre décale tout ce qui suit.
+ */
+describe("A8.1 — `readHouseholdDishes` numérote les plats du PLAN, pas de la vue", () => {
+  it("LE CAS QUI PASSE — sans trou, la position est la position", () => {
+    const dishes = readHouseholdDishes([
+      { title: "Porridge", day: "mon", slot: "breakfast" },
+      { title: "Chili", day: "mon", slot: "dinner" },
+    ]);
+    expect(dishes.map((d) => [d.title, d.dishIndex])).toEqual([
+      ["Porridge", 0],
+      ["Chili", 1],
+    ]);
+  });
+
+  it("⛔ UN PLAT SANS TITRE EST ÉCARTÉ, ET NE DÉCALE PERSONNE", () => {
+    // MUTATION QUI DOIT ROUGIR: déplacer la capture de l'index APRÈS le
+    // `.filter((d) => d.title !== "")` — c'est-à-dire numéroter la VUE.
+    // « Chili » sortirait alors en position 1 alors qu'il vit en position 2 du
+    // `dishes[]` stocké, et la coche du membre irait sur « Porridge ».
+    const dishes = readHouseholdDishes([
+      { title: "Porridge", day: "mon", slot: "breakfast" },
+      { title: "   ", day: "mon", slot: "lunch" },
+      { title: "Chili", day: "mon", slot: "dinner" },
+    ]);
+    expect(dishes.map((d) => d.title)).toEqual(["Porridge", "Chili"]);
+    expect(
+      dishes.map((d) => d.dishIndex),
+      "l'index est celui du tableau STOCKÉ: le trou compte",
+    ).toEqual([0, 2]);
+  });
+
+  it("plusieurs trous, et le dernier plat garde sa vraie position", () => {
+    const dishes = readHouseholdDishes([
+      {},
+      { title: "" },
+      { title: "Soup", day: "tue", slot: "dinner" },
+    ]);
+    expect(dishes).toHaveLength(1);
+    expect(dishes[0].dishIndex).toBe(2);
+  });
+
+  it("ce qui n'est pas un tableau ne rend aucun plat, et ne jette pas", () => {
+    expect(readHouseholdDishes(null)).toEqual([]);
+    expect(readHouseholdDishes({ dishes: [] })).toEqual([]);
   });
 });

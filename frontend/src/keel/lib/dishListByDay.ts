@@ -28,6 +28,20 @@ export interface DayListDish {
   title: string;
   /** La part de la bouche pour ce plat, quand la surface en a une. */
   note: string | null;
+  /**
+   * A8.1 — SA POSITION DANS LE PLAN STOCKÉ, ou `null` quand la surface qui
+   * l'a construite n'en a pas — et alors elle ne portera AUCUNE case.
+   *
+   * ⚠️ CE MODULE NE LE CALCULE PAS, il le TRANSPORTE. Le recalculer ici serait
+   * le recalculer sur une liste déjà filtrée et déjà triée par moment: la
+   * position n'aurait plus aucun rapport avec le plan. Voir
+   * `HouseholdDishView.dishIndex`, qui le capture au seul endroit où il est
+   * vrai.
+   *
+   * `null` n'est pas un défaut permissif: il ferme. Une case a besoin d'une
+   * position pour nommer le fait qu'elle écrit; sans elle, pas de case.
+   */
+  dishIndex: number | null;
 }
 
 /** Un jour, et ses plats. `day: null` = le groupe sans jour, toujours en tête. */
@@ -52,6 +66,12 @@ export function groupDishListByDay(args: {
     slot: string | null;
     title: string;
     note?: string | null;
+    /**
+     * A8.1 — REQUIS, ET PAS OPTIONNEL. Un `?` laisserait un monteur oublier la
+     * position et obtenir une liste sans case, sans rien qui le dise. `null`
+     * est une réponse — « cette surface ne coche pas » — et il faut l'écrire.
+     */
+    dishIndex: number | null;
   }>;
 }): DayListGroup[] {
   const byDay = new Map<string, DayListDish[]>();
@@ -61,6 +81,10 @@ export function groupDishListByDay(args: {
       slot: dish.slot ?? null,
       title: dish.title,
       note: dish.note ?? null,
+      // TRANSPORTÉ TEL QUEL À TRAVERS LE REGROUPEMENT ET LE TRI. C'est tout
+      // l'intérêt: après le tri par moment, la position dans le groupe ne dit
+      // plus rien du plan, mais celle-ci le dit encore.
+      dishIndex: dish.dishIndex,
     };
     if (!dish.day || !args.order.includes(dish.day)) {
       undated.push(entry);

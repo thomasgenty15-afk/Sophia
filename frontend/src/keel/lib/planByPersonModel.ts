@@ -295,7 +295,25 @@ export function dishIsFor(
  */
 export interface PersonDay {
   day: string;
-  dishes: Array<{ slot: string; title: string; note: string | null }>;
+  dishes: Array<{
+    slot: string;
+    title: string;
+    note: string | null;
+    /**
+     * ⛔ TOUJOURS `null` ICI, ET C'EST UNE DÉCISION PRODUIT (A8.1, R11).
+     *
+     * Cette vue est celle du MAÎTRE qui parcourt la semaine de chaque bouche.
+     * Une position ouvrirait une case sous les plats de quelqu'un d'autre,
+     * c'est-à-dire le maître cochant pour un profil réclamé — exactement ce que
+     * FF-058 R11 refuse: la consommation est un fait de PERSONNE, et personne
+     * ne le déclare à sa place.
+     *
+     * Le champ est là plutôt qu'absent parce que son absence n'aurait rien dit.
+     * Écrit `null`, il dit « cette surface ne coche pas », et le jour où
+     * quelqu'un voudra l'ouvrir il devra effacer ce commentaire.
+     */
+    dishIndex: null;
+  }>;
 }
 
 export function buildPersonWeek(args: {
@@ -359,6 +377,10 @@ export function buildPersonWeek(args: {
         slot: d.slot ?? "",
         title: d.title,
         note: shareFor(args.person, d),
+        // A8.1 — voir `PersonDay.dishes[].dishIndex`: la vue du maître ne
+        // coche pas. `d.dishIndex` EXISTE ici et on choisit de ne pas le
+        // transmettre; ce n'est pas un oubli.
+        dishIndex: null as null,
       })),
     };
   }).filter((d) => d.dishes.length > 0);
