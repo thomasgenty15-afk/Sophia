@@ -716,3 +716,38 @@ seulement une garde : il peut faire mentir un instrument de mesure.**
 Et sa réserve à la réserve : `mouths = 0` n'est **pas** une preuve de débranchement (un foyer sans gamelle rend
 légitimement zéro) ; la preuve est zéro **partout alors que** `household_members.work_lunch` porte des `lunchbox`.
 **Le contrôle est le compteur CROISÉ avec la colonne, jamais le compteur seul.** Sortie datée posée pour E.
+
+## 22:2x — Vérification A5 : ROUGE, un bouton mort que TROIS textes déclaraient impossible
+
+Rapport : `scratchpad/2026-09-03-2015-FOYER-A5-verification.md`.
+
+**Défaut 1 — un membre réclamé voit « Retirer son accès » sur SA PROPRE ligne, et la base le refuse `not_owner`.**
+`MemberAccess` ne reçoit aucun fait sur **qui regarde** (pas de `viewerIsOwner`) et `MemberRow` le monte **sans garde**
+(`HouseholdPage.tsx:2340-2351`, `:2837`, `:2388-2404`). C'est la cicatrice « refus loin du geste = bouton mort ».
+
+**Ce qui rend ce défaut exemplaire** : **trois textes concordants affirment le contraire** — l'ANALYSE §5.5 (« le maître
+seul voit ces boutons »), le journal du bâtisseur §9 (« aucun retrait »), et **le commentaire du fichier lui-même**
+(`:1905-1907`). Aucun n'est vrai. Le vérificateur ne les a pas crus : il a monté une **sonde jetable** dans son worktree
+isolé, **capturé le rendu** (`<button …>Remove their access</button>`), puis supprimé la sonde, arbre propre.
+Et la raison pour laquelle aucun test ne l'a vu est la leçon : `memberOwnRow.int.test.ts:58`, **intitulé « le retrait …
+sont gardés »**, ne liste que `household.member.remove` — **jamais `.detach`**. Un test dont le nom couvre deux gestes
+et qui n'en vérifie qu'un. C'est la famille « liste-garde nommée = ne garde que ce qu'elle nomme ».
+
+**Défaut 2** — le « cas qui passe » de l'écart (c) ne mesure que les bornes de **taille**, jamais celles de **poids**
+(25-400 contre 2-400) — or c'est le poids qui porte l'argument (un enfant de trois ans, 14 kg, refusé par `min=25`).
+Un cas qui passe qui ne tient que la moitié de ce qu'il prétend protéger.
+
+**Les trois écarts sont confirmés, aucun motif n'est faux** — et le vérificateur est allé **plus loin que le bâtisseur**
+sur deux : sur (a) `removeAllergy` **existe** mais prend un identifiant de ligne et non un couple bouche/libellé (motif
+plus précis que ce qui était écrit) ; sur (b) le décompte **sous-estimait** (six données et trois écrivains, pas « quatre
+lectures »). Sur (c) vérifié jusqu'aux `CHECK` en base.
+
+**Il a aussi mesuré une conséquence de MON erreur que je n'avais pas vue** : le cinquième rouge vitest vient de
+`089f7fdf` — `api/onboarding.ts:609` cite encore `food_preference_promotion_io.ts`. Mon commit ne casse donc pas
+seulement la suite Deno, mais aussi la suite front. Nommé aux lanes pour que personne ne le prenne pour le sien.
+Il confirme aussi, indépendamment, que `profiles.is_test_persona` n'existe nulle part.
+
+**Vert et solide par ailleurs** : `tsc` 0, **zéro erreur de type ajoutée** (93 → 93, diff par fichier vide), vitest
+2 130/2 155, 22 fichiers tous au mandat, les cinq interdits tenus (un seul `Modal`, aucun montant recopié, Tom mineur
+**invitable**, `HouseholdMergeCard` intact), C6 et C7, **neuf mutations et neuf restaurations prouvées par `cmp`**,
+l'incident d'échappements réellement réparé (une seule ligne `-` dans le pack anglais), fixture conforme en base.
