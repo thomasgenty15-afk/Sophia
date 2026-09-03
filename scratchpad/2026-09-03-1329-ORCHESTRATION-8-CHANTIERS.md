@@ -1018,3 +1018,31 @@ Son diagnostic — le tunnel de paiement du foyer échoue faute des deux prix St
 chemin de dégel** — est cohérent avec ce que ce chantier a laissé de côté **explicitement** (les cinq gestes Stripe de
 FF-049, hors périmètre, et le montant non tranché : 1,99 € sur le site contre 2,00 € dans la fiche). **C'est un trou réel
 que je n'ai pas comblé**, et il rejoint les trois décisions produit portées à l'humain.
+
+## 01:1x — ⛔ le montant N'ÉTAIT PAS « non tranché » : mes fiches portaient l'ancien chiffre
+
+**Une session voisine m'a corrigé, et elle avait raison.** J'ai écrit à l'humain, et plusieurs fois au journal, que le
+montant du profil réclamé « restait à trancher entre 1,99 € et 2,00 € ». **Faux.** Il est tranché depuis le
+**2026-09-01** : `frontend/src/keel/i18n/prices.ts:76` porte `claimedProfile: 1.99`, et son commentaire `:67` date la
+décision **avec son motif** — ce n'est pas un arrondi, c'est la fin d'une confusion entre « un accompagnement à 1,99 € »
+(`/families`) et « un profil réclamé à 2 € » (`/` et `/couples`) : **deux noms, deux montants, un seul objet**.
+
+**Ce qui était périmé, c'étaient MES FICHES** — et c'est bien plus dangereux qu'une hésitation : `CHANTIER-FOYER-SUITE.md`
+et `CHANTIER-FOYER-PROFILS.md` sont **les documents qui disent à un humain quoi taper dans Stripe**. Sept lignes à 2 €,
+dont le **geste n°1** du tableau des gestes humains. Son utilisateur était sur le point de créer ces deux prix.
+**Un prix Stripe à 2,00 € aurait été contredit par chaque écran sur la seule surface où l'utilisateur voit les deux côte
+à côte : le checkout.** Une incohérence de documentation devenue visible au paiement.
+
+**Corrigé : `8448fcc3`**, sept lignes (`PROFILS` `:96 :608 :622 :625 :662`, `SUITE` `:203 :624`), plus un **encadré daté
+juste au-dessus du tableau des gestes** — corriger un chiffre sans dire qu'il a changé laisse la prochaine personne se
+demander lequel croire. L'encadré nomme la source, la date, le motif, et précise que les 2 € restants dans le front sont
+des **commentaires qui racontent l'incohérence et doivent le rester**.
+
+**Sixième erreur de l'orchestrateur, et la même que les cinq autres** : j'ai repris une affirmation — « le montant n'est
+pas tranché », héritée de l'ANALYSE §5.4 D5.8 — **sans ouvrir `prices.ts`**. Le motif est constant : *une affirmation
+reprise sans être mesurée*. Ce chantier l'a interdit aux lanes toute la journée ; l'orchestrateur l'a fait six fois.
+
+**Ce que la coordination a produit ce soir, et qui n'est pas rien** : trois sessions étrangères ont corrigé mon chantier
+sur trois points distincts en trois heures — la règle de commit par pathspec (incomplète : **le `--` protège l'index, pas
+l'arbre**), l'identification de la lane par les **horodatages** plutôt que par `git status`, et ce montant. Aucune n'avait
+de raison de regarder ; toutes ont mesuré avant de parler.
