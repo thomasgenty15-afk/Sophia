@@ -386,12 +386,21 @@ import {
 // ══════════════════════════════════════════════════════════════════════════
 import {
   ANCHOR_REASONS,
+  type AnchorFactor,
   householdAnchors,
   MEAL_STRUCTURE_STATES,
   type SlotExtraKcal,
   mealStructureState,
 } from "../_shared/keel/mouth_anchor.ts";
-import { mouthDayEnergy } from "../_shared/keel/mouth_energy.ts";
+import {
+  type MouthDayEnergy,
+  mouthDayEnergy,
+} from "../_shared/keel/mouth_energy.ts";
+import {
+  UNMET_CAUSES,
+  type UnmetCause,
+  unmetDemand,
+} from "../_shared/keel/pot_demand.ts";
 // LA DIRECTION D'UN OBJECTIF, LUE UNE SEULE FOIS DANS LE DÉPÔT.
 import { scaleDirectionOf } from "../_shared/keel/weight_pace.ts";
 // L8 — LA POSITION DU COACH SUR `counting`, REDUITE. C'est une LECTURE de
@@ -6727,6 +6736,14 @@ Deno.serve(async (req) => {
           : (row_appetite_asked.has(m.memberId) ? "not_answered" : "not_asked")
       ] += 1;
     }
+    // ⛔ HISSÉES POUR `unmetDemand`, ET POUR RIEN D'AUTRE. Les deux naissaient
+    // dans le bloc ci-dessous et mouraient avec lui; le fork aval/amont du LOT 3
+    // se mesure APRÈS le dimensionnement, qui est cent lignes plus bas. Les
+    // recalculer là-bas ferait deux lectures du même plan — le patron que ce
+    // fichier refuse partout ailleurs (« deux relectures d'un même jsonb sont
+    // trois occasions de diverger »).
+    let dayEnergyRows: readonly MouthDayEnergy[] = [];
+    let mouthAnchors: ReadonlyMap<string, AnchorFactor> = new Map();
     if (composition) {
       const dayEnergy = mouthDayEnergy({
         index: composition,
@@ -6813,6 +6830,8 @@ Deno.serve(async (req) => {
         if (factor === 1) sizingFactors.delete(memberId);
         else sizingFactors.set(memberId, factor);
       }
+      dayEnergyRows = dayEnergy;
+      mouthAnchors = anchors;
     }
 
     // ══════════════════════════════════════════════════════════════════════
@@ -6903,6 +6922,70 @@ Deno.serve(async (req) => {
     }
 
     // ══════════════════════════════════════════════════════════════════════
+    // LOT 3 — CE QUE L'ANCRAGE A DEMANDÉ ET N'A PAS OBTENU. L'INSTRUMENT,
+    //         BRANCHÉ POUR LA PREMIÈRE FOIS.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // `pot_demand.ts` est écrit et testé depuis le 2026-08-20 et n'avait aucun
+    // appelant. Son en-tête dit pourquoi: « 136 plans de foyer en base, 0 avec
+    // une boîte. Ce module est donc l'instrument, et le premier run réel est la
+    // mesure. Tant qu'elle n'a pas eu lieu, le fork n'est pas tranché, et
+    // personne ne doit faire comme s'il l'était. » Les plans à boîtes existent
+    // maintenant; ce qui manquait à `unmetDemand` était sa TROISIÈME entrée,
+    // que seule `sizeBoxesFromTarget` connaît et qui mourait en local.
+    //
+    // ⛔ CE BLOC NE DÉPLACE AUCUN GRAMME. Il lit, il compte, il journalise. Le
+    // fork aval/amont se tranche sur ce qu'il montre, pas avant.
+    //
+    // ⚠️ LE RABOT EST PONDÉRÉ PAR LES GRAMMES, PAS PRIS AU MINIMUM. Une bouche
+    // dont une seule casserole sur trois a débordé n'a pas vu sa journée entière
+    // rabotée; prendre le `min` surdéclarerait l'écart et enverrait réparer
+    // l'amont pour un plat. Les grammes lus sont ceux d'APRÈS dimensionnement —
+    // c'est un cran d'approximation, dit ici plutôt que caché.
+    const potShrink = new Map<string, number>();
+    if (boxSizing.shrink.size > 0) {
+      const weighted = new Map<string, { num: number; den: number }>();
+      for (const dish of meal.dishes) {
+        for (const box of dish.boxes) {
+          if (box.memberIds.length !== 1) continue;
+          const key = `${box.memberIds[0]} ${dish.day ?? ""}`;
+          const acc = weighted.get(key) ?? { num: 0, den: 0 };
+          for (const item of box.items) {
+            const g = Number(item.grams);
+            if (!Number.isFinite(g) || g <= 0) continue;
+            // Un composant sans casserole est acheté frais: aucun plafond de
+            // récipient ne le borne, donc son rabot vaut 1.
+            const ratio = item.preparationId === null
+              ? 1
+              : (boxSizing.shrink.get(item.preparationId) ?? 1);
+            acc.num += g * ratio;
+            acc.den += g;
+          }
+          weighted.set(key, acc);
+        }
+      }
+      for (const [key, acc] of weighted) {
+        if (acc.den > 0 && acc.num !== acc.den) potShrink.set(key, acc.num / acc.den);
+      }
+    }
+    const unmet = unmetDemand(mouthAnchors, dayEnergyRows, potShrink);
+    // ⛔ DES HISTOGRAMMES, JAMAIS LES LIGNES. `UnmetDemand` porte un `memberId`
+    // et trois kcal: c'est exactement ce que `residualGaps` a été retiré du
+    // journal pour avoir porté. Ce qui sort ici est un compte par cause et une
+    // BANDE — de quoi voir le fork bouger, rien de quoi reconstruire une
+    // assiette nominative.
+    const unmetCauses = Object.fromEntries(
+      UNMET_CAUSES.map((c) => [c, 0]),
+    ) as Record<UnmetCause, number>;
+    const unmetBand = { lt_200: 0, gte_200: 0 };
+    for (const row of unmet) {
+      unmetCauses[row.cause] += 1;
+      if (row.unmetKcal === null || row.unmetKcal <= 0) continue;
+      if (row.unmetKcal < 200) unmetBand.lt_200 += 1;
+      else unmetBand.gte_200 += 1;
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
     // ⛔ LE MÊME OBJET, JOURNALISÉ — PARCE QUE `generated_from` N'EXISTE QUE
     //    SUR UNE LIGNE ÉCRITE
     // ══════════════════════════════════════════════════════════════════════
@@ -6930,6 +7013,8 @@ Deno.serve(async (req) => {
       share_clamped: shareClamped,
       anchor: anchorReasons,
       anchor_applied: anchorApplied,
+      unmet: unmetCauses,
+      unmet_band: unmetBand,
       extras_floored: extrasFloored,
       activity: activityAnswers,
       activity_source: activitySources,

@@ -2811,6 +2811,23 @@ export interface BoxSizingResult {
     unverifiable: number;
   };
   issues: string[];
+  /**
+   * LE RABOT DU PLAFOND DE RÉCIPIENT, PAR CASSEROLE. `1` (ou absent) = elle a
+   * suivi; `0,8` = tout ce qui tire sur elle a été ramené à 80 %.
+   *
+   * ⛔ IL EST RENDU PARCE QUE `unmetDemand` (`pot_demand.ts`) LE RÉCLAME, et que
+   * cette fonction est la SEULE à le connaître. Il vivait en local (§③) et
+   * mourait avec l'appel: le module qui devait mesurer le fork aval/amont était
+   * construit, testé, et privé de sa dernière entrée — le lot désarmé, une
+   * troisième fois.
+   *
+   * ⚠️ IL EST CLÉ PAR `preparationId`, PAS PAR BOUCHE. C'est l'appelant qui sait
+   * quelle bouche tire sur quelle casserole quel jour; refaire ce partage ici
+   * ferait une seconde arithmétique du même prorata, et ce dépôt en compte déjà
+   * le prix (`neededPotFactor`, « une seconde arithmétique du même partage
+   * divergerait de celle qui fait autorité au premier ajustement »).
+   */
+  shrink: Map<string, number>;
 }
 
 /**
@@ -2995,7 +3012,7 @@ export function sizeBoxesFromTarget(
     if (out.size > 0) items.set(meal.boxId, out);
   }
   counts.unchanged = counts.items - counts.sized;
-  return { items, counts, issues };
+  return { items, counts, issues, shrink };
 }
 
 // ---------------------------------------------------------------------------

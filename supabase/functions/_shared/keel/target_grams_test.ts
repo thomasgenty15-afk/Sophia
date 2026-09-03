@@ -21,7 +21,12 @@
 //   * CHAQUE GARDE A SON CAS QUI PASSE. Une garde qui refuse tout bloque tout
 //     et ressemble trait pour trait à une garde qui marche.
 
-import { assert, assertEquals, assertThrows } from "jsr:@std/assert@1";
+import {
+  assert,
+  assertAlmostEquals,
+  assertEquals,
+  assertThrows,
+} from "jsr:@std/assert@1";
 import { fromFileUrl } from "https://deno.land/std@0.208.0/path/mod.ts";
 
 import {
@@ -716,6 +721,66 @@ Deno.test("⛔ v4 — LE PLAFOND RABOTE LE COMPOSANT QUI DÉBORDE, ET LUI SEUL",
   // ⚠️ ET LE RAPPORT ENTRE LES BOUCHES SURVIT: elles ont le même facteur et
   // tirent sur la même casserole, donc le même rabot.
   assertEquals(out.items.get("box_sauce_1")?.get(0), out.items.get("box_sauce_2")?.get(0));
+});
+
+Deno.test("LOT 3 — LE RABOT SORT DE LA FONCTION, CASSEROLE PAR CASSEROLE", () => {
+  // ⛔ SANS CE RETOUR, `unmetDemand` EST DÉSARMÉ. Le module qui mesure le fork
+  // aval/amont réclame ce nombre en paramètre REQUIS, et `sizeBoxesFromTarget`
+  // est la seule à le connaître: il vivait en local (§③) et mourait avec
+  // l'appel. Un instrument construit, testé, et privé de sa dernière entrée est
+  // la troisième occurrence du mode d'échec n°1 de ce fichier.
+  //
+  // MÊME DÉCOR QUE LE TEST DU DESSUS, et c'est délibéré: la sauce déborde, le
+  // riz est tranquille. Le rabot doit donc nommer la sauce, et SEULEMENT elle.
+  const out = sizeBoxesFromTarget(
+    [
+      BOX("box_full", ["a"], [
+        { preparationId: "prep_rice", grams: 160 },
+        { preparationId: "prep_sauce", grams: 80 },
+      ], [
+        { preparationId: "prep_rice", servings: 1 },
+        { preparationId: "prep_sauce", servings: 1 },
+      ]),
+      BOX("box_sauce_1", ["c"], [{ preparationId: "prep_sauce", grams: 80 }], [
+        { preparationId: "prep_sauce", servings: 1 },
+      ]),
+      BOX("box_sauce_2", ["d"], [{ preparationId: "prep_sauce", grams: 80 }], [
+        { preparationId: "prep_sauce", servings: 1 },
+      ]),
+    ],
+    [PREP("prep_rice", 1000), PREP("prep_sauce", 100)],
+    new Map([["a", 1.2], ["c", 1.2], ["d", 1.2]]),
+    TOL,
+  );
+
+  // ⛔ LA MUTATION QUI FAIT ROUGIR CE TEST: rendre `shrink` vide, ou ne pas le
+  // rendre du tout. C'est exactement l'état d'avant ce lot.
+  const sauce = out.shrink.get("prep_sauce");
+  assert(sauce !== undefined, "la casserole qui déborde n'est pas nommée dans le rabot");
+  assert(sauce! < 1, `un rabot qui ne rabote pas: ${sauce}`);
+
+  // ⛔ ET LE RIZ N'Y EST PAS. Une casserole qui n'a pas débordé n'a pas de
+  // rabot — pas « un rabot de 1 ». Le `?? 1` est chez l'appelant, parce qu'une
+  // entrée à 1 dans cette table se lirait « on a vérifié et ça passe » là où la
+  // vérité est « on n'a rien eu à faire ». Le zéro ambigu, encore.
+  assertEquals(out.shrink.get("prep_rice"), undefined);
+
+  // ⚠️ LE RABOT ET SON COMPTEUR NE PEUVENT PAS DIVERGER: une casserole rabotée
+  // est une casserole comptée. Sans cette égalité, un rabot posé sans compteur
+  // (ou l'inverse) passerait, et l'histogramme mentirait sur ce qui a mordu.
+  assertEquals(out.shrink.size, out.counts.capped_by_pot);
+
+  // ⚠️ LE NOMBRE EST CELUI QUI A RÉELLEMENT ÉTÉ APPLIQUÉ. 3 boîtes × 80 g × 1,2
+  // = 288 g tirés pour un plafond de 100 × 1,1 = 110 → 110/288. Le vérifier ici
+  // interdit qu'un futur `shrink` rende « quelque chose de plausible » calculé
+  // ailleurs que là où le rabot mord.
+  //
+  // ⚠️ APPROCHÉ, ET C'EST LA BONNE FORME. `100 * 1.1` vaut 110,00000000000001 en
+  // binaire, donc l'égalité stricte épinglerait le dernier bit d'un produit
+  // flottant — un test qui rougirait le jour où le plafond se calcule dans
+  // l'autre ordre, sans qu'un seul gramme ait changé. Ce qu'on vérifie est le
+  // rapport, pas sa représentation.
+  assertAlmostEquals(sauce!, 110 / 288, 1e-12);
 });
 
 Deno.test("⛔ v4 — UN COMPOSANT AJOUTÉ FRAIS N'EST BORNÉ PAR AUCUNE CASSEROLE", () => {
