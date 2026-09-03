@@ -2123,9 +2123,12 @@ export const fr: TranslatedMessages = {
   // traduits quand même: le namespace est tout-ou-rien par construction, et la
   // moitié qui manque coûterait le même travail dans six mois.
   "app.nav.today": "Aujourd’hui",
-  "app.nav.progress": "Progression",
+  // ⟳ chantier-0903/SUIVI (A7, D7.1) — « Progression » → « Suivi », « Santé »
+  // → « Sécurité ». Voir la note jumelle dans `en.ts` : les CHEMINS ne bougent
+  // pas, seuls les libellés.
+  "app.nav.progress": "Suivi",
   "app.nav.chat": "Conversation",
-  "app.nav.health": "Santé",
+  "app.nav.health": "Sécurité",
   "app.nav.household": "Foyer",
   // 75 px par colonne sur la barre d'onglets du téléphone: la forme courte
   // doit tenir sur une ligne, en français comme en anglais.
@@ -4609,7 +4612,9 @@ export const fr: TranslatedMessages = {
   // saisie libre. Les rapprocher en français ferait croire à quelqu’un qui a
   // tapé « fruits de mer » qu’il est couvert sur « crevette » — et il ne
   // relira jamais.
-  "health.title": "Ce que tu ne peux pas manger",
+  // ⟳ chantier-0903/SUIVI (A7, D7.1) — « Ce que tu ne peux pas manger » →
+  // « Sécurité ». Voir la note jumelle dans `en.ts`.
+  "health.title": "Sécurité",
   "health.subtitle":
     "Allergies, intolérances, médicaments. Ton coach construit autour, et la conversation ne te les proposera jamais.",
   "health.list.title": "En vigueur",
