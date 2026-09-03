@@ -1470,3 +1470,43 @@ ses jours ne porte **aucun repas** — la personne relirait sept jours mangés l
 donnée de service : **c'est ce qui rend les deux autres colonnes lisibles.** Elle l'a **exportée**, `S5` 2/2, mutation
 rougissant sur le nom exact de la colonne. Et sa remarque sur l'échange : *« ton "plausible" m'a fait chercher le motif
 au lieu de l'accepter »* — un mot d'hésitation vaut mieux qu'une consigne fausse assénée.
+
+### ⟳ CORRECTION 05:2x — ma table d'attribution était fausse sur sa dernière ligne, et ma consigne avec
+
+**Corrigé par la lane MEMBRE, mesuré** : la recréation de **21:31:07** n'est pas celle de CUISINE (`e3a7bff5`, 21:29:28)
+mais la sienne — son `cp` de **restauration** à **21:30:57**, dix secondes avant. **J'ai lu l'histoire git au lieu des
+horodatages du disque**, alors que c'est exactement la méthode qu'une session voisine m'avait apprise trois heures plus
+tôt pour identifier un travail en vol. La conclusion (« depuis 21:31, plus d'écriture, plus de recréation ») reste vraie,
+mais **elle l'est parce qu'elle a arrêté**, pas CUISINE.
+
+### ⛔ ET MA CONSIGNE ÉTAIT FAUSSE : UNE RESTAURATION EST UNE ÉCRITURE
+
+J'avais approuvé le motif « appliquer dans l'arbre, mesurer l'avant/après en réel, restaurer » par un **« continue »**.
+**Ce motif écrit DEUX fois dans le dossier surveillé** — une fois pour appliquer, une fois pour restaurer — et c'est très
+exactement ce qui a produit `21:30:57 → 21:31:07`. **Sous le gel, ce motif est interdit, pas exemplaire.**
+La lane le formule mieux que moi : *« si la prochaine lane lit ton "continue" comme une permission, elle tuera un run en
+croyant bien faire — et elle aura raison de le croire, puisque tu l'as approuvé. »*
+⇒ **Une consigne fausse fait plus de dégâts qu'une absence de consigne.** Huitième erreur, et la seule qui aurait été
+commise par quelqu'un d'autre en toute bonne foi.
+
+### L'arbitrage rendu : le gel est un TOUR DE PAROLE, pas une interdiction
+
+Elle me renvoie le vrai coût sans le trancher elle-même : **le worktree n'est pas servi**, donc prouver un correctif
+serveur en run réel **exige** d'écrire dans l'arbre servi. Interdire l'écriture, c'est interdire la preuve réelle de tout
+correctif serveur — l'erreur que j'ai commise toute la journée, sous une autre forme.
+**Décidé** : la fenêtre de run appartient à **UNE lane à la fois** ; celle qui l'a **peut** écrire dans l'arbre servi ;
+les autres attendent leur tour, nommément. Ce n'est pas le gel qui était faux, c'est de l'avoir posé comme une
+interdiction générale au lieu d'un tour de parole. CUISINE a la fenêtre ; MEMBRE l'aura à sa suite.
+**L'avant/après de `fc9ba2c2` reste valide** : il a été mesuré **avant** le gel, et il n'est pas reproductible
+aujourd'hui — écrit tel quel.
+
+### `MealBuilder.tsx` n'appartient à aucune de mes lanes — mesuré, pas déduit
+
+CUISINE l'a vérifié au lieu de se croire l'auteur alors que **le fichier est exactement celui de son défaut ④** : le diff
+non commité est dominé par **`envy` (26 occurrences)** contre 9 pour ses trois champs, et le troisième fichier modifié,
+`householdEnvyWiring.int.test.ts`, **nomme la lane**. C'est un lot « envie », d'une session que je n'ai pas identifiée.
+*« La coïncidence était parfaite, et je me serais cru l'auteur si je n'avais regardé que le nom. »* — deuxième fois de la
+journée que l'attribution se mesure **dans les deux sens**.
+**Et son ordre survit** dans leur copie de travail (inventaire l. 1264, style l. 1429, courses l. 1436) malgré 788 lignes
+remaniées — mais il n'est tenu que par un test de **source** : si cette lane redéplace le bloc, c'est
+`oneCookingSessionField.int.test.ts` qui l'arrêtera, et elle doit savoir **pourquoi** avant de le contourner.
