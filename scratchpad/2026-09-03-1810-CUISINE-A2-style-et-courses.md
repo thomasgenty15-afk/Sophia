@@ -511,3 +511,97 @@ dans sa version **basename** : deux lanes, deux `index.ts`.
 - Deno `_shared/keel/` **en entier, sans exclusion** : **5 053 passés, 0 échec**.
 - `deno check` vert sur les quatre fonctions · `tsc -b --force` **0**.
 - vitest **2 149 / 2 173**, **quatre** rouges étrangers (coverage-guard ×2, awayFrom ×2).
+
+
+---
+
+## 10. LA QUATRIÈME PORTE — `tsconfig.test.json`, et pourquoi les trois autres ne suffisent pas
+
+Après la fusion d'A2 (`e84085bf`), le gate rend **quatre erreurs** dans
+`src/keel/api/onboarding.int.test.ts`. Corrigées par `09a20437`.
+
+### 10.1 ⛔ AUCUN de mes trois contrôles ne type les fichiers de test
+
+C'est le cœur, et ça vaut pour tout le chantier :
+
+| Contrôle | Ce qu'il vérifie | Ce qu'il NE vérifie PAS |
+|---|---|---|
+| `npx tsc -b --force` | le programme de l'**application** | les fichiers `*.test.ts` — programme séparé |
+| `npx vitest run` | ce que les tests **affirment** | leur **typage** (transpilation seule) |
+| `deno test _shared/keel/` | le socle serveur | tout `frontend/` |
+
+Les tests ont **leur propre programme**, `tsconfig.test.json`, et c'est le seul
+endroit où ces erreurs existaient. **`npx tsc -p tsconfig.test.json --noEmit`
+entre dans la porte d'annonce comme quatrième contrôle.**
+
+C'est la suite directe de la leçon des sept épinglages (§ 6-2) : là, `--no-run`
+vérifiait la compilation mais pas ce que les tests affirment ; ici, trois
+contrôles vérifient ce que les tests affirment mais pas leur compilation. **Les
+deux moitiés se manquaient l'une l'autre.**
+
+### 10.2 Deux des quatre sont de moi, deux ne le sont pas — mesuré, pas supposé
+
+- **Miennes** : les deux `FunnelPlanAnswers`. J'ai rendu `cookingStyle` et
+  `groceryRuns` requis, deux fixtures ne les portaient pas.
+- **Pas miennes**, et la mesure le dit :
+  - `BUDGET_MAX` — `git log --all -S 'BUDGET_MAX' -- api/onboarding.ts` rend
+    **zéro** commit : la constante n'a **jamais** été exportée par ce module
+    (elle vit dans `api/planBudget`). `git show 4c191d37^` montre l'import déjà
+    faux **avant** mon commit.
+  - `FunnelPerson` (six champs) — `git log -S 'dayActivity' -- api/onboarding.ts`
+    rend `f7a7ff90`, qui n'est aucun de mes commits.
+
+  Corrigées quand même : elles sont dans un fichier que j'ai ouvert, et les
+  laisser rouges rendrait la porte inutilisable pour la lane suivante.
+
+### 10.3 Le correctif de `self` est structurel
+
+La fixture énumérait ses champs à la main. Elle part maintenant de
+`emptyFunnelPerson()` — la **seule** définition de « une personne complète mais
+vide » — de sorte que le **prochain** champ requis y arrive avec sa valeur
+neutre au lieu de casser le fichier. Les surcharges restent explicites, chacune
+avec son motif.
+
+### 10.4 Le champ requis reste le bon geste
+
+Troisième occurrence du jour (A1 sur `LivePlanSpan`, MEMBRE sur `dishIndex`,
+moi sur `FunnelPlanAnswers`), et les trois fois **le champ requis a fait tomber
+le défaut au bon endroit**. Ce qui manquait n'était pas la prudence : c'était la
+porte qui regarde.
+
+### 10.5 Mesure
+
+`tsconfig.test.json` : **91 → 87** erreurs, exactement mes quatre, aucun dégât
+collatéral. Les 87 restantes vivent dans douze autres fichiers et appartiennent
+à d'autres lanes (`mealBoxes` 16, `meCardSheet` 10, `ultimate` 7,
+`mouthProfile` 6, `householdReference` 6…) — non touchées.
+
+> ### 🔴 CE QUE J'AVAIS ÉCRIT ICI ÉTAIT FAUX — corrigé le 2026-09-03
+>
+> ~~« la porte ne pourra être bloquante qu'avec une baseline nominative, comme
+> celle de vitest »~~
+>
+> **La baseline existe déjà, et la porte EST déjà bloquante.**
+> `scripts/.tsc-test-red-baseline` est née le 2026-08-22 avec
+> `tsconfig.test.json` lui-même (lot `H1`+`H2`), porte **29 entrées**, et
+> `agent-gate.sh` la lit **par fichier, pas en total** :
+>
+> > « Il est donc lancé à part, borné par `scripts/.tsc-test-red-baseline`
+> > (**un fichier, un compte**). **Un fichier neuf en erreur, ou un compte qui
+> > MONTE, fait échouer.** » — `agent-gate.sh:290-297`
+>
+> C'est très exactement pour ça qu'il m'a attrapé **alors que le total
+> baissait** : mon fichier a vu son compte MONTER, et le total n'entre pas dans
+> la décision. Les 87 restantes sont donc **tolérées et nommées**, pas ignorées.
+>
+> ⚠️ **ET J'AI REFAIT L'ERREUR QUE CE JOURNAL DOCUMENTE DÉJÀ DEUX FOIS.** J'ai
+> affirmé une absence (« il n'y a pas de baseline ») sans la chercher — alors
+> que ma propre règle, écrite au §9 ①, dit qu'*une affirmation d'absence n'est
+> valide que si la recherche pouvait, en principe, trouver la chose*. Ici je
+> n'ai **rien cherché du tout** : un `ls scripts/.tsc-*` aurait suffi. La règle
+> ne vaut que si on l'applique aussi quand on est pressé et qu'on croit ne
+> faire que « signaler ».
+>
+> **Ce qui reste vrai** : la RÉDUCTION des 87 est une dette. L'orchestrateur la
+> porte au rapport final avec ce décompte, et m'a demandé de **ne pas** ouvrir
+> ce lot.
