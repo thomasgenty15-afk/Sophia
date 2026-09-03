@@ -2920,7 +2920,7 @@ export const fr: TranslatedMessages = {
   // de personne. Voir le bloc jumeau de `en.ts` pour le pourquoi complet.
   // ② Voir la note d'`en.ts`: deux axes, parce qu'une journée n'est pas un sport.
   // ③ Voir la note d'`en.ts`: on demande ce qui SE FAIT, jamais ce qu'on aime.
-  "setup.traditions.title": "Les jours que vous ne déplacez pas",
+  "setup.traditions.title": "Les repas traditions",
   "setup.traditions.hint":
     "Le rôti du dimanche, le poisson du vendredi. Dites-le et le plan compose autour, au lieu de composer par-dessus. Deux ou trois suffisent — trois au maximum.",
   "setup.traditions.weekday": "Jour",
@@ -6881,6 +6881,52 @@ export const fr: TranslatedMessages = {
   //                                     « la grille … de sa semaine, juste en dessous »
   //   "setup.request.presence_intro"  — « L'étape trois disait l'habitude » →
   //                                     l'habitude se règle sur la page Foyer
+
+  // ── A5 · la page Foyer (2026-09-03) ──────────────────────────────────────
+  // LES DEUX CADRES NOMMÉS d'une fiche de bouche (D5.1, renversement du
+  // 2026-08-19 écrit dans `MouthFormDialog.tsx`). Le récapitulatif du cadre
+  // replié, lui, REPREND les clés de la fiche d'ajout
+  // (`household.mouth.preferences_filled` / `_empty`): le même fait se dit du
+  // même mot aux deux endroits.
+  "household.member.frame_identity": "Informations personnelles",
+  "household.member.frame_identity_hint":
+    "Ce qui dimensionne son assiette : qui c’est, son corps, et où va sa balance.",
+  "household.member.frame_preferences": "Préférences alimentaires",
+  "household.member.frame_preferences_hint":
+    "Ce qui affine le plan : ce qu’elle mange déjà, ce qu’elle ne mange jamais, et ce que la maison ne sert pas.",
+  // ⛔ « LECTURE… », PAS UN CADRE VIDE. Les formulaires de cette page figent
+  // leurs champs au montage et REMPLACENT à l'enregistrement: un cadre monté
+  // sur une lecture non faite affiche du vide non lu, puis l'écrit.
+  "household.mouth.frame_loading": "Lecture de ce qui est déjà renseigné…",
+  // ── PARAMÈTRES DU FOYER (A5, mandat point 4) ──────────────────────────────
+  // Le titre de la SECTION qui accueille l'équipement de cuisine et les repas
+  // traditions, déplacés de l'étape 3 de l'entonnoir — qui ne se rejoue jamais.
+  "household.settings.title": "Paramètres du foyer",
+  //   "setup.traditions.title"        — « Les jours que vous ne déplacez pas »
+  //                                     → « Les repas traditions » (mandat point 4).
+  //                                     La CLÉ ne bouge pas: la renommer casserait
+  //                                     la parité et `catalog.ts` pour rien.
+  // ── L'ACCÈS, DEPUIS LA LIGNE D'UNE BOUCHE (A5, §5.5) ──────────────────────
+  // Trois états DÉRIVÉS DES FAITS: `user_id` non nul ⇒ réclamée; une invitation
+  // vivante ⇒ invitée; sinon ⇒ libre. Le menu déroulant d'`InviteCard` est parti
+  // avec elle. ⛔ Aucun montant recopié: la phrase du prix vient de `offer.extra`
+  // + `PRICES.claimedProfile` (D5.8).
+  "household.access.claimed": "A son accès",
+  "household.access.invite": "Inviter",
+  "household.access.resend": "Renvoyer",
+  "household.access.invited": "Invitation envoyée le {date} à {email}",
+  "household.access.copy": "Copier le lien",
+  "household.access.copied": "Lien copié",
+  // ⛔ « Écrire », pas « Envoyer »: ce produit n'envoie AUCUN e-mail
+  // d'invitation (FF-060 R7). Le lien ouvre un brouillon, et c'est le maître
+  // qui appuie sur envoyer, dans son propre logiciel de courrier.
+  "household.access.mail": "Écrire le message",
+  "household.access.mail_subject": "Ton accès au foyer",
+  // ── LA FENÊTRE D'AJOUT (A5, point 3) ─────────────────────────────────────
+  // Le bouton qui l'ouvre. La fiche était EN LIGNE sur la page et les goûts
+  // derrière un second écran: une seule fenêtre les porte maintenant tous les
+  // deux, les préférences en accordéon dedans (⛔ jamais deux `Modal` imbriqués).
+  "household.add.open": "Ajouter une personne",
   // ── chantier-0903/FOYER — fin ──
   // ── chantier-0903/CUISINE — début ──
   //

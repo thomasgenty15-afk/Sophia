@@ -385,6 +385,21 @@ export function restrictionNotice(
  * ⚠️ CE N'EST PAS « les gens sans e-mail »: le roster ne rend aucune adresse.
  * `userId === null` est l'état de la LIGNE, et c'est le seul fait disponible.
  */
+/**
+ * ⚠️ PLUS AUCUN LECTEUR DE PRODUCTION DEPUIS A5 (2026-09-03), ET ELLE RESTE.
+ *
+ * Son unique appelant était `InviteCard`, retirée avec le menu déroulant
+ * « qui invites-tu ? »: chaque LIGNE dérive maintenant son propre état d'accès
+ * de ses propres faits (`user_id`, invitation vivante), donc personne n'a plus
+ * besoin de la liste des bouches libres du foyer.
+ *
+ * ⛔ ELLE N'EST PAS SUPPRIMÉE, et c'est un choix nommé: elle porte la
+ * définition partagée de « libre » (`user_id is null`, et le maître n'en est
+ * jamais), avec son test et son MIROIR (`mergeCounterparts`) qui ne doivent
+ * jamais se recouvrir. Ce lot ne retire pas de surface qu'il n'a pas mesurée;
+ * si elle doit partir, c'est avec son miroir et son test, dans un lot qui le
+ * dit.
+ */
 export function claimableMembers(
   household: HouseholdView | null,
 ): HouseholdMemberView[] {
@@ -1339,6 +1354,70 @@ export async function setOwnBirthDate(userId: string, birthDate: string | null) 
  * La réponse porte `first_name`: le maître invite plusieurs personnes dans la
  * même minute, et un jeton anonyme est un jeton envoyé à la mauvaise personne.
  */
+/** Une invitation VIVANTE, telle que la ligne d'une bouche la rend. */
+export interface LiveInvitation {
+  memberId: string;
+  email: string;
+  /** ISO. La ligne dit « invitation envoyée le … ». */
+  createdAt: string;
+  expiresAt: string;
+}
+
+/**
+ * LES INVITATIONS VIVANTES DU FOYER — A5 (§5.5), 2026-09-03.
+ *
+ * ⛔ JAMAIS `token_hash` DANS LA PROJECTION, et ce n'est pas une précaution de
+ * style. Le jeton n'est rendu en clair QU'UNE FOIS, par la RPC qui le crée; la
+ * colonne ne porte que son empreinte. La demander ici la ferait traverser le
+ * réseau et vivre dans l'état d'un écran pour ne RIEN afficher — un secret
+ * transporté sans usage est un secret de plus à perdre.
+ *
+ * ⚠️ VIVANTE = NON CONSOMMÉE ET NON EXPIRÉE. Une invitation consommée est un
+ * accès (la ligne porte alors un `user_id`, et l'écran le dit autrement); une
+ * invitation expirée n'ouvre plus rien, et la proposer comme « envoyée le … »
+ * ferait attendre quelqu'un devant un lien mort. ⚠️ Les expirées ne sont
+ * JAMAIS purgées (trou n°11, connu et non réparé ici): elles restent en base
+ * avec l'adresse d'un tiers, et ce filtre est ce qui les tient hors de l'écran.
+ *
+ * ⚠️ SCOPÉE `.eq("household_id")`, MÊME AVEC RLS. La policy est household-wide
+ * (`household_invitations_member_read`), donc un profil réclamé lit déjà les
+ * adresses invitées des AUTRES bouches — c'est l'état d'aujourd'hui, nommé, pas
+ * élargi. Le filtre explicite reste la cicatrice
+ * `rls-is-not-a-substitute-for-eq-user-id`: une policy qui change en silence
+ * ne doit pas transformer cette lecture en lecture de tout le monde.
+ */
+export async function loadLiveInvitations(
+  householdId: string,
+): Promise<Map<string, LiveInvitation>> {
+  const nowIso = new Date().toISOString();
+  const { data, error } = await supabase
+    .from("household_invitations")
+    .select("member_id, email, created_at, expires_at, consumed_at")
+    .eq("household_id", householdId)
+    .is("consumed_at", null)
+    .gt("expires_at", nowIso);
+  if (error) throw new Error(`[keel/api] loadLiveInvitations: ${error.message}`);
+  const out = new Map<string, LiveInvitation>();
+  for (const row of (data ?? []) as Record<string, unknown>[]) {
+    const memberId = String(row.member_id ?? "");
+    if (memberId === "") continue;
+    const created = String(row.created_at ?? "");
+    const previous = out.get(memberId);
+    // LA PLUS RÉCENTE GAGNE. « Renvoyer » crée un NOUVEAU jeton sans révoquer
+    // l'ancien (la révocation n'existe pas, D5.9): deux lignes vivantes pour la
+    // même bouche sont donc l'état normal après un renvoi, et la ligne doit
+    // dire la DERNIÈRE date — celle du lien que le maître vient d'envoyer.
+    if (previous !== undefined && previous.createdAt >= created) continue;
+    out.set(memberId, {
+      memberId,
+      email: String(row.email ?? ""),
+      createdAt: created,
+      expiresAt: String(row.expires_at ?? ""),
+    });
+  }
+  return out;
+}
+
 export async function inviteToHousehold(email: string, memberId: string) {
   const { data, error } = await supabase.rpc("keel_household_invite", {
     p_email: email,

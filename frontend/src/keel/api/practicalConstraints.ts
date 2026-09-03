@@ -72,3 +72,36 @@ export async function mergePracticalConstraints(args: {
     );
   }
 }
+
+/**
+ * LA COLONNE, LUE POUR SOI — A5, 2026-09-03.
+ *
+ * ⚠️ SCOPÉE SUR `user_id`, ET C'EST TOUT L'OBJET DU PAVÉ D'EN-TÊTE. Une lecture
+ * de `student_goals` SANS ce filtre rendait, pour quelqu'un à la fois coach et
+ * mangeur, la ligne d'un de ses élèves — cases cochées d'un autre, et un Save
+ * qui partait vers une ligne inexistante. La cicatrice
+ * `rls-is-not-a-substitute-for-eq-user-id` dit la même chose: RLS ne remplace
+ * pas un `.eq("user_id")`.
+ *
+ * ⚠️ `null` VEUT DIRE « AUCUNE LIGNE `student_goals` », pas « colonne vide » —
+ * et `{}` veut dire « une ligne, rien dedans ». Les deux sont distincts pour
+ * `KitchenEquipmentCard`, dont la porte de rendu est exactement ce `null`: sept
+ * cases décochées affichées pendant la lecture partiraient telles quelles au
+ * premier Enregistrer.
+ *
+ * ⛔ ELLE NE SERT QU'À PRÉ-COCHER. L'écrivain (`mergePracticalConstraints`)
+ * relit la colonne lui-même dans la même requête: ce qu'on lit ici est une
+ * PHOTO, jamais de quoi écrire.
+ */
+export async function loadPracticalConstraints(
+  userId: string,
+): Promise<PracticalConstraints | null> {
+  const { data, error } = await supabase
+    .from("student_goals")
+    .select("practical_constraints")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error) throw new Error(`[keel/api] loadPracticalConstraints: ${error.message}`);
+  if (!data) return null;
+  return (data.practical_constraints ?? {}) as PracticalConstraints;
+}

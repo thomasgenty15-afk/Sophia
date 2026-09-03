@@ -549,6 +549,18 @@ export const PAGE_NAMESPACES: Readonly<
   // `common` pour la même raison qu'à `/app/setup`: la fenêtre de présence.
   "/app/household": [
     "household",
+    // ── A5 §5.5, 2026-09-03 · LE PRIX D'UN ACCÈS PERSONNEL ────────────────
+    // La ligne d'une bouche annonce ce que son accès coûte AVANT que le maître
+    // ne le promette à quelqu'un par écrit. Le montant vient de `PRICES` et la
+    // phrase de `offer.extra`, la MÊME source que les cinq surfaces de vente —
+    // le produit a déjà vendu ce même accès 2 € sur deux pages et 1,99 € sur
+    // une troisième (D5.8: aucun montant recopié, jamais).
+    //
+    // ⚠️ DÉCLARÉ PLUTÔT QU'ÉVITÉ, comme `setup` et `allergen` en dessous:
+    // `pageSeams` suit le graphe d'imports complet d'une route et refuse
+    // qu'une page atteigne un namespace non déclaré. Le remède qu'il prescrit
+    // lui-même est la déclaration, pas le contournement.
+    "offer",
     "meals",
     "plan",
     "app",

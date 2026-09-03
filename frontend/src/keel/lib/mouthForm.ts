@@ -69,6 +69,7 @@ import {
   GOAL_TOKENS,
   type SportFrequency,
 } from "../../../../supabase/functions/_shared/keel/tokens.ts";
+import { uiLocale } from "../i18n/runtime";
 import type { MemberGender, MemberGoal } from "../api/household";
 // ⚠️ UN IMPORT DE VALEUR, ET IL EST NOMMÉ. `goalForAge` est la règle « ce
 // qu'un mineur peut porter », et elle vit dans `api/household.ts` parce que
@@ -1013,6 +1014,27 @@ export const PREFERENCE_MOUTH_FORM_BLOCKS = [
  * ⚠️ UNE HABITUDE VIDE N'EN EST PAS UNE: `habits` porte une clé par moment dès
  * qu'on a touché un champ puis effacé. On compte le TEXTE, pas la clé.
  */
+/**
+ * LA LISTE DES BLOCS, DANS LA GRAMMAIRE DE LA LANGUE.
+ *
+ * ⚠️ PAS DE CLÉ i18n POUR LE SÉPARATEUR, ET LA GARDE DE PARITÉ L'A DIT AVANT
+ * NOUS. Une première version portait `household.mouth.block_join` = « , » dans
+ * les deux packs: le test « ne recopie pas l'anglais pour faire verdir la CI »
+ * l'a rougi, et il avait raison deux fois — une virgule n'est pas une
+ * traduction, et un `join(", ")` rend « a, b, c » là où les deux langues disent
+ * « a, b et c » / « a, b and c ».
+ *
+ * ⟳ SORTI DE `components/MouthFormDialog.tsx` LE 2026-09-03 (A5): la fiche
+ * d'ajout et le cadre replié d'une bouche sur `/app/household` rendent le même
+ * récapitulatif, et une seconde copie de cette grammaire aurait divergé.
+ */
+export function blockList(labels: readonly string[]): string {
+  return new Intl.ListFormat(uiLocale() === "fr" ? "fr-FR" : "en-GB", {
+    style: "long",
+    type: "conjunction",
+  }).format(labels as string[]);
+}
+
 export function filledPreferenceBlocks(
   draft: MouthFormDraft,
 ): readonly MouthFormBlock[] {

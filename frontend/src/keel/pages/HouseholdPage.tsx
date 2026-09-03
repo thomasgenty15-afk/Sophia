@@ -12,7 +12,6 @@ import {
   addRestriction,
   type AllergyView,
   birthDateDoor,
-  claimableMembers,
   createHousehold,
   createOwnerGoalRow,
   detachHouseholdMember,
@@ -51,6 +50,8 @@ import {
   setMemberGoal,
   setMemberName,
   setOwnBirthDate,
+  loadLiveInvitations,
+  type LiveInvitation,
 } from "../api/household";
 import { addDays } from "../api/dates";
 import {
@@ -87,8 +88,10 @@ import {
 } from "../api/mouthProfile";
 import {
   ageStateOfTypedDate,
+  blockList,
   draftFromKnown,
   emptyMouthDraft,
+  filledPreferenceBlocks,
   type KnownMouth,
   knownMouthForOwner,
   type MouthFormDraft,
@@ -100,16 +103,37 @@ import MouthFormDialog, {
   MouthAppetiteFields,
   type MouthActivityAndStructure,
   MouthCoreFields,
+  MouthPreferencesFields,
 } from "../components/MouthFormDialog";
+import Modal from "../components/ui/Modal";
+import {
+  loadPracticalConstraints,
+  type PracticalConstraints,
+} from "../api/practicalConstraints";
+import KitchenEquipmentCard from "../components/KitchenEquipmentCard";
+import HouseholdTraditionsCard from "../components/HouseholdTraditionsCard";
+// ⛔ LE PLAFOND, EN UN SEUL EXEMPLAIRE (A5). Il vit en base
+// (`keel_household_max_mouths()`); cette constante ne le décide pas, elle
+// l'ANNONCE avant le clic. Elle était recopiée ici sous un second nom.
+import { HOUSEHOLD_MAX_MOUTHS } from "../api/onboarding";
 import { householdErrorKey } from "../copy/planRefusals";
 import MealPickerGrid from "../components/MealPickerGrid";
 import HouseholdHabitsCard from "../components/HouseholdHabitsCard";
+// A5 point 7 — LES DEUX CARTES DU COMPTE, rapatriées de la fenêtre de réglages
+// de `/app/plan`. Elles écrivent la colonne DE LA SESSION: elles ne se montent
+// que sur `isMe`. `CookingCapacityCard` reste là-bas (lane CUISINE).
+import EatingRhythmCard from "../components/EatingRhythmCard";
+import FoodPreferencesCard from "../components/FoodPreferencesCard";
 import MemberWorkLunchCard from "../components/MemberWorkLunchCard";
 import { loadWorkLunch, setMemberWorkLunch } from "../api/workLunch";
 import { commitWorkLunch, readWorkLunchAnswers } from "../lib/workLunchCommit";
 import HouseholdMergeCard from "../components/HouseholdMergeCard";
 import HouseholdPlanCard from "../components/HouseholdPlanCard";
 import { t } from "../i18n/t";
+// ⛔ LE MONTANT EST LU, JAMAIS RECOPIÉ (D5.8): la ligne d'une bouche annonce le
+// prix d'un accès personnel avec la MÊME source que les cinq surfaces de vente.
+import { formatPrice } from "../i18n/format";
+import { PRICES } from "../i18n/prices";
 import { habitSlotsFor } from "../lib/habitSlots";
 import KeelAppShell from "../components/KeelAppShell";
 import { Badge } from "../components/ui/Badge";
@@ -207,8 +231,20 @@ function goalLabel(goal: MemberGoal): string {
   }
 }
 
-/** Le plafond vit EN BASE (`household_full`). L'écran ne fait que le dire. */
-const HOUSEHOLD_MAX_MEMBERS = 8;
+/**
+ * ⛔ ICI SE TENAIT `HOUSEHOLD_MAX_MEMBERS = 8` — A5 point 6bis, 2026-09-03.
+ *
+ * Le même plafond était écrit DEUX FOIS côté front, sous deux noms:
+ * `HOUSEHOLD_MAX_MOUTHS` (`api/onboarding.ts`, lu par l'entonnoir) et celui-ci
+ * (lu par la carte d'ajout du Foyer). Deux nombres pour une seule règle: le
+ * jour où la base en change un, c'est l'écran qu'on relit le moins qui garde
+ * l'ancien — et il refuse, ou laisse passer, sans que rien ne rougisse.
+ *
+ * ⚠️ ET LE PLAFOND N'EST NI L'UN NI L'AUTRE: il vit EN BASE
+ * (`keel_household_max_mouths()` rend 8, et la porte refuse `household_full`).
+ * Ces constantes ne le décident pas, elles l'ANNONCENT avant le clic — un
+ * bouton qui part pour être refusé est un bouton mort. Une seule suffit donc.
+ */
 
 export default function HouseholdPage(): React.ReactElement {
   const { user } = useAuth();
@@ -223,6 +259,31 @@ export default function HouseholdPage(): React.ReactElement {
   // si la ligne `student_goals` existe, on ne rend ni la carte qui la crée ni
   // le bouton de composition qui en dépend.
   const [ownerGoalRow, setOwnerGoalRow] = React.useState<boolean | null>(null);
+  /**
+   * `student_goals.practical_constraints` DU MAÎTRE (A5) — l'équipement de la
+   * cuisine y vit, et « Paramètres du foyer » le rend ici.
+   *
+   * ⚠️ `null` = PAS LU (ou lecture tombée), et c'est la porte de rendu de la
+   * carte, pas un détail: sept cases décochées pendant la lecture partiraient
+   * telles quelles au premier Enregistrer.
+   */
+  const [practicalConstraints, setPracticalConstraints] = React.useState<
+    PracticalConstraints | null
+  >(null);
+  /**
+   * LES INVITATIONS VIVANTES, par `member_id` (A5, §5.5).
+   *
+   * ⚠️ `null` = PAS LU. La ligne d'une bouche sans compte offre alors
+   * « Inviter » sans dire « invitation envoyée le … »: annoncer « personne n'a
+   * été invité » sur une lecture qui n'a pas eu lieu ferait renvoyer un lien à
+   * quelqu'un qui vient d'en recevoir un.
+   *
+   * ⛔ AUCUN `token_hash` NE TRAVERSE. Le jeton n'est rendu en clair qu'une
+   * fois, par la RPC qui le crée; ce qui est lu ici ne sert qu'à DATER.
+   */
+  const [invitations, setInvitations] = React.useState<
+    Map<string, LiveInvitation> | null
+  >(null);
   /**
    * LES MOMENTS D'UNE JOURNÉE ORDINAIRE — les LIGNES de la grille de présence.
    *
@@ -256,8 +317,19 @@ export default function HouseholdPage(): React.ReactElement {
    * Une carte VIDE ne veut donc pas dire « personne n'a de corps »: pour un
    * membre, elle veut dire « ce n'est pas ton affaire ». C'est pour ça que le
    * bloc de saisie ne s'affiche que dans la vue du maître.
+   *
+   * ⟳ A5, 2026-09-03 — `null` = LA LECTURE N'A PAS EU LIEU. Cet état partait
+   * de `new Map()`, et les deux faits étaient donc INDISTINGUABLES: « pas
+   * encore lu » et « lu, personne n'a de corps ». `BodyFields` fige ses trois
+   * champs AU MONTAGE (`useState(body ? … : "")`), et le panneau d'une ligne
+   * se monte au clic — donc une ligne ouverte avant que la lecture revienne
+   * affichait trois champs vides sur une bouche renseignée. C'est la cicatrice
+   * `mount-snapshot-forms-need-a-loading-gate`, et le cadre « Informations
+   * personnelles » ne se rend plus tant que cette lecture est `null`.
    */
-  const [bodies, setBodies] = React.useState<Map<string, MemberBodyView>>(new Map());
+  const [bodies, setBodies] = React.useState<
+    Map<string, MemberBodyView> | null
+  >(null);
   /**
    * CE QUE CHAQUE BOUCHE MANGE D'HABITUDE (2026-08-14).
    *
@@ -403,6 +475,32 @@ export default function HouseholdPage(): React.ReactElement {
             setOwnMouth(null);
             console.error("[household] own mouth unreadable", e);
           }
+          // A5 — LES CONTRAINTES PRATIQUES, POUR « PARAMÈTRES DU FOYER ».
+          //
+          // ⚠️ MÊME `null` QUE LES DEUX AU-DESSUS, et il porte la même garde:
+          // c'est la porte de rendu de `KitchenEquipmentCard`. Sept cases
+          // décochées affichées pendant la lecture partiraient telles quelles
+          // au premier Enregistrer — la carte ne rend donc aucun contrôle tant
+          // que c'est `null`, et un échec de lecture y RESTE.
+          //
+          // ⚠️ C'EST UNE PHOTO, JAMAIS DE QUOI ÉCRIRE: `mergePracticalConstraints`
+          // relit la colonne dans la même requête que l'update.
+          try {
+            setPracticalConstraints(await loadPracticalConstraints(userId));
+          } catch (e) {
+            setPracticalConstraints(null);
+            console.error("[household] practical constraints unreadable", e);
+          }
+          // A5 §5.5 — CE QUI A DÉJÀ ÉTÉ ENVOYÉ, pour que la ligne le dise.
+          // Même `null` fail-closed que les lectures au-dessus.
+          if (hh.id) {
+            try {
+              setInvitations(await loadLiveInvitations(hh.id));
+            } catch (e) {
+              setInvitations(null);
+              console.error("[household] invitations unreadable", e);
+            }
+          }
           // D17 — même raison que la ligne au-dessus: la table n'est lisible
           // que du maître, et la demander pour un membre rendrait zéro ligne,
           // c'est-à-dire « personne n'est masqué » — un fait qu'on n'a pas.
@@ -433,6 +531,24 @@ export default function HouseholdPage(): React.ReactElement {
    * On ne remet PAS `workLunch` à `null` sur un échec: ce qui a déjà été lu
    * reste vrai, et l'erreur se dit à côté de la carte.
    */
+  /**
+   * A5 §5.5 — LES INVITATIONS, RELUES À PART DE `refresh`.
+   *
+   * `refresh` ne lit pas `household_invitations`, et une invitation créée est
+   * un fait de la page: sans cette relecture, la ligne dirait « jamais invitée »
+   * juste après avoir rendu un lien. On ne remet PAS la Map à `null` sur un
+   * échec — ce qui a déjà été lu reste vrai.
+   */
+  const refreshInvitations = React.useCallback(async () => {
+    const id = household?.id ?? null;
+    if (id === null) return;
+    try {
+      setInvitations(await loadLiveInvitations(id));
+    } catch (e) {
+      console.error("[household] invitations reread failed", e);
+    }
+  }, [household?.id]);
+
   const refreshWorkLunch = React.useCallback(async () => {
     const read = await readWorkLunchAnswers(loadWorkLunch);
     if (read.answers !== null) setWorkLunch(read.answers);
@@ -440,14 +556,24 @@ export default function HouseholdPage(): React.ReactElement {
   }, []);
 
   // CET EFFET LIT, ET C'EST LE SEUL QUI TOUCHE AU DÉJEUNER. Il attend de
-  // savoir qui regarde: seul le maître voit les fiches (`MemberRow`), donc
-  // seul lui a besoin des réponses. Keyé sur le RÔLE, pas sur `household`,
-  // pour ne pas relire à chaque `refresh`.
-  const meRole = household?.me?.role ?? null;
+  // savoir QUI regarde, parce que seuls les gens d'un foyer ont des réponses à
+  // lire. Keyé sur le `member_id` et pas sur `household`, pour ne pas relire à
+  // chaque `refresh`.
+  //
+  // ⟳ DETTE D'A6, PAYÉE ICI (A5, point 6). Cet effet était keyé sur
+  // `meRole === "owner"`, et c'était JUSTE tant qu'un non-maître ne voyait
+  // aucune fiche (`MembersCard` lui rendait une liste en lecture seule). Le
+  // point 6 ouvre SA ligne à un membre réclamé: sans ce changement, sa propre
+  // carte « Le déjeuner en semaine » resterait sur « Lecture… » pour toujours —
+  // la lecture n'aurait jamais lieu, et la porte de chargement, qui a raison,
+  // ne rendrait aucune question. La porte d'ÉCRITURE, elle, n'a pas bougé:
+  // `keel_household_set_member_work_lunch` répond `not_your_line` à qui vise
+  // la ligne d'un autre, et c'est elle qui décide.
+  const meMemberId = household?.me?.memberId ?? null;
   React.useEffect(() => {
-    if (meRole !== "owner") return;
+    if (meMemberId === null) return;
     void refreshWorkLunch();
-  }, [meRole, refreshWorkLunch]);
+  }, [meMemberId, refreshWorkLunch]);
 
   const run = React.useCallback(
     async (action: () => Promise<{ ok: boolean; reason: string }>): Promise<boolean> => {
@@ -515,7 +641,10 @@ export default function HouseholdPage(): React.ReactElement {
     isOwner,
     displayName: me.displayName,
     ownMouth,
-    body: bodies.get(me.memberId) ?? null,
+    // `?? null` — la lecture peut n'avoir pas eu lieu (`bodies === null`);
+    // `MeCard` traite déjà « pas de corps » et « pas lu » de la même façon ici,
+    // parce que sa fiche est gardée par `meKnown`, une autre lecture.
+    body: bodies?.get(me.memberId) ?? null,
     // ⚠️ `null` TRAVERSE, ET C'EST LE SUJET. `habits` vaut `null` tant que la
     // lecture n'a pas eu lieu (ou a échoué); l'aplatir en `[]` ici dirait « lu,
     // et elle n'en a aucune », et la fenêtre s'ouvrirait sur du vide qu'elle
@@ -724,6 +853,28 @@ export default function HouseholdPage(): React.ReactElement {
                 awayWindow={awayWindow}
                 bodies={bodies}
                 habits={habits}
+                practicalConstraints={practicalConstraints}
+                hasGoal={ownerGoalRow === true}
+                // A5 point 7 — LA COLONNE DU COMPTE SE RELIT APRÈS SON
+                // ÉCRITURE: `refresh` ne lit pas `student_goals`, donc sans
+                // ça les deux cartes se remonteraient sur la valeur d'avant —
+                // et la suivante fusionnerait par-dessus.
+                onSavedOwnConstraints={async () => {
+                  if (!userId) return;
+                  try {
+                    setPracticalConstraints(
+                      await loadPracticalConstraints(userId),
+                    );
+                  } catch (e) {
+                    console.error("[household] pc reread failed", e);
+                  }
+                }}
+                invitations={invitations}
+                // A5 §5.5 — RELIRE LES INVITATIONS, PAS SEULEMENT LA PAGE:
+                // `refresh` ne lit pas `household_invitations`, donc sans cette
+                // relecture la ligne dirait encore « jamais invitée » juste
+                // après avoir créé un lien.
+                onInvited={refreshInvitations}
                 workLunch={workLunch}
                 workLunchError={workLunchError}
                 // A6 — LE GESTE COMPLET, DANS L'ORDRE QUE `commitWorkLunch`
@@ -766,7 +917,7 @@ export default function HouseholdPage(): React.ReactElement {
                       h,
                       w,
                       g,
-                      bodies.get(memberId)?.activityLevel ?? null,
+                      bodies?.get(memberId)?.activityLevel ?? null,
                       // ── ② ET ① — CETTE RANGÉE POSE VRAIMENT LES CINQ
                       // QUESTIONS (2026-08-20) ────────────────────────────────
                       // C'est le SEUL chemin d'écriture d'une bouche déjà
@@ -832,6 +983,68 @@ export default function HouseholdPage(): React.ReactElement {
                   budget ET la présence par bouche. Garder les deux aurait fait
                   deux formulaires pour un geste, dont le plus pauvre était
                   celui réservé au maître. */}
+              {/* ══════════════════════════════════════════════════════════
+                  PARAMÈTRES DU FOYER — A5, 2026-09-03
+                  ══════════════════════════════════════════════════════════
+
+                  DEUX FAITS DE MAISON, ET ILS VIVAIENT DANS L'ENTONNOIR. Avec
+                  quoi cette cuisine cuisine, et quels repas cette maison ne
+                  déplace pas: aucun des deux n'appartient à une PERSONNE, donc
+                  aucun n'a sa place dans la fiche d'une bouche — les poser par
+                  bouche les ferait demander huit fois, et rien ne dirait
+                  laquelle des huit réponses compte.
+
+                  ⛔ ILS VIVAIENT À L'ÉTAPE 3 D'UN ENTONNOIR QU'ON NE REFAIT
+                  PAS. Une fois inscrit, personne ne repasse par `/app/setup`:
+                  changer de four ou décider que le dimanche est un repas de
+                  famille n'avait donc PLUS AUCUN ÉCRAN après l'inscription.
+                  C'est le trou que ce déplacement referme.
+
+                  ⚠️ L'ÉQUIPEMENT RESTE AUSSI DANS L'ENTONNOIR, et ce n'est pas
+                  une hésitation: le congélateur décide du nombre de courses
+                  (lane CUISINE), donc la question doit être posée AVANT le
+                  premier plan. C'est la MÊME carte montée à deux endroits —
+                  elle lit et écrit elle-même, et relit la colonne avant de
+                  fusionner —, pas deux copies. Les traditions, elles, ne
+                  gouvernent rien avant le premier plan: elles QUITTENT
+                  l'entonnoir, et `TableStepPlanning` disparaît avec.
+
+                  ⚠️ AU MAÎTRE SEUL. `keel_household_set_traditions` refuse
+                  `not_owner`, et l'équipement vit dans `student_goals` du
+                  maître: montrer à un secondaire deux cartes que la base lui
+                  refusera est le bouton mort qu'on évite. */}
+              {isOwner ? (
+                <section className="flex flex-col gap-4">
+                  <SectionLabel>{t("household.settings.title")}</SectionLabel>
+                  <KitchenEquipmentCard
+                    // LA PHOTO DE LA COLONNE, JAMAIS DE QUOI ÉCRIRE. `null` =
+                    // pas encore lu, et c'est la porte de rendu de la carte.
+                    practicalConstraints={practicalConstraints}
+                    // `false` tant qu'aucune ligne `student_goals` n'existe:
+                    // il n'y a rien à mettre à jour, et l'écrivain le dirait
+                    // en erreur au lieu de le dire avant le clic.
+                    hasGoal={ownerGoalRow === true}
+                    onSaved={async () => {
+                      // ON RELIT LA COLONNE, PAS SEULEMENT LA PAGE: la carte
+                      // se remonte sur ce que le serveur a VRAIMENT gardé, et
+                      // `refresh` ne lit pas `student_goals`.
+                      if (userId) {
+                        try {
+                          setPracticalConstraints(
+                            await loadPracticalConstraints(userId),
+                          );
+                        } catch (e) {
+                          console.error("[household] pc reread failed", e);
+                        }
+                      }
+                    }}
+                  />
+                  {/* ELLE LIT ET ÉCRIT SEULE, comme sa voisine: on ne lui
+                      passe que de quoi prévenir la page. */}
+                  <HouseholdTraditionsCard onSaved={refresh} />
+                </section>
+              ) : null}
+
               {/* ── L8/D10 — CE QU'ON PROPOSE AU MAÎTRE ────────────────────
                   APRÈS la composition et AVANT la table: une proposition de
                   fusion se lit une fois qu'on sait qu'un plan existe, et elle
@@ -865,7 +1078,17 @@ export default function HouseholdPage(): React.ReactElement {
                   />
                 )
                 : null}
-              <InviteCard household={household} busy={busy} />
+              {/* ── ⛔ ICI SE TENAIT `InviteCard` — A5 §5.5, 2026-09-03 ────
+                  Une carte en bas de page, avec un menu déroulant qui
+                  redemandait « qui invites-tu ? » à quelqu'un qui regardait
+                  déjà la ligne de la personne. Elle ne RELISAIT rien non plus:
+                  elle n'affichait que le jeton qu'elle venait de créer, donc
+                  une invitation envoyée hier était invisible et le maître
+                  renvoyait un second lien sans le savoir.
+
+                  L'affordance vit maintenant dans l'EN-TÊTE DE CHAQUE LIGNE
+                  (`MemberAccess`), avec trois états dérivés des faits et la
+                  date de la dernière invitation vivante. */}
             </>
           )}
       </div>
@@ -1362,7 +1585,7 @@ function AddMouthCard(
   // LE PLAFOND REND SON MOTIF. La limite vit en base (`household_full`) et doit
   // tenir face à un appel direct de la RPC; ici on ne fait que la DIRE, et on
   // la dit AVANT le refus plutôt qu'après.
-  const full = count >= HOUSEHOLD_MAX_MEMBERS;
+  const full = count >= HOUSEHOLD_MAX_MOUTHS;
 
   return (
     <Card>
@@ -1379,52 +1602,153 @@ function AddMouthCard(
         </p>
       ) : (
         <div>
-          {/* ── LA FICHE EST EN LIGNE, LA FENÊTRE NE PORTE QUE LES GOÛTS ────
-              Les trois blocs obligatoires étaient derrière « Ajouter quelqu'un »,
-              donc derrière un clic ET derrière une fenêtre. Ils sont ici, sans
-              clic: c'est ce qui dimensionne les assiettes. Le bouton qui INSCRIT
-              est celui de la fiche, en bas — il retient tant qu'il manque un des
-              trois blocs, et il DIT lesquels. */}
-          <MouthCoreFields
-            draft={draft}
-            onChange={setDraft}
-            // `existing: false` — on l'AJOUTE. `hasAccount: false` — une bouche
-            // qu'on saisit n'a jamais de compte au moment où on la saisit;
-            // elle en gagne un si elle réclame sa place plus tard.
-            subject={{ existing: false, hasAccount: false, isSelf: false }}
-            todayLocalIso={todayLocalIso}
-            busy={busy}
-            failure={failure}
-            onOpenPreferences={() => setOpen(true)}
-            onSubmit={() => {
-              void (async () => {
-                const ok = await onAdd(draft);
-                if (!ok) return;
-                // ON VIDE, ET LA FENÊTRE DES GOÛTS SE REFERME AVEC: le
-                // brouillon suivant est celui de quelqu'un d'autre, et une
-                // fenêtre restée ouverte sur les préférences de la personne
-                // d'avant écrirait dans la fiche de la suivante.
-                setDraft(emptyMouthDraft());
-                setOpen(false);
-              })();
-            }}
-          />
-          <MouthFormDialog
+          {/* ── ⟳ A5 POINT 3 — UNE SEULE FENÊTRE, ET TOUT EST DEDANS ───────
+              La fiche était EN LIGNE sur la page (les trois blocs
+              obligatoires), et les goûts derrière un second écran (`Modal`).
+              Deux surfaces pour une seule personne, dont une qui s'ouvrait
+              par-dessus l'autre.
+
+              Le bouton ouvre maintenant UNE fenêtre qui porte les deux: les
+              blocs obligatoires en ligne, les préférences dans un accordéon
+              DEDANS.
+
+              ⛔ PAS DEUX `Modal` IMBRIQUÉS, et ce n'est pas un goût: `Modal`
+              passe par `createPortal(document.body)`, et deux portails
+              empilés n'ont JAMAIS été essayés dans ce dépôt — ni le piège du
+              focus, ni celui de la touche Échap (laquelle ferme?), ni celui du
+              défilement de fond. L'accordéon (`SheetFrame`, le troisième usage
+              qui le justifie) répond à la même demande sans ouvrir ce
+              chantier-là. */}
+          <Button
+            variant="secondary"
+            disabled={busy}
+            onClick={() => setOpen(true)}
+          >
+            {t("household.add.open")}
+          </Button>
+          <Modal
             open={open}
             onClose={() => setOpen(false)}
-            draft={draft}
-            onChange={setDraft}
-            subject={{ existing: false, hasAccount: false, isSelf: false }}
-            busy={busy}
-            slots={slots}
-            // ⟳ ELLE A BIEN OÙ LE RANGER DEPUIS LE 2026-08-19
-            // (`household_members.fixed_intakes`), et c'est « Ajouter » qui
-            // l'écrit: la ligne membre n'existe qu'après. Voir `ShakerPort`.
-            shakerPort={{ kind: "with_the_card" }}
-          />
+            title={draft.firstName.trim()
+              ? t("household.mouth.preferences_title_named", {
+                name: draft.firstName.trim(),
+              })
+              : t("household.add.title")}
+            size="lg"
+            closeAsIcon
+            closeLabel={t("common.close")}
+          >
+            <AddMouthForm
+              draft={draft}
+              onChange={setDraft}
+              todayLocalIso={todayLocalIso}
+              busy={busy}
+              failure={failure}
+              slots={slots}
+              onSubmit={() => {
+                void (async () => {
+                  const ok = await onAdd(draft);
+                  if (!ok) return;
+                  // ON VIDE ET ON FERME: le brouillon suivant est celui de
+                  // quelqu'un d'autre, et une fenêtre restée ouverte sur les
+                  // préférences de la personne d'avant écrirait dans la fiche
+                  // de la suivante.
+                  setDraft(emptyMouthDraft());
+                  setOpen(false);
+                })();
+              }}
+            />
+          </Modal>
         </div>
       )}
     </Card>
+  );
+}
+
+/**
+ * LE CORPS DE LA FENÊTRE D'AJOUT — A5 point 3, 2026-09-03.
+ *
+ * ⚠️ UN COMPOSANT À PART, ET C'EST UNE CONTRAINTE DE PREUVE, PAS UN GOÛT.
+ * `Modal` passe par `createPortal(…, document.body)`, et `renderToStaticMarkup`
+ * ne rend RIEN d'un portail: monté à travers le chrome, ce formulaire serait
+ * une chaîne vide, et chaque assertion qui le vise serait verte quoi qu'il
+ * arrive. Les tests de ce dépôt montent donc les CORPS, jamais le chrome.
+ *
+ * ⛔ ET IL N'OUVRE PAS DE SECONDE FENÊTRE. Le bouton des préférences (dans
+ * `MouthCoreFields`) bascule l'accordéon qui est JUSTE EN DESSOUS, dans la même
+ * fenêtre — deux `createPortal` empilés n'ont jamais été essayés ici.
+ */
+export function AddMouthForm(
+  { draft, onChange, todayLocalIso, busy, failure, slots, onSubmit }: {
+    draft: MouthFormDraft;
+    onChange: React.Dispatch<React.SetStateAction<MouthFormDraft>>;
+    todayLocalIso: string;
+    busy: boolean;
+    failure: string | null;
+    slots: readonly EatingOccasion[];
+    onSubmit: () => void;
+  },
+) {
+  // OUVERT PAR DÉFAUT? NON — ET C'EST LE SEUL CADRE DE CE LOT QUI NE L'EST PAS.
+  // Les cadres d'une fiche EXISTANTE s'ouvrent parce qu'ils portent des
+  // réponses déjà données, qu'on cacherait sinon. Ici il n'y a encore rien à
+  // cacher: la personne n'existe pas, et les six blocs de goûts au-dessus du
+  // bouton « Ajouter » feraient une fenêtre de trente champs pour quelqu'un qui
+  // veut juste inscrire un prénom. Le récapitulatif dit ce qui s'y trouve.
+  const [prefsOpen, setPrefsOpen] = React.useState(false);
+  const filled = filledPreferenceBlocks(draft);
+  // ⚠️ `existing: false` — on l'AJOUTE. `hasAccount: false` — une bouche qu'on
+  // saisit n'a jamais de compte au moment où on la saisit; elle en gagne un si
+  // elle réclame sa place plus tard.
+  const subject = { existing: false, hasAccount: false, isSelf: false } as const;
+
+  return (
+    <div className="flex flex-col gap-4">
+      <MouthCoreFields
+        draft={draft}
+        onChange={onChange}
+        subject={subject}
+        todayLocalIso={todayLocalIso}
+        busy={busy}
+        failure={failure}
+        // ⛔ IL BASCULE L'ACCORDÉON, IL N'OUVRE PAS UNE FENÊTRE.
+        onOpenPreferences={() => setPrefsOpen((v) => !v)}
+        onSubmit={onSubmit}
+      />
+      <SheetFrame
+        title={t("household.member.frame_preferences")}
+        open={prefsOpen}
+        onToggle={() => setPrefsOpen((v) => !v)}
+        // RIEN À LIRE: ce brouillon n'existe qu'ici, il ne vient d'aucune
+        // lecture. La garde n'a donc rien à retenir — et c'est le seul site du
+        // lot où elle est vraie par construction.
+        loaded
+        summary={filled.length === 0
+          ? t("household.mouth.preferences_empty")
+          : t("household.mouth.preferences_filled", {
+            blocks: blockList(
+              filled.map((b) =>
+                t(`household.mouth.block_${b}` as "household.mouth.block_identity")
+              ),
+            ),
+          })}
+      >
+        <MouthPreferencesFields
+          draft={draft}
+          onChange={onChange}
+          subject={subject}
+          busy={busy}
+          // FERMER L'ACCORDÉON, PAS LA FENÊTRE: la fiche obligatoire est
+          // au-dessus, et refermer la fenêtre entière perdrait le geste.
+          onClose={() => setPrefsOpen(false)}
+          slots={slots}
+          // ⟳ ELLE A BIEN OÙ RANGER SON SHAKER DEPUIS LE 2026-08-19
+          // (`household_members.fixed_intakes`), et c'est « Ajouter » qui
+          // l'écrit: la ligne membre n'existe qu'après. Voir `ShakerPort`.
+          shakerPort={{ kind: "with_the_card" }}
+        />
+      </SheetFrame>
+    </div>
   );
 }
 
@@ -1438,7 +1762,7 @@ function AddMouthCard(
  * quelle nature est cette contrainte.
  */
 function MembersCard(
-  { household, restrictions, allergies, busy, mutedMembers, rhythm, awayWindow, bodies, habits, workLunch, workLunchError, onSaveWorkLunch, onSaveHabits, onSaveDiet, onSaveBody, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction, todayLocalIso }: {
+  { household, restrictions, allergies, busy, mutedMembers, rhythm, awayWindow, bodies, habits, invitations, onInvited, practicalConstraints, hasGoal, onSavedOwnConstraints, workLunch, workLunchError, onSaveWorkLunch, onSaveHabits, onSaveDiet, onSaveBody, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction, todayLocalIso }: {
     household: HouseholdView;
     restrictions: RestrictionView[];
     allergies: AllergyView[];
@@ -1449,6 +1773,14 @@ function MembersCard(
      * LE DÉJEUNER EN SEMAINE (A6). `null` = PAS ENCORE LU — la carte ne pose
      * alors aucune question. Voir l'état de la page.
      */
+    /** A5 §5.5 — les invitations vivantes, `null` = pas lu. */
+    invitations: Map<string, LiveInvitation> | null;
+    /** La page relit ses faits après une invitation créée. REQUIS. */
+    onInvited: () => void | Promise<void>;
+    /** A5 point 7 — la colonne DE LA SESSION, `null` = pas lue. */
+    practicalConstraints: PracticalConstraints | null;
+    hasGoal: boolean;
+    onSavedOwnConstraints: () => void | Promise<void>;
     workLunch: Map<string, WorkLunch | null> | null;
     workLunchError: string | null;
     /** Le geste complet d'une bouche: écrire, relire les réponses, relire la page. */
@@ -1472,8 +1804,12 @@ function MembersCard(
      * Les corps saisis, par `member_id`. VIDE pour un non-maître, et pas parce
      * que l'écran le décide: `keel_household_member_bodies` lui rend zéro
      * ligne. La table n'a aucun grant à `authenticated`.
+     *
+     * ⟳ A5 — `null` = LA LECTURE N'A PAS EU LIEU, et ce n'est PAS « vide ».
+     * `BodyFields` fige ses champs au montage: le cadre « Informations
+     * personnelles » ne se rend pas tant que c'est `null`.
      */
-    bodies: Map<string, MemberBodyView>;
+    bodies: Map<string, MemberBodyView> | null;
     onSaveBody: (
       memberId: string,
       heightCm: number,
@@ -1520,8 +1856,90 @@ function MembersCard(
     return (
       <Card>
         <SectionLabel>{t("household.members.title")}</SectionLabel>
-        <ul className="mb-3 flex flex-col gap-2">
-          {household.members.map((m) => <MemberBadges key={m.memberId} member={m} />)}
+        {/* ══════════════════════════════════════════════════════════════
+            A5 POINT 6 — SA LIGNE S'ÉDITE, LES AUTRES SE LISENT
+            ══════════════════════════════════════════════════════════════
+
+            ⛔ CE QUI ÉTAIT FAUX: la page entière était en lecture seule pour un
+            profil réclamé — huit pastilles, et rien d'autre. Or il PEUT écrire
+            sur sa propre ligne, et la base le dit: `not_your_line` (et non
+            `not_owner`) garde le prénom, la date de naissance, les habitudes,
+            les absences et le déjeuner de semaine. Un écran qui ne propose pas
+            ce que la base accepte est un écran qui ment par omission, et c'est
+            LUI qui décide de ce que la personne peut dire d'elle-même.
+
+            ⚠️ LES AUTRES LIGNES RESTENT DES PASTILLES: prénom et état d'âge.
+            Pas un cadre vide, JAMAIS — `keel_household_member_bodies` rend zéro
+            ligne à un membre, donc un cadre « personne n'a de corps » affirmerait
+            une absence qu'il n'a pas lue. On ne rend pas ce qu'on ne sait pas.
+
+            ⚠️ ET LA FICHE OUVERTE EST BORNÉE PAR `viewerIsOwner`, pas par une
+            liste de champs recopiée ici: le corps, le régime, les allergies,
+            les règles, l'invitation et les deux retraits ne se rendent pas, un
+            par un, à l'endroit où ils sont écrits. Une seconde liste de droits
+            divergerait de la première au premier champ ajouté. */}
+        <ul className="mb-3 flex flex-col divide-y divide-line">
+          {household.members.map((m) =>
+            m.memberId === me?.memberId
+              ? (
+                <MemberRow
+                  key={m.memberId}
+                  member={m}
+                  todayLocalIso={todayLocalIso}
+                  isMe
+                  viewerIsOwner={false}
+                  allergies={allergies.filter((a) => a.memberId === m.memberId)}
+                  restrictions={restrictions.filter((r) => r.memberId === m.memberId)}
+                  busy={busy}
+                  // Le réglage de fusion est au maître: `null` = on ne montre
+                  // pas un interrupteur dont on ignore la position, et celui-ci
+                  // n'est même pas le sien.
+                  muted={null}
+                  rhythm={rhythm}
+                  awayWindow={awayWindow}
+                  // ⛔ ZÉRO LIGNE POUR LUI, ET LE CADRE NE SE REND PAS: `body`
+                  // reste `null`, mais c'est `viewerIsOwner={false}` qui retire
+                  // le bloc — pas cette valeur, qui voudrait dire « lu, rien ».
+                  body={null}
+                  bodiesLoaded={bodies !== null}
+                  // Il ne voit aucune invitation: `MemberAccess` ne rend rien
+                  // sur sa propre ligne réclamée qu'un état, et le geste qui
+                  // l'inverse est au maître.
+                  invitations={invitations}
+                  onInvited={onInvited}
+                  practicalConstraints={practicalConstraints}
+                  hasGoal={hasGoal}
+                  onSavedOwnConstraints={onSavedOwnConstraints}
+                  // ⚠️ MÊME PARTAGE QUE CHEZ LE MAÎTRE: `habitsLoaded` dit si
+                  // la LECTURE a eu lieu, `habits` ce qu'elle a trouvé. Le
+                  // cadre des préférences ne se rend pas tant que le premier
+                  // est faux.
+                  habitsLoaded={habits !== null}
+                  habits={habits?.get(m.memberId) ?? null}
+                  workLunch={workLunch}
+                  workLunchError={workLunchError}
+                  onSaveWorkLunch={(answer) => onSaveWorkLunch(m.memberId, answer)}
+                  onSaveHabits={(sl, n) => onSaveHabits(m.memberId, sl, n)}
+                  onSaveDiet={(diet) => onSaveDiet(m.memberId, diet)}
+                  onSaveBody={(h, w, g, extras) => onSaveBody(m.memberId, h, w, g, extras)}
+                  onMute={(next) => onMute(m.memberId, next)}
+                  onSaveAway={(next) => onSaveAway(m.memberId, next)}
+                  onSave={(patch) => onSave(m, patch)}
+                  // Câblés mais INATTEIGNABLES depuis cette vue: les deux
+                  // boutons ne se rendent pas (`viewerIsOwner={false}`), et la
+                  // base les refuserait (`not_owner`). On ne passe pas `null`:
+                  // une porte facultative est une porte désarmée, et la même
+                  // ligne rendue au maître doit garder ses gestes.
+                  onRemove={() => onRemove(m.memberId)}
+                  onDetach={() => onDetach(m.memberId)}
+                  onAddAllergy={(label) => onAddAllergy(m.memberId, label)}
+                  onRemoveAllergy={onRemoveAllergy}
+                  onAddRestriction={(label) => onAddRestriction(m.memberId, label)}
+                  onRemoveRestriction={onRemoveRestriction}
+                />
+              )
+              : <MemberBadges key={m.memberId} member={m} />
+          )}
         </ul>
         {mine.length > 0 ? (
           <>
@@ -1557,6 +1975,7 @@ function MembersCard(
             member={m}
             todayLocalIso={todayLocalIso}
             isMe={m.memberId === me?.memberId}
+            viewerIsOwner
             allergies={allergies.filter((a) => a.memberId === m.memberId)}
             restrictions={restrictions.filter((r) => r.memberId === m.memberId)}
             busy={busy}
@@ -1569,7 +1988,15 @@ function MembersCard(
             // `null` = rien de saisi POUR CETTE BOUCHE. La carte des corps est
             // vide pour un non-maître (la RPC lui rend zéro ligne), donc ce
             // bloc ne s'affiche que là où il est légitime.
-            body={bodies.get(m.memberId) ?? null}
+            body={bodies?.get(m.memberId) ?? null}
+            // LA LECTURE DES CORPS, SÉPARÉE DE SON CONTENU — même partage que
+            // `habitsLoaded` juste en dessous, et pour la même raison.
+            bodiesLoaded={bodies !== null}
+            invitations={invitations}
+            onInvited={onInvited}
+            practicalConstraints={practicalConstraints}
+            hasGoal={hasGoal}
+            onSavedOwnConstraints={onSavedOwnConstraints}
             // DEUX `null` QUI NE VEULENT PAS DIRE LA MÊME CHOSE, et c'est le
             // piège du lot. `habitsLoaded` faux = LA LECTURE N'A PAS EU LIEU.
             // `habits` nul avec `habitsLoaded` vrai = LA LECTURE A EU LIEU et
@@ -1830,10 +2257,360 @@ function MemberBadges({ member }: { member: HouseholdMemberView }) {
   );
 }
 
+/**
+ * UN CADRE NOMMÉ DE LA FICHE — A5 (D5.1), 2026-09-03.
+ *
+ * ── ⛔ CE N'EST PAS UNE PRIMITIVE `Accordion`, ET C'EST DÉLIBÉRÉ ────────────
+ * La charte interdit une primitive `Tabs`/`Accordion` neuve avant un TROISIÈME
+ * usage. Il y en a deux ici (les deux cadres d'une ligne). Ce composant reste
+ * donc LOCAL à cet écran: le jour où la pop-up d'ajout porte le sien (point 3
+ * du mandat), les trois se comptent et la primitive se sort — pas avant, parce
+ * qu'une abstraction tirée de deux cas fige le mauvais dénominateur.
+ *
+ * ── LES TROIS CHOSES QU'IL FAIT, ET CHACUNE RÉPOND À UN DÉFAUT MESURÉ ──────
+ *   ① IL SE REPLIE, mais il s'ouvre PAR DÉFAUT. Le repli avait été retiré le
+ *      2026-08-19 (« il faut arrêter avec le dépliable ») sur trois motifs;
+ *      celui qui tenait vraiment est « une réponse repliée est une réponse
+ *      invisible ». Ouvert par défaut, il ne cache rien; refermé À LA MAIN, il
+ *      est refermé par quelqu'un qui vient de lire.
+ *   ② IL RÉSUME CE QU'IL CACHE. C'est ce qui répond au motif ci-dessus, et
+ *      c'est la seule chose qui rende le repli acceptable: le résumé reste à
+ *      l'écran quand le contenu n'y est plus.
+ *   ③ IL A UNE GARDE DE CHARGEMENT. `loaded` faux ⇒ AUCUN champ, une phrase.
+ *      Les formulaires de cette page figent leurs champs au montage et
+ *      REMPLACENT à l'enregistrement: un cadre monté sur une lecture non faite
+ *      affiche du vide non lu, puis l'écrit. Le paramètre est REQUIS — jamais
+ *      optionnel: une garde facultative est une garde désarmée.
+ *
+ * ⚠️ ET IL DÉMONTE SON CONTENU QUAND IL EST REPLIÉ, exprès: les champs d'ici
+ * sont figés au montage, donc les remonter à l'ouverture est ce qui les fait
+ * repartir de la lecture FRAÎCHE plutôt que de celle du premier rendu. C'est
+ * l'inverse du choix fait pour `Modal` (qui rend `null` sans démonter, pour
+ * qu'une grille en cours de saisie survive à une fermeture accidentelle), et
+ * l'inverse est juste ici: on ne saisit rien dans un cadre replié.
+ */
+/**
+ * L'ACCÈS D'UNE BOUCHE, DEPUIS SA LIGNE — A5 (§5.5), 2026-09-03.
+ *
+ * ── ⛔ CE QUI ÉTAIT FAUX AVANT: UN MENU DÉROULANT EN BAS DE PAGE ──────────
+ * `InviteCard` demandait « qui invites-tu ? » dans un `<select>`, tout en bas,
+ * loin des huit lignes qui portent déjà les prénoms. Trois défauts, et aucun
+ * cosmétique:
+ *   · la question était DÉJÀ RÉPONDUE par la ligne qu'on regarde;
+ *   · la carte ne relisait RIEN: elle n'affichait que le jeton qu'elle venait
+ *     de créer, donc une invitation envoyée hier était invisible, et le maître
+ *     n'avait aucun moyen de savoir qu'il renvoyait un second lien;
+ *   · elle ne disait pas ce que l'accès COÛTE, alors que c'est ce qu'il promet
+ *     à quelqu'un en lui écrivant.
+ *
+ * ── LES TROIS ÉTATS SONT DÉRIVÉS DES FAITS, JAMAIS D'UN DRAPEAU ───────────
+ * · `user_id` non nul ⇒ RÉCLAMÉE — « a son accès », et le geste inverse est
+ *   « Retirer l'accès » (détacher: la bouche reste à table, avec sa portion et
+ *   ses allergies) — distinct de « Retirer du foyer », qui détruit la ligne;
+ * · une invitation vivante ⇒ INVITÉE — « envoyée le … à … », et « Renvoyer »;
+ * · sinon ⇒ LIBRE — « Inviter ».
+ * Un drapeau se désynchronise de la base; ces trois-là ne peuvent pas.
+ *
+ * ⚠️ `invitations === null` (pas lu) N'EST PAS « personne n'a été invité ». La
+ * ligne offre alors « Inviter » sans dater quoi que ce soit: annoncer une
+ * absence qu'on n'a pas lue ferait renvoyer un lien à quelqu'un qui vient d'en
+ * recevoir un.
+ *
+ * ── ⛔ AUCUN MONTANT N'EST RECOPIÉ (D5.8) ─────────────────────────────────
+ * La phrase vient de `offer.extra` + `PRICES.claimedProfile`, la MÊME source
+ * que les cinq surfaces de vente. Le produit a déjà vendu ce même accès 2 € sur
+ * deux pages et 1,99 € sur une troisième; le chiffre lui-même reste une
+ * décision humaine, prise avant les gestes Stripe — l'écran, lui, ne fait que
+ * lire.
+ *
+ * ⚠️ ET UNE BOUCHE MINEURE EST INVITABLE, comme aujourd'hui. Rien ne
+ * l'interdit en base, et facturer l'accès d'un enfant est une décision
+ * commerciale NON PRISE (FF-049 §7). La restreindre ici serait la prendre.
+ *
+ * ⚠️ AUCUN E-MAIL N'EST ENVOYÉ PAR CE PRODUIT (FF-060 R7). L'écran rend le
+ * lien, propose de le copier et ouvre un brouillon `mailto:` — c'est le maître
+ * qui écrit. En local, `EMAIL_DELIVERY_ENABLED=1` est un pistolet chargé: un
+ * envoi depuis ici partirait pour de vrai.
+ */
+/**
+ * ⚠️ EXPORTÉ POUR ÊTRE PROUVÉ, pas pour être réutilisé ailleurs: `HouseholdPage`
+ * entier ne se monte pas sous `renderToStaticMarkup`. Voir
+ * `pages/memberAccess.int.test.ts`.
+ */
+export function MemberAccess(
+  { member, invitation, invitationsLoaded, busy, onDetach, onInvited }: {
+    member: HouseholdMemberView;
+    /** L'invitation vivante de CETTE bouche, ou `null`. */
+    invitation: LiveInvitation | null;
+    /** Faux = la lecture n'a pas eu lieu. REQUIS: voir le pavé. */
+    invitationsLoaded: boolean;
+    busy: boolean;
+    onDetach: () => void;
+    /** La page relit ses faits — l'invitation qu'on vient de créer en est un. */
+    onInvited: () => void | Promise<void>;
+  },
+) {
+  const [open, setOpen] = React.useState(false);
+  const [email, setEmail] = React.useState(invitation?.email ?? "");
+  const [token, setToken] = React.useState<string | null>(null);
+  const [reason, setReason] = React.useState<string | null>(null);
+  const [working, setWorking] = React.useState(false);
+  const [copied, setCopied] = React.useState(false);
+
+  // LE MAÎTRE N'A PAS D'ACCÈS À DONNER NI À RETIRER: il EST l'accès.
+  if (member.role === "owner") return null;
+
+  const link = token === null
+    ? null
+    : `${globalThis.location?.origin ?? ""}/join-household?token=${token}`;
+
+  async function send() {
+    setWorking(true);
+    setToken(null);
+    setReason(null);
+    setCopied(false);
+    try {
+      const res = await inviteToHousehold(email.trim(), member.memberId);
+      if (res.ok) {
+        // LE JETON VIENT DE LA RÉPONSE, et le prénom aussi côté RPC: c'est la
+        // ligne que la base a RÉELLEMENT visée, pas celle qu'on croyait viser.
+        setToken(String(res.token ?? ""));
+        // ON RELIT: l'invitation qu'on vient de créer est un fait de la page,
+        // et sans relecture la ligne dirait encore « jamais invitée ».
+        await onInvited();
+      } else setReason(res.reason);
+    } finally {
+      setWorking(false);
+    }
+  }
+
+  // ── ÉTAT ③ · RÉCLAMÉE ─────────────────────────────────────────────────
+  if (member.userId) {
+    return (
+      <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+        <Badge tone="neutral">{t("household.access.claimed")}</Badge>
+        <button
+          type="button"
+          className="text-ink-soft underline disabled:opacity-50"
+          disabled={busy}
+          onClick={onDetach}
+        >
+          {t("household.member.detach")}
+        </button>
+        <span className="basis-full text-ink-soft">
+          {t("household.member.detach_hint")}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-2 flex flex-col gap-2 text-xs">
+      <div className="flex flex-wrap items-center gap-2">
+        {/* ⚠️ « INVITÉE LE … » NE S'AFFICHE QUE SI ON A LU. Voir le pavé. */}
+        {invitationsLoaded && invitation !== null
+          ? (
+            <span className="text-ink-soft">
+              {t("household.access.invited", {
+                date: invitation.createdAt.slice(0, 10),
+                email: invitation.email,
+              })}
+            </span>
+          )
+          : null}
+        <button
+          type="button"
+          className="text-fig-700 underline disabled:opacity-50"
+          disabled={busy}
+          onClick={() => setOpen((v) => !v)}
+        >
+          {invitationsLoaded && invitation !== null
+            ? t("household.access.resend")
+            : t("household.access.invite")}
+        </button>
+      </div>
+
+      {open
+        ? (
+          <div className="flex flex-col gap-2 rounded-card bg-paper-2 p-3">
+            {/* CE QUE ÇA DONNE, ET CE QUE ÇA NE DONNE PAS (FF-048 R10). Le
+                maître écrit le message d'accompagnement: s'il promet « tu
+                pourras composer », la base le démentira et c'est LUI qui aura
+                menti. */}
+            <p className="text-ink-soft">{t("household.invite.grants")}</p>
+            {/* ⛔ LE MONTANT EST LU, JAMAIS RECOPIÉ (D5.8). */}
+            <p className="text-ink-soft">
+              {t("offer.extra", { amount: formatPrice(PRICES.claimedProfile) })}
+            </p>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+              {/* `sm:flex-1` et pas `flex-1`: en `flex-col` sous 640 px, la
+                  grandeur s'appliquerait à la HAUTEUR. `min-w-0` va avec, sinon
+                  l'enfant refuse de descendre sous son contenu et fait défiler
+                  la page à 320 px. */}
+              <Field
+                label={t("household.invite.email")}
+                className="min-w-0 sm:flex-1"
+              >
+                <input
+                  className={`${inputClass} min-w-0`}
+                  value={email}
+                  type="email"
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </Field>
+              <Button
+                size="sm"
+                disabled={busy || working || !email.trim()}
+                onClick={() => void send()}
+              >
+                {t("household.invite.submit")}
+              </Button>
+            </div>
+
+            {/* LE JETON N'EST RENDU QU'UNE FOIS PAR LA RPC — on l'affiche donc
+                en entier, et on NOMME la bouche qu'il vise: le maître en émet
+                plusieurs dans la même minute, et un lien anonyme part à la
+                mauvaise personne. */}
+            {link !== null
+              ? (
+                <div className="flex flex-col gap-2">
+                  <p className="text-ink-soft">
+                    {t("household.invite.link_ready", {
+                      name: member.displayName,
+                    })}
+                  </p>
+                  <code className="block overflow-x-auto rounded-card bg-paper p-2">
+                    {link}
+                  </code>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      className="text-fig-700 underline"
+                      onClick={() => {
+                        // ⚠️ LE PRESSE-PAPIER PEUT NE PAS EXISTER (contexte non
+                        // sécurisé, permission refusée): on ne promet « copié »
+                        // qu'après coup, et le lien reste sélectionnable
+                        // au-dessus dans tous les cas.
+                        void navigator.clipboard
+                          ?.writeText(link)
+                          .then(() => setCopied(true))
+                          .catch(() => setCopied(false));
+                      }}
+                    >
+                      {copied
+                        ? t("household.access.copied")
+                        : t("household.access.copy")}
+                    </button>
+                    {/* ⛔ `mailto:` OUVRE UN BROUILLON, IL N'ENVOIE RIEN. Ce
+                        produit n'envoie aucun e-mail d'invitation (FF-060 R7),
+                        et en local une vraie clé Resend est branchée. */}
+                    <a
+                      className="text-fig-700 underline"
+                      href={`mailto:${encodeURIComponent(email.trim())}` +
+                        `?subject=${
+                          encodeURIComponent(t("household.access.mail_subject"))
+                        }&body=${encodeURIComponent(link)}`}
+                    >
+                      {t("household.access.mail")}
+                    </a>
+                  </div>
+                </div>
+              )
+              : null}
+
+            {reason !== null
+              ? (
+                // UN REFUS EST UN ÉTAT: il sort en rouge, sous le geste qui
+                // l'a déclenché.
+                <p className="text-sm text-red-700">{inviteErrorText(reason)}</p>
+              )
+              : null}
+          </div>
+        )
+        : null}
+    </div>
+  );
+}
+
+/**
+ * ⚠️ EXPORTÉ POUR ÊTRE PROUVÉ, pas pour être réutilisé ailleurs. `HouseholdPage`
+ * entier ne se monte pas sous `renderToStaticMarkup` (session, routeur, quatre
+ * lectures), et ce qui doit être mesuré ici est le CADRE: sa garde de
+ * chargement, son récapitulatif replié, et le fait qu'il démonte son contenu.
+ * Voir `pages/memberSheetFrames.int.test.ts`.
+ */
+export function SheetFrame(
+  { title, hint, open, onToggle, loaded, summary, children }: {
+    title: string;
+    hint?: string;
+    open: boolean;
+    onToggle: () => void;
+    /** Faux = la lecture n'a pas eu lieu. REQUIS — voir ③. */
+    loaded: boolean;
+    /** Ce que le cadre cache, dit quand il est replié. */
+    summary?: string;
+    children: React.ReactNode;
+  },
+) {
+  return (
+    <section className="rounded-card border border-line bg-paper p-3">
+      <button
+        type="button"
+        className="flex w-full items-center justify-between gap-3 text-left"
+        aria-expanded={open}
+        onClick={onToggle}
+      >
+        <SectionLabel>{title}</SectionLabel>
+        {/* LE CHEVRON EST UN CARACTÈRE, PAS UNE IMAGE: il tourne avec l'état,
+            et `aria-expanded` au-dessus porte le fait pour qui ne le voit pas.
+            `aria-hidden`, parce qu'il répète ce que l'état dit déjà. */}
+        <span aria-hidden className="text-ink-soft">{open ? "▾" : "▸"}</span>
+      </button>
+      {hint !== undefined && open
+        ? <p className="mt-1 text-xs leading-5 text-ink-soft">{hint}</p>
+        : null}
+      {open
+        ? (
+          !loaded
+            // ⛔ AUCUN CHAMP TANT QUE LA LECTURE N'EST PAS REVENUE. Voir ③.
+            ? (
+              <p className="mt-2 text-sm text-ink-soft">
+                {t("household.mouth.frame_loading")}
+              </p>
+            )
+            : <div className="mt-3 flex flex-col gap-3">{children}</div>
+        )
+        : summary !== undefined
+        ? <p className="mt-1 text-xs leading-5 text-ink-soft">{summary}</p>
+        : null}
+    </section>
+  );
+}
+
 function MemberRow(
-  { member, isMe, allergies, restrictions, busy, muted, rhythm, awayWindow, body, habits, habitsLoaded, workLunch, workLunchError, onSaveWorkLunch, onSaveHabits, onSaveDiet, onSaveBody, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction, todayLocalIso }: {
+  { member, isMe, viewerIsOwner, allergies, restrictions, busy, muted, rhythm, awayWindow, body, bodiesLoaded, habits, habitsLoaded, invitations, onInvited, practicalConstraints, hasGoal, onSavedOwnConstraints, workLunch, workLunchError, onSaveWorkLunch, onSaveHabits, onSaveDiet, onSaveBody, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction, todayLocalIso }: {
     member: HouseholdMemberView;
     isMe: boolean;
+    /**
+     * QUI REGARDE — A5 point 6, 2026-09-03. REQUIS, jamais optionnel: non
+     * passé, il vaudrait `undefined`, donc « pas maître », et la fiche du
+     * MAÎTRE perdrait le corps, le régime et les allergies sans que rien ne
+     * casse. Une garde facultative est une garde désarmée.
+     *
+     * ⛔ IL NE DÉCIDE DE RIEN, IL RECOPIE CE QUE LA BASE REFUSE DÉJÀ. Le corps
+     * (`set_member_body`), le régime, les allergies, les règles de maison,
+     * l'invitation et les deux retraits répondent tous `not_owner`; les rendre
+     * à un membre serait poser des contrôles que la base refusera, c'est-à-dire
+     * des boutons morts. Ce qui RESTE à un membre sur sa propre ligne est ce
+     * que la base lui accepte (`not_your_line` et non `not_owner`): son prénom,
+     * sa date, ses habitudes, ses absences, son déjeuner de semaine.
+     *
+     * ⛔ ET IL NE CACHE JAMAIS UN CADRE VIDE: un membre ne voit pas « personne
+     * n'a de corps », il ne voit PAS LE CADRE. `keel_household_member_bodies`
+     * lui rend zéro ligne, donc un cadre monté là-dessus affirmerait une
+     * absence qu'il n'a pas lue.
+     */
+    viewerIsOwner: boolean;
     /** `YYYY-MM-DD` local — l'âge des tuiles se lit sur la date tapée. */
     todayLocalIso: string;
     /** A6 — les réponses du foyer, `null` = pas lu. La carte filtre les majeurs. */
@@ -1845,10 +2622,37 @@ function MemberRow(
     busy: boolean;
     /** `null` = rien de saisi. Voir `BodyFields`: la bouche a une part standard. */
     body: MemberBodyView | null;
+    /**
+     * Faux = LA LECTURE DES CORPS N'A PAS EU LIEU — distinct de `body === null`
+     * (« lue, cette bouche n'a pas de corps »). Le cadre « Informations
+     * personnelles » ne rend rien tant que c'est faux: `BodyFields` fige ses
+     * trois champs au montage, et un cadre monté sur une lecture non faite
+     * affiche du vide non lu.
+     */
+    bodiesLoaded: boolean;
     /** `null` = LA LECTURE A EU LIEU et personne n'a rien dit de cette bouche. */
     habits: MemberHabitsView | null;
     /** Faux = la lecture n'a PAS eu lieu. Les deux `null` sont distincts. */
     habitsLoaded: boolean;
+    /**
+     * A5 §5.5 — LES INVITATIONS VIVANTES DU FOYER, `null` = pas lu. La Map
+     * ENTIÈRE descend: c'est la ligne qui y cherche la sienne, et c'est elle
+     * qui distingue « pas lu » de « lu, jamais invitée ».
+     */
+    invitations: Map<string, LiveInvitation> | null;
+    /** La page relit ses faits après une invitation créée. REQUIS. */
+    onInvited: () => void | Promise<void>;
+    /**
+     * A5 point 7 — `student_goals.practical_constraints` DE LA SESSION.
+     * `null` = pas lu, et les deux cartes du compte ne se montent pas:
+     * `mergePracticalConstraints` FUSIONNE sur ce qu'on lui donne, donc un
+     * objet vide non lu effacerait le rythme et les goûts déjà déclarés.
+     */
+    practicalConstraints: PracticalConstraints | null;
+    /** `false` tant qu'aucune ligne `student_goals` n'existe: rien à écrire. */
+    hasGoal: boolean;
+    /** Relit la colonne du compte après une écriture des deux cartes. REQUIS. */
+    onSavedOwnConstraints: () => void | Promise<void>;
     onSaveHabits: (slots: HabitSlotWrite[], note: string | null) => Promise<boolean>;
     /** Le régime de CETTE bouche. `null` efface. */
     onSaveDiet: (diet: string | null) => Promise<boolean>;
@@ -1876,6 +2680,22 @@ function MemberRow(
   },
 ) {
   const [open, setOpen] = React.useState(false);
+  /**
+   * LES DEUX CADRES DE LA FICHE — A5 (D5.1), 2026-09-03.
+   *
+   * ⚠️ OUVERTS PAR DÉFAUT, ET C'EST LA MOITIÉ DU RENVERSEMENT. Le repli avait
+   * été retiré le 2026-08-19 parce qu'« une réponse repliée est une réponse
+   * invisible » — vrai, et c'est exactement pourquoi ils s'ouvrent sur la ligne
+   * qu'on vient d'ouvrir. Ce que le repli rend, c'est de pouvoir REFERMER ce
+   * qu'on vient de lire sur une fiche de trente champs; ce qu'il coûtait est
+   * payé par le récapitulatif, qui reste visible replié.
+   *
+   * ⚠️ ILS VIVENT DANS LA LIGNE, PAS DANS LA PAGE. Le panneau se démonte à la
+   * fermeture (`open ? … : null`): rouvrir une ligne la rouvre donc sur ses
+   * deux cadres, jamais sur l'état laissé par la ligne d'à côté.
+   */
+  const [identityOpen, setIdentityOpen] = React.useState(true);
+  const [prefsOpen, setPrefsOpen] = React.useState(true);
   const [draft, setDraft] = React.useState<MouthDraft>({
     firstName: member.displayName === "—" ? "" : member.displayName,
     birthDate: "",
@@ -1890,6 +2710,44 @@ function MemberRow(
   // C'est ce qui fait qu'une date de mineur tapée sur une bouche à `fat_loss`
   // plie la direction À L'ÉCRAN, avant le Save — et que le Save passe.
   const rowAge = ageStateOfTypedDate(draft.birthDate, member.ageState, todayLocalIso);
+
+  /**
+   * CE QUI EST DÉJÀ RENSEIGNÉ DERRIÈRE LE CADRE REPLIÉ — A5 (D5.1).
+   *
+   * ⚠️ C'EST LA CONTREPARTIE DU REPLI, PAS UNE DÉCORATION. Le repli avait été
+   * retiré le 2026-08-19 sur le motif exact « une réponse repliée est une
+   * réponse invisible »; sans ce résumé, refermer « Préférences alimentaires »
+   * cacherait un régime déjà choisi et une allergie déjà cochée sur un écran
+   * dont le seul travail est de dire ce qu'on sait de quelqu'un.
+   *
+   * ⚠️ ON PASSE PAR `filledPreferenceBlocks`, LE MÊME COMPTEUR QUE LA FICHE,
+   * et pas par un compte maison: c'est lui qui porte les deux cicatrices
+   * (« une bulle éteinte compte si son moment a été RÉPONDU »,
+   * « `allergiesNone` est une réponse »). Deux comptes divergeraient sur ces
+   * deux-là, et c'est l'écran le moins relu qui aurait tort.
+   *
+   * ⛔ IL PEUT SOUS-CLAMER, JAMAIS SUR-CLAMER, et les deux manques sont NOMMÉS:
+   * `shaker` et `allergiesNone` n'ont AUCUN contrôle dans cette fiche-ci (elle
+   * n'a jamais posé ni l'un ni l'autre), donc ils partent à `null`/`false`. Si
+   * l'un des deux gagne un contrôle ici, il doit entrer dans ce brouillon le
+   * même jour — sinon le résumé dira « rien » sur une réponse donnée.
+   */
+  const filledBlocks = React.useMemo(
+    () =>
+      filledPreferenceBlocks({
+        ...emptyMouthDraft(),
+        habits: Object.fromEntries(
+          (habits?.slots ?? []).map((h) => [h.slot, h.usual]),
+        ),
+        extras: habits?.extras ?? {},
+        shaker: null,
+        allergies: allergies.map((a) => a.label),
+        allergiesNone: false,
+        dislikes: restrictions.map((r) => r.label),
+        diet: (member.diet ?? "") as MouthFormDraft["diet"],
+      }),
+    [habits, allergies, restrictions, member.diet],
+  );
 
   /** Combien de moments sont marqués DANS la fenêtre — pour le bouton. */
   const awayInWindow = React.useMemo(() => {
@@ -1968,12 +2826,65 @@ function MemberRow(
         </button>
       </div>
 
+      {/* ── A5 §5.5 · L'ACCÈS, DANS L'EN-TÊTE DE LA LIGNE ─────────────────
+          Il vivait dans une carte tout en bas, derrière un menu déroulant qui
+          redemandait « qui invites-tu ? » — une question à laquelle la ligne
+          qu'on regarde répond déjà. Il est ici, et il se lit SANS ouvrir la
+          fiche: l'état d'accès est un fait de l'en-tête, pas une préférence.
+
+          ⚠️ HORS DES DEUX CADRES, exprès: inviter et retirer un accès sont des
+          GESTES, pas des réponses à un formulaire. */}
+      <MemberAccess
+        member={member}
+        invitation={invitations?.get(member.memberId) ?? null}
+        // `null` = PAS LU ≠ « personne n'a été invité ». La ligne n'annonce
+        // alors aucune date, et propose « Inviter » plutôt que « Renvoyer ».
+        invitationsLoaded={invitations !== null}
+        busy={busy}
+        onDetach={onDetach}
+        onInvited={onInvited}
+      />
+
       {open ? (
         // `bg-paper-2` ET PAS `bg-paper`: c'est un panneau EN CREUX dans une
         // carte, et `paper` est le fond de cette carte — la fiche ouverte
         // aurait disparu. `paper-2` est le jeton du « fond de section
         // alterné », et son couple avec `ink` reste à 15,02:1.
         <div className="mt-3 flex flex-col gap-3 rounded-card bg-paper-2 p-3">
+          {/* ══════════════════════════════════════════════════════════════
+              DEUX CADRES NOMMÉS, ET LE REPLI EST RENVERSÉ — A5 (D5.1), 2026-09-03
+              ══════════════════════════════════════════════════════════════
+
+              La fiche d'une bouche était UN accordéon à un niveau: dix contrôles
+              à la suite, du prénom aux règles de maison, sans qu'aucun titre ne
+              dise où l'un finit. Elle porte maintenant deux cadres NOMMÉS —
+              « Informations personnelles » (ce qui dimensionne l'assiette) et
+              « Préférences alimentaires » (ce qui l'affine) —, le même partage
+              que la fiche d'ajout tient déjà entre ses blocs en ligne et sa
+              fenêtre.
+
+              ⛔ CE QUI RESTE DEHORS, ET CE N'EST PAS UN OUBLI. « Quand cette
+              bouche n'est pas là » est une DATE, pas un trait de la personne:
+              elle change chaque semaine et se relit chaque semaine. Retirer
+              l'accès, retirer du foyer et le réglage de fusion sont des gestes
+              SUR LA LIGNE, pas des réponses: les ranger dans un cadre de
+              questions ferait d'un geste irréversible une case de formulaire.
+
+              ⚠️ LE RENVERSEMENT EST ÉCRIT LÀ OÙ VIT LA PHRASE INVERSE —
+              `MouthFormDialog.tsx` (« il faut arrêter avec le dépliable »,
+              2026-08-19). Ici on ne fait que l'appliquer. */}
+          <SheetFrame
+            title={t("household.member.frame_identity")}
+            hint={t("household.member.frame_identity_hint")}
+            open={identityOpen}
+            onToggle={() => setIdentityOpen((v) => !v)}
+            // ⛔ LA GARDE DE CHARGEMENT DU CADRE. `BodyFields` fige ses trois
+            // champs AU MONTAGE; monté sur une lecture non faite, il affiche du
+            // vide non lu — et « Enregistrer » l'écrirait par-dessus un corps
+            // renseigné. `bodies === null` ⇒ ce cadre ne rend AUCUN champ.
+            // Cicatrice `mount-snapshot-forms-need-a-loading-gate`.
+            loaded={bodiesLoaded}
+          >
           <MouthFields
             draft={draft}
             onChange={setDraft}
@@ -1999,6 +2910,12 @@ function MemberRow(
               Ce que le formulaire collecte ne ressort JAMAIS: pas au prompt
               pour un mineur, pas dans une consigne de service, pas dans un log
               nominatif. Il entre dans le moteur et en ressort en grammes. */}
+          {/* ⛔ LE CORPS EST AU MAÎTRE (A5 point 6). `set_member_body` répond
+              `not_owner`, et `keel_household_member_bodies` rend ZÉRO LIGNE à
+              un membre: le cadre monté sur cette lecture affirmerait « personne
+              n'a de corps », une absence qu'il n'a pas lue. Il ne le voit donc
+              pas — il ne lit pas « rien ». */}
+          {viewerIsOwner ? (
           <BodyFields
             body={body}
             busy={busy}
@@ -2008,7 +2925,54 @@ function MemberRow(
             needsBirthDate={member.ageState === "unknown"}
             onSave={onSaveBody}
           />
+          ) : null}
 
+            <div className="flex flex-wrap items-center gap-2">
+            <Button
+              disabled={busy || !draft.firstName.trim()}
+              onClick={async () => {
+                const ok = await onSave({
+                  firstName: draft.firstName,
+                  birthDate: draft.birthDate || null,
+                  // PLIÉE À L'ÂGE, comme à l'écran: ce qui part est ce qui
+                  // est coché — une bouche mineure héritée à `fat_loss` part
+                  // en `maintenance`, et `saveMember` l'écrit AVANT la date.
+                  goal: goalForAge(draft.goal, rowAge) || null,
+                });
+                if (ok) setDraft((d) => ({ ...d, birthDate: "" }));
+              }}
+            >
+              {t("household.member.save")}
+            </Button>
+            </div>
+          </SheetFrame>
+
+          <SheetFrame
+            title={t("household.member.frame_preferences")}
+            hint={t("household.member.frame_preferences_hint")}
+            open={prefsOpen}
+            onToggle={() => setPrefsOpen((v) => !v)}
+            // MÊME GARDE, SUR SA PROPRE LECTURE: les habitudes. `HouseholdHabitsCard`
+            // tient déjà la sienne en interne (`loaded`), mais un cadre REPLIÉ
+            // annonce un résumé — et un résumé calculé sur une lecture non faite
+            // dirait « rien de renseigné » à quelqu'un qui a tout rempli.
+            loaded={habitsLoaded}
+            // CE QUI EST DÉJÀ RENSEIGNÉ, VISIBLE MÊME REPLIÉ. Voir `filledBlocks`.
+            // ⚠️ LES DEUX PHRASES SONT CELLES DE LA FICHE D'AJOUT
+            // (`MouthPreferencesButton`), pas des jumelles écrites ici: le même
+            // fait — « voilà ce qui est déjà renseigné » — se dit du même mot
+            // aux deux endroits, et une seconde paire de clés divergerait au
+            // premier ajustement.
+            summary={filledBlocks.length === 0
+              ? t("household.mouth.preferences_empty")
+              : t("household.mouth.preferences_filled", {
+                blocks: blockList(
+                  filledBlocks.map((b) =>
+                    t(`household.mouth.block_${b}` as "household.mouth.block_identity")
+                  ),
+                ),
+              })}
+          >
           {/* ── COMMENT CETTE BOUCHE MANGE (2026-08-14) ────────────────────
               LA QUESTION EXISTAIT POUR LE TITULAIRE ET POUR PERSONNE D'AUTRE,
               et l'utilisateur l'a redemandée deux fois. Les trois jetons
@@ -2031,6 +2995,11 @@ function MemberRow(
               DIT plutôt que de masquer la ligne, exactement comme l'objectif
               depuis D1: « il n'y a rien ici » et « ça se règle ailleurs » ne
               sont pas la même phrase. */}
+          {/* ⛔ LE RÉGIME AUSSI (A5 point 6): `set_member_diet` répond
+              `not_owner`. Et pour un membre RÉCLAMÉ il répondrait de toute
+              façon `has_account` — son régime vit dans son « about you ». Deux
+              refus pour un contrôle: il ne se rend pas. */}
+          {viewerIsOwner ? (
           <div className="border-t border-line pt-3">
             <Field
               label={t("household.member.diet")}
@@ -2071,6 +3040,7 @@ function MemberRow(
                 )}
             </Field>
           </div>
+          ) : null}
 
           {/* ── CE QUE CETTE BOUCHE MANGE D'HABITUDE (2026-08-14) ──────────
               L'ENDROIT QUI MANQUAIT. Une bouche sans compte n'avait nulle part
@@ -2117,142 +3087,14 @@ function MemberRow(
             onSave={(_memberId, answer) => onSaveWorkLunch(answer)}
           />
 
-          {/* ── D14 · QUAND CETTE BOUCHE N'EST PAS LÀ ──────────────────────
-              LA GRILLE EST CELLE DU CONSTRUCTEUR, pas une seconde. Deux
-              grilles pour la même question divergeraient sur le seul détail
-              qui compte — ce que « tout décoché » veut dire — et c'est celle
-              qu'on regarde le moins qui garderait l'ancienne règle.
-
-              CE QU'ELLE MONTRE ET ÉCRIT EST LA MARQUE DU MAÎTRE, JAMAIS
-              L'UNION. La grille réécrit ce qu'on lui donne: nourrie de
-              l'union, elle recopierait la déclaration de la personne dans la
-              colonne du foyer, où elle survivrait à sa rétractation. */}
-          <div className="border-t border-line pt-3">
-            <SectionLabel>{t("household.away.title")}</SectionLabel>
-            <p className="mb-2 text-xs text-ink-soft">
-              {t("household.away.hint")}
-            </p>
-            <Button
-              variant="secondary"
-              disabled={busy}
-              onClick={() => setAwayOpen(true)}
-            >
-              {awayInWindow === 0
-                ? t("household.away.open")
-                : t("household.away.open_count", { n: String(awayInWindow) })}
-            </Button>
-            {/* CE QUE LA PERSONNE A DIT ELLE-MÊME, en lecture seule. Sans cette
-                ligne, le maître verrait sa propre marque et pas le FAIT: il
-                remarquerait une assiette manquante sans pouvoir dire d'où elle
-                vient — et re-marquerait par-dessus. */}
-            {selfInWindow.length > 0 ? (
-              <p className="mt-2 text-xs text-ink-soft">
-                {t("household.away.self_declared", {
-                  days: selfInWindow.map((a) => a.day).join(", "),
-                })}
-              </p>
-            ) : null}
-          </div>
-
-          {/* MONTÉE MÊME FERMÉE — `Modal` rend `null` sans démonter — donc une
-              grille modifiée survit à une fermeture accidentelle. */}
-          <MealPickerGrid
-            open={awayOpen}
-            onClose={() => setAwayOpen(false)}
-            days={awayWindow.tokens}
-            dates={awayWindow.dates}
-            rhythm={rhythm}
-            away={member.awayHousehold}
-            busy={busy}
-            onSave={async (next) => {
-              const ok = await onSaveAway(next);
-              if (ok) setAwayOpen(false);
-            }}
-          />
-
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              disabled={busy || !draft.firstName.trim()}
-              onClick={async () => {
-                const ok = await onSave({
-                  firstName: draft.firstName,
-                  birthDate: draft.birthDate || null,
-                  // PLIÉE À L'ÂGE, comme à l'écran: ce qui part est ce qui
-                  // est coché — une bouche mineure héritée à `fat_loss` part
-                  // en `maintenance`, et `saveMember` l'écrit AVANT la date.
-                  goal: goalForAge(draft.goal, rowAge) || null,
-                });
-                if (ok) setDraft((d) => ({ ...d, birthDate: "" }));
-              }}
-            >
-              {t("household.member.save")}
-            </Button>
-            {/* DEUX GESTES, DEUX LIBELLÉS, JAMAIS UN SEUL BOUTON (chantier 2).
-                « Retirer l'accès » DÉTACHE: la personne perd la lecture du
-                foyer, et reste une bouche à table avec sa portion et ses
-                allergies. « Retirer du foyer » SUPPRIME la ligne. Un seul
-                bouton « retirer » voudrait dire deux choses irréversibles
-                différentes selon la ligne qu'on regarde.
-
-                LE MAÎTRE NE SE RETIRE PAS, ET NE SE DÉTACHE PAS. La base
-                refuse les deux (`cannot_remove_owner`, `cannot_detach_owner`)
-                parce qu'un foyer sans personne pour composer laisse ses
-                bouches sans compte sans recours; l'écran ne montre pas un
-                bouton qui sera refusé. */}
-            {member.role !== "owner" && member.userId ? (
-              <Button variant="secondary" disabled={busy} onClick={onDetach}>
-                {t("household.member.detach")}
-              </Button>
-            ) : null}
-            {member.role !== "owner" ? (
-              <Button variant="danger" disabled={busy} onClick={onRemove}>
-                {t("household.member.remove")}
-              </Button>
-            ) : null}
-          </div>
-          {/* Les deux gestes ne se distinguent pas par leur couleur: on ÉCRIT
-              ce que chacun fait, à côté d'eux, au moment de choisir. */}
-          {member.role !== "owner" ? (
-            <p className="text-xs text-ink-soft">
-              {member.userId
-                ? t("household.member.detach_hint")
-                : t("household.member.remove_hint")}
-            </p>
-          ) : null}
-
-          {/* ── D17 · LE RÉGLAGE DISCRET (L8) ────────────────────────────────
-              « Un réglage discret permet au maître de ne plus se voir proposer
-              la fusion pour une personne donnée. Assumé comme un peu brutal,
-              donc caché. » Il est donc ICI, rangé dans la fiche de la
-              personne, et JAMAIS sur la carte de proposition: un bouton
-              « ne plus me parler de lui » à côté de « fusionner » ferait du
-              geste brutal le geste le plus facile.
-
-              ⚠️ IL NE BLOQUE PAS LA FUSION, et la phrase d'aide le dit: le
-              geste reste possible (`operation: "merge"` ne lit pas ce réglage,
-              un test de source le tient), et il ne coupe pas l'avertissement
-              de D8, qui parle du plan du MAÎTRE.
-
-              RÉSERVÉ AUX BOUCHES QUI ONT UN COMPTE: une bouche sans compte n'a
-              pas de plan à elle (D3), donc rien à proposer, donc rien à taire.
-              `muted === null` ⇒ on n'a pas pu lire le réglage: on ne montre
-              pas un interrupteur dont on ignore la position. */}
-          {member.role !== "owner" && member.userId && muted !== null ? (
-            <button
-              type="button"
-              className="self-start text-xs text-ink-soft underline disabled:opacity-50"
-              disabled={busy}
-              onClick={() => onMute(!muted)}
-            >
-              {muted ? t("household.merge.unmute") : t("household.merge.mute")}
-            </button>
-          ) : null}
-          {member.role !== "owner" && member.userId && muted !== null ? (
-            <p className="text-xs text-ink-soft">
-              {muted ? t("household.merge.muted") : t("household.merge.mute_hint")}
-            </p>
-          ) : null}
-
+          {/* ⛔ LES ALLERGIES ET LES RÈGLES DE MAISON SONT AU MAÎTRE (A5
+              point 6). `add_allergy` / `add_restriction` répondent `not_owner`.
+              ⚠️ CE QUE LE MEMBRE VOIT QUAND MÊME est ailleurs, et c'est la
+              contrepartie du modèle: chaque contrainte reste affichée AVEC QUI
+              L'A POSÉE dans sa vue à lui (`restrictionNotice`). Ce qui
+              distingue ce modèle du contrôle coercitif, c'est que rien n'est
+              secret — pas qu'il puisse tout écrire. */}
+          {viewerIsOwner ? (
           <div className="border-t border-line pt-3">
             <Field
               label={t("household.constraint.kind")}
@@ -2328,6 +3170,185 @@ function MemberRow(
               ))}
             </ul>
           </div>
+          ) : null}
+          </SheetFrame>
+
+          {/* ══════════════════════════════════════════════════════════════
+              CE QUE LE COMPTE A DÉJÀ DIT — A5 point 7, 2026-09-03
+              ══════════════════════════════════════════════════════════════
+
+              DEUX CARTES QUI VIVAIENT DANS LA FENÊTRE DE RÉGLAGES DE
+              `/app/plan`, et qui parlent de la MÊME personne que cette fiche:
+              son rythme (quand elle mange, et quelle taille de part) et ce que
+              la conversation a retenu de ses goûts.
+
+              ⛔ SUR SA PROPRE LIGNE, ET SEULEMENT LÀ. Les deux écrivent
+              `student_goals.practical_constraints` DE LA SESSION
+              (`auth.user.id`, lu dans la carte elle-même, pas passé en prop):
+              montées sur la ligne de quelqu'un d'autre, elles afficheraient les
+              réponses du lecteur sous le prénom d'un tiers, et le premier
+              enregistrement écrirait la colonne du lecteur en croyant écrire
+              celle de l'autre. `isMe` n'est donc pas un confort d'affichage,
+              c'est la seule chose qui fasse coïncider la ligne et la colonne.
+
+              ⚠️ ET ELLES ATTENDENT LA LECTURE, comme le reste du cadre:
+              `practicalConstraints === null` ⇒ elles ne se montent pas.
+              `mergePracticalConstraints` FUSIONNE sur ce qu'on lui donne —
+              nourri d'un objet vide non lu, il effacerait le rythme et les
+              goûts déjà déclarés, en silence, au premier Enregistrer.
+
+              ⚠️ `CookingCapacityCard` NE VIENT PAS, exprès: elle reste sur
+              `/app/plan` (la lane CUISINE la remplace, mandat point 7). */}
+          {isMe && practicalConstraints !== null ? (
+            <>
+              <div className="border-t border-line pt-3">
+                <SectionLabel>{t("plan.section.day.title")}</SectionLabel>
+                <EatingRhythmCard
+                  embedded
+                  hasGoal={hasGoal}
+                  practicalConstraints={practicalConstraints}
+                  rhythm={rhythm}
+                  onSaved={onSavedOwnConstraints}
+                />
+              </div>
+              <div className="border-t border-line pt-3">
+                <SectionLabel>{t("plan.section.told.title")}</SectionLabel>
+                <FoodPreferencesCard
+                  embedded
+                  hasGoal={hasGoal}
+                  practicalConstraints={practicalConstraints}
+                  onSaved={onSavedOwnConstraints}
+                />
+              </div>
+            </>
+          ) : null}
+
+          {/* ── D14 · QUAND CETTE BOUCHE N'EST PAS LÀ ──────────────────────
+              LA GRILLE EST CELLE DU CONSTRUCTEUR, pas une seconde. Deux
+              grilles pour la même question divergeraient sur le seul détail
+              qui compte — ce que « tout décoché » veut dire — et c'est celle
+              qu'on regarde le moins qui garderait l'ancienne règle.
+
+              CE QU'ELLE MONTRE ET ÉCRIT EST LA MARQUE DU MAÎTRE, JAMAIS
+              L'UNION. La grille réécrit ce qu'on lui donne: nourrie de
+              l'union, elle recopierait la déclaration de la personne dans la
+              colonne du foyer, où elle survivrait à sa rétractation. */}
+          <div className="border-t border-line pt-3">
+            <SectionLabel>{t("household.away.title")}</SectionLabel>
+            <p className="mb-2 text-xs text-ink-soft">
+              {t("household.away.hint")}
+            </p>
+            <Button
+              variant="secondary"
+              disabled={busy}
+              onClick={() => setAwayOpen(true)}
+            >
+              {awayInWindow === 0
+                ? t("household.away.open")
+                : t("household.away.open_count", { n: String(awayInWindow) })}
+            </Button>
+            {/* CE QUE LA PERSONNE A DIT ELLE-MÊME, en lecture seule. Sans cette
+                ligne, le maître verrait sa propre marque et pas le FAIT: il
+                remarquerait une assiette manquante sans pouvoir dire d'où elle
+                vient — et re-marquerait par-dessus. */}
+            {selfInWindow.length > 0 ? (
+              <p className="mt-2 text-xs text-ink-soft">
+                {t("household.away.self_declared", {
+                  days: selfInWindow.map((a) => a.day).join(", "),
+                })}
+              </p>
+            ) : null}
+          </div>
+
+          {/* MONTÉE MÊME FERMÉE — `Modal` rend `null` sans démonter — donc une
+              grille modifiée survit à une fermeture accidentelle. */}
+          <MealPickerGrid
+            open={awayOpen}
+            onClose={() => setAwayOpen(false)}
+            days={awayWindow.tokens}
+            dates={awayWindow.dates}
+            rhythm={rhythm}
+            away={member.awayHousehold}
+            busy={busy}
+            onSave={async (next) => {
+              const ok = await onSaveAway(next);
+              if (ok) setAwayOpen(false);
+            }}
+          />
+
+          <div className="flex flex-wrap items-center gap-2">
+            {/* DEUX GESTES, DEUX LIBELLÉS, JAMAIS UN SEUL BOUTON (chantier 2).
+                « Retirer l'accès » DÉTACHE: la personne perd la lecture du
+                foyer, et reste une bouche à table avec sa portion et ses
+                allergies. « Retirer du foyer » SUPPRIME la ligne. Un seul
+                bouton « retirer » voudrait dire deux choses irréversibles
+                différentes selon la ligne qu'on regarde.
+
+                LE MAÎTRE NE SE RETIRE PAS, ET NE SE DÉTACHE PAS. La base
+                refuse les deux (`cannot_remove_owner`, `cannot_detach_owner`)
+                parce qu'un foyer sans personne pour composer laisse ses
+                bouches sans compte sans recours; l'écran ne montre pas un
+                bouton qui sera refusé. */}
+            {/* ⟳ A5 §5.5 — « RETIRER L'ACCÈS » A REJOINT L'EN-TÊTE DE LA
+                LIGNE, avec l'état d'accès qu'il inverse (`MemberAccess`): les
+                deux se lisent ensemble, et sans ouvrir la fiche. Il n'est PAS
+                dupliqué ici — un geste irréversible offert à deux endroits est
+                un geste qu'on fait par accident au second.
+
+                « RETIRER DU FOYER » RESTE ICI, et l'écart est le sujet: il
+                DÉTRUIT la ligne, avec sa portion et ses allergies. Il vit donc
+                au fond de la fiche ouverte, derrière une confirmation en deux
+                temps, pas dans un en-tête qu'on parcourt. */}
+            {viewerIsOwner && member.role !== "owner" ? (
+              <Button variant="danger" disabled={busy} onClick={onRemove}>
+                {t("household.member.remove")}
+              </Button>
+            ) : null}
+          </div>
+          {/* Le geste ne se distingue pas par sa couleur: on ÉCRIT ce qu'il
+              fait, à côté de lui, au moment de choisir. */}
+          {viewerIsOwner && member.role !== "owner" ? (
+            <p className="text-xs text-ink-soft">
+              {t("household.member.remove_hint")}
+            </p>
+          ) : null}
+
+          {/* ── D17 · LE RÉGLAGE DISCRET (L8) ────────────────────────────────
+              « Un réglage discret permet au maître de ne plus se voir proposer
+              la fusion pour une personne donnée. Assumé comme un peu brutal,
+              donc caché. » Il est donc ICI, rangé dans la fiche de la
+              personne, et JAMAIS sur la carte de proposition: un bouton
+              « ne plus me parler de lui » à côté de « fusionner » ferait du
+              geste brutal le geste le plus facile.
+
+              ⚠️ IL NE BLOQUE PAS LA FUSION, et la phrase d'aide le dit: le
+              geste reste possible (`operation: "merge"` ne lit pas ce réglage,
+              un test de source le tient), et il ne coupe pas l'avertissement
+              de D8, qui parle du plan du MAÎTRE.
+
+              RÉSERVÉ AUX BOUCHES QUI ONT UN COMPTE: une bouche sans compte n'a
+              pas de plan à elle (D3), donc rien à proposer, donc rien à taire.
+              `muted === null` ⇒ on n'a pas pu lire le réglage: on ne montre
+              pas un interrupteur dont on ignore la position. */}
+          {viewerIsOwner && member.role !== "owner" && member.userId &&
+              muted !== null
+            ? (
+            <button
+              type="button"
+              className="self-start text-xs text-ink-soft underline disabled:opacity-50"
+              disabled={busy}
+              onClick={() => onMute(!muted)}
+            >
+              {muted ? t("household.merge.unmute") : t("household.merge.mute")}
+            </button>
+          ) : null}
+          {viewerIsOwner && member.role !== "owner" && member.userId &&
+              muted !== null
+            ? (
+            <p className="text-xs text-ink-soft">
+              {muted ? t("household.merge.muted") : t("household.merge.mute_hint")}
+            </p>
+          ) : null}
         </div>
       ) : null}
     </li>
@@ -2362,145 +3383,35 @@ function MemberRow(
  * plus de sujet.
  */
 
-/**
- * INVITER QUELQU'UN À RÉCLAMER SA LIGNE (lot 6).
+/*
+ * ── ⛔ `InviteCard` A ÉTÉ RETIRÉE — A5 §5.5, 2026-09-03 ────────────────────
  *
- * ── LA QUESTION QUI A CHANGÉ ───────────────────────────────────────────────
- * Cette carte demandait une adresse. Elle demande maintenant DEUX choses, et
- * l'ordre compte: QUI, puis OÙ envoyer. L'invitation attache un compte à une
- * bouche qui existe déjà — si la cible était choisie à l'arrivée, un lien qui
- * fuite deviendrait le droit de se déclarer n'importe qui du foyer.
+ * Elle vivait en bas de `/app/household` et demandait « qui invites-tu ? »
+ * dans un `<select>` de bouches libres, à quelqu'un qui regardait déjà les
+ * huit lignes portant ces prénoms. Ce qu'elle faisait vit maintenant DANS
+ * l'en-tête de chaque ligne (`MemberAccess`), avec ce qu'elle ne faisait pas:
  *
- * ── LE SÉLECTEUR NE PROPOSE QUE LES BOUCHES LIBRES ─────────────────────────
- * Une ligne qui porte déjà un compte est refusée par la base
- * (`already_claimed`), et proposer un choix qui sera refusé est une promesse
- * qu'on ne tient pas. Quand il n'en reste aucune, la carte le DIT plutôt que
- * d'afficher un menu vide.
+ *   · elle ne RELISAIT rien. Elle n'affichait que le jeton qu'elle venait de
+ *     créer — une invitation envoyée la veille était invisible, et le maître
+ *     émettait un second lien sans savoir qu'un premier courait. La ligne lit
+ *     désormais les invitations VIVANTES (`loadLiveInvitations`, jamais
+ *     `token_hash`) et dit « envoyée le … à … »;
+ *   · elle ne disait pas ce que l'accès COÛTE, alors que c'est ce que le
+ *     maître promet en écrivant. La ligne lit `offer.extra` (D5.8: aucun
+ *     montant recopié, jamais);
+ *   · « Retirer l'accès » était au fond de la fiche, loin de l'état qu'il
+ *     inverse. Les deux sont maintenant côte à côte.
+ *
+ * ⚠️ CE QUI N'A PAS CHANGÉ, ET QUI EST LE CŒUR: l'invitation PORTE SA CIBLE
+ * (`keel_household_invite(email, member_id)`, FF-048 R2). Si la bouche était
+ * choisie au moment de rejoindre, un lien qui fuite deviendrait le droit de se
+ * déclarer n'importe qui du foyer.
+ *
+ * ⚠️ ET AUCUN E-MAIL N'EST ENVOYÉ (FF-060 R7). L'écran rend le lien, le fait
+ * copier, ouvre un brouillon `mailto:` — c'est tout. En local,
+ * `EMAIL_DELIVERY_ENABLED=1` porte une vraie clé Resend.
  */
-function InviteCard(
-  { household, busy }: { household: HouseholdView; busy: boolean },
-) {
-  // UNE BOUCHE LIBRE = pas de compte attaché. C'est la même définition qu'en
-  // base (`user_id is null`), et le roster la rend telle quelle.
-  const claimable = claimableMembers(household);
-  const [memberId, setMemberId] = React.useState(claimable[0]?.memberId ?? "");
-  // LA SÉLECTION EST DÉRIVÉE, PAS SEULEMENT INITIALISÉE. La carte ne se démonte
-  // pas entre deux rafraîchissements: un `useState` seul garderait la bouche
-  // choisie même après qu'elle a été réclamée ou retirée, et le maître enverrait
-  // un lien pour quelqu'un d'autre que celui qu'il lit à l'écran.
-  const selected = claimable.some((m) => m.memberId === memberId)
-    ? memberId
-    : (claimable[0]?.memberId ?? "");
-  const [email, setEmail] = React.useState("");
-  const [invite, setInvite] = React.useState<{ token: string; firstName: string } | null>(
-    null,
-  );
-  const [reason, setReason] = React.useState<string | null>(null);
-  const [working, setWorking] = React.useState(false);
 
-  if (household.me?.role !== "owner") return null;
-
-  return (
-    <Card>
-      <SectionLabel>{t("household.invite.title")}</SectionLabel>
-      <p className="mb-3 text-sm text-ink-soft">{t("household.invite.body")}</p>
-      {/* CE QUE LA RÉCLAMATION DONNE, DIT AU MAÎTRE AVANT QU'IL PROMETTE. Il
-          est celui qui écrit le message d'accompagnement: s'il annonce « tu
-          pourras composer », la base le démentira et c'est lui qui aura menti. */}
-      <p className="mb-3 text-sm text-ink-soft">{t("household.invite.grants")}</p>
-      {claimable.length === 0 ? (
-        <p className="rounded-card bg-paper-2 p-3 text-sm text-ink-soft">
-          {t("household.invite.nobody_left")}
-        </p>
-      ) : (
-        <>
-          <div className="flex flex-col gap-2">
-            <Field
-              label={t("household.invite.who")}
-              hint={t("household.invite.who_hint")}
-            >
-              <select
-                className={inputClass}
-                value={selected}
-                onChange={(e) => setMemberId(e.target.value)}
-              >
-                {claimable.map((m) => (
-                  <option key={m.memberId} value={m.memberId}>{m.displayName}</option>
-                ))}
-              </select>
-            </Field>
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
-              {/* ⚠️ `sm:flex-1` ET PAS `flex-1`. Mesuré à 1280: le champ
-                  d'adresse tenait 192 px pendant que la carte en offrait 606 —
-                  une adresse de courrier n'y tient pas, et il restait 400 px de
-                  vide à côté. Mais la grandeur ne vaut QU'EN LIGNE: dans le
-                  `flex-col` de moins de 640 px, `flex-1` s'appliquerait à la
-                  HAUTEUR. Et `min-w-0` va avec, sans quoi l'enfant refuse de
-                  descendre sous son contenu (`min-width:auto`) et fait défiler
-                  la page à 320. */}
-              <Field label={t("household.invite.email")} className="min-w-0 sm:flex-1">
-                <input
-                  className={`${inputClass} min-w-0`}
-                  value={email}
-                  type="email"
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </Field>
-              <Button
-                disabled={busy || working || !email.trim() || !selected}
-                onClick={async () => {
-                  setWorking(true);
-                  setInvite(null);
-                  setReason(null);
-                  try {
-                    const res = await inviteToHousehold(email.trim(), selected);
-                    if (res.ok) {
-                      setInvite({
-                        token: String(res.token ?? ""),
-                        // Le prénom vient de la RÉPONSE, pas de l'état local:
-                        // c'est la ligne que la base a réellement visée.
-                        firstName: String(res.first_name ?? ""),
-                      });
-                    } else setReason(res.reason);
-                  } finally {
-                    setWorking(false);
-                  }
-                }}
-              >
-                {t("household.invite.submit")}
-              </Button>
-            </div>
-          </div>
-        </>
-      )}
-      {/* LE JETON N'EST RENDU QU'UNE FOIS, par la RPC. On l'affiche donc en
-          entier, ET on nomme la bouche qu'il vise: le maître en émet plusieurs
-          dans la même minute, et un lien anonyme part à la mauvaise personne. */}
-      {invite ? (
-        <div className="mt-3 text-sm">
-          <p className="mb-1 text-ink-soft">
-            {t("household.invite.link_ready", { name: invite.firstName })}
-          </p>
-          <code className="block overflow-x-auto rounded-card bg-paper-2 p-2 text-xs">
-            {`${globalThis.location?.origin ?? ""}/join-household?token=${invite.token}`}
-          </code>
-        </div>
-      ) : null}
-      {/* LISTE FERMÉE, et le typecheck l'exige: `t()` n'accepte pas une clé
-          construite à la volée. C'est la bonne contrainte — un motif que la
-          RPC ajouterait sans étiquette d'affichage casserait la compilation
-          plutôt que d'afficher une clé brute à l'utilisateur. */}
-      {reason ? (
-        // UN REFUS EST UN ÉTAT, ET IL LE DIT MAINTENANT. Cette ligne sortait en
-        // gris, donc elle se lisait comme une précision alors qu'elle annonce
-        // que l'invitation n'est PAS partie. C'est la même nature de message que
-        // l'échec de composition, qui était déjà en `red-700`: deux couleurs
-        // pour un seul état, dans un seul fichier.
-        <p className="mt-2 text-sm text-red-700">{inviteErrorText(reason)}</p>
-      ) : null}
-    </Card>
-  );
-}
 
 /** Réexporté pour le test de route: la page monte sans foyer sans exploser. */
 export type { HouseholdMemberView };

@@ -448,8 +448,13 @@ describe("le déménagement (A6): là où la carte est, et là où elle n'est pl
     expect(src).toContain("workLunch={workLunch}");
   });
 
-  it("l'étape 3 ne la pose plus: ni `TableStepPlanning`, ni `SetupPage`", () => {
-    expect(source("./TableStepPlanning.tsx")).not.toContain("WorkLunch");
+  it("l'étape 3 ne la pose plus: `SetupPage` n'en porte plus une trace", () => {
+    // ⟳ A5, 2026-09-03 — `TableStepPlanning.tsx` A DISPARU (mandat point 4: les
+    // traditions ont rejoint « Paramètres du foyer » sur `/app/household`, et
+    // l'équipement se monte directement dans l'étape). La lecture de source qui
+    // le visait devient donc la preuve de son ABSENCE, juste en dessous; ce
+    // qu'elle gardait ICI — l'étape 3 ne pose plus le déjeuner — reste mesuré
+    // sur `SetupPage`, qui est le seul fichier encore debout des deux.
     const setup = source("../pages/SetupPage.tsx");
     expect(setup).not.toContain("workLunchRoster");
     expect(setup).not.toContain("WorkLunchCard");
@@ -459,5 +464,7 @@ describe("le déménagement (A6): là où la carte est, et là où elle n'est pl
   it("la carte à N personnes et le roster de l'entonnoir n'existent plus", () => {
     expect(existsSync(new URL("./WorkLunchCard.tsx", import.meta.url))).toBe(false);
     expect(existsSync(new URL("../lib/workLunchRoster.ts", import.meta.url))).toBe(false);
+    // A5: l'enveloppe de l'étape 3 est partie avec sa seconde carte.
+    expect(existsSync(new URL("./TableStepPlanning.tsx", import.meta.url))).toBe(false);
   });
 });

@@ -5057,7 +5057,7 @@ export const en = {
   // répondent à « qu'est-ce que tu aimes » en idéal (« j'aime le poisson »),
   // pas en réalité (une fois par mois). La question porte donc sur l'habitude
   // installée, et le libellé d'exemple est un plat, jamais un goût.
-  "setup.traditions.title": "The days you never move",
+  "setup.traditions.title": "Tradition meals",
   "setup.traditions.hint":
     "Sunday roast, fish on Friday. Tell us and the plan builds around it instead of over it. Two or three is plenty -- three at most.",
   "setup.traditions.weekday": "Day",
@@ -8026,6 +8026,42 @@ export const en = {
   //                                     grid of their week, just below »
   //   "setup.request.presence_intro"  — « Step three said the habit » → the
   //                                     habit is set on the Household page
+
+  // ── A5 · the Household page (2026-09-03) ─────────────────────────────────
+  // The two named frames of a mouth's sheet (D5.1). The collapsed frame's
+  // recap REUSES the add sheet's keys (`household.mouth.preferences_filled` /
+  // `_empty`) — the same fact said with the same words in both places.
+  "household.member.frame_identity": "Personal details",
+  "household.member.frame_identity_hint":
+    "What sizes their serving: who they are, their body, and which way their scale should go.",
+  "household.member.frame_preferences": "Food preferences",
+  "household.member.frame_preferences_hint":
+    "What refines the plan: what they already eat, what they never eat, and what the house does not serve.",
+  "household.mouth.frame_loading": "Reading what is already on file…",
+  // ── HOUSEHOLD SETTINGS (A5, mandate point 4) ─────────────────────────────
+  // The section that now holds the kitchen equipment and the tradition meals,
+  // moved out of funnel step 3 — a funnel nobody ever walks twice.
+  "household.settings.title": "Household settings",
+  //   "setup.traditions.title"        — « The days you never move » → « Tradition
+  //                                     meals » (mandate point 4). The KEY does
+  //                                     not move.
+  // ── ACCESS, FROM A MOUTH'S OWN ROW (A5, §5.5) ────────────────────────────
+  // Three states DERIVED FROM FACTS: a non-null `user_id` ⇒ claimed; a live
+  // invitation ⇒ invited; otherwise ⇒ free. ⛔ No amount is copied: the price
+  // line reads `offer.extra` + `PRICES.claimedProfile` (D5.8).
+  "household.access.claimed": "Has their own access",
+  "household.access.invite": "Invite",
+  "household.access.resend": "Send again",
+  "household.access.invited": "Invitation sent on {date} to {email}",
+  "household.access.copy": "Copy the link",
+  "household.access.copied": "Link copied",
+  // ⛔ "Write", not "Send": this product sends no invitation email (FF-060 R7).
+  "household.access.mail": "Write the message",
+  "household.access.mail_subject": "Your access to the household",
+  // ── THE ADD WINDOW (A5, point 3) ─────────────────────────────────────────
+  // The button that opens it. One window now carries both the required blocks
+  // and the preferences, the latter in an accordion (⛔ never two nested modals).
+  "household.add.open": "Add someone",
   // ── chantier-0903/FOYER — fin ──
   // ── chantier-0903/CUISINE — début ──
   //

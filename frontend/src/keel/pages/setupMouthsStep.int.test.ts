@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import { MouthsStep, SelfStep } from "./SetupPage";
+import { MouthCoreFields } from "../components/MouthFormDialog";
 import { emptyMouthDraft } from "../lib/mouthForm";
 import { en } from "../i18n/en";
 import { setChosenUiLocaleForTest } from "../i18n/runtime";
@@ -142,7 +143,7 @@ describe("le formulaire d'ajout ne demande plus l'âge en toutes lettres", () =>
   it("n'existe pas dans le parcours solo", () => {
     const body = decode(html({}, 0));
     expect(body).not.toContain(en["setup.mouths.add"]);
-    expect(body).not.toContain('id="setup-mouth-name"');
+    expect(body).not.toContain('id="mouth-first-name"');
   });
 
   it("ni la question, ni ses deux réponses", () => {
@@ -185,7 +186,7 @@ describe("un mineur ne voit qu'une direction: « Eat normally » (2026-09-03)", 
   // ⚠️ ON LIT LA BALISE ENTIÈRE, PAS UN ORDRE D'ATTRIBUTS: React (SSR) émet
   // `checked=""` puis `value="…"` EN DERNIER, quel que soit l'ordre des props.
   const tags = (markup: string) =>
-    [...markup.matchAll(/<input[^>]*name="setup-mouth-goal"[^>]*>/g)].map((m) => m[0]);
+    [...markup.matchAll(/<input[^>]*name="mouth-goal"[^>]*>/g)].map((m) => m[0]);
   const valueOf = (tag: string) => /value="([a-z_]*)"/.exec(tag)?.[1] ?? "(sans valeur)";
   const offered = (markup: string) =>
     tags(markup).filter((t) => t.includes('type="radio"')).map(valueOf);
@@ -227,7 +228,7 @@ describe("un mineur ne voit qu'une direction: « Eat normally » (2026-09-03)", 
   it("⛔ plus d'option vide: aucun `<select>` de direction, aucune valeur \"\"", () => {
     const markup = html({ birthDate: ADULT_BIRTH });
     expect(markup, "le sélecteur déroulant est revenu")
-      .not.toMatch(/<select[^>]*id="setup-mouth-goal"/);
+      .not.toMatch(/<select[^>]*id="mouth-goal"/);
     expect(offered(markup), "l'option vide est revenue sous forme de tuile")
       .not.toContain("");
   });
@@ -243,12 +244,21 @@ describe("un mineur ne voit qu'une direction: « Eat normally » (2026-09-03)", 
     const markup = html({ birthDate: MINOR_BIRTH, goal: "fat_loss" });
     expect(offered(markup)).toEqual(["maintenance"]);
     expect(checkedValues(markup)).toEqual(["maintenance"]);
+    // ⟳ A5, 2026-09-03 — LE LIBELLÉ DE LA DIRECTION EST CELUI DU FOYER.
+    // La fiche d'ajout montait ses propres libellés (`setup.goal.*`); elle
+    // monte `MouthCoreFields` depuis ce lot, et `MouthCoreFields` nomme les
+    // directions avec `household.goal.*`. Deux vocabulaires pour les trois
+    // mêmes jetons, c'était l'écart que le lot referme — la phrase de bascule
+    // suit celui de la fiche qui la rend.
     expect(decode(markup)).toContain(
-      en["household.goal.minor_switched"].replace("{from}", en["setup.goal.fat_loss"]),
+      en["household.goal.minor_switched"].replace(
+        "{from}",
+        en["household.goal.fat_loss"],
+      ),
     );
     // Et rien ne se déplie sous une direction repliée.
-    expect(markup).not.toContain('id="setup-mouth-target-weight"');
-    expect(markup).not.toContain('id="setup-mouth-pace"');
+    expect(markup).not.toContain('id="mouth-target-weight"');
+    expect(markup).not.toContain('id="mouth-pace"');
   });
 });
 
@@ -307,31 +317,55 @@ describe("le formulaire d'ajout porte le poids visé et le curseur", () => {
 
   it("direction qui bouge + corps connu: les deux contrôles", () => {
     const markup = html(LOSING);
-    expect(markup).toContain('id="setup-mouth-target-weight"');
-    expect(markup).toContain('id="setup-mouth-pace"');
+    expect(markup).toContain('id="mouth-target-weight"');
+    expect(markup).toContain('id="mouth-pace"');
   });
 
   /**
    * ⚠️ ET LEURS `id` NE SONT PAS CEUX DU TITULAIRE. Les deux fiches sont sur LA
    * MÊME PAGE (sa carte est juste au-dessus): deux `id` identiques feraient
    * qu'un `<label for>` désigne le curseur de quelqu'un d'autre.
+   *
+   * ⟳ A5, 2026-09-03 — LA FICHE D'AJOUT PORTE MAINTENANT LES `id` `mouth-*`,
+   * ceux de `MouthCoreFields`, parce que c'est LUI qu'elle monte désormais. Le
+   * préfixe `setup-mouth-*` a disparu avec les dix champs recopiés.
+   *
+   * ⛔ CE QUI EST GARDÉ EST LA PROPRIÉTÉ, PAS LE PRÉFIXE. Vérifier « la fiche
+   * ne contient pas `id="mouth-…"` » n'aurait plus aucun sens: elle n'en
+   * contient QUE. On rend donc LES DEUX CARTES et on cherche un `id` en
+   * double — c'est la panne que le préfixe existait pour empêcher, et elle se
+   * mesure directement, sans dépendre du nom qu'on donne au préfixe.
    */
-  it("les `id` sont préfixés, donc ils ne collisionnent pas", () => {
-    const markup = html(LOSING);
-    expect(markup).not.toContain('id="mouth-target-weight"');
-    expect(markup).not.toContain('id="setup-self-pace"');
+  it("aucun `id` n'est rendu deux fois sur l'étape 2", () => {
+    const idsOf = (markup: string) =>
+      [...markup.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]);
+    const both = [...idsOf(selfHtml()), ...idsOf(html(LOSING))];
+    // LE CAS QUI PASSE: sans lui, deux cartes rendant ZÉRO `id` seraient
+    // déclarées sans collision — la panne la plus silencieuse de ce fichier.
+    expect(both.length, "les deux cartes ne rendent plus aucun `id`")
+      .toBeGreaterThanOrEqual(8);
+    const seen = new Set<string>();
+    const twice = both.filter((id) => {
+      if (seen.has(id)) return true;
+      seen.add(id);
+      return false;
+    });
+    expect(twice, "un `id` désigne deux contrôles sur la même page").toEqual([]);
+    // ET LA PAIRE QUI COMPTE, NOMMÉE: le curseur du titulaire et celui de la
+    // bouche sont les deux `id` que le lot du 2026-08-18 avait séparés.
+    expect(html(LOSING)).not.toContain('id="setup-self-pace"');
   });
 
   it("direction qui ne bouge pas: rien ne se déplie", () => {
     const markup = html({ ...LOSING, goal: "maintenance" });
-    expect(markup).not.toContain('id="setup-mouth-target-weight"');
-    expect(markup).not.toContain('id="setup-mouth-pace"');
+    expect(markup).not.toContain('id="mouth-target-weight"');
+    expect(markup).not.toContain('id="mouth-pace"');
   });
 
   /** Corps inconnu: une PHRASE, jamais un blanc. */
   it("corps inconnu: la phrase, pas le curseur", () => {
     const markup = html({ firstName: "Léa", goal: "fat_loss", birthDate: ADULT_BIRTH });
-    expect(markup).not.toContain('id="setup-mouth-pace"');
+    expect(markup).not.toContain('id="mouth-pace"');
     expect(markup).toContain(en["household.mouth.pace_needs_body"]);
   });
 });
@@ -442,35 +476,44 @@ describe("la porte des préférences, et plus aucun champ en ligne", () => {
 });
 
 // ===========================================================================
-// 2026-09-01 — LA FICHE D'AJOUT A LA DISPOSITION DE LA CARTE DU TITULAIRE
+// A5 (2026-09-03) — UN SEUL FORMULAIRE DE PERSONNE DANS LE DÉPÔT
 //
-// Demandé à l'écran, capture à l'appui: « j'aimerais que la partie "j'ajoute
-// quelqu'un qui mange ici" ait la même disposition que celle du compte
-// maître […] mais bien évidemment avec "Il/Elle" puisque ce n'est pas "Tu" ».
+// ── CE QUE CE BLOC GARDAIT, ET POURQUOI IL CHANGE DE SUJET ────────────────
+// Il tenait une RELATION demandée à l'écran le 2026-09-01: « j'aimerais que la
+// partie "j'ajoute quelqu'un qui mange ici" ait la même disposition que celle
+// du compte maître […] mais avec "Il/Elle" ». On rendait donc `SelfStep` et
+// `MouthsStep`, et on comparait leurs étiquettes une à une.
 //
-// ── CE QUE LES DEUX CARTES DISAIENT AVANT ─────────────────────────────────
-// La carte du titulaire: prénom · (naissance | sexe) · (taille | poids) ·
-// direction · poids visé · journées · sport. Six libellés, six champs
-// étiquetés.
+// La demande était juste, et le remède n'était que la moitié du remède: on
+// avait fait RESSEMBLER deux formulaires au lieu de n'en garder qu'un. Il en
+// restait DEUX qui décrivent la même personne dans les mêmes colonnes —
+// celui-ci et `MouthCoreFields`, monté par `/app/household` —, et ils avaient
+// déjà divergé sur trois points mesurés le 2026-09-03:
+//   · la fiche du Foyer NOMME ce qui retient l'enregistrement, bloc par bloc
+//     (`missingRequiredBlocks` + `household.mouth.held`); celle-ci ne disait
+//     rien, et la base refusait plus loin;
+//   · la fiche du Foyer groupe en trois blocs obligatoires nommés; celle-ci
+//     empilait dix champs à plat;
+//   · l'appétit et les trois cases du repas n'étaient pas collectables ici —
+//     une bouche ajoutée depuis l'entonnoir naissait sans eux.
 //
-// La fiche d'ajout: prénom · naissance · UN SEUL bloc « Taille, poids et
-// sexe » contenant trois contrôles NUS en grille de trois — étiquetés par
-// leur seul `placeholder`, c'est-à-dire par un libellé qui S'EFFACE au moment
-// où on saisit —, puis les journées et le sport, PUIS la direction.
+// L'étape 2 monte donc `MouthCoreFields` depuis A5, et la relation gardée ici
+// devient la bonne: LES DEUX FICHES D'AJOUT SONT LE MÊME COMPOSANT, donc les
+// mêmes étiquettes, dans le même ordre, sans qu'aucune liste ne soit recopiée.
 //
-// ⚠️ CE N'EST PAS QU'UNE QUESTION DE GOÛT. Un `placeholder` seul n'est pas
-// une étiquette: il disparaît dès la première frappe, et une fiche remplie
-// n'a alors plus un mot pour dire lequel des trois nombres est la taille.
+// ── ⛔ ET LA CARTE DU TITULAIRE N'EST PAS PLIÉE DEDANS, EXPRÈS ────────────
+// `SelfStep` écrit `profiles` / `student_goals`, pas une ligne membre, et ses
+// BORNES sont celles de `profiles` (90–250 cm, 25–400 kg) quand celles d'une
+// bouche sont celles de `keel_household_set_member_body` (30–260, 2–400): une
+// bouche peut être un enfant de trois ans, que les bornes adultes refuseraient.
+// Les deux cartes ne sont pas interchangeables, et le dernier cas de ce bloc
+// le MESURE — pour qu'une session future qui voudrait « finir l'unification »
+// trouve le motif avant de casser les bornes.
 //
-// ── POURQUOI COMPARER LES DEUX RENDUS PLUTÔT QUE FIGER UNE LISTE ──────────
-// « La même disposition que l'autre » est une relation, pas une valeur. Une
-// liste recopiée ici resterait verte le jour où la carte du titulaire bouge
-// et que la fiche d'ajout ne suit pas — c'est-à-dire très exactement le jour
-// où la demande est de nouveau violée. On rend donc LES DEUX, et on compare.
-//
-// ⚠️ LA VOIX EST LA SEULE CHOSE QUI DOIT DIFFÉRER, et elle est nommée cran
-// par cran ci-dessous. Un libellé qui passerait au « tu » côté bouche, ou qui
-// resterait au « il ou elle » côté titulaire, tombe ici.
+// ⚠️ CE QUI RESTE VRAI DE LA DEMANDE DU 2026-09-01 est tenu ailleurs, et par
+// des cas qui passent: la voix (`voiced` + `lib/mouthVoice.ts`, dont le
+// `Record` complet ne compile pas sans la jumelle `_you`), et l'interdiction
+// du libellé qui s'efface (dernier cas ci-dessous).
 // ===========================================================================
 
 /** La carte du titulaire, rendue avec ses deux blocs conditionnels ouverts. */
@@ -513,45 +556,89 @@ function selfHtml(): string {
   );
 }
 
+/**
+ * LA FICHE D'AJOUT DU FOYER — le MÊME composant, monté comme `/app/household`
+ * le monte (`AddMouthCard`): `existing: false`, `hasAccount: false`,
+ * `isSelf: false`.
+ *
+ * ⚠️ ON MONTE LE COMPOSANT, PAS LA PAGE. `HouseholdPage` ne se rend pas sous
+ * `renderToStaticMarkup` (session, routeur, quatre lectures); ce qui doit être
+ * comparé est la FICHE, et c'est elle qu'on monte des deux côtés.
+ */
+function householdAddHtml(): string {
+  Object.defineProperty(globalThis, "location", {
+    value: {
+      pathname: "/app/household",
+      search: "",
+      href: "http://localhost/app/household",
+    },
+    configurable: true,
+    writable: true,
+  });
+  setChosenUiLocaleForTest("en");
+  const markup = renderToStaticMarkup(
+    createElement(MouthCoreFields, {
+      draft: emptyMouthDraft(),
+      onChange: () => {},
+      subject: { existing: false, hasAccount: false, isSelf: false },
+      todayLocalIso: "2026-09-03",
+      busy: false,
+      failure: null,
+      onOpenPreferences: () => {},
+      onSubmit: () => {},
+    }),
+  );
+  // ON REPOSE LA PAGE DE CE FICHIER: `html()` dépend du `pathname` pour
+  // résoudre la langue, et le laisser sur `/app/household` ferait dériver les
+  // cas suivants sans qu'aucun ne le dise.
+  Object.defineProperty(globalThis, "location", {
+    value: { pathname: PATH, search: "", href: `http://localhost${PATH}` },
+    configurable: true,
+    writable: true,
+  });
+  return markup;
+}
+
 /** Les étiquettes réellement rendues, dans l'ordre du document. */
 function labelsOf(markup: string): string[] {
   return [...decode(markup).matchAll(/<label[^>]*>([\s\S]*?)<\/label>/g)]
     .map((m) => m[1].replace(/<[^>]*>/g, "").trim());
 }
 
-describe("2026-09-01 · la fiche d'ajout est la carte du titulaire, à la 3e personne", () => {
+describe("A5 · un seul formulaire de personne — l'entonnoir et le Foyer", () => {
   /**
-   * LE SEUL ÉCART AUTORISÉ. À gauche ce que dit la carte du titulaire, à
-   * droite ce que la même place doit dire quand elle parle de quelqu'un
-   * d'autre. Tout ce qui n'est pas dans cette table doit être IDENTIQUE —
-   * « Prénom », « Date de naissance », « Sexe », « Taille (cm) »,
-   * « Poids (kg) » ne portent aucune personne, et c'est ce qui fait lire les
-   * deux cartes comme la même.
+   * LA RELATION, ET ELLE N'EST PLUS UNE RESSEMBLANCE MAIS UNE IDENTITÉ.
+   *
+   * ⚠️ AUCUNE LISTE N'EST RECOPIÉE ICI, et c'est le point: une liste figée
+   * resterait verte le jour où l'une des deux fiches bouge sans l'autre —
+   * c'est-à-dire le jour exact où la divergence revient.
    */
-  const OTHER_VOICE: Record<string, string> = {
-    [en["setup.people.goal"]]: en["setup.mouths.goal"],
-    [en["setup.day_activity.label"]]: en["setup.day_activity.member_label"],
-    [en["setup.sport.label"]]: en["setup.sport.member_label"],
-  };
-
-  it("les mêmes questions, dans le même ordre, à l'autre personne", () => {
-    const expected = labelsOf(selfHtml()).map((l) => OTHER_VOICE[l] ?? l);
-    // ⚠️ LE CAS QUI PASSE, ET IL EST DANS L'ASSERTION SUIVANTE. Sans cette
-    // ligne, deux cartes rendant ZÉRO étiquette se compareraient égales — la
-    // panne la plus probable de ce fichier, et la plus silencieuse.
-    expect(expected.length, "la carte du titulaire ne rend plus d'étiquette")
+  it("les deux fiches d'ajout rendent les mêmes étiquettes, dans le même ordre", () => {
+    const funnel = labelsOf(html());
+    // LE CAS QUI PASSE: sans lui, deux fiches rendant ZÉRO étiquette se
+    // compareraient égales — la panne la plus silencieuse de ce fichier.
+    expect(funnel.length, "la fiche d'ajout ne rend plus d'étiquette")
       .toBeGreaterThanOrEqual(6);
-    expect(labelsOf(html())).toEqual(expected);
+    expect(funnel).toEqual(labelsOf(householdAddHtml()));
   });
 
   /**
-   * ⚠️ LA VOIX EST VÉRIFIÉE DANS LES DEUX SENS. La comparaison ci-dessus
-   * serait verte si les deux cartes parlaient au « tu »: elle traduit, elle
-   * ne contrôle pas que la traduction a lieu. Ces trois-là mordent alors.
+   * ⚠️ ET ELLE PARLE À LA TROISIÈME PERSONNE. La comparaison ci-dessus serait
+   * verte si les deux fiches tutoyaient: elle compare, elle ne contrôle pas la
+   * voix. Ces deux-là mordent alors — sur les clés que `voiced` bascule et qui
+   * portent une personne.
    */
-  it("et les trois questions qui ont une personne la changent", () => {
-    const body = decode(html());
-    for (const [own, other] of Object.entries(OTHER_VOICE)) {
+  it("la fiche d'ajout nomme la personne, elle ne la tutoie pas", () => {
+    const body = decode(html({ firstName: "Léa" }));
+    for (
+      const key of [
+        "household.mouth.body",
+        "household.mouth.activity",
+        "household.mouth.identity_hint",
+      ] as const
+    ) {
+      const other = en[key].replace("{who}", "Léa");
+      const own = en[`${key}_you` as "household.mouth.body_you"];
       expect(body, `« ${other} » manque dans la fiche d'ajout`).toContain(other);
       expect(body, `« ${own} » tutoie quelqu'un dont ce n'est pas la fiche`)
         .not.toContain(own);
@@ -559,27 +646,32 @@ describe("2026-09-01 · la fiche d'ajout est la carte du titulaire, à la 3e per
   });
 
   /**
-   * LE TOUT-OU-RIEN DU CORPS A SURVÉCU À L'ÉCLATEMENT DU GROUPE.
+   * LE TOUT-OU-RIEN DU CORPS A SURVÉCU AU DÉMÉNAGEMENT.
    *
    * `keel_household_set_member_body` rend `body_incomplete` dès qu'un des
    * trois manque, et le moteur SAUTE une bouche sans corps: taille et poids
    * saisis, sexe laissé sur « — », et la personne reçoit la part de tout le
-   * monde EN SILENCE. La phrase qui l'annonce ne peut plus dire « les trois »
-   * — il n'y a plus de groupe à désigner —, donc elle les NOMME.
+   * monde EN SILENCE. La phrase est passée avec les champs qu'elle commente,
+   * de la carte d'ajout de l'entonnoir vers `MouthCoreFields` — sinon elle
+   * serait partie avec les dix champs recopiés, sans que rien ne rougisse.
    */
-  it("le corps reste annoncé comme un tout, sans le bloc qui le groupait", () => {
-    const body = decode(html());
-    expect(body, "le corps n'annonce plus qu'il est indivisible")
+  it("le corps reste annoncé comme un tout", () => {
+    expect(decode(html()), "le corps n'annonce plus qu'il est indivisible")
       .toContain(en["setup.mouths.body_together"]);
-    expect(body, "l'ancienne aide « les trois ensemble » est restée orpheline")
-      .not.toContain(en["setup.mouths.body_hint"]);
+    expect(
+      decode(householdAddHtml()),
+      "la fiche du Foyer, elle, ne l'annonce pas",
+    ).toContain(en["setup.mouths.body_together"]);
   });
 
   /**
-   * PLUS UN SEUL LIBELLÉ QUI S'EFFACE. Les trois contrôles du corps n'avaient
-   * QUE leur `placeholder` pour se nommer; ils portent une `<label for>`
-   * depuis ce lot, et le `placeholder` doit avoir disparu avec — sinon la
-   * même chose est écrite deux fois, dont une qui s'efface.
+   * PLUS UN SEUL LIBELLÉ QUI S'EFFACE. Les trois contrôles du corps de
+   * `MouthCoreFields` n'avaient QUE leur `placeholder` pour se nommer —
+   * c'est-à-dire un libellé qui disparaît à la première frappe, absent de toute
+   * fiche remplie. La correction du 2026-09-01 avait été faite sur la carte de
+   * l'entonnoir, celle qui vient d'être SUPPRIMÉE: elle est remontée dans le
+   * composant partagé avec ce lot, sans quoi l'unification aurait été une
+   * régression d'accessibilité.
    */
   it("aucun contrôle n'est étiqueté par son seul placeholder", () => {
     const markup = html();
@@ -587,16 +679,35 @@ describe("2026-09-01 · la fiche d'ajout est la carte du titulaire, à la 3e per
       [...markup.matchAll(/placeholder="([^"]*)"/g)].map((m) => m[1]),
       "un placeholder sert encore d'étiquette",
     ).toEqual([]);
-    for (const id of [
-      "setup-mouth-name",
-      "setup-mouth-birth",
-      "setup-mouth-gender",
-      "setup-mouth-height",
-      "setup-mouth-weight",
-      "setup-mouth-goal",
-    ]) {
+    for (
+      const id of [
+        "mouth-first-name",
+        "mouth-birth-date",
+        "mouth-gender",
+        "mouth-height",
+        "mouth-weight",
+      ]
+    ) {
       expect(markup, `${id} n'a pas d'étiquette qui le désigne`)
         .toContain(`for="${id}"`);
     }
+  });
+
+  /**
+   * ⛔ ET LA CARTE DU TITULAIRE N'EST PAS CETTE FICHE-LÀ — LES BORNES.
+   *
+   * Ce cas passe, et il existe pour être LU par la session qui voudra « finir
+   * l'unification » en pliant `SelfStep` dans `MouthCoreFields`. Les deux
+   * cartes écrivent des tables différentes, avec des CHECK différents:
+   * `profiles` accepte 90–250 cm et 25–400 kg (un adulte titulaire d'un
+   * compte), `household_members` accepte 30–260 et 2–400 (une bouche peut être
+   * un enfant de trois ans). Plier l'une dans l'autre élargirait ou
+   * resserrerait un CHECK sans que personne ne l'ait décidé.
+   */
+  it("⛔ le titulaire garde ses bornes, la bouche garde les siennes", () => {
+    expect(selfHtml(), "les bornes de `profiles` ont bougé")
+      .toMatch(/min="90"[\s\S]*max="250"/);
+    expect(html(), "les bornes d'une bouche ont bougé")
+      .toMatch(/min="30"[\s\S]*max="260"/);
   });
 });
