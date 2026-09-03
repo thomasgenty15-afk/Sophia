@@ -476,6 +476,13 @@ Deno.serve(async (req) => {
         cookingTimeMin: Number.isFinite(Number(pc?.cooking_time_min))
           ? Number(pc?.cooking_time_min)
           : null,
+        // ⟳ D2.5 (2026-09-03, A2) — LA VALEUR COURANTE DU STYLE. Quand elle
+        // existe, c'est ELLE que les deux crans de cuisine déplacent, et plus
+        // `cooking_time_min` (écrasé à la composition par la dérivation) ni
+        // `recipe_difficulty` (aucun lecteur dans les deux générateurs).
+        // `null` = question de P2 jamais posée ⇒ les deux champs bougent
+        // comme avant, à l'octet près.
+        cookingStyle: nullableText(pc?.cooking_style),
         recipeDifficulty: nullableText(pc?.recipe_difficulty),
         // ⚠️ LA VALEUR COURANTE DE LA 4ᵉ QUESTION — et depuis la décision du
         // 2026-08-19, la débrancher ne rend plus zéro item: elle rend

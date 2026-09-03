@@ -318,7 +318,13 @@ Deno.test("PROMPT — la consigne du congélateur TOUCHE la clé qu'elle décrit
   // avait coché une case; ils le portent désormais par défaut, dès que le
   // calendrier et l'heure le permettent. Comparer les plans d'avant et d'après
   // sous un même millésime rendrait la mesure fausse.
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v25_the_day_before_is_derived");
+  // ⚠️ v26 (2026-09-03, A2/P2) — LE STYLE DE CUISINE POSE LES SESSIONS.
+  // Population qui voit une consigne différente: celle qui a répondu aux DEUX
+  // questions de P2 (`cooking_style` + `grocery_runs`). Pour elle, `cook_days`
+  // et le plafond de temps de session ne viennent plus de la colonne mais de
+  // la dérivation; pour tous les autres, la consigne est celle de v25 au
+  // caractère près, et un test de rationale le tient ligne à ligne.
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v26_the_cooking_style_sets_the_sessions");
 });
 
 // ═══════════════════════════════════════════════════════════════════════════

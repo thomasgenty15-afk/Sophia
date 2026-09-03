@@ -62,6 +62,12 @@ import { buildPrecedenceBlock, type PrecedenceLane } from "./precedence_tail.ts"
 export const HOUSEHOLD_ARBITRATION_BY_VERSION: Readonly<Record<string, string>> = {
   v21_one_box_per_group: "e4a368b0424334db24328229fb60be442a4caae02fb70619ec6c2c8a89c9feb5",
   v22_precedence_in_tail: "349e5ec42ade5d7f27eb53412252d4e53fb25d07d3f39aa3906aff9a01c0f011",
+  // ⟳ v23 (2026-09-03, D6.2) — MÊME EMPREINTE QUE v22, ET C'EST LE POINT.
+  // Le bump vient du bloc de la GAMELLE (`workLunchBlock`), pas du bloc
+  // d'arbitrage: celui-ci n'a pas bougé d'un octet. Recopier l'empreinte
+  // est donc l'affirmation exacte — « la précédence est celle de v22 » —
+  // et une entrée ABSENTE ferait tomber la garde sur un texte inchangé.
+  v23_the_lunchbox_travels: "349e5ec42ade5d7f27eb53412252d4e53fb25d07d3f39aa3906aff9a01c0f011",
 };
 
 /** SHA-256 hexadécimal — `crypto.subtle`, standard web, présent en edge. */

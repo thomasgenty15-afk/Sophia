@@ -1851,7 +1851,15 @@ Deno.test("LOT 4 — la version de la lane foyer a bougé d'UN cran", () => {
   // ferme. Population concernée: tous les foyers. Le TRONC ne bouge pas — le
   // texte de la lane SOLO a survécu octet pour octet, mesuré sur 243 prompts
   // archivés.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v22_precedence_in_tail");
+  // ⚠️ D6.2 (2026-09-03) — `v23_the_lunchbox_travels`: UN BLOC NEUF, et il
+  // est bien dans cette enveloppe-ci. « Le déjeuner en semaine » demandait
+  // gamelle ou dehors depuis le 2026-08-18; la branche `outside` avait un
+  // effet (cinq midis `eating_out`), la branche `lunchbox` n'en avait AUCUN
+  // — zéro lecteur — pendant que trois commentaires du dépôt promettaient
+  // « transportable, et bon froid sans micro-ondes ». Population qui voit
+  // une consigne différente: les foyers où au moins une bouche emporte sa
+  // gamelle. Ailleurs, prompt byte-identique à v22, et un test le tient.
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v23_the_lunchbox_travels");
 });
 
 // ===========================================================================

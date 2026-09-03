@@ -346,7 +346,13 @@ describe("canGenerate — l'état complet", () => {
         // cuisines » a été retiré des deux écrans le 2026-09-01. Le laisser
         // ici retiendrait l'entonnoir sur une réponse que plus aucun écran ne
         // permet de donner.
-        "cooking_time_min",
+        // ⟳ P2 (2026-09-03) — `cooking_time_min` N'EST PLUS UNE PORTE, et
+        // deux questions la remplacent. « Combien de temps dure une session
+        // de cuisine » est une question d'ingénieur: personne ne sait y
+        // répondre avant d'avoir vu le plan. La clé reste lue (cinq
+        // lecteurs) et se DÉRIVE du style; ce qui part, c'est l'exigence.
+        "cooking_style",
+        "grocery_runs",
         "budget_amount",
       ].sort(),
     );
@@ -447,17 +453,22 @@ describe("canGenerate — étape par étape", () => {
       (s) => ({ ...s, others: [adult()] }),
       "missing_mouths",
     ],
+    // ⟳ P2 (2026-09-03) — LES DEUX CAS DU TEMPS DE CUISINE SE SONT RETOURNÉS,
+    // ils n'ont pas été supprimés. Ce qui retient l'étape n'est plus un nombre
+    // de minutes; ce sont les deux réponses qui le dérivent, et il en faut
+    // DEUX — un style sans cadence de courses ne dit pas combien de fois on
+    // cuisine, une cadence sans style ne dit pas combien de temps.
     [
-      "un temps de cuisine absent",
+      "un style de cuisine absent",
       "solo",
-      (s) => ({ ...s, plan: { ...s.plan, cookingTimeMin: null } }),
-      "cooking_time_min",
+      (s) => ({ ...s, plan: { ...s.plan, cookingStyle: null } }),
+      "cooking_style",
     ],
     [
-      "un temps de cuisine nul",
+      "un nombre de courses absent",
       "solo",
-      (s) => ({ ...s, plan: { ...s.plan, cookingTimeMin: 0 } }),
-      "cooking_time_min",
+      (s) => ({ ...s, plan: { ...s.plan, groceryRuns: null } }),
+      "grocery_runs",
     ],
     [
       "aucun budget",

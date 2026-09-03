@@ -75,6 +75,11 @@ import {
 } from "./plan_feedback.ts";
 import { isFrenchLocale } from "./locale.ts";
 import type { FieldChange, WritableField } from "./field_change.ts";
+// ⟳ D2.5 (2026-09-03) — LE VOCABULAIRE DU STYLE ET SON ÉCHELLE, LUS DU
+// MODULE QUI LES PORTE. Recopier « minimal | balanced | keen » ici ferait une
+// seconde idée de l'ordre des crans, et c'est l'ordre qui décide de quel
+// côté on descend.
+import { COOKING_STYLES, readCookingStyle } from "./cooking_plan.ts";
 
 // ===========================================================================
 // LE JETON DE LA MATRICE — épinglé à son littéral par le test
@@ -242,6 +247,18 @@ export interface PlanFeedbackContext {
   readonly planFoodTerms: readonly string[];
   /** `practical_constraints.cooking_time_min` AUJOURD'HUI, ou `null`. */
   readonly cookingTimeMin: number | null;
+  /**
+   * ⟳ D2.5 (2026-09-03, A2) — `practical_constraints.cooking_style` AUJOURD'HUI.
+   *
+   * ⚠️ REQUIS, JAMAIS `?`, comme ses voisins et pour la même raison: un champ
+   * optionnel ici n'aurait fait remonter aucun appelant au compilateur, et
+   * l'effet se serait construit sans être branché.
+   *
+   * `null` = la question de P2 n'a pas été posée à ce compte. Les deux crans
+   * s'appliquent alors aux DEUX champs sous-jacents, exactement comme avant ce
+   * lot — c'est le chemin de toute la population d'aujourd'hui.
+   */
+  readonly cookingStyle: string | null;
   /** `practical_constraints.recipe_difficulty` AUJOURD'HUI, ou `null`. */
   readonly recipeDifficulty: string | null;
   /**
@@ -454,9 +471,13 @@ function quoteOf(
   locale: string,
 ): string {
   const fr = isFrenchLocale(locale);
-  const asked = fr ? QUESTION_LABELS[question].fr : QUESTION_LABELS[question].en;
+  const asked = fr
+    ? QUESTION_LABELS[question].fr
+    : QUESTION_LABELS[question].en;
   const option = OPTION_LABELS[answer];
-  const said = option ? (fr ? option.fr : option.en) : String(answer ?? "").trim();
+  const said = option
+    ? (fr ? option.fr : option.en)
+    : String(answer ?? "").trim();
   // ⚠️ LES GUILLEMETS SUIVENT LA LANGUE, EUX AUSSI. `« »` dans une phrase
   // anglaise se lit comme une citation importée d'ailleurs — le détail est
   // petit, mais il porte sur la SEULE chose que la personne doit reconnaître
@@ -498,7 +519,10 @@ export function retainedItemsFromPlanFeedback(
   row: PlanFeedbackRow,
   ctx: PlanFeedbackContext,
 ): PlanFeedbackRetained {
-  const counts: Record<keyof Omit<PlanFeedbackRetainedRefusals, "total">, number> = {
+  const counts: Record<
+    keyof Omit<PlanFeedbackRetainedRefusals, "total">,
+    number
+  > = {
     dismissed: 0,
     neutral: 0,
     filteredByEffect: 0,
@@ -547,7 +571,8 @@ export function retainedItemsFromPlanFeedback(
   // Ce que `effectOf` a retiré — COMPTÉ, jamais refiltré: le jeton `none` (qui
   // créerait un aliment fantôme que le générateur chercherait à vie) et les
   // entrées vides ou illisibles.
-  counts.filteredByEffect = (row.neverAgain?.length ?? 0) - effect.refusedFoods.length +
+  counts.filteredByEffect = (row.neverAgain?.length ?? 0) -
+    effect.refusedFoods.length +
     ((row.makeAgain?.length ?? 0) - effect.keptFoods.length);
 
   // ── LES DEUX POLARITÉS SUR LE MÊME ALIMENT: LES DEUX TOMBENT ─────────────
@@ -576,10 +601,14 @@ export function retainedItemsFromPlanFeedback(
   // aliment que la ceinture par bouche chercherait ensuite dans des
   // ingrédients.
   const planTitles = new Set(
-    (ctx.planDishTitles ?? []).map((t) => String(t ?? "").trim()).filter((t) => t),
+    (ctx.planDishTitles ?? []).map((t) => String(t ?? "").trim()).filter((t) =>
+      t
+    ),
   );
   const planFoods = new Set(
-    (ctx.planFoodTerms ?? []).map((t) => String(t ?? "").trim()).filter((t) => t),
+    (ctx.planFoodTerms ?? []).map((t) => String(t ?? "").trim()).filter((t) =>
+      t
+    ),
   );
 
   for (
@@ -719,32 +748,81 @@ export function retainedItemsFromPlanFeedback(
   // Un pas sur une échelle ORDONNÉE, depuis la valeur COURANTE, borné aux deux
   // bouts, journalisé avec la question citée. `applyStep` la porte une fois
   // pour les trois — trois copies auraient divergé au premier bord.
-  applyStep(fieldChanges, counts, {
-    step: effect.difficultyStep,
-    field: "recipe_difficulty",
-    // Ordonnée du plus simple au plus ambitieux.
-    ladder: RECIPE_DIFFICULTIES as readonly string[],
-    current: String(ctx.recipeDifficulty ?? "").trim().toLowerCase(),
-    at: ctx.at,
-    quote: quoteOf("difficulty", String(row.difficulty ?? ""), ctx.locale),
-  });
-  applyStep(fieldChanges, counts, {
-    step: effect.speedStep,
-    field: "cooking_time_min",
-    // ⚠️ LES SIX DURÉES QUE L'ÉCRAN PROPOSE, ET C'EST UNE RECOPIE ASSUMÉE:
-    // `COOKING_SESSION_MINUTES` vit dans le front (`api/planBudget.ts`), que ce
-    // runtime ne peut pas importer. Le test l'épingle en LISANT ce fichier-là —
-    // même patron que `COOKING_TIME_FLOOR_MIN`, dont le plancher est le premier
-    // barreau de cette même échelle.
-    ladder: COOKING_SESSION_LADDER.map((m) => String(m)),
-    current: Number.isFinite(Number(ctx.cookingTimeMin))
-      ? String(Number(ctx.cookingTimeMin))
-      : "",
-    at: ctx.at,
-    quote: quoteOf("speed", String(row.speed ?? ""), ctx.locale),
-    // Le champ porte un NOMBRE, pas le jeton d'échelle.
-    asNumber: true,
-  });
+  // ── ⟳ D2.5 (2026-09-03, A2) · QUAND UN STYLE EST DÉCLARÉ, C'EST LUI QUI BOUGE
+  //
+  // ⛔ LE DÉFAUT QUE ÇA FERME, ET IL EST LE MÊME QUE CELUI DU LOT B, UN CRAN
+  // PLUS LOIN. Le lot B a cessé d'écrire « 35 minutes », un nombre que l'écran
+  // ne propose pas. P2 va plus loin: l'écran ne propose plus AUCUN nombre de
+  // minutes, et `recipe_difficulty` n'a **aucun lecteur** dans les deux
+  // générateurs. Pire, `cooking_time_min` est ÉCRASÉ à la composition par la
+  // dérivation du style (`resolveCookingCapacity`). Déplacer ces deux champs-là
+  // sur un compte qui a répondu à P2, c'est écrire deux réglages que personne
+  // ne lit et que personne ne voit — une correction que la personne ne peut ni
+  // comprendre ni défaire.
+  //
+  // ⚠️ ET SANS STYLE DÉCLARÉ, RIEN NE CHANGE: les deux `applyStep` d'origine
+  // tournent à l'identique. C'est le chemin de toute la population
+  // d'aujourd'hui, et un test le tient ligne à ligne.
+  const declaredStyle = readCookingStyle({ cooking_style: ctx.cookingStyle });
+  if (declaredStyle !== null) {
+    const styleStep = cookingStyleStepFrom(
+      effect.difficultyStep,
+      effect.speedStep,
+    );
+    if (styleStep === "conflict") {
+      // ⚠️ `bothPolarities` ET PAS UN COMPTEUR NEUF: son sens est exactement
+      // celui-ci — « la même chose demandée dans les deux sens, les DEUX
+      // tombent ». Il le disait des plats; il le dit maintenant aussi des deux
+      // axes de cuisine ramenés sur un cadran unique.
+      counts.bothPolarities += 1;
+    } else if (styleStep !== null) {
+      applyStep(fieldChanges, counts, {
+        step: styleStep,
+        field: "cooking_style",
+        // Ordonnée du moins ambitieux au plus ambitieux — la MÊME que celle du
+        // module qui la porte, jamais recopiée: c'est l'ordre qui décide de
+        // quel côté on descend.
+        ladder: COOKING_STYLES as readonly string[],
+        current: declaredStyle,
+        at: ctx.at,
+        // ⚠️ LA QUESTION CITÉE EST CELLE QUI A PRODUIT LE CRAN, et quand les
+        // deux l'ont produit ensemble c'est `difficulty` — la première des deux
+        // que le questionnaire pose. Citer l'autre serait tout aussi vrai;
+        // avoir une RÈGLE est ce qui empêche la citation de bouger au hasard
+        // d'un refactor.
+        quote: effect.difficultyStep !== null
+          ? quoteOf("difficulty", String(row.difficulty ?? ""), ctx.locale)
+          : quoteOf("speed", String(row.speed ?? ""), ctx.locale),
+      });
+    }
+  } else {
+    applyStep(fieldChanges, counts, {
+      step: effect.difficultyStep,
+      field: "recipe_difficulty",
+      // Ordonnée du plus simple au plus ambitieux.
+      ladder: RECIPE_DIFFICULTIES as readonly string[],
+      current: String(ctx.recipeDifficulty ?? "").trim().toLowerCase(),
+      at: ctx.at,
+      quote: quoteOf("difficulty", String(row.difficulty ?? ""), ctx.locale),
+    });
+    applyStep(fieldChanges, counts, {
+      step: effect.speedStep,
+      field: "cooking_time_min",
+      // ⚠️ LES SIX DURÉES QUE L'ÉCRAN PROPOSE, ET C'EST UNE RECOPIE ASSUMÉE:
+      // `COOKING_SESSION_MINUTES` vit dans le front (`api/planBudget.ts`), que ce
+      // runtime ne peut pas importer. Le test l'épingle en LISANT ce fichier-là —
+      // même patron que `COOKING_TIME_FLOOR_MIN`, dont le plancher est le premier
+      // barreau de cette même échelle.
+      ladder: COOKING_SESSION_LADDER.map((m) => String(m)),
+      current: Number.isFinite(Number(ctx.cookingTimeMin))
+        ? String(Number(ctx.cookingTimeMin))
+        : "",
+      at: ctx.at,
+      quote: quoteOf("speed", String(row.speed ?? ""), ctx.locale),
+      // Le champ porte un NOMBRE, pas le jeton d'échelle.
+      asNumber: true,
+    });
+  }
 
   // ═════════════════════════════════════════════════════════════════════════
   // LA VARIÉTÉ — LE TROISIÈME INDICE, ET IL EST POSÉ À TOUT LE MONDE
@@ -905,6 +983,42 @@ function subjectOf(raw: string | null): RetainedSubject | null {
  *  · sinon ⇒ une ligne, avec `previous` (ce qui rend le geste inverse
  *    possible) et la question CITÉE.
  */
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * D2.5 — LES DEUX CRANS DE CUISINE, RAMENÉS SUR **UN SEUL** CADRAN.
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * `cooking_style` (P2) est UN cadran qui porte les deux axes à la fois: la
+ * table `COOKING_STYLE_PROFILE` lui fait tenir les minutes (la vitesse) ET la
+ * difficulté des recettes. Quand il est déclaré, les deux questions du
+ * questionnaire pointent donc le même réglage.
+ *
+ *   · les deux d'accord, ou un seul répondu ⇒ un cran, dans ce sens;
+ *   · les deux en sens OPPOSÉS            ⇒ `"conflict"`.
+ *
+ * ⛔ « LES DEUX D'ACCORD » NE FONT QU'UN CRAN, PAS DEUX. Marcher l'échelle
+ * deux fois ferait sauter `keen` → `minimal` sur un seul questionnaire: une
+ * personne qui dit « c'était trop long ET trop dur » demande un cran plus
+ * accessible, pas le plancher.
+ *
+ * ⛔ ET LE CONFLIT NE SE TRANCHE PAS EN SILENCE. « Des recettes plus simples,
+ * mais j'avais plus de temps » est une réponse parfaitement cohérente que le
+ * cadran unique NE SAIT PAS écrire — c'est le prix, mesurable, d'avoir fondu
+ * deux axes en une question. En choisir un des deux inventerait une préférence;
+ * on ne bouge rien, et le compteur le dit. La sortie du jour où ça se mesure
+ * est écrite au journal d'A2 (§ déviations).
+ *
+ * PURE: no I/O, no clock.
+ */
+export function cookingStyleStepFrom(
+  difficultyStep: "down" | "up" | null,
+  speedStep: "down" | "up" | null,
+): "down" | "up" | null | "conflict" {
+  if (difficultyStep === null) return speedStep;
+  if (speedStep === null) return difficultyStep;
+  return difficultyStep === speedStep ? difficultyStep : "conflict";
+}
+
 function applyStep(
   fieldChanges: FieldChange[],
   counts: Record<keyof Omit<PlanFeedbackRetainedRefusals, "total">, number>,

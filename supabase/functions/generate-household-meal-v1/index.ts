@@ -161,6 +161,7 @@ import {
   type MemberAway,
   memberMealCells,
   parseMemberAway,
+  parseWorkLunch,
   resolveWindowPresence,
 } from "../_shared/keel/household_presence.ts";
 import {
@@ -285,6 +286,19 @@ import {
   hasFreezerDeclared,
   readKitchenEquipment,
 } from "../_shared/keel/kitchen_equipment.ts";
+// ⟳ A2 (2026-09-03) — « COMMENT VOULEZ-VOUS CUISINER » ET « COMBIEN DE
+// COURSES ». Le module est PUR et les DEUX lanes l'appellent: la dérivation
+// (sessions, jours de cuisine, budget de temps) n'est écrite qu'une fois,
+// contrairement à `readCookingCapacity` qui vit en double dans ces deux
+// fichiers depuis toujours.
+import {
+  type CookingStyle,
+  type GroceryRuns,
+  readCookingStyle,
+  readGroceryRuns,
+  resolveCookingCapacity,
+  unusedGroceryRuns,
+} from "../_shared/keel/cooking_plan.ts";
 import {
   daysOutOfBatchReach,
   singleSessionCookDay,
@@ -580,6 +594,17 @@ function readCookingCapacity(pc: Record<string, unknown> | null) {
     // ces formes ne devient une consigne. `Number(null)` vaut 0 ET est
     // fini — un `!= null` laisserait passer « budget: 0 ».
     budgetAmount: usableBudget(pc?.budget_amount),
+    // ⟳ A2 — LUES ICI, RÉSOLUES AILLEURS. Cette fonction ne fait que LIRE la
+    // colonne; la dérivation (sessions, jours, minutes) vit dans
+    // `resolveCookingCapacity` (`_shared/keel/cooking_plan.ts`), appelée par
+    // les DEUX lanes. `readCookingCapacity`, elle, est dupliquée entre les deux
+    // fichiers depuis toujours et sans test qui les compare — la dérivation ne
+    // le sera pas, et un test lit les deux sources pour le prouver.
+    //
+    // ⛔ `null` = LA QUESTION N'A JAMAIS ÉTÉ POSÉE, jamais « le moins
+    // possible »: cicatrice `20260818110000:48-51`.
+    cookingStyle: readCookingStyle(pc),
+    groceryRuns: readGroceryRuns(pc),
   };
 }
 
@@ -3102,9 +3127,24 @@ Deno.serve(async (req) => {
     // Ce n'est pas une garde en double: l'écran décide ce qu'il PROPOSE, cette
     // ligne décide ce que le moteur FAIT — et le corps de la requête est écrit
     // par le réseau, pas par l'écran.
-    const oneCookingSession = askedOneCookingSession &&
+    // ⟳ A2 (2026-09-03) — « UNE SEULE COURSE » ENTRE PAR CETTE PORTE-CI, et
+    // par aucune autre. `grocery_runs = 1` veut dire « je passe au magasin une
+    // fois »: le plan doit donc tenir sur UNE session, ce qui est exactement ce
+    // que `one_cooking_session` demande. C'est une DEMANDE de plus, pas une
+    // quatrième porte du congélateur — trois implémentations de cette règle
+    // sont déjà alignées par `freezerMirror.int.test.ts`, et une quatrième les
+    // ferait diverger au premier ajustement.
+    //
+    // ⚠️ LU UNE SEULE FOIS, ICI, ET REDESCENDU. `resolveCookingCapacity` reçoit
+    // `groceryRuns` en argument plus bas: deux `readGroceryRuns(pc)` seraient
+    // deux idées de la même colonne, et c'est celle qu'on regarde le moins qui
+    // garderait l'ancienne (la leçon de `readKitchenEquipment`, dix lignes
+    // au-dessus).
+    const groceryRuns = readGroceryRuns(pc);
+    const askedOneSession = askedOneCookingSession || groceryRuns === 1;
+    const oneCookingSession = askedOneSession &&
       hasFreezerDeclared(kitchenEquipment);
-    if (askedOneCookingSession && !oneCookingSession) {
+    if (askedOneSession && !oneCookingSession) {
       // Comptable en SQL sur la ligne du plan. `plan_rationale` le DIT à la
       // personne; sans ce compteur, une option ignorée en silence serait
       // indiscernable d'une option jamais cochée.
@@ -3209,7 +3249,7 @@ Deno.serve(async (req) => {
     // `addedCookDays` et `rationaleCookDays`.
     const planTiming: PlanTiming = planTimingOf(lead, cookAhead);
 
-    const capacity = readCookingCapacity(pc);
+    const declaredCapacity = readCookingCapacity(pc);
     // ⟳ A1 — `scope` SE DÉRIVE DES JOURS **MANGÉS**. Une fenêtre de deux jours
     // dont l'un est la veille est un plan D'UN JOUR; la RPC dérive la même
     // chose de son côté (`20260903170000`), et les deux doivent rester
@@ -3217,6 +3257,43 @@ Deno.serve(async (req) => {
     const daysToEat = durationDays - (cookOnlyDay === null ? 0 : 1);
     const scope: MealScope = daysToEat === 1 ? "day" : "several_days";
     const daysToFill = windowDayOrder(startsOn, durationDays);
+
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ A2 (2026-09-03) — LES DEUX RÉPONSES DE P2, APPLIQUÉES ICI ET NULLE
+    // PART AILLEURS.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // `resolveCookingCapacity` vit dans `_shared/keel/cooking_plan.ts` et les
+    // DEUX lanes l'appellent — contrairement à `readCookingCapacity`, qui est
+    // recopiée dans les deux fichiers depuis toujours et sans test qui les
+    // compare. La dérivation ne sera pas recopiée: un test lit les deux sources.
+    //
+    // ⛔ SANS LES DEUX RÉPONSES, RIEN NE CHANGE. Style ou cadence absents ⇒
+    // `plan: null`, les quatre champs déclarés ressortent tels quels, et la
+    // sortie est byte-identique à celle d'avant ce lot. C'est le chemin de tout
+    // compte antérieur à P2, et il est le plus fréquent aujourd'hui.
+    //
+    // ⚠️ APRÈS `withCookDayBefore` ET APRÈS L'INVENTAIRE: la dérivation a
+    // besoin de la fenêtre SERVIE (le rang 0 est la veille) et du congélateur.
+    // La remonter d'une ligne poserait les sessions sur la fenêtre demandée, et
+    // la première tomberait sur le premier jour MANGÉ au lieu de la veille.
+    //
+    // ⚠️ `daysToEat` EST LA FENÊTRE, PAS LA PRÉSENCE. Les absences réduisent ce
+    // qu'on cuisine, pas les jours où l'on PEUT cuisiner: quelqu'un qui déjeune
+    // dehors le mardi est chez lui le lundi soir. Soustraire les absences ici
+    // resserrerait la cadence de courses sur une raison qui n'en est pas une.
+    const capacity = resolveCookingCapacity({
+      declared: declaredCapacity,
+      style: declaredCapacity.cookingStyle,
+      runs: groceryRuns,
+      // ⛔ LE TRI-ÉTAT EST DÉJÀ RÉDUIT, ET AU BON ENDROIT. `hasFreezerDeclared`
+      // rend le même `false` pour « pas de congélateur » et « jamais demandé »
+      // — la direction fail-closed, décidée une fois pour toutes.
+      freezer: hasFreezerDeclared(kitchenEquipment),
+      windowDays: daysToFill as never,
+      leadDay: cookOnlyDay !== null,
+      daysToEat,
+    });
 
     // ── D14 · QUI EST LÀ, ET QUAND ────────────────────────────────────────
     //
@@ -3738,7 +3815,31 @@ Deno.serve(async (req) => {
     // ont fait leur travail juste au-dessus, à l'identique: le plafond
     // s'applique APRÈS, sur leur résultat. Le jour où le calcul change, il n'y a
     // qu'un endroit à relire.
-    const shapeCap = capCookingShape(computedShape, askedCookingShape);
+    // ⟳ A2 (2026-09-03) — LE STYLE PLAFONNE LA FORME, ET IL LE FAIT PAR LA
+    // PORTE QUI EXISTE.
+    //
+    // « Le moins possible — je réchauffe » et « chacun le sien » sont deux
+    // réponses de la même personne, et elles se contredisent: deux plats par
+    // repas ne se réchauffent pas en trente minutes. `capCookingShape` est le
+    // SEUL endroit du produit qui compare un choix à un calcul; on lui donne
+    // donc le choix DÉJÀ plafonné plutôt que d'ajouter une seconde comparaison
+    // à côté.
+    //
+    // ⛔ IL PLAFONNE, IL NE FORCE PAS. Un style `balanced` ou `keen` ne
+    // FABRIQUE aucun second plat: il laisse le calcul décider, exactement comme
+    // avant ce lot. Et `null` (jamais demandé) ne plafonne rien du tout — la
+    // population qui n'a pas vu la question garde son comportement d'hier.
+    //
+    // ⚠️ CE N'EST PAS LA MÊME CHOSE QUE LE SEUIL DE TEMPS. `weeklyCookingMinutes`
+    // (D2.4) plafonne aussi, plus bas, sur le budget dérivé — et il se réveille
+    // avec ce lot puisque `cook_days` cesse d'être `[]`. Les deux disent la même
+    // chose par deux chemins, et c'est voulu: l'un vient du MOT (« le moins
+    // possible »), l'autre du NOMBRE (30 min × 1 session < 90).
+    const styleCappedShape: CookingShape | null =
+      declaredCapacity.cookingStyle === "minimal"
+        ? "one_dish"
+        : askedCookingShape;
+    const shapeCap = capCookingShape(computedShape, styleCappedShape);
     const cookingShape: CookingShape = shapeCap.shape;
     // ⛔ LES BOUCHES QUI REÇOIVENT VRAIMENT UN PLAT — et c'est ce que le plafond
     // change. `divergingMembers` reste le CALCUL (il nomme au constat qui ne
@@ -4389,7 +4490,53 @@ Deno.serve(async (req) => {
       contentLocale: householdContentLocale,
     });
 
+    // ══════════════════════════════════════════════════════════════════════
+    // D6.2 (2026-09-03) — CE QUE CHAQUE BOUCHE FAIT DE SON MIDI DE SEMAINE.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ UNE LECTURE À PART, ET C'EST ASSUMÉ. `work_lunch` ne sort PAS de la
+    // RPC du roster: l'y ajouter demanderait une migration de la fonction, et
+    // ce lot n'en a pas besoin — la colonne se lit directement, sur les mêmes
+    // `member_id` que ceux qu'on compose.
+    //
+    // ⚠️ FAIL-OPEN NOMMÉ: une lecture en panne rend `[]`, donc aucun bloc,
+    // donc le prompt de v22 — le comportement d'hier, jamais un plan faux. Et
+    // l'incident est tracé, sinon un câblage débranché serait indiscernable
+    // d'un foyer où personne n'emporte de gamelle.
+    const workLunchRows: Array<{
+      memberId: string;
+      mode: string | null;
+      microwave: boolean | null;
+    }> = [];
+    try {
+      const wlRes = await admin
+        .from("household_members")
+        .select("id, work_lunch")
+        .eq("household_id", householdId);
+      if (wlRes.error) throw wlRes.error;
+      for (const row of (wlRes.data ?? []) as Array<Record<string, unknown>>) {
+        // ⛔ `parseWorkLunch` ET PAS UNE LECTURE EN LIGNE. Il porte les trois
+        // états du formulaire déplié (`at_work` illisible ⇒ `null`, pas
+        // `false`; `microwave` seulement sur la gamelle), et une seconde
+        // lecture de cette forme divergerait au premier ajustement.
+        const parsed = parseWorkLunch(row.work_lunch);
+        if (parsed === null || !parsed.atWork) continue;
+        workLunchRows.push({
+          memberId: String(row.id),
+          mode: parsed.mode,
+          microwave: parsed.microwave,
+        });
+      }
+    } catch (error) {
+      console.warn(`[${FN_NAME}] work lunch unreadable`, error);
+      issues.push("work_lunch_unreadable");
+    }
+
     const household = buildHouseholdPromptBlocks({
+      // D6.2 — la réponse hebdomadaire de chaque bouche, telle qu'elle est
+      // écrite. Le bloc ne sort que pour les gamelles; `outside` a déjà son
+      // effet par les cinq midis `eating_out` que la porte SQL a posés.
+      workLunch: workLunchRows,
       // ── G4 · LA GARDE DE TEXTE DES HABITUDES, EN UN SEUL ENDROIT ───────
       //
       // ⚠️ C'EST ICI ET NULLE PART AILLEURS. Les habitudes sont lues BRUTES
@@ -5868,10 +6015,18 @@ Deno.serve(async (req) => {
       // `usableCookDays` et `addedCookDays` ont déjà coûtée deux fois.
       ...(cookOnlyDay === null ? [] : [cookOnlyDay]),
       ...usableCookDays({
+        // ⚠️ LES JOURS **SERVIS**, DÉRIVÉS COMPRIS — et surtout PAS la
+        // version vidée qui part aux faits de rationale. Cette liste-ci
+        // nomme le jour de la session unique; la vider ferait nommer une
+        // journée que le modèle n'a pas reçue.
         declared: capacity.cookDays ?? [],
         window: daysToFill,
       }),
       ...addedCookDays({
+        // ⚠️ LES JOURS **SERVIS**, DÉRIVÉS COMPRIS — et surtout PAS la
+        // version vidée qui part aux faits de rationale. Cette liste-ci
+        // nomme le jour de la session unique; la vider ferait nommer une
+        // journée que le modèle n'a pas reçue.
         declared: capacity.cookDays ?? [],
         window: daysToFill,
         firstDayCookable,
@@ -5900,16 +6055,27 @@ Deno.serve(async (req) => {
           // par bouche, aucune pour la casserole. Elle se taira ici tant que le
           // foyer n'aura pas de verdict de table — c'est le lot du bac.
           energyBelowBand: null,
-          declaredCookDays: (capacity.cookDays ?? []) as never,
+          // ⛔ VIDE QUAND LES JOURS SONT DÉRIVÉS, ET C'EST UN CORRECTIF.
+          //
+          // Ce fait-là est documenté « les jours que l'élève a COCHÉS », et son
+          // gabarit dit « tu cuisines lundi et jeudi, et c'est ce qui a été
+          // gardé ». Depuis A2, `capacity.cookDays` peut être une DÉRIVATION du
+          // style: l'explication attribuait à la personne un choix qu'elle
+          // n'avait pas fait.
+          //
+          // ⚠️ LES TROIS FAITS DU MÉCANISME SE TAISENT ENSEMBLE. `usableCookDays`
+          // et `addedCookDays` le décrivent aussi: n'en vider qu'un ferait dire
+          // au plan qu'il a ajouté un jour à une liste vide.
+          declaredCookDays: (capacity.plan === null ? capacity.cookDays ?? [] : []) as never,
           // LE MÊME CALCUL QUE LA CONSIGNE, pas un second — et c'est vrai des
           // DEUX: `usableCookDays` et `addedCookDays` sont exportés par
           // `meal_generation.ts` exactement pour ça.
           usableCookDays: usableCookDays({
-            declared: capacity.cookDays ?? [],
+            declared: capacity.plan === null ? capacity.cookDays ?? [] : [],
             window: daysToFill,
           }) as never,
           addedCookDays: addedCookDays({
-            declared: capacity.cookDays ?? [],
+            declared: capacity.plan === null ? capacity.cookDays ?? [] : [],
             window: daysToFill,
             firstDayCookable,
           }) as never,
@@ -5978,12 +6144,27 @@ Deno.serve(async (req) => {
           // dont la personne croit avoir perdu un jour de repas, et un plan
           // sans veille sans un mot est un plan qu'elle croit pouvoir cuisiner
           // tranquillement le lendemain midi.
+          // ⟳ A2 (2026-09-03) — CE QUE LE STYLE A PLAFONNÉ. `null` quand les
+          // deux questions de P2 n'ont pas été posées: aucune ligne, et
+          // l'explication d'un compte antérieur ne bouge pas d'un caractère.
+          cookingPlan: capacity.plan === null ? null : {
+            sessions: capacity.plan.sessions,
+            // LES JOURS DÉRIVÉS, dits avec les mots de la dérivation.
+            cookDays: capacity.plan.cookDays as never,
+            unusedRuns: capacity.plan === null || groceryRuns === null
+              ? 0
+              : unusedGroceryRuns(groceryRuns, capacity.plan),
+            notes: capacity.plan.notes,
+          },
           cookDayBefore: {
             day: cookOnlyDay as never,
             refused: cookAhead.refused,
             reason: planTiming.reason,
           },
-          oneCookingSession: askedOneCookingSession
+          // ⟳ A2 — `askedOneSession`, pas `askedOneCookingSession`: « une seule
+          // course » DEMANDE la session unique, et son refus sans congélateur
+          // doit être dit avec les mêmes mots que la case.
+          oneCookingSession: askedOneSession
             ? {
               day: (oneCookingSession ? rationaleSingleSessionDay : null) as never,
               refusedNoFreezer: !oneCookingSession,
@@ -7123,6 +7304,19 @@ Deno.serve(async (req) => {
         missing: household.kitchenMissing,
       },
       eating_out: household.eatingOut,
+      // ── ⛔ D6.2 · LE COMPTEUR DE LA GAMELLE, ET IL ÉTAIT LE MAILLON QUI
+      //    MANQUAIT.
+      //
+      // `household.workLunch` était CALCULÉ par le constructeur de prompt et
+      // jeté ici même: la ligne d'à côté portait `eating_out`, pas celle-ci.
+      // Donc `generated_from.household.work_lunch` n'existait sur AUCUNE
+      // ligne — et la requête de contrôle écrite dans ma propre réserve de
+      // journal aurait rendu `NULL` pour toujours.
+      //
+      // ⚠️ C'EST LA MOITIÉ QUI COMPTE D'UN CHAMP OPTIONNEL: le marché passé
+      // pour garder `workLunch` en `?` était un compteur ET un test de
+      // câblage. Le test existait, le compteur n'atteignait rien.
+      work_lunch: household.workLunch,
       // ── LOT C ② · LE `why` ET LA RÈGLE DE QUELQU'UN ───────────────────────
       // TROIS NOMBRES ET LEUR DÉNOMINATEUR, et la forme est celle de `names`
       // au-dessus parce que la cause est la même: `why_rule_of` est un CHAMP

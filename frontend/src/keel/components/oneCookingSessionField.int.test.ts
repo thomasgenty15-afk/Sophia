@@ -62,14 +62,22 @@ describe("le champ est monté sur les DEUX surfaces", () => {
     // s'est donc retourné une seconde fois, et il tient toujours la même
     // chose: la question de calendrier qui reste vit ENTRE les dates et le
     // reste du formulaire.
+    //
+    // ⟳ P2 (2026-09-03) — L'ANCRE D'APRÈS A CHANGÉ SUR L'ENTONNOIR, parce que
+    // la question qu'elle nommait n'existe plus: `setup.plan.time` (« combien
+    // de temps dure une session ») a été remplacée par les deux questions de
+    // P2. `src.indexOf` d'une clé absente rend `-1`, et `x < -1` est faux pour
+    // tout `x` — le test tombait donc, ce qui est exactement ce qu'on veut
+    // d'une ancre périmée, mais il fallait la remplacer et non l'assouplir.
     for (const [name, src, dateKey, afterKey] of [
       ["MealBuilder", BUILDER, "meals.form.window_label", "plan.cooking.time_label"],
-      ["SetupPage", SETUP, "setup.request.from", "setup.plan.time"],
+      ["SetupPage", SETUP, "setup.request.from", "setup.request.presence_title"],
     ] as const) {
       const dates = src.indexOf(dateKey);
       const session = src.indexOf("<OneCookingSessionField");
       const after = src.indexOf(afterKey);
       expect(dates, name).toBeGreaterThan(-1);
+      expect(after, `${name}: l'ancre d'après a disparu`).toBeGreaterThan(-1);
       expect(session, name).toBeGreaterThan(dates);
       expect(session, name).toBeLessThan(after);
     }
@@ -341,5 +349,120 @@ describe("le couvercle SANS NOM survit à la lecture", () => {
       },
     ]);
     expect(dish.boxes).toHaveLength(0);
+  });
+});
+
+describe("⟳ P2 — le style et la cadence de courses, montés aux DEUX endroits", () => {
+  // ⛔ MÊME EXIGENCE QUE POUR LA SESSION UNIQUE, et pour la même raison: deux
+  // champs écrits séparément divergeraient au premier libellé retouché, et
+  // c'est celui qu'on regarde le moins qui garderait l'ancien mot.
+  it("les deux composants sont montés sur `/app/plan` ET dans l'entonnoir", () => {
+    for (const [name, src] of [["MealBuilder", BUILDER], ["SetupPage", SETUP]] as const) {
+      expect(src, name).toMatch(/<CookingStyleField/);
+      expect(src, name).toMatch(/<GroceryRunsField/);
+    }
+  });
+
+  it("⛔ le STYLE vient AVANT la cadence, et les deux avant la session unique", () => {
+    // L'ordre est le sens: c'est le style qui PLAFONNE le nombre de sessions,
+    // donc lire « trois courses » avant de savoir qu'on cuisine le moins
+    // possible ferait attendre trois séances que le plan ne fera pas. Et
+    // « une seule course » IMPLIQUE la session unique — lire la conséquence
+    // avant sa cause ferait cocher deux fois la même chose.
+    for (const [name, src] of [["MealBuilder", BUILDER], ["SetupPage", SETUP]] as const) {
+      const style = src.indexOf("<CookingStyleField");
+      const runs = src.indexOf("<GroceryRunsField");
+      expect(style, name).toBeGreaterThan(-1);
+      expect(runs, name).toBeGreaterThan(style);
+    }
+    // Sur `/app/plan` les trois cohabitent; l'entonnoir, lui, ne monte plus la
+    // session unique au même endroit, et ce test ne l'invente pas.
+    expect(BUILDER.indexOf("<OneCookingSessionField")).toBeGreaterThan(
+      BUILDER.indexOf("<GroceryRunsField"),
+    );
+  });
+
+  it("⛔ « combien de temps dure une session » N'EST PLUS DEMANDÉ dans l'entonnoir", () => {
+    // La suppression EST le lot. Un champ qui revient par une page oubliée
+    // ferait deux autorités sur `cooking_time_min`, dont une invisible.
+    const code = SETUP
+      .split("\n")
+      .map((line) => (line.trimStart().startsWith("//") ? "" : line))
+      .join("\n");
+    expect(code).not.toMatch(/setup\.plan\.time/);
+    expect(code).not.toMatch(/COOKING_SESSION_MINUTES/);
+  });
+
+  it("les deux réponses sont DURABLES: elles s'écrivent et se relisent", () => {
+    // ⚠️ CONTRAIREMENT À « une seule session » et à la forme de cuisine, qui
+    // sont des arbitrages de SEMAINE et ne s'écrivent nulle part. Sans la
+    // relecture, le premier `savePlanInputs` de la composition suivante
+    // écrirait `null` et effacerait la réponse de l'entonnoir.
+    expect(BUILDER).toMatch(/setCookingStyle\(last\.cookingStyle\)/);
+    expect(BUILDER).toMatch(/setGroceryRuns\(last\.groceryRuns\)/);
+    expect(BUILDER).toMatch(/^\s+cookingStyle,$/m);
+    expect(BUILDER).toMatch(/^\s+groceryRuns,$/m);
+  });
+});
+
+describe("⛔ P2 — l'ÉQUIPEMENT vient AVANT le nombre de courses", () => {
+  // ══════════════════════════════════════════════════════════════════════════
+  // LE DÉFAUT QUE CE BLOC FERME, ET IL A ÉTÉ LIVRÉ.
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // Sur `/app/plan`, l'inventaire de cuisine vivait **178 lignes plus bas** que
+  // « combien de courses ». On acceptait donc « une seule course » avant de
+  // savoir s'il y a un congélateur — et « une seule course » ne tient QUE par
+  // le congélateur. La personne répondait, puis découvrait le refus dans
+  // l'explication du plan, pour une question qui était sous ses yeux.
+  //
+  // ⚠️ CE QUE CE TEST NE MESURE PAS, DIT ICI PLUTÔT QUE SOUS-ENTENDU: il lit
+  // la SOURCE, pas le HTML rendu. Monter `MealBuilder` demanderait un client
+  // Supabase vivant (il lit le foyer, les plans, l'inventaire au montage), et
+  // le patron `renderToStaticMarkup` du dépôt ne s'applique qu'aux composants
+  // qui n'en ont pas besoin — `kitchenEquipmentCard.int.test.ts` en est
+  // l'exemple. Ce qui rend la lecture de source SUFFISANTE ici, et seulement
+  // ici: les trois blocs sont des FRÈRES du même parent JSX, sans condition ni
+  // enveloppe entre eux, donc l'ordre du fichier EST l'ordre du DOM. La
+  // seconde assertion vérifie cette prémisse au lieu de la supposer.
+
+  it("sur `/app/plan`, l'inventaire précède le style ET les courses", () => {
+    const equipment = BUILDER.indexOf("<KitchenEquipmentCard");
+    const style = BUILDER.indexOf("<CookingStyleField");
+    const runs = BUILDER.indexOf("<GroceryRunsField");
+    const session = BUILDER.indexOf("<OneCookingSessionField");
+    for (const [name, at] of [["équipement", equipment], ["style", style], ["courses", runs], ["session", session]] as const) {
+      expect(at, `${name} introuvable`).toBeGreaterThan(-1);
+    }
+    expect(equipment, "l'inventaire ne précède plus le style").toBeLessThan(style);
+    expect(style).toBeLessThan(runs);
+    expect(runs).toBeLessThan(session);
+  });
+
+  it("⛔ LA PRÉMISSE: les blocs sont des FRÈRES, donc la source dit le DOM", () => {
+    // Si l'inventaire était rendu dans une branche conditionnelle ou déplacé
+    // par du CSS, l'ordre du fichier ne dirait plus rien du DOM et le test
+    // au-dessus serait une garde désarmée. On vérifie donc que le `<details>`
+    // qui porte l'inventaire est FERMÉ avant que le champ de style ne s'ouvre.
+    const equipment = BUILDER.indexOf("<KitchenEquipmentCard");
+    const closes = BUILDER.indexOf("</details>", equipment);
+    const style = BUILDER.indexOf("<CookingStyleField");
+    expect(closes).toBeGreaterThan(equipment);
+    expect(closes, "le style est DANS le bloc de l'inventaire").toBeLessThan(style);
+    // Et rien n'ouvre de branche entre les deux: pas de `? (` ni de `&&` porté
+    // par une ligne de JSX dans l'intervalle.
+    const between = BUILDER.slice(closes, style);
+    expect(between, `intervalle: ${between.trim().slice(0, 120)}`).not.toMatch(/\{\s*\w+\s*(\?|&&)/);
+  });
+
+  it("dans l'entonnoir aussi, et là c'est l'ÉTAPE qui le garantit", () => {
+    // `/app/setup` pose l'inventaire à l'étape « table » et le style à l'étape
+    // « demande »: l'ordre y est tenu par la machine d'étapes, pas par la
+    // position dans le fichier. On vérifie quand même la position, parce que
+    // les deux cartes vivent dans le même composant.
+    expect(SETUP.indexOf("<KitchenEquipmentCard")).toBeGreaterThan(-1);
+    expect(SETUP.indexOf("<KitchenEquipmentCard")).toBeLessThan(
+      SETUP.indexOf("<CookingStyleField"),
+    );
   });
 });

@@ -12,6 +12,7 @@ import {
   oneStyleLower,
   readCookingStyle,
   readGroceryRuns,
+  resolveCookingCapacity,
   unusedGroceryRuns,
 } from "./cooking_plan.ts";
 import { type DayToken } from "./tokens.ts";
@@ -136,6 +137,71 @@ Deno.test("A2 — chaque style descend ses trois valeurs dérivées", () => {
     // Deux sessions ⇒ le budget nominal, sans le ×2 de la session unique.
     assertEquals(out.sessionMinutes, profile.minutes, style);
   }
+});
+
+Deno.test("A2 — les TROIS leviers du style atteignent la capacité SERVIE", () => {
+  // ══════════════════════════════════════════════════════════════════════════
+  // ⛔ LE DÉFAUT QUE CE CAS FERME, ET IL A ÉTÉ LIVRÉ.
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // `resolveCookingCapacity` ne dérivait QUE les minutes, sur une affirmation
+  // d'absence fausse: « `recipe_difficulty` et `variety` n'ont aucun lecteur
+  // dans les deux générateurs ». Ils en ont un — `buildMealPrompt`, nourri par
+  // `...capacity` — et le prompt les émet en toutes lettres. Un compte
+  // « j'aime cuisiner » recevait donc 120 minutes ET une consigne muette sur le
+  // niveau de recette. Ce test compare la capacité SERVIE au profil, pas le
+  // profil à lui-même.
+  for (const style of COOKING_STYLES) {
+    const profile = COOKING_STYLE_PROFILE[style];
+    const served = resolveCookingCapacity({
+      declared: {
+        cookDays: [],
+        // ⛔ DES VALEURS DÉCLARÉES QUI CONTREDISENT LE STYLE, exprès: si la
+        // dérivation ne mordait pas, ce sont elles qui ressortiraient — et le
+        // test le verrait au lieu de passer sur une égalité par hasard.
+        cookingTimeMin: 999,
+        recipeDifficulty: "normal",
+        variety: "some",
+        budgetAmount: 42,
+      },
+      style,
+      runs: 2,
+      freezer: true,
+      windowDays: WITH_LEAD,
+      leadDay: true,
+      daysToEat: 7,
+    });
+    assertEquals(served.recipeDifficulty, profile.difficulty, style);
+    assertEquals(served.variety, profile.variety, style);
+    assertEquals(served.cookingTimeMin, profile.minutes, style);
+    // ⚠️ ET LE BUDGET TRAVERSE INTACT: il n'a rien à voir avec le style.
+    assertEquals(served.budgetAmount, 42, style);
+  }
+});
+
+Deno.test("A2 — sans style, les trois leviers déclarés ressortent INTACTS", () => {
+  // La contre-épreuve: la population qui n'a pas répondu à P2 garde ce qu'elle
+  // a écrit, à l'octet près.
+  const served = resolveCookingCapacity({
+    declared: {
+      cookDays: ["mon"],
+      cookingTimeMin: 45,
+      recipeDifficulty: "normal",
+      variety: "some",
+      budgetAmount: 42,
+    },
+    style: null,
+    runs: null,
+    freezer: true,
+    windowDays: WITH_LEAD,
+    leadDay: true,
+    daysToEat: 7,
+  });
+  assertEquals(served.recipeDifficulty, "normal");
+  assertEquals(served.variety, "some");
+  assertEquals(served.cookingTimeMin, 45);
+  assertEquals(served.cookDays, ["mon"]);
+  assertEquals(served.plan, null);
 });
 
 Deno.test("A2 — « le moins possible » PLAFONNE les sessions à deux, jamais les courses", () => {

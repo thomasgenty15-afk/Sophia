@@ -29,6 +29,7 @@ import {
 import type { MealBodyContext } from "./meal_body.ts";
 import type { MemberAgeState } from "./household.ts";
 import { questionsFor } from "./plan_feedback.ts";
+import { cookingStyleStepFrom } from "./plan_feedback_retained.ts";
 import {
   logisticsOverlayFor,
   routeRetainedItems,
@@ -62,6 +63,11 @@ const CTX: PlanFeedbackContext = {
   // Les préparations sont pliées dedans par l'appelant (`foodTermsOf`): en
   // cuisine par lots, la protéine vit dans la préparation, pas dans le plat.
   planFoodTerms: ["lentils", "chicken", "rice", "salmon"],
+  // ⟳ D2.5 (2026-09-03, A2) — `null` = la question de P2 n'a pas été posée à
+  // ce compte, et c'est le cas NOMINAL de ce fichier: les deux crans
+  // s'appliquent alors aux deux champs sous-jacents, exactement comme avant.
+  // Les cas qui exercent le style le posent eux-mêmes.
+  cookingStyle: null,
   cookingTimeMin: 45,
   recipeDifficulty: "normal",
   // Le cran DU MILIEU: il laisse la place de monter, donc un test qui ne
@@ -1408,5 +1414,131 @@ Deno.test("⛔ LOT 4C — LES DEUX JETONS NEUFS EXISTENT EN BASE, PAS SEULEMENT 
       /v_portions not in \('way_too_much', 'too_much', 'not_enough', 'way_not_enough'\)/
         .test(cut);
     assert(!stillThere, `retirer « ${from} » n'a fait rougir personne`);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// D2.5 (chantier-0903/CUISINE, A2) — LES DEUX CRANS SUR UN SEUL CADRAN
+// ---------------------------------------------------------------------------
+//
+// ⛔ CE QUE CE LOT CORRIGE, ET C'EST LE DÉFAUT DU LOT B UN CRAN PLUS LOIN.
+// Le lot B a cessé d'écrire « 35 minutes », un nombre que l'écran ne propose
+// pas. P2 va plus loin: l'écran ne propose plus AUCUN nombre de minutes, et
+// `recipe_difficulty` n'a aucun lecteur dans les deux générateurs. Pire,
+// `cooking_time_min` est ÉCRASÉ à la composition par la dérivation du style.
+// Sur un compte qui a répondu à P2, déplacer ces deux champs-là écrit deux
+// réglages que personne ne lit et que personne ne voit.
+//
+// ⚠️ ET « PAS EU LE TEMPS » N'EST PLUS L'ENTRÉE. `cookingQuestionsAreAsked`
+// n'ouvre les deux questions que sur `yes` et `partly`: on ne demande pas si
+// c'était trop long à quelqu'un qui n'a pas cuisiné. Ce qui déplace le style,
+// ce sont les réponses EXPLICITES aux deux axes.
+
+Deno.test("D2.5 — le pur: deux crans sur un cadran, et le conflit se NOMME", () => {
+  assertEquals(cookingStyleStepFrom(null, null), null);
+  assertEquals(cookingStyleStepFrom("down", null), "down");
+  assertEquals(cookingStyleStepFrom(null, "up"), "up");
+  // ⛔ D'ACCORD ⇒ UN SEUL CRAN. Marcher l'échelle deux fois ferait sauter
+  // `keen` → `minimal` sur un seul questionnaire.
+  assertEquals(cookingStyleStepFrom("down", "down"), "down");
+  assertEquals(cookingStyleStepFrom("up", "up"), "up");
+  // ⛔ EN SENS OPPOSÉS ⇒ le cadran unique ne sait pas l'écrire.
+  assertEquals(cookingStyleStepFrom("down", "up"), "conflict");
+  assertEquals(cookingStyleStepFrom("up", "down"), "conflict");
+});
+
+Deno.test("D2.5 — avec un style déclaré, c'est LUI qui bouge, et lui seul", () => {
+  const out = retainedItemsFromPlanFeedback(
+    row({ cooked: "partly", difficulty: "too_hard" }),
+    { ...CTX, cookingStyle: "keen" },
+  );
+  const style = out.fieldChanges.filter((f) => f.field === "cooking_style");
+  assertEquals(style.length, 1);
+  assertEquals(style[0].previous, "keen");
+  assertEquals(style[0].next, "balanced");
+  // ⛔ ET LES DEUX CHAMPS SOUS-JACENTS NE BOUGENT PAS: les écrire serait
+  // écrire ce que personne ne lit (`recipe_difficulty`) et ce que la
+  // dérivation écrase (`cooking_time_min`).
+  for (const dead of ["recipe_difficulty", "cooking_time_min"]) {
+    assertEquals(
+      out.fieldChanges.filter((f) => f.field === dead).length,
+      0,
+      `${dead} a bougé alors qu'un style est déclaré`,
+    );
+  }
+});
+
+Deno.test("D2.5 — les deux sens existent, et les deux bords sont comptés", () => {
+  // Le sens MONTANT est la condition du lot B, et il vaut pour le style aussi:
+  // un cadran qui ne fait que descendre finit au plancher et n'en remonte pas.
+  const up = retainedItemsFromPlanFeedback(
+    row({ cooked: "yes", speed: "had_more_time" }),
+    { ...CTX, cookingStyle: "minimal" },
+  );
+  assertEquals(up.fieldChanges.filter((f) => f.field === "cooking_style")[0].next, "balanced");
+
+  // ⛔ LE PLANCHER EST UN PLANCHER: un plan sans cuisine n'est pas un plan.
+  const floor = retainedItemsFromPlanFeedback(
+    row({ cooked: "yes", difficulty: "too_hard" }),
+    { ...CTX, cookingStyle: "minimal" },
+  );
+  assertEquals(floor.fieldChanges.filter((f) => f.field === "cooking_style").length, 0);
+  assert(floor.refused.atFloor >= 1);
+
+  // Et le plafond a son compteur À PART — c'est le seul des deux qui demande
+  // une décision produit.
+  const ceiling = retainedItemsFromPlanFeedback(
+    row({ cooked: "yes", speed: "had_more_time" }),
+    { ...CTX, cookingStyle: "keen" },
+  );
+  assertEquals(ceiling.fieldChanges.filter((f) => f.field === "cooking_style").length, 0);
+  assert(ceiling.refused.atCeiling >= 1);
+});
+
+Deno.test("D2.5 — deux axes en sens opposés: RIEN ne bouge, et ça se compte", () => {
+  // « Des recettes plus simples, mais j'avais plus de temps » est cohérent, et
+  // le cadran unique ne sait pas l'écrire. En choisir un des deux inventerait
+  // une préférence.
+  const out = retainedItemsFromPlanFeedback(
+    row({ cooked: "yes", difficulty: "too_hard", speed: "had_more_time" }),
+    { ...CTX, cookingStyle: "balanced" },
+  );
+  assertEquals(out.fieldChanges.filter((f) => f.field === "cooking_style").length, 0);
+  assert(out.refused.bothPolarities >= 1);
+});
+
+Deno.test("D2.5 — sans style déclaré, les deux champs bougent comme AVANT", () => {
+  // La population qui n'a jamais vu la question de P2 — c'est-à-dire, le jour
+  // de ce lot, tout le monde. Son comportement ne bouge pas d'un octet.
+  const answers = row({ cooked: "yes", difficulty: "too_hard", speed: "too_long" });
+  const before = retainedItemsFromPlanFeedback(answers, CTX);
+  assertEquals(before.fieldChanges.filter((f) => f.field === "recipe_difficulty").length, 1);
+  assertEquals(before.fieldChanges.filter((f) => f.field === "cooking_time_min").length, 1);
+  assertEquals(before.fieldChanges.filter((f) => f.field === "cooking_style").length, 0);
+  // ⛔ ET UN STYLE HORS VOCABULAIRE RETOMBE AUSSI: on ne descend pas d'un cran
+  // à partir d'un mot qu'on ne sait pas placer sur l'échelle.
+  const junk = retainedItemsFromPlanFeedback(answers, { ...CTX, cookingStyle: "lazy" });
+  assertEquals(junk.fieldChanges.filter((f) => f.field === "cooking_style").length, 0);
+  assertEquals(junk.fieldChanges.filter((f) => f.field === "recipe_difficulty").length, 1);
+});
+
+Deno.test("D2.5 — `cooked: no` ne déplace RIEN, style ou pas", () => {
+  // ⚠️ CE CAS EST LE DEUIL DE MON PROPRE LOT, ET IL EST JUSTE. D2.5 était écrit
+  // sur `cooked: no` (« je n'ai pas eu le temps ») parce que l'ancien modèle en
+  // DÉDUISAIT deux corrections. Le lot B a fermé cette déduction: on ne demande
+  // pas si c'était trop long à quelqu'un qui n'a pas cuisiné, et `cooked` est
+  // redevenu une garde. Le style ne bouge donc que sur une réponse EXPLICITE.
+  for (const style of [null, "balanced"]) {
+    const out = retainedItemsFromPlanFeedback(
+      row({ cooked: "no", difficulty: "too_hard", speed: "too_long" }),
+      { ...CTX, cookingStyle: style },
+    );
+    for (const f of ["cooking_style", "recipe_difficulty", "cooking_time_min"]) {
+      assertEquals(
+        out.fieldChanges.filter((c) => c.field === f).length,
+        0,
+        `${f} a bougé sur un plan qui n'a pas été cuisiné (style=${style})`,
+      );
+    }
   }
 });

@@ -3013,7 +3013,13 @@ Deno.test("C8 ③ — LA LANE INDIVIDUELLE GARDE SA VERSION DE PROMPT", () => {
   // avait coché une case; ils le portent désormais par défaut, dès que le
   // calendrier et l'heure le permettent. Comparer les plans d'avant et d'après
   // sous un même millésime rendrait la mesure fausse.
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v25_the_day_before_is_derived");
+  // ⚠️ v26 (2026-09-03, A2/P2) — LE STYLE DE CUISINE POSE LES SESSIONS.
+  // Population qui voit une consigne différente: celle qui a répondu aux DEUX
+  // questions de P2 (`cooking_style` + `grocery_runs`). Pour elle, `cook_days`
+  // et le plafond de temps de session ne viennent plus de la colonne mais de
+  // la dérivation; pour tous les autres, la consigne est celle de v25 au
+  // caractère près, et un test de rationale le tient ligne à ligne.
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v26_the_cooking_style_sets_the_sessions");
   // ⚠️ v10 DEPUIS LE LOT G (2026-08-14), ET C'EST LA MOITIÉ DU LOT QUI COMPTE
   // ICI: le TRONC ne bouge toujours pas (la ligne au-dessus le tient), la lane
   // du FOYER si. Deux populations neuves y voient une consigne différente —
@@ -3082,7 +3088,11 @@ Deno.test("C8 ③ — LA LANE INDIVIDUELLE GARDE SA VERSION DE PROMPT", () => {
   // ferme. Population concernée: tous les foyers. Le TRONC ne bouge pas — le
   // texte de la lane SOLO a survécu octet pour octet, mesuré sur 243 prompts
   // archivés.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v22_precedence_in_tail");
+  // ⚠️ v23 (2026-09-03, D6.2) — LA GAMELLE A UNE CONSIGNE. Population qui
+  // voit une consigne différente: les foyers où au moins une bouche emporte
+  // son déjeuner de semaine. Ailleurs, l'enveloppe est celle de v22 au
+  // caractère près, et un test le tient.
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v23_the_lunchbox_travels");
 });
 
 Deno.test("C7 ③ — LA LIGNE DE COURSES D'UN PLAT JETÉ NE PART PLUS AU MAGASIN", () => {
@@ -3732,9 +3742,26 @@ Deno.test("LOT B — le mode demandé est LU, et le plafond est appliqué à UN 
     /const askedCookingShape = readCookingShape\(body\.cooking_shape\)/.test(src),
     "le mode de cuisson n'est plus lu de la demande.",
   );
+  // ⟳ A2 (2026-09-03) — LE CHOIX ENTRE PAR UN PLAFOND DE STYLE, ET LA PORTE
+  // RESTE LA MÊME. « Le moins possible — je réchauffe » et « chacun le sien »
+  // se contredisent: deux plats par repas ne se réchauffent pas en trente
+  // minutes. Le style plafonne donc le CHOIX avant que `capCookingShape` le
+  // compare au calcul — plutôt qu'une seconde comparaison à côté, qui serait
+  // le second avis que ce test existe pour interdire.
   assert(
-    /const shapeCap = capCookingShape\(computedShape, askedCookingShape\)/.test(src),
+    /const styleCappedShape: CookingShape \| null =\n\s+declaredCapacity\.cookingStyle === "minimal"\n\s+\? "one_dish"\n\s+: askedCookingShape;/
+      .test(src),
+    "le style ne plafonne plus le choix, ou il le fait ailleurs.",
+  );
+  assert(
+    /const shapeCap = capCookingShape\(computedShape, styleCappedShape\)/.test(src),
     "le plafond n'est plus appliqué, ou il l'est ailleurs qu'à un seul endroit.",
+  );
+  // ⛔ ET IL PLAFONNE, IL NE FORCE PAS: un style `balanced` ou `keen` — et
+  // l'absence de style — laissent le choix traverser intact.
+  assert(
+    !/capCookingShape\(computedShape, askedCookingShape\)/.test(src),
+    "le choix brut atteint encore le plafond: le style ne mord pas.",
   );
   assert(
     /const cookingShape: CookingShape = shapeCap\.shape/.test(src),

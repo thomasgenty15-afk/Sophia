@@ -56,6 +56,8 @@ import {
   type CookingShape,
 } from "../api/cookingShape";
 import CookingShapeField from "../components/CookingShapeField";
+import CookingStyleField from "../components/CookingStyleField";
+import GroceryRunsField from "../components/GroceryRunsField";
 import GoalTiles from "../components/GoalTiles";
 import PlanDraftDialog from "../components/plan/PlanDraftDialog";
 import {
@@ -69,10 +71,8 @@ import {
   birthDateAnswer,
   branchForMouths,
   canGenerate,
-  COOKING_SESSION_MINUTES,
   DIET_ANSWERS,
   type DietAnswer,
-  cookingTimeParts,
   DEFAULT_HOUSEHOLD_NAME,
   declaredHouseholdSize,
   type FunnelBranch,
@@ -6726,33 +6726,44 @@ function RequestStep({
               conserve son champ libre: quelqu'un qui y a saisi 37 doit
               retrouver « 37 min » sélectionné ici, et pas une rangée où rien
               n'est coché au-dessus d'une valeur pourtant enregistrée. */}
-          <Field label={t("setup.plan.time")} hint={t("setup.plan.time_hint")}>
-            <div className="flex flex-wrap gap-2">
-              {(draft.cookingTimeMin !== null &&
-                  !COOKING_SESSION_MINUTES.includes(draft.cookingTimeMin)
-                ? [...COOKING_SESSION_MINUTES, draft.cookingTimeMin].sort((a, b) => a - b)
-                : COOKING_SESSION_MINUTES).map((minutes) => {
-                const parts = cookingTimeParts(minutes);
-                return (
-                  <Button
-                    key={minutes}
-                    size="sm"
-                    variant={draft.cookingTimeMin === minutes ? "primary" : "secondary"}
-                    onClick={() =>
-                      onChange((prev) =>
-                        prev === null ? prev : { ...prev, cookingTimeMin: minutes })}
-                  >
-                    {t(
-                      parts.unit === "hours"
-                        ? "setup.plan.time_hours"
-                        : "setup.plan.time_minutes",
-                      { n: parts.value },
-                    )}
-                  </Button>
-                );
-              })}
-            </div>
-          </Field>
+          {/* ══════════════════════════════════════════════════════════════
+              ⟳ P2 (2026-09-03) — DEUX QUESTIONS REMPLACENT « COMBIEN DE TEMPS
+              DURE UNE SESSION DE CUISINE ».
+              ══════════════════════════════════════════════════════════════
+
+              ⛔ CE QUI PARTAIT D'ICI, ET POURQUOI. Six pastilles de durée
+              (30 min → 3 h), BLOQUANTES dans l'entonnoir. C'est une question
+              d'ingénieur: personne ne sait répondre « 45 » avant d'avoir vu le
+              plan, et la réponse ne dit rien de ce qu'on veut savoir — est-ce
+              que cette personne aime cuisiner, et combien de fois par semaine
+              elle accepte de passer au magasin.
+
+              `cooking_time_min` n'est PAS supprimée pour autant: cinq lecteurs
+              la lisent, et elle est maintenant DÉRIVÉE du style
+              (`_shared/keel/cooking_plan.ts`). Les comptes qui l'ont déjà
+              gardent leur valeur tant qu'ils n'ont pas répondu aux deux
+              questions ci-dessous.
+
+              ⚠️ L'ORDRE COMPTE, ET IL EST L'INVERSE DE L'ÉVIDENCE. Le style
+              d'abord, la cadence de courses ensuite: c'est le style qui
+              PLAFONNE le nombre de sessions, donc lire « trois courses » avant
+              de savoir qu'on cuisine le moins possible ferait attendre trois
+              séances de cuisine que le plan ne fera pas. */}
+          <CookingStyleField
+            id="setup-cooking-style"
+            value={draft.cookingStyle}
+            onChange={(next) =>
+              onChange((prev) => prev === null ? prev : { ...prev, cookingStyle: next })}
+            disabled={false}
+          />
+
+          <GroceryRunsField
+            id="setup-grocery-runs"
+            value={draft.groceryRuns}
+            onChange={(next) =>
+              onChange((prev) => prev === null ? prev : { ...prev, groceryRuns: next })}
+            disabled={false}
+          />
 
           {/* ── UN CHIFFRE, ET PLUS TROIS PASTILLES ────────────────────────
               « Serré / normal / confortable » partait au modèle tel quel, et

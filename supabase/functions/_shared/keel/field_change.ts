@@ -88,6 +88,24 @@ export const FIELD_CHANGES_KEY = "field_changes";
 export const WRITABLE_FIELDS = [
   ...LOGISTICS_FIELDS,
   "eating_rhythm",
+  // ── ⟳ A2 (2026-09-03) · LES DEUX RÉPONSES DE P2 ────────────────────────
+  //
+  // ⛔ ELLES SONT AJOUTÉES **ICI** ET PAS DANS `LOGISTICS_FIELDS`, ET LE MOTIF
+  // EST UNE FRONTIÈRE, PAS UN RACCOURCI. `LOGISTICS_FIELDS` est la liste que
+  // `parseLogisticsSetValue` sait LIRE d'une note de brouillon (`logistics.set`)
+  // et que `draft_note_classify` ÉNUMÈRE au modèle. Y ranger `cooking_style`
+  // apprendrait au modèle à écrire le style d'une personne depuis une phrase
+  // libre — un réglage durable posé par une devinette de texte.
+  //
+  // Ce que ces deux clés SONT: des champs qu'un PRODUCTEUR (le questionnaire de
+  // fin de plan, l'écran de composition) a le droit de changer, avec une trace.
+  // C'est exactement ce que `WRITABLE_FIELDS` nomme.
+  //
+  // ⚠️ LA RECOPIE SQL SUIT DANS LE MÊME LOT (`20260903171000`): la boucle de
+  // `keel_write_field_changes_for` et son contrôle ⑤ exigent la même liste, et
+  // le port refuserait `forbidden_field` sur un style descendu d'un cran.
+  "cooking_style",
+  "grocery_runs",
 ] as const;
 export type WritableField = (typeof WRITABLE_FIELDS)[number];
 
