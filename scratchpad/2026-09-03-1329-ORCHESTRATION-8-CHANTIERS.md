@@ -1510,3 +1510,29 @@ journée que l'attribution se mesure **dans les deux sens**.
 **Et son ordre survit** dans leur copie de travail (inventaire l. 1264, style l. 1429, courses l. 1436) malgré 788 lignes
 remaniées — mais il n'est tenu que par un test de **source** : si cette lane redéplace le bloc, c'est
 `oneCookingSessionField.int.test.ts` qui l'arrêtera, et elle doit savoir **pourquoi** avant de le contourner.
+
+### ⛔ LE PIÈGE SYMÉTRIQUE : ma FUSION est une écriture, et la règle ne me visait pas
+
+Relevé par MEMBRE, et c'est exact : quatre des cinq fichiers de `fc9ba2c2` sont sous `supabase/functions/`. **Reprendre
+son correctif pendant que CUISINE compose lui couperait son run**, exactement comme le `cp` de 21:30:57 a coupé le
+précédent. **On avait corrigé les lanes, pas l'orchestrateur.**
+⇒ **Je ne fusionne rien tant que la fenêtre n'est pas libre.** La règle du tour de parole vaut pour celui qui l'édicte.
+
+**Son outil vaut d'être retenu** : `git merge-tree` vérifie une fusion **sans écrire un octet** — exactement ce qu'il
+faut un soir où toute écriture coûte un run. Elle a ainsi établi que `fc9ba2c2` fusionne **proprement** sur ma tête,
+que la reprise n'apporte plus que **cinq** fichiers (le reste étant déjà entré par mon propre chemin), et qu'il **n'y a
+aucune collision RGPD** avec CUISINE : `e3a7bff5` touche `export_scope.ts`, son correctif `account-export-v1/index.ts`.
+
+### Plan de levée, décidé — il économise une fenêtre
+
+1. CUISINE annonce ses runs finis. 2. **Je fusionne `fc9ba2c2`** : une écriture, une recréation, personne en vol.
+3. **Je rejoue `keel_gdpr_lifecycle_test.ts` en entier moi-même** — un `deno test` **lit**, il n'écrit pas sous le dossier
+surveillé, donc **zéro recréation** — et je confirme les trois cas avec les **deux** correctifs réunis.
+4. **MEMBRE n'a pas besoin de fenêtre** : son avant/après du filtre a été mesuré **avant** le gel, il est valide, et le
+rejouer coûterait une fenêtre pour reconfirmer du prouvé.
+
+### 🔴 Le dernier trou ouvert du chantier, mesuré
+
+`grep dishIsForMouth planned_dish_io.ts` → **0** dans l'arbre. **La fuite « Compote pour Cy » est toujours vivante en
+local** : un profil réclamé lit et peut cocher le plat composé pour l'enfant. C'est le **seul** correctif de MEMBRE
+resté dehors, et sa date de fermeture est connue — la levée du gel.
