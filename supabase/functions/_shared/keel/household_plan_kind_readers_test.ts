@@ -36,6 +36,13 @@ const READERS = [
   // lui. C'est aussi ce qui a retiré la requête du générateur de cette liste:
   // elle n'y est plus, elle est ici.
   "supabase/functions/_shared/keel/household_merge_notice_io.ts",
+  // A8.0 (2026-09-03) — le membre existe pour le produit. Ces deux lecteurs
+  // lisent le plan `household` du foyer d'un profil RÉCLAMÉ (`role='member'`),
+  // écrit sous le `user_id` du maître: `.eq("plan_kind","household")` ET
+  // `.eq("household_id", son foyer)`, jamais le retrait nu du `.eq("user_id")`
+  // (run adversarial H2). `resolvePlanScope` est la résolution unique.
+  "supabase/functions/_shared/keel/planned_dish_io.ts",
+  "supabase/functions/_shared/keel/evening_strip_io.ts",
 ] as const;
 
 Deno.test("tout lecteur qui filtre par foyer filtre AUSSI par plan_kind", async () => {
@@ -72,6 +79,45 @@ Deno.test("tout lecteur qui filtre par foyer filtre AUSSI par plan_kind", async 
         `${rel}: la requête filtre sur household_id SANS plan_kind. Un plan ` +
           `PERSONNEL porte aussi household_id: ce lecteur va rendre le plan ` +
           `d'un membre à la place de celui du foyer. C'est arrivé deux fois.`,
+      );
+    }
+  }
+});
+
+Deno.test("⛔ H2 — tout lecteur qui filtre plan_kind=household nomme AUSSI SON foyer", async () => {
+  // ── L'AUTRE MOITIÉ, ET C'EST CELLE QUE A8.0 A RENDUE MORDANTE ────────────
+  //
+  // Le test au-dessus tient un sens: « household_id ⇒ plan_kind ». Il laisse
+  // passer l'inverse — une requête qui ne porte QUE `.eq("plan_kind",
+  // "household")`. Tant qu'un seul lecteur lisait le plan du foyer sous le
+  // `user_id` de son maître, ce sens n'avait pas d'occasion de se tromper.
+  //
+  // A8.0 la crée: pour servir un profil RÉCLAMÉ, deux lecteurs doivent lire un
+  // plan écrit sous le `user_id` de QUELQU'UN D'AUTRE. La réparation paresseuse
+  // est de retirer le `.eq("user_id")` — et sans `household_id`, la requête
+  // rend alors LE PLAN DU FOYER DE N'IMPORTE QUI. Ces lecteurs tournent sous
+  // `service_role` (aucune RLS) et reçoivent parfois un `meal_id` venu de la
+  // charge d'un bouton: c'est le run adversarial H2, où une charge forgée
+  // faisait écrire chez l'attaquant une coche portant le plat de la victime.
+  //
+  // MUTATION QUI DOIT ROUGIR: retirer `.eq("household_id", scope.householdId)`
+  // de `planned_dish_io.ts` ou de `evening_strip_io.ts`.
+  for (const rel of READERS) {
+    const src = await Deno.readTextFile(new URL(rel, ROOT));
+    for (
+      let at = src.indexOf('.from("student_generated_meals")');
+      at >= 0;
+      at = src.indexOf('.from("student_generated_meals")', at + 1)
+    ) {
+      const chain = src.slice(at, at + 1200);
+      if (!/\.eq\(\s*["']plan_kind["']\s*,\s*["']household["']\s*\)/.test(chain)) {
+        continue;
+      }
+      assert(
+        /\.(eq|not)\(\s*["']household_id["']/.test(chain),
+        `${rel}: la requête demande le plan DU FOYER sans dire DE QUEL foyer. ` +
+          `Sous service_role il n'y a pas de RLS pour rattraper ça: elle rend ` +
+          `le plan du foyer d'un inconnu. C'est le run adversarial H2.`,
       );
     }
   }

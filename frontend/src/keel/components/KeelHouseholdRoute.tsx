@@ -21,10 +21,15 @@ import { KeelStudentRoute } from "./KeelStudentRoute";
 // test le plus probable). Deux composants, deux règles, aucun défaut à choisir.
 //
 // ── ET POURQUOI PAS ÉCRIRE `keel_role = 'student'` À LA RÉCLAMATION ──────
-// Parce que ce serait faux, et pas seulement en vocabulaire: ce rôle ouvre
-// `/app/today`, `/app/chat` et `/app/progress`, trois écrans qui n'ont rien à
-// montrer à quelqu'un sans coach ni plan. Le rôle décrit une relation qui
-// n'existe pas ici.
+// Parce que ce serait faux, et pas seulement en vocabulaire: ce rôle décrit
+// une relation avec un coach qui n'existe pas ici, et il ouvre `/app/today`,
+// qui lit le mode 1:1 et les repas composés PAR la personne — rien pour un
+// profil réclamé, qui ne compose pas.
+//
+// ⟳ 2026-09-03 (A8.0, D8.1): `/app/chat` et `/app/progress` sont passés sous
+// CETTE garde. Ils avaient « rien à montrer » à un membre tant que le cron du
+// soir ne l'atteignait pas; depuis, il reçoit sa bande ③ et lit ses faits. Ce
+// qui s'est élargi est la PORTE, pas le rôle — `keel_role` reste NULL.
 //
 // LA VRAIE FRONTIÈRE RESTE RLS. Cette garde est de la NAVIGATION: la
 // vérification « suis-je dans un foyer ? » est la policy `for select` de

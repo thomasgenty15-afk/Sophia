@@ -39,6 +39,15 @@ import {
   respondsForHousehold,
 } from "../_shared/keel/evening_strip_io.ts";
 import { isFrenchLocale, resolveArtifactLocale } from "../_shared/keel/locale.ts";
+// A8.0 — L'AUDIENCE: les élèves, PUIS les profils réclamés (le membre existe
+// pour le produit). Le balayage `keel_role = 'student'` a quitté ce fichier
+// pour vivre à côté de la seconde requête d'audience, qui ne le porte JAMAIS.
+import {
+  audiencesFrom,
+  loadAudiencePage,
+  parsePulseAudience,
+  type PulseAudience,
+} from "../_shared/keel/pulse_audience.ts";
 // ⚠️ LE PLANCHER TCA, ET C'EST LA MÊME PORTE QUE LA COMPOSITION.
 // `generate-meal-v1` et `meal-photo-upload-v1` l'appellent déjà; ce job passait
 // `false` en dur. Une seule évaluation pour tout le produit — deux définitions
@@ -129,9 +138,25 @@ Deno.serve(async (req) => {
     const admin = adminClient();
     const startedAt = Date.now();
 
+    // ── A8.0 · LE CURSEUR PORTE SA PHASE ──────────────────────────────────
+    // `after_user_id` seul ne dit pas dans quelle audience on s'est arrêté;
+    // l'appelant repasse `audience` + `after_user_id` tels que le compte-rendu
+    // les a rendus. Sans `audience`, on repart des élèves, comme avant.
+    const startAudience = parsePulseAudience(body.audience);
+    let audience: PulseAudience = startAudience;
     let cursor = cleanText(body.after_user_id);
     let scanned = 0;
     let sent = 0;
+    /**
+     * A8.0 — LES PROFILS RÉCLAMÉS, COMPTÉS À PART. `scanned: 40, sent: 12`
+     * ne dit pas si un seul membre a été atteint; `members_scanned: 0` sur une
+     * base qui en porte est le défaut que ce lot ferme, revenu par la porte
+     * d'à côté. `members_already_student` compte ceux qu'on a écartés parce
+     * qu'ils ont été servis en première phase.
+     */
+    let membersScanned = 0;
+    let membersSent = 0;
+    let membersAlreadyStudent = 0;
     /** Messages partis AVEC la question. `sent - asked` = les faits seuls. */
     let asked = 0;
     /**
@@ -186,30 +211,43 @@ Deno.serve(async (req) => {
     const cadenceReasons: Record<string, number> = {};
     const bySkip: Record<string, number> = {};
     const failures: string[] = [];
-    let exhausted = false;
+    let outOfBudget = false;
 
-    while (true) {
-      let q = admin
-        .from("profiles")
-        // `birth_date` (FF-001 R5): le mineur se DÉRIVE à chaque lecture, il ne
-        // se fige jamais — un entier `age` est faux le lendemain de
+    // ── A8.0 · DEUX AUDIENCES, DANS CET ORDRE ─────────────────────────────
+    //
+    // Les ÉLÈVES d'abord (`keel_role = 'student'` — le balayage d'origine,
+    // déplacé dans `pulse_audience.ts`), puis les PROFILS RÉCLAMÉS de foyer
+    // (`household_members.role = 'member' and user_id is not null`, et rien
+    // d'autre: ils portent `keel_role = NULL` exprès, FF-048 R14). L'ordre est
+    // le produit (FF-061 §11): la cuisson que le maître déclare ratée doit
+    // amputer la bande ③ du conjoint servie dans le même tick.
+    //
+    // Le corps de la boucle est le MÊME pour les deux: la bifurcation
+    // maître/membre vit dans `respondsForHousehold` (① et ② au maître seul) et
+    // dans `loadPlannedDishContext` (le plan `household` de SON foyer pour un
+    // membre). Une seconde copie du corps aurait divergé au premier lot.
+    phases:
+    for (const phase of audiencesFrom(startAudience)) {
+      audience = phase;
+      if (phase !== startAudience) cursor = "";
+      while (true) {
+        // `birth_date` (FF-001 R5): le mineur se DÉRIVE à chaque lecture, il
+        // ne se fige jamais — un entier `age` est faux le lendemain de
         // l'anniversaire et personne ne repasse derrière (`student_age.ts`).
-        .select("id, timezone, proactive_muted_at, full_name, locale, birth_date")
-        .eq("keel_role", "student")
-        .order("id", { ascending: true })
-        .limit(PAGE);
-      if (cursor) q = q.gt("id", cursor);
-      const { data, error } = await q;
-      if (error) throw error;
-      const rows = (data ?? []) as Array<Record<string, unknown>>;
-      if (rows.length === 0) {
-        exhausted = true;
-        break;
-      }
+        const page = await loadAudiencePage(admin, {
+          audience: phase,
+          afterUserId: cursor,
+          page: PAGE,
+        });
+        membersAlreadyStudent += page.skippedAlreadyStudent;
+        // Plus rien dans cette audience: la suivante, ou la fin.
+        if (page.cursorEnd === null) break;
+        const rows = page.rows as unknown as Array<Record<string, unknown>>;
 
       for (const row of rows) {
         cursor = String(row.id ?? "");
         scanned++;
+        if (phase === "members") membersScanned++;
 
         const tz = row.timezone ? String(row.timezone) : null;
         const localHour = localHourFor(now, tz);
@@ -725,6 +763,7 @@ Deno.serve(async (req) => {
             }
           }
           sent++;
+          if (phase === "members") membersSent++;
           if (decision.ask) asked++;
         } catch (error) {
           // Une erreur PostgREST n'est PAS une `Error`: sans ces champs, le
@@ -749,16 +788,29 @@ Deno.serve(async (req) => {
             }`,
           );
         }
-        if (Date.now() - startedAt > budgetMs) break;
+        if (Date.now() - startedAt > budgetMs) {
+          outOfBudget = true;
+          break;
+        }
       }
-      if (Date.now() - startedAt > budgetMs) break;
+        if (outOfBudget) break phases;
+        // La page entière a été parcourue: on avance au dernier identifiant
+        // PARCOURU, pas au dernier servi (un membre écarté doit être dépassé).
+        cursor = page.cursorEnd;
+      }
     }
+    // « Épuisé » = les deux audiences parcourues jusqu'au bout dans le budget.
+    const exhausted = !outOfBudget;
 
     return jsonResponse(req, {
       ok: true,
       dry_run: dryRun,
       scanned,
       sent,
+      // A8.0 — la seconde audience, comptée à part (voir sa déclaration).
+      members_scanned: membersScanned,
+      members_sent: membersSent,
+      members_already_student: membersAlreadyStudent,
       // `sent` compte les MESSAGES, `asked` les questions. Les confondre était
       // possible tant que le message ÉTAIT la question; ça ne l'est plus, et un
       // soir où « 40 messages sont partis » ne dit rien de ce qui a été mesuré.
@@ -801,6 +853,9 @@ Deno.serve(async (req) => {
       ask_cadence_reasons: cadenceReasons,
       skipped_by_reason: bySkip,
       exhausted,
+      // A8.0 — le curseur porte sa phase: l'appelant repasse les deux.
+      audience,
+      next_audience: exhausted ? null : audience,
       next_after_user_id: exhausted ? null : cursor || null,
       failures: failures.slice(0, 50),
       request_id: requestId,

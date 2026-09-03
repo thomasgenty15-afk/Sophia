@@ -55,7 +55,7 @@ export const COOKING_SESSION_STATE_TABLE = "cooking_session_states";
 
 /** Les colonnes du plan dont cette fiche a besoin. Une seule liste. */
 const PLAN_COLUMNS =
-  "id, dishes, preparations, cooking_sessions, shopping_list, starts_on, duration_days, content_locale, updated_at";
+  "id, dishes, preparations, cooking_sessions, shopping_list, starts_on, duration_days, content_locale, updated_at, generated_from";
 
 export interface LoadedAccidentPlan {
   plan: AccidentPlan;
@@ -75,7 +75,43 @@ export interface LoadedAccidentPlan {
     dishes: Record<string, unknown>[];
     preparations: Record<string, unknown>[];
     sessions: Record<string, unknown>[];
+    /**
+     * `generated_from` tel qu'il est en base — relu pour y APPOSER la trace
+     * d'un glissement (`shifts[]`, D7.3), jamais pour le réécrire.
+     */
+    generatedFrom: unknown;
   };
+}
+
+/**
+ * D7.3 (2026-09-03) — LA TRACE D'UN GLISSEMENT, dans `generated_from.shifts[]`.
+ *
+ * Un glissement ne laissait qu'un `updated_at`: la page de suivi (P7) ne
+ * pouvait pas compter « plans modifiés » sans deviner. La trace est APPOSÉE:
+ * tout ce que `generated_from` portait survit, et un `shifts` qui ne serait pas
+ * un tableau est remplacé plutôt qu'accumulé (on ne pousse pas dans une valeur
+ * qu'on ne sait pas lire). Aucun modèle, aucune décision: un fait daté du jour
+ * LOCAL du tap, parce que c'est ce jour-là que le plan a changé pour la
+ * personne.
+ */
+export interface PlanShiftTrace {
+  cook_on: string;
+  delta: number;
+  new_cook_on: string;
+  moved_dish_indexes: number[];
+  applied_on: string;
+}
+
+export function withShiftTrace(
+  generatedFrom: unknown,
+  entry: PlanShiftTrace,
+): Record<string, unknown> {
+  const base = generatedFrom && typeof generatedFrom === "object" &&
+      !Array.isArray(generatedFrom)
+    ? { ...(generatedFrom as Record<string, unknown>) }
+    : {};
+  const previous = Array.isArray(base.shifts) ? base.shifts : [];
+  return { ...base, shifts: [...previous, entry] };
 }
 
 /**
@@ -120,6 +156,7 @@ export async function loadAccidentPlan(
       dishes: arrayOf(row.dishes),
       preparations: arrayOf(row.preparations),
       sessions: arrayOf(row.cooking_sessions),
+      generatedFrom: row.generated_from ?? null,
     },
   };
 }
@@ -417,11 +454,27 @@ export function cookedPreparationIds(args: {
  */
 export async function loadSkippedDishIndexes(
   admin: SupabaseClient,
-  args: { userId: string; plan: AccidentPlan },
+  args: {
+    /** LA PERSONNE: ses coches vivantes font survivre un plat (R4). */
+    userId: string;
+    /**
+     * LE COMPTE QUI A ÉCRIT LE PLAN — celui sous lequel les états de cuisson
+     * et de courses sont écrits. REQUIS, jamais déduit de `userId`.
+     *
+     * A8.0 (2026-09-03): pour un profil réclamé, le plan est celui du foyer
+     * et ses états sont ceux du MAÎTRE. Lire ces états sous le `user_id` du
+     * membre rendait `[]` en silence: la cascade d'une session ratée
+     * n'amputait jamais sa bande, et le plan lui annonçait un plat que
+     * personne n'avait cuisiné. Un paramètre optionnel replié sur `userId`
+     * aurait laissé ce défaut invisible chez tout appelant qui l'oublie.
+     */
+    statesOwnerId: string;
+    plan: AccidentPlan;
+  },
 ): Promise<number[]> {
   const [states, ticked, missedWaves] = await Promise.all([
     loadSessionStates(admin, {
-      userId: args.userId,
+      userId: args.statesOwnerId,
       mealId: args.plan.mealId,
     }),
     loadLiveTickIndexes(admin, {
@@ -429,7 +482,7 @@ export async function loadSkippedDishIndexes(
       mealId: args.plan.mealId,
     }),
     loadMissedWaveBuyOns(admin, {
-      userId: args.userId,
+      userId: args.statesOwnerId,
       mealId: args.plan.mealId,
     }),
   ]);
@@ -753,12 +806,19 @@ export type ShiftApplyOutcome =
  *      par une écriture est ce que l'écriture CROIT avoir fait.
  *
  * ⚠️ CE QU'ELLE N'ÉCRIT PAS, ET C'EST CE QUI LA REND SÛRE (R13). Trois clés du
- * payload, et trois seulement: `dishes[].day`, `preparations[].cook_on`,
+ * PLAN, et trois seulement: `dishes[].day`, `preparations[].cook_on`,
  * `cooking_sessions[].day`. Ni `starts_on`, ni `duration_days` (donc `ends_on`
  * généré et la contrainte d'exclusion sont intouchés), ni un titre, ni une
  * quantité, ni l'ORDRE des plats — et l'ordre est ce qui garde les clés de coche
  * valides, puisqu'elles sont positionnelles. Aucun modèle n'est appelé: il n'y a
  * aucun appel réseau hors Supabase dans ce fichier.
+ *
+ * ⟳ D7.3 (2026-09-03) — UNE QUATRIÈME CLÉ, QUI N'EST PAS LE PLAN:
+ * `generated_from.shifts[]` reçoit la TRACE du glissement (`withShiftTrace`),
+ * apposée à ce que la colonne portait déjà. C'est un fait sur l'histoire du
+ * plan, lu par la page de suivi (« plans modifiés »); ça ne rechoisit aucun
+ * plat, ne déplace aucune date de plus. `buildShiftedPayload` reste à trois
+ * clés, et `accident_test.ts` le tient.
  */
 export async function applyPlanShift(
   admin: SupabaseClient,
@@ -822,12 +882,25 @@ export async function applyPlanShift(
   const shifted = shiftPlanDates(loaded.plan, args.cookOn, recomputed.delta);
   if (!shifted) return { outcome: "stale", detail: "no_session_on_date" };
 
-  const payload = buildShiftedPayload({
-    rawDishes: loaded.raw.dishes,
-    rawPreparations: loaded.raw.preparations,
-    rawSessions: loaded.raw.sessions,
-    shifted,
-  });
+  const payload = {
+    ...buildShiftedPayload({
+      rawDishes: loaded.raw.dishes,
+      rawPreparations: loaded.raw.preparations,
+      rawSessions: loaded.raw.sessions,
+      shifted,
+    }),
+    // D7.3 — LA TRACE, ET RIEN D'AUTRE. `buildShiftedPayload` garde ses trois
+    // clés de date (R13, tenu par `accident_test.ts`); `generated_from` ne
+    // porte pas le plan, il porte d'où il vient — et désormais ce qui lui est
+    // arrivé. Voir `withShiftTrace`.
+    generated_from: withShiftTrace(loaded.raw.generatedFrom, {
+      cook_on: args.cookOn,
+      delta: recomputed.delta,
+      new_cook_on: recomputed.newCookOn,
+      moved_dish_indexes: [...recomputed.movedDishIndexes],
+      applied_on: args.today,
+    }),
+  };
   const updated = await admin
     .from("student_generated_meals")
     .update(payload as never)

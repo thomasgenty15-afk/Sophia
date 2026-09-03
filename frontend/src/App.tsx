@@ -187,16 +187,25 @@ function App() {
                   poser un mot de passe sur la même ligne. */}
               {/* DE-WHATSAPP — LA BULLE. C'est le canal de conversation, plus
                   un simulateur: `/app/chat` remplace le couple
-                  ChatPage+whatsapp-sim-inbound, qui meurt en P5. Même garde que
-                  les autres écrans élève. */}
+                  ChatPage+whatsapp-sim-inbound, qui meurt en P5.
+
+                  ⚠️ GARDE ÉLARGIE AU FOYER (A8.0, 2026-09-03, décision D8.1),
+                  et c'est un RENVERSEMENT ÉCRIT de FF-048 §3 (« ❌ le chat,
+                  dans cette version »). Un profil réclamé reçoit désormais
+                  SA bande du soir (③ les repas — jamais ① les courses ni ②
+                  la cuisson, qui restent au maître) et y répond par un tap.
+                  Ce chat est Sophia → la personne; il n'ouvre AUCUN canal
+                  membre ↔ maître (le-foyer/README « aucun canal 1:1 » tient).
+                  `keel_role` n'est toujours PAS écrit à la réclamation: la
+                  porte s'élargit, le rôle ne ment pas. */}
               <Route
                 path="/app/chat"
                 element={
-                  <KeelStudentRoute>
+                  <KeelHouseholdRoute>
                     <KeelOnboardingGate>
                       <KeelChatPage />
                     </KeelOnboardingGate>
-                  </KeelStudentRoute>
+                  </KeelHouseholdRoute>
                 }
               />
               {/* ⚠️ GARDE ÉLARGIE AU FOYER (L8/O2, 2026-08-12), et c'est la
@@ -226,14 +235,19 @@ function App() {
                   </KeelHouseholdRoute>
                 }
               />
+              {/* ⚠️ GARDE ÉLARGIE AU FOYER (A8.0, 2026-09-03) — le contrat
+                  §5.10 sur lequel la page de suivi (P7) est bâtie: un profil
+                  réclamé lit SES faits (`protocol_events`, `.eq("user_id", me)`
+                  toujours, en plus de RLS) et sa part du plan du foyer. Jamais
+                  ceux du maître, jamais ceux d'un autre membre. */}
               <Route
                 path="/app/progress"
                 element={
-                  <KeelStudentRoute>
+                  <KeelHouseholdRoute>
                     <KeelOnboardingGate>
                       <StudentProgressPage />
                     </KeelOnboardingGate>
-                  </KeelStudentRoute>
+                  </KeelHouseholdRoute>
                 }
               />
               {/* KEEL — /app/health. Ce que l'élève ne peut pas manger:

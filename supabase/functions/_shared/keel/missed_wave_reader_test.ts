@@ -117,6 +117,7 @@ Deno.test("⛔ UNE VAGUE NON FAITE INVALIDE CE QUI EN DESCEND", async () => {
 
   const skipped = await loadSkippedDishIndexes(db as never, {
     userId: USER,
+    statesOwnerId: USER,
     plan,
   });
   assertEquals(
@@ -146,7 +147,11 @@ Deno.test("une vague FAITE n'invalide rien", async () => {
     student_generated_meals: [planRow()],
   });
   assertEquals(
-    await loadSkippedDishIndexes(db as never, { userId: USER, plan }),
+    await loadSkippedDishIndexes(db as never, {
+      userId: USER,
+      statesOwnerId: USER,
+      plan,
+    }),
     [],
     `aucune vague ratée (${served.buyOn}) ⇒ aucun plat ne tombe`,
   );
@@ -177,7 +182,11 @@ Deno.test("une lecture de vagues en panne n'efface RIEN (fail-open)", async () =
     },
   };
   assertEquals(
-    await loadSkippedDishIndexes(failing as never, { userId: USER, plan }),
+    await loadSkippedDishIndexes(failing as never, {
+      userId: USER,
+      statesOwnerId: USER,
+      plan,
+    }),
     [],
     "un plan qui s'efface pour une panne de Postgres efface du RÉEL — c'est " +
       "pire que le mensonge qu'on corrige",
