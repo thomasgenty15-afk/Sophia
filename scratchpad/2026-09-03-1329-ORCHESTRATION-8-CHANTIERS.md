@@ -954,3 +954,30 @@ est plus honnête que d'inscrire une dette qui n'en est pas une.
 maintenant ~20 fichiers sales de **trois** sessions différentes. Le lot E (cohérence de bout en bout, fusion des packs
 i18n, grille C1-C8) **ne peut pas se faire sur un arbre que trois autres sessions réécrivent**. Il attendra un arbre
 calme — c'est le même arbitrage que depuis ce matin : mieux vaut attendre qu'hériter d'un état à moitié posé.
+
+### La lane est identifiée par les HORODATAGES, pas par `git status`
+
+`sophia-2-11` a tranché la question que trois sessions se posaient, et sa méthode mérite d'être retenue :
+`catalog.ts` **19:41:32** · `links.ts` **19:42:50** · `runtime.ts` **19:44:37** · `en.ts` **19:51:10** —
+**dix-huit secondes avant sa mesure**. Une rafale d'une dizaine de minutes, **toujours en cours**.
+⇒ **`git status` dit ce qui est modifié ; `find -mmin` dit si ça bouge encore.** C'est la différence entre « un lot à
+moitié posé » (qu'on peut nommer en baseline) et « une lane qui écrit » (qu'on attend). Elle a aussi prouvé que ce
+n'était pas elle : session en lecture seule depuis son premier tour, et l'instantané `git status` de son ouverture
+portait **déjà** les deux packs modifiés — le lot est antérieur à son existence.
+**C'est `sophia-2-51`.** Son `ReferenceError: localeHref is not defined` est exactement ce à quoi ressemble un
+`links.ts` créé à 19:42 pendant que ses appelants sont réécrits : **il se referme tout seul à l'atterrissage.**
+
+### Ce que la quatrième session écrira, et les deux collisions à venir
+
+`sophia-2-11` prépare une ouverture beta et écrira : `frontend/src/components/admin/`, une page `/admin/funnel` neuve,
+une migration de vue d'entonnoir, `generate-household-meal-v1/index.ts`, **et les deux packs de langue** pour la copy
+admin. Elle s'engage à ne pas toucher les packs tant que `sophia-2-51` n'a pas atterri, et à relire la tête du registre.
+**Deux collisions avec mon chantier**, transmises : les **cinq blocs délimités** de mes lanes en fin de pack (je lui ai
+demandé de nommer le sien pareil — c'est ce qui a fait que tous mes conflits i18n de la journée se sont résolus en
+« garde les deux moitiés », sans une seule décision) ; et `generate-household-meal-v1/index.ts`, où mon A2 pose le bloc
+gamelle et un compteur — **et où se joue précisément son défaut n°2**, un compteur calculé puis jeté, `promptTrace` ne
+portant pas `work_lunch`.
+
+**Le quatrième piège, transmis aux quatre sessions** : `git revert -m 1` d'une fusion défait le **contenu** mais laisse
+les commits **ancêtres** ; un rebase ultérieur les saute en silence et le contenu ne revient jamais.
+**La vérification n'est pas `--is-ancestor`, c'est `git diff <commit>^ <HEAD> -- <ses fichiers>`.**
