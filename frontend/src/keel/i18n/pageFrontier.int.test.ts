@@ -43,7 +43,9 @@ import { afterEach, describe, expect, it } from "vitest";
 import { PublicFooter, PublicHeader } from "../components/PublicHeader";
 import {
   isDeclaredPagePath,
+  isLocaleRoutedPath,
   isTranslatedNamespace,
+  LOCALE_ROUTED_PATHS,
   namespacesForPath,
   PAGE_NAMESPACES,
   PENDING_TRANSLATION_NAMESPACES,
@@ -185,14 +187,46 @@ describe("la frontière de langue passe au bord des pages, jamais au milieu", ()
     }
   });
 
-  it("un visiteur anglais lit tout en anglais, page traduite comprise", () => {
+  it("un visiteur anglais lit tout en anglais, SAUF là où l'URL tranche", () => {
     // La direction inverse, et elle n'est pas symétrique: rien ne doit pouvoir
-    // FORCER le français. Une page traduite reste anglaise pour qui n'a pas
-    // choisi le français.
+    // FORCER le français — À UNE EXCEPTION PRÈS, et elle est nommée.
+    //
+    // ⚠️ CE TEST DISAIT « page traduite comprise », SANS EXCEPTION, ET C'ÉTAIT
+    // LE CONTRAT D'AVANT LE 2026-09-03. Les quatre surfaces de vente tirent
+    // désormais leur langue de leur ADRESSE (`LOCALE_ROUTED_PATHS` dans
+    // `catalog.ts`): `/couples` est française pour tout le monde, `/en/couples`
+    // est anglaise pour tout le monde. C'est ce qui rend une balise `hreflang`
+    // possible — une alternative se déclare par son URL, et il n'y en avait
+    // qu'une. Le prix est écrit dans `catalog.ts`: la détection automatique ne
+    // s'applique plus à ces quatre chemins.
     setChosenUiLocaleForTest("en");
     for (const path of Object.keys(PAGE_NAMESPACES)) {
+      if (isLocaleRoutedPath(path)) continue;
       expectChromeIn(path, "en");
     }
+  });
+
+  it("les quatre surfaces de vente tirent leur langue de leur URL, pas du visiteur", () => {
+    // LA GARDE DE LA NOUVELLE RÈGLE, dans les DEUX sens — c'est la moitié qui
+    // compte. Un `isLocaleRoutedPath` qui rendrait `true` partout ferait passer
+    // la boucle ci-dessus en ne mesurant plus rien; ici, chaque chemin est
+    // nommé et chaque langue est attendue.
+    for (const chosen of ["en", "fr"] as const) {
+      setChosenUiLocaleForTest(chosen);
+      for (const path of LOCALE_ROUTED_PATHS) {
+        expect(uiLocaleForPath(path), `${path} (choix: ${chosen})`).toBe("fr");
+        const english = path === "/" ? "/en" : `/en${path}`;
+        expect(uiLocaleForPath(english), `${english} (choix: ${chosen})`).toBe("en");
+      }
+    }
+  });
+
+  it("le préfixe /en ne fabrique pas de page: il porte celle du chemin nu", () => {
+    // Sans ça, `/en/nimporte-quoi` hériterait silencieusement des namespaces
+    // d'une page déclarée, et une URL inventée se rendrait comme une vraie.
+    expect(namespacesForPath("/en/couples")).toEqual(namespacesForPath("/couples"));
+    expect(namespacesForPath("/en")).toEqual(namespacesForPath("/"));
+    expect(namespacesForPath("/en/page-qui-nexiste-pas")).toBeNull();
   });
 
   it("/start est ENTIÈREMENT française — le défaut mesuré, referme", () => {

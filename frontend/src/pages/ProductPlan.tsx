@@ -33,6 +33,15 @@ const ProductPlan = () => {
         title="Plan d'action IA"
         description={seoDescription}
         canonical="https://sophia-coach.ai/le-plan"
+        // ⚠️ `noindex` — ROUTE LEGACY DU PRODUIT GRAND PUBLIC SUPPRIMÉ.
+        // `public/sitemap.xml` le dit depuis le 2026-08-12: « `/le-plan`
+        // existe encore comme route legacy mais n'est plus une surface qu'on
+        // veut indexer ». La retirer du sitemap ne la DÉSINDEXE pas — un
+        // sitemap propose, il n'interdit rien, et une URL déjà connue de
+        // Google y reste. Seule cette balise la retire. `follow` et pas
+        // `nofollow`: la page porte des liens vers des surfaces vivantes,
+        // et rien ne justifie de couper leur découverte.
+        robots="noindex,follow"
         structuredData={{
           "@context": "https://schema.org",
           "@type": "WebPage",

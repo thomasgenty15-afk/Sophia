@@ -1,6 +1,7 @@
 import React from "react";
 import SEO from "../../components/SEO";
-import { LEGAL_ENTITY, organizationStructuredData } from "../../lib/legalEntity";
+import { useSalesStructuredData } from "../seo/salesStructuredData";
+import { LEGAL_ENTITY } from "../../lib/legalEntity";
 import { PublicFooter, PublicHeader } from "../components/PublicHeader";
 import { ButtonLink } from "../components/ui/Button";
 import { Card } from "../components/ui/Card";
@@ -165,22 +166,13 @@ import { t } from "../i18n/t";
  *    aux huit pages, pas une décoration à inventer ici.
  */
 
-const FAMILIES_STRUCTURED_DATA = [organizationStructuredData(), {
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  name: "Sophia",
-  applicationCategory: "LifestyleApplication",
-  operatingSystem: "Web",
-  url: `${LEGAL_ENTITY.siteUrl}/families`,
-  description: t("families.seo_description"),
-  publisher: organizationStructuredData(),
-}];
 
 export function FamiliesPage() {
+  const structuredData = useSalesStructuredData("/families", t("families.seo_description"));
   return (
     <div className="min-h-screen bg-paper text-ink">
       <SEO title={t("families.seo_title")} description={t("families.seo_description")}
-        canonical={`${LEGAL_ENTITY.siteUrl}/families`} structuredData={FAMILIES_STRUCTURED_DATA} />
+        canonical={`${LEGAL_ENTITY.siteUrl}/families`} structuredData={structuredData} />
       <PublicHeader />
       <main>
         {/* L'ORDRE, ET CE QUI A CHANGÉ LE 2026-09-01: `Balanced` est neuve et

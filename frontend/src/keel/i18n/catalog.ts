@@ -882,6 +882,23 @@ export const PAGE_NAMESPACES: Readonly<
   // pas à nous), `/legal`, `/account` et les trois écrans admin.
 };
 
+// ── LES PAGES DONT L'URL DÉCIDE LA LANGUE ──────────────────────────────────
+// Déplacées dans `localeRoutes.ts` (et réexportées ici, donc aucun appelant ne
+// change): `scripts/prerender.mjs` en a besoin sous Node, qui ne sait résoudre
+// ni `react-router-dom` ni le `./en` sans extension de ce fichier. Le POURQUOI
+// de la règle — pourquoi ces quatre pages échappent à la détection de langue —
+// est écrit là-bas, en entier.
+export {
+  EN_PATH_PREFIX,
+  isLocaleRoutedPath,
+  localePath,
+  LOCALE_ROUTED_PATHS,
+  stripLocalePrefix,
+} from "./localeRoutes";
+
+// `namespacesForPath` en a besoin comme VALEUR, pas seulement en réexport.
+import { stripLocalePrefix } from "./localeRoutes";
+
 /**
  * Les namespaces de la page servie à ce chemin, ou `null` s'il n'est pas
  * déclaré.
@@ -898,7 +915,11 @@ export const PAGE_NAMESPACES: Readonly<
 export function namespacesForPath(
   pathname: string,
 ): readonly string[] | null {
-  const path = String(pathname ?? "").trim();
+  // Le préfixe de langue est retiré AVANT la recherche: `/en/couples` est la
+  // même page que `/couples` et porte exactement ses namespaces. Sans ce
+  // retrait il faudrait DOUBLER la table, et deux déclarations d'une même page
+  // divergent — c'est la classe de défaut que cette table existe pour fermer.
+  const path = stripLocalePrefix(String(pathname ?? "").trim()).path;
   if (path === "") return null;
   const exact = Object.prototype.hasOwnProperty.call(PAGE_NAMESPACES, path)
     ? PAGE_NAMESPACES[path]

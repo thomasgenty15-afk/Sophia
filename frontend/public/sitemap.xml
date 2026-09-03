@@ -1,22 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  LES HUIT SURFACES PUBLIQUES DE LA VITRINE, et elles seules.
+  LES SURFACES PUBLIQUES DE LA VITRINE, ET ELLES SEULES.
 
-  Deux halls (`/` pour le foyer, `/pro` pour les professionnels) et six pages de
-  vente, une par acheteur. Priorité 1.0 aux halls, 0.9 aux portes: un moteur qui
-  doit choisir une page à montrer pour « Sophia » doit tomber sur un hall, qui
-  oriente, et non au milieu d'un argument écrit pour quelqu'un d'autre.
+  Un hall (`/` pour le foyer) et trois pages de vente, une par situation, en
+  DEUX LANGUES: le chemin nu est français, le préfixe `/en` est anglais. Plus
+  `/legal`, qui n'existe qu'en anglais. Priorité 1.0 aux halls, 0.9 aux portes:
+  un moteur qui doit choisir une page à montrer pour « Sophia » doit tomber sur
+  un hall, qui oriente, et non au milieu d'un argument écrit pour quelqu'un
+  d'autre.
+
+  ⚠️ CHAQUE ENTRÉE DÉCLARE SES ALTERNATIVES (`xhtml:link`), Y COMPRIS
+  ELLE-MÊME. C'est la règle de `hreflang` la plus souvent ratée: un jeu
+  d'alternatives doit être RÉCIPROQUE et se contenir. Une page française qui
+  nommerait l'anglaise sans que l'anglaise la nomme en retour fait ignorer la
+  paire entière par Google. Les mêmes balises sont posées dans le `<head>` par
+  `components/SEO.tsx`; les deux doivent dire la même chose.
+
+  ⚠️ `x-default` POINTE SUR L'ANGLAIS, cohérent avec `DEFAULT_UI_LOCALE` de
+  `i18n/catalog.ts`. C'est la page servie à qui ne correspond à aucune des deux
+  langues.
 
   ⚠️ TROIS ENTRÉES MORTES ONT ÉTÉ RETIRÉES le 2026-08-12: `/le-plan`,
   `/l-architecte` et `/formules`. Les deux dernières ne correspondaient à AUCUNE
   route de `App.tsx` — elles annonçaient à Google des pages 404 depuis la
   suppression du produit grand public. `/le-plan` existe encore comme route
-  legacy mais n'est plus une surface qu'on veut indexer.
+  legacy mais n'est plus une surface qu'on veut indexer, et se déclare
+  `noindex` depuis le 2026-09-03.
 
   ⚠️ NE PAS AJOUTER ICI les portes fonctionnelles (`/start`, `/join`,
   `/join-household`, `/auth`): ce ne sont pas des pages de vente, et `/join`
-  porte un jeton. `/legal` reste, c'est une crédential qu'un vérificateur
-  cherche.
+  porte un jeton. `/start` reste indexable — c'est la page qu'un curieux doit
+  pouvoir trouver, et la page d'arrivée des annonces — mais un sitemap déclare
+  ce qu'on VEND, pas chaque porte du produit. `/legal` reste, c'est une
+  crédential qu'un vérificateur cherche.
 
   ⚠️ LANCEMENT B2C — LES QUATRE URL PROFESSIONNELLES SONT RETIRÉES:
   `/pro`, `/coaches`, `/gyms` et `/communities`. Leurs ROUTES sont démontées
@@ -28,33 +44,98 @@
   est levé sans que ces quatre lignes soient remises, le sitemap annonce à
   Google quatre pages que le routeur ne sert plus: quatre 404 déguisées en 200,
   puisqu'une SPA rend `index.html` sur tout. `NotFoundPage` se déclare
-  `noindex` précisément pour ce cas.
+  `noindex` précisément pour ce cas. ET L'INVERSE EST VRAI DEPUIS LE LANCEMENT:
+  `isProSurfaceHidden()` retombe sur `false` quand la variable n'est pas posée,
+  donc un déploiement qui l'oublie REMET les quatre pages en ligne sans qu'une
+  seule ligne de ce fichier les déclare.
 -->
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+
+  <!-- ── LE HALL ─────────────────────────────────────────────────────────── -->
   <url>
     <loc>https://sophia-coach.ai/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://sophia-coach.ai/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sophia-coach.ai/en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://sophia-coach.ai/en"/>
+    <lastmod>2026-09-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
+    <loc>https://sophia-coach.ai/en</loc>
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://sophia-coach.ai/"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sophia-coach.ai/en"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://sophia-coach.ai/en"/>
+    <lastmod>2026-09-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- ── LES TROIS PORTES ────────────────────────────────────────────────── -->
+  <url>
     <loc>https://sophia-coach.ai/meal-prep</loc>
-    <lastmod>2026-08-13</lastmod>
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://sophia-coach.ai/meal-prep"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sophia-coach.ai/en/meal-prep"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://sophia-coach.ai/en/meal-prep"/>
+    <lastmod>2026-09-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
+  <url>
+    <loc>https://sophia-coach.ai/en/meal-prep</loc>
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://sophia-coach.ai/meal-prep"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sophia-coach.ai/en/meal-prep"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://sophia-coach.ai/en/meal-prep"/>
+    <lastmod>2026-09-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
   <url>
     <loc>https://sophia-coach.ai/couples</loc>
-    <lastmod>2026-08-13</lastmod>
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://sophia-coach.ai/couples"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sophia-coach.ai/en/couples"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://sophia-coach.ai/en/couples"/>
+    <lastmod>2026-09-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://sophia-coach.ai/families</loc>
-    <lastmod>2026-08-13</lastmod>
+    <loc>https://sophia-coach.ai/en/couples</loc>
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://sophia-coach.ai/couples"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sophia-coach.ai/en/couples"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://sophia-coach.ai/en/couples"/>
+    <lastmod>2026-09-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
+
+  <url>
+    <loc>https://sophia-coach.ai/families</loc>
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://sophia-coach.ai/families"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sophia-coach.ai/en/families"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://sophia-coach.ai/en/families"/>
+    <lastmod>2026-09-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://sophia-coach.ai/en/families</loc>
+    <xhtml:link rel="alternate" hreflang="fr-FR" href="https://sophia-coach.ai/families"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sophia-coach.ai/en/families"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://sophia-coach.ai/en/families"/>
+    <lastmod>2026-09-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- ── LA CRÉDENTIAL ───────────────────────────────────────────────────────
+       PAS D'ALTERNATIVE DE LANGUE, et ce n'est pas un oubli: le corps de
+       `Legal.tsx` est mille lignes d'anglais EN DUR, hors de tout `t()`. La
+       page n'est pas déclarée traduite dans `i18n/catalog.ts`, et déclarer ici
+       une variante française promettrait une page qui n'existe pas. -->
   <url>
     <loc>https://sophia-coach.ai/legal</loc>
     <lastmod>2026-03-10</lastmod>

@@ -1,4 +1,7 @@
 import { uiLocale } from '../keel/i18n/runtime';
+import { isLocaleRoutedPath, localePath, type UiLocale } from '../keel/i18n/catalog';
+import { LEGAL_ENTITY } from '../lib/legalEntity';
+import { DEFAULT_ROBOTS, pageTitle, SEO_IMAGE, SEO_IMAGE_HEIGHT, SEO_IMAGE_WIDTH } from '../keel/seo/head';
 import { useEffect } from 'react';
 
 interface SEOProps {
@@ -14,14 +17,12 @@ interface SEOProps {
   structuredData?: Record<string, unknown> | Array<Record<string, unknown>>;
 }
 
-// ⚠️ `apple-touch-icon.png` ÉTAIT LE DÉFAUT, ET C'ÉTAIT UNE ICÔNE CARRÉE DE
-// 1024 SERVIE EN `summary_large_image`: tout aperçu de lien rendait un carré
-// rogné dans un cadre 1.91:1. `og-image.png` est une planche 1200×630 à la
-// charte. Elle a remplacé un visuel « IKIZEN » violet d'une marque antérieure
-// que plus personne ne référençait — le fichier existait, aucun écrivain ne le
-// citait, et il n'a donc jamais été vu.
-const DEFAULT_IMAGE = 'https://sophia-coach.ai/og-image.png';
-const DEFAULT_ROBOTS = 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1';
+// ⚠️ CES VALEURS NE VIVENT PLUS ICI. Elles sont dans `keel/seo/head.ts`, parce
+// que le HTML PRÉRENDU (`scripts/prerender.mjs`) doit poser exactement les
+// mêmes — et deux rédactions du même en-tête divergent en silence. C'est ce
+// qui a coûté trois mois d'aperçus faux: la `description` du statique était
+// juste pendant que ses `og:` vendaient un produit supprimé.
+const DEFAULT_IMAGE = SEO_IMAGE;
 
 const SEO = ({
   title,
@@ -38,6 +39,10 @@ const SEO = ({
   // ecrivains pour un attribut, tous d'accord sur la mauvaise valeur des que
   // le visiteur choisit le francais.
   const resolvedLang = lang ?? uiLocale();
+  // Lu au rendu et pas dans l'effet: c'est la même valeur, et la nommer ici
+  // permet aux deux blocs (canonique et alternatives) de partager un seul
+  // point de lecture de l'URL.
+  const here = globalThis.location?.pathname ?? '';
   useEffect(() => {
     // ⚠️ « Sophia », ET PLUS « Sophia Coach » (2026-09-01). Le suffixe entrait
     // dans le titre d'onglet, dans `og:title` et dans chaque résultat de
@@ -47,7 +52,7 @@ const SEO = ({
     // données structurées: `organizationStructuredData()` déclare `name:
     // "Sophia"`. Le domaine reste `sophia-coach.ai`; un nom de marque et un nom
     // d'hôte n'ont pas à coïncider.
-    const fullTitle = `${title} | Sophia`;
+    const fullTitle = pageTitle(title);
     document.documentElement.lang = resolvedLang;
     document.title = fullTitle;
 
@@ -75,12 +80,71 @@ const SEO = ({
       el.setAttribute('href', href);
     };
 
+    // ── LES ALTERNATIVES DE LANGUE ────────────────────────────────────────
+    //
+    // ⚠️ ELLES SONT RECONSTRUITES À CHAQUE PAGE, PAS MISES À JOUR. Une SPA
+    // garde le même `<head>` d'une route à l'autre: une page routée par langue
+    // suivie d'une page qui ne l'est pas laisserait les `hreflang` de la
+    // première en place, et `/start` déclarerait les alternatives de
+    // `/couples`. On efface, puis on repose ce que la page courante doit dire.
+    // ⚠️ ON RETIRE TOUTES LES ALTERNATIVES, PAS SEULEMENT LES NÔTRES. Le HTML
+    // servi en porte déjà (posées par `scripts/prerender.mjs`), et ne retirer
+    // que celles marquées `data-seo-alternate` les laissait CÔTE À CÔTE:
+    // mesuré au navigateur, six balises pour trois langues. Identiques sur une
+    // page prérendue — donc juste bruyantes — mais CONTRADICTOIRES partout
+    // ailleurs: en dev, et sur toute route servie par le repli `index.html`,
+    // les statiques sont celles du hall. Une fois que le runtime parle, c'est
+    // lui qui fait autorité.
+    document.head
+      .querySelectorAll('link[rel="alternate"][hreflang]')
+      .forEach((node) => node.remove());
+
+    const addAlternate = (hreflang: string, href: string) => {
+      const el = document.createElement('link');
+      el.setAttribute('rel', 'alternate');
+      el.setAttribute('hreflang', hreflang);
+      el.setAttribute('href', href);
+      el.setAttribute('data-seo-alternate', 'true');
+      document.head.appendChild(el);
+    };
+
     // Basic
     ensureMeta({ name: 'description' }, description);
     ensureMeta({ name: 'robots' }, robots);
 
-    // Canonical
-    if (canonical) ensureLink('canonical', canonical);
+    // ── LA CANONIQUE, DÉRIVÉE QUAND L'URL PORTE LA LANGUE ─────────────────
+    //
+    // ⚠️ LA VALEUR PASSÉE EN PROP EST IGNORÉE SUR CES PAGES-LÀ, ET IL LE FAUT.
+    // Les quatre landings passent une constante — `${siteUrl}/couples` — écrite
+    // avant que `/en/couples` existe. Servie telle quelle, la page anglaise
+    // déclarait le français comme sa canonique: Google aurait replié les deux
+    // URL sur une seule et la version anglaise n'aurait jamais été indexée.
+    // Une canonique doit se référencer ELLE-MÊME sur chaque alternative.
+    const routed = isLocaleRoutedPath(here);
+    // ⚠️ `resolvedLang` EST UN `string`, PAS UN `UiLocale`: la prop `lang` est
+    // libre (une page peut déclarer « en-GB »). On la ramène aux deux langues
+    // livrées avant de composer une URL — sinon `localePath` recevrait un tag
+    // qu'il ne connaît pas et rendrait le chemin français pour tout ce qui
+    // n'est pas exactement « fr ».
+    const routedLocale: UiLocale = resolvedLang.toLowerCase().startsWith('fr') ? 'fr' : 'en';
+    const selfCanonical = routed
+      ? `${LEGAL_ENTITY.siteUrl}${localePath(here, routedLocale)}`
+      : canonical;
+    if (selfCanonical) ensureLink('canonical', selfCanonical);
+
+    if (routed) {
+      const frHref = `${LEGAL_ENTITY.siteUrl}${localePath(here, 'fr')}`;
+      const enHref = `${LEGAL_ENTITY.siteUrl}${localePath(here, 'en')}`;
+      // `fr-FR` et pas `fr`: le prix, la TVA et l'entité légale de ces pages
+      // sont français. `en` reste SANS région — la page anglaise ne vise aucun
+      // pays en particulier, et `en-GB` la retirerait des résultats américains.
+      addAlternate('fr-FR', frHref);
+      addAlternate('en', enHref);
+      // `x-default` = l'anglais, cohérent avec `DEFAULT_UI_LOCALE`: c'est la
+      // page servie à qui ne correspond à aucune des deux (un lecteur
+      // allemand), et l'anglais est le plus largement lisible des deux.
+      addAlternate('x-default', enHref);
+    }
 
     // Open Graph
     ensureMeta({ property: 'og:title' }, fullTitle);
@@ -91,9 +155,24 @@ const SEO = ({
     // og:locale="fr_FR" tells crawlers and link previews two different things,
     // and the preview is what a shared link shows.
     ensureMeta({ property: 'og:locale' }, resolvedLang.toLowerCase().startsWith('fr') ? 'fr_FR' : 'en_GB');
+    // L'autre langue de la même page, quand elle existe. Un aperçu qui sait
+    // qu'une version française existe peut la préférer pour un lecteur
+    // français; sans la balise il n'a aucun moyen de l'apprendre.
+    if (isLocaleRoutedPath(here)) {
+      ensureMeta(
+        { property: 'og:locale:alternate' },
+        resolvedLang.toLowerCase().startsWith('fr') ? 'en_GB' : 'fr_FR',
+      );
+    }
     ensureMeta({ property: 'og:image' }, image);
     ensureMeta({ property: 'og:image:alt' }, fullTitle);
-    if (canonical) ensureMeta({ property: 'og:url' }, canonical);
+    // ⚠️ LES DIMENSIONS RÉELLES DU FICHIER, comme dans `index.html`. Elles y
+    // étaient et manquaient ici: dès que `SEO` s'exécutait, le `<head>` portait
+    // une image sans taille déclarée, et certains aperçus recadrent quand ils
+    // doivent la deviner. La planche est rendue à 2x (rapport 1.91:1 tenu).
+    ensureMeta({ property: 'og:image:width' }, SEO_IMAGE_WIDTH);
+    ensureMeta({ property: 'og:image:height' }, SEO_IMAGE_HEIGHT);
+    if (selfCanonical) ensureMeta({ property: 'og:url' }, selfCanonical);
 
     // Twitter
     ensureMeta({ name: 'twitter:card' }, 'summary_large_image');
@@ -118,7 +197,7 @@ const SEO = ({
         document.head.appendChild(script);
       });
     }
-  }, [title, description, canonical, image, robots, type, lang, structuredData]);
+  }, [title, description, canonical, image, robots, type, lang, structuredData, resolvedLang, here]);
 
   return null;
 };

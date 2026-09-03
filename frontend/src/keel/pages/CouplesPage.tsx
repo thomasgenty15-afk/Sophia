@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import SEO from "../../components/SEO";
-import { LEGAL_ENTITY, organizationStructuredData } from "../../lib/legalEntity";
+import { useSalesStructuredData } from "../seo/salesStructuredData";
+import { LEGAL_ENTITY } from "../../lib/legalEntity";
+import { localeHref } from "../i18n/links";
 import { PublicFooter, PublicHeader } from "../components/PublicHeader";
 import { Kicker, PriceCard, SectionTitle } from "../components/ui/Marketing";
 // ⚠️ LES DÉCISIONS DE LA DÉMONSTRATION SONT CALCULÉES PAR LE MOTEUR, PAS
@@ -105,19 +107,6 @@ const SECTION = "pt-11 pb-10 sm:pt-21 sm:pb-19";
 // Hoisté hors du rendu: `SEO` garde `structuredData` dans un tableau de
 // dépendances de `useEffect`; un littéral inline reconstruirait les <script> à
 // chaque rendu. Le nœud Organization vient de `lib/legalEntity`, jamais recopié.
-const COUPLES_STRUCTURED_DATA = [
-  organizationStructuredData(),
-  {
-    "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    name: "Sophia",
-    applicationCategory: "LifestyleApplication",
-    operatingSystem: "Web",
-    url: `${LEGAL_ENTITY.siteUrl}/couples`,
-    description: t("couples.seo_description"),
-    publisher: organizationStructuredData(),
-  },
-];
 
 /**
  * Le CTA. Un seul de toute la page, répété — jamais une seconde offre à côté.
@@ -131,7 +120,7 @@ const COUPLES_STRUCTURED_DATA = [
 function StartLink({ label }: { label: string }) {
   return (
     <Link
-      to="/start"
+      to={localeHref("/start")}
       className="inline-flex items-center justify-center rounded-full bg-fig-700 px-5 py-3 text-[15px] font-medium text-paper transition-colors hover:bg-fig-800"
     >
       {label}
@@ -1009,13 +998,14 @@ function Price() {
 }
 
 export function CouplesPage() {
+  const structuredData = useSalesStructuredData("/couples", t("couples.seo_description"));
   return (
     <div className="min-h-screen bg-paper text-ink">
       <SEO
         title={t("couples.seo_title")}
         description={t("couples.seo_description")}
         canonical={`${LEGAL_ENTITY.siteUrl}/couples`}
-        structuredData={COUPLES_STRUCTURED_DATA}
+        structuredData={structuredData}
       />
 
       {/* `audience` reste au défaut `"coach"`, qui NE VEUT PAS DIRE « page de

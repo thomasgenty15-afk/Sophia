@@ -17,6 +17,12 @@ const InstallAppGuide = () => {
         title="Installer Sophia sur son téléphone"
         description="Comment installer Sophia sur Android ou iPhone, puis enregistrer ses identifiants pour se reconnecter sans friction."
         canonical="https://sophia-coach.ai/installer-app"
+        // ⚠️ `noindex,follow` — PAGE DE SUPPORT, PAS UNE SURFACE DE VENTE.
+        // Elle n'est dans aucun sitemap et n'a jamais eu de lien entrant
+        // public, mais une SPA rend 200 sur tout: sans balise, elle restait
+        // indexable et concourait avec les pages de vente sur le nom de la
+        // marque. On l'envoie à quelqu'un qui a déjà un compte.
+        robots="noindex,follow"
       />
 
       <div className="mx-auto max-w-5xl px-4 py-8 md:px-6 md:py-12">

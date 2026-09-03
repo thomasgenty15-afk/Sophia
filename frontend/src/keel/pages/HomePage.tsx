@@ -2,7 +2,9 @@ import React from "react";
 import { Link, Navigate } from "react-router-dom";
 import SEO from "../../components/SEO";
 import { useAuth } from "../../context/AuthContext";
-import { LEGAL_ENTITY, organizationStructuredData } from "../../lib/legalEntity";
+import { LEGAL_ENTITY } from "../../lib/legalEntity";
+import { localeHref } from "../i18n/links";
+import { useSalesStructuredData } from "../seo/salesStructuredData";
 import { resolveHomePath, type HomePath } from "../api/postLogin";
 import { HomeCohabitationDemo } from "../components/HomeCohabitationDemo";
 import { PublicFooter, PublicHeader } from "../components/PublicHeader";
@@ -20,14 +22,6 @@ import { t, type MessageKey } from "../i18n/t";
  * `/families` restent les pages de vente spécialisées.
  */
 
-const STRUCTURED_DATA = [{
-  "@context": "https://schema.org",
-  "@type": "WebPage",
-  name: t("home.seo_title"),
-  url: `${LEGAL_ENTITY.siteUrl}/`,
-  description: t("home.seo_description"),
-  publisher: organizationStructuredData(),
-}];
 
 const DOORS: ReadonlyArray<{
   to: string;
@@ -278,12 +272,16 @@ export function HomePage() {
     return () => { cancelled = true; };
   }, [userId]);
 
+  // ⚠️ AVANT LES DEUX RETOURS ANTICIPÉS: un hook appelé après un `return`
+  // conditionnel ne s'exécute pas au même rendu, et React refuse.
+  const structuredData = useSalesStructuredData("/", t("home.seo_description"));
+
   if (userId && unreachable) return <ServerUnreachable />;
   if (userId && dest) return <Navigate to={dest} replace />;
 
   return (
     <div className="min-h-screen bg-paper text-ink">
-      <SEO title={t("home.seo_title")} description={t("home.seo_description")} canonical={`${LEGAL_ENTITY.siteUrl}/`} structuredData={STRUCTURED_DATA} />
+      <SEO title={t("home.seo_title")} description={t("home.seo_description")} canonical={`${LEGAL_ENTITY.siteUrl}/`} structuredData={structuredData} />
       <PublicHeader />
 
       <main>
@@ -300,7 +298,7 @@ export function HomePage() {
               <ul className="mt-4 overflow-hidden rounded border border-line bg-paper">
                 {DOORS.map((door) => (
                   <li key={door.to} className="border-t border-line first:border-t-0">
-                    <Link to={door.to} className="group grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 p-4 transition-colors hover:bg-fig-50 sm:p-5">
+                    <Link to={localeHref(door.to)} className="group grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 p-4 transition-colors hover:bg-fig-50 sm:p-5">
                       <span className="min-w-0">
                         <span className="block text-label font-semibold uppercase text-fig-700">{t(door.who)}</span>
                         <span className="mt-1 block font-display text-[1.15rem] leading-snug text-ink group-hover:underline">{t(door.label)}</span>

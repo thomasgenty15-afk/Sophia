@@ -13,6 +13,34 @@
       "destination": "/site.webmanifest"
     },
     {
+      "source": "/en",
+      "destination": "/en.html"
+    },
+    {
+      "source": "/meal-prep",
+      "destination": "/meal-prep.html"
+    },
+    {
+      "source": "/en/meal-prep",
+      "destination": "/en-meal-prep.html"
+    },
+    {
+      "source": "/couples",
+      "destination": "/couples.html"
+    },
+    {
+      "source": "/en/couples",
+      "destination": "/en-couples.html"
+    },
+    {
+      "source": "/families",
+      "destination": "/families.html"
+    },
+    {
+      "source": "/en/families",
+      "destination": "/en-families.html"
+    },
+    {
       "source": "/((?!_vercel|.*\\..*).*)",
       "destination": "/index.html"
     }
@@ -23,7 +51,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.vercel-insights.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"
+          "value": "default-src 'self'; script-src 'self' https://va.vercel-scripts.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.vercel-insights.com https://www.google-analytics.com https://region1.google-analytics.com https://www.googletagmanager.com https://googleads.g.doubleclick.net https://www.google.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"
         },
         {
           "key": "X-Frame-Options",

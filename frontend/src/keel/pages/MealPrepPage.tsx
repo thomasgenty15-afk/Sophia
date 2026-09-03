@@ -1,6 +1,7 @@
 import React from "react";
 import SEO from "../../components/SEO";
-import { LEGAL_ENTITY, organizationStructuredData } from "../../lib/legalEntity";
+import { useSalesStructuredData } from "../seo/salesStructuredData";
+import { LEGAL_ENTITY } from "../../lib/legalEntity";
 import { PublicFooter, PublicHeader } from "../components/PublicHeader";
 import { ButtonLink } from "../components/ui/Button";
 import { Kicker, PriceCard, SectionTitle } from "../components/ui/Marketing";
@@ -108,16 +109,16 @@ import type { MessageKey } from "../i18n/t";
 // L'entité légale vient de `lib/legalEntity` — c'est la MÊME déclaration que
 // fait `/legal` à un humain, et deux copies manuscrites d'un numéro de TVA sont
 // exactement la façon dont elles finissent par se contredire.
-const MEALPREP_STRUCTURED_DATA = [organizationStructuredData()];
 
 export function MealPrepPage() {
+  const structuredData = useSalesStructuredData("/meal-prep", t("mealprep.seo_description"));
   return (
     <div className="min-h-screen bg-paper text-ink">
       <SEO
         title={t("mealprep.seo_title")}
         description={t("mealprep.seo_description")}
         canonical={`${LEGAL_ENTITY.siteUrl}/meal-prep`}
-        structuredData={MEALPREP_STRUCTURED_DATA}
+        structuredData={structuredData}
       />
 
       {/* ⚠️ CE COMMENTAIRE DÉCRIVAIT UNE PROP QUE LA PAGE NE PASSE PAS. Il

@@ -1,6 +1,8 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { stripLocalePrefix } from "../i18n/catalog";
+import { localeHref } from "../i18n/links";
 import { t, type MessageKey } from "../i18n/t";
 import { ButtonLink } from "./ui/Button";
 import { LocaleSwitch } from "./LocaleSwitch";
@@ -203,7 +205,7 @@ export function PublicHeader({
       <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4">
         <div className="flex min-w-0 items-center">
           <Link
-            to={world.hub}
+            to={localeHref(world.hub)}
             className="eq shrink-0 font-display text-lg leading-none text-ink"
           >
             {t("brand.wordmark")}
@@ -237,7 +239,7 @@ export function PublicHeader({
               vérificateur cherche l'entité légale avant de scroller, et il la
               cherche sur un écran large. C'est le pari qu'on prend. */}
           <Link
-            to="/legal"
+            to={localeHref("/legal")}
             className="hidden rounded-full px-3 py-1.5 text-sm text-ink-soft transition-colors hover:bg-fig-50 hover:text-ink sm:inline-flex"
           >
             {t("public.header.legal")}
@@ -326,11 +328,16 @@ export function PublicHeader({
             className="mx-auto hidden max-w-6xl items-center gap-1 px-4 pb-1.5 md:flex"
           >
             {world.doors.map((door) => {
-              const active = door.to === pathname;
+              // ⚠️ COMPARÉ SUR LE CHEMIN CANONIQUE. `door.to` vaut
+              // « /couples » et `pathname` peut valoir « /en/couples »: une
+              // égalité brute éteignait `aria-current` sur toutes les pages
+              // anglaises, donc n'annonçait plus la page courante à qui
+              // l'écoute.
+              const active = stripLocalePrefix(door.to).path === stripLocalePrefix(pathname).path;
               return (
                 <Link
                   key={door.to}
-                  to={door.to}
+                  to={localeHref(door.to)}
                   // `aria-current` et pas seulement une couleur: la porte
                   // courante doit être annoncée, et un gris plus foncé ne
                   // s'entend pas.
@@ -411,7 +418,7 @@ export function PublicFooter() {
               peut passer d'une page de vente à l'autre: l'en-tête n'a la place
               que de l'interrupteur des mondes (voir WORLDS). */}
           {ALL_DOORS.map((door) => (
-            <Link key={door.to} to={door.to} className="hover:text-ink hover:underline">
+            <Link key={door.to} to={localeHref(door.to)} className="hover:text-ink hover:underline">
               {t(door.label)}
             </Link>
           ))}
@@ -419,10 +426,10 @@ export function PublicFooter() {
               SOUS `sm` — c'est la contrepartie de cet arbitrage, pas un lien
               décoratif. Un visiteur mobile qui a déjà un compte n'aurait
               autrement aucun chemin d'entrée depuis une page de vente. */}
-          <Link to="/auth" className="hover:text-ink hover:underline">
+          <Link to={localeHref("/auth")} className="hover:text-ink hover:underline">
             {t("public.header.sign_in")}
           </Link>
-          <Link to="/legal" className="hover:text-ink hover:underline">
+          <Link to={localeHref("/legal")} className="hover:text-ink hover:underline">
             {t("public.footer.legal")}
           </Link>
           <a

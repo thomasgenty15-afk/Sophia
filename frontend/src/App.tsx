@@ -73,6 +73,7 @@ import CoachBillingPage from "./keel/pages/CoachBillingPage";
 import TemplatesPage from "./keel/pages/TemplatesPage";
 import CoachMealsPage from "./keel/pages/CoachMealsPage";
 import { CoachRoute } from "./keel/components/CoachRoute";
+import { ConsentBanner } from "./components/ConsentBanner";
 import { isProSurfaceHidden } from "./security/proSurface";
 
 function App() {
@@ -101,6 +102,13 @@ function App() {
               16,18:1. */}
           <div className="min-h-screen bg-paper text-ink font-sans">
             <ErrorBoundary>
+            {/* HORS DU ROUTEUR, ET AU-DESSUS DE LUI: la question du
+                consentement ne dépend d'aucune page, et un bandeau monté par
+                route disparaîtrait à la navigation suivante — c'est-à-dire
+                pile au moment où quelqu'un s'apprête à répondre. Il se rend
+                lui-même invisible s'il n'y a rien à demander (aucun
+                identifiant Ads) ou si la réponse est déjà donnée. */}
+            <ConsentBanner />
             <Routes>
               {/* ── LA VITRINE: DEUX MONDES, DEUX HALLS, SIX PORTES ────────
                   Refonte du 2026-08-12. `/` vendait au COACH; il vend désormais
@@ -121,6 +129,29 @@ function App() {
               <Route path="/meal-prep" element={<MealPrepPage />} />
               <Route path="/couples" element={<CouplesPage />} />
               <Route path="/families" element={<FamiliesPage />} />
+              {/* ── LES MÊMES QUATRE PAGES, EN ANGLAIS, SOUS `/en` ────────
+                  MÊMES COMPOSANTS, ET C'EST TOUT LE POINT: la langue ne vient
+                  pas d'un arbre parallèle mais de l'URL, que `uiLocaleForPath`
+                  lit (voir `LOCALE_ROUTED_PATHS` dans `i18n/catalog.ts`). Un
+                  second jeu de composants aurait deux mises en page à tenir
+                  d'accord, et elles divergent.
+
+                  ⚠️ POURQUOI DE VRAIES ROUTES ET PAS `?lang=en`. Une balise
+                  `hreflang` déclare une alternative PAR SON URL. Tant que les
+                  deux langues vivaient sur le même chemin, il n'y avait rien à
+                  déclarer, et Googlebot — qui explore sans `localStorage`,
+                  avec `Accept-Language: en` — indexait l'anglais sous une URL
+                  dont le HTML statique promet du français.
+
+                  ⚠️ AUCUNE REDIRECTION AUTOMATIQUE PAR LANGUE ICI, ni ailleurs.
+                  Un robot qui suit une redirection par `Accept-Language` ne
+                  voit jamais qu'une des deux versions, et l'autre disparaît de
+                  l'index. Le sélecteur de `PublicHeader` est le seul passage
+                  d'une langue à l'autre, et il navigue. */}
+              <Route path="/en" element={<HomePage />} />
+              <Route path="/en/meal-prep" element={<MealPrepPage />} />
+              <Route path="/en/couples" element={<CouplesPage />} />
+              <Route path="/en/families" element={<FamiliesPage />} />
               {/* ── LANCEMENT B2C: LES QUATRE PAGES PRO SONT OCCULTÉES ────
                   `VITE_B2C_ONLY` (voir `security/proSurface.ts`). Les pages
                   restent dans l'arbre et continuent de typechecker; seules

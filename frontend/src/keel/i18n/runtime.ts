@@ -14,9 +14,12 @@
 import {
   composeProfileLocale,
   DEFAULT_UI_LOCALE,
+  isLocaleRoutedPath,
   isTranslatedNamespace,
+  localePath,
   namespacesForPath,
   parseUiLocale,
+  stripLocalePrefix,
   type UiLocale,
 } from "./catalog";
 
@@ -129,6 +132,17 @@ export function uiLocaleForPath(pathname: string): UiLocale {
   const namespaces = namespacesForPath(pathname);
   if (namespaces === null) return DEFAULT_UI_LOCALE;
   if (!namespaces.every(isTranslatedNamespace)) return DEFAULT_UI_LOCALE;
+  // ⚠️ L'URL PASSE AVANT LE VISITEUR, ET SUR CES QUATRE PAGES SEULEMENT.
+  // `LOCALE_ROUTED_PATHS` (voir `catalog.ts`) porte le pourquoi en entier: ce
+  // sont les surfaces indexées, et une alternative `hreflang` n'existe que si
+  // chaque langue a SON URL. L'ordre compte — la vérification de traduction
+  // reste AU-DESSUS: `/en/couples` ne peut pas forcer l'anglais sur une page
+  // dont un namespace manquerait, elle retomberait de toute façon sur
+  // l'anglais, mais `/couples` ne doit jamais promettre un français qui
+  // n'est pas écrit.
+  if (isLocaleRoutedPath(pathname)) {
+    return stripLocalePrefix(pathname).locale ?? "fr";
+  }
   return current;
 }
 
@@ -310,11 +324,28 @@ export function setUiLocaleAndReload(next: UiLocale, owner: string): void {
   // fasse quelqu'un dont l'écran est français et le compte anglais — le
   // marquer est ce qui rend son clic durable au lieu d'être un bouton mort.
   markUiLocaleDecision(owner);
-  if (next === current) return;
+
+  const url = new URL(globalThis.location.href);
+  // ⚠️ SUR UNE SURFACE ROUTÉE PAR LANGUE, LE CLIC EST UNE NAVIGATION. `/couples`
+  // et `/en/couples` sont deux URL, et changer de langue veut dire changer
+  // d'URL — sans quoi la balise `canonical` de la page et la langue affichée
+  // se contrediraient, et l'adresse qu'un lecteur copierait ne rendrait pas ce
+  // qu'il a sous les yeux. `localePath` rend le chemin inchangé ailleurs, donc
+  // le produit connecté ne bouge pas.
+  const targetPath = localePath(url.pathname, next);
+
+  // ⚠️ LE COURT-CIRCUIT REGARDE MAINTENANT LES DEUX MÉMOIRES, ET C'EST UN
+  // BOUTON MORT QU'IL ÉVITE. Quelqu'un dont le choix enregistré est « en » qui
+  // ouvre `/couples` (française PAR SON URL) et clique « EN »: `next` égale
+  // `current`, l'ancien test sortait, et rien ne se passait sur une page qui
+  // affiche pourtant du français. La condition de sortie est donc « la langue
+  // NI l'URL n'ont à changer ».
+  if (next === current && targetPath === url.pathname) return;
+
   safeStorage()?.setItem(UI_LOCALE_STORAGE_KEY, next);
   // On retire `?lang` de l'URL: le laisser ferait gagner l'ancienne valeur au
   // rechargement (priorité 1), et le clic n'aurait aucun effet visible.
-  const url = new URL(globalThis.location.href);
   url.searchParams.delete("lang");
+  url.pathname = targetPath;
   globalThis.location.replace(url.toString());
 }

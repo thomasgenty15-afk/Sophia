@@ -1,6 +1,8 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
+import { localeHref } from "../../i18n/links";
+
 // KEEL UI — the one button. Every KEEL surface renders actions through this
 // component (or ButtonLink for navigations), so the registry of what a button
 // looks like lives in exactly one file. Variants map to intent, not to color:
@@ -154,8 +156,14 @@ export function ButtonLink({
   className = "",
   children,
 }: ButtonLinkProps) {
+  // ⚠️ `localeHref` ICI, DANS LA PRIMITIVE, ET PAS SUR CHAQUE SITE D'APPEL.
+  // Depuis que l'URL porte la langue des quatre pages de vente, un `to` écrit
+  // en dur renvoie toujours au français — y compris le bouton « Start » de
+  // `/en/families`. Corriger les onze sites d'appel marcherait aujourd'hui et
+  // laisserait le douzième, écrit demain, repartir en français sans que rien
+  // ne le dise. Voir `i18n/links.ts` pour ce que la fonction décide.
   return (
-    <Link to={to} className={buttonClass(variant, size, className)}>
+    <Link to={localeHref(to)} className={buttonClass(variant, size, className)}>
       {children}
     </Link>
   );

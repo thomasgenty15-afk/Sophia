@@ -2402,6 +2402,17 @@ export const en = {
   // pied des quatre pages du foyer, dont aucune ne le prononce.
   "public.footer.copyright": "Sophia — a week of meals, decided ahead",
 
+  // ── THE ADVERTISING CONSENT BANNER ───────────────────────────────────────
+  // Two buttons of equal weight and no close cross: under French rules (CNIL
+  // 2020-091) refusing must cost the same number of clicks as accepting, and a
+  // dismissal is neither a yes nor a no. See `analytics/consent.ts`.
+  "public.consent.title": "Measuring where you came from",
+  "public.consent.body":
+    "We would like to know which ad brought you here, so we can stop paying for the ones that do nothing. That needs an advertising cookie, and so your agreement. Refusing changes nothing about what you can do on the site.",
+  "public.consent.accept": "Accept",
+  "public.consent.refuse": "Refuse",
+  "public.consent.learn_more": "What we collect",
+
   // ── THE BACKEND IS UNREACHABLE ───────────────────────────────────────────
   // Shown when `resolveHomePath` could read NOTHING (see postLogin.ts branch
   // 4). Two things this copy must do, both learnt from the bug that created

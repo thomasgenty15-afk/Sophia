@@ -125,6 +125,25 @@ export const fr: TranslatedMessages = {
   // décidée d'avance est ce que composent le foyer ET la méthode d'un pro.
   "public.footer.copyright": "Sophia — la semaine de repas, décidée d’avance",
 
+  // ── LE BANDEAU DE CONSENTEMENT PUBLICITAIRE ──────────────────────────────
+  //
+  // ⚠️ DEUX BOUTONS DE MÊME POIDS, ET AUCUNE CROIX. La CNIL (délibération
+  // 2020-091) demande que refuser coûte le MÊME nombre de clics qu'accepter;
+  // une croix de fermeture n'est ni un oui ni un non, et la compter comme un
+  // oui est précisément ce qui est sanctionné. Les deux étiquettes sont donc
+  // symétriques dans la forme comme dans le texte.
+  //
+  // ⚠️ « MESURER » ET PAS « AMÉLIORER VOTRE EXPÉRIENCE ». On demande la
+  // permission de compter d'où vient un visiteur pour savoir quelle annonce a
+  // marché. Le dire autrement serait faux, et un consentement obtenu sur une
+  // description fausse n'est pas un consentement.
+  "public.consent.title": "Mesurer d’où vous venez",
+  "public.consent.body":
+    "Nous aimerions savoir quelle annonce vous a amené ici, pour arrêter de payer celles qui ne servent à rien. Ça demande un cookie publicitaire, et donc votre accord. Le refus ne change rien à ce que vous pouvez faire sur le site.",
+  "public.consent.accept": "Accepter",
+  "public.consent.refuse": "Refuser",
+  "public.consent.learn_more": "Ce que nous collectons",
+
   // ── /auth — LA PORTE UNIQUE DU PRODUIT ───────────────────────────────────
   //
   // ⚠️ VOUVOIEMENT — ET DEPUIS LE 2026-09-01, C'EST LA RÈGLE DE TOUT LE

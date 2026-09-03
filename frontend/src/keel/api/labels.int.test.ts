@@ -84,7 +84,15 @@ function say(locale: UiLocale, key: string): string {
  */
 function inLocale(locale: UiLocale): void {
   Object.defineProperty(globalThis, "location", {
-    value: { pathname: "/", search: "", href: "https://x.test/" },
+  // ⚠️ `/start` ET PLUS `/`. Il faut ici un chemin DÉCLARÉ et entièrement
+  // TRADUIT — sinon `uiLocale()` rend l'anglais quoi qu'on choisisse — et
+  // qui ne soit PAS routé par langue. Depuis que l'URL porte la langue des
+  // quatre pages de vente (`LOCALE_ROUTED_PATHS` dans `i18n/catalog.ts`),
+  // `/` est FRANÇAIS par son adresse: le choix passé à ce helper n'y avait
+  // plus aucun effet, et ces tests mesuraient la locale de la page d'accueil
+  // au lieu de celle du visiteur. `/start` est une porte fonctionnelle, elle
+  // suit le visiteur — c'est exactement ce que ce helper veut simuler.
+    value: { pathname: "/start", search: "", href: "https://x.test/start" },
     configurable: true,
     writable: true,
   });

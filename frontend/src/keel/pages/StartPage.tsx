@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import SEO from "../../components/SEO";
+import { LEGAL_ENTITY } from "../../lib/legalEntity";
 import { useAuth } from "../../context/AuthContext";
 import { supabase } from "../../lib/supabase";
 import { declaredCountryFor } from "../api/countryFromTimezone";
@@ -19,6 +20,7 @@ import { OfferLines } from "../components/ui/OfferLines";
 import { t } from "../i18n/t";
 import { chosenUiLocale, signupProfileLocale } from "../i18n/runtime";
 import { type UiLocale } from "../i18n/catalog";
+import { trackSignupConversion } from "../../analytics/googleAds";
 
 // KEEL — /start : ouvrir un compte de foyer.
 //
@@ -469,6 +471,22 @@ export default function StartPage() {
       // poste de dev: la seule façon de la vérifier est une table de vérité
       // pure, testée à côté (`api/freeSignup.ts`).
       const outcome = signUpOutcome(data);
+
+      // ── LA CONVERSION, ICI ET NULLE PART AILLEURS ───────────────────────
+      // Le compte EXISTE à ce point: `signUp` a rendu sans erreur, et le
+      // rattachement au foyer est déjà fait par le trigger. C'est le seul
+      // endroit du produit où « quelqu'un s'est inscrit » est un fait.
+      //
+      // ⚠️ AVANT LA BRANCHE, PAS DANS UNE DES DEUX. `check_email` et `attach`
+      // sont deux façons de finir la MÊME inscription — la première dépend
+      // d'un réglage de la pile auth, pas de la personne. Compter dans une
+      // seule des deux ferait dépendre le chiffre d'un `enable_confirmations`
+      // que personne ne relie jamais à Google Ads.
+      //
+      // Silencieuse sans consentement, et sans identifiant Ads: voir
+      // `analytics/googleAds.ts`.
+      trackSignupConversion();
+
       if (outcome === "check_email") {
         // Confirmation d'email active. Le rattachement est DÉJÀ fait: le
         // trigger part à l'INSERT de l'utilisateur auth, pas à l'ouverture de
@@ -815,6 +833,16 @@ export function CheckEmailScreen() {
  */
 function StartSEO() {
   return (
-    <SEO title={t("start.seo_title")} description={t("start.seo_description")} />
+    <SEO
+      title={t("start.seo_title")}
+      description={t("start.seo_description")}
+      // ⚠️ LA CANONIQUE MANQUAIT, ET C'EST CE QUI REND CETTE PAGE FRAGILE.
+      // `/start` est la porte d'arrivée des annonces: elle est atteinte avec
+      // des paramètres de campagne (`?utm_source=…`, `?gclid=…`), et chacun
+      // fait une URL DIFFÉRENTE aux yeux de Google. Sans canonique, la même
+      // page s'indexe autant de fois qu'il y a de campagnes, et leur autorité
+      // se divise entre les copies. Elle se déclare elle-même, sans query.
+      canonical={`${LEGAL_ENTITY.siteUrl}/start`}
+    />
   );
 }

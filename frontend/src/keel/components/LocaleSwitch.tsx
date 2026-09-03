@@ -1,6 +1,6 @@
 import { t } from "../i18n/t";
-import { type UiLocale } from "../i18n/catalog";
-import { chosenUiLocale } from "../i18n/runtime";
+import { isLocaleRoutedPath, type UiLocale } from "../i18n/catalog";
+import { chosenUiLocale, uiLocale } from "../i18n/runtime";
 import { chooseUiLanguage } from "../api/uiLanguage";
 
 /**
@@ -44,7 +44,14 @@ export function LocaleSwitch() {
   // marche, et vaut pour toutes les autres pages — ressemblerait à un bouton
   // mort. Ce bouton dit ce qu'il a enregistré; la page dit ce qu'elle sait
   // afficher.
-  const current = chosenUiLocale();
+  // ⚠️ SAUF SUR LES PAGES OÙ L'URL PORTE LA LANGUE. Là, c'est l'ADRESSE qui
+  // fait autorité, pas la mémoire du visiteur: quelqu'un dont le choix
+  // enregistré est « en » qui ouvre `/couples` a du français sous les yeux, et
+  // un bouton « EN » allumé au-dessus lui décrirait un écran qui n'existe pas.
+  // Le clic, lui, marche dans les deux cas — `setUiLocaleAndReload` navigue
+  // vers le jumeau (voir `LOCALE_ROUTED_PATHS` dans `i18n/catalog.ts`).
+  const here = globalThis.location?.pathname ?? "";
+  const current = isLocaleRoutedPath(here) ? uiLocale() : chosenUiLocale();
 
   const option = (locale: UiLocale, labelKey: "public.locale.en" | "public.locale.fr") => {
     const active = current === locale;
