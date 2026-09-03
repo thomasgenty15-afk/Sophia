@@ -117,6 +117,7 @@ Piège rencontré et écrit dans les trois harnais : **React SSR émet `checked=
 - Typecheck des fichiers de test (`tsc -p tsconfig.test.json`) : `goalTiles` 0, `planRefusals` 0, `household` 2 (= liste), `mouthFormDialog` 2 (= liste), `mouthProfile` 6 (= liste), `setupMouthsStep` 0 (< 6 listés), `meCardSheet` 10 — voir « Rouges étrangers » : le 10e est antérieur.
 - Les 4 mutations (§3) rougissent et se restaurent.
 - Deno : **aucun fichier sous `supabase/` n'est touché** (`git diff --quiet HEAD -- supabase/`), donc rien à rejouer pour ce lot.
+- `npx vite build` (vers le scratchpad, hors dépôt) : **✓ 2088 modules transformés, construit en 3,4 s** — la résolution des imports et l'absence de cycle au bundling sont vues, pas seulement typées. Seul l'avertissement de taille de chunk, antérieur.
 
 ### ROUGE — non vu au navigateur (attendu : la fenêtre s'ouvre après fusion, port 5174, arbre principal)
 
@@ -165,3 +166,26 @@ Conséquence : les commits de ce lot passent en **`--no-verify`**, motif écrit 
 ⚠️ **La bourde, nommée** : le script de commit posait les vingt chemins du lot dans une variable et faisait `git add -- $LOT_FILES` ; **zsh ne découpe pas une variable en mots**, `git add` a reçu UN chemin inexistant, le commit du lot n'a rien commité, et les deux commits suivants (i18n, journal) sont partis avant lui. Rien n'a été défait (aucun `reset`, aucun `restore`) : le lot est commité en troisième avec ses chemins écrits un par un, et ce journal est recommité. Les trois contenus sont exactement ceux prévus ; seul l'ordre diffère de celui annoncé.
 
 `git status --short` vide après le quatrième commit. Aucun `git add -A`, aucun `stash`/`checkout`/`reset`/`restore` ; les restaurations de mutation sont des `cp`.
+
+---
+
+## 8. Pour la fenêtre de run réel (après fusion, port 5174, arbre principal)
+
+### 8.1 Une contrainte à dire à l'orchestrateur AVANT d'ouvrir la fenêtre
+
+Les deux écrans (`/app/household`, `/app/setup`) sont derrière `KeelHouseholdRoute` : la vérification navigateur exige une **session**. Cet agent **n'entre aucun mot de passe dans un formulaire** — pas même celui d'une fixture (`1234567`) — ni ne forge de JWT (cicatrice `never-point-an-agent-at-an-account-it-cannot-log-into`). Un `preview_start` sur l'entrée `frontend-rapide` est en plus refusé par l'outil (« cwd must be a relative path within the project root » : le `cwd` absolu du launch.json de l'arbre principal). La preuve navigateur demande donc **soit** un onglet déjà connecté fourni par un humain, **soit** un vérificateur qui a le droit de se connecter. Tant qu'elle n'a pas eu lieu, le §4 « ROUGE » reste rouge.
+
+### 8.2 Ce que la base locale porte, lu le 2026-09-03 (lecture seule)
+
+- Persona maître connu `qa1v.foyer@keeltest.dev` (id `1e000000-…-0002`) : Odalric (owner, adulte, `∅`), **Casimir (mineur 2010-02-11, `∅`)**, Peregrine (adulte, `muscle_gain`), **Wilfrid (mineur 2019-03-04, `∅`)**. Ce foyer suffit pour voir « une seule tuile, Manger normalement, rien de coché » sur deux lignes — **sans rien enregistrer** (« ne le fais pas avancer »).
+- **3 bouches mineures à direction héritées** (`fat_loss`/`muscle_gain`, d'avant le 22/08) existent en base locale — celles que `20260822041500` a laissées exprès. Leurs maîtres n'ont pas de mot de passe connu : ne pas les viser.
+- Aucun compte `qa0903r%` n'existe encore.
+
+### 8.3 La fixture du tag `qa0903r`, à créer PAR SQL dans la fenêtre (jamais par le parcours — `EMAIL_DELIVERY_ENABLED=1`)
+
+Patron `docs/keel/qa-fixtures/00-base.sql` (colonnes de jeton `''`, jamais NULL ; `app_config.edge_functions_anon_key` vidé le temps de la transaction pour neutraliser l'envoi de mail) :
+1. `auth.users` + `auth.identities` : `qa0903r.master@keeltest.dev`, mot de passe `1234567`, `email_confirmed_at = now()`.
+2. `public.profiles` : pays `FR`, locale `fr-FR` (piège `profiles-locale-defaults-to-fr-fr` : l'écrire).
+3. Un foyer + la ligne `owner` du maître ; une bouche **mineure** (`birth_date` 2012-05-20) avec `goal = 'fat_loss'` posé par **UPDATE direct** (la RPC refuserait depuis S4 — c'est précisément le cas hérité que le lot doit plier), sans compte.
+4. Le cas à voir sur `/app/household` → ligne de la bouche → « Modifier » : **une tuile « Manger normalement » cochée** + la phrase `household.goal.minor_switched` qui nomme « Perte de masse grasse » ; **Save passe** (la direction s'écrit avant la date) ; relecture SQL : `goal = 'maintenance'`.
+5. Puis `/app/setup` étape 2 : fiche d'ajout, taper une date de mineur → une tuile ; carte du titulaire → trois tuiles, aucune cochée. 320 px et 1280 px, `document.scrollWidth` = largeur de la fenêtre, captures à scroll 0. Les deux langues (le persona en `fr-FR`, puis `?lang`/profil en `en`).
