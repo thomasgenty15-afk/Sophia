@@ -24,7 +24,9 @@
 src/edge/internal-functions.int.test.ts 1
 src/edge/ultimate.int.test.ts 7
 src/keel/api/coachFoodItems.int.test.ts 1
+src/keel/api/groceryWaves.int.test.ts 1
 src/keel/api/household.int.test.ts 2
+src/keel/api/householdHabits.int.test.ts 1
 src/keel/api/householdReference.int.test.ts 6
 src/keel/api/mealGeneration.int.test.ts 2
 src/keel/api/mealStretch.int.test.ts 1
@@ -48,14 +50,24 @@ src/keel/components/dishCardSameDay.int.test.ts 1
 #    un plafond acquis. La BAISSE est un rouge repare (les six `TS1117` de
 #    setupMouthsStep, clefs dupliquees, nommees ci-dessus comme appartenant a un
 #    voisin: le lot A3 a reecrit le fichier et elles sont parties).
+#
+#    QUATRE FICHIERS MANQUAIENT A LA LISTE, une erreur chacun, et le gate les
+#    signalait « hors liste » sans qu'aucun lot ne les ait touches:
+#    groceryWaves, householdHabits, planWeekCarriedDays, shoppingAisles. Mesure
+#    IDENTIQUE a `bfecdc28` et a HEAD (1 chacun): meme lignee que les deux
+#    hausses ci-dessus, meme dette. Ajoutes pour que le gate REDEVIENNE un
+#    signal — un gate qui refuse tout ne dit plus rien, et huit lots commitaient
+#    `--no-verify` en le citant.
 src/keel/components/mealBoxes.int.test.ts 16
 src/keel/components/mouthFormDialog.int.test.ts 2
 src/keel/components/planDaySeparation.int.test.ts 1
 src/keel/components/planGridEatingOut.int.test.ts 1
+src/keel/components/planWeekCarriedDays.int.test.ts 1
 src/keel/lib/planByPersonModel.int.test.ts 6
 src/keel/lib/planDaySlots.int.test.ts 5
 src/keel/lib/planGridModel.int.test.ts 5
 src/keel/lib/presenceRoster.int.test.ts 1
+src/keel/lib/shoppingAisles.int.test.ts 1
 src/keel/pages/meCardSheet.int.test.ts 10
 src/keel/pages/setupMouthsStep.int.test.ts 0
 src/keel/pages/setupSituateStep.int.test.ts 3
