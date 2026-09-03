@@ -1101,3 +1101,50 @@ Elle allait couper le runtime de quatre sessions pour un problème qu'elle n'ava
 convaincante pour que deux sessions lui disent oui** — moi compris. C'est la septième fois aujourd'hui qu'une affirmation
 plausible passe pour mesurée, et la première où **je l'ai reprise d'autrui après avoir passé la journée à reprocher
 exactement ça aux lanes**. Une prémisse bien écrite se vérifie comme une mal écrite.
+
+## 02:0x — A2 fusionné (`e84085bf`), et le MÊME défaut pour la troisième fois
+
+**Fusion sans un seul conflit** après le rebase de la lane sur `b146b1ee` et la fermeture de ses quatre défauts.
+Migration `20260903190000` — **renumérotée deux fois**, la tête du registre ayant bougé pendant l'attente.
+
+### La règle du jour, dans sa meilleure formulation, et elle vient de la lane
+
+> **Une affirmation d'absence n'est valide que si la recherche pouvait, EN PRINCIPE, trouver la chose.**
+
+Sa déviation (a) était fausse **parce que la méthode l'était** : elle avait cherché `recipeDifficulty` dans les deux
+points d'entrée — zéro occurrence — mais le champ n'y apparaît pas, **il voyage dans un `...capacity`**. Un `...spread`
+rend un champ **invisible à `grep`**. *Chercher le NOM ne prouve rien, il faut suivre l'OBJET.*
+Elle me décharge de ma moitié (« tu ne pouvais pas valider mieux sans refaire mon travail »), et elle a raison sur le
+fond — **mais ce que j'en retiens pour moi est autre chose : j'aurais dû demander COMMENT elle avait mesuré.** Valider
+une affirmation d'absence, c'est valider sa méthode, pas sa conclusion.
+La déviation est **barrée au journal, pas effacée** : retirée en silence, elle se relirait comme n'ayant jamais existé.
+
+### Deux aveux de la lane qui valent plus que ses correctifs
+
+1. **Sa quatrième mutation est arrivée verte** : `<KitchenEquipmentCardMUTE` est retrouvé par `indexOf` **par préfixe**,
+   donc la mutation ne mutait rien. Deuxième fois aujourd'hui qu'une mutation ne rougit pas pour une raison qui n'est pas
+   celle qu'on croit (la première : deux gardes qui se recouvraient, chez MEMBRE).
+   ⇒ **Une mutation qui ne rougit pas doit être suspectée AVANT le test qu'elle prétend éprouver.**
+2. **Son `sed` de correction allait vider aussi les jours SERVIS** (`rationaleCookDays`), ce qui aurait fait nommer une
+   journée que le modèle n'a pas reçue — **le défaut d'un run précédent, réintroduit par son propre correctif**.
+   5 occurrences par lane, **2 à ne pas toucher**. Rattrapé en relisant chaque site.
+3. Et elle s'est **infligé une corruption en corrigeant** : deux sauvegardes au même `basename` (`index.ts.v2` pour les
+   deux lanes), la seconde écrasant la première, puis un `cp` qui a copié la lane **solo** sur la lane **foyer** —
+   73 rouges. Réparée par `git show HEAD:<path>` et ré-application une par une. C'est la cicatrice « horodater les
+   fichiers d'une lane », dans sa version `basename`.
+
+### ⛔ Le gate rougit : quatre erreurs, de la lignée A2 — et le TROISIÈME cas du même défaut
+
+`onboarding.int.test.ts` : `BUDGET_MAX` n'est plus exporté, et deux fixtures ne portent pas `cookingStyle` /
+`groceryRuns`, **rendus requis** par `4c191d37` (attribué par `git log -S`, pas supposé).
+**Troisième occurrence aujourd'hui du même défaut** : A1 sur `LivePlanSpan`, MEMBRE sur `dishIndex`, A2 sur
+`FunnelPlanAnswers`. **Le champ requis est le bon geste à chaque fois** ; ce qui manque n'est pas la prudence, **c'est la
+porte**.
+
+**Et je sais pourquoi elle a échappé à une lane qui a tenu sa promesse** : elle a lancé Deno en entier (5 053/0), vitest
+en entier (2 149/2 173) et `tsc -b --force` (0). **Aucun des trois ne typecheck les fichiers de test.** Les tests ont
+leur propre programme, `tsconfig.test.json`, seul endroit où ces quatre erreurs existent.
+⇒ **`npx tsc -p tsconfig.test.json --noEmit` est le QUATRIÈME contrôle**, et il manquait à la porte que j'avais donnée
+aux cinq lanes autant qu'à la leur. Ajouté.
+
+**A7 reste bloqué** sur `App.tsx` et `i18n/catalog.ts`, tenus par la session de la vitrine.
