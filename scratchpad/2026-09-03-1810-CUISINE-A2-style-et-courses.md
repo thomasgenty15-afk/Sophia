@@ -316,3 +316,89 @@ toujours `>= 1 AND <= 7` · `eaten_days_check` absent · `one_live_eaten_start_i
   réparé** (ce n'est pas mon lot).
 - `HouseholdMergeCard.tsx:45` (`toLocaleDateString`), `TableStepPlanning.tsx`,
   `HouseholdPage.tsx` : jamais ouverts.
+
+---
+
+## 8. LE REBASE SUR `b146b1ee` — et ce qu'il a mis au jour
+
+L'orchestrateur a annulé la fusion d'A2 : mon D2.5 visait `easeCookingBy`, que le lot C de la
+session voisine a supprimé. Rebase demandé, fait, **7 commits rejoués** (`7863c897` correctement
+détecté comme déjà appliqué), deux conflits.
+
+### 8.1 ⛔ LE VRAI PROBLÈME N'ÉTAIT PAS D2.5 : quatre fichiers avaient disparu d'un commit *présent*
+
+En résolvant le second conflit, j'ai vu que `field_change.ts` ne contenait plus `cooking_style`.
+Vérification : **`f89f760f` est un ANCÊTRE de `b146b1ee`** (`git merge-base --is-ancestor` dit
+oui) **et pourtant ses quatre fichiers y sont revenus à leur état d'avant** :
+
+| Fichier | Ce qui était perdu |
+|---|---|
+| `field_change.ts` | `cooking_style` / `grocery_runs` hors de `WRITABLE_FIELDS` |
+| `field_change_test.ts` | le test de liste fermée relisait de nouveau un **nom de fichier de migration en dur** |
+| `plan_rationale_test.ts` | le test « le rouge de sept jours dit la même chose aux trois endroits » |
+| `20260903171000_…sql` | **la migration entière, 325 lignes** |
+
+**C'est le pire des deux mondes.** `--is-ancestor` répond « oui », donc `git rebase` **saute** le
+commit (« skipped previously applied commit ») et personne ne le revoit. Sans cette relecture, A2
+repartait avec une migration inexistante et un port qui refuse `cooking_style` — **D2.5 mort à
+l'arrivée pour la deuxième fois**, et cette fois sans erreur de compilation pour le dire.
+
+**La leçon, générale :** *« le commit est dans l'histoire » ne prouve pas « son contenu est dans
+l'arbre »*. Après toute fusion faite par quelqu'un d'autre, la vérification n'est pas
+`--is-ancestor` mais **le contenu** : `git diff <mon-commit>^ <HEAD> -- <ses fichiers>`. Ici ça
+rendait vide sur `field_change.ts` — la voisine n'y avait pas touché — ce qui a permis de
+restaurer le patch d'origine tel quel, sans arbitrage.
+
+### 8.2 La migration renumérotée une seconde fois — `171000` → `190000`
+
+La tête du registre est passée à `20260903180000` pendant que ma branche attendait. `171000`
+aurait été **sautée en silence** : le piège exact que A1 a déjà payé, et la règle tient toujours —
+**un numéro n'est valide que s'il est supérieur à la tête du registre AU MOMENT OÙ IL S'APPLIQUE,
+pas au moment où on le réserve.** Re-validée en transaction annulée (copie strippée), contrôle
+**4/4**, base re-vérifiée intacte après coup. Le port extrait a été **re-comparé à la fonction
+vivante** : identique hors mes deux clés, et aucune autre migration que `20260901180000` ne le
+définit — ma migration ne réverte le travail de personne.
+
+### 8.3 D2.5, réécrit — et ce que j'abandonne
+
+**Ce qui meurt, et c'est juste.** D2.5 était accroché à `cooked: no` (« pas eu le temps ») parce
+que l'ancien modèle en **déduisait** deux corrections. `cookingQuestionsAreAsked` n'ouvre les deux
+questions que sur `yes`/`partly` : on ne demande pas si c'était trop long à quelqu'un qui n'a pas
+cuisiné. Le style ne bouge plus que sur une réponse **explicite**, et un test tient ce deuil
+(`D2.5 — cooked: no ne déplace RIEN, style ou pas`).
+
+**Ce qui survit est le motif, renforcé.** Le lot C a cessé d'écrire « 35 minutes », un nombre que
+l'écran ne propose pas. P2 va un cran plus loin : l'écran ne propose plus **aucun** nombre de
+minutes, `recipe_difficulty` n'a aucun lecteur dans les deux générateurs, et `cooking_time_min`
+est **écrasé** à la composition par la dérivation du style.
+
+**La réponse à la question de l'orchestrateur — lequel des deux axes porte l'effet : les DEUX.**
+`cooking_style` est **un** cadran qui porte les minutes ET la difficulté
+(`COOKING_STYLE_PROFILE`) : les deux questions pointent le même réglage. D'accord ⇒ **un** cran,
+jamais deux. En sens opposés ⇒ le cadran ne sait pas l'écrire, on ne bouge rien, et
+`bothPolarities` le compte — le prix mesurable d'avoir fondu deux axes en une question.
+
+Et le lot C m'a rendu le code meilleur : `applyStep` est un marcheur d'échelle générique, et
+`COOKING_STYLES` **est** une échelle ordonnée. D2.5 n'est plus une branche à part, c'est un
+**troisième `applyStep`**. Plancher, plafond, base illisible et citation viennent de son helper —
+mon exigence « le plancher est un plancher » est désormais tenue par lui, pas par moi.
+
+### 8.4 Suites au nouveau socle
+
+Le lot C a réparé les **cinq** fichiers qui étaient rouges au type-check à mon ancienne base.
+Pour la première fois, la suite Deno tourne **en entier, sans exclusion** :
+
+- `deno test _shared/keel/` → **5 048 passés, 0 échec**.
+- `deno check` vert sur `generate-meal-v1`, `generate-household-meal-v1`,
+  `keel-plan-feedback-v1`, `meal-document-v1`.
+- `tsc -b --force` → **0**.
+- `vitest run` → **2 146 / 2 170**, **quatre** rouges étrangers : `coverage-guard` ×2,
+  `awayFrom` ×2. (`mealBoxes › un contenant sans bouche` a été réparé par le lot C — il sort de
+  ma liste.)
+
+### 8.5 Une dette assumée
+
+`cd2bff2a` (ex-`e1976df5`) porte encore le message « D2.4 + D2.5 » alors qu'il ne contient plus
+que D2.4 : je ne peux pas réécrire un message en cours de rebase sans `git rebase -i`, indisponible
+sur ce poste. Le message de `b28926aa` le dit en tête. **À corriger par E** s'il fait un
+`rebase -i` de nettoyage, sinon à laisser avec cette note.
