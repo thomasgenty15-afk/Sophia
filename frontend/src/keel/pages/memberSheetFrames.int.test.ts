@@ -188,8 +188,15 @@ describe("les deux cadres de la fiche, et ce qui reste dehors", () => {
    * retraits doivent tomber APRÈS.
    */
   it("la présence et les deux retraits ne sont dans aucun cadre", () => {
+    // ⚠️ « DANS UN CADRE » SE MESURE PAR ENCADREMENT, PAS PAR « APRÈS ». Depuis
+    // A5 §5.5, « Retirer l'accès » vit dans l'EN-TÊTE de la ligne, avec l'état
+    // qu'il inverse — donc AVANT le premier cadre. La propriété gardée est la
+    // même: aucun de ces trois n'est entre l'ouverture et la fermeture des
+    // cadres, parce qu'un geste n'est pas une réponse à un formulaire.
+    const firstFrame = src.indexOf("<SheetFrame");
     const lastFrameEnd = src.lastIndexOf("</SheetFrame>");
-    expect(lastFrameEnd, "il n'y a plus de cadre").toBeGreaterThan(0);
+    expect(firstFrame, "il n'y a plus de cadre").toBeGreaterThan(0);
+    expect(lastFrameEnd).toBeGreaterThan(firstFrame);
     for (
       const key of [
         't("household.away.title")',
@@ -199,9 +206,20 @@ describe("les deux cadres de la fiche, et ce qui reste dehors", () => {
     ) {
       const at = src.indexOf(key);
       expect(at, `${key} a disparu`).toBeGreaterThan(0);
-      expect(at, `${key} est rangé dans un cadre de questions`)
-        .toBeGreaterThan(lastFrameEnd);
+      const inside = at > firstFrame && at < lastFrameEnd;
+      expect(inside, `${key} est rangé dans un cadre de questions`).toBe(false);
     }
+  });
+
+  /**
+   * ⛔ ET « RETIRER L'ACCÈS » N'EST OFFERT QU'UNE FOIS. Il vivait au fond de la
+   * fiche; il vit maintenant dans l'en-tête, avec l'état qu'il inverse. Le
+   * laisser aux DEUX endroits ferait d'un geste irréversible un geste qu'on
+   * fait par accident au second.
+   */
+  it("« Retirer l'accès » n'est rendu qu'à un seul endroit", () => {
+    const hits = [...src.matchAll(/t\("household\.member\.detach"\)/g)];
+    expect(hits.length, "le geste de détachement est offert deux fois").toBe(1);
   });
 
   /**
