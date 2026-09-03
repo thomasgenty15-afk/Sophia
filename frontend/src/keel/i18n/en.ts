@@ -8195,8 +8195,13 @@ export const en = {
   // Rendre la journée vide à la place ferait lire « tu n'as rien mangé ».
   // ⚠️ Elle n'écrit AUCUN chiffre — elle n'a donc pas de base à porter, et sa
   // place n'est pas dans `ENERGY_KEYS_WITH_A_BASIS`.
+  // ⚠️ AUCUNE PORTÉE DANS CETTE PHRASE, et c'est un défaut mesuré: elle disait
+  // « for this day » et s'affichait telle quelle sous « These seven days » et
+  // « This plan ». La portée est écrite juste AU-DESSUS de la ligne
+  // (`tracking.scope.*`), et le nom du jour au-dessus du bloc jour — la
+  // répéter ici ne pouvait que la contredire deux fois sur trois.
   "tracking.total.abstained":
-    "No total for this day: one dish could not be weighed, and a partial sum would read low.",
+    "No total: one dish could not be weighed, and a partial sum would read low.",
   "tracking.day.planned": "From your plan",
   "tracking.day.photos": "Your photos",
   "tracking.day.missed": "Nothing recorded",
@@ -8228,7 +8233,16 @@ export const en = {
     "A bowl of pasta with tomato sauce and grated cheese",
   "tracking.describe.submit": "Record it",
   "tracking.describe.submitting": "Recording...",
-  "tracking.describe.done": "Recorded. It counts in that day now.",
+  // ⛔ CETTE PHRASE DISAIT « It counts in that day now. » — L'INVERSE EXACT DE
+  // CE QUE « DÉCRIRE » FAIT. Et elle était ORPHELINE: jamais rendue, donc
+  // jamais démentie. Le journal de la lane pouvait écrire « aucune copie ne
+  // prétend le contraire » et avoir raison PAR ACCIDENT; le jour où quelqu'un
+  // la câblait, l'écran affirmait le contraire du produit.
+  // Elle est maintenant RENDUE, et elle dit ce qui se passe: on garde les mots,
+  // pas encore les quantités. Nommer un trou coûte une phrase; le masquer coûte
+  // la confiance de qui a pris la peine d'écrire.
+  "tracking.describe.done":
+    "Recorded. This meal no longer counts as missed. The day's number does not move yet - we keep your words, not your quantities.",
   "tracking.describe.error": "That did not save - {message}",
   "tracking.describe.cancel": "Cancel",
   // ── chantier-0903/SUIVI — fin ──

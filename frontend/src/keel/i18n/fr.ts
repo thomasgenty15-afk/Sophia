@@ -7056,7 +7056,7 @@ export const fr: TranslatedMessages = {
     "{kcal} kcal, estimé - les plats de ton plan dont tu n'as rien dit sont comptés comme mangés.",
   "tracking.total.empty": "Rien à additionner sur ce jour.",
   "tracking.total.abstained":
-    "Pas de total sur ce jour : un plat n'a pas pu être pesé, et une somme partielle tirerait vers le bas.",
+    "Pas de total : un plat n'a pas pu être pesé, et une somme partielle tirerait vers le bas.",
   "tracking.day.planned": "De ton plan",
   "tracking.day.photos": "Tes photos",
   "tracking.day.missed": "Rien de noté",
@@ -7085,7 +7085,8 @@ export const fr: TranslatedMessages = {
     "Un bol de pâtes à la sauce tomate avec du fromage râpé",
   "tracking.describe.submit": "Enregistrer",
   "tracking.describe.submitting": "Enregistrement...",
-  "tracking.describe.done": "Enregistré. Ça compte dans ce jour, maintenant.",
+  "tracking.describe.done":
+    "Enregistré. Ce repas n'est plus compté comme oublié. Le chiffre du jour, lui, ne bouge pas encore - on garde tes mots, pas encore tes quantités.",
   "tracking.describe.error": "Ça n'a pas été enregistré - {message}",
   "tracking.describe.cancel": "Annuler",
   // ── chantier-0903/SUIVI — fin ──
