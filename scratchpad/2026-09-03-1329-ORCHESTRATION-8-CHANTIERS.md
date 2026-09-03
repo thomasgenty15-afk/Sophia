@@ -448,3 +448,54 @@ donc la normalisation y était l'identité) et ajouté un second cas **avant** d
 quantité **dans** une phrase (`readQuantityFromProse` lit une chaîne ancrée des deux bouts). Refuser d'inventer un
 matcher maison est le bon geste ; mais le bouton fait moins que promis, et c'est **un trou connu**, pas un arbitrage.
 **Non fusionnée** tant que l'arbre est rouge.
+
+## 20:2x — ⛔ LE DISQUE EST PLEIN : geste humain requis avant toute fenêtre de run
+
+`df -h /System/Volumes/Data` : **228 Gi, 184 Gi utilisés, 2,7 Gi libres (99 %)**. Signalé par la lane SUIVI, dont un
+`git worktree add` a échoué avec *No space left on device*. **Aucun instantané APFS** (`diskutil apfs listSnapshots` = 0),
+donc rien à purger de ce côté.
+
+**Libéré par l'orchestrateur, sans rien perdre** (chaque worktree vérifié propre avant retrait) : les sondes de mesure
+`pre` et `base0` (1,3 Go) et le second worktree de vérification `VERIF2`, inactif (0,7 Go). **≈ 2 Go rendus**, de 765 Mi à 2,7 Gi.
+
+**Ce que je ne touche pas, et pourquoi** : `~/Library/Caches` (12 Go) appartient à l'utilisateur ; les cinq worktrees de
+lane (4,1 Go) portent du travail **non commité** (A2 est en vol dans CUISINE) ; les worktrees `.cursor` ne sont pas à moi.
+
+**Conséquence sur le chantier** : une fenêtre de run réel demande le runtime edge, la base locale et un navigateur — les
+trois écrivent. **Je n'ouvre aucune fenêtre tant que l'espace n'est pas rendu.** Le développement et les tests
+continuent ; c'est la preuve en conditions réelles qui attend.
+
+### A1 est enfin vert côté serveur
+
+Correctif ② `7863c897`, **isolable** comme demandé, repris seul par `cherry-pick` → `4cacecc0`. La lane n'a pas réparé
+mécaniquement : elle a trouvé que ces épinglages portent un **journal** (`⚠️ v20 (2026-09-01) — …`) écrit par chaque bump,
+a suivi la convention, et a **renommé les deux tests dont le nom mentait** (« la version a bougé avec ce lot » →
+« le millésime du TRONC est celui d'aujourd'hui »), laissant les cinq dont le nom porte leur propre numéro. Elle s'est
+aussi donné une porte : `deno test` **et pas** `--no-run`, sur tout le répertoire, avant toute annonce.
+Gate après cherry-pick : suite Deno **verte**, vitest **4 rouges tous tolérés, 0 hors liste** (`mealBoxes` réparé compte
+désormais parmi les verts).
+
+### Reste un rouge, et c'est A8.1 — le MÊME défaut que A1
+
+`tsc -p tsconfig.test.json` : **110 erreurs contre 93 tolérées**. Trois fichiers, tous de la lignée A8.1 :
+`planByPersonModel.int.test.ts` (13 contre 6 tolérées), `dishListByDay.int.test.ts` (8, **hors liste**),
+`householdFlatLists.int.test.ts` (2, **hors liste**). Nature : `Property 'dishIndex' is missing`, `Property 'eatingSlots'
+is missing` — les fixtures construisent un `HouseholdDishView` sans le champ que A8.1 a **rendu requis**, celui qui capture
+la position **avant** le filtre et empêche de poser la coche d'un membre sur le plat suivant.
+Confié à l'agent A8.3 avec la consigne explicite : **réparer les fixtures, ne pas rendre le champ optionnel** (ce serait
+rouvrir le trou que A8.1 a fermé), **ne pas toucher la baseline** (ces erreurs sont de sa lignée, elles se réparent),
+et adopter la porte de CUISINE — lancer les suites **pour de vrai**, la compilation ne dit pas ce que les tests affirment.
+
+**Le même défaut, deux lanes, deux jours** : un champ requis ajouté à un type partagé. À porter au rapport final comme
+enseignement de méthode, pas comme incident isolé.
+
+### SUIVI a exécuté les cinq gestes demandés
+
+`7c0a0d83`. Le compteur de `generated_from.shifts[]` **tombe désormais à zéro bruyamment**, par trois chemins parce
+qu'aucun ne suffit — et le plus fin est écrit : **l'absence de clé ne PEUT pas être bruyante**, un plan qui n'a jamais
+glissé n'en a légitimement pas, donc un test vérifie que ce cas reste **muet**. Le test de câblage importe le **vrai**
+écrivain plutôt qu'une fixture recopiée (« un compteur qui épingle une copie de son arbitre le fige et finit par prouver
+le mensonge d'hier »). L'arbitrage 1 est écrit **contre la formule**, pas seulement au journal. Et « Décrire » est
+requalifié en **non-livraison décrite du côté de la personne** : elle écrit « à peu près 200 g de riz », ses mots sont
+gardés, le chiffre ne bouge pas, et la phrase du total continue de dire qu'un repas « n'a jamais été renseigné » alors
+qu'elle vient de le renseigner. Ce qui rend le trou tenable, et qui est dit : **aucun chiffre faux, aucun total qui baisse.**
