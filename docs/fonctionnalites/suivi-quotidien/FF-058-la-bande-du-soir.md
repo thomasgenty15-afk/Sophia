@@ -247,11 +247,20 @@ sans que rien ne le signale.
 | **R12** | Une bouche sans compte n'a **aucune** coche individuelle | personne ne la lit — T1. Le tap du maître dit « fait et servi comme prévu, moi compris », rien de plus |
 | **R13** | Maître `✓` et conjoint `✗` **ne se contredisent pas** | deux faits vrais sur deux personnes ; aucun des deux ne corrige l'autre |
 | **R14** | La vague de courses est **un fait du foyer** : la ligne ne part qu'au maître | même nature que la cuisson (R10). Un profil réclamé n'a pas à savoir si les courses sont faites — et sa réponse serait du bruit |
-| **R15** ⟳ | **« Pas de nouvelles » se LIT, ça ne s'écrit JAMAIS** (D8.2, 2026-09-03, lot A8.2) | **La règle que tout lecteur d'agrégat doit connaître avant de compter.** Le silence des deux — personne ne coche, personne ne décoche — ne produit **aucune ligne**, ni dans `protocol_events` ni dans `meal_share_outcomes`. Ce n'est pas un trou de données : c'est le cas **majoritaire**, et il veut dire « ça s'est passé comme prévu ». C'est au **lecteur** (la page de suivi) de le compter comme mangé, avec la base **`assumed`** — jamais à l'écrivain de poser la coche que personne n'a posée. La cicatrice est chiffrée : une coche automatique écrit un fait **daté, indémentable et faux** dans une table append-only (`auto-tick-writes-undeniable-false-facts`). ⚠️ **Et la base doit VOYAGER avec le chiffre** : « 6 repas suivis » dont 4 supposés et 2 déclarés n'est pas « 6 repas suivis » — un total qui perd sa base est un score d'adhérence déguisé (CALORIE_REVERSAL, FF-059 R3, même famille) |
-| **R16** ⟳ | **Trois surfaces où le membre parle, une quatrième fermée** (A8.2) | sa bande du soir (A8.0), ses coches (A8.1), le sort de sa boîte (A8.2). Le **retour de fin de plan** lui est fermé, par une **propriété** — `meal_plan_feedback` est `unique(meal_id)` — et le motif est écrit dans [FF-054 §11](../composition-des-repas/FF-054-le-retour-de-fin-de-plan.md) : ce retour gouverne la composition suivante, c'est un geste de **celui qui compose** |
 | **R15** | La ligne de courses n'apparaît **que le soir d'un `buyOn`** | sinon c'est un rappel quotidien de corvée, et la bande devient une liste de reproches |
 | **R16** | On écrit **l'état de la vague**, jamais un état par article | personne ne lit une liste à moitié cochée ; T1 |
 | **R17** | On constate, on ne demande rien sur le futur | la date est déjà dans le plan. Ce qu'on fait d'un `Pas encore` se propose (FF-057) — jamais une question ouverte sur une intention |
+| **R18** ⟳ | **« Pas de nouvelles » se LIT, ça ne s'écrit JAMAIS** (D8.2, 2026-09-03, lot A8.2) | **La règle que tout lecteur d'agrégat doit connaître avant de compter.** Le silence des deux — personne ne coche, personne ne décoche — ne produit **aucune ligne**, ni dans `protocol_events` ni dans `meal_share_outcomes`. Ce n'est pas un trou de données : c'est le cas **majoritaire**, et il veut dire « ça s'est passé comme prévu ». C'est au **lecteur** (la page de suivi) de le compter comme mangé, avec la base **`assumed`** — jamais à l'écrivain de poser la coche que personne n'a posée. La cicatrice est chiffrée : une coche automatique écrit un fait **daté, indémentable et faux** dans une table append-only (`auto-tick-writes-undeniable-false-facts`). ⚠️ **Et la base doit VOYAGER avec le chiffre** : « 6 repas suivis » dont 4 supposés et 2 déclarés n'est pas « 6 repas suivis » — un total qui perd sa base est un score d'adhérence déguisé (CALORIE_REVERSAL, FF-059 R3, même famille) |
+| **R19** ⟳ | **Trois surfaces où le membre parle, une quatrième fermée** (A8.2) | sa bande du soir (A8.0), ses coches (A8.1), le sort de sa boîte (A8.2). Le **retour de fin de plan** lui est fermé, par une **propriété** — `meal_plan_feedback` est `unique(meal_id)` — et le motif est écrit dans [FF-054 §11](../composition-des-repas/FF-054-le-retour-de-fin-de-plan.md) : ce retour gouverne la composition suivante, c'est un geste de **celui qui compose** |
+
+
+> ⟳ **2026-09-03 (A8.3) — R18 et R19 s'appelaient R15 et R16, et elles ont été
+> renumérotées.** A8.2 les avait INSÉRÉES au milieu du tableau, sous des numéros
+> déjà pris : la fiche portait deux R15 et deux R16, et « FF-058 R15 » est cité
+> vivant quatre fois — dont `accident_tap.ts:238` — où il désigne **la ligne de
+> courses**. Une règle ajoutée se numérote APRÈS les autres ; l'insérer au milieu
+> fait mentir toutes les citations existantes d'un coup, et sans erreur nulle part.
+> Les quatre citations vivantes n'ont donc **pas** bougé : elles étaient justes.
 
 ## 7. Modes de défaillance
 
