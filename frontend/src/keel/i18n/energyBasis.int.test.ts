@@ -109,6 +109,23 @@ describe("un kcal affiché porte sa base", () => {
     "meals.energy.day_partial",
     "meals.energy.day_with_addon",
     "meals.energy.dish",
+    // ⟳ chantier-0903/SUIVI (A7) — LES SIX PHRASES DU SUIVI, NOMMÉES PAR LEUR
+    // BASE, comme `photo.energy.*`. `/app/progress` somme désormais une journée
+    // (D7.5 renverse « un kcal photo ne se somme JAMAIS »), et la condition du
+    // renversement est exactement ici: un total porte la base LA PLUS FAIBLE de
+    // ses parts, et cette base est DANS la clé — il n'existe donc aucun chemin
+    // où le total s'affiche sans dire d'où il vient. Les cinq bases du suivi
+    // sont ordonnées côté serveur (`_shared/keel/tracking_window.ts`,
+    // `TRACKING_BASES`), et deux sont neuves: `slot_estimate` (un créneau
+    // déclaré que personne n'a renseigné, remplacé par une clé de répartition —
+    // D7.8) et `assumed` (un plat du plan dont personne n'a rien dit — D8.2:
+    // « pas de nouvelles » se LIT, ne s'écrit jamais, et se DIT quand on l'a lu).
+    "tracking.energy.slot_estimate",
+    "tracking.total.assumed",
+    "tracking.total.declared_quantities",
+    "tracking.total.photo_estimate",
+    "tracking.total.plan_quantities",
+    "tracking.total.slot_estimate",
     ...BASES.map((b) => `photo.energy.${b}`),
     ...ENERGY_KEYS_THAT_REFUSE,
   ].sort();

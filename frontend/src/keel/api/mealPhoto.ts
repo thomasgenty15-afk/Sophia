@@ -92,9 +92,39 @@ export type EnergyBasis = "declared_quantities" | "photo_estimate";
  * « temporairement », même « juste pour la tendance » — est le défaut que tout
  * ce chantier existe pour rendre impossible.
  *
- * ⛔ ET IL NE SE SOMME PAS. Le biais de −26,6 % n'est divisé que par 1,04 en
- * cumul hebdomadaire; les deltas sont 2,5× pires que les niveaux. Une courbe
- * construite là-dessus serait fausse dans une direction flatteuse.
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ RENVERSÉ LE 2026-09-03 (D7.5) — IL SE SOMME, SOUS DEUX CONDITIONS
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * Le texte d'origine, laissé pour qu'on lise ce qui a changé:
+ *
+ *   > ⛔ ET IL NE SE SOMME PAS. Le biais de −26,6 % n'est divisé que par 1,04
+ *   > en cumul hebdomadaire; les deltas sont 2,5× pires que les niveaux. Une
+ *   > courbe construite là-dessus serait fausse dans une direction flatteuse.
+ *
+ * ⚠️ LES CHIFFRES RESTENT VRAIS. Le biais ne disparaît pas, il ne se dilue pas
+ * en cumul, et il penche toujours du côté qui rassure. Ce qui a changé n'est
+ * pas la mesure: c'est ce que la somme a le droit de DIRE d'elle-même.
+ *
+ * L'interdiction visait une somme NUE — un total présenté comme un fait, où la
+ * part estimée et la part exacte se ressemblent. `/app/progress` somme
+ * désormais une journée, et deux conditions structurelles rendent le mensonge
+ * impossible plutôt qu'improbable:
+ *
+ *   ① LE TOTAL PORTE LA BASE LA PLUS FAIBLE DE SES PARTS
+ *      (`_shared/keel/tracking_window.ts`, `weakestBasis`). UNE seule photo
+ *      dans une journée de plats prescrits suffit à faire du total un chiffre
+ *      de photo. Ce n'est ni une moyenne ni un vote: l'inverse habillerait le
+ *      biais de la minorité avec la fiabilité de la majorité.
+ *   ② LA BASE EST **DANS** LA CLÉ i18n (`tracking.total.<base>`), comme
+ *      `photo.energy.<base>` juste ici. Il n'existe donc aucun chemin où le
+ *      total s'affiche et sa base non — ce sont le même message. La phrase de
+ *      `photo_estimate` dit la DIRECTION du biais, pas seulement son existence.
+ *
+ * ⛔ CE QUI N'EST PAS RENVERSÉ, et se relit avant d'y toucher: un `number` nu
+ * reste interdit (voir ci-dessus); « une courbe construite là-dessus » reste
+ * interdite — on somme des JOURS, on ne trace pas une tendance d'énergie; et
+ * aucun total ne se stocke (FF-059 R5), il se recalcule à chaque lecture.
  */
 export interface MealPhotoEnergyEstimate {
   kcal: number;

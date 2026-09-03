@@ -466,6 +466,39 @@ type WeightedSlot = (typeof WEIGHTED_SLOTS)[number];
  * poids ne compile pas. C'est la garde que les trois collations n'avaient pas —
  * elles étaient absentes d'un `Record<string, number>`, que rien n'oblige à
  * être complet.
+ *
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ 2026-09-03 (D7.8) — UN SECOND LECTEUR, ET IL LIT DANS L'AUTRE SENS
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * Cette table a été écrite pour DIMENSIONNER: savoir quelle part de la journée
+ * d'une bouche le plan a réellement composée, et corriger un facteur d'ancrage
+ * qui rendait sinon une assiette de deux kilos.
+ *
+ * `keel-tracking-v1` (la page de suivi) l'emploie pour la question INVERSE:
+ * *un créneau que la personne a déclaré et que personne n'a renseigné, ça pesait
+ * combien ?* La réponse est le milieu de sa fourchette d'entretien réparti sur
+ * ce créneau, arrondi aux 50, sous la base `slot_estimate` — une CONVENTION qui
+ * dit son nom, jamais une lecture.
+ *
+ * ⚠️ ET C'EST BIEN LE MÊME OBJET, PAS UN HOMONYME. Dans les deux sens, la table
+ * ne répond qu'à « quelle PART », et l'avertissement du dessus vaut toujours
+ * mot pour mot: ce n'est pas une recommandation nutritionnelle, ça normalise,
+ * ça ne prescrit pas. Ce que le second lecteur ajoute est qu'une part sert
+ * maintenant à RECONSTITUER autant qu'à dimensionner.
+ *
+ * ⛔ LE PIÈGE QUE LE SECOND LECTEUR A DÛ FERMER, ET IL EST DANS CE FICHIER.
+ * « La somme ne fait plus 1, et ce n'est pas un défaut » — vrai pour un
+ * RAPPORT, mortel pour une valeur absolue. Les six occasions somment à 1,30:
+ * multiplier une cible de journée par 0,40 pour le déjeuner, puis recommencer
+ * pour les cinq autres, rendrait **130 %** de la journée. Le lecteur du suivi
+ * divise donc par la somme des poids DÉCLARÉS
+ * (`tracking_window.ts`, `slotDayShare`), exactement comme `dayCoverageOf` le
+ * fait ici pour la couverture, et un test vérifie que les six parts somment à 1.
+ *
+ * ⛔ NE « NORMALISE » PAS CETTE TABLE POUR AUTANT. La ramener à une somme de 1
+ * casserait `dayCoverageOf`, dont le dénominateur est justement la somme sur
+ * les moments déclarés — et le rapport, lui, est déjà juste.
  */
 export const SLOT_DAY_WEIGHT: Readonly<Record<WeightedSlot, number>> = Object
   .freeze({

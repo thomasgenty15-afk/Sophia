@@ -156,6 +156,15 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       // et le créneau d'un élève nommé — il écrit une bibliothèque, et l'élève
       // la lit sans placement. La fonction n'avait plus de table à écrire.
       "keel-reengage-v1",
+      // ⟳ A7 (chantier-0903/SUIVI) — L'AGRÉGAT DE `/app/progress`, EN UNE PASSE.
+      // Elle existe pour une raison qu'aucun écran ne peut couvrir: les cinq
+      // portes de l'énergie demandent la doctrine publiée et
+      // `evaluateRestrictionForStudent`, donc le `service_role`. La page lisait
+      // à la place `weekly_reviews.risk_band`, colonne SANS ÉCRIVAIN depuis le
+      // 2026-08-08 — une ceinture armée sur un coffre vide.
+      // `verify_jwt` reste à `true` (aucune section dans `config.toml`), comme
+      // `meal-energy-v1`: elle n'a aucune raison d'être atteignable sans jeton.
+      "keel-tracking-v1",
       // `keel-week-rollover-v1` et `review-plan-v1` sont parties avec le
       // système de plan V2 grand public (retrait résidus, 2026-08-08).
       "keel-weekly-flow-v1",

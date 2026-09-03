@@ -273,20 +273,32 @@ export const TRANSLATED_NAMESPACES = [
   // `progress.adherence_overall`, `progress.adherence_core`,
   // `progress.day_value` et `progress.days_value` au namespace de l'écran de
   // progression de l'élève. La maille étant le namespace, `/coach/clients/:id`
-  // ATTEIGNAIT donc les 36 clés de `progress.*` — dont 32 servent
-  // `pages/ProgressPage.tsx`, que PLUS AUCUN fichier du dépôt n'importe
+  // ATTEIGNAIT donc les 36 clés de `progress.*` — dont 29 servaient
+  // `pages/ProgressPage.tsx`, que plus aucun fichier du dépôt n'importait
   // (`StudentProgressPage` est la vivante). Les quatre sont maintenant chez
   // elles, sous le nom du composant qui les rend.
+  // ⟳ chantier-0903/SUIVI (A7, D7.12) — les 36 et la page sont parties le
+  // 2026-09-03. `progress.*` n'existe plus dans aucun pack.
   "week",
 
   // ══ LES DEUX DERNIÈRES PAGES ÉLÈVE (lot 6) ══════════════════════════════
   // ⚠️ `student_progress` ET PAS `progress`, ET LE NOM EST LE POINT. `progress.*`
-  // existe: 36 clés orphelines qui servent `pages/ProgressPage.tsx`, que plus
-  // aucun fichier n'importe. Le prendre aurait obligé à traduire les 36 mortes
-  // avec les vivantes — de la traduction payée pour un écran supprimé, au motif
-  // qu'il occupe le joli nom. Le namespace porte donc le nom du composant
-  // VIVANT, comme `week.*` au lot 5.
+  // existait: 36 clés orphelines qui servaient `pages/ProgressPage.tsx`, que
+  // plus aucun fichier n'importait. Le prendre aurait obligé à traduire les 36
+  // mortes avec les vivantes — de la traduction payée pour un écran supprimé,
+  // au motif qu'il occupe le joli nom. Le namespace porte donc le nom du
+  // composant VIVANT, comme `week.*` au lot 5.
+  // ⟳ chantier-0903/SUIVI (A7, D7.12) — les 36 sont parties avec la page le
+  // 2026-09-03. Le namespace garde son nom quand même: le renommer aujourd'hui
+  // rebaptiserait 90 clés vivantes et tous leurs appelants, pour un mot.
   "student_progress",
+  // ⟳ chantier-0903/SUIVI (A7) — le SUIVI proprement dit: le bloc permanent,
+  // le bloc objectif jour par jour, la courbe de poids. Il entre TRADUIT parce
+  // qu'il porte les six phrases qui écrivent un kcal, et qu'une phrase
+  // d'énergie à moitié traduite est exactement le défaut que
+  // `energyBasis.int.test.ts` éprouve dans les DEUX langues: une base dite en
+  // anglais sous un chiffre français ne se lit pas, donc ne protège personne.
+  "tracking",
   // Les cinq bandes horaires d'un fait alimentaire (`lib/mealRhythm.ts`). Un
   // ATOME, comme `slot.*` qu'il ne remplace pas: un créneau est DÉCLARÉ par un
   // plan, un moment est DÉDUIT de `occurred_at`. Deux vocabulaires, deux
@@ -359,11 +371,12 @@ export const PENDING_TRANSLATION_NAMESPACES = [
   // suppression de `CardsPage` (migration 20260808070000). Vérifié au lot 5 par
   // un scan de tout `frontend/src` — zéro appelant.
   //
-  // ⚠️ `progress` (36 clés): 32 servent `pages/ProgressPage.tsx`, que PLUS
-  // AUCUN fichier n'importe (`StudentProgressPage` est la vivante). Les quatre
-  // dernières étaient empruntées par `components/WeekView.tsx`, et le lot 5 les
-  // a rapatriées sous `week.*` — c'est ce déplacement qui a rendu
-  // `/coach/clients/:id` déclarable sans traduire un écran mort.
+  // ⟳ `progress` N'EXISTE PLUS (chantier-0903/SUIVI, A7, D7.12, 2026-09-03).
+  // Ses 36 clés servaient `pages/ProgressPage.tsx`, que plus aucun fichier
+  // n'importait (`StudentProgressPage` est la vivante); les quatre empruntées
+  // par `components/WeekView.tsx` avaient été rapatriées sous `week.*` au lot
+  // 5. La page et les 36 clés sont parties ensemble. Il ne reste donc qu'UN
+  // namespace orphelin non écrit, `attack`.
   //
   // Les traduire serait du travail payé pour des écrans qui n'existent plus.
   // Les inscrire ici ferait rougir `pageFrontier.int.test.ts`, qui exige que
@@ -705,6 +718,25 @@ export const PAGE_NAMESPACES: Readonly<
   // la pesée, et `moment` de la grille elle-même.
   "/app/progress": [
     "student_progress",
+    // ⟳ chantier-0903/SUIVI (A7) — les blocs du suivi (`api/tracking.ts`,
+    // `components/Tracking*.tsx`, la courbe de poids).
+    "tracking",
+    // ⟳ chantier-0903/SUIVI (A7) — SIX ATOMES QUI ENTRENT PAR UN SEUL APPEL,
+    // et c'est le scanner de coutures qui l'a dit, pas une relecture.
+    // `TrackingCards.tsx` nomme un créneau loupé par `slotLabel()`
+    // (`api/labels.ts`) au lieu de recopier les six occasions sous
+    // `tracking.slot.*` — une cinquième copie d'un vocabulaire est le défaut
+    // que `lib/weekInFood.ts` a payé sur `food_group`. La maille de la
+    // frontière étant le NAMESPACE, l'import tire avec lui les cinq autres
+    // vocabulaires du module: `common`, `when`, `amount`, `sentence`,
+    // `question`. Les six sont traduits en entier (`/app/plan` les déclare
+    // déjà), donc les inscrire n'excuse aucun trou — ça enregistre l'emprunt.
+    "slot",
+    "common",
+    "when",
+    "amount",
+    "sentence",
+    "question",
     "moment",
     "food_group",
     "photo",
@@ -779,9 +811,10 @@ export const PAGE_NAMESPACES: Readonly<
   // ⚠️ `week` Y EST, `progress` N'Y EST PLUS, ET C'EST UN DÉPLACEMENT DE CODE
   // QUI L'A PERMIS. `components/WeekView.tsx` empruntait quatre clés au
   // namespace de l'écran de progression de l'élève; la maille étant le
-  // namespace, cette page ATTEIGNAIT donc les 36 clés de `progress.*`, dont 32
-  // servent `pages/ProgressPage.tsx` — que plus aucun fichier n'importe. Les
-  // quatre sont maintenant sous `week.*`.
+  // namespace, cette page ATTEIGNAIT donc les 36 clés de `progress.*`, dont 29
+  // servaient `pages/ProgressPage.tsx` — que plus aucun fichier n'importait.
+  // Les quatre sont maintenant sous `week.*`, et `progress.*` a été retiré du
+  // seed avec sa page le 2026-09-03 (chantier-0903/SUIVI).
   //
   // ⚠️ `food_group` Y EST PARCE QU'UNE CINQUIÈME COPIE A ÉTÉ RETIRÉE.
   // `lib/weekInFood.ts` portait un `GROUP_LABELS` local (« Fried food »,

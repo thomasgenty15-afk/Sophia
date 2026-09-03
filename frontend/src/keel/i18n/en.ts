@@ -1393,49 +1393,6 @@ export const en = {
   "deviation.declared": "Declared: {kind} on {date}.",
   "deviation.error": "That did not save. Nothing was declared - try again.",
 
-  // Student progress view
-  "progress.title": "Your progress",
-  "progress.subtitle":
-    "What moves first is whether you keep showing up. The rest follows, later and slower.",
-  "progress.loading": "Loading your progress...",
-  "progress.error": "We could not load your progress. Reload the page to try again.",
-  "progress.empty":
-    "Nothing recorded yet. Your first logged day starts the picture.",
-  "progress.regularity_title": "Regularity",
-  "progress.regularity_caption": "Days you logged something, week by week.",
-  "progress.regularity_days": "{count} of {total} days",
-  "progress.week_label": "Week of {date}",
-  "progress.week_current": "This week",
-  "progress.streaks_title": "Showing up",
-  "progress.streak_current": "Current streak",
-  "progress.streak_best": "Best streak",
-  "progress.days_value": "{count} days",
-  "progress.day_value": "{count} day",
-  "progress.kept_title": "Commitments kept",
-  "progress.kept_caption": "Each one is a recorded fact, not an estimate.",
-  "progress.kept_value": "{count} kept over the last {days} days",
-  "progress.obstacles_title": "Obstacles cleared",
-  "progress.obstacles_caption":
-    "Days you knew would be hard, declared in advance, and still kept something on.",
-  "progress.obstacles_empty":
-    "Nothing declared yet. When a restaurant or a trip is coming, declare it - it belongs to the plan.",
-  "progress.obstacles_entry": "{kind} on {date} - {count} kept",
-  "progress.adherence_title": "Adherence",
-  "progress.adherence_overall": "Overall",
-  "progress.adherence_core": "Core commitments",
-  "progress.insufficient_data": "Insufficient data",
-  "progress.insufficient_data_gate":
-    "A percentage needs {min} logged days in the week. You have {logged}.",
-  "progress.insufficient_data_review":
-    "The week has enough logs. The number appears once the week is reviewed.",
-  "progress.outcomes_title": "Body measures",
-  "progress.outcomes_caption":
-    "Last on this page, on purpose. It stalls and swings while the work is already paying off.",
-  "progress.outcomes_weight": "7-day average weight: {value}",
-  "progress.outcomes_empty": "No measure recorded yet.",
-  "progress.outcomes_show": "Show body measures",
-  "progress.outcomes_hide": "Hide body measures",
-
   // The shared week (components/WeekView.tsx) — ONE copy set for BOTH readers.
   // Nothing here is written in the second person: the student and the coach
   // mount the same component over the same model, and a sentence that says
@@ -1486,9 +1443,11 @@ export const en = {
   // (`pages/ProgressPage.tsx`) que PLUS AUCUN fichier du dépôt n'importe —
   // vérifié, il n'a pas d'appelant, `StudentProgressPage` est le vivant.
   //
-  // Les clés `progress.*` d'origine RESTENT dans ce seed: `ProgressPage` les lit
-  // encore, et supprimer un écran est un geste à part. Elles ne sont simplement
-  // plus atteignables depuis une page déclarée.
+  // ⟳ chantier-0903/SUIVI (A7, D7.12) — LE GESTE À PART A ÉTÉ FAIT. Les 36 clés
+  // `progress.*` et `pages/ProgressPage.tsx` sont parties le 2026-09-03: aucune
+  // n'avait d'appelant vivant (36 recherches de littéral, `en.ts`/`fr.ts`/
+  // `catalog.ts`/`ProgressPage.tsx` exclus → 0 fichier). Les quatre clés
+  // ci-dessous restent chez `week.*`, où le déplacement les avait mises.
   "week.adherence_overall": "Overall",
   "week.adherence_core": "Core commitments",
   // Les deux formes portent `{count}`, y compris le singulier: `plural()` sert
@@ -1602,15 +1561,16 @@ export const en = {
     "This student now works with another coach, so their seat cannot be turned back on.",
   "coach.seat.error.generic": "Not saved - {message}",
 
-  // Student progress: the week, then the trend
-  "progress.week_title": "This week",
-  "progress.trend_title": "Across the last {weeks} weeks",
-
   // Student app chrome
   "app.nav.today": "Today",
-  "app.nav.progress": "Progress",
+  // ⟳ chantier-0903/SUIVI (A7, D7.1) — « Progress » → « Tracking », « Health »
+  // → « Safety ». `/app/progress` n'est plus une avancée qu'on note, c'est le
+  // SUIVI de ce qui a été fait; et `/app/health` ne porte que les allergies,
+  // intolérances et médicaments — c'est une page de sécurité, pas de santé.
+  // Les CHEMINS ne bougent pas (`mealIdeasRemoved.int.test.ts` les verrouille).
+  "app.nav.progress": "Tracking",
   "app.nav.chat": "Chat",
-  "app.nav.health": "Health",
+  "app.nav.health": "Safety",
   "app.nav.household": "Household",
   // `app.nav.cards` a été retirée avec l'onglet « Cards »: la page exigeait un
   // plan publié que le modèle 1:N ne produit jamais. Rien ne la lit plus.
@@ -6517,7 +6477,12 @@ export const en = {
   // croit être couvert sur « fruits de mer » ne relira jamais: les deux
   // phrases doivent rester distinctes dans les deux langues.
   // ═════════════════════════════════════════════════════════════════════════
-  "health.title": "What you cannot eat",
+  // ⟳ chantier-0903/SUIVI (A7, D7.1) — « What you cannot eat » → « Safety ».
+  // `/app/progress` prend le mot « Tracking » ; cette page-ci ne porte que les
+  // allergies, intolérances et médicaments, et c'est de la SÉCURITÉ. Le
+  // sous-titre juste dessous dit toujours ce qu'il y a dedans — le titre court
+  // ne perd donc aucune information à l'écran.
+  "health.title": "Safety",
   "health.subtitle":
     "Allergies, intolerances, medication. Your coach builds around these, and the chat will never suggest them to you.",
   "health.list.title": "Active",
@@ -7022,16 +6987,20 @@ export const en = {
   // ══════════════════════════════════════════════════════════════════════════
   //
   // ⚠️ LE NAMESPACE S'APPELLE `student_progress` ET PAS `progress`, ET CE N'EST
-  // PAS UN CAPRICE. `progress.*` existe déjà: 36 clés qui servent
-  // `pages/ProgressPage.tsx`, que PLUS AUCUN fichier du dépôt n'importe. Il est
-  // ORPHELIN et non traduit (voir `PENDING_TRANSLATION_NAMESPACES` dans
-  // catalog.ts). Y ajouter les clés de l'écran VIVANT aurait forcé à traduire
-  // les 36 mortes avec elles — c'est-à-dire à payer de la traduction pour un
-  // écran qui n'existe plus, pour la seule raison qu'il a pris le joli nom.
-  // Le nom retenu est celui du composant qui les rend, comme `week.*` au lot 5.
+  // PAS UN CAPRICE. `progress.*` existait: 36 clés qui servaient
+  // `pages/ProgressPage.tsx`, que plus aucun fichier du dépôt n'importait. Y
+  // ajouter les clés de l'écran VIVANT aurait forcé à traduire les 36 mortes
+  // avec elles — c'est-à-dire à payer de la traduction pour un écran qui
+  // n'existe plus, pour la seule raison qu'il avait pris le joli nom. Le nom
+  // retenu est celui du composant qui les rend, comme `week.*` au lot 5.
   //
-  // La suppression de `progress.*` et de `pages/ProgressPage.tsx` est un geste
-  // à part, sur un dépôt partagé. Elle est SIGNALÉE, pas faite ici.
+  // ⟳ chantier-0903/SUIVI (A7, D7.12) — le geste à part a été fait le
+  // 2026-09-03: `progress.*` et `pages/ProgressPage.tsx` sont partis ensemble.
+  // Le namespace garde son nom: le renommer maintenant rebaptiserait 90 clés
+  // vivantes pour récupérer un mot, et casserait tous leurs appelants.
+  //
+  // ⚠️ `/app/progress` s'appelle « Tracking » / « Suivi » à l'écran depuis ce
+  // même chantier (`app.nav.progress`). Le CHEMIN, lui, ne bouge pas.
   "student_progress.title": "My progress",
   "student_progress.loading": "Loading…",
   "student_progress.error": "We could not load your data.",
@@ -7156,8 +7125,9 @@ export const en = {
   // ── 5. LES SÉANCES — UN COMPTE, ET RIEN QUI EN DÉRIVE (L2b, 2026-08-18) ──
   //
   // ⚠️ LE PRÉFIXE EST `student_progress.` ET PAS `progress.`, POUR LA RAISON
-  // ÉCRITE EN TÊTE DE CE BLOC. `progress.*` est ORPHELIN et non traduit (36
-  // clés, `pages/ProgressPage.tsx`, que plus aucun fichier n'importe): y poser
+  // ÉCRITE EN TÊTE DE CE BLOC. `progress.*` était ORPHELIN et non traduit (36
+  // clés, `pages/ProgressPage.tsx`) — les deux sont partis le 2026-09-03
+  // (chantier-0903/SUIVI, D7.12), et le namespace garde son nom: y poser
   // des clés VIVANTES rendrait `fr.ts` non compilable (le pack est typé sur les
   // seuls namespaces traduits), ferait rougir `parity.int.test.ts` (« ni plus »)
   // et ferait LEVER `t()` en DEV pour un visiteur francophone, parce que
@@ -8166,5 +8136,101 @@ export const en = {
   "plan.box.still_fridge": "Your box from {day}, still in the fridge",
   "plan.box.still_fridge_named": "{name} — box from {day}, still in the fridge",
   // ── chantier-0903/MEMBRE — fin ──
+  // ── chantier-0903/SUIVI — début ──
+  //
+  // A7 — `/app/progress` DEVIENT LE SUIVI. Les mots de la page; les jetons
+  // ASCII (bases, portées, états d'un plat) vivent dans `api/tracking.ts`.
+  //
+  // ⟳ RETRAITS de ce chantier, déjà faits en place (commit de35fadf): les 36
+  //   clés `progress.*` de l'écran mort `pages/ProgressPage.tsx`. Aucune n'avait
+  //   d'appelant vivant — 36 recherches de littéral, packs et page exclus, zéro
+  //   fichier. La liste exacte est dans `REMOVED_KEYS` de
+  //   `pages/trackingPage.int.test.ts`.
+  // ⟳ VALEURS CHANGÉES, déjà faites en place (D7.1): `app.nav.progress`
+  //   (Progress → Tracking), `app.nav.health` (Health → Safety), `health.title`
+  //   (What you cannot eat → Safety).
+  //
+  // ⚠️ SIX CLÉS CI-DESSOUS ÉCRIVENT UN KCAL, ET ELLES SONT NOMMÉES PAR LEUR
+  // BASE. C'est la garantie de `CALORIE_REVERSAL.md` §5: il n'existe aucun
+  // chemin où le nombre s'affiche et la base non, parce que ce sont le MÊME
+  // message. Les six sont inscrites dans `ENERGY_KEYS_WITH_A_BASIS`
+  // (`i18n/energyBasis.int.test.ts`), dont l'inventaire est CLOS — une septième
+  // qui écrirait un chiffre y tombera, et devra dire à quelle base elle
+  // appartient.
+  "tracking.permanent.label": "What has been done",
+  "tracking.permanent.plans_done_one": "{count} plan carried through",
+  "tracking.permanent.plans_done_other": "{count} plans carried through",
+  "tracking.permanent.plans_changed_one": "{count} of them you changed on the way",
+  "tracking.permanent.plans_changed_other":
+    "{count} of them you changed on the way",
+  "tracking.permanent.meals_decided_one": "{count} meal decided for you",
+  "tracking.permanent.meals_decided_other": "{count} meals decided for you",
+  "tracking.permanent.cooked": "cooked {sessions} times, for {meals} meals",
+  // D7.4 — ⛔ AUCUN « TEMPS ÉCONOMISÉ ». Ce dépôt n'a aucune mesure de ce que
+  // décider un repas coûte sans lui: le chiffre serait une invention avec une
+  // décimale. On dit donc ce qu'on a compté, et on dit qu'on n'a pas compté le
+  // reste — c'est la même règle qu'un kcal qui porte sa base.
+  "tracking.permanent.no_minutes":
+    "How many minutes that saved you, nobody here has measured. So nobody here tells you.",
+  "tracking.permanent.leftovers_unknown":
+    "Leftover boxes are not counted yet, so they are not shown as zero either.",
+  "tracking.objective.label": "Your goal, day by day",
+  "tracking.scope.day": "Today",
+  "tracking.scope.week": "These seven days",
+  "tracking.scope.plan": "This plan",
+  "tracking.total.plan_quantities":
+    "{kcal} kcal, from the quantities written into your plan.",
+  "tracking.total.declared_quantities":
+    "{kcal} kcal, estimated - its weakest part comes from quantities you wrote yourself.",
+  "tracking.total.photo_estimate":
+    "{kcal} kcal, estimated - part of it is read off photos, and a photo reads low.",
+  "tracking.total.slot_estimate":
+    "{kcal} kcal, estimated - one meal or more was never filled in and stands in as an average.",
+  "tracking.total.assumed":
+    "{kcal} kcal, estimated - dishes from your plan you said nothing about are counted as eaten.",
+  "tracking.total.empty": "Nothing to add up on this day.",
+  // ⛔ « PAS DE TOTAL » N'EST PAS « RIEN À ADDITIONNER ». Cette phrase-ci dit
+  // qu'on avait quelque chose à compter et qu'on n'a PAS SU: un plat que le
+  // référentiel n'a pas pesé, ou une part de plan de foyer irreconstituable.
+  // Rendre la journée vide à la place ferait lire « tu n'as rien mangé ».
+  // ⚠️ Elle n'écrit AUCUN chiffre — elle n'a donc pas de base à porter, et sa
+  // place n'est pas dans `ENERGY_KEYS_WITH_A_BASIS`.
+  "tracking.total.abstained":
+    "No total for this day: one dish could not be weighed, and a partial sum would read low.",
+  "tracking.day.planned": "From your plan",
+  "tracking.day.photos": "Your photos",
+  "tracking.day.missed": "Nothing recorded",
+  "tracking.dish.ticked": "ticked",
+  "tracking.dish.silent": "nothing said",
+  "tracking.dish.unticked": "not eaten",
+  "tracking.dish.off_plan": "something else",
+  "tracking.energy.slot_estimate":
+    "about {kcal} kcal - a stand-in, and you can change it during the day.",
+  "tracking.missed.no_estimate":
+    "One meal that day is not attached to any moment, so this one is left without a number.",
+  "tracking.describe": "Describe",
+  "tracking.weight.label": "Your weight",
+  "tracking.weight.empty": "No weigh-in in this window.",
+  "tracking.weight.point": "{value} kg on {date}",
+  "tracking.weight.period.1w": "1w",
+  "tracking.weight.period.1m": "1mo",
+  "tracking.weight.period.3m": "3mo",
+  "tracking.weight.period.6m": "6mo",
+  "tracking.weight.period.12m": "12mo",
+  "tracking.weight.period.all": "All",
+  // « Décrire » un créneau loupé (D7.7). ⚠️ Aucune de ces phrases ne DEMANDE une
+  // quantité — `meal_precision.ts` l'interdit, et il a raison. Le champ est
+  // libre; si la personne écrit un nombre, c'est elle qui l'a écrit.
+  "tracking.describe.title": "Describe this meal",
+  "tracking.describe.subtitle":
+    "In your own words. If you happened to weigh something, write it down - nobody is asking you to.",
+  "tracking.describe.placeholder":
+    "A bowl of pasta with tomato sauce and grated cheese",
+  "tracking.describe.submit": "Record it",
+  "tracking.describe.submitting": "Recording...",
+  "tracking.describe.done": "Recorded. It counts in that day now.",
+  "tracking.describe.error": "That did not save - {message}",
+  "tracking.describe.cancel": "Cancel",
+  // ── chantier-0903/SUIVI — fin ──
 
 } as const
