@@ -188,3 +188,44 @@ run (502 puis `Up 55 seconds`) sans que personne ne le restart.
   worktree, l'ordre de **commiter tôt et souvent** (un agent tué sans commit fait tout recommencer), des lectures
   **ciblées** au lieu des documents entiers, et l'attribution `Co-Authored-By: Claude Opus 5`.
   Le vérificateur RAPIDE n'est **pas** relancé : son rapport est complet et VERT.
+
+## 17:2x — A6 fusionné, et la convention `_for` réglée avec la session parallèle
+
+- **17:2x** `ecf57adc` : mes deux fichiers d'orchestration (journal + rapport de vérification RAPIDE) commités.
+- **17:2x** **Fusion de A6** : `git merge --no-ff chantier-0903/FOYER` (à `694a616f`) → **`4d3aabc8`**, aucun conflit, aucun
+  chevauchement avec les fichiers sales de la session parallèle (vérifié par `comm` avant : elle tient `plan_feedback.ts`
+  et `plan_feedback_retained.ts`, A6 ne touche que du front et les packs i18n).
+  A6 annonce : tsc 0, vitest 2 060/2 085 avec **exactement** les 5 rouges étrangers connus, 3 mutations rejouées par
+  l'agent de reprise lui-même, **aucune clé i18n ajoutée ni retirée** (4 valeurs changées en place), `catalog.ts` intact.
+  **ROUGE** : rien au navigateur (scénario écrit pour la fenêtre).
+- **Écart d'ordre assumé** : le master prompt fusionnait A8.0 avant A6. A8.0 n'était pas prêt, et **aucune dépendance ne
+  les lie** (MEMBRE a interdiction de toucher `HouseholdPage.tsx`). L'ordre était une liste de dépendances, pas un rituel.
+  A6 est donc passé devant. La contrainte réelle est ailleurs : **A8.0 doit tomber tôt pour la lane SUIVI**, qui code
+  contre son contrat.
+- **17:2x** Worktree `VERIF` recréé, détaché sur `4d3aabc8` ; vérificateur A6 lancé. Incident sans conséquence : le
+  `git worktree remove --force` précédent avait laissé un dossier résiduel de 2 fichiers (cache Vite, 8 ko) qui bloquait
+  la recréation — inspecté avant retrait, `node_modules` de l'arbre principal vérifié intact.
+- **Dette nommée, acceptée** : dans `HouseholdPage`, la lecture du déjeuner est keyée sur `meRole === "owner"`. Juste
+  aujourd'hui (un non-maître ne voit aucune ligne), **fausse dès que A5 point 6 ouvrira la ligne d'un membre réclamé**.
+  À réparer **dans A5**, écrit au journal de A5 comme dette héritée. Ce n'est pas un défaut de A6.
+
+### La convention `_for(p_user)` : elle existait déjà, je n'en ai pas inventé une seconde
+
+La session parallèle demandait quelle forme retenir pour la jumelle serveur d'une RPC gatée `auth.uid()`. Réponse
+trouvée **dans le dépôt**, pas décidée : `keel_write_retained_items_for` (`20260818250000_the_server_had_no_write_port.sql`,
+étendue par sa propre `20260903120000`). Forme : nom du port `auth.uid()` suffixé `_for` ; `p_user uuid` en premier
+paramètre ; `security definer` ; `set search_path to ''` ; `revoke all … from public, anon, authenticated, service_role`
+puis `grant execute … to service_role` — **`service_role` seul**, parce qu'un `p_user` accordé à `authenticated` est un
+paramètre qu'on peut mentir ; refus nommé sur `p_user is null` ; contrôle par `has_function_privilege('anon', …)`,
+jamais par lecture du fichier. Point de fond transmis : l'en-tête de `20260818250000` dit que ce port **ne donne aucun
+pouvoir neuf** (`service_role` peut déjà tout écrire), il contraint une **forme** — donc « `p_user` est le titulaire du
+foyer » n'est pas une garde de sécurité, c'est la **traduction fidèle du refus `not_owner`**, et elle doit s'écrire comme
+un refus nommé, pas comme un `where` qui ne touche aucune ligne (un `update` à zéro ligne rend 204).
+C'est le patron que la lane MEMBRE suit pour `meal_share_outcomes`.
+
+### Collision réelle révélée par son message : son lot B ↔ mon D2.5
+
+Son lot B réécrit `plan_feedback_retained.ts`, qui est la région de **D2.5** (CUISINE). **Décidé** : son lot B passe
+**avant** A2 ; CUISINE construit D2.5 par-dessus, changement minimal et localisé. Deux signatures de son lot B
+transmises à CUISINE : `questionsFor(restrictionFlag)` perd `goal`, et `FEEDBACK_QUESTIONS` perd `hunger_between_meals`
+et `could_finish` (`axis_question` / `axis_answer` restent lues).
