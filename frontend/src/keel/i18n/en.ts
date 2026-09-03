@@ -8095,6 +8095,30 @@ export const en = {
   //   · plan.cooking.day_before_hint
   //   · plan.cooking.day_before_starts_today
   //   · plan.cooking.day_before_no_room
+  //
+  // ── A2 · LE STYLE DE CUISINE ET LE NOMBRE DE COURSES (P2) ────────────────
+  // Les libellés portent la CONSÉQUENCE, pas le jargon: « minimal » ne veut
+  // rien dire à quelqu'un qui prépare à manger. `plan.cooking.difficulty_keen`
+  // existait déjà et disait la bonne chose — la troisième option la reprend
+  // mot pour mot plutôt que d'en inventer une variante.
+  "plan.cooking.style_label": "How do you want to cook?",
+  "plan.cooking.style_hint":
+    "This sets how long a session runs, how involved the recipes get, and how " +
+    "many times the plan asks you to cook.",
+  "plan.cooking.style_unset": "Not answered yet",
+  "plan.cooking.style_minimal": "As little as possible — I reheat",
+  "plan.cooking.style_balanced": "A middle ground",
+  "plan.cooking.style_keen": "I like cooking, bring it on",
+  "plan.cooking.runs_label": "How many food shops?",
+  "plan.cooking.runs_hint":
+    "How many times you are willing to go to the shop over this plan. One " +
+    "needs a freezer; without one the plan uses two, and it says so.",
+  "plan.cooking.runs_unset": "Not answered yet",
+  "plan.cooking.runs_one": "Once",
+  "plan.cooking.runs_two": "Twice",
+  "plan.cooking.runs_three": "Three times",
+  "setup.missing.cooking_style": "Tell us how you want to cook",
+  "setup.missing.grocery_runs": "Tell us how many food shops you are up for",
   // ── chantier-0903/CUISINE — fin ──
 
 } as const

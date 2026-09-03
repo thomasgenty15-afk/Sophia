@@ -6951,6 +6951,30 @@ export const fr: TranslatedMessages = {
   //   · plan.cooking.day_before_hint
   //   · plan.cooking.day_before_starts_today
   //   · plan.cooking.day_before_no_room
+  //
+  // ── A2 · LE STYLE DE CUISINE ET LE NOMBRE DE COURSES (P2) ────────────────
+  // Les libellés portent la CONSÉQUENCE, pas le jargon. La troisième option
+  // reprend MOT POUR MOT `plan.cooking.difficulty_keen`, qui existait déjà et
+  // disait la bonne chose — en inventer une variante ferait deux phrases pour
+  // une même idée, dans le même écran.
+  "plan.cooking.style_label": "Comment voulez-vous cuisiner ?",
+  "plan.cooking.style_hint":
+    "Ça décide de la durée d'une session, de l'ambition des recettes, et du " +
+    "nombre de fois où le plan vous demande de cuisiner.",
+  "plan.cooking.style_unset": "Pas encore répondu",
+  "plan.cooking.style_minimal": "Le moins possible — je réchauffe",
+  "plan.cooking.style_balanced": "Un juste milieu",
+  "plan.cooking.style_keen": "J'aime cuisiner, envoie",
+  "plan.cooking.runs_label": "Combien de courses ?",
+  "plan.cooking.runs_hint":
+    "Combien de fois vous acceptez d'aller au magasin sur ce plan. Une seule " +
+    "demande un congélateur ; sans lui le plan en pose deux, et il le dit.",
+  "plan.cooking.runs_unset": "Pas encore répondu",
+  "plan.cooking.runs_one": "Une fois",
+  "plan.cooking.runs_two": "Deux fois",
+  "plan.cooking.runs_three": "Trois fois",
+  "setup.missing.cooking_style": "Dis-nous comment tu veux cuisiner",
+  "setup.missing.grocery_runs": "Dis-nous combien de courses tu acceptes",
   // ── chantier-0903/CUISINE — fin ──
 
 };
