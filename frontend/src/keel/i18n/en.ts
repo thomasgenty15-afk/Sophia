@@ -5687,10 +5687,14 @@ export const en = {
   // ── LE DÉJEUNER DE LA SEMAINE (L6, §2.2) ────────────────────────────────
   // La question ne se pose qu'aux majeurs, et l'âge se DÉDUIT de la date de
   // naissance — aucune de ces phrases ne demande « adulte ou enfant ».
+  // ⚠️ DEPUIS LE 2026-09-03 (A6, P6), LA CARTE VIT SUR /app/household, DANS
+  // LA FICHE DE CHAQUE BOUCHE, juste au-dessus de sa grille — plus à l'étape 3.
+  // Le namespace est GARDÉ (D6.3); les phrases qui disaient « at the next
+  // step » sont réécrites en place (listées dans le bloc chantier-0903/FOYER).
   "setup.work_lunch.title": "Lunch on a working day",
   "setup.work_lunch.intro":
     "Whoever eats away from the kitchen at midday changes what the plan has " +
-    "to cook. Ask now, and the week comes out right the first time.",
+    "to cook. Their week, just below, has the last word.",
   "setup.work_lunch.loading": "Reading what you already told us…",
   "setup.work_lunch.at_work": "During the week, does {name} eat lunch at work?",
   "setup.work_lunch.yes": "Yes",
@@ -5707,11 +5711,11 @@ export const en = {
     "No microwave, so those lunches have to be good cold. The plan cooks them " +
     "that way.",
   "setup.work_lunch.outside_note":
-    "{n} weekday lunches will already be marked “eating out” at the next " +
-    "step. The plan does not cook them — it says what to aim for.",
+    "{n} weekday lunches are marked “eating out” in their week, just below. " +
+    "The plan does not cook them — it says what to aim for.",
   "setup.work_lunch.grid_wins":
-    "Nothing is settled here. The day-by-day grid at the next step wins, " +
-    "meal by meal.",
+    "Nothing is settled here. The day-by-day grid of their week, just below, " +
+    "wins, meal by meal.",
   "setup.request.title": "This plan",
   "setup.request.from": "From",
   "setup.request.to": "To",
@@ -5719,8 +5723,9 @@ export const en = {
     "Seven days at most — that is the ceiling the plan itself carries.",
   "setup.request.presence_title": "Who is here, day by day",
   "setup.request.presence_intro":
-    "Step three said the habit. This is the week: untick the meals someone " +
-    "will actually miss — a trip, a dinner out, a weekend away. Only the days " +
+    "The habit — who eats lunch at work — is set on the Household page, in " +
+    "each person’s sheet. This is the week: untick the meals someone will " +
+    "actually miss — a trip, a dinner out, a weekend away. Only the days " +
     "above are touched.",
   "setup.request.presence_open": "Their week",
   "setup.request.presence_optional": "optional",
@@ -8012,5 +8017,24 @@ export const en = {
   // par `tsc` quand on l'a retirée; redéposée près du moteur, avec sa note.
   // Et dans `catalog.ts`: l'entrée `"/app/meals"` de `PAGE_NAMESPACES`. Aucune clé ajoutée.
   // ── chantier-0903/RAPIDE — fin ──
+
+  // ── chantier-0903/FOYER — début ──
+  // A6 · P6, le déjeuner en semaine quitte l'étape 3 (2026-09-03, D6.3). AUCUNE
+  // clé ajoutée, AUCUNE retirée: le namespace `setup.work_lunch.*` est GARDÉ,
+  // déjà déclaré sur /app/household (`catalog.ts`, inchangé). VALEURS CHANGÉES
+  // EN PLACE dans ce pack, parce que la carte vit maintenant dans la fiche de
+  // chaque bouche, juste au-dessus de sa grille, et que « at the next step »
+  // mentait:
+  //   "setup.work_lunch.intro"        — « Ask now, and the week comes out
+  //                                     right » → « Their week, just below,
+  //                                     has the last word »
+  //   "setup.work_lunch.outside_note" — « will already be marked … at the next
+  //                                     step » → « are marked … in their week,
+  //                                     just below »
+  //   "setup.work_lunch.grid_wins"    — « the grid at the next step » → « the
+  //                                     grid of their week, just below »
+  //   "setup.request.presence_intro"  — « Step three said the habit » → the
+  //                                     habit is set on the Household page
+  // ── chantier-0903/FOYER — fin ──
 
 } as const

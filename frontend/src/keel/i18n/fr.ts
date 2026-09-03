@@ -3463,10 +3463,14 @@ export const fr: TranslatedMessages = {
   // ⚠️ AUCUNE PHRASE NE DIT « IL » NI « ELLE » : la question NOMME la personne
   // ({name}), ce qui évite d’avoir à connaître son genre pour poser une
   // question qui n’en dépend pas.
+  // ⚠️ DEPUIS LE 2026-09-03 (A6, P6), LA CARTE VIT SUR /app/household, DANS
+  // LA FICHE DE CHAQUE BOUCHE, juste au-dessus de sa grille — plus à l'étape 3.
+  // Le namespace est GARDÉ (D6.3) ; les phrases qui disaient « à l’étape
+  // suivante » sont réécrites en place (listées dans le bloc chantier-0903/FOYER).
   "setup.work_lunch.title": "Le déjeuner en semaine",
   "setup.work_lunch.intro":
     "Qui mange loin de la cuisine à midi change ce que le plan doit cuisiner. " +
-    "On le demande maintenant, et la semaine sort juste du premier coup.",
+    "Sa semaine, juste en dessous, garde le dernier mot.",
   "setup.work_lunch.loading": "Lecture de ce que vous avez déjà dit…",
   "setup.work_lunch.at_work": "En semaine, est-ce que {name} déjeune au bureau ?",
   "setup.work_lunch.yes": "Oui",
@@ -3481,11 +3485,11 @@ export const fr: TranslatedMessages = {
     "Sans micro-ondes, ces déjeuners doivent être bons froids. Le plan les " +
     "compose comme ça.",
   "setup.work_lunch.outside_note":
-    "{n} midis de semaine seront déjà cochés « dehors » à l’étape suivante. " +
-    "Le plan ne les compose pas — il dit combien viser.",
+    "{n} midis de semaine sont cochés « dehors » dans sa semaine, juste en " +
+    "dessous. Le plan ne les compose pas — il dit combien viser.",
   "setup.work_lunch.grid_wins":
-    "Rien n’est décidé ici. C’est la grille jour par jour de l’étape suivante " +
-    "qui gagne, repas par repas.",
+    "Rien n’est décidé ici. C’est la grille jour par jour de sa semaine, juste " +
+    "en dessous, qui gagne, repas par repas.",
   "setup.request.title": "Ce plan-ci",
   "setup.request.from": "Du",
   "setup.request.to": "Au",
@@ -3493,9 +3497,10 @@ export const fr: TranslatedMessages = {
     "Sept jours au plus — c’est le plafond que porte le plan lui-même.",
   "setup.request.presence_title": "Qui est là, jour par jour",
   "setup.request.presence_intro":
-    "L’étape trois disait l’habitude. Ici, c’est la semaine : décoche les " +
-    "repas que quelqu’un va vraiment sauter — un déplacement, un dîner " +
-    "dehors, un week-end ailleurs. Seuls les jours ci-dessus sont touchés.",
+    "L’habitude — qui déjeune au bureau — se règle sur la page Foyer, dans la " +
+    "fiche de chacun. Ici, c’est la semaine : décoche les repas que quelqu’un " +
+    "va vraiment sauter — un déplacement, un dîner dehors, un week-end " +
+    "ailleurs. Seuls les jours ci-dessus sont touchés.",
   "setup.request.presence_open": "Sa semaine",
   "setup.request.presence_optional": "facultatif",
   "setup.request.intro":
@@ -6872,5 +6877,23 @@ export const fr: TranslatedMessages = {
   // par `tsc` quand on l'a retirée; redéposée près du moteur, avec sa note.
   // Et dans `catalog.ts`: l'entrée `"/app/meals"` de `PAGE_NAMESPACES`. Aucune clé ajoutée.
   // ── chantier-0903/RAPIDE — fin ──
+
+  // ── chantier-0903/FOYER — début ──
+  // A6 · P6, le déjeuner en semaine quitte l'étape 3 (2026-09-03, D6.3). AUCUNE
+  // clé ajoutée, AUCUNE retirée : le namespace `setup.work_lunch.*` est GARDÉ,
+  // déjà déclaré sur /app/household (`catalog.ts`, inchangé). VALEURS CHANGÉES
+  // EN PLACE dans ce pack, parce que la carte vit maintenant dans la fiche de
+  // chaque bouche, juste au-dessus de sa grille, et que « à l'étape suivante »
+  // mentait :
+  //   "setup.work_lunch.intro"        — « on le demande maintenant » → « sa
+  //                                     semaine, juste en dessous, garde le dernier mot »
+  //   "setup.work_lunch.outside_note" — « seront déjà cochés … à l'étape
+  //                                     suivante » → « sont cochés … dans sa
+  //                                     semaine, juste en dessous »
+  //   "setup.work_lunch.grid_wins"    — « la grille … de l'étape suivante » →
+  //                                     « la grille … de sa semaine, juste en dessous »
+  //   "setup.request.presence_intro"  — « L'étape trois disait l'habitude » →
+  //                                     l'habitude se règle sur la page Foyer
+  // ── chantier-0903/FOYER — fin ──
 
 };

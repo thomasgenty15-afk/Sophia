@@ -175,7 +175,6 @@ import MealPickerGrid from "../components/MealPickerGrid";
 import TableStepPlanning from "../components/TableStepPlanning";
 import OneCookingSessionField from "../components/OneCookingSessionField";
 import CookDayBeforeField from "../components/CookDayBeforeField";
-import { workLunchRoster } from "../lib/workLunchRoster";
 import { presenceRoster } from "../lib/presenceRoster";
 import { browserLocalDate, catchUpWindowStart } from "../lib/useMealTicks";
 import { t, type MessageKey } from "../i18n/t";
@@ -3267,9 +3266,12 @@ export default function SetupPage() {
             ⛔ ET ELLE NE POUVAIT PAS ALLER DANS LA FICHE D'UNE PERSONNE:
             l'équipement est un fait de MAISON. Le poser par bouche le ferait
             demander quatre fois, et rien ne dirait laquelle des quatre réponses
-            compte. Le déjeuner au boulot, lui, est per-personne — mais
-            `WorkLunchCard` les traite déjà TOUS dans une seule carte, ce qui
-            est la même question posée une fois plutôt que N fois. */}
+            compte. Le déjeuner au boulot, lui, est per-personne — et depuis
+            le 2026-09-03 (A6, P6) il vit DANS la fiche de chaque personne, sur
+            `/app/household` (`MemberWorkLunchCard`), juste au-dessus de la
+            grille que sa réponse pré-remplit. L'étape 3 ne le pose plus: la
+            question décrit une SEMAINE ORDINAIRE, pas cette demande-ci, et
+            deux écrans la séparaient de la case où la démentir. */}
         {step.id === "request" ? (
           <TableStepPlanning
             // LA PHOTO DE LA COLONNE, JAMAIS DE QUOI ÉCRIRE. `null` = pas
@@ -3278,27 +3280,6 @@ export default function SetupPage() {
             // premier Enregistrer. L'écrivain, lui, relit la colonne.
             practicalConstraints={facts.practicalConstraints}
             hasGoal={facts.state.self.goal !== null}
-            // LE TITULAIRE EST LA PREMIÈRE BOUCHE, et sans lui la question ne
-            // se poserait jamais à celui qui remplit le formulaire:
-            // `readFunnelFacts` le RETIRE de `mouths` — il vit dans
-            // `state.self`. Sa date à lui est une VRAIE date
-            // (`profiles.birth_date`); celle des autres bouches est une marque
-            // de présence, et `workLunchRoster` sait laquelle est laquelle.
-            people={workLunchRoster({
-              self: {
-                memberId: facts.ownMemberId,
-                firstName: facts.state.self.firstName,
-                birthDate: facts.state.self.birthDate,
-              },
-              mouths: facts.mouths,
-              todayLocalIso: browserLocalDate(),
-            })}
-            busy={busy}
-            // ⚠️ LA PAGE RELIT APRÈS LE DÉJEUNER AUSSI, PAS SEULEMENT APRÈS
-            // L'ÉQUIPEMENT. La porte SQL écrit `away_days` en même temps que
-            // `work_lunch`: sans ce `load`, l'étape 4 monterait sa grille sur
-            // les absences d'AVANT le pré-remplissage, et les cinq midis n'y
-            // seraient pas — alors qu'ils sont en base.
             onSaved={() => load(false)}
           />
         ) : null}
@@ -3329,9 +3310,10 @@ export default function SetupPage() {
             onWindowEnd={setWindowEnd}
             maxEnd={addDays(windowStart, MAX_WINDOW_DAYS - 1)}
             // ── D4 ② · LE TITULAIRE A UNE GRILLE, LUI AUSSI ──────────────
-            // `facts.mouths` le RETIRE (il vit dans `state.self`), et l'étape 3
-            // lui pose pourtant la question du déjeuner: sa réponse coche cinq
-            // de SES midis « dehors ». Sans cette ligne, il ne trouvait nulle
+            // `facts.mouths` le RETIRE (il vit dans `state.self`), et la fiche
+            // du foyer lui pose pourtant la question du déjeuner (A6; l'étape 3
+            // avant): sa réponse coche cinq de SES midis « dehors ». Sans cette
+            // ligne, il ne trouvait nulle
             // part dans le tunnel de quoi en contredire un seul — alors que la
             // règle est « pré-remplir n'est pas décider, la grille gagne ».
             // Le motif complet, et pourquoi on ne retire PAS la question à la
