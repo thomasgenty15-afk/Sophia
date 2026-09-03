@@ -782,3 +782,13 @@ la fusion d'**A2**, d'**A7**, d'**A8.3**, et la reprise du **correctif A5**. Son
 **Document d'état livré à l'humain** : `scratchpad/2026-09-03-2230-ETAT-ET-GESTES-HUMAINS.md` — les trois gestes
 humains (disque, session navigateur, trois décisions produit), le tableau des neuf lots, ce qui est livré en français,
 les six trous connus, et les huit enseignements de méthode.
+
+### L'auto-diagnostic de la lane FOYER, qui vaut d'être gardé
+
+> « Mon journal §9 faisait partie des trois textes faux. J'avais écrit "aucun retrait" **sans l'avoir vu à l'écran** —
+> un rapport ne devient pas vrai parce qu'il est **cohérent avec l'analyse qu'il cite**. »
+
+C'est le mécanisme exact de la journée, énoncé par celui qui l'a produit. Les trois textes concordants qui déclaraient
+le bouton impossible ne se confirmaient pas l'un l'autre : **ils descendaient tous de la même source non mesurée**.
+La cohérence entre documents n'est pas une preuve — elle est ce qui rend une erreur difficile à voir.
+Même motif que mes quatre erreurs d'orchestrateur, et que la remontée « `is_test_persona` » : une affirmation reprise.
