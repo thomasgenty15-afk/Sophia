@@ -1323,3 +1323,50 @@ rend pas l'attente justifiée : elle a produit de la valeur **par accident**, pa
 
 **A7 est en vérification** (le dernier lot non vérifié), avec consigne de **ne perturber aucun run** : aucun appel edge,
 aucune relance, aucune migration, aucune écriture en base hors fixture.
+
+## 04:0x — ⭐ LE PREMIER RUN RÉEL A TROUVÉ UN DÉFAUT DE PRODUCTION QUE TOUTE LA VÉRIFICATION STATIQUE AVAIT MANQUÉ
+
+**D6.2 était MORT en production.** `generate-household-meal-v1` projetait `.select("id, work_lunch")` sur
+`household_members` — **table qui n'a pas de colonne `id`**, seulement `member_id`. PostgREST refusait la projection, un
+`catch` **fail-open** avalait le refus, et **le bloc de la gamelle ne partait JAMAIS au modèle**. Sur un foyer où une
+bouche déclare `{"at_work":true,"mode":"lunchbox","microwave":false}` en base, la ligne écrite porte
+`issues: ["work_lunch_unreadable"]` et le compteur `{mouths:0, cold:0}`. Et un **second** identifiant l'aurait tué une
+deuxième fois : `String(row.id)` ne correspond à rien dans un index keyé par `member_id`. Corrigé : **`90851b5c`**.
+
+**Trois vérifications statiques, six rapports, dix-neuf mutations n'avaient rien vu. Un run l'a vu au premier essai.**
+C'est la démonstration que ma journée d'attente était une erreur, et pas seulement un retard.
+
+### ⛔ Le test de câblage épinglait le MAUVAIS littéral, en étant vert
+
+Il exigeait `.select("id, work_lunch")` : **il recopiait la faute de frappe et la déclarait conforme.**
+⇒ **Un test de source qui recopie le code ne le vérifie pas, il le photographie.** C'est « un test paramétré par sa
+propre constante » en version chaîne. Réparé en lui faisant tenir une **conséquence** — la colonne projetée doit être
+celle que le mapping relit, et ce doit être l'identifiant du prompt — plus une garde négative contre le retour de `id`.
+
+### ⭐ Et c'est le COMPTEUR qui a sauvé le lot — celui dont j'avais exigé la réserve
+
+Le marché pour garder `workLunch` optionnel était « un compteur **et** un test de câblage ».
+**Le test a menti, le compteur non.** `{mouths:0, cold:0}` **croisé avec** la colonne qui déclare une gamelle est la
+preuve du débranchement — **très exactement la méthode que j'avais demandé à la lane d'écrire dans sa réserve**, et
+qu'elle avait écrite à contrecœur. Elle a servi contre son propre auteur.
+⇒ **Deux compensations qui se recouvrent ne sont pas redondantes : elles ne mentent pas de la même façon.**
+
+### Un attendu démenti, de la bonne espèce
+
+Attendu `timing.reason = after_cutoff`, mesuré `starts_today` — **l'attendu était faux, pas le produit** (`{kind:'days'}`
+ne passe pas par `proposedWindowStart`). C'est à ça que sert un attendu écrit **avant** : sans lui, la lane aurait lu
+`starts_today`, conclu que tout allait bien, **et jamais su qu'elle attendait autre chose**.
+
+### État des huit points de la fenêtre CUISINE
+
+**VERT** : R3 (3 sessions / 3 vagues), R8 (le `migration up` réel), A1 cas (c), les deux bumps lus **sur la ligne écrite**
+(`meal.en.v26…` + `household.v23_the_lunchbox_travels`). **TROUVÉ ET CORRIGÉ** : R6.
+**ROUGE à cause nommée, remonté à l'humain** : R5 — aucun banc du dépôt n'appelle `generate-meal-v1`
+(`grep` = 0), et écrire l'appel demanderait un `login` porteur du mot de passe. **Ni la lane ni moi ne franchissons
+cette ligne.** Décision de l'utilisateur : jouer le cas lui-même, ou autoriser un banc solo.
+**À jouer** : R1, R2, R4, R7 (R7 restera ROUGE sans session navigateur).
+
+**Point de poste résolu, mesuré** : `functions serve` **recharge les points d'entrée** (correctif à 21:18:47, serveur
+démarré à 21:05:31, et une session voisine l'a établi ce soir en retrouvant dans une trace des symboles écrits après le
+démarrage). La cicatrice du dépôt vise le cache des **`_shared`** — plus étroite qu'on ne le croyait. Je reste le seul à
+relancer, et seulement si un `_shared` bouge.
