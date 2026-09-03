@@ -557,3 +557,53 @@ Gardés : CUISINE (A2 en vol), MEMBRE (A8.3 en vol), SUIVI (A7 non fusionné), V
 **Reste un geste humain** : `~/Library/Caches` pèse 12 Go et n'est pas à moi. Et 182 Gi restent occupés sur 228 par du
 contenu hors dépôt. **Aucune fenêtre de run réel ne s'ouvre tant que la marge n'est pas confortable** : un runtime edge,
 une base et un navigateur écrivent tous les trois, et un disque plein en cours de run ne rend pas un échec propre.
+
+## 21:0x — Vérification A8.1/A8.2 : ROUGE, six défauts, et une consigne de l'orchestrateur qui était DANGEREUSE
+
+Rapport : `scratchpad/2026-09-03-1817-MEMBRE-A8.1-A8.2-verification.md`. Le vérificateur n'a pas seulement rejoué : il a
+**démenti une excuse** et **réparé une fuite en base**.
+
+### ⛔ D2 — ma recette de validation de migration appliquait la migration pour de vrai
+
+J'ai donné aux lanes `begin; \i <migration>; rollback;` comme méthode de validation « sans rien inscrire ».
+**Les fichiers de migration de ce dépôt portent leur PROPRE `begin;` et `commit;`** (vérifié : `20260903170000` et
+`20260903172000` en portent un de chaque). Le `commit;` interne ferme la transaction ; le `rollback;` qui suit ne défait
+**rien**. Mesuré par le vérificateur : la migration d'A8.2 a été **réellement appliquée** à la base locale **partagée**,
+**hors registre** — table plus deux fonctions créées. Il l'a **réparée** (drop, base revérifiée à zéro).
+**État vérifié par l'orchestrateur à 21:0x** : `student_generated_meals.lead_days` **absent**, `meal_share_outcomes`
+**absent**, registre inchangé (tête `20260903150000`). **Rien ne fuit aujourd'hui.**
+**Méthode corrigée, transmise aux deux lanes** : travailler sur une **copie de scratch** dont on a retiré le `begin;`/
+`commit;`, envelopper celle-là, et **vérifier en base après coup** ce qui a été créé — plus noter l'état **avant**.
+C'est la forme la plus coûteuse de fausse preuve : un contrôle qui affirme n'avoir rien touché alors qu'il a tout
+appliqué, sur une base partagée par deux sessions. **L'erreur d'origine est la mienne. Troisième de la journée.**
+
+### D6 — le modèle pur d'A8.2 ne peut PAS être monté tel quel, et A8.3 était en train de le monter
+
+`ShareOutcomeRow` et `ResolvedShare` ne portent **ni `dishIndex` ni `generatedMealId`** alors que la table porte une
+ligne **par boîte** ; `resolveShareOutcomes` regroupe sur `memberId` **seul** ⇒ **deux boîtes d'une même personne
+s'effondrent en une**. C'est exactement la surface 3 du mandat d'A8.3 (« boîte de mardi, encore au frigo »).
+**J'avais écrit à A8.3 « tu ne réécris pas le modèle, tu le montes » : je retire cette consigne**, elle l'aurait conduit
+à câbler un modèle qui ne peut pas rendre ce qu'on lui demande. Transmis avec la correction attendue (les deux types
+portent la position ; regroupement par `generatedMealId`, `dishIndex`, `memberId` ; un cas qui passe avec **deux boîtes
+de la même personne**).
+
+### D1, D3, D4 — trois gardes réelles que rien ne tient (le motif de la journée)
+
+- **D1** `useMealTicks` n'a **aucune** épreuve de comportement : remplacer `bindAt` par une redéduction via `indexOf` —
+  le mode d'échec exact que le champ existe pour éviter, « aucune case, en silence » — laisse **tsc 0 et vitest
+  entièrement vert**. Les seules gardes sont des greps au site d'appel.
+- **D3** le CHECK `shifted ⟺ shifted_to_day` n'est tenu **nulle part**. L'aveu du bâtisseur est confirmé, **et son
+  excuse est fausse** : « c'est tenu par le test RLS » — les deux CHECK neutralisés, **18/18 assertions RLS restent
+  vertes**, la RPC interceptant avant la table. Un vérificateur qui se serait arrêté à l'aveu aurait laissé passer.
+- **D4** ramener la clé de la table à trois colonnes (retirer `declared_by`) laisse **18/18 verts** : le cas 11 compte
+  deux lignes sur **deux bouches différentes**, ce qu'une clé à trois colonnes autorise autant. **La décision centrale
+  du lot (D8.3) n'a aucune épreuve qui morde.** Le cas manquant : même bouche, même plat, **deux déclarants**.
+- **D5** deux R15 et deux R16 dans FF-058, et « R15 » est cité vivant quatre fois en désignant l'**ancienne**.
+
+### Ce qui est vert, et mérite d'être dit
+
+Périmètre strict, `tsc` 0, vitest 2 072 verts avec 4 rouges étrangers **prouvés antérieurs** (`mealBoxes` ayant été
+réparé entre-temps compte désormais parmi les verts), Deno 138/0, les 7 rouges CUISINE comptés et intacts, **les 7
+mutations du bâtisseur reproduites exactement** plus 4 du vérificateur, droits mesurés par `has_table_privilege`
+(`authenticated` = select seul ; jumelle `_for` = `service_role` seul), RLS 18/18 **avec un foyer voisin réel**,
+export RGPD cousu et aligné positionnellement, C4/C8 mesurés en base.
