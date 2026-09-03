@@ -4193,7 +4193,6 @@ export const en = {
     "The same date as in your About you — filling it here fills it there. Optional, and until we have it you get a standard serving: a direction only applies at a known age.",
   "household.member.goal": "Their direction",
   "household.member.goal_mine": "Your direction",
-  "household.member.goal_none": "No particular direction",
   "household.member.goal_inactive":
     "Saved, and not applied yet: a direction needs an age. Add their date of birth above.",
   // D1 (2026-08-11) — dès qu'une bouche a un compte, son objectif vit dans SON
@@ -5205,7 +5204,6 @@ export const en = {
   // paires étiquetées, donc « all three » n'y désigne plus de groupe.
   "setup.mouths.body_together": "Height, weight and sex go together: all three, or none.",
   "setup.mouths.goal": "What they are after",
-  "setup.mouths.goal_none": "No particular direction",
   "setup.mouths.goal_from_profile":
     "Set in their own profile — it follows them everywhere, not just at this table.",
   "setup.mouths.allergies":
@@ -7991,5 +7989,23 @@ export const en = {
   "known.error.unreadable": "I could not make a line out of that. Nothing was changed.",
   "known.error.generic": "That did not go through.",
   "app.nav.about_you": "What Sophia knows",
+
+  // ── chantier-0903/RAPIDE — début ──
+  // A3 · P3, la 4e option d'objectif (2026-09-03). RETIRÉES EN PLACE dans ce pack:
+  //   "household.member.goal_none"  — l'option vide de `MouthFields` (/app/household)
+  //   "setup.mouths.goal_none"      — l'option vide de l'entonnoir (/app/setup)
+  // AJOUTÉES — namespace `household`, déclaré sur /app/setup ET /app/household.
+  // Registre ÉDUCATIF (PIVOT-FOYER §8.4): « Eat normally », jamais « keep weight ».
+  "household.goal.minor_maintenance": "Eat normally",
+  "household.goal.minor_only": "Under 18, this is the only direction offered.",
+  "household.goal.minor_switched":
+    "Under 18, “{from}” is no longer offered: what gets saved is “Eat normally”.",
+  // Les deux refus S4 (`20260822041500`), nés le 2026-08-22 et arrivés en jeton brut
+  // pendant douze jours. La phrase nomme le remède que la migration désigne.
+  "household.error.goal_not_for_minor":
+    "No weight direction for a child: under 18, only “Eat normally” is accepted. Pick it, then set the date.",
+  "household.error.target_not_for_minor":
+    "No target weight for a child: under 18, nothing is aimed at.",
+  // ── chantier-0903/RAPIDE — fin ──
 
 } as const
