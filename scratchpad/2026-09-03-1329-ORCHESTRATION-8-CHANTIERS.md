@@ -751,3 +751,34 @@ Il confirme aussi, indépendamment, que `profiles.is_test_persona` n'existe null
 2 130/2 155, 22 fichiers tous au mandat, les cinq interdits tenus (un seul `Modal`, aucun montant recopié, Tom mineur
 **invitable**, `HouseholdMergeCard` intact), C6 et C7, **neuf mutations et neuf restaurations prouvées par `cmp`**,
 l'incident d'échappements réellement réparé (une seule ligne `-` dans le pack anglais), fixture conforme en base.
+
+## 22:4x — les cinq lanes ont fini leur code ; tout est bloqué sur la session voisine
+
+**A8.3 livré** (`f88e6d84`, 8 commits) : les trois surfaces du mandat rendues (l'étape « qui n'a pas mangé », la
+proposition de boîte, le lecteur du reste sur `MyShareCard`), **les six défauts du vérificateur fermés avec mutation**,
+et les deux dettes du prédécesseur. Trois arbitrages à connaître :
+- **l'étape CONSTATE au lieu d'interroger** — la ceinture `acceptStripText` refuse le point d'interrogation ; l'écran dit
+  « Cette part n'a pas été mangée. » plus trois boutons. Violer la ceinture pour coller au mot du mandat aurait redonné
+  le formulaire quotidien que le produit a retiré ;
+- **`shift_dish` n'a AUCUN exécuteur** dans le dépôt (seule occurrence vivante : un `handledAs`). « Tout le foyer » rend
+  la main à FF-057 au lieu de fabriquer un second chemin de réparation. **La prémisse du mandat était fausse** ;
+- **M18 n'a d'abord produit AUCUN rouge** parce que **deux gardes se recouvraient** — l'une était « crue tenue ».
+  Épreuve directe ajoutée, M18b rougit. **Une mutation qui ne rougit pas est un signal, pas un soulagement.**
+
+**Correctif A5 livré** (`1d8cd8b1`), isolable et **vérifié** (les quatre fichiers byte-identiques entre sa base et la
+branche principale, `git rev-parse <ref>:<fichier>`). Deux enseignements :
+- **M21 rejoue EXACTEMENT le défaut livré** (le bouton sans garde) ⇒ 2 rouges, couche rendu **et** couche câblage, là où
+  ce même état était **vert avant**. C'est la seule preuve qui vaille pour un correctif : montrer que le test attrape
+  désormais ce qu'il a laissé passer. Un test vert sur le bon comportement ne prouve rien.
+- Sur le défaut 2, la lane est allée **plus loin que le vérificateur** : un enfant de trois ans mesure ~95 cm, ce que le
+  plancher de taille de `profiles` (90) **accepte déjà** — le cas prouvait donc **son titre sans prouver sa raison**.
+  Plus une ligne contre la **coïncidence de chaîne** (« 2 » est un préfixe de « 25 »).
+
+**⏸ TOUT EST BLOQUÉ SUR LA SESSION VOISINE.** Elle tient ~22 fichiers non commités, dont `HouseholdPage.tsx`,
+`SetupPage.tsx`, `StudentWeekPlanPage.tsx`, les deux packs i18n et les deux `generate-*-v1`. En attente :
+la fusion d'**A2**, d'**A7**, d'**A8.3**, et la reprise du **correctif A5**. Son lot C est annoncé imminent, et il
+**répare aussi l'arbre** que mon commit `089f7fdf` a cassé. Aucune urgence artificielle.
+
+**Document d'état livré à l'humain** : `scratchpad/2026-09-03-2230-ETAT-ET-GESTES-HUMAINS.md` — les trois gestes
+humains (disque, session navigateur, trois décisions produit), le tableau des neuf lots, ce qui est livré en français,
+les six trous connus, et les huit enseignements de méthode.
