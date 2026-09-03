@@ -61,6 +61,24 @@ function adminClient(): SupabaseClient {
  * que de passer le tag résolu tel quel, pour qu'une langue non livrée ne
  * produise jamais une date dans une troisième langue.
  */
+/**
+ * A1 (2026-09-03) — LA PHRASE DU JOUR DE CUISINE, SUR LA FEUILLE.
+ *
+ * ⛔ ÉCRITE ICI ET PAS DANS UN PACK i18n, pour la raison exacte de
+ * `formatDate` juste en dessous: ce document n'a PAS de pack de messages — il
+ * porte `mealPdfPackFor`, qui est le pack DU MODULE PDF, et ce module ne met
+ * pas en forme les dates. Deux phrases, deux langues, une ligne.
+ *
+ * ⚠️ ELLE DIT LES DEUX MOITIÉS, comme l'écran: le plan commence un jour plus
+ * tôt, ET rien ne se mange ce jour-là. La première seule ferait chercher un
+ * repas manquant.
+ */
+function PDF_TIMING_LINE(locale: string, dayLabel: string): string {
+  return isFrenchLocale(locale)
+    ? `Courses et cuisson le ${dayLabel}, la veille : rien ne se mange ce jour-là.`
+    : `Shopping and cooking on ${dayLabel}, the day before: nothing is eaten that day.`;
+}
+
 function formatDate(iso: string, locale: string): string {
   return new Date(iso).toLocaleDateString(
     isFrenchLocale(locale) ? "fr-FR" : "en-GB",
@@ -124,7 +142,11 @@ Deno.serve(async (req) => {
     // est ce qui garantit qu'on ne fabrique pas le PDF du repas d'un autre.
     const mealRes = await userClient
       .from("student_generated_meals")
-      .select("id, mode, dishes, shopping_list, context, created_at")
+      // ⟳ A1 — `generated_from` et `starts_on` SONT LUS POUR UNE SEULE
+      // PHRASE: le timing écrit sur la ligne à la composition. Ce fichier ne
+      // le recalcule pas (il n'a ni `preparations`, ni horloge du fuseau) — il
+      // recopie ce que le moteur a tranché.
+      .select("id, mode, dishes, shopping_list, context, created_at, starts_on, lead_days, generated_from")
       .eq("id", mealId)
       .maybeSingle();
     if (mealRes.error) throw mealRes.error;
@@ -163,6 +185,18 @@ Deno.serve(async (req) => {
       context: meal.context ? String(meal.context) : null,
       mode,
       dateLabel: formatDate(createdAt, contentLocale),
+      // ── A1 · QUAND LA CUISINE A LIEU, RECOPIÉ DE LA LIGNE ──────────────
+      // `lead_days = 1` ⇒ le premier jour de la fenêtre est le jour de cuisine
+      // et rien ne s'y mange; la feuille le dit avec la MÊME date que
+      // `shopping_list[0].buy_on`, formatée par LE formateur de ce fichier.
+      //
+      // ⚠️ ON NE REND RIEN QUAND `lead_days` VAUT 0. « Dès le matin » est un
+      // avertissement qui vaut LE MATIN MÊME; imprimé sur une feuille relue
+      // trois jours plus tard, il est faux — et un fait faux sur papier ne se
+      // dément pas. La phrase de `plan_rationale`, elle, reste à l'écran.
+      timingLine: Number(meal.lead_days ?? 0) === 1 && meal.starts_on
+        ? PDF_TIMING_LINE(contentLocale, formatDate(String(meal.starts_on), contentLocale))
+        : null,
       // ══════════════════════════════════════════════════════════════════
       // LES JOURS D'ACHAT — LE SEUL DOCUMENT QUI NE PEUT PAS LES CALCULER
       // ══════════════════════════════════════════════════════════════════

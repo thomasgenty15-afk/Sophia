@@ -272,6 +272,11 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
         {draft
           ? (
             <PlanResult
+              // ⟳ A1 (2026-09-03) — LE TIMING, DIT PAR LE SERVEUR. Il vit
+              // sur la ligne (`generated_from.timing`) et à la racine de la
+              // réponse; l'écran le RÉPÈTE et ne le recalcule jamais — le
+              // navigateur ne connaît pas l'heure.
+              timing={draft.timing}
               dishes={draft.dishes}
               preparations={draft.preparations}
               cookingSessions={draft.cookingSessions}

@@ -265,7 +265,13 @@ export function mergeWindowWritable(
   // départ » est au contraire le refus ① de la RPC.
   const replacesId = window.startsOn === household.startsOn ? HOUSEHOLD_ROW : null;
   return firstBlockingPlan({
-    live: [{ id: HOUSEHOLD_ROW, ...household }],
+    // ⚠️ `leadDays: 0` EST EXPLICITE, PAS UN OUBLI (A1, 2026-09-03).
+    // `PlanSpan` est la fenêtre telle que LA FUSION la manipule — deux dates,
+    // pas une ligne de la base — et la fusion ne dérive aucune veille:
+    // `resolveMergeWindow` recompose sur la fenêtre du foyer déjà écrite. Le
+    // jour où elle en dérivera une, c'est ICI qu'elle doit entrer, et le champ
+    // REQUIS de `LivePlanSpan` force à repasser par cette ligne.
+    live: [{ id: HOUSEHOLD_ROW, leadDays: 0, ...household }],
     window,
     replacesId,
   }) === null;

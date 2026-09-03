@@ -45,6 +45,7 @@ import {
   readDishes,
   readFixedIntakes,
   readMemberPortions,
+  readPlanTiming,
   readPreparations,
   readSessions,
   readShopping,
@@ -318,6 +319,12 @@ export function readDraftPlan(raw: unknown): GeneratedMealResult {
     memberPortions: readMemberPortions(payload.member_portions),
     fixedIntakes: readFixedIntakes(payload.fixed_intakes),
     dayProperties: readDayProperties(payload.day_properties),
+    // ⟳ A1 — MÊME LEÇON QUE `shoppingList` ET `memberPortions` CI-DESSUS, sur
+    // un champ neuf: le serveur rend `timing` À LA RACINE sur `intent:
+    // "draft"` comme sur un plan écrit. Le jeter ici ferait un aperçu muet sur
+    // le fait le plus visible du plan — sa fenêtre a reculé d'un jour — alors
+    // que le plan adopté le dit (C8: les deux surfaces, un seul corps de plan).
+    timing: readPlanTiming(payload.timing),
     context: null,
     preferences: null,
     createdAt: null,
@@ -380,19 +387,13 @@ export interface ComposeDraftInput {
    * requête est écrit par le réseau, pas par l'écran.
    */
   oneCookingSession: boolean;
-  /**
-   * « JE CUISINE LA VEILLE » — 2026-09-01.
-   *
-   * ⚠️ REQUIS, jamais `?`. Même arbitrage que `oneCookingSession` juste
-   * au-dessus: un champ facultatif n'aurait fait remonter AUCUN appelant au
-   * compilateur, et la case serait construite sans être transmise.
-   *
-   * ⛔ LE SERVEUR TRANCHE LA FAISABILITÉ (`withCookDayBefore`), et il le DIT
-   * quand il refuse. L'écran pose la même porte pour ne pas PROPOSER un geste
-   * qui sera refusé — le corps de la requête est écrit par le réseau, pas par
-   * l'écran.
-   */
-  cookTheDayBefore: boolean;
+  // ⟳ A1 (2026-09-03) — `cookTheDayBefore` A ÉTÉ RETIRÉ D'ICI, ET DU CORPS.
+  // La veille n'est plus une case: `generate-meal-v1` et
+  // `generate-household-meal-v1` la DÉRIVENT (`leadDayFor`) de la date de
+  // départ et de l'heure locale, coupure à 18 h. Le navigateur ne connaît pas
+  // l'heure (`local_date.ts` refuse tout repli UTC) — il ne peut donc pas
+  // reproduire ce verdict, et il ne doit pas essayer. Ce que le serveur rend en
+  // échange est `timing` (`{kind, reason, lead_day}`), que l'écran RÉPÈTE.
   /** Les entrées de la lane individuelle. Ignorées sur la lane foyer. */
   mode: MealMode;
   slot: MealSlot | null;
@@ -551,7 +552,6 @@ async function callGenerator(
       // question de CONSERVATION, pas de nombre d'assiettes. Et sans lui sur
       // l'adoption, le plan ÉCRIT ne serait pas celui qu'on vient de montrer.
       one_cooking_session: input.oneCookingSession,
-      cook_the_day_before: input.cookTheDayBefore,
       // L'ENVIE — LE MÊME NOM QUE SUR LA LANE INDIVIDUELLE, parce que c'est le
       // nom que le serveur lit. Les deux lanes traversent `buildMealPrompt`.
       preferences: input.preferences,
@@ -567,7 +567,6 @@ async function callGenerator(
       preferences: input.preferences,
       pantry: input.pantry,
       one_cooking_session: input.oneCookingSession,
-      cook_the_day_before: input.cookTheDayBefore,
     };
   // Une adoption vient après un aperçu déjà validé par la personne. Le
   // serveur doit encore recomposer aujourd'hui, mais il ne doit pas lancer

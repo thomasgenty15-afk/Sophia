@@ -1711,7 +1711,6 @@ export default function StudentWeekPlanPage() {
       // `false` ICI AUSSI, et pour la même raison: cette carte n'a pas de
       // formulaire. La case « je cuisine la veille » vit sur l'écran qui
       // COMPOSE, avec les dates qu'elle recule.
-      cookTheDayBefore: false,
       // Les entrées de la lane individuelle. Le budget, les jours de cuisine et
       // le temps disponible ne sont PAS ici: le générateur les relit dans
       // `practical_constraints`, et les passer dans le corps ferait deux

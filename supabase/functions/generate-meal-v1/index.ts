@@ -102,6 +102,7 @@ import {
 // CONSTANTES NOMMÉES; aucune n'est recopiée ici.
 import {
   firstWindowDayIsCookable,
+  leadDayFor,
   proposedWindowStart,
   rhythmClockFrom,
   slotsPassedToday,
@@ -164,6 +165,8 @@ import { loadHungerDays } from "../_shared/keel/hunger_signal_io.ts";
 import {
   firstBlockingPlan,
   type LivePlanSpan,
+  type PlanTiming,
+  planTimingOf,
   type MealWindowRequest,
   dayTokenOf,
   resolveRequestedWindow,
@@ -773,16 +776,21 @@ Deno.serve(async (req) => {
     // pas encore.
     const askedOneCookingSession = body.one_cooking_session === true;
     // ══════════════════════════════════════════════════════════════════════
-    // « JE CUISINE LA VEILLE » — LA DEMANDE, 2026-09-01.
+    // « JE CUISINE LA VEILLE » — PLUS UNE DEMANDE, UNE DÉRIVATION (A1,
+    // 2026-09-03).
     // ══════════════════════════════════════════════════════════════════════
     //
-    // ⚠️ `=== true`, ET LA COMPARAISON EST LA GARDE. Le corps vient du réseau.
+    // ⛔ `body.cook_the_day_before` N'EST PLUS LU, ET SON RETRAIT EST LE LOT.
+    // Les courses et la cuisson se font la veille, automatiquement; c'est
+    // `leadDayFor` (`plan_hours.ts`) qui tranche, plus bas, quand la date de
+    // départ et l'heure locale sont connues. Un corps qui porte encore la
+    // clé — un onglet ouvert avant le déploiement — est ignoré en silence:
+    // il demandait ce qu'on fait désormais par défaut.
     //
-    // ⛔ CE N'EST PAS ENCORE LA DÉCISION: la faisabilité (un jour avant le
-    // départ, sous le plafond de sept) est tranchée par `withCookDayBefore`,
-    // après que la fenêtre de la personne a été validée telle qu'elle l'a
-    // saisie. Une seule autorité, et elle est PURE.
-    const askedCookTheDayBefore = body.cook_the_day_before === true;
+    // ⚠️ ET LA DÉCISION NE PEUT PAS REMONTER ICI: elle a besoin de `todayDate`
+    // et de l'horloge du fuseau de la personne, résolus quarante lignes plus
+    // bas. La poser ici demanderait de deviner l'heure, et une heure devinée
+    // accorde une veille qui n'existe pas.
     const pantry = readPantry(body.pantry, issues);
 
     if (mode === "from_pantry" && pantry.length === 0) {
@@ -1221,7 +1229,14 @@ Deno.serve(async (req) => {
         // fonction écrit toujours — un plan de foyer vit sur le compte du
         // maître avec l'autre nature, et les deux fenêtres ne se disputent
         // rien.
-        .select("id, starts_on, duration_days")
+        // ⟳ A1 (2026-09-03) — `lead_days` EST DANS LA PROJECTION, ET C'EST LE
+        // TYPE QUI L'EXIGE. La boucle de la RPC compare des JOURS MANGÉS
+        // (`daterange(starts_on + lead_days, starts_on + duration_days)`,
+        // migration `20260903170000`); relire une ligne sans sa veille
+        // compterait celle-ci comme un jour mangé et refuserait ICI le plan
+        // N+1 que la base accepte — un 409 fabriqué par nous, sur le geste le
+        // plus banal qui soit (« je compose la semaine prochaine »).
+        .select("id, starts_on, duration_days, lead_days")
         .eq("user_id", userId)
         .eq("plan_kind", "personal")
         .is("retired_at", null);
@@ -1231,6 +1246,10 @@ Deno.serve(async (req) => {
         id: String(r.id),
         startsOn: String(r.starts_on ?? ""),
         durationDays: Number(r.duration_days ?? 0),
+        // `?? 0` — la migration pose `not null default 0`, donc `null` ne peut
+        // venir que d'une base non migrée. Zéro = « pas de veille », ce que
+        // ces lignes-là portent effectivement.
+        leadDays: Number(r.lead_days ?? 0),
       }));
       const blocking = firstBlockingPlan({
         live,
@@ -1291,8 +1310,22 @@ Deno.serve(async (req) => {
     // fenêtre déjà à sept jours) n'empêche PAS de composer: on sert la fenêtre
     // demandée, et `plan_rationale` dit pourquoi la veille n'a pas eu lieu.
     // Rendre 400 ici transformerait une préférence en mur.
+    // ⟳ A1 (2026-09-03) — `asked` EST DÉRIVÉ, ET C'EST LA MOITIÉ DU LOT.
+    //
+    // `leadDayFor` lit la date de départ, le jour local et l'HEURE locale, avec
+    // la coupure de `SHOPPING_CUTOFF_HOUR`. Ses cinq motifs sont des phrases;
+    // `withCookDayBefore` peut encore refuser la fenêtre (sept jours mangés),
+    // et c'est `planTimingOf` qui tranche lequel des deux explique.
+    //
+    // ⚠️ `hourNow: null` NE DEVIENT JAMAIS MINUIT. Une horloge illisible rend
+    // `clock_unreadable`, donc pas de veille — le produit d'hier, nommé. La
+    // deviner accorderait une veille que personne n'a le temps de cuisiner.
+    // L'HEURE CHEZ LA PERSONNE, la MÊME expression que les trois autres
+    // lecteurs de ce fichier (`slotsDroppedToday`, `proposedWindowStart`).
+    const hourNow = localMinuteOfDay === null ? null : Math.floor(localMinuteOfDay / 60);
+    const lead = leadDayFor({ startsOn, today: todayDate, hourNow });
     const cookAhead = withCookDayBefore({ startsOn, durationDays }, {
-      asked: askedCookTheDayBefore,
+      asked: lead.leadDay !== null,
       today: todayDate,
     });
     startsOn = cookAhead.startsOn;
@@ -1301,10 +1334,25 @@ Deno.serve(async (req) => {
     if (cookAhead.refused !== null) {
       issues.push(`cook_the_day_before_refused: ${cookAhead.refused}`);
     }
+    // ── CE QUE LA RÉPONSE, LA LIGNE ET L'ÉCRAN LISENT, ASSEMBLÉ UNE FOIS ────
+    // ⛔ UNE SEULE EXPRESSION POUR TROIS DESTINATIONS. `timing` part dans la
+    // réponse (l'aperçu le rend), dans `generated_from` (il reste lisible en
+    // SQL trois jours plus tard) et dans `plan_rationale` (la phrase). Trois
+    // calculs du même fait divergeraient au premier ajustement — c'est la
+    // forme de défaut que ce dépôt a déjà payée sur `usableCookDays`,
+    // `addedCookDays` et `rationaleCookDays`.
+    const planTiming: PlanTiming = planTimingOf(lead, cookAhead);
 
     // `scope` est DÉRIVÉ de la durée et n'est plus reçu: une ligne `scope='day'`
     // portant une fenêtre de sept jours n'est plus exprimable.
-    const scope: MealScope = durationDays === 1 ? "day" : "several_days";
+    //
+    // ⟳ A1 — IL SE DÉRIVE DES JOURS **MANGÉS**. Une fenêtre de deux jours dont
+    // l'un est la veille est un plan D'UN JOUR: `daysToFill` n'en porte qu'un,
+    // et l'appeler `several_days` ferait dire à la consigne le contraire de ce
+    // qu'elle demande. La RPC dérive la MÊME chose de son côté
+    // (`20260903170000`) — les deux doivent rester d'accord.
+    const daysToEat = durationDays - (cookOnlyDay === null ? 0 : 1);
+    const scope: MealScope = daysToEat === 1 ? "day" : "several_days";
     const daysToFill: string[] = windowDayOrder(startsOn, durationDays);
 
     // ══ LOT 1C · LA MÉMOIRE STRUCTURÉE ENTRE ICI ═══════════════════════════
@@ -3601,9 +3649,16 @@ Deno.serve(async (req) => {
           shoppingDays: shoppingDays.map((d) => dayTokenOf(d)) as never,
           // ⛔ `daysNeedingTheirOwnShop`, LA MÊME FONCTION QUE LE CONSTAT.
           shopLaterDays: shopLaterDays as never,
-          cookDayBefore: askedCookTheDayBefore
-            ? { day: cookOnlyDay as never, refused: cookAhead.refused }
-            : null,
+          // ⟳ A1 — LE FAIT EST TOUJOURS LÀ, parce que la veille n'est plus une
+          // case: un plan qui commence un jour plus tôt sans un mot est un plan
+          // dont la personne croit avoir perdu un jour de repas, et un plan
+          // sans veille sans un mot est un plan qu'elle croit pouvoir cuisiner
+          // tranquillement le lendemain midi.
+          cookDayBefore: {
+            day: cookOnlyDay as never,
+            refused: cookAhead.refused,
+            reason: planTiming.reason,
+          },
           oneCookingSession: askedOneCookingSession
             ? {
               day: (oneCookingSession ? rationaleSingleSessionDay : null) as never,
@@ -3775,6 +3830,17 @@ Deno.serve(async (req) => {
         meal: null,
         window: { starts_on: startsOn, duration_days: durationDays },
         suggested_window: suggestedWindow,
+        // ── ⟳ A1 · CE QUE L'ÉCRAN DOIT DIRE SUR LE TIMING ────────────────
+        // `{kind, reason, lead_day}`. `day_before` = la fenêtre a reculé et
+        // `lead_day` porte la date du jour de cuisine; `same_morning` = pas de
+        // veille, et l'écran rend l'avertissement « courses et cuisson dès le
+        // matin ».
+        //
+        // ⛔ CALCULÉ ICI ET NULLE PART AILLEURS. Le navigateur ne connaît PAS
+        // l'heure (`local_date.ts` refuse tout repli UTC, et un
+        // `new Date().getHours()` côté front est interdit): un écran qui
+        // referait ce verdict le referait faux, et il le referait en silence.
+        timing: planTiming,
         rationale: { lines: rationaleLines, refusal: rationaleRefusal },
         request_report: { lines: reportLines, refusal: reportRefusal },
         dishes: dishesWritten,
@@ -3824,6 +3890,18 @@ Deno.serve(async (req) => {
         p_duration_days: durationDays,
         p_replaces: replaces,
         p_payload: {
+          // ⟳ A1 (2026-09-03) — LA VEILLE VOYAGE DANS LE PAYLOAD, pas dans un
+          // paramètre: ajouter un argument à `write_student_meal_plan` créerait
+          // une SURCHARGE côté Postgres, donc un 300 PostgREST sur chaque
+          // composition. La RPC en tire ses deux bornes, sa boucle de
+          // chevauchement, sa troncature et `scope` (`20260903170000`).
+          //
+          // ⚠️ DÉRIVÉ DE `cookOnlyDay`, JAMAIS DE `lead.leadDay`:
+          // `withCookDayBefore` a le dernier mot — une veille possible au
+          // calendrier peut être refusée par la fenêtre, et écrire `1` sur une
+          // fenêtre qui n'a pas reculé ferait une ligne dont le premier jour
+          // mangé n'existe pas.
+          lead_days: cookOnlyDay === null ? 0 : 1,
           mode,
           meal_slot: slot,
           servings,
@@ -3862,6 +3940,12 @@ Deno.serve(async (req) => {
           // invisible.
           ...compositionFillColumns(compositionFill),
           generated_from: {
+            // ⟳ A1 — LE TIMING RESTE SUR LA LIGNE. Un journal de runtime
+            // s'efface; le plan reste. Sans cette clé, « pourquoi ce plan
+            // commence-t-il un jour plus tôt » (ou « pourquoi n'a-t-il pas eu
+            // sa veille ») n'est comptable en SQL nulle part, et un lot
+            // débranché serait indiscernable d'un lot qui marche.
+            timing: planTiming,
             coach_id: doctrine.coachId,
             doctrine_version: doctrine.doctrine?.version ?? null,
             doctrine_reason: doctrine.reason,
@@ -4142,6 +4226,17 @@ Deno.serve(async (req) => {
       // courses du plan raccourci resterait muette sur ce qu'elle couvre encore.
       window: { starts_on: startsOn, duration_days: durationDays },
       // ── CE QU'ON AURAIT PROPOSÉ, ET POURQUOI ──────────────────────────────
+      // ── ⟳ A1 · CE QUE L'ÉCRAN DOIT DIRE SUR LE TIMING ────────────────
+      // `{kind, reason, lead_day}`. `day_before` = la fenêtre a reculé et
+      // `lead_day` porte la date du jour de cuisine; `same_morning` = pas de
+      // veille, et l'écran rend l'avertissement « courses et cuisson dès le
+      // matin ».
+      //
+      // ⛔ CALCULÉ ICI ET NULLE PART AILLEURS. Le navigateur ne connaît PAS
+      // l'heure (`local_date.ts` refuse tout repli UTC, et un
+      // `new Date().getHours()` côté front est interdit): un écran qui
+      // referait ce verdict le referait faux, et il le referait en silence.
+      timing: planTiming,
       // Une PROPOSITION, jamais un refus: l'écran s'en sert comme valeur par
       // défaut du prochain formulaire. `shifted: null` veut dire « rien à
       // déplacer », pas « on n'a pas regardé ».

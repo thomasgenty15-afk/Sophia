@@ -84,7 +84,6 @@ function payload(over: Record<string, unknown> = {}) {
     householdSize: null,
     cookingShape: null,
     oneCookingSession: false,
-    cookTheDayBefore: false,
     envy: "",
     envyWeek: "2026-08-31",
     ...over,

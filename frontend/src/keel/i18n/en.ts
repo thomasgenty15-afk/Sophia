@@ -7401,17 +7401,6 @@ export const en = {
   "plan.cooking.one_session_hint":
     "A single cooking session for the whole stretch: whatever is not eaten in " +
     "the days that follow goes in the freezer, and comes out the night before.",
-  "plan.cooking.day_before_label":
-    "I cook the day before it starts",
-  "plan.cooking.day_before_hint":
-    "The plan will start a day earlier, and that day carries no meals: it is " +
-    "the one you cook on for the rest.",
-  "plan.cooking.day_before_starts_today":
-    "This plan starts today, so the day before has already gone. Move the " +
-    "first day later to cook ahead.",
-  "plan.cooking.day_before_no_room":
-    "This plan already covers seven days, the most it can. Shorten it by a " +
-    "day to make room for the session before it.",
   "plan.cooking.one_session_needs_freezer":
     "This needs a freezer: without one, a cooked dish only keeps two more " +
     "days. Tick it under \"What you cook with\" to open this option.",
@@ -8038,5 +8027,25 @@ export const en = {
   //   "setup.request.presence_intro"  — « Step three said the habit » → the
   //                                     habit is set on the Household page
   // ── chantier-0903/FOYER — fin ──
+  // ── chantier-0903/CUISINE — début ──
+  //
+  // ── A1 · LA VEILLE AUTOMATIQUE (P1) ──────────────────────────────────────
+  // Le serveur tranche le timing (`leadDayFor`, coupure à 18 h) et le rend dans
+  // `timing`. L'écran RÉPÈTE, il ne recalcule rien: le navigateur ne connaît
+  // pas l'heure. Deux phrases, une par `kind` — et AUCUNE variante par `reason`:
+  // l'explication complète vit dans `plan_rationale`, côté serveur, et un
+  // second jeu de gabarits ici divergerait au premier ajustement.
+  "meals.timing.day_before":
+    "Shopping and cooking on {day}, the day before: nothing is eaten that day.",
+  "meals.timing.same_morning":
+    "Shopping and cooking first thing in the morning, so it is ready by lunch.",
+  //
+  // RETIRÉES PAR CE LOT (la case « je cuisine la veille » n'existe plus, et
+  // `CookDayBeforeField.tsx` est supprimé — vérifié appelant par appelant):
+  //   · plan.cooking.day_before_label
+  //   · plan.cooking.day_before_hint
+  //   · plan.cooking.day_before_starts_today
+  //   · plan.cooking.day_before_no_room
+  // ── chantier-0903/CUISINE — fin ──
 
 } as const

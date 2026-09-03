@@ -636,6 +636,21 @@ export interface GeneratedMealResult {
   fixedIntakes: PlanFixedIntake[];
   dayProperties: PlanDayProperty[];
   /**
+   * ═══════════════════════════════════════════════════════════════════════
+   * A1 (2026-09-03) — QUAND LA CUISINE A LIEU, TRANCHÉ PAR LE SERVEUR.
+   * ═══════════════════════════════════════════════════════════════════════
+   *
+   * `null` = la ligne est plus vieille que ce lot, ou la réponse ne le porte
+   * pas. L'écran se tait alors, exactement comme avant.
+   *
+   * ⛔ IL NE SE RECALCULE PAS ICI, ET C'EST LA MOITIÉ DU LOT. Le verdict a
+   * besoin de l'HEURE dans le fuseau de la personne; le navigateur ne l'a pas
+   * (`local_date.ts` refuse tout repli UTC, un `new Date().getHours()` est
+   * interdit dans ce dépôt), et un écran qui le devinerait annoncerait une
+   * soirée de cuisine à quelqu'un dont les magasins sont fermés.
+   */
+  timing: PlanTimingView | null;
+  /**
    * LE CONTEXTE QUI A PRODUIT CETTE COMPOSITION, tel qu'il a été demandé.
    *
    * Il est renvoyé pour être REPROPOSÉ: « cantine le midi », « je m'entraîne
@@ -750,19 +765,13 @@ export interface GenerateMealInput {
    * requête est écrit par le réseau, pas par l'écran.
    */
   oneCookingSession: boolean;
-  /**
-   * « JE CUISINE LA VEILLE » — 2026-09-01.
-   *
-   * ⚠️ REQUIS, jamais `?`. Même arbitrage que `oneCookingSession` juste
-   * au-dessus: un champ facultatif n'aurait fait remonter AUCUN appelant au
-   * compilateur, et la case serait construite sans être transmise.
-   *
-   * ⛔ LE SERVEUR TRANCHE LA FAISABILITÉ (`withCookDayBefore`), et il le DIT
-   * quand il refuse. L'écran pose la même porte pour ne pas PROPOSER un geste
-   * qui sera refusé — le corps de la requête est écrit par le réseau, pas par
-   * l'écran.
-   */
-  cookTheDayBefore: boolean;
+  // ⟳ A1 (2026-09-03) — `cookTheDayBefore` A ÉTÉ RETIRÉ D'ICI, ET DU CORPS.
+  // La veille n'est plus une case: `generate-meal-v1` et
+  // `generate-household-meal-v1` la DÉRIVENT (`leadDayFor`) de la date de
+  // départ et de l'heure locale, coupure à 18 h. Le navigateur ne connaît pas
+  // l'heure (`local_date.ts` refuse tout repli UTC) — il ne peut donc pas
+  // reproduire ce verdict, et il ne doit pas essayer. Ce que le serveur rend en
+  // échange est `timing` (`{kind, reason, lead_day}`), que l'écran RÉPÈTE.
 }
 
 /**
@@ -797,7 +806,6 @@ export async function generateMeal(
       // `body.one_cooking_session === true`; toute autre orthographe ici serait
       // une option cochée qui ne part nulle part, et rien ne le dirait.
       one_cooking_session: input.oneCookingSession,
-      cook_the_day_before: input.cookTheDayBefore,
     },
   });
   if (error) {
@@ -841,6 +849,10 @@ export async function generateMeal(
     shoppingList: readShopping(shopping),
     fixedIntakes: readFixedIntakes(payload.fixed_intakes),
     dayProperties: readDayProperties(payload.day_properties),
+    // A1 — la réponse le porte à la RACINE (`timing`), la ligne dans
+    // `generated_from`: c'est la MÊME expression serveur, écrite aux deux
+    // endroits par le même `const`.
+    timing: readPlanTiming(payload.timing),
     // `generate-meal-v1` ne compose QUE des plans personnels (D2: le plan du
     // maître EST le plan du foyer, et il se compose depuis l'écran du foyer).
     // Écrit en dur plutôt que lu dans la réponse: la fonction ne rend pas la
@@ -1314,6 +1326,45 @@ export const MEAL_COLUMNS =
  * ancienne portait implicitement — et le backfill de la migration a écrit ce
  * même sept sur toutes les lignes historiques, donc les deux s'accordent.
  */
+/**
+ * A1 — CE QUE LE SERVEUR DIT DU TIMING D'UN PLAN.
+ *
+ *   · `day_before`   — la fenêtre a reculé d'un jour; `leadDay` porte la date
+ *                      de ce jour de cuisine, où rien ne se mange;
+ *   · `same_morning` — pas de veille. L'écran rend l'avertissement.
+ *
+ * `reason` est le motif du serveur (`day_before`, `before_cutoff_today`,
+ * `after_cutoff`, `starts_today`, `clock_unreadable`, `no_room`,
+ * `in_the_past`). Il est GARDÉ mais l'écran n'en rend AUCUNE variante: la
+ * phrase complète vit dans `plan_rationale`, côté serveur, et un second jeu de
+ * gabarits ici divergerait au premier ajustement.
+ */
+export interface PlanTimingView {
+  kind: "day_before" | "same_morning";
+  reason: string;
+  leadDay: string | null;
+}
+
+/**
+ * LE TIMING, LU D'UN OBJET BRUT. PURE.
+ *
+ * ⚠️ `kind` EST VÉRIFIÉ CONTRE UNE LISTE FERMÉE. Une valeur hors vocabulaire
+ * rend `null` — donc « on ne dit rien » — et surtout pas `same_morning` par
+ * défaut: l'avertissement « dès le matin » sur un plan qui a bien reculé d'un
+ * jour est un fait FAUX, et il est indémentable pour qui le lit.
+ */
+export function readPlanTiming(raw: unknown): PlanTimingView | null {
+  const t = (raw ?? {}) as Record<string, unknown>;
+  const kind = String(t.kind ?? "");
+  if (kind !== "day_before" && kind !== "same_morning") return null;
+  const leadDay = String(t.lead_day ?? "").trim();
+  return {
+    kind,
+    reason: String(t.reason ?? ""),
+    leadDay: /^\d{4}-\d{2}-\d{2}$/.test(leadDay) ? leadDay : null,
+  };
+}
+
 export function readMealRow(raw: unknown): GeneratedMealResult {
   const row = (raw ?? {}) as Record<string, unknown>;
   return {
@@ -1328,6 +1379,12 @@ export function readMealRow(raw: unknown): GeneratedMealResult {
     // qui est exactement ce qui était vrai pour ce plan-là.
     fixedIntakes: readFixedIntakes(
       ((row.generated_from ?? {}) as Record<string, unknown>).fixed_intakes,
+    ),
+    // A1 — écrit par la RPC sur la ligne, pour la même raison que les deux
+    // lectures figées au-dessus: un plan relu demain doit encore savoir
+    // pourquoi il commence un jour plus tôt.
+    timing: readPlanTiming(
+      ((row.generated_from ?? {}) as Record<string, unknown>).timing,
     ),
     dayProperties: readDayProperties(
       ((row.generated_from ?? {}) as Record<string, unknown>).day_properties,

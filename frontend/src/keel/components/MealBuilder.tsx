@@ -53,7 +53,6 @@ import { type CookingShape } from "../api/cookingShape";
 import CookingShapeField from "./CookingShapeField";
 // « TOUT DANS UNE SESSION DE CUISINE » — la case, et la porte qui la conditionne.
 import OneCookingSessionField from "./OneCookingSessionField";
-import CookDayBeforeField from "./CookDayBeforeField";
 import KitchenEquipmentCard from "./KitchenEquipmentCard";
 import {
   hasFreezerDeclared,
@@ -494,7 +493,6 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
    * ⚠️ IL NE SE PRÉ-REMPLIT PAS non plus: c'est un arbitrage de CETTE
    * semaine-ci (« ce dimanche-là je suis chez moi »), pas un fait durable.
    */
-  const [cookTheDayBefore, setCookTheDayBefore] = React.useState(false);
   /**
    * LA COLONNE `practical_constraints`, TELLE QU'ELLE ÉTAIT AU CHARGEMENT.
    *
@@ -856,7 +854,6 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
           // pour de bon, par le serveur. La recopier ici en ferait une
           // troisième expression de la même règle.
           oneCookingSession,
-          cookTheDayBefore,
           // ── LOT D · L'ENVIE PART AUSSI QUAND LE MAÎTRE COMPOSE ──────────
           // Le champ « ce dont ils ont envie pour ces repas » est rendu SANS
           // garde de lane (plus bas): un maître de foyer le voit et le
@@ -916,7 +913,6 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
         // CONSERVATION: elle se pose exactement pareil à quelqu'un qui mange
         // seul.
         oneCookingSession,
-        cookTheDayBefore,
       });
       // On RELIT plutôt que de poser la réponse à la place du plan affiché: une
       // génération peut avoir TRONQUÉ l'autre plan, et seule une relecture rend
@@ -1137,16 +1133,6 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                     « Je cuisine la veille » RECULE le premier jour du champ
                     juste au-dessus: les séparer ferait lire un décalage de date
                     sans le geste qui le cause. */}
-                <CookDayBeforeField
-                  id="meals-cook-day-before"
-                  value={cookTheDayBefore}
-                  onChange={setCookTheDayBefore}
-                  disabled={building}
-                  startsOn={windowStart}
-                  durationDays={askedDays.tokens.length}
-                  today={browserLocalDate()}
-                />
-
                 <OneCookingSessionField
                   id="meals-one-cooking-session"
                   value={oneCookingSession}
@@ -1751,6 +1737,11 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
             )
             : (
               <PlanResult
+                // ⟳ A1 (2026-09-03) — LE TIMING, DIT PAR LE SERVEUR. Il vit
+                // sur la ligne (`generated_from.timing`) et à la racine de la
+                // réponse; l'écran le RÉPÈTE et ne le recalcule jamais — le
+                // navigateur ne connaît pas l'heure.
+                timing={result?.timing ?? null}
                 dishes={result?.dishes ?? []}
                 preparations={result?.preparations ?? []}
                 cookingSessions={result?.cookingSessions ?? []}

@@ -370,7 +370,7 @@ Deno.test("AUCUN gabarit ne culpabilise — la porte 4 ne doit jamais mordre", (
     // ALLUMÉE AUSSI: « le plan commence dimanche, un jour plus tôt » est un
     // fait de calendrier, donc parmi les phrases les plus faciles à tourner en
     // reproche si on la réécrit un jour. La porte 4 doit la relire.
-    cookDayBefore: { day: "sun", refused: null },
+    cookDayBefore: { day: "sun", refused: null, reason: "day_before" },
     // ALLUMÉS AUSSI: deux courses, et un jour dont le frais ne peut pas venir
     // de la première. Les deux phrases doivent passer la porte 4.
     shoppingDays: ["sun", "wed"],
@@ -1364,7 +1364,7 @@ Deno.test("case décochée ⇒ AUCUNE phrase de veille", () => {
 Deno.test("veille accordée ⇒ elle NOMME le jour et dit que rien ne s'y mange", () => {
   for (const locale of ["fr", "en"] as const) {
     const joined = explainPlanChoices({
-      facts: { ...nominalFacts(), cookDayBefore: { day: "sun", refused: null } },
+      facts: { ...nominalFacts(), cookDayBefore: { day: "sun", refused: null, reason: "day_before" } },
       locale,
     }).lines.join(" ");
     assertStringIncludes(joined, locale === "fr" ? "dimanche" : "Sunday");
@@ -1387,14 +1387,14 @@ Deno.test("les DEUX refus sortent, et ce ne sont pas les mêmes mots", () => {
     const past = explainPlanChoices({
       facts: {
         ...nominalFacts(),
-        cookDayBefore: { day: null, refused: "in_the_past" },
+        cookDayBefore: { day: null, refused: "in_the_past", reason: "in_the_past" },
       },
       locale,
     }).lines.join(" ");
     const room = explainPlanChoices({
       facts: {
         ...nominalFacts(),
-        cookDayBefore: { day: null, refused: "no_room" },
+        cookDayBefore: { day: null, refused: "no_room", reason: "no_room" },
       },
       locale,
     }).lines.join(" ");
@@ -1415,7 +1415,7 @@ Deno.test("la veille se lit AVANT la session unique", () => {
   const lines = explainPlanChoices({
     facts: {
       ...nominalFacts(),
-      cookDayBefore: { day: "sun", refused: null },
+      cookDayBefore: { day: "sun", refused: null, reason: "day_before" },
       oneCookingSession: { day: "sun", refusedNoFreezer: false },
     },
     locale: "fr",
@@ -1546,5 +1546,93 @@ Deno.test("les phrases de courses passent la garde des majuscules", () => {
         );
       }
     }
+  }
+});
+
+// ---------------------------------------------------------------------------
+// A1 (chantier-0903/CUISINE, 2026-09-03) — LA VEILLE DÉRIVÉE PARLE, TOUJOURS
+// ---------------------------------------------------------------------------
+//
+// La veille n'est plus une case. Deux phrases neuves, et elles ne sont pas
+// interchangeables: « ce soir » dit qu'il faut se mettre en cuisine dans les
+// heures qui viennent; « dès le matin » dit qu'il n'y a plus de veille du tout
+// et que le premier jour se joue avant midi. Rang 2 (SYNTHESE §6): rien de
+// dérivé ne part sans une ligne de `plan_rationale`.
+
+Deno.test("A1 — la veille est CE SOIR: la phrase le dit, dans les deux langues", () => {
+  for (const locale of ["fr", "en"] as const) {
+    const joined = explainPlanChoices({
+      facts: {
+        ...nominalFacts(),
+        cookDayBefore: { day: "sun", refused: null, reason: "before_cutoff_today" },
+      },
+      locale,
+    }).lines.join(" ");
+    assertStringIncludes(joined, locale === "fr" ? "ce soir" : "tonight");
+    assertStringIncludes(joined, locale === "fr" ? "dimanche" : "Sunday");
+    // Et elle garde les deux moitiés de l'autre phrase: le plan commence plus
+    // tôt, et rien ne se mange ce jour-là.
+    assertStringIncludes(joined, locale === "fr" ? "un jour plus tôt" : "a day earlier");
+  }
+});
+
+Deno.test("A1 — « ce soir » et « un jour plus tôt » ne sont PAS la même phrase", () => {
+  // ⛔ MUTATION-RÉSISTANT: si le rendu retombe sur `cookDayBeforeGranted` pour
+  // les deux motifs, ce test tombe. C'est lui qui arme le ternaire.
+  for (const locale of ["fr", "en"] as const) {
+    const tonight = explainPlanChoices({
+      facts: {
+        ...nominalFacts(),
+        cookDayBefore: { day: "sun", refused: null, reason: "before_cutoff_today" },
+      },
+      locale,
+    }).lines.join(" ");
+    const laterDay = explainPlanChoices({
+      facts: {
+        ...nominalFacts(),
+        cookDayBefore: { day: "sun", refused: null, reason: "day_before" },
+      },
+      locale,
+    }).lines.join(" ");
+    assert(tonight !== laterDay, `${locale}: les deux veilles disent la même chose`);
+    // Et la veille d'un jour à venir ne parle SURTOUT pas de ce soir.
+    assert(
+      !laterDay.includes("ce soir") && !laterDay.includes("tonight"),
+      `${locale}: une veille future annonce une soirée`,
+    );
+  }
+});
+
+Deno.test("A1 — pas de veille ⇒ « dès le matin », et jamais un jour de cuisine", () => {
+  for (const locale of ["fr", "en"] as const) {
+    for (const reason of ["after_cutoff", "starts_today", "clock_unreadable"]) {
+      const joined = explainPlanChoices({
+        facts: {
+          ...nominalFacts(),
+          cookDayBefore: { day: null, refused: null, reason },
+        },
+        locale,
+      }).lines.join(" ");
+      assertStringIncludes(joined, locale === "fr" ? "dès le matin" : "first thing in the morning");
+      // ⛔ AUCUN JOUR ANNONCÉ. « un jour plus tôt » sur un plan qui n'a pas
+      // reculé enverrait chercher une journée qui n'est dans aucun plan.
+      assert(
+        !joined.includes("un jour plus tôt") && !joined.includes("a day earlier"),
+        `${locale}/${reason}: annonce un jour de cuisine qui n'existe pas`,
+      );
+    }
+  }
+});
+
+Deno.test("A1 — un appelant qui ne dérive RIEN reste muet", () => {
+  // La fusion ne dérive pas de veille: elle passe `cookDayBefore: null` et
+  // l'explication d'un plan ordinaire ne bouge pas d'un caractère.
+  for (const locale of ["fr", "en"] as const) {
+    const joined = explainPlanChoices({
+      facts: { ...nominalFacts(), cookDayBefore: null },
+      locale,
+    }).lines.join(" ");
+    assert(!joined.includes("dès le matin") && !joined.includes("first thing"));
+    assert(!joined.includes("ce soir") && !joined.includes("tonight"));
   }
 });

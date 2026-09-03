@@ -249,7 +249,24 @@ export interface PlanRationaleFacts {
    * nomme pas une date qui n'existe dans aucun plan.
    */
   cookDayBefore:
-    | { readonly day: DayToken | null; readonly refused: string | null }
+    | {
+      readonly day: DayToken | null;
+      readonly refused: string | null;
+      /**
+       * ⟳ A1 (2026-09-03) — POURQUOI CE TIMING-LÀ, et c'est ce qui rend la
+       * phrase possible depuis que la veille est DÉRIVÉE.
+       *
+       * Cinq motifs de calendrier et d'horloge (`LeadDayReason`) plus les deux
+       * refus de fenêtre. Le fait n'est plus `null` sur un plan ordinaire: la
+       * veille n'est plus une case, donc l'expliquer n'est plus optionnel —
+       * un plan qui commence un jour plus tôt sans un mot est un plan dont la
+       * personne croit avoir perdu un jour de repas.
+       *
+       * ⚠️ `null` reste possible pour un appelant qui ne dérive rien (la
+       * fusion): aucune ligne ne sort alors, comme avant.
+       */
+      readonly reason: string | null;
+    }
     | null;
   /**
    * ═════════════════════════════════════════════════════════════════════════
@@ -521,6 +538,19 @@ const COPY = {
     cookDayBeforeInThePast: () =>
       `Cuisiner la veille aurait fait commencer le plan hier. Il part de son ` +
       `premier jour, et la cuisine s'y fait.`,
+    // ⟳ A1 — LA VEILLE EST CE SOIR. Le plan commence demain et il reste du
+    // temps avant la fermeture des magasins: dire « un jour plus tôt » sans
+    // dire « ce soir » ferait chercher un jour de cuisine dans le futur alors
+    // qu'il est aujourd'hui.
+    cookDayBeforeTonight: (day: string) =>
+      `Tout est cuisiné ce soir, ${day} : le plan commence un jour plus tôt, ` +
+      `et rien ne se mange ce jour-là.`,
+    // ⟳ A1 — L'AVERTISSEMENT. Pas de veille possible: il est trop tard ce
+    // soir, ou le plan commence aujourd'hui. La phrase dit ce qu'il FAUT
+    // faire, pas ce qui a échoué — c'est un plan qui marche, à condition de
+    // s'y mettre tôt.
+    cookSameMorning: () =>
+      `Courses et cuisson dès le matin, pour être prêt à midi.`,
     // ── LES COURSES ──────────────────────────────────────────────────────
     // ⚠️ LE SINGULIER ET LE PLURIEL NE DISENT PAS LA MÊME CHOSE. Une seule
     // course est une BONNE nouvelle qu'il faut annoncer comme telle (« tout
@@ -696,6 +726,12 @@ const COPY = {
     cookDayBeforeInThePast: () =>
       `Cooking the day before would have started the plan yesterday. It ` +
       `starts on its first day, and the cooking happens there.`,
+    cookDayBeforeTonight: (day: string) =>
+      `Everything is cooked tonight, ${day}: the plan starts a day earlier, ` +
+      `and nothing is eaten on that day.`,
+    cookSameMorning: () =>
+      `Shopping and cooking first thing in the morning, so it is ready by ` +
+      `lunch.`,
     shoppingOnce: (day: string) =>
       `One shop, on ${day}: everything this plan asks for keeps until it is ` +
       `cooked.`,
@@ -991,7 +1027,20 @@ export function explainPlanChoices(input: {
     } else if (dayBefore.refused === "in_the_past") {
       lines.push(copy.cookDayBeforeInThePast());
     } else if (dayBefore.day) {
-      lines.push(copy.cookDayBeforeGranted(renderDays([dayBefore.day], input.locale)));
+      // ⟳ A1 — DEUX PHRASES POUR UN MÊME JOUR ACCORDÉ. `before_cutoff_today`
+      // veut dire que la veille est AUJOURD'HUI: « ce soir » est l'information,
+      // et « un jour plus tôt » seul enverrait chercher une soirée qui n'existe
+      // pas. Tous les autres motifs nomment un jour à venir.
+      lines.push(
+        dayBefore.reason === "before_cutoff_today"
+          ? copy.cookDayBeforeTonight(renderDays([dayBefore.day], input.locale))
+          : copy.cookDayBeforeGranted(renderDays([dayBefore.day], input.locale)),
+      );
+    } else if (dayBefore.reason !== null) {
+      // ⟳ A1 — L'AVERTISSEMENT « DÈS LE MATIN ». Il ne sort QUE sur une veille
+      // dérivée et écartée (`after_cutoff`, `starts_today`, `clock_unreadable`);
+      // un appelant qui ne dérive rien passe `reason: null` et reste muet.
+      lines.push(copy.cookSameMorning());
     }
   }
 

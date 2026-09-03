@@ -262,6 +262,109 @@ export function firstWindowDayIsCookable(input: {
   return cookingAskedToday({ hourNow: input.hourNow });
 }
 
+// ---------------------------------------------------------------------------
+// LA VEILLE — DÉRIVÉE, PLUS JAMAIS COCHÉE (chantier-0903/CUISINE, A1, P1)
+// ---------------------------------------------------------------------------
+
+/**
+ * QUAND ON CUISINE PAR RAPPORT AU PREMIER REPAS.
+ *
+ *   · `day_before`   — courses et cuisson LA VEILLE du premier jour mangé;
+ *   · `same_morning` — courses et cuisson DÈS LE MATIN du premier jour, pour
+ *                      être prêt à midi. C'est l'avertissement, et il se rend.
+ */
+export type LeadTiming = "day_before" | "same_morning";
+
+/**
+ * POURQUOI ce timing-là. Chaque valeur est une phrase de `plan_rationale`.
+ *
+ *   · `day_before`          — le plan commence dans deux jours ou plus: la
+ *                             veille est un jour plein, l'heure n'y change rien;
+ *   · `before_cutoff_today` — le plan commence DEMAIN et il n'est pas encore
+ *                             `SHOPPING_CUTOFF_HOUR`: la veille, c'est ce soir;
+ *   · `after_cutoff`        — le plan commence demain, il est trop tard ce
+ *                             soir pour les courses: dès le matin;
+ *   · `starts_today`        — le plan commence aujourd'hui: la veille est hier;
+ *   · `clock_unreadable`    — le plan commence demain et l'horloge n'a pas été
+ *                             lue: on ne DEVINE pas qu'il est avant 18 h.
+ */
+export type LeadDayReason =
+  | "day_before"
+  | "before_cutoff_today"
+  | "after_cutoff"
+  | "starts_today"
+  | "clock_unreadable";
+
+export interface LeadDayVerdict {
+  /** La date de la veille (`YYYY-MM-DD`), ou `null` = pas de veille. */
+  leadDay: string | null;
+  timing: LeadTiming;
+  reason: LeadDayReason;
+}
+
+/**
+ * LA VEILLE, DÉRIVÉE DE LA DATE ET DE L'HEURE — plus jamais d'une case.
+ *
+ * ── CE QUE ÇA REMPLACE ────────────────────────────────────────────────────
+ * Jusqu'au 2026-09-03, « je cuisine la veille » était une case
+ * (`CookDayBeforeField`), cochée par la personne, envoyée dans le corps HTTP
+ * (`cook_the_day_before`). La règle produit du 03/09 (P1): les courses et la
+ * cuisson se font LA VEILLE, automatiquement, avec une coupure à 18 h — et
+ * quand la veille n'est plus possible, on le DIT (« dès le matin »).
+ *
+ * ── LA TABLE, TELLE QUE L'ANALYSE §1.2 L'A ÉCRITE ─────────────────────────
+ *
+ *   startsOn ≥ today + 2                → leadDay = startsOn − 1   day_before
+ *   startsOn = today + 1, hourNow < 18  → leadDay = today          day_before
+ *   startsOn = today + 1, hourNow ≥ 18  → leadDay = null           same_morning
+ *   startsOn = today                    → leadDay = null           same_morning
+ *   startsOn = today + 1, hourNow null  → leadDay = null           same_morning
+ *                                         (`clock_unreadable` — JAMAIS deviné)
+ *
+ * ⛔ L'HEURE NE DÉCIDE QUE QUAND LA VEILLE SERAIT AUJOURD'HUI. Un plan qui
+ * commence dans deux jours a une veille pleine quelle que soit l'heure; un plan
+ * qui commence aujourd'hui n'en a aucune quelle que soit l'heure. Entre les
+ * deux, c'est l'horloge — et une horloge illisible n'est pas « minuit »: on
+ * rend le produit d'hier (pas de veille) et on le nomme.
+ *
+ * ⚠️ `today` est PASSÉ, jamais lu ici; le fuseau est celui du compositeur
+ * (décision D1.4). `startsOn < today` est un contrat violé par l'appelant —
+ * `resolveRequestedWindow` refuse déjà un départ passé — et JETTE.
+ *
+ * PURE: no I/O, no clock.
+ */
+export function leadDayFor(input: {
+  startsOn: string;
+  today: string;
+  hourNow: number | null;
+}): LeadDayVerdict {
+  assertHourNow(input, "leadDayFor");
+  const startsOn = String(input.startsOn ?? "").trim();
+  const today = String(input.today ?? "").trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(startsOn) || !/^\d{4}-\d{2}-\d{2}$/.test(today)) {
+    throw new Error("[keel/plan_hours] leadDayFor: startsOn et today sont REQUIS (YYYY-MM-DD)");
+  }
+  if (startsOn < today) {
+    throw new Error(`[keel/plan_hours] leadDayFor: le plan commence dans le passé (${startsOn} < ${today})`);
+  }
+  if (startsOn === today) {
+    return { leadDay: null, timing: "same_morning", reason: "starts_today" };
+  }
+  const tomorrow = addDays(today, 1);
+  if (startsOn > tomorrow) {
+    return { leadDay: addDays(startsOn, -1), timing: "day_before", reason: "day_before" };
+  }
+  // startsOn === tomorrow: la veille serait AUJOURD'HUI, et seule l'heure sait
+  // s'il reste le temps de faire les courses et de cuisiner ce soir.
+  if (input.hourNow === null) {
+    return { leadDay: null, timing: "same_morning", reason: "clock_unreadable" };
+  }
+  if (input.hourNow < SHOPPING_CUTOFF_HOUR) {
+    return { leadDay: today, timing: "day_before", reason: "before_cutoff_today" };
+  }
+  return { leadDay: null, timing: "same_morning", reason: "after_cutoff" };
+}
+
 /**
  * ⚠️ LA MOITIÉ « EXÉCUTION » DE LA GARDE DE §4.0.
  *

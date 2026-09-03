@@ -426,6 +426,21 @@ export interface MealPdfInput {
    */
   buyDateLabels: Readonly<Record<string, string>>;
   /**
+   * A1 (2026-09-03) — LA PHRASE DU TIMING, DÉJÀ ÉCRITE DANS LA LANGUE DU
+   * DOCUMENT. `null` = le plan est plus vieux que ce lot, et la feuille sort
+   * exactement comme avant, au caractère près.
+   *
+   * ⛔ FORMATÉE PAR L'APPELANT, comme `dateLabel` et `buyDateLabels`. Ce module
+   * RENDU, il ne met pas en forme: y calculer le timing lui ferait relire
+   * `starts_on`, `lead_days` et une horloge qu'il n'a pas.
+   *
+   * ⚠️ ET C'EST LA FEUILLE QU'ON EMPORTE. Une liste de courses datée du jour
+   * de cuisine, sans dire QUE c'est le jour de cuisine, se lit comme une
+   * erreur de date — c'est le même défaut que « une liste sans jour se lit
+   * achète tout maintenant », un cran plus loin.
+   */
+  timingLine: string | null;
+  /**
    * La langue du DOCUMENT (`resolveArtifactLocale`). REQUISE.
    *
    * Ce champ n'existait pas. Les plats, eux, arrivaient déjà traduits — le
@@ -494,6 +509,11 @@ export async function buildMealPdf(input: MealPdfInput): Promise<Uint8Array> {
     input.firstName ? `${input.firstName} · ${input.dateLabel}` : input.dateLabel,
     { size: 10, colour: faded, gap: 6 },
   );
+  // A1 — SOUS LA DATE ET AVANT LE CONTEXTE. La séquence de lecture est « voici
+  // ta feuille, voici QUAND ça se passe, voici la semaine dont tu parlais ».
+  if (input.timingLine) {
+    write(input.timingLine, { size: 10, colour: faded, gap: input.context ? 6 : 10 });
+  }
   if (input.context) {
     // Le contexte est rappelé pour que l'élève reconnaisse SA semaine sur la
     // feuille — c'est ce qui distingue ce document d'une liste générique.
