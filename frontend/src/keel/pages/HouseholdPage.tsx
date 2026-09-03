@@ -87,8 +87,10 @@ import {
 } from "../api/mouthProfile";
 import {
   ageStateOfTypedDate,
+  blockList,
   draftFromKnown,
   emptyMouthDraft,
+  filledPreferenceBlocks,
   type KnownMouth,
   knownMouthForOwner,
   type MouthFormDraft,
@@ -256,8 +258,19 @@ export default function HouseholdPage(): React.ReactElement {
    * Une carte VIDE ne veut donc pas dire « personne n'a de corps »: pour un
    * membre, elle veut dire « ce n'est pas ton affaire ». C'est pour ça que le
    * bloc de saisie ne s'affiche que dans la vue du maître.
+   *
+   * ⟳ A5, 2026-09-03 — `null` = LA LECTURE N'A PAS EU LIEU. Cet état partait
+   * de `new Map()`, et les deux faits étaient donc INDISTINGUABLES: « pas
+   * encore lu » et « lu, personne n'a de corps ». `BodyFields` fige ses trois
+   * champs AU MONTAGE (`useState(body ? … : "")`), et le panneau d'une ligne
+   * se monte au clic — donc une ligne ouverte avant que la lecture revienne
+   * affichait trois champs vides sur une bouche renseignée. C'est la cicatrice
+   * `mount-snapshot-forms-need-a-loading-gate`, et le cadre « Informations
+   * personnelles » ne se rend plus tant que cette lecture est `null`.
    */
-  const [bodies, setBodies] = React.useState<Map<string, MemberBodyView>>(new Map());
+  const [bodies, setBodies] = React.useState<
+    Map<string, MemberBodyView> | null
+  >(null);
   /**
    * CE QUE CHAQUE BOUCHE MANGE D'HABITUDE (2026-08-14).
    *
@@ -515,7 +528,10 @@ export default function HouseholdPage(): React.ReactElement {
     isOwner,
     displayName: me.displayName,
     ownMouth,
-    body: bodies.get(me.memberId) ?? null,
+    // `?? null` — la lecture peut n'avoir pas eu lieu (`bodies === null`);
+    // `MeCard` traite déjà « pas de corps » et « pas lu » de la même façon ici,
+    // parce que sa fiche est gardée par `meKnown`, une autre lecture.
+    body: bodies?.get(me.memberId) ?? null,
     // ⚠️ `null` TRAVERSE, ET C'EST LE SUJET. `habits` vaut `null` tant que la
     // lecture n'a pas eu lieu (ou a échoué); l'aplatir en `[]` ici dirait « lu,
     // et elle n'en a aucune », et la fenêtre s'ouvrirait sur du vide qu'elle
@@ -766,7 +782,7 @@ export default function HouseholdPage(): React.ReactElement {
                       h,
                       w,
                       g,
-                      bodies.get(memberId)?.activityLevel ?? null,
+                      bodies?.get(memberId)?.activityLevel ?? null,
                       // ── ② ET ① — CETTE RANGÉE POSE VRAIMENT LES CINQ
                       // QUESTIONS (2026-08-20) ────────────────────────────────
                       // C'est le SEUL chemin d'écriture d'une bouche déjà
@@ -1472,8 +1488,12 @@ function MembersCard(
      * Les corps saisis, par `member_id`. VIDE pour un non-maître, et pas parce
      * que l'écran le décide: `keel_household_member_bodies` lui rend zéro
      * ligne. La table n'a aucun grant à `authenticated`.
+     *
+     * ⟳ A5 — `null` = LA LECTURE N'A PAS EU LIEU, et ce n'est PAS « vide ».
+     * `BodyFields` fige ses champs au montage: le cadre « Informations
+     * personnelles » ne se rend pas tant que c'est `null`.
      */
-    bodies: Map<string, MemberBodyView>;
+    bodies: Map<string, MemberBodyView> | null;
     onSaveBody: (
       memberId: string,
       heightCm: number,
@@ -1569,7 +1589,10 @@ function MembersCard(
             // `null` = rien de saisi POUR CETTE BOUCHE. La carte des corps est
             // vide pour un non-maître (la RPC lui rend zéro ligne), donc ce
             // bloc ne s'affiche que là où il est légitime.
-            body={bodies.get(m.memberId) ?? null}
+            body={bodies?.get(m.memberId) ?? null}
+            // LA LECTURE DES CORPS, SÉPARÉE DE SON CONTENU — même partage que
+            // `habitsLoaded` juste en dessous, et pour la même raison.
+            bodiesLoaded={bodies !== null}
             // DEUX `null` QUI NE VEULENT PAS DIRE LA MÊME CHOSE, et c'est le
             // piège du lot. `habitsLoaded` faux = LA LECTURE N'A PAS EU LIEU.
             // `habits` nul avec `habitsLoaded` vrai = LA LECTURE A EU LIEU et
@@ -1830,8 +1853,95 @@ function MemberBadges({ member }: { member: HouseholdMemberView }) {
   );
 }
 
+/**
+ * UN CADRE NOMMÉ DE LA FICHE — A5 (D5.1), 2026-09-03.
+ *
+ * ── ⛔ CE N'EST PAS UNE PRIMITIVE `Accordion`, ET C'EST DÉLIBÉRÉ ────────────
+ * La charte interdit une primitive `Tabs`/`Accordion` neuve avant un TROISIÈME
+ * usage. Il y en a deux ici (les deux cadres d'une ligne). Ce composant reste
+ * donc LOCAL à cet écran: le jour où la pop-up d'ajout porte le sien (point 3
+ * du mandat), les trois se comptent et la primitive se sort — pas avant, parce
+ * qu'une abstraction tirée de deux cas fige le mauvais dénominateur.
+ *
+ * ── LES TROIS CHOSES QU'IL FAIT, ET CHACUNE RÉPOND À UN DÉFAUT MESURÉ ──────
+ *   ① IL SE REPLIE, mais il s'ouvre PAR DÉFAUT. Le repli avait été retiré le
+ *      2026-08-19 (« il faut arrêter avec le dépliable ») sur trois motifs;
+ *      celui qui tenait vraiment est « une réponse repliée est une réponse
+ *      invisible ». Ouvert par défaut, il ne cache rien; refermé À LA MAIN, il
+ *      est refermé par quelqu'un qui vient de lire.
+ *   ② IL RÉSUME CE QU'IL CACHE. C'est ce qui répond au motif ci-dessus, et
+ *      c'est la seule chose qui rende le repli acceptable: le résumé reste à
+ *      l'écran quand le contenu n'y est plus.
+ *   ③ IL A UNE GARDE DE CHARGEMENT. `loaded` faux ⇒ AUCUN champ, une phrase.
+ *      Les formulaires de cette page figent leurs champs au montage et
+ *      REMPLACENT à l'enregistrement: un cadre monté sur une lecture non faite
+ *      affiche du vide non lu, puis l'écrit. Le paramètre est REQUIS — jamais
+ *      optionnel: une garde facultative est une garde désarmée.
+ *
+ * ⚠️ ET IL DÉMONTE SON CONTENU QUAND IL EST REPLIÉ, exprès: les champs d'ici
+ * sont figés au montage, donc les remonter à l'ouverture est ce qui les fait
+ * repartir de la lecture FRAÎCHE plutôt que de celle du premier rendu. C'est
+ * l'inverse du choix fait pour `Modal` (qui rend `null` sans démonter, pour
+ * qu'une grille en cours de saisie survive à une fermeture accidentelle), et
+ * l'inverse est juste ici: on ne saisit rien dans un cadre replié.
+ */
+/**
+ * ⚠️ EXPORTÉ POUR ÊTRE PROUVÉ, pas pour être réutilisé ailleurs. `HouseholdPage`
+ * entier ne se monte pas sous `renderToStaticMarkup` (session, routeur, quatre
+ * lectures), et ce qui doit être mesuré ici est le CADRE: sa garde de
+ * chargement, son récapitulatif replié, et le fait qu'il démonte son contenu.
+ * Voir `pages/memberSheetFrames.int.test.ts`.
+ */
+export function SheetFrame(
+  { title, hint, open, onToggle, loaded, summary, children }: {
+    title: string;
+    hint?: string;
+    open: boolean;
+    onToggle: () => void;
+    /** Faux = la lecture n'a pas eu lieu. REQUIS — voir ③. */
+    loaded: boolean;
+    /** Ce que le cadre cache, dit quand il est replié. */
+    summary?: string;
+    children: React.ReactNode;
+  },
+) {
+  return (
+    <section className="rounded-card border border-line bg-paper p-3">
+      <button
+        type="button"
+        className="flex w-full items-center justify-between gap-3 text-left"
+        aria-expanded={open}
+        onClick={onToggle}
+      >
+        <SectionLabel>{title}</SectionLabel>
+        {/* LE CHEVRON EST UN CARACTÈRE, PAS UNE IMAGE: il tourne avec l'état,
+            et `aria-expanded` au-dessus porte le fait pour qui ne le voit pas.
+            `aria-hidden`, parce qu'il répète ce que l'état dit déjà. */}
+        <span aria-hidden className="text-ink-soft">{open ? "▾" : "▸"}</span>
+      </button>
+      {hint !== undefined && open
+        ? <p className="mt-1 text-xs leading-5 text-ink-soft">{hint}</p>
+        : null}
+      {open
+        ? (
+          !loaded
+            // ⛔ AUCUN CHAMP TANT QUE LA LECTURE N'EST PAS REVENUE. Voir ③.
+            ? (
+              <p className="mt-2 text-sm text-ink-soft">
+                {t("household.mouth.frame_loading")}
+              </p>
+            )
+            : <div className="mt-3 flex flex-col gap-3">{children}</div>
+        )
+        : summary !== undefined
+        ? <p className="mt-1 text-xs leading-5 text-ink-soft">{summary}</p>
+        : null}
+    </section>
+  );
+}
+
 function MemberRow(
-  { member, isMe, allergies, restrictions, busy, muted, rhythm, awayWindow, body, habits, habitsLoaded, workLunch, workLunchError, onSaveWorkLunch, onSaveHabits, onSaveDiet, onSaveBody, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction, todayLocalIso }: {
+  { member, isMe, allergies, restrictions, busy, muted, rhythm, awayWindow, body, bodiesLoaded, habits, habitsLoaded, workLunch, workLunchError, onSaveWorkLunch, onSaveHabits, onSaveDiet, onSaveBody, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction, todayLocalIso }: {
     member: HouseholdMemberView;
     isMe: boolean;
     /** `YYYY-MM-DD` local — l'âge des tuiles se lit sur la date tapée. */
@@ -1845,6 +1955,14 @@ function MemberRow(
     busy: boolean;
     /** `null` = rien de saisi. Voir `BodyFields`: la bouche a une part standard. */
     body: MemberBodyView | null;
+    /**
+     * Faux = LA LECTURE DES CORPS N'A PAS EU LIEU — distinct de `body === null`
+     * (« lue, cette bouche n'a pas de corps »). Le cadre « Informations
+     * personnelles » ne rend rien tant que c'est faux: `BodyFields` fige ses
+     * trois champs au montage, et un cadre monté sur une lecture non faite
+     * affiche du vide non lu.
+     */
+    bodiesLoaded: boolean;
     /** `null` = LA LECTURE A EU LIEU et personne n'a rien dit de cette bouche. */
     habits: MemberHabitsView | null;
     /** Faux = la lecture n'a PAS eu lieu. Les deux `null` sont distincts. */
@@ -1876,6 +1994,22 @@ function MemberRow(
   },
 ) {
   const [open, setOpen] = React.useState(false);
+  /**
+   * LES DEUX CADRES DE LA FICHE — A5 (D5.1), 2026-09-03.
+   *
+   * ⚠️ OUVERTS PAR DÉFAUT, ET C'EST LA MOITIÉ DU RENVERSEMENT. Le repli avait
+   * été retiré le 2026-08-19 parce qu'« une réponse repliée est une réponse
+   * invisible » — vrai, et c'est exactement pourquoi ils s'ouvrent sur la ligne
+   * qu'on vient d'ouvrir. Ce que le repli rend, c'est de pouvoir REFERMER ce
+   * qu'on vient de lire sur une fiche de trente champs; ce qu'il coûtait est
+   * payé par le récapitulatif, qui reste visible replié.
+   *
+   * ⚠️ ILS VIVENT DANS LA LIGNE, PAS DANS LA PAGE. Le panneau se démonte à la
+   * fermeture (`open ? … : null`): rouvrir une ligne la rouvre donc sur ses
+   * deux cadres, jamais sur l'état laissé par la ligne d'à côté.
+   */
+  const [identityOpen, setIdentityOpen] = React.useState(true);
+  const [prefsOpen, setPrefsOpen] = React.useState(true);
   const [draft, setDraft] = React.useState<MouthDraft>({
     firstName: member.displayName === "—" ? "" : member.displayName,
     birthDate: "",
@@ -1890,6 +2024,44 @@ function MemberRow(
   // C'est ce qui fait qu'une date de mineur tapée sur une bouche à `fat_loss`
   // plie la direction À L'ÉCRAN, avant le Save — et que le Save passe.
   const rowAge = ageStateOfTypedDate(draft.birthDate, member.ageState, todayLocalIso);
+
+  /**
+   * CE QUI EST DÉJÀ RENSEIGNÉ DERRIÈRE LE CADRE REPLIÉ — A5 (D5.1).
+   *
+   * ⚠️ C'EST LA CONTREPARTIE DU REPLI, PAS UNE DÉCORATION. Le repli avait été
+   * retiré le 2026-08-19 sur le motif exact « une réponse repliée est une
+   * réponse invisible »; sans ce résumé, refermer « Préférences alimentaires »
+   * cacherait un régime déjà choisi et une allergie déjà cochée sur un écran
+   * dont le seul travail est de dire ce qu'on sait de quelqu'un.
+   *
+   * ⚠️ ON PASSE PAR `filledPreferenceBlocks`, LE MÊME COMPTEUR QUE LA FICHE,
+   * et pas par un compte maison: c'est lui qui porte les deux cicatrices
+   * (« une bulle éteinte compte si son moment a été RÉPONDU »,
+   * « `allergiesNone` est une réponse »). Deux comptes divergeraient sur ces
+   * deux-là, et c'est l'écran le moins relu qui aurait tort.
+   *
+   * ⛔ IL PEUT SOUS-CLAMER, JAMAIS SUR-CLAMER, et les deux manques sont NOMMÉS:
+   * `shaker` et `allergiesNone` n'ont AUCUN contrôle dans cette fiche-ci (elle
+   * n'a jamais posé ni l'un ni l'autre), donc ils partent à `null`/`false`. Si
+   * l'un des deux gagne un contrôle ici, il doit entrer dans ce brouillon le
+   * même jour — sinon le résumé dira « rien » sur une réponse donnée.
+   */
+  const filledBlocks = React.useMemo(
+    () =>
+      filledPreferenceBlocks({
+        ...emptyMouthDraft(),
+        habits: Object.fromEntries(
+          (habits?.slots ?? []).map((h) => [h.slot, h.usual]),
+        ),
+        extras: habits?.extras ?? {},
+        shaker: null,
+        allergies: allergies.map((a) => a.label),
+        allergiesNone: false,
+        dislikes: restrictions.map((r) => r.label),
+        diet: (member.diet ?? "") as MouthFormDraft["diet"],
+      }),
+    [habits, allergies, restrictions, member.diet],
+  );
 
   /** Combien de moments sont marqués DANS la fenêtre — pour le bouton. */
   const awayInWindow = React.useMemo(() => {
@@ -1974,6 +2146,40 @@ function MemberRow(
         // aurait disparu. `paper-2` est le jeton du « fond de section
         // alterné », et son couple avec `ink` reste à 15,02:1.
         <div className="mt-3 flex flex-col gap-3 rounded-card bg-paper-2 p-3">
+          {/* ══════════════════════════════════════════════════════════════
+              DEUX CADRES NOMMÉS, ET LE REPLI EST RENVERSÉ — A5 (D5.1), 2026-09-03
+              ══════════════════════════════════════════════════════════════
+
+              La fiche d'une bouche était UN accordéon à un niveau: dix contrôles
+              à la suite, du prénom aux règles de maison, sans qu'aucun titre ne
+              dise où l'un finit. Elle porte maintenant deux cadres NOMMÉS —
+              « Informations personnelles » (ce qui dimensionne l'assiette) et
+              « Préférences alimentaires » (ce qui l'affine) —, le même partage
+              que la fiche d'ajout tient déjà entre ses blocs en ligne et sa
+              fenêtre.
+
+              ⛔ CE QUI RESTE DEHORS, ET CE N'EST PAS UN OUBLI. « Quand cette
+              bouche n'est pas là » est une DATE, pas un trait de la personne:
+              elle change chaque semaine et se relit chaque semaine. Retirer
+              l'accès, retirer du foyer et le réglage de fusion sont des gestes
+              SUR LA LIGNE, pas des réponses: les ranger dans un cadre de
+              questions ferait d'un geste irréversible une case de formulaire.
+
+              ⚠️ LE RENVERSEMENT EST ÉCRIT LÀ OÙ VIT LA PHRASE INVERSE —
+              `MouthFormDialog.tsx` (« il faut arrêter avec le dépliable »,
+              2026-08-19). Ici on ne fait que l'appliquer. */}
+          <SheetFrame
+            title={t("household.member.frame_identity")}
+            hint={t("household.member.frame_identity_hint")}
+            open={identityOpen}
+            onToggle={() => setIdentityOpen((v) => !v)}
+            // ⛔ LA GARDE DE CHARGEMENT DU CADRE. `BodyFields` fige ses trois
+            // champs AU MONTAGE; monté sur une lecture non faite, il affiche du
+            // vide non lu — et « Enregistrer » l'écrirait par-dessus un corps
+            // renseigné. `bodies === null` ⇒ ce cadre ne rend AUCUN champ.
+            // Cicatrice `mount-snapshot-forms-need-a-loading-gate`.
+            loaded={bodiesLoaded}
+          >
           <MouthFields
             draft={draft}
             onChange={setDraft}
@@ -2009,6 +2215,52 @@ function MemberRow(
             onSave={onSaveBody}
           />
 
+            <div className="flex flex-wrap items-center gap-2">
+            <Button
+              disabled={busy || !draft.firstName.trim()}
+              onClick={async () => {
+                const ok = await onSave({
+                  firstName: draft.firstName,
+                  birthDate: draft.birthDate || null,
+                  // PLIÉE À L'ÂGE, comme à l'écran: ce qui part est ce qui
+                  // est coché — une bouche mineure héritée à `fat_loss` part
+                  // en `maintenance`, et `saveMember` l'écrit AVANT la date.
+                  goal: goalForAge(draft.goal, rowAge) || null,
+                });
+                if (ok) setDraft((d) => ({ ...d, birthDate: "" }));
+              }}
+            >
+              {t("household.member.save")}
+            </Button>
+            </div>
+          </SheetFrame>
+
+          <SheetFrame
+            title={t("household.member.frame_preferences")}
+            hint={t("household.member.frame_preferences_hint")}
+            open={prefsOpen}
+            onToggle={() => setPrefsOpen((v) => !v)}
+            // MÊME GARDE, SUR SA PROPRE LECTURE: les habitudes. `HouseholdHabitsCard`
+            // tient déjà la sienne en interne (`loaded`), mais un cadre REPLIÉ
+            // annonce un résumé — et un résumé calculé sur une lecture non faite
+            // dirait « rien de renseigné » à quelqu'un qui a tout rempli.
+            loaded={habitsLoaded}
+            // CE QUI EST DÉJÀ RENSEIGNÉ, VISIBLE MÊME REPLIÉ. Voir `filledBlocks`.
+            // ⚠️ LES DEUX PHRASES SONT CELLES DE LA FICHE D'AJOUT
+            // (`MouthPreferencesButton`), pas des jumelles écrites ici: le même
+            // fait — « voilà ce qui est déjà renseigné » — se dit du même mot
+            // aux deux endroits, et une seconde paire de clés divergerait au
+            // premier ajustement.
+            summary={filledBlocks.length === 0
+              ? t("household.mouth.preferences_empty")
+              : t("household.mouth.preferences_filled", {
+                blocks: blockList(
+                  filledBlocks.map((b) =>
+                    t(`household.mouth.block_${b}` as "household.mouth.block_identity")
+                  ),
+                ),
+              })}
+          >
           {/* ── COMMENT CETTE BOUCHE MANGE (2026-08-14) ────────────────────
               LA QUESTION EXISTAIT POUR LE TITULAIRE ET POUR PERSONNE D'AUTRE,
               et l'utilisateur l'a redemandée deux fois. Les trois jetons
@@ -2117,142 +2369,6 @@ function MemberRow(
             onSave={(_memberId, answer) => onSaveWorkLunch(answer)}
           />
 
-          {/* ── D14 · QUAND CETTE BOUCHE N'EST PAS LÀ ──────────────────────
-              LA GRILLE EST CELLE DU CONSTRUCTEUR, pas une seconde. Deux
-              grilles pour la même question divergeraient sur le seul détail
-              qui compte — ce que « tout décoché » veut dire — et c'est celle
-              qu'on regarde le moins qui garderait l'ancienne règle.
-
-              CE QU'ELLE MONTRE ET ÉCRIT EST LA MARQUE DU MAÎTRE, JAMAIS
-              L'UNION. La grille réécrit ce qu'on lui donne: nourrie de
-              l'union, elle recopierait la déclaration de la personne dans la
-              colonne du foyer, où elle survivrait à sa rétractation. */}
-          <div className="border-t border-line pt-3">
-            <SectionLabel>{t("household.away.title")}</SectionLabel>
-            <p className="mb-2 text-xs text-ink-soft">
-              {t("household.away.hint")}
-            </p>
-            <Button
-              variant="secondary"
-              disabled={busy}
-              onClick={() => setAwayOpen(true)}
-            >
-              {awayInWindow === 0
-                ? t("household.away.open")
-                : t("household.away.open_count", { n: String(awayInWindow) })}
-            </Button>
-            {/* CE QUE LA PERSONNE A DIT ELLE-MÊME, en lecture seule. Sans cette
-                ligne, le maître verrait sa propre marque et pas le FAIT: il
-                remarquerait une assiette manquante sans pouvoir dire d'où elle
-                vient — et re-marquerait par-dessus. */}
-            {selfInWindow.length > 0 ? (
-              <p className="mt-2 text-xs text-ink-soft">
-                {t("household.away.self_declared", {
-                  days: selfInWindow.map((a) => a.day).join(", "),
-                })}
-              </p>
-            ) : null}
-          </div>
-
-          {/* MONTÉE MÊME FERMÉE — `Modal` rend `null` sans démonter — donc une
-              grille modifiée survit à une fermeture accidentelle. */}
-          <MealPickerGrid
-            open={awayOpen}
-            onClose={() => setAwayOpen(false)}
-            days={awayWindow.tokens}
-            dates={awayWindow.dates}
-            rhythm={rhythm}
-            away={member.awayHousehold}
-            busy={busy}
-            onSave={async (next) => {
-              const ok = await onSaveAway(next);
-              if (ok) setAwayOpen(false);
-            }}
-          />
-
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              disabled={busy || !draft.firstName.trim()}
-              onClick={async () => {
-                const ok = await onSave({
-                  firstName: draft.firstName,
-                  birthDate: draft.birthDate || null,
-                  // PLIÉE À L'ÂGE, comme à l'écran: ce qui part est ce qui
-                  // est coché — une bouche mineure héritée à `fat_loss` part
-                  // en `maintenance`, et `saveMember` l'écrit AVANT la date.
-                  goal: goalForAge(draft.goal, rowAge) || null,
-                });
-                if (ok) setDraft((d) => ({ ...d, birthDate: "" }));
-              }}
-            >
-              {t("household.member.save")}
-            </Button>
-            {/* DEUX GESTES, DEUX LIBELLÉS, JAMAIS UN SEUL BOUTON (chantier 2).
-                « Retirer l'accès » DÉTACHE: la personne perd la lecture du
-                foyer, et reste une bouche à table avec sa portion et ses
-                allergies. « Retirer du foyer » SUPPRIME la ligne. Un seul
-                bouton « retirer » voudrait dire deux choses irréversibles
-                différentes selon la ligne qu'on regarde.
-
-                LE MAÎTRE NE SE RETIRE PAS, ET NE SE DÉTACHE PAS. La base
-                refuse les deux (`cannot_remove_owner`, `cannot_detach_owner`)
-                parce qu'un foyer sans personne pour composer laisse ses
-                bouches sans compte sans recours; l'écran ne montre pas un
-                bouton qui sera refusé. */}
-            {member.role !== "owner" && member.userId ? (
-              <Button variant="secondary" disabled={busy} onClick={onDetach}>
-                {t("household.member.detach")}
-              </Button>
-            ) : null}
-            {member.role !== "owner" ? (
-              <Button variant="danger" disabled={busy} onClick={onRemove}>
-                {t("household.member.remove")}
-              </Button>
-            ) : null}
-          </div>
-          {/* Les deux gestes ne se distinguent pas par leur couleur: on ÉCRIT
-              ce que chacun fait, à côté d'eux, au moment de choisir. */}
-          {member.role !== "owner" ? (
-            <p className="text-xs text-ink-soft">
-              {member.userId
-                ? t("household.member.detach_hint")
-                : t("household.member.remove_hint")}
-            </p>
-          ) : null}
-
-          {/* ── D17 · LE RÉGLAGE DISCRET (L8) ────────────────────────────────
-              « Un réglage discret permet au maître de ne plus se voir proposer
-              la fusion pour une personne donnée. Assumé comme un peu brutal,
-              donc caché. » Il est donc ICI, rangé dans la fiche de la
-              personne, et JAMAIS sur la carte de proposition: un bouton
-              « ne plus me parler de lui » à côté de « fusionner » ferait du
-              geste brutal le geste le plus facile.
-
-              ⚠️ IL NE BLOQUE PAS LA FUSION, et la phrase d'aide le dit: le
-              geste reste possible (`operation: "merge"` ne lit pas ce réglage,
-              un test de source le tient), et il ne coupe pas l'avertissement
-              de D8, qui parle du plan du MAÎTRE.
-
-              RÉSERVÉ AUX BOUCHES QUI ONT UN COMPTE: une bouche sans compte n'a
-              pas de plan à elle (D3), donc rien à proposer, donc rien à taire.
-              `muted === null` ⇒ on n'a pas pu lire le réglage: on ne montre
-              pas un interrupteur dont on ignore la position. */}
-          {member.role !== "owner" && member.userId && muted !== null ? (
-            <button
-              type="button"
-              className="self-start text-xs text-ink-soft underline disabled:opacity-50"
-              disabled={busy}
-              onClick={() => onMute(!muted)}
-            >
-              {muted ? t("household.merge.unmute") : t("household.merge.mute")}
-            </button>
-          ) : null}
-          {member.role !== "owner" && member.userId && muted !== null ? (
-            <p className="text-xs text-ink-soft">
-              {muted ? t("household.merge.muted") : t("household.merge.mute_hint")}
-            </p>
-          ) : null}
-
           <div className="border-t border-line pt-3">
             <Field
               label={t("household.constraint.kind")}
@@ -2328,6 +2444,127 @@ function MemberRow(
               ))}
             </ul>
           </div>
+          </SheetFrame>
+
+          {/* ── D14 · QUAND CETTE BOUCHE N'EST PAS LÀ ──────────────────────
+              LA GRILLE EST CELLE DU CONSTRUCTEUR, pas une seconde. Deux
+              grilles pour la même question divergeraient sur le seul détail
+              qui compte — ce que « tout décoché » veut dire — et c'est celle
+              qu'on regarde le moins qui garderait l'ancienne règle.
+
+              CE QU'ELLE MONTRE ET ÉCRIT EST LA MARQUE DU MAÎTRE, JAMAIS
+              L'UNION. La grille réécrit ce qu'on lui donne: nourrie de
+              l'union, elle recopierait la déclaration de la personne dans la
+              colonne du foyer, où elle survivrait à sa rétractation. */}
+          <div className="border-t border-line pt-3">
+            <SectionLabel>{t("household.away.title")}</SectionLabel>
+            <p className="mb-2 text-xs text-ink-soft">
+              {t("household.away.hint")}
+            </p>
+            <Button
+              variant="secondary"
+              disabled={busy}
+              onClick={() => setAwayOpen(true)}
+            >
+              {awayInWindow === 0
+                ? t("household.away.open")
+                : t("household.away.open_count", { n: String(awayInWindow) })}
+            </Button>
+            {/* CE QUE LA PERSONNE A DIT ELLE-MÊME, en lecture seule. Sans cette
+                ligne, le maître verrait sa propre marque et pas le FAIT: il
+                remarquerait une assiette manquante sans pouvoir dire d'où elle
+                vient — et re-marquerait par-dessus. */}
+            {selfInWindow.length > 0 ? (
+              <p className="mt-2 text-xs text-ink-soft">
+                {t("household.away.self_declared", {
+                  days: selfInWindow.map((a) => a.day).join(", "),
+                })}
+              </p>
+            ) : null}
+          </div>
+
+          {/* MONTÉE MÊME FERMÉE — `Modal` rend `null` sans démonter — donc une
+              grille modifiée survit à une fermeture accidentelle. */}
+          <MealPickerGrid
+            open={awayOpen}
+            onClose={() => setAwayOpen(false)}
+            days={awayWindow.tokens}
+            dates={awayWindow.dates}
+            rhythm={rhythm}
+            away={member.awayHousehold}
+            busy={busy}
+            onSave={async (next) => {
+              const ok = await onSaveAway(next);
+              if (ok) setAwayOpen(false);
+            }}
+          />
+
+          <div className="flex flex-wrap items-center gap-2">
+            {/* DEUX GESTES, DEUX LIBELLÉS, JAMAIS UN SEUL BOUTON (chantier 2).
+                « Retirer l'accès » DÉTACHE: la personne perd la lecture du
+                foyer, et reste une bouche à table avec sa portion et ses
+                allergies. « Retirer du foyer » SUPPRIME la ligne. Un seul
+                bouton « retirer » voudrait dire deux choses irréversibles
+                différentes selon la ligne qu'on regarde.
+
+                LE MAÎTRE NE SE RETIRE PAS, ET NE SE DÉTACHE PAS. La base
+                refuse les deux (`cannot_remove_owner`, `cannot_detach_owner`)
+                parce qu'un foyer sans personne pour composer laisse ses
+                bouches sans compte sans recours; l'écran ne montre pas un
+                bouton qui sera refusé. */}
+            {member.role !== "owner" && member.userId ? (
+              <Button variant="secondary" disabled={busy} onClick={onDetach}>
+                {t("household.member.detach")}
+              </Button>
+            ) : null}
+            {member.role !== "owner" ? (
+              <Button variant="danger" disabled={busy} onClick={onRemove}>
+                {t("household.member.remove")}
+              </Button>
+            ) : null}
+          </div>
+          {/* Les deux gestes ne se distinguent pas par leur couleur: on ÉCRIT
+              ce que chacun fait, à côté d'eux, au moment de choisir. */}
+          {member.role !== "owner" ? (
+            <p className="text-xs text-ink-soft">
+              {member.userId
+                ? t("household.member.detach_hint")
+                : t("household.member.remove_hint")}
+            </p>
+          ) : null}
+
+          {/* ── D17 · LE RÉGLAGE DISCRET (L8) ────────────────────────────────
+              « Un réglage discret permet au maître de ne plus se voir proposer
+              la fusion pour une personne donnée. Assumé comme un peu brutal,
+              donc caché. » Il est donc ICI, rangé dans la fiche de la
+              personne, et JAMAIS sur la carte de proposition: un bouton
+              « ne plus me parler de lui » à côté de « fusionner » ferait du
+              geste brutal le geste le plus facile.
+
+              ⚠️ IL NE BLOQUE PAS LA FUSION, et la phrase d'aide le dit: le
+              geste reste possible (`operation: "merge"` ne lit pas ce réglage,
+              un test de source le tient), et il ne coupe pas l'avertissement
+              de D8, qui parle du plan du MAÎTRE.
+
+              RÉSERVÉ AUX BOUCHES QUI ONT UN COMPTE: une bouche sans compte n'a
+              pas de plan à elle (D3), donc rien à proposer, donc rien à taire.
+              `muted === null` ⇒ on n'a pas pu lire le réglage: on ne montre
+              pas un interrupteur dont on ignore la position. */}
+          {member.role !== "owner" && member.userId && muted !== null ? (
+            <button
+              type="button"
+              className="self-start text-xs text-ink-soft underline disabled:opacity-50"
+              disabled={busy}
+              onClick={() => onMute(!muted)}
+            >
+              {muted ? t("household.merge.unmute") : t("household.merge.mute")}
+            </button>
+          ) : null}
+          {member.role !== "owner" && member.userId && muted !== null ? (
+            <p className="text-xs text-ink-soft">
+              {muted ? t("household.merge.muted") : t("household.merge.mute_hint")}
+            </p>
+          ) : null}
         </div>
       ) : null}
     </li>

@@ -22,6 +22,7 @@ import { arrivalHorizonCopy } from "../lib/arrivalHorizon";
 import {
   activityIsRequired,
   ageStateOfDraft,
+  blockList,
   filledPreferenceBlocks,
   type MouthFormDraft,
   missingRequiredBlocks,
@@ -349,6 +350,45 @@ export interface MouthFormDialogProps extends MouthPreferencesFieldsProps {
  * dégoûts après (ils évitent), et ce qu'elle mange déjà en dernier, parce que
  * cette section-là ne se lit bien qu'une fois qu'on sait combien de fois elle
  * mange.
+ *
+ * ═══════════════════════════════════════════════════════════════════════════
+ * ⟳ RENVERSEMENT PARTIEL — A5 (D5.1), 2026-09-03. LIRE AVANT DE « RÉPARER ».
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * La décision du 2026-08-19 (« il faut arrêter avec le dépliable ») TIENT POUR
+ * CETTE FENÊTRE-CI: `MouthPreferencesFields` n'a toujours aucun repli, et ses
+ * six blocs restent ouverts. Ce qui est renversé est son extension à la FICHE
+ * D'UNE BOUCHE sur `/app/household`, qui porte depuis A5 deux cadres
+ * repliables NOMMÉS — « Informations personnelles » et « Préférences
+ * alimentaires » (`SheetFrame`, dans `HouseholdPage.tsx`).
+ *
+ * ── POURQUOI LES DEUX DÉCISIONS NE SE CONTREDISENT PAS ────────────────────
+ * Les trois motifs de 08-19 ont été repris un par un; deux ne s'appliquent pas
+ * à la ligne d'une bouche, et le troisième est PAYÉ:
+ *
+ *   · « UNE RÉPONSE REPLIÉE EST UNE RÉPONSE INVISIBLE » — le seul qui tienne,
+ *     et il est payé deux fois: un cadre replié rend son RÉCAPITULATIF
+ *     (`filledPreferenceBlocks`, avec les mêmes clés
+ *     `household.mouth.preferences_filled` / `_empty` que le bouton de cette
+ *     fiche-ci), et les deux cadres sont OUVERTS PAR DÉFAUT. On ne referme que
+ *     ce qu'on vient de lire.
+ *   · « IL FALLAIT DEVINER OÙ » — vrai pour trois en-têtes fermés et anonymes;
+ *     faux pour DEUX cadres dont les titres disent ce que chacun décide (ce
+ *     qui dimensionne l'assiette / ce qui l'affine).
+ *   · « IL COÛTAIT UN ÉTAT CONTRÔLÉ À CHAQUE APPELANT » — l'état vit dans la
+ *     LIGNE (`identityOpen`, `prefsOpen`), pas chez l'appelant, et il meurt
+ *     avec elle: le panneau se démonte à la fermeture.
+ *
+ * ── CE QUE LA FICHE D'UNE BOUCHE A, ET QUE CETTE FENÊTRE N'A PAS ──────────
+ * Elle empile identité, corps, direction, régime, habitudes, déjeuner de
+ * semaine, allergies et règles de maison — huit sujets, une trentaine de
+ * contrôles, EN LIGNE, dans une liste qui peut porter huit personnes. Cette
+ * fenêtre-ci est déjà une fenêtre: une personne à la fois, et elle se ferme
+ * d'un geste.
+ *
+ * ⛔ NE PAS « HARMONISER » EN REMETTANT UN REPLI ICI. La fenêtre n'a pas de
+ * récapitulatif sous ses blocs; le repli y redeviendrait exactement ce qu'il
+ * était le 2026-08-19 — une réponse invisible.
  */
 /**
  * L'EXEMPLE DE CHAQUE MOMENT — `Record` COMPLET, jamais un repli.
@@ -432,12 +472,12 @@ function goalLabel(goal: MemberGoal): string {
  * `Intl.ListFormat` connaît la règle des deux; il vient du même endroit que
  * `i18n/format.ts` (une seule autorité de locale, jamais `navigator.language`).
  */
-function blockList(labels: readonly string[]): string {
-  return new Intl.ListFormat(uiLocale() === "fr" ? "fr-FR" : "en-GB", {
-    style: "long",
-    type: "conjunction",
-  }).format(labels as string[]);
-}
+// ⟳ `blockList` A DÉMÉNAGÉ DANS `lib/mouthForm.ts` — A5, 2026-09-03.
+// La fiche d'une bouche sur `/app/household` rend le MÊME récapitulatif sous
+// son cadre replié, et un `.join(", ")` recopié là-bas aurait rendu « a, b, c »
+// là où les deux langues disent « a, b et c » / « a, b and c ». La grammaire
+// est une règle de langue: elle vit dans le module partagé, pas dans un `.tsx`
+// (que `react-refresh/only-export-components` interdit d'ailleurs d'exporter).
 
 /**
  * LE NOMBRE DANS LA LANGUE DE L'ÉCRAN.
