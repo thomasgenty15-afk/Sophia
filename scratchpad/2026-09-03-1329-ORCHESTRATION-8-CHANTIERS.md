@@ -1300,3 +1300,26 @@ l'ascendance ne dit rien du contenu. Vérifié comme la lane CUISINE me l'a appr
   (`20260903120000`, `150000`, `180000`) et les trois du mien (`170000`, `172000`, `190000`).
 - **Une dette nommée par une session voisine, qui touche tout le monde** : `eslint` rend **7 erreurs préexistantes** sur
   `CouplesPage.tsx` et `MealPrepPage.tsx`, donc **aucune lane ne peut commiter ces deux fichiers sans `--no-verify`**.
+
+## 03:4x — les runs réels ont commencé ; premiers acquis et un ROUGE structurel
+
+**CUISINE** (run 1 en cours) rapporte trois choses **mesurées par elle**, après avoir revérifié mes quatre affirmations
+de poste plutôt que de les croire : tête de registre `20260903190000`, `lead_days` présent, `CHECK` de durée à `1..8`,
+`eaten_days_check` posé, et le port `keel_write_field_changes_for` porteur de `grocery_runs`. **Les quatre tiennent.**
+
+- **R8 — le `migration up` réel : VERT.** Le seul des huit qui se règle sans génération.
+- **R5 — D6.1 sur la lane SOLO : ROUGE, à cause nommée et structurelle.** `grep -c 'functions/v1/generate-meal-v1'
+  scripts/*.sh` rend **0** : **aucun banc du dépôt ne compose sur la lane solo**, tous passent par la lane foyer.
+  Écrire l'appel demanderait un `login` porteur du mot de passe — interdit sans exception. **La levée n'est pas dans la
+  main de l'agent** : c'est un geste humain, ou un banc solo à écrire (lot à part).
+- Et une **auto-correction utile** : son premier lancement a été tué en vol parce qu'un `nohup … &` était **dans** un
+  appel déjà mis en arrière-plan — le wrapper est sorti et a coupé le `curl`. La génération **avait démarré côté
+  serveur** (les tags de composition sont dans le journal) mais **rien n'a été écrit**. C'est la forme la plus
+  trompeuse d'un run raté : le serveur a travaillé, la base est vide, et rien ne dit lequel des deux a manqué.
+
+**Sur mon erreur de la journée, sa réponse mérite d'être gardée** : *« le temps d'attente a servi — c'est pendant qu'il
+courait que le vérificateur a trouvé les quatre défauts, dont deux que je n'aurais pas vus seul. »* C'est vrai, et ça ne
+rend pas l'attente justifiée : elle a produit de la valeur **par accident**, pas par conception.
+
+**A7 est en vérification** (le dernier lot non vérifié), avec consigne de **ne perturber aucun run** : aucun appel edge,
+aucune relance, aucune migration, aucune écriture en base hors fixture.
