@@ -103,6 +103,14 @@ export default function HouseholdPlanCard(
                     order: windowDayOrder(meal.startsOn, meal.durationDays),
                     dishes: myDishes,
                   })}
+                  // ⛔ AUCUNE CASE ICI, ET C'EST UNE DÉCISION (A8.1). Cette
+                  // carte est une LECTURE — « voici ce que la maison
+                  // cuisine ». Les coches d'un profil réclamé vivent dans SA
+                  // part, sur `/app/plan` (`MyShareCard`), et une seule
+                  // surface les porte: deux endroits pour le même fait
+                  // finiraient par montrer deux états, sans que rien à
+                  // l'écran dise lequel ment.
+                  bindTick={null}
                 />
               )}
           </>

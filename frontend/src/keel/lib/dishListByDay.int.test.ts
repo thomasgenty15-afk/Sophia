@@ -115,11 +115,46 @@ describe("les trois montages de la liste par jour", () => {
       .join("\n");
   }
 
-  it("la semaine d'une bouche rend la liste extraite", () => {
+  it("la semaine d'une bouche rend la liste extraite, SANS case (A8.1, R11)", () => {
     const src = code("frontend/src/keel/components/plan/PlanByPerson.tsx");
     expect(src, "`OnePerson` ne rend plus la liste par jour").toContain(
-      "<DishListByDay groups={week} />",
+      "<DishListByDay groups={week}",
     );
+    // ⛔ LA MOITIÉ AJOUTÉE PAR A8.1, ET C'EST UN INTERDIT PRODUIT. Cette vue
+    // est celle du MAÎTRE, qui y parcourt la semaine de chaque bouche. Une
+    // case y serait le maître déclarant la consommation d'un profil réclamé à
+    // sa place — FF-058 R11: la consommation est un fait de PERSONNE.
+    //
+    // MUTATION QUI DOIT ROUGIR: passer ici le binder de `MyShareCard`.
+    expect(src, "une case est apparue dans la vue PAR PERSONNE du maître")
+      .toContain("<DishListByDay groups={week} bindTick={null} />");
+  });
+
+  it("⛔ « ce que la maison cuisine » ne coche pas non plus (A8.1)", () => {
+    // La seconde surface de LECTURE. Ses coches à lui vivent dans sa part, sur
+    // `/app/plan`: deux endroits pour le même fait finiraient par montrer deux
+    // états, sans que rien à l'écran dise lequel ment.
+    const src = code("frontend/src/keel/components/HouseholdPlanCard.tsx");
+    expect(src, "une case est apparue sur « ce que la maison cuisine »")
+      .toContain("bindTick={null}");
+  });
+
+  it("⛔ « ta part » est la SEULE des trois à cocher — et par la liaison unique", () => {
+    const card = code("frontend/src/keel/components/plan/MyShareCard.tsx");
+    // LE CAS QUI PASSE. Sans lui, les deux `bindTick={null}` ci-dessus
+    // seraient une garde parfaite sur une porte qui ne s'ouvre nulle part.
+    expect(card, "« ta part » ne lie plus aucune case").toContain("bindTick={");
+    expect(card, "« ta part » ne passe plus par `bindAt`").toContain(
+      "ticks.bindAt(",
+    );
+    // ⛔ ET ELLE N'ÉCRIT PAS ELLE-MÊME. `useMealTicks` est la liaison unique;
+    // un `tickMeal`/`untickMeal` appelé depuis une carte serait le second
+    // câblage que ce hook existe pour empêcher — et ici il ferait écrire deux
+    // comptes différents sur le même plat.
+    for (const forbidden of ["tickMeal", "untickMeal"]) {
+      expect(card, `« ta part » écrit elle-même (${forbidden})`)
+        .not.toContain(`${forbidden}(`);
+    }
   });
 
   it("« ce que la maison cuisine » est par jour, dans l'ordre du PLAN", () => {

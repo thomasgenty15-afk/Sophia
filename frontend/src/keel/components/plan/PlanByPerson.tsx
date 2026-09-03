@@ -448,7 +448,13 @@ function OnePerson(
           copies divergeraient. `buildPersonWeek` reste la seule découpe de
           CETTE vue — le filtrage par personne lui appartient. */}
       <div className="mt-3">
-        <DishListByDay groups={week} />
+        {/* ⛔ AUCUNE CASE, ET C'EST L'INTERDIT DE FF-058 R11 (A8.1). Cette
+            vue est celle du MAÎTRE qui parcourt la semaine de CHAQUE bouche.
+            Une case y serait le maître déclarant la consommation d'un profil
+            réclamé à sa place — or la consommation est un fait de PERSONNE.
+            La garde est double et le dit deux fois: `buildPersonWeek` n'émet
+            aucune position (`dishIndex: null`), et ce montage passe `null`. */}
+        <DishListByDay groups={week} bindTick={null} />
       </div>
     </div>
   );

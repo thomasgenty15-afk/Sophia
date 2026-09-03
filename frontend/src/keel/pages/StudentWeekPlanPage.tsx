@@ -26,6 +26,7 @@ import {
 } from "../api/planFeedback";
 import { windowDates, windowDayOrder } from "../api/mealWindow";
 import { selectMyShare } from "../api/myShare";
+import { useAuth } from "../../context/AuthContext";
 import { chooseGenerator } from "../api/planRouting";
 import {
   type ComposeDraftInput,
@@ -1088,6 +1089,19 @@ function PersonalNumbers(props: {
 }
 
 export default function StudentWeekPlanPage() {
+  // A8.1 — LE COMPTE QUI REGARDE. Il servait déjà six fois dans ce fichier,
+  // mais toujours relu au coup par coup (`supabase.auth.getUser()` dans un
+  // gestionnaire). `MyShareCard` en a besoin AU RENDU, pour lier ses coches:
+  // une lecture asynchrone dans un handler ne peut pas alimenter une case.
+  //
+  // ⚠️ EN COMMENTAIRE DE LIGNE, ET PAS EN BLOC `/** */`. Un bloc placé JUSTE
+  // après l'accolade ouvrante de la fonction fait matcher le motif de
+  // dépouillement `{ /* … */ }` que plusieurs tests appliquent à ce fichier
+  // (`mealTicks.int.test.ts`, `dishListByDay.int.test.ts`): la source lue par
+  // le test perdait alors TOUT jusqu'au prochain `*/}`, des centaines de
+  // lignes plus bas, et les épreuves échouaient sur du code bien présent.
+  const { user } = useAuth();
+  const userId = user?.id ?? null;
   const [state, setState] = React.useState<LoadState>({ kind: "loading" });
   const [goal, setGoal] = React.useState<GoalRow | null>(null);
   /**
@@ -2515,6 +2529,23 @@ export default function StudentWeekPlanPage() {
             ? windowDayOrder(householdMeal.startsOn, householdMeal.durationDays)
             : []}
           meMemberId={household?.me?.memberId ?? null}
+          /**
+           * A8.1 — SES COCHES SUR LE PLAN DU FOYER.
+           *
+           * ⚠️ `userId` EST LE SIEN. La coche est un fait de PERSONNE
+           * (FF-058 R10): elle s'écrit sous SON compte, jamais sous celui du
+           * maître qui a composé le plan. `householdMealId` ne sert qu'à
+           * NOMMER le plat dans la clé — deux comptes portent la même clé
+           * sans se marcher dessus (`protocol_events` est unique sur
+           * `(user_id, source_message_id)`, RLS owner-only).
+           *
+           * ⚠️ ET LA CARTE NE S'OUVRE PAS AU MAÎTRE POUR AUTANT:
+           * `selectMyShare` refuse déjà `isOwner` juste au-dessus, et c'est
+           * la même règle qui décide de la carte et de ses cases.
+           */
+          userId={userId}
+          householdMealId={householdMeal?.mealId ?? null}
+          planStartsOn={householdMeal?.startsOn ?? null}
           busy={draftBusy}
           onApprove={async () => {}}
           // ── LE POINT DE JONCTION N°2 DE LOT E, MAINTENANT ARMÉ ──────────

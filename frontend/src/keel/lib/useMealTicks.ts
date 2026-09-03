@@ -150,6 +150,21 @@ export function browserDayToken(): DayToken {
   return dayTokenOf(browserLocalDate());
 }
 
+/**
+ * A8.1 — CE QU'UNE COCHE A BESOIN DE SAVOIR D'UN PLAT: son moment et son titre.
+ *
+ * `tickMeal` n'écrit que ça (`slotKey`, `title`) en plus de la clé. Le type
+ * complet `GeneratedDish` porte la recette, le « pourquoi », les ingrédients —
+ * rien de tout ça n'entre dans un fait, et l'exiger fermait la coche à la seule
+ * autre surface qui en a besoin: la part d'un profil réclamé, qui ne connaît de
+ * son dîner qu'un titre et un moment (`HouseholdDishView`, volontairement
+ * pauvre — le « pourquoi » d'un plat est écrit pour la personne qu'il sert).
+ */
+export interface TickableDish {
+  slot: string | null;
+  title: string;
+}
+
 export interface MealTicks {
   /** Faux tant que les coches ne sont pas revenues de la base. */
   ready: boolean;
@@ -166,6 +181,29 @@ export interface MealTicks {
    * décide si la case existe: le passé se rattrape, le futur non.
    */
   bind: (dish: GeneratedDish, onDate: string | null) => DishTick | null;
+  /**
+   * A8.1 — LA MÊME CASE, MAIS QUAND LA POSITION EST DONNÉE ET NON DÉDUITE.
+   *
+   * ⛔ POURQUOI `bind` NE POUVAIT PAS SERVIR. Il résout la position par
+   * IDENTITÉ D'OBJET (`dishes.indexOf(dish)`) contre le tableau passé au hook.
+   * Un profil réclamé ne tient pas ces objets-là: il tient des
+   * `HouseholdDishView`, lues d'une AUTRE requête (`loadHouseholdMeal`) et
+   * FILTRÉES (`dishIsFor`, puis le titre vide). `indexOf` y rendrait `-1` pour
+   * chaque plat — donc aucune case, en silence, et une carte qui a l'air de
+   * marcher.
+   *
+   * ⚠️ ET SURTOUT PAS `dishes[i]` DEPUIS UNE LISTE FILTRÉE. La position doit
+   * être celle du `dishes[]` STOCKÉ (`HouseholdDishView.dishIndex`, capturé
+   * avant tout filtre); l'appelant la passe, on ne la recalcule jamais ici.
+   * C'est aussi pourquoi le plat est passé À CÔTÉ de l'index plutôt que
+   * cherché avec: ce hook n'a aucun moyen de vérifier que le tableau qu'il
+   * tient est celui que l'index numérote.
+   */
+  bindAt: (
+    dish: TickableDish,
+    dishIndex: number,
+    onDate: string | null,
+  ) => DishTick | null;
 }
 
 /**
@@ -227,7 +265,7 @@ export function useMealTicks(args: {
   }, [userId, mealId]);
 
   const toggle = React.useCallback(
-    async (index: number, key: string, dish: GeneratedDish, onDate: string) => {
+    async (index: number, key: string, dish: TickableDish, onDate: string) => {
       if (!mealId) return;
       setBusyKey(key);
       setError(null);
@@ -321,18 +359,23 @@ export function useMealTicks(args: {
     [mealId, userId],
   );
 
-  const bind = React.useCallback(
-    (dish: GeneratedDish, onDate: string | null): DishTick | null => {
+  /**
+   * LE CŒUR DES DEUX LIAISONS — une position, un plat, une date.
+   *
+   * ⚠️ UN SEUL CORPS, ET C'EST LA RAISON D'ÊTRE DE CE FICHIER (`bind` en
+   * porte l'en-tête): deux câblages parallèles divergent au premier correctif,
+   * et ici « diverger » veut dire qu'un écran écrit un fait que l'autre ne
+   * sait pas lire. `bind` et `bindAt` ne se distinguent que par la façon dont
+   * la POSITION est obtenue; tout ce qui suit est commun.
+   */
+  const bindIndex = React.useCallback(
+    (dish: TickableDish, index: number, onDate: string | null): DishTick | null => {
       if (!userId || !mealId) return null;
       // LE FUTUR N'EST PAS RAPPORTABLE, et c'est la seule interdiction qui
       // reste. Une date inconnue non plus: on ne saurait pas de quel jour on
       // parle, et écrire « aujourd'hui » par défaut daterait un fait au hasard.
       if (!isReportable(onDate, browserLocalDate())) return null;
-      // L'INDEX DANS LE PLAN, et pas la position à l'écran. Le rendu regroupe
-      // par jour et répète un plat en lot sur chaque jour qu'il couvre;
-      // l'index d'affichage n'a donc aucun rapport avec l'identité du fait.
-      const index = dishes.indexOf(dish);
-      if (index < 0) return null;
+      if (!Number.isInteger(index) || index < 0) return null;
       const key = mealTickKey(mealId, index);
       // `onDate` est non nul ici — `isReportable` l'a déjà exigé — mais le type
       // ne le dit pas, et un `!` de plus serait un `as` de plus.
@@ -353,8 +396,26 @@ export function useMealTicks(args: {
           : null,
       };
     },
-    [busyKey, dishes, mealId, pickReason, promptKey, ticked, toggle, userId],
+    [busyKey, mealId, pickReason, promptKey, ticked, toggle, userId],
   );
 
-  return { ready, error, bind };
+  const bind = React.useCallback(
+    (dish: GeneratedDish, onDate: string | null): DishTick | null => {
+      // L'INDEX DANS LE PLAN, et pas la position à l'écran. Le rendu regroupe
+      // par jour et répète un plat en lot sur chaque jour qu'il couvre;
+      // l'index d'affichage n'a donc aucun rapport avec l'identité du fait.
+      const index = dishes.indexOf(dish);
+      if (index < 0) return null;
+      return bindIndex(dish, index, onDate);
+    },
+    [bindIndex, dishes],
+  );
+
+  const bindAt = React.useCallback(
+    (dish: TickableDish, dishIndex: number, onDate: string | null): DishTick | null =>
+      bindIndex(dish, dishIndex, onDate),
+    [bindIndex],
+  );
+
+  return { ready, error, bind, bindAt };
 }

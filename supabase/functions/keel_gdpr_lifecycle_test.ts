@@ -1050,6 +1050,13 @@ const HORS_EXPORT: Record<string, [string[], string][]> = {
   student_meal_documents: [[["user_id"], "sa propre cle"]],
   student_weight_divergence_episodes: [[["user_id"], "sa propre cle"]],
   meal_composition_verdicts: [[["user_id"], "sa propre cle"]],
+  // A8.2 — `declared_by` vaut son id a CHAQUE ligne: la rendre ajouterait son
+  // identifiant N fois sans rien lui apprendre. C'est la colonne PAR LAQUELLE
+  // l'export filtre, donc sa valeur est connue d'avance. `member_id`, lui,
+  // SORT: il dit DE QUELLE bouche on parle, et c'est la seule chose qui
+  // distingue la boite de l'un de celle de l'autre sur les lignes qu'il a
+  // ecrites pour une bouche sans compte.
+  meal_share_outcomes: [[["declared_by"], "sa propre cle"]],
   coach_doctrines: [
     [["coach_id"], "sa propre cle"],
     [

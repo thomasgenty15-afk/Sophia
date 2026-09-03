@@ -17,6 +17,8 @@
  */
 
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 import type { MemberPortionView } from "./household";
 import { selectMyShare, sharePresentedTo } from "./myShare";
@@ -126,5 +128,94 @@ describe("la garde d'identité — jamais la part d'un autre", () => {
 
   it("se tait quand il n'y a pas de ligne", () => {
     expect(sharePresentedTo({ mine: null, meMemberId: ZOE })).toBeNull();
+  });
+});
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * A8.1 — LA CARTE GAGNE DES CASES, ET LA MÊME RÈGLE LES FERME AU MAÎTRE.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * `selectMyShare` est éprouvée plus haut, sur les vraies données: le maître
+ * ne reçoit RIEN alors que sa ligne existe. Ce qui suit tient l'autre moitié —
+ * que ce refus gouverne AUSSI les cases, et pas seulement le texte de la
+ * carte. La distinction n'est pas théorique: une carte peut se taire pendant
+ * qu'une case, montée à côté, écrirait quand même.
+ *
+ * Ces épreuves lisent la SOURCE, parce que ce dépôt ne monte pas de composants
+ * en test (aucune dépendance de rendu). Elles tiennent donc un CÂBLAGE, pas un
+ * pixel — et c'est exactement ce qui a manqué aux deux fois où un lecteur de
+ * foyer a rendu la ligne de quelqu'un d'autre.
+ */
+describe("A8.1 — les cases de « ta part »", () => {
+  const ROOT = resolve(__dirname, "../../../..");
+  /**
+   * ⚠️ COMMENTAIRES DÉPOUILLÉS, ET CE N'EST PAS UNE COMMODITÉ. Ce fichier
+   * DÉCRIT dans ses commentaires les formes qu'il refuse d'écrire
+   * (« `myDishes[dishIndex]` serait un AUTRE plat »). Une épreuve qui les lit
+   * rougirait sur la phrase qui explique l'interdit — mesuré ici même, du
+   * premier coup. Cicatrice `documented-constraints-outlive-their-cause`:
+   * grep les commentaires avant de conclure.
+   *
+   * ⚠️ ET LES BLOCS D'ABORD, LES LIGNES ENSUITE. Un `{ /* … *\/ }` de JSX est
+   * un cas du motif de bloc; l'ordre inverse laisserait des fragments.
+   */
+  const card = readFileSync(
+    resolve(ROOT, "frontend/src/keel/components/plan/MyShareCard.tsx"),
+    "utf8",
+  )
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/^\s*\/\/.*$/gm, "");
+
+  it("LE CAS QUI PASSE — la carte lie bien des cases", () => {
+    expect(card, "`MyShareCard` ne lie plus aucune case").toContain("bindTick={");
+    expect(card, "elle ne passe plus par la liaison unique").toContain(
+      "useMealTicks({",
+    );
+  });
+
+  it("⛔ LA CASE EST FERMÉE AU MAÎTRE PAR LE MÊME `share` QUE LA CARTE", () => {
+    // La carte rend `null` sur `!share`, et `share` vient de `sharePresentedTo`
+    // — la garde d'identité. Comme les cases sont rendues DANS la carte, le
+    // refus du maître (`selectMyShare` ⇒ `null` ⇒ `share` ⇒ `null`) les ferme
+    // aussi, par construction. C'est ce qu'on épingle: l'absence d'une seconde
+    // porte.
+    //
+    // MUTATION QUI DOIT ROUGIR: sortir la liste (et donc les cases) de la
+    // carte, ou rendre la liste avant le `if (!share) return null;`.
+    const guard = card.indexOf("if (!share) return null;");
+    const list = card.indexOf("<DishListByDay");
+    expect(guard, "la garde d'identité a disparu de la carte").toBeGreaterThan(-1);
+    expect(list, "la liste a disparu de la carte").toBeGreaterThan(-1);
+    expect(
+      guard,
+      "la liste (et ses cases) est rendue AVANT la garde d'identité: le " +
+        "maître, ou quelqu'un dont la place n'est pas encore lue, verrait des " +
+        "cases sur des plats qui ne sont pas les siens",
+    ).toBeLessThan(list);
+  });
+
+  it("⛔ LES PLATS COCHABLES SONT LES SIENS — `dishIsFor`, pas un second filtre", () => {
+    // La règle « ce plat est-il pour moi » vit à UN endroit
+    // (`planByPersonModel.dishIsFor`). Un filtre réécrit ici divergerait, et
+    // la divergence mettrait une case sous le plat dédié d'un autre.
+    expect(card, "un second filtre a été écrit à côté de `dishIsFor`").toContain(
+      "dishIsFor(d, share?.memberId ?? null)",
+    );
+    // ET L'IDENTITÉ VIENT DE `share`, PAS DE LA PROP BRUTE: `sharePresentedTo`
+    // a déjà vérifié que la ligne tenue est bien la mienne.
+    expect(card).not.toContain("dishIsFor(d, meMemberId)");
+  });
+
+  it("⛔ LA POSITION VIENT DU PLAN, JAMAIS DU RANG D'AFFICHAGE", () => {
+    // `myDishes` est filtrée puis regroupée puis triée par moment:
+    // `myDishes[dishIndex]` serait un AUTRE plat, et la coche porterait le
+    // titre de quelqu'un d'autre dans une ligne datée.
+    //
+    // MUTATION QUI DOIT ROUGIR: `myDishes[dishIndex]` à la place du `find`.
+    expect(card, "le plat n'est plus retrouvé par sa position dans le plan")
+      .toContain("myDishes.find((d) => d.dishIndex === dishIndex)");
+    expect(card, "le plat est repris par son rang d'affichage")
+      .not.toMatch(/myDishes\[\s*dishIndex\s*\]/);
   });
 });

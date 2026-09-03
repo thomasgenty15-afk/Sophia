@@ -1752,6 +1752,25 @@ export { type MemberPortionView } from "./mealGeneration";
  * Le titre, le jour et le moment suffisent à « ce que la maison cuisine ».
  */
 export interface HouseholdDishView {
+  /**
+   * ══════════════════════════════════════════════════════════════════════
+   * A8.1 — SA POSITION DANS LE `dishes[]` STOCKÉ. La clé de coche en dépend.
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * `meal_tick:<planId>:<idx>` est POSITIONNEL (`api/mealTicks.ts`), et c'est
+   * la position dans le JSONB de la ligne — pas celle dans cette vue.
+   *
+   * ⛔ LE PIÈGE, ET IL EST À DEUX PAS D'ICI. `readHouseholdDishes` FILTRE les
+   * entrées sans titre. Un plat sans titre en position 2 décale donc tout ce
+   * qui suit d'un cran dans la vue, et un index lu sur la vue écrirait la
+   * coche du membre SUR LE PLAT SUIVANT — un fait faux, daté, indémentable
+   * (cicatrice `auto-tick-writes-undeniable-false-facts`), et invisible: les
+   * deux plats existent, les deux titres sont plausibles.
+   *
+   * D'où: l'index est capturé AVANT le filtre, il voyage avec le plat, et
+   * personne ne le recalcule en aval.
+   */
+  dishIndex: number;
   title: string;
   day: string | null;
   slot: string | null;
@@ -1886,12 +1905,22 @@ export async function loadHouseholdMeal(today: string): Promise<HouseholdMealVie
 /**
  * Les plats d'un plan, réduits à ce qui se dit à table. Voir `HouseholdDishView`
  * pour ce qui est délibérément laissé de côté, et pourquoi.
+ *
+ * ⟳ A8.1 — EXPORTÉE POUR ÊTRE ÉPROUVÉE, et pour une raison précise: depuis que
+ * cette lecture porte `dishIndex`, une erreur d'un cran ici fait écrire la
+ * coche d'un profil réclamé SUR LE PLAT SUIVANT. Le fait serait daté, plausible
+ * et indélébile. Une garde qui ne peut pas s'exécuter contre un tableau brut ne
+ * verrait pas ce décalage — voir `household.int.test.ts`.
  */
-function readHouseholdDishes(raw: unknown): HouseholdDishView[] {
+export function readHouseholdDishes(raw: unknown): HouseholdDishView[] {
   if (!Array.isArray(raw)) return [];
-  return raw.map((entry) => {
+  // ⚠️ L'INDEX EST CELUI DU TABLEAU BRUT, ET IL EST PRIS ICI, AVANT LE
+  // `.filter` de la dernière ligne. Le prendre après ferait une vue dont les
+  // positions ne sont plus celles du plan — voir `HouseholdDishView.dishIndex`.
+  return raw.map((entry, dishIndex) => {
     const d = (entry ?? {}) as Record<string, unknown>;
     return {
+      dishIndex,
       title: String(d.title ?? "").trim(),
       day: typeof d.day === "string" && d.day.trim() ? d.day.trim() : null,
       slot: typeof d.slot === "string" && d.slot.trim() ? d.slot.trim() : null,
