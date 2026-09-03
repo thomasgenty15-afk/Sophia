@@ -2448,7 +2448,8 @@ export default function StudentWeekPlanPage() {
                  coach pour manger.
             Le constructeur ci-dessous produit des plats avec leurs ingrédients,
             jour par jour, à partir de cette même doctrine — sans jamais la
-            citer. Les IDÉES que le coach dépose vivent sur `/app/meals`. */}
+            citer. Les IDÉES que le coach dépose ne sont plus montrées à l'élève
+            (`/app/meals` retiré le 2026-09-03, P4); elles restent sur `/coach/meals`. */}
         {/* LE RYTHME ET LES ABSENCES DESCENDENT D'ICI. Cette page lit déjà
             `student_goals`; les relire dans le constructeur ferait un second
             lecteur de la même colonne, et la grille montrerait alors autre

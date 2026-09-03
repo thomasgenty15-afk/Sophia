@@ -13,8 +13,15 @@
 // affichait « votre coach n'a pas encore proposé d'idées » à un coach qui en
 // avait écrit vingt. La bibliothèque était structurellement invisible.
 //
-// Désormais: le coach publie une bibliothèque GLOBALE, tous ses élèves la
-// lisent. `meal_plan_entries` a été supprimée (migration 20260804210000).
+// Désormais: le coach publie une bibliothèque GLOBALE. `meal_plan_entries` a
+// été supprimée (migration 20260804210000).
+//
+// ⚠️ DEPUIS LE 2026-09-03 (P4), AUCUN ÉCRAN ÉLÈVE NE LA LIT. `/app/meals` et
+// son lecteur `loadStudentRecipes` sont partis: la bibliothèque n'entrait
+// nulle part dans la composition, n'écrivait rien, n'avait aucun aval. Ce
+// module ne sert plus que `/coach/meals`. La policy `meal_ideas_student_read`
+// reste en base sans lecteur front — la retirer est une décision de base, pas
+// un nettoyage.
 //
 // LA PHOTO NE PASSE PAS PAR ICI. Il n'existe aucune policy sur
 // `storage.objects`: le navigateur est structurellement incapable de toucher un
@@ -74,26 +81,6 @@ export async function loadCoachRecipes(coachId: string): Promise<MealIdea[]> {
     .order("created_at", { ascending: false });
   if (result.error) {
     throw new Error(`[keel/recipes] load failed: ${result.error.message}`);
-  }
-  return (result.data ?? []) as unknown as MealIdea[];
-}
-
-/**
- * Les recettes que l'ÉLÈVE peut voir.
- *
- * Aucun filtre sur le coach ici: la policy `meal_ideas_student_read` ne rend que
- * les recettes actives des coachs actifs de cet élève. Refiltrer côté client
- * donnerait une seconde définition de « visible », et c'est la divergence entre
- * les deux qui produit les fuites.
- */
-export async function loadStudentRecipes(): Promise<MealIdea[]> {
-  const result = await supabase
-    .from("meal_ideas")
-    .select(COLUMNS)
-    .eq("status", "active")
-    .order("created_at", { ascending: false });
-  if (result.error) {
-    throw new Error(`[keel/recipes] student load failed: ${result.error.message}`);
   }
   return (result.data ?? []) as unknown as MealIdea[];
 }

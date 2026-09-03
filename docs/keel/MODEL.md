@@ -25,7 +25,7 @@ Ce n'est pas une limitation temporaire qu'on lèvera plus tard. C'est le produit
 |---|---|---|
 | **Sa doctrine** — ses convictions sur la façon dont on doit manger, interdits compris | `coach_beliefs` | `coach-doctrine-v1` |
 | **Son programme** — un modèle de plan, écrit une fois | `plan_templates` | `plan-template-v1` |
-| **Ses recettes** | bibliothèque recettes | `coach-recipe-image-v1` |
+| **Ses recettes** — sur `/coach/meals` ; **aucun écran élève ne les lit depuis le 2026-09-03** (`/app/meals` retiré, chantier P4) | `meal_ideas` | `coach-recipe-image-v1` |
 
 Ces trois choses s'adressent à **la cohorte**. Aucune ne mentionne un élève.
 
@@ -146,11 +146,15 @@ Personne n'a rien prescrit. Et un **plat** ne cite jamais la doctrine (un dîner
 leçon), là où une **ligne de méthode** la cite exprès — c'est une lecture de la conviction du
 coach, et elle doit rester jugeable.
 
-`/app/meals` **est déjà sorti** de ce piège (2026-08-05) et sert de modèle : il affichait une
-semaine de repas placés jour par jour via `meal_plan_entries` — donc une composition par élève,
-hors modèle — et la table a été supprimée (`20260804210000`). L'écran lit maintenant la
-**bibliothèque de recettes actives du coach**, sans placement : un artefact collectif, lu par
-l'élève, que le coach écrit une fois. C'est la bonne forme.
+`/app/meals` **était sorti** de ce piège le 2026-08-05 : il affichait une semaine de repas
+placés jour par jour via `meal_plan_entries` — donc une composition par élève, hors modèle —
+et la table a été supprimée (`20260804210000`). L'écran a ensuite lu la **bibliothèque de
+recettes actives du coach**, sans placement : un artefact collectif, lu par l'élève, que le
+coach écrit une fois. C'était la bonne forme — **et l'écran a été retiré le 2026-09-03**
+(chantier P4, décision D4.1) : la bibliothèque n'entrait nulle part dans la composition,
+n'écrivait rien, n'avait aucun aval. Le côté coach reste (`/coach/meals`,
+`coach-recipe-image-v1`, la table `meal_ideas`) ; ce qui n'existe plus, c'est le lecteur
+élève. Un élève qui n'a rien à manger va sur `/app/plan`.
 
 ---
 
