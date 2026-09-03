@@ -1826,3 +1826,39 @@ auraient cherché une cause inexistante.
 
 **La lane MEMBRE est close pour de bon** : A8.0, A8.1, A8.2, A8.3, leurs correctifs, la fenêtre de run, le P0 RGPD et la
 fuite de plat. Le créneau reste à `sophia-2-11` jusqu'à ce qu'elle rende la main.
+
+## 08:2x — 🔴 UN DÉFAUT DE PREMIÈRE GRANDEUR, TROUVÉ PAR LA SESSION VOISINE — HORS DE CE CHANTIER
+
+`sophia-2-11` rend le créneau après **quatre générations réelles, quatre HTTP 200, zéro 502, zéro recréation**
+(20:09:30Z → 20:18:47Z, empreinte de code identique avant/après sur les quatre). **Deuxième mesure indépendante** du
+fait que la discipline du créneau nommé suffit.
+
+**Ce qu'elle a trouvé, même analyseur, même fixture, même enveloppe, comparé au 23 août :**
+
+| | servi | protéine | verdict rendu |
+|---|---|---|---|
+| 23 août | 1 261 kcal/j | 72 g | `below` / `under` |
+| 3 sept | **3 571 kcal/j** | 175 g | **`within`** / **`under`** |
+| cible | 2 414 – 2 668 kcal/j | plancher 131 g | |
+
+**La sous-nutrition n'a pas été corrigée : elle a été REMPLACÉE par une sur-nutrition de 34 %** au-dessus du plafond —
+un déplacement du défaut, pas sa réparation.
+**⛔ Et le plus grave n'est pas là : le verdict se trompe DANS DEUX DIRECTIONS OPPOSÉES.** Il juge `within` une journée
+à 3 571 sur une enveloppe 2 414-2 668, **et** `under` une protéine à 175 g sur un plancher à 131 g.
+⇒ **Une garde qui rend le mauvais verdict est pire qu'une garde absente, parce qu'elle rassure.**
+Second symptôme sur la même chaîne le même soir : une fenêtre de **3 jours** ne produit que **2 journées** de repas
+(août en produisait 3/3), à résolution 79/79 — **pas un artefact de mesure**.
+
+**Mesuré avant de répondre : ce n'est pas ce chantier.** Aucune des cinq lanes ne touche `verdictFor`,
+`meal_verdict.ts`, `meal_envelope.ts` ni `portion_scaling.ts` — **zéro occurrence sur les cinq branches**. Le seul
+fichier proche que le chantier ait ouvert est `mouth_anchor.ts` : vérifié plutôt que supposé, **zéro ligne
+non-commentaire** dans le diff et **`SLOT_DAY_WEIGHT` inchangé d'une valeur** (c'est le renversement D7.8, un en-tête).
+**Porté au rapport final comme défaut hors périmètre, pour l'humain.**
+
+### ⭐ Et sa preuve d'allergie est la meilleure de la nuit, pour une raison de méthode
+
+**Contrefactuel** : 17 occurrences d'« egg » et deux plats à l'œuf **sans** contrainte ; **0 occurrence** avec une
+allergie médicale à l'œuf, **menu entier reconstruit**, même fixture.
+⇒ **C'est la seule forme de preuve qui distingue une garde qui MORD d'une garde qui a de la CHANCE.** Ce chantier a
+passé la journée à apprendre exactement ça, et à le payer trois fois (le test qui recopie le littéral, la mutation
+verte par préfixe, les deux gardes qui se recouvraient).
