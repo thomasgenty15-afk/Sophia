@@ -1,4 +1,5 @@
 import type { WorkLunch } from "./presenceMarks";
+import { workLunchWriteIsNeeded } from "./workLunchForm";
 
 // L6 — LE GESTE D'ENREGISTREMENT DU DÉJEUNER, ET IL VIT DANS SON PROPRE FICHIER.
 //
@@ -87,4 +88,37 @@ export async function readWorkLunchAnswers(
   } catch (e) {
     return { answers: null, error: e instanceof Error ? e.message : String(e) };
   }
+}
+
+/**
+ * LE GESTE D'UNE BOUCHE — ET LA GARDE D'ÉCRITURE EST ICI, PAS DANS LA CARTE.
+ *
+ * A6 (2026-09-03): la question a quitté l'étape 3 pour la fiche de chaque
+ * personne sur `/app/household` (`MemberWorkLunchCard`). L'ancienne carte
+ * comparait `saved` et `next` dans sa fermeture `commit` — mesurable par aucun
+ * test (`renderToStaticMarkup` ne clique pas), donc tenue par un commentaire.
+ * Au nouveau site, la comparaison est SORTIE ici, pour la même raison que les
+ * deux fonctions au-dessus.
+ *
+ * ⛔ CE QUE ÇA GARDE: la porte SQL ré-applique son pré-remplissage à CHAQUE
+ * écriture, même identique — réécrire `{"at_work":true,"mode":"outside"}`
+ * REMET les cinq midis « dehors », y compris celui qu'on venait de décocher à
+ * la main dans la grille juste en dessous. `saved` est ce que la page a LU;
+ * comparer au brouillon dirait toujours « ça a changé ».
+ *
+ * `written: false` = rien n'est parti, et ce n'est pas un échec: c'est la garde
+ * qui a mordu. L'appelant n'a rien à relire.
+ */
+export async function commitMemberWorkLunch(args: {
+  /** La réponse ENREGISTRÉE pour cette bouche — `null` = jamais demandé. */
+  saved: WorkLunch | null;
+  next: WorkLunch;
+  /** Le geste complet (`commitWorkLunch`, câblé par la page). */
+  commit: (next: WorkLunch) => Promise<{ ok: boolean; reason: string | null }>;
+}): Promise<{ ok: boolean; reason: string | null; written: boolean }> {
+  if (!workLunchWriteIsNeeded(args.saved, args.next)) {
+    return { ok: true, reason: null, written: false };
+  }
+  const result = await args.commit(args.next);
+  return { ok: result.ok, reason: result.reason, written: true };
 }
