@@ -4511,7 +4511,13 @@ Deno.serve(async (req) => {
     try {
       const wlRes = await admin
         .from("household_members")
-        .select("id, work_lunch")
+        // ⛔ `member_id`, ET PAS `id` — LA TABLE N'A PAS DE COLONNE `id`.
+        // Défaut trouvé par le RUN RÉEL du 2026-09-03 21:14: PostgREST refusait
+        // la projection, le `catch` en dessous avalait le refus, et D6.2 ne
+        // partait JAMAIS au modèle. La ligne écrite portait
+        // `issues: ["work_lunch_unreadable"]` et le compteur `{mouths:0,
+        // cold:0}` alors que Claire déclare une gamelle en base.
+        .select("member_id, work_lunch")
         .eq("household_id", householdId);
       if (wlRes.error) throw wlRes.error;
       for (const row of (wlRes.data ?? []) as Array<Record<string, unknown>>) {
@@ -4522,7 +4528,11 @@ Deno.serve(async (req) => {
         const parsed = parseWorkLunch(row.work_lunch);
         if (parsed === null || !parsed.atWork) continue;
         workLunchRows.push({
-          memberId: String(row.id),
+          // ⚠️ LE MÊME IDENTIFIANT QUE CELUI DU PROMPT. `workLunchBlock` cherche
+          // la bouche par `memberId` dans `input.members`, qui sont keyés par
+          // `member_id`: un autre identifiant ne l'aurait jamais trouvée, et le
+          // bloc serait resté vide MÊME avec la bonne projection.
+          memberId: String(row.member_id),
           mode: parsed.mode,
           microwave: parsed.microwave,
         });

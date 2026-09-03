@@ -146,7 +146,31 @@ Deno.test("D6.2 — la lane FOYER passe le champ, et compte ce qu'il a donné", 
   // remplacent la casse de compilation.
   assertStringIncludes(code, "workLunch: workLunchRows,");
   assertStringIncludes(code, "const parsed = parseWorkLunch(row.work_lunch);");
-  assertStringIncludes(code, '.select("id, work_lunch")');
+  // ══════════════════════════════════════════════════════════════════════════
+  // ⛔ CE TEST ÉPINGLAIT LE MAUVAIS LITTÉRAL, ET IL ÉTAIT VERT.
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // Il exigeait `.select("id, work_lunch")`. `household_members` n'a PAS de
+  // colonne `id` — seulement `member_id`. PostgREST refusait donc la
+  // projection, le `catch` de la lane avalait le refus, et D6.2 ne partait
+  // JAMAIS au modèle. Trouvé par le RUN RÉEL du 2026-09-03: la ligne écrite
+  // portait `issues: ["work_lunch_unreadable"]` et le compteur `{mouths:0,
+  // cold:0}` pendant qu'une bouche déclarait sa gamelle en base.
+  //
+  // ⚠️ LA LEÇON: un test de source qui RECOPIE le code ne le vérifie pas. Il
+  // recopiait ma faute de frappe et la déclarait conforme — la famille
+  // « test paramétré par sa propre constante », en version chaîne.
+  //
+  // Ce qu'il tient maintenant est une CONSÉQUENCE, pas une copie: la colonne
+  // projetée doit être CELLE que le mapping relit, et ce doit être l'identifiant
+  // que le prompt utilise (`member_id`). Un `id` réintroduit fait tomber les
+  // trois assertions d'un coup.
+  assertStringIncludes(code, '.select("member_id, work_lunch")');
+  assertStringIncludes(code, "memberId: String(row.member_id),");
+  assert(
+    !/\.select\("id, work_lunch"\)/.test(code),
+    "la lane projette `id`, une colonne que `household_members` n'a pas",
+  );
   assertStringIncludes(code, "work_lunch_unreadable");
   // ══════════════════════════════════════════════════════════════════════════
   // ⛔ ET LE COMPTEUR ATTEINT LA LIGNE. C'ÉTAIT FAUX, ET LIVRÉ.
