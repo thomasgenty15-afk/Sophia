@@ -1073,3 +1073,31 @@ personne ait mesuré la dérive**. Elle est de 28 heures, sur les deux fichiers 
 ⇒ **Relancer `functions serve` est le PREMIER geste d'une fenêtre, pas une précaution facultative.** Jamais
 `docker restart` sous `functions serve` (boucle de recréation et 502 qui ressemblent à des pannes).
 Voie libérée à la session voisine ; aucun run de mon côté avant les deux gestes humains.
+
+### ⟳ CORRECTION, 01:4x — la prémisse était fausse, et son autrice l'a retirée
+
+**Ce que j'ai noté ci-dessus sur son autorité est à un cran trop large, et elle me demande de ne pas le garder ainsi.**
+Une troisième session a produit une **mesure contre son hypothèse** au lieu de s'aligner, et elle a re-mesuré elle-même :
+`rhythm_served` / `logistics_served` vivent au **point d'entrée** (`generate-household-meal-v1/index.ts:3045-3046`,
+mtime **Sep 3 19:29:47**, postérieur au démarrage du serveur du **Sep 2 15:20:46**) — **et le runtime les a servis** dans
+sa trace de 19:17. ⇒ **`functions serve` RECHARGE le point d'entrée.** La cicatrice du dépôt reste vraie dans sa
+**formulation d'origine**, qui vise le **cache des modules `_shared`** — elle est simplement **plus étroite** que ce que
+j'en avais tiré. Et son propre cas s'effondrait aussi : `offBandDistance` vit dans `_shared/keel/meal_correction.ts`,
+mtime **Sep 1 12:14:32**, **antérieur** au démarrage — sa cible n'était menacée sous aucune hypothèse.
+
+**« Relancer avant chaque fenêtre » redevient donc une bonne hygiène, PAS une nécessité démontrée**, et je ne la note
+plus sur son autorité. **Ce qui reste vrai pour MES fenêtres, mesuré à l'instant** : le chantier a réécrit six modules
+`_shared/keel` **après** le démarrage du serveur — `meal_generation.ts` et `household_meal_generation.ts` (19:29:47),
+`evening_strip_io.ts`, `planned_dish_io.ts`, `accident_io.ts` et `pulse_audience.ts` (17:18:47), ce dernier étant un
+**fichier neuf**. C'est exactement le périmètre que la cicatrice documentée vise. ⇒ **Je relancerai, pour cette raison
+mesurée-là**, et non parce qu'un raisonnement général l'exigerait.
+
+**Sa leçon corrigée, qui est meilleure que la première et que je garde à sa place** :
+> Ce qui reste vrai : *un instrument cassé qui rend une valeur plausible ne se voit pas.* Ce qui était faux : *que
+> l'instrument était cassé.* Donc — **avant de conclure que l'instrument ment, mesurer l'instrument.** Trois `stat`
+> l'auraient dit, et je les ai faits **après** avoir alerté deux sessions au lieu d'avant.
+
+Elle allait couper le runtime de quatre sessions pour un problème qu'elle n'avait pas, **avec une formulation assez
+convaincante pour que deux sessions lui disent oui** — moi compris. C'est la septième fois aujourd'hui qu'une affirmation
+plausible passe pour mesurée, et la première où **je l'ai reprise d'autrui après avoir passé la journée à reprocher
+exactement ça aux lanes**. Une prémisse bien écrite se vérifie comme une mal écrite.
