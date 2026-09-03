@@ -1,3 +1,9 @@
+import {
+  type CookingStyle,
+  type GroceryRuns,
+  readCookingStyle,
+  readGroceryRuns,
+} from "../api/cookingPlan";
 import React from "react";
 import { ChevronDown } from "lucide-react";
 
@@ -54,6 +60,8 @@ import CookingShapeField from "./CookingShapeField";
 // « TOUT DANS UNE SESSION DE CUISINE » — la case, et la porte qui la conditionne.
 import OneCookingSessionField from "./OneCookingSessionField";
 import KitchenEquipmentCard from "./KitchenEquipmentCard";
+import CookingStyleField from "./CookingStyleField";
+import GroceryRunsField from "./GroceryRunsField";
 import {
   hasFreezerDeclared,
   readKitchenEquipment,
@@ -458,6 +466,17 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
    */
   const [cookingTime, setCookingTime] = React.useState("");
   /**
+   * ⟳ P2 (2026-09-03) — LE STYLE ET LA CADENCE DE COURSES.
+   *
+   * ⚠️ ILS SE PRÉ-REMPLISSENT, contrairement à « une seule session » et à
+   * la forme de cuisine: ce sont des propriétés DURABLES (« j'aime
+   * cuisiner » ne change pas d'une semaine à l'autre), écrites dans
+   * `practical_constraints`. Repartir de vide à chaque composition ferait
+   * effacer la réponse au premier `savePlanInputs`.
+   */
+  const [cookingStyle, setCookingStyle] = React.useState<CookingStyle | null>(null);
+  const [groceryRuns, setGroceryRuns] = React.useState<GroceryRuns | null>(null);
+  /**
    * LOT B — COMMENT ON CUISINE CETTE SEMAINE. `null` = « laisse décider », et
    * c'est le DÉFAUT.
    *
@@ -597,6 +616,18 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
           if (last.cookingTimeMin !== null) {
             setCookingTime(String(last.cookingTimeMin));
           }
+          // ⟳ P2 (2026-09-03) — LE PRÉ-REMPLISSAGE, ET IL EST OBLIGATOIRE.
+          // Ces deux réponses sont DURABLES: sans cette relecture, le premier
+          // `savePlanInputs` de la composition suivante écrirait `null` sur les
+          // deux et effacerait la réponse donnée dans l'entonnoir — la
+          // cicatrice « formulaire figé au montage » payée sur `SetupPage`.
+          //
+          // ⚠️ POSÉ MÊME À `null`: ici `null` EST la valeur relue (« pas encore
+          // répondu »), pas une absence de lecture. Un `if (… !== null)` comme
+          // au-dessus laisserait un état obsolète si la réponse était effacée
+          // ailleurs entre deux montages.
+          setCookingStyle(last.cookingStyle);
+          setGroceryRuns(last.groceryRuns);
           // ⛔ LA MÊME LECTURE, PAS UN SECOND ALLER-RETOUR: `readPlanInputs`
           // ouvre déjà cette colonne pour le budget et les jours de cuisine.
           setPlanConstraints(last.practicalConstraints);
@@ -823,6 +854,11 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
       await savePlanInputs(userId, {
         budgetAmount,
         cookingTimeMin: Number(cookingTime),
+        // ⟳ P2 — DURABLES, donc écrites ici comme le budget. Le générateur les
+        // relit dans `practical_constraints` et en dérive sessions, jours de
+        // cuisine et budget de temps (`_shared/keel/cooking_plan.ts`).
+        cookingStyle,
+        groceryRuns,
       });
 
       // ── LE MAÎTRE COMPOSE POUR LE FOYER ───────────────────────────────────
@@ -1133,6 +1169,29 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                     « Je cuisine la veille » RECULE le premier jour du champ
                     juste au-dessus: les séparer ferait lire un décalage de date
                     sans le geste qui le cause. */}
+                {/* ⟳ P2 (2026-09-03) — LES DEUX MÊMES COMPOSANTS QUE
+                    L'ENTONNOIR, et c'est le point: deux champs écrits
+                    séparément divergeraient au premier libellé retouché, et
+                    c'est celui qu'on regarde le moins qui garderait l'ancien
+                    mot.
+
+                    ⚠️ AVANT « tout dans une session », parce que « une seule
+                    course » IMPLIQUE la session unique: lire la conséquence
+                    avant sa cause ferait cocher deux fois la même chose. */}
+                <CookingStyleField
+                  id="meals-cooking-style"
+                  value={cookingStyle}
+                  onChange={setCookingStyle}
+                  disabled={building}
+                />
+
+                <GroceryRunsField
+                  id="meals-grocery-runs"
+                  value={groceryRuns}
+                  onChange={setGroceryRuns}
+                  disabled={building}
+                />
+
                 <OneCookingSessionField
                   id="meals-one-cooking-session"
                   value={oneCookingSession}

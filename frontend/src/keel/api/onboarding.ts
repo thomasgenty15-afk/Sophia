@@ -1,3 +1,9 @@
+import {
+  type CookingStyle,
+  type GroceryRuns,
+  readCookingStyle,
+  readGroceryRuns,
+} from "./cookingPlan";
 // KEEL — L'ENTONNOIR D'ENTRÉE (FF-060): décisions pures d'un côté, écran de
 // l'autre. Même partage que `coachSeat.ts` et `household.ts`.
 //
@@ -175,6 +181,8 @@ export type FunnelQuestionId =
   // Étape 4 — la demande de plan
   | "cook_days"
   | "cooking_time_min"
+  | "cooking_style"
+  | "grocery_runs"
   | "budget_amount"
   // ── LES `better`: DÉCLARÉES ICI, JAMAIS RENDUES PAR `funnelSteps` ────────
   // Elles ne sont pas du décor. Ce tableau est la LISTE DE CE QUI SE DEMANDERA
@@ -586,9 +594,38 @@ export const FUNNEL_QUESTIONS: readonly FunnelQuestion[] = Object.freeze([
     step: null,
     scope: "household",
   },
+  // ⟳ P2 (2026-09-03) — `cooking_time_min` PASSE DE « wrong » À « better », ET
+  // SORT DE L'ÉTAPE. L'entrée RESTE: le moteur lit toujours la clé, et cinq
+  // lecteurs en dépendent. Ce qui change est qu'on ne la DEMANDE plus — elle se
+  // dérive du style. La retirer du catalogue ferait disparaître du produit la
+  // trace qu'elle est encore lue.
   {
     id: "cooking_time_min",
     consumer: "supabase/functions/generate-meal-v1/index.ts#cooking_time_min",
+    weight: "better",
+    // ⛔ `NEVER` ET PAS `ALL_BRANCHES`: le contrat de §3.1 est qu'une `better`
+    // ne vit dans AUCUNE branche et n'a PAS d'étape — sinon `funnelSteps` la
+    // rendrait, c'est-à-dire remettrait dans l'entonnoir la question qu'on
+    // vient d'en sortir.
+    branches: NEVER,
+    step: null,
+    scope: "household",
+  },
+  // ⟳ P2 — LES DEUX QUESTIONS QUI LA REMPLACENT, BLOQUANTES À SA PLACE.
+  // `wrong` et pas `better`: sans elles, le moteur ne sait ni combien de fois
+  // on cuisine ni combien de vagues de courses il a le droit de poser, et il
+  // retombe sur un réglage que la personne n'a pas choisi.
+  {
+    id: "cooking_style",
+    consumer: "supabase/functions/_shared/keel/cooking_plan.ts#readCookingStyle",
+    weight: "wrong",
+    branches: ALL_BRANCHES,
+    step: "request",
+    scope: "household",
+  },
+  {
+    id: "grocery_runs",
+    consumer: "supabase/functions/_shared/keel/cooking_plan.ts#readGroceryRuns",
     weight: "wrong",
     branches: ALL_BRANCHES,
     step: "request",
@@ -819,6 +856,19 @@ export interface FunnelPlanAnswers {
   /** `mon`…`sun`. Vide = rien de déclaré. */
   cookDays: readonly string[];
   cookingTimeMin: number | null;
+  /**
+   * ⟳ P2 (2026-09-03) — LES DEUX RÉPONSES QUI REMPLACENT LA DURÉE.
+   *
+   * `null` = la question n'a pas encore de réponse, et surtout PAS « le
+   * moins possible » ni « une course »: la cicatrice `20260818110000:48-51`
+   * (payée sur `kitchen_equipment`) dit qu'une clé absente et une réponse
+   * basse se ressemblent en JSON et ne veulent pas dire la même chose.
+   *
+   * ⚠️ REQUIS ET NULLABLES, jamais `?`: un champ optionnel ici ne ferait
+   * remonter aucun site de montage au compilateur.
+   */
+  cookingStyle: CookingStyle | null;
+  groceryRuns: GroceryRuns | null;
   /**
    * L'ARGENT DE CE PLAN-LÀ, EN CHIFFRE — pas une bande.
    *
@@ -1280,13 +1330,15 @@ function canGenerateMisses(
   // écran ne permet de donner. C'est le mode d'échec le plus cher de cette
   // liste, et il est muet: `nextIncomplete` renverrait indéfiniment à l'étape
   // « demande » devant un formulaire complet.
-  if (
-    state.plan.cookingTimeMin === null ||
-    !Number.isFinite(state.plan.cookingTimeMin) ||
-    state.plan.cookingTimeMin <= 0
-  ) {
-    missing.push("cooking_time_min");
-  }
+  // ⟳ P2 (2026-09-03) — CE QUI RETIENT L'ÉTAPE N'EST PLUS UN NOMBRE DE MINUTES.
+  //
+  // ⛔ ET LES DEUX SONT EXIGÉES, PAS UNE. Un style sans cadence de courses ne
+  // dit pas combien de fois on cuisine, une cadence sans style ne dit pas
+  // combien de temps: `resolveCookingCapacity` refuse de dériver sur une moitié
+  // de réponse, et laisser passer l'une des deux ferait un entonnoir complet
+  // devant un moteur qui retombe silencieusement sur l'ancien réglage.
+  if (state.plan.cookingStyle === null) missing.push("cooking_style");
+  if (state.plan.groceryRuns === null) missing.push("grocery_runs");
   // ⚠️ LE CHIFFRE, PAS LA PRÉSENCE DE LA CLÉ. `0` est un budget que personne
   // n'a, et un `NaN` venu d'un champ à moitié tapé passerait un `!== null`.
   if (!isUsableBudget(state.plan.budgetAmount)) missing.push("budget_amount");
@@ -1455,6 +1507,10 @@ export function emptyFunnelState(): FunnelState {
       eatingRhythm: [],
       cookDays: [],
       cookingTimeMin: null,
+      // ⟳ P2 — `null` = pas encore répondu. C'est l'état d'un compte tout
+      // neuf, et l'entonnoir le retient (`missingForPlan`).
+      cookingStyle: null,
+      groceryRuns: null,
       budgetAmount: null,
     },
   };
@@ -1957,6 +2013,11 @@ function readPlanAnswers(pc: Record<string, unknown> | null): FunnelPlanAnswers 
   const budget = Number(pc?.budget_amount);
   const time = Number(pc?.cooking_time_min);
   return {
+    // ⟳ P2 — LES PARSEURS DU MOTEUR, réexportés, jamais une seconde
+    // lecture: deux idées du vocabulaire des styles produiraient un écran
+    // qui montre autre chose que ce avec quoi on compose.
+    cookingStyle: readCookingStyle(pc),
+    groceryRuns: readGroceryRuns(pc),
     // `parseEatingRhythm` et pas une seconde lecture: deux lectures de la même
     // colonne qui divergent produisent un écran qui montre autre chose que ce
     // avec quoi on compose.
@@ -2539,6 +2600,15 @@ export async function savePlanAnswers(args: {
       // plans et que plus aucun écran ne peut lever.
       cook_days: [],
       cooking_time_min: args.answers.cookingTimeMin,
+      // ⟳ P2 (2026-09-03) — LES DEUX RÉPONSES DURABLES.
+      //
+      // ⛔ `null` S'ÉCRIT, ET C'EST VOULU: il dit « pas encore répondu », et
+      // le moteur retombe alors sur `cooking_time_min` tel quel. Omettre la
+      // clé ferait la même chose côté lecteur, mais laisserait un compte qui
+      // a EFFACÉ sa réponse avec l'ancienne — c'est-à-dire un réglage qu'on
+      // ne peut plus retirer.
+      cooking_style: args.answers.cookingStyle,
+      grocery_runs: args.answers.groceryRuns,
       budget_amount: args.answers.budgetAmount,
     },
     source: "onboarding/plan",

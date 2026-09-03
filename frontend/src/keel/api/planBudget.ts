@@ -1,3 +1,9 @@
+import {
+  type CookingStyle,
+  type GroceryRuns,
+  readCookingStyle,
+  readGroceryRuns,
+} from "./cookingPlan";
 // KEEL — L'ARGENT DE CE PLAN-LÀ, LU ET ÉCRIT EN UN SEUL ENDROIT.
 //
 // ── CE QUE CE FICHIER REMPLACE, ET POURQUOI ────────────────────────────────
@@ -133,6 +139,20 @@ export function isUsableBudgetAmount(amount: unknown): amount is number {
 export interface PlanRequestInputs {
   budgetAmount: number | null;
   cookingTimeMin: number | null;
+  /**
+   * ⟳ P2 (2026-09-03) — LES DEUX RÉPONSES DURABLES DE LA CUISINE.
+   *
+   * ⚠️ REQUISES ET NULLABLES, jamais `?`: les deux sites de composition
+   * (`/app/plan` et l'entonnoir) doivent remonter au compilateur, sinon l'un
+   * d'eux écrirait sans elles et effacerait la réponse de l'autre.
+   *
+   * `null` = pas encore répondu, et il S'ÉCRIT. Omettre la clé laisserait un
+   * compte qui vient d'effacer sa réponse avec l'ancienne — un réglage qu'on
+   * ne peut plus retirer, la cicatrice « contrainte qu'on ne peut plus lever »
+   * de `cook_days`, dix lignes plus bas.
+   */
+  cookingStyle: string | null;
+  groceryRuns: number | null;
 }
 
 /**
@@ -166,6 +186,12 @@ export interface PlanRequestFacts extends PlanRequestInputs {
    * effacerait tout ce qu'une autre surface a écrit depuis. Cicatrice payée
    * deux fois, documentée dans `api/kitchenEquipment.ts`.
    */
+  /**
+   * ⟳ P2 (2026-09-03) — LES DEUX RÉPONSES DURABLES, RELUES POUR PRÉ-REMPLIR.
+   * `null` = pas encore répondu.
+   */
+  cookingStyle: CookingStyle | null;
+  groceryRuns: GroceryRuns | null;
   practicalConstraints: PracticalConstraints;
   /**
    * Y A-T-IL UNE LIGNE `student_goals` À METTRE À JOUR ?
@@ -192,6 +218,11 @@ export async function readPlanInputs(userId: string): Promise<PlanRequestFacts> 
     budgetAmount: isUsableBudgetAmount(pc.budget_amount)
       ? Number(pc.budget_amount)
       : null,
+    // ⟳ P2 — RELUES POUR PRÉ-REMPLIR, avec LES parseurs du moteur. Une
+    // seconde lecture du vocabulaire ferait un écran qui montre autre chose
+    // que ce avec quoi on compose.
+    cookingStyle: readCookingStyle(pc),
+    groceryRuns: readGroceryRuns(pc),
     cookingTimeMin: Number.isFinite(time) && time > 0 ? time : null,
     practicalConstraints: pc as PracticalConstraints,
     // `data === null` = aucune ligne. `maybeSingle` rend `null` sans erreur, et
@@ -222,6 +253,12 @@ export async function savePlanInputs(
     current: (data?.practical_constraints ?? {}) as Record<string, unknown>,
     patch: {
       budget_amount: inputs.budgetAmount,
+      // ⟳ P2 — LA MÊME ROUTE QUE LE BUDGET: écrit avant de partir, relu par
+      // le générateur dans `practical_constraints`. Le passer dans le corps
+      // de la requête ferait deux sources pour un seul réglage, et c'est
+      // toujours celle que l'écran ne montre pas qui gagne.
+      cooking_style: inputs.cookingStyle,
+      grocery_runs: inputs.groceryRuns,
       // ══════════════════════════════════════════════════════════════════
       // ⛔ ÉCRIT VIDE, ET C'EST LA MOITIÉ DE LA SUPPRESSION.
       // ══════════════════════════════════════════════════════════════════

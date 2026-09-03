@@ -62,14 +62,22 @@ describe("le champ est monté sur les DEUX surfaces", () => {
     // s'est donc retourné une seconde fois, et il tient toujours la même
     // chose: la question de calendrier qui reste vit ENTRE les dates et le
     // reste du formulaire.
+    //
+    // ⟳ P2 (2026-09-03) — L'ANCRE D'APRÈS A CHANGÉ SUR L'ENTONNOIR, parce que
+    // la question qu'elle nommait n'existe plus: `setup.plan.time` (« combien
+    // de temps dure une session ») a été remplacée par les deux questions de
+    // P2. `src.indexOf` d'une clé absente rend `-1`, et `x < -1` est faux pour
+    // tout `x` — le test tombait donc, ce qui est exactement ce qu'on veut
+    // d'une ancre périmée, mais il fallait la remplacer et non l'assouplir.
     for (const [name, src, dateKey, afterKey] of [
       ["MealBuilder", BUILDER, "meals.form.window_label", "plan.cooking.time_label"],
-      ["SetupPage", SETUP, "setup.request.from", "setup.plan.time"],
+      ["SetupPage", SETUP, "setup.request.from", "setup.request.presence_title"],
     ] as const) {
       const dates = src.indexOf(dateKey);
       const session = src.indexOf("<OneCookingSessionField");
       const after = src.indexOf(afterKey);
       expect(dates, name).toBeGreaterThan(-1);
+      expect(after, `${name}: l'ancre d'après a disparu`).toBeGreaterThan(-1);
       expect(session, name).toBeGreaterThan(dates);
       expect(session, name).toBeLessThan(after);
     }
@@ -341,5 +349,58 @@ describe("le couvercle SANS NOM survit à la lecture", () => {
       },
     ]);
     expect(dish.boxes).toHaveLength(0);
+  });
+});
+
+describe("⟳ P2 — le style et la cadence de courses, montés aux DEUX endroits", () => {
+  // ⛔ MÊME EXIGENCE QUE POUR LA SESSION UNIQUE, et pour la même raison: deux
+  // champs écrits séparément divergeraient au premier libellé retouché, et
+  // c'est celui qu'on regarde le moins qui garderait l'ancien mot.
+  it("les deux composants sont montés sur `/app/plan` ET dans l'entonnoir", () => {
+    for (const [name, src] of [["MealBuilder", BUILDER], ["SetupPage", SETUP]] as const) {
+      expect(src, name).toMatch(/<CookingStyleField/);
+      expect(src, name).toMatch(/<GroceryRunsField/);
+    }
+  });
+
+  it("⛔ le STYLE vient AVANT la cadence, et les deux avant la session unique", () => {
+    // L'ordre est le sens: c'est le style qui PLAFONNE le nombre de sessions,
+    // donc lire « trois courses » avant de savoir qu'on cuisine le moins
+    // possible ferait attendre trois séances que le plan ne fera pas. Et
+    // « une seule course » IMPLIQUE la session unique — lire la conséquence
+    // avant sa cause ferait cocher deux fois la même chose.
+    for (const [name, src] of [["MealBuilder", BUILDER], ["SetupPage", SETUP]] as const) {
+      const style = src.indexOf("<CookingStyleField");
+      const runs = src.indexOf("<GroceryRunsField");
+      expect(style, name).toBeGreaterThan(-1);
+      expect(runs, name).toBeGreaterThan(style);
+    }
+    // Sur `/app/plan` les trois cohabitent; l'entonnoir, lui, ne monte plus la
+    // session unique au même endroit, et ce test ne l'invente pas.
+    expect(BUILDER.indexOf("<OneCookingSessionField")).toBeGreaterThan(
+      BUILDER.indexOf("<GroceryRunsField"),
+    );
+  });
+
+  it("⛔ « combien de temps dure une session » N'EST PLUS DEMANDÉ dans l'entonnoir", () => {
+    // La suppression EST le lot. Un champ qui revient par une page oubliée
+    // ferait deux autorités sur `cooking_time_min`, dont une invisible.
+    const code = SETUP
+      .split("\n")
+      .map((line) => (line.trimStart().startsWith("//") ? "" : line))
+      .join("\n");
+    expect(code).not.toMatch(/setup\.plan\.time/);
+    expect(code).not.toMatch(/COOKING_SESSION_MINUTES/);
+  });
+
+  it("les deux réponses sont DURABLES: elles s'écrivent et se relisent", () => {
+    // ⚠️ CONTRAIREMENT À « une seule session » et à la forme de cuisine, qui
+    // sont des arbitrages de SEMAINE et ne s'écrivent nulle part. Sans la
+    // relecture, le premier `savePlanInputs` de la composition suivante
+    // écrirait `null` et effacerait la réponse de l'entonnoir.
+    expect(BUILDER).toMatch(/setCookingStyle\(last\.cookingStyle\)/);
+    expect(BUILDER).toMatch(/setGroceryRuns\(last\.groceryRuns\)/);
+    expect(BUILDER).toMatch(/^\s+cookingStyle,$/m);
+    expect(BUILDER).toMatch(/^\s+groceryRuns,$/m);
   });
 });
