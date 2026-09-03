@@ -7983,4 +7983,93 @@ export const en = {
   // Et dans `catalog.ts`: l'entrée `"/app/meals"` de `PAGE_NAMESPACES`. Aucune clé ajoutée.
   // ── chantier-0903/RAPIDE — fin ──
 
+  // ── chantier-0903/SUIVI — début ──
+  //
+  // A7 — `/app/progress` DEVIENT LE SUIVI. Les mots de la page; les jetons
+  // ASCII (bases, portées, états d'un plat) vivent dans `api/tracking.ts`.
+  //
+  // ⟳ RETRAITS de ce chantier, déjà faits en place (commit de35fadf): les 36
+  //   clés `progress.*` de l'écran mort `pages/ProgressPage.tsx`. Aucune n'avait
+  //   d'appelant vivant — 36 recherches de littéral, packs et page exclus, zéro
+  //   fichier. La liste exacte est dans `REMOVED_KEYS` de
+  //   `pages/trackingPage.int.test.ts`.
+  // ⟳ VALEURS CHANGÉES, déjà faites en place (D7.1): `app.nav.progress`
+  //   (Progress → Tracking), `app.nav.health` (Health → Safety), `health.title`
+  //   (What you cannot eat → Safety).
+  //
+  // ⚠️ SIX CLÉS CI-DESSOUS ÉCRIVENT UN KCAL, ET ELLES SONT NOMMÉES PAR LEUR
+  // BASE. C'est la garantie de `CALORIE_REVERSAL.md` §5: il n'existe aucun
+  // chemin où le nombre s'affiche et la base non, parce que ce sont le MÊME
+  // message. Les six sont inscrites dans `ENERGY_KEYS_WITH_A_BASIS`
+  // (`i18n/energyBasis.int.test.ts`), dont l'inventaire est CLOS — une septième
+  // qui écrirait un chiffre y tombera, et devra dire à quelle base elle
+  // appartient.
+  "tracking.permanent.label": "What has been done",
+  "tracking.permanent.plans_done_one": "{count} plan carried through",
+  "tracking.permanent.plans_done_other": "{count} plans carried through",
+  "tracking.permanent.plans_changed_one": "{count} of them you changed on the way",
+  "tracking.permanent.plans_changed_other":
+    "{count} of them you changed on the way",
+  "tracking.permanent.meals_decided_one": "{count} meal decided for you",
+  "tracking.permanent.meals_decided_other": "{count} meals decided for you",
+  "tracking.permanent.cooked": "cooked {sessions} times, for {meals} meals",
+  // D7.4 — ⛔ AUCUN « TEMPS ÉCONOMISÉ ». Ce dépôt n'a aucune mesure de ce que
+  // décider un repas coûte sans lui: le chiffre serait une invention avec une
+  // décimale. On dit donc ce qu'on a compté, et on dit qu'on n'a pas compté le
+  // reste — c'est la même règle qu'un kcal qui porte sa base.
+  "tracking.permanent.no_minutes":
+    "How many minutes that saved you, nobody here has measured. So nobody here tells you.",
+  "tracking.permanent.leftovers_unknown":
+    "Leftover boxes are not counted yet, so they are not shown as zero either.",
+  "tracking.objective.label": "Your goal, day by day",
+  "tracking.scope.day": "Today",
+  "tracking.scope.week": "These seven days",
+  "tracking.scope.plan": "This plan",
+  "tracking.total.plan_quantities":
+    "{kcal} kcal, from the quantities written into your plan.",
+  "tracking.total.declared_quantities":
+    "{kcal} kcal, estimated - its weakest part comes from quantities you wrote yourself.",
+  "tracking.total.photo_estimate":
+    "{kcal} kcal, estimated - part of it is read off photos, and a photo reads low.",
+  "tracking.total.slot_estimate":
+    "{kcal} kcal, estimated - one meal or more was never filled in and stands in as an average.",
+  "tracking.total.assumed":
+    "{kcal} kcal, estimated - dishes from your plan you said nothing about are counted as eaten.",
+  "tracking.total.empty": "Nothing to add up on this day.",
+  "tracking.day.planned": "From your plan",
+  "tracking.day.photos": "Your photos",
+  "tracking.day.missed": "Nothing recorded",
+  "tracking.dish.ticked": "ticked",
+  "tracking.dish.silent": "nothing said",
+  "tracking.dish.unticked": "not eaten",
+  "tracking.dish.off_plan": "something else",
+  "tracking.energy.slot_estimate":
+    "about {kcal} kcal - a stand-in, and you can change it during the day.",
+  "tracking.missed.no_estimate":
+    "One meal that day is not attached to any moment, so this one is left without a number.",
+  "tracking.describe": "Describe",
+  "tracking.weight.label": "Your weight",
+  "tracking.weight.empty": "No weigh-in in this window.",
+  "tracking.weight.point": "{value} kg on {date}",
+  "tracking.weight.period.1w": "1w",
+  "tracking.weight.period.1m": "1mo",
+  "tracking.weight.period.3m": "3mo",
+  "tracking.weight.period.6m": "6mo",
+  "tracking.weight.period.12m": "12mo",
+  "tracking.weight.period.all": "All",
+  // « Décrire » un créneau loupé (D7.7). ⚠️ Aucune de ces phrases ne DEMANDE une
+  // quantité — `meal_precision.ts` l'interdit, et il a raison. Le champ est
+  // libre; si la personne écrit un nombre, c'est elle qui l'a écrit.
+  "tracking.describe.title": "Describe this meal",
+  "tracking.describe.subtitle":
+    "In your own words. If you happened to weigh something, write it down - nobody is asking you to.",
+  "tracking.describe.placeholder":
+    "A bowl of pasta with tomato sauce and grated cheese",
+  "tracking.describe.submit": "Record it",
+  "tracking.describe.submitting": "Recording...",
+  "tracking.describe.done": "Recorded. It counts in that day now.",
+  "tracking.describe.error": "That did not save - {message}",
+  "tracking.describe.cancel": "Cancel",
+  // ── chantier-0903/SUIVI — fin ──
+
 } as const

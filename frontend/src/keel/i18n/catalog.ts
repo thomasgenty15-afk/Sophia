@@ -292,6 +292,13 @@ export const TRANSLATED_NAMESPACES = [
   // 2026-09-03. Le namespace garde son nom quand même: le renommer aujourd'hui
   // rebaptiserait 90 clés vivantes et tous leurs appelants, pour un mot.
   "student_progress",
+  // ⟳ chantier-0903/SUIVI (A7) — le SUIVI proprement dit: le bloc permanent,
+  // le bloc objectif jour par jour, la courbe de poids. Il entre TRADUIT parce
+  // qu'il porte les six phrases qui écrivent un kcal, et qu'une phrase
+  // d'énergie à moitié traduite est exactement le défaut que
+  // `energyBasis.int.test.ts` éprouve dans les DEUX langues: une base dite en
+  // anglais sous un chiffre français ne se lit pas, donc ne protège personne.
+  "tracking",
   // Les cinq bandes horaires d'un fait alimentaire (`lib/mealRhythm.ts`). Un
   // ATOME, comme `slot.*` qu'il ne remplace pas: un créneau est DÉCLARÉ par un
   // plan, un moment est DÉDUIT de `occurred_at`. Deux vocabulaires, deux
@@ -699,6 +706,25 @@ export const PAGE_NAMESPACES: Readonly<
   // la pesée, et `moment` de la grille elle-même.
   "/app/progress": [
     "student_progress",
+    // ⟳ chantier-0903/SUIVI (A7) — les blocs du suivi (`api/tracking.ts`,
+    // `components/Tracking*.tsx`, la courbe de poids).
+    "tracking",
+    // ⟳ chantier-0903/SUIVI (A7) — SIX ATOMES QUI ENTRENT PAR UN SEUL APPEL,
+    // et c'est le scanner de coutures qui l'a dit, pas une relecture.
+    // `TrackingCards.tsx` nomme un créneau loupé par `slotLabel()`
+    // (`api/labels.ts`) au lieu de recopier les six occasions sous
+    // `tracking.slot.*` — une cinquième copie d'un vocabulaire est le défaut
+    // que `lib/weekInFood.ts` a payé sur `food_group`. La maille de la
+    // frontière étant le NAMESPACE, l'import tire avec lui les cinq autres
+    // vocabulaires du module: `common`, `when`, `amount`, `sentence`,
+    // `question`. Les six sont traduits en entier (`/app/plan` les déclare
+    // déjà), donc les inscrire n'excuse aucun trou — ça enregistre l'emprunt.
+    "slot",
+    "common",
+    "when",
+    "amount",
+    "sentence",
+    "question",
     "moment",
     "food_group",
     "photo",
