@@ -1738,3 +1738,40 @@ Confié à MEMBRE avec la première étape : **établir s'il était rouge avant 
 
 **`agent-gate.sh` après les quatre reprises : exit 0** — 140 fichiers de test, 87 erreurs contre 93 tolérées,
 `deno check` vert, vitest 4 rouges tous en baseline.
+
+## 07:2x — ⭐ LE FAIT DE POSTE : un `node_modules` sous `supabase/functions/` rend le runtime instable PAR CONSTRUCTION
+
+Trouvé par `sophia-2-11`, et c'est le fait le plus durable de la nuit :
+- **32 événements « File change detected »** en quatre minutes, **tous** sur
+  `supabase/functions/node_modules/.deno/` (`.deno.lock.poll`, `.setup-cache.bin`), et **9 recréations du runtime**.
+- **`supabase functions serve` n'a AUCUNE option pour exclure un chemin du watch** (vérifié dans `--help`, CLI 2.67.1).
+- **Et l'ancien processus ne le montrait pas par accident de calendrier** : celui du 2 septembre était **antérieur à ce
+  dossier**, donc ne le surveillait pas. Le nouveau, redémarré cette nuit, le surveille.
+
+⇒ **Tout `deno` lancé depuis l'arbre servi (test, check, run) touche ce cache et recrée le conteneur.** Une génération
+demande 40 à 120 secondes ininterrompues ; le conteneur ne survit pas 20 secondes quand plusieurs sessions lancent Deno.
+
+**Sa correction d'elle-même mérite d'être notée** : elle avait affirmé une heure plus tôt qu'il ne fallait pas
+redémarrer ; elle a redémarré, **sur `docker ps`** — plus aucun conteneur edge alors que neuf conteneurs Supabase
+tenaient debout — et non sur une hypothèse. **Puis elle a dit que la boucle était en partie de son fait**, et proposé
+d'arrêter son serveur si ça gênait mon chantier.
+
+**Refusé, et voici pourquoi** : le problème n'est pas son processus, c'est que **plusieurs sessions lancent `deno`
+depuis l'arbre servi**. Vérifié de la façon la plus nette possible ce soir : sous gel, une lane a enchaîné **quatre
+générations, quatre 200, zéro recréation**, après en avoir perdu quatre d'affilée juste avant. **La discipline suffit ;
+le redémarrage ne réparerait rien.**
+
+### La règle de poste, posée pour tout le monde
+
+> **Qui a besoin d'une génération ininterrompue prend le créneau NOMMÉMENT ; les autres ne lancent aucun `deno` depuis
+> l'arbre principal pendant ce temps.** Les worktrees sont libres — leur `node_modules` n'est pas celui que le
+> surveillant regarde, et l'appel HTTP atteint le même runtime.
+
+**Appliqué immédiatement** : ma lane MEMBRE, que j'avais envoyée investiguer le 502 du troisième cas RGPD, **est la
+session qui bloquait `sophia-2-11`** (fixtures `a13.s5.*`). Mise en pause, créneau cédé — **elle attendait depuis plus
+longtemps, et mon investigation n'est pas urgente.**
+
+⇒ **Et ça change le diagnostic du 502** : le troisième cas RGPD se coupait **très probablement lui-même**, chaque
+démarrage à froid de Deno écrivant sous le dossier surveillé. Consigne donnée à MEMBRE pour la reprise : réchauffer le
+cache par un `deno check` **avant** le test, laisser le conteneur se poser (sonde `curl` jusqu'à 401 stable), **puis**
+lancer — ou lancer depuis son worktree. Et **d'abord** établir s'il était rouge **avant** nos deux correctifs.
