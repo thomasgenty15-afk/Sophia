@@ -2862,6 +2862,15 @@ export const BOX_FACTOR_SOURCES = Object.freeze(
   [
     /** L'ancrage absolu de CE jour a tiré (`anchored` ou `clamped`). */
     "anchor",
+    /**
+     * LE BAC, dimensionné sur la SOMME des besoins de ses mangeurs (A2).
+     *
+     * ⛔ CE N'EST PAS « le facteur d'une de ses bouches ». C'est un nombre qui
+     * n'appartient à aucune d'elles, et c'est pour ça qu'il a sa propre source:
+     * le confondre avec `anchor` ferait lire « on a ancré Marc » là où on a
+     * rempli une casserole.
+     */
+    "pot",
     /** La part relative de la table — un RAPPORT, qui ne décide pas du niveau. */
     "relative",
     /** Rien à appliquer: le contenant sort tel que le modèle l'a écrit. */
@@ -2918,16 +2927,34 @@ export function resolveBoxFactors(args: {
   anchors: ReadonlyMap<string, { factor: number; reason: string }>;
   /** La part relative, par `member_id`. */
   relative: ReadonlyMap<string, number>;
+  /**
+   * LE FACTEUR DE CHAQUE BAC, par `boxId` — déjà calculé (`potFactorFor`).
+   *
+   * ⚠️ CALCULÉ DEHORS, ET C'EST UNE CONTRAINTE DE COUCHES, PAS UN CHOIX.
+   * `pot_demand.ts` importe `mouth_anchor.ts`, qui importe CE fichier: l'appeler
+   * d'ici ferait un cycle. Ce que cette fonction garde est ce qu'elle doit
+   * garder — l'ARBITRAGE entre les sources — et pas leur calcul.
+   *
+   * ⛔ SEUL UN BAC RÉELLEMENT DIMENSIONNÉ ENTRE ICI. L'appelant n'y met que les
+   * `pot_sized`/`pot_clamped`; un bac qui s'est abstenu n'a pas d'entrée, et
+   * sort donc `none` — c'est-à-dire tel que le modèle l'a écrit, comme avant.
+   */
+  pot: ReadonlyMap<string, number>;
 }): Map<string, BoxFactor> {
   const out = new Map<string, BoxFactor>();
   for (const box of args.boxes) {
-    // ⛔ UN BAC N'A PAS DE FACTEUR ICI, ET CE N'EST PAS UN OUBLI. Le facteur
-    // d'un contenant partagé est la somme des besoins de ses mangeurs — un
-    // nombre qui n'appartient à aucun d'eux, donc qu'aucune des deux tables de
-    // cette fonction ne porte. Il arrive avec `potFactorFor` (A2); jusque-là un
-    // bac sort exactement tel que le modèle l'a écrit, comme avant ce lot.
+    // ⛔ UN BAC NE PREND JAMAIS LE FACTEUR D'UNE DE SES BOUCHES. Il prend le
+    // sien — la somme des besoins de ceux qui y mangent — ou aucun. C'est le
+    // cœur de v4 par l'autre bout: multiplier un bac par la cible de l'un
+    // ferait payer aux autres l'arithmétique d'un tiers.
     if (box.memberIds.length !== 1) {
-      out.set(box.boxId, { factor: 1, source: "none" });
+      const potFactor = args.pot.get(box.boxId);
+      out.set(
+        box.boxId,
+        potFactor === undefined || potFactor === 1
+          ? { factor: 1, source: "none" }
+          : { factor: potFactor, source: "pot" },
+      );
       continue;
     }
     const memberId = box.memberIds[0];

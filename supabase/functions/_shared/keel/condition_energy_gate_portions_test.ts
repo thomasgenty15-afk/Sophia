@@ -160,6 +160,7 @@ Deno.test("⛔ LE CAS QUI PASSE — un AUTRE condition_ref rend une boîte BYTE-
       boxes: meals,
       anchors: new Map(),
       relative,
+      pot: new Map(),
     });
     return JSON.stringify(sizeBoxesFromTarget(
       meals,

@@ -389,20 +389,30 @@ import {
 import {
   ANCHOR_REASONS,
   type AnchorFactor,
+  type AnchorMouth,
   householdAnchors,
   MEAL_STRUCTURE_STATES,
   type SlotExtraKcal,
   mealStructureState,
 } from "../_shared/keel/mouth_anchor.ts";
 import {
+  boxEnergies,
   type MouthDayEnergy,
   mouthDayEnergy,
 } from "../_shared/keel/mouth_energy.ts";
 import {
+  neededPotFactor,
+  POT_REASONS,
+  potFactorFor,
   UNMET_CAUSES,
   type UnmetCause,
   unmetDemand,
 } from "../_shared/keel/pot_demand.ts";
+import {
+  MAX_SINGLE_INGREDIENT_G,
+  scaleIngredients,
+  scaleShoppingList,
+} from "../_shared/keel/portion_scaling.ts";
 // LA DIRECTION D'UN OBJECTIF, LUE UNE SEULE FOIS DANS LE DÉPÔT.
 import { scaleDirectionOf } from "../_shared/keel/weight_pace.ts";
 // L8 — LA POSITION DU COACH SUR `counting`, REDUITE. C'est une LECTURE de
@@ -6746,6 +6756,7 @@ Deno.serve(async (req) => {
     // trois occasions de diverger »).
     let dayEnergyRows: readonly MouthDayEnergy[] = [];
     let mouthAnchors: ReadonlyMap<string, AnchorFactor> = new Map();
+    const anchorMouths = new Map<string, AnchorMouth>();
     if (composition) {
       const dayEnergy = mouthDayEnergy({
         index: composition,
@@ -6763,8 +6774,11 @@ Deno.serve(async (req) => {
           ingredients: prep.ingredients,
         })),
       });
-      const anchors = householdAnchors(
-        members.map((m) => ({
+      // ⟳ HISSÉ EN `const` (A2): le dimensionnement d'un BAC a besoin des MÊMES
+      // bouches — leur cible, leurs moments déclarés, leurs extras, leur corps.
+      // Reconstruire cette liste ailleurs ferait deux lectures du même foyer, et
+      // c'est le facteur d'une casserole qui divergerait de celui d'une boîte.
+      const anchorMouthList = members.map((m) => ({
           memberId: m.memberId,
           ageState: m.ageState,
           restriction: restrictionOf(m),
@@ -6810,10 +6824,9 @@ Deno.serve(async (req) => {
           // c'est-à-dire un plat qui porte tout le repas: la direction qui
           // nourrit trop, sur une ignorance.
           slotExtraKcal: extrasFor(m.memberId),
-        })),
-        dayEnergy,
-        coachCounting,
-      );
+      }));
+      for (const mouth of anchorMouthList) anchorMouths.set(mouth.memberId, mouth);
+      const anchors = householdAnchors(anchorMouthList, dayEnergy, coachCounting);
       // ⟳ 2026-09-04 — L'ÉLECTION `best` A DISPARU. Elle gardait, par bouche, le
       // facteur ancré « le plus proche de 1 » parmi ses jours. Cette prudence
       // n'existait que parce qu'UN facteur servait toute la fenêtre: l'ancrage
@@ -6894,20 +6907,143 @@ Deno.serve(async (req) => {
         uses: dish.uses,
       }))
     );
+    // ── LE BAC SE DIMENSIONNE SUR SES MANGEURS (A2) ────────────────────────
+    //
+    // ⛔ CE N'EST PAS UNE PART PAR PERSONNE. Le nombre calculé ici est celui du
+    // RÉCIPIENT — « combien faut-il là-dedans pour que ceux qui y mangent soient
+    // nourris » — et il ne s'écrit sur aucun couvercle au nom de quelqu'un.
+    // `dishSlices` continue de rendre `common_pot` pour chacun de ses mangeurs.
+    const potReasons: Record<string, number> = {};
+    for (const reason of POT_REASONS) potReasons[reason] = 0;
+    const potFactors = new Map<string, number>();
+    if (composition) {
+      const perBox = boxEnergies({
+        index: composition,
+        dishes: meal.dishes.map((dish) => ({
+          day: dish.day,
+          method: dish.method,
+          slot: dish.slot,
+          ingredients: dish.ingredients,
+          uses: dish.uses,
+          boxes: dish.boxes,
+        })),
+        preparations: meal.preparations.map((prep) => ({
+          id: prep.id,
+          servingsMade: prep.servingsMade,
+          ingredients: prep.ingredients,
+        })),
+      });
+      // Les moments de CHAQUE bouche ce jour-là — le dénominateur du partage.
+      // Lu sur `dayEnergyRows`, jamais reconstruit: c'est la même journée que
+      // celle sur laquelle l'ancrage a travaillé.
+      const daySlots = new Map<string, readonly string[]>();
+      for (const row of dayEnergyRows) daySlots.set(`${row.memberId} ${row.day ?? ""}`, row.slots);
+      for (const box of perBox) {
+        if (box.memberIds.length < 2) continue;
+        const eaters = box.memberIds
+          .map((memberId) => {
+            const mouth = anchorMouths.get(memberId);
+            return mouth === undefined ? null : {
+              mouth,
+              daySlots: daySlots.get(`${memberId} ${box.day ?? ""}`) ?? [],
+            };
+          })
+          .filter((e): e is { mouth: AnchorMouth; daySlots: readonly string[] } => e !== null);
+        // ⛔ FAIL-CLOSED: une bouche du couvercle qu'on ne sait pas lire fait
+        // s'abstenir le bac ENTIER. Servir la somme de trois besoins quand on
+        // n'en connaît que deux, c'est sous-remplir en ayant l'air d'avoir
+        // calculé — et l'erreur irait dans la direction qui nourrit trop peu.
+        const pot = eaters.length !== box.memberIds.length
+          ? { factor: 1, raw: null, reason: "pot_mouth_unknown" as const }
+          : potFactorFor({
+            slot: box.slot,
+            grams: box.grams,
+            deliveredKcal: box.kcal,
+            eaters,
+            coachCounting,
+          });
+        potReasons[pot.reason] += 1;
+        if (pot.factor !== 1) potFactors.set(box.boxId, pot.factor);
+      }
+    }
+
     // ── QUEL FACTEUR POUR QUEL CONTENANT — l'unique autorité ───────────────
     // La bascule ancrage/relatif vit ici, par (bouche, jour). `sizingFactors`
     // n'est plus passé au dimensionneur: il entre dans le résolveur comme la
     // couche RELATIVE, et l'ancrage la remplace quand il a tiré pour ce jour-là.
+    // Un bac, lui, ne prend que le sien — ou aucun.
     const boxFactors = resolveBoxFactors({
       boxes: sizableBoxes,
       anchors: mouthAnchors,
       relative: sizingFactors,
+      pot: potFactors,
     });
     const boxFactorSources: Record<string, number> = {};
     for (const source of BOX_FACTOR_SOURCES) boxFactorSources[source] = 0;
     for (const resolved of boxFactors.values()) {
       boxFactorSources[resolved.source] += 1;
       if (resolved.source === "anchor") anchorApplied++;
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
+    // A3 — LA CASSEROLE ET LES COURSES SUIVENT
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ SANS CE BLOC, A2 EST UN MENSONGE. Un facteur qui grossit une boîte sans
+    // toucher à la production « ne fait pas apparaître de la nourriture »: le
+    // plan dirait « mets 1 400 g dans le bac » d'une casserole qui en produit
+    // 1 000, achetée pour 1 000. C'est très exactement le défaut mesuré sur
+    // Theo le 2026-09-03 — boîtes gonflées ×1,68, pas une ligne de courses
+    // déplacée — et le plafond de récipient ne l'attrape pas: `readyGrams` était
+    // `null` sur les six préparations, donc rien ne mordait.
+    //
+    // ⚠️ ON AGRANDIT, ON NE RÉTRÉCIT JAMAIS ICI. Une casserole trop grande se
+    // mange en restes; une casserole trop petite fait manquer quelqu'un. Le
+    // rabot à la baisse reste au plafond de récipient (§③), qui sait ce que la
+    // production vaut.
+    const potGrowth = neededPotFactor(
+      sizableBoxes.map((box) => ({
+        shares: [{ key: box.boxId, grams: box.items.reduce((n, it) => n + (it.grams ?? 0), 0) }],
+        uses: box.uses,
+      })),
+      // ⚠️ `neededPotFactor` LIT `raw ?? factor` SUR UNE TABLE D'ANCRES. On lui
+      // passe donc les facteurs RÉSOLUS déguisés en ancres, clés par `boxId` —
+      // la même clé que `shares[].key` ci-dessus. Son prorata par casserole est
+      // celui de `sizeBoxesFromTarget`, et il n'est pas réécrit.
+      new Map(
+        [...boxFactors].map(([boxId, r]) => [boxId, { raw: r.factor, factor: r.factor }]),
+      ),
+    );
+    const growth = { scaled: 0, capped: 0, shopping: 0, unrewritable: 0 };
+    for (const prep of meal.preparations) {
+      const factor = potGrowth.get(prep.id) ?? 1;
+      if (!(factor > 1)) continue;
+      const grown = scaleIngredients(
+        prep.ingredients,
+        factor,
+        undefined,
+        // ⛔ LE PLAFOND EST CELUI D'UNE CASSEROLE, PAS D'UNE ASSIETTE. 500 g
+        // bornent une portion absurde; sur un lot cuisiné pour quatre, le kilo
+        // est nominal — et la borne d'assiette y raboterait la production.
+        MAX_SINGLE_INGREDIENT_G * Math.max(1, prep.servingsMade),
+      );
+      if (grown.changed === 0) continue;
+      growth.scaled++;
+      growth.capped += grown.capped.length;
+      prep.ingredients.splice(0, prep.ingredients.length, ...grown.items);
+    }
+    if (growth.scaled > 0 && meal.shopping_list.length > 0) {
+      // ⚠️ LES COURSES SUIVENT AU FACTEUR MOYEN DES CASSEROLES QUI ONT GROSSI.
+      // Une attribution ligne-à-casserole n'existe pas dans ce plan
+      // (`shopping_list_unattributed: 2/24` mesuré), et l'inventer ici serait
+      // deviner. Le moyen est honnête et se compte; l'exact attend que la ligne
+      // porte sa casserole.
+      const grownFactors = [...potGrowth.values()].filter((f) => f > 1);
+      const mean = grownFactors.reduce((a, b) => a + b, 0) / grownFactors.length;
+      const shop = scaleShoppingList(meal.shopping_list, mean);
+      growth.shopping = shop.changed;
+      growth.unrewritable = shop.unrewritable.length;
+      meal.shopping_list.splice(0, meal.shopping_list.length, ...shop.items);
     }
     const boxSizing = sizeBoxesFromTarget(
       sizableBoxes,
@@ -7031,6 +7167,8 @@ Deno.serve(async (req) => {
       anchor: anchorReasons,
       anchor_applied: anchorApplied,
       box_factor_source: boxFactorSources,
+      pot: potReasons,
+      pot_growth: growth,
       unmet: unmetCauses,
       unmet_band: unmetBand,
       extras_floored: extrasFloored,

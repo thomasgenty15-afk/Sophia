@@ -170,6 +170,41 @@ Deno.test("un ingrédient ne dépasse jamais le plafond, et le dit", () => {
   assertEquals(r.capped, ["rice"]);
 });
 
+Deno.test("⛔ A3 — LE PLAFOND D'UNE CASSEROLE N'EST PAS CELUI D'UNE ASSIETTE", () => {
+  // ⛔ 500 g BORNENT UNE PORTION ABSURDE, PAS UN LOT. Le commentaire du plafond
+  // le dit déjà: « ils n'ont aucun sens sur un lot cuisiné pour quatre, où le
+  // kilo est le cas nominal ». La lane foyer passe donc `500 × portions`, et
+  // sans ce paramètre elle raboterait la production qu'elle vient d'agrandir —
+  // « le facteur ne fait pas apparaître de la nourriture », par l'autre bout.
+  const potCap = MAX_SINGLE_INGREDIENT_G * 4;
+  const pot = scaleIngredients(
+    [ing({ term: "rice", amount: 400, unit: "g" })],
+    2.0,
+    undefined,
+    potCap,
+  );
+  assertEquals(pot.items[0].amount, 800);
+  assertEquals(pot.capped, [], "une casserole de quatre portions a été rabotée");
+
+  // ⚠️ ET LA BORNE MORD QUAND MÊME, PLUS HAUT. Sans cette moitié, le test
+  // passerait aussi bien sur un plafond retiré — et un plafond retiré est un
+  // plafond qu'on croit tenir.
+  const huge = scaleIngredients(
+    [ing({ term: "rice", amount: 1200, unit: "g" })],
+    2.0,
+    undefined,
+    potCap,
+  );
+  assertEquals(huge.items[0].amount, potCap);
+  assertEquals(huge.capped, ["rice"]);
+
+  // ⛔ LE DÉFAUT EST LE PLUS SERRÉ DES DEUX. Un appelant qui oublie le paramètre
+  // retombe sur la borne d'assiette, donc sur MOINS de nourriture — jamais sur
+  // plus. C'est ce qui rend l'optionnel acceptable ici: l'oubli ferme.
+  const forgotten = scaleIngredients([ing({ term: "rice", amount: 400, unit: "g" })], 2.0);
+  assertEquals(forgotten.items[0].amount, MAX_SINGLE_INGREDIENT_G);
+});
+
 // ---------------------------------------------------------------------------
 // LES DÉNOMBRABLES — élargis le 2026-08-12, avec deux refus
 // ---------------------------------------------------------------------------

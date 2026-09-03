@@ -321,6 +321,53 @@ function extrasKcalFor(
 }
 
 /**
+ * CE QUE LE PLAN DOIT FOURNIR À UNE BOUCHE, MOMENT PAR MOMENT.
+ *
+ *     part(moment)  = poids[moment] / Σ poids[TOUS ses moments]
+ *     cible(moment) = cible_jour × part(moment) − extras(moment)
+ *
+ * ── ⛔ POURQUOI ELLE EST EXPORTÉE (2026-09-04) ────────────────────────────
+ * Elle vivait inline dans `anchorFactorFor`. Le dimensionnement d'un BAC a
+ * besoin du MÊME partage — la part de `lunch` dans la journée de chacun de ses
+ * mangeurs — et une seconde écriture de cette arithmétique divergerait de celle
+ * qui fait autorité au premier ajustement. C'est la règle que `neededPotFactor`
+ * énonce déjà pour le prorata des casseroles, appliquée ici.
+ *
+ * ⚠️ DEUX LISTES DE MOMENTS, ET ELLES NE SE CONFONDENT PAS. `wholeSlots` est
+ * TOUTE sa journée (déclarés ∪ composés) et fait le dénominateur; `coveredSlots`
+ * est ce dont on demande compte, et fait la somme. Les passer identiques rend la
+ * journée entière — ce qui est juste quand tout est lisible, et faux dès qu'un
+ * moment ne l'est pas.
+ *
+ * `total: 0` = rien à demander (aucun moment reconnu, ou aucun couvert).
+ * L'appelant décide ce que ça veut dire chez lui; ici on ne devine pas.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function slotPlanTargets(args: {
+  targetKcal: number;
+  coveredSlots: readonly string[];
+  wholeSlots: readonly string[];
+  slotExtraKcal: SlotExtraKcal;
+}): { bySlot: Map<string, number>; total: number; floored: boolean } {
+  const whole = [...new Set(args.wholeSlots)]
+    .reduce((n, slot) => n + slotWeight(slot), 0);
+  const bySlot = new Map<string, number>();
+  let total = 0;
+  let floored = false;
+  if (whole <= 0) return { bySlot, total, floored };
+  for (const slot of new Set(args.coveredSlots)) {
+    const meal = args.targetKcal * (slotWeight(slot) / whole);
+    const cut = extrasKcalFor(slot, args.slotExtraKcal, meal);
+    if (cut.floored) floored = true;
+    const kcal = meal - cut.kcal;
+    bySlot.set(slot, kcal);
+    total += kcal;
+  }
+  return { bySlot, total, floored };
+}
+
+/**
  * LA PART MINIMALE QU'UN PLAT COMPOSÉ GARDE DE SON REPAS.
  *
  * ⚠️ CONVENTION, ET ELLE EST LÀ POUR UN CAS RÉEL: cinq extras déclarés sur un
@@ -927,23 +974,17 @@ export function anchorFactorFor(
   // `covered = day.slots` remet le défaut d'avant (un côté du rapport baisse
   // seul); `whole` sur `ownSlots` gonfle la part de chaque moment restant et
   // sert le dîner d'une journée entière — 6,28 mesuré sur Christèle.
-  const covered = new Set(day.ownSlots);
-  const whole = [...new Set([...mouth.declaredSlots, ...day.slots])]
-    .reduce((n, slot) => n + slotWeight(slot), 0);
-  let planTarget = 0;
-  let extrasFloored = false;
-  if (whole > 0) {
-    for (const slot of covered) {
-      const meal = target.kcal * (slotWeight(slot) / whole);
-      const cut = extrasKcalFor(slot, mouth.slotExtraKcal, meal);
-      if (cut.floored) extrasFloored = true;
-      planTarget += meal - cut.kcal;
-    }
-  }
+  const shared = slotPlanTargets({
+    targetKcal: target.kcal,
+    coveredSlots: day.ownSlots,
+    wholeSlots: [...mouth.declaredSlots, ...day.slots],
+    slotExtraKcal: mouth.slotExtraKcal,
+  });
+  const extrasFloored = shared.floored;
   // ⚠️ LE REPLI `whole <= 0` EST CELUI DE `dayCoverageOf`, ET IL SIGNIFIE LA
   // MÊME CHOSE: aucun moment reconnu de part et d'autre ⇒ on ne réduit rien,
   // plutôt que de rendre zéro et de faire diviser par zéro l'appelant.
-  const effectiveTarget = whole > 0 && planTarget > 0 ? planTarget : target.kcal;
+  const effectiveTarget = shared.total > 0 ? shared.total : target.kcal;
   const raw = effectiveTarget / day.kcal;
   // ── LE PLAFOND DE VRAISEMBLANCE, PAR REPAS ET PAR CORPS ─────────────────
   // Le facteur est UN par bouche et s'applique à toutes ses parts: c'est donc

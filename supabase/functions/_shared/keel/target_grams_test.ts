@@ -607,6 +607,7 @@ Deno.test("⛔ v4 — UN BAC À PLUSIEURS NOMS NE SE DIMENSIONNE PAS DU TOUT", (
       ["zoe thu", { factor: 0.8, reason: "anchored" }],
     ]),
     relative: new Map([["zoe", 0.8], ["marc", 1.1]]),
+    pot: new Map(),
   });
   assertEquals(resolved.get("box_common")?.factor, 1);
   assertEquals(resolved.get("box_common")?.source, "none");
@@ -624,6 +625,41 @@ Deno.test("⛔ v4 — UN BAC À PLUSIEURS NOMS NE SE DIMENSIONNE PAS DU TOUT", (
   assertEquals(out.counts.sized, 0);
   assertEquals(out.counts.unchanged, 1);
   assertEquals(out.issues, []);
+});
+
+Deno.test("⛔ A2 — UN BAC PREND LE SIEN, JAMAIS CELUI D'UNE DE SES BOUCHES", () => {
+  // ⛔ LE CŒUR DE v4 PAR L'AUTRE BOUT. Le facteur d'un bac est la somme des
+  // besoins de ses mangeurs — un nombre qui n'appartient à aucun d'eux. Il a sa
+  // propre source: le confondre avec `anchor` ferait lire « on a ancré Marc » là
+  // où on a rempli une casserole.
+  //
+  // LA MUTATION: faire lire au bac `anchors` ou `relative`. Elle rendrait 1,2 ou
+  // 0,9 au lieu de 1,4 — et surtout elle ferait payer aux autres mangeurs
+  // l'arithmétique d'un tiers.
+  const resolved = resolveBoxFactors({
+    boxes: [
+      { boxId: "bac", memberIds: ["a", "b"], day: "thu" },
+      { boxId: "sien", memberIds: ["a"], day: "thu" },
+    ],
+    anchors: new Map([["a thu", { factor: 1.2, reason: "anchored" }]]),
+    relative: new Map([["a", 0.9], ["b", 0.9]]),
+    pot: new Map([["bac", 1.4]]),
+  });
+  assertEquals(resolved.get("bac"), { factor: 1.4, source: "pot" });
+  // ⚠️ ET LA BOÎTE À UN NOM DE LA MÊME BOUCHE, LE MÊME JOUR, GARDE SON ANCRAGE.
+  // Les deux contenants ne se disputent pas: chacun a exactement un facteur.
+  assertEquals(resolved.get("sien"), { factor: 1.2, source: "anchor" });
+
+  // ⛔ UN BAC QUI S'EST ABSTENU N'A PAS D'ENTRÉE, ET SORT `none`. Il ne retombe
+  // PAS sur le relatif de l'un de ses mangeurs — ce serait le défaut d'origine,
+  // repris par la porte de service.
+  const abstained = resolveBoxFactors({
+    boxes: [{ boxId: "bac", memberIds: ["a", "b"], day: "thu" }],
+    anchors: new Map([["a thu", { factor: 1.2, reason: "anchored" }]]),
+    relative: new Map([["a", 0.9], ["b", 0.9]]),
+    pot: new Map(),
+  });
+  assertEquals(abstained.get("bac"), { factor: 1, source: "none" });
 });
 
 Deno.test("⛔ LA BASCULE EST EXCLUSIVE, ET PAR (BOUCHE, JOUR)", () => {
@@ -649,6 +685,7 @@ Deno.test("⛔ LA BASCULE EST EXCLUSIVE, ET PAR (BOUCHE, JOUR)", () => {
       ["a sat", { factor: 3.0, reason: "day_incomplete" }],
     ]),
     relative: new Map([["a", 0.9]]),
+    pot: new Map(),
   });
   assertEquals(resolved.get("b_thu"), { factor: 1.2, source: "anchor" });
   assertEquals(resolved.get("b_fri"), { factor: 0.9, source: "relative" });
@@ -661,6 +698,7 @@ Deno.test("⛔ LA BASCULE EST EXCLUSIVE, ET PAR (BOUCHE, JOUR)", () => {
     boxes: [{ boxId: "b", memberIds: ["a"], day: "thu" }],
     anchors: new Map(),
     relative: new Map([["a", 1]]),
+    pot: new Map(),
   });
   assertEquals(flat.get("b"), { factor: 1, source: "none" });
 });

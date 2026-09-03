@@ -505,6 +505,24 @@ export function scaleIngredients<T extends ScalableIngredient>(
    * exactement le comportement du facteur unique.
    */
   isProteinFood?: (term: string) => boolean,
+  /**
+   * LE PLAFOND D'UN SEUL INGRÉDIENT, EN GRAMMES. Défaut:
+   * `MAX_SINGLE_INGREDIENT_G` — c'est-à-dire le comportement d'avant ce
+   * paramètre, à l'identique.
+   *
+   * ── ⛔ POURQUOI IL EST PARAMÉTRABLE, ET POURQUOI SON DÉFAUT EST LE STRICT ──
+   * 500 g bornent une PORTION D'ASSIETTE absurde. Sur une CASSEROLE cuisinée
+   * pour quatre, le kilo est le cas nominal — le commentaire du plafond le dit
+   * déjà — et la borne d'assiette y raboterait une production légitime. La lane
+   * foyer passe donc `500 × portions`.
+   *
+   * ⚠️ LE DÉFAUT EST LE PLUS SERRÉ DES DEUX, ET C'EST LA RAISON POUR LAQUELLE
+   * L'OPTIONNEL EST ACCEPTABLE ICI. Un appelant qui l'oublie retombe sur la
+   * borne d'assiette, donc sur MOINS de nourriture — jamais sur plus. Ce n'est
+   * pas « une garde optionnelle est une garde désarmée »: l'oubli ferme, il
+   * n'ouvre pas.
+   */
+  maxSingleG: number = MAX_SINGLE_INGREDIENT_G,
 ): ScaleResult<T> {
   const items: T[] = [];
   const capped: string[] = [];
@@ -566,8 +584,8 @@ export function scaleIngredients<T extends ScalableIngredient>(
     // Le compteur `capped` ne se déclenche donc que quand le plafond MORD
     // vraiment. Un lot déjà au-dessus de la borne sort inchangé plutôt que
     // tronqué, et ce n'est pas la même information.
-    if (unit === "g" && next > MAX_SINGLE_INGREDIENT_G) {
-      next = Math.max(amount, MAX_SINGLE_INGREDIENT_G);
+    if (unit === "g" && next > maxSingleG) {
+      next = Math.max(amount, maxSingleG);
       if (next !== amount) capped.push(ing.term);
     }
     if (next === amount) {

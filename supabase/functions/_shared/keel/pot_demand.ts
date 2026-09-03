@@ -32,8 +32,17 @@
  * PURE MODULE: no I/O, no clock, no randomness.
  */
 
-import type { AnchorFactor } from "./mouth_anchor.ts";
+import {
+  ANCHOR_FACTOR_MAX,
+  ANCHOR_FACTOR_MIN,
+  type AnchorFactor,
+  type AnchorMouth,
+  MEAL_MAX_GRAMS_PER_KG,
+  mouthTargetKcal,
+  slotPlanTargets,
+} from "./mouth_anchor.ts";
 import type { MouthDayEnergy } from "./mouth_energy.ts";
+import type { CountingStance } from "./energy_gate.ts";
 
 /**
  * QUI A REFUSÉ. Nommé, parce que les deux se réparent à deux endroits
@@ -130,6 +139,146 @@ export function unmetDemand(
   return out;
 }
 
+// ---------------------------------------------------------------------------
+// LE BAC SE DIMENSIONNE SUR SES MANGEURS (A2, 2026-09-04)
+// ---------------------------------------------------------------------------
+
+/**
+ * POURQUOI CE FACTEUR N'EST CELUI D'AUCUNE BOUCHE, ET DOIT EXISTER QUAND MÊME.
+ *
+ * ── ⛔ CE QUE v4 INTERDIT, ET QUE CE LOT NE FAIT PAS ──────────────────────
+ * « JAMAIS UNE PART PAR PERSONNE DANS LE CONTENANT COMMUN. C'est très exactement
+ * ce qui a tué v2 […] c'est la balance de retour à table. » Rien ici n'écrit un
+ * gramme au nom de quelqu'un sur un couvercle partagé, et `dishSlices` continue
+ * de rendre `common_pot` pour chacun de ses mangeurs, pour toujours.
+ *
+ * ── CE QUE CE LOT FAIT, ET QUI EST UNE AUTRE QUESTION ─────────────────────
+ * « Combien faut-il DANS ce récipient pour que ceux qui y mangent soient
+ * nourris » a une réponse, et elle n'est la portion de personne: c'est la SOMME
+ * de ce que ses mangeurs doivent recevoir à ce moment-là. Le bac reste un bac —
+ * un seul nombre sur un couvercle, qui ne vise personne.
+ *
+ * Sans ce facteur, le seul chemin absolu du produit (`anchorFactorFor`) est
+ * muet sur la population majoritaire: 24 bouches sur 36 mesurées le 2026-08-22,
+ * et six journées-bouche sur huit le 2026-09-03. Elles restaient dimensionnées
+ * par la chaîne RELATIVE, « qui est un rapport et ne décide jamais du niveau ».
+ *
+ * ── ⛔ SUR LES MAINTENANCES, JAMAIS SUR LES ÉCARTS ────────────────────────
+ * Une bouche à objectif qui mange dans un bac y compte pour son ENTRETIEN. Deux
+ * raisons, et elles se répondent: v4 dit qu'« un objectif de poids ouvre une
+ * portion millimétrée », donc l'écart s'exécute dans une boîte à un nom, pas
+ * ici; et faire porter le déficit de l'une aux autres est le défaut « une
+ * ceinture posée sur l'un retire à l'autre », par l'autre bout. FF-043 R14 dit
+ * la même chose du corps de fiche: il n'achète qu'une maintenance.
+ */
+export const POT_REASONS = Object.freeze(
+  [
+    /** Le bac a été dimensionné sur la somme des besoins de ses mangeurs. */
+    "pot_sized",
+    /** Dimensionné, puis raboté par une borne (facteur ou masse). Compté. */
+    "pot_clamped",
+    /** Le plat n'a pas rendu son énergie: on ne divise pas par un inconnu. */
+    "pot_incomplete",
+    /** Une bouche du couvercle n'a pas de cible calculable. Fail-closed. */
+    "pot_mouth_unknown",
+    /** Le contenant ne pèse rien: aucun rapport n'est constructible. */
+    "pot_empty",
+  ] as const,
+);
+export type PotReason = (typeof POT_REASONS)[number];
+
+export interface PotFactor {
+  factor: number;
+  /** Le facteur AVANT rabotage. `null` quand rien n'a été calculé. */
+  raw: number | null;
+  reason: PotReason;
+}
+
+/** Un mangeur de ce bac, et ce que sa journée porte. */
+export interface PotEater {
+  mouth: AnchorMouth;
+  /** TOUS ses moments de ce jour-là (`MouthDayEnergy.slots`). Le dénominateur. */
+  daySlots: readonly string[];
+}
+
+/**
+ * DE COMBIEN CE BAC DOIT GROSSIR (OU MAIGRIR) POUR NOURRIR CEUX QUI Y MANGENT.
+ *
+ *     besoin  = Σ_mangeurs  part(ce moment) de son entretien de la journée
+ *     livré   = ce que le récipient contient, en kcal
+ *     facteur = besoin / livré, borné
+ *
+ * ⚠️ LE PARTAGE PAR MOMENT EST CELUI DE L'ANCRAGE, APPELÉ ET PAS RECOPIÉ
+ * (`slotPlanTargets`). Une seconde arithmétique du même partage divergerait de
+ * celle qui fait autorité au premier ajustement, et c'est le grammage de
+ * quelqu'un qui se tromperait.
+ *
+ * ⚠️ LE PLAFOND DE MASSE EST LA SOMME DES CORPS. Huit grammes par kilo et par
+ * repas, additionnés sur les mangeurs: un bac pour quatre peut légitimement
+ * peser ce que quatre assiettes pèsent. Le lire sur un seul corps rendrait
+ * l'inverse du défaut qu'il existe pour éviter.
+ *
+ * ⛔ FAIL-CLOSED, ET CHAQUE REFUS EST NOMMÉ. Une bouche sans cible fait
+ * s'abstenir le bac ENTIER: servir la somme de trois besoins quand on n'en
+ * connaît que deux, c'est sous-remplir en ayant l'air d'avoir calculé.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function potFactorFor(args: {
+  slot: string | null;
+  /** Ce que le récipient pèse. Le dénominateur du plafond de masse. */
+  grams: number;
+  /** Ce que le récipient porte, en kcal. `null` = illisible. */
+  deliveredKcal: number | null;
+  eaters: readonly PotEater[];
+  coachCounting: CountingStance;
+}): PotFactor {
+  const nothing = (reason: PotReason): PotFactor => ({ factor: 1, raw: null, reason });
+  if (args.slot === null) return nothing("pot_incomplete");
+  if (args.eaters.length === 0) return nothing("pot_mouth_unknown");
+  if (args.deliveredKcal === null || args.deliveredKcal <= 0) {
+    return nothing("pot_incomplete");
+  }
+  if (!Number.isFinite(args.grams) || args.grams <= 0) return nothing("pot_empty");
+
+  let needed = 0;
+  let massCeilingGrams = 0;
+  for (const eater of args.eaters) {
+    // ⛔ `direction: null` — L'ENTRETIEN, PAS LA CIBLE. Voir l'en-tête du bloc.
+    const target = mouthTargetKcal({ ...eater.mouth, direction: null }, args.coachCounting);
+    if (target.kcal === null) return nothing("pot_mouth_unknown");
+    const shared = slotPlanTargets({
+      targetKcal: target.kcal,
+      coveredSlots: [args.slot],
+      wholeSlots: [...eater.mouth.declaredSlots, ...eater.daySlots],
+      slotExtraKcal: eater.mouth.slotExtraKcal,
+    });
+    const mealKcal = shared.bySlot.get(args.slot);
+    // Un moment sans poids reconnu ne se réduit pas: on ne sait pas ce qu'il
+    // vaut dans sa journée, donc on ne prétend pas le savoir pour la casserole.
+    if (mealKcal === undefined || !(mealKcal > 0)) return nothing("pot_mouth_unknown");
+    needed += mealKcal;
+    const weightKg = Number(eater.mouth.body?.weightKg ?? 0);
+    if (!Number.isFinite(weightKg) || weightKg <= 0) return nothing("pot_mouth_unknown");
+    massCeilingGrams += weightKg * MEAL_MAX_GRAMS_PER_KG;
+  }
+  if (!(needed > 0)) return nothing("pot_mouth_unknown");
+
+  const raw = needed / args.deliveredKcal;
+  const physicalMax = massCeilingGrams / args.grams;
+  const bounded = Math.min(raw, physicalMax);
+  const factor = bounded < ANCHOR_FACTOR_MIN
+    ? ANCHOR_FACTOR_MIN
+    : bounded > ANCHOR_FACTOR_MAX
+    ? ANCHOR_FACTOR_MAX
+    : bounded;
+  // ⚠️ UN RABOTAGE SE COMPTE. Une borne qui mord sans qu'on le sache est une
+  // borne qu'on croit inerte — et si elle mord sur la population entière, elle
+  // n'est plus une borne de plausibilité, elle EST le calcul. Ce dépôt l'a
+  // mesuré trois fois (`BOX_FACTOR_MIN`, `ANCHOR_FACTOR_MAX`).
+  return { factor, raw, reason: factor === raw ? "pot_sized" : "pot_clamped" };
+}
+
 /** Ce qu'un repas prélève sur une casserole, réduit à ce qui compte ici. */
 export interface PotDraw {
   /**
@@ -167,7 +316,14 @@ export interface PotDraw {
  */
 export function neededPotFactor(
   meals: readonly PotDraw[],
-  anchors: ReadonlyMap<string, AnchorFactor>,
+  /**
+   * ⟳ 2026-09-04 — TYPE STRUCTUREL, RÉDUIT À CE QUE CETTE FONCTION LIT. Elle ne
+   * regarde que `raw ?? factor`; exiger un `AnchorFactor` entier obligeait tout
+   * appelant qui n'en a pas — la table des facteurs RÉSOLUS par contenant, par
+   * exemple — à fabriquer un objet menteur ou à le forcer par un `as`. Et « `as`
+   * sur un type étranger désarme le typecheck » est une cicatrice de ce dépôt.
+   */
+  anchors: ReadonlyMap<string, { raw: number | null; factor: number }>,
 ): Map<string, number> {
   /** Par casserole: ce qui est tiré aujourd'hui, et ce qui serait tiré ancré. */
   const now = new Map<string, number>();

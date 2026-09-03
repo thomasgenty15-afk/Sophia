@@ -287,6 +287,100 @@ export function dishSlices(
   return out;
 }
 
+/** CE QU'UN CONTENANT PORTE — son poids, son énergie, et ses mangeurs. */
+export interface BoxEnergy {
+  boxId: string;
+  day: string | null;
+  slot: string | null;
+  memberIds: readonly string[];
+  /** La somme de ses composants, ou son total v2 replié. */
+  grams: number;
+  /** `null` quand le plat n'est pas lisible, ou quand le contenant ne pèse rien. */
+  kcal: number | null;
+  /** Le motif NOMMÉ du silence. `null` = un chiffre est sorti. */
+  gap: MouthEnergyGap | null;
+}
+
+/**
+ * L'ÉNERGIE DE CHAQUE CONTENANT DU PLAN — LE RÉCIPIENT, JAMAIS L'ASSIETTE.
+ *
+ * ── ⛔ CE QU'ELLE EST, ET CE QU'ELLE N'EST PAS ────────────────────────────
+ * Elle rend UN nombre par contenant, quel que soit le nombre de noms sur son
+ * couvercle. Sur un bac, ce nombre est ce que le RÉCIPIENT contient — jamais une
+ * part par personne, et il ne se divise pas par le nombre de mangeurs. C'est la
+ * v4 mot pour mot: « les grammes d'un bac disent combien il en va DANS le bac
+ * pour tous ensemble; ce nombre ne vise personne ».
+ *
+ * ⚠️ ELLE NE REMPLACE PAS `dishSlices`, ET LES DEUX RESTENT VRAIES ENSEMBLE.
+ * `dishSlices` répond « combien cette BOUCHE a-t-elle mangé » et se tait sur un
+ * bac (`common_pot`), pour toujours. `boxEnergies` répond « combien y a-t-il
+ * dans ce RÉCIPIENT » — une question qui a une réponse même quand la première
+ * n'en a pas. Elles ne se contredisent pas: elles ne portent pas sur le même
+ * objet.
+ *
+ * ⚠️ LE PRORATA EST CELUI DE `dishSlices`, RÉÉCRIT NULLE PART. Même `gramsOf`,
+ * même dénominateur (le plat entier), même pliage des préparations. Deux
+ * arithmétiques du même partage divergeraient au premier ajustement.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function boxEnergies(args: {
+  index: CompositionIndex;
+  dishes: readonly (MouthEnergyDish & {
+    boxes: readonly { id: string }[];
+  })[];
+  preparations: readonly EnergyPreparation[];
+}): BoxEnergy[] {
+  const folded = foldPreparationsIntoDishes({
+    dishes: args.dishes.map((d) => ({
+      slot: d.slot,
+      method: d.method,
+      ingredients: d.ingredients,
+      uses: d.uses,
+    })),
+    preparations: args.preparations,
+  });
+  const out: BoxEnergy[] = [];
+  for (const [i, dish] of args.dishes.entries()) {
+    const gramsOf = (box: MouthEnergyDish["boxes"][number]): number => {
+      let sum = 0;
+      for (const item of box.items) {
+        const g = Number(item.grams);
+        if (Number.isFinite(g) && g > 0) sum += g;
+      }
+      if (sum > 0) return sum;
+      const legacy = Number(box.legacyTotalGrams);
+      return Number.isFinite(legacy) && legacy > 0 ? legacy : 0;
+    };
+    let total = 0;
+    for (const box of dish.boxes) total += gramsOf(box);
+    const energy = dishEnergy(args.index, {
+      method: dish.method,
+      ingredients: folded[i].ingredients,
+    });
+    for (const box of dish.boxes) {
+      const grams = gramsOf(box);
+      const common = {
+        boxId: (box as { id: string }).id,
+        day: dish.day,
+        slot: dish.slot,
+        memberIds: box.memberIds,
+        grams,
+      };
+      if (total <= 0 || grams <= 0) {
+        out.push({ ...common, kcal: null, gap: "empty_box" as const });
+        continue;
+      }
+      if (!energy.complete || energy.kcal === null) {
+        out.push({ ...common, kcal: null, gap: "dish_incomplete" as const });
+        continue;
+      }
+      out.push({ ...common, kcal: energy.kcal * (grams / total), gap: null });
+    }
+  }
+  return out;
+}
+
 /**
  * L'ÉNERGIE SERVIE À CHAQUE BOUCHE, JOUR PAR JOUR.
  *

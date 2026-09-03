@@ -11,9 +11,15 @@
 
 import { assert, assertEquals } from "jsr:@std/assert@1";
 
-import type { AnchorFactor } from "./mouth_anchor.ts";
+import type { AnchorFactor, AnchorMouth } from "./mouth_anchor.ts";
 import type { MouthDayEnergy } from "./mouth_energy.ts";
-import { neededPotFactor, UNMET_CAUSES, unmetDemand } from "./pot_demand.ts";
+import {
+  neededPotFactor,
+  POT_REASONS,
+  potFactorFor,
+  UNMET_CAUSES,
+  unmetDemand,
+} from "./pot_demand.ts";
 
 const KEY = "m_iku thu";
 
@@ -198,4 +204,165 @@ Deno.test("le module est PUR: même entrée, même sortie, entrée intacte", () 
   const b = neededPotFactor(meals, anchors);
   assertEquals(JSON.stringify([...a]), JSON.stringify([...b]));
   assertEquals(JSON.stringify(meals), before);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// A2 — LE BAC SE DIMENSIONNE SUR SES MANGEURS (2026-09-04)
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Ce que ces tests protègent:
+//
+//   * LA SOMME, PAS UNE PART — le facteur d'un bac n'est celui d'aucune de ses
+//     bouches. La mutation la plus rentable est de prendre la cible de la
+//     première: elle rendrait la moitié sur une table de deux;
+//   * L'ENTRETIEN, PAS L'ÉCART — une bouche à objectif compte pour sa
+//     maintenance. Sinon son déficit est payé par les autres, ce qui est « une
+//     ceinture posée sur l'un retire à l'autre » par l'autre bout;
+//   * LE FAIL-CLOSED QUI COMPTE — une bouche illisible fait s'abstenir le bac
+//     ENTIER. Servir la somme de trois besoins quand on n'en connaît que deux,
+//     c'est sous-remplir en ayant l'air d'avoir calculé;
+//   * v4 INTACT — aucun de ces tests ne fait apparaître un gramme au nom de
+//     quelqu'un sur un couvercle partagé.
+
+const POT_BODY = {
+  appetite: null,
+  heightCm: 175,
+  weightKg: 70,
+  gender: "female" as const,
+  ageYears: 40,
+  activityLevel: "sedentary" as const,
+  activityAxes: { day: null, sport: null, asked: false },
+};
+
+function eater(over: Partial<AnchorMouth> = {}, daySlots = ["breakfast", "lunch", "dinner"]) {
+  return {
+    mouth: {
+      memberId: "m",
+      ageState: "adult" as const,
+      restriction: "clear" as const,
+      body: POT_BODY,
+      direction: null,
+      paceKgPerWeek: null,
+      declaredSlots: ["breakfast", "lunch", "dinner"],
+      slotExtraKcal: {} as Record<string, number>,
+      conditionRefs: [],
+      ...over,
+    },
+    daySlots,
+  };
+}
+
+Deno.test("A2 — LE BAC VISE LA SOMME DE SES MANGEURS, PAS LA PART DE L'UN", () => {
+  const one = potFactorFor({
+    slot: "lunch",
+    grams: 400,
+    deliveredKcal: 400,
+    eaters: [eater({ memberId: "a" })],
+    coachCounting: "no_position",
+  });
+  const two = potFactorFor({
+    slot: "lunch",
+    grams: 400,
+    deliveredKcal: 400,
+    eaters: [eater({ memberId: "a" }), eater({ memberId: "b" })],
+    coachCounting: "no_position",
+  });
+  assert(one.raw !== null && two.raw !== null);
+  // ⛔ LA MUTATION: lire la cible du premier mangeur au lieu de sommer. Elle
+  // rendrait `two.raw === one.raw`, c'est-à-dire un bac pour deux rempli pour un.
+  assert(
+    Math.abs(two.raw! - 2 * one.raw!) < 1e-9,
+    `deux corps identiques ne demandent pas le double: ${one.raw} puis ${two.raw}`,
+  );
+});
+
+Deno.test("⛔ A2 — UNE BOUCHE À OBJECTIF COMPTE POUR SON ENTRETIEN DANS UN BAC", () => {
+  // v4: « un objectif de poids ouvre une portion millimétrée ». L'écart
+  // s'exécute dans une boîte à UN nom, jamais dans la casserole de tout le
+  // monde — sinon le déficit de l'une est servi aux autres.
+  const neutral = potFactorFor({
+    slot: "lunch",
+    grams: 400,
+    deliveredKcal: 400,
+    eaters: [eater({ memberId: "a", direction: null })],
+    coachCounting: "no_position",
+  });
+  const losing = potFactorFor({
+    slot: "lunch",
+    grams: 400,
+    deliveredKcal: 400,
+    eaters: [eater({ memberId: "a", direction: "down", paceKgPerWeek: 0.5 })],
+    coachCounting: "no_position",
+  });
+  assertEquals(losing.raw, neutral.raw);
+});
+
+Deno.test("⛔ A2 — UNE BOUCHE ILLISIBLE FAIT S'ABSTENIR LE BAC ENTIER", () => {
+  // Fail-closed, et le motif le dit. La direction de l'erreur compte: remplir
+  // pour deux une casserole qui en nourrit trois affame le troisième.
+  const got = potFactorFor({
+    slot: "lunch",
+    grams: 400,
+    deliveredKcal: 400,
+    eaters: [eater({ memberId: "a" }), eater({ memberId: "b", body: null })],
+    coachCounting: "no_position",
+  });
+  assertEquals(got.reason, "pot_mouth_unknown");
+  assertEquals(got.factor, 1);
+  assertEquals(got.raw, null);
+});
+
+Deno.test("⛔ A2 — UN PLAT ILLISIBLE NE SE DIVISE PAS", () => {
+  const got = potFactorFor({
+    slot: "lunch",
+    grams: 400,
+    deliveredKcal: null,
+    eaters: [eater()],
+    coachCounting: "no_position",
+  });
+  assertEquals(got.reason, "pot_incomplete");
+  assertEquals(got.factor, 1);
+});
+
+Deno.test("⛔ A2 — LE PLAFOND DE MASSE EST LA SOMME DES CORPS, ET IL SE COMPTE", () => {
+  // Deux corps de 70 kg autorisent 2 × 8 × 70 = 1 120 g dans le récipient. Un
+  // bac de 1 000 g ne peut donc pas plus que ×1,12, quelle que soit la demande.
+  //
+  // ⛔ LA MUTATION: lire le plafond sur UN corps. Elle rendrait 0,56 et
+  // raboterait une casserole légitime de moitié.
+  const got = potFactorFor({
+    slot: "lunch",
+    grams: 1000,
+    // Volontairement dérisoire: la demande explose, seule la masse borne.
+    deliveredKcal: 50,
+    eaters: [eater({ memberId: "a" }), eater({ memberId: "b" })],
+    coachCounting: "no_position",
+  });
+  assertEquals(got.reason, "pot_clamped");
+  assert(
+    Math.abs(got.factor - 1.12) < 1e-9,
+    `le plafond de masse n'est pas la somme des corps: ${got.factor}`,
+  );
+  assert(got.raw! > got.factor, "le brut n'a pas été gardé à côté du raboté");
+});
+
+Deno.test("⛔ A2 — UN MOMENT SANS POIDS RECONNU S'ABSTIENT", () => {
+  // On ne sait pas ce que « brunch » vaut dans une journée: prétendre le savoir
+  // pour une casserole servirait un nombre inventé.
+  const got = potFactorFor({
+    slot: "brunch",
+    grams: 400,
+    deliveredKcal: 400,
+    eaters: [eater({}, ["brunch"])],
+    coachCounting: "no_position",
+  });
+  assertEquals(got.reason, "pot_mouth_unknown");
+  assertEquals(got.factor, 1);
+});
+
+Deno.test("⛔ A2 — LE VOCABULAIRE DES MOTIFS EST FERMÉ", () => {
+  // Un motif hors liste serait inerte au lecteur: l'histogramme l'écarterait
+  // sans le dire, et le bac serait compté nulle part.
+  assertEquals(new Set(POT_REASONS).size, POT_REASONS.length);
+  for (const reason of POT_REASONS) assert(reason.startsWith("pot_"));
 });
