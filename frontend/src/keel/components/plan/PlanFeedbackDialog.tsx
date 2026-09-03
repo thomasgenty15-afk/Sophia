@@ -1,6 +1,7 @@
 import React from "react";
 
 import {
+  cookingQuestionsAreAsked,
   type FeedbackQuestion,
   OPTION_LABELS,
   PORTION_SUBJECT_LABEL,
@@ -85,8 +86,15 @@ export interface PlanFeedbackDialogProps {
    * question de portion se poserait à quelqu'un qu'on a marqué.
    */
   questions: readonly FeedbackQuestion[];
-  /** Les titres des plats de CE plan, dédoublonnés, dans l'ordre du plan. */
-  dishTitles: readonly string[];
+  /**
+   * LES ALIMENTS DE CE PLAN — la liste FERMÉE des deux questions de plat.
+   *
+   * ⚠️ DES ALIMENTS ET PLUS DES TITRES depuis le lot B (2026-09-03). Un titre
+   * (« Poulet rôti au citron ») ne dit pas ce qu'on ne veut plus: ni le
+   * générateur ni la ceinture par bouche ne peuvent filtrer avec ça. Les
+   * préparations sont pliées dans les plats côté serveur (`foodTermsOf`).
+   */
+  foodTerms: readonly string[];
   /**
    * L'ENVIE DE LA SUITE EST-ELLE DEMANDÉE ?
    *
@@ -117,10 +125,21 @@ export interface PlanFeedbackDialogProps {
     portions: string | null;
     /** `household`, `member:<uuid>`, ou `null` quand la question n'est pas posée. */
     portionsSubject: string | null;
-    neverAgain: string[];
-    makeAgain: string[];
-    axisQuestion: string | null;
-    axisAnswer: string | null;
+    /** LOT B — `too_hard` | `fine` | `could_do_more`, ou `null` (non posée). */
+    difficulty: string | null;
+    /** LOT B — `too_long` | `fine` | `had_more_time`, ou `null` (non posée). */
+    speed: string | null;
+    /** LOT B — `yes` | `sometimes` | `no`, posée à tout le monde. */
+    variety: string | null;
+    /**
+     * LOT B — des ALIMENTS avec leur personne. `subject` vaut `null` quand la
+     * question du sujet ne se pose pas (une seule bouche): le serveur range
+     * alors sur « tout le monde à table », qui chez un solo est lui.
+     */
+    neverAgainFoods: { food: string; subject: string | null }[];
+    makeAgainFoods: { food: string; subject: string | null }[];
+    /** LOT B — le champ libre, facultatif. `null` quand il est vide. */
+    anythingElse: string | null;
     envy: string | null;
   }) => Promise<void>;
 }
@@ -133,6 +152,20 @@ export default function PlanFeedbackDialog(props: PlanFeedbackDialogProps) {
   const [marks, setMarks] = React.useState<Record<string, DishMark>>({});
   /** `household` | `member:<uuid>`. Jamais un prénom. */
   const [portionsSubject, setPortionsSubject] = React.useState<string | null>(null);
+  /**
+   * LOT B — POUR QUI VAUT CET ALIMENT, par aliment marqué.
+   *
+   * ⛔ PAR ALIMENT, ET PAS UN SUJET UNIQUE POUR TOUS. « Plus de saumon pour
+   * Tom » et « du brocoli pour Léa » sont deux assiettes: un seul sujet
+   * partagé forcerait à choisir laquelle des deux on dit, et l'autre serait
+   * rangée sur la mauvaise bouche.
+   *
+   * ⚠️ LA QUESTION NE SE POSE QUE S'IL Y A PLUS D'UNE BOUCHE, et elle ne
+   * s'affiche que sous les aliments MARQUÉS: sur un plan de vingt aliments
+   * dont on en marque un, c'est un geste de plus, pas vingt.
+   */
+  const [foodSubjects, setFoodSubjects] = React.useState<Record<string, string>>({});
+  const [freeText, setFreeText] = React.useState("");
   const [envy, setEnvy] = React.useState("");
   const [busy, setBusy] = React.useState(false);
   const [failure, setFailure] = React.useState<string | null>(null);
@@ -148,19 +181,37 @@ export default function PlanFeedbackDialog(props: PlanFeedbackDialogProps) {
     setAnswers({});
     setMarks({});
     setPortionsSubject(null);
+    setFoodSubjects({});
+    setFreeText("");
     setEnvy("");
     setFailure(null);
   }, [props.open]);
 
-  /** Les questions à choix, dans l'ordre du module. Les plats sont à part. */
+  /**
+   * Les questions à choix, dans l'ordre du module. Les aliments et le champ
+   * libre se rendent à part.
+   *
+   * ⛔ LOT B · LES DEUX QUESTIONS DE CUISINE SONT GATÉES PAR `cooked`, ET LA
+   * RÈGLE VIENT DU MODULE. `cookingQuestionsAreAsked` décide; un second test
+   * ici (« si la réponse n'est pas `no` ») serait la première chose à diverger,
+   * après quoi on demanderait « c'était trop long ? » à quelqu'un qui n'a pas
+   * cuisiné — et sa réponse déplacerait un réglage réel. La base le refuse
+   * aussi (`cooking_answer_without_cooking`), et l'écran ne doit pas mener
+   * quelqu'un jusqu'à ce refus.
+   */
+  const asksCooking = cookingQuestionsAreAsked(answers.cooked || null);
   const choiceQuestions = props.questions.filter((q) =>
-    !DISH_QUESTIONS.includes(q)
+    !DISH_QUESTIONS.includes(q) && q !== "anything_else" &&
+    (asksCooking || (q !== "difficulty" && q !== "speed"))
   );
-  /** L'axe: la seule question qui n'est pas commune. Voir `AXIS_QUESTION`. */
-  const axis = props.questions.find((q) =>
-    q !== "cooked" && q !== "portions" && !DISH_QUESTIONS.includes(q)
-  ) ?? null;
   const asksDishes = props.questions.some((q) => DISH_QUESTIONS.includes(q));
+  const asksFreeText = props.questions.includes("anything_else");
+  /**
+   * ⚠️ MÊME RÈGLE QUE `portionSubjectIsAsked`, ET ELLE VIENT DU MÊME ENDROIT:
+   * un solo n'a pas de foyer, donc aucune bouche à nommer, donc pas de
+   * question. `props.mouths` est `[]` pour lui.
+   */
+  const asksFoodSubject = props.mouths.length > 1;
 
   /**
    * ⛔ LA RÈGLE VIENT DU MODULE, PAS D'ICI (règle 2). « Pas neutre » se lit
@@ -173,13 +224,43 @@ export default function PlanFeedbackDialog(props: PlanFeedbackDialogProps) {
     mouths: props.mouths.length,
   });
 
-  function mark(title: string, next: DishMark) {
-    setMarks((prev) => ({
-      ...prev,
+  function mark(term: string, next: DishMark) {
+    setMarks((prev) => {
       // RECLIQUER RETIRE LA MARQUE. Sans ça, une marque posée par erreur est
-      // définitive, et un refus par erreur fait éviter un plat à vie.
-      [title]: prev[title] === next ? null : next,
-    }));
+      // définitive, et un refus par erreur fait éviter un aliment à vie.
+      const cleared = prev[term] === next;
+      if (cleared) {
+        // ⛔ LE SUJET TOMBE AVEC SA MARQUE. Le garder enverrait « pour Tom »
+        // sur un aliment que la personne vient de dé-marquer — un sujet sans
+        // mesure, exactement ce que la base refuse sur les portions.
+        setFoodSubjects((subjects) => {
+          const rest = { ...subjects };
+          delete rest[term];
+          return rest;
+        });
+      }
+      return { ...prev, [term]: cleared ? null : next };
+    });
+  }
+
+  /**
+   * LES ALIMENTS MARQUÉS, AVEC LEUR PERSONNE — lot B.
+   *
+   * ⚠️ LE DÉFAUT EST `null`, PAS `household`, ET LA DIFFÉRENCE EST DITE AU
+   * SERVEUR. `null` veut dire « la question du sujet ne s'est pas posée » (une
+   * seule bouche); `household` veut dire « on m'a demandé, et j'ai répondu
+   * toute la table ». Les deux se rangent au même endroit, mais seule la
+   * seconde est une réponse.
+   */
+  function foodAnswers(
+    kind: DishMark,
+  ): { food: string; subject: string | null }[] {
+    return Object.keys(marks)
+      .filter((term) => marks[term] === kind)
+      .map((term) => ({
+        food: term,
+        subject: asksFoodSubject ? (foodSubjects[term] ?? "household") : null,
+      }));
   }
 
   return (
@@ -295,10 +376,11 @@ export default function PlanFeedbackDialog(props: PlanFeedbackDialogProps) {
       ))}
 
       {/* ── LES DEUX POLARITÉS, UN SEUL BLOC (règle 4) ────────────────────
-          Une ligne par plat, deux marques possibles, et jamais les deux sur le
-          même plat. Deux listes empilées feraient relire vingt titres deux
-          fois — et « au-delà de quatre gestes c'est un formulaire ». */}
-      {asksDishes && props.dishTitles.length > 0
+          Une ligne par ALIMENT (des titres de plats jusqu'au lot B), deux
+          marques possibles, et jamais les deux sur le même. Deux listes
+          empilées feraient relire vingt entrées deux fois — et « au-delà de
+          quatre gestes c'est un formulaire ». */}
+      {asksDishes && props.foodTerms.length > 0
         ? (
           <Card className="mt-3">
             <SectionLabel>{t("plan.feedback.dishes_title")}</SectionLabel>
@@ -306,42 +388,117 @@ export default function PlanFeedbackDialog(props: PlanFeedbackDialogProps) {
               {t("plan.feedback.dishes_hint")}
             </p>
             <ul className="mt-2 flex flex-col gap-2">
-              {props.dishTitles.map((title) => (
-                <li
-                  key={title}
-                  className="flex flex-wrap items-center justify-between gap-2"
-                >
-                  {/* `min-w-0` ET `break-words`: `flex-1` ne rétrécit pas un
-                      enfant (`min-width: auto`), et un titre long emporte la
-                      page à 320 px. Mesuré ailleurs dans ce dépôt. */}
-                  <span className="min-w-0 flex-1 break-words text-sm text-ink">
-                    {title}
-                  </span>
-                  <span className="flex shrink-0 gap-2">
-                    <Button
-                      size="sm"
-                      variant={marks[title] === "make_again"
-                        ? "primary"
-                        : "secondary"}
-                      disabled={busy}
-                      onClick={() => mark(title, "make_again")}
-                    >
-                      {t("plan.feedback.again")}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant={marks[title] === "never_again"
-                        ? "primary"
-                        : "secondary"}
-                      disabled={busy}
-                      onClick={() => mark(title, "never_again")}
-                    >
-                      {t("plan.feedback.not_again")}
-                    </Button>
-                  </span>
+              {props.foodTerms.map((term) => (
+                <li key={term} className="flex flex-col gap-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    {/* `min-w-0` ET `break-words`: `flex-1` ne rétrécit pas un
+                        enfant (`min-width: auto`), et un terme long emporte la
+                        page à 320 px. Mesuré ailleurs dans ce dépôt. */}
+                    <span className="min-w-0 flex-1 break-words text-sm text-ink">
+                      {term}
+                    </span>
+                    <span className="flex shrink-0 gap-2">
+                      <Button
+                        size="sm"
+                        variant={marks[term] === "make_again"
+                          ? "primary"
+                          : "secondary"}
+                        disabled={busy}
+                        onClick={() => mark(term, "make_again")}
+                      >
+                        {t("plan.feedback.again")}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant={marks[term] === "never_again"
+                          ? "primary"
+                          : "secondary"}
+                        disabled={busy}
+                        onClick={() => mark(term, "never_again")}
+                      >
+                        {t("plan.feedback.not_again")}
+                      </Button>
+                    </span>
+                  </div>
+                  {/* ── « POUR QUI ? », SOUS L'ALIMENT MARQUÉ — lot B ────────
+                      ⛔ SEULEMENT SOUS CE QUI EST MARQUÉ, et seulement s'il y
+                      a plus d'une bouche. Vingt aliments proposés, un marqué:
+                      un geste de plus, pas vingt. Un solo n'a aucune bouche à
+                      nommer (`props.mouths` est vide) et ne voit rien.
+
+                      ⚠️ C'EST ELLE QUI REND LA PRÉFÉRENCE ATTRIBUABLE, et donc
+                      la ceinture par bouche capable de mordre chez la bonne
+                      personne. Sans sujet, « plus de saumon » retire le saumon
+                      à toute la table. */}
+                  {asksFoodSubject && marks[term]
+                    ? (
+                      <div className="flex flex-wrap gap-2 pl-1">
+                        <Button
+                          size="sm"
+                          variant={(foodSubjects[term] ?? "household") === "household"
+                            ? "primary"
+                            : "secondary"}
+                          disabled={busy}
+                          onClick={() =>
+                            setFoodSubjects((prev) => ({
+                              ...prev,
+                              [term]: "household",
+                            }))}
+                        >
+                          {OPTION_LABELS.everyone.en}
+                        </Button>
+                        {props.mouths.map((mouth) => {
+                          // ⛔ LA CLÉ EST L'IDENTIFIANT, LE PRÉNOM EST L'AFFICHAGE.
+                          const subject = `member:${mouth.memberId}`;
+                          return (
+                            <Button
+                              key={mouth.memberId}
+                              size="sm"
+                              variant={foodSubjects[term] === subject
+                                ? "primary"
+                                : "secondary"}
+                              disabled={busy}
+                              onClick={() =>
+                                setFoodSubjects((prev) => ({
+                                  ...prev,
+                                  [term]: subject,
+                                }))}
+                            >
+                              {mouth.displayName}
+                            </Button>
+                          );
+                        })}
+                      </div>
+                    )
+                    : null}
                 </li>
               ))}
             </ul>
+          </Card>
+        )
+        : null}
+
+      {/* ── LE CHAMP LIBRE, AVANT L'ENVIE — lot B ─────────────────────────
+          ⛔ IL DEMANDE UNE CONSIGNE POUR LA SUITE, PAS UN RÉCIT. FF-054 §3.2
+          interdisait tout champ libre ici, et son motif est écrit: il
+          « inviterait à raconter ce qui a été mangé ». Le renversement du
+          2026-09-03 tient à ce libellé-là — « quelque chose à retenir pour les
+          prochains ? » — et au fait que ce qui raconte un repas n'a aucune
+          destination côté serveur (`skipped.meal_story`).
+
+          ⚠️ FACULTATIF: le laisser vide ferme le questionnaire comme avant. */}
+      {asksFreeText
+        ? (
+          <Card className="mt-3">
+            <SectionLabel>{QUESTION_LABELS.anything_else.en}</SectionLabel>
+            <textarea
+              id="plan-feedback-anything-else"
+              className={`${inputClass} mt-2 min-h-20`}
+              value={freeText}
+              placeholder={t("plan.feedback.anything_else_placeholder")}
+              disabled={busy}
+              onChange={(e) => setFreeText(e.target.value)}
+            />
           </Card>
         )
         : null}
@@ -398,17 +555,18 @@ export default function PlanFeedbackDialog(props: PlanFeedbackDialogProps) {
                 // la base REFUSE (`subject_without_measure`), et il perdrait
                 // tout son retour pour un bouton qu'il a repris.
                 portionsSubject: asksPortionSubject ? portionsSubject : null,
-                neverAgain: Object.keys(marks).filter((k) =>
-                  marks[k] === "never_again"
-                ),
-                makeAgain: Object.keys(marks).filter((k) =>
-                  marks[k] === "make_again"
-                ),
-                // LES DEUX, JAMAIS LA SEULE RÉPONSE: « no » veut dire « pas eu
-                // faim » pour l'un et « pas fini » pour l'autre, et le lecteur
-                // ne peut pas désambiguïser sans la question.
-                axisQuestion: axis && answers[axis] ? axis : null,
-                axisAnswer: axis ? answers[axis] || null : null,
+                // ⛔ `null` DÈS QUE LA QUESTION N'EST PLUS POSÉE, comme le
+                // sujet des portions: quelqu'un qui répond « trop long », puis
+                // revient sur « je n'ai pas cuisiné », enverrait sinon une
+                // réponse dont la prémisse est tombée — que la base REFUSE
+                // (`cooking_answer_without_cooking`), et il perdrait tout son
+                // retour pour un bouton qu'il a repris.
+                difficulty: asksCooking ? answers.difficulty || null : null,
+                speed: asksCooking ? answers.speed || null : null,
+                variety: answers.enough_variety || null,
+                neverAgainFoods: foodAnswers("never_again"),
+                makeAgainFoods: foodAnswers("make_again"),
+                anythingElse: freeText.trim() || null,
                 envy: props.askEnvy && envy.trim() ? envy.trim() : null,
               });
             } catch (e) {

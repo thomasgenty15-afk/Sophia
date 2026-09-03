@@ -1,5 +1,6 @@
 import { assert, assertEquals } from "jsr:@std/assert@^1.0.0";
 import {
+  cookingQuestionsAreAsked,
   effectOf,
   FEEDBACK_QUESTIONS,
   type FeedbackQuestion,
@@ -14,9 +15,7 @@ import {
   QUESTION_OPTIONS,
   QUESTION_READERS,
   questionsFor,
-  VARIETY_AXIS_QUESTION,
 } from "./plan_feedback.ts";
-import { STUDENT_GOALS } from "./week_plan_generation.ts";
 
 // ===========================================================================
 // LE RETOUR DE FIN DE PLAN — ce que ce fichier garde
@@ -40,9 +39,33 @@ Deno.test("CHAQUE question nomme son lecteur — la garde anti-point-du-dimanche
       `${q} n'a pas de lecteur écrit — c'est exactement ce qui a tué le point du dimanche`,
     );
   }
-  // Et chaque question a ses options fermées: pas de champ libre, qui inviterait
-  // à raconter ce qu'on a mangé.
+  // ══════════════════════════════════════════════════════════════════════
+  // ⛔ UN SEUL CHAMP LIBRE, NOMMÉ — le renversement de FF-054 §3.2, borné
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // La règle d'origine était « pas de champ libre, qui inviterait à raconter ce
+  // qu'on a mangé », et elle est JUSTE. Le lot B en fait UNE exception, et
+  // c'est cette liste-ci qui la borne — pas un `if` dans un composant.
+  //
+  // Ce qui rend l'exception tenable, et les trois tiennent ensemble:
+  //  ① son LIBELLÉ demande une consigne pour la suite, jamais un récit
+  //    (« quelque chose à retenir pour les prochains ? »), et le test de
+  //    registre plus bas le vérifie sur les deux langues;
+  //  ② elle est FACULTATIVE et DERNIÈRE: la laisser vide ferme le
+  //    questionnaire;
+  //  ③ ce qui raconte un repas n'a AUCUNE destination côté serveur — le
+  //    classifieur du lot A le range en `skipped.meal_story`.
+  //
+  // ⚠️ ET LA GARDE RESTE ENTIÈRE POUR TOUTES LES AUTRES. Un second jeton
+  // ajouté ici fait tomber ce test, ce qui est le point: la prochaine
+  // exception devra s'écrire, pas se glisser.
+  const FREE_TEXT: readonly string[] = ["anything_else"];
+  assertEquals(
+    FEEDBACK_QUESTIONS.filter((q) => QUESTION_OPTIONS[q].length === 0),
+    FREE_TEXT,
+  );
   for (const q of FEEDBACK_QUESTIONS) {
+    if (FREE_TEXT.includes(q)) continue;
     assert(QUESTION_OPTIONS[q].length > 0, `${q} n'a pas d'options`);
   }
 });
@@ -83,71 +106,104 @@ Deno.test("le REGISTRE: on évalue le plan, jamais la personne", () => {
   }
 });
 
-Deno.test("la quatrième question suit l'axe de la dynamique", () => {
-  assert(questionsFor("fat_loss", false).includes("hunger_between_meals"));
-  assert(questionsFor("muscle_gain", false).includes("could_finish"));
+Deno.test("LOT B — TOUTES LES QUESTIONS SONT COMMUNES, et l'axe a disparu", () => {
+  // ── CE QUE CE TEST GARDE ────────────────────────────────────────────────
+  // La quatrième question suivait la dynamique (`fat_loss` → la faim,
+  // `muscle_gain` → « as-tu fini », `maintenance` → la variété). DEUX DES
+  // TROIS n'avaient AUCUN lecteur — `emphasisHint` n'a jamais eu d'appelant, et
+  // le module l'écrivait en toutes lettres. La règle fondatrice du fichier
+  // (« chaque question nomme son lecteur avant d'être posée ») les condamnait
+  // depuis le premier jour; le lot B les retire.
+  const asked = questionsFor(false);
+  assertEquals(asked.includes("hunger_between_meals" as never), false);
+  assertEquals(asked.includes("could_finish" as never), false);
 
-  // ── LE REPLI DU 2026-08-18 ──────────────────────────────────────────────
-  // `maintenance` n'avait AUCUNE quatrième question. Elle en a une depuis
-  // qu'elle absorbe `health`, `recomposition` et `performance`, et c'est
-  // `enough_variety` — la seule des trois qui n'interroge ni l'appétit ni la
-  // quantité, donc la seule qui survive au plancher TCA. Ce test est le
-  // MESUREUR de ce choix: le remplacer par `could_finish` ou par
-  // `energy_around_sessions` le fait tomber.
-  assertEquals(questionsFor("maintenance", false), [
+  // ⚠️ `enough_variety` DEVIENT COMMUNE, et c'est le point: son champ
+  // (`variety`) est lu par les DEUX lanes pour TOUT LE MONDE. Ne la demander
+  // qu'à `maintenance` rendait le cran inatteignable aux deux autres
+  // dynamiques — exactement le défaut que les deux crans neufs de `portions`
+  // ont fermé le 2026-08-19.
+  assertEquals(asked, [
     "cooked",
     "portions",
+    "difficulty",
+    "speed",
+    "enough_variety",
     "never_again",
     "make_again",
-    "enough_variety",
+    "anything_else",
   ]);
 
+  // ⚠️ LA SORTIE NE DÉPEND PLUS DE LA DYNAMIQUE — et c'est ce qui rend
+  // l'indiscernabilité sous plancher STRUCTURELLE (voir le test suivant).
+  // `questionsFor` ne prend plus d'objectif: un appelant qui en passait un ne
+  // compile plus, ce qui est la seule façon de garantir qu'aucun écran ne pose
+  // encore une question d'axe.
+  assertEquals(questionsFor.length, 1);
+
+  // ET LES DEUX POLARITÉS VONT ENSEMBLE. Une seule des deux posée serait un
+  // questionnaire qui n'apprend qu'à éviter, ou qu'à viser.
+  assertEquals(asked.includes("never_again"), asked.includes("make_again"));
+});
+
+Deno.test("⛔ LOT B — LA CHARGE AUGMENTE, ET ELLE EST BORNÉE ET MESURÉE", () => {
   // ══════════════════════════════════════════════════════════════════════
-  // JAMAIS PLUS DE QUATRE GESTES. Au-delà c'est un formulaire, et un
-  // formulaire ne se remplit pas.
+  // « JAMAIS PLUS DE QUATRE GESTES. Au-delà c'est un formulaire, et un
+  // formulaire ne se remplit pas. » — la règle de FF-054, et le lot B la met
+  // sous tension. Ce test est le MESUREUR, pas un plafond arbitraire.
   // ══════════════════════════════════════════════════════════════════════
   //
-  // ⚠️ LE PLAFOND EST PASSÉ DE 4 À 5 JETONS LE 2026-08-15, ET LA RÈGLE N'A PAS
-  // BOUGÉ D'UN POUCE. `never_again` et `make_again` portent sur LA MÊME LISTE —
-  // les plats de ce plan — avec deux polarités. L'écran les rend en UN SEUL
-  // bloc, une ligne par plat, deux marques possibles: la personne répond à
-  // QUATRE choses, pas à cinq.
+  // Ce qui compte est le nombre de GESTES, pas de jetons:
+  //   · `never_again` et `make_again` portent sur LA MÊME LISTE d'aliments,
+  //     rendue en UN bloc avec deux marques — un geste, pas deux;
+  //   · `anything_else` est FACULTATIF: le laisser vide ferme le questionnaire;
+  //   · `difficulty` et `speed` ne sont posées qu'à qui a cuisiné.
   //
-  // Le jour où un cinquième SUJET apparaît, c'est ce commentaire qu'il faudra
-  // contredire, et il n'y a pas de bonne raison de le faire.
-  for (const goal of STUDENT_GOALS) {
-    assert(questionsFor(goal, false).length <= 5, goal);
-    // ET LES DEUX POLARITÉS VONT ENSEMBLE. Une seule des deux posée serait un
-    // questionnaire qui n'apprend qu'à éviter, ou qu'à viser.
-    const asked = questionsFor(goal, false);
-    assertEquals(
-      asked.includes("never_again"),
-      asked.includes("make_again"),
-      `${goal}: une seule des deux polarités est posée`,
-    );
-  }
+  // Reste, pour quelqu'un qui a cuisiné: cooked, portions (+ « pour qui »),
+  // difficulty, speed, variety, le bloc d'aliments = SIX gestes obligatoires.
+  // C'est DEUX de plus qu'avant, et c'est le prix de ne plus deviner lequel
+  // des deux réglages de cuisine la personne voulait bouger.
+  //
+  // ⏸ NOMMÉ AU RAPPORT DU LOT B: soit on accepte, soit on scinde le
+  // questionnaire (les indices un soir, les plats un autre) — un lot à part.
+  const asked = questionsFor(false);
+  const dishBlock = asked.filter((q) => q === "never_again" || q === "make_again");
+  const optional = asked.filter((q) => q === "anything_else");
+  const gestures = asked.length - (dishBlock.length - 1) - optional.length;
+  assertEquals(gestures, 6, "le nombre de gestes obligatoires a bougé sans qu'on le dise");
 });
 
 Deno.test("sous plancher TCA, la sortie est INDISCERNABLE d'une dynamique inconnue", () => {
   // LE DÉFAUT QUE CE TEST GARDE. Si le questionnaire d'un élève flaggé était
   // reconnaissable, il deviendrait lui-même un oracle: « on ne m'a pas demandé
-  // les portions, donc je suis marqué ». Égalité de chaînes, pas de forme.
-  const unknownGoal = questionsFor(null, true);
-  for (const goal of STUDENT_GOALS) {
-    assertEquals(
-      JSON.stringify(questionsFor(goal, true)),
-      JSON.stringify(unknownGoal),
-      `${goal} sous plancher est distinguable d'une dynamique inconnue`,
-    );
-  }
+  // les portions, donc je suis marqué ».
+  //
+  // ⚠️ LA PROPRIÉTÉ EST DEVENUE STRUCTURELLE AU LOT B, et ce test le dit:
+  // `questionsFor` ne prend plus d'objectif, donc il n'existe PLUS AUCUN
+  // couple (dynamique, plancher) qui puisse diverger. Avant, la garde tenait à
+  // un ordre d'opérations — retirer les questions AVANT d'ajouter celle de
+  // l'axe, et n'en ajouter aucune sous plancher.
+  assertEquals(questionsFor.length, 1, "un objectif est revenu dans la signature");
 
   // Et ce qui a été retiré, nommément.
-  const flagged = questionsFor("fat_loss", true);
+  const flagged = questionsFor(true);
   assertEquals(flagged.includes("portions"), false, "la portion invite à la restriction");
-  assertEquals(flagged.includes("hunger_between_meals"), false, "la faim devient un sujet");
-  // Ce qui survit porte sur LE PLAN, pas sur le corps.
+  // ⚠️ `hunger_between_meals` N'EST PLUS DANS LE VOCABULAIRE DU TOUT depuis le
+  // lot B: elle faisait de la faim un sujet, et elle n'avait aucun lecteur.
+  // Elle n'est donc plus retirée par le plancher — elle n'existe plus.
+  assertEquals(FEEDBACK_QUESTIONS.includes("hunger_between_meals" as never), false);
+  // Ce qui survit porte sur LE PLAN, pas sur le corps: « as-tu pu cuisiner »,
+  // « était-ce trop dur », « trop long », « assez varié », « un aliment à ne
+  // plus servir ». Aucune n'interroge l'appétit ni la quantité.
   assert(flagged.includes("cooked"));
+  assert(flagged.includes("difficulty"));
+  assert(flagged.includes("speed"));
+  assert(flagged.includes("enough_variety"));
   assert(flagged.includes("never_again"));
+  // ⚠️ ET LE PLANCHER NE RETIRE QU'UNE SEULE QUESTION: la liste complète moins
+  // `portions`. Un plancher qui retirerait plus rendrait le questionnaire d'un
+  // élève flaggé reconnaissable à sa longueur.
+  assertEquals(flagged.length, questionsFor(false).length - 1);
 });
 
 Deno.test("un retour est dû une seule fois, sur une fenêtre écoulée, pour un plan vivant", () => {
@@ -165,26 +221,116 @@ Deno.test("un retour est dû une seule fois, sur une fenêtre écoulée, pour un
 });
 
 Deno.test("chaque réponse atteint un lecteur — aucune n'est décorative", () => {
-  // « je n'ai pas cuisiné » doit alléger la cuisine ET simplifier.
+  // ── LOT B · `cooked` NE DÉPLACE PLUS RIEN TOUT SEUL ────────────────────
+  // Il retirait 15 minutes de session ET simplifiait les recettes d'un cran
+  // sur « non » — une réponse unique, deux déductions, et le produit décidait
+  // lequel des deux problèmes la personne avait eu. Il est redevenu une GARDE:
+  // il décide si les deux questions de cuisine sont posées.
   const notCooked = effectOf({ cooked: "no" });
-  assert(notCooked.easeCookingBy > 0);
-  assert(notCooked.simplifyRecipes);
+  assertEquals(notCooked.difficultyStep, null);
+  assertEquals(notCooked.speedStep, null);
+  assertEquals(cookingQuestionsAreAsked("no"), false);
+  // Et « en partie » compte comme cuisiné: la personne a assez cuisiné pour
+  // savoir si c'était long ou dur. C'est même le cas le plus informatif.
+  assertEquals(cookingQuestionsAreAsked("partly"), true);
+  assertEquals(cookingQuestionsAreAsked("yes"), true);
+  assertEquals(cookingQuestionsAreAsked(null), false);
 
-  // « en partie » allège moins, et ne simplifie pas: on a été optimiste, pas
-  // hors sujet.
-  const partly = effectOf({ cooked: "partly" });
-  assert(partly.easeCookingBy > 0 && partly.easeCookingBy < notCooked.easeCookingBy);
-  assertEquals(partly.simplifyRecipes, false);
+  // ── LOT B · LES DEUX CRANS DE CUISINE, DANS LES DEUX SENS ──────────────
+  assertEquals(
+    effectOf({ cooked: "yes", difficulty: "too_hard" }).difficultyStep,
+    "down",
+  );
+  assertEquals(
+    effectOf({ cooked: "yes", difficulty: "could_do_more" }).difficultyStep,
+    "up",
+  );
+  assertEquals(effectOf({ cooked: "yes", difficulty: "fine" }).difficultyStep, null);
+  assertEquals(effectOf({ cooked: "partly", speed: "too_long" }).speedStep, "down");
+  assertEquals(
+    effectOf({ cooked: "partly", speed: "had_more_time" }).speedStep,
+    "up",
+  );
+  assertEquals(effectOf({ cooked: "partly", speed: "fine" }).speedStep, null);
+
+  // ⛔ ET LA GARDE MORD DANS `effectOf` AUSSI, pas seulement à l'écran: une
+  // réponse arrivée sans que `cooked` l'autorise vient d'un client cassé ou
+  // d'une charge forgée, et elle déplacerait un réglage RÉEL.
+  assertEquals(
+    effectOf({ cooked: "no", difficulty: "too_hard", speed: "too_long" })
+      .difficultyStep,
+    null,
+  );
+  assertEquals(
+    effectOf({ cooked: null, difficulty: "too_hard" }).difficultyStep,
+    null,
+  );
 
   // Les portions donnent le SENS du ré-ancrage — la vérité terrain du moteur.
   assertEquals(effectOf({ portions: "too_much" }).portionAdjust?.direction, "down");
   assertEquals(effectOf({ portions: "not_enough" }).portionAdjust?.direction, "up");
   assertEquals(effectOf({ portions: "right" }).portionAdjust, null);
 
-  // Les plats refusés partent aux préférences.
+  // ── LOT B · LES ALIMENTS PARTENT AUX PRÉFÉRENCES, AVEC LEUR PERSONNE ───
   assertEquals(
-    effectOf({ neverAgain: ["lentil soup"] }).refusedDishes,
-    ["lentil soup"],
+    effectOf({ neverAgain: [{ food: "saumon", subject: "member:x" }] })
+      .refusedFoods,
+    [{ food: "saumon", subject: "member:x" }],
+  );
+  assertEquals(
+    effectOf({ makeAgain: [{ food: "lentilles", subject: null }] }).keptFoods,
+    [{ food: "lentilles", subject: null }],
+  );
+  // ⚠️ ET LA FORME HÉRITÉE EST LUE: une ligne d'avant le lot B porte des
+  // TITRES de plats. Elle devient `{food: <le titre>, subject: null}` — ce que
+  // la personne a répondu, sans reclassement. Le reclasser serait deviner si
+  // c'est le poulet, le citron ou le rôtissage qu'elle ne veut plus.
+  assertEquals(
+    effectOf({ neverAgain: ["lentil soup"] }).refusedFoods,
+    [{ food: "lentil soup", subject: null }],
+  );
+});
+
+Deno.test("⛔ LOT B — LA VARIÉTÉ EST LUE DU CHAMP NEUF, PUIS DE L'HÉRITÉ, JAMAIS DES DEUX", () => {
+  // Le champ neuf d'abord.
+  assertEquals(effectOf({ variety: "no" }).varietyPressure, "more");
+  assertEquals(effectOf({ variety: "sometimes" }).varietyPressure, "more");
+  assertEquals(effectOf({ variety: "yes" }).varietyPressure, null);
+
+  // ⚠️ L'HÉRITÉ ENSUITE — une ligne écrite avant le lot B porte sa réponse
+  // dans `axis_answer`, sous son jeton. Sans cette lecture, elle cesserait
+  // d'agir entre deux chargements.
+  assertEquals(
+    effectOf({ axisQuestion: "enough_variety", axisAnswer: "no" })
+      .varietyPressure,
+    "more",
+  );
+
+  // ⛔ ET LE JETON HÉRITÉ EST VÉRIFIÉ, PAS SUPPOSÉ. `no` était une option des
+  // TROIS anciens axes: lire `axis_answer` sans son jeton ferait entrer une
+  // réponse à « sur ta faim » — que le plancher TCA retirait — dans le réglage
+  // de variété.
+  assertEquals(
+    effectOf({ axisQuestion: "hunger_between_meals", axisAnswer: "often" })
+      .varietyPressure,
+    null,
+  );
+  assertEquals(
+    effectOf({ axisQuestion: "could_finish", axisAnswer: "no" }).varietyPressure,
+    null,
+  );
+  // Sans jeton: rien. L'oubli est FAIL-CLOSED.
+  assertEquals(effectOf({ axisAnswer: "no" }).varietyPressure, null);
+
+  // ⛔ JAMAIS LES DEUX: une ligne en cours de migration porte les deux, et les
+  // additionner compterait deux fois la même réponse. Le neuf gagne.
+  assertEquals(
+    effectOf({
+      variety: "yes",
+      axisQuestion: "enough_variety",
+      axisAnswer: "no",
+    }).varietyPressure,
+    null,
   );
 });
 
@@ -192,57 +338,53 @@ Deno.test("`none` n'est jamais traité comme un plat", () => {
   // LE DÉFAUT QUE CE TEST GARDE: « aucun » versé dans les préférences
   // alimentaires y créerait un aliment refusé nommé « none », et le générateur
   // passerait sa vie à éviter un plat qui n'existe pas.
-  assertEquals(effectOf({ neverAgain: ["none"] }).refusedDishes, []);
+  assertEquals(effectOf({ neverAgain: ["none"] }).refusedFoods, []);
   assertEquals(
-    effectOf({ neverAgain: ["none", "lentil soup", "  "] }).refusedDishes,
-    ["lentil soup"],
+    effectOf({ neverAgain: ["none", "lentil soup", "  "] }).refusedFoods,
+    [{ food: "lentil soup", subject: null }],
+  );
+  // ⚠️ ET SOUS LA FORME NEUVE AUSSI: un `{food: "none"}` forgé ne doit pas
+  // passer par la porte que la forme héritée ferme.
+  assertEquals(
+    effectOf({ neverAgain: [{ food: "none", subject: "household" }] })
+      .refusedFoods,
+    [],
   );
 });
 
-Deno.test("aucun accent suggéré ne porte de chiffre", () => {
-  // `NUMERIC_TARGET_PATTERNS` rejette en sortie toute masse accolée à une
-  // macro: un accent chiffré produirait des lignes systématiquement filtrées,
-  // c'est-à-dire une génération dégradée par le retour censé l'améliorer.
-  // ⚠️ LE JETON EST PASSÉ, sinon la boucle est VIDE de sens: sans question,
-  // `emphasisHint` est `null` partout et ce test resterait vert en ne mesurant
-  // plus rien.
-  let seen = 0;
-  for (const answer of ["often", "sometimes", "no"]) {
-    const hint = effectOf({
-      axisQuestion: "hunger_between_meals",
-      axisAnswer: answer,
-    }).emphasisHint;
-    if (hint === null) continue;
-    seen += 1;
+Deno.test("⛔ LOT B — L'ACCENT SUGGÉRÉ A ÉTÉ RETIRÉ, ET SES DEUX QUESTIONS AVEC", () => {
+  // ── CE QUE CES DEUX TESTS GARDAIENT, ET POURQUOI ILS DISPARAISSENT ──────
+  // Ils tenaient `emphasisHint`: qu'il ne porte aucun chiffre (une consigne
+  // chiffrée est filtrée en sortie par `NUMERIC_TARGET_PATTERNS`), et qu'il ne
+  // s'invente pas sans son jeton (`no` était une réponse des TROIS axes).
+  //
+  // ⛔ LE CHAMP N'A JAMAIS EU D'APPELANT. Le module l'écrivait en toutes
+  // lettres — « TROU NOMMÉ » — et la règle fondatrice du fichier interdit une
+  // question dont on ne peut pas écrire le lecteur. Le lot B retire donc les
+  // deux questions qui n'atterrissaient que là (`hunger_between_meals`,
+  // `could_finish`) ET le champ. Les trois rabattements examinés le 2026-08-19
+  // restent refusés, et leur motif est écrit dans le vocabulaire de
+  // `plan_feedback.ts`, à l'endroit où quelqu'un déciderait de les reposer.
+  //
+  // ⚠️ CE TEST N'EST PAS UN VIDE: il empêche le retour silencieux du champ.
+  const effect = effectOf({ cooked: "yes", portions: "too_much" });
+  assertEquals(
+    Object.prototype.hasOwnProperty.call(effect, "emphasisHint"),
+    false,
+    "`emphasisHint` est revenu: un champ sans appelant, pour la seconde fois",
+  );
+  for (const gone of ["hunger_between_meals", "could_finish"]) {
     assertEquals(
-      /\d/.test(hint),
+      (FEEDBACK_QUESTIONS as readonly string[]).includes(gone),
       false,
-      `l'accent pour « ${answer} » porte un chiffre: ${hint}`,
+      `${gone} est revenue dans le vocabulaire sans que son lecteur soit nommé`,
+    );
+    assertEquals(
+      Object.prototype.hasOwnProperty.call(QUESTION_OPTIONS, gone),
+      false,
+      `${gone} a encore des options: elle serait posable`,
     );
   }
-  assert(seen > 0, "aucun accent produit: la boucle ne mesure plus rien");
-});
-
-Deno.test("⛔ une réponse SANS SON JETON ne produit AUCUN accent inventé", () => {
-  // `no` veut dire « pas eu faim » pour hunger_between_meals et « pas fini »
-  // pour could_finish. Deviner produirait l'accent inverse une fois sur deux.
-  assertEquals(effectOf({ axisAnswer: "no" }).emphasisHint, null);
-  assertEquals(effectOf({ axisAnswer: "often" }).emphasisHint, null);
-
-  // ── LE DÉFAUT MESURÉ LE 2026-08-19 ────────────────────────────────────
-  // `emphasisHintFor` ne recevait que la réponse: « parfois » à la question de
-  // VARIÉTÉ rendait l'accent de SATIÉTÉ, c'est-à-dire une consigne de
-  // `fat_loss` sur un plan de `maintenance`. Inerte (aucun appelant), et prête
-  // à mordre au premier câblage.
-  assertEquals(
-    effectOf({ axisQuestion: VARIETY_AXIS_QUESTION, axisAnswer: "sometimes" })
-      .emphasisHint,
-    null,
-  );
-  assertEquals(
-    effectOf({ axisQuestion: "could_finish", axisAnswer: "no" }).emphasisHint,
-    null,
-  );
 });
 
 // ---------------------------------------------------------------------------
@@ -376,36 +518,33 @@ Deno.test("⛔ LOT 4C — le plancher TCA retire toujours la question ENTIÈRE",
   // graduée, et la sortie reste indiscernable de celle d'une dynamique
   // inconnue. Les cinq crans ne changent rien à ça — c'est la question qui
   // part, pas ses options.
-  const unknownGoal = questionsFor(null, true);
-  assertEquals(unknownGoal.includes("portions"), false);
-  for (const goal of STUDENT_GOALS) {
-    assertEquals(
-      JSON.stringify(questionsFor(goal, true)),
-      JSON.stringify(unknownGoal),
-      `${goal} sous plancher est distinguable d'une dynamique inconnue`,
-    );
-  }
+  assertEquals(questionsFor(true).includes("portions"), false);
   // ET LA MOITIÉ QUI PASSE: hors plancher, la question est bien posée — sans
   // elle, ce test resterait vert sur un produit qui ne demande plus jamais les
   // portions à personne.
-  for (const goal of STUDENT_GOALS) {
-    assert(questionsFor(goal, false).includes("portions"), goal);
-  }
+  assert(questionsFor(false).includes("portions"));
+  // ⚠️ ET LES CINQ CRANS SONT TOUJOURS LÀ: c'est la QUESTION qui part, pas ses
+  // options.
+  assertEquals(QUESTION_OPTIONS.portions.length, 5);
 });
 
 // ---------------------------------------------------------------------------
 // LA 4ᵉ QUESTION — L'AXE FERMÉ, ET LES DEUX QUI NE LE SONT PAS
 // ---------------------------------------------------------------------------
 
-Deno.test("épingle: le jeton de l'axe fermé est `enough_variety`", () => {
-  // ⚠️ LITTÉRAL EN DUR, pas la constante comparée à elle-même. Le jeton voyage
-  // jusqu'à la colonne `axis_question` et jusqu'à l'écran: un renommage d'un
+Deno.test("épingle: le jeton de la variété est `enough_variety`, hier comme aujourd'hui", () => {
+  // ⚠️ LITTÉRAL EN DUR. Le jeton voyage jusqu'à la colonne `variety`, jusqu'à
+  // la colonne HÉRITÉE `axis_question`, et jusqu'à l'écran: un renommage d'un
   // seul côté rend un questionnaire qui écrit et n'est plus lu.
-  assertEquals(VARIETY_AXIS_QUESTION, "enough_variety");
+  //
+  // ⚠️ IL N'EST PLUS EXPORTÉ COMME « LE JETON DE L'AXE » — le lot B a retiré
+  // l'axe, et la question est commune. Le jeton, lui, ne bouge pas: des lignes
+  // en base le portent, et `legacyVarietyAnswer` le compare à ce littéral.
   assert(
-    (FEEDBACK_QUESTIONS as readonly string[]).includes(VARIETY_AXIS_QUESTION),
-    "le jeton de l'axe fermé n'est plus une question du vocabulaire",
+    (FEEDBACK_QUESTIONS as readonly string[]).includes("enough_variety"),
+    "le jeton de la variété n'est plus une question du vocabulaire",
   );
+  assertEquals(QUESTION_OPTIONS.enough_variety, ["yes", "sometimes", "no"]);
 });
 
 Deno.test("la pression de variété sort du JETON, jamais de la seule réponse", () => {
@@ -445,23 +584,27 @@ Deno.test("la pression de variété sort du JETON, jamais de la seule réponse",
 
 Deno.test("désarmement : aucun retour ⇒ aucun effet", () => {
   const none = effectOf({});
-  assertEquals(none.easeCookingBy, 0);
-  assertEquals(none.simplifyRecipes, false);
+  assertEquals(none.difficultyStep, null);
+  assertEquals(none.speedStep, null);
   assertEquals(none.portionAdjust, null);
-  assertEquals(none.refusedDishes, []);
-  assertEquals(none.emphasisHint, null);
+  assertEquals(none.refusedFoods, []);
+  assertEquals(none.keptFoods, []);
   assertEquals(none.varietyPressure, null);
 });
 
 Deno.test("toutes les questions du vocabulaire sont atteignables", () => {
-  // Une question déclarée mais qu'aucune dynamique ne pose serait décorative.
-  const reached = new Set<FeedbackQuestion>();
-  for (const goal of STUDENT_GOALS) {
-    for (const q of questionsFor(goal, false)) reached.add(q);
-  }
+  // Une question déclarée que personne ne pose serait décorative — et une
+  // valeur décorative finit par être pilotée (R6).
+  //
+  // ⚠️ DEPUIS LE LOT B, LA GARDE EST PLUS FORTE: toutes les questions sont
+  // communes, donc `questionsFor(false)` DOIT rendre le vocabulaire ENTIER. Un
+  // jeton déclaré et non posé fait tomber ce test immédiatement, au lieu de se
+  // cacher derrière une dynamique qu'aucun compte n'a.
+  const reached = new Set<FeedbackQuestion>(questionsFor(false));
   for (const q of FEEDBACK_QUESTIONS) {
-    assert(reached.has(q), `${q} n'est posée par aucune dynamique`);
+    assert(reached.has(q), `${q} n'est posée à personne`);
   }
+  assertEquals(reached.size, FEEDBACK_QUESTIONS.length);
 });
 
 // ---------------------------------------------------------------------------
@@ -473,22 +616,30 @@ Deno.test("LOT D — l'inverse de `never_again` verse aux préférences, même c
   // qui a raté apprend au produit à ÉVITER, jamais à VISER — et une génération
   // qui n'a que des bornes compose au hasard à l'intérieur.
   const out = effectOf({
-    neverAgain: ["Tuna bake"],
-    makeAgain: ["Chicken and rice bowls", "Peach yogurt"],
+    neverAgain: [{ food: "thon", subject: "member:tom" }],
+    makeAgain: [
+      { food: "poulet", subject: "household" },
+      { food: "yaourt", subject: null },
+    ],
   });
-  assertEquals(out.refusedDishes, ["Tuna bake"]);
-  assertEquals(out.keptDishes, ["Chicken and rice bowls", "Peach yogurt"]);
+  assertEquals(out.refusedFoods, [{ food: "thon", subject: "member:tom" }]);
+  assertEquals(out.keptFoods, [
+    { food: "poulet", subject: "household" },
+    { food: "yaourt", subject: null },
+  ]);
 });
 
 Deno.test("LOT D — `none` ne devient JAMAIS un plat voulu", () => {
   // Le symétrique exact du refus fantôme: un « aucun » versé aux préférences
   // ferait chercher à vie un plat qui n'existe pas.
   const out = effectOf({ makeAgain: ["none", "  ", "Chicken and rice bowls"] });
-  assertEquals(out.keptDishes, ["Chicken and rice bowls"]);
+  assertEquals(out.keptFoods, [
+    { food: "Chicken and rice bowls", subject: null },
+  ]);
 });
 
 Deno.test("LOT D — aucune réponse ⇒ aucun plat voulu, et c'est un désarmement propre", () => {
-  assertEquals(effectOf({}).keptDishes, []);
+  assertEquals(effectOf({}).keptFoods, []);
 });
 
 Deno.test("LOT D — ⛔ l'envie apparue n'est POSÉE qu'à qui a un lecteur", () => {

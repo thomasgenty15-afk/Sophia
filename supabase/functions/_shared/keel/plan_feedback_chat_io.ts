@@ -34,7 +34,7 @@ import {
 } from "./plan_feedback.ts";
 import type { StudentGoal } from "./week_plan_generation.ts";
 import {
-  dishTitlesOf,
+  foodTermsOf,
   EMPTY_FEEDBACK_ROW,
   type FeedbackLanguage,
   type FeedbackRowState,
@@ -53,7 +53,8 @@ export interface ChatFeedbackContext {
   mealId: string;
   contentLocale: string;
   language: FeedbackLanguage;
-  dishTitles: string[];
+  /** Les ALIMENTS du plan — lot B, la liste fermée des deux questions de plat. */
+  foodTerms: string[];
   row: FeedbackRowState;
   questions: FeedbackQuestion[];
   /** Le nombre de bouches à table, le compte lui-même compris. */
@@ -79,6 +80,27 @@ function strArray(v: unknown): string[] {
  * questionnaire sauterait ses deux questions de plats dès le deuxième tap. Le
  * motif complet est dans la migration.
  */
+/**
+ * LES ALIMENTS D'UNE COLONNE, tels qu'ils sont stockés — lot B.
+ *
+ * ⚠️ UNE ENTRÉE ILLISIBLE TOMBE SEULE. Le chat n'écrit qu'un aliment par
+ * question, mais l'écran peut en écrire plusieurs, et une charge trafiquée
+ * n'importe quoi. `subject: null` est LU comme tel: il dit « nommé, sujet pas
+ * encore demandé », qui est l'état où la relance est due.
+ */
+function foodArray(v: unknown): { food: string; subject: string | null }[] {
+  if (!Array.isArray(v)) return [];
+  const out: { food: string; subject: string | null }[] = [];
+  for (const entry of v) {
+    const row = (entry ?? {}) as Record<string, unknown>;
+    const food = String(row.food ?? "").trim();
+    if (!food) continue;
+    const subject = String(row.subject ?? "").trim();
+    out.push({ food, subject: subject || null });
+  }
+  return out;
+}
+
 function readFeedbackRow(raw: Record<string, unknown> | null): FeedbackRowState {
   if (!raw) return EMPTY_FEEDBACK_ROW;
   return {
@@ -87,6 +109,13 @@ function readFeedbackRow(raw: Record<string, unknown> | null): FeedbackRowState 
     portionsSubject: str(raw.portions_subject) || null,
     neverAgain: strArray(raw.never_again),
     makeAgain: strArray(raw.make_again),
+    neverAgainFoods: foodArray(raw.never_again_foods),
+    makeAgainFoods: foodArray(raw.make_again_foods),
+    // ── LOT B ────────────────────────────────────────────────────────────
+    difficulty: str(raw.difficulty) || null,
+    speed: str(raw.speed) || null,
+    variety: str(raw.variety) || null,
+    anythingElse: str(raw.anything_else) || null,
     axisQuestion: str(raw.axis_question) || null,
     axisAnswer: str(raw.axis_answer) || null,
     answered: strArray(raw.answered),
@@ -117,7 +146,12 @@ export async function loadChatFeedbackContext(
     // le dernier, et une fenêtre dure au plus 7 jours.
     const plans = await admin
       .from("student_generated_meals")
-      .select("id, starts_on, duration_days, retired_at, content_locale, dishes")
+      // ⚠️ `preparations` DEPUIS LE LOT B: les deux questions de plat proposent
+      // des ALIMENTS, et en cuisine par lots la protéine vit dans la
+      // préparation, pas dans le plat.
+      .select(
+        "id, starts_on, duration_days, retired_at, content_locale, dishes, preparations",
+      )
       .eq("user_id", args.userId)
       .order("starts_on", { ascending: false })
       .limit(30);
@@ -217,9 +251,25 @@ export async function loadChatFeedbackContext(
       mealId,
       contentLocale,
       language: isFrenchLocale(contentLocale) ? "fr" : "en",
-      dishTitles: dishTitlesOf(last.dishes),
+      foodTerms: foodTermsOf(last.dishes, last.preparations),
       row,
-      questions: questionsFor(goal, args.restrictionFlag),
+      // ⚠️ PLUS D'OBJECTIF — lot B: les questions ne dépendent plus de la
+      // dynamique.
+      //
+      // ⛔ ET `anything_else` NE PASSE PAS PAR LE CHAT. Le flux du chat est à
+      // BOUTONS (FF-054 §3.2): un champ libre y demanderait à la personne de
+      // taper un message ordinaire, que le chemin déterministe ne capte pas —
+      // elle croirait avoir répondu, et rien ne serait écrit. Le renversement
+      // du 2026-09-03 est donc borné à l'ÉCRAN, et la règle « aucun champ
+      // libre » de §3.2 reste ENTIÈRE ici.
+      //
+      // ⚠️ DEUX GARDES POUR UNE RÈGLE, ET C'EST VOULU: `renderFeedbackQuestion`
+      // rend déjà `null` pour elle (aucune option). Ce filtre-ci évite qu'un
+      // pas « question » soit rendu puis abandonné en silence — ce qui
+      // ressemblerait à un questionnaire qui s'arrête tout seul.
+      questions: questionsFor(args.restrictionFlag).filter(
+        (q) => q !== "anything_else",
+      ),
       // Un solo n'a AUCUNE ligne `household_members`: `mouths` vaut alors 1 —
       // lui-même — et la relance ne se pose pas, ce qui est correct.
       mouths: Math.max(1, members.length),
@@ -252,8 +302,20 @@ export type FeedbackPatch =
   | { value: { cooked: string }; marks: "cooked" }
   | { value: { portions: string }; marks: "portions" }
   | { value: { portions_subject: string }; marks: null }
-  | { value: { never_again: string[] }; marks: "never_again" }
-  | { value: { make_again: string[] }; marks: "make_again" }
+  | { value: { never_again_foods: unknown[] }; marks: "never_again" }
+  | { value: { make_again_foods: unknown[] }; marks: "make_again" }
+  // ── LOT B · LES TROIS ÉCHELLES ET LE CHAMP LIBRE ───────────────────────
+  | { value: { difficulty: string }; marks: "difficulty" }
+  | { value: { speed: string }; marks: "speed" }
+  | { value: { variety: string }; marks: "enough_variety" }
+  | { value: { anything_else: string }; marks: "anything_else" }
+  /**
+   * ⚠️ HÉRITÉ, ET IL RESTE ÉCRIVABLE POUR UNE SEULE RAISON: une ligne en cours
+   * de questionnaire, commencée avant le lot B, peut encore recevoir sa
+   * réponse d'axe. Aucun chemin vivant ne la produit — `FEEDBACK_QUESTIONS` ne
+   * contient plus ces jetons — et le retirer ferait tomber ces lignes-là au
+   * milieu de leur questionnaire.
+   */
   | { value: { axis_question: string; axis_answer: string }; marks: string }
   | { value: { dismissed_at: string }; marks: null };
 

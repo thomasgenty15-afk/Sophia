@@ -2738,11 +2738,15 @@ export default function StudentWeekPlanPage() {
           ? (
             <PlanFeedbackDialog
               open={feedbackOpen}
-              questions={questionsFor(
-                (goal?.goal ?? null) as never,
-                restricted,
-              )}
-              dishTitles={feedbackPlan.dishTitles}
+              // ⚠️ PLUS D'OBJECTIF — lot B. Les questions ne dépendent plus
+              // de la dynamique: la quatrième question la suivait, et deux de
+              // ses trois axes n'avaient aucun lecteur. Le plancher TCA reste
+              // le seul filtre, et il ne retire plus que `portions`.
+              questions={questionsFor(restricted)}
+              // ⚠️ DES ALIMENTS, PLUS DES TITRES — lot B. Un titre ne dit pas
+              // ce qu'on ne veut plus; ni le générateur ni la ceinture par
+              // bouche ne peuvent filtrer avec.
+              foodTerms={feedbackPlan.foodTerms}
               // ⛔ SEUL LE MAÎTRE D'UN FOYER VOIT LA QUESTION D'ENVIE: c'est le
               // seul compte qui puisse l'écrire dans le canal qui la lit
               // (`keel_household_submit_envy` refuse tout autre membre par
@@ -2783,10 +2787,16 @@ export default function StudentWeekPlanPage() {
                     // questionnaire est son SEUL producteur pour cette raison
                     // exacte: la conversation ne sait pas l'attribuer.
                     portionsSubject: answers.portionsSubject,
-                    neverAgain: answers.neverAgain,
-                    makeAgain: answers.makeAgain,
-                    axisQuestion: answers.axisQuestion,
-                    axisAnswer: answers.axisAnswer,
+                    // ── LOT B · LES QUATRE RÉPONSES NEUVES ─────────────────
+                    // ⛔ `neverAgainFoods` PORTE SON SUJET, et c'est ce qui
+                    // rend la préférence attribuable — donc la ceinture par
+                    // bouche capable de mordre chez la bonne personne.
+                    difficulty: answers.difficulty,
+                    speed: answers.speed,
+                    variety: answers.variety,
+                    neverAgainFoods: answers.neverAgainFoods,
+                    makeAgainFoods: answers.makeAgainFoods,
+                    anythingElse: answers.anythingElse,
                   },
                   // ⚠️ LE JOUR DE LA PERSONNE, PAS CELUI DU SERVEUR. C'est le
                   // `at` de ce qui sera retenu (« je l'ai retenu de mardi »),

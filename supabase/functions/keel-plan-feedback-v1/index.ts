@@ -12,6 +12,18 @@ import {
   retainedItemsFromPlanFeedback,
 } from "../_shared/keel/plan_feedback_retained.ts";
 import { persistRetainedItemsFor } from "../_shared/keel/retained_items_io.ts";
+// ── LOT B · LE CHAMP LIBRE VA AU CLASSIFIEUR DU LOT A ────────────────────
+// ⛔ PAS UN SECOND CLASSIFIEUR. Le texte passe par la MÊME garde d'entrée
+// (`readDraftNote`: cible chiffrée, interdit de doctrine, plancher TCA) puis
+// par le MÊME prompt qu'une note de brouillon. Un second prompt divergerait du
+// premier au premier mot changé, et c'est celui qu'on regarde le moins qui
+// finirait par décider.
+import { classifyAndPersistDraftNote } from "../_shared/keel/draft_note_classify_io.ts";
+import type { DraftNoteMember } from "../_shared/keel/draft_note_classify.ts";
+import { hasDraftNote, readDraftNote } from "../_shared/keel/plan_draft_note.ts";
+import { loadPublishedDoctrine } from "../_shared/keel/doctrine_loader.ts";
+import { evaluateRestrictionForStudent } from "../_shared/keel/restriction_runtime.ts";
+import type { ForbiddenTerm } from "../_shared/keel/forbidden_matcher.ts";
 import { persistFieldChangesFor } from "../_shared/keel/field_change_io.ts";
 import {
   fieldChangesFrom,
@@ -101,6 +113,68 @@ function dishTitlesOf(dishes: unknown): string[] {
   return out;
 }
 
+/**
+ * LES ALIMENTS QUE CE PLAN PORTE — lot B, la liste fermée des deux questions
+ * de plat depuis qu'elles proposent des aliments.
+ *
+ * ⚠️ LES PRÉPARATIONS SONT PLIÉES DANS LES PLATS, comme partout ailleurs dans
+ * ce produit. En cuisine par lots, les ingrédients ne sont PAS dans le plat: le
+ * plat dit « une portion du poulet rôti de mercredi », et le kilo de cuisses
+ * vit dans la préparation. Ne lire que les plats manquerait très exactement la
+ * protéine — cicatrice `preparations-must-be-folded-into-dishes`.
+ *
+ * ⛔ AUCUNE NORMALISATION, AUCUN RAPPROCHEMENT: le terme part tel qu'il est
+ * écrit, et l'appartenance se vérifie par égalité exacte en aval. « laitue »
+ * ≠ « lait », 12 faux positifs sur 12 mesurés le jour où quelqu'un a cru le
+ * contraire.
+ */
+function foodTermsOf(dishes: unknown, preparations: unknown): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  const eat = (list: unknown) => {
+    for (const entry of (Array.isArray(list) ? list : [])) {
+      const ingredients = ((entry ?? {}) as Record<string, unknown>).ingredients;
+      for (const raw of (Array.isArray(ingredients) ? ingredients : [])) {
+        const term = String(((raw ?? {}) as Record<string, unknown>).term ?? "").trim();
+        if (!term || seen.has(term)) continue;
+        seen.add(term);
+        out.push(term);
+      }
+    }
+  };
+  eat(dishes);
+  eat(preparations);
+  return out;
+}
+
+/**
+ * LES RÉPONSES D'ALIMENT, telles que l'écran les envoie: `{food, subject}`.
+ *
+ * ⛔ UN SUJET ILLISIBLE N'EST PAS NETTOYÉ ICI. Il part tel quel au module pur,
+ * qui le REFUSE et le compte (`badSubject`). Le nettoyer en silence ferait
+ * ranger sur toute la table ce qui visait une bouche — le repli que l'axe 3 de
+ * la nomenclature interdit — et personne ne le verrait jamais.
+ */
+function asFoodAnswers(
+  value: unknown,
+): { food: string; subject: string | null }[] {
+  if (!Array.isArray(value)) return [];
+  const out: { food: string; subject: string | null }[] = [];
+  for (const entry of value) {
+    if (typeof entry === "string") {
+      const food = entry.trim();
+      if (food) out.push({ food, subject: null });
+      continue;
+    }
+    const row = (entry ?? {}) as Record<string, unknown>;
+    const food = String(row.food ?? "").trim();
+    if (!food) continue;
+    const subject = String(row.subject ?? "").trim();
+    out.push({ food, subject: subject || null });
+  }
+  return out;
+}
+
 function asTitles(value: unknown): string[] {
   if (!Array.isArray(value)) return [];
   return value.map((v) => String(v ?? "").trim()).filter((v) => v !== "");
@@ -109,6 +183,101 @@ function asTitles(value: unknown): string[] {
 function nullableText(value: unknown): string | null {
   const raw = String(value ?? "").trim();
   return raw === "" ? null : raw;
+}
+
+/**
+ * LES BOUCHES DU FOYER, pour que « ma fille » se résolve — lot B.
+ *
+ * ⛔ LES DEUX RPC DU SERVEUR, JAMAIS LA TABLE. Première version de cette
+ * fonction: un `select` direct sur `household_members` avec `age_state` et
+ * `gender`. **AUCUNE DES DEUX COLONNES N'EXISTE** — l'état d'âge est DÉRIVÉ
+ * (`keel_household_roster_for`, qui ne rend jamais la date de naissance) et le
+ * sexe vit sur la fiche de corps (`keel_household_bodies_for`). Mesuré au banc
+ * du lot B, cas L: `roster_unreadable`, `members: []`, et la note « Léa doit
+ * bien manger le mardi » rangée sur TOUTE LA TABLE au lieu de Léa.
+ *
+ * ⚠️ C'est aussi ce que fait la lane foyer, et c'est la seule façon de ne pas
+ * réinventer la dérivation de l'âge: `keel_household_is_minor` a sa règle, et
+ * une seconde lecture de `birth_date` ici divergerait au premier fuseau.
+ *
+ * ⚠️ `[]` EST UNE RÉPONSE, et c'est la vérité d'un solo: il n'a AUCUNE ligne
+ * `household_members` (« le solo ne crée pas de foyer »). Le classifieur dit
+ * alors au modèle « il n'y a personne d'autre à cette table », ce qui ferme la
+ * porte à un `member_id` inventé.
+ *
+ * ⚠️ `ageState` ET PAS `ageBand`: `ageBandOf` rend `null` sous 18 ans — donc
+ * précisément `null` pour les bouches qu'il s'agit d'identifier. C'est le piège
+ * mesuré du lot A, et il coûte tout.
+ *
+ * ⛔ UNE LECTURE EN PANNE REND `[]`, ET C'EST LE BON CÔTÉ POUR SE TROMPER: le
+ * modèle s'abstient d'attribuer au lieu d'attribuer au hasard. Le sexe, lui,
+ * peut manquer SANS que le roster manque (personne n'a rempli la fiche de
+ * corps): `sex: null` dit « on ne sait pas », et le prompt du lot A fait alors
+ * s'abstenir le modèle sur un mot de parenté ambigu.
+ */
+async function feedbackMembersOf(
+  admin: SupabaseClient,
+  userId: string,
+): Promise<DraftNoteMember[]> {
+  try {
+    const roster = await admin.rpc("keel_household_roster_for", { p_user: userId });
+    if (roster.error) throw new Error(roster.error.message);
+    const rows = (roster.data ?? []) as Record<string, unknown>[];
+    if (rows.length === 0) return [];
+
+    // Le sexe vient de la fiche de corps, et son absence n'est pas une panne.
+    //
+    // ⚠️ ELLE PREND LE FOYER, PAS LA PERSONNE — et les deux RPC ne prennent
+    // donc PAS le même argument. Mesuré au banc: `p_user` rendait
+    // « Could not find the function … in the schema cache », un refus de
+    // PostgREST qui ressemble à une panne de base alors que c'est un nom de
+    // paramètre. Le foyer se résout par `keel_household_of`, comme partout.
+    const sexOf = new Map<string, string>();
+    try {
+      const hh = await admin.rpc("keel_household_of", { p_user: userId });
+      if (hh.error) throw new Error(hh.error.message);
+      const householdId = String(hh.data ?? "").trim();
+      if (!householdId) throw new Error("aucun foyer");
+      const bodies = await admin.rpc("keel_household_bodies_for", {
+        p_household: householdId,
+      });
+      if (bodies.error) throw new Error(bodies.error.message);
+      for (const row of (bodies.data ?? []) as Record<string, unknown>[]) {
+        const id = String(row.member_id ?? "").trim();
+        const sex = String(row.gender ?? "").trim();
+        if (id && sex) sexOf.set(id, sex);
+      }
+    } catch (error) {
+      console.warn(JSON.stringify({
+        tag: "keel/plan_feedback_free_text",
+        event: "bodies_unreadable",
+        user_id: userId,
+        error: error instanceof Error ? error.message : String(error),
+        effect: "sexe inconnu, le modèle s'abstient sur un mot de parenté",
+      }));
+    }
+
+    return rows.map((row): DraftNoteMember => {
+      const memberId = String(row.member_id ?? "");
+      const age = String(row.age_state ?? "").trim();
+      const sex = sexOf.get(memberId) ?? "";
+      return {
+        memberId,
+        label: String(row.first_name ?? ""),
+        ageState: age === "adult" ? "adult" : age === "minor" ? "minor" : null,
+        sex: sex === "male" || sex === "female" || sex === "other" ? sex : null,
+      };
+    }).filter((m) => m.memberId);
+  } catch (error) {
+    console.warn(JSON.stringify({
+      tag: "keel/plan_feedback_free_text",
+      event: "roster_unreadable",
+      user_id: userId,
+      error: error instanceof Error ? error.message : String(error),
+      effect: "le modèle s'abstient d'attribuer",
+    }));
+    return [];
+  }
 }
 
 /** Le jour du serveur, en UTC — le REPLI, et il est journalisé. */
@@ -152,6 +321,28 @@ Deno.serve(async (req) => {
       makeAgain: asTitles((body as Record<string, unknown>).make_again),
       axisQuestion: nullableText((body as Record<string, unknown>).axis_question),
       axisAnswer: nullableText((body as Record<string, unknown>).axis_answer),
+      // ── LOT B · LES QUATRE RÉPONSES NEUVES ──────────────────────────────
+      difficulty: nullableText((body as Record<string, unknown>).difficulty),
+      speed: nullableText((body as Record<string, unknown>).speed),
+      variety: nullableText((body as Record<string, unknown>).variety),
+      neverAgainFoods: asFoodAnswers(
+        (body as Record<string, unknown>).never_again_foods,
+      ),
+      makeAgainFoods: asFoodAnswers(
+        (body as Record<string, unknown>).make_again_foods,
+      ),
+      anythingElse: nullableText((body as Record<string, unknown>).anything_else),
+      /**
+       * ⚠️ `undefined` ET `[]` NE SONT PAS LA MÊME CHOSE, ET LA RPC LES
+       * DISTINGUE. `[]` dit « la question a été posée, aucun aliment coché »;
+       * l'absence dit « pas posée ». On ne passe donc la clé à la RPC que si
+       * le corps la portait — sinon un client qui n'envoie rien marquerait la
+       * question comme répondue.
+       */
+      neverAgainFoodsAsked:
+        (body as Record<string, unknown>).never_again_foods !== undefined,
+      makeAgainFoodsAsked:
+        (body as Record<string, unknown>).make_again_foods !== undefined,
     };
 
     // ── ÉTAGE 1 · LA RÉPONSE — LA MÊME PORTE QU'AVANT CE LOT ───────────────
@@ -168,6 +359,17 @@ Deno.serve(async (req) => {
       p_axis_question: answers.axisQuestion,
       p_axis_answer: answers.axisAnswer,
       p_portions_subject: answers.portionsSubject,
+      // ── LOT B ────────────────────────────────────────────────────────────
+      p_difficulty: answers.difficulty,
+      p_speed: answers.speed,
+      p_variety: answers.variety,
+      p_never_again_foods: answers.neverAgainFoodsAsked
+        ? answers.neverAgainFoods
+        : null,
+      p_make_again_foods: answers.makeAgainFoodsAsked
+        ? answers.makeAgainFoods
+        : null,
+      p_anything_else: answers.anythingElse,
     });
     if (submitted.error) {
       // ⚠️ 200 ET PAS 500. `supabase.functions.invoke` NE REND PAS le corps
@@ -214,7 +416,9 @@ Deno.serve(async (req) => {
       // pas de RLS pour se rattraper.
       const plan = await admin
         .from("student_generated_meals")
-        .select("dishes, content_locale")
+        // ⚠️ `preparations` (lot B: les aliments du plan y vivent aussi) et
+        // `starts_on` (la semaine visée du classifieur du champ libre).
+        .select("dishes, preparations, content_locale, starts_on")
         .eq("id", mealId)
         .eq("user_id", userId)
         .maybeSingle();
@@ -247,13 +451,28 @@ Deno.serve(async (req) => {
       }
 
       retained = retainedItemsFromPlanFeedback({
-        ...answers,
+        cooked: answers.cooked,
+        portions: answers.portions,
+        portionsSubject: answers.portionsSubject,
+        // ⚠️ LES DEUX FORMES PARTENT ENSEMBLE, ET LE MODULE PUR LES DISTINGUE.
+        // Les aliments (lot B) et les titres (l'écran d'avant, et les lignes
+        // déjà en base) ne se mélangent pas: chacun a sa liste d'appartenance.
+        // Concaténer ici ferait chercher un titre parmi les aliments.
+        neverAgain: [...answers.neverAgainFoods, ...answers.neverAgain],
+        makeAgain: [...answers.makeAgainFoods, ...answers.makeAgain],
+        difficulty: answers.difficulty,
+        speed: answers.speed,
+        variety: answers.variety,
+        axisQuestion: answers.axisQuestion,
+        axisAnswer: answers.axisAnswer,
         // Une soumission n'est pas un refus: `dismissed_at` a sa propre porte.
         dismissedAt: null,
       }, {
         at: claimed ?? serverDay(),
         locale: String(planRow.content_locale ?? ""),
         planDishTitles: dishTitlesOf(planRow.dishes),
+        // LOT B — les aliments du plan, préparations pliées.
+        planFoodTerms: foodTermsOf(planRow.dishes, planRow.preparations),
         cookingTimeMin: Number.isFinite(Number(pc?.cooking_time_min))
           ? Number(pc?.cooking_time_min)
           : null,
@@ -324,6 +543,105 @@ Deno.serve(async (req) => {
           durableWritten: outcome.durableWritten,
           refused: { ...outcome.refused },
         };
+      }
+
+      // ══════════════════════════════════════════════════════════════════
+      // LOT B · LE CHAMP LIBRE VA AU CLASSIFIEUR DU LOT A
+      // ══════════════════════════════════════════════════════════════════
+      //
+      // ⛔ LE MÊME CLASSIFIEUR, JAMAIS UN SECOND. Le texte passe par
+      // `readDraftNote` — la garde d'entrée qui porte la cible chiffrée,
+      // l'interdit de doctrine et le plancher TCA — puis par le prompt du lot
+      // A, qui range vers les trois mêmes portes. Écrire un second prompt ici
+      // en ferait deux qui divergeraient au premier mot changé.
+      //
+      // ⚠️ APRÈS LES DEUX ÉCRITURES CI-DESSUS, ET DANS LEUR TRY: le
+      // questionnaire est déjà en base (étage 1), donc personne ne perd sa
+      // réponse si le modèle tombe. Le classifieur, lui, ne lève jamais.
+      //
+      // ⚠️ LA GARDE EXIGE DEUX FAITS QUE CETTE FONCTION N'AVAIT PAS: les
+      // interdits du coach et le plancher. Les deux sont chargés ICI, une
+      // fois, et SEULEMENT s'il y a un texte à classer — un compte qui laisse
+      // le champ vide (le cas le plus fréquent) ne paie aucune lecture de plus.
+      if (hasDraftNote(answers.anythingElse)) {
+        try {
+          // Le plancher: une lecture EN PANNE vaut plancher LEVÉ (fail-closed).
+          // Se fermer coûte une note non classée; s'ouvrir ferait entrer dans un
+          // prompt le texte de quelqu'un qu'on n'a pas su évaluer.
+          let restrictionFlag = true;
+          try {
+            const floor = await evaluateRestrictionForStudent(admin as never, {
+              userId,
+              asOfLocalDate: claimed ?? serverDay(),
+            });
+            restrictionFlag = floor.restriction_flag === true;
+          } catch (error) {
+            console.warn(JSON.stringify({
+              tag: "keel/plan_feedback_free_text",
+              event: "floor_unreadable",
+              user_id: userId,
+              error: error instanceof Error ? error.message : String(error),
+              effect: "plancher LEVÉ, la note n'est pas classée",
+            }));
+          }
+
+          const doctrine = await loadPublishedDoctrine(admin, userId);
+          const doctrineForbidden: ForbiddenTerm[] =
+            (doctrine.doctrine?.forbidden ?? [])
+              .map((f) => ({
+                ruleId: String(f.token ?? "").trim(),
+                token: String(f.token ?? "").trim(),
+                surfaceForms: f.surfaceForms,
+              }))
+              .filter((t) => t.token.length > 0);
+
+          const note = readDraftNote({
+            raw: answers.anythingElse,
+            doctrineForbidden,
+            restrictionFlag,
+          });
+          console.log(JSON.stringify({
+            tag: "keel/plan_feedback_free_text",
+            event: "read",
+            user_id: userId,
+            meal_id: mealId,
+            // ⚠️ LES MOTIFS SE COMPTENT, ILS NE SE DISENT JAMAIS: une phrase de
+            // refus par motif dirait qui est sous plancher TCA.
+            refusal: note.refusal,
+            dropped: note.dropped.length,
+            usable: note.usable !== null,
+          }));
+          if (note.usable !== null) {
+            await classifyAndPersistDraftNote({
+              admin,
+              userId,
+              note,
+              today: claimed ?? serverDay(),
+              // ⚠️ LA SEMAINE VISÉE EST CELLE DU PLAN QU'ON VIENT DE CLORE.
+              // C'est la seule que cette fonction connaisse, et depuis le lot A
+              // l'ancre ne sert plus qu'à l'AFFICHAGE (« pour la semaine
+              // du … »): la vie d'une ligne d'encart se joue sur
+              // `validated_at`, pas sur elle.
+              targetWeek: String(planRow.starts_on ?? claimed ?? serverDay()),
+              // ⚠️ LES BOUCHES DU FOYER, pour que « ma fille » se résolve. `[]`
+              // dit « personne d'autre à table » — la vérité d'un solo — et
+              // `undefined` dirait « je n'ai pas su lire »: le type l'interdit.
+              members: await feedbackMembersOf(admin, userId),
+              contentLocale: String(planRow.content_locale ?? ""),
+              requestId,
+            });
+          }
+        } catch (error) {
+          // ⛔ JAMAIS VERS L'APPELANT. Le questionnaire est écrit; personne ne
+          // perd son bilan parce qu'une classification a échoué.
+          console.warn(JSON.stringify({
+            tag: "keel/plan_feedback_free_text",
+            event: "classify_failed",
+            user_id: userId,
+            meal_id: mealId,
+            error: error instanceof Error ? error.message : String(error),
+          }));
+        }
       }
 
       // UNE LIGNE, ET ELLE PORTE LES DEUX NOMBRES QUI SE LISENT ENSEMBLE: ce

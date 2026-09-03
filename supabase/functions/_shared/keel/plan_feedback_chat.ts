@@ -52,6 +52,7 @@
  */
 
 import {
+  cookingQuestionsAreAsked,
   type FeedbackQuestion,
   OPTION_LABELS,
   PORTION_SUBJECT_LABEL,
@@ -131,6 +132,22 @@ export function feedbackSubjectId(mealId: string, subject: string): string {
   return `${FEEDBACK_BUTTON_PREFIX}${mealId}${SEP}portions_subject${SEP}${subject}`;
 }
 
+/**
+ * « POUR QUI ? » SUR UN ALIMENT — lot B.
+ *
+ * ⛔ UN IDENTIFIANT PAR QUESTION, et pas un seul partagé: « plus de saumon pour
+ * Tom » et « du brocoli pour Léa » sont deux assiettes, et un sujet unique
+ * rangerait les deux sur la même bouche. Le jeton porte donc la question à
+ * laquelle il répond, comme `feedbackDishId`.
+ */
+export function feedbackFoodSubjectId(
+  mealId: string,
+  question: DishQuestion,
+  subject: string,
+): string {
+  return `${FEEDBACK_BUTTON_PREFIX}${mealId}${SEP}${question}_subject${SEP}${subject}`;
+}
+
 export function feedbackDismissId(mealId: string): string {
   return `${FEEDBACK_BUTTON_PREFIX}${mealId}${SEP}dismiss`;
 }
@@ -145,10 +162,31 @@ export type FeedbackReply =
     dishIndex: number | null;
   }
   | { kind: "subject"; mealId: string; subject: string }
+  /** LOT B — « pour qui ? » sur l'aliment qui vient d'être nommé. */
+  | {
+    kind: "food_subject";
+    mealId: string;
+    question: DishQuestion;
+    subject: string;
+  }
   | { kind: "dismiss"; mealId: string }
   | { kind: "none" };
 
 const NONE: FeedbackReply = { kind: "none" };
+
+/**
+ * Un sujet BIEN FORMÉ — `household` ou `member:<uuid>`.
+ *
+ * La forme est aussi vérifiée par le CHECK en base
+ * (`meal_plan_feedback_portions_subject_shape`); ici on refuse seulement ce qui
+ * ne peut pas être un sujet, pour ne pas faire un aller-retour de base sur une
+ * charge forgée. ⛔ Jamais un prénom.
+ */
+function isSubjectToken(value: string): boolean {
+  return value === "household" ||
+    /^member:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
+      .test(value);
+}
 
 /**
  * Interprète un `button_payload`. Rend `{kind:"none"}` sur tout ce qui n'est
@@ -170,18 +208,29 @@ export function readFeedbackReply(payload: unknown): FeedbackReply {
   const value = String(parts[2] ?? "").trim();
   if (!question || !value) return NONE;
 
+  // ── LOT B · « POUR QUI ? » SUR UN ALIMENT ────────────────────────────
+  // ⚠️ TESTÉ AVANT `portions_subject` ET AVANT LES QUESTIONS, parce que le
+  // jeton est composé (`never_again_subject`): sans ce test, il tomberait dans
+  // la dernière branche, ne trouverait aucune option, et se lirait `none` —
+  // c'est-à-dire un tap perdu en silence.
+  if (question.endsWith("_subject") && question !== "portions_subject") {
+    const dish = question.slice(0, -"_subject".length);
+    if (!isDishQuestion(dish as FeedbackQuestion)) return NONE;
+    if (!isSubjectToken(value)) return NONE;
+    return {
+      kind: "food_subject",
+      mealId,
+      question: dish as DishQuestion,
+      subject: value,
+    };
+  }
+
   if (question === "portions_subject") {
     // La forme est vérifiée par le CHECK en base
     // (`meal_plan_feedback_portions_subject_shape`); ici on refuse seulement ce
     // qui ne peut pas être un sujet, pour ne pas faire un aller-retour de base
     // sur une charge forgée.
-    if (
-      value !== "household" &&
-      !/^member:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
-        .test(value)
-    ) {
-      return NONE;
-    }
+    if (!isSubjectToken(value)) return NONE;
     return { kind: "subject", mealId, subject: value };
   }
 
@@ -212,6 +261,42 @@ export function readFeedbackReply(payload: unknown): FeedbackReply {
 // ---------------------------------------------------------------------------
 // LES TITRES DE PLATS — UNE seule dérivation, partagée par les deux côtés
 // ---------------------------------------------------------------------------
+
+/**
+ * LES ALIMENTS DISTINCTS D'UN PLAN, dans l'ordre — lot B.
+ *
+ * ⚠️ LES PRÉPARATIONS SONT PLIÉES DANS LES PLATS. En cuisine par lots, les
+ * ingrédients ne sont PAS dans le plat: le plat dit « une portion du poulet
+ * rôti de mercredi », et le kilo de cuisses vit dans la préparation. Ne lire
+ * que les plats proposerait des garnitures et tairait la protéine — cicatrice
+ * `preparations-must-be-folded-into-dishes`.
+ *
+ * ⚠️ LE DÉDOUBLONNAGE N'EST PAS COSMÉTIQUE, et c'est la même raison que pour
+ * les titres: le moteur étend un plat en lot sur chacun de ses jours, et sans
+ * lui la personne aurait quatre boutons « poulet » pour une seule intention.
+ *
+ * ⛔ C'EST LA SEULE DÉRIVATION, et les deux côtés la lisent — sinon les INDEX
+ * cesseraient de désigner le même aliment de part et d'autre du tap.
+ */
+export function foodTermsOf(dishes: unknown, preparations: unknown): string[] {
+  const seen = new Set<string>();
+  const terms: string[] = [];
+  for (const list of [dishes, preparations]) {
+    if (!Array.isArray(list)) continue;
+    for (const entry of list) {
+      const ingredients = ((entry ?? {}) as Record<string, unknown>).ingredients;
+      if (!Array.isArray(ingredients)) continue;
+      for (const raw of ingredients) {
+        const term = String(((raw ?? {}) as Record<string, unknown>).term ?? "")
+          .trim();
+        if (!term || seen.has(term)) continue;
+        seen.add(term);
+        terms.push(term);
+      }
+    }
+  }
+  return terms;
+}
 
 /**
  * Les titres DISTINCTS d'un plan, dans l'ordre.
@@ -259,6 +344,23 @@ export interface FeedbackRowState {
   /** Le contenu, pour l'appelant. L'ÉTAT, lui, se lit dans `answered`. */
   neverAgain: readonly string[];
   makeAgain: readonly string[];
+  /**
+   * ── LOT B · LES ALIMENTS DÉJÀ NOMMÉS, avec leur sujet s'il a été demandé.
+   *
+   * ⚠️ LA RELANCE « POUR QUI ? » LES LIT: elle ne peut porter que sur
+   * l'aliment qu'on vient d'écrire, et le chat n'en nomme qu'un par question.
+   * Un `subject: null` sur une ligne présente veut dire « nommé, sujet pas
+   * encore demandé » — c'est exactement l'état où la relance est due.
+   */
+  neverAgainFoods: readonly { food: string; subject: string | null }[];
+  makeAgainFoods: readonly { food: string; subject: string | null }[];
+  /** ── LOT B · les trois réponses neuves. `null` = pas encore répondue. */
+  difficulty: string | null;
+  speed: string | null;
+  variety: string | null;
+  /** ── LOT B · le champ libre. `null` = pas encore répondu. */
+  anythingElse: string | null;
+  /** ⚠️ HÉRITÉS, lus et jamais écrits — la quatrième question d'avant. */
   axisQuestion: string | null;
   axisAnswer: string | null;
   /**
@@ -275,6 +377,12 @@ export const EMPTY_FEEDBACK_ROW: FeedbackRowState = {
   portionsSubject: null,
   neverAgain: [],
   makeAgain: [],
+  neverAgainFoods: [],
+  makeAgainFoods: [],
+  difficulty: null,
+  speed: null,
+  variety: null,
+  anythingElse: null,
   axisQuestion: null,
   axisAnswer: null,
   answered: [],
@@ -284,6 +392,8 @@ export const EMPTY_FEEDBACK_ROW: FeedbackRowState = {
 export type NextStep =
   | { step: "question"; question: FeedbackQuestion }
   | { step: "portions_subject" }
+  /** LOT B — « pour qui ? » sur l'aliment qui vient d'être nommé. */
+  | { step: "food_subject"; question: DishQuestion }
   | { step: "done" };
 
 /**
@@ -304,6 +414,12 @@ export function nextFeedbackStep(args: {
   row: FeedbackRowState;
   questions: readonly FeedbackQuestion[];
   subjectDue: boolean;
+  /**
+   * LOT B — y a-t-il plus d'une bouche à table ? Passé plutôt que recalculé,
+   * pour la même raison que `subjectDue`: c'est une LECTURE, et ce module est
+   * pur.
+   */
+  foodSubjectDue: boolean;
 }): NextStep {
   const { row } = args;
   if (row.dismissedAt) return { step: "done" };
@@ -336,12 +452,68 @@ export function nextFeedbackStep(args: {
       }
       continue;
     }
-    if (question === "never_again" || question === "make_again") {
+    // ── LOT B · LES DEUX QUESTIONS DE CUISINE, GATÉES PAR `cooked` ───────
+    // ⛔ LA RÈGLE VIENT DU MODULE, pas d'un second test ici: demander
+    // « c'était trop long ? » à quelqu'un qui n'a pas cuisiné déplacerait un
+    // réglage réel sur une supposition, et la base le REFUSE
+    // (`cooking_answer_without_cooking`). Une bulle qui mène à un refus est
+    // pire qu'une bulle qu'on ne pose pas.
+    //
+    // ⚠️ ET LA GARDE SE LIT SUR LA COLONNE, PAS SUR `answered`: `cooked` peut
+    // être répondu sans que la colonne soit relue, mais c'est SA VALEUR qui
+    // décide. Un `answered` qui porte « cooked » sans valeur ne dit pas si on
+    // a cuisiné.
+    if (question === "difficulty" || question === "speed") {
+      if (!cookingQuestionsAreAsked(row.cooked)) continue;
+      const value = question === "difficulty" ? row.difficulty : row.speed;
+      if (!answered.has(question) && value === null) {
+        return { step: "question", question };
+      }
+      continue;
+    }
+    if (question === "enough_variety") {
+      // ⚠️ LE REPLI SUR L'HÉRITÉ: une ligne d'avant le lot B porte cette
+      // réponse dans `axis_answer`. Lui reposer la question serait la lui
+      // poser deux fois pour une seule intention.
+      if (
+        !answered.has(question) && row.variety === null && row.axisAnswer === null
+      ) {
+        return { step: "question", question };
+      }
+      continue;
+    }
+    if (question === "anything_else") {
+      // ⛔ LE CHAMP LIBRE EST FACULTATIF, ET C'EST SA GARDE. Il n'a pas de
+      // bouton: on le pose UNE fois, et son absence de réponse ferme le
+      // questionnaire. Le reposer ferait d'une question facultative une
+      // question obligatoire — c'est-à-dire l'interrogatoire que §3.2 refuse.
       if (!answered.has(question)) return { step: "question", question };
       continue;
     }
-    // La question d'axe: UNE seule par personne, identifiée par son jeton —
-    // c'est ce jeton-là qui entre dans `answered`, pas le mot « axis ».
+    if (question === "never_again" || question === "make_again") {
+      if (!answered.has(question)) return { step: "question", question };
+      // ── LOT B · LA RELANCE, IMMÉDIATEMENT APRÈS ────────────────────────
+      // Même place et même raison que « pour qui ? » sur les portions: une
+      // relance posée trois questions plus loin ne se rattacherait plus à rien
+      // dans la tête de la personne.
+      //
+      // ⛔ TROIS CONDITIONS, ET AUCUNE N'EST OPTIONNELLE: un aliment a été
+      // nommé (« aucun » n'a personne à désigner), son sujet n'a pas encore
+      // été demandé (`subject === null`), et il y a plus d'une bouche (un solo
+      // EST toute sa table — lui poser la question serait un choix à une seule
+      // issue).
+      const named = question === "never_again"
+        ? row.neverAgainFoods
+        : row.makeAgainFoods;
+      const first = named[0];
+      if (args.foodSubjectDue && first && first.subject === null) {
+        return { step: "food_subject", question };
+      }
+      continue;
+    }
+    // ⚠️ BRANCHE HÉRITÉE: une question d'axe d'avant le lot B, si une ligne en
+    // porte une. Elle ne se pose plus (le vocabulaire ne la contient plus),
+    // mais un `questions` construit ailleurs ne doit pas tomber en silence.
     if (!answered.has(question) && row.axisAnswer === null) {
       return { step: "question", question };
     }
@@ -379,8 +551,8 @@ export function renderFeedbackQuestion(args: {
   mealId: string;
   question: FeedbackQuestion;
   language: FeedbackLanguage;
-  /** Les titres distincts du plan — requis, même vide, pour les deux questions de plat. */
-  dishTitles: readonly string[];
+  /** Les ALIMENTS distincts du plan — requis, même vide, pour les deux questions de plat. */
+  foodTerms: readonly string[];
   /** Le « pas maintenant » n'est offert QUE sur la première question (§3.2). */
   offerDismiss: boolean;
 }): FeedbackPrompt | null {
@@ -391,15 +563,15 @@ export function renderFeedbackQuestion(args: {
   const buttons: FeedbackButton[] = [];
 
   if (isDishQuestion(args.question)) {
-    const titles = args.dishTitles.slice(0, MAX_DISH_BUTTONS);
-    // Un plan sans titre citable ne peut pas poser cette question: trois
+    const foods = args.foodTerms.slice(0, MAX_DISH_BUTTONS);
+    // Un plan sans aliment citable ne peut pas poser cette question: trois
     // boutons « #1 #2 #3 » ne demandent rien. On la saute, et l'appelant passe
     // à la suivante — la ligne portera `[]`, c'est-à-dire « aucun ».
-    if (titles.length === 0) return null;
-    for (const [index, title] of titles.entries()) {
+    if (foods.length === 0) return null;
+    for (const [index, food] of foods.entries()) {
       buttons.push({
         id: feedbackDishId(args.mealId, args.question, index),
-        title,
+        title: food,
       });
     }
     buttons.push({
@@ -458,6 +630,52 @@ export function renderPortionSubjectQuestion(args: {
   // nommable, la question est décorative et le défaut `household` la vaut.
   if (buttons.length < 2) return null;
   return { body: PORTION_SUBJECT_LABEL[args.language], buttons };
+}
+
+/**
+ * « POUR QUI ? » SUR L'ALIMENT QUI VIENT D'ÊTRE NOMMÉ — lot B.
+ *
+ * ⛔ CE N'EST PAS UNE QUESTION DE PLUS: c'est la seconde moitié de la question
+ * d'aliment, exactement comme « pour qui ? » l'est de `portions`. Et elle ne se
+ * pose QUE si un aliment a été nommé (« aucun » n'a personne à désigner) et
+ * QUE s'il y a plus d'une bouche — un solo EST toute sa table.
+ *
+ * ⚠️ C'EST ELLE QUI REND LA PRÉFÉRENCE ATTRIBUABLE, donc la ceinture par
+ * bouche capable de mordre chez la bonne personne. Sans sujet, « plus de
+ * saumon » retire le saumon à toute la table.
+ */
+export function renderFoodSubjectQuestion(args: {
+  mealId: string;
+  question: DishQuestion;
+  language: FeedbackLanguage;
+  food: string;
+  // ⚠️ `firstName`, LA MÊME FORME QUE `renderPortionSubjectQuestion`. Deux
+  // formes de bouche dans le même fichier finiraient par diverger.
+  members: readonly { memberId: string; firstName: string }[];
+}): FeedbackPrompt | null {
+  const food = String(args.food ?? "").trim();
+  if (!food || args.members.length === 0) return null;
+  const buttons: FeedbackButton[] = [{
+    // LE DÉFAUT DE L'AXE 3 EN PREMIER: « tout le monde à table ». C'est une
+    // réponse, pas une absence de réponse.
+    id: feedbackFoodSubjectId(args.mealId, args.question, "household"),
+    title: OPTION_LABELS.everyone[args.language],
+  }];
+  for (const member of args.members) {
+    // ⛔ LA CLÉ EST L'IDENTIFIANT, LE PRÉNOM EST L'AFFICHAGE.
+    buttons.push({
+      id: feedbackFoodSubjectId(
+        args.mealId,
+        args.question,
+        `member:${member.memberId}`,
+      ),
+      title: member.firstName,
+    });
+  }
+  // ⚠️ L'ALIMENT EST RAPPELÉ DANS LA QUESTION, et ce n'est pas cosmétique: la
+  // bulle précédente en proposait huit, et « Pour qui ? » seul ne dit pas
+  // lequel des huit on vient de nommer.
+  return { body: `${PORTION_SUBJECT_LABEL[args.language]} (${food})`, buttons };
 }
 
 /**

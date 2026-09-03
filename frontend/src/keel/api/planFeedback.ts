@@ -43,6 +43,7 @@ import { selectMealPlans } from "./mealWindow";
  * c'est celle qu'on regarde le moins qui garderait l'ancienne liste.
  */
 export {
+  cookingQuestionsAreAsked,
   type FeedbackQuestion,
   feedbackIsDue,
   newEnvyIsAsked,
@@ -69,20 +70,32 @@ export interface PlanFeedbackAnswers {
    * ⛔ JAMAIS UN PRÉNOM: « Poulet pour Zoé » ne se résout pas par un prénom.
    */
   portionsSubject: string | null;
-  /** Des TITRES de plats, tels qu'ils sont dans le plan. `[]` = aucun. */
-  neverAgain: string[];
-  /** L'inverse. `[]` = aucun, et c'est une réponse. */
-  makeAgain: string[];
   /**
-   * Le jeton de la 4e question ET sa réponse, ensemble.
-   *
-   * ⚠️ LES DEUX, JAMAIS LA SEULE RÉPONSE: `no` veut dire « pas eu faim » pour
-   * `hunger_between_meals` et « pas fini » pour `could_finish`. Le lecteur ne
-   * peut pas désambiguïser sans la question, et c'est écrit noir sur blanc dans
-   * le commentaire de la colonne `axis_question`.
+   * ── LOT B · LES DEUX ÉCHELLES DE CUISINE ───────────────────────────────
+   * `null` = la question n'a pas été posée. Elle ne l'est QUE si `cooked` vaut
+   * `yes` ou `partly`: demander « c'était trop long ? » à quelqu'un qui n'a pas
+   * cuisiné ferait déplacer un réglage réel sur une supposition, et la base le
+   * refuse (`cooking_answer_without_cooking`).
    */
-  axisQuestion: string | null;
-  axisAnswer: string | null;
+  difficulty: string | null;
+  speed: string | null;
+  /**
+   * ── LOT B · LA VARIÉTÉ, POSÉE À TOUT LE MONDE ──────────────────────────
+   * C'était la quatrième question, réservée à `maintenance`, pendant que les
+   * deux autres dynamiques recevaient une question sans aucun lecteur. Son
+   * champ (`variety`) est lu par les deux lanes pour tout le monde.
+   */
+  variety: string | null;
+  /**
+   * ── LOT B · DES ALIMENTS AVEC LEUR PERSONNE ────────────────────────────
+   * `[]` = aucun, et c'est une réponse. `subject` vaut `null` quand la question
+   * du sujet ne se pose pas (une seule bouche à table).
+   * ⛔ JAMAIS UN PRÉNOM: « Poulet pour Zoé » ne se résout pas par un prénom.
+   */
+  neverAgainFoods: { food: string; subject: string | null }[];
+  makeAgainFoods: { food: string; subject: string | null }[];
+  /** ── LOT B · LE CHAMP LIBRE, facultatif. `null` quand il est vide. */
+  anythingElse: string | null;
 }
 
 export interface PlanFeedbackResult {
@@ -149,10 +162,17 @@ export async function submitPlanFeedback(
       cooked: answers.cooked,
       portions: answers.portions,
       portions_subject: answers.portionsSubject,
-      never_again: answers.neverAgain,
-      make_again: answers.makeAgain,
-      axis_question: answers.axisQuestion,
-      axis_answer: answers.axisAnswer,
+      // ⛔ LES DEUX COLONNES HÉRITÉES NE SONT PLUS ÉCRITES PAR CET ÉCRAN, et
+      // elles ne sont pas non plus effacées: elles portent des TITRES de plats
+      // répondus pour de vrai, que le lecteur relit encore. Ne rien envoyer
+      // laisse la RPC écrire `[]` — « posée, aucun titre » — ce qui est la
+      // vérité: cette question-là n'est plus celle qu'on pose.
+      difficulty: answers.difficulty,
+      speed: answers.speed,
+      variety: answers.variety,
+      never_again_foods: answers.neverAgainFoods,
+      make_again_foods: answers.makeAgainFoods,
+      anything_else: answers.anythingElse,
       today,
     },
   });
@@ -220,8 +240,16 @@ export async function planFeedbackAnswered(mealId: string): Promise<boolean> {
  */
 export interface PlanAwaitingFeedback {
   mealId: string;
-  /** Les titres des plats, dédoublonnés, dans l'ordre du plan. */
-  dishTitles: string[];
+  /**
+   * LES ALIMENTS DU PLAN, dédoublonnés, dans l'ordre du plan — lot B.
+   *
+   * ⚠️ DES ALIMENTS ET PLUS DES TITRES. « Poulet rôti au citron » ne dit pas
+   * ce qu'on ne veut plus: ni le générateur ni la ceinture par bouche ne
+   * peuvent filtrer avec un titre. Les PRÉPARATIONS sont pliées dans les plats
+   * — en cuisine par lots, les ingrédients ne sont pas dans le plat, et ne lire
+   * que les plats manquerait très exactement la protéine.
+   */
+  foodTerms: string[];
 }
 
 export async function loadPlanAwaitingFeedback(
@@ -230,7 +258,9 @@ export async function loadPlanAwaitingFeedback(
 ): Promise<PlanAwaitingFeedback | null> {
   const { data, error } = await supabase
     .from("student_generated_meals")
-    .select("id, starts_on, duration_days, retired_at, created_at, dishes")
+    .select(
+      "id, starts_on, duration_days, retired_at, created_at, dishes, preparations",
+    )
     // ⚠️ `.eq("user_id")` EXPLICITE, ET RLS N'EN DISPENSE PAS. La policy
     // `student_generated_meals_household_read` rend TOUTE ligne portant le
     // foyer, y compris le plan personnel d'un autre secondaire. Ce dépôt a déjà
@@ -249,6 +279,7 @@ export async function loadPlanAwaitingFeedback(
       retiredAt: (row.retired_at ?? null) as string | null,
       createdAt: (row.created_at ?? null) as string | null,
       dishes: row.dishes,
+      preparations: row.preparations,
     };
   }).filter((r) => r.id && r.startsOn);
 
@@ -261,19 +292,33 @@ export async function loadPlanAwaitingFeedback(
   // ouverture de l'app — un « non merci » transformé en harcèlement.
   if (await planFeedbackAnswered(last.id)) return null;
 
-  // LES TITRES, DÉDOUBLONNÉS. Un plat en lot est étendu sur chacun des jours
+  // LES ALIMENTS, DÉDOUBLONNÉS. Un plat en lot est étendu sur chacun des jours
   // qu'il couvre par le moteur: sans le dédoublonnage, la liste porterait
-  // « Chicken and rice » quatre fois et la personne marquerait quatre lignes
-  // pour une seule intention.
+  // « poulet » quatre fois et la personne marquerait quatre lignes pour une
+  // seule intention.
+  //
+  // ⚠️ LES PRÉPARATIONS D'ABORD OU APRÈS, PEU IMPORTE — mais JAMAIS SANS.
+  // En cuisine par lots, le plat dit « une portion du poulet rôti de
+  // mercredi » et le kilo de cuisses vit dans la préparation: ne lire que les
+  // plats proposerait des garnitures et tairait la protéine.
+  //
+  // ⛔ AUCUNE NORMALISATION, AUCUN RAPPROCHEMENT: le terme part tel qu'il est
+  // écrit, et le serveur vérifie l'appartenance par égalité exacte à cette
+  // même liste. « laitue » ≠ « lait ».
   const seen = new Set<string>();
-  const dishTitles: string[] = [];
-  for (const entry of (Array.isArray(last.dishes) ? last.dishes : [])) {
-    const title = String(((entry ?? {}) as Record<string, unknown>).title ?? "")
-      .trim();
-    if (!title || seen.has(title)) continue;
-    seen.add(title);
-    dishTitles.push(title);
+  const foodTerms: string[] = [];
+  for (const list of [last.dishes, last.preparations]) {
+    for (const entry of (Array.isArray(list) ? list : [])) {
+      const ingredients = ((entry ?? {}) as Record<string, unknown>).ingredients;
+      for (const raw of (Array.isArray(ingredients) ? ingredients : [])) {
+        const term = String(((raw ?? {}) as Record<string, unknown>).term ?? "")
+          .trim();
+        if (!term || seen.has(term)) continue;
+        seen.add(term);
+        foodTerms.push(term);
+      }
+    }
   }
 
-  return { mealId: last.id, dishTitles };
+  return { mealId: last.id, foodTerms };
 }

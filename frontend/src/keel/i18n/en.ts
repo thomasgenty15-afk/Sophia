@@ -7625,6 +7625,8 @@ export const en = {
   "plan.feedback.envy_hint":
     "One line, for the whole table. It goes to next week’s plan.",
   "plan.feedback.envy_placeholder": "Léa wants pasta, Marc is done with chicken",
+  "plan.feedback.anything_else_placeholder":
+    "Léa has dance on Tuesdays, we eat late on Fridays",
   "plan.feedback.send": "Send",
   "plan.feedback.sending": "Sending…",
   "plan.feedback.dismiss": "Not now",

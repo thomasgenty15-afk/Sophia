@@ -6564,6 +6564,8 @@ export const fr: TranslatedMessages = {
     "Une ligne, pour toute la table. Elle part dans le plan de la semaine " +
     "prochaine.",
   "plan.feedback.envy_placeholder": "Léa veut des pâtes, Marc en a marre du poulet",
+  "plan.feedback.anything_else_placeholder":
+    "Léa a danse le mardi, on mange tard le vendredi",
   "plan.feedback.send": "Envoyer",
   "plan.feedback.sending": "Envoi…",
   "plan.feedback.dismiss": "Pas maintenant",

@@ -33,22 +33,50 @@
  * PURE MODULE: no I/O, no clock, no randomness.
  */
 
-import type { StudentGoal } from "./week_plan_generation.ts";
-
 /**
- * Les questions, par jeton.
+ * Les questions, par jeton. **TOUTES COMMUNES depuis le lot B (2026-09-03).**
  *
- * `cooked`, `portions` et `never_again` sont communes; la quatrième suit l'axe
- * qui gouverne la dynamique (voir `AXIS_QUESTION`).
+ * ── CE QUI A CHANGÉ, ET POURQUOI L'AXE A DISPARU ──────────────────────────
+ * Il y avait une quatrième question qui suivait la dynamique (`AXIS_QUESTION`:
+ * `fat_loss` → `hunger_between_meals`, `muscle_gain` → `could_finish`,
+ * `maintenance` → `enough_variety`). Deux des trois **n'avaient aucun
+ * lecteur** — `emphasisHint` n'a jamais eu d'appelant, et ce fichier l'écrivait
+ * en toutes lettres. La règle fondatrice du fichier (« chaque question nomme
+ * son lecteur avant d'être posée ») les condamnait donc depuis le premier jour.
+ *
+ * Elles sont RETIRÉES, et `enough_variety` devient **commune**: la variété est
+ * l'un des quatre indices (nomenclature §2.4), son champ (`variety`) est lu par
+ * les deux lanes pour **tout le monde**, et ne la demander qu'à `maintenance`
+ * rendait le cran inatteignable aux deux autres dynamiques — le défaut exact que
+ * les deux crans neufs de `portions` ont fermé le 2026-08-19.
+ *
+ * ⚠️ CONSÉQUENCE HEUREUSE, ET ELLE EST STRUCTURELLE: plus aucune question ne
+ * dépend de la dynamique, donc l'INDISCERNABILITÉ sous plancher TCA n'est plus
+ * une propriété à tenir dans `questionsFor` — elle est vraie par construction
+ * (la sortie de tout le monde, moins ce que le plancher retire).
+ *
+ * ⚠️ LES RÉPONSES DÉJÀ ÉCRITES EN BASE RESTENT LUES. Les colonnes
+ * `axis_question` / `axis_answer` de `meal_plan_feedback` portent des réponses
+ * réelles (mesuré: 15 lignes en base locale le 2026-09-03). `effectOf` les lit
+ * encore, par `legacyVarietyAnswer` — même doctrine que `canHold` face à
+ * `canProduce`: on ferme l'avenir, on n'efface pas le passé.
+ *
+ * ── LES DEUX QUESTIONS NEUVES — lot B ────────────────────────────────────
+ * `difficulty` et `speed` remplacent une DÉDUCTION. Avant, « je n'ai pas pu
+ * cuisiner » (`cooked`) baissait à la fois le temps de cuisine ET la difficulté
+ * des recettes, sans jamais demander lequel des deux était le problème. On
+ * demande maintenant, et `cooked` redevient un CONTEXTE (voir
+ * `cookingQuestionsAreAsked`).
  */
 export const FEEDBACK_QUESTIONS = [
   "cooked",
   "portions",
+  "difficulty",
+  "speed",
+  "enough_variety",
   "never_again",
   "make_again",
-  "hunger_between_meals",
-  "could_finish",
-  "enough_variety",
+  "anything_else",
   // ── ⚠️ `energy_around_sessions` A ÉTÉ RETIRÉE LE 2026-08-18 ─────────────
   // Elle était la quatrième question de `performance`, et `performance`
   // n'existe plus: les quatre nuances du « ni l'un ni l'autre » se replient
@@ -59,8 +87,20 @@ export const FEEDBACK_QUESTIONS = [
   // « toutes les questions du vocabulaire sont atteignables » est une garde
   // R6 (« aucune valeur d'énumération sans branche nommée »): une question
   // déclarée que personne ne pose est décorative, et une valeur décorative
-  // finit par être pilotée. Ce que ça coûte est nommé dans `AXIS_QUESTION`:
-  // le calage autour des séances n'est plus demandé à personne.
+  // finit par être pilotée. Ce que ça coûte: le calage autour des séances n'est
+  // plus demandé à personne.
+  //
+  // ── ⚠️ `hunger_between_meals` ET `could_finish` SONT PARTIES LE 2026-09-03,
+  //    POUR LA MÊME RAISON, ET ELLE EST PLUS FORTE ─────────────────────────
+  // Elles étaient POSÉES et leur seul lecteur nommé (`emphasisHint`) n'avait
+  // aucun appelant. Trois rabattements ont été examinés et refusés un par un
+  // (voir le bloc de la réponse d'axe dans `plan_feedback_retained.ts`): vers
+  // `portion.adjust` (ça compterait deux fois la même réponse), vers
+  // `rhythm.set` (« sur ta faim entre les repas » ne nomme aucun des six
+  // moments), vers `food.prefer` (`text` est la vérité affichée: la carte
+  // dirait « tu l'as coché au bilan » sous une phrase jamais écrite). Un trou
+  // nommé valait mieux qu'un rabattement; une question retirée vaut mieux
+  // qu'un trou nommé qui coûte deux gestes à la personne.
   //
   // ⚠️ LES RÉPONSES DÉJÀ ÉCRITES EN BASE LA PORTENT ENCORE. La colonne
   // `question` de `student_plan_feedback` n'a pas de CHECK adossé à cette
@@ -80,41 +120,59 @@ export type FeedbackQuestion = (typeof FEEDBACK_QUESTIONS)[number];
  * lecteur ne compile pas.
  */
 export const QUESTION_READERS: Record<FeedbackQuestion, string> = {
+  // ⚠️ `cooked` N'A PLUS DE LECTEUR D'EFFET, ET C'EST LE LOT B. Il en avait
+  // deux par DÉDUCTION (`cooking_time_min` + `recipe_difficulty` baissés sur
+  // « non » ou « en partie »), c'est-à-dire qu'il décidait LEQUEL des deux
+  // était le problème sans le demander. Son lecteur est désormais une GARDE:
+  // il décide si les deux questions de cuisine sont posées du tout.
   cooked:
-    "practical_constraints.cooking_time_min + recipe_difficulty — « non » ou " +
-    "« en partie » veut dire qu'ils étaient trop optimistes",
+    "`cookingQuestionsAreAsked` — une garde, pas un effet: on ne demande " +
+    "« trop dur ? » et « trop long ? » qu'à quelqu'un qui a cuisiné au moins " +
+    "en partie",
   portions:
-    "le ré-ancrage de l'enveloppe (`recalibration`) — c'est LA vérité terrain " +
-    "que le moteur n'a pas: il sait ce qu'il a composé, pas ce qui a suffi",
-  never_again:
-    "practical_constraints.food_preferences, via `reconcileFoodPreferencesFor` " +
-    "(pipeline existant, ne pas le réécrire)",
-  make_again:
-    "practical_constraints.food_preferences — LE MÊME canal que `never_again`, " +
-    "polarité inverse. C'est le bloc que le prompt sert à chaque composition " +
-    "(`foodPreferencesForPrompt`), donc il réoriente la génération suivante " +
-    "sans qu'aucun lecteur neuf n'ait à exister",
-  hunger_between_meals:
-    "l'accent de satiété de `fat_loss` — la satiété est son axe gouvernant",
-  could_finish:
-    "l'accent d'apport de `muscle_gain` — son obstacle est de manger assez, " +
-    "pas de se retenir",
-  // ⚠️ CE LECTEUR A ÉTÉ RÉÉCRIT LE 2026-08-19, ET L'ANCIEN ÉTAIT UNE INTENTION.
-  // Il disait « l'accent de diversité de `maintenance` » — c'est-à-dire
-  // `emphasisHint`, qui n'a AUCUN appelant. La question était posée, stockée, et
-  // lue par personne: exactement le point du dimanche que l'en-tête de ce
-  // fichier existe pour interdire.
-  //
-  // Le lecteur nommé ici est VIVANT et vérifiable de bout en bout:
-  // `logistics.set{field:"variety"}` → `retained_items_routing.logisticsOverlayFor`
-  // → `practical_constraints.variety` → `readCookingCapacity` des deux
-  // générateurs → la ligne « repetition they accept: … » du prompt
-  // (`meal_generation.ts`). C'est le SEUL des trois axes qui atterrit sur un
-  // levier existant, au vocabulaire fermé (`VARIETY_LEVELS`).
+    "l'indice de portion (`feedback_index.ts` → `meal_envelope.ts`) — c'est LA " +
+    "vérité terrain que le moteur n'a pas: il sait ce qu'il a composé, pas ce " +
+    "qui a suffi",
+  // ── LES DEUX QUESTIONS NEUVES DU LOT B, ET LEUR LECTEUR EST UN CHAMP ────
+  // Un cran d'échelle, pas un delta: `speed` déplace `cooking_time_min` d'UN
+  // BARREAU de `COOKING_SESSION_MINUTES` (les six durées que l'écran propose),
+  // `difficulty` d'un cran de `RECIPE_DIFFICULTIES`. Les deux champs sont lus
+  // par `readCookingCapacity` dans les DEUX lanes, et servis au modèle.
+  difficulty:
+    "`practical_constraints.recipe_difficulty` — un cran de " +
+    "`RECIPE_DIFFICULTIES` (simple | normal | keen), écrit dans le CHAMP avec " +
+    "sa ligne de journal, et lu par `readCookingCapacity` des deux lanes",
+  speed:
+    "`practical_constraints.cooking_time_min` — un BARREAU de " +
+    "`COOKING_SESSION_MINUTES`, écrit dans le CHAMP avec sa ligne de journal, " +
+    "et lu par `readCookingCapacity` des deux lanes",
   enough_variety:
-    "`practical_constraints.variety`, via `logistics.set` — le vocabulaire " +
-    "fermé `repeat | some | varied` que les deux générateurs lisent déjà et " +
-    "servent au modèle (« repetition they accept »)",
+    "`practical_constraints.variety` — le vocabulaire fermé " +
+    "`repeat | some | varied` que les deux générateurs lisent déjà et servent " +
+    "au modèle (« repetition they accept »)",
+  // ── LES DEUX QUESTIONS DE PLAT — DES ALIMENTS DEPUIS LE LOT B ───────────
+  // Elles rangeaient des TITRES DE PLATS dans `food_preferences`, une liste de
+  // phrases plates sans polarité, sans sujet et sans date. Elles rangent
+  // maintenant un ALIMENT du plan, avec sa personne, dans le magasin structuré
+  // (destination ① de la nomenclature). Le titre d'un plat n'est pas une
+  // préférence: « Poulet rôti au citron » refusé ne dit pas si c'est le poulet,
+  // le citron ou le rôtissage — et le générateur ne peut rien filtrer avec ça.
+  never_again:
+    "une préférence ① — `food.exclude` durable, avec son sujet, lue par la " +
+    "consigne de composition ET par la ceinture par bouche " +
+    "(`food_exclusion_belt.ts`)",
+  make_again:
+    "une préférence ① — `food.prefer` durable, MÊME canal, polarité inverse. " +
+    "C'est ce qui fait qu'aucun lecteur neuf n'a eu à exister",
+  // ── LE CHAMP LIBRE, ET SON LECTEUR EST LE CLASSIFIEUR DU LOT A ──────────
+  // ⛔ PAS UN SECOND CLASSIFIEUR. Le texte passe par `readDraftNote` (la garde
+  // d'entrée: cible chiffrée, interdit de doctrine, plancher TCA) puis par
+  // `classifyAndPersistDraftNote`, exactement comme une note de brouillon. Un
+  // second prompt divergerait du premier au premier mot changé.
+  anything_else:
+    "`classifyAndPersistDraftNote` (lot A) — les trois mêmes portes: une " +
+    "préférence, une note de « ce que Sophia sait », ou une ligne d'encart. " +
+    "Ce qui raconte un repas n'a AUCUNE destination (`skipped.meal_story`)",
 };
 
 /** Les réponses possibles, par question. Listes fermées: pas de champ libre. */
@@ -152,92 +210,67 @@ export const QUESTION_OPTIONS: Record<FeedbackQuestion, readonly string[]> = {
     "not_enough",
     "way_not_enough",
   ],
-  // `never_again` est particulière: ses options sont les plats du plan, donc
-  // dynamiques. La liste fermée est construite à l'appel, et `none` en fait
-  // toujours partie — « aucun » est une réponse, pas une absence de réponse.
-  never_again: ["none"],
-  // Même forme que sa jumelle: les plats du plan, plus `none`.
-  make_again: ["none"],
-  hunger_between_meals: ["often", "sometimes", "no"],
-  could_finish: ["yes", "mostly", "no"],
+  // ── LES DEUX ÉCHELLES DE CUISINE — TROIS CRANS, DEUX SENS ──────────────
+  //
+  // ⚠️ LE CRAN DU MILIEU N'EST PAS UN VIDE, C'EST UNE RÉPONSE. « C'était bien »
+  // veut dire « le réglage actuel est juste », pas « je n'ai pas répondu »:
+  // sans lui, la seule façon de dire que ça allait serait de ne rien cocher, et
+  // un silence ne s'archive pas (même motif que `right` sur les portions et que
+  // `none` sur les plats).
+  //
+  // ⛔ ET LE SENS MONTANT EXISTE, C'EST LA CONDITION DU LOT. La déduction qu'on
+  // remplace ne savait que DESCENDRE (`cooked: no` ⇒ moins de temps, recettes
+  // plus simples): un champ qui ne fait que cliqueter vers le bas finit au
+  // plancher et n'en remonte jamais — c'est le défaut que le §4-bis de la
+  // nomenclature nomme, et ce qui rendait le débat « champ ou indice » indécidable.
+  difficulty: ["too_hard", "fine", "could_do_more"],
+  speed: ["too_long", "fine", "had_more_time"],
+  // ⚠️ INCHANGÉES, et c'est délibéré: des réponses sont écrites en base sous
+  // ces trois jetons (colonne `axis_answer`), et les remapper falsifierait ce
+  // que des gens ont répondu. Seule la POPULATION à qui on la pose a changé.
   enough_variety: ["yes", "sometimes", "no"],
+  // `never_again` est particulière: ses options sont les ALIMENTS du plan
+  // (depuis le lot B; c'étaient ses plats), donc dynamiques. La liste fermée
+  // est construite à l'appel, et `none` en fait toujours partie — « aucun » est
+  // une réponse, pas une absence de réponse.
+  never_again: ["none"],
+  // Même forme que sa jumelle: les aliments du plan, plus `none`.
+  make_again: ["none"],
+  // ⛔ LA SEULE QUESTION SANS VOCABULAIRE, ET LE VIDE LE DIT. `[]` n'est pas un
+  // oubli: c'est un CHAMP LIBRE, et le test « toute question a des options »
+  // doit le lire comme tel plutôt que de nous laisser inventer trois boutons
+  // pour une question qui n'en a pas. Le renversement de FF-054 §3.2 (« aucun
+  // champ libre ») est écrit dans la fiche, borné: dernière, facultative,
+  // formulée « quelque chose à retenir pour la suite ? » — jamais « comment ça
+  // s'est passé », qui inviterait à raconter ce qui a été mangé.
+  anything_else: [],
 };
-
-/**
- * La quatrième question, par dynamique.
- *
- * Elle suit L'AXE QUI GOUVERNE la dynamique — c'est la hiérarchie du design des
- * unités de composition, pas une invention de ce fichier.
- *
- * ⚠️ `maintenance` N'EN AVAIT PAS, ET ELLE EN A UNE DEPUIS LE 2026-08-18.
- * L'ancien choix se justifiait par « son objectif est l'écart minimal, donc
- * lui ajouter une question serait ajouter de la charge à la seule dynamique
- * qui demande qu'on ne lui en ajoute pas ». Le repli des quatre nuances change
- * ce qu'elle DÉSIGNE: elle ne dit plus « je tiens ce que j'ai », elle dit
- * « la balance ne bouge pas », ce qui recouvre `health` — de très loin la plus
- * peuplée des trois retirées.
- *
- * `enough_variety` et pas les deux autres, et le critère n'est pas la
- * popularité: c'est la SEULE des trois qui n'interroge ni l'appétit ni la
- * quantité. `could_finish` (recomposition) et `energy_around_sessions`
- * (performance) portent sur le corps; la première est d'ailleurs retirée par
- * le plancher TCA quelques lignes plus bas. Une question qui survit au
- * plancher est la seule qu'on puisse poser à toute une position.
- */
-const AXIS_QUESTION: Record<StudentGoal, FeedbackQuestion | null> = {
-  fat_loss: "hunger_between_meals",
-  maintenance: "enough_variety",
-  muscle_gain: "could_finish",
-};
-
-/**
- * LE SEUL AXE QUI ATTERRIT SUR UN LEVIER EXISTANT — le jeton, déclaré UNE fois.
- *
- * ⚠️ TYPÉ `FeedbackQuestion`, ET PAS `string`. C'est ce qui relie la constante à
- * son jumeau: renommer `enough_variety` dans `FEEDBACK_QUESTIONS` fait ROUGIR
- * cette ligne au compilateur, avant tout test. §7.4 du contrat de phase 0 —
- * « une clé déclarée deux fois que rien ne relie » est la cicatrice la plus
- * chère du chantier (86 tests verts pendant que l'écriture partait ailleurs).
- *
- * Il est LU par `plan_feedback_retained.ts` pour décider si la réponse d'axe a
- * une famille. Le recopier là-bas en ferait deux littéraux, et le second ne
- * suivrait pas le renommage du premier.
- *
- * ⛔ ET IL EST LU SUR LE JETON, JAMAIS SUR LA RÉPONSE. `no` est une option des
- * TROIS axes et `sometimes` de deux: router sur la réponse seule ferait entrer
- * une réponse à `hunger_between_meals` — la question que le plancher TCA
- * retire — dans le magasin par la porte de la variété.
- */
-export const VARIETY_AXIS_QUESTION: FeedbackQuestion = "enough_variety";
-
-/**
- * L'axe QUI N'A PAS DE LECTEUR — le seul que `emphasisHint` couvre encore.
- *
- * Typé pour la même raison que son voisin: un renommage dans
- * `FEEDBACK_QUESTIONS` doit faire rougir le compilateur, pas produire un
- * `switch` qui ne matche plus jamais rien. Privé — rien à l'extérieur n'en a
- * besoin tant que `emphasisHint` n'a pas d'appelant.
- */
-const SATIETY_AXIS_QUESTION: FeedbackQuestion = "hunger_between_meals";
 
 /**
  * LES QUESTIONS QUE LE PLANCHER TCA RETIRE.
  *
- * `portions` (« trop ? ») invite à la restriction, et `hunger_between_meals`
- * fait de la faim un sujet — les deux sont exactement ce qu'un plancher TCA
- * existe pour ne pas mettre sous les yeux de quelqu'un.
+ * `portions` (« trop ? ») invite à la restriction — c'est exactement ce qu'un
+ * plancher TCA existe pour ne pas mettre sous les yeux de quelqu'un.
  *
- * Ce qui SURVIT porte sur le plan et non sur le corps: « as-tu pu le
- * cuisiner » et « un plat à ne jamais refaire » restent, parce qu'ils
- * n'interrogent ni l'appétit ni la quantité.
+ * ⚠️ ELLE EST SEULE DEPUIS LE LOT B, ET CE N'EST PAS UN RELÂCHEMENT.
+ * `hunger_between_meals` y était aussi — elle faisait de la faim un sujet — et
+ * elle n'est plus posée à personne. Ce qui SURVIT porte sur le PLAN et non sur
+ * le corps: « as-tu pu le cuisiner », « était-ce trop dur », « trop long »,
+ * « assez varié », « un aliment à ne plus servir ». Aucune n'interroge
+ * l'appétit ni la quantité.
  */
 const RESTRICTED_OUT: readonly FeedbackQuestion[] = [
   "portions",
-  "hunger_between_meals",
 ];
 
 /**
  * Les questions à poser pour ce plan.
+ *
+ * ⚠️ PLUS DE `goal`, ET C'EST LE LOT B. La quatrième question suivait la
+ * dynamique; deux des trois n'avaient aucun lecteur, et la troisième
+ * (`enough_variety`) est devenue commune parce que son champ est lu pour tout
+ * le monde. Un appelant qui passait un objectif ne compile plus — voulu: c'est
+ * la seule façon de garantir qu'aucun écran ne pose encore une question d'axe.
  *
  * `restrictionFlag` est REQUIS, jamais optionnel: ce dépôt a déjà payé
  * « paramètre de garde optionnel = garde désarmée ». Une lecture EN ÉCHEC vaut
@@ -245,35 +278,49 @@ const RESTRICTED_OUT: readonly FeedbackQuestion[] = [
  * court, s'ouvrir met une question de portion sous les yeux de quelqu'un qu'on
  * n'a pas su évaluer.
  *
- * ── L'INDISCERNABILITÉ ─────────────────────────────────────────────────────
+ * ── L'INDISCERNABILITÉ, DEVENUE STRUCTURELLE ──────────────────────────────
  * Sous plancher, la sortie doit être IDENTIQUE à celle d'un élève dont on ne
- * connaît pas la dynamique. Sinon le questionnaire lui-même devient un oracle:
- * « on ne m'a pas demandé les portions, donc je suis marqué ». D'où l'ordre des
- * opérations — on retire les questions AVANT d'ajouter celle de l'axe, et
- * l'axe ne s'ajoute pas sous plancher.
+ * connaît pas la dynamique — sinon le questionnaire lui-même devient un oracle
+ * (« on ne m'a pas demandé les portions, donc je suis marqué »). Avant le lot B
+ * ça demandait un ordre d'opérations précis (retirer AVANT d'ajouter l'axe, et
+ * ne pas ajouter d'axe sous plancher). Maintenant aucune question ne dépend de
+ * la dynamique: la propriété est vraie par CONSTRUCTION, et le test qui la
+ * garde n'a plus qu'un cas à comparer.
+ *
+ * ⚠️ CE QUE CETTE FONCTION NE DÉCIDE PAS: si les deux questions de cuisine
+ * sont réellement posées. Elle répond AVANT de connaître les réponses;
+ * `difficulty` et `speed` dépendent de `cooked`, donc de la première réponse.
+ * Voir `cookingQuestionsAreAsked` — même patron que `portionSubjectIsAsked`.
  */
-export function questionsFor(
-  goal: StudentGoal | null,
-  restrictionFlag: boolean,
-): FeedbackQuestion[] {
-  // ⚠️ `make_again` EST COMMUNE, ET ELLE SURVIT AU PLANCHER TCA. Elle porte sur
-  // un PLAT qu'on referait, jamais sur l'appétit ni sur la quantité — c'est
-  // exactement le critère qui fait survivre `cooked` et `never_again`. La
-  // retirer serait retirer à quelqu'un sous plancher la seule question qui
-  // ORIENTE au lieu de borner.
-  const common: FeedbackQuestion[] = [
-    "cooked",
-    "portions",
-    "never_again",
-    "make_again",
-  ];
-  if (restrictionFlag) {
-    // Sous plancher: les communes filtrées, et AUCUNE question d'axe — c'est
-    // ce qui rend la sortie identique à celle d'une dynamique inconnue.
-    return common.filter((q) => !RESTRICTED_OUT.includes(q));
-  }
-  const axis = goal ? AXIS_QUESTION[goal] : null;
-  return axis ? [...common, axis] : common;
+export function questionsFor(restrictionFlag: boolean): FeedbackQuestion[] {
+  const all = [...FEEDBACK_QUESTIONS];
+  if (!restrictionFlag) return all;
+  return all.filter((q) => !RESTRICTED_OUT.includes(q));
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * LES DEUX QUESTIONS DE CUISINE SONT-ELLES POSÉES ? — la garde que `cooked`
+ * est devenu.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ ON NE DEMANDE PAS « c'était trop long ? » À QUELQU'UN QUI N'A PAS
+ * CUISINÉ. La réponse serait une supposition sur un geste qui n'a pas eu lieu,
+ * et elle déplacerait un réglage réel — dans le sens que ce même `cooked`
+ * déplaçait déjà tout seul, en devinant, et que ce lot existe pour arrêter.
+ *
+ * `partly` compte comme cuisiné: la personne a assez cuisiné pour savoir si
+ * c'était long ou dur. C'est même le cas le plus informatif des trois.
+ *
+ * ⚠️ UNE RÉPONSE ABSENTE (`null`) NE POSE RIEN. « Pas encore répondu » et
+ * « n'a pas cuisiné » mènent au même silence ici, et c'est le bon sens de
+ * l'échange: la garde s'ouvre sur une réponse, jamais sur son absence.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function cookingQuestionsAreAsked(cooked: string | null): boolean {
+  const token = String(cooked ?? "").trim();
+  return token === "yes" || token === "partly";
 }
 
 // ---------------------------------------------------------------------------
@@ -398,17 +445,40 @@ export const QUESTION_LABELS: Record<
     en: "Anything in it you would want again?",
     fr: "Un plat que tu aimerais revoir ?",
   },
-  hunger_between_meals: {
-    en: "Did this plan leave you hungry between meals?",
-    fr: "Ce plan te laissait-il sur ta faim entre les repas ?",
-  },
-  could_finish: {
-    en: "Were the plates in it easy to finish?",
-    fr: "Les assiettes étaient-elles faciles à finir ?",
-  },
   enough_variety: {
     en: "Enough variety in it for you?",
     fr: "Assez de variété à ton goût ?",
+  },
+  // ── LOT B · LES DEUX QUESTIONS QUI REMPLACENT UNE DÉDUCTION ─────────────
+  //
+  // ⚠️ ELLES PORTENT SUR LE PLAN, PAS SUR LA PERSONNE — c'est le recadrage du
+  // fichier, et le test lexical le vérifie. « Les recettes étaient-elles trop
+  // difficiles » parle de ce qu'on a proposé; « as-tu su cuisiner » parlerait
+  // de sa compétence, ce qu'aucune question de ce fichier n'a le droit de
+  // demander.
+  //
+  // ⚠️ ET ELLES ANNONCENT UNE ÉCHELLE À DEUX SENS. « Trop dur ? » à trois
+  // réponses ferait lire les deux autres comme des « non » de politesse; « où
+  // se situaient-elles » invite à placer un curseur, y compris vers le haut.
+  difficulty: {
+    en: "The recipes in it were:",
+    fr: "Les recettes du plan étaient :",
+  },
+  speed: {
+    en: "The time they took was:",
+    fr: "Le temps qu'elles ont pris était :",
+  },
+  // ── LOT B · LE CHAMP LIBRE, ET SON LIBELLÉ EST LA MOITIÉ DU RENVERSEMENT ─
+  //
+  // ⛔ « QUELQUE CHOSE À RETENIR POUR LA SUITE » — JAMAIS « COMMENT ÇA S'EST
+  // PASSÉ ». FF-054 §3.2 interdisait tout champ libre ici, et son motif est
+  // écrit: il « inviterait à raconter ce qui a été mangé ». Le renversement du
+  // 2026-09-03 est borné par ce libellé-là: il demande une CONSIGNE pour les
+  // plans suivants, pas un récit de la semaine. Ce qui raconte un repas n'a de
+  // toute façon aucune destination (`skipped.meal_story` du classifieur).
+  anything_else: {
+    en: "Anything I should keep in mind for the next ones?",
+    fr: "Quelque chose à retenir pour les prochains ?",
   },
 };
 
@@ -444,8 +514,22 @@ export const OPTION_LABELS: Record<string, { en: string; fr: string }> = {
   // une absence de réponse: sans elle, la seule façon de dire « ça vaut pour
   // nous tous » serait de ne rien cocher, et un silence ne s'archive pas.
   everyone: { en: "Everyone", fr: "Tout le monde" },
-  often: { en: "Often", fr: "Souvent" },
   sometimes: { en: "Sometimes", fr: "Parfois" },
+  // ── LOT B · LES DEUX ÉCHELLES DE CUISINE ────────────────────────────────
+  // ⚠️ LES LIBELLÉS DÉCRIVENT LA POSITION SUR L'ÉCHELLE, comme ceux des
+  // portions: le jeton porte le sens archivé, le libellé dit où la case se
+  // trouve sur l'écran. « Bien » au milieu, et pas « Non »: une échelle à deux
+  // sens n'a pas de réponse négative, elle a un milieu.
+  too_hard: { en: "Too hard", fr: "Trop difficiles" },
+  could_do_more: { en: "I could do more", fr: "Je peux faire plus" },
+  too_long: { en: "Too long", fr: "Trop long" },
+  had_more_time: { en: "I had more time", fr: "J'avais plus de temps" },
+  fine: { en: "Fine", fr: "Bien" },
+  // ⚠️ `often` et `mostly` RESTENT, et c'est le même motif que les jetons de
+  // portion: des réponses écrites en base les portent (les deux axes retirés le
+  // 2026-09-03), et la carte comme le journal les relisent pour citer ce que la
+  // personne a coché. Un libellé retiré rendrait ces citations muettes.
+  often: { en: "Often", fr: "Souvent" },
   mostly: { en: "Mostly", fr: "Plutôt" },
   good: { en: "Good", fr: "Bien" },
   mixed: { en: "Mixed", fr: "Variable" },
@@ -527,29 +611,65 @@ export function newEnvyIsAsked(input: {
 // Ce que les réponses changent — la moitié qui manquait au point du dimanche
 // ---------------------------------------------------------------------------
 
+/**
+ * UNE RÉPONSE DE PLAT OU D'ALIMENT — lot B.
+ *
+ * ⛔ DEUX FORMES, ET LA PREMIÈRE EST LE PASSÉ. Une chaîne est un TITRE DE PLAT
+ * (la forme d'avant le lot B: 15 lignes en base locale en portent), un objet
+ * est un ALIMENT avec sa personne. Les deux se lisent; seule la seconde
+ * s'écrit. Remapper les titres en aliments falsifierait des réponses réelles —
+ * « Poulet rôti au citron » ne dit pas si c'est le poulet, le citron ou le
+ * rôtissage qu'on ne veut plus, et le deviner écrirait une exclusion que
+ * personne n'a demandée.
+ */
+export type FeedbackFoodAnswer = {
+  /** L'aliment, tel que l'écran l'a proposé depuis les plats du plan. */
+  readonly food: string;
+  /**
+   * `household` ou `member:<uuid>`. `null` = la question du sujet n'a pas été
+   * posée (un solo), et l'appelant range alors sur `household`.
+   * ⛔ Jamais un prénom.
+   */
+  readonly subject: string | null;
+};
+
+/** Ce qu'une réponse de plat peut être: un titre (passé) ou un aliment (lot B). */
+export type FeedbackDishOrFood = string | FeedbackFoodAnswer;
+
 export interface FeedbackAnswers {
   cooked?: string | null;
   portions?: string | null;
-  neverAgain?: readonly string[];
-  /** L'inverse: les plats qu'on veut revoir. `[]` = aucun, et c'est une réponse. */
-  makeAgain?: readonly string[];
+  /** `too_hard` | `fine` | `could_do_more` — lot B. */
+  difficulty?: string | null;
+  /** `too_long` | `fine` | `had_more_time` — lot B. */
+  speed?: string | null;
   /**
-   * ⚠️ LE JETON DE LA QUATRIÈME QUESTION, ET IL N'EST PAS DÉCORATIF.
+   * `yes` | `sometimes` | `no`, POSÉE À TOUT LE MONDE depuis le lot B.
    *
-   * `no` est une option des TROIS axes, `sometimes` de deux: sans le jeton,
-   * `axisAnswer` seul est AMBIGU PAR CONSTRUCTION, et c'était écrit noir sur
-   * blanc dans `emphasisHintFor` sans qu'aucun appelant ne puisse lever
-   * l'ambiguïté. Mesuré le 2026-08-19: `effectOf({axisAnswer:"sometimes"})`
-   * rendait l'accent de SATIÉTÉ — la consigne de `fat_loss` — à quelqu'un qui
-   * venait de répondre « parfois » à une question sur la VARIÉTÉ.
-   *
-   * Optionnel au type comme ses six voisins, et l'oubli est FAIL-CLOSED: sans
-   * jeton, aucun axe n'a de famille et rien n'est produit. Le seul appelant qui
-   * compte le passe, et un test de câblage le tient
-   * (`plan_feedback_retained_test.ts`).
+   * ⚠️ ELLE A UN JUMEAU HÉRITÉ, et il est lu: jusqu'au lot B cette réponse
+   * voyageait dans `axisQuestion`/`axisAnswer` (la quatrième question, réservée
+   * à `maintenance`). `effectOf` lit les deux — voir `legacyVarietyAnswer`.
+   */
+  variety?: string | null;
+  neverAgain?: readonly FeedbackDishOrFood[];
+  /** L'inverse: ce qu'on veut revoir. `[]` = aucun, et c'est une réponse. */
+  makeAgain?: readonly FeedbackDishOrFood[];
+  /**
+   * ⚠️ HÉRITÉ, LU ET JAMAIS ÉCRIT — lot B. Le jeton et la réponse de la
+   * quatrième question d'avant. `enough_variety` y arrivait pour les comptes
+   * `maintenance`; les deux autres axes n'avaient aucun lecteur et sont
+   * retirés. Les garder ici est ce qui empêche une ligne déjà en base de
+   * cesser d'agir entre deux lectures — même doctrine que `canHold`.
    */
   axisQuestion?: string | null;
   axisAnswer?: string | null;
+  /**
+   * LE CHAMP LIBRE — lot B. Il n'entre PAS dans `effectOf`: son lecteur est le
+   * classifieur du lot A (`classifyAndPersistDraftNote`), qui vit dans l'I/O.
+   * Il est déclaré ici pour que le type de la ligne soit complet, et pour qu'un
+   * appelant ne puisse pas croire que ce module en fait quelque chose.
+   */
+  anythingElse?: string | null;
 }
 
 /**
@@ -561,47 +681,65 @@ export interface FeedbackAnswers {
  * lecteur.
  */
 export interface FeedbackEffect {
-  /** Baisser le temps de cuisine supposé, en minutes. 0 = ne rien changer. */
-  easeCookingBy: number;
-  /** Simplifier la difficulté des recettes d'un cran. */
-  simplifyRecipes: boolean;
   /**
    * LE RÉ-ANCRAGE D'ENVELOPPE — SON SENS **ET** SON AMPLEUR, DANS UN SEUL
    * CHAMP. `null` = ne rien changer.
    *
-   * ⚠️ UN SEUL CHAMP, ET C'EST LA GARDE. Deux champs (`portionDirection` +
-   * `portionMagnitude`) laisseraient exister l'état « on baisse, on ne sait
-   * pas de combien » — que le seul lecteur devrait replier, et le repli
-   * vraisemblable est `slight`. C'est-à-dire: le cran fort redevenu
-   * inatteignable, en silence, exactement le défaut que le second cran ferme.
-   * Ici l'objet est nul ou complet, et le type le tient.
+   * ⚠️ UN SEUL CHAMP, ET C'EST LA GARDE. Deux champs laisseraient exister
+   * l'état « on baisse, on ne sait pas de combien » — que le seul lecteur
+   * devrait replier, et le repli vraisemblable est `slight`: le cran fort
+   * redevenu inatteignable, en silence. Ici l'objet est nul ou complet.
    *
-   * ⛔ AUCUN NOMBRE, ET LE MOTIF EST DANS LA NOMENCLATURE (§4): la personne dit
-   * « vraiment trop », pas « −240 kcal ». La traduction en fraction de bande
-   * vit dans `meal_envelope.ts` (`PORTION_ADJUST_STEP`), en aval, là où le
-   * plancher A1 écrête.
+   * ⛔ AUCUN NOMBRE (nomenclature §4): la personne dit « vraiment trop », pas
+   * « −240 kcal ». La traduction en fraction de bande vit dans
+   * `meal_envelope.ts`, en aval, là où le plancher A1 écrête.
    */
   portionAdjust: FeedbackPortionAdjust | null;
-  /** Les plats à verser aux préférences comme refusés. */
-  refusedDishes: readonly string[];
   /**
-   * Les plats à verser aux préférences comme VOULUS. Même canal, polarité
-   * inverse: c'est ce qui fait qu'aucun lecteur neuf n'a eu à exister.
+   * ── LOT B · LES DEUX CRANS DE CUISINE, DANS LES DEUX SENS ──────────────
    *
-   * ⚠️ UNE LISTE DISTINCTE, ET PAS UN SIGNE SUR LA PREMIÈRE. Un même plat ne
-   * peut pas être dans les deux (l'écran l'interdit), mais les fondre en une
-   * liste signée obligerait chaque lecteur à connaître la convention de signe —
-   * et le premier qui l'oublie ferait éviter à vie un plat qu'on avait aimé.
+   * `"down"` = un cran plus simple / plus court, `"up"` = un cran plus
+   * ambitieux / plus long, `null` = ne rien changer.
+   *
+   * ⛔ UN SENS, PAS UNE VALEUR, et c'est la même règle que `portionAdjust`:
+   * ce module ne connaît ni l'échelle des minutes ni celle des difficultés.
+   * La valeur absolue est calculée par `plan_feedback_retained.ts`, qui a la
+   * valeur COURANTE sous les yeux — un cran depuis une base inconnue n'est
+   * pas calculable, et le supposer écrirait un réglage que personne n'a choisi.
+   *
+   * ⛔ ET LE SENS MONTANT EXISTE. Ce qu'on remplace ne savait que descendre
+   * (`cooked: no` ⇒ moins de temps ET recettes plus simples, sans demander
+   * lequel des deux): un champ qui ne fait que cliqueter vers le bas finit au
+   * plancher et n'en remonte jamais.
    */
-  keptDishes: readonly string[];
+  difficultyStep: "down" | "up" | null;
+  speedStep: "down" | "up" | null;
   /**
-   * ⚠️ LA SEULE INTENTION D'AXE QUI AIT UN LECTEUR — `"more"` ou rien.
+   * LES ALIMENTS À VERSER EN PRÉFÉRENCE COMME REFUSÉS — lot B.
    *
-   * C'est une PRESSION, pas un réglage: la table de décision ne connaît pas la
-   * variété courante de la personne, donc elle ne peut pas rendre une valeur
-   * absolue. `plan_feedback_retained.ts` la traduit en `logistics.set{variety}`
-   * un cran plus haut, à partir de la valeur connue — exactement comme
-   * `easeCookingBy` devient un `cooking_time_min` absolu là-bas et pas ici.
+   * ⚠️ DES ALIMENTS AVEC LEUR PERSONNE, PLUS DES TITRES DE PLATS. Un titre
+   * (« Poulet rôti au citron ») ne dit pas ce qu'on ne veut plus, et le
+   * générateur ne peut rien filtrer avec ça. La forme héritée (une chaîne) est
+   * LUE et normalisée en `{food: <le titre>, subject: null}`: c'est ce que la
+   * personne a répondu, et le reclasser serait le falsifier.
+   */
+  refusedFoods: readonly FeedbackFoodAnswer[];
+  /**
+   * Les aliments VOULUS. Même canal, polarité inverse.
+   *
+   * ⚠️ UNE LISTE DISTINCTE, ET PAS UN SIGNE SUR LA PREMIÈRE. Un même aliment
+   * ne peut pas être dans les deux (l'écran l'interdit), mais les fondre en une
+   * liste signée obligerait chaque lecteur à connaître la convention de signe —
+   * et le premier qui l'oublie ferait éviter à vie un aliment qu'on avait aimé.
+   */
+  keptFoods: readonly FeedbackFoodAnswer[];
+  /**
+   * ⚠️ LA PRESSION SUR LA VARIÉTÉ — `"more"` ou rien.
+   *
+   * C'est une PRESSION, pas un réglage: cette table ne connaît pas la variété
+   * courante de la personne, donc elle ne peut pas rendre une valeur absolue.
+   * `plan_feedback_retained.ts` la traduit en un cran plus haut, à partir de la
+   * valeur connue — exactement comme les deux crans de cuisine ci-dessus.
    *
    * ⛔ IL N'EXISTE PAS DE `"less"`, ET C'EST UNE ASYMÉTRIE VOULUE. « Assez de
    * variété ? — Oui » veut dire « ne change rien », jamais « répète plus ».
@@ -609,16 +747,6 @@ export interface FeedbackEffect {
    * lui retirer quelque chose au motif qu'il n'a rien demandé.
    */
   varietyPressure: "more" | null;
-  /**
-   * L'accent à renforcer à la prochaine génération, si l'axe a mordu.
-   *
-   * ⚠️ TROU NOMMÉ, ET IL RESTE OUVERT: ce champ n'a TOUJOURS AUCUN APPELANT.
-   * Il ne couvre plus que `hunger_between_meals` — le seul des trois axes dont
-   * aucun lecteur honnête n'a été trouvé (voir le bloc de la réponse d'axe dans
-   * `plan_feedback_retained.ts`). `enough_variety` est passée à
-   * `varietyPressure`, qui, lui, arrive jusqu'au prompt.
-   */
-  emphasisHint: string | null;
 }
 
 /**
@@ -683,53 +811,141 @@ export function effectOf(answers: FeedbackAnswers): FeedbackEffect {
   const portions = answers.portions ?? null;
 
   return {
-    // « non » coûte plus cher que « en partie »: on n'a pas seulement été
-    // optimiste, on a été hors sujet.
-    easeCookingBy: cooked === "no" ? 15 : cooked === "partly" ? 10 : 0,
-    simplifyRecipes: cooked === "no",
-    // ⚠️ UNE LECTURE DE TABLE, PAS UNE CASCADE DE TERNAIRES. La cascade
-    // d'avant se lisait « too_much ou not_enough », et ajouter un cran y
-    // aurait demandé d'écrire le sens à un endroit et l'ampleur à un autre —
-    // deux listes de jetons, dont celle qu'on regarde le moins aurait gardé
-    // trois entrées. `null` porte ici l'ABSENCE d'entrée (`right`, un vide, un
-    // jeton forgé), pas le repli d'un refus.
+    // ⚠️ UNE LECTURE DE TABLE, PAS UNE CASCADE DE TERNAIRES. `null` porte ici
+    // l'ABSENCE d'entrée (`right`, un vide, un jeton forgé), pas le repli d'un
+    // refus.
     portionAdjust: portionAdjustFor(portions),
-    // `none` n'est pas un plat: il ne doit jamais atterrir dans les préférences.
-    refusedDishes: (answers.neverAgain ?? []).filter((d) =>
-      d.trim() !== "" && d !== "none"
-    ),
-    // MÊME FILTRE, ET LA MÊME RAISON. Un « aucun » versé aux préférences
-    // créerait un aliment VOULU fantôme que le générateur chercherait à vie —
-    // le symétrique exact du refus fantôme que la ligne au-dessus empêche.
-    keptDishes: (answers.makeAgain ?? []).filter((d) =>
-      d.trim() !== "" && d !== "none"
-    ),
-    varietyPressure: varietyPressureFor(
-      answers.axisQuestion ?? null,
-      answers.axisAnswer ?? null,
-    ),
-    emphasisHint: emphasisHintFor(
-      answers.axisQuestion ?? null,
-      answers.axisAnswer ?? null,
-    ),
+    // ── LOT B · LES DEUX CRANS DE CUISINE ──────────────────────────────────
+    //
+    // ⛔ `cooked` EST UNE GARDE, PAS UN EFFET. Il ne déplace plus rien tout
+    // seul (c'était `easeCookingBy` + `simplifyRecipes`, qui devinaient lequel
+    // des deux problèmes la personne avait eu); il décide seulement si ces deux
+    // questions ont été posées. Une réponse arrivée sans que `cooked` l'autorise
+    // est IGNORÉE ici — un client cassé, ou une charge forgée, ne déplace pas
+    // un réglage réel.
+    difficultyStep: cookingQuestionsAreAsked(cooked)
+      ? stepOf(answers.difficulty ?? null, "too_hard", "could_do_more")
+      : null,
+    speedStep: cookingQuestionsAreAsked(cooked)
+      ? stepOf(answers.speed ?? null, "too_long", "had_more_time")
+      : null,
+    // `none` n'est pas un aliment: il ne doit jamais atterrir dans les
+    // préférences. Et une entrée illisible TOMBE SEULE, sans emporter sa voisine.
+    refusedFoods: foodAnswersOf(answers.neverAgain),
+    // MÊME FILTRE, MÊME RAISON. Un « aucun » versé aux préférences créerait un
+    // aliment VOULU fantôme que le générateur chercherait à vie — le symétrique
+    // exact du refus fantôme que la ligne au-dessus empêche.
+    keptFoods: foodAnswersOf(answers.makeAgain),
+    varietyPressure: varietyPressureFor(varietyAnswerOf(answers)),
   };
 }
 
 /**
- * LE CRAN QU'UNE RÉPONSE DEMANDE, ou `null`.
+ * UN CRAN, DEPUIS UN VOCABULAIRE À TROIS JETONS — lot B.
+ *
+ * ⛔ LES DEUX JETONS AGISSANTS SONT PASSÉS EN PARAMÈTRE, jamais devinés. Les
+ * deux échelles ont le même MILIEU (`fine`) et des extrêmes différents
+ * (`too_hard`/`could_do_more`, `too_long`/`had_more_time`): une fonction qui
+ * lirait « le premier jeton de la liste » marcherait par coïncidence d'ordre, et
+ * casserait le jour où quelqu'un réordonne une option à l'écran.
+ *
+ * ⛔ PROPRIÉTÉ EXACTE, AUCUNE CASSE IGNORÉE, AUCUN `trim` — comme sur les
+ * portions. Les jetons viennent d'une liste fermée rendue par ce module même, et
+ * la RPC les nettoie avant de les stocker; normaliser ici ferait une SECONDE
+ * normalisation, qui divergerait.
+ */
+function stepOf(
+  answer: string | null,
+  downToken: string,
+  upToken: string,
+): "down" | "up" | null {
+  const token = String(answer ?? "");
+  if (token === downToken) return "down";
+  if (token === upToken) return "up";
+  // `fine`, un vide, un jeton forgé: rien ne bouge. « C'était bien » est une
+  // réponse, et sa réponse est « ne change rien ».
+  return null;
+}
+
+/**
+ * LA RÉPONSE DE VARIÉTÉ, D'OÙ QU'ELLE VIENNE — lot B.
+ *
+ * ⛔ LE CHAMP NEUF D'ABORD, L'HÉRITÉ ENSUITE, ET JAMAIS LES DEUX. Une ligne
+ * écrite avant le lot B porte cette réponse dans `axis_answer`, sous le jeton
+ * `axis_question = "enough_variety"`; une ligne neuve la porte dans `variety`.
+ * Les additionner ferait compter deux fois la même réponse sur une ligne en
+ * cours de migration.
+ *
+ * ⛔ ET LE JETON HÉRITÉ EST VÉRIFIÉ, PAS SUPPOSÉ. `no` était une option des
+ * TROIS anciens axes et `sometimes` de DEUX: lire `axis_answer` sans son jeton
+ * ferait entrer une réponse à `hunger_between_meals` — la question que le
+ * plancher TCA retirait — dans le réglage de variété. C'est la garde d'origine,
+ * conservée mot pour mot dans son intention.
+ */
+function varietyAnswerOf(answers: FeedbackAnswers): string | null {
+  const fresh = String(answers.variety ?? "").trim();
+  if (fresh) return fresh;
+  return legacyVarietyAnswer(
+    answers.axisQuestion ?? null,
+    answers.axisAnswer ?? null,
+  );
+}
+
+/**
+ * LE JETON HÉRITÉ DE LA VARIÉTÉ — exporté pour que le lecteur de lignes
+ * anciennes (`plan_feedback_retained.ts`) n'en écrive pas une seconde copie.
+ */
+export function legacyVarietyAnswer(
+  axisQuestion: string | null,
+  axisAnswer: string | null,
+): string | null {
+  if (String(axisQuestion ?? "").trim() !== "enough_variety") return null;
+  const answer = String(axisAnswer ?? "").trim();
+  return answer || null;
+}
+
+/**
+ * LES ALIMENTS D'UNE RÉPONSE DE PLAT, NORMALISÉS — lot B.
+ *
+ * Les deux formes entrent, une seule sort: une chaîne devient
+ * `{food: <la chaîne>, subject: null}`. `none` et les vides sortent.
+ *
+ * ⛔ AUCUN RAPPROCHEMENT, AUCUNE NORMALISATION DU TEXTE. L'appartenance au plan
+ * est vérifiée en aval, par une égalité exacte à la liste que l'écran a
+ * proposée. « laitue » ≠ « lait », et ce dépôt a 12 faux positifs sur 12 au
+ * compteur pour le jour où quelqu'un a cru pouvoir rapprocher deux mots.
+ */
+function foodAnswersOf(
+  raw: readonly FeedbackDishOrFood[] | undefined,
+): FeedbackFoodAnswer[] {
+  const out: FeedbackFoodAnswer[] = [];
+  for (const entry of raw ?? []) {
+    if (typeof entry === "string") {
+      const food = entry.trim();
+      if (food === "" || food === "none") continue;
+      out.push({ food, subject: null });
+      continue;
+    }
+    if (!entry || typeof entry !== "object") continue;
+    const food = String(entry.food ?? "").trim();
+    if (food === "" || food === "none") continue;
+    const subject = String(entry.subject ?? "").trim();
+    out.push({ food, subject: subject || null });
+  }
+  return out;
+}
+
+/**
+ * LE CRAN QU'UNE RÉPONSE DE PORTION DEMANDE, ou `null`.
  *
  * ⛔ PROPRIÉTÉ **PROPRE**, JAMAIS L'HÉRITAGE. `PORTION_ANSWER_ADJUST["constructor"]`
  * rend une FONCTION sur un objet littéral, et cette réponse arrive d'un corps
  * de requête HTTP. Sans ce test, un jeton forgé rendrait un « ajustement »
  * tronqué: `portionSubjectIsAsked` demanderait « pour qui ? » sur une case que
- * personne n'a cochée, et l'item construit en aval serait refusé par le socle
- * — c'est-à-dire un questionnaire qui pose une question de plus et n'écrit
- * rien, sans qu'une ligne ne le dise.
+ * personne n'a cochée, et l'item construit en aval serait refusé par le socle.
  *
  * ⛔ AUCUN `trim()`, AUCUNE CASSE IGNORÉE: la comparaison est exacte, comme
- * elle l'a toujours été sur ces jetons. Les jetons viennent d'une liste fermée
- * rendue par ce module même, et la RPC les nettoie avant de les stocker;
- * normaliser ici ferait une SECONDE normalisation, qui divergerait.
+ * elle l'a toujours été sur ces jetons.
  */
 function portionAdjustFor(answer: string | null): FeedbackPortionAdjust | null {
   const token = String(answer ?? "");
@@ -740,70 +956,32 @@ function portionAdjustFor(answer: string | null): FeedbackPortionAdjust | null {
 }
 
 /**
- * LA PRESSION SUR LA VARIÉTÉ — la seule décision d'axe qui atterrisse.
- *
- * ⛔ LE JETON EST LU EN PREMIER, ET C'EST LA GARDE. `no` est une option des
- * trois axes: sans ce test, une réponse à `hunger_between_meals` (celle que le
- * plancher TCA RETIRE) produirait un réglage de variété. La question décide, la
- * réponse ne fait que graduer.
+ * LA PRESSION SUR LA VARIÉTÉ.
  *
  * ── POURQUOI « PARFOIS » AGIT AUSSI ────────────────────────────────────────
  * « Assez de variété ? — Parfois » veut dire « parfois, pas toujours ». C'est
- * le patron de `cooked`, où `partly` bouge le temps de cuisine comme `no`, en
- * moins fort. Ici il n'y a qu'UN cran par sens: `sometimes` et `no` demandent
- * donc le même pas, et c'est le plus petit que le vocabulaire permette.
+ * le patron des deux échelles de cuisine, où le cran du milieu ne bouge rien et
+ * les deux extrêmes bougent d'un cran. Ici il n'y a qu'UN sens: `sometimes` et
+ * `no` demandent donc le même pas, et c'est le plus petit que le vocabulaire
+ * permette.
  *
  * OPTION ÉCARTÉE: ne faire agir que `no`. Refusée parce qu'elle rendrait
  * « parfois » strictement équivalent à « oui » — c'est-à-dire poser une
  * question à trois réponses dont deux ne changent rien.
+ *
+ * ⚠️ PLUS DE GARDE DE JETON D'AXE ICI, et ce n'est pas un relâchement: la
+ * question est UNIQUE depuis le lot B, donc il n'y a plus deux questions dont
+ * `no` serait une réponse commune. La garde a déménagé dans
+ * `legacyVarietyAnswer`, qui est le seul endroit où une réponse d'axe ancienne
+ * entre encore.
  */
-function varietyPressureFor(
-  question: string | null,
-  answer: string | null,
-): "more" | null {
-  if (String(question ?? "").trim() !== VARIETY_AXIS_QUESTION) return null;
+function varietyPressureFor(answer: string | null): "more" | null {
   switch (String(answer ?? "").trim()) {
     case "no":
     case "sometimes":
       return "more";
     default:
       // « oui », une réponse absente, ou un jeton forgé: rien ne bouge.
-      return null;
-  }
-}
-
-/**
- * L'accent que la réponse d'axe suggère.
- *
- * Rendu en anglais, sans aucun chiffre: c'est une ligne d'accent destinée à la
- * consigne, et `NUMERIC_TARGET_PATTERNS` rejette en sortie toute masse accolée
- * à une macro. Un accent chiffré produirait des lignes systématiquement
- * filtrées.
- *
- * ⚠️ IL PREND LA QUESTION DEPUIS LE 2026-08-19, ET CE N'EST PAS UN CONFORT.
- * L'ancienne version ne recevait que la réponse et le disait elle-même:
- * « ambigu par construction ». Elle rendait donc l'accent de SATIÉTÉ sur
- * `sometimes` — la réponse de la question de VARIÉTÉ autant que celle de la
- * faim. Le défaut était inerte (aucun appelant), et il aurait mordu le jour où
- * quelqu'un aurait câblé ce champ: une consigne de `fat_loss` servie à un plan
- * de `maintenance`.
- */
-function emphasisHintFor(
-  question: string | null,
-  answer: string | null,
-): string | null {
-  // ⛔ `enough_variety` NE PASSE PLUS PAR ICI. Elle a un lecteur réel
-  // (`varietyPressure` → `logistics.set{variety}` → le prompt): lui rendre AUSSI
-  // un accent ferait deux canaux pour une seule réponse, et c'est le canal
-  // qu'on regarde le moins qui finirait par décider.
-  if (String(question ?? "").trim() !== SATIETY_AXIS_QUESTION) return null;
-  switch (String(answer ?? "").trim()) {
-    case "often":
-    case "sometimes":
-      return "last plan left them hungry between meals: lean harder on satiety " +
-        "— more volume from vegetables, a protein anchor at every meal";
-    default:
-      // `no` = « pas eu faim »: il n'y a rien à renforcer.
       return null;
   }
 }

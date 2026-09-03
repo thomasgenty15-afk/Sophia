@@ -65,16 +65,29 @@ function code(rel: string): string {
  */
 function answerGapsIn(api: string, edge: string): string[] {
   const gaps: string[] = [];
-  // L'écran → la fonction edge.
+  // ── L'écran → la fonction edge ─────────────────────────────────────────
+  //
+  // ⚠️ LOT B — LES DEUX COLONNES HÉRITÉES NE SONT PLUS DANS CETTE LISTE.
+  // `never_again` / `make_again` portaient des TITRES de plats; l'écran envoie
+  // désormais des ALIMENTS avec leur personne, dans deux colonnes NEUVES. Les
+  // anciennes restent LUES (des lignes en base en portent) et ne sont plus
+  // écrites — c'est le geste `canHold` / `canProduce`, appliqué à une colonne.
+  // Les y laisser ferait rougir ce test sur un produit correct; les remplacer
+  // par les neuves est ce qui garde la chaîne.
+  //
+  // ⛔ ET `axis_question` / `axis_answer` NON PLUS: la quatrième question par
+  // dynamique est retirée (deux de ses trois axes n'avaient aucun lecteur).
   for (
     const field of [
       "cooked: answers.cooked",
       "portions: answers.portions",
       "portions_subject: answers.portionsSubject",
-      "never_again: answers.neverAgain",
-      "make_again: answers.makeAgain",
-      "axis_question: answers.axisQuestion",
-      "axis_answer: answers.axisAnswer",
+      "difficulty: answers.difficulty",
+      "speed: answers.speed",
+      "variety: answers.variety",
+      "never_again_foods: answers.neverAgainFoods",
+      "make_again_foods: answers.makeAgainFoods",
+      "anything_else: answers.anythingElse",
     ]
   ) {
     if (!api.includes(field)) gaps.push(`l'écran n'envoie plus ${field}`);
@@ -85,10 +98,23 @@ function answerGapsIn(api: string, edge: string): string[] {
       "p_cooked: answers.cooked",
       "p_portions: answers.portions",
       "p_portions_subject: answers.portionsSubject",
-      "p_never_again: answers.neverAgain",
-      "p_make_again: answers.makeAgain",
-      "p_axis_question: answers.axisQuestion",
-      "p_axis_answer: answers.axisAnswer",
+      "p_difficulty: answers.difficulty",
+      "p_speed: answers.speed",
+      "p_variety: answers.variety",
+      "p_anything_else: answers.anythingElse",
+    ]
+  ) {
+    if (!edge.includes(param)) gaps.push(`la porte n'écrit plus ${param}`);
+  }
+  // ⚠️ LES DEUX COLONNES D'ALIMENTS PASSENT PAR UNE CONDITION, ET C'EST LE
+  // SUJET: `[]` dit « posée, aucun aliment coché », l'absence dit « pas
+  // posée ». Une recherche de `p_never_again_foods: answers.neverAgainFoods`
+  // serait donc verte sur un produit qui écrit `[]` partout — c'est le
+  // ternaire qu'il faut trouver.
+  for (
+    const param of [
+      "p_never_again_foods: answers.neverAgainFoodsAsked",
+      "p_make_again_foods: answers.makeAgainFoodsAsked",
     ]
   ) {
     if (!edge.includes(param)) gaps.push(`la porte n'écrit plus ${param}`);
@@ -121,7 +147,7 @@ describe("chaque réponse collectée à l'écran atteint une colonne", () => {
     for (
       const [from, to] of [
         ["p_portions_subject: answers.portionsSubject", "p_portions_subject: null"],
-        ["p_never_again: answers.neverAgain", "p_never_again: []"],
+        ["p_difficulty: answers.difficulty", "p_difficulty: null"],
       ] as [string, string][]
     ) {
       expect(edge, `la mutation ne s'applique plus: ${from}`).toContain(from);
@@ -216,12 +242,25 @@ describe("⛔ le plancher TCA n'est pas recalculé à l'écran", () => {
   });
 
   it("la règle mord toujours, et elle est indiscernable", () => {
-    const flagged = questionsFor("fat_loss", true);
+    const flagged = questionsFor(true);
     expect(flagged).not.toContain("portions");
+    // ⚠️ LOT B — `hunger_between_meals` N'EST PLUS DU VOCABULAIRE DU TOUT: elle
+    // faisait de la faim un sujet, et son seul lecteur nommé (`emphasisHint`)
+    // n'a jamais eu d'appelant. Elle n'est donc plus retirée par le plancher —
+    // elle n'existe plus, ce qui est plus fort.
     expect(flagged).not.toContain("hunger_between_meals");
-    expect(JSON.stringify(flagged)).toBe(JSON.stringify(questionsFor(null, true)));
-    // ET LES DEUX POLARITÉS SURVIVENT: elles portent sur un PLAT, jamais sur
-    // l'appétit ni sur la quantité.
+    // ⚠️ L'INDISCERNABILITÉ EST DEVENUE STRUCTURELLE: `questionsFor` ne prend
+    // plus d'objectif, donc il n'existe PLUS AUCUN couple (dynamique,
+    // plancher) qui puisse diverger. Avant, elle tenait à un ordre
+    // d'opérations dans le module.
+    expect(questionsFor.length).toBe(1);
+    // ET CE QUI SURVIT PORTE SUR LE PLAN, jamais sur l'appétit ni sur la
+    // quantité: « as-tu pu le cuisiner », « était-ce trop dur », « trop long »,
+    // « assez varié », et les deux polarités d'aliment.
+    expect(flagged).toContain("cooked");
+    expect(flagged).toContain("difficulty");
+    expect(flagged).toContain("speed");
+    expect(flagged).toContain("enough_variety");
     expect(flagged).toContain("never_again");
     expect(flagged).toContain("make_again");
   });

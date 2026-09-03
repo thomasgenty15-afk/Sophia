@@ -101,3 +101,43 @@ banc `banc-retour-trois-portes.sh`.
   Rapport du lot A : [2026-09-03-1505-A-rapport.md](2026-09-03-1505-A-rapport.md).
 - **⏸ HUMAIN** : commit du lot A ; deux décisions produit (le grammage de ③ ; la variante serveur des RPC
   de sécurité par bouche).
+
+## Lot B — le questionnaire de fin de plan nourrit les indices et la porte ③
+
+- **15:30** Note de conception : [2026-09-03-1530-B-questionnaire-indices.md](2026-09-03-1530-B-questionnaire-indices.md).
+- **15:35 → 17:30** Écrit, module par module, chacun compilé avant le suivant :
+  - `plan_feedback.ts` : vocabulaire (`difficulty`, `speed`, `anything_else` ; `enough_variety` devient
+    COMMUNE ; `hunger_between_meals` et `could_finish` **retirées** — aucun lecteur), `questionsFor` perd
+    l'objectif, `cookingQuestionsAreAsked` naît, `effectOf` perd les déductions et gagne les deux crans,
+    `refusedDishes` → `refusedFoods` (aliments + sujet, forme héritée lue).
+  - `plan_feedback_retained.ts` : `applyStep` (un cran sur une échelle ordonnée, bornes comptées à part),
+    `COOKING_SESSION_LADDER` (un BARREAU, plus un delta de minutes), la boucle des aliments avec sujet et
+    contradiction jugée sur (aliment, sujet).
+  - migration `20260903150000` : 6 colonnes, 5 CHECK dont la prémisse de cuisine, RPC à 14 paramètres
+    (l'ancienne à 8 supprimée), **bloc de contrôle qui mesure par l'ÉCRITURE sur une copie temporaire**.
+  - `keel-plan-feedback-v1` : aliments du plan (préparations pliées), les 6 paramètres, et **le champ libre
+    câblé au classifieur du lot A** (garde `readDraftNote` + doctrine + plancher chargés seulement s'il y a
+    un texte).
+  - front : `PlanFeedbackDialog` (aliments, sujet par aliment marqué, champ libre), `api/planFeedback`,
+    `StudentWeekPlanPage`, une clé i18n.
+  - chat : `foodTermsOf`, la relance « pour qui » par aliment, et **le champ libre EXCLU du chat** (flux à
+    boutons — la règle FF-054 §3.2 reste entière là où elle a été écrite).
+- **16:10** Les 13 rouges `renderPulseMessage` : diagnostic du pair vérifié (`git log -S` → `fa422747`, la
+  lignée de mon chantier), réparés et commités à part (`dfb56909`) — le gate est rendu à toutes les sessions.
+- **17:35** `_shared` : **5 644 verts, 0 rouge, 19 ignorés**. Front : **2 028 verts**, 2 rouges hors périmètre
+  (`household.int.test.ts`, lignée A6 du pair — signalés, pas touchés). ⚠️ `habitWriters.int.test.ts` échouait
+  au chargement sur `globSync` : c'était mon PATH (node < 22), pas un rouge.
+- **17:40** FF-054 §3.2 amendée par écrit (arbitrage C3) : le renversement du champ libre est **borné à
+  l'écran**, avec ses trois raisons et les deux gardes qui tiennent le chat.
+- **17:41** Banc du lot B lancé (`scripts/2026-09-03-1700-banc-bilan-v2.sh`, 11 cas du §8.2, une génération
+  réelle par cas). Base de cuisine posée sur la fixture (`normal` / `some` / 60) par la même écriture que
+  `CookingCapacityCard` — sans elle, les cas J/K/H mesurent `noBaseline` au lieu d'un cran.
+- **17:55** Banc terminé : **11 cas sur 11 en HTTP 200**, et deux défauts trouvés — tous deux dans mon lot,
+  tous deux invisibles au typecheck. ① `feedbackMembersOf` lisait `household_members.age_state` et `.gender`,
+  **qui n'existent pas** (l'âge est dérivé par `keel_household_roster_for`, le sexe vit sur la fiche de corps) :
+  la note de Léa partait sur toute la table. ② `keel_household_bodies_for` prend `p_household`, pas `p_user` —
+  PostgREST rendait « function not found », qui se lit comme une panne de base. Réparés, cas L remesuré deux
+  fois : note ③ · Léa · `when=tue`, plus aucun avertissement.
+- **18:00** Rapport du lot B : [2026-09-03-1800-B-rapport.md](2026-09-03-1800-B-rapport.md).
+- **⏸ HUMAIN** : commit du lot B ; une décision produit ouverte (la charge passe de 4 à 6 gestes — accepter,
+  ou scinder le questionnaire en deux soirs).
