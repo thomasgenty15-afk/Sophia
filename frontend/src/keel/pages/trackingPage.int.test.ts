@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import { en } from "../i18n/en";
@@ -277,5 +277,80 @@ describe("A7 — chaque base a sa phrase, dans les deux langues", () => {
       }
     }
     expect(offenders).toEqual([]);
+  });
+});
+
+describe("A7 — une clé du suivi qui n'est pas rendue est une clé qui peut mentir", () => {
+  /** Tous les fichiers `.ts`/`.tsx` de `keel/`, hors packs et hors tests. */
+  function sources(dir: string, out: string[] = []): string[] {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const full = resolve(dir, entry.name);
+      if (entry.isDirectory()) sources(full, out);
+      else if (/\.(ts|tsx)$/.test(entry.name) && !/\.test\.tsx?$/.test(entry.name)) {
+        out.push(full);
+      }
+    }
+    return out;
+  }
+
+  const CODE = sources(resolve(__dirname, ".."))
+    .filter((f) => !/[\\/]i18n[\\/](en|fr|catalog)\.ts$/.test(f))
+    .map((f) => readFileSync(f, "utf8"))
+    .join("\n");
+
+  it("chaque clé `tracking.*` a un appelant vivant", () => {
+    // ⛔ LE DÉFAUT QUE CE TEST FERME, ET IL EST SUBTIL.
+    // `tracking.describe.done` était déclarée dans les deux packs, JAMAIS
+    // rendue, et son texte affirmait « ça compte dans ce jour, maintenant » —
+    // l'inverse exact de ce que « Décrire » fait. Le journal de la lane pouvait
+    // écrire « aucune copie ne prétend le contraire » et avoir raison PAR
+    // ACCIDENT: la phrase ne mentait à personne parce que personne ne la
+    // voyait. Le jour où quelqu'un la câblait, l'écran affirmait le contraire
+    // du produit — et le commit qui la câblait n'aurait touché aucun pack.
+    //
+    // Une clé orpheline n'est donc pas de la dette morte: c'est une affirmation
+    // ARMÉE. Ce namespace est jeune, il n'a aucune orpheline légitime, et c'est
+    // le moment de fermer la porte.
+    const orphans: string[] = [];
+    for (const key of Object.keys(en)) {
+      if (!key.startsWith("tracking.")) continue;
+      // Les clés construites par famille (`tracking.total.<base>`,
+      // `tracking.scope.<portée>`, `tracking.dish.<état>`,
+      // `tracking.weight.period.<fenêtre>`) sont appelées par un gabarit; on
+      // cherche donc le gabarit, puis la clé entière.
+      const family = key.slice(0, key.lastIndexOf(".") + 1);
+      if (CODE.includes(`"${key}"`)) continue;
+      if (CODE.includes(`\`${family}`)) continue;
+      orphans.push(key);
+    }
+    expect(orphans).toEqual([]);
+  });
+
+  it("l'accusé de « Décrire » est rendu, et ne prétend pas que le chiffre a bougé", () => {
+    const dialog = readFileSync(
+      resolve(__dirname, "../components/TrackingDescribeDialog.tsx"),
+      "utf8",
+    );
+    expect(dialog).toContain('t("tracking.describe.done")');
+    for (const [name, pack] of [["en", en], ["fr", fr]] as const) {
+      const done = (pack as Record<string, string>)["tracking.describe.done"];
+      // Elle DIT que le repas cesse d'être oublié — c'est vrai.
+      expect(done, name).toMatch(/no longer counts as missed|plus compté comme oublié/);
+      // Et elle DIT que le chiffre ne bouge pas — c'est le trou, nommé.
+      expect(done, name).toMatch(/does not move yet|ne bouge pas encore/);
+    }
+  });
+
+  it("la phrase d'abstention ne nomme AUCUNE portée", () => {
+    // Elle disait « sur ce jour » / « for this day » et s'affichait telle
+    // quelle sous « Ces sept jours » et « Ce plan » — contredite deux fois sur
+    // trois. La portée vit dans `tracking.scope.*`, juste au-dessus.
+    for (const [name, pack] of [["en", en], ["fr", fr]] as const) {
+      const line = (pack as Record<string, string>)["tracking.total.abstained"];
+      expect(line, name).toBeTruthy();
+      expect(line.toLowerCase(), name).not.toMatch(
+        /this day|ce jour|this plan|ce plan|seven days|sept jours/,
+      );
+    }
   });
 });

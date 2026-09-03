@@ -53,7 +53,11 @@
 // mesurée dans ce dépôt, donc ce module rend DEUX comptes bruts et rien qui en
 // dérive (D7.4).
 
+export { ACCIDENT_OFF_PLAN_PREFIX } from "./accident_io.ts";
+import { ACCIDENT_OFF_PLAN_PREFIX } from "./accident_io.ts";
 import type { EnergyGateReason, EnergyGateResult } from "./energy_gate.ts";
+export { MEAL_TICK_PREFIX } from "./meal_tick.ts";
+import { MEAL_TICK_PREFIX } from "./meal_tick.ts";
 import type { EnergyTarget } from "./energy_target.ts";
 import { EATING_OCCASIONS, type EatingOccasion } from "./meal_generation.ts";
 import { SLOT_DAY_WEIGHT } from "./mouth_anchor.ts";
@@ -230,7 +234,18 @@ export interface TrackingInput {
   gate: EnergyGateResult;
   /** `null` ⇒ pas d'objectif ⇒ pas de bloc chiffré (D7.11: la courbe reste). */
   direction: "down" | "up" | null;
-  /** `maintenanceRange` ou `directedRange`, déjà calculé. `null` ⇒ pas d'estimation de créneau. */
+  /**
+   * ⛔ UN ENTRETIEN, ET JAMAIS UNE CIBLE. `maintenanceRange` déjà calculé;
+   * `null` ⇒ aucune estimation de créneau (et surtout pas un zéro).
+   *
+   * ⚠️ CE CHAMP A DIT « `maintenanceRange` ou `directedRange` » jusqu'au
+   * 2026-09-04, et c'était une porte rouverte à 250 lignes de l'arbitrage qui
+   * la ferme: le premier appelant à lire ce doc-ci plutôt que l'en-tête de
+   * `slotEstimate` aurait passé la cible en toute bonne foi. La raison complète
+   * est sur `slotEstimate`; le résumé tient en une ligne: estimer ce qu'on a
+   * mangé depuis sa cible est circulaire, et l'écart penche toujours du côté
+   * qui rassure.
+   */
   target: EnergyTarget | null;
   /** Les occasions que la personne a DÉCLARÉES (`eating_rhythm`), pas les cinq moments horaires. */
   declaredSlots: readonly EatingOccasion[];
@@ -364,11 +379,31 @@ export interface TrackingReport {
 }
 
 // ══════════════════════════════════════════════════════════════════════════
-// LES CLÉS DE FAIT — le contrat §5.10, relu et pas deviné
+// LES CLÉS DE FAIT — le contrat §5.10, IMPORTÉ et pas recopié
 // ══════════════════════════════════════════════════════════════════════════
-
-const MEAL_TICK_PREFIX = "meal_tick:";
-const ACCIDENT_OFF_PLAN_PREFIX = "accident_off_plan:";
+//
+// ⛔ CES DEUX PRÉFIXES ÉTAIENT DES LITTÉRAUX RECOPIÉS ICI, et c'était le même
+// défaut que celui fermé pour `generated_from.shifts[]` — fermé pour UN contrat
+// sur trois.
+//
+// La mesure qui l'a montré: renommer le préfixe À SA SOURCE laissait les 51
+// tests de cette lane VERTS pendant que `plansDone` tombait à 0. Un compteur
+// qui rend zéro sans rougir est exactement ce que ce module existe pour
+// empêcher ailleurs.
+//
+// Ils viennent donc de leurs écrivains, qui portent chacun la note « une seule
+// définition »: `meal_tick.ts:62` (module pur, zéro import) et
+// `accident_io.ts:645`. Un test de câblage passe par les VRAIS constructeurs
+// (`mealTickKey`, `accidentOffPlanKey`) et donne leur sortie à `readDishKey` —
+// aucune chaîne recopiée dans les tests non plus, pour la raison déjà écrite
+// pour `shifts[]`: un lecteur qui épingle une copie de son écrivain le fige
+// dans le temps et finit par prouver le mensonge d'hier.
+//
+// ⚠️ IMPORTER `accident_io.ts` NE REND PAS CE MODULE IMPUR. La pureté qu'il
+// revendique est celle de son COMPORTEMENT — aucune I/O, aucune horloge, aucun
+// aléa —, pas celle de son graphe d'imports. Lire une constante d'un module qui
+// sait parler à la base n'exécute aucune requête. L'alternative (recopier le
+// mot) est précisément ce qui vient de casser.
 
 /** `meal_tick:<planId>:<idx>` → `{ mealId, dishIndex }`. `null` sinon. */
 export function readDishKey(
@@ -488,9 +523,22 @@ export function slotDayShare(
  * que personne n'a noté, il pesait combien ? ». Y mettre la cible de la
  * personne rend la réponse circulaire — le repas manquant revient pile au
  * niveau du déficit, et le total du jour lui montre qu'elle a tenu son
- * objectif **parce qu'on l'a supposé**. Sur un déficit de 500 kcal et deux
- * repas non renseignés, l'écart atteint l'ordre du tiers de la journée, et il
- * penche toujours du même côté: celui qui rassure.
+ * objectif **parce qu'on l'a supposé**. L'écart penche toujours du même côté:
+ * celui qui rassure.
+ *
+ * ⚠️ L'AMPLITUDE, MESURÉE ET PAS ESTIMÉE. La première rédaction de cette note
+ * disait « de l'ordre du tiers de la journée ». C'était FAUX d'un facteur 2,0 à
+ * 2,6, et un bon arbitrage adossé à un faux chiffre se fait renverser par le
+ * premier qui mesure. La loi est exacte et se rejoue en une ligne — les deux
+ * milieux ne diffèrent que du déficit, et la part met l'écart à l'échelle des
+ * créneaux manquants:
+ *
+ *     écart = déficit × part manquante
+ *
+ * Sur le cas courant (déficit 500 kcal, deux occasions déclarées sur trois non
+ * renseignées, donc une part de 0,60 à 0,80): **300 à 400 kcal, soit 12,6 à
+ * 16,8 % de la journée d'entretien**. C'est moins qu'un tiers, et c'est déjà
+ * assez pour retourner le sens d'une journée.
  *
  * On lui rendrait son objectif déguisé en mesure. C'est la différence entre une
  * estimation et une prophétie, et la base `slot_estimate` ne rattraperait pas
@@ -568,7 +616,19 @@ export function buildTrackingReport(input: TrackingInput): TrackingReport {
       permanent: null,
       objective: null,
       weight: null,
-      leftoverBoxes: input.leftoverBoxes,
+      // ⛔ `{ known: false }` EN DUR, ET SURTOUT PAS `input.leftoverBoxes`.
+      //
+      // Il laissait passer `{ known: true, count: 3 }` à travers la sortie sous
+      // plancher: la réponse rendait `{"floor":true, …, "count":3}`. Inoffensif
+      // tant que l'appelant passait `{known:false}` en dur — ARMÉ depuis que
+      // A8.2 livre le vrai compte de `meal_share_outcomes`.
+      //
+      // Un compte de boîtes restées n'est pas une calorie, mais l'invariant C5
+      // dit « AUCUN chiffre », pas « aucune calorie », et il a raison: sous
+      // plancher, la page ne doit rien donner à compter. La garde est ici et
+      // pas chez l'appelant, parce qu'un appelant qui oublie est un appelant,
+      // et qu'il y en aura d'autres.
+      leftoverBoxes: { known: false },
     };
   }
 

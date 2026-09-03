@@ -38,6 +38,18 @@ export function TrackingDescribeDialog(
   const [text, setText] = React.useState("");
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  /**
+   * L'ACCUSÉ, ET IL DIT CE QUI NE S'EST PAS PASSÉ.
+   *
+   * ⛔ `tracking.describe.done` était ORPHELINE — déclarée dans les deux packs,
+   * jamais rendue — et son texte affirmait « ça compte dans ce jour,
+   * maintenant », c'est-à-dire l'INVERSE de ce que ce chemin fait. La
+   * non-livraison n'était donc pas nommée, elle était MASQUÉE par un accident:
+   * la phrase ne mentait à personne parce que personne ne la voyait.
+   * Elle est rendue, et réécrite pour dire la vérité: le repas cesse d'être
+   * oublié, le chiffre du jour ne bouge pas encore.
+   */
+  const [done, setDone] = React.useState(false);
 
   // Un changement de créneau remet le champ à zéro: réutiliser le texte du
   // repas d'avant est le pire des défauts par défaut sur un formulaire de
@@ -45,6 +57,7 @@ export function TrackingDescribeDialog(
   React.useEffect(() => {
     setText("");
     setError(null);
+    setDone(false);
   }, [localDate, slot]);
 
   async function submit() {
@@ -61,8 +74,11 @@ export function TrackingDescribeDialog(
         setError(result.reason ?? "unknown");
         return;
       }
+      // ⚠️ ON NE FERME PAS. La personne vient d'écrire; lui refermer la fenêtre
+      // au visage lui laisserait croire que son texte a été compté. On rend
+      // l'accusé, elle ferme quand elle l'a lu.
+      setDone(true);
       onRecorded();
-      onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -77,6 +93,21 @@ export function TrackingDescribeDialog(
       title={t("tracking.describe.title")}
       closeLabel={t("tracking.describe.cancel")}
     >
+      {done
+        ? (
+          <>
+            <p className="max-w-[62ch] text-sm leading-6 text-ink break-words">
+              {t("tracking.describe.done")}
+            </p>
+            <div className="mt-4">
+              <Button variant="primary" onClick={onClose}>
+                {t("tracking.describe.cancel")}
+              </Button>
+            </div>
+          </>
+        )
+        : (
+          <>
       <p className="max-w-[62ch] text-sm leading-6 text-ink-soft break-words">
         {t("tracking.describe.subtitle")}
       </p>
@@ -108,6 +139,8 @@ export function TrackingDescribeDialog(
           {t("tracking.describe.cancel")}
         </Button>
       </div>
+          </>
+        )}
     </Modal>
   );
 }

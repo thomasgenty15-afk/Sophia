@@ -4,6 +4,8 @@ import {
   buildTrackingReport,
   datesBetween,
   planEndsOn,
+  ACCIDENT_OFF_PLAN_PREFIX,
+  MEAL_TICK_PREFIX,
   readDishKey,
   slotDayShare,
   slotEstimate,
@@ -17,6 +19,9 @@ import {
 import type { EnergyGateResult } from "./energy_gate.ts";
 import type { EnergyTarget } from "./energy_target.ts";
 import { EATING_OCCASIONS } from "./meal_generation.ts";
+// ⚠️ LES VRAIS CONSTRUCTEURS DE CLÉ, pas une chaîne recopiée — voir le bloc ⑨.
+import { mealTickKey } from "./meal_tick.ts";
+import { accidentOffPlanKey } from "./accident_io.ts";
 
 // ══════════════════════════════════════════════════════════════════════════
 // FIXTURES
@@ -141,14 +146,54 @@ Deno.test("A7 — sous plancher TCA, le rapport ne porte AUCUN chiffre ni courbe
     gate: FLOOR,
     facts: [fact({ energy: { kcal: 700, basis: "photo_estimate" } })],
     weights: [{ localDate: "2026-09-02", value: 71.4 }],
+    // ⚠️ ET UN COMPTE DE BOÎTES NON NUL. C'est ce que A8.2 passe désormais, et
+    // c'est ce qui traversait la sortie: la réponse rendait
+    // `{"floor":true, …, "count":3}`.
+    leftoverBoxes: { known: true, count: 3 },
   }));
   assertEquals(report.floor, true);
   assertEquals(report.permanent, null);
   assertEquals(report.objective, null);
   assertEquals(report.weight, null);
+  assertEquals(report.leftoverBoxes, { known: false });
   assertEquals(energyLeaves(report).length, 0);
   // Et la raison reste lisible pour l'écran, sans être un diagnostic.
   assertEquals(report.energy.reason, "restriction_floor");
+
+  // ══════════════════════════════════════════════════════════════════════
+  // ⛔ L'ASSERTION QUI DIT CE QUE LE TITRE PROMET
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // `energyLeaves` ne ramasse que les objets portant `kcal`. Un `count: 3`
+  // passait donc DEVANT lui pendant que le commentaire du test affirmait
+  // « aucun chiffre ». Un test dont la note promet plus que son assertion est
+  // pire qu'un test absent: il fait passer la relecture.
+  //
+  // On sérialise le rapport entier et on refuse le moindre NOMBRE. Rien de
+  // légitime n'en porte sous plancher: les bornes sont des chaînes, `floor` et
+  // `energy.open` des booléens, `reason` une chaîne.
+  const numbers: string[] = [];
+  const walk = (node: unknown, path: string): void => {
+    if (typeof node === "number") {
+      numbers.push(`${path} = ${node}`);
+      return;
+    }
+    if (Array.isArray(node)) {
+      node.forEach((n, i) => walk(n, `${path}[${i}]`));
+      return;
+    }
+    if (node && typeof node === "object") {
+      for (const [k, v] of Object.entries(node as Record<string, unknown>)) {
+        walk(v, path ? `${path}.${k}` : k);
+      }
+    }
+  };
+  walk(report, "");
+  assertEquals(
+    numbers,
+    [],
+    "un nombre traverse la sortie sous plancher — C5 dit AUCUN chiffre, pas « aucune calorie »",
+  );
 });
 
 Deno.test("A7 — une porte fermée AUTREMENT garde le bloc permanent et la courbe", () => {
@@ -725,4 +770,72 @@ Deno.test("A7 — l'abstention d'UN jour emporte la semaine et le plan, pas les 
   assertEquals(report.objective?.week, null);
   assertEquals(report.objective?.plan, null);
   assertEquals(report.objective?.abstained, true);
+});
+
+// ══════════════════════════════════════════════════════════════════════════
+// ⑨ LES DEUX AUTRES CONTRATS DE CLÉ — câblés par leurs VRAIS constructeurs
+// ══════════════════════════════════════════════════════════════════════════
+//
+// ⛔ CE QUE CES TESTS EXISTENT POUR EMPÊCHER, ET C'EST ENCORE UN ZÉRO.
+// Les préfixes `meal_tick:` et `accident_off_plan:` étaient des LITTÉRAUX
+// recopiés dans ce module. Mesuré: renommer le préfixe À SA SOURCE laissait
+// les 51 tests de cette lane VERTS pendant que `plansDone` tombait à 0 — un
+// compteur qui rend zéro sans rougir, exactement ce que la lane avait fermé
+// pour `generated_from.shifts[]` et laissé ouvert ici.
+//
+// ⚠️ AUCUNE CHAÎNE RECOPIÉE DANS CES TESTS NON PLUS. Ils appellent
+// `mealTickKey` et `accidentOffPlanKey`, c'est-à-dire les fonctions que les
+// écrivains utilisent réellement. Un test qui écrirait `"meal_tick:p:0"` à la
+// main épinglerait une COPIE de l'écrivain et resterait vert le jour du
+// renommage — il prouverait le mensonge d'hier.
+
+Deno.test("A7 — une coche construite par SON écrivain est relue par le suivi", () => {
+  const key = mealTickKey("plan-1", 0);
+  assertEquals(readDishKey(key, MEAL_TICK_PREFIX), {
+    mealId: "plan-1",
+    dishIndex: 0,
+  });
+  // Et le compte qui en dépend: le plan est écoulé et porte une coche vivante.
+  const report = buildTrackingReport(input({
+    plans: [
+      plan({
+        mealId: "plan-old",
+        startsOn: "2026-08-20",
+        durationDays: 3,
+        dishes: [dish({ date: "2026-08-20" })],
+      }),
+    ],
+    facts: [fact({ key: mealTickKey("plan-old", 0), localDate: "2026-08-20" })],
+  }));
+  assertEquals(
+    report.permanent?.plansDone,
+    1,
+    "le préfixe de la coche a divergé de son écrivain: `plansDone` tombe à zéro",
+  );
+});
+
+Deno.test("A7 — un accident construit par SON écrivain est relu par le suivi", () => {
+  const key = accidentOffPlanKey("plan-1", 2);
+  assertEquals(readDishKey(key, ACCIDENT_OFF_PLAN_PREFIX), {
+    mealId: "plan-1",
+    dishIndex: 2,
+  });
+  const report = buildTrackingReport(input({
+    facts: [fact({ key: accidentOffPlanKey("plan-1", 0) })],
+  }));
+  assertEquals(
+    report.permanent?.plansChanged,
+    1,
+    "le préfixe de l'accident a divergé de son écrivain: `plansChanged` tombe à zéro",
+  );
+});
+
+Deno.test("A7 — les deux préfixes sont ceux de leurs écrivains, mot pour mot", () => {
+  // La garde de dernier recours: si un jour quelqu'un remet un littéral ici,
+  // ces deux égalités le comparent quand même à la source.
+  assertEquals(MEAL_TICK_PREFIX, mealTickKey("x", 0).slice(0, -"x:0".length));
+  assertEquals(
+    ACCIDENT_OFF_PLAN_PREFIX,
+    accidentOffPlanKey("x", 0).slice(0, -"x:0".length),
+  );
 });

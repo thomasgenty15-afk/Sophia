@@ -505,10 +505,17 @@ export async function loadTrackingReport(
       // Estimer ce qu'on a mangé à partir de sa CIBLE est circulaire: le repas
       // manquant reviendrait pile au niveau du déficit, et le total du jour
       // montrerait à la personne qu'elle a tenu son objectif — parce qu'on
-      // l'aurait supposé. Sur un déficit de 500 kcal et deux repas manquants,
-      // l'écart est de l'ordre du tiers de la journée, toujours dans le sens
-      // flatteur. L'entretien est le seul a priori NEUTRE dont on dispose sur
-      // un repas dont on ne sait rien.
+      // l'aurait supposé.
+      //
+      // ⚠️ L'AMPLITUDE EST MESURÉE, PAS ESTIMÉE. Cette note a dit « de l'ordre
+      // du tiers de la journée »: faux d'un facteur 2,0 à 2,6. La loi exacte
+      // est `écart = déficit × part manquante`, soit — déficit 500 kcal, deux
+      // occasions sur trois non renseignées — **300 à 400 kcal, 12,6 à 16,8 %
+      // de la journée d'entretien**. Moins qu'un tiers, et déjà assez pour
+      // retourner le sens d'une journée.
+      //
+      // L'entretien est le seul a priori NEUTRE dont on dispose sur un repas
+      // dont on ne sait rien.
       //
       // La base `slot_estimate` dit déjà que c'est une convention; elle ne doit
       // pas en plus être une convention qui donne raison.

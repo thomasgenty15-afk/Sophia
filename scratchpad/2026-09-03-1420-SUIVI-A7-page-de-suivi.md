@@ -126,6 +126,11 @@ cassé à la base pour toutes les lanes (18 erreurs TS dans dix fichiers de test
 | M9 | le plan du foyer perd son `.eq("household_id")` | 2 rouges Deno | `cp` + `cmp` OK |
 | M10 | **l'écrivain de MEMBRE** renomme `shifts` → `plan_shifts` (`accident_io.ts`) | 1 rouge Deno : le test de câblage, pas un zéro | `cp` + `cmp` OK |
 | M11 | **l'écrivain de MEMBRE** retire `moved_dish_indexes` de `PlanShiftTrace` | rouge de **compilation**, qui NOMME le champ, dans mon propre fichier de test | `cp` + `cmp` OK |
+| M12 | `MEAL_TICK_PREFIX` renommé **à sa source** (`meal_tick.ts:62`) | **8 rouges** Deno (c'était 0 avant ① : 51/51 verts pendant que `plansDone` tombait à 0) | `cp` + `cmp` OK |
+| M13 | `ACCIDENT_OFF_PLAN_PREFIX` renommé **à sa source** (`accident_io.ts:645`) | 2 rouges Deno | `cp` + `cmp` OK |
+| M14 | une clé `tracking.*` orpheline ajoutée aux deux packs | 1 rouge : « chaque clé a un appelant vivant » | `cp` + `cmp` OK |
+| M15 | la phrase d'abstention renomme une portée (« sur ce jour ») | 1 rouge : « ne nomme AUCUNE portée » | `cp` + `cmp` OK |
+| M16 | l'accusé de « Décrire » cesse d'être rendu | 1 rouge : « l'accusé est rendu » | `cp` + `cmp` OK |
 
 > ⚠️ M3 n'a d'abord mordu qu'UN test : le jeu de fixture
 > (`breakfast + lunch + dinner`) pèse exactement 1,00, donc la normalisation y
@@ -375,6 +380,53 @@ Et une entrée mal formée dans un tableau présent est comptée zéro **et**
 journalisée (`keel.tracking.shift_trace_shape_changed`, avec le compte et les
 champs attendus) : c'est le seul cas où la donnée existe, est illisible, et où
 le silence coûterait plus cher que le bruit.
+
+## 8quater. Les six défauts du vérificateur, et ce qu'ils m'apprennent
+
+Rapport : `scratchpad/2026-09-04-0010-SUIVI-A7-verification.md`. Les six sont
+corrigés dans le worktree. Deux d'entre eux me corrigent sur le fond.
+
+| # | Défaut | Correction | Garde neuve |
+|---|---|---|---|
+| ① | `MEAL_TICK_PREFIX` et `ACCIDENT_OFF_PLAN_PREFIX` **recopiés** en littéraux | importés de `meal_tick.ts:62` et `accident_io.ts:645` | 3 tests qui passent par les **vrais constructeurs** (`mealTickKey`, `accidentOffPlanKey`) ; M12/M13 |
+| ② | `leftoverBoxes` **traversait** la sortie sous plancher | `{ known: false }` en dur dans la branche `floor` | le test sérialise le rapport et refuse **le moindre nombre** |
+| ③ | `tracking.describe.done` **orpheline** et disant l'inverse du produit | réécrite **et rendue** | « chaque clé `tracking.*` a un appelant vivant » ; M14/M16 |
+| ④ | « de l'ordre du tiers de la journée » — **faux** | `écart = déficit × part manquante` ⇒ **300–400 kcal, 12,6–16,8 %** | recalculé à la main avant d'être écrit |
+| ⑤ | « Pas de total **sur ce jour** » sous « Ces sept jours » | la phrase ne nomme plus aucune portée | « la phrase d'abstention ne nomme AUCUNE portée » ; M15 |
+| ⑥ | le doc du champ `target` **rouvrait** `directedRange` | réécrit, et renvoie à `slotEstimate` | — |
+
+### Ce que ① m'apprend, et c'est le plus dur à avaler
+
+J'ai **fermé ce mode de défaillance moi-même**, pour `generated_from.shifts[]`,
+en important le vrai écrivain — et j'ai écrit un pavé de vingt lignes pour
+expliquer pourquoi un lecteur qui recopie son contrat tombe à zéro en silence.
+Puis j'ai laissé **deux autres contrats** ouverts dans le même fichier, à
+soixante lignes de là. La mesure du vérificateur est sans appel : renommer le
+préfixe à sa source laissait **51/51 de mes tests verts** pendant que
+`plansDone` tombait à 0.
+
+La leçon n'est pas « importer ses constantes ». C'est qu'**une leçon apprise sur
+un cas ne se propage pas toute seule aux cas voisins** : il faut chercher les
+voisins explicitement. J'avais l'outil, le motif écrit, et l'exemple sous les
+yeux, et je ne les ai pas cherchés.
+
+### Ce que ③ m'apprend
+
+Mon journal disait « aucune copie ne prétend le contraire ». C'était **vrai par
+accident** : la phrase qui prétendait le contraire existait bel et bien dans les
+deux packs — elle n'était simplement pas rendue. Une non-livraison **masquée par
+un hasard** se lit exactement comme une non-livraison **nommée**, jusqu'au jour
+où le hasard change. La garde « chaque clé a un appelant vivant » ferme la
+famille entière, pas ce cas.
+
+### Ce que ④ m'apprend
+
+Un bon arbitrage adossé à un faux chiffre se fait renverser par le premier qui
+mesure. J'avais raison sur le fond (estimer depuis la cible est circulaire quelle
+que soit l'amplitude) et faux d'un **facteur 2,0 à 2,6** sur l'amplitude, dans un
+commentaire écrit pour convaincre. Le chiffre est maintenant une **loi exacte**
+qu'on rejoue en une ligne, pas un ordre de grandeur : `écart = déficit × part
+manquante`.
 
 ## 9. La fusion de A8.0
 
