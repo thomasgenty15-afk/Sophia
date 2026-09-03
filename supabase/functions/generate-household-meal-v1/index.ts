@@ -3815,7 +3815,31 @@ Deno.serve(async (req) => {
     // ont fait leur travail juste au-dessus, à l'identique: le plafond
     // s'applique APRÈS, sur leur résultat. Le jour où le calcul change, il n'y a
     // qu'un endroit à relire.
-    const shapeCap = capCookingShape(computedShape, askedCookingShape);
+    // ⟳ A2 (2026-09-03) — LE STYLE PLAFONNE LA FORME, ET IL LE FAIT PAR LA
+    // PORTE QUI EXISTE.
+    //
+    // « Le moins possible — je réchauffe » et « chacun le sien » sont deux
+    // réponses de la même personne, et elles se contredisent: deux plats par
+    // repas ne se réchauffent pas en trente minutes. `capCookingShape` est le
+    // SEUL endroit du produit qui compare un choix à un calcul; on lui donne
+    // donc le choix DÉJÀ plafonné plutôt que d'ajouter une seconde comparaison
+    // à côté.
+    //
+    // ⛔ IL PLAFONNE, IL NE FORCE PAS. Un style `balanced` ou `keen` ne
+    // FABRIQUE aucun second plat: il laisse le calcul décider, exactement comme
+    // avant ce lot. Et `null` (jamais demandé) ne plafonne rien du tout — la
+    // population qui n'a pas vu la question garde son comportement d'hier.
+    //
+    // ⚠️ CE N'EST PAS LA MÊME CHOSE QUE LE SEUIL DE TEMPS. `weeklyCookingMinutes`
+    // (D2.4) plafonne aussi, plus bas, sur le budget dérivé — et il se réveille
+    // avec ce lot puisque `cook_days` cesse d'être `[]`. Les deux disent la même
+    // chose par deux chemins, et c'est voulu: l'un vient du MOT (« le moins
+    // possible »), l'autre du NOMBRE (30 min × 1 session < 90).
+    const styleCappedShape: CookingShape | null =
+      declaredCapacity.cookingStyle === "minimal"
+        ? "one_dish"
+        : askedCookingShape;
+    const shapeCap = capCookingShape(computedShape, styleCappedShape);
     const cookingShape: CookingShape = shapeCap.shape;
     // ⛔ LES BOUCHES QUI REÇOIVENT VRAIMENT UN PLAT — et c'est ce que le plafond
     // change. `divergingMembers` reste le CALCUL (il nomme au constat qui ne

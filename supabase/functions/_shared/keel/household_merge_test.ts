@@ -3742,9 +3742,26 @@ Deno.test("LOT B — le mode demandé est LU, et le plafond est appliqué à UN 
     /const askedCookingShape = readCookingShape\(body\.cooking_shape\)/.test(src),
     "le mode de cuisson n'est plus lu de la demande.",
   );
+  // ⟳ A2 (2026-09-03) — LE CHOIX ENTRE PAR UN PLAFOND DE STYLE, ET LA PORTE
+  // RESTE LA MÊME. « Le moins possible — je réchauffe » et « chacun le sien »
+  // se contredisent: deux plats par repas ne se réchauffent pas en trente
+  // minutes. Le style plafonne donc le CHOIX avant que `capCookingShape` le
+  // compare au calcul — plutôt qu'une seconde comparaison à côté, qui serait
+  // le second avis que ce test existe pour interdire.
   assert(
-    /const shapeCap = capCookingShape\(computedShape, askedCookingShape\)/.test(src),
+    /const styleCappedShape: CookingShape \| null =\n\s+declaredCapacity\.cookingStyle === "minimal"\n\s+\? "one_dish"\n\s+: askedCookingShape;/
+      .test(src),
+    "le style ne plafonne plus le choix, ou il le fait ailleurs.",
+  );
+  assert(
+    /const shapeCap = capCookingShape\(computedShape, styleCappedShape\)/.test(src),
     "le plafond n'est plus appliqué, ou il l'est ailleurs qu'à un seul endroit.",
+  );
+  // ⛔ ET IL PLAFONNE, IL NE FORCE PAS: un style `balanced` ou `keen` — et
+  // l'absence de style — laissent le choix traverser intact.
+  assert(
+    !/capCookingShape\(computedShape, askedCookingShape\)/.test(src),
+    "le choix brut atteint encore le plafond: le style ne mord pas.",
   );
   assert(
     /const cookingShape: CookingShape = shapeCap\.shape/.test(src),
