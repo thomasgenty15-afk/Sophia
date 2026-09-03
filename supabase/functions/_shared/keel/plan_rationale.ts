@@ -248,6 +248,28 @@ export interface PlanRationaleFacts {
    * ⚠️ `day` EST LE JOUR ACCORDÉ, jamais celui qui aurait pu l'être: on ne
    * nomme pas une date qui n'existe dans aucun plan.
    */
+  /**
+   * ═════════════════════════════════════════════════════════════════════════
+   * A2 (2026-09-03) — CE QUE LE STYLE ET LA CADENCE DE COURSES ONT PLAFONNÉ.
+   * ═════════════════════════════════════════════════════════════════════════
+   *
+   * `null` = les deux questions de P2 n'ont pas été posées, et l'explication
+   * d'un compte antérieur ne bouge pas d'un caractère.
+   *
+   * ⛔ IL NE DIT QUE CE QUI A ÉTÉ CORRIGÉ. Le nombre de courses est déjà dit
+   * par `shoppingDays` (« deux courses : jeudi et dimanche »), et le redire ici
+   * ferait deux phrases pour un fait. Ce qui manque, et que personne ne peut
+   * deviner, c'est POURQUOI le plan n'a pas pris les trois courses demandées.
+   */
+  cookingPlan:
+    | {
+      readonly sessions: number;
+      /** Les courses demandées que le plan n'utilise pas. `0` = aucune. */
+      readonly unusedRuns: number;
+      /** Le vocabulaire fermé de `CookingPlanNote`. */
+      readonly notes: readonly string[];
+    }
+    | null;
   cookDayBefore:
     | {
       readonly day: DayToken | null;
@@ -542,6 +564,18 @@ const COPY = {
     // temps avant la fermeture des magasins: dire « un jour plus tôt » sans
     // dire « ce soir » ferait chercher un jour de cuisine dans le futur alors
     // qu'il est aujourd'hui.
+    // ── A2 · LE STYLE A PLAFONNÉ ─────────────────────────────────────────
+    // ⚠️ ELLE DIT LE CHOIX AVANT LA CONSÉQUENCE. « Deux sessions » seul se lit
+    // comme une limite subie; « tu as choisi de cuisiner le moins possible »
+    // en fait une décision, qui est ce qu'elle est.
+    styleCapsSessions: (runs: number, sessions: number) =>
+      `Tu as choisi de cuisiner le moins possible : ${sessions} sessions ` +
+      `suffisent, même avec ${runs} courses. La dernière ne sert qu'au frais ` +
+      `du jour.`,
+    // ── A2 · LA FENÊTRE A PLAFONNÉ ───────────────────────────────────────
+    daysCapSessions: (sessions: number) =>
+      `Cette fenêtre est courte : ${sessions} session de cuisine, pas plus — ` +
+      `deux le même jour ne feraient qu'une.`,
     cookDayBeforeTonight: (day: string) =>
       `Tout est cuisiné ce soir, ${day} : le plan commence un jour plus tôt, ` +
       `et rien ne se mange ce jour-là.`,
@@ -726,6 +760,13 @@ const COPY = {
     cookDayBeforeInThePast: () =>
       `Cooking the day before would have started the plan yesterday. It ` +
       `starts on its first day, and the cooking happens there.`,
+    styleCapsSessions: (runs: number, sessions: number) =>
+      `You chose to cook as little as possible: ${sessions} sessions are ` +
+      `enough, even with ${runs} shops. The last one is only for the day's ` +
+      `fresh food.`,
+    daysCapSessions: (sessions: number) =>
+      `This window is short: ${sessions} cooking session, no more — two on ` +
+      `the same day would only be one.`,
     cookDayBeforeTonight: (day: string) =>
       `Everything is cooked tonight, ${day}: the plan starts a day earlier, ` +
       `and nothing is eaten on that day.`,
@@ -907,6 +948,7 @@ const REQUIRED_FACTS: readonly (keyof PlanRationaleFacts)[] = [
   "emptySlots",
   "daysOutOfBatchReach",
   "oneCookingSession",
+  "cookingPlan",
   "cookDayBefore",
   "shoppingDays",
   "shopLaterDays",
@@ -1020,6 +1062,28 @@ export function explainPlanChoices(input: {
   // explique la FENÊTRE; « tout est cuisiné dimanche » explique ce qu'on y
   // fait. Lire la seconde d'abord ferait apparaître un jour dont on n'a pas
   // encore dit d'où il sort.
+  // ── A2 · CE QUE LE STYLE A REPRIS, AVANT LA VEILLE ──────────────────────
+  // ⚠️ AVANT la phrase de la veille, et c'est l'ordre du sens: « combien de
+  // fois on cuisine » cadre la semaine, « quel jour la cuisine commence » la
+  // situe. Lire le jour d'abord ferait apparaître une session dont on n'a pas
+  // encore dit combien il y en a.
+  const cooking = facts.cookingPlan;
+  if (cooking !== null) {
+    if (cooking.notes.includes("style_caps_sessions")) {
+      lines.push(
+        copy.styleCapsSessions(cooking.sessions + cooking.unusedRuns, cooking.sessions),
+      );
+    }
+    if (cooking.notes.includes("days_cap_sessions")) {
+      lines.push(copy.daysCapSessions(cooking.sessions));
+    }
+    // ⛔ `runs_1_needs_freezer` N'A PAS DE PHRASE ICI, ET CE N'EST PAS UN OUBLI:
+    // « une seule course » entre par la porte `one_cooking_session`, et son
+    // refus sans congélateur est déjà dit par `singleSessionNeedsFreezer`, plus
+    // bas. Une seconde phrase pour le même fait ferait lire deux refus là où il
+    // n'y en a qu'un.
+  }
+
   const dayBefore = facts.cookDayBefore;
   if (dayBefore !== null) {
     if (dayBefore.refused === "no_room") {

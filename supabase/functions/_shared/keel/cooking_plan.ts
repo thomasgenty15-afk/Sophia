@@ -366,3 +366,109 @@ export function longestFridgeStretch(
   }
   return longest;
 }
+
+// ---------------------------------------------------------------------------
+// CE QUE LES DEUX LANES LISENT — une seule résolution, appelée deux fois
+// ---------------------------------------------------------------------------
+
+/** Ce que `readCookingCapacity` rend aujourd'hui, dans les deux lanes. */
+export interface DeclaredCookingCapacity {
+  cookDays: string[];
+  cookingTimeMin: number | null;
+  recipeDifficulty: string | null;
+  variety: string | null;
+  /**
+   * ⚠️ IL TRAVERSE SANS ÊTRE TOUCHÉ, et il est dans le type EXPRÈS. Le budget
+   * n'a rien à voir avec le style de cuisine, mais il vit dans le même objet
+   * chez les deux appelants: l'omettre du type obligerait chacun à recomposer
+   * `{...capacity, ...resolved}` à la main, et c'est très exactement le genre
+   * de recopie où un champ se perd en silence.
+   */
+  budgetAmount: number | null;
+}
+
+export interface ResolvedCookingCapacity extends DeclaredCookingCapacity {
+  /**
+   * LE PLAN DÉRIVÉ, ou `null` = **les deux questions n'ont pas été posées**.
+   *
+   * `null` est le chemin de tout compte antérieur à P2, et il rend la sortie
+   * BYTE-IDENTIQUE à celle d'avant ce lot: les quatre champs déclarés
+   * ressortent tels quels, et aucune phrase de rationale ne s'ajoute.
+   */
+  plan: CookingPlan | null;
+  /**
+   * « UNE SEULE COURSE » VAUT « TOUT DANS UNE SESSION ».
+   *
+   * ⛔ CE N'EST PAS UNE QUATRIÈME PORTE DU CONGÉLATEUR. C'est une DEMANDE, au
+   * même titre que `body.one_cooking_session`; l'appelant la passe dans la
+   * porte qui existe déjà (`askedOneCookingSession && hasFreezerDeclared`), et
+   * c'est elle seule qui tranche. Trois implémentations de cette règle sont
+   * alignées par `freezerMirror.int.test.ts`; en écrire une quatrième ici les
+   * ferait diverger au premier ajustement.
+   */
+  impliesOneSession: boolean;
+}
+
+/**
+ * LES DEUX RÉPONSES DE P2, APPLIQUÉES À CE QUI EST DÉCLARÉ.
+ *
+ * ⛔ APPELÉE PAR LES DEUX LANES, ET C'EST LA RAISON D'ÊTRE DE CETTE FONCTION.
+ * `readCookingCapacity` est **dupliquée** dans `generate-meal-v1` et
+ * `generate-household-meal-v1` — sans un seul test qui compare les deux, état
+ * constaté le 2026-09-03. La dérivation, elle, ne sera pas dupliquée: elle vit
+ * ici, et un test lit LES DEUX SOURCES pour vérifier qu'elles l'appellent.
+ *
+ * ── CE QUI CHANGE, ET CE QUI NE CHANGE PAS ────────────────────────────────
+ *   · `cookDays` devient la DÉRIVATION (rang 0 = la veille, puis les tranches);
+ *     c'est ce qui réveille `cookDayLines`, `daysOutOfBatchReach` et
+ *     `weeklyCookingMinutes`, endormis depuis que l'écran écrit `[]` (D2.4 —
+ *     réveil ASSUMÉ et DIT, pas un nettoyage);
+ *   · `cookingTimeMin` devient le budget du style;
+ *   · `recipeDifficulty` et `variety` ne bougent PAS, et ce n'est pas un
+ *     oubli: ⛔ **aucune des deux n'a de lecteur dans les deux générateurs**
+ *     (vérifié le 2026-09-03 — `readCookingCapacity` les calcule et personne
+ *     ne les lit; le seul lecteur vivant est `keel-plan-feedback-v1`, qui lit
+ *     la COLONNE). Les dériver ici écrirait un réglage que rien ne consomme et
+ *     ferait ressembler un lot désarmé à un lot qui marche. Le style les porte
+ *     (`COOKING_STYLE_PROFILE`) pour le jour où un lecteur existera.
+ *
+ * @param freezer déjà réduit à un booléen par `hasFreezerDeclared` chez
+ *   l'appelant — « pas de congélateur » et « jamais demandé » y rendent le
+ *   même `false`, et c'est la direction fail-closed voulue.
+ */
+export function resolveCookingCapacity(input: {
+  declared: DeclaredCookingCapacity;
+  style: CookingStyle | null;
+  runs: GroceryRuns | null;
+  freezer: boolean;
+  windowDays: readonly DayToken[];
+  leadDay: boolean;
+  daysToEat: number;
+}): ResolvedCookingCapacity {
+  // ⛔ LES DEUX RÉPONSES, OU AUCUNE. Un style sans cadence de courses ne dit
+  // pas combien de fois on cuisine, et une cadence sans style ne dit pas
+  // combien de temps. Deviner la manquante servirait un plan sur une moitié de
+  // réponse — et c'est très exactement ce que « clé absente ≠ minimal » refuse.
+  if (input.style === null || input.runs === null) {
+    return { ...input.declared, plan: null, impliesOneSession: false };
+  }
+  const plan = deriveCookingPlan({
+    style: input.style,
+    runs: input.runs,
+    freezer: input.freezer,
+    windowDays: input.windowDays,
+    leadDay: input.leadDay,
+    daysToEat: input.daysToEat,
+  });
+  return {
+    ...input.declared,
+    cookDays: [...plan.cookDays],
+    cookingTimeMin: plan.sessionMinutes,
+    plan,
+    // ⚠️ SUR `runs`, PAS SUR `plan.sessions`. « Une course » est ce que la
+    // personne a DEMANDÉ; `plan.sessions` peut déjà valoir 2 parce qu'il n'y a
+    // pas de congélateur, et lire la sortie ferait disparaître la demande au
+    // moment même où le refus doit être nommé.
+    impliesOneSession: input.runs === 1,
+  };
+}

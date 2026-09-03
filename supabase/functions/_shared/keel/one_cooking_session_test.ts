@@ -304,10 +304,24 @@ for (const [name, rel] of LANES) {
     const src = await Deno.readTextFile(new URL(rel, import.meta.url));
     // ⛔ `hasFreezerDeclared`, jamais `!== false`: « pas de congélateur » et
     // « jamais demandé » doivent rendre le même refus.
+    // ⟳ A2 (2026-09-03) — LA DEMANDE A DEUX ORIGINES, LA PORTE EN A UNE.
+    // « Une seule course » (`grocery_runs = 1`) veut dire que le plan doit
+    // tenir sur une session: c'est une DEMANDE de plus, et elle entre par la
+    // MÊME porte. Ce test tenait le littéral de la porte; il tient maintenant
+    // la porte ET l'union des deux demandes, pour qu'une quatrième
+    // implémentation du congélateur ne puisse pas s'installer à côté.
     assertStringIncludes(
       src,
-      "const oneCookingSession = askedOneCookingSession &&\n      hasFreezerDeclared(kitchenEquipment);",
+      "const askedOneSession = askedOneCookingSession || groceryRuns === 1;",
     );
+    assertStringIncludes(
+      src,
+      "const oneCookingSession = askedOneSession &&\n      hasFreezerDeclared(kitchenEquipment);",
+    );
+    // ⛔ ET LE REFUS SE COMPTE SUR L'UNION, pas sur la seule case: une course
+    // unique refusée faute de congélateur doit être aussi visible qu'une case
+    // cochée refusée.
+    assertStringIncludes(src, "if (askedOneSession && !oneCookingSession) {");
     // Et le booléen TRANCHÉ est celui qui atteint le tronc — pas la demande.
     assertStringIncludes(src, "      oneCookingSession,");
   });
