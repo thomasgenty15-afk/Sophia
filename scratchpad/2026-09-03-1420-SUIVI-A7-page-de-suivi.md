@@ -124,6 +124,8 @@ cassé à la base pour toutes les lanes (18 erreurs TS dans dix fichiers de test
 | M7 | une lecture de plans AVANT `loadEnergyGate` | 2 rouges Deno (ordre + sortie sous plancher) | `cp` + `cmp` OK |
 | M8 | la requête des faits perd son `.eq("user_id")` | 1 rouge Deno | `cp` + `cmp` OK |
 | M9 | le plan du foyer perd son `.eq("household_id")` | 2 rouges Deno | `cp` + `cmp` OK |
+| M10 | **l'écrivain de MEMBRE** renomme `shifts` → `plan_shifts` (`accident_io.ts`) | 1 rouge Deno : le test de câblage, pas un zéro | `cp` + `cmp` OK |
+| M11 | **l'écrivain de MEMBRE** retire `moved_dish_indexes` de `PlanShiftTrace` | rouge de **compilation**, qui NOMME le champ, dans mon propre fichier de test | `cp` + `cmp` OK |
 
 > ⚠️ M3 n'a d'abord mordu qu'UN test : le jeu de fixture
 > (`breakfast + lunch + dinner`) pèse exactement 1,00, donc la normalisation y
@@ -289,7 +291,49 @@ qu'ils ne se lisent pas comme des oublis.
    membre réclamé voit son bloc permanent, son jour par jour et sa courbe, mais
    pas de total d'énergie sur les jours couverts par le plan du foyer — et
    l'écran le DIT (`tracking.total.abstained`), il ne rend pas une case vide.
-3. **« Décrire » n'écrit aucun kcal dans ce lot.** Le mandat prévoit
+3. **« Décrire » n'écrit aucun kcal dans ce lot.** ⚠️ **L'orchestrateur a
+   requalifié ce point : ce n'est PAS un arbitrage, c'est une NON-LIVRAISON**,
+   et elle est portée au rapport final du chantier comme trou connu. La raison
+   technique reste bonne (voir plus bas) ; ce qui suit est ce que ça coûte **du
+   côté de la personne**, qui est le seul côté qui compte pour juger un trou.
+
+   ### Ce que « Décrire » NE fait PAS aujourd'hui, dit à la personne
+
+   Elle voit un créneau marqué « Rien de noté », avec un repère chiffré
+   (« environ 850 kcal — une valeur de remplacement, et tu peux la changer dans
+   la journée ») et un bouton « Décrire ». Elle clique, elle écrit « une salade
+   de riz au thon, à peu près 200 g de riz », elle valide.
+
+   **Ce qui se passe :** le repas cesse d'être « rien de noté », ses mots sont
+   enregistrés, le bouton disparaît.
+
+   **Ce qui NE se passe PAS, et qu'elle a toutes les raisons d'attendre :**
+   le chiffre du jour **ne bouge pas d'un kcal**. Les 200 g de riz qu'elle a
+   pris la peine d'écrire ne comptent nulle part. Le repère de répartition
+   reste exactement ce qu'il était avant qu'elle écrive — c'est-à-dire une
+   moyenne, pas son repas. La promesse implicite du bouton (« dis-moi ce que
+   tu as mangé et je le compterai ») n'est tenue qu'à moitié : on prend la
+   déclaration, on ne prend pas la mesure.
+
+   **Le seul endroit où ça se voit à l'écran** est que la phrase du total
+   continue de dire `slot_estimate` (« un repas ou plus n'a jamais été
+   renseigné et tient sa place par une moyenne ») alors qu'elle vient
+   justement de le renseigner. C'est cohérent avec le calcul et **incohérent
+   avec son geste**. Aucune copie ne prétend le contraire, mais aucune ne
+   l'explique non plus : c'est le trou, et il est là.
+
+   **Ce que ça ne fait pas, et c'est ce qui rend le trou acceptable en
+   attendant :** ça ne fabrique aucun chiffre faux, ça ne fait baisser aucun
+   total, et ça n'écrit rien qu'il faudrait défaire. La déclaration est un fait
+   vrai, gardé ; il lui manque son chiffre, pas sa véracité.
+
+   **Ce qu'il faut pour le refermer :** le chemin TEXTE de
+   `analyze-meal-photo-v1` (le modèle lit la description, rend des composants et
+   une estimation), puis `quantity_from_prose` sur les quantités que la
+   personne a écrites — ce qui fait passer la base de `photo_estimate` à
+   `declared_quantities`. Un lot à part, qui ne se prouve pas sans run réel.
+
+   ### La raison technique de ne pas l'avoir inventé ici Le mandat prévoit
    `declared_quantities` « si la personne a écrit des quantités ». Le dépôt n'a
    pas de fonction qui trouve une quantité DANS une phrase :
    `readQuantityFromProse` lit une chaîne ANCRÉE des deux bouts (`^\s*150 g\s*$`),
@@ -301,6 +345,37 @@ qu'ils ne se lisent pas comme des oublis.
    son repas ferait BAISSER le total du jour, et le produit apprendrait à ses
    utilisateurs à se taire. Un test le verrouille.
 
+## 8ter. Le contrat `generated_from.shifts[]`, rendu bruyant
+
+L'orchestrateur a demandé de relire ce lecteur contre le test de forme de
+MEMBRE (`member_cascade_and_shift_trace_test.ts`), pour que le compte tombe à
+zéro **bruyamment**. Il tombait en silence : `Array.isArray(gf.shifts) ?
+gf.shifts.length : 0`, et zéro est une valeur parfaitement plausible sur
+« plans modifiés ».
+
+`countShiftTraces` (`tracking_window_io.ts`) le remplace, et la rupture se voit
+maintenant par **trois** chemins, parce qu'aucun ne suffit seul :
+
+1. **L'absence de la clé ne peut PAS être bruyante, et c'est écrit.** Un plan
+   qui n'a jamais glissé n'a légitimement pas de `shifts` : c'est le cas
+   nominal, il est majoritaire, et le journaliser noierait le signal. Un test
+   vérifie que ce cas reste **muet**.
+2. **Un test de câblage qui passe par le VRAI écrivain.** Il importe
+   `withShiftTrace` de `accident_io.ts` — aucune fixture recopiée, parce qu'un
+   compteur qui épingle une *copie* de son arbitre le fige dans le temps et
+   finit par prouver le mensonge d'hier. Mutation **M10** : renommer la clé chez
+   MEMBRE ⇒ 1 rouge nommé, pas un zéro.
+3. **Les cinq champs, comparés à la source de l'écrivain.** Le test relit
+   l'interface `PlanShiftTrace` dans `accident_io.ts` et la confronte à
+   `PLAN_SHIFT_TRACE_FIELDS`. Mutation **M11** : retirer `moved_dish_indexes`
+   ⇒ rouge de **compilation**, qui nomme le champ, dans mon propre fichier de
+   test.
+
+Et une entrée mal formée dans un tableau présent est comptée zéro **et**
+journalisée (`keel.tracking.shift_trace_shape_changed`, avec le compte et les
+champs attendus) : c'est le seul cas où la donnée existe, est illisible, et où
+le silence coûterait plus cher que le bruit.
+
 ## 9. La fusion de A8.0
 
 `git merge 31148a5a` dans le worktree → commit de fusion **`e39109cb`**,
@@ -311,6 +386,16 @@ qu'ils ne se lisent pas comme des oublis.
 
 Relancé après fusion : `tsc -b --force` → 0 ; `vitest run` → 2053 passés,
 5 rouges (les cinq étrangers de la base, inchangés).
+
+### Seconde fusion — `45ec7868` (correctif A8.0 + A8.1 + A8.2)
+
+`git merge 45ec7868` → **deux conflits**, tous deux dans les packs i18n
+(`en.ts`, `fr.ts`), et tous deux de la même nature : les deux côtés ont ajouté
+leur bloc délimité **au même endroit**, la fin du pack. Résolus en gardant les
+**deux** moitiés, la mienne **en dernier** — c'est l'ordre que §5.12 donne
+(RAPIDE, FOYER, CUISINE, MEMBRE, SUIVI). Aucune ligne de logique d'une autre
+lane n'a été réécrite ; vérifié après coup : les quatre blocs délimités sont
+présents dans les deux packs, et mes 48 clés `tracking.*` y sont toujours.
 
 Ce que la fusion rend réel pour A7 :
 

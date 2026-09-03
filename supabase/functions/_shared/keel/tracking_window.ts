@@ -474,6 +474,32 @@ export function slotDayShare(
  *
  * L'arrondi aux 50 est celui de `energy_target.ts`: rendre « 428 kcal » pour une
  * convention donnerait à une clé de répartition la précision d'une pesée.
+ *
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⛔ `target` EST UN ENTRETIEN, ET JAMAIS UNE CIBLE — LA FORMULE EN DÉPEND
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * Le mandat de ce lot proposait « `maintenanceRange` OU `directedRange` si
+ * direction ». C'est le seul endroit où l'on peut voir pourquoi la seconde
+ * moitié était fausse, alors on l'écrit ICI, contre la formule, et pas
+ * seulement dans le journal de la lane.
+ *
+ * Cette fourchette ne PRESCRIT pas, elle RECONSTITUE: elle répond à « ce repas
+ * que personne n'a noté, il pesait combien ? ». Y mettre la cible de la
+ * personne rend la réponse circulaire — le repas manquant revient pile au
+ * niveau du déficit, et le total du jour lui montre qu'elle a tenu son
+ * objectif **parce qu'on l'a supposé**. Sur un déficit de 500 kcal et deux
+ * repas non renseignés, l'écart atteint l'ordre du tiers de la journée, et il
+ * penche toujours du même côté: celui qui rassure.
+ *
+ * On lui rendrait son objectif déguisé en mesure. C'est la différence entre une
+ * estimation et une prophétie, et la base `slot_estimate` ne rattraperait pas
+ * ça: elle dit « c'est une convention », elle ne dit pas « c'est une convention
+ * qui vous donne raison ».
+ *
+ * L'entretien est le seul a priori NEUTRE dont on dispose sur un repas dont on
+ * ne sait rien. L'appelant (`tracking_window_io.ts`) ne passe donc jamais
+ * `directedRange` ici — arbitrage validé par l'orchestrateur le 2026-09-03.
  */
 export function slotEstimate(
   target: EnergyTarget | null,

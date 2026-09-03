@@ -170,6 +170,88 @@ function energyOf(
   return { kcal, basis: basis as EnergyBasis };
 }
 
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * LES GLISSEMENTS D'UN PLAN — ET CE COMPTEUR TOMBE À ZÉRO **BRUYAMMENT**
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * `generated_from.shifts[]` est écrit par `applyPlanShift` (A8.0, D7.3), dans
+ * une autre lane que celle-ci. C'est donc un **contrat entre deux lanes**, et
+ * un contrat lu par `Array.isArray(gf.shifts) ? gf.shifts.length : 0` est un
+ * contrat qui se rompt en SILENCE: le jour où la clé est renommée ou la forme
+ * change, « plans modifiés » affiche zéro, et zéro est une valeur parfaitement
+ * plausible sur cette ligne. Personne ne verrait rien.
+ *
+ * Trois choses rendent la rupture visible, et il en faut trois parce qu'aucune
+ * ne suffit seule:
+ *
+ *  ① L'ABSENCE DE LA CLÉ NE PEUT PAS ÊTRE BRUYANTE, et il faut le dire: un plan
+ *    qui n'a jamais glissé n'a légitimement pas de `shifts`. C'est le cas
+ *    NOMINAL, il est majoritaire, et le journaliser noierait le signal. La
+ *    perte de la clé ne se voit donc pas ici — elle se voit en ②.
+ *  ② UN TEST DE CÂBLAGE QUI PASSE PAR LE VRAI ÉCRIVAIN. `tracking_window_io_test`
+ *    appelle `withShiftTrace` (le module de A8.0, pas une copie de sa sortie) et
+ *    donne le résultat à ce compteur. Renommer la clé ou retirer un champ fait
+ *    ROUGIR ce test, au lieu de faire tomber ce compteur à zéro.
+ *    ⚠️ Et c'est pour ça qu'il n'y a AUCUNE fixture recopiée: un compteur qui
+ *    épingle une copie de l'arbitre le fige dans le temps, et le test finit par
+ *    prouver le mensonge d'hier.
+ *  ③ UNE ENTRÉE MAL FORMÉE EST COMPTÉE ZÉRO **ET** JOURNALISÉE. Un tableau
+ *    présent dont les entrées ont perdu un champ est le cas où le silence
+ *    coûterait le plus: la donnée existe, elle est illisible, et rien ne le dit.
+ *    Le `console.warn` porte son tag, comme partout ailleurs dans `_shared/keel`.
+ */
+export const PLAN_SHIFT_TRACE_FIELDS = [
+  "cook_on",
+  "delta",
+  "new_cook_on",
+  "moved_dish_indexes",
+  "applied_on",
+] as const;
+
+export function countShiftTraces(
+  generatedFrom: unknown,
+  mealId: string,
+): number {
+  if (!generatedFrom || typeof generatedFrom !== "object") return 0;
+  const raw = (generatedFrom as Record<string, unknown>).shifts;
+  // ① La clé absente est le cas nominal: un plan qui n'a jamais glissé.
+  if (raw === undefined || raw === null) return 0;
+  if (!Array.isArray(raw)) {
+    console.warn(JSON.stringify({
+      tag: "keel.tracking.shift_trace_unreadable",
+      meal_id: mealId,
+      effect: "compte 0; `generated_from.shifts` n'est pas un tableau",
+    }));
+    return 0;
+  }
+  let counted = 0;
+  let malformed = 0;
+  for (const entry of raw) {
+    if (
+      entry && typeof entry === "object" && !Array.isArray(entry) &&
+      PLAN_SHIFT_TRACE_FIELDS.every((f) => f in (entry as Record<string, unknown>))
+    ) {
+      counted += 1;
+    } else {
+      malformed += 1;
+    }
+  }
+  if (malformed > 0) {
+    // ③ La donnée est là et on ne sait pas la lire. C'est le seul cas où le
+    // silence serait pire que le bruit.
+    console.warn(JSON.stringify({
+      tag: "keel.tracking.shift_trace_shape_changed",
+      meal_id: mealId,
+      malformed,
+      counted,
+      expected_fields: PLAN_SHIFT_TRACE_FIELDS,
+      effect: "les entrees illisibles ne sont pas comptees dans `plans modifies`",
+    }));
+  }
+  return counted;
+}
+
 const PLAN_COLUMNS =
   "id, user_id, plan_kind, household_id, servings, dishes, preparations, " +
   "cooking_sessions, starts_on, duration_days, retired_at, generated_from";
@@ -281,8 +363,7 @@ function toTrackingPlan(
     fromPreparation: Array.isArray(d.uses) && d.uses.length > 0,
   }));
 
-  const gf = (row.generated_from ?? {}) as Record<string, unknown>;
-  const shifts = Array.isArray(gf.shifts) ? gf.shifts.length : 0;
+  const shifts = countShiftTraces(row.generated_from, mealId);
 
   return {
     mealId,
