@@ -1862,3 +1862,33 @@ allergie médicale à l'œuf, **menu entier reconstruit**, même fixture.
 ⇒ **C'est la seule forme de preuve qui distingue une garde qui MORD d'une garde qui a de la CHANCE.** Ce chantier a
 passé la journée à apprendre exactement ça, et à le payer trois fois (le test qui recopie le littéral, la mutation
 verte par préfixe, les deux gardes qui se recouvraient).
+
+## 09:0x — le lot « envie » n'est revendiqué par personne, et les neuf lignes sont déclarées
+
+**Écarté par mesure ou par déclaration** : `sophia-2-11` (aucune écriture dans le dépôt de la nuit, lectures et quatre
+appels HTTP seulement), `sophia-2-be` (deux documents de scratchpad et des mémoires — c'est la session qui a **écrit
+l'ANALYSE et le PROMPT MAÎTRE** de ce chantier), `sophia-2-51` (cinq clés `public.consent.*`), `sophia-2-59` (deux blocs
+`known.*`). **Reste `sophia-2-c3`**, interrogée.
+
+**Les neuf lignes emportées par `488d53b7`** sont dans l'histoire, **déclarées dans le message du commit** et
+récupérables par `git show 488d53b7 -- frontend/src/keel/i18n/en.ts frontend/src/keel/i18n/fr.ts`. Je ne les retire pas
+sans que leur auteur le demande. **Si personne ne les revendique, elles seront notées « non revendiquées » au rapport
+plutôt qu'attribuées à tort.**
+
+### ⟳ CORRECTION du §7 du rapport : le verdict n'est pas faux, il FLATTE UN PLAN TROUÉ
+
+`sophia-2-11` s'est démentie **elle-même**, pour la deuxième fois de la nuit, et sa version corrigée vaut mieux :
+la formule du verdict est **juste** (énergie totale ÷ `daysCovered`, bande élargie de ±10 %). **Le défaut est en
+amont** : le plan a produit **2 journées de repas pour une fenêtre de 3 jours**, `suggested_window` décalant le départ
+**sans décaler la fin**. Le verdict divise par 3 une nourriture répartie sur 2, obtient 2 381 kcal/j et rend `within`,
+alors que **chaque jour nourri sert 3 500 kcal contre un plafond à 2 668**.
+⇒ **Un instrument qui a raison d'une façon qui trompe est pire qu'un instrument faux : le faux finit par se faire
+prendre.** La moyenne masque **à la fois** le trou et le dépassement.
+
+**Mesuré au plus près, ce n'est pas ce chantier** : `proposedWindowStart` (`plan_hours.ts:166-172`) est **byte-identique**
+avant (`bfecdc28`) et après — mêmes lignes, mêmes numéros — et **ne rend qu'un `startsOn`, jamais une durée**. Décaler
+le départ sans toucher la fin est son comportement **d'origine**. La lane CUISINE a ajouté une fonction **distincte**
+(`leadDayFor`) et un `eatenSpan` qui **retranche** le jour de veille — l'inverse d'un trou. Et l'invariant C1 de la passe
+E l'avait confirmé indépendamment : **`lead_days = 0` sur 254 lignes sur 254**.
+⚠️ **Mais c'est le voisinage immédiat d'A1** : qui reprendra ce défaut doit lire les deux ensemble. Et le défaut est
+**silencieux de bout en bout** — la mémoire du dépôt dit que cette suggestion **n'est jamais rendue à l'écran**.
