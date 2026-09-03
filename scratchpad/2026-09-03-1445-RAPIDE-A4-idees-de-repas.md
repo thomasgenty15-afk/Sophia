@@ -136,8 +136,8 @@ Après restauration : `cmp` des trois fichiers contre les copies prises avant le
 
 | Ordre | Commit | sha | Contenu |
 |---|---|---|---|
-| 1 | lot A4 | `<SHA_LOT>` | 2 suppressions, 5 sources front, 1 test neuf, 1 commentaire serveur, 2 docs, ce journal (v1) — `--no-verify`, motif dans le message |
-| 2 | i18n | `<SHA_I18N>` | `en.ts` + `fr.ts` + `catalog.ts` seulement — `--no-verify` |
+| 1 | lot A4 | `abbd9d8d` | 2 suppressions, 5 sources front, 1 test neuf, 1 commentaire serveur, 2 docs, ce journal (v1) — `--no-verify`, motif dans le message |
+| 2 | i18n | `86dac467` | `en.ts` + `fr.ts` + `catalog.ts` seulement — `--no-verify` |
 | 3 | journal (v2) | _(le commit qui suit)_ | ce fichier, complété des sha |
 
 Ordre choisi exprès : **lot d'abord** (seul, `tsc` reste vert ; `pageSeams` et le test neuf rougissent sur l'entrée de catalogue encore présente), **i18n ensuite** (l'inverse aurait rendu `tsc` rouge sur `t("meals.title")`). L'arbre de travail vérifié en §4 porte les **deux** ; c'est la tête de branche qui est verte, pas chaque commit pris seul.
