@@ -926,3 +926,31 @@ interdits tenus dont le test comparant les deux `readCookingCapacity`, et les d�
 
 **Et le lot C voisin a réparé les cinq derniers fichiers rouges au type-check** : la suite Deno tourne pour la première
 fois **en entier, sans exclusion** — **5 048 / 5 048** sur la branche rebasée d'A2.
+
+## 00:2x — nous ne sommes plus deux sur cet arbre, mais QUATRE
+
+La session voisine signale ~30 tests rouges (le pack **anglais rend du français** : `plural`, `format` ×5, `labels` ~20,
+`pageFrontier`) et une **erreur de rendu en direct** sur `/auth` — `ReferenceError: localeHref is not defined` dans
+`PublicHeader`, la page tombant dans son `ErrorBoundary`, alors que `i18n/links.ts` **existe sur le disque et l'exporte**
+mais est **non suivi**. Elle soupçonnait une de mes lanes.
+
+**Ce n'est aucune des cinq, et c'est mesuré** : `git diff --name-only 31ee930f..chantier-0903/<lane>` filtré sur
+`i18n/runtime`, `LocaleSwitch`, `PublicHeader`, `SEO.tsx`, `i18n/links`, les pages publiques → **zéro sur les cinq**.
+Mes lanes vivantes écrivent dans leurs worktrees, jamais dans l'arbre partagé ; les deux terminées n'ont plus de worktree.
+
+**`ListAgents` donne l'explication** : **deux sessions interactives de plus, démarrées il y a ~29 minutes**
+(`sophia-2-11`, `sophia-2-51`), en plus de la voisine et de moi. Le travail en vol ressemble au chantier de refonte de la
+vitrine (routage de locale sur les pages publiques, `links.ts`, un dossier `seo/`). Les deux ont été contactées : je leur
+demande **seulement quand elles atterrissent**, et je leur passe les **trois pièges que ce chantier a payés** — l'index
+partagé qui emporte le travail d'autrui, le `begin;`/`commit;` interne des migrations, et le numéro de migration qui ne
+réserve pas l'avenir.
+
+**Conseil donné à la voisine, et que je m'applique** : **ne rien ajouter à `scripts/.vitest-red-baseline`**. Ces trente
+rouges sont un **état transitoire**, pas une dette — et le fichier exige de nommer un propriétaire et une date, ce qu'on
+ne peut pas faire honnêtement tant que le propriétaire est inconnu. Commiter en `--no-verify` avec le motif exact écrit
+est plus honnête que d'inscrire une dette qui n'en est pas une.
+
+**Ce que ça change pour la fin du chantier** : la fusion d'A7 attendait déjà `api/retainedItems.ts` ; l'arbre porte
+maintenant ~20 fichiers sales de **trois** sessions différentes. Le lot E (cohérence de bout en bout, fusion des packs
+i18n, grille C1-C8) **ne peut pas se faire sur un arbre que trois autres sessions réécrivent**. Il attendra un arbre
+calme — c'est le même arbitrage que depuis ce matin : mieux vaut attendre qu'hériter d'un état à moitié posé.
