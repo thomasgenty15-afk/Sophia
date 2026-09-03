@@ -1563,3 +1563,54 @@ observe une SORTIE, pas celle qui relit une ENTRÉE.**
 « Tu cuisines … et c'est ce qui a été gardé » ne s'écrive **pas** sur une ligne réelle (le défaut ③, qui attribuait à la
 personne des jours qu'elle n'avait pas choisis). Puis R4 (1 course **sans** congélateur, refus nommé).
 **Le gel tient jusqu'à son « runs finis » explicite.**
+
+### ⟳ CORRECTION 06:0x — « un `deno test` n'écrit pas » était FAUX (neuvième fois)
+
+**Mesuré par MEMBRE** : il y a un `node_modules/` **dans** `supabase/functions/`, et Deno y résout les dépendances npm.
+Écritures datées : `21:19:32` (`openai`, `zod`) pendant la fenêtre de CUISINE, `21:29:05` (`.deno`, `@supabase`,
+`fflate`) pour son propre `deno test`. **Mon étape 3 du plan de levée reposait donc sur une affirmation fausse.**
+Neuvième fois que je pose une affirmation sans la mesurer, troisième correction de cette lane. Motif constant :
+**je décris ce qu'un outil DEVRAIT faire au lieu de regarder ce qu'il FAIT.**
+
+**Et sa façon de NE PAS conclure vaut autant que la mesure** : elle établit que `deno test` écrit, puis dit
+explicitement qu'elle **ne peut pas** prouver que le watcher inclut `node_modules` — ses deux candidats sont à
+**23 secondes** l'un de l'autre, les horodatages ne tranchent pas. **« Ni prouvé coupable, ni innocenté »** est la bonne
+conclusion ; la plupart des raisonnements s'arrêteraient un cran trop loin.
+⇒ **Sa solution est meilleure parce qu'elle n'a pas besoin de la réponse** : rejouer le test **dans la fenêtre libre**
+est vrai quel que soit le comportement du watcher. **Zéro pari.** Adopté.
+
+**Plan de levée corrigé**, tout dans **une seule** fenêtre, personne d'autre n'écrivant : ① fusionner `fc9ba2c2` ;
+② enchaîner `keel_gdpr_lifecycle_test.ts` **en entier** ; ③ confirmer les trois cas avec les deux correctifs réunis.
+
+**Et sa fausse alerte écartée avant d'être dite est le meilleur exemple de la journée** : un horodatage `22:41:05` sur
+`deno.json` qui semblait violer le gel — et qui datait du **3 août**, un mois plus tôt, parce qu'elle avait affiché
+l'heure sans la date. **Ne pas alerter à tort coûte le même effort que ne pas affirmer à tort, et se voit beaucoup moins.**
+
+## 06:0x — Vérification A7 : ROUGE, six défauts, dont DEUX qui me corrigent
+
+Rapport : `scratchpad/2026-09-04-0010-SUIVI-A7-verification.md`. **Renvoyé à la lane, à écrire dans son worktree**
+(trois des six défauts sont dans `tracking_window.ts`, donc sous le dossier gelé).
+
+**③ La non-livraison est MASQUÉE, pas nommée — et je l'avais acceptée comme nommée.** La clé
+`tracking.describe.done` est **orpheline** dans les deux packs, jamais rendue, et son texte dit « Ça compte dans ce jour,
+maintenant » — **l'inverse exact** de ce que « Décrire » fait. Le journal écrit « aucune copie ne prétend le contraire » :
+vrai **par accident**. Câblée demain, elle affirmerait le contraire du produit.
+
+**④ Le chiffre du meilleur arbitrage est faux, et je l'avais félicité.** « L'écart est de l'ordre du **tiers de la
+journée** » justifiait `maintenanceRange` plutôt que `directedRange` ; le vérificateur a **exécuté le vrai code** :
+**300-400 kcal, soit 12,6-16,8 %**. Facteur 2 à 2,6. **L'arbitrage reste juste** — c'est la circularité qui le fonde,
+pas l'amplitude — mais **un bon arbitrage adossé à un faux chiffre se fait renverser par le premier qui mesure.**
+
+**① Deux préfixes de contrat sont des littéraux recopiés** alors que leurs sources les exportent (et l'une dit « Une
+seule définition »). Renommer **à la source** laisse **51/51 tests d'A7 verts** pendant que `plansDone` tomberait à **0**.
+**C'est le mode de défaillance que cette lane a fermé pour `shifts[]` — fermé pour un contrat sur trois.**
+**② Sous plancher TCA, `leftoverBoxes` traverse la sortie** ; le test « aucun chiffre » reste vert parce que le
+ramasseur ne collecte que les objets portant `kcal` — **et son commentaire prétend le contraire**. Inoffensif
+aujourd'hui, **armé pour A8.2** qui vient de livrer le vrai compte.
+**⑤** « Pas de total **sur ce jour** » s'affiche aussi sur la semaine et le plan. **⑥** Le doc d'un champ rouvre
+`directedRange` que l'arbitrage ferme 250 lignes plus bas.
+
+**Prouvé, et c'est beaucoup** : `tsc` 0, aucune hausse de typage par fichier, 2 222 verts, 211 Deno, **les 36 clés
+retirées sans un seul appelant vivant**, les 48 ajoutées à parité sans mojibake, **C5 vérifié au rendu réel dans les deux
+langues**, les trois renversements **écrits** avec leur texte d'origine, **13 mutations** rejouées, et l'aveu du
+bâtisseur sur le test paramétré par son propre hasard **vérifié vrai**, correctif qui **mord**.
