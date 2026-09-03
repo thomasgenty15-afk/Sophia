@@ -93,6 +93,27 @@ export const TRANSLATED_NAMESPACES = [
   "coaches",
   "gyms",
   "communities",
+  // ⚠️ `offer` EST LA SEULE EXCEPTION À « UN NAMESPACE PAR PAGE », ET C'EST UN
+  // RENVERSEMENT DATÉ (2026-09-01). La règle d'origine interdit la clé
+  // partagée même quand le texte est identique, pour qu'un ajustement de TON
+  // fait sur une page n'aille pas s'imposer aux deux autres. Elle était juste,
+  // et elle reste en vigueur pour tout le reste.
+  //
+  // Ce qu'elle n'a pas tenu, c'est l'autre moitié de sa propre promesse: « les
+  // FAITS doivent bouger ensemble ». Mesuré sur les quatre pages du foyer:
+  // `/` et `/couples` vendaient l'accès d'une autre personne 2 €, `/families`
+  // le vendait 1,99 € sous un AUTRE NOM (« accompagnement »), `/meal-prep` ne
+  // le vendait pas; et « premier mois offert » n'existait que sur `/families`
+  // — puis disparaissait sur `/start`, c'est-à-dire au moment de décider.
+  // Quatre pages, quatre offres, à un clic l'une de l'autre.
+  //
+  // Une offre commerciale n'est pas du ton: c'est un FAIT, et un fait se tient
+  // par une source unique, comme `prices.ts` tient déjà les montants. D'où ce
+  // namespace, rendu par `ui/Marketing.tsx` (`OfferLines`) sur les quatre
+  // pages de vente du foyer ET sur `/start`.
+  // ⛔ RIEN D'AUTRE N'ENTRE ICI. Un argument qui ne vaut que sur une page
+  // retourne chez elle: c'est par là que la règle d'origine se ferait ronger.
+  "offer",
   "public",
   "brand",
   "auth",
@@ -409,10 +430,17 @@ export const PAGE_NAMESPACES: Readonly<
   // répond pas à un visiteur déjà connecté (`HomePage.tsx:172`,
   // `ProPage.tsx:162`, `StartPage.tsx:505`). Trois pages déclarées traduites
   // qui basculaient sur trois phrases anglaises — et en DEV, sur un throw.
-  "/": ["home", "server_unreachable"],
-  "/meal-prep": ["mealprep"],
-  "/couples": ["couples"],
-  "/families": ["families"],
+  // ⚠️ `offer` SUR LES CINQ SURFACES DU FOYER, ET SUR ELLES SEULES. C'est le
+  // bloc de tarif partagé (`ui/Marketing.tsx` → `OfferLines`); il n'a rien à
+  // faire sur les quatre pages professionnelles, qui vendent un SIÈGE et pas
+  // un foyer. La déclarer route par route plutôt que de la verser au CHROME
+  // de `pageSeams.int.test.ts` est délibéré: le chrome est ce que TOUTE page
+  // porte, et une sixième page de vente qui voudrait ce bloc devra le dire
+  // ici — donc quelqu'un le lira.
+  "/": ["home", "offer", "server_unreachable"],
+  "/meal-prep": ["mealprep", "offer"],
+  "/couples": ["couples", "offer"],
+  "/families": ["families", "offer"],
   // ── LE MONDE DES PROFESSIONNELS ──────────────────────────────────────────
   "/pro": ["pro", "server_unreachable"],
   "/coaches": ["coaches"],
@@ -433,7 +461,11 @@ export const PAGE_NAMESPACES: Readonly<
   // `api/countries.ts`, qui pointe sur les dix-huit clés `auth.country.*`. La
   // page rendait « United States / Germany » au milieu d'un formulaire
   // français, sur le champ dont dépend le numéro d'urgence servi à la personne.
-  "/start": ["start", "auth", "server_unreachable"],
+  // `offer`: la couture la plus chère du lot du 2026-09-01 passait ICI — le
+  // lecteur arrivait de `/families` avec « premier mois offert » en tête et
+  // trouvait un prix nu au-dessous du bouton d'envoi. La page de décision
+  // porte désormais le MÊME bloc que la page qui l'a amené.
+  "/start": ["start", "offer", "auth", "server_unreachable"],
   // Deux namespaces sur une seule page, et c'est le cas qui justifie le
   // tableau plutôt qu'un namespace unique: `/join` affiche le texte de
   // l'invitation (`invite.*`) au-dessus de celui de la page (`join.*`).

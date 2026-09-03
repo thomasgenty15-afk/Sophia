@@ -216,17 +216,43 @@ describe("les montants et la prose de vente disent le même chiffre", () => {
    */
   const seeds: Array<[string, Record<string, string>]> = [["en", en], ["fr", fr]];
 
-  it("chaque tarif se retrouve dans la prose des deux packs", () => {
+  /**
+   * ⚠️ CE TEST A CHANGÉ DE QUESTION LE 2026-09-01, ET IL FAUT LIRE POURQUOI.
+   *
+   * Il demandait: « chaque tarif de `PRICES` se retrouve-t-il quelque part
+   * dans la prose ? » — une question qui n'a plus de sens depuis que le bloc
+   * d'offre partagé (`ui/OfferLines.tsx`, namespace `offer`) INTERPOLE ses
+   * montants. `PRICES.claimedProfile` n'est plus écrit nulle part en toutes
+   * lettres, et c'est le résultat voulu, pas un défaut: un montant qu'aucune
+   * phrase ne recopie ne peut pas diverger.
+   *
+   * Ce qui reste vrai, et donc ce qu'il vérifie maintenant: les descriptions
+   * SEO n'ont AUCUN composant pour interpoler — une balise `<meta>` est écrite
+   * avant qu'un `t()` puisse la remplir. Les trois PAGES DE VENTE du foyer
+   * portent donc le tarif en toutes lettres, et ce sont les seules. Si le
+   * tarif bouge sans elles, trois pages annoncent un prix à Google et un autre
+   * à leur lecteur.
+   *
+   * ⚠️ `home.seo_description` EST HORS DE CETTE RÈGLE, ET C'EST UNE DÉCISION.
+   * Le hall n'a jamais vendu — il aiguille —, et surtout sa description est
+   * RECOPIÉE MOT POUR MOT dans `frontend/index.html`, qui est un fichier
+   * statique: aucun `t()`, aucun `PRICES`, aucun test ne peut l'y suivre. Un
+   * tarif dans cette phrase-là serait le seul du produit que rien ne tiendrait
+   * à jour. Il n'y en a pas, et il ne faut pas en ajouter.
+   */
+  it("les descriptions SEO des pages de vente disent le tarif courant", () => {
+    const dot = String(PRICES.household);
+    const comma = dot.replace(".", ",");
     for (const [name, pack] of seeds) {
-      const prose = Object.values(pack).join(" | ");
-      for (const [label, amount] of Object.entries(PRICES)) {
-        // Les deux écritures décimales, parce que les deux traînent dans les
-        // packs — c'est justement ce que ce lot a mesuré.
-        const dot = String(amount);
-        const comma = dot.replace(".", ",");
+      const seoKeys = Object.keys(pack).filter((k) => /^(mealprep|couples|families)\.seo_description$/.test(k));
+      // La ceinture de la ceinture: si le filtre ne trouve plus rien, ce test
+      // verdit en ne regardant rien. Les trois pages de vente en ont une.
+      expect(seoKeys.length, `${name}: aucune description SEO de page de vente trouvée`).toBe(3);
+      for (const key of seoKeys) {
+        const value = (pack as Record<string, string>)[key];
         expect(
-          prose.includes(dot) || prose.includes(comma),
-          `${name}: PRICES.${label} = ${amount} n'apparaît dans aucune phrase`,
+          value.includes(dot) || value.includes(comma),
+          `${name}: ${key} ne dit pas le tarif courant (${PRICES.household})`,
         ).toBe(true);
       }
     }
@@ -245,5 +271,87 @@ describe("les montants et la prose de vente disent le même chiffre", () => {
       !/^(gyms\.fig\.|communities\.fig_tier\.)/.test(k)
     );
     expect(workedExamples).toEqual([]);
+  });
+
+  /**
+   * LA CEINTURE QUI MANQUAIT, ET CE QU'ELLE AURAIT ATTRAPÉ.
+   *
+   * ── LE DÉFAUT, MESURÉ LE 2026-09-01 ──────────────────────────────────────
+   * `PRICES.household` était passé de 12,99 à 11,99 le 2026-08-31. Le test
+   * d'au-dessus est resté VERT: il demande seulement que chaque tarif
+   * apparaisse QUELQUE PART dans la prose, et « 11,99 » y était. Ce qu'il ne
+   * pouvait pas voir, c'est que l'ancien chiffre y était AUSSI, et que le
+   * second supplément avait deux valeurs — `/` et `/couples` vendaient l'accès
+   * d'une autre personne 2 €, `/families` le vendait 1,99 € sous un autre nom.
+   * Quatre pages de vente, trois tarifs, à un clic les unes des autres.
+   *
+   * ── CE QUE CELLE-CI DEMANDE ──────────────────────────────────────────────
+   * L'inverse, et c'est l'assertion qui ferme le trou: TOUT montant en euros
+   * écrit dans la prose de vente doit être une valeur de `PRICES`. Un tarif
+   * périmé qu'on a oublié de balayer n'est plus « un chiffre en trop quelque
+   * part », c'est un rouge.
+   *
+   * ⚠️ ELLE NE COUVRE QUE LES NAMESPACES DE VENTE. Le reste du catalogue parle
+   * de budget de courses, de montants saisis par un coach, d'exemples chiffrés
+   * — des nombres qui ne sont pas nos tarifs et n'ont pas à leur ressembler.
+   */
+  const SALES_NAMESPACES = /^(home|offer|mealprep|couples|families|start|pro|coaches|gyms|communities)\./;
+
+  /**
+   * Les ARITHMÉTIQUES illustratives, exclues nommément.
+   *
+   * Cicatrice du dépôt: une liste-garde nommée ne garde que ce qu'elle nomme.
+   * Celle-ci est donc courte ET explicite — « 37 membres × 25 € = 925 € » est
+   * un exemple, ses opérandes ne sont pas nos tarifs, et le jour où une page
+   * en ajoute un elle doit venir l'écrire ici. C'est le point.
+   */
+  const WORKED_EXAMPLES = /^(gyms\.fig\.|communities\.fig_tier\.|communities\.tier\.example$)/;
+
+  it("aucun montant de la prose de vente n'est étranger à PRICES", () => {
+    const known = new Set<string>();
+    for (const amount of Object.values(PRICES)) {
+      known.add(String(amount));
+      known.add(String(amount).replace(".", ","));
+    }
+    // Un montant est un nombre COLLÉ à un symbole d'euro, d'un côté ou de
+    // l'autre. Sans cette exigence, « 8 personnes » et « 3 jours » seraient
+    // comptés comme des tarifs.
+    const MONEY = /(?:€\s?(\d+(?:[.,]\d+)?))|(?:(\d+(?:[.,]\d+)?)\s?€)/g;
+    const strays: string[] = [];
+    for (const [name, pack] of [["en", en], ["fr", fr]] as const) {
+      for (const [key, value] of Object.entries(pack)) {
+        if (!SALES_NAMESPACES.test(key) || WORKED_EXAMPLES.test(key)) continue;
+        for (const m of value.matchAll(MONEY)) {
+          const amount = (m[1] ?? m[2]).replace(",", ".");
+          if (known.has(amount) || known.has(amount.replace(".", ","))) continue;
+          strays.push(`${name}: ${key} dit « ${m[0]} », qui n'est aucun PRICES.*`);
+        }
+      }
+    }
+    expect(strays).toEqual([]);
+  });
+
+  /**
+   * LE TARIF ÉCRIT EN LETTRES — l'angle mort du test ci-dessus.
+   *
+   * Mesuré le 2026-09-01: `couples.fig.who.desc` annonçait « pour deux euros
+   * par mois » (« two euros a month » en anglais). Le montant était périmé, il
+   * contredisait `/families` sur la même journée, et AUCUN balayage de
+   * chiffres ne pouvait le voir — il n'y avait pas de chiffre.
+   *
+   * La règle est donc plus simple qu'une détection: dans la prose de vente, un
+   * montant s'écrit avec le SYMBOLE, et il vient de `formatPrice`. Le mot
+   * « euro » n'y a rien à faire. Les arithmétiques illustratives gardent leur
+   * exemption nommée — c'est leur seul privilège, et il est court.
+   */
+  it("aucun tarif n'est écrit en toutes lettres dans la prose de vente", () => {
+    const spelled: string[] = [];
+    for (const [name, pack] of [["en", en], ["fr", fr]] as const) {
+      for (const [key, value] of Object.entries(pack)) {
+        if (!SALES_NAMESPACES.test(key) || WORKED_EXAMPLES.test(key)) continue;
+        if (/\beuros?\b/i.test(value)) spelled.push(`${name}: ${key} écrit « euro » au lieu du symbole`);
+      }
+    }
+    expect(spelled).toEqual([]);
   });
 });

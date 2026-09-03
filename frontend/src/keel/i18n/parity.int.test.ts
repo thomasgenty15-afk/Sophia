@@ -102,11 +102,17 @@ describe("pack français de la vitrine", () => {
       "gyms.fig.monday_n1",
       "gyms.fig.monday_n2",
       "gyms.fig.monday_n3",
-      // Des IDENTIFIANTS de code cités mot pour mot. Les traduire apprendrait
-      // au lecteur une forme que le produit ne rend jamais — même règle que
-      // `coach.doctrine.forbidden.token_placeholder` plus bas.
-      "families.fig_union.code", // `safety_constraints_unreadable`
-      "families.fig_age.code", // `minor_student`
+      // ⚠️ DEUX IDENTIFIANTS DE CODE SONT SORTIS D'ICI LE 2026-08-31, ET LEURS
+      // CLÉS AVEC. `families.fig_union.code` rendait
+      // « safety_constraints_unreadable » et `families.fig_age.code`
+      // « minor_student » — en clair, à 7 px, sur une landing qui s'adresse à
+      // un parent. Un identifiant d'erreur interne n'est pas une preuve pour
+      // cette lectrice, c'est le signe qu'elle n'est pas la destinataire; et
+      // `minor_student` nommait une garde MORTE depuis le retrait de la lane
+      // `generate-week-plan-v1`. La règle qu'ils invoquaient — « les traduire
+      // apprendrait une forme que le produit ne rend jamais » — reste juste, et
+      // c'est `coach.doctrine.forbidden.token_placeholder` plus bas qui la
+      // porte encore. Une exception qui survit à sa clé protège du vide.
       // ── LES PAYS QUI S'ÉCRIVENT PAREIL DANS LES DEUX LANGUES ─────────────
       // Le sélecteur de pays de `/auth` (inscription coach) est traduit — les
       // quinze autres le sont visiblement (« États-Unis », « Royaume-Uni »,
@@ -141,17 +147,13 @@ describe("pack français de la vitrine", () => {
       // est le nom que le coach a écrit; « — Sophia » est la marque, et c'est
       // précisément le fait que `/gyms` vend (la salle délègue, l'agent signe
       // du nom de la maison et jamais du sien).
-      "families.fig_table.m4", // « Jo »
-      "families.fig_union.m4", // le même « Jo », deux figures plus loin
+      "families.fig_table.m4", // « Jo » — la 4e part de la figure du héros
       // ⚠️ `coaches.lock.demo.sign` A QUITTÉ CETTE LISTE le 2026-08-13. La
       // signature de la démonstration était « — Marc » des deux côtés; elle est
       // devenue « — your name » / « — ton nom », parce que la fiche est celle du
       // LECTEUR (ses étiquettes disent « ce que tu as écrit »). Elle se traduit
       // donc, et n'a plus rien à faire ici.
       "gyms.fig.house_sign", // « — Sophia »
-      // Un cadratin n'est pas un mot: il dit « rien ici », dans les deux
-      // langues.
-      "families.fig_union.none",
       // ── LES DEUX OBJECTIFS QUI S'ÉCRIVENT PAREIL ─────────────────────────
       // Ce sont les libellés produit des six objectifs. Les quatre autres sont
       // bien traduits (« Perte de gras », « Prise de muscle », « Santé »,
@@ -404,6 +406,41 @@ describe("pack français de la vitrine", () => {
       // pas un mot, c'est un état — même raison que `meals.picker.saving` et
       // `meals.rhythm.saving` ci-dessus.
       "plan.busy",
+      // ── LES DEUX GABARITS D'UNITÉ DE LA DÉMO D'ÉNERGIE ───────────────────
+      // « {kg} kg » et « {low} – {high} kcal » n'ont RIEN à traduire: le
+      // symbole du kilogramme et celui de la kilocalorie sont les mêmes dans
+      // les deux langues, et le tiret demi-cadratin aussi. Ce qui diffère —
+      // le séparateur de milliers — est produit par `formatNumber`, à
+      // l'interpolation, pas dans la chaîne.
+      // ⚠️ Si l'un des deux gagne un MOT un jour (« par jour », « a day »), il
+      // sort de cette liste le même jour.
+      "mealprep.demo.weight_value",
+      // ⚠️ LES DEUX GABARITS ONT ÉTÉ SCINDÉS PAR BASE le 2026-09-01
+      // (`energyBasis.int.test.ts`: « la base est DANS la clé »). Ils portent
+      // maintenant des MOTS, donc ils ne sont plus identiques d'une langue à
+      // l'autre — et ils sortent de cette liste, comme la note l'annonçait.
+      // Un tiret cadratin. Il n'y a rien à traduire dans un tiret, et le rendre
+      // différent d'une langue à l'autre serait le bug.
+      "mealprep.energy.no_range",
+      // FF-062 R11 — le libellé du champ de correction du chiffre d'énergie.
+      // « kcal » est un SYMBOLE D'UNITÉ, pas un mot: il s'écrit pareil dans les
+      // deux langues, et le traduire serait le bug. (Le sous-titre et les trois
+      // messages d'erreur de ce dialogue, eux, sont bien traduits.)
+      "chat.kcalfix.field",
+      // ── LES BULLES DE CE QU'ON PREND À CÔTÉ DU PLAT ──────────────────────
+      // « fruit » et « dessert » s'écrivent pareil dans les deux langues, et
+      // les traduire autrement serait le bug. ⚠️ LES TROIS AUTRES NE SONT PAS
+      // ICI (pain/bread, fromage/cheese, yaourt/yoghurt): si l'une d'elles y
+      // arrivait un jour, ce serait une clé oubliée, pas une coïncidence.
+      "household.mouth.extra.fruit",
+      "household.mouth.extra.dessert",
+      // ── LOT M5 · LE NOM D'UN CHAMP DE RÉGLAGE ────────────────────────────
+      // « Budget » s'écrit pareil dans les deux langues, et le traduire
+      // autrement serait le bug. ⚠️ LES CINQ AUTRES NE SONT PAS ICI
+      // (`cook_days`, `cooking_time_min`, `recipe_difficulty`, `variety`,
+      // `eating_rhythm`): si l'une d'elles y arrivait un jour, ce serait une
+      // clé oubliée, pas une coïncidence.
+      "known.field.budget_amount",
     ]);
     const copied = (Object.keys(fr) as Array<keyof typeof fr>)
       .filter((key) => !legitimatelyIdentical.has(key))

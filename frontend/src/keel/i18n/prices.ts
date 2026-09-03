@@ -43,10 +43,37 @@
  * vente à la fois, ce qui est le point.
  */
 export const PRICES = {
-  /** L'abonnement du foyer, par mois. Une bouche de plus ne le change pas. */
+  /**
+   * L'abonnement du foyer, par mois. Une personne de plus ne le change pas.
+   *
+   * ⚠️ 11,99 → 12,99 LE 2026-09-01, décision du propriétaire. Le chiffre était
+   * passé de 12,99 à 11,99 le 2026-08-31; il revient. Ce va-et-vient est
+   * exactement pourquoi le montant vit ICI et pas dans quarante phrases.
+   *
+   * ⚠️ LE GREP N'EST PLUS LE SEUL FILET. Les phrases de vente qui encastrent le
+   * chiffre restent au catalogue (voir l'en-tête), mais
+   * `i18n/format.int.test.ts` interdit désormais qu'un montant en euros
+   * apparaisse dans la prose de vente sans être une valeur de cette table.
+   * C'est ce qui a manqué le 2026-09-01: neuf phrases étaient restées à 11,99
+   * pendant que les cartes en disaient un autre, sur quatre pages différentes,
+   * et la ceinture d'alors se contentait de vérifier que le chiffre existait
+   * QUELQUE PART.
+   */
   household: 12.99,
-  /** Un profil RÉCLAMÉ en plus dans le foyer, par mois. */
-  claimedProfile: 2,
+  /**
+   * UN ACCÈS EN PLUS dans le foyer, par mois — le compte propre d'une autre
+   * personne de la maison.
+   *
+   * ⚠️ 2 → 1,99 LE 2026-09-01, et ce n'est pas qu'un arrondi: c'est la fin
+   * d'une CONFUSION. `/families` vendait « un accompagnement en option pour un
+   * membre du foyer, à 1,99 € » (le vocabulaire de `GTM-30-JOURS.md`) pendant
+   * que `/` et `/couples` vendaient « un profil réclamé à 2 € » (le
+   * vocabulaire du code). Deux noms, deux montants, un seul objet — mesuré le
+   * 2026-09-01 sur les quatre pages. Le propriétaire a tranché: il n'y a qu'UNE
+   * chose, c'est l'accès d'une autre personne, elle coûte 1,99 €, et le mot
+   * « accompagnement » ne désigne rien que le produit sache faire.
+   */
+  claimedProfile: 1.99,
   /** Un siège d'élève vendu au coach, à la salle ou à la communauté, par mois. */
   seat: 7,
   /** Le même siège, quand il est payé à l'année. */

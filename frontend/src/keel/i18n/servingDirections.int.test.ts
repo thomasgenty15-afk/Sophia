@@ -42,6 +42,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
 import { en } from "./en";
+import { fr } from "./fr";
 
 const I18N_DIR = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(I18N_DIR, "..", "..", "..", "..");
@@ -164,6 +165,39 @@ describe("les consignes de service montrées sur la vitrine", () => {
     for (const goal of goals) {
       expect(seed[`couples.dir.${goal}`], `couples.dir.${goal}`)
         .toBe(directions[goal]);
+    }
+  });
+
+  /**
+   * ⚠️ AJOUTÉ LE 2026-09-01, ET LA DIVERGENCE QU'IL ATTRAPE ÉTAIT DÉJÀ EN LIGNE.
+   *
+   * Les deux tests ci-dessus comparent le catalogue au moteur — donc au pack
+   * ANGLAIS, puisque le moteur écrit en anglais. Le pack FRANÇAIS n'était lu
+   * par personne, et il avait dérivé: `/meal-prep` disait « légumes en
+   * quantité, part de protéine complète, part de féculent réduite » quand
+   * `/couples` disait « légumes généreux, part de protéine entière, part de
+   * féculent plus petite ». La MÊME consigne du moteur, deux traductions, deux
+   * pages à un clic l'une de l'autre — et une garde verte au-dessus.
+   *
+   * On ne peut pas comparer le français au moteur: ce serait exiger une
+   * traduction figée. Ce qui se vérifie, et qui suffit, c'est que les DEUX
+   * PAGES disent la même chose DANS CHAQUE PACK.
+   *
+   * Cicatrice du dépôt: une garde écrite dans une seule langue ne garde qu'une
+   * seule langue. Quand une règle vaut pour le catalogue, elle se vérifie sur
+   * tous les packs, pas sur celui qui a servi à l'écrire.
+   */
+  it("disent la même chose sur les deux pages, DANS CHAQUE PACK", () => {
+    for (const [name, pack] of [["en", en], ["fr", fr]] as const) {
+      const p = pack as Record<string, string | undefined>;
+      for (const goal of goals) {
+        const onMealPrep = p[`mealprep.dir.${goal}`];
+        // La ceinture de la ceinture: une clé absente rendrait `undefined ===
+        // undefined` et verdirait sur deux pages qui n'écrivent rien.
+        expect(onMealPrep, `${name}: mealprep.dir.${goal} absente`).toBeTruthy();
+        expect(p[`couples.dir.${goal}`], `${name}: les deux pages divergent sur ${goal}`)
+          .toBe(onMealPrep);
+      }
     }
   });
 });

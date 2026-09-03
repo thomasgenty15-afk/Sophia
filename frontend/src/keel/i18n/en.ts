@@ -107,7 +107,7 @@ export const en = {
   "coach.meals.field_slot_hint": "Leave it on « any » unless the dish only makes sense at one time.",
   "coach.meals.field_groups": "What it puts on the plate",
   "coach.meals.field_groups_hint":
-    "The only food vocabulary this product has. No grams, no calories — that is a product rule, not a missing feature.",
+    "The only food vocabulary this form has. Quantities are not yours to set here — Sophia works them out per student, from their body and their goal.",
   "coach.meals.submit": "Add it to the library",
   "coach.meals.submitting": "Adding...",
   "coach.meals.title_required": "A dish needs a name.",
@@ -149,6 +149,13 @@ export const en = {
     "You cannot read student data or publish plans while your account is suspended.",
   "coach.guard.signup_cta": "Create a coach account",
   "coach.guard.student_app_cta": "Go to my plan",
+  // ── LANCEMENT B2C — l'espace pro est fermé (`VITE_B2C_ONLY`) ────────────
+  // Un état À PART de `not_coach`, et le mot le dit: « cet espace est réservé
+  // aux coachs » à quelqu'un QUI EST coach est un mensonge, et il l'envoie
+  // créer un second compte pour réparer un refus qui ne vient pas de lui.
+  "coach.guard.closed_title": "The coach workspace is closed",
+  "coach.guard.closed_body":
+    "We are focused on households right now, so coach accounts are paused. Nothing has been deleted, and we will write to you when the workspace reopens.",
 
   // Coach signup (W6.1) — no phone number is required to be a coach.
   "coach.signup.title": "Create your coach account",
@@ -689,8 +696,21 @@ export const en = {
   "photo.verdict.inconsistent": "Does not line up",
   "photo.verdict.not_visible": "Cannot tell from this photo",
   "photo.low_confidence": "I am not confident about this reading. Correct me if I got it wrong.",
+  "photo.energy_label": "Energy",
+  // ⚠️ LE CHIFFRE ET SA BASE DANS LA MÊME LIGNE, jamais dans deux. Une base
+  // posée à côté (une note plus bas, un libellé de colonne) se lit comme une
+  // remarque générale; collée au nombre, elle en fait partie.
+  "photo.energy.photo_estimate": "about {kcal} kcal, guessed from the photo",
+  "photo.energy.declared_quantities": "about {kcal} kcal, from the quantities you gave me",
   "photo.no_quantity_note":
     "A photo tells me what is on the plate, not how much of it. Nothing here is a measurement.",
+  // La note ci-dessus CONTREDIRAIT un chiffre affiché (« pas quelle quantité »).
+  // Celle-ci la remplace dès qu'un chiffre est là, et elle dit la direction du
+  // biais: −26,6 % mesuré, toujours du même côté, pire sur les gros repas.
+  // « Une estimation » sans direction laisserait croire à une erreur
+  // symétrique, ce qui est précisément le contraire du fait.
+  "photo.no_quantity_note_estimate":
+    "That figure is guessed from the photo, not measured - and photo guesses run low, more so on big plates. Take it as an order of magnitude.",
   "photo.error": "That did not send. Nothing was saved - try again.",
   "photo.too_large": "That image is too large. Try a smaller photo.",
   "photo.unsupported_type": "That file is not a JPEG, PNG or WebP image.",
@@ -1678,6 +1698,56 @@ export const en = {
   // Hors bornes = refusé et NOMMÉ, jamais ramené au bord: une valeur corrigee
   // en silence est une donnee fausse qui a l'air vraie.
   "chat.weekly.error.range": "{field} should be between {min} and {max}.",
+
+  // ══ FF-062 C2 — LE RAPPEL DE PESÉE ══════════════════════════════════════
+  //
+  // ⚠️ LE PLACEHOLDER DU CHAMP PORTE LE DERNIER POIDS, ET C'EST R8. Il n'a PAS
+  // de clé: c'est un NOMBRE, formaté par `formatNumber` (78,4 en français, 78.4
+  // en anglais) — une clé qui ne contiendrait que `{kg}` serait un mot de
+  // traduction sans mot, et la garde d'anti-recopie du pack la refuse à juste
+  // titre. Le point
+  // du dimanche met le LIBELLÉ en placeholder (« Poids (kg) ») parce que son
+  // champ est un parmi huit; ici le champ est seul, donc le placeholder peut
+  // porter le repère. Le champ, lui, reste VIDE — un champ pré-rempli se valide
+  // sans être lu, et on enregistrerait la valeur de l'avant-veille comme une
+  // pesée d'aujourd'hui.
+  "chat.weighin.title": "Your weight",
+  "chat.weighin.subtitle": "One number. It is what your plan is sized on.",
+  "chat.weighin.field": "Weight (kg)",
+  "chat.weighin.submit": "Save",
+  "chat.weighin.cancel": "Not now",
+  "chat.weighin.error.empty": "Nothing entered — type a weight, or come back later.",
+  "chat.weighin.error.number": "That should be a number.",
+  "chat.weighin.error.range": "A weight should be between {min} and {max} kg.",
+  // FF-062 C1 — le créneau qu'une question de repas a NOMMÉ, et que la photo
+  // suivante portera. Affiché parce qu'un créneau forcé invisible est un état
+  // caché qui décide d'un fait.
+  "chat.slotmeal.forced": "This photo will be logged as {slot}",
+  // Les six moments, DANS le namespace `chat` — voir `api/slotMeal.ts`:
+  // `/app/chat` ne déclare pas `slot`, et l'y faire entrer y amènerait cinq
+  // autres namespaces d'un coup.
+  "chat.slotmeal.slot.breakfast": "breakfast",
+  "chat.slotmeal.slot.snack_am": "your morning snack",
+  "chat.slotmeal.slot.lunch": "lunch",
+  "chat.slotmeal.slot.snack_pm": "your afternoon snack",
+  "chat.slotmeal.slot.dinner": "dinner",
+  "chat.slotmeal.slot.before_bed": "your evening snack",
+
+  // ══ FF-062 R11 — LE CHIFFRE D'ÉNERGIE, CORRIGÉ ══════════════════════════
+  //
+  // ⚠️ LE PLACEHOLDER PORTE LE CHIFFRE ACTUEL, ET LE CHAMP RESTE VIDE. Même
+  // règle que le rappel de pesée, et elle compte davantage ici: un champ
+  // pré-rempli validé sans être lu réécrirait le chiffre DEVINÉ en le faisant
+  // passer pour une déclaration — c'est-à-dire exactement la distinction que
+  // cette correction existe pour établir.
+  "chat.kcalfix.title": "The figure",
+  "chat.kcalfix.subtitle": "Replace it with what you know.",
+  "chat.kcalfix.field": "kcal",
+  "chat.kcalfix.submit": "Save",
+  "chat.kcalfix.cancel": "Leave it",
+  "chat.kcalfix.error.empty": "Nothing entered — the figure stays as it was.",
+  "chat.kcalfix.error.number": "That should be a number.",
+  "chat.kcalfix.error.range": "A meal should be between {min} and {max} kcal.",
   // ── LES SIX AXES ET LES CINQ CRANS (lot 4) ──────────────────────────────
   //
   // ⚠️ CES ONZE VALEURS SONT SOUS CONTRAT AVEC UN FICHIER DENO, et le contrat
@@ -1893,7 +1963,7 @@ export const en = {
   "join.day.where_app": "In this app",
   "join.day.photo_title": "You send a photo of your plate, whenever you want.",
   "join.day.photo_body":
-    "No app to open, no fields, no weighing. What comes back is an answer in {coach}'s method — what the plate does well, what it is short of, in their words rather than a nutrition label's.",
+    "One photo, no form to fill in and nothing to put on a scale for it. What comes back is an answer in {coach}'s method — what the plate does well, what it is short of, in their words rather than a nutrition label's.",
   "join.day.evening_title": "In the evening, one question and one tap.",
   "join.day.evening_body":
     "Good day, so-so, or rough. If it was not a good day, one more tap says whether it was energy, hunger or sleep. That is the whole thing, and you can leave it alone on the days you'd rather not.",
@@ -1907,15 +1977,15 @@ export const en = {
   // The dark block. The landing spends its one dark ground on the guarantee a
   // coach cares about; this page spends it on the one a student cares about.
   "join.grade.kicker": "The part that is different",
-  "join.grade.title": "Nobody is grading you",
+  "join.grade.title": "Counted, never graded",
   "join.grade.lead":
-    "Not as a policy someone could change their mind about — there is nothing here that counts, and nowhere to put a mark if we wanted to.",
-  "join.grade.one_title": "No score, no streak, no percentage.",
+    "Things do get counted here — the days you logged, the plates you photographed, what showed up on them. The difference is what happens next: none of it is turned into a mark you have to chase, and a rough week never becomes a number you owe.",
+  "join.grade.one_title": "No score, no streak, no percentage on your screens.",
   "join.grade.one_body":
-    "Nothing is counting up. A day you miss breaks nothing, because there is no run to break and no total to spoil.",
+    "Counts exist, and you can read them in your own space — but none of them is running against you. A day you miss breaks nothing, because there is no run to break and no total to spoil.",
   "join.grade.two_title": "A photo never becomes a number.",
   "join.grade.two_body":
-    "No calories, no macros — not shown to you, not stored, not sent to your coach. We measured why before deciding: across 85 real analyses, a calorie estimate from a photo landed 26.6% under the truth on average, and the model's own margin of error contained the truth barely more than half the time.",
+    "Not from a photo, ever — nothing is read off your plate as a calorie or a macro, stored, or sent on. We measured why before deciding: across 85 real analyses, a calorie estimate from a photo landed 26.6% under the truth on average, and the model's own margin of error contained the truth barely more than half the time. Where a figure does exist in this product, it is computed from quantities someone actually gave — never from an image.",
   "join.grade.three_title": "A day you don't log is not a day you failed.",
   "join.grade.three_body":
     "Silence is recorded as unknown, and unknown is never quietly turned into a miss. It is the one thing this product refuses to guess about you.",
@@ -1960,11 +2030,17 @@ export const en = {
   // trop large parce qu'elle sonne mieux: elle est lue juste avant qu'on tape
   // un mot de passe, et c'est très exactement la promesse sur laquelle
   // quelqu'un décide. Ce qui reste ici est ce qui est encore vrai, et les deux
-  // moitiés le sont pour des raisons différentes — le coach ne voit rien
-  // (aucune surface ne le lui montre), et une photo ne produit rien
-  // (−26,6 % de biais, le chemin photo n'a pas bougé).
+  // ⟳ RE-RÉÉCRITE LE 2026-09-01. La version du 2026-08-12 disait « le coach ne
+  // voit rien (aucune surface ne le lui montre) ». C'était FAUX: `CoachStudentPage`
+  // rend le bloc C8 « Starting numbers » — `coach.student.numbers.maintenance_value`,
+  // « {low}–{high} kcal/day » — depuis la première pesée du dimanche. La clause
+  // large a survécu à sa propre correction, sur la page où quelqu'un consent.
+  // Ce qui reste vrai, et qui est maintenant dit en entier: rien de ce que
+  // l'élève MANGE ne devient un chiffre côté coach, la photo n'en produit
+  // aucun (−26,6 % de biais, le chemin photo n'a pas bougé), et la fourchette
+  // que le coach voit sort de la PESÉE seule — elle est nommée plutôt que tue.
   "join.seen.never_4":
-    "A calorie count or a macro figure. Your coach never sees one, and a photo never produces one.",
+    "A calorie count read off your food. Nothing you eat turns into a figure for them, and a photo never produces one. What they do see is a maintenance bracket worked out from your weigh-in alone — the range they would open with, never a reading of your plates.",
   "join.seen.exception_label": "One exception, and it is deliberate",
   "join.seen.exception_body":
     "If something you write suggests your relationship with food is turning against you, that sentence goes to {coach} the same day, marked urgent. Software should not be the only thing holding that.",
@@ -2112,8 +2188,8 @@ export const en = {
   // `20260811060000_household_signup_door.sql`.
   "start.seo_title": "Create your account",
   "start.seo_description":
-    "Open a Sophia account for your household. Sophia composes the week around " +
-    "the people who actually eat at your table.",
+    "Open your Sophia account. Sophia composes the week around the people " +
+    "who actually eat at your table.",
   "start.loading": "One moment…",
 
   // ⚠️ AUCUNE PROMESSE DE CALENDRIER ICI, ET C'EST MESURÉ. « Then » décrit la
@@ -2131,9 +2207,11 @@ export const en = {
   // ⚠️ AUCUNE DURÉE D'ESSAI, AUCUN BOUTON D'ACHAT: le tunnel de paiement du
   // foyer rend 500 faute de prix Stripe, et `free_until` gèle un foyer neuf à
   // J+31 sans chemin pour se dégeler. Le prix se dit; la date, non.
-  "start.price":
-    "12,99 € a month for the household, plus 2 € for each person who claims their " +
-    "own access. Your own place is never counted.",
+  // ⚠️ `start.price` RETIRÉE LE 2026-09-01 — voir le pack FR. Le pack ANGLAIS
+  // y écrivait « 11,99 € a month … plus 2 € »: virgule décimale et symbole à
+  // droite, c'est-à-dire la convention FRANÇAISE servie à un lecteur
+  // anglophone, sur la page où il ouvre son compte. Les montants passent
+  // désormais par `formatPrice`, qui ne peut pas se tromper de convention.
   // La porte de quelqu'un qui a DÉJÀ un coach est l'invitation qu'il a reçue,
   // pas celle-ci. Une ligne, parce que c'est utile et que c'est vrai.
   "start.coach_line":
@@ -2153,10 +2231,16 @@ export const en = {
   // sujet que le produit ne traite pas aujourd'hui — et occupait la place
   // de la seule réponse qui change quelque chose tous les jours. Le pays se
   // déduit désormais du fuseau (`api/countryFromTimezone.ts`).
+  //
+  // ⚠️ PAS D'INDICE SOUS CE CHAMP, ET C'EST DÉLIBÉRÉ (2026-09-01). Il disait
+  // « votre coach vous répond dans cette langue, et écrit votre plan dedans »
+  // — sur l'écran d'inscription LIBRE, à quelqu'un qui n'a précisément pas de
+  // coach. Il annonçait un tiers absent au moment exact où la personne ouvre
+  // son compte, et depuis le lancement B2C il n'y en a plus du tout à
+  // rencontrer. Le libellé se suffit; ne rajoute pas d'indice ici sans avoir
+  // quelque chose de VRAI à dire de plus que lui.
   "start.form.language":
     "The language you want to be spoken to in",
-  "start.form.language_hint":
-    "Your coach answers in this language, and writes your plan in it. You can change it later.",
   "start.form.legal_prefix": "I accept the",
   "start.form.legal_terms": "Terms",
   "start.form.legal_and": "and the",
@@ -2225,7 +2309,7 @@ export const en = {
   "start.error.already_coached":
     "Your account already follows a coach. You do not need to sign up here.",
   "start.error.caller_is_coach":
-    "This is a coach account. Your space is the coach workspace, not a household one.",
+    "This is a coach account. Your space is the coach workspace, not this one.",
   "start.error.unavailable":
     "Sign-up is not available right now. Nothing was created — try again later.",
   "start.error.generic": "That did not go through. Nothing changed — try again.",
@@ -2312,11 +2396,13 @@ export const en = {
   // D’où une ligne SANS ADRESSE AU LECTEUR: pas de « vous », pas de « tu »,
   // pas de possessif. Elle reste vraie des deux côtés — la semaine d’une
   // maison est composée d’avance, la méthode d’un pro répond sans lui.
-  "public.footer.tagline": "Written once, and it holds when no one is there.",
   "public.footer.legal": "Legal & privacy",
   "public.footer.contact": "Contact",
   "public.footer.contact_email": "sophia@sophia-coach.ai",
-  "public.footer.copyright": "Sophia — coaching software",
+  // ⚠️ « coaching software » a été retiré le 2026-09-01 — voir la note du pack
+  // FR. Elle nommait un seul des deux mondes, et remettait le mot « coach » au
+  // pied des quatre pages du foyer, dont aucune ne le prononce.
+  "public.footer.copyright": "Sophia — a week of meals, decided ahead",
 
   // ── THE BACKEND IS UNREACHABLE ───────────────────────────────────────────
   // Shown when `resolveHomePath` could read NOTHING (see postLogin.ts branch
@@ -2385,7 +2471,7 @@ export const en = {
   "auth.seo.title": "Sign in",
   "auth.seo.title_coach": "Coach account",
   "auth.seo.description":
-    "Sign in to Sophia, or open the account that gets you in — for a household, or for a coach and their students.",
+    "Sign in to Sophia, or create the account that gets you in.",
 
   // ── LE FRONTON DE LA FICHE ────────────────────────────────────────────────
   // L'écran est UN document qui se reconfigure, pas quatre écrans. Son fronton
@@ -2397,7 +2483,7 @@ export const en = {
 
   // ── LES QUATRE ÉTATS, EN TÊTE ─────────────────────────────────────────────
   "auth.signin.title": "Welcome back.",
-  "auth.signin.lede": "The same door for households and for coaches.",
+  "auth.signin.lede": "The same door, whichever account you have.",
   // ⚠️ « the method it follows », et PAS « the prescription tools ». La copie
   // d'avant vendait un outil de prescription 1:1, que ce produit n'a pas: le
   // coach écrit une doctrine et un programme pour sa COHORTE, et c'est l'élève
@@ -2475,7 +2561,23 @@ export const en = {
   // `?w=household` / `?w=pro` décide lequel est MIS EN AVANT ici; sans le
   // paramètre, les deux sont proposés à égalité.
   "auth.doors.divider": "No account yet?",
-  "auth.doors.household.label": "Household",
+  // ⚠️ NE REMETS PAS « Household » / « Foyer » ICI. Deux raisons, et la
+  // seconde survit à la réouverture du monde pro:
+  //
+  // 1. Un libellé d'AUDIENCE n'a de sens qu'en face de son contraire. Tant que
+  //    `VITE_B2C_ONLY` est levé, la carte « Professional » est retirée et
+  //    celle-ci est la SEULE: « Foyer » ne distingue alors plus rien, il
+  //    demande juste au visiteur de se ranger dans une catégorie avant de
+  //    pouvoir créer un compte.
+  // 2. « Foyer » est le mot du MODÈLE (`household_members`, `/app/household`,
+  //    docs/keel/PIVOT-FOYER.md), pas un mot que quelqu'un s'applique à
+  //    lui-même au moment de s'inscrire. Décision humaine du 2026-09-01: il
+  //    porte à confusion sur le couloir d'entrée, et il en est retiré. Il reste
+  //    partout ailleurs — c'est du vocabulaire interne, et il est juste.
+  //
+  // Le mot du produit pour la même chose, côté visiteur, est « votre table »
+  // (le corps juste en dessous, `start.lead`, `start.price`).
+  "auth.doors.household.label": "Your Sophia account",
   // ⚠️ PAS « sans coach ». L'absence d'un coach ne définit pas le produit du
   // foyer — elle le décrit comme une version amputée de l'autre monde, ce que
   // `/start` disait aussi (« Try it without a coach first ») et qui vient d'en
@@ -2484,7 +2586,7 @@ export const en = {
   "auth.doors.household.body":
     "Open your account and compose your week around who eats at your table.",
   "auth.doors.household.cta": "Create a free account",
-  "auth.doors.household.prompt": "Cooking for your household?",
+  "auth.doors.household.prompt": "Cooking at home?",
   "auth.doors.pro.label": "Professional",
   "auth.doors.pro.body":
     "Write your method once. Your students compose their week inside it.",
@@ -2501,6 +2603,12 @@ export const en = {
     "Access is restricted (pre-launch). Only the master_admin account can sign in.",
   "auth.error.coach_profile":
     "Your account exists, but the coach profile could not be created. Sign in again to retry.",
+  // LANCEMENT B2C — le refus de porte. Il dit les DEUX choses dont la
+  // personne a besoin: pourquoi elle ne rentre pas, et que son compte est
+  // toujours là. Sans la seconde, la seule lecture possible est « mon compte a
+  // été supprimé », et on écrit au support.
+  "auth.error.pro_closed":
+    "The coach workspace is closed for now. Your account is intact — we will write to you when it reopens.",
   // Le sign-in a RÉUSSI et seule la lecture de rôle a échoué: sans cette
   // phrase, la seule lecture possible est « mon mot de passe est faux », et on
   // réinitialise un compte qui va très bien.
@@ -2537,120 +2645,188 @@ export const en = {
   //   une ligne. Elles restent le seul chemin en page vers les six pages
   //   segment, elles ne meurent pas, elles maigrissent.
   // `home.fig.caption` — la légende disait ce que dit désormais `home.pot.body`.
-  "home.seo_title": "Sophia — one pot, and everyone’s share written down",
+
+  //
+  // ══ `offer` — L'OFFRE DU FOYER, ÉCRITE UNE FOIS POUR CINQ SURFACES ═══════
+  //
+  // Rendu par `ui/Marketing.tsx` → `OfferLines`, sur `/`, `/meal-prep`,
+  // `/couples`, `/families` et `/start`. C'est la SEULE exception à « un
+  // namespace par page », et le pourquoi est dans `i18n/catalog.ts` à
+  // `TRANSLATED_NAMESPACES`: une offre commerciale est un FAIT, et un fait ne
+  // se recopie pas cinq fois.
+  //
+  // ⚠️ LES MONTANTS NE SONT PAS ÉCRITS ICI. `{amount}` est rempli par
+  // `formatPrice(PRICES.household)` / `formatPrice(PRICES.claimedProfile)` à
+  // l'appel: c'est la seule façon d'obtenir « €12.99 » en anglais et
+  // « 12,99 € » en français sans deux conventions dans le même pack — le
+  // défaut que `prices.ts` a été créé pour fermer, et qui traînait encore
+  // dans `start.price` (une virgule décimale servie à un lecteur anglophone).
+  //
+  // ⛔ AUCUNE DURÉE D'ENGAGEMENT, AUCUNE DATE. « First week free » est la
+  // durée que le produit TIENT: `HOUSEHOLD_TRIAL_DAYS = 7`
+  // (`_shared/billing-tier.ts`), aligné en SQL par
+  // `keel_household_trial_days()`. Le jour où ce nombre bouge, ces deux clés
+  // mentent — et rien ne le dira, parce qu'elles ne portent pas le chiffre.
+  "offer.household": "{amount} a month for the whole house — your own access included.",
+  "offer.solo": "{amount} a month for one person — every feature is included.",
+  "offer.extra": "{amount} a month for each other person who wants their own access.",
+  "offer.trial": "First week free, with no code to enter.",
+  // « No commitment » est un engagement COMMERCIAL, pas une promesse de
+  // logiciel: on ne dit pas « cancel in one click », parce qu'aucun écran ne
+  // le fait aujourd'hui. Si un engagement de durée apparaît un jour, cette
+  // ligne part le même jour.
+  "offer.no_commitment": "No commitment.",
+
+  "home.seo_title": "Sophia — your household’s week of meals, decided",
   "home.seo_description":
-    "A household’s week in cooking sessions: one dish on the table, and each mouth’s share next to it.",
+    "Meals, balance, goals, constraints and shopping: Sophia composes a week that adapts to your household and to missed plans.",
 
-  // ── LE HÉROS ─────────────────────────────────────────────────────────────
-  "home.hero.kicker": "For whoever cooks for a home",
-  // ⚠️ CE H1 ÉTAIT CELUI DE LA LIGNE 04. « One pot. Everyone’s share » est à
-  // un mot de `home.pot.title` (« One dish, everyone’s share »), quatre rangées
-  // plus bas: le hall dépensait sa ligne la plus lue à dire deux fois son
-  // QUATRIÈME argument. Et il excluait le lecteur seul, alors que la première
-  // porte de la navigation s’appelle « Just me ». L’idée de la casserole n’est
-  // pas perdue: elle reste à la ligne 04, à côté de la seule figure du hall qui
-  // enseigne quelque chose.
-  "home.hero.title": "You know what you are after. Now your dinners do too.",
+  // ── LE HÉROS — CE QUE C'EST, AVANT TOUT LE RESTE ─────────────────────────
+  // ⚠️ LE TITRE D'AVANT ÉTAIT UN ZEUGME EN FRANÇAIS COMME EN ANGLAIS: « Now
+  // your dinners do too » demandait de reconstruire « your dinners know what
+  // you are after ». Et le chapô annonçait « seven things » sans avoir dit ce
+  // que le produit FAIT. Un hall nomme son objet avant de le vendre.
+  "home.hero.kicker": "Meals for the house",
+  "home.hero.title": "A week of meals, decided.",
   "home.hero.lede":
-    "Seven things a household stops carrying, and the mechanism that takes each one.",
-  "home.hero.cta": "Get started",
-  // ⚠️ LE PRIX SE DIT, LA DURÉE NE SE DIT PAS. Le tunnel foyer rend 500 faute
-  // de prix Stripe, et `free_until` gèle un foyer neuf à J+31 sans chemin pour
-  // se dégeler: « 30 jours puis vous décidez » promettrait une décision
-  // impossible. Voir `scratchpad/site/AUDIT-SITE.md` §8 n°1.
-  // ⚠️ LE MAÎTRE N’EST JAMAIS FACTURÉ POUR SON PROPRE ACCÈS, et cette ligne
-  // disait l’inverse. `keel_household_billable_profiles`
-  // (`20260810260000:235-252`) exclut `role = 'owner'`, et sa migration nomme
-  // elle-même le défaut: « le facturer 2 € de plus produirait 14,99 € pour un
-  // foyer d’une personne — un nombre plausible, donc invisible ». `/start` et
-  // `families.price.label` le disaient juste; le hall, non — sur son PREMIER
-  // écran, dans le sens qui coûte la vente.
-  "home.hero.price":
-    "€12.99 a month for the whole household. Your own access is included; €2 a month for each other person who wants theirs.",
-  // §10 de l'audit: `/start` interroge `keel_free_signup_available`. Aucune
-  // page ne promet une entrée immédiate sans cette réserve.
-  "home.hero.reserve":
-    "Sign-up opens once the house coach’s programme is published.",
+    "The meals, cooking days and shopping are decided together. Everyone’s goals and constraints can coexist, and Sophia adjusts the plan when the week does not go as expected.",
+  // ⚠️ Un seul libellé de CTA en page (2026-09-01) — voir le pack FR.
+  "home.hero.cta": "Compose your first week",
+  // ⚠️ LE MAÎTRE N'EST JAMAIS FACTURÉ POUR SON PROPRE ACCÈS
+  // (`keel_household_billable_profiles`, 20260810260000:235-252, exclut
+  // `role = 'owner'`) — mais il COMPTE dans le plafond de huit.
+  // ⚠️ `home.hero.price` A ÉTÉ RETIRÉE LE 2026-09-01 — voir la note du pack
+  // FR. L'offre vit dans le namespace `offer`, rendu par
+  // `ui/OfferLines.tsx`.
+  // ⚠️ ET LA DURÉE SE DIT MAINTENANT, ce qui renverse la règle que cette
+  // note portait: l'essai est passé à SEPT jours (`HOUSEHOLD_TRIAL_DAYS`),
+  // et `offer.trial` l'annonce sur les cinq surfaces.
+  // ⚠️ Ne nomme plus « the house coach’s programme »: le mot coach n'apparaît
+  // nulle part ailleurs sur cette page, et collé au bouton il faisait dépendre
+  // l'entrée d'un tiers dont le lecteur n'a jamais entendu parler.
+  // `/start` interroge `keel_free_signup_available`.
+  // ⚠️ `home.hero.reserve` retirée le 2026-09-01 — voir le pack FR.
 
-  // ── LA FICHE — SEPT LIGNES, UNE DOULEUR ET SON MÉCANISME ─────────────────
-  "home.fiche.kicker": "What it takes off you",
+  // ── L'AIGUILLAGE — MONTÉ EN DEUXIÈME POSITION ────────────────────────────
+  // Chaque porte porte TROIS choses: pour qui, ce qu'elle promet (le titre de
+  // la page derrière), et ce qu'on y gagne.
+  "home.doors.title": "Who are we planning for?",
+  "home.doors.aria_label": "Choose the situation that fits you",
+  "home.doors.lede":
+    "Choose your situation: the next page shows exactly how Sophia works for you.",
+  "home.door.solo.who": "Just me",
+  // ⚠️ Recopie le `<h1>` de `/meal-prep`, mot pour mot — voir le pack FR.
+  "home.door.solo.label": "Your week of meals, planned all at once.",
+  // ⚠️ Ne présume plus que le lecteur fait déjà du batch cooking — voir la note
+  // du bloc français.
+  // ⚠️ Suit le nouvel ordre de la page (2026-09-01) — voir le pack FR.
+  "home.door.solo.gain":
+    "The meals, cooking days and shopping are decided once for the week. If you have a goal, the portions adapt to it.",
+  "home.door.pair.who": "The two of us",
+  // ⚠️ Recopie le `<h1>` de `/couples`, mot pour mot — voir le pack FR.
+  "home.door.pair.label": "The hard part is agreeing.",
+  // ⚠️ « One dish » était faux: `mergeLadder` calcule TROIS formes. Ce qui est
+  // vrai dans les trois, c'est une seule cuisson — voir la note du bloc français.
+  // ⚠️ Suit le nouvel ordre de la page (2026-09-01) — voir le pack FR.
+  "home.door.pair.gain":
+    "You no longer decide dinner again every evening. Both goals are taken into account: one dish when possible, two within the same cooking session when necessary.",
+  "home.door.family.who": "The whole family",
+  // ⚠️ Le titre de `/families` a besoin d'être posé pour se comprendre; une
+  // porte doit se lire sans mise en place.
+  "home.door.family.label": "Everyone’s needs. One cooking session.",
+  // ⚠️ La porte suit la clôture de `/families` — voir le pack FR.
+  "home.door.family.gain":
+    "A teenager who trains, a fussy one, someone watching what they eat. The plan is built for each of them, on their age and their body — so you stop wondering whether your meals are balanced.",
 
-  "home.goal.pain":
-    "I know what I am after. Nothing says what that changes on my plate.",
-  "home.goal.title": "Dishes served by your goal",
-  "home.goal.body":
-    "Fat loss, muscle, recomposition, performance, health, maintenance: six declared goals, six serving instructions.",
+  // ── CE QUI EST VRAI DANS LES TROIS CAS, ET RIEN D'AUTRE ──────────────────
+  // Règle de tri: un champ ne reste ici que s'il vaut pour les TROIS acheteurs.
+  "home.fiche.kicker": "What Sophia handles",
+  "home.arguments.title": "Four ways Sophia makes the week’s meals easier.",
+  "home.benefits.pause": "Pause rotation",
+  "home.benefits.resume": "Resume rotation",
 
-  "home.sessions.pain": "Deciding, every day, costs more than cooking.",
-  "home.sessions.title": "The week arrives in cooking sessions",
+  // ⚠️ Premier champ de la section — voir la note du bloc français, y compris
+  // la ligne à ne pas franchir (composer POUR, jamais un bilan SUR).
+  "home.balance.pain": "Nutritional balance",
+  "home.balance.title": "Complete meals, adapted to each person.",
+  "home.balance.body":
+    "Sophia builds every meal with protein, starch and vegetables. It then adjusts the proportions and amount to the age, body and goal of the person eating. There is nothing to recalculate when you serve.",
+  "home.balance.figure.label": "On every plate",
+  "home.balance.figure.protein": "A protein",
+  "home.balance.figure.starch": "A starch",
+  "home.balance.figure.vegetables": "Vegetables",
+  "home.balance.figure.note": "All three components remain; their proportions and the overall amount adapt to the person.",
+
+  "home.sessions.pain": "Organising the week",
+  "home.sessions.title": "The meal question is settled once, shopping included.",
   "home.sessions.body":
-    "Not a list of dishes: the day you cook, and the order of the gestures.",
+    "Sophia does more than suggest recipes. It chooses the meals, schedules cooking sessions on the days that work and plans each shopping run at the right time. You approve the whole week instead of starting again every evening.",
+  "home.organize.figure.label": "One decision, the whole week",
+  "home.organize.figure.meals": "The meals are chosen",
+  "home.organize.figure.meals_note": "Seven days that fit together, not seven isolated suggestions.",
+  "home.organize.figure.cooking": "Cooking sessions are placed",
+  "home.organize.figure.cooking_note": "On the right day, within the time you actually have.",
+  "home.organize.figure.shopping": "Shopping follows the plan",
+  "home.organize.figure.shopping_note": "One or two runs, scheduled before the cooking sessions they support.",
 
   "home.waves.pain":
     "We buy at random, throw half away, and something is always missing.",
-  "home.waves.title": "The shopping falls in waves",
+  // ⚠️ Le mot « wave » n'est plus employé avant d'être nommé — pack FR.
+  "home.waves.title": "Shopping in one or two runs",
+  // ⚠️ Disait la règle, pas ce qu'elle donne — voir la note du bloc français.
   "home.waves.body":
-    "A perishable is bought at most three days before the pan it is cooked in.",
-  "home.waves.note":
-    "A short plan has a single wave, and no cadence is shown.",
+    "One or two shopping runs during the week, each scheduled before the cooking session it supports.",
 
-  "home.pot.pain":
-    "We do not all eat the same. That means cooking twice, or three times.",
-  "home.pot.title": "One dish, everyone’s share",
-  "home.pot.body":
-    "The same pot goes on the table; each person’s share is described next to it, in words.",
-  "home.pot.note":
-    "One mouth’s allergy governs the whole pot: if the constraints cannot be read, nothing is composed.",
+  "home.cohabit.kicker": "Two people, without a forced compromise",
+  "home.cohabit.title": "Two goals and two constraints can share one kitchen.",
+  "home.cohabit.body":
+    "Gaining muscle on one side, losing fat on the other. Eating vegetarian, disliking fish. Sophia first looks for what can stay shared, then separates only what has to be — often within the same cooking session.",
+  "home.demo.aria_label": "Interactive demonstration of two goals and constraints coexisting",
+  "home.demo.kicker": "Try a combination",
+  "home.demo.person_a": "Person A",
+  "home.demo.person_b": "Person B",
+  "home.demo.goal_legend": "Their goal",
+  "home.demo.food_legend": "What matters to them",
+  "home.demo.goal.fat_loss": "Lose fat",
+  "home.demo.goal.muscle_gain": "Gain muscle",
+  "home.demo.goal.maintenance": "Maintain",
+  "home.demo.food.everything": "Eats anything",
+  "home.demo.food.vegetarian": "Vegetarian",
+  "home.demo.food.no_fish": "Does not like fish",
+  "home.demo.output_label": "What Sophia composes",
+  "home.demo.output.one_dish": "One shared dish, two different plates.",
+  "home.demo.output.two_dishes": "Two dishes, in one cooking session.",
+  "home.demo.reason.shared": "Both requests fit the same preparation; only the way it is served changes.",
+  "home.demo.reason.vegetarian": "The shared preparation becomes vegetarian: everyone can eat it, then each plate follows its own goal.",
+  "home.demo.reason.no_fish": "Fish leaves the shared preparation; the week keeps both goals without putting that food back on the menu.",
+  "home.demo.reason.goal_split": "One dish cannot provide both planned portions, so Sophia adds a second dish within the same cooking session.",
+  "home.demo.reason.diet_split": "The shared constraint removes what one goal needs: Sophia adds a second dish within the same cooking session.",
+  "home.demo.cooking_session": "1 cooking session",
+  "home.demo.direction.fat_loss": "Generous vegetables, full protein share, smaller starch share.",
+  "home.demo.direction.muscle_gain": "Larger protein and starch shares, same vegetables.",
+  "home.demo.direction.maintenance": "A balanced share of every component.",
 
-  "home.mouths.pain":
-    "I am not creating an account and a password for everyone.",
-  "home.mouths.title": "Everyone counts. Nobody needs an account.",
-  "home.mouths.body":
-    "A child is a mouth in the plan: no account, no screen. Up to eight mouths, and the bill does not move.",
-
-  "home.claim.pain":
-    "Someone here has a goal of their own and wants to hold it.",
-  "home.claim.title": "An account of one’s own",
-  "home.claim.body":
-    "€2 a month more: that person reads the plan and sets their own goal.",
-
-  "home.chat.pain": "The question turns up in the aisle, or over a hot pan.",
-  "home.chat.title": "A conversation, every day",
+  "home.chat.pain": "The adaptive plan",
+  // ⚠️ Le titre ne disait plus qu'il s'agit d'une conversation — voir la note
+  // du bloc français.
+  "home.chat.title": "A missed step moves the week; it does not destroy it.",
   "home.chat.body":
-    "It reads today’s plan, what you have declared you cannot eat, and what was said before.",
-  "home.chat.note": "The last twenty messages at most, not the whole history.",
+    "A meal is skipped, a cooking session does not happen, the shopping is delayed: tell Sophia. It moves what can move, recomputes what depended on the cooking session and protects what has already been bought. The plan adapts to the week that actually happens.",
+  "home.adapt.figure.label": "Three surprises, three scales",
+  "home.adapt.figure.title": "What moves when the week goes off plan",
+  "home.adapt.figure.desc": "A skipped meal affects one plate; a skipped cooking session affects the meals depending on it; delayed shopping can move the rest of the week.",
+  "home.adapt.figure.meal": "A meal skipped",
+  "home.adapt.figure.session": "A cooking session skipped",
+  "home.adapt.figure.shopping": "Shopping delayed",
 
   // ── LES MARQUES — le `<title>` de chaque petite figure de ligne ──────────
-  "home.mark.goal": "The same plate, three shares",
-  "home.mark.sessions": "Seven days, two sessions",
-  "home.mark.waves": "Three shopping runs, timed",
-  "home.mark.account": "One person framed inside",
-  "home.mark.chat": "Three turns of a conversation",
-
-  // ── LA FIGURE DE LA LIGNE 04 ─────────────────────────────────────────────
-  // ⚠️ ANNOTÉE EN MOTS, JAMAIS EN GRAMMES: le produit les calcule, aucun écran
-  // ne les rend (FF-043 §11 n°1).
-  "home.fig.alt": "The same dish, described differently for two people.",
-  "home.fig.pot": "the same dish",
-  "home.fig.one": "FOR ONE",
-  "home.fig.one_2": "more starch",
-  "home.fig.two": "FOR THE OTHER",
-  "home.fig.two_2": "more vegetables",
+  // ⚠️ Les quatre clés `home.mark.*` sont parties le 2026-09-01 — pack FR.
 
   // ── LA CLÔTURE ───────────────────────────────────────────────────────────
-  "home.close.title": "Start with one person. Add the others later.",
+  "home.close.title": "Start with the week ahead.",
   "home.close.body":
-    "It works whole for one person on day one. The rest of the household is an addition.",
-  "home.close.cta": "Get started",
-  // Les trois portes nomment la SITUATION, pas le segment: personne ne se dit
-  // « je suis un solo ».
-  "home.doors.kicker": "Where you are",
-  "home.door.solo.label": "Just me",
-  "home.door.solo.note": "You cook once for several days.",
-  "home.door.pair.label": "The two of us",
-  "home.door.pair.note": "Two goals that pull apart, one kitchen.",
-  "home.door.family.label": "The whole family",
-  "home.door.family.note": "Three or more, none alike.",
+    "Say who is eating, what cannot be negotiated and when you can cook. Sophia turns those answers into meals, cooking sessions and shopping — then learns from real life.",
+  "home.close.cta": "Compose your first week",
 
   //
   // ── LE VOCABULAIRE DE CETTE PAGE, ET C'EST UN PIÈGE ──────────────────────
@@ -2808,18 +2984,21 @@ export const en = {
   // ── SEO ─────────────────────────────────────────────────────────────────
   "mealprep.seo_title": "Meal prep for one — a week that serves your goal",
   "mealprep.seo_description":
-    "Six goals, six ways to serve the same dish. The week arrives in cooking sessions, the shopping in waves. €12.99 a month, whole for one person.",
+    "Sophia plans your meals, cooking sessions and one or two shopping runs. Portions adapt to your body and your goal. €12.99 a month, with every feature included.",
 
   // Le CTA unique, rendu deux fois: en haut de la bande 1 et en clôture.
-  "mealprep.cta": "Get started",
+  "mealprep.cta": "Compose your first week",
 
   // ── BANDE 1 · douleur 01 — « mon objectif n'a aucune traduction dans mon
   //    assiette ». C'est le héros: il doit faire dire « c'est moi » en 5 s.
   "mealprep.plate.kicker": "Your goal, on the plate",
-  "mealprep.plate.title": "A goal is not a dinner.",
+  // ⚠️ « dinner » → « meal » et lede réécrit le 2026-09-01 — voir la note du
+  // pack FR. L’objectif cité est le libellé du premier bouton
+  // (`mealprep.goal.fat_loss`), mot pour mot.
+  "mealprep.plate.title": "A goal is not a meal.",
   "mealprep.plate.lede":
-    "You know what you are aiming for. Nothing tells you what it changes tonight. Sophia composes dishes from the goal you declare, and your goal decides how each one is served.",
-  "mealprep.plate.price_note": "€12.99 a month. On your own, that is the whole product.",
+    "“Fat loss” does not tell you what to put on the plate. Sophia composes your meals from the goal you declare: in every dish, the protein, starch and vegetable shares follow what you are aiming for.",
+  // ⚠️ `mealprep.plate.price_note` RETIRÉE LE 2026-09-01 — voir le pack FR.
 
   // ── La démonstration — le sélecteur d'objectif ──────────────────────────
   "mealprep.demo.legend": "Choose a goal",
@@ -2827,18 +3006,14 @@ export const en = {
   // (`household.goal.*`), forme nominale: ce sont des étiquettes.
   "mealprep.goal.fat_loss": "Fat loss",
   "mealprep.goal.muscle_gain": "Muscle gain",
-  "mealprep.goal.recomposition": "Recomposition",
-  "mealprep.goal.performance": "Performance",
-  "mealprep.goal.health": "Health",
   "mealprep.goal.maintenance": "Maintenance",
 
-  "mealprep.demo.direction_label": "The serving instruction",
+  // ⚠️ UN SEUL NOM POUR UNE SEULE CHOSE (2026-09-01). Le site en portait
+  // Voir le pack FR: trois noms pour un objet, ramenés à un.
+  "mealprep.demo.direction_label": "How you are served",
   // ⚠️ VERBATIM `SERVING_DIRECTION` — voir l'en-tête. Ne pas « améliorer ».
   "mealprep.dir.fat_loss": "generous vegetables, full protein share, smaller starch share",
   "mealprep.dir.muscle_gain": "larger protein and starch share, same vegetables",
-  "mealprep.dir.recomposition": "full protein share, moderate starch, generous vegetables",
-  "mealprep.dir.performance": "larger starch share around training, full protein share",
-  "mealprep.dir.health": "generous vegetables, balanced protein and starch share",
   "mealprep.dir.maintenance": "balanced share of every component",
 
   // Les trois axes que la consigne sait nommer (`SERVING_AXES`).
@@ -2855,29 +3030,90 @@ export const en = {
   "mealprep.demand.larger": "larger share",
   "mealprep.demand.none": "nothing asked",
 
+  // ── LES DEUX RÉGLAGES DE LA FOURCHETTE — voir le pack FR ────────────────
+  "mealprep.demo.body_legend": "Your weight",
+  "mealprep.demo.weight_value": "{kg} kg",
+  "mealprep.demo.activity_legend": "Your days",
+  "mealprep.activity.sedentary": "Sitting all day",
+  "mealprep.activity.on_feet": "On your feet, moving",
+  "mealprep.activity.trains_some": "Training 2 to 3 times a week",
+  "mealprep.activity.trains_hard": "Training 4 times or more",
+
+  // ── LA FOURCHETTE ET SA PORTE — voir le pack FR pour le renversement de
+  // `LEGAL.md` §6.4, daté du 2026-09-01, et pour les quatre interdits.
+  "mealprep.energy.label": "Your day’s range",
+  // ⚠️ Les deux clés de la porte 18+ sont parties le 2026-09-01 — pack FR.
+  // ⚠️ Deux clés nommées par leur base — voir le pack FR et
+  // `energyBasis.int.test.ts` (« la base est DANS la clé »).
+  "mealprep.energy.range_weight": "{low} – {high} kcal for your weight and your days",
+  "mealprep.energy.range_directed": "{low} – {high} kcal for the goal you are aiming at",
+  "mealprep.energy.basis":
+    "A range, never a single figure. It allows for normal changes in energy use from one day to the next; there is no single number to hit.",
+  // ── CE QUE L'OBJECTIF A FAIT À LA FOURCHETTE — voir le pack FR ──────────
+  // ⚠️ Le chiffre nu a été retiré le 2026-09-01 — voir le pack FR.
+  "mealprep.energy.moved_down":
+    "This range is lower than maintenance because you are aiming to lose weight. The demonstration shows the fastest pace Sophia allows; you can always choose a slower pace.",
+  "mealprep.energy.moved_up":
+    "This range is higher than maintenance because you are aiming to gain weight. The demonstration shows the maximum Sophia allows: 10% more.",
+  "mealprep.energy.floor_held":
+    "In this example, a lower range would fall below the minimum energy level allowed. Sophia therefore keeps the maintenance range and says so clearly.",
+  "mealprep.energy.no_range": "—",
+  // ⚠️ Les six clés du panneau et la réserve sont parties le 2026-09-01 — pack FR.
+  // ⚠️ L'hypothèse de rythme, nommée — voir le pack FR.
+  "mealprep.energy.assumption_never":
+    "Neither your height, nor your age, nor your sex enters this calculation. A formula that mixes them with a guessed activity factor returns a wrong figure with the confidence of a table.",
+
+  // ── L'ENCART SOMBRE — voir le pack FR pour les deux contraintes de
+  // formulation (`CALORIE_REVERSAL` §7, et `LEGAL.md` §6.4 sur la photo).
+  "mealprep.drive.kicker": "When you want to lose or gain weight",
+  "mealprep.drive.title": "It is the quantities that move, not the list of dishes.",
+  // ⚠️ « the dishes stay yours » corrigé le 2026-09-01 — voir le pack FR.
+  "mealprep.drive.grams":
+    "Your goal changes the amount prepared — for example, 560 g in a container rather than 480 g — without changing the dishes composed for you. No food is removed or imposed simply to reach a number.",
+  // ⚠️⚠️ Décrit un chemin PAS ENTIÈREMENT CÂBLÉ au 2026-09-01 — voir le pack
+  // FR pour les deux pièces qui manquent (`api/mealPhoto.ts` ne lit pas
+  // `energy_estimate`; aucun écran ne permet de déclarer une quantité).
+  // ⚠️⚠️ Décrit un chemin PAS ENTIÈREMENT CÂBLÉ au 2026-09-01 — voir le pack FR.
+  "mealprep.drive.logged":
+    "On an evening when you did not cook, you can photograph or describe the meal to add it to that day’s log. Sophia gives a rough estimate for you to confirm or correct; a photo alone remains imprecise.",
+
   // La réserve de la démonstration: ni écran, ni grammes (FF-043 §11 n°1).
-  "mealprep.demo.note":
-    "The instruction governs the share; it is not a screen. It is written in words, never in grams.",
 
   // La réserve sombre de la bande 1 — repliée ici depuis l'ancienne bande
   // « Ce que ce n'est pas »: c'est en choisissant un objectif qu'on redoute
   // de retrouver un compteur.
-  "mealprep.quiet.kicker": "What you will not find here",
-  "mealprep.quiet.numbers":
-    "The numbers are off by default, and a chain of guards decides whether they can be switched on.",
-  "mealprep.quiet.ranking": "Nothing grades your week. No score, no streak, no coloured band.",
 
   // ── BANDE 2 · douleur 02 — « décider coûte plus cher que cuisiner » ─────
   // Les sessions de cuisine ET les vagues de courses: un seul argument, deux
   // figures.
-  "mealprep.week.kicker": "The week",
-  "mealprep.week.title": "Cooking is not the hard part. Deciding is.",
+  // ⚠️ Kicker du héros depuis le 2026-09-01 — voir le pack FR.
+  "mealprep.week.kicker": "A week of meals, for one person",
+  "mealprep.week.title": "Your week of meals, planned all at once.",
+  // ⚠️ Chapô du héros, ajouté le 2026-09-01 — voir le pack FR.
+  "mealprep.mental.lede":
+    "Planning the meals, choosing when to cook and working out the shopping means making the same decisions every week. Sophia organises everything at once.",
   "mealprep.week.body":
     "The week arrives in cooking sessions, not single dishes: you cook less often, for several days at once.",
   "mealprep.week.waves":
-    "The shopping follows. Nothing fresh waits more than three days, so the end of your week is bought at the end of your week.",
-  "mealprep.week.reserve":
-    "When a week fits in one wave, you see one. The product does not invent a second to look busy.",
+    "Shopping follows the plan in one or two runs. Fresh ingredients are bought before the cooking session that uses them.",
+
+  // ── BANDE 2 · COMPOSÉ POUR VOUS — ajoutée le 2026-09-01, voir le pack FR
+  // ⛔ On promet la COMPOSITION, jamais le RÉSULTAT: pas de « all your
+  // nutrients », pas de taux de couverture, aucun bilan rendu.
+  "mealprep.composed.kicker": "What is on the plate",
+  // ⚠️ « Équilibré » borné par ce qui suit — voir le pack FR pour les trois
+  // choses qu'on n'a PAS le droit de dire ici (plancher protéique, ancre par
+  // repas, taux de couverture: aucune n'appartient à la lane du foyer).
+  "mealprep.composed.title": "A complete meal, in an amount that fits you.",
+  "mealprep.composed.body":
+    "Every plate keeps the same three components: protein, starch and vegetables. Sophia builds that balance into the week from the start.",
+  "mealprep.composed.body_size":
+    "The amount takes your body and activity level into account. Someone who sits for eight hours and someone who trains four times a week do not get the same portion of the same dish.",
+  "mealprep.composed.body_2":
+    "Everything is worked out when the week is composed. At the table, you simply follow the portion shown: nothing to weigh, tick off or recalculate.",
+  // ⚠️ « whether what you eat is enough » → l'équilibre — voir le pack FR.
+  "mealprep.composed.note":
+    "The balance and amount are decided before you cook. You open the plan and follow what is scheduled.",
 
   "mealprep.fig.session.title": "One cooking session, several ready meals",
   "mealprep.fig.session.desc":
@@ -2886,45 +3122,59 @@ export const en = {
   "mealprep.fig.session.pot": "one session",
   "mealprep.fig.session.covers": "WHAT IT COVERS",
 
-  "mealprep.fig.waves.title": "Shopping split into waves along the week",
+  "mealprep.fig.waves.title": "Shopping split across the week",
   "mealprep.fig.waves.desc":
     "Two identical baskets over the days they cover. The first spans three days; the second runs on, open-ended.",
-  "mealprep.fig.waves.label": "SHOPPING IN WAVES",
-  "mealprep.fig.waves.first": "FIRST WAVE",
-  "mealprep.fig.waves.next": "NEXT WAVE",
+  "mealprep.fig.waves.label": "SHOPPING ACROSS THE WEEK",
+  "mealprep.fig.waves.first": "FIRST RUN",
+  "mealprep.fig.waves.next": "SECOND RUN",
   "mealprep.fig.waves.fresh": "THREE DAYS",
   "mealprep.fig.waves.week": "THE WEEK",
 
   // ── BANDE 3 · douleur 03 — « un imprévu, et toute la semaine tombe » ────
-  "mealprep.moves.kicker": "When an evening falls through",
-  "mealprep.moves.title": "A missed evening does not rebuild the week.",
+  "mealprep.moves.kicker": "When plans change",
+  // ⚠️ Couvre les trois accidents depuis le 2026-09-01 — voir le pack FR.
+  "mealprep.moves.title": "Sophia adjusts the rest of the week.",
+  // ⚠️ La réparation est ici, pas dans la figure — voir le pack FR.
+  // ⚠️ « three days » est `MAX_FRIDGE_DAYS = 3` — voir le pack FR.
+  // ⚠️ Deux paragraphes de longueur voisine, rendus côte à côte — pack FR.
+  // ⚠️ Deux paragraphes de longueur voisine, rendus côte à côte — pack FR.
+  // ⚠️ « something no-cook » était FAUX, corrigé le 2026-09-01 — voir le pack
+  // FR: un tap « la cuisson n'a pas eu lieu » fait la cascade puis PROPOSE LE
+  // DÉCALAGE de la session et de ce qui en dépend (`accident_tap.ts`).
+  // Deux paragraphes de longueur voisine, rendus côte à côte.
   "mealprep.moves.body":
-    "Three moves, offered as buttons in the chat: shift a dish, shift the whole session, or not cook tonight. The week realigns.",
+    "You say what changed. If you miss a meal, Sophia can move it as long as it stays under 3 days in the fridge. If a cooking session does not happen, it offers to move that session and the meals that depended on it.",
+  "mealprep.moves.body_2":
+    "If the shopping is not done, Sophia also reschedules the planned cooking session and its meals. The plan shows what needs to move before you are left without a meal.",
   // ⚠️ « No dish is picked for you » NIAIT LE PRODUIT ENTIER: Sophia compose
   // bien les plats. Ce qui n’existe pas est le REMPLACEMENT d’un plat en cours
   // de semaine (`REALIGNMENT_ACTIONS`, `accident.ts:995-1004`). Un mot manquait.
-  "mealprep.moves.note": "No replacement dish is picked for you, and nothing is rewritten behind your back.",
+  // ⛔ Deux réserves vraies — voir le pack FR (FF-057 🟠, et §5.1).
+  // ⚠️ `mealprep.moves.note` retirée le 2026-09-01 — voir le pack FR.
 
-  "mealprep.fig.moves.title": "The three moves a week accepts",
+  "mealprep.fig.moves.title": "The three accidents a week takes",
+  // ⚠️ Réécrite avec la figure le 2026-09-01 — voir le pack FR.
+  // ⚠️ Réécrite avec la figure — voir le pack FR.
   "mealprep.fig.moves.desc":
-    "Three cards, one per move. A dish leaves its evening; the session leaves with it; the evening stays empty.",
-  "mealprep.fig.moves.label": "THREE MOVES",
-  "mealprep.fig.moves.dish": "SHIFT A DISH",
-  "mealprep.fig.moves.session": "SHIFT THE SESSION",
-  "mealprep.fig.moves.tonight": "NOT TONIGHT",
+    "Three cards, one accident each, and what falls grows from left to right. On the first, a single dotted plate. On the second, a dotted pan and the three plates it feeds. On the third, a dotted basket above the pan and its three plates.",
+  "mealprep.fig.moves.label": "THREE ACCIDENTS",
+  // ⚠️ Les trois libellés nomment l'ACCIDENT — voir le pack FR.
+  "mealprep.fig.moves.dish": "A MEAL MISSED",
+  "mealprep.fig.moves.session": "A COOKING SESSION MISSED",
+  // ⚠️ `tonight` remplacée le 2026-09-01 par le troisième accident réel.
+  "mealprep.fig.moves.shopping": "SHOPPING NOT DONE",
 
   // ── BANDE 4 · le prix et la clôture ─────────────────────────────────────
   "mealprep.start.kicker": "To start",
-  "mealprep.start.title": "€12.99 a month. On your own, you get all of it.",
+  // ⚠️ Ne porte plus le chiffre, et plus de pronom — voir le pack FR.
+  "mealprep.start.title": "Everything is included from the first person.",
   "mealprep.start.body":
-    "You are buying a household of one, and a household of one is complete.",
+    "Nothing is held back for bigger tables: the meals, the cooking sessions, the shopping and the conversation are there from the first person. And if someone joins you one day, they are added — you do not change product.",
   "mealprep.start.period": "a month",
-  "mealprep.start.price_label": "One household. At one person, it is already whole.",
-  "mealprep.start.asks_label": "What you are asked for",
-  "mealprep.start.ask_name": "First name",
-  "mealprep.start.ask_birthdate": "Date of birth",
-  "mealprep.start.ask_goal": "Goal",
-  "mealprep.start.ask_allergies": "Allergies",
+  // ⚠️ Le charabia « a household of one » retiré le 2026-09-01 — pack FR.
+  "mealprep.start.price_label": "For one person, with every feature included.",
+  // ⚠️ Les cinq clés de la fiche d'entrée sont parties le 2026-09-01 — voir le pack FR.
   "mealprep.start.note": "Then Sophia composes the first week, in sessions.",
 
   //
@@ -2943,22 +3193,22 @@ export const en = {
   // Le pack FR en est la traduction fidèle — et c'est bien la version ANGLAISE,
   // jamais la française, que la page donne à lire à son lecteur d'axes.
   // ── SEO ──────────────────────────────────────────────────────────────────
-  "couples.seo_title": "Two goals, one pot",
+  // ⚠️ Suit le nouveau héros (2026-09-01) — voir le pack FR.
+  "couples.seo_title": "A week of meals for two, decided once",
   "couples.seo_description":
-    "One of you wants to gain, the other wants to lose, and you still eat at the same table. Sophia composes one dish and a serving instruction for each of you, in words rather than grams. €12.99 a month for the household.",
+    "What you eat, when you cook, what to buy — decided once for the week, for two. Two goals and two diets live together: one dish when it works, two in the same cooking session when it does not. €12.99 a month for the whole house.",
 
   // ── BANDE 1 — DOULEUR 01: deux objectifs = deux casseroles = abandon ──────
-  "couples.hero.kicker": "Couples",
-  "couples.hero.title": "Two goals. One pot.",
+  // ⚠️ Le héros a changé d'objet le 2026-09-01 — voir le pack FR.
+  "couples.hero.kicker": "A week of meals, for two",
+  // ⚠️ Recopié mot pour mot sur `home.door.pair.label`.
+  "couples.hero.title": "The hard part is agreeing.",
   "couples.hero.lede":
-    "Cooking two dinners is twice the work, and after a fortnight one of you stops — which stops the other. Here the dish is the same for both of you. What changes is the serving instruction.",
+    "“What are we eating?” comes up every evening, and the person who answers often ends up handling the shopping and cooking too. Sophia decides once for the week: the meals, cooking days and shopping list.",
   // ⚠️ « Get started », comme `/` et `/meal-prep`. « Start » était une dérive
   // de l’anglais seul: le français disait déjà « Commencer » sur les trois.
-  "couples.hero.cta": "Get started",
-  "couples.hero.price":
-    "€12.99 a month for the household, €2 a month for a second profile. The account you open is never counted on top.",
-  "couples.hero.reserve":
-    "Sign-up opens once the house coach’s programme is published.",
+  "couples.hero.cta": "Compose your first week",
+  // ⚠️ `couples.hero.price` RETIRÉE LE 2026-09-01 — voir le pack FR.
   // ⚠️ LA RÉSERVE D’ENTRÉE, AJOUTÉE LE 2026-08-13. `/` et `/couples` la
   // portaient, `/meal-prep` et `/families` non — le même tunnel donnait donc
   // deux réponses opposées à « est-ce que je peux entrer aujourd’hui ? ».
@@ -2966,29 +3216,62 @@ export const en = {
   // coach maison publié, la porte est fermée (audit §10). La règle est écrite
   // trois lignes au-dessus de `home.hero.reserve`: « Aucune page ne promet une
   // entrée immédiate sans cette réserve. » Elle vaut pour les quatre.
-  "mealprep.plate.reserve":
-    "Sign-up opens once the house coach’s programme is published.",
-  "families.hero.reserve":
-    "Sign-up opens once the house coach’s programme is published.",
 
   // ── LA DÉMONSTRATION — deux objectifs, une casserole ─────────────────────
-  "couples.demo.eyebrow": "One pot, two servings",
+  // ⚠️ Le chapeau annonce la QUESTION, pas une réponse — voir le pack FR.
+  "couples.demo.eyebrow": "One cooking session. One dish, or two.",
   "couples.demo.hint": "Choose a goal for each of you.",
-  "couples.demo.pot": "the same dish, cooked once",
+
+  // ── LE RÉGIME ET LA SORTIE DE LA DÉMONSTRATION — voir le pack FR ────────
+  "couples.demo.diet_legend": "What they eat",
+  "couples.diet.omnivore": "Anything",
+  "couples.diet.vegetarian": "Vegetarian",
+  "couples.diet.vegan": "Vegan",
+  "couples.diet.pescatarian": "Pescatarian",
+  "couples.demo.outcome_label": "What comes out of the pan",
+  "couples.demo.outcome_one_dish": "One dish, served differently.",
+  "couples.demo.outcome_one_session": "Two dishes, one cooking session.",
+  "couples.demo.outcome_why_one_dish":
+    "The same dish meets both needs; Sophia simply shows a different portion for each of you.",
+  "couples.demo.outcome_why_goals":
+    "The same dish cannot provide both planned portions. Sophia adds a second dish within the same cooking session.",
+  "couples.demo.outcome_why_diet":
+    "The shared dish follows the stricter diet — {regime}. If that dish can no longer provide one of the two portions, Sophia adds a second dish.",
+  "couples.demo.outcome_rule":
+    "Sophia keeps one shared dish when it works for both of you. Otherwise, it prepares two dishes in the same session. Separate sessions are only needed if you have no cooking day in common.",
+
+  // ── BANDES 3 ET 4 — voir le pack FR ─────────────────────────────────────
+  "couples.together.kicker": "Two people, two ways of eating",
+  "couples.together.title": "Your goals and constraints can fit in the same plan.",
+  "couples.together.lede":
+    "One wants to gain muscle, the other to lose fat. One is vegetarian, the other eats everything. Sophia starts by looking for a shared dish, then adds a second one only when both needs cannot fit together.",
+  "couples.together.tastes":
+    "Preferences are learned through conversation. Say “I don’t like fish” once, and Sophia leaves it out of the following weeks.",
+  "couples.give_up.kicker": "When constraints differ",
+  "couples.give_up.title": "The shared dish follows the stricter constraint.",
+  "couples.give_up.body":
+    "If one of you is vegetarian, the shared dish is vegetarian too. The person who eats everything can eat that dish; the vegetarian cannot eat a dish containing meat. The same logic applies to allergies.",
+  "couples.give_up.body_2":
+    "If that shared dish can no longer provide the portion planned for the other person, Sophia adds a second dish within the same cooking session. It only separates the dishes when necessary.",
+  "couples.moves.kicker": "When plans change",
+  "couples.moves.title": "Sophia adjusts the plan for both of you.",
+  "couples.moves.body":
+    "One of you says what changed. If you miss a meal, Sophia can move it as long as it stays under 3 days in the fridge. If a cooking session does not happen, it offers to move that session and the meals that depended on it.",
+  "couples.moves.body_2":
+    "If the shopping is not done, Sophia also reschedules the planned cooking session and its meals. You immediately see what needs to move, without rebuilding the schedule together.",
+  "couples.fig.moves.label": "THREE ACCIDENTS",
+  "couples.fig.moves.title": "The three accidents a week takes",
+  "couples.fig.moves.desc":
+    "Three cards, one accident each, and what falls grows from left to right. On the first, a single dotted plate. On the second, a dotted pan and the three plates it feeds. On the third, a dotted basket above the pan and its three plates.",
+  "couples.fig.moves.dish": "A MEAL MISSED",
+  "couples.fig.moves.session": "A COOKING SESSION MISSED",
+  "couples.fig.moves.shopping": "SHOPPING NOT DONE",
   "couples.demo.person_a": "One of you",
   "couples.demo.person_b": "The other",
-  "couples.demo.direction_label": "The serving direction",
-  "couples.demo.caption":
-    "These six directions are the product’s own words, and your screen gives them back written out for the dish of the day.",
-  "couples.demo.reserve":
-    "Two directions go out, and nothing checks that what comes back is two different servings.",
 
   // Les six objectifs, par leur nom d'écran.
   "couples.goal.fat_loss": "Losing fat",
   "couples.goal.muscle_gain": "Gaining muscle",
-  "couples.goal.recomposition": "Recomposition",
-  "couples.goal.performance": "Performance",
-  "couples.goal.health": "Health",
   "couples.goal.maintenance": "Maintenance",
 
   // ⛔ VERBATIM. Voir l'en-tête de ce fichier avant de toucher une virgule.
@@ -2996,45 +3279,34 @@ export const en = {
     "generous vegetables, full protein share, smaller starch share",
   "couples.dir.muscle_gain":
     "larger protein and starch share, same vegetables",
-  "couples.dir.recomposition":
-    "full protein share, moderate starch, generous vegetables",
-  "couples.dir.performance":
-    "larger starch share around training, full protein share",
-  "couples.dir.health":
-    "generous vegetables, balanced protein and starch share",
   "couples.dir.maintenance": "balanced share of every component",
 
   // Les trois axes qu'une direction sait nommer (`SERVING_AXES`).
-  "couples.axis.protein": "Protein",
-  "couples.axis.starch": "Starch",
-  "couples.axis.vegetables": "Vegetables",
+  // ⚠️ Dix clés retirées le 2026-09-01 avec le tableau des axes — pack FR.
 
   // L'échelle, du moins au plus (`SERVING_DEMANDS`), plus les deux cas de
   // lecture: axe non nommé, axe nommé sans qualificatif.
   // ⚠️ « share » EXPLICITE, comme sur `/meal-prep`. Les deux démonstrations
   // lisent la même constante et disaient la même valeur de deux façons.
-  "couples.demand.smaller": "smaller share",
-  "couples.demand.moderate": "moderate share",
-  "couples.demand.balanced": "balanced share",
-  "couples.demand.full": "full share",
-  "couples.demand.larger": "larger share",
-  "couples.demand.none": "nothing asked",
-  "couples.demand.unreadable": "not readable",
 
   // ── BANDE 2 — DOULEUR 02: « il mange deux fois plus que moi » ────────────
-  "couples.bodies.kicker": "The size of a serving",
-  "couples.bodies.title": "The same goal is not the same plate.",
+  // ── BANDE 2 · EST-CE QU'ON MANGE BIEN ? — voir le pack FR ───────────────
+  "couples.bodies.kicker": "Portion size",
+  "couples.bodies.title": "The same meal, two portions sized for you.",
   "couples.bodies.lede":
-    "Two people with the same goal rarely want the same amount of food. Height, weight, age and sex all go into the size of a serving, so the difference is settled before anyone sits down.",
-  "couples.bodies.in_label": "What goes in",
+    "Each meal keeps the same three components: protein, starch and vegetables. What differs between your plates is the amount, not the balance of the meal.",
+  "couples.bodies.size":
+    "Each portion is sized from that person’s height, weight, age and sex. You can eat the same dish without serving yourselves the same amount.",
+  // ⚠️ Même clôture que les deux autres pages — voir le pack FR.
+  "couples.bodies.settled":
+    "Both portions are worked out before cooking, so there is nothing to recalculate when you serve.",
+  "couples.bodies.in_label": "To size each portion",
   "couples.bodies.in_1": "Height",
   "couples.bodies.in_2": "Weight",
   "couples.bodies.in_3": "Age",
   "couples.bodies.in_4": "Sex",
-  "couples.bodies.out_label": "What comes out",
-  "couples.bodies.out": "one serving instruction, in words",
-  "couples.bodies.reserve":
-    "Numbers are off by default, and four locks decide whether they can be switched on. There is no weight curve here and no scale to open in the morning — two people having dinner are not a dashboard.",
+  "couples.bodies.out_label": "In the plan",
+  "couples.bodies.out": "each person’s portion, described in words",
 
   // ── BANDE 3 — DOULEUR 03: un seul des deux planifie ─────────────────────
   "couples.other.kicker": "The second profile",
@@ -3045,138 +3317,248 @@ export const en = {
   // partage au lieu de se déléguer »). En lecture-titres, un couple concluait
   // « un pilote, un passager » — exactement ce que la section existe pour
   // retirer.
-  "couples.other.title": "The other one is not a passenger.",
+  "couples.other.title": "Each of you can access the plan and manage your goal.",
+  // ⚠️ Montant sorti de la phrase le 2026-09-01 — voir le pack FR.
   "couples.other.lede":
-    "The other one is in the plan with or without an account. A claimed profile gives them their own way in and their own goal to change, for €2 a month: the load is shared instead of handed over.",
-  "couples.other.asked":
-    "To add someone we ask a first name, a date of birth, a goal and any allergies.",
+    "Even without an account, the other person is included in the meals and receives their portion. With their own access, they can view the plan and follow their own goal. {amount} a month.",
+
+  // ── LA SEMAINE, DESCENDUE ICI LE 2026-09-01 — voir le pack FR ───────────
+  "couples.week.kicker": "What arrives every week",
+  "couples.week.title": "It is not just a serving direction.",
+  // ⚠️ Les repas manquaient à la fiche — trou de FOND, voir le pack FR.
+  "couples.week.meals_title": "The week’s meals, decided",
+  "couples.week.meals_body":
+    "Seven days composed for the two of you at once — not a suggestion to settle every evening. You open the plan, you see what is planned, and you change what you want.",
+  "couples.week.sessions_title": "The week arrives in cooking sessions",
+  "couples.week.sessions_body":
+    "One cooking session can prepare several meals. The plan shows who cooks, on which day, and how many meals that session prepares.",
+  "couples.week.waves_title": "Shopping in one or two runs",
+  "couples.week.waves_body":
+    "The list follows the plan and is split into one or two runs. Fresh ingredients are bought before the cooking sessions that use them.",
 
   "couples.fig.who.title": "Who is in the plan",
+  // ⚠️ Réécrite le 2026-09-01 — voir le pack FR. Elle portait « two euros a
+  // month » en toutes lettres, un tarif périmé qu'aucun balayage de chiffres
+  // ne pouvait voir.
   "couples.fig.who.desc":
-    "The same household, two ways of being in it. Without an account, the other one is still a mouth of the household and still gets a serving. A claimed profile adds their own way in, for two euros a month.",
+    "The same household, two ways of being in it. Without an account, the other one is still a person in the house and still gets a serving. Their own access adds a way in of their own, and a goal they change themselves.",
   "couples.fig.who.eyebrow": "WHO IS IN THE PLAN",
   "couples.fig.who.col_a": "WITHOUT AN ACCOUNT",
-  "couples.fig.who.a1": "a mouth of the household",
+  // ⚠️ « a mouth of the household » retiré — voir le pack FR.
+  "couples.fig.who.a1": "a person in the house",
   "couples.fig.who.a2": "their serving is written",
   "couples.fig.who.a3": "included",
-  "couples.fig.who.col_b": "CLAIMED PROFILE",
+  // ⚠️ « CLAIMED PROFILE » retiré de la vitrine — voir le pack FR.
+  "couples.fig.who.col_b": "WITH THEIR OWN ACCESS",
   "couples.fig.who.b1": "their own way in",
   "couples.fig.who.b2": "their own goal, editable",
-  "couples.fig.who.b3": "€2 a month",
+  // ⚠️ Montant interpolé depuis `PRICES.claimedProfile` — voir le pack FR.
+  "couples.fig.who.b3": "{amount} a month",
   "couples.fig.who.foot": "the account that opens the household is never counted",
 
   // ── BANDE 4 — le prix et la clôture ─────────────────────────────────────
   "couples.price.kicker": "The price",
   "couples.price.title": "One household, one price.",
   "couples.price.period": "per month, for the household",
+  // ⚠️ Montant interpolé depuis `PRICES.claimedProfile` — voir le pack FR.
   "couples.price.label":
-    "A second claimed profile is €2 a month. Up to eight mouths. The account you open is never counted.",
+    "A second access is {amount} a month. Your own access is included in the household price.",
   "couples.price.note":
-    "At sign-up you say how many of you are at the table, and the path for two is where you land.",
+    "The base price already covers meals for both of you. A second personal login remains optional.",
 
+  // ══ FAMILIES — the HOUSEHOLD sales page (`/families`) ══════════════════════
   //
-  // ── L'ORDRE DES CLÉS EST L'ORDRE DES QUATRE BANDES ─────────────────────────
-  // 1. la table    — « on mange quoi ? », tous les soirs
-  // 2. la charge   — écrit une fois, et ce qu'une bouche ne mange pas gouverne
-  // 3. les enfants — l'objectif s'arrête aux adultes
-  // 4. le prix     — le foyer, pas la bouche
+  // THE BUYER, SHARPENED ON 2026-08-31: someone 35-45 who cooks most evenings
+  // and decides, alone, what everyone eats. The qualifier is THE CHILD, never
+  // the head count — one parent with one child is the most qualified household
+  // on the market (POSITIONNEMENT §2.3), and the old « Three mouths at the
+  // table, or more » ruled them out in so many words.
   //
-  // 67 clés là où le namespace en portait 97, et 564 mots rendus là où il en
-  // portait 1043. Ce qui a disparu est listé, section par section, dans
-  // `scratchpad/site/families/RAPPORT-DOULEURS-20260813.md`.
-  "families.seo_title": "One dish for a table that doesn’t eat the same",
+  // ⚠️ « MOUTH » IS GONE FROM THE BODY COPY. It turns people into head count on
+  // the first line read, on a page addressed to someone competent and tired. It
+  // survives only where it is the PRODUCT's own word (the cap of eight), and
+  // even there it now says « people ».
+  //
+  // ⚠️ WE AIM AT MOTHERS WITHOUT EVER WRITING IT. Whoever runs the meals is a
+  // ROLE, not a gender: a father who carries it must not read as an exception.
+  //
+  // KEY ORDER = ORDER OF THE SIX BANDS:
+  //   1. hero          — the mental load (hook n°1)
+  //   2. recognition   — served / absorbed / given up, then why you pay
+  //   3. the doubt     — hook n°2, and the one dark band
+  //   4. Thursday      — the collapse, and THE PROOF (a week, shown)
+  //   5. how it works  — three steps
+  //   6. the price     — €11.99, first month free
+  "families.seo_title": "The whole house’s meals, decided once a week",
   "families.seo_description":
-    "Sophia composes your household’s week: one dish for everyone, and for each mouth the share that suits them. What one mouth cannot eat governs the whole pot. €12.99 a month, the whole household.",
+    "Sophia plans your household’s week: the meals, cooking sessions and one or two shopping runs. One session can prepare several meals, with a portion adapted to each person. €12.99 a month for the whole household, first week free.",
 
-  // ── BANDE 1 · « On mange quoi ? », tous les soirs ───────────────────────
-  "families.hero.kicker": "Three mouths at the table, or more",
-  "families.hero.title": "“What’s for dinner?” One answer for the whole table.",
+  // ── BAND 1 · the mental load ────────────────────────────────────────────
+  // ⚠️ « You don't cook too much. You decide too much. » — the headline says
+  // what we take away AND what we don't. She knows how to cook; it is the
+  // DECIDING that weighs. A headline offering to spare her the cooking would
+  // be talking to somebody else.
+  "families.hero.kicker": "When there are children in the house",
+  "families.hero.title": "You don’t cook too much. You decide too much.",
   "families.hero.lede":
-    "It comes back every evening, for people who don’t want the same thing. Sophia composes the household’s week: one dish, one cooking, a share for each mouth.",
-  "families.hero.cta": "Create your household",
-  "families.hero.price_note": "€12.99 a month, the whole household.",
-  "families.hero.note":
-    "You write in one line what the house feels like this week, and the generator composes with it. Shares come as words, never grams.",
+    "Keeping track of what each person will not eat and what each person needs, then turning it all into meals, cooking sessions and a shopping list. That work comes back every week, always to the same person, and nobody sees it. Sophia handles that part; the cooking stays yours.",
 
-  "families.fig_table.label": "ONE COOKING, EACH THEIR SHARE",
-  "families.fig_table.a11y_title": "One line, one cooking, a share for each mouth",
+  // ── BANDE 2① · L'ÉQUILIBRE — neuve le 2026-09-01, voir le pack FR.
+  // ⛔ On promet la COMPOSITION, jamais le résultat. Aucun bilan sur un mineur.
+  "families.balanced.kicker": "What is on the plate",
+  // ⚠️ « The same dish » tout court était faux — voir le pack FR.
+  "families.balanced.title": "The same dish when possible. A portion adapted to each person.",
+  "families.balanced.body":
+    "Every plate has its three components: a protein, a starch, vegetables. What changes from one person to the next is not whether they are there — it is their proportion, and the amount.",
+  // ⚠️ La clôture nomme l'ÉQUILIBRE depuis le 2026-09-02 — voir le pack FR.
+  "families.balanced.body_2":
+    "The amount takes the person’s age, body and activity level into account. A fourteen-year-old and his nine-year-old sister do not get the same portion of the same dish. Everything is planned with the week, so there is nothing to recalculate at the table.",
+  // ⚠️ La règle du plat, dite là où le lecteur se fait sa conviction — voir le
+  // pack FR. ⛔ Ne pas retourner la dernière phrase en « vous choisissez
+  // d'avoir deux plats »: le choix est un PLAFOND, il ne fabrique rien.
+  "families.balanced.one_or_two":
+    "Most of the time, one dish works for the whole table. When a diet or constraint makes that dish unsuitable for someone, Sophia adds a second dish within the same cooking session. If you would rather never cook two dishes, you can set that limit and Sophia will explain the consequences.",
+  "families.hero.cta": "Compose your first week",
+  // ⚠️ `families.hero.price_note` RETIRÉE LE 2026-09-01 — voir le pack FR.
+
+  // The hero figure: one pot, four shares — and under each share THE REASON it
+  // is not the next one. All four are drawn the same size: the product says a
+  // WORD about a minor, never a ratio.
+  "families.fig_table.label": "ONE COOKING, PLATES THAT DIFFER",
+  "families.fig_table.a11y_title": "One cooking, four plates that differ",
   "families.fig_table.a11y_desc":
-    "A one-line field feeds one cooking. Below it, four mouths get a share of the same dish, drawn the same size.",
-  "families.fig_table.field": "THIS WEEK, IN ONE LINE",
-  "families.fig_table.line": "“Dishes we can all share.”",
-  "families.fig_table.pot": "ONE COOKING",
+    "A pot at the top, holding the evening’s dish. Four lines run down from it to four plates drawn the same size. Under each plate, a first name and the reason that share is not the next one: an adult’s goal, two ages, a food kept out of the pot.",
+  "families.fig_table.pot": "ONE COOKING ONLY",
+  "families.fig_table.dish": "Chicken, rice and beans",
   "families.fig_table.m1": "You",
-  "families.fig_table.m2": "Sami, 9",
-  "families.fig_table.m3": "Inès, 6",
+  "families.fig_table.m2": "Sami, 14",
+  "families.fig_table.m3": "Inès, 9",
   "families.fig_table.m4": "Jo",
+  "families.fig_table.why1": "your goal",
+  "families.fig_table.why2": "he is growing",
+  "families.fig_table.why3": "her age",
+  "families.fig_table.why4": "no peanut",
 
-  // ── BANDE 2 · la charge est toujours sur la même personne ───────────────
-  "families.load.kicker": "The load",
-  "families.load.title": "What you know about each of them, you write once.",
-  "families.load.body":
-    "First name, date of birth, goal, what they don’t eat. Your children are in the plan with no account, no screen, no password.",
-  "families.load.consequence":
-    "What one mouth cannot eat then governs the whole pot. And when that set cannot be read, nothing is composed: Sophia stops rather than guesses.",
-  "families.load.reserve":
-    "It covers what gets built — the week, the meal. An answer in the chat does not re-read the set, so the word “everywhere” is nowhere on this page. And Sophia replaces neither a label nor a doctor.",
+  // ── BAND 2 · the three shapes of divergence ─────────────────────────────
+  // ⚠️ THE THIRD CARD IS THE ONE THAT MATTERS. « Everyone eats the same » is a
+  // FALSE NEGATIVE: that household GAVE UP, because serving the difference by
+  // hand costs too much. It does not need the product any less.
+  "families.forms.kicker": "The table",
+  "families.forms.title": "At your house it goes one of three ways.",
+  "families.forms.served_title": "You cook twice.",
+  "families.forms.served_body":
+    "One dish for those who can eat it, another for the person who cannot. Every evening, that doubles the work for the person cooking.",
+  "families.forms.absorbed_title": "One dish, but very few options.",
+  "families.forms.absorbed_body":
+    "Very few dishes suit everyone, but you still need to fill the whole week without repeating the same meals.",
+  "families.forms.given_up_title": "Everyone eats the same.",
+  "families.forms.given_up_body":
+    "It is not that nobody has a different need. It is that serving that difference costs too much when one person cooks, in the evening, for everybody.",
+  // ⚠️ Restaurée le 2026-09-01 — voir le pack FR (BRIEF §5, l'objection n°1).
+  // ⚠️ LA BANDE DES CONTRAINTES A ÉTÉ SUPPRIMÉE LE 2026-09-02, sur décision
+  // du propriétaire, avec ses quatre clés (`families.limits.*`): le titre,
+  // l'allergie (fail-closed de `household_safety.ts`), le régime (R4/R5 de
+  // `household_diet.ts`) et l'interdit parental.
+  // ⚠️ Ce qui part avec elle: voir le pack FR. ⛔ Ne pas rétablir par symétrie.
+  // The answer to « there is a free planner », naming nobody. It is the only
+  // place on the page that says why you pay.
 
-  "families.fig_union.label": "WRITTEN ONCE, THEN IT GOVERNS",
-  "families.fig_union.a11y_title": "The mouths, their set, and the two ways a week can end",
-  "families.fig_union.a11y_desc":
-    "Four mouths and what they don’t eat; one carries a constraint. They gather into one set: readable, a pot is composed without that food; unreadable, nothing is composed.",
-  "families.fig_union.col_mouth": "EACH MOUTH",
-  "families.fig_union.col_avoid": "DOESN’T EAT",
-  "families.fig_union.m1": "You",
-  "families.fig_union.m2": "Sami, 9",
-  "families.fig_union.m3": "Inès, 6",
-  "families.fig_union.m4": "Jo",
-  "families.fig_union.none": "—",
-  "families.fig_union.peanut": "peanut",
-  "families.fig_union.set": "THE SET",
-  "families.fig_union.ok_label": "READABLE",
-  "families.fig_union.ok_value": "one pot, no peanut",
-  "families.fig_union.no_label": "UNREADABLE",
-  "families.fig_union.no_value": "nothing is composed",
-  "families.fig_union.code": "safety_constraints_unreadable",
+  // ── BAND 3 · the doubt (the dark band) ──────────────────────────────────
+  // ⛔ THE LINE IS SHARP: we COMPOSE FOR each of them, we never REPORT ON a
+  // child. The doubt is removed, not measured — a screen showing a shortfall in
+  // a twelve-year-old would make this reader more anxious, not less.
+  // ⚠️ Les quatre clés `families.doubt.*` sont parties le 2026-09-01 — pack FR.
+  // ⚠️ Raccourcie le 2026-09-01 — le mécanisme est dit par `Balanced`, juste
+  // au-dessus. Ce bloc répond, il n'explique pas. La clôture ne bouge pas.
 
-  // ── BANDE 3 · je ne vais pas mettre mes enfants au régime ───────────────
-  "families.age.kicker": "Children",
-  "families.age.title": "Your goal stops at the adults.",
-  "families.age.body":
-    "A minor is never a nutritional target: the number is closed where it is computed, not filtered on the screen. Their share follows their age.",
-  "families.age.reserve":
-    "No weight curve for anyone here: nothing keeps a series. And numbers stay off by default, behind a chain of guards where being a minor is one.",
+  // ── BAND 4 · Thursday, and the proof ────────────────────────────────────
+  "families.thursday.kicker": "Thursday",
+  "families.thursday.title": "When a cooking session is missed, Sophia adjusts the meals that depend on it.",
+  // ⚠️ Deux paragraphes de longueur voisine, réécrits pour une famille — pack FR.
+  "families.thursday.body":
+    "If Sunday’s cooking session does not happen, several meals later in the week are no longer possible. In a family, one disruption can affect several people’s meals for several days.",
+  // ⚠️ « moves » et pas « no-cook » — voir le pack FR. « 3 days » est
+  // `MAX_FRIDGE_DAYS`. `FF-057` est 🟠 en cours: « you say so », jamais « a button ».
+  "families.thursday.repair":
+    "You say what changed. Sophia then offers to move the cooking session and its meals. It only moves a dish when the fresh ingredients already bought will still be safe on the new date.",
+  // ⚠️ `families.thursday.reserve` repliée dans `repair` le 2026-09-01 — pack FR.
 
-  "families.fig_age.label": "THE GOAL STOPS AT THE ADULTS",
-  "families.fig_age.a11y_title": "A goal that reaches an adult and stops before a minor",
-  "families.fig_age.a11y_desc":
-    "The goal runs toward two plates of the same dish. It reaches the adult and stops before the minor. Both plates are drawn the same size.",
-  "families.fig_age.goal": "your goal",
-  "families.fig_age.adult_label": "AN ADULT",
-  "families.fig_age.adult_value": "the goal applies",
-  "families.fig_age.minor_label": "A MINOR",
-  "families.fig_age.minor_value": "no goal aims at them",
-  "families.fig_age.minor_note": "refused where it is built",
-  "families.fig_age.code": "minor_student",
+  // ── LA FIGURE DES TROIS ACCIDENTS — voir le pack FR.
+  "families.fig.moves.label": "THREE ACCIDENTS",
+  "families.fig.moves.title": "The three accidents a week takes",
+  "families.fig.moves.desc":
+    "Three cards, one accident each, and what falls grows from left to right. On the first, a single dotted plate. On the second, a dotted pan and the three plates it feeds. On the third, a dotted basket above the pan and its three plates.",
+  "families.fig.moves.dish": "A MEAL MISSED",
+  "families.fig.moves.session": "A COOKING SESSION MISSED",
+  "families.fig.moves.shopping": "SHOPPING NOT DONE",
 
-  // ── BANDE 4 · le prix, et la sortie ─────────────────────────────────────
-  "families.price.kicker": "Price",
-  "families.price.title": "One price for the household. Not one per mouth.",
+  // The proof figure: a week shown, then the same week after the cooking was
+  // skipped. ⚠️ Days are three letters, not initials: a bare « S » would be
+  // « samedi » here and « Saturday » there — an identical value in both packs,
+  // to be whitelisted in the parity test.
+  "families.fig_week.label": "A WEEK, COMPOSED",
+  "families.fig_week.a11y_title": "A composed week: the meals, the shopping and the cooking",
+  "families.fig_week.a11y_desc":
+      "Seven days in a row. Each day has a meal. In this example, two shopping runs are scheduled on Monday and Friday, before the cooking session on the same day. A brace runs under the three evenings each session covers; Thursday sits under neither.",
+  "families.fig_week.waves": "UP TO TWO SHOPPING RUNS",
+  "families.fig_week.d1": "MON",
+  "families.fig_week.d2": "TUE",
+  "families.fig_week.d3": "WED",
+  "families.fig_week.d4": "THU",
+  "families.fig_week.d5": "FRI",
+  "families.fig_week.d6": "SAT",
+  "families.fig_week.d7": "SUN",
+  "families.fig_week.planned": "AS COMPOSED",
+  "families.fig_week.cooking": "COOKING",
+  // ⚠️ Jeudi hors des deux accolades est EXACT — voir le pack FR
+  // (`MAX_FRIDGE_DAYS = 3`, jour de cuisson compris).
+  "families.fig_week.covers": "Each cooking session serves three evenings; Thursday is put together another way.",
+  "families.fig_week.dish2": "Chickpea curry",
+  // ⚠️ Trois clés parties avec la seconde rangée le 2026-09-01 — pack FR.
+
+  // ── BAND 5 · how it works ───────────────────────────────────────────────
+  // ⚠️ NO DURATION IS PROMISED. « Ten minutes » is measured nowhere, and the
+  // funnel is long: we name the FIELDS asked for, and the fact that the first
+  // step is not done twice.
+  "families.how.kicker": "How it works",
+  "families.how.title": "Three steps, and the first one happens only once.",
+  "families.how.s1_step": "First",
+  "families.how.s1_title": "You say who eats here.",
+  "families.how.s1_body":
+    "First name, date of birth, goal, what each of them does not eat. Your children are in the plan with no account, no screen, no password.",
+  "families.how.s2_step": "Then",
+  "families.how.s2_title": "The week arrives composed.",
+  "families.how.s2_body":
+    "The meals, cooking sessions scheduled around your availability, and one or two shopping runs. You approve the plan, then change whatever you want.",
+  "families.how.s3_step": "After a disruption",
+  "families.how.s3_title": "You say what changed.",
+  "families.how.s3_body":
+    "Sophia reschedules the affected meals and cooking sessions through to the end of the week.",
+
+  // ── BAND 6 · the price, and the way out ─────────────────────────────────
+  // ⚠️ THE AMOUNT IS EMBEDDED IN A SALES SENTENCE, SO IT LIVES HERE AND NOT IN
+  // `PRICES` (see the header of `i18n/prices.ts`). The card renders
+  // `formatPrice(PRICES.household)`. If the tariff moves, `price.body`,
+  // `hero.price_note` and `seo_description` move WITH it.
+  "families.price.kicker": "The price",
+  "families.price.title": "One price for the household. Not one per person.",
   "families.price.period": "a month, the whole household",
-  "families.price.label": "Up to eight mouths. Yours is never counted.",
+  "families.price.label": "Up to eight people. Your access is included.",
+  // ⚠️ Réécrite le 2026-09-01 — voir le pack FR. Les faits d'offre sont
+  // partis dans `offer.*`; il ne reste que l'argument propre à la page.
   "families.price.body":
-    "An adult who wants their own login takes a claimed profile at €2 a month. It is the only add-on there is.",
-  "families.price.reserve":
-    "There is no mobile app: Sophia opens in a browser.",
+    "Adding another person at the table does not change the price. Larger families do not pay more to organise their meals.",
 
   "families.fig_price.label": "THE PRICE FOLLOWS THE HOUSEHOLD",
   "families.fig_price.a11y_title": "Eight places, one price",
   "families.fig_price.a11y_desc":
-    "Eight mouth slots. The first is yours, and is never counted. The price below does not change as they fill.",
+    "A row of eight places. The first represents your included access; three more are taken, four are still open and drawn with a dashed edge. The price below does not change as places fill.",
   "families.fig_price.you": "YOU",
-  "families.fig_price.not_counted": "NEVER COUNTED",
-  "families.fig_price.cap": "CAP: 8 MOUTHS",
-  "families.fig_price.note": "at one mouth or at eight",
+  "families.fig_price.not_counted": "YOUR ACCESS INCLUDED",
+  "families.fig_price.cap": "CAP: 8 PEOPLE",
+  "families.fig_price.taken": "TAKEN",
+  "families.fig_price.free": "OPEN",
+  "families.fig_price.steady": "The price does not change as places fill.",
 
   // ── POURQUOI CETTE PAGE VEND UN REVENU ET PLUS UNE FATIGUE ÉVITÉE ────────
   //
@@ -4133,7 +4515,7 @@ export const en = {
   "household.paused.resume_cta": "Start it again",
   "household.paused.working": "Opening...",
   // Un profil réclamé ne porte pas la carte: c'est le compte maître qui paie
-  // (12,99 € le foyer, +2 € par profil réclamé). Lui montrer un bouton refusé
+  // (11,99 € le foyer, +2 € par profil réclamé). Lui montrer un bouton refusé
   // par le serveur serait la version « écran » du défaut que ce lot retire.
   "household.paused.owner_only":
     "Whoever set this household up can start it again from their own account.",
@@ -4484,7 +4866,9 @@ export const en = {
   "plan.refusal.local_day_unresolved":
     "We could not tell what day it is where you are, and a plan is counted in days.",
   "plan.refusal.window_required": "That request named no days to cover.",
-  "plan.refusal.bad_window": "Those days could not be read.",
+  "plan.refusal.bad_window":
+    "Those dates cannot make a plan. A plan starts today or later, and fits in "
+    + "seven days at most.",
   // C2 ② — refusé AVANT le modèle. Un départ au-delà de dimanche fabriquait une
   // consigne contradictoire (« today is: wed » à côté de « days to fill: tue »),
   // et le modèle refusait après 6,2 s facturées.
@@ -4513,6 +4897,8 @@ export const en = {
     "The answer came back in a shape we could not read. Your previous plan is untouched — try again.",
   "plan.refusal.plan_not_written":
     "The plan could not be saved. Your previous plan is untouched — try again.",
+  "plan.refusal.plan_adoption_timed_out":
+    "Saving took too long and was stopped. No incomplete plan was saved — try again.",
   "plan.refusal.house_rule_violated":
     "What came back broke one of this household's rules, so it was not kept.",
   // ── LES ONZE REFUS DE FUSION (L4) ───────────────────────────────────────
@@ -4633,7 +5019,6 @@ export const en = {
   "setup.people.intro":
     "You eat here too. You are the first place at the table, not the person who runs it.",
   "setup.people.first_name": "First name",
-  "setup.people.first_name_hint": "How the plan names your serving.",
   "setup.people.birth_date": "Date of birth",
   // L'ÂGE EST GOUVERNANT, ET LA PHRASE LE DIT. Un champ dont l'absence change
   // le repas sans le dire est un piège — c'est le défaut D1 de ce chantier.
@@ -4641,14 +5026,11 @@ export const en = {
     "A direction only applies at a known age. Without it you get a standard serving, and nothing says so.",
   "setup.people.birth_date_error": "That date is in the future, or we cannot read it.",
   "setup.people.height": "Height (cm)",
-  "setup.people.height_hint": "It sizes your servings. Nothing else reads it.",
   "setup.people.gender": "Sex",
   "setup.people.weight": "Weight (kg)",
   // POURQUOI ON LE DEMANDE MAINTENANT, ET PAS « PLUS TARD ». Deux raisons, et
   // la seconde est de la sécurité: sans un premier point, rien ne peut dire
   // plus tard si la perte va trop vite (`restriction_guard`).
-  "setup.people.weight_hint":
-    "With your height, it sizes your servings. It is also the first point of a line — without it, nothing can tell later whether you are losing too fast.",
   // ── L'ACTIVITÉ — QUATRE CRANS, ET JAMAIS UN NOMBRE (L0, 2026-08-18) ─────
   // ⚠️ AUCUNE DE CES PHRASES NE DEMANDE UN CHIFFRE, et c'est structurel, pas
   // une question de ton: `tokens.ts` refuse le PAL et les heures de sport par
@@ -4702,8 +5084,6 @@ export const en = {
   "setup.traditions.day_sun": "Sunday",
   "setup.day_activity.label": "What do your days look like?",
   "setup.day_activity.member_label": "What do their days look like?",
-  "setup.day_activity.hint":
-    "Work and daily life, sport aside -- sport is the next question.",
   "setup.day_activity.seated": "Mostly sitting",
   "setup.day_activity.seated_hint": "Sitting all day, not much walking.",
   "setup.day_activity.on_feet": "Up and about",
@@ -4714,8 +5094,6 @@ export const en = {
     "Carrying, walking, climbing -- all day.",
   "setup.sport.label": "And sport?",
   "setup.sport.member_label": "And sport, for them?",
-  "setup.sport.hint":
-    "Sessions per week, the day aside. \"No sport\" is an answer, and it counts.",
   "setup.sport.none": "No sport",
   "setup.sport.none_hint": "None at the moment.",
   "setup.sport.1_2": "1 to 2 a week",
@@ -4774,7 +5152,7 @@ export const en = {
   // est un goût. Les confondre à la saisie, c'est promettre une garde de
   // sécurité sur une préférence.
   "setup.people.allergies_hint":
-    "Medical only — it rules the whole pot, and nothing gets cooked without it. Dislikes and house rules come later.",
+    "Medical only. It comes out of the whole pot. Dislikes come later.",
   "setup.people.allergies_none": "Nothing to declare",
   "setup.people.allergies_other": "Something else",
   "setup.people.allergies_add": "Add",
@@ -4823,6 +5201,9 @@ export const en = {
   // RPC refuse un corps partiel, et le moteur SAUTE une bouche sans corps —
   // elle reçoit alors la part de tout le monde, en silence.
   "setup.mouths.body_hint": "All three together, or none of them.",
+  // Voir la note de `fr.ts`: la fiche d'ajout a éclaté le triplet en deux
+  // paires étiquetées, donc « all three » n'y désigne plus de groupe.
+  "setup.mouths.body_together": "Height, weight and sex go together: all three, or none.",
   "setup.mouths.goal": "What they are after",
   "setup.mouths.goal_none": "No particular direction",
   "setup.mouths.goal_from_profile":
@@ -4849,6 +5230,8 @@ export const en = {
     "the same line in the plan — give the second one a name you can tell apart.",
   "setup.mouths.full":
     "Eight is the most a household can hold. Every mouth is another serving to compose at each generation.",
+  "setup.mouths.branch_full":
+    "The number of people chosen in the first step has been reached. Go back to that step to change it.",
   // ── LES DEUX MOITIÉS DE CE QUE « CONTINUER » FAIT DE LA FICHE ───────────
   // Le bouton l'absorbe depuis le 2026-08-15, et c'est voulu. Ce qui manquait
   // est qu'il le DISE — avant, à côté des champs, et après, à côté du nom qui
@@ -4856,17 +5239,19 @@ export const en = {
   // en silence: « ça m'a rajouté une personne que je voulais pas »
   // (compte réel, 2026-08-19).
   // ── LA TÊTE DU FORMULAIRE D'AJOUT, ET POURQUOI ELLE EXISTE ─────────────
-  // Le bloc vide était un SOSIE d'une bouche inscrite: mêmes champs, même
-  // bouton de préférences, même phrase « rien de renseigné », et pour seule
-  // différence un trait de bordure en pointillé. Signalé capture à l'appui le
-  // 2026-08-19 — « je peux toujours pas supprimer le truc qui s'est ajouté
-  // tout seul », en montrant ce formulaire-là. La phrase répond exactement à
-  // ça: il n'y a personne, donc rien à retirer.
-  "setup.mouths.new_card": "An empty card",
-  "setup.mouths.new_card_hint":
-    "Nobody is here yet — this card only becomes a person when you add it, with the button at the bottom. Until then there is nothing to remove.",
+  // ⛔ `setup.mouths.new_card` ET `new_card_hint` SONT PARTIES LE 2026-09-01.
+  // Elles disaient « personne n'est encore ici … il n'y a rien à retirer » sur
+  // la fiche d'ajout dépliée. Demandé à l'écran — « ça sert à quoi ça ? » —
+  // et le mot compte: le même lot du 2026-08-19 avait livré DEUX remèdes au
+  // sosie, et le second (le bouton « Retirer », rendu inconditionnel) rend le
+  // premier FAUX. Il y a bien quelque chose à retirer: la fiche elle-même.
+  // Voir le commentaire de `MouthsStep` dans `SetupPage.tsx`.
+  //
+  // ⚠️ ET LA SORTIE EST NOMMÉE PAR SON LIBELLÉ RÉEL. La phrase ci-dessous
+  // envoyait chercher « Clear this card », un bouton renommé « Remove » le
+  // 2026-08-19.
   "setup.mouths.next_will_save":
-    "“Continue” saves this card too, and {name} joins the table. Use “Clear this card” if that is not what you want.",
+    "“Continue” saves this card too, and {name} joins the table. “Remove” undoes it.",
   "setup.mouths.added_by_next":
     "{name} is now at the table — “Continue” saved this card before moving on. “Remove” on their card undoes it.",
 
@@ -5047,10 +5432,7 @@ export const en = {
   "household.mouth.target_refused_below_energy_floor":
     "Getting there would put their day below the energy floor. Pick a target a little further up.",
   "household.mouth.pace": "How fast",
-  "household.mouth.pace_hint":
-    "The top of this slider is set by their body — it is the fastest pace the plan can actually cook.",
-  "household.mouth.pace_hint_you":
-    "The top of this slider is set by your body — it is the fastest pace the plan can actually cook.",
+  // ⛔ `pace_hint` / `pace_hint_you` retirées le 2026-09-01 — voir le pack FR.
   "household.mouth.pace_value": "{pace} kg a week",
   // ⚠️ DEUX ÉCRANS DIFFÉRENTS, ET C'EST LE CONTRAT DU TYPE `PaceCeiling`:
   // `null` = « je ne connais pas ce corps », `0` = « je le connais, et il n'a
@@ -5111,7 +5493,7 @@ export const en = {
   "household.mouth.meal_structure": "What else is on {who}'s plate",
   "household.mouth.meal_structure_you": "What else is on your plate",
   "household.mouth.meal_structure_hint":
-    "The plan only builds the main dish. Answering all three lets it size that dish for this plate rather than for an average one.",
+    "The plan only builds the main dish. Tell it what comes alongside.",
   "household.mouth.takes_dessert": "A dessert, a fruit or a yoghurt?",
   "household.mouth.takes_cheese": "Cheese?",
   "household.mouth.takes_bread": "Bread?",
@@ -5124,16 +5506,40 @@ export const en = {
   // Demander l'appétit obtiendrait une réponse à une autre question.
   "household.mouth.appetite": "How much {who} usually eats",
   "household.mouth.appetite_you": "How much you usually eat",
-  "household.mouth.appetite_hint":
-    "A formula estimates a need to within about 10%. This is where you say which side of it you are on -- it is not a dial for eating more or less.",
-  "household.mouth.appetite_small": "Less than people of the same build",
-  "household.mouth.appetite_average": "About the same as people of the same build",
-  "household.mouth.appetite_large": "More than people of the same build",
+  // Voir la note de `fr.ts`: la phrase sur les ±10 % est partie le 2026-09-01,
+  // et la comparaison qui reste porte un pronom — donc elle est voisée.
+  "household.mouth.appetite_hint": "At the same build, {who} eats…",
+  "household.mouth.appetite_hint_you": "At the same build, you eat…",
+  "household.mouth.appetite_small": "Less",
+  "household.mouth.appetite_average": "Like most",
+  "household.mouth.appetite_large": "More",
   // ── BLOC 4 ──────────────────────────────────────────────────────────────
   // ── LA QUESTION DES MOMENTS A CHANGÉ D'ÉCRAN LE 2026-08-19 ────────────
   // Elle vivait à l'étape 3, deux écrans après « ce qu'elle mange déjà » —
   // qu'elle dimensionne. On demandait donc six repas à quelqu'un sans lui avoir
   // demandé combien il en fait.
+  "household.mouth.eating": "When {who} eats, and what",
+  "household.mouth.eating_you": "When you eat, and what",
+  "household.mouth.eating_hint":
+    "Tick the moments {who} really eats — each one opens a place to say what already happens there.",
+  "household.mouth.eating_hint_you":
+    "Tick the moments you really eat — each one opens a place to say what you already have there.",
+  "household.mouth.habit_field": "Any habits?",
+  // See fr.ts: the bubbles replace the three per-person yes/no questions. The
+  // word is bare — the leading "+" is drawn by the screen, and disappears once
+  // the bubble is on: it then STATES what is taken, it no longer offers to add
+  // it.
+  "household.mouth.extras_field": "And on the side?",
+  "household.mouth.extra.bread": "bread",
+  "household.mouth.extra.cheese": "cheese",
+  "household.mouth.extra.yoghurt": "yoghurt",
+  "household.mouth.extra.fruit": "fruit",
+  "household.mouth.extra.dessert": "dessert",
+  "household.mouth.habit_shaker_here": "{who}’s shaker sits at this moment.",
+  "household.mouth.habit_shaker_here_you": "Your shaker sits at this moment.",
+  "household.mouth.shaker_at": "When {who} takes it",
+  "household.mouth.shaker_at_you": "When you take it",
+  "household.mouth.shaker_at_loose": "Not at a named moment",
   "household.mouth.rhythm":
     "How many times a day {who} eats",
   "household.mouth.rhythm_you":
@@ -5151,9 +5557,9 @@ export const en = {
   "household.mouth.habits_you":
     "What you already eat",
   "household.mouth.habits_hint":
-    "Anything {who} eats almost every day that should not change?",
+    "Something daily that should not change?",
   "household.mouth.habits_hint_you":
-    "Anything you eat almost every day that you do not want changed?",
+    "Something daily you do not want changed?",
   "household.mouth.habits_only_declared":
     "Show only their moments",
   "household.mouth.habits_only_declared_you":
@@ -5209,6 +5615,10 @@ export const en = {
     "Saveable, but not counted yet: the plan needs all three numbers to fold it in rather than cook around it. What you typed is kept.",
   "household.mouth.shaker_needs_one":
     "It needs a name and at least one of the three numbers to be saved.",
+  // Voir la note de `fr.ts`: « counted » est un fait sur la base, et la fiche
+  // d'ajout n'a pas encore de ligne où écrire.
+  "household.mouth.shaker_with_the_card":
+    "It leaves with the rest of the sheet, when you save it.",
   "household.mouth.shaker_remove": "Remove it",
   // ── BLOC 6 ──────────────────────────────────────────────────────────────
   "household.mouth.tastes":
@@ -5216,14 +5626,12 @@ export const en = {
   "household.mouth.tastes_you":
     "What you will not eat",
   "household.mouth.tastes_hint":
-    "Food {who} refuses. A dislike, not an allergy — allergies are the section above, where they are treated as medical.",
+    "A dislike, not an allergy.",
   "household.mouth.tastes_hint_you":
-    "Food you refuse. A dislike, not an allergy — allergies are the section above, where they are treated as medical.",
+    "A dislike, not an allergy.",
   "household.mouth.dislikes": "Food they refuse",
   // ⚠️ UN DÉGOÛT N'EST PAS UNE ALLERGIE, et la phrase le dit à l'écran: les
   // fondre promettrait une garde de sécurité sur une préférence.
-  "household.mouth.dislikes_hint":
-    "Dislike, not allergy — allergies go in the block above, where they are treated as medical.",
   "household.mouth.dislikes_placeholder": "mushrooms",
   // ── LE RÉGIME EST LA PREMIÈRE SECTION DEPUIS LE 2026-08-19 ──────────────
   // Il écarte des familles entières d'aliments: le poser après les dégoûts
@@ -5233,7 +5641,12 @@ export const en = {
     "How {who} eats",
   "household.mouth.diet_you":
     "How you eat",
-  "household.mouth.diet_unset": "Nobody has said",
+  // ⚠️ UNE INVITE, PAS UN CONSTAT. C'était « Nobody has said » — une phrase sur
+  // un tiers, proposée comme option à quelqu'un qui répond pour lui-même.
+  // L'option reste (sinon l'écran annonce un régime que personne n'a choisi)
+  // mais elle est `disabled`: elle nomme l'état de départ, elle ne se choisit
+  // plus.
+  "household.mouth.diet_unset": "Pick an answer",
   "setup.table.from_profile":
     "They have their own account — their moments are in their own settings.",
   // ── LES MOYENS DE CUISSON, AU NIVEAU DU FOYER (2026-08-18) ──────────────
@@ -5314,12 +5727,11 @@ export const en = {
     "will actually miss — a trip, a dinner out, a weekend away. Only the days " +
     "above are touched.",
   "setup.request.presence_open": "Their week",
+  "setup.request.presence_optional": "optional",
   "setup.request.intro":
     "Asked again every time you build one: this week is not last week.",
   "setup.plan.rhythm": "When you eat",
   "setup.plan.rhythm_hint": "Only the moments you tick get composed.",
-  "setup.plan.cook_days": "Days you cook",
-  "setup.plan.cook_days_hint": "The rest is leftovers, batches, or something we do not touch.",
   "setup.plan.time": "How long a cooking session lasts",
   // ⚠️ LE NOMBRE ARRIVE DÉJÀ FORMATÉ (« 1½ »), et c'est voulu: la demi-heure
   // se dit, elle ne se calcule pas à l'affichage. Voir `cookingTimeParts`.
@@ -5569,6 +5981,8 @@ export const en = {
   // ⚠️ AUCUNE DURÉE N'EST ANNONCÉE ICI: les deux temps vivent sur les
   // préparations et sur la session, et les recopier sous un plat donnerait à
   // un assemblage le temps d'une cuisson.
+  "meals.result.thaw_the_night_before":
+    "Frozen portion: take it out of the freezer the night before.",
   "meals.result.session_open": "The cooking session",
   "meals.result.session_hide": "Hide the session",
   "meals.result.session_also": "Made in the same session: {titles}",
@@ -5909,7 +6323,7 @@ export const en = {
   // plan EST dimensionné dessus. Elle est restée treize jours à l'écran en
   // promettant le contraire de ce que le moteur faisait.
   "meals.energy.target_note":
-    "Roughly what a body your size uses in a day. It is not a goal and nothing is counted against it.",
+    "Roughly what a body your size uses in a day. It is not a goal — the day's total sits beside it so you can see where you are, not so you can hit it.",
   // ⟳ LOT 4 — LA MÊME NOTE, QUAND LA FOURCHETTE A SUIVI LA DIRECTION. Elle dit
   // les deux choses que l'autre ne peut plus dire: d'où vient le décalage, et
   // que les portions du plan sont déjà posées dessus — c'est-à-dire qu'il n'y a
@@ -6048,6 +6462,8 @@ export const en = {
   // La raison est la FRAÎCHEUR, et elle est DITE. Une seconde liste sans
   // explication se lit comme une corvée arbitraire — c'est-à-dire comme
   // exactement ce que ce produit promet de retirer.
+  "meals.shopping.buy_all_on":
+    "Buy it all on {date}: nothing in this plan spoils before it is cooked.",
   "meals.shopping.wave_now": "Buy now",
   "meals.shopping.wave_later": "Buy on {date}",
   "meals.shopping.wave_serves": "so it is fresh for the {day} cooking",
@@ -6954,8 +7370,6 @@ export const en = {
   "plan.cooking.summary_open": "Change",
   "plan.cooking.summary_edit": "Tell me",
   "plan.cooking.summary_close": "Close",
-  "plan.cooking.days_label": "Days you can cook",
-  "plan.cooking.days_hint": "Pick the days you can spend real time in the kitchen.",
   "plan.cooking.time_label": "Time per cooking session",
   "plan.cooking.time_15": "15 minutes — get in and out",
   "plan.cooking.time_30": "30 minutes",
@@ -6988,10 +7402,27 @@ export const en = {
   "plan.cooking.shape_one_dish": "One dish for everyone",
   "plan.cooking.shape_one_session": "One cook, slightly different plates",
   "plan.cooking.shape_separate": "Each their own",
+  "plan.cooking.one_session_label":
+    "Cook everything in one go",
+  "plan.cooking.one_session_hint":
+    "A single cooking session for the whole stretch: whatever is not eaten in " +
+    "the days that follow goes in the freezer, and comes out the night before.",
+  "plan.cooking.day_before_label":
+    "I cook the day before it starts",
+  "plan.cooking.day_before_hint":
+    "The plan will start a day earlier, and that day carries no meals: it is " +
+    "the one you cook on for the rest.",
+  "plan.cooking.day_before_starts_today":
+    "This plan starts today, so the day before has already gone. Move the " +
+    "first day later to cook ahead.",
+  "plan.cooking.day_before_no_room":
+    "This plan already covers seven days, the most it can. Shorten it by a " +
+    "day to make room for the session before it.",
+  "plan.cooking.one_session_needs_freezer":
+    "This needs a freezer: without one, a cooked dish only keeps two more " +
+    "days. Tick it under \"What you cook with\" to open this option.",
   "plan.cooking.time_minutes": "{n} min",
   "plan.cooking.time_hours": "{n} hr",
-  "plan.cooking.days_required":
-    "Pick at least one day you can cook this week.",
   "plan.cooking.time_required": "Say how long a cooking session can last.",
   "plan.cooking.budget_required":
     "Say what this plan can cost. Without a number there is nothing to trade off.",
@@ -7347,7 +7778,7 @@ export const en = {
   "plan.goal.target_waist": "Waist I am aiming for",
   "plan.goal.target_band": "Weight I want to stay around",
   "plan.goal.optional": "optional",
-  "plan.goal.target_hint": "Nothing counts down, and nobody is scored against it.",
+  "plan.goal.target_hint": "It sets the direction your portions are sized for. It is not a deadline, and nobody is scored against it.",
   // L'AXE, pour les deux dynamiques qu'aucun chiffre ne porte. Les six valeurs
   // sont celles du point du dimanche (`chat.weekly.axis.*`): l'objectif est
   // mesurable sans une saisie de plus.
@@ -7470,7 +7901,10 @@ export const en = {
   "known.section.again.empty": "Nothing yet. What you liked lands here as soon as you say so.",
   "known.section.portions.title": "Portions",
   "known.section.portions.empty": "No portion has been adjusted. That question is asked at the end of a plan, with the household in front of you.",
-  "known.section.portions.not_wired": "Kept and shown, not yet served: portion adjustments do not reach the plate calculation yet.",
+  "known.index.portions.down": "For {who}, I serve slightly smaller helpings than the baseline — that is what you asked for in the review.",
+  "known.index.portions.down_strong": "For {who}, I serve clearly smaller helpings than the baseline — that is what you asked for in the review.",
+  "known.index.portions.up": "For {who}, I serve slightly larger helpings than the baseline — that is what you asked for in the review.",
+  "known.index.portions.up_strong": "For {who}, I serve clearly larger helpings than the baseline — that is what you asked for in the review.",
   "known.section.rhythm.title": "Your rhythm",
   "known.section.rhythm.empty": "Nothing declared about which moments of the day happen, and for whom.",
   "known.section.kitchen.title": "Your kitchen",
@@ -7486,6 +7920,20 @@ export const en = {
   "known.source.conversation": "I kept this from what you said on {day}",
   "known.source.questionnaire": "You ticked this in a plan review",
   "known.source.draft_note": "You wrote this on a draft plan",
+  "known.quote": "because you said: {quote}",
+  "known.recent.title": "What just changed",
+  "known.memo.title": "What Sophia kept otherwise",
+  "known.memo.intro": "Instructions no section could hold. {used} of {max} — beyond that, one has to go before a new one can come in.",
+  "known.field.moved": "from {previous} to {next}",
+  "known.field.undo": "Undo",
+  "known.field.unset": "nothing",
+  "known.field.cook_days": "Cooking days",
+  "known.field.cooking_time_min": "Cooking time",
+  "known.field.budget_amount": "Budget",
+  "known.field.recipe_difficulty": "Recipe difficulty",
+  "known.field.variety": "Variety",
+  "known.field.eating_rhythm": "Meal rhythm",
+  "known.recent.intro": "Nothing was decided behind your back: here is what I filed recently, and why. Remove anything that is wrong.",
   "known.edit": "Edit",
   "known.remove": "Remove",
   "known.save": "Save",
