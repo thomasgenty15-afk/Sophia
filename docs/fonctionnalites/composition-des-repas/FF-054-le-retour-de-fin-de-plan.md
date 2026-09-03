@@ -264,6 +264,31 @@ la relance, et le produit a déjà retiré ce genre de boucle.
 1. **Où exactement à l'ouverture de l'app ?** Le chat s'impose, mais un plan
    écoulé depuis trois semaines mérite-t-il encore la question ? Un délai de
    péremption (au-delà de X jours, on laisse tomber) n'est pas tranché.
-2. **Le foyer.** Qui répond pour un plan de foyer ? Le compositeur de la
-   session, probablement — mais les portions concernent chaque membre. Non
-   tranché ; à reprendre avec la lane foyer.
+2. ~~**Le foyer.** Qui répond pour un plan de foyer ?~~ ✅ **Tranché le
+   2026-09-03 (chantier P8, lot A8.2), et tranché par une PROPRIÉTÉ, pas par
+   une règle qu'il aurait fallu écrire.**
+
+   `meal_plan_feedback` est `unique(meal_id)` : **il n'y a qu'un retour par
+   plan**, et c'est celui de la personne qui a composé — le **maître**, pour un
+   plan `household`. Un profil réclamé (FF-048) **n'est jamais interrogé** en
+   fin de fenêtre.
+
+   ⚠️ **Ce n'est pas un oubli, et c'est pour ça que ça s'écrit ici.** Depuis
+   A8.0 le membre reçoit sa bande du soir, depuis A8.1 il coche ses plats,
+   depuis A8.2 il déclare le sort de sa boîte : trois surfaces où il parle. La
+   quatrième lui est fermée, et un lecteur qui constate ce silence doit trouver
+   la raison plutôt que de conclure à un trou. La raison est que le retour de
+   fin de plan **gouverne la composition suivante** — il descend le style de
+   cuisine, les rejets, la difficulté (§4). C'est un geste de **celui qui
+   compose**, et « une seule personne gouverne le menu » (le-foyer/README, F1).
+   Interroger le membre produirait soit une réponse qui ne change rien — la
+   pire des questions —, soit un second gouvernail.
+
+   Ce qui **remonte** du membre au plan suivant passe par les faits qu'il écrit
+   pour lui (`protocol_events`, `meal_share_outcomes`), pas par un avis. Un fait
+   n'a pas besoin d'être arbitré.
+
+   ⛔ **Ce qui reste vrai malgré tout** : la contrainte est une propriété du
+   schéma, donc elle tomberait en silence si quelqu'un la retirait. Aucune garde
+   ne la tient aujourd'hui — c'est nommé au rapport A8.2 comme dette, pas
+   comme acquis.
