@@ -607,3 +607,27 @@ réparé entre-temps compte désormais parmi les verts), Deno 138/0, les 7 rouge
 mutations du bâtisseur reproduites exactement** plus 4 du vérificateur, droits mesurés par `has_table_privilege`
 (`authenticated` = select seul ; jumelle `_for` = `service_role` seul), RLS 18/18 **avec un foyer voisin réel**,
 export RGPD cousu et aligné positionnellement, C4/C8 mesurés en base.
+
+## 21:2x — la nuance qui rend le piège de migration doublement crédible
+
+CUISINE a vérifié : **sa méthode strippait déjà le `begin;`/`commit;`** sans qu'elle sache que c'était le piège, et sa
+mesure ligne par ligne confirme que la base est intacte (`lead_days` absent, `duration_days_check` toujours celui
+d'origine, `eaten_days_check` et l'index absents, `keel_write_field_changes_for` sans `grocery_runs`, le commentaire de
+`practical_constraints` sans `cooking_style`, zéro ligne de fixture, zéro compte de contrôle, registre à
+`20260903150000`). **Aucune de ses deux migrations n'a touché la base partagée.**
+
+**Sa nuance, qui explique le coût du piège** : le `rollback;` ne défait rien après un `commit;` interne, **mais le bloc
+`do $$` de contrôle tourne quand même**. Une migration ainsi « validée » peut donc **s'appliquer pour de vrai ET passer
+son propre contrôle**. On voit défiler neuf contrôles verts, on conclut que rien n'a été écrit, et la table est là.
+⇒ **Deux questions indépendantes, deux réponses séparées** : (1) le contrôle mord-il sur ce qu'il prétend garder — on
+mute le CHECK et on voit le rouge ; (2) la base est-elle intacte — on la **mesure**, avant et après. Transmis à A8.3,
+qui doit précisément remonter des lignes réelles dans ce bloc.
+
+**A2 avance** : `341e0f76` (D6.1 + D6.2, deux bumps v25→v26 et v22→v23, onze épinglages suivis — la leçon des sept est
+retenue), `e1976df5` (D2.4 le style plafonne la forme, D2.5 « pas eu le temps » descend le style), `ecd2154b`
+(l'entonnoir pose les deux questions, `cooking_time_min` passe en `better`), `f6900424` (i18n). Suite Deno **4 876/4 876**,
+vitest 2 050/2 075 avec les rouges étrangers connus, `tsc` 0. Annonce formelle à venir.
+
+**Vérification A5 lancée** sur `VERIF` (détaché sur HEAD), avec deux consignes de contexte : **n'ouvrir aucun worktree**
+(disque à 4,6 Gi), et **vérifier les MOTIFS des trois écarts**, pas seulement les faits — un motif faux transforme un
+écart assumé en défaut. Le précédent est frais : la vérification d'A8.2 a démenti une excuse en la mesurant.
