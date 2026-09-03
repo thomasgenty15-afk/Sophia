@@ -364,3 +364,35 @@ Deno), page complète, A8.0 fusionné dans sa base **sans conflit**. **Non fusio
 qui n'existe pas encore, et l'échec est **délibérément fail-closed** (la ceinture TCA vit dans la réponse serveur ;
 l'ancienne lisait `weekly_reviews.risk_band`, colonne morte depuis le 08/08). Fusionner maintenant casserait
 `/app/progress` dans l'arbre principal jusqu'au lot serveur. Attendra son tour, comme prévu.
+
+## 19:0x — deux fusions, trois conflits, et le gate qui gagne sa place
+
+Le lot B de la voisine étant commité (`fc30a89a`), le blocage est levé.
+
+**Fusion A1 (CUISINE) → `f39aee21`.** Trois conflits, résolus **sans réécrire une ligne de logique** :
+- `SetupPage.tsx` : chaque branche avait retiré un import **différent** (A6 `workLunchRoster`, A1 `CookDayBeforeField`).
+  Vérifié qu'aucun des deux symboles n'avait d'autre usage dans le fichier ⇒ les deux lignes tombent.
+- `en.ts` / `fr.ts` : les deux blocs délimités (FOYER puis CUISINE) cohabitent. **La discipline du bloc a fait exactement
+  ce qu'on attendait d'elle** : le conflit est « garde les deux », rien d'autre. `tsc` 0, `parity` et `pageSeams` verts.
+
+**Fusion A8.1 + correctif A8.0 (MEMBRE) → `45ec7868`.** Aucun conflit. ⚠️ **Erreur de l'orchestrateur, nommée** : j'ai
+fusionné la **pointe de branche** au lieu du sha annoncé (`5650ed9d`), donc **deux commits d'A8.2 sont entrés en avance**
+(`2e330f85`, `e25d8578` : module pur `meal_share_outcome.ts`, ses tests, la migration `20260903172000`, le test RLS, deux
+fiches). Rien n'est défait — le tout compile et la lane finit le lot — mais **rien de ce qui est entré en avance n'est
+tenu pour prouvé** : la vérification d'A8.2 attend son annonce. La lane est prévenue pour qu'elle ne suppose pas un
+arbre principal plus pauvre qu'il n'est. **Règle pour la suite : fusionner le sha annoncé, jamais le nom de branche.**
+
+### Le gate a attrapé un défaut d'A1 que sa liste nommée ne couvrait pas
+
+`agent-gate.sh` sur l'arbre fusionné : **exit 1**, trois `TS2322` dans `meal_plan_integrity_test.ts:145,148,162` — des
+fixtures qui construisent un `LivePlanSpan` **sans le champ requis** que A1 a ajouté pour tuer la garde morte `eatenSpan`.
+Le champ requis est le bon geste ; le trou est que **A1 a lancé les fichiers Deno de son mandat, pas la suite entière**.
+Renvoyé à CUISINE, prioritaire sur A2, avec la leçon : un champ requis ajouté à un type partagé casse des fichiers que le
+mandat ne nomme pas — lancer `deno test --no-run _shared/keel/` **en entier** avant d'annoncer.
+**L'arbre principal est rouge en attendant, et c'est la première fois du chantier que le gate sert à quelque chose.**
+Sans les six commits de réparation de cet après-midi, ces trois erreurs seraient entrées sans un mot.
+
+**État des fusions** : RAPIDE ✅ VERT · A6 ✅ VERT · A8.0 ✅ (ROUGE puis corrigé, correctif fusionné, à re-vérifier) ·
+A1 ✅ fusionné, **rouge, correctif attendu** · A8.1 ✅ fusionné, à vérifier · A8.2 partiellement entré, non annoncé.
+**En cours** : CUISINE correctif A1 puis A2 · MEMBRE A8.2 · FOYER A5 · SUIVI lot serveur.
+**Non fusionné exprès** : SUIVI front (`fd47c04c`) — casserait `/app/progress` jusqu'à son lot serveur.
