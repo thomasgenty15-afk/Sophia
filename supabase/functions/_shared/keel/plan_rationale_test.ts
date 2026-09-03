@@ -10,12 +10,18 @@ import {
 } from "./plan_rationale.ts";
 import {
   cookingAskedToday,
+  leadDayFor,
   proposedWindowStart,
   rhythmClockFrom,
   SHOPPING_CUTOFF_HOUR,
   SLOT_PASSED_HOUR,
   slotsPassedToday,
 } from "./plan_hours.ts";
+import {
+  MAX_WINDOW_DAYS,
+  planTimingOf,
+  withCookDayBefore,
+} from "./meal_plan_window.ts";
 import { localHourInZone, localMinuteInZone } from "./local_date.ts";
 import {
   addedCookDays,
