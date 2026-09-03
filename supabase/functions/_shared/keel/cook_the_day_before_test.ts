@@ -12,9 +12,14 @@ import {
 } from "./meal_generation.ts";
 import {
   cookDayBeforeAvailable,
+  eatenSpan,
+  firstBlockingPlan,
+  MAX_LEAD_DAYS,
   MAX_WINDOW_DAYS,
+  planTimingOf,
   withCookDayBefore,
 } from "./meal_plan_window.ts";
+import { leadDayFor, SHOPPING_CUTOFF_HOUR } from "./plan_hours.ts";
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -299,3 +304,193 @@ for (const [name, rel] of LANES) {
     assert(hits.length >= 2, `${name}: ${hits.length} site(s) câblé(s)`);
   });
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 5. LA VEILLE EST DÉRIVÉE — chantier-0903/CUISINE, A1 (P1), 2026-09-03
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Jusqu'à ce lot, « je cuisine la veille » était une CASE. La règle produit du
+// 03/09: les courses et la cuisson se font la veille, AUTOMATIQUEMENT, avec la
+// coupure de 18 h — et quand la veille n'est plus possible, on le DIT.
+//
+// ⛔ CE QUE CES TESTS DOIVENT EMPÊCHER, ET QUI EST LE PIÈGE DU LOT: qu'une
+// horloge illisible se lise comme « minuit », donc comme « avant 18 h », donc
+// comme une veille accordée. Le produit d'hier (pas de veille) est le seul
+// repli honnête, et il porte un NOM (`clock_unreadable`).
+
+Deno.test("A1 — la table de `leadDayFor`, ligne par ligne", () => {
+  // ① deux jours ou plus: la veille est un jour plein, l'heure n'y change rien.
+  for (const hourNow of [0, 9, 17, 18, 23, null]) {
+    const out = leadDayFor({ startsOn: "2026-09-10", today: "2026-09-01", hourNow });
+    assertEquals(out.leadDay, "2026-09-09");
+    assertEquals(out.timing, "day_before");
+    assertEquals(out.reason, "day_before");
+  }
+  // ② demain, avant la coupure: la veille, c'est CE SOIR.
+  const tonight = leadDayFor({
+    startsOn: "2026-09-02",
+    today: "2026-09-01",
+    hourNow: SHOPPING_CUTOFF_HOUR - 1,
+  });
+  assertEquals(tonight.leadDay, "2026-09-01");
+  assertEquals(tonight.timing, "day_before");
+  assertEquals(tonight.reason, "before_cutoff_today");
+  // ③ demain, après la coupure: plus le temps ce soir.
+  const late = leadDayFor({
+    startsOn: "2026-09-02",
+    today: "2026-09-01",
+    hourNow: SHOPPING_CUTOFF_HOUR,
+  });
+  assertEquals(late.leadDay, null);
+  assertEquals(late.timing, "same_morning");
+  assertEquals(late.reason, "after_cutoff");
+  // ④ aujourd'hui: la veille est hier, quelle que soit l'heure.
+  for (const hourNow of [6, 12, 22, null]) {
+    const out = leadDayFor({ startsOn: "2026-09-01", today: "2026-09-01", hourNow });
+    assertEquals(out.leadDay, null);
+    assertEquals(out.reason, "starts_today");
+  }
+  // ⑤ l'horloge illisible N'EST PAS minuit — et elle se NOMME.
+  const blind = leadDayFor({ startsOn: "2026-09-02", today: "2026-09-01", hourNow: null });
+  assertEquals(blind.leadDay, null);
+  assertEquals(blind.timing, "same_morning");
+  assertEquals(blind.reason, "clock_unreadable");
+});
+
+Deno.test("A1 — la coupure de `leadDayFor` EST `SHOPPING_CUTOFF_HOUR`", () => {
+  // ⚠️ NON PARAMÉTRÉ PAR SA PROPRE CONSTANTE POUR LA BASCULE: on balaie les
+  // 24 heures et on VÉRIFIE l'heure exacte où le verdict change. Muter
+  // `SHOPPING_CUTOFF_HOUR` fait tomber ce test, alors qu'un `hourNow:
+  // SHOPPING_CUTOFF_HOUR - 1` seul le suivrait en silence.
+  const flips: number[] = [];
+  let previous = leadDayFor({ startsOn: "2026-09-02", today: "2026-09-01", hourNow: 0 })
+    .timing;
+  for (let hourNow = 1; hourNow < 24; hourNow++) {
+    const now = leadDayFor({ startsOn: "2026-09-02", today: "2026-09-01", hourNow }).timing;
+    if (now !== previous) flips.push(hourNow);
+    previous = now;
+  }
+  assertEquals(flips, [18]);
+  assertEquals(SHOPPING_CUTOFF_HOUR, 18);
+});
+
+Deno.test("A1 — `leadDayFor` refuse un départ passé et une horloge absente", () => {
+  assertThrows(
+    () => leadDayFor({ startsOn: "2026-08-31", today: "2026-09-01", hourNow: 9 }),
+    Error,
+    "dans le passé",
+  );
+  assertThrows(
+    // `hourNow` manquant ≠ `hourNow: null`. Le premier est un appelant qui a
+    // oublié la question; le second est une réponse.
+    () => leadDayFor({ startsOn: "2026-09-02", today: "2026-09-01" } as never),
+    Error,
+  );
+  assertThrows(
+    () => leadDayFor({ startsOn: "pas-une-date", today: "2026-09-01", hourNow: 9 }),
+    Error,
+    "REQUIS",
+  );
+});
+
+Deno.test("A1 — `planTimingOf`: la fenêtre a le dernier mot sur le motif", () => {
+  // La veille est accordée: le motif reste celui de l'horloge.
+  const kept = planTimingOf(
+    { leadDay: "2026-09-01", reason: "before_cutoff_today" },
+    { cookOnlyDay: "tue", startsOn: "2026-09-01", refused: null },
+  );
+  assertEquals(kept, {
+    kind: "day_before",
+    reason: "before_cutoff_today",
+    lead_day: "2026-09-01",
+  });
+  // ⛔ La veille était POSSIBLE au calendrier et la FENÊTRE l'a refusée: c'est
+  // le refus qui explique, sinon la phrase dirait « le plan commence dans deux
+  // jours » sur un plan de sept jours mangés qui n'a pas eu sa veille.
+  const refused = planTimingOf(
+    { leadDay: "2026-09-09", reason: "day_before" },
+    { cookOnlyDay: null, startsOn: "2026-09-10", refused: "no_room" },
+  );
+  assertEquals(refused, { kind: "same_morning", reason: "no_room", lead_day: null });
+  // Pas de veille au calendrier, pas de refus de fenêtre: le motif de l'horloge.
+  const morning = planTimingOf(
+    { leadDay: null, reason: "after_cutoff" },
+    { cookOnlyDay: null, startsOn: "2026-09-02", refused: null },
+  );
+  assertEquals(morning, { kind: "same_morning", reason: "after_cutoff", lead_day: null });
+});
+
+Deno.test("A1 — `eatenSpan` plie la veille, et JETTE sans `leadDays`", () => {
+  assertEquals(MAX_LEAD_DAYS, 1);
+  assertEquals(
+    eatenSpan({ startsOn: "2026-09-06", durationDays: 8, leadDays: 1 }),
+    { startsOn: "2026-09-07", durationDays: 7 },
+  );
+  assertEquals(
+    eatenSpan({ startsOn: "2026-09-07", durationDays: 7, leadDays: 0 }),
+    { startsOn: "2026-09-07", durationDays: 7 },
+  );
+  // ⛔ LE `select` OUBLIÉ. `leadDays` absent est le défaut que ce lot ferme:
+  // il compterait la veille comme un jour mangé et refuserait le plan N+1.
+  for (const bad of [undefined, null, 2, -1, 0.5, "1"]) {
+    assertThrows(
+      () => eatenSpan({ startsOn: "2026-09-06", durationDays: 8, leadDays: bad as never }),
+      Error,
+      "leadDays est REQUIS",
+    );
+  }
+});
+
+Deno.test("A1 — la veille du plan N+1 A LE DROIT d'être le dernier jour de N", () => {
+  // ══════════════════════════════════════════════════════════════════════
+  // LE CAS DE LA VIE RÉELLE: on dîne encore le plan de la semaine, et on fait
+  // dimanche soir les courses de lundi. Physiquement juste, refusé par la base
+  // avant ce lot — et refusé ICI, avant même le modèle.
+  // ══════════════════════════════════════════════════════════════════════
+  const planN = {
+    id: "N",
+    startsOn: "2026-09-01",
+    durationDays: 7, // mangé: 01/09 → 07/09
+    leadDays: 0,
+  };
+  // Plan N+1: veille le 07/09 (dernier jour mangé de N), mangé 08/09 → 14/09.
+  const nextWindow = { startsOn: "2026-09-08", durationDays: 7 };
+  assertEquals(
+    firstBlockingPlan({ live: [planN], window: nextWindow, replacesId: null }),
+    null,
+  );
+  // ⛔ ET LA GARDE MORD ENCORE quand le chevauchement porte sur un jour MANGÉ.
+  // Une fenêtre qui commence AVANT N et se termine dedans est une TRONCATURE
+  // légitime (D15); ce qui est refusé, c'est la fenêtre que N commence à ou
+  // après — le refus ① de la RPC.
+  const blocked = firstBlockingPlan({
+    live: [planN],
+    window: { startsOn: "2026-09-01", durationDays: 3 },
+    replacesId: null,
+  });
+  assert(blocked !== null, "un jour MANGÉ partagé doit rester refusé");
+  assertEquals(blocked.plan.id, "N");
+  assertEquals(blocked.verdict, "starts_at_or_after");
+  // ⛔ ET LE MÊME REFUS TIENT QUAND C'EST LA VEILLE DE N QUI DÉCALE SON DÉBUT:
+  // N commence le 31/08 mais ne MANGE qu'à partir du 01/09, donc une fenêtre
+  // qui démarre le 01/09 tombe sur son premier jour mangé — refusée.
+  const leadShifted = { id: "N", startsOn: "2026-08-31", durationDays: 8, leadDays: 1 };
+  const stillBlocked = firstBlockingPlan({
+    live: [leadShifted],
+    window: { startsOn: "2026-09-01", durationDays: 3 },
+    replacesId: null,
+  });
+  assert(stillBlocked !== null, "le premier jour MANGÉ de N reste à N");
+  assertEquals(stillBlocked.verdict, "starts_at_or_after");
+  // Et le symétrique: un plan N qui porte DÉJÀ une veille ne bloque pas sur elle.
+  assertEquals(
+    firstBlockingPlan({
+      live: [leadShifted],
+      // La fenêtre mangée de `withLead` est 01/09 → 07/09; celle-ci commence
+      // le 31/08, c'est-à-dire sur SA VEILLE, et rien ne s'y mange chez lui.
+      window: { startsOn: "2026-08-31", durationDays: 1 },
+      replacesId: null,
+    }),
+    null,
+  );
+});

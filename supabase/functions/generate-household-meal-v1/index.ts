@@ -836,7 +836,7 @@ async function resolveMergeRequest(args: {
   // ce lot ferait grossir la lecture que le chat fait à chaque tour.
   const personalRes = await args.admin
     .from("student_generated_meals")
-    .select("id, starts_on, duration_days, validated_at, cooking_sessions, dishes")
+    .select("id, starts_on, duration_days, lead_days, validated_at, cooking_sessions, dishes")
     .eq("id", best.personal.id)
     .maybeSingle();
   if (personalRes.error) throw personalRes.error;
@@ -876,6 +876,10 @@ async function resolveMergeRequest(args: {
       id: String(personalRow.id),
       startsOn: String(personalRow.starts_on ?? best.personal.startsOn),
       durationDays: Number(personalRow.duration_days ?? best.personal.durationDays),
+      // ⟳ A1 (2026-09-03) — la veille de la ligne PERSONNELLE reprise. Elle
+      // sort du même `select` que le reste (`personalRow`); `?? 0` couvre une
+      // base non migrée, où « pas de veille » est ce que la ligne porte.
+      leadDays: Number(personalRow.lead_days ?? 0),
       validatedAt: personalRow.validated_at == null
         ? null
         : String(personalRow.validated_at),
@@ -1667,6 +1671,10 @@ Deno.serve(async (req) => {
           id: p.id,
           startsOn: p.startsOn,
           durationDays: p.durationDays,
+          // ⟳ A1 (2026-09-03) — la veille de la ligne, projetée par
+          // `loadLiveHouseholdPlans`. `firstBlockingPlan` compare des JOURS
+          // MANGÉS; sans elle on refuserait le plan N+1 que la base accepte.
+          leadDays: p.leadDays,
         })),
         window: { startsOn, durationDays },
         replacesId: intent === "replace_current" ? replaces : null,

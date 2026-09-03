@@ -1221,7 +1221,14 @@ Deno.serve(async (req) => {
         // fonction écrit toujours — un plan de foyer vit sur le compte du
         // maître avec l'autre nature, et les deux fenêtres ne se disputent
         // rien.
-        .select("id, starts_on, duration_days")
+        // ⟳ A1 (2026-09-03) — `lead_days` EST DANS LA PROJECTION, ET C'EST LE
+        // TYPE QUI L'EXIGE. La boucle de la RPC compare des JOURS MANGÉS
+        // (`daterange(starts_on + lead_days, starts_on + duration_days)`,
+        // migration `20260903140000`); relire une ligne sans sa veille
+        // compterait celle-ci comme un jour mangé et refuserait ICI le plan
+        // N+1 que la base accepte — un 409 fabriqué par nous, sur le geste le
+        // plus banal qui soit (« je compose la semaine prochaine »).
+        .select("id, starts_on, duration_days, lead_days")
         .eq("user_id", userId)
         .eq("plan_kind", "personal")
         .is("retired_at", null);
@@ -1231,6 +1238,10 @@ Deno.serve(async (req) => {
         id: String(r.id),
         startsOn: String(r.starts_on ?? ""),
         durationDays: Number(r.duration_days ?? 0),
+        // `?? 0` — la migration pose `not null default 0`, donc `null` ne peut
+        // venir que d'une base non migrée. Zéro = « pas de veille », ce que
+        // ces lignes-là portent effectivement.
+        leadDays: Number(r.lead_days ?? 0),
       }));
       const blocking = firstBlockingPlan({
         live,
