@@ -6919,6 +6919,22 @@ export const fr: TranslatedMessages = {
   //                                     → « Les repas traditions » (mandat point 4).
   //                                     La CLÉ ne bouge pas: la renommer casserait
   //                                     la parité et `catalog.ts` pour rien.
+  // ── L'ACCÈS, DEPUIS LA LIGNE D'UNE BOUCHE (A5, §5.5) ──────────────────────
+  // Trois états DÉRIVÉS DES FAITS: `user_id` non nul ⇒ réclamée; une invitation
+  // vivante ⇒ invitée; sinon ⇒ libre. Le menu déroulant d'`InviteCard` est parti
+  // avec elle. ⛔ Aucun montant recopié: la phrase du prix vient de `offer.extra`
+  // + `PRICES.claimedProfile` (D5.8).
+  "household.access.claimed": "A son accès",
+  "household.access.invite": "Inviter",
+  "household.access.resend": "Renvoyer",
+  "household.access.invited": "Invitation envoyée le {date} à {email}",
+  "household.access.copy": "Copier le lien",
+  "household.access.copied": "Lien copié",
+  // ⛔ « Écrire », pas « Envoyer »: ce produit n'envoie AUCUN e-mail
+  // d'invitation (FF-060 R7). Le lien ouvre un brouillon, et c'est le maître
+  // qui appuie sur envoyer, dans son propre logiciel de courrier.
+  "household.access.mail": "Écrire le message",
+  "household.access.mail_subject": "Ton accès au foyer",
   // ── chantier-0903/FOYER — fin ──
 
 };

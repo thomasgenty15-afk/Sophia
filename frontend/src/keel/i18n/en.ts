@@ -8054,6 +8054,19 @@ export const en = {
   //   "setup.traditions.title"        — « The days you never move » → « Tradition
   //                                     meals » (mandate point 4). The KEY does
   //                                     not move.
+  // ── ACCESS, FROM A MOUTH'S OWN ROW (A5, §5.5) ────────────────────────────
+  // Three states DERIVED FROM FACTS: a non-null `user_id` ⇒ claimed; a live
+  // invitation ⇒ invited; otherwise ⇒ free. ⛔ No amount is copied: the price
+  // line reads `offer.extra` + `PRICES.claimedProfile` (D5.8).
+  "household.access.claimed": "Has their own access",
+  "household.access.invite": "Invite",
+  "household.access.resend": "Send again",
+  "household.access.invited": "Invitation sent on {date} to {email}",
+  "household.access.copy": "Copy the link",
+  "household.access.copied": "Link copied",
+  // ⛔ "Write", not "Send": this product sends no invitation email (FF-060 R7).
+  "household.access.mail": "Write the message",
+  "household.access.mail_subject": "Your access to the household",
   // ── chantier-0903/FOYER — fin ──
 
 } as const
