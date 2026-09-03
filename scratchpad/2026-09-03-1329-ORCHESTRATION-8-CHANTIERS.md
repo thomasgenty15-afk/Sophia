@@ -1536,3 +1536,30 @@ rejouer coûterait une fenêtre pour reconfirmer du prouvé.
 `grep dishIsForMouth planned_dish_io.ts` → **0** dans l'arbre. **La fuite « Compote pour Cy » est toujours vivante en
 local** : un profil réclamé lit et peut cocher le plat composé pour l'enfant. C'est le **seul** correctif de MEMBRE
 resté dehors, et sa date de fermeture est connue — la levée du gel.
+
+## 05:4x — le gel tient : premier 200 de la fenêtre, R1 et R6 VERTS
+
+**234 secondes, une génération au bout.** Dès qu'on cesse d'écrire sous `supabase/functions/`, la génération aboutit —
+le diagnostic est confirmé par sa réparation.
+
+**R1 VERT, et l'ambiguïté est levée par la ligne écrite.** « Le moins possible » + 1 course + congélateur, 7 jours :
+1 session, 1 vague, 60 minutes servies. **C'est le chiffre que la lane avait REFUSÉ de signer une heure plus tôt** :
+`weekly_cooking_minutes = 60` ne distinguait pas 1 × 60 de 2 × 30, et `minimal` vaut justement 30. La ligne écrite dit
+`sessions = 1`, et le produit des deux lève le doute. **Attendre aura coûté un run et évité un faux vert.**
+
+**R6 VERT : la correction est prouvée en base.** `generated_from.household.work_lunch = {mouths: 1, cold: 1}` et
+`work_lunch_unreadable` a **disparu** des `issues`. **D6.2 atteint le modèle pour la première fois depuis qu'il a été
+écrit.**
+
+### ⭐ La boucle du compteur, complète
+
+Le compteur a **révélé** le défaut (`{0,0}` croisé avec la colonne qui déclare une gamelle), puis il **prouve** la
+correction (`{1,1}`). **Des deux compensations qui justifiaient le champ optionnel, c'est la seule qui ait tenu** — le
+test de câblage épinglait le mauvais littéral et restait **vert sur du code mort**.
+⇒ Ce n'est pas seulement « deux compensations ne mentent pas de la même façon » : **celle qui a servi est celle qui
+observe une SORTIE, pas celle qui relit une ENTRÉE.**
+
+**Reste** : R2 en cours — et ce que la lane y cherche n'est pas un compte de sessions mais une **absence** : que
+« Tu cuisines … et c'est ce qui a été gardé » ne s'écrive **pas** sur une ligne réelle (le défaut ③, qui attribuait à la
+personne des jours qu'elle n'avait pas choisis). Puis R4 (1 course **sans** congélateur, refus nommé).
+**Le gel tient jusqu'à son « runs finis » explicite.**
