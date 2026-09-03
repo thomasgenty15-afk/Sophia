@@ -404,6 +404,7 @@ Deno.test("la protéine de l'apport COMPTE — le plancher est atteint plus tôt
     envelope: PER_KG,
     index: INDEX,
     daysCovered: 1,
+    windowDays: 1,
     uncoverableSentinels: [],
     fixedIntakeInputs: [],
   });
@@ -412,6 +413,7 @@ Deno.test("la protéine de l'apport COMPTE — le plancher est atteint plus tôt
     envelope: PER_KG,
     index: INDEX,
     daysCovered: 1,
+    windowDays: 1,
     uncoverableSentinels: [],
     // Le plat seul porte ~54 g; le plancher d'un homme de 80 kg en prise de
     // muscle est à 128 g. Un shaker de 100 g de whey (80 % de protéine) le
@@ -432,6 +434,7 @@ Deno.test("l'énergie de l'apport COMPTE aussi", () => {
     envelope: PER_KG,
     index: INDEX,
     daysCovered: 1,
+    windowDays: 1,
     uncoverableSentinels: [],
     fixedIntakeInputs: [],
   });
@@ -442,6 +445,7 @@ Deno.test("l'énergie de l'apport COMPTE aussi", () => {
     envelope: PER_KG,
     index: INDEX,
     daysCovered: 1,
+    windowDays: 1,
     uncoverableSentinels: [],
     fixedIntakeInputs: Array.from({ length: 10 }, () => ({
       term: "whey_protein_powder",
@@ -462,6 +466,7 @@ Deno.test("R2 — un apport NON RÉSOLU propage de l'INCONNU, pas du zéro", () 
     envelope: PER_KG,
     index: INDEX,
     daysCovered: 1,
+    windowDays: 1,
     uncoverableSentinels: [],
     fixedIntakeInputs: [{
       term: "huel_black_edition",
@@ -486,6 +491,7 @@ Deno.test("l'apport n'est dans AUCUN plat — la densité ne bouge pas", () => {
     envelope: PER_KG,
     index: INDEX,
     daysCovered: 1,
+    windowDays: 1,
     uncoverableSentinels: [],
     fixedIntakeInputs: [],
   });
@@ -494,6 +500,7 @@ Deno.test("l'apport n'est dans AUCUN plat — la densité ne bouge pas", () => {
     envelope: PER_KG,
     index: INDEX,
     daysCovered: 1,
+    windowDays: 1,
     uncoverableSentinels: [],
     fixedIntakeInputs: fixedIntakeInputsFor([intake({ days: [] })], ["mon"]),
   });
@@ -520,6 +527,7 @@ Deno.test("R3 — sous restriction, la branche 1 SURVIT et l'enveloppe n'existe 
     envelope: restricted,
     index: INDEX,
     daysCovered: 1,
+    windowDays: 1,
     uncoverableSentinels: [],
     fixedIntakeInputs: fixedIntakeInputsFor([intake({ days: [] })], ["mon"]),
   });

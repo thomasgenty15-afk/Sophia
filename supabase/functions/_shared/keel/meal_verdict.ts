@@ -376,9 +376,46 @@ export function verdictFor(args: {
   dishes: readonly VerdictDish[];
   envelope: Envelope;
   index: CompositionIndex;
-  /** Le nombre de jours que cette génération couvre. Au moins 1. */
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * LE DÉNOMINATEUR DE L'ÉNERGIE ET DE LA PROTÉINE — des JOURNÉES NOURRIES.
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * ⚠️ CE N'EST PLUS LA DURÉE DE LA FENÊTRE, ET C'EST TOUT LE LOT DU 2026-09-04.
+   * `windowCoverageOf` en rend la valeur: la somme, sur les jours de la fenêtre,
+   * de la part de journée que le plan compose. Une fenêtre de trois jours dont
+   * le premier ne porte qu'un dîner vaut **2,35**, pas 3 — donc FRACTIONNAIRE.
+   *
+   * Ce que la durée de fenêtre coûtait, mesuré (`plan-S1-20260903-220929`):
+   * 7 142 kcal servis sur deux journées — 3 571 kcal/j — divisés par trois
+   * rendaient 2 381 kcal/j, donc `within` sur une bande 2 414–2 668 pendant que
+   * chaque jour nourri dépassait le plafond de 34 %. Le verdict ne se trompait
+   * pas: il FLATTAIT un plan troué, ce qui est pire.
+   *
+   * ⛔ LE MÊME NOMBRE PART À L'ANCRAGE (`scaleFactorsFor`) ET À LA DISTANCE DE
+   * CORRECTION (`offBandDistance`). « Le produit ne doit pas juger sur un nombre
+   * et corriger sur un autre » — c'est la propriété, et elle a un test.
+   */
   daysCovered: number;
-  // (voir SENTINEL_MIN_DAYS: sous cette durée, les sentinelles s'abstiennent)
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * LA DURÉE DE LA FENÊTRE, EN JOURS ENTIERS — pour la CADENCE, et rien d'autre.
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ REQUIS, ET SÉPARÉ DE `daysCovered` DEPUIS LE 2026-09-04. Les deux étaient
+   * le même champ, et les séparer n'est pas une élégance: `SENTINEL_MIN_DAYS`
+   * vaut 7, `MAX_WINDOW_DAYS` vaut 7 aussi. Les sentinelles ne parlent donc QUE
+   * sur une fenêtre de sept jours pleine — et une couverture effective descend
+   * SOUS 7 dès qu'un seul moment manque (un plan lancé à 15 h, une absence
+   * déclarée). Faire porter la cadence par `daysCovered` aurait éteint
+   * `missing` — donc le jeton `place_missing_sentinel` de la boucle de
+   * correction — sur tous les plans de sept jours qui commencent aujourd'hui,
+   * en silence et sans qu'un seul test bouge.
+   *
+   * Une cadence hebdomadaire se juge sur la SPAN: « ai-je regardé une semaine ? »
+   * ne dépend pas du nombre de repas que le plan compose dedans.
+   */
+  windowDays: number;
   /** L'imputation d'huile de friture, quand la méthode la déclenche. */
   friedMethod?: (method: string) => boolean;
   /**
@@ -414,7 +451,23 @@ export function verdictFor(args: {
   fixedIntakeInputs: readonly CompositionInput[];
 }): CompositionVerdict {
   const { dishes, envelope, index, daysCovered } = args;
+  // ══════════════════════════════════════════════════════════════════════════
+  // ⚠️ CE PLANCHER RÉINTRODUIT LE BIAIS SUR LES PLANS TRÈS COURTS. Nommé, gardé.
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // Il protège d'un dénominateur nul — une division par zéro rendrait `Infinity`
+  // kcal/jour, donc `above` sur tout, donc un rabotage général. Mais il ment
+  // dans un cas précis: une fenêtre d'UN jour qui ne porte qu'un dîner a une
+  // couverture de 0,35, et ce `max` la ramène à 1. Ce plan-là se lit donc
+  // toujours ~3 fois plus léger qu'il n'est, exactement comme AVANT le lot.
+  //
+  // ⛔ NE LE RETIRE PAS SANS MESURE. Le corpus du 2026-09-04 ne porte aucun plan
+  // d'un seul jour: le supprimer serait un changement non mesuré sur une
+  // population qu'on n'a pas regardée, dans la direction qui fait RABOTER une
+  // assiette. Le trou est ici, écrit, et il attend sa mesure.
   const days = Math.max(1, daysCovered);
+  // La CADENCE, elle, ne connaît que la fenêtre — voir `windowDays`.
+  const cadenceDays = Math.max(1, Math.floor(args.windowDays));
 
   // ── FF-042 R6 · LES TROUS STRUCTURELS, TRADUITS UNE FOIS ────────────────
   // Un nom de colonne inconnu est ÉCARTÉ, pas deviné: `SENTINEL_FLAG_BY_COLUMN`
@@ -538,7 +591,12 @@ export function verdictFor(args: {
   // est végan, la B12 n'existe pas dans le règne végétal » est vrai un lundi
   // comme sur sept jours. Une carence structurelle n'est pas une affaire de
   // cadence.
-  const missing = days >= SENTINEL_MIN_DAYS ? [...missingSet].sort() : [];
+  //
+  // ⛔ `cadenceDays`, PAS `days` — voir le pavé de `windowDays`. `days` est le
+  // nombre de journées NOURRIES, et il descend sous 7 dès qu'un moment manque:
+  // brancher la cadence dessus éteindrait `missing` sur toute fenêtre de sept
+  // jours commencée en cours de journée.
+  const missing = cadenceDays >= SENTINEL_MIN_DAYS ? [...missingSet].sort() : [];
 
   // ── LES NUTRIMENTS, PAR PLAT, POUR QUE LA FRITURE S'IMPUTE AU BON PLAT ──
   let energyTotal = 0;

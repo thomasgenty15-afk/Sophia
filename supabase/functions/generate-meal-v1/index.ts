@@ -294,6 +294,7 @@ import {
   assessCoverage,
   coverageFlagAfterCorrection,
 } from "../_shared/keel/meal_coverage.ts";
+import { windowCoverageOf } from "../_shared/keel/window_coverage.ts";
 import {
   type ActivityLevel,
   type FoodGroupRef,
@@ -2866,13 +2867,52 @@ Deno.serve(async (req) => {
           })),
         })),
       });
+    // ══════════════════════════════════════════════════════════════════════
+    // ⛔ LE DÉNOMINATEUR — UNE SEULE FORMULE, POUR LES QUATRE LECTEURS.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // Le verdict, la couverture, la distance de correction et l'ancrage
+    // divisaient tous par `durationDays` — la fenêtre ENTIÈRE. Or un plan lancé
+    // en cours de journée ne compose pas les moments déjà passés, une veille de
+    // cuisine ne se mange pas, et une absence retire des moments: la fenêtre
+    // compte alors des journées que le plan ne nourrit pas.
+    //
+    // MESURÉ EN RUN RÉEL (`plan-S1-20260903-220929`): 7 142 kcal sur DEUX
+    // journées nourries — 3 571 kcal/j — divisés par une fenêtre de TROIS
+    // rendaient 2 381 kcal/j, donc `within` sur une bande 2 414–2 668 pendant
+    // que chaque jour servi dépassait le plafond de 34 %.
+    //
+    // ⛔ C'EST UNE FONCTION PURE DU PLAN, ET C'EST CE QUI TIENT LA PROPRIÉTÉ.
+    // « Le produit ne doit pas juger sur un nombre et corriger sur un autre »:
+    // les quatre lecteurs appellent CECI, avec le plan qu'ils jugent. Deux
+    // appels sur le même plan rendent le même nombre — pas par convention, par
+    // pureté. Recopier la formule à l'un des quatre endroits est le seul geste
+    // qui puisse encore les décrocher, et c'est pourquoi elle n'existe qu'ici.
+    //
+    // ⚠️ `m.dishes`, PAS `verdictDishesOf(m)`: le pliage des préparations perd
+    // le `day` (il ne rend que `slot`/`method`/`ingredients`), et un plat sans
+    // jour ferait retomber la fenêtre entière sur son repli.
+    const coveredDaysOf = (m: GeneratedMeal) =>
+      windowCoverageOf({
+        windowDays: daysToFill,
+        // `[]` = rien de déclaré, et `dayCoverageOf` retombe alors sur les trois
+        // repas de la maison — sa constante, jamais une devinette d'ici.
+        declaredSlots: eatingRhythm.map((r) => r.slot),
+        composed: m.dishes.map((d) => ({ day: d.day, slot: d.slot })),
+      });
     const measure = (m: GeneratedMeal) => {
       if (!composition) return null;
+      const covered = coveredDaysOf(m);
       const verdict = verdictFor({
         dishes: verdictDishesOf(m),
         envelope,
         index: composition,
-        daysCovered: durationDays,
+        daysCovered: covered.days,
+        // ⛔ LA CADENCE DES SENTINELLES RESTE SUR LA FENÊTRE. `covered.days`
+        // descend sous 7 dès qu'un moment manque; l'y brancher éteindrait
+        // `missing` — donc `place_missing_sentinel` — sur tout plan de sept
+        // jours commencé aujourd'hui.
+        windowDays: durationDays,
         friedMethod: isFriedMethod,
         // FF-042 R6 — CE QU'AUCUN ALIMENT NE PEUT APPORTER À CET ÉLÈVE.
         // Retiré des trous RÉPARABLES avant que la boucle de correction ne les
@@ -2888,7 +2928,11 @@ Deno.serve(async (req) => {
       const coverage = assessCoverage({
         dishes: verdictDishesOf(m),
         index: composition,
-        daysCovered: durationDays,
+        // LE MÊME NOMBRE QUE LE VERDICT, et il vient du même appel. Le plancher
+        // de couverture est un kcal/JOUR: le mesurer sur une autre journée que
+        // celle du verdict ferait dire `unsatisfiable` à un plan que le verdict
+        // vient de trouver correct.
+        daysCovered: covered.days,
         // On ne prétend rien sur la couverture d'un plan qu'on n'a pas su
         // mesurer: `unverified`, jamais `ok` (FF-040 R10).
         verdictComputable: verdict.energy !== "not_computable",
@@ -2903,7 +2947,11 @@ Deno.serve(async (req) => {
         composition,
         verdictDishesOf(m).flatMap((d) => d.ingredients),
       );
-      return { verdict, coverage, resolution };
+      // ⚠️ `covered` SORT AVEC LE VERDICT, ET CE N'EST PAS DE LA COMMODITÉ. Un
+      // `below` ne se relit pas sans le nombre par lequel on a divisé: sans lui,
+      // le journal dit « le plan est léger » sans dire s'il l'est ou si sa
+      // fenêtre était trouée.
+      return { verdict, coverage, resolution, covered };
     };
 
     // ══════════════════════════════════════════════════════════════════════
@@ -3111,7 +3159,12 @@ Deno.serve(async (req) => {
                 envelope,
                 computedKcal: inputs.computedKcal,
                 computedProteinG: inputs.computedProteinG,
-                daysCovered: durationDays,
+                // ⛔ LA COUVERTURE **DU PLAN COMPARÉ**, pas celle de la fenêtre.
+                // Une relance qui compose un moment de plus nourrit une journée
+                // de plus: lui appliquer le dénominateur de la première passe
+                // ferait ressembler ce progrès à un débordement, et la relance
+                // serait jetée pour avoir bien travaillé.
+                daysCovered: coveredDaysOf(plan).days,
               });
             };
             // ⛔ SANS RÉFÉRENTIEL, ON RETOMBE SUR LE COMPTE. La distance a
@@ -3193,30 +3246,29 @@ Deno.serve(async (req) => {
     //      de sa matière grasse ferait AGRANDIR un plan qui est déjà bon.
     //
     // ══════════════════════════════════════════════════════════════════════════
-    // ⚠️ LE DÉNOMINATEUR EST `durationDays`, ET IL EST BIAISÉ SUR UN PLAN QUI
-    //    DÉMARRE AUJOURD'HUI. Nommé plutôt que corrigé ici, exprès.
+    // ⟳ 2026-09-04 — LE DÉNOMINATEUR N'EST PLUS `durationDays`. LOT POSÉ.
     // ══════════════════════════════════════════════════════════════════════════
     //
-    // Un plan lancé en cours de journée ne compose PAS les moments déjà passés
-    // (« For today, breakfast and lunch are off the plan »). Son énergie totale
-    // est pourtant divisée par la fenêtre ENTIÈRE — `daysCovered: durationDays`
-    // — donc une fenêtre de trois jours dont le premier ne porte qu'un dîner se
-    // lit ~20 % plus légère qu'elle n'est. Mesuré: `plan-S1-20260823`, 1 261
-    // kcal/j sur trois jours pour 1 743 et 1 579 sur les deux jours PLEINS.
+    // Ce pavé disait, depuis le 2026-08-23: « le dénominateur est biaisé sur un
+    // plan qui démarre aujourd'hui, nommé plutôt que corrigé ici, exprès », et
+    // il posait la condition — « un lot à part qui doit se mesurer sur le corpus
+    // entier avant d'être posé ». La mesure a été faite (18 plans réels,
+    // `scripts/keel_denominateur_verdict_20260904.ts`) et le lot est posé.
     //
-    // ⛔ CE BIAIS N'EST PAS INTRODUIT ICI. `verdictFor` divise par `daysCovered`
-    // depuis toujours, et c'est déjà lui qui décide `below`, donc déjà lui qui
-    // déclenche `raise_energy` dans la boucle de correction. L'ancrage vise la
-    // MÊME cible que le verdict, ce qui est la propriété qu'on veut: le produit
-    // ne doit pas juger sur un nombre et corriger sur un autre.
+    // ⛔ L'ANCRAGE ET LE VERDICT LISENT LE MÊME APPEL — `coveredDaysOf`, la
+    // fonction pure définie avec `measure`. C'est la propriété que l'ancien
+    // pavé demandait de tenir, et elle n'a pas changé de sens: le produit ne
+    // doit pas juger sur un nombre et corriger sur un autre. Ce qui a changé,
+    // c'est que le nombre est enfin celui des journées NOURRIES.
     //
-    // ⚠️ LA LANE FOYER, ELLE, A DÉJÀ LA RÉPONSE — `dayCoverageOf(déclarés,
-    // composés)` dans `mouth_anchor.ts`, avec sa cicatrice écrite: « un dîner
-    // seul se voit demander une journée entière — 6,28 mesuré, c'est-à-dire une
-    // assiette de deux kilos ». La transposer ici changerait le sens de `below`
-    // pour TOUT le produit (verdict, boucle de correction, tableau de bord,
-    // `meal_composition_verdicts`), et c'est un lot à part qui doit se mesurer
-    // sur le corpus entier avant d'être posé.
+    // ⚠️ LA CICATRICE DU FOYER (« un dîner seul se voit demander une journée
+    // entière — 6,28 mesuré, c'est-à-dire une assiette de deux kilos ») VA DANS
+    // L'AUTRE SENS ICI, et il faut le lire pour ne pas la rouvrir par symétrie:
+    // là-bas, on comparait un dîner à une journée pleine, donc le facteur
+    // GONFLAIT. Ici, la fenêtre trop longue faisait un kcal/jour trop PETIT,
+    // donc un facteur `cible / servi` trop GRAND — la même direction, la même
+    // assiette de deux kilos, une lane plus loin. Réduire le dénominateur réduit
+    // le facteur: le lot s'éloigne de la cicatrice, il ne la rejoue pas.
     let scaling: { protein: number; other: number } | null = null;
     let scalingAbstained: string | null = null;
     let scaledChanged = 0;
@@ -3239,7 +3291,11 @@ Deno.serve(async (req) => {
           otherScalableKcal: inputs.otherScalableKcal,
           proteinFoodProteinG: inputs.proteinFoodProteinG,
           envelope,
-          daysCovered: durationDays,
+          // ⛔ LE MÊME APPEL QUE LE VERDICT, SUR LE MÊME PLAN. `meal` est le
+          // plan que `measured` décrit (la relance les réassigne ENSEMBLE,
+          // vingt lignes plus haut); `coveredDaysOf` étant pure, les deux
+          // nombres sont identiques par construction, pas par convention.
+          daysCovered: coveredDaysOf(meal).days,
           resolvedShare: inputs.resolvedShare,
         });
         if (scaling === null) scalingAbstained = "no_factor";

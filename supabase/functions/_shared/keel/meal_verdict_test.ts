@@ -125,6 +125,7 @@ Deno.test("sous le seuil de résolution, TOUT s'abstient", () => {
     envelope: PER_KG,
     index: INDEX,
     daysCovered: 1,
+    windowDays: 1,
     uncoverableSentinels: [],
     fixedIntakeInputs: [],
   });
@@ -146,6 +147,7 @@ Deno.test("UN SEUL inconnu de classe dense suffit, même à 95 % de résolution"
     envelope: PER_KG,
     index: INDEX,
     daysCovered: 1,
+    windowDays: 1,
     uncoverableSentinels: [],
     fixedIntakeInputs: [],
   });
@@ -211,6 +213,7 @@ Deno.test("le verdict CHANGE quand la préparation entre — la preuve chiffrée
     envelope: PER_KG,
     index: INDEX,
     daysCovered: 1,
+    windowDays: 1,
     uncoverableSentinels: [],
     fixedIntakeInputs: [],
   };
@@ -296,6 +299,7 @@ Deno.test("une matière grasse CONNUE mais non pesée s'abstient aussi", () => {
     envelope: PER_KG,
     index: INDEX,
     daysCovered: 1,
+    windowDays: 1,
     uncoverableSentinels: [],
     fixedIntakeInputs: [],
   });
@@ -332,6 +336,7 @@ Deno.test("des CONDIMENTS non pesés n'empêchent PAS le verdict", () => {
     envelope: PER_KG,
     index: INDEX,
     daysCovered: 1,
+    windowDays: 1,
     uncoverableSentinels: [],
     fixedIntakeInputs: [],
   });
@@ -359,7 +364,8 @@ Deno.test("en per_portion, le verdict énergie N'EST PAS PRODUIT", () => {
       { term: "rice", amount: 100, unit: "g" as const, state: "raw" as const },
     ],
   }];
-  const flagged = verdictFor({ dishes, envelope: PER_PORTION, index: INDEX, daysCovered: 1, uncoverableSentinels: [], fixedIntakeInputs: [] });
+  const flagged = verdictFor({ dishes, envelope: PER_PORTION, index: INDEX, daysCovered: 1,
+ windowDays: 1, uncoverableSentinels: [], fixedIntakeInputs: [] });
   assertEquals(flagged.energy, "not_computable");
   assertEquals(flagged.density, "not_computable");
   // Et la protéine, elle, SURVIT: elle vit côté aliment, calculée depuis la
@@ -373,12 +379,14 @@ Deno.test("per_portion et corps inconnu rendent le MÊME verdict", () => {
     method: "Cook it.",
     ingredients: [{ term: "carrots", amount: 200, unit: "g" as const, state: "raw" as const }],
   }];
-  const flagged = verdictFor({ dishes, envelope: PER_PORTION, index: INDEX, daysCovered: 1, uncoverableSentinels: [], fixedIntakeInputs: [] });
+  const flagged = verdictFor({ dishes, envelope: PER_PORTION, index: INDEX, daysCovered: 1,
+ windowDays: 1, uncoverableSentinels: [], fixedIntakeInputs: [] });
   const unknownBody = verdictFor({
     dishes,
     envelope: envelopeFor("fat_loss", null, null, false, null, null, { day: null, sport: null, asked: false }, null, null),
     index: INDEX,
     daysCovered: 1,
+    windowDays: 1,
     uncoverableSentinels: [],
     fixedIntakeInputs: [],
   });
@@ -405,6 +413,7 @@ Deno.test("« eggs » en garniture est `under` là où la PRÉSENCE ne mordait p
     envelope: PER_PORTION,
     index: INDEX,
     daysCovered: 1,
+    windowDays: 1,
     uncoverableSentinels: [],
     fixedIntakeInputs: [],
   });
@@ -422,6 +431,7 @@ Deno.test("« eggs » en garniture est `under` là où la PRÉSENCE ne mordait p
     envelope: PER_PORTION,
     index: INDEX,
     daysCovered: 1,
+    windowDays: 1,
     uncoverableSentinels: [],
     fixedIntakeInputs: [],
   });
@@ -438,6 +448,7 @@ Deno.test("le verdict ne porte AUCUN chiffre d'énergie ni de macro", () => {
     envelope: PER_KG,
     index: INDEX,
     daysCovered: 1,
+    windowDays: 1,
     uncoverableSentinels: [],
     fixedIntakeInputs: [],
   });
@@ -474,6 +485,7 @@ Deno.test("une soupe s'abstient sur la densité, et SEULEMENT sur elle", () => {
     envelope: PER_KG,
     index: INDEX,
     daysCovered: 1,
+    windowDays: 1,
     uncoverableSentinels: [],
     fixedIntakeInputs: [],
   });
@@ -505,6 +517,7 @@ Deno.test("une assiette très grasse est `above` sur la densité", () => {
     envelope: PER_KG,
     index: INDEX,
     daysCovered: 1,
+    windowDays: 1,
     uncoverableSentinels: [],
     fixedIntakeInputs: [],
   });
@@ -532,6 +545,7 @@ Deno.test("un groupe sentinelle absent de la fenêtre est un TROU", () => {
     envelope: PER_KG,
     index: INDEX,
     daysCovered: 7,
+    windowDays: 7,
     uncoverableSentinels: [],
     fixedIntakeInputs: [],
   });
@@ -545,6 +559,7 @@ Deno.test("un groupe sentinelle absent de la fenêtre est un TROU", () => {
     envelope: PER_KG,
     index: INDEX,
     daysCovered: 7,
+    windowDays: 7,
     uncoverableSentinels: [],
     fixedIntakeInputs: [],
   });
@@ -613,6 +628,7 @@ Deno.test("la sortie du parseur est IDENTIQUE avec et sans calcul de verdict", (
     envelope: PER_KG,
     index: INDEX,
     daysCovered: 1,
+    windowDays: 1,
     friedMethod: isFriedMethod,
     uncoverableSentinels: [],
     fixedIntakeInputs: [],
@@ -655,6 +671,7 @@ Deno.test("un nutriment COUVERT retire tous ses porteurs de la liste", () => {
     envelope: PER_KG,
     index: INDEX,
     daysCovered: 7,
+    windowDays: 7,
     uncoverableSentinels: [],
     fixedIntakeInputs: [],
   });
@@ -681,6 +698,7 @@ Deno.test("un trou INCOUVRABLE sort des trous réparables", () => {
     envelope: PER_KG,
     index: INDEX,
     daysCovered: 7,
+    windowDays: 7,
     uncoverableSentinels: [],
     fixedIntakeInputs: [],
   });
@@ -689,6 +707,7 @@ Deno.test("un trou INCOUVRABLE sort des trous réparables", () => {
     envelope: PER_KG,
     index: INDEX,
     daysCovered: 7,
+    windowDays: 7,
     uncoverableSentinels: ["b12_source"],
     fixedIntakeInputs: [],
   });
@@ -713,6 +732,7 @@ Deno.test("le canal structurel SURVIT à l'abstention", () => {
     envelope: PER_KG,
     index: INDEX,
     daysCovered: 7,
+    windowDays: 7,
     uncoverableSentinels: ["b12_source"],
     fixedIntakeInputs: [],
   });
@@ -732,6 +752,7 @@ Deno.test("un trou COUVRABLE reste réparable — le désarmement", () => {
     envelope: PER_KG,
     index: INDEX,
     daysCovered: 7,
+    windowDays: 7,
     uncoverableSentinels: [],
     fixedIntakeInputs: [],
   });
@@ -752,6 +773,7 @@ Deno.test("un nom de colonne inconnu est ÉCARTÉ, pas deviné", () => {
     envelope: PER_KG,
     index: INDEX,
     daysCovered: 7,
+    windowDays: 7,
     uncoverableSentinels: ["b12", "nonsense_source"],
     fixedIntakeInputs: [],
   });
@@ -771,6 +793,7 @@ Deno.test("le canal structurel ne contient AUCUN conseil — juste un nom de fai
     envelope: PER_KG,
     index: INDEX,
     daysCovered: 7,
+    windowDays: 7,
     uncoverableSentinels: ["b12_source"],
     fixedIntakeInputs: [],
   });
@@ -806,6 +829,7 @@ Deno.test("la JOINTURE régime→verdict est celle du produit, pas une constante
       envelope: PER_KG,
       index: INDEX,
       daysCovered: 7,
+      windowDays: 7,
       uncoverableSentinels: uncoverableSentinelsFor(regime),
       fixedIntakeInputs: [],
     });
@@ -867,7 +891,7 @@ Deno.test("une sentinelle ne se juge PAS sous la semaine", () => {
   };
 
   for (const days of [1, 2, 3, 5, 6]) {
-    const v = verdictFor({ ...args, daysCovered: days } as never);
+    const v = verdictFor({ ...args, daysCovered: days, windowDays: days } as never);
     assertEquals(
       v.sentinels.missing,
       [],
@@ -877,9 +901,50 @@ Deno.test("une sentinelle ne se juge PAS sous la semaine", () => {
 
   // À SEPT JOURS, la question a un sens et la grandeur reprend la parole —
   // sinon on aurait remplacé un faux positif par une garde morte.
-  const week = verdictFor({ ...args, daysCovered: 7 } as never);
+  const week = verdictFor({ ...args, daysCovered: 7, windowDays: 7 } as never);
   assert(week.sentinels.missing.length > 0, "à 7 jours, les trous doivent revenir");
   assert(week.sentinels.missing.includes("fatty_fish"));
+});
+
+Deno.test("la cadence suit la FENÊTRE, jamais les journées nourries (2026-09-04)", () => {
+  // ══════════════════════════════════════════════════════════════════════
+  // ⛔ LA RÉGRESSION QUE CE TEST EXISTE POUR EMPÊCHER, ET ELLE EST SILENCIEUSE.
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // `SENTINEL_MIN_DAYS` vaut 7 et `MAX_WINDOW_DAYS` vaut 7: les sentinelles ne
+  // parlent QUE sur une semaine pleine. Depuis que `daysCovered` compte les
+  // journées NOURRIES (`windowCoverageOf`), il descend sous 7 dès qu'un seul
+  // moment manque — un plan lancé à 15 h, une absence déclarée. Brancher la
+  // cadence dessus aurait éteint `missing`, donc le jeton
+  // `place_missing_sentinel` de la boucle de correction, sur TOUS les plans de
+  // sept jours commencés aujourd'hui. Rien n'aurait échoué.
+  const dishes = [{
+    slot: "dinner",
+    method: "Cook it.",
+    ingredients: [{ term: "chicken breast", amount: 200, unit: "g" as const, state: "raw" as const }],
+  }];
+  const args = {
+    dishes,
+    envelope: PER_KG,
+    index: INDEX,
+    uncoverableSentinels: [],
+    fixedIntakeInputs: [],
+  };
+  // Une semaine dont le premier jour ne porte qu'un dîner: 6,35 journées
+  // nourries pour une fenêtre de 7.
+  const troué = verdictFor({ ...args, daysCovered: 6.35, windowDays: 7 } as never);
+  assert(
+    troué.sentinels.missing.length > 0,
+    "une semaine reste une semaine, même si le premier jour est entamé",
+  );
+  // Et le SENS INVERSE, sinon la garde ne garderait rien: une fenêtre courte
+  // dont les journées seraient (absurdement) nombreuses reste muette.
+  const court = verdictFor({ ...args, daysCovered: 7, windowDays: 3 } as never);
+  assertEquals(
+    court.sentinels.missing,
+    [],
+    "trois jours ne deviennent pas une semaine parce qu'on y a bien mangé",
+  );
 });
 
 Deno.test("le trou STRUCTUREL survit à l'abstention de cadence", () => {
@@ -895,6 +960,7 @@ Deno.test("le trou STRUCTUREL survit à l'abstention de cadence", () => {
     envelope: PER_KG,
     index: INDEX,
     daysCovered: 1,
+    windowDays: 1,
     uncoverableSentinels: ["b12_source"],
     fixedIntakeInputs: [],
   } as never);

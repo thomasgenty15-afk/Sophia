@@ -489,7 +489,12 @@ export function offBandDistance(args: {
   daysCovered: number;
 }): number {
   const { verdict, envelope } = args;
-  const days = Math.max(1, Math.floor(args.daysCovered));
+  // ⛔ PAS DE `Math.floor` — la distance se compare au verdict qui l'accompagne.
+  // Depuis le 2026-09-04, `daysCovered` est un nombre de journées NOURRIES
+  // (`windowCoverageOf`), donc fractionnaire. Arrondir ici ferait mesurer
+  // l'écart d'une relance sur un kcal/jour que le verdict n'a jamais calculé —
+  // et l'adoption de la relance se décide sur CET écart.
+  const days = Math.max(1, args.daysCovered);
   let d = 0;
 
   if (verdict.energy === "below" || verdict.energy === "above") {

@@ -189,7 +189,18 @@ export function scaleFactorFor(args: {
   if (!Number.isFinite(args.resolvedShare)) return null;
   if (args.resolvedShare < MIN_RESOLUTION_FOR_VERDICT) return null;
 
-  const days = Math.max(1, Math.floor(args.daysCovered));
+  // ⛔ PAS DE `Math.floor` — IL FAISAIT JUGER ET CORRIGER SUR DEUX NOMBRES.
+  //
+  // Depuis le 2026-09-04, `daysCovered` est un nombre de journées NOURRIES
+  // (`windowCoverageOf`), et il est FRACTIONNAIRE: une fenêtre de trois jours
+  // dont le premier ne porte qu'un dîner vaut 2,35. Un `floor` le ramenait à 2
+  // ICI pendant que `verdictFor` divisait par 2,35 — c'est-à-dire un kcal/jour
+  // 17 % plus haut pour l'ancrage que pour le verdict, dans le sens qui RABOTE
+  // l'assiette d'un plan que le verdict venait de trouver correct.
+  //
+  // ⚠️ AUCUN APPELANT ENTIER NE BOUGE: `Math.floor` est l'identité sur un
+  // entier, et un test le tient.
+  const days = Math.max(1, args.daysCovered);
   const perDay = computedKcal / days;
   if (perDay <= 0) return null;
 
@@ -394,7 +405,10 @@ export function scaleFactorsFor(args: {
     resolvedShare: args.resolvedShare,
   });
 
-  const days = Math.max(1, Math.floor(args.daysCovered));
+  // ⛔ MÊME RAISON QU'AU-DESSUS, ET ELLE MORD PLUS FORT ICI: le plancher
+  // protéique est un plancher. Un `floor` sur 2,35 rendait une protéine/jour
+  // 17 % trop haute, donc un plancher jugé ATTEINT sur un plan qui le rate.
+  const days = Math.max(1, args.daysCovered);
   const floor = args.envelope.proteinFloorG;
   const proteinPerDay = (args.computedProteinG ?? 0) / days;
 
