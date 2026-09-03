@@ -153,12 +153,15 @@ Conséquence : les commits de ce lot passent en **`--no-verify`**, motif écrit 
 
 ---
 
-## 7. Les commits (branche `chantier-0903/RAPIDE`, base `bfecdc28`)
+## 7. Les commits (branche `chantier-0903/RAPIDE`, base `bfecdc28`) — dans l'ordre RÉEL
 
-| Commit | sha | Contenu |
-|---|---|---|
-| lot A3 | `bfecdc28` | 8 fichiers source, 7 fichiers de test, 4 docs, ce journal (première version) — `--no-verify`, motif dans le message |
-| i18n | `7739857a` | `en.ts` + `fr.ts` seulement (bloc délimité + 4 retraits en place) — `--no-verify`, même motif |
-| journal | _(le commit qui suit)_ | ce fichier, complété des sha |
+| Ordre | Commit | sha | Contenu |
+|---|---|---|---|
+| 1 | i18n | `7739857a` | `en.ts` + `fr.ts` seulement (bloc délimité + 4 retraits en place) — `--no-verify` |
+| 2 | journal (v1, **sha du lot faux**) | `bfceefa6` | ce fichier, première version — sa table §7 disait « lot = bfecdc28 », ce qui est la BASE, pas le lot |
+| 3 | lot A3 | `f1c2ea37` | 8 fichiers source, 7 fichiers de test, 4 docs — `--no-verify`, motif dans le message |
+| 4 | journal (v2) | _(le commit qui suit)_ | ce fichier, corrigé |
 
-`git status --short` vide après le troisième commit. Aucun `git add -A`, aucun `stash`/`checkout`/`reset`/`restore` ; les restaurations de mutation sont des `cp`.
+⚠️ **La bourde, nommée** : le script de commit posait les vingt chemins du lot dans une variable et faisait `git add -- $LOT_FILES` ; **zsh ne découpe pas une variable en mots**, `git add` a reçu UN chemin inexistant, le commit du lot n'a rien commité, et les deux commits suivants (i18n, journal) sont partis avant lui. Rien n'a été défait (aucun `reset`, aucun `restore`) : le lot est commité en troisième avec ses chemins écrits un par un, et ce journal est recommité. Les trois contenus sont exactement ceux prévus ; seul l'ordre diffère de celui annoncé.
+
+`git status --short` vide après le quatrième commit. Aucun `git add -A`, aucun `stash`/`checkout`/`reset`/`restore` ; les restaurations de mutation sont des `cp`.
