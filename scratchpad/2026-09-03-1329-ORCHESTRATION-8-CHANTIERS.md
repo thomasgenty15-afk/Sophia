@@ -1892,3 +1892,33 @@ le départ sans toucher la fin est son comportement **d'origine**. La lane CUISI
 E l'avait confirmé indépendamment : **`lead_days = 0` sur 254 lignes sur 254**.
 ⚠️ **Mais c'est le voisinage immédiat d'A1** : qui reprendra ce défaut doit lire les deux ensemble. Et le défaut est
 **silencieux de bout en bout** — la mémoire du dépôt dit que cette suggestion **n'est jamais rendue à l'écran**.
+
+## 09:2x — CLÔTURE
+
+**Le lot « envie » n'est revendiqué par AUCUNE des cinq sessions interrogées** (`sophia-2-11`, `-be`, `-51`, `-59`,
+`-c3`). Daté par horodatage : `householdEnvyWiring` **21:33:40**, `oneCookingSessionField` **21:34:27**,
+`MealBuilder.tsx` **22:00:23** — donc **écrit pendant ce chantier**, bien après mon instantané de 13:30 qui avait laissé
+l'arbre vide. Provenance probable : une des sessions Remote Control hors ligne. **Consigné « non revendiqué » plutôt
+qu'attribué à tort** ; les neuf lignes emportées par `488d53b7` restent déclarées et récupérables.
+
+**Vérifié avant de clore : nos deux correctifs RGPD tiennent.** Une session tierce modifie en ce moment
+`account-export-v1/index.ts`, `export_scope.ts` et `keel_gdpr_lifecycle_test.ts` — les fichiers mêmes que ce chantier
+vient de corriger. Mesuré : `"answered_at"` toujours passé (1 occurrence), `lead_days` toujours exporté (3), et le diff
+en vol est **purement additif** — **52 insertions, 0 suppression**, aucune ligne touchant nos deux correctifs.
+**Elle étend l'export, elle ne défait pas notre travail.**
+
+### État final
+
+**Onze lots fusionnés · `agent-gate.sh` exit 0 · 5 119 tests serveur, 2 249 front, 87 tolérées pour 87 réelles.**
+Rapport final : `scratchpad/2026-09-04-0800-RAPPORT-FINAL-8-CHANTIERS.md` (livré à l'humain, deux fois, corrigé une fois).
+Grille C1-C8 : `scratchpad/2026-09-04-0830-E-coherence.md`. Onze journaux de lane et six rapports de vérification.
+
+**Ce qui attend un humain** : la configuration du `node_modules` sous `supabase/functions/` (le poste est instable par
+construction) · l'autorisation d'un banc solo · une session navigateur pour toutes les preuves d'écran · six `db push` ·
+les gestes Stripe et `enable_confirmations` · et **le plan troué que le verdict flatte**, hors périmètre mais prioritaire.
+
+**Neuf erreurs de l'orchestrateur, toutes du même motif** — une affirmation reprise sans être mesurée, et **toutes en
+mode « je ne fais que transmettre »**. Sept corrigées par une lane ou une session voisine, deux par moi.
+**La plus coûteuse** : avoir différé les runs réels une journée entière en les croyant bloqués, alors que
+`supabase migration up` en local était permis depuis le début. **Ce sont ces runs qui ont trouvé les trois seuls défauts
+de production de la journée.**
