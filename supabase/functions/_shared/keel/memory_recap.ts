@@ -70,8 +70,20 @@ export interface RecapKept {
   readonly text: string;
   /** Le dernier jour où elle vit, ou `null` — l'encart ne meurt plus par date. */
   readonly until: string | null;
-  /** Où c'est rangé. Vocabulaire FERMÉ: trois destinations, pas une de plus. */
-  readonly kind: "preference" | "note" | "next_plan";
+  /**
+   * Où c'est rangé. Vocabulaire FERMÉ.
+   *
+   * ⟳ 2026-09-04 — `setting` REJOINT LES TROIS. Le bilan bouge aussi des
+   * RÉGLAGES (la difficulté des recettes, le temps de cuisine, la variété), et
+   * ils étaient les seuls écrits de ce produit qui ne se disaient nulle part:
+   * ni sur la carte au moment du geste, ni ici. Un curseur qui bouge sans un
+   * mot est exactement ce que « on retient, et on le dit » existe pour empêcher.
+   *
+   * ⚠️ IL RESTE UNE DESTINATION À PART, avec sa propre phrase: un réglage n'est
+   * pas une chose que Sophia SAIT de la personne, c'est un curseur qu'elle a
+   * bougé à cause d'une réponse. Les fondre dirait le contraire du modèle.
+   */
+  readonly kind: "preference" | "note" | "next_plan" | "setting";
   /** Le prénom de la bouche, ou `null` = toute la table. */
   readonly who: string | null;
 }
@@ -98,6 +110,7 @@ const COPY = {
     // le corriger — et la carte a trois blocs distincts.
     keptPreference: "J'ai noté ce que tu veux (ou pas) dans l'assiette :",
     keptNote: "J'ai retenu ça :",
+    keptSetting: "J'ai ajusté un réglage :",
     keptFor: (who: string) => ` pour ${who}`,
   },
   en: {
@@ -116,6 +129,7 @@ const COPY = {
     keptOne: "I've also kept this from your feedback:",
     keptPreference: "I've noted what you do (and don't) want on the plate:",
     keptNote: "I've kept this:",
+    keptSetting: "I've adjusted a setting:",
     keptFor: (who: string) => ` for ${who}`,
     until: (day: string) => `until ${day}`,
     // ⚠️ LES GUILLEMETS SUIVENT LA LANGUE. Ils étaient en dur en français des
@@ -179,9 +193,15 @@ export function buildMemoryRecap(args: {
   const INTRO = {
     preference: copy.keptPreference,
     note: copy.keptNote,
+    setting: copy.keptSetting,
     next_plan: copy.keptOne,
   } as const;
-  for (const destination of ["preference", "note", "next_plan"] as const) {
+  // ⚠️ LES RÉGLAGES EN DERNIER DES TROIS DURABLES, avant l'encart: ce sont les
+  // lignes les moins « à propos d'elle » du message, et les mettre devant
+  // ferait passer un curseur avant un goût.
+  for (
+    const destination of ["preference", "note", "setting", "next_plan"] as const
+  ) {
     const rows = kept.filter((k) => k.kind === destination);
     if (rows.length === 0) continue;
     const lines = rows.map((k) => {

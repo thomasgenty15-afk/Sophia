@@ -97,6 +97,22 @@ export const DAILY_ASK_KINDS = [
    * sensible du produit.
    */
   "weight_divergence_question",
+  /**
+   * La clarification d'une note ambiguë (2026-09-04). Ne porte AUCUN axe.
+   *
+   * ⚠️ ELLE RÉPOND À UN GESTE, ET C'EST CE QUI LA MET DANS
+   * `GESTURE_RESPONSE_ASK_KINDS`. La personne vient d'écrire « ma fille n'aime
+   * pas le poisson » sur son brouillon de plan, et le foyer compte deux filles:
+   * demander laquelle est la SUITE de sa phrase, pas une sollicitation que le
+   * produit décide d'envoyer. Sans cette question, l'entrée est jetée en
+   * silence — le défaut que le lot ferme.
+   *
+   * ⚠️ ET ELLE N'ATTEND PAS, contrairement à la divergence. Une question posée
+   * trois jours après la note porterait sur une phrase que la personne a
+   * oubliée; c'est aussi pour ça qu'elle a son propre plafond plutôt que la
+   * place partagée, qui est souvent déjà prise le soir.
+   */
+  "memory_clarification",
 ] as const;
 export type DailyAskKind = (typeof DAILY_ASK_KINDS)[number];
 
@@ -139,7 +155,7 @@ export const DAILY_ASK_BUDGET = 1;
  * répond à sa phrase, la seconde est la seule initiative du produit ce jour-là.
  */
 export const GESTURE_RESPONSE_ASK_KINDS: readonly DailyAskKind[] = Object.freeze(
-  ["photo_invitation"],
+  ["photo_invitation", "memory_clarification"],
 );
 
 /**
@@ -157,6 +173,30 @@ export const GESTURE_RESPONSE_ASK_KINDS: readonly DailyAskKind[] = Object.freeze
  * c'est le geste le plus réversible du lot.
  */
 export const PHOTO_INVITATION_DAILY_CAP = 1;
+
+/**
+ * LE PLAFOND PROPRE DE LA CLARIFICATION — deux par jour LOCAL.
+ *
+ * ⚠️ LA MÊME RAISON QUE LA PHOTO: une exemption sans plafond propre est une
+ * porte ouverte. L'unicité du ledger est par MESSAGE, et l'index « une question
+ * ouverte à la fois » de `memory_clarifications` borne la SIMULTANÉITÉ, pas le
+ * cumul: sans ce nombre, une personne qui régénère cinq fois son plan avec une
+ * remarque à chaque fois recevrait cinq questions.
+ *
+ * ⚠️ DEUX, ET PAS UN, PARCE QUE LE JOUR TYPIQUE EN PORTE DEUX. Le dimanche du
+ * produit, c'est: le bilan du plan qui se termine (avec son champ libre), puis
+ * la composition du plan suivant (avec sa note sur le brouillon). Les deux
+ * sources parlent le même jour, et plafonner à un ferait taire la seconde —
+ * c'est-à-dire jeter une entrée en silence, exactement ce que le lot ferme.
+ *
+ * ⚠️ PAR JOUR **LOCAL**, comme tout ce ledger: le serveur n'est pas dans le
+ * fuseau de la personne, et `local_date` est la colonne qui compte.
+ *
+ * Deux et pas trois par le raisonnement de `DAILY_ASK_BUDGET` (« la seconde ne
+ * creuse plus rien ») appliqué au cran suivant. C'est la constante la plus
+ * réversible du lot.
+ */
+export const MEMORY_CLARIFICATION_DAILY_CAP = 2;
 
 export interface DailyAskCountResult {
   /** Le nombre de demandes déjà parties ce jour local, tous genres confondus. */

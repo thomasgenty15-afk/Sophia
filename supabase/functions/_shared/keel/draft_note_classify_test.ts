@@ -41,6 +41,7 @@ import {
   DRAFT_NOTE_SKIP_REASONS,
   type DraftNoteMember,
   draftNoteClassifyTrace,
+  EMPTY_DRAFT_NOTE_CLASSIFICATION,
   readDraftNoteClassification,
 } from "./draft_note_classify.ts";
 import {
@@ -81,6 +82,13 @@ function usable(text: string = NOTE): DraftNoteVerdict {
   return { usable: text, refusal: null, dropped: [] };
 }
 
+/**
+ * Les aliments du plan que la personne annotait. ⚠️ DEUX VIANDES, exprès: la
+ * question « laquelle ? » n'a de sens que quand plusieurs candidats existent, et
+ * un décor à un seul aliment rendrait le cas nominal inatteignable.
+ */
+const PLAN_FOODS = ["poulet rôti", "steak haché", "riz", "brocolis"] as const;
+
 function read(
   lists: Record<string, unknown>,
   over: Record<string, unknown> = {},
@@ -92,6 +100,7 @@ function read(
     members: MEMBERS,
     note: NOTE,
     writtenAt: NOW,
+    planFoods: PLAN_FOODS,
     ...over,
   });
 }
@@ -285,16 +294,20 @@ Deno.test("⛔ LA RÈGLE DE DIRECTION est dans le prompt, collée à `food.prefe
 
 Deno.test("le bloc de SÉCURITÉ est là, en dernier, et aucune famille de sécurité parmi les huit", () => {
   assert(PROMPT.includes('"safety": [ ... ]'));
-  assert(PROMPT.indexOf("SAFETY — a SECOND list") > PROMPT.indexOf('4. "skipped"'));
+  // ⟳ 2026-09-04 — « SIXTH », et plus « SECOND ». La liste de sécurité était
+  // annoncée comme la seconde d'un schéma à deux clés, périmé depuis le lot A.
+  // ⚠️ ET ELLE VIENT MAINTENANT APRÈS LA PORTE ⑤, pas après la ④: c'est le
+  // rang réel, et un rang faux dans une consigne est une consigne fausse.
+  assert(PROMPT.indexOf("SAFETY — a SIXTH list") > PROMPT.indexOf('5. "clarify"'));
   for (const kind of [...DRAFT_NOTE_KINDS, ...DRAFT_NOTE_FORBIDDEN_KINDS]) {
     assert(!/allerg|intoleran|medical|diet/i.test(kind), kind);
   }
 });
 
 Deno.test("le rôle vide se DIT, il ne s'omet pas", () => {
-  const solo = buildDraftNoteClassifyPrompt({ note: NOTE, contentLocale: "fr-FR", members: [] });
+  const solo = buildDraftNoteClassifyPrompt({ note: NOTE, contentLocale: "fr-FR", members: [], planFoods: PLAN_FOODS });
   assert(solo.includes("There is nobody else at this table"));
-  const foyer = buildDraftNoteClassifyPrompt({ note: NOTE, contentLocale: "fr-FR", members: MEMBERS });
+  const foyer = buildDraftNoteClassifyPrompt({ note: NOTE, contentLocale: "fr-FR", members: MEMBERS, planFoods: PLAN_FOODS });
   assert(foyer.includes(`"member_id":"${ZOE}"`));
   assert(foyer.includes('"age":"minor"') && foyer.includes('"sex":"female"'));
   assert(foyer.includes(`They write in fr-FR`));
@@ -498,14 +511,30 @@ Deno.test("CE QUE LE MODÈLE A LU ET N'A PAS RANGÉ — compté par motif, et un
   assertEquals(out.classification.kept, 0);
 });
 
-Deno.test("quatre listes VIDES sont une réponse correcte; une liste ABSENTE est comptée `listsMissing`", () => {
-  const empty = read({ preferences: [], notes: [], next_plan: [], skipped: [] });
+Deno.test("les CINQ listes vides sont une réponse correcte; une liste ABSENTE est comptée", () => {
+  // ⟳ 2026-09-04 — CINQ, ET PAS QUATRE. `clarify` est une liste comme les
+  // autres: une clé absente veut dire que le modèle a lu le prompt de travers,
+  // et se compte à part d'un vide. Ne pas l'ajouter ici aurait rendu
+  // `listsMissing` non vide sur TOUTES les charges valides — c'est-à-dire un
+  // signal permanent, donc un signal mort.
+  const empty = read({
+    preferences: [],
+    notes: [],
+    next_plan: [],
+    skipped: [],
+    clarify: [],
+  });
   assert(empty.ok);
   assertEquals(empty.classification.listsMissing, []);
   assertEquals(empty.classification.proposed, 0);
   const partial = read({ preferences: [] });
   assert(partial.ok);
-  assertEquals(partial.classification.listsMissing, ["notes", "next_plan", "skipped"]);
+  assertEquals(partial.classification.listsMissing, [
+    "notes",
+    "next_plan",
+    "skipped",
+    "clarify",
+  ]);
 });
 
 Deno.test("⛔ une charge SANS AUCUNE des listes est illisible — l'ancienne forme `items` aussi", () => {
@@ -551,6 +580,7 @@ Deno.test("LE COMPTEUR PAR PORTE se lit d'un bloc, et les agrégats sont des som
     notes: [{ text: "danse", member_id: STRANGER, when: null }],
     next_plan: [{ kind: "craving", text: "", member_id: null }],
     skipped: [{ why: "degree" }],
+    clarify: [],
   });
   const t = draftNoteClassifyTrace(out.classification);
   assertEquals(t.pref_proposed, 2);
@@ -625,6 +655,8 @@ Deno.test("⛔ `keelGenerationModel()` est RÉELLEMENT APPELÉ — la sentinelle
       targetWeek: PLAN_STARTS_ON,
       members: [],
       contentLocale: "fr-FR",
+      planFoods: PLAN_FOODS,
+      source: "draft_note",
       now: NOW,
       run: runnerReturning(FULL_LISTS, trace),
     });
@@ -649,6 +681,8 @@ Deno.test("sans surcharge, c'est le modèle de COMPOSITION, pas celui du chat", 
       targetWeek: PLAN_STARTS_ON,
       members: [],
       contentLocale: "fr-FR",
+      planFoods: PLAN_FOODS,
+      source: "draft_note",
       run: runnerReturning(FULL_LISTS, trace),
     });
     assertEquals(res.model, KEEL_GENERATION_MODEL_DEFAULT);
@@ -667,14 +701,22 @@ Deno.test("⛔ la porte est appelée UNE fois, avec `producer: draft_note` et LE
     targetWeek: PLAN_STARTS_ON,
     members: [],
     contentLocale: "fr-FR",
+    planFoods: PLAN_FOODS,
+    source: "draft_note",
     now: NOW,
     run: runnerReturning(FULL_LISTS, trace),
   });
   assertEquals(res.ok, true);
   assertEquals(res.reason, "written");
-  assertEquals(trace.rpcs.length, 1);
-  const params = trace.rpcs[0].params;
-  assertEquals(trace.rpcs[0].name, "keel_write_retained_items_for");
+  // ⟳ 2026-09-04 — ON COMPTE LES APPELS À LA PORTE, plus les RPC en général.
+  // Le module en déclenche maintenant d'autres après l'écriture (la bulle
+  // « j'ai noté … » passe par le canal de chat, qui a les siens), et compter
+  // tout ferait rougir ce test pour une raison qui n'est PAS la sienne: sa
+  // propriété est « la porte est appelée UNE fois », pas « rien d'autre ne
+  // parle à la base ».
+  const writes = trace.rpcs.filter((r) => r.name === "keel_write_retained_items_for");
+  assertEquals(writes.length, 1);
+  const params = writes[0].params;
   const items = params.p_items as Array<Record<string, unknown>>;
   assertEquals(items.length, 1);
   assertEquals(items[0].source, "draft_note");
@@ -702,6 +744,8 @@ Deno.test("⛔ ce que la matrice refuse N'ATTEINT PAS la porte — et un `nothin
     targetWeek: PLAN_STARTS_ON,
     members: [],
     contentLocale: "fr-FR",
+    planFoods: PLAN_FOODS,
+    source: "draft_note",
     run: runnerReturning({
       preferences: [{ kind: "portion.adjust", text: "trop grosses", member_id: null, value: { direction: "down", magnitude: "clear" } }],
       notes: [],
@@ -726,6 +770,8 @@ Deno.test("une note refusée par la garde d'entrée ne déclenche AUCUN appel", 
     targetWeek: PLAN_STARTS_ON,
     members: [],
     contentLocale: "fr-FR",
+    planFoods: PLAN_FOODS,
+    source: "draft_note",
     run: runnerReturning(FULL_LISTS, trace),
   });
   assertEquals(res.reason, "no_note");
@@ -743,6 +789,8 @@ Deno.test("⛔ un appel modèle en panne est NOMMÉ et COMPTÉ, jamais avalé", 
     targetWeek: PLAN_STARTS_ON,
     members: [],
     contentLocale: "fr-FR",
+    planFoods: PLAN_FOODS,
+    source: "draft_note",
     run: () => Promise.reject(new Error("quota")),
   });
   assertEquals(res.ok, false);
@@ -760,6 +808,8 @@ Deno.test("l'ancienne forme `{ items }` rendue par un modèle est `unreadable_pa
     targetWeek: PLAN_STARTS_ON,
     members: [],
     contentLocale: "fr-FR",
+    planFoods: PLAN_FOODS,
+    source: "draft_note",
     run: runnerReturning({ items: [{ kind: "craving", text: "des fajitas", member_id: null }] }, trace),
   });
   assertEquals(res.reason, "unreadable_payload");
@@ -776,6 +826,8 @@ Deno.test("`members` absent est un `bad_args`, pas un foyer vide", async () => {
     targetWeek: PLAN_STARTS_ON,
     members: undefined as unknown as DraftNoteMember[],
     contentLocale: "fr-FR",
+    planFoods: PLAN_FOODS,
+    source: "draft_note",
     run: runnerReturning(FULL_LISTS, trace),
   });
   assertEquals(res.reason, "bad_args");
@@ -890,6 +942,7 @@ Deno.test("⛔ LE ROSTER PORTE L'ÂGE ET LE SEXE — sans eux, aucune parenté n
   const prompt = buildDraftNoteClassifyPrompt({
     note: "Mon fils n'aime pas le poisson",
     contentLocale: "fr-FR",
+    planFoods: PLAN_FOODS,
     members: [mouth(), mouth({ memberId: "22222222-2222-4333-8444-555555555555", label: "Léa", sex: "female" })],
   });
   assert(prompt.includes('"age":"minor"'));
@@ -901,6 +954,7 @@ Deno.test("⛔ LES CLÉS SONT ÉCRITES MÊME À `null` — « on ne sait pas » 
   const prompt = buildDraftNoteClassifyPrompt({
     note: "Mon fils n'aime pas le poisson",
     contentLocale: "fr-FR",
+    planFoods: PLAN_FOODS,
     members: [mouth({ ageState: null, sex: null })],
   });
   assert(prompt.includes('"age":null'));
@@ -914,4 +968,324 @@ Deno.test("LE CÂBLAGE — la lane foyer passe l'âge et le sexe, et PAS `ageBan
   assert(/sex: m\.body\?\.gender \?\? null/.test(src), "la lane foyer ne passe plus le sexe");
   assert(/ageState: m\.ageState === "adult"/.test(src), "la lane foyer ne passe plus l'état d'âge");
   assert(!/ageState: m\.ageBand/.test(src), "la lane passe une BANDE d'âge: elle vaut `null` pour tout mineur");
+});
+
+// ===========================================================================
+// ⑤ LA PORTE QUI NE RANGE RIEN — « je n'ai pas su de qui, ni de quoi »
+//
+// ── LE DÉFAUT QU'ELLE FERME ───────────────────────────────────────────────
+// Avant elle, une entrée dont le sujet était ambigu était JETÉE, et aucun motif
+// de rejet ne le disait: `skipped` n'a que `degree | setting | meal_story |
+// other`. L'ambiguïté était donc soit invisible, soit rangée avec les
+// remerciements — et rien ne pouvait relancer la personne.
+//
+// ⚠️ CETTE PORTE N'ÉCRIT RIEN, ET C'EST SA DÉFINITION. Ce qu'elle garde est une
+// question à poser; sans réponse, l'entrée n'existera jamais. Les tests
+// ci-dessous vérifient donc DEUX choses à chaque fois: ce qui entre dans
+// `clarify`, et ce qui n'entre nulle part ailleurs.
+// ===========================================================================
+
+/** Une entrée de la porte ⑤, dans la forme que le prompt demande au modèle. */
+function clarifyRow(over: Record<string, unknown> = {}): Record<string, unknown> {
+  return {
+    about: "who",
+    gate: "preferences",
+    entry: { kind: "food.exclude", text: "poisson", member_id: null },
+    options: [ZOE, MARC],
+    ...over,
+  };
+}
+
+Deno.test("⑤ le cas qui passe — une question QUI, et RIEN de rangé", () => {
+  const out = read({ preferences: [], notes: [], next_plan: [], skipped: [], clarify: [clarifyRow()] });
+  assert(out.ok);
+  const c = out.classification;
+  assertEquals(c.clarify.proposed, 1);
+  assertEquals(c.clarify.kept, 1);
+  assertEquals(c.clarify.who, 1);
+  assertEquals(c.clarify.what, 0);
+  // ⛔ NULLE PART AILLEURS. Une entrée qui serait à la fois en attente ET rangée
+  // ferait écrire deux fois la même chose — une fois tout de suite avec un sujet
+  // deviné, une fois au tap avec le bon.
+  assertEquals(c.preferences.kept, 0);
+  assertEquals(c.notes.kept, 0);
+  assertEquals(c.nextPlan.kept, 0);
+  assertEquals(c.skipped.total, 0);
+  const entry = c.clarify.entries[0];
+  assertEquals(entry.about, "who");
+  assertEquals(entry.gate, "preferences");
+  assertEquals(entry.kind, "food.exclude");
+  assertEquals(entry.text, "poisson");
+  // Le sujet est `null`: c'est exactement ce qu'on demande.
+  assertEquals(entry.subject, null);
+  assertEquals(entry.options, [ZOE, MARC]);
+});
+
+Deno.test("⑤ une question QUOI n'accepte que des aliments DU PLAN", () => {
+  const ok = read({
+    clarify: [clarifyRow({
+      about: "what",
+      entry: { kind: "food.exclude", text: "la viande", member_id: null },
+      options: ["poulet rôti", "steak haché"],
+    })],
+  });
+  assert(ok.ok);
+  assertEquals(ok.classification.clarify.kept, 1);
+  assertEquals(ok.classification.clarify.what, 1);
+  // Sur un `what`, le sujet de la note est CONNU et il est gardé: on ne demande
+  // qu'une chose à la fois.
+  assertEquals(ok.classification.clarify.entries[0].subject, "household");
+
+  // ⛔ UN ALIMENT HORS DU PLAN EST UN REFUS, jamais une option. Le tap ne peut
+  // désigner que ce que le runtime a proposé; une option inventée par le modèle
+  // serait une exclusion écrite sur un mot que personne n'a lu.
+  const invented = read({
+    clarify: [clarifyRow({
+      about: "what",
+      entry: { kind: "food.exclude", text: "la viande", member_id: null },
+      options: ["poulet rôti", "sanglier"],
+    })],
+  });
+  assert(invented.ok);
+  assertEquals(invented.classification.clarify.kept, 0);
+  assertEquals(invented.classification.clarify.refused.badOptions, 1);
+});
+
+Deno.test("⑤ sans aliments du plan, une question QUOI est impossible", () => {
+  // ⚠️ LE CAS D'UNE LANE SANS PLAT, ou d'un plan illisible. Le prompt le dit au
+  // modèle; la relecture le tient quand même — une consigne de prompt régresse,
+  // c'est écrit dans ce dépôt.
+  const out = read(
+    {
+      clarify: [clarifyRow({
+        about: "what",
+        entry: { kind: "food.exclude", text: "la viande", member_id: null },
+        options: ["poulet rôti"],
+      })],
+    },
+    { planFoods: [] },
+  );
+  assert(out.ok);
+  assertEquals(out.classification.clarify.kept, 0);
+  assertEquals(out.classification.clarify.refused.badOptions, 1);
+});
+
+Deno.test("⑤ un candidat hors du rôle est un REFUS, jamais un sujet", () => {
+  const out = read({ clarify: [clarifyRow({ options: [ZOE, STRANGER] })] });
+  assert(out.ok);
+  assertEquals(out.classification.clarify.kept, 0);
+  assertEquals(out.classification.clarify.refused.badOptions, 1);
+});
+
+Deno.test("⑤ zéro option, cinq options, un doublon: trois refus", () => {
+  for (
+    const options of [
+      [],
+      [ZOE, MARC, ZOE],
+      [ZOE, MARC, ZOE, MARC, ZOE],
+    ]
+  ) {
+    const out = read({ clarify: [clarifyRow({ options })] });
+    assert(out.ok);
+    assertEquals(
+      out.classification.clarify.refused.badOptions,
+      1,
+      JSON.stringify(options),
+    );
+    assertEquals(out.classification.clarify.kept, 0);
+  }
+});
+
+Deno.test("⑤ quatre options passent — la borne haute est atteignable", () => {
+  // Sans ce cas, le refus du dessus serait vrai d'un lecteur qui refuse TOUT.
+  const out = read({
+    clarify: [clarifyRow({
+      about: "what",
+      entry: { kind: "food.exclude", text: "la viande", member_id: null },
+      options: ["poulet rôti", "steak haché", "riz", "brocolis"],
+    })],
+  });
+  assert(out.ok);
+  assertEquals(out.classification.clarify.kept, 1);
+});
+
+Deno.test("⑤ `about` et `gate` hors liste ont chacun leur motif", () => {
+  const badAbout = read({ clarify: [clarifyRow({ about: "when" })] });
+  assertEquals(badAbout.classification.clarify.refused.badAbout, 1);
+  assertEquals(badAbout.classification.clarify.refused.badGate, 0);
+
+  const badGate = read({ clarify: [clarifyRow({ gate: "safety" })] });
+  assertEquals(badGate.classification.clarify.refused.badGate, 1);
+  assertEquals(badGate.classification.clarify.refused.badAbout, 0);
+});
+
+Deno.test("⑤ demander QUI alors qu'on le sait déjà est refusé", () => {
+  // ⛔ UNE QUESTION DONT ON A LA RÉPONSE FAIT DOUTER DE TOUTES LES AUTRES.
+  const out = read({
+    clarify: [clarifyRow({
+      entry: { kind: "food.exclude", text: "poisson", member_id: ZOE },
+    })],
+  });
+  assert(out.ok);
+  assertEquals(out.classification.clarify.kept, 0);
+  assertEquals(out.classification.clarify.refused.badOptions, 1);
+});
+
+Deno.test("⑤ la matrice vaut ici aussi — une famille interdite ne s'attend pas", () => {
+  // Ce que `draft_note` ne peut pas ranger, il ne peut pas non plus le mettre
+  // en attente: la question serait posée pour une écriture qui serait refusée
+  // au tap.
+  const out = read({
+    clarify: [clarifyRow({
+      entry: { kind: "portion.adjust", text: "trop gros", member_id: null },
+    })],
+  });
+  assert(out.ok);
+  assertEquals(out.classification.clarify.kept, 0);
+  assertEquals(out.classification.clarify.refused.forbiddenKind, 1);
+  assertEquals(out.classification.clarify.refused.forbiddenKinds, ["portion.adjust"]);
+});
+
+Deno.test("⑤ une note en attente garde son moment", () => {
+  const out = read({
+    clarify: [clarifyRow({
+      gate: "notes",
+      entry: {
+        text: "danse le mardi soir",
+        member_id: null,
+        when: { weekday: "tue", slot: "dinner" },
+      },
+    })],
+  });
+  assert(out.ok);
+  assertEquals(out.classification.clarify.kept, 1);
+  const entry = out.classification.clarify.entries[0];
+  assertEquals(entry.kind, null);
+  assertEquals(entry.when, { weekday: "tue", slot: "dinner" });
+});
+
+Deno.test("⑤ un moment illisible est un refus NOMMÉ, pas un moment perdu", () => {
+  const out = read({
+    clarify: [clarifyRow({
+      gate: "notes",
+      entry: {
+        text: "danse",
+        member_id: null,
+        when: { weekday: "mardi", slot: "dinner" },
+      },
+    })],
+  });
+  assert(out.ok);
+  assertEquals(out.classification.clarify.kept, 0);
+  assertEquals(out.classification.clarify.refused.badWhen, 1);
+});
+
+Deno.test("⑤ les compteurs entrent dans la trace, et dans les agrégats", () => {
+  const out = read({
+    preferences: [],
+    notes: [],
+    next_plan: [],
+    skipped: [],
+    clarify: [clarifyRow(), clarifyRow({ about: "when" })],
+  });
+  const t = draftNoteClassifyTrace(out.classification);
+  assertEquals(t.clarify_proposed, 2);
+  assertEquals(t.clarify_kept, 1);
+  assertEquals(t.clarify_who, 1);
+  assertEquals(t.clarify_what, 0);
+  assertEquals(t.clarify_refused_bad_about, 1);
+  // Les agrégats sont des SOMMES: une porte qui compterait à part serait une
+  // porte dont les refus n'apparaissent nulle part.
+  assertEquals(t.proposed, 2);
+  assertEquals(t.kept, 1);
+  assertEquals(t.refused, 1);
+  assertEquals(t.refused_bad_about, 1);
+});
+
+Deno.test("⑤ la classification VIDE porte les compteurs à zéro", () => {
+  // « Champ déclaré = compteur obligatoire »: un champ absent du vide ferait
+  // rendre `undefined` à la trace, et un `undefined` dans un journal se lit
+  // comme un zéro sans en être un.
+  const t = draftNoteClassifyTrace(EMPTY_DRAFT_NOTE_CLASSIFICATION);
+  assertEquals(t.clarify_proposed, 0);
+  assertEquals(t.clarify_kept, 0);
+  assertEquals(t.clarify_who, 0);
+  assertEquals(t.clarify_what, 0);
+  assertEquals(t.clarify_refused_bad_options, 0);
+  assertEquals(t.clarify_refused_bad_about, 0);
+  assertEquals(t.clarify_refused_bad_gate, 0);
+});
+
+// ---------------------------------------------------------------------------
+// Le prompt — la promesse est SUR la clé, et l'ancienne consigne est partie
+// ---------------------------------------------------------------------------
+
+Deno.test("⑤ le schéma porte les SIX clés, dans l'ordre", () => {
+  const line = DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT.split("\n").find((l) =>
+    l.startsWith('{ "preferences"')
+  );
+  assert(line, "la ligne de schéma a disparu");
+  for (const key of ["preferences", "next_plan", "notes", "skipped", "clarify", "safety"]) {
+    assert(line.includes(`"${key}"`), `le schéma ne porte pas ${key}`);
+  }
+});
+
+Deno.test("⑤ l'ancienne consigne « file NOTHING » a disparu du prompt", () => {
+  // ⛔ SI ELLE RESTAIT, LE MODÈLE AURAIT DEUX CONSIGNES CONTRAIRES sur le même
+  // cas: jeter l'entrée, et la mettre en attente. C'est la forme la plus chère
+  // d'un prompt cassé — il obéit à l'une des deux, au hasard.
+  assert(!DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT.includes("file NOTHING"));
+});
+
+Deno.test("⑤ la règle QUI nomme `clarify` À CÔTÉ de son cas", () => {
+  // Une consigne séparée de sa clé par trois paragraphes n'est pas lue: c'est
+  // la règle d'adjacence que ce fichier tient déjà pour les autres portes.
+  const p = DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT;
+  const twoFit = p.indexOf("IF TWO PEOPLE FIT");
+  const clarify = p.indexOf('"clarify"', twoFit);
+  assert(twoFit >= 0, "la règle des deux candidats a disparu");
+  assert(clarify - twoFit < 300, "`clarify` est trop loin de son cas");
+});
+
+Deno.test("⑤ la règle QUOI interdit de deviner un aliment nommé", () => {
+  const p = DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT;
+  assert(p.includes("WHAT — on the same three drawers"));
+  // La moitié qui empêche la question de tout avaler: un aliment nommé se range,
+  // il ne se demande pas.
+  assert(p.includes("never a \"what\""));
+});
+
+Deno.test("⑤ `skipped` renvoie vers `clarify`, il ne l'absorbe pas", () => {
+  assert(
+    DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT.includes(
+      'NEVER use "skipped" for something you could not attribute',
+    ),
+  );
+});
+
+Deno.test("⑤ le tour utilisateur dit les aliments — et dit quand il n'y en a pas", () => {
+  const withFoods = buildDraftNoteClassifyPrompt({
+    note: NOTE,
+    contentLocale: "fr-FR",
+    members: MEMBERS,
+    planFoods: PLAN_FOODS,
+  });
+  assert(withFoods.includes("poulet rôti"));
+  const without = buildDraftNoteClassifyPrompt({
+    note: NOTE,
+    contentLocale: "fr-FR",
+    members: MEMBERS,
+    planFoods: [],
+  });
+  // ⚠️ DIT, PAS OMIS. Une liste absente laisserait le modèle supposer qu'il
+  // existe des plats qu'on ne lui a pas donnés.
+  assert(without.includes("not available"));
+  assert(without.includes('Never use "about": "what"'));
+});
+
+Deno.test("⑤ la ligne de schéma périmée du bloc sécurité est partie", () => {
+  // Elle disait `{ "items": [...], "safety": [...] }` — la forme d'avant le lot
+  // A. Deux lignes de schéma contradictoires dans le même prompt, dont une
+  // fausse: le modèle en suit une, et personne ne sait laquelle.
+  assert(!DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT.includes('{ "items": ['));
 });

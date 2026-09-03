@@ -234,10 +234,15 @@ export function safetyOf(raw: unknown): unknown[] | null {
  */
 export const SAFETY_DECLARATION_PROMPT_BLOCK = [
   "",
-  "SAFETY — a SECOND list, next to \"items\" and never inside it:",
-  '{ "items": [ ... ], "safety": [ ... ] }',
+  // ⟳ 2026-09-04 — CETTE LIGNE ÉTAIT PÉRIMÉE, ET ELLE MENTAIT AU MODÈLE. Elle
+  // annonçait la forme d'avant le lot A (`{ "items": [...] }`), alors que le
+  // prompt principal en demande six clés depuis. Deux lignes de schéma
+  // contradictoires dans la même consigne: le modèle en suit une, et personne
+  // ne sait laquelle. Elle nomme maintenant la liste par son rang réel.
+  "SAFETY — a SIXTH list, next to the five above and never inside them:",
+  '{ "preferences": [ ... ], "next_plan": [ ... ], "notes": [ ... ], "skipped": [ ... ], "clarify": [ ... ], "safety": [ ... ] }',
   "",
-  "An allergy, an intolerance, a medical condition, a religious rule or a diet is NOT a preference and never goes in \"items\". It goes here, and it reaches a table that is checked against the food actually served.",
+  "An allergy, an intolerance, a medical condition, a religious rule or a diet is NOT a preference and never goes in any of the five above. It goes here, and it reaches a table that is checked against the food actually served.",
   "Each entry is exactly:",
   "{",
   `  "kind": one of ${

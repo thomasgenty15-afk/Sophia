@@ -22,6 +22,7 @@ import {
   DAILY_ASK_BUDGET,
   DAILY_ASK_KINDS,
   GESTURE_RESPONSE_ASK_KINDS,
+  MEMORY_CLARIFICATION_DAILY_CAP,
   PHOTO_INVITATION_DAILY_CAP,
 } from "./daily_ask_budget.ts";
 import { gatePhotoInvitation } from "./photo_invitation.ts";
@@ -48,19 +49,38 @@ Deno.test("T4 · l'invitation photo est déclarée « réponse à un geste »", 
   assertEquals(GESTURE_RESPONSE_ASK_KINDS.includes("photo_invitation"), true);
 });
 
+Deno.test("T4 · la clarification de mémoire aussi — elle répond à une note", () => {
+  // ⚠️ CE N'EST PAS UNE FAVEUR FAITE À UNE FONCTIONNALITÉ. La personne vient
+  // d'écrire une note sur son brouillon de plan; la question « c'est pour qui,
+  // Léa ou Zoé ? » est la SUITE de son geste, pas une sollicitation que le
+  // produit prend l'initiative d'envoyer. Le budget partagé borne les secondes,
+  // et le motif est écrit sur la constante.
+  assertEquals(GESTURE_RESPONSE_ASK_KINDS.includes("memory_clarification"), true);
+});
+
 Deno.test("T4 · les quatre autres familles restent DANS le budget partagé", () => {
   // Une famille qui sortirait du compteur par distraction rendrait le plafond
   // décoratif — c'est exactement ce que T4 existe pour empêcher.
   const exempted = new Set<string>(GESTURE_RESPONSE_ASK_KINDS);
   for (const kind of DAILY_ASK_KINDS) {
-    if (kind === "photo_invitation") continue;
+    if (kind === "photo_invitation" || kind === "memory_clarification") continue;
     assertEquals(
       exempted.has(kind),
       false,
       `${kind} ne doit PAS être exemptée du budget partagé`,
     );
   }
-  assertEquals(GESTURE_RESPONSE_ASK_KINDS.length, 1);
+  // ⛔ LE COMPTE EST ÉPINGLÉ, et pas seulement l'appartenance: une troisième
+  // exemption ajoutée sans y penser rendrait le plafond partagé décoratif, et
+  // la boucle du dessus resterait verte.
+  assertEquals(GESTURE_RESPONSE_ASK_KINDS.length, 2);
+});
+
+Deno.test("T4 · la clarification a son propre plafond, et il est atteignable", () => {
+  // Une exemption SANS plafond propre est une porte ouverte: c'est la moitié
+  // que `PHOTO_INVITATION_DAILY_CAP` tient déjà pour la photo.
+  assertEquals(MEMORY_CLARIFICATION_DAILY_CAP >= 1, true);
+  assertEquals(Number.isInteger(MEMORY_CLARIFICATION_DAILY_CAP), true);
 });
 
 Deno.test("T4 · le budget partagé consommé n'empêche PLUS l'invitation photo", () => {

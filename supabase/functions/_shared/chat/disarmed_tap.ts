@@ -103,3 +103,23 @@ export function judgeTapFreshness(args: {
   if (latest === replyTo) return { disarmed: false, reason: "current" };
   return { disarmed: true, reason: "superseded", latestId: latest };
 }
+
+/**
+ * LA PHRASE D'UN BOUTON QUI N'EST PLUS D'ACTUALITÉ — une seule, partagée.
+ *
+ * ⚠️ ELLE ÉTAIT RECOPIÉE TROIS FOIS dans le routeur, et un quatrième chemin
+ * l'aurait recopiée une quatrième. Quatre exemplaires d'une même phrase, c'est
+ * quatre phrases le jour où l'une bouge — et celle-ci est la seule que la
+ * personne lit quand un geste ne fait rien: si elle diverge, le produit dit
+ * « rien n'a été enregistré » de quatre façons, dont trois qu'elle n'a jamais
+ * vues.
+ *
+ * ⛔ ELLE DIT L'EFFET, PAS LA CAUSE. Ni « votre bouton a expiré », ni « cette
+ * ligne appartient à quelqu'un d'autre »: un message par cas serait un oracle
+ * pour qui tape des charges au hasard.
+ */
+export function UNUSABLE_BUTTON_ACK(language: "fr" | "en"): string {
+  return language === "fr"
+    ? "Celui-là n'est plus d'actualité — rien n'a été enregistré."
+    : "That one's no longer open — nothing has been saved.";
+}

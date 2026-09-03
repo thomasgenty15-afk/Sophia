@@ -66,14 +66,26 @@ import {
   RETAINED_KINDS,
   type RetainedItem,
   type RetainedKind,
+  type RetainedSubject,
   RHYTHM_OCCASIONS,
 } from "./retained_item.ts";
+import {
+  MEMORY_CLARIFICATION_ABOUTS,
+  MEMORY_CLARIFICATION_MAX_OPTIONS,
+  type ClarificationAbout,
+  type PendingClarification,
+} from "./memory_clarification.ts";
 import {
   isoMondayOf,
   type NextPlanEntry,
   parseIsoInstant,
 } from "./retained_next_plan.ts";
-import { type MemoLine, parseMemoLine } from "./memo.ts";
+import {
+  type MemoLine,
+  type MemoWhen,
+  parseMemoLine,
+  parseMemoWhen,
+} from "./memo.ts";
 import { DRAFT_NOTE_MAX_CHARS } from "./plan_draft_note.ts";
 import { DAY_TOKENS } from "./tokens.ts";
 
@@ -193,7 +205,25 @@ const WHO_RULES = [
   'WHO — "member_id", on every entry of "preferences", "next_plan" and "notes":',
   "  null when it is for everyone at the table — that is the normal answer when the note names nobody. An id COPIED EXACTLY from the roster below when the note names that person. NEVER a first name.",
   '  A RELATIVE WORD IS THE NORMAL WAY PEOPLE WRITE: "my son", "my daughter", "my wife", "the kids". Resolve it against the roster using "age" (minor/adult) and "sex". "my son" is the MINOR whose sex is male; "my wife" is an ADULT whose sex is female. If exactly ONE person at the table fits, copy that id.',
-  '  ⛔ IF TWO PEOPLE FIT, OR NONE, OR EITHER "age" OR "sex" IS null FOR THE ONE YOU WOULD PICK: file NOTHING for that entry — leave it out entirely. Do NOT fall back to member_id: null, which means EVERYONE at the table and would apply one person\'s fact to all of them. Being asked again costs them a sentence; taking a food away from the whole table because one child dislikes it costs them the week.',
+  '  ⛔ IF TWO PEOPLE FIT, OR NONE, OR EITHER "age" OR "sex" IS null FOR THE ONE YOU WOULD PICK: do NOT file it, and do NOT fall back to member_id: null, which means EVERYONE at the table and would apply one person\'s fact to all of them. Put that entry in "clarify" (see 5) with "about": "who", and in "options" the ids of the people it could be — the ones who fit, or everyone at the table when nobody clearly fits. Being asked which one costs them one tap; taking a food away from the whole table because one child dislikes it costs them the week.',
+] as const;
+
+/**
+ * QUAND L'ALIMENT LUI-MÊME N'EST PAS RÉSOLU — la seconde moitié de `clarify`.
+ *
+ * ⚠️ ELLE NE VAUT QUE POUR UNE RÉFÉRENCE, JAMAIS POUR UN ALIMENT NOMMÉ. « Les
+ * enfants ont détesté le curry » nomme le curry: on le range, même s'il n'est
+ * pas au plan. « J'ai pas aimé la viande » ne nomme rien — et sans la question,
+ * le produit exclut « viande » pour toute la table, c'est-à-dire une catégorie
+ * que personne n'a demandée. C'est le même défaut, mesuré, que « pain complet »
+ * découpé en « pain ».
+ */
+const WHAT_RULES = [
+  'WHAT — on the same three drawers, when the note names a food only by a CATEGORY or a PRONOUN ("the meat", "it", "that dish", "the thing on Tuesday") and MORE THAN ONE food in the plan below could be what they mean:',
+  '  Put that entry in "clarify" (see 5) with "about": "what", and in "options" the plan foods it could mean, each copied EXACTLY from the list of plan foods given below. Never a food you rephrase, never one that is not in that list.',
+  '  If exactly ONE plan food fits, do not ask: file it normally, with that food as "text".',
+  '  ⛔ A food they NAMED is never a "what", even when it is not in the plan: "no more curry" is a preference, not a question.',
+  '  ⛔ If the list of plan foods below is empty, never use "about": "what" at all.',
 ] as const;
 
 export const DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT = [
@@ -203,7 +233,7 @@ export const DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT = [
   "",
   "Return ONE JSON object, and nothing else. No prose, no code fence.",
   "",
-  '{ "preferences": [ ... ], "next_plan": [ ... ], "notes": [ ... ], "skipped": [ ... ], "safety": [ ... ] }',
+  '{ "preferences": [ ... ], "next_plan": [ ... ], "notes": [ ... ], "skipped": [ ... ], "clarify": [ ... ], "safety": [ ... ] }',
   "",
   "For each thing the note says, try the drawers IN THIS ORDER and file it in the FIRST one that fits. Never in two. Every drawer may be empty, and an empty drawer is a correct answer.",
   "",
@@ -248,8 +278,22 @@ export const DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT = [
   `  The families you never file, each for its own reason:${
     DRAFT_NOTE_FORBIDDEN_KINDS.map((k) => `\n    · ${k} — ${KIND_BLURBS[k]} ${FORBIDDEN_REASONS[k]};`).join("")
   }`,
+  '  ⛔ NEVER use "skipped" for something you could not attribute to a person or to a food. That is not a thing you chose not to file — it is a thing you could not file yet, and it goes in "clarify" (5).',
+  "",
+  // ── PORTE ⑤ — ce qu'on n'a pas pu ranger FAUTE D'UNE PRÉCISION ──────────
+  // La promesse est SUR la ligne du titre, et le schéma juste après: une
+  // consigne séparée de sa clé par trois paragraphes n'est pas lue.
+  '5. "clarify" — one thing the note says that you could NOT file because you do not know WHO it is about, or WHICH food it means. One entry per thing. Everything you put here is filed NOWHERE ELSE — not in 1, 2, 3 or 4. They will be asked, once, with buttons; if they do not answer, nothing is kept. Each entry is exactly:',
+  "{",
+  `  "about": exactly one of ${MEMORY_CLARIFICATION_ABOUTS.join(" | ")},`,
+  `  "gate": exactly one of ${DRAFT_NOTE_GATES.join(" | ")} — the drawer it WOULD have gone to,`,
+  '  "entry": the entry exactly as you would have written it in that drawer (same keys), with "member_id": null when you are asking who,',
+  `  "options": between 1 and ${MEMORY_CLARIFICATION_MAX_OPTIONS} candidates — member ids from the roster when "about" is "who", plan foods copied EXACTLY when it is "what". Never a first name, never a food you rephrased, never more than ${MEMORY_CLARIFICATION_MAX_OPTIONS}.`,
+  "}",
   "",
   ...WHO_RULES,
+  "",
+  ...WHAT_RULES,
   "",
   "NEVER file an allergy, an intolerance, a diet, or a medical condition in any of these drawers. \"no peanuts, they make me ill\" is at most a food.exclude — you are filing a preference, never a medical fact. Those have their own list below.",
   // ⛔ LA SECONDE LISTE — arbitrage du 2026-09-01. Le bloc vit dans
@@ -283,6 +327,7 @@ export function buildDraftNoteClassifyPrompt(args: {
   note: string;
   contentLocale: string;
   members: readonly DraftNoteMember[];
+  planFoods: readonly string[];
 }): string {
   const lines: string[] = [];
   lines.push(
@@ -320,7 +365,25 @@ export function buildDraftNoteClassifyPrompt(args: {
           .join(", "),
     );
   }
-  return lines.join("\n");
+    // ── LES ALIMENTS DU PLAN — dits, ou dits ABSENTS ───────────────────────
+  // ⚠️ LE CAS VIDE EST ÉCRIT, PAS OMIS. Même arbitrage que le rôle vide juste
+  // au-dessus: une liste absente laisserait le modèle supposer qu'il existe des
+  // plats qu'on ne lui a pas donnés, et proposer comme option un aliment qu'il
+  // aurait inventé — que la relecture refuserait, après l'appel.
+  const foods = (args.planFoods ?? [])
+    .map((t) => String(t ?? "").trim())
+    .filter((t) => t !== "");
+  if (foods.length === 0) {
+    lines.push(
+      'The foods of the plan they annotated are not available. Never use "about": "what".',
+    );
+  } else {
+    lines.push(
+      "The foods in the plan they annotated — copy a term EXACTLY, never rephrase: " +
+        JSON.stringify(foods),
+    );
+  }
+return lines.join("\n");
 }
 
 // ===========================================================================
@@ -344,6 +407,22 @@ export interface DraftNoteRefusals {
   readonly badWhen: number;
   /** Le socle a refusé l'objet assemblé (`value`, forme, invariants). */
   readonly malformed: number;
+  /** `about` hors des deux valeurs (porte ⑤ seulement). */
+  readonly badAbout: number;
+  /** `gate` hors des trois portes (porte ⑤ seulement). */
+  readonly badGate: number;
+  /**
+   * `options` inutilisable (porte ⑤ seulement): liste vide, plus de quatre,
+   * doublons, un id hors rôle sur un `who`, ou un aliment hors du plan sur un
+   * `what`.
+   *
+   * ⚠️ C'EST LE REFUS LE PLUS IMPORTANT DE CETTE PORTE. Une question dont les
+   * options ne sont pas vérifiables serait une question dont le tap écrit ce
+   * que le modèle a inventé — un prénom mal orthographié devenu un sujet, un
+   * aliment reformulé devenu une exclusion. Les options sont la seule chose que
+   * le tap peut désigner, donc la seule chose qui doit être vraie.
+   */
+  readonly badOptions: number;
 }
 
 export interface DraftNoteGateCount {
@@ -366,6 +445,27 @@ export interface DraftNoteSkipped {
   readonly unknown: number;
 }
 
+/**
+ * UNE ENTRÉE QU'ON N'A PAS PU RANGER, ET LA QUESTION QUI LA DÉBLOQUE.
+ *
+ * ⚠️ ELLE PORTE TOUT CE QU'IL FAUT POUR L'ÉCRIRE PLUS TARD, et rien de plus.
+ * Ce qui manque à l'appel — la note, le jour, l'ancre — est ajouté par l'io au
+ * moment d'ouvrir la question: ce module ne les répète pas, il les a déjà en
+ * argument et les recopier ici les ferait diverger.
+ */
+export interface DraftNoteClarifyEntry {
+  readonly about: ClarificationAbout;
+  readonly gate: DraftNoteGate;
+  /** `null` pour une note: le mémo n'a pas de famille. */
+  readonly kind: RetainedKind | null;
+  readonly text: string;
+  /** Le sujet DÉJÀ connu. `null` quand c'est justement ce qu'on demande. */
+  readonly subject: RetainedSubject | null;
+  readonly when: MemoWhen | null;
+  /** Les candidats — ids du rôle, ou aliments du plan. Vérifiés, jamais crus. */
+  readonly options: readonly string[];
+}
+
 export interface DraftNoteClassification {
   /** Les trois nombres AGRÉGÉS sur les trois portes. Se lisent d'un bloc. */
   readonly proposed: number;
@@ -378,6 +478,17 @@ export interface DraftNoteClassification {
   /** L'encart — `{item, anchor, writtenAt}`, forme inchangée. */
   readonly nextPlan: DraftNoteGateCount & { readonly entries: readonly NextPlanEntry[] };
   readonly skipped: DraftNoteSkipped;
+  /**
+   * ⑤ — ce qui attend UNE précision. Chaque entrée est rangée nulle part
+   * ailleurs: elle n'est ni dans ①, ni dans l'encart, ni dans ③, ni comptée
+   * dans `skipped`. Sans réponse, elle n'existera jamais.
+   */
+  readonly clarify: DraftNoteGateCount & {
+    readonly entries: readonly DraftNoteClarifyEntry[];
+    /** Combien portaient sur la personne, combien sur l'aliment. */
+    readonly who: number;
+    readonly what: number;
+  };
   /**
    * Les listes que le modèle a OMISES (clé absente). `[]` est une réponse;
    * une clé absente est un prompt que le modèle a lu de travers, et ça se
@@ -410,6 +521,9 @@ const EMPTY_REFUSALS: DraftNoteRefusals = {
   badText: 0,
   badWhen: 0,
   malformed: 0,
+  badAbout: 0,
+  badGate: 0,
+  badOptions: 0,
 };
 
 const EMPTY_SKIPPED: DraftNoteSkipped = {
@@ -429,6 +543,14 @@ export const EMPTY_DRAFT_NOTE_CLASSIFICATION: DraftNoteClassification = {
   notes: { proposed: 0, kept: 0, refused: EMPTY_REFUSALS, lines: [] },
   nextPlan: { proposed: 0, kept: 0, refused: EMPTY_REFUSALS, entries: [] },
   skipped: EMPTY_SKIPPED,
+  clarify: {
+    proposed: 0,
+    kept: 0,
+    refused: EMPTY_REFUSALS,
+    entries: [],
+    who: 0,
+    what: 0,
+  },
   listsMissing: [],
 };
 
@@ -441,10 +563,14 @@ class Refusals {
   badText = 0;
   badWhen = 0;
   malformed = 0;
+  badAbout = 0;
+  badGate = 0;
+  badOptions = 0;
   freeze(): DraftNoteRefusals {
     return {
       total: this.unknownKind + this.forbiddenKind + this.unknownMember +
-        this.badText + this.badWhen + this.malformed,
+        this.badText + this.badWhen + this.malformed + this.badAbout +
+        this.badGate + this.badOptions,
       unknownKind: this.unknownKind,
       forbiddenKind: this.forbiddenKind,
       forbiddenKinds: [...this.forbiddenKinds].sort(),
@@ -452,6 +578,9 @@ class Refusals {
       badText: this.badText,
       badWhen: this.badWhen,
       malformed: this.malformed,
+      badAbout: this.badAbout,
+      badGate: this.badGate,
+      badOptions: this.badOptions,
     };
   }
 }
@@ -470,6 +599,9 @@ function sumRefusals(parts: readonly DraftNoteRefusals[]): DraftNoteRefusals {
     badText: sum((r) => r.badText),
     badWhen: sum((r) => r.badWhen),
     malformed: sum((r) => r.malformed),
+    badAbout: sum((r) => r.badAbout),
+    badGate: sum((r) => r.badGate),
+    badOptions: sum((r) => r.badOptions),
   };
 }
 
@@ -502,6 +634,19 @@ export function readDraftNoteClassification(args: {
   members: readonly DraftNoteMember[];
   note: string;
   writtenAt: string | null;
+  /**
+   * LES ALIMENTS DU PLAN QU'ELLE VIENT DE LIRE — requis, jamais optionnel.
+   *
+   * ⚠️ REQUIS ET NULLABLE-PAR-LE-VIDE, jamais `?`. Un appelant qui l'oublierait
+   * ne verrait rien tomber: le modèle n'aurait simplement plus le droit de
+   * demander « laquelle ? », et le produit rangerait de nouveau « la viande »
+   * pour toute la table. Un paramètre de garde optionnel est une garde
+   * désarmée, et ce dépôt le paie en boucle.
+   *
+   * `[]` est une RÉPONSE (une lane sans plat, un plan illisible): le prompt le
+   * dit alors explicitement au modèle, qui n'a plus le droit d'utiliser `what`.
+   */
+  planFoods: readonly string[];
 }): DraftNoteClassifyOutcome {
   const at = parseRetainedDay(args.today);
   if (!at) {
@@ -527,6 +672,15 @@ export function readDraftNoteClassification(args: {
   for (const member of args.members ?? []) {
     const id = String(member?.memberId ?? "").trim().toLowerCase();
     if (id) roster.add(id);
+  }
+
+  // Les aliments du plan, en ENSEMBLE et à l'identique: c'est une égalité, pas
+  // une ressemblance. Un `trim` et rien d'autre — reformuler ici ferait
+  // diverger ce qu'on propose de ce que la ceinture cherchera ensuite.
+  const planFoods = new Set<string>();
+  for (const term of args.planFoods ?? []) {
+    const value = String(term ?? "").trim();
+    if (value) planFoods.add(value);
   }
 
   const noteText = String(args.note ?? "").trim();
@@ -687,6 +841,151 @@ export function readDraftNoteClassification(args: {
     else unknownSkip += 1;
   }
 
+  // ── ⑤ CE QUI ATTEND UNE PRÉCISION ──────────────────────────────────────
+  //
+  // ⛔ CETTE PORTE NE RANGE RIEN. Elle relit une entrée que le modèle n'a PAS
+  // pu classer et vérifie qu'on saura la reprendre plus tard: la porte visée,
+  // ce qu'on demande, et surtout des candidats qui existent VRAIMENT. Une
+  // question dont les options ne sont pas vérifiables serait une question dont
+  // le tap écrit ce que le modèle a inventé.
+  //
+  // ⚠️ L'ORDRE DES REFUS EST CELUI DU COÛT: la forme, puis ce qu'on demande,
+  // puis la famille, puis le texte, puis les options — le plus cher en dernier
+  // parce qu'il exige de croiser le rôle ou le plan.
+  const clarifyRefusals = new Refusals();
+  const clarifyEntries: DraftNoteClarifyEntry[] = [];
+  let clarifyWho = 0;
+  let clarifyWhat = 0;
+  for (const row of lists.clarify) {
+    const record = asRecord(row);
+    const entry = record ? asRecord(record.entry) : null;
+    if (!record || !entry) {
+      clarifyRefusals.malformed += 1;
+      continue;
+    }
+
+    const about = String(record.about ?? "").trim().toLowerCase();
+    if (!(MEMORY_CLARIFICATION_ABOUTS as readonly string[]).includes(about)) {
+      clarifyRefusals.badAbout += 1;
+      continue;
+    }
+    const gate = String(record.gate ?? "").trim().toLowerCase();
+    if (!(DRAFT_NOTE_GATES as readonly string[]).includes(gate)) {
+      clarifyRefusals.badGate += 1;
+      continue;
+    }
+    const asked = about as ClarificationAbout;
+    const drawer = gate as DraftNoteGate;
+
+    // La famille — sauf pour une note, qui n'en a pas.
+    let kind: RetainedKind | null = null;
+    if (drawer !== "notes") {
+      const parsed = parseRetainedKind(entry.kind);
+      if (!parsed) {
+        clarifyRefusals.unknownKind += 1;
+        continue;
+      }
+      const allowed = drawer === "next_plan"
+        ? DRAFT_NOTE_NEXT_PLAN_KINDS
+        : DRAFT_NOTE_PREFERENCE_KINDS;
+      if (
+        !canProduce(DRAFT_NOTE_PRODUCER, parsed) ||
+        !(allowed as readonly RetainedKind[]).includes(parsed)
+      ) {
+        clarifyRefusals.forbiddenKind += 1;
+        clarifyRefusals.forbiddenKinds.add(parsed);
+        continue;
+      }
+      kind = parsed;
+    }
+
+    const text = textOf(entry);
+    if (text === null) {
+      clarifyRefusals.badText += 1;
+      continue;
+    }
+
+    // Le sujet DÉJÀ connu. Sur un `who` on exige qu'il soit absent: demander
+    // pour qui c'est alors qu'on le sait est une question qui fait douter.
+    let subject: RetainedSubject | null = null;
+    if (asked === "who") {
+      const declared = String(entry.member_id ?? "").trim().toLowerCase();
+      if (declared !== "" && declared !== "null") {
+        clarifyRefusals.badOptions += 1;
+        continue;
+      }
+    } else {
+      const resolved = subjectOf(entry);
+      if (resolved === null) {
+        clarifyRefusals.unknownMember += 1;
+        continue;
+      }
+      subject = resolved as RetainedSubject;
+    }
+
+    // ── LE MOMENT D'UNE NOTE ─────────────────────────────────────────────
+    //
+    // ⛔ `parseMemoWhen` ET PAS UNE LIGNE DE MÉMO FACTICE. La porte ③ sonde en
+    // construisant une `MemoLine` complète, parce qu'elle en a une à
+    // construire. Ici on n'a pas encore de sujet — c'est justement ce qu'on
+    // demande — et fabriquer une ligne avec un sujet de complaisance pour
+    // valider autre chose serait écrire, dans le code, le repli sur
+    // `household` que tout ce module refuse. On valide donc exactement ce
+    // qu'on veut valider, et rien d'autre.
+    let when: MemoWhen | null = null;
+    if (drawer === "notes") {
+      const parsed = parseMemoWhen(entry.when);
+      if (parsed === "unreadable") {
+        clarifyRefusals.badWhen += 1;
+        continue;
+      }
+      when = parsed;
+    }
+
+    // ── LES CANDIDATS, ET C'EST LE REFUS QUI COMPTE ───────────────────────
+    const rawOptions = Array.isArray(record.options) ? record.options : [];
+    const options: string[] = [];
+    const seen = new Set<string>();
+    let badOption = rawOptions.length === 0 ||
+      rawOptions.length > MEMORY_CLARIFICATION_MAX_OPTIONS;
+    for (const raw of rawOptions) {
+      if (badOption) break;
+      const value = String(raw ?? "").trim();
+      if (!value) {
+        badOption = true;
+        break;
+      }
+      if (asked === "who") {
+        // Une jointure par identifiant, comme partout: aucun rapprochement par
+        // le prénom, jamais.
+        const id = value.toLowerCase();
+        if (!roster.has(id) || seen.has(id)) {
+          badOption = true;
+          break;
+        }
+        seen.add(id);
+        options.push(id);
+      } else {
+        // Égalité EXACTE avec un aliment du plan. « Ne jamais écrire un matcher
+        // maison »: « laitue » n'est pas « lait ».
+        if (!planFoods.has(value) || seen.has(value)) {
+          badOption = true;
+          break;
+        }
+        seen.add(value);
+        options.push(value);
+      }
+    }
+    if (badOption || options.length === 0) {
+      clarifyRefusals.badOptions += 1;
+      continue;
+    }
+
+    if (asked === "who") clarifyWho += 1;
+    else clarifyWhat += 1;
+    clarifyEntries.push({ about: asked, gate: drawer, kind, text, subject, when, options });
+  }
+
   const preferences = {
     proposed: prefRows.length,
     kept: pref.items.length,
@@ -705,14 +1004,28 @@ export function readDraftNoteClassification(args: {
     refused: next.refused,
     entries: nextEntries,
   };
-  const refused = sumRefusals([preferences.refused, notes.refused, nextPlan.refused]);
+  const clarify = {
+    proposed: lists.clarify.length,
+    kept: clarifyEntries.length,
+    refused: clarifyRefusals.freeze(),
+    entries: clarifyEntries,
+    who: clarifyWho,
+    what: clarifyWhat,
+  };
+  const refused = sumRefusals([
+    preferences.refused,
+    notes.refused,
+    nextPlan.refused,
+    clarify.refused,
+  ]);
 
   return {
     ok: true,
     refusal: null,
     classification: {
-      proposed: preferences.proposed + notes.proposed + nextPlan.proposed,
-      kept: preferences.kept + notes.kept + nextPlan.kept,
+      proposed: preferences.proposed + notes.proposed + nextPlan.proposed +
+        clarify.proposed,
+      kept: preferences.kept + notes.kept + nextPlan.kept + clarify.kept,
       refused,
       preferences,
       notes,
@@ -725,6 +1038,7 @@ export function readDraftNoteClassification(args: {
         other,
         unknown: unknownSkip,
       },
+      clarify,
       listsMissing: lists.missing,
     },
   };
@@ -745,6 +1059,7 @@ function listsOf(raw: unknown): {
   notes: unknown[];
   next_plan: unknown[];
   skipped: unknown[];
+  clarify: unknown[];
   missing: string[];
 } | null {
   let value = raw;
@@ -757,7 +1072,7 @@ function listsOf(raw: unknown): {
   }
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const record = value as Record<string, unknown>;
-  const keys = ["preferences", "notes", "next_plan", "skipped"] as const;
+  const keys = ["preferences", "notes", "next_plan", "skipped", "clarify"] as const;
   if (!keys.some((k) => k in record)) return null;
   const missing: string[] = [];
   const list = (k: (typeof keys)[number]): unknown[] => {
@@ -773,6 +1088,7 @@ function listsOf(raw: unknown): {
     notes: list("notes"),
     next_plan: list("next_plan"),
     skipped: list("skipped"),
+    clarify: list("clarify"),
     missing,
   };
 }
@@ -810,10 +1126,26 @@ export function draftNoteClassifyTrace(
     refused_bad_text: classification.refused.badText,
     refused_bad_when: classification.refused.badWhen,
     refused_malformed: classification.refused.malformed,
+    refused_bad_about: classification.refused.badAbout,
+    refused_bad_gate: classification.refused.badGate,
+    refused_bad_options: classification.refused.badOptions,
     ...gate("pref", classification.preferences),
     ...gate("notes", classification.notes),
     notes_refused_bad_when: classification.notes.refused.badWhen,
     ...gate("next", classification.nextPlan),
+    // ⑤ — la porte qui ne range rien. `clarify_kept > 0` veut dire qu'une
+    // question part; `clarify_refused_bad_options > 0` veut dire que le modèle
+    // a proposé des candidats qui n'existent pas, et que la personne ne sera
+    // donc PAS relancée — c'est le nombre à regarder quand une ambiguïté
+    // disparaît en silence.
+    ...gate("clarify", classification.clarify),
+    clarify_refused_bad_about: classification.clarify.refused.badAbout,
+    clarify_refused_bad_gate: classification.clarify.refused.badGate,
+    clarify_refused_bad_options: classification.clarify.refused.badOptions,
+    clarify_refused_bad_when: classification.clarify.refused.badWhen,
+    clarify_refused_unknown_kind: classification.clarify.refused.unknownKind,
+    clarify_who: classification.clarify.who,
+    clarify_what: classification.clarify.what,
     skipped: classification.skipped.total,
     skipped_degree: classification.skipped.degree,
     skipped_setting: classification.skipped.setting,

@@ -100,6 +100,7 @@ import {
 // un SECOND appel modèle le trou que `readDraftNote` ferme (cible chiffrée,
 // interdit de doctrine, plancher TCA). Le type l'interdit; ne pas le contourner.
 import { classifyAndPersistDraftNote } from "../_shared/keel/draft_note_classify_io.ts";
+import { foodTermsOf } from "../_shared/keel/plan_feedback_chat.ts";
 import {
   countHungerDays,
   type HungerWindowSignal,
@@ -8088,6 +8089,19 @@ Deno.serve(async (req) => {
           sex: m.body?.gender ?? null,
         })),
         contentLocale: built.contentLocale,
+        // ── LES ALIMENTS DU PLAN QU'ELLE VIENT DE LIRE ────────────────────
+        //
+        // ⛔ SANS EUX, « J'AI PAS AIMÉ LA VIANDE » DEVIENT UNE EXCLUSION DE
+        // « viande » POUR TOUTE LA TABLE. Le classifieur ne peut demander
+        // « laquelle ? » que s'il sait ce que le plan a servi; le champ est
+        // requis pour qu'un appelant ne puisse pas désarmer la question en
+        // silence.
+        //
+        // ⚠️ LES DEUX LISTES, dishes ET preparations: en cuisine par lots, une
+        // part de la protéine vit dans les préparations, et un banc de ce dépôt
+        // a déjà mesuré 51 % de la protéine hors du verdict pour cette raison.
+        planFoods: foodTermsOf(dishes, preparationsWritten),
+        source: "draft_note",
         requestId,
       });
     }

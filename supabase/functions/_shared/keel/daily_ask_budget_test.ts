@@ -90,9 +90,9 @@ Deno.test("le plafond est UN, et la table est celle du repas déclaré", () => {
   assertEquals(DAILY_ASK_LEDGER_TABLE, "meal_precision_questions");
 });
 
-Deno.test("les cinq genres sont là, et la liste est fermée", () => {
+Deno.test("les six genres sont là, et la liste est fermée", () => {
   // Miroir EXACT du CHECK `meal_precision_questions_ask_kind_check`
-  // (migration 20260811120000, qui remplace 20260808190100). Un genre ajouté
+  // (migration 20260904090000, qui remplace 20260811120000). Un genre ajouté
   // ici sans l'être en base est refusé à l'écriture au runtime; ce test le dit
   // avant.
   // ⚠️ `daily_recommendation` N'A PLUS D'ÉCRIVAIN depuis le 2026-09-01 (FF-028
@@ -106,6 +106,10 @@ Deno.test("les cinq genres sont là, et la liste est fermée", () => {
     "daily_recommendation",
     "practice_question",
     "weight_divergence_question",
+    // ⟳ 2026-09-04 — LA CLARIFICATION D'UNE NOTE AMBIGUË. Elle répond au geste
+    // que la personne vient de faire, donc elle est aussi dans
+    // `GESTURE_RESPONSE_ASK_KINDS` et porte son propre plafond.
+    "memory_clarification",
   ]);
 });
 

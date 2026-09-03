@@ -104,6 +104,15 @@ Deno.test("le compte est borné à l'élève ET à sa journée locale", async ()
     // L'invitation photo ne pèse plus sur le plafond de précision: elle répond à
     // un geste, elle ne le sollicite pas.
     ["not:ask_kind", "photo_invitation"],
+    // ⟳ 2026-09-04 — MÊME RAISON, MÊME EXEMPTION. La clarification d'une note
+    // ambiguë suit la phrase que la personne vient d'écrire; la faire peser sur
+    // ce plafond ferait taire la question de précision du soir à cause d'un
+    // geste que la personne a fait elle-même à midi.
+    //
+    // ⚠️ CE TEST ÉPINGLE L'ENSEMBLE DES FILTRES, pas seulement leur nombre: un
+    // genre exempté qui n'apparaîtrait PAS ici serait compté dans le plafond
+    // partagé, et l'exemption ne serait qu'une déclaration.
+    ["not:ask_kind", "memory_clarification"],
   ]);
 });
 

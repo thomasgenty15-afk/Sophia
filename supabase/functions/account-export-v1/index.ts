@@ -547,6 +547,16 @@ async function buildExportPayload(
       user.id,
       keelUnavailable,
     ),
+    // La question posée sur une note ambiguë. ⚠️ Réclamée dès sa migration
+    // (`20260904090000`): `pending` porte la phrase que la personne a tapée.
+    fetchKeelRows(
+      admin,
+      "memory_clarifications",
+      SCOPE.memoryClarifications,
+      "user_id",
+      user.id,
+      keelUnavailable,
+    ),
     fetchKeelRows(
       admin,
       "student_hunger_reports",

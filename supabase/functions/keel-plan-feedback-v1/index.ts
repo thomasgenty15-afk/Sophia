@@ -19,6 +19,7 @@ import { persistRetainedItemsFor } from "../_shared/keel/retained_items_io.ts";
 // premier au premier mot changé, et c'est celui qu'on regarde le moins qui
 // finirait par décider.
 import { classifyAndPersistDraftNote } from "../_shared/keel/draft_note_classify_io.ts";
+import { foodTermsOf } from "../_shared/keel/plan_feedback_chat.ts";
 import type { DraftNoteMember } from "../_shared/keel/draft_note_classify.ts";
 import { hasDraftNote, readDraftNote } from "../_shared/keel/plan_draft_note.ts";
 import { loadPublishedDoctrine } from "../_shared/keel/doctrine_loader.ts";
@@ -114,39 +115,18 @@ function dishTitlesOf(dishes: unknown): string[] {
 }
 
 /**
- * LES ALIMENTS QUE CE PLAN PORTE — lot B, la liste fermée des deux questions
- * de plat depuis qu'elles proposent des aliments.
+ * ⟳ `foodTermsOf` EST IMPORTÉE, PLUS RECOPIÉE (2026-09-04).
  *
- * ⚠️ LES PRÉPARATIONS SONT PLIÉES DANS LES PLATS, comme partout ailleurs dans
- * ce produit. En cuisine par lots, les ingrédients ne sont PAS dans le plat: le
- * plat dit « une portion du poulet rôti de mercredi », et le kilo de cuisses
- * vit dans la préparation. Ne lire que les plats manquerait très exactement la
- * protéine — cicatrice `preparations-must-be-folded-into-dishes`.
+ * Elle vivait ici en double avec `_shared/keel/plan_feedback_chat.ts:281`, à
+ * l'octet près. Deux lectures de la même liste finissent toujours par diverger,
+ * et celle-ci porte une règle chère: les préparations sont PLIÉES dans les
+ * plats (en cuisine par lots, le kilo de cuisses vit dans la préparation, pas
+ * dans le plat — cicatrice `preparations-must-be-folded-into-dishes`).
  *
- * ⛔ AUCUNE NORMALISATION, AUCUN RAPPROCHEMENT: le terme part tel qu'il est
- * écrit, et l'appartenance se vérifie par égalité exacte en aval. « laitue »
- * ≠ « lait », 12 faux positifs sur 12 mesurés le jour où quelqu'un a cru le
- * contraire.
+ * ⚠️ ET ELLE A UN TROISIÈME LECTEUR DEPUIS CE LOT: le classifieur, qui s'en
+ * sert pour proposer des aliments EXISTANTS quand il demande « laquelle ? ».
+ * Trois copies auraient été trois vérités.
  */
-function foodTermsOf(dishes: unknown, preparations: unknown): string[] {
-  const seen = new Set<string>();
-  const out: string[] = [];
-  const eat = (list: unknown) => {
-    for (const entry of (Array.isArray(list) ? list : [])) {
-      const ingredients = ((entry ?? {}) as Record<string, unknown>).ingredients;
-      for (const raw of (Array.isArray(ingredients) ? ingredients : [])) {
-        const term = String(((raw ?? {}) as Record<string, unknown>).term ?? "").trim();
-        if (!term || seen.has(term)) continue;
-        seen.add(term);
-        out.push(term);
-      }
-    }
-  };
-  eat(dishes);
-  eat(preparations);
-  return out;
-}
-
 /**
  * LES RÉPONSES D'ALIMENT, telles que l'écran les envoie: `{food, subject}`.
  *
@@ -635,6 +615,13 @@ Deno.serve(async (req) => {
               // `undefined` dirait « je n'ai pas su lire »: le type l'interdit.
               members: await feedbackMembersOf(admin, userId),
               contentLocale: String(planRow.content_locale ?? ""),
+              // ⚠️ LA MÊME LISTE QUE LES DEUX QUESTIONS DE PLAT (L475), et pas
+              // un second calcul: c'est elle que le classifieur proposera en
+              // boutons si « j'ai pas aimé la viande » ne désigne rien. Deux
+              // listes pour la même question feraient proposer un aliment que
+              // le bilan n'a jamais montré.
+              planFoods: foodTermsOf(planRow.dishes, planRow.preparations),
+              source: "plan_feedback",
               requestId,
             });
           }

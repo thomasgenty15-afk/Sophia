@@ -32,6 +32,12 @@ import {
   renderPulseAxisQuestion,
 } from "../keel/daily_pulse.ts";
 import {
+  MEMORY_CLARIFICATION_BUTTON_PREFIX,
+  NAVIGATION_BUTTON_PREFIX,
+  readMemoryClarificationReply,
+} from "../keel/memory_clarification.ts";
+import { handleMemoryClarificationTap } from "./memory_clarification_tap.ts";
+import {
   wasPulseSentToday,
   writePulseAxis,
   writePulseLevel,
@@ -182,6 +188,15 @@ import type { InboundMessage } from "./inbound_message.ts";
  * cassée — c'est-à-dire qu'elle redevient interprétable par un modèle.
  */
 export const DETERMINISTIC_BUTTON_PREFIXES: readonly string[] = Object.freeze([
+  // La clarification d'une note ambiguë — ajoutée AVEC son lecteur, juste
+  // au-dessous du dispatch de la divergence.
+  MEMORY_CLARIFICATION_BUTTON_PREFIX,
+  // ⛔ LA NAVIGATION EST LISTÉE **SANS LECTEUR**, ET C'EST VOULU. « Voir »
+  // n'est jamais envoyé au serveur: le front l'intercepte et ouvre un écran.
+  // Mais une charge `KEEL_VIEW_*` FORGÉE, elle, arriverait ici — et sans cette
+  // ligne elle retomberait au dispatcher, où un modèle répondrait à une chaîne
+  // de protocole. Listée, elle tombe dans la garde des charges inutilisables.
+  NAVIGATION_BUTTON_PREFIX,
   RECOMMENDATION_BUTTON_PREFIX,
   STRIP_BUTTON_PREFIX,
   ACCIDENT_BUTTON_PREFIX,
@@ -1159,6 +1174,36 @@ async function handleStripTap(
   }
 }
 
+/**
+ * LES PRÉNOMS DU FOYER, pour que l'accusé d'un tap NOMME la bouche.
+ *
+ * ⛔ UN IDENTIFIANT DANS UN MESSAGE N'EST PAS UNE INFORMATION, c'est une fuite
+ * de plomberie: « J'ai noté pour member:6ca16d63-… » est pire que rien. Sur une
+ * lecture en panne on rend une carte VIDE, et l'accusé dit alors la ligne sans
+ * prénom — dégradé, jamais faux.
+ *
+ * ⚠️ LA RPC, PAS UN `select` SUR `household_members`. L'état d'âge y est
+ * DÉRIVÉ, et une lecture directe de la table a déjà coûté deux colonnes
+ * inexistantes à ce dépôt.
+ */
+async function rosterNames(
+  admin: SupabaseClient,
+  userId: string,
+): Promise<Map<string, string>> {
+  const names = new Map<string, string>();
+  try {
+    const res = await admin.rpc("keel_household_roster_for", { p_user: userId });
+    for (const row of (res?.data ?? []) as Record<string, unknown>[]) {
+      const id = String(row.member_id ?? "").trim().toLowerCase();
+      const name = String(row.first_name ?? "").trim();
+      if (id && name) names.set(id, name);
+    }
+  } catch {
+    // Silence: l'accusé sort sans prénom plutôt que de ne pas sortir.
+  }
+  return names;
+}
+
 export async function handleDeterministicButton(
   admin: SupabaseClient,
   args: { message: InboundMessage; requestId: string },
@@ -1654,6 +1699,34 @@ export async function handleDeterministicButton(
   // `authenticated` n'a que `SELECT` sur `student_weight_divergence_episodes`,
   // et passer le client de l'élève est EXACTEMENT la faute que ce flow a
   // payée (`permission denied`, chaque tour repartant de zéro).
+  // ── LA CLARIFICATION D'UNE NOTE ─────────────────────────────────────────
+  // Même forme que la divergence juste en dessous, et la même raison: une
+  // charge déterministe qui retomberait au dispatcher serait une chaîne de
+  // protocole donnée à lire à un modèle.
+  const memclar = readMemoryClarificationReply(message.button_payload);
+  if (memclar.kind !== "none") {
+    const now = new Date(message.received_at);
+    const voice = await studentVoiceContext(admin, message.user_id);
+    const language = isFrenchLocale(voice.contentLocale) ? "fr" : "en";
+    // Les prénoms, pour que l'accusé nomme la bouche et pas son identifiant.
+    const roster = await rosterNames(admin, message.user_id);
+    const result = await handleMemoryClarificationTap(admin, {
+      userId: message.user_id,
+      reply: memclar,
+      language,
+      nameOf: (id) => roster.get(id) ?? null,
+      now,
+    });
+    await ack(admin, {
+      userId: message.user_id,
+      requestId: args.requestId,
+      purpose: "keel_memory_clarification_ack",
+      body: result.body,
+      buttons: result.buttons,
+    });
+    return handled(result.handledAs);
+  }
+
   const divergence = readDivergenceReply(message.button_payload);
   if (divergence.kind !== "none") {
     const now = new Date(message.received_at);

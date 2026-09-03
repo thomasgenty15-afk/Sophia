@@ -372,6 +372,31 @@ async function seedFullStudent(
     content_locale: "fr-FR",
   });
 
+  // Une question posée sur une note ambiguë. ⚠️ `pending` porte LES MOTS DE
+  // L'ÉLÈVE — c'est ce qui la rend exportable, et c'est ce que la sonde vérifie
+  // en le semant: une table réclamée dont le contenu ne sort pas serait un
+  // cycle de vie à moitié.
+  await ins("memory_clarifications", {
+    user_id: userId,
+    source: "draft_note",
+    about: "who",
+    pending: {
+      gate: "preferences",
+      kind: "food.exclude",
+      text: "A13SEED-CLARIFICATION",
+      note: "A13SEED-CLARIFICATION",
+    },
+    options: [
+      "11111111-1111-4111-8111-111111111111",
+      "22222222-2222-4222-8222-222222222222",
+    ],
+    status: "expired",
+    asked_local_date: "2026-08-05",
+    expires_at: new Date().toISOString(),
+    closed_at: new Date().toISOString(),
+    content_locale: "fr-FR",
+  });
+
   return coachId;
 }
 
@@ -1049,6 +1074,7 @@ const HORS_EXPORT: Record<string, [string[], string][]> = {
   ],
   student_meal_documents: [[["user_id"], "sa propre cle"]],
   student_weight_divergence_episodes: [[["user_id"], "sa propre cle"]],
+  memory_clarifications: [[["user_id"], "sa propre cle"]],
   meal_composition_verdicts: [[["user_id"], "sa propre cle"]],
   // A8.2 — `declared_by` vaut son id a CHAQUE ligne: la rendre ajouterait son
   // identifiant N fois sans rien lui apprendre. C'est la colonne PAR LAQUELLE

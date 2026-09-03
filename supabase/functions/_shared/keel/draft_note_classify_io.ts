@@ -64,6 +64,12 @@ import {
   type RetainedWriteOutcome,
 } from "./retained_items_io.ts";
 import { generateWithGemini } from "../gemini.ts";
+import {
+  askClarification,
+  type MemoryClarificationAskReason,
+  notifyMemoryWrite,
+} from "./memory_clarification_io.ts";
+import type { RecapKept } from "./memory_recap.ts";
 // ⛔ LE SECOND CANAL — arbitrage du 2026-09-01. Une allergie dite sur un retour
 // de plan EST une allergie: elle part dans une table qui a sa ceinture.
 import { safetyOf } from "./draft_note_safety.ts";
@@ -120,15 +126,33 @@ export const DRAFT_NOTE_CLASSIFY_REASONS = [
    * disent laquelle des histoires c'est.
    */
   "nothing_to_file",
+  /**
+   * Rien n'a été rangé, mais une QUESTION est partie — l'ambiguïté attend une
+   * réponse. ⚠️ À distinguer de `nothing_to_file`: là, le produit a renoncé;
+   * ici, il a demandé. Les confondre ferait lire un silence là où il y a une
+   * conversation en cours.
+   */
+  "clarification_asked",
   /** La porte a refusé. Le motif exact est dans `write.reason`. */
   "not_written",
 ] as const;
 export type DraftNoteClassifyReason =
   (typeof DRAFT_NOTE_CLASSIFY_REASONS)[number];
 
+/** Ce que la relance a fait, ou n'a pas fait — et pourquoi. */
+export interface DraftNoteClarificationOutcome {
+  readonly asked: boolean;
+  readonly reason: MemoryClarificationAskReason | null;
+  readonly id: string | null;
+}
+
 export interface DraftNoteClassifyResult {
   readonly ok: boolean;
   readonly reason: DraftNoteClassifyReason;
+  /** ⑤ — la question posée, ou le motif de son absence. */
+  readonly clarification: DraftNoteClarificationOutcome;
+  /** La bulle « j'ai noté … · Voir », et son sort. */
+  readonly notice: { readonly delivered: boolean; readonly reason: string };
   /** Les trois nombres AGRÉGÉS. Le détail par porte est dans `classification`. */
   readonly proposed: number;
   readonly kept: number;
@@ -178,6 +202,36 @@ export async function classifyAndPersistDraftNote(args: {
   targetWeek: string;
   members: readonly DraftNoteMember[];
   contentLocale: string;
+  /**
+   * LES ALIMENTS DU PLAN QU'ELLE ANNOTAIT — requis, jamais optionnel.
+   *
+   * ⚠️ SANS EUX, LE MODÈLE N'A PAS LE DROIT DE DEMANDER « laquelle ? », et
+   * « j'ai pas aimé la viande » redevient une exclusion de « viande » pour toute
+   * la table. Un appelant qui l'oublierait ne verrait RIEN tomber: c'est
+   * exactement la forme d'une garde désarmée, et c'est pour ça que le champ est
+   * requis plutôt que `?`. `[]` est une réponse, et le prompt la dit.
+   */
+  planFoods: readonly string[];
+  /**
+   * LAQUELLE DES DEUX SOURCES a produit cette note (nomenclature §2.1) —
+   * requis. Elle voyage jusqu'à la ligne de question pour qu'on sache, en
+   * relisant, si la personne écrivait sur un brouillon ou dans le champ libre
+   * de son bilan. Le chat n'y est pas, et n'y sera pas.
+   */
+  source: "draft_note" | "plan_feedback";
+  /**
+   * CE QUE L'APPELANT A DÉJÀ ÉCRIT ET VEUT DIRE DANS LA MÊME BULLE.
+   *
+   * Le bilan écrit DEUX fois: les réponses fermées d'abord (aliments cochés,
+   * réglages bougés), le texte libre ensuite. Deux bulles pour un seul geste
+   * feraient deux notifications à la suite, et la seconde désarmerait la
+   * question de la première. Celle-ci fond les deux.
+   *
+   * ⚠️ FACULTATIF, ET LE SEUL DE CE MODULE À L'ÊTRE. Les deux générateurs n'ont
+   * rien d'autre à annoncer que ce que le classifieur range: l'omettre est leur
+   * réponse, pas un oubli.
+   */
+  alsoAnnounce?: readonly RecapKept[];
   requestId?: string;
   now?: string;
   /** ⚠️ Test seulement. Ne change PAS le modèle demandé — voir le type. */
@@ -185,6 +239,10 @@ export async function classifyAndPersistDraftNote(args: {
 }): Promise<DraftNoteClassifyResult> {
   // ⛔ APPELÉ HORS DE TOUTE BRANCHE, ET AVANT TOUT REFUS.
   const model = keelGenerationModel();
+
+  // Les deux « rien ne s'est passé », nommés une fois pour tous les refus.
+  const NO_CLARIFICATION = { asked: false, reason: null, id: null } as const;
+  const NO_NOTICE = { delivered: false, reason: "not_attempted" } as const;
 
   const noSafety: SafetyWriteOutcome = {
     written: [],
@@ -205,6 +263,8 @@ export async function classifyAndPersistDraftNote(args: {
       model,
       write: null,
       safety: noSafety,
+      clarification: NO_CLARIFICATION,
+      notice: NO_NOTICE,
     };
   };
 
@@ -222,6 +282,7 @@ export async function classifyAndPersistDraftNote(args: {
     note: usable,
     contentLocale: args.contentLocale,
     members: args.members,
+    planFoods: args.planFoods,
   });
 
   // ── L'APPEL. UN ÉCHEC EST NOMMÉ ET COMPTÉ, JAMAIS AVALÉ ─────────────────
@@ -258,6 +319,8 @@ export async function classifyAndPersistDraftNote(args: {
       model,
       write: null,
       safety: noSafety,
+      clarification: NO_CLARIFICATION,
+      notice: NO_NOTICE,
     };
   }
 
@@ -269,6 +332,7 @@ export async function classifyAndPersistDraftNote(args: {
     note: usable,
     // L'INSTANT DE L'ÉCRITURE — l'horloge de ce module, ou celle du test.
     writtenAt: args.now ?? new Date().toISOString(),
+    planFoods: args.planFoods,
   });
   const classification = outcome.classification;
   const trace = draftNoteClassifyTrace(classification);
@@ -289,6 +353,8 @@ export async function classifyAndPersistDraftNote(args: {
       model,
       write: null,
       safety: noSafety,
+      clarification: NO_CLARIFICATION,
+      notice: NO_NOTICE,
     };
   }
 
@@ -320,6 +386,69 @@ export async function classifyAndPersistDraftNote(args: {
     }));
   }
 
+  // ══ ⑤ LA QUESTION — UNE SEULE, ET APRÈS L'ÉCRITURE ═════════════════════
+  //
+  // ⚠️ UNE SEULE, MÊME QUAND LE MODÈLE EN PROPOSE DEUX. Le chat n'arme les
+  // boutons que sur la DERNIÈRE bulle qui en porte; deux questions d'affilée
+  // feraient une question intapable et une ligne qui ne se fermerait jamais.
+  // La seconde est comptée (`clarify_not_asked`) et perdue — assumé: redemander
+  // trois jours plus tard porterait sur une phrase que la personne a oubliée.
+  const pending = classification.clarify.entries[0] ?? null;
+  const notAsked = Math.max(0, classification.clarify.entries.length - 1);
+  const language: "fr" | "en" = /^fr/i.test(String(args.contentLocale ?? ""))
+    ? "fr"
+    : "en";
+
+  const ask = async (): Promise<DraftNoteClarificationOutcome> => {
+    if (!pending) return NO_CLARIFICATION;
+    const out = await askClarification(args.admin as never, {
+      userId,
+      source: args.source,
+      entry: pending,
+      note: usable,
+      today: args.today,
+      anchor: args.targetWeek,
+      members: args.members,
+      language,
+      contentLocale: args.contentLocale,
+      requestId: args.requestId,
+      now: args.now ? new Date(args.now) : undefined,
+    });
+    return { asked: out.asked, reason: out.reason, id: out.id };
+  };
+
+  /**
+   * LA BULLE « J'AI NOTÉ … », UNE FOIS, POUR TOUT CE QUE CE TOUR A ÉCRIT.
+   *
+   * ⛔ AVANT LA QUESTION, TOUJOURS. Envoyée après, elle désarmerait la question
+   * qu'on vient de poser: le front ne montre les boutons que du dernier message
+   * qui en porte.
+   */
+  const announce = async (
+    written: readonly RecapKept[],
+  ): Promise<{ delivered: boolean; reason: string }> => {
+    const all = [...(args.alsoAnnounce ?? []), ...written];
+    if (all.length === 0) return NO_NOTICE;
+    return await notifyMemoryWrite(args.admin as never, {
+      userId,
+      kept: all,
+      language,
+      requestId: args.requestId,
+      now: args.now ? new Date(args.now) : undefined,
+    });
+  };
+
+  /** Le prénom d'une bouche, ou `null` — jamais un identifiant dans un message. */
+  const whoOf = (subject: string): string | null => {
+    const id = subject.startsWith("member:") ? subject.slice(7) : "";
+    if (!id) return null;
+    const found = (args.members ?? []).find((m) =>
+      String(m?.memberId ?? "").trim().toLowerCase() === id
+    );
+    const label = String(found?.label ?? "").trim();
+    return label || null;
+  };
+
   if (
     classification.preferences.items.length === 0 &&
     classification.notes.lines.length === 0 &&
@@ -329,10 +458,26 @@ export async function classifyAndPersistDraftNote(args: {
     // `skipped_degree > 0` = le modèle a lu un degré et l'a DIT (phrases 1, 2,
     // 5 du banc). `proposed > 0, kept: 0` = les portes ont tout refusé, et
     // `*_refused_forbidden_kinds` dit si c'est l'échappatoire mesurée.
-    log("nothing_to_file", { user_id: userId, model, ...trace });
+    // ⚠️ ON DEMANDE MÊME QUAND ON N'A RIEN RANGÉ, et c'est le cas le plus
+    // fréquent de cette porte: « ma fille n'aime pas le poisson » ne remplit
+    // aucune des trois listes — c'est précisément pour ça qu'on relance.
+    const clarification = await ask();
+    const notice = await announce([]);
+    const reason: DraftNoteClassifyReason = clarification.asked
+      ? "clarification_asked"
+      : "nothing_to_file";
+    log(reason, {
+      user_id: userId,
+      model,
+      ...trace,
+      clarify_asked: clarification.asked,
+      clarify_ask_reason: clarification.reason,
+      clarify_not_asked: notAsked,
+      notice_delivered: notice.delivered,
+    });
     return {
       ok: false,
-      reason: "nothing_to_file",
+      reason,
       proposed: classification.proposed,
       kept: classification.kept,
       refused: classification.refused.total,
@@ -340,6 +485,8 @@ export async function classifyAndPersistDraftNote(args: {
       model,
       write: null,
       safety,
+      clarification,
+      notice,
     };
   }
 
@@ -359,6 +506,48 @@ export async function classifyAndPersistDraftNote(args: {
     memo: classification.notes.lines,
   });
 
+  // ── ON LE DIT, PUIS ON DEMANDE ─────────────────────────────────────────
+  //
+  // ⚠️ SEULEMENT CE QUI EST VRAIMENT ENTRÉ. Annoncer une ligne que la porte a
+  // refusée (un doublon, un mémo plein) apprendrait à la personne que les
+  // accusés ne veulent rien dire — la même règle que « on ne dit jamais noté
+  // sur une écriture qu'on n'a pas faite ».
+  const announced: RecapKept[] = [];
+  if (write.ok) {
+    if (write.durableWritten > 0) {
+      for (const item of classification.preferences.items) {
+        announced.push({
+          text: item.text,
+          until: null,
+          kind: "preference",
+          who: whoOf(item.subject),
+        });
+      }
+    }
+    if (write.memoWritten > 0) {
+      for (const line of classification.notes.lines) {
+        announced.push({
+          text: line.text,
+          until: null,
+          kind: "note",
+          who: whoOf(line.subject),
+        });
+      }
+    }
+    if (write.nextPlanWritten > 0) {
+      for (const entry of classification.nextPlan.entries) {
+        announced.push({
+          text: entry.item.text,
+          until: null,
+          kind: "next_plan",
+          who: whoOf(entry.item.subject),
+        });
+      }
+    }
+  }
+  const notice = await announce(announced);
+  const clarification = await ask();
+
   const result: DraftNoteClassifyResult = {
     ok: write.ok,
     reason: write.ok ? "written" : "not_written",
@@ -369,6 +558,8 @@ export async function classifyAndPersistDraftNote(args: {
     model,
     write,
     safety,
+    clarification,
+    notice,
   };
   // UNE SEULE LIGNE, ET ELLE PORTE LES NOMBRES PAR PORTE AVEC LE MODÈLE.
   (result.ok ? console.info : console.warn)(JSON.stringify({
@@ -388,6 +579,11 @@ export async function classifyAndPersistDraftNote(args: {
     write_refused_memo_full: write.refused.memoFull,
     write_refused_memo_duplicate: write.refused.memoDuplicate,
     write_refused_already_stored: write.refused.alreadyStored,
+    clarify_asked: clarification.asked,
+    clarify_ask_reason: clarification.reason,
+    clarify_not_asked: notAsked,
+    notice_delivered: notice.delivered,
+    notice_reason: notice.reason,
   }));
   return result;
 }

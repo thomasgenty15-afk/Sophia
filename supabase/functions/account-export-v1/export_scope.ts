@@ -305,6 +305,22 @@ export const SCOPE = {
     "opened_local_date,opened_at,last_turn_at,closed_at,turn_count," +
     "observation_opened_on,observation_ends_on,opening_chat_message_id," +
     "content_locale,created_at,updated_at",
+  // ── LA QUESTION QU'ON A POSÉE SUR UNE NOTE AMBIGUË (2026-09-04) ──────────
+  //
+  // ⚠️ RÉCLAMÉE DÈS SA MIGRATION, comme les épisodes juste au-dessus, et pour
+  // une raison plus directe encore: `pending` porte **les mots de la personne**
+  // — la note qu'elle a tapée, qui deviendra la citation de la ligne écrite.
+  // C'est de la donnée personnelle au sens le plus littéral, et ce dépôt porte
+  // la cicatrice inverse (neuf tables neuves absentes de cet export pendant des
+  // mois, sans que rien ne le dise).
+  //
+  // `options` sort aussi: ce sont les identifiants de bouches de son propre
+  // foyer, ou des aliments de son propre plan — rien qu'elle ne puisse déjà
+  // lire. `user_id` seul reste dehors, comme partout.
+  memoryClarifications:
+    "id,source,about,pending,options,status,answer,chat_message_id," +
+    "content_locale,asked_local_date,created_at,expires_at,answered_at," +
+    "closed_at",
   // FF-027 — la faim déclarée en conversation. `student_note` porte LES MOTS DE
   // L'ÉLÈVE: c'est de la donnée personnelle, elle sort donc dans l'archive.
   studentHungerReports:

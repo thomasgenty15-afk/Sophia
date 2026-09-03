@@ -76,6 +76,8 @@ import {
 import { SLOT_MEAL_GRACE_HOURS } from "./slot_meal_ask.ts";
 import { ENERGY_KCAL_MAX, ENERGY_KCAL_MIN } from "./meal_analysis.ts";
 import { RETAINED_QUOTE_MAX_CHARS } from "./retained_item.ts";
+import { MEMORY_CLARIFICATION_DAILY_CAP } from "./daily_ask_budget.ts";
+import { MEMORY_CLARIFICATION_MAX_OPTIONS } from "./memory_clarification.ts";
 
 // ── LE PLAFOND DE DENSITÉ (`meal_envelope.ts`) ───────────────────────────────
 // Déplacées par les lots `L38` et `L9bis`. Une densité plafond qui monte
@@ -546,4 +548,26 @@ Deno.test("épinglage — un repas plausible tient entre 1 et 5 000 kcal", () =>
   // honnête sur son origine.
   assertEquals(ENERGY_KCAL_MIN, 1);
   assertEquals(ENERGY_KCAL_MAX, 5000);
+});
+
+Deno.test("épinglage — au plus DEUX clarifications par jour local", () => {
+  // MEMORY_CLARIFICATION_DAILY_CAP. La clarification est exemptée du budget
+  // partagé (elle répond à un geste), donc c'est ce nombre — et lui seul — qui
+  // borne le cumul. Une exemption sans plafond propre est une porte ouverte.
+  //
+  // ⚠️ DEUX PARCE QUE LE JOUR TYPIQUE EN PORTE DEUX: le bilan du plan qui se
+  // termine, puis la composition du plan suivant. Plafonner à un ferait taire
+  // la seconde source, c'est-à-dire jeter une entrée en silence — ce que ce lot
+  // existe pour empêcher.
+  assertEquals(MEMORY_CLARIFICATION_DAILY_CAP, 2);
+});
+
+Deno.test("épinglage — au plus QUATRE options dans une clarification", () => {
+  // MEMORY_CLARIFICATION_MAX_OPTIONS. ⚠️ MIROIR D'UN CHECK EN BASE
+  // (`options between 1 and 4`, migration 20260904090000): les laisser diverger
+  // ferait composer une question que la base refuse au moment de l'écrire —
+  // c'est-à-dire une question perdue APRÈS l'appel modèle qui l'a produite.
+  //
+  // Au-delà de quatre ce n'est plus une clarification, c'est un formulaire.
+  assertEquals(MEMORY_CLARIFICATION_MAX_OPTIONS, 4);
 });
