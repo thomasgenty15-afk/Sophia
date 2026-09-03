@@ -54,13 +54,30 @@ describe("le partage des droits est tenu par UNE garde, pas par une liste", () =
    * On cherche, pour chacun, un `viewerIsOwner` dans les lignes qui le
    * précèdent immédiatement — c'est ce qui distingue « gardé » de « présent
    * quelque part dans le fichier ».
+   *
+   * ⛔ CE CAS A MENTI PAR SON NOM, ET ÇA A COÛTÉ UN DÉFAUT LIVRÉ. Il s'appelait
+   * « … le retrait … sont gardés » — au singulier trompeur: il y a DEUX
+   * retraits, `remove` (détruire la ligne) et `detach` (retirer l'accès), et
+   * il ne listait que le premier. `detach` n'était donc gardé nulle part, et un
+   * membre réclamé lisait sur sa propre ligne un bouton « Retirer son accès »
+   * que `keel_household_detach_member` refuse `not_owner`.
+   *
+   * ⚠️ LES DEUX SONT NOMMÉS SÉPARÉMENT CI-DESSOUS, et le nom du cas les compte.
+   * Une liste-garde ne garde que ce qu'elle NOMME (cicatrice
+   * `named-gate-lists-only-guard-what-they-name`).
+   *
+   * ⚠️ ET UNE LECTURE DE SOURCE NE SUFFISAIT PAS À LE TROUVER: le défaut a été
+   * vu en MONTANT le composant et en lisant son HTML. Ce cas-ci garde le
+   * câblage; c'est `memberAccess.int.test.ts` qui garde le RENDU.
    */
-  it("le corps, le régime, les contraintes, le retrait et la fusion sont gardés", () => {
+  it("les six blocs `not_owner` sont gardés, LES DEUX RETRAITS COMPRIS", () => {
     const gated: [string, string][] = [
       ["le corps", "<BodyFields"],
       ["le régime", 't("household.member.diet")'],
       ["les allergies et règles", 't("household.constraint.kind")'],
-      ["retirer du foyer", 't("household.member.remove")'],
+      ["retirer du foyer (`remove`)", 't("household.member.remove")'],
+      // ⛔ CELUI QUI MANQUAIT. Il vit dans `MemberAccess`, en-tête de la ligne.
+      ["retirer l'accès (`detach`)", 't("household.member.detach")'],
       ["le réglage de fusion", 't("household.merge.mute")'],
     ];
     for (const [name, needle] of gated) {

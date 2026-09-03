@@ -78,6 +78,10 @@ function html(patch: Partial<Parameters<typeof MemberAccess>[0]> = {}): string {
   return renderToStaticMarkup(
     createElement(MemberAccess, {
       member: FREE,
+      // LE DÉFAUT PAR DÉFAUT EST « MAÎTRE »: la plupart des cas de ce fichier
+      // décrivent ce que le maître voit. Le lecteur NON-MAÎTRE a son propre
+      // bloc, plus bas, et c'est lui qui tient la garde.
+      viewerIsOwner: true,
       invitation: null,
       invitationsLoaded: true,
       busy: false,
@@ -138,6 +142,83 @@ describe("les trois états, dérivés des faits", () => {
    */
   it("une bouche mineure garde son bouton d'invitation", () => {
     expect(html({ member: MINOR })).toContain(en["household.access.invite"]);
+  });
+});
+
+describe("⛔ CE QU'UN MEMBRE RÉCLAMÉ NE DOIT PAS VOIR SUR SA PROPRE LIGNE", () => {
+  /**
+   * ═══════════════════════════════════════════════════════════════════════
+   * CE BLOC EXISTE PARCE QUE TROIS TEXTES ONT MENTI, ET AUCUN TEST N'A MORDU.
+   * ═══════════════════════════════════════════════════════════════════════
+   *
+   * Livré le 2026-09-03, `MemberAccess` ne recevait AUCUN fait sur son
+   * lecteur, et `MemberRow` le montait sans garde. Un membre réclamé lisait
+   * donc sur sa propre ligne « A son accès » ET un bouton « Retirer son
+   * accès » — que `keel_household_detach_member` refuse `not_owner`
+   * (`20260811040000_household_detachment.sql:236`). Un bouton mort, à
+   * l'endroit précis où le produit promet de ne pas en poser.
+   *
+   * ⚠️ CE QUI AFFIRMAIT LE CONTRAIRE: l'analyse §5.5 (« le maître seul voit
+   * ces boutons »), le journal du lot (« aucun bouton d'invitation, aucun
+   * retrait »), et le commentaire du fichier au site de montage. Trois
+   * affirmations concordantes, toutes fausses.
+   *
+   * ⛔ ET LE TEST QUI AURAIT DÛ LE VOIR NE LE POUVAIT PAS. Il s'appelle « le
+   * retrait … sont gardés » (`memberOwnRow.int.test.ts`), il LIT LA SOURCE, et
+   * il ne listait que `household.member.remove` — jamais `.detach`. Un nom qui
+   * couvre deux gestes, une assertion qui n'en vérifie qu'un.
+   *
+   * ⚠️ D'OÙ LA FORME DE CE BLOC: il MONTE le composant et lit le HTML RENDU.
+   * Une lecture de source dit ce qui est écrit; seul un rendu dit ce qu'une
+   * personne voit. C'est ce qui a trouvé le défaut, et c'est ce qui le garde.
+   */
+  it("réclamée, vue par un MEMBRE: l'état oui, le bouton NON", () => {
+    const out = html({ member: CLAIMED, viewerIsOwner: false });
+    // L'ÉTAT EST UN FAIT, et il se lit: c'est la seule phrase qui dise à cette
+    // personne pourquoi elle peut éditer sa fiche.
+    expect(out).toContain(en["household.access.claimed"]);
+    // ⛔ LE GESTE EST AU MAÎTRE. La base refuse `not_owner`.
+    expect(out, "un membre lit un bouton de détachement que la base refuse")
+      .not.toContain(en["household.member.detach"]);
+    // Et l'aide part avec le bouton: elle décrirait un geste indisponible.
+    expect(out, "l'aide décrit un geste qui n'est pas offert")
+      .not.toContain(en["household.member.detach_hint"]);
+  });
+
+  // LE CAS QUI PASSE, ET IL EST INDISPENSABLE: sans lui, un composant qui ne
+  // rendrait JAMAIS ce bouton passerait la garde ci-dessus.
+  it("réclamée, vue par le MAÎTRE: l'état ET le bouton", () => {
+    const out = html({ member: CLAIMED, viewerIsOwner: true });
+    expect(out).toContain(en["household.access.claimed"]);
+    expect(out).toContain(en["household.member.detach"]);
+    expect(out).toContain(en["household.member.detach_hint"]);
+  });
+
+  /**
+   * ⛔ INVITER EST `not_owner` COMME DÉTACHER. Sur une ligne encore libre, un
+   * membre ne voit ni le bouton, ni la date d'une invitation en cours: ce
+   * n'est pas son foyer à administrer.
+   */
+  it("libre ou invitée, vue par un MEMBRE: rien du tout", () => {
+    expect(html({ member: FREE, viewerIsOwner: false })).toBe("");
+    expect(html({ member: FREE, invitation: LIVE, viewerIsOwner: false })).toBe("");
+  });
+
+  it("libre, vue par le MAÎTRE: le bouton est là", () => {
+    expect(html({ member: FREE, viewerIsOwner: true }))
+      .toContain(en["household.access.invite"]);
+  });
+
+  /**
+   * LA GARDE EST CÂBLÉE, PAS SEULEMENT DISPONIBLE. Une prop requise que
+   * personne ne passe est une prop qui vaut `undefined`, donc « pas maître »,
+   * donc une fiche de maître amputée — l'inverse du défaut, tout aussi muet.
+   */
+  it("`MemberRow` la passe vraiment", () => {
+    const src = source("./HouseholdPage.tsx");
+    const at = src.indexOf("<MemberAccess");
+    expect(at, "le bloc d'accès n'est plus monté").toBeGreaterThan(0);
+    expect(src.slice(at, at + 500)).toContain("viewerIsOwner={viewerIsOwner}");
   });
 });
 

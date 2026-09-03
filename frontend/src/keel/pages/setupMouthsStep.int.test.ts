@@ -705,9 +705,32 @@ describe("A5 · un seul formulaire de personne — l'entonnoir et le Foyer", () 
    * resserrerait un CHECK sans que personne ne l'ait décidé.
    */
   it("⛔ le titulaire garde ses bornes, la bouche garde les siennes", () => {
-    expect(selfHtml(), "les bornes de `profiles` ont bougé")
+    const self = selfHtml();
+    const mouth = html();
+
+    // ── LA TAILLE ────────────────────────────────────────────────────────
+    expect(self, "les bornes de taille de `profiles` ont bougé")
       .toMatch(/min="90"[\s\S]*max="250"/);
-    expect(html(), "les bornes d'une bouche ont bougé")
+    expect(mouth, "les bornes de taille d'une bouche ont bougé")
       .toMatch(/min="30"[\s\S]*max="260"/);
+
+    // ── LE POIDS, ET C'EST LUI QUI PORTE L'ARGUMENT ──────────────────────
+    //
+    // ⛔ CETTE MOITIÉ MANQUAIT, et c'était la moitié qui compte. Le pavé
+    // ci-dessus dit « une bouche peut être un enfant de trois ans »: un enfant
+    // de trois ans pèse ~14 kg, et c'est le `min` du POIDS qui le refuse
+    // (25 kg côté `profiles`), pas celui de la taille — un enfant de trois ans
+    // mesure ~95 cm, ce que le `min=90` de `profiles` accepte déjà.
+    // Le cas prouvait donc son titre sans prouver sa raison.
+    expect(self, "les bornes de poids de `profiles` ont bougé")
+      .toMatch(/min="25"[\s\S]*max="400"/);
+    expect(mouth, "les bornes de poids d'une bouche ont bougé")
+      .toMatch(/min="2"[\s\S]*max="400"/);
+
+    // ⚠️ ET LES DEUX PLANCHERS DE POIDS DIFFÈRENT VRAIMENT: sans cette ligne,
+    // `min="2"` serait satisfait par un `min="25"` mal lu (« 2 » est un préfixe
+    // de « 25 »), et la garde retomberait sur une coïncidence de chaîne.
+    expect(mouth, "le plancher de poids d'une bouche est celui d'un adulte")
+      .not.toMatch(/min="25"/);
   });
 });

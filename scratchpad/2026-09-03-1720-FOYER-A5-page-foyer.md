@@ -375,3 +375,79 @@ date, habitudes, absences, **déjeuner** — la dette d'A6) ; Claire, Léa et To
 pastilles ; **aucun** cadre de corps, **aucun** bouton d'invitation, **aucun** retrait.
 
 **320 px et 1280 px, `document.scrollWidth`, deux langues : NON MESURÉ.**
+
+---
+
+## 10. Correction du rapport de vérification (2026-09-03, après fusion `89e5b805`)
+
+Rapport : `scratchpad/2026-09-03-2015-FOYER-A5-verification.md`. **Deux défauts, les deux réparés.**
+
+### 10.1 Défaut 1 — un bouton mort sur la ligne d'un membre réclamé
+
+`MemberAccess` ne recevait **aucun fait sur son lecteur**, et `MemberRow` le montait **sans garde**.
+Un membre réclamé lisait donc, sur sa propre ligne, « A son accès » **et** un bouton « Retirer son
+accès » que `keel_household_detach_member` refuse `not_owner`
+(`20260811040000_household_detachment.sql:236`). Un bouton mort, à l'endroit exact où le produit
+promet de ne pas en poser.
+
+**Ce que ce défaut apprend, et pourquoi je l'écris en entier.** *Trois textes affirmaient le
+contraire* : l'ANALYSE §5.5 (« le maître seul voit ces boutons »), **mon propre journal §9**
+(« aucun bouton d'invitation, aucun retrait »), et le commentaire du fichier au site de montage.
+Trois affirmations concordantes, **aucune vraie**. Elles se citaient l'une l'autre sans que personne
+n'aille voir le rendu.
+
+**Et le test qui aurait dû mordre ne le pouvait pas** : `memberOwnRow.int.test.ts`, intitulé
+« … le retrait … sont gardés », **listait `household.member.remove` et jamais `.detach`**. Il y a
+**deux** retraits — détruire la ligne, et retirer l'accès — et un nom au singulier a caché celui qui
+manquait. C'est la cicatrice `named-gate-lists-only-guard-what-they-name`, prise en flagrant délit
+sur mon propre lot : *une liste-garde ne garde que ce qu'elle NOMME*.
+
+**Le défaut a été trouvé en MONTANT le composant et en lisant son HTML** — pas en lisant la source.
+La réparation le reflète, et elle est en deux couches :
+
+| Couche | Fichier | Ce qu'elle tient |
+|---|---|---|
+| le RENDU (décisif) | `pages/memberAccess.int.test.ts` (+5 cas) | monté avec `viewerIsOwner: false` ⇒ l'état « A son accès » **oui**, le bouton et son aide **non** ; le **cas qui passe** en miroir (maître ⇒ les trois) ; libre/invitée vue par un membre ⇒ `""` ; et la garde est **câblée**, pas seulement disponible |
+| le CÂBLAGE | `pages/memberOwnRow.int.test.ts` | la liste-garde nomme désormais **les deux** retraits, et le cas s'appelle « … LES DEUX RETRAITS COMPRIS » |
+
+`MemberAccess` prend une prop `viewerIsOwner` **requise**. L'état reste lisible par tous (c'est un
+fait, et c'est la seule phrase qui dise à la personne pourquoi elle peut éditer sa fiche) ; le geste
+et son aide partent ensemble ; et sur une ligne encore libre, un non-maître ne rend **rien** —
+inviter est `not_owner` comme détacher. Le commentaire menteur du site de montage est réécrit pour
+dire ce que le code **fait**.
+
+### 10.2 Défaut 2 — le « cas qui passe » de l'écart (c) ne tenait que la moitié de son argument
+
+`setupMouthsStep.int.test.ts` mesurait les bornes de **taille** (90/250 contre 30/260) et **jamais
+celles de poids** (25-400 contre 2-400). Or c'est le **poids** qui porte l'argument : un enfant de
+trois ans pèse ~14 kg — refusé par `min=25` — mais mesure ~95 cm, ce que le `min=90` de `profiles`
+**accepte déjà**. Le cas prouvait donc son titre **sans prouver sa raison**.
+
+Les deux planchers de poids sont ajoutés, plus une ligne qui interdit la coïncidence de chaîne
+(`min="2"` est un préfixe de `min="25"` : sans elle, la garde retomberait sur un faux positif).
+
+### 10.3 Mutations de la correction — jouées, restaurées par `cp` + `cmp`
+
+| # | Mutation | Rouge vu | Restauration |
+|---|---|---|---|
+| M21 | **le défaut d'origine, remis à l'identique** (bouton de détachement sans garde) | **2** — le cas de RENDU *et* le cas de câblage | `cp` + `cmp` OK |
+| M22 | `viewerIsOwner={true}` en dur au lieu d'être câblé | **1** — « `MemberRow` la passe vraiment » | `cp` + `cmp` OK |
+| M23 | le plancher de poids d'une bouche passe à 25 (l'enfant de 3 ans refusé) | **1** | `cp` + `cmp` OK |
+
+M21 est la mutation qui compte : elle rejoue **exactement** ce qui a été livré, et les deux couches
+mordent. Avant la correction, ce même état était **vert**.
+
+### 10.4 Preuve
+
+tsc **exit 0** · eslint **0** sur les 4 fichiers · vitest **entière 2 124 / 2 149**, `5 failed` =
+les 5 rouges étrangers connus **et eux seuls**. ⚠️ Le 6ᵉ rouge annoncé par l'orchestrateur
+(`food_preference_promotion_io.ts`, via son commit `089f7fdf`) **n'apparaît pas ici** : ma branche
+part de `31ee930f` et ne contient pas ce commit. Rien à compter pour cette lane.
+
+### 10.5 Ce que la correction ne touche pas
+
+Aucune clé i18n, aucun `catalog.ts`, aucune migration, rien sous `supabase/`. Quatre fichiers, tous
+dans la surface d'A5. Le worktree avait été **supprimé** entre-temps (l'espace disque que j'avais
+moi-même signalé) : recréé par `git worktree add` sur `chantier-0903/FOYER`, branche intacte à
+`22cad593`, `node_modules` **liés** (et non réinstallés) vers l'arbre principal — c'est la
+convention des worktrees voisins, et elle coûte 0 octet.

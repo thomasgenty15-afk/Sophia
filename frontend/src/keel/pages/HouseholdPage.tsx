@@ -1950,9 +1950,13 @@ function MembersCard(
                   // le bloc — pas cette valeur, qui voudrait dire « lu, rien ».
                   body={null}
                   bodiesLoaded={bodies !== null}
-                  // Il ne voit aucune invitation: `MemberAccess` ne rend rien
-                  // sur sa propre ligne réclamée qu'un état, et le geste qui
-                  // l'inverse est au maître.
+                  // ⚠️ CE COMMENTAIRE A ÉTÉ FAUX, et c'est le défaut n°1 de la
+                  // vérification: il affirmait que `MemberAccess` ne rendait
+                  // « qu'un état » à un membre, alors que le composant ne
+                  // recevait AUCUN fait sur son lecteur et rendait le bouton de
+                  // détachement à tout le monde. Il dit maintenant ce que le
+                  // code FAIT: la garde est `viewerIsOwner`, passée par
+                  // `MemberRow`, et un cas la capture sur le HTML rendu.
                   invitations={invitations}
                   onInvited={onInvited}
                   practicalConstraints={practicalConstraints}
@@ -2387,8 +2391,34 @@ function MemberBadges({ member }: { member: HouseholdMemberView }) {
  * `pages/memberAccess.int.test.ts`.
  */
 export function MemberAccess(
-  { member, invitation, invitationsLoaded, busy, onDetach, onInvited }: {
+  { member, viewerIsOwner, invitation, invitationsLoaded, busy, onDetach, onInvited }: {
     member: HouseholdMemberView;
+    /**
+     * QUI REGARDE. REQUIS, jamais optionnel — et ce paramètre-ci a été AJOUTÉ
+     * APRÈS COUP, le 2026-09-03, parce qu'il manquait et que TROIS TEXTES
+     * affirmaient qu'il était là.
+     *
+     * ── ⛔ LE DÉFAUT, ET IL EST INSTRUCTIF ────────────────────────────────
+     * Ce composant ne recevait AUCUN fait sur son lecteur, et `MemberRow` le
+     * montait sans garde. Un membre réclamé lisait donc, sur sa propre ligne,
+     * « A son accès » ET un bouton « Retirer son accès » — que
+     * `keel_household_detach_member` refuse `not_owner`
+     * (`20260811040000_household_detachment.sql:236`). Un bouton mort, à
+     * l'endroit exact où le produit promet de ne pas en poser.
+     *
+     * ⚠️ TROIS AFFIRMATIONS CONCORDANTES, ET AUCUNE N'ÉTAIT VRAIE: l'analyse
+     * §5.5 (« le maître seul voit ces boutons »), le journal du lot (« aucun
+     * bouton d'invitation, aucun retrait »), et le commentaire de ce fichier
+     * au site de montage. Aucun test ne l'a vu non plus — celui qui aurait dû
+     * s'appelle « le retrait … sont gardés » et ne listait que
+     * `household.member.remove`, jamais `.detach`. Un nom qui couvre deux
+     * gestes, une assertion qui n'en vérifie qu'un.
+     *
+     * Il a fallu MONTER le composant et LIRE le rendu pour le trouver. C'est
+     * la seule chose qui ait dit la vérité, et c'est pour ça que la garde est
+     * désormais tenue par un cas qui capture le HTML, pas par un commentaire.
+     */
+    viewerIsOwner: boolean;
     /** L'invitation vivante de CETTE bouche, ou `null`. */
     invitation: LiveInvitation | null;
     /** Faux = la lecture n'a pas eu lieu. REQUIS: voir le pavé. */
@@ -2437,21 +2467,40 @@ export function MemberAccess(
   if (member.userId) {
     return (
       <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+        {/* L'ÉTAT EST UN FAIT, ET IL SE LIT PAR TOUT LE MONDE. « A son accès »
+            décrit la ligne, il ne propose rien: le cacher à la personne
+            concernée lui retirerait la seule phrase qui lui dise pourquoi elle
+            peut éditer sa fiche. */}
         <Badge tone="neutral">{t("household.access.claimed")}</Badge>
-        <button
-          type="button"
-          className="text-ink-soft underline disabled:opacity-50"
-          disabled={busy}
-          onClick={onDetach}
-        >
-          {t("household.member.detach")}
-        </button>
-        <span className="basis-full text-ink-soft">
-          {t("household.member.detach_hint")}
-        </span>
+        {/* ⛔ LE GESTE, LUI, EST AU MAÎTRE — et la phrase qui l'explique part
+            avec lui. `keel_household_detach_member` refuse `not_owner`: rendu à
+            un membre, ce bouton est mort, et l'aide à côté décrirait un geste
+            qu'il ne peut pas faire. Voir le pavé de la prop. */}
+        {viewerIsOwner
+          ? (
+            <>
+              <button
+                type="button"
+                className="text-ink-soft underline disabled:opacity-50"
+                disabled={busy}
+                onClick={onDetach}
+              >
+                {t("household.member.detach")}
+              </button>
+              <span className="basis-full text-ink-soft">
+                {t("household.member.detach_hint")}
+              </span>
+            </>
+          )
+          : null}
       </div>
     );
   }
+
+  // ⛔ ET RIEN D'AUTRE POUR UN NON-MAÎTRE. Inviter est `not_owner` comme
+  // détacher: sur une ligne encore libre, un membre ne voit ni le bouton, ni la
+  // date d'une invitation en cours — ce n'est pas son foyer à administrer.
+  if (!viewerIsOwner) return null;
 
   return (
     <div className="mt-2 flex flex-col gap-2 text-xs">
@@ -2917,6 +2966,10 @@ function MemberRow(
           GESTES, pas des réponses à un formulaire. */}
       <MemberAccess
         member={member}
+        // ⛔ QUI REGARDE, ET C'EST CE QUI MANQUAIT. Sans ce fait, un membre
+        // réclamé lisait un bouton « Retirer son accès » que la base refuse
+        // `not_owner`. Voir le pavé de la prop.
+        viewerIsOwner={viewerIsOwner}
         invitation={invitations?.get(member.memberId) ?? null}
         // `null` = PAS LU ≠ « personne n'a été invité ». La ligne n'annonce
         // alors aucune date, et propose « Inviter » plutôt que « Renvoyer ».
