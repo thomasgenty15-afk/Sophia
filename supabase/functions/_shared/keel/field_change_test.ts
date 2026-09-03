@@ -64,10 +64,23 @@ Deno.test("les champs écrivables sont ceux de la logistique, PLUS le rythme", (
   // ⛔ DÉRIVÉE DE `LOGISTICS_FIELDS`, PAS RETAPÉE: une seconde liste serait
   // celle qu'on oublierait, et un sixième champ logistique deviendrait
   // écrivable sans que personne ne l'ait décidé.
+  //
+  // ⟳ A2 (2026-09-03) — DEUX CLÉS S'AJOUTENT **APRÈS** LA DÉRIVATION, et cette
+  // égalité les nomme au lieu de les laisser passer. `cooking_style` et
+  // `grocery_runs` ne sont PAS dans `LOGISTICS_FIELDS` exprès: cette liste-là
+  // est celle qu'une note de brouillon peut poser (`logistics.set`), et y
+  // ranger le style apprendrait au modèle à l'écrire depuis une phrase libre.
   assertEquals(
     [...WRITABLE_FIELDS],
-    [...LOGISTICS_FIELDS, "eating_rhythm"],
+    [...LOGISTICS_FIELDS, "eating_rhythm", "cooking_style", "grocery_runs"],
   );
+  // ⛔ ET ELLES NE SONT PAS ENTRÉES DANS `LOGISTICS_FIELDS` PAR LA BANDE.
+  for (const field of ["cooking_style", "grocery_runs"]) {
+    assert(
+      !(LOGISTICS_FIELDS as readonly string[]).includes(field),
+      `${field} ne doit pas être posable par une note de brouillon`,
+    );
+  }
   for (const field of WRITABLE_FIELDS) {
     assertEquals(parseWritableField(field), field);
   }
@@ -271,13 +284,31 @@ Deno.test("⛔ la liste fermée du SQL est celle du TypeScript", async () => {
   // CE test: sans lui, ouvrir un champ côté TS le laisserait refusé par le SQL
   // (une écriture qui échoue sans qu'on sache pourquoi), et le fermer côté TS
   // le laisserait ouvert côté SQL (une garde qu'on croit avoir).
-  const sql = await Deno.readTextFile(
-    new URL(
-      "../../../migrations/20260901180000_the_field_the_person_sees_is_the_one_that_changes.sql",
-      import.meta.url,
-    ),
-  );
-  const at = sql.indexOf("for v_key in select jsonb_object_keys(p_patch) loop");
+  //
+  // ⟳ A2 (2026-09-03) — CE TEST LISAIT UN NOM DE FICHIER EN DUR
+  // (`20260901180000_…`) et il est devenu FAUX le jour où une seconde migration
+  // a réécrit le port: il aurait continué de comparer le TypeScript d'aujourd'hui
+  // à la liste d'avant-hier, et serait resté VERT sur une garde qui ne ferme
+  // plus. Il cherche maintenant la DERNIÈRE migration qui porte la boucle —
+  // c'est-à-dire l'autorité, qui se déplace à chaque réécriture du port.
+  const dir = new URL("../../../migrations/", import.meta.url);
+  const LOOP = "for v_key in select jsonb_object_keys(p_patch) loop";
+  const files: string[] = [];
+  for await (const entry of Deno.readDir(dir)) {
+    if (entry.isFile && entry.name.endsWith(".sql")) files.push(entry.name);
+  }
+  files.sort();
+  let sql = "";
+  let from = "";
+  for (const name of files) {
+    const body = await Deno.readTextFile(new URL(name, dir));
+    if (body.includes(LOOP)) {
+      sql = body;
+      from = name;
+    }
+  }
+  assert(sql !== "", "aucune migration ne porte la boucle de garde");
+  const at = sql.indexOf(LOOP);
   assert(at > -1, "la boucle de garde a disparu de la migration");
   // ⚠️ ON DÉCOUPE LA SEULE LISTE `not in (…)`, PAS LE CORPS DE LA BOUCLE. Le
   // corps porte aussi le `jsonb_build_object('ok', …, 'reason', …)` du refus,
@@ -288,7 +319,7 @@ Deno.test("⛔ la liste fermée du SQL est celle du TypeScript", async () => {
   assert(listAt > -1, "la liste fermée a disparu de la boucle");
   const guard = sql.slice(listAt, sql.indexOf(")", listAt));
   for (const field of WRITABLE_FIELDS) {
-    assert(guard.includes(`'${field}'`), `le SQL ne nomme pas ${field}`);
+    assert(guard.includes(`'${field}'`), `${from} ne nomme pas ${field}`);
   }
   // ⛔ ET PAS UN DE PLUS. Une clé en trop côté SQL est une porte ouverte que le
   // TypeScript ne montre pas.
