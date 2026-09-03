@@ -103,6 +103,12 @@ import MouthFormDialog, {
   type MouthActivityAndStructure,
   MouthCoreFields,
 } from "../components/MouthFormDialog";
+import {
+  loadPracticalConstraints,
+  type PracticalConstraints,
+} from "../api/practicalConstraints";
+import KitchenEquipmentCard from "../components/KitchenEquipmentCard";
+import HouseholdTraditionsCard from "../components/HouseholdTraditionsCard";
 import { householdErrorKey } from "../copy/planRefusals";
 import MealPickerGrid from "../components/MealPickerGrid";
 import HouseholdHabitsCard from "../components/HouseholdHabitsCard";
@@ -225,6 +231,17 @@ export default function HouseholdPage(): React.ReactElement {
   // si la ligne `student_goals` existe, on ne rend ni la carte qui la crée ni
   // le bouton de composition qui en dépend.
   const [ownerGoalRow, setOwnerGoalRow] = React.useState<boolean | null>(null);
+  /**
+   * `student_goals.practical_constraints` DU MAÎTRE (A5) — l'équipement de la
+   * cuisine y vit, et « Paramètres du foyer » le rend ici.
+   *
+   * ⚠️ `null` = PAS LU (ou lecture tombée), et c'est la porte de rendu de la
+   * carte, pas un détail: sept cases décochées pendant la lecture partiraient
+   * telles quelles au premier Enregistrer.
+   */
+  const [practicalConstraints, setPracticalConstraints] = React.useState<
+    PracticalConstraints | null
+  >(null);
   /**
    * LES MOMENTS D'UNE JOURNÉE ORDINAIRE — les LIGNES de la grille de présence.
    *
@@ -415,6 +432,22 @@ export default function HouseholdPage(): React.ReactElement {
           } catch (e) {
             setOwnMouth(null);
             console.error("[household] own mouth unreadable", e);
+          }
+          // A5 — LES CONTRAINTES PRATIQUES, POUR « PARAMÈTRES DU FOYER ».
+          //
+          // ⚠️ MÊME `null` QUE LES DEUX AU-DESSUS, et il porte la même garde:
+          // c'est la porte de rendu de `KitchenEquipmentCard`. Sept cases
+          // décochées affichées pendant la lecture partiraient telles quelles
+          // au premier Enregistrer — la carte ne rend donc aucun contrôle tant
+          // que c'est `null`, et un échec de lecture y RESTE.
+          //
+          // ⚠️ C'EST UNE PHOTO, JAMAIS DE QUOI ÉCRIRE: `mergePracticalConstraints`
+          // relit la colonne dans la même requête que l'update.
+          try {
+            setPracticalConstraints(await loadPracticalConstraints(userId));
+          } catch (e) {
+            setPracticalConstraints(null);
+            console.error("[household] practical constraints unreadable", e);
           }
           // D17 — même raison que la ligne au-dessus: la table n'est lisible
           // que du maître, et la demander pour un membre rendrait zéro ligne,
@@ -848,6 +881,68 @@ export default function HouseholdPage(): React.ReactElement {
                   budget ET la présence par bouche. Garder les deux aurait fait
                   deux formulaires pour un geste, dont le plus pauvre était
                   celui réservé au maître. */}
+              {/* ══════════════════════════════════════════════════════════
+                  PARAMÈTRES DU FOYER — A5, 2026-09-03
+                  ══════════════════════════════════════════════════════════
+
+                  DEUX FAITS DE MAISON, ET ILS VIVAIENT DANS L'ENTONNOIR. Avec
+                  quoi cette cuisine cuisine, et quels repas cette maison ne
+                  déplace pas: aucun des deux n'appartient à une PERSONNE, donc
+                  aucun n'a sa place dans la fiche d'une bouche — les poser par
+                  bouche les ferait demander huit fois, et rien ne dirait
+                  laquelle des huit réponses compte.
+
+                  ⛔ ILS VIVAIENT À L'ÉTAPE 3 D'UN ENTONNOIR QU'ON NE REFAIT
+                  PAS. Une fois inscrit, personne ne repasse par `/app/setup`:
+                  changer de four ou décider que le dimanche est un repas de
+                  famille n'avait donc PLUS AUCUN ÉCRAN après l'inscription.
+                  C'est le trou que ce déplacement referme.
+
+                  ⚠️ L'ÉQUIPEMENT RESTE AUSSI DANS L'ENTONNOIR, et ce n'est pas
+                  une hésitation: le congélateur décide du nombre de courses
+                  (lane CUISINE), donc la question doit être posée AVANT le
+                  premier plan. C'est la MÊME carte montée à deux endroits —
+                  elle lit et écrit elle-même, et relit la colonne avant de
+                  fusionner —, pas deux copies. Les traditions, elles, ne
+                  gouvernent rien avant le premier plan: elles QUITTENT
+                  l'entonnoir, et `TableStepPlanning` disparaît avec.
+
+                  ⚠️ AU MAÎTRE SEUL. `keel_household_set_traditions` refuse
+                  `not_owner`, et l'équipement vit dans `student_goals` du
+                  maître: montrer à un secondaire deux cartes que la base lui
+                  refusera est le bouton mort qu'on évite. */}
+              {isOwner ? (
+                <section className="flex flex-col gap-4">
+                  <SectionLabel>{t("household.settings.title")}</SectionLabel>
+                  <KitchenEquipmentCard
+                    // LA PHOTO DE LA COLONNE, JAMAIS DE QUOI ÉCRIRE. `null` =
+                    // pas encore lu, et c'est la porte de rendu de la carte.
+                    practicalConstraints={practicalConstraints}
+                    // `false` tant qu'aucune ligne `student_goals` n'existe:
+                    // il n'y a rien à mettre à jour, et l'écrivain le dirait
+                    // en erreur au lieu de le dire avant le clic.
+                    hasGoal={ownerGoalRow === true}
+                    onSaved={async () => {
+                      // ON RELIT LA COLONNE, PAS SEULEMENT LA PAGE: la carte
+                      // se remonte sur ce que le serveur a VRAIMENT gardé, et
+                      // `refresh` ne lit pas `student_goals`.
+                      if (userId) {
+                        try {
+                          setPracticalConstraints(
+                            await loadPracticalConstraints(userId),
+                          );
+                        } catch (e) {
+                          console.error("[household] pc reread failed", e);
+                        }
+                      }
+                    }}
+                  />
+                  {/* ELLE LIT ET ÉCRIT SEULE, comme sa voisine: on ne lui
+                      passe que de quoi prévenir la page. */}
+                  <HouseholdTraditionsCard onSaved={refresh} />
+                </section>
+              ) : null}
+
               {/* ── L8/D10 — CE QU'ON PROPOSE AU MAÎTRE ────────────────────
                   APRÈS la composition et AVANT la table: une proposition de
                   fusion se lit une fois qu'on sait qu'un plan existe, et elle

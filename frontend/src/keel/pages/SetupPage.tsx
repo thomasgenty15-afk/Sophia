@@ -173,7 +173,7 @@ import {
   submitEnvy,
 } from "../api/household";
 import MealPickerGrid from "../components/MealPickerGrid";
-import TableStepPlanning from "../components/TableStepPlanning";
+import KitchenEquipmentCard from "../components/KitchenEquipmentCard";
 import OneCookingSessionField from "../components/OneCookingSessionField";
 import CookDayBeforeField from "../components/CookDayBeforeField";
 import { presenceRoster } from "../lib/presenceRoster";
@@ -3244,12 +3244,13 @@ export default function SetupPage() {
           </>
         ) : null}
 
-        {/* ── L'ÉTAPE `table` COMMENCE PAR LES MOYENS, PAS PAR LES MOMENTS ──
+        {/* ── L'ÉTAPE `request` COMMENCE PAR LES MOYENS, PAS PAR LES MOMENTS ─
             On demande AVEC QUOI on cuisine avant de demander QUAND. L'ordre
             inverse planifie une cuisson qu'aucun appareil de la maison ne peut
             faire, puis demande à quelqu'un de trouver le temps de la faire.
-            `TableStepPlanning` porte les deux cartes et MESURE leur ordre sur
-            le HTML rendu (`tableStepPlanning.int.test.ts`).
+            L'ordre se mesure sur le HTML rendu (`householdSettings.int.test.ts`
+            depuis A5): un ordre qui ne tient que par la lecture d'un fichier se
+            défait au premier déplacement de bloc.
 
             ⚠️ UN BLOC À PART, PAS UN FRAGMENT AUTOUR DE `TableStep`. Ce
             fichier est partagé par trois lanes aujourd'hui; ré-indenter les
@@ -3273,8 +3274,24 @@ export default function SetupPage() {
             grille que sa réponse pré-remplit. L'étape 3 ne le pose plus: la
             question décrit une SEMAINE ORDINAIRE, pas cette demande-ci, et
             deux écrans la séparaient de la case où la démentir. */}
+        {/* ── ⟳ A5, 2026-09-03 — `TableStepPlanning` A DISPARU ──────────────
+            Il ne portait plus que deux cartes (le déjeuner en semaine en est
+            parti avec A6), et l'une des deux — « les jours que le foyer ne
+            déplace pas » — a REJOINT `/app/household`, section « Paramètres du
+            foyer ». Un composant pour envelopper une seule carte n'enveloppe
+            rien: l'équipement se monte donc ici, directement.
+
+            ⚠️ L'ÉQUIPEMENT RESTE, ET IL EST LE SEUL À RESTER. Le congélateur
+            décide du nombre de courses (lane CUISINE): la question doit être
+            posée AVANT le premier plan, donc dans l'entonnoir. C'est la MÊME
+            carte que celle du Foyer — elle lit et écrit elle-même, et relit la
+            colonne avant de fusionner —, pas une copie.
+
+            ⛔ ET LES TRADITIONS NE REVIENNENT PAS ICI. Elles ne gouvernent rien
+            avant le premier plan, et l'entonnoir ne se rejoue jamais: les
+            laisser ici, c'était n'avoir aucun écran pour les changer ensuite. */}
         {step.id === "request" ? (
-          <TableStepPlanning
+          <KitchenEquipmentCard
             // LA PHOTO DE LA COLONNE, JAMAIS DE QUOI ÉCRIRE. `null` = pas
             // encore lu, et c'est la porte de rendu de la carte: sept cases
             // décochées pendant la lecture partiraient telles quelles au
@@ -3300,8 +3317,10 @@ export default function SetupPage() {
             // ⚠️ LU DEPUIS LA MÊME COLONNE QUE LE MOTEUR, et par le miroir de
             // SA fonction. L'entonnoir doit pouvoir annoncer ce que la
             // composition fera — pas une seconde idée de ce qu'est « avoir un
-            // congélateur ». La carte qui pose la question est deux étapes plus
-            // haut, dans `TableStepPlanning`.
+            // congélateur ». La carte qui pose la question est plus haut sur
+            // CETTE étape (`KitchenEquipmentCard`) — et aussi sur
+            // `/app/household`, section « Paramètres du foyer », qui est le
+            // seul endroit où on peut la changer une fois inscrit.
             hasFreezer={hasFreezerDeclared(
               readKitchenEquipment(facts.practicalConstraints),
             )}
