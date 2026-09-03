@@ -344,6 +344,19 @@ export const SCOPE = {
   // produisent la même valeur, par construction (FF-039 R2/R14).
   mealCompositionVerdicts:
     "id,meal_id,verdict,envelope_mode,resolution_coverage,unresolved_terms,tokens_served,coverage_flag,prompt_version,doctrine_version,created_at",
+
+  // A8.2 — LE SORT DES BOÎTES QU'IL A DÉCLARÉES. Ce sont ses PHRASES: « je
+  // n'ai pas mangé ma part », « je la garde pour jeudi », « je l'ai jetée ».
+  // Un export qui ne rendrait pas ce que la personne a elle-même déclaré ne
+  // serait pas un export.
+  //
+  // `declared_by` NE SORT PAS: c'est sa propre clé, et elle vaut son id à
+  // chaque ligne — la rendre ajouterait son identifiant N fois sans rien lui
+  // apprendre. `member_id` SORT, lui, parce qu'il désigne DE QUELLE bouche on
+  // parle: sur les lignes qu'il a écrites pour une bouche sans compte, c'est
+  // la seule chose qui distingue la boîte de l'un de celle de l'autre.
+  mealShareOutcomes:
+    "generated_meal_id,dish_index,member_id,outcome,shifted_to_day,answered_at,answered_local_date",
   // `portion_bias` est une calibration ORDINALE (bandes), pas un score interne:
   // elle est lisible par l'élève et sort avec le reste.
   recurringMeals:

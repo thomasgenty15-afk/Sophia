@@ -369,6 +369,7 @@ async function buildExportPayload(
     studentGeneratedMeals,
     studentMealDocuments,
     mealCompositionVerdicts,
+    mealShareOutcomes,
     recurringMeals,
     studentFacts,
     studentCards,
@@ -578,6 +579,22 @@ async function buildExportPayload(
       "meal_composition_verdicts",
       SCOPE.mealCompositionVerdicts,
       "user_id",
+      user.id,
+      keelUnavailable,
+    ),
+    // A8.2 — LE SORT DES BOÎTES, réclamée par le cycle de vie DÈS SA
+    // MIGRATION, et pas après. Même motif que la ligne au-dessus, et la même
+    // cicatrice: neuf tables neuves absentes de l'export pendant des mois.
+    //
+    // ⚠️ LA COLONNE PROPRIÉTAIRE EST `declared_by`, PAS `user_id`. Cette table
+    // n'en a pas: ce qui appartient à quelqu'un ici est ce qu'il a DIT.
+    // Exporter par `member_id` rendrait au maître ce qu'un autre a déclaré sur
+    // la bouche — l'inverse exact de la règle du produit.
+    fetchKeelRows(
+      admin,
+      "meal_share_outcomes",
+      SCOPE.mealShareOutcomes,
+      "declared_by",
       user.id,
       keelUnavailable,
     ),
@@ -970,6 +987,9 @@ async function buildExportPayload(
         // d'énergie ni de macro n'y figure — le verdict est en mots par
         // construction (FF-039 R9).
         mesures_de_composition: mealCompositionVerdicts,
+        // A8.2 — ce qu'il a dit du sort de SA part: pas mangée, gardée pour
+        // un autre jour, congelée, jetée. Ses phrases, pas un calcul.
+        sort_de_mes_parts: mealShareOutcomes,
       },
       "ma_memoire_alimentaire.json": {
         repas_recurrents: recurringMeals,

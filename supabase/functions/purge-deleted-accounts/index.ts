@@ -246,6 +246,21 @@ async function purgeOneUser(
     .eq("user_id", userId);
   if (activityErr) throw activityErr;
 
+  // A8.2 — LE SORT DES BOÎTES QU'IL A DÉCLARÉES (20260903172000). « Je n'ai
+  // pas mangé ma part », « je la garde pour jeudi »: ses phrases sur ses
+  // repas, donnée personnelle au sens plein.
+  //
+  // ⚠️ EXPLICITE, MÊME RAISON QUE LA LIGNE AU-DESSUS, et la colonne
+  // propriétaire est `declared_by` — cette table n'a pas de `user_id`, parce
+  // que ce qui appartient à quelqu'un ici est ce qu'il a DIT. Les lignes qui
+  // parlent de SA bouche mais qu'un autre a écrites appartiennent à cet
+  // autre, et partiront avec lui.
+  const { error: shareErr } = await admin
+    .from("meal_share_outcomes")
+    .delete()
+    .eq("declared_by", userId);
+  if (shareErr) throw shareErr;
+
   const { error: selErr } = await admin
     .from("system_error_logs")
     .delete()
