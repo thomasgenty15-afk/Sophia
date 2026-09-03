@@ -1273,3 +1273,30 @@ chère — les six autres se réparaient en une ligne.
 **Fenêtres ouvertes à CUISINE et MEMBRE**, avec leurs attendus écrits avant le run, et la consigne de rapporter
 **ce que le run a démenti** — la partie la plus utile. Les deux travaillent sur l'**arbre principal**, seul servi par le
 runtime. Disque à 3,8 Go : aucun worktree.
+
+## 03:2x — ✅ LES ONZE LOTS SONT FUSIONNÉS, ET LE GATE PASSE
+
+La session de la vitrine a commité (`c9fe5863`) après que son utilisateur a tranché sur les deux faits que je lui avais
+fait remonter : ses 37 chemins exposés à un commit index-large, et ma fusion bloquée depuis des heures.
+**Fusion d'A7 → `cd262061`**, le dernier lot. Deux conflits i18n, résolus comme tous les précédents : **les cinq blocs
+délimités cohabitent en fin de pack**, dans l'ordre du chantier (RAPIDE, FOYER, CUISINE, MEMBRE, SUIVI). `tsc` 0,
+`parity` + `pageSeams` + `pageFrontier` **23/23**.
+
+**`agent-gate.sh` : exit 0** — 140 fichiers de test lus, 87 erreurs contre 93 tolérées, `deno check` vert.
+
+### Vérification par CONTENU, pas par ascendance — la leçon appliquée à moi-même
+
+`git branch --contains` rend **0** pour FOYER et CUISINE : leurs pointes ne sont pas ancêtres, **parce que leurs
+correctifs ont été repris par `cherry-pick` et non par fusion**. C'est exactement le piège du `revert -m 1` retourné :
+l'ascendance ne dit rien du contenu. Vérifié comme la lane CUISINE me l'a appris :
+`git diff <pointe> HEAD -- <ses fichiers>` → **0 ligne** pour les deux (29 et 194 fichiers). **Tout est là.**
+
+### Ce qui reste
+
+- **Les runs réels sont EN VOL** chez CUISINE et MEMBRE, sur l'arbre principal, avec leurs attendus écrits avant.
+- **A7 n'est pas vérifié** — le seul lot fusionné sans vérification. Lancé.
+- **E** (cohérence de bout en bout, grille C1-C8, parcours navigateur) attend les runs et une session ouverte.
+- **Six migrations attendent un `db push`** (geste humain, interdit à un agent) : les trois du chantier voisin
+  (`20260903120000`, `150000`, `180000`) et les trois du mien (`170000`, `172000`, `190000`).
+- **Une dette nommée par une session voisine, qui touche tout le monde** : `eslint` rend **7 erreurs préexistantes** sur
+  `CouplesPage.tsx` et `MealPrepPage.tsx`, donc **aucune lane ne peut commiter ces deux fichiers sans `--no-verify`**.
