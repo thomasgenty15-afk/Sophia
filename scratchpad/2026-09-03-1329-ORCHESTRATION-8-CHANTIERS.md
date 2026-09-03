@@ -1687,3 +1687,54 @@ C'est la même famille que « un test de source qui recopie le code le photograp
 `one_cooking_session_refused: no freezer declared`, et **une seule** ligne parlant du congélateur.
 **« Runs finis » suivra**, et la levée avec : fusion de `fc9ba2c2`, puis `keel_gdpr_lifecycle_test.ts` en entier, dans la
 même fenêtre.
+
+## 07:0x — GEL LEVÉ. Quatre runs, quatre 200, et un invariant du prompt maître DÉMENTI
+
+**CUISINE : « runs finis ».** Quatre runs sous gel, **quatre HTTP 200** (234 s, 206 s, 167 s), **zéro recréation**.
+**Bilan des huit** : R1, R2, R3, R4, R6, R8 **verts** · R5 et R7 **rouges à cause nommée** (pas de banc solo, pas de
+session navigateur). **Aucun vert déduit, aucun signé sans ligne écrite.**
+
+### ⛔ C3 DU PROMPT MAÎTRE EST FAUX : « vagues = sessions » — la règle vraie est `vagues ≤ sessions`
+
+Mesuré à jours de session **identiques** :
+
+| run | sessions | dates d'achat | vagues |
+|---|---|---|---|
+| R2 (balanced) | `thu`, `sun` | 09-03, 09-04 | **2** |
+| R4 (minimal) | `thu`, `sun` | 09-03 | **1** |
+
+Les vagues ne se déduisent pas des sessions mais de la **conservation de ce que le modèle a composé** :
+`buyOn = max(startsOn, cuisson − fenêtreCrue(groupe))`. Un aliment à 3 jours cuit dimanche s'achète jeudi et **rejoint la
+première vague** ; un aliment à 2 jours en **ouvre une seconde**.
+**Et ce n'est pas un défaut** : qui demande UNE course et dont tout se conserve obtient UNE course, même s'il faut deux
+sessions — **plus fidèle à sa demande que l'inverse**. Le plan le dit lui-même : « Une seule course, jeudi : tout ce que
+le plan demande tient jusqu'à sa cuisson. »
+
+**⚠️ D'où venait l'attendu faux, et c'est la leçon** : de l'**ANALYSE** (« 1 session = 1 vague, déduit »), **pas d'une
+lecture de `grocery_waves.ts`**. ⇒ **Recopier une phrase de document est plus dangereux que recopier du code : une source
+documentaire a l'air d'une autorité.** Même famille que le test qui photographie le code, en pire.
+
+### La levée, et une erreur rattrapée par la mesure d'une lane
+
+Repris dans la même fenêtre : `8b05398e` (journal MEMBRE), **`6387429d`** (le **code** du filtre par bouche),
+`9536771b` + `0909763f` (les six correctifs d'A7 et son i18n). ⚠️ **J'ai failli ne prendre que la moitié** : MEMBRE
+m'avait annoncé `fc9ba2c2`, qui est son commit de **journal** ; le code était dans son parent `0abac591`. Ma reprise a
+posé 54 lignes de journal et **zéro ligne de filtre** — **je ne l'ai vu qu'en rejouant SON propre `grep`**, qui rendait
+toujours 0. **La mesure qu'elle m'avait donnée m'a rattrapé de l'erreur que son annonce avait induite.**
+⇒ **Quand un lot fait deux commits, annoncer les deux, pas la pointe.** (Troisième fois que la pointe trompe.)
+**`grep dishIsForMouth planned_dish_io.ts` → 4** : la fuite « Compote pour Cy » est **fermée**.
+
+### Le test RGPD rejoué en entier : 2 verts sur 3
+
+✅ **`S5 — LES DEUX TABLES DE SANTÉ DU FOYER`** (correctif MEMBRE) · ✅ **`S5 — LE SCHÉMA EST ÉNUMÉRÉ`** (correctif
+CUISINE, `lead_days`) · 🔴 **`RGPD pivot: un élève plein est exporté en entier`** — `assertEquals(exp.status, 200)`
+ligne 451, l'export rend **502**.
+**Écarté, mesuré** : ce n'est pas la recréation (le conteneur n'a pas bougé entre deux tentatives, et répond 401
+immédiatement) ; ce n'est pas la compilation (`deno check` exit 0) ; la fonction **boote** (appel direct → 401 propre).
+**Non su, et dit comme tel** : **ce test n'a JAMAIS été vert** — il était gaté, faute de migration et de variables.
+Il n'existe donc **aucune ligne de base**, et je ne peux pas dire si le 502 est ancien ou introduit ce soir.
+Confié à MEMBRE avec la première étape : **établir s'il était rouge avant les deux correctifs** (worktree détaché sur
+`2e330f85`), puis chercher la cause.
+
+**`agent-gate.sh` après les quatre reprises : exit 0** — 140 fichiers de test, 87 erreurs contre 93 tolérées,
+`deno check` vert, vitest 4 rouges tous en baseline.
