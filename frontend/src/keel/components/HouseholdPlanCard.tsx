@@ -111,6 +111,15 @@ export default function HouseholdPlanCard(
                   // finiraient par montrer deux états, sans que rien à
                   // l'écran dise lequel ment.
                   bindTick={null}
+                  // ⛔ AUCUNE BOÎTE ICI NON PLUS (A8.3), ET POUR UNE RAISON
+                  // DIFFÉRENTE DE LA CASE. Cette carte ne rend ses plats
+                  // qu'à un NON-maître (`showDishes = !isOwner`), et ce
+                  // non-maître lit déjà ses boîtes dans SA part
+                  // (`MyShareCard`, sur `/app/plan`). Les rendre ici en
+                  // ferait une seconde surface pour le même fait, avec une
+                  // seconde lecture réseau — et deux endroits pour un fait
+                  // finissent par en montrer deux états.
+                  boxNotes={null}
                 />
               )}
           </>

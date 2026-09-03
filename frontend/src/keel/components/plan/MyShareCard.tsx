@@ -99,6 +99,11 @@ import React from "react";
 
 import type { HouseholdDishView, MemberPortionView } from "../../api/household";
 import { sharePresentedTo } from "../../api/myShare";
+import {
+  boxNotesByDish,
+  loadShareOutcomes,
+  type ShareOutcomeRow,
+} from "../../api/shareOutcomes";
 import { groupDishListByDay } from "../../lib/dishListByDay";
 import { dishIsFor } from "../../lib/planByPersonModel";
 import { browserLocalDate, useMealTicks } from "../../lib/useMealTicks";
@@ -216,6 +221,60 @@ export default function MyShareCard(props: MyShareCardProps): React.ReactElement
     [planStartsOn],
   );
 
+  /**
+   * ══════════════════════════════════════════════════════════════════════
+   * A8.3 — SES BOÎTES ENCORE VIVANTES, SOUS LEURS PLATS.
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * ⚠️ LA CARTE LIT, ELLE N'ÉCRIT RIEN. Le sort d'une boîte se déclare dans la
+   * CONVERSATION (la bande du soir, par la RPC): il n'existe aucune surface
+   * d'écriture ici, et il ne doit pas en apparaître une — deux écrivains pour
+   * un même fait, c'est le défaut que ce dépôt paie en boucle.
+   *
+   * ⚠️ ET LA RLS A DÉJÀ TRANCHÉ CE QU'IL VOIT. Elle lui rend ses propres
+   * lignes, plus celles qui portent sur SA bouche quel qu'en soit l'auteur —
+   * un fait sur soi qu'on ne peut pas lire est indémentable. Toutes les lignes
+   * qui arrivent ici parlent donc de SA part, et c'est pourquoi `mouthOwner`
+   * ne porte que sa bouche: c'est la seule dont il puisse lire quoi que ce
+   * soit, et c'est exactement ce qui permet à D8.3 de trancher (sa ligne bat
+   * celle du maître).
+   */
+  const [shareRows, setShareRows] = React.useState<readonly ShareOutcomeRow[]>([]);
+  React.useEffect(() => {
+    if (!householdMealId) {
+      setShareRows([]);
+      return;
+    }
+    let alive = true;
+    void loadShareOutcomes(householdMealId).then((rows) => {
+      // Le garde de démontage: une réponse qui revient après un changement de
+      // plan écrirait les boîtes de l'ancien sous les plats du nouveau.
+      if (alive) setShareRows(rows);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [householdMealId]);
+
+  const boxesByDish = React.useMemo(
+    () =>
+      boxNotesByDish({
+        rows: shareRows,
+        // `mouthOwner` DOIT porter le couple (sa bouche, son compte) pour que
+        // sa propre déclaration soit reconnue comme `self`. Sans lui, la
+        // sienne et celle du maître auraient la même autorité et c'est la
+        // première lue qui gagnerait — un « le dernier écrit » déguisé.
+        mouthOwner: meMemberId && userId ? { [meMemberId]: userId } : {},
+        // Aucune boîte d'un autre ne lui parvient (voir le pavé ci-dessus),
+        // donc aucun prénom à résoudre. Un roster ici serait une lecture de
+        // plus pour une phrase qui ne s'affiche jamais.
+        names: {},
+        meMemberId,
+        today: browserLocalDate(),
+      }),
+    [shareRows, meMemberId, userId],
+  );
+
   // LA GARDE D'IDENTITÉ, ET ELLE EST AVANT TOUT LE RESTE. Elle vit dans
   // `api/myShare.ts` avec la sélection qui la partage: la règle « jamais la
   // part d'un autre » est écrite à UN endroit.
@@ -324,6 +383,11 @@ export default function MyShareCard(props: MyShareCardProps): React.ReactElement
                   dishDate(dish.day, planDates, browserLocalDate()),
                 );
               }}
+              // A8.3 — « boîte de mardi, encore au frigo », sous son plat.
+              // ⚠️ LA POSITION EST CELLE DU STOCKAGE, comme la case: la clé de
+              // `meal_share_outcomes` est `dish_index`, et un rang
+              // d'affichage rendrait la boîte sous le plat suivant.
+              boxNotes={(dishIndex) => boxesByDish.get(dishIndex) ?? []}
             />
           </div>
         )
