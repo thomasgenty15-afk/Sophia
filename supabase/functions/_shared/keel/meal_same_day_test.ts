@@ -559,7 +559,14 @@ Deno.test("LOT 2 — le TRONC bumpe, l'enveloppe FOYER ne bouge pas", () => {
   // session seule a le droit de déborder en le disant. Population: les fenêtres
   // qui portent une journée qu'aucun lot n'atteint. Un plan sans tension rend
   // v20 au caractère près, et un test le tient.
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v24_raw_keeping_reaches_the_model");
+  // ⚠️ v25 (2026-09-03) — LA VEILLE EST DÉRIVÉE, PLUS COCHÉE (P1, A1).
+  // La CONSIGNE n'a pas changé d'un caractère: `cookOnlyDay` existait déjà.
+  // Ce qui change est la POPULATION qui la reçoit — jusqu'ici les seuls plans
+  // qui portaient un jour de cuisine sans repas étaient ceux dont quelqu'un
+  // avait coché une case; ils le portent désormais par défaut, dès que le
+  // calendrier et l'heure le permettent. Comparer les plans d'avant et d'après
+  // sous un même millésime rendrait la mesure fausse.
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v25_the_day_before_is_derived");
   // ⚠️ D1b (2026-08-18) — UN SEUL AXE BOUGE, ET C'EST L'ENVELOPPE FOYER.
   // `v17_what_each_mouth_already_has`: la lane foyer passait `fixedIntakes: []`
   // EN DUR sur ses trois sites, donc le shaker qu'une bouche déclare

@@ -3006,7 +3006,14 @@ Deno.test("C8 ③ — LA LANE INDIVIDUELLE GARDE SA VERSION DE PROMPT", () => {
   // session seule a le droit de déborder en le disant. Population: les fenêtres
   // qui portent une journée qu'aucun lot n'atteint. Un plan sans tension rend
   // v20 au caractère près, et un test le tient.
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v24_raw_keeping_reaches_the_model");
+  // ⚠️ v25 (2026-09-03) — LA VEILLE EST DÉRIVÉE, PLUS COCHÉE (P1, A1).
+  // La CONSIGNE n'a pas changé d'un caractère: `cookOnlyDay` existait déjà.
+  // Ce qui change est la POPULATION qui la reçoit — jusqu'ici les seuls plans
+  // qui portaient un jour de cuisine sans repas étaient ceux dont quelqu'un
+  // avait coché une case; ils le portent désormais par défaut, dès que le
+  // calendrier et l'heure le permettent. Comparer les plans d'avant et d'après
+  // sous un même millésime rendrait la mesure fausse.
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v25_the_day_before_is_derived");
   // ⚠️ v10 DEPUIS LE LOT G (2026-08-14), ET C'EST LA MOITIÉ DU LOT QUI COMPTE
   // ICI: le TRONC ne bouge toujours pas (la ligne au-dessus le tient), la lane
   // du FOYER si. Deux populations neuves y voient une consigne différente —

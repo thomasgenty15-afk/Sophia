@@ -335,7 +335,25 @@ Deno.test("seule une déclaration POSITIVE ouvre l'option", () => {
   assertEquals(hasFreezerDeclared(null), false);
 });
 
-Deno.test("la version de prompt a bougé avec ce lot", () => {
-  // Deux populations à distinguer dans `generated_from->>'prompt_version'`.
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v24_raw_keeping_reaches_the_model");
+Deno.test("le millésime du TRONC est celui d'aujourd'hui — épinglé ici aussi", () => {
+  // ⟳ RENOMMÉ LE 2026-09-03, ET LE NOM D'AVANT ÉTAIT DEVENU FAUX.
+  // Il disait « la version de prompt a bougé avec ce lot » — vrai quand ce
+  // fichier-ci a fait bouger la version, faux dès qu'un AUTRE lot la fait
+  // bouger. Un test dont le nom affirme le contraire de ce qu'il vérifie est
+  // pire qu'un test absent.
+  //
+  // CE QU'IL TIENT VRAIMENT: le millésime du tronc est épinglé ICI AUSSI,
+  // parce que ce fichier compare des populations dans
+  // `generated_from->>'prompt_version'` et qu'un millésime qui bouge sans
+  // que ce fichier le sache mélangerait deux populations dans un même
+  // dénominateur. Le journal ci-dessous dit QUI l'a fait bouger, et pour
+  // quelle population.
+  // ⚠️ v25 (2026-09-03) — LA VEILLE EST DÉRIVÉE, PLUS COCHÉE (P1, A1).
+  // La CONSIGNE n'a pas changé d'un caractère: `cookOnlyDay` existait déjà.
+  // Ce qui change est la POPULATION qui la reçoit — jusqu'ici les seuls plans
+  // qui portaient un jour de cuisine sans repas étaient ceux dont quelqu'un
+  // avait coché une case; ils le portent désormais par défaut, dès que le
+  // calendrier et l'heure le permettent. Comparer les plans d'avant et d'après
+  // sous un même millésime rendrait la mesure fausse.
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v25_the_day_before_is_derived");
 });

@@ -267,8 +267,20 @@ Deno.test("PROMPT — une fenêtre de deux jours ne porte PAS le bloc", () => {
   assert(!msg.includes("FIRST-DAY shop"));
 });
 
-Deno.test("la version de prompt a bougé avec ce lot", () => {
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v24_raw_keeping_reaches_the_model");
+Deno.test("le millésime du TRONC est celui d'aujourd'hui — épinglé ici aussi", () => {
+  // ⟳ RENOMMÉ LE 2026-09-03. Ce fichier EST le lot qui a produit v24
+  // (`v24_raw_keeping_reaches_the_model`), et son nom disait donc vrai —
+  // jusqu'à ce qu'un autre lot fasse bouger le millésime. Ce qu'il tient
+  // vraiment est l'épinglage, pas la paternité du bump; le journal
+  // ci-dessous dit qui l'a fait bouger et pour quelle population.
+  // ⚠️ v25 (2026-09-03) — LA VEILLE EST DÉRIVÉE, PLUS COCHÉE (P1, A1).
+  // La CONSIGNE n'a pas changé d'un caractère: `cookOnlyDay` existait déjà.
+  // Ce qui change est la POPULATION qui la reçoit — jusqu'ici les seuls plans
+  // qui portaient un jour de cuisine sans repas étaient ceux dont quelqu'un
+  // avait coché une case; ils le portent désormais par défaut, dès que le
+  // calendrier et l'heure le permettent. Comparer les plans d'avant et d'après
+  // sous un même millésime rendrait la mesure fausse.
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v25_the_day_before_is_derived");
 });
 
 // ---------------------------------------------------------------------------
