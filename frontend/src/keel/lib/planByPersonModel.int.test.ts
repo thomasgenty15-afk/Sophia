@@ -24,8 +24,22 @@ import { buildPersonWeek, buildPlanByPerson, shareFor } from "./planByPersonMode
  * est celui qui PROUVE que deux bouches ne rendent pas la même case.
  */
 
+/**
+ * ⚠️ `dishIndex` EST PORTÉ PAR CHAQUE FIXTURE, ET IL NE PEUT PAS ÊTRE OPTIONNEL.
+ *
+ * C'est la POSITION dans le `dishes[]` STOCKÉ, capturée AVANT tout filtre. Ces
+ * listes-ci sont filtrées (`dishIsFor`), regroupées par jour puis triées par
+ * moment: un rang d'affichage n'est donc PAS une position, et `dishes[rang]`
+ * désigne un AUTRE plat. Rendre le champ optionnel pour faire taire un test
+ * rouvrirait exactement le trou qu'A8.1 a fermé — la coche d'un membre posée
+ * sur le plat suivant, dans une ligne datée, sous le titre de quelqu'un
+ * d'autre. On complète donc les fixtures; on ne desserre pas le type.
+ *
+ * Les valeurs suivent l'ordre de cette liste: c'est ce qu'un plan stocké donne.
+ */
 const DISHES: HouseholdDishView[] = [
   {
+    dishIndex: 0,
     title: "Chicken rice bowls with roasted vegetables",
     day: "fri",
     slot: "dinner",
@@ -33,6 +47,7 @@ const DISHES: HouseholdDishView[] = [
     memberId: null,
   },
   {
+    dishIndex: 1,
     title: "Chicken rice bowls with roasted vegetables",
     day: "sat",
     slot: "dinner",
@@ -41,7 +56,14 @@ const DISHES: HouseholdDishView[] = [
   },
   // ⚠️ UN PLAT SANS LOT. C'est le cas qui décide s'il faut fabriquer une phrase
   // de repli, et la réponse est non.
-  { title: "Apple and nuts", day: "fri", slot: "snack_pm", uses: [], memberId: null },
+  {
+    dishIndex: 2,
+    title: "Apple and nuts",
+    day: "fri",
+    slot: "snack_pm",
+    uses: [],
+    memberId: null,
+  },
 ];
 
 const PORTIONS: MemberPortionView[] = [
@@ -136,7 +158,14 @@ describe("la vue parallèle", () => {
       days: ["fri"],
       dishes: [
         ...DISHES,
-        { title: "Legacy snack", day: "fri", slot: "snack", uses: [] },
+        {
+          dishIndex: 3,
+          title: "Legacy snack",
+          day: "fri",
+          slot: "snack",
+          uses: [],
+          memberId: null,
+        },
       ],
       portions: PORTIONS,
     });
@@ -153,7 +182,17 @@ describe("la vue parallèle", () => {
   it("un plat hors de la fenêtre ne crée pas de colonne fantôme", () => {
     const model2 = buildPlanByPerson({
       days: ["fri"],
-      dishes: [...DISHES, { title: "Ghost", day: "wed", slot: "lunch", uses: [] }],
+      dishes: [
+        ...DISHES,
+        {
+          dishIndex: 3,
+          title: "Ghost",
+          day: "wed",
+          slot: "lunch",
+          uses: [],
+          memberId: null,
+        },
+      ],
       portions: PORTIONS,
     });
     expect(model2.days).toEqual(["fri"]);
@@ -320,6 +359,7 @@ describe("les gardes d'affichage (câblage)", () => {
 /** Le cas mesuré: une case, deux plats, l'un dédié. Titres IDENTIQUES. */
 const DEDICATED: HouseholdDishView[] = [
   {
+    dishIndex: 0,
     title: "Greek yogurt bowls with peaches",
     day: "fri",
     slot: "breakfast",
@@ -327,6 +367,7 @@ const DEDICATED: HouseholdDishView[] = [
     memberId: null,
   },
   {
+    dishIndex: 1,
     title: "Greek yogurt bowls with peaches",
     day: "fri",
     slot: "breakfast",
@@ -376,6 +417,7 @@ describe("LOT C — un plat dédié appartient à une bouche", () => {
       dishes: [
         ...DEDICATED,
         {
+          dishIndex: 2,
           title: "Chicken and rice bowls",
           day: "fri",
           slot: "dinner",

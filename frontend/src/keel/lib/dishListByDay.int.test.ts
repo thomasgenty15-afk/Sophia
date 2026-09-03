@@ -15,17 +15,37 @@ import { groupDishListByDay } from "./dishListByDay";
  *     cuisine » et « ta part » rendent LA même liste, sans enrichissement.
  */
 
+/**
+ * ⚠️ `dishIndex` EST PORTÉ PAR CHAQUE FIXTURE, ET IL NE PEUT PAS ÊTRE OPTIONNEL.
+ *
+ * C'est la POSITION dans le `dishes[]` STOCKÉ, capturée AVANT tout filtre — et
+ * ce module est précisément celui qui REGROUPE et RETRIE. Le rang d'affichage
+ * qui en sort n'est donc pas une position, et c'est tout l'objet du champ: la
+ * coche se pose sur `dishIndex`, jamais sur le rang. Le rendre optionnel pour
+ * faire taire un test rouvrirait le trou qu'A8.1 a fermé — la coche d'un membre
+ * posée sur le plat suivant. On complète les fixtures; on ne desserre pas le
+ * type.
+ *
+ * `null` reste une valeur permise, et elle a un sens: un plat que le montage
+ * n'a pas su situer dans le `dishes[]` stocké n'a pas de case à cocher.
+ */
 const DISHES = [
-  { day: "fri", slot: "dinner", title: "Salmon and potatoes" },
+  { dishIndex: 0, day: "fri", slot: "dinner", title: "Salmon and potatoes" },
   // ⚠️ LE PIÈGE DU CALENDRIER, dans la fixture exprès: sur un plan commencé
   // mercredi, `mon` est la semaine SUIVANTE — il doit sortir EN DERNIER.
   // Trié par calendrier, il sortirait en tête, et ce test resterait vert sur
   // une fixture qui ne porterait que `wed` et `fri` (mesuré: la première
   // version de ce fichier ne mordait pas).
-  { day: "mon", slot: "dinner", title: "Chili" },
-  { day: "wed", slot: "dinner", title: "Chicken and rice" },
-  { day: "wed", slot: "breakfast", title: "Yogurt bowls" },
-  { day: "fri", slot: "lunch", title: "Leftover bowls", note: "a bigger scoop" },
+  { dishIndex: 1, day: "mon", slot: "dinner", title: "Chili" },
+  { dishIndex: 2, day: "wed", slot: "dinner", title: "Chicken and rice" },
+  { dishIndex: 3, day: "wed", slot: "breakfast", title: "Yogurt bowls" },
+  {
+    dishIndex: 4,
+    day: "fri",
+    slot: "lunch",
+    title: "Leftover bowls",
+    note: "a bigger scoop",
+  },
 ];
 
 // L'ordre d'un plan commencé MERCREDI: `wed` d'abord, `mon` en queue.
@@ -54,7 +74,10 @@ describe("groupDishListByDay", () => {
   it("un plat sans jour tombe dans le groupe SANS TITRE, en tête — jamais perdu", () => {
     const groups = groupDishListByDay({
       order: ORDER,
-      dishes: [...DISHES, { day: null, slot: null, title: "Overnight oats" }],
+      dishes: [
+        ...DISHES,
+        { dishIndex: 5, day: null, slot: null, title: "Overnight oats" },
+      ],
     });
     expect(groups[0].day).toBeNull();
     expect(groups[0].dishes.map((d) => d.title)).toEqual(["Overnight oats"]);
@@ -65,7 +88,9 @@ describe("groupDishListByDay", () => {
   it("un jeton HORS fenêtre rejoint le groupe sans titre — un plan tronqué garde ses plats", () => {
     const groups = groupDishListByDay({
       order: ["wed", "thu", "fri"],
-      dishes: DISHES.concat([{ day: "sun", slot: "lunch", title: "Roast" }]),
+      dishes: DISHES.concat([
+        { dishIndex: 5, day: "sun", slot: "lunch", title: "Roast" },
+      ]),
     });
     expect(groups[0].day).toBeNull();
     // `mon` est hors de cette fenêtre de trois jours: lui aussi est gardé —
@@ -78,8 +103,8 @@ describe("groupDishListByDay", () => {
     const groups = groupDishListByDay({
       order: ORDER,
       dishes: [
-        { day: "wed", slot: "snack", title: "Legacy snack" },
-        { day: "wed", slot: "breakfast", title: "Yogurt bowls" },
+        { dishIndex: 0, day: "wed", slot: "snack", title: "Legacy snack" },
+        { dishIndex: 1, day: "wed", slot: "breakfast", title: "Yogurt bowls" },
       ],
     });
     expect(groups[0].dishes.map((d) => d.title)).toEqual([
