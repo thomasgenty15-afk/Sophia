@@ -103,7 +103,7 @@ function dish(over: Partial<GeneratedDish> = {}): GeneratedDish {
 /** LE CAS DE RÉFÉRENCE: un repas, deux groupes, deux contenants. */
 function twoBoxDish(over: Partial<GeneratedDish> = {}): GeneratedDish {
   return dish({
-    uses: [{ preparation_id: "prep_chicken", servings: 4 }],
+    uses: [{ preparation_id: "prep_chicken", servings: 4, kept: "fridge" as const }],
     boxes: [
       {
         id: "box_thu_dinner_peregrine",
@@ -197,7 +197,7 @@ describe("readDishes lit les contenants du repas", () => {
     // `member_portions`. C'est le test qui ferme la même porte pour `boxes`.
     const [d] = readDishes([{
       title: "Bowl",
-      uses: [{ preparation_id: "prep_chicken", servings: 4 }],
+      uses: [{ preparation_id: "prep_chicken", servings: 4, kept: "fridge" as const }],
       boxes: [
         {
           id: "box_thu_dinner_peregrine",
@@ -523,7 +523,7 @@ describe("boxLinesForSession liste les CONTENANTS d'une session", () => {
   });
 
   it("un repas sans contenant n'ajoute aucune ligne", () => {
-    const bare = dish({ uses: [{ preparation_id: "prep_chicken", servings: 1 }] });
+    const bare = dish({ uses: [{ preparation_id: "prep_chicken", servings: 1, kept: "fridge" as const }] });
     expect(boxLinesForSession(["prep_chicken"], [bare], ROSTER)).toEqual([]);
   });
 });
@@ -581,7 +581,7 @@ describe("le Boxing rend ce qu'il faut mettre dans chaque bac", () => {
   it("un plan v2 relu montre son total, faute d'items — jamais un « ? »", () => {
     const [legacy] = boxLinesForDish(
       dish({
-        uses: [{ preparation_id: "prep_chicken", servings: 1 }],
+        uses: [{ preparation_id: "prep_chicken", servings: 1, kept: "fridge" as const }],
         boxes: [{
           id: "box_legacy",
           member_ids: [CASIMIR_ID, ODALRIC_ID],
@@ -643,7 +643,7 @@ describe("la carte d'un repas NOMME ses contenants, et ne pèse rien", () => {
     // rougit — ce qu'aucune assertion de présence dans `PlanDayBlock` ne peut
     // faire, puisqu'elles passent des deux côtés de la frontière.
     const html = markup(createElement(DishCard, {
-      dish: dish({ uses: [{ preparation_id: "prep_chicken", servings: 1 }] }),
+      dish: dish({ uses: [{ preparation_id: "prep_chicken", servings: 1, kept: "fridge" as const }] }),
       eaters: [
         { memberId: CASIMIR_ID, name: "Casimir" },
         { memberId: ODALRIC_ID, name: "Odalric" },
@@ -653,7 +653,7 @@ describe("la carte d'un repas NOMME ses contenants, et ne pèse rien", () => {
     expect(html).toContain(`data-eater-member-id="${CASIMIR_ID}"`);
     expect(html).toContain(`data-share-member-id="${CASIMIR_ID}"`);
     const text = textOf(createElement(DishCard, {
-      dish: dish({ uses: [{ preparation_id: "prep_chicken", servings: 1 }] }),
+      dish: dish({ uses: [{ preparation_id: "prep_chicken", servings: 1, kept: "fridge" as const }] }),
       eaters: [],
       shares: [{ memberId: CASIMIR_ID, name: "Casimir", note: "sans la sauce" }],
     }));
@@ -704,7 +704,7 @@ describe("la carte d'un repas NOMME ses contenants, et ne pèse rien", () => {
       return html.slice(from, html.indexOf("</li>", from));
     };
     const anonymous = lineOf(markup(createElement(DishCard, {
-      dish: dish({ uses: [{ preparation_id: "prep_chicken", servings: 1 }] }),
+      dish: dish({ uses: [{ preparation_id: "prep_chicken", servings: 1, kept: "fridge" as const }] }),
       shares: [{ memberId: CASIMIR_ID, name: null, note: "sans la sauce" }],
     })));
     expect(anonymous).toContain("sans la sauce");
@@ -715,7 +715,7 @@ describe("la carte d'un repas NOMME ses contenants, et ne pèse rien", () => {
     // tiret sont là. Sans cette moitié, une carte qui n'écrirait JAMAIS le
     // prénom lirait pareil.
     const named = lineOf(markup(createElement(DishCard, {
-      dish: dish({ uses: [{ preparation_id: "prep_chicken", servings: 1 }] }),
+      dish: dish({ uses: [{ preparation_id: "prep_chicken", servings: 1, kept: "fridge" as const }] }),
       shares: [{ memberId: CASIMIR_ID, name: "Casimir", note: "sans la sauce" }],
     })));
     expect(named).toContain("Casimir");
@@ -756,8 +756,8 @@ describe("la carte d'un repas NOMME ses contenants, et ne pèse rien", () => {
   it("le couvercle apparaît UNE fois par contenant, jamais une par reprise", () => {
     const twoLots = twoBoxDish({
       uses: [
-        { preparation_id: "prep_chicken", servings: 4 },
-        { preparation_id: "prep_rice", servings: 4 },
+        { preparation_id: "prep_chicken", servings: 4, kept: "fridge" as const },
+        { preparation_id: "prep_rice", servings: 4, kept: "fridge" as const },
       ],
     });
     const text = textOf(createElement(DishCard, {
@@ -807,8 +807,8 @@ describe("le jour suit l'ordre des gestes", () => {
     }],
     wave: { buyOn: "thu", servesCookOn: "thu", indices: [0, 1] },
     shoppingList: [
-      { term: "chicken thighs", quantity: "1 kg", aisle: "meat" },
-      { term: "rice", quantity: "500 g", aisle: "grocery" },
+      { term: "chicken thighs", quantity: "1 kg", aisle: "meat", food_group: "poultry" },
+      { term: "rice", quantity: "500 g", aisle: "grocery", food_group: "whole_grain" },
     ],
     moments: [],
     portions: ROSTER,

@@ -366,8 +366,12 @@ n'en fait rien.
   désormais par `focus_axis`.
 - ❌ **La projection « en combien de temps ».** Décidée, mais c'est une
   fonctionnalité à part avec son propre plancher : la copie affichée sous le
-  champ de cible dit déjà « *Nothing counts down, and nobody is scored against
-  it* », et une date de rendez-vous la contredirait. Elle se calcule côté
+  champ de cible dit déjà « *nobody is scored against it* »
+  (`plan.goal.target_hint`), et une date de rendez-vous la contredirait.
+  ⟳ **2026-09-01 : la citation a maigri, et c'est voulu.** La clé disait aussi
+  « *Nothing counts down* » — retiré, parce que c'était faux : la cible donne la
+  direction sur laquelle les grammages sont calibrés (lot L8). C'est la moitié
+  restante qui porte l'argument ici, et elle le porte seule. Elle se calcule côté
   produit (arithmétique, aucun appel modèle), s'affiche en **allure** et non en
   date, jamais sous `restriction_flag`, et sur `/app/progress` — pas dans le
   plan. À écrire comme fiche.

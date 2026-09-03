@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Identifiant** | `FF-042-les-regimes-alimentaires` |
-| **Statut** | 🟠 Fondations posées + **R6 livré** — câblage du verrou à faire (voir §3) |
+| **Statut** | 🟠 Fondations livrées, la garde **observe** — et le « rejet dur » du §3 a été **décidé contre dans le code** (2026-09-01, voir §3 n°3). `dietaryRegimePromptLine` est câblée sur les deux lanes, la case front écrit bien `kind='diet'`. Ce qui reste n'est pas un branchement : c'est de décider **ce qu'on fait de `breaches`** quand il n'est pas nul |
 | **Date** | 2026-08-10 · R6 livré le 2026-08-11 |
 | **Autorité produit** | [MODEL.md](../../keel/MODEL.md) · [CONTRACT.md](../../keel/CONTRACT.md) · [DESIGN-UNITES-DE-COMPOSITION](../../../scratchpad/DESIGN-UNITES-DE-COMPOSITION.md) |
 | **Dépend de** | `_shared/keel/dietary_regime.ts` (livré) · `_shared/keel/safety_constraints.ts` · `forbidden_matcher.ts` · migration `20260810140000` (appliquée) |
@@ -105,8 +105,20 @@ fichiers et un second bump de `MEAL_PROMPT_VERSION`.
    mapping.~~ **Fait** (2026-08-11).
 2. `safetyConstraintsPromptBlock` — la ligne de régime en **tête** de consigne,
    via `dietaryRegimePromptLine`.
-3. `parseGeneratedMeal` / `parseWeekPlan` — rejet dur de tout plat dont un
-   ingrédient matche une forme exclue, via `forbidden_matcher`.
+3. ~~`parseGeneratedMeal` / `parseWeekPlan` — rejet dur de tout plat dont un
+   ingrédient matche une forme exclue, via `forbidden_matcher`.~~
+   ⛔ **DÉCIDÉ CONTRE, dans le code, et il faut le lire ici avant de le
+   replanifier** (constaté le 2026-09-01). `generate-meal-v1/index.ts` porte la
+   garde — `scanDietaryRegime` sur chaque plat, prose et ingrédients séparés,
+   analogues végétaux désamorcés — et son en-tête dit en toutes lettres
+   **« ON NE JETTE RIEN »** : *« refuser ici viderait la semaine entière pour un
+   lardon dans un seul plat, et l'élève paierait son régime en semaines
+   vides »*. Ce qui existe à la place : un `dietary_regime_breach` poussé dans
+   `issues` et **quatre compteurs** journalisés (`dishes`, `forms`, `breaches`,
+   `analogues_silenced`). Le silence se **compte** et se **dit** — c'est la
+   condition posée pour décider un jour d'en faire un motif de relance.
+   **Ce qui reste vraiment à câbler, si on le veut**, n'est donc pas un rejet :
+   c'est ce qu'on FAIT de `breaches` quand il n'est pas nul.
 4. Front — la case dans « Basic info », écrivant une ligne `kind='diet'`.
 
 ### Hors périmètre, exprès

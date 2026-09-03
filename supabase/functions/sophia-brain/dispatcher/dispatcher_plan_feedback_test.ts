@@ -34,7 +34,7 @@ import {
   SIZING_FEEDBACK_KINDS,
   SIZING_REDIRECT_SENTENCES,
   sizingRedirectFor,
-} from "../../_shared/keel/conversation_retained.ts";
+} from "../../_shared/keel/conversation_redirect.ts";
 import type { TurnFrame } from "../contracts/turn_frame.v1.ts";
 
 const KEEL_STUDENT_PROMPT = buildDispatcherSystemPrompt({ keelStudent: true });
@@ -101,9 +101,13 @@ Deno.test("① l'interdiction « aucun skill signal hors plan_question » est LE
   // parseur pouvait le lire — le modèle avait l'ordre écrit de ne jamais
   // l'émettre. Une case ouverte sous une interdiction n'est pas une case
   // ouverte.
+  // ⚠️ LOT M1 — LA LEVÉE PORTE MAINTENANT TROIS SIGNAUX. `profile_statement`
+  // s'est ajouté; l'oublier dans cette phrase rouvrirait l'interdiction sur
+  // lui seul, et une case ouverte sous une interdiction n'est pas une case
+  // ouverte.
   assert(
     KEEL_STUDENT_PROMPT.includes(
-      "Ne produis jamais de skill signal hors plan_question et plan_feedback.",
+      "Ne produis jamais de skill signal hors plan_question, plan_feedback, profile_statement et rule_question.",
     ),
     "L'INTERDICTION N'EST PLUS LEVÉE. Le modèle lit à nouveau l'ordre de ne " +
       "produire aucun signal hors plan_question, et `plan_feedback` redevient " +
@@ -115,6 +119,21 @@ Deno.test("① l'interdiction « aucun skill signal hors plan_question » est LE
     ),
     "L'ANCIENNE PHRASE SURVIT À CÔTÉ DE LA NOUVELLE: le prompt donnerait au " +
       "modèle un ordre et son contraire.",
+  );
+  assert(
+    !KEEL_STUDENT_PROMPT.includes(
+      "Ne produis jamais de skill signal hors plan_question et plan_feedback.\n",
+    ),
+    "LA PHRASE DU LOT 4A SURVIT À CÔTÉ DE CELLE DE M1: le prompt interdirait " +
+      "`profile_statement` d'un côté et le réclamerait de l'autre.",
+  );
+  // ⚠️ LOT M6 — et la phrase de M1 ne doit pas survivre non plus: elle
+  // interdirait `rule_question` d'un côté pendant que 6-quinquies le réclame.
+  assert(
+    !KEEL_STUDENT_PROMPT.includes(
+      "Ne produis jamais de skill signal hors plan_question, plan_feedback et profile_statement.\n",
+    ),
+    "LA PHRASE DE M1 SURVIT À CÔTÉ DE CELLE DE M6: un ordre et son contraire.",
   );
 });
 

@@ -77,6 +77,106 @@ export function cookedWindowVerdict(
 }
 
 /**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * LE CONGÉLATEUR — la fenêtre qui s'ouvre, et les deux conditions qui l'ouvrent
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * ── CE QUI A ÉTÉ MESURÉ LE 2026-09-01 ─────────────────────────────────────
+ * Un foyer déclarant UNE session de cuisine, un congélateur, et sept jours
+ * recevait un plan dont QUATRE journées n'avaient qu'un petit-déjeuner: 8 plats
+ * sur 21 jetés par `cookedWindowVerdict`, qui ne connaissait pas le
+ * congélateur.
+ *
+ * Et le modèle n'y était pour rien. Le prompt lui demande DÉJÀ, mot pour mot,
+ * de dire que le surplus part au congélateur; dans la mesure il l'avait écrit
+ * TROIS fois — méthode du plat, méthode de la casserole, déroulé de la session.
+ * C'était de la prose, il n'existait aucune clé pour la lire, et la prose ne
+ * garde rien. « La promesse et la clé de schéma doivent se toucher »: sans clé
+ * adjacente, le taux de captation est zéro.
+ *
+ * ── DEUX CONDITIONS, ET C'EST UNE PORTE DE SÉCURITÉ ───────────────────────
+ * La fenêtre ne s'ouvre que si LE MODÈLE l'a déclaré (`kept: "freezer"`) ET si
+ * LE FOYER a coché le congélateur. Une seule des deux ne suffit pas:
+ *
+ *   · déclaré sans l'équipement ⇒ le modèle a inventé un appareil. On retombe
+ *     sur le frigo, et l'appelant COMPTE — sans compteur, un lot désarmé
+ *     ressemble trait pour trait à un lot qui marche.
+ *   · l'équipement sans la déclaration ⇒ personne n'a dit que cette part-là
+ *     était congelée. Une part oubliée au frigo pendant six jours rend malade
+ *     exactement autant dans une cuisine qui possède un congélateur.
+ *
+ * ⚠️ `hasFreezer` EST UN BOOLÉEN, ET L'APPELANT LE CALCULE PAR
+ * `hasKitchenTool(eq, "freezer") === true`. Le pavé de `kitchen_equipment.ts`
+ * interdit `!hasKitchenTool(...)`, qui confond « il n'en a pas » et « on ne lui
+ * a jamais demandé »; la comparaison explicite fait l'inverse — les deux
+ * ignorances retombent sur le frigo. C'est la seule direction fail-closed pour
+ * une règle qui décide si on sert un lot de six jours.
+ */
+
+/**
+ * LA FENÊTRE D'UNE PART CONGELÉE, EN JOURS.
+ *
+ * ⚠️ ELLE VAUT LE PLAFOND D'UN PLAN (`MAX_WINDOW_DAYS = 7`), ET C'EST LA
+ * DÉCISION PRODUIT DU 2026-09-01: un lot congelé le jour de sa cuisson ne
+ * périme JAMAIS à l'intérieur d'un plan. Physiquement c'est vrai — le surgelé
+ * tient des mois — et un plafond intermédiaire aurait rouvert des trous au
+ * milieu de la semaine sans qu'aucune règle de sécurité ne le demande.
+ *
+ * ⛔ ELLE N'IMPORTE PAS `MAX_WINDOW_DAYS`, et ce n'est pas un oubli: ce module
+ * est PUR et sans dépendance (c'est ce qui permet à `grocery_waves.ts` de le
+ * lire depuis Vite). Le littéral est épinglé côté test contre la constante de
+ * fenêtre, ce qui attrape la divergence sans créer l'import.
+ */
+export const FREEZER_WINDOW_DAYS = 7;
+
+/** Comment cette part-là est gardée entre sa cuisson et son repas. */
+export type KeptWhere = "fridge" | "freezer";
+
+/**
+ * COMBIEN DE JOURS CETTE PART-LÀ PEUT ATTENDRE.
+ *
+ * Une seule décision, un seul endroit. `cookedWindowVerdict` ne change pas de
+ * signature — elle prend déjà sa fenêtre en paramètre; c'est l'appelant qui
+ * choisit laquelle, et il la choisit ICI.
+ *
+ * @param maxFridgeDays `MAX_FRIDGE_DAYS`. PASSÉE, jamais importée: voir
+ *   l'en-tête du module. Le test l'épingle par un littéral.
+ */
+export function keptWindowDays(input: {
+  /** Ce que le modèle a DÉCLARÉ. Rien de dit ⇒ `"fridge"`, le strict. */
+  kept: KeptWhere;
+  /** `hasKitchenTool(eq, "freezer") === true`. REQUIS, jamais optionnel. */
+  hasFreezer: boolean;
+  maxFridgeDays: number;
+}): number {
+  if (typeof input?.hasFreezer !== "boolean") {
+    throw new Error(
+      "[keel/fridge_window] keptWindowDays: hasFreezer est REQUIS et booléen — " +
+        "un appelant qui n'a pas lu l'inventaire passe `false`, il ne l'hérite pas",
+    );
+  }
+  return input.kept === "freezer" && input.hasFreezer
+    ? FREEZER_WINDOW_DAYS
+    : input.maxFridgeDays;
+}
+
+/**
+ * LE MODÈLE A-T-IL RÉCLAMÉ UN CONGÉLATEUR QUE CE FOYER N'A PAS ?
+ *
+ * ⚠️ SÉPARÉ DE `keptWindowDays` EXPRÈS. La fenêtre est une DÉCISION, ceci est
+ * un CONSTAT — et les deux ne se comptent pas au même endroit: la première
+ * s'applique par couple (casserole, repas), le second doit pouvoir se totaliser
+ * sur un plan. Les fondre rendrait le compteur indissociable de la garde, donc
+ * impossible à lire quand la garde ne mord pas.
+ */
+export function freezerClaimedWithoutOne(input: {
+  kept: KeptWhere;
+  hasFreezer: boolean;
+}): boolean {
+  return input.kept === "freezer" && input.hasFreezer !== true;
+}
+
+/**
  * LES TROIS POPULATIONS DE LA FENÊTRE CUITE.
  *
  * ⛔ `within` N'EST PAS DÉCORATIF, c'est le point du lot. Sans lui, on ne

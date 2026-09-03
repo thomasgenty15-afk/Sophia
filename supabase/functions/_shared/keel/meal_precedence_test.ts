@@ -88,6 +88,10 @@ function build(over: Record<string, unknown> = {}): any {
     dayProperties: [],
     merge: null,
     firstDayCookable: true,
+    hasFreezer: false,
+    oneCookingSession: false,
+    cookOnlyDay: null,
+    soloBoxes: false,
     contentLocale: "en-GB",
     // deno-lint-ignore no-explicit-any
     ...(over as any),
@@ -104,7 +108,17 @@ Deno.test("v15 — la version de prompt suit l'octet: elle a bougé avec ce lot"
   // la demande de GROUPE n QUE dans le bloc de régime »`). Le bump vaut
   // quand même — règle de v3/v5 de l foyer: c la PRÉSENCE du bloc qui
   // distingue deux populations dans la colonne.
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v18_one_box_per_group");
+  // ⚠️ v20 (2026-09-01) — LA PART CONGELÉE A UNE CLÉ.
+  // Population qui voit une consigne différente: TOUT LE MONDE. Le schéma
+  // gagne `dishes[].uses[].kept` et le bloc de conservation gagne le
+  // paragraphe qui dit par quel CHAMP se déclare la troisième sortie. Les deux
+  // vivent dans le tronc. Un modèle qui n'écrit jamais le champ produit
+  // exactement le plan de v19 — le non-dit vaut `"fridge"`, le strict.
+  // ⚠️ v21 (2026-09-01) — LES JOURS HORS DE PORTÉE D'UN LOT SONT NOMMÉS, et la
+  // session seule a le droit de déborder en le disant. Population: les fenêtres
+  // qui portent une journée qu'aucun lot n'atteint. Un plan sans tension rend
+  // v20 au caractère près, et un test le tient.
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v24_raw_keeping_reaches_the_model");
 });
 
 Deno.test("① l'ordre est ÉCRIT, et il est écrit pour TOUT LE MONDE", () => {

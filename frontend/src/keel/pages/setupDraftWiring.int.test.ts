@@ -144,6 +144,29 @@ describe("l'aperçu du plan reste le rendu unique, et il n'écrit rien", () => {
     expect(api).toContain("callGenerator(input, intent, replaces)");
   });
 
+  it("l’adoption est bornée et ne relance pas le modèle avant son écriture", () => {
+    const api = code("frontend/src/keel/api/planDraft.ts");
+    expect(api).toContain('if (intent !== "draft") body.adopting_draft = true');
+    expect(api).toContain('{ timeout: 120_000 }');
+
+    for (const rel of [
+      "supabase/functions/generate-meal-v1/index.ts",
+      "supabase/functions/generate-household-meal-v1/index.ts",
+    ]) {
+      const server = code(rel);
+      expect(server, rel).toContain("DRAFT_ADOPTION_MODEL_TIMEOUT_MS = 100_000");
+      expect(server, rel).toContain("plan_adoption_timed_out");
+      expect(server, rel).toContain("anchorMissingBefore > 0 && !adoptingDraft");
+      expect(server, rel).toContain("instruction && !adoptingDraft");
+    }
+  });
+
+  it("un plan écrit malgré une réponse perdue sort du tunnel au rechargement", () => {
+    const setup = code("frontend/src/keel/pages/SetupPage.tsx");
+    expect(setup).toContain("if (read.hasPlan)");
+    expect(setup).toContain('navigate("/app/plan", { replace: true })');
+  });
+
   /**
    * LE RENDU EST MONTÉ DEUX FOIS, ET IL EST LE MÊME. `PlanDraftDialog` monte
    * `PlanResult`, extrait exprès pour ça: un second rendu divergerait au

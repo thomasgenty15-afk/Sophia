@@ -40,6 +40,10 @@ import {
 
 const PROMPT_BASE = {
   firstDayCookable: true,
+  hasFreezer: false,
+  oneCookingSession: false,
+  cookOnlyDay: null,
+  soloBoxes: false,
   contentLocale: "en-US",
   budgetAmount: null,
   dietBlock: "",
@@ -194,7 +198,20 @@ Deno.test("la lane FOYER garde SON bloc, ce lot ne lui ajoute rien", async () =>
   // donc la même chose par deux chemins, ce qui est le partage habituel ici:
   // le tronc porte ce qui vaut pour tout le monde, l'enveloppe ce qui ne vaut
   // que pour une table.
-  assertStringIncludes(src, "kitchenEquipment: readKitchenEquipment(pc)");
+  // ⟳ 2026-09-01 — LA LECTURE A ÉTÉ HISSÉE, ET LA RAISON EST ÉCRITE ICI
+  // PARCE QUE CE TEST L'A EXIGÉ. Elle était EN LIGNE au site de l'enveloppe;
+  // le PARSEUR en a désormais besoin lui aussi (`kept: "freezer"` n'ouvre la
+  // fenêtre de conservation que sur un congélateur DÉCLARÉ). Deux
+  // `readKitchenEquipment(pc)` auraient été deux idées de ce que cette cuisine
+  // possède — exactement ce que le test de la lane solo, juste au-dessus,
+  // interdit chez elle. L'exigence n'a pas changé, elle s'est étendue: UNE
+  // lecture, plusieurs lecteurs.
+  assertEquals(
+    src.split("const kitchenEquipment = readKitchenEquipment(").length - 1,
+    1,
+  );
+  // Et l'enveloppe la lit toujours — par la constante, pas par un second appel.
+  assertStringIncludes(src, "kitchenEquipment,");
   // ⚠️ ET ELLE NE LE PASSE PAS À `buildMealPrompt`: son prompt expire à 4 min,
   // chaque bloc ajouté s'y paie, et il ferait DOUBLON avec `kitchenBlock`.
   // Si quelqu'un l'y branche un jour, ce test tombe et il vient écrire ici

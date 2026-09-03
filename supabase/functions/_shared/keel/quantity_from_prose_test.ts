@@ -430,7 +430,11 @@ function planAvecUneLigneEnProse() {
       merge: null,
       boxMemberIds: [],
       weighedMemberIds: [],
+      kitchenEquipment: null,
+      cookOnlyDay: null,
+      soloBoxes: false,
       boxMemberDiets: [],
+      boxMemberExclusions: [],
     },
   );
 }

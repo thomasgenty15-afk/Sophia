@@ -210,9 +210,17 @@ import {
 import { armPhotoInvitation } from "./keel_photo_invitation_lane.ts";
 import { appendPhotoInvitation } from "../../_shared/keel/photo_invitation.ts";
 import {
-  appendSizingRedirect,
+  appendRedirect,
+  profileRedirectFor,
+  ruleQuestionRedirectFor,
   sizingRedirectFor,
-} from "../../_shared/keel/conversation_retained.ts";
+} from "../../_shared/keel/conversation_redirect.ts";
+import {
+  loadRulesFor,
+  ruleQuestionContextBlock,
+  rulesMentioning,
+  usableFoodWord,
+} from "../../_shared/keel/rule_question.ts";
 import type { PrecisionPlanLine } from "../../_shared/keel/meal_precision.ts";
 import type { MealPrecisionFlowState } from "../../_shared/keel/meal_precision_flow.ts";
 import {
@@ -358,6 +366,10 @@ import {
   NO_HOUSEHOLD_SAFETY,
 } from "../../_shared/keel/household_safety.ts";
 import { detectDeclaredSafetyConstraint } from "../../_shared/keel/safety_constraint_floor.ts";
+import {
+  observeSafetyFallback,
+  SAFETY_FALLBACK_TAG,
+} from "../../_shared/keel/safety_fallback_counter.ts";
 import {
   CLINICAL_DEFERRAL_BLOCK,
   detectDeclaredMedicalCondition,
@@ -1213,11 +1225,42 @@ export type KeelTurnContext = {
    * `finalVisibleText` sur les six chemins de sortie.
    *
    * Le TEXTE est un gabarit fermé et BILINGUE (`SIZING_REDIRECT_SENTENCES`,
-   * `conversation_retained.ts`), jamais une génération — *« une règle de prompt
+   * `conversation_redirect.ts`), jamais une génération — *« une règle de prompt
    * n'est pas une ceinture »*, et une garde testée dans une seule langue ne
    * mord pas dans l'autre.
    */
   sizing_redirect?: string | null;
+  /**
+   * LOT M1 — LE RENVOI VERS UN CHAMP armé par CE tour, ou `null`.
+   *
+   * ⚠️ MÊME NATURE QUE `sizing_redirect`, ÉTENDUE À TOUT LE RESTE. Depuis M1,
+   * `canProduce("conversation", …)` rend `false` pour les HUIT familles: le
+   * chat ne classe plus rien du tout. Ce qui n'était vrai que de la part
+   * (« une mesure a besoin d'un sujet ») l'est devenu de chaque famille — une
+   * phrase de chat n'a pas de dénominateur, et le magasin qu'elle alimentait ne
+   * pouvait que grandir sans que personne ne le voie.
+   *
+   * Ce champ porte la phrase qui dit à la personne **qu'on n'a rien rangé** et
+   * **où ça se pose**, au lieu de laisser son retour tomber en silence.
+   *
+   * Le TEXTE est un gabarit fermé et BILINGUE (`PROFILE_REDIRECT_SENTENCES`,
+   * `conversation_redirect.ts`), et il est tenu par une garde de formulation:
+   * aucune de ces phrases ne prétend avoir enregistré quoi que ce soit.
+   */
+  profile_redirect?: string | null;
+  /**
+   * LOT M6 — LA RÉVOCATION PAR LA QUESTION, armée par CE tour, ou `null`.
+   *
+   * *« Une exclusion qu'on interroge est une exclusion morte. »* Quand quelqu'un
+   * demande « pourquoi il n'y a jamais de poulet ? », il vient de révoquer sa
+   * règle; le renvoyer vers un écran sans rien lui dire, c'est lui faire payer
+   * deux fois une préférence qu'il n'a plus.
+   *
+   * ⛔ ET ÇA NE LÈVE RIEN. Le §2.8 tranche « le chat n'écrit jamais, pas même en
+   * un tap ». Ce champ porte une phrase qui NOMME la ligne, RAPPELLE sa cause
+   * (la citation de M2), et dit OÙ elle se lève.
+   */
+  rule_question_redirect?: string | null;
   /**
    * LE JETON DE MALADIE DÉCLARÉE CE TOUR-CI, ou null.
    *
@@ -2832,7 +2875,7 @@ export function finalVisibleText(
     // partir de `content_locale`. Une garde testée dans une seule langue ne mord
     // pas dans l'autre, et ce produit a `fr-FR` par défaut.
     const beforeSizingRedirect = out;
-    out = appendSizingRedirect(out, keel.sizing_redirect);
+    out = appendRedirect(out, keel.sizing_redirect);
     // ── LOT 4A · LE TROISIÈME NOMBRE, MESURÉ LÀ OÙ LA PHRASE EST DITE ────────
     //
     // ⚠️ « ARMÉ » N'EST PAS « DIT », et c'est exactement la distinction que ce
@@ -2844,6 +2887,44 @@ export function finalVisibleText(
     if (out !== beforeSizingRedirect) {
       console.info(JSON.stringify({
         tag: "keel/sizing_redirect",
+        event: "said",
+        turn_id: turnFrame?.turn_id ?? null,
+        response_owner: routeDecision?.response_owner ?? null,
+        locale: keel.content_locale ?? null,
+      }));
+    }
+    // ── LOT M1 · LE RENVOI VERS UN CHAMP, AU MÊME ENDROIT ────────────────────
+    //
+    // ⚠️ APRÈS LE RENVOI DU SIZING, ET LES DEUX PEUVENT SORTIR SUR LE MÊME
+    // TOUR. « ça m'a fait beaucoup trop de riz, et de toute façon je n'ai pas
+    // de four » porte les deux signaux, et ils vont vers deux écrans
+    // différents: le bilan pour la part, les réglages pour le four. En garder
+    // un seul ferait perdre l'autre en silence — c'est-à-dire la panne que ce
+    // lot ferme. `appendRedirect` ne double jamais une phrase déjà présente,
+    // donc le cas où le modèle émettrait deux fois la même chose est couvert.
+    const beforeProfileRedirect = out;
+    out = appendRedirect(out, keel.profile_redirect);
+    // Même mesure « armé ≠ dit » que ci-dessus, et pour la même raison.
+    if (out !== beforeProfileRedirect) {
+      console.info(JSON.stringify({
+        tag: "keel/profile_redirect",
+        event: "said",
+        turn_id: turnFrame?.turn_id ?? null,
+        response_owner: routeDecision?.response_owner ?? null,
+        locale: keel.content_locale ?? null,
+      }));
+    }
+    // ── LOT M6 · LA RÉVOCATION, AU MÊME ENDROIT ────────────────────────────
+    //
+    // ⚠️ LES TROIS PEUVENT SORTIR SUR LE MÊME TOUR, et c'est voulu: « pourquoi
+    // jamais de poulet ? et de toute façon je n'ai pas de four » porte deux
+    // signaux qui vont à deux endroits. `appendRedirect` ne double jamais une
+    // phrase déjà présente.
+    const beforeRuleQuestion = out;
+    out = appendRedirect(out, keel.rule_question_redirect);
+    if (out !== beforeRuleQuestion) {
+      console.info(JSON.stringify({
+        tag: "keel/rule_question",
         event: "said",
         turn_id: turnFrame?.turn_id ?? null,
         response_owner: routeDecision?.response_owner ?? null,
@@ -6508,6 +6589,188 @@ export async function processMessage(
       turnFrame.skill_signals?.plan_question?.detected === true,
     armed: keelTurn.sizing_redirect !== null,
   }));
+  // ── LOT M1 · L'ARMEMENT DU RENVOI VERS UN CHAMP ───────────────────────────
+  //
+  // ⛔ AUCUN MATCHER MAISON, MÊME RAISON QU'AU-DESSUS. On lit le verdict du
+  // dispatcher (`profile_statement`, qui porte `kind` et `detail`), jamais le
+  // message. « laitue » ≠ « lait ».
+  //
+  // ⚠️ ET CE SIGNAL N'ÉCRIT RIEN. Il a remplacé un producteur — le memorizer de
+  // conversation, retiré au lot M1 — par un RENVOI. Le confondre avec son
+  // prédécesseur, c'est rouvrir la ligne ③ de la matrice sans le dire.
+  keelTurn.profile_redirect = profileRedirectFor({
+    signal: dispatcherSignals.profile_statement,
+    locale: keelTurn.content_locale,
+    // ⚠️ REQUIS, jamais optionnel: hors élève KEEL, ni la carte « ce que Sophia
+    // sait de toi » ni l'écran de réglages n'existent — la phrase renverrait
+    // vers un écran absent.
+    isKeelStudent: keelTurn.is_student === true,
+  });
+  // ── LE COMPTEUR, ET IL EST OBLIGATOIRE ────────────────────────────────────
+  //
+  // « Champ déclaré par le modèle = compteur obligatoire ». Le DÉNOMINATEUR
+  // doit exister avant le numérateur: la ligne part à CHAQUE tour, pas
+  // seulement quand `detected`. Sans ça, un signal que le modèle n'émet jamais
+  // se lit exactement comme « personne ne parle de son équipement ».
+  //
+  // ⚠️ `kind` EST DANS LA LIGNE, ET C'EST CE QUI REND LE LOT MESURABLE. La
+  // liste fermée en refuse quatre sur cinq possibles; savoir QUELS jetons le
+  // modèle émet est la seule façon de distinguer « il ne dit rien » de « il dit
+  // un jeton qu'on ne reconnaît pas et on se tait ».
+  console.info(JSON.stringify({
+    tag: "keel/profile_redirect",
+    event: "seen",
+    request_id: requestId,
+    turn_id: turnFrame.turn_id,
+    is_student: keelTurn.is_student === true,
+    profile_statement_detected:
+      dispatcherSignals.profile_statement?.detected === true,
+    profile_statement_kind: String(
+      dispatcherSignals.profile_statement?.kind ?? "",
+    ),
+    armed: keelTurn.profile_redirect !== null,
+  }));
+  // ── LOT M6 · LA QUESTION VAUT RÉVOCATION ──────────────────────────────────
+  //
+  // ⛔ LE CHARGEMENT EST PARESSEUX, ET C'EST LA DÉCISION DU LOT. La lane de
+  // conversation ne lisait PAS `practical_constraints` — vérifié, aucune
+  // occurrence. L'alternative était de charger les règles à CHAQUE tour et de
+  // les mettre dans le prompt pour que le modèle en nomme une: du budget sur
+  // tous les tours, pour servir un cas rare. Ici on ne lit QUE sur le tour où
+  // la question tombe.
+  //
+  // ⛔ AUCUN MATCHER MAISON: le modèle donne le MOT (« poulet »), et
+  // `findForbiddenMatches` le cherche dans les lignes stockées — c'est lui qui
+  // fait que « lait » ne matche pas dans « laitue ».
+  let ruleQuestionFound = 0;
+  // ⛔ CE QU'ON DIT AU MODÈLE AVANT QU'IL COMPOSE. Mesuré sur des tours réels:
+  // la phrase visible seule le laissait DEVINER la cause, et il devinait le
+  // contraire — « not because it's blocked here » collé au-dessus de la ligne
+  // qui bloque. Voir `ruleQuestionContextBlock`.
+  let ruleQuestionContext: string | null = null;
+  if (
+    keelTurn.is_student === true &&
+    dispatcherSignals.rule_question?.detected === true
+  ) {
+    const asked = usableFoodWord(dispatcherSignals.rule_question.food);
+    if (asked) {
+      // ⚠️ FAIL-CLOSED VERS LE SILENCE. Sans client, sans règle, ou sur une
+      // lecture en panne: aucune phrase. Le pire cas est une question sans
+      // réponse enrichie; l'inverse dirait à quelqu'un qu'il a demandé une
+      // chose qu'il n'a jamais demandée.
+      const reader = serviceRoleLedgerReadClient();
+      const found = reader
+        ? rulesMentioning({
+          food: asked,
+          rules: await loadRulesFor(reader as never, userId),
+        })
+        : [];
+      ruleQuestionFound = found.length;
+      keelTurn.rule_question_redirect = ruleQuestionRedirectFor({
+        rules: found,
+        locale: keelTurn.content_locale,
+        // ⚠️ REQUIS, jamais optionnel: hors élève KEEL il n'y a ni carte ni
+        // règles à lever.
+        isKeelStudent: keelTurn.is_student === true,
+      });
+      // ⚠️ LA MÊME LISTE, LE MÊME TOUR. Les deux se construisent depuis `found`
+      // et sous les mêmes portes: si l'un s'arme sans l'autre, le modèle est
+      // instruit d'une règle que la phrase ne nommera pas, ou l'inverse — et on
+      // recréerait le défaut qu'on répare.
+      ruleQuestionContext = ruleQuestionContextBlock({
+        rules: found,
+        isKeelStudent: keelTurn.is_student === true,
+      });
+    }
+  }
+  // ── LE COMPTEUR, ET IL EST OBLIGATOIRE ────────────────────────────────────
+  //
+  // ⚠️ LE DÉNOMINATEUR EXISTE AVANT LE NUMÉRATEUR: la ligne part à CHAQUE tour
+  // d'élève. Sans ça, « 0 révocation » ne se distingue pas de « 0 tour observé »
+  // — et ce lot a DEUX façons de rendre zéro (le modèle n'émet pas, ou aucune
+  // règle ne correspond), qu'il faut pouvoir séparer.
+  if (keelTurn.is_student === true) {
+    console.info(JSON.stringify({
+      tag: "keel/rule_question",
+      event: "seen",
+      request_id: requestId,
+      turn_id: turnFrame.turn_id,
+      detected: dispatcherSignals.rule_question?.detected === true,
+      // ⚠️ LE MOT EST DANS LA LIGNE. C'est la seule façon de distinguer « le
+      // modèle n'émet jamais » de « il émet un mot qu'aucune règle ne porte » —
+      // et le second est une consigne de prompt à corriger, pas une panne.
+      food: String(dispatcherSignals.rule_question?.food ?? ""),
+      rules_found: ruleQuestionFound,
+      armed: keelTurn.rule_question_redirect != null,
+      // ⚠️ « ARMÉ » NE DIT PLUS TOUT. Depuis que le modèle est instruit AVANT
+      // de composer, un tour peut avoir sa phrase et pas son bloc — c'est la
+      // régression exacte qui ramènerait la réponse auto-contradictoire, et
+      // elle serait invisible sans ce champ.
+      told_model: ruleQuestionContext != null,
+    }));
+  }
+  // ── LOT M7 · LE COMPTEUR DU REPLI DE SÉCURITÉ ─────────────────────────────
+  //
+  // ⛔ IL COMPTE, IL NE GARDE RIEN. Aucune décision ne dépend de cette ligne:
+  // elle est écrite APRÈS l'armement, elle ne modifie rien, et la retirer ne
+  // changerait aucune sortie. Un compteur qui déciderait serait une SECONDE
+  // autorité de sécurité, plus faible que la vraie (elle ne lit que du texte et
+  // ne vérifie rien en sortie) — et une seconde autorité plus faible est pire
+  // que pas de seconde autorité: elle ferait croire à une protection absente.
+  //
+  // ── CE QU'IL EXISTE POUR VOIR ────────────────────────────────────────────
+  // Une préférence est une consigne de prompt SANS contrôle en sortie; une
+  // contrainte dure repasse sur les aliments réellement nommés. Si une allergie
+  // finit rangée du côté préférence, elle perd donc sa ceinture — et rien, dans
+  // le produit, ne le dit. *« Le dépôt a déjà payé ce prix une fois sur cette
+  // table »*: `student_safety_constraints` a eu six lecteurs armés et zéro
+  // écrivain pendant que quelqu'un déclarait une anaphylaxie.
+  //
+  // ⚠️ ET LE LOT M1 VIENT D'OUVRIR UN CHEMIN NEUF POUR CE DÉFAUT. La règle
+  // 6-quater interdit au modèle de router une allergie vers
+  // `profile_statement`; si elle fuit, la personne reçoit « ajoute-le à tes
+  // aliments évités » — un renvoi vers un champ sans ceinture, au lieu de la
+  // table de sécurité. `filed_as_preference` est le nombre qui le dira.
+  //
+  // ⚠️ LE DÉNOMINATEUR EXISTE AVANT LE NUMÉRATEUR: la ligne part à CHAQUE tour
+  // d'élève, pas seulement quand ça mord. Sans ça, « 0 repli » ne se distingue
+  // pas de « 0 tour observé » — la forme exacte sous laquelle un lot désarmé
+  // ressemble à un lot qui marche.
+  //
+  // ⚠️ `safetyRequested` LIT `turnFrame` APRÈS LE PLANCHER, et c'est essentiel:
+  // `detectDeclaredSafetyConstraint` ajoute l'effet quand le dispatcher l'a
+  // manqué (bien plus haut dans cette fonction). Lire avant compterait en repli
+  // tous les tours que le plancher RATTRAPE, c'est-à-dire ceux où le filet
+  // fonctionne.
+  if (keelTurn.is_student === true) {
+    const safetyFallback = observeSafetyFallback({
+      text: userMessage,
+      safetyRequested: turnFrame.direct_effects.some(
+        (effect) => effect.effect_type === "declare_safety_constraint",
+      ),
+    });
+    console.info(JSON.stringify({
+      tag: SAFETY_FALLBACK_TAG,
+      event: "seen",
+      request_id: requestId,
+      turn_id: turnFrame.turn_id,
+      surface: "conversation",
+      shaped: safetyFallback.shaped,
+      slugs: safetyFallback.slugs,
+      // ⚠️ LE ZÉRO DIT POURQUOI. `unreadable: true` veut dire « rien vu PAR
+      // IGNORANCE », pas « rien à voir » — sans ce champ, un compteur cassé
+      // rendrait la lecture la plus rassurante et la plus fausse.
+      unreadable: safetyFallback.unreadable,
+      safety_requested: safetyFallback.safetyRequested,
+      fell_back: safetyFallback.fellBack,
+      // ⚠️ CE CHAMP EST LE POINT DU LOT, et il est plus étroit que `fell_back`:
+      // il dit que le tour a non seulement manqué la table de sécurité, mais
+      // qu'il a activement renvoyé la personne vers un CHAMP de préférences.
+      filed_as_preference:
+        String(dispatcherSignals.profile_statement?.kind ?? "") ===
+          "food_preference",
+    }));
+  }
   const onDemandTriggers = buildOnDemandTriggersFromDispatcherSignals(
     dispatcherSignals,
   );
@@ -6539,6 +6802,11 @@ export async function processMessage(
     keelTurn.is_student
       ? keelTurn.plan_block
       : activePlanSnapshotPromptBlock(planItemSnapshot),
+    // ⛔ LOT M6 · LA RÈGLE ENTRE AVANT LA GÉNÉRATION, PAS APRÈS. `null` sur la
+    // quasi-totalité des tours: ce bloc ne coûte que sur celui où la question
+    // tombe, et il est la seule chose qui empêche le modèle de deviner une
+    // cause qui contredit la phrase qu'on va coller sous lui.
+    ruleQuestionContext,
     // eva-r6 B02: directive de tour pour la preemption detresse SANS ideation
     // — le companion sortait un cadrage urgences disproportionne. Donnee de
     // tour (budget companion preserve), pas une regle de prompt.

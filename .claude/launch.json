@@ -315,6 +315,66 @@
       "cwd": "frontend",
       "port": 5202,
       "autoPort": false
+    },
+    {
+      "name": "frontend-h1",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5205",
+        "--strictPort"
+      ],
+      "cwd": "frontend",
+      "port": 5205,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-b2c",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5210",
+        "--strictPort"
+      ],
+      "cwd": "frontend",
+      "port": 5210,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-ff059",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5215",
+        "--strictPort"
+      ],
+      "cwd": "frontend",
+      "port": 5215,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-1session",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5220",
+        "--strictPort"
+      ],
+      "cwd": "frontend",
+      "port": 5220,
+      "autoPort": false
     }
   ]
 }

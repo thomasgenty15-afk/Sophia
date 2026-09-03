@@ -436,3 +436,92 @@ export function correctionRetryInstruction(plan: CorrectionPlan): string | null 
     ...plan.phrases.map((p) => `- ${p}`),
   ].join("\n");
 }
+
+// ---------------------------------------------------------------------------
+// LE CRITÈRE D'ADOPTION D'UNE RELANCE — une DISTANCE, plus un compte
+// ---------------------------------------------------------------------------
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⛔ CE QUE LE COMPTE BINAIRE JETAIT, ET C'ÉTAIT PAYÉ À CHAQUE PLAN.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * L'adoption d'une relance se décidait sur `offBandCount` — 0 ou 1 par axe,
+ * comparé par un `<` STRICT. Or `CompositionVerdict` ne porte que des MOTS
+ * (`"below"`, `"under"`): une seconde passe qui monte de 68 % à 84 % de la
+ * bande reste `below`, le compte ne bouge pas, et la relance est jetée.
+ *
+ * Mesuré le 2026-08-23 sur sept plans solo: la boucle levait
+ * `raise_energy` + `raise_protein_component` **7 fois sur 7**, payait 7 appels
+ * de modèle (≈ 38 s et 5 600 jetons de sortie chacun), et n'en adoptait **1**.
+ * Le rendement documenté d'une relance est ×1,21 sur l'énergie — c'est-à-dire
+ * précisément le genre de progrès qu'un compte binaire ne peut pas voir.
+ *
+ * ── CE QUE CETTE FONCTION AJOUTE, ET CE QU'ELLE NE CHANGE PAS ─────────────
+ * Elle rend une DISTANCE, plus petite = mieux, et elle garde exactement les
+ * mêmes axes et les mêmes silences que le compte:
+ *
+ *   · `not_computable` VAUT ZÉRO, comme avant. Une relance qui rendrait un plan
+ *     moins lisible passerait sinon pour une amélioration, et le produit
+ *     préférerait l'ignorance à l'imperfection.
+ *   · La densité et les sentinelles n'ont pas d'amplitude accessible ici: elles
+ *     comptent 1 chacune, comme avant. Leur inventer une magnitude serait une
+ *     précision qu'aucune mesure ne soutient.
+ *
+ * Seuls l'énergie et la protéine gagnent une amplitude, parce que ce sont les
+ * deux seules pour lesquelles l'appelant tient déjà les nombres.
+ *
+ * ⚠️ L'ÉCHELLE EST RELATIVE, JAMAIS EN KCAL. Un écart se mesure en fraction de
+ * la cible, sinon un grand corps pèserait plus lourd dans l'arbitrage qu'un
+ * petit — et « de combien ce plan rate SA propre cible » est la seule question
+ * qui a un sens ici. Une grandeur hors bande coûte donc au moins 1, comme dans
+ * le compte, plus sa fraction d'écart: deux axes ratés restent pires qu'un seul.
+ *
+ * PURE: aucun I/O, aucune horloge.
+ */
+export function offBandDistance(args: {
+  verdict: CompositionVerdict;
+  envelope: Envelope;
+  /** L'énergie du plan sur TOUTE la fenêtre, `null` si non mesurée. */
+  computedKcal: number | null;
+  /** La protéine du plan sur toute la fenêtre, `null` si non mesurée. */
+  computedProteinG: number | null;
+  daysCovered: number;
+}): number {
+  const { verdict, envelope } = args;
+  const days = Math.max(1, Math.floor(args.daysCovered));
+  let d = 0;
+
+  if (verdict.energy === "below" || verdict.energy === "above") {
+    d += 1;
+    if (
+      envelope.mode === "per_kg" && envelope.energy !== null &&
+      args.computedKcal !== null && Number.isFinite(args.computedKcal)
+    ) {
+      const perDay = args.computedKcal / days;
+      const bound = verdict.energy === "below"
+        ? envelope.energy.low
+        : envelope.energy.high;
+      if (bound > 0) d += Math.abs(perDay - bound) / bound;
+    }
+  }
+
+  if (verdict.protein === "under") {
+    d += 1;
+    if (
+      envelope.mode === "per_kg" && envelope.proteinFloorG > 0 &&
+      args.computedProteinG !== null && Number.isFinite(args.computedProteinG)
+    ) {
+      const perDay = args.computedProteinG / days;
+      const floor = envelope.proteinFloorG;
+      // ⚠️ `max(0, …)`: `under` et « au-dessus du plancher » ne peuvent pas
+      // coexister, mais un appelant qui passerait deux mesures désaccordées ne
+      // doit pas pouvoir RÉDUIRE la distance d'un axe raté.
+      d += Math.max(0, (floor - perDay) / floor);
+    }
+  }
+
+  if (verdict.density === "above") d += 1;
+  d += verdict.sentinels.missing.length;
+  return d;
+}

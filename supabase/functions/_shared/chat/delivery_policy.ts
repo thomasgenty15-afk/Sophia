@@ -53,6 +53,37 @@ export const DAILY_OPT_IN_CAP = 5;
 /**
  * Les bilans : ils partent toujours, et ils RÉSERVENT leur créneau dans le
  * plafond au lieu de s'y ajouter.
+ *
+ * ══════════════════════════════════════════════════════════════════════════
+ * FF-062 R16 — TRANCHÉ LE 2026-09-01: C'EST CETTE LISTE QUI GRANDIT, PAS LE
+ * PLAFOND.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * FF-062 R1 autorise **trois** messages proactifs par jour dans son pire cas
+ * (le repas d'un créneau hors plan + le rappel de pesée + le bilan du soir),
+ * alors que `DAILY_UNSOLICITED_CAP` en autorise **deux**. Sans arbitrage, le
+ * troisième serait refusé par cette politique — et il aurait l'air de marcher,
+ * puisqu'un refus se compte comme une décision produit et pas comme une panne.
+ *
+ * Deux issues existaient. Monter le plafond à trois aurait relâché la garde
+ * pour TOUS les non-sollicités, y compris ceux qu'elle protège justement — un
+ * élève pourrait recevoir trois relances là où deux étaient la limite étudiée.
+ *
+ * On fait donc entrer ici les canaux **adossés à un fait du plan**: ils
+ * réservent leur créneau au lieu de s'y ajouter, exactement comme les bilans,
+ * et le plafond des non-sollicités reste à deux. C'est la forme exacte de T4
+ * amendée: *« le budget partagé tient pour les demandes non sollicitées; les
+ * canaux adossés à un fait du plan en sont exemptés »*.
+ *
+ * ⚠️ CE QUE ÇA COÛTE, ET IL FAUT LE SAVOIR: un jour chargé (trois canaux
+ * garantis) ne laisse plus de créneau à une relance. C'est le bon arbitrage
+ * dans ce sens-là — quelqu'un qui reçoit déjà trois messages n'a pas besoin
+ * d'être relancé — mais c'est un arbitrage, pas une conséquence neutre.
+ *
+ * ⛔ CETTE LISTE N'EST PAS UNE COMMODITÉ. Un purpose ajouté ici ne peut plus
+ * être refusé par le plafond: il part TOUJOURS. N'y entre que ce qui répond à
+ * un fait que la personne a produit — un plan qui s'achève, un créneau qu'elle
+ * a déclaré, une pesée qu'elle attend. Une envie de parler n'y entre pas.
  */
 export const GUARANTEED_PURPOSES = new Set<string>([
   "keel_daily_pulse",
@@ -60,6 +91,35 @@ export const GUARANTEED_PURPOSES = new Set<string>([
   "action_evening_review",
   "action_evening_review_already_resolved",
   "weekly_progress_review",
+  // ⟳ FF-062 — AJOUTÉS AVEC LEUR CANAL, le 2026-09-02 (lot 6). Leur émetteur
+  // est `keel-proactive-v1`; les déclarer avant lui aurait fait deux lignes que
+  // personne ne peut expliquer.
+  //
+  // ⛔ POURQUOI CES DEUX-LÀ Y ONT DROIT, ET PAS « UNE ENVIE DE PARLER »: les
+  // deux répondent à un fait que la PERSONNE a produit. C1 part parce qu'elle a
+  // coché « je mange dehors » sur ce créneau; C2 parce que la cadence de son
+  // objectif est écoulée depuis sa dernière pesée. Ni l'un ni l'autre ne
+  // s'invente une occasion.
+  //
+  // ⚠️ ET C'EST CE QUI REND R1 STRUCTUREL. Un jour à trois canaux (C1 + C2 +
+  // le bilan du soir) livre trois messages, et ces trois-là CONSOMMENT chacun
+  // un créneau (`countsAsUnsolicited: true` en étape 8): le plafond des non
+  // sollicités tombe alors à zéro et la relance de la journée est refusée. Le
+  // pire cas de la fiche fait donc exactement trois messages, sans qu'aucun
+  // compteur neuf n'ait été écrit.
+  "keel_slot_meal",
+  "keel_weigh_in",
+  // ⟳ FF-054 §3.2 — LE RETOUR DE FIN DE PLAN, SOUS SON PROPRE NOM (2026-09-02).
+  //
+  // Il sortait sous `keel_daily_pulse` pour hériter de la garantie de ce
+  // purpose-là, ce qui rendait « combien de retours de fin de plan sont
+  // partis ? » indénombrable — la question même que §10 de sa fiche pose. Il a
+  // son nom depuis qu'il a son émetteur (`runPlanFeedbackStep`, 22h locales).
+  //
+  // Il a le droit d'être garanti pour la raison qui vaut pour les deux
+  // au-dessus: il répond à un fait que la personne a produit — sa fenêtre de
+  // plan vient de se fermer. Une fois par plan, jamais deux.
+  "keel_plan_feedback",
 ]);
 
 /** Envois programmés que l'élève a acceptés en acceptant le plan de son coach. */

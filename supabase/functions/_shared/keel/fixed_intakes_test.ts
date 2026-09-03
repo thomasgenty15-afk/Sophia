@@ -89,7 +89,11 @@ Deno.test("les listes recopiées sont ÉGALES à celles d'origine", () => {
         merge: null,
         boxMemberIds: [],
         weighedMemberIds: [],
+  kitchenEquipment: null,
+  cookOnlyDay: null,
+  soloBoxes: false,
   boxMemberDiets: [],
+  boxMemberExclusions: [],
       }).dishes[0]?.day,
       d,
       `${d} n'est pas un jeton de jour du parseur`,
@@ -299,7 +303,11 @@ Deno.test("LES DEUX BOUTS — le parseur DROP le plat, la consigne ne suffit pas
     merge: null,
     boxMemberIds: [],
     weighedMemberIds: [],
+  kitchenEquipment: null,
+  cookOnlyDay: null,
+  soloBoxes: false,
   boxMemberDiets: [],
+  boxMemberExclusions: [],
   });
   // Le lundi tombe, le samedi reste. Un seul plat survit.
   assertEquals(meal.dishes.length, 1);
@@ -529,6 +537,10 @@ Deno.test("R3 — sous restriction, la branche 1 SURVIT et l'enveloppe n'existe 
 
 const PROMPT_ARGS = {
   firstDayCookable: true,
+  hasFreezer: false,
+  oneCookingSession: false,
+  cookOnlyDay: null,
+  soloBoxes: false,
   contentLocale: "en-US",
   budgetAmount: null,
   safetyConstraints: null,
@@ -559,7 +571,9 @@ const PROMPT_ARGS = {
   merge: null,
   boxMemberIds: [],
   weighedMemberIds: [],
+  kitchenEquipment: null,
   boxMemberDiets: [],
+  boxMemberExclusions: [],
 };
 
 Deno.test("R6 — DÉSARMEMENT: sans apport, la consigne est identique AU CARACTÈRE PRÈS", () => {

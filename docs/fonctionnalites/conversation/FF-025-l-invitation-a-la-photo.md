@@ -51,8 +51,11 @@ jamais montré la porte.
   puis silence.
 - Si la photo arrive : la chaîne FF-018 telle quelle (identification, jamais de
   calories), rattachée au fait déjà écrit — pas un second fait.
-- L'invitation consomme le **budget partagé** « une demande par jour » (avec la
-  question d'approfondissement de FF-017 et la recommandation de FF-028).
+- L'invitation consomme le **budget partagé** « une demande par jour », avec la
+  question d'approfondissement de FF-017 — et **elle seule** depuis le
+  2026-09-01 : FF-028 est abandonnée, et
+  [FF-062](FF-062-quand-sophia-parle-la-premiere.md) a exempté de ce budget les
+  canaux adossés à un fait du plan.
 
 ### Hors périmètre — engageant
 

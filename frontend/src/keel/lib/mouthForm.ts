@@ -46,13 +46,13 @@ import {
   type TargetWeightRefusal,
   targetWeightRefusal,
 } from "../../../../supabase/functions/_shared/keel/weight_pace.ts";
-// ⛔ `weeksToTarget` N'EST PLUS IMPORTÉ ICI — lot `L3`, 2026-08-22. La fonction
-// reste dans `weight_pace.ts` avec ses tests: c'est de l'arithmétique juste, et
-// ce n'est pas elle qu'on retire. Ce qui est retiré, c'est la PROMESSE — un
-// nombre de semaines rendu à quelqu'un alors que notre erreur d'estimation
-// (±580 kcal/j) est plus grande que le déficit qu'on vise (500 kcal/j), au
-// point que la borne haute du nombre de semaines est l'infini. Voir
-// `lib/arrivalHorizon.ts` pour la mesure et la phrase qui la remplace.
+// ⚠️ `weeksToTarget` N'EST TOUJOURS PAS IMPORTÉ ICI, ET CE N'EST PLUS PARCE QUE
+// LE CHIFFRE EST INTERDIT (il est revenu le 2026-09-01, à la demande): c'est
+// `arrivalHorizon.ts` qui l'appelle, pour que la division et la réserve qui
+// l'accompagne restent au même endroit. Ce module-ci NOMME les trois nombres
+// (poids d'aujourd'hui, poids visé, cran du curseur) et ne les divise pas.
+// Voir `lib/arrivalHorizon.ts` pour la mesure et pour ce que la phrase doit
+// porter avec le chiffre.
 import {
   type ArrivalHorizon,
   arrivalHorizonFor,
@@ -75,7 +75,13 @@ import type { MemberGender, MemberGoal } from "../api/household";
 // Le type, lui, est effacé à l'exécution — et le partager est ce qui empêche
 // une SECONDE forme du shaker de naître ici et de diverger de l'écrivain.
 import type { ShakerToWrite } from "../api/mouthProfile";
-import type { EatingOccasionSlot } from "../api/mealGeneration";
+import { EATING_OCCASIONS, type EatingOccasionSlot } from "../api/mealGeneration";
+import type { HabitSlotWrite } from "../api/householdHabits";
+import {
+  type ExtrasDraft,
+  habitEntriesToWrite,
+  type MealExtra,
+} from "./mealExtras";
 
 // ---------------------------------------------------------------------------
 // LES SIX BLOCS
@@ -187,6 +193,17 @@ export interface MouthFormDraft {
   // ── Bloc 4 · ce qu'elle mange déjà ──────────────────────────────────────
   /** Une ligne libre par moment nommé. La clé est le moment. */
   habits: Readonly<Record<string, string>>;
+  /**
+   * CE QU'ELLE PREND À CÔTÉ DU PLAT, par moment — les bulles (2026-09-01).
+   *
+   * ⛔ UNE CLÉ ABSENTE N'EST PAS UN TABLEAU VIDE, et c'est tout l'objet du lot:
+   * absente = « personne n'a demandé » (le moteur retire sa convention de
+   * 58 %), vide = « on a demandé, rien à côté » (le plat porte tout le repas).
+   * Cinq bulles éteintes ont pourtant la MÊME apparence dans les deux cas —
+   * ce qui les sépare est la clé, posée au premier clic. Voir
+   * `lib/mealExtras.ts::toggleExtra`.
+   */
+  extras: ExtrasDraft;
   /** Le shaker, ou `null`. Voir `ShakerDraft`. */
   shaker: ShakerDraft | null;
   // ── Bloc 5 · les allergies ──────────────────────────────────────────────
@@ -264,6 +281,7 @@ export function emptyMouthDraft(): MouthFormDraft {
     takesBread: null,
     appetite: "",
     habits: {},
+    extras: {},
     shaker: null,
     allergies: [],
     allergiesNone: false,
@@ -313,6 +331,14 @@ export interface KnownMouth {
   appetite: AppetiteLevel | null;
   /** Les habitudes DÉJÀ écrites, par moment. Voir l'avertissement ci-dessous. */
   habits: Readonly<Record<string, string>>;
+  /**
+   * LES EXTRAS DÉJÀ ÉCRITS, par moment RÉPONDU.
+   *
+   * ⛔ MÊME CICATRICE QUE `habits` ET `rhythm` JUSTE AU-DESSUS: la porte
+   * REMPLACE la liste d'entrées. Ouvrir la fiche sans cette semence puis
+   * enregistrer effacerait des bulles cochées, sans un mot.
+   */
+  extras: Readonly<Record<string, MealExtra[]>>;
   /**
    * SES MOMENTS, tels que la base les porte — `null` = « comme la maison ».
    *
@@ -415,6 +441,13 @@ export function knownMouthForOwner(input: {
   } | null;
   /** `null` = PAS LU. `[]` = lu, et elle n'en a aucune. */
   habits: readonly { slot: string; usual: string }[] | null;
+  /**
+   * ⚠️ REQUIS, ET PAS `?`. Un appelant qui oublie la clé rendrait `undefined`,
+   * lu comme « aucun moment répondu » — c'est-à-dire une fiche qui s'ouvre sur
+   * des bulles éteintes alors que la base en porte, puis les efface au Save.
+   * `{}` se lit et se compare; `undefined` se traverse.
+   */
+  extras: Readonly<Record<string, MealExtra[]>>;
 }): KnownMouth | null {
   if (!input.isOwner) return null;
   if (input.ownMouth === null || input.habits === null) return null;
@@ -435,6 +468,7 @@ export function knownMouthForOwner(input: {
     takesBread: input.body?.takesBread ?? null,
     appetite: input.body?.appetite ?? null,
     habits: Object.fromEntries(input.habits.map((h) => [h.slot, h.usual])),
+    extras: input.extras,
     // ⚠️ `undefined` DEVIENT `null`, ET LES DEUX DISENT LA MÊME CHOSE ICI:
     // « rien sur sa ligne » = « aux moments de la maison ». L'appelant qui ne
     // sait pas encore passe donc la même réponse que celui qui sait qu'elle
@@ -468,6 +502,7 @@ export function draftFromKnown(known: KnownMouth): MouthFormDraft {
     takesBread: known.takesBread ?? null,
     appetite: known.appetite ?? "",
     habits: { ...known.habits },
+    extras: { ...known.extras },
     rhythm: known.rhythm ?? null,
   };
 }
@@ -671,12 +706,17 @@ export function paceControlFor(
  * dead-button`. Ce type porte donc le refus ET ce qui se dit du chemin sur le
  * même objet, pour qu'un rendu ne puisse pas prendre l'un sans l'autre.
  *
- * ⛔ `weeks` A DISPARU DE CE TYPE — lot `L3`, 2026-08-22, décision produit.
- * Il portait un nombre de semaines exact; l'erreur d'estimation (±580 kcal/j)
- * est plus grande que le déficit visé (500 kcal/j), donc l'intervalle réel de
- * l'écart quotidien TRAVERSE ZÉRO et la borne haute du nombre de semaines est
- * l'infini. Un jeton le remplace: il n'existe plus de champ où un nombre de
- * semaines pourrait être réécrit. Voir `lib/arrivalHorizon.ts`.
+ * ⚠️ `weeks` EST REVENU DANS CE TYPE LE 2026-09-01, À LA DEMANDE — mais il
+ * n'y est pas revenu NU. Il vit dans `horizon`, et `horizon` ne sait se rendre
+ * que par `arrivalHorizonCopy`, qui colle au chiffre ce qu'il est: le calcul
+ * du curseur, pas une date. La mesure qui l'avait fait retirer le 2026-08-22
+ * (erreur d'estimation ±580 kcal/j > déficit visé 500 kcal/j, donc une borne
+ * haute à l'infini) est toujours vraie et toujours écrite dans
+ * `lib/arrivalHorizon.ts`; c'est ce que l'écran en DIT qui a changé.
+ *
+ * ⛔ NE LIS PAS `horizon.weeks` POUR LE RENDRE À LA MAIN. Le champ existe pour
+ * que la phrase se compose, pas pour qu'un second écran affiche le nombre
+ * sans sa réserve — c'est exactement l'état qui a coûté le lot `L3`.
  */
 export type TargetWeightState =
   /** Pas de direction, ou champ vide: rien à dire. */
@@ -715,6 +755,11 @@ export function targetWeightStateFor(
     kind: "accepted",
     horizon: arrivalHorizonFor({
       targetAccepted: true,
+      // ⚠️ LES DEUX POIDS SONT CEUX QUE LE REFUS VIENT DE VALIDER, pas ceux du
+      // brouillon relus une seconde fois: `targetWeightRefusal` a déjà dit
+      // d'eux qu'ils portent un écart non nul et le bon sens de marche.
+      currentKg: current,
+      targetKg: target,
       paceKgPerWeek: pace.kind === "slider" ? pace.value : null,
     }),
   };
@@ -901,7 +946,12 @@ export function filledPreferenceBlocks(
 ): readonly MouthFormBlock[] {
   const out: MouthFormBlock[] = [];
   const anyHabit = Object.values(draft.habits).some((v) => v.trim() !== "");
-  if (anyHabit || draft.shaker !== null) out.push("habits");
+  // ⚠️ UNE BULLE ÉTEINTE COMPTE QUAND MÊME, si son moment a été RÉPONDU.
+  // « J'ai regardé, je ne prends rien à côté » est une réponse, et la
+  // distinguer d'un bloc jamais ouvert est exactement ce que la clé existe
+  // pour faire — même décision que `allergiesNone` deux lignes plus bas.
+  const anyExtras = Object.keys(draft.extras).length > 0;
+  if (anyHabit || anyExtras || draft.shaker !== null) out.push("habits");
   if (draft.allergies.length > 0 || draft.allergiesNone) out.push("allergies");
   if (draft.dislikes.length > 0 || draft.diet !== "") out.push("tastes");
   return out;
@@ -1008,7 +1058,7 @@ export interface MouthPersistPayload {
   paceKgPerWeek: number | null;
   /** Ses moments, ou `null` pour « comme la maison ». Jamais `[]`. */
   rhythm: readonly EatingOccasionSlot[] | null;
-  habits: readonly { slot: string; kind: "own_usual"; usual: string }[];
+  habits: readonly HabitSlotWrite[];
   /**
    * LE SHAKER, OU `null` — ET IL EST ARRIVÉ ICI LE 2026-08-18 (D1).
    *
@@ -1057,13 +1107,15 @@ export function mouthToPersist(
     // vide (`bad_slots`), et surtout: un champ laissé blanc veut dire « rien à
     // dire », pas « elle ne mange rien ». Le filtrer ici plutôt qu'au rendu
     // garde le brouillon fidèle à ce qui est tapé.
-    habits: Object.entries(draft.habits)
-      .map(([slot, usual]) => ({
-        slot,
-        kind: "own_usual" as const,
-        usual: usual.trim(),
-      }))
-      .filter((h) => h.usual !== ""),
+    // ⛔ ET LES BULLES PASSENT PAR LA MÊME LISTE. Une entrée qui ne porte QUE
+    // des extras n'a pas de prose, donc pas de `own_usual` possible: elle part
+    // en `household_dish` (« le plat de la maison, plus du pain »). Le
+    // découpage vit dans `habitEntriesToWrite`, avec ses tests.
+    habits: habitEntriesToWrite({
+      habits: draft.habits,
+      extras: draft.extras,
+      occasions: EATING_OCCASIONS,
+    }),
     // ⚠️ LA MÊME LIGNE QUE LES HABITUDES, ET LA FRONTIÈRE ENTRE LES DEUX EST LE
     // SUJET: une habitude est une TENDANCE que la composition contourne, un
     // apport fixe est une QUANTITÉ CONNUE qu'elle compte. `shakerToWrite` rend
@@ -1101,10 +1153,36 @@ export const SELF_SHEET_FIELDS = [
   "allergies",
   "allergiesNone",
   "habits",
+  // ⛔ SANS CETTE LIGNE, LES BULLES NE SE COCHENT PAS. Le brouillon du
+  // titulaire est DÉRIVÉ de `self` à chaque rendu: un champ absent de cette
+  // liste nommée est recalculé à l'ancienne au rendu suivant, et le clic
+  // semble ne rien faire. C'est le défaut mesuré le 2026-08-24 sur les trois
+  // « Oui / Non » que ces bulles remplacent — une liste-garde nommée ne garde
+  // que ce qu'elle nomme.
+  "extras",
   "dislikes",
   "shaker",
   "rhythm",
   "diet",
+  // ── ⛔ ① ET ⑤ MANQUAIENT ICI DEPUIS LEUR LIVRAISON (2026-08-20) ──────────
+  //
+  // Signalé le 2026-08-24, capture à l'appui: « j'arrive pas à cocher les
+  // choix », sur les trois « Oui / Non » de l'assiette ET sur les trois crans
+  // de l'appétit. Le clic partait bien — les contrôles sont des `<input
+  // type="radio">` dans un `<label>` —, mais il n'atterrissait nulle part: le
+  // brouillon du titulaire est DÉRIVÉ de `self` à chaque rendu, donc un champ
+  // absent de cette liste est recalculé à l'ancienne au rendu suivant. Le
+  // bouton se rallumait dans la même image, et le geste avait l'air refusé.
+  //
+  // ⚠️ C'EST LE MÊME DÉFAUT QUE LE RÉGIME, ET IL A ÉCHAPPÉ AU TEST POUR UNE
+  // SEULE RAISON: la liste n'a pas été étendue quand les quatre champs sont
+  // arrivés dans la fenêtre. Le test lit CETTE liste — il ne pouvait donc pas
+  // signaler ce qu'elle ne nomme pas. Tout champ ajouté à la fenêtre s'ajoute
+  // ici DANS LE MÊME LOT, sans quoi la garde ne garde rien.
+  "takesDessert",
+  "takesCheese",
+  "takesBread",
+  "appetite",
 ] as const;
 
 export type SelfSheetField = (typeof SELF_SHEET_FIELDS)[number];

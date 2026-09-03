@@ -76,7 +76,11 @@ import {
   conditionGateReason,
 } from "./condition_energy_gate.ts";
 import type { MouthDayEnergy } from "./mouth_energy.ts";
-import type { MealComponent } from "./tokens.ts";
+import {
+  EXTRA_BEARING_SLOTS,
+  slotBearsExtras,
+  UNANSWERED_EXTRAS_SHARE,
+} from "./meal_extras.ts";
 
 /**
  * POURQUOI UNE BOUCHE N'EST PAS ANCRÉE. Nommé, jamais un facteur `1` muet.
@@ -227,139 +231,30 @@ export const ANCHOR_FACTOR_MIN = 0.60;
 export const MEAL_MAX_GRAMS_PER_KG = 8;
 
 /**
- * QUELLE PART D'UN REPAS LE PLAT COMPOSÉ PORTE VRAIMENT.
+ * CE QUE CHAQUE MOMENT PORTE À CÔTÉ DU PLAT, EN KCAL — ou `null`.
  *
- * ── ⛔ LE DÉFAUT, NOMMÉ PAR LE PROPRIÉTAIRE LE 2026-08-20 ─────────────────
- * « Christèle mange du fromage et un dessert, on est con de pas avoir pris ça
- * en compte. » Il a raison, et c'est vérifiable: sur le plan servi ce jour-là,
- * **neuf plats sur neuf sont des plats principaux**. Aucun fromage, aucun
- * dessert, aucun pain, aucun fruit.
+ * ⛔ TROIS ÉTATS, ET LA DIFFÉRENCE EST LE LOT ENTIER. `null` = jamais demandé.
+ * Clé absente = ce moment-là n'a pas été renseigné. Clé à `0` = renseigné, rien
+ * à côté du plat. Les deux premiers retombent sur `UNANSWERED_EXTRAS_SHARE`;
+ * le troisième laisse le plat porter tout son repas.
  *
- * Le moteur faisait donc porter au SEUL plat principal l'énergie du repas
- * ENTIER. C'est exactement l'erreur déjà corrigée deux crans plus haut
- * (`dayCoverageOf`: une cible de journée confrontée à un seul dîner), et elle
- * se rejouait un cran plus bas — repas contre plat.
- *
- * ── D'OÙ VIENT `0,42` ────────────────────────────────────────────────────
- * Un dîner français ordinaire, décomposé:
- *
- *     soupe / entrée    100 kcal
- *     PLAT PRINCIPAL    300 kcal   <- le seul que le plan compose
- *     pain               80 kcal
- *     fromage           120 kcal
- *     dessert / fruit   120 kcal
- *     ───────────────────────────
- *     TOTAL             720 kcal   ->  le plat = 42 %
- *
- * ⚠️ C'EST UNE CONVENTION DÉCLARÉE, ET ELLE A UNE DATE DE PÉREMPTION. Elle
- * n'existe que parce que le plan ne compose QUE le plat. Le jour où il composera
- * le repas entier (fromage, dessert, pain), cette constante doit passer à `1` —
- * et non être « ajustée ». Une convention qui survit à sa cause est le mode
- * d'échec que ce dépôt documente ailleurs en toutes lettres.
- *
- * ── LA VÉRIFICATION QUI L'A FIXÉE ────────────────────────────────────────
- * Christèle (169 cm, 58 kg, 56 ans, stabilisation), avec cette part et un cran
- * d'activité sédentaire: **226 g** de plat principal. Le propriétaire, qui la
- * connaît, annonçait 225 g. Les deux chemins se rejoignent à un gramme.
+ * ⚠️ `Record<string, number>` ET PAS `Record<ExtraBearingSlot, number>`: la clé
+ * vient d'une saisie d'écran et d'un jsonb, pas d'un type. Un moment qui ne
+ * porte pas d'extras y serait simplement ignoré (`slotBearsExtras`).
  */
-export const COMPOSED_DISH_MEAL_SHARE = 0.42;
-
-// ---------------------------------------------------------------------------
-// LA PART DU PLAT, CALCULÉE PAR PERSONNE (2026-08-20)
-// ---------------------------------------------------------------------------
-//
-// ── ⛔ CE QUE `COMPOSED_DISH_MEAL_SHARE` NE POUVAIT PAS FAIRE ─────────────
-// C'est une MOYENNE française, et une moyenne se trompe dans les deux sens à
-// la fois. Mesuré sur le foyer `5600347f`:
-//
-//     Christèle  plat 300 + pain 80 + fromage 120 + dessert 120 = 620 -> 48 %
-//     iku        plat 300 + pain 80                             = 380 -> 79 %
-//
-// Le moteur appliquait 42 % aux deux. Christèle était à peu près juste PAR
-// ACCIDENT; iku recevait environ la moitié de ce qu'il lui faut — et c'est lui
-// qui cuisine et qui mange exactement ce que le plan compose.
-//
-// ── ⚠️ LA DATE DE PÉREMPTION N'EST PAS SUPPRIMÉE, ELLE EST DÉPLACÉE ──────
-// La phrase écrite au-dessus de `COMPOSED_DISH_MEAL_SHARE` reste vraie et vaut
-// pour les DEUX: la moyenne comme le calcul n'existent que parce que le plan ne
-// compose QUE le plat. Le jour où il composera le repas entier (fromage,
-// dessert, pain), les deux disparaissent ENSEMBLE — la constante ne « s'ajuste »
-// pas, et la table ci-dessous ne se « recalibre » pas. Une convention qui
-// survit à sa cause est le mode d'échec que ce dépôt documente en toutes
-// lettres.
-//
-// ⚠️ ET LA MOYENNE NE MEURT PAS AUJOURD'HUI: elle devient le repli des fiches
-// muettes, et le compteur dit combien de bouches sont dans ce cas.
+export type SlotExtraKcal = Readonly<Record<string, number>> | null;
 
 /**
- * CE QUE CHAQUE COMPOSANT PÈSE DANS UN REPAS, EN KCAL.
+ * LES QUATRE ÉTATS DE LA QUESTION, POUR LE COMPTEUR.
  *
- * ⚠️ C'EST UNE CONVENTION DÉCLARÉE, PAS UNE MESURE, et elle est écrite comme
- * telle — exactement comme la décomposition qui a produit `0,42`, dont elle
- * reprend les quatre nombres:
+ * ⟳ 2026-09-01 — LE VOCABULAIRE SURVIT, SON SUJET CHANGE. Ces états comptaient
+ * trois CASES (dessert/fromage/pain) posées une fois pour la personne; ils
+ * comptent désormais les deux MOMENTS qui portent des extras. Les garder
+ * identiques est ce qui rend la colonne d'avant et celle d'après comparables.
  *
- *     PLAT COMPOSÉ      300 kcal   le seul que le plan compose
- *     pain               80 kcal
- *     fromage           120 kcal
- *     dessert / fruit   120 kcal
- *
- * ⛔ ELLE NE PRESCRIT RIEN. Personne ne se voit dire de prendre un dessert: on
- * lit ce que la personne a déclaré prendre déjà, et on en déduit quelle part de
- * son repas le plat porte. Les trois nombres se simplifient dans le rapport —
- * seul leur ORDRE DE GRANDEUR RELATIF compte, et c'est pour ça qu'ils peuvent
- * être une convention sans que le produit mente.
- *
- * ⚠️ TROU NOMMÉ: L'ENTRÉE / LA SOUPE N'EST PAS DEMANDÉE. La décomposition de
- * `0,42` comptait 100 kcal d'entrée; la fiche ne pose que trois questions. Une
- * bouche qui coche les trois obtient donc 48 % et non 42 % — parce qu'on ne
- * fabrique pas une entrée que personne n'a déclarée. Direction assumée: la part
- * du plat monte, donc l'assiette aussi, et c'est le plafond par repas
- * (`MEAL_MAX_GRAMS_PER_KG`) qui reste la ceinture.
- */
-export const MEAL_COMPONENT_KCAL: Readonly<Record<MealComponent, number>> =
-  Object.freeze({
-    dessert: 120,
-    cheese: 120,
-    bread: 80,
-  });
-
-/** LE PLAT LUI-MÊME, dans la même unité. Voir `MEAL_COMPONENT_KCAL`. */
-export const COMPOSED_DISH_KCAL = 300;
-
-/**
- * CE QU'UNE BOUCHE A DIT PRENDRE À CÔTÉ DU PLAT.
- *
- * ⛔ TROIS BOOLÉENS NULLABLES, PAS TROIS BOOLÉENS. `false` veut dire « non,
- * je n'en prends pas » — une RÉPONSE, qui fait MONTER la part du plat. `null`
- * veut dire « je n'ai pas répondu », et les deux ne peuvent pas partager une
- * case cochée ou non: une case vide au fond d'un formulaire qu'on enregistre
- * sans le lire ferait écrire « je ne prends ni pain ni fromage ni dessert »,
- * c'est-à-dire un plat qui porte 100 % du repas, c'est-à-dire deux fois et
- * demie la part d'aujourd'hui. C'est la cicatrice « coche auto = faits faux
- * indémentables », dans le sens qui nourrit trop.
- */
-export interface MealStructure {
-  dessert: boolean | null;
-  cheese: boolean | null;
-  bread: boolean | null;
-}
-
-/**
- * DANS QUEL ÉTAT SE TROUVE LA RÉPONSE D'UNE BOUCHE AUX TROIS CASES.
- *
- * ⛔ QUATRE ÉTATS, PAS DEUX. Sans `not_asked`, une fiche créée AVANT ce lot et
- * une fiche dont le maître a refusé de répondre rendraient le même silence — le
- * zéro ambigu que ce chantier paie en boucle. Voir `ACTIVITY_ANSWER_STATES`,
- * qui porte la même liste pour la même raison.
- *
- *   `answered`      les TROIS cases sont tranchées — le calcul gouverne
- *   `partial`       une ou deux — la moyenne 0,42 reprend la main
- *   `not_answered`  les trois questions ont été POSÉES, aucune tranchée
- *   `not_asked`     la fiche n'a jamais vu ces trois questions
- *
- * ⛔ ET `partial` NE COMPLÈTE RIEN. Traiter une case non répondue comme un
- * « non » ferait monter la part du plat sur une réponse que personne n'a
- * donnée, dans la direction qui nourrit trop.
+ * ⛔ ET `partial` NE COMPLÈTE RIEN. Traiter un moment non renseigné comme un
+ * « rien à côté » ferait monter la part du plat sur une réponse que personne
+ * n'a donnée, dans la direction qui nourrit trop.
  */
 export const MEAL_STRUCTURE_STATES = [
   "answered",
@@ -369,54 +264,114 @@ export const MEAL_STRUCTURE_STATES = [
 ] as const;
 export type MealStructureState = (typeof MEAL_STRUCTURE_STATES)[number];
 
-/**
- * `null` = la fiche n'a jamais vu les trois questions (`not_asked`).
- *
- * PURE: no I/O, no clock, no randomness.
- */
+/** `null` = la fiche n'a jamais vu la question. PURE. */
 export function mealStructureState(
-  structure: MealStructure | null,
+  extras: SlotExtraKcal,
 ): MealStructureState {
-  if (structure === null) return "not_asked";
-  const answers = [structure.dessert, structure.cheese, structure.bread];
-  const known = answers.filter((a) => a !== null).length;
-  if (known === answers.length) return "answered";
+  if (extras === null) return "not_asked";
+  const known = EXTRA_BEARING_SLOTS.filter((slot) =>
+    Object.prototype.hasOwnProperty.call(extras, slot)
+  ).length;
+  if (known === EXTRA_BEARING_SLOTS.length) return "answered";
   if (known === 0) return "not_answered";
   return "partial";
 }
 
-/**
- * QUELLE PART DE SON REPAS LE PLAT COMPOSÉ PORTE, POUR CETTE BOUCHE-LÀ.
- *
- *     part = 300 / (300 + 80 x pain + 120 x fromage + 120 x dessert)
- *
- * Rien coché du tout ⇒ `1`, et ce n'est pas une borne: c'est la définition. Une
- * personne qui ne prend ni pain ni fromage ni dessert mange le plat, et le plat
- * porte alors tout le repas. La ceinture qui empêche une assiette inmangeable
- * est ailleurs, et elle est PHYSIQUE (`MEAL_MAX_GRAMS_PER_KG`).
- *
- * ⛔ LE REPLI EST LA MOYENNE, ET IL EST NEUTRE À L'OCTET PRÈS. Tout état autre
- * qu'`answered` rend `COMPOSED_DISH_MEAL_SHARE` — c'est-à-dire exactement le
- * produit d'avant ce lot pour toute la base existante. C'est la propriété que
- * la contre-épreuve « fiches vides » vérifie, et un repli qui déplacerait le
- * produit de ceux qui n'ont rien répondu serait pire que le défaut qu'il
- * corrige.
- *
- * PURE: no I/O, no clock, no randomness.
- */
-export function composedDishShare(
-  structure: MealStructure | null,
-): { share: number; state: MealStructureState } {
-  const state = mealStructureState(structure);
-  if (state !== "answered" || structure === null) {
-    return { share: COMPOSED_DISH_MEAL_SHARE, state };
-  }
-  let whole = COMPOSED_DISH_KCAL;
-  if (structure.dessert) whole += MEAL_COMPONENT_KCAL.dessert;
-  if (structure.cheese) whole += MEAL_COMPONENT_KCAL.cheese;
-  if (structure.bread) whole += MEAL_COMPONENT_KCAL.bread;
-  return { share: COMPOSED_DISH_KCAL / whole, state };
+/** Le poids d'un moment, ou `0` pour un jeton hors de la liste fermée. */
+function slotWeight(slot: string): number {
+  return Object.prototype.hasOwnProperty.call(SLOT_DAY_WEIGHT, slot)
+    ? SLOT_DAY_WEIGHT[slot as keyof typeof SLOT_DAY_WEIGHT]
+    : 0;
 }
+
+/**
+ * CE QU'ON RETRANCHE À UN MOMENT — et pourquoi ce n'est presque jamais zéro.
+ *
+ * ⛔ TROIS CHEMINS, ET LE PREMIER EST LE PLUS DANGEREUX:
+ *   · le moment ne porte pas d'extras (petit-déjeuner, collations) ⇒ `0`. Le
+ *     plan y compose TOUT, il n'y a rien à côté.
+ *   · le moment n'a pas été renseigné ⇒ `UNANSWERED_EXTRAS_SHARE` du repas.
+ *     Retrancher zéro affirmerait « cette personne ne prend rien à côté »,
+ *     c'est-à-dire ×2,4 sur la cible de toute la population muette.
+ *   · le moment a été renseigné ⇒ la somme lue, telle quelle.
+ *
+ * ⚠️ ET UN PLANCHER, NOMMÉ. Cinq extras sur une petite cible rendraient la part
+ * du plat négative — une assiette vide servie comme une décision. Le plancher
+ * est un RATIO parce que la cible varie d'un facteur trois entre un enfant et
+ * un adulte sportif: un plancher en kcal mordrait sur l'un et jamais sur
+ * l'autre.
+ */
+function extrasKcalFor(
+  slot: string,
+  extras: SlotExtraKcal,
+  mealKcal: number,
+): { kcal: number; floored: boolean } {
+  if (!slotBearsExtras(slot)) return { kcal: 0, floored: false };
+  const answered = extras !== null &&
+    Object.prototype.hasOwnProperty.call(extras, slot);
+  const raw = answered
+    ? Math.max(0, Number(extras[slot]) || 0)
+    : mealKcal * UNANSWERED_EXTRAS_SHARE;
+  const ceiling = mealKcal * (1 - COMPOSED_DISH_MIN_MEAL_SHARE);
+  // ⛔ LE RABOTAGE SE DIT, IL NE SE DEVINE PAS. Une borne qui mord en silence
+  // est indistinguable d'une borne qui ne mord jamais — et la seule chose
+  // qu'on veut savoir d'elle est LAQUELLE des deux elle est. Ce dépôt a déjà
+  // payé `ANCHOR_FACTOR_MAX` et `BOX_FACTOR_MIN` sur ce point exact.
+  return { kcal: Math.min(raw, ceiling), floored: raw > ceiling };
+}
+
+/**
+ * LA PART MINIMALE QU'UN PLAT COMPOSÉ GARDE DE SON REPAS.
+ *
+ * ⚠️ CONVENTION, ET ELLE EST LÀ POUR UN CAS RÉEL: cinq extras déclarés sur un
+ * déjeuner de 560 kcal laisseraient 49 kcal au plat — une cuillère servie comme
+ * un repas. L'ancien système ne pouvait pas descendre sous `300/620 = 0,48`
+ * par construction; celui-ci le peut, donc il lui faut une borne écrite.
+ *
+ * ⛔ ELLE DOIT MORDRE RAREMENT. Une borne qui mord sur la population entière
+ * n'est plus une borne, c'est le calcul — ce dépôt l'a déjà mesuré deux fois
+ * (`ANCHOR_FACTOR_MAX`, `BOX_FACTOR_MIN`). `0,30` laisse passer les cinq extras
+ * sur une cible ordinaire et ne retient que l'absurde.
+ */
+export const COMPOSED_DISH_MIN_MEAL_SHARE = 0.30;
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ 2026-09-01 — `composedDishShare` EST MORT, ET VOICI CE QU'IL FAISAIT
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * Il rendait UN ratio par personne — `300 / (300 + pain + fromage + dessert)` —
+ * et `anchorFactorFor` le multipliait à la cible de la JOURNÉE ENTIÈRE. Avec
+ * lui meurent `MEAL_COMPONENT_KCAL` (120/120/80), `COMPOSED_DISH_KCAL` (300) et
+ * `COMPOSED_DISH_MEAL_SHARE` (0,42).
+ *
+ * ── LES DEUX DÉFAUTS QUI L'ONT TUÉ ────────────────────────────────────────
+ *   ① IL NE SAVAIT PAS DE QUEL REPAS IL PARLAIT. « Je prends du pain » ne dit
+ *     ni midi ni soir; le même ratio partait sur les six moments.
+ *   ② IL AMPUTAIT LE PETIT-DÉJEUNER D'UNE CONVENTION DE DÎNER. `0,42` décrit
+ *     un dîner français (entrée, plat, pain, fromage, dessert); appliqué au
+ *     petit-déjeuner — que le plan compose ENTIÈREMENT — il retirait 58 % d'une
+ *     cible que rien ne venait compléter à côté.
+ *
+ * ── CE QUI LE REMPLACE, ET CE QUE ÇA DÉPLACE ──────────────────────────────
+ * Une somme explicite, moment par moment (voir `anchorFactorFor`). Mesuré avant
+ * d'écrire, sur la cible effective:
+ *
+ *     midi + soir seulement ....... 0,420 → 0,420    +0,0 %
+ *     les trois repas ............. 0,420 → 0,565   +34,5 %
+ *     trois repas + goûter ........ 0,420 → 0,605   +43,9 %
+ *     petit-déjeuner seul ......... 0,420 → 1,000  +138,1 %
+ *
+ * ⚠️ LA LIGNE À +0 % EST LA PREUVE QUE LE RESTE N'EST PAS UN ACCIDENT: une
+ * fiche midi+soir garde sa cible au bit près. Tout l'écart vient des moments
+ * que le plan compose entièrement et qui cessent d'être amputés.
+ *
+ * ⛔ LA CONVENTION `0,42` N'A PAS DISPARU POUR AUTANT — elle a changé de rôle
+ * et d'adresse: `UNANSWERED_EXTRAS_SHARE = 0,58` (`meal_extras.ts`) est son
+ * complément, et il ne s'applique plus qu'à UN MOMENT NON RENSEIGNÉ. La
+ * supprimer aurait multiplié par 2,4 la cible de toute la population muette.
+ */
+
 /**
  * ⚠️ RELEVÉ DE 1,60 À 3,00 LE 2026-08-20, ET CE N'EST PAS UN DESSERRAGE DE
  * CONFORT — c'est le seul moyen que la borne cesse d'être LA VALEUR OPÉRANTE.
@@ -440,25 +395,110 @@ export function composedDishShare(
 export const ANCHOR_FACTOR_MAX = 3.00;
 
 /**
+ * LES MOMENTS QUI ONT UN POIDS — la liste fermée, tenue ICI.
+ *
+ * ⛔ MIROIR DE `MEAL_SLOTS` (`meal_generation.ts`), ET PAS UN IMPORT. Ce
+ * module-ci est petit et pur; `meal_generation.ts` fait sept mille lignes et
+ * tire tout le référentiel derrière lui. C'est l'idiome déjà appliqué à
+ * `meal_plan_window.ts` et à son jumeau d'écran: deux listes, et UN TEST qui
+ * les compare — c'est lui qui empêche la divergence, pas l'import.
+ *
+ * ⚠️ `snack` EST LE JETON LEGACY, et il est ici pour une raison mesurable.
+ * `dayCoverageOf` reçoit `day.slots`, rempli depuis `dish.slot`, validé contre
+ * `MEAL_SLOTS` — donc `snack` peut arriver depuis un plan déjà en base. Sans
+ * poids, il tomberait à zéro et rejouerait exactement le défaut que ce lot
+ * ferme, sur la donnée ancienne.
+ *
+ * ⛔ ET ON NE DEVINE PAS DE QUEL MOMENT IL S'AGIT. `snack` ne dit ni matin ni
+ * après-midi; le mapper sur l'un des deux inventerait une heure que personne
+ * n'a écrite. Il pèse ce que pèse une collation, et c'est tout ce qu'on sait.
+ */
+const WEIGHTED_SLOTS = [
+  "breakfast",
+  "snack_am",
+  "lunch",
+  "snack_pm",
+  "dinner",
+  "before_bed",
+  "snack",
+] as const;
+type WeightedSlot = (typeof WEIGHTED_SLOTS)[number];
+
+/**
  * CE QUE CHAQUE MOMENT PÈSE DANS UNE JOURNÉE — pour savoir quelle PART de la
  * journée d'une bouche le plan a réellement composée.
  *
- * ⛔ LE DÉFAUT QUE CES TROIS NOMBRES FERMENT, MESURÉ LE 2026-08-20. Christèle
+ * ⛔ LE DÉFAUT QUE CES NOMBRES FERMENT, MESURÉ LE 2026-08-20. Christèle
  * déclare `lunch` + `dinner`; le plan ne lui compose que `dinner`. Comparer sa
  * cible de JOURNÉE ENTIÈRE (2 205 kcal) à ce seul dîner rendait un facteur
  * brut de **6,28** — c'est-à-dire une assiette de deux kilos, ou, une fois
  * rabotée, la même que celle de tout le monde.
  *
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⟳ 2026-09-01 — DE TROIS MOMENTS À SEPT, ET C'ÉTAIT UNE SOUS-ALIMENTATION
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * Cette table ne portait que `breakfast`, `lunch` et `dinner`. Les trois
+ * collations valaient **zéro** par le `?? 0` de `dayCoverageOf` — et zéro n'est
+ * pas neutre ici, c'est faux dans une seule direction.
+ *
+ * Une habitude composée à l'après-midi apporte de l'énergie réelle dans
+ * `day.kcal`, le dénominateur du facteur, **en comptant pour rien** au
+ * numérateur. `cible × couverture / livré` rétrécit donc systématiquement, et
+ * la personne reçoit moins. Aucun test ne bougeait: le défaut était invisible
+ * partout sauf dans l'assiette.
+ *
+ * ⚠️ LA SOMME NE FAIT PLUS 1, ET CE N'EST PAS UN DÉFAUT. `dayCoverageOf` rend
+ * `couvert / total` où le total est la somme sur les moments DÉCLARÉS: c'est un
+ * rapport, jamais une valeur absolue. Les nombres se simplifient — seul leur
+ * ordre de grandeur relatif compte, et c'est ce qui autorise une convention.
+ *
+ * ⚠️ AUCUNE RÉGRESSION, ET ELLE EST TESTÉE EN PREMIER. Une bouche qui ne
+ * déclare que les trois repas principaux n'atteint jamais les clés neuves: sa
+ * couverture est identique au bit près. C'est l'ajout qui est purement additif,
+ * pas la table qui est réécrite.
+ *
  * ⚠️ CE N'EST PAS UNE RECOMMANDATION NUTRITIONNELLE, c'est une clé de
- * répartition, et elle est ordinaire: un petit-déjeuner pèse moins qu'un
- * déjeuner. Elle ne sert qu'à normaliser, jamais à prescrire — les trois
- * nombres se simplifient dans le rapport.
+ * répartition, et elle est ordinaire: une collation pèse moins qu'un déjeuner.
+ * Elle ne sert qu'à normaliser, jamais à prescrire.
+ *
+ * ⛔ `Record` COMPLET SUR `WeightedSlot`: un moment ajouté à la liste sans son
+ * poids ne compile pas. C'est la garde que les trois collations n'avaient pas —
+ * elles étaient absentes d'un `Record<string, number>`, que rien n'oblige à
+ * être complet.
  */
-export const SLOT_DAY_WEIGHT: Readonly<Record<string, number>> = Object.freeze({
-  breakfast: 0.25,
-  lunch: 0.40,
-  dinner: 0.35,
-});
+export const SLOT_DAY_WEIGHT: Readonly<Record<WeightedSlot, number>> = Object
+  .freeze({
+    breakfast: 0.25,
+    snack_am: 0.10,
+    lunch: 0.40,
+    snack_pm: 0.10,
+    dinner: 0.35,
+    before_bed: 0.10,
+    // Le legacy pèse ce que pèse une collation — voir `WEIGHTED_SLOTS`.
+    snack: 0.10,
+  });
+
+/** Les moments pesés, pour le test qui les compare à `MEAL_SLOTS`. */
+export const WEIGHTED_SLOT_TOKENS: readonly string[] = WEIGHTED_SLOTS;
+
+/**
+ * CE QUE « RIEN DE DÉCLARÉ » VEUT DIRE — les moments de la maison.
+ *
+ * ⛔ TROIS, ET SÛREMENT PAS `Object.keys(SLOT_DAY_WEIGHT)`. C'est ce que
+ * `dayCoverageOf` lisait, et c'était juste par accident: la table ne portait
+ * QUE ces trois-là. Le jour où elle en a porté sept, la couverture de toute la
+ * population muette serait tombée de `1` à `0,77` — 23 % de part en moins, sans
+ * qu'une seule ligne de test bouge.
+ *
+ * Une constante nommée ne peut pas se faire élargir par un lot qui parle d'autre
+ * chose.
+ */
+const HOUSE_DEFAULT_SLOTS: readonly string[] = Object.freeze([
+  "breakfast",
+  "lunch",
+  "dinner",
+]);
 
 /**
  * LA PART DE LA JOURNÉE D'UNE BOUCHE QUE LE PLAN PORTE.
@@ -477,8 +517,32 @@ export function dayCoverageOf(
   declaredSlots: readonly string[],
   composedSlots: readonly string[],
 ): number {
-  const weight = (slot: string) => SLOT_DAY_WEIGHT[slot] ?? 0;
-  const declared = new Set(declaredSlots.length > 0 ? declaredSlots : Object.keys(SLOT_DAY_WEIGHT));
+  // ⛔ LE REPLI EST EXPLICITE, ET IL NE PEUT PLUS ÊTRE ATTEINT PAR UN MOMENT
+  // LÉGITIME. `SLOT_DAY_WEIGHT` couvre les sept jetons que `dish.slot` accepte;
+  // ce `0` ne garde donc plus qu'une chaîne hors de la liste fermée. Avant le
+  // 2026-09-01 il valait pour TROIS moments sur six, et c'était une
+  // sous-alimentation silencieuse — voir le pavé de la table.
+  const weight = (slot: string) =>
+    Object.prototype.hasOwnProperty.call(SLOT_DAY_WEIGHT, slot)
+      ? SLOT_DAY_WEIGHT[slot as keyof typeof SLOT_DAY_WEIGHT]
+      : 0;
+  // ══════════════════════════════════════════════════════════════════════
+  // ⛔ « RIEN DE DÉCLARÉ » VAUT LES TROIS REPAS, PAS TOUTE LA TABLE.
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // Cette ligne lisait `Object.keys(SLOT_DAY_WEIGHT)`, ce qui était juste TANT
+  // QUE la table ne portait que les trois repas principaux. Le 2026-09-01 elle
+  // en porte sept: le repli serait passé de `1,00` à `1,30` de total, et la
+  // couverture d'une bouche qui n'a RIEN déclaré serait tombée de `1` à `0,77`
+  // — c'est-à-dire 23 % de part en moins, pour toute la population muette, en
+  // silence et sans qu'un seul test bouge.
+  //
+  // « Rien de déclaré » veut dire « aux moments de la maison », et la maison en
+  // a trois. La constante le dit maintenant, au lieu de le déduire d'une table
+  // qui a le droit de grandir.
+  const declared = new Set(
+    declaredSlots.length > 0 ? declaredSlots : HOUSE_DEFAULT_SLOTS,
+  );
   for (const slot of composedSlots) declared.add(slot);
   let whole = 0;
   for (const slot of declared) whole += weight(slot);
@@ -511,16 +575,30 @@ export interface AnchorMouth {
    */
   declaredSlots: readonly string[];
   /**
-   * CE QU'ELLE PREND À CÔTÉ DU PLAT (2026-08-20) — dessert, fromage, pain.
+   * CE QU'ELLE PREND À CÔTÉ DU PLAT, MOMENT PAR MOMENT — en kcal (2026-09-01).
    *
-   * ⛔ REQUIS ET NULLABLE, jamais `?`. `null` veut dire « sa fiche n'a jamais
-   * vu ces trois questions », et il retombe sur la moyenne `0,42`. Un champ
-   * facultatif aurait fait de ce repli la réponse SILENCIEUSE de tous les
-   * appelants: le lot serait construit, branché, désarmé — le mode d'échec
-   * n°1 de ce dépôt, et le compteur ne pourrait plus distinguer « pas posé »
+   * ⛔ TROIS ÉTATS, ET ILS NE SE CONFONDENT PAS:
+   *   · `null` .............. la fiche n'a jamais vu la question;
+   *   · clé ABSENTE ......... ce moment-là n'a pas été renseigné;
+   *   · clé à `0` ........... renseigné, et il n'y a rien à côté du plat.
+   *
+   * Les deux premiers retombent sur `UNANSWERED_EXTRAS_SHARE`; le troisième
+   * laisse le plat porter tout son repas. Les confondre ferait écrire « cette
+   * personne ne prend rien » sur une fiche muette — la cicatrice « coche auto =
+   * faits faux indémentables », dans le sens qui nourrit trop.
+   *
+   * ⛔ DES KCAL, PAS UNE LISTE D'ALIMENTS, ET C'EST DÉLIBÉRÉ. Résoudre un extra
+   * demande le référentiel de composition; le faire ICI tirerait tout
+   * `food_composition.ts` dans un module qui n'a besoin que d'un nombre.
+   * L'appelant résout (`meal_extras.ts::extrasOf`) et passe la somme — ce
+   * module reste pur et arithmétique.
+   *
+   * ⛔ REQUIS ET NULLABLE, jamais `?`. Un champ facultatif aurait fait du repli
+   * la réponse SILENCIEUSE de tous les appelants: le lot serait construit,
+   * branché, désarmé, et le compteur ne pourrait plus distinguer « pas posé »
    * de « pas câblé ».
    */
-  structure: MealStructure | null;
+  slotExtraKcal: SlotExtraKcal;
   /**
    * L0bis — LES `condition_ref` QUE CETTE BOUCHE A DÉCLARÉS.
    *
@@ -565,6 +643,22 @@ export interface AnchorFactor {
    * incomplètes.
    */
   structureState: MealStructureState;
+  /**
+   * LE PLANCHER DU PLAT A-T-IL MORDU SUR CETTE BOUCHE-JOUR ?
+   *
+   * ⛔ IL EXISTE POUR ÊTRE RARE, DONC IL DOIT SE COMPTER. `0,30` est une
+   * convention: cinq extras sur une petite cible laisseraient au plat une
+   * cuillère servie comme un repas, et la borne l'empêche. Mais une borne qui
+   * mordrait sur la population entière ne serait plus une borne, ce serait LE
+   * calcul — et rien ne le dirait. Le compteur est la seule différence entre
+   * « elle protège d'un cas absurde » et « elle a remplacé la formule ».
+   *
+   * ⚠️ `false` SUR TOUTES LES SORTIES NON ANCRÉES, et c'est exact: sans cible
+   * ou sans journée, aucun repas n'a été dimensionné, donc rien n'a été raboté.
+   * Ce n'est pas la même chose que `structureState`, qui dit ce que la FICHE
+   * porte et se rend partout.
+   */
+  extrasFloored: boolean;
 }
 
 /**
@@ -682,7 +776,7 @@ export function anchorFactorFor(
   // que la FICHE porte, pas ce que la journée a permis: le calculer seulement
   // sur le chemin ancré ferait lire « personne n'a répondu » sur un foyer où
   // tout le monde a répondu et où chaque journée est incomplète.
-  const structure = composedDishShare(mouth.structure);
+  const structureState = mealStructureState(mouth.slotExtraKcal);
   if (target.kcal === null) {
     return {
       factor: 1,
@@ -690,7 +784,8 @@ export function anchorFactorFor(
       reason: target.reason,
       targetKcal: null,
       deliveredKcal: day?.kcal ?? null,
-      structureState: structure.state,
+      structureState,
+      extrasFloored: false,
     };
   }
   // ⛔ L'EXPRESSION EST INCHANGÉE, OCTET POUR OCTET, ET SEULE L'ÉTIQUETTE SE
@@ -710,7 +805,8 @@ export function anchorFactorFor(
       reason: deliveryCauseOf(day) === "common_pot_only" ? "common_pot_day" : "no_delivery",
       targetKcal: target.kcal,
       deliveredKcal: null,
-      structureState: structure.state,
+      structureState,
+      extrasFloored: false,
     };
   }
   // ⛔ LA GARDE PRINCIPALE — MAIS PAS SUR N'IMPORTE QUELLE LACUNE.
@@ -747,23 +843,53 @@ export function anchorFactorFor(
       reason: "day_incomplete",
       targetKcal: target.kcal,
       deliveredKcal: day.kcal,
-      structureState: structure.state,
+      structureState,
+      // Aucun repas dimensionné sur ce chemin: rien n'a pu être raboté.
+      extrasFloored: false,
     };
   }
   // ⛔ LA CIBLE EST RÉDUITE À CE QUE LE PLAN PORTE POUR ELLE. Sans ça, un dîner
   // seul se voit demander une journée entière — 6,28 mesuré sur Christèle le
   // 2026-08-20, c'est-à-dire une assiette de deux kilos.
-  const coverage = dayCoverageOf(mouth.declaredSlots, day.slots);
-  // ⛔ ET LE PLAT NE PORTE PAS LE REPAS ENTIER. Le plan ne compose que le plat
-  // principal (mesuré: 9 plats sur 9); le pain, le fromage et le dessert
-  // existent quand même dans l'assiette. Faire porter au plat l'énergie du repas
-  // entier, c'est très exactement servir 1,2 kg de poulet à quelqu'un qui prend
-  // aussi un yaourt.
+  // ══════════════════════════════════════════════════════════════════════
+  // CE QUE LE PLAN DOIT FOURNIR — UNE SOMME, MOMENT PAR MOMENT (2026-09-01)
+  // ══════════════════════════════════════════════════════════════════════
   //
-  // ⚠️ LA PART EST CELLE DE CETTE BOUCHE-LÀ DEPUIS LE 2026-08-20, plus la
-  // moyenne de tout le monde. `composedDishShare` rend `COMPOSED_DISH_MEAL_SHARE`
-  // — au bit près — pour toute fiche qui n'a pas répondu aux trois cases.
-  const raw = (target.kcal * coverage * structure.share) / day.kcal;
+  // ⟳ ELLE REMPLACE `coverage × composedDishShare(...)`, deux ratios dont le
+  // second était un SCALAIRE appliqué à la journée entière. Voir l'épitaphe de
+  // `composedDishShare` plus haut pour ce que ça déplaçait, chiffré.
+  //
+  //     part(moment)  = poids[moment] / Σ poids[déclarés ∪ composés]
+  //     cible(moment) = cible_jour × part(moment) − extras(moment)
+  //     à fournir     = Σ cible(moment) sur les moments COMPOSÉS
+  //
+  // ⛔ ET LE PLAT NE PORTE PAS LE REPAS ENTIER — SUR LE MIDI ET LE SOIR. Le
+  // plan ne compose que le plat principal (mesuré: 9 plats sur 9); le pain, le
+  // fromage et le dessert existent quand même dans l'assiette. Faire porter au
+  // plat l'énergie du repas entier, c'est servir 1,2 kg de poulet à quelqu'un
+  // qui prend aussi un yaourt.
+  //
+  // ⛔ MAIS SUR LES AUTRES MOMENTS, IL LE PORTE. Le plan compose ce que la
+  // personne a déclaré y prendre; en retrancher quoi que ce soit compterait
+  // deux fois. C'est le défaut ② de l'épitaphe.
+  const covered = new Set(day.slots);
+  const whole = [...new Set([...mouth.declaredSlots, ...day.slots])]
+    .reduce((n, slot) => n + slotWeight(slot), 0);
+  let planTarget = 0;
+  let extrasFloored = false;
+  if (whole > 0) {
+    for (const slot of covered) {
+      const meal = target.kcal * (slotWeight(slot) / whole);
+      const cut = extrasKcalFor(slot, mouth.slotExtraKcal, meal);
+      if (cut.floored) extrasFloored = true;
+      planTarget += meal - cut.kcal;
+    }
+  }
+  // ⚠️ LE REPLI `whole <= 0` EST CELUI DE `dayCoverageOf`, ET IL SIGNIFIE LA
+  // MÊME CHOSE: aucun moment reconnu de part et d'autre ⇒ on ne réduit rien,
+  // plutôt que de rendre zéro et de faire diviser par zéro l'appelant.
+  const effectiveTarget = whole > 0 && planTarget > 0 ? planTarget : target.kcal;
+  const raw = effectiveTarget / day.kcal;
   // ── LE PLAFOND DE VRAISEMBLANCE, PAR REPAS ET PAR CORPS ─────────────────
   // Le facteur est UN par bouche et s'applique à toutes ses parts: c'est donc
   // sa PLUS GROSSE part qui décide du plafond. Borner le total du jour a été
@@ -781,9 +907,10 @@ export function anchorFactorFor(
     // ⚠️ LA CIBLE RENDUE EST CELLE QUI A SERVI AU CALCUL — donc réduite. Rendre
     // la cible de journée entière à côté d'un livré partiel ferait lire un
     // manque qui n'existe pas, et c'est `pot_demand` qui la relit.
-    targetKcal: Math.round(target.kcal * coverage * structure.share),
+    targetKcal: Math.round(effectiveTarget),
     deliveredKcal: day.kcal,
-    structureState: structure.state,
+    structureState,
+    extrasFloored,
   };
 }
 

@@ -199,7 +199,7 @@ describe("FF-053 R4 — le lot se dit", () => {
     const g = grid({
       groups: [{
         day: "mon",
-        dishes: [dish({ slot: "dinner", uses: [{ preparation_id: "p1", servings: 1 }] })],
+        dishes: [dish({ slot: "dinner", uses: [{ preparation_id: "p1", servings: 1, kept: "fridge" as const }] })],
       }],
     });
     expect(g.rows[2].cells[0]).toEqual({
@@ -219,7 +219,7 @@ describe("FF-053 R4 — le lot se dit", () => {
   it("trois cases identiques se distinguent d'un lot par ce drapeau seul", () => {
     const batched = dish({
       slot: "dinner",
-      uses: [{ preparation_id: "p1", servings: 1 }],
+      uses: [{ preparation_id: "p1", servings: 1, kept: "fridge" as const }],
     });
     const lazy = dish({ slot: "dinner" });
     const g = grid({
@@ -245,9 +245,9 @@ describe("FF-053 — le bloc cuisine", () => {
     // dit pas qu'on en mange lundi, mardi et mercredi — et replier les jours
     // achèverait de le cacher.
     const dishes = [
-      dish({ day: "mon", uses: [{ preparation_id: "roast", servings: 1 }] }),
-      dish({ day: "tue", uses: [{ preparation_id: "roast", servings: 1 }] }),
-      dish({ day: "wed", uses: [{ preparation_id: "roast", servings: 1 }] }),
+      dish({ day: "mon", uses: [{ preparation_id: "roast", servings: 1, kept: "fridge" as const }] }),
+      dish({ day: "tue", uses: [{ preparation_id: "roast", servings: 1, kept: "fridge" as const }] }),
+      dish({ day: "wed", uses: [{ preparation_id: "roast", servings: 1, kept: "fridge" as const }] }),
       dish({ day: "thu" }),
     ];
     expect(daysFedBy("roast", dishes)).toEqual(["mon", "tue", "wed"]);
@@ -255,15 +255,15 @@ describe("FF-053 — le bloc cuisine", () => {
 
   it("un jour ne se compte qu'une fois, même avec deux plats", () => {
     const dishes = [
-      dish({ day: "mon", slot: "lunch", uses: [{ preparation_id: "p", servings: 1 }] }),
-      dish({ day: "mon", slot: "dinner", uses: [{ preparation_id: "p", servings: 1 }] }),
+      dish({ day: "mon", slot: "lunch", uses: [{ preparation_id: "p", servings: 1, kept: "fridge" as const }] }),
+      dish({ day: "mon", slot: "dinner", uses: [{ preparation_id: "p", servings: 1, kept: "fridge" as const }] }),
     ];
     expect(daysFedBy("p", dishes)).toEqual(["mon"]);
   });
 
   it("un plat sans jour ne nourrit aucun jour", () => {
     const dishes = [
-      dish({ day: null, uses: [{ preparation_id: "p", servings: 1 }] }),
+      dish({ day: null, uses: [{ preparation_id: "p", servings: 1, kept: "fridge" as const }] }),
     ];
     expect(daysFedBy("p", dishes)).toEqual([]);
   });

@@ -33,6 +33,7 @@ import { assert, assertEquals, assertNotEquals } from "jsr:@std/assert@1";
 import {
   buildDraftNoteClassifyPrompt,
   DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT,
+  type DraftNoteMember,
   DRAFT_NOTE_FORBIDDEN_KINDS,
   DRAFT_NOTE_KINDS,
   DRAFT_NOTE_PRODUCER,
@@ -105,17 +106,26 @@ Deno.test("⛔ le producteur est `draft_note`, JAMAIS `written`", () => {
   assertEquals(canProduce("draft_note", "rhythm.set"), false);
 });
 
-Deno.test("la matrice ① — six familles permises, deux interdites", () => {
+Deno.test("la matrice ① — CINQ familles permises, trois interdites", () => {
   // Écrit EN DUR. Si la nomenclature bouge, ce test tombe AVANT le prompt.
+  //
+  // ⛔ LOT M5 — `logistics.set` A QUITTÉ LA LISTE. Il ne se RETIENT plus: il
+  // change le champ que la personne voit dans ses réglages. Avant, il
+  // n'écrivait rien et les générateurs le posaient en mémoire au moment de
+  // composer — la personne lisait 45 min et son plan était fait sur 35.
   assertEquals([...DRAFT_NOTE_KINDS], [
     "food.exclude",
     "food.prefer",
     "method.avoid",
     "method.prefer",
-    "logistics.set",
     "craving",
   ]);
-  assertEquals([...DRAFT_NOTE_FORBIDDEN_KINDS], ["portion.adjust", "rhythm.set"]);
+  // ⚠️ L'ORDRE EST CELUI DE `RETAINED_KINDS`, dont les deux listes sont
+  // dérivées — pas l'ordre dans lequel les interdits ont été ajoutés.
+  assertEquals(
+    [...DRAFT_NOTE_FORBIDDEN_KINDS],
+    ["portion.adjust", "rhythm.set", "logistics.set"],
+  );
   // Les deux listes sont DÉRIVÉES de `canProduce`: ensemble elles couvrent les
   // huit familles, sans recouvrement. Une neuvième famille tomberait ici.
   assertEquals(DRAFT_NOTE_KINDS.length + DRAFT_NOTE_FORBIDDEN_KINDS.length, 8);
@@ -135,7 +145,16 @@ Deno.test("⛔ la promesse et la clé `\"kind\"` se touchent — 0 % sinon", () 
   const keyAt = prompt.indexOf('"kind"');
   assert(keyAt > 0, "la clé de schéma `\"kind\"` a disparu du prompt.");
 
-  for (const forbidden of ["portion.adjust", "rhythm.set"]) {
+  // ⛔ LA LISTE DÉRIVÉE, JAMAIS UN LITTÉRAL. Ce test épinglait
+  // `["portion.adjust", "rhythm.set"]` en dur; le lot M5 a fermé
+  // `logistics.set` et le test est resté VERT, pendant que le prompt
+  // continuait d'enseigner la famille qu'on venait d'interdire. Un test
+  // paramétré par sa propre constante ne mesure que lui-même.
+  assert(
+    DRAFT_NOTE_FORBIDDEN_KINDS.length > 0,
+    "aucune famille interdite: ce test ne mesure plus rien",
+  );
+  for (const forbidden of DRAFT_NOTE_FORBIDDEN_KINDS) {
     const at = prompt.indexOf(`NEVER ${forbidden}`);
     assert(
       at > keyAt,
@@ -197,18 +216,34 @@ Deno.test("⛔ LA RÈGLE DE DIRECTION est dans le prompt — 1/8 mesuré sans el
   assert(excludeAt > 0 && ruleAt > excludeAt && ruleAt - excludeAt < 300);
 });
 
-Deno.test("le prompt refuse explicitement la sécurité, et nomme le repli", () => {
+Deno.test("⛔ AUCUNE FAMILLE DE SÉCURITÉ PARMI LES HUIT `kind` — malgré le second canal", () => {
+  // ⚠️ CE TEST A CHANGÉ DE PORTÉE LE 2026-09-01, PAS D'INTENTION. Il interdisait
+  // le mot « allergy » dans TOUT le prompt, ce qui était juste tant qu'aucune
+  // sécurité n'y avait sa place. Depuis l'arbitrage, le prompt porte une
+  // SECONDE liste (`safety`) avec son propre vocabulaire — et l'intention
+  // d'origine, elle, tient toujours: la liste des huit `kind` reste fermée, et
+  // `items` ne doit JAMAIS accueillir une famille de sécurité.
   const prompt = DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT;
-  assert(/NEVER file an allergy/i.test(prompt));
+  assert(/NEVER file an allergy/i.test(prompt), "le refus de ranger une allergie dans `items` a disparu");
   assert(/food\.exclude/.test(prompt));
-  // ⛔ Aucune famille de sécurité n'existe: le socle n'en porte pas, et le
-  // prompt ne doit pas en inventer une pour se faire comprendre.
-  for (const forged of ["allergy", "intolerance", "medical"]) {
+
+  // La ligne du contrat `items`, et elle SEULE.
+  const itemsKindLine = prompt.split("\n").find((l) =>
+    l.includes('"kind": exactly one of')
+  );
+  assert(itemsKindLine, "la ligne de contrat de `items` a disparu");
+  for (const forged of ["allergy", "intolerance", "medical", "diet", "religious"]) {
     assert(
-      !new RegExp(`"kind"[^\\n]*${forged}`, "i").test(prompt),
-      `le prompt propose \`${forged}\` comme \`kind\`.`,
+      !new RegExp(forged, "i").test(itemsKindLine!),
+      `« ${forged} » est proposé comme \`kind\` d'un item: la liste des huit ` +
+        "familles doit rester fermée, le second canal est AILLEURS.",
     );
   }
+  // Et le second canal EXISTE, sinon ce test ne mesurerait plus que l'absence.
+  assert(
+    /"safety": \[/.test(prompt),
+    "le second canal a disparu: une allergie redevient une préférence périssable",
+  );
 });
 
 Deno.test("le rôle vide se DIT, il ne s'omet pas", () => {
@@ -296,26 +331,41 @@ Deno.test("⛔ un `portion.adjust` bien formé ne passe PAS par une autre porte"
   assertEquals(out.classification.refused.forbiddenKind, 2);
 });
 
-Deno.test("les six familles permises passent, chacune la sienne", () => {
+Deno.test("les CINQ familles permises passent, chacune la sienne", () => {
+  // ⛔ LOT M5 — `logistics.set` n'est plus dans la liste: il change le CHAMP
+  // que la personne voit, il ne se retient plus. Le cas où il est REFUSÉ est
+  // juste en dessous.
   const out = read([
     { kind: "food.exclude", text: "pas de poisson", member_id: null, value: null },
     { kind: "food.prefer", text: "encore du poulet", member_id: null, value: null },
     { kind: "method.avoid", text: "rien de frit", member_id: null, value: null },
     { kind: "method.prefer", text: "au four", member_id: null, value: null },
+    { kind: "craving", text: "des fajitas", member_id: null, value: null },
+  ]);
+  assertEquals(out.classification.proposed, 5);
+  assertEquals(out.classification.kept, 5);
+  assertEquals(
+    out.classification.nextPlan.map((e) => e.item.kind),
+    [...DRAFT_NOTE_KINDS],
+  );
+});
+
+Deno.test("⛔ LOT M5 — un `logistics.set` bien formé est REFUSÉ à ce producteur", () => {
+  // ⚠️ BIEN FORMÉ, ET REFUSÉ QUAND MÊME. C'est la matrice qui mord, pas le
+  // socle: l'item passerait toutes les vérifications de forme. Sans ce test, on
+  // ne saurait pas distinguer « la matrice l'a refusé » de « la forme était
+  // mauvaise » — et le compteur le dirait sous le mauvais motif.
+  const out = read([
     {
       kind: "logistics.set",
       text: "je cuisine lundi et jeudi",
       member_id: null,
       value: { field: "cook_days", value: ["mon", "thu"] },
     },
-    { kind: "craving", text: "des fajitas", member_id: null, value: null },
   ]);
-  assertEquals(out.classification.proposed, 6);
-  assertEquals(out.classification.kept, 6);
-  assertEquals(
-    out.classification.nextPlan.map((e) => e.item.kind),
-    [...DRAFT_NOTE_KINDS],
-  );
+  assertEquals(out.classification.kept, 0);
+  assertEquals(out.classification.refused.forbiddenKind, 1);
+  assertEquals(out.classification.refused.malformed, 0, "le mauvais motif a mordu");
 });
 
 Deno.test("un `kind` hors liste tombe SEUL, ses voisins survivent", () => {
@@ -516,16 +566,12 @@ Deno.test("une charge rendue en CHAÎNE JSON est lue", () => {
 });
 
 Deno.test("un `value` difforme fait tomber l'item, et le socle est le juge", () => {
+  // ⚠️ LES DEUX VÉHICULES `logistics.set` ONT ÉTÉ RETIRÉS AU LOT M5: cette
+  // famille est désormais refusée par la MATRICE avant d'atteindre le socle,
+  // donc elle ne peut plus prouver que le socle juge la FORME. On garde donc
+  // les cas de forme sur des familles vivantes — sinon ce test mesurerait la
+  // matrice en croyant mesurer le socle.
   const out = read([
-    // `logistics.set` sans `value`: le socle refuse.
-    { kind: "logistics.set", text: "je cuisine peu", member_id: null, value: null },
-    // Un jour hors `DAY_TOKENS`: le socle fait tomber TOUT le champ.
-    {
-      kind: "logistics.set",
-      text: "je cuisine le lundi",
-      member_id: null,
-      value: { field: "cook_days", value: ["lundi"] },
-    },
     // Un `value` sur une famille qui n'en a pas.
     {
       kind: "food.exclude",
@@ -533,9 +579,12 @@ Deno.test("un `value` difforme fait tomber l'item, et le socle est le juge", () 
       member_id: null,
       value: { direction: "down" },
     },
+    // Idem sur `craving`, qui n'a pas de `value` non plus.
+    { kind: "craving", text: "des fajitas", member_id: null, value: { field: "x" } },
   ]);
   assertEquals(out.classification.kept, 0);
-  assertEquals(out.classification.refused.malformed, 3);
+  assertEquals(out.classification.refused.malformed, 2);
+  assertEquals(out.classification.refused.forbiddenKind, 0, "la matrice a mordu à la place du socle");
 });
 
 Deno.test("LE COMPTEUR À TROIS NOMBRES se lit d'un bloc", () => {
@@ -946,4 +995,137 @@ Deno.test("CÂBLAGE ③ — un commentaire ne câble rien", async () => {
     '// const model = keelGenerationModel();\n  const model = "gpt-5.6-sol";',
   );
   assertEquals(wiringVerdict(mutated), ["keelGenerationModel_appele"]);
+});
+
+// ===========================================================================
+// ⑥ ⛔ LE PROMPT N'ENSEIGNE JAMAIS CE QUE LA MATRICE INTERDIT
+//
+// Mesuré le 2026-09-01 sur un tour réel : « Les recettes sont bien trop
+// compliquées pour moi » → `proposed=1 kept=0 refused_forbidden_kind=1`. Le
+// modèle avait raison de proposer `logistics.set` — le prompt le lui
+// enseignait, avec sa description ET un bloc de schéma de valeur rien que pour
+// lui — pendant que `canProduce` le refusait depuis le lot M5. Le retour de la
+// personne a disparu, en silence.
+// ===========================================================================
+
+Deno.test("⛔ AUCUNE famille interdite n'est ENSEIGNÉE — seulement refusée", () => {
+  const prompt = DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT;
+  for (const forbidden of DRAFT_NOTE_FORBIDDEN_KINDS) {
+    // La forme d'ENSEIGNEMENT est « - <kind> — … » dans la section « WHAT EACH
+    // KIND IS FOR ». La forme de REFUS (« NEVER <kind> », « · <kind> — … »)
+    // reste attendue: nommer l'interdit est ce qui fait tomber l'échappatoire.
+    assert(
+      !prompt.includes(`- ${forbidden} —`),
+      `le prompt ENSEIGNE « ${forbidden} », que la matrice refuse: le modèle ` +
+        "le proposera, et la porte le brûlera sans que personne ne le voie.",
+    );
+  }
+  // Et le cas qui PASSE, sans quoi la garde serait indiscernable d'une garde
+  // cassée: chaque famille permise DOIT être enseignée.
+  for (const allowed of DRAFT_NOTE_KINDS) {
+    assert(
+      prompt.includes(`- ${allowed} —`),
+      `« ${allowed} » est permis mais n'est décrit nulle part: le modèle ne ` +
+        "peut pas ranger ce qu'on ne lui a pas nommé.",
+    );
+  }
+});
+
+Deno.test("⛔ LA CLÉ `value` NE NOMME PAS UNE FAMILLE INTERDITE", () => {
+  // `"value": null for every kind except logistics.set` disait, sur la ligne
+  // même du schéma, qu'une famille interdite existait et portait une valeur.
+  const prompt = DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT;
+  const line = prompt.split("\n").find((l) => l.includes('"value"'));
+  assert(line, "la clé `value` a disparu du schéma.");
+  for (const forbidden of DRAFT_NOTE_FORBIDDEN_KINDS) {
+    assert(
+      !line!.includes(forbidden),
+      `la ligne \`value\` nomme « ${forbidden} », que la matrice refuse.`,
+    );
+  }
+});
+
+Deno.test("⛔ CHAQUE INTERDIT PORTE SA PROPRE RAISON", () => {
+  // La prose disait « Those TWO are asked somewhere else » avec TROIS
+  // interdits, et son motif ne parlait que des deux premiers. Une raison qui ne
+  // couvre pas ce qu'elle justifie se lit comme une coquille — et un modèle
+  // préfère alors la description détaillée qu'on lui a donnée ailleurs.
+  const prompt = DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT;
+  assert(
+    !/Those two are asked somewhere else/i.test(prompt),
+    "la prose compte encore DEUX interdits: elle vieillira à la prochaine " +
+      "fermeture de case, exactement comme la première fois.",
+  );
+  for (const forbidden of DRAFT_NOTE_FORBIDDEN_KINDS) {
+    assert(
+      prompt.includes(`· ${forbidden} —`),
+      `« ${forbidden} » est refusé sans qu'on dise POURQUOI.`,
+    );
+  }
+});
+
+// ===========================================================================
+// ⑦ ⛔ LA PARENTÉ — « mon fils » n'est pas un cas limite, c'est la forme normale
+//
+// Mesuré le 2026-09-01: le roster ne portait que trois PRÉNOMS. « Mon fils
+// n'aime pas le poisson » est parti sur le FOYER ENTIER (`subject: household`)
+// — un fait FAUX, qui retire le poisson à toute la table — et deux autres
+// phrases se sont perdues en silence.
+// ===========================================================================
+
+function mouth(over: Partial<DraftNoteMember> = {}): DraftNoteMember {
+  return { memberId: "11111111-2222-4333-8444-555555555555", label: "Tom", ageState: "minor", sex: "male", ...over };
+}
+
+Deno.test("⛔ LE ROSTER PORTE L'ÂGE ET LE SEXE — sans eux, aucune parenté n'est résoluble", () => {
+  const prompt = buildDraftNoteClassifyPrompt({
+    note: "Mon fils n'aime pas le poisson",
+    contentLocale: "fr-FR",
+    members: [mouth(), mouth({ memberId: "22222222-2222-4333-8444-555555555555", label: "Léa", sex: "female" })],
+  });
+  assert(prompt.includes('"age":"minor"'), "l'âge n'est pas dans le roster");
+  assert(prompt.includes('"sex":"male"'), "le sexe n'est pas dans le roster");
+  assert(prompt.includes('"sex":"female"'));
+});
+
+Deno.test("⛔ LES CLÉS SONT ÉCRITES MÊME À `null` — « on ne sait pas » ≠ « rien à savoir »", () => {
+  // Une clé ABSENTE laisse le modèle supposer qu'on la lui a cachée, et
+  // deviner. Une clé à `null` dit la vérité, et c'est elle qui doit le faire
+  // s'abstenir.
+  const prompt = buildDraftNoteClassifyPrompt({
+    note: "Mon fils n'aime pas le poisson",
+    contentLocale: "fr-FR",
+    members: [mouth({ ageState: null, sex: null })],
+  });
+  assert(prompt.includes('"age":null'), "la clé `age` disparaît quand elle est inconnue");
+  assert(prompt.includes('"sex":null'), "la clé `sex` disparaît quand elle est inconnue");
+});
+
+Deno.test("⛔ L'ABSTENTION EST DITE, ET LE REPLI SUR LE FOYER EST NOMMÉ COMME INTERDIT", () => {
+  // C'est LA règle du lot: deux enfants du même sexe rendent « mon fils »
+  // indécidable. Le repli dangereux n'est pas de refuser — c'est
+  // `member_id: null`, qui veut dire TOUT LE MONDE.
+  const prompt = DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT;
+  assert(/IF TWO PEOPLE FIT, OR NONE/i.test(prompt), "l'ambiguïté n'est plus nommée");
+  assert(
+    /Do NOT fall back to member_id: null/i.test(prompt),
+    "le repli sur le foyer entier n'est plus interdit: c'est LUI qui a produit " +
+      "le fait faux mesuré, pas l'absence de règle",
+  );
+  assert(/my son|my daughter/i.test(prompt), "les mots de parenté ne sont plus donnés en exemple");
+});
+
+Deno.test("LE CÂBLAGE — la lane foyer passe l'âge et le sexe, et PAS `ageBand`", async () => {
+  // ⚠️ `ageBandOf` rend `null` sous 18 ans: passer la bande d'âge donnerait
+  // `null` pour exactement les bouches qu'il s'agit d'identifier. C'est le
+  // piège de ce lot, et un lot débranché lui ressemblerait trait pour trait.
+  const src = await Deno.readTextFile(
+    new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
+  );
+  assert(/sex: m\.body\?\.gender \?\? null/.test(src), "la lane foyer ne passe plus le sexe");
+  assert(/ageState: m\.ageState === "adult"/.test(src), "la lane foyer ne passe plus l'état d'âge");
+  assert(
+    !/ageState: m\.ageBand/.test(src),
+    "la lane passe une BANDE d'âge: elle vaut `null` pour tout mineur",
+  );
 });

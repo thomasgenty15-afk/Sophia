@@ -277,7 +277,7 @@ describe("LOT 3 · les parts, sous le plat et dans le jour", () => {
   const bowls = dish({
     slot: "dinner",
     title: DINNER,
-    uses: [{ preparation_id: "prep_chicken", servings: 1 }],
+    uses: [{ preparation_id: "prep_chicken", servings: 1, kept: "fridge" as const }],
   });
   const zoeShare = person({
     shares: [{ preparationId: "prep_chicken", note: "2 portions of chicken" }],

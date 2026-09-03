@@ -113,7 +113,22 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
    */
   const [turnsUsed, setTurnsUsed] = React.useState(1);
   const [working, setWorking] = React.useState(false);
-  const [failure, setFailure] = React.useState<string | null>(null);
+  /**
+   * LE REFUS, ET L'ENDROIT OÙ IL DOIT SE LIRE.
+   *
+   * ⚠️ CE N'EST PLUS UNE SIMPLE CHAÎNE, ET C'EST LA CONSÉQUENCE DU SECOND
+   * BOUTON. « Adopter » existe maintenant DEUX fois — au fronton et au pied —
+   * et un message d'échec rendu au pied après un clic au fronton se lit comme
+   * un bouton mort: on clique, la fenêtre ne bouge pas, la phrase qui explique
+   * est une semaine de défilement plus bas. Ce dépôt a déjà payé ce défaut
+   * trois fois sur `SetupPage`.
+   *
+   * `at` dit donc DEPUIS OÙ, et le message se rend là. Une seule chaîne à la
+   * fois: on n'affiche jamais le même refus aux deux endroits.
+   */
+  const [failure, setFailure] = React.useState<
+    { at: "header" | "body"; message: string } | null
+  >(null);
 
   /**
    * ⚠️ `Modal` REND `null` QUAND IL EST FERMÉ, IL NE DÉMONTE PAS SES ENFANTS —
@@ -132,6 +147,26 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
     setFailure(null);
   }, [open]);
 
+  /**
+   * ADOPTER — LE MÊME CHEMIN, D'OÙ QU'ON CLIQUE.
+   *
+   * ⛔ EXTRAIT EXPRÈS, PAS DUPLIQUÉ. Les deux boutons appellent CE
+   * gestionnaire; deux `onClick` écrits séparément auraient divergé au premier
+   * correctif, et c'est celui qu'on regarde le moins qui aurait gardé l'ancien
+   * comportement. `onAdopt` reste l'unique écrivain.
+   */
+  const runAdopt = async (at: "header" | "body") => {
+    setWorking(true);
+    setFailure(null);
+    try {
+      await onAdopt();
+    } catch (e) {
+      setFailure({ at, message: e instanceof Error ? e.message : String(e) });
+    } finally {
+      setWorking(false);
+    }
+  };
+
   const busyNow = busy || working;
   const left = draftTurnsLeft(turnsUsed);
   const canAskAgain = canRemix(turnsUsed);
@@ -143,6 +178,30 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
       onClose={onClose}
       title={t("plan.draft.title")}
       closeLabel={t("plan.draft.discard")}
+      /* ── ADOPTER SANS AVOIR À DESCENDRE ───────────────────────────────
+         Demandé le 2026-09-01, et c'est un défaut mesurable: cette fenêtre
+         monte une SEMAINE — grille, préparations, courses. La décision
+         n'existait qu'en pied, donc l'accepter demandait de faire défiler
+         tout ce qu'on venait déjà de juger. Le fronton, lui, ne défile pas.
+
+         ⛔ PAS UN SECOND CHEMIN: `runAdopt` est le même gestionnaire que le
+         bouton du pied, et `onAdopt` reste l'unique écrivain. Le libellé est
+         la MÊME clé — deux mots différents pour un seul geste feraient croire
+         à deux gestes.
+
+         ⚠️ CE QUE « ADOPTER » FAIT est dit en haut du corps (juste dessous)
+         comme il l'est en pied: un raccourci ne doit pas faire l'économie de
+         l'avertissement. */
+      headerAction={
+        <Button
+          variant="primary"
+          size="sm"
+          disabled={busyNow || !draft}
+          onClick={() => void runAdopt("header")}
+        >
+          {busyNow ? t("plan.draft.adopting") : t("plan.draft.adopt")}
+        </Button>
+      }
       // `lg`: on y monte une SEMAINE — grille, préparations, jours. À `max-w-lg`
       // la grille du plan se lit à travers une meurtrière.
       size="lg"
@@ -152,6 +211,28 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
           sans conséquence, et donc ce qui autorise à essayer. Le lire après
           avoir hésité sur « adopter » serait le lire trop tard. */}
       <p className="text-sm text-ink-soft">{t("plan.draft.not_saved")}</p>
+
+      {/* ⚠️ LA MÊME PHRASE QU'EN PIED, ET LA RÉPÉTITION EST VOULUE.
+          `adopt_recomposes` est posée sous CHAQUE bouton « adopter », parce
+          qu'elle doit être à l'écran avant le clic — et les deux ne sont jamais
+          en vue en même temps: celle-ci est au-dessus du plan, l'autre en
+          dessous. La retirer d'ici rendrait le raccourci du fronton silencieux
+          sur ce qu'il fait vraiment. */}
+      <p className="mt-1 text-label leading-5 text-ink-soft">
+        {t("plan.draft.adopt_recomposes")}
+      </p>
+
+      {/* LE REFUS DU BOUTON DU HAUT, SOUS LE BOUTON DU HAUT. Le fronton ne
+          défile pas, donc cette ligne est visible d'où qu'on ait cliqué en
+          haut. `role="alert"`: elle apparaît APRÈS le clic, et sans région
+          annoncée un lecteur d'écran n'apprendrait jamais que ça a échoué. */}
+      {failure?.at === "header"
+        ? (
+          <p role="alert" className="mt-2 text-sm leading-6 text-red-700 break-words">
+            {failure.message}
+          </p>
+        )
+        : null}
 
       {/* ── POURQUOI CES JOURS-LÀ ──────────────────────────────────────────
           ⛔ LES PHRASES SONT ASSEMBLÉES CÔTÉ SERVEUR et arrivent FINIES, dans
@@ -306,8 +387,12 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
             est un FAIT. `note_unusable` est le seul refus que la personne peut
             réparer elle-même — en reformulant — donc il se lit ici, sous le
             champ qu'il concerne, jamais ailleurs. */}
-        {failure
-          ? <p className="mt-2 text-sm leading-6 text-red-700 break-words">{failure}</p>
+        {failure?.at === "body"
+          ? (
+            <p className="mt-2 text-sm leading-6 text-red-700 break-words">
+              {failure.message}
+            </p>
+          )
           : null}
 
         {/* ── LES DEUX GESTES ─────────────────────────────────────────────
@@ -332,7 +417,13 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
                 // collées, dont une que la personne croyait derrière elle.
                 setNote("");
               } catch (e) {
-                setFailure(e instanceof Error ? e.message : String(e));
+                // `at: "body"` — la phrase refusée est DANS ce champ-ci, et le
+                // motif se lit sous lui. Jamais au fronton, qui ne porte pas
+                // ce geste.
+                setFailure({
+                  at: "body",
+                  message: e instanceof Error ? e.message : String(e),
+                });
               } finally {
                 setWorking(false);
               }
@@ -344,17 +435,7 @@ export default function PlanDraftDialog(props: PlanDraftDialogProps) {
           <Button
             variant="primary"
             disabled={busyNow || !draft}
-            onClick={async () => {
-              setWorking(true);
-              setFailure(null);
-              try {
-                await onAdopt();
-              } catch (e) {
-                setFailure(e instanceof Error ? e.message : String(e));
-              } finally {
-                setWorking(false);
-              }
-            }}
+            onClick={() => void runAdopt("body")}
           >
             {busyNow ? t("plan.draft.adopting") : t("plan.draft.adopt")}
           </Button>

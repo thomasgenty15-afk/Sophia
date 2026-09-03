@@ -130,7 +130,7 @@ export type PlanQuestionSignalContext = {
  * PAR-DESSUS la lane qui a parlé, pas à sa place.
  *
  * ⚠️ `kind` EST UNE CHAÎNE LIBRE ET RESTE BRUTE ICI. La liste fermée qui décide
- * si le tour parle d'une PART vit dans `_shared/keel/conversation_retained.ts`
+ * si le tour parle d'une PART vit dans `_shared/keel/conversation_redirect.ts`
  * (`SIZING_FEEDBACK_KINDS`), avec la phrase de renvoi qu'elle arme. La valider
  * ici ferait un second juge, et le jour où la liste bougerait un seul des deux
  * suivrait.
@@ -144,6 +144,58 @@ export type DispatcherPlanFeedbackSignal = {
   target_title?: string | null;
   detail?: string | null;
   sentiment?: string | null;
+};
+
+/**
+ * LA PERSONNE DIT, DANS LE CHAT, UNE CHOSE QUI APPARTIENT À UN CHAMP — lot M1
+ * du chantier « mémoire ».
+ *
+ * ⛔ CE SIGNAL N'ÉCRIT RIEN, ET C'EST TOUT SON POINT. Depuis M1, la ligne ③ de
+ * la matrice (`retained_item.ts`) est VIDE: la conversation ne produit plus
+ * aucun `RetainedItem`. Ce signal ne remplace pas le producteur retiré — il
+ * arme une **phrase de renvoi** vers l'écran où la chose se pose
+ * (`_shared/keel/conversation_redirect.ts`). Le jour où quelqu'un voudra lui
+ * faire écrire quelque chose, c'est la matrice qu'il faudra rouvrir, en
+ * connaissance de cause, pas ce champ.
+ *
+ * ⛔ IL NE ROUTE RIEN NON PLUS. Comme `plan_feedback`, il est PASSIF: il informe
+ * le tour, il ne le possède jamais. Le renvoi sort PAR-DESSUS la lane qui a
+ * parlé, pas à sa place.
+ *
+ * ⚠️ `kind` EST UNE CHAÎNE LIBRE ET RESTE BRUTE ICI. La liste fermée qui décide
+ * de la destination vit dans `conversation_redirect.ts`
+ * (`PROFILE_REDIRECT_KINDS`), avec les phrases qu'elle arme. La valider ici
+ * ferait un second juge, et le jour où la liste bougerait un seul des deux
+ * suivrait.
+ */
+export type DispatcherProfileStatementSignal = {
+  detected: boolean;
+  /** Brut. La liste fermée qui MORD est `PROFILE_REDIRECT_KINDS`. */
+  kind?: string | null;
+  confidence?: number;
+  detail?: string | null;
+};
+
+/**
+ * LA PERSONNE DEMANDE POURQUOI QUELQUE CHOSE N'APPARAÎT JAMAIS — lot M6.
+ *
+ * ⛔ LA QUESTION EST LE SIGNAL. *« Une exclusion qu'on interroge est une
+ * exclusion morte »*: personne ne demande pourquoi il n'y a jamais de ce qu'il
+ * ne veut pas.
+ *
+ * ⛔ ET IL N'ÉCRIT RIEN NON PLUS. Le runtime RETROUVE la règle, la CITE, et dit
+ * OÙ elle se lève. Le §2.8 tranche « le chat n'écrit jamais, pas même en un
+ * tap », avec la raison qui décide: *« s'il peut écrire une allergie en un tap,
+ * pourquoi pas un aliment évité ? »*.
+ *
+ * ⚠️ `food` EST LE MOT DE LA PERSONNE, BRUT. Jamais un slug: la recherche se
+ * fait par `findForbiddenMatches` contre les lignes STOCKÉES, et c'est ce
+ * moteur qui fait que « lait » ne matche pas dans « laitue ».
+ */
+export type DispatcherRuleQuestionSignal = {
+  detected: boolean;
+  /** Brut, dans ses mots. Le juge est `rulesMentioning` (`rule_question.ts`). */
+  food?: string | null;
 };
 
 export type DispatcherSkillSignals = {
@@ -162,6 +214,12 @@ export type DispatcherSkillSignals = {
   // `plan_feedback.detected` à `true`. Ce champ est la porte d'entrée du
   // modèle vers ce signal.
   plan_feedback?: DispatcherPlanFeedbackSignal;
+  // LOT M1 — la porte d'entrée du modèle vers le renvoi vers un champ. Elle
+  // suit `keel_student`, comme `plan_feedback`: hors élève KEEL, les quatre
+  // destinations n'existent pas.
+  profile_statement?: DispatcherProfileStatementSignal;
+  // LOT M6 — la porte d'entrée du modèle vers la révocation par la question.
+  rule_question?: DispatcherRuleQuestionSignal;
 };
 
 export type DispatcherMemoryTargetType =

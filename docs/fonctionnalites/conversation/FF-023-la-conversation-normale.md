@@ -3,10 +3,10 @@
 | | |
 |---|---|
 | **Identifiant** | `FF-023-la-conversation-normale` (anciennement `FF-023-le-compagnon` — même fiche, recentrée le 2026-08-08) |
-| **Statut** | 🟠 En cours — le tour par défaut existe ; **la continuité de conversation est structurellement absente** |
+| **Statut** | 🟠 En cours — le tour par défaut existe, et **la continuité est livrée** (`chat-inbound-v1` charge l'historique récent depuis le 2026-08-…, vérifié le 2026-09-01). Ce qui reste : la voix et le style, non re-vérifiés |
 | **Date** | 2026-08-08 |
 | **Autorité produit** | [MODEL.md](../../keel/MODEL.md) · [CONTRACT.md](../../keel/CONTRACT.md) · la direction du domaine ([README](README.md)) |
-| **Code** | `sophia-brain/agents/companion.ts` · `router/response_style_policy.ts` · `_shared/keel/locale.ts` · `chat-inbound-v1/index.ts` (le trou : `history: []`) |
+| **Code** | `sophia-brain/agents/companion.ts` · `router/response_style_policy.ts` · `_shared/keel/locale.ts` · `chat-inbound-v1/index.ts` (garde 6 : `loadRecentChatHistory`, le trou `history: []` est **fermé**) · `_shared/chat/recent_history.ts` |
 | **Effort estimé** | 2 jours (la continuité) |
 
 ---

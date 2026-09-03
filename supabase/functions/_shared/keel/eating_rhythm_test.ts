@@ -185,7 +185,9 @@ Deno.test("le plafond du PROMPT et celui du PARSEUR ne peuvent pas diverger", ()
     ["breakfast", "snack_am", "lunch", "snack_pm", "dinner"].map((slot) => ({ slot })),
   );
 
-  const { userMessage } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true,
+  const { userMessage } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true, hasFreezer: false, oneCookingSession: false,
+    cookOnlyDay: null,
+    soloBoxes: false,
     budgetAmount: null,
     safetyConstraints: null,
     safetyConstraintTable: null,
@@ -244,7 +246,11 @@ Deno.test("le plafond du PROMPT et celui du PARSEUR ne peuvent pas diverger", ()
       merge: null,
       boxMemberIds: [],
       weighedMemberIds: [],
+  kitchenEquipment: null,
+  cookOnlyDay: null,
+  soloBoxes: false,
   boxMemberDiets: [],
+  boxMemberExclusions: [],
     },
   );
   assertEquals(meal.dishes.length, 5);
@@ -284,7 +290,9 @@ Deno.test("la TAILLE d'un moment arrive jusqu'à la consigne", () => {
     { slot: "lunch" },
     { slot: "dinner", size: "large" },
   ]);
-  const { userMessage } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true,
+  const { userMessage } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true, hasFreezer: false, oneCookingSession: false,
+    cookOnlyDay: null,
+    soloBoxes: false,
     budgetAmount: null,
     safetyConstraints: null,
     safetyConstraintTable: null,

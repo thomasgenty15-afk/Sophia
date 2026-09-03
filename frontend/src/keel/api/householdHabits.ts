@@ -24,6 +24,11 @@
 
 import { supabase } from "../../lib/supabase";
 import { EATING_OCCASIONS, type EatingOccasion } from "./mealGeneration";
+import {
+  habitEntriesToWrite,
+  type MealExtra,
+  parseHabitExtras,
+} from "../lib/mealExtras";
 // ⚠️ LE PLAFOND DE TEXTE EST CELUI DU SERVEUR, IMPORTÉ TEL QUEL — même geste
 // que `household.ts` avec `student_age.ts`, et `groceryWaves.ts` avec son
 // module partagé. `usual` et `note` passent tous deux par
@@ -56,6 +61,30 @@ export interface HabitSlot {
 }
 
 /**
+ * CE QUI PART EN BASE, ET CE N'EST PAS `HabitSlot`.
+ *
+ * ⛔ DEUX TYPES POUR UNE MÊME COLONNE, ET C'EST VOULU. `HabitSlot` décrit ce
+ * que l'ÉCRAN AFFICHE — une phrase, donc `own_usual` obligatoire. Une entrée
+ * qui ne porte que des extras (« le plat de la maison, plus du pain ») n'a
+ * aucune phrase, part en `household_dish`, et `parseHabitSlots` la jette
+ * exprès. Elle existe pourtant en base, et `parseHabitExtras` la lit.
+ *
+ * Fondre les deux ferait porter à `HabitSlot` un `usual` vide, que la moitié
+ * des lecteurs d'écran rendrait comme une ligne blanche.
+ */
+export interface HabitSlotWrite {
+  slot: string;
+  kind: HabitKind;
+  usual: string;
+  /**
+   * ⚠️ FACULTATIF, ET SON ABSENCE EST UNE RÉPONSE: « ce moment n'a pas été
+   * renseigné ». `[]` en est une autre: « renseigné, rien à côté du plat ».
+   * Voir `lib/mealExtras.ts`.
+   */
+  extras?: MealExtra[];
+}
+
+/**
  * LA LIGNE D'UNE BOUCHE. Son EXISTENCE est le fait qui compte.
  *
  * ⚠️ PAS DE LIGNE ≠ « ELLE MANGE COMME TOUT LE MONDE ». Pas de ligne veut dire
@@ -68,6 +97,15 @@ export interface MemberHabitsView {
   memberId: string;
   /** Les moments où elle a SON habitude. Vide = elle mange le plat commun. */
   slots: HabitSlot[];
+  /**
+   * CE QU'ELLE PREND À CÔTÉ DU PLAT, par moment répondu.
+   *
+   * ⛔ À CÔTÉ DE `slots`, PAS DEDANS, et c'est le même partage qu'au serveur
+   * (`parseMemberHabits` / `parseMemberExtras`): `parseHabitSlots` JETTE les
+   * entrées `household_dish`, or ce sont précisément celles qui portent des
+   * extras sans prose. Une clé absente ici = ce moment n'a pas été renseigné.
+   */
+  extras: Record<string, MealExtra[]>;
   /** La ligne libre durable, ou `null`. */
   note: string | null;
 }
@@ -151,6 +189,8 @@ export async function loadMemberHabits(): Promise<Map<string, MemberHabitsView>>
     out.set(memberId, {
       memberId,
       slots: parseHabitSlots(r.slots),
+      // LA MÊME COLONNE, LU DEUX FOIS. Voir `MemberHabitsView.extras`.
+      extras: parseHabitExtras(r.slots),
       note: parseHabitNote(r.note),
     });
   }
@@ -236,16 +276,38 @@ export function habitDraft(
  * de la maison » au nom de quelqu'un qui n'a pas répondu. Un `own_usual` au
  * texte vide ne produit rien non plus — la base le refuserait (`bad_slots`), et
  * le bouton est inerte avant d'en arriver là (voir `habitDraftBlocked`).
+ *
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⛔ `carried` EST REQUIS, ET SON OUBLI EFFACERAIT DES DONNÉES
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * `keel_household_set_member_habits` REMPLACE la liste entière. Cette carte-ci
+ * n'édite QUE la prose — elle n'a pas de bulles —, donc ce qu'elle n'envoie
+ * pas disparaît. Sans `carried`, enregistrer une habitude depuis
+ * `/app/household` effacerait en silence les extras cochés dans la fiche.
+ *
+ * ⚠️ REQUIS ET PAS `?`: un appelant qui omet la clé passerait `undefined`,
+ * qui se traverse sans un mot. `{}` est une valeur qu'on peut lire — et c'est
+ * la bonne quand la lecture n'a rien rendu. Cicatrice
+ * `optional-gate-params-are-disarmed-gates`.
  */
-export function habitPayload(draft: readonly HabitDraftSlot[]): HabitSlot[] {
-  const out: HabitSlot[] = [];
-  for (const d of draft) {
-    if (d.choice !== "own_usual") continue;
-    const usual = d.usual.trim();
-    if (usual.length === 0) continue;
-    out.push({ slot: d.slot, kind: "own_usual", usual });
-  }
-  return out;
+export function habitPayload(
+  draft: readonly HabitDraftSlot[],
+  /** `MemberHabitsView.extras` de CETTE bouche. `{}` si elle n'en a aucun. */
+  carried: Readonly<Record<string, MealExtra[]>>,
+): HabitSlotWrite[] {
+  // ⛔ LE MÊME SÉRIALISEUR QUE LES TROIS AUTRES ÉCRIVAINS. Il sait produire
+  // l'entrée `household_dish` qu'un moment sans prose mais avec des extras
+  // exige, ce qu'une boucle locale referait de travers.
+  return habitEntriesToWrite({
+    habits: Object.fromEntries(
+      draft
+        .filter((d) => d.choice === "own_usual")
+        .map((d) => [d.slot, d.usual]),
+    ),
+    extras: carried,
+    occasions: EATING_OCCASIONS,
+  });
 }
 
 /**
@@ -284,7 +346,7 @@ export function habitDraftBlocked(
  */
 export async function setMemberHabits(
   memberId: string,
-  slots: readonly HabitSlot[],
+  slots: readonly HabitSlotWrite[],
   note: string | null,
 ) {
   const trimmed = note === null ? null : note.trim();

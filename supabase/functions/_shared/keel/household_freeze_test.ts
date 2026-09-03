@@ -301,16 +301,31 @@ Deno.test("le gel personnel ne mord QUE sur un foyer connu et non couvert", asyn
   assertEquals(decide("h1", false, false), "refuse", "foyer gelé");
 });
 
-Deno.test("la recommandation quotidienne saute les foyers gelés", async () => {
-  const src = await Deno.readTextFile(
-    new URL("_shared/keel/daily_recommendation_engine.ts", FUNCTIONS_DIR),
-  );
-  assert(
-    src.includes("keel_household_coverage_for_user"),
-    "le moteur du soir n'interroge plus la couverture du foyer: D4 ferme DEUX " +
-      "portes, et celle-ci s'est rouverte sans casser une compilation.",
-  );
-});
+// ⚠️ ── LA SECONDE PORTE DE D4 A DISPARU AVEC SON CANAL (2026-09-01) ────────
+//
+// Il y avait ici « la recommandation quotidienne saute les foyers gelés », qui
+// lisait `daily_recommendation_engine.ts` et exigeait qu'il interroge
+// `keel_household_coverage_for_user`.
+//
+// **Ce moteur n'existe plus** : FF-028 est abandonnée (il n'y a pas de
+// recommandation en plein milieu de plan). La garde n'est donc pas « rouverte
+// sans casser une compilation » — son SUJET a disparu, ce qui est le seul cas
+// où retirer une épreuve de fil est légitime.
+//
+// LA PORTE DE COMPOSITION, ELLE, EST INTACTE et reste tenue plus bas :
+// `generate-meal-v1`, `generate-household-meal-v1` et
+// `household-merge-notices-v1` appellent tous `keel_household_is_covered`.
+//
+// 🔴 CE QUE ÇA LAISSE OUVERT, ET IL FAUT LE SAVOIR AVANT DE LE DÉCOUVRIR :
+// `keel-weight-divergence-v1` (FF-056) hérite du rôle de canal proactif du
+// soir, et il NE PORTE PAS cette garde — vérifié le 2026-09-01, `grep
+// household_coverage weight_divergence_engine.ts` est vide. Un foyer gelé peut
+// donc recevoir une question de divergence tant que son dernier plan écoulé est
+// assez frais (`lastElapsedPlanEnd`). La fenêtre est étroite — un foyer gelé ne
+// peut plus composer, donc ses plans vieillissent — mais elle n'est pas nulle.
+//
+// Ce n'est PAS corrigé ici, exprès : ajouter une garde de facturation à un
+// moteur de sécurité est une décision produit, pas un effet de bord de retrait.
 
 // ---------------------------------------------------------------------------
 // 3. UNE SEULE DÉFINITION — LE PIÈGE N°1 DE CE LOT

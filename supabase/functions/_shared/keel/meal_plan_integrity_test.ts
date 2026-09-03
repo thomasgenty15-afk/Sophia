@@ -198,6 +198,7 @@ Deno.test("④ le petit-déjeuner qui manque est NOMMÉ, jour par jour", () => {
   // petit-déjeuner » ne sont pas la même information.
   const gaps = emptySlotsIn({
     days: ["wed", "thu"],
+    cookOnlyDay: null,
     rhythm: RHYTHM,
     dishes: [
       { day: "wed", slot: "lunch" },
@@ -226,6 +227,7 @@ Deno.test("④ LE CAS QUI PASSE — une grille complète ne rend AUCUN trou", ()
   assertEquals(
     emptySlotsIn({
       days: ["wed", "thu"],
+      cookOnlyDay: null,
       rhythm: RHYTHM,
       dishes: full,
       awayDays: [],
@@ -241,6 +243,7 @@ Deno.test("④ un vide VOULU n'est pas un trou: l'absence et l'apport fixe", () 
   // consigne lui interdit — et un plan sans absence n'existerait plus.
   const gaps = emptySlotsIn({
     days: ["wed"],
+    cookOnlyDay: null,
     rhythm: RHYTHM,
     dishes: [{ day: "wed", slot: "dinner" }],
     // Mercredi midi, il n'est pas là.
@@ -267,6 +270,7 @@ Deno.test("④ un plat sans jour couvre la fenêtre, un plat sans moment la jour
   assertEquals(
     emptySlotsIn({
       days: ["wed", "thu"],
+      cookOnlyDay: null,
       rhythm: [{ slot: "dinner", size: null }],
       dishes: [{ day: null, slot: "dinner" }],
       awayDays: [],
@@ -277,6 +281,7 @@ Deno.test("④ un plat sans jour couvre la fenêtre, un plat sans moment la jour
   assertEquals(
     emptySlotsIn({
       days: ["wed"],
+      cookOnlyDay: null,
       rhythm: RHYTHM,
       dishes: [{ day: "wed", slot: null }],
       awayDays: [],
@@ -293,6 +298,7 @@ Deno.test("④ sans rythme déclaré, la grille est celle du PROMPT", () => {
   assertEquals(
     emptySlotsIn({
       days: ["wed"],
+      cookOnlyDay: null,
       rhythm: [],
       dishes: [],
       awayDays: [],
@@ -322,7 +328,11 @@ const PARSE_ARGS = {
   merge: null,
   boxMemberIds: [],
   weighedMemberIds: [],
+  kitchenEquipment: null,
+  cookOnlyDay: null,
+  soloBoxes: false,
   boxMemberDiets: [],
+  boxMemberExclusions: [],
 };
 
 function parse(raw: unknown, over: Record<string, unknown> = {}) {

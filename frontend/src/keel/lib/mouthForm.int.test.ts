@@ -466,24 +466,47 @@ describe("le poids visé — le refus est NOMMÉ", () => {
     });
   });
 
-  it("⛔ L3 — accepté → UN JETON, jamais un nombre de semaines", () => {
-    // ⚠️ CE TEST A CHANGÉ DE CAMP LE 2026-08-22 (lot `L3`). Il exigeait
-    // `expect(state.weeks).toBe(12)` — 5 kg à 0,45 kg/semaine, arrondi au
-    // supérieur. Mesuré le même jour: l'écart quotidien prescrit vaut
-    // 495 kcal/j et notre erreur d'estimation ±580 kcal/j, donc l'écart
-    // RÉELLEMENT exécuté vit dans [-85 … 1075] kcal/j — il traverse zéro, et
-    // les semaines réellement possibles allaient « de 6 à JAMAIS ». Le 12
-    // n'était pas imprécis, il était indéfendable.
+  it("⛔ L3′ — accepté → l'horizon, avec son nombre de semaines", () => {
+    // ⚠️ CE TEST A CHANGÉ DE CAMP DEUX FOIS, ET LES DEUX SONT DES DÉCISIONS.
+    //   · avant le 2026-08-22 : `expect(state.weeks).toBe(12)`;
+    //   · lot `L3` : `expect(state.horizon).toBe("no_arrival_date")` — mesuré
+    //     le même jour, l'écart quotidien prescrit vaut 495 kcal/j et notre
+    //     erreur d'estimation ±580 kcal/j, donc l'écart RÉELLEMENT exécuté vit
+    //     dans [-85 … 1075] kcal/j, il traverse zéro, et les semaines
+    //     réellement possibles allaient « de 6 à JAMAIS »;
+    //   · 2026-09-01, à la demande : le nombre revient.
+    //
+    // ⛔ LA MESURE CI-DESSUS N'A PAS ÉTÉ INFIRMÉE, et c'est pour ça que le
+    // nombre ne revient PAS NU: `arrivalHorizonCopy` le colle à ce qu'il est
+    // (le calcul du curseur, pas une date), dans une seule chaîne.
     const state = targetWeightStateFor(
       draftOf({ ...LOSING, targetWeightKg: "55" }),
       TODAY,
     );
     expect(state.kind).toBe("accepted");
     if (state.kind !== "accepted") return;
-    // ⛔ LA SURFACE RESTE — même prémisse qu'avant, contenu différent.
-    expect(state.horizon).toBe("no_arrival_date");
-    // ⛔ ET IL N'EXISTE PLUS DE CHAMP OÙ UN NOMBRE DE SEMAINES S'ÉCRIRAIT.
+    // 5 kg à 0,45 kg/semaine, arrondi AU SUPÉRIEUR.
+    expect(state.horizon).toEqual({ kind: "weeks_at_this_pace", weeks: 12 });
+    // ⚠️ LA SURFACE N'A PAS CHANGÉ DE FORME: le nombre vit DANS `horizon`, et
+    // pas à côté. Un second champ au niveau de l'état serait exactement le
+    // chemin par lequel un écran rendrait le chiffre sans sa réserve.
     expect(Object.keys(state).sort()).toEqual(["horizon", "kind"]);
+  });
+
+  it("⛔ L3′ — sans curseur vivant, PAS de nombre de semaines", () => {
+    // ⚠️ LA PRÉMISSE EST LA MÊME QU'AVANT LE LOT, ET C'EST VOULU: la surface
+    // ne change pas de population, seul son CONTENU change. Sans corps
+    // complet il n'y a pas de plafond, donc pas de curseur, donc aucun rythme
+    // à diviser — et un « environ » calculé sur un corps deviné serait
+    // exactement la promesse que la mesure du 2026-08-22 interdit.
+    const state = targetWeightStateFor(
+      draftOf({ ...LOSING, heightCm: "", targetWeightKg: "55" }),
+      TODAY,
+    );
+    // ⚠️ LA CIBLE EST BIEN ACCEPTÉE — c'est ce qui rend ce cas intéressant:
+    // l'écran montre le champ sans refus, et n'annonce AUCUNE durée. Un test
+    // qui tolérerait `idle` ici resterait vert sur une fenêtre vide.
+    expect(state).toEqual({ kind: "accepted", horizon: null });
   });
 
   it("un refus RETIENT le bouton — sinon le refus arriverait du serveur", () => {

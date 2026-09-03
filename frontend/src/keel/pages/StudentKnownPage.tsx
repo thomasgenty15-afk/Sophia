@@ -8,7 +8,14 @@ import {
   loadKnownStore,
   persistKnownStore,
 } from "../api/retainedItems";
+import {
+  fieldChangesFrom,
+  saveUndoneFieldChanges,
+  undoFieldChange,
+} from "../api/fieldChanges";
+import { memoFrom, withoutMemoLine } from "../api/retainedItems";
 import { localDateIn } from "../api/dates";
+import { supabase } from "../../lib/supabase";
 import KeelAppShell from "../components/KeelAppShell";
 import KnownAboutYouCard from "../components/KnownAboutYouCard";
 import { Card } from "../components/ui/Card";
@@ -130,6 +137,53 @@ export default function StudentKnownPage() {
         members={members}
         roster={roster}
         today={today}
+        // ── LOT M5 · CE QUE L'IA A CHANGÉ DANS LES RÉGLAGES ────────────────
+        //
+        // ⛔ SANS CE FIL, L'ÉCRITURE DU LOT M5 SERAIT PIRE QUE LE CORRECTIF
+        // MUET QU'ELLE REMPLACE. Avant, `cooking_time_min` n'était pas touché:
+        // les générateurs posaient la valeur en mémoire au moment de composer,
+        // et la personne lisait 45 min pendant que son plan était fait sur 30.
+        // Maintenant le réglage change POUR DE BON — donc il faut qu'elle
+        // puisse le voir, en connaître la cause, et le remettre.
+        // ── LOT M4 · LE MÉMO ────────────────────────────────────────────
+        // ⛔ IL SE VOIT, ET C'EST UNE CONDITION D'EXISTENCE. Un mémo caché,
+        // sans plafond, injecté dans chaque prompt est le magasin que ce
+        // chantier supprime avec un autre chapeau — et il ATTEINT le prompt
+        // (les deux générateurs le passent). Le montrer ici est la
+        // contrepartie qui rend cette injection acceptable.
+        memo={memoFrom(store.constraints)}
+        onRemoveMemoLine={async (index) => {
+          // ⛔ LA RÈGLE VIT DANS `withoutMemoLine`, PAS ICI: par POSITION,
+          // jamais par texte. `null` est un refus (index hors bornes, colonne
+          // illisible), jamais un repli — écrire quand même poserait une
+          // colonne qu'on n'a pas su lire.
+          const next = withoutMemoLine(store.constraints, index);
+          if (!next) throw new Error(t("known.error.unreadable"));
+          await saveUndoneFieldChanges({
+            supabase,
+            userId,
+            practicalConstraints: next,
+          });
+          await refresh();
+        }}
+        fieldChanges={fieldChangesFrom(store.constraints)}
+        onUndoFieldChange={async (index) => {
+          // ⛔ LA RÈGLE VIT DANS `undoFieldChange`, PAS ICI. C'est elle qui
+          // remet la valeur d'AVANT et qui RETIRE la clé quand il n'y en avait
+          // pas — la réimplémenter ici ferait deux versions d'une règle dont la
+          // seconde divergerait en silence.
+          const next = undoFieldChange(store.constraints, index);
+          // `null` est un REFUS (index hors bornes, journal illisible), jamais
+          // un repli: écrire quand même poserait une colonne qu'on n'a pas su
+          // lire.
+          if (!next) throw new Error(t("known.error.unreadable"));
+          await saveUndoneFieldChanges({
+            supabase,
+            userId,
+            practicalConstraints: next,
+          });
+          await refresh();
+        }}
         onSave={async (next) => {
           // ⚠️ L'ÉCRITURE EST CIBLÉE ET SA GARDE EST DANS LE PRÉDICAT: la RPC
           // compare la valeur LIVE à celle qu'on a LUE (`store.rawItems`), donc

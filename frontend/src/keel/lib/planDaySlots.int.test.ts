@@ -421,7 +421,7 @@ describe("LOT 3 · les parts, sous le plat qu'elles servent", () => {
   const bowls = dish({
     slot: "dinner",
     title: "Chicken and rice bowls",
-    uses: [{ preparation_id: "prep_chicken", servings: 1 }],
+    uses: [{ preparation_id: "prep_chicken", servings: 1, kept: "fridge" as const }],
   });
 
   it("⛔ la part de chaque bouche se lit SOUS le plat, jointe par `preparation_id`", () => {

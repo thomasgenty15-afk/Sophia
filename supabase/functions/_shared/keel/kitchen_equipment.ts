@@ -190,6 +190,28 @@ export function hasKitchenTool(
 }
 
 /**
+ * CE FOYER A-T-IL DÉCLARÉ UN CONGÉLATEUR ? — la seule forme autorisée.
+ *
+ * ⛔ ELLE EXISTE POUR QUE `=== true` NE SOIT ÉCRIT QU'UNE FOIS. Trois lecteurs
+ * en ont besoin depuis le 2026-09-01 — le parseur (la fenêtre du cuit), la
+ * consigne (les jours hors de portée d'un lot) et les deux lanes qui les
+ * appellent. Trois `hasKitchenTool(eq, "freezer") === true` recopiés, c'est
+ * trois endroits où quelqu'un écrira un jour `!== false` en croyant simplifier.
+ *
+ * ⚠️ ET CETTE COMPARAISON-LÀ EST LA GARDE. Le pavé au-dessus interdit
+ * `!hasKitchenTool(...)`, qui confond « il n'en a pas » et « on ne lui a jamais
+ * demandé ». Ici on veut EXACTEMENT l'inverse: seule une déclaration positive
+ * compte. `false` (pas de congélateur) et `null` (jamais demandé) rendent tous
+ * deux `false` — la seule direction acceptable pour une règle qui décide si un
+ * lot de six jours peut être servi.
+ */
+export function hasFreezerDeclared(
+  equipment: readonly KitchenTool[] | null,
+): boolean {
+  return hasKitchenTool(equipment, "freezer") === true;
+}
+
+/**
  * CE QUE LE FOYER A DÉCLARÉ NE PAS AVOIR — vide tant qu'on n'a rien demandé.
  *
  * C'est la liste que L7 a le droit d'INTERDIRE. Elle est vide quand

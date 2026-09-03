@@ -28,7 +28,9 @@ import {
 import {
   ACCEPTED_PHOTO_MIME_TYPES,
   analysisSucceeded,
+  detectedFoodLabel,
   MAX_PHOTO_BYTES,
+  type MealPhotoEnergyEstimate,
   type MealPhotoUploadResult,
   uploadMealPhoto,
 } from "../api/mealPhoto";
@@ -624,6 +626,44 @@ function PhotoComposer(props: {
  *    written server-side. This panel reports EVIDENCE, in its own words
  *    ("Looks consistent"), so the two can never be read as one.
  */
+/**
+ * LE CHIFFRE ET SA BASE, EN UNE PHRASE — CALORIE_REVERSAL §6.
+ *
+ * ══════════════════════════════════════════════════════════════════════════
+ * UNE FONCTION, ET C'EST CE QUI REND LA PROPRIÉTÉ VÉRIFIABLE
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * La propriété du harnais est *« tout rendu qui affiche `kcal` affiche aussi sa
+ * base »*. Sur un écran, ça ne se prouve que si le rendu passe par UN point:
+ * une interpolation posée à la main dans le JSX se copierait un jour dans un
+ * second panneau, sans sa base.
+ *
+ * ⛔ ET LA BASE EST DANS LA CLÉ, PAS À CÔTÉ. La chaîne rendue vient d'une clé
+ * i18n NOMMÉE PAR LA BASE (`photo.energy.<basis>`), qui interpole le nombre
+ * DANS la phrase. Il n'existe donc pas de chemin où le nombre s'affiche et la
+ * base non: elles sont le même message.
+ *
+ * `null` sur l'absence de chiffre — et l'absence est le cas normal, autant
+ * qu'une porte fermée. Les deux sont indiscernables ici, et c'est voulu.
+ */
+function photoEnergyLine(
+  estimate: MealPhotoEnergyEstimate | null | undefined,
+): string | null {
+  if (!estimate) return null;
+  const kcal = Number(estimate.kcal);
+  // ⚠️ `Number.isFinite`, pas une vérité: `Number(null)` vaut 0, et 0 est
+  // « faux » — le mode d'échec exact que `finiteEnergyNumber` a déjà payé
+  // côté client, l'absence devenue une valeur.
+  if (!Number.isFinite(kcal) || kcal <= 0) return null;
+  if (estimate.basis === "declared_quantities") {
+    return t("photo.energy.declared_quantities", { kcal });
+  }
+  // ⛔ LE DÉFAUT EST `photo_estimate`, ET C'EST LE CÔTÉ SÛR. Une base inconnue
+  // — une ligne écrite par une version future — se rend comme la moins
+  // fiable des deux, jamais comme la plus rassurante.
+  return t("photo.energy.photo_estimate", { kcal });
+}
+
 function PhotoOutcomePanel(props: {
   result: MealPhotoUploadResult;
   titleOf: (commitmentId: string) => string | null;
@@ -631,6 +671,7 @@ function PhotoOutcomePanel(props: {
   const { result } = props;
   const recognized = result.analysis?.recognized ?? null;
   const analyzed = analysisSucceeded(result) && recognized !== null;
+  const energyLine = photoEnergyLine(recognized?.energy_estimate ?? null);
 
   // ⛔ L'ÉMERAUDE RESTE, ET C'EST LA RÈGLE. « La photo est enregistrée » est un
   // ENREGISTREMENT CONFIRMÉ, c'est-à-dire un fait — et un état a le droit d'être
@@ -659,7 +700,9 @@ function PhotoOutcomePanel(props: {
           {(recognized!.detected_foods ?? []).length > 0 && (
             <p>
               <span className="text-emerald-700">{t("photo.detected_label")}: </span>
-              {(recognized!.detected_foods ?? []).map((f) => f.label).join(", ")}
+              {/* Le libellé LOCALISÉ, avec repli sur celui du matcher: `label`
+                  reste anglais par contrat côté serveur. */}
+              {(recognized!.detected_foods ?? []).map(detectedFoodLabel).join(", ")}
             </p>
           )}
 
@@ -686,11 +729,32 @@ function PhotoOutcomePanel(props: {
             </div>
           )}
 
+          {/* ── LE CHIFFRE, S'IL EXISTE, AVEC SA BASE DANS LA MÊME LIGNE ──
+              CALORIE_REVERSAL §6. La clé i18n interpole le nombre DANS la
+              phrase qui nomme sa base: deux éléments séparés (un libellé, une
+              note plus bas) se relisent comme une remarque générale, et c'est
+              exactement la forme sous laquelle un chiffre voyage nu.
+
+              ⛔ AUCUNE PORTE N'EST ÉVALUÉE ICI. `energy_estimate` vaut déjà
+              `null` quand la garde est fermée — `parseMealAnalysis` l'a effacé
+              à l'ingestion, avant la base. Un test de garde côté client serait
+              le « filtrage entre le calcul et l'écran » que la décision du
+              2026-08-18 interdit, et surtout un second point de décision. */}
+          {energyLine && (
+            <p>
+              <span className="text-emerald-700">{t("photo.energy_label")}: </span>
+              {energyLine}
+            </p>
+          )}
+
           {recognized!.confidence_band === "low" && (
             <p className="text-emerald-800">{t("photo.low_confidence")}</p>
           )}
+          {/* La note de bas de panneau CHANGE quand un chiffre est affiché:
+              « une photo me dit quoi, pas combien » contredirait le kcal juste
+              au-dessus. */}
           <p className="text-[11px] leading-4 text-emerald-700">
-            {t("photo.no_quantity_note")}
+            {t(energyLine ? "photo.no_quantity_note_estimate" : "photo.no_quantity_note")}
           </p>
         </div>
       )}

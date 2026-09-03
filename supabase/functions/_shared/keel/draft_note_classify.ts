@@ -72,8 +72,10 @@
  * paramètre, et l'ancre de la semaine visée aussi.
  */
 
+import { SAFETY_DECLARATION_PROMPT_BLOCK } from "./draft_note_safety.ts";
 import {
   canProduce,
+  RETAINED_KINDS,
   defaultScopeFor,
   HOUSEHOLD_SUBJECT,
   LOGISTICS_FIELDS,
@@ -121,27 +123,97 @@ export const DRAFT_NOTE_PRODUCER = "draft_note" as const;
  * déciderait. Le test épingle le RÉSULTAT contre une liste littérale — c'est
  * l'égalité qui est prouvée, pas la recopie.
  */
-export const DRAFT_NOTE_KINDS: readonly RetainedKind[] = ([
-  "food.exclude",
-  "food.prefer",
-  "method.avoid",
-  "method.prefer",
-  "portion.adjust",
-  "rhythm.set",
-  "logistics.set",
-  "craving",
-] as const).filter((kind) => canProduce(DRAFT_NOTE_PRODUCER, kind));
+export const DRAFT_NOTE_KINDS: readonly RetainedKind[] = RETAINED_KINDS
+  .filter((kind) => canProduce(DRAFT_NOTE_PRODUCER, kind));
 
 /**
- * LES DEUX FAMILLES INTERDITES À CE PRODUCTEUR — **CALCULÉES** elles aussi.
+ * LES FAMILLES INTERDITES À CE PRODUCTEUR — **CALCULÉES** elles aussi.
  *
  * Elles servent au PROMPT (les nommer est ce qui fait tomber le taux
  * d'échappatoire) et au TEST (un cas qui mord, un cas qui passe).
+ *
+ * ⛔ DÉRIVÉE DE `RETAINED_KINDS`, ET C'EST UNE CORRECTION DU LOT M5. Elle
+ * filtrait un littéral de DEUX entrées en se disant « calculée »: elle ne
+ * pouvait donc jamais GAGNER une famille, seulement en perdre. Fermer
+ * `logistics.set` au brouillon n'a rien changé à cette liste, et le prompt a
+ * continué à ne nommer que deux interdits — c'est-à-dire à taire précisément
+ * celui qu'on venait d'ajouter.
+ *
+ * ⚠️ Le complément de `DRAFT_NOTE_KINDS` sur la MÊME source: ensemble elles
+ * couvrent les huit familles, sans recouvrement, et une neuvième famille entre
+ * automatiquement dans l'une des deux.
  */
-export const DRAFT_NOTE_FORBIDDEN_KINDS: readonly RetainedKind[] = ([
-  "portion.adjust",
-  "rhythm.set",
-] as const).filter((kind) => !canProduce(DRAFT_NOTE_PRODUCER, kind));
+export const DRAFT_NOTE_FORBIDDEN_KINDS: readonly RetainedKind[] = RETAINED_KINDS
+  .filter((kind) => !canProduce(DRAFT_NOTE_PRODUCER, kind));
+
+/**
+ * CE QU'EST CHAQUE FAMILLE, **UNE PHRASE PAR FAMILLE ET LES HUIT PRÉSENTES**.
+ *
+ * ⛔ CETTE CARTE EXISTE PARCE QUE LA LISTE ÉTAIT ÉCRITE À LA MAIN DANS LE
+ * PROMPT, ET QU'ELLE A MENTI. Mesuré le 2026-09-01 sur un tour réel : le lot M5
+ * a fermé `logistics.set` à ce producteur, la ligne « NEVER … » (dérivée) l'a
+ * bien nommé — et trois lignes plus bas le prompt continuait de l'ENSEIGNER,
+ * avec sa description et un bloc de schéma de valeur rien que pour lui. Le
+ * modèle a suivi ce qu'on lui apprenait, et la porte a brûlé sa proposition :
+ * « Les recettes sont bien trop compliquées » → `proposed=1 kept=0
+ * refused_forbidden_kind=1`. Le retour de la personne a disparu, en silence.
+ *
+ * ⚠️ `Record<RetainedKind, …>` EXHAUSTIF, ET C'EST LA MOITIÉ QUI COMPTE : une
+ * neuvième famille ajoutée à `RETAINED_KINDS` ne compile plus tant que
+ * personne ne lui a écrit sa phrase. Et le rendu ne parcourt que
+ * `DRAFT_NOTE_KINDS` : fermer une case dans `canProduce` retire donc son
+ * enseignement du prompt **au même instant**, sans que personne ait à y penser.
+ */
+const KIND_BLURBS: Readonly<Record<RetainedKind, string>> = {
+  "food.exclude": "a food or a dish they do not want any more.",
+  "food.prefer": "a food or a dish they want to see again.",
+  "method.avoid": "a preparation that does not work for them (fried, raw, spicy).",
+  "method.prefer": "a preparation they like.",
+  "portion.adjust": "how big a serving was.",
+  "rhythm.set": "which meals of the day they take, and when.",
+  "logistics.set": "which days they cook, how long, how hard, how varied, what they spend.",
+  craving: "one specific thing they want soon: \"fajitas next week\".",
+};
+
+/**
+ * CE QUI DOIT ÊTRE DIT **JUSTE APRÈS** UNE FAMILLE, et pas dans une annexe.
+ *
+ * ⛔ L'ADJACENCE EST LA MESURE, ET UN TEST LA TIENT (`ruleAt - excludeAt < 300`).
+ * La règle de direction a été mesurée en run réel : sans elle, « Plus de poisson
+ * cette semaine » ressortait en `food.prefer` — l'INVERSE. Elle ne vaut que
+ * collée aux deux familles qu'elle sépare : rendue plus bas, un modèle
+ * l'arbitre contre le reste du prompt.
+ *
+ * ⚠️ ATTACHÉE À `food.prefer`, PAS POSÉE À UN INDEX. C'est ce qui la fait
+ * suivre sa famille quel que soit l'ordre du rendu — et disparaître avec elle
+ * le jour où cette famille se fermerait, au lieu de rester orpheline.
+ */
+const KIND_NOTES: Partial<Readonly<Record<RetainedKind, string>>> = {
+  "food.prefer":
+    "  DIRECTION FIRST, AND WHEN IN DOUBT DROP IT. These two are opposites, and getting them backwards makes the next plan serve MORE of the very thing they just rejected. French « plus de X » means BOTH \"no more X\" and \"more X\" — the negation is routinely dropped in speech, and the sentence alone does not always say which. When you cannot tell the direction, leave the item out of \"items\". Being asked once more costs them a sentence; being served more of what they rejected costs them a week.",
+};
+
+/**
+ * POURQUOI CHAQUE FAMILLE INTERDITE L'EST — une raison PAR famille.
+ *
+ * ⛔ LA PROSE DISAIT « Those TWO are asked somewhere else » AVEC TROIS
+ * INTERDITS, et son motif (« a measure needs to know WHO, and a rhythm is not a
+ * mood ») ne couvrait pas la logistique. Une justification qui ne parle pas de
+ * ce qu'elle justifie se lit comme une erreur de rédaction, et un modèle a
+ * raison de lui préférer la description détaillée qu'on lui a donnée ailleurs.
+ */
+const FORBIDDEN_REASONS: Readonly<Record<RetainedKind, string>> = {
+  "food.exclude": "",
+  "food.prefer": "",
+  "method.avoid": "",
+  "method.prefer": "",
+  craving: "",
+  "portion.adjust":
+    "a measure needs to know WHO it is for, and that is asked in a closed question with the people at the table in front of them",
+  "rhythm.set": "a rhythm is a standing fact, not a mood about one week",
+  "logistics.set":
+    "these are SETTINGS they can see and change on their own screen — filing a copy here would let their settings say one thing while their plan is built on another",
+};
 
 // ===========================================================================
 // LE PROMPT — la promesse TOUCHE la clé de schéma
@@ -181,33 +253,63 @@ export const DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT = [
     DRAFT_NOTE_KINDS.join(" | ")
   } — and NEVER ${
     DRAFT_NOTE_FORBIDDEN_KINDS.join(", NEVER ")
-  }, not even when the note is plainly about how big a serving was, or about a meal that should or should not exist. Those two are asked somewhere else, in a closed question, with the list of people at the table in front of the person — because a measure needs to know WHO, and a rhythm is not a mood. When the note is about one of those two, return NOTHING for it: leave it out of "items" entirely. Filing it under a neighbouring kind would be worse than losing it,`,
+  }. Each of those is refused for its own reason, and none of them has a neighbour here:${
+    DRAFT_NOTE_FORBIDDEN_KINDS.map((k) => `\n    · ${k} — ${KIND_BLURBS[k]} ${FORBIDDEN_REASONS[k]};`).join("")
+  }\n  When the note is about one of these, return NOTHING for it: leave it out of "items" entirely. Filing it under a neighbouring kind would be worse than losing it,`,
   '  "text": the thing you are filing, in THEIR language and as close to THEIR OWN WORDS as you can. This is the line they will read on their own memory card, and they can edit it. Never a sentence you invented, never longer than what they wrote,',
   '  "member_id": null when it is for everyone at the table — that is the normal answer and the right one most of the time. An id COPIED EXACTLY from the roster below only when the note names that person. NEVER a first name,',
-  '  "value": null for every kind except logistics.set (see below)',
+  // ⛔ LES MOTS DE PARENTÉ SONT LA FORME NORMALE, PAS UN CAS LIMITE. Mesuré le
+  // 2026-09-01: personne n'écrit « Tom n'aime pas le poisson ». On écrit « mon
+  // fils ». Sans cette règle, la note partait sur le foyer entier — un fait
+  // FAUX, qui retire le poisson à toute la table — ou se perdait en silence.
+  //
+  // ⚠️ L'ABSTENTION EST LA BONNE RÉPONSE, ET ELLE EST DITE ICI. Deux enfants du
+  // même sexe rendent « mon fils » indécidable, et l'attribution décide de qui
+  // reçoit quelle assiette: se tromper de bouche est pire que ne rien ranger.
+  // Redemander coûte une phrase; servir la mauvaise personne coûte la semaine.
+  '  A RELATIVE WORD IS THE NORMAL WAY PEOPLE WRITE: "my son", "my daughter", "my wife", "the kids". Resolve it against the roster using "age" (minor/adult) and "sex". "my son" is the MINOR whose sex is male; "my wife" is an ADULT whose sex is female. If exactly ONE person at the table fits, copy that id.',
+  '  ⛔ IF TWO PEOPLE FIT, OR NONE, OR EITHER "age" OR "sex" IS null FOR THE ONE YOU WOULD PICK: file NOTHING for that item — leave it out of "items". Do NOT fall back to member_id: null, which means EVERYONE at the table and would apply one person\'s dislike to all of them. Being asked again costs them a sentence; taking a food away from the whole table because one child dislikes it costs them the week.',
+  `  "value": ${
+    DRAFT_NOTE_KINDS.includes("logistics.set")
+      ? "null for every kind except logistics.set (see below)"
+      : "ALWAYS null. No kind you may file carries one"
+  },`,
   "}",
   "",
   "WHAT EACH KIND IS FOR:",
-  "- food.exclude — a food or a dish they do not want any more.",
-  "- food.prefer — a food or a dish they want to see again.",
-  "  DIRECTION FIRST, AND WHEN IN DOUBT DROP IT. These two are opposites, and getting them backwards makes the next plan serve MORE of the very thing they just rejected. French « plus de X » means BOTH \"no more X\" and \"more X\" — the negation is routinely dropped in speech, and the sentence alone does not always say which. When you cannot tell the direction, leave the item out of \"items\". Being asked once more costs them a sentence; being served more of what they rejected costs them a week.",
-  "- method.avoid — a preparation that does not work for them (fried, raw, spicy).",
-  "- method.prefer — a preparation they like.",
-  "- logistics.set — which days they cook, how long, how hard, how varied, what they spend.",
-  "- craving — one specific thing they want soon: \"fajitas next week\".",
+  // ⛔ RENDU DEPUIS `DRAFT_NOTE_KINDS`, jamais retapé: une famille fermée dans
+  // `canProduce` cesse d'être enseignée AU MÊME INSTANT. C'est la correction du
+  // défaut mesuré le 2026-09-01 (`logistics.set` interdit et décrit à la fois).
+  ...DRAFT_NOTE_KINDS.flatMap((k) => {
+    const note = KIND_NOTES[k];
+    return note ? [`- ${k} — ${KIND_BLURBS[k]}`, note] : [`- ${k} — ${KIND_BLURBS[k]}`];
+  }),
   "",
-  "logistics.set — and ONLY logistics.set — carries a value:",
-  `  { "field": one of ${LOGISTICS_FIELDS.join(" | ")}, "value": ... }`,
-  `  cook_days takes a list of ${DAY_TOKENS.join(" | ")}.`,
-  "  cooking_time_min takes a whole number of minutes. budget_amount takes a number.",
-  `  recipe_difficulty takes ${RECIPE_DIFFICULTIES.join(" | ")}. variety takes ${
-    VARIETY_LEVELS.join(" | ")
-  }.`,
-  "  NEVER invent a number they did not write. If they wrote no number, this is not a logistics.set.",
-  "",
+  // ⛔ CE BLOC NE S'IMPRIME QUE SI LA FAMILLE EST OUVERTE. Inconditionnel, il
+  // était le plus détaillé du prompt — un schéma de valeur rien que pour lui —
+  // au moment même où la matrice le refusait.
+  ...(DRAFT_NOTE_KINDS.includes("logistics.set")
+    ? [
+      "logistics.set — and ONLY logistics.set — carries a value:",
+      `  { "field": one of ${LOGISTICS_FIELDS.join(" | ")}, "value": ... }`,
+      `  cook_days takes a list of ${DAY_TOKENS.join(" | ")}.`,
+      "  cooking_time_min takes a whole number of minutes. budget_amount takes a number.",
+      `  recipe_difficulty takes ${RECIPE_DIFFICULTIES.join(" | ")}. variety takes ${
+        VARIETY_LEVELS.join(" | ")
+      }.`,
+      "  NEVER invent a number they did not write. If they wrote no number, this is not a logistics.set.",
+      "",
+    ]
+    : []),
   "NEVER file an allergy, an intolerance, a diet, or a medical condition. Those are asked directly, with consent, and they live somewhere this list cannot reach. \"no peanuts, they make me ill\" is at most a food.exclude — you are filing a preference, never a medical fact.",
   "",
   "Return an EMPTY list when there is nothing to file: a compliment, a thank-you, a question, a remark about the plan being long or short. An empty list is a correct answer and it is a frequent one. Filing something that is not there is worse than filing nothing.",
+  // ⛔ LA SECONDE LISTE — arbitrage du 2026-09-01. Une allergie dite ici EST une
+  // allergie: elle part dans une table qui a sa ceinture, la personne en est
+  // prévenue le soir, et elle peut la retirer d'un geste. Le bloc vit dans
+  // `draft_note_safety.ts` parce que c'est lui qui relit ce qu'il demande —
+  // deux fichiers, une seule promesse.
+  SAFETY_DECLARATION_PROMPT_BLOCK,
 ].join("\n");
 
 /** Une bouche, réduite à ce dont ce prompt a besoin. */
@@ -216,6 +318,38 @@ export type DraftNoteMember = {
   readonly memberId: string;
   /** Comment la personne l'appelle. Sert au modèle à LIRE la note, pas à écrire. */
   readonly label: string;
+  /**
+   * ADULTE OU MINEUR, ET `null` QUAND ON NE SAIT PAS — 2026-09-01.
+   *
+   * ⛔ MESURÉ: sans ces deux champs, le roster n'était que trois PRÉNOMS, et
+   * personne ne dit « Tom n'aime pas le poisson » — on dit **« mon fils »**.
+   * Deux phrases sur dix sont mortes là-dessus, et une troisième a été rangée
+   * sur le FOYER ENTIER: « mon fils n'aime pas le poisson » → `subject:
+   * household`, c'est-à-dire un fait FAUX, et personne ne mange de poisson.
+   *
+   * ⚠️ `ageState` ET PAS `ageBand`. `ageBandOf` rend `null` sous 18 ans (ses
+   * quatre bandes sont adultes) — donc précisément `null` pour les bouches
+   * qu'il s'agit d'identifier. C'est le piège de ce lot, et il coûte tout.
+   *
+   * ⚠️ ET PAS LA DATE DE NAISSANCE NON PLUS. « Mineur » suffit à séparer
+   * « mon fils » de « mon mari »; une date exacte n'ajoute qu'un identifiant.
+   * Ce que ça NE résout pas est nommé plus bas: deux enfants du même sexe.
+   */
+  readonly ageState: "adult" | "minor" | null;
+  /**
+   * LE SEXE DÉCLARÉ, ou `null`.
+   *
+   * ⚠️ FF-047 NE L'INTERDIT PAS, et je l'ai vérifié avant de l'écrire: la règle
+   * nomme « ni taille ni pesée à côté de son prénom dans le prompt », pour que
+   * la DIRECTION d'un enfant ne devienne pas dérivable à table. Ce prompt-ci
+   * n'est lu par personne: sa sortie est une décision de rangement, jamais un
+   * texte servi. Un sexe déclaré n'est ni une mesure ni une direction.
+   *
+   * ⛔ REQUIS, jamais `?`. Sept paramètres optionnels ont déjà été des gardes
+   * désarmées dans ce dépôt: un appelant qui ne sait pas passe `null`, et le
+   * `null` se lit « on ne sait pas », pas « il n'y a rien à savoir ».
+   */
+  readonly sex: "male" | "female" | "other" | null;
 };
 
 /**
@@ -256,7 +390,16 @@ export function buildDraftNoteClassifyPrompt(args: {
       "The people at this table — copy an id EXACTLY, never a name: " +
         roster
           .map((m) =>
-            JSON.stringify({ member_id: m.memberId, called: String(m.label ?? "") })
+            JSON.stringify({
+              member_id: m.memberId,
+              called: String(m.label ?? ""),
+              // ⚠️ LES CLÉS SONT ÉCRITES MÊME À `null`. Une clé absente laisse
+              // le modèle supposer qu'on la lui a cachée; une clé à `null` dit
+              // « personne ne l'a renseigné », ce qui est la vérité et ce qui
+              // doit le faire s'abstenir.
+              age: m.ageState,
+              sex: m.sex,
+            })
           )
           .join(", "),
     );
@@ -288,6 +431,20 @@ export interface DraftNoteRefusals {
    * `canProduce(draft_note, kind)` a mordu, ou `defaultScopeFor` a rendu `null`.
    */
   readonly forbiddenKind: number;
+  /**
+   * ⛔ QUELLES FAMILLES, PAS SEULEMENT COMBIEN — mesuré le 2026-09-01.
+   *
+   * `forbiddenKind: 1` couvrait DEUX histoires opposées, et rien ne les
+   * séparait: ① le modèle a tenté l'échappatoire que ce lot existe pour
+   * mesurer (`portion.adjust` sur « les parts sont trop grosses ») — c'est le
+   * comportement attendu, la garde fait son travail; ② le modèle a produit une
+   * famille que le PROMPT lui enseignait alors que la matrice la refuse — et
+   * là c'est le prompt qu'il faut corriger, pas le modèle.
+   *
+   * Sans ce champ, le second cas a vécu depuis le lot M5 en se lisant comme le
+   * premier. Trié, dédoublonné: une ligne de journal n'est pas un histogramme.
+   */
+  readonly forbiddenKinds: readonly string[];
   /** `member_id` qui n'est dans le rôle d'aucune bouche de ce foyer. */
   readonly unknownMember: number;
   /** `text` vide, ou plus long que la note dont il est censé sortir. */
@@ -335,6 +492,7 @@ const EMPTY_REFUSALS: DraftNoteRefusals = {
   total: 0,
   unknownKind: 0,
   forbiddenKind: 0,
+  forbiddenKinds: [],
   unknownMember: 0,
   badText: 0,
   malformed: 0,
@@ -422,6 +580,7 @@ export function readDraftNoteClassification(args: {
 
   let unknownKind = 0;
   let forbiddenKind = 0;
+  const forbiddenKinds = new Set<string>();
   let unknownMember = 0;
   let badText = 0;
   let malformed = 0;
@@ -447,6 +606,7 @@ export function readDraftNoteClassification(args: {
     //    tombent, et c'est le nombre qu'on regarde.
     if (!canProduce(DRAFT_NOTE_PRODUCER, kind)) {
       forbiddenKind += 1;
+      forbiddenKinds.add(kind);
       continue;
     }
     // ⛔ PUIS `defaultScopeFor`, DONT LE `null` EST UN REFUS. Jamais
@@ -457,6 +617,7 @@ export function readDraftNoteClassification(args: {
     const scope = defaultScopeFor(DRAFT_NOTE_PRODUCER, kind);
     if (scope === null) {
       forbiddenKind += 1;
+      forbiddenKinds.add(kind);
       continue;
     }
 
@@ -504,6 +665,23 @@ export function readDraftNoteClassification(args: {
       // ⚠️ `null` OBLIGATOIRE hors `conversation`. Une confiance sur un fait
       // déclaré est une erreur de catégorie, et le socle la REFUSE.
       confidence: null,
+      // ── LOT M2 · LA PHRASE QUI A CAUSÉ CETTE LIGNE ────────────────────────
+      //
+      // ⛔ LA NOTE BRUTE, PAS LE `text` EXTRAIT. Ce sont deux choses
+      // différentes, et confondre les deux viderait la citation de son sens:
+      // `text` est ce que le MODÈLE a retenu (« pas d'aubergine »), la note est
+      // ce que la PERSONNE a écrit (« l'aubergine je ne peux vraiment pas, et
+      // le reste me va »). Citer l'extraction reviendrait à lui montrer sa
+      // propre phrase reformulée par la machine, présentée comme sienne — ce
+      // qui est pire que pas de citation.
+      //
+      // ⚠️ ET C'EST CE QUI REND « DÉFAIRE » DÉCIDABLE: en relisant SES mots,
+      // elle sait tout de suite si la ligne dit ce qu'elle voulait dire.
+      //
+      // ⚠️ TOUTES les lignes d'une même note portent la MÊME citation, et c'est
+      // juste: elles viennent bien toutes de cette note. Le socle tronque au
+      // besoin (`RETAINED_QUOTE_MAX_CHARS`), il ne résume jamais.
+      quote: args.note,
     });
     if (!item) {
       malformed += 1;
@@ -523,6 +701,7 @@ export function readDraftNoteClassification(args: {
     total: unknownKind + forbiddenKind + unknownMember + badText + malformed,
     unknownKind,
     forbiddenKind,
+    forbiddenKinds: [...forbiddenKinds].sort(),
     unknownMember,
     badText,
     malformed,
@@ -568,18 +747,23 @@ function itemsOf(raw: unknown): unknown[] | null {
  * LA LIGNE DE JOURNAL, en un objet. Les trois nombres se lisent ENSEMBLE.
  *
  * `proposed > 0 && kept === 0` = le prompt ne tient pas.
- * `refused.forbiddenKind > 0` = l'échappatoire mesurée, celle qu'on suit.
+ * `refused.forbiddenKind > 0` = l'échappatoire mesurée, celle qu'on suit —
+ *   et `refused_forbidden_kinds` dit LAQUELLE, ce qui sépare « la garde a
+ *   mordu » de « le prompt enseigne un interdit ».
  * `proposed === 0` sur une note non vide = le modèle n'a rien vu à ranger.
  */
 export function draftNoteClassifyTrace(
   classification: DraftNoteClassification,
-): Record<string, number> {
+): Record<string, number | readonly string[]> {
   return {
     proposed: classification.proposed,
     kept: classification.kept,
     refused: classification.refused.total,
     refused_unknown_kind: classification.refused.unknownKind,
     refused_forbidden_kind: classification.refused.forbiddenKind,
+    // ⚠️ LE JETON, PAS SEULEMENT LE NOMBRE. Voir `forbiddenKinds`: sans lui,
+    // « le prompt enseigne un interdit » se lit comme « la garde a mordu ».
+    refused_forbidden_kinds: classification.refused.forbiddenKinds,
     refused_unknown_member: classification.refused.unknownMember,
     refused_bad_text: classification.refused.badText,
     refused_malformed: classification.refused.malformed,

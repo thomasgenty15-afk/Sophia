@@ -1017,12 +1017,19 @@ Deno.test("ALLER-RETOUR: écrire puis relire est une IDENTITÉ", () => {
       kind: "logistics.set",
       text: "25 minutes en semaine",
       value: { field: "cooking_time_min", value: 25 },
+      // ⛔ LOT M5 — cette famille est fermée aux producteurs SERVEUR: elle
+      // change le CHAMP, elle ne se retient plus. `written` la garde, parce que
+      // `written` EST la personne et que sa carte doit pouvoir tout écrire —
+      // contrepartie exacte des interdits. Le magasin doit donc savoir relire
+      // ce qu'elle y met.
+      source: "written",
     }),
     retained({
       kind: "rhythm.set",
       subject: `member:${ZOE}`,
       text: "pas de petit-déjeuner",
       value: { occasion: "breakfast", present: false },
+      source: "written",
     }),
     retained({
       kind: "method.avoid",
@@ -1131,11 +1138,13 @@ Deno.test("GARDE — LE CAS QUI PASSE: tout ce qui est `durable` entre", () => {
       kind: "rhythm.set",
       text: "un goûter",
       value: { occasion: "snack_pm", present: true },
+      source: "written",
     }),
     retained({
       kind: "logistics.set",
       text: "budget 90",
       value: { field: "budget_amount", value: 90 },
+      source: "written",
     }),
   ];
   const out = readRetainedItems(withRetainedItems({}, items));
@@ -1603,7 +1612,13 @@ Deno.test("B8 — TOUTE CLÉ DE `practical_constraints` EST CLASSÉE, servie ou 
   // laisserait vert.
   //
   // SERVIE = le modèle la voit, et c'est voulu.
-  const SERVED = ["food_preferences", "kitchen_equipment"];
+  // ⟳ LOT M4 — `memo` est SERVI, et c'est sa raison d'être. Cinq lignes au
+  // plus, pour ce qu'aucune famille ne porte et qu'aucun indice ne mesure. Un
+  // mémo qui ne serait PAS servi serait un magasin sans lecteur — et celui-ci
+  // est précisément celui dont le design dit qu'il serait « le magasin qu'on
+  // supprime, avec un autre chapeau ». Il est servi, il est plafonné, et il se
+  // voit sur la carte avec sa cause: les trois ensemble, ou aucun.
+  const SERVED = ["food_preferences", "kitchen_equipment", "memo"];
   // RETIRÉE = comptabilité interne ou magasin structuré. Le lot 1C construit
   // les consignes à partir de ces items; servir le jsonb brut EN PLUS ferait
   // doublon, dans deux formes différentes, à l'intérieur d'un prompt qui a un
@@ -1613,6 +1628,19 @@ Deno.test("B8 — TOUTE CLÉ DE `practical_constraints` EST CLASSÉE, servie ou 
     "food_preferences_origin",
     "retained_items",
     "retained_next_plan",
+    // ⟳ LOT M5 — `field_changes` est le JOURNAL des champs que l'IA a changés:
+    // ce qui a bougé, sa valeur d'AVANT, et la phrase qui l'a causé. Il est
+    // RETIRÉ du prompt, et pour deux raisons qui vont dans le même sens:
+    //   ① les valeurs qu'il journalise sont DÉJÀ servies — ce sont les champs
+    //      eux-mêmes (`cooking_time_min`, `variety`…), que le prompt lit à leur
+    //      place. Le servir en plus dirait deux fois la même chose, dans deux
+    //      formes différentes, dans un prompt qui a un budget;
+    //   ② il porte l'ANCIENNE valeur. La donner au modèle l'inviterait à
+    //      composer entre les deux, alors que la seule qui vaille est celle
+    //      qui est écrite dans le champ.
+    // Il est fait pour un ÉCRAN — le fil « ce qui vient de changer » — pas pour
+    // un prompt.
+    "field_changes",
   ];
   // ⚠️ LA SOUPAPE. Un `…_KEY` capté par le scan qui ne désigne PAS une clé de
   // `practical_constraints` se range ici, AVEC SON MOTIF. La remplir pour faire
@@ -1651,6 +1679,25 @@ Deno.test("B8 — TOUTE CLÉ DE `practical_constraints` EST CLASSÉE, servie ou 
     // ⚠️ Le jour où une clé d'une entrée de `fixed_intakes` DOIT partir au
     // modèle, elle passe par `fixedIntakePromptLines`, pas par cette soupape.
     "food_group",
+
+    // ⟳ FF-018 §11, 2026-09-01 — `slot_inferred`.
+    //
+    // Elle n'est PAS une clé de `practical_constraints`: c'est une clé de
+    // `protocol_events.recognized`, à côté de `student_commitment_id`. Elle
+    // marque qu'un créneau de photo a été DÉDUIT de l'heure locale plutôt que
+    // déclaré par l'élève (`photo_slot_inference.ts :: SLOT_INFERRED_KEY`).
+    //
+    // Le scan la capte parce qu'il est textuel — il retient tout
+    // `export const …_KEY` d'un fichier qui NOMME `practical_constraints` — et
+    // `photo_slot_inference.ts` le nomme une fois, pour dire d'où vient
+    // l'heure déclarée qu'il préfère au repli (`eating_rhythm[].at`).
+    //
+    // ⛔ ET LA QUESTION QUE POSE CE TEST A QUAND MÊME SA RÉPONSE. Rien de ce
+    // marqueur ne part au modèle: il est lu par `slotWasInferred`, dont les
+    // deux seuls appelants sont `analyze-meal-photo-v1` (pour le recopier à
+    // travers la ré-analyse) et l'accusé de photo (pour DIRE le créneau
+    // déduit). Aucun prompt ne le sérialise.
+    "slot_inferred",
   ];
 
   const found = await constraintKeysOnDisk();

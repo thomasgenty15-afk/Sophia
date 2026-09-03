@@ -21,10 +21,28 @@
  *   integer in a field, never as a sentence. Layer 4 below is what makes that
  *   claim testable rather than a promise.
  *
- * WHAT DID NOT CHANGE, AND MUST NOT: the PHOTO path. `energy_estimate` with its
- * `photo_estimate` basis (−26,6 % bias, systematic, worst on the biggest meals)
- * is a different chantier, and FF-059 does not open it. Layers 1 to 3 below are
- * untouched, and they are the reason a photo still cannot produce a number.
+ * ⟳ SECOND RETOURNEMENT — 2026-09-01, LE CHEMIN PHOTO (CALORIE_REVERSAL).
+ *
+ * La version du 2026-08-12 disait ici: *« WHAT DID NOT CHANGE, AND MUST NOT: the
+ * PHOTO path […] is a different chantier, and FF-059 does not open it. »* Ce
+ * chantier-là a été exécuté. Le chemin photo porte maintenant une SECONDE base,
+ * `photo_estimate`, et elle est la moins fiable des deux: −26,6 % de biais,
+ * systématique, du même côté, PIRE sur les gros repas — un élève en excédent y
+ * lit un chiffre rassurant. `declared_quantities` vaut 2,3 % de MAPE.
+ *
+ * L'invariant ne s'est pas élargi, il s'est précisé une seconde fois:
+ *
+ *   2026-08-12: aucun chiffre d'énergie sans base — base unique `plan_quantities`.
+ *   2026-09-01: idem, et la PHOTO a le droit d'en produire une — à condition que
+ *               la base voyage AVEC le chiffre, dans la même phrase, jusqu'à
+ *               l'écran, et que les quatre portes se soient lues AVANT le modèle.
+ *
+ * ⛔ CE QUI N'A PAS BOUGÉ D'UN MOT, ET QUE CES COUCHES GARDENT INTACT: les
+ * MACROS (LEGAL §6.4), le chiffre en PROSE (un `rationale` qui dit « environ
+ * 600 kcal » est toujours rédigé et compté comme un défaut), le POURCENTAGE, et
+ * l'AGRÉGATION — le biais n'est divisé que par 1,04 en cumul hebdomadaire et
+ * les deltas sont 2,5× pires que les niveaux, donc un chiffre est RELU, jamais
+ * sommé.
  *
  * WHY IT IS A HARD LINE AND NOT A PREFERENCE. `docs/keel/PHOTO_QUANTIFICATION.md`
  * measured our own model on our own payload: photo-only calorie estimation is
@@ -48,7 +66,8 @@
  *      add no number of their own. Note the shape of that claim: they add none.
  *      A dose the COACH wrote travels verbatim (R2), and since 2026-07-28
  *      nothing degrades it — see the flipped property near the end of this file.
- *   3. TYPE — `MealAnalysis` has no field that could carry one.
+ *   3. TYPE — `MealAnalysis` carries at most ONE energy field, and that one
+ *      carries its basis. Macros remain structurally impossible.
  *   4. BASIS (FF-059) — every shape that CAN carry a kcal also carries its
  *      basis, the composer's prompt still forbids the model from writing one,
  *      and the gate chain closes before any number is computed. This is the
@@ -64,6 +83,8 @@ import {
 import { fromFileUrl } from "https://deno.land/std@0.208.0/path/mod.ts";
 
 import {
+  ENERGY_BASES,
+  ENERGY_BASIS_MARKERS,
   type MealAnalysis,
   MEAL_ANALYSIS_PROMPT_VERSION,
   PORTION_BANDS,
@@ -269,8 +290,21 @@ function analysisFor(args: {
 }): MealAnalysis {
   return {
     detected_foods: [
-      { label: "grilled salmon", food_group_ref: "fatty_fish", confidence: 0.9 },
-      { label: "roast potatoes", food_group_ref: "starchy_veg", confidence: 0.7 },
+      // `label_localized: null` — le repli sur `label` est le contrat
+      // (`renderMealPhotoAck`: « mieux vaut je vois porridge oats qu'une phrase
+      // amputée »). Ce fixture éprouve donc aussi le chemin de repli.
+      {
+        label: "grilled salmon",
+        label_localized: null,
+        food_group_ref: "fatty_fish",
+        confidence: 0.9,
+      },
+      {
+        label: "roast potatoes",
+        label_localized: null,
+        food_group_ref: "starchy_veg",
+        confidence: 0.7,
+      },
     ],
     food_groups_present: ["fatty_fish", "starchy_veg"],
     food_groups_absent: [],
@@ -301,6 +335,11 @@ function analysisFor(args: {
     // refus (`not_food`, `food_not_eaten`, `unreadable`) sont couverts par
     // `meal_analysis_test.ts`, qui vérifie qu'aucun ne porte de chiffre.
     subject_kind: "eaten_meal",
+    // ⚠️ `null` ICI EST LA MOITIÉ QUI COMPTE DE CETTE BOUCLE. Le balayage
+    // exhaustif ci-dessous prouve qu'AUCUNE autre ligne de l'accusé n'invente
+    // un nombre; la seconde épreuve, plus bas, prouve que la seule qui en écrit
+    // un écrit aussi sa base. Séparées, parce que ce sont deux propriétés.
+    energy_estimate: null,
     rejected_commitment_ids: [],
     dropped_measurement_fields: [],
     issues: [],
@@ -350,6 +389,7 @@ Deno.test("PROPERTY: the photo acknowledgement never carries a quantity, over th
               // ici portent une prescription et ne cochent rien.
               hasPrescription: true,
               tickedDish: null,
+              inferredSlot: null,
               locale: "en",
             });
             combinations += 1;
@@ -374,6 +414,80 @@ Deno.test("PROPERTY: the photo acknowledgement never carries a quantity, over th
   assertEquals(combinations, verdictSets.length * 4 * 3 * 3 * 2);
 });
 
+Deno.test("PROPERTY: a kcal that DOES reach a student travels with its basis (CALORIE_REVERSAL §5, couche 4)", () => {
+  // ══════════════════════════════════════════════════════════════════════════
+  // LA COUCHE QUE LA DÉCISION PRODUIT ACHÈTE, ET ELLE EST NEUVE LE 2026-09-01
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // `CALORIE_REVERSAL.md` §5 la demande dans ces mots: *« tout rendu qui
+  // affiche `kcal` affiche aussi sa base »*. L'épreuve au-dessus prouve la
+  // moitié négative — aucune autre ligne n'invente un nombre. Celle-ci prouve
+  // la moitié positive, et sans elle le chantier serait « vert » sur un rendu
+  // qui n'affiche RIEN: c'est la forme la plus chère du défaut, mesurée deux
+  // fois sur ce dépôt (`guards-need-a-passing-case`).
+  //
+  // ⚠️ LES DEUX LANGUES. Une propriété transverse qui ne regarde que l'anglais
+  // devient verte-et-aveugle le jour où le produit répond en français — et 729
+  // profils sur 1 150 sont `fr-FR`. Le marqueur vient de `ENERGY_BASIS_MARKERS`,
+  // qui est l'ORIGINE de la phrase et non une recopie: réécrire la phrase en
+  // oubliant sa base supprime le marqueur, et cette épreuve le voit.
+  const titles = { c1: "Fatty fish 3x per week" };
+  let rendered = 0;
+  for (const locale of ["en-US", "fr-FR"] as const) {
+    const pack = locale.startsWith("fr") ? "fr" : "en";
+    for (const basis of ENERGY_BASES) {
+      for (const kcal of [120, 620, 1450]) {
+        for (const band of BANDS) {
+          const analysis: MealAnalysis = {
+            ...analysisFor({
+              verdicts: ["consistent"],
+              portionBand: "moderate",
+              imageQuality: "clear",
+              confidenceBand: band,
+            }),
+            energy_estimate: { kcal, basis, confidence_band: band },
+          };
+          const text = renderMealPhotoAck({
+            analysis,
+            binding: resolveMealPhotoBinding({
+              analysis,
+              explicitCommitmentId: null,
+            }),
+            credit: null,
+            commitmentTitles: titles,
+            hasPrescription: true,
+            tickedDish: null,
+            inferredSlot: null,
+            locale,
+          });
+          rendered += 1;
+          // ① le chiffre est bien là — sinon les deux assertions suivantes
+          //    seraient vraies sur un rendu muet.
+          assertStringIncludes(text, `${kcal} kcal`);
+          // ② et il ne voyage jamais seul.
+          assertStringIncludes(text, ENERGY_BASIS_MARKERS[pack][basis]);
+          // ③ une base n'emprunte jamais les mots de l'autre: une estimation à
+          //    −26,6 % de biais habillée en calcul à 2,3 % de MAPE est
+          //    exactement le mensonge que ce chantier existe pour empêcher.
+          const other = basis === "photo_estimate"
+            ? "declared_quantities"
+            : "photo_estimate";
+          assertEquals(
+            text.includes(ENERGY_BASIS_MARKERS[pack][other]),
+            false,
+            `la base ${basis} porte les mots de ${other}: ${text}`,
+          );
+          // ④ et le pourcentage reste interdit, chiffre ou pas: la confiance
+          //    voyage en BANDE, jamais en nombre.
+          assertEquals(/\d+\s*%/.test(text), false, text);
+          assertEquals(/\b0\.\d+\b/.test(text), false, text);
+        }
+      }
+    }
+  }
+  assertEquals(rendered, 2 * ENERGY_BASES.length * 3 * BANDS.length);
+});
+
 Deno.test("PROPERTY: an ambiguous plate credits nothing and says so", () => {
   // The cardinality half of the honesty rule, on the photo path: two evidenced
   // lines bind NOTHING, and the acknowledgement must not name them as counted.
@@ -392,6 +506,7 @@ Deno.test("PROPERTY: an ambiguous plate credits nothing and says so", () => {
     commitmentTitles: { c1: "Fatty fish 3x per week", c2: "Protein at every main meal" },
     hasPrescription: true,
     tickedDish: null,
+    inferredSlot: null,
     locale: "en",
   });
   assertEquals(text.includes("Counted toward"), false, text);
@@ -485,14 +600,33 @@ Deno.test("PROPERTY: a supplement DOSE is not a calorie figure — it travels in
 // ---------------------------------------------------------------------------
 
 /**
- * Structural, not behavioural: the acknowledgement cannot print a calorie it has
+ * Structural, not behavioural: the acknowledgement cannot print a number it has
  * no field to hold. This reads the source because that is the only way to
- * assert the ABSENCE of a field — and if someone adds `energy_kcal` to
- * `MealAnalysis` to "keep it internally for the trend", this is the test that
- * stops it. `PHOTO_QUANTIFICATION.md` closes that door explicitly: an internal
- * number that only feeds a trend produces a false trend.
+ * assert the ABSENCE of a field.
+ *
+ * ⚠️ ── RETOURNÉ LE 2026-09-01, ET C'EST LE SECOND RETOURNEMENT DE CE FICHIER ─
+ *
+ * Il assertait « aucun champ d'énergie, jamais ». `CALORIE_REVERSAL.md` a été
+ * exécuté: le chemin PHOTO porte désormais UN champ d'énergie, `energy_estimate`,
+ * et il porte sa BASE (`photo_estimate`, −26,6 % de biais mesuré).
+ *
+ * L'invariant ne disparaît pas, il se resserre — exactement comme la couche 4
+ * l'a fait le 2026-08-12 pour le plan:
+ *
+ *   AVANT: aucun champ d'énergie sur `MealAnalysis`.
+ *   APRÈS: aucun champ d'énergie SANS SA BASE, et un seul champ en porte une.
+ *
+ * ⛔ CE QUI RESTE INTERDIT, ET QUE CE TEST GARDE INTACT: les MACROS. La
+ * décision du 2026-08-06 porte sur l'énergie; LEGAL §6.4 continue d'interdire
+ * le « suivi des macros par photo ». Un `protein_g` sur cette interface reste
+ * le défaut qu'il a toujours été.
+ *
+ * Et le motif d'origine tient toujours pour tout le reste: si quelqu'un ajoute
+ * `energy_kcal` « pour le garder en interne pour la tendance », c'est ce test
+ * qui l'arrête — un nombre interne qui ne nourrit qu'une tendance produit une
+ * tendance fausse.
  */
-Deno.test("PROPERTY: the MealAnalysis interface carries no energy or macro field", () => {
+Deno.test("PROPERTY: MealAnalysis carries at most ONE energy field, and it carries its basis", () => {
   const source = Deno.readTextFileSync(
     fromFileUrl(new URL("../../../_shared/keel/meal_analysis.ts", import.meta.url)),
   );
@@ -506,24 +640,41 @@ Deno.test("PROPERTY: the MealAnalysis interface carries no energy or macro field
     .slice(start, source.indexOf("\n}", start))
     .replace(/\/\*[\s\S]*?\*\//g, "")
     .replace(/\/\/[^\n]*/g, "");
-  for (
-    const banned of [
-      "calorie",
-      "kcal",
-      "energy",
-      "macro_",
-      "protein_",
-      "carb_",
-      "fat_",
-    ]
-  ) {
+
+  // ── LES MACROS RESTENT INTERDITES, SANS EXCEPTION ────────────────────────
+  for (const banned of ["macro_", "protein_", "carb_", "fat_"]) {
     assertEquals(
       body.toLowerCase().includes(banned),
       false,
-      `MealAnalysis grew a "${banned}" field — a photo never produces an energy ` +
-        `or macro fact (CONTRACT non-input #4), not even internally`,
+      `MealAnalysis grew a "${banned}" field — le renversement du 2026-08-06 ` +
+        `porte sur l'ÉNERGIE, jamais sur les macros (LEGAL §6.4)`,
     );
   }
+
+  // ── L'ÉNERGIE: UN SEUL CHAMP, ET IL PORTE SA BASE ───────────────────────
+  const energyLines = body
+    .split("\n")
+    .filter((line) => /calorie|kcal|energy/i.test(line))
+    .map((line) => line.trim())
+    .filter((line) => line !== "");
+  assertEquals(
+    energyLines,
+    ["energy_estimate: EnergyEstimate | null;"],
+    "un SEUL champ d'énergie est permis sur cette interface, et c'est celui " +
+      "qui porte sa base. Tout autre est un chiffre nu — la forme exacte que " +
+      "CALORIE_REVERSAL interdit",
+  );
+
+  // ── ET LE TYPE QU'IL NOMME PORTE VRAIMENT UNE BASE ─────────────────────
+  // Sans cette vérification, `EnergyEstimate` pourrait devenir `{ kcal: number }`
+  // et l'assertion ci-dessus resterait verte: le champ s'appellerait toujours
+  // `energy_estimate` en portant un chiffre nu.
+  const shapeStart = source.indexOf("export interface EnergyEstimate {");
+  assertEquals(shapeStart >= 0, true, "EnergyEstimate not found — did it move?");
+  const shape = source.slice(shapeStart, source.indexOf("\n}", shapeStart));
+  assertStringIncludes(shape, "basis: EnergyBasis;");
+  assertStringIncludes(shape, "confidence_band: ConfidenceBand;");
+
   // The ordinal replacement is there, and stays there.
   assertStringIncludes(body, "portion_band: PortionBand;");
 });
@@ -803,8 +954,71 @@ Deno.test("PROPERTY: the gate chain is the only door, and gate ① has no key", 
   }
   assertEquals(
     callers.sort(),
-    ["meal-energy-v1/index.ts"],
+    ["keel/energy_gate_io.ts"],
     "someone else calls canShowEnergy — every extra caller is another place " +
       "the four gates can be assembled wrongly",
+  );
+});
+
+/**
+ * ⟳ DÉPLACÉ LE 2026-09-01, ET LA PROPRIÉTÉ EST DEVENUE PLUS FORTE, PAS MOINS.
+ *
+ * L'appelant unique était `meal-energy-v1/index.ts`. CALORIE_REVERSAL §6 donne
+ * un chiffre au chemin PHOTO, qui a donc besoin de la même porte — et la
+ * réponse à « every extra caller is another place the four gates can be
+ * assembled wrongly » n'est pas d'élargir la liste à deux fonctions edge: c'est
+ * de faire descendre l'ASSEMBLAGE dans un module partagé. `canShowEnergy` garde
+ * son appelant unique, et les deux lanes lisent la même chose.
+ *
+ * Ce qui suit est ce que le déplacement doit préserver, et qu'un `assertEquals`
+ * sur une liste de fichiers ne dit pas: les QUATRE entrées sont réellement
+ * lues. Un assembleur qui câblerait `restrictionFlag: false` en dur passerait
+ * l'épreuve ci-dessus sans broncher — c'est la même cicatrice que
+ * `mouthTargetFactor` (voir plus haut): on lit le CORPS, pas le fichier.
+ */
+Deno.test("PROPERTY: the shared assembler really reads all four gates", () => {
+  const io = stripComments(keelSource("energy_gate_io.ts"));
+  const start = io.indexOf("const gate = canShowEnergy({");
+  assertEquals(start > 0, true, "l'appel à canShowEnergy a changé de forme");
+  const call = io.slice(start, io.indexOf("});", start));
+  for (
+    const [key, source] of [
+      // ① le plancher TCA vient du runtime, jamais d'un littéral.
+      ["restrictionFlag", "floor.restriction_flag === true"],
+      // ② l'âge vient du verdict entier, pas d'un booléen recalculé ici.
+      ["ageVerdict", "ageVerdict"],
+      // ③ la position du coach vient du jeton de sa doctrine publiée.
+      ["coachCounting", "coachCounting"],
+      // ④ l'interrupteur passe par la réduction tri-état, jamais par `=== true`.
+      ["studentSwitch", "energySwitchFrom({"],
+    ] as const
+  ) {
+    // ⚠️ `${key}:` NE MARCHE PAS: deux des quatre entrées sont écrites en
+    // abrégé (`ageVerdict,`), et exiger les deux-points ferait rougir cette
+    // épreuve sur du code correct — c'est-à-dire qu'on finirait par la
+    // désarmer. On cherche le NOM de la porte, puis sa SOURCE.
+    assertEquals(
+      new RegExp(`\\b${key}\\b`).test(call),
+      true,
+      `la porte ${key} a disparu de l'assemblage: ${call}`,
+    );
+    assertStringIncludes(
+      call,
+      source,
+      `la porte ${key} est câblée sur autre chose que sa source: ${call}`,
+    );
+  }
+  // Et le plancher est LU, pas supposé. Un assembleur qui n'appellerait plus
+  // `evaluateRestrictionForStudent` rendrait `restriction_flag` indéfini —
+  // c'est-à-dire `false`, c'est-à-dire la porte ① ouverte pour tout le monde.
+  assertStringIncludes(io, "await evaluateRestrictionForStudent(");
+  // ⚠️ ET LE FAIL-CLOSED N'EST PAS UN `catch` QUI REND UNE PORTE OUVERTE. Ce
+  // module JETTE; si quelqu'un y ajoute un `catch` qui rend un verdict, c'est
+  // ici qu'il faut relire la direction de l'échec.
+  assertEquals(
+    io.includes("show: true"),
+    false,
+    "l'assembleur fabrique un verdict ouvert quelque part — il ne doit rendre " +
+      "que ce que `canShowEnergy` a décidé",
   );
 });

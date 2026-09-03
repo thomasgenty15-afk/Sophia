@@ -683,7 +683,11 @@ describe("le shaker saisi ARRIVE à la porte, tel qu'il a été tapé", () => {
       mouthToPersist(draftOf(TYPED), TODAY),
       {
         ...writers,
-        setShaker: (shaker) => {
+        // ⟳ DEUX ARGUMENTS DEPUIS LE 2026-09-01: la porte reçoit le
+        // `memberId`, parce qu'une bouche SANS compte a désormais son propre
+        // stock (`household_members.fixed_intakes`) et que son identifiant
+        // n'existe qu'à l'intérieur de `persistMouth`.
+        setShaker: (_memberId, shaker) => {
           arrived = shakerIntakeJson(shaker);
           return Promise.resolve({ ok: true, reason: "" });
         },
@@ -748,10 +752,16 @@ describe("le shaker saisi ARRIVE à la porte, tel qu'il a été tapé", () => {
   });
 
   it("un shaker SANS PORTE LÈVE — jamais un silence", async () => {
-    // C'est un défaut de CÂBLAGE: le pop-up ne montre le champ qu'à qui a un
-    // compte. Y arriver veut dire qu'un écran a monté la fenêtre avec
-    // `hasAccount: true` sans brancher la porte — et le silence est exactement
-    // l'état d'avant ce lot.
+    // C'est un défaut de CÂBLAGE: la fenêtre ne montre le bloc que si
+    // `shakerPort.kind !== "none"`. Y arriver veut dire qu'un écran a montré le
+    // champ sans brancher la porte — et le silence est exactement l'état
+    // d'avant ce lot.
+    //
+    // ⟳ 2026-09-01 — LA PRÉMISSE A CHANGÉ, LA GARDE NON. Le commentaire disait
+    // « le pop-up ne montre le champ qu'à qui a un compte »: c'est faux depuis
+    // que la fiche d'ajout le collecte, et il y a donc DEUX portes possibles
+    // (le compte, ou la ligne membre). Le motif rendu les nomme toutes les
+    // deux.
     const { writers } = spyWriters();
     await expect(
       persistMouth(mouthToPersist(draftOf(TYPED), TODAY), {
@@ -764,7 +774,9 @@ describe("le shaker saisi ARRIVE à la porte, tel qu'il a été tapé", () => {
       // fonction et que le `TypeError` du moteur JS dit lui aussi
       // « setShaker ». La garde était donc prouvée par la panne qu'elle existe
       // pour remplacer — et elle aurait pu disparaître sans un rouge.
-    ).rejects.toThrow(/needs an account/);
+    // ⚠️ « door was wired » ET PAS « setShaker »: voir la cicatrice juste
+    // au-dessus. Ces trois mots-là n'existent que dans la garde.
+    ).rejects.toThrow(/door was wired/);
   });
 
   it("⛔ LA SOUDURE — du champ tapé à la LIGNE DE CONSIGNE DU FOYER", async () => {
@@ -782,7 +794,7 @@ describe("le shaker saisi ARRIVE à la porte, tel qu'il a été tapé", () => {
     const { writers } = spyWriters();
     await persistMouth(mouthToPersist(draftOf(TYPED), TODAY), {
       ...writers,
-      setShaker: (shaker) => {
+      setShaker: (_memberId, shaker) => {
         column = [shakerIntakeJson(shaker)];
         return Promise.resolve({ ok: true, reason: "" });
       },

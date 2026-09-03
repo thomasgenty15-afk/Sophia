@@ -159,8 +159,19 @@ const UUID_RE =
  *
  *   `written`       la personne l'a tapée elle-même depuis la carte
  *   `questionnaire` le bilan de fin de plan (`meal_plan_feedback`)
- *   `conversation`  le memorizer, sur la conversation, au cron de minuit
+ *   `conversation`  ⛔ RETIRÉ (lot M1) — plus aucun écrivain. Voir
+ *                   `RETIRED_RETAINED_SOURCES` : la valeur reste dans cette
+ *                   liste parce que des lignes la portent EN BASE.
  *   `draft_note`    le retour libre sur le brouillon de plan
+ *
+ * ⛔ ── POURQUOI `conversation` RESTE DANS LA LISTE ALORS QU'IL N'ÉCRIT PLUS ─
+ * Parce que la liste est celle des `source` LISIBLES, pas celle des
+ * producteurs. Le retirer d'ici ferait rendre `null` à `parseRetainedSource`
+ * sur des lignes qui existent en base, donc `parseRetainedItem` les refuserait,
+ * donc elles disparaîtraient de la carte et du prompt **sans un mot** — la
+ * personne verrait s'évaporer une ligne qu'elle voyait la veille et qu'elle
+ * pouvait retirer elle-même. Une suppression silencieuse n'est pas un retrait
+ * de producteur, c'est une perte de données.
  *
  * ⚠️ `source` NE SE DÉDUIT JAMAIS D'UN VIDE. Le dépôt le dit déjà sur
  * `FoodPreferenceOrigin`: l'absence d'origine est ambiguë — elle dit « tapée à
@@ -169,8 +180,9 @@ const UUID_RE =
  * « ça, c'est toi qui l'as écrit » plutôt que « ça, je l'ai déduit de ce que tu
  * m'as dit mardi ». Un item sans `source` lisible est donc REFUSÉ, pas replié.
  *
- * ⚠️ TROIS DE CES QUATRE SONT LES « TROIS PROMPTS » DU §5; `written` EST LA
- * PERSONNE. Voir `canProduce` pour ce que ça change.
+ * ⚠️ DEUX DE CES QUATRE SONT ENCORE DES PROMPTS (`questionnaire`, `draft_note`);
+ * `written` EST LA PERSONNE; `conversation` NE PRODUIT PLUS RIEN. Voir
+ * `canProduce` pour ce que ça change.
  */
 export const RETAINED_SOURCES = [
   "written",
@@ -358,7 +370,61 @@ export type RetainedItemBase = {
    * seulement qu'une ligne de conversation PORTE une confiance lisible.
    */
   readonly confidence: number | null;
+  /**
+   * ⛔ LA PHRASE DE LA PERSONNE QUI A CAUSÉ CETTE LIGNE — lot M2.
+   *
+   * ── SANS ELLE, « DÉFAIRE » EST UN PARI ────────────────────────────────
+   * C'est la raison d'être du champ, et le design l'écrit en toutes lettres.
+   * Une ligne qui dit *« Poulet — aliments évités »* sans dire d'où elle vient
+   * pose à la personne une question à laquelle elle ne peut pas répondre:
+   * enlever, c'est peut-être défaire une erreur, ou peut-être perdre une chose
+   * qu'elle a vraiment demandée trois semaines plus tôt. Devant ce doute, on
+   * ne touche à rien — et le magasin ne décroît jamais.
+   *
+   * Avec la citation, la ligne devient *« parce que tu as écrit “trop de poulet
+   * cette semaine”, le 12 mars »*, et le geste est évident dans les deux sens.
+   * **C'est aussi ce qui donne la traçabilité gratuitement**: « pourquoi il n'y
+   * a pas de poulet ? » se répond en montrant un écran.
+   *
+   * ── CE QU'ON Y MET, ET CE QU'ON N'Y MET PAS ──────────────────────────────
+   * Les MOTS DE LA PERSONNE, verbatim. Jamais une reformulation, jamais un
+   * résumé: une citation reformulée est une citation fausse, et elle serait
+   * pire que pas de citation — elle donnerait à la personne l'impression
+   * d'avoir dit une chose qu'elle n'a pas dite.
+   *
+   *   · retour sur brouillon → la note, telle qu'elle l'a tapée;
+   *   · bilan de fin de plan → le LIBELLÉ de la réponse qu'elle a cliquée, dans
+   *     sa langue. Le questionnaire répond par des jetons (`too_much`,
+   *     `partly`), pas par du texte: citer le jeton ne citerait personne, et
+   *     citer la question sans la réponse ne dirait pas ce qu'elle a choisi.
+   *
+   * ── ⚠️ `null` EST LÉGITIME, ET IL A DEUX CAUSES DIFFÉRENTES ─────────────
+   *   1. `source: "written"` — la personne a tapé la ligne elle-même. Le `text`
+   *      EST sa phrase; une citation séparée la répéterait mot pour mot.
+   *   2. Une ligne écrite AVANT le lot M2. Elle reste lisible, et la carte dit
+   *      honnêtement qu'elle ne sait pas d'où elle vient plutôt que d'inventer.
+   *
+   * ⛔ ET C'EST POURQUOI L'OBLIGATION N'EST PAS ICI, MAIS À LA PORTE
+   * D'ÉCRITURE. `parseRetainedItem` accepte `null` — sans quoi le lot M2
+   * effacerait toutes les lignes d'avant lui, exactement comme un retrait de
+   * producteur mal fait efface son passé. C'est `persistRetainedItemsFor` qui
+   * REFUSE une écriture serveur non citée (`unquoted`): rien de neuf n'entre
+   * sans sa cause, rien d'ancien ne disparaît.
+   */
+  readonly quote: string | null;
 };
+
+/**
+ * Le plafond de la citation.
+ *
+ * ⚠️ UNE CITATION SE TRONQUE, ELLE NE SE RÉSUME PAS. Une note de brouillon peut
+ * faire plusieurs lignes; la couper à la fin garde des mots exacts, alors que
+ * la résumer fabriquerait une phrase que la personne n'a jamais écrite. Le
+ * plafond est celui de la note elle-même (`DRAFT_NOTE_MAX_CHARS`, 280), pour
+ * que la plus longue source légitime entre entière et qu'aucune troncature
+ * n'ait lieu dans le cas nominal.
+ */
+export const RETAINED_QUOTE_MAX_CHARS = 280;
 
 /**
  * Un élément retenu, tel que la nomenclature §3 le décrit — **union
@@ -439,10 +505,40 @@ export type PortionAdjustItem = Extract<
  *
  * ── LA MATRICE (§5), LIGNE À LIGNE ─────────────────────────────────────────
  *                        food.* / method.*  portion.adjust  rhythm  logistics  craving
- *   ① `draft_note`              ✅                 ⛔          ⛔       ✅        ✅
- *   ② `questionnaire`           ✅                 ✅ SEUL      ✅       ✅        ⛔
- *   ③ `conversation`            ✅                 ⛔          ✅       ✅        ✅
+ *   ① `draft_note`              ✅                 ⛔          ⛔       ⛔        ✅
+ *   ② `questionnaire`           ✅                 ✅ SEUL      ⛔       ⛔        ⛔
+ *   ③ `conversation`            ⛔                 ⛔          ⛔       ⛔        ⛔
  *   ④ `written`                 ✅                 ✅          ✅       ✅        ✅
+ *
+ * ⛔ ── `rhythm.set` ET `logistics.set` SORTENT DES PROMPTS — LOT M5 ────────
+ * Ils ne sont plus RETENUS: ils changent **le champ que la personne voit**
+ * (`field_change.ts`). `written` les garde, parce que `written` EST la
+ * personne et que sa carte doit pouvoir tout écrire.
+ *
+ * ── LE DÉFAUT QUE ÇA FERME, ET IL ÉTAIT MUET ─────────────────────────────
+ * Un `logistics.set` retenu n'écrivait rien: les deux générateurs le posaient
+ * EN MÉMOIRE au moment de composer (`logisticsOverlayFor`). La personne lisait
+ * **45 min** dans ses réglages et son plan était fait sur **35** — une décision
+ * du produit qu'aucun écran ne montrait, et que rien ne pouvait défaire.
+ *
+ * ⚠️ ET LES LIGNES DÉJÀ EN BASE RESTENT LUES (`canHold` ne bouge pas pour les
+ * producteurs vivants: c'est `canProduce` qui se ferme). Elles gardent donc
+ * leur effet jusqu'à ce que la personne les édite ou les retire — le lot ferme
+ * l'avenir, il n'efface pas le passé, et le magasin se vide de lui-même.
+ *
+ * ⛔ ── LA LIGNE ③ EST VIDE, ET C'EST LE LOT M1 ─────────────────────────────
+ * *« Le chat parle. Les préférences retiennent. »* La conversation ne classe
+ * plus rien: elle RENVOIE vers le champ où la chose se pose
+ * (`conversation_redirect.ts`). Le motif tient en une phrase du design: une
+ * phrase de chat n'a pas de **dénominateur** — « c'était trop » ne dit ni de
+ * quoi, ni pour qui, et le magasin qu'elle alimentait ne pouvait que grandir.
+ *
+ * ⚠️ ET C'EST UNE LIGNE VIDE, PAS UNE SOURCE SUPPRIMÉE. Des lignes portent
+ * `source: "conversation"` en base; elles restent LUES, visibles sur la carte
+ * avec leur origine, et retirables par la personne. Le droit d'écrire et le
+ * droit d'être lu ne sont plus la même fonction: `canProduce` (ici) tient
+ * l'écriture, `canHold` (plus bas) tient la lecture. Les confondre ferait
+ * disparaître ces lignes sans un mot au premier chargement.
  *
  * ── POURQUOI CES TROIS INTERDITS ───────────────────────────────────────────
  * ① LE BROUILLON NE PRODUIT PAS DE `portion.adjust` NI DE `rhythm.set`. Un
@@ -457,9 +553,12 @@ export type PortionAdjustItem = Extract<
  *   pose la question avec la liste du foyer sous les yeux — c'est une question
  *   fermée, pas une inférence. Il ne produit pas de `craving`: on ne demande
  *   pas une envie de la semaine prochaine dans un bilan de la semaine passée.
- * ③ LE MEMORIZER NE CLASSE PAS UN RETOUR DE SIZING: IL RENVOIE. Une phrase, une
- *   seule, du type « note-le au bilan de fin de plan — j'ai besoin de savoir
- *   pour qui ». Le produit préfère une question de plus à une part fausse.
+ * ③ LE MEMORIZER NE CLASSE PLUS RIEN DU TOUT: IL RENVOIE, POUR TOUT. Ce qui
+ *   n'était vrai que du sizing — « note-le au bilan de fin de plan, j'ai besoin
+ *   de savoir pour qui » — l'est devenu de chaque famille, et pour la même
+ *   raison étendue: une phrase de chat ne porte pas le dénominateur qui rend un
+ *   classement vérifiable. Le produit préfère un geste de plus à un magasin que
+ *   personne ne voit grandir.
  *
  * ── ET `written`, QUI N'EST PAS DANS LE TABLEAU DU §5 ───────────────────────
  * Le §5 nomme les TROIS PROMPTS — les trois producteurs automatiques. `written`
@@ -484,12 +583,119 @@ export function canProduce(
       // filtré en passant par `parseRetainedKind`.
       return true;
     case "questionnaire":
-      return kind !== "craving";
+      // ⛔ LOT M5 — `rhythm.set` et `logistics.set` vont dans le CHAMP.
+      return kind !== "craving" && kind !== "rhythm.set" &&
+        kind !== "logistics.set";
     case "conversation":
-      return kind !== "portion.adjust";
+      // ⛔ LOT M1 — LA LIGNE ③ EST VIDE. Le chat n'écrit plus: il renvoie.
+      // ⚠️ NE PAS « RÉPARER » CE `false` EN RÉOUVRANT UNE FAMILLE. C'est
+      // précisément le mode de reconstruction que le design nomme: « un bouton
+      // à la fois », chacun opt-in, et six mois plus tard le chat écrit tout à
+      // nouveau sans que personne ne voie qu'on a rebâti ce qu'on venait de
+      // supprimer. Une règle avec une exception n'est pas une règle.
+      return false;
     case "draft_note":
-      return kind !== "portion.adjust" && kind !== "rhythm.set";
+      // ⛔ LOT M5 — `logistics.set` rejoint `rhythm.set` du côté des champs.
+      return kind !== "portion.adjust" && kind !== "rhythm.set" &&
+        kind !== "logistics.set";
   }
+}
+
+// ===========================================================================
+// LE DROIT D'ÊTRE LU — et pourquoi ce n'est PAS le droit d'écrire
+// ===========================================================================
+
+/**
+ * Les producteurs RETIRÉS: plus aucun droit d'écriture, tous leurs droits de
+ * lecture.
+ *
+ * ⚠️ CETTE LISTE N'EST PAS UNE COMMODITÉ DE TRANSITION. Elle existe tant que
+ * des lignes portent la `source` en base — c'est-à-dire potentiellement pour
+ * toujours, puisque rien ne les périme et que seule la personne les retire.
+ * La vider « pour nettoyer » ferait tomber ces lignes au parseur.
+ */
+export const RETIRED_RETAINED_SOURCES = ["conversation"] as const;
+export type RetiredRetainedSource = (typeof RETIRED_RETAINED_SOURCES)[number];
+
+export function isRetiredRetainedSource(
+  source: RetainedSource,
+): source is RetiredRetainedSource {
+  return (RETIRED_RETAINED_SOURCES as readonly string[]).includes(source);
+}
+
+/**
+ * LA MATRICE **GELÉE** D'UN PRODUCTEUR RETIRÉ — ce qu'il avait le droit
+ * d'écrire le jour où on lui a retiré la plume.
+ *
+ * ⛔ POURQUOI PAS « TOUT ACCEPTER À LA LECTURE ». Parce qu'une ligne
+ * `source: "conversation", kind: "portion.adjust"` n'a JAMAIS pu être écrite:
+ * elle ne peut donc venir que d'une charge forgée ou d'un jsonb trafiqué. La
+ * laisser passer offrirait, par un seul mot, le contournement exact que la
+ * matrice existe pour fermer — et sur la seule famille qui déplace des
+ * grammes. Le gel garde la porte fermée sans rien perdre de ce qui est réel.
+ *
+ * ⚠️ CETTE FONCTION NE BOUGE PLUS JAMAIS. Elle décrit un PASSÉ. Si elle se
+ * mettait à suivre `canProduce`, elle rendrait `false` partout et effacerait
+ * les lignes qu'elle est là pour protéger.
+ */
+export function couldProduce(
+  source: RetiredRetainedSource,
+  kind: RetainedKind,
+): boolean {
+  switch (source) {
+    case "conversation":
+      // La ligne ③ telle qu'elle était avant le lot M1.
+      return kind !== "portion.adjust";
+  }
+}
+
+/**
+ * LES CELLULES RETIRÉES — lot M5.
+ *
+ * ⛔ UN PRODUCTEUR VIVANT PEUT PERDRE UNE FAMILLE, et c'est différent d'une
+ * source retirée. `questionnaire` produit toujours des `food.*`; il ne produit
+ * plus de `logistics.set` ni de `rhythm.set`, parce que ceux-là changent
+ * désormais **le champ** que la personne voit.
+ *
+ * ⚠️ ET CE TABLEAU EST LA MOITIÉ QUI EMPÊCHE LE LOT D'EFFACER SON PASSÉ. Sans
+ * lui, fermer la cellule ferait tomber au parseur les lignes DÉJÀ écrites sous
+ * elle — mesuré: une ligne `questionnaire × logistics.set` en base au moment du
+ * lot. Elle disparaîtrait de la carte entre deux chargements, sans un mot, et
+ * le symptôme serait un magasin qui rétrécit tout seul.
+ *
+ * ⛔ IL DÉCRIT UN PASSÉ, IL NE BOUGE PLUS. S'il se mettait à suivre
+ * `canProduce`, il deviendrait vide et n'aurait plus d'objet.
+ */
+const RETIRED_CELLS: readonly (readonly [RetainedSource, RetainedKind])[] = [
+  ["questionnaire", "logistics.set"],
+  ["questionnaire", "rhythm.set"],
+  ["draft_note", "logistics.set"],
+] as const;
+
+/**
+ * CETTE LIGNE A-T-ELLE LE DROIT D'EXISTER ? — le gate de LECTURE, celui que
+ * `parseRetainedItem` applique.
+ *
+ * ── LA DISTINCTION, ET ELLE EST LA CHARNIÈRE DU LOT M1 ────────────────────
+ *   `canProduce` :  « ce producteur peut-il écrire ça MAINTENANT ? »  → écriture
+ *   `canHold`    :  « cette ligne a-t-elle pu être écrite un jour ? » → lecture
+ *
+ * Tant qu'aucun producteur n'était retiré, les deux étaient le MÊME ensemble et
+ * une seule fonction suffisait. Retirer `conversation` les sépare: la ligne ③
+ * est vide à l'écriture et pleine à la lecture. Un appelant qui se tromperait
+ * de fonction ne casserait rien de visible tout de suite — il ouvrirait
+ * l'écriture (en lisant `canHold`) ou effacerait des lignes réelles (en lisant
+ * `canProduce`), et les deux fautes sont silencieuses. D'où deux noms.
+ */
+export function canHold(
+  source: RetainedSource,
+  kind: RetainedKind,
+): boolean {
+  if (isRetiredRetainedSource(source)) return couldProduce(source, kind);
+  if (canProduce(source, kind)) return true;
+  // ⛔ LA CELLULE A ÉTÉ FERMÉE APRÈS COUP: les lignes écrites AVANT la fermeture
+  // restent lisibles, visibles sur la carte, et retirables par la personne.
+  return RETIRED_CELLS.some(([s, k]) => s === source && k === kind);
 }
 
 /**
@@ -527,7 +733,13 @@ export function defaultScopeFor(
       // suivantes: ce qu'il produit est du durable.
       return "durable";
     case "conversation":
-      // Le memorizer alimente `practical_constraints` par le pont existant.
+      // ⚠️ AVEU: BRANCHE MORTE DEPUIS LE LOT M1, ET ELLE RESTE.
+      // `canProduce("conversation", …)` est faux pour les huit familles, donc
+      // la garde du haut a déjà rendu `null` avant d'arriver ici. La case reste
+      // parce que `RetainedSource` porte encore la valeur (des lignes en base
+      // la portent) et que l'exhaustivité du `switch` est ce qui fera rougir la
+      // compilation le jour où une source s'ajoute. La retirer échangerait une
+      // branche morte nommée contre un `default` muet.
       return "durable";
     case "written":
       // Ce que la personne tape dans sa carte, elle le tape pour que ça reste.
@@ -738,10 +950,13 @@ function parseLogisticsSetValue(value: unknown): LogisticsSetValue | null {
  * ── CE QU'IL VÉRIFIE, DANS L'ORDRE ─────────────────────────────────────────
  *  1. `kind` dans la liste fermée;
  *  2. `source` dans la liste fermée;
- *  3. **la matrice** — `canProduce(source, kind)`. Une ligne que son producteur
- *     n'avait pas le droit d'écrire ne remonte pas, même si elle est en base.
+ *  3. **la matrice** — `canHold(source, kind)`. Une ligne que son producteur
+ *     n'a JAMAIS eu le droit d'écrire ne remonte pas, même si elle est en base.
  *     C'est ce qui fait que la règle ne régresse pas: elle mord à CHAQUE
- *     lecture, pas seulement le jour où le prompt s'en souvient;
+ *     lecture, pas seulement le jour où le prompt s'en souvient. ⚠️ « jamais eu
+ *     le droit », et pas « n'a plus le droit »: un producteur RETIRÉ garde ses
+ *     droits de lecture (`couldProduce`), sans quoi le retrait effacerait son
+ *     passé au lieu de fermer son avenir;
  *  4. `subject` bien formé;
  *  5. `text` non vide après `trim` — la ligne qu'on ne saurait pas afficher
  *     n'existe pas;
@@ -763,7 +978,13 @@ export function parseRetainedItem(value: unknown): RetainedItem | null {
   const source = parseRetainedSource(row.source);
   if (!source) return null;
 
-  if (!canProduce(source, kind)) return null;
+  // ⚠️ `canHold`, PAS `canProduce` — et l'écart n'est pas cosmétique. Depuis le
+  // lot M1, `canProduce("conversation", …)` est faux pour les huit familles;
+  // relire la base avec cette fonction ferait tomber, en silence, toutes les
+  // lignes que le memorizer avait écrites AVANT son retrait. Le gate de lecture
+  // applique la matrice GELÉE du producteur retiré: rien de neuf n'entre, rien
+  // de réel ne disparaît.
+  if (!canHold(source, kind)) return null;
 
   const subject = parseRetainedSubject(row.subject);
   if (!subject) return null;
@@ -780,10 +1001,24 @@ export function parseRetainedItem(value: unknown): RetainedItem | null {
   const confidence = parseConfidence(row.confidence, source);
   if (confidence === REFUSED) return null;
 
+  // LOT M2 — la citation. `null` est légitime (voir `parseQuote`); une forme
+  // illisible est un refus, jamais un repli sur « pas de citation »: replier
+  // ferait passer un producteur cassé pour un producteur d'avant M2.
+  const quote = parseQuote(row.quote, source);
+  if (quote === REFUSED) return null;
+
   const scope = parseRetainedScope(row.scope);
   if (!scope) return null;
 
-  const base: RetainedItemBase = { text, subject, source, at, item, confidence };
+  const base: RetainedItemBase = {
+    text,
+    subject,
+    source,
+    at,
+    item,
+    confidence,
+    quote,
+  };
 
   switch (kind) {
     case "food.exclude":
@@ -861,6 +1096,36 @@ function parseOriginItem(value: unknown, source: RetainedSource): string | null 
   return UUID_RE.test(raw) ? raw : null;
 }
 
+/**
+ * LA CITATION, LUE — lot M2.
+ *
+ * ⚠️ TROIS RÉSULTATS, ET LE REFUS EN FAIT PARTIE:
+ *   · absente / `null`  → `null`. Légitime: `written`, ou une ligne d'avant M2.
+ *   · une chaîne utile  → elle, `trim`ée, tronquée au plafond.
+ *   · autre chose       → REFUS. Un nombre ou un objet dans ce champ veut dire
+ *     qu'un producteur a inventé une structure; l'accepter en le stringifiant
+ *     mettrait `"[object Object]"` sous les yeux de la personne — ce fichier a
+ *     déjà payé exactement cette chaîne une fois.
+ *
+ * ⛔ `written` NE PORTE JAMAIS DE CITATION. Son `text` EST ce qu'elle a tapé;
+ * une citation à côté serait la même phrase deux fois, et la carte afficherait
+ * *« tu l'as écrit, parce que tu as écrit … »*. Une citation sur une ligne
+ * `written` est donc un REFUS, pas un doublon toléré: elle signale un
+ * producteur serveur qui s'est déguisé, et c'est le contournement que la
+ * matrice entière existe pour fermer.
+ */
+function parseQuote(
+  value: unknown,
+  source: RetainedSource,
+): string | null | typeof REFUSED {
+  if (value === undefined || value === null) return null;
+  if (typeof value !== "string") return REFUSED;
+  const raw = value.trim();
+  if (raw === "") return null;
+  if (source === "written") return REFUSED;
+  return raw.slice(0, RETAINED_QUOTE_MAX_CHARS);
+}
+
 /** Sentinelle de refus: `null` est une valeur légitime de `confidence`. */
 const REFUSED = Symbol("retained_item.refused");
 
@@ -903,6 +1168,12 @@ export function retainedItemToJson(item: RetainedItem): Record<string, unknown> 
     at: item.at,
     item: item.item,
     confidence: item.confidence,
+    // LOT M2 — écrit MÊME à `null`, et c'est délibéré: une clé absente et une
+    // clé nulle se relisent pareil ici, mais elles ne se DÉBOGUENT pas pareil.
+    // « cette ligne n'a pas de citation » est une information; « cette ligne
+    // vient d'une version qui ne connaissait pas le champ » en est une autre,
+    // et seule la seconde se lit sur une clé absente.
+    quote: item.quote,
   };
 }
 

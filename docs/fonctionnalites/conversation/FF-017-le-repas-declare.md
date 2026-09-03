@@ -67,8 +67,10 @@ assidu qui dîne tous les soirs **apparaissait silencieux** au coach.
   consommateur, « le fait imprécis vaut mieux qu'un élève qu'on a lassé ».
   Compteur illisible ou date locale absente ⇒ **refus** (un compteur cassé
   n'ouvre pas la porte). La question consomme le **budget partagé « une demande
-  par jour »** (avec FF-025 et FF-028). Plafond décidé : **1** (le code est
-  encore à 2 — voir le chantier de retrait des comportements).
+  par jour »** — désormais avec **FF-025 seule** : FF-028 est abandonnée
+  (2026-09-01), et [FF-062](FF-062-quand-sophia-parle-la-premiere.md) a exempté
+  de ce budget les canaux adossés à un fait du plan. Plafond décidé : **1** (le
+  code est encore à 2 — voir le chantier de retrait des comportements).
 
 ### Hors périmètre — engageant
 

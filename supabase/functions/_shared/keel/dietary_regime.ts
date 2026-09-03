@@ -286,6 +286,56 @@ const DAIRY_AND_HONEY_FORMS = [
   "ricotta", "petit-lait", "caseine", "caséine", "miel",
 ] as const;
 
+/**
+ * LES MOTS DE CATÉGORIE, ET CE QU'ILS DÉPLIENT — **À SENS UNIQUE**.
+ *
+ * ⛔ CATÉGORIE → ESPÈCES, JAMAIS L'INVERSE, ET C'EST TOUTE LA RÈGLE.
+ * Quelqu'un qui écrit « je n'aime pas le POISSON » a nommé la catégorie: lui
+ * servir du saumon revient à ignorer ce qu'il a dit, et savoir qu'un saumon est
+ * un poisson n'est pas une inférence sur LUI. L'inverse le serait: déduire
+ * « il n'aime pas le poisson » de « il n'aime pas le saumon » écrirait une
+ * règle PLUS LARGE que sa phrase, sur des aliments qu'il n'a jamais nommés.
+ *
+ * `saumon` n'est donc pas une clé de cette table, et il ne doit jamais le
+ * devenir. Seuls les mots GÉNÉRIQUES en sont.
+ *
+ * ⚠️ LES LISTES SONT CELLES DES RÉGIMES, RÉUTILISÉES TELLES QUELLES. En écrire
+ * une seconde ferait deux idées de ce qu'est « un poisson », et c'est celle
+ * qu'on regarde le moins qui garderait l'ancienne. Elles sont écrites à la
+ * main et FERMÉES, précisément parce que *« personne n'appelle "viande" le
+ * nuoc-mâm d'un wok »*.
+ */
+const CATEGORY_HEADS: readonly (readonly [readonly string[], readonly string[]])[] = [
+  [["meat", "viande", "charcuterie"], MEAT_FORMS],
+  [["poultry", "volaille"], POULTRY_FORMS],
+  [["fish", "seafood", "poisson", "poissons", "fruits de mer"], SEAFOOD_FORMS],
+  [["egg", "eggs", "oeuf", "oeufs", "œuf", "œufs"], EGG_FORMS],
+  [["dairy", "laitage", "laitages", "laitier", "laitiers"], DAIRY_AND_HONEY_FORMS],
+];
+
+/**
+ * LES FORMES D'UNE CATÉGORIE, ou `[]` si le mot n'en est pas une.
+ *
+ * ⚠️ `[]` EST LA RÉPONSE NORMALE. La quasi-totalité des mots qu'on lui passe
+ * sont des aliments précis (« saumon », « riz »), et ils doivent se chercher
+ * tels quels — c'est le sens unique écrit au-dessus.
+ */
+export function categoryFormsOf(word: unknown): readonly string[] {
+  const w = String(word ?? "")
+    .normalize("NFD").replace(/\p{Diacritic}/gu, "")
+    .trim().toLowerCase();
+  if (!w) return [];
+  for (const [heads, forms] of CATEGORY_HEADS) {
+    for (const head of heads) {
+      const h = head.normalize("NFD").replace(/\p{Diacritic}/gu, "");
+      // ⚠️ ÉGALITÉ, PAS INCLUSION. « laitue » contient « lait »; une
+      // comparaison lâche ici rouvrirait la cicatrice que le matcher ferme.
+      if (h === w) return forms;
+    }
+  }
+  return [];
+}
+
 const REGIME_FORMS: Record<DietaryRegime, readonly (readonly string[])[]> = {
   vegetarian: [MEAT_FORMS, POULTRY_FORMS, SEAFOOD_FORMS],
   vegan: [

@@ -1,4 +1,9 @@
-import { assert, assertEquals, assertThrows } from "jsr:@std/assert@1";
+import {
+  assert,
+  assertEquals,
+  assertStringIncludes,
+  assertThrows,
+} from "jsr:@std/assert@1";
 import {
   explainPlanChoices,
   type PlanRationaleFacts,
@@ -12,7 +17,11 @@ import {
   slotsPassedToday,
 } from "./plan_hours.ts";
 import { localHourInZone, localMinuteInZone } from "./local_date.ts";
-import { addedCookDays, buildMealPrompt } from "./meal_generation.ts";
+import {
+  addedCookDays,
+  buildMealPrompt,
+  usableCookDays,
+} from "./meal_generation.ts";
 
 // ---------------------------------------------------------------------------
 // LE CAS NOMINAL — celui qui PASSE
@@ -24,7 +33,14 @@ import { addedCookDays, buildMealPrompt } from "./meal_generation.ts";
 
 function nominalFacts(): PlanRationaleFacts {
   return {
+    // ⛔ `null` = « il n'y a pas de verdict d'énergie ». Le cas nominal est
+    // celui d'un plan ORDINAIRE, et un plan ordinaire ne se déclare pas léger.
+    energyBelowBand: null,
     declaredCookDays: ["sun", "wed"],
+    // Le cas nominal est un plan qui ATTEINT les deux jours cochés — sans quoi
+    // la phrase de garde serait celle d'un écart, et « le cas qui passe » ne
+    // passerait plus.
+    usableCookDays: ["sun", "wed"],
     addedCookDays: [],
     window: { startsOn: "2026-08-13", durationDays: 5 },
     requestedWindow: null,
@@ -32,6 +48,25 @@ function nominalFacts(): PlanRationaleFacts {
     localMinuteOfDay: 9 * 60,
     slotsDroppedToday: [],
     awayInWindow: [],
+    // ⛔ `[]` = « le plan est complet », et c'est le cas nominal. Un trou dans
+    // le jeu de faits qui doit PASSER ferait de la phrase d'écart la phrase
+    // ordinaire, et on ne saurait plus laquelle on lit.
+    emptySlots: [],
+    // ⛔ `[]` DEUX FOIS, ET CE SONT DEUX AFFIRMATIONS. Le cas nominal est un
+    // plan qu'on peut exécuter: tout y est à portée d'un lot, et la session
+    // tient dans le temps demandé. Y poser une tension ferait de la phrase
+    // d'écart la phrase ordinaire, et on ne saurait plus laquelle on lit.
+    daysOutOfBatchReach: [],
+    // La case « tout dans une session » n'est PAS cochée au cas nominal:
+    // `null` fait taire la ligne, et l'explication d'un plan ordinaire ne bouge
+    // pas d'un caractère.
+    oneCookingSession: null,
+    // Ni la veille: le cas nominal est un plan qui commence quand il commence.
+    cookDayBefore: null,
+    // Cas nominal: une seule course, et rien qui ne puisse l'attendre.
+    shoppingDays: [],
+    shopLaterDays: [],
+    sessionOverruns: [],
     budgetAmount: null,
     mouthsServed: null,
     handTakenBy: [],
@@ -294,7 +329,15 @@ Deno.test("une fenêtre illisible rend `nothing_to_explain`, jamais un silence a
 Deno.test("AUCUN gabarit ne culpabilise — la porte 4 ne doit jamais mordre", () => {
   // Tous les faits allumés en même temps: le pire assemblage possible.
   const tout: PlanRationaleFacts = {
+    // ⛔ ALLUMÉ ICI EXPRÈS: c'est la phrase la plus exposée du lot — elle parle
+    // de ce que le corps demande — et la porte anti-culpabilisation DOIT la
+    // relire. Si un jour elle se met à sonner, c'est ce test qui le dira.
+    energyBelowBand: true,
     declaredCookDays: ["sun", "wed"],
+    // UN ÉCART, ici aussi: `wed` est hors de cette fenêtre-là. La porte 4 doit
+    // relire les gabarits d'écart comme les autres — ce sont eux qui risquent
+    // le plus de tourner au reproche.
+    usableCookDays: ["sun"],
     addedCookDays: ["thu"],
     window: { startsOn: "2026-08-13", durationDays: 4 },
     requestedWindow: { startsOn: "2026-08-13", durationDays: 7 },
@@ -302,6 +345,37 @@ Deno.test("AUCUN gabarit ne culpabilise — la porte 4 ne doit jamais mordre", (
     localMinuteOfDay: 20 * 60 + 30,
     slotsDroppedToday: ["breakfast", "lunch"],
     awayInWindow: [{ day: "fri", slot: "lunch" }],
+    // ALLUMÉ AUSSI: la phrase des trous doit passer la porte 4 comme les
+    // autres. Deux jours qui manquent LES MÊMES moments ⇒ la forme groupée.
+    emptySlots: [
+      { day: "sat", slot: "lunch" },
+      { day: "sat", slot: "dinner" },
+      { day: "sun", slot: "lunch" },
+      { day: "sun", slot: "dinner" },
+    ],
+    // ALLUMÉS AUSSI: la porte 4 doit relire ces deux phrases-là comme les
+    // autres. Ce sont celles qui risquent le plus de tourner au reproche —
+    // l'une parle de ce que la personne n'a pas pu faire, l'autre de ce qu'elle
+    // avait demandé et qui ne tiendra pas.
+    daysOutOfBatchReach: ["sat", "sun"],
+    // ALLUMÉE AUSSI: « tout est cuisiné dimanche » décrit un plan dont la
+    // personne a demandé la forme. C'est une phrase de rang 3, donc celle qui
+    // risque le MOINS de culpabiliser — raison de plus pour que la porte 4 la
+    // relise, puisque personne ne pensera à la vérifier.
+    //
+    // ⚠️ LA FORME REFUSÉE EST UN AUTRE GABARIT, et elle ne peut pas sortir en
+    // même temps (les deux issues s'excluent). Elle a son propre passage plus
+    // bas.
+    oneCookingSession: { day: "sun", refusedNoFreezer: false },
+    // ALLUMÉE AUSSI: « le plan commence dimanche, un jour plus tôt » est un
+    // fait de calendrier, donc parmi les phrases les plus faciles à tourner en
+    // reproche si on la réécrit un jour. La porte 4 doit la relire.
+    cookDayBefore: { day: "sun", refused: null },
+    // ALLUMÉS AUSSI: deux courses, et un jour dont le frais ne peut pas venir
+    // de la première. Les deux phrases doivent passer la porte 4.
+    shoppingDays: ["sun", "wed"],
+    shopLaterDays: ["wed"],
+    sessionOverruns: [{ day: "wed", minutes: 75, declared: 30 }],
     budgetAmount: 120,
     mouthsServed: 4,
     handTakenBy: ["Zoé"],
@@ -629,6 +703,10 @@ Deno.test("un fuseau vide ou inconnu JETTE — jamais de repli sur UTC", () => {
 
 const PROMPT_ARGS = {
   firstDayCookable: true,
+  hasFreezer: false,
+  oneCookingSession: false,
+  cookOnlyDay: null,
+  soloBoxes: false,
   contentLocale: "en-US",
   budgetAmount: null,
   dietBlock: "",
@@ -746,4 +824,727 @@ Deno.test("`addedCookDays` — `firstDayCookable` manquant JETTE", () => {
     Error,
   );
   assert(String(err.message).includes("firstDayCookable"), err.message);
+});
+
+// ===========================================================================
+// LE PLAN PLUS LÉGER QUE LE CORPS — la ligne, et les trois silences
+//
+// ⛔ Décision produit de l'utilisateur, 2026-08-23: « on livre, et on le dit ».
+// Mesuré la veille: le verdict rendait `below` sur SEPT plans sur sept, la
+// boucle de correction levait `raise_energy` sept fois, et rien de cet écart
+// n'atteignait la personne.
+// ===========================================================================
+
+Deno.test("`below` DIT que le plan est plus léger, dans les deux langues", () => {
+  for (const locale of ["fr", "en"] as const) {
+    const out = explainPlanChoices({
+      facts: { ...nominalFacts(), energyBelowBand: true },
+      locale,
+    });
+    assertEquals(out.refusal, null);
+    const ligne = out.lines.find((l) =>
+      l.includes("plus léger") || l.includes("lighter")
+    );
+    assert(ligne !== undefined, `aucune ligne de légèreté en ${locale}`);
+    // ⛔ AUCUN CHIFFRE. « pas de kcal, pas de grammes, pas de fourchette » vaut
+    // ici comme partout: un nombre affiché à un élève devient un objectif.
+    assert(
+      !/\d/.test(ligne),
+      `la ligne porte un chiffre en ${locale}: ${ligne}`,
+    );
+  }
+});
+
+Deno.test("⚠️ LES TROIS SILENCES — `false`, `null`, et tout ce qui n'est pas `below`", () => {
+  // ⛔ SANS EUX, LA LIGNE SERAIT UNE CONSTANTE DÉGUISÉE EN MESURE.
+  //
+  // `false` = mesuré et dans la bande. `null` = pas mesurable (plancher TCA,
+  // corps inconnu, plan illisible). Les deux se taisent, et pour des raisons
+  // opposées — mais aucune des deux ne doit produire de phrase.
+  for (const valeur of [false, null] as const) {
+    const out = explainPlanChoices({
+      facts: { ...nominalFacts(), energyBelowBand: valeur },
+      locale: "fr",
+    });
+    assertEquals(
+      out.lines.filter((l) => l.includes("plus léger")),
+      [],
+      `un plan à energyBelowBand=${JSON.stringify(valeur)} s'est déclaré léger`,
+    );
+  }
+});
+
+Deno.test("⛔ LE FAIT EST REQUIS — un `undefined` JETTE, il ne se tait pas", () => {
+  // `null` est une valeur, `undefined` est un oubli. Un appelant qui ne calcule
+  // pas ce verdict doit le DIRE (la lane foyer passe `null`), pas l'omettre.
+  const sansLeFait = { ...nominalFacts() } as Record<string, unknown>;
+  delete sansLeFait.energyBelowBand;
+  assertThrows(
+    () =>
+      explainPlanChoices({
+        facts: sansLeFait as unknown as PlanRationaleFacts,
+        locale: "fr",
+      }),
+    Error,
+    "energyBelowBand",
+  );
+});
+
+Deno.test("le constat vient AVANT le budget, qui l'explique", () => {
+  // ⚠️ L'ORDRE PORTE UN SENS. Le budget dit ce qui a cédé pour tenir dedans
+  // (« les protéines chères d'abord »): lu APRÈS le constat, il en est la
+  // raison; lu avant, il serait une excuse posée d'avance.
+  const out = explainPlanChoices({
+    facts: { ...nominalFacts(), energyBelowBand: true, budgetAmount: 40 },
+    locale: "fr",
+  });
+  const iLeger = out.lines.findIndex((l) => l.includes("plus léger"));
+  const iBudget = out.lines.findIndex((l) => l.includes("budget"));
+  assert(iLeger >= 0 && iBudget >= 0, "les deux lignes doivent sortir");
+  assert(iLeger < iBudget, "le constat doit précéder le budget");
+});
+
+// ---------------------------------------------------------------------------
+// LES JOURS DE CUISINE QUE LA FENÊTRE N'ATTEINT PAS — 2026-09-01
+//
+// ⛔ LE DÉFAUT QUE CES TESTS TIENNENT, ET IL ÉTAIT EN PRODUCTION. Jours cochés
+// `dimanche`, fenêtre lundi→vendredi: `buildMealPrompt` écrit « none of those
+// days are left in this stretch », `addedCookDays` rend `[]` (il sort sur
+// `usable.length === 0`), et ce module tombait donc dans `cookDeclaredKept` —
+// « Tu cuisines dimanche, et c'est ce qui a été gardé », sur un plan d'où le
+// dimanche venait d'être retiré. Un fait faux, déterministe, indémentable.
+// ---------------------------------------------------------------------------
+
+Deno.test("TOUS les jours cochés hors fenêtre: on le DIT, on ne prétend pas les avoir gardés", () => {
+  const facts: PlanRationaleFacts = {
+    ...nominalFacts(),
+    declaredCookDays: ["sun"],
+    // La fenêtre va du lundi au vendredi: `usableCookDays` rend `[]`.
+    usableCookDays: [],
+  };
+  for (const [locale, kept, said] of [
+    ["fr", "c'est ce qui a été gardé", "ce plan ne va pas jusque-là"],
+    ["en", "that is what was kept", "does not reach that far"],
+  ] as const) {
+    const out = explainPlanChoices({ facts, locale });
+    assertEquals(out.refusal, null);
+    const text = out.lines.join(" ");
+    // ⛔ LA MOITIÉ QUI COMPTE: la phrase d'avant ne doit PLUS sortir.
+    assert(!text.includes(kept), `${locale}: la phrase fausse est encore là — ${text}`);
+    assert(text.includes(said), `${locale}: l'écart n'est pas dit — ${text}`);
+  }
+});
+
+Deno.test("écart PARTIEL: on nomme ce qui reste ET ce qui tombe", () => {
+  const out = explainPlanChoices({
+    facts: {
+      ...nominalFacts(),
+      declaredCookDays: ["sun", "wed"],
+      usableCookDays: ["wed"],
+    },
+    locale: "fr",
+  });
+  const text = out.lines.join(" ");
+  assert(text.includes("mercredi"), text);
+  assert(text.includes("dimanche"), text);
+  // Les deux jours sont nommés, mais PAS du même côté: « gardé » ne porte que
+  // sur mercredi. Une phrase qui les mettrait ensemble redirait le mensonge.
+  assert(text.includes("n'est pas dans cette fenêtre"), text);
+});
+
+Deno.test("MUTATION — quand rien n'est écarté, la phrase d'origine revient", () => {
+  // ⚠️ SANS CE CAS, LE LOT SERAIT UNE GARDE QUI BLOQUE TOUT. Un plan ordinaire
+  // — tous les jours cochés atteints — doit rendre EXACTEMENT la phrase d'avant.
+  const out = explainPlanChoices({
+    facts: {
+      ...nominalFacts(),
+      declaredCookDays: ["sun", "wed"],
+      usableCookDays: ["sun", "wed"],
+    },
+    locale: "fr",
+  });
+  assert(
+    out.lines.some((l) => l.includes("c'est ce qui a été gardé")),
+    out.lines.join(" | "),
+  );
+});
+
+Deno.test("PROMPT — la consigne et l'explication lisent la MÊME intersection", () => {
+  // Le jumeau du test d'`addedCookDays` juste au-dessus, sur l'autre branche.
+  //
+  // ⚠️ LE DÉCOR EST CHOISI POUR QUE RIEN NE SOIT AJOUTÉ. Avec `sun, wed` sur
+  // lundi→vendredi, le seul jour utilisable (mercredi) tombe APRÈS le premier
+  // jour de la fenêtre: `addedCookDays` pose un lundi, et c'est SA branche qui
+  // parle. Ici `mon` est déclaré, donc rien n'est ajouté — et il ne reste que
+  // l'écart à nommer: le dimanche, que cette fenêtre n'atteint pas.
+  const args = {
+    ...PROMPT_ARGS,
+    cookDays: ["mon", "sun"],
+    daysToFill: ["mon", "tue", "wed", "thu", "fri"],
+    todayToken: "mon",
+    today: "2026-08-17",
+  };
+  const message = buildMealPrompt(args).userMessage;
+  const usable = usableCookDays({
+    declared: args.cookDays,
+    window: args.daysToFill,
+  });
+  assertEquals(usable, ["mon"]);
+  assertEquals(
+    addedCookDays({
+      declared: args.cookDays,
+      window: args.daysToFill,
+      firstDayCookable: true,
+    }),
+    [],
+  );
+  // La consigne servie au modèle nomme EXACTEMENT cette liste-là.
+  assert(
+    message.includes(`they can only cook on: ${usable.join(", ")}`),
+    "la consigne ne nomme pas les jours que l'explication va nommer",
+  );
+});
+
+Deno.test("`usableCookDays` — fenêtre inconnue ⇒ rien n'est déclaré écarté", () => {
+  // ⚠️ `[]` DIRAIT « tous ont été retirés », ce que personne n'a mesuré.
+  assertEquals(usableCookDays({ declared: ["sun"], window: [] }), ["sun"]);
+  assertEquals(usableCookDays({ declared: [], window: ["mon"] }), []);
+  assertEquals(
+    usableCookDays({ declared: ["sun", "wed"], window: ["mon", "tue", "wed"] }),
+    ["wed"],
+  );
+});
+
+// ---------------------------------------------------------------------------
+// LES CASES QUE LE PLAN NE REMPLIT PAS — 2026-09-01
+//
+// ⛔ LE DÉCOR EST CELUI QUI A ÉTÉ MESURÉ: sept jours, UNE session de cuisine
+// le dimanche, un congélateur coché. La fenêtre du cuit (`MAX_FRIDGE_DAYS = 3`)
+// jette huit plats, et mercredi→samedi n'ont plus que leur petit-déjeuner.
+// `empty_slots` portait déjà le fait; personne ne le lisait.
+// ---------------------------------------------------------------------------
+
+const MESURE_1_SESSION_7_JOURS = [
+  { day: "wed", slot: "lunch" },
+  { day: "wed", slot: "dinner" },
+  { day: "thu", slot: "lunch" },
+  { day: "thu", slot: "dinner" },
+  { day: "fri", slot: "lunch" },
+  { day: "fri", slot: "dinner" },
+  { day: "sat", slot: "lunch" },
+  { day: "sat", slot: "dinner" },
+] as const;
+
+Deno.test("LE CAS MESURÉ — quatre jours sans déjeuner ni dîner, et on le DIT", () => {
+  const facts: PlanRationaleFacts = {
+    ...nominalFacts(),
+    emptySlots: [...MESURE_1_SESSION_7_JOURS] as never,
+  };
+
+  const fr = explainPlanChoices({ facts, locale: "fr" }).lines.join(" | ");
+  // Les quatre jours nommés, les deux moments nommés, UNE seule phrase — pas
+  // huit lignes « mercredi midi », qui seraient la grille écrite deux fois.
+  for (const day of ["mercredi", "jeudi", "vendredi", "samedi"]) {
+    assert(fr.includes(day), `${day} manque — ${fr}`);
+  }
+  assert(fr.includes("le déjeuner"), fr);
+  assert(fr.includes("le dîner"), fr);
+  assert(fr.includes("n'ont pas été composés"), fr);
+
+  const en = explainPlanChoices({ facts, locale: "en" }).lines.join(" | ");
+  assert(en.includes("Saturday"), en);
+  assert(en.includes("were not composed"), en);
+});
+
+Deno.test("des trous IRRÉGULIERS se comptent, ils ne se groupent pas", () => {
+  // ⛔ « mercredi et jeudi n'ont pas le déjeuner et le dîner » serait FAUX ici:
+  // jeudi a son déjeuner. La forme groupée ne se dit que quand chaque jour
+  // manque exactement les mêmes moments.
+  const out = explainPlanChoices({
+    facts: {
+      ...nominalFacts(),
+      emptySlots: [
+        { day: "wed", slot: "lunch" },
+        { day: "wed", slot: "dinner" },
+        { day: "thu", slot: "dinner" },
+      ] as never,
+    },
+    locale: "fr",
+  });
+  const text = out.lines.join(" | ");
+  assert(text.includes("3 repas n'ont pas été composés"), text);
+  assert(!text.includes("le déjeuner et le dîner"), `forme groupée servie à tort — ${text}`);
+});
+
+Deno.test("MUTATION — un plan complet ne parle PAS de trous", () => {
+  // Sans ce cas, la phrase sortirait sur tous les plans et on ne saurait plus
+  // ce qu'elle signale.
+  const out = explainPlanChoices({ facts: nominalFacts(), locale: "fr" });
+  assert(
+    !out.lines.some((l) => l.includes("composés")),
+    out.lines.join(" | "),
+  );
+});
+
+Deno.test("le trou se lit APRÈS l'absence, qui explique un vide VOULU", () => {
+  const out = explainPlanChoices({
+    facts: {
+      ...nominalFacts(),
+      awayInWindow: [{ day: "fri", slot: "lunch" }] as never,
+      emptySlots: [{ day: "sat", slot: "dinner" }] as never,
+    },
+    locale: "fr",
+  });
+  const away = out.lines.findIndex((l) => l.includes("hors de la maison"));
+  const gap = out.lines.findIndex((l) => l.includes("n'a pas été composé"));
+  assert(away >= 0 && gap >= 0, out.lines.join(" | "));
+  assert(away < gap, `l'ordre est inversé — ${out.lines.join(" | ")}`);
+});
+
+// ---------------------------------------------------------------------------
+// LOT 2 — CE QU'AUCUN LOT N'ATTEINT, ET LA SESSION QUI DÉBORDE (2026-09-01)
+// ---------------------------------------------------------------------------
+
+Deno.test("les jours hors de portée portent LEUR SORTIE, pas le problème", () => {
+  const out = explainPlanChoices({
+    facts: {
+      ...nominalFacts(),
+      daysOutOfBatchReach: ["wed", "thu", "fri", "sat"],
+    },
+    locale: "fr",
+  });
+  const text = out.lines.join(" | ");
+  for (const day of ["mercredi", "jeudi", "vendredi", "samedi"]) {
+    assert(text.includes(day), `${day} manque — ${text}`);
+  }
+  // ⛔ LA MOITIÉ QUI COMPTE: la phrase dit QUOI FAIRE. « Ne peuvent pas vivre
+  // d'un lot » laisserait quelqu'un devant un problème sans réponse.
+  assert(text.includes("se cuisinent sur le moment"), text);
+  // Et elle n'accuse personne: le fait est une propriété du frigo.
+  assert(!text.includes("tu n'as pas"), text);
+});
+
+Deno.test("un seul jour hors de portée s'accorde au singulier", () => {
+  // Le sujet de la phrase est la liste des JOURS: « samedi sont trop loin »
+  // est ce qu'un gabarit unique produirait. Même défaut que celui attrapé sur
+  // les créneaux vides, et même correction.
+  const out = explainPlanChoices({
+    facts: { ...nominalFacts(), daysOutOfBatchReach: ["sat"] },
+    locale: "fr",
+  });
+  const text = out.lines.join(" | ");
+  assert(text.includes("ce jour-là se cuisine"), text);
+  assert(!text.includes("ces jours-là"), text);
+});
+
+Deno.test("MUTATION — un plan sans tension ne parle NI de portée NI de débordement", () => {
+  const out = explainPlanChoices({ facts: nominalFacts(), locale: "fr" });
+  const text = out.lines.join(" | ");
+  assert(!text.includes("Aucun lot ne tient"), text);
+  assert(!text.includes("prendra plutôt"), text);
+});
+
+Deno.test("la session qui déborde est dite AVANT les fourneaux, avec les deux chiffres", () => {
+  // ⛔ LE CHIFFRE DÉCLARÉ EST RAPPELÉ. Sans lui, « compte 1 h 15 » se lit comme
+  // une estimation venue de nulle part au lieu d'un écart avec ce qu'on a
+  // soi-même demandé — et c'est l'écart qui est l'information.
+  for (const [locale, needle] of [["fr", "prendra plutôt"], ["en", "will take"]] as const) {
+    const out = explainPlanChoices({
+      facts: {
+        ...nominalFacts(),
+        sessionOverruns: [{ day: "wed", minutes: 75, declared: 30 }],
+      },
+      locale,
+    });
+    const text = out.lines.join(" | ");
+    assert(text.includes(needle), `${locale}: ${text}`);
+    // ⚠️ LES DEUX DURÉES, ET RENDUES COMME UN HUMAIN LES DIT — jamais « 75 ».
+    // `renderDuration` écrit « 1 h 15 » en français et « 1 hour 15 min » en
+    // anglais; on vérifie donc les MINUTES restantes, qui sont communes aux
+    // deux formes, plutôt qu'une chaîne d'une seule langue.
+    assert(!text.includes("75"), `${locale}: durée brute non rendue — ${text}`);
+    assert(text.includes("15"), `${locale}: la durée réelle manque — ${text}`);
+    assert(text.includes("30"), `${locale}: la durée déclarée manque — ${text}`);
+  }
+});
+
+Deno.test("⛔ AUCUNE LIGNE NE COMMENCE PAR UNE MINUSCULE — garde d'écran", () => {
+  // ⚠️ ELLE EXISTE PARCE QUE LA FAUTE A ÉTÉ VUE À L'ÉCRAN LE 2026-09-01:
+  // « mercredi, jeudi, vendredi et samedi sont trop loin… ». `renderDays` rend
+  // les jours en minuscules en français, et un gabarit qui ouvre sa phrase sur
+  // la liste ouvre donc sur une minuscule. La faute ne casse rien — c'est
+  // exactement pourquoi elle survivrait à tous les autres tests.
+  //
+  // ⛔ ELLE RELIT TOUT, pas seulement les gabarits neufs: le prochain qui
+  // s'écrira dans ce sens-là tombera ici.
+  const tousLesFaits: PlanRationaleFacts = {
+    ...nominalFacts(),
+    energyBelowBand: true,
+    declaredCookDays: ["sun", "wed"],
+    usableCookDays: ["sun"],
+    addedCookDays: ["thu"],
+    requestedWindow: { startsOn: "2026-08-13", durationDays: 7 },
+    slotsDroppedToday: ["breakfast", "lunch"],
+    awayInWindow: [{ day: "fri", slot: "lunch" }],
+    emptySlots: [{ day: "sat", slot: "dinner" }],
+    daysOutOfBatchReach: ["wed", "thu", "fri", "sat"],
+    sessionOverruns: [{ day: "wed", minutes: 75, declared: 30 }],
+    budgetAmount: 60,
+    mouthsServed: 3,
+    handTakenBy: ["Nina"],
+    mergedIn: ["Marc"],
+    weeklyCookingMinutes: 120,
+  };
+  for (const locale of ["fr", "en"] as const) {
+    for (const line of explainPlanChoices({ facts: tousLesFaits, locale }).lines) {
+      const first = line.trimStart()[0] ?? "";
+      assert(
+        first !== first.toLowerCase() || !/\p{L}/u.test(first),
+        `${locale}: une phrase ouvre sur une minuscule — « ${line} »`,
+      );
+    }
+  }
+});
+
+// ---------------------------------------------------------------------------
+// « TOUT DANS UNE SESSION DE CUISINE » — 2026-09-01
+//
+// ⛔ LA RAISON D'ÊTRE DE CE BLOC. Une demande de rang 2 qui se résout sans une
+// ligne d'explication se lit comme un bug: quelqu'un coche l'option, reçoit un
+// plan à trois jours de cuisine, et rien ne dit pourquoi. Et le symétrique est
+// pire — une phrase qui affirme le contraire de ce que le moteur a fait, ce que
+// `cookDeclaredDropped` a déjà coûté à ce module.
+// ---------------------------------------------------------------------------
+
+Deno.test("case décochée ⇒ AUCUNE phrase de session unique", () => {
+  // Le chemin de tous les plans d'avant ce lot, et de la grande majorité après.
+  for (const locale of ["fr", "en"] as const) {
+    const joined = explainPlanChoices({ facts: nominalFacts(), locale })
+      .lines.join(" ");
+    assert(!joined.includes("une seule fois"), joined);
+    assert(!joined.includes("in one go"), joined);
+    assert(!joined.includes("congélateur"), joined);
+    assert(!joined.includes("freezer"), joined);
+  }
+});
+
+Deno.test("option honorée ⇒ la phrase NOMME le jour et dit où va le surplus", () => {
+  for (const locale of ["fr", "en"] as const) {
+    const lines = explainPlanChoices({
+      facts: { ...nominalFacts(), oneCookingSession: { day: "sun", refusedNoFreezer: false } },
+      locale,
+    }).lines;
+    const joined = lines.join(" ");
+    assertStringIncludes(joined, locale === "fr" ? "dimanche" : "Sunday");
+    assertStringIncludes(joined, locale === "fr" ? "congélateur" : "freezer");
+  }
+});
+
+Deno.test("⛔ ELLE REMPLACE LE BLOC DES JOURS COCHÉS, elle ne s'y ajoute pas", () => {
+  // « Tu cuisines dimanche ET mercredi, et c'est ce qui a été gardé » à côté de
+  // « tout est cuisiné dimanche » sont deux faits dont un est FAUX.
+  const lines = explainPlanChoices({
+    facts: {
+      ...nominalFacts(),
+      declaredCookDays: ["sun", "wed"],
+      usableCookDays: ["sun", "wed"],
+      oneCookingSession: { day: "sun", refusedNoFreezer: false },
+    },
+    locale: "fr",
+  }).lines;
+  const joined = lines.join(" ");
+  assert(!joined.includes("c'est ce qui a été gardé"), joined);
+  assertStringIncludes(joined, "Tout est cuisiné dimanche");
+  // MUTATION — sans l'option, la phrase d'origine revient. C'est ce qui prouve
+  // que la branche remplace, et qu'elle ne masque pas.
+  const sans = explainPlanChoices({
+    facts: {
+      ...nominalFacts(),
+      declaredCookDays: ["sun", "wed"],
+      usableCookDays: ["sun", "wed"],
+    },
+    locale: "fr",
+  }).lines.join(" ");
+  assertStringIncludes(sans, "c'est ce qui a été gardé");
+});
+
+Deno.test("jour inconnu ⇒ la phrase sort SANS affirmer un jour", () => {
+  // Le modèle a choisi sa date; affirmer un jour qu'on n'a pas décidé serait un
+  // fait faux déterministe — la famille de défaut que ce module existe pour ne
+  // plus produire.
+  const joined = explainPlanChoices({
+    facts: {
+      ...nominalFacts(),
+      declaredCookDays: [],
+      usableCookDays: [],
+      oneCookingSession: { day: null, refusedNoFreezer: false },
+    },
+    locale: "fr",
+  }).lines.join(" ");
+  assertStringIncludes(joined, "Tout est cuisiné en une seule session");
+  assert(!joined.includes("Tout est cuisiné dimanche"), joined);
+});
+
+Deno.test("option REFUSÉE ⇒ on le dit, et les jours cochés restent décrits", () => {
+  // ⚠️ LE REFUS LAISSE LE BLOC EN PLACE: rien n'a été ramené à une session, donc
+  // les jours cochés sont bien ceux qui ont servi. Les faire disparaître
+  // retirerait une explication juste au moment où elle est la plus utile.
+  for (const locale of ["fr", "en"] as const) {
+    const joined = explainPlanChoices({
+      facts: { ...nominalFacts(), oneCookingSession: { day: null, refusedNoFreezer: true } },
+      locale,
+    }).lines.join(" ");
+    assertStringIncludes(joined, locale === "fr" ? "congélateur" : "freezer");
+    // La phrase d'origine des jours cochés est toujours là.
+    assertStringIncludes(
+      joined,
+      locale === "fr" ? "c'est ce qui a été gardé" : "that is what was kept",
+    );
+    // Et on n'annonce PAS une session unique qui n'a pas eu lieu.
+    assert(!joined.includes("Tout est cuisiné"), joined);
+    assert(!joined.includes("Everything is cooked"), joined);
+  }
+});
+
+Deno.test("⛔ LE FAIT EST REQUIS — un `undefined` JETTE, il ne se tait pas", () => {
+  const facts = nominalFacts() as unknown as Record<string, unknown>;
+  delete facts.oneCookingSession;
+  assertThrows(
+    () => explainPlanChoices({ facts: facts as never, locale: "fr" }),
+    Error,
+    "oneCookingSession",
+  );
+});
+
+Deno.test("les DEUX phrases de session unique passent la garde des majuscules", () => {
+  // La garde d'écran plus haut ne relit qu'un jeu de faits; les deux issues de
+  // l'option s'excluent, donc l'une des deux lui échappe par construction.
+  for (const locale of ["fr", "en"] as const) {
+    for (
+      const single of [
+        { day: "sun" as const, refusedNoFreezer: false },
+        { day: null, refusedNoFreezer: true },
+      ]
+    ) {
+      for (
+        const line of explainPlanChoices({
+          facts: { ...nominalFacts(), oneCookingSession: single },
+          locale,
+        }).lines
+      ) {
+        const first = line.trimStart()[0] ?? "";
+        assert(
+          first !== first.toLowerCase() || !/\p{L}/u.test(first),
+          `${locale}: une phrase ouvre sur une minuscule — « ${line} »`,
+        );
+      }
+    }
+  }
+});
+
+// ---------------------------------------------------------------------------
+// « JE CUISINE LA VEILLE » — 2026-09-01
+//
+// ⛔ LE REFUS EST DU RANG 2, DONC IL PARLE. Les deux raisons sont des faits de
+// calendrier que la personne ne peut pas deviner (le plan commence aujourd'hui,
+// ou il fait déjà sept jours). Sans phrase, elle coche une case, reçoit un plan
+// qui commence quand même le premier jour, et ne peut pas savoir si l'option
+// est cassée ou si sa semaine ne s'y prêtait pas.
+// ---------------------------------------------------------------------------
+
+Deno.test("case décochée ⇒ AUCUNE phrase de veille", () => {
+  for (const locale of ["fr", "en"] as const) {
+    const joined = explainPlanChoices({ facts: nominalFacts(), locale })
+      .lines.join(" ");
+    assert(!joined.includes("un jour plus tôt"), joined);
+    assert(!joined.includes("a day earlier"), joined);
+  }
+});
+
+Deno.test("veille accordée ⇒ elle NOMME le jour et dit que rien ne s'y mange", () => {
+  for (const locale of ["fr", "en"] as const) {
+    const joined = explainPlanChoices({
+      facts: { ...nominalFacts(), cookDayBefore: { day: "sun", refused: null } },
+      locale,
+    }).lines.join(" ");
+    assertStringIncludes(joined, locale === "fr" ? "dimanche" : "Sunday");
+    // Les DEUX moitiés: le plan commence plus tôt, ET ce jour ne porte rien.
+    assertStringIncludes(
+      joined,
+      locale === "fr" ? "un jour plus tôt" : "a day earlier",
+    );
+    assertStringIncludes(
+      joined,
+      locale === "fr" ? "rien ne s'y mange" : "nothing is eaten on it",
+    );
+  }
+});
+
+Deno.test("les DEUX refus sortent, et ce ne sont pas les mêmes mots", () => {
+  // Ils se réparent par des gestes OPPOSÉS — décaler le début, ou raccourcir
+  // la fenêtre. Une phrase commune ne dirait ni l'un ni l'autre.
+  for (const locale of ["fr", "en"] as const) {
+    const past = explainPlanChoices({
+      facts: {
+        ...nominalFacts(),
+        cookDayBefore: { day: null, refused: "in_the_past" },
+      },
+      locale,
+    }).lines.join(" ");
+    const room = explainPlanChoices({
+      facts: {
+        ...nominalFacts(),
+        cookDayBefore: { day: null, refused: "no_room" },
+      },
+      locale,
+    }).lines.join(" ");
+    assert(past !== room, `${locale}: les deux refus disent la même chose`);
+    assertStringIncludes(past, locale === "fr" ? "hier" : "yesterday");
+    assertStringIncludes(room, locale === "fr" ? "sept" : "seven");
+    // ⛔ ET AUCUN DES DEUX N'ANNONCE UN JOUR QUI N'EXISTE PAS.
+    assert(!past.includes("un jour plus tôt") && !past.includes("a day earlier"));
+    assert(!room.includes("un jour plus tôt") && !room.includes("a day earlier"));
+  }
+});
+
+Deno.test("la veille se lit AVANT la session unique", () => {
+  // L'ordre est le sens: « le plan commence dimanche, un jour plus tôt »
+  // explique la FENÊTRE, « tout est cuisiné dimanche » explique ce qu'on y
+  // fait. Lire la seconde d'abord ferait apparaître un jour dont on n'a pas
+  // encore dit d'où il sort.
+  const lines = explainPlanChoices({
+    facts: {
+      ...nominalFacts(),
+      cookDayBefore: { day: "sun", refused: null },
+      oneCookingSession: { day: "sun", refusedNoFreezer: false },
+    },
+    locale: "fr",
+  }).lines;
+  const before = lines.findIndex((l) => l.includes("un jour plus tôt"));
+  const session = lines.findIndex((l) => l.includes("Tout est cuisiné"));
+  assert(before >= 0 && session >= 0, JSON.stringify(lines));
+  assert(before < session, JSON.stringify(lines));
+});
+
+Deno.test("⛔ LE FAIT `cookDayBefore` EST REQUIS — un `undefined` JETTE", () => {
+  const facts = nominalFacts() as unknown as Record<string, unknown>;
+  delete facts.cookDayBefore;
+  assertThrows(
+    () => explainPlanChoices({ facts: facts as never, locale: "fr" }),
+    Error,
+    "cookDayBefore",
+  );
+});
+
+// ---------------------------------------------------------------------------
+// LES COURSES — 2026-09-01
+//
+// ⛔ LE DÉFAUT: « ça me disait de cuisiner le poulet acheté le lundi, le
+// samedi ». Le moteur SAVAIT que ce poulet s'achète le jeudi, et aucun texte du
+// plan ne l'a jamais dit.
+// ---------------------------------------------------------------------------
+
+Deno.test("aucune date connue ⇒ AUCUNE phrase de courses", () => {
+  // On ne devine pas un jour de magasin.
+  for (const locale of ["fr", "en"] as const) {
+    const joined = explainPlanChoices({ facts: nominalFacts(), locale })
+      .lines.join(" ");
+    assert(!joined.includes("course"), joined);
+    assert(!joined.includes("shop"), joined);
+  }
+});
+
+Deno.test("une seule course s'annonce comme une BONNE nouvelle", () => {
+  for (const locale of ["fr", "en"] as const) {
+    const joined = explainPlanChoices({
+      facts: { ...nominalFacts(), shoppingDays: ["sun"] },
+      locale,
+    }).lines.join(" ");
+    assertStringIncludes(joined, locale === "fr" ? "Une seule course" : "One shop");
+    assertStringIncludes(joined, locale === "fr" ? "dimanche" : "Sunday");
+    // Elle dit POURQUOI il n'y en a qu'une: tout tient.
+    assertStringIncludes(joined, locale === "fr" ? "tient" : "keeps");
+  }
+});
+
+Deno.test("plusieurs courses DISENT à quoi sert le déplacement de plus", () => {
+  // Sans le motif, une seconde course est une corvée arbitraire — et on cesse
+  // de la suivre.
+  for (const locale of ["fr", "en"] as const) {
+    const joined = explainPlanChoices({
+      facts: { ...nominalFacts(), shoppingDays: ["sun", "wed"] },
+      locale,
+    }).lines.join(" ");
+    assertStringIncludes(joined, "2");
+    assertStringIncludes(joined, locale === "fr" ? "frais" : "fresh");
+  }
+});
+
+Deno.test("LE CAS RAPPORTÉ — le jour qui réclame sa propre course est NOMMÉ", () => {
+  for (const locale of ["fr", "en"] as const) {
+    const joined = explainPlanChoices({
+      facts: {
+        ...nominalFacts(),
+        shoppingDays: ["sun", "thu"],
+        shopLaterDays: ["sat"],
+      },
+      locale,
+    }).lines.join(" ");
+    assertStringIncludes(joined, locale === "fr" ? "samedi" : "Saturday");
+    // ⛔ ET LA PHRASE PORTE LA SORTIE, PAS UN REPROCHE: cuisiner du poulet le
+    // samedi est légitime, ça s'achète au plus près.
+    assertStringIncludes(
+      joined,
+      locale === "fr" ? "au plus près" : "bought close to that day",
+    );
+  }
+});
+
+Deno.test("les courses se lisent AVANT les journées hors de portée", () => {
+  // L'ordre du frigo: on achète, on cuisine, on garde. Lire « aucun lot ne
+  // tient jusqu'à samedi » avant de savoir quand on fait ses courses inverse
+  // la chaîne.
+  const lines = explainPlanChoices({
+    facts: {
+      ...nominalFacts(),
+      shoppingDays: ["sun", "wed"],
+      daysOutOfBatchReach: ["sat"],
+    },
+    locale: "fr",
+  }).lines;
+  const shop = lines.findIndex((l) => l.includes("courses"));
+  const reach = lines.findIndex((l) => l.includes("Aucun lot"));
+  assert(shop >= 0 && reach >= 0, JSON.stringify(lines));
+  assert(shop < reach, JSON.stringify(lines));
+});
+
+Deno.test("⛔ LES DEUX FAITS SONT REQUIS — un `undefined` JETTE", () => {
+  for (const key of ["shoppingDays", "shopLaterDays"] as const) {
+    const facts = nominalFacts() as unknown as Record<string, unknown>;
+    delete facts[key];
+    assertThrows(
+      () => explainPlanChoices({ facts: facts as never, locale: "fr" }),
+      Error,
+      key,
+    );
+  }
+});
+
+Deno.test("les phrases de courses passent la garde des majuscules", () => {
+  for (const locale of ["fr", "en"] as const) {
+    for (
+      const facts of [
+        { ...nominalFacts(), shoppingDays: ["sun"] },
+        { ...nominalFacts(), shoppingDays: ["sun", "wed"], shopLaterDays: ["sat"] },
+      ] as const
+    ) {
+      for (const line of explainPlanChoices({ facts, locale }).lines) {
+        const first = line.trimStart()[0] ?? "";
+        assert(
+          first !== first.toLowerCase() || !/\p{L}/u.test(first),
+          `${locale}: une phrase ouvre sur une minuscule — « ${line} »`,
+        );
+      }
+    }
+  }
 });

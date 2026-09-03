@@ -1,12 +1,16 @@
 import type {
   DispatcherMemoryPlan,
   DispatcherPlanFeedbackSignal,
+  DispatcherProfileStatementSignal,
+  DispatcherRuleQuestionSignal,
   DispatcherResearchSignal,
 } from "../contracts/turn_frame.v1.ts";
 
 export type {
   DispatcherMemoryPlan,
   DispatcherPlanFeedbackSignal,
+  DispatcherProfileStatementSignal,
+  DispatcherRuleQuestionSignal,
   DispatcherResearchSignal,
 };
 
@@ -33,6 +37,12 @@ export type DispatcherSignals = {
   // type est ce que le runtime en lit. Deux jumeaux que rien ne relie, c'est la
   // panne §7.4: renommer un champ d'un côté laisse tout vert de l'autre.
   plan_feedback: DispatcherPlanFeedbackSignal;
+  // LOT M1 — même patron, une seule définition, dans le contrat du TurnFrame.
+  // Le modèle remplit le champ du contrat; ce type est ce que le runtime en
+  // lit. Ce signal n'écrit rien: il arme une phrase de RENVOI.
+  profile_statement: DispatcherProfileStatementSignal;
+  // LOT M6 — la question qui révoque. Passif comme les deux au-dessus.
+  rule_question: DispatcherRuleQuestionSignal;
   track_progress_plan_item: {
     detected: boolean;
     target_item_id?: string | null;
@@ -57,6 +67,8 @@ export const DEFAULT_SIGNALS: DispatcherSignals = {
   checkup_intent: { detected: false },
   plan_item_discussion: { detected: false },
   plan_feedback: { detected: false },
+  profile_statement: { detected: false },
+  rule_question: { detected: false },
   track_progress_plan_item: { detected: false },
   dashboard_preferences_intent: { detected: false },
 };

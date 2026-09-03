@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import SEO from "../../components/SEO";
 
 /**
  * PIVOT — la 404, et pourquoi elle arrive AVANT toute suppression de route.
@@ -24,6 +25,20 @@ import { Link } from "react-router-dom";
 export default function NotFoundPage() {
   return (
     <main className="mx-auto flex min-h-[60vh] max-w-lg flex-col justify-center px-6 py-16">
+      {/* ── `noindex` — ET C'EST UNE SPA QUI L'EXIGE ────────────────────────
+          Le serveur rend `index.html` avec un 200 sur TOUTE URL, y compris
+          celles qui n'ont plus de route. Un moteur ne voit donc jamais un 404:
+          il voit une page indexable dont le contenu est « cette page n'existe
+          pas ». Sans cette balise, chaque route démontée reste au catalogue —
+          c'est exactement ce que le lancement B2C vient de faire aux quatre
+          pages professionnelles (`security/proSurface.ts`).
+          `nofollow` avec: le seul lien de la page est `/`, déjà en tête du
+          sitemap. */}
+      <SEO
+        title="Page not found"
+        description="This page does not exist."
+        robots="noindex,nofollow"
+      />
       <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
         404
       </p>

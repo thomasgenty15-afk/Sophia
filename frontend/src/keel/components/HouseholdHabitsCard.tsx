@@ -5,7 +5,7 @@ import {
   type HabitDraftSlot,
   habitDraftBlocked,
   habitPayload,
-  type HabitSlot,
+  type HabitSlotWrite,
   DRAFT_NOTE_MAX_CHARS,
   type MemberHabitsView,
 } from "../api/householdHabits";
@@ -75,7 +75,7 @@ export default function HouseholdHabitsCard(
     /** LA GARDE DE CHARGEMENT. Faux = la lecture n'a pas eu lieu. */
     loaded: boolean;
     busy: boolean;
-    onSave: (slots: HabitSlot[], note: string | null) => Promise<boolean>;
+    onSave: (slots: HabitSlotWrite[], note: string | null) => Promise<boolean>;
   },
 ) {
   const [open, setOpen] = React.useState(false);
@@ -168,7 +168,7 @@ function HabitsFields(
     slots: readonly EatingOccasion[];
     habits: MemberHabitsView | null;
     busy: boolean;
-    onSave: (slots: HabitSlot[], note: string | null) => Promise<boolean>;
+    onSave: (slots: HabitSlotWrite[], note: string | null) => Promise<boolean>;
   },
 ) {
   const [draft, setDraft] = React.useState<HabitDraftSlot[]>(
@@ -291,7 +291,14 @@ function HabitsFields(
           // dont le refus serait exact mais inutile.
           disabled={busy || blocked.length > 0}
           onClick={async () => {
-            const ok = await onSave(habitPayload(draft), note.trim() || null);
+            // ⛔ `habits?.extras ?? {}` EST OBLIGATOIRE, ET SON OUBLI EFFACE.
+            // La porte REMPLACE la liste entière, et cette carte n'édite que la
+            // prose: sans le report, enregistrer ici effacerait en silence les
+            // bulles cochées depuis la fiche de la bouche.
+            const ok = await onSave(
+              habitPayload(draft, habits?.extras ?? {}),
+              note.trim() || null,
+            );
             if (ok) setSaved(true);
           }}
         >

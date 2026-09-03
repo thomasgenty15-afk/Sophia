@@ -84,13 +84,26 @@ import {
   YIELD_FACTORS,
 } from "./food_composition.ts";
 import {
+  daysOutOfBatchReach,
+  sessionCeilingMinutes,
+  singleSessionCookDay,
+} from "./plan_feasibility.ts";
+import {
   cookedWindowVerdict,
+  freezerClaimedWithoutOne,
+  FREEZER_WINDOW_DAYS,
+  type KeptWhere,
+  keptWindowDays,
   emptyFridgeWindowCounts,
   type FridgeWindowCounts,
 } from "./fridge_window.ts";
+import { rawReachLines } from "./raw_keeping.ts";
 import { fixedIntakePromptLines, slotIsTaken } from "./fixed_intakes.ts";
 import type { FixedIntake } from "./fixed_intakes.ts";
-import { kitchenEquipmentPromptLines } from "./kitchen_equipment.ts";
+import {
+  hasFreezerDeclared,
+  kitchenEquipmentPromptLines,
+} from "./kitchen_equipment.ts";
 import type { KitchenTool } from "./kitchen_equipment.ts";
 import {
   dayHasProperty,
@@ -130,7 +143,7 @@ import {
 // liste. Écrire ici un `new Set(FOOD_GROUP_REFS)` aurait perdu les alias
 // d'entrée que `parseFoodGroupRef` porte (`whole_grains` → `whole_grain`), et
 // aurait fait diverger deux lectures du même vocabulaire au premier ajout.
-import { type FoodGroupRef, parseFoodGroupRef } from "./tokens.ts";
+import { type FoodGroupRef, parseFoodGroupRef, PROTEIN_SOURCES } from "./tokens.ts";
 // ⟳ LOT `L17-0` — LA CLÉ DU GROUPE SUR LA LIGNE ÉCRITE, ET SON COMPTEUR.
 // Le nom de la clé n'a qu'UN site d'écriture (`INGREDIENT_GROUP_KEY`), lu par
 // l'écrivain ET par le compteur: c'est ce qui rend impossible de compter une
@@ -164,6 +177,13 @@ import {
 // ---------------------------------------------------------------------------
 // Entrées / sorties
 // ---------------------------------------------------------------------------
+
+// ⛔ LA CEINTURE DES EXCLUSIONS — lot du 2026-09-01. Une exclusion attribuée à
+// une bouche était rangée, comptée, et INERTE: le plan servait quand même.
+import {
+  dishBitesExclusion,
+} from "./food_exclusion_belt.ts";
+import type { ForbiddenTerm } from "./forbidden_matcher.ts";
 
 export const MEAL_MODES = ["from_pantry", "to_shop"] as const;
 export type MealMode = (typeof MEAL_MODES)[number];
@@ -698,6 +718,15 @@ export interface GeneratedDish {
   uses: Array<{
     preparationId: string;
     servings: number;
+    /**
+     * COMMENT CETTE PART-LÀ A ATTENDU — 2026-09-01.
+     *
+     * ⚠️ TOUJOURS RENSEIGNÉ, JAMAIS `undefined`. Un modèle qui ne dit rien
+     * reçoit `"fridge"`: le non-dit est le STRICT, donc le comportement d'avant
+     * ce lot, au plat près. L'écrire optionnel ferait de l'oubli un
+     * relâchement, et c'est la fenêtre du cuit qui en dépend.
+     */
+    kept: KeptWhere;
   }>;
   /**
    * ══════════════════════════════════════════════════════════════════════════
@@ -785,6 +814,19 @@ export interface ShoppingItem {
   term: string;
   quantity: string | null;
   aisle: ShoppingAisle;
+  /**
+   * LE JOUR OÙ CET ARTICLE S'ACHÈTE, `YYYY-MM-DD`. 2026-09-01.
+   *
+   * ⛔ IL N'EST PAS ÉCRIT PAR LE MODÈLE ET IL N'EST PAS CALCULÉ ICI. Il est
+   * POSÉ par la lane, après composition, à partir de `grocery_waves.ts` — la
+   * seule définition de la règle. Le parseur le laisse à `null`: il ne connaît
+   * pas la date de départ du plan, seulement des jetons de jour.
+   *
+   * ⚠️ `null` EST UNE VALEUR PLEINE: « on n'a pas su dater cette ligne ». Elle
+   * arrive sur les plans écrits avant ce lot (qu'aucune migration ne répare) et
+   * sur toute fenêtre illisible. L'écran retombe alors sur la liste plate.
+   */
+  buy_on?: string | null;
   /**
    * ⟳ LOT `L0-a` — LE GROUPE D'ALIMENT, résolu par le référentiel de
    * composition, `null` quand le terme n'y est pas.
@@ -1081,6 +1123,18 @@ export interface GeneratedMeal {
    */
   empty_slots: MealSlotCase[];
   /**
+   * LES SESSIONS PLUS LONGUES QUE LE TEMPS DÉCLARÉ. `[]` = aucune.
+   *
+   * ⟳ 2026-09-01 — LE FAIT EXISTAIT, IL N'AVAIT PAS DE FORME. Il ne vivait que
+   * dans une ligne d'`issues`, que rien ne lit côté écran; la personne
+   * découvrait la vraie durée devant ses casseroles. La consigne autorise
+   * désormais le débordement quand il est la seule sortie — ce qui rend son
+   * ANNONCE obligatoire, sans quoi on aurait simplement légalisé le silence.
+   *
+   * Vide quand le verrou de sortie a mordu, comme les plats.
+   */
+  session_overruns: { day: string; minutes: number; declared: number }[];
+  /**
    * LOT 2 — LE COMPTEUR DU COMMENTAIRE DU JOUR J.
    *
    * ⛔ SANS LUI, UN LOT DÉSARMÉ RESSEMBLE TRAIT POUR TRAIT À UN LOT QUI MARCHE.
@@ -1184,6 +1238,43 @@ export interface GeneratedMeal {
     declared: number;
     kept: number;
     refused: number;
+  };
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * LA VARIÉTÉ, COMPTÉE SUR LES SOURCES PROTÉIQUES — 2026-08-24.
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * ── LE DÉFAUT QUE ÇA REND VISIBLE, MESURÉ ────────────────────────────────
+   * `plan-S4` (2026-08-23) affiche **sept plats distincts sur sept** — et du
+   * TOFU dans les sept. `plan-S7`: des lentilles dans cinq sur sept. La variété
+   * comptée sur les NOMS est un compteur qui dit toujours oui: un modèle qui
+   * sait écrire sept titres différents le satisfait sans varier une assiette.
+   *
+   * Ce que quelqu'un ressent comme de la monotonie, c'est la répétition de
+   * l'ANCRE — la chose autour de laquelle le repas est construit. C'est elle
+   * qu'on compte ici, et elle vient du RÉFÉRENTIEL (`PROTEIN_SOURCES`), jamais
+   * d'une liste de mots: « jamais de matcher maison ».
+   *
+   * ⛔ TROIS NOMBRES, ET AUCUN NE SE DÉRIVE DES AUTRES.
+   *   · `distinct` — combien de GROUPES protéiques distincts sur la fenêtre.
+   *   · `dishes_with` — combien de plats portent au moins une ancre. Sans lui,
+   *     `distinct: 1` couvrirait « un seul aliment partout » ET « un seul plat
+   *     protéiné, les autres sans rien » — deux plans opposés.
+   *   · `dishes` — le dénominateur. Un compteur seul ment.
+   *
+   * ⚠️ C'EST UN CONSTAT, PAS UNE GARDE. Rien n'est refusé, rien n'est repris.
+   * Un plan végane au budget serré A DE BONNES RAISONS de tourner sur deux
+   * ancres, et le produit ne doit pas lui reprocher sa contrainte. Ce compteur
+   * existe pour qu'on puisse un jour SAVOIR si la monotonie est rare ou si elle
+   * est la règle — décider en demande la mesure d'abord.
+   *
+   * `distinct: 0` quand le référentiel est indisponible: on ne prétend pas
+   * qu'un plan n'a pas d'ancre parce qu'on n'a pas su lire.
+   */
+  protein_sources: {
+    distinct: number;
+    dishes_with: number;
+    dishes: number;
   };
   /**
    * ══════════════════════════════════════════════════════════════════════════
@@ -1368,6 +1459,19 @@ export interface GeneratedMeal {
     mouths_unboxed: number;
     mouths_double: number;
     mouths_double_model: number;
+    /**
+     * ⛔ LES CASES QUE `mouth_slots` NE COMPTE PAS — les repas de la fenêtre qui
+     * ne portent AUCUN contenant. `mouths_no_box_cell` est le nombre de noms
+     * correspondant (`cells_no_box × roster`).
+     *
+     * Les deux sont une ABSTENTION, pas un défaut: un plat cuisiné le jour même
+     * n'a rien de pesé d'avance, et c'est le contrat. Ce qu'ils empêchent est de
+     * lire `delivery: "served"` comme « toute la fenêtre est dimensionnée ».
+     * Mesuré le 2026-08-23: 2 cases et 6 noms hors dénominateur sur un plan qui
+     * s'annonçait servi.
+     */
+    cells_no_box: number;
+    mouths_no_box_cell: number;
   };
   /**
    * LA CEINTURE DE RÉGIME — CE QU'ELLE A LU, GARDÉ, ET RETIRÉ.
@@ -1468,6 +1572,17 @@ export interface GeneratedMeal {
     group_excluded: number;
     group_plant_only: number;
     group_undecided: number;
+  };
+  /**
+   * LA CEINTURE DES EXCLUSIONS PAR BOUCHE — mêmes quatre nombres, même raison.
+   * `refused: 0` seul rend le même zéro pour « personne n'a rien exclu » et
+   * « rien n'a mordu ». `mouths` et `checked` séparent les deux.
+   */
+  exclusion_belt: {
+    mouths: number;
+    checked: number;
+    kept: number;
+    refused: number;
   };
   /**
    * CE QUE LA CEINTURE A RETIRÉ, PAR PRÉPARATION — pour l'AUTRE surface.
@@ -1847,7 +1962,197 @@ export interface GeneratedMeal {
 // le repas porte désormais N contenants et non plus un. Même règle que v17, à
 // une lettre près, et le bump vaut pour la lane individuelle qui ne demande
 // aucune boîte: elle voit quand même une ligne de jetons différente.
-export const MEAL_PROMPT_VERSION = "meal.en.v18_one_box_per_group";
+//
+// ── v19 (2026-08-24) · UN TERME NOMME UN SEUL ALIMENT ─────────────────────
+//
+// LA POPULATION QUI VOIT UNE CONSIGNE DIFFÉRENTE: TOUT LE MONDE. La ligne
+// s'ajoute au bloc `== SAY THE SAME QUANTITY TWICE ==`, que les deux lanes
+// assemblent — elle interdit l'alternative dans `term` (« green or brown
+// lentils », « butter or olive oil »).
+//
+// ⚠️ POURQUOI CE BUMP N'EST PAS COSMÉTIQUE. Mesuré le 2026-08-23: une
+// alternative dans `term` ne résout pas, donc son plat ne porte aucun chiffre,
+// et sur `plan-F3` c'était la SEULE protéine des trois jours — neuf
+// journées-bouche sans énergie. Le résolveur a appris à lire les alternatives
+// SANS CONSÉQUENCE le même jour (`resolveAlternative`), mais il refuse toujours
+// les vraies; la consigne tarit la source, le résolveur rattrape le reste.
+//
+// ⛔ LE MILLÉSIME EST CE QUI SÉPARE LES DEUX POPULATIONS dans la colonne
+// `generated_from->>'prompt_version'`. Sans lui, un plan écrit hier et un plan
+// écrit demain se compteraient dans le même dénominateur, et aucun seuil ne
+// serait relisible. C'est la règle déjà appliquée à v3, v5, v16, v17 et v18.
+//
+// ── v20 (2026-09-01) · LA PART CONGELÉE A UNE CLÉ ─────────────────────────
+//
+// LA POPULATION QUI VOIT UNE CONSIGNE DIFFÉRENTE: TOUT LE MONDE. Le schéma de
+// sortie gagne `dishes[].uses[].kept`, et le bloc
+// `== NOTHING SITS IN THE FRIDGE FOR A WEEK ==` gagne le paragraphe qui dit
+// PAR QUEL CHAMP on déclare la troisième sortie. Les deux vivent dans le tronc,
+// donc les deux lanes les voient.
+//
+// ⚠️ POURQUOI CE BUMP N'EST PAS COSMÉTIQUE. Mesuré le 2026-09-01 sur le décor
+// « une session de cuisine, un congélateur, sept jours »: 8 plats sur 21 jetés
+// par la fenêtre du cuit, quatre journées réduites à leur petit-déjeuner. Le
+// modèle avait pourtant écrit le congélateur TROIS fois — dans la méthode du
+// plat, dans celle de la casserole, dans le déroulé de la session — parce que
+// la consigne le lui demandait déjà. C'était de la prose; rien ne la lisait.
+// La consigne d'avant promettait une sortie que le parseur ne pouvait pas
+// entendre, ce qui est la définition d'une promesse sans clé.
+//
+// ⚠️ CE QUE LE BUMP NE FAIT PAS: relâcher la garde. `kept: "freezer"` n'ouvre
+// la fenêtre que si le foyer a DÉCLARÉ un congélateur, et un modèle qui
+// n'écrit jamais le champ produit exactement le plan de v19, au plat près.
+//
+// ── v21 (2026-09-01) · LES JOURS HORS DE PORTÉE SONT NOMMÉS ───────────────
+//
+// LA POPULATION QUI VOIT UNE CONSIGNE DIFFÉRENTE: celle dont la fenêtre porte
+// des journées qu'aucun lot n'atteint — c'est-à-dire, sans congélateur, tout
+// plan plus long que trois jours par jour de cuisine. Deux lignes s'ajoutent
+// sous les jours de cuisine (`canCookLines`, dans le tronc):
+//   ① les journées hors de portée, NOMMÉES, avec leur sortie (cuisiner sur le
+//      moment) et l'avertissement que le plat de lot y sera jeté;
+//   ② la permission BORNÉE de faire déborder la session, quand elle est seule.
+// Et le bloc statique du temps gagne le cas où « cuisiner moins » n'existe pas.
+//
+// ⚠️ POURQUOI CE BUMP N'EST PAS COSMÉTIQUE. La règle ① existait déjà, en
+// général, dans `== NOTHING IS EATEN BEFORE IT IS COOKED ==` — et elle ne
+// mordait pas: mesuré le 2026-09-01, le modèle a écrit huit plats de lot sur
+// des journées hors de portée, tous jetés par le parseur. C'est la leçon
+// d'`addedCookDays`: une règle générale ne se compare pas, un jour NOMMÉ si.
+//
+// ⚠️ ET ② RENVERSE UNE CONSIGNE. Jusqu'ici les minutes étaient un plafond sec
+// (« cook LESS and put the rest on another cooking day »), ce qui, sur un seul
+// jour de cuisine, faisait sous-nourrir la semaine — le « rest » n'avait nulle
+// part où aller. La permission est bornée par `SESSION_OVERRUN_FACTOR` et
+// conditionnelle: elle ne sort QUE là où l'autre sortie n'existe pas.
+//
+// ⛔ UN PLAN SANS TENSION REND v20 AU CARACTÈRE PRÈS. Aucune journée hors de
+// portée ⇒ aucune des deux lignes, et un test le tient.
+// ══════════════════════════════════════════════════════════════════════════
+// v21 → v22 — L'OPTION « TOUT DANS UNE SESSION DE CUISINE » (2026-09-01)
+// ══════════════════════════════════════════════════════════════════════════
+//
+// LA POPULATION QUI VOIT UNE CONSIGNE DIFFÉRENTE: celle qui a COCHÉ l'option,
+// et elle seule. Sans la case, le prompt est byte-identique à v21 — un test le
+// tient, et c'est ce qui rend les deux populations comparables dans
+// `generated_from->>'prompt_version'`.
+//
+// ⚠️ CE N'EST PAS « UN JOUR DE CUISINE DE PLUS OU DE MOINS ». Trois choses
+// changent ensemble, et aucune ne se déduit des deux autres:
+//   ① les jours de cuisine sont RAMENÉS À UN — le premier coché que la fenêtre
+//      contient —, et la consigne le NOMME au lieu de laisser le modèle
+//      répartir (« put every cooking session on those days » en autorisait
+//      trois);
+//   ② la conservation devient EXPLICITE: tout ce qui ne se mange pas dans les
+//      `MAX_FRIDGE_DAYS` jours doit porter `kept: "freezer"` sur son lien —
+//      la clé existe depuis v20, mais rien ne la RÉCLAMAIT;
+//   ③ la session a le droit de déborder (`sessionCeilingMinutes`), parce
+//      qu'elle porte seule la semaine PAR CONSTRUCTION.
+//
+// ⛔ ET L'OPTION NE PART QU'AVEC UN CONGÉLATEUR DÉCLARÉ. La porte est chez
+// l'appelant (`hasFreezerDeclared`), pas ici: ce module reçoit un booléen déjà
+// tranché. Sans congélateur, ② est une instruction que la garde d'aval
+// (`freezerClaimedWithoutOne`) refuserait lien par lien — on aurait écrit un
+// prompt qui demande ce que le parseur jette.
+// ══════════════════════════════════════════════════════════════════════════
+// v22 → v23 — « JE CUISINE LA VEILLE », ET LA FIN DES JOURS DE CUISINE COCHÉS
+// ══════════════════════════════════════════════════════════════════════════
+//
+// DEUX CHANGEMENTS, ET ILS SE TIENNENT. Le champ « les jours où tu cuisines » a
+// été retiré des deux écrans le 2026-09-01: le plan ne demande plus QUELS jours
+// on cuisine, seulement QUAND tombe la session. `cook_days` est désormais écrit
+// vide par les deux écrivains, donc `cookDayLines` sort sur
+// `declared.length === 0` — le modèle pose ses sessions lui-même — et la
+// population qui voyait « they can only cook on: … » s'éteint.
+//
+// À sa place, `cookOnlyDay`: le plan peut commencer UN JOUR PLUS TÔT, et ce
+// jour-là est une journée de cuisine où RIEN ne se mange. Ce qui change dans le
+// message:
+//   ① la liste « days to fill » ne le contient pas, et le plafond de plats est
+//      calculé sur les jours qui portent des repas — le laisser sur la fenêtre
+//      entière aurait autorisé un jour de plats de plus que le plan n'en porte;
+//   ② une phrase le NOMME et interdit d'y écrire un plat (une absence ne
+//      s'obéit pas: le modèle connaît le jour par la date de départ);
+//   ③ il entre dans les jours de cuisine effectifs, donc `singleSessionCookDay`
+//      le désigne et `daysOutOfBatchReach` sait compter à partir de lui.
+//
+// ⛔ SANS VEILLE ET SANS JOURS COCHÉS, LE MESSAGE EST CELUI DE v22 MOINS LA
+// LIGNE DES JOURS DE CUISINE. Un test le tient.
+// ══════════════════════════════════════════════════════════════════════════
+// v23 → v24 — LA FENÊTRE CRUE ATTEINT ENFIN LE MODÈLE (2026-09-01)
+// ══════════════════════════════════════════════════════════════════════════
+//
+// LA POPULATION QUI CHANGE: tout plan dont la fenêtre est assez longue pour
+// qu'une famille fragile morde — c'est-à-dire tout plan de plus de deux jours.
+// Un bloc s'ajoute sous les moyens de cuisson (`rawReachLines`), qui NOMME le
+// dernier jour qu'une course du premier jour peut nourrir, famille par famille.
+//
+// ⚠️ CE N'EST PAS UNE RÈGLE NEUVE, C'EST UNE RÈGLE QUI N'ÉTAIT DITE À PERSONNE.
+// `RAW_WINDOW_DAYS` date l'achat de chaque article depuis le 2026-08-22, et
+// `grocery_waves.ts` en déduit correctement qu'il faudra une seconde course.
+// Mais ça tourne APRÈS la composition: le modèle posait le poulet le samedi
+// sans savoir, et la personne lisait une liste sans date. Rapporté sur un plan
+// réel: « cuisiner le poulet acheté le lundi, le samedi ».
+//
+// ⛔ ELLE N'INTERDIT PAS, ELLE OBLIGE À LE DIRE. La sortie honnête — une course
+// plus proche de la session — existe déjà dans le moteur; ce que le lot refuse
+// est le silence.
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * LES CONTENANTS D'UNE PERSONNE SEULE — 2026-09-01.
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * ── LE DÉFAUT, RAPPORTÉ SUR UN PLAN RÉEL ──────────────────────────────────
+ *     « je viens de créer un plan en mode solo et il n'y a pas l'histoire des
+ *       barquettes »
+ *
+ * ⛔ ET C'ÉTAIT UNE DÉCISION ÉCRITE, PAS UN OUBLI. `generate-meal-v1` passait
+ * `boxMemberIds: []` avec ce motif, mot pour mot: « une personne seule a bien
+ * des boîtes dans sa vraie cuisine; ce qu'elle n'a pas, c'est deux bouches à
+ * départager — et le protocole des boîtes n'existe que pour ça ». Vérifié en
+ * base: le dernier plan solo porte `with_box: 0` sur quatre plats.
+ *
+ * Le raisonnement était juste sur le PROTOCOLE et faux sur le PRODUIT. Ce que
+ * le protocole foyer fait — départager des mangeurs — n'a effectivement aucun
+ * sujet ici. Mais ce que la PERSONNE lit — « dimanche, tu remplis quatre
+ * barquettes, voilà ce qu'il y a dedans » — n'a rien à voir avec le nombre de
+ * bouches: c'est ce que la cuisine du dimanche produit, et ça manquait.
+ *
+ * ── CE QUI CHANGE PAR RAPPORT AU BLOC FOYER, ET POURQUOI ──────────────────
+ * ⛔ AUCUN `member_ids`, ET C'EST LA MOITIÉ QUI COMPTE. Servir un bloc qui
+ * nomme des bouches à quelqu'un qui mange seul lui apprendrait qu'un marquage
+ * par personne existe et l'inviterait à en inventer un — le raisonnement de
+ * `dishOwnerSchemaBlock`, et le motif exact pour lequel la lane solo n'avait
+ * rien. Ici le couvercle ne porte pas de nom parce qu'il n'y a personne à
+ * distinguer, et le bloc le DIT.
+ *
+ * ⚠️ IL S'AJOUTE AU `systemPrompt`, donc il fait une SECONDE variante
+ * cacheable. C'est le prix, et il est assumé: le bloc doit être lu comme un
+ * schéma (il décrit une clé de sortie), et un schéma qui vivrait dans le
+ * message utilisateur serait la seule règle de forme à ne pas être avec les
+ * autres.
+ */
+export const SOLO_BOX_BLOCK = [
+  "== ONE CONTAINER PER PORTION PUT ASIDE ==",
+  'Every dish that takes from a preparation carries one more key: "boxes" --',
+  "the container that portion goes into on the day the batch is cooked.",
+  '  "boxes": [{ "id": "box_<day>_<slot>",',
+  '              "items": [{ "preparation_id": "prep_x" or null,',
+  '                          "term": "what is in it",',
+  '                          "grams": <whole grams of READY food> }] }]',
+  "Exactly ONE box per dish that draws on a preparation. They eat alone, so no",
+  "lid carries a name: the day and the meal are what tells them which one to",
+  "open. Ids are lowercase ASCII, invented by you, and each one is used once in",
+  "the whole plan.",
+  "The grams are what goes IN the container once cooked, not the raw weight of",
+  "the shopping. preparation_id is null when that item is added fresh on the",
+  "day, so no batch holds it.",
+  "One box holds that WHOLE meal -- every preparation the dish takes from goes",
+  "in the same container, not one tub per pan. A dish that cooks from scratch",
+  'on the day has no "boxes": nothing was weighed ahead for it.',
+].join("\n");
+
+export const MEAL_PROMPT_VERSION = "meal.en.v24_raw_keeping_reaches_the_model";
 
 /**
  * ③ — CE QUE `severity` VEUT DIRE, posé JUSTE SOUS la liste qui le porte.
@@ -2567,8 +2872,15 @@ Rice left sitting is the classic way to make somebody sick, and no amount of
 convenience is worth it.
 
 If a batch would have to stretch further, you have three honest ways out: cook a
-smaller batch, cook it twice, or say plainly in the method that the surplus goes
-in the FREEZER on the cooking day. Never stretch it in silence.
+smaller batch, cook it twice, or FREEZE the surplus on the cooking day. Never
+stretch it in silence.
+
+The freezer is not prose: it is a field. When a portion is taken from the
+freezer rather than the fridge, write \`\"kept\": \"freezer\"\` on that entry of the
+dish's \`uses\`, and say in the method that it comes out the night before. A
+frozen portion has no three-day limit; a portion you only DESCRIBE as frozen
+still has one, because nothing reads a description. Only claim the freezer when
+this kitchen has one -- the section above says what it does not have.
 
 == THE COOKING TIME THEY GAVE YOU IS A CEILING ==
 
@@ -2580,6 +2892,12 @@ falls apart, not just that session.
 If everything will not fit, cook LESS in that session and put the rest on
 another cooking day. Fewer preparations that happen beat more preparations that
 do not.
+
+There is one case where that way out does not exist: when they cook on a single
+day and the week cannot be fed from it. Then the session runs longer -- say so
+in "total_minutes", write the real number, and never pretend it fits. A session
+announced at 30 minutes that takes 55 is worse than one announced at 55: the
+first is found out at the stove, the second is a decision they can make.
 
 == NOTHING IS EATEN BEFORE IT IS COOKED ==
 
@@ -2663,6 +2981,12 @@ the rice -- everything a person actually eats carries its number. Write "black
 pepper", never bare "pepper": a pepper is also a vegetable, and the two weigh
 five hundred times apart.
 
+"term" NAMES ONE FOOD, never a choice between two. "green or brown lentils",
+"butter or olive oil", "rice or quinoa" -- pick the one you are actually
+cooking with and write only that. An "or" is a decision handed back to the
+person at the exact moment they wanted one made, and it also makes the line
+impossible to cost. Same for a slash: "yoghurt / skyr" is two foods.
+
 Never INVENT a weight: a made-up number is worse than a missing one. But "I
 did not write one" is not "I do not know". You chose this dish, so you know it
 takes two chicken thighs and half a lemon -- count what is countable.
@@ -2731,7 +3055,8 @@ a "name" identical to the title is a line that says nothing.
                         "state": "raw"|"cooked"|null }],
       "method": "how to make it, plainly, in a short paragraph",
       "why": "one sentence: why THIS dish for THIS student this week",
-      "uses": [{ "preparation_id": "prep_chicken", "servings": 1 }],
+      "uses": [{ "preparation_id": "prep_chicken", "servings": 1,
+                 "kept": "fridge"|"freezer" }],
       "same_day": { "kind": "none"|"reheat_only"|"assemble"|"cook_fresh",
                     "minutes": <whole minutes for the day-of gesture> },
       "honours_belief_keys": ["<exact keys from the convictions list, when one applies>"]
@@ -2815,6 +3140,12 @@ export const MEAL_TOKEN_FIELDS: readonly string[] = [
   "honours_belief_keys[]",
   "preparations[].id (ASCII snake_case, English words only)",
   "dishes[].uses[].preparation_id (must match preparations[].id exactly)",
+  // ⛔ `kept` EST COMPARÉ EN CODE, donc il ne se traduit jamais. Le patron est
+  // celui de `same_day.kind` juste en dessous: un `congelé` dans un plan
+  // français ferait tomber la validation, la part retomberait sur la fenêtre du
+  // frigo, et le plat serait JETÉ — c'est-à-dire le comportement d'avant le lot,
+  // servi à la seule population qui ne compose pas en anglais.
+  "dishes[].uses[].kept (one of: fridge, freezer)",
   // LOT 2 — LE GESTE DU JOUR J EST UN JETON, PAS UNE PHRASE. Il est comparé en
   // code contre `SAME_DAY_KINDS` et rendu par l'écran sous un libellé traduit;
   // un modèle qui écrirait « réchauffage » ou « nur aufwärmen » ferait tomber la
@@ -2830,6 +3161,46 @@ export const MEAL_TOKEN_FIELDS: readonly string[] = [
   // tels quels.
   "dishes[].boxes[].id (ASCII snake_case, English words only)",
 ];
+
+/**
+ * LES JOURS DE CUISINE QUI EXISTENT ENCORE DANS CETTE FENÊTRE.
+ *
+ * Les jours cochés sont une propriété de la SEMAINE TYPE de l'élève; la fenêtre
+ * est ce qu'il en reste. C'est l'intersection qui est exécutable — un « je
+ * cuisine le dimanche » ne pose aucune session dans un plan qui va du lundi au
+ * vendredi.
+ *
+ * ⚠️ EXTRAITE LE 2026-09-01, ET L'EXTRACTION EST LA MOITIÉ DU LOT. Ce calcul
+ * vivait EN LIGNE dans `cookDayLines`, donc la consigne servie au modèle était
+ * la seule à le connaître. `explainPlanChoices` ne pouvait pas le lire, tombait
+ * dans sa branche « gardé » et affirmait « tu cuisines dimanche, et c'est ce
+ * qui a été gardé » sur un plan d'où le dimanche venait d'être RETIRÉ. Un fait
+ * faux, déterministe, qu'aucun test ne pouvait attraper puisque les deux
+ * moitiés ne partageaient rien.
+ *
+ * C'est la raison d'être documentée de `addedCookDays` juste en dessous, mot
+ * pour mot: une seule définition, deux lecteurs — sans quoi c'est l'explication
+ * qui a tort.
+ *
+ * ⚠️ FENÊTRE VIDE ⇒ ON REND LES JOURS DÉCLARÉS TELS QUELS. C'est le
+ * comportement de `cookDayLines` depuis l'origine, et il est juste: sans
+ * fenêtre connue, on ne peut affirmer qu'aucun jour n'a été écarté. `[]` dirait
+ * « tous ont été retirés », ce que personne n'a mesuré.
+ *
+ * Rend `[]` — jamais `null` — quand rien n'a été coché.
+ */
+export function usableCookDays(input: {
+  /** Les jours COCHÉS par l'élève. `[]` = il n'en a coché aucun. */
+  declared: readonly string[];
+  /** Les jours de la fenêtre, dans l'ordre. `[]` = fenêtre inconnue. */
+  window: readonly string[];
+}): string[] {
+  const declared = input?.declared ?? [];
+  const window = input?.window ?? [];
+  if (declared.length === 0) return [];
+  if (window.length === 0) return [...declared];
+  return declared.filter((d) => window.includes(d));
+}
 
 /**
  * LES JOURS DE CUISINE QUE LE MOTEUR AJOUTE, ET QUE L'ÉLÈVE N'A PAS COCHÉS.
@@ -2876,7 +3247,10 @@ export function addedCookDays(input: {
   const window = input.window ?? [];
   const declared = input.declared ?? [];
   if (declared.length === 0 || window.length === 0) return [];
-  const usable = declared.filter((d) => window.includes(d));
+  // ⚠️ `usableCookDays`, JAMAIS UN SECOND FILTRE. Le `window.length === 0`
+  // ci-dessus a déjà tranché le cas où elle rendrait les jours déclarés tels
+  // quels, donc les deux lecteurs voient exactement la même liste.
+  const usable = usableCookDays({ declared, window });
   if (usable.length === 0) return [];
   // Le premier jour de la fenêtre, ou le suivant s'il est déjà trop tard pour
   // lui. Quand il n'y a pas de jour suivant, il n'y a rien à ajouter — et la
@@ -3159,6 +3533,21 @@ export function buildMealPrompt(args: {
    */
   writtenInstructions?: readonly string[];
   /**
+   * ── LOT M4 · LE MÉMO — cinq lignes, pour ce qu'aucune famille ne porte ─────
+   *
+   * `[]` quand il est vide, ce qui est le cas ordinaire. Les textes SEULS: ni
+   * date, ni source, ni citation — le modèle compose, il n'a pas à savoir d'où
+   * vient une consigne, et lui donner la phrase source la lui ferait lire deux
+   * fois.
+   *
+   * ⛔ C'EST LE SEUL BLOC DE TEXTE LIBRE SANS FAMILLE QUE CE PROMPT REÇOIT, et
+   * c'est pour ça qu'il est PLAFONNÉ À CINQ à la source (`MEMO_MAX_LINES`).
+   * Un champ texte caché, sans plafond, injecté dans chaque prompt est
+   * exactement le magasin que ce chantier supprime, avec un autre chapeau — et
+   * la chose la plus difficile à déboguer du produit.
+   */
+  memo?: readonly string[];
+  /**
    * LA NOTE DU COACH SUR CET ÉLÈVE — mode 1:1 assumé, `null` quand il n'y en a
    * pas (le cas ordinaire). Produit par `coachNotePromptBlock`.
    *
@@ -3234,6 +3623,77 @@ export function buildMealPrompt(args: {
    */
   firstDayCookable: boolean;
   /**
+   * CE FOYER A-T-IL DÉCLARÉ UN CONGÉLATEUR ? — 2026-09-01.
+   *
+   * ⛔ REQUIS, ET IL NE SE DÉRIVE PAS DE `kitchenEquipment` PLUS BAS. Celui-là
+   * est OPTIONNEL et la lane FOYER ne le passe délibérément pas (elle écrit son
+   * propre bloc de cuisine dans son enveloppe, et un test l'y tient pour éviter
+   * la consigne en double). Le déduire ferait donc `hasFreezer: false` pour
+   * TOUS les foyers — c'est-à-dire nommer hors de portée des journées que le
+   * congélateur rend parfaitement atteignables, et défaire sur cette lane le
+   * lot qui vient de les sauver.
+   *
+   * ⚠️ LES DEUX LANES LE CALCULENT PAR `hasFreezerDeclared()`, jamais à la
+   * main: `false` (pas de congélateur) et `null` (jamais demandé) doivent
+   * rendre le même `false`, et c'est cette fonction-là qui le garantit.
+   */
+  hasFreezer: boolean;
+  /**
+   * ═════════════════════════════════════════════════════════════════════════
+   * « TOUT DANS UNE SESSION DE CUISINE » — LA DEMANDE, 2026-09-01.
+   * ═════════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ REQUIS ET SANS DÉFAUT, `boolean`. Un `?` aurait laissé passer les deux
+   * lanes sans un mot du compilateur, et l'option se serait construite sans
+   * être branchée — huitième fois que ce fichier écrit cette phrase.
+   *
+   * ⚠️ IL EST DÉJÀ TRANCHÉ QUAND IL ARRIVE ICI. L'appelant fait
+   * `askedOneSession && hasFreezerDeclared(equipment)`; ce module ne refait pas
+   * la porte. La raison est la même que pour `hasFreezer` juste au-dessus: une
+   * seconde lecture de l'inventaire à cet endroit finirait par diverger de
+   * celle qui compte, et c'est toujours celle qu'on regarde le moins qui garde
+   * l'ancien comportement.
+   *
+   * ⚠️ CE N'EST PAS UN RÉGLAGE DE PROFIL. Il voyage avec la demande, comme le
+   * budget et le mode de cuisson: « cette semaine-ci, je cuisine une fois » est
+   * un arbitrage de semaine, et l'écrire dans `practical_constraints` le
+   * rejouerait en silence sur celle où on reçoit du monde.
+   */
+  oneCookingSession: boolean;
+  /**
+   * ═════════════════════════════════════════════════════════════════════════
+   * LE JOUR OÙ L'ON CUISINE ET OÙ RIEN NE SE MANGE — « je cuisine la veille ».
+   * ═════════════════════════════════════════════════════════════════════════
+   *
+   * `null` = pas de veille, et le prompt est alors byte-identique à celui
+   * d'avant ce lot. Sinon: un jeton de jour, TOUJOURS le premier de
+   * `daysToFill`, accordé par `withCookDayBefore` (`meal_plan_window.ts`).
+   *
+   * ⛔ REQUIS ET NULLABLE, jamais `?`. Un champ facultatif ici aurait laissé
+   * passer les deux lanes sans un mot du compilateur, et la veille se serait
+   * construite sans atteindre le modèle — le plan aurait alors composé des
+   * REPAS sur le jour de cuisine, et le parseur les aurait jetés.
+   *
+   * ⚠️ IL RESTE DANS `daysToFill`, ET C'EST OBLIGATOIRE. La fenêtre du cuit
+   * compte les rangs sur `daysToFill`: en retirer la veille placerait la
+   * casserole du jour 0 HORS fenêtre, donc `not_evaluated` — dont le seuil est
+   * zéro. Il est retiré de ce que le modèle doit REMPLIR, jamais de ce qui
+   * situe les jours les uns par rapport aux autres.
+   */
+  cookOnlyDay: string | null;
+  /**
+   * CETTE LANE RÉCLAME-T-ELLE DES CONTENANTS SANS NOM ? — 2026-09-01.
+   *
+   * `true` sur la lane INDIVIDUELLE, `false` sur la lane FOYER — qui a son
+   * propre bloc (`boxSchemaBlock`, avec les `member_ids`) dans son enveloppe.
+   *
+   * ⛔ REQUIS ET SANS DÉFAUT. Les deux lanes doivent le DIRE: un `?` aurait
+   * donné le bloc à personne (le défaut d'aujourd'hui) ou aux deux (deux
+   * protocoles de boîte dans le même prompt, l'un nommant des bouches que
+   * l'autre déclare inexistantes).
+   */
+  soloBoxes: boolean;
+  /**
    * LA LANGUE DANS LAQUELLE CES PLATS SONT ÉCRITS. REQUIS, jamais `T?`.
    *
    * Vient de `resolveArtifactLocale({studentProfile, tenantDefault})`, donc de
@@ -3264,11 +3724,30 @@ export function buildMealPrompt(args: {
   //                 PLAFOND et non une cible (mesuré: 5 autorisées, 2 à 3
   //                 utilisées). Si un run montre que ③ manque de place, c'est
   //                 ici, en une ligne, que ça se répare.
-  const baseCap = dishCapFor(args.scope, rhythm, args.daysToFill?.length || 7);
+  // ══════════════════════════════════════════════════════════════════════
+  // LES JOURS À REMPLIR ≠ LES JOURS DE LA FENÊTRE — « je cuisine la veille »
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // La veille est DANS la fenêtre (elle situe les casseroles, voir le pavé de
+  // `cookOnlyDay`) et HORS des jours à remplir (rien ne s'y mange). Les deux
+  // listes se séparent donc ici, une fois, et chaque lecteur prend la sienne:
+  //
+  //   · `daysToFill`  → les rangs, la fenêtre du cuit, les jours de cuisine;
+  //   · `daysToEat`   → la commande faite au modèle, et le PLAFOND de plats.
+  //
+  // ⛔ LE PLAFOND SUIT `daysToEat`, ET C'EST LA MOITIÉ QUI COMPTE. Le laisser
+  // sur la fenêtre entière autoriserait un jour de repas de plus que le plan
+  // n'en porte — et le modèle remplit ce qu'on lui autorise: il aurait écrit
+  // des plats sur le jour de cuisine, que le parseur jette ensuite.
+  const windowDays = args.daysToFill ?? [];
+  const daysToEat = args.cookOnlyDay === null
+    ? windowDays
+    : windowDays.filter((d) => d !== args.cookOnlyDay);
+  const baseCap = dishCapFor(args.scope, rhythm, daysToEat.length || 7);
   const cap = dishBudgetFor({
     scope: args.scope,
     rhythm,
-    daysToFill: args.daysToFill?.length || 7,
+    daysToFill: daysToEat.length || 7,
     merge: args.merge,
   });
   // Les absences, en prose, une ligne par jour. Calculées ici pour être
@@ -3310,13 +3789,93 @@ export function buildMealPrompt(args: {
   //
   // ⚠️ LE COMMENTAIRE HISTORIQUE DE CE BLOC A DÉMÉNAGÉ dans `addedCookDays`,
   // avec le calcul qu'il décrit.
+  // ══════════════════════════════════════════════════════════════════════
+  // « TOUT DANS UNE SESSION DE CUISINE » — 2026-09-01
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // ⚠️ CALCULÉ ICI, ET LU PAR TROIS BLOCS. Le jour de la session unique décide
+  // la consigne (juste en dessous), les journées hors de portée
+  // (`daysOutOfBatchReach`) et le plafond de temps (`sessionCeilingMinutes`).
+  // Le recalculer dans chacun ferait trois réponses à une seule question, et
+  // c'est celle qu'on regarde le moins qui garderait l'ancienne.
+  //
+  // ⛔ L'UNION, JAMAIS LES SEULS JOURS DÉCLARÉS. `addedCookDays` vient
+  // peut-être de poser le seul jour cuisinable de la fenêtre; l'ignorer rendrait
+  // `null` — donc une session sans jour nommé — là où le moteur en a justement
+  // un. C'est la même union que `daysOutOfBatchReach` réclame, et elle était
+  // écrite deux fois en ligne: elle l'est maintenant une seule.
+  const effectiveCookDays = [
+    // ⛔ LA VEILLE EST UN JOUR DE CUISINE, ET C'EST LE SEUL QU'ELLE SOIT. Sans
+    // cette ligne, un plan « je cuisine la veille » n'aurait AUCUN jour de
+    // cuisine connu: `singleSessionCookDay` rendrait `null` (donc une session
+    // sans jour nommé, alors qu'on vient de l'ajouter exprès) et
+    // `daysOutOfBatchReach` se tairait sur une fenêtre dont il sait tout.
+    ...(args.cookOnlyDay === null ? [] : [args.cookOnlyDay]),
+    ...usableCookDays({
+      declared: args.cookDays ?? [],
+      window: args.daysToFill ?? [],
+    }),
+    ...addedCookDays({
+      declared: args.cookDays ?? [],
+      window: args.daysToFill ?? [],
+      firstDayCookable: args.firstDayCookable,
+    }),
+  ];
+  const singleSessionDay = args.oneCookingSession
+    ? singleSessionCookDay({
+      window: args.daysToFill ?? [],
+      cookDays: effectiveCookDays,
+    })
+    : null;
+
   const cookDayLines = ((): string[] => {
     const window = args.daysToFill ?? [];
     const declared = args.cookDays ?? [];
+    // ══════════════════════════════════════════════════════════════════
+    // ⛔ L'OPTION REMPLACE CETTE CONSIGNE, ELLE NE S'Y AJOUTE PAS.
+    // ══════════════════════════════════════════════════════════════════
+    //
+    // « they can only cook on: sun, wed » et « tout tient dans UNE session »
+    // se contrediraient à trois lignes d'écart, et le run réel du 2026-09-01
+    // a déjà montré ce que le modèle fait de deux consignes concurrentes: il
+    // suit la plus permissive et le parseur jette la différence.
+    //
+    // ⚠️ ELLE PASSE AUSSI AVANT LE `declared.length === 0`. Quelqu'un qui n'a
+    // coché aucun jour et qui demande une session unique demande quand même
+    // UNE session: se taire ici lui rendrait le plan d'avant l'option, sans
+    // qu'un seul mot ne le dise.
+    if (args.oneCookingSession) {
+      return [
+        singleSessionDay
+          ? `they want ALL the cooking for this stretch done in ONE session, ` +
+            `on ${singleSessionDay}. Write exactly ONE entry in ` +
+            `"cooking_sessions", on that day, and cook every preparation in ` +
+            `it. No second cooking day, and nothing cooked on any other day ` +
+            `beyond what a plate needs on the spot.`
+          : `they want ALL the cooking for this stretch done in ONE session. ` +
+            `Write exactly ONE entry in "cooking_sessions", as early in the ` +
+            `stretch as you can, and cook every preparation in it. No second ` +
+            `cooking day, and nothing cooked on any other day beyond what a ` +
+            `plate needs on the spot.`,
+        // ⚠️ LA CLÉ EST NOMMÉE, ET COLLÉE À SA PROMESSE. `kept: "freezer"`
+        // existe depuis v20 et RIEN ne la réclamait: mesuré le 2026-09-01, le
+        // modèle écrivait « FREEZE the rest » trois fois en prose et laissait
+        // la clé vide — la prose ne garde rien, et huit repas sur vingt-et-un
+        // étaient jetés. Une session unique ne tient QUE si cette clé est
+        // écrite, donc elle est réclamée ici, en toutes lettres.
+        `they have a freezer, and it is the only reason one session can feed ` +
+        `this stretch: every serving eaten more than ${MAX_FRIDGE_DAYS - 1} ` +
+        `days after that session MUST carry "kept": "freezer" on its entry in ` +
+        `"uses". Saying it in the method is NOT enough -- a serving without ` +
+        `that key is kept in the fridge, and it will be thrown away.`,
+      ];
+    }
     if (declared.length === 0) return [];
-    const usable = window.length > 0
-      ? declared.filter((d) => window.includes(d))
-      : declared;
+    // ⚠️ LA MÊME EXPRESSION QUE L'EXPLICATION, appelée. Ce filtre était écrit
+    // ici, en ligne, et `plan_rationale` ne pouvait pas le lire: il affirmait
+    // donc que les jours écartés avaient été « gardés ». Voir le pavé de
+    // `usableCookDays`.
+    const usable = usableCookDays({ declared, window });
 
     // ── LA CONTRAINTE DOIT RESTER SATISFAISABLE ─────────────────────────
     // MESURÉ: jours déclarés `sun, wed`, fenêtre jeudi→dimanche.
@@ -3367,8 +3926,77 @@ export function buildMealPrompt(args: {
     ];
   })();
 
+  // ══════════════════════════════════════════════════════════════════════
+  // LES JOURS QU'AUCUN LOT N'ATTEINT, NOMMÉS — 2026-09-01
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ LA RÈGLE GÉNÉRALE EXISTAIT DÉJÀ, ET ELLE NE MORDAIT PAS. Le bloc
+  // `== NOTHING IS EATEN BEFORE IT IS COOKED ==` dit, mot pour mot, que jeudi,
+  // vendredi et samedi ne peuvent pas vivre d'un lot du dimanche. Mesuré le
+  // 2026-09-01 sur « une session, sept jours »: le modèle a quand même écrit
+  // huit plats qui puisent dans la casserole du dimanche, et le parseur les a
+  // jetés — quatre journées réduites à leur petit-déjeuner.
+  //
+  // C'est la leçon d'`addedCookDays`, resservie: une règle générale ne se
+  // compare pas, un jour NOMMÉ si. Ces jours-ci sont calculés, et par la MÊME
+  // comparaison que la porte qui jette — `daysOutOfBatchReach` documente
+  // pourquoi le `>=` doit être identique des deux côtés.
+  //
+  // ⛔ ET ON N'AJOUTE AUCUNE SESSION. Une session de plus est une vague de
+  // courses de plus; la personne a dit ce qu'elle pouvait faire. C'est le
+  // CONTENU de ces jours-là qui s'adapte — voir l'en-tête de
+  // `plan_feasibility.ts`.
+  const outOfReach = daysOutOfBatchReach({
+    window: args.daysToFill ?? [],
+    // L'UNION, jamais les seuls jours déclarés: `addedCookDays` vient peut-être
+    // d'en poser un, et l'ignorer déclarerait hors de portée une journée que le
+    // moteur rend justement atteignable. Elle est calculée plus haut, une fois.
+    //
+    // ⚠️ ET L'OPTION LA RÉDUIT À SON SEUL JOUR. Lire les trois jours cochés
+    // pendant que la consigne n'en autorise qu'un ferait taire cette ligne sur
+    // des journées que le plan ne pourra pas nourrir — le contraire exact de ce
+    // pour quoi elle existe. `[]` quand aucun jour n'est connu: le module rend
+    // alors `[]` lui aussi, et c'est la seule affirmation vraie (voir son
+    // en-tête).
+    cookDays: args.oneCookingSession
+      ? (singleSessionDay === null ? [] : [singleSessionDay])
+      : effectiveCookDays,
+    hasFreezer: args.hasFreezer,
+    maxFridgeDays: MAX_FRIDGE_DAYS,
+    freezerWindowDays: FREEZER_WINDOW_DAYS,
+  });
+
+  // Le plafond de débordement, calculé UNE fois. `null` = pas de tension, et le
+  // plafond déclaré reste le plafond, mot pour mot.
+  const usableCookDayCount = usableCookDays({
+    declared: args.cookDays ?? [],
+    window: args.daysToFill ?? [],
+  }).length;
+  const sessionCeiling = sessionCeilingMinutes({
+    cookingTimeMin: args.cookingTimeMin ?? null,
+    outOfReachDays: outOfReach.length,
+    cookDayCount: usableCookDayCount,
+    // ⛔ SANS CETTE LIGNE, L'OPTION LIVRAIT DES JOURNÉES VIDES EN SILENCE. Avec
+    // un congélateur, `outOfReach` est VIDE (la fenêtre congelée couvre le plan
+    // entier), donc l'ancienne condition rendait `null` — et les trente minutes
+    // déclarées restaient un plafond sec sur la seule session de la semaine.
+    // Voir le pavé de `sessionCeilingMinutes`.
+    singleSessionAsked: args.oneCookingSession,
+  });
+
   const canCookLines = [
     ...cookDayLines,
+    // ⚠️ SOUS LES JOURS DE CUISINE, PAS AILLEURS. Cette phrase est la
+    // CONSÉQUENCE de la ligne du dessus; les séparer ferait deux faits sans
+    // lien pour qui lit dans l'ordre.
+    ...(outOfReach.length > 0
+      ? [
+        `nothing cooked in those sessions reaches ${outOfReach.join(", ")}: a ` +
+        "batch does not keep that long. Those days cook for themselves on the " +
+        "day, or they eat something that needs no batch at all. Do NOT write a " +
+        "dish there that draws on a preparation -- it will be thrown away.",
+      ]
+      : []),
     // LES MOYENS DE CUISSON, JUSTE SOUS LES JOURS ET AU-DESSUS DU TEMPS.
     //
     // La place n'est pas cosmétique: « il ne peut cuisiner que mardi » et « il
@@ -3380,10 +4008,66 @@ export function buildMealPrompt(args: {
     // Vide quand la question n'a jamais été posée (`null`): un compte d'avant
     // ce lot voit le prompt d'avant ce lot, au caractère près.
     ...kitchenEquipmentPromptLines(args.kitchenEquipment ?? null),
+    // ══════════════════════════════════════════════════════════════════════
+    // CE QU'UNE COURSE DU PREMIER JOUR PEUT ENCORE NOURRIR — 2026-09-01
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ LE DÉFAUT, RAPPORTÉ SUR UN PLAN RÉEL: « ça me disait de cuisiner le
+    // poulet acheté le lundi, le samedi ». La fenêtre crue existait
+    // (`RAW_WINDOW_DAYS`) et `grocery_waves.ts` datait déjà l'achat de chaque
+    // article — mais APRÈS, à la lecture, et le modèle ne l'avait jamais su. Il
+    // posait ses sessions à l'aveugle.
+    //
+    // ⚠️ LES JOURS SONT NOMMÉS, pas la durée. Quatrième application de la leçon
+    // d'`addedCookDays`: « une règle générale ne se compare pas, un jour NOMMÉ
+    // si ». Le modèle ne reçoit pas « la volaille tient deux jours », il reçoit
+    // « après jeudi, une volaille ne peut plus venir de la première course ».
+    //
+    // ⚠️ ET LA PHRASE PORTE LA SORTIE, PAS L'INTERDICTION: cuisiner du poulet le
+    // samedi est légitime, ça demande une course le jeudi. Ce qu'on refuse est
+    // le SILENCE. Vide sur une fenêtre courte, où aucune famille ne mord.
+    // ⚠️ `windowDays`, PAS `daysToEat`, ET C'EST UN DÉCALAGE D'UN JOUR. La
+    // « première course » tombe au rang 0 de la FENÊTRE — c'est-à-dire sur la
+    // veille quand il y en a une, puisque c'est ce jour-là qu'on achète pour
+    // cuisiner. Compter depuis le premier jour QUI PORTE DES REPAS donnerait
+    // une journée de fraîcheur de trop, dans le sens permissif.
+    ...rawReachLines(windowDays),
     ...(args.cookingTimeMin
       ? [
         `time per cooking session: about ${args.cookingTimeMin} minutes. A ` +
         "session that does not fit is a session they skip.",
+      ]
+      : []),
+    // ══════════════════════════════════════════════════════════════════════
+    // QUAND LE TEMPS NE TIENT PAS, LA SESSION DÉBORDE — ET ELLE LE DIT.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ L'INTUITION ÉTAIT INVERSÉE, ET LE MOTEUR AUSSI. « Un seul jour de
+    // cuisine et trente minutes ⇒ la session sera plus longue » semble évident;
+    // la consigne faisait le contraire — les minutes sont un PLAFOND, « cook
+    // LESS and put the rest on another cooking day ». Avec un seul jour, « le
+    // rest » n'a nulle part où aller: le modèle cuisine moins, et la semaine
+    // sous-nourrit. C'est la mesure déjà connue des plans qui n'atteignent pas
+    // 72 % de leur propre enveloppe.
+    //
+    // ⚠️ LA PERMISSION EST BORNÉE ET CONDITIONNELLE, et les deux comptent.
+    // Bornée: sans plafond, « tu peux déborder » rend le nombre déclaré
+    // décoratif et on revient à la session de 55 minutes annoncée à 30.
+    // Conditionnelle: `sessionCeilingMinutes` rend `null` dès qu'une autre
+    // journée de cuisine existe — là, la sortie ordinaire est toujours la
+    // bonne, et une permission générale serait une invitation à dépasser.
+    ...(sessionCeiling !== null
+      ? [
+        // ⚠️ DEUX MOTIFS, DEUX PHRASES — et le mot compte. Sans l'option, la
+        // tension est un CONSTAT (« la semaine ne peut pas être nourrie de ce
+        // seul jour »); avec elle, c'est la DEMANDE de la personne, et lui
+        // servir le constat lui dirait que son propre choix est un problème.
+        (args.oneCookingSession
+          ? "everything for this stretch is cooked in that single session, so "
+          : "they cook on ONE day and this week cannot be fed from it, so ") +
+        `that session is allowed to run long -- up to ${sessionCeiling} ` +
+        'minutes. Put the real figure in "total_minutes". Cooking less is the ' +
+        "wrong trade here: it leaves days with nothing on them.",
       ]
       : []),
     ...(args.recipeDifficulty
@@ -3616,6 +4300,48 @@ export function buildMealPrompt(args: {
         "the sessions short and the shopping list plain rather than betting " +
         "on equipment or an evening they may not have.",
       ]),
+    // ══════════════════════════════════════════════════════════════════════
+    // LA MOITIÉ « CONSIGNE » DES CONTENANTS SOLO — 2026-09-01, second passage
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ MESURÉ, ET C'EST LE PATRON DÉJÀ ÉCRIT DANS CE DÉPÔT. Le premier
+    // passage n'a servi que le SCHÉMA (`SOLO_BOX_BLOCK`, prompt système). Run
+    // réel `2235786d-…`, plan solo de sept jours: « 17 meals take from a batch
+    // and NOT ONE carries a box -- 17 containers were owed, zero came back ».
+    //
+    // C'est exactement ce que `boxSchemaBlock` annonce en tête de sa propre
+    // définition: « `member_portions` a ces DEUX moitiés et il est rempli 100 %
+    // du temps; `for_member_id` n'avait que celle-ci et il est resté à zéro sur
+    // douze générations. On copie le patron qui marche. » Le schéma dit qu'une
+    // clé EXISTE; il ne dit pas de l'écrire.
+    //
+    // ⚠️ SUR LE MESSAGE, PAS SUR LE SYSTÈME, et la place n'est pas
+    // interchangeable: le système est cacheable et partagé, le message porte ce
+    // qu'on DEMANDE cette fois-ci. C'est la même répartition que côté foyer.
+    //
+    // ⛔ AUCUN NOM SUR LE COUVERCLE, redit ici: le jour et le moment sont ce qui
+    // fait reconnaître un bac quand on mange seul.
+    ...(args.soloBoxes
+      ? [
+        "",
+        "-- WEIGH IT ONCE, INTO CONTAINERS NAMED BY MEAL --",
+        "Nothing is weighed at mealtime. Everything is weighed at the cooking " +
+        "session, straight into containers, and a meal later just takes its box " +
+        "out of the fridge.",
+        'Every dish that takes from a preparation carries "boxes": ONE container ' +
+        "holding everything that meal takes out -- all its preparations together " +
+        "in the same box, not one tub per pan. Count them before you answer: as " +
+        "many boxes as you have dishes that draw on a preparation.",
+        "They eat alone, so no lid carries a name -- the day and the meal are " +
+        "what tells them which one to open. Its grams are that meal's portion: " +
+        "they open it and eat, and nothing is weighed at the table.",
+        "The cooking session run_through is the ORDER of the gestures, and " +
+        "nothing else: no weights, no gram figures, no portion counts. Those " +
+        "live in the boxes, each already carrying what is in it and how much.",
+        'A dish that cooks from scratch on the day has no "boxes": nothing was ' +
+        "weighed ahead for it.",
+      ]
+      : []),
     // CE QU'IL A DIT LUI-MÊME, et il l'a confirmé sur un écran. Ce ne sont ni
     // des interdits du coach (ceux-là sont dans la doctrine, avec leur double
     // verrou) ni des contraintes médicales (celles-là sont maintenant en tête
@@ -3634,7 +4360,8 @@ export function buildMealPrompt(args: {
     // vérifie ensuite sur la sortie, déterministiquement. C'est le double
     // verrou de la doctrine, pointé sur une autre liste.
     ...((args.writtenInstructions ?? []).length > 0 ||
-        (args.foodPreferences?.length ?? 0) > 0
+        (args.foodPreferences?.length ?? 0) > 0 ||
+        (args.memo?.length ?? 0) > 0
       ? [
         "",
         "-- WHAT THEY HAVE TOLD ME --",
@@ -3672,6 +4399,28 @@ export function buildMealPrompt(args: {
                 "these as preferences:"]
               : ["what they have told you about their eating, in their own words:"]),
             ...(args.foodPreferences ?? []).map((p) => `- ${p}`),
+          ]
+          : []),
+        // ── LOT M4 · LE MÉMO, EN DERNIER DE LA SECTION ────────────────────
+        //
+        // ⚠️ APRÈS LES DEUX AUTRES SEAUX, ET C'EST DÉLIBÉRÉ. Une ligne de mémo
+        // n'a NI famille NI valeur structurée: c'est ce que la personne a
+        // demandé et qu'aucune case du produit ne porte. La placer devant une
+        // consigne écrite ferait passer un résidu avant une instruction.
+        //
+        // ⛔ « FACTS ABOUT THEIR WEEK », PAS « PREFERENCES ». Le mémo n'entre
+        // que pour du FACTUEL et de l'ACTIONNABLE (ses deux premières
+        // conditions d'entrée); l'annoncer au modèle comme un goût lui
+        // donnerait le droit de l'arbitrer contre autre chose, alors qu'une
+        // ligne comme « danse le mardi, donc gros repas ce jour-là » se
+        // respecte ou se dit.
+        ...((args.memo?.length ?? 0) > 0
+          ? [
+            "",
+            "facts about their week that no other field carries. these are " +
+            "not preferences to weigh: honour them, or say in the \"why\" of " +
+            "the dish it affects that you could not, and what you did instead:",
+            ...(args.memo ?? []).map((p) => `- ${p}`),
           ]
           : []),
       ]
@@ -3811,10 +4560,25 @@ export function buildMealPrompt(args: {
     // LE JOUR OÙ L'ON EST, et il n'y était pas. Le modèle repartait de lundi
     // par habitude: un plan généré le mercredi rendait trois jours déjà passés.
     ...(args.todayToken ? [`today is: ${args.todayToken}`] : []),
-    ...(args.daysToFill && args.daysToFill.length > 0
+    ...(daysToEat.length > 0
       ? [
-        `days to fill, in this order: ${args.daysToFill.join(", ")}`,
+        `days to fill, in this order: ${daysToEat.join(", ")}`,
         "Do not use any other day token. Do not start earlier than today.",
+      ]
+      : []),
+    // ── LE JOUR DE CUISINE QUI NE PORTE AUCUN REPAS ────────────────────────
+    // ⚠️ IL EST DIT DEUX FOIS, ET C'EST VOULU: une fois ici (« n'écris aucun
+    // plat ce jour-là »), une fois dans le bloc de cuisine (« c'est là que la
+    // session a lieu »). La liste au-dessus ne le contient déjà plus; cette
+    // phrase existe parce qu'une ABSENCE ne s'obéit pas — le modèle connaît le
+    // jour par la date de départ du plan, et l'a déjà rempli quand rien ne le
+    // lui interdisait.
+    ...(args.cookOnlyDay !== null
+      ? [
+        `the stretch opens on ${args.cookOnlyDay}, and that day is a COOKING ` +
+        "day only: they cook ahead on it and eat NOTHING from it. Write no " +
+        `dish on ${args.cookOnlyDay} -- not a breakfast, not a snack. It is ` +
+        "the day the batches are made, for the days listed above.",
       ]
       : []),
     // ── ① L'ARBITRAGE, EN DERNIER, PARCE QUE C'EST LÀ QU'IL EST LU ────────
@@ -3827,7 +4591,14 @@ export function buildMealPrompt(args: {
   ].join("\n");
 
   return {
-    systemPrompt: MEAL_SYSTEM_PROMPT,
+    // ⚠️ DEUX VARIANTES CACHEABLES, PAS UNE. Le bloc des contenants solo est un
+    // SCHÉMA (il décrit une clé de sortie), donc il vit avec les autres règles
+    // de forme; le poser dans le message utilisateur en aurait fait la seule
+    // règle de forme ailleurs. Le prix est un second préfixe de cache, et la
+    // lane foyer garde EXACTEMENT le prompt d'avant — un test le tient.
+    systemPrompt: args.soloBoxes
+      ? `${MEAL_SYSTEM_PROMPT}\n\n${SOLO_BOX_BLOCK}`
+      : MEAL_SYSTEM_PROMPT,
     // Le bloc de langue en DERNIER, sur le `userMessage` (récence), jamais sur
     // le `systemPrompt` (cacheable, partagé par tous les élèves).
     //
@@ -3977,20 +4748,120 @@ function readStructuredQuantity(
   // `null`, et 60+ chaînes de refus sont testées une par une.
   const weighable = weighableQuantityOf({ amount, unit, quantity: cleanText(ing.quantity) });
 
-  let gramsRaw: number | null = null;
-  if (composition) {
-    const ref = resolveIngredient(composition, term);
-    if (ref) {
-      gramsRaw = gramsRawOf({
-        amount: weighable.amount,
-        unit: weighable.unit,
-        state,
-        yieldClass: ref.yieldClass,
-        unitGrams: ref.unitGrams,
-      });
+  return {
+    amount,
+    unit,
+    state,
+    gramsRaw: gramsRawForIngredient(composition, {
+      term,
+      quantity: cleanText(ing.quantity),
+      amount,
+      unit,
+      state,
+    }),
+    quantitySource: weighable.source,
+  };
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * LES GRAMMES CRUS D'UN INGRÉDIENT, SUR UN INDEX DONNÉ — extrait le 2026-08-23.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ── POURQUOI CETTE EXTRACTION, ET PAS UNE SECONDE ÉCRITURE ────────────────
+ * Le sas de réparation (`LOT 18`, `composition_fill.ts`) enrichit l'index APRÈS
+ * que le plan a été parsé. Mesuré le 2026-08-23: `composition` est bien
+ * réaffecté (`generate-meal-v1/index.ts`, `composition = filledComposition.index`)
+ * et le VERDICT en profite — mais `grams_raw`, lui, avait déjà été calculé sur
+ * l'index de BASE, et c'est cette valeur-là qui part en base. Le sas réparait
+ * donc un chiffre qu'on regarde et pas celui qu'on écrit.
+ *
+ * Recopier l'expression au point de réparation aurait fait deux écritures de la
+ * même règle — « le défaut le plus cher de ce dépôt ». Il n'y a donc qu'un
+ * corps de fonction, appelé par le parseur et par la reprise.
+ *
+ * ⛔ ELLE REFAIT LES DEUX ÉTAPES, DANS L'ORDRE. La lecture en prose
+ * (`weighableQuantityOf`, lot `L-1-b`) d'abord, la résolution ensuite: partir
+ * de `amount`/`unit` seuls perdrait les lignes dont la quantité n'existe qu'en
+ * prose, c'est-à-dire 3 833 lignes du corpus sur 3 850.
+ *
+ * PURE: aucun I/O, aucune horloge. `composition === null` ⇒ `null`, comme avant.
+ */
+export function gramsRawForIngredient(
+  composition: CompositionIndex | null,
+  ing: {
+    term: string;
+    quantity: string | null;
+    amount: number | null;
+    unit: CompositionUnit | null;
+    state: CompositionState | null;
+  },
+): number | null {
+  if (!composition) return null;
+  const ref = resolveIngredient(composition, ing.term);
+  if (!ref) return null;
+  const weighable = weighableQuantityOf({
+    amount: ing.amount,
+    unit: ing.unit,
+    quantity: ing.quantity ?? "",
+  });
+  return gramsRawOf({
+    amount: weighable.amount,
+    unit: weighable.unit,
+    state: ing.state,
+    yieldClass: ref.yieldClass,
+    unitGrams: ref.unitGrams,
+  });
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * LE PLAN, REPESÉ SUR L'INDEX RÉPARÉ — 2026-08-23.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ── LE DÉFAUT QUE ÇA FERME, ET IL EST MESURÉ ──────────────────────────────
+ * `LOT 18` remplit les termes inconnus APRÈS le parseur. Les deux lanes
+ * réaffectent bien leur `composition`, et tout ce qui LIT l'index ensuite
+ * (verdict, couverture, énergie) en profite. Mais `grams_raw` est une valeur
+ * FIGÉE sur la ligne du plan, écrite par le parseur, sur l'index d'AVANT. La
+ * ligne écrite en base ne portait donc jamais le bénéfice du sas — seul le
+ * tableau de bord le voyait, et il annonçait une réparation que la donnée
+ * n'avait pas reçue.
+ *
+ * ⛔ ELLE NE TOUCHE QUE `gramsRaw`, ET C'EST TOUTE LA GARDE. Ni `amount`, ni
+ * `unit`, ni `state`, ni `quantitySource`: ceux-là sont la DÉCLARATION du
+ * modèle, ils partent tels quels en base, et les compteurs d'obéissance à
+ * FF-038 continuent de compter exactement la même chose. Un modèle qui cesse
+ * d'écrire ses quantités doit rester indiscernable... de lui-même.
+ *
+ * ⚠️ ELLE MUTE, et c'est le précédent de la lane foyer (`item.grams = grams`,
+ * `generate-household-meal-v1/index.ts`). Le plan est un objet de travail que
+ * ce fichier construit; en rendre une copie ici obligerait chaque appelant à
+ * penser à la réaffecter — c'est-à-dire à pouvoir l'oublier.
+ *
+ * Rend le nombre de lignes dont les grammes ont CHANGÉ. `0` veut dire « le sas
+ * n'a rien apporté à cette ligne-ci », et c'est un compteur, pas un silence:
+ * sans lui, un sas débranché ressemblerait à un sas qui n'a rien trouvé.
+ */
+export function regramMeal(
+  meal: { dishes: GeneratedDish[]; preparations: MealPreparation[] },
+  composition: CompositionIndex | null,
+): number {
+  if (!composition) return 0;
+  let changed = 0;
+  const lists: Array<{ ingredients: DishIngredient[] }> = [
+    ...meal.dishes,
+    ...meal.preparations,
+  ];
+  for (const holder of lists) {
+    for (const ing of holder.ingredients) {
+      const next = gramsRawForIngredient(composition, ing);
+      if (next === ing.gramsRaw) continue;
+      ing.gramsRaw = next;
+      changed++;
     }
   }
-  return { amount, unit, state, gramsRaw, quantitySource: weighable.source };
+  return changed;
 }
 
 /**
@@ -4150,6 +5021,21 @@ export interface MealSlotCase {
 export function emptySlotsIn(args: {
   /** Les jetons de la fenêtre, dans son ordre. Vide ⇒ aucune case connue. */
   days: readonly string[];
+  /**
+   * LE JOUR DE CUISINE QUI NE PORTE AUCUN REPAS — « je cuisine la veille ».
+   *
+   * ⛔ REQUIS ET NULLABLE. Sans lui, la veille compte comme une journée entière
+   * de cases vides: sur un rythme à trois moments, l'explication annoncerait
+   * « le petit-déjeuner, le déjeuner et le dîner n'ont pas été composés » sur
+   * le jour où, par construction, on ne mange pas. Un trou VOULU rendu comme un
+   * trou subi est exactement le genre de fait faux que cette liste existe pour
+   * ne plus produire.
+   *
+   * ⚠️ ET IL NE SORT PAS DE `days`: l'appelant passe la fenêtre ENTIÈRE, parce
+   * que c'est elle qui situe les jours. C'est ici, une fois, qu'on décide de ne
+   * rien attendre de ce jour-là.
+   */
+  cookOnlyDay: string | null;
   /** Le rythme déclaré. Vide ⇒ le défaut, exactement comme `occasionList`. */
   rhythm: readonly EatingOccasionSlot[];
   dishes: readonly { day?: string | null; slot?: string | null }[];
@@ -4160,6 +5046,7 @@ export function emptySlotsIn(args: {
     .map((o) => o.slot);
   const out: MealSlotCase[] = [];
   for (const day of args.days) {
+    if (args.cookOnlyDay !== null && day === args.cookOnlyDay) continue;
     for (const slot of occasions) {
       if (isAway(args.awayDays, day, slot)) continue;
       if (slotIsTaken(args.fixedIntakes, day, slot)) continue;
@@ -4178,6 +5065,23 @@ export function emptySlotsIn(args: {
 /** Les cases vides, en une ligne lisible: `wed/breakfast, thu/breakfast`. */
 export function emptySlotsLine(cases: readonly MealSlotCase[]): string {
   return cases.map((c) => `${c.day}/${c.slot}`).join(", ");
+}
+
+/**
+ * LE JETON DE CONSERVATION, LU — `"fridge"` quand rien n'est dit.
+ *
+ * ⚠️ LE NON-DIT EST LE STRICT, et c'est ce qui rend ce lot réversible: un
+ * modèle qui n'écrit jamais `kept` produit exactement le plan d'avant, au plat
+ * près. Un défaut à `"freezer"` aurait relâché la fenêtre du cuit sur toute la
+ * population, pour un champ que personne n'avait encore vu.
+ *
+ * ⚠️ UN JETON INCONNU RETOMBE SUR `"fridge"` AUSSI, sans jeter: `kept` est une
+ * PRÉCISION en plus, et perdre un dîner parce qu'un modèle a écrit « frozen »
+ * au lieu de « freezer » échangerait le repas contre le confort du parseur.
+ * Posture `for_member_id` / `same_day` / `box_id`.
+ */
+function readKept(raw: unknown): KeptWhere {
+  return String(raw ?? "").trim().toLowerCase() === "freezer" ? "freezer" : "fridge";
 }
 
 export function parseGeneratedMeal(
@@ -4208,6 +5112,34 @@ export function parseGeneratedMeal(
      */
     eatingRhythm: readonly EatingOccasionSlot[];
     /**
+     * LES CONTENANTS SANS NOM — la lane individuelle, 2026-09-01.
+     *
+     * ⛔ REQUIS. Il ouvre UNE porte et une seule: un couvercle sans `member_ids`
+     * est accepté. Tout le reste du protocole (la ceinture de régime, les
+     * compteurs par bouche, `onePerMouth`) reste fermé par `boxMembers.size`,
+     * qui vaut zéro sur cette lane — ces règles départagent des mangeurs, et il
+     * n'y en a qu'un.
+     *
+     * ⚠️ IL NE SE DÉDUIT PAS DE `boxMemberIds.length === 0`. Un foyer dont le
+     * roster n'a pas pu être lu rendrait alors la même chose qu'un solo, et on
+     * accepterait des bacs anonymes sur une table de quatre — c'est-à-dire des
+     * contenants que personne ne sait à qui ouvrir. L'appelant DIT.
+     */
+    soloBoxes: boolean;
+    /**
+     * LE JOUR DE CUISINE QUI NE PORTE AUCUN REPAS — « je cuisine la veille ».
+     *
+     * ⛔ REQUIS ET NULLABLE, et il traverse jusqu'ici parce que DEUX gardes en
+     * dépendent: les cases vides (un jour sans repas n'a pas de case à remplir)
+     * et le placement des plats (un plat écrit sur ce jour-là contredit la
+     * consigne, et il est refusé plutôt qu'affiché).
+     *
+     * ⚠️ IL EST DANS `daysToFill`, comme côté prompt: c'est lui qui situe la
+     * casserole du rang 0 dans la fenêtre du cuit. Le retirer de `daysToFill`
+     * rendrait tous ses lots `not_evaluated`, dont le seuil est zéro.
+     */
+    cookOnlyDay: string | null;
+    /**
      * LES JOURS RÉELLEMENT DEMANDÉS. REQUIS pour la même raison que
      * `eatingRhythm` juste au-dessus: le plafond du parseur doit être celui du
      * prompt, et un paramètre optionnel est un paramètre qu'un appelant oublie
@@ -4234,6 +5166,24 @@ export function parseGeneratedMeal(
      * plan à la main. Mesuré le 2026-08-06: 30 minutes déclarées, 55 produites.
      */
     cookingTimeMin: number | null;
+    /**
+     * CE QUE CETTE CUISINE POSSÈDE — `null` quand la question n'a jamais été
+     * posée. 2026-09-01.
+     *
+     * ⚠️ REQUIS, `T | null`, jamais `T?`. C'est la SIXIÈME fois que ce fichier
+     * écrit cette phrase, et il l'a payée les cinq précédentes (`eatingRhythm`,
+     * `awayDays`, `cookingTimeMin`, `composition`, `fixedIntakes`): un
+     * paramètre optionnel est un paramètre qu'un appelant oublie, après quoi la
+     * garde du congélateur tombe sur `undefined` et se comporte comme si
+     * personne n'en avait — c'est-à-dire qu'elle jette les plats que ce lot
+     * existe pour garder, sans un seul rouge.
+     *
+     * ⛔ IL NE SERT QU'À `kept: "freezer"`, ET LA DIRECTION EST FAIL-CLOSED.
+     * `null` (jamais demandé) et « pas de congélateur » retombent tous deux sur
+     * `MAX_FRIDGE_DAYS`. On n'ouvre une fenêtre de conservation que sur une
+     * affirmation, jamais sur une ignorance.
+     */
+    kitchenEquipment: readonly KitchenTool[] | null;
     /**
      * FF-038 — LE RÉFÉRENTIEL DE COMPOSITION, ou `null` quand il n'a pas pu
      * être chargé.
@@ -4366,6 +5316,20 @@ export function parseGeneratedMeal(
      * preuve serait une ceinture qui n'a jamais rien vu.
      */
     boxMemberDiets: readonly { memberId: string; regime: DietaryRegime | null }[];
+    /**
+     * ⛔ CE QU'UNE BOUCHE A DEMANDÉ D'ÉVITER — lot du 2026-09-01.
+     *
+     * Mesuré sur un tour réel: « Mon fils n'aime pas le poisson » était rangé,
+     * attribué (`subject: member:Tom`), compté — **et le plan suivant servait du
+     * saumon**. La lane foyer ne parle que pour `[household, titulaire]`, donc
+     * l'exclusion d'un enfant n'avait AUCUN chemin pour agir.
+     *
+     * ⚠️ REQUIS ET POSITIONNEL, comme `boxMemberDiets`: c'est le compilateur qui
+     * recense les appelants. Un `?` aurait désarmé la ceinture partout sans
+     * qu'un seul appelant ne remonte — sept paramètres optionnels ont déjà été
+     * des gardes mortes dans ce dépôt.
+     */
+    boxMemberExclusions: readonly { memberId: string; terms: readonly ForbiddenTerm[] }[];
   },
 ): GeneratedMeal {
   const issues: string[] = [];
@@ -4467,6 +5431,53 @@ export function parseGeneratedMeal(
    */
   const fridgeWindow: FridgeWindowCounts = emptyFridgeWindowCounts();
 
+  // ══════════════════════════════════════════════════════════════════════════
+  // LE CONGÉLATEUR — résolu UNE fois, et par une AFFIRMATION.
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ `=== true`, ET LA COMPARAISON EST LA GARDE. `hasKitchenTool` rend
+  // `true | false | null`, et le pavé de son module interdit
+  // `!hasKitchenTool(...)` parce que cette forme-là traite « on ne lui a jamais
+  // demandé » comme « il n'en a pas ». Ici on veut EXACTEMENT l'inverse: seule
+  // une déclaration positive ouvre la fenêtre de conservation. `false` et
+  // `null` retombent tous deux sur `MAX_FRIDGE_DAYS`, et c'est la seule
+  // direction acceptable pour une règle qui décide si on sert un lot de six
+  // jours.
+  const hasFreezer = hasFreezerDeclared(args.kitchenEquipment);
+  /**
+   * COMBIEN DE PARTS RÉCLAMENT UN CONGÉLATEUR QUE CE FOYER N'A PAS DÉCLARÉ.
+   *
+   * ⚠️ SANS CE NOMBRE, LE LOT EST INVÉRIFIABLE. `kept` est un champ DÉCLARÉ PAR
+   * LE MODÈLE: « il obéit » et « on n'a rien mesuré » rendent le même silence.
+   * Troisième fois dans ce fichier (`model_quantity`, `model_size_word`).
+   */
+  /**
+   * LES SESSIONS QUI PRENNENT PLUS DE TEMPS QUE DÉCLARÉ — 2026-09-01.
+   *
+   * ⚠️ STRUCTURÉ, PAS UNE CHAÎNE À REPARSER. Même patron qu'`empty_slots`: la
+   * phrase que l'écran en tire se compose de `day`, `minutes` et `declared`, et
+   * relire une ligne d'`issues` pour retrouver ces trois nombres serait un
+   * matcher maison sur du texte — ce que ce dépôt refuse depuis les douze faux
+   * positifs de « laitue » contre « lait ».
+   */
+  const sessionOverruns: { day: string; minutes: number; declared: number }[] = [];
+  let freezerWithoutOne = 0;
+  /**
+   * SA POPULATION À LUI — les liens (casserole, repas) que la fenêtre du cuit a
+   * pu situer dans le temps.
+   *
+   * ⚠️ CE N'EST PAS CELLE DE `keptTotal`, ET LES DEUX NOMBRES SE LISAIENT MAL
+   * SANS ÇA. Mesuré le 2026-09-01: `uses_kept_freezer: 6/6` à côté de
+   * `freezer_claimed_without_one: 14` — 14 réclamations sur 6 parts, ce qui
+   * n'a aucun sens à la lecture. Les deux comptent à deux étages: celui-ci
+   * tourne sur la sortie BRUTE, avant que la garde ne jette des plats; l'autre
+   * sur les parts SURVIVANTES. Chacun sort donc avec SON dénominateur.
+   */
+  let freezerClaimLinks = 0;
+  /** Combien de parts portent un `kept` lisible — le dénominateur suit. */
+  let keptDeclared = 0;
+  let keptTotal = 0;
+
   // ── LA GARDE DE PRÉPARATION DÉPEND DE QUI MANGE ─────────────────────────
   // Résolu UNE fois, hors de la boucle: la question ne se pose pas préparation
   // par préparation, elle se pose une fois pour le plan.
@@ -4510,6 +5521,11 @@ export function parseGeneratedMeal(
   // `household_diet.ts` fait déjà cette distinction en tête de fichier, et la
   // refaire ici en produirait une seconde version.
   const mouthRegimes = new Map<string, DietaryRegime>();
+  /**
+   * CE QU'UNE BOUCHE ÉVITE, par identifiant. Même forme et même porte que les
+   * régimes: une bouche absente du roster n'entre pas.
+   */
+  const mouthExclusions = new Map<string, readonly ForbiddenTerm[]>();
   /** Une bouche nommée par les régimes mais absente du roster — voir plus haut. */
   let regimeUnknownMouth = 0;
   for (const entry of args.boxMemberDiets) {
@@ -4521,6 +5537,13 @@ export function parseGeneratedMeal(
     }
     if (entry.regime === null || entry.regime === undefined) continue;
     mouthRegimes.set(memberId, entry.regime);
+  }
+  for (const entry of args.boxMemberExclusions) {
+    const memberId = String(entry?.memberId ?? "").trim();
+    if (!memberId || !boxMembers.has(memberId)) continue;
+    const terms = entry.terms ?? [];
+    if (terms.length === 0) continue;
+    mouthExclusions.set(memberId, terms);
   }
   /**
    * CE QUE LA CEINTURE A RETIRÉ, PAR PRÉPARATION — et ce n'est pas seulement
@@ -4559,6 +5582,23 @@ export function parseGeneratedMeal(
    *
    * PROPRIÉTÉ TESTÉE: `checked === kept + refused`.
    */
+  /**
+   * LA CEINTURE DES EXCLUSIONS — les MÊMES quatre nombres que celle des
+   * régimes, et pour la même raison: `refused: 0` seul rend le même zéro pour
+   * « personne n'a rien exclu » et « rien n'a mordu ».
+   *
+   *   · `mouths`  — les bouches qui portent au moins une exclusion cherchable.
+   *   · `checked` — les appartenances (bouche × boîte) réellement examinées.
+   *   · `kept` / `refused` — laissées passer / retirées du contenant.
+   *
+   * PROPRIÉTÉ: `checked === kept + refused`.
+   */
+  const exclusionBelt = {
+    mouths: mouthExclusions.size,
+    checked: 0,
+    kept: 0,
+    refused: 0,
+  };
   const regimeBelt = {
     mouths: mouthRegimes.size,
     checked: 0,
@@ -5202,6 +6242,29 @@ export function parseGeneratedMeal(
       continue;
     }
 
+    // ══════════════════════════════════════════════════════════════════════
+    // « JE CUISINE LA VEILLE » — RIEN NE SE MANGE CE JOUR-LÀ.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ UN REFUS, ET IL EST DANS LA BOUCLE. La consigne dit deux fois de ne
+    // rien écrire ce jour-là (la liste des jours l'exclut, une phrase le
+    // nomme); si un plat y atterrit quand même, l'afficher trahirait la
+    // demande — la personne a dit « ce jour-là je cuisine, je ne mange pas
+    // encore ce plan ». Refuser ICI plutôt qu'en queue de fonction évite qu'il
+    // ait consommé le plafond et compté ses `honours_belief_keys` avant qu'on
+    // ne le retire, exactement comme la fenêtre du cuit juste en dessous.
+    //
+    // ⚠️ COMPTÉ, pas silencieux: si la consigne ne mord pas, c'est le PROMPT
+    // qu'il faut corriger, pas le parseur — et sans ce chiffre on ne saurait
+    // pas lequel des deux.
+    if (args.cookOnlyDay !== null && day === args.cookOnlyDay) {
+      issues.push(
+        `dishes[${i}]: ${day} is the cooking day before the plan -- nothing ` +
+          `is eaten on it, the dish was dropped`,
+      );
+      continue;
+    }
+
     // ── FF-052 · UN JOUR DE RESTES NE COMPOSE RIEN DE NEUF ──────────────
     // Un plat qui PUISE dans une préparation reste — c'est exactement ce
     // qu'on mange un jour de restes. Un plat qui part de zéro tombe: l'élève
@@ -5274,7 +6337,27 @@ export function parseGeneratedMeal(
           fridgeWindow.not_evaluated++;
           continue;
         }
-        const verdict = cookedWindowVerdict(cookAt, eatAt, MAX_FRIDGE_DAYS);
+        // ── LA PART CONGELÉE N'A PAS LA FENÊTRE DU FRIGO (2026-09-01) ─────
+        // Lu ici, sur la sortie BRUTE, parce que c'est ici que la garde
+        // tranche. Le `kept` reconstruit plus bas arriverait après le
+        // `continue` qui jette le plat.
+        const keptHere = readKept(u.kept);
+        freezerClaimLinks++;
+        if (freezerClaimedWithoutOne({ kept: keptHere, hasFreezer })) {
+          // LE MODÈLE A INVENTÉ UN APPAREIL. On ne relâche rien, et on compte:
+          // sans ce nombre, « la consigne mord » et « personne ne l'a lue »
+          // rendent le même silence.
+          freezerWithoutOne++;
+        }
+        const verdict = cookedWindowVerdict(
+          cookAt,
+          eatAt,
+          keptWindowDays({
+            kept: keptHere,
+            hasFreezer,
+            maxFridgeDays: MAX_FRIDGE_DAYS,
+          }),
+        );
         // `before_cooking` appartient à l'AUTRE règle (« un lot mangé avant
         // d'être cuisiné »), qui a son propre message et signale sans jeter.
         // Le compter ici ferait disparaître l'une des deux anomalies.
@@ -5511,11 +6594,27 @@ export function parseGeneratedMeal(
         continue;
       }
       const servings = Number(u.servings);
+      // ── LE DÉNOMINATEUR SE COMPTE ICI, SUR LES PARTS GARDÉES ───────────
+      // Après le `continue` des références inconnues: une part qui n'existe
+      // pas ne se compte ni au numérateur ni au dénominateur.
+      keptTotal++;
+      const kept = readKept(u.kept);
+      if (kept === "freezer") keptDeclared++;
       uses.push({
         preparationId: prepId,
         servings: Number.isFinite(servings) && servings > 0
           ? Math.min(12, Math.round(servings))
           : 1,
+        // ⚠️ LA MÊME LECTURE QUE LA GARDE, par la MÊME fonction. La garde
+        // tranche plus haut, sur la sortie brute; si elle lisait un jeton et
+        // la ligne écrite un autre, le plan servi contredirait la fenêtre qui
+        // l'a laissé passer.
+        //
+        // ⛔ ET LE JETON EST GARDÉ TEL QUEL, MÊME SANS CONGÉLATEUR. Le rabattre
+        // sur `"fridge"` effacerait la trace de ce que le modèle a réclamé —
+        // or c'est exactement ce que `freezer_claimed_without_one` compte, et
+        // un compteur dont la donnée a été nettoyée en amont ne compte rien.
+        kept,
       });
     }
 
@@ -5684,6 +6783,42 @@ export function parseGeneratedMeal(
           }
           regimeBelt.kept++;
         }
+        // ══ PORTE ②ter · CE QUE CETTE BOUCHE A DEMANDÉ D'ÉVITER ════════════
+        //
+        // ⛔ MÊME GESTE QUE LE RÉGIME, ET POUR LE MÊME MOTIF: on retire LA
+        // BOUCHE du contenant, jamais le plat ni le plan. Le plat reste, les
+        // autres sont servis, et la personne concernée ne l'est plus.
+        // Refuser le plan ferait payer son goût en semaine vide à la seule
+        // personne que cette ceinture existe pour servir.
+        //
+        // ⚠️ SURFACE `ingredients`, JAMAIS `all`. `termsOfInstruction` rend du
+        // bruit (« fils » → `fil`, mesuré), et ici un faux positif coûte le
+        // repas de quelqu'un: on ne lit que ce que le modèle a NOMMÉ comme
+        // aliment.
+        const exclusions = mouthExclusions.get(memberId);
+        if (exclusions) {
+          const bite = dishBitesExclusion({
+            dish: { title, method, ingredients },
+            uses,
+            preparationById,
+            terms: exclusions,
+            surface: "ingredients",
+          });
+          exclusionBelt.checked++;
+          if (bite.matched !== null) {
+            exclusionBelt.refused++;
+            boxNamesRefused++;
+            heldOffHere = true;
+            if (!boxHeldOff.includes(memberId)) boxHeldOff.push(memberId);
+            issues.push(
+              `${where}: ${JSON.stringify(memberId)} asked to avoid ` +
+                `${JSON.stringify(bite.because ?? bite.matched)} and "${title}" ` +
+                `contains ${bite.matched} -- mouth dropped from the box`,
+            );
+            continue;
+          }
+          exclusionBelt.kept++;
+        }
         memberIds.push(memberId);
       }
       // ══ PORTE ④ · CE QU'IL Y A DEDANS ═════════════════════════════════════
@@ -5756,7 +6891,7 @@ export function parseGeneratedMeal(
         }
       }
       // ══ CE QUI TOMBE, ET AVEC QUEL MOTIF ══════════════════════════════════
-      if (memberIds.length === 0) {
+      if (memberIds.length === 0 && !args.soloBoxes) {
         boxesRefused++;
         // ⚠️ DEUX MOTIFS, PAS UN. « aucune bouche connue » et « toutes ses
         // bouches sont tenues dehors par leur régime » sont deux causes
@@ -6405,10 +7540,26 @@ export function parseGeneratedMeal(
   // 55. La marge de dix minutes n'est pas de la complaisance: une estimation de
   // cuisine à cinq minutes près n'existe pas, et signaler 62 contre 60 ferait
   // du bruit que personne ne lirait — ce qui finit par cacher les vrais 95.
+  //
+  // ⟳ 2026-09-01 — IL NE SE CONTENTE PLUS DE COMPTER. Un `issues` n'a aucun
+  // lecteur côté écran: la session débordait, le fait partait en base, et la
+  // personne découvrait la vraie durée devant ses casseroles. Le dépassement
+  // est désormais RENDU (`session_overruns`), et `plan_rationale` en fait une
+  // phrase — c'est la moitié « et il le DIT » de la décision du jour.
+  //
+  // ⚠️ LA LIGNE D'`issues` RESTE, ELLE NE DOUBLE PAS LA PHRASE. Elles ne
+  // servent pas au même lecteur: `issues` se relit en base pour savoir si la
+  // consigne mord, la phrase se lit à table. Retirer la première rendrait le
+  // lot invérifiable en production.
   if (args.cookingTimeMin) {
     for (const session of cookingSessions) {
       if (session.totalMinutes === null) continue;
       if (session.totalMinutes > args.cookingTimeMin + 10) {
+        sessionOverruns.push({
+          day: session.day,
+          minutes: session.totalMinutes,
+          declared: args.cookingTimeMin,
+        });
         issues.push(
           `cooking session on ${session.day} runs ${session.totalMinutes} min, ` +
           `but they said they have about ${args.cookingTimeMin}`,
@@ -6749,6 +7900,40 @@ export function parseGeneratedMeal(
     }
   }
 
+  // ══════════════════════════════════════════════════════════════════════════
+  // ⛔ LA POPULATION QUE `mouth_slots` EXCLUT — nommée le 2026-08-23.
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // `mouth_slots` se prend sur les cases qui portent AU MOINS UN contenant, et
+  // c'est sa définition écrite, pas un défaut: une case sans contenant n'a rien
+  // à réconcilier. Mais l'exclusion, elle, ne se comptait nulle part — et
+  // `boxDeliveryState` rend `served` dès que `with_box === meals`, où `meals` ne
+  // compte déjà que les plats qui prélèvent sur une fournée.
+  //
+  // ── CE QUE ÇA A CACHÉ, MESURÉ LE 2026-08-23 SUR UN PLAN FOYER RÉEL ────────
+  // Sept plats, cinq boîtés, trois bouches. Deux petits-déjeuners assemblés le
+  // jour même n'avaient AUCUN contenant — ce qui est LÉGITIME (« A dish that
+  // cooks from scratch on the day has no boxes ») — mais les six parts qu'ils
+  // représentent (2 cases × 3 bouches) étaient hors dénominateur. Le plan
+  // rendait `mouths_unboxed: 2` et `delivery: "served"`, et rien ne disait que
+  // deux repas sur sept n'étaient dimensionnés pour personne.
+  //
+  // ⛔ CE N'EST PAS UN DÉFAUT, C'EST UNE ABSTENTION — et la règle du dépôt est
+  // qu'elle se compte au lieu de se déguiser en résolution. Un lecteur qui veut
+  // savoir « quelle part de la fenêtre le protocole des contenants gouverne »
+  // a maintenant les deux nombres côte à côte, sans qu'aucun des deux ne change
+  // de sens.
+  //
+  // ⚠️ AUCUNE `issue` N'EST POUSSÉE ICI. Un petit-déjeuner assemblé le matin est
+  // le cas nominal, et l'annoncer comme un manque ferait exactement ce que la
+  // garde du roster vient de retirer sur la lane individuelle.
+  const cellsWithBox = new Set(boxedCells.keys());
+  const cellsNoBox = new Set<string>();
+  for (const dish of dishes) {
+    const key = `${dish.day ?? "any"}/${dish.slot ?? "any"}`;
+    if (!cellsWithBox.has(key)) cellsNoBox.add(key);
+  }
+
   // ── C2 ④ · LES CASES QUE PERSONNE NE REMPLIT ────────────────────────────
   //
   // MESURÉ DEUX FOIS LE 2026-08-12: les cinq petits-déjeuners du foyer sont
@@ -6772,6 +7957,7 @@ export function parseGeneratedMeal(
   const emptySlots = clean
     ? emptySlotsIn({
       days: args.daysToFill,
+      cookOnlyDay: args.cookOnlyDay,
       rhythm: args.eatingRhythm,
       dishes,
       awayDays: args.awayDays,
@@ -6825,6 +8011,51 @@ export function parseGeneratedMeal(
       refused: keptNameFacts.filter((f) => f.refused).length,
     }
     : { dishes: 0, declared: 0, kept: 0, refused: 0 };
+
+  // ── LA VARIÉTÉ DES ANCRES PROTÉIQUES ────────────────────────────────────
+  //
+  // ⚠️ SUR LES PLATS **PLIÉS**, préparations comprises. En batch cooking la
+  // protéine n'est PAS dans le plat: le plat dit « une portion du poulet de
+  // dimanche », et le kilo de cuisses vit dans la préparation. Compter les
+  // seuls `dish.ingredients` rendrait `distinct: 0` sur un plan qui tourne
+  // pourtant sur une seule ancre — c'est-à-dire le contraire de ce qu'on
+  // mesure. C'est la cicatrice de `foldPreparationsIntoDishes`, à la lettre:
+  // « 51 % de la protéine hors des plats ».
+  //
+  // ⚠️ MÊME GARDE `clean` que les deux compteurs voisins, et `composition`
+  // absent rend des zéros: on ne prétend pas qu'un plan n'a pas d'ancre parce
+  // qu'on n'a pas su lire.
+  const proteinSourceCounts = (() => {
+    if (!clean || !args.composition) {
+      return { distinct: 0, dishes_with: 0, dishes: 0 };
+    }
+    const index = args.composition;
+    const set = new Set<string>(PROTEIN_SOURCES);
+    const byId = new Map(preparations.map((p) => [p.id, p]));
+    const groups = new Set<string>();
+    let dishesWith = 0;
+    for (const dish of dishes) {
+      const terms = [
+        ...dish.ingredients.map((i) => i.term),
+        ...dish.uses.flatMap((u) =>
+          (byId.get(u.preparationId)?.ingredients ?? []).map((i) => i.term)
+        ),
+      ];
+      let has = false;
+      for (const term of terms) {
+        const ref = resolveIngredient(index, term);
+        if (!ref || !set.has(String(ref.foodGroupRef))) continue;
+        groups.add(String(ref.foodGroupRef));
+        has = true;
+      }
+      if (has) dishesWith++;
+    }
+    return {
+      distinct: groups.size,
+      dishes_with: dishesWith,
+      dishes: dishes.length,
+    };
+  })();
 
   // ── LE COMPTEUR DES BOÎTES ──────────────────────────────────────────────
   //
@@ -6923,21 +8154,67 @@ export function parseGeneratedMeal(
       boxesExpected += weighedHere + lines.size;
     }
   }
+  // ══════════════════════════════════════════════════════════════════════════
+  // LES CONTENANTS DUS À UNE PERSONNE SEULE — 2026-09-01
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ LE COMPTE EST DÉRIVABLE, DONC LE COMPTEUR EST OBLIGATOIRE. Un plat qui
+  // puise dans une casserole a été pesé d'avance: il lui faut un contenant.
+  // Un plat cuisiné de zéro le jour même n'en a pas. Le dénominateur est donc
+  // « les plats qui puisent », et sans lui `boxes: 0` serait le même zéro pour
+  // « le modèle n'a rien écrit » et pour « ce plan n'a aucun lot » — c'est le
+  // zéro que ce dépôt paie en boucle.
+  //
+  // ⚠️ LA BRANCHE EST EXCLUSIVE DE CELLE DU DESSUS: `boxMembers.size` vaut zéro
+  // sur cette lane, et `soloBoxes` est faux sur l'autre. Les additionner
+  // gonflerait `expected` d'un protocole que le prompt n'a pas servi.
+  if (args.soloBoxes && boxMembers.size === 0) {
+    for (const dish of dishes) if (dish.uses.length > 0) boxesExpected += 1;
+  }
   // ⛔ CE QUI SE NOMME AU LIEU DE SE TAIRE. Les deux cas ci-dessous ne devraient
   // pas arriver — le parseur valide déjà `for_member_id` contre la liste fermée
   // des porteurs de plat — et c'est exactement pour ça qu'ils se comptent: ils
   // signifieraient que deux listes décrivant la même table ont divergé, et
   // `expected` mentirait sans que rien ne le dise.
-  for (const cell of fedByDish.sharedFedNobody) {
-    issues.push(
-      `${cell}: the table's dish feeds nobody -- every mouth has a dish of its own`,
-    );
-  }
-  for (const memberId of fedByDish.dedicatedOffRoster) {
-    issues.push(
-      `dedicated dish for ${JSON.stringify(memberId)}, who is not on the box ` +
-        `roster -- nobody was excluded from the shared pot for it`,
-    );
+  //
+  // ══════════════════════════════════════════════════════════════════════════
+  // ⛔ LE ROSTER EST LA PORTE, ICI AUSSI — posée le 2026-08-23.
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // `mouthsFedByDish` est appelée INCONDITIONNELLEMENT vingt lignes plus haut,
+  // et la garde `if (boxMembers.size > 0)` se referme AVANT ces deux boucles.
+  // Or la lane SOLO passe `boxMemberIds: []` exprès (`generate-meal-v1/index.ts`)
+  // — le protocole des contenants n'existe que pour départager deux bouches.
+  // Avec un roster vide, `mouthsFedByDish` ne trouve personne à nourrir, donc
+  // CHAQUE plat de table tombe dans `sharedFedNobody`.
+  //
+  // Mesuré le 2026-08-23 sur sept plans solo sur sept: jusqu'à SEPT fois par
+  // plan, « the table's dish feeds nobody -- every mouth has a dish of its own »
+  // pour quelqu'un qui vit seul. Le message décrit une table qui n'existe pas,
+  // et il noie la liste d'`issues` là où elle porte de vraies alertes.
+  //
+  // ⚠️ C'EST EXACTEMENT LA PORTE QUE `boxDeliveryState` A DÉJÀ, cinquante
+  // lignes plus bas (`roster: boxMembers.size`, avec sa propre cicatrice écrite:
+  // « Sans cette entrée, l'alarme sonnerait sur CHAQUE plan solo pour une
+  // consigne jamais servie »). Elle manquait ici, et pour la même raison elle
+  // manquait en silence: une issue de plus ne fait rien échouer.
+  //
+  // ⛔ LA GARDE PORTE SUR LE ROSTER, PAS SUR LE CONTENU. Filtrer les cellules
+  // une par une masquerait le vrai cas — une table de plusieurs bouches dont
+  // un plat commun ne nourrit personne — qui est précisément ce que ces deux
+  // boucles existent pour dire.
+  if (boxMembers.size > 0) {
+    for (const cell of fedByDish.sharedFedNobody) {
+      issues.push(
+        `${cell}: the table's dish feeds nobody -- every mouth has a dish of its own`,
+      );
+    }
+    for (const memberId of fedByDish.dedicatedOffRoster) {
+      issues.push(
+        `dedicated dish for ${JSON.stringify(memberId)}, who is not on the box ` +
+          `roster -- nobody was excluded from the shared pot for it`,
+      );
+    }
   }
   // ══════════════════════════════════════════════════════════════════════════
   // ⟳ LOT `L6′-b` — CE QUE `boxes: 0` VEUT DIRE. DEUX ZÉROS, DEUX CAUSES.
@@ -6968,7 +8245,13 @@ export function parseGeneratedMeal(
     // bouches — et son plan en base porte `{meals: 10, with_box: 0}`. Sans
     // cette entrée, l'alarme sonnerait sur CHAQUE plan solo pour une consigne
     // jamais servie.
-    roster: boxMembers.size,
+    // ⟳ 2026-09-01 — `1` SUR LA LANE SOLO, et c'est ce qui ARME l'alarme. Le
+    // pavé ci-dessus décrivait un état révolu: la lane individuelle sert
+    // désormais `SOLO_BOX_BLOCK`, donc un plan solo sans un seul contenant est
+    // une consigne servie et non suivie — exactement ce que cette alarme
+    // existe pour dire. La laisser à zéro l'aurait rendue muette sur la moitié
+    // du produit, pour un motif qui n'était plus vrai.
+    roster: args.soloBoxes && boxMembers.size === 0 ? 1 : boxMembers.size,
     meals: boxedMeals.length,
     withBox: boxedMeals.filter((d) => d.boxes.length > 0).length,
   });
@@ -6978,6 +8261,34 @@ export function parseGeneratedMeal(
         `${boxesExpected} containers were owed, zero came back`,
     );
   }
+  // ══════════════════════════════════════════════════════════════════════════
+  // LE CONGÉLATEUR, COMPTÉ — 2026-09-01
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ DEUX NOMBRES QUI NE MESURENT PAS LA MÊME CHOSE, ET AUCUN NE SORT SEUL.
+  //   · `uses_kept_freezer` — la consigne MORD-ELLE ? Sans son dénominateur,
+  //     « 7 parts congelées » ne veut rien dire: sur 7 c'est un plan tout au
+  //     congélateur, sur 140 c'est du bruit. Le dépôt a déjà écrit deux fois
+  //     qu'un compteur sans dénominateur est un compteur qui ment.
+  //   · `freezer_claimed_without_one` — le modèle a-t-il inventé un appareil ?
+  //     C'est une NON-CONFORMITÉ, pas une mesure d'adoption, et la confondre
+  //     avec la première ferait passer une invention pour une obéissance.
+  //
+  // ⚠️ ILS SORTENT MÊME À ZÉRO SUR LE NUMÉRATEUR, tant qu'il y a un
+  // dénominateur: `0/14` dit « le champ existe et personne ne l'écrit », ce qui
+  // est le signal qui dira, en production, s'il faut corriger le PROMPT plutôt
+  // que le parseur. Se taire à zéro rendrait un lot débranché indiscernable
+  // d'un lot que le modèle n'utilise pas.
+  if (keptTotal > 0) {
+    issues.push(`uses_kept_freezer: ${keptDeclared}/${keptTotal}`);
+  }
+  if (freezerWithoutOne > 0) {
+    issues.push(
+      `freezer_claimed_without_one: ${freezerWithoutOne}/${freezerClaimLinks} ` +
+        `batch links -- kept on the ${MAX_FRIDGE_DAYS}-day fridge window`,
+    );
+  }
+
   const boxCounts = clean
     ? {
       meals: boxedMeals.length,
@@ -7001,6 +8312,8 @@ export function parseGeneratedMeal(
       mouths_unboxed: boxMouthsUnboxed,
       mouths_double: boxMouthsDouble,
       mouths_double_model: onePerMouth.mouthsFixed,
+      cells_no_box: cellsNoBox.size,
+      mouths_no_box_cell: cellsNoBox.size * boxMembers.size,
     }
     : {
       meals: 0,
@@ -7027,6 +8340,8 @@ export function parseGeneratedMeal(
       mouths_unboxed: 0,
       mouths_double: 0,
       mouths_double_model: 0,
+      cells_no_box: 0,
+      mouths_no_box_cell: 0,
     };
 
   // ⛔ DÉTERMINISTE, LU SUR LA SORTIE FINALE. `amount` est déjà structuré depuis
@@ -7052,9 +8367,11 @@ export function parseGeneratedMeal(
     rejected_numeric: rejectedNumeric,
     rejected_aisles: rejectedAisles,
     empty_slots: emptySlots,
+    session_overruns: clean ? sessionOverruns : [],
     same_day_counts: sameDayCounts,
     dish_owner_counts: dishOwnerCounts,
     name_counts: nameCounts,
+    protein_sources: proteinSourceCounts,
     box_counts: boxCounts,
     // ⚠️ RENDUS HORS DE `clean`, ET C'EST DÉLIBÉRÉ — contrairement à
     // `box_counts`. Quand le verrou de sortie a vidé le plan, `boxes: 0` est
@@ -7065,6 +8382,11 @@ export function parseGeneratedMeal(
     // compteur muet précisément le jour où on le consulte.
     fridge_window: fridgeWindow,
     regime_belt: regimeBelt,
+    // ⛔ RENDU, PAS SEULEMENT COMPTÉ. Une ceinture dont les nombres ne sortent
+    // pas du parseur est indiscernable d'une ceinture absente — et celle-ci
+    // existe précisément parce qu'une exclusion inerte ressemblait trait pour
+    // trait à une exclusion honorée.
+    exclusion_belt: exclusionBelt,
     regime_refusals: [...regimeRefusedByPreparation.entries()].map((
       [preparation_id, ids],
     ) => ({ preparation_id, member_ids: [...ids] })),
@@ -7166,6 +8488,13 @@ export function mealDishesPayload(meal: GeneratedMeal): Array<Record<string, unk
     uses: d.uses.map((u) => ({
       preparation_id: u.preparationId,
       servings: u.servings,
+      // ⚠️ ÉCRIT MÊME QUAND IL VAUT `"fridge"`, comme `boxes: []` trois clés
+      // plus bas et pour la même raison: une clé absente ne se distingue pas
+      // d'un lot débranché. `"fridge"` DIT « cette part a attendu au frigo ».
+      //
+      // Et c'est ce que l'écran lit pour poser « à sortir la veille »: sans la
+      // clé en base, la garde passerait et la cuisine ne suivrait pas.
+      kept: u.kept,
     })),
     // ── LES CONTENANTS DU REPAS, ÉCRITS MÊME VIDES ───────────────────────
     //
@@ -7263,5 +8592,24 @@ export function mealShoppingPayload(meal: GeneratedMeal): Array<Record<string, u
     // partageable sans compte. Aucune de ces surfaces n'a le référentiel; le
     // résoudre chez chacune serait le jumeau que `grocery_waves.ts` a tué.
     food_group: s.food_group,
+    // ══════════════════════════════════════════════════════════════════════
+    // LA DATE D'ACHAT PART AVEC LA LIGNE — 2026-09-01
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ LE DÉFAUT QU'ELLE FERME, MESURÉ SUR 10 PLANS LE 2026-08-23 ET
+    // RAPPORTÉ PAR L'UTILISATEUR LE 2026-09-01: `shopping_list[]` ne portait
+    // NI jour NI date. Le calcul des vagues existait, il était juste, et il
+    // tournait UNIQUEMENT dans un panneau d'écran replié — donc la question
+    // « quand j'achète ça ? » n'avait aucune réponse dans le produit, et la
+    // personne achetait tout le premier jour. C'est comme ça qu'un poulet
+    // acheté lundi finit cuisiné samedi.
+    //
+    // ⚠️ ELLE EST CALCULÉE PAR `grocery_waves.ts`, JAMAIS ICI. Ce champ est le
+    // TRANSPORT d'une décision prise ailleurs; une seconde arithmétique de la
+    // date à cet endroit serait le jumeau que ce module a déjà tué une fois.
+    //
+    // `null` sur un plan dont la fenêtre est inconnue, ou dont l'article n'a
+    // pas pu être routé: l'écran retombe alors sur la liste plate d'avant.
+    buy_on: s.buy_on ?? null,
   }));
 }

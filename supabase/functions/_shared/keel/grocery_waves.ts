@@ -110,18 +110,42 @@ export interface WaveItem {
    * ⟳ LOT `L0-a` — LE GROUPE D'ALIMENT DE CET ARTICLE, quand on a su le
    * résoudre. C'est lui qui porte la FENÊTRE CRUE, donc la date d'achat.
    *
-   * ⚠️ FACULTATIF, ET C'EST UNE EXCEPTION ASSUMÉE à la règle « un paramètre de
-   * garde optionnel est une garde désarmée ». Ce n'est pas un paramètre de
-   * garde: c'est une DONNÉE portée par la ligne du plan. Les 181 plans déjà
-   * écrits ne l'ont pas, et rien ne peut la leur donner rétroactivement. Le
-   * repli est donc explicite (`MAX_FRIDGE_DAYS`, le comportement d'avant) et
-   * il est COMPTÉ par `rawWindowCounts` — l'abstention se compte, elle ne se
-   * déguise pas en résolution.
+   * ══════════════════════════════════════════════════════════════════════════
+   * ⛔ REQUIS, `string | null`, JAMAIS `T?` — L'EXCEPTION EST RETIRÉE (2026-08-23)
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * Ce champ a été FACULTATIF, et l'argument était bon sur le papier: « ce
+   * n'est pas un paramètre de garde, c'est une DONNÉE; les plans déjà écrits ne
+   * l'ont pas; le repli est explicite et il est COMPTÉ par `rawWindowCounts` ».
+   *
+   * ── CE QUE ÇA A COÛTÉ, MESURÉ SUR 10 PLANS RÉELS LE 2026-08-23 ────────────
+   * `WaveItem` est satisfait STRUCTURELLEMENT. Avec un `?`, tout appelant qui
+   * oublie la clé compile — et **deux l'oubliaient**, dans les deux sens du
+   * produit:
+   *
+   *   · `frontend/src/keel/api/mealGeneration.ts :: readShopping` ne recopiait
+   *     que `term`, `quantity`, `aisle`. Tous les articles retombaient donc sur
+   *     `MAX_FRIDGE_DAYS`, il n'y avait plus qu'UNE vague, et
+   *     `wavesAreMeaningful` la MASQUAIT. Sur 10 plans sur 10, aucune date
+   *     d'achat n'atteignait l'écran: la liste de courses ne portait aucun jour.
+   *   · `_shared/keel/evening_strip_io.ts` construisait `{term, aisle}` depuis
+   *     la ligne en base — la même perte, sur la bande du soir.
+   *
+   * Et `rawWindowCounts`, le compteur censé rendre l'abstention visible, n'a
+   * jamais été regardé: il compte ce qu'on lui donne, et on ne lui donnait rien.
+   * Un compteur d'abstention ne remplace pas un type qui oblige à décider.
+   *
+   * ⚠️ `null` RESTE UNE VALEUR PLEINE, et c'est ce qui préserve l'argument
+   * d'origine: elle dit « cette ligne n'a pas de groupe » (les plans d'avant
+   * `L0-a`, qu'aucune migration ne peut réparer), le repli `MAX_FRIDGE_DAYS`
+   * s'applique exactement comme avant, et `rawWindowCounts` la compte toujours.
+   * Ce qui change est qu'un appelant ne peut plus se TAIRE: il doit écrire
+   * `null` s'il ne sait pas, et ce mot-là se relit.
    *
    * Nommé comme la clé JSON persistée (`food_group`), pour la même raison que
    * `term` et `aisle`: l'écran passe la ligne de base telle quelle.
    */
-  food_group?: string | null;
+  food_group: string | null;
 }
 
 /** Une préparation, réduite à ce dont ce module a besoin. */
@@ -169,8 +193,42 @@ export interface GroceryWave<T extends WaveItem = WaveItem> {
    * quand elle ne porte que de l'épicerie. Sert la phrase de l'écran
    * (« pour la cuisson de jeudi ») — sans elle, une seconde vague ressemble à
    * une corvée arbitraire.
+   *
+   * ⚠️ **CE CHAMP EST UNE PHRASE, PAS UNE DÉCISION.** Il n'en porte qu'UNE, et
+   * il vaut `null` sur toute vague du premier jour. Fonder un décalage ou une
+   * invalidation dessus laisse des cuissons sans ingrédients — voir
+   * `servesCookDates` juste en dessous, et FF-061 §5.
    */
   servesCookOn: string | null;
+  /**
+   * ⛔ TOUTES LES CUISSONS QUE CETTE VAGUE SERT — c'est CELUI-CI qui décide.
+   *
+   * ── LE DÉFAUT QUE CE CHAMP FERME, ET IL ÉTAIT DOUBLE ────────────────────
+   * Une vague est un PAQUET D'ARTICLES QUI TOMBENT LE MÊME JOUR D'ACHAT. Le
+   * `buyOn` se calcule PAR ARTICLE (`cuisson la plus précoce qui le consomme`
+   * moins `la fenêtre de fraîcheur de son groupe`), donc rien n'empêche deux
+   * articles d'une même vague de servir DEUX cuissons différentes.
+   *
+   * `servesCookOn` n'en nommait qu'une, et deux conséquences en découlaient:
+   *
+   *   1. **une vague qui sert mardi ET vendredi n'annonçait que mardi.** Un
+   *      décalage fondé dessus laissait vendredi sans ingrédients, sans qu'une
+   *      seule erreur ne se lève;
+   *   2. **la première vague ne servait JAMAIS rien.** `serves` n'était posé
+   *      que si `buyOn > startsOn` — donc toute vague datée du premier jour du
+   *      plan portait `null`, et `shiftProposalAfterShoppingLater` rendait
+   *      `null` dans ce cas. Rater la grosse course de début de plan — le cas
+   *      le plus fréquent de tous — ne proposait **rien du tout**.
+   *
+   * Ce tableau n'a pas la condition `buyOn > startsOn`: une vague du premier
+   * jour sert bel et bien des cuissons, et c'est précisément ce qu'on veut
+   * savoir quand elle est ratée.
+   *
+   * Trié, dédoublonné, et VIDE quand la vague ne porte que de l'épicerie non
+   * périssable — un tableau vide dit « rien ne dépend de cette vague », ce qui
+   * est une réponse.
+   */
+  servesCookDates: string[];
 }
 
 /** Normalisation minimale pour rapprocher un terme de liste d'un ingrédient. */
@@ -230,7 +288,10 @@ export function planGroceryWaves<T extends WaveItem>(args: {
     }
   }
 
-  const byDate = new Map<string, { items: T[]; serves: string | null }>();
+  const byDate = new Map<
+    string,
+    { items: T[]; serves: string | null; all: Set<string> }
+  >();
 
   for (const item of shoppingList) {
     const cookDate = earliestCook.get(normalize(item.term)) ?? null;
@@ -256,10 +317,18 @@ export function planGroceryWaves<T extends WaveItem>(args: {
       if (buyOn > startsOn) serves = cookDate;
     }
 
-    const bucket = byDate.get(buyOn) ?? { items: [] as T[], serves: null };
+    const bucket = byDate.get(buyOn) ??
+      { items: [] as T[], serves: null, all: new Set<string>() };
     bucket.items.push(item);
-    // La vague annonce la cuisson la plus PROCHE qu'elle sert.
+    // La vague ANNONCE la cuisson la plus PROCHE qu'elle sert (la phrase).
     if (serves && (!bucket.serves || serves < bucket.serves)) bucket.serves = serves;
+    // ⛔ ET ELLE RETIENT TOUTES CELLES QU'ELLE SERT (la décision).
+    //
+    // `cookDate` et pas `serves`: `serves` est nul sur la première vague par
+    // construction (`buyOn > startsOn`), et c'est exactement le cas qu'on
+    // cherche à ne plus perdre. Un article périssable dont la cuisson est
+    // connue compte, quelle que soit la date d'achat.
+    if (perishable && cookDate) bucket.all.add(cookDate);
     byDate.set(buyOn, bucket);
   }
 
@@ -269,6 +338,10 @@ export function planGroceryWaves<T extends WaveItem>(args: {
       buyOn,
       items: bucket.items,
       servesCookOn: bucket.serves,
+      // Trié: l'ordre d'itération d'un `Set` suit l'insertion, c'est-à-dire
+      // l'ordre de la liste de courses. Un appelant qui prend « la première »
+      // prendrait alors un article, pas une date.
+      servesCookDates: [...bucket.all].sort(),
     }));
 }
 
@@ -307,8 +380,16 @@ export function waveItemCount(waves: readonly GroceryWave<WaveItem>[]): number {
  *
  * C'est une règle de PRODUIT, pas de rendu — un PDF a exactement la même
  * question à se poser — donc elle vit ici avec le calcul.
+ *
+ * ⚠️ ELLE NE LIT QUE LA LONGUEUR, ET SON TYPE LE DIT MAINTENANT.
+ *
+ * Elle exigeait un `GroceryWave` complet, ce qui obligeait chaque appelant à
+ * FABRIQUER une vague entière pour poser une question de comptage — et le jour
+ * où le type a gagné un champ (`servesCookDates`), trois appelants ont cassé
+ * pour un champ qu'aucun d'eux ne lit. Un paramètre plus large que le besoin
+ * fait porter à ses appelants le coût des évolutions du type.
  */
-export function wavesAreMeaningful(waves: readonly GroceryWave<WaveItem>[]): boolean {
+export function wavesAreMeaningful(waves: { readonly length: number }): boolean {
   return waves.length > 1;
 }
 
@@ -358,4 +439,47 @@ export function waveAssignments<T extends WaveItem>(args: {
       return pool && pool.length > 0 ? pool.shift()! : -1;
     }).filter((i) => i >= 0),
   }));
+}
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * LA DATE D'ACHAT DE CHAQUE LIGNE, DANS L'ORDRE DE LA LISTE — 2026-09-01.
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * ── POURQUOI CETTE TROISIÈME FORME ────────────────────────────────────────
+ * `planGroceryWaves` rend des paquets, `waveAssignments` rend des index par
+ * paquet. Les deux servent un ÉCRAN qui regroupe. Ce qu'il manquait est la
+ * forme que veut un ÉCRIVAIN: une date par ligne, alignée sur la liste
+ * d'origine, pour la poser sur `shopping_list[].buy_on` et qu'elle voyage avec
+ * la ligne — écran, PDF du frigo, liste partageable, bande du soir.
+ *
+ * ⛔ AUCUNE RÈGLE NEUVE ICI. Elle APPELLE `waveAssignments`, qui est la seule
+ * définition. Recalculer la date à partir de `rawWindowDaysFor` serait le
+ * jumeau que l'en-tête de ce fichier a tué une fois, ressuscité une ligne plus
+ * bas.
+ *
+ * ── LE DÉFAUT QUE ÇA FERME, RAPPORTÉ SUR UN PLAN RÉEL LE 2026-09-01 ───────
+ *     « ça me disait de cuisiner le poulet acheté le lundi, le samedi »
+ * Le calcul était juste et il ne sortait nulle part: il ne tournait que dans un
+ * panneau replié, et seulement quand il produisait DEUX vagues
+ * (`wavesAreMeaningful`). Une liste sans date se lit « achète tout maintenant ».
+ *
+ * ⚠️ `null` QUAND ON N'A PAS SU DATER — fenêtre illisible, liste vide, ou
+ * article hors de toute vague. C'est une valeur pleine: l'appelant écrit `null`
+ * et l'écran retombe sur la liste plate d'avant, plutôt que d'afficher une date
+ * inventée.
+ */
+export function buyDatesByIndex<T extends WaveItem>(args: {
+  startsOn: string;
+  durationDays: number;
+  shoppingList: readonly T[];
+  preparations: readonly WavePreparation[];
+}): (string | null)[] {
+  const out: (string | null)[] = args.shoppingList.map(() => null);
+  for (const wave of waveAssignments(args)) {
+    for (const index of wave.indices) {
+      if (index >= 0 && index < out.length) out[index] = wave.buyOn;
+    }
+  }
+  return out;
 }

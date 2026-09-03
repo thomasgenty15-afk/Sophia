@@ -30,8 +30,26 @@ type Db = { from(table: string): any };
 
 export const BODY_MEASURES_TABLE = "student_body_measures";
 
-/** Le geste d'où vient la mesure. Liste fermée, celle du CHECK SQL. */
-export type BodyMeasureSource = "sunday_flow" | "plan_card" | "chat";
+/**
+ * Le geste d'où vient la mesure. Liste fermée, celle du CHECK SQL.
+ *
+ * ⚠️ ELLE AVAIT UN TRAIN DE RETARD, ET IL EST RATTRAPÉ ICI. `setup`
+ * (20260813090000) est acceptée par la base depuis le 2026-08-13 et manquait
+ * dans ce type — sans conséquence jusqu'ici parce que son unique écrivain est
+ * le FRONT (`api/onboarding.ts`), qui écrit dans PostgREST sans passer par ce
+ * module. Un écrivain Deno qui aurait voulu s'en servir se serait heurté à un
+ * type qui refuse une valeur que la base accepte, ce qui est le sens inverse
+ * de la garde qu'on veut.
+ *
+ * `weigh_in` (FF-062 C2, 20260902090000) est la cinquième, et celle-là a bien
+ * un écrivain Deno.
+ */
+export type BodyMeasureSource =
+  | "sunday_flow"
+  | "plan_card"
+  | "chat"
+  | "setup"
+  | "weigh_in";
 
 export interface BodyMeasureWrite {
   userId: string;

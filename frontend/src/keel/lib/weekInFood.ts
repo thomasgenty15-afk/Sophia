@@ -52,7 +52,14 @@ export interface FoodEventRow {
    */
   plan_relation?: string | null;
   recognized: {
-    detected_foods?: Array<{ label?: string | null }> | null;
+    /**
+     * `label` est le nom ANGLAIS (un matcher serveur le lit);
+     * `label_localized` est le nom dans la langue de l'élève, absent sur toute
+     * ligne analysée avant `meal_analysis.v4`.
+     */
+    detected_foods?: Array<
+      { label?: string | null; label_localized?: string | null }
+    > | null;
     food_groups_present?: string[] | null;
   } | null;
 }
@@ -228,22 +235,32 @@ export function aggregateWeekInFood(
     .sort((a, b) => b.count - a.count || a.group.localeCompare(b.group));
 
   // Aliments détectés : compte sur libellé normalisé, tri déterministe.
+  //
+  // ⚠️ ON COMPTE SUR `label`, ON AFFICHE `label_localized`. Compter sur le
+  // localisé ferait deux compteurs pour un seul aliment — les lignes d'avant
+  // `meal_analysis.v4` n'en portent pas, et rien ne les réécrit (ce sont des
+  // lectures faites à une date, pas des données à normaliser). La clé reste
+  // donc l'anglais, stable sur toute l'histoire de la table; le nom affiché est
+  // le dernier localisé rencontré pour cette clé, et l'anglais à défaut.
   const foodCounts = new Map<string, number>();
+  const foodDisplay = new Map<string, string>();
   for (const row of rows) {
     for (const f of row.recognized?.detected_foods ?? []) {
       const norm = String(f?.label ?? "").trim().toLowerCase();
       if (!norm) continue;
       foodCounts.set(norm, (foodCounts.get(norm) ?? 0) + 1);
+      const localized = String(f?.label_localized ?? "").trim();
+      if (localized) foodDisplay.set(norm, localized);
     }
   }
   const topFoods = [...foodCounts.entries()]
     .filter(([, n]) => n >= 2)
     .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
     .slice(0, 6)
-    .map(([label, count]) => ({
-      label: label.charAt(0).toUpperCase() + label.slice(1),
-      count,
-    }));
+    .map(([key, count]) => {
+      const label = foodDisplay.get(key) ?? key;
+      return { label: label.charAt(0).toUpperCase() + label.slice(1), count };
+    });
 
   const dinners = rows.filter((r) => (r.slot_key ?? "") === "dinner");
   const dinnerLarge = dinners.length === 0 ? null : {

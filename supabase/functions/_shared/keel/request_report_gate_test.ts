@@ -43,7 +43,11 @@ const PARSE_ARGS = {
   // lot — mais il est nommé, et le rapport du LOT 4 le porte.
   boxMemberIds: [],
   weighedMemberIds: [],
+  kitchenEquipment: null,
+  cookOnlyDay: null,
+  soloBoxes: false,
   boxMemberDiets: [],
+  boxMemberExclusions: [],
 } as never;
 
 const DISHES: ReportableDish[] = [

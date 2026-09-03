@@ -286,7 +286,8 @@ Et ZÉRO foyer est traité
 - **Geler la consultation en même temps que la production.** Effacer ou couper
   à l'impayé détruit soi-même la seule chose qui fait revenir (R12).
 - **La marge, qui s'use par le quotidien.** La recommandation quotidienne
-  (FF-028) ajoute ~30 appels LLM par mois et par foyer ;
+  (FF-028) ajoutait ~30 appels LLM par mois et par foyer — ⚠️ **caduc depuis le
+  2026-09-01**, FF-028 est abandonnée : ce coût disparaît du calcul ;
   [FF-047](FF-047-le-corps-dans-la-part-du-foyer.md) ajoute 7 lectures par
   bouche avec compte et par génération. La marge de ~10 € tient probablement —
   mais c'est le **quotidien** qui s'accumule en silence, pas la génération

@@ -40,6 +40,11 @@ import {
   type SteeringEntry,
 } from "./composition_steering.ts";
 import {
+  portionFactorFor,
+  portionIndexFor,
+  portionIndexMoves,
+} from "./feedback_index.ts";
+import {
   HOUSEHOLD_SUBJECT,
   type PortionAdjustItem,
   type PortionAdjustMember,
@@ -674,6 +679,26 @@ export type PortionAdjustFor = {
  * faux au niveau du foyer. Le constat d'exclusion, c'est
  * `portionAdjustExclusionFacts` (1C), calculé sur le VRAI roster.
  */
+/**
+ * ⚠️ PLUS AUCUN APPELANT DE PRODUCTION DEPUIS LE 2026-09-01 — nommé, pas
+ * supprimé.
+ *
+ * Le lot M3 lui a retiré son seul rôle: `applyPortionAdjust` se règle
+ * désormais sur une POSITION (`portionIndexFor`), pas sur le dernier
+ * ajustement. Il est resté vivant six jours de plus parce que les DEUX
+ * compteurs de génération l'appelaient encore, en affirmant dans leur
+ * commentaire être « le MÊME arbitre que celui qu'`envelopeFor` applique ».
+ * Ils ne l'étaient plus: c'est ainsi qu'un arbitre mort continue de rendre des
+ * verdicts, dans des nombres que personne ne recoupe.
+ *
+ * ⛔ NE LE REBRANCHE PAS « PAR SYMÉTRIE ». Si un besoin de « le dernier gagne »
+ * réapparaît, il faut d'abord dire pourquoi la position ne convient pas — le
+ * défaut que M3 ferme (« elle redit "un peu trop" du plan corrigé et on lui
+ * redonne le même −5 % ») revient avec lui.
+ *
+ * Gardé pour l'instant parce qu'il est encore l'objet de tests qui décrivent la
+ * règle d'avant M3, et que sa suppression est une décision à part.
+ */
 export function winningPortionAdjust(
   portion: PortionAdjustFor | null,
 ): PortionAdjustValue | null {
@@ -745,27 +770,54 @@ function applyPortionAdjust(
   energyFloorKcal: number | null,
 ): Envelope {
   if (envelope.mode === "per_portion") return envelope;
-  const value = winningPortionAdjust(portion);
-  if (value === null) return envelope;
-  // Pas de bande (taille inconnue, ou axe `energy` éteint par le coach): il n'y
-  // a pas de grandeur à déplacer, et en fabriquer une serait rendre au pilotage
-  // ce qu'il vient d'éteindre.
+  // ── LOT M3 · UNE POSITION QUI CONVERGE, PLUS LE DERNIER MOT ──────────────
+  //
+  // ⛔ CE N'EST PAS LE CUMUL QUE LE BLOC DE `winningPortionAdjust` REFUSE, et
+  // il faut le lire avant celui-ci. Ce refus porte sur des FACTEURS QUI SE
+  // COMPOSENT (×0,9 × 0,9 × 0,9 = ×0,729, « personne n'a demandé −27 % »), et
+  // il est juste. Ici rien ne se multiplie: on accumule des CRANS sur une
+  // échelle bornée, et le facteur sort de la position finale en UNE opération.
+  //
+  // ⛔ ET LA BORNE N'EST PAS FABRIQUÉE — c'est la condition de cette réponse.
+  // `INDEX_MAX × PORTION_ADJUST_STEP.slight` = 2 × 0,05 = 0,10, c'est-à-dire
+  // EXACTEMENT `PORTION_ADJUST_STEP.clear`: le pire cas que ce module servait
+  // déjà. L'indice n'atteint donc rien de neuf; il rend le chemin PROGRESSIF
+  // et RÉVERSIBLE au lieu d'un saut suivi d'un oubli.
+  //
+  // ── LE DÉFAUT FERMÉ ─────────────────────────────────────────────────────
+  // « Le dernier gagne » est SANS ÉTAT: la personne dit « un peu trop », le
+  // plan suivant est composé à −5 %, elle redit « un peu trop » DU PLAN
+  // CORRIGÉ, et on lui redonne le même −5 %. Elle n'avance jamais.
+  const index = portion === null ? null : portionIndexFor({
+    mouth: portion.mouth,
+    items: portion.items ?? [],
+  });
+  // ⛔ PAR LE PRÉDICAT, PAS EN CLAIR: c'est la MÊME ligne que lisent les deux
+  // compteurs de génération. Écrite ici en clair, elle a divergé d'eux sans que
+  // rien ne rougisse — ils sont restés sur `winningPortionAdjust`.
+  if (!portionIndexMoves(index)) {
+    return envelope;
+  }
+  // ⚠️ SOUS PLANCHER TCA, ON N'ARRIVE PAS ICI: `envelopeFor` rend
+  // `DEGRADED_ENVELOPE` (mode `per_portion`) avant tout calcul, et le `return`
+  // en tête de cette fonction le redit. La question des portions est retirée à
+  // ces personnes (`RESTRICTED_OUT`), donc aucun `portion.adjust` n'existe —
+  // mais la garde ne repose PAS sur cette absence.
   if (envelope.energy === null) return envelope;
 
-  const step = PORTION_ADJUST_STEP[value.magnitude];
-  if (value.direction === "up") {
+  const factor = portionFactorFor(index, PORTION_ADJUST_STEP.slight);
+  if (factor >= 1) {
     // ── À LA HAUSSE, AUCUN PLAFOND N'EST AJOUTÉ ICI, ET C'EST DIT ────────
     // Aucune ceinture haute n'existe dans ce module: `surplus_style:
     // "aggressive"` dépasse DÉJÀ `MAX_SURPLUS_FRACTION` (1,10 × 1,05). En
     // poser une ici en ferait la première, sur le levier le moins grave —
     // « surestimer un besoin ferait servir plus que nécessaire, direction
-    // d'erreur bien moins grave que l'inverse » est écrit trois fois dans ce
-    // fichier, et le socle le redit (« À LA HAUSSE, personne n'est retiré »).
+    // d'erreur bien moins grave que l'inverse ».
     return {
       ...envelope,
       energy: {
-        low: Math.round(envelope.energy.low * (1 + step)),
-        high: Math.round(envelope.energy.high * (1 + step)),
+        low: Math.round(envelope.energy.low * factor),
+        high: Math.round(envelope.energy.high * factor),
       },
     };
   }
@@ -776,8 +828,8 @@ function applyPortionAdjust(
   // d'un côté n'est pas un plafond ». N'écrêter que le bas laisserait un
   // `down` déplacer le haut sur un corps déjà au plancher — c'est-à-dire lui
   // retirer quelque chose, ce que ce lot existe pour empêcher.
-  const low = Math.max(energyFloorKcal, Math.round(envelope.energy.low * (1 - step)));
-  const high = Math.max(energyFloorKcal, Math.round(envelope.energy.high * (1 - step)));
+  const low = Math.max(energyFloorKcal, Math.round(envelope.energy.low * factor));
+  const high = Math.max(energyFloorKcal, Math.round(envelope.energy.high * factor));
   return { ...envelope, energy: { low, high: Math.max(high, low) } };
 }
 

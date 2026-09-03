@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Identifiant** | `FF-056-la-divergence-constatee` |
-| **Statut** | 🟡 Spécifiée |
+| **Statut** | 🟡 Spécifiée — ⚠️ **à rendre AUTONOME (2026-09-01)** : elle voyage aujourd'hui comme passager de `keel-daily-recommendation-v1`, qui est abandonnée ([FF-028](FF-028-la-recommandation-quotidienne.md)). Elle doit avoir son propre cron, sa propre fenêtre et son propre plafond — **une fois par mois maximum, et seulement quand la divergence est constatée** ([FF-062](FF-062-quand-sophia-parle-la-premiere.md) C6/R9) |
 | **Date** | 2026-08-11 |
 | **Autorité produit** | [README du domaine](README.md) (T1–T9) · [CONTRACT.md](../../keel/CONTRACT.md) (jamais de kcal) · [FF-021](FF-021-le-plancher-de-restriction-alimentaire.md) |
 | **Dépend de** | [FF-008](FF-008-le-poids-annonce.md) + [FF-031](../suivi-quotidien/FF-031-mesures-corporelles-datees.md) (la série de poids) · `_shared/keel/daily_ask_budget.ts` (le budget T4) · [FF-028](FF-028-la-recommandation-quotidienne.md) (le canal des directives durables) · [FF-054](../composition-des-repas/FF-054-le-retour-de-fin-de-plan.md) (le moment à ne pas concurrencer) |

@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Identifiant** | `FF-038-le-referentiel-de-composition` |
-| **Statut** | 🟠 En cours |
+| **Statut** | 🟢 **Livrée et câblée** — vérifié dans le code le 2026-09-01 : `_shared/keel/food_composition.ts` (1 403 l., 61 tests) a **17 appelants**, dont les deux générateurs, `plan_energy.ts` et `meal_generation.ts`. ⚠️ Un « hors périmètre » de cette fiche est **renversé** par [FF-059](FF-059-le-chiffre-affiche.md) — voir §3 |
 | **Date** | 2026-08-10 |
 | **Autorité produit** | [MODEL.md](../../keel/MODEL.md) · [CONTRACT.md](../../keel/CONTRACT.md) · [LEGAL.md](../../keel/LEGAL.md) (hygiène des tables neuves) · design d'origine : `scratchpad/DESIGN-UNITES-DE-COMPOSITION.md` (§2.1, §6 étapes 2-3) |
 | **Dépend de** | `tokens.ts` (`FOOD_GROUP_REFS`) · `food_items.ts` (`count_axis`, `typical_amount`) · `forbidden_matcher.ts` (`normalizeForMatch`) · `meal_generation.ts` (`DishIngredient`, `buildMealPrompt`, `parseGeneratedMeal`) · FF-037 |
@@ -92,9 +92,17 @@ l'aveugle en promettant qu'il compose selon une méthode.
 
 ### Hors périmètre — engageant
 
-- ❌ **Aucun chiffre affiché, nulle part.** Ni à l'élève, ni au coach, ni dans
-  un message d'erreur. Le référentiel est un instrument de mesure interne. La
-  sortie du produit reste ce qu'elle est : des recettes grammées.
+- ~~❌ **Aucun chiffre affiché, nulle part.** Ni à l'élève, ni au coach, ni dans
+  un message d'erreur. Le référentiel est un instrument de mesure interne.~~
+  **RENVERSÉ le 2026-08-12 par [FF-059](FF-059-le-chiffre-affiche.md)**, et
+  c'est ce référentiel-ci qui produit le chiffre affiché : `meals.energy.dish`
+  rend « {n} kcal » à l'élève derrière les quatre portes d'`energy_gate.ts`, et
+  `coach.student.numbers.maintenance_value` rend « {low}–{high} kcal/day » au
+  coach. La ligne est barrée plutôt que supprimée parce qu'elle décrit
+  exactement ce que cette fiche livrait, et qu'un lecteur qui la croit encore
+  planifiera contre le produit. **Ce qui reste vrai** : la sortie du produit
+  reste **des recettes grammées** — le chiffre s'y ajoute, il ne les remplace
+  pas, et il n'existe pas sans elles.
 - ❌ **Aucun vocabulaire fermé imposé au générateur.** On ne lui donne pas la
   liste des aliments qu'il a le droit d'écrire. Coût mesuré et documenté par le
   design (§8) : 1 à 3k tokens par génération, couplage prompt↔table de données,

@@ -153,7 +153,7 @@ const MOUTH: AnchorMouth = {
   paceKgPerWeek: null,
   conditionRefs: [],
   declaredSlots: [],
-  structure: null,
+  slotExtraKcal: null,
 };
 
 Deno.test("`anchorFactorFor` sort `common_pot_day` sur un bac, `no_delivery` sinon", () => {

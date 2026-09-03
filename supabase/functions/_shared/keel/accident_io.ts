@@ -33,6 +33,7 @@ import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
 import {
   type AccidentPlan,
   cascadeSkippedSession,
+  cascadeSkippedWave,
   type DoneWave,
   MAX_FRIDGE_DAYS,
   parseAccidentPlan,
@@ -418,7 +419,7 @@ export async function loadSkippedDishIndexes(
   admin: SupabaseClient,
   args: { userId: string; plan: AccidentPlan },
 ): Promise<number[]> {
-  const [states, ticked] = await Promise.all([
+  const [states, ticked, missedWaves] = await Promise.all([
     loadSessionStates(admin, {
       userId: args.userId,
       mealId: args.plan.mealId,
@@ -427,12 +428,15 @@ export async function loadSkippedDishIndexes(
       userId: args.userId,
       mealId: args.plan.mealId,
     }),
+    loadMissedWaveBuyOns(admin, {
+      userId: args.userId,
+      mealId: args.plan.mealId,
+    }),
   ]);
-  const skipped = states.filter((s) => !s.happened);
-  if (skipped.length === 0) return [];
 
   const out = new Set<number>();
-  for (const state of skipped) {
+
+  for (const state of states.filter((s) => !s.happened)) {
     const cascade = cascadeSkippedSession({
       plan: args.plan,
       cookOn: state.cookOn,
@@ -440,7 +444,61 @@ export async function loadSkippedDishIndexes(
     });
     for (const i of cascade.invalidatedDishIndexes) out.add(i);
   }
+
+  // ── FF-061 R6 — LA VAGUE RATÉE INVALIDE AUSSI ──────────────────────────
+  if (missedWaves.length > 0) {
+    // ⚠️ `servesCookDates`, JAMAIS `servesCookOn`. Ce dernier ne porte qu'une
+    // cuisson et vaut `null` sur toute vague du premier jour — le motif complet
+    // est sur le champ dans `grocery_waves.ts`.
+    const waves = planGroceryWavesForPlan(args.plan);
+    for (const buyOn of missedWaves) {
+      const wave = waves.find((w) => w.buyOn === buyOn);
+      if (!wave || wave.servesCookDates.length === 0) continue;
+      const cascade = cascadeSkippedWave({
+        plan: args.plan,
+        cookDates: wave.servesCookDates,
+        tickedDishIndexes: ticked,
+      });
+      for (const i of cascade.invalidatedDishIndexes) out.add(i);
+    }
+  }
+
   return [...out].sort((a, b) => a - b);
+}
+
+/**
+ * LES VAGUES DÉCLARÉES NON FAITES. Jumelle exacte de `loadDoneWaves`.
+ *
+ * FAIL-OPEN, et c'est l'INVERSE de sa jumelle: une lecture en panne rend « on
+ * ne sait pas », donc aucune invalidation. Le pire cas est un plan qui annonce
+ * un plat de trop; celui de l'inverse serait un plan qui s'efface tout seul
+ * pour une panne de Postgres — ce que ce dépôt appelle « effacer du réel », et
+ * qui est pire que le mensonge qu'on cherche à corriger.
+ */
+export async function loadMissedWaveBuyOns(
+  admin: SupabaseClient,
+  args: { userId: string; mealId: string },
+): Promise<string[]> {
+  const { data, error } = await admin
+    .from(GROCERY_WAVE_STATE_TABLE)
+    .select("buy_on")
+    .eq("user_id", args.userId)
+    .eq("generated_meal_id", args.mealId)
+    .eq("done", false);
+  if (error) {
+    console.warn(JSON.stringify({
+      tag: "keel.accident.missed_waves_unreadable",
+      user_id: args.userId,
+      meal_id: args.mealId,
+      error: error.message,
+      effect: "fail-open: aucun plat invalide par une vague ce tour-ci",
+    }));
+    return [];
+  }
+  const rows = (data ?? []) as Array<{ buy_on?: unknown }>;
+  return rows
+    .map((row) => String(row.buy_on ?? "").trim())
+    .filter((d: string) => d !== "");
 }
 
 /** Le glissement calculé pour cette session, depuis l'état RÉEL. */
@@ -452,6 +510,15 @@ export async function computeSessionShift(
     cookOn: string;
     /** REQUIS et passé — c'est ce qui rend le motif éprouvable par mutation. */
     maxFridgeDays?: number;
+    /**
+     * FF-061 R11 — le jour LOCAL de la personne. REQUIS.
+     *
+     * Une cuisson antérieure à ce jour ne se décale pas: on constate, on ne
+     * répare pas. Le motif complet est sur `SHIFT_REFUSALS.session_elapsed`.
+     */
+    today: string;
+    /** FF-061 R6ter — le décalage minimal, quand une VAGUE de courses bouge. */
+    minDelta?: number;
   },
 ): Promise<ShiftOutcome> {
   const [sessionStates, liveTicks, doneWaves] = await Promise.all([
@@ -462,6 +529,8 @@ export async function computeSessionShift(
   return planSessionShift({
     plan: args.plan,
     cookOn: args.cookOn,
+    today: args.today,
+    minDelta: args.minDelta,
     doneWaves,
     cookedPreparationIds: cookedPreparationIds({
       plan: args.plan,
@@ -702,6 +771,19 @@ export async function applyPlanShift(
     /** L'empreinte portée par la charge. */
     fingerprint: string;
     maxFridgeDays?: number;
+    /**
+     * FF-061 R11 — le jour LOCAL au moment du TAP. REQUIS.
+     *
+     * ⚠️ CELUI DU TAP, PAS CELUI DE LA PROPOSITION. Une proposition faite hier
+     * soir et tapée ce matin doit être re-jugée contre AUJOURD'HUI: la cuisson
+     * qu'elle décalait a pu devenir passée entre les deux, et l'appliquer
+     * poserait une date écoulée. Le recalcul complet est déjà la règle de cette
+     * fonction (« le delta est VÉRIFIÉ, jamais appliqué tel quel »); la borne
+     * du jour en fait partie.
+     */
+    today: string;
+    /** FF-061 R6ter — le décalage minimal, quand une VAGUE de courses bouge. */
+    minDelta?: number;
   },
 ): Promise<ShiftApplyOutcome> {
   const loaded = await loadAccidentPlan(admin, {
@@ -720,6 +802,8 @@ export async function applyPlanShift(
     plan: loaded.plan,
     cookOn: args.cookOn,
     maxFridgeDays: args.maxFridgeDays,
+    today: args.today,
+    minDelta: args.minDelta,
   });
   if (!recomputed.ok) {
     return {

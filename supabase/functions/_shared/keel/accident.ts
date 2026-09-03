@@ -402,6 +402,14 @@ export function parseAccidentPlan(
     : []).map((i) => ({
       term: String(i?.term ?? ""),
       aisle: String(i?.aisle ?? ""),
+      // ⟳ 2026-08-23 — TROISIÈME SITE QUI LAISSAIT TOMBER LE GROUPE, et le
+      // dernier: `WaveItem.food_group` est requis depuis, et c'est le
+      // compilateur qui a recensé les trois (ici, `evening_strip_io.ts`, et
+      // `readShopping` côté écran). Sans lui, la cascade d'accident replaçait
+      // toutes ses courses sur `MAX_FRIDGE_DAYS`.
+      food_group: i?.food_group === null || i?.food_group === undefined
+        ? null
+        : String(i.food_group),
     }));
 
   return {
@@ -592,6 +600,94 @@ export function cascadeSkippedSession(args: {
 }
 
 // ---------------------------------------------------------------------------
+// LA CASCADE D'UNE VAGUE DE COURSES — FF-061, la jumelle de la précédente
+// ---------------------------------------------------------------------------
+
+export interface WaveCascade {
+  /** Les cuissons que cette vague servait, triées. Vide = rien n'en dépend. */
+  cookDates: string[];
+  /** L'union des plats invalidés par toutes ces cuissons. Index triés. */
+  invalidatedDishIndexes: number[];
+  /** Ceux qui dépendaient d'une de ces cuissons mais portent une coche vivante. */
+  survivingTickedIndexes: number[];
+  /** Ceux écartés parce qu'ils se mangeaient avant leur cuisson. */
+  beforeCookIndexes: number[];
+}
+
+/**
+ * QUELS REPAS TOMBENT QUAND UNE VAGUE DE COURSES N'A PAS ÉTÉ FAITE.
+ *
+ * ── POURQUOI CETTE FONCTION EXISTE, ET CE QU'ELLE RÉPARE ──────────────────
+ * `cascadeSkippedSession` existait; son équivalent pour les COURSES n'existait
+ * pas. Le décalage existait, l'invalidation non — donc quand quelqu'un disait
+ * « je n'ai pas fait les courses » et refusait le décalage, **rien ne se
+ * passait**: le plan continuait d'annoncer une cuisson et des repas
+ * impossibles. FF-061 R6: « le plan doit dire la vérité même quand on ne le
+ * répare pas ».
+ *
+ * ── ELLE NE RÉINVENTE RIEN: ELLE COMPOSE ──────────────────────────────────
+ * Une vague ne connaît pas les plats. Elle connaît les CUISSONS qu'elle sert
+ * (`servesCookDates`), et une cuisson sait déjà quels plats en dépendent
+ * (`cascadeSkippedSession`). Cette fonction fait donc l'union des cascades de
+ * session, et **hérite gratuitement des quatre conditions de la précédente** —
+ * dont les deux qui comptent: un plat mangé AVANT la cuisson ne tombe pas, et
+ * une COCHE VIVANTE gagne toujours sur une déclaration.
+ *
+ * Écrire un second parcours du graphe ici aurait produit deux règles
+ * d'invalidation, et c'est celle qu'on regarde le moins qui aurait divergé.
+ *
+ * ⚠️ `cookDates` DOIT VENIR DE `servesCookDates`, JAMAIS DE `servesCookOn`.
+ * Ce dernier ne porte qu'une cuisson et vaut `null` sur toute vague du premier
+ * jour du plan — le motif complet est sur le champ lui-même.
+ *
+ * PURE: ni base, ni horloge, ni aléatoire.
+ */
+export function cascadeSkippedWave(args: {
+  plan: AccidentPlan;
+  /** Les cuissons servies par la vague ratée (`GroceryWave.servesCookDates`). */
+  cookDates: readonly string[];
+  /** Les index dont une coche est VIVANTE. REQUIS — voir la jumelle. */
+  tickedDishIndexes: readonly number[];
+}): WaveCascade {
+  const invalidated = new Set<number>();
+  const surviving = new Set<number>();
+  const beforeCook = new Set<number>();
+  const seen = new Set<string>();
+
+  for (const cookOn of args.cookDates) {
+    // Une date répétée ne double pas les index (les `Set` l'absorbent), mais
+    // elle coûte un parcours: on l'écarte au seuil.
+    if (seen.has(cookOn)) continue;
+    seen.add(cookOn);
+    const cascade = cascadeSkippedSession({
+      plan: args.plan,
+      cookOn,
+      tickedDishIndexes: args.tickedDishIndexes,
+    });
+    cascade.invalidatedDishIndexes.forEach((i) => invalidated.add(i));
+    cascade.survivingTickedIndexes.forEach((i) => surviving.add(i));
+    cascade.beforeCookIndexes.forEach((i) => beforeCook.add(i));
+  }
+
+  // ⚠️ UN PLAT NE PEUT PAS ÊTRE À LA FOIS INVALIDÉ ET SURVIVANT. Deux cuissons
+  // servies par la même vague peuvent le classer différemment — il dépend des
+  // deux, il est coché, donc il survit à l'une; il n'est pas coché sur l'autre.
+  // LA SURVIE GAGNE: la coche est un FAIT, et un fait ne s'annule pas parce
+  // qu'un second chemin l'ignorait. C'est la même règle que la condition 4 de
+  // la jumelle, appliquée à l'union.
+  for (const index of surviving) invalidated.delete(index);
+  for (const index of beforeCook) invalidated.delete(index);
+
+  const asc = (a: number, b: number) => a - b;
+  return {
+    cookDates: [...seen].sort(),
+    invalidatedDishIndexes: [...invalidated].sort(asc),
+    survivingTickedIndexes: [...surviving].sort(asc),
+    beforeCookIndexes: [...beforeCook].sort(asc),
+  };
+}
+
+// ---------------------------------------------------------------------------
 // LE GLISSEMENT — R13/R14: on déplace des dates, et on refuse avec un motif
 // ---------------------------------------------------------------------------
 
@@ -605,6 +701,22 @@ export const SHIFT_REFUSALS = [
   "already_cooked",
   /** Cette date ne porte aucune session — il n'y a rien à décaler. */
   "no_session",
+  /**
+   * FF-061 R11 — LA CUISSON EST DÉJÀ PASSÉE. On CONSTATE, on ne répare pas.
+   *
+   * ── LE DÉFAUT QUE CE MOTIF FERME ────────────────────────────────────────
+   * `planSessionShift` n'avait AUCUNE notion de « aujourd'hui », et n'en avait
+   * jamais eu besoin: la seule porte était le message du soir même, donc la
+   * cuisson interrogée était toujours celle du jour. Le rattrapage ouvre ce
+   * cas — déclarer un mercredi que la cuisson de lundi n'a pas eu lieu — et
+   * sans cette borne, la boucle proposerait `lundi + 1 = mardi`, c'est-à-dire
+   * une date écoulée.
+   *
+   * La cascade, elle, s'applique quand même: les repas qui en dépendaient
+   * tombent. C'est toute la distinction de R11 — le plan cesse de mentir, et
+   * on ne propose pas une réparation impossible.
+   */
+  "session_elapsed",
 ] as const;
 export type ShiftRefusal = (typeof SHIFT_REFUSALS)[number];
 
@@ -698,8 +810,41 @@ export function planSessionShift(args: {
   /** Les préparations dont on a la PREUVE qu'elles ont été cuisinées. */
   cookedPreparationIds: readonly string[];
   maxFridgeDays: number;
+  /**
+   * FF-061 R11 — LE JOUR LOCAL DE LA PERSONNE. REQUIS.
+   *
+   * Requis et non optionnel: un paramètre de garde optionnel est une garde
+   * désarmée, et celle-ci ne mordrait pour personne si un appelant l'oubliait.
+   * Une cuisson ANTÉRIEURE à ce jour ne se décale pas — voir `session_elapsed`.
+   */
+  today: string;
+  /**
+   * FF-061 R6ter — LE DÉCALAGE MINIMAL EXIGÉ. Par défaut 1.
+   *
+   * Sert le décalage d'une VAGUE de courses: si la course passe à mardi, la
+   * cuisson qu'elle sert ne peut pas rester lundi — elle doit atterrir mardi au
+   * plus tôt. L'appelant passe alors `minDelta = daysBetween(cookOn, nouvelle
+   * date d'achat)`, et la boucle cherche le plus petit delta VIABLE à partir de
+   * là, au lieu de repartir de 1 et de proposer une cuisson sans ingrédients.
+   *
+   * ⚠️ CE N'EST PAS UN DELTA IMPOSÉ. Les quatre refus continuent de s'appliquer
+   * au-delà: un minimum qui écrase un périssable reste refusé, avec son motif.
+   */
+  minDelta?: number;
 }): ShiftOutcome {
   const { plan, cookOn } = args;
+
+  // ── R11 — UNE CUISSON PASSÉE NE SE DÉCALE PAS ───────────────────────────
+  // AVANT tout le reste, et avant même la recherche de la session: proposer un
+  // décalage sur du passé est la seule issue de cette fonction qui produirait
+  // une date que la personne ne peut pas honorer.
+  if (cookOn < args.today) {
+    return {
+      ok: false,
+      reason: "session_elapsed",
+      detail: `cook ${cookOn} is before today ${args.today}`,
+    };
+  }
   const dates = planDates(plan);
   const session = plan.sessions.find((s) => dates[s.day] === cookOn) ?? null;
   if (!session) {
@@ -745,7 +890,12 @@ export function planSessionShift(args: {
   let firstRefusal: ShiftRefused | null = null;
   let viableWithCollision: ShiftPlan | null = null;
 
-  for (let delta = 1; delta <= maxDelta; delta++) {
+  // Le plancher du delta. `Math.max(1, …)` parce qu'un minimum nul ou négatif
+  // ferait proposer la date d'origine — c'est-à-dire ne rien décaler tout en
+  // annonçant un décalage.
+  const minDelta = Math.max(1, Math.floor(args.minDelta ?? 1));
+
+  for (let delta = minDelta; delta <= maxDelta; delta++) {
     const newCookOn = addDays(cookOn, delta);
 
     // ── `outside_plan_window` — ON NE PLANIFIE PAS HORS DE LA FENÊTRE ──────

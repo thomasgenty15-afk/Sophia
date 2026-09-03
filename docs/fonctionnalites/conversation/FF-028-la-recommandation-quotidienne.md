@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Identifiant** | `FF-028-la-recommandation-quotidienne` |
-| **Statut** | 🟡 Spécifiée (V1) — V2/V3 volontairement hors périmètre |
+| **Statut** | 🔴 **Abandonnée le 2026-09-01** — décision humaine : *il n'y a pas de recommandation en plein milieu de plan*. Le [retour de fin de plan](../composition-des-repas/FF-054-le-retour-de-fin-de-plan.md) corrige le plan **suivant**, ce qui est le seul moment où une correction ne demande à personne de comprendre un changement en cours de route. ⚠️ **`keel-daily-recommendation-v1` porte aussi `runWeightDivergenceStep`** : [FF-056](FF-056-la-divergence-constatee.md) doit devenir autonome **avant** le retrait, sinon la divergence cesse en silence. Inventaire des canaux : [FF-062](FF-062-quand-sophia-parle-la-premiere.md) |
 | **Date** | 2026-08-08 |
 | **Autorité produit** | la direction du domaine ([README](README.md)) T1, T4, T6 · [CONTRACT.md](../../keel/CONTRACT.md) · la doctrine du coach (elle **gate** le moteur) |
 | **Dépend de** | [FF-027](FF-027-la-faim-branchee-au-plan.md) (le signal) · [FF-026](FF-026-la-preference-captee.md) (les préférences) · [FF-029](FF-029-les-pratiques-quotidiennes.md) (l'adhérence aux pratiques) · le patron batch du memorizer · les boutons déterministes du tap (`interactive_id`) |

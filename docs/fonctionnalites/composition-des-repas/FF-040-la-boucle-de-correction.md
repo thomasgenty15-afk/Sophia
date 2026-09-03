@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Identifiant** | `FF-040-la-boucle-de-correction` |
-| **Statut** | 🟠 En cours |
+| **Statut** | 🟢 **Livrée et câblée en production** — vérifié le 2026-09-01 : `_shared/keel/meal_correction.ts` (527 l., 23 tests) est montée dans `generate-meal-v1/index.ts` **depuis le 2026-08-23** (l. 274). C'est elle qui périme le « aucun verdict actionné » de [FF-039](FF-039-enveloppes-et-verdicts-en-observation.md) |
 | **Date** | 2026-08-10 |
 | **Autorité produit** | [MODEL.md](../../keel/MODEL.md) · [CONTRACT.md](../../keel/CONTRACT.md) · design d'origine : `scratchpad/DESIGN-UNITES-DE-COMPOSITION.md` (§2.5, §2.6, §6 étapes 5 et 8) |
 | **Dépend de** | [FF-039](FF-039-enveloppes-et-verdicts-en-observation.md) (le verdict) · [FF-038](FF-038-le-referentiel-de-composition.md) · `doctrine.ts` (patron `doctrineRetryInstruction`) · `nutrition_lexicon.ts` · `student_body.ts` (`trendOf`) |

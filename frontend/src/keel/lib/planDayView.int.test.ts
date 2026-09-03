@@ -323,7 +323,9 @@ describe("le câblage de la vue jour", () => {
       window: { starts_on: STARTS, duration_days: 7 },
       dishes: [],
       shopping_list: [
-        { term: "chicken thighs", quantity: "1.2 kg", aisle: "butcher" },
+        // ⟳ 2026-08-23 — `food_group` EST DANS LA CHARGE DEPUIS `L0-a`, et le
+        // lecteur le laissait tomber. C'est lui qui porte la date d'achat.
+        { term: "chicken thighs", quantity: "1.2 kg", aisle: "butcher", food_group: "poultry" },
         { term: "couscous", quantity: "500 g", aisle: "dry_goods" },
       ],
     });
@@ -333,7 +335,18 @@ describe("le câblage de la vue jour", () => {
       term: "chicken thighs",
       quantity: "1.2 kg",
       aisle: "butcher",
+      // ⛔ IL TRAVERSE, et cette assertion exhaustive est ce qui le prouve.
+      food_group: "poultry",
+      // ⟳ 2026-09-01 — LA DATE D'ACHAT TRAVERSE AUSSI, et l'assertion reste
+      // EXHAUSTIVE exprès: c'est elle qui a fait rougir le jour où le champ est
+      // né, plutôt que de le laisser se perdre en silence comme `food_group`
+      // s'était perdu. `null` ici parce que la réponse simulée n'en porte pas.
+      buy_on: null,
     });
+    // ⚠️ ET SON ABSENCE RESTE UNE ABSENCE: la seconde ligne n'en porte pas
+    // (un plan écrit avant `L0-a`), et le lecteur rend `null` — une valeur
+    // pleine qui dit « pas de groupe », jamais un champ manquant.
+    expect(plan.shoppingList[1].food_group).toBeNull();
     // Et l'absence reste une absence: une réponse sans liste rend `[]`, pas un
     // article vide — c'est le cas passant de la garde.
     expect(

@@ -29,7 +29,9 @@ il dérivait vers le **coaching de vie** — des questions d'état quotidien don
 personne ne consommait la réponse.
 
 Le seul « coaching » que ce produit garde est celui dont la sortie change le
-**plan** (FF-028) ou applique une **pratique prescrite** (FF-029). Un vrai
+**plan suivant** ([FF-054](../composition-des-repas/FF-054-le-retour-de-fin-de-plan.md))
+ou applique une **pratique prescrite** (FF-029). ⚠️ Ce fut « FF-028 » jusqu'au
+2026-09-01 : il n'y a plus de correction en plein milieu de plan. Un vrai
 coach observe et propose ; il ne fait pas remplir des questionnaires.
 
 **Ce que ça coûte de se tromper.** Un chat qui collecte fatigue et se fait
@@ -84,8 +86,8 @@ confondues.
 |---|---|---|
 | **T1** | On ne collecte que ce qu'un aval consomme | la règle mère — tout le tri du 2026-08-08 en découle |
 | **T2** | Un fait se reconnaît **déterministiquement**, jamais par le modèle | mesuré : la même déclaration parfaite était enregistrée une fois sur deux en français et **jamais** en anglais |
-| **T3** | Le chat n'initie jamais une collecte | la différence entre une app de conseil et une app de surveillance |
-| **T4** | Une seule demande par jour, toutes surfaces confondues | le budget est **partagé** entre approfondissement (FF-017), invitation photo (FF-025) et recommandation (FF-028). Trois compteurs séparés = trois demandes = un interrogatoire |
+| **T3** | ⚠️ **AMENDÉE LE 2026-09-01.** Le chat n'initie une collecte que sur **un trou du plan que la personne a elle-même créé**, et seulement si un objectif la consomme | la règle d'origine (« jamais ») visait la sollicitation à froid, et elle tient toujours pour elle. Ce qu'elle interdisait par ricochet, c'est de demander ce qui remplit un créneau que la personne a DÉCLARÉ manger et que le plan ne compose pas — un trou qu'elle a ouvert, dans la mesure qui pilote son propre objectif. Périmètre exact et plafonds : [FF-062](FF-062-quand-sophia-parle-la-premiere.md) |
+| **T4** | ⚠️ **AMENDÉE LE 2026-09-01.** Le budget partagé d'**une** demande par jour tient pour les demandes **non sollicitées** (approfondissement FF-017, invitation photo FF-025). Les canaux adossés à un fait du plan — le repas d'un créneau déclaré non composé, le rappel de pesée, le bilan du jour — en sont **exemptés**, sous un plafond global de **trois** messages par jour ([FF-062](FF-062-quand-sophia-parle-la-premiere.md) R1) | le budget d'une demande a été posé contre l'interrogatoire, et il reste juste contre lui. Il devenait faux quand il faisait taire une mesure que l'élève a demandée en se donnant un objectif. Le plafond de trois est haut, il est assumé, et il a sa contre-mesure |
 | **T5** | Toute demande est adossée à un fait que la personne **vient de donner** | c'est ce qui distingue approfondir de réclamer |
 | **T6** | Ce qui est donné doit se voir dans le **plan suivant** | la boucle fermée est ce qui fait qu'on continue de parler |
 | **T7** | Les planchers de sécurité priment sur tout | crise, TCA — hors débat, hors liste de valeur |
@@ -94,7 +96,14 @@ confondues.
 
 ### Hors périmètre — engageant
 
-- ❌ **La sollicitation alimentaire.** Jamais « t'as mangé quoi ? ».
+- ⚠️ **La sollicitation alimentaire — LEVÉE EN PARTIE LE 2026-09-01.**
+  « T'as mangé quoi ? » **à froid** reste interdit, et c'est ce que ce no-go
+  visait. Ce qui est désormais permis, et **uniquement** cela : demander ce qui
+  a rempli un créneau que la personne a **déclaré manger** et que **son plan ne
+  compose pas**, quand elle a un objectif de perte ou de prise de poids.
+  Trois options, jamais un champ libre seul : photo, décrire, passer.
+  Décision humaine, périmètre et plafonds dans
+  [FF-062](FF-062-quand-sophia-parle-la-premiere.md).
 - ❌ **Le « comment tu te sens ? » quotidien.** Le message du soir garde le
   **fait** ; il perd la question systématique. Personne ne consommait la
   réponse.
@@ -138,9 +147,15 @@ compagnon, réduction du point hebdo) est un chantier à part :
 |---|---|---|---|
 | 8 | [FF-026](FF-026-la-preference-captee.md) | La préférence captée | 🟠 En cours |
 | 9 | [FF-027](FF-027-la-faim-branchee-au-plan.md) | La faim branchée au plan | 🟡 Spécifiée |
-| 10 | [FF-028](FF-028-la-recommandation-quotidienne.md) | La recommandation quotidienne | 🟡 Spécifiée (V1) |
+| 10 | [FF-028](FF-028-la-recommandation-quotidienne.md) | La recommandation quotidienne | 🔴 **Abandonnée le 2026-09-01** — il n'y a pas de recommandation en plein milieu de plan ; le retour de fin de plan corrige le plan **suivant**. ⚠️ Elle porte `runWeightDivergenceStep` : sortir FF-056 **avant** le retrait |
 | 11 | [FF-029](FF-029-les-pratiques-quotidiennes.md) | Les pratiques quotidiennes | 🟠 En cours |
 | 15 | [FF-056](FF-056-la-divergence-constatee.md) | La divergence constatée | 🟡 Spécifiée |
+
+**L'initiative de Sophia** — *quand elle parle la première*
+
+| # | ID | Fiche | Statut |
+|---|---|---|---|
+| 16 | [FF-062](FF-062-quand-sophia-parle-la-premiere.md) | Quand Sophia parle la première | 🟡 Spécifiée — l'inventaire des six canaux, leurs plafonds, et **ce qui est supprimé** |
 
 **L'humain** — *rare, mais ce qui fait confiance*
 
@@ -165,13 +180,15 @@ liste de valeur inviterait un jour à l'y arbitrer.
    plafond) et **FF-025**.
 3. **FF-023** (la continuité — le trou `history: []`) : préalable de toute
    humanité perçue.
-4. **FF-026 → FF-027 → FF-028** dans cet ordre : la recommandation consomme
-   les deux premiers.
+4. ~~**FF-026 → FF-027 → FF-028**~~ — FF-028 est abandonnée (2026-09-01).
+   FF-026 et FF-027 gardent leur ordre entre elles ; ce qu'elles alimentaient en
+   troisième position n'existe plus.
 5. **FF-016** (les recommandés), **FF-010**, **FF-011**, **FF-029** :
    indépendants — FF-010/FF-011/FF-016/FF-023 partagent le budget de prompt et
    se relisent ensemble.
 6. **FF-056** (la divergence constatée) : en dernier — elle consomme la série
-   de poids (FF-008/FF-031), le budget T4 et le canal de directives de FF-028,
+   de poids (FF-008/FF-031), le budget T4 et **le canal de propositions
+   durables dont elle a hérité** (voir [FF-062](FF-062-quand-sophia-parle-la-premiere.md)),
    et elle ne doit pas concurrencer le retour de fin de plan (FF-054).
 
 Le retrait passe **après** que l'accueil (1) existe : retirer la demande avant

@@ -34,6 +34,11 @@ import WeeklyCheckInDialog, {
   type WeeklyCheckInValues,
 } from "../components/WeeklyCheckInDialog";
 import { isWeeklyCheckInToken, loadBiofeedbackHasReader } from "../api/weeklyCheckIn";
+import WeighInDialog, { type WeighInValues } from "../components/WeighInDialog";
+import { isWeighInToken, loadLastWeightKg } from "../api/weighIn";
+import EnergyFixDialog, { type EnergyFixValues } from "../components/EnergyFixDialog";
+import { isEnergyFixToken } from "../api/energyFix";
+import { forcedSlotFromPhotoTap, forcedSlotLabel } from "../api/slotMeal";
 import {
   ACCEPTED_PHOTO_MIME_TYPES,
   MAX_PHOTO_BYTES,
@@ -143,6 +148,48 @@ export default function ChatPage() {
    * le formulaire hebdo ne se monte pas tant que ça vaut `null`.
    */
   const [axesHaveReader, setAxesHaveReader] = React.useState<boolean | null>(null);
+  // FF-062 C2 — le jeton de la pesée dont le formulaire est ouvert, ou null. Il
+  // ne porte QUE le jour où la question est partie.
+  const [weighInToken, setWeighInToken] = React.useState<string | null>(null);
+  /**
+   * R8 — le dernier poids, pour le PLACEHOLDER du champ. `undefined` = pas
+   * encore su, et le dialogue ne se monte pas; `null` = il n'y en a pas.
+   *
+   * ⚠️ IL N'EST JAMAIS LA VALEUR DU CHAMP. Un champ pré-rempli se valide sans
+   * être lu: on enregistrerait la valeur de l'avant-veille comme une pesée
+   * d'aujourd'hui, et la série qui arme la ceinture de restriction mentirait
+   * sans qu'aucune erreur ne soit levée.
+   */
+  const [lastWeightKg, setLastWeightKg] = React.useState<number | null | undefined>(
+    undefined,
+  );
+  /**
+   * FF-062 C1 R6 — LE CRÉNEAU FORCÉ DE LA PROCHAINE PHOTO.
+   *
+   * ══════════════════════════════════════════════════════════════════════════
+   * POURQUOI IL EST ICI, ET POURQUOI IL SE VOIT
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * Un tap sur « Photo » d'une question de créneau NOMME le repas: c'est le
+   * midi qu'on demande. La photo qui suit doit donc porter `slot_key: "lunch"`,
+   * jamais l'inférence de FF-018 §11 — qui range au dernier créneau écoulé et
+   * tomberait juste par accident à 14h05, faux à 21h.
+   *
+   * ⛔ ET IL EST AFFICHÉ DANS LE COMPOSEUR. Un créneau forcé invisible est un
+   * état caché qui décide d'un fait: la personne enverrait la photo de son
+   * dîner et la verrait rangée au déjeuner sans avoir jamais vu la contrainte.
+   * On l'annonce, et on la laisse se retirer.
+   *
+   * Il se retire aussi dès qu'une photo part (il a servi) ou dès qu'un message
+   * texte part (la conversation est passée à autre chose).
+   */
+  const [forcedPhotoSlot, setForcedPhotoSlot] = React.useState<string | null>(null);
+  /**
+   * FF-062 R11 — le jeton de correction du chiffre d'énergie dont le dialogue
+   * est ouvert, ou `null`. Il ne porte que l'ÉVÉNEMENT: l'élève est identifié
+   * par son JWT, et le chiffre courant se lit dans la bulle, pas dans le jeton.
+   */
+  const [energyFixToken, setEnergyFixToken] = React.useState<string | null>(null);
   // chemin de bucket -> URL signée. `meal-photos` est privé et sans policy, donc
   // une photo ne s'affiche qu'après cet échange (voir `signMealPhotoUrls`).
   const [photoUrls, setPhotoUrls] = React.useState<Record<string, string>>({});
@@ -282,6 +329,16 @@ export default function ChatPage() {
       const hasReader = await loadBiofeedbackHasReader();
       if (!cancelled) setAxesHaveReader(hasReader);
     })();
+    // FF-062 C2 — LE DERNIER POIDS, RÉSOLU AU MONTAGE POUR LA MÊME RAISON.
+    // Le charger à l'ouverture du dialogue afficherait le libellé générique
+    // puis le remplacerait par un chiffre sous les doigts de l'élève. Le loader
+    // ne jette jamais: une panne rend `null`, le champ s'ouvre avec son
+    // libellé, et la pesée reste possible — perdre le repère coûte moins que
+    // perdre la mesure.
+    (async () => {
+      const kg = await loadLastWeightKg();
+      if (!cancelled) setLastWeightKg(kg);
+    })();
     setNotifyOptIn(isDesktopNotificationOptIn());
     return () => { cancelled = true; };
   }, [user?.id]);
@@ -358,7 +415,19 @@ export default function ChatPage() {
   }, [messages, photoUrls]);
 
   const send = React.useCallback(
-    async (payload: SendPayload, echo: string) => {
+    /**
+     * @param replyTo L'id de la bulle qui portait le bouton, quand il y en a
+     *   une. REQUIS POUR LE DÉSARMEMENT (FF-062 R13): sans lui, le serveur ne
+     *   sait pas de quelle bulle vient un tap, et ne peut donc pas refuser
+     *   celui d'un message que le suivant a périmé.
+     *
+     *   ⚠️ `chat.ts` ACCEPTAIT DÉJÀ CETTE OPTION, et personne ne la passait —
+     *   `message.reply_to` valait donc `null` pour 100 % des taps réels, et la
+     *   branche « la réponse explicite gagne » de `resolveArmedQuestion` était
+     *   du code mort côté app. Un champ écrit par personne et lu par une garde
+     *   est une garde désarmée.
+     */
+    async (payload: SendPayload, echo: string, replyTo?: string | null) => {
       if (sending) return;
       const clientMessageId = crypto.randomUUID();
       const nowIso = new Date().toISOString();
@@ -376,7 +445,9 @@ export default function ChatPage() {
         clientMessageId,
       }]);
 
-      const result = await sendChatMessage(clientMessageId, payload);
+      const result = await sendChatMessage(clientMessageId, payload, {
+        replyTo: replyTo ?? null,
+      });
       setSending(false);
       if (!result.ok) {
         setThinking(false);
@@ -402,12 +473,31 @@ export default function ChatPage() {
   // reconnue par la FORME de son payload — pas par le libellé, qui est de
   // l'affichage et peut être traduit.
   const onButton = React.useCallback(
-    (payload: string, label: string) => {
+    (payload: string, label: string, messageId: string) => {
       if (isWeeklyCheckInToken(payload)) {
         setWeeklyToken(payload);
         return;
       }
-      void send({ kind: "button", payload, label }, label);
+      // ⚠️ ANCRÉ, PAS PRÉFIXÉ. `KEEL_WEIGHIN_` et `KEEL_WEEKLY_` partagent
+      // `KEEL_WE`: un `startsWith` ouvrirait le mauvais formulaire, et l'élève
+      // noterait son poids dans le point du dimanche.
+      if (isWeighInToken(payload)) {
+        setWeighInToken(payload);
+        return;
+      }
+      if (isEnergyFixToken(payload)) {
+        setEnergyFixToken(payload);
+        return;
+      }
+      // FF-062 C1 — « Photo » ARME le créneau ET part au serveur. Les deux:
+      // le serveur doit voir la réponse (sinon R13 désarmera la question au
+      // message suivant, et le tap n'aurait laissé aucune trace), et le front
+      // doit se souvenir du créneau que la question nommait.
+      const photoSlot = forcedSlotFromPhotoTap(payload);
+      if (photoSlot) setForcedPhotoSlot(photoSlot);
+      // L'id de LA BULLE qui portait ce bouton. C'est ce qui permet au serveur
+      // de refuser un tap sur un message qu'un plus récent a périmé.
+      void send({ kind: "button", payload, label }, label, messageId);
     },
     [send],
   );
@@ -423,6 +513,43 @@ export default function ChatPage() {
       );
     },
     [weeklyToken, send],
+  );
+
+  const submitWeighIn = React.useCallback(
+    (values: WeighInValues) => {
+      const token = weighInToken;
+      if (!token) return;
+      setWeighInToken(null);
+      // ⚠️ LE MÊME CANAL QUE LE POINT DU DIMANCHE: `kind: "form"` + le jeton.
+      // Le serveur reconnaît le jeton par sa forme et route vers l'écrivain de
+      // la pesée. Un second chemin d'envoi contournerait la garde de plafond et
+      // le ledger de livraison.
+      void send(
+        { kind: "form", response: values, token },
+        t("chat.weighin.title"),
+      );
+      // Le placeholder suivra la nouvelle pesée: sans ça, le prochain rappel
+      // proposerait encore le poids d'avant, sur un écran qui vient d'en
+      // enregistrer un autre.
+      setLastWeightKg(values.weight_kg);
+    },
+    [weighInToken, send],
+  );
+
+  const submitEnergyFix = React.useCallback(
+    (values: EnergyFixValues) => {
+      const token = energyFixToken;
+      if (!token) return;
+      setEnergyFixToken(null);
+      // Le MÊME canal que les deux autres formulaires: `kind: "form"` + le
+      // jeton. Le serveur le reconnaît par sa forme et route vers l'écrivain —
+      // c'est LUI qui fait basculer la base, jamais le client.
+      void send(
+        { kind: "form", response: values, token },
+        t("chat.kcalfix.title"),
+      );
+    },
+    [energyFixToken, send],
   );
 
   // ── LA PHOTO DE REPAS, DANS LA CONVERSATION ────────────────────────────────
@@ -495,11 +622,17 @@ export default function ChatPage() {
       try {
         await uploadMealPhoto({
           file: photo.file,
-          slotKey: null,
+          // ⛔ R6 — LE CRÉNEAU DE LA QUESTION, PAS CELUI DE L'HORLOGE. `null`
+          // reste le cas normal: une photo spontanée se range par inférence, et
+          // l'accusé le DIT (« je l'ai rangée au dîner, d'après l'heure »).
+          slotKey: forcedPhotoSlot,
           clientUploadId: clientMessageId,
           chatClientMessageId: clientMessageId,
           note,
         });
+        // Il a servi. Le laisser armé rangerait la photo SUIVANTE au même
+        // créneau, sans que personne ne l'ait demandé.
+        setForcedPhotoSlot(null);
         await refetch();
       } catch (err) {
         setMessages((prev) =>
@@ -577,7 +710,21 @@ export default function ChatPage() {
     }
   };
 
-  // Seul le DERNIER message assistant porte des boutons actifs. Répondre à une
+  // ── LE DERNIER MESSAGE ASSISTANT PORTEUR DE BOUTONS, ET LUI SEUL ────────
+  //
+  // ⚠️ CE N'EST PLUS UNE ASTUCE D'ÉCRAN: C'EST LA RÈGLE DU PRODUIT (FF-062
+  // R13), et le serveur applique EXACTEMENT la même depuis le 2026-09-01
+  // (`_shared/chat/disarmed_tap.ts`). Un tap sur une bulle plus ancienne est
+  // refusé côté serveur avec une phrase, même si un client l'envoie.
+  //
+  // Les deux moitiés doivent donc dire la même chose, et c'est pour ça que la
+  // règle serveur a été écrite sur ce critère-là plutôt que sur « le dernier
+  // message »: un proactif SANS boutons (un fait du soir sans bande) ne ferme
+  // pas une question posée la veille — il ne demande rien.
+  //
+  // Ce calcul reste local et c'est correct: il se dérive de la liste chargée,
+  // qui se met à jour par l'INSERT du nouveau message (Realtime ne diffuse que
+  // les INSERT). Rien à écouter de plus, rien à stocker. Répondre à une
   // question armée plus ancienne en remontant le fil ne doit pas la réactiver :
   // la plus récente gagne (edge case n°3, règle héritée des templates).
   const lastAssistantId = [...messages].reverse().find((m) =>
@@ -796,7 +943,7 @@ export default function ChatPage() {
                         key={button.payload}
                         size="sm"
                         disabled={sending}
-                        onClick={() => onButton(button.payload, button.label)}
+                        onClick={() => onButton(button.payload, button.label, message.id)}
                       >
                         {button.label}
                       </Button>
@@ -820,6 +967,23 @@ export default function ChatPage() {
             showAxes={axesHaveReader}
             onSubmit={submitWeekly}
             onCancel={() => setWeeklyToken(null)}
+          />
+        )}
+
+        {energyFixToken && (
+          <EnergyFixDialog
+            busy={sending}
+            onSubmit={submitEnergyFix}
+            onCancel={() => setEnergyFixToken(null)}
+          />
+        )}
+
+        {weighInToken && (
+          <WeighInDialog
+            busy={sending}
+            lastKg={lastWeightKg}
+            onSubmit={submitWeighIn}
+            onCancel={() => setWeighInToken(null)}
           />
         )}
 
@@ -858,6 +1022,32 @@ export default function ChatPage() {
                 size="sm"
                 disabled={sending}
                 onClick={clearPendingPhoto}
+              >
+                {t("chat.photo.remove")}
+              </Button>
+            </div>
+          )}
+          {/* FF-062 C1 R6 — LE CRÉNEAU FORCÉ, ANNONCÉ ET RÉVOCABLE.
+              Un créneau forcé invisible est un état caché qui décide d'un fait:
+              la personne enverrait la photo de son dîner et la verrait rangée
+              au déjeuner sans avoir jamais vu la contrainte. On l'affiche, et
+              « Retirer » la lève — la photo repart alors à l'inférence, qui
+              annonce elle-même son verdict dans l'accusé. */}
+          {forcedPhotoSlot && (
+            <div
+              data-testid="chat-photo-forced-slot"
+              data-slot={forcedPhotoSlot}
+              className="flex items-center gap-3 rounded-card border border-line-strong bg-paper-2 p-2"
+            >
+              <p className="min-w-0 flex-1 truncate text-sm text-ink-soft">
+                {t("chat.slotmeal.forced", { slot: forcedSlotLabel(forcedPhotoSlot) ?? "" })}
+              </p>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                disabled={sending}
+                onClick={() => setForcedPhotoSlot(null)}
               >
                 {t("chat.photo.remove")}
               </Button>

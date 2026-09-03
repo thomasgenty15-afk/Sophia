@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Identifiant** | `FF-037-l-ancre-proteique` |
-| **Statut** | 🟠 En cours |
+| **Statut** | 🟢 **Livrée et câblée** — vérifié dans le code le 2026-09-01 : `_shared/keel/protein_anchor.ts` (467 l., 18 tests) est appelée par les **deux** générateurs (`generate-meal-v1`, `generate-household-meal-v1`) et par `meal_generation.ts`, `fixed_intakes.ts`, `meal_verdict.ts`. Le « 🟠 En cours » avait survécu à la livraison |
 | **Date** | 2026-08-10 |
 | **Autorité produit** | [MODEL.md](../../keel/MODEL.md) · [CONTRACT.md](../../keel/CONTRACT.md) · design d'origine : `scratchpad/DESIGN-UNITES-DE-COMPOSITION.md` (§1 rang 2, §2.4, §6 étape 1) |
 | **Dépend de** | `tokens.ts` (`FOOD_GROUP_REFS`) · `forbidden_matcher.ts` (`findForbiddenMatches`, `normalizeForMatch`) · `meal_generation.ts` (`buildMealPrompt`, `parseGeneratedMeal`, `MEAL_PROMPT_VERSION`) · `doctrine.ts` (patron `doctrineRetryInstruction`) |

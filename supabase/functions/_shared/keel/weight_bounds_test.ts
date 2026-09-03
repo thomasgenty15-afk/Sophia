@@ -13,7 +13,7 @@
  * L'import ne survit pas à la prochaine session pressée: re-déclarer une
  * constante locale est le geste le plus naturel du monde, il compile, et rien
  * ne le distingue. La garde ① compte les DÉCLARATIONS sur le disque, ② épingle
- * la valeur en littéral, ③ va chercher les trois copies du front qu'aucun
+ * la valeur en littéral, ③ va chercher les quatre copies du front qu'aucun
  * import ne peut atteindre, ④ nomme la seule copie qui reste.
  *
  * ── ⛔ CETTE GARDE EST VERTE SUR L'ARBRE DE TRAVAIL, PAS SUR `HEAD` ──────────
@@ -155,7 +155,7 @@ Deno.test("X1′ — les trois noms publics du back rendent le MÊME refus", () 
 // ③ LES TROIS COPIES DU FRONT — AUCUN IMPORT NE PEUT LES ATTEINDRE
 // ---------------------------------------------------------------------------
 
-Deno.test("X1′ — les trois copies du front portent les mêmes deux nombres", () => {
+Deno.test("X1′ — les QUATRE copies du front portent les mêmes deux nombres", () => {
   // Le front est en Vite/TS, le back en Deno. La copie est assumée; la dérive,
   // non. Une borne plus large côté écran laisse saisir une valeur que le
   // serveur rejettera; plus étroite, elle interdit une valeur légitime.
@@ -163,6 +163,12 @@ Deno.test("X1′ — les trois copies du front portent les mêmes deux nombres",
     const file of [
       "frontend/src/keel/api/weeklyCheckIn.ts",
       "frontend/src/keel/api/bodyMeasures.ts",
+      // ⟳ FF-062 C2 (2026-09-02) — la QUATRIÈME. `api/weighIn.ts` ne peut pas
+      // importer celles de `bodyMeasures.ts`: `/app/chat` ne déclare pas le
+      // namespace `plan`, et la couture des pages refuse qu'un écran atteigne
+      // un vocabulaire qu'il n'a pas déclaré. La copie est donc assumée, et
+      // c'est cette ligne qui l'empêche de dériver.
+      "frontend/src/keel/api/weighIn.ts",
     ]
   ) {
     const source = executedLines(readRepo(file)).join("\n");
@@ -184,8 +190,8 @@ Deno.test("X1′ — les trois copies du front portent les mêmes deux nombres",
 
   // `weekInFood.ts` n'exporte pas de constante: il porte les deux nombres EN
   // LITTÉRAL dans son refus. `energy_target_test.ts` le vérifie déjà par la
-  // chaîne exacte; on le refait ici pour que la garde de `X1′` couvre les TROIS
-  // copies du front, et pas deux.
+  // chaîne exacte; on le refait ici pour que la garde de `X1′` couvre TOUTES
+  // les copies du front, et pas seulement celles qui exportent.
   const week = executedLines(readRepo("frontend/src/keel/lib/weekInFood.ts"))
     .join("\n");
   assert(

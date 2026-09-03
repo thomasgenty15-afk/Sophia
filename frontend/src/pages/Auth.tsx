@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { resolveHomePath } from '../keel/api/postLogin';
+import { isProAccessRefused, resolveHomePath } from '../keel/api/postLogin';
 // LE PAYS N'EST PLUS DEMANDÉ ICI. Il se déduit du fuseau — voir
 // `keel/api/countryFromTimezone.ts` pour la décision et son prix.
 import { declaredCountryFor } from '../keel/api/countryFromTimezone';
@@ -14,6 +14,7 @@ import { chosenUiLocale, signupProfileLocale } from '../keel/i18n/runtime';
 import { type UiLocale } from '../keel/i18n/catalog';
 import { newRequestId, requestHeaders } from '../lib/requestId';
 import { getPrelaunchLockdownRawValue, isPrelaunchLockdownEnabled } from '../security/prelaunch';
+import { isProSurfaceHidden } from '../security/proSurface';
 import { DEFAULT_TIMEZONE, detectBrowserTimezone, getAllSupportedTimezones } from '../lib/localization';
 import { AlertCircle, CheckCircle2, Eye, EyeOff, Loader2 } from 'lucide-react';
 
@@ -142,7 +143,13 @@ type AuthWorld = "household" | "pro" | null;
  * n'en mettre aucun en avant, puisque l'écran neutre propose les deux.
  */
 function parseWorld(raw: string | null): AuthWorld {
-  return raw === "household" || raw === "pro" ? raw : null;
+  // LANCEMENT B2C — `?w=pro` retombe sur `null` comme n'importe quelle valeur
+  // inconnue, et pour exactement la même raison: le monde pro n'existe plus
+  // dans la surface. Le laisser passer ferait dire à l'écran « vous venez du
+  // monde pro » et enverrait sa sortie de marque vers `/pro`, une URL qui
+  // rend désormais une 404 (voir `security/proSurface.ts`).
+  if (raw === "pro") return isProSurfaceHidden() ? null : "pro";
+  return raw === "household" ? raw : null;
 }
 
 /**
@@ -401,7 +408,16 @@ const Auth = () => {
   const prelaunchRaw = debug ? getPrelaunchLockdownRawValue() : "";
 
   // KEEL W6.1 — coach mode. Everything downstream branches on this flag only.
-  const coachSignup = (params.get('role') || '') === 'coach';
+  // LANCEMENT B2C — `?role=coach` est LE seul drapeau qui ouvre l'inscription
+  // coach (le formulaire, le sélecteur de langue du coach, l'appel à
+  // `coach-signup-v1`, la passerelle de retour et les titres du mode coach en
+  // dépendent tous). Le forcer à `false` referme le parcours pro d'un bloc,
+  // sans qu'aucune de ces branches ait à connaître le drapeau.
+  // ⚠️ Neutralisé ICI et pas plus bas: `prelaunchLockdown` le fait déjà, à un
+  // seul endroit et pour la même raison. Deux mécanismes qui éteignent la même
+  // chose à deux endroits différents divergent.
+  const proSurfaceHidden = isProSurfaceHidden();
+  const coachSignup = !proSurfaceHidden && (params.get('role') || '') === 'coach';
 
   // Le monde d'où l'on vient. Il ne décide QUE de la mise en avant du bas
   // d'écran: aucun formulaire, aucune redirection, aucun appel n'en dépend.
@@ -905,6 +921,27 @@ const Auth = () => {
         if (error) throw error;
 
         if (data.user) {
+            // ── LANCEMENT B2C — LE REFUS DE PORTE, ET IL DÉCONNECTE ────────
+            // Occulter l'inscription coach ne ferme PAS le monde pro: `/auth`
+            // est la porte des deux mondes, et un compte `coaches` déjà créé
+            // s'y connecte par ce formulaire-ci, que rien au-dessus ne
+            // distingue. C'est la seconde moitié de la fermeture.
+            //
+            // ⚠️ AVANT TOUT LE RESTE, ET C'EST L'ORDRE QUI COMPTE. Placé plus
+            // bas, il laisserait `consumePendingCoachInvitation()` DÉPENSER une
+            // invitation au nom d'un compte qu'on s'apprête à déconnecter — un
+            // jeton à usage unique brûlé pour rien, et personne pour le
+            // rejouer.
+            //
+            // `signOut` et pas seulement une redirection: la session est déjà
+            // ouverte à cet instant. La laisser vivre rendrait `/coach`
+            // atteignable en tapant l'URL, c'est-à-dire un refus qui n'a rien
+            // refusé. `isProAccessRefused` épargne l'admin interne — voir sa
+            // note dans `keel/api/postLogin.ts`.
+            if (await isProAccessRefused(data.user.id)) {
+              await supabase.auth.signOut();
+              throw new Error(t("auth.error.pro_closed"));
+            }
             // IMPORTANT:
             // Do NOT auto-send WhatsApp opt-in on login.
             // Login can happen for many reasons (password change, session refresh, etc.) and we don't want to spam templates.
@@ -1493,11 +1530,19 @@ const Auth = () => {
                     cta={t("auth.doors.household.cta")}
                   />
                 </div>
-                <DoorLine
-                  prompt={t("auth.coach_link.prompt")}
-                  to={authHref(world, { role: "coach" })}
-                  cta={t("auth.coach_link.cta")}
-                />
+                {/* LANCEMENT B2C — la passerelle vers l'inscription coach.
+                    Elle mène à `?role=coach`, que `proSurfaceHidden` neutralise
+                    déjà: sans cette condition, le lien resterait affiché et
+                    rendrait le formulaire de connexion ordinaire. Un lien qui
+                    ne fait pas ce que son libellé promet est pire qu'un lien
+                    absent. */}
+                {!proSurfaceHidden && (
+                  <DoorLine
+                    prompt={t("auth.coach_link.prompt")}
+                    to={authHref(world, { role: "coach" })}
+                    cta={t("auth.coach_link.cta")}
+                  />
+                )}
               </>
             )
             : world === "pro"
@@ -1522,19 +1567,29 @@ const Auth = () => {
               /* NEUTRE — le comportement d'avant, et celui de tout lien nu vers
                  `/auth`. Les deux mondes à égalité: même cadre, même geste,
                  même poids. */
-              <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              <div
+                className={`mt-6 grid gap-4 ${
+                  proSurfaceHidden ? "" : "sm:grid-cols-2"
+                }`}
+              >
                 <DoorCard
                   label={t("auth.doors.household.label")}
                   body={t("auth.doors.household.body")}
                   to="/start"
                   cta={t("auth.doors.household.cta")}
                 />
-                <DoorCard
-                  label={t("auth.doors.pro.label")}
-                  body={t("auth.doors.pro.body")}
-                  to={authHref(world, { role: "coach" })}
-                  cta={t("auth.coach_link.cta")}
-                />
+                {/* LANCEMENT B2C — la porte pro. `sm:grid-cols-2` tombe avec
+                    elle: une grille à deux colonnes dont une est vide laisse la
+                    porte restante sur une demi-largeur, c'est-à-dire une
+                    colonne manquante là où il n'en manque aucune. */}
+                {!proSurfaceHidden && (
+                  <DoorCard
+                    label={t("auth.doors.pro.label")}
+                    body={t("auth.doors.pro.body")}
+                    to={authHref(world, { role: "coach" })}
+                    cta={t("auth.coach_link.cta")}
+                  />
+                )}
               </div>
             )}
         </section>

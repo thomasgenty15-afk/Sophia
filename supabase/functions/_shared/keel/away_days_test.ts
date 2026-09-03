@@ -91,7 +91,9 @@ Deno.test("`isAway` distingue le moment, le jour entier, et le plat sans crénea
 });
 
 Deno.test("l'absence arrive jusqu'à la consigne, en négatif explicite", () => {
-  const { userMessage } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true,
+  const { userMessage } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true, hasFreezer: false, oneCookingSession: false,
+    cookOnlyDay: null,
+    soloBoxes: false,
     budgetAmount: null,
     safetyConstraints: null,
     safetyConstraintTable: null,
@@ -155,7 +157,11 @@ Deno.test("le parseur REJETTE un plat posé sur un moment écarté", () => {
     merge: null,
     boxMemberIds: [],
     weighedMemberIds: [],
+  kitchenEquipment: null,
+  cookOnlyDay: null,
+  soloBoxes: false,
   boxMemberDiets: [],
+  boxMemberExclusions: [],
   });
 
   const kept = parsed.dishes.map((d) => d.title);
@@ -204,7 +210,11 @@ Deno.test("un plat écarté ne consomme PAS une place du plafond", () => {
     merge: null,
     boxMemberIds: [],
     weighedMemberIds: [],
+  kitchenEquipment: null,
+  cookOnlyDay: null,
+  soloBoxes: false,
   boxMemberDiets: [],
+  boxMemberExclusions: [],
   });
 
   // `scope: "day"` avec un rythme d'UN moment donne un plafond de 1. Les six
@@ -234,7 +244,11 @@ Deno.test("sans absence, rien ne change — le chantier est additif", () => {
     merge: null,
     boxMemberIds: [],
     weighedMemberIds: [],
+  kitchenEquipment: null,
+  cookOnlyDay: null,
+  soloBoxes: false,
   boxMemberDiets: [],
+  boxMemberExclusions: [],
   };
   const withNone = parseGeneratedMeal({ dishes, shopping_list: [] }, {
     ...args,
@@ -243,7 +257,9 @@ Deno.test("sans absence, rien ne change — le chantier est additif", () => {
   assertEquals(withNone.dishes.map((d) => d.title), ["A", "B"]);
 
   // Et la consigne ne porte AUCUNE ligne d'absence quand il n'y en a pas.
-  const { userMessage } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true,
+  const { userMessage } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true, hasFreezer: false, oneCookingSession: false,
+    cookOnlyDay: null,
+    soloBoxes: false,
     budgetAmount: null,
     safetyConstraints: null,
     safetyConstraintTable: null,

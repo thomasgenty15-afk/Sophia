@@ -136,7 +136,11 @@ const PARSE_BASE = {
   merge: null,
   boxMemberIds: [],
   weighedMemberIds: [],
+  kitchenEquipment: null,
+  cookOnlyDay: null,
+  soloBoxes: false,
   boxMemberDiets: [],
+  boxMemberExclusions: [],
 };
 
 const BATCH_PREP = {
@@ -312,6 +316,10 @@ Deno.test("un `uses` qui pointe une préparation INEXISTANTE ne sauve pas le pla
 
 const PROMPT_ARGS = {
   firstDayCookable: true,
+  hasFreezer: false,
+  oneCookingSession: false,
+  cookOnlyDay: null,
+  soloBoxes: false,
   contentLocale: "en-US",
   budgetAmount: null,
   safetyConstraints: null,
@@ -342,7 +350,9 @@ const PROMPT_ARGS = {
   merge: null,
   boxMemberIds: [],
   weighedMemberIds: [],
+  kitchenEquipment: null,
   boxMemberDiets: [],
+  boxMemberExclusions: [],
 };
 
 Deno.test("R5 — DÉSARMEMENT: rien de déclaré, consigne identique AU CARACTÈRE PRÈS", () => {

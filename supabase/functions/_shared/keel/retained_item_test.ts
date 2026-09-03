@@ -475,6 +475,7 @@ Deno.test("la matrice du §5, cellule par cellule", () => {
   // celui que les trois prompts RECOPIENT; c'est `canProduce` qui le TIENT.
   const EXPECTED: Record<string, Record<string, boolean>> = {
     // ① le brouillon: pas de mesure, pas de rythme — il parle de CE plan.
+    // ⛔ LOT M5 — `logistics.set` sort aussi: il change le CHAMP.
     draft_note: {
       "food.exclude": true,
       "food.prefer": true,
@@ -482,30 +483,38 @@ Deno.test("la matrice du §5, cellule par cellule", () => {
       "method.prefer": true,
       "portion.adjust": false,
       "rhythm.set": false,
-      "logistics.set": true,
+      "logistics.set": false,
       "craving": true,
     },
     // ② le questionnaire: SEUL producteur de mesure, aucune envie.
+    // ⛔ LOT M5 — `rhythm.set` et `logistics.set` ne sont plus RETENUS: ils
+    // changent le champ que la personne voit dans ses réglages. Avant, ils
+    // n'écrivaient rien et les générateurs les posaient en mémoire au moment
+    // de composer — la personne lisait 45 min et son plan était fait sur 35.
     questionnaire: {
       "food.exclude": true,
       "food.prefer": true,
       "method.avoid": true,
       "method.prefer": true,
       "portion.adjust": true,
-      "rhythm.set": true,
-      "logistics.set": true,
+      "rhythm.set": false,
+      "logistics.set": false,
       "craving": false,
     },
-    // ③ le memorizer: propose tout sauf la mesure — il ne sait pas l'attribuer.
+    // ③ ⛔ LE MEMORIZER: LIGNE VIDE depuis le lot M1. Le chat ne classe plus
+    // rien — il RENVOIE vers le champ où la chose se pose. Ce qui n'était vrai
+    // que de la mesure (« elle a besoin d'un sujet, il ne sait pas
+    // l'attribuer ») l'est de chaque famille: une phrase de chat n'a pas de
+    // dénominateur, et le magasin qu'elle alimentait ne pouvait que grandir.
     conversation: {
-      "food.exclude": true,
-      "food.prefer": true,
-      "method.avoid": true,
-      "method.prefer": true,
+      "food.exclude": false,
+      "food.prefer": false,
+      "method.avoid": false,
+      "method.prefer": false,
       "portion.adjust": false,
-      "rhythm.set": true,
-      "logistics.set": true,
-      "craving": true,
+      "rhythm.set": false,
+      "logistics.set": false,
+      "craving": false,
     },
     // ④ la personne, dans sa propre carte: tout ce qui existe comme `kind`.
     // Contrepartie exacte des trois interdits — « elle peut toujours le rendre
@@ -538,7 +547,10 @@ Deno.test("le `scope` par défaut suit la matrice, et `null` est un refus", () =
   assertEquals(defaultScopeFor("draft_note", "food.exclude"), "next_plan");
   // Le questionnaire regarde la semaine écoulée pour orienter les suivantes.
   assertEquals(defaultScopeFor("questionnaire", "food.exclude"), "durable");
-  assertEquals(defaultScopeFor("conversation", "food.exclude"), "durable");
+  // ⛔ LOT M1 — le memorizer n'a plus AUCUNE portée par défaut, parce qu'il n'a
+  // plus aucune famille. `null` est un refus, jamais une invitation à
+  // `?? "durable"`.
+  assertEquals(defaultScopeFor("conversation", "food.exclude"), null);
   assertEquals(defaultScopeFor("written", "food.exclude"), "durable");
   // Les deux invariants ne sont pas des « défauts »: ils sont FORCÉS.
   for (const source of RETAINED_SOURCES) {
@@ -554,6 +566,12 @@ Deno.test("le `scope` par défaut suit la matrice, et `null` est un refus", () =
   assertEquals(defaultScopeFor("conversation", "portion.adjust"), null);
   assertEquals(defaultScopeFor("draft_note", "rhythm.set"), null);
   assertEquals(defaultScopeFor("questionnaire", "craving"), null);
+  // ⚠️ ET LA LIGNE ENTIÈRE, PAS UNE CELLULE. Une ligne vide se prouve sur ses
+  // huit cases: vérifier la seule qui l'était déjà laisserait le retrait
+  // indémontré.
+  for (const kind of RETAINED_KINDS) {
+    assertEquals(defaultScopeFor("conversation", kind), null, kind);
+  }
 });
 
 Deno.test("la matrice mord À LA LECTURE, pas seulement à l'écriture", () => {

@@ -1,4 +1,4 @@
-import { assertEquals, assertThrows } from "jsr:@std/assert@1";
+import { assert, assertEquals, assertThrows } from "jsr:@std/assert@^1.0.0";
 
 import {
   ACCIDENT_BUTTON_PREFIX,
@@ -341,6 +341,7 @@ Deno.test("le plus petit décalage viable est +1 quand c'est possible", () => {
     doneWaves: NO_WAVES,
     cookedPreparationIds: [],
     maxFridgeDays: MAX_FRIDGE_DAYS,
+    today: STARTS_ON,
   });
   assertEquals(out.ok, true);
   if (!out.ok) return;
@@ -357,6 +358,7 @@ Deno.test("R14 — `already_cooked`: on ne décale pas ce qui existe", () => {
     doneWaves: NO_WAVES,
     cookedPreparationIds: ["prep_a"],
     maxFridgeDays: MAX_FRIDGE_DAYS,
+    today: STARTS_ON,
   });
   assertEquals(out.ok, false);
   if (out.ok) return;
@@ -377,6 +379,7 @@ Deno.test("R14 — `outside_plan_window`: le décalage pousserait un repas au-de
     doneWaves: NO_WAVES,
     cookedPreparationIds: [],
     maxFridgeDays: MAX_FRIDGE_DAYS,
+    today: STARTS_ON,
   });
   assertEquals(out.ok, false);
   if (out.ok) return;
@@ -390,6 +393,7 @@ Deno.test("R14 — `no_session`: cette date ne porte aucune cuisson", () => {
     doneWaves: NO_WAVES,
     cookedPreparationIds: [],
     maxFridgeDays: MAX_FRIDGE_DAYS,
+    today: STARTS_ON,
   });
   assertEquals(out.ok, false);
   if (out.ok) return;
@@ -420,6 +424,7 @@ Deno.test(
       doneWaves: bought,
       cookedPreparationIds: [],
       maxFridgeDays: MAX_FRIDGE_DAYS,
+    today: STARTS_ON,
     });
     assertEquals(out.ok, false);
     if (out.ok) return;
@@ -454,6 +459,7 @@ Deno.test(
         doneWaves: bought,
         cookedPreparationIds: [],
         maxFridgeDays,
+        today: STARTS_ON,
       });
     // Cuisson décalée au 14 ⇒ J+3 depuis le 11.
     assertEquals(call(3).ok, true); // 3 jours: ça tient tout juste
@@ -483,6 +489,7 @@ Deno.test(
       doneWaves: bought,
       cookedPreparationIds: [],
       maxFridgeDays: MAX_FRIDGE_DAYS,
+    today: STARTS_ON,
     });
     // Le poulet attend la cuisson de lundi, qui reste lundi: rien ne change pour
     // lui, donc rien à refuser.
@@ -506,6 +513,7 @@ Deno.test(
       doneWaves: bought,
       cookedPreparationIds: [],
       maxFridgeDays: MAX_FRIDGE_DAYS,
+    today: STARTS_ON,
     });
     assertEquals(out.ok, false);
     if (out.ok) return;
@@ -547,6 +555,7 @@ Deno.test(
       }],
       cookedPreparationIds: [],
       maxFridgeDays: MAX_FRIDGE_DAYS,
+    today: STARTS_ON,
     });
     assertEquals(out.ok, false);
     if (out.ok) return;
@@ -565,17 +574,97 @@ Deno.test("une vague faite SANS périssable ne bloque rien", () => {
     }],
     cookedPreparationIds: [],
     maxFridgeDays: MAX_FRIDGE_DAYS,
+    today: STARTS_ON,
   });
   assertEquals(out.ok, true);
 });
 
-Deno.test("les motifs de refus sont une liste FERMÉE de quatre", () => {
+Deno.test("les motifs de refus sont une liste FERMÉE de cinq", () => {
+  // ⚠️ QUATRE JUSQU'AU 2026-09-01, CINQ DEPUIS — et l'ajout est conscient.
+  //
+  // `session_elapsed` (FF-061 R11) ferme un cas que la fiche d'origine ne
+  // pouvait pas rencontrer: `planSessionShift` n'avait AUCUNE notion de
+  // « aujourd'hui », parce que la seule porte était le message du soir même —
+  // la cuisson interrogée était donc toujours celle du jour. Le rattrapage
+  // ouvre le cas (déclarer un mercredi que la cuisson de lundi n'a pas eu lieu)
+  // et, sans borne, la boucle proposerait `lundi + 1 = mardi`: une date écoulée.
+  //
+  // Ce test est ce qui rend l'ajout VISIBLE. Un cinquième motif glissé sans le
+  // passer ici serait un refus que personne ne sait nommer.
   assertEquals([...SHIFT_REFUSALS], [
     "perishables_at_risk",
     "outside_plan_window",
     "already_cooked",
     "no_session",
+    "session_elapsed",
   ]);
+});
+
+Deno.test("R11 — une cuisson PASSÉE ne se décale pas: on constate", () => {
+  const out = planSessionShift({
+    plan: planOf(),
+    cookOn: "2026-08-10",
+    doneWaves: NO_WAVES,
+    cookedPreparationIds: [],
+    maxFridgeDays: MAX_FRIDGE_DAYS,
+    // Deux jours plus tard: la cuisson de lundi est derrière nous.
+    today: "2026-08-12",
+  });
+  assertEquals(out.ok, false);
+  if (out.ok) return;
+  assertEquals(out.reason, "session_elapsed");
+});
+
+Deno.test("R11 — la cuisson d'AUJOURD'HUI se décale encore", () => {
+  // La borne est `<`, pas `<=`: le cas nominal du bilan du soir est « la
+  // cuisson de ce soir n'a pas eu lieu », et la décaler à demain est
+  // exactement ce que la procédure existe pour proposer.
+  const out = planSessionShift({
+    plan: planOf(),
+    cookOn: "2026-08-10",
+    doneWaves: NO_WAVES,
+    cookedPreparationIds: [],
+    maxFridgeDays: MAX_FRIDGE_DAYS,
+    today: "2026-08-10",
+  });
+  assertEquals(out.ok, true);
+});
+
+Deno.test("R6ter — `minDelta` empêche une cuisson AVANT la nouvelle course", () => {
+  // Le cas de la vague décalée: la course passe à J+2, donc la cuisson ne peut
+  // pas rester à J+1 — elle n'aurait pas ses ingrédients. Sans ce plancher, la
+  // boucle rendrait le premier delta viable, c'est-à-dire +1.
+  const out = planSessionShift({
+    plan: planOf(),
+    cookOn: "2026-08-10",
+    doneWaves: NO_WAVES,
+    cookedPreparationIds: [],
+    maxFridgeDays: MAX_FRIDGE_DAYS,
+    today: STARTS_ON,
+    minDelta: 2,
+  });
+  assertEquals(out.ok, true);
+  if (!out.ok) return;
+  assert(out.delta >= 2, `le delta doit respecter le plancher, reçu ${out.delta}`);
+});
+
+Deno.test("un `minDelta` absurde ne fabrique pas un décalage nul", () => {
+  // `0` et les négatifs se ramènent à 1: un décalage nul annoncerait un
+  // déplacement qui n'a pas lieu.
+  for (const minDelta of [0, -3]) {
+    const out = planSessionShift({
+      plan: planOf(),
+      cookOn: "2026-08-10",
+      doneWaves: NO_WAVES,
+      cookedPreparationIds: [],
+      maxFridgeDays: MAX_FRIDGE_DAYS,
+      today: STARTS_ON,
+      minDelta,
+    });
+    assertEquals(out.ok, true);
+    if (!out.ok) return;
+    assert(out.delta >= 1, `minDelta ${minDelta} a produit ${out.delta}`);
+  }
 });
 
 // ---------------------------------------------------------------------------
@@ -744,6 +833,7 @@ Deno.test(
         doneWaves: NO_WAVES,
         cookedPreparationIds: [],
         maxFridgeDays: MAX_FRIDGE_DAYS,
+    today: STARTS_ON,
       });
       if (!shift.ok) throw new Error("shift refused in fixture");
       const proposal = buildShiftProposal({
@@ -1015,6 +1105,7 @@ Deno.test("R3 — un glissement REFUSÉ n'entre jamais dans l'espace", () => {
     doneWaves: NO_WAVES,
     cookedPreparationIds: ["prep_a"],
     maxFridgeDays: MAX_FRIDGE_DAYS,
+    today: STARTS_ON,
   });
   const space = buildRealignmentSpace({
     plan: planOf(),

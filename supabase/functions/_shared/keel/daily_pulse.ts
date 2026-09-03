@@ -641,17 +641,38 @@ export function renderPulseQuestion(locale: string): PulseMessage {
 export function renderPulseMessage(
   args: {
     recapBody: string | null;
+    /**
+     * ⛔ CE QU'ON A RETENU AUJOURD'HUI — la moitié « on le DIT » de l'arbitrage
+     * du 2026-09-01 (`memory_recap.ts`).
+     *
+     * Le produit a cessé d'exiger un consentement synchrone pour écrire une
+     * allergie déclarée sur un retour de plan; ce qui remplace ce consentement
+     * est « on l'écrit, on le DIT, et ça se défait ». Ce bloc est le DIT.
+     *
+     * ⚠️ UN ÉNONCÉ, PAS UNE DEMANDE: il ne consomme pas `DAILY_ASK_BUDGET` et
+     * il ne porte AUCUN bouton — le retrait vit sur son écran (§2.8).
+     */
+    memory: string | null;
     ask: boolean;
     strip: { line: string; buttons: PulseButton[] } | null;
     locale: string;
   },
 ): PulseMessage {
   const recap = String(args.recapBody ?? "").trim();
+  const memory = String(args.memory ?? "").trim();
   const stripLine = String(args.strip?.line ?? "").trim();
   const stripButtons = stripLine ? args.strip?.buttons ?? [] : [];
 
   const blocks: string[] = [];
   if (recap) blocks.push(recap);
+  // ⛔ APRÈS LE FAIT DU JOUR, AVANT LA BANDE ET LA QUESTION. C'est un DON, et
+  // le message du soir est bâti sur « donner avant de demander ».
+  //
+  // ⚠️ ET IL COMPTE COMME CONTENU. Prévenir de l'enregistrement d'une allergie
+  // ne peut pas dépendre du fait qu'il y ait eu un plat coché ce soir-là: sans
+  // ça, le seul soir où le récap compte vraiment est aussi celui où il peut ne
+  // pas partir.
+  if (memory) blocks.push(memory);
   if (stripLine) blocks.push(stripLine);
   if (args.ask) blocks.push(pulseQuestion(args.locale));
 
@@ -660,7 +681,7 @@ export function renderPulseMessage(
     // décideur a déjà écarté ce cas en `nothing_to_say`, et le lever ici empêche
     // qu'un futur appelant contourne la décision et poste une bulle vide (R7).
     throw new Error(
-      "[keel/pulse] renderPulseMessage: neither ground, strip nor ask",
+      "[keel/pulse] renderPulseMessage: neither ground, memory, strip nor ask",
     );
   }
 

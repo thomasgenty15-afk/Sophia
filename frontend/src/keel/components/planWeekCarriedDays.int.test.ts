@@ -82,7 +82,16 @@ function prep(over: Partial<MealPreparation> = {}): MealPreparation {
 function item(over: Partial<ShoppingItem> = {}): ShoppingItem {
   // `protein` est PÉRISSABLE: c'est ce qui autorise une seconde vague, donc
   // une vague qui tombe ailleurs que le premier jour du plan.
-  return { term: "salmon", quantity: "600 g", aisle: "protein", ...over };
+  // `food_group` est REQUIS depuis le 2026-08-23 (`ShoppingItem`): c'est lui
+  // qui porte la fenêtre crue, donc la date d'achat. `null` = la ligne n'en a
+  // pas, et le repli `MAX_FRIDGE_DAYS` rend le comportement d'avant.
+  return {
+    term: "salmon",
+    quantity: "600 g",
+    aisle: "protein",
+    food_group: null,
+    ...over,
+  };
 }
 
 function decode(html: string): string {

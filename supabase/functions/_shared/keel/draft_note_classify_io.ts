@@ -86,6 +86,14 @@ import {
   type RetainedWriteOutcome,
 } from "./retained_items_io.ts";
 import { generateWithGemini } from "../gemini.ts";
+// ⛔ LE SECOND CANAL — arbitrage du 2026-09-01. Une allergie dite sur un retour
+// de plan EST une allergie: elle part dans une table qui a sa ceinture, et non
+// dans un `food.exclude` qui expire le dimanche.
+import { safetyOf } from "./draft_note_safety.ts";
+import {
+  persistSafetyDeclarations,
+  type SafetyWriteOutcome,
+} from "./draft_note_safety_io.ts";
 
 // ===========================================================================
 // LES DEUX CONSTANTES, ET AUCUNE N'EST DÉCORATIVE
@@ -172,6 +180,14 @@ export interface DraftNoteClassifyResult {
    * sans lire la source.
    */
   readonly model: string;
+  /**
+   * ⛔ CE QUI A ÉTÉ ÉCRIT EN SÉCURITÉ — arbitrage du 2026-09-01.
+   *
+   * L'arbitrage remplace le consentement synchrone par « on l'écrit, on le
+   * DIT, et ça se défait ». Ce champ est ce qui rend la seconde moitié
+   * LIVRABLE: sans lui, l'appelant écrirait sans avoir de quoi prévenir.
+   */
+  readonly safety: SafetyWriteOutcome;
   /** Ce que la porte a fait. `null` quand on ne l'a pas appelée. */
   readonly write: RetainedWriteOutcome | null;
 }
@@ -232,6 +248,17 @@ export async function classifyAndPersistDraftNote(args: {
   // mesurable au lieu d'être affirmé.
   const model = keelGenerationModel();
 
+  /**
+   * ⛔ « RIEN ÉCRIT », PAS « RIEN À ÉCRIRE ». Les sorties d'AVANT la porte de
+   * sécurité rendent ceci: `proposed: 0` y veut dire « on n'a pas regardé »,
+   * et c'est ce que le compteur doit pouvoir dire.
+   */
+  const noSafety: SafetyWriteOutcome = {
+    written: [],
+    proposed: 0,
+    refused: 0,
+    failed: 0,
+  };
   const empty: DraftNoteClassification = {
     proposed: 0,
     kept: 0,
@@ -239,6 +266,7 @@ export async function classifyAndPersistDraftNote(args: {
       total: 0,
       unknownKind: 0,
       forbiddenKind: 0,
+      forbiddenKinds: [],
       unknownMember: 0,
       badText: 0,
       malformed: 0,
@@ -256,6 +284,7 @@ export async function classifyAndPersistDraftNote(args: {
       classification: empty,
       model,
       write: null,
+      safety: noSafety,
     };
   };
 
@@ -320,6 +349,7 @@ export async function classifyAndPersistDraftNote(args: {
       classification: empty,
       model,
       write: null,
+      safety: noSafety,
     };
   }
 
@@ -350,7 +380,44 @@ export async function classifyAndPersistDraftNote(args: {
       classification,
       model,
       write: null,
+      safety: noSafety,
     };
+  }
+
+  // ── LE SECOND CANAL, ET IL PASSE AVANT LES SORTIES ANTICIPÉES ──────────
+  //
+  // ⛔ ICI, PAS PLUS BAS. `nothing_to_file` sort dès que `nextPlan` est vide —
+  // or une note qui ne dit QUE « je suis allergique aux arachides » produit
+  // exactement ça: zéro item, une déclaration de sécurité. La placer après
+  // aurait rendu le canal muet sur son cas le plus important.
+  //
+  // ⚠️ LES DEUX LISTES SONT DISJOINTES: `items` d'un côté, `safety` de
+  // l'autre. Un échec de l'une ne doit rien à l'autre.
+  const safety = await persistSafetyDeclarations({
+    admin: args.admin,
+    userId,
+    raw: safetyOf(raw),
+    memberIds: (args.members ?? []).map((m) => m.memberId),
+    contentLocale: args.contentLocale,
+    // ⚠️ LA TRAÇABILITÉ REMONTE À LA REQUÊTE, faute de message: ce canal n'est
+    // pas conversationnel. `source_message_id` reste rempli — une contrainte
+    // médicale sans origine ne se conteste pas.
+    sourceMessageId: String(args.requestId ?? ""),
+  });
+  if (safety.proposed > 0 || safety.failed > 0) {
+    // ⚠️ SA PROPRE LIGNE, ET ELLE NE PORTE NI `ref` NI TEXTE. Un journal n'est
+    // pas l'endroit où recopier ce que quelqu'un a écrit sur sa santé.
+    (safety.failed === 0 ? console.info : console.warn)(JSON.stringify({
+      tag: "keel/draft_note_safety",
+      event: safety.failed === 0 ? "written" : "partial",
+      user_id: userId,
+      proposed: safety.proposed,
+      written: safety.written.length,
+      refused: safety.refused,
+      failed: safety.failed,
+      attributed: safety.written.filter((d) => d.memberId !== null).length,
+      kinds: [...new Set(safety.written.map((d) => d.kind))].sort(),
+    }));
   }
 
   if (classification.nextPlan.length === 0) {
@@ -368,6 +435,7 @@ export async function classifyAndPersistDraftNote(args: {
       classification,
       model,
       write: null,
+      safety,
     };
   }
 
@@ -400,6 +468,7 @@ export async function classifyAndPersistDraftNote(args: {
     classification,
     model,
     write,
+    safety,
   };
   // UNE SEULE LIGNE, ET ELLE PORTE LES TROIS NOMBRES AVEC LE MODÈLE.
   (result.ok ? console.info : console.warn)(JSON.stringify({

@@ -161,14 +161,42 @@ describe("2026-08-19 · la frontière d'écriture du rythme", () => {
     }
   });
 
-  it("⛔ l'écran n'appelle `saveEatingRhythm` que depuis la fiche", () => {
+  it("⛔ l'écran n'écrit le rythme que là où il MONTRE la question", () => {
     const src = readFileSync(
       resolve(ROOT, "frontend/src/keel/pages/SetupPage.tsx"),
       "utf8",
     );
-    // Une seule fois: l'enregistrement du titulaire. Un second appelant serait
-    // le second formulaire que ce lot vient de retirer.
-    expect(src.split("await saveEatingRhythm(").length - 1).toBe(1);
+    // ⟳ 2026-09-01 — DE UN APPELANT À DEUX, ET LA GARDE SE RESSERRE PLUTÔT
+    // QUE DE S'OUVRIR.
+    //
+    // Le compte seul disait « un », et sa raison était: « un second appelant
+    // serait le second formulaire que ce lot vient de retirer ». Ce que la
+    // règle protège n'est pas le NOMBRE, c'est le lien entre écrire le rythme
+    // et le montrer — `savePlanAnswers` l'écrivait depuis l'écran qui compose,
+    // et composer remettait un moment qu'on venait de retirer.
+    //
+    // Le second appelant est le bouton du SHAKER, dans la fiche qui montre les
+    // moments: choisir un moment non coché l'ajoute, et cet ajout doit partir
+    // avec le shaker — sinon l'apport est en base sur un moment que la
+    // personne ne mange pas.
+    //
+    // ⛔ ON NOMME DONC LES DEUX GESTES au lieu de compter. Un troisième
+    // appelant tombera ici, et il devra venir écrire pourquoi il montre la
+    // question — ce qu'un `toBe(3)` ne lui aurait jamais demandé.
+    const callers = ["function saveSelf(", "function saveOwnShaker("];
+    expect(src.split("await saveEatingRhythm(").length - 1).toBe(callers.length);
+    for (const fn of callers) {
+      const at = src.indexOf(fn);
+      expect(at, `${fn} est introuvable`).toBeGreaterThan(-1);
+      // ⚠️ JUSQU'À LA FONCTION SUIVANTE, pas sur une fenêtre de N caractères:
+      // `saveSelf` fait deux cents lignes, et une fenêtre trop courte rendrait
+      // ce test vert le jour où quelqu'un déplace l'appel de dix lignes.
+      const after = src.slice(at + fn.length);
+      const end = after.search(/\n {2}(async )?function [a-zA-Z]/);
+      const body = end > -1 ? after.slice(0, end) : after;
+      expect(body, `${fn} n'écrit plus le rythme`)
+        .toContain("await saveEatingRhythm(");
+    }
     // Et le bouton qui compose ne l'appelle pas — il ne montre pas la question.
     const compose = src.slice(src.indexOf("function askForDraft("));
     expect(compose.slice(0, compose.indexOf("\n  }\n")))

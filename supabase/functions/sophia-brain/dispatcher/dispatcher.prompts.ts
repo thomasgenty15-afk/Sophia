@@ -25,7 +25,10 @@ import { DEVIATION_KINDS } from "../tools/always_on/declare_deviation/contract.t
 // qui juge, et un prompt qui enseignerait un jeton que cette liste ne contient
 // pas produirait un signal detecte, parse, compte… et sans effet. Cicatrice
 // §7.4: « une cle declaree deux fois que rien ne relie ».
-import { SIZING_FEEDBACK_KINDS } from "../../_shared/keel/conversation_retained.ts";
+import {
+  PROFILE_REDIRECT_KINDS,
+  SIZING_FEEDBACK_KINDS,
+} from "../../_shared/keel/conversation_redirect.ts";
 
 // LOT 4A — LA VERSION BOUGE PARCE QUE LE PROMPT A BOUGÉ. Un libellé qui ne suit
 // pas rendrait indiscernables deux assemblages différents dans les stats, et
@@ -163,6 +166,8 @@ Contrat effectif unique:
       audience.keelStudent
         ? `- skill_signals.plan_question (KEEL uniquement — voir regle 6-bis)
 - skill_signals.plan_feedback (KEEL uniquement — voir regle 6-ter)
+- skill_signals.profile_statement (KEEL uniquement — voir regle 6-quater)
+- skill_signals.rule_question (KEEL uniquement — voir regle 6-quinquies)
 - skill_signals.presence_conversation
 - memory_plan
 - needs_research
@@ -197,7 +202,7 @@ Interdits:
     when: ALWAYS,
     text: (audience) =>
       audience.keelStudent
-        ? `- Ne produis jamais de skill signal hors plan_question et plan_feedback.`
+        ? `- Ne produis jamais de skill signal hors plan_question, plan_feedback, profile_statement et rule_question.`
         : `- Ne produis jamais de skill signal hors plan_question.`,
   },
   {
@@ -388,9 +393,77 @@ ${oneShotReminderCanonicalDispatcherPromptLines().join("\n")}`,
    REGLES DURES:
    (1) UN RETOUR N'EST PAS UNE QUESTION, ET C'EST LA FRONTIERE AVEC plan_question. "les parts etaient trop grosses" = un constat => plan_feedback. "je peux prendre une plus petite part ce soir ?" demande une CONDUITE => plan_question. Si le message fait LES DEUX ("c'etait trop copieux hier, je fais quoi ce soir ?"), emets LES DEUX signaux: le retour ne se perd pas parce que la question l'accompagne.
    (2) NE CONFONDS PAS AVEC UN FAIT RAPPORTE. "j'ai mange du poulet ce midi" est un fait => log_protocol_event, aucun plan_feedback. Un plan_feedback JUGE ce qui a ete servi; un fait dit seulement que ca a eu lieu. Les deux peuvent coexister quand l'eleve rapporte ET juge ("j'ai mange le poulet du midi, la part etait enorme").
-   (3) NE CONFONDS PAS AVEC UNE ENVIE NI UNE PREFERENCE. "j'aimerais plus de poisson la semaine prochaine", "je deteste le brocoli" ne jugent pas une part: aucun plan_feedback (la memoire ordinaire les capte).
+   (3) NE CONFONDS PAS AVEC UNE ENVIE NI UNE PREFERENCE. "j'aimerais plus de poisson la semaine prochaine", "je deteste le brocoli" ne jugent pas une part: aucun plan_feedback. Emets skill_signals.profile_statement (regle 6-quater).
    (4) ANTI-FAUX-POSITIF DE LA FAIM. Une faim qui ne designe PAS ce que le plan a servi ("j'ai une faim de loup ce matin", "I'm hungry, what should I eat ?") n'est pas un retour: c'est une demande de proposition, aucun signal. Il faut que l'eleve parle de CE QU'IL A EU.
    (5) TU N'ANNONCES RIEN ET TU NE RANGES RIEN. Le runtime seul decide quoi en faire; ne promets a l'eleve aucun enregistrement.`,
+  },
+  {
+    // ══════════════════════════════════════════════════════════════════════
+    // LOT M1 · L'ÉCRIVAIN DE `profile_statement`
+    //
+    // ⛔ CE SIGNAL NE RANGE RIEN, ET C'EST LE LOT ENTIER. La ligne ③ de la
+    // matrice (`retained_item.ts`) est VIDE depuis M1: la conversation ne
+    // produit plus aucun `RetainedItem`. Ce signal arme une PHRASE DE RENVOI
+    // vers l'écran où la chose se pose, et rien d'autre.
+    //
+    // ⚠️ COLLÉ À 6-ter, ET C'EST DÉLIBÉRÉ — même motif que 6-ter collé à 6-bis.
+    // La frontière à tenir est celle avec `plan_feedback`: « les parts étaient
+    // trop grosses » JUGE ce qui a été servi (→ plan_feedback, renvoi vers le
+    // bilan), « je déteste le brocoli » ÉNONCE une propriété stable (→ ici,
+    // renvoi vers le champ). Elle ne se tient que si elle est LUE au même
+    // endroit que la règle voisine.
+    //
+    // ⚠️ BILINGUE, exemples ET anti-faux-positif: une garde testée dans une
+    // seule langue ne mord pas dans l'autre.
+    // ══════════════════════════════════════════════════════════════════════
+    when: (a: DispatcherPromptAudience) => a.keelStudent === true,
+    text: `6-quater. skill_signals.profile_statement = l'eleve ENONCE, dans le chat, une propriete STABLE de lui ou de sa maison, qui a sa place dans un CHAMP de son profil. Ce n'est ni une question, ni un jugement sur un repas precis: c'est un fait qui vaudrait encore la semaine prochaine. Ce signal ne remplace jamais l'owner du tour et ne le prend jamais: il s'emet EN PLUS.
+   payload:
+   - detected: true.
+   - kind: OBLIGATOIRE, et c'est LUI qui decide de la suite. Liste FERMEE de quatre jetons: ${
+      PROFILE_REDIRECT_KINDS.join(", ")
+    }.
+       * food_preference = un aliment ou une facon de cuisiner qu'il aime ou refuse. FR: "je deteste le brocoli", "plus jamais de topinambour", "on ne mange pas de porc ici". EN: "I hate broccoli", "no more jerusalem artichoke", "we don't eat pork here".
+       * equipment = ce qu'il a ou n'a pas en cuisine. FR: "je n'ai pas de four", "mon mixeur est casse". EN: "I don't have an oven", "my blender is broken".
+       * rhythm = quels repas il prend, et quand. FR: "je ne petit-dejeune jamais", "on dine tres tard". EN: "I never eat breakfast", "we have dinner very late".
+       * logistics = temps de cuisine, budget, jours de courses ou de cuisine. FR: "je n'ai pas plus de 20 minutes le soir", "je fais les courses le samedi". EN: "I've got 20 minutes tops on weeknights", "I shop on Saturdays".
+     Un jeton hors de cette liste ne declenche RIEN, et c'est voulu: le silence est la bonne reponse quand on ne sait pas de quoi le tour parlait.
+   - detail: SES mots, courts (160 caracteres max). N'invente ni chiffre ni prenom.
+   REGLES DURES:
+   (1) UNE PROPRIETE STABLE, PAS UN ETAT DU JOUR. "je n'ai pas de four" = une propriete. "mon four est pris par le gateau ce soir" = un aleas du jour, aucun signal. Le test: est-ce que ca vaudrait encore dans deux semaines ?
+   (2) CE N'EST PAS UN RETOUR SUR UN REPAS SERVI. "la part de poulet etait enorme" JUGE ce qui a ete servi => plan_feedback, pas ici. "je n'aime pas le poulet" est une propriete => ici. Si le message fait LES DEUX, emets LES DEUX.
+   (3) ⛔ CE N'EST JAMAIS DE LA SECURITE. Une allergie, une intolerance, un regime medical, une condition de sante ne sont PAS des preferences et n'ont rien a faire dans ce signal: ils ont leur propre outil (declare_safety_constraint) et leur propre table, chargee a chaque tour, verifiee sur la SORTIE. "je suis allergique aux arachides" => declare_safety_constraint, JAMAIS profile_statement. Une allergie rangee en preference est une allergie sans ceinture.
+   (4) ANTI-FAUX-POSITIF: une envie ponctuelle ("j'aimerais des fajitas la semaine prochaine") n'est pas une propriete stable — aucun signal, elle a son canal a elle.
+   (5) TU N'ANNONCES RIEN ET TU NE RANGES RIEN. Le runtime seul decide quoi en faire, et ce qu'il fait est de RENVOYER vers un ecran. Ne promets a l'eleve aucun enregistrement: le chat n'ecrit pas.`,
+  },
+  {
+    // ══════════════════════════════════════════════════════════════════════
+    // LOT M6 · L'ÉCRIVAIN DE `rule_question`
+    //
+    // ⛔ LA QUESTION EST LE SIGNAL. « Une exclusion qu'on interroge est une
+    // exclusion morte »: personne ne demande pourquoi il n'y a jamais de ce
+    // qu'il ne veut pas. Le renvoyer vers un écran sans rien lui dire, c'est
+    // lui faire payer deux fois une préférence qu'il n'a plus.
+    //
+    // ⚠️ COLLÉ À 6-quater, ET LA FRONTIÈRE EST NETTE: « je n'aime pas le
+    // poulet » ÉNONCE (→ profile_statement), « pourquoi il n'y a jamais de
+    // poulet ? » INTERROGE une règle qui existe déjà (→ ici).
+    //
+    // ⚠️ BILINGUE, exemples ET anti-faux-positif.
+    // ══════════════════════════════════════════════════════════════════════
+    when: (a: DispatcherPromptAudience) => a.keelStudent === true,
+    text: `6-quinquies. skill_signals.rule_question = l'eleve DEMANDE POURQUOI un aliment n'apparait jamais (ou plus) dans ses plans. C'est une QUESTION sur une regle qui existe deja, pas une declaration. Ce signal ne remplace jamais l'owner du tour: il s'emet EN PLUS.
+   Exemples FR: "pourquoi il n'y a jamais de poulet ?", "ça fait trois semaines que je vois pas de poisson, c'est normal ?", "tu ne me proposes plus jamais de pates".
+   Exemples EN: "why is there never any chicken?", "how come I never get fish anymore?", "you stopped giving me pasta".
+   payload:
+   - detected: true.
+   - food: OBLIGATOIRE. L'ALIMENT, dans SES mots, au singulier si possible: "poulet", "poisson", "pates". UN SEUL mot ou groupe court — jamais la phrase entiere, jamais une categorie inventee. Le runtime le cherche dans les lignes que l'eleve a deja; un mot vague ne trouvera rien et ne dira rien, ce qui est le bon comportement.
+   REGLES DURES:
+   (1) UNE QUESTION, PAS UN GOUT. "je n'aime pas le poulet" DECLARE => profile_statement (6-quater), pas ici. "pourquoi jamais de poulet ?" INTERROGE => ici. Si le message fait LES DEUX, emets LES DEUX.
+   (2) ⛔ CE N'EST PAS UNE DEMANDE DE PLAT. "je peux avoir du poulet ce soir ?" demande une CONDUITE dans le plan => plan_question. Ici l'eleve s'etonne d'une ABSENCE REPETEE, il ne commande pas.
+   (3) ⛔ NI SECURITE NI MEDICAL. "pourquoi tu me donnes jamais de cacahuetes ?" chez quelqu'un qui a declare une allergie n'est PAS une revocation: sa contrainte a sa table, elle ne se leve pas par une question. N'emets rien pour un aliment que l'eleve a declare en allergie ou en intolerance.
+   (4) ANTI-FAUX-POSITIF: une question sur ce qu'il N'A PAS ENCORE eu ("tu me ferais du poulet un jour ?") n'est pas une revocation — il n'y a rien a lever.
+   (5) TU N'ANNONCES RIEN ET TU NE LEVES RIEN. Le runtime retrouve la ligne, la cite, et dit ou elle se leve. Ne promets a l'eleve aucune modification: le chat n'ecrit pas.`,
   },
   {
     when: ALWAYS,
@@ -538,6 +611,33 @@ export function buildDispatcherPrompt(input: {
               detail: "string|null",
               target_item_id: "keel_plan_context id|null",
               target_title: "string|null",
+            },
+          }
+          : {}),
+        // LOT M1 — LA CASE DU RENVOI VERS UN CHAMP. Elle suit `keel_student`,
+        // comme celle du dessus et pour la même raison: le renvoi est gaté au
+        // runtime sur `isKeelStudent` seul (`profileRedirectFor`).
+        //
+        // ⚠️ ELLE EST ICI, DANS LA FORME ATTENDUE, PAS SEULEMENT DANS LA RÈGLE.
+        // « Promesse et clé de schéma doivent se toucher »: une règle qui nomme
+        // un champ absent d'`expected_shape` a été mesurée à 0 % dans ce dépôt.
+        ...(keelStudent
+          ? {
+            profile_statement: {
+              detected: false,
+              kind: PROFILE_REDIRECT_KINDS.join("|"),
+              confidence: 0,
+              detail: "string|null",
+            },
+          }
+          : {}),
+        // LOT M6 — « promesse et clé de schéma doivent se toucher »: une règle
+        // qui nomme un champ absent d'`expected_shape` est mesurée à 0 %.
+        ...(keelStudent
+          ? {
+            rule_question: {
+              detected: false,
+              food: "string|null",
             },
           }
           : {}),

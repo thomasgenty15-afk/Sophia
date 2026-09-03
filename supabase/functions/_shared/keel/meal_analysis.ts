@@ -65,6 +65,17 @@
  *
  * PURE MODULE: no I/O, no clock, no randomness. The edge function owns the
  * network and the database; everything decidable is decidable here, in tests.
+ *
+ * ⚠️ ── LE RENVERSEMENT DU CHIFFRE (2026-08-06, exécuté le 2026-09-01) ───────
+ * Ce module a longtemps porté « aucune énergie, jamais ». Ce n'est plus vrai,
+ * et la nuance est tout: **il refuse le chiffre NU**. Un chiffre d'énergie vit
+ * dans `energy_estimate`, qui porte sa BASE — `photo_estimate` (mesuré −26,6 %
+ * de biais) ou `declared_quantities` (2,3 %) — ou il n'existe pas.
+ *
+ * Ce qui n'a pas bougé, et ne doit pas: les macros restent interdites
+ * (LEGAL §6.4), les grammes aussi, et le chiffre EN PROSE reste effacé — c'est
+ * la seule forme sous laquelle un nombre voyage sans sa base. Cadre complet:
+ * `docs/keel/CALORIE_REVERSAL.md`.
  */
 
 import {
@@ -74,6 +85,9 @@ import {
   parseSlotKey,
   type SlotKey,
 } from "./tokens.ts";
+// `locale.ts` et `../locale.ts` sont PURS (aucun import `jsr:`), donc ce module
+// reste montable côté front — deux fichiers de production l'y importent déjà.
+import { localePackKey, type LocalePackKey } from "./locale.ts";
 
 /** Bumped whenever the prompt text changes; stored on the event for trace. */
 /**
@@ -113,7 +127,25 @@ import {
  * and still delete any number that reaches them, including inside an assumption
  * sentence or a question.
  */
-export const MEAL_ANALYSIS_PROMPT_VERSION = "meal_analysis.en.v3";
+/**
+ * v4 (2026-09-01) — `label_localized` entre au schéma, et le prompt porte un
+ * bloc de langue de sortie. Le nom perd son `.en.`: la version décrit le
+ * CONTRAT, et ce contrat n'est plus monolingue. La langue effectivement
+ * demandée voyage à part (`MealAnalysisPrompt.outputLanguage`), parce qu'une
+ * version par langue multiplierait les valeurs à comparer dans les deux
+ * contrôles de write-through pour ne rien apprendre de plus.
+ */
+/**
+ * v5 (2026-09-01) — LE RENVERSEMENT DU CHIFFRE. `energy_estimate` entre au
+ * schéma, et la règle dure passe de « aucune énergie » à « aucune énergie SANS
+ * SA BASE ».
+ *
+ * Le bump est OPÉRATIONNEL, pas cosmétique: `analyze-meal-photo-v1` décide de
+ * l'idempotence sur la version STOCKÉE. Une v4 et une v5 doivent rester
+ * distinguables sur la ligne — sinon une reprise de benchmark ne peut pas dire
+ * quelles lectures portaient un chiffre et lesquelles n'en portaient pas.
+ */
+export const MEAL_ANALYSIS_PROMPT_VERSION = "meal_analysis.v5";
 
 // ---------------------------------------------------------------------------
 // Closed vocabularies (R1: ASCII snake_case, never translated)
@@ -187,6 +219,68 @@ export type SubjectKind = (typeof SUBJECT_KINDS)[number];
  */
 export const CONFIDENCE_BANDS = ["low", "moderate", "high"] as const;
 export type ConfidenceBand = (typeof CONFIDENCE_BANDS)[number];
+
+/**
+ * CALORIE_REVERSAL §1 — LA BASE D'UN CHIFFRE D'ÉNERGIE. Liste FERMÉE.
+ *
+ * ══════════════════════════════════════════════════════════════════════════
+ * « UN CHIFFRE D'ÉNERGIE VIT DANS UN CHAMP QUI PORTE SA BASE, OU IL N'EXISTE
+ * PAS. » — décision produit du 2026-08-06.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * KEEL cesse de refuser le chiffre d'énergie. Il refuse le chiffre **nu**. Et
+ * la distinction n'est pas rhétorique, elle est MESURÉE:
+ *
+ *   `declared_quantities` — l'élève a donné les quantités. C'est un CALCUL.
+ *                           Mesuré: **2,3 % de MAPE**.
+ *   `photo_estimate`      — le modèle les a devinées. C'est une ESTIMATION.
+ *                           Mesuré: **−26,6 % de biais**, systématiquement
+ *                           dans le sens flatteur.
+ *
+ * Vingt-quatre points d'écart, toujours du même côté. Les afficher pareil
+ * serait mentir sur la fiabilité de l'un des deux — et c'est celui qui rassure
+ * à tort qui passerait pour l'autre.
+ *
+ * La forme est copiée sur `AssumptionBasis` (`visible_cue` / `standard_default`),
+ * qui fait déjà exactement cette distinction preuve-contre-supposition dans ce
+ * même fichier. On la copie, on n'en invente pas une seconde.
+ */
+export const ENERGY_BASES = ["declared_quantities", "photo_estimate"] as const;
+export type EnergyBasis = (typeof ENERGY_BASES)[number];
+
+/**
+ * UN CHIFFRE D'ÉNERGIE, AVEC SA BASE ET SA CONFIANCE. `null` est normal.
+ *
+ * ⚠️ UN SEUL CHAMP, PAS TROIS. `CALORIE_REVERSAL.md` §1 est explicite: pas de
+ * macros. La décision du 2026-08-06 porte sur l'ÉNERGIE, et
+ * [LEGAL.md](../../../docs/keel/LEGAL.md) §6.4 continue d'interdire le « suivi
+ * des macros par photo ». Un second champ ici rouvrirait ce que le premier
+ * ferme.
+ *
+ * `null` reste la réponse normale et légitime: une photo d'une pomme entière
+ * n'a pas besoin d'un chiffre, et en produire un serait du bruit chiffré.
+ */
+export interface EnergyEstimate {
+  kcal: number;
+  basis: EnergyBasis;
+  confidence_band: ConfidenceBand;
+}
+
+/**
+ * LES BORNES DE PLAUSIBILITÉ D'UN REPAS, EN KCAL.
+ *
+ * ⚠️ EXPORTÉES POUR ÊTRE LUES PAR LE CHEMIN DE CORRECTION (FF-062 R11), et pas
+ * recopiées là-bas. Deux jeux de bornes pour la même grandeur divergent — la
+ * cicatrice `weight_bounds.ts` raconte les quatre copies d'un même refus, dont
+ * une avait déjà glissé.
+ *
+ * ⛔ CE NE SONT PAS UN JUGEMENT SUR UN REPAS. Elles attrapent une faute de
+ * frappe et une unité mal lue, rien d'autre — volontairement larges. 1 kcal
+ * n'est pas un repas et 5 000 non plus, mais rien entre les deux n'est refusé:
+ * un chiffre corrigé HORS bornes est refusé et NOMMÉ, jamais ramené au bord.
+ */
+export const ENERGY_KCAL_MIN = 1;
+export const ENERGY_KCAL_MAX = 5000;
 
 /**
  * What an assumption can be ABOUT. A closed ASCII list (R1) because code
@@ -273,7 +367,26 @@ export interface MealAnalysisCommitmentContext {
 // ---------------------------------------------------------------------------
 
 export interface DetectedFood {
+  /**
+   * LE NOM ANGLAIS, ET IL RESTE ANGLAIS. Un MATCHER le lit.
+   *
+   * `planned_dish_match.ts` rapproche ces libellés du catalogue `food_items`
+   * (127 aliments, slugs et termes ANGLAIS) pour décider de la coche
+   * automatique. Traduire ce champ ferait taire la coche pour tous les élèves
+   * francophones — la cicatrice `referential-depth-not-language-is-the-gap`
+   * mesure exactement ce coût, 17,3 points d'écart.
+   */
   label: string;
+  /**
+   * LE MÊME ALIMENT, DANS LA LANGUE DE L'ÉLÈVE — ou `null`.
+   *
+   * C'est le seul des deux qui a le droit d'être LU À VOIX HAUTE. `null` quand
+   * la langue demandée était l'anglais (le champ n'a alors pas d'objet), ou
+   * quand le modèle ne l'a pas rendu — et ce second cas est COMPTÉ par
+   * l'appelant: un champ déclaré par le modèle sans compteur fait ressembler un
+   * lot désarmé à un lot qui marche.
+   */
+  label_localized: string | null;
   food_group_ref: FoodGroupRef | null;
   confidence: number;
 }
@@ -303,6 +416,16 @@ export interface MealAssumption {
 }
 
 export interface MealAnalysis {
+  /**
+   * CALORIE_REVERSAL §1 — L'ÉNERGIE, QUAND ELLE EXISTE, AVEC SA BASE.
+   *
+   * ⚠️ C'EST LE SEUL CHEMIN PAR LEQUEL UN CHIFFRE D'ÉNERGIE PEUT SURVIVRE. Le
+   * filtre (`stripMeasurementFacts`) efface toute autre forme — un `total_kcal`
+   * à la racine, un « environ 600 kcal » dans un `rationale` — et c'est
+   * inchangé. L'exception est de CHEMIN (`energy_estimate.kcal`), pas de nom:
+   * un champ `kcal` ailleurs dans l'arbre n'est pas couvert.
+   */
+  energy_estimate: EnergyEstimate | null;
   detected_foods: DetectedFood[];
   food_groups_present: FoodGroupRef[];
   /** Groups the day's plan expects at this slot that the plate does not show. */
@@ -425,6 +548,86 @@ const MEASUREMENT_PROSE_PATTERNS: readonly RegExp[] = [
   /\b(prot[eé]ines?|glucides?|lipides?|fibres?|sucres?|graisses?|sodium)\s*[:=]?\s*\d[\d.,]*\s*(g|gr|mg|grammes?)\b/gi,
 ];
 
+/**
+ * CALORIE_REVERSAL §1 + §3 — LE CHIFFRE D'ÉNERGIE, RELU ET REBASÉ.
+ *
+ * Rend `null` — la réponse normale — dans tous ces cas, et aucun n'est une
+ * erreur: champ absent, forme illisible, `kcal` non fini, `kcal` hors bornes.
+ *
+ * ── LES BORNES, ET POURQUOI ELLES SONT LARGES ────────────────────────────
+ * 1 à 5000 kcal. Ce n'est pas une opinion nutritionnelle, c'est un filtre à
+ * absurdités: un `0` n'est pas une assiette, et un `40000` est une erreur de
+ * décimale que personne ne doit voir. Entre les deux, ce n'est pas à ce module
+ * de juger — c'est au coach.
+ *
+ * ── LA BASE EST FORCÉE, JAMAIS CRUE ──────────────────────────────────────
+ * Sans quantité déclarée dans le contexte, `declared_quantities` est
+ * IMPOSSIBLE, quoi qu'écrive le modèle. On dégrade en `photo_estimate` et on
+ * l'écrit dans `issues` — la dégradation silencieuse serait exactement le
+ * mensonge sur la fiabilité que ce champ existe pour empêcher.
+ */
+function parseEnergyEstimate(
+  raw: unknown,
+  hasDeclaredQuantities: boolean,
+  issues: string[],
+): EnergyEstimate | null {
+  if (raw === null || raw === undefined) return null;
+  if (typeof raw !== "object" || Array.isArray(raw)) {
+    issues.push("energy_estimate: expected an object or null, dropped");
+    return null;
+  }
+  const obj = raw as Record<string, unknown>;
+
+  const kcal = Number(obj.kcal);
+  if (!Number.isFinite(kcal)) {
+    issues.push(
+      `energy_estimate.kcal: not a number (${JSON.stringify(obj.kcal)}), dropped`,
+    );
+    return null;
+  }
+  const rounded = Math.round(kcal);
+  if (rounded < ENERGY_KCAL_MIN || rounded > ENERGY_KCAL_MAX) {
+    issues.push(`energy_estimate.kcal: ${rounded} out of plausible range, dropped`);
+    return null;
+  }
+
+  const declared = parseEnum(obj.basis, ENERGY_BASES) === "declared_quantities";
+  let basis: EnergyBasis = "photo_estimate";
+  if (declared) {
+    if (hasDeclaredQuantities) {
+      basis = "declared_quantities";
+    } else {
+      issues.push(
+        "energy_estimate.basis: model claimed declared_quantities with no " +
+          "declared quantity in context — degraded to photo_estimate",
+      );
+    }
+  } else if (parseEnum(obj.basis, ENERGY_BASES) === null) {
+    // Une base illisible n'annule pas le chiffre: elle le range du côté PRUDENT.
+    issues.push(
+      `energy_estimate.basis: unknown value ${
+        JSON.stringify(obj.basis)
+      }, treated as photo_estimate`,
+    );
+  }
+
+  const band = parseEnum(obj.confidence_band, CONFIDENCE_BANDS);
+  if (band === null && obj.confidence_band !== undefined) {
+    issues.push(
+      `energy_estimate.confidence_band: unknown value ${
+        JSON.stringify(obj.confidence_band)
+      }, treated as low`,
+    );
+  }
+
+  return {
+    kcal: rounded,
+    basis,
+    // `low` par défaut: une confiance absente n'est pas une confiance haute.
+    confidence_band: band ?? "low",
+  };
+}
+
 function normalizeKey(key: string): string {
   return String(key)
     .trim()
@@ -444,6 +647,19 @@ function isMeasurementKey(key: string): boolean {
  * quantified energy/macro claim in prose. Returns a NEW value; the input is
  * never mutated (the raw model output stays intact for the trace log).
  */
+/**
+ * LE SEUL CHEMIN OÙ UN CHIFFRE D'ÉNERGIE SURVIT AU FILTRE.
+ *
+ * ⚠️ UN CHEMIN, PAS UN NOM. `energy_estimate.kcal` à la racine, et rien
+ * d'autre: un `kcal` niché ailleurs dans l'arbre reste effacé et reste compté.
+ * La différence n'est pas théorique — un modèle qui invente
+ * `detected_foods[0].kcal` produirait sinon un chiffre nu par un nom que la
+ * garde aurait appris à laisser passer.
+ *
+ * CALORIE_REVERSAL §2: « une seule exception de chemin, pas de nom ».
+ */
+const ENERGY_ESTIMATE_KCAL_PATH = "energy_estimate.kcal";
+
 export function stripMeasurementFacts(
   value: unknown,
   path = "",
@@ -459,6 +675,14 @@ export function stripMeasurementFacts(
     const out: Record<string, unknown> = {};
     for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
       const childPath = path ? `${path}.${key}` : key;
+      // CALORIE_REVERSAL §2 — L'UNIQUE EXCEPTION, ET ELLE EST DE CHEMIN.
+      // `energy_estimate.kcal` porte sa base sur la même structure; c'est ce
+      // qui le distingue d'un `total_kcal` à la racine, qui reste supprimé et
+      // reste compté dans `dropped`.
+      if (childPath === ENERGY_ESTIMATE_KCAL_PATH) {
+        out[key] = child;
+        continue;
+      }
       if (isMeasurementKey(key)) {
         dropped.push(childPath);
         continue;
@@ -518,6 +742,93 @@ export interface MealAnalysisPrompt {
   allowedCommitmentIds: string[];
   slotKey: SlotKey | null;
   promptVersion: string;
+  /**
+   * La langue DEMANDÉE pour les trois champs lus à voix haute. Remontée pour
+   * que l'appelant puisse compter ce qu'il n'a pas reçu — un champ déclaré par
+   * le modèle sans compteur fait ressembler un lot désarmé à un lot qui marche.
+   */
+  outputLanguage: LocalePackKey;
+}
+
+/**
+ * LA PORTE DE L'ÉNERGIE, DITE AU MODÈLE — CALORIE_REVERSAL §0.
+ *
+ * ══════════════════════════════════════════════════════════════════════════
+ * LA GARDE NE SUPPRIME PAS LE CHIFFRE: ELLE EMPÊCHE QU'IL SOIT PRODUIT
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * Décision de l'utilisateur du 2026-08-18, en toutes lettres: *« la garde ne
+ * PRODUIT jamais le chiffre — elle ne le supprime pas après coup. L'état se lit
+ * AVANT le calcul, jamais entre le calcul et l'écran. »* Sur ce chemin, « le
+ * calcul » est l'appel au modèle: la porte se lit donc avant de construire le
+ * prompt, et quand elle est fermée le prompt ne demande plus le champ.
+ *
+ * ⚠️ ET LA CEINTURE EST DOUBLE, PARCE QUE LE MODÈLE N'EST PAS UN APPELANT
+ * FIABLE. `parseMealAnalysis` reçoit la même porte et force `null` — un modèle
+ * qui écrirait quand même un `energy_estimate` verrait son chiffre effacé et
+ * COMPTÉ (`dropped_measurement_fields`). Les deux moitiés sont nécessaires: la
+ * première évite de payer un chiffre qu'on jettera, la seconde est celle qui
+ * tient si la première est un jour mal câblée.
+ *
+ * ⛔ CE QUI EST GARDÉ ICI: un élève sous plancher TCA, un mineur, l'élève d'un
+ * coach qui ne compte pas, ou quelqu'un qui a éteint l'affichage. Les quatre
+ * portes sont assemblées par `energy_gate_io.ts` et décidées par
+ * `canShowEnergy`; ce bloc n'en redécide aucune, il transporte leur verdict.
+ *
+ * ⚠️ ADJACENT À SA CLÉ, comme le bloc de langue et pour la raison mesurée: une
+ * consigne qui renvoie à un schéma vivant dans l'autre message obtient 0 % de
+ * conformité. On redéclare donc l'entrée entière au lieu d'y faire référence.
+ */
+function energyGateBlock(allowed: boolean): string {
+  if (allowed) return "";
+  return `
+
+== OVERRIDE, AND IT WINS OVER EVERY RULE ABOVE ABOUT ENERGY ==
+
+For THIS reading, no energy figure exists. Whatever the schema above says about "energy_estimate", the value you return for it is:
+
+  "energy_estimate": null
+
+Not a small number, not a low-confidence number, not a range: null. Do not mention energy, calories or "how much this is" anywhere else either -- not in a rationale, not in an assumption, not in the clarifying question. Everything else you were asked for is unchanged and still expected.`;
+}
+
+/**
+ * LE BLOC DE LANGUE DE SORTIE — vide en anglais, sinon adjacent à sa clé.
+ *
+ * ⚠️ LA PROMESSE ET LA CLÉ DE SCHÉMA SE TOUCHENT, ET C'EST LA SEULE RAISON POUR
+ * LAQUELLE CE BLOC EST ICI plutôt que dans le message utilisateur. Ce dépôt a
+ * mesuré 0 % de conformité quand une consigne renvoie à un schéma qui vit dans
+ * l'autre message: « ci-dessus » ne traverse pas la frontière système ↔
+ * utilisateur. Le bloc redéclare donc l'entrée `detected_foods` en entier,
+ * `label_localized` compris, au lieu d'y faire référence.
+ *
+ * ⚠️ ET IL NOMME CE QUI NE SE TRADUIT PAS. Sans cette liste, un modèle à qui on
+ * demande « écris en français » traduit aussi les slugs fermés et les verdicts —
+ * et `parseFoodGroupRef` les rejette un par un, en silence pour l'élève.
+ */
+function outputLanguageBlock(pack: LocalePackKey): string {
+  if (pack === "en") return "";
+  const language = pack === "fr" ? "French" : pack;
+  return `
+
+== OUTPUT LANGUAGE: ${language.toUpperCase()} ==
+
+The student reads ${language}. THREE fields of your JSON are read aloud to them, and those three must be written in ${language}:
+
+  - "label_localized" -- a field on EVERY detected_foods entry: the same food, named in ${language}.
+  - "assumption" -- inside each assumptions entry.
+  - "clarifying_question".
+
+"label" itself STAYS in plain English on every entry, next to its ${language} twin. A matcher reads it against an English catalogue; translating it silently breaks the plate-to-plan match. Return BOTH, always.
+
+EVERYTHING ELSE keeps its exact English token, untranslated: every food_group_ref slug, every verdict, every portion band, every basis, every subject, image_quality and subject_kind. A translated slug is rejected on arrival and the food it named is lost.
+
+The rationale fields are internal (the coach reads them, the student never does): leave them in English.
+
+detected_foods entries therefore look EXACTLY like this:
+
+  { "label": string, "label_localized": string, "food_group_ref": string|null, "confidence": number }
+`;
 }
 
 /**
@@ -539,7 +850,25 @@ export interface MealAnalysisPrompt {
 export function buildMealAnalysisPrompt(
   commitmentsToday: readonly MealAnalysisCommitmentContext[],
   slot: string | null,
+  /**
+   * La locale de l'élève. REQUISE — un défaut silencieux rendrait l'anglais à
+   * toute la base francophone, c'est-à-dire exactement le défaut que ce
+   * paramètre existe pour fermer. R7 par délégation: `localePackKey` jette sur
+   * une langue non livrée.
+   */
+  outputLocale: string,
+  /**
+   * LA PORTE DE L'ÉNERGIE — le `show` de `canShowEnergy`, transporté.
+   *
+   * ⛔ REQUIS, ET PAS DE DÉFAUT. La règle du dépôt
+   * (`optional-gate-params-are-disarmed-gates`): un paramètre de garde
+   * optionnel est une garde désarmée, parce que l'oublier ouvre la porte.
+   * Quinze appels ont été repris plutôt que d'accepter ça sur la garde la plus
+   * sensible du produit.
+   */
+  energyAllowed: boolean,
 ): MealAnalysisPrompt {
+  const outputLanguage = localePackKey(outputLocale);
   const slotKey = slot === null || String(slot).trim() === ""
     ? null
     : parseSlotKey(slot);
@@ -592,11 +921,13 @@ export function buildMealAnalysisPrompt(
     ].join("\n");
 
   return {
-    systemPrompt: MEAL_ANALYSIS_SYSTEM_PROMPT,
+    systemPrompt: MEAL_ANALYSIS_SYSTEM_PROMPT + outputLanguageBlock(outputLanguage) +
+      energyGateBlock(energyAllowed === true),
     userMessage,
     allowedCommitmentIds: commitmentsToday.map((c) => c.id),
     slotKey,
     promptVersion: MEAL_ANALYSIS_PROMPT_VERSION,
+    outputLanguage,
   };
 }
 
@@ -629,16 +960,28 @@ Rules that follow:
 2. subject_kind is INDEPENDENT of image_quality. A restaurant menu can be perfectly sharp and well lit: that is image_quality "clear" AND subject_kind "food_not_eaten". Never use "unusable" to mean "this is not a meal" -- they are different answers to different questions, and the student gets a different reply for each.
 3. When you genuinely cannot tell whether a portion is served or merely displayed, choose "eaten_meal". A student is far more likely to photograph his own plate than a catalogue, and wrongly discarding a real meal costs him credit he earned.
 
-== THE HARD RULE: YOU ARE NOT A CALORIE COUNTER ==
+== THE HARD RULE: A NUMBER CARRIES ITS BASIS, OR IT DOES NOT EXIST ==
 
-Identifying foods from a photo is reliable. Measuring them is not. Therefore:
+Identifying foods from a photo is reliable. Measuring them is not. Measured on this product: naming what is on a plate is accurate; estimating its energy from a photograph runs -26.6% biased, and always in the flattering direction. So one number is allowed, in one place, and it must say where it comes from.
 
-- NEVER output calories, kcal, energy, macronutrient grams (protein/carb/fat/fiber/sodium/sugar), or micronutrient amounts. Not as a field, not inside a sentence, not as a range, not as an "estimate".
+THE ONE FIELD THAT MAY CARRY ENERGY -- "energy_estimate", and nowhere else:
+
+  "energy_estimate": { "kcal": number, "basis": "photo_estimate", "confidence_band": "low"|"moderate"|"high" } | null
+
+- WHEN TO GIVE A NUMBER, and this is the part you must actually decide. Give one when the plate is COMPOSED and you can see the whole of it: several items, served, in frame, with their rough volumes readable. That is the case where a rough figure tells the student something they could not otherwise know.
+- WHEN TO RETURN null, and null is a real answer, not a cop-out: a single item (a whole apple, a glass of water), a plate you can only see part of, a dish whose depth or density you cannot read at all, or anything you would have to invent a portion for. Inventing a number for those is noise, and noise with a basis stamped on it is worse than silence.
+- "basis" is ALWAYS "photo_estimate" from a photograph. You are guessing the quantities; say so. The other value ("declared_quantities") belongs to a path where the student gave grams, and a downstream check rewrites your claim if you use it here.
+- "confidence_band" is yours, and "low" is an honest answer. A plate with a hidden sauce or an unclear depth is a low-confidence reading.
+- Round to the nearest 10 kcal. False precision ("437 kcal") claims an accuracy this method does not have.
+
+EVERYTHING ELSE ABOUT NUMBERS IS UNCHANGED, and a filter enforces it:
+
+- NEVER output macronutrient grams (protein/carb/fat/fiber/sodium/sugar) or micronutrient amounts. Not as a field, not in a sentence. The decision opened ENERGY, not macros.
 - NEVER output a weight or a gram amount for any food.
-- The ONLY portion signal you may emit is the band token: small | moderate | large | unclear. If you feel the need to write a number, the answer is "unclear".
-- A downstream filter deletes any measurement you emit and records it as a defect against this prompt. Emitting one does not help the student; it just gets logged as a fault.
+- NEVER write a number in prose. "roughly 600 kcal" inside a rationale is deleted and logged as a defect -- prose is the one form in which a number can travel without its basis, so it is the one form that never survives.
+- The ONLY portion signal is the band token: small | moderate | large | unclear. If you feel the need to write a number there, the answer is "unclear".
 
-What a photo CAN evidence, and all it can evidence: which foods are present, which food groups are present or absent, an approximate portion band, and whether the plate is consistent with what the coach prescribed.
+What a photo CAN evidence: which foods are present, which food groups are present or absent, an approximate portion band, an energy estimate that says it is an estimate, and whether the plate is consistent with what the coach prescribed.
 
 == WHAT A PHOTO DOES NOT SHOW: THE INVISIBLE ==
 
@@ -735,6 +1078,7 @@ ${FOOD_GROUP_REFS.join(" | ")}
     }
   ],
   "clarifying_question": string|null,
+  "energy_estimate": { "kcal": number, "basis": "photo_estimate", "confidence_band": "low"|"moderate"|"high" }|null,
   "overall_confidence": number,
   "image_quality": "clear"|"partial"|"unusable",
   "subject_kind": ${SUBJECT_KINDS.map((s) => `"${s}"`).join("|")}
@@ -778,7 +1122,7 @@ Photo: a bowl of oats topped with sliced banana, and a boiled egg on the side.
   "image_quality": "clear"
 }
 
-Note on the example: no calorie or gram figure appears anywhere; the banana is named as a swap rather than silently accepted or silently failed; the daily berries line is not_visible rather than inconsistent, because one photo cannot close a day. assumptions is EMPTY and clarifying_question is null: oats, banana and a boiled egg hide nothing, so there is nothing to assume and nothing worth asking. That is the normal case.
+Note on the example: energy_estimate is null -- a bowl of oats with a banana and an egg does not need a number, and null is the preferred answer; no gram or macro figure appears anywhere; the banana is named as a swap rather than silently accepted or silently failed; the daily berries line is not_visible rather than inconsistent, because one photo cannot close a day. assumptions is EMPTY and clarifying_question is null: oats, banana and a boiled egg hide nothing, so there is nothing to assume and nothing worth asking. That is the normal case.
 
 == SECOND EXAMPLE: when there IS something to assume ==
 
@@ -883,8 +1227,41 @@ function parseFoodGroupList(
 export function parseMealAnalysis(
   raw: unknown,
   allowedCommitmentIds: readonly string[],
+  /**
+   * CALORIE_REVERSAL §3 — LE CONTEXTE PORTAIT-IL DES QUANTITÉS DÉCLARÉES ?
+   *
+   * ⚠️ OPTIONNEL, ET C'EST LA SEULE FOIS OÙ C'EST JUSTE DANS CE FICHIER. La
+   * règle du dépôt est qu'un paramètre de garde optionnel est une garde
+   * désarmée — parce que l'oublier ouvre la porte. Ici l'oublier la FERME:
+   * le défaut `false` force `photo_estimate`, c'est-à-dire la base la moins
+   * flatteuse et la plus prudente. Le rendre requis casserait soixante-sept
+   * appels pour rendre plus sûr ce qui l'est déjà par défaut.
+   *
+   * ⛔ SUR LE CHEMIN PHOTO, IL VAUT TOUJOURS `false`, et c'est structurel:
+   * non-input #4 dit qu'une photo écrit `quantity: null`. `declared_quantities`
+   * ne peut donc venir que d'un chemin où l'élève a donné des grammes — pas
+   * d'ici. Le paramètre existe pour que ce module reste juste le jour où un tel
+   * chemin l'appellera, pas pour être passé aujourd'hui.
+   */
+  declaredQuantitiesInContext = false,
+  /**
+   * CALORIE_REVERSAL §0 — LA PORTE DES QUATRE GARDES, CÔTÉ INGESTION.
+   *
+   * ⚠️ OPTIONNEL PARCE QUE LE DÉFAUT EST LE CÔTÉ SÛR — même justification que
+   * le paramètre au-dessus, et pas une seconde exception à la règle: oublier
+   * celui-ci FERME la porte. `false` veut dire « aucun chiffre d'énergie ne
+   * survit à cette analyse », ce qui est exactement le produit d'avant ce
+   * chantier. Le rendre requis casserait soixante-sept appels pour rendre plus
+   * sûr ce qui l'est déjà par défaut.
+   *
+   * ⛔ CE N'EST PAS UNE SECONDE DÉCISION. La valeur est le `show` de
+   * `canShowEnergy`, transporté par l'appelant qui l'a lu AVANT le modèle. Ce
+   * paramètre ne rejuge rien: il refuse de garder ce que la porte a fermé.
+   */
+  energyAllowed = false,
 ): MealAnalysis {
   const issues: string[] = [];
+  const hasDeclaredQuantities = declaredQuantitiesInContext === true;
 
   let parsed: unknown = raw;
   if (typeof raw === "string") {
@@ -944,6 +1321,10 @@ export function parseMealAnalysis(
     }
     detectedFoods.push({
       label,
+      // NEUTRE ICI, EXPRÈS: ce parser ne sait pas quelle langue a été demandée,
+      // donc il ne peut pas dire si l'absence est normale. Le compteur vit chez
+      // l'appelant, qui a écrit la demande (`analyze-meal-photo-v1`).
+      label_localized: String(food.label_localized ?? "").trim() || null,
       food_group_ref: groupRef,
       confidence: clampConfidence(food.confidence, `detected_foods[${i}]`, issues),
     });
@@ -1133,6 +1514,37 @@ export function parseMealAnalysis(
   }
   const resolvedSubjectKind: SubjectKind = subjectKind ?? "eaten_meal";
 
+  // ── CALORIE_REVERSAL §3 · LA BASE EST FORCÉE PAR L'ENTRÉE ─────────────
+  //
+  // ⛔ ELLE N'EST PAS UNE DÉCLARATION DU MODÈLE SUR LUI-MÊME. C'est une
+  // PROPRIÉTÉ DE L'ENTRÉE: si le contexte ne portait aucune quantité déclarée,
+  // le modèle a nécessairement DEVINÉ, quoi qu'il écrive dans `basis`.
+  //
+  // Le laisser se déclarer `declared_quantities` lui permettrait d'habiller une
+  // estimation à −26,6 % de biais avec la fiabilité d'un calcul à 2,3 % — et
+  // rien dans la sortie ne permettrait de le voir. C'est le même arbitrage
+  // déterministe que la question de clarification, qui ne survit que si le
+  // frame porte réellement une incertitude.
+  const parsedEnergy = parseEnergyEstimate(
+    obj.energy_estimate,
+    hasDeclaredQuantities,
+    issues,
+  );
+  // ── LA SECONDE MOITIÉ DE LA CEINTURE ────────────────────────────────────
+  //
+  // Le prompt a déjà dit au modèle de rendre `null` (`energyGateBlock`). Ce
+  // n'est pas une raison de le croire: un modèle n'est pas un appelant fiable,
+  // et cette porte protège un élève sous plancher TCA ou un mineur. Le chiffre
+  // est donc effacé ici, et l'effacement est COMPTÉ — sans compteur, une porte
+  // mal câblée et un modèle obéissant rendent exactement la même sortie.
+  const energyEstimate = energyAllowed === true ? parsedEnergy : null;
+  if (parsedEnergy !== null && energyAllowed !== true) {
+    droppedMeasurementFields.push("energy_estimate");
+    issues.push(
+      "energy_estimate: the energy gate is closed for this student — dropped",
+    );
+  }
+
   const foodGroupsPresent = parseFoodGroupList(
     obj.food_groups_present,
     "food_groups_present",
@@ -1164,6 +1576,10 @@ export function parseMealAnalysis(
       commitment_matches: [],
       assumptions: [],
       clarifying_question: null,
+      // Une photo que personne n'a mangée ne porte AUCUNE énergie. Le vider ici
+      // est la même règle que pour les groupes et les engagements: « une
+      // photographie que personne n'a mangée ne peut rien attester ».
+      energy_estimate: null,
       overall_confidence: overallConfidence,
       confidence_band: confidenceBand(overallConfidence),
       image_quality: imageQuality ?? "partial",
@@ -1184,6 +1600,7 @@ export function parseMealAnalysis(
     commitment_matches: commitmentMatches,
     assumptions,
     clarifying_question: clarifyingQuestion,
+    energy_estimate: energyEstimate,
     overall_confidence: overallConfidence,
     confidence_band: confidenceBand(overallConfidence),
     image_quality: imageQuality ?? "partial",
@@ -1703,6 +2120,27 @@ export function buildRecognizedPayload(args: {
     // avant. La COLONNE `disqualified_reason` porte la conséquence; ce champ
     // porte la RAISON, sans laquelle un audit ne peut pas dire pourquoi.
     subject_kind: args.analysis.subject_kind,
+    /**
+     * CALORIE_REVERSAL §6 — LE CHIFFRE, AVEC SA BASE, SUR LA LIGNE.
+     *
+     * ⚠️ IL EST PERSISTÉ PARCE QU'IL EST AFFICHÉ, ET PAS L'INVERSE. `TodayPage`
+     * relit `recognized` pour rendre le panneau de la photo: sans ce champ, le
+     * chiffre n'existerait que dans le texte de l'accusé, et l'écran et la
+     * bulle diraient deux choses différentes du même repas.
+     *
+     * ⛔ ET IL NE SE SOMME PAS. `PHOTO_QUANTIFICATION.md` a mesuré ce que vaut
+     * l'agrégation d'une estimation photo: le biais de −26,6 % n'est divisé que
+     * par 1,04 en cumul hebdomadaire, et les DELTAS sont 2,5× pires que les
+     * niveaux. Un total, une moyenne, une courbe construits là-dessus seraient
+     * faux dans une direction précise et flatteuse. La valeur est ici pour être
+     * RELUE telle quelle, jamais additionnée — c'est la raison pour laquelle
+     * elle voyage avec `basis`, qui rend cet interdit lisible à tout lecteur
+     * futur au lieu de le laisser dans un commentaire.
+     *
+     * `null` reste la réponse normale, et la porte fermée écrit `null` aussi:
+     * `parseMealAnalysis` a effacé le chiffre bien avant cette ligne.
+     */
+    energy_estimate: args.analysis.energy_estimate,
     rejected_commitment_ids: args.analysis.rejected_commitment_ids,
     dropped_measurement_fields: args.analysis.dropped_measurement_fields,
     issues: args.analysis.issues,
@@ -1803,14 +2241,237 @@ export interface MealPhotoAckArgs {
    * écrire » — c'est l'appelant qui ne renseigne ce champ qu'après l'insert.
    */
   tickedDish: string | null;
+  /**
+   * LE CRÉNEAU DÉDUIT DE L'HEURE, ou `null` quand l'élève l'a déclaré (ou
+   * qu'aucun n'a pu l'être).
+   *
+   * REQUIS, pour la raison exacte de `tickedDish`: c'est un fait que la machine
+   * vient d'écrire sur la ligne. Le taire ferait ranger un repas dans un
+   * créneau que personne n'a choisi, sans que l'élève sache ni que c'est arrivé
+   * ni comment le corriger — la déduction silencieuse que `TodayPage` refuse à
+   * juste titre.
+   *
+   * `undefined` n'est pas une réponse: la fonction jette, comme pour les trois
+   * autres arguments de ce contrat.
+   */
+  inferredSlot: "breakfast" | "lunch" | "dinner" | null;
   locale: string;
 }
 
-/** `"A"`, `"A" and "B"`, `"A", "B" and "C"`. */
-function quotedList(titles: readonly string[]): string {
-  const quoted = titles.map((t) => `"${t}"`);
+/**
+ * LES PHRASES DE L'ACCUSÉ, UNE PAR LANGUE.
+ *
+ * ══ LE DÉFAUT QUE CE PACK FERME, ET IL A DURÉ ═════════════════════════════
+ * `renderMealPhotoAck` JETAIT sur toute locale non anglaise. Tant que
+ * `PILOT_FORCED_LOCALE = "en-US"` épinglait la flotte, personne ne pouvait
+ * l'atteindre; le jour du désépinglage, un élève `fr-FR` — 729 lignes sur
+ * 1 150 en base locale — a fait rendre **HTTP 500 à toute analyse de photo
+ * francophone**. On a alors dégradé vers l'anglais en le journalisant, ce qui
+ * a rendu le service mais a laissé le vrai manque intact: le pack.
+ *
+ * ⚠️ CE QUI RESTE ANGLAIS, ET CE N'EST PAS UN OUBLI: `DetectedFood.label`.
+ * Un matcher le lit (voir son propre pavé). Ce qui se dit à l'élève est
+ * `label_localized`, avec repli sur `label` — mieux vaut « je vois porridge
+ * oats » qu'une phrase amputée de ce qu'on a vu.
+ *
+ * R7 par délégation: `localePackKey` jette sur une langue non livrée, ici comme
+ * partout. Ajouter une langue = ajouter une entrée, et le typecheck l'exige.
+ */
+/**
+ * LES MOTS QUI PORTENT LA BASE — CALORIE_REVERSAL §6.
+ *
+ * ══════════════════════════════════════════════════════════════════════════
+ * POURQUOI UNE CONSTANTE, ET PAS SIMPLEMENT UNE PHRASE ÉCRITE DEUX FOIS
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * La propriété que ce chantier achète tient en une ligne: *un chiffre qui
+ * atteint un élève porte sa base*. Une propriété n'est une propriété que si
+ * quelque chose peut la VÉRIFIER — et pour la vérifier sur une phrase rendue,
+ * il faut un point d'accroche qui ne soit pas une recopie de la phrase.
+ *
+ * Ces marqueurs sont ce point d'accroche, et ils sont l'ORIGINE des phrases:
+ * `ACK_COPY.energy` les interpole au lieu de les répéter. Réécrire la phrase
+ * en oubliant sa base devient donc impossible sans supprimer le marqueur, ce
+ * que le harnais voit.
+ *
+ * ⚠️ LA DISSYMÉTRIE DES DEUX PHRASES EST LE FOND, PAS UN TON. `photo_estimate`
+ * a été mesurée à −26,6 % de biais sur ce produit, TOUJOURS du même côté et
+ * pire sur les gros repas: un élève en excédent y lit un chiffre rassurant.
+ * Les rendre de la même façon mentirait sur la fiabilité de l'une — et c'est
+ * celle qui rassure à tort qui passerait pour l'autre.
+ *
+ * ⟳ 2026-09-02 — LA PHRASE DE `declared_quantities` A ÉTÉ CORRIGÉE, et pas par
+ * goût. Elle disait « d'après les quantités que tu m'as données ». Son PREMIER
+ * producteur est arrivé ce jour-là (FF-062 R11, `correctEnergy`), et il ne
+ * reçoit AUCUNE quantité: la personne corrige un nombre de calories. La phrase
+ * affirmait donc une chose fausse, et elle empruntait au passage la fiabilité
+ * mesurée d'une autre méthode — 2,3 % de MAPE, obtenus sur des GRAMMES
+ * recalculés par une table, jamais sur un humain qui tape un chiffre.
+ *
+ * « Le chiffre que tu m'as donné » dit exactement ce qui s'est passé, et il
+ * reste vrai le jour où un chemin donnera vraiment des grammes.
+ */
+export const ENERGY_BASIS_MARKERS: Record<
+  LocalePackKey,
+  Record<EnergyBasis, string>
+> = {
+  en: {
+    photo_estimate: "guessed from the photo",
+    declared_quantities: "the figure you gave me",
+  },
+  fr: {
+    photo_estimate: "deviné d'après la photo",
+    declared_quantities: "le chiffre que tu m'as donné",
+  },
+};
+
+const ACK_COPY: Record<LocalePackKey, {
+  notFood: string;
+  foodNotEaten: string;
+  unreadable: string;
+  see: (foods: string) => string;
+  /** Le chiffre et sa base, dans la MÊME phrase. Voir `ENERGY_BASIS_MARKERS`. */
+  energy: (kcal: number, basis: EnergyBasis) => string;
+  noItems: string;
+  ticked: (dish: string) => string;
+  loggedExplicit: (titles: string) => string;
+  counted: (titles: string) => string;
+  alsoSee: (titles: string, many: boolean) => string;
+  onlySee: (titles: string) => string;
+  doesNotLineUp: (title: string) => string;
+  notAttached: string;
+  assumed: (assumption: string) => string;
+  lowConfidence: string;
+  /** Les trois créneaux DATABLES — les seuls que l'inférence peut produire. */
+  slotName: Record<"breakfast" | "lunch" | "dinner", string>;
+  filedUnder: (slot: string) => string;
+  and: string;
+}> = {
+  en: {
+    notFood:
+      "That does not look like food, so I have not counted it as a meal. Send me your plate when you sit down and I will take it from there.",
+    foodNotEaten:
+      "That looks like food you have not eaten yet — a menu, a shelf or a packet. I have not counted it as a meal. Send me the plate once it is in front of you.",
+    unreadable:
+      "I could not read that photo well enough to say anything useful, so I have not logged what is on it. Another one, a little brighter, and I will.",
+    see: (foods) => `I see ${foods}.`,
+    energy: (kcal, basis) =>
+      basis === "photo_estimate"
+        ? `Ballpark: about ${kcal} kcal, ${
+          ENERGY_BASIS_MARKERS.en.photo_estimate
+        } — photo guesses run low, so treat that as an order of magnitude rather than a measurement.`
+        : `About ${kcal} kcal, ${ENERGY_BASIS_MARKERS.en.declared_quantities}.`,
+    noItems: "Photo saved. I could not identify the items with confidence.",
+    ticked: (dish) =>
+      `Looks like your planned "${dish}" — I have ticked it off. Tell me if that was not it.`,
+    loggedExplicit: (titles) => `Logged against ${titles}, as you asked.`,
+    counted: (titles) => `Counted toward ${titles}.`,
+    alsoSee: (titles, many) =>
+      `I can also see ${titles} here, but I have not counted this photo toward ${
+        many ? "them" : "it"
+      } - tell me which one to count.`,
+    onlySee: (titles) =>
+      `I can see ${titles} here, but one photo cannot settle which one it is - tell me which one to count and I will log it.`,
+    doesNotLineUp: (title) => `It does not line up with "${title}".`,
+    notAttached:
+      "I have not attached it to a line on your plan - it is on file for your coach.",
+    assumed: (assumption) => `${assumption} Tell me if that is wrong.`,
+    lowConfidence:
+      "I am not confident about this reading - correct me if I got it wrong.",
+    slotName: { breakfast: "breakfast", lunch: "lunch", dinner: "dinner" },
+    filedUnder: (slot) =>
+      `I have filed it under ${slot}, going by the time — tell me if it was another meal.`,
+    and: "and",
+  },
+  fr: {
+    // ⚠️ « je ne l'ai pas comptée comme un repas » et pas « je ne l'ai pas
+    // validée »: on rapporte ce que la LIGNE porte, jamais une note. Le
+    // vocabulaire de l'évaluateur (`met`, `missed`) reste hors de cette
+    // surface dans les deux langues — c'est la règle de l'en-tête, pas une
+    // préférence de traduction.
+    notFood:
+      "Ça n'a pas l'air d'être de la nourriture, donc je ne l'ai pas comptée comme un repas. Envoie-moi ton assiette quand tu passes à table et je prends le relais.",
+    foodNotEaten:
+      "Ça ressemble à de la nourriture que tu n'as pas encore mangée — une carte, un rayon ou un paquet. Je ne l'ai pas comptée comme un repas. Renvoie-la-moi une fois l'assiette devant toi.",
+    unreadable:
+      "Je n'ai pas réussi à lire cette photo assez bien pour en dire quelque chose d'utile, donc je n'ai rien enregistré de ce qu'il y a dessus. Une autre, un peu plus lumineuse, et c'est bon.",
+    see: (foods) => `Je vois ${foods}.`,
+    energy: (kcal, basis) =>
+      basis === "photo_estimate"
+        ? `Ordre de grandeur : environ ${kcal} kcal, ${
+          ENERGY_BASIS_MARKERS.fr.photo_estimate
+        } — les estimations sur photo tirent vers le bas, donc prends-le comme un ordre de grandeur, pas comme une mesure.`
+        : `Environ ${kcal} kcal, ${ENERGY_BASIS_MARKERS.fr.declared_quantities}.`,
+    noItems: "Photo enregistrée. Je n'ai pas pu identifier les aliments avec certitude.",
+    ticked: (dish) =>
+      `On dirait ton « ${dish} » prévu — je l'ai coché. Dis-moi si ce n'était pas ça.`,
+    loggedExplicit: (titles) => `Enregistré sur ${titles}, comme tu l'as demandé.`,
+    counted: (titles) => `Compté pour ${titles}.`,
+    alsoSee: (titles, many) =>
+      `Je vois aussi ${titles} ici, mais je n'ai pas compté cette photo ${
+        many ? "pour elles" : "pour elle"
+      } - dis-moi laquelle compter.`,
+    onlySee: (titles) =>
+      `Je vois ${titles} ici, mais une seule photo ne peut pas trancher laquelle c'est - dis-moi laquelle compter et je l'enregistre.`,
+    doesNotLineUp: (title) => `Ça ne colle pas avec « ${title} ».`,
+    notAttached:
+      "Je ne l'ai rattachée à aucune ligne de ton plan - elle est au dossier pour ton coach.",
+    assumed: (assumption) => `${assumption} Dis-moi si c'est faux.`,
+    lowConfidence:
+      "Je ne suis pas sûre de cette lecture - corrige-moi si je me trompe.",
+    slotName: {
+      breakfast: "petit-déjeuner",
+      lunch: "déjeuner",
+      dinner: "dîner",
+    },
+    filedUnder: (slot) =>
+      `Je l'ai rangée au ${slot}, d'après l'heure — dis-moi si c'était un autre repas.`,
+    and: "et",
+  },
+};
+
+/**
+ * `"A"`, `"A" and "B"`, `"A", "B" and "C"` — et son équivalent français.
+ *
+ * ⚠️ LES GUILLEMETS SUIVENT LA LANGUE. `"..."` en anglais, `« ... »` en
+ * français: une phrase française truffée de guillemets droits se lit comme une
+ * traduction automatique, ce qui est exactement l'impression qu'on cherche à
+ * ne pas donner sur la surface qui rapporte un fait.
+ */
+function quotedList(titles: readonly string[], pack: LocalePackKey): string {
+  const quoted = titles.map((t) => pack === "fr" ? `« ${t} »` : `"${t}"`);
   if (quoted.length <= 1) return quoted.join("");
-  return `${quoted.slice(0, -1).join(", ")} and ${quoted[quoted.length - 1]}`;
+  return `${quoted.slice(0, -1).join(", ")} ${ACK_COPY[pack].and} ${
+    quoted[quoted.length - 1]
+  }`;
+}
+
+/**
+ * LA PHRASE DU CHIFFRE — l'unique endroit du produit où un kcal devient du texte.
+ *
+ * ══════════════════════════════════════════════════════════════════════════
+ * LA PROPRIÉTÉ QUE CETTE FONCTION EXISTE POUR RENDRE VÉRIFIABLE
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * `CALORIE_REVERSAL.md` §5 demande une quatrième couche au harnais: *« tout
+ * rendu qui affiche `kcal` affiche aussi sa base »*. Une propriété pareille ne
+ * se vérifie que si le rendu passe par UN point. C'est celui-ci.
+ *
+ * ⛔ AUCUNE AUTRE LIGNE DE L'ACCUSÉ N'A LE DROIT D'ÉCRIRE UN NOMBRE, et le
+ * harnais l'éprouve sur l'espace entier des combinaisons (verdicts × bandes ×
+ * qualités × liaisons) avec `energy_estimate: null`: pas un chiffre n'en sort.
+ *
+ * `null` en entrée rend `null` en sortie — pas une phrase vide. Une phrase
+ * vide se pousserait dans `lines` et produirait un double espace, ce qui est
+ * la trace qu'un chiffre a été retiré: ne rien dire, c'est ne rien dire.
+ */
+export function renderEnergyLine(
+  estimate: EnergyEstimate | null,
+  pack: LocalePackKey,
+): string | null {
+  if (!estimate) return null;
+  if (!Number.isFinite(estimate.kcal)) return null;
+  return ACK_COPY[pack].energy(estimate.kcal, estimate.basis);
 }
 
 /**
@@ -1842,31 +2503,22 @@ function quotedList(titles: readonly string[]): string {
  * exactly this string, so the constraint lives in one place for both surfaces.
  */
 export function renderMealPhotoAck(args: MealPhotoAckArgs): string {
-  // R7 : cette fonction ne sait rendre QUE l'anglais — ses trente et quelques
-  // phrases n'existent que dans une langue. Elle JETAIT donc sur tout le reste.
+  // ── LA LANGUE, RÉSOLUE UNE FOIS ─────────────────────────────────────────
   //
-  // 🔴 L1 — CE THROW EST DEVENU UNE PANNE LE JOUR DU DÉSARMEMENT DE L'ÉPINGLE.
-  // Tant que `PILOT_FORCED_LOCALE = "en-US"` forçait la flotte, l'unique
-  // appelant (`analyze-meal-photo-v1`, qui passe `readBack.content_locale`) ne
-  // pouvait apporter que de l'anglais. `resolveArtifactLocale` rendant
-  // maintenant la vraie locale de l'élève, un élève `fr-FR` — 729 lignes sur
-  // 1 150 en base locale — faisait jeter cette fonction: **HTTP 500 sur toute
-  // analyse de photo francophone**, et pas un accusé dans la mauvaise langue.
+  // ⚠️ HISTORIQUE, PARCE QUE LA PROCHAINE LANGUE REPASSERA PAR LÀ. Cette
+  // fonction n'a longtemps su rendre QUE l'anglais et JETAIT sur le reste.
+  // L'épingle `PILOT_FORCED_LOCALE = "en-US"` masquait le trou; le jour de son
+  // retrait, un élève `fr-FR` a fait rendre **HTTP 500 à toute analyse de photo
+  // francophone**. On a dégradé vers l'anglais en le journalisant — le service
+  // est revenu, le manque est resté: un accusé anglais sous une photo
+  // française, pour la majorité de la base.
   //
-  // On dégrade donc, BRUYAMMENT, au lieu de jeter. La distinction est celle
-  // que `crisis_resources.ts` énonce déjà: « loud » veut dire journalisé et
-  // documenté, pas « throws », dès que le throw emporte plus que le texte qu'il
-  // garde. Ce qui manque ici n'est pas une garde: c'est le pack français, et
-  // il est nommé dans RAPPORT-L1-LOCALE comme un lot à part.
-  if (String(args.locale ?? "").slice(0, 2).toLowerCase() !== "en") {
-    console.warn("keel.meal_analysis.ack_locale_not_delivered", {
-      requested_locale: args.locale,
-      served_language: "en",
-      detail:
-        "renderMealPhotoAck only has English copy. Rendering it in English " +
-        "rather than failing the photo turn. Deliver the pack to fix it.",
-    });
-  }
+  // Le pack existe maintenant (`ACK_COPY`), donc la garde redevient celle de
+  // tout le produit: `localePackKey` JETTE sur une langue non livrée, et c'est
+  // voulu — un repli silencieux vers l'anglais est exactement ce qui a permis à
+  // ce défaut de vivre trois semaines sans que personne ne le voie.
+  const pack = localePackKey(String(args.locale ?? ""));
+  const copy = ACK_COPY[pack];
   if (!args.binding) {
     // Explicit, not incidental: without the binding this function is back to
     // the state where it could announce a line nothing was credited to.
@@ -1878,6 +2530,11 @@ export function renderMealPhotoAck(args: MealPhotoAckArgs): string {
     // le refus de rendre.
     throw new Error(
       "[keel/meal_analysis] renderMealPhotoAck requires hasPrescription",
+    );
+  }
+  if (args.inferredSlot === undefined) {
+    throw new Error(
+      "[keel/meal_analysis] renderMealPhotoAck requires inferredSlot",
     );
   }
   if (args.tickedDish === undefined) {
@@ -1894,23 +2551,44 @@ export function renderMealPhotoAck(args: MealPhotoAckArgs): string {
   if (disqualified !== null) {
     switch (disqualified) {
       case "not_food":
-        return "That does not look like food, so I have not counted it as a meal. Send me your plate when you sit down and I will take it from there.";
+        return copy.notFood;
       case "food_not_eaten":
-        return "That looks like food you have not eaten yet — a menu, a shelf or a packet. I have not counted it as a meal. Send me the plate once it is in front of you.";
+        return copy.foodNotEaten;
       case "unreadable":
         // « toward your plan » supposait un plan. On dit ce qui est vrai des
         // deux côtés: rien n'a été lu, donc rien n'a été enregistré du contenu.
-        return "I could not read that photo well enough to say anything useful, so I have not logged what is on it. Another one, a little brighter, and I will.";
+        return copy.unreadable;
     }
   }
 
   const lines: string[] = [];
-  const foods = a.detected_foods.map((f) => f.label).filter((l) => l !== "");
+  // ⚠️ LE LIBELLÉ LOCALISÉ D'ABORD, LE LIBELLÉ DU MATCHER EN REPLI. `label`
+  // reste anglais par contrat (`planned_dish_match.ts` le lit contre un
+  // catalogue anglais); ce qui se DIT est `label_localized`. Un repli plutôt
+  // qu'un trou: « je vois porridge oats » informe, une phrase amputée non.
+  const foods = a.detected_foods
+    .map((f) => (f.label_localized ?? "").trim() || f.label)
+    .filter((l) => l !== "");
   lines.push(
     foods.length > 0
-      ? `I see ${foods.slice(0, 5).join(", ")}.`
-      : "Photo saved. I could not identify the items with confidence.",
+      ? copy.see(foods.slice(0, 5).join(", "))
+      : copy.noItems,
   );
+
+  // ── LE CHIFFRE, S'IL EXISTE, JUSTE APRÈS L'ASSIETTE QU'IL DÉCRIT ────────
+  //
+  // ⚠️ ICI ET PAS À LA FIN, ET C'EST UNE DÉCISION DE LECTURE. Les phrases qui
+  // suivent parlent de LIGNES du plan; celle-ci parle de l'assiette qu'on vient
+  // de nommer. La coller à sa cause est ce qui l'empêche d'être lue comme un
+  // verdict sur le plan.
+  //
+  // ⛔ ET `energy_estimate` VAUT DÉJÀ `null` QUAND LA PORTE EST FERMÉE. Cette
+  // ligne ne rejuge rien: `parseMealAnalysis` a effacé le chiffre à
+  // l'ingestion, avant qu'il n'entre en base. Un test de porte ICI serait le
+  // « filtrage entre le calcul et l'écran » que la décision du 2026-08-18
+  // interdit — et surtout le second point de décision qui, un jour, diverge.
+  const energyLine = renderEnergyLine(a.energy_estimate, pack);
+  if (energyLine) lines.push(energyLine);
 
   // ── PAS DE PRESCRIPTION: ON DÉCRIT, ON NE RENDS PAS DE COMPTES ────────────
   //
@@ -1930,14 +2608,19 @@ export function renderMealPhotoAck(args: MealPhotoAckArgs): string {
   // « je l'ai coché, dis-moi si ce n'était pas ça » se lit d'un coup, là où
   // une question séparée serait l'interrogatoire que §3.3bis interdit. Et le
   // décochage existe (`meal_tick.ts`), donc la porte mène quelque part.
+  // LE CRÉNEAU DÉDUIT, DIT AVANT LA COCHE. L'ordre porte du sens: « rangée au
+  // dîner » explique POURQUOI le plat prévu du dîner a pu être coché. L'inverse
+  // ferait annoncer un effet avant sa cause.
+  if (args.inferredSlot) {
+    lines.push(copy.filedUnder(copy.slotName[args.inferredSlot]));
+  }
+
   if (args.tickedDish) {
-    lines.push(
-      `Looks like your planned "${args.tickedDish}" — I have ticked it off. Tell me if that was not it.`,
-    );
+    lines.push(copy.ticked(args.tickedDish));
   }
 
   if (!args.hasPrescription) {
-    return [...lines, ...uncertaintyLines(a)].join(" ");
+    return [...lines, ...uncertaintyLines(a, pack)].join(" ");
   }
 
   const titleOf = (id: string) => args.commitmentTitles[id] ?? "a line on your plan";
@@ -1949,11 +2632,11 @@ export function renderMealPhotoAck(args: MealPhotoAckArgs): string {
 
   // ---- 1. what WAS credited, named -----------------------------------------
   if (credited.length > 0) {
-    const titles = quotedList(credited.map(titleOf));
+    const titles = quotedList(credited.map(titleOf), pack);
     lines.push(
       args.binding.kind === "explicit"
-        ? `Logged against ${titles}, as you asked.`
-        : `Counted toward ${titles}.`,
+        ? copy.loggedExplicit(titles)
+        : copy.counted(titles),
     );
   }
 
@@ -1967,19 +2650,17 @@ export function renderMealPhotoAck(args: MealPhotoAckArgs): string {
     .filter((id) => !creditedSet.has(id));
 
   if (uncredited.length > 0) {
-    const titles = quotedList(uncredited.map(titleOf));
+    const titles = quotedList(uncredited.map(titleOf), pack);
     lines.push(
       credited.length > 0
-        ? `I can also see ${titles} here, but I have not counted this photo toward ${
-          uncredited.length > 1 ? "them" : "it"
-        } - tell me which one to count.`
-        : `I can see ${titles} here, but one photo cannot settle which one it is - tell me which one to count and I will log it.`,
+        ? copy.alsoSee(titles, uncredited.length > 1)
+        : copy.onlySee(titles),
     );
   }
 
   // ---- 3. evidence AGAINST a line: an observation, never a credit -----------
   for (const m of a.commitment_matches.filter((m) => m.verdict === "inconsistent")) {
-    lines.push(`It does not line up with "${titleOf(m.commitment_id)}".`);
+    lines.push(copy.doesNotLineUp(titleOf(m.commitment_id)));
   }
 
   // ---- 4. nothing at all: say that, rather than implying otherwise ----------
@@ -1987,13 +2668,11 @@ export function renderMealPhotoAck(args: MealPhotoAckArgs): string {
     credited.length === 0 && uncredited.length === 0 &&
     !a.commitment_matches.some((m) => m.verdict === "inconsistent")
   ) {
-    lines.push(
-      "I have not attached it to a line on your plan - it is on file for your coach.",
-    );
+    lines.push(copy.notAttached);
   }
 
   // ---- 5. the uncertainty, resolved in ONE of three ways -------------------
-  lines.push(...uncertaintyLines(a));
+  lines.push(...uncertaintyLines(a, pack));
   return lines.join(" ");
 }
 
@@ -2020,15 +2699,22 @@ export function renderMealPhotoAck(args: MealPhotoAckArgs): string {
  * dupliquer aurait laissé le chemin sans prescription — le cas normal — avec
  * une version qui diverge en silence.
  */
-function uncertaintyLines(a: MealAnalysis): string[] {
+function uncertaintyLines(a: MealAnalysis, pack: LocalePackKey): string[] {
   const question = String(a.clarifying_question ?? "").trim();
   const guessed = a.assumptions.filter((h) => h.basis === "standard_default");
+  // ⚠️ LA QUESTION ET L'HYPOTHÈSE VIENNENT DU MODÈLE, PAS DU PACK. Elles sont
+  // rendues TELLES QUELLES, et c'est le prompt qui porte leur langue (bloc
+  // `== OUTPUT LANGUAGE ==`). Les traduire ici demanderait de traduire une
+  // phrase libre, c'est-à-dire de la réécrire — et une hypothèse réécrite n'est
+  // plus celle que l'élève peut corriger.
   if (question) return [question];
-  if (guessed.length > 0) return [`${guessed[0].assumption} Tell me if that is wrong.`];
+  if (guessed.length > 0) {
+    return [ACK_COPY[pack].assumed(guessed[0].assumption)];
+  }
   if (a.confidence_band === "low") {
     // Named, not hidden: a low-confidence reading that presents itself as
     // certain is exactly what destroys a coach's trust (W5.5's metric).
-    return ["I am not confident about this reading - correct me if I got it wrong."];
+    return [ACK_COPY[pack].lowConfidence];
   }
   return [];
 }

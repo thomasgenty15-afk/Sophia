@@ -18,7 +18,13 @@ import {
 } from "../_shared/http.ts";
 import { resolveArtifactLocale } from "../_shared/keel/locale.ts";
 import { parseSlotKey } from "../_shared/keel/tokens.ts";
+import {
+  inferSlotFromLocalHour,
+  SLOT_INFERRED_KEY,
+} from "../_shared/keel/photo_slot_inference.ts";
 import { CHAT_SCOPE, deliverChatMessage } from "../_shared/chat/delivery.ts";
+// FF-062 R11 — « modifier » le chiffre d'énergie d'une photo.
+import { energyFixButton } from "../_shared/keel/energy_correction.ts";
 import { claimInbound } from "../_shared/chat/inbound_pipeline.ts";
 import { openMealPrecisionFlow } from "../_shared/keel/meal_precision_flow.ts";
 import {
@@ -280,6 +286,30 @@ export { sniffImageMime };
  * `handlers_meal_photo.ts::localDateInZone`; R7 -- an unknown zone throws rather
  * than silently resolving to UTC and filing the fact on the wrong day.
  */
+/**
+ * L'HEURE PLEINE LOCALE, du même fuseau que la date.
+ *
+ * ⚠️ MÊME FUSEAU, MÊME INSTANT, MÊME FONCTION D'ORIGINE. Deux résolutions
+ * séparées feraient un jour ranger une photo au dîner d'un jour dont la date
+ * dit qu'il est déjà demain. `hour12: false` est explicite: sans lui, `en-CA`
+ * peut rendre « 12 » pour minuit selon la plateforme.
+ */
+function localHourInZone(timezone: string, now: Date): number | null {
+  const zone = String(timezone ?? "").trim();
+  if (!zone) return null;
+  try {
+    const raw = new Intl.DateTimeFormat("en-GB", {
+      timeZone: zone,
+      hour: "2-digit",
+      hour12: false,
+    }).format(now);
+    const hour = Number(raw.slice(0, 2));
+    return Number.isInteger(hour) && hour >= 0 && hour <= 23 ? hour : null;
+  } catch {
+    return null;
+  }
+}
+
 function localDateInZone(timezone: string, now: Date): string {
   const zone = String(timezone ?? "").trim();
   if (!zone) throw new Error("[meal-photo-upload] empty plan timezone (R7)");
@@ -581,6 +611,69 @@ Deno.serve(async (req) => {
       }
     }
 
+    // ---- 5bis. LE CRÉNEAU QUAND L'APPELANT N'EN DÉCLARE PAS -------------
+    //
+    // ⚠️ LE CHAT ENVOIE TOUJOURS `slot_key: null` (`ChatPage.tsx`), donc TOUTE
+    // photo de la bulle arrivait sans créneau: ni l'évaluateur, ni la synthèse
+    // coach, ni `matchPlannedDish` (qui exige « le créneau concorde » pour un
+    // verdict franc) ne pouvaient en faire quoi que ce soit. FF-018 §11 posait
+    // la question et la laissait ouverte; elle est tranchée le 2026-09-01.
+    //
+    // ── ON DÉDUIT, ET ON LE DIT. C'est §3.3bis, pas une exception à la règle
+    // de `TodayPage` (« un créneau ne se devine jamais à l'horloge »): ce que
+    // cette règle interdit est la déduction SILENCIEUSE. La marque
+    // `slot_inferred` voyage sur la ligne, l'accusé la prononce, et la porte de
+    // correction est dans la même phrase.
+    //
+    // ── ET SEULEMENT QUAND L'APPELANT SE TAIT. Un `slot_key` fourni est un
+    // fait de l'élève: rien ici ne le remplace, ni ne le « corrige ».
+    let slotInferred = false;
+    if (slotKey === null) {
+      const localHour = localHourInZone(timezone, new Date());
+      if (localHour !== null) {
+        // Le rythme DÉCLARÉ l'emporte sur le repli horaire: quelqu'un qui a dit
+        // dîner à 22 h n'a pas raté son dîner à 21 h. Une lecture en panne
+        // retombe sur le repli plutôt que de perdre l'inférence — l'heure de
+        // référence reste vraie pour la grande majorité des gens.
+        let rhythm: unknown = null;
+        try {
+          const goals = await admin
+            .from("student_goals")
+            .select("practical_constraints")
+            .eq("user_id", userId)
+            .maybeSingle();
+          if (!goals.error) {
+            const pc = (goals.data as { practical_constraints?: unknown } | null)
+              ?.practical_constraints as Record<string, unknown> | null;
+            rhythm = pc?.eating_rhythm ?? null;
+          }
+        } catch (error) {
+          console.warn(JSON.stringify({
+            tag: "meal_photo_eating_rhythm_unreadable",
+            user_id: userId,
+            error: error instanceof Error ? error.message : String(error),
+            effect: "l'inference retombe sur SLOT_PASSED_HOUR",
+          }));
+        }
+        const inferred = inferSlotFromLocalHour(localHour, rhythm);
+        if (inferred) {
+          slotKey = inferred.slot;
+          slotInferred = inferred.inferred;
+          console.info(JSON.stringify({
+            tag: "meal_photo_slot_inferred",
+            user_id: userId,
+            local_hour: localHour,
+            slot_key: slotKey,
+            from_declared_rhythm: rhythm !== null,
+          }));
+        }
+        // `inferred === null` — avant le premier créneau de la journée — laisse
+        // `slot_key: null`, exactement comme avant. Une photo à 7 h n'a aucun
+        // créneau écoulé derrière elle, et lui en coller un serait la
+        // déduction silencieuse qu'on vient de refuser.
+      }
+    }
+
     const commitmentId = body.commitment_id ?? null;
     if (commitmentId) {
       // The same principle the analyzer applies to the model applies to the
@@ -829,6 +922,16 @@ Deno.serve(async (req) => {
       media_sha256: mediaSha256,
       source_message_id: sourceMessageId,
     };
+    if (slotInferred) {
+      // LA MARQUE, ÉCRITE AVEC LE SLOT ET JAMAIS APRÈS. Un créneau déduit qui
+      // ne porte pas sa marque est indiscernable d'un créneau déclaré — pour
+      // l'accusé, pour le coach, et pour quiconque relira la ligne dans six
+      // mois.
+      insertPayload.recognized = {
+        ...(insertPayload.recognized as Record<string, unknown> | undefined ?? {}),
+        [SLOT_INFERRED_KEY]: true,
+      };
+    }
     if (commitmentId) {
       // The student's own binding, written BEFORE any analysis so that a vision
       // outage cannot lose it. TWO keys on purpose:
@@ -839,6 +942,7 @@ Deno.serve(async (req) => {
       //     reading. Without it, `force: true` silently downgrades a human
       //     statement to a machine one.
       insertPayload.recognized = {
+        ...(insertPayload.recognized as Record<string, unknown> | undefined ?? {}),
         commitment_id: commitmentId,
         student_commitment_id: commitmentId,
       };
@@ -1236,6 +1340,33 @@ Deno.serve(async (req) => {
           // est déjà écrit, la photo est déjà dans la bulle, et le
           // commentaire sur l'assiette n'a pas sa place ici. `chatDelivered`
           // reste `null`, donc le flow de précision ne s'ouvre pas non plus.
+          // ── FF-062 R11 · « MODIFIER », QUAND UN CHIFFRE EST LÀ ──────────
+          //
+          // Le bouton n'apparaît QUE si l'accusé porte un chiffre d'énergie —
+          // c'est-à-dire seulement quand la porte des quatre gardes était
+          // OUVERTE à l'ingestion. Un élève sous plancher TCA, un mineur, ou
+          // quelqu'un qui a éteint l'affichage n'a pas de chiffre, donc pas de
+          // bouton: la garde n'est pas rejouée ici, elle est déjà DANS la
+          // donnée (`energy_estimate` vaut `null`).
+          //
+          // ⚠️ ON LIT LA LIGNE RELUE, PAS L'ANALYSE EN MÉMOIRE. C'est ce qui
+          // est réellement en base qui est corrigible.
+          const storedEnergy =
+            ((analysis as { recognized?: Record<string, unknown> } | null)
+              ?.recognized ?? {}) as Record<string, unknown>;
+          const fixButtons = storedEnergy.energy_estimate
+            // ⚠️ LA MÊME LOCALE QUE L'ARTEFACT, résolue par la même fonction
+            // que la ligne `protocol_events` juste au-dessus. Deux résolutions
+            // séparées feraient un jour un bouton français sous un accusé
+            // anglais — la cicatrice de `renderMealPhotoAck`.
+            ? [energyFixButton({
+              locale: resolveArtifactLocale({
+                studentProfile: studentProfileLocale,
+                tenantDefault: null,
+              }),
+              eventId,
+            })]
+            : [];
           const res = ackSilenced
             ? { chatMessageId: null as string | null }
             : await deliverChatMessage(admin, {
@@ -1243,6 +1374,7 @@ Deno.serve(async (req) => {
               content: body_text,
               isReply: true,
               purpose: "keel_meal_photo_ack",
+              buttons: fixButtons,
               requestId,
               metadata: { media_path: path, event_id: eventId },
             });

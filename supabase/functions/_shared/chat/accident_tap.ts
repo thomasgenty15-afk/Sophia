@@ -65,20 +65,84 @@ import {
   recordDailyAsk,
 } from "../keel/daily_ask_budget.ts";
 import { applyStripTicks } from "../keel/evening_strip_io.ts";
-import { planGroceryWavesForPlan } from "../keel/accident.ts";
+import { daysBetween, planGroceryWavesForPlan } from "../keel/accident.ts";
+import { addDays } from "../keel/local_date.ts";
 import { gatePhotoInvitation } from "../keel/photo_invitation.ts";
+import { evaluateRestrictionForStudent } from "../keel/restriction_runtime.ts";
 
 /**
- * ⚠️ LE PLANCHER DE RESTRICTION N'A PLUS DE PRODUCTEUR, et c'est nommé ici.
+ * Le message d'une erreur, qu'elle soit une `Error` ou un objet PostgREST.
  *
- * `isRestrictionFlagged` a été retiré en L3 le 2026-08-08 (il lisait
- * `weekly_reviews.risk_band`, une colonne sans écrivain). `keel-daily-pulse-v1`
- * passe `false` en dur pour la même raison. La garde R9 est ARMÉE et TESTÉE dans
- * `buildAccidentForm` / `buildSessionQuestion` / `buildShiftProposal` — c'est ce
- * qui la rendra vivante le jour où une source alimentée sera rebranchée, au lieu
- * d'être une ligne à retrouver. Un seul littéral à changer ici.
+ * ⚠️ `String(error)` rend « [object Object] » sur une erreur PostgREST, et
+ * c'est ce qui a masqué un 42P10 permanent dans le point hebdo. Les quatre
+ * champs sont lus nommément.
  */
-const RESTRICTION_FLAG_HAS_NO_PRODUCER = false;
+function readableError(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  const e = error as {
+    message?: string;
+    code?: string;
+    details?: string;
+    hint?: string;
+  };
+  return [e?.code, e?.message, e?.details, e?.hint].filter(Boolean).join(" — ") ||
+    String(error);
+}
+
+/**
+ * LE PLANCHER DE RESTRICTION — RÉSOLU, PLUS SUPPOSÉ.
+ *
+ * ⚠️ CE FUT UN LITTÉRAL `false` DU 2026-08-08 AU 2026-09-01. L'ancien lecteur
+ * (`isRestrictionFlagged`) interrogeait `weekly_reviews.risk_band`, colonne sans
+ * écrivain; on l'a retiré et on a laissé le littéral en le disant. La garde R9
+ * était donc ARMÉE et TESTÉE dans `buildAccidentForm` / `buildSessionQuestion` /
+ * `buildShiftProposal`, et elle ne recevait JAMAIS `true`: la procédure accident
+ * s'ouvrait en entier pour quelqu'un sous plancher.
+ *
+ * La source alimentée existait déjà — c'est celle que `generate-meal-v1` et
+ * `meal-photo-upload-v1` appellent. Ses déclencheurs lisent des tables vivantes
+ * (`student_body_measures`, la prose de l'élève), pas la colonne morte.
+ *
+ * ── FAIL-CLOSED, ET C'EST L'ORDRE DES GARDES (T7) ─────────────────────────
+ * Une lecture en panne rend `true`: on perd le formulaire, jamais le plancher.
+ * L'élève garde son geste (la décoche est déjà écrite, elle ne dépend pas de
+ * ceci) — ce qu'il perd est la relance de réalignement, et c'est le bon côté
+ * pour se tromper.
+ *
+ * ── UNE SEULE ÉVALUATION PAR TOUR ─────────────────────────────────────────
+ * Elle est résolue au POINT D'ENTRÉE et descendue dans les branches, comme la
+ * langue l'est déjà. Cinq appels dans un même tap paieraient cinq fois la même
+ * question, et surtout pourraient rendre deux réponses différentes dans un seul
+ * message.
+ */
+/**
+ * ⟳ EXPORTÉE LE 2026-09-02 (FF-061). La chaîne du bilan du soir en a besoin
+ * dans `deterministic_buttons.ts`, et une SECONDE lecture du plancher écrite
+ * là-bas aurait fini par diverger de celle-ci — sur la garde qui décide si on
+ * parle de nourriture à quelqu'un à risque. Un lecteur, deux appelants.
+ */
+export async function restrictionFloorFor(
+  admin: SupabaseClient,
+  userId: string,
+  localDate: string,
+): Promise<boolean> {
+  try {
+    const floor = await evaluateRestrictionForStudent(admin as never, {
+      userId,
+      asOfLocalDate: localDate,
+    });
+    return floor.restriction_flag === true;
+  } catch (error) {
+    console.warn(JSON.stringify({
+      tag: "keel.accident.restriction_floor_unreadable",
+      user_id: userId,
+      local_date: localDate,
+      error: readableError(error),
+      effect: "fail-closed: aucune relance de realignement pour ce tap",
+    }));
+    return true;
+  }
+}
 
 export interface AccidentTapResult {
   /** Le corps à envoyer. Jamais vide. */
@@ -127,6 +191,14 @@ export async function handleAccidentTap(
   if (!loaded) return STALE(language);
   const plan = loaded.plan;
 
+  // R9 — LE PLANCHER, RÉSOLU UNE FOIS POUR LES QUATRE BRANCHES, et APRÈS le
+  // plan: un tap périmé n'a rien à réaligner, donc rien à interroger.
+  const restrictionFlag = await restrictionFloorFor(
+    admin,
+    args.userId,
+    args.localDate,
+  );
+
   // ⚠️ CHAQUE BRANCHE PASSE SON `reply` NOMMÉMENT, jamais par diffusion
   // (`{...args}`): le compilateur ne rétrécit pas une union à travers un spread,
   // et le faire taire par un `as` désarmerait exactement le typecheck qui a
@@ -139,6 +211,7 @@ export async function handleAccidentTap(
       userId: args.userId,
       plan,
       reply,
+      restrictionFlag,
       language: args.language,
       contentLocale: args.contentLocale,
       localDate: args.localDate,
@@ -152,6 +225,7 @@ export async function handleAccidentTap(
       userId: args.userId,
       plan,
       reply,
+      restrictionFlag,
       language: args.language,
       localDate: args.localDate,
       now: args.now,
@@ -174,6 +248,7 @@ export async function handleAccidentTap(
     userId: args.userId,
     plan,
     reply,
+    restrictionFlag,
     language: args.language,
     localDate: args.localDate,
   });
@@ -197,6 +272,8 @@ async function handleFormAnswer(
     localDate: string;
     now: Date;
     sourceMessageId: string;
+    /** R9 — REQUIS. Un paramètre de garde optionnel est une garde désarmée. */
+    restrictionFlag: boolean;
   },
 ): Promise<AccidentTapResult> {
   const { plan, reply, language } = args;
@@ -274,6 +351,7 @@ async function handleFormAnswer(
       userId: args.userId,
       contentLocale: args.contentLocale,
       localDate: args.localDate,
+      restrictionFlag: args.restrictionFlag,
       offPlanEventId,
       sourceMessageId: args.sourceMessageId,
     });
@@ -304,6 +382,7 @@ async function handleFormAnswer(
     dishIndex: reply.dishIndex,
     localDate: args.localDate,
     language,
+    restrictionFlag: args.restrictionFlag,
   });
   if (sessionAsk) {
     return {
@@ -356,6 +435,8 @@ async function armPhotoInvitation(
     localDate: string;
     offPlanEventId: string | null;
     sourceMessageId: string;
+    /** R9 — REQUIS, résolu par l'appelant (une évaluation par tour). */
+    restrictionFlag: boolean;
   },
 ): Promise<string | null> {
   // ⚠️ LE PLAFOND EST CELUI DE LA PHOTO, PAS LA PLACE PARTAGÉE DU JOUR.
@@ -388,7 +469,7 @@ async function armPhotoInvitation(
     // côté SÛR plutôt que d'omettre le paramètre (un paramètre de garde
     // optionnel est une garde désarmée — ici il est requis, donc explicite).
     safetyBand: "none",
-    restrictionFlag: RESTRICTION_FLAG_HAS_NO_PRODUCER,
+    restrictionFlag: args.restrictionFlag,
     hasMedia: false,
     futureIntent: false,
     committedEventCount: args.offPlanEventId ? 1 : 0,
@@ -441,6 +522,8 @@ async function sessionQuestionFor(
     dishIndex: number;
     localDate: string;
     language: AccidentLanguage;
+    /** R9 — REQUIS. */
+    restrictionFlag: boolean;
   },
 ): Promise<{ body: string; buttons: { id: string; title: string }[] } | null> {
   const { plan } = args;
@@ -471,7 +554,7 @@ async function sessionQuestionFor(
     mealId: plan.mealId,
     cookOn,
     language: args.language,
-    restrictionFlag: RESTRICTION_FLAG_HAS_NO_PRODUCER,
+    restrictionFlag: args.restrictionFlag,
   });
 }
 
@@ -488,6 +571,8 @@ async function handleSessionAnswer(
     language: AccidentLanguage;
     localDate: string;
     now: Date;
+    /** R9 — REQUIS. */
+    restrictionFlag: boolean;
   },
 ): Promise<AccidentTapResult> {
   const { plan, reply, language } = args;
@@ -553,6 +638,9 @@ async function handleSessionAnswer(
     userId: args.userId,
     plan,
     cookOn: reply.cookOn,
+    // R11 — une cuisson déjà passée ne se décale pas. La cascade, elle,
+    // s'applique quand même: le plan cesse de mentir, on ne le répare pas.
+    today: args.localDate,
   });
   const space = buildRealignmentSpace({
     plan,
@@ -569,7 +657,7 @@ async function handleSessionAnswer(
       plan,
       shift,
       language,
-      restrictionFlag: RESTRICTION_FLAG_HAS_NO_PRODUCER,
+      restrictionFlag: args.restrictionFlag,
     });
     if (proposal) {
       return {
@@ -616,6 +704,8 @@ async function handleShiftAccept(
     reply: Extract<AccidentReply, { kind: "shift_accept" }>;
     language: AccidentLanguage;
     localDate: string;
+    /** R9 — REQUIS. */
+    restrictionFlag: boolean;
   },
 ): Promise<AccidentTapResult> {
   const { reply, language } = args;
@@ -625,6 +715,12 @@ async function handleShiftAccept(
     cookOn: reply.cookOn,
     delta: reply.delta,
     fingerprint: reply.fingerprint,
+    // R11 — LE JOUR DU TAP, pas celui de la proposition. Une proposition faite
+    // hier soir et tapée ce matin se re-juge contre AUJOURD'HUI: la cuisson
+    // qu'elle décalait a pu devenir passée entre les deux, et l'appliquer
+    // poserait une date écoulée. Le recalcul complet est déjà la règle de
+    // `applyPlanShift`; la borne du jour en fait partie.
+    today: args.localDate,
   });
   console.info(JSON.stringify({
     tag: "keel.accident.shift",
@@ -681,6 +777,12 @@ export async function accidentFormAfterUntick(
     mealId: string;
     dishIndex: number;
     language: AccidentLanguage;
+    /**
+     * Le jour LOCAL de la personne. REQUIS — c'est la date sur laquelle le
+     * plancher R9 est évalué, et une date par défaut évaluerait le plancher
+     * d'un autre jour que celui du geste.
+     */
+    localDate: string;
   },
 ): Promise<{ body: string; buttons: { payload: string; label: string }[] } | null> {
   const loaded = await loadAccidentPlan(admin, {
@@ -696,7 +798,11 @@ export async function accidentFormAfterUntick(
     dishIndex: args.dishIndex,
     dishTitle: dish.title,
     language: args.language,
-    restrictionFlag: RESTRICTION_FLAG_HAS_NO_PRODUCER,
+    restrictionFlag: await restrictionFloorFor(
+      admin,
+      args.userId,
+      args.localDate,
+    ),
     hasPlan: true,
   });
   if (!form) return null;
@@ -709,14 +815,44 @@ export async function accidentFormAfterUntick(
 /**
  * UN `Pas encore` DE COURSES OUVRE LA PROPOSITION DE DÉCALAGE — l'entrée n°4.
  *
- * ⚠️ C'EST UNE PROPOSITION, PAS UNE QUESTION (R11). La date de la nouvelle
- * cuisson est CALCULÉE par `planSessionShift`; on ne demande jamais « tu peux y
- * aller quand ? ». Et elle ne consomme PAS le budget T4 (R12): c'est la réponse
- * à un geste que la personne vient de faire.
+ * ⚠️ C'EST UNE PROPOSITION, PAS UNE QUESTION (R11). La date est CALCULÉE; on ne
+ * demande jamais « tu peux y aller quand ? ». Et elle ne consomme PAS le budget
+ * T4 (R12): c'est la réponse à un geste que la personne vient de faire.
  *
- * Rend `null` quand cette vague ne sert AUCUNE cuisson — une vague d'épicerie
- * seule ne menace rien, et « la cuisson est dans quatre jours » n'est pas un
- * danger (FF-058 R17).
+ * ══════════════════════════════════════════════════════════════════════════
+ * FF-061 R6bis — CE QUI SE DÉCALE ICI, C'EST LA VAGUE. PAS LA CUISSON.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * La personne n'a pas raté une cuisson: elle a raté **un passage au magasin**.
+ * Lui proposer de décaler la cuisson lui fait porter la CONSÉQUENCE à la place
+ * du FAIT, et la phrase cesse de décrire son geste.
+ *
+ * La nouvelle date d'achat est **demain** — le plus petit délai qui existe. La
+ * cuisson servie ne peut alors plus tenir aujourd'hui: elle doit atterrir au
+ * plus tôt le jour de la course. D'où `minDelta`, qui empêche la boucle de
+ * proposer un `+1` qui laisserait la casserole sans ingrédients.
+ *
+ * ── R6ter — SEULES LES CUISSONS MENACÉES BOUGENT ─────────────────────────
+ * Une vague peut servir DEUX cuissons (`servesCookDates`). Celle de vendredi,
+ * qui a déjà ses ingrédients au frigo, n'a aucune raison de bouger parce que
+ * celle de mardi a été privée des siens — la déplacer ferait payer à la
+ * personne la compréhension d'un changement sans motif.
+ *
+ * ⚠️ ET R11 REND CE CAS PRESQUE IMPOSSIBLE, ce qui est heureux: une cuisson
+ * menacée est une cuisson qui tombe AVANT la nouvelle course, donc aujourd'hui
+ * ou avant — et « avant » est écarté par R11 (on constate, on ne répare pas).
+ * Il en reste donc au plus UNE, celle d'aujourd'hui. Le décalage reste par
+ * session, comme il l'a toujours été.
+ *
+ * ── POURQUOI `servesCookDates` ET PAS `servesCookOn` ─────────────────────
+ * `servesCookOn` ne porte qu'une cuisson et vaut `null` sur toute vague du
+ * PREMIER JOUR du plan. Cette fonction rendait donc `null` — c'est-à-dire ne
+ * proposait rien — pour la grosse course de début de plan, le cas le plus
+ * fréquent de tous. Le motif complet est sur le champ dans `grocery_waves.ts`.
+ *
+ * Rend `null` quand cette vague ne sert AUCUNE cuisson menacée — une vague
+ * d'épicerie seule ne menace rien, et « la cuisson est dans quatre jours »
+ * n'est pas un danger (FF-058 R17).
  */
 export async function shiftProposalAfterShoppingLater(
   admin: SupabaseClient,
@@ -725,6 +861,8 @@ export async function shiftProposalAfterShoppingLater(
     mealId: string;
     buyOn: string;
     language: AccidentLanguage;
+    /** Le jour LOCAL de la personne. REQUIS — voir `accidentFormAfterUntick`. */
+    localDate: string;
   },
 ): Promise<{ body: string; buttons: { payload: string; label: string }[] } | null> {
   const loaded = await loadAccidentPlan(admin, {
@@ -734,17 +872,38 @@ export async function shiftProposalAfterShoppingLater(
   if (!loaded) return null;
   const plan = loaded.plan;
 
-  // QUELLE CUISSON CETTE VAGUE SERT — la question à laquelle `grocery_waves.ts`
-  // répond déjà (`servesCookOn`). On ne la redevine pas.
+  // ── LA NOUVELLE DATE D'ACHAT: DEMAIN ────────────────────────────────────
+  // Le plus petit délai qui existe. On ne demande pas quand la personne peut y
+  // aller — ce serait la question ouverte que la ceinture refuse — et on ne
+  // propose pas plus tard: un magasin est ouvert demain.
+  const buyAgainOn = addDays(args.localDate, 1);
+
+  // ── QUELLES CUISSONS CETTE VAGUE SERT, TOUTES ──────────────────────────
   const wave = planGroceryWavesForPlan(plan).find((w) => w.buyOn === args.buyOn);
-  const cookOn = wave?.servesCookOn ?? null;
+  const served = wave?.servesCookDates ?? [];
+
+  // ── LESQUELLES SONT MENACÉES (R6ter + R11) ─────────────────────────────
+  // Menacée = elle tombe avant la nouvelle course, donc elle n'aura pas ses
+  // ingrédients. Passée = R11 l'écarte: la cascade la traite, le décalage non.
+  // Il en reste au plus une, et c'est la plus proche qu'on propose.
+  const threatened = served
+    .filter((d) => d < buyAgainOn && d >= args.localDate)
+    .filter((d) => sessionOnDate(plan, d))
+    .sort();
+  const cookOn = threatened[0] ?? null;
   if (!cookOn) return null;
-  if (!sessionOnDate(plan, cookOn)) return null;
 
   const shift = await computeSessionShift(admin, {
     userId: args.userId,
     plan,
     cookOn,
+    today: args.localDate,
+    // ⚠️ LE PLANCHER, ET C'EST TOUTE LA CORRECTION. Sans lui la boucle
+    // proposerait `+1` — c'est-à-dire une cuisson le jour même de la course,
+    // possible, mais aussi une cuisson AVANT elle quand la course glisse de
+    // deux jours. On exige que la cuisson atterrisse au plus tôt le jour du
+    // magasin.
+    minDelta: daysBetween(cookOn, buyAgainOn),
   });
   if (!shift.ok) {
     // R15 — le motif est DIT, et on propose ce qui reste. Aucun bouton: il n'y a
@@ -763,7 +922,11 @@ export async function shiftProposalAfterShoppingLater(
     plan,
     shift,
     language: args.language,
-    restrictionFlag: RESTRICTION_FLAG_HAS_NO_PRODUCER,
+    restrictionFlag: await restrictionFloorFor(
+      admin,
+      args.userId,
+      args.localDate,
+    ),
   });
   if (!proposal) return null;
   return {

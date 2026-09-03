@@ -5,15 +5,12 @@ import { createClient, type SupabaseClient } from "jsr:@supabase/supabase-js@2.8
 import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
-import { localDateInZone } from "../_shared/keel/local_date.ts";
-import { assessBirthDate } from "../_shared/keel/student_age.ts";
 import {
   canShowEnergy,
   canShowTarget,
-  countingStanceFrom,
   type EnergyGateReason,
-  energySwitchFrom,
 } from "../_shared/keel/energy_gate.ts";
+import { loadEnergyGate } from "../_shared/keel/energy_gate_io.ts";
 import {
   directedRange,
   maintenanceRange,
@@ -30,8 +27,6 @@ import {
 } from "../_shared/keel/condition_energy_gate.ts";
 import { ACTIVITY_LEVELS, type ActivityLevel } from "../_shared/keel/tokens.ts";
 import { latest, loadStudentBody } from "../_shared/keel/student_body_io.ts";
-import { evaluateRestrictionForStudent } from "../_shared/keel/restriction_runtime.ts";
-import { loadPublishedDoctrine } from "../_shared/keel/doctrine_loader.ts";
 import { loadCompositionIndex } from "../_shared/keel/food_composition_io.ts";
 import {
   COMPOSITION_STATES,
@@ -83,7 +78,6 @@ import {
   scaleDirectionOf,
 } from "../_shared/keel/weight_pace.ts";
 import { type BirthDateVerdict, usableAge } from "../_shared/keel/student_age.ts";
-import { GOAL_TOKENS } from "../_shared/keel/tokens.ts";
 
 /**
  * `meal-energy-v1` — FF-059, LE CHIFFRE AFFICHÉ.
@@ -164,27 +158,6 @@ type ResponseReason = EnergyGateReason | "unavailable" | "no_plan";
  * dépendre d'aucune trace.
  */
 const HOUSEHOLD_ABSTENTION = "household_portions_not_numeric";
-
-/**
- * ⟳ LOT 4 — UNE COLONNE TRI-ÉTAT, LUE SANS L'ÉCRASER.
- *
- * ── LE PIÈGE EXACT QUE CETTE FONCTION EXISTE POUR FERMER ──────────────────
- * `Boolean(null)` vaut `false`, et `col === true` vaut `false` sur `null`
- * AUSSI. Les deux raccourcis transforment donc « personne n'a choisi » en
- * « la personne a éteint » — c'est-à-dire qu'ils annulent tout le lot 4 sans
- * qu'aucun type ne bronche et sans qu'aucun test de la garde ne rougisse. Ce
- * dépôt a déjà payé exactement ce mode d'échec sur `Number(null) === 0`
- * (`finiteEnergyNumber`, côté client): l'absence devenue une valeur.
- *
- * ⚠️ ET UNE VALEUR INCONNUE REND `false`, PAS `null`. Se fermer coûte un
- * chiffre absent; s'ouvrir met un chiffre sous les yeux de quelqu'un dont on
- * n'a pas su lire le choix. C'est la même direction d'échec que partout ici.
- */
-function readTriState(value: unknown): boolean | null {
-  if (value === null || value === undefined) return null;
-  if (typeof value === "boolean") return value;
-  return false;
-}
 
 function requireEnv(name: string): string {
   const v = Deno.env.get(name);
@@ -620,96 +593,26 @@ Deno.serve(async (req) => {
     let goalsRow: Record<string, unknown> | null = null;
     let direction: ScaleDirection | null = null;
     try {
-      const [profileRes, loaded, goalsRes] = await Promise.all([
-        admin
-          .from("profiles")
-          .select("timezone, birth_date, energy_display_enabled, energy_target_enabled")
-          .eq("id", userId)
-          .maybeSingle(),
-        loadPublishedDoctrine(admin, userId),
-        admin
-          .from("student_goals")
-          .select("goal, target_pace_kg_per_week, practical_constraints")
-          .eq("user_id", userId)
-          .maybeSingle(),
-      ]);
-      if (profileRes.error) throw profileRes.error;
-      if (goalsRes.error) throw goalsRes.error;
-      const profile = (profileRes.data ?? null) as Record<string, unknown> | null;
-      if (!profile) return closed(req, requestId, "unavailable");
-
-      const timezone = String(profile.timezone ?? "").trim();
-      // ⚠️ PAS DE REPLI SUR UTC. `assessBirthDate` a besoin du jour LOCAL de
-      // l'élève: à Auckland, l'anniversaire des 18 ans tombe douze heures avant
-      // que le serveur ne l'admette. Sans fuseau, on ne sait pas quel jour on
-      // est chez lui — donc on ne sait pas s'il est mineur, donc on se tait.
-      if (!timezone) return closed(req, requestId, "unavailable");
-      today = localDateInZone(timezone, new Date());
-
-      const floor = await evaluateRestrictionForStudent(admin as never, {
-        userId,
-        asOfLocalDate: today,
-      });
-
-      // ③ ON LIT LE JETON, PAS LE CHOIX DE PRÉRÉGLAGE. `readStarterChoices` ne
-      // reconnaît une position qu'aux entrées encore marquées
-      // `source: "starter"`, et `claimOnEdit` retire cette marque dès que le
-      // coach réécrit un mot. Un coach qui a personnalisé son « on ne compte
-      // pas ici » aurait donc perdu la porte ③ en la rendant DAVANTAGE sienne.
-      const coachCounting = loaded.reason === "load_failed"
-        // La lecture a échoué — y compris, peut-être, celle qui dit s'il y a un
-        // coach. On suppose qu'il y en a un: c'est la direction qui se tait.
-        ? countingStanceFrom({ hasCoach: true, doctrineReadable: false, forbiddenTokens: [] })
-        : countingStanceFrom({
-          hasCoach: loaded.reason !== "no_coach",
-          doctrineReadable: true,
-          // `no_published_doctrine` rend `doctrine: null` et c'est exact: un
-          // coach qui n'a rien publié n'a pas de position. `empty_doctrine` et
-          // `empty_for_goal` rendent la doctrine ENTIÈRE — un interdit n'a pas
-          // de portée par objectif, donc le jeton y reste visible.
-          forbiddenTokens: (loaded.doctrine?.forbidden ?? []).map((f) => f.token),
-        });
-
-      ageVerdict = assessBirthDate(profile.birth_date, today);
-
-      // ⟳ LOT 4 — LA DIRECTION DE SA BALANCE, RÉDUITE UNE FOIS.
-      //
-      // ⚠️ ELLE VIENT DE `scaleDirectionOf`, jamais d'une table réécrite ici:
-      // la règle des trois directions est écrite une seule fois dans
-      // `weight_pace.ts`, et `maintenance` y rend `null` — c'est-à-dire que
-      // viser la stabilité n'ouvre RIEN, ce qui est exactement la décision.
-      goalsRow = (goalsRes.data ?? null) as Record<string, unknown> | null;
-      const goalToken = String(goalsRow?.goal ?? "").trim();
-      direction = (GOAL_TOKENS as readonly string[]).includes(goalToken)
-        ? scaleDirectionOf(goalToken as (typeof GOAL_TOKENS)[number])
-        : null;
-
-      gate = canShowEnergy({
-        restrictionFlag: floor.restriction_flag === true,
-        ageVerdict,
-        // ⟳ LOT 4 — LA COLONNE EST UN TRI-ÉTAT, ET ELLE NE SE LIT PLUS
-        // `=== true`. `null` veut dire « personne n'a choisi », et c'est alors
-        // la direction qui décide. Un `=== true` ici refermerait le chiffre à
-        // tous ceux que leur objectif devait ouvrir, en silence.
-        //
-        // ⛔ ET LA DÉRIVATION N'EST PAS ÉCRITE ICI. `energySwitchFrom` est la
-        // seule écriture de la règle; deux `??` posés dans deux fonctions edge
-        // divergeraient au premier jeton d'objectif ajouté.
-        coachCounting,
-        studentSwitch: energySwitchFrom({
-          stored: readTriState(profile.energy_display_enabled),
-          direction,
-        }).on,
-      });
+      // ⛔ L'ASSEMBLAGE A DESCENDU DANS `_shared/keel/energy_gate_io.ts` LE
+      // 2026-09-01, ET CE N'EST PAS UN RANGEMENT. Le chemin PHOTO a besoin de
+      // la MÊME porte (CALORIE_REVERSAL §6): deux fonctions edge qui lisent
+      // chacune `profiles` + la doctrine + le plancher finiraient par le faire
+      // différemment, et c'est la garde la plus sensible du produit. Un
+      // assembleur, deux lecteurs — et `canShowEnergy` garde son appelant
+      // unique, ce que la propriété du harnais assertait déjà.
+      const loadedGate = await loadEnergyGate(admin, { userId });
+      today = loadedGate.today;
+      ageVerdict = loadedGate.ageVerdict;
+      direction = loadedGate.direction;
+      goalsRow = loadedGate.goalsRow;
+      gate = loadedGate.gate;
       // ⑤ LA CIBLE. Elle prend le RÉSULTAT de la chaîne A/B, pas ses entrées:
       // il n'existe donc aucun chemin vers une cible qui ne traverse pas
-      // d'abord les quatre portes.
+      // d'abord les quatre portes. Elle reste ICI parce qu'elle n'appartient
+      // qu'à cette lane — le chemin photo ne montre aucune cible.
       targetGate = canShowTarget({
         energy: gate,
-        targetSwitch: energySwitchFrom({
-          stored: readTriState(profile.energy_target_enabled),
-          direction,
-        }).on,
+        targetSwitch: loadedGate.targetSwitchOn,
       });
     } catch (error) {
       // FAIL-CLOSED. Un plancher TCA ILLISIBLE vaut un plancher LEVÉ — même

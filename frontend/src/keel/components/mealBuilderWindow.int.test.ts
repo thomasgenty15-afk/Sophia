@@ -43,6 +43,20 @@ const SOURCE = readFileSync(
   "utf8",
 );
 
+// ⚠️ LE MÊME DÉFAUT VIVAIT DANS L'ENTONNOIR, ET IL Y EST RESTÉ SEPT JOURS DE
+// PLUS. `MealBuilder` a été réparé le 2026-08-18; `SetupPage` porte les MÊMES
+// deux champs, avec le MÊME câblage brut, et personne n'était allé voir. C'est
+// pourtant lui qui compose le PREMIER plan d'un compte — donc l'écran où la
+// page blanche coûte le plus cher.
+//
+// Les deux sources sont relues par le même bloc plus bas: un correctif porté à
+// un seul des deux écrans est précisément ce que ce fichier existe pour
+// attraper.
+const SETUP_SOURCE = readFileSync(
+  resolve(__dirname, "../pages/SetupPage.tsx"),
+  "utf8",
+);
+
 describe("le contrat de dates.ts", () => {
   it("la sanction est INTACTE: une demi-date jette toujours", () => {
     // Si ce test tombe, la « correction » a consisté à désarmer la garde —
@@ -95,5 +109,68 @@ describe("le câblage des deux champs de date", () => {
       /if \(isIsoDate\(next\)\) setWindow(Start|End)\(next\);/g,
     );
     expect(gated?.length ?? 0).toBe(2);
+  });
+});
+
+// ===========================================================================
+// L'ENTONNOIR PORTE LES MÊMES DEUX CHAMPS — 2026-09-01
+// ===========================================================================
+
+describe("le câblage des deux champs de date de l'entonnoir", () => {
+  // La forme de régression, nommée: `RequestStep` reçoit ses setters en props,
+  // donc elle ne s'écrit pas comme celle de `MealBuilder` — et c'est exactement
+  // pour ça qu'elle avait survécu au correctif d'à côté.
+  const RAW_BINDINGS = [
+    /onChange=\{\(e\) => onWindowStart\(e\.target\.value\)\}/,
+    /onChange=\{\(e\) => onWindowEnd\(e\.target\.value\)\}/,
+  ];
+
+  it("aucun champ n'écrit sa frappe DIRECTEMENT dans l'état du calcul", () => {
+    for (const raw of RAW_BINDINGS) {
+      expect(SETUP_SOURCE, String(raw)).not.toMatch(raw);
+    }
+  });
+
+  it("les deux champs affichent le BROUILLON", () => {
+    expect(SETUP_SOURCE).toMatch(/value=\{startDraft\}/);
+    expect(SETUP_SOURCE).toMatch(/value=\{endDraft\}/);
+  });
+
+  it("l'état du calcul n'est franchi QUE derrière `isIsoDate`", () => {
+    expect(SETUP_SOURCE).toMatch(/if \(!isIsoDate\(typed\)\)/);
+    expect(SETUP_SOURCE).toMatch(/if \(isIsoDate\(typed\)\) onWindowEnd\(typed\);/);
+  });
+});
+
+describe("les deux bornes du départ, sur les DEUX écrans", () => {
+  // ⛔ CE BLOC LIT LES DEUX SOURCES ENSEMBLE, ET C'EST LE POINT. `MealBuilder`
+  // portait `min`/`max` depuis le 2026-08-12; l'entonnoir n'avait NI L'UN NI
+  // L'AUTRE, et proposait donc un départ dans le passé — que le serveur refuse
+  // en 400, sous un motif qui parle des JOURS. Un refus qu'on peut rendre
+  // inexprimable ne doit pas exister.
+  for (
+    const [name, source] of [
+      ["MealBuilder", SOURCE],
+      ["SetupPage", SETUP_SOURCE],
+    ] as const
+  ) {
+    it(`${name}: le départ ne peut être ni dans le passé, ni au-delà de dimanche`, () => {
+      expect(source, `${name}: min`).toMatch(/min=\{browserLocalDate\(\)\}/);
+      expect(source, `${name}: max`).toMatch(
+        /max=\{lastNameableStart\(browserLocalDate\(\)\)\}/,
+      );
+    });
+  }
+
+  it("SetupPage ramène au jour même par `catchUpWindowStart`, pas par une seconde règle", () => {
+    // ⚠️ LA RÈGLE VIT DANS `useMealTicks`, elle est testée là-bas, et elle ne
+    // corrige QUE le passé. La recopier ici ferait deux idées de « ramener au
+    // jour même », et c'est celle qu'on relit le moins qui garderait l'ancienne.
+    expect(SETUP_SOURCE).toMatch(
+      /catchUpWindowStart\(typed, browserLocalDate\(\)\)/,
+    );
+    // Et le champ MONTRE le déplacement: sans cette ligne, l'écran afficherait
+    // le 29 au-dessus d'un plan qui part du 31.
+    expect(SETUP_SOURCE).toMatch(/setStartDraft\(clamped\);/);
   });
 });

@@ -3,11 +3,11 @@
 | | |
 |---|---|
 | **Identifiant** | `FF-053-l-ecran-du-plan` |
-| **Statut** | 🟠 En cours |
+| **Statut** | 🟢 **Livrée** — vérifié le 2026-09-01 : `PlanResult`, `PlanGrid`, `CookingSessions` et `useMealTicks` sont montés et vivants, et `generate-meal-v1` renvoie bien `fixed_intakes` et `day_properties`. Le `KitchenBlock` du §3 a été retiré le 2026-08-14, comme la fiche le dit déjà |
 | **Date** | 2026-08-11 |
 | **Autorité produit** | [MODEL.md](../../keel/MODEL.md) · [CONTRACT.md](../../keel/CONTRACT.md) · [PLAN-ECRAN-DU-PLAN-ET-BROUILLON](../../../scratchpad/PLAN-ECRAN-DU-PLAN-ET-BROUILLON.md) |
 | **Dépend de** | [FF-002](FF-002-dire-son-absence.md) · [FF-051](FF-051-les-apports-fixes.md) · [FF-052](FF-052-les-proprietes-de-jour.md) — **ce sont eux qu'elle rend visibles** |
-| **Voisine de** | [FF-054](FF-054-le-brouillon-et-le-feedback.md) — même rendu, monté dans la pop-up |
+| **Voisine de** | [FF-054](FF-054-le-retour-de-fin-de-plan.md) — même rendu, monté dans la pop-up |
 | **Effort estimé** | 5 étapes, front + 2 champs renvoyés par la fonction |
 
 ---
@@ -92,7 +92,7 @@ en tête de `MealBuilder` : les convictions du coach **entrent** dans la
 composition et n'en **ressortent** pas. Trois niveaux d'affichage sont trois
 occasions de l'oublier.
 
-**Le brouillon** est [FF-054](FF-054-le-brouillon-et-le-feedback.md). La grille
+**Le brouillon** est [FF-054](FF-054-le-retour-de-fin-de-plan.md). La grille
 y sera montée, mais elle vaut d'abord sur le plan adopté.
 
 ---
@@ -250,7 +250,7 @@ colonne de créneaux collante, `min-w` sur la table — le patron que
 ## 9. Rabbit holes
 
 **Faire de la grille un éditeur.** Glisser un plat d'un jour à l'autre, cliquer
-pour remplacer. C'est [FF-054](FF-054-le-brouillon-et-le-feedback.md) et le
+pour remplacer. C'est [FF-054](FF-054-le-retour-de-fin-de-plan.md) et le
 ciblage chirurgical ; ici la grille **lit**. Un écran qui lit et qui écrit dans
 le même geste demande un état d'édition, un enregistrement, une annulation —
 trois choses que ce lot n'a pas.

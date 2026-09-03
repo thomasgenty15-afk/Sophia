@@ -14,6 +14,8 @@ import { resolveHomePath } from "../api/postLogin";
 import { PublicFooter, PublicHeader } from "../components/PublicHeader";
 import ServerUnreachable from "../components/ServerUnreachable";
 import { Button } from "../components/ui/Button";
+import { isProSurfaceHidden } from "../../security/proSurface";
+import { OfferLines } from "../components/ui/OfferLines";
 import { t } from "../i18n/t";
 import { chosenUiLocale, signupProfileLocale } from "../i18n/runtime";
 import { type UiLocale } from "../i18n/catalog";
@@ -596,6 +598,21 @@ export default function StartPage() {
         lede={isRepair ? t("start.repair.body") : t("start.lead")}
       />
 
+      {/* ⚠️ L'OFFRE EST REMONTÉE AU-DESSUS DE LA FICHE LE 2026-09-01, ET C'EST
+          LA CORRECTION LA PLUS CHÈRE DU LOT. Elle vivait SOUS le bouton
+          d'envoi: quelqu'un qui arrivait de `/families` avec « premier mois
+          offert » en tête trouvait ici un prix nu, après le geste, et rien sur
+          la gratuité — la seule page qui l'annonçait ne la répétait pas là où
+          elle décide. Le bloc est maintenant le MÊME qu'en amont
+          (`ui/OfferLines.tsx`, namespace `offer`), et il se lit avant le
+          premier champ.
+          ⚠️ `start.price` a été retirée des deux packs. Le pack ANGLAIS y
+          écrivait « 11,99 € a month … plus 2 € » — virgule décimale et symbole
+          à droite, convention française servie à un lecteur anglophone. Les
+          montants passent désormais par `formatPrice`, qui ne peut pas se
+          tromper de convention. */}
+      {!isRepair && <OfferLines className="mt-6" />}
+
       <Sheet label={isRepair ? t("start.sheet.repair") : t("start.sheet.form")}>
         <form onSubmit={isRepair ? repair : signUp} className="space-y-5">
           {!isRepair && (
@@ -641,18 +658,22 @@ export default function StartPage() {
             </>
           )}
 
-          {/* LE PAYS. Demandé, jamais dérivé — voir l'en-tête du fichier.
-              Le `hint` dit à quoi il sert: quelqu'un qui comprend pourquoi
-              on le demande répond juste.
+          {/* LA LANGUE — et ce commentaire décrivait LE PAYS, un champ qui
+              n'est plus sur ce formulaire. Il annonçait « demandé, jamais
+              dérivé », l'exact contraire du code d'aujourd'hui: le pays se
+              déduit du fuseau (`declaredCountryFor(timezone, language)`,
+              plus haut dans ce fichier), et l'option vide, `isDeclaredCountryValid`
+              et le refus `country_required` qu'il décrivait n'existent nulle
+              part ici.
 
-              L'OPTION VIDE EST LA VALEUR INITIALE, et elle n'est jamais
-              soumissible: `isDeclaredCountryValid` la refuse avant l'appel
-              réseau, et `keel_join_house_coach` rendrait `country_required`
-              si on la laissait passer. Même patron que `/join-household`. */}
+              SANS `hint`, ET C'EST UN RETRAIT VOULU (2026-09-01). Il disait
+              « votre coach vous répond dans cette langue, et écrit votre plan
+              dedans » — sur l'inscription LIBRE, à quelqu'un qui n'a pas de
+              coach, et qui depuis le lancement B2C n'en rencontrera pas. Le
+              libellé dit déjà tout ce qui est vrai. */}
           <Field
             label={t("start.form.language")}
             htmlFor="start-language"
-            hint={t("start.form.language_hint")}
           >
             <select
               id="start-language"
@@ -730,18 +751,20 @@ export default function StartPage() {
         </form>
       </Sheet>
 
-      {/* CE QUE ÇA COÛTE, ET QUI N'EST PAS CONCERNÉ. Deux lignes, sous la
-          fiche, sans cadre: ce n'est pas un argument de vente, c'est ce qu'on
-          doit à quelqu'un avant qu'il ouvre un compte.
-          ⚠️ LE PRIX SE DIT, LA DURÉE NON — le tunnel de paiement du foyer rend
-          500 faute de prix Stripe, et `free_until` gèle un foyer neuf à J+31
-          sans chemin pour se dégeler. Annoncer « 30 jours puis vous décidez »
-          serait promettre une décision impossible. */}
-      {!isRepair && (
-        <div className="mt-6 space-y-2 border-t border-line pt-6">
-          <p className="max-w-[62ch] text-sm leading-6 text-ink-soft">
-            {t("start.price")}
-          </p>
+      {/* QUI N'EST PAS CONCERNÉ. Ce n'est pas un argument de vente, c'est ce
+          qu'on doit à quelqu'un avant qu'il ouvre un compte au mauvais endroit.
+          ⚠️ LE PRIX N'EST PLUS ICI: il est remonté au-dessus de la fiche, avec
+          le reste de l'offre. Une phrase de prix sous le bouton d'envoi arrive
+          après la décision qu'elle devait éclairer.
+          ⚠️ ET LA LIGNE COACH SE TAIT QUAND LE MONDE PRO EST OCCULTÉ. Sous
+          `VITE_B2C_ONLY`, plus aucune porte ne mène au pro: `/coaches`,
+          `/gyms`, `/communities` et `/pro` sont démontées d'`App.tsx`, et
+          `/auth?role=coach` refuse. Personne ne peut donc arriver ici avec une
+          invitation de coach — et cette phrase remet le mot « coach » sur la
+          seule page où le lecteur du foyer va vraiment, alors que les quatre
+          pages qui l'y ont amené l'évitent délibérément. */}
+      {!isRepair && !isProSurfaceHidden() && (
+        <div className="mt-6 border-t border-line pt-6">
           <p className="max-w-[62ch] text-sm leading-6 text-ink-soft">
             {t("start.coach_line")}
           </p>

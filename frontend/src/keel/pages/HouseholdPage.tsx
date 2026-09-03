@@ -58,7 +58,7 @@ import {
   type EatingOccasionSlot,
 } from "../api/mealGeneration";
 import {
-  type HabitSlot,
+  type HabitSlotWrite,
   loadMemberHabits,
   type MemberHabitsView,
   setMemberHabits,
@@ -79,6 +79,8 @@ import {
   ownShakerWriter,
   ownTargetWriter,
   persistMouth,
+  addShakerToMemberIntakes,
+  loadMemberFixedIntakes,
   setMemberTarget,
 } from "../api/mouthProfile";
 import {
@@ -92,7 +94,6 @@ import {
 import MouthFormDialog, {
   MouthActivityAxesFields,
   MouthAppetiteFields,
-  MouthMealComponentsFields,
   type MouthActivityAndStructure,
   MouthCoreFields,
 } from "../components/MouthFormDialog";
@@ -472,6 +473,11 @@ export default function HouseholdPage(): React.ReactElement {
     habits: habits === null
       ? null
       : (habits.get(me.memberId)?.slots ?? []),
+    // ⚠️ LA MÊME LECTURE, L'AUTRE MOITIÉ. `slots` porte la prose,
+    // `extras` ce qui est pris à côté du plat: `parseHabitSlots` jette les
+    // entrées sans prose, qui sont précisément celles des bulles. Sans cette
+    // semence, ouvrir la fiche puis enregistrer effacerait des bulles cochées.
+    extras: habits === null ? {} : (habits.get(me.memberId)?.extras ?? {}),
   });
 
   // ⚠️ `canCompose` A QUITTÉ CET ÉCRAN AVEC `ComposeCard`. Le gel reste lu ici
@@ -565,12 +571,17 @@ export default function HouseholdPage(): React.ReactElement {
                             setTarget: ownTargetWriter(userId),
                             setBody: setMemberBody,
                             setHabits: (id, slots, note) =>
-                              setMemberHabits(id, slots as HabitSlot[], note),
-                            // ⚠️ BRANCHÉ ICI, ET NULLE PART AILLEURS. C'est la
-                            // seule bouche de cet écran qui a un compte, donc
-                            // la seule qui puisse porter un apport fixe
-                            // (`fixed_intakes` est clé sur `user_id`).
-                            setShaker: ownShakerWriter(userId),
+                              setMemberHabits(id, slots, note),
+                            // ⚠️ LA PORTE DU COMPTE, ET ELLE IGNORE LE
+                            // `memberId` QU'ON LUI PASSE. Le stock d'un compte
+                            // est `student_goals.practical_constraints`, clé
+                            // sur `user_id`; sa ligne membre porte l'AUTRE
+                            // colonne (`household_members.fixed_intakes`), que
+                            // le lecteur du moteur ne relit QUE pour une bouche
+                            // sans compte. Y écrire serait écrire dans une
+                            // colonne que personne ne relit.
+                            setShaker: (_memberId, shaker) =>
+                              ownShakerWriter(userId)(shaker),
                             addAllergy,
                             addRestriction,
                             // Jamais appelé: la fenêtre ne montre pas le régime
@@ -620,16 +631,26 @@ export default function HouseholdPage(): React.ReactElement {
                       setTarget: setMemberTarget,
                       setBody: setMemberBody,
                       setHabits: (id, slots, note) =>
-                        setMemberHabits(id, slots as HabitSlot[], note),
-                      // ⚠️ `null`, ET C'EST LA BONNE RÉPONSE ICI (D1). Cette
-                      // carte AJOUTE une bouche, donc quelqu'un qui n'a pas de
-                      // compte — et `fixed_intakes` est clé sur `user_id`. Le
-                      // pop-up ne lui montre pas le champ (`hasAccount: false`
-                      // juste en dessous), donc `mouth.shaker` est `null` et
-                      // cette porte n'est jamais appelée. La brancher quand
-                      // même écrirait le shaker d'un enfant sur la ligne du
-                      // maître.
-                      setShaker: null,
+                        setMemberHabits(id, slots, note),
+                      // ⟳ BRANCHÉE LE 2026-09-01, ET SON `null` D'AVANT ÉTAIT
+                      // PÉRIMÉ. Il disait: « cette carte ajoute quelqu'un qui
+                      // n'a pas de compte, et `fixed_intakes` est clé sur
+                      // `user_id` » — vrai jusqu'au 2026-08-19, faux depuis:
+                      // une bouche sans compte a SON stock
+                      // (`household_members.fixed_intakes`), que le moteur
+                      // relit déjà. Seul l'écran ne l'appelait pas.
+                      //
+                      // ⚠️ LECTURE FRAÎCHE AVANT D'ÉCRIRE: la porte REMPLACE le
+                      // tableau entier. Sur une bouche qu'on vient de créer il
+                      // est vide, mais `persistMouth` sert AUSSI à reprendre
+                      // une fiche — et écrire sans relire y effacerait un
+                      // second apport.
+                      setShaker: async (memberId, shaker) =>
+                        addShakerToMemberIntakes({
+                          memberId,
+                          current: await loadMemberFixedIntakes(memberId),
+                          shaker,
+                        }),
                       addAllergy,
                       addRestriction,
                       setDiet: setMemberDiet,
@@ -1113,13 +1134,15 @@ export function MeCard(
           // `/app/household` N'EXISTE QUE PARCE QU'IL Y A UN FOYER: la ligne
           // membre est là, donc les habitudes, les dégoûts et le régime ont
           // tous les trois où aller. Voir la prop.
-          memberScoped
           slots={slots}
-          // ⚠️ `null` = PAS DE PORT ICI. `/app/household` n'a pas de chemin
-          // d'écriture pour `fixed_intakes` sur cette carte (il vit sur
-          // `user_id`, via `persistMouth`). Le bloc ne se rend donc pas — un
-          // bouton qui échoue à tous les coups est pire qu'un bouton absent.
-          onSaveShaker={null}
+          // ⟳ `with_the_card` DEPUIS LE 2026-09-01, ET C'ÉTAIT `null`. Le
+          // commentaire disait « pas de chemin d'écriture ici »: il y en a un,
+          // et c'est le bouton de la carte — `persistMouth` porte
+          // `ownShakerWriter(userId)` juste au-dessus. Ce que `null` faisait
+          // vraiment, c'est empêcher de COLLECTER la déclaration; le champ
+          // était donc invisible sur le seul écran où le titulaire peut
+          // reprendre sa fiche. Voir `ShakerPort`.
+          shakerPort={{ kind: "with_the_card" }}
         />
       </Card>
     );
@@ -1274,11 +1297,11 @@ function AddMouthCard(
             onChange={setDraft}
             subject={{ existing: false, hasAccount: false, isSelf: false }}
             busy={busy}
-            memberScoped
             slots={slots}
-            // Une bouche qu'on AJOUTE n'a pas de compte: `fixed_intakes` est
-            // clé sur `user_id`, elle n'a nulle part où le ranger.
-            onSaveShaker={null}
+            // ⟳ ELLE A BIEN OÙ LE RANGER DEPUIS LE 2026-08-19
+            // (`household_members.fixed_intakes`), et c'est « Ajouter » qui
+            // l'écrit: la ligne membre n'existe qu'après. Voir `ShakerPort`.
+            shakerPort={{ kind: "with_the_card" }}
           />
         </div>
       )}
@@ -1308,7 +1331,7 @@ function MembersCard(
     habits: Map<string, MemberHabitsView> | null;
     onSaveHabits: (
       memberId: string,
-      slots: HabitSlot[],
+      slots: HabitSlotWrite[],
       note: string | null,
     ) => Promise<boolean>;
     /** Le régime d'une bouche. `null` efface — « on n'a pas demandé ». */
@@ -1624,20 +1647,13 @@ function BodyFields(
             setSaved(false);
           }}
         />
-        {/* ① EN DERNIER ET DANS SON PROPRE BLOC, comme dans la fenêtre des
-            préférences: sa place dit qu'elle attend une décision de forme
-            (par personne ou par moment). Voir `MouthMealComponentsFields`. */}
-        <div>
-          <MouthMealComponentsFields
-            voice="other"
-            who={t("household.mouth.who_fallback")}
-            value={extras}
-            onChange={(patch) => {
-              setExtras((prev) => ({ ...prev, ...patch }));
-              setSaved(false);
-            }}
-          />
-        </div>
+        {/* ⛔ « CE QU'IL Y A D'AUTRE DANS L'ASSIETTE » A ÉTÉ RETIRÉ LE
+            2026-09-01. Les trois oui/non étaient posés UNE FOIS POUR LA
+            PERSONNE et leur ratio partait sur les six moments; la question se
+            pose maintenant DANS le moment qu'elle concerne, en bulles, depuis
+            la fiche (`MouthPreferencesFields`). Cette carte-ci n'édite QUE le
+            corps — elle n'a pas de section « quand elle mange » où les
+            ranger. */}
       </div>
       <div className="mt-2 flex items-center gap-2">
         <Button
@@ -1689,7 +1705,7 @@ function MemberRow(
     habits: MemberHabitsView | null;
     /** Faux = la lecture n'a PAS eu lieu. Les deux `null` sont distincts. */
     habitsLoaded: boolean;
-    onSaveHabits: (slots: HabitSlot[], note: string | null) => Promise<boolean>;
+    onSaveHabits: (slots: HabitSlotWrite[], note: string | null) => Promise<boolean>;
     /** Le régime de CETTE bouche. `null` efface. */
     onSaveDiet: (diet: string | null) => Promise<boolean>;
     onSaveBody: (

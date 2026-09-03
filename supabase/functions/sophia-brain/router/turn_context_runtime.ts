@@ -89,6 +89,24 @@ export function dispatcherSignalsFromTurnFrame(args: {
     // « pas détecté », pas « détecté sans rien dedans ».
     plan_feedback: turnFrame?.skill_signals?.plan_feedback ??
       DEFAULT_SIGNALS.plan_feedback,
+    // ── LOT M1 · LE MÊME CHAÎNON, POUR LE RENVOI VERS UN CHAMP ─────────────
+    //
+    // ⚠️ RECOPIÉ ICI, ET C'EST LA LIGNE QUI MANQUAIT AU LOT 4A. Un signal
+    // déclaré au contrat, sanitisé par le dispatcher et lu par le runtime peut
+    // rester à `{detected:false}` pour toujours si ce mapper ne le recopie pas
+    // du frame — « une ceinture armée sur un coffre vide, en une ligne
+    // d'omission ». Le lot précédent a payé exactement ça.
+    //
+    // ⛔ AUCUNE RELECTURE DU MESSAGE ICI: `args.userMessage` est `void`-é
+    // au-dessus. Le verdict vient du modèle, jamais d'un matcher.
+    profile_statement: turnFrame?.skill_signals?.profile_statement ??
+      DEFAULT_SIGNALS.profile_statement,
+    // ── LOT M6 · LE MÊME CHAÎNON, POUR LA RÉVOCATION ───────────────────────
+    // Recopié ici, comme les deux au-dessus: un signal que ce mapper oublie
+    // reste à `{detected:false}` pour toujours, et le lot entier redevient
+    // indiscernable d'un lot qui marche.
+    rule_question: turnFrame?.skill_signals?.rule_question ??
+      DEFAULT_SIGNALS.rule_question,
   };
 }
 

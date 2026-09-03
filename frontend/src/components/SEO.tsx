@@ -14,7 +14,13 @@ interface SEOProps {
   structuredData?: Record<string, unknown> | Array<Record<string, unknown>>;
 }
 
-const DEFAULT_IMAGE = 'https://sophia-coach.ai/apple-touch-icon.png';
+// ⚠️ `apple-touch-icon.png` ÉTAIT LE DÉFAUT, ET C'ÉTAIT UNE ICÔNE CARRÉE DE
+// 1024 SERVIE EN `summary_large_image`: tout aperçu de lien rendait un carré
+// rogné dans un cadre 1.91:1. `og-image.png` est une planche 1200×630 à la
+// charte. Elle a remplacé un visuel « IKIZEN » violet d'une marque antérieure
+// que plus personne ne référençait — le fichier existait, aucun écrivain ne le
+// citait, et il n'a donc jamais été vu.
+const DEFAULT_IMAGE = 'https://sophia-coach.ai/og-image.png';
 const DEFAULT_ROBOTS = 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1';
 
 const SEO = ({
@@ -33,7 +39,15 @@ const SEO = ({
   // le visiteur choisit le francais.
   const resolvedLang = lang ?? uiLocale();
   useEffect(() => {
-    const fullTitle = `${title} | Sophia Coach`;
+    // ⚠️ « Sophia », ET PLUS « Sophia Coach » (2026-09-01). Le suffixe entrait
+    // dans le titre d'onglet, dans `og:title` et dans chaque résultat de
+    // recherche des huit pages — donc le mot « coach » revenait sur les quatre
+    // pages du foyer, qui l'évitent délibérément (aucune de leurs copies ne le
+    // prononce). C'est aussi le nom que porte déjà l'organisation dans les
+    // données structurées: `organizationStructuredData()` déclare `name:
+    // "Sophia"`. Le domaine reste `sophia-coach.ai`; un nom de marque et un nom
+    // d'hôte n'ont pas à coïncider.
+    const fullTitle = `${title} | Sophia`;
     document.documentElement.lang = resolvedLang;
     document.title = fullTitle;
 
@@ -72,7 +86,7 @@ const SEO = ({
     ensureMeta({ property: 'og:title' }, fullTitle);
     ensureMeta({ property: 'og:description' }, description);
     ensureMeta({ property: 'og:type' }, type);
-    ensureMeta({ property: 'og:site_name' }, 'Sophia Coach');
+    ensureMeta({ property: 'og:site_name' }, 'Sophia');
     // Derived from `lang`, never hardcoded: a page that declares lang="en" and
     // og:locale="fr_FR" tells crawlers and link previews two different things,
     // and the preview is what a shared link shows.

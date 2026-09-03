@@ -21,6 +21,7 @@ import {
   resolveMealPhotoBinding,
   studentBindingIn,
 } from "../_shared/keel/meal_analysis.ts";
+import { loadEnergyGate } from "../_shared/keel/energy_gate_io.ts";
 import { dayTokenForLocalDate } from "../_shared/keel/slot_reminders.ts";
 import { parseDayToken } from "../_shared/keel/tokens.ts";
 import {
@@ -43,6 +44,18 @@ import {
   readLastTurnSafetyBand,
 } from "../_shared/keel/safety_band_io.ts";
 import { CHAT_SCOPE } from "../_shared/chat/delivery.ts";
+import {
+  SLOT_INFERRED_KEY,
+  slotWasInferred,
+} from "../_shared/keel/photo_slot_inference.ts";
+// ⚠️ LA DÉGRADATION SE FAIT ICI, PAS DANS UN PACK. `localePackKey` JETTE sur une
+// langue non livrée — c'est voulu, et c'est ce qui empêche un écran français
+// avec des phrases anglaises dedans. Mais `protocol_events.content_locale` est
+// une colonne: rien n'empêche une ligne d'y porter `de-DE`, et l'atteindre non
+// clampée ferait rendre 500 à l'analyse d'une photo pour la seule faute d'une
+// langue qu'on n'a pas écrite. `resolveArtifactLocale` clampe UNE fois, au
+// point de résolution, exactement comme son propre pavé le prescrit.
+import { resolveArtifactLocale } from "../_shared/keel/locale.ts";
 
 /**
  * L'AXE DE LA QUESTION PHOTO, dans le vocabulaire UNIFIÉ (§P5.3).
@@ -406,7 +419,74 @@ Deno.serve(async (req) => {
     }
 
     // ---- 5. the model -----------------------------------------------------
-    const prompt = buildMealAnalysisPrompt(commitments, event.slot_key);
+    //
+    // LA LANGUE DU TOUR, RÉSOLUE UNE FOIS ET DESCENDUE — au prompt d'abord, à
+    // l'accusé ensuite. Le même patron que `keel-daily-pulse-v1`, pour la même
+    // raison: trois résolutions séparées ont déjà produit un « How was today? »
+    // sous un fait français.
+    //
+    // ⚠️ LA LANGUE DE L'ÉLÈVE ENTRE DANS LE PROMPT, et c'est la MÊME valeur qui
+    // sortira dans l'accusé (`renderMealPhotoAck`, tout en bas). Deux
+    // résolutions séparées feraient un jour un accusé français commentant une
+    // analyse anglaise, sans qu'aucun test ne tombe — on résout au propriétaire
+    // du tour et on descend le résultat.
+    const artifactLocale = resolveArtifactLocale({
+      studentProfile: String(event.content_locale ?? "").trim() || null,
+      tenantDefault: null,
+    });
+    // ── LA PORTE DE L'ÉNERGIE, LUE AVANT LE MODÈLE ─────────────────────────
+    //
+    // CALORIE_REVERSAL §0, décision de l'utilisateur du 2026-08-18: *« la garde
+    // ne PRODUIT jamais le chiffre — elle ne le supprime pas après coup. L'état
+    // se lit AVANT le calcul, jamais entre le calcul et l'écran. »* Sur ce
+    // chemin, « le calcul » est l'appel au modèle: la porte se lit ici, le
+    // prompt ne demande pas le champ quand elle est fermée, et le parseur
+    // l'efface si le modèle l'écrit quand même.
+    //
+    // ⚠️ FAIL-CLOSED, ET SANS CONDITION. Une panne de lecture — profil, plancher
+    // TCA, doctrine — vaut porte FERMÉE. La photo est analysée quand même:
+    // perdre le chiffre coûte un chiffre, l'ouvrir sur une lecture ratée met un
+    // chiffre sous les yeux de quelqu'un qu'on n'a pas su évaluer. C'est la
+    // même direction d'échec que partout sur cette garde.
+    //
+    // ⛔ ET `event.local_date` PLUTÔT QUE LE FUSEAU. Le fait porte déjà le jour
+    // LOCAL de la personne; le redériver ici ferait une seconde définition de
+    // « quel jour on est chez elle », celle qui ne serait pas ajustée.
+    let energyAllowed = false;
+    try {
+      const gate = await loadEnergyGate(admin, {
+        userId: event.user_id,
+        localDate: String(event.local_date ?? "").trim() || null,
+      });
+      energyAllowed = gate.gate.show === true;
+      if (!energyAllowed) {
+        console.log(JSON.stringify({
+          tag: "keel.meal_photo.energy_gate_closed",
+          user_id: event.user_id,
+          reason: gate.gate.reason,
+        }));
+      }
+    } catch (error) {
+      // Comptée, pas silencieuse: `unavailable` et `restriction_floor` ferment
+      // la même porte et ne se réparent pas pareil.
+      console.warn(JSON.stringify({
+        tag: "keel.meal_photo.energy_gate_unreadable",
+        user_id: event.user_id,
+        error: error instanceof Error ? error.message : [
+          (error as { code?: string })?.code,
+          (error as { message?: string })?.message,
+          (error as { details?: string })?.details,
+          (error as { hint?: string })?.hint,
+        ].filter(Boolean).join(" — ") || String(error),
+        effect: "fail-closed: aucun chiffre d'energie sur cette analyse",
+      }));
+    }
+    const prompt = buildMealAnalysisPrompt(
+      commitments,
+      event.slot_key,
+      artifactLocale,
+      energyAllowed,
+    );
     const model = resolveVisionModel();
     const generated = await generateWithVision({
       systemPrompt: prompt.systemPrompt,
@@ -426,7 +506,68 @@ Deno.serve(async (req) => {
     const analysis = parseMealAnalysis(
       generated.text,
       prompt.allowedCommitmentIds,
+      // ⛔ TOUJOURS `false` SUR CE CHEMIN, ET C'EST STRUCTUREL. Non-input #4:
+      // une photo écrit `quantity: null`. `declared_quantities` ne peut venir
+      // que d'un chemin où l'élève a donné des grammes — pas d'ici.
+      false,
+      // La MÊME porte que celle qui a construit le prompt. Deux lectures
+      // divergeraient: celle du prompt est une consigne, celle-ci est la
+      // ceinture, et c'est la ceinture qui tient si la consigne est ignorée.
+      energyAllowed,
     );
+
+    // ── LE COMPTEUR DU CHAMP DEMANDÉ ────────────────────────────────────────
+    //
+    // `label_localized` est un champ que le MODÈLE déclare. Sans ce compteur,
+    // un bloc de langue que le modèle ignore rendrait exactement ce que rendait
+    // le code d'avant — des noms d'aliments anglais dans une phrase française —
+    // et ressemblerait à un lot qui marche. C'est la cicatrice
+    // `model-declared-fields-need-a-counter`, et elle a déjà coûté un lot
+    // entier livré désarmé.
+    //
+    // Ce n'est PAS une panne: le rendu retombe sur `label`, l'accusé part, la
+    // photo est comptée. C'est une mesure — `missing: 3/3` sur une flotte dit
+    // que le bloc n'est pas suivi et qu'il faut le réécrire.
+    if (prompt.outputLanguage !== "en" && analysis.detected_foods.length > 0) {
+      const missing = analysis.detected_foods.filter((f) =>
+        (f.label_localized ?? "").trim() === ""
+      ).length;
+      if (missing > 0) {
+        console.warn(JSON.stringify({
+          tag: "keel.meal_analysis.localized_labels_missing",
+          user_id: event.user_id,
+          requested_language: prompt.outputLanguage,
+          missing,
+          total: analysis.detected_foods.length,
+          effect: "l'accuse retombe sur les libelles anglais du matcher",
+        }));
+      }
+    }
+    // ── LE COMPTEUR DU CHAMP QUE LE MODÈLE DÉCLARE ───────────────────────
+    //
+    // ⚠️ SANS LUI, UN PROMPT QUI CESSE DE PRODUIRE DES CHIFFRES RESSEMBLE
+    // TRAIT POUR TRAIT À UN PROMPT QUI MARCHE. Mesuré à la main le 2026-09-02:
+    // porte OUVERTE, assiette composée (steak + quatre légumes, servie, nette),
+    // et `energy_estimate: null` 2 fois sur 2. Tout le chantier
+    // CALORIE_REVERSAL était donc câblé et INERTE, sans qu'aucune sortie ne le
+    // dise — `null` est une réponse légitime, et rien ne distinguait « le
+    // modèle a jugé » de « le modèle ne le fait jamais ».
+    //
+    // C'est la cicatrice `model-declared-fields-need-a-counter`, appliquée au
+    // seul champ que ce chantier ajoute. Le taux `null` sur porte OUVERTE est
+    // le chiffre à surveiller; sur porte fermée il vaut 100 % par
+    // construction, et le compter là n'apprendrait rien.
+    if (energyAllowed && analysis.subject_kind === "eaten_meal") {
+      console.info(JSON.stringify({
+        tag: "keel.meal_analysis.energy_offered",
+        user_id: event.user_id,
+        gate: "open",
+        offered: analysis.energy_estimate !== null,
+        confidence_band: analysis.energy_estimate?.confidence_band ?? null,
+        foods: analysis.detected_foods.length,
+      }));
+    }
+
     const studentCommitmentId = studentBindingIn(event.recognized);
     const binding = resolveMealPhotoBinding({
       analysis,
@@ -446,6 +587,17 @@ Deno.serve(async (req) => {
       studentCommitmentId,
       credit,
     }) as Record<string, unknown>;
+
+    // ── LA MARQUE DU CRÉNEAU DÉDUIT SURVIT À LA RÉÉCRITURE ─────────────────
+    //
+    // `buildRecognizedPayload` reconstruit `recognized` de zéro à chaque
+    // analyse. Sans cette recopie, un `force: true` — une reprise de benchmark,
+    // une montée de version de prompt — effacerait la marque et transformerait
+    // un créneau DÉDUIT en créneau DÉCLARÉ, en silence. Exactement la raison
+    // pour laquelle `student_commitment_id` est recopié trois lignes plus haut.
+    if (slotWasInferred(event.recognized)) {
+      recognized[SLOT_INFERRED_KEY] = true;
+    }
 
     // ---- 6bis. LE PLAT PRÉVU — rapprocher l'assiette de ce qui était au plan
     //
@@ -719,10 +871,10 @@ Deno.serve(async (req) => {
         localDate: readBack.local_date,
       });
       const gate = gateMealPrecisionQuestion({
-        // R3 — la question est rédigée pour CET élève, dans la langue de la
-        // ligne relue (R2). Même source que le rendu ligne 818: deux
-        // expressions pour une seule vérité finiraient par diverger.
-        locale: String(readBack.content_locale ?? "en-GB"),
+        // R3 — la question est rédigée pour CET élève, dans la langue du tour.
+        // MÊME valeur que le prompt et que l'accusé: deux expressions pour une
+        // seule vérité finiraient par diverger.
+        locale: artifactLocale,
         // Le chemin photo apporte SON axe (dérivé des hypothèses déclarées) et
         // sa propre condition de mise; l'évaluation textuelle ne s'y applique
         // pas. On lui donne donc l'axe déjà décidé, et le gate ne juge plus que
@@ -815,9 +967,26 @@ Deno.serve(async (req) => {
         // Non nul UNIQUEMENT après un insert relu (étape 7bis): l'accusé ne
         // parle que d'une coche qui existe en base.
         tickedDish: tickedDishTitle,
-        // Le token de la ligne, plus une constante en dur: c'est la donnée qui
-        // décide, et `renderMealPhotoAck` accepte désormais la famille `en`.
-        locale: String(readBack.content_locale ?? "en-GB"),
+        // LE CRÉNEAU DÉDUIT, LU SUR LA LIGNE RELUE — jamais recalculé ici.
+        // `meal-photo-upload-v1` a écrit le slot ET sa marque dans la même
+        // insertion; les relire tous les deux garantit que l'accusé annonce
+        // ce que la base porte, pas ce que cette fonction aurait déduit de son
+        // côté (elle tourne parfois des heures plus tard, sur un rejeu).
+        //
+        // La liste fermée est celle de `DATABLE_SLOTS`: rien d'autre ne peut
+        // sortir de l'inférence, et un jeton inattendu vaut « ne dis rien »
+        // plutôt qu'un nom de créneau introuvable dans le pack.
+        inferredSlot: slotWasInferred(readBack.recognized) &&
+            (readBack.slot_key === "breakfast" ||
+              readBack.slot_key === "lunch" ||
+              readBack.slot_key === "dinner")
+          ? readBack.slot_key
+          : null,
+        // LA MÊME valeur que celle donnée au modèle, clampée une seule fois
+        // en tête de tour. `renderMealPhotoAck` a désormais son pack français,
+        // donc elle décide vraiment de la langue rendue au lieu d'être
+        // journalisée puis ignorée.
+        locale: artifactLocale,
       }),
       request_id: requestId,
     }, { includeCors: false });

@@ -455,3 +455,105 @@ export function dayTokenOf(date: string): DayToken {
   }
   return UTC_DAY_TOKENS[d.getUTCDay()];
 }
+
+// ---------------------------------------------------------------------------
+// « JE CUISINE LA VEILLE » — la fenêtre reculée d'un jour
+// ---------------------------------------------------------------------------
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * CE QUE « CUISINER LA VEILLE » VEUT DIRE, ET POURQUOI ÇA NE DEMANDE RIEN.
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * Un plan « lundi→vendredi, je cuisine dimanche » **EST** un plan
+ * « dimanche→vendredi » dont le dimanche ne porte aucun repas. C'est la sortie
+ * décrite au §3.3 de la synthèse du 2026-09-01, et elle ne demande **aucune
+ * migration**: la fenêtre recule d'un jour, ce jour-là est un jour de CUISINE
+ * et rien ne s'y mange.
+ *
+ * ⛔ POURQUOI LE SERVEUR DÉCIDE, ET PAS L'ÉCRAN. L'écran pourrait envoyer
+ * `starts_on - 1` lui-même. Il ne le fait pas: la fenêtre serait alors
+ * DIFFÉRENTE de celle que la personne a saisie, et le refus `bad_window` (début
+ * dans le passé) tomberait sur une date qu'elle n'a jamais choisie, sous un
+ * motif qui parle de SA saisie. L'écran envoie une DEMANDE (« si possible, je
+ * cuisine la veille »); le serveur tranche, et l'explication le dit.
+ *
+ * ── LES DEUX REFUS, ET ILS SONT NOMMÉS ────────────────────────────────────
+ *   · `in_the_past` — le plan commence AUJOURD'HUI: la veille est hier, et on
+ *     ne compose pas un jour révolu. `resolveRequestedWindow` refuse déjà un
+ *     début passé; fabriquer ici une fenêtre qu'elle rejetterait ferait un 400
+ *     sur un geste que l'écran vient de proposer.
+ *   · `no_room` — la fenêtre fait déjà `MAX_WINDOW_DAYS`: le jour ajouté la
+ *     ferait déborder du plafond de la base (`duration_days between 1 and 7`).
+ *
+ * ⚠️ ON N'AMPUTE JAMAIS LA FIN POUR FAIRE DE LA PLACE. Reculer le début en
+ * gardant la durée retirerait un jour de repas que la personne a demandé —
+ * c'est-à-dire répondre à « cuisine la veille » par « tu mangeras un jour de
+ * moins ». Le refus est plus honnête, et l'écran le dit AVANT en grisant.
+ *
+ * PURE: no I/O, no clock. `today` est PASSÉ, jamais lu ici.
+ */
+export type CookDayBeforeRefusal = "in_the_past" | "no_room";
+
+export interface CookDayBeforeWindow {
+  startsOn: string;
+  durationDays: number;
+  /**
+   * LE JOUR OÙ ON CUISINE ET OÙ RIEN NE SE MANGE. `null` = pas de veille.
+   *
+   * ⚠️ C'EST UN JETON DE JOUR (`sun`…), pas une date: c'est sous cette forme
+   * que la consigne, `emptySlotsIn` et `day_properties` le lisent.
+   */
+  cookOnlyDay: DayToken | null;
+  /** `null` quand rien n'a été demandé OU quand la veille a été accordée. */
+  refused: CookDayBeforeRefusal | null;
+}
+
+export function withCookDayBefore(
+  window: { startsOn: string; durationDays: number },
+  input: { asked: boolean; today: string },
+): CookDayBeforeWindow {
+  if (typeof input?.asked !== "boolean") {
+    throw new Error(
+      "[keel/meal_window] withCookDayBefore: `asked` est REQUIS et booléen — " +
+        "un appelant qui ne pose pas la question passe `false`",
+    );
+  }
+  const untouched = {
+    startsOn: window.startsOn,
+    durationDays: window.durationDays,
+    cookOnlyDay: null,
+    refused: null,
+  } as const;
+  if (!input.asked) return untouched;
+  if (window.durationDays + 1 > MAX_WINDOW_DAYS) {
+    return { ...untouched, refused: "no_room" };
+  }
+  const before = addDays(window.startsOn, -1);
+  // ⚠️ `<` ET PAS `<=`: la veille a le droit d'être AUJOURD'HUI (le plan
+  // commence demain). C'est le cas le plus courant du geste — on compose la
+  // veille au soir pour le lendemain — et l'interdire viderait l'option de
+  // l'essentiel de son usage.
+  if (before < input.today) return { ...untouched, refused: "in_the_past" };
+  return {
+    startsOn: before,
+    durationDays: window.durationDays + 1,
+    cookOnlyDay: dayTokenOf(before),
+    refused: null,
+  };
+}
+
+/**
+ * L'ÉCRAN PEUT-IL PROPOSER LA VEILLE ? — le miroir, pour griser la case.
+ *
+ * ⚠️ IL REND LE MÊME VERDICT QUE `withCookDayBefore`, ET C'EST LE POINT: une
+ * case cochable qui serait refusée ensuite promettrait un geste que le moteur
+ * ne fera pas. Il appelle la fonction du dessus plutôt que de recopier ses deux
+ * conditions — c'est la règle que ce dépôt réapprend en boucle.
+ */
+export function cookDayBeforeAvailable(
+  window: { startsOn: string; durationDays: number },
+  today: string,
+): boolean {
+  return withCookDayBefore(window, { asked: true, today }).refused === null;
+}

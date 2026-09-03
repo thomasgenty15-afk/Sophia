@@ -4,6 +4,9 @@ import { createClient, type SupabaseClient } from "jsr:@supabase/supabase-js@2.8
 
 import { ensureInternalRequest } from "../_shared/internal-auth.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
+// Le plancher TCA, la MÊME porte que la composition de repas et que le tap du
+// soir. Ce fichier passait `false` en dur — voir le pavé sous les helpers.
+import { evaluateRestrictionForStudent } from "../_shared/keel/restriction_runtime.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import {
   buildWeeklyFlowToken,
@@ -116,12 +119,74 @@ function localDowFor(now: Date, tz: string | null): number {
   return new Date(`${date}T00:00:00Z`).getUTCDay();
 }
 
-// Le plancher TCA DURABLE n'existe plus (L3, 2026-08-08). Il se lisait ici,
-// puis dans `_shared/keel/reengagement_io.ts::isRestrictionFlagged` quand les
-// deux lecteurs ont été fusionnés — et il interrogeait `weekly_reviews.risk_band`,
-// colonne de l'ancienne weekly review 1:1 qui n'a JAMAIS eu d'écrivain dans ce
-// dépôt. Le pavé qui explique le retrait, ce qui reste vivant, et comment
-// réarmer sans rebrancher une colonne morte, est resté dans `reengagement_io.ts`.
+/**
+ * Le message d'une erreur, qu'elle soit une `Error` ou un objet PostgREST.
+ *
+ * ⚠️ `String(error)` rend « [object Object] » sur une erreur PostgREST, et
+ * c'est ce qui a masqué un 42P10 permanent dans le point hebdo. Les quatre
+ * champs sont lus nommément.
+ */
+function readableError(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  const e = error as {
+    message?: string;
+    code?: string;
+    details?: string;
+    hint?: string;
+  };
+  return [e?.code, e?.message, e?.details, e?.hint].filter(Boolean).join(" — ") ||
+    String(error);
+}
+
+/**
+ * LE PLANCHER TCA — RÉARMÉ LE 2026-09-01, SUR UNE SOURCE ALIMENTÉE.
+ *
+ * Il se lisait autrefois par `isRestrictionFlagged`, sur `weekly_reviews.risk_band`
+ * — colonne de l'ancienne weekly review 1:1 qui n'a JAMAIS eu d'écrivain. Le
+ * lecteur a été retiré en L3 (2026-08-08) et remplacé par un littéral `false`,
+ * en le disant. Ce qui restait était une garde ARMÉE dans `decideWeeklyFlow`
+ * (`restriction_flagged` y est un motif de skip) qui ne recevait jamais `true`:
+ * le formulaire du dimanche demandait son poids et son tour de taille à
+ * quelqu'un sous plancher.
+ *
+ * On ne rebranche PAS la colonne morte: on appelle
+ * `evaluateRestrictionForStudent`, la porte que `generate-meal-v1` et
+ * `meal-photo-upload-v1` utilisent déjà, dont les déclencheurs lisent des tables
+ * vivantes (`student_body_measures`, la prose de l'élève).
+ *
+ * ── FAIL-CLOSED, ET ICI ÇA COÛTE PEU ────────────────────────────────────────
+ * Une évaluation en panne saute le formulaire de CE dimanche pour cet élève. Le
+ * cron repasse à 18:40, 19:40 et 20:40, donc une panne transitoire ne perd même
+ * pas la semaine. Demander un poids à quelqu'un sous plancher, en revanche, ne
+ * se rattrape pas.
+ *
+ * ── APRÈS `following`, ET C'EST L'ORDRE DU COÛT ─────────────────────────────
+ * Le balayage est horaire sur toute la cohorte; ces quatre lectures ne sont
+ * payées que pour les élèves du bon fuseau, le bon jour, qui suivent quelque
+ * chose. Le filtre le moins cher passe toujours en premier.
+ */
+async function restrictionFloorFor(
+  admin: SupabaseClient,
+  userId: string,
+  localDate: string,
+): Promise<boolean> {
+  try {
+    const floor = await evaluateRestrictionForStudent(admin as never, {
+      userId,
+      asOfLocalDate: localDate,
+    });
+    return floor.restriction_flag === true;
+  } catch (error) {
+    console.warn(JSON.stringify({
+      tag: "keel.weekly_flow.restriction_floor_unreadable",
+      user_id: userId,
+      local_date: localDate,
+      error: readableError(error),
+      effect: "fail-closed: pas de point hebdo pour cet eleve ce dimanche",
+    }));
+    return true;
+  }
+}
 
 Deno.serve(async (req) => {
   const requestId = getRequestId(req);
@@ -225,15 +290,14 @@ Deno.serve(async (req) => {
             // le tour, pas dans une table. Passer `null` est donc une
             // DÉCLARATION — « ce job ne sait pas » — et pas un oubli.
             safetyBand: null,
-            // ⚠️ FAUX, ET DIT COMME TEL (L3, 2026-08-08). Cette ligne appelait
-            // `isRestrictionFlagged`, qui lisait `weekly_reviews.risk_band` —
-            // colonne de l'ancienne weekly review 1:1, SANS AUCUN ÉCRIVAIN
-            // (épreuves d'absence: code, `prosrc`, vues, base). Elle rendait
-            // déjà `false` pour 100 % des élèves réels; le littéral ne change
-            // donc rien au comportement. Le raisonnement complet, et la façon
-            // de RÉARMER ce plancher sans le rebrancher sur une colonne morte,
-            // sont dans le pavé de `_shared/keel/reengagement_io.ts`.
-            restrictionFlagged: false,
+            // R9 — le plancher, résolu sur une source alimentée. Le pavé de
+            // `restrictionFloorFor` (au-dessus) dit ce que ce littéral valait
+            // avant, et pourquoi ce n'est pas la colonne morte qu'on rebranche.
+            restrictionFlagged: await restrictionFloorFor(
+              admin,
+              cursor,
+              localDate,
+            ),
             // ── DE-WHATSAPP — LE MUTE VIENT DU RÉGLAGE PRODUIT, PAS DE META ──
             //
             // 🔴 LE DÉFAUT QUE CETTE LIGNE CORRIGE, MESURÉ EN LOCAL LE 2026-08-04:

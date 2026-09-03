@@ -99,20 +99,54 @@ begin
   v_b := gen_random_uuid();
   v_house := gen_random_uuid();
 
+  -- ⚠️ LES TROIS COMPTES SONT CRÉÉS, PAS EMPRUNTÉS, ET C'EST LE PRIX DU
+  -- « CAS QUI PASSE ». `household_members.user_id` référence `auth.users` :
+  -- trois `gen_random_uuid()` posés directement violent la clé étrangère, et
+  -- le contrôle meurt AVANT d'avoir rien prouvé — c'est exactement ce qui a
+  -- fait échouer le premier `db push` de ce fichier, le 2026-09-01.
+  --
+  -- L'alternative — emprunter les comptes existants, comme le fait la
+  -- migration des habitudes — demanderait TROIS comptes libres de tout foyer
+  -- sur la base visée. Là où il n'y en a pas trois, le contrôle se SAUTE, et
+  -- un contrôle sauté se lit exactement comme un contrôle vert. C'est la
+  -- cicatrice « une garde a besoin d'un cas qui passe », prise par l'autre
+  -- bout : ici c'est le cas passant lui-même qu'on perdrait.
+  --
+  -- Les lignes créées ici sont annulées avec tout le reste par le `raise
+  -- exception 'rollback du contrôle'` de fin de bloc — même patron que
+  -- `household_detachment`, `household_freeze` et `household_signup_door`,
+  -- qui écrivent dans `auth.users` de la même façon et qui passent en distant.
+  insert into auth.users (id, email, instance_id, aud, role)
+  values
+    (v_owner, '__qa_read_scope_owner@example.invalid',
+     '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated'),
+    (v_a, '__qa_read_scope_a@example.invalid',
+     '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated'),
+    (v_b, '__qa_read_scope_b@example.invalid',
+     '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated');
+
   insert into public.households (id, name) values (v_house, '__qa_read_scope');
   insert into public.household_members (household_id, user_id, role, first_name)
   values (v_house, v_owner, 'owner', 'O'),
          (v_house, v_a, 'member', 'A'),
          (v_house, v_b, 'member', 'B');
 
+  -- `content_locale` est NOT NULL SANS DÉFAUT depuis la création de la table
+  -- (2026-08-04) : l'omettre fait mourir le contrôle avant la première
+  -- assertion. Sa valeur n'a aucune part dans ce qui est prouvé ici — même
+  -- 'en' que la fixture voisine de `household_hand_taken`.
   insert into public.student_generated_meals
-    (user_id, household_id, plan_kind, starts_on, duration_days, mode, dishes)
-  values (v_owner, v_house, 'household', current_date, 2, 'to_shop', '[]'::jsonb)
+    (user_id, household_id, plan_kind, starts_on, duration_days, mode, dishes,
+     content_locale)
+  values (v_owner, v_house, 'household', current_date, 2, 'to_shop', '[]'::jsonb,
+          'en')
   returning id into v_plan_house;
 
   insert into public.student_generated_meals
-    (user_id, household_id, plan_kind, starts_on, duration_days, mode, dishes)
-  values (v_a, v_house, 'personal', current_date, 2, 'to_shop', '[]'::jsonb)
+    (user_id, household_id, plan_kind, starts_on, duration_days, mode, dishes,
+     content_locale)
+  values (v_a, v_house, 'personal', current_date, 2, 'to_shop', '[]'::jsonb,
+          'en')
   returning id into v_plan_a;
 
   -- ① LE CAS QUI PASSE — B lit bien le plan DU FOYER.

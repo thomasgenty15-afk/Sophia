@@ -157,7 +157,10 @@ export interface RhythmEventRow {
   /** Le chemin de bucket de la photo, quand ce fait en est une. */
   media_path?: string | null;
   recognized?: {
-    detected_foods?: Array<{ label?: string | null }> | null;
+    /** `label` = le nom anglais du matcher; `label_localized` = celui qu'on lit. */
+    detected_foods?: Array<
+      { label?: string | null; label_localized?: string | null }
+    > | null;
     food_groups_present?: string[] | null;
     portion_rationale?: string | null;
   } | null;
@@ -314,10 +317,13 @@ function foodLabelsOf(row: RhythmEventRow): string[] {
   for (const f of row.recognized?.detected_foods ?? []) {
     const label = String(f?.label ?? "").trim();
     if (!label) continue;
+    // La CLÉ de déduplication reste l'anglais (stable sur toute l'histoire de
+    // la table); ce qui SORT est le libellé localisé quand la ligne en porte un.
     const key = label.toLowerCase();
     if (seen.has(key)) continue;
     seen.add(key);
-    out.push(label.charAt(0).toUpperCase() + label.slice(1));
+    const shown = String(f?.label_localized ?? "").trim() || label;
+    out.push(shown.charAt(0).toUpperCase() + shown.slice(1));
   }
   return out;
 }

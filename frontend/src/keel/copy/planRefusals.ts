@@ -113,6 +113,7 @@ export const EDGE_REFUSAL_KEYS: Record<string, MessageKey> = {
   meal_unparseable: "plan.refusal.meal_unparseable",
   model_returned_tool_call: "plan.refusal.model_returned_tool_call",
   plan_not_written: "plan.refusal.plan_not_written",
+  plan_adoption_timed_out: "plan.refusal.plan_adoption_timed_out",
   house_rule_violated: "plan.refusal.house_rule_violated",
 
   // ── LES ONZE REFUS DE FUSION (L4/D6, D15, D16) ──────────────────────────

@@ -702,6 +702,98 @@ function candidateForms(term: string): string[] {
  * jamais de sous-chaîne. Les seules tolérances sont celles écrites ci-dessus,
  * et chacune est une RÉDUCTION de forme, pas un choix entre deux aliments.
  */
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * UNE ALTERNATIVE N'EST AMBIGUË QUE SI SES BRANCHES LE SONT — 2026-08-24.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ── CE QUE LE REFUS SEC COÛTAIT, MESURÉ ───────────────────────────────────
+ * « green or brown lentils » était la SEULE source de protéine des trois jours
+ * de `plan-F3` (2026-08-23). Le terme ne résolvait pas, donc son plat ne portait
+ * pas de chiffre, donc AUCUNE des neuf journées-bouche du plan n'en portait.
+ * Le refus protège d'un aliment faux; ici il coûtait le plan entier.
+ *
+ * ── LA RÈGLE, ET ELLE NE DEVINE RIEN ──────────────────────────────────────
+ * DEUX portes, dans cet ordre:
+ *
+ *   ① UN ALIAS CURÉ POUR LA CHAÎNE ENTIÈRE gagne. Un humain a lu « green or
+ *      brown lentils » et décidé qu'il désigne les lentilles sèches; ce refus
+ *      générique n'a pas à écraser une décision prise à la main. C'est la même
+ *      hiérarchie que partout: le plus spécifique parle en dernier.
+ *
+ *   ② SINON, **TOUTES** les branches doivent résoudre **ET** tomber sur la MÊME
+ *      ligne. L'alternative est alors sans conséquence: peu importe laquelle on
+ *      lit. Tout le reste — branches divergentes, branche inconnue, aucune
+ *      branche — retombe sur le refus d'avant.
+ *
+ * ⛔ « TOUTES », ET C'EST LA MOITIÉ QUI COMPTE. Une première version acceptait
+ * qu'UNE SEULE branche résolve. Elle rendait `olive_oil` sur « butter or olive
+ * oil » dès que le beurre manquait au référentiel — c'est-à-dire qu'elle
+ * CHOISISSAIT, en silence, très exactement ce que le refus existe pour
+ * empêcher. Une branche inconnue n'est pas une branche d'accord: c'est une
+ * branche dont on ne sait rien.
+ *
+ * ⛔ C'EST UNE PREUVE, PAS UN ARBITRAGE. Vérifié sur le référentiel vivant:
+ * « butter or olive oil » (l'exemple qui justifie le refus dans le DDL),
+ * « chicken or turkey », « rice or quinoa » et « yoghurt or skyr » rendent tous
+ * deux lignes distinctes et restent refusés.
+ *
+ * ⚠️ ET AUCUNE GRAMMAIRE. On ne recompose pas « green » avec la queue de
+ * « brown lentils »: chaque segment est lu tel quel, par la porte ordinaire.
+ */
+function resolveAlternative(
+  index: CompositionIndex,
+  base: string,
+): CompositionRef | null {
+  // ── ① L'ALIAS CURÉ DE LA CHAÎNE ENTIÈRE ─────────────────────────────────
+  //
+  // ⛔ `byAlias` SEULEMENT, JAMAIS `bySlug`. Un alias est écrit à la main, avec
+  // sa note, et passe les cinq épreuves du patron de migration: c'est une
+  // DÉCISION. Un slug, lui, peut être fabriqué à chaud par le sas de
+  // réparation (`composition_fill.ts`), qui écrit dans `bySlug` — et dont le
+  // propre prompt dit de LAISSER TOMBER les alternatives. Consulter `bySlug`
+  // ici rendrait donc atteignable l'entrée qu'un modèle désobéissant aurait
+  // devinée pour « butter or olive oil », et désarmerait la ceinture
+  // `unreachable` qui l'attrape aujourd'hui.
+  //
+  // ⚠️ MESURÉ: c'est exactement ce qui s'est produit à l'écriture de ce lot —
+  // `composition_fill_test.ts` (« une ALTERNATIVE n'est pas remplie ») est
+  // passé au rouge. La ceinture a fait son travail, et ce commentaire existe
+  // pour que personne ne « simplifie » cette ligne en y rajoutant `bySlug`.
+  const curated = index.byAlias.get(base);
+  if (curated) {
+    const hit = index.bySlug.get(curated);
+    if (hit) return hit;
+  }
+
+  // ── ② TOUTES LES BRANCHES, ET ELLES DOIVENT S'ACCORDER ──────────────────
+  const branches = base.split(/ (?:or|ou) |\//).map((b) => b.trim()).filter(Boolean);
+  // Une seule branche: le marqueur était en tête ou en queue, il n'y a rien à
+  // départager. On garde le refus plutôt que de relire le terme entier — ce
+  // serait la boucle que ce chemin existe pour ne pas faire.
+  if (branches.length < 2) return null;
+  let found: CompositionRef | null = null;
+  for (const branch of branches) {
+    // ⚠️ CHAQUE BRANCHE PASSE PAR LA PORTE ORDINAIRE, alias et réductions
+    // compris. Une seconde table de correspondance ici serait un jumeau du
+    // résolveur, et il divergerait au premier alias ajouté.
+    let hit: CompositionRef | null = null;
+    for (const form of candidateForms(branch)) {
+      const direct = index.bySlug.get(form.replace(/ /g, "_"));
+      hit = direct ?? (index.byAlias.has(form)
+        ? index.bySlug.get(index.byAlias.get(form)!) ?? null
+        : null);
+      if (hit) break;
+    }
+    // ⛔ UNE BRANCHE INCONNUE FAIT TOUT TOMBER. Voir l'en-tête: ne rien savoir
+    // d'une branche n'est pas la même chose que la savoir d'accord.
+    if (!hit) return null;
+    if (found && found.slug !== hit.slug) return null;
+    found = hit;
+  }
+  return found;
+}
+
 export function resolveIngredient(
   index: CompositionIndex,
   term: string,
@@ -710,7 +802,7 @@ export function resolveIngredient(
   if (!base) return null;
   // L'ALTERNATIVE DISQUALIFIE, et avant tout le reste: « butter or olive oil »
   // contient « olive oil », qui matcherait.
-  if (AMBIGUITY_MARKERS.test(` ${base} `)) return null;
+  if (AMBIGUITY_MARKERS.test(` ${base} `)) return resolveAlternative(index, base);
   for (const form of candidateForms(term)) {
     const direct = index.bySlug.get(form.replace(/ /g, "_"));
     if (direct) return direct;

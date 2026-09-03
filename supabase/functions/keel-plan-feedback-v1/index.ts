@@ -12,6 +12,11 @@ import {
   retainedItemsFromPlanFeedback,
 } from "../_shared/keel/plan_feedback_retained.ts";
 import { persistRetainedItemsFor } from "../_shared/keel/retained_items_io.ts";
+import { persistFieldChangesFor } from "../_shared/keel/field_change_io.ts";
+import {
+  fieldChangesFrom,
+  withFieldChanges,
+} from "../_shared/keel/field_change.ts";
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -190,7 +195,17 @@ Deno.serve(async (req) => {
 
     // ── ÉTAGE 2 · L'EXTRACTION — ET ELLE NE PEUT PAS COÛTER LA RÉPONSE ─────
     let retained: PlanFeedbackRetained | null = null;
-    let write: { ok: boolean; reason: string; durableWritten: number } | null = null;
+    let write:
+      | {
+        ok: boolean;
+        reason: string;
+        durableWritten: number;
+        refused: Record<string, number>;
+      }
+      | null = null;
+    // LOT M5 — l'écriture des CHAMPS, comptée séparément de celle des items.
+    let fieldWrite: { ok: boolean; reason: string; written: number } | null =
+      null;
     try {
       // La ligne du plan: sa langue (le `text` retenu s'affiche) et ses titres
       // (la liste FERMÉE des réponses possibles).
@@ -255,6 +270,42 @@ Deno.serve(async (req) => {
         varietyLevel: nullableText(pc?.variety),
       });
 
+      // ── LOT M5 · LES CHAMPS, ÉCRITS POUR DE VRAI ─────────────────────────
+      //
+      // ⛔ AVANT, CETTE MOITIÉ N'ÉCRIVAIT RIEN. `logistics.set` partait dans un
+      // magasin à part et les générateurs le posaient EN MÉMOIRE au moment de
+      // composer: la personne lisait 45 min dans ses réglages et son plan était
+      // fait sur 30, sans qu'un écran le dise et sans qu'elle puisse le défaire.
+      //
+      // ⚠️ LE TÉMOIN EST CELUI DE `pc`, RELU quelques lignes plus haut dans CE
+      // tour. La course est réelle: la personne ouvre ses réglages pendant que
+      // le bilan calcule. Sans témoin, on écraserait ce qu'elle vient de
+      // choisir — « le bouton ne fait rien », cicatrice nommée du dépôt.
+      if (retained.fieldChanges.length > 0) {
+        const expected: Record<string, unknown> = {};
+        for (const change of retained.fieldChanges) {
+          expected[change.field] = (pc ?? {})[change.field] ?? null;
+        }
+        const fieldOutcome = await persistFieldChangesFor({
+          admin,
+          userId,
+          source: FN_NAME,
+          expected,
+          changes: retained.fieldChanges,
+          // Le journal COMPLET (ancien + neuf, plafonné) est calculé ici, à
+          // partir de la même lecture que le témoin: une seconde lecture serait
+          // une seconde chance de partir d'un état périmé.
+          journal: fieldChangesFrom(
+            withFieldChanges(pc, retained.fieldChanges),
+          ),
+        });
+        fieldWrite = {
+          ok: fieldOutcome.ok,
+          reason: fieldOutcome.reason,
+          written: fieldOutcome.written,
+        };
+      }
+
       if (retained.items.length > 0) {
         const outcome = await persistRetainedItemsFor({
           admin,
@@ -271,6 +322,7 @@ Deno.serve(async (req) => {
           ok: outcome.ok,
           reason: outcome.reason,
           durableWritten: outcome.durableWritten,
+          refused: { ...outcome.refused },
         };
       }
 
@@ -285,6 +337,13 @@ Deno.serve(async (req) => {
         produced: retained.items.length,
         written: write?.durableWritten ?? 0,
         write_reason: write?.reason ?? "nothing_to_write",
+        // ⚠️ LOT M5 — LES CHAMPS ONT LEURS PROPRES NOMBRES, dans la MÊME ligne.
+        // Deux lignes séparées ne se lisent pas ensemble, et c'est leur ÉCART
+        // qui dit la panne: « produit mais pas écrit » est le seul état qu'on
+        // veut voir tout de suite.
+        fields_produced: retained.fieldChanges.length,
+        fields_written: fieldWrite?.written ?? 0,
+        fields_reason: fieldWrite?.reason ?? "nothing_to_write",
         refused: retained.refused,
       }));
     } catch (error) {
@@ -305,7 +364,20 @@ Deno.serve(async (req) => {
         produced: retained?.items.length ?? 0,
         written: write?.durableWritten ?? 0,
         reason: write?.reason ?? (retained ? "nothing_to_write" : "extraction_failed"),
+        // ⚠️ CE SONT LES REFUS DE LA CLASSIFICATION, pas ceux de l'écriture.
         refused: retained?.refused ?? null,
+        /**
+         * ⛔ LES REFUS DE LA PORTE — mesuré le 2026-09-01, la réponse rendait
+         * `produced=1 written=0 refused=0`: trois nombres qui ne s'additionnent
+         * pas, et rien pour dire pourquoi. Un item produit puis écarté À
+         * L'ÉCRITURE (déjà en base, famille interdite, sans citation) se lisait
+         * « la porte a échoué », alors qu'elle avait fait son travail.
+         *
+         * Les deux objets restent SÉPARÉS: fondre « le questionnaire n'a rien
+         * retenu » et « la porte a refusé » perdrait la seule distinction qui
+         * dit lequel des deux corriger.
+         */
+        write_refused: write?.refused ?? null,
       },
       request_id: requestId,
     });

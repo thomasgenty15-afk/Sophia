@@ -4,6 +4,8 @@ import { resolve } from "node:path";
 
 import {
   branchForMouths,
+  declaredHouseholdSize,
+  funnelMouths,
   birthDateAnswer,
   BUDGET_MAX,
   canGenerate,
@@ -23,6 +25,7 @@ import {
   nextIncomplete,
   normalizedMouthName,
   mouthsStillNeeded,
+  maximumOthers,
 } from "./onboarding";
 import { SETUP_MISS_KEYS } from "../copy/setupMisses";
 import { en } from "../i18n/en";
@@ -307,6 +310,20 @@ describe("canGenerate — l'état complet", () => {
     expect(misses(complete("family"), "family")).toEqual([]);
   });
 
+  it("autorise le solo sans aucune préférence alimentaire", () => {
+    const base = complete("solo");
+    const withoutPreferences: FunnelState = {
+      ...base,
+      self: {
+        ...base.self,
+        allergiesReviewed: false,
+        diet: null,
+      },
+      plan: { ...base.plan, eatingRhythm: [] },
+    };
+    expect(canGenerate(withoutPreferences, "solo")).toEqual({ ok: true });
+  });
+
   it("refuse un état vierge en nommant tout ce qui manque", () => {
     expect(misses(emptyFunnelState(), "solo").sort()).toEqual(
       [
@@ -325,7 +342,10 @@ describe("canGenerate — l'état complet", () => {
         "own_height_cm",
         "own_weight_kg",
         "own_gender",
-        "cook_days",
+        // ⛔ `cook_days` N'EST PLUS UNE PORTE — le champ « les jours où tu
+        // cuisines » a été retiré des deux écrans le 2026-09-01. Le laisser
+        // ici retiendrait l'entonnoir sur une réponse que plus aucun écran ne
+        // permet de donner.
         "cooking_time_min",
         "budget_amount",
       ].sort(),
@@ -426,12 +446,6 @@ describe("canGenerate — étape par étape", () => {
       "family",
       (s) => ({ ...s, others: [adult()] }),
       "missing_mouths",
-    ],
-    [
-      "aucun jour de cuisine",
-      "solo",
-      (s) => ({ ...s, plan: { ...s.plan, cookDays: [] } }),
-      "cook_days",
     ],
     [
       "un temps de cuisine absent",
@@ -883,6 +897,14 @@ describe("mouthsStillNeeded", () => {
   });
 });
 
+describe("maximumOthers — le plafond propre à chaque parcours", () => {
+  it("interdit l'ajout en solo et borne le couple à une autre personne", () => {
+    expect(maximumOthers("solo")).toBe(0);
+    expect(maximumOthers("pair")).toBe(1);
+    expect(maximumOthers("family")).toBe(HOUSEHOLD_MAX_MOUTHS - 1);
+  });
+});
+
 // ───────────────────────────────────────────────────────────────────────────
 // L'ACTIVITÉ COLLECTÉE — LA JOINTURE ENTRE CE QU'ON DEMANDE ET CE QUI CALCULE
 //
@@ -1106,5 +1128,108 @@ describe("peopleStepBlockers", () => {
     };
     expect(peopleStepBlockers(state, "family")[0].missing)
       .toContain("adult_without_birth_date");
+  });
+});
+
+// ===========================================================================
+// LA BRANCHE EST UN FAIT DÉCLARÉ, PLUS UNE DÉDUCTION
+//
+// ── LE DÉFAUT QU'ELLE FERME (2026-09-01) ─────────────────────────────────
+// La branche se lisait `Math.max(2, household.members.length)`: un foyer en
+// base répondait « au moins deux », et le solo se reconnaissait à son ABSENCE
+// de foyer. Conséquence, signalée à l'écran: un solo n'avait pas de ligne
+// membre, donc la fiche de préférences lui CACHAIT deux sections — ses dégoûts
+// et ses moments, tous deux clés sur `member_id`. Le produit n'était pas le
+// même selon le chemin d'entrée.
+//
+// Le solo a maintenant un foyer d'UNE bouche. La déduction ne peut donc plus
+// séparer « je suis seul » de « j'ai commencé un foyer et je n'ai encore saisi
+// personne »: le nombre se déclare.
+// ===========================================================================
+
+describe("declaredHouseholdSize", () => {
+  it("lit le nombre déclaré", () => {
+    expect(declaredHouseholdSize({ household_size: 1 })).toBe(1);
+    expect(declaredHouseholdSize({ household_size: 4 })).toBe(4);
+  });
+
+  it("⛔ RIEN DE DÉCLARÉ REND `null` — c'est le repli qui décide, pas ce lecteur", () => {
+    // ⚠️ TOUTE LA BASE D'AVANT CE LOT EST DANS CE CAS. Rendre `1` ici ferait
+    // basculer en solo chaque famille dont les bouches ne sont pas encore
+    // saisies — au moment précis où elle en a le plus besoin.
+    expect(declaredHouseholdSize(null)).toBe(null);
+    expect(declaredHouseholdSize(undefined)).toBe(null);
+    expect(declaredHouseholdSize({})).toBe(null);
+    expect(declaredHouseholdSize({ eating_rhythm: [] })).toBe(null);
+  });
+
+  it("⛔ CE QUI N'EST PAS UN ENTIER UTILISABLE RETOMBE SUR LE REPLI", () => {
+    // Un `Number("2")` complaisant ferait entrer dans la branche d'un vrai
+    // compte une valeur écrite à la main par une session de debug.
+    for (const bad of ["2", 0, -1, 1.5, true, null, {}, []]) {
+      expect(
+        declaredHouseholdSize({ household_size: bad }),
+        `household_size: ${JSON.stringify(bad)}`,
+      ).toBe(null);
+    }
+  });
+
+  it("le nombre déclaré traverse `branchForMouths` sans se faire relire", () => {
+    // Les deux fonctions se touchent: ce que l'une rend, l'autre classe. Un
+    // `1` déclaré doit sortir « solo », et c'est le seul chemin qui le permet
+    // maintenant qu'un solo a un foyer.
+    expect(branchForMouths(declaredHouseholdSize({ household_size: 1 }))).toBe("solo");
+    expect(branchForMouths(declaredHouseholdSize({ household_size: 2 }))).toBe("pair");
+    expect(branchForMouths(declaredHouseholdSize({ household_size: 5 }))).toBe("family");
+  });
+});
+
+describe("funnelMouths — la branche, et sa compatibilité", () => {
+  const base = {
+    hasHousehold: true,
+    isOwner: true,
+    memberCount: 1,
+    declared: null as number | null,
+    hasGoalRow: true,
+  };
+
+  it("① rien de commencé ⇒ `null`, et l'étape 1 pose la question", () => {
+    expect(funnelMouths({ ...base, hasHousehold: false, hasGoalRow: false }))
+      .toBe(null);
+  });
+
+  it("② un solo D'AVANT LE LOT garde sa branche", () => {
+    // Pas de foyer, une ligne d'objectif: toute la population qui a répondu
+    // « juste moi » avant le 2026-09-01. Elle n'a pas de ligne membre.
+    expect(funnelMouths({ ...base, hasHousehold: false, memberCount: 0 })).toBe(1);
+  });
+
+  it("③ LE CAS DU LOT — un foyer d'UNE bouche, déclaré à 1, reste SOLO", () => {
+    // ⛔ C'est la seule chose que l'ancienne règle ne savait pas dire. Sans
+    // elle, un solo à qui on donne une ligne membre bascule en « couple ».
+    expect(funnelMouths({ ...base, memberCount: 1, declared: 1 })).toBe(1);
+    expect(branchForMouths(funnelMouths({ ...base, memberCount: 1, declared: 1 })))
+      .toBe("solo");
+  });
+
+  it("⛔ ④ LE REPLI — un foyer SANS nombre déclaré vaut « au moins deux »", () => {
+    // ⚠️ CE CAS EST LA COMPATIBILITÉ, ET IL DOIT MORDRE. Une famille dont les
+    // bouches ne sont pas encore saisies porte `memberCount: 1` et aucun
+    // `household_size`: la lire à son nombre de membres la ferait basculer en
+    // solo, et l'écran qui demande les bouches disparaîtrait.
+    expect(funnelMouths({ ...base, memberCount: 1, declared: null })).toBe(2);
+    expect(funnelMouths({ ...base, memberCount: 3, declared: null })).toBe(3);
+  });
+
+  it("le nombre déclaré GAGNE sur le compte des membres, dans les deux sens", () => {
+    // Déclaré 4, deux bouches saisies: l'étape « il en manque » doit rester.
+    expect(funnelMouths({ ...base, memberCount: 2, declared: 4 })).toBe(4);
+    // Déclaré 2, trois bouches en base: on croit l'écrit, pas le compte.
+    expect(funnelMouths({ ...base, memberCount: 3, declared: 2 })).toBe(2);
+  });
+
+  it("⚠️ UN SECONDAIRE RÉPOND 1, quelle que soit la table", () => {
+    expect(funnelMouths({ ...base, isOwner: false, memberCount: 5, declared: 5 }))
+      .toBe(1);
   });
 });

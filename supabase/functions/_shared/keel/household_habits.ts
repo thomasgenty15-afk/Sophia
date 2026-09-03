@@ -44,6 +44,7 @@ import {
   readDraftNote,
 } from "./plan_draft_note.ts";
 import { type ForbiddenTerm } from "./forbidden_matcher.ts";
+import { MEAL_EXTRAS, type MealExtra } from "./meal_extras.ts";
 
 // ⚠️ CE MODULE N'IMPORTE PAS `meal_generation.ts`, ET C'EST UNE CONTRAINTE
 // STRUCTURELLE, PAS UNE PRÉFÉRENCE.
@@ -174,6 +175,60 @@ export function parseMemberHabits(raw: unknown): MemberHabit[] {
     });
   }
   return HABIT_OCCASIONS.filter((s) => bySlot.has(s)).map((s) => bySlot.get(s)!);
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * CE QU'ELLE PREND À CÔTÉ DU PLAT, MOMENT PAR MOMENT — 2026-09-01
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ UN SECOND LECTEUR SUR LA MÊME COLONNE, ET C'EST DÉLIBÉRÉ. `parseMemberHabits`
+ * est taillé pour la PROSE DU PROMPT: il écarte toute entrée sans texte, parce
+ * qu'« elle mange autre chose » sans dire quoi fait inventer le modèle. Cette
+ * règle est juste, et elle est argumentée au-dessus — on ne la tord pas.
+ *
+ * Les extras, eux, ne vont jamais au prompt: ils vont au CALCUL, où ils sont
+ * retranchés de la cible du repas (`mouth_anchor.ts`). Une entrée qui ne porte
+ * QUE des extras est donc muette pour le prompt et parlante pour l'ancrage.
+ * Deux lectures, deux règles, aucune ne plie pour l'autre.
+ *
+ * ⚠️ ET C'EST CE QUI ÉVITE UNE COLONNE DE PLUS. `slots` est déjà clé par
+ * (bouche, moment) et déjà bornée en base; y ajouter une colonne jumelle aurait
+ * fait deux endroits où lire « ce qui se passe à ce moment-là ».
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function parseMemberExtras(
+  raw: unknown,
+): Record<string, MealExtra[]> {
+  if (!Array.isArray(raw)) return {};
+  const out: Record<string, MealExtra[]> = {};
+  for (const entry of raw) {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) continue;
+    const e = entry as Record<string, unknown>;
+    const slot = String(e.slot ?? "").trim().toLowerCase();
+    if (!HABIT_OCCASION_TOKENS.includes(slot)) continue;
+    // ⛔ LE PREMIER GAGNE, comme pour la prose: deux entrées d'un même moment
+    // sont une erreur d'écrivain, et en fusionner les extras inventerait une
+    // déclaration que personne n'a faite.
+    if (Object.prototype.hasOwnProperty.call(out, slot)) continue;
+    // ⚠️ LA CLÉ ABSENTE ET LE TABLEAU VIDE NE DISENT PAS LA MÊME CHOSE, et
+    // c'est tout le lot: absente = « ce moment n'a pas été renseigné » (repli
+    // sur la convention), vide = « renseigné, rien à côté du plat » (le plat
+    // porte tout son repas). Une entrée qui ne porte PAS la clé `extras` n'est
+    // donc pas une réponse — on ne l'inscrit pas.
+    if (!Object.prototype.hasOwnProperty.call(e, "extras")) continue;
+    if (!Array.isArray(e.extras)) continue;
+    const kept: MealExtra[] = [];
+    for (const item of e.extras) {
+      const token = String(item ?? "").trim().toLowerCase();
+      if (!(MEAL_EXTRAS as readonly string[]).includes(token)) continue;
+      if (kept.includes(token as MealExtra)) continue;
+      kept.push(token as MealExtra);
+    }
+    out[slot] = kept;
+  }
+  return out;
 }
 
 /**

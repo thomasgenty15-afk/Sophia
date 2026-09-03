@@ -3,6 +3,10 @@ import React from "react";
 import {
   canProduce,
   groupBySubject,
+  portionIndexFor,
+  portionIndexLabelKey,
+  recentlyKept,
+  sectionOf,
   HOUSEHOLD_SUBJECT,
   isNextPlanItemAlive,
   itemsInSection,
@@ -22,6 +26,8 @@ import {
   subjectMemberId,
   subjectsForPortionAdjust,
 } from "../api/retainedItems";
+import type { FieldChange } from "../api/fieldChanges";
+import { MEMO_MAX_LINES, type MemoLine } from "../api/retainedItems";
 import { formatDateLong, formatWeekday } from "../i18n/format";
 import { type MessageKey, t } from "../i18n/t";
 import { Button } from "./ui/Button";
@@ -44,11 +50,19 @@ import { inputClass } from "./ui/Field";
 // SUPPRIMER. Une ligne qui n'a pas les trois est une ligne qu'on subit.
 //
 // ── ⚠️ LE PIÈGE QUE CETTE CARTE DOIT TENIR (contrat de phase 0 §2.2) ───────
-// `canProduce` mord AUSSI À LA LECTURE. Déplacer une ligne du memorizer vers
-// `portion.adjust` — la seule famille qui lui est interdite — l'écrirait sans
-// erreur et la ferait DISPARAÎTRE au chargement suivant. `rewriteRetainedItem`
-// la re-signe alors `source: "written"` + `item: ""`; cette carte ne fait que
-// l'appeler, et ne réimplémente PAS la règle.
+// La matrice mord AUSSI À LA LECTURE. Déplacer une ligne vers une famille que
+// son producteur n'a pas le droit d'écrire l'écrirait sans erreur et la ferait
+// DISPARAÎTRE au chargement suivant. `rewriteRetainedItem` la re-signe alors
+// `source: "written"` + `item: ""`; cette carte ne fait que l'appeler, et ne
+// réimplémente PAS la règle.
+//
+// ⚠️ DEPUIS LE LOT M1, ÇA VAUT POUR **TOUTE** ÉDITION D'UNE LIGNE DU MEMORIZER.
+// `canProduce("conversation", …)` est faux pour les huit familles: le chat ne
+// produit plus rien. Une ligne « je l'ai retenu de mardi » que la personne
+// édite change donc de main et devient « tu l'as écrit » — ce qui est vrai:
+// elle vient de la reprendre à son compte. Elle reste LUE tant qu'elle n'est
+// pas éditée (`canHold`), sans quoi le retrait du producteur effacerait son
+// passé au lieu de fermer son avenir.
 //
 // ── ⛔ CE QUI N'ARRIVE JAMAIS ICI ─────────────────────────────────────────
 // Aucun gramme, aucune calorie. La personne dit « trop gros », pas « −80 g » —
@@ -71,6 +85,41 @@ const SECTION_TITLE: Readonly<Record<KnownSection, MessageKey>> = {
   kitchen: "known.section.kitchen.title",
   next_week: "known.section.next_week.title",
 };
+
+/**
+ * LE NOM DU CHAMP, TEL QUE LA PERSONNE LE LIT DANS SES RÉGLAGES — lot M5.
+ *
+ * ⛔ LE MÊME MOT DES DEUX CÔTÉS. Le fil dit « ce qui vient de changer »; si le
+ * champ y porte un autre nom que dans l'écran de réglages, la personne ne peut
+ * pas faire le lien — et le fil devient une notification sur quelque chose
+ * qu'elle ne sait pas retrouver.
+ */
+const FIELD_TITLE: Readonly<Record<FieldChange["field"], MessageKey>> = {
+  cook_days: "known.field.cook_days",
+  cooking_time_min: "known.field.cooking_time_min",
+  budget_amount: "known.field.budget_amount",
+  recipe_difficulty: "known.field.recipe_difficulty",
+  variety: "known.field.variety",
+  eating_rhythm: "known.field.eating_rhythm",
+};
+
+/**
+ * UNE VALEUR DE CHAMP, LISIBLE.
+ *
+ * ⛔ `null` DEVIENT « rien », PAS « null » NI « 0 ». Une valeur absente veut
+ * dire « ce n'était pas renseigné », et l'afficher comme un zéro ferait croire
+ * à une déclaration que la personne n'a jamais faite — la même distinction que
+ * `undoFieldChange` tient en RETIRANT la clé.
+ */
+function showFieldValue(value: unknown): string {
+  if (value === null || value === undefined) return t("known.field.unset");
+  if (Array.isArray(value)) {
+    return value.length === 0
+      ? t("known.field.unset")
+      : value.map((entry) => String(entry)).join(", ");
+  }
+  return String(value);
+}
 
 const SECTION_EMPTY: Readonly<Record<KnownSection, MessageKey>> = {
   no_more: "known.section.no_more.empty",
@@ -193,6 +242,33 @@ export interface KnownAboutYouCardProps {
       | { legacyNotes: readonly string[]; legacyOrigin: KnownStore["legacyOrigin"] }
       | null;
   }) => Promise<void>;
+  /**
+   * ── LOT M5 · LES CHAMPS QUE L'IA A CHANGÉS ────────────────────────────────
+   *
+   * ⛔ CE N'EST PAS UN MAGASIN DE PLUS, C'EST LE JOURNAL DES ÉCRITURES DANS LES
+   * CHAMPS QUE LA PERSONNE VOIT DÉJÀ. Depuis M5, le bilan ne range plus
+   * `cooking_time_min` à part: il CHANGE le réglage. Avant, il n'écrivait rien
+   * et les générateurs posaient la valeur en mémoire au moment de composer — la
+   * personne lisait 45 min dans ses réglages et son plan était fait sur 30,
+   * sans qu'un écran le dise et sans qu'elle puisse le défaire.
+   *
+   * ⚠️ SANS CE FIL, L'ÉCRITURE SERAIT PIRE QUE LE CORRECTIF MUET: le réglage
+   * changerait pour de bon, et la personne ne saurait toujours pas pourquoi.
+   * C'est la contrepartie qui rend l'écriture acceptable, pas un ornement.
+   */
+  fieldChanges: readonly FieldChange[];
+  /**
+   * ── LOT M4 · LE MÉMO ──────────────────────────────────────────────────────
+   * Cinq lignes au plus, pour ce qu'aucune famille ne porte et qu'aucun indice
+   * ne mesure. ⛔ REQUIS, jamais optionnel: un mémo qu'un appelant oublierait
+   * de passer redeviendrait le champ caché que ce lot existe pour empêcher, et
+   * rien ne rougirait.
+   */
+  memo: readonly MemoLine[];
+  /** Retire la ligne n° `index`. Par POSITION, jamais par texte. */
+  onRemoveMemoLine: (index: number) => Promise<void>;
+  /** Défaire l'entrée n° `index`. Le champ revient à sa valeur d'AVANT. */
+  onUndoFieldChange: (index: number) => Promise<void>;
 }
 
 /** Quelle ligne est en cours d'édition. `null` = aucune. */
@@ -203,6 +279,8 @@ type Editing =
 
 export default function KnownAboutYouCard(props: KnownAboutYouCardProps) {
   const { store, members, roster, today, onSave } = props;
+  const { fieldChanges, onUndoFieldChange } = props;
+  const { memo, onRemoveMemoLine } = props;
 
   const [editing, setEditing] = React.useState<Editing>(null);
   const [draftText, setDraftText] = React.useState("");
@@ -236,6 +314,36 @@ export default function KnownAboutYouCard(props: KnownAboutYouCardProps) {
     try {
       await onSave(next);
       closeEdit();
+    } catch (e) {
+      setError({ key, message: refusalMessage(e) });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  /**
+   * ⚠️ MÊME PATRON QUE `commit`, ET MÊME RAISON: l'erreur est rendue LÀ OÙ LE
+   * GESTE A EU LIEU. Un refus affiché loin du bouton se lit comme un bouton
+   * mort — cicatrice nommée du dépôt, trois fois dans `SetupPage`.
+   */
+  /** ⚠️ MÊME PATRON QUE `commitUndo`: l'erreur est rendue LÀ OÙ LE GESTE A EU LIEU. */
+  async function commitMemoRemove(key: string, index: number) {
+    setBusy(true);
+    setError(null);
+    try {
+      await onRemoveMemoLine(index);
+    } catch (e) {
+      setError({ key, message: refusalMessage(e) });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function commitUndo(key: string, index: number) {
+    setBusy(true);
+    setError(null);
+    try {
+      await onUndoFieldChange(index);
     } catch (e) {
       setError({ key, message: refusalMessage(e) });
     } finally {
@@ -364,6 +472,31 @@ export default function KnownAboutYouCard(props: KnownAboutYouCardProps) {
       case "draft_note":
         return t("known.source.draft_note");
     }
+  };
+
+  /**
+   * ⛔ LA CITATION — LOT M2. Ce qui rend « Enlever » décidable.
+   *
+   * ── SANS ELLE, « ENLEVER » EST UN PARI ────────────────────────────────
+   * Une ligne qui dit *« Poulet — aliments évités »* et rien d'autre pose une
+   * question à laquelle la personne ne peut pas répondre: enlever, c'est
+   * peut-être défaire une erreur du produit, peut-être perdre une chose
+   * qu'elle a vraiment demandée trois semaines plus tôt. Devant ce doute, on
+   * ne touche à rien — et le magasin ne décroît jamais. C'est le mécanisme de
+   * la boule de neige que ce chantier existe pour arrêter.
+   *
+   * ⚠️ ET C'EST AUSSI LA TRAÇABILITÉ, GRATUITEMENT: « pourquoi il n'y a pas de
+   * poulet ? » se répond en montrant cet écran.
+   *
+   * ⛔ ELLE S'ABSTIENT PLUTÔT QUE D'INVENTER. `quote === null` a deux causes
+   * légitimes — `written` (le texte EST sa phrase) et les lignes d'avant M2 —
+   * et dans les deux cas on ne rend RIEN. Fabriquer une cause plausible serait
+   * exactement le mensonge que ce lot ferme.
+   */
+  const quoteLine = (item: RetainedItem): string | null => {
+    const quote = String(item.quote ?? "").trim();
+    if (!quote) return null;
+    return t("known.quote", { quote });
   };
 
   /** La `value` en mots. ⛔ Jamais un nombre pour une portion. */
@@ -536,7 +669,12 @@ export default function KnownAboutYouCard(props: KnownAboutYouCardProps) {
     </div>
   );
 
-  const itemLine = (item: RetainedItem, index: number) => {
+  const itemLine = (
+    item: RetainedItem,
+    index: number,
+    /** LOT M2 — dans le fil, la ligne nomme sa destination. Voir plus bas. */
+    inFeed = false,
+  ) => {
     const key = `item:${index}`;
     const open = editing?.at === "item" && editing.index === index;
     const detail = detailLine(item);
@@ -548,6 +686,17 @@ export default function KnownAboutYouCard(props: KnownAboutYouCardProps) {
       <li key={key} className="rounded-card border border-line bg-paper-2 px-3 py-2">
         <div className="flex flex-wrap items-start gap-2">
           <div className="min-w-0 flex-1">
+            {/* ⛔ LOT M2 — DANS LE FIL, LA LIGNE DIT OÙ ELLE EST ALLÉE.
+                Le design l'écrit en exemple: « Poulet ajouté aux aliments
+                évités ». Sans la destination, le fil annonce un changement
+                sans dire ce qui a changé, et la personne doit chercher la
+                ligne dans six sections pour comprendre. Sous une section, ce
+                serait redondant: le titre est juste au-dessus. */}
+            {inFeed && (
+              <p className="text-xs font-semibold uppercase tracking-wide text-ink-soft">
+                {t(SECTION_TITLE[sectionOf(item)])}
+              </p>
+            )}
             <p className="text-sm text-ink">{item.text}</p>
             {detail && <p className="mt-0.5 text-xs text-ink">{detail}</p>}
             {excluded && (
@@ -555,6 +704,13 @@ export default function KnownAboutYouCard(props: KnownAboutYouCardProps) {
             )}
             {/* LES TROIS CHOSES, PREMIÈRE: D'OÙ ELLE VIENT, EN CLAIR. */}
             <p className="mt-0.5 text-xs text-ink-soft">{sourceLine(item)}</p>
+            {/* ⛔ LOT M2 — LA PHRASE QUI L'A CAUSÉE. Sans elle, le bouton
+                « Enlever » juste à côté est un pari. */}
+            {quoteLine(item) && (
+              <p className="mt-0.5 text-xs italic text-ink-soft">
+                {quoteLine(item)}
+              </p>
+            )}
           </div>
           {!open && (
             <div className="flex shrink-0 flex-wrap items-center gap-2">
@@ -659,6 +815,59 @@ export default function KnownAboutYouCard(props: KnownAboutYouCardProps) {
     );
   };
 
+  /**
+   * ⛔ UNE LIGNE DE CHANGEMENT DE CHAMP — LOT M5.
+   *
+   * Les trois choses du design, et pas moins:
+   *   ① ce qui a changé — le champ NOMMÉ, et sa valeur d'avant → après;
+   *   ② la phrase source, CITÉE;
+   *   ③ le geste inverse, en un clic.
+   *
+   * ⚠️ LA VALEUR D'AVANT EST AFFICHÉE, PAS SEULEMENT STOCKÉE. « 45 → 30 » se
+   * décide d'un coup d'œil; « 30 min » seul oblige la personne à se souvenir de
+   * ce qu'elle avait mis, c'est-à-dire à faire le travail que ce fil existe pour
+   * lui épargner.
+   */
+  const fieldLine = (change: FieldChange, index: number) => {
+    const key = `field:${index}`;
+    return (
+      <li key={key} className="rounded-card border border-line bg-paper-2 px-3 py-2">
+        <div className="flex flex-wrap items-start gap-2">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-semibold uppercase tracking-wide text-ink-soft">
+              {t(FIELD_TITLE[change.field])}
+            </p>
+            <p className="text-sm text-ink">
+              {t("known.field.moved", {
+                previous: showFieldValue(change.previous),
+                next: showFieldValue(change.next),
+              })}
+            </p>
+            <p className="mt-0.5 text-xs text-ink-soft">
+              {t("known.source.questionnaire")}
+            </p>
+            <p className="mt-0.5 text-xs italic text-ink-soft">
+              {t("known.quote", { quote: change.quote })}
+            </p>
+          </div>
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void commitUndo(key, index)}
+              className="text-xs text-fig-700 underline hover:text-fig-800"
+            >
+              {t("known.field.undo")}
+            </button>
+          </div>
+        </div>
+        {error?.key === key && (
+          <p className="mt-2 text-sm text-red-700">{error.message}</p>
+        )}
+      </li>
+    );
+  };
+
   /** Les sections 3 et 4 sont GROUPÉES PAR BOUCHE (§6). */
   const groupedSection = (section: KnownSection) => {
     const rows = itemsInSection(store.items, section);
@@ -688,12 +897,43 @@ export default function KnownAboutYouCard(props: KnownAboutYouCardProps) {
    */
   const unwritable = opaqueStoreRefusal(store) !== null;
 
+  /**
+   * ⛔ LE CENTRE DE NOTIFICATIONS — LOT M2, ET IL EST EN TÊTE.
+   *
+   * ── POURQUOI EN PREMIER ──────────────────────────────────────────────────
+   * Les six sections répondent à « qu'est-ce que Sophia sait de moi ? ». Le fil
+   * répond à une autre question, et c'est celle qui presse: **« qu'est-ce qui
+   * vient de changer sans que je le demande ? »**. Enterré sous six sections,
+   * il ne serait lu par personne — et une notification que personne ne lit est
+   * une notification qui n'existe pas.
+   *
+   * ⚠️ IL NE DEMANDE RIEN. Pas de confirmation bloquante: quelqu'un de pressé
+   * dit oui à tout, et on retomberait sur de l'opt-out avec des étapes en plus.
+   * Le fil montre, cite, et laisse défaire.
+   */
+  const recent = recentlyKept(store.items);
+
   return (
     <div className="space-y-8">
       {unwritable && (
         <Card tone="warning">
           <p className="text-sm text-amber-900">{t("known.store_unreadable")}</p>
         </Card>
+      )}
+      {(recent.length > 0 || fieldChanges.length > 0) && (
+        <section>
+          <SectionLabel>{t("known.recent.title")}</SectionLabel>
+          <p className="mb-2 text-xs text-ink-soft">{t("known.recent.intro")}</p>
+          <ul className="space-y-2">
+            {/* ⚠️ LES CHANGEMENTS DE CHAMP D'ABORD. Ils portent sur des réglages
+                que la personne a elle-même remplis: c'est le changement le plus
+                surprenant du fil, donc celui qu'elle doit voir en premier. */}
+            {fieldChanges.map((change, index) => fieldLine(change, index))}
+            {recent.map((item) =>
+              itemLine(item, store.items.indexOf(item), true)
+            )}
+          </ul>
+        </section>
       )}
       {KNOWN_SECTIONS.map((section) => {
         const grouped = section === "portions" || section === "rhythm";
@@ -704,15 +944,39 @@ export default function KnownAboutYouCard(props: KnownAboutYouCardProps) {
         return (
           <section key={section}>
             <SectionLabel>{t(SECTION_TITLE[section])}</SectionLabel>
-            {section === "portions" && (
-              // ⚠️ CE QU'ON NE PROMET PAS. Le routage de 1C sert les six
-              // familles aux générateurs; l'enveloppe, elle, ne lit pas encore
-              // les ajustements. Le dire vaut mieux qu'un écran qui laisse
-              // croire.
-              <p className="mb-2 text-xs text-ink-soft">
-                {t("known.section.portions.not_wired")}
-              </p>
-            )}
+            {section === "portions" && (() => {
+              // ⛔ LOT M3 — CETTE PHRASE DISAIT UNE LIMITE QUI N'EXISTAIT PLUS.
+              // Elle annonçait « les ajustements de portion n'atteignent pas
+              // encore le calcul des parts » alors que l'enveloppe les reçoit
+              // depuis le lot 1G — elle SOUS-promettait, ce qui est un mensonge
+              // dans l'autre sens. Son propre commentaire disait qu'elle devait
+              // disparaître le jour où elle cesserait d'être vraie.
+              //
+              // À la place: la POSITION, c'est-à-dire ce que le générateur fait
+              // vraiment de ces réponses. *« Si c'est faux, un geste corrige,
+              // au lieu d'attendre cinq plans que ça redérive. »*
+              //
+              // ⚠️ PAR BOUCHE, JAMAIS AGRÉGÉE. Un indice appartient à qui
+              // mange; en faire une moyenne de foyer servirait à tout le monde
+              // une part que personne n'a demandée.
+              const groups = groupBySubject(itemsInSection(store.items, section));
+              const lines = groups
+                .map((group) => ({
+                  subject: group.subject,
+                  key: portionIndexLabelKey(portionIndexFor(group.items)),
+                }))
+                .filter((row) => row.key !== null);
+              if (lines.length === 0) return null;
+              return (
+                <div className="mb-2 space-y-1">
+                  {lines.map((row) => (
+                    <p key={row.subject} className="text-xs text-ink-soft">
+                      {t(row.key as MessageKey, { who: nameOf(row.subject) })}
+                    </p>
+                  ))}
+                </div>
+              );
+            })()}
             {count === 0
               ? (
                 <Card tone="dashed">
@@ -768,6 +1032,56 @@ export default function KnownAboutYouCard(props: KnownAboutYouCardProps) {
           </section>
         );
       })}
+
+      {/* ── LOT M4 · LE MÉMO — « ce que Sophia a retenu d'autre » ──────────
+          ⛔ IL SE VOIT, ET C'EST UNE CONDITION D'EXISTENCE, pas un ornement.
+          Un champ texte caché, sans plafond, injecté dans chaque prompt est
+          exactement le magasin que ce chantier supprime, avec un autre chapeau
+          — et la chose la plus difficile à déboguer du produit: le jour où un
+          plan part de travers, personne ne peut dire pourquoi.
+
+          ⚠️ EN QUEUE DES SIX SECTIONS. C'est le RÉSIDU: ce qu'aucune famille ne
+          porte. Le mettre devant lui donnerait le rang d'une catégorie, alors
+          qu'il est ce qui reste quand aucune n'a convenu. */}
+      {memo.length > 0 && (
+        <section>
+          <SectionLabel>{t("known.memo.title")}</SectionLabel>
+          <p className="mb-2 text-xs text-ink-soft">
+            {t("known.memo.intro", {
+              used: String(memo.length),
+              max: String(MEMO_MAX_LINES),
+            })}
+          </p>
+          <ul className="space-y-2">
+            {memo.map((line, index) => (
+              <li
+                key={`memo:${index}`}
+                className="rounded-card border border-line bg-paper-2 px-3 py-2"
+              >
+                <div className="flex flex-wrap items-start gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm text-ink">{line.text}</p>
+                    <p className="mt-0.5 text-xs italic text-ink-soft">
+                      {t("known.quote", { quote: line.quote })}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => void commitMemoRemove(`memo:${index}`, index)}
+                    className="shrink-0 text-xs text-fig-700 underline hover:text-fig-800"
+                  >
+                    {t("known.remove")}
+                  </button>
+                </div>
+                {error?.key === `memo:${index}` && (
+                  <p className="mt-2 text-sm text-red-700">{error.message}</p>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {/* ── §7 · LES ANCIENNES NOTES ─────────────────────────────────────── */}
       <section>

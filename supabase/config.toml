@@ -554,6 +554,14 @@ verify_jwt = false
 verify_jwt = false
 [functions.evaluate-adherence-v1]
 verify_jwt = false
+# FF-056 C6 — la divergence de poids, autonome depuis le 2026-09-01.
+[functions.keel-weight-divergence-v1]
+verify_jwt = false
+# FF-062 C1 + C2 — le repas d'un créneau déclaré, et le rappel de pesée. UN job
+# pour les deux: §1 de la fiche nomme le défaut que deux crons produisent —
+# une convention de coordination écrite dans le commentaire d'un seul des deux.
+[functions.keel-proactive-v1]
+verify_jwt = false
 # `keel-cards-v1` a été RETIRÉE ici: la fonction est partie avec le retrait des
 # résidus grand public (2026-08-08, 0 utilisateur grand public confirmé), ses
 # quatre tables card_* avec elle (20260808070000). Même règle que ci-dessous.

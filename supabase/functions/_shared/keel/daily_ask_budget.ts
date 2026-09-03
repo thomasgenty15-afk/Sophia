@@ -52,7 +52,28 @@ export const DAILY_ASK_KINDS = [
   "meal_precision_question",
   /** FF-025 — « si tu as une photo… ». Ne porte AUCUN axe. */
   "photo_invitation",
-  /** FF-028 — la recommandation du jour. Ne porte AUCUN axe. */
+  /**
+   * FF-028 — la recommandation du jour. Ne porte AUCUN axe.
+   *
+   * ⚠️ PLUS AUCUN ÉCRIVAIN DEPUIS LE 2026-09-01, ET IL RESTE QUAND MÊME.
+   *
+   * FF-028 est abandonnée (« il n'y a pas de recommandation en plein milieu de
+   * plan ») et son moteur est supprimé. Ce genre est donc mort à l'écriture —
+   * vérifié: `grep 'kind: "daily_recommendation"'` ne rend plus rien.
+   *
+   * Il n'est PAS retiré, pour deux raisons qui tiennent ensemble:
+   *   · **des lignes en base le portent.** Ce sont des demandes réellement
+   *     faites à des gens réels; les rendre irrecevables rétroactivement
+   *     falsifierait l'historique du budget — la règle est déjà écrite mot pour
+   *     mot dans `plan_feedback.ts` à propos d'une question retirée;
+   *   · le CHECK `meal_precision_questions_ask_kind_check` a DÉJÀ été redéfini
+   *     trois fois en cascade (20260808123000 → 20260808190100 →
+   *     20260811120000). Une quatrième redéfinition pour retirer une valeur
+   *     morte est un risque de migration contre un gain nul.
+   *
+   * Le jour où quelqu'un ajoute un genre, qu'il n'aille pas croire que
+   * celui-ci est vivant: il ne l'est pas, et il ne le redeviendra pas.
+   */
   "daily_recommendation",
   /**
    * FF-029 — la question de pratique du soir. Ne porte AUCUN axe.

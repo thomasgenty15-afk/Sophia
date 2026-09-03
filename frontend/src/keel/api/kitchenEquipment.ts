@@ -112,6 +112,26 @@ export function readKitchenEquipment(
  * enregistré, le moteur se comporte exactement comme avant ce lot. Ne rien
  * pré-cocher ne retire donc rien à personne.
  */
+/**
+ * CE FOYER A-T-IL DÉCLARÉ UN CONGÉLATEUR ? — 2026-09-01.
+ *
+ * ⚠️ MIROIR DE `hasFreezerDeclared` (`_shared/keel/kitchen_equipment.ts`), et
+ * l'autorité est LÀ-BAS: c'est elle qui décide si un lot peut être servi
+ * au-delà de trois jours. Celle-ci ne sert qu'à ce que l'ENTONNOIR puisse dire
+ * la même chose que le moteur AVANT de composer.
+ *
+ * ⛔ `=== true`, ET LA COMPARAISON EST LA GARDE. Une liste `null` veut dire
+ * « on n'a pas encore lu », pas « il n'en a pas ». Écrire `!list?.includes(...)`
+ * confondrait les deux et ferait annoncer des journées hors de portée à un
+ * foyer équipé — c'est-à-dire promettre à l'écran l'inverse de ce que le
+ * moteur fera.
+ */
+export function hasFreezerDeclared(
+  equipment: readonly KitchenTool[] | null,
+): boolean {
+  return equipment !== null && equipment.includes("freezer");
+}
+
 export function initialKitchenSelection(
   pc: PracticalConstraints | null | undefined,
 ): readonly KitchenTool[] {

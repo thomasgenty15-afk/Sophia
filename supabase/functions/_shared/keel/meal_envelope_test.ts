@@ -710,14 +710,28 @@ Deno.test("un ajustement qui vise une AUTRE bouche ne touche pas celle-ci", () =
 });
 
 // ---------------------------------------------------------------------------
-// PLUSIEURS AJUSTEMENTS — UN SEUL GAGNE, ILS NE S'ADDITIONNENT PAS
+// LOT M3 — UNE POSITION QUI CONVERGE, BORNÉE. PAS UN FACTEUR QUI SE COMPOSE.
 // ---------------------------------------------------------------------------
+//
+// ⚠️ CES DEUX TESTS ÉPINGLAIENT LA RÈGLE INVERSE, et le dire vaut mieux que de
+// les réécrire en silence. Ils tenaient « le dernier mot gagne, sans cumul »,
+// avec un motif JUSTE: deux `slight` COMPOSÉS donneraient 0,95² = 0,9025, et
+// personne n'a demandé ça.
+//
+// M3 ne rouvre pas cette porte — il répond à l'objection. On n'empile pas des
+// FACTEURS, on accumule des CRANS sur une échelle bornée, et le facteur sort de
+// la position finale en UNE opération. 0,9025 reste inatteignable: non parce
+// qu'on l'a plafonné, mais parce que rien ne se multiplie.
+//
+// ⛔ ET LE PIRE CAS NE BOUGE PAS. `INDEX_MAX` × `slight` (0,05) = 0,10 =
+// `clear` — exactement ce que ce module servait déjà. Ce qui change est le
+// CHEMIN: progressif et réversible, au lieu d'un saut suivi d'un oubli.
+//
+// Le défaut fermé, en une phrase: la personne dit « un peu trop », le plan
+// suivant est composé à −5 %, elle redit « un peu trop » DU PLAN CORRIGÉ, et on
+// lui redonne le même −5 %. Elle n'avançait jamais.
 
-Deno.test("⛔ deux `slight` ne font pas un `clear`: le dernier mot gagne, sans cumul", () => {
-  // `portion.adjust` est `durable` — il N'EXPIRE JAMAIS. Un magasin qui ne fait
-  // que grossir plus un facteur composé est une dérive vers le bas sans borne:
-  // deux `slight` empilés donneraient 0,95² = 0,9025 ⇒ un bas de bande à 2204,
-  // que personne n'a demandé.
+Deno.test("M3 — deux `slight` font un cran de plus, et ATTEIGNENT le pire cas", () => {
   const env = envelopeFor(
     "maintenance",
     body(),
@@ -733,11 +747,10 @@ Deno.test("⛔ deux `slight` ne font pas un `clear`: le dernier mot gagne, sans 
     ]),
   );
   assert(env.mode === "per_kg");
-  assertEquals(env.energy, { low: 2320, high: 2565 });
-});
-
-Deno.test("un `up` d'aujourd'hui efface un `down` d'hier — jamais leur somme", () => {
-  const env = envelopeFor(
+  // −2 crans × 0,05 = −0,10, c'est-à-dire EXACTEMENT ce qu'un seul `clear`
+  // donnait déjà. La personne y arrive maintenant en deux réponses honnêtes,
+  // au lieu de devoir cocher « vraiment trop » d'un coup.
+  const clearOnce = envelopeFor(
     "maintenance",
     body(),
     "30_44",
@@ -746,13 +759,74 @@ Deno.test("un `up` d'aujourd'hui efface un `down` d'hier — jamais leur somme",
     null,
     { day: null, sport: null, asked: false },
     null,
+    forMouth("adult", [adjust({ direction: "down", magnitude: "clear" })]),
+  );
+  assert(clearOnce.mode === "per_kg");
+  assertEquals(env.energy, clearOnce.energy);
+});
+
+Deno.test("⛔ M3 — LA BORNE MORD: quatre `down` ne descendent pas plus bas que deux", () => {
+  // ⚠️ C'EST LA GARDE QUI REMPLACE « le dernier mot est borné par
+  // construction ». Sans elle, l'accumulation serait la dérive sans borne que
+  // l'ancienne règle refusait — et elle aurait eu raison.
+  const two = envelopeFor(
+    "maintenance", body(), "30_44", false, null, null,
+    { day: null, sport: null, asked: false }, null,
+    forMouth("adult", [
+      adjust({ direction: "down", magnitude: "slight", at: "2026-08-10" }),
+      adjust({ direction: "down", magnitude: "slight", at: "2026-08-11" }),
+    ]),
+  );
+  const six = envelopeFor(
+    "maintenance", body(), "30_44", false, null, null,
+    { day: null, sport: null, asked: false }, null,
+    forMouth("adult", [
+      adjust({ direction: "down", magnitude: "clear", at: "2026-08-10" }),
+      adjust({ direction: "down", magnitude: "clear", at: "2026-08-11" }),
+      adjust({ direction: "down", magnitude: "clear", at: "2026-08-12" }),
+    ]),
+  );
+  assert(two.mode === "per_kg" && six.mode === "per_kg");
+  assertEquals(six.energy, two.energy, "la borne basse ne tient pas");
+});
+
+Deno.test("M3 — deux réponses OPPOSÉES s'annulent: c'est ça, converger", () => {
+  // L'ancienne règle rendait « le dernier mot »: un `up slight` après un `down
+  // clear` laissait +5 %. Maintenant −2 + 1 = −1 cran, c'est-à-dire la
+  // correction que les deux réponses décrivent ENSEMBLE.
+  const env = envelopeFor(
+    "maintenance", body(), "30_44", false, null, null,
+    { day: null, sport: null, asked: false }, null,
     forMouth("adult", [
       adjust({ direction: "down", magnitude: "clear", at: "2026-08-10" }),
       adjust({ direction: "up", magnitude: "slight", at: "2026-08-17" }),
     ]),
   );
-  assert(env.mode === "per_kg");
-  assertEquals(env.energy, { low: 2564, high: 2835 });
+  const oneDown = envelopeFor(
+    "maintenance", body(), "30_44", false, null, null,
+    { day: null, sport: null, asked: false }, null,
+    forMouth("adult", [adjust({ direction: "down", magnitude: "slight" })]),
+  );
+  assert(env.mode === "per_kg" && oneDown.mode === "per_kg");
+  assertEquals(env.energy, oneDown.energy);
+
+  // ⚠️ ET L'ANNULATION COMPLÈTE REVIENT AU MILIEU — la propriété que « le
+  // dernier mot » ne pouvait pas avoir.
+  const cancelled = envelopeFor(
+    "maintenance", body(), "30_44", false, null, null,
+    { day: null, sport: null, asked: false }, null,
+    forMouth("adult", [
+      adjust({ direction: "down", magnitude: "slight", at: "2026-08-10" }),
+      adjust({ direction: "up", magnitude: "slight", at: "2026-08-17" }),
+    ]),
+  );
+  const none = envelopeFor(
+    "maintenance", body(), "30_44", false, null, null,
+    { day: null, sport: null, asked: false }, null,
+    forMouth("adult", []),
+  );
+  assert(cancelled.mode === "per_kg" && none.mode === "per_kg");
+  assertEquals(cancelled.energy, none.energy);
 });
 
 Deno.test("l'arbitrage: bouche nommée, puis date, puis ordre d'arrivée", () => {

@@ -344,8 +344,8 @@ export interface NextPlanReadout {
  * LA SEULE lecture du magasin provisoire. PURE.
  *
  * ⚠️ LE COMPTEUR N'EST PAS DÉCORATIF. `parseRetainedItem` applique
- * `canProduce(source, kind)` À LA LECTURE: une ligne que son producteur n'avait
- * pas le droit d'écrire ne remonte pas, même déjà en base. Sans compteur, un
+ * `canHold(source, kind)` À LA LECTURE: une ligne que son producteur n'a JAMAIS
+ * eu le droit d'écrire ne remonte pas, même déjà en base. Sans compteur, un
  * magasin dont la moitié des lignes est refusée ressemble EXACTEMENT à un
  * magasin à moitié vide — cicatrice nommée du dépôt, « champ déclaré par le
  * modèle = compteur obligatoire ».

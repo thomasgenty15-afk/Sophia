@@ -172,6 +172,38 @@ begin;
 -- L'ordre n'est pas négociable: resserrer un CHECK avant d'avoir replié les
 -- lignes ferait échouer la migration sur la première ligne `health`, et une
 -- migration qui échoue au milieu laisse la moitié du repli en place.
+--
+-- ⚠️ MAIS DEUX CEINTURES DOIVENT TOMBER **AVANT** LE REPLI, ET C'EST L'ANGLE
+-- MORT DE LA PHRASE CI-DESSUS. Elle est vraie des CHECK qui ÉNUMÈRENT le
+-- vocabulaire (`student_goals_goal_check`, `household_members_goal_check`):
+-- ceux-là se resserrent après, en §③. Elle est FAUSSE des deux CHECK qui
+-- adossent une COLONNE à un objectif nommé:
+--
+--   student_goals_focus_axis_goal_check    focus_axis is null
+--                                          or goal in ('health','performance')
+--   student_goals_target_waist_goal_check  target_waist_cm is null
+--                                          or goal = 'recomposition'
+--
+-- Aucun des deux n'admet `maintenance`. Le repli les viole donc À L'UPDATE,
+-- sur toute ligne qui porte un axe ou un tour de taille — et ces lignes sont
+-- précisément celles que le repli existe pour sauver.
+--
+-- MESURÉ EN DISTANT LE 2026-09-01: une ligne `focus_axis = 'hunger'` sous un
+-- objectif `health` a fait échouer ce `db push` ici même, sur cet `update`.
+-- La base locale du 2026-08-18 n'en portait aucune — 45 `health` et 5
+-- `recomposition`, tous avec `focus_axis` et `target_waist_cm` à NULL — donc
+-- l'ordre faux était INVISIBLE en local, et l'est resté jusqu'au premier push.
+-- C'est la même leçon que §① énonce, prise par l'autre bout: une contrainte
+-- adossée à un mot qu'on retire doit tomber avec lui, pas après lui.
+--
+-- On les DÉPOSE ici, on les REPOSE en §③ resserrées sur `maintenance`. Entre
+-- les deux la colonne est libre, le temps d'une transaction qui ne rend la
+-- main à personne — les `add` de §③ ne sont pas conditionnels, et une
+-- migration qui échouerait entre les deux annule tout.
+alter table public.student_goals
+  drop constraint if exists student_goals_focus_axis_goal_check;
+alter table public.student_goals
+  drop constraint if exists student_goals_target_waist_goal_check;
 
 update public.student_goals
    set goal = 'maintenance'

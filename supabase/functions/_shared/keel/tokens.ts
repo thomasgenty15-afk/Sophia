@@ -637,6 +637,38 @@ export type GoalToken = (typeof GOAL_TOKENS)[number];
 export const parseGoalToken = makeParser<GoalToken>("goal", GOAL_TOKENS);
 
 /**
+ * L'OBJECTIF, OU `null` — SANS JETER.
+ *
+ * ══════════════════════════════════════════════════════════════════════════
+ * 🔴 POURQUOI CETTE SECONDE PORTE EXISTE, MESURÉ EN RUN RÉEL LE 2026-09-02
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * `parseGoalToken` JETTE sur l'inconnu (R7), et c'est juste là où un objectif
+ * illisible est une anomalie: une génération de plan ne doit pas continuer sur
+ * un objectif qu'elle n'a pas compris.
+ *
+ * Mais un BALAYAGE de cohorte rencontre l'absence comme cas NOMINAL: 550 élèves
+ * sur 669 n'ont aucune ligne `student_goals`, et c'est normal — ils n'ont pas
+ * encore posé d'objectif. Les deux canaux de FF-062 ont été écrits avec
+ * `const goal: GoalToken | null = parseGoalToken(...)`, une annotation que le
+ * compilateur accepte sans broncher (`T` est assignable à `T | null`), et le
+ * balayage levait 550 fois. `examined` tombait à 119, `sent` à 0, et le canal
+ * ressemblait à un canal qui se tait correctement.
+ *
+ * ⛔ CETTE FONCTION N'EST PAS UN ASSOUPLISSEMENT DE R7. Elle nomme un AUTRE
+ * besoin: « cette personne a-t-elle un objectif ? » est une question, pas une
+ * anomalie. Les appelants qui doivent échouer sur un jeton corrompu gardent
+ * `parseGoalToken`; ceux qui balaient une cohorte prennent celle-ci, et leur
+ * `null` veut dire « pas d'objectif », qui est une réponse.
+ */
+export function goalTokenOrNull(value: unknown): GoalToken | null {
+  const raw = String(value ?? "").trim().toLowerCase();
+  return (GOAL_TOKENS as readonly string[]).includes(raw)
+    ? (raw as GoalToken)
+    : null;
+}
+
+/**
  * LES QUATRE NUANCES RETIRÉES LE 2026-08-18, ET CE QU'ELLES DEVIENNENT.
  *
  * ── POURQUOI CETTE TABLE EXISTE ALORS QUE LA MIGRATION A NETTOYÉ LA BASE ──

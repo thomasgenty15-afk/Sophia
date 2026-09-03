@@ -41,13 +41,16 @@
 
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
 
-import { parseAccidentPlan } from "./accident.ts";
+import { parseAccidentPlan, planDates } from "./accident.ts";
 // ⚠️ CYCLE ASSUMÉ ET VÉRIFIÉ: `accident_io.ts` importe `GROCERY_WAVE_STATE_TABLE`
 // d'ici. Les deux usages sont dans des CORPS DE FONCTION, jamais à
 // l'initialisation du module, donc aucune zone morte temporelle — vérifié à
 // l'exécution, pas supposé. L'alternative (recopier un nom de table) créerait
 // deux définitions d'une même chose, ce que ce dépôt paie plus cher.
-import { loadSkippedDishIndexes } from "./accident_io.ts";
+import {
+  COOKING_SESSION_STATE_TABLE,
+  loadSkippedDishIndexes,
+} from "./accident_io.ts";
 import { planGroceryWaves, wavePreparationsFromRows } from "./grocery_waves.ts";
 import { type MealUntickReason, mealTickKey } from "./meal_tick.ts";
 import { isReportable, stretchDates } from "./meal_stretch.ts";
@@ -124,6 +127,31 @@ export interface EveningStripContext {
   dishes: StripDish[];
   /** La vague de courses dont le `buyOn` est CE jour, ou `null` (R15). */
   shopping: StripShoppingWave | null;
+  /**
+   * FF-061 ① — LA VAGUE DU JOUR EST-ELLE DÉJÀ DÉCLARÉE ?
+   *
+   * `null` = aucune ligne, c'est-à-dire « on ne sait pas », c'est-à-dire la
+   * question a lieu d'être. Un booléen (quelle que soit sa valeur) la ferme
+   * POUR DE BON: c'est ce qui rend « une fois par vague » vrai sans compteur.
+   *
+   * ⚠️ IL FALLAIT LE LIRE POUR LA CHAÎNE. Avant FF-061 la question partait dans
+   * le message du soir, et `wasPulseSentToday` suffisait à la poser une seule
+   * fois. La chaîne demande la suite APRÈS une réponse: sans cet état,
+   * l'étape ① se reproposerait à elle-même.
+   */
+  shoppingAnswered: boolean | null;
+  /**
+   * FF-061 ② — LA SESSION DE CUISINE DE **CE JOUR**, si elle n'est pas déclarée.
+   *
+   * ⛔ DE CE JOUR, ET PAS « DE CE JOUR OU AVANT ». `sessionQuestionFor`
+   * (procédure accident) remonte aux sessions antérieures, et c'est juste
+   * là-bas: la personne vient de décocher un plat précis, elle sait de quelle
+   * cuisson on parle. Ici la question part SEULE, le soir, sans que rien ne
+   * l'ait amenée — et une cuisson de l'avant-veille n'a plus de réparation
+   * possible (R11: sur du passé on constate, aucun décalage n'est proposé).
+   * Demander serait promettre une réparation qui n'arrivera pas.
+   */
+  cookOn: string | null;
   /** La langue de la composition — `content_locale` de la ligne du plan. */
   contentLocale: string | null;
   reason:
@@ -137,6 +165,8 @@ const NO_CONTEXT = (reason: EveningStripContext["reason"]): EveningStripContext 
   mealId: null,
   dishes: [],
   shopping: null,
+  shoppingAnswered: null,
+  cookOn: null,
   contentLocale: null,
   reason,
 });
@@ -190,6 +220,8 @@ export async function loadEveningStripContext(
   let contentLocale: string | null = null;
   /** FF-057 — les index que la cascade d'une session sautée a fait tomber. */
   const hiddenBySkippedSession: number[] = [];
+  /** FF-061 ② — les dates de cuisson du plan, pour savoir si l'une est CE jour. */
+  const sessionDatesToday: string[] = [];
   try {
     const { data, error } = await admin
       .from("student_generated_meals")
@@ -215,6 +247,14 @@ export async function loadEveningStripContext(
         ? (row.shopping_list as Array<Record<string, unknown>>).map((item) => ({
           term: String(item?.term ?? ""),
           aisle: String(item?.aisle ?? ""),
+          // ⟳ 2026-08-23 — LE GROUPE, QUI PORTE LA DATE D'ACHAT.
+          // Il manquait ici, et le `?` de `WaveItem.food_group` laissait
+          // l'oubli compiler: la bande du soir routait donc TOUTES ses courses
+          // sur `MAX_FRIDGE_DAYS`, c'est-à-dire sur une seule vague. Le champ
+          // est requis depuis, et c'est le compilateur qui a recensé ce site.
+          food_group: item?.food_group === null || item?.food_group === undefined
+            ? null
+            : String(item.food_group),
         }))
         : [];
       const waves = planGroceryWaves({
@@ -249,6 +289,15 @@ export async function loadEveningStripContext(
       // Une lecture en panne rend `[]`: on perd le filtre, jamais la bande.
       const plan = parseAccidentPlan(planned.mealId, row);
       if (plan) {
+        // FF-061 ② — LES DATES DE CUISSON DU PLAN, résolues par le MÊME parseur
+        // que la cascade. Une seconde lecture de `cooking_sessions` ici aurait
+        // sa propre idée du calendrier du plan; celle-ci est celle qui décide
+        // déjà quels plats tombent.
+        const dates = planDates(plan);
+        for (const session of plan.sessions) {
+          const d = dates[session.day];
+          if (d) sessionDatesToday.push(d);
+        }
         const skipped = new Set(
           await loadSkippedDishIndexes(admin, { userId: args.userId, plan }),
         );
@@ -274,18 +323,133 @@ export async function loadEveningStripContext(
   const shown = hidden.size > 0
     ? dishes.filter((d) => !hidden.has(d.dishIndex))
     : dishes;
-  // Plus AUCUN plat à nommer ⇒ aucune bande (R7 de FF-058). On ne rend pas une
-  // bande vide portant la seule ligne de courses: `buildEveningStrip` la
-  // refuserait de toute façon, et le dire ici garde le motif lisible.
-  if (shown.length === 0) return NO_CONTEXT("no_dish_today");
+  // ── FF-061 ① ET ② — LES DEUX ÉTATS QUE LA CHAÎNE DEMANDE ────────────────
+  //
+  // ⚠️ LUS ICI, PAS CHEZ L'APPELANT. Les deux se lisent contre le MÊME plan que
+  // les plats, et deux endroits qui résolvent « quel plan possède ce jour »
+  // finissent par en désigner deux différents — c'est la règle de l'en-tête de
+  // ce chargeur, appliquée aux deux états.
+  const shoppingAnswered = shopping
+    ? await waveAnsweredOn(admin, {
+      userId: args.userId,
+      mealId: planned.mealId,
+      buyOn: shopping.buyOn,
+    })
+    : null;
+  const cookOn = await undeclaredSessionToday(admin, {
+    userId: args.userId,
+    mealId: planned.mealId,
+    localDate: args.localDate,
+    sessionDates: sessionDatesToday,
+  });
 
+  // ⟳ FF-061 R10 — « ZÉRO PLAT » NE FERME PLUS LE BILAN À LUI SEUL.
+  //
+  // Ce chargeur rendait `no_dish_today` dès que la liste était vide, et
+  // l'appelant s'arrêtait là. C'était juste tant que le message ne portait
+  // QUE des plats: sans plat, il n'y avait rien. Depuis la chaîne, une vague de
+  // courses ou une session de cuisine non déclarées sont, elles aussi, quelque
+  // chose à demander — et une journée dont tous les plats sont éteints est
+  // précisément une journée où ① ou ② a lieu d'être.
+  //
+  // R10 devient donc « zéro plat ET zéro cuisson ET zéro vague ». Le motif reste
+  // rendu pour le compte-rendu; c'est `openingStep` qui décide s'il reste
+  // quelque chose, et `buildEveningStrip` qui garde sa propre garde R7.
   return {
     mealId: planned.mealId,
     dishes: shown,
     shopping,
+    shoppingAnswered,
+    cookOn,
     contentLocale,
-    reason: "loaded",
+    reason: shown.length === 0 ? "no_dish_today" : "loaded",
   };
+}
+
+/**
+ * La vague de ce jour a-t-elle DÉJÀ une réponse ?
+ *
+ * `null` = aucune ligne, donc « on ne sait pas », donc la question a lieu
+ * d'être. Un booléen la ferme pour de bon — « une fois par vague », sans
+ * compteur.
+ *
+ * ⚠️ FAIL-CLOSED VERS LE SILENCE, et c'est l'inverse du chargeur de plats. Une
+ * lecture en panne rend `false` (« déjà répondue »), donc on NE POSE PAS la
+ * question. Le pire cas est une vague qu'on ne demande pas ce soir; le pire cas
+ * de l'inverse est une question qui repart à chaque tick horaire pendant que
+ * Postgres bégaye — c'est-à-dire la relance que R2 de FF-062 interdit.
+ */
+async function waveAnsweredOn(
+  admin: SupabaseClient,
+  args: { userId: string; mealId: string; buyOn: string },
+): Promise<boolean | null> {
+  try {
+    const { data, error } = await admin
+      .from(GROCERY_WAVE_STATE_TABLE)
+      .select("done")
+      .eq("user_id", args.userId)
+      .eq("generated_meal_id", args.mealId)
+      .eq("buy_on", args.buyOn)
+      .maybeSingle();
+    if (error) throw error;
+    const row = (data ?? null) as { done?: unknown } | null;
+    return row ? Boolean(row.done) : null;
+  } catch (error) {
+    console.warn(JSON.stringify({
+      tag: "keel.evening_strip.wave_state_unreadable",
+      user_id: args.userId,
+      meal_id: args.mealId,
+      buy_on: args.buyOn,
+      error: error instanceof Error ? error.message : String(error),
+      effect: "fail-closed: la question des courses ne part pas ce soir",
+    }));
+    return false;
+  }
+}
+
+/**
+ * La session de cuisine de CE JOUR, si aucune ligne ne la déclare.
+ *
+ * ⛔ DE CE JOUR SEULEMENT. Voir le pavé de `EveningStripContext.cookOn`: une
+ * cuisson de l'avant-veille n'a plus de réparation possible (R11), et la
+ * demander serait promettre quelque chose qui n'arrivera pas.
+ *
+ * ⚠️ MÊME FAIL-CLOSED QUE LA VAGUE, et pour la même raison. `loadSessionStates`
+ * rend `[]` sur une panne, ce qui est indiscernable de « aucune ligne » — donc
+ * on lit ici, avec sa propre branche d'erreur, plutôt que de faire dire à un
+ * tableau vide deux choses opposées.
+ */
+async function undeclaredSessionToday(
+  admin: SupabaseClient,
+  args: {
+    userId: string;
+    mealId: string;
+    localDate: string;
+    sessionDates: readonly string[];
+  },
+): Promise<string | null> {
+  if (!args.sessionDates.includes(args.localDate)) return null;
+  try {
+    const { data, error } = await admin
+      .from(COOKING_SESSION_STATE_TABLE)
+      .select("cook_on")
+      .eq("user_id", args.userId)
+      .eq("generated_meal_id", args.mealId)
+      .eq("cook_on", args.localDate)
+      .maybeSingle();
+    if (error) throw error;
+    return data ? null : args.localDate;
+  } catch (error) {
+    console.warn(JSON.stringify({
+      tag: "keel.evening_strip.session_state_unreadable",
+      user_id: args.userId,
+      meal_id: args.mealId,
+      cook_on: args.localDate,
+      error: error instanceof Error ? error.message : String(error),
+      effect: "fail-closed: la question de cuisson ne part pas ce soir",
+    }));
+    return null;
+  }
 }
 
 // ---------------------------------------------------------------------------

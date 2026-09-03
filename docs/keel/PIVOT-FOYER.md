@@ -16,6 +16,7 @@
 > | §8.4, §8.5 | **en vigueur**, inchangées | ce document |
 > | le modèle d'invitation | périmé — rejoindre **attache**, ça n'insère pas | [FF-048](../fonctionnalites/le-foyer/FF-048-reclamer-son-profil.md) |
 > | §11 (le modèle économique) | le code existe **en entier** (job, table de période, `free_until`, gel) ; **rien ne facture** tant que les prix Stripe ne sont pas posés | [FF-049](../fonctionnalites/le-foyer/FF-049-le-prix-du-foyer.md) |
+> | §12 (« ce qui disparaît ») | **périmée en entier** — les quatre points sont revenus, et c'est assumé (décision du 2026-08-18) | [FF-059](../fonctionnalites/composition-des-repas/FF-059-le-chiffre-affiche.md) · [FF-058](../fonctionnalites/suivi-quotidien/FF-058-la-bande-du-soir.md) |
 >
 > **La direction du domaine, telle qu'elle est appliquée aujourd'hui, vit dans
 > [docs/fonctionnalites/le-foyer/README.md](../fonctionnalites/le-foyer/README.md)** —
@@ -784,10 +785,28 @@ Le jour où le second est accepté, l'argument §7.3 s'effondre et il ne reste q
 
 ## 12. Ce qui disparaît
 
-- La photo de chaque plat.
-- Le compteur de calories comme produit.
-- Le message quotidien qui demande des comptes.
-- Le suivi comme raison d'ouvrir l'app.
+> ### ⛔ PÉRIMÉE EN ENTIER — les quatre sont revenus, et c'est une décision, pas une dérive
+>
+> **Décision du 2026-08-18**, du propriétaire : *« on compte les calories parce que ça marche, on
+> tracke quand les gens sautent un repas ou ne mangent pas ce qui est prévu parce que c'est mieux
+> de ne pas avoir de trous. »* Vérifié dans le code le **2026-09-01**, point par point :
+>
+> | Ce que §12 fait disparaître | Où ça vit aujourd'hui |
+> |---|---|
+> | La photo de chaque plat | `photo.button` sur `/app/today`, `meal-photo-upload-v1`, `analyze-meal-photo-v1` |
+> | Le compteur de calories comme produit | FF-059 · `meals.energy.dish` (« {n} kcal »), l'interrupteur « Show calories », `energy_gate.ts` |
+> | Le message quotidien qui demande des comptes | `keel-daily-pulse-v1` · FF-058, la bande du soir |
+> | Le suivi comme raison d'ouvrir l'app | `/app/progress` (`StudentProgressPage`), routé dans `App.tsx` |
+>
+> **Ce qui survit du paragraphe est sa dernière phrase, et elle seule** : on ouvre l'app parce que
+> la semaine est prête et que les courses sont faites. Le suivi n'est pas *la raison* d'ouvrir —
+> mais il n'a pas disparu, et promettre le contraire est ce qui a fait vivre quatre affirmations
+> fausses dans un document de référence pendant trois semaines.
+
+- ~~La photo de chaque plat.~~
+- ~~Le compteur de calories comme produit.~~
+- ~~Le message quotidien qui demande des comptes.~~
+- ~~Le suivi comme raison d'ouvrir l'app.~~
 
 **Ce qui reste** : on ouvre l'app parce que la semaine est prête et que les courses sont faites.
 

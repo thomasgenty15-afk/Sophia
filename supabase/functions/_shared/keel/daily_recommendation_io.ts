@@ -1,4 +1,33 @@
 /**
+ * ⚠️ ══ CE MODULE A CHANGÉ DE PROPRIÉTAIRE LE 2026-09-01 ══════════════════════
+ *
+ * FF-028 (la recommandation quotidienne) est **abandonnée** — décision produit :
+ * *« il n'y a pas de recommandation en plein milieu de plan »*. Son moteur
+ * (`daily_recommendation_engine.ts`), son edge function et son cron sont
+ * supprimés. Le plan suivant se corrige par le
+ * [retour de fin de plan](../../../docs/fonctionnalites/composition-des-repas/FF-054-le-retour-de-fin-de-plan.md).
+ *
+ * **CE FICHIER SURVIT, ET CE N'EST PAS UN OUBLI.** Il porte le CANAL DE
+ * PROPOSITION DURABLE — l'espace d'action, l'empreinte de plan, les libellés,
+ * les identifiants de bouton `KEEL_RECO_*` — et ce canal a un utilisateur
+ * vivant : **FF-056, la divergence de poids constatée**
+ * (`weight_divergence_tap.ts :: openDurableProposal`). C'est même la seule
+ * SORTIE DURABLE de FF-057, la procédure accident.
+ *
+ * Supprimer ce fichier « parce que FF-028 est morte » casserait la branche
+ * terminale de FF-056 **en silence** : les épisodes resteraient `in_flow`
+ * jusqu'à expiration à J+2, et l'état `acted` deviendrait inatteignable sans
+ * qu'aucune erreur ne se lève. `handleRecommendationTap`
+ * (`deterministic_buttons.ts`) en est le seul écrivain.
+ *
+ * Le nom du fichier et le préfixe `KEEL_RECO_` restent ceux de FF-028 : les
+ * renommer demanderait trois épreuves d'absence (code, `prosrc`, vues) et
+ * casserait les payloads des boutons déjà en vol. Ce pavé est l'autorité sur
+ * ce que ce module EST aujourd'hui.
+ * ═══════════════════════════════════════════════════════════════════════════
+ */
+
+/**
  * FF-028 — LES LECTURES ET LES ÉCRITURES DE LA RECOMMANDATION.
  *
  * La décision vit dans `daily_recommendation.ts` (module pur). Ici il n'y a que

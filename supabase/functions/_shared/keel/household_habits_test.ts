@@ -19,6 +19,7 @@ import {
   habitNoteFragment,
   ownMealSlots,
   type MemberHabit,
+  parseMemberExtras,
   parseMemberHabits,
   readHabitText,
 } from "./household_habits.ts";
@@ -567,4 +568,78 @@ Deno.test("⛔ la consigne RÉCLAME le plat et nomme sa clé", () => {
   // courses empêche que sa salade ne soit achetée par personne.
   assert(said.includes("Cook for the others as usual"));
   assert(said.includes("shopping list"));
+});
+
+// ===========================================================================
+// LES EXTRAS PAR MOMENT — LE SECOND LECTEUR DE LA MÊME COLONNE
+//
+// ⛔ POURQUOI DEUX PARSEURS SUR `slots`, ET PAS UN. `parseMemberHabits` JETTE
+// les entrées sans prose: une entrée muette ferait inventer le modèle. Or une
+// entrée « midi, rien à côté du plat » est exactement ça — muette et porteuse.
+// Les fondre perdrait la réponse la plus fréquente du lot.
+// ===========================================================================
+
+Deno.test("les extras se lisent moment par moment, jetons filtrés", () => {
+  const out = parseMemberExtras([
+    { slot: "lunch", extras: ["bread", "cheese"] },
+    { slot: "dinner", extras: ["fruit"] },
+  ]);
+  assertEquals(out, { lunch: ["bread", "cheese"], dinner: ["fruit"] });
+});
+
+Deno.test("⛔ UNE CLÉ ABSENTE N'EST PAS UN TABLEAU VIDE", () => {
+  // C'est TOUT le lot. Absente = « ce moment n'a pas été renseigné » (repli sur
+  // la convention); vide = « renseigné, rien à côté » (le plat porte tout).
+  const sansCle = parseMemberExtras([{ slot: "lunch", usual: "une salade" }]);
+  assert(!Object.prototype.hasOwnProperty.call(sansCle, "lunch"));
+  const vide = parseMemberExtras([{ slot: "lunch", extras: [] }]);
+  assert(Object.prototype.hasOwnProperty.call(vide, "lunch"));
+  assertEquals(vide.lunch, []);
+});
+
+Deno.test("une entrée SANS PROSE porte quand même ses extras", () => {
+  // ⚠️ LE CAS QUI SÉPARE LES DEUX PARSEURS. `parseMemberHabits` écarte cette
+  // même entrée, et c'est correct pour lui: elle n'a rien à dire au modèle.
+  const raw = [{ slot: "dinner", kind: "own_usual", extras: ["yoghurt"] }];
+  assertEquals(parseMemberExtras(raw), { dinner: ["yoghurt"] });
+  assertEquals(parseMemberHabits(raw), []);
+});
+
+Deno.test("un jeton hors des cinq est ÉCARTÉ, il ne vide pas l'entrée", () => {
+  const out = parseMemberExtras([
+    { slot: "lunch", extras: ["bread", "caviar", "cheese"] },
+  ]);
+  assertEquals(out, { lunch: ["bread", "cheese"] });
+});
+
+Deno.test("les doublons et la casse ne comptent qu'une fois", () => {
+  assertEquals(
+    parseMemberExtras([{ slot: "lunch", extras: ["Bread", " bread ", "BREAD"] }]),
+    { lunch: ["bread"] },
+  );
+});
+
+Deno.test("un moment hors de la liste fermée n'entre pas", () => {
+  assertEquals(parseMemberExtras([{ slot: "brunch", extras: ["bread"] }]), {});
+});
+
+Deno.test("⛔ LE PREMIER MOMENT GAGNE, on ne fusionne pas", () => {
+  // Deux entrées d'un même moment sont une erreur d'écrivain; fusionner leurs
+  // extras inventerait une déclaration que personne n'a faite.
+  assertEquals(
+    parseMemberExtras([
+      { slot: "lunch", extras: ["bread"] },
+      { slot: "lunch", extras: ["cheese"] },
+    ]),
+    { lunch: ["bread"] },
+  );
+});
+
+Deno.test("ce qui n'est pas un tableau rend `{}`, jamais une exception", () => {
+  // La colonne est un jsonb: elle peut porter n'importe quoi si quelqu'un a
+  // écrit à la main. Un parseur qui lève ferait échouer une GÉNÉRATION.
+  for (const raw of [null, undefined, {}, "lunch", 3, [null], [["lunch"]]]) {
+    assertEquals(parseMemberExtras(raw), {});
+  }
+  assertEquals(parseMemberExtras([{ slot: "lunch", extras: "bread" }]), {});
 });

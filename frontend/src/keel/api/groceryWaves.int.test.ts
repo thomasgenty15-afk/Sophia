@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { MealPreparation, ShoppingItem } from "./mealGeneration";
+import { type MealPreparation, readShopping, type ShoppingItem } from "./mealGeneration";
 import {
   waveAssignments,
   planGroceryWaves,
@@ -25,8 +25,16 @@ import {
 const MONDAY = "2026-08-03";
 
 function item(term: string, aisle: string): ShoppingItem {
-  return { term, quantity: null, aisle } as ShoppingItem;
+  // ⛔ LE `as ShoppingItem` A ÉTÉ RETIRÉ LE 2026-08-23, ET C'EST LA MOITIÉ DU
+  // LOT. Ce fichier se déclare « l'épreuve du BRANCHEMENT » — et le cast le
+  // dispensait précisément de vérifier la forme qu'il prétend brancher. Il est
+  // resté vert pendant que `readShopping` laissait tomber `food_group`, donc
+  // pendant que la date d'achat n'atteignait plus aucun écran. Un cast sur un
+  // type étranger désarme le typecheck: si cette fonction ne compile plus, c'est
+  // que `ShoppingItem` a bougé, et c'est exactement ce qu'on veut savoir.
+  return { term, quantity: null, aisle, food_group: null };
 }
+
 
 function prep(id: string, cookOn: string | null, terms: string[]): MealPreparation {
   return {
@@ -175,15 +183,15 @@ describe("planGroceryWaves", () => {
 describe("wavesAreMeaningful — une seule vague ne se montre pas", () => {
   it("deux vagues se montrent", () => {
     expect(wavesAreMeaningful([
-      { buyOn: "a", items: [], servesCookOn: null },
-      { buyOn: "b", items: [], servesCookOn: null },
+      { buyOn: "a", items: [], servesCookOn: null, servesCookDates: [] },
+      { buyOn: "b", items: [], servesCookOn: null, servesCookDates: [] },
     ])).toBe(true);
   });
 
   it("une seule vague ne se montre pas", () => {
     // C'est la liste plate d'avant. Un en-tête « à acheter maintenant » posé
     // sur la totalité n'ajoute qu'un mot à lire.
-    expect(wavesAreMeaningful([{ buyOn: "a", items: [], servesCookOn: null }])).toBe(false);
+    expect(wavesAreMeaningful([{ buyOn: "a", items: [], servesCookOn: null, servesCookDates: [] }])).toBe(false);
     expect(wavesAreMeaningful([])).toBe(false);
   });
 });
@@ -240,5 +248,60 @@ describe("waveAssignments — les index d'origine, pour ne pas casser les rature
     expect(waveAssignments({
       startsOn: "", durationDays: 7, shoppingList, preparations,
     })).toEqual([]);
+  });
+});
+
+// ===========================================================================
+// LA COUTURE QUI MANQUAIT — de la charge JSON jusqu'à la date d'achat.
+//
+// ⛔ CE QUI EST TESTÉ ICI N'EST PAS LA RÈGLE DES VAGUES (elle vit côté Deno),
+// C'EST LE TRAJET DU CHAMP. `readShopping` ne recopiait pas `food_group`;
+// `WaveItem.food_group` étant facultatif, la structure restait satisfaite et
+// AUCUN test ne rougissait. Mesuré sur 10 plans réels le 2026-08-23: tous les
+// articles retombaient sur `MAX_FRIDGE_DAYS`, il n'y avait plus qu'une vague, et
+// `wavesAreMeaningful` la masquait — la liste de courses ne portait aucun jour.
+//
+// ⚠️ ON PART DE LA CHARGE BRUTE, PAS D'UN `ShoppingItem` FABRIQUÉ. Construire
+// l'objet à la main ici testerait le lecteur qu'on vient d'écrire contre
+// lui-même. C'est `shopping_list` tel que la fonction edge le rend.
+// ===========================================================================
+
+describe("readShopping → waveAssignments (la couture)", () => {
+  /** `shopping_list` tel que `mealShoppingPayload` l'écrit. */
+  const payload = [
+    { term: "lentilles", quantity: "300 g", aisle: "pantry", food_group: "legumes" },
+    { term: "poulet", quantity: "1 kg", aisle: "protein", food_group: "poultry" },
+  ];
+  const cook = [prep("p1", "mon", ["lentilles"]), prep("p2", "fri", ["poulet"])];
+
+  it("le groupe traverse le lecteur et fixe la date d'achat", () => {
+    const list = readShopping(payload);
+    expect(list.map((i) => i.food_group)).toEqual(["legumes", "poultry"]);
+
+    // `poultry` tient 2 jours cru ⇒ vendredi 07 − 2 = mercredi 05.
+    const waves = waveAssignments({
+      startsOn: MONDAY, durationDays: 7, shoppingList: list, preparations: cook,
+    });
+    expect(waves).toHaveLength(2);
+    expect(waves[1].buyOn).toBe("2026-08-05");
+  });
+
+  it("MUTATION — sans le groupe, la date recule et il n'y a plus qu'une vague à montrer", () => {
+    // ⛔ C'EST LE DÉFAUT D'HIER, REJOUÉ. On retire le champ de la charge (ce que
+    // fait un plan écrit avant `L0-a`, et ce que faisait `readShopping` pour
+    // TOUT LE MONDE): `rawWindowDaysFor(null)` rend `null`, le repli
+    // `MAX_FRIDGE_DAYS = 3` s'applique, et le poulet remonte au mardi 04.
+    const sansGroupe = payload.map(({ food_group: _drop, ...rest }) => rest);
+    const list = readShopping(sansGroupe);
+    expect(list.map((i) => i.food_group)).toEqual([null, null]);
+
+    const waves = waveAssignments({
+      startsOn: MONDAY, durationDays: 7, shoppingList: list, preparations: cook,
+    });
+    expect(waves[1].buyOn).toBe("2026-08-04");
+    // ⚠️ ET LA DIFFÉRENCE EST VISIBLE À L'ŒIL: un jour d'écart sur le même plan.
+    // Si un jour ces deux dates redeviennent égales, c'est que le champ ne
+    // traverse plus — et c'est ce test-ci qui doit le dire, pas un run réel.
+    expect(waves[1].buyOn).not.toBe("2026-08-05");
   });
 });

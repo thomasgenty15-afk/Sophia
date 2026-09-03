@@ -247,7 +247,29 @@ export function readDraftEnvelope(raw: unknown): DraftEnvelope {
     requestReport: report.lines,
     requestReportRefusal: report.refusal,
     suggestedStartsOn: startsOn === "" ? null : startsOn,
-    suggestedShifted: suggested.shifted === true,
+    // ══════════════════════════════════════════════════════════════════════
+    // ⛔ `=== true` ÉTAIT TOUJOURS FAUX — corrigé le 2026-08-23.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // Le serveur n'envoie PAS un booléen. `suggested_window.shifted` porte un
+    // MOTIF, `WindowShiftReason | null` = `"shopping_cutoff" | null`
+    // (`_shared/keel/plan_hours.ts`), recopié tel quel par les deux lanes
+    // (`generate-meal-v1/index.ts:1435-1438`,
+    // `generate-household-meal-v1/index.ts:3094-3097`). Comparer une chaîne à
+    // `true` rendait donc `false` sur 10 plans réels sur 10 (mesuré le
+    // 2026-08-23), y compris les dix où le serveur DISAIT qu'il est trop tard
+    // pour faire les courses.
+    //
+    // ⚠️ ET LE TEST NE POUVAIT PAS LE VOIR: sa fixture écrivait `shifted: true`
+    // (`planDraft.int.test.ts`), une charge que le serveur n'a jamais produite.
+    // Un test qui invente son entrée valide l'invention, pas le produit — la
+    // fixture est corrigée dans le même lot.
+    //
+    // ⚠️ ON LIT LA PRÉSENCE D'UN MOTIF, PAS SA VALEUR. `shopping_cutoff` est
+    // aujourd'hui le seul motif; en tester le contenu ici ferait de ce lecteur
+    // le second endroit qui connaît la liste, et c'est le serveur qui la tient.
+    suggestedShifted: typeof suggested.shifted === "string" &&
+      suggested.shifted.trim() !== "",
     droppedClauses: Number.isFinite(dropped) && dropped > 0 ? Math.floor(dropped) : 0,
   };
 }
@@ -344,6 +366,33 @@ export interface ComposeDraftInput {
    * ⚠️ IGNORÉ SUR LA LANE INDIVIDUELLE, qui n'a jamais eu la question.
    */
   cookingShape: CookingShape | null;
+  /**
+   * « TOUT DANS UNE SESSION DE CUISINE » — 2026-09-01.
+   *
+   * ⚠️ REQUIS, jamais `?`. Un champ facultatif ici n'aurait fait remonter AUCUN
+   * appelant au compilateur, et l'option se serait construite sans être
+   * branchée — c'est la forme exacte de « paramètre de garde optionnel = garde
+   * désarmée », payée sept fois par ce dépôt.
+   *
+   * ⛔ LE SERVEUR LE REFUSE SANS CONGÉLATEUR DÉCLARÉ, et il le DIT
+   * (`plan_rationale`). L'écran pose la même porte pour ne pas PROPOSER un
+   * geste qui sera refusé; ce n'est pas une garde en double — le corps de la
+   * requête est écrit par le réseau, pas par l'écran.
+   */
+  oneCookingSession: boolean;
+  /**
+   * « JE CUISINE LA VEILLE » — 2026-09-01.
+   *
+   * ⚠️ REQUIS, jamais `?`. Même arbitrage que `oneCookingSession` juste
+   * au-dessus: un champ facultatif n'aurait fait remonter AUCUN appelant au
+   * compilateur, et la case serait construite sans être transmise.
+   *
+   * ⛔ LE SERVEUR TRANCHE LA FAISABILITÉ (`withCookDayBefore`), et il le DIT
+   * quand il refuse. L'écran pose la même porte pour ne pas PROPOSER un geste
+   * qui sera refusé — le corps de la requête est écrit par le réseau, pas par
+   * l'écran.
+   */
+  cookTheDayBefore: boolean;
   /** Les entrées de la lane individuelle. Ignorées sur la lane foyer. */
   mode: MealMode;
   slot: MealSlot | null;
@@ -496,6 +545,13 @@ async function callGenerator(
       // bouche n'a jamais eu la question « un plat ou deux ». L'envoyer
       // quand même laisserait croire ici qu'il compte.
       cooking_shape: input.cookingShape,
+      // ⛔ SUR LES DEUX LANES, ET SUR LES TROIS GESTES. Contrairement à
+      // `cooking_shape` (qui n'a de sujet qu'à plusieurs bouches), « tout dans
+      // une session » vaut aussi pour quelqu'un qui mange seul: c'est une
+      // question de CONSERVATION, pas de nombre d'assiettes. Et sans lui sur
+      // l'adoption, le plan ÉCRIT ne serait pas celui qu'on vient de montrer.
+      one_cooking_session: input.oneCookingSession,
+      cook_the_day_before: input.cookTheDayBefore,
       // L'ENVIE — LE MÊME NOM QUE SUR LA LANE INDIVIDUELLE, parce que c'est le
       // nom que le serveur lit. Les deux lanes traversent `buildMealPrompt`.
       preferences: input.preferences,
@@ -510,13 +566,26 @@ async function callGenerator(
       context: input.context,
       preferences: input.preferences,
       pantry: input.pantry,
+      one_cooking_session: input.oneCookingSession,
+      cook_the_day_before: input.cookTheDayBefore,
     };
+  // Une adoption vient après un aperçu déjà validé par la personne. Le
+  // serveur doit encore recomposer aujourd'hui, mais il ne doit pas lancer
+  // ensuite une seconde génération d'amélioration: sur une semaine complète,
+  // les deux appels dépassent la durée de vie de la fonction avant l'écriture.
+  if (intent !== "draft") body.adopting_draft = true;
   // LA NOTE N'EST POSÉE QUE SI ELLE EXISTE. Un `draft_note: ""` serait lu comme
   // une phrase illisible et rendrait `note_unusable` au premier aperçu, avant
   // que quiconque ait écrit quoi que ce soit.
   if (input.note !== null && hasNote(input.note)) body.draft_note = input.note;
 
-  const { data, error } = await supabase.functions.invoke(fn, { body });
+  const { data, error } = await supabase.functions.invoke(fn, {
+    body,
+    // La borne du modèle côté serveur est plus courte. Celle-ci garde une
+    // marge pour ses lectures et son écriture, et garantit surtout que le
+    // bouton redevient cliquable si une connexion ne se ferme pas.
+    ...(intent === "draft" ? {} : { timeout: 120_000 }),
+  });
   if (error) {
     const refusal = await readEdgeRefusal(error);
     const named = refusal

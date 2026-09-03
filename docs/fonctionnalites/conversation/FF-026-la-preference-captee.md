@@ -66,7 +66,9 @@ se retrouver **détaché de son souvenir** (`food-preference-memory-lifecycle`).
   mémoire → générateurs, exprès. Toute nouvelle donnée qui veut atteindre le
   plan passe par lui ou n'y passe pas.
 - ❌ **Pas de modification de la semaine en cours.** La préférence se voit à la
-  **prochaine** composition. Le milieu de semaine appartient à FF-028 (V2+).
+  **prochaine** composition. ⚠️ Sans exception depuis le 2026-09-01 : le milieu
+  de semaine n'appartient **à personne** — FF-028 est abandonnée, et rien ne
+  vient lever ce no-go.
 - ❌ **Pas une restriction du foyer.** « J'aime pas » (préférence personnelle)
   et « pas de Nutella dans ce foyer » (pouvoir domestique, attribué) sont deux
   objets ; la seconde vit dans les tables du foyer.

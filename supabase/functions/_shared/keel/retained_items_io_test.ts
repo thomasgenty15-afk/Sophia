@@ -54,10 +54,27 @@ function food(over: Partial<RetainedItem> = {}): RetainedItem {
     at: "2026-08-18",
     item: "",
     confidence: null,
+    // LOT M2 — la phrase de la personne. Une écriture serveur sans elle est
+    // REFUSÉE (`unquoted`): « sans la citation, Défaire est un pari ».
+    quote: "les rochers coco, plus jamais",
     ...over,
   } as RetainedItem;
 }
 
+/**
+ * ⚠️ `draft_note` DEPUIS LE LOT M1, ET PLUS `conversation`. Le memorizer est
+ * retiré des producteurs: `persistRetainedItemsFor` refuse désormais son jeton
+ * à la porte (`producer_not_allowed`), et une fixture qui le porterait ferait
+ * rougir ces tests pour une raison qui n'est pas la leur.
+ *
+ * ⚠️ ET `item: MEM_A` EST DÉLIBÉRÉMENT PLUS RICHE QUE LE PRODUCTEUR RÉEL.
+ * `draft_note_classify.ts` écrit `item: ""`; le socle, lui, l'autorise à porter
+ * un uuid. On garde l'uuid ici parce que c'est la seule façon d'exercer la
+ * déduplication par identité — voir l'aveu en tête de `withoutAlreadyStored`:
+ * depuis M1, plus aucun producteur VIVANT ne porte d'identifiant, donc ces
+ * tests prouvent que le code est juste, PAS que des doublons sont attrapés en
+ * production.
+ */
 function craving(over: Record<string, unknown> = {}): RetainedItem {
   return {
     kind: "craving",
@@ -65,10 +82,11 @@ function craving(over: Record<string, unknown> = {}): RetainedItem {
     subject: "household",
     text: "des fajitas",
     value: null,
-    source: "conversation",
+    source: "draft_note",
     at: "2026-08-18",
     item: MEM_A,
-    confidence: 0.9,
+    confidence: null,
+    quote: "j'aimerais des fajitas la semaine prochaine",
     ...over,
   } as RetainedItem;
 }
@@ -176,7 +194,7 @@ Deno.test("écrit: le provisoire seul ne touche pas la clé durable", async () =
   const out = await persistRetainedItemsFor({
     admin,
     userId: USER,
-    producer: "conversation",
+    producer: "draft_note",
     source: "test",
     nextPlan: [entry(craving())],
   });
@@ -196,26 +214,124 @@ Deno.test("écrit: le provisoire seul ne touche pas la clé durable", async () =
 // 2. LA MATRICE — refusée ET COMPTÉE
 // ===========================================================================
 
+// ===========================================================================
+// LOT M7 · LE COMPTEUR DU REPLI DE SÉCURITÉ, SUR CETTE PORTE
+// ===========================================================================
+
+Deno.test("M7: un allergène écrit en PRÉFÉRENCE sort dans la ligne du compteur", async () => {
+  // ⛔ LE REPLI LE PLUS GRAVE DES DEUX SURFACES. Dans la conversation, un repli
+  // ne produit qu'une phrase. Ici, un allergène nommé par la personne est ÉCRIT
+  // dans un champ de préférences — un magasin qui alimente un prompt et que
+  // RIEN ne vérifie en sortie. La ligne existe, elle a l'air de protéger, et
+  // elle ne protège pas.
+  //
+  // ⚠️ ET CE PRODUCTEUR N'A AUCUN CHEMIN DE RATTRAPAGE: un bilan de fin de plan
+  // ne peut pas appeler `declare_safety_constraint`. D'où `fell_back: true` dès
+  // que `shaped` — ce n'est pas « l'outil a échoué », c'est « l'outil n'existe
+  // pas sur ce chemin ».
+  const lines: string[] = [];
+  const info = console.info;
+  console.info = (...args: unknown[]) => {
+    lines.push(String(args[0] ?? ""));
+  };
+  try {
+    const { admin } = fakeAdmin({ constraints: {} });
+    const out = await persistRetainedItemsFor({
+      admin,
+      userId: USER,
+      producer: "questionnaire",
+      source: "test",
+      durable: [food({ text: "je ne mange pas d'arachides" })],
+    });
+    assertEquals(out.ok, true, "le lot M7 ne doit RIEN bloquer");
+    assertEquals(out.durableWritten, 1, "le compteur a changé l'écriture");
+  } finally {
+    console.info = info;
+  }
+
+  const counter = lines
+    .map((line) => {
+      try {
+        return JSON.parse(line) as Record<string, unknown>;
+      } catch {
+        return null;
+      }
+    })
+    .find((row) => row?.tag === "keel/safety_fallback");
+  assert(counter, "LE COMPTEUR N'A PAS ÉCRIT SA LIGNE sur cette écriture");
+  assertEquals(counter.shaped, true, "l'allergène n'a pas été vu");
+  assertEquals(counter.slugs, ["peanut"]);
+  assertEquals(counter.fell_back, true);
+  assertEquals(counter.filed_as_preference, true);
+  assertEquals(counter.unreadable, false);
+  // ⚠️ ET AUCUN `text` DANS LA LIGNE. Un journal n'est pas l'endroit où
+  // recopier ce qu'une personne écrit sur sa santé; les slugs suffisent à
+  // décider s'il faut agir, et ils ne désignent personne.
+  assertEquals(
+    Object.keys(counter).includes("text"),
+    false,
+    "LA LIGNE RECOPIE LE TEXTE DE LA PERSONNE",
+  );
+});
+
+Deno.test("M7: une préférence ordinaire ne fait pas mordre le compteur", async () => {
+  // LE CAS QUI NE MORD PAS. Sans lui, un compteur qui mord sur tout rendrait un
+  // taux de 100 % et ressemblerait pourtant à un compteur qui marche.
+  const lines: string[] = [];
+  const info = console.info;
+  console.info = (...args: unknown[]) => {
+    lines.push(String(args[0] ?? ""));
+  };
+  try {
+    const { admin } = fakeAdmin({ constraints: {} });
+    await persistRetainedItemsFor({
+      admin,
+      userId: USER,
+      producer: "questionnaire",
+      source: "test",
+      durable: [food({ text: "les rochers coco" })],
+    });
+  } finally {
+    console.info = info;
+  }
+  const counter = lines
+    .map((line) => {
+      try {
+        return JSON.parse(line) as Record<string, unknown>;
+      } catch {
+        return null;
+      }
+    })
+    .find((row) => row?.tag === "keel/safety_fallback");
+  assert(counter, "le DÉNOMINATEUR a disparu: la ligne ne part plus à chaque écriture");
+  assertEquals(counter.shaped, false);
+  assertEquals(counter.fell_back, false);
+});
+
 Deno.test("matrice: un `source` sans droit est REFUSÉ et COMPTÉ", async () => {
-  // Le memorizer n'a pas le droit d'écrire un `portion.adjust`: une mesure a
-  // besoin d'un sujet, et la conversation ne sait pas l'attribuer (§5 ②).
+  // Le brouillon n'a pas le droit d'écrire un `portion.adjust`: une mesure a
+  // besoin d'un sujet, et seul le bilan pose la question avec la liste du foyer
+  // sous les yeux (§5 ②). ⚠️ Le véhicule était `conversation` avant le lot M1;
+  // ce producteur est désormais refusé À LA PORTE, donc il ne pouvait plus
+  // atteindre la matrice — et ce test aurait mesuré l'autre garde.
   const forbidden = {
     kind: "portion.adjust",
     scope: "durable",
     subject: "household",
     text: "les parts étaient trop grosses",
     value: { direction: "down", magnitude: "clear" },
-    source: "conversation",
+    source: "draft_note",
     at: "2026-08-18",
     item: MEM_A,
-    confidence: 0.8,
+    confidence: null,
+    quote: "les parts étaient trop grosses",
   } as unknown as RetainedItem;
 
   const { admin, trace } = fakeAdmin({ constraints: {} });
   const out = await persistRetainedItemsFor({
     admin,
     userId: USER,
-    producer: "conversation",
+    producer: "draft_note",
     source: "test",
     durable: [forbidden],
   });
@@ -230,8 +346,89 @@ Deno.test("matrice: un `source` sans droit est REFUSÉ et COMPTÉ", async () => 
   assertEquals(trace.rpcs.length, 0);
 });
 
+Deno.test("M2: une écriture serveur SANS CITATION est refusée et comptée", async () => {
+  // ⛔ *« Sans la citation, "Défaire" est un pari. »* Une ligne qui apparaît sur
+  // l'écran de quelqu'un sans dire d'où elle vient ne propose qu'un geste
+  // aveugle: enlever, c'est peut-être défaire une erreur du produit, peut-être
+  // perdre une chose vraiment demandée trois semaines plus tôt. Devant ce
+  // doute on ne touche à rien — et le magasin ne décroît JAMAIS. C'est le
+  // mécanisme exact de la boule de neige que ce chantier ferme.
+  const { admin, trace } = fakeAdmin({ constraints: {} });
+  const out = await persistRetainedItemsFor({
+    admin,
+    userId: USER,
+    producer: "questionnaire",
+    source: "test",
+    durable: [food({ quote: null } as Partial<RetainedItem>)],
+  });
+
+  assertEquals(out.ok, false);
+  assertEquals(out.reason, "all_refused");
+  assertEquals(out.refused.unquoted, 1, "le refus n'est pas compté");
+  assertEquals(out.refused.forbiddenKind, 0, "la mauvaise garde a mordu");
+  assertEquals(out.refused.total, 1);
+  // ⛔ ET LA BASE N'A PAS ÉTÉ APPELÉE: un refus qui écrit quand même est un
+  // refus décoratif.
+  assertEquals(trace.rpcs.length, 0);
+});
+
+Deno.test("M2: une citation VIDE ou blanche ne compte pas comme une citation", async () => {
+  // Le repli le plus vraisemblable d'un producteur pressé: passer `""` pour
+  // faire taire le type. Une chaîne blanche ne cite personne.
+  for (const empty of ["", "   ", "\n\t"]) {
+    const { admin } = fakeAdmin({ constraints: {} });
+    const out = await persistRetainedItemsFor({
+      admin,
+      userId: USER,
+      producer: "questionnaire",
+      source: "test",
+      durable: [food({ quote: empty } as Partial<RetainedItem>)],
+    });
+    assertEquals(out.refused.unquoted, 1, `${JSON.stringify(empty)} est passé`);
+  }
+});
+
+Deno.test("M2: le refus ne mord PAS sur les lignes déjà stockées", async () => {
+  // ⛔ LA MOITIÉ QUI EMPÊCHE LE LOT D'EFFACER SON PASSÉ. Les lignes écrites
+  // AVANT M2 n'ont pas de citation. Si la garde les touchait, une écriture
+  // neuve les emporterait — et le symptôme serait un magasin qui rétrécit tout
+  // seul, la nuit, sans un mot. Le port ne réécrit jamais le stocké: il
+  // concatène. Ce test épingle que le stocké NON CITÉ survit.
+  const legacy = {
+    kind: "food.exclude",
+    scope: "durable",
+    subject: "household",
+    text: "d'avant le lot M2",
+    value: null,
+    source: "questionnaire",
+    at: "2026-08-11",
+    item: "",
+    confidence: null,
+    // pas de `quote` du tout — la forme d'avant le champ
+  };
+  const { admin, trace } = fakeAdmin({
+    constraints: { retained_items: [legacy] },
+  });
+  const out = await persistRetainedItemsFor({
+    admin,
+    userId: USER,
+    producer: "questionnaire",
+    source: "test",
+    durable: [food()],
+  });
+
+  assertEquals(out.ok, true);
+  assertEquals(out.refused.unquoted, 0);
+  const written = trace.rpcs[0].params.p_items as Array<Record<string, unknown>>;
+  assertEquals(written.length, 2, "la ligne d'avant M2 a été emportée");
+  assertEquals(written[0].text, "d'avant le lot M2");
+  // Elle est recopiée TELLE QUELLE: pas de citation inventée, pas de clé
+  // ajoutée. Le port n'est pas un ramasse-miettes.
+  assertEquals(Object.keys(written[0]).includes("quote"), false);
+});
+
 Deno.test("matrice: un item étiqueté d'une AUTRE source est refusé", async () => {
-  // ⚠️ SANS CETTE GARDE, LA MATRICE NE VAUT RIEN: le memorizer écrirait un
+  // ⚠️ SANS CETTE GARDE, LA MATRICE NE VAUT RIEN: le brouillon écrirait un
   // `portion.adjust` en le marquant `questionnaire`, et `canProduce` dirait oui.
   const disguised = {
     kind: "portion.adjust",
@@ -243,13 +440,14 @@ Deno.test("matrice: un item étiqueté d'une AUTRE source est refusé", async ()
     at: "2026-08-18",
     item: "",
     confidence: null,
+    quote: "trop gros",
   } as unknown as RetainedItem;
 
   const { admin, trace } = fakeAdmin({ constraints: {} });
   const out = await persistRetainedItemsFor({
     admin,
     userId: USER,
-    producer: "conversation",
+    producer: "draft_note",
     source: "test",
     durable: [disguised],
   });
@@ -296,6 +494,7 @@ Deno.test("matrice: la garde LAISSE PASSER ce qui est dans ses droits", async ()
     at: "2026-08-18",
     item: "",
     confidence: null,
+    quote: "trop gros",
   } as unknown as RetainedItem;
 
   const { admin } = fakeAdmin({ constraints: {} });
@@ -316,7 +515,7 @@ Deno.test("magasin: un item rangé dans le mauvais magasin est compté", async (
   const out = await persistRetainedItemsFor({
     admin,
     userId: USER,
-    producer: "conversation",
+    producer: "draft_note",
     source: "test",
     // Un `craving` est TOUJOURS `next_plan`: dans la liste durable, il est
     // mal rangé. Et une ancre qui n'est pas un lundi ISO est refusée, pas
@@ -398,7 +597,7 @@ Deno.test("fusion: un identifiant déjà stocké ne rentre pas deux fois", async
   const out = await persistRetainedItemsFor({
     admin,
     userId: USER,
-    producer: "conversation",
+    producer: "draft_note",
     source: "test",
     nextPlan: [entry(craving()), entry(craving({ item: MEM_B }))],
   });
@@ -419,7 +618,7 @@ Deno.test("fusion: deux fois le même identifiant DANS LE MÊME APPEL", async ()
   const out = await persistRetainedItemsFor({
     admin,
     userId: USER,
-    producer: "conversation",
+    producer: "draft_note",
     source: "test",
     nextPlan: [entry(craving()), entry(craving())],
   });
@@ -695,18 +894,169 @@ Deno.test("épingle: le port serveur est accordé à service_role SEUL", async (
   }
 });
 
-Deno.test("épingle: les trois producteurs serveur, et pas un quatrième", () => {
-  // Si un `source` est ajouté au socle, ce test rougit — et c'est voulu: un
-  // producteur de plus est une décision de la nomenclature, pas un effet de
-  // bord d'une liste qui s'allonge.
-  const all: readonly string[] = [
-    "written",
-    "questionnaire",
-    "conversation",
-    "draft_note",
-  ];
-  const server: RetainedSource[] = ["questionnaire", "conversation", "draft_note"];
-  assertEquals(all.length, 4);
-  assertEquals(server.length, 3);
-  assert(!server.includes("written" as RetainedSource));
+Deno.test("épingle: les DEUX producteurs serveur, mesurés à la porte", async () => {
+  // ⛔ CE TEST NE COMPARE PLUS DEUX TABLEAUX QU'IL ÉCRIT LUI-MÊME.
+  //
+  // Sa version précédente construisait `all` et `server` à la main, puis
+  // vérifiait leurs LONGUEURS. Elle était donc verte quoi qu'il arrive au
+  // module: on pouvait rouvrir un producteur, en fermer un autre, ou vider
+  // `SERVER_SOURCES` sans qu'elle bronche — « un test paramétré par sa propre
+  // constante reste vert quand on change la constante », et celui-ci n'était
+  // même pas paramétré par la bonne.
+  //
+  // On mesure maintenant LA PORTE: pour chacune des quatre `source` du socle,
+  // on APPELLE le port et on regarde s'il refuse `producer_not_allowed`. C'est
+  // le seul énoncé qui ne peut pas mentir.
+  const EXPECTED: Record<RetainedSource, boolean> = {
+    // ⛔ La personne n'est pas un producteur serveur: `canProduce("written", …)`
+    // rend `true` pour les huit familles, donc ce jeton contournerait la
+    // matrice ENTIÈRE par un seul mot.
+    written: false,
+    questionnaire: true,
+    // ⛔ LOT M1 — le memorizer est retiré. C'est la moitié « écriture » du
+    // retrait: la matrice dit « cette famille, non », le port dit « cet
+    // appelant, jamais ».
+    conversation: false,
+    draft_note: true,
+  };
+
+  for (const producer of Object.keys(EXPECTED) as RetainedSource[]) {
+    const { admin, trace } = fakeAdmin({ constraints: {} });
+    const out = await persistRetainedItemsFor({
+      admin,
+      userId: USER,
+      producer: producer as ServerRetainedSource,
+      source: "test",
+      durable: [food({ source: producer })],
+    });
+    const allowed = out.reason !== "producer_not_allowed";
+    assertEquals(allowed, EXPECTED[producer], `producteur ${producer}`);
+    if (!allowed) {
+      // ⚠️ ET LA BASE N'A PAS ÉTÉ APPELÉE. Un refus qui écrit quand même serait
+      // un refus décoratif.
+      assertEquals(trace.rpcs.length, 0, `${producer}: la base a été appelée`);
+    }
+  }
+
+  // La ceinture de la ceinture: l'ensemble n'est ni vide ni total. Si les
+  // quatre étaient refusés, la boucle serait verte en ne mesurant rien.
+  const allowedCount = Object.values(EXPECTED).filter(Boolean).length;
+  assertEquals(allowedCount, 2);
+});
+
+// ===========================================================================
+// ⑨ ⛔ LE DOUBLON PAR CONTENU — mesuré le 2026-09-01, corrigé le même jour
+//
+// « Faute d'un producteur qui en fabrique » ne tenait pas: deux « refais-le »
+// portant la même phrase écrivaient deux lignes identiques. Le coût est dans le
+// PROMPT — deux fois la même consigne la RENFORCE, ce que personne n'a demandé.
+// ===========================================================================
+
+Deno.test("⛔ LA MÊME PHRASE, DEUX FOIS: la seconde n'entre pas", async () => {
+  // Le producteur réel écrit `item: ""` — donc AUCUN uuid, donc l'identité
+  // d'origine rendait `null` et rien ne mordait. C'est cette forme-là qu'on
+  // exerce, pas la forme enrichie du reste du fichier.
+  const line = { ...craving(), item: "", text: "Je n'aime pas le poulet" };
+  const { admin, trace } = fakeAdmin({
+    constraints: { retained_next_plan: [{ item: line, anchor: "2026-08-31" }] },
+  });
+  const out = await persistRetainedItemsFor({
+    admin,
+    userId: USER,
+    producer: "draft_note",
+    source: "test",
+    nextPlan: [entry({ ...line })],
+  });
+  assertEquals(out.nextPlanWritten, 0, "la ligne identique a été réécrite");
+  assertEquals(trace.rpcs.length, 0, "une RPC est partie pour ne rien écrire");
+});
+
+Deno.test("la casse et les espaces ne font pas deux lignes", async () => {
+  const line = { ...craving(), item: "", text: "Je n'aime pas le poulet" };
+  const { admin } = fakeAdmin({
+    constraints: { retained_next_plan: [{ item: line, anchor: "2026-08-31" }] },
+  });
+  const out = await persistRetainedItemsFor({
+    admin,
+    userId: USER,
+    producer: "draft_note",
+    source: "test",
+    nextPlan: [entry({ ...line, text: "  je n'aime PAS   le poulet " })],
+  });
+  assertEquals(out.nextPlanWritten, 0);
+});
+
+Deno.test("⛔ ÉGALITÉ, PAS RESSEMBLANCE — et un AUTRE sujet est une AUTRE ligne", async () => {
+  // Sans ce cas, la garde du dessus serait indiscernable d'une garde qui refuse
+  // tout. « laitue » ≠ « lait », et la ligne de Tom n'est pas celle du foyer.
+  const line = { ...craving(), item: "", text: "Je n'aime pas le poulet" };
+  const { admin } = fakeAdmin({
+    constraints: { retained_next_plan: [{ item: line, anchor: "2026-08-31" }] },
+  });
+  const out = await persistRetainedItemsFor({
+    admin,
+    userId: USER,
+    producer: "draft_note",
+    source: "test",
+    nextPlan: [
+      entry({ ...line, text: "Je n'aime pas le poisson" }),
+      entry({ ...line, subject: "member:11111111-2222-4333-8444-555555555555" }),
+    ],
+  });
+  assertEquals(out.nextPlanWritten, 2, "deux lignes DIFFÉRENTES ont été fondues");
+});
+
+Deno.test("⛔ DEUX RÉPONSES DE PORTION IDENTIQUES COMPTENT DEUX FOIS", async () => {
+  // ⛔ RÉGRESSION MESURÉE LE 2026-09-01, ET RÉPARÉE LE MÊME JOUR. Le
+  // dédoublonnage par contenu a été ajouté pour un vrai défaut (deux
+  // « refais-le » de la même semaine écrivaient deux lignes) — et il a emporté
+  // les RÉPONSES DE PORTION avec: deux bilans disant « un peu trop » ne
+  // laissaient qu'UNE ligne en base.
+  //
+  // Ça annule le lot M3, dont c'est toute la raison d'être: « elle redit "un
+  // peu trop" DU PLAN CORRIGÉ, et on lui redonne le même −5 %. Elle n'avance
+  // jamais. » Un indice qui ne peut pas dépasser un cran ne converge pas.
+  const line = {
+    ...food(),
+    item: "",
+    kind: "portion.adjust" as const,
+    scope: "durable" as const,
+    value: { direction: "down" as const, magnitude: "slight" as const },
+    text: "Les portions étaient un peu trop grosses",
+    source: "questionnaire" as RetainedSource,
+  };
+  const { admin } = fakeAdmin({ constraints: { retained_items: [line] } });
+  const out = await persistRetainedItemsFor({
+    admin,
+    userId: USER,
+    producer: "questionnaire",
+    source: "test",
+    durable: [{ ...line }],
+  });
+  assertEquals(
+    out.durableWritten,
+    1,
+    "la seconde réponse de portion a été fondue: l'indice ne peut plus avancer",
+  );
+  assertEquals(out.refused.alreadyStored, 0);
+});
+
+Deno.test("⛔ ET LE DÉDOUBLONNAGE MORD TOUJOURS SUR LES AUTRES FAMILLES", async () => {
+  // Sans ce cas, la garde du dessus serait indiscernable d'un dédoublonnage
+  // entièrement retiré.
+  const line = { ...craving(), item: "", text: "des fajitas" };
+  const { admin } = fakeAdmin({
+    constraints: { retained_next_plan: [{ item: line, anchor: "2026-08-31" }] },
+  });
+  const out = await persistRetainedItemsFor({
+    admin,
+    userId: USER,
+    producer: "draft_note",
+    source: "test",
+    nextPlan: [entry({ ...line })],
+  });
+  assertEquals(out.nextPlanWritten, 0);
+  // ⚠️ ET LA CHUTE EST COMPTÉE. `produced=1 written=0 refused=0` — trois
+  // nombres qui ne s'additionnent pas — se lisait « la porte a échoué ».
+  assertEquals(out.refused.alreadyStored, 1);
 });

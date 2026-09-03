@@ -135,9 +135,10 @@ export default function ShoppingListPanel(props: ShoppingListPanelProps) {
 
   // UNE SEULE VAGUE NE SE MONTRE PAS: c'est la liste plate d'avant, et un
   // en-tête posé sur la totalité n'ajoute qu'un mot à lire.
-  const showWaves = wavesAreMeaningful(
-    waves.map((w) => ({ buyOn: w.buyOn, items: [], servesCookOn: w.servesCookOn })),
-  );
+  // `wavesAreMeaningful` ne compte que les vagues — on lui passe la liste
+  // telle quelle. Elle exigeait autrefois des `GroceryWave` complets, ce qui
+  // obligeait à fabriquer ici une vague entière pour une question de comptage.
+  const showWaves = wavesAreMeaningful(waves);
 
   const toggle = (index: number) => {
     setTicked((prev) => {
@@ -298,7 +299,34 @@ export default function ShoppingListPanel(props: ShoppingListPanelProps) {
                 </section>
               );
             })
-            : groups.map((group) => renderGroup(group))}
+            : (
+              <>
+                {/* ══════════════════════════════════════════════════════════
+                    UNE SEULE VAGUE PORTE QUAND MÊME SON JOUR — 2026-09-01
+                    ══════════════════════════════════════════════════════════
+
+                    ⛔ LE DÉFAUT, RAPPORTÉ SUR UN PLAN RÉEL: « ça me disait de
+                    cuisiner le poulet acheté le lundi, le samedi ». Le calcul
+                    était juste; il ne SORTAIT que sur deux vagues ou plus, et
+                    une liste sans jour se lit « achète tout maintenant ». Sur
+                    dix plans mesurés le 2026-08-23, aucune date n'atteignait
+                    l'écran.
+
+                    ⚠️ CE N'EST PAS `wavesAreMeaningful` QUI CHANGE. Sa règle
+                    reste juste: une seule vague ne se DÉCOUPE pas en sections,
+                    ce serait un en-tête posé sur la totalité. Ce qui manquait
+                    n'est pas un découpage, c'est une DATE — et une date tient
+                    sur une ligne. */}
+                {waves.length === 1 && (
+                  <p className="text-sm font-semibold text-ink">
+                    {t("meals.shopping.buy_all_on", {
+                      date: longDate(waves[0].buyOn),
+                    })}
+                  </p>
+                )}
+                {groups.map((group) => renderGroup(group))}
+              </>
+            )}
 
 
           {/* L'EXPORT, EN BAS DU PANNEAU: on l'utilise une fois, avant de

@@ -159,6 +159,30 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       // `keel-week-rollover-v1` et `review-plan-v1` sont parties avec le
       // système de plan V2 grand public (retrait résidus, 2026-08-08).
       "keel-weekly-flow-v1",
+      // FF-056 — LA DIVERGENCE DE POIDS, DEVENUE AUTONOME LE 2026-09-01.
+      //
+      // ⚠️ CE N'EST PAS UN DÉMÉNAGEMENT, C'EST UNE MISE EN SERVICE. Le pas de
+      // divergence vivait dans `keel-daily-recommendation-v1`, APRÈS un
+      // `try/catch` dont les quatre sorties non-nominales faisaient `continue`:
+      // il était donc SAUTÉ pour tout élève n'ayant pas reçu de recommandation,
+      // c'est-à-dire le cas nominal. Invisible dans les journaux, parce que le
+      // rapport ne portait que `divergence_asked`, dont la valeur nominale est
+      // zéro.
+      //
+      // Le job compte désormais `examined` séparément d'`asked` — la seule
+      // paire qui distingue « rien à demander » de « jamais atteint ».
+      // Couverte par _shared/keel/weight_divergence_tally_test.ts.
+      "keel-weight-divergence-v1",
+      // FF-062 C1 + C2 — le repas d'un créneau déclaré non composé, et le
+      // rappel de pesée. UN job pour les deux canaux, et c'est la leçon de §1
+      // de la fiche: deux crons se coordonnent par une convention écrite dans
+      // le commentaire d'un seul des deux, et un troisième canal ajouté sans la
+      // connaître produit deux notifications le même soir.
+      //
+      // Couvert par _shared/keel/slot_meal_ask_test.ts (18 cas) et
+      // _shared/keel/weigh_in_test.ts (13 cas), tous deux sur les modules PURS
+      // que ce job se contente de balayer.
+      "keel-proactive-v1",
       // Q6 — le PDF d'un repas. Depuis de-whatsapp il s'annonce dans la bulle
       // au lieu d'être envoyé par Graph.
       "meal-document-v1",

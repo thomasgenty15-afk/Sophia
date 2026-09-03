@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-import { MouthsStep } from "./SetupPage";
+import { MouthsStep, SelfStep } from "./SetupPage";
 import { emptyMouthDraft } from "../lib/mouthForm";
 import { en } from "../i18n/en";
 import { setChosenUiLocaleForTest } from "../i18n/runtime";
@@ -58,7 +58,7 @@ function draft(patch: Record<string, unknown> = {}) {
   return { ...emptyMouthDraft(), ...patch };
 }
 
-function html(patch: Record<string, unknown> = {}): string {
+function html(patch: Record<string, unknown> = {}, maxOthers = 7): string {
   // `uiLocale()` lit le CHEMIN COURANT: sans `location`, la page sort en
   // anglais quoi qu'on ait choisi. Patron de `mouthFormDialog.int.test.ts`.
   Object.defineProperty(globalThis, "location", {
@@ -74,6 +74,7 @@ function html(patch: Record<string, unknown> = {}): string {
       // `ageState`), pas une question. La confondre avec la question retirée
       // ferait rougir ce fichier pour la mauvaise raison.
       mouths: [],
+      maxOthers,
       draft: draft(patch),
       onDraftChange: () => {},
       onAdd: () => {},
@@ -138,6 +139,12 @@ function code(rel: string): string {
 }
 
 describe("le formulaire d'ajout ne demande plus l'âge en toutes lettres", () => {
+  it("n'existe pas dans le parcours solo", () => {
+    const body = decode(html({}, 0));
+    expect(body).not.toContain(en["setup.mouths.add"]);
+    expect(body).not.toContain('id="setup-mouth-name"');
+  });
+
   it("ni la question, ni ses deux réponses", () => {
     const body = decode(html());
     expect(body, "la question « adulte ou enfant » est revenue")
@@ -334,6 +341,7 @@ describe("la porte des préférences, et plus aucun champ en ligne", () => {
           goal: null,
           allergiesReviewed: true,
         }],
+        maxOthers: 7,
         draft: draft(),
         onDraftChange: () => {},
         onAdd: () => {},
@@ -356,14 +364,8 @@ describe("la porte des préférences, et plus aucun champ en ligne", () => {
         editingMemberId: null,
         onToggleEdit: () => {},
         targets: new Map(),
-      birthDates: new Map(),
         birthDates: new Map(),
         onTarget: () => {},
-      editingMemberId: null,
-      onToggleEdit: () => {},
-      targets: new Map(),
-      birthDates: new Map(),
-      onTarget: () => {},
         confirmRemove: null,
         onConfirmRemove: () => {},
         inviteFor: null,
@@ -379,5 +381,165 @@ describe("la porte des préférences, et plus aucun champ en ligne", () => {
     expect(markup.split(en["household.mouth.preferences_open"].replace(/\{who\}/g, en["household.mouth.who_fallback"])).length - 1)
       .toBe(2);
     expect(markup).not.toContain(en["setup.people.allergies_none"]);
+  });
+});
+
+// ===========================================================================
+// 2026-09-01 — LA FICHE D'AJOUT A LA DISPOSITION DE LA CARTE DU TITULAIRE
+//
+// Demandé à l'écran, capture à l'appui: « j'aimerais que la partie "j'ajoute
+// quelqu'un qui mange ici" ait la même disposition que celle du compte
+// maître […] mais bien évidemment avec "Il/Elle" puisque ce n'est pas "Tu" ».
+//
+// ── CE QUE LES DEUX CARTES DISAIENT AVANT ─────────────────────────────────
+// La carte du titulaire: prénom · (naissance | sexe) · (taille | poids) ·
+// direction · poids visé · journées · sport. Six libellés, six champs
+// étiquetés.
+//
+// La fiche d'ajout: prénom · naissance · UN SEUL bloc « Taille, poids et
+// sexe » contenant trois contrôles NUS en grille de trois — étiquetés par
+// leur seul `placeholder`, c'est-à-dire par un libellé qui S'EFFACE au moment
+// où on saisit —, puis les journées et le sport, PUIS la direction.
+//
+// ⚠️ CE N'EST PAS QU'UNE QUESTION DE GOÛT. Un `placeholder` seul n'est pas
+// une étiquette: il disparaît dès la première frappe, et une fiche remplie
+// n'a alors plus un mot pour dire lequel des trois nombres est la taille.
+//
+// ── POURQUOI COMPARER LES DEUX RENDUS PLUTÔT QUE FIGER UNE LISTE ──────────
+// « La même disposition que l'autre » est une relation, pas une valeur. Une
+// liste recopiée ici resterait verte le jour où la carte du titulaire bouge
+// et que la fiche d'ajout ne suit pas — c'est-à-dire très exactement le jour
+// où la demande est de nouveau violée. On rend donc LES DEUX, et on compare.
+//
+// ⚠️ LA VOIX EST LA SEULE CHOSE QUI DOIT DIFFÉRER, et elle est nommée cran
+// par cran ci-dessous. Un libellé qui passerait au « tu » côté bouche, ou qui
+// resterait au « il ou elle » côté titulaire, tombe ici.
+// ===========================================================================
+
+/** La carte du titulaire, rendue avec ses deux blocs conditionnels ouverts. */
+function selfHtml(): string {
+  Object.defineProperty(globalThis, "location", {
+    value: { pathname: PATH, search: "", href: `http://localhost${PATH}` },
+    configurable: true,
+    writable: true,
+  });
+  setChosenUiLocaleForTest("en");
+  return renderToStaticMarkup(
+    createElement(SelfStep, {
+      draft: {
+        firstName: "",
+        birthDate: "",
+        gender: "",
+        heightCm: "",
+        weightKg: "",
+        goal: "",
+        dayActivity: null,
+        sportFrequency: null,
+      },
+      onChange: () => {},
+      // ⚠️ PAS « solo »: cette branche-là RETIRE le prénom (rien, dans le
+      // chemin individuel, ne le lit). La comparaison porterait alors sur une
+      // carte amputée d'un champ, et le premier écart serait un faux.
+      branch: "with_others",
+      onSave: null,
+      busy: false,
+      // Les deux `null` possibles sont des LECTURES PAS FAITES, pas des états
+      // de repos: passés à `null`, le poids visé et la porte des préférences
+      // ne se montent pas, et la carte comparée n'est pas celle de l'écran.
+      target: {
+        draft: emptyMouthDraft(),
+        onChange: () => {},
+        todayLocalIso: "2026-09-01",
+      },
+      onOpenPreferences: () => {},
+    } as unknown as Parameters<typeof SelfStep>[0]),
+  );
+}
+
+/** Les étiquettes réellement rendues, dans l'ordre du document. */
+function labelsOf(markup: string): string[] {
+  return [...decode(markup).matchAll(/<label[^>]*>([\s\S]*?)<\/label>/g)]
+    .map((m) => m[1].replace(/<[^>]*>/g, "").trim());
+}
+
+describe("2026-09-01 · la fiche d'ajout est la carte du titulaire, à la 3e personne", () => {
+  /**
+   * LE SEUL ÉCART AUTORISÉ. À gauche ce que dit la carte du titulaire, à
+   * droite ce que la même place doit dire quand elle parle de quelqu'un
+   * d'autre. Tout ce qui n'est pas dans cette table doit être IDENTIQUE —
+   * « Prénom », « Date de naissance », « Sexe », « Taille (cm) »,
+   * « Poids (kg) » ne portent aucune personne, et c'est ce qui fait lire les
+   * deux cartes comme la même.
+   */
+  const OTHER_VOICE: Record<string, string> = {
+    [en["setup.people.goal"]]: en["setup.mouths.goal"],
+    [en["setup.day_activity.label"]]: en["setup.day_activity.member_label"],
+    [en["setup.sport.label"]]: en["setup.sport.member_label"],
+  };
+
+  it("les mêmes questions, dans le même ordre, à l'autre personne", () => {
+    const expected = labelsOf(selfHtml()).map((l) => OTHER_VOICE[l] ?? l);
+    // ⚠️ LE CAS QUI PASSE, ET IL EST DANS L'ASSERTION SUIVANTE. Sans cette
+    // ligne, deux cartes rendant ZÉRO étiquette se compareraient égales — la
+    // panne la plus probable de ce fichier, et la plus silencieuse.
+    expect(expected.length, "la carte du titulaire ne rend plus d'étiquette")
+      .toBeGreaterThanOrEqual(6);
+    expect(labelsOf(html())).toEqual(expected);
+  });
+
+  /**
+   * ⚠️ LA VOIX EST VÉRIFIÉE DANS LES DEUX SENS. La comparaison ci-dessus
+   * serait verte si les deux cartes parlaient au « tu »: elle traduit, elle
+   * ne contrôle pas que la traduction a lieu. Ces trois-là mordent alors.
+   */
+  it("et les trois questions qui ont une personne la changent", () => {
+    const body = decode(html());
+    for (const [own, other] of Object.entries(OTHER_VOICE)) {
+      expect(body, `« ${other} » manque dans la fiche d'ajout`).toContain(other);
+      expect(body, `« ${own} » tutoie quelqu'un dont ce n'est pas la fiche`)
+        .not.toContain(own);
+    }
+  });
+
+  /**
+   * LE TOUT-OU-RIEN DU CORPS A SURVÉCU À L'ÉCLATEMENT DU GROUPE.
+   *
+   * `keel_household_set_member_body` rend `body_incomplete` dès qu'un des
+   * trois manque, et le moteur SAUTE une bouche sans corps: taille et poids
+   * saisis, sexe laissé sur « — », et la personne reçoit la part de tout le
+   * monde EN SILENCE. La phrase qui l'annonce ne peut plus dire « les trois »
+   * — il n'y a plus de groupe à désigner —, donc elle les NOMME.
+   */
+  it("le corps reste annoncé comme un tout, sans le bloc qui le groupait", () => {
+    const body = decode(html());
+    expect(body, "le corps n'annonce plus qu'il est indivisible")
+      .toContain(en["setup.mouths.body_together"]);
+    expect(body, "l'ancienne aide « les trois ensemble » est restée orpheline")
+      .not.toContain(en["setup.mouths.body_hint"]);
+  });
+
+  /**
+   * PLUS UN SEUL LIBELLÉ QUI S'EFFACE. Les trois contrôles du corps n'avaient
+   * QUE leur `placeholder` pour se nommer; ils portent une `<label for>`
+   * depuis ce lot, et le `placeholder` doit avoir disparu avec — sinon la
+   * même chose est écrite deux fois, dont une qui s'efface.
+   */
+  it("aucun contrôle n'est étiqueté par son seul placeholder", () => {
+    const markup = html();
+    expect(
+      [...markup.matchAll(/placeholder="([^"]*)"/g)].map((m) => m[1]),
+      "un placeholder sert encore d'étiquette",
+    ).toEqual([]);
+    for (const id of [
+      "setup-mouth-name",
+      "setup-mouth-birth",
+      "setup-mouth-gender",
+      "setup-mouth-height",
+      "setup-mouth-weight",
+      "setup-mouth-goal",
+    ]) {
+      expect(markup, `${id} n'a pas d'étiquette qui le désigne`)
+        .toContain(`for="${id}"`);
+    }
   });
 });

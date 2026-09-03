@@ -22,8 +22,13 @@ import {
 // Lundi 2026-08-03. Les jetons de jour suivent donc: mon=03 … sun=09.
 const MONDAY = "2026-08-03";
 
+// ⚠️ `food_group: null` EST ÉCRIT, plus omis. Depuis le 2026-08-23 le champ est
+// REQUIS sur `WaveItem` (voir son bloc): `null` dit « cette ligne n'a pas de
+// groupe » et rend le repli `MAX_FRIDGE_DAYS`, c'est-à-dire exactement ce que
+// l'omission rendait — les assertions de ce fichier ne bougent pas d'un jour.
+// Ce que le mot ajoute est qu'un appelant ne peut plus se taire par mégarde.
 function item(term: string, aisle: TestAisle): TestItem {
-  return { term, quantity: null, aisle };
+  return { term, quantity: null, aisle, food_group: null };
 }
 
 Deno.test("un plan de 7 jours avec une cuisson tardive produit DEUX vagues", () => {
@@ -295,11 +300,11 @@ Deno.test("la ligne persistée produit les MÊMES vagues que la forme camelCase"
 
 Deno.test("wavesAreMeaningful: une seule vague ne se montre pas", () => {
   assertEquals(wavesAreMeaningful([]), false);
-  assertEquals(wavesAreMeaningful([{ buyOn: "a", items: [], servesCookOn: null }]), false);
+  assertEquals(wavesAreMeaningful([{ buyOn: "a", items: [], servesCookOn: null, servesCookDates: [] }]), false);
   assertEquals(
     wavesAreMeaningful([
-      { buyOn: "a", items: [], servesCookOn: null },
-      { buyOn: "b", items: [], servesCookOn: null },
+      { buyOn: "a", items: [], servesCookOn: null, servesCookDates: [] },
+      { buyOn: "b", items: [], servesCookOn: null, servesCookDates: [] },
     ]),
     true,
   );

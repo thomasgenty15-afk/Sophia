@@ -77,9 +77,24 @@ describe("le rythme — il a des lecteurs, et aucun n'est une consigne", () => {
       selectsPace("supabase/functions/generate-household-meal-v1/index.ts"),
       "le foyer ne dimensionne plus sur le rythme, ou n'en lit plus qu'une source",
     ).toBeGreaterThanOrEqual(2);
+    // ⟳ 2026-09-01 — LA LECTURE A CHANGÉ DE FICHIER, PAS D'EXISTENCE.
+    //
+    // `meal-energy-v1` lisait `profiles` + la doctrine + `student_goals` pour
+    // assembler les quatre portes de l'énergie. CALORIE_REVERSAL §6 donne un
+    // chiffre au chemin PHOTO, qui a besoin de la MÊME porte: l'assemblage est
+    // descendu dans `_shared/keel/energy_gate_io.ts`, et `meal-energy-v1`
+    // consomme `goalsRow` au lieu de le relire.
+    //
+    // ⚠️ ON CHERCHE DONC DANS LES DEUX, ET C'EST UNE SOMME. Épingler le seul
+    // `index.ts` rendrait cette garde rouge sur un déplacement correct — donc
+    // désarmée à la première session pressée. Épingler le seul assembleur
+    // laisserait passer le jour où `meal-energy-v1` relirait la table pour son
+    // compte, ce qui est exactement la double lecture qu'on vient de retirer.
     expect(
-      selectsPace("supabase/functions/meal-energy-v1/index.ts"),
-      "le conseil d'énergie ne lit plus le rythme",
+      selectsPace("supabase/functions/meal-energy-v1/index.ts") +
+        selectsPace("supabase/functions/_shared/keel/energy_gate_io.ts"),
+      "le conseil d'énergie ne lit plus le rythme — ni dans sa fonction edge, " +
+        "ni dans l'assembleur des quatre portes",
     ).toBeGreaterThanOrEqual(1);
   });
 

@@ -1598,6 +1598,32 @@ export async function generateHouseholdMeal(args: {
    * envie reste byte-identique à celui d'hier.
    */
   preferences: string | null;
+  /**
+   * « TOUT DANS UNE SESSION DE CUISINE » — 2026-09-01.
+   *
+   * ⚠️ REQUIS, jamais `?`. Même arbitrage que `preferences` juste au-dessus, et
+   * pour la cicatrice qui y est écrite noir sur blanc: un `?` aurait laissé
+   * passer sans un mot l'appelant qui l'oublie, et l'option serait construite,
+   * testée, visible à l'écran — et jamais transmise.
+   *
+   * ⛔ IL NE S'ÉCRIT NULLE PART. Il voyage avec LA DEMANDE, comme le mode de
+   * cuisson et le budget: « cette semaine-ci, je cuisine une seule fois » est un
+   * arbitrage de semaine.
+   */
+  oneCookingSession: boolean;
+  /**
+   * « JE CUISINE LA VEILLE » — 2026-09-01.
+   *
+   * ⚠️ REQUIS, jamais `?`. Même arbitrage que `oneCookingSession` juste
+   * au-dessus: un champ facultatif n'aurait fait remonter AUCUN appelant au
+   * compilateur, et la case serait construite sans être transmise.
+   *
+   * ⛔ LE SERVEUR TRANCHE LA FAISABILITÉ (`withCookDayBefore`), et il le DIT
+   * quand il refuse. L'écran pose la même porte pour ne pas PROPOSER un geste
+   * qui sera refusé — le corps de la requête est écrit par le réseau, pas par
+   * l'écran.
+   */
+  cookTheDayBefore: boolean;
 }): Promise<HouseholdMealResult> {
   const { data, error } = await supabase.functions.invoke("generate-household-meal-v1", {
     body: {
@@ -1623,6 +1649,11 @@ export async function generateHouseholdMeal(args: {
       // `buildMealPrompt`, et un alias ici aurait fabriqué un champ que la
       // fonction edge ignore poliment.
       preferences: args.preferences,
+      // ⚠️ LE NOM DU SERVEUR. `generate-household-meal-v1` lit
+      // `body.one_cooking_session === true`; une autre orthographe ici serait
+      // une case cochée qui ne part nulle part, et rien ne le dirait.
+      one_cooking_session: args.oneCookingSession,
+      cook_the_day_before: args.cookTheDayBefore,
     },
   });
   if (error) throw new Error(await namedEdgeRefusal(error) ?? error.message);

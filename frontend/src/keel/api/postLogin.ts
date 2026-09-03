@@ -61,6 +61,7 @@
 
 import { supabase } from "../../lib/supabase";
 import { loadKeelRole } from "./keelClient";
+import { isProSurfaceHidden } from "../../security/proSurface";
 
 export type HomePath =
   | "/coach"
@@ -187,3 +188,57 @@ export async function resolveHomePath(userId: string): Promise<HomePath | null> 
 }
 
 export default resolveHomePath;
+
+// ── LANCEMENT B2C — LE MONDE PRO EST FERMÉ, Y COMPRIS AUX COMPTES EXISTANTS ─
+//
+// `isProSurfaceHidden()` retire les pages de vente pro et l'inscription coach.
+// Ça ne suffit PAS à tenir la phrase « un professionnel ne peut pas se
+// connecter »: `/auth` est la porte des DEUX mondes, et un compte `coaches`
+// déjà créé s'y connecte par le formulaire ordinaire. Ce prédicat est la
+// seconde moitié, et il est lu à deux endroits — la porte (`/auth`, qui
+// déconnecte) et la garde (`CoachRoute`, pour une session déjà ouverte avant
+// le lancement, qu'aucun refus de porte n'atteint).
+//
+// ⚠️ L'ADMIN INTERNE EST EXCLU, ET CE N'EST PAS UNE FAVEUR. Le refus de porte
+// DÉCONNECTE. Sans ce carve-out, un compte à la fois admin et coach perdrait
+// tout le produit — `/admin`, `/admin/usage`, le journal de production — pour
+// une raison qui ne concerne que l'espace pro. C'est une non-régression.
+//
+// FAIL OPEN, ET C'EST L'INVERSE DE `CoachRoute`. Cette garde-ci n'est pas une
+// frontière (RLS l'est, et elle n'a pas bougé): elle retire une surface
+// commerciale. Une lecture qui échoue doit donc laisser passer, pas verrouiller
+// — sinon une base momentanément injoignable déconnecte tout le monde à la
+// porte, foyers compris, puisqu'on ne sait alors de personne s'il est coach.
+
+/**
+ * Ce compte doit-il se voir refuser le monde pro ?
+ *
+ * `true` seulement quand les TROIS conditions tiennent: le drapeau est levé,
+ * le compte porte une ligne `coaches` ACTIVE, et il n'est pas admin interne.
+ * Toute lecture en échec rend `false` — voir « fail open » ci-dessus.
+ */
+export async function isProAccessRefused(userId: string): Promise<boolean> {
+  if (!isProSurfaceHidden()) return false;
+  try {
+    const coachRes = await supabase
+      .from("coaches")
+      .select("status")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (coachRes.error) return false;
+    const coach = coachRes.data as { status: string } | null;
+    if (coach?.status !== "active") return false;
+
+    // L'admin n'est demandé QUE si le refus est par ailleurs acquis: une
+    // requête de moins sur le chemin de connexion de tous les autres comptes.
+    const adminRes = await supabase
+      .from("internal_admins")
+      .select("user_id")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (adminRes.error) return false;
+    return !adminRes.data;
+  } catch {
+    return false;
+  }
+}

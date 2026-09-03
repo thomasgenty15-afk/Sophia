@@ -42,8 +42,64 @@ export const ACCEPTED_PHOTO_MIME_TYPES = [
 export const MAX_PHOTO_BYTES = 8 * 1024 * 1024;
 
 export interface MealPhotoDetectedFood {
+  /**
+   * LE NOM ANGLAIS, ET IL LE RESTE — un matcher le lit côté serveur
+   * (`planned_dish_match.ts`, contre le catalogue anglais `food_items`). Ce
+   * champ n'est PAS celui qu'on affiche à un élève francophone.
+   */
   label: string;
+  /**
+   * LE MÊME ALIMENT DANS LA LANGUE DE L'ÉLÈVE, quand le modèle l'a rendu.
+   *
+   * Optionnel et nullable exprès: les lignes analysées avant
+   * `meal_analysis.v4` ne le portent pas, et rien ne les réécrit — ce sont des
+   * lectures faites à une date, pas des données à normaliser. Tout affichage
+   * retombe donc sur `label`.
+   */
+  label_localized?: string | null;
   food_group_ref: string | null;
+}
+
+/**
+ * Le nom À MONTRER pour un aliment détecté.
+ *
+ * UNE fonction plutôt qu'un `??` recopié: il y a deux surfaces qui affichent
+ * ces libellés (`TodayPage`, et la carte de la semaine), et c'est exactement le
+ * genre de repli qu'une seule des deux finit par oublier.
+ */
+export function detectedFoodLabel(food: MealPhotoDetectedFood): string {
+  return String(food.label_localized ?? "").trim() || food.label;
+}
+
+/**
+ * D'OÙ VIENT UN CHIFFRE D'ÉNERGIE. Miroir de `EnergyBasis` côté serveur.
+ *
+ * ⚠️ LES DEUX VALEURS NE VALENT PAS PAREIL, ET L'ÉCRAN DOIT LE DIRE.
+ * `photo_estimate` a été mesurée sur ce produit à −26,6 % de biais,
+ * systématique, toujours du même côté et pire sur les gros repas — un élève en
+ * excédent y lit un chiffre rassurant. `declared_quantities` vaut 2,3 % de
+ * MAPE. Les rendre de la même façon mentirait sur la fiabilité de l'une des
+ * deux, et ce serait celle qui rassure à tort.
+ */
+export type EnergyBasis = "declared_quantities" | "photo_estimate";
+
+/**
+ * UN CHIFFRE D'ÉNERGIE, ET IL NE VOYAGE JAMAIS SANS SA BASE.
+ *
+ * ⚠️ LA SEULE FORME SOUS LAQUELLE UN KCAL A LE DROIT D'ATTEINDRE CET ÉCRAN.
+ * `CALORIE_REVERSAL.md` §5 en fait une propriété du harnais: *« tout rendu qui
+ * affiche `kcal` affiche aussi sa base »*. Un `number` nu ici — même
+ * « temporairement », même « juste pour la tendance » — est le défaut que tout
+ * ce chantier existe pour rendre impossible.
+ *
+ * ⛔ ET IL NE SE SOMME PAS. Le biais de −26,6 % n'est divisé que par 1,04 en
+ * cumul hebdomadaire; les deltas sont 2,5× pires que les niveaux. Une courbe
+ * construite là-dessus serait fausse dans une direction flatteuse.
+ */
+export interface MealPhotoEnergyEstimate {
+  kcal: number;
+  basis: EnergyBasis;
+  confidence_band: ConfidenceBand;
 }
 
 export interface MealPhotoCommitmentMatch {
@@ -67,6 +123,16 @@ export interface MealPhotoRecognized {
   confidence_band?: ConfidenceBand;
   image_quality?: ImageQuality;
   subject_kind?: SubjectKind;
+  /**
+   * `null` est la réponse NORMALE, et c'est aussi ce qu'écrit une porte fermée
+   * (plancher TCA, mineur, coach qui ne compte pas, affichage éteint). Les deux
+   * cas sont indiscernables ICI, et c'est voulu: l'écran n'a pas à savoir
+   * pourquoi il n'y a pas de chiffre — il n'en montre pas, point.
+   *
+   * Optionnel: les lignes analysées avant `meal_analysis.v5` ne le portent pas,
+   * et rien ne les réécrit.
+   */
+  energy_estimate?: MealPhotoEnergyEstimate | null;
 }
 
 export interface MealPhotoUploadResult {

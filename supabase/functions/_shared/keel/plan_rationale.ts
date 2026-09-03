@@ -81,8 +81,59 @@ export type RationaleRefusal = "guilt_tripping" | "nothing_to_explain";
  * peut affirmer ni l'un ni l'autre.
  */
 export interface PlanRationaleFacts {
+  /**
+   * ══════════════════════════════════════════════════════════════════════════
+   * LE PLAN EST-IL PLUS LÉGER QUE CE QUE CE CORPS DEMANDE ? — 2026-08-23.
+   * ══════════════════════════════════════════════════════════════════════════
+   *
+   * `true` = le verdict de composition a rendu `energy: "below"` SUR LE PLAN
+   * QUI PART. `false` = il l'a mesuré et il est dans la bande. `null` = il n'y
+   * a pas de verdict d'énergie: plancher TCA, corps inconnu, plan illisible.
+   *
+   * ── POURQUOI CE FAIT EXISTE ───────────────────────────────────────────────
+   * Mesuré le 2026-08-23 sur dix générations réelles: le verdict disait `below`
+   * sur SEPT plans sur sept, la boucle de correction levait `raise_energy` sept
+   * fois, payait une relance de modèle — et le plan partait quand même. Rien de
+   * cet écart n'atteignait la personne: ni `issues`, ni `rationale`, ni la
+   * charge rendue. Décision produit de l'utilisateur, 2026-08-23: **on livre, et
+   * on le dit.**
+   *
+   * ⛔ ET SEULEMENT DANS CE SENS-LÀ. `"above"` ne produit AUCUNE ligne, et ce
+   * n'est pas un oubli: « ton plan est trop gros » est très exactement le
+   * verdict de tracker que `energy_target.ts` refuse depuis toujours d'adresser
+   * à un élève. L'asymétrie EST la décision — la seule direction qu'on ouvre
+   * est celle qui invite à manger plus.
+   *
+   * ⚠️ REQUIS, `boolean | null`, jamais `T?`. Un appelant qui ne sait pas passe
+   * `null` EXPLICITEMENT, et c'est le compilateur qui les recense — la lane
+   * foyer ne calcule pas ce verdict-là (elle a `anchorFactorFor`), elle doit
+   * donc dire `null` et non se taire.
+   */
+  energyBelowBand: boolean | null;
   /** Les jours que l'élève a COCHÉS. `[]` = il n'en a coché aucun. */
   declaredCookDays: readonly DayToken[];
+  /**
+   * LES JOURS COCHÉS QUE CETTE FENÊTRE ATTEINT ENCORE — 2026-09-01.
+   *
+   * ⛔ IL VIENT DE `usableCookDays` (`meal_generation.ts`), LA FONCTION QUE LA
+   * CONSIGNE APPELLE. Jamais d'un filtre réécrit ici: c'est très exactement le
+   * défaut que ce fait répare. L'intersection vivait EN LIGNE dans
+   * `cookDayLines`, ce module ne pouvait pas la lire, et il affirmait donc
+   * « tu cuisines dimanche, et c'est ce qui a été gardé » sur un plan
+   * lundi→vendredi d'où le dimanche venait d'être retiré. Deux calculs du même
+   * écart divergeraient, et ce serait l'explication qui aurait tort — la règle
+   * déjà écrite pour `addedCookDays`.
+   *
+   * ⚠️ CE QUI A ÉTÉ ÉCARTÉ SE DÉDUIT ICI, par différence: `declaredCookDays`
+   * moins ceux-ci. C'est une opération d'ensemble sur deux listes qu'on nous
+   * donne, pas une seconde lecture de la RÈGLE — et deux faits redondants
+   * pourraient, eux, se contredire.
+   *
+   * ⚠️ REQUIS. Un appelant qui n'a pas su lire la fenêtre passe la même liste
+   * que `declaredCookDays`, ce qui dit « rien n'a été écarté » — le
+   * comportement d'avant ce lot, au caractère près.
+   */
+  usableCookDays: readonly DayToken[];
   /**
    * Les jours que le moteur a AJOUTÉS parce que la fenêtre l'exigeait.
    * `[]` = aucun ajout, et c'est le cas nominal.
@@ -114,6 +165,139 @@ export interface PlanRationaleFacts {
   slotsDroppedToday: readonly string[];
   /** Les créneaux marqués absents DANS la fenêtre. `[]` = personne n'est parti. */
   awayInWindow: readonly { day: DayToken; slot: string }[];
+  /**
+   * LES CASES QUE LE PLAN NE REMPLIT PAS — 2026-09-01.
+   *
+   * ⛔ IL VIENT DE `meal.empty_slots`, QUE LE PARSEUR REND DÉJÀ. Le calcul
+   * existe depuis le 2026-08-12 (`emptySlotsIn`), il est écrit dans
+   * `generated_from.empty_slots` par les deux lanes — et il n'avait AUCUN
+   * lecteur. Mesuré le 2026-09-01: un plan de sept jours à une seule session
+   * de cuisine rend quatre journées au petit-déjeuner seul, et l'écran affiche
+   * quatre cases vides sans un mot. `PlanGrid` ne comble pas ce silence: ses
+   * propres `issues` portent les COLLISIONS, pas les trous.
+   *
+   * ⚠️ NE PAS LE RECALCULER ICI. `emptySlotsIn` sait déjà ce qui n'est PAS un
+   * trou — une absence déclarée, un apport fixe, un moment hors rythme — et une
+   * seconde lecture déclarerait des trous là où le vide est voulu.
+   *
+   * ⚠️ ON CONSTATE, ON N'ACCUSE PAS, et on ne dit pas POURQUOI: la cause
+   * (fenêtre du cuit, verrou numérique, plafond de plats) n'est pas dans les
+   * faits, et l'inventer serait pire que le silence. Les lignes du dessus —
+   * jours de cuisine, absences — donnent déjà la matière.
+   *
+   * ⚠️ REQUIS. `[]` dit « le plan est complet », et c'est une affirmation que
+   * l'appelant doit faire exprès.
+   */
+  emptySlots: readonly { day: DayToken; slot: string }[];
+  /**
+   * LES JOURS QU'AUCUN LOT NE PEUT NOURRIR — 2026-09-01.
+   *
+   * ⛔ IL VIENT DE `daysOutOfBatchReach` (`plan_feasibility.ts`), LA FONCTION
+   * QUE LA CONSIGNE APPELLE. Jamais d'un calcul refait ici: c'est la troisième
+   * fois que ce module écrit cette phrase (`usableCookDays`, `addedCookDays`),
+   * et les deux premières l'ont été parce qu'un second calcul avait fini par
+   * faire dire à l'explication l'inverse de la consigne.
+   *
+   * ⚠️ CE N'EST PAS UN REPROCHE, ET LE GABARIT LE TIENT. « Tu n'as pas assez
+   * cuisiné » retournerait la phrase contre la personne. Le fait est une
+   * propriété du FRIGO — un lot ne tient pas si longtemps — et la sortie est
+   * dans la phrase: ces jours-là se cuisinent sur le moment.
+   */
+  daysOutOfBatchReach: readonly DayToken[];
+  /**
+   * ═════════════════════════════════════════════════════════════════════════
+   * « TOUT DANS UNE SESSION DE CUISINE » — CE QUE LA DEMANDE EST DEVENUE.
+   * ═════════════════════════════════════════════════════════════════════════
+   *
+   * `null` = la case n'a pas été cochée, et AUCUNE ligne ne sort. C'est le cas
+   * de tous les plans d'avant le 2026-09-01, et de la grande majorité après.
+   *
+   * ⛔ IL PORTE LES DEUX ISSUES, ET C'EST TOUT SON INTÉRÊT:
+   *   · `day` — le jour où la session a été posée, tel que la CONSIGNE l'a
+   *     nommé (`singleSessionCookDay`). `null` quand aucun jour n'est connu:
+   *     le modèle l'a choisi, et affirmer un jour qu'on n'a pas décidé serait
+   *     un fait faux déterministe — la famille de défaut que ce module existe
+   *     pour ne plus produire.
+   *   · `refusedNoFreezer` — la case était cochée et le foyer n'a PAS déclaré
+   *     de congélateur. La demande est alors ignorée, et c'est du rang 2:
+   *     « rien de rang 2 ne part sans une ligne ». Sans elle, quelqu'un coche
+   *     l'option, reçoit un plan à trois jours de cuisine, et rien ne dit
+   *     pourquoi.
+   *
+   * ⚠️ LES DEUX NE SORTENT JAMAIS ENSEMBLE. Une demande refusée n'a pas de
+   * jour de session unique — il n'y en a pas eu.
+   */
+  oneCookingSession:
+    | { readonly day: DayToken | null; readonly refusedNoFreezer: boolean }
+    | null;
+  /**
+   * ═════════════════════════════════════════════════════════════════════════
+   * « JE CUISINE LA VEILLE » — ACCORDÉE, OU REFUSÉE ET POURQUOI.
+   * ═════════════════════════════════════════════════════════════════════════
+   *
+   * `null` = la case n'a pas été cochée, et AUCUNE ligne ne sort.
+   *
+   * ⛔ LE REFUS EST DU RANG 2, ET IL DOIT PARLER. La demande est
+   * satisfaisable ou elle ne l'est pas, et les deux raisons sont des faits de
+   * calendrier que la personne ne peut pas deviner: soit le plan commence
+   * aujourd'hui (la veille est hier), soit il fait déjà sept jours (le jour
+   * ajouté déborderait le plafond). Sans phrase, elle coche une case, reçoit un
+   * plan qui commence quand même le premier jour, et n'a aucun moyen de savoir
+   * si l'option est cassée ou si sa semaine ne s'y prêtait pas.
+   *
+   * ⚠️ `day` EST LE JOUR ACCORDÉ, jamais celui qui aurait pu l'être: on ne
+   * nomme pas une date qui n'existe dans aucun plan.
+   */
+  cookDayBefore:
+    | { readonly day: DayToken | null; readonly refused: string | null }
+    | null;
+  /**
+   * ═════════════════════════════════════════════════════════════════════════
+   * LES JOURS DE COURSES — 2026-09-01.
+   * ═════════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ LE DÉFAUT QU'ILS FERMENT, RAPPORTÉ SUR UN PLAN RÉEL: « ça me disait de
+   * cuisiner le poulet acheté le lundi, le samedi ». Le moteur SAVAIT que ce
+   * poulet s'achète le jeudi — `grocery_waves.ts` le calcule depuis le
+   * 2026-08-22 — et aucun texte du plan ne l'a jamais dit. Une liste sans jour
+   * se lit « achète tout maintenant », et c'est ce qui a été fait.
+   *
+   * ⚠️ EN JETONS DE JOUR, comme tout le reste de ce module. Les dates
+   * `YYYY-MM-DD` vivent sur la ligne de courses (`shopping_list[].buy_on`), où
+   * elles servent à cocher; ici on parle à quelqu'un, et « jeudi » est ce
+   * qu'il retient.
+   *
+   * `[]` = on n'a pas su dater les courses (fenêtre illisible, liste vide).
+   * Aucune ligne ne sort alors — on ne devine pas un jour de magasin.
+   */
+  shoppingDays: readonly DayToken[];
+  /**
+   * LES JOURS DE CUISSON DONT LE FRAIS NE PEUT PAS VENIR DE LA PREMIÈRE COURSE.
+   *
+   * ⛔ IL VIENT DE `rawKeepingBreaches` (`raw_keeping.ts`), LA FONCTION QUE LA
+   * CONSIGNE LIT AUSSI. Cinquième fois que ce module écrit cette phrase — et
+   * les quatre premières l'ont été parce qu'un second calcul avait fini par
+   * faire dire à l'explication l'inverse de la consigne.
+   *
+   * ⚠️ CE N'EST PAS UN REPROCHE, ET LE GABARIT LE TIENT. Cuisiner du poulet le
+   * samedi est légitime; ce qui ne l'est pas, c'est de le faire acheter lundi
+   * sans le dire. La phrase porte donc la SORTIE — on achète au plus près.
+   */
+  shopLaterDays: readonly DayToken[];
+  /**
+   * LES SESSIONS PLUS LONGUES QUE CE QUI A ÉTÉ DEMANDÉ. `[]` = aucune.
+   *
+   * ⛔ IL EST LA CONTREPARTIE D'UNE PERMISSION. Depuis le 2026-09-01 la
+   * consigne AUTORISE une session à déborder quand c'est la seule sortie —
+   * cuisiner moins laisserait des journées vides. Une permission sans annonce
+   * serait une légalisation du silence: quelqu'un qui a déclaré trente minutes
+   * doit lire qu'il en faudra cinquante AVANT de se mettre aux fourneaux, pas
+   * devant ses casseroles.
+   *
+   * Vient de `meal.session_overruns`, structuré — jamais d'une ligne d'`issues`
+   * reparsée.
+   */
+  sessionOverruns: readonly { day: DayToken; minutes: number; declared: number }[];
   /** Le budget appliqué. `null` = aucun budget n'a été lu. */
   budgetAmount: number | null;
   /**
@@ -252,12 +436,121 @@ const COPY = {
     windowShortened: (asked: number, kept: number) =>
       `Tu en avais demandé ${asked} : la semaine se termine avant, il en reste ${kept}.`,
     cookDeclaredKept: (days: string) => `Tu cuisines ${days}, et c'est ce qui a été gardé.`,
+    // ── LES JOURS DE CUISINE QUE LA FENÊTRE N'ATTEINT PAS (2026-09-01) ────
+    // DEUX GABARITS ET PAS UN AVEC UNE LISTE FACULTATIVE: « les sessions sont
+    // posées » et « les sessions sont posées mercredi » ne disent pas la même
+    // chose, et une phrase qui doit se lire dans les deux cas finit par ne
+    // rien dire dans aucun. Même arbitrage que les trois formes du compteur de
+    // reprises.
+    //
+    // ⛔ AUCUN REPROCHE, porte 3: « ce plan ne va pas jusque-là » dit le fait
+    // par la FENÊTRE, pas par la personne. « Tu as coché un jour qui n'y est
+    // pas » retournerait la phrase contre elle.
+    cookDeclaredDroppedAll: (dropped: string) =>
+      `Tu cuisines ${dropped}, mais ce plan ne va pas jusque-là : les sessions ` +
+      `sont posées sur les jours qu'il couvre.`,
+    cookDeclaredDroppedSome: (kept: string, dropped: string) =>
+      `Tu cuisines ${kept}, et c'est ce qui a été gardé : ${dropped} n'est pas ` +
+      `dans cette fenêtre.`,
     cookAdded: (added: string, declared: string) =>
       `Une session est posée ${added} : tu cuisines ${declared}, et rien de cuisiné ` +
       `là ne peut nourrir les jours d'avant. C'est un jour que tu n'avais pas demandé.`,
     cookAddedNoDeclared: (added: string) =>
       `Une session est posée ${added}, un jour que tu n'avais pas demandé : ` +
       `sans elle, les premiers jours n'auraient rien à réchauffer.`,
+    // ── LES CASES QUE LE PLAN NE REMPLIT PAS (2026-09-01) ────────────────
+    // DEUX FORMES, parce qu'un seul gabarit serait FAUX dans un cas sur deux:
+    // « mercredi et jeudi n'ont ni déjeuner ni dîner » ne se dit que si les
+    // deux jours manquent EXACTEMENT les mêmes moments. Sinon on compte —
+    // c'est la règle déjà écrite pour les absences (« comptées, pas
+    // énumérées »): huit lignes « mercredi midi » sont la grille écrite deux
+    // fois, pas une explication.
+    //
+    // ⛔ AUCUNE CAUSE N'EST NOMMÉE. On ne la connaît pas ici, et l'inventer
+    // serait un fait faux de plus.
+    // ⚠️ DEUX ACCORDS, ET C'EST LE NOMBRE DE MOMENTS QUI COMMANDE — pas celui
+    // des trous. Le sujet de la phrase est la liste des moments: « le dîner
+    // n'ont pas été composés » est ce qu'un gabarit unique produisait, et un
+    // test l'a attrapé avant l'écran.
+    // ── CE QU'AUCUN LOT N'ATTEINT (2026-09-01) ───────────────────────────
+    // ⛔ LE FAIT EST UNE PROPRIÉTÉ DU FRIGO, PAS UN MANQUE DE LA PERSONNE. Et
+    // la phrase porte SA SORTIE: « ils se cuisinent sur le moment » dit quoi
+    // faire, là où « ne peuvent pas vivre d'un lot » laisserait quelqu'un
+    // devant un problème sans réponse.
+    // ⚠️ LA PHRASE NE COMMENCE PAS PAR LA LISTE, ET C'EST UNE CORRECTION D'ÉCRAN.
+    // `renderDays` rend les jours en MINUSCULES en français — « mercredi,
+    // jeudi et samedi sont trop loin » ouvrait donc la phrase sur une
+    // minuscule. Mettre une capitale à la volée casserait au premier jour
+    // rendu autrement; on écrit la phrase dans l'autre sens, et le problème
+    // n'existe plus. Une garde relit toutes les lignes rendues.
+    outOfReachOne: (day: string) =>
+      `Aucun lot ne tient jusqu'à ${day} : ce jour-là se cuisine sur le moment.`,
+    outOfReachMany: (days: string) =>
+      `Aucun lot ne tient jusqu'à ${days} : ces jours-là se cuisinent sur le ` +
+      `moment.`,
+    // ── LA SESSION UNIQUE, ET CE QU'ELLE IMPLIQUE ────────────────────────
+    // ⚠️ AUCUN NOMBRE DE JOURS DANS CETTE PHRASE, ET C'EST DÉLIBÉRÉ.
+    // `MAX_FRIDGE_DAYS` vit dans `meal_generation.ts`, que ce module ne peut
+    // pas importer (il serait alors impossible à monter côté Vite). Écrire
+    // « trois jours » ici en ferait une SECONDE définition du nombre, et ce
+    // dépôt sait laquelle des deux garde l'ancienne valeur: celle qu'on
+    // regarde le moins.
+    singleSessionOn: (day: string) =>
+      `Tout est cuisiné ${day}, en une seule fois : ce qui ne tiendrait pas ` +
+      `au frais jusqu'au repas part au congélateur.`,
+    singleSessionNoDay: () =>
+      `Tout est cuisiné en une seule session : ce qui ne tiendrait pas au ` +
+      `frais jusqu'au repas part au congélateur.`,
+    // ⛔ ELLE NE REPROCHE RIEN ET ELLE DIT OÙ RÉPARER. « Il n'y en a pas de
+    // déclaré » est un fait sur le formulaire, pas sur la cuisine: quelqu'un
+    // qui a un congélateur et n'a jamais vu la question doit comprendre qu'il
+    // lui reste une case à cocher, pas qu'on lui refuse quelque chose.
+    singleSessionNeedsFreezer: () =>
+      `Une seule session de cuisine demande un congélateur, et il n'y en a ` +
+      `pas de déclaré : le plan pose lui-même ses sessions.`,
+    // ── LA VEILLE ────────────────────────────────────────────────────────
+    // ⚠️ ELLE DIT LES DEUX MOITIÉS: le plan commence plus tôt (un fait de
+    // calendrier qui surprendrait sinon) ET rien ne se mange ce jour-là (sans
+    // quoi la journée se lit comme un trou).
+    cookDayBeforeGranted: (day: string) =>
+      `Le plan commence ${day}, un jour plus tôt : c'est le jour de cuisine, ` +
+      `et rien ne s'y mange.`,
+    cookDayBeforeNoRoom: () =>
+      `Cuisiner la veille demandait un jour de plus, et ce plan en couvre ` +
+      `déjà sept — le maximum. La cuisine reste dans la fenêtre.`,
+    cookDayBeforeInThePast: () =>
+      `Cuisiner la veille aurait fait commencer le plan hier. Il part de son ` +
+      `premier jour, et la cuisine s'y fait.`,
+    // ── LES COURSES ──────────────────────────────────────────────────────
+    // ⚠️ LE SINGULIER ET LE PLURIEL NE DISENT PAS LA MÊME CHOSE. Une seule
+    // course est une BONNE nouvelle qu'il faut annoncer comme telle (« tout
+    // tient »); deux sont un déplacement de plus, et la phrase doit dire à quoi
+    // il sert, sinon il se lit comme une corvée arbitraire.
+    shoppingOnce: (day: string) =>
+      `Une seule course, ${day} : tout ce que le plan demande tient jusqu'à ` +
+      `sa cuisson.`,
+    shoppingSeveral: (n: number, days: string) =>
+      `Les courses se font en ${n} fois : ${days}. Les suivantes existent pour ` +
+      `que le frais n'attende pas la casserole.`,
+    shopLater: (days: string) =>
+      `Ce qui se cuisine ${days} s'achète au plus près de ce jour-là : de la ` +
+      `viande ou du poisson frais pris à la première course ne tiendrait pas ` +
+      `jusque-là.`,
+    // ── LA SESSION QUI DÉBORDE, DITE AVANT LES FOURNEAUX ─────────────────
+    // Le chiffre DÉCLARÉ est rappelé: sans lui, « compte 1 h 10 » se lit comme
+    // une estimation venue de nulle part, au lieu d'un écart avec ce qu'on a
+    // soi-même demandé.
+    sessionRunsLong: (day: string, minutes: string, declared: string) =>
+      `La session de ${day} prendra plutôt ${minutes} que ${declared} : c'est ` +
+      `ton seul jour de cuisine, et cuisiner moins laisserait des jours vides.`,
+    gapsSameSlot: (days: string, slot: string) =>
+      `Sur ${days}, ${slot} n'a pas été composé.`,
+    gapsSameSlots: (days: string, slots: string) =>
+      `Sur ${days}, ${slots} n'ont pas été composés.`,
+    gapsCounted: (n: number, days: string) =>
+      n === 1
+        ? `Un repas n'a pas été composé, sur ${days}.`
+        : `${n} repas n'ont pas été composés, sur ${days}.`,
     slotsDropped: (slots: string) =>
       `Pour aujourd'hui, ${slots} ne sont plus au plan : la journée est déjà entamée.`,
     slotDropped: (slot: string) =>
@@ -266,6 +559,19 @@ const COPY = {
       n === 1
         ? "Un repas est sauté, tu l'avais marqué hors de la maison."
         : `${n} repas sont sautés, tu les avais marqués hors de la maison.`,
+    // ── LE PLAN PLUS LÉGER QUE LE CORPS ──────────────────────────────────
+    // ⚠️ AUCUN CHIFFRE, et c'est non négociable: « pas de kcal, pas de grammes,
+    // pas de fourchette » vaut ici comme partout (`meal_generation.ts`, bloc
+    // « NEVER PUT A NUMBER ON NUTRITION »). La phrase dit un FAIT SUR LE PLAN,
+    // jamais un verdict sur la personne — le sujet est « ce plan », pas « tu ».
+    //
+    // ⚠️ ET ELLE OUVRE UNE PORTE, elle ne pose pas une consigne. « Ressers-toi
+    // si tu as encore faim » rend la main; « il faut manger plus » serait une
+    // prescription, et la porte anti-culpabilisation la couperait de toute
+    // façon — avec tout le reste du texte.
+    energyBelow:
+      "Ce plan est plus léger que ce que ton corps demande sur ces journées : " +
+      "ressers-toi si tu as encore faim.",
     budget: (amount: number) => `Le budget des courses est ${amount}.`,
     budgetCuts:
       "Pour y tenir, ce sont d'abord les protéines chères, puis les produits " +
@@ -356,12 +662,60 @@ const COPY = {
     windowShortened: (asked: number, kept: number) =>
       `You asked for ${asked}: the week ends before that, so ${kept} are left.`,
     cookDeclaredKept: (days: string) => `You cook on ${days}, and that is what was kept.`,
+    cookDeclaredDroppedAll: (dropped: string) =>
+      `You cook on ${dropped}, but this plan does not reach that far: the ` +
+      `sessions are set on the days it covers.`,
+    cookDeclaredDroppedSome: (kept: string, dropped: string) =>
+      `You cook on ${kept}, and that is what was kept: ${dropped} is not in ` +
+      `this window.`,
     cookAdded: (added: string, declared: string) =>
       `A session is set for ${added}: you cook on ${declared}, and nothing cooked ` +
       `then can feed the days before it. It is a day you did not ask for.`,
     cookAddedNoDeclared: (added: string) =>
       `A session is set for ${added}, a day you did not ask for: without it the ` +
       `first days would have nothing to reheat.`,
+    outOfReachOne: (day: string) =>
+      `No batch keeps until ${day}: that day is cooked on the day.`,
+    outOfReachMany: (days: string) =>
+      `No batch keeps until ${days}: those days are cooked on the day.`,
+    singleSessionOn: (day: string) =>
+      `Everything is cooked on ${day}, in one go: whatever would not keep in ` +
+      `the fridge until the meal goes in the freezer.`,
+    singleSessionNoDay: () =>
+      `Everything is cooked in a single session: whatever would not keep in ` +
+      `the fridge until the meal goes in the freezer.`,
+    singleSessionNeedsFreezer: () =>
+      `One cooking session needs a freezer, and none is declared: the plan ` +
+      `places its own sessions.`,
+    cookDayBeforeGranted: (day: string) =>
+      `The plan starts on ${day}, a day earlier: that is the cooking day, and ` +
+      `nothing is eaten on it.`,
+    cookDayBeforeNoRoom: () =>
+      `Cooking the day before needed one more day, and this plan already ` +
+      `covers seven — the most it can. The cooking stays inside the window.`,
+    cookDayBeforeInThePast: () =>
+      `Cooking the day before would have started the plan yesterday. It ` +
+      `starts on its first day, and the cooking happens there.`,
+    shoppingOnce: (day: string) =>
+      `One shop, on ${day}: everything this plan asks for keeps until it is ` +
+      `cooked.`,
+    shoppingSeveral: (n: number, days: string) =>
+      `Shopping happens ${n} times: ${days}. The later trips are there so ` +
+      `fresh food does not wait for the pan.`,
+    shopLater: (days: string) =>
+      `What is cooked on ${days} is bought close to that day: fresh meat or ` +
+      `fish from the first shop would not keep that long.`,
+    sessionRunsLong: (day: string, minutes: string, declared: string) =>
+      `The ${day} session will take ${minutes} rather than ${declared}: it is ` +
+      `your only cooking day, and cooking less would leave days empty.`,
+    gapsSameSlot: (days: string, slot: string) =>
+      `On ${days}, ${slot} was not composed.`,
+    gapsSameSlots: (days: string, slots: string) =>
+      `On ${days}, ${slots} were not composed.`,
+    gapsCounted: (n: number, days: string) =>
+      n === 1
+        ? `One meal was not composed, on ${days}.`
+        : `${n} meals were not composed, on ${days}.`,
     slotsDropped: (slots: string) =>
       `For today, ${slots} are off the plan: the day is already under way.`,
     slotDropped: (slot: string) =>
@@ -370,6 +724,11 @@ const COPY = {
       n === 1
         ? "One meal is skipped, you marked it away from home."
         : `${n} meals are skipped, you marked them away from home.`,
+    // Même posture qu'en français: un fait sur LE PLAN, aucun chiffre, et une
+    // porte ouverte plutôt qu'une consigne.
+    energyBelow:
+      "This plan comes out lighter than your body asks for on these days — " +
+      "go back for more if you are still hungry.",
     budget: (amount: number) => `The shopping budget is ${amount}.`,
     budgetCuts:
       "To stay inside it, expensive proteins give first, then out-of-season " +
@@ -499,7 +858,9 @@ function renderDuration(minutes: number, locale: RationaleLocale): string {
 
 /** Les champs REQUIS, dans l'ordre où le lecteur les cherchera. */
 const REQUIRED_FACTS: readonly (keyof PlanRationaleFacts)[] = [
+  "energyBelowBand",
   "declaredCookDays",
+  "usableCookDays",
   "addedCookDays",
   "window",
   "requestedWindow",
@@ -507,6 +868,13 @@ const REQUIRED_FACTS: readonly (keyof PlanRationaleFacts)[] = [
   "localMinuteOfDay",
   "slotsDroppedToday",
   "awayInWindow",
+  "emptySlots",
+  "daysOutOfBatchReach",
+  "oneCookingSession",
+  "cookDayBefore",
+  "shoppingDays",
+  "shopLaterDays",
+  "sessionOverruns",
   "budgetAmount",
   "mouthsServed",
   "handTakenBy",
@@ -597,14 +965,75 @@ export function explainPlanChoices(input: {
   // plan a posé un jeudi que personne n'avait coché.
   const added = facts.addedCookDays.filter(Boolean);
   const declared = facts.declaredCookDays.filter(Boolean);
-  if (added.length > 0) {
+  // ══════════════════════════════════════════════════════════════════════
+  // LA SESSION UNIQUE REMPLACE CE BLOC — elle ne s'y ajoute pas.
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ « Tu cuisines dimanche ET mercredi, et c'est ce qui a été gardé » à côté
+  // de « tout est cuisiné dimanche » sont deux faits dont un est FAUX. C'est
+  // mot pour mot la famille de défaut corrigée le 2026-09-01 sur
+  // `cookDeclaredDropped`: une phrase qui affirme le contraire de ce que le
+  // moteur a fait est pire qu'un silence.
+  //
+  // ⚠️ LE REFUS, LUI, LAISSE LE BLOC EN PLACE. Rien n'a été ramené à une seule
+  // session: les jours cochés sont bien ceux qui ont servi, et les gabarits du
+  // dessous les décrivent correctement. Ne pas les rendre ferait disparaître
+  // une explication juste au moment où la personne en a le plus besoin.
+  // ── LA VEILLE, AVANT LA SESSION UNIQUE ──────────────────────────────────
+  // ⚠️ L'ORDRE EST LE SENS. « Le plan commence dimanche, un jour plus tôt »
+  // explique la FENÊTRE; « tout est cuisiné dimanche » explique ce qu'on y
+  // fait. Lire la seconde d'abord ferait apparaître un jour dont on n'a pas
+  // encore dit d'où il sort.
+  const dayBefore = facts.cookDayBefore;
+  if (dayBefore !== null) {
+    if (dayBefore.refused === "no_room") {
+      lines.push(copy.cookDayBeforeNoRoom());
+    } else if (dayBefore.refused === "in_the_past") {
+      lines.push(copy.cookDayBeforeInThePast());
+    } else if (dayBefore.day) {
+      lines.push(copy.cookDayBeforeGranted(renderDays([dayBefore.day], input.locale)));
+    }
+  }
+
+  const singleSession = facts.oneCookingSession;
+  const singleSessionApplied = singleSession !== null &&
+    singleSession.refusedNoFreezer !== true;
+  if (singleSession !== null && singleSession.refusedNoFreezer === true) {
+    lines.push(copy.singleSessionNeedsFreezer());
+  }
+  if (singleSessionApplied) {
+    lines.push(
+      singleSession.day
+        ? copy.singleSessionOn(renderDays([singleSession.day], input.locale))
+        : copy.singleSessionNoDay(),
+    );
+  } else if (added.length > 0) {
     lines.push(
       declared.length > 0
         ? copy.cookAdded(renderDays(added, input.locale), renderDays(declared, input.locale))
         : copy.cookAddedNoDeclared(renderDays(added, input.locale)),
     );
   } else if (declared.length > 0) {
-    lines.push(copy.cookDeclaredKept(renderDays(declared, input.locale)));
+    // ── LES JOURS QUE LA FENÊTRE N'ATTEINT PAS ────────────────────────────
+    // ⛔ SANS CETTE BRANCHE, LA PHRASE DISAIT L'INVERSE DE LA CONSIGNE. Jours
+    // cochés `dimanche`, fenêtre lundi→vendredi: le prompt reçoit « none of
+    // those days are left in this stretch », et ce module écrivait « c'est ce
+    // qui a été gardé ». Mesuré et corrigé le 2026-09-01.
+    //
+    // `usable` vient du moteur (`usableCookDays`), donc l'écart est celui que
+    // la consigne a réellement appliqué.
+    const usable = facts.usableCookDays.filter(Boolean);
+    const dropped = declared.filter((d) => !usable.includes(d));
+    if (dropped.length === 0) {
+      lines.push(copy.cookDeclaredKept(renderDays(declared, input.locale)));
+    } else if (usable.length === 0) {
+      lines.push(copy.cookDeclaredDroppedAll(renderDays(dropped, input.locale)));
+    } else {
+      lines.push(copy.cookDeclaredDroppedSome(
+        renderDays(usable, input.locale),
+        renderDays(dropped, input.locale),
+      ));
+    }
   }
 
   // ── ③ LES CRÉNEAUX TOMBÉS PARCE QUE LA JOURNÉE ÉTAIT ENTAMÉE ────────────
@@ -624,6 +1053,88 @@ export function explainPlanChoices(input: {
   // explication, c'est la grille écrite deux fois.
   if (facts.awayInWindow.length > 0) {
     lines.push(copy.away(facts.awayInWindow.length));
+  }
+
+  // ── ④bis LES CASES QUE LE PLAN NE REMPLIT PAS ───────────────────────────
+  // APRÈS les absences, et la place est la moitié du sens: « quelqu'un n'était
+  // pas là » explique un vide VOULU, et il faut l'avoir lu avant d'apprendre
+  // qu'il en reste d'autres qui, eux, ne sont voulus par personne.
+  //
+  // `emptySlotsIn` a déjà retiré les absences et les apports fixes: ce qui
+  // arrive ici est du trou net.
+  const gaps = facts.emptySlots.filter((g) => g && g.day && g.slot);
+  if (gaps.length > 0) {
+    const days: string[] = [];
+    for (const gap of gaps) if (!days.includes(gap.day)) days.push(gap.day);
+    const slots: string[] = [];
+    for (const gap of gaps) if (!slots.includes(gap.slot)) slots.push(gap.slot);
+    // UNIFORME = chaque jour manque exactement les mêmes moments. C'est le cas
+    // d'un lot qui ne tient pas la semaine (mesuré: quatre jours sans déjeuner
+    // ni dîner), et c'est le seul où la phrase groupée est VRAIE.
+    const uniform = gaps.length === days.length * slots.length;
+    const named = renderDays(days, input.locale);
+    lines.push(
+      !uniform
+        ? copy.gapsCounted(gaps.length, named)
+        : slots.length === 1
+        ? copy.gapsSameSlot(named, renderSlots(slots, input.locale))
+        : copy.gapsSameSlots(named, renderSlots(slots, input.locale)),
+    );
+  }
+
+  // ── ④ter LES JOURS QU'AUCUN LOT N'ATTEINT ───────────────────────────────
+  // ⚠️ AVANT le constat de trous, ce serait mieux — mais ce n'est pas possible:
+  // les deux se lisent ensemble et celui-ci est la CAUSE. Il est donc placé
+  // juste après, et sa phrase porte la sortie plutôt que le problème.
+  //
+  // ⛔ ET IL SE TAIT QUAND LE PLAN N'A PAS DE TROU. Un plan de trois jours
+  // cuisiné le premier jour n'a rien hors de portée: la ligne ne sort pas, et
+  // c'est ce qui la rend lisible le jour où elle sort.
+  // ── ④bis LES COURSES, ET CE QU'ELLES NE PEUVENT PAS PORTER ─────────────
+  //
+  // ⚠️ AVANT les journées hors de portée, et c'est l'ordre du frigo: on achète,
+  // puis on cuisine, puis on garde. Lire « aucun lot ne tient jusqu'à samedi »
+  // avant de savoir quand on fait ses courses inverse la chaîne.
+  //
+  // ⛔ ET LA SECONDE PHRASE NE SORT QUE SI LA PREMIÈRE EST VRAIE POUR ELLE:
+  // dire « le frais de samedi s'achète au plus près » sans avoir dit qu'il y a
+  // plusieurs courses laisserait la personne chercher un magasin qu'aucune
+  // ligne ne lui a annoncé.
+  const shoppingDays = facts.shoppingDays.filter(Boolean);
+  if (shoppingDays.length === 1) {
+    lines.push(copy.shoppingOnce(renderDays(shoppingDays, input.locale)));
+  } else if (shoppingDays.length > 1) {
+    lines.push(copy.shoppingSeveral(
+      shoppingDays.length,
+      renderDays(shoppingDays, input.locale),
+    ));
+  }
+  const shopLater = facts.shopLaterDays.filter(Boolean);
+  if (shopLater.length > 0) {
+    lines.push(copy.shopLater(renderDays(shopLater, input.locale)));
+  }
+
+  const outOfReach = facts.daysOutOfBatchReach.filter(Boolean);
+  if (outOfReach.length > 0) {
+    lines.push(
+      outOfReach.length === 1
+        ? copy.outOfReachOne(renderDays(outOfReach, input.locale))
+        : copy.outOfReachMany(renderDays(outOfReach, input.locale)),
+    );
+  }
+
+  // ── ④quater LA SESSION QUI DÉBORDE ──────────────────────────────────────
+  // ⚠️ UNE PHRASE PAR SESSION, et il n'y en a jamais plus d'une: le
+  // débordement n'est autorisé QUE sur un unique jour de cuisine
+  // (`sessionCeilingMinutes`). La boucle est là parce que le fait est une
+  // liste, pas parce qu'on en attend plusieurs.
+  for (const over of facts.sessionOverruns) {
+    if (!over || !over.day) continue;
+    lines.push(copy.sessionRunsLong(
+      renderDays([over.day], input.locale),
+      renderDuration(over.minutes, input.locale),
+      renderDuration(over.declared, input.locale),
+    ));
   }
 
   // ── ⑤ LES BOUCHES ───────────────────────────────────────────────────────
@@ -734,6 +1245,21 @@ export function explainPlanChoices(input: {
   // L'ordre est celui de la consigne servie au modèle (`meal_generation.ts`):
   // protéines chères, puis hors saison, puis variété, jamais les portions.
   // Le dire ici, c'est rendre relisible ce que le plan a réellement demandé.
+  // ── ⑤bis · LE PLAN PLUS LÉGER QUE LE CORPS ──────────────────────────────
+  //
+  // ⛔ AVANT LE BUDGET, ET C'EST DÉLIBÉRÉ. Quand les deux sortent, le budget
+  // EXPLIQUE la légèreté (« les protéines chères cèdent d'abord »): le lire
+  // après le constat en fait une raison; le lire avant en ferait une excuse
+  // posée d'avance.
+  //
+  // ⛔ `=== true` ET PAS UNE COERCITION. `null` veut dire « pas mesurable »
+  // (plancher TCA, corps inconnu, plan illisible) et doit se taire — un `if
+  // (facts.energyBelowBand)` rendrait la même chose ici, mais le jour où le
+  // champ porte trois états, la coercition choisirait toute seule.
+  if (facts.energyBelowBand === true) {
+    lines.push(copy.energyBelow);
+  }
+
   if (facts.budgetAmount !== null && Number.isFinite(facts.budgetAmount)) {
     lines.push(copy.budget(facts.budgetAmount));
     lines.push(copy.budgetCuts);

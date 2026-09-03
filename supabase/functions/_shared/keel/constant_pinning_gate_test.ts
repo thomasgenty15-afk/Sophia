@@ -869,8 +869,13 @@ const DETTE_NON_EPINGLEE: ReadonlySet<string> = new Set([
  */
 const SENTINELLES: readonly string[] = [
   "KEEL_MINOR_AGE", // scalaire entier, module propre
-  "COMPOSED_DISH_MEAL_SHARE", // scalaire décimal, le cœur de la cicatrice
-  "MEAL_COMPONENT_KCAL", // `Record` numérique épinglé en entier
+  // ⟳ 2026-09-01 — DEUX SENTINELLES REMPLACÉES, PAS RETIRÉES. Les précédentes
+  // (`COMPOSED_DISH_MEAL_SHARE`, `MEAL_COMPONENT_KCAL`) ont été supprimées avec
+  // `composedDishShare`; les enlever d'ici sans remplaçant aurait rendu ce
+  // méta-test aveugle à DEUX causes de cécité, en silence — exactement ce qu'il
+  // existe pour empêcher. On garde donc une constante de chaque FORME.
+  "UNANSWERED_EXTRAS_SHARE", // scalaire décimal, le cœur de la cicatrice
+  "SLOT_DAY_WEIGHT", // `Record` numérique épinglé en entier
   "BOX_FACTOR_MAX", // module `M`, épinglé depuis un fichier NEUF
   // ⟳ LOT `X2″` (2026-08-23) — UNE SENTINELLE PAR CAUSE DE CÉCITÉ REFERMÉE.
   // Chacune de ces six-là était INVISIBLE au scanner de `X2′`, pour une raison

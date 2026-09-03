@@ -19,18 +19,17 @@ import {
   ANCHOR_FACTOR_MIN,
   ANCHOR_REASONS,
   type AnchorMouth,
-  COMPOSED_DISH_KCAL,
-  COMPOSED_DISH_MEAL_SHARE,
-  composedDishShare,
-  MEAL_COMPONENT_KCAL,
-  type MealStructure,
+  COMPOSED_DISH_MIN_MEAL_SHARE,
   mealStructureState,
   dayCoverageOf,
+  SLOT_DAY_WEIGHT,
+  WEIGHTED_SLOT_TOKENS,
   anchorFactorFor,
   householdAnchors,
   mouthTargetKcal,
 } from "./mouth_anchor.ts";
 import type { MouthDayEnergy } from "./mouth_energy.ts";
+import { MEAL_SLOTS } from "./meal_generation.ts";
 
 // ---------------------------------------------------------------------------
 // LE BANC — les corps RÉELS du foyer `5600347f`, lus en base le 2026-08-19
@@ -57,7 +56,7 @@ const IKU: AnchorMouth = {
   declaredSlots: [],
   // `null` = ces trois questions n'ont jamais été posées à sa fiche, donc la
   // moyenne `COMPOSED_DISH_MEAL_SHARE` gouverne — le banc d'avant le LOT ①.
-  structure: null,
+  slotExtraKcal: null,
 };
 
 const CHR: AnchorMouth = {
@@ -79,8 +78,39 @@ const CHR: AnchorMouth = {
   conditionRefs: [],
   // Le cas RÉEL du foyer `5600347f`: elle ne déjeune et ne dîne que.
   declaredSlots: ["lunch", "dinner"],
-  structure: null,
+  slotExtraKcal: null,
 };
+
+/**
+ * CE QUE LE PLAN DOIT FOURNIR, EN PART DE LA CIBLE DE JOURNÉE — 2026-09-01.
+ *
+ * ⛔ DES LITTÉRAUX, ET LA DÉRIVATION EN COMMENTAIRE. Les calculer depuis
+ * `SLOT_DAY_WEIGHT` et `UNANSWERED_EXTRAS_SHARE` ferait un banc paramétré par
+ * les constantes qu'il vérifie: il resterait vert le jour où l'une d'elles
+ * change, c'est-à-dire le jour où il devrait rougir.
+ *
+ * ── LES TROIS REPAS, FICHE MUETTE ─────────────────────────────────────────
+ *     petit-déjeuner  0,25 × 1      = 0,250   ← composé ENTIER, rien à côté
+ *     déjeuner        0,40 × 0,42   = 0,168   ← le plat seul, extras non dits
+ *     dîner           0,35 × 0,42   = 0,147
+ *                                     ─────
+ *                                     0,565
+ *
+ * ⚠️ C'ÉTAIT `0,42` AVANT LE 2026-09-01, POUR LES TROIS À LA FOIS. La
+ * convention du dîner français s'appliquait aussi au petit-déjeuner, que le
+ * plan compose pourtant entièrement. +34,5 % sur ce décor, et c'est le sujet du
+ * lot — voir l'épitaphe de `composedDishShare` dans `mouth_anchor.ts`.
+ */
+const THREE_MEALS_SHARE = 0.565;
+
+/**
+ * UN SEUL MOMENT PORTEUR D'EXTRAS, FICHE MUETTE ⇒ la convention d'hier, intacte.
+ *
+ * ⚠️ C'EST LA LIGNE À +0 % DE LA MESURE, et elle vaut preuve: si le lot avait
+ * déplacé quelque chose ici, il aurait déplacé une convention au lieu de
+ * corriger une erreur de portée.
+ */
+const EXTRA_SLOT_SHARE = 0.42;
 
 function day(over: Partial<MouthDayEnergy> & { memberId: string }): MouthDayEnergy {
   return {
@@ -207,14 +237,14 @@ Deno.test("le facteur ferme l'écart entre la cible et le livré", () => {
   const target = mouthTargetKcal(IKU, "no_position").kcal!;
   // Un livré volontairement PROCHE de la cible: le facteur reste dans les
   // bornes et vaut exactement le rapport.
-  const delivered = Math.round(target * COMPOSED_DISH_MEAL_SHARE * 0.9);
+  const delivered = Math.round(target * THREE_MEALS_SHARE * 0.9);
   const got = anchorFactorFor(IKU, day({ memberId: "m_iku", kcal: delivered }), "no_position");
   assertEquals(got.reason, "anchored");
   // ⚠️ LE PLAT NE PORTE PAS LE REPAS ENTIER: la cible est réduite à la part que
   // le plan compose réellement. Le reste (pain, fromage, dessert) existe dans
   // l'assiette sans être composé.
-  assertEquals(got.factor, (target * COMPOSED_DISH_MEAL_SHARE) / delivered);
-  assertEquals(got.raw, (target * COMPOSED_DISH_MEAL_SHARE) / delivered);
+  assertEquals(got.factor, (target * THREE_MEALS_SHARE) / delivered);
+  assertEquals(got.raw, (target * THREE_MEALS_SHARE) / delivered);
 });
 
 Deno.test("deux corps différents reçoivent deux facteurs différents sur le MÊME plan", () => {
@@ -370,7 +400,7 @@ Deno.test("une journée ENTIÈREMENT composée n'est pas réduite", () => {
   // plat s'applique, et elle est nommée à part.
   assertEquals(
     got.targetKcal,
-    Math.round(mouthTargetKcal(IKU, "no_position").kcal! * COMPOSED_DISH_MEAL_SHARE),
+    Math.round(mouthTargetKcal(IKU, "no_position").kcal! * THREE_MEALS_SHARE),
   );
 });
 
@@ -464,7 +494,7 @@ Deno.test("le plafond physique ne mord pas sur une journée normale", () => {
     IKU,
     day({
       memberId: "m_iku",
-      kcal: Math.round(target * COMPOSED_DISH_MEAL_SHARE * 0.9),
+      kcal: Math.round(target * THREE_MEALS_SHARE * 0.9),
       grams: 1200,
       maxMealGrams: 450,
     }),
@@ -509,119 +539,150 @@ Deno.test("⛔ le plat composé ne porte pas le REPAS ENTIER — le fromage et l
   // journée: trois réductions emboîtées, chacune nommée.
   const wholeMeal = target * dayCoverageOf(CHR.declaredSlots, ["dinner"]);
   assert(got.targetKcal! < wholeMeal, `${got.targetKcal} >= ${wholeMeal}`);
-  assertEquals(got.targetKcal, Math.round(wholeMeal * COMPOSED_DISH_MEAL_SHARE));
+  // ⚠️ CHR ne compose QUE son dîner, un moment porteur d'extras: son
+  // multiplicateur est inchangé par le lot du 2026-09-01.
+  assertEquals(got.targetKcal, Math.round(wholeMeal * EXTRA_SLOT_SHARE));
 });
 
 // ---------------------------------------------------------------------------
-// ① LA STRUCTURE DU REPAS (2026-08-20)
+// ① CE QU'ON PREND À CÔTÉ DU PLAT — ⟳ RÉÉCRIT LE 2026-09-01
+//
+// ⛔ QUATRE CAS ONT DISPARU D'ICI, ET AUCUN N'A ÉTÉ « ADAPTÉ ». Ils
+// mesuraient `composedDishShare`, qui n'existe plus:
+//
+//   · « la part est CALCULÉE depuis la convention » — la convention
+//     (300/120/120/80) est morte; les forfaits viennent de CIQUAL. Son
+//     successeur est `meal_extras_test.ts :: « les cinq extras se résolvent »`.
+//   · « la moyenne se trompe dans les DEUX sens » — c'est ce défaut-là que le
+//     lot ferme pour de bon: il n'y a plus de moyenne du tout, il y a des kcal
+//     lus par aliment.
+//   · « le repli est neutre au bit près » — devenu
+//     `meal_extras_test.ts :: « le repli de la fiche muette n'est pas zéro »`,
+//     plus `EXTRA_SLOT_SHARE` ci-dessus, qui prouve le +0 % sur un moment seul.
+//   · « `false` EST UNE RÉPONSE » — la distinction survit, sous une autre
+//     forme: clé ABSENTE contre clé à `0`. Elle est testée juste en dessous.
+//
+// Ce qui reste ici est ce qui appartient à l'ANCRAGE: les quatre états, et le
+// fait que la réponse atteigne vraiment le facteur.
 // ---------------------------------------------------------------------------
-
-Deno.test("① la part du plat est CALCULÉE depuis la convention, pas tabulée", () => {
-  //     part = 300 / (300 + 80 x pain + 120 x fromage + 120 x dessert)
-  const all: MealStructure = { dessert: true, cheese: true, bread: true };
-  assertEquals(
-    composedDishShare(all).share,
-    COMPOSED_DISH_KCAL /
-      (COMPOSED_DISH_KCAL + MEAL_COMPONENT_KCAL.dessert +
-        MEAL_COMPONENT_KCAL.cheese + MEAL_COMPONENT_KCAL.bread),
-  );
-  // iku: du pain, rien d'autre.
-  const breadOnly: MealStructure = { dessert: false, cheese: false, bread: true };
-  assertEquals(
-    composedDishShare(breadOnly).share,
-    COMPOSED_DISH_KCAL / (COMPOSED_DISH_KCAL + MEAL_COMPONENT_KCAL.bread),
-  );
-  // Rien du tout: le plat EST le repas. Ce n'est pas une borne, c'est la
-  // définition — la ceinture qui empêche une assiette inmangeable est
-  // physique, et elle est ailleurs.
-  assertEquals(
-    composedDishShare({ dessert: false, cheese: false, bread: false }).share,
-    1,
-  );
-});
-
-Deno.test("⛔ ① LE DÉFAUT MESURÉ — la moyenne se trompe dans les DEUX sens", () => {
-  // « Christèle est à peu près juste par accident; iku reçoit environ la
-  // moitié de ce qu'il lui faut. » Les deux parts encadrent la moyenne, et
-  // celle d'iku en est loin.
-  const chr = composedDishShare({ dessert: true, cheese: true, bread: true }).share;
-  const iku = composedDishShare({ dessert: false, cheese: false, bread: true }).share;
-  assert(chr > COMPOSED_DISH_MEAL_SHARE, "Christèle devrait monter un peu");
-  assert(iku > chr, "iku devrait monter BEAUCOUP plus que Christèle");
-  assert(iku / COMPOSED_DISH_MEAL_SHARE > 1.7, `iku ne monte que de ${iku / COMPOSED_DISH_MEAL_SHARE}`);
-});
-
-Deno.test("⛔ ① LE REPLI EST NEUTRE AU BIT PRÈS — trois cas sur quatre", () => {
-  // La contre-épreuve « fiches vides » du chantier, écrite comme une propriété:
-  // tout ce qui n'est pas `answered` rend EXACTEMENT la moyenne d'hier.
-  const cases: (MealStructure | null)[] = [
-    null,
-    { dessert: null, cheese: null, bread: null },
-    { dessert: true, cheese: null, bread: null },
-    { dessert: true, cheese: false, bread: null },
-  ];
-  for (const c of cases) {
-    assertEquals(composedDishShare(c).share, COMPOSED_DISH_MEAL_SHARE);
-  }
-});
 
 Deno.test("⛔ ① QUATRE ÉTATS, PAS DEUX — `not_asked` ≠ `not_answered`", () => {
+  // ⚠️ LE SUJET A CHANGÉ, LE VOCABULAIRE NON. Ces états comptaient trois CASES
+  // par personne; ils comptent les deux MOMENTS qui portent des extras. Garder
+  // les mêmes mots est ce qui rend les colonnes d'avant et d'après comparables.
   assertEquals(mealStructureState(null), "not_asked");
-  assertEquals(
-    mealStructureState({ dessert: null, cheese: null, bread: null }),
-    "not_answered",
-  );
-  assertEquals(
-    mealStructureState({ dessert: true, cheese: null, bread: null }),
-    "partial",
-  );
-  assertEquals(
-    mealStructureState({ dessert: false, cheese: false, bread: false }),
-    "answered",
-  );
+  assertEquals(mealStructureState({}), "not_answered");
+  assertEquals(mealStructureState({ lunch: 0 }), "partial");
+  assertEquals(mealStructureState({ lunch: 0, dinner: 0 }), "answered");
+  // ⛔ UN MOMENT QUI NE PORTE PAS D'EXTRAS NE COMPTE PAS COMME UNE RÉPONSE.
+  // Sans ça, renseigner son petit-déjeuner ferait passer la fiche pour
+  // « répondue » sur des questions qu'on ne lui a jamais posées.
+  assertEquals(mealStructureState({ breakfast: 0 }), "not_answered");
 });
 
-Deno.test("⛔ ① `false` EST UNE RÉPONSE, `null` NE L'EST PAS", () => {
+Deno.test("⛔ ① UNE CLÉ ABSENTE N'EST PAS UNE CLÉ À ZÉRO", () => {
   // La cicatrice « coche auto = faits faux indémentables », dans le sens qui
-  // nourrit trop: une case décochée au fond d'un formulaire enregistré sans
-  // être lu ne doit pas pouvoir dire « je ne prends ni pain ni fromage ni
-  // dessert », c'est-à-dire un plat qui porte 100 % du repas.
-  const answeredNo = composedDishShare({ dessert: false, cheese: false, bread: false });
-  const notAnswered = composedDishShare({ dessert: null, cheese: null, bread: null });
-  assertEquals(answeredNo.share, 1);
-  assertEquals(notAnswered.share, COMPOSED_DISH_MEAL_SHARE);
-  assert(answeredNo.share !== notAnswered.share, "les deux ne peuvent pas coïncider");
+  // nourrit trop — transposée. Une fiche enregistrée sans être lue ne doit pas
+  // pouvoir dire « je ne prends rien à côté », c'est-à-dire un plat qui porte
+  // 100 % du repas.
+  const d = day({ memberId: IKU.memberId, kcal: 700, maxMealGrams: 0 });
+  const silent = anchorFactorFor({ ...IKU, slotExtraKcal: {} }, d, "no_position");
+  const saidNone = anchorFactorFor(
+    { ...IKU, slotExtraKcal: { lunch: 0, dinner: 0 } },
+    d,
+    "no_position",
+  );
+  assertEquals(silent.structureState, "not_answered");
+  assertEquals(saidNone.structureState, "answered");
+  // Dire « rien à côté » fait MONTER la cible: le plat porte tout son repas.
+  assert(
+    saidNone.targetKcal! > silent.targetKcal!,
+    `${saidNone.targetKcal} <= ${silent.targetKcal}`,
+  );
 });
 
-Deno.test("⛔ ① LA PART ATTEINT VRAIMENT LE FACTEUR ET LA CIBLE", () => {
+Deno.test("⛔ ① LA RÉPONSE ATTEINT VRAIMENT LE FACTEUR ET LA CIBLE", () => {
   // Un lot construit et non branché rend le même nombre qu'avant. On mesure la
   // sortie d'`anchorFactorFor`, pas la table.
   const d = day({ memberId: IKU.memberId, kcal: 700, maxMealGrams: 0 });
   const before = anchorFactorFor(IKU, d, "no_position");
   const after = anchorFactorFor(
-    { ...IKU, structure: { dessert: false, cheese: false, bread: true } },
+    // Du pain aux deux repas, chiffré: ~111 kcal la portion de 40 g.
+    { ...IKU, slotExtraKcal: { lunch: 111, dinner: 111 } },
     d,
     "no_position",
   );
   assertEquals(before.structureState, "not_asked");
   assertEquals(after.structureState, "answered");
-  assert(after.raw! > before.raw!, "la part déclarée n'atteint pas le facteur");
+  // ⚠️ ET ELLE MONTE: 111 kcal de pain retirés d'un repas, c'est BEAUCOUP moins
+  // que les 58 % que le repli retranche à une fiche muette.
+  assert(after.raw! > before.raw!, "la réponse n'atteint pas le facteur");
   assert(after.targetKcal! > before.targetKcal!, "la cible rendue n'a pas suivi");
-  // Le rapport EST celui des deux parts — pas « quelque chose de plus grand ».
-  assertEquals(
-    Math.round((after.raw! / before.raw!) * 1000) / 1000,
-    Math.round(
-      (composedDishShare({ dessert: false, cheese: false, bread: true }).share /
-        COMPOSED_DISH_MEAL_SHARE) * 1000,
-    ) / 1000,
+});
+
+Deno.test("⛔ ① LE MOMENT COMPTE — quand le plan n'en compose qu'un", () => {
+  // ⚠️ MA PREMIÈRE RÉDACTION NE DISCRIMINAIT RIEN, et le rouge me l'a appris:
+  // comparer {midi:300, soir:0} à {midi:0, soir:300} sur une journée où les
+  // DEUX sont composés rend le même total — 300 kcal de pain sont 300 kcal, où
+  // qu'on les mette. Une déduction absolue ne dépend pas du poids du moment.
+  //
+  // Ce que la granularité par moment change vraiment, c'est QUELS repas sont
+  // touchés. On compose donc UN seul des deux.
+  const dinnerDay = day({
+    memberId: IKU.memberId,
+    kcal: 700,
+    slots: ["dinner"],
+    maxMealGrams: 0,
+  });
+  const onDinner = anchorFactorFor(
+    { ...IKU, slotExtraKcal: { lunch: 0, dinner: 300 } },
+    dinnerDay,
+    "no_position",
   );
+  const onLunch = anchorFactorFor(
+    { ...IKU, slotExtraKcal: { lunch: 300, dinner: 0 } },
+    dinnerDay,
+    "no_position",
+  );
+  // ⛔ LE PAIN DU MIDI NE DOIT PAS RÉDUIRE UN DÎNER. C'est très exactement ce
+  // qu'aucune version d'avant ne savait exprimer: la question ne disait pas de
+  // quel repas elle parlait, et son ratio les touchait tous.
+  assert(
+    onLunch.targetKcal! > onDinner.targetKcal!,
+    `midi ${onLunch.targetKcal} devrait dépasser soir ${onDinner.targetKcal}`,
+  );
+  // Et le midi non composé n'est retranché de rien: sa cible est celle d'une
+  // fiche qui ne prend rien à côté.
+  const none = anchorFactorFor(
+    { ...IKU, slotExtraKcal: { lunch: 0, dinner: 0 } },
+    dinnerDay,
+    "no_position",
+  );
+  assertEquals(onLunch.targetKcal, none.targetKcal);
+});
+
+Deno.test("⛔ ① LE PLANCHER MORD, ET IL EST NOMMÉ", () => {
+  // Cinq extras sur une petite cible rendraient la part du plat négative — une
+  // assiette vide servie comme une décision. L'ancien ratio ne pouvait pas
+  // descendre sous 0,48 par construction; une somme de forfaits, si.
+  const d = day({ memberId: IKU.memberId, kcal: 700, maxMealGrams: 0 });
+  const absurd = anchorFactorFor(
+    { ...IKU, slotExtraKcal: { lunch: 99999, dinner: 99999 } },
+    d,
+    "no_position",
+  );
+  assert(absurd.targetKcal! > 0, `cible ${absurd.targetKcal}`);
+  // Le plat garde au moins 30 % de chacun de ses deux repas.
+  const target = mouthTargetKcal(IKU, "no_position").kcal!;
+  const floor = target * (0.25 + (0.40 + 0.35) * COMPOSED_DISH_MIN_MEAL_SHARE);
+  assertEquals(absurd.targetKcal, Math.round(floor));
 });
 
 Deno.test("① le motif de structure est rendu MÊME quand rien n'est ancré", () => {
   // Un compteur qui ne parlerait que sur les journées ancrées ferait lire
   // « personne n'a répondu » sur un foyer où tout le monde a répondu et où
   // chaque journée est incomplète.
-  const answered = { ...CHR, structure: { dessert: true, cheese: true, bread: true } };
+  const answered = { ...CHR, slotExtraKcal: { lunch: 120, dinner: 120 } };
   assertEquals(anchorFactorFor(answered, null, "no_position").structureState, "answered");
   const incomplete = day({
     memberId: CHR.memberId,
@@ -632,4 +693,138 @@ Deno.test("① le motif de structure est rendu MÊME quand rien n'est ancré", (
   const got = anchorFactorFor(answered, incomplete, "no_position");
   assertEquals(got.reason, "day_incomplete");
   assertEquals(got.structureState, "answered");
+});
+
+// ===========================================================================
+// LES SIX MOMENTS PÈSENT — LOT A, 2026-09-01
+//
+// ⛔ CE QUE CE BLOC RÉPARE N'ÉTAIT VISIBLE NULLE PART. `SLOT_DAY_WEIGHT` ne
+// portait que `breakfast`, `lunch` et `dinner`; les trois collations tombaient
+// sur le `?? 0` de `dayCoverageOf`. Zéro n'est pas neutre ici: l'énergie d'une
+// habitude composée à l'après-midi entre au DÉNOMINATEUR du facteur
+// (`day.kcal`) en comptant pour rien au NUMÉRATEUR. Le facteur rétrécit
+// systématiquement, la personne reçoit moins, et aucun test ne bougeait.
+// ===========================================================================
+
+Deno.test("⚠️ AUCUNE RÉGRESSION — les trois repas rendent EXACTEMENT ce qu'avant", () => {
+  // ⛔ CE CAS PASSE EN PREMIER, ET C'EST DÉLIBÉRÉ. Le lot ajoute quatre poids;
+  // s'il déplaçait d'un cheveu la couverture de qui n'a déclaré que les trois
+  // repas, il déplacerait des grammes dans toutes les assiettes du parc.
+  //
+  // Les valeurs attendues sont des LITTÉRAUX, jamais dérivées de
+  // `SLOT_DAY_WEIGHT`: un test paramétré par la table qu'il vérifie resterait
+  // vert quand on la change.
+  assertEquals(dayCoverageOf([], ["breakfast", "lunch", "dinner"]), 1);
+  assertEquals(dayCoverageOf(["lunch", "dinner"], ["lunch", "dinner"]), 1);
+  // 0,35 / (0,40 + 0,35) — le « half » du test historique, chiffré.
+  assertEquals(
+    Number(dayCoverageOf(["lunch", "dinner"], ["dinner"]).toFixed(6)),
+    Number((0.35 / 0.75).toFixed(6)),
+  );
+  // 0,25 / (0,25 + 0,40 + 0,35)
+  assertEquals(
+    dayCoverageOf(["breakfast", "lunch", "dinner"], ["breakfast"]),
+    0.25,
+  );
+});
+
+Deno.test("⛔ RIEN DE DÉCLARÉ VAUT TROIS MOMENTS, PAS TOUTE LA TABLE", () => {
+  // ⚠️ LE PIÈGE DE CE LOT, ET IL A FAILLI PASSER. `dayCoverageOf` lisait
+  // `Object.keys(SLOT_DAY_WEIGHT)` comme repli — juste TANT QUE la table ne
+  // portait que trois moments. À sept clés, le total serait passé de 1,00 à
+  // 1,30 et la couverture de TOUTE la population muette de 1 à 0,77: 23 % de
+  // part en moins, en silence.
+  assertEquals(dayCoverageOf([], ["breakfast", "lunch", "dinner"]), 1);
+  // Et un moment composé hors des trois est bien AJOUTÉ au total, lui.
+  const withSnack = dayCoverageOf([], ["breakfast", "lunch", "dinner", "snack_pm"]);
+  assertEquals(withSnack, 1);
+});
+
+Deno.test("⛔ UNE COLLATION DÉCLARÉE ET NON COMPOSÉE RÉDUIT LA CIBLE", () => {
+  // Le cas que le lot répare. Avant: `snack_pm` pesait 0, donc le total valait
+  // 0,40 et la couverture 1 — on demandait à un seul déjeuner de porter une
+  // journée qui compte aussi un goûter.
+  //
+  // Après: 0,40 / (0,40 + 0,10) = 0,80.
+  assertEquals(dayCoverageOf(["lunch", "snack_pm"], ["lunch"]), 0.8);
+  // Et composer les deux rend bien la journée entière.
+  assertEquals(dayCoverageOf(["lunch", "snack_pm"], ["lunch", "snack_pm"]), 1);
+});
+
+Deno.test("le jeton LEGACY `snack` pèse comme une collation", () => {
+  // ⚠️ IL ARRIVE DEPUIS LA BASE, PAS DU MODÈLE. `dish.slot` est validé contre
+  // `MEAL_SLOTS`, qui porte `snack` pour la donnée ancienne. Sans poids, il
+  // rejouait le même défaut sur les plans déjà écrits.
+  //
+  // ⛔ ET ON NE DEVINE PAS SON MOMENT: il pèse ce que pèse une collation, on
+  // n'affirme pas qu'il est du matin ou de l'après-midi.
+  assertEquals(dayCoverageOf(["lunch", "snack"], ["lunch"]), 0.8);
+});
+
+Deno.test("⛔ LA TABLE COUVRE EXACTEMENT LE VOCABULAIRE D'UN PLAT", () => {
+  // ⚠️ MIROIR, PAS IMPORT: `mouth_anchor.ts` ne tire pas les sept mille lignes
+  // de `meal_generation.ts` pour une liste de sept mots. C'est CE test qui
+  // empêche les deux de diverger — l'idiome de `meal_plan_window.ts`.
+  //
+  // Un septième moment ajouté à `MEAL_SLOTS` sans son poids tombe ici, et pas
+  // dans une assiette.
+  assertEquals(
+    [...WEIGHTED_SLOT_TOKENS].sort(),
+    [...MEAL_SLOTS].sort(),
+  );
+  // Et chacun porte un poids STRICTEMENT positif: un zéro serait le défaut
+  // qu'on vient de fermer, réintroduit par la porte du type.
+  for (const slot of WEIGHTED_SLOT_TOKENS) {
+    const w = SLOT_DAY_WEIGHT[slot as keyof typeof SLOT_DAY_WEIGHT];
+    assert(w > 0, `${slot} pèse ${w}`);
+  }
+});
+
+// ===========================================================================
+// LE PLANCHER DU PLAT SE COMPTE — il ne se devine pas
+//
+// ⛔ POURQUOI UN COMPTEUR SUR UNE BORNE. `COMPOSED_DISH_MIN_MEAL_SHARE = 0,30`
+// existe pour un cas absurde: cinq extras sur une petite cible laisseraient au
+// plat une cuillère servie comme un repas. Mais une borne qui mordrait sur la
+// population entière ne serait plus une borne — ce serait LE calcul, et rien
+// ne le dirait. `ANCHOR_FACTOR_MAX` et `BOX_FACTOR_MIN` ont déjà coûté ça deux
+// fois à ce dépôt.
+// ===========================================================================
+
+Deno.test("⛔ LE PLANCHER SE DIT quand il mord, et se tait quand il ne mord pas", () => {
+  const avec = (lunch: number): AnchorMouth => ({
+    ...IKU,
+    declaredSlots: ["lunch", "dinner"],
+    slotExtraKcal: { lunch, dinner: 0 },
+  });
+  const journee = day({
+    memberId: "m_iku",
+    kcal: 1400,
+    slots: ["lunch", "dinner"],
+  });
+  // ⚠️ LE CAS QUI PASSE D'ABORD. Un forfait ordinaire ne touche pas la borne;
+  // sans lui, un `extrasFloored` toujours vrai serait vert.
+  // ⚠️ ON NE MESURE PAS `reason` ICI: le plafond de vraisemblance PHYSIQUE
+  // mord sur ce banc (250 g de part max), et il n'a rien à voir avec le
+  // plancher du plat. Deux bornes, deux mesures.
+  const ordinaire = anchorFactorFor(avec(150), journee, "no_position");
+  assertEquals(ordinaire.extrasFloored, false);
+  // Et le cas absurde: un forfait qui dépasse 70 % du repas est raboté, DIT.
+  const absurde = anchorFactorFor(avec(100_000), journee, "no_position");
+  assertEquals(absurde.extrasFloored, true);
+  // ⛔ ET LE RABOTAGE A UN EFFET: sans lui la cible serait négative. La borne
+  // n'est pas décorative — elle décide d'un facteur.
+  assert((absurde.targetKcal ?? 0) > 0, `cible ${absurde.targetKcal}`);
+});
+
+Deno.test("une sortie sans journée ne prétend pas avoir raboté", () => {
+  // `extrasFloored` dit ce que le CALCUL a fait, pas ce que la fiche porte —
+  // l'écart exact avec `structureState`, qui se rend sur toutes les sorties.
+  const sansJour = anchorFactorFor(
+    { ...IKU, declaredSlots: ["lunch"], slotExtraKcal: { lunch: 100_000 } },
+    null,
+    "no_position",
+  );
+  assertEquals(sansJour.extrasFloored, false);
+  assertEquals(sansJour.structureState, "partial");
 });

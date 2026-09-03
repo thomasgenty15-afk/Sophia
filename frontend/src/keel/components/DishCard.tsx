@@ -277,6 +277,41 @@ export default function DishCard(
           rôti. La ceinture est dans `lib/dishSession.int.test.ts`. */}
       {dish.same_day && <SameDayLine sameDay={dish.same_day} method={dish.method} />}
       {/* ══════════════════════════════════════════════════════════════════
+          LA PART CONGELÉE SE SORT LA VEILLE — 2026-09-01.
+          ══════════════════════════════════════════════════════════════════
+
+          ⛔ SANS CETTE LIGNE, LE LOT `uses[].kept` SERAIT PIRE QUE LE DÉFAUT
+          QU'IL RÉPARE. La fenêtre du cuit s'ouvre désormais à sept jours pour
+          une part déclarée congelée: le plat n'est plus JETÉ, il est SERVI. Un
+          plan qui sert un plat du samedi sans jamais dire qu'il faut le sortir
+          du congélateur le vendredi soir est exécutable sur le papier et pas
+          dans la cuisine — et un plat qu'on découvre en bloc à 19 h est un
+          repas manqué, c'est-à-dire exactement le trou qu'on venait de fermer.
+
+          ⛔ DÉTERMINISTE, JAMAIS UNE PROSE DE MODÈLE. La consigne demande bien
+          au modèle de le dire dans `method`, mais c'est précisément ce que ce
+          lot vient de constater comme non fiable: la prose ne se vérifie pas.
+          Le jeton, lui, est la CAUSE de l'ouverture de fenêtre — l'afficher,
+          c'est afficher la décision elle-même.
+
+          ⛔ ET PAS DERRIÈRE LE DÉPLIANT DE SESSION. C'est un geste de LA
+          VEILLE: le mettre sous un bouton « voir la session » le rendrait
+          lisible le jour où il est déjà trop tard.
+
+          ⚠️ LA GARDE `session.day !== dish.day`: une part cuisinée ET mangée le
+          même jour n'a rien à décongeler, même si le modèle a écrit le jeton.
+          On se tait plutôt que d'écrire une consigne fausse — la discipline de
+          `same_day: null` juste au-dessus.
+
+          ⚠️ MUET SUR TOUT PLAN D'AVANT LE LOT: le lecteur y met `"fridge"`,
+          jamais `undefined`, donc rien ne s'affiche et rien ne change. */}
+      {session && session.day !== dish.day &&
+        dish.uses.some((u) => u.kept === "freezer") && (
+        <p className="mt-2 text-sm leading-6 text-ink">
+          {mealCopy("meals.result.thaw_the_night_before")}
+        </p>
+      )}
+      {/* ══════════════════════════════════════════════════════════════════
           ⛔ `dish.why` N'EST PLUS AFFICHÉ — ET IL EST TOUJOURS DEMANDÉ.
           ══════════════════════════════════════════════════════════════════
 

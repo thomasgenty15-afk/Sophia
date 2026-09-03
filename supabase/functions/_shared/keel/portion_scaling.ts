@@ -574,3 +574,114 @@ export function scaleIngredients<T extends ScalableIngredient>(
 
   return { items, changed, capped };
 }
+
+// ---------------------------------------------------------------------------
+// LA LISTE DE COURSES — elle suit l'assiette, ou elle la rend infaisable
+// ---------------------------------------------------------------------------
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⛔ SANS ELLE, L'ANCRAGE REND LE PLAN INEXÉCUTABLE. C'est la moitié qu'on
+ *    oublie, et c'est celle qui se voit devant le frigo.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * `scaleIngredients` change ce qu'on CUISINE. `shopping_list` dit ce qu'on
+ * ACHÈTE, et il est écrit par le modèle en prose libre — `ShoppingItem` ne
+ * porte ni `amount` ni `unit`, et rien dans le dépôt ne dérive la liste des
+ * ingrédients. Un plan ancré à ×1,4 demanderait donc 630 g de poulet à la
+ * casserole avec 450 g sur la liste.
+ *
+ * ⚠️ LA LANE FOYER N'A JAMAIS EU CE PROBLÈME, et il ne faut pas en conclure
+ * qu'il n'existe pas: `sizeBoxesFromTarget` redimensionne les CONTENANTS —
+ * comment la casserole se partage — et ne touche jamais ce qu'on achète.
+ *
+ * ── LA RÈGLE: LE NOMBRE DE TÊTE, ET RIEN D'AUTRE ─────────────────────────
+ * On réécrit le premier nombre de la prose, comme `rewriteCountableQuantity`
+ * le fait déjà pour un ingrédient dénombrable — donc « 300 g carrots » garde
+ * ses carottes, et « 1 tin of chickpeas » garde sa boîte. Écrire
+ * `${next} ${unit}` comme le fait la branche pesée des ingrédients perdrait le
+ * nom de l'aliment, et une liste de courses sans nom n'est pas une liste.
+ *
+ * ── CE QUI NE BOUGE PAS, ET POURQUOI CE N'EST PAS UN OUBLI ───────────────
+ * La garde du singulier/pluriel de `rewriteCountableQuantity` fait tout le
+ * travail sans qu'aucun lexique n'ait à exister ici — et c'est ce qui évite un
+ * matcher maison, la cicatrice la plus chère de ce dépôt. Mesuré sur les 273
+ * lignes des dix générations du 2026-08-23: les contenants du commerce
+ * (« 1 pack », « 1 small jar », « 1 small loaf ») commencent TOUS par 1, donc
+ * les faire grandir traverserait la frontière du 1 et le module refuse déjà.
+ * Un pot de cumin reste un pot, sans qu'on ait eu à écrire le mot « pot ».
+ *
+ * ⛔ ET CE QUI EST REFUSÉ SE COMPTE. `unrewritable` porte les termes qu'on n'a
+ * pas su suivre: sans lui, une liste laissée entière ressemblerait à une liste
+ * à jour.
+ */
+export interface ScalableShoppingLine {
+  term: string;
+  quantity: string | null;
+}
+
+export interface ShoppingScaleResult<T> {
+  items: T[];
+  /** Les lignes dont le nombre a réellement bougé. */
+  changed: number;
+  /** Les termes qu'on n'a pas su réécrire — ils gardent leur quantité. */
+  unrewritable: string[];
+}
+
+/** Le premier nombre de la prose, et l'unité de masse qui le suit s'il y en a une. */
+function leadingQuantityOf(
+  quantity: string | null,
+): { amount: number; weighed: boolean } | null {
+  if (!quantity) return null;
+  const m = /^\s*(\d+(?:[.,]\d+)?)\s*([a-zA-Z]*)/.exec(quantity);
+  if (!m) return null;
+  const amount = Number(m[1].replace(",", "."));
+  if (!Number.isFinite(amount) || amount <= 0) return null;
+  const unit = m[2].toLowerCase();
+  // ⚠️ `kg` ET `l` NE SONT PAS TRAITÉS COMME DES MASSES ICI, et c'est le même
+  // refus que `quantity_from_prose.ts`: le vocabulaire de mesure du dépôt est
+  // `g` et `ml`. Une ligne en kilos retombe donc sur la porte dénombrable, qui
+  // arrondit à l'entier — « 1.2 kg » ne se réécrit pas, et c'est compté.
+  return { amount, weighed: unit === "g" || unit === "ml" };
+}
+
+export function scaleShoppingList<T extends ScalableShoppingLine>(
+  items: readonly T[],
+  factor: number | ScaleFactors,
+  /** Le même prédicat que `scaleIngredients`, pour le même partage des facteurs. */
+  isProteinFood?: (term: string) => boolean,
+): ShoppingScaleResult<T> {
+  const out: T[] = [];
+  const unrewritable: string[] = [];
+  let changed = 0;
+
+  for (const line of items) {
+    const lead = leadingQuantityOf(line.quantity);
+    if (lead === null) {
+      // Pas de nombre en tête: « to taste », « a bunch ». Rien à suivre, et ce
+      // n'est pas un refus — il n'y avait pas de quantité.
+      out.push({ ...line });
+      continue;
+    }
+    const f = typeof factor === "number"
+      ? factor
+      : (isProteinFood?.(line.term) ? factor.protein : factor.other);
+    const next = lead.weighed
+      ? roundAmount(lead.amount * f)
+      : roundCountable(lead.amount * f, "unit");
+    if (next === lead.amount) {
+      out.push({ ...line });
+      continue;
+    }
+    const prose = rewriteCountableQuantity(line.quantity, lead.amount, next);
+    if (prose === null) {
+      unrewritable.push(line.term);
+      out.push({ ...line });
+      continue;
+    }
+    changed++;
+    out.push({ ...line, quantity: prose });
+  }
+
+  return { items: out, changed, unrewritable };
+}

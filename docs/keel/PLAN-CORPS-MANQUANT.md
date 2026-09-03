@@ -143,5 +143,12 @@ pas — c'est alors `LOT L8` qu'il faut regarder, pas le chargeur.
   une consigne rendue.
 - Les crochets servent à **une** chose — la taille d'une portion. Pas d'énergie
   quotidienne, pas de calories, pas d'IMC, pas de catégorie.
+  ⚠️ **La portée de cette ligne est la lane FOYER, et il faut le lire ainsi**
+  (ajouté le 2026-09-01, après un audit où elle a été comptée comme une position
+  produit). Elle dit que `member_portions` — lisible par tout le foyer — ne
+  porte aucun chiffre de corps. Elle **ne dit pas** que le produit refuse les
+  calories : FF-059 en affiche à l'élève sur sa propre surface, derrière
+  `energy_gate.ts`. Les deux tiennent ensemble parce que ce ne sont pas les
+  mêmes écrans ni les mêmes lecteurs.
 - Une bouche **réellement** sans corps reste servie, sans crochet et sans
   excuse : le brief le dit déjà, et cette phrase-là est vraie.

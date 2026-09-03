@@ -77,7 +77,7 @@ const ANCHOR = (conditionRefs: readonly string[], direction: "down" | "up" | nul
   direction,
   paceKgPerWeek: 0.5,
   declaredSlots: [] as readonly string[],
-  structure: null,
+  slotExtraKcal: null,
   conditionRefs,
 });
 

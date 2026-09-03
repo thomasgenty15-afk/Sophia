@@ -8,6 +8,8 @@ import type {
   DispatcherMemoryRetrievalPolicy,
   DispatcherMemoryTargetType,
   DispatcherPlanFeedbackSignal,
+  DispatcherProfileStatementSignal,
+  DispatcherRuleQuestionSignal,
   DispatcherResearchSignal,
   Explicitness,
   PlanQuestionKind,
@@ -608,7 +610,7 @@ function sanitizeDirectEffects(raw: unknown): TurnFrame["direct_effects"] {
  * `detected: true` VIDE, c'est-à-dire un signal qui compte et n'arme rien.
  *
  * ⚠️ `kind` N'EST PAS VALIDÉ CONTRE LA LISTE FERMÉE ICI. Le juge est
- * `sizingFeedbackDetected` (`_shared/keel/conversation_retained.ts`), un seul,
+ * `sizingFeedbackDetected` (`_shared/keel/conversation_redirect.ts`), un seul,
  * et il refuse déjà tout jeton inconnu. Deux juges, c'est un jour où l'un dit
  * oui et l'autre non sans que personne ne sache lequel a parlé.
  *
@@ -640,6 +642,54 @@ function sanitizePlanFeedbackSignal(
     target_title: targetTitle || null,
     ...(confidence !== undefined ? { confidence } : {}),
   };
+}
+
+/**
+ * LOT M1 — LE PARSEUR DE `profile_statement`, jumeau de celui du dessus.
+ *
+ * ⚠️ MÊME RAISON DE NE PAS PASSER PAR `sanitizeSkillSignal`: ce dernier impose
+ * `confidence_band` et jette `kind` — c'est-à-dire précisément le seul champ
+ * qui décide de la destination. Il rendrait un `detected: true` VIDE, un signal
+ * qui compte et n'arme rien.
+ *
+ * ⚠️ `kind` N'EST PAS VALIDÉ CONTRE LA LISTE FERMÉE ICI. Le juge est
+ * `profileRedirectKindOf` (`_shared/keel/conversation_redirect.ts`), un seul.
+ * Deux juges, c'est un jour où l'un dit oui et l'autre non sans que personne ne
+ * sache lequel a parlé.
+ *
+ * ⚠️ RIEN N'EST DEVINÉ QUAND `detected` EST ABSENT OU FAUX: on rend `null`, et
+ * l'appelant n'écrit pas la clé.
+ */
+function sanitizeProfileStatementSignal(
+  raw: unknown,
+): DispatcherProfileStatementSignal | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const signal = raw as Record<string, unknown>;
+  if (signal.detected !== true) return null;
+  const kind = String(signal.kind ?? "").trim().toLowerCase().slice(0, 40);
+  const detail = String(signal.detail ?? "").trim().slice(0, 160);
+  const confidence = optionalScore(signal.confidence);
+  return {
+    detected: true,
+    kind: kind || null,
+    detail: detail || null,
+    ...(confidence !== undefined ? { confidence } : {}),
+  };
+}
+
+/**
+ * LOT M6 — LE PARSEUR DE `rule_question`. Même patron, même raison de ne pas
+ * passer par `sanitizeSkillSignal`: celui-ci jetterait `food`, c'est-à-dire le
+ * seul champ qui permet de retrouver la règle.
+ */
+function sanitizeRuleQuestionSignal(
+  raw: unknown,
+): DispatcherRuleQuestionSignal | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const signal = raw as Record<string, unknown>;
+  if (signal.detected !== true) return null;
+  const food = String(signal.food ?? "").trim().slice(0, 60);
+  return { detected: true, food: food || null };
 }
 
 function sanitizeSkillSignal(
@@ -721,6 +771,21 @@ function sanitizeSkillSignals(
     sanitizePlanFeedbackSignal(entryRoot.plan_feedback);
   if (planFeedback) {
     signals.plan_feedback = planFeedback;
+  }
+  // LOT M1 — même lecture, même tolérance `entry`, pour la même raison: le
+  // modèle a été mesuré capable de ranger ses signaux sous `skill_signals.entry`,
+  // et ne lire que la racine ferait un lot désarmé un tour sur N, sans trace.
+  const profileStatement = sanitizeProfileStatementSignal(
+    root.profile_statement,
+  ) ?? sanitizeProfileStatementSignal(entryRoot.profile_statement);
+  if (profileStatement) {
+    signals.profile_statement = profileStatement;
+  }
+  // LOT M6 — même lecture, même tolérance `entry`.
+  const ruleQuestion = sanitizeRuleQuestionSignal(root.rule_question) ??
+    sanitizeRuleQuestionSignal(entryRoot.rule_question);
+  if (ruleQuestion) {
+    signals.rule_question = ruleQuestion;
   }
   // W2.A: un signal `feature_opportunity` émis par le LLM est désormais DROPPÉ
   // ici (le sanitizer ne le lit plus) — la lane n'existe plus.

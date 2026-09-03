@@ -219,7 +219,11 @@ function parse(payload: Record<string, unknown>, over: Record<string, unknown> =
     merge: null,
     boxMemberIds: [],
     weighedMemberIds: [],
+  kitchenEquipment: null,
+  cookOnlyDay: null,
+  soloBoxes: false,
   boxMemberDiets: [],
+  boxMemberExclusions: [],
     ...over,
   });
 }

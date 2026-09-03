@@ -245,11 +245,65 @@ Deno.test("LANE FOYER — le compteur du câblage est là, et il compte les BOUC
       "avec `portion_applied: 0` et `portion_excluded` vide est la seule " +
       "signature lisible d'un câblage rompu, et elle disparaît avec ce champ.",
   );
+  // ⛔ CE TEST ÉPINGLAIT LE MENSONGE — corrigé le 2026-09-01. Il exigeait
+  // `winningPortionAdjust`, et il est resté VERT à travers le lot M3, qui a
+  // pourtant retiré à cet arbitre tout pouvoir sur l'enveloppe. Sa raison
+  // d'être était juste (« il finira par dire autre chose que l'enveloppe »);
+  // c'est le SYMBOLE nommé qui a vieilli. Un test qui nomme un arbitre le fixe
+  // dans le temps: il faut nommer CELUI QUI DÉCIDE, et un seul le décide.
   assert(
-    /winningPortionAdjust\(portionAdjustFor\(m\)\)/.test(household),
-    "le compteur ne passe plus par `winningPortionAdjust`: il recompte à la " +
-      "main ce que le module décide, donc il finira par dire autre chose que " +
-      "l'enveloppe.",
+    /portionIndexMoves\(portionIndexFor\(/.test(household),
+    "le compteur ne passe plus par `portionIndexMoves`: il recompte à la " +
+      "main ce que l'enveloppe décide, donc il finira par dire autre chose " +
+      "qu'elle — c'est exactement ce qui est arrivé entre M3 et le 2026-09-01.",
+  );
+  // ⚠️ ET L'ANCIEN ARBITRE NE DOIT PAS REVENIR ICI. Le rebrancher « par
+  // symétrie » ramènerait le désaccord sans qu'aucun test ne rougisse.
+  assert(
+    !/winningPortionAdjust\(portionAdjustFor\(m\)\)/.test(household),
+    "le compteur du foyer est revenu à `winningPortionAdjust`, l'arbitre " +
+      "d'AVANT M3: il compterait « servi » des bouches que l'enveloppe " +
+      "n'a pas bougées.",
+  );
+});
+
+Deno.test("LANE INDIVIDUELLE — son compteur lit LE MÊME arbitre", async () => {
+  // Le défaut était SYMÉTRIQUE: les deux générateurs affirmaient lire
+  // l'arbitre de l'enveloppe, les deux lisaient l'ancien.
+  const individual = await source("generate-meal-v1/index.ts");
+  assert(
+    /applied: portionIndexMoves\(studentPortionIndex\)/.test(individual),
+    "la lane individuelle ne compte plus par `portionIndexMoves`.",
+  );
+  assert(
+    !/winningPortionAdjust\(/.test(individual),
+    "la lane individuelle est revenue à l'arbitre d'AVANT M3.",
+  );
+  // ⚠️ ET LA POSITION EST DANS LA LIGNE, pas seulement le 0/1: « −1 après une
+  // réponse » et « −1 après trois qui s'annulent presque » sont deux
+  // histoires, et un booléen les rend identiques.
+  for (const field of ["answers:", "position:", "raw:", "factor:"]) {
+    assert(
+      individual.includes(field),
+      `le compteur de portions ne dit plus \`${field}\`: l'indice redevient ` +
+        "illisible depuis les logs.",
+    );
+  }
+
+  // ⛔ ET L'ENVELOPPE SORT AVEC SON CONTREFACTUEL. Sans lui, « l'ajustement
+  // arrive à l'assiette » resterait une phrase qu'aucune mesure ne peut
+  // démentir: comparer deux GÉNÉRATIONS mélangerait la variance du modèle avec
+  // l'effet cherché. Le second appel, seul argument de portion mis à `null`,
+  // est la seule forme où l'écart n'a qu'une cause possible.
+  assert(
+    individual.includes('tag: "keel.meal.envelope"'),
+    "l'enveloppe n'est plus journalisée: c'est le nombre qui JUGE et qui MET " +
+      "À L'ÉCHELLE, et il redevient invisible sur un `draft`.",
+  );
+  assert(
+    /const unadjustedEnvelope = envelopeFor\(/.test(individual),
+    "LE CONTREFACTUEL A DISPARU: sans lui, le facteur de portion n'est plus " +
+      "observable en aval, seulement re-déclaré par le compteur qui le calcule.",
   );
 });
 

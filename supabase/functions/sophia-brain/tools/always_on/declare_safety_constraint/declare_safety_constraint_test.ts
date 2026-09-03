@@ -267,5 +267,19 @@ Deno.test("l'intake normalise avec la règle du moteur, pas une copie locale", (
     source_message_id: "msg-2",
   });
   assert(accented.ok);
-  assertEquals(accented.effect.allergen_ref, "caf_au_lait");
+  // ⟳ `cafe_au_lait`, ET C'EST LA PREUVE QUE CE TEST FAIT SON TRAVAIL.
+  //
+  // Il épinglait `caf_au_lait` — l'ancienne règle, qui SUPPRIMAIT le caractère
+  // accentué au lieu de le replier. `normalizeAllergenRef` a été corrigée le
+  // 2026-08-19 (voir son pavé: « œuf » → `uf`, « blé » → `bl`, « céleri » →
+  // `cleri` mutilaient cinq des quatorze allergènes majeurs en français), et
+  // cette attente n'a pas suivi.
+  //
+  // ⚠️ LE ROUGE A VÉCU DEUX SEMAINES PARCE QUE LE GATE NE LANCE QUE
+  // `_shared/keel/`. Ce répertoire-ci n'y est pas. Constaté le 2026-09-02.
+  //
+  // La valeur attendue est celle du MOTEUR, et elle est copiée de son propre
+  // test (`allergen_catalog_test.ts:138`) — c'est tout l'objet de ce cas: ces
+  // entrées passent ici parce que c'est la MÊME fonction.
+  assertEquals(accented.effect.allergen_ref, "cafe_au_lait");
 });

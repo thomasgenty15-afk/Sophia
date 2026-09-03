@@ -220,14 +220,25 @@ export function isKeelHouseholdPriceId(priceId: string | null | undefined): bool
 }
 
 /**
- * L'ESSAI DU FOYER — 30 jours, D4bis.
+ * L'ESSAI DU FOYER — 7 jours.
+ *
+ * ⚠️ TRENTE JUSQU'AU 2026-09-01 (D4bis). Le changement est une décision du
+ * propriétaire, prise avec le tarif, et il a une seconde moitié: la durée est
+ * désormais ANNONCÉE sur les quatre pages de vente (« première semaine
+ * offerte »), alors que `AUDIT-SITE.md` §11 D2 l'interdisait tant qu'elle
+ * n'était pas tenable. Une durée qu'on écrit doit être vraie ici.
  *
  * La constante est ici pour être citée, pas pour être appliquée: la date
  * effective vit sur `households.free_until`, POSÉE sur la ligne. Une règle
- * recalculée à la volée (`created_at + 30`) devient irreproductible dès que
- * quelqu'un change le 30, et réécrirait rétroactivement ce qui a été promis.
+ * recalculée à la volée (`created_at + 7`) devient irreproductible dès que
+ * quelqu'un change le nombre, et réécrirait rétroactivement ce qui a été
+ * promis — c'est pourquoi les foyers nés avant gardent leurs trente jours.
+ *
+ * ⚠️ SECOND ÉCRIVAIN: `keel_household_trial_days()` en SQL
+ * (`20260901200000_the_trial_is_a_week.sql`). `keel/household_freeze_test.ts`
+ * lit les deux fichiers et fait rougir la suite s'ils divergent.
  */
-export const HOUSEHOLD_TRIAL_DAYS = 30;
+export const HOUSEHOLD_TRIAL_DAYS = 7;
 
 /**
  * Ce foyer est-il COUVERT PAR SON ESSAI aujourd'hui ?

@@ -6,7 +6,8 @@
 | **Statut** | 🟠 En cours — **le code applique volontairement une règle que le contrat a amendée** (voir §11) |
 | **Date** | 2026-08-07 |
 | **Autorité produit** | [CONTRACT.md](../../keel/CONTRACT.md) non-input #4 · [PHOTO_QUANTIFICATION.md](../../keel/PHOTO_QUANTIFICATION.md) · [CALORIE_REVERSAL.md](../../keel/CALORIE_REVERSAL.md) |
-| **Code** | `_shared/keel/meal_analysis.ts` · `meal-photo-upload-v1` · `analyze-meal-photo-v1` |
+| **Code** | `_shared/keel/meal_analysis.ts` (prompt `meal_analysis.v4`, packs `en`/`fr`) · `meal-photo-upload-v1` · `analyze-meal-photo-v1` |
+| **Langue** | 🟢 depuis le 2026-09-01 — l'accusé a son pack **français**, et le prompt porte un bloc de langue de sortie (`label_localized`, `assumption`, `clarifying_question`). Avant : un élève francophone recevait l'accusé en anglais, journalisé et ignoré. `DetectedFood.label` reste **anglais par contrat** — `planned_dish_match.ts` le lit contre le catalogue anglais `food_items`, et le traduire ferait taire la coche automatique |
 | **Effort estimé** | livrée ; le renversement calories est un chantier à part |
 
 ---
@@ -186,5 +187,32 @@ qui se trompe d'aliment coûte plus cher qu'une lecture qui dit `unclear`.
   énergie **nue** ». Ce n'est pas un bug : le marqueur de base n'existe pas, et
   l'ouvrir avant lui livrerait le chiffre nu interdit. Le chantier a sa
   procédure — `CALORIE_REVERSAL.md`, étape 0 = garde TCA.
-- Une photo envoyée **après coup** doit dire à quel repas elle se rattache. Le
-  rattachement n'est pas décidé.
+- ~~Une photo envoyée **après coup** doit dire à quel repas elle se rattache.~~
+  **Décidé le 2026-09-01** — et ce n'est donc plus une question ouverte.
+
+  Une photo dont l'appelant ne déclare **aucun** créneau (c'est le cas de
+  **toutes** les photos du chat : `ChatPage` envoie `slotKey: null`) est rangée
+  au **dernier créneau écoulé** du jour local, et l'accusé le **dit**, avec la
+  porte de correction dans la même phrase :
+
+  > « Je l'ai rangée au dîner, d'après l'heure — dis-moi si c'était un autre repas. »
+
+  Ce que ça renverse, et pourquoi c'est légitime : `TodayPage` porte la règle
+  « un créneau ne se devine jamais à l'horloge », et elle avait raison quand
+  elle a été écrite. Ce que cette règle interdit est la déduction **silencieuse**
+  — §3.3bis (« hypothèse annoncée + porte de correction ») a depuis autorisé la
+  coche automatique par photo, qui est une déduction bien plus lourde.
+
+  Les garde-fous, tous vérifiés plutôt que promis
+  (`_shared/keel/photo_slot_inference.ts` + son test) :
+  - l'heure **déclarée** par l'élève (`eating_rhythm[].at`) bat toujours le
+    repli `SLOT_PASSED_HOUR` — qui dîne à 22 h n'a pas dîné à 21 h ;
+  - un `slot_key` **fourni** n'est jamais remplacé : la déduction ne comble
+    qu'un silence ;
+  - avant le premier créneau de la journée, on ne range **rien** (`null` est une
+    réponse) ;
+  - `snack_am` / `snack_pm` / `before_bed` ne sont **jamais** produits : ce dépôt
+    n'a pas d'heure de référence pour eux ;
+  - la marque `recognized.slot_inferred` voyage sur la ligne et **survit à la
+    ré-analyse** — sans elle, un `force: true` transformerait un créneau déduit
+    en créneau déclaré, en silence.

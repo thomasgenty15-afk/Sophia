@@ -260,8 +260,17 @@ de ta famille ».
 | **CookAhead, Cook Smarts, Plan to Eat** | ✗ | ✓ | ✗ |
 | **Nous** | ✓ | ✓ **pour un foyer divergent** | ✓ |
 
-**Hors périmètre, volontairement :** Nutrola, Foodvisor et les compteurs de calories par
-photo. Ils mesurent le passé, on organise l'avenir.
+**Hors périmètre, volontairement :** le comptage calorique **par photo** — Nutrola, Foodvisor.
+Le motif est mesuré, pas esthétique : −26,6 % de biais, systématiquement du côté flatteur
+(`PHOTO_QUANTIFICATION.md`), et [LEGAL.md](LEGAL.md) §6.4 bis le maintient interdit.
+
+> ⚠️ **Cette ligne disait « ils mesurent le passé, on organise l'avenir ». C'était faux, et
+> c'était un différenciateur qui ne différencie rien.** Le produit mesure le passé lui aussi —
+> photos, journal du jour, bande du soir, bilan hebdomadaire, adhérence, couverture de saisie —
+> et il **affiche des calories** depuis FF-059. La frontière réelle n'est pas *mesurer ou non* :
+> c'est **d'où sort le chiffre**. Calculé sur des quantités que le produit a lui-même écrites
+> (MAPE 2,3 %) plutôt que deviné sur une image (−26,6 %). Décision du 2026-08-18, écrite ici le
+> 2026-09-01.
 
 **Et le leader est disqualifié structurellement, pas fonctionnellement.** Le conseil de
 Jow est financé par les marques — retail media. Un foyer avec une contrainte

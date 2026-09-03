@@ -21,14 +21,30 @@ import {
   PRACTICE_MODE_METADATA_KEY,
 } from "../_shared/keel/daily_practice_adherence_io.ts";
 import { hasRecapGround } from "../_shared/keel/daily_recap.ts";
-import { wasRecommendationSentToday } from "../_shared/keel/daily_recommendation_io.ts";
 import { composeRecapBody, loadDayFacts } from "../_shared/keel/daily_recap_io.ts";
-import { buildEveningStrip } from "../_shared/keel/evening_strip.ts";
+import {
+  buildEveningStrip,
+  buildShoppingStep,
+} from "../_shared/keel/evening_strip.ts";
+import { memoryRecapFor } from "../_shared/keel/memory_recap_io.ts";
+// FF-061 — la chaîne des trois étapes, et la question de cuisson qui n'avait
+// jusqu'ici AUCUN émetteur: elle ne partait qu'après une décoche.
+import { buildSessionQuestion } from "../_shared/keel/accident.ts";
+import {
+  type DayReviewPending,
+  openingStep,
+} from "../_shared/keel/day_review.ts";
 import {
   loadEveningStripContext,
   respondsForHousehold,
 } from "../_shared/keel/evening_strip_io.ts";
 import { isFrenchLocale, resolveArtifactLocale } from "../_shared/keel/locale.ts";
+// ⚠️ LE PLANCHER TCA, ET C'EST LA MÊME PORTE QUE LA COMPOSITION.
+// `generate-meal-v1` et `meal-photo-upload-v1` l'appellent déjà; ce job passait
+// `false` en dur. Une seule évaluation pour tout le produit — deux définitions
+// du plancher, c'est celle qu'on regarde le moins qui décide.
+import { evaluateRestrictionForStudent } from "../_shared/keel/restriction_runtime.ts";
+// FF-054 §3.2 — le retour de fin de plan, dont ce job est le VÉHICULE.
 import {
   localDateFor,
   localHourFor,
@@ -129,6 +145,25 @@ Deno.serve(async (req) => {
      */
     let stripsSent = 0;
     let stripShoppingLines = 0;
+    /** FF-061 — laquelle des trois étapes a ouvert, par élève examiné. */
+    const reviewOpenings: Record<string, number> = {};
+    /**
+     * LE PLANCHER TCA, COMPTÉ — parce qu'un plancher qui ne mord jamais et un
+     * plancher débranché rendent le MÊME compte-rendu.
+     *
+     * `restriction_raised` est le nombre d'élèves de la fenêtre pour qui le
+     * plancher est levé (aucune bande, aucune pratique). `restriction_unreadable`
+     * est le nombre d'évaluations en panne — elles retombent en fail-closed, donc
+     * elles font disparaître la bande, et sans ce chiffre une panne de lecture
+     * ressemblerait à une cohorte sans plats prévus.
+     */
+    let restrictionRaised = 0;
+    let restrictionUnreadable = 0;
+    /**
+     * FF-054 §3.2 — combien de PREMIÈRES questions de retour sont parties ce
+     * tick. `0` sur une cohorte dont des fenêtres viennent de s'achever est une
+     * panne; `sent` ne l'aurait jamais dit, puisque ces messages EN SONT.
+     */
     /**
      * D'où venait l'ouverture: voix du coach, ou décompte déterministe.
      *
@@ -210,33 +245,21 @@ Deno.serve(async (req) => {
             weekStartOf(localDate),
           );
 
-          // ── FF-028 · UN SEUL MESSAGE PAR SOIR ───────────────────────────
+          // ── LA GARDE « UN SEUL MESSAGE PAR SOIR » A PERDU SON OBJET ─────
           //
-          // La recommandation quotidienne vit dans la fenêtre 19h-20h locales,
-          // strictement AVANT celle-ci (20h-22h). Quand elle a parlé ce soir,
-          // le tap se retire — deux messages seraient deux notifications,
-          // c'est-à-dire le problème que `daily_recap.ts` répare, doublé.
+          // Ce bloc lisait `wasRecommendationSentToday` et se retirait quand la
+          // recommandation quotidienne avait parlé dans la fenêtre 19h-20h.
+          // FF-028 est ABANDONNÉE (décision du 2026-09-01: il n'y a pas de
+          // recommandation en plein milieu de plan), donc il n'y a plus rien
+          // qui puisse parler avant ce message.
           //
-          // La priorité va à la recommandation, et c'est un arbitrage assumé:
-          // elle est RARE (faim récurrente + deux compositions rassasiantes
-          // insuffisantes, puis un mois de cooldown) là où le tap est quotidien
-          // et porte déjà son propre repli de cadence. Perdre un tap ce soir-là
-          // ne coûte rien; perdre la proposition coûte un mois.
-          //
-          // Le motif n'entre PAS dans `PULSE_SKIP_REASONS`: c'est une garde
-          // d'ORDONNANCEMENT entre deux jobs, pas une décision du pouls, et
-          // elle se compte comme les refus de livraison — par une clé nommée
-          // dans `bySkip`, lisible dans le compte-rendu.
-          if (
-            await wasRecommendationSentToday(admin, {
-              userId: cursor,
-              localDate,
-            })
-          ) {
-            bySkip.recommendation_sent_today =
-              (bySkip.recommendation_sent_today ?? 0) + 1;
-            continue;
-          }
+          // ⚠️ CE QUI DISPARAÎT AVEC ELLE, ET QUI DEVRA ÊTRE REPRIS AILLEURS:
+          // c'était le SEUL endroit du dépôt où deux canaux proactifs
+          // s'arbitraient. FF-062 le remplace par un ordonnanceur — un point
+          // unique qui sait ce qui est déjà parti aujourd'hui — parce que six
+          // gardes séparées ne peuvent pas répondre à « combien de messages
+          // cette personne a-t-elle reçus ». Tant que cet ordonnanceur n'existe
+          // pas, ce job est de nouveau seul à décider de son soir.
 
           // ── LES DEUX LECTURES QUI NOURRISSENT LA DÉCISION ───────────────
           // Les faits d'abord: ils décident s'il y a quelque chose à DIRE. La
@@ -289,51 +312,191 @@ Deno.serve(async (req) => {
           const stripLanguage = isFrenchLocale(artifactLocale)
             ? "fr" as const
             : "en" as const;
-          // ── LE PLANCHER TCA DURABLE — LE MÊME LITTÉRAL, ET LE MÊME AVEU ──
+          // ── LE PLANCHER TCA DURABLE — BRANCHÉ SUR SA SOURCE VIVANTE ──────
           //
-          // ⚠️ FAUX, ET DIT COMME TEL (L3, 2026-08-08): `isRestrictionFlagged`,
-          // seul lecteur du dépôt, interrogeait `weekly_reviews.risk_band`, une
-          // colonne SANS écrivain. La valeur est donc `false` pour 100 % des
-          // élèves réels, ici comme pour la pratique du soir trente lignes plus
-          // bas. On la passe quand même — la garde vit dans
-          // `buildEveningStrip`, armée et testée, et ce littéral est le seul
-          // endroit à changer le jour où une source alimentée sera rebranchée.
-          const restrictionFlag = false;
+          // ⚠️ CE FUT UN LITTÉRAL `false` DU 2026-08-08 AU 2026-09-01, ET IL
+          // DÉSARMAIT LA GARDE. L'ancien lecteur (`isRestrictionFlagged`)
+          // interrogeait `weekly_reviews.risk_band`, colonne sans écrivain; on
+          // a donc retiré le lecteur et laissé le littéral, en le disant. Le
+          // résultat était le pire des deux mondes: R8 était armée et testée
+          // dans `buildEveningStrip`, et elle ne recevait JAMAIS `true` — la
+          // bande du soir nommait des plats à quelqu'un sous plancher, et la
+          // pratique du soir partait pareil.
+          //
+          // La source alimentée existait pourtant déjà, et deux fonctions de
+          // production l'appellent: `evaluateRestrictionForStudent`. Ses quatre
+          // déclencheurs lisent des tables VIVANTES dans le modèle pivot —
+          // `student_body_measures` (perte de poids rapide, FF-031) et la prose
+          // de l'élève (vocabulaire compensatoire). Ce n'est donc pas un lecteur
+          // de remplacement branché par symétrie: c'est celui que la composition
+          // de repas utilise depuis le premier jour.
+          //
+          // ── FAIL-CLOSED, ET C'EST L'ARBITRAGE DE `generate-meal-v1` ───────
+          // Se fermer coûte la bande du soir à un élève qui va bien. S'ouvrir
+          // nomme des plats à un élève qu'on n'a pas su évaluer. Les deux coûts
+          // ne sont pas du même ordre (T7: les planchers priment sur tout), et
+          // la panne est COMPTÉE juste en dessous — un fail-closed silencieux
+          // serait la disparition invisible de la fonctionnalité du soir.
+          //
+          // ── LE COÛT, BORNÉ ET DÉLIBÉRÉ ───────────────────────────────────
+          // Quatre lectures de plus par élève. Elles ne sont payées QUE dans la
+          // fenêtre 20h-22h locale (le filtre le moins cher passe en premier,
+          // 150 lignes plus haut) et après les gardes de cadence: sur un tick
+          // horaire, c'est une fraction de la cohorte.
+          let restrictionFlag = true;
+          try {
+            const floor = await evaluateRestrictionForStudent(admin as never, {
+              userId: cursor,
+              asOfLocalDate: localDate,
+            });
+            restrictionFlag = floor.restriction_flag === true;
+          } catch (error) {
+            restrictionUnreadable++;
+            console.warn(JSON.stringify({
+              tag: "keel.daily_pulse.restriction_floor_unreadable",
+              user_id: cursor,
+              local_date: localDate,
+              // ⚠️ Les quatre champs, pas `String(error)`: une erreur
+              // PostgREST n'est pas une `Error`, et le journal ne dirait que
+              // « [object Object] » — le défaut nommé cinquante lignes plus bas.
+              error: error instanceof Error ? error.message : [
+                (error as { code?: string })?.code,
+                (error as { message?: string })?.message,
+                (error as { details?: string })?.details,
+                (error as { hint?: string })?.hint,
+              ].filter(Boolean).join(" — ") || String(error),
+              effect:
+                "fail-closed: ni bande du soir ni pratique pour cet eleve ce soir",
+            }));
+          }
+          if (restrictionFlag) restrictionRaised++;
           const stripContext = await loadEveningStripContext(admin, {
             userId: cursor,
             localDate,
           });
-          const strip = stripContext.mealId
-            ? buildEveningStrip({
+          // ══ FF-061 — LA CHAÎNE DES TROIS ÉTAPES ═════════════════════════
+          //
+          // ⟳ CE QUI A CHANGÉ LE 2026-09-02, ET POURQUOI. La bande portait les
+          // plats ET la ligne de courses dans la MÊME bulle. C'était juste tant
+          // que les deux étaient indépendantes; FF-061 les rend dépendantes:
+          // déclarer « pas encore » aux courses invalide la cuisson que la
+          // vague sert, donc les plats qui en descendent. Les afficher ensemble
+          // reviendrait à nommer des plats qu'on est en train de rendre
+          // impossibles, avec leurs boutons armés.
+          //
+          // Le message OUVRE donc à la première étape qui a lieu d'être, et la
+          // suite se calcule sur l'état ÉCRIT, dans l'accusé du tap (R1: ② et ③
+          // sont des réponses, jamais des notifications).
+          //
+          // ⛔ `masterOnly` EST LU UNE FOIS. Deux lectures de « qui répond des
+          // faits du foyer » finiraient par diverger, et c'est celle qu'on
+          // regarde le moins qui laisserait un profil réclamé répondre d'une
+          // vague de courses.
+          const masterOnly = await respondsForHousehold(admin, cursor);
+          const reviewPending: DayReviewPending = {
+            // Une vague tombe aujourd'hui ET personne ne l'a déclarée.
+            // `shoppingAnswered !== null` la ferme pour de bon.
+            shopping: Boolean(stripContext.shopping) &&
+              stripContext.shoppingAnswered === null && masterOnly &&
+              !restrictionFlag,
+            cooking: stripContext.cookOn !== null && masterOnly &&
+              !restrictionFlag,
+            meals: stripContext.dishes.length > 0 && !restrictionFlag,
+          };
+          const opening = stripContext.mealId
+            ? openingStep(reviewPending)
+            : null;
+
+          // ── L'ÉTAPE QUI OUVRE, RENDUE ─────────────────────────────────────
+          //
+          // Les trois renderers portent chacun leur propre ceinture
+          // (`acceptStripText` pour ① et ③, `acceptAccidentText` pour ②) et
+          // rendent `null` plutôt qu'un texte qui interroge. Un `null` ici fait
+          // retomber le message sur ce qu'il était: le fait du jour, et la
+          // question du pouls si elle est due.
+          let strip: { line: string; buttons: { id: string; title: string }[] } | null =
+            null;
+          if (opening === "shopping" && stripContext.mealId && stripContext.shopping) {
+            strip = buildShoppingStep({
+              mealId: stripContext.mealId,
+              buyOn: stripContext.shopping.buyOn,
+              language: stripLanguage,
+              masterOnly,
+              restrictionFlag,
+            });
+          } else if (opening === "cooking" && stripContext.mealId && stripContext.cookOn) {
+            const question = buildSessionQuestion({
+              mealId: stripContext.mealId,
+              cookOn: stripContext.cookOn,
+              language: stripLanguage,
+              restrictionFlag,
+            });
+            if (question) {
+              strip = { line: question.body, buttons: question.buttons };
+            }
+          } else if (opening === "meals" && stripContext.mealId) {
+            strip = buildEveningStrip({
               mealId: stripContext.mealId,
               dishes: stripContext.dishes,
               language: stripLanguage,
-              shopping: stripContext.shopping,
-              // R14 — la vague de courses est un fait de FOYER: la ligne ne part
-              // qu'au maître. Un profil réclamé reçoit ses plats et jamais elle.
-              masterOnly: await respondsForHousehold(admin, cursor),
-              // R8 — muet sous plancher, PAR PERSONNE.
+              // ⛔ `null`, TOUJOURS. La ligne de courses est devenue l'étape ①,
+              // qui a son propre renderer et son propre tour. La laisser ici
+              // ferait réapparaître une question DÉJÀ répondue — c'est le seul
+              // chemin par lequel `opening === "meals"` est atteint quand une
+              // vague tombe aujourd'hui.
+              shopping: null,
+              masterOnly,
               restrictionFlag,
-            })
-            : null;
+            });
+          }
+          reviewOpenings[opening ?? "none"] =
+            (reviewOpenings[opening ?? "none"] ?? 0) + 1;
+
+          // ⟳ FF-062 — LE RETOUR DE FIN DE PLAN A QUITTÉ CE JOB LE 2026-09-02.
+          //
+          // Il vivait ici et PRENAIT LA PLACE du message du soir, le lendemain
+          // de la clôture d'un plan. Deux choses n'allaient pas, et la fiche
+          // les nomme: il n'est pas quotidien (l'accrocher au message quotidien
+          // lui faisait hériter d'une fenêtre et d'une garde qui ne sont pas
+          // les siennes), et il COÛTAIT le bilan du jour — or le dernier jour
+          // d'un plan porte encore des courses, une cuisson et des repas à
+          // déclarer.
+          //
+          // Il part maintenant à 22h, le dernier jour, depuis
+          // `keel-proactive-v1` (`runPlanFeedbackStep`), sous son PROPRE
+          // purpose. Ne pas le remettre ici: les deux se disputeraient la
+          // soirée, et c'est exactement ce qui vient d'être défait.
+
+          // ⚠️ LA GARDE « DÉJÀ SORTI » RESTE, et elle est hissée parce que la
+          // décision du pouls en a besoin. Le cron est horaire et la fenêtre
+          // fait deux heures: sans elle, le silence de l'élève valait relance
+          // une heure plus tard.
+          const pulseSentToday = await wasPulseSentToday(admin, {
+            userId: cursor,
+            localDate,
+            timezone: tz,
+            now,
+          });
 
           const decision = decideDailyPulse({
             localHour,
             answeredToday: day.answeredToday,
-            // Le message est-il déjà sorti ce jour local ? Le cron est horaire
-            // et la fenêtre fait deux heures: sans cette garde, le silence de
-            // l'élève valait relance une heure plus tard.
-            sentToday: await wasPulseSentToday(admin, {
-              userId: cursor,
-              localDate,
-              timezone: tz,
-              now,
-            }),
+            // Hissé au-dessus: le chemin du retour de fin de plan en a besoin
+            // aussi, et deux lectures du même fait finiraient par diverger.
+            sentToday: pulseSentToday,
             hasGround: hasRecapGround(facts),
             askDue: cadence.ask,
-            // FF-058 — la troisième raison de parler, et la seule que ce lot
-            // ajoute. `null` = aucun plat prévu ce jour (R7): le message du soir
-            // reste exactement ce qu'il était.
+            // FF-058, puis FF-061 — LA TROISIÈME RAISON DE PARLER.
+            //
+            // ⟳ Elle ne veut plus dire « il y a des plats à offrir » mais
+            // « il reste UNE DES TROIS ÉTAPES à poser »: les courses, la
+            // cuisson, ou les repas. `null` couvre donc R10 en entier — zéro
+            // vague, zéro cuisson ET zéro plat — et pas seulement R7 de FF-058.
+            //
+            // ⚠️ C'EST CE QUI FAIT PARLER LE SOIR OÙ TOUS LES PLATS SONT
+            // ÉTEINTS. Une journée dont la cascade a tout invalidé est
+            // précisément une journée où ① ou ② a lieu d'être; l'ancienne
+            // lecture s'y taisait.
             hasStrip: strip !== null,
             // Le mode `attach` demande le dernier échange; ce job ne l'a pas
             // sous la main et l'attachement se décide côté conversation. Ici
@@ -435,8 +598,27 @@ Deno.serve(async (req) => {
             }
             practiceModes[recap.practiceMode] = (practiceModes[recap.practiceMode] ?? 0) + 1;
 
+            // ── CE QU'ON A RETENU AUJOURD'HUI ────────────────────────────
+            //
+            // ⛔ C'EST LA MOITIÉ « ON LE DIT » DE L'ARBITRAGE DU 2026-09-01.
+            // Le produit a cessé d'exiger un consentement synchrone pour
+            // écrire une allergie déclarée sur un retour de plan; ce qui
+            // remplace ce consentement est « on l'écrit, on le DIT, et ça se
+            // défait ». Retirer cet appel retire la justification de
+            // l'écriture — pas seulement une ligne de message.
+            //
+            // ⚠️ UN ÉNONCÉ, PAS UNE DEMANDE: il n'est PAS écrit au registre
+            // `meal_precision_questions` et ne consomme donc pas
+            // `DAILY_ASK_BUDGET`. T4 borne les demandes, pas les comptes rendus.
+            const memory = await memoryRecapFor({
+              admin,
+              userId: cursor,
+              localDate,
+              language: stripLanguage === "fr" ? "fr" : "en",
+            });
             const message = renderPulseMessage({
               recapBody: recap.body,
+              memory,
               ask: decision.ask,
               strip,
               locale: artifactLocale,
@@ -448,14 +630,18 @@ Deno.serve(async (req) => {
             // qui regarde une bulle, c'est-à-dire jamais.
             if (strip) {
               stripsSent++;
-              if (strip.carriesShopping) stripShoppingLines++;
+              if (opening === "shopping") stripShoppingLines++;
               console.info(JSON.stringify({
                 tag: "keel.evening_strip.sent",
                 user_id: cursor,
                 local_date: localDate,
                 language: stripLanguage,
-                dishes: strip.dishCount,
-                carries_shopping: strip.carriesShopping,
+                // ⟳ L'ÉTAPE QUI A OUVERT, et c'est ce qu'il faut mesurer
+                // maintenant: `dishes` seul ne disait plus lequel des trois
+                // rendus était parti.
+                review_step: opening,
+                dishes: stripContext.dishes.length,
+                carries_shopping: opening === "shopping",
                 practice_mode: recap.practiceMode,
                 pulse_asked: decision.ask,
                 message_chars: message.body.length,
@@ -582,6 +768,27 @@ Deno.serve(async (req) => {
       // panne; `sent: 40` ne l'aurait jamais dit.
       strips_sent: stripsSent,
       strip_shopping_lines: stripShoppingLines,
+      // ⟳ FF-061 — LAQUELLE DES TROIS ÉTAPES A OUVERT. `strips_sent` seul ne
+      // distingue plus les trois rendus, et c'est précisément le chiffre qui
+      // dira si la chaîne est câblée: `cooking: 0` sur une cohorte qui a des
+      // sessions de cuisine veut dire que l'étape ② n'est pas atteinte — le
+      // défaut qu'elle vient de fermer (elle n'avait AUCUN émetteur avant
+      // aujourd'hui, seulement un lecteur).
+      review_openings: reviewOpenings,
+      // Le plancher TCA. `restriction_raised: 0` sur une cohorte entière est
+      // lisible (personne n'est à risque ce soir); `restriction_unreadable: 40`
+      // dit que la bande a disparu pour une panne, pas pour une décision.
+      restriction_raised: restrictionRaised,
+      restriction_unreadable: restrictionUnreadable,
+      // FF-054 §3.2 — les messages du soir qui portaient une question de retour
+      // À LA PLACE de la bande. Ils sont comptés dans `sent`, et ici à part:
+      // sans ce chiffre, un soir « 40 messages » ne dit pas si 12 d'entre eux
+      // étaient des questionnaires.
+      // ⟳ `feedback_opened` A DISPARU DE CE COMPTE-RENDU LE 2026-09-02: le
+      // retour de fin de plan est parti dans `keel-proactive-v1`, et c'est SON
+      // compte-rendu qui le porte désormais. Le garder ici à zéro aurait été un
+      // chiffre qui dit « aucun retour ouvert » à propos d'un canal que ce job
+      // ne regarde plus.
       // La voix du coach a-t-elle porté ? `{"composed":8,"fallback":2}` se lit;
       // `sent: 10` ne dit rien de ce que les élèves ont reçu.
       body_sources: bodySources,

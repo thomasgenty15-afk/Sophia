@@ -125,8 +125,94 @@ Deno.test("« butter or olive oil » reste NON RÉSOLU", () => {
   // Le terme contient « olive oil », qui matcherait. L'alternative disqualifie
   // AVANT toute recherche — sinon on choisirait à la place du cuisinier, et le
   // faux appariement serait indiscernable d'un bon.
+  //
+  // ⚠️ ICI, C'EST « butter » QUI MANQUE À CE JEU D'ESSAI: une branche inconnue
+  // suffit à faire tomber tout le terme (2026-08-24). Sur le référentiel
+  // VIVANT, les deux branches résolvent — vers `butter` et `olive_oil`, deux
+  // lignes distinctes — et le refus tient pour l'autre raison. Les deux
+  // chemins mènent au même `null`, et c'est ce que ce test fixe.
   assertEquals(resolveIngredient(INDEX, "butter or olive oil"), null);
   assertEquals(resolveIngredient(INDEX, "beurre ou huile d'olive"), null);
+});
+
+// ===========================================================================
+// L'ALTERNATIVE — un refus par défaut, deux portes pour en sortir (2026-08-24)
+//
+// ⛔ CE QUE LE REFUS SEC COÛTAIT: « green or brown lentils » était la SEULE
+// source de protéine des trois jours de `plan-F3` (mesuré le 2026-08-23). Le
+// terme ne résolvait pas ⇒ aucune des neuf journées-bouche du plan ne portait
+// d'énergie.
+// ===========================================================================
+
+const ALT_INDEX = buildCompositionIndex(
+  [
+    ref({ slug: "lentils_dry", foodGroupRef: "legumes", energyKcal: 331, proteinG: 25 }),
+    ref({ slug: "olive_oil", foodGroupRef: "olive_oil", energyKcal: 900, proteinG: 0, energyDense: true }),
+    ref({ slug: "butter", foodGroupRef: "other_added_fat", energyKcal: 750, proteinG: 0.6, energyDense: true }),
+  ],
+  [
+    { alias: "green lentils", slug: "lentils_dry" },
+    { alias: "brown lentils", slug: "lentils_dry" },
+    { alias: "olive oil", slug: "olive_oil" },
+    // ⛔ L'ALIAS CURÉ DE LA CHAÎNE ENTIÈRE — la porte ①.
+    { alias: "green or brown lentils", slug: "lentils_dry" },
+  ],
+);
+
+Deno.test("⛔ PORTE ① — un alias CURÉ de la chaîne entière bat le refus générique", () => {
+  // Un humain a lu la chaîne et décidé qu'elle désigne les lentilles sèches.
+  // Le plus spécifique parle en dernier, ici comme partout.
+  assertEquals(
+    resolveIngredient(ALT_INDEX, "green or brown lentils")?.slug,
+    "lentils_dry",
+  );
+});
+
+Deno.test("⛔ PORTE ② — deux branches qui tombent sur LA MÊME ligne résolvent", () => {
+  // L'alternative est alors sans conséquence: peu importe laquelle on lit.
+  // Ce n'est pas un arbitrage, c'est la preuve qu'il n'y en a pas à faire.
+  assertEquals(
+    resolveIngredient(ALT_INDEX, "green lentils or brown lentils")?.slug,
+    "lentils_dry",
+  );
+});
+
+Deno.test("⚠️ LE CAS QUI REFUSE — deux branches, deux lignes", () => {
+  // C'est l'exemple qui justifie le refus dans le DDL, et il doit survivre.
+  assertEquals(resolveIngredient(ALT_INDEX, "butter or olive oil"), null);
+});
+
+Deno.test("⛔ UNE BRANCHE INCONNUE FAIT TOUT TOMBER — ne rien savoir n'est pas être d'accord", () => {
+  // ══════════════════════════════════════════════════════════════════════════
+  // LE DÉFAUT D'UNE PREMIÈRE VERSION DE CETTE RÈGLE, ATTRAPÉ AVANT DE PARTIR.
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // Elle acceptait qu'UNE SEULE branche résolve. Elle rendait donc `olive_oil`
+  // sur « butter or olive oil » dès que le beurre manquait au référentiel —
+  // c'est-à-dire qu'elle CHOISISSAIT, en silence, très exactement ce que le
+  // refus existe pour empêcher. Et le silence aurait été total: rien ne
+  // distingue un aliment mal apparié d'un aliment bien apparié, en aval.
+  assertEquals(resolveIngredient(ALT_INDEX, "ghee or olive oil"), null);
+  assertEquals(resolveIngredient(ALT_INDEX, "olive oil or ghee"), null);
+});
+
+Deno.test("aucune branche connue ⇒ refus, comme avant", () => {
+  assertEquals(resolveIngredient(ALT_INDEX, "ghee or lard"), null);
+});
+
+Deno.test("⚠️ LE MARQUEUR EN QUEUE NE DÉCLENCHE RIEN — pas de relecture du terme entier", () => {
+  // Une seule branche: il n'y a rien à départager. On garde le refus plutôt
+  // que de relire le terme entier, ce qui serait la boucle que ce chemin
+  // existe pour ne pas faire.
+  assertEquals(resolveIngredient(ALT_INDEX, "olive oil or"), null);
+});
+
+Deno.test("la barre oblique compte comme une alternative, dans les deux sens", () => {
+  assertEquals(
+    resolveIngredient(ALT_INDEX, "green lentils / brown lentils")?.slug,
+    "lentils_dry",
+  );
+  assertEquals(resolveIngredient(ALT_INDEX, "butter / olive oil"), null);
 });
 
 Deno.test("un inconnu rend null — jamais le plus proche", () => {
@@ -416,7 +502,11 @@ function parseWith(
     merge: null,
     boxMemberIds: [],
     weighedMemberIds: [],
+  kitchenEquipment: null,
+  cookOnlyDay: null,
+  soloBoxes: false,
   boxMemberDiets: [],
+  boxMemberExclusions: [],
     ...over,
   });
 }

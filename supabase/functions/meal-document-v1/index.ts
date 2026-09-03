@@ -163,6 +163,31 @@ Deno.serve(async (req) => {
       context: meal.context ? String(meal.context) : null,
       mode,
       dateLabel: formatDate(createdAt, contentLocale),
+      // ══════════════════════════════════════════════════════════════════
+      // LES JOURS D'ACHAT — LE SEUL DOCUMENT QUI NE PEUT PAS LES CALCULER
+      // ══════════════════════════════════════════════════════════════════
+      //
+      // ⛔ CETTE FONCTION NE LIT NI `preparations` NI `starts_on` (voir le
+      // `select` plus haut): elle ne PEUT pas rejouer `grocery_waves.ts`. La
+      // date vient donc de la ligne elle-même — `shopping_list[].buy_on`,
+      // posée par les deux lanes le 2026-09-01 exactement pour cette surface.
+      //
+      // ⚠️ ET C'EST LA FEUILLE QU'ON EMPORTE AU MAGASIN. Une liste sans jour
+      // s'y lit « achète tout maintenant » — le défaut rapporté, imprimé sur
+      // papier. L'écran, lui, recalcule; ce document non.
+      //
+      // ⚠️ UN SEUL FORMATEUR, CELUI DE CE FICHIER. Le module PDF rend, il ne
+      // met pas en forme: lui laisser formater ferait deux façons d'écrire un
+      // jour dans le même produit.
+      buyDateLabels: Object.fromEntries(
+        [
+          ...new Set(
+            ((meal.shopping_list ?? []) as ShoppingItem[])
+              .map((line) => line.buy_on ?? null)
+              .filter((day): day is string => typeof day === "string" && day !== ""),
+          ),
+        ].map((day) => [day, formatDate(day, contentLocale)]),
+      ),
       locale: contentLocale,
     });
 

@@ -271,3 +271,75 @@ describe("les allergies ont quitté la ligne, et la porte est visible", () => {
     expect(filled).toContain(en["household.mouth.block_allergies"]);
   });
 });
+
+// ===========================================================================
+// 2026-09-01 · LA DISPOSITION DE L'ÉTAPE 2, ÉPINGLÉE
+//
+// ⛔ ELLE A ÉTÉ DEMANDÉE À L'ÉCRAN, ET RIEN NE LA TENAIT. Sans ce fichier, le
+// prochain lecteur du commentaire d'`ActivityAxesTiles` — « à côté de la
+// taille et du poids, parce que c'est la TROISIÈME ENTRÉE DE LA MÊME
+// ÉQUATION » — la remonterait de bonne foi. Cet argument reste vrai du CALCUL
+// (`meal_envelope.ts` multiplie corps et activité); il n'est plus l'ordre de
+// la LECTURE.
+// ===========================================================================
+
+describe("la disposition de l'étape « moi »", () => {
+  it("deux paires, puis l'objectif, puis les journées", () => {
+    const markup = html(KNOWN_BODY);
+    const at = (needle: string) => {
+      const i = markup.indexOf(needle);
+      expect(i, `${needle} est introuvable`).toBeGreaterThan(-1);
+      return i;
+    };
+    // ① la naissance et le sexe font paire…
+    expect(at('id="setup-birth-date"')).toBeLessThan(at('id="setup-gender"'));
+    // ② …puis la taille et le poids…
+    expect(at('id="setup-gender"')).toBeLessThan(at('id="setup-height"'));
+    expect(at('id="setup-height"')).toBeLessThan(at('id="setup-weight"'));
+    // ③ …puis ce qu'on vise…
+    expect(at('id="setup-weight"')).toBeLessThan(at('id="setup-goal"'));
+    // ④ …et seulement après, les journées puis le sport.
+    expect(at('id="setup-goal"')).toBeLessThan(at('id="setup-self-day'));
+    expect(at('id="setup-self-day')).toBeLessThan(at('id="setup-self-sport'));
+  });
+
+  it("⛔ LE CORPS RESTE AU-DESSUS DE LA DIRECTION — ne pas l'inverser", () => {
+    // Ce n'est pas de la mise en page: le curseur de `TargetAndPaceFields` est
+    // BORNÉ par le corps, et sans lui il ne rend qu'un `needs_body`. Un
+    // curseur muet se lit comme une fonctionnalité absente — défaut mesuré le
+    // 2026-08-18, et la raison pour laquelle le corps était déjà passé devant.
+    const markup = html(KNOWN_BODY);
+    expect(markup.indexOf('id="setup-weight"'))
+      .toBeLessThan(markup.indexOf('id="setup-self-target-weight"'));
+  });
+
+  it("⛔ PLUS AUCUNE AIDE SOUS LES CHAMPS DE CETTE FICHE", () => {
+    // Six phrases d'affilée disaient ce que la donnée SERT à faire, avant la
+    // première case remplie. Retirées le 2026-09-01; les tuiles d'activité
+    // avaient déjà perdu les leurs le 2026-08-19, pour le même motif.
+    //
+    // ⚠️ ON MESURE L'ABSENCE DES TEXTES, pas celle des clés: une assertion sur
+    // le catalogue resterait verte si quelqu'un remettait le `hint=` avec une
+    // autre clé.
+    const markup = html(KNOWN_BODY);
+    // ⚠️ LES CINQ CHAÎNES EXACTES QUI ONT ÉTÉ RETIRÉES, relevées dans le
+    // catalogue d'avant. Une sonde APPROCHANTE serait pire qu'aucune: la
+    // première rédaction cherchait « Sessions a week » et rougissait sur
+    // `setup.sport.5_plus_hint` (« Five sessions a week or more. ») — l'aide
+    // d'une TUILE, qui décrit un choix et doit rester.
+    for (
+      const gone of [
+        "How the plan names your serving.",
+        "It sizes your servings. Nothing else reads it.",
+        "it is also the first point of a line",
+        "Work and daily life, sport aside",
+        "Sessions per week, the day aside",
+      ]
+    ) {
+      expect(markup.toLowerCase(), gone).not.toContain(gone.toLowerCase());
+    }
+    // ⛔ ET LE CAS QUI PASSE: l'aide des TUILES est toujours là. Sans lui, ce
+    // test resterait vert si quelqu'un vidait toute la section.
+    expect(markup.toLowerCase()).toContain("five sessions a week or more");
+  });
+});

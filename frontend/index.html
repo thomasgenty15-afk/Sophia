@@ -1,5 +1,8 @@
 <!doctype html>
-<html lang="en">
+<!-- `lang="fr"` parce que le REPLI ci-dessous est français. `SEO.tsx` réécrit
+     l'attribut à la locale du visiteur dès que le JS tourne; ce qui reste ici
+     est ce que lit un robot, et il doit s'accorder avec le texte qu'il lit. -->
+<html lang="fr">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/favicon.png" />
@@ -24,32 +27,56 @@
       crossorigin
       href="/src/assets/fonts/publicsans-latin.woff2"
     />
-    <!-- ⚠️ TITRE ET DESCRIPTION PAR DÉFAUT — ce que voit un robot AVANT le JS.
-         Les composants `SEO` les remplacent page par page; ceci est le repli.
-         Deux faits corrigés ici: la description promettait « on WhatsApp », un
-         canal SUPPRIMÉ du produit (chantier de-whatsapp), et « every outgoing
-         message is checked », qui est faux — quatre surfaces sont scannées,
-         quatre ne le sont pas (relance, récap du soir, bilan du dimanche,
-         broadcast coach). Voir `scratchpad/site/AUDIT-SITE.md` B8. -->
-    <title>Sophia — la semaine de votre maison, composée et expliquée</title>
-    <meta name="description" content="Sophia compose la semaine d'un foyer en sessions de cuisine: un seul plat pour tout le monde, et pour chaque bouche la part qui va avec son objectif. Les allergies d'une seule personne gouvernent toute la casserole." />
+    <!-- ⚠️ CE BLOC EST LE SEUL QUE VOIT UN ROBOT D'APERÇU, ET C'EST TOUT LE
+         PIÈGE. `components/SEO.tsx` réécrit titre, description, `og:` et
+         `twitter:` page par page — mais dans un `useEffect`. WhatsApp,
+         Messenger, LinkedIn, Slack, iMessage et X n'exécutent PAS le JS: ils
+         lisent CE fichier, et rien d'autre. Un `SEO` correct au runtime ne
+         répare donc RIEN sur un lien partagé.
+         Mesuré le 2026-09-01: `og:`/`twitter:` annonçaient encore « Sophia —
+         your method, answering every student, every day … on WhatsApp », en
+         anglais, pour un produit B2B SUPPRIMÉ — sur les quatre pages de vente
+         du foyer. Seule la `description` avait été corrigée au lot précédent
+         (`CHARTE-VITRINE.md` §9 n°5); les six autres balises étaient restées.
+         ⚠️ RÈGLE: toute phrase ici est un COPIE MOT POUR MOT de `home.seo_*`
+         (`i18n/fr.ts`). Deux rédactions du même hall divergent en silence, et
+         c'est exactement ce qui vient de coûter trois mois d'aperçus faux. -->
+    <title>Sophia — la semaine de repas de votre maison, décidée</title>
+    <meta name="description" content="Ce qu'on mange, quand on cuisine, ce qu'il faut acheter. Sophia compose la semaine de votre maison, que vous soyez seul, à deux, ou toute une famille." />
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
     <link rel="canonical" href="https://sophia-coach.ai/" />
-    
+
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://sophia-coach.ai/" />
-    <meta property="og:title" content="Sophia — your method, answering every student, every day" />
-    <meta property="og:description" content="Sophia is the AI that answers a masterclass coach's students in their coach's own method and words, on WhatsApp, every day. You record your method once; every outgoing message is checked against your red lines before it is sent." />
-    <meta property="og:site_name" content="Sophia Coach" />
-    <meta property="og:locale" content="en_GB" />
-    <meta property="og:image" content="https://sophia-coach.ai/apple-touch-icon.png" />
-    
+    <meta property="og:title" content="Sophia — la semaine de repas de votre maison, décidée" />
+    <meta property="og:description" content="Ce qu'on mange, quand on cuisine, ce qu'il faut acheter. Sophia compose la semaine de votre maison, que vous soyez seul, à deux, ou toute une famille." />
+    <!-- « Sophia », et pas « Sophia Coach »: c'est le nom que porte déjà
+         l'organisation dans les données structurées (`lib/legalEntity.ts`
+         `organizationStructuredData`), et le mot « coach » n'apparaît nulle
+         part sur les quatre pages du foyer — le laisser ici le remettait dans
+         chaque aperçu et chaque onglet. -->
+    <meta property="og:site_name" content="Sophia" />
+    <meta property="og:locale" content="fr_FR" />
+    <!-- ⚠️ PAS `apple-touch-icon.png`: une icône carrée de 1024 servie en
+         `summary_large_image` rend un aperçu rogné et vide. `og-image.png` est
+         une planche 1200×630 à la charte. -->
+    <meta property="og:image" content="https://sophia-coach.ai/og-image.png" />
+    <!-- Les dimensions RÉELLES du fichier, pas le 1200×630 nominal: la planche
+         est rendue à 2× pour rester nette sur un écran dense, et une balise qui
+         annonce une taille que le fichier n'a pas fait recadrer certains
+         aperçus. Le rapport, lui, est bien 1.91:1. Régénérer avec
+         `node scripts/og-image.mjs`. -->
+    <meta property="og:image:width" content="2400" />
+    <meta property="og:image:height" content="1260" />
+    <meta property="og:image:alt" content="Sophia — la semaine de repas de votre maison, décidée" />
+
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Sophia — your method, answering every student, every day" />
-    <meta name="twitter:description" content="Sophia is the AI that answers a masterclass coach's students in their coach's own method and words, on WhatsApp, every day. You record your method once; every outgoing message is checked against your red lines before it is sent." />
-    <meta name="twitter:image" content="https://sophia-coach.ai/apple-touch-icon.png" />
+    <meta name="twitter:title" content="Sophia — la semaine de repas de votre maison, décidée" />
+    <meta name="twitter:description" content="Ce qu'on mange, quand on cuisine, ce qu'il faut acheter. Sophia compose la semaine de votre maison, que vous soyez seul, à deux, ou toute une famille." />
+    <meta name="twitter:image" content="https://sophia-coach.ai/og-image.png" />
+    <meta name="twitter:image:alt" content="Sophia — la semaine de repas de votre maison, décidée" />
   </head>
   <body>
     <div id="root"></div>

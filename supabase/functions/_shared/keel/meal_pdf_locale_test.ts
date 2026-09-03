@@ -21,9 +21,20 @@
 // prouvant plus rien. Le premier test prouve donc que la police REFUSE
 // vraiment ces caractères.
 
-import { assert, assertEquals, assertRejects, assertThrows } from "jsr:@std/assert@1";
+import {
+  assert,
+  assertEquals,
+  assertRejects,
+  assertStringIncludes,
+  assertThrows,
+} from "jsr:@std/assert@1";
 import { PDFDocument, StandardFonts } from "npm:pdf-lib@1.17.1";
-import { buildMealPdf, toWinAnsi } from "./meal_pdf.ts";
+import {
+  buildMealPdf,
+  mealPdfPackFor,
+  shoppingSections,
+  toWinAnsi,
+} from "./meal_pdf.ts";
 import type { GeneratedDish, ShoppingItem } from "./meal_generation.ts";
 
 // Les deux caractères mesurés, nommés par leur code et jamais écrits en clair:
@@ -76,6 +87,7 @@ function input(over: Record<string, unknown> = {}) {
     context: "Semaine chargée",
     mode: "to_shop" as const,
     dateLabel: "4 août 2026",
+    buyDateLabels: {},
     locale: "fr-FR",
     ...over,
   };
@@ -196,6 +208,7 @@ Deno.test("les deux packs rendent, et rendent DIFFÉREMMENT", async () => {
   const en = await buildMealPdf(input({
     locale: "en-US",
     dateLabel: "4 August 2026",
+    buyDateLabels: {},
   }));
   assert(fr.byteLength > 500);
   assert(en.byteLength > 500);
@@ -214,7 +227,111 @@ Deno.test("le mode from_pantry sans rien à acheter rend sa phrase dans les deux
       mode: "from_pantry",
       shoppingList: [],
       dateLabel: locale === "fr-FR" ? "4 août 2026" : "4 August 2026",
+      buyDateLabels: {},
     }));
     assert(bytes.byteLength > 500, locale);
   }
+});
+
+// ---------------------------------------------------------------------------
+// LES JOURS D'ACHAT SUR LA FEUILLE — 2026-09-01
+//
+// ⛔ LE PDF EST LA SEULE SURFACE QUI NE PEUT PAS LES CALCULER. `meal-document-v1`
+// ne lit ni `preparations` ni `starts_on`: il ne peut pas rejouer
+// `grocery_waves.ts`. La date vient donc de la LIGNE (`shopping_list[].buy_on`),
+// posée par les deux lanes exactement pour lui. Et c'est la feuille qu'on
+// emporte au magasin — une liste sans jour s'y lit « achète tout maintenant »,
+// c'est-à-dire le défaut rapporté, imprimé sur papier.
+//
+// ⚠️ ON NE RELIT PAS LES OCTETS: la règle de ce fichier, écrite plus haut, est
+// que le texte d'un PDF est compressé. La DÉCISION est donc extraite
+// (`shoppingSections`) et testée telle quelle; le rendu se contente de prouver
+// qu'il ne tombe pas.
+// ---------------------------------------------------------------------------
+
+Deno.test("plusieurs jours ⇒ une section par jour, TRIÉES", () => {
+  const out = shoppingSections([
+    item({ term: "poulet", buy_on: "2026-09-06" }),
+    item({ term: "riz", buy_on: "2026-09-03" }),
+    item({ term: "oeufs", buy_on: "2026-09-03" }),
+  ]);
+  assertEquals(out.kind, "by_day");
+  if (out.kind !== "by_day") return;
+  assertEquals(out.days.map((d) => d.buyOn), ["2026-09-03", "2026-09-06"]);
+  assertEquals(out.days[0].items.map((i) => i.term), ["riz", "oeufs"]);
+  assertEquals(out.days[1].items.map((i) => i.term), ["poulet"]);
+});
+
+Deno.test("un seul jour ⇒ une LIGNE, pas des sections", () => {
+  // Même arbitrage que l'écran: une vague ne se DÉCOUPE pas. Ce qui manquait
+  // n'est pas un découpage, c'est une date.
+  const out = shoppingSections([
+    item({ term: "riz", buy_on: "2026-09-03" }),
+    item({ term: "poulet", buy_on: "2026-09-03" }),
+  ]);
+  assertEquals(out.kind, "flat");
+  if (out.kind !== "flat") return;
+  assertEquals(out.buyOn, "2026-09-03");
+  assertEquals(out.items.length, 2);
+});
+
+Deno.test("⛔ AUCUNE DATE ⇒ la feuille d'avant, et aucun jour inventé", () => {
+  const out = shoppingSections([item({ term: "riz" })]);
+  assertEquals(out.kind, "flat");
+  if (out.kind !== "flat") return;
+  assertEquals(out.buyOn, null);
+});
+
+Deno.test("⛔ UNE LISTE À MOITIÉ DATÉE NE PERD AUCUN ARTICLE", () => {
+  // « Rien ne disparaît » est la propriété que les vagues tiennent avant toutes
+  // les autres. Découper par jour ici laisserait « riz » hors de toute section.
+  const out = shoppingSections([
+    item({ term: "riz" }),
+    item({ term: "poulet", buy_on: "2026-09-06" }),
+  ]);
+  assertEquals(out.kind, "flat");
+  if (out.kind !== "flat") return;
+  assertEquals(out.buyOn, null, "une date partielle ne date pas la liste");
+  assertEquals(out.items.length, 2);
+});
+
+Deno.test("une liste vide ne se date pas non plus", () => {
+  const out = shoppingSections([]);
+  assertEquals(out.kind, "flat");
+  if (out.kind !== "flat") return;
+  assertEquals(out.buyOn, null);
+});
+
+Deno.test("les deux libellés de date existent dans les DEUX langues", () => {
+  // Le pack est la seule chose relisible d'un PDF (voir la règle du fichier).
+  for (const locale of ["fr-FR", "en-GB"] as const) {
+    const pack = mealPdfPackFor(locale);
+    assert(pack.buyAllOn("3 septembre").includes("3 septembre"));
+    assert(pack.buyOnDate("3 septembre").includes("3 septembre"));
+  }
+  assert(
+    mealPdfPackFor("fr-FR").buyOnDate("X") !== mealPdfPackFor("en-GB").buyOnDate("X"),
+    "les deux langues disent la même chose",
+  );
+});
+
+Deno.test("le document se construit avec une liste datée sur deux jours", async () => {
+  const bytes = await buildMealPdf(input({
+    buyDateLabels: { "2026-09-03": "3 septembre", "2026-09-06": "6 septembre" },
+    shoppingList: [
+      item({ term: "riz", aisle: "grains", buy_on: "2026-09-03" }),
+      item({ term: "poulet", buy_on: "2026-09-06" }),
+    ],
+  }));
+  assert(bytes.byteLength > 500);
+  assertEquals(new TextDecoder().decode(bytes.slice(0, 5)), "%PDF-");
+});
+
+Deno.test("⛔ UNE DATE SANS LIBELLÉ S'IMPRIME BRUTE, elle ne disparaît pas", async () => {
+  // On ne perd pas un jour d'achat parce qu'on n'a pas su l'écrire joliment.
+  const bytes = await buildMealPdf(input({
+    buyDateLabels: {},
+    shoppingList: [item({ term: "riz", buy_on: "2026-09-03" })],
+  }));
+  assert(bytes.byteLength > 500);
 });

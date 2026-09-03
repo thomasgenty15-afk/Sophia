@@ -3,12 +3,44 @@
 | | |
 |---|---|
 | **Identifiant** | `FF-058-la-bande-du-soir` |
-| **Statut** | 🟡 Spécifiée |
+| **Statut** | 🟠 En cours — le code est écrit, commité et câblé (voir §0). ⚠️ **ÉTENDUE PAR [FF-061](FF-061-le-bilan-du-jour.md) (2026-09-01)** : le message du soir cesse de porter la seule bande de repas ; il porte trois étapes enchaînées — les courses, la cuisson, puis les repas. Les règles de cette fiche (R2 l'affordance, R6 la mesure du sapin de Noël, R7 zéro plat ⇒ aucune bande, R8 le plancher, R10-R14 le foyer) restent **toutes** en vigueur et gouvernent la troisième étape |
 | **Date** | 2026-08-12 |
 | **Autorité produit** | [conversation/README.md](../conversation/README.md) (T1–T9) · `_shared/keel/daily_recap.ts` (« le fait est le compliment ») |
 | **Dépend de** | `_shared/keel/meal_tick.ts` · `daily_recap*.ts` (le véhicule) · `daily_pulse.ts` (le patron de boutons) · `meal_plan_window.ts` · `daily_ask_budget.ts` (T4) |
 | **Ouvre** | [FF-057](../composition-des-repas/FF-057-la-procedure-accident.md) — un `✗` de repas et un `Pas encore` de courses sont **deux** de ses quatre entrées |
 | **Effort estimé** | 2 jours |
+
+---
+
+## 0. Où en est cette fiche — vérifié le 2026-09-01
+
+⚠️ **Cette fiche est restée 🟡 Spécifiée pendant que le code vivait.** Le README
+du dossier dit qu'une fiche 🟢 dont le code ne fait pas ce qu'elle dit est pire
+qu'une absence de fiche ; l'inverse coûte la même chose, et c'est ce qui vient
+de se passer — un audit a dû relire le code pour découvrir que la bande du soir
+était en production depuis des semaines.
+
+**Ce qui est construit et branché** (chemins vérifiés, pas déduits) :
+
+| Morceau | Où |
+|---|---|
+| La bande, ses deux boutons, la ligne de courses | `_shared/keel/evening_strip.ts :: buildEveningStrip` |
+| L'étape « Pas tout » (✓/✗ par plat) | `evening_strip.ts :: renderStripDishStep` |
+| Les lectures et les écritures | `_shared/keel/evening_strip_io.ts` |
+| Le routage des taps | `_shared/chat/deterministic_buttons.ts` (préfixe `KEEL_STRIP_`) |
+| L'émission | `keel-daily-pulse-v1`, cron `keel-daily-pulse` (`10 * * * *`), fenêtre 20h-22h locale |
+
+**Ce qui n'est PAS vérifié** : les critères d'acceptation de §9 n'ont pas été
+repassés un par un contre le code. C'est la seule raison pour laquelle cette
+fiche est 🟠 et non 🟢 — pas un manque connu.
+
+**R8 (le plancher TCA) a été réarmé le 2026-09-01.** `keel-daily-pulse-v1`
+passait `restrictionFlag: false` en dur depuis le retrait de
+`isRestrictionFlagged` : la garde était armée et testée dans `buildEveningStrip`
+et ne recevait jamais `true`. Elle lit maintenant
+`evaluateRestrictionForStudent` — la même porte que la composition de repas —
+en fail-closed, et le compte-rendu du job porte `restriction_raised` /
+`restriction_unreadable`.
 
 ---
 
@@ -206,7 +238,7 @@ sans que rien ne le signale.
 | **R3** | Le silence est une réponse | zéro relance, zéro remarque, aucune conséquence |
 | **R4** | Aucun verdict, même positif | féliciter une journée que la personne sait mauvaise détruit tout le canal, sans retour possible |
 | **R5** | **Exactement** le chemin d'écriture de l'écran | deux implémentations d'une même coche divergent sur les bords, et la divergence se lit « l'écran dit mardi, la conversation dit mercredi » sans qu'on sache laquelle ment |
-| **R6** | La bande **ne consomme pas** le budget T4 ; toute **question** oui | affordance ≠ demande. Mais le même soir ne porte alors une pratique-question (FF-029) ou une recommandation (FF-028) **que si le budget est libre** — sinon on recharge le soir petit à petit, et dans six mois c'est un sapin de Noël |
+| **R6** | La bande **ne consomme pas** le budget T4 ; toute **question** oui | affordance ≠ demande. Mais le même soir ne porte une pratique-question (FF-029) **que si le budget est libre** — sinon on recharge le soir petit à petit, et dans six mois c'est un sapin de Noël. *(La recommandation quotidienne était le second cas ; elle est abandonnée depuis le 2026-09-01.)* |
 | **R7** | Zéro plat prévu ⇒ **aucune bande** | le message du soir reste exactement ce qu'il est |
 | **R8** | Muet sous `restriction_flag`, **par personne** | le plancher prime, et il ne se propage pas d'un membre à l'autre |
 | **R9** | Ce que devient un `✗` n'est pas ici | la capture et la réparation sont deux fiches, et elles doivent pouvoir se retirer séparément |

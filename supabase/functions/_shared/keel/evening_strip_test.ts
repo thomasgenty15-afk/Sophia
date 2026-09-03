@@ -510,9 +510,13 @@ Deno.test("§7 — two waves cannot fall on the same day: the calculation bucket
     startsOn: "2026-08-10",
     durationDays: 7,
     shoppingList: [
-      { term: "chicken", aisle: "protein" },
-      { term: "salmon", aisle: "protein" },
-      { term: "rice", aisle: "grain" },
+      // `food_group: null` — requis depuis le 2026-08-23 (`WaveItem`). Ce test
+      // porte sur le REGROUPEMENT par date d'achat, pas sur la fenêtre crue:
+      // `null` rend le repli `MAX_FRIDGE_DAYS`, c'est-à-dire exactement les
+      // dates que ce fichier assertait déjà.
+      { term: "chicken", aisle: "protein", food_group: null },
+      { term: "salmon", aisle: "protein", food_group: null },
+      { term: "rice", aisle: "grain", food_group: null },
     ],
     preparations: [
       // Deux cuissons distinctes, toutes deux à J+3 de la même date d'achat.

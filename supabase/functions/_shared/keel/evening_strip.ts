@@ -612,6 +612,68 @@ export function buildEveningStrip(args: {
 }
 
 /**
+ * FF-061 ① — LES COURSES, SEULES, EN TÊTE DE CHAÎNE.
+ *
+ * ══════════════════════════════════════════════════════════════════════════
+ * POURQUOI ELLE SORT DE LA BANDE, ALORS QU'ELLE Y VIVAIT
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * FF-058 la faisait voyager DANS la bande: une ligne de plus sous la liste des
+ * plats, deux boutons de plus. C'était juste tant que les deux étaient
+ * indépendantes.
+ *
+ * FF-061 les rend dépendantes: **① éteint ③**. Déclarer « pas encore » invalide
+ * la cuisson que cette vague sert, donc les plats qui en descendent. Les
+ * afficher dans la MÊME bulle reviendrait à nommer des plats qu'on est en train
+ * de rendre impossibles, et à laisser leurs boutons armés — la personne
+ * cocherait un repas que sa propre réponse vient d'effacer.
+ *
+ * D'où la chaîne: ① seule, puis la suite se calcule sur l'état écrit
+ * (`day_review.ts`). Le coût est un tap de plus les soirs de courses, et il est
+ * assumé: c'est le prix de ne pas montrer un plan faux.
+ *
+ * ⛔ CE N'EST TOUJOURS PAS UNE QUESTION SUR LE FUTUR (R17 de FF-058). La date
+ * des courses est dans le plan; le jour venu, on CONSTATE. La même ceinture
+ * (`acceptStripText`) juge ce texte-ci que celui de la bande.
+ *
+ * @param masterOnly REQUIS (R9 de FF-061, R14 de FF-058). La vague est un fait
+ *   de FOYER: un profil réclamé n'a pas à en répondre, et sa réponse serait du
+ *   bruit. Requis parce que le défaut inverse ferait taire l'étape pour tout le
+ *   monde sans qu'un test ne tombe.
+ * @param restrictionFlag REQUIS (R12 de FF-061). Sous plancher, aucun bilan.
+ */
+export function buildShoppingStep(args: {
+  mealId: string;
+  buyOn: string;
+  language: StripLanguage;
+  masterOnly: boolean;
+  restrictionFlag: boolean;
+}): { line: string; buttons: StripButton[] } | null {
+  // L'ORDRE DES GARDES EST LE CONTRAT (T7): le plancher passe en premier.
+  if (args.restrictionFlag) return null;
+  if (!args.masterOnly) return null;
+  const copy = COPY[args.language];
+  const buttons: StripButton[] = [
+    {
+      id: stripShoppingId("done", args.mealId, args.buyOn),
+      title: copy.shoppingDone,
+    },
+    {
+      id: stripShoppingId("later", args.mealId, args.buyOn),
+      title: copy.shoppingLater,
+    },
+  ];
+  const verdict = acceptStripText(
+    [copy.shoppingLead, ...buttons.map((b) => b.title)].join("\n"),
+    false,
+  );
+  // Fail-closed du côté du silence, comme la bande: on préfère perdre l'étape
+  // que sortir une question.
+  if (!verdict.ok) return null;
+  return { line: copy.shoppingLead, buttons };
+}
+
+/**
  * L'ÉTAPE `Pas tout` — les plats, ✓/✗ chacun.
  *
  * DEUX boutons par plat, et pas un seul. « Tape ce qui n'a pas eu lieu » ferait

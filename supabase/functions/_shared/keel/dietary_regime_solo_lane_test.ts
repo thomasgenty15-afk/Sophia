@@ -35,6 +35,10 @@ import { findForbiddenMatches } from "./forbidden_matcher.ts";
 
 const PROMPT_BASE = {
   firstDayCookable: true,
+  hasFreezer: false,
+  oneCookingSession: false,
+  cookOnlyDay: null,
+  soloBoxes: false,
   contentLocale: "en-US",
   budgetAmount: null,
   dietBlock: "",
@@ -45,7 +49,9 @@ const PROMPT_BASE = {
   merge: null,
   boxMemberIds: [],
   weighedMemberIds: [],
+  kitchenEquipment: null,
   boxMemberDiets: [],
+  boxMemberExclusions: [],
   protocolBlock: "",
   beliefKeys: [],
   goal: "health" as const,

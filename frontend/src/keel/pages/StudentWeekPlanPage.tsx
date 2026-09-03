@@ -1011,8 +1011,12 @@ function PersonalNumbers(props: {
 
         AUCUNE COULEUR SUR L'ÉCART, et c'est une règle produit, pas un oubli.
         Du vert sur −0,4 kg et du rouge sur +0,4 serait une NOTE — exactement ce
-        que « nothing counts down, and nobody is scored against it » refuse deux
-        sections plus haut. Le signe suffit à lire le sens.
+        que « nobody is scored against it » refuse deux sections plus haut
+        (`plan.goal.target_hint`). ⟳ 2026-09-01: la moitié « nothing counts
+        down » de cette phrase est PARTIE, parce qu'elle était fausse — la
+        cible donne la direction sur laquelle les grammages sont calibrés
+        (lot L8). C'est la seconde moitié qui porte la règle ici, et elle tient
+        seule. Le signe suffit à lire le sens.
       */}
       {history.length >= 2 ? (
         <div>
@@ -1693,6 +1697,21 @@ export default function StudentWeekPlanPage() {
       // lot. Y glisser un défaut en dur reproduirait très exactement le
       // `mine={null}` qui a rendu muet un lot entier.
       cookingShape: null,
+      // ── `false` ICI, ET POUR LA MÊME RAISON QUE LA LIGNE DU DESSUS ─────
+      // Cette carte est un APERÇU SANS FORMULAIRE: un seul bouton, aucune
+      // entrée. La case « tout cuisiner en une seule fois » vit sur l'écran qui
+      // COMPOSE (`MealBuilder`, juste au-dessus sur cette même page, et
+      // l'entonnoir), sous les jours de cuisine qu'elle réduit — c'est là
+      // qu'elle a un sujet.
+      //
+      // `false` dit « je ne demande rien », donc la sortie de cette carte est
+      // byte-identique à celle d'avant ce lot. Y glisser `true` en dur
+      // reproduirait le `mine={null}` qui a rendu muet un lot entier.
+      oneCookingSession: false,
+      // `false` ICI AUSSI, et pour la même raison: cette carte n'a pas de
+      // formulaire. La case « je cuisine la veille » vit sur l'écran qui
+      // COMPOSE, avec les dates qu'elle recule.
+      cookTheDayBefore: false,
       // Les entrées de la lane individuelle. Le budget, les jours de cuisine et
       // le temps disponible ne sont PAS ici: le générateur les relit dans
       // `practical_constraints`, et les passer dans le corps ferait deux

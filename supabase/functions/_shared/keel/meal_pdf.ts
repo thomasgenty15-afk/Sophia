@@ -57,6 +57,23 @@ type MealPdfPack = {
   /** La marque devant un ingrédient: déjà là, ou à acheter. */
   markHave: string;
   markBuy: string;
+  /**
+   * ══════════════════════════════════════════════════════════════════════
+   * QUAND ACHETER — LA MOITIÉ QUE CE DOCUMENT NE POUVAIT PAS CALCULER.
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * ⛔ LE PDF EST LA SEULE SURFACE QUI NE PEUT PAS S'EN PASSER. L'écran
+   * recalcule ses vagues à partir des préparations (`grocery_waves.ts`);
+   * `meal-document-v1`, lui, ne lit que `dishes` et `shopping_list` — ni
+   * `preparations`, ni `starts_on`. Il ne PEUT donc rien dater tout seul, et
+   * c'est exactement pour lui que `shopping_list[].buy_on` a été posé sur la
+   * ligne le 2026-09-01.
+   *
+   * ⚠️ C'est la feuille qu'on emporte au magasin. Une liste sans jour s'y lit
+   * « achète tout maintenant » — le défaut rapporté, imprimé sur papier.
+   */
+  buyAllOn: (date: string) => string;
+  buyOnDate: (date: string) => string;
 };
 
 const MEAL_PDF_PACKS: Record<LocalePackKey, MealPdfPack> = {
@@ -77,6 +94,8 @@ const MEAL_PDF_PACKS: Record<LocalePackKey, MealPdfPack> = {
     contextPrefix: (context) => `You told us: ${context}`,
     markHave: "have",
     markBuy: "buy",
+    buyAllOn: (date) => `Buy it all on ${date} — nothing here spoils before it is cooked.`,
+    buyOnDate: (date) => `Buy on ${date}`,
   },
   fr: {
     aisleLabels: {
@@ -97,12 +116,68 @@ const MEAL_PDF_PACKS: Record<LocalePackKey, MealPdfPack> = {
     contextPrefix: (context) => `Tu nous as dit : ${context}`,
     markHave: "j'ai",
     markBuy: "acheter",
+    buyAllOn: (date) =>
+      `Tout est à acheter le ${date} — rien ici ne se gâte d'ici sa cuisson.`,
+    buyOnDate: (date) => `À acheter le ${date}`,
   },
 };
 
 /** R7 par délégation: une langue non livrée jette, elle ne retombe pas. */
-function mealPdfPackFor(locale: string): MealPdfPack {
+export function mealPdfPackFor(locale: string): MealPdfPack {
   return MEAL_PDF_PACKS[localePackKey(locale)];
+}
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * COMMENT LA LISTE SE DÉCOUPE — LA DÉCISION, SÉPARÉE DU RENDU.
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ EXTRAITE PARCE QUE LE RENDU N'EST PAS TESTABLE. La convention de ce
+ * fichier, écrite dans son propre test, est qu'« on ne relit pas le texte dans
+ * les octets d'un PDF (il est compressé) ». Une règle laissée en ligne dans
+ * `buildMealPdf` serait donc une règle que RIEN ne peut vérifier — et c'est
+ * exactement la forme de lot désarmé que ce dépôt paie en boucle.
+ *
+ * ── TROIS SORTIES, ET LA TROISIÈME EST LE COMPORTEMENT D'AVANT ────────────
+ *   · `by_day`  — plusieurs jours d'achat: une section par jour;
+ *   · `flat` + `buyOn` — un seul jour: une LIGNE au-dessus de la liste plate.
+ *     Même arbitrage que l'écran (`ShoppingListPanel`): une vague ne se
+ *     DÉCOUPE pas, ce qui manquait n'était pas un découpage mais une date;
+ *   · `flat` + `buyOn: null` — aucune date: la feuille d'avant, au caractère
+ *     près. C'est tout plan écrit avant le 2026-09-01, qu'aucune migration ne
+ *     répare, et se taire est la seule réponse vraie.
+ *
+ * ⛔ LA GARDE EST « TOUTES DATÉES », PAS « AU MOINS UNE ». Une liste à moitié
+ * datée découpée par jour laisserait les lignes sans date HORS de toute
+ * section — et « rien ne disparaît » est la propriété que les vagues tiennent
+ * avant toutes les autres.
+ *
+ * PURE: aucune mise en forme, aucune langue, aucun octet.
+ */
+export type ShoppingSections<T> =
+  | { kind: "flat"; items: readonly T[]; buyOn: string | null }
+  | { kind: "by_day"; days: { buyOn: string; items: T[] }[] };
+
+export function shoppingSections<T extends { buy_on?: string | null }>(
+  items: readonly T[],
+): ShoppingSections<T> {
+  const days: string[] = [];
+  for (const item of items) {
+    const day = item.buy_on ?? null;
+    if (day && !days.includes(day)) days.push(day);
+  }
+  days.sort();
+  const allDated = items.length > 0 &&
+    items.every((i) => (i.buy_on ?? null) !== null);
+  if (!allDated || days.length === 0) return { kind: "flat", items, buyOn: null };
+  if (days.length === 1) return { kind: "flat", items, buyOn: days[0] };
+  return {
+    kind: "by_day",
+    days: days.map((buyOn) => ({
+      buyOn,
+      items: items.filter((i) => (i.buy_on ?? null) === buyOn),
+    })),
+  };
 }
 
 const PAGE = { width: 595.28, height: 841.89 }; // A4 portrait, en points
@@ -335,6 +410,22 @@ export interface MealPdfInput {
    */
   dateLabel: string;
   /**
+   * LES JOURS D'ACHAT, DÉJÀ ÉCRITS DANS LA LANGUE DU DOCUMENT — 2026-09-01.
+   *
+   * `iso (YYYY-MM-DD)` → le libellé à imprimer. `{}` quand la liste n'est pas
+   * datée (tout plan écrit avant ce lot), et le document rend alors la liste
+   * plate d'avant, au caractère près.
+   *
+   * ⛔ FORMATÉS PAR L'APPELANT, ET C'EST DÉLIBÉRÉ. Ce module reçoit déjà
+   * `dateLabel` tout fait: il RENDU, il ne met pas en forme. Ajouter ici un
+   * second formateur de date ferait deux façons d'écrire un jour dans le même
+   * produit — et c'est celle qu'on regarde le moins qui garderait l'ancienne.
+   *
+   * ⚠️ UNE DATE SANS LIBELLÉ S'IMPRIME BRUTE plutôt que de disparaître: on ne
+   * perd pas un jour d'achat parce qu'on n'a pas su l'écrire joliment.
+   */
+  buyDateLabels: Readonly<Record<string, string>>;
+  /**
    * La langue du DOCUMENT (`resolveArtifactLocale`). REQUISE.
    *
    * Ce champ n'existait pas. Les plats, eux, arrivaient déjà traduits — le
@@ -409,20 +500,60 @@ export async function buildMealPdf(input: MealPdfInput): Promise<Uint8Array> {
     write(pack.contextPrefix(input.context), { size: 10, colour: faded, gap: 10 });
   }
 
-  // ── La liste, groupée par rayon ─────────────────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════
+  // LA LISTE — PAR JOUR D'ACHAT, PUIS PAR RAYON (2026-09-01)
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ LE JOUR VIENT DE LA LIGNE, IL N'EST PAS CALCULÉ ICI. `buy_on` est posé
+  // par la lane à partir de `grocery_waves.ts`, la seule définition de la
+  // règle. Ce document ne reçoit ni les préparations ni la date de départ du
+  // plan: il ne POURRAIT pas la recalculer, et c'est précisément pour lui que
+  // le champ a été posé sur la ligne.
+  //
+  // ⚠️ TROIS SORTIES, ET LA TROISIÈME EST LE COMPORTEMENT D'AVANT:
+  //   · plusieurs jours ⇒ une section par jour, et le rayon dedans;
+  //   · un seul jour    ⇒ une ligne au-dessus de la liste plate (même
+  //                       arbitrage que l'écran: une vague ne se DÉCOUPE pas,
+  //                       ce qui manquait n'est pas un découpage mais une date);
+  //   · aucun jour      ⇒ la liste plate, au caractère près. C'est le cas de
+  //                       tout plan écrit avant ce lot, qu'aucune migration ne
+  //                       répare, et se taire est la seule réponse vraie.
   if (input.shoppingList.length > 0) {
     write(pack.listHeading(input.mode), { size: 14, font: bold, gap: 4 });
-    for (const aisle of AISLE_ORDER) {
-      const items = input.shoppingList.filter((i) => i.aisle === aisle);
-      if (items.length === 0) continue;
-      room(LINE * 2);
-      write(pack.aisleLabels[aisle], { size: 11, font: bold, colour: faded });
-      for (const item of items) {
-        write(`  ${item.quantity ? `${item.quantity}  ` : ""}${item.term}`);
+    const sections = shoppingSections(input.shoppingList);
+    const writeAisles = (items: readonly ShoppingItem[]) => {
+      for (const aisle of AISLE_ORDER) {
+        const inAisle = items.filter((i) => i.aisle === aisle);
+        if (inAisle.length === 0) continue;
+        room(LINE * 2);
+        write(pack.aisleLabels[aisle], { size: 11, font: bold, colour: faded });
+        for (const item of inAisle) {
+          write(`  ${item.quantity ? `${item.quantity}  ` : ""}${item.term}`);
+        }
+        cur.y -= 6;
       }
-      cur.y -= 6;
+    };
+    if (sections.kind === "by_day") {
+      for (const day of sections.days) {
+        room(LINE * 3);
+        write(pack.buyOnDate(input.buyDateLabels[day.buyOn] ?? day.buyOn), {
+          size: 12,
+          font: bold,
+          gap: 2,
+        });
+        writeAisles(day.items);
+      }
+    } else {
+      if (sections.buyOn !== null) {
+        write(pack.buyAllOn(input.buyDateLabels[sections.buyOn] ?? sections.buyOn), {
+          size: 11,
+          colour: faded,
+          gap: 6,
+        });
+      }
+      writeAisles(sections.items);
     }
-  } else if (input.mode === "from_pantry") {
+    } else if (input.mode === "from_pantry") {
     write(pack.nothingToBuy, { size: 11, gap: 10 });
   }
 

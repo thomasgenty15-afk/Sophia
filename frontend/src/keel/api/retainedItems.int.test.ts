@@ -51,6 +51,12 @@ vi.mock("../../lib/supabase", () => ({
 }));
 
 import {
+  canHold,
+  RECENTLY_KEPT_SHOWN,
+  recentlyKept,
+  RETAINED_QUOTE_MAX_CHARS,
+  couldProduce,
+  RETIRED_RETAINED_SOURCES,
   canProduce,
   defaultScopeFor,
   groupBySubject,
@@ -101,6 +107,7 @@ import {
   VARIETY_LEVELS,
   withRetainedItems,
 } from "./retainedItems";
+import { WRITABLE_FIELDS } from "./fieldChanges";
 import {
   FOOD_PREFERENCES_KEY,
   FOOD_PREFERENCES_ORIGIN_KEY,
@@ -171,9 +178,38 @@ function backendForbidden(source: string): Set<string> {
   if (returnAt < 0) throw new Error(`canProduce: pas de return pour ${source}`);
   const clause = rest.slice(returnAt, rest.indexOf(";", returnAt));
   if (/return\s+true\s*$/.test(clause)) return new Set();
+  // ⛔ `return false` = LIGNE VIDE — un producteur RETIRÉ (lot M1). C'est
+  // l'ensemble le plus RESTRICTIF, l'exact opposé du repli dangereux que la
+  // note ci-dessus interdit: se tromper ici ferait rougir, jamais taire.
+  if (/return\s+false\s*$/.test(clause)) return new Set(RETAINED_KINDS);
   const kinds = [...clause.matchAll(/kind !== "([^"]+)"/g)].map((m) => m[1]);
   if (kinds.length === 0) {
     throw new Error(`canProduce: clause illisible pour ${source} — "${clause}"`);
+  }
+  return new Set(kinds);
+}
+
+/**
+ * Les familles que le module Deno refuse à un producteur RETIRÉ, lues dans le
+ * corps de `couldProduce`.
+ *
+ * Même forme et même exigence que `backendForbidden`: toute forme inattendue
+ * JETTE. Un ensemble vide dirait « ce producteur retiré peut tout porter »,
+ * c'est-à-dire la réponse la plus permissive possible, en silence.
+ */
+function backendFrozen(source: string): Set<string> {
+  const fnAt = BACKEND_CODE.indexOf("export function couldProduce");
+  if (fnAt < 0) throw new Error("couldProduce introuvable côté serveur");
+  const body = BACKEND_CODE.slice(fnAt, BACKEND_CODE.indexOf("\n}", fnAt));
+  const caseAt = body.indexOf(`case "${source}":`);
+  if (caseAt < 0) throw new Error(`couldProduce: case "${source}" introuvable`);
+  const rest = body.slice(caseAt);
+  const returnAt = rest.indexOf("return");
+  if (returnAt < 0) throw new Error(`couldProduce: pas de return pour ${source}`);
+  const clause = rest.slice(returnAt, rest.indexOf(";", returnAt));
+  const kinds = [...clause.matchAll(/kind !== "([^"]+)"/g)].map((m) => m[1]);
+  if (kinds.length === 0) {
+    throw new Error(`couldProduce: clause illisible pour ${source} — "${clause}"`);
   }
   return new Set(kinds);
 }
@@ -243,6 +279,85 @@ describe("le socle ne peut pas dériver entre les deux runtimes", () => {
     expect([...RETAINED_DAY_TOKENS]).toEqual(
       backendArray("DAY_TOKENS", stripComments(TOKENS)),
     );
+  });
+
+  it("LOT M5 — la liste des champs écrivables est la même des deux côtés", () => {
+    // ⚠️ TROIS COPIES, ET C'EST ASSUMÉ: le socle Deno, ce port navigateur, et
+    // la migration SQL. Un port SQL qui irait lire sa liste d'autorisation
+    // ailleurs ne serait plus une garde; un navigateur qui importerait du Deno
+    // ne compile pas. Le prix des trois copies est CE test et son jumeau côté
+    // Deno (`field_change_test.ts`) — sans eux, ouvrir un champ d'un seul côté
+    // produit soit une écriture refusée sans motif lisible, soit une porte
+    // ouverte que personne ne voit.
+    const shared = readFileSync(resolve(SHARED, "field_change.ts"), "utf8");
+    const code = stripComments(shared);
+    const at = code.indexOf("export const WRITABLE_FIELDS");
+    expect(at, "WRITABLE_FIELDS introuvable côté serveur").toBeGreaterThan(-1);
+    // ⚠️ LA LISTE DENO EST DÉRIVÉE (`...LOGISTICS_FIELDS`), donc on ne peut pas
+    // la lire comme un littéral: on la reconstruit depuis SA source, qui est
+    // elle-même un littéral du même fichier socle.
+    const logistics = backendArray("LOGISTICS_FIELDS");
+    expect([...WRITABLE_FIELDS]).toEqual([...logistics, "eating_rhythm"]);
+    expect(code.slice(at, code.indexOf("]", at))).toContain("LOGISTICS_FIELDS");
+  });
+
+  it("LOT M2 — la citation a la MÊME règle des deux côtés", () => {
+    // ⚠️ SANS CE TEST, LES DEUX PORTS DIVERGENT EN SILENCE. Le serveur écrit,
+    // le navigateur relit: une règle de citation qui bouge d'un seul côté fait
+    // disparaître de la carte une ligne que la base porte, ou l'inverse. Aucun
+    // des deux ne rougirait — chacun serait cohérent avec lui-même.
+    const backend = BACKEND_CODE;
+    // Le plafond, épinglé au littéral du module Deno.
+    const capMatch = backend.match(
+      /RETAINED_QUOTE_MAX_CHARS[^=]*=\s*(\d+)/,
+    );
+    expect(capMatch, "RETAINED_QUOTE_MAX_CHARS introuvable côté serveur")
+      .not.toBeNull();
+    expect(RETAINED_QUOTE_MAX_CHARS).toBe(Number(capMatch![1]));
+
+    // ⛔ L'INTERDIT SUR `written`, LU DANS LE CORPS DE `parseQuote`. C'est la
+    // moitié qui ferme le contournement: `canProduce("written", …)` autorise
+    // TOUT, donc un producteur serveur qui se déclarerait `written` passerait
+    // la matrice entière par un seul mot — et sa citation le trahit.
+    const at = backend.indexOf("function parseQuote");
+    expect(at, "parseQuote introuvable côté serveur").toBeGreaterThan(-1);
+    const body = backend.slice(at, backend.indexOf("\n}", at));
+    expect(body).toContain('source === "written"');
+    expect(body).toContain("REFUSED");
+  });
+
+  it("LOT M1 — la matrice GELÉE est la même des deux côtés", () => {
+    // ⚠️ SANS CE TEST, LE RETRAIT DÉRIVE PAR LA LECTURE. `canHold` décide si
+    // une ligne déjà en base remonte. Si le front et le serveur n'ont pas le
+    // MÊME gel, la carte affiche une ligne que le générateur ne voit pas —
+    // ou l'inverse. Aucun des deux ne rougirait: chacun serait cohérent avec
+    // lui-même.
+    expect([...RETIRED_RETAINED_SOURCES]).toEqual(
+      backendArray("RETIRED_RETAINED_SOURCES"),
+    );
+
+    // La matrice gelée, cellule par cellule, lue dans le module Deno.
+    const frozen = backendFrozen("conversation");
+    for (const kind of RETAINED_KINDS) {
+      expect(couldProduce("conversation", kind)).toBe(!frozen.has(kind));
+    }
+
+    // ⚠️ ET LE GEL N'EST NI VIDE NI TOTAL. Vide, il rendrait « tout accepté »
+    // et rouvrirait `portion.adjust` par un seul mot; total, il effacerait de
+    // l'écran toutes les lignes du memorizer déjà en base.
+    const held = RETAINED_KINDS.filter((k) => canHold("conversation", k));
+    expect(held.length).toBe(7);
+    expect(canHold("conversation", "portion.adjust")).toBe(false);
+
+    // Et le gel est STRICTEMENT plus permissif que l'écriture: c'est toute la
+    // définition d'un producteur retiré.
+    for (const kind of RETAINED_KINDS) {
+      if (canProduce("conversation", kind)) {
+        expect(canHold("conversation", kind)).toBe(true);
+      }
+    }
+    expect(RETAINED_KINDS.some((k) => canHold("conversation", k) && !canProduce("conversation", k)))
+      .toBe(true);
   });
 
   it("la matrice des droits est la même, cellule par cellule", () => {
@@ -373,8 +488,45 @@ describe("une ligne ré-éditée vers une famille interdite change de main", () 
   it("quand la famille reste permise, la ligne GARDE sa source et son jour", () => {
     // LE CAS QUI PASSE. Une garde sans cas passant est une garde cassée qui
     // ressemble à une garde qui marche: si la réécriture re-signait TOUT en
-    // `written`, l'écran cesserait de pouvoir dire « je l'ai retenu de mardi »
+    // `written`, l'écran cesserait de pouvoir dire « tu l'as coché au bilan »
     // — et les deux tests du dessus resteraient verts.
+    //
+    // ⚠️ LE CAS PASSANT EST PORTÉ PAR `questionnaire` DEPUIS LE LOT M1, ET PAS
+    // PAR `conversation`. La ligne ③ de la matrice est VIDE: le memorizer n'a
+    // plus AUCUNE famille permise, donc plus aucun cas passant à offrir. Le
+    // laisser ici aurait fait rougir ce test pour une raison qui n'est pas la
+    // sienne, et surtout aurait laissé la garde sans preuve qu'elle sait dire
+    // oui.
+    const fromForm = itemOf(
+      memory("food.prefer", { source: "questionnaire", item: "", confidence: null }),
+    );
+    const rewritten = rewriteRetainedItem(
+      fromForm,
+      {
+        text: "les rochers coco, vraiment plus",
+        kind: "method.avoid",
+        subject: HOUSEHOLD_SUBJECT,
+        value: null,
+      },
+      "2026-08-20",
+    );
+    expect(rewritten).not.toBeNull();
+    expect(rewritten!.source).toBe("questionnaire");
+    expect(rewritten!.item).toBe("");
+    expect(rewritten!.at).toBe(DAY);
+    expect(rewritten!.text).toBe("les rochers coco, vraiment plus");
+  });
+
+  it("LOT M1 — TOUTE édition d'une ligne du memorizer la fait changer de main", () => {
+    // ⛔ CE N'EST PLUS UN CAS LIMITE, C'EST LE CAS NORMAL. Avant M1, seule la
+    // cellule `conversation × portion.adjust` re-signait la ligne. La ligne ③
+    // étant vide, `method.avoid` — une famille que le memorizer avait le droit
+    // d'écrire la veille — la re-signe désormais elle aussi.
+    //
+    // C'est la bonne lecture du geste: la personne vient de classer la ligne
+    // elle-même, avec la liste des familles sous les yeux. Et `item: ""` la met
+    // hors de portée de la réconciliation, donc plus rien ne peut la lui
+    // reprendre.
     const rewritten = rewriteRetainedItem(
       proposed,
       {
@@ -386,11 +538,38 @@ describe("une ligne ré-éditée vers une famille interdite change de main", () 
       "2026-08-20",
     );
     expect(rewritten).not.toBeNull();
-    expect(rewritten!.source).toBe("conversation");
-    expect(rewritten!.item).toBe(MEMORY);
-    expect(rewritten!.confidence).toBe(0.82);
-    expect(rewritten!.at).toBe(DAY);
-    expect(rewritten!.text).toBe("les rochers coco, vraiment plus");
+    expect(rewritten!.source).toBe("written");
+    expect(rewritten!.item).toBe("");
+    expect(rewritten!.confidence).toBeNull();
+    // Le jour suit la main: c'est aujourd'hui que la personne l'a écrite.
+    expect(rewritten!.at).toBe("2026-08-20");
+    // LA PREUVE QUI COMPTE: elle survit à l'aller-retour par le magasin.
+    expect(parseRetainedItem(retainedItemToJson(rewritten!))).toEqual(rewritten);
+  });
+
+  it("LOT M1 — une ligne du memorizer NON éditée reste LUE, et retirable", () => {
+    // ⛔ LA MOITIÉ QUI EMPÊCHE LE RETRAIT D'ÊTRE UNE SUPPRESSION. `canProduce`
+    // est faux partout pour `conversation`; si le parseur s'en servait, les
+    // lignes déjà en base tomberaient à zéro au chargement suivant et la
+    // personne verrait s'évaporer, sans un mot, ce qu'elle pouvait retirer la
+    // veille. `canHold` applique la matrice GELÉE: rien de neuf n'entre, rien
+    // de réel ne disparaît.
+    expect(canProduce("conversation", "food.exclude")).toBe(false);
+    expect(canHold("conversation", "food.exclude")).toBe(true);
+    expect(parseRetainedItem(memory("food.exclude"))).not.toBeNull();
+
+    // ⚠️ ET LE GEL N'EST PAS « TOUT ACCEPTER ». Une ligne
+    // `conversation × portion.adjust` n'a JAMAIS pu être écrite: elle ne peut
+    // venir que d'une charge forgée. Elle reste refusée — sans quoi un seul mot
+    // rouvrirait la seule famille qui déplace des grammes.
+    expect(canHold("conversation", "portion.adjust")).toBe(false);
+    expect(
+      parseRetainedItem(
+        memory("portion.adjust", {
+          value: { direction: "down", magnitude: "clear" },
+        }),
+      ),
+    ).toBeNull();
   });
 
   it("un texte vide, ou un jour illisible, est un REFUS et pas un repli", () => {
@@ -1375,6 +1554,183 @@ describe("`item: \"\"` protège l'entrée — DANS LES DEUX SENS", () => {
   });
 });
 
+// ===========================================================================
+// LOT M2 · LA CITATION, ET LE FIL QUI LA MONTRE
+// ===========================================================================
+
+describe("LOT M2 — la citation est ce qui rend « Enlever » décidable", () => {
+  it("une citation d'un producteur SERVEUR est lue, tronquée au plafond", () => {
+    const item = parseRetainedItem(
+      memory("food.exclude", { quote: "plus jamais de topinambour" }),
+    );
+    expect(item?.quote).toBe("plus jamais de topinambour");
+
+    // ⚠️ TRONQUÉE, PAS RÉSUMÉE. Couper garde des mots exacts; résumer
+    // fabriquerait une phrase que la personne n'a jamais écrite.
+    const long = "x".repeat(RETAINED_QUOTE_MAX_CHARS + 50);
+    expect(parseRetainedItem(memory("food.exclude", { quote: long }))?.quote)
+      .toHaveLength(RETAINED_QUOTE_MAX_CHARS);
+  });
+
+  it("`null` est légitime — et c'est ce qui sauve les lignes d'avant M2", () => {
+    // ⛔ SI LE PARSEUR EXIGEAIT UNE CITATION, LE LOT EFFACERAIT SON PASSÉ:
+    // toutes les lignes déjà en base tomberaient au premier chargement, en
+    // silence. C'est la même faute qu'un retrait de producteur mal fait.
+    expect(parseRetainedItem(memory("food.exclude", { quote: null }))?.quote)
+      .toBeNull();
+    const noKey = memory("food.exclude");
+    delete (noKey as Record<string, unknown>).quote;
+    expect(parseRetainedItem(noKey)).not.toBeNull();
+    expect(parseRetainedItem(noKey)?.quote).toBeNull();
+    // Une chaîne blanche ne cite personne.
+    expect(parseRetainedItem(memory("food.exclude", { quote: "   " }))?.quote)
+      .toBeNull();
+  });
+
+  it("⛔ une citation sur une ligne `written` est un REFUS", () => {
+    // Son `text` EST sa phrase: la carte afficherait « tu l'as écrit, parce
+    // que tu as écrit … ». Et surtout, une citation sur `written` signale un
+    // producteur serveur DÉGUISÉ — le contournement que la matrice entière
+    // existe pour fermer, puisque `canProduce("written", …)` autorise tout.
+    expect(
+      parseRetainedItem(
+        memory("food.exclude", {
+          source: "written",
+          item: "",
+          confidence: null,
+          quote: "posée par un producteur qui se cache",
+        }),
+      ),
+    ).toBeNull();
+    // Le cas qui passe: `written` SANS citation.
+    expect(
+      parseRetainedItem(
+        memory("food.exclude", { source: "written", item: "", confidence: null }),
+      ),
+    ).not.toBeNull();
+  });
+
+  it("une forme illisible est un refus, jamais un repli sur `null`", () => {
+    // Replier ferait passer un producteur cassé pour un producteur d'avant M2.
+    for (const bad of [42, {}, [], true]) {
+      expect(parseRetainedItem(memory("food.exclude", { quote: bad })))
+        .toBeNull();
+    }
+  });
+
+  it("l'aller-retour jsonb garde la citation", () => {
+    const item = itemOf(memory("food.exclude", { quote: "pas de fenouil" }));
+    expect(parseRetainedItem(retainedItemToJson(item))).toEqual(item);
+    // La clé est écrite MÊME à `null`: « pas de citation » et « version qui ne
+    // connaissait pas le champ » ne se déboguent pas pareil.
+    const bare = itemOf(memory("food.exclude", { quote: null }));
+    expect(Object.keys(retainedItemToJson(bare))).toContain("quote");
+  });
+
+  it("la citation SUIT LA MAIN: gardée tant que la source tient, perdue sinon", () => {
+    // ⚠️ TANT QUE LA SOURCE TIENT: corriger une faute de frappe ne doit pas
+    // rendre la ligne indéfaisable.
+    const fromForm = itemOf(
+      memory("food.prefer", {
+        source: "questionnaire",
+        item: "",
+        confidence: null,
+        quote: "“Anything in it you would want again?” → “Dhal”",
+      }),
+    );
+    const kept = rewriteRetainedItem(
+      fromForm,
+      { text: "Dhal de lentilles", kind: "food.prefer", subject: HOUSEHOLD_SUBJECT, value: null },
+      "2026-09-01",
+    );
+    expect(kept?.source).toBe("questionnaire");
+    expect(kept?.quote).toBe("“Anything in it you would want again?” → “Dhal”");
+
+    // ⛔ ET ELLE TOMBE AVEC LA SOURCE. Devenue `written`, la ligne est SIENNE:
+    // `parseQuote` refuse une citation sur `written`, donc la garder ferait
+    // rendre `null` — perdre la ligne par l'autre bout.
+    const taken = rewriteRetainedItem(
+      itemOf(memory("food.exclude", { quote: "je l'ai dit mardi" })),
+      { text: "les parts", kind: "portion.adjust", subject: HOUSEHOLD_SUBJECT, value: { direction: "down", magnitude: "clear" } },
+      "2026-09-01",
+    );
+    expect(taken?.source).toBe("written");
+    expect(taken?.quote).toBeNull();
+  });
+});
+
+describe("LOT M2 — le fil « ce qui vient de changer » est une VUE", () => {
+  const at = (day: string, over: Record<string, unknown> = {}) =>
+    itemOf(memory("food.exclude", { at: day, quote: `dit le ${day}`, ...over }));
+
+  it("les plus récentes d'abord, et le plafond est d'AFFICHAGE", () => {
+    const items = [
+      at("2026-08-10"),
+      at("2026-08-12"),
+      at("2026-08-14"),
+      at("2026-08-16"),
+      at("2026-08-18"),
+      at("2026-08-20"),
+    ];
+    const feed = recentlyKept(items);
+    expect(feed).toHaveLength(RECENTLY_KEPT_SHOWN);
+    expect(feed.map((i) => i.at)).toEqual([
+      "2026-08-20",
+      "2026-08-18",
+      "2026-08-16",
+      "2026-08-14",
+      "2026-08-12",
+    ]);
+    // ⚠️ RIEN N'EST JETÉ: la plus ancienne reste dans le magasin, donc dans sa
+    // section un écran plus bas. Le fil répond à « qu'est-ce qui vient de
+    // changer ? », pas à « qu'est-ce que tu sais de moi ? ».
+    expect(items).toHaveLength(6);
+  });
+
+  it("⛔ `written` n'entre PAS dans le fil", () => {
+    // Notifier quelqu'un de ce qu'il vient de taper lui-même est du bruit: il
+    // était là, il l'a fait, il n'a rien à défaire. Un fil qui mélange les deux
+    // perd sa seule promesse — « voici ce que le produit a décidé sans toi ».
+    const mine = itemOf(
+      memory("food.exclude", {
+        at: "2026-08-25",
+        source: "written",
+        item: "",
+        confidence: null,
+      }),
+    );
+    const feed = recentlyKept([mine, at("2026-08-12")]);
+    expect(feed).toHaveLength(1);
+    // La fixture `memory()` porte `source: "conversation"` — un producteur
+    // RETIRÉ (lot M1) dont les lignes restent LUES. Le fil les montre donc,
+    // et c'est juste: la personne ne les a pas écrites, elle a tout intérêt à
+    // les voir pour pouvoir les retirer.
+    expect(feed[0].source).toBe("conversation");
+    expect(feed[0].source).not.toBe("written");
+  });
+
+  it("plusieurs lignes d'un même bilan gardent l'ordre où elles ont été écrites", () => {
+    // ⚠️ LA DATE SEULE NE SUFFIT PAS: un bilan produit plusieurs lignes le
+    // MÊME jour, et sans départage leur ordre dépendrait de l'implémentation
+    // du tri du navigateur.
+    const sameDay = [
+      at("2026-08-18", { text: "première" }),
+      at("2026-08-18", { text: "deuxième" }),
+      at("2026-08-18", { text: "troisième" }),
+    ];
+    expect(recentlyKept(sameDay).map((i) => i.text)).toEqual([
+      "troisième",
+      "deuxième",
+      "première",
+    ]);
+  });
+
+  it("un magasin vide rend un fil vide, sans jeter", () => {
+    expect(recentlyKept([])).toEqual([]);
+    expect(recentlyKept([at("2026-08-18")], 0)).toEqual([]);
+  });
+});
+
 describe("⛔ AUCUN REPLI DE PORTÉE — l'aveu, et ce qui l'épingle", () => {
   const CODE = stripComments(
     readFileSync(resolve(__dirname, "retainedItems.ts"), "utf8"),
@@ -1399,7 +1755,14 @@ describe("⛔ AUCUN REPLI DE PORTÉE — l'aveu, et ce qui l'épingle", () => {
     const refused = RETAINED_SOURCES.flatMap((source) =>
       RETAINED_KINDS.filter((kind) => defaultScopeFor(source, kind) === null)
     );
-    expect(refused).toHaveLength(4);
+    // 14 = 3 (`draft_note`: portion, rythme, logistique)
+    //    + 3 (`questionnaire`: envie, rythme, logistique)
+    //    + 8 (`conversation`, LIGNE VIDE depuis le lot M1).
+    // ⟳ LOT M5 — trois cellules de plus: `rhythm.set` et `logistics.set` ne se
+    // retiennent plus, ils changent le CHAMP que la personne voit.
+    // Le nombre est écrit en toutes lettres parce qu'un `toBeGreaterThan(0)`
+    // resterait vert le jour où une ligne entière se refermerait par accident.
+    expect(refused).toHaveLength(14);
   });
 
   it("aucun `defaultScopeFor(…) ?? …` ne peut se glisser dans ce module", () => {

@@ -74,8 +74,12 @@ import CoachBillingPage from "./keel/pages/CoachBillingPage";
 import TemplatesPage from "./keel/pages/TemplatesPage";
 import CoachMealsPage from "./keel/pages/CoachMealsPage";
 import { CoachRoute } from "./keel/components/CoachRoute";
+import { isProSurfaceHidden } from "./security/proSurface";
 
 function App() {
+  // Lu une fois par rendu: la valeur est gelée au build par Vite, donc un
+  // `useMemo` n'achèterait rien.
+  const proSurfaceHidden = isProSurfaceHidden();
   // Parrainage : les liens de partage pointent vers n'importe quelle page du
   // site avec ?ref=CODE ; on capture le code dès le chargement initial.
   React.useEffect(() => {
@@ -118,10 +122,32 @@ function App() {
               <Route path="/meal-prep" element={<MealPrepPage />} />
               <Route path="/couples" element={<CouplesPage />} />
               <Route path="/families" element={<FamiliesPage />} />
-              <Route path="/pro" element={<ProPage />} />
-              <Route path="/coaches" element={<CoachesPage />} />
-              <Route path="/gyms" element={<GymsLandingPage />} />
-              <Route path="/communities" element={<CommunitiesPage />} />
+              {/* ── LANCEMENT B2C: LES QUATRE PAGES PRO SONT OCCULTÉES ────
+                  `VITE_B2C_ONLY` (voir `security/proSurface.ts`). Les pages
+                  restent dans l'arbre et continuent de typechecker; seules
+                  leurs ROUTES sont démontées, et les URL tombent donc sur le
+                  catch-all 404 en bas de ce fichier.
+
+                  ⚠️ 404 ET PAS UNE REDIRECTION VERS `/`. Une redirection dit à
+                  un moteur que l'URL vit encore et la garde découvrable —
+                  c'est-à-dire l'inverse d'« occulter ». Les quatre entrées ont
+                  aussi été retirées de `public/sitemap.xml`, et `NotFoundPage`
+                  se déclare `noindex` (une SPA rend un 200 sur une URL
+                  inconnue: sans cette balise, Google verrait quatre pages
+                  indexables à contenu vide).
+
+                  ⚠️ CE N'EST PAS UNE FRONTIÈRE. Le code des huit écrans coach
+                  reste servi dans le bundle et `/coach/*` reste monté — c'est
+                  assumé: ce qui tient l'espace pro fermé, c'est le refus de
+                  connexion (`isProAccessRefused`) et, en dessous, RLS. */}
+              {!proSurfaceHidden && (
+                <>
+                  <Route path="/pro" element={<ProPage />} />
+                  <Route path="/coaches" element={<CoachesPage />} />
+                  <Route path="/gyms" element={<GymsLandingPage />} />
+                  <Route path="/communities" element={<CommunitiesPage />} />
+                </>
+              )}
               {/* DE-WHATSAPP — `/chat` était le simulateur WhatsApp web (le trio
                   ChatPage + ChatInterface + useChat). Il redirige vers la vraie
                   bulle plutôt que de 404: un lien en circulation ne doit pas

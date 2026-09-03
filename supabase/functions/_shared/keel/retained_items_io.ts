@@ -64,7 +64,7 @@
  * pas su lire. Le port rend `store_unreadable`, et ça se voit.
  *
  * ═══════════════════════════════════════════════════════════════════════════
- * LES QUATRE REFUS, ET AUCUN N'EST SILENCIEUX
+ * LES CINQ REFUS, ET AUCUN N'EST SILENCIEUX
  * ═══════════════════════════════════════════════════════════════════════════
  * ① `foreignSource` — un item dont `source` n'est pas le `producer` déclaré.
  *    ⚠️ SANS CETTE LIGNE, LA MATRICE NE VAUT RIEN. `canProduce` lit le champ
@@ -80,8 +80,20 @@
  *    le provisoire, ou une ancre qui n'est pas un lundi ISO. Les filtres sont
  *    ceux des magasins eux-mêmes (`partitionForDurableStore`,
  *    `partitionForNextPlanStore`): ce module n'en écrit pas un second.
- * ④ `alreadyStored` — un item dont l'identifiant `(kind, item)` est DÉJÀ dans
+ * ④ `alreadyStored` — un item DÉJÀ en base. L'identité est `(kind, item)`
+ *   quand il porte un uuid, et `(kind, sujet, texte normalisé)` sinon
+ *   (`contentIdentityOf`, 2026-09-01) — SAUF pour les familles-événements
+ *   (`portion.adjust`), qui ne se dédoublonnent jamais: deux réponses
+ *   identiques sur deux bilans doivent faire AVANCER l'indice. Un item dont
+ *   l'identifiant est DÉJÀ dans
  *    le magasin. Voir le bloc de `withoutAlreadyStored`.
+ * ⑤ `unquoted` — **lot M2** — l'item n'apporte pas la phrase de la personne qui
+ *    l'a causé. ⛔ *« Sans la citation, "Défaire" est un pari »*: une ligne qui
+ *    apparaît sur l'écran de quelqu'un sans dire d'où elle vient ne propose
+ *    qu'un geste aveugle, et devant un choix aveugle on ne touche à rien — donc
+ *    le magasin ne décroît jamais. C'est le mécanisme de la boule de neige.
+ *    ⚠️ Il ne mord que sur les écritures NEUVES: les lignes déjà en base
+ *    restent lisibles sans citation (`parseRetainedItem` accepte `null`).
  *
  * ⚠️ TOUS SONT COMPTÉS ET RENDUS À L'APPELANT. « Champ déclaré par le modèle =
  * compteur obligatoire »: sans compteur, un lot désarmé ressemble trait pour
@@ -98,15 +110,21 @@
 
 import {
   canProduce,
+  isRetiredRetainedSource,
   type RetainedItem,
   type RetainedSource,
   RETAINED_SOURCES,
+  type RetiredRetainedSource,
 } from "./retained_item.ts";
 import {
   partitionForDurableStore,
   RETAINED_ITEMS_KEY,
   withRetainedItems,
 } from "./food_preference_promotion.ts";
+import {
+  SAFETY_FALLBACK_TAG,
+  safetyShapeOf,
+} from "./safety_fallback_counter.ts";
 import {
   NEXT_PLAN_ITEMS_KEY,
   type NextPlanEntry,
@@ -144,9 +162,24 @@ export type MinimalClient = {
 // ===========================================================================
 
 /**
- * Les trois producteurs AUTOMATIQUES — les « trois prompts » du §5.
+ * Les DEUX producteurs AUTOMATIQUES qui restent — le bilan de fin de plan et le
+ * retour sur brouillon.
  *
- * ⛔ `written` EN EST EXCLU, ET C'EST STRUCTUREL. `canProduce("written", …)`
+ * ⛔ `conversation` EN EST SORTI AU LOT M1, ET C'EST LA MOITIÉ « ÉCRITURE » DU
+ * RETRAIT. `canProduce` a déjà fermé les huit familles de la ligne ③; le
+ * refermer ICI ferme la porte AVANT la matrice, avec son propre motif
+ * (`producer_not_allowed`) et sa propre ligne de journal. Les deux étages sont
+ * nécessaires: la matrice dit « cette famille, non », le port dit « cet
+ * appelant, jamais » — et c'est le second qui fait rougir un rebranchement au
+ * lieu de le laisser se compter en `forbiddenKind` comme une écriture ratée
+ * parmi d'autres.
+ *
+ * ⚠️ LE TYPE PORTE LE RETRAIT, PAS SEULEMENT LA LISTE. `ServerRetainedSource`
+ * exclut `conversation` à la COMPILATION: un appelant qui reviendrait ne
+ * passerait pas `deno check`. Une liste seule laisserait le rebranchement
+ * compiler et échouer en silence à l'exécution.
+ *
+ * ⛔ `written` EN EST EXCLU AUSSI, ET C'EST STRUCTUREL. `canProduce("written", …)`
  * rend `true` pour les huit familles (c'est la contrepartie exacte des trois
  * interdits: la personne peut tout rendre durable depuis sa carte,
  * explicitement). Un producteur serveur qui pourrait se déclarer `written`
@@ -158,10 +191,14 @@ export type MinimalClient = {
  * Le refus vit aux DEUX étages: le type ci-dessous (à la compilation) et
  * `producerAllowed` (à l'exécution, pour une valeur venue d'une chaîne).
  */
-export type ServerRetainedSource = Exclude<RetainedSource, "written">;
+export type ServerRetainedSource = Exclude<
+  RetainedSource,
+  "written" | RetiredRetainedSource
+>;
 
 const SERVER_SOURCES: readonly string[] = RETAINED_SOURCES.filter(
-  (source) => source !== "written",
+  (source) =>
+    source !== "written" && !isRetiredRetainedSource(source),
 );
 
 function producerAllowed(value: unknown): value is ServerRetainedSource {
@@ -174,12 +211,21 @@ function producerAllowed(value: unknown): value is ServerRetainedSource {
 
 /** Ce qui n'est pas entré, motif par motif. Jamais un silence. */
 export interface RetainedWriteRefusals {
-  /** La somme des quatre motifs. */
+  /** La somme des CINQ motifs. */
   readonly total: number;
   /** L'item se déclare d'une autre `source` que le `producer` de l'appel. */
   readonly foreignSource: number;
   /** `canProduce(producer, kind)` a mordu. */
   readonly forbiddenKind: number;
+  /**
+   * LOT M2 — l'item n'apporte pas la phrase qui l'a causé.
+   *
+   * ⚠️ UN `unquoted > 0` EST UN DÉFAUT DE CODE EN AMONT, pas un incident: un
+   * producteur serveur connaît toujours ce que la personne a écrit ou cliqué,
+   * puisque c'est de là qu'il tire l'item. Zéro n'est pas un objectif, c'est
+   * l'état normal.
+   */
+  readonly unquoted: number;
   /** Rangé dans le mauvais magasin, ou ancre qui n'est pas un lundi ISO. */
   readonly misfiled: number;
   /** Son identifiant `(kind, item)` est déjà dans le magasin. */
@@ -290,12 +336,14 @@ export async function persistRetainedItemsFor(args: {
   const nextPlanIn = args.nextPlan ?? [];
   let foreignSource = 0;
   let forbiddenKind = 0;
+  let unquoted = 0;
 
   const allowedDurable: RetainedItem[] = [];
   for (const item of durableIn) {
     const verdict = matrixVerdict(item, producer);
     if (verdict === "foreign_source") foreignSource += 1;
     else if (verdict === "forbidden_kind") forbiddenKind += 1;
+    else if (verdict === "unquoted") unquoted += 1;
     else allowedDurable.push(item);
   }
   const allowedNextPlan: NextPlanEntry[] = [];
@@ -303,6 +351,7 @@ export async function persistRetainedItemsFor(args: {
     const verdict = matrixVerdict(entry?.item, producer);
     if (verdict === "foreign_source") foreignSource += 1;
     else if (verdict === "forbidden_kind") forbiddenKind += 1;
+    else if (verdict === "unquoted") unquoted += 1;
     else allowedNextPlan.push(entry);
   }
 
@@ -341,6 +390,7 @@ export async function persistRetainedItemsFor(args: {
     return refuse("goals_unreadable", source, userId, {
       foreignSource,
       forbiddenKind,
+      unquoted,
       misfiled,
       alreadyStored: 0,
     });
@@ -357,6 +407,7 @@ export async function persistRetainedItemsFor(args: {
     return refuse("store_unreadable", source, userId, {
       foreignSource,
       forbiddenKind,
+      unquoted,
       misfiled,
       alreadyStored: 0,
     });
@@ -379,9 +430,10 @@ export async function persistRetainedItemsFor(args: {
     (nextPlanSplit.provisional.length - nextPlanNew.length);
 
   const refused: RetainedWriteRefusals = {
-    total: foreignSource + forbiddenKind + misfiled + alreadyStored,
+    total: foreignSource + forbiddenKind + unquoted + misfiled + alreadyStored,
     foreignSource,
     forbiddenKind,
+    unquoted,
     misfiled,
     alreadyStored,
   };
@@ -498,8 +550,60 @@ export async function persistRetainedItemsFor(args: {
       refused_total: refused.total,
       refused_foreign_source: refused.foreignSource,
       refused_forbidden_kind: refused.forbiddenKind,
+      refused_unquoted: refused.unquoted,
       refused_misfiled: refused.misfiled,
       refused_already_stored: refused.alreadyStored,
+    }));
+    // ── LOT M7 · LE COMPTEUR DU REPLI DE SÉCURITÉ, CÔTÉ MAGASIN ─────────────
+    //
+    // ⛔ IL COMPTE, IL NE GARDE RIEN. La ligne est écrite APRÈS l'écriture, et
+    // la retirer ne changerait rien à ce qui est en base. Ce module ne devient
+    // pas une seconde autorité de sécurité — le produit en a exactement une, et
+    // elle vérifie la SORTIE, ce qu'un compteur de texte ne saura jamais faire.
+    //
+    // ── POURQUOI ICI, ET PAS CHEZ LES DEUX PRODUCTEURS ─────────────────────
+    // C'est la porte UNIQUE: `draft_note` et `questionnaire` passent tous les
+    // deux par elle. Compter chez chacun ferait deux implémentations qui
+    // divergeraient, et la divergence ne se verrait que sur le producteur le
+    // moins observé. Une porte, un compteur.
+    //
+    // ⚠️ ET C'EST LE REPLI LE PLUS GRAVE DES DEUX. Dans la conversation, un
+    // repli ne produit qu'une PHRASE. Ici, un allergène nommé par la personne
+    // est ÉCRIT dans un champ de préférences — c'est-à-dire dans un magasin qui
+    // alimente un prompt et que **rien ne vérifie en sortie**. La ligne existe,
+    // elle a l'air de protéger, et elle ne protège pas.
+    //
+    // ⚠️ LE DÉNOMINATEUR EST `written`: la ligne part à chaque écriture réussie,
+    // pas seulement quand ça mord. Sans lui, « 0 repli » ne se distingue pas de
+    // « 0 écriture ».
+    const safetyShapes = [...durableNew, ...nextPlanNew.map((e) => e.item)]
+      .filter((item) => item.kind.startsWith("food."))
+      .map((item) => safetyShapeOf(item.text));
+    const safetyShaped = safetyShapes.flatMap((shape) => shape.slugs);
+    console.info(JSON.stringify({
+      tag: SAFETY_FALLBACK_TAG,
+      event: "seen",
+      source,
+      user_id: userId,
+      producer,
+      surface: "retained_store",
+      // ⚠️ AUCUN `text` DANS LA LIGNE. Un journal n'est pas l'endroit où
+      // recopier ce qu'une personne a écrit sur sa santé; les slugs suffisent à
+      // décider s'il faut agir, et ils ne désignent personne.
+      shaped: safetyShaped.length > 0,
+      slugs: [...new Set(safetyShaped)].sort(),
+      // ⚠️ MÊME RAISON QUE DANS LA CONVERSATION: un zéro par ignorance ne doit
+      // pas se lire comme un zéro mesuré.
+      unreadable: safetyShapes.some((shape) => shape.unreadable),
+      // ⛔ TOUJOURS `true` ICI, ET C'EST L'AVEU QUI REND LE NOMBRE LISIBLE.
+      // Ces deux producteurs ne sont pas conversationnels: aucun outil de
+      // sécurité ne peut être appelé sur un formulaire de bilan ou une note de
+      // brouillon. Un allergène qui atterrit là N'A PAS de chemin de rattrapage
+      // — il n'a pas « échoué à » appeler l'outil, l'outil n'existe pas sur ce
+      // chemin. Le champ reste dans la ligne pour que les deux surfaces se
+      // comptent avec la même clé.
+      fell_back: safetyShaped.length > 0,
+      filed_as_preference: safetyShaped.length > 0,
     }));
     return outcome;
   } catch (error) {
@@ -536,9 +640,28 @@ export async function persistRetainedItemsFor(args: {
 function matrixVerdict(
   item: RetainedItem | null | undefined,
   producer: ServerRetainedSource,
-): "ok" | "foreign_source" | "forbidden_kind" {
+): "ok" | "foreign_source" | "forbidden_kind" | "unquoted" {
   if (!item || item.source !== producer) return "foreign_source";
-  return canProduce(producer, item.kind) ? "ok" : "forbidden_kind";
+  if (!canProduce(producer, item.kind)) return "forbidden_kind";
+  // ⛔ LOT M2 — SANS CITATION, « DÉFAIRE » EST UN PARI.
+  //
+  // Une ligne écrite par un producteur SERVEUR arrive sur l'écran de la
+  // personne sans qu'elle l'ait demandée. Si elle ne dit pas d'où elle vient,
+  // le seul geste qu'elle propose — « Enlever » — devient un choix aveugle:
+  // peut-être une erreur du produit, peut-être une chose qu'elle a vraiment
+  // demandée trois semaines plus tôt. Devant ce doute on ne touche à rien, et
+  // le magasin ne décroît jamais. C'est le mécanisme exact de la boule de
+  // neige que ce chantier existe pour arrêter.
+  //
+  // ⚠️ C'EST UN REFUS, PAS UN AVERTISSEMENT. Écrire quand même en journalisant
+  // « attention, pas de citation » produirait précisément la ligne
+  // indéfaisable, avec en prime la trace prouvant qu'on l'a vue passer.
+  //
+  // ⚠️ ET IL NE MORD QUE SUR LES ÉCRITURES NEUVES. Les lignes DÉJÀ en base
+  // n'ont pas de citation et restent lisibles (`parseRetainedItem` accepte
+  // `null`): le lot ferme l'avenir, il n'efface pas le passé.
+  const quote = String(item.quote ?? "").trim();
+  return quote ? "ok" : "unquoted";
 }
 
 /**
@@ -576,10 +699,26 @@ function storedRowsOf(
  *
  * ── CE QUE ÇA NE COUVRE PAS, ET POURQUOI C'EST BORNÉ ──────────────────────
  * Un item sans `item` (`""`) n'a pas d'identifiant: deux fois le même texte
- * depuis le questionnaire feraient deux lignes. C'est assumé et petit: le seul
- * producteur qui tourne SANS FIN est le memorizer (cron de minuit), et le socle
- * lui IMPOSE un uuid (`parseOriginItem`: `source === "conversation"` ⇒ uuid
- * obligatoire). Les deux autres tournent une fois par plan.
+ * depuis le questionnaire feraient deux lignes.
+ *
+ * ⚠️ AVEU DU LOT M1 — CETTE DÉDUPLICATION EST DEVENUE UNE CEINTURE SUR UN
+ * COFFRE VIDE, ET IL VAUT MIEUX L'ÉCRIRE QUE DE LAISSER SES TESTS VERTS PASSER
+ * POUR UNE COUVERTURE. Le raisonnement d'origine tenait par le memorizer: seul
+ * producteur à tourner SANS FIN (cron de minuit), et le socle lui IMPOSAIT un
+ * uuid, donc lui seul pouvait produire des collisions et lui seul en était
+ * protégé. Ce producteur est retiré. Les deux qui restent (`questionnaire`,
+ * `draft_note`) tournent une fois par plan ET écrivent `item: ""` — ils n'ont
+ * donc aucun identifiant, et rien ne les dédoublonne.
+ *
+ * ⛔ ── CORRIGÉ LE 2026-09-01, ET LA RAISON D'ORIGINE ÉTAIT FAUSSE ──────────
+ * « Faute d'un producteur qui en fabrique » ne tenait pas: « une fois par
+ * plan » n'est pas « une fois par semaine ». Deux « refais-le » portant la même
+ * phrase — le geste le plus courant du produit — écrivaient deux lignes
+ * identiques, MESURÉ sur un tour réel (« Je n'aime pas le poulet », deux fois
+ * en base, même kind, même sujet, même ancre).
+ *
+ * `contentIdentityOf` ferme ce cas, POUR CES DEUX PRODUCTEURS SEULEMENT. Le
+ * mécanisme d'uuid reste, inchangé, pour le jour où l'un d'eux en portera un.
  *
  * ⚠️ ET UNE LIGNE ÉCRITE PAR LA PERSONNE NE PEUT STRUCTURELLEMENT PAS ÊTRE
  * TOUCHÉE ICI: `written` impose `item: ""`, donc elle n'a pas d'identifiant,
@@ -594,17 +733,26 @@ function withoutAlreadyStored<T>(
 ): T[] {
   const known = new Set<string>();
   for (const row of storedRows) {
-    const id = identityOf(itemOfStoredRow(row));
-    if (id) known.add(id);
+    // ⚠️ LES DEUX IDENTITÉS, pas l'une OU l'autre: une ligne déjà en base peut
+    // porter un uuid pendant que la nouvelle n'en a pas, et inversement.
+    const stored = itemOfStoredRow(row);
+    for (const id of [identityOf(stored), contentIdentityOf(stored)]) {
+      if (id) known.add(id);
+    }
   }
   const out: T[] = [];
   for (const entry of incoming) {
-    const id = identityOf(itemOfIncoming(entry));
+    const item = itemOfIncoming(entry);
+    const id = identityOf(item) ?? contentIdentityOf(item);
     if (id && known.has(id)) continue;
     // Un doublon DANS LE MÊME APPEL compte aussi: sinon le producteur qui
     // propose deux fois le même souvenir écrirait deux lignes que la passe
     // suivante refuserait toutes les deux, sans jamais les retirer.
     if (id) known.add(id);
+    // ⚠️ ET L'AUTRE IDENTITÉ AUSSI, pour que la passe suivante la reconnaisse
+    // quelle que soit celle qui aura servi.
+    const other = identityOf(item) ? contentIdentityOf(item) : identityOf(item);
+    if (other) known.add(other);
     out.push(entry);
   }
   return out;
@@ -619,6 +767,62 @@ function withoutAlreadyStored<T>(
  * contient: `("food", "x:y")` et `("food:x", "y")` ne peuvent donc pas
  * produire la même clé.
  */
+/**
+ * L'IDENTITÉ DE CONTENU — le repli quand il n'y a pas d'uuid.
+ *
+ * ⛔ IL EXISTE PARCE QUE LE DOUBLON A ÉTÉ MESURÉ, le 2026-09-01. Le bloc
+ * au-dessus expliquait qu'aucun dédoublonnage n'était nécessaire *« faute d'un
+ * producteur qui en fabrique »*: `questionnaire` et `draft_note` « tournent une
+ * fois par plan ». **Une fois par plan n'est pas une fois par semaine.** Deux
+ * « refais-le » portant la même phrase — le geste le plus courant du produit,
+ * `retained_next_plan.ts` le dit lui-même — écrivaient deux lignes identiques.
+ *
+ * ⚠️ LE COÛT EST DANS LE PROMPT, pas dans la carte. Le lot M4 refuse les
+ * doublons du mémo pour cette raison exacte: *« le modèle lirait deux fois la
+ * même consigne — ce qui, dans un prompt, la RENFORCE sans que personne ne
+ * l'ait demandé »*. Deux `food.exclude` sur le poulet pèsent plus lourd qu'un,
+ * et personne n'a demandé ce poids.
+ *
+ * ⛔ JAMAIS SUR `written`, ET C'EST LA MOITIÉ QUI COMPTE. Le bloc au-dessus
+ * garantit qu'une ligne tapée PAR LA PERSONNE ne peut structurellement pas être
+ * touchée ici: `written` impose `item: ""`, donc pas d'identifiant, donc aucune
+ * collision ne la désigne. Une identité de contenu qui ignorerait le producteur
+ * retirerait cette garantie en silence — quelqu'un qui réécrit sciemment la
+ * même ligne sur sa carte a le droit de l'avoir.
+ *
+ * ⚠️ MÊME NORMALISATION QUE `withMemoLine` (casse + espaces), parce que c'est
+ * la même question. Égalité, jamais ressemblance: « laitue » ≠ « lait ».
+ */
+/**
+ * ⛔ LES FAMILLES QUI SONT UN ÉVÉNEMENT DE MESURE, ET QUI NE SE DÉDOUBLONNENT
+ * DONC JAMAIS.
+ *
+ * Un `portion.adjust` n'est pas un fait qu'on répète, c'est une RÉPONSE datée.
+ * Le lot M3 existe précisément pour que la deuxième fasse AVANCER l'indice:
+ * *« elle redit "un peu trop" DU PLAN CORRIGÉ, et on lui redonne le même −5 %.
+ * Elle n'avance jamais. »* Fondre deux réponses identiques rend l'indice
+ * incapable de dépasser un cran — c'est-à-dire qu'il annule le lot.
+ *
+ * ⚠️ MESURÉ, ET C'ÉTAIT UNE RÉGRESSION DE CE FICHIER. Le 2026-09-01, le
+ * dédoublonnage par contenu a été ajouté pour un vrai défaut (deux « refais-le »
+ * de la même semaine écrivaient deux lignes). Il a emporté les réponses de
+ * portion avec: deux bilans disant « un peu trop » ne laissaient qu'UNE ligne,
+ * et l'indice restait à −1 au lieu de descendre à −2.
+ */
+const EVENT_KINDS = new Set(["portion.adjust"]);
+
+function contentIdentityOf(value: unknown): string | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const row = value as Record<string, unknown>;
+  if (String(row.source ?? "") === "written") return null;
+  if (EVENT_KINDS.has(String(row.kind ?? ""))) return null;
+  const kind = typeof row.kind === "string" ? row.kind.trim().toLowerCase() : "";
+  const subject = String(row.subject ?? "").trim().toLowerCase();
+  const text = String(row.text ?? "").trim().toLowerCase().replace(/\s+/g, " ");
+  if (!kind || !text) return null;
+  return `${kind}\u0000${subject}\u0000${text}`;
+}
+
 function identityOf(value: unknown): string | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const row = value as Record<string, unknown>;
@@ -644,11 +848,12 @@ function refuse(
 ): RetainedWriteOutcome {
   const detail: RetainedWriteRefusals = {
     total: refused
-      ? refused.foreignSource + refused.forbiddenKind + refused.misfiled +
-        refused.alreadyStored
+      ? refused.foreignSource + refused.forbiddenKind + refused.unquoted +
+        refused.misfiled + refused.alreadyStored
       : 0,
     foreignSource: refused?.foreignSource ?? 0,
     forbiddenKind: refused?.forbiddenKind ?? 0,
+    unquoted: refused?.unquoted ?? 0,
     misfiled: refused?.misfiled ?? 0,
     alreadyStored: refused?.alreadyStored ?? 0,
   };

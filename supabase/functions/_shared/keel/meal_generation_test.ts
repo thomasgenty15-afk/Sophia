@@ -100,7 +100,11 @@ function parse(payload: Record<string, unknown>, over: Record<string, unknown> =
     merge: null,
     boxMemberIds: [],
     weighedMemberIds: [],
+  kitchenEquipment: null,
+  cookOnlyDay: null,
+  soloBoxes: false,
   boxMemberDiets: [],
+  boxMemberExclusions: [],
     ...over,
   });
 }
@@ -340,7 +344,9 @@ Deno.test("an invented conviction key is dropped but does NOT cost the dish", ()
 // ---------------------------------------------------------------------------
 
 Deno.test("the prompt separates the STABLE situation from the DATED context", () => {
-  const { userMessage, systemPrompt } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true,
+  const { userMessage, systemPrompt } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true, hasFreezer: false, oneCookingSession: false,
+    cookOnlyDay: null,
+    soloBoxes: false,
     budgetAmount: null,
     safetyConstraints: null,
     safetyConstraintTable: null,
@@ -379,7 +385,9 @@ Deno.test("le prompt EXIGE une quantité sur les matières grasses", () => {
   //
   // MESURÉ le 2026-08-12 sur 80 générations: 82 lignes d'huile d'olive sans
   // quantité — de loin le premier poste de perte d'énergie du référentiel.
-  const { systemPrompt } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true,
+  const { systemPrompt } = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true, hasFreezer: false, oneCookingSession: false,
+    cookOnlyDay: null,
+    soloBoxes: false,
     budgetAmount: null,
     safetyConstraints: null,
     safetyConstraintTable: null,
@@ -467,6 +475,10 @@ Deno.test("from_pantry puts the pantry in the prompt, to_shop does not pretend t
   const base = {
     contentLocale: "en-US",
     firstDayCookable: true,
+    hasFreezer: false,
+    oneCookingSession: false,
+    cookOnlyDay: null,
+    soloBoxes: false,
     budgetAmount: null,
     safetyConstraints: null,
     safetyConstraintTable: null,
@@ -480,7 +492,9 @@ Deno.test("from_pantry puts the pantry in the prompt, to_shop does not pretend t
     merge: null,
     boxMemberIds: [],
     weighedMemberIds: [],
+  kitchenEquipment: null,
   boxMemberDiets: [],
+  boxMemberExclusions: [],
     protocolBlock: "",
     beliefKeys: [],
     goal: "health",
@@ -510,6 +524,10 @@ Deno.test("le placard et les apports fixes ne portent PAS le même en-tête", ()
   const { userMessage } = buildMealPrompt({
     contentLocale: "en-US",
     firstDayCookable: true,
+    hasFreezer: false,
+    oneCookingSession: false,
+    cookOnlyDay: null,
+    soloBoxes: false,
     budgetAmount: null,
     safetyConstraints: null,
     safetyConstraintTable: null,
@@ -575,7 +593,11 @@ Deno.test("a non-JSON model output throws instead of shipping an empty meal", ()
     merge: null,
     boxMemberIds: [],
     weighedMemberIds: [],
+  kitchenEquipment: null,
+  cookOnlyDay: null,
+  soloBoxes: false,
   boxMemberDiets: [],
+  boxMemberExclusions: [],
   }));
 });
 
@@ -599,7 +621,9 @@ Deno.test("the aisle vocabulary is closed and non-empty", () => {
 // ---------------------------------------------------------------------------
 
 Deno.test("les préférences confirmées entrent dans le prompt, dans les mots de l'élève", () => {
-  const withPrefs = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true,
+  const withPrefs = buildMealPrompt({ contentLocale: "en-US", firstDayCookable: true, hasFreezer: false, oneCookingSession: false,
+    cookOnlyDay: null,
+    soloBoxes: false,
     budgetAmount: null,
     safetyConstraints: null,
     safetyConstraintTable: null,
@@ -634,6 +658,10 @@ Deno.test("sans préférence, le prompt est EXACTEMENT celui d'avant", () => {
   const base = {
     contentLocale: "en-US",
     firstDayCookable: true,
+    hasFreezer: false,
+    oneCookingSession: false,
+    cookOnlyDay: null,
+    soloBoxes: false,
     budgetAmount: null,
     safetyConstraints: null,
     safetyConstraintTable: null,
@@ -647,7 +675,9 @@ Deno.test("sans préférence, le prompt est EXACTEMENT celui d'avant", () => {
     merge: null,
     boxMemberIds: [],
     weighedMemberIds: [],
+  kitchenEquipment: null,
   boxMemberDiets: [],
+  boxMemberExclusions: [],
     protocolBlock: "",
     beliefKeys: [],
     goal: "health" as const,

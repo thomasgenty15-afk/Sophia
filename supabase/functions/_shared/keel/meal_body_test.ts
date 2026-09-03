@@ -19,6 +19,10 @@ import type { StudentSafetyConstraint } from "./safety_constraints.ts";
 
 const PROMPT_BASE = {
   firstDayCookable: true,
+  hasFreezer: false,
+  oneCookingSession: false,
+  cookOnlyDay: null,
+  soloBoxes: false,
   contentLocale: "en-US",
   budgetAmount: null,
   dietBlock: "",
@@ -29,7 +33,9 @@ const PROMPT_BASE = {
   merge: null,
   boxMemberIds: [],
   weighedMemberIds: [],
+  kitchenEquipment: null,
   boxMemberDiets: [],
+  boxMemberExclusions: [],
   protocolBlock: "",
   beliefKeys: [],
   goal: "health" as const,
@@ -138,7 +144,11 @@ Deno.test("le VERROU DE SORTIE mord toujours â€” la consigne ne l'a pas remplacÃ
     merge: null,
     boxMemberIds: [],
     weighedMemberIds: [],
+  kitchenEquipment: null,
+  cookOnlyDay: null,
+  soloBoxes: false,
   boxMemberDiets: [],
+  boxMemberExclusions: [],
   });
   assertEquals(meal.dishes.length, 0);
   assert(meal.lock.reason !== "clean", meal.lock.reason);

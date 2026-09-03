@@ -19,12 +19,14 @@ import {
   buildRecognizedPayload,
   confidenceBand,
   creditedCommitmentIds,
+  ENERGY_BASIS_MARKERS,
   FOOD_GROUP_CLASSES,
   type MealAnalysisCommitmentContext,
   MEAL_ANALYSIS_PROMPT_VERSION,
   MEAL_ANALYSIS_SYSTEM_PROMPT,
   mealDisqualification,
   parseMealAnalysis,
+  renderEnergyLine,
   renderMealPhotoAck,
   resolveFoodGroupCredit,
   resolveMealPhotoBinding,
@@ -309,6 +311,7 @@ Deno.test("FF-018 — une énergie ÉCRITE EN LETTRES est rédigée (EN)", () =>
     commitmentTitles: {},
     hasPrescription: false,
     tickedDish: null,
+    inferredSlot: null,
     locale: "en-US",
   });
   assert(!ack.toLowerCase().includes("hundred calories"), ack);
@@ -571,6 +574,8 @@ Deno.test("the prompt carries the day's plan and the allowlist has the same orig
   const built = buildMealAnalysisPrompt(
     [commitment(), commitment({ id: ID_B, slot_key: null, evaluation_grain: "day" })],
     "breakfast",
+    "en-GB",
+    false,
   );
   assertEquals(built.allowedCommitmentIds, [ID_A, ID_B]);
   assertEquals(built.slotKey, "breakfast");
@@ -592,6 +597,8 @@ Deno.test("the allowlist spans the whole day, not just the photographed slot", (
       commitment({ id: ID_B, slot_key: null, evaluation_grain: "day" }),
     ],
     "lunch",
+    "en-GB",
+    false,
   );
   assertEquals(built.allowedCommitmentIds, [ID_A, ID_B]);
   const analysis = parseMealAnalysis(
@@ -606,18 +613,24 @@ Deno.test("the allowlist spans the whole day, not just the photographed slot", (
 });
 
 Deno.test("an unknown slot token throws at prompt build time (R7)", () => {
-  assertThrows(() => buildMealAnalysisPrompt([commitment()], "brunch"));
+  assertThrows(() => buildMealAnalysisPrompt([commitment()], "brunch", "en-GB", false));
 });
 
 Deno.test("a null slot is legal: the student may photograph without naming a meal", () => {
-  const built = buildMealAnalysisPrompt([commitment()], null);
+  const built = buildMealAnalysisPrompt([commitment()], null, "en-GB", false);
   assertEquals(built.slotKey, null);
   assertEquals(built.allowedCommitmentIds, [ID_A]);
 });
 
-Deno.test("the system prompt forbids calories explicitly and closes the slug list", () => {
-  const built = buildMealAnalysisPrompt([commitment()], "breakfast");
-  assert(built.systemPrompt.includes("YOU ARE NOT A CALORIE COUNTER"));
+Deno.test("the system prompt states the basis rule and closes the slug list", () => {
+  const built = buildMealAnalysisPrompt([commitment()], "breakfast", "en-GB", false);
+  // ⟳ CALORIE_REVERSAL — la règle dure ne dit plus « jamais un chiffre », elle
+  // dit « jamais un chiffre SANS SA BASE ». Le titre a suivi, et cette épreuve
+  // avec lui: elle pinne la règle en vigueur, pas celle d'avant.
+  assert(built.systemPrompt.includes("A NUMBER CARRIES ITS BASIS"));
+  // Ce qui n'a PAS bougé, et que le renversement ne doit pas emporter.
+  assert(built.systemPrompt.includes("NEVER write a number in prose"));
+  assert(built.systemPrompt.includes("NEVER output macronutrient grams"));
   assert(built.systemPrompt.includes("cruciferous_veg"));
   assert(built.systemPrompt.includes("NEVER invent, guess, complete or reformat a uuid"));
   // No French, no localized token in a Class A prompt (R1).
@@ -625,7 +638,7 @@ Deno.test("the system prompt forbids calories explicitly and closes the slug lis
 });
 
 Deno.test("an empty plan yields an empty allowlist, so every match is rejected", () => {
-  const built = buildMealAnalysisPrompt([], "dinner");
+  const built = buildMealAnalysisPrompt([], "dinner", "en-GB", false);
   assertEquals(built.allowedCommitmentIds, []);
   const analysis = parseMealAnalysis(modelOutput(), built.allowedCommitmentIds);
   assertEquals(analysis.commitment_matches, []);
@@ -638,7 +651,7 @@ Deno.test("aucune prescription: le prompt demande de DÉCRIRE, pas de comparer",
   // vide. Dans le modèle KEEL la liste est vide pour TOUS les élèves: on
   // demandait au modèle de comparer une assiette à rien, ce qui n'a pas de
   // réponse juste — et le pousse à en inventer une.
-  const built = buildMealAnalysisPrompt([], "dinner");
+  const built = buildMealAnalysisPrompt([], "dinner", "en-GB", false);
   assert(!built.userMessage.includes("THE STUDENT PLAN IN CONTEXT"), built.userMessage);
   assert(!built.userMessage.includes("against this plan"), built.userMessage);
   assert(built.userMessage.includes("NO PRESCRIPTION IS IN CONTEXT"), built.userMessage);
@@ -650,13 +663,13 @@ Deno.test("aucune prescription: le prompt demande de DÉCRIRE, pas de comparer",
 });
 
 Deno.test("aucune prescription et aucun créneau: la phrase le dit, sans inventer", () => {
-  const built = buildMealAnalysisPrompt([], null);
+  const built = buildMealAnalysisPrompt([], null, "en-GB", false);
   assertEquals(built.slotKey, null);
   assert(built.userMessage.includes("did not say which meal this is"), built.userMessage);
 });
 
 Deno.test("avec prescription, le bloc de plan revient intact (mode 1:1)", () => {
-  const built = buildMealAnalysisPrompt([commitment()], "breakfast");
+  const built = buildMealAnalysisPrompt([commitment()], "breakfast", "en-GB", false);
   assert(built.userMessage.includes("THE STUDENT PLAN IN CONTEXT"), built.userMessage);
   assert(built.userMessage.includes("Analyze the photo against this plan"), built.userMessage);
   assert(!built.userMessage.includes("NO PRESCRIPTION"), built.userMessage);
@@ -1127,6 +1140,7 @@ function ack(over: {
     commitmentTitles: TITLES,
     hasPrescription: over.hasPrescription ?? true,
     tickedDish: null,
+    inferredSlot: null,
     locale: "en",
   });
 }
@@ -1258,6 +1272,7 @@ Deno.test("ack sans prescription: on DÉCRIT l'assiette, on ne parle d'aucune li
     commitmentTitles: {},
     hasPrescription: false,
     tickedDish: null,
+    inferredSlot: null,
     locale: "en",
   });
   assert(message.startsWith("I see "), message);
@@ -1291,6 +1306,7 @@ Deno.test("ack sans prescription: le DOUTE reste dit — il porte sur l'assiette
     commitmentTitles: {},
     hasPrescription: false,
     tickedDish: null,
+    inferredSlot: null,
     locale: "en",
   });
   assert(message.includes("Did you cook these with any oil or butter?"), message);
@@ -1383,42 +1399,93 @@ Deno.test("ack: the binding is a REQUIRED argument, so it cannot be forgotten", 
   assertThrows(() => renderMealPhotoAck(args));
 });
 
-Deno.test("ack: une locale non livrée DÉGRADE en anglais, elle ne tue plus le tour photo (L1)", () => {
-  // CE TEST AFFIRMAIT L'INVERSE (« an unsupported locale still throws »), et il
-  // avait raison tant que l'épingle pilote forçait `en-US` pour toute la
-  // flotte: son unique appelant (`analyze-meal-photo-v1`, qui passe
-  // `readBack.content_locale`) ne pouvait apporter que de l'anglais, donc le
-  // throw n'était jamais atteint.
+Deno.test("ack: un élève francophone reçoit un accusé FRANÇAIS (le pack est livré)", () => {
+  // ── L'HISTOIRE DE CE TEST, PARCE QU'ELLE SE REJOUERA À LA PROCHAINE LANGUE ─
+  // Il a affirmé trois choses successives, et chacune était juste à son heure:
+  //   1. « une locale non livrée JETTE » — vrai, et inatteignable tant que
+  //      l'épingle pilote forçait `en-US` pour toute la flotte;
+  //   2. « une locale non livrée DÉGRADE en anglais » — le correctif du jour où
+  //      le throw est devenu un HTTP 500 sur toute analyse francophone (729
+  //      profils `fr-FR` sur 1 150). Le service revenait, le manque restait;
+  //   3. celle-ci: le pack français EXISTE, donc `fr-FR` rend du français.
   //
-  // L'épingle retirée, `resolveArtifactLocale` rend la vraie locale: le throw
-  // devenait un **HTTP 500 sur toute analyse de photo francophone** — 729
-  // profils `fr-FR` sur 1 150 en base locale. Un accusé dans la mauvaise langue
-  // est un défaut de copie; une photo qui ne s'analyse pas est une panne.
-  //
-  // Condition de désarmement de CE test: livrer le pack français de
-  // `renderMealPhotoAck`. Il faudra alors assertir du français ici, pas un
-  // throw — le throw ne revient dans aucun des deux mondes.
+  // La dégradation n'a pas disparu, elle a repris sa place: elle vit dans
+  // `resolveArtifactLocale` (`clampToDeliveredLocale`), au point de résolution,
+  // et `analyze-meal-photo-v1` y passe `content_locale` avant d'atteindre ce
+  // rendu. Une langue non livrée arrive donc ici DÉJÀ clampée en anglais, et le
+  // throw de `localePackKey` reste armé pour ce qu'il garde vraiment: un
+  // appelant qui aurait oublié de clamper.
   const analysis = analysisWithGroups(["berries"]);
-  const rendered = renderMealPhotoAck({
+  const fr = renderMealPhotoAck({
     analysis,
     binding: { kind: "none" },
     commitmentTitles: TITLES,
     hasPrescription: true,
     tickedDish: null,
+    inferredSlot: null,
     locale: "fr-FR",
   });
-  assert(rendered.trim().length > 0, "un accusé vide serait pire que l'anglais");
-  assertEquals(
-    rendered,
-    renderMealPhotoAck({
-      analysis,
-      binding: { kind: "none" },
-      commitmentTitles: TITLES,
-      hasPrescription: true,
-      tickedDish: null,
-      locale: "en",
-    }),
-    "la dégradation doit rendre EXACTEMENT la copie anglaise, pas une variante",
+  const en = renderMealPhotoAck({
+    analysis,
+    binding: { kind: "none" },
+    commitmentTitles: TITLES,
+    hasPrescription: true,
+    tickedDish: null,
+    inferredSlot: null,
+    locale: "en",
+  });
+  assert(fr.trim().length > 0, "un accusé vide serait pire que l'anglais");
+  assert(
+    fr !== en,
+    "un accusé français identique à l'anglais est un pack non branché",
+  );
+  assert(
+    fr.includes("Je vois"),
+    `l'accusé français doit ouvrir sur ce qui est vu: ${fr}`,
+  );
+  assert(
+    !/\b(I see|I have not attached|on file for your coach)\b/.test(fr),
+    `aucune phrase anglaise ne doit survivre dans l'accusé français: ${fr}`,
+  );
+});
+
+Deno.test("ack: le libellé LU est le localisé, le libellé du MATCHER reste anglais", () => {
+  // R: `DetectedFood.label` nourrit `planned_dish_match.ts` contre un catalogue
+  // anglais (`food_items`). Le traduire ferait taire la coche automatique pour
+  // toute la base francophone — 17,3 points d'écart mesurés
+  // (`referential-depth-not-language-is-the-gap`). Ce qui se DIT est l'autre
+  // champ, et son absence retombe sur le premier plutôt que sur un trou.
+  const withLocalized = analysisWithGroups(["berries"]);
+  withLocalized.detected_foods = [
+    {
+      label: "porridge oats",
+      label_localized: "flocons d'avoine",
+      food_group_ref: "whole_grain",
+      confidence: 0.9,
+    },
+    {
+      label: "boiled egg",
+      label_localized: null,
+      food_group_ref: "eggs",
+      confidence: 0.9,
+    },
+  ];
+  const rendered = renderMealPhotoAck({
+    analysis: withLocalized,
+    binding: { kind: "none" },
+    commitmentTitles: TITLES,
+    hasPrescription: false,
+    tickedDish: null,
+    inferredSlot: null,
+    locale: "fr-FR",
+  });
+  assert(
+    rendered.includes("flocons d'avoine"),
+    `le libellé localisé doit être celui qu'on lit: ${rendered}`,
+  );
+  assert(
+    rendered.includes("boiled egg"),
+    `un localisé absent retombe sur le libellé du matcher: ${rendered}`,
   );
 });
 
@@ -1451,17 +1518,51 @@ Deno.test("prompt v2: the invisible is named, by category", () => {
 Deno.test("prompt v2: naming the invisible NEVER authorizes a number", () => {
   const p = MEAL_ANALYSIS_SYSTEM_PROMPT;
   assert(p.includes("NONE of this authorizes a number"));
-  // The hard rule above it is untouched: the calorie ban is still absolute.
-  assert(p.includes("YOU ARE NOT A CALORIE COUNTER"));
+  // ⟳ La règle dure au-dessus a changé de NATURE, pas de force: nommer
+  // l'invisible n'autorise toujours aucun nombre DANS CE BLOC — le seul endroit
+  // qui en porte un est `energy_estimate`, et il dit qu'il devine.
+  assert(p.includes("A NUMBER CARRIES ITS BASIS"));
   assert(p.includes("the answer is \"unclear\""));
 });
 
-Deno.test("prompt v3: the version moved, so an older reading is distinguishable", () => {
+Deno.test("prompt v5: the version moved, so an older reading is distinguishable", () => {
   // `analyze-meal-photo-v1` decides idempotence on the STORED version. A prompt
-  // that changed behaviour without moving its version would make a v2 and a v3
+  // that changed behaviour without moving its version would make a v3 and a v4
   // reading indistinguishable on the row, and a benchmark re-run unauditable.
-  // v3 (pivot P0.3) added `assumptions[]` and `clarifying_question`.
-  assertEquals(MEAL_ANALYSIS_PROMPT_VERSION, "meal_analysis.en.v3");
+  // v3 (pivot P0.3) added `assumptions[]` and `clarifying_question`;
+  // v4 (2026-09-01) added `label_localized` and the output-language block —
+  // and dropped the `.en.` segment, because the contract is no longer
+  // monolingual. v5 (le même jour) exécute CALORIE_REVERSAL: `energy_estimate`
+  // entre au schéma, et la règle dure passe de « aucune énergie » à « aucune
+  // énergie sans sa base ».
+  assertEquals(MEAL_ANALYSIS_PROMPT_VERSION, "meal_analysis.v5");
+});
+
+Deno.test("prompt: le bloc de langue redéclare SA clé, et ne se déclenche qu'en dehors de l'anglais", () => {
+  // ⚠️ LA PROMESSE ET LA CLÉ DE SCHÉMA DOIVENT SE TOUCHER. Ce dépôt a mesuré
+  // 0 % de conformité quand une consigne renvoie à un schéma vivant dans
+  // l'autre message: « ci-dessus » ne traverse pas système ↔ utilisateur.
+  const fr = buildMealAnalysisPrompt([], null, "fr-FR", false).systemPrompt;
+  const en = buildMealAnalysisPrompt([], null, "en-GB", false).systemPrompt;
+
+  assert(
+    !en.includes("OUTPUT LANGUAGE"),
+    "l'anglais n'a pas de bloc de langue: le schéma de base suffit",
+  );
+  assert(fr.includes("OUTPUT LANGUAGE: FRENCH"), "le bloc français doit être là");
+  // La clé est REDÉCLARÉE dans le bloc, pas citée de loin.
+  const block = fr.slice(fr.indexOf("OUTPUT LANGUAGE"));
+  assert(
+    block.includes('"label_localized": string'),
+    "le bloc doit porter l'entrée de schéma complète, pas une référence",
+  );
+  // Et il nomme ce qui NE se traduit pas: sans ça le modèle traduit les slugs,
+  // et `parseFoodGroupRef` les rejette un par un, en silence pour l'élève.
+  assert(block.includes("food_group_ref"), "le bloc doit protéger les slugs");
+  assert(block.includes("subject_kind"), "le bloc doit protéger les enums");
+
+  assertEquals(buildMealAnalysisPrompt([], null, "fr-FR", false).outputLanguage, "fr");
+  assertEquals(buildMealAnalysisPrompt([], null, "en-GB", false).outputLanguage, "en");
 });
 
 // ---------------------------------------------------------------------------
@@ -1660,7 +1761,7 @@ Deno.test("recognized payload carries assumptions + question for coach/webhook",
   });
   assertEquals((payload.assumptions as unknown[]).length, 1);
   assertEquals(payload.clarifying_question, "Cooked with oil?");
-  assertEquals(payload.analysis_version, "meal_analysis.en.v3");
+  assertEquals(payload.analysis_version, "meal_analysis.v5");
 });
 
 // ---- the acknowledgement: ONE uncertainty form, never two ------------------
@@ -1682,6 +1783,7 @@ Deno.test("ack: the clarifying question supersedes the generic caveat", () => {
     commitmentTitles: { [ID_A]: "Protocol breakfast" },
     hasPrescription: true,
     tickedDish: null,
+    inferredSlot: null,
     locale: "en",
   });
   assert(text.includes("Did you cook these with oil?"));
@@ -1709,6 +1811,7 @@ Deno.test("ack: a standard_default assumption is stated with a correction door",
     commitmentTitles: { [ID_A]: "Protocol breakfast" },
     hasPrescription: true,
     tickedDish: null,
+    inferredSlot: null,
     locale: "en",
   });
   assert(text.includes("I assumed the broccoli was tossed in oil."));
@@ -1733,6 +1836,7 @@ Deno.test("ack: a visible_cue assumption is NOT surfaced to the student", () => 
     commitmentTitles: { [ID_A]: "Protocol breakfast" },
     hasPrescription: true,
     tickedDish: null,
+    inferredSlot: null,
     locale: "en",
   });
   assert(!text.includes("Seared, visibly."));
@@ -1756,6 +1860,7 @@ Deno.test("ack: still carries no number, whatever the new fields contain", () =>
     commitmentTitles: { [ID_A]: "Protocol breakfast" },
     hasPrescription: true,
     tickedDish: null,
+    inferredSlot: null,
     locale: "en",
   });
   assert(!/kcal|calorie/i.test(text));
@@ -1767,8 +1872,9 @@ Deno.test("prompt v3: the two new fields are specified, the calorie ban is not",
   assert(p.includes("clarifying_question"));
   assert(p.includes("visible_cue"));
   assert(p.includes("standard_default"));
-  // The ban that P0.0bis kept, still verbatim in the prompt.
-  assert(p.includes("YOU ARE NOT A CALORIE COUNTER"));
+  // ⟳ L'interdit que P0.0bis gardait s'est mué en règle de BASE (2026-09-01).
+  // Ce qu'il protégeait — le chiffre nu — reste protégé.
+  assert(p.includes("A NUMBER CARRIES ITS BASIS"));
   assert(p.includes("NONE of this authorizes a number"));
   // And the question rule is stated as a stake, not as a style preference.
   assert(p.includes("One question maximum"));
@@ -1960,7 +2066,7 @@ Deno.test("prompt v3: le filtre de sujet est spécifié avant tout le reste", ()
   assert(p.includes("has not eaten the menu"));
   // Et la question du sujet est posée AVANT la règle des calories, parce que
   // c'est une garde: ce qui n'est pas un repas n'a pas à être analysé du tout.
-  assert(p.indexOf("subject_kind") < p.indexOf("YOU ARE NOT A CALORIE COUNTER"));
+  assert(p.indexOf("subject_kind") < p.indexOf("A NUMBER CARRIES ITS BASIS"));
 });
 
 // ---------------------------------------------------------------------------
@@ -1981,6 +2087,7 @@ Deno.test("ack: le plat coché est NOMMÉ, avec la porte de correction", () => {
     commitmentTitles: {},
     hasPrescription: false,
     tickedDish: "Greek yogurt oats with banana",
+    inferredSlot: null,
     locale: "en",
   });
   assert(message.includes("Greek yogurt oats with banana"), message);
@@ -1999,6 +2106,7 @@ Deno.test("ack: sans coche, aucune phrase de plat prévu", () => {
     commitmentTitles: {},
     hasPrescription: false,
     tickedDish: null,
+    inferredSlot: null,
     locale: "en",
   });
   assert(!message.includes("ticked"), message);
@@ -2015,4 +2123,257 @@ Deno.test("ack: tickedDish est REQUIS — l'absence n'est pas une réponse", () 
     locale: "en",
   } as unknown as Parameters<typeof renderMealPhotoAck>[0];
   assertThrows(() => renderMealPhotoAck(args));
+});
+
+// ---------------------------------------------------------------------------
+// CALORIE_REVERSAL — LE CHIFFRE PORTE SA BASE, OU IL N'EXISTE PAS
+//
+// ══ CE QUE CE BLOC TIENT, ET POURQUOI CHAQUE ÉPREUVE EST LÀ ═══════════════
+//
+// La décision du 2026-08-06 renverse une interdiction totale en une permission
+// ÉTROITE: un chiffre d'énergie peut atteindre l'élève, à condition de dire
+// d'où il vient. Ce qui rend cette permission tenable est une chaîne de quatre
+// faits, et chacun a son épreuve ici:
+//
+//   ① la PORTE se lit avant le modèle, et fermée elle retire le champ du prompt;
+//   ② la CEINTURE efface le chiffre à l'ingestion si le modèle écrit quand même,
+//      et l'effacement est COMPTÉ — sans compteur, une porte mal câblée et un
+//      modèle obéissant rendent exactement la même sortie;
+//   ③ la BASE est une propriété de l'ENTRÉE, pas une déclaration du modèle sur
+//      lui-même: sans quantité déclarée, `declared_quantities` est refusée;
+//   ④ le RENDU met le chiffre et sa base dans la MÊME phrase.
+//
+// ⚠️ MESURES QUI JUSTIFIENT LA DISSYMÉTRIE, et elles ne sont pas décoratives:
+// `photo_estimate` = −26,6 % de biais, systématique, du même côté, pire sur les
+// gros repas. `declared_quantities` = 2,3 % de MAPE. Un rendu qui les traite
+// pareil ment sur la fiabilité de l'un des deux.
+// ---------------------------------------------------------------------------
+
+const ENERGY_OK = { kcal: 620, basis: "photo_estimate", confidence_band: "low" };
+
+Deno.test("⛔ PORTE FERMÉE: le chiffre n'entre pas, et l'effacement est COMPTÉ", () => {
+  // Le défaut sans compteur: un élève sous plancher TCA et un modèle qui a
+  // obéi au prompt rendent la MÊME sortie (`energy_estimate: null`). Sans
+  // `dropped_measurement_fields`, on ne peut pas dire si la porte est câblée.
+  const analysis = parseMealAnalysis(
+    modelOutput({ energy_estimate: ENERGY_OK }),
+    [ID_A],
+    false,
+    false, // la porte
+  );
+  assertEquals(analysis.energy_estimate, null);
+  assert(
+    analysis.dropped_measurement_fields.includes("energy_estimate"),
+    `l'effacement doit se compter: ${JSON.stringify(analysis.dropped_measurement_fields)}`,
+  );
+  assert(
+    analysis.issues.some((i) => i.includes("energy gate is closed")),
+    JSON.stringify(analysis.issues),
+  );
+});
+
+Deno.test("le DÉFAUT de la porte est FERMÉ", () => {
+  // Soixante-sept appels ne passent pas ce paramètre. Le jour où l'un d'eux
+  // devient un chemin élève, il doit se taire — pas parler.
+  const analysis = parseMealAnalysis(
+    modelOutput({ energy_estimate: ENERGY_OK }),
+    [ID_A],
+  );
+  assertEquals(analysis.energy_estimate, null);
+});
+
+Deno.test("porte OUVERTE: le chiffre survit, avec sa base et sa bande", () => {
+  const analysis = parseMealAnalysis(
+    modelOutput({ energy_estimate: ENERGY_OK }),
+    [ID_A],
+    false,
+    true,
+  );
+  assertEquals(analysis.energy_estimate, {
+    kcal: 620,
+    basis: "photo_estimate",
+    confidence_band: "low",
+  });
+  assert(
+    !analysis.dropped_measurement_fields.includes("energy_estimate"),
+    "un chiffre gardé ne doit pas être compté comme effacé",
+  );
+});
+
+Deno.test("⛔ LA BASE EST UNE PROPRIÉTÉ DE L'ENTRÉE, PAS UNE DÉCLARATION DU MODÈLE", () => {
+  // Le mode d'échec exact: le modèle habille une estimation à −26,6 % de biais
+  // avec la fiabilité d'un calcul à 2,3 %, et rien dans la sortie ne permet de
+  // le voir. La dégradation est donc forcée, et elle est écrite dans `issues`.
+  const analysis = parseMealAnalysis(
+    modelOutput({
+      energy_estimate: {
+        kcal: 620,
+        basis: "declared_quantities",
+        confidence_band: "high",
+      },
+    }),
+    [ID_A],
+    false, // AUCUNE quantité déclarée dans le contexte
+    true,
+  );
+  assertEquals(analysis.energy_estimate?.basis, "photo_estimate");
+  assert(
+    analysis.issues.some((i) => i.includes("declared_quantities")),
+    JSON.stringify(analysis.issues),
+  );
+});
+
+Deno.test("avec des quantités déclarées, la base revendiquée est acceptée", () => {
+  // LE CAS QUI PASSE. Sans lui, l'épreuve précédente resterait verte sur un
+  // parseur qui dégraderait TOUT — c'est-à-dire sur une garde cassée, qui
+  // ressemble trait pour trait à une garde qui marche.
+  const analysis = parseMealAnalysis(
+    modelOutput({
+      energy_estimate: {
+        kcal: 620,
+        basis: "declared_quantities",
+        confidence_band: "high",
+      },
+    }),
+    [ID_A],
+    true,
+    true,
+  );
+  assertEquals(analysis.energy_estimate?.basis, "declared_quantities");
+});
+
+Deno.test("une photo que personne n'a mangée ne porte aucune énergie", () => {
+  const analysis = parseMealAnalysis(
+    modelOutput({ subject_kind: "food_not_eaten", energy_estimate: ENERGY_OK }),
+    [ID_A],
+    false,
+    true, // porte OUVERTE: c'est le sujet qui refuse, pas la garde
+  );
+  assertEquals(analysis.energy_estimate, null);
+});
+
+Deno.test("un kcal hors bornes est jeté plutôt qu'arrondi vers le plausible", () => {
+  for (const kcal of [0, -200, 5001, 99999, Number.NaN]) {
+    const analysis = parseMealAnalysis(
+      modelOutput({
+        energy_estimate: { kcal, basis: "photo_estimate", confidence_band: "low" },
+      }),
+      [ID_A],
+      false,
+      true,
+    );
+    assertEquals(analysis.energy_estimate, null, `kcal=${kcal}`);
+  }
+});
+
+Deno.test("le prompt ne DEMANDE pas le champ quand la porte est fermée", () => {
+  const open = buildMealAnalysisPrompt([], null, "en-GB", true).systemPrompt;
+  const closed = buildMealAnalysisPrompt([], null, "en-GB", false).systemPrompt;
+  // ⚠️ LE CAS QUI PASSE D'ABORD. Sans lui, un `energyGateBlock` qui rendrait
+  // toujours la consigne d'override laisserait cette épreuve verte.
+  assert(!open.includes('"energy_estimate": null'), "porte ouverte: pas d'override");
+  assert(
+    closed.includes('"energy_estimate": null'),
+    "porte fermée: le prompt doit redéclarer la clé avec sa valeur, pas y " +
+      "faire référence — 0 % de conformité mesuré quand une consigne renvoie " +
+      "à un schéma qui vit dans l'autre message",
+  );
+  assert(closed.length > open.length);
+});
+
+// ---------------------------------------------------------------------------
+// ④ LE RENDU — le chiffre et sa base dans la MÊME phrase
+// ---------------------------------------------------------------------------
+
+function ackWithEnergy(
+  energy: { kcal: number; basis: string; confidence_band: string } | null,
+  locale: string,
+): string {
+  const analysis = parseMealAnalysis(
+    modelOutput(energy ? { energy_estimate: energy } : {}),
+    [ID_A],
+    energy?.basis === "declared_quantities",
+    true,
+  );
+  return renderMealPhotoAck({
+    analysis,
+    binding: { kind: "none" },
+    credit: null,
+    commitmentTitles: {},
+    hasPrescription: false,
+    tickedDish: null,
+    inferredSlot: null,
+    locale,
+  });
+}
+
+Deno.test("⛔ UN KCAL RENDU PORTE SA BASE, DANS LES DEUX LANGUES", () => {
+  for (const locale of ["en-US", "fr-FR"]) {
+    const pack = locale.startsWith("fr") ? "fr" : "en";
+    const text = ackWithEnergy(
+      { kcal: 620, basis: "photo_estimate", confidence_band: "low" },
+      locale,
+    );
+    assert(text.includes("620 kcal"), text);
+    assert(
+      text.includes(ENERGY_BASIS_MARKERS[pack].photo_estimate),
+      `${locale}: le chiffre est nu — ${text}`,
+    );
+    // La phrase dit aussi la DIRECTION du biais. « estimation » sans « tire
+    // vers le bas » laisserait croire à une erreur symétrique, alors qu'elle
+    // est systématiquement flatteuse.
+    assert(
+      pack === "fr"
+        ? text.includes("tirent vers le bas")
+        : text.includes("run low"),
+      text,
+    );
+  }
+});
+
+Deno.test("la base DÉCLARÉE se rend autrement que la base DEVINÉE", () => {
+  // Les rendre pareil mentirait sur la fiabilité de l'un des deux — et c'est
+  // celui qui rassure à tort qui passerait pour l'autre.
+  for (const locale of ["en-US", "fr-FR"]) {
+    const pack = locale.startsWith("fr") ? "fr" : "en";
+    const declared = ackWithEnergy(
+      { kcal: 620, basis: "declared_quantities", confidence_band: "high" },
+      locale,
+    );
+    assert(declared.includes("620 kcal"), declared);
+    assert(
+      declared.includes(ENERGY_BASIS_MARKERS[pack].declared_quantities),
+      declared,
+    );
+    assert(
+      !declared.includes(ENERGY_BASIS_MARKERS[pack].photo_estimate),
+      "une quantité déclarée n'est pas une estimation sur photo",
+    );
+  }
+});
+
+Deno.test("sans chiffre, l'accusé n'en invente aucun et ne laisse pas de trou", () => {
+  for (const locale of ["en-US", "fr-FR"]) {
+    const text = ackWithEnergy(null, locale);
+    assertEquals(/\d+\s*kcal/i.test(text), false, text);
+    // `renderEnergyLine` rend `null`, pas une chaîne vide: une chaîne vide
+    // poussée dans `lines` produirait un double espace, c'est-à-dire la trace
+    // visible qu'un chiffre a été retiré.
+    assertEquals(text.includes("  "), false, JSON.stringify(text));
+  }
+});
+
+Deno.test("renderEnergyLine est le SEUL producteur, et il rend `null` sur `null`", () => {
+  assertEquals(renderEnergyLine(null, "en"), null);
+  assertEquals(renderEnergyLine(null, "fr"), null);
+  // Un kcal non fini n'atteint jamais ce point (le parseur le jette), mais la
+  // fonction est exportée: elle se garde elle-même plutôt que de rendre
+  // « environ NaN kcal ».
+  assertEquals(
+    renderEnergyLine(
+      { kcal: Number.NaN, basis: "photo_estimate", confidence_band: "low" },
+      "en",
+    ),
+    null,
+  );
 });

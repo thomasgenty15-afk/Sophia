@@ -3,6 +3,8 @@ import { Link, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { supabase } from "../../lib/supabase";
 import { t } from "../i18n/t";
+import { isProAccessRefused } from "../api/postLogin";
+import { isProSurfaceHidden } from "../../security/proSurface";
 
 // KEEL W6.1 — the coach route guard.
 //
@@ -32,6 +34,13 @@ type CoachState =
   | { kind: "none" }
   | { kind: "suspended" }
   | { kind: "active" }
+  // LANCEMENT B2C — l'espace pro est fermé pour ce compte (`VITE_B2C_ONLY`).
+  // Un état DISTINCT de `none`, et c'est le seul endroit du fichier où le
+  // principe « none et error partagent un écran » ne s'applique pas: ici la
+  // personne EST coach, on le sait, et lui rendre « cet espace est réservé aux
+  // coachs » l'enverrait créer un second compte pour réparer un refus qui ne
+  // vient pas d'elle.
+  | { kind: "closed" }
   | { kind: "error" };
 
 async function loadCoachStatus(userId: string): Promise<CoachState> {
@@ -65,7 +74,20 @@ export function CoachRoute({ children }: { children: React.ReactNode }) {
     }
     setState({ kind: "loading" });
     loadCoachStatus(userId)
-      .then((next) => {
+      .then(async (next) => {
+        // LANCEMENT B2C — la seconde moitié du refus. `/auth` déconnecte un
+        // compte coach à la porte, mais une session OUVERTE AVANT le lancement
+        // ne repasse par aucune porte: son jeton se renouvelle tout seul, et
+        // `/coach` resterait atteignable pour elle. Cette branche-ci est ce qui
+        // rend la fermeture vraie pour ces sessions-là.
+        // Interrogé seulement sur un compte ACTIF: sur tous les autres, le
+        // refus est déjà acquis et la requête serait payée pour rien.
+        if (next.kind === "active" && isProSurfaceHidden()) {
+          if (await isProAccessRefused(userId)) {
+            if (!cancelled) setState({ kind: "closed" });
+            return;
+          }
+        }
         if (!cancelled) setState(next);
       })
       .catch(() => {
@@ -89,6 +111,15 @@ export function CoachRoute({ children }: { children: React.ReactNode }) {
     return <p className="p-8 text-sm text-gray-500">{t("coach.guard.checking")}</p>;
   }
 
+  if (state.kind === "closed") {
+    return (
+      <RefusalPanel
+        title={t("coach.guard.closed_title")}
+        body={t("coach.guard.closed_body")}
+      />
+    );
+  }
+
   if (state.kind === "suspended") {
     return (
       <RefusalPanel
@@ -108,12 +139,18 @@ export function CoachRoute({ children }: { children: React.ReactNode }) {
         body={t("coach.guard.not_coach_body")}
         actions={
           <>
-            <Link
-              to="/auth?role=coach"
-              className="rounded-full bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700"
-            >
-              {t("coach.guard.signup_cta")}
-            </Link>
+            {/* LANCEMENT B2C — `?role=coach` n'ouvre plus aucun formulaire
+                (`security/proSurface.ts`). Le bouton mènerait à l'écran de
+                connexion ordinaire sous un libellé qui promet une inscription:
+                il disparaît avec ce qu'il promettait. */}
+            {!isProSurfaceHidden() && (
+              <Link
+                to="/auth?role=coach"
+                className="rounded-full bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-700"
+              >
+                {t("coach.guard.signup_cta")}
+              </Link>
+            )}
             <Link
               to="/app/today"
               className="rounded-full border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"

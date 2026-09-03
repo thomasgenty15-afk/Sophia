@@ -38,7 +38,13 @@ const REAL_DRAFT = {
   draft: true,
   meal: null,
   window: { starts_on: "2026-08-13", duration_days: 2 },
-  suggested_window: { starts_on: "2026-08-14", shifted: true },
+  // ⛔ `shifted` EST UN MOTIF, PAS UN BOOLÉEN — corrigé le 2026-08-23.
+  // Cette fixture écrivait `true`, une charge que le serveur n'a jamais
+  // produite: il recopie `WindowShiftReason | null`, c'est-à-dire
+  // `"shopping_cutoff"` ou `null` (`_shared/keel/plan_hours.ts`). Le lecteur
+  // comparait donc une chaîne à `true` — toujours faux sur 10 plans réels sur
+  // 10 — et ce test restait vert parce qu'il inventait son entrée.
+  suggested_window: { starts_on: "2026-08-14", shifted: "shopping_cutoff" },
   rationale: {
     lines: [
       "This plan covers 2 days, starting today.",
@@ -172,6 +178,41 @@ describe("l'enveloppe", () => {
     expect(env.rationaleRefusal).toBeNull();
     expect(env.suggestedStartsOn).toBe("2026-08-14");
     expect(env.suggestedShifted).toBe(true);
+  });
+
+  /**
+   * ⛔ LE CAS QUI REFUSE, à côté de celui qui passe.
+   *
+   * Une garde n'est armée que si on a vu les deux côtés. Ici le côté « pas de
+   * décalage » est celui que le serveur envoie le plus souvent (avant 18 h,
+   * `plan_hours.ts :: SHOPPING_CUTOFF_HOUR`), et c'est celui qu'un lecteur trop
+   * permissif — `shifted != null`, ou une simple coercition — rendrait `true`.
+   */
+  it("`shifted: null` ne décale rien, et une valeur vide non plus", () => {
+    for (const shifted of [null, "", "   ", undefined]) {
+      const env = readDraftEnvelope({
+        ...REAL_DRAFT,
+        suggested_window: { starts_on: "2026-08-14", shifted },
+      });
+      expect(env.suggestedShifted).toBe(false);
+      // La date proposée survit au non-décalage: les deux champs sont
+      // indépendants, et l'écran a besoin des deux.
+      expect(env.suggestedStartsOn).toBe("2026-08-14");
+    }
+  });
+
+  /**
+   * ⚠️ LE BOOLÉEN D'HIER NE DOIT PAS « MARCHER » PAR ACCIDENT. Si un jour une
+   * charge portait de nouveau `shifted: true`, ce serait un serveur qui a
+   * changé de contrat sans le dire — et le lecteur doit le rendre visible en
+   * refusant, pas le rattraper en silence.
+   */
+  it("un `shifted: true` (l'ancienne fixture) n'est PAS un motif", () => {
+    const env = readDraftEnvelope({
+      ...REAL_DRAFT,
+      suggested_window: { starts_on: "2026-08-14", shifted: true },
+    });
+    expect(env.suggestedShifted).toBe(false);
   });
 
   /**

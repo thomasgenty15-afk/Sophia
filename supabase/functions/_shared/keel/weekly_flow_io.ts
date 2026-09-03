@@ -318,5 +318,28 @@ export async function hasAnsweredWeek(
   const bio = (data?.biofeedback ?? null) as Record<string, unknown> | null;
   // Une LIGNE ne suffit pas: le récap du soir en crée une sans jamais toucher
   // au biofeedback. Ce qui compte est que le formulaire ait été rempli.
-  return Boolean(bio && bio.source === "whatsapp_flow");
+  //
+  // ══════════════════════════════════════════════════════════════════════════
+  // 🔴 CETTE GARDE ÉTAIT MORTE — elle testait `whatsapp_flow`, réparée le
+  // 2026-09-01.
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // Le seul écrivain de ce champ est `weeklyBiofeedbackPayload`, et il produit
+  // `in_app_weekly_form` ou `in_app_measures_card` depuis le chantier
+  // de-whatsapp. Aucun code ne produit plus `whatsapp_flow`. La comparaison
+  // rendait donc `false` pour 100 % des élèves réels: `already_answered_this_week`
+  // ne pouvait pas mordre, et seule `askedThisWeek` empêchait le doublon —
+  // c'est-à-dire que quelqu'un qui avait répondu à 18h05 restait comptabilisé
+  // comme « à qui on a demandé », sans qu'on sache qu'il avait répondu.
+  //
+  // ⚠️ `in_app_measures_card` EST EXCLU, ET CE N'EST PAS UN OUBLI. La carte de
+  // `/app/plan` écrit dans le MÊME champ, mais saisir son poids un lundi n'est
+  // pas répondre au point du dimanche: ce sont deux gestes, et les confondre
+  // ferait taire le point hebdo pour quelqu'un qui ne l'a jamais vu.
+  //
+  // `whatsapp_flow` reste accepté: des lignes en base le portent, et quelqu'un
+  // qui a répondu par ce canal a bel et bien répondu. On ne réécrit pas
+  // l'histoire pour la faire coller au présent.
+  const source = String(bio?.source ?? "").trim();
+  return source === "in_app_weekly_form" || source === "whatsapp_flow";
 }

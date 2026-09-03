@@ -57,9 +57,15 @@ sait faire.
   générateur reçoit un bloc — « faim rapportée N soirs sur les 7 derniers
   jours → priorité satiété : portions plus généreuses, protéines, fibres,
   légumes à volonté ».
-- Le signal alimente aussi **l'analyse de FF-028** (la recommandation
-  quotidienne), qui peut proposer un changement de structure (un vrai
-  petit-déjeuner, une collation).
+- ~~Le signal alimente aussi l'analyse de FF-028.~~ **Caduc depuis le
+  2026-09-01** : [FF-028](FF-028-la-recommandation-quotidienne.md) est
+  abandonnée — il n'y a plus de recommandation en plein milieu de plan. Le
+  signal n'a donc qu'**un seul** consommateur, celui du dessus. Un changement
+  de structure (un vrai petit-déjeuner, une collation) reste possible par deux
+  chemins qui, eux, existent : le
+  [retour de fin de plan](../composition-des-repas/FF-054-le-retour-de-fin-de-plan.md),
+  et la [divergence constatée](FF-056-la-divergence-constatee.md) quand elle
+  ouvre une proposition durable.
 
 ### Hors périmètre — engageant
 
@@ -70,7 +76,9 @@ sait faire.
   nourriture » — l'absence de faim n'est pas un signal, et un plan qu'on
   réduit automatiquement est la zone exacte du risque TCA.
 - ❌ **Pas de modification de la semaine en cours.** Le signal se consomme à la
-  **prochaine** composition (le milieu de semaine appartient à FF-028 V2+).
+  **prochaine** composition. ⚠️ Ce no-go est désormais **sans exception** : le
+  milieu de semaine n'appartient à personne depuis l'abandon de FF-028
+  (2026-09-01). Il ne renvoie donc plus à un « V2+ » qui viendrait le lever.
 - ❌ **Pas de mémoire durable.** « Cette personne a souvent faim » comme trait
   permanent serait faux le mois suivant — le signal décrit une fenêtre, pas
   une personne.

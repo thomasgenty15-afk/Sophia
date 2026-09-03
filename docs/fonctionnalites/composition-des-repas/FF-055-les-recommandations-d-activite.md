@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Identifiant** | `FF-055-les-recommandations-d-activite` |
-| **Statut** | 🟠 Noyau livré et vert — câblage à faire (§3) |
+| **Statut** | 🟠 **Noyau livré, et personne ne le lit** — audité le 2026-09-01 : `activitySectionFor`, qui EST la fonctionnalité, a **zéro appelant** dans tout le dépôt. Sur les 5 points « à câbler » du §3, **seul le n°3 est fait** (la question du niveau). ⚠️ Et deux interdits de cette fiche sont **renversés** — le calcul d'énergie (n°3) et « aucune forme de suivi » (§3 hors périmètre) |
 | **Date** | 2026-08-11 |
 | **Autorité produit** | [MODEL.md](../../keel/MODEL.md) · [CONTRACT.md](../../keel/CONTRACT.md) · [LEGAL.md](../../keel/LEGAL.md) · [PLAN-RETOUR-ET-ACTIVITE](../../../scratchpad/PLAN-RETOUR-ET-ACTIVITE.md) |
 | **Dépend de** | `_shared/keel/activity_floor.ts` · `activity_stance.ts` (livrés) · migration `20260811100000` (appliquée) |
@@ -83,6 +83,21 @@ même discipline que `deficit_style` sans jeton `aggressive`.
 
 ### À câbler
 
+> ⚠️ **AUDIT DU 2026-09-01 — `activitySectionFor` N'A AUCUN APPELANT.**
+> La fonction qui produit la recommandation est écrite, testée et **morte** :
+> `grep` sur tout le dépôt rend zéro lecteur hors de son propre fichier. Les
+> trois « appelants » que rend un `grep` naïf sur `activity_floor.ts` sont des
+> **commentaires** qui disent l'inverse — *« ⚠️ `tokens.ts` ET SURTOUT PAS
+> `activity_floor.ts` »* (`onboarding.ts`, `household.ts`, `SetupPage.tsx`).
+> C'est la cicatrice « un audit d'appelants doit retirer les commentaires ».
+>
+> **État réel des cinq points ci-dessous** : seul le **n°3** est fait (la
+> question du niveau existe, via `SetupPage` et l'onboarding). Les n°1, 2, 4
+> et 5 sont intacts — vérifié un par un : pas d'`activityStance` dans
+> `doctrine.ts`, aucun appel séparé dans `generate-meal-v1` ni dans
+> `keel-daily-pulse-v1`, aucune section sous le plan, et aucun `activity` dans
+> `doctrine_starter.ts`.
+
 1. **`doctrine.ts`** — `activityStance` sur `CoachDoctrine`, parsé par
    `parseCoachDoctrine` via `parseActivityStance`.
    ⚠️ **EXCLU de `compileDoctrineBlock`** (même statut que `dailyPractices`) :
@@ -95,8 +110,17 @@ même discipline que `deficit_style` sans jeton `aggressive`.
    **domaine de défaillance séparé** — si l'activité échoue, le plan sort quand
    même. *Testé côté module ; à tenir côté appelant.*
 3. **Le niveau d'activité** — une question dans « Basic info », liste fermée
-   (`sedentary`…`very_active`), **non requise**. ⚠️ Elle ne doit entrer dans
-   **aucun** calcul de dépense énergétique affiché.
+   (`sedentary`…`very_active`), **non requise**. ~~⚠️ Elle ne doit entrer dans
+   **aucun** calcul de dépense énergétique affiché.~~
+   ⛔ **RENVERSÉ le 2026-09-01 par [FF-059](FF-059-le-chiffre-affiche.md) lot 4,
+   et c'est exactement l'inverse qui est vrai** : `ACTIVITY_KCAL_PER_KG`
+   (`_shared/keel/energy_target.ts:220`) est indexé sur **ce niveau-là**, avec
+   ce vocabulaire-là, et c'est lui qui produit la fourchette **affichée** à
+   l'élève et sur `/meal-prep`. La cible est `poids × kcal/kg`, le kcal/kg
+   venant de l'activité. Ce qui reste interdit, et qui est la vraie ligne :
+   **ni sexe, ni âge, ni taille** — `energy_target_test.ts` refuse
+   `estimatedMaintenanceKcal` parce qu'elle multiplie un métabolisme de base
+   par un facteur d'activité deviné.
 4. **L'UI** — une courte section sous le plan, visuellement distincte de la
    nourriture, **trois lignes au maximum**, aucune interaction. Réutiliser
    `SetupSection` plutôt qu'un composant neuf.
@@ -106,8 +130,22 @@ même discipline que `deficit_style` sans jeton `aggressive`.
 
 ### Hors périmètre
 
-Toute forme de suivi. **On ne demande jamais si ça a été fait** — une
-recommandation qu'on vérifie devient une note.
+~~Toute forme de suivi. **On ne demande jamais si ça a été fait** — une
+recommandation qu'on vérifie devient une note.~~
+
+> ⛔ **RENVERSÉ par la décision du 2026-08-18** (« on logue la séance : une
+> mesure à demi vraie vaut mieux que pas de mesure », arbitrage explicite du
+> propriétaire), livré depuis. Constaté dans le code le 2026-09-01 :
+> `ActivitySessionsCard.tsx`, `api/activitySessions.ts`,
+> `_shared/keel/activity_session.ts`, la carte « Your sessions » de
+> `StudentProgressPage`, et la ligne est reprise par l'export RGPD et la purge.
+>
+> **La nuance qui survit, et il faut la garder telle quelle** : le produit
+> **n'interroge pas**, il **offre un endroit** — la copie dit « If you trained,
+> add it below ». Et surtout, rien du plan ne bouge à cause d'une séance : une
+> dépense déclarée est fausse de 30 à 50 %, donc la soustraire de la journée
+> rendrait la journée **moins** sûre. Le compte de séances est vrai ; son
+> dérivé énergétique ne l'est pas, et il ne s'affiche pas.
 
 ---
 

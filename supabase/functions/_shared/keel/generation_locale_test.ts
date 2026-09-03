@@ -31,6 +31,10 @@ import { appendContentLanguageBlock } from "./locale.ts";
 function mealArgs(contentLocale: string) {
   return {
     firstDayCookable: true,
+    hasFreezer: false,
+    oneCookingSession: false,
+    cookOnlyDay: null,
+    soloBoxes: false,
     goal: "maintenance",
     situation: null,
     context: null,

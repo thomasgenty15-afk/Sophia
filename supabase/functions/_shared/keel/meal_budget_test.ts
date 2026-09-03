@@ -35,6 +35,10 @@ import { BUDGET_MAX, buildMealPrompt, usableBudget } from "./meal_generation.ts"
 function mealArgs(budgetAmount: number | null) {
   return {
     firstDayCookable: true,
+    hasFreezer: false,
+    oneCookingSession: false,
+    cookOnlyDay: null,
+    soloBoxes: false,
     goal: "health",
     situation: null,
     context: null,

@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Identifiant** | `FF-057-la-procedure-accident` |
-| **Statut** | 🟡 Spécifiée |
+| **Statut** | 🟠 En cours — livrée par la CONVERSATION, à moitié par l'écran (voir §0) |
 | **Date** | 2026-08-12 |
 | **Autorité produit** | [README du domaine](README.md) · [conversation/README.md](../conversation/README.md) (T1–T9) · [CONTRACT.md](../../keel/CONTRACT.md) |
 | **Dépend de** | [FF-009](../conversation/FF-009-le-repas-hors-plan.md) (le fait hors plan) · `_shared/keel/meal_tick.ts` (`MEAL_UNTICK_REASON`) · [FF-028](../conversation/FF-028-la-recommandation-quotidienne.md) (le canal des directives) · `meal_plan_window.ts` · `grocery_waves.ts` (`buyOn`, `servesCookOn`, `PERISHABLE_AISLES`, `MAX_FRIDGE_DAYS`) |
@@ -59,7 +59,7 @@ trois boutons posaient tous `food_not_eaten`, donc la réponse de la personne
 | **La partie B depuis l'écran** | aucun réalignement n'est proposé après une décoche à l'écran. Le tap « pas eu le temps » n'ouvre rien de plus |
 | **La partie C depuis l'écran** | pas de ligne de courses ni de proposition de décalage hors conversation |
 | **« La session de cuisine a-t-elle eu lieu ? » depuis l'écran** | posée par la conversation uniquement (`sessionQuestionFor`) |
-| **R9 sur l'écran** | le plancher de restriction est armé côté serveur (`buildAccidentForm`) et **n'a aucun producteur** (`RESTRICTION_FLAG_HAS_NO_PRODUCER`). L'écran ne le lit pas du tout : le formulaire s'ouvre pour tout le monde |
+| **R9 sur l'écran** | ⚠️ **corrigé côté serveur le 2026-09-01, pas côté écran.** `accident_tap.ts` résout maintenant le plancher par `evaluateRestrictionForStudent` (une évaluation par tour, descendue dans les quatre branches, fail-closed), donc la procédure ne s'ouvre plus par la conversation pour quelqu'un sous plancher — `_shared/chat/accident_restriction_wiring_test.ts` le tient par son EFFET. L'écran, lui, ne lit toujours rien : le formulaire s'y ouvre pour tout le monde |
 
 ---
 
@@ -143,8 +143,17 @@ dont l'espace est **pré-calculé** depuis le plan réel :
 5. **Décaler la session et ce qui en dépend** — le glissement temporel de C,
    avec ses trois motifs de refus nommés.
 
-La sortie durable passe par **le canal de FF-028** (proposition → tap →
-écriture relue → empreinte du plan qui périme la proposition). Aucun canal neuf.
+La sortie durable passe par **le canal des propositions durables** (proposition
+→ tap → écriture relue → empreinte du plan qui périme la proposition). Aucun
+canal neuf.
+
+⚠️ **Ce canal s'appelait « celui de FF-028 », et FF-028 est abandonnée depuis le
+2026-09-01.** Le canal lui, **survit** : `student_daily_recommendations`, les
+boutons `KEEL_RECO_*` et `handleRecommendationTap` sont **gardés exprès** et
+appartiennent désormais à [FF-056](../conversation/FF-056-la-divergence-constatee.md),
+qui les utilise déjà (`openDurableProposal`). Ce qui a été retiré est le MOTEUR
+de proposition quotidienne, pas la plomberie du tap — la confondre avec le
+canal ferait disparaître la seule sortie durable de cette fiche.
 
 ### C — Les courses, et le décalage temporel
 
@@ -245,7 +254,7 @@ cuisson pour tenir, ou « rien à changer » si la personne y va demain matin.
    │ ne rien faire (et le dire)       │
    └──────────────────────────────────┘
                     │
-        canal FF-028 : tap → écrit → relu
+     canal durable : tap → écrit → relu
                     ▼
         le plan affiché dit la vérité
 ```
@@ -264,7 +273,7 @@ Presque rien de neuf :
 | **le motif de la décoche** | la même colonne, quatre valeurs au lieu d'une (`20260818170000`) | ajouté le 2026-08-18 — §0 |
 | le hors-plan | `plan_relation = 'off_plan'` (FF-009) | existe |
 | **la session sautée** | un marqueur sur la session de cuisine du plan | **la seule donnée qui manque** |
-| le réalignement | canal FF-028 (proposition, empreinte du plan, tap relu) | existe |
+| le réalignement | le canal durable (proposition, empreinte du plan, tap relu) — anciennement « de FF-028 », désormais propriété de FF-056 | existe |
 
 ## 6. Règles et garanties
 

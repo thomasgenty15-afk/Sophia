@@ -46,8 +46,9 @@
  *
  * PURE MODULE: aucun I/O, aucune horloge, aucun aléatoire.
  */
+import { FIELD_CHANGES_KEY } from "./field_change.ts";
 import {
-  canProduce,
+  canHold,
   parseRetainedItem,
   parseRetainedItems,
   parseRetainedKind,
@@ -702,7 +703,7 @@ export const RETAINED_ITEMS_KEY = "retained_items";
  * COMBIEN DE LIGNES STOCKÉES NE SONT PAS REMONTÉES, et pour quel motif.
  *
  * ── POURQUOI CE COMPTEUR EXISTE (contrat de phase 0, §2.2) ────────────────
- * `parseRetainedItem` applique `canProduce(source, kind)` **À LA LECTURE**:
+ * `parseRetainedItem` applique `canHold(source, kind)` **À LA LECTURE**:
  * une ligne que son producteur n'avait pas le droit d'écrire ne remonte pas,
  * même déjà en base. C'est voulu — la matrice mord à chaque lecture, pas
  * seulement le jour où le prompt s'en souvient. Mais sans compteur, un magasin
@@ -725,7 +726,7 @@ export const RETAINED_ITEMS_KEY = "retained_items";
 export interface RetainedItemsRefusals {
   /** La somme des trois motifs. */
   readonly total: number;
-  /** `canProduce(source, kind)` a mordu à la lecture. */
+  /** `canHold(source, kind)` a mordu à la lecture. */
   readonly forbiddenProducer: number;
   /** Illisible pour tout autre motif — le socle refuse, il ne nettoie pas. */
   readonly malformed: number;
@@ -800,7 +801,14 @@ export function readRetainedItems(
     const source = parseRetainedSource(entry.source);
     // Les deux jetons se lisent, mais la matrice les refuse ENSEMBLE: c'est le
     // motif §2.2, et c'est le seul qu'on sache nommer sans deviner.
-    if (kind && source && !canProduce(source, kind)) forbiddenProducer += 1;
+    //
+    // ⚠️ `canHold`, ET C'EST LE MÊME JUGE QUE `parseRetainedItem`. Avec
+    // `canProduce`, toute ligne d'un producteur RETIRÉ tombée pour un AUTRE
+    // motif (subject forgé, `at` illisible) serait rangée en
+    // `forbiddenProducer` — c'est-à-dire imputée à un producteur qui n'écrit
+    // plus, donc à un défaut de code impossible. Deux juges pour un même refus,
+    // c'est un compteur qui accuse la mauvaise cause.
+    if (kind && source && !canHold(source, kind)) forbiddenProducer += 1;
   }
 
   const notDurable = parsed.length - items.length;
@@ -1220,6 +1228,19 @@ export function constraintsForPrompt(
   delete out[FOOD_PREFERENCES_ORIGIN_KEY];
   delete out[RETAINED_ITEMS_KEY];
   delete out[NEXT_PLAN_ITEMS_KEY];
+  // ⟳ LOT M5 — LE JOURNAL DES CHANGEMENTS DE CHAMP NE PART PAS AU MODÈLE.
+  //
+  // ① Ce qu'il journalise est DÉJÀ servi: ce sont les champs eux-mêmes
+  //    (`cooking_time_min`, `variety`…), que le prompt lit à leur place. Le
+  //    servir en plus dirait deux fois la même chose, dans deux formes
+  //    différentes, dans un prompt qui a un budget.
+  // ② Et il porte l'ANCIENNE valeur. La donner au modèle l'inviterait à
+  //    composer entre les deux, alors que la seule qui vaille est celle qui est
+  //    écrite dans le champ.
+  //
+  // Il est fait pour un ÉCRAN — le fil « ce qui vient de changer » — pas pour
+  // un prompt.
+  delete out[FIELD_CHANGES_KEY];
   const dated = foodPreferencesForPrompt(constraints);
   if (dated.length > 0) out[FOOD_PREFERENCES_KEY] = dated;
   return out;

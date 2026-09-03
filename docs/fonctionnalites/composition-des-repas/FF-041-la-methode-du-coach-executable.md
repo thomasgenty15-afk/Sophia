@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Identifiant** | `FF-041-la-methode-du-coach-executable` |
-| **Statut** | 🟠 En cours |
+| **Statut** | 🟢 **Livrée** — vérifié le 2026-09-01 : la colonne `composition_steering` est lue par `doctrine.ts`, `coach-doctrine-v1` et `generate-meal-v1` ; `applyPiloting`, `steeredFocus` et `SteeringEntry` existent, et `envelopeFor` porte bien `steering` en **paramètre requis** (`meal_envelope.ts:969`) |
 | **Date** | 2026-08-10 |
 | **Autorité produit** | [MODEL.md](../../keel/MODEL.md) (le coach écrit une doctrine, jamais un plan) · [CONTRACT.md](../../keel/CONTRACT.md) · design d'origine : `scratchpad/DESIGN-UNITES-DE-COMPOSITION.md` (§3 EN ENTIER, dont §3.0, arbitrages A1 et A2) |
 | **Dépend de** | [FF-040](FF-040-la-boucle-de-correction.md) · [FF-039](FF-039-enveloppes-et-verdicts-en-observation.md) · `doctrine.ts` (`CoachDoctrine`, `compileDoctrineBlock`, patron `dailyPractices`) · `doctrine_starter.ts` (`STARTER_FORKS`) · `doctrine_delegation.ts` (le coach maison) · `food_items.ts` (`FrequencyRule`) · `week_plan_generation.ts` (`focusFor`) |

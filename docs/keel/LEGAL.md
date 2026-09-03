@@ -412,9 +412,86 @@ refus total : `no_calorie_to_student_property_test.ts` cite **Levinson 2017 — 
 déclarent qu'un tracker de calories a contribué à leur trouble** (et note au passage que le « 83 % »
 de la revue 2025 est une erreur de citation, à ne pas propager). Un chiffre visible par l'élève
 demande donc, au minimum : une interaction explicite avec `disordered_eating_guard`, et une règle
-écrite disant qui ne le voit pas. Tant que ce n'est pas tranché, la copy publique reste au point
-neutre — elle ne promet aucun chiffre (voir `landing.doctrine.no_calories_*`, formulé au
-conditionnel exprès).
+écrite disant qui ne le voit pas.
+
+~~Tant que ce n'est pas tranché, la copy publique reste au point neutre — elle ne promet aucun
+chiffre (voir `landing.doctrine.no_calories_*`, formulé au conditionnel exprès).~~
+
+> ⛔ **LEVÉ le 2026-09-01 par la §6.4 bis ci-dessous.** La condition que cette phrase posait —
+> « une règle écrite disant qui ne le voit pas » — est remplie **en code** (`energy_gate.ts`), et
+> `/meal-prep` affiche une fourchette calculée. La phrase est laissée barrée plutôt que supprimée
+> parce qu'elle a été citée ailleurs comme si elle tenait encore.
+>
+> ⚠️ **Et la clé qu'elle cite n'existe plus.** Le namespace `landing.*` a **entièrement** disparu
+> de `i18n/en.ts` (0 clé au 2026-09-01) : la vitrine est passée à `home.*` plus une page par
+> acheteur (`coaches.`, `gyms.`, `couples.`, `families.`, `communities.`, `mealprep.`). Ne pas
+> chercher `landing.doctrine.no_calories_*`, ne pas la citer comme preuve — c'est une preuve
+> morte, et [CALORIE_REVERSAL.md](CALORIE_REVERSAL.md) s'appuyait dessus deux fois.
+
+### 6.4 bis — La condition ci-dessus est remplie, et la copy publique montre un chiffre
+*Décision produit du **2026-09-01**. Elle lève le « point neutre » du paragraphe précédent, et rien
+d'autre. Les interdits de 6.4 restent tous en vigueur.*
+
+**Ce qui a changé depuis 2026-08-06 :** la « règle écrite disant qui ne le voit pas » n'est plus à
+écrire, elle est **du code**. `_shared/keel/energy_gate.ts` porte quatre portes dans un ordre
+contractuel — ① le plancher TCA (`restrictionFlag`, rouvrable par personne), ② mineur **ou âge
+inconnu**, ③ la doctrine du coach, ④ l'interrupteur de l'élève — et une entrée incomplète **lève**
+plutôt que de rendre `show: true`. Le chiffre lui-même est une **fourchette** issue du poids et du
+niveau d'activité (`energy_target.ts`), jamais un point, sans reste et sans verdict.
+
+**Ce que la vitrine a le droit de faire, depuis cette date :** `/meal-prep` affiche une fourchette
+calculée, **sans condition d'accès**, qui **suit l'objectif choisi** — plus basse sur une perte, plus
+haute sur une prise — et qui nomme son hypothèse de rythme (l'écart le plus rapide que la
+composition accepte d'exécuter : 500 kcal/jour sur une perte, +10 % sur une prise).
+
+⚠️ **Un geste « j'ai 18 ans ou plus » a existé sur cette page pendant quelques heures le
+2026-09-01, puis a été retiré sur décision du propriétaire.** Ce paragraphe garde la trace des deux
+décisions, parce que la seconde rouvre ce que la première fermait :
+
+- ce que le geste faisait : rien de technique — c'était du code client, personne ne vérifiait l'âge
+  de qui cliquait. Il servait à ce que **la page dise la même chose que le produit**, dont la porte ②
+  ferme le chiffre pour un mineur **et pour tout âge inconnu** (91 % de la base) ;
+- ce que son retrait coûte, et il faut le lire en entier : un visiteur mineur peut lire une
+  fourchette de calories sur une page publique, et **une personne qui s'inscrit après l'avoir vue
+  peut ne jamais la retrouver dans l'application**. La page et le produit ne disent plus la même
+  chose. Le panneau d'hypothèses et la réserve qui l'expliquaient ont été retirés en même temps.
+
+⚠️ **Le produit, lui, n'a pas bougé d'un octet.** `energy_gate.ts` garde ses quatre portes et son
+ordre contractuel ; le plancher TCA (①) reste rouvrable par personne. Ce paragraphe décrit un écart
+de VITRINE, pas un desserrage de garde.
+
+**Ce qui reste interdit, et n'a pas bougé d'un mot :** le comptage calorique par photo, le suivi de
+macros par photo, un chiffre sans sa base, un point au lieu d'une fourchette, un reste (« il vous
+reste 680 kcal »), un verdict, et toute promesse de résultat ou de rythme de perte (§6.1, CAP §13).
+
+⚖️ **À FAIRE VALIDER, ET LE RETRAIT DU GESTE 18+ A AGRANDI CE POINT, PAS FERMÉ :** CAP Code §13
+demande qu'une communication de contrôle du poids ne soit **pas dirigée vers des mineurs**.
+`/meal-prep` affiche désormais une fourchette de calories à tout visiteur, sans aucun aiguillage. À
+soumettre à un conseil britannique **avant toute campagne payante au Royaume-Uni**, et à retrancher
+de la copie si l'avis est négatif.
+
+### 6.4 ter — La photo peut porter un chiffre, à la condition de §6.4
+*Décision produit du **2026-09-01**.*
+
+`/meal-prep` annonce qu'un repas non cuisiné, photographié ou décrit, reçoit **un ordre de grandeur
+que la personne confirme ou corrige**, et que **la photo seule manque de précision**. La copie ne
+nomme pas les deux bases — elle n'a pas à le faire, et §6.4 ne le lui demande pas : ce qu'il exige,
+c'est que **l'interface** le dise (`photo_estimate` tant que rien n'est précisé, biais mesuré
+−26,6 % ; `declared_quantities` dès que les quantités sont données, 2,3 % d'erreur).
+
+Ce qui garde la phrase du bon côté de l'interdit, c'est **« que vous confirmez ou corrigez »** : le
+chiffre est annoncé comme un ordre de grandeur corrigeable, jamais comme un comptage. Et la
+correction n'est pas un confort — c'est **ce qui fait passer d'une condition mesurée à l'autre**,
+donc ce qui rend le chiffre défendable.
+
+⚠️ **Au 2026-09-01 la copie précède le produit.** `analyze-meal-photo-v1` calcule bien
+`energy_estimate` avec sa base forcée, mais `frontend/src/keel/api/mealPhoto.ts` ne le lit pas, et
+aucun écran ne permet de déclarer une quantité. **Ces deux pièces doivent être livrées avant la mise
+en ligne de la page**, sans quoi §6.4 est enfreint par omission : on annoncerait un chiffre corrigeable
+qu'on ne peut pas corriger, c'est-à-dire un comptage par photo nue.
+
+⛔ **Reste interdit :** « Sophia compte vos calories sur photo », un suivi de macros par photo, et
+tout chiffre sans sa base.
 
 ---
 

@@ -8,7 +8,7 @@ export function getPrelaunchLockdownRawValue(): string {
   return String(import.meta.env.VITE_PRELAUNCH_LOCKDOWN ?? "").trim();
 }
 
-function parseBooleanEnv(raw: string, defaultValue: boolean): boolean {
+export function parseBooleanEnv(raw: string, defaultValue: boolean): boolean {
   const v = String(raw ?? "").trim().toLowerCase();
   if (!v) return defaultValue;
   if (["1", "true", "yes", "y", "on", "enabled"].includes(v)) return true;

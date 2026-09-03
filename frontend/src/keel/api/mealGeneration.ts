@@ -388,6 +388,20 @@ export interface GeneratedDish {
   uses: Array<{
     preparation_id: string;
     servings: number;
+    /**
+     * COMMENT CETTE PART-LÀ A ATTENDU ENTRE SA CUISSON ET SON REPAS.
+     *
+     * ⚠️ `"fridge"` SUR TOUT PLAN ÉCRIT AVANT LE 2026-09-01: la clé n'existait
+     * pas, et le lecteur ne l'invente pas — il applique le même défaut que le
+     * serveur, qui est le STRICT. Un plan d'hier ne se met donc pas à annoncer
+     * des décongélations que personne n'a écrites.
+     *
+     * ⛔ CE N'EST PAS DÉCORATIF: c'est ce qui autorise le plat à être mangé au
+     * delà des trois jours du frigo. L'écran doit dire le geste que ça
+     * implique — sortir la part la veille — sans quoi le plan est exécutable
+     * sur le papier et pas dans la cuisine.
+     */
+    kept: "fridge" | "freezer";
   }>;
   /**
    * LES CONTENANTS DE CE REPAS — un par groupe de mangeurs (v4, 2026-08-20).
@@ -539,6 +553,33 @@ export interface ShoppingItem {
   term: string;
   quantity: string | null;
   aisle: string;
+  /**
+   * ⟳ LOT `L0-a`, BRANCHÉ LE 2026-08-23 — LE GROUPE, QUI PORTE LA DATE D'ACHAT.
+   *
+   * ⛔ REQUIS, `string | null`, jamais `T?`. Ce champ existait en base et dans
+   * la charge rendue depuis `L0-a`; il n'était simplement **pas recopié** par
+   * `readShopping`. Comme `WaveItem.food_group` était facultatif côté serveur,
+   * la structure était satisfaite et rien ne rougissait: `grocery_waves.ts`
+   * retombait sur `MAX_FRIDGE_DAYS` pour CHAQUE article, ne produisait qu'une
+   * seule vague, et `wavesAreMeaningful` la masquait. Mesuré sur 10 plans réels
+   * le 2026-08-23: aucune date d'achat n'atteignait l'écran.
+   *
+   * `null` = la ligne n'a pas de groupe (un plan écrit avant `L0-a`). C'est une
+   * valeur pleine, pas une absence: elle rend le repli d'avant, et
+   * `rawWindowCounts` la compte.
+   */
+  food_group: string | null;
+  /**
+   * ⟳ 2026-09-01 — LE JOUR OÙ CET ARTICLE S'ACHÈTE, `YYYY-MM-DD`.
+   *
+   * ⛔ REQUIS, `string | null`, jamais `T?` — la leçon de `food_group` juste
+   * au-dessus, appliquée le jour même où on l'ajoute plutôt qu'un an après.
+   *
+   * Posé par la lane à partir de `grocery_waves.ts`. `null` = la fenêtre du
+   * plan n'était pas lisible, ou la ligne n'a pas pu être routée; l'écran
+   * retombe alors sur la liste plate d'avant.
+   */
+  buy_on: string | null;
 }
 
 /**
@@ -695,6 +736,33 @@ export interface GenerateMealInput {
   /** L'envie du moment: « mezze d'été, plein de carottes ». */
   preferences: string | null;
   pantry: PantryItem[];
+  /**
+   * « TOUT DANS UNE SESSION DE CUISINE » — 2026-09-01.
+   *
+   * ⚠️ REQUIS, jamais `?`. Un champ facultatif ici n'aurait fait remonter AUCUN
+   * appelant au compilateur, et l'option se serait construite sans être
+   * branchée — c'est la forme exacte de « paramètre de garde optionnel = garde
+   * désarmée », payée sept fois par ce dépôt.
+   *
+   * ⛔ LE SERVEUR LE REFUSE SANS CONGÉLATEUR DÉCLARÉ, et il le DIT
+   * (`plan_rationale`). L'écran pose la même porte pour ne pas PROPOSER un
+   * geste qui sera refusé; ce n'est pas une garde en double — le corps de la
+   * requête est écrit par le réseau, pas par l'écran.
+   */
+  oneCookingSession: boolean;
+  /**
+   * « JE CUISINE LA VEILLE » — 2026-09-01.
+   *
+   * ⚠️ REQUIS, jamais `?`. Même arbitrage que `oneCookingSession` juste
+   * au-dessus: un champ facultatif n'aurait fait remonter AUCUN appelant au
+   * compilateur, et la case serait construite sans être transmise.
+   *
+   * ⛔ LE SERVEUR TRANCHE LA FAISABILITÉ (`withCookDayBefore`), et il le DIT
+   * quand il refuse. L'écran pose la même porte pour ne pas PROPOSER un geste
+   * qui sera refusé — le corps de la requête est écrit par le réseau, pas par
+   * l'écran.
+   */
+  cookTheDayBefore: boolean;
 }
 
 /**
@@ -725,6 +793,11 @@ export async function generateMeal(
       context: input.context,
       preferences: input.preferences,
       pantry: input.pantry,
+      // ⚠️ LE NOM DU SERVEUR, pas celui de l'écran. `generate-meal-v1` lit
+      // `body.one_cooking_session === true`; toute autre orthographe ici serait
+      // une option cochée qui ne part nulle part, et rien ne le dirait.
+      one_cooking_session: input.oneCookingSession,
+      cook_the_day_before: input.cookTheDayBefore,
     },
   });
   if (error) {
@@ -926,6 +999,11 @@ export function readDishes(raw: unknown): GeneratedDish[] {
           return {
             preparation_id: String(u.preparation_id ?? ""),
             servings: Number(u.servings) || 1,
+            // ⚠️ LA MÊME DIRECTION QUE LE SERVEUR: tout ce qui n'est pas
+            // exactement `"freezer"` vaut `"fridge"`. Une clé absente (plan
+            // d'avant le lot) ou un jeton inconnu retombent donc sur le
+            // strict, et l'écran n'annonce pas une décongélation inventée.
+            kept: u.kept === "freezer" ? "freezer" as const : "fridge" as const,
           };
         }).filter((u) => u.preparation_id !== "")
         : [],
@@ -988,6 +1066,27 @@ export function readShopping(raw: unknown): ShoppingItem[] {
         ? null
         : String(s.quantity),
       aisle: String(s.aisle ?? "other"),
+      // ⟳ 2026-08-23 — LE CHAMP QUI MANQUAIT, et il manquait en silence.
+      // ⛔ NE PAS LE REMETTRE SOUS LE TAPIS: c'est lui, et lui seul, qui donne
+      // sa date d'achat à un article (`grocery_waves.ts :: waveAssignments`,
+      // `rawWindowDaysFor(item.food_group)`). Sans lui, toute la liste part
+      // dans une vague unique que l'écran masque.
+      food_group: s.food_group === null || s.food_group === undefined
+        ? null
+        : String(s.food_group),
+      // ⟳ 2026-09-01 — LA DATE D'ACHAT, POSÉE PAR LE SERVEUR SUR LA LIGNE.
+      //
+      // ⛔ MÊME CICATRICE QUE `food_group` JUSTE AU-DESSUS, ET C'EST POUR ÇA
+      // QU'ELLE EST RECOPIÉE ICI: un lecteur qui laisse tomber un champ le fait
+      // en SILENCE, et le calcul d'aval retombe sur son repli sans qu'un seul
+      // rouge ne le dise. Le panneau de courses recalcule aujourd'hui ses
+      // vagues lui-même (il a tout ce qu'il faut); ce champ est ce qui permettra
+      // aux surfaces qui n'ont PAS les préparations — la bande du soir, le PDF
+      // du frigo, une liste partagée sans compte — de dire le jour sans
+      // refaire le calcul.
+      buy_on: s.buy_on === null || s.buy_on === undefined
+        ? null
+        : String(s.buy_on),
     };
   });
 }
@@ -1071,10 +1170,32 @@ function readBoxV4(raw: unknown): MealBox | null {
   const memberIds = (Array.isArray(b.member_ids) ? b.member_ids : [])
     .map((v) => String(v ?? "").trim())
     .filter((v) => v !== "");
-  // ⚠️ UN CONTENANT SANS PERSONNE N'EST PAS UNE INSTRUCTION. On le jette
-  // plutôt que de rendre un couvercle anonyme: « sers-toi » se dit par
-  // l'ABSENCE de contenant, pas par un contenant vide.
-  if (memberIds.length === 0) return null;
+  // ══════════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-01 — LE COUVERCLE ANONYME EST DEVENU LÉGITIME.
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ CETTE LIGNE JETAIT LE CONTENANT, et son motif était: « un contenant sans
+  // personne n'est pas une instruction; "sers-toi" se dit par l'ABSENCE de
+  // contenant, pas par un contenant vide ». C'était vrai tant que les boîtes
+  // n'existaient QUE sur la lane foyer, où un couvercle sans nom est un bac
+  // qu'on ne sait à qui ouvrir.
+  //
+  // Ce n'est plus vrai. La lane individuelle a ses contenants depuis ce jour, et
+  // ils n'ont PAS de nom par construction: il n'y a personne à départager, et
+  // c'est le jour + le repas qui disent lequel ouvrir (`boxLidLabel` rend
+  // « jeudi midi — Chili de lentilles »).
+  //
+  // ⚠️ MESURÉ, PAS SUPPOSÉ: sans ce changement, un plan solo réel portant ONZE
+  // contenants en base (`box_counts.with_box: 11`, `delivery: "served"`)
+  // affichait un dépliant de session VIDE. Le moteur avait raison, l'écran se
+  // taisait, et rien ne disait lequel des deux avait bougé — la forme de défaut
+  // que ce fichier documente déjà trois fois.
+  //
+  // ⛔ ET LA GARDE N'EST PAS PERDUE, ELLE EST REMONTÉE OÙ ELLE SAIT DÉCIDER.
+  // `parseGeneratedMeal` refuse toujours un couvercle sans nom sur la lane
+  // FOYER (`memberIds.length === 0 && !args.soloBoxes`), là où la lane est
+  // connue. Cet écran-ci, lui, reçoit une ligne de base sans savoir de quelle
+  // lane elle vient: y refaire la décision, c'était la prendre à l'aveugle.
   const items = (Array.isArray(b.items) ? b.items : []).map((entry) => {
     const it = (entry ?? {}) as Record<string, unknown>;
     const grams = Number(it.grams);

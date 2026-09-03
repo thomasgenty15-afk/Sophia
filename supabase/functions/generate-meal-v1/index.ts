@@ -1,4 +1,5 @@
 /// <reference path="../tsserver-shims.d.ts" />
+import { memoLinesForPrompt } from "../_shared/keel/memo.ts";
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient, type SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
 
@@ -164,7 +165,9 @@ import {
   firstBlockingPlan,
   type LivePlanSpan,
   type MealWindowRequest,
+  dayTokenOf,
   resolveRequestedWindow,
+  withCookDayBefore,
   windowDayOrder,
   windowStartsBeyondDayTokens,
 } from "../_shared/keel/meal_plan_window.ts";
@@ -174,6 +177,7 @@ import {
 } from "../_shared/keel/locale.ts";
 import {
   addedCookDays,
+  MAX_FRIDGE_DAYS,
   buildMealPrompt,
   MEAL_TOKEN_FIELDS,
   MEAL_TRANSLATABLE_FIELDS,
@@ -196,10 +200,25 @@ import {
   parseAwayDays,
   parseEatingRhythm,
   parseGeneratedMeal,
+  regramMeal,
   usableBudget,
+  usableCookDays,
 } from "../_shared/keel/meal_generation.ts";
 // ⟳ LOT `L0-a` — les deux nombres de la fenêtre CRUE, sur la liste de courses.
 import { rawWindowCounts } from "../_shared/keel/grocery_waves.ts";
+// ⛔ L'ANCRAGE DES GRAMMAGES (2026-08-23). Le module existait, testé et mesuré,
+// sans aucun consommateur depuis douze jours: ses ENTRÉES n'étaient calculées
+// que dans un script de QA. `portion_scaling_inputs.ts` les produit maintenant
+// une seule fois, pour la lane et pour la mesure.
+import {
+  scaleFactorsFor,
+  scaleIngredients,
+  scaleShoppingList,
+} from "../_shared/keel/portion_scaling.ts";
+import {
+  proteinFoodPredicate,
+  scalingInputsFor,
+} from "../_shared/keel/portion_scaling_inputs.ts";
 import { proteinAnchorRetryInstruction } from "../_shared/keel/protein_anchor.ts";
 import type { CompositionIndex } from "../_shared/keel/food_composition.ts";
 import { loadCompositionIndex } from "../_shared/keel/food_composition_io.ts";
@@ -218,8 +237,16 @@ import { declaredIntakeGroupCounts } from "../_shared/keel/declared_food_group.t
 import {
   envelopeFor,
   type PortionAdjustFor,
-  winningPortionAdjust,
+  PORTION_ADJUST_STEP,
 } from "../_shared/keel/meal_envelope.ts";
+// ⛔ LE MÊME ARBITRE QUE L'ENVELOPPE — lot M3. Le compteur lisait
+// `winningPortionAdjust` en se disant identique à `envelopeFor`; il ne l'était
+// plus depuis M3. Voir `portionIndexMoves`.
+import {
+  portionFactorFor,
+  portionIndexFor,
+  portionIndexMoves,
+} from "../_shared/keel/feedback_index.ts";
 import {
   type CompositionVerdict,
   foldPreparationsIntoDishes,
@@ -233,9 +260,26 @@ import {
 import { parseDayProperties } from "../_shared/keel/day_properties.ts";
 // LES MOYENS DE CUISSON. Le module porte le jeton, le lecteur à TROIS valeurs
 // et la phrase; cette lane n'en écrit aucune de son côté.
-import { readKitchenEquipment } from "../_shared/keel/kitchen_equipment.ts";
+import {
+  hasFreezerDeclared,
+  readKitchenEquipment,
+} from "../_shared/keel/kitchen_equipment.ts";
+import {
+  daysOutOfBatchReach,
+  singleSessionCookDay,
+} from "../_shared/keel/plan_feasibility.ts";
+import {
+  buyDatesByIndex,
+  wavePreparationsFromRows,
+} from "../_shared/keel/grocery_waves.ts";
+import {
+  daysNeedingTheirOwnShop,
+  rawKeepingBreaches,
+} from "../_shared/keel/raw_keeping.ts";
+import { FREEZER_WINDOW_DAYS } from "../_shared/keel/fridge_window.ts";
 import {
   correctionPlanFor,
+  offBandDistance,
   correctionRetryInstruction,
 } from "../_shared/keel/meal_correction.ts";
 import {
@@ -282,12 +326,23 @@ import {
 
 const FN_NAME = "generate-meal-v1";
 
+// Une fonction Edge ne peut pas survivre à deux générations de 70–90 s puis
+// atteindre son écriture. L'adoption d'un aperçu borne donc son UNIQUE appel
+// modèle sous la limite de la fonction; le navigateur garde une marge pour les
+// lectures et l'écriture transactionnelle qui suivent.
+const DRAFT_ADOPTION_MODEL_TIMEOUT_MS = 100_000;
+
 /**
  * FF-040 — COMBIEN DE GRANDEURS SONT HORS BANDE.
  *
- * Le critère d'adoption d'une relance. `not_computable` NE COMPTE PAS comme un
- * écart: une relance qui rendrait un plan moins lisible passerait pour une
- * amélioration, et le produit préférerait l'ignorance à l'imperfection.
+ * ⚠️ CE COMPTE N'EST PLUS LE CRITÈRE D'ADOPTION — voir `offBandDistance`
+ * (`_shared/keel/meal_correction.ts`), qui le remplace depuis le 2026-08-23.
+ * Il reste ici parce qu'il est ce qu'on JOURNALISE: un compte se lit d'un coup
+ * d'œil dans une requête sur toute la population, une distance non.
+ *
+ * `not_computable` NE COMPTE PAS comme un écart: une relance qui rendrait un
+ * plan moins lisible passerait pour une amélioration, et le produit préférerait
+ * l'ignorance à l'imperfection.
  */
 function offBandCount(v: CompositionVerdict): number {
   let n = 0;
@@ -546,6 +601,11 @@ Deno.serve(async (req) => {
     }
     /** Un aperçu: tout se calcule, rien ne s'écrit. */
     const isDraft = intent === "draft";
+    // Le client n'envoie ce marqueur qu'après le clic explicite « adopter ».
+    // Ce n'est pas une garde de sécurité: toutes les ceintures d'entrée et de
+    // sortie restent actives. Il désactive seulement les relances
+    // d'AMÉLIORATION qui faisaient expirer la fonction avant son unique write.
+    const adoptingDraft = !isDraft && body.adopting_draft === true;
     //
     // ── LA REPRISE D'UN APERÇU EST CÂBLÉE, ET PAS ICI ─────────────────────
     // « Refaire avec ça » envoie une phrase libre (`body.draft_note`) qui part
@@ -699,6 +759,30 @@ Deno.serve(async (req) => {
     // et pour la même raison: ce champ part dans un prompt. Daté, donc écrit sur
     // la LIGNE et jamais dans `practical_constraints`, qui est durable.
     const preferences = String(body.preferences ?? "").trim().slice(0, 2000) || null;
+    // ══════════════════════════════════════════════════════════════════════
+    // « TOUT DANS UNE SESSION DE CUISINE » — LA DEMANDE, 2026-09-01.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⚠️ `=== true`, ET LA COMPARAISON EST LA GARDE. Le corps vient du réseau:
+    // `"false"`, `0`, `"non"` et `{}` sont tous truthy ou falsy pour de
+    // mauvaises raisons. Seul le booléen `true` est une demande.
+    //
+    // ⛔ CE N'EST PAS ENCORE LA DÉCISION. La porte est le CONGÉLATEUR, et
+    // l'inventaire n'est lu que plus bas (`kitchenEquipment`). Trancher ici
+    // ferait une seconde lecture de la même colonne, à un endroit qui ne l'a
+    // pas encore.
+    const askedOneCookingSession = body.one_cooking_session === true;
+    // ══════════════════════════════════════════════════════════════════════
+    // « JE CUISINE LA VEILLE » — LA DEMANDE, 2026-09-01.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⚠️ `=== true`, ET LA COMPARAISON EST LA GARDE. Le corps vient du réseau.
+    //
+    // ⛔ CE N'EST PAS ENCORE LA DÉCISION: la faisabilité (un jour avant le
+    // départ, sous le plafond de sept) est tranchée par `withCookDayBefore`,
+    // après que la fenêtre de la personne a été validée telle qu'elle l'a
+    // saisie. Une seule autorité, et elle est PURE.
+    const askedCookTheDayBefore = body.cook_the_day_before === true;
     const pantry = readPantry(body.pantry, issues);
 
     if (mode === "from_pantry" && pantry.length === 0) {
@@ -1189,6 +1273,35 @@ Deno.serve(async (req) => {
       issues.push("live_plan_windows_unreadable");
     }
 
+    // ══════════════════════════════════════════════════════════════════════
+    // « JE CUISINE LA VEILLE » — LA FENÊTRE RECULE D'UN JOUR, ICI ET NULLE
+    // PART AILLEURS.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ APRÈS `resolveRequestedWindow`, ET AVANT TOUT LE RESTE. Après, parce
+    // que la fenêtre de la personne doit être validée telle QU'ELLE l'a saisie
+    // — un `bad_window` sur une date qu'elle n'a pas choisie serait un refus
+    // qui parle d'autre chose que de son geste. Avant, parce que le
+    // chevauchement de plans, `daysToFill`, la coupure de 18 h et le prompt
+    // lisent tous la fenêtre SERVIE, et une fenêtre corrigée à mi-parcours
+    // laisserait la moitié du moteur sur l'ancienne.
+    //
+    // ⚠️ LE REFUS EST SILENCIEUX POUR LA COMPOSITION ET BRUYANT DANS LE
+    // JOURNAL. Ne pas pouvoir reculer (plan qui commence aujourd'hui, ou
+    // fenêtre déjà à sept jours) n'empêche PAS de composer: on sert la fenêtre
+    // demandée, et `plan_rationale` dit pourquoi la veille n'a pas eu lieu.
+    // Rendre 400 ici transformerait une préférence en mur.
+    const cookAhead = withCookDayBefore({ startsOn, durationDays }, {
+      asked: askedCookTheDayBefore,
+      today: todayDate,
+    });
+    startsOn = cookAhead.startsOn;
+    durationDays = cookAhead.durationDays;
+    const cookOnlyDay: string | null = cookAhead.cookOnlyDay;
+    if (cookAhead.refused !== null) {
+      issues.push(`cook_the_day_before_refused: ${cookAhead.refused}`);
+    }
+
     // `scope` est DÉRIVÉ de la durée et n'est plus reçu: une ligne `scope='day'`
     // portant une fenêtre de sept jours n'est plus exprimable.
     const scope: MealScope = durationDays === 1 ? "day" : "several_days";
@@ -1508,6 +1621,29 @@ Deno.serve(async (req) => {
     const kitchenEquipment = readKitchenEquipment(
       goalRow.practical_constraints as Record<string, unknown> | null,
     );
+    // ══════════════════════════════════════════════════════════════════════
+    // LA PORTE DE L'OPTION — ET ELLE EST ICI, UNE SEULE FOIS.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ `hasFreezerDeclared`, JAMAIS `!== false`. « Pas de congélateur » et
+    // « on ne lui a jamais demandé » doivent rendre le même refus: une session
+    // unique sur sept jours n'est tenable QUE par le congélateur, et l'ouvrir
+    // sur une ignorance servirait un plan dont le parseur jetterait la moitié.
+    // C'est la direction fail-closed, la même que `keptWindowDays`.
+    //
+    // ⚠️ L'ÉCRAN POSE DÉJÀ LA MÊME PORTE (le champ est désactivé sans
+    // congélateur). Ce n'est pas une garde en double: l'écran décide ce qu'il
+    // PROPOSE, celui-ci décide ce que le moteur FAIT — et le corps de la
+    // requête n'est pas écrit par l'écran, il est écrit par le réseau.
+    const oneCookingSession = askedOneCookingSession &&
+      hasFreezerDeclared(kitchenEquipment);
+    // ⚠️ LE REFUS EST COMPTÉ, ET IL SORT MÊME À ZÉRO NUMÉRATEUR AILLEURS: sans
+    // lui, une option demandée et silencieusement ignorée est indiscernable
+    // d'une option jamais cochée. `plan_rationale` le DIT à la personne; cette
+    // ligne-ci le rend comptable en SQL sur la ligne du plan.
+    if (askedOneCookingSession && !oneCookingSession) {
+      issues.push("one_cooking_session_refused: no freezer declared");
+    }
 
     // ── FF-030 · LE PLANCHER TCA, PUIS LE CORPS ───────────────────────────
     //
@@ -1823,6 +1959,12 @@ Deno.serve(async (req) => {
       console.warn(`[${FN_NAME}] composition index unavailable`, error);
     }
 
+    // ⛔ HISSÉ POUR ÊTRE MESURÉ — lot M4. Le mémo était lu en ligne dans
+    // l'appel; on ne pouvait donc rien en dire au runtime, et « le mémo est un
+    // magasin mort » restait une phrase qu'aucun nombre ne pouvait démentir.
+    const memoLines = memoLinesForPrompt(
+      goalRow.practical_constraints as Record<string, unknown> | null,
+    );
     const built = buildMealPrompt({
       // ── FF-030 · LES CONTRAINTES DURES ENTRENT DANS LA CONSIGNE ────────
       // Elles étaient chargées vingt lignes plus haut et ne partaient QU'au
@@ -1938,6 +2080,13 @@ Deno.serve(async (req) => {
         goalRow.practical_constraints as Record<string, unknown> | null,
         retainedComposition,
       ).written,
+      // ── LOT M4 · LE MÉMO — ce qu'aucune famille ne porte ────────────────
+      //
+      // ⛔ IL DOIT ATTEINDRE LE PROMPT, sinon c'est un magasin de plus que
+      // personne ne lit — et le mémo est précisément celui dont l'en-tête dit
+      // qu'il serait « le magasin qu'on supprime, avec un autre chapeau ».
+      // Le plafond de cinq vit à la source (`MEMO_MAX_LINES`), pas ici.
+      memo: memoLines,
       // ── L4/D6 · IL N'Y A PERSONNE À REPRENDRE SUR CETTE LANE ────────────
       // `null`, et ce n'est pas un remplissage de signature. La fusion est une
       // opération du FOYER: elle exige une table qui a dimensionné une
@@ -1954,6 +2103,23 @@ Deno.serve(async (req) => {
       // `true` hors de la fenêtre du jour, et `true` aussi quand l'horloge n'a
       // pas été lue — le comportement d'hier, DIT plutôt qu'hérité.
       firstDayCookable,
+      // ⛔ CALCULÉ PAR `hasFreezerDeclared`, jamais à la main: `false` (pas
+      // de congélateur) et `null` (jamais demandé) doivent rendre le même
+      // `false`, et c'est cette fonction-là qui le garantit. Il NE se déduit
+      // pas de `kitchenEquipment` côté prompt — la lane foyer ne le passe
+      // délibérément pas, et le déduire nommerait hors de portée des
+      // journées que le congélateur rend atteignables.
+      hasFreezer: hasFreezerDeclared(kitchenEquipment),
+      // ⛔ DÉJÀ TRANCHÉ PAR LA PORTE DU CONGÉLATEUR (voir plus haut). Le tronc
+      // ne refait pas la lecture de l'inventaire: il reçoit un booléen.
+      oneCookingSession,
+      // ⛔ DÉJÀ TRANCHÉ par `withCookDayBefore`. `null` = pas de veille, et le
+      // prompt est alors byte-identique à celui d'avant ce lot.
+      cookOnlyDay,
+      // ⟳ 2026-09-01 — LA LANE INDIVIDUELLE A SES CONTENANTS. Sans nom sur
+      // le couvercle: il n'y a personne à départager, et le jour + le repas
+      // disent déjà lequel ouvrir.
+      soloBoxes: true,
       // ── LA LANGUE DE CES PLATS ────────────────────────────────────────
       //
       // ⚠️ PAS `goalRow.content_locale`. Cette colonne-là dit dans quelle
@@ -1994,6 +2160,26 @@ Deno.serve(async (req) => {
     // Elle est DANS le tronc et pas dans `extra`: une relance de correction qui
     // perdrait la phrase rendrait un plan qui ignore ce que la personne vient
     // d'écrire, et c'est la relance qui aurait le dernier mot.
+    // ── LOT M4 · LE COMPTEUR DU MÉMO ─────────────────────────────────────
+    //
+    // ⚠️ IL NE COMPTE PAS LE PARAMÈTRE, IL COMPTE LA CHAÎNE. « On a passé
+    // `memo:` » est ce que le test de câblage prouve déjà; ce qu'aucun test ne
+    // peut prouver, c'est que la ligne survit à la construction du message —
+    // troncature, branche qui n'imprime pas, bloc sauté. `served` lit le texte
+    // RÉELLEMENT envoyé au modèle.
+    //
+    // ⚠️ LE DÉNOMINATEUR EXISTE AVANT LE NUMÉRATEUR: la ligne part à CHAQUE
+    // génération, `lines: 0` compris. Sans ça, « aucun mémo servi » ne se
+    // distingue pas de « aucune génération observée » — et le mémo est
+    // précisément le magasin dont l'en-tête dit qu'il serait « celui qu'on
+    // supprime, avec un autre chapeau ».
+    console.log(JSON.stringify({
+      tag: "keel.meal.memo",
+      user_id: userId,
+      lines: memoLines.length,
+      served: memoLines.filter((line) => built.userMessage.includes(line))
+        .length,
+    }));
     const mealUserMessage = (extra: string): string =>
       appendContentLanguageBlock(
         `${built.userMessage}${draftNoteSuffix}${hungerSuffix}${extra}`,
@@ -2002,24 +2188,46 @@ Deno.serve(async (req) => {
         MEAL_TOKEN_FIELDS,
       );
 
-    const result = await generateWithGemini(
-      // FF-027 — le bloc satiété EN QUEUE du message, donc au plus près de la
-      // demande: un modèle lit la contrainte la plus proche de la fin comme la
-      // plus contraignante (la raison est écrite dans
-      // `household_meal_generation.ts`, qui applique la même règle à ses
-      // règles de maison).
-      built.systemPrompt,
-      mealUserMessage(""),
-      0.6, true, [], "auto",
-      // LE MODÈLE DE COMPOSITION, pas celui du chat. Voir `generation_model.ts`:
-      // cette fonction tient des dizaines de contraintes simultanées, dont des
-      // négatives, et c'est le seul endroit où la capacité du modèle se paie en
-      // assiettes fausses. `KEEL_GENERATION_MODEL` est la soupape de retour
-      // arrière — nécessaire parce que ce chemin n'a PAS de repli automatique.
-      { source: FN_NAME, requestId, userId, model: keelGenerationModel(),
-            httpTimeoutMs: PLAN_HTTP_TIMEOUT_MS,
-            reasoningEffort: PLAN_REASONING_EFFORT },
-    );
+    let result: unknown;
+    try {
+      result = await generateWithGemini(
+        // FF-027 — le bloc satiété EN QUEUE du message, donc au plus près de la
+        // demande: un modèle lit la contrainte la plus proche de la fin comme la
+        // plus contraignante (la raison est écrite dans
+        // `household_meal_generation.ts`, qui applique la même règle à ses
+        // règles de maison).
+        built.systemPrompt,
+        mealUserMessage(""),
+        0.6, true, [], "auto",
+        // LE MODÈLE DE COMPOSITION, pas celui du chat. Voir `generation_model.ts`:
+        // cette fonction tient des dizaines de contraintes simultanées, dont des
+        // négatives, et c'est le seul endroit où la capacité du modèle se paie en
+        // assiettes fausses. `KEEL_GENERATION_MODEL` est la soupape de retour
+        // arrière — nécessaire parce que ce chemin n'a PAS de repli automatique.
+        {
+          source: FN_NAME,
+          requestId,
+          userId,
+          model: keelGenerationModel(),
+          httpTimeoutMs: adoptingDraft
+            ? DRAFT_ADOPTION_MODEL_TIMEOUT_MS
+            : PLAN_HTTP_TIMEOUT_MS,
+          reasoningEffort: PLAN_REASONING_EFFORT,
+        },
+      );
+    } catch (error) {
+      const message = readableErrorMessage(error);
+      const timedOut = /timed\s+out|timeout|aborted|abort/i.test(message) ||
+        (error instanceof Error && error.name === "AbortError");
+      if (adoptingDraft && timedOut) {
+        return jsonResponse(req, {
+          error: "plan_adoption_timed_out",
+          detail: "The plan was not written. The draft remains available to retry.",
+          request_id: requestId,
+        }, { status: 504 });
+      }
+      throw error;
+    }
     if (typeof result !== "string") {
       return jsonResponse(req, { error: "model_returned_tool_call", request_id: requestId }, { status: 502 });
     }
@@ -2031,6 +2239,14 @@ Deno.serve(async (req) => {
     // remplace — c'est-à-dire une porte de sortie pour tout ce que le premier
     // passage refuse.
     const parseArgs = {
+      // ⛔ LE PARSEUR EN A BESOIN AUSSI, et pour deux gardes distinctes: un
+      // plat écrit sur ce jour-là est REFUSÉ, et ses cases ne comptent pas
+      // comme des trous. `null` = pas de veille, comportement d'avant ce lot.
+      cookOnlyDay,
+      // ⟳ 2026-09-01 — LA LANE INDIVIDUELLE A SES CONTENANTS. Sans nom sur
+      // le couvercle: il n'y a personne à départager, et le jour + le repas
+      // disent déjà lequel ouvrir.
+      soloBoxes: true,
       doctrine: doctrine.doctrine,
       safetyConstraints: constraints,
       mode,
@@ -2048,6 +2264,15 @@ Deno.serve(async (req) => {
       // parseur les rejette. Une contrainte qui ne vit que dans le prompt
       // n'est pas une garantie.
       awayDays,
+      // ── L'INVENTAIRE, ET C'EST LA MÊME VALEUR QUE LA CONSIGNE ─────────
+      // « La consigne le dit, le parseur le tient », septième application. Le
+      // prompt annonce ce que cette cuisine n'a pas; le parseur décide, avec
+      // le MÊME inventaire, si `kept: "freezer"` ouvre la fenêtre de
+      // conservation ou retombe sur les trois jours du frigo.
+      //
+      // ⚠️ RELIRE `practical_constraints` ici en ferait deux, et c'est celui
+      // qu'on regarde le moins qui garderait l'ancien.
+      kitchenEquipment,
       // ET LA MÊME ENCORE pour les apports fixes: la consigne dit « ne compose
       // rien là », le parseur drop le plat s'il arrive quand même.
       fixedIntakes,
@@ -2067,21 +2292,21 @@ Deno.serve(async (req) => {
       // là-haut: `null` des deux côtés, donc plafond inchangé et garde de
       // préparation entière. Les deux bouts, comme tout le reste de cet objet.
       merge: null,
-      // ── LOT 4 · AUCUNE BOÎTE ATTRIBUABLE SUR CETTE LANE ───────────────────
+      // ── AUCUNE BOUCHE À DÉPARTAGER — MAIS DES CONTENANTS QUAND MÊME ──────
       //
-      // ⚠️ `[]` EST UNE AFFIRMATION, PAS UN OUBLI, et c'est LES DEUX BOUTS comme
-      // le reste de cet objet: le prompt de cette lane ne porte AUCUN id de
-      // bouche — `boxSchemaBlock` et `boxingOrderLines` vivent dans l'enveloppe
-      // foyer et n'y sont jamais assemblés — donc le modèle n'a rien à écrire, et
-      // le parseur n'a rien à valider. Exactement la posture de `memberId`, qui
-      // est toujours `null` ici pour la même raison.
+      // ⟳ 2026-09-01 — CE PAVÉ DISAIT L'INVERSE, ET IL A COÛTÉ CE QU'IL
+      // ANNONÇAIT. Il justifiait l'absence TOTALE de boîtes sur cette lane:
+      // « une personne seule a bien des boîtes dans sa vraie cuisine; ce
+      // qu'elle n'a pas, c'est deux bouches à départager — et le protocole des
+      // boîtes n'existe que pour ça ». Juste sur le PROTOCOLE, faux sur le
+      // PRODUIT: rapporté sur un plan réel, « il n'y a pas l'histoire des
+      // barquettes », et vérifié en base — quatre plats, `with_box: 0`.
       //
-      // Une personne seule a bien des boîtes dans sa vraie cuisine; ce qu'elle
-      // n'a pas, c'est deux bouches à départager — et le protocole des boîtes
-      // n'existe que pour ça. Lui servir un bloc qui nomme des bouches lui
-      // apprendrait qu'un marquage par personne existe et l'inviterait à en
-      // inventer un (raisonnement `dishOwnerSchemaBlock`), sur une lane où le
-      // champ n'apporte rien.
+      // ⚠️ `boxMemberIds` RESTE `[]`, ET C'EST TOUJOURS UNE AFFIRMATION: il n'y
+      // a aucun id de bouche à écrire sur un couvercle, et servir un bloc qui
+      // en nomme apprendrait à cette lane un marquage par personne qui n'a pas
+      // de sujet (raisonnement `dishOwnerSchemaBlock`). Ce qui change est
+      // `soloBoxes` juste en dessous: le contenant existe, il n'a pas de nom.
       boxMemberIds: [],
       // ── LA PORTION MILLIMÉTRÉE · `[]` POUR LA MÊME RAISON ────────────────
       //
@@ -2104,6 +2329,10 @@ Deno.serve(async (req) => {
       // vient d'obtenir — est la question qu'une lane à une bouche ne pose
       // jamais: « plusieurs lignes déclarées autour d'une seule casserole ».
       boxMemberDiets: [],
+      // ⛔ `[]` DIT « aucune autre bouche », et c'est vrai de cette lane: elle
+      // compose pour UNE personne, dont les exclusions passent déjà par
+      // `foodPreferences`. Une exclusion PAR BOUCHE n'a de sens qu'à une table.
+      boxMemberExclusions: [],
     } as const;
 
     let meal: GeneratedMeal;
@@ -2137,7 +2366,7 @@ Deno.serve(async (req) => {
     // chiffre d'APRÈS sous le nom de celui d'AVANT — un compteur qui ment est
     // pire qu'un compteur absent, et celui-ci arme la mesure du §10.
     const anchorMissingBefore = meal.protein_anchor_missing.length;
-    if (anchorMissingBefore > 0) {
+    if (anchorMissingBefore > 0 && !adoptingDraft) {
       const retryInstruction = proteinAnchorRetryInstruction(meal.protein_anchor_missing);
       try {
         const retryResult = await generateWithGemini(
@@ -2287,6 +2516,13 @@ Deno.serve(async (req) => {
     // « le mineur est simplement exclu de l'ajustement; rien n'échoue, ET LE
     // CONSTAT LE DIT ». Sans ces trois nombres, un lot désarmé ressemblerait
     // trait pour trait à un lot qui marche.
+    // ⛔ LA MÊME POSITION QUE CELLE QU'`envelopeFor` VA CALCULER, depuis les
+    // mêmes items: la journaliser depuis une seconde lecture serait la seconde
+    // source qui a fait mentir ce compteur.
+    const studentPortionIndex = portionIndexFor({
+      mouth: studentPortionAdjust.mouth,
+      items: studentPortionAdjust.items ?? [],
+    });
     const studentPortionAudience = portionAdjustsFor(
       routedRetained.portion,
       [studentPortionAdjust.mouth],
@@ -2296,10 +2532,23 @@ Deno.serve(async (req) => {
       user_id: userId,
       age_state: studentAgeState,
       retained: routedRetained.portion.length,
-      // 0 ou 1: le gagnant, quand il y en a un. `winningPortionAdjust` est LE
-      // même arbitre que celui qu'`envelopeFor` applique une ligne plus bas —
-      // on ne recompte pas à la main ce que le module décide.
-      applied: winningPortionAdjust(studentPortionAdjust) === null ? 0 : 1,
+      // ⛔ `applied` NE LISAIT PLUS L'ARBITRE QUI DÉCIDE — corrigé le
+      // 2026-09-01. Il appelait `winningPortionAdjust`, l'arbitre d'AVANT le
+      // lot M3, en affirmant juste au-dessus être « LE même arbitre que celui
+      // qu'`envelopeFor` applique ». Depuis M3 l'enveloppe se règle sur une
+      // POSITION, et les deux divergent sur le scénario même du lot: « un peu
+      // trop » puis « un peu trop peu » rend un dernier ajustement non nul
+      // (⇒ « appliqué ») pour une position de 0 (⇒ rien ne bouge).
+      //
+      // ⚠️ ET LA POSITION SE JOURNALISE, PAS SEULEMENT LE BOOLÉEN. C'est elle
+      // qui rend le lot lisible: « −1 après 1 réponse » et « −1 après 3
+      // réponses qui s'annulent presque » sont deux histoires, et un 0/1 les
+      // rendait identiques.
+      answers: studentPortionIndex.answers,
+      position: studentPortionIndex.position,
+      raw: studentPortionIndex.raw,
+      factor: portionFactorFor(studentPortionIndex, PORTION_ADJUST_STEP.slight),
+      applied: portionIndexMoves(studentPortionIndex) ? 1 : 0,
       ...routingTrace({
         routed: routedRetained,
         adjustments: studentPortionAudience,
@@ -2328,11 +2577,60 @@ Deno.serve(async (req) => {
       null,
       // ── `portion.adjust` · BRANCHÉ (lot 1G) ──────────────────────────────
       // ⛔ L'AUDIENCE N'EST PAS CALCULÉE ICI, et elle ne l'est nulle part dans
-      // ce fichier: `winningPortionAdjust` appelle `subjectsForPortionAdjust`
-      // avec le roster réduit à cette bouche. La règle du §2 axe 3 mord donc
-      // là où elle est écrite, une seule fois.
+      // ce fichier: `subjectsForPortionAdjust` est appelé par l'enveloppe avec
+      // le roster réduit à cette bouche. La règle du §2 axe 3 mord donc là où
+      // elle est écrite, une seule fois.
       studentPortionAdjust,
     );
+    // ── L'ENVELOPPE, EN CLAIR — et le contrefactuel avec ────────────────────
+    //
+    // ⛔ ELLE N'ÉTAIT JOURNALISÉE NULLE PART. C'est le nombre qui JUGE le plan
+    // (`verdictFor`) et qui le MET À L'ÉCHELLE (`scaleFactorsFor`); sans lui,
+    // « l'ajustement de portion arrive à l'assiette » restait une phrase
+    // qu'aucune mesure ne pouvait démentir. `envelope_mode` seul partait en
+    // base, et seulement pour les plans ÉCRITS — donc jamais sur un `draft`.
+    //
+    // ⚠️ LE CONTREFACTUEL EST DANS LA MÊME LIGNE, ET C'EST CE QUI LA REND
+    // CONCLUANTE. Comparer deux générations ne prouverait rien: le modèle
+    // varie d'un tirage à l'autre, et l'écart mesuré mélangerait sa variance
+    // avec l'effet cherché. Ici on rappelle LA MÊME fonction, avec le seul
+    // argument de portion mis à `null`: l'écart entre les deux nombres N'A
+    // qu'une cause possible.
+    //
+    // ⛔ RIEN NE DÉCIDE LÀ-DESSUS. `unadjustedEnvelope` ne sort pas de ce bloc.
+    // Un second calcul qui gouvernerait quoi que ce soit serait une seconde
+    // autorité sur l'assiette, et elle divergerait.
+    const unadjustedEnvelope = envelopeFor(
+      gatedGoal.goal,
+      studentBody,
+      studentBody?.ageBand ?? null,
+      studentBody?.restrictionFlag ?? true,
+      steering,
+      studentActivityLevel,
+      { day: null, sport: null, asked: false },
+      null,
+      null,
+    );
+    console.log(JSON.stringify({
+      tag: "keel.meal.envelope",
+      user_id: userId,
+      intent,
+      mode: envelope.mode,
+      // ⚠️ `per_portion` N'A PAS D'ÉNERGIE, ET C'EST LE MODE DU PLANCHER TCA.
+      // `null` y dit la vérité — « il n'y a pas de bande » —, à ne pas
+      // confondre avec « la bande vaut zéro ».
+      energy_low: envelope.mode === "per_kg" ? envelope.energy?.low ?? null : null,
+      energy_high: envelope.mode === "per_kg" ? envelope.energy?.high ?? null : null,
+      // ⚠️ CE QUE L'ENVELOPPE AURAIT VALU SANS L'AJUSTEMENT. Le rapport des
+      // deux EST le facteur de `portionFactorFor`, observé en aval au lieu
+      // d'être re-déclaré.
+      unadjusted_low: unadjustedEnvelope.mode === "per_kg"
+        ? unadjustedEnvelope.energy?.low ?? null
+        : null,
+      unadjusted_high: unadjustedEnvelope.mode === "per_kg"
+        ? unadjustedEnvelope.energy?.high ?? null
+        : null,
+    }));
     /**
      * ── LE PLAT, PRÉPARATIONS COMPRISES ────────────────────────────────────
      *
@@ -2505,6 +2803,26 @@ Deno.serve(async (req) => {
       },
     });
     composition = filledComposition.index;
+    // ══════════════════════════════════════════════════════════════════════
+    // ⛔ LE PLAN EST REPESÉ SUR L'INDEX RÉPARÉ — 2026-08-23.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // Sans cette ligne, le sas ne réparait que le chiffre qu'on REGARDE.
+    // `grams_raw` est figé par le parseur, qui a tourné sur l'index de BASE:
+    // le verdict et la couverture profitaient du remplissage, la LIGNE ÉCRITE
+    // EN BASE non. Deux lectures du même plan, deux masses, et c'est celle qui
+    // survit au plan qui était la mauvaise.
+    //
+    // ⚠️ ELLE NE TOUCHE QUE LES GRAMMES. `amount`/`unit`/`state` restent la
+    // déclaration du modèle — voir `regramMeal`.
+    const regrammed = regramMeal(meal, composition);
+    if (regrammed > 0) {
+      console.log(JSON.stringify({
+        tag: "keel.meal.regrammed",
+        user_id: userId,
+        lines: regrammed,
+      }));
+    }
     const compositionFill = filledComposition.outcome;
     if (compositionFill.measured) {
       console.log(JSON.stringify({
@@ -2553,7 +2871,7 @@ Deno.serve(async (req) => {
       // Adoptée seulement si elle rend au moins autant de plats ET qu'elle
       // améliore réellement le verdict. Tout le reste — modèle en erreur,
       // sortie illisible, plan appauvri — garde silencieusement la première.
-      if (instruction) {
+      if (instruction && !adoptingDraft) {
         try {
           const retryResult = await generateWithGemini(
             built.systemPrompt,
@@ -2574,9 +2892,59 @@ Deno.serve(async (req) => {
           if (typeof retryResult === "string") {
             const retried = parseGeneratedMeal(retryResult, parseArgs);
             const after = measure(retried);
+            // ══════════════════════════════════════════════════════════
+            // ⛔ UNE DISTANCE, PLUS UN COMPTE — 2026-08-23.
+            // ══════════════════════════════════════════════════════════
+            //
+            // `offBandCount` vaut 0 ou 1 par axe, et la comparaison était un
+            // `<` STRICT: une relance qui monte de 68 % à 84 % de la bande
+            // reste `below`, donc le compte ne bouge pas, donc elle est jetée.
+            // Mesuré: 7 relances levées, 7 appels de modèle payés, **1**
+            // adoptée. Le rendement documenté d'une relance est ×1,21 — très
+            // exactement le progrès qu'un compte binaire ne peut pas voir.
+            //
+            // ⚠️ LES DEUX GARDES D'ORIGINE SURVIVENT: au moins autant de plats
+            // (une relance ne doit jamais appauvrir le plan), et un progrès
+            // STRICT (à égalité on garde la première passe, qui n'a rien coûté
+            // de plus).
+            // ⚠️ LE PLAN EST PASSÉ EXPLICITEMENT, à côté de son verdict. Une
+            // version antérieure le DÉDUISAIT de l'identité du verdict
+            // (`m === after ? retried : meal`): les deux couples se seraient
+            // décrochés au premier remaniement, et la distance aurait été
+            // calculée sur les ingrédients d'un plan et le verdict de l'autre —
+            // sans qu'aucun compilateur ne le dise.
+            const distOf = (
+              plan: GeneratedMeal,
+              verdict: CompositionVerdict,
+              index: CompositionIndex,
+            ) => {
+              const inputs = scalingInputsFor({
+                index,
+                dishes: verdictDishesOf(plan),
+                isProteinFood: proteinFoodPredicate(index),
+              });
+              return offBandDistance({
+                verdict,
+                envelope,
+                computedKcal: inputs.computedKcal,
+                computedProteinG: inputs.computedProteinG,
+                daysCovered: durationDays,
+              });
+            };
+            // ⛔ SANS RÉFÉRENTIEL, ON RETOMBE SUR LE COMPTE. La distance a
+            // besoin des nombres du plan; sans index elle n'en a aucun, et
+            // inventer une amplitude nulle ferait ressembler tout progrès à
+            // une égalité. Le comportement d'avant est alors EXACTEMENT rendu.
+            const idx = composition;
+            const better = after === null
+              ? false
+              : idx === null
+              ? offBandCount(after.verdict) < offBandCount(measured.verdict)
+              : distOf(retried, after.verdict, idx) <
+                distOf(meal, measured.verdict, idx);
             if (
               retried.dishes.length >= meal.dishes.length && after !== null &&
-              offBandCount(after.verdict) < offBandCount(measured.verdict)
+              better
             ) {
               meal = retried;
               measured = after;
@@ -2596,6 +2964,183 @@ Deno.serve(async (req) => {
         coverage_flag: measured.coverage.flag,
       }));
     }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // ⛔ L'ANCRAGE DES GRAMMAGES — le modèle compose, le déterministe corrige.
+    // ══════════════════════════════════════════════════════════════════════════
+    //
+    // Autorité produit: décision de l'utilisateur, 2026-08-23 (« ancrer les
+    // grammages »). C'est le renversement du 2026-08-18 — « la cible contraint
+    // les GRAMMAGES, pas le choix des plats » (`docs/keel/CALORIE_REVERSAL.md`
+    // §7) — appliqué à la SECONDE lane. La lane foyer a cet étage depuis L8
+    // (`householdAnchors` → `sizeBoxesFromTarget` → `item.grams = grams`);
+    // la lane individuelle ne l'avait pas.
+    //
+    // ── CE QUE ÇA CORRIGE, MESURÉ SUR DIX GÉNÉRATIONS RÉELLES (2026-08-23) ────
+    // Le cas le plus simple — homme 82 kg, `maintenance`, aucune contrainte,
+    // 65 ingrédients sur 65 résolus, donc AUCUN trou de mesure — servait
+    // 1 743 et 1 579 kcal/j pour une bande de 2 414–2 668, et 84–96 g de
+    // protéine pour un plancher de 131. Le verdict disait `below`/`under` sur
+    // 7 plans sur 7.
+    //
+    // ── POURQUOI PAS LE PROMPT, ET C'EST DÉJÀ TRANCHÉ ────────────────────────
+    // Quatre tentatives mesurées, écrites dans l'en-tête de `portion_scaling.ts`:
+    // boucle de correction ×1,21 · ancre en fin de consigne ×0,96 · ancre à la
+    // place de la ligne générique ×0,92 · ancre + retrait du contre-exemple:
+    // aucun effet. Il en faut ×1,45. « Aucune intervention au niveau du prompt
+    // ne déplace les portions. » Et AUCUN kcal n'entre dans la consigne: le
+    // modèle compose exactement comme avant, il ne voit toujours aucun chiffre.
+    //
+    // ── OÙ C'EST POSÉ, ET L'ORDRE EST LE MÊME QUE CELUI DU FOYER ─────────────
+    // APRÈS la boucle de correction — donc sur le plan qu'on va ÉCRIRE, pas sur
+    // un intermédiaire que la relance a peut-être remplacé. C'est le patron de
+    // `generate-household-meal-v1` (« ⚠️ APRÈS LA RELANCE D'ANCRE PROTÉIQUE,
+    // PAS AVANT »).
+    //
+    // ── LES QUATRE PORTES, ET AUCUNE N'EST RECOPIÉE ICI ──────────────────────
+    //   ① `envelope.mode !== "per_kg"` ⇒ `scaleFactorsFor` rend `null`. C'est le
+    //      PLANCHER TCA: sous flag, l'assiette ne bouge pas. La garde est dans
+    //      le TYPE (`per_portion` ne porte pas d'énergie), pas ici.
+    //   ② lisibilité sous `MIN_RESOLUTION_FOR_VERDICT` ⇒ `null`. Agrandir une
+    //      assiette qu'on ne sait pas lire est aussi faux que la mal lire.
+    //   ③ zone morte (±12 %) ⇒ `null`. On ne remue pas un plan déjà juste.
+    //   ④ un aliment DENSE connu et non pesé ⇒ on s'abstient ICI, et c'est la
+    //      seule porte que cet appelant tient lui-même: 82 lignes d'huile sans
+    //      quantité ont déjà été mesurées dans ce dépôt, et une énergie amputée
+    //      de sa matière grasse ferait AGRANDIR un plan qui est déjà bon.
+    //
+    // ══════════════════════════════════════════════════════════════════════════
+    // ⚠️ LE DÉNOMINATEUR EST `durationDays`, ET IL EST BIAISÉ SUR UN PLAN QUI
+    //    DÉMARRE AUJOURD'HUI. Nommé plutôt que corrigé ici, exprès.
+    // ══════════════════════════════════════════════════════════════════════════
+    //
+    // Un plan lancé en cours de journée ne compose PAS les moments déjà passés
+    // (« For today, breakfast and lunch are off the plan »). Son énergie totale
+    // est pourtant divisée par la fenêtre ENTIÈRE — `daysCovered: durationDays`
+    // — donc une fenêtre de trois jours dont le premier ne porte qu'un dîner se
+    // lit ~20 % plus légère qu'elle n'est. Mesuré: `plan-S1-20260823`, 1 261
+    // kcal/j sur trois jours pour 1 743 et 1 579 sur les deux jours PLEINS.
+    //
+    // ⛔ CE BIAIS N'EST PAS INTRODUIT ICI. `verdictFor` divise par `daysCovered`
+    // depuis toujours, et c'est déjà lui qui décide `below`, donc déjà lui qui
+    // déclenche `raise_energy` dans la boucle de correction. L'ancrage vise la
+    // MÊME cible que le verdict, ce qui est la propriété qu'on veut: le produit
+    // ne doit pas juger sur un nombre et corriger sur un autre.
+    //
+    // ⚠️ LA LANE FOYER, ELLE, A DÉJÀ LA RÉPONSE — `dayCoverageOf(déclarés,
+    // composés)` dans `mouth_anchor.ts`, avec sa cicatrice écrite: « un dîner
+    // seul se voit demander une journée entière — 6,28 mesuré, c'est-à-dire une
+    // assiette de deux kilos ». La transposer ici changerait le sens de `below`
+    // pour TOUT le produit (verdict, boucle de correction, tableau de bord,
+    // `meal_composition_verdicts`), et c'est un lot à part qui doit se mesurer
+    // sur le corpus entier avant d'être posé.
+    let scaling: { protein: number; other: number } | null = null;
+    let scalingAbstained: string | null = null;
+    let scaledChanged = 0;
+    let scaledCapped: string[] = [];
+    let shoppingChanged = 0;
+    let shoppingUnrewritable: string[] = [];
+    if (!composition) {
+      scalingAbstained = "no_index";
+    } else {
+      const folded = verdictDishesOf(meal);
+      const isProteinFood = proteinFoodPredicate(composition);
+      const inputs = scalingInputsFor({ index: composition, dishes: folded, isProteinFood });
+      if (inputs.unweighedDense) {
+        scalingAbstained = "unweighed_dense";
+      } else {
+        scaling = scaleFactorsFor({
+          computedKcal: inputs.computedKcal,
+          computedProteinG: inputs.computedProteinG,
+          proteinFoodKcal: inputs.proteinFoodKcal,
+          otherScalableKcal: inputs.otherScalableKcal,
+          proteinFoodProteinG: inputs.proteinFoodProteinG,
+          envelope,
+          daysCovered: durationDays,
+          resolvedShare: inputs.resolvedShare,
+        });
+        if (scaling === null) scalingAbstained = "no_factor";
+      }
+      if (scaling) {
+        // ⛔ LES PLATS **ET** LES PRÉPARATIONS, CHACUN UNE FOIS. Le pliage
+        // (`foldPreparationsIntoDishes`) applique déjà `servings/servingsMade`
+        // pour MESURER; mettre à l'échelle le plat PLIÉ multiplierait deux fois
+        // la même casserole. On écrit donc sur les deux listes d'origine.
+        const d = scaleIngredients(
+          meal.dishes.flatMap((x) => x.ingredients),
+          scaling,
+          isProteinFood,
+        );
+        const p = scaleIngredients(
+          meal.preparations.flatMap((x) => x.ingredients),
+          scaling,
+          isProteinFood,
+        );
+        // Les tableaux rendus sont NEUFS et dans l'ordre d'entrée: on les
+        // replace ligne à ligne, sans recalculer aucune frontière.
+        let di = 0;
+        for (const dish of meal.dishes) {
+          dish.ingredients = dish.ingredients.map(() => d.items[di++]);
+        }
+        let pi = 0;
+        for (const prep of meal.preparations) {
+          prep.ingredients = prep.ingredients.map(() => p.items[pi++]);
+        }
+        scaledChanged = d.changed + p.changed;
+        scaledCapped = [...d.capped, ...p.capped];
+
+        // ══════════════════════════════════════════════════════════════════
+        // ⛔ ET LA LISTE DE COURSES SUIT — sinon le plan cesse d'être ACHETABLE.
+        // ══════════════════════════════════════════════════════════════════
+        //
+        // C'est la moitié qu'on oublie, et c'est celle qui se voit devant le
+        // frigo: 630 g de poulet à la casserole avec 450 g sur la liste. La
+        // lane FOYER n'a jamais eu ce problème parce qu'elle redimensionne les
+        // CONTENANTS (comment la casserole se partage), jamais ce qu'on achète
+        // — son patron ne se recopie donc pas ici.
+        //
+        // ⚠️ CE QUI NE SE RÉÉCRIT PAS SE COMPTE (`unrewritable`). Un pot de
+        // cumin reste un pot, et aucun lexique ne l'a décidé: la garde du
+        // singulier/pluriel de `rewriteCountableQuantity` refuse de traverser
+        // la frontière du 1, et les contenants du commerce commencent tous par
+        // « 1 » (mesuré sur 273 lignes réelles).
+        const shop = scaleShoppingList(meal.shopping_list, scaling, isProteinFood);
+        meal.shopping_list = shop.items;
+        shoppingChanged = shop.changed;
+        shoppingUnrewritable = shop.unrewritable;
+
+        // ⛔ `scaleIngredients` REMET `gramsRaw` À `null` — c'est son contrat:
+        // « c'est le résolveur qui sait le faire ». On repèse donc tout de
+        // suite, avec le MÊME lecteur que le parseur (`regramMeal`), sinon la
+        // ligne écrite en base porterait des grammes vides.
+        regramMeal(meal, composition);
+        // ⚠️ ET ON RE-MESURE. Le verdict qui part en base doit décrire le plan
+        // SERVI, pas celui d'avant l'ancrage — sinon `meal_composition_verdicts`
+        // raconterait un plan que personne ne mange.
+        measured = measure(meal) ?? measured;
+      }
+    }
+    console.log(JSON.stringify({
+      tag: "keel.meal.portion_scaling",
+      user_id: userId,
+      intent,
+      applied: scaling !== null,
+      // ⛔ LE MOTIF DE L'ABSTENTION EST NOMMÉ. Sans lui, « pas appliqué » couvre
+      // quatre situations opposées — index absent, plan illisible, huile non
+      // pesée, plan déjà juste — et aucune ne se répare au même endroit.
+      abstained: scalingAbstained,
+      protein_factor: scaling ? Number(scaling.protein.toFixed(3)) : null,
+      other_factor: scaling ? Number(scaling.other.toFixed(3)) : null,
+      lines_changed: scaledChanged,
+      capped: scaledCapped.length,
+      // ⛔ LES DEUX MOITIÉS, CÔTE À CÔTE. Une assiette mise à l'échelle avec une
+      // liste de courses immobile est un plan inexécutable, et le seul moyen de
+      // le voir de loin est de lire les deux nombres ensemble.
+      shopping_changed: shoppingChanged,
+      shopping_unrewritable: shoppingUnrewritable.length,
+      verdict_energy: measured?.verdict.energy ?? null,
+      verdict_protein: measured?.verdict.protein ?? null,
+    }));
 
     // ══ LE SECOND TOUR DU DOUBLE VERROU, SUR LES CONSIGNES ÉCRITES ═══════
     //
@@ -2825,6 +3370,126 @@ Deno.serve(async (req) => {
     // NOMMÉ dans `issues` (donc comptable en SQL sur la ligne) et journalisé.
     // Ce n'est pas une garde désarmée: la garde est armée dans le module, et
     // son déclenchement est visible à deux endroits.
+    // ══════════════════════════════════════════════════════════════════════
+    // LES COURSES SONT DATÉES, ET LA FENÊTRE CRUE EST CONSTATÉE — 2026-09-01
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ LE DÉFAUT, RAPPORTÉ SUR UN PLAN RÉEL: « ça me disait de cuisiner le
+    // poulet acheté le lundi, le samedi ». Le calcul des vagues existait, il
+    // était juste — et il ne tournait QUE dans un panneau d'écran replié, et
+    // seulement quand il produisait deux vagues. La ligne de courses, elle, ne
+    // portait aucune date. Une liste sans date se lit « achète tout maintenant ».
+    //
+    // ⚠️ LA DATE EST POSÉE SUR LA LIGNE, pas rendue à part. C'est ce qui la
+    // fait voyager: écran, PDF du frigo, liste partageable sans compte, bande
+    // du soir. Un champ rendu à côté aurait été un lecteur de plus à câbler
+    // dans chaque surface — et la première oubliée serait revenue à la liste
+    // sans jour.
+    const wavePreps = wavePreparationsFromRows(
+      meal.preparations.map((prep) => ({
+        id: prep.id,
+        cook_on: prep.cookOn,
+        ingredients: prep.ingredients.map((ing) => ({ term: ing.term })),
+      })),
+    );
+    const buyDates = buyDatesByIndex({
+      startsOn,
+      durationDays,
+      shoppingList: meal.shopping_list,
+      preparations: wavePreps,
+    });
+    meal.shopping_list = meal.shopping_list.map((line, at) => ({
+      ...line,
+      buy_on: buyDates[at],
+    }));
+    const shoppingDays: string[] = [];
+    for (const date of buyDates) {
+      if (date !== null && !shoppingDays.includes(date)) shoppingDays.push(date);
+    }
+    shoppingDays.sort();
+    // ⚠️ IL SORT MÊME À UNE SEULE VAGUE. « Une course » et « on n'a pas su
+    // dater » sont deux états très différents, et sans ce compteur ils rendent
+    // le même silence — la cicatrice des deux compteurs du congélateur.
+    issues.push(
+      `shopping_waves: ${shoppingDays.length} (${shoppingDays.join(", ") || "none"})`,
+    );
+
+    // ── CE QUI NE PEUT PAS VENIR DE LA PREMIÈRE COURSE ────────────────────
+    //
+    // ⛔ LE GROUPE VIENT DE LA LISTE DE COURSES, pas d'une seconde résolution.
+    // C'est `resolveIngredient` qui l'a posé, une fois, sur `shopping_list`; le
+    // relire depuis le référentiel ici ferait deux idées du groupe d'un même
+    // terme. Un terme qu'on ne retrouve pas rend `null`, et `rawKeepingBreaches`
+    // le COMPTE au lieu de le ranger d'un côté ou de l'autre.
+    const groupOfTerm = new Map<string, string | null>();
+    for (const line of meal.shopping_list) {
+      groupOfTerm.set(String(line.term ?? "").trim().toLowerCase(), line.food_group);
+    }
+    const rawKeeping = rawKeepingBreaches({
+      window: daysToFill,
+      preparations: meal.preparations.map((prep) => ({
+        id: prep.id,
+        cookOn: prep.cookOn,
+        groups: prep.ingredients.map((ing) =>
+          groupOfTerm.get(String(ing.term ?? "").trim().toLowerCase()) ?? null
+        ),
+      })),
+    });
+    if (rawKeeping.checked > 0) {
+      issues.push(
+        `raw_keeping_needs_later_shop: ${rawKeeping.breaches.length}/` +
+          `${rawKeeping.checked} preparations`,
+      );
+    }
+    const shopLaterDays = daysNeedingTheirOwnShop(daysToFill, rawKeeping.breaches);
+
+    // ══════════════════════════════════════════════════════════════════════
+    // L'OPTION A-T-ELLE MORDU ? — LE COMPTEUR, 2026-09-01.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ SANS LUI, UN LOT DÉSARMÉ RESSEMBLE TRAIT POUR TRAIT À UN LOT QUI
+    // MARCHE. La consigne réclame UNE entrée dans `cooking_sessions`; savoir si
+    // le modèle en a rendu une, trois ou zéro ne se sait qu'APRÈS, et c'est le
+    // seul signal qui dira, en production, s'il faut corriger le PROMPT plutôt
+    // que le parseur.
+    //
+    // ⚠️ IL SORT MÊME AU CAS NOMINAL (`1/1`). Se taire quand tout va bien
+    // rendrait « le modèle a obéi » indiscernable de « personne n'a mesuré » —
+    // la cicatrice exacte des deux compteurs du congélateur, écrite deux lignes
+    // plus loin dans ce même fichier.
+    if (oneCookingSession) {
+      issues.push(
+        `one_cooking_session: ${meal.cooking_sessions.length}/1 sessions returned`,
+      );
+    }
+    // ── LES JOURS DE CUISINE QUE LA CONSIGNE A RÉELLEMENT SERVIS ────────
+    //
+    // ⛔ L'EXPLICATION DOIT LIRE LA MÊME RÉDUCTION QUE LE PROMPT. Avec l'option
+    // « tout dans une session », le tronc ne garde qu'un jour
+    // (`singleSessionCookDay`); lire ici les trois jours cochés ferait nommer
+    // hors de portée d'autres journées que celles servies au modèle — et ce
+    // serait l'explication qui aurait tort, pour la quatrième fois.
+    const rationaleCookDays = [
+      // ⛔ LA VEILLE D'ABORD, ET C'EST UN DÉFAUT MESURÉ LE 2026-09-01. Sans
+      // cette ligne, `buildMealPrompt` nommait « ONE session, on wed » pendant
+      // que l'explication écrivait « tout est cuisiné en une seule session »
+      // sans jour — deux calculs du même fait, et c'est l'explication qui avait
+      // tort. Vu sur le run réel `af04fd89-…`, exactement la divergence que
+      // `usableCookDays` et `addedCookDays` ont déjà coûtée deux fois.
+      ...(cookOnlyDay === null ? [] : [cookOnlyDay]),
+      ...usableCookDays({
+        declared: capacity.cookDays ?? [],
+        window: daysToFill,
+      }),
+      ...addedCookDays({
+        declared: capacity.cookDays ?? [],
+        window: daysToFill,
+        firstDayCookable,
+      }),
+    ];
+    const rationaleSingleSessionDay = oneCookingSession
+      ? singleSessionCookDay({ window: daysToFill, cookDays: rationaleCookDays })
+      : null;
     const contentLocaleTag = built.contentLocale.slice(0, 2).toLowerCase();
     const reportLocale: "fr" | "en" = contentLocaleTag === "fr" ? "fr" : "en";
 
@@ -2839,7 +3504,29 @@ Deno.serve(async (req) => {
       const explained = explainPlanChoices({
         locale: reportLocale,
         facts: {
+          // ⛔ LE VERDICT DU PLAN QUI PART, pas celui d'avant l'ancrage.
+          // `measured` a été RE-MESURÉ après la mise à l'échelle des grammages
+          // (bloc `portion_scaling` plus haut): lire le verdict d'avant dirait
+          // « plus léger » sur un plan qu'on vient justement d'agrandir.
+          //
+          // ⚠️ `null` QUAND IL N'Y A PAS DE VERDICT — `measured` est `null` si
+          // le référentiel n'a pas su lire le plan, et `not_computable` quand la
+          // résolution est sous les 80 % ou que l'enveloppe est dégradée
+          // (plancher TCA). Les trois se taisent, et aucun ne se déguise en
+          // « tout va bien ».
+          energyBelowBand: measured === null ||
+              measured.verdict.energy === "not_computable"
+            ? null
+            : measured.verdict.energy === "below",
           declaredCookDays: (capacity.cookDays ?? []) as never,
+          // CE QUE LA FENÊTRE ATTEINT ENCORE. `usableCookDays` est exporté par
+          // `meal_generation.ts` exactement pour ça: c'est LA fonction que la
+          // consigne appelle. Un filtre réécrit ici ferait dire à l'explication
+          // l'inverse de ce que le prompt a demandé — le défaut du 2026-09-01.
+          usableCookDays: usableCookDays({
+            declared: capacity.cookDays ?? [],
+            window: daysToFill,
+          }) as never,
           // CE QUE LE MOTEUR A AJOUTÉ. Recalculé de la MÊME façon que
           // `buildMealPrompt`: les jours déclarés qui restent dans la fenêtre,
           // et le premier jour cuisinable quand tous tombent après lui.
@@ -2865,6 +3552,64 @@ Deno.serve(async (req) => {
                 ? [{ day: a.day as never, slot: "all" }]
                 : a.slots.map((s) => ({ day: a.day as never, slot: s as string }))
             ),
+          // ── LES CASES QUE LE PLAN NE REMPLIT PAS ────────────────────
+          // ⛔ `meal.empty_slots`, RENDU PAR LE PARSEUR — jamais un second
+          // calcul. `emptySlotsIn` sait déjà ce qui n'EST PAS un trou (une
+          // absence déclarée, un apport fixe, un moment hors rythme), et une
+          // seconde lecture déclarerait des trous là où le vide est voulu.
+          //
+          // Ce compte existait depuis le 2026-08-12 et n'était lu par
+          // personne: il partait en base et s'arrêtait là.
+          emptySlots: meal.empty_slots as never,
+          // ── CE QU'AUCUN LOT N'ATTEINT ────────────────────────────────
+          // ⛔ `daysOutOfBatchReach`, LA MÊME FONCTION QUE LA CONSIGNE — et les
+          // MÊMES entrées. Un calcul refait ici finirait par nommer d'autres
+          // jours que ceux servis au modèle, et ce serait l'explication qui
+          // aurait tort. Troisième application de la règle après
+          // `usableCookDays` et `addedCookDays`.
+          daysOutOfBatchReach: daysOutOfBatchReach({
+            window: daysToFill,
+            // ⚠️ LA MÊME RÉDUCTION QUE `buildMealPrompt`, hissée juste avant ce
+            // bloc pour que les deux lectures partent du même tableau.
+            cookDays: oneCookingSession
+              ? (rationaleSingleSessionDay === null
+                ? []
+                : [rationaleSingleSessionDay])
+              : rationaleCookDays,
+            hasFreezer: hasFreezerDeclared(kitchenEquipment),
+            maxFridgeDays: MAX_FRIDGE_DAYS,
+            freezerWindowDays: FREEZER_WINDOW_DAYS,
+          }) as never,
+          // ── « TOUT DANS UNE SESSION » — CE QUE LA DEMANDE EST DEVENUE ─
+          // `null` quand la case n'a pas été cochée: aucune ligne ne sort, et
+          // l'explication d'un plan ordinaire ne bouge pas d'un caractère.
+          //
+          // ⚠️ LES DEUX ISSUES SONT PORTÉES ICI, ET PAS DEUX FAITS SÉPARÉS:
+          // une demande refusée n'a pas de jour, et un jour n'existe pas sans
+          // demande honorée. Les séparer aurait permis d'écrire les deux.
+          // ── « JE CUISINE LA VEILLE » — accordée, ou refusée et pourquoi
+          // `null` quand la case n'a pas été cochée: aucune ligne ne sort.
+          // ── LES COURSES, EN JETONS DE JOUR ───────────────────────────
+          // ⛔ LES MÊMES DATES QUE `shopping_list[].buy_on`, converties une
+          // fois. Un second calcul ferait dire à l'explication un autre jour
+          // que celui écrit sur la ligne qu'on coche au magasin.
+          shoppingDays: shoppingDays.map((d) => dayTokenOf(d)) as never,
+          // ⛔ `daysNeedingTheirOwnShop`, LA MÊME FONCTION QUE LE CONSTAT.
+          shopLaterDays: shopLaterDays as never,
+          cookDayBefore: askedCookTheDayBefore
+            ? { day: cookOnlyDay as never, refused: cookAhead.refused }
+            : null,
+          oneCookingSession: askedOneCookingSession
+            ? {
+              day: (oneCookingSession ? rationaleSingleSessionDay : null) as never,
+              refusedNoFreezer: !oneCookingSession,
+            }
+            : null,
+          // ── LA SESSION QUI A DÉBORDÉ, RENDUE PAR LE PARSEUR ──────────
+          // ⚠️ MESURÉE SUR LE PLAN QUI PART, pas prévue avant. La consigne
+          // AUTORISE le débordement; savoir s'il a eu lieu, et de combien, ne
+          // se sait qu'après.
+          sessionOverruns: meal.session_overruns as never,
           budgetAmount: capacity.budgetAmount,
           // `null` ET PAS `servings`: cette lane a UNE bouche, et elle n'a
           // jamais posé la question. « pour 1 personne » serait une réponse à

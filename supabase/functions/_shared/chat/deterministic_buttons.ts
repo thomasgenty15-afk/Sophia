@@ -31,7 +31,11 @@ import {
   renderPulseAck,
   renderPulseAxisQuestion,
 } from "../keel/daily_pulse.ts";
-import { writePulseAxis, writePulseLevel } from "../keel/daily_pulse_io.ts";
+import {
+  wasPulseSentToday,
+  writePulseAxis,
+  writePulseLevel,
+} from "../keel/daily_pulse_io.ts";
 import {
   recommendationAck,
   recommendationAction,
@@ -64,12 +68,63 @@ import {
 import {
   accidentFormAfterUntick,
   handleAccidentTap,
+  restrictionFloorFor,
   shiftProposalAfterShoppingLater,
 } from "./accident_tap.ts";
+import {
+  loadAccidentPlan,
+  loadSessionStates,
+  writeSessionState,
+} from "../keel/accident_io.ts";
+import { planDates } from "../keel/accident.ts";
+// FF-061 — la chaîne des trois étapes du bilan du soir.
+import {
+  appendNextStep,
+  nextDayReviewStep,
+} from "../keel/day_review_io.ts";
+// FF-062 C2 — le rappel de pesée: son jeton, son accusé, son écriture.
+import {
+  parseWeighInToken,
+  renderWeighInAck,
+} from "../keel/weigh_in.ts";
+import {
+  WEIGH_IN_ACK_PURPOSE,
+  writeWeighIn,
+} from "../keel/weigh_in_io.ts";
+// FF-062 R11 — la correction du chiffre d'énergie d'une photo.
+import {
+  parseEnergyFixToken,
+  renderEnergyFixAck,
+} from "../keel/energy_correction.ts";
+import {
+  applyEnergyFix,
+  ENERGY_FIX_ACK_PURPOSE,
+} from "../keel/energy_correction_io.ts";
+import { localDateInZone } from "../keel/local_date.ts";
+// FF-062 C1 — le repas d'un créneau déclaré que le plan ne compose pas.
+import {
+  parseSlotMealButton,
+  renderSlotMealAck,
+  SLOT_MEAL_BUTTON_PREFIX,
+} from "../keel/slot_meal_ask.ts";
+import {
+  SLOT_MEAL_ACK_PURPOSE,
+  writeSlotMealFact,
+} from "../keel/slot_meal_io.ts";
+import { sessionsConfirmedByTicks } from "../keel/session_from_ticks.ts";
 import {
   DIVERGENCE_BUTTON_PREFIX,
   readDivergenceReply,
 } from "../keel/weight_divergence_buttons.ts";
+import {
+  FEEDBACK_BUTTON_PREFIX,
+  readFeedbackReply,
+} from "../keel/plan_feedback_chat.ts";
+import { handlePlanFeedbackTap } from "./plan_feedback_tap.ts";
+import { judgeTap } from "./disarmed_tap_io.ts";
+// Le plancher TCA change la LISTE des questions du retour (`questionsFor`):
+// il se résout donc AVANT de router le tap, comme pour la procédure accident.
+import { evaluateRestrictionForStudent } from "../keel/restriction_runtime.ts";
 import {
   closeDivergenceEpisodeAfterRecommendation,
   handleWeightDivergenceTap,
@@ -115,6 +170,12 @@ export const DETERMINISTIC_BUTTON_PREFIXES: readonly string[] = Object.freeze([
   ACCIDENT_BUTTON_PREFIX,
   DIVERGENCE_BUTTON_PREFIX,
   PULSE_BUTTON_PREFIX,
+  FEEDBACK_BUTTON_PREFIX,
+  // FF-062 C1. Ajouté AVEC son lecteur: une famille listée ici sans lecteur
+  // ferait refuser un tap que personne ne sait traiter, et une famille lue sans
+  // être listée retomberait au dispatcher sur charge cassée — c'est-à-dire
+  // qu'elle redeviendrait interprétable par un modèle.
+  SLOT_MEAL_BUTTON_PREFIX,
 ]);
 
 async function timezoneFor(
@@ -249,6 +310,151 @@ async function writeMeasures(
     });
   }
   return handled("keel_measures");
+}
+
+/**
+ * FF-062 R11 — LE CHIFFRE CORRIGÉ.
+ *
+ * ⚠️ CE FORMULAIRE N'EST PAS DÉSARMÉ PAR R13, ET C'EST LA MÊME LIGNE DE PARTAGE
+ * QUE LA PESÉE. Le désarmement ferme ce qui sert à RÉPARER — sur du passé la
+ * réparation n'existe plus. Corriger le chiffre d'un repas est une MESURE:
+ * rapportée deux jours plus tard, elle reste exacte, et le fait qu'elle
+ * remplace était de toute façon la plus faible des deux (−26,6 % de biais).
+ *
+ * NE JETTE JAMAIS: la personne a tapé un nombre, et un 500 lui ferait croire
+ * que son geste est perdu.
+ */
+async function writeEnergyFixReply(
+  admin: SupabaseClient,
+  args: { message: InboundMessage; requestId: string; eventId: string },
+): Promise<InboundStepOutcome> {
+  const { message } = args;
+  const { contentLocale: locale } = await studentVoiceContext(
+    admin,
+    message.user_id,
+  );
+  const raw = (message.form_response ?? {}) as Record<string, unknown>;
+  const outcome = await applyEnergyFix(admin, {
+    userId: message.user_id,
+    eventId: args.eventId,
+    raw: raw.kcal,
+  });
+  await ack(admin, {
+    userId: message.user_id,
+    requestId: args.requestId,
+    purpose: ENERGY_FIX_ACK_PURPOSE,
+    // ⛔ L'ACCUSÉ SE REND DEPUIS LE MODULE PUR, à partir du MÊME verdict que
+    // l'écriture. Le recomposer ici ferait deux idées de « qu'est-ce qui a été
+    // écrit », et c'est celle qu'on regarde le moins qui prétendrait.
+    body: renderEnergyFixAck({
+      locale,
+      outcome: outcome.ok
+        ? {
+          ok: true,
+          estimate: {
+            kcal: outcome.kcal,
+            basis: "declared_quantities",
+            confidence_band: "high",
+          },
+        }
+        : outcome,
+    }),
+  });
+  return handled(outcome.ok ? "keel_energy_fixed" : "keel_energy_fix_refused");
+}
+
+/**
+ * FF-062 C2 — LA PESÉE QUE LE RAPPEL RAMÈNE.
+ *
+ * ══════════════════════════════════════════════════════════════════════════
+ * LA DATE DE LA MESURE EST CELLE DE LA RÉPONSE, PAS CELLE DE LA QUESTION
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * Le jeton porte le jour où la question est PARTIE. La mesure, elle, est datée
+ * du jour où la personne est montée sur la balance — c'est-à-dire aujourd'hui.
+ * Les confondre daterait d'hier une pesée faite ce matin, et la cadence
+ * repartirait d'un jour trop tôt.
+ *
+ * ⛔ ET CE FORMULAIRE N'EST PAS DÉSARMÉ PAR R13, DÉLIBÉRÉMENT. Le désarmement
+ * ferme ce qui sert à RÉPARER (les courses, la cuisson: sur du passé la
+ * réparation n'existe plus). Une pesée SERT À MESURER, et la fiche range
+ * explicitement le mesurable du côté rattrapable — un poids rapporté deux jours
+ * plus tard reste exact. Le jour asked reste dans la trace pour qu'un audit
+ * puisse lire l'écart entre la question et la réponse.
+ *
+ * NE JETTE JAMAIS: l'élève a saisi un nombre, et un 500 lui ferait croire que
+ * son geste est perdu.
+ */
+async function writeWeighInReply(
+  admin: SupabaseClient,
+  args: { message: InboundMessage; requestId: string; askedOn: string },
+): Promise<InboundStepOutcome> {
+  const { message } = args;
+  // ⚠️ LA LANGUE VIENT DU PROFIL, PAS DU MESSAGE. `InboundMessage` ne porte
+  // pas de locale, et la deviner sur le texte d'un formulaire — qui ne contient
+  // qu'un nombre — n'a aucun sens. `studentVoiceContext` ne jette jamais et
+  // résout par le même chemin que tous les autres accusés de ce fichier.
+  const { contentLocale: locale } = await studentVoiceContext(
+    admin,
+    message.user_id,
+  );
+  const now = new Date();
+  try {
+    const zone = await timezoneFor(admin, message.user_id);
+    // Sans fuseau, l'UTC du serveur est la moins mauvaise approximation — et
+    // c'est la seule branche de ce fichier où jeter coûterait la mesure.
+    const localDate = zone
+      ? (() => {
+        try {
+          return localDateInZone(zone, now);
+        } catch {
+          return now.toISOString().slice(0, 10);
+        }
+      })()
+      : now.toISOString().slice(0, 10);
+
+    const raw = (message.form_response ?? {}) as Record<string, unknown>;
+    const outcome = await writeWeighIn(admin, {
+      userId: message.user_id,
+      raw: raw.weight_kg,
+      localDate,
+      now,
+      contentLocale: locale,
+    });
+    if (!outcome.ok && outcome.reason === "out_of_range") {
+      console.warn(JSON.stringify({
+        tag: "keel.weigh_in.out_of_range",
+        user_id: message.user_id,
+        asked_on: args.askedOn,
+      }));
+    }
+    await ack(admin, {
+      userId: message.user_id,
+      requestId: args.requestId,
+      purpose: WEIGH_IN_ACK_PURPOSE,
+      body: renderWeighInAck({ locale, outcome }),
+    });
+  } catch (error) {
+    const err = error as { message?: string; code?: string; details?: string };
+    console.error(JSON.stringify({
+      tag: "keel.weigh_in.write_failed",
+      user_id: message.user_id,
+      asked_on: args.askedOn,
+      // Une erreur PostgREST n'est pas une `Error`: sans ces champs le journal
+      // ne dirait que « [object Object] ».
+      error: error instanceof Error
+        ? error.message
+        : [err?.code, err?.message, err?.details].filter(Boolean).join(" — ") ||
+          String(error),
+    }));
+    await ack(admin, {
+      userId: message.user_id,
+      requestId: args.requestId,
+      purpose: WEIGH_IN_ACK_PURPOSE,
+      body: renderWeighInAck({ locale, outcome: { ok: false, reason: "failed" } }),
+    });
+  }
+  return handled("keel_weigh_in");
 }
 
 /**
@@ -649,19 +855,80 @@ async function handleStripTap(
           mealId: reply.mealId,
           buyOn: reply.buyOn,
           language,
+          // R9 — le jour local, résolu une fois en tête de cette fonction. La
+          // proposition de décalage passe par le plancher comme le reste de la
+          // procédure accident.
+          localDate,
         });
         if (proposal) {
-          await say(proposal.body, proposal.buttons);
+          // ⚠️ 🔴 UN REFUS DE DÉCALAGE N'A PAS DE BOUTONS, ET IL ARRÊTAIT LA
+          // CHAÎNE — MESURÉ EN RUN RÉEL LE 2026-09-02.
+          //
+          // « Part of that session is already cooked, so the plan stays as it
+          // is » est une PROPOSITION qui n'en est pas une: elle rend un motif et
+          // zéro bouton. Le `return` la traitait comme la suite de la chaîne, et
+          // la personne perdait ② et ③ — elle finissait sa soirée sans jamais
+          // pouvoir déclarer ses repas.
+          //
+          // La règle est la même que partout ailleurs dans ce fichier: la
+          // chaîne reprend dès qu'une étape ne laisse AUCUNE question ouverte.
+          // Un décalage réellement proposé (deux boutons) la tient en attente;
+          // un refus, non.
+          const afterProposal = proposal.buttons.length === 0
+            ? appendNextStep(
+              { body: proposal.body, buttons: proposal.buttons },
+              await nextDayReviewStep(admin, {
+                userId: message.user_id,
+                answered: "shopping",
+                localDate,
+                language,
+                restrictionFlag: await restrictionFloorFor(
+                  admin,
+                  message.user_id,
+                  localDate,
+                ),
+              }),
+            )
+            : { body: proposal.body, buttons: proposal.buttons };
+          await say(afterProposal.body, afterProposal.buttons);
           return handled("keel_accident_shift_proposed");
         }
       }
 
-      await say(
-        renderStripAck(
-          reply.done ? "shopping_done" : "shopping_later",
+      // ── FF-061 ① → LA SUITE DE LA CHAÎNE ─────────────────────────────
+      //
+      // ⚠️ RELUE APRÈS L'ÉCRITURE, jamais calculée avant. Un « pas encore »
+      // vient d'invalider la cuisson que cette vague sert, et les plats qui en
+      // descendent: la suite doit voir cet état-là. C'est aussi pourquoi elle
+      // n'arrive pas ici quand une PROPOSITION de décalage est partie — la
+      // proposition EST la suite, et la chaîne reprend après sa réponse.
+      //
+      // ⛔ UNE SEULE BULLE, PAS DEUX. R1 n'autorise qu'un message par jour; ②
+      // et ③ sont des RÉPONSES à un tap, donc elles se collent sous l'accusé.
+      const chained = appendNextStep(
+        {
+          body: renderStripAck(
+            reply.done ? "shopping_done" : "shopping_later",
+            language,
+          ),
+          buttons: [],
+        },
+        await nextDayReviewStep(admin, {
+          userId: message.user_id,
+          answered: "shopping",
+          localDate,
           language,
-        ),
+          // Le plancher, résolu ici comme pour les autres branches de ce
+          // fichier. Une lecture en panne vaut plancher LEVÉ: on perd la
+          // suite, jamais la garde.
+          restrictionFlag: await restrictionFloorFor(
+            admin,
+            message.user_id,
+            localDate,
+          ),
+        }),
       );
+      await say(chained.body, chained.buttons);
       return handled(
         reply.done
           ? "keel_evening_strip_shopping_done"
@@ -701,6 +968,93 @@ async function handleStripTap(
       failed: result.failed,
     }));
 
+    // ── LOT M8 · UNE COCHE CONSTATE LA SESSION QUI A PRODUIT LE PLAT ────────
+    //
+    // ⛔ ON N'AJOUTE AUCUNE COLLECTE, et c'est la condition du lot. La bande est
+    // une AFFORDANCE, pas une question — sa règle fondatrice. On ne demande donc
+    // rien de plus: on LIT le tap que la personne vient de faire.
+    //
+    // ── LE DÉFAUT QUE ÇA FERME, ET IL N'ÉTAIT PAS CELUI QU'ON CROYAIT ───────
+    // `cooking_session_states` était à 0, et on en concluait que la chaîne ne
+    // marchait pas. Mesuré le 2026-09-01 en la pilotant de bout en bout: elle
+    // marche. Ce qui manquait est que `writeSessionState` n'avait qu'UN SEUL
+    // appelant — le formulaire d'accident. La question n'était donc atteignable
+    // qu'à quatre taps de profondeur, après un signalement d'accident.
+    //
+    // Pendant ce temps la personne coche « j'ai mangé le poulet » chaque soir,
+    // ce plat puise dans la préparation faite dimanche, et personne n'écrivait
+    // que dimanche avait eu lieu.
+    //
+    // ⛔ LES COCHES SEULES, JAMAIS LES DÉCOCHES. « J'ai mangé le plat » prouve
+    // que la préparation existait. « Je ne l'ai pas mangé » ne prouve RIEN de la
+    // session — la personne a pu commander sur une préparation parfaitement
+    // faite. C'est pour ça que le formulaire POSE la question au lieu de la
+    // déduire, et déduire l'inverse retirerait des repas sur une inférence
+    // fausse.
+    //
+    // ⚠️ BEST-EFFORT, ET APRÈS L'ÉCRITURE DES COCHES. Ce bloc ne peut pas faire
+    // échouer un tap: la coche est déjà en base, et un hoquet ici doit coûter
+    // une session non constatée, jamais le geste de la personne.
+    if (reply.kind !== "untick" && result.written + result.rearmed > 0) {
+      try {
+        const loaded = await loadAccidentPlan(admin, {
+          userId: message.user_id,
+          mealId: reply.mealId,
+        });
+        if (loaded) {
+          const known = new Set(
+            (await loadSessionStates(admin, {
+              userId: message.user_id,
+              mealId: reply.mealId,
+            })).map((state) => state.cookOn),
+          );
+          const confirmed = sessionsConfirmedByTicks({
+            plan: loaded.plan,
+            dishIndexes: indexes,
+            dates: planDates(loaded.plan),
+            known,
+            today: localDate,
+          });
+          for (const session of confirmed.confirm) {
+            await writeSessionState(admin, {
+              userId: message.user_id,
+              mealId: reply.mealId,
+              cookOn: session.cookOn,
+              // ⛔ `true` ET SEULEMENT `true`. Voir l'en-tête de
+              // `session_from_ticks.ts`: le raisonnement ne tient que dans ce
+              // sens.
+              happened: true,
+              answeredLocalDate: localDate,
+              now,
+            });
+          }
+          // ⚠️ LE DÉNOMINATEUR EXISTE AVANT LE NUMÉRATEUR: la ligne part à
+          // CHAQUE coche, pas seulement quand une session est constatée. Sans
+          // ça, « 0 session constatée » ne se distingue pas de « 0 soir
+          // observé » — la forme exacte sous laquelle ce lot est resté
+          // invisible, et sous laquelle la table à zéro s'est lue « la chaîne
+          // ne marche pas ».
+          console.info(JSON.stringify({
+            tag: "keel.evening_strip.sessions_confirmed",
+            user_id: message.user_id,
+            meal_id: reply.mealId,
+            ticked: indexes.length,
+            confirmed: confirmed.confirm.length,
+            skipped_future: confirmed.skipped.future,
+            skipped_known: confirmed.skipped.known,
+            skipped_unlinked: confirmed.skipped.unlinked,
+          }));
+        }
+      } catch (error) {
+        console.warn(JSON.stringify({
+          tag: "keel.evening_strip.sessions_confirm_failed",
+          user_id: message.user_id,
+          meal_id: reply.mealId,
+          error: error instanceof Error ? error.message : String(error),
+        }));
+      }
+    }
+
     // RIEN N'A PU S'ÉCRIRE ⇒ ON LE DIT. Le plan a été régénéré plus court, ou la
     // ligne a disparu. « C'est noté » sur zéro écriture serait le mensonge que
     // ce chemin existe pour empêcher.
@@ -727,6 +1081,8 @@ async function handleStripTap(
         mealId: reply.mealId,
         dishIndex: reply.dishIndex,
         language,
+        // R9 — même jour local que le reste du tap.
+        localDate,
       });
       if (form) {
         await say(form.body, form.buttons);
@@ -775,6 +1131,37 @@ export async function handleDeterministicButton(
   // lecture seule côté élève (aucune policy d'écriture), donc ce n'est pas une
   // discipline mais une impossibilité.
   if (message.kind === "form") {
+    // ── FF-062 C2 — LA PESÉE, TROISIÈME FORMULAIRE ─────────────────────────
+    //
+    // ⚠️ AVANT LES DEUX AUTRES, ET LA RAISON EST UNE FORME. `KEEL_WEIGHIN_` et
+    // `KEEL_WEEKLY_` partagent `KEEL_WE`; les trois reconnaissances sont
+    // ancrées (`^…$`) donc l'ordre est en principe sans conséquence, et c'est
+    // exactement pour ça qu'on le fixe: le jour où quelqu'un écrit un
+    // `startsWith`, il le fera dans le lecteur le plus récent, et celui-ci
+    // passe en premier.
+    // ── FF-062 R11 · LA CORRECTION DU CHIFFRE D'ÉNERGIE ────────────────────
+    //
+    // Neuvième vocabulaire, disjoint des huit autres (`KEEL_KCAL_`). Comme les
+    // deux autres formulaires, il est reconnu par sa FORME et ancré aux deux
+    // bouts — jamais par un préfixe.
+    const energyFixEvent = parseEnergyFixToken(message.form_token);
+    if (energyFixEvent) {
+      return await writeEnergyFixReply(admin, {
+        message,
+        requestId: args.requestId,
+        eventId: energyFixEvent,
+      });
+    }
+
+    const weighInDay = parseWeighInToken(message.form_token);
+    if (weighInDay) {
+      return await writeWeighInReply(admin, {
+        message,
+        requestId: args.requestId,
+        askedOn: weighInDay,
+      });
+    }
+
     const measuresWeek = parseMeasuresToken(message.form_token);
     if (measuresWeek) {
       return await writeMeasures(admin, {
@@ -874,6 +1261,103 @@ export async function handleDeterministicButton(
 
   if (message.kind !== "button") return PASS;
 
+  // ── FF-062 R13/R14 · LE TAP EST-IL ENCORE D'ACTUALITÉ ? ───────────────────
+  //
+  // ⛔ AVANT LE PREMIER LECTEUR, ET C'EST TOUT L'INTÉRÊT. Six vocabulaires
+  // passent par ici, chacun avec sa propre garde de péremption — mais AUCUNE ne
+  // répond à « un message plus récent a-t-il remplacé celui-ci ». Poser la
+  // question dans les six handlers ferait six règles, dont celle qu'on regarde
+  // le moins finirait par diverger; et le pouls, lui, n'en a AUCUNE: taper le
+  // bouton de mardi un jeudi y écrit le pouls DE JEUDI (`writePulseLevel`
+  // upsert sur la date du tap). C'est le seul chemin où un tap périmé produit
+  // une écriture FAUSSE plutôt qu'un accusé fantôme, et cette garde le ferme.
+  //
+  // ⚠️ APRÈS la garde `kind !== "button"`: un formulaire porte son propre jeton
+  // de période, et son écriture est idempotente par semaine. Le désarmer
+  // demanderait une seconde règle pour un cas que la première ne couvre pas.
+  //
+  // R14 — LE REFUS REND UNE PHRASE, JAMAIS UN SILENCE. On réutilise celle qui
+  // existe (`keel_unusable_button_ack`): elle dit déjà exactement ce qu'il faut
+  // dire, dans les deux langues, et deux formulations pour un même refus
+  // finiraient par diverger.
+  const freshness = await judgeTap(admin, {
+    userId: message.user_id,
+    replyTo: message.reply_to,
+  });
+  if (freshness.disarmed) {
+    console.info(JSON.stringify({
+      tag: "keel.deterministic_button.disarmed_tap",
+      user_id: message.user_id,
+      reply_to: message.reply_to,
+      superseded_by: freshness.latestId,
+      // Le préfixe, pas la charge: on veut savoir QUELLE famille se fait
+      // périmer le plus souvent — c'est ce qui dirait qu'une fenêtre est trop
+      // courte — sans journaliser un identifiant de ligne.
+      family: DETERMINISTIC_BUTTON_PREFIXES.find((prefix) =>
+        String(message.button_payload ?? "").startsWith(prefix)
+      ) ?? "unknown",
+    }));
+    const voice = await studentVoiceContext(admin, message.user_id);
+    await ack(admin, {
+      userId: message.user_id,
+      requestId: args.requestId,
+      purpose: "keel_unusable_button_ack",
+      body: isFrenchLocale(voice.contentLocale)
+        ? "Celui-là n'est plus d'actualité — rien n'a été enregistré."
+        : "That one's no longer open — nothing has been saved.",
+    });
+    return handled("keel_disarmed_button_tap");
+  }
+
+  // ── FF-062 C1 · LE TAP DU REPAS D'UN CRÉNEAU DÉCLARÉ ──────────────────────
+  //
+  // Huitième vocabulaire, disjoint des sept autres (`KEEL_SLOTMEAL_`), et sa
+  // charge est la plus contrainte de toutes: une action d'une liste fermée, une
+  // date ISO ET un créneau du vocabulaire fermé. L'ordre reste sans
+  // conséquence — chaque lecteur rend `null` sur ce qui ne le concerne pas —
+  // et il est ici par spécificité décroissante.
+  const slotMeal = parseSlotMealButton(message.button_payload);
+  if (slotMeal) {
+    const now = new Date(message.received_at);
+    const voice = await studentVoiceContext(admin, message.user_id);
+    let written = false;
+    // ⛔ « PASSER » N'ÉCRIT RIEN, ET C'EST LE CIRCUIT DE LA FICHE. Seule
+    // « Décrire » mène à `protocol_events`. « Photo » non plus: c'est le
+    // chemin de la photo qui écrira le fait, avec son créneau forcé — écrire
+    // ici en plus ferait DEUX lignes pour un seul repas, dont une sans image.
+    if (slotMeal.action === "describe") {
+      try {
+        const res = await writeSlotMealFact(admin, {
+          userId: message.user_id,
+          localDate: slotMeal.localDate,
+          slot: slotMeal.slot,
+          contentLocale: voice.contentLocale,
+          now,
+        });
+        written = res.outcome === "written" || res.outcome === "already";
+      } catch (error) {
+        console.warn(JSON.stringify({
+          tag: "keel.slot_meal.tap_write_failed",
+          user_id: message.user_id,
+          slot: slotMeal.slot,
+          error: error instanceof Error ? error.message : String(error),
+          effect: "l'accuse invite sans pretendre qu'une ligne existe",
+        }));
+      }
+    }
+    await ack(admin, {
+      userId: message.user_id,
+      requestId: args.requestId,
+      purpose: SLOT_MEAL_ACK_PURPOSE,
+      body: renderSlotMealAck({
+        locale: voice.contentLocale,
+        action: slotMeal.action,
+        written,
+      }),
+    });
+    return handled(`keel_slot_meal_${slotMeal.action}`);
+  }
+
   // ── FF-028 · LE TAP SUR UNE RECOMMANDATION ────────────────────────────────
   //
   // AVANT le tap du soir, et c'est sans conséquence: les deux préfixes sont
@@ -887,6 +1371,56 @@ export async function handleDeterministicButton(
       requestId: args.requestId,
       reply: reco,
     });
+  }
+
+  // ── FF-054 §3.2 · LE TAP DU RETOUR DE FIN DE PLAN ─────────────────────────
+  //
+  // Sixième vocabulaire, disjoint des cinq autres (`KEEL_FEEDBACK_`). L'ordre
+  // reste sans conséquence, et il est ici parce que sa charge est la plus
+  // contrainte après celle de la recommandation: elle exige un uuid de plan
+  // PUIS un jeton du vocabulaire de questions.
+  const feedback = readFeedbackReply(message.button_payload);
+  if (feedback.kind !== "none") {
+    const now = new Date(message.received_at);
+    const localDate = localDateFor(
+      now,
+      await timezoneFor(admin, message.user_id),
+    );
+    const voice = await studentVoiceContext(admin, message.user_id);
+    // FAIL-CLOSED, comme partout ailleurs sur ce plancher: une évaluation en
+    // panne rend le plancher LEVÉ, donc la liste courte des questions. On perd
+    // une question, jamais la garde.
+    let restrictionFlag = true;
+    try {
+      const floor = await evaluateRestrictionForStudent(admin as never, {
+        userId: message.user_id,
+        asOfLocalDate: localDate,
+      });
+      restrictionFlag = floor.restriction_flag === true;
+    } catch (error) {
+      console.warn(JSON.stringify({
+        tag: "keel.plan_feedback.restriction_floor_unreadable",
+        user_id: message.user_id,
+        error: error instanceof Error ? error.message : String(error),
+        effect: "fail-closed: liste de questions reduite pour ce tap",
+      }));
+    }
+    const outcome = await handlePlanFeedbackTap(admin, {
+      userId: message.user_id,
+      reply: feedback,
+      localDate,
+      nowIso: now.toISOString(),
+      restrictionFlag,
+      fallbackLanguage: isFrenchLocale(voice.contentLocale) ? "fr" : "en",
+    });
+    await ack(admin, {
+      userId: message.user_id,
+      requestId: args.requestId,
+      purpose: "keel_plan_feedback_ack",
+      body: outcome.body,
+      buttons: outcome.buttons,
+    });
+    return handled(outcome.handledAs);
   }
 
   // ── FF-058 · LE TAP DE LA BANDE DU SOIR ───────────────────────────────────
@@ -937,12 +1471,52 @@ export async function handleDeterministicButton(
       // rendu l'unicité `(user_id, asked_for_message_id)` décorative.
       sourceMessageId: message.client_message_id,
     });
+    // ── FF-061 ② → LA SUITE DE LA CHAÎNE ────────────────────────────────
+    //
+    // ⚠️ SEULEMENT SUR LES RÉPONSES QUI APPARTIENNENT AU BILAN, et seulement
+    // quand elles laissent la conversation SANS question ouverte:
+    //
+    //   · `session`   — l'étape ② vient d'être répondue;
+    //   · `shift_*`   — la proposition de décalage vient d'être tranchée, et
+    //                   c'est elle qui tenait la chaîne en attente.
+    //
+    // Les trois boutons du formulaire (`ordered` / `no_time` / `ate_other`)
+    // n'entrent PAS: ce sont des sous-étapes de ③, et y recoller ③ ferait
+    // boucler la bande sur elle-même.
+    //
+    // ⛔ ET `result.buttons.length === 0` EST LA CONDITION, pas une commodité.
+    // Un « non » à la cuisson PROPOSE un décalage: la proposition est déjà la
+    // suite, et y ajouter ③ mettrait deux questions vivantes dans une bulle,
+    // dont une que la réponse à l'autre peut vider.
+    const chainsReview = accident.kind === "session" ||
+      accident.kind === "shift_accept" || accident.kind === "shift_decline";
+    let out = { body: result.body, buttons: result.buttons };
+    if (chainsReview && result.buttons.length === 0) {
+      out = appendNextStep(out, await nextDayReviewStep(admin, {
+        userId: message.user_id,
+        // ⚠️ `shopping` POUR UN DÉCALAGE, ET C'EST SÛR PARCE QUE `pending`
+        // TRANCHE. Une proposition de décalage peut venir de ① comme de ②, et
+        // le tap ne dit pas de laquelle. On repart donc de la PLUS PRÉCOCE des
+        // deux: si ① a déjà sa ligne, `pending.shopping` vaut faux et la
+        // recherche avance d'elle-même. Le fail-closed de la lecture de vague
+        // pousse dans le même sens (« illisible » ⇒ « déjà répondue »), donc il
+        // n'existe aucun chemin où l'on rouvre une question fermée.
+        answered: accident.kind === "session" ? "cooking" : "shopping",
+        localDate,
+        language: isFrenchLocale(voice.contentLocale) ? "fr" : "en",
+        restrictionFlag: await restrictionFloorFor(
+          admin,
+          message.user_id,
+          localDate,
+        ),
+      }));
+    }
     await ack(admin, {
       userId: message.user_id,
       requestId: args.requestId,
       purpose: "keel_accident_ack",
-      body: result.body,
-      buttons: result.buttons,
+      body: out.body,
+      buttons: out.buttons,
     });
     return handled(result.handledAs);
   }
@@ -1051,6 +1625,63 @@ export async function handleDeterministicButton(
   // d'un message du soir déjà français: taper « Dur » renvoyait « Got it,
   // thanks. » puis « What was hard? » avec trois boutons anglais.
   const pulseVoice = await studentVoiceContext(admin, message.user_id);
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // 🔴 LE POULS EST LE SEUL CHEMIN QUI ÉCRIVAIT FAUX. Garde posée le 2026-09-01.
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // `writePulseLevel` fait un `upsert` sur `(user_id, local_date)` avec la date
+  // DU TAP, sans jamais regarder de quel message il vient. Taper le bouton d'un
+  // bilan de mardi un jeudi écrivait donc le pouls DE JEUDI — une journée que
+  // personne n'a évaluée, dans la table que la synthèse coach relit.
+  //
+  // Les cinq autres familles n'ont pas ce défaut: leurs charges portent un
+  // identifiant (plan, épisode, semaine) et leurs gardes de péremption mordent
+  // dessus. Celle du pouls porte des constantes globales — `KEEL_PULSE_HARD` est
+  // le même jeton hier et aujourd'hui — donc rien dans la charge ne date le tap.
+  //
+  // ⚠️ LE DÉSARMEMENT (R13) FERME DÉJÀ CE CAS, MAIS SEULEMENT AVEC `reply_to`.
+  // Un client ancien n'en envoie pas, et la lecture est fail-open: il reste donc
+  // un chemin. Cette garde-ci n'en dépend pas — elle demande à la base si un
+  // pouls est parti AUJOURD'HUI. Sinon, le tap vient forcément d'un autre jour.
+  //
+  // Fail-closed: `wasPulseSentToday` qui jette laisse passer, parce qu'une
+  // lecture en panne ne doit pas faire perdre une réponse donnée à l'heure —
+  // mais le cas nominal, lui, est fermé.
+  let pulseSentToday = true;
+  try {
+    pulseSentToday = await wasPulseSentToday(admin, {
+      userId: message.user_id,
+      localDate,
+      timezone: await timezoneFor(admin, message.user_id),
+      now: new Date(message.received_at),
+    });
+  } catch (error) {
+    console.warn(JSON.stringify({
+      tag: "keel.daily_pulse.freshness_unreadable",
+      user_id: message.user_id,
+      local_date: localDate,
+      error: error instanceof Error ? error.message : String(error),
+      effect: "fail-open: le tap est honore",
+    }));
+  }
+  if (!pulseSentToday) {
+    console.info(JSON.stringify({
+      tag: "keel.daily_pulse.stale_tap",
+      user_id: message.user_id,
+      local_date: localDate,
+      effect: "aucune ecriture: le pouls du jour n'a pas ete demande",
+    }));
+    await ack(admin, {
+      userId: message.user_id,
+      requestId: args.requestId,
+      purpose: "keel_unusable_button_ack",
+      body: isFrenchLocale(pulseVoice.contentLocale)
+        ? "Celui-là n'est plus d'actualité — rien n'a été enregistré."
+        : "That one's no longer open — nothing has been saved.",
+    });
+    return handled("keel_daily_pulse_stale_tap");
+  }
 
   if (pulse.kind === "level") {
     const wrote = await writePulseLevel(admin, {

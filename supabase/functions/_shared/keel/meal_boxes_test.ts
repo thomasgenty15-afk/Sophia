@@ -55,6 +55,8 @@ import {
   HOUSEHOLD_PROMPT_VERSION,
 } from "./household_meal_generation.ts";
 import { parseMemberAway, resolveWindowPresence } from "./household_presence.ts";
+// Le module PUR derrière l'issue de table — voir la borne posée plus bas.
+import { mouthsFedByDish } from "./box_expected.ts";
 import type { MealScope } from "./meal_generation.ts";
 import type { StudentSafetyConstraint } from "./safety_constraints.ts";
 import type { CompositionIndex } from "./food_composition.ts";
@@ -121,11 +123,16 @@ const INDEX = buildCompositionIndex(
   [
     ref({ slug: "chicken_breast", foodGroupRef: "poultry", yieldClass: "meat_shrinks" }),
     ref({ slug: "white_rice", foodGroupRef: "refined_grain", yieldClass: "grain_absorbs" }),
+    // ⚠️ UNE SECONDE ANCRE PROTÉIQUE, d'un AUTRE groupe: sans elle, le compteur
+    // de variété (`protein_sources.distinct`) ne pourrait jamais dépasser 1
+    // dans ce fichier, et son cas qui varie serait inécrivable.
+    ref({ slug: "lentils_dry", foodGroupRef: "legumes", yieldClass: "grain_absorbs" }),
   ],
   [
     { alias: "chicken", slug: "chicken_breast" },
     { alias: "chicken breast", slug: "chicken_breast" },
     { alias: "rice", slug: "white_rice" },
+    { alias: "lentils", slug: "lentils_dry" },
   ],
 );
 
@@ -155,7 +162,11 @@ const PARSE_BASE = {
   // LA CEINTURE DE RÉGIME — `[]` par défaut: ces épreuves-ci portent sur la
   // FORME des boîtes, pas sur les lignes déclarées. Les épreuves du régime
   // vivent dans `household_regime_belt_test.ts` et le remplacent.
+  kitchenEquipment: null,
+  cookOnlyDay: null,
+  soloBoxes: false,
   boxMemberDiets: [] as readonly { memberId: string; regime: DietaryRegime | null }[],
+  boxMemberExclusions: [],
 };
 
 /** 1 000 g de poulet CRU ⇒ 700 g prêt (0,7). Le nombre est écrit à la main. */
@@ -605,6 +616,165 @@ Deno.test("LANE INDIVIDUELLE: aucune bouche, donc aucune boîte, et rien de perd
   assertEquals(meal.box_counts.expected, 0);
 });
 
+Deno.test("⛔ LANE INDIVIDUELLE: aucune issue de TABLE ne sonne pour quelqu'un qui vit seul", () => {
+  // ══════════════════════════════════════════════════════════════════════════
+  // LE DÉFAUT MESURÉ LE 2026-08-23, SUR SEPT PLANS SOLO SUR SEPT.
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // `mouthsFedByDish` était appelée INCONDITIONNELLEMENT, et la garde
+  // `if (boxMembers.size > 0)` se refermait AVANT les deux boucles d'issues.
+  // Avec le roster vide de la lane individuelle, aucun plat de table ne
+  // « nourrit » personne — puisqu'il n'y a personne au roster — et chaque plat
+  // partait donc en issue:
+  //
+  //     « sun/dinner: the table's dish feeds nobody -- every mouth has a dish
+  //       of its own »
+  //
+  // Jusqu'à SEPT fois par plan, pour un compte à UNE bouche. Le message décrit
+  // une table qui n'existe pas, et il noyait la liste là où elle porte de
+  // vraies alertes.
+  //
+  // ⚠️ C'est la porte que `boxDeliveryState` avait déjà (`roster: 0 =>
+  // "not_asked"`), et qui manquait ici — en silence, parce qu'une issue de plus
+  // ne fait rien échouer.
+  const meal = parse(
+    {
+      preparations: [prep()],
+      // Trois plats de TABLE (`member_id` absent) qui prélèvent sur la
+      // préparation: exactement la forme d'un plan individuel en batch cooking,
+      // et exactement ce qui déclenchait trois issues.
+      dishes: [dish({}), dish({ day: "mon" }), dish({ day: "tue" })],
+      shopping_list: [],
+    },
+    { boxMemberIds: [], weighedMemberIds: [] },
+  );
+  assertEquals(
+    meal.issues.filter((i) => i.includes("feeds nobody")),
+    [],
+  );
+  assertEquals(
+    meal.issues.filter((i) => i.includes("not on the box roster")),
+    [],
+  );
+});
+
+Deno.test("⛔ LA VARIÉTÉ SE COMPTE SUR L'ANCRE, PAS SUR LE NOM — et le lot est PLIÉ", () => {
+  // ══════════════════════════════════════════════════════════════════════════
+  // LE DÉFAUT MESURÉ: `plan-S4` (2026-08-23) affichait SEPT plats distincts sur
+  // sept, et du tofu dans les sept. Un compteur sur les NOMS dit toujours oui.
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // ⚠️ ET LA PROTÉINE EST DANS LA PRÉPARATION, pas dans le plat: les trois
+  // plats ci-dessous ne portent que du riz, et c'est le poulet du LOT qui les
+  // ancre. Compter les seuls `dish.ingredients` rendrait `distinct: 0` sur un
+  // plan qui tourne pourtant sur une seule ancre — le contraire de la mesure.
+  const meal = parse({
+    preparations: [prep()],
+    dishes: [dish({}), dish({ day: "mon" }), dish({ day: "wed" })],
+    shopping_list: [],
+  });
+  assertEquals(meal.protein_sources.dishes, 3);
+  // Une seule ancre — `poultry`, via les cuisses de poulet de la préparation.
+  assertEquals(meal.protein_sources.distinct, 1);
+  // ⛔ ET LE TROISIÈME NOMBRE: les trois plats la portent. Sans lui,
+  // `distinct: 1` couvrirait aussi « un seul plat protéiné, les autres sans
+  // rien » — deux plans opposés sous le même chiffre.
+  assertEquals(meal.protein_sources.dishes_with, 3);
+});
+
+Deno.test("⚠️ LE CAS QUI VARIE — deux ancres distinctes se comptent deux", () => {
+  // ⛔ SANS CE CAS, `distinct: 1` serait une constante déguisée en mesure.
+  const meal = parse({
+    preparations: [prep()],
+    dishes: [
+      dish({}),
+      dish({
+        day: "mon",
+        uses: [],
+        ingredients: [
+          { term: "lentils", quantity: "100 g", amount: 100, unit: "g", state: "raw" },
+        ],
+      }),
+    ],
+    shopping_list: [],
+  });
+  assertEquals(meal.protein_sources.distinct, 2);
+  assertEquals(meal.protein_sources.dishes_with, 2);
+});
+
+Deno.test("⛔ LES CASES SANS CONTENANT SE COMPTENT — `mouth_slots` les exclut, le plan les nomme", () => {
+  // ══════════════════════════════════════════════════════════════════════════
+  // LE TROU MESURÉ LE 2026-08-23, SUR UN PLAN FOYER RÉEL À TROIS BOUCHES.
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // Sept plats, dont deux petits-déjeuners assemblés le jour même — donc sans
+  // contenant, ce qui est le CONTRAT (« A dish that cooks from scratch on the
+  // day has no boxes »). Les six parts correspondantes (2 cases × 3 bouches)
+  // étaient hors dénominateur: le plan rendait `mouths_unboxed: 2` et
+  // `delivery: "served"`, et rien ne disait que deux repas sur sept n'étaient
+  // dimensionnés pour personne.
+  //
+  // ⚠️ CE N'EST PAS UN DÉFAUT, C'EST UNE ABSTENTION. Aucune `issue` n'est
+  // poussée; les deux nombres se posent à côté de `mouth_slots` pour qu'un
+  // lecteur voie ce que le protocole des contenants gouverne, et ce qu'il ne
+  // gouverne pas.
+  const meal = parse({
+    preparations: [prep()],
+    dishes: [
+      // Une case BOÎTÉE: le plat prélève sur la fournée et porte son bac.
+      dish({ boxes: [box({ id: "box_lunch", member_ids: [ZOE, NINA, MARC] })] }),
+      // Deux cases SANS contenant: rien n'a été pesé d'avance pour elles.
+      dish({ day: "mon", slot: "breakfast", uses: [], boxes: [] }),
+      dish({ day: "tue", slot: "breakfast", uses: [], boxes: [] }),
+    ],
+    shopping_list: [],
+  });
+  assertEquals(meal.box_counts.cells_no_box, 2);
+  // Trois bouches au roster ⇒ six noms que la fenêtre ne place nulle part.
+  assertEquals(meal.box_counts.mouths_no_box_cell, 6);
+  // ⚠️ ET LES COMPTEURS D'AVANT NE BOUGENT PAS D'UN CHIFFRE: une seule case
+  // porte un contenant, donc `mouth_slots` vaut 3 et personne n'y est oublié.
+  assertEquals(meal.box_counts.mouth_slots, 3);
+  assertEquals(meal.box_counts.mouths_unboxed, 0);
+  // ⚠️ AUCUNE ISSUE: un petit-déjeuner assemblé le matin est le cas nominal.
+  assertEquals(meal.issues.filter((i) => i.includes("no box at that meal")), []);
+});
+
+Deno.test("⚠️ LE CAS QUI REND ZÉRO — toutes les cases portent un contenant", () => {
+  // ⛔ SANS CE CAS, UN COMPTEUR COINCÉ SUR UN NOMBRE POSITIF PASSERAIT POUR UNE
+  // MESURE. Le zéro doit être atteignable, et il doit vouloir dire « la fenêtre
+  // entière est gouvernée par le protocole ».
+  const meal = parse({
+    preparations: [prep()],
+    dishes: [dish({ boxes: [box({ id: "box_lunch", member_ids: [ZOE, NINA, MARC] })] })],
+    shopping_list: [],
+  });
+  assertEquals(meal.box_counts.cells_no_box, 0);
+  assertEquals(meal.box_counts.mouths_no_box_cell, 0);
+});
+
+Deno.test("⚠️ LE CAS QUI SONNE reste au module: roster VIDE ⇒ tout plat de table y tombe", () => {
+  // ⛔ POURQUOI LA GARDE EST CHEZ L'APPELANT ET PAS DANS LE MODULE.
+  //
+  // `mouthsFedByDish` est PURE et elle a raison: sans personne au roster,
+  // aucun plat commun ne nourrit qui que ce soit, et elle le dit. C'est le
+  // CALCUL qui est juste; c'est la LECTURE qui était fausse — la lane
+  // individuelle passe un roster vide EXPRÈS (« le protocole des contenants
+  // n'existe que pour départager deux bouches »), donc chez elle ce constat ne
+  // décrit rien, et il ne doit pas devenir une issue.
+  //
+  // Ce test fixe les deux moitiés au même endroit: le module continue de
+  // signaler, l'appelant cesse de le répéter à quelqu'un qui vit seul. Le cas
+  // qui SONNE pour de vrai — plusieurs bouches, chacune son plat dédié — est
+  // couvert par `box_expected_test.ts` (`sharedFedNobody: ["mon/lunch"]`), sur
+  // le module et avec un roster peuplé.
+  const out = mouthsFedByDish(
+    [{ day: "tue", slot: "lunch", memberId: null, boxable: true }],
+    new Set<string>(),
+  );
+  assertEquals(out.sharedFedNobody, ["tue/lunch"]);
+});
+
 // ---------------------------------------------------------------------------
 // 1bis — LE REPLI v2: AUCUN PLAN DÉJÀ ÉCRIT NE PERD SES GRAMMES
 // ---------------------------------------------------------------------------
@@ -923,7 +1093,17 @@ Deno.test("les deux axes de version ont bougé, chacun pour SA population", () =
   // de boîte passe au pluriel pour les quatre populations; l'ENVELOPPE FOYER
   // rebumpe parce que le schéma ET la consigne changent ensemble, et parce que
   // sa POPULATION s'élargit (un foyer sans objectif reçoit désormais le bloc).
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v18_one_box_per_group");
+  // ⚠️ v20 (2026-09-01) — LA PART CONGELÉE A UNE CLÉ.
+  // Population qui voit une consigne différente: TOUT LE MONDE. Le schéma
+  // gagne `dishes[].uses[].kept` et le bloc de conservation gagne le
+  // paragraphe qui dit par quel CHAMP se déclare la troisième sortie. Les deux
+  // vivent dans le tronc. Un modèle qui n'écrit jamais le champ produit
+  // exactement le plan de v19 — le non-dit vaut `"fridge"`, le strict.
+  // ⚠️ v21 (2026-09-01) — LES JOURS HORS DE PORTÉE D'UN LOT SONT NOMMÉS, et la
+  // session seule a le droit de déborder en le disant. Population: les fenêtres
+  // qui portent une journée qu'aucun lot n'atteint. Un plan sans tension rend
+  // v20 au caractère près, et un test le tient.
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v24_raw_keeping_reaches_the_model");
   // ⚠️ D3′-c (2026-08-23) — `v22_precedence_in_tail`, ET LE BUMP EST EN RETARD
   // D'UN JOUR. `D3′` (2026-08-22 18:51) a réécrit le bloc d'arbitrage de la lane
   // foyer — passé en QUEUE du message, rang 1 qui NOMME ses trois blocs de
@@ -954,8 +1134,15 @@ Deno.test("`boxes` s'écrit MÊME VIDE, et elle a quitté les préparations", ()
   assertEquals(dishes[0].boxes, []);
   // ⛔ ET LA REPRISE NE PORTE PLUS DE `box_id`: elle dit d'où vient le lot, et
   // c'est tout ce qu'elle a jamais eu à dire.
+  //
+  // ⟳ 2026-09-01 — `kept` REJOINT LA LISTE, ET CE TEST EST LA GARDE QUI L'A
+  // EXIGÉ. La reprise dit maintenant AUSSI comment la part a attendu, parce
+  // que la fenêtre du cuit en dépend. Elle s'écrit MÊME à `"fridge"`, comme
+  // `boxes: []` deux lignes plus haut: une clé absente ne se distingue pas
+  // d'un lot débranché.
   const uses = dishes[0].uses as Array<Record<string, unknown>>;
-  assertEquals(Object.keys(uses[0]).sort(), ["preparation_id", "servings"]);
+  assertEquals(Object.keys(uses[0]).sort(), ["kept", "preparation_id", "servings"]);
+  assertEquals(uses[0].kept, "fridge");
   // ⛔ ET LA PRÉPARATION N'ÉCRIT PLUS DE `boxes`: une clé vide que plus personne
   // ne remplit se lirait comme un lot débranché, ce qui est l'inverse du vrai.
   // ⚠️ LE NOM EST LE MÊME QUE CELUI DU PLAT DEPUIS v4, ET C'EST PRÉCISÉMENT
@@ -1104,6 +1291,11 @@ Deno.test("le VERROU DE SORTIE vide le plan ET remet les compteurs à zéro", ()
     mouths_double: 0,
     // ⟳ LOT `L26-0` — CE QUE LE MODÈLE A RENDU, à côté de ce que le plan porte.
     mouths_double_model: 0,
+    // ⛔ LA POPULATION QUE `mouth_slots` EXCLUT (2026-08-23). Ici le plan est
+    // VIDE: il n'y a aucune case, donc rien à exclure — le zéro dit « la
+    // question ne se pose pas », pas « tout est couvert ».
+    cells_no_box: 0,
+    mouths_no_box_cell: 0,
   });
   assertEquals(meal.unquantified_dish_ingredients, { ingredients: 0, unquantified: 0 });
 });

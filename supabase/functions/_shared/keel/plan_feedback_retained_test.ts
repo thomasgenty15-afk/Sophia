@@ -21,6 +21,11 @@ import {
 } from "./retained_item.ts";
 // LOT 4C — l'aval du cran fort: l'enveloppe, et le plancher A1 qui l'écrête.
 import { envelopeFor } from "./meal_envelope.ts";
+import {
+  patchOf,
+  undoFieldChange,
+  withFieldChanges,
+} from "./field_change.ts";
 import type { MealBodyContext } from "./meal_body.ts";
 import type { MemberAgeState } from "./household.ts";
 import { questionsFor, VARIETY_AXIS_QUESTION } from "./plan_feedback.ts";
@@ -498,12 +503,28 @@ Deno.test("⛔ le même plat dans les deux sens: LES DEUX tombent", () => {
 // ===========================================================================
 
 Deno.test("« non » allège la session ET simplifie la recette", () => {
+  // ⛔ LOT M5 — CE SONT DES CHANGEMENTS DE CHAMP, PLUS DES ITEMS RETENUS.
+  // Avant, ces deux lignes partaient dans un magasin à part et les générateurs
+  // les posaient EN MÉMOIRE au moment de composer: la personne lisait 45 min
+  // dans ses réglages et son plan était fait sur 30, sans qu'un écran le dise.
   const out = retainedItemsFromPlanFeedback(row({ cooked: "no" }), CTX);
-  assertEquals(out.items.length, 2);
-  assertEquals(out.items[0].kind, "logistics.set");
+  assertEquals(out.items.length, 0, "un item retenu subsiste");
+  assertEquals(out.fieldChanges.length, 2);
+  assertEquals(out.fieldChanges[0].field, "cooking_time_min");
   // 45 − 15 = 30, le plancher. Le nombre vient d'`effectOf`, pas d'ici.
-  assertEquals(out.items[0].value, { field: "cooking_time_min", value: 30 });
-  assertEquals(out.items[1].value, { field: "recipe_difficulty", value: "simple" });
+  assertEquals(out.fieldChanges[0].next, 30);
+  // ⛔ `previous` EST CE QUI REND « DÉFAIRE » POSSIBLE. Un scalaire ne se
+  // retire pas: sans la valeur d'avant, défaire voudrait dire « retape ce que
+  // tu avais », c'est-à-dire réclamer un nombre que le produit vient d'effacer.
+  assertEquals(out.fieldChanges[0].previous, 45);
+  assertEquals(out.fieldChanges[1].field, "recipe_difficulty");
+  assertEquals(out.fieldChanges[1].next, "simple");
+  assertEquals(out.fieldChanges[1].previous, CTX.recipeDifficulty);
+  // Et chacun porte sa cause — la question lue et la réponse cliquée.
+  for (const change of out.fieldChanges) {
+    assertEquals(change.source, "questionnaire");
+    assertEquals(change.quote.length > 0, true, "un changement sans cause");
+  }
 });
 
 Deno.test("« en partie » coûte moins cher que « non »", () => {
@@ -513,8 +534,10 @@ Deno.test("« en partie » coûte moins cher que « non »", () => {
   );
   // 60 − 10, et AUCUNE simplification de recette: « non » veut dire qu'on a été
   // hors sujet, « en partie » qu'on a été optimiste.
-  assertEquals(out.items.length, 1);
-  assertEquals(out.items[0].value, { field: "cooking_time_min", value: 50 });
+  assertEquals(out.fieldChanges.length, 1);
+  assertEquals(out.fieldChanges[0].field, "cooking_time_min");
+  assertEquals(out.fieldChanges[0].next, 50);
+  assertEquals(out.fieldChanges[0].previous, 60);
 });
 
 Deno.test("« oui » ne retient rien", () => {
@@ -592,12 +615,13 @@ Deno.test("`enough_variety` MONTE D'UN CRAN — et le compteur d'axe tombe à 0"
     row({ axisQuestion: "enough_variety", axisAnswer: "no" }),
     { ...CTX, varietyLevel: "some" },
   );
-  assertEquals(out.items.length, 1);
-  assertEquals(out.items[0].kind, "logistics.set");
-  assertEquals(out.items[0].value, { field: "variety", value: "varied" });
-  assertEquals(out.items[0].scope, "durable");
-  assertEquals(out.items[0].source, "questionnaire");
-  assertEquals(out.items[0].subject, "household");
+  // ⛔ LOT M5 — LE CHAMP, PLUS UN ITEM.
+  assertEquals(out.items.length, 0);
+  assertEquals(out.fieldChanges.length, 1);
+  assertEquals(out.fieldChanges[0].field, "variety");
+  assertEquals(out.fieldChanges[0].next, "varied");
+  assertEquals(out.fieldChanges[0].previous, "some");
+  assertEquals(out.fieldChanges[0].source, "questionnaire");
   // ⛔ LE COMPTEUR DU TROU EST À ZÉRO POUR CET AXE: la question a un lecteur.
   assertEquals(out.refused.axisNotRetained, 0);
 
@@ -607,7 +631,8 @@ Deno.test("`enough_variety` MONTE D'UN CRAN — et le compteur d'axe tombe à 0"
     row({ axisQuestion: "enough_variety", axisAnswer: "no" }),
     { ...CTX, varietyLevel: "repeat" },
   );
-  assertEquals(fromRepeat.items[0].value, { field: "variety", value: "some" });
+  assertEquals(fromRepeat.fieldChanges[0].next, "some");
+  assertEquals(fromRepeat.fieldChanges[0].previous, "repeat");
 });
 
 Deno.test("⛔ LES DEUX COMPTEURS DANS LE MÊME TEST: fermé à 0, ouverts à 1", () => {
@@ -619,7 +644,7 @@ Deno.test("⛔ LES DEUX COMPTEURS DANS LE MÊME TEST: fermé à 0, ouverts à 1"
     { ...CTX, varietyLevel: "repeat" },
   );
   assertEquals(closed.refused.axisNotRetained, 0);
-  assertEquals(closed.items.length, 1);
+  assertEquals(closed.fieldChanges.length, 1);
 
   for (const question of ["hunger_between_meals", "could_finish"]) {
     for (const answer of ["no", "often", "sometimes", "yes", "mostly"]) {
@@ -689,12 +714,16 @@ Deno.test("⛔ LOT 4C — SANS BASE, SEULE UNE PLAINTE ÉCRIT, ET ELLE ÉCRIT `v
         row({ axisQuestion: "enough_variety", axisAnswer: complaint }),
         { ...CTX, varietyLevel: unknown },
       );
-      assertEquals(out.items.length, 1, `${complaint}/« ${unknown} »`);
-      assertEquals(out.items[0].kind, "logistics.set");
-      assertEquals(out.items[0].value, { field: "variety", value: "varied" });
-      assertEquals(out.items[0].scope, "durable");
-      assertEquals(out.items[0].source, "questionnaire");
-      assertEquals(out.items[0].subject, "household");
+      assertEquals(out.fieldChanges.length, 1, `${complaint}/« ${unknown} »`);
+      assertEquals(out.fieldChanges[0].field, "variety");
+      assertEquals(out.fieldChanges[0].next, "varied");
+      assertEquals(out.fieldChanges[0].source, "questionnaire");
+      // ⚠️ `previous` VAUT `null` QUAND LE CHAMP N'ÉTAIT PAS RENSEIGNÉ, et ce
+      // n'est pas la même chose que « renseigné à rien »: défaire RETIRE la
+      // clé au lieu d'écrire `null`. Écrire `null` inventerait une déclaration
+      // que la personne n'a jamais faite, sur une clé que plusieurs lecteurs
+      // distinguent.
+      assertEquals(out.fieldChanges[0].previous, unknown ?? null, `${complaint}/« ${unknown} »`);
       assertEquals(out.refused.noBaseline, 0, `${complaint}/« ${unknown} »`);
     }
 
@@ -706,6 +735,7 @@ Deno.test("⛔ LOT 4C — SANS BASE, SEULE UNE PLAINTE ÉCRIT, ET ELLE ÉCRIT `v
       row({ axisQuestion: "enough_variety", axisAnswer: "yes" }),
       { ...CTX, varietyLevel: unknown },
     );
+    assertEquals(happy.fieldChanges.length, 0, `« oui » a écrit sur « ${unknown} »`);
     assertEquals(happy.items.length, 0, `« oui » a écrit sur « ${unknown} »`);
     assertEquals(happy.refused.axisNotRetained, 0);
   }
@@ -719,19 +749,19 @@ Deno.test("⛔ LOT 4C — SANS BASE, SEULE UNE PLAINTE ÉCRIT, ET ELLE ÉCRIT `v
     row({ axisQuestion: "enough_variety", axisAnswer: "no" }),
     { ...CTX, varietyLevel: "repeat" },
   );
-  assertEquals(fromRepeat.items.length, 1);
-  assertEquals(fromRepeat.items[0].value, { field: "variety", value: "some" });
+  assertEquals(fromRepeat.fieldChanges.length, 1);
+  assertEquals(fromRepeat.fieldChanges[0].next, "some");
   const fromSome = retainedItemsFromPlanFeedback(
     row({ axisQuestion: "enough_variety", axisAnswer: "no" }),
     { ...CTX, varietyLevel: "some" },
   );
-  assertEquals(fromSome.items[0].value, { field: "variety", value: "varied" });
+  assertEquals(fromSome.fieldChanges[0].next, "varied");
   // Et le plafond tient toujours: `varied` ne monte nulle part.
   const atTop = retainedItemsFromPlanFeedback(
     row({ axisQuestion: "enough_variety", axisAnswer: "no" }),
     { ...CTX, varietyLevel: "varied" },
   );
-  assertEquals(atTop.items.length, 0);
+  assertEquals(atTop.fieldChanges.length, 0);
   assertEquals(atTop.refused.atCeiling, 1);
 });
 
@@ -763,6 +793,7 @@ Deno.test("⛔ LOT 4C — LA PORTE SANS BASE EST LE **JETON**, JAMAIS LA RÉPONS
     row({ axisAnswer: "no" }),
     { ...CTX, varietyLevel: null },
   );
+  assertEquals(noToken.fieldChanges.length, 0);
   assertEquals(noToken.items.length, 0);
 });
 
@@ -777,6 +808,7 @@ Deno.test("⛔ LOT 4C — `noBaseline` compte TOUJOURS la cuisine, et plus la va
     row({ cooked: "no" }),
     { ...CTX, cookingTimeMin: null, recipeDifficulty: null },
   );
+  assertEquals(cooking.fieldChanges.length, 0);
   assertEquals(cooking.items.length, 0);
   assertEquals(cooking.refused.noBaseline, 2);
 
@@ -784,7 +816,7 @@ Deno.test("⛔ LOT 4C — `noBaseline` compte TOUJOURS la cuisine, et plus la va
     row({ axisQuestion: "enough_variety", axisAnswer: "no" }),
     { ...CTX, varietyLevel: null },
   );
-  assertEquals(variety.items.length, 1);
+  assertEquals(variety.fieldChanges.length, 1);
   assertEquals(variety.refused.noBaseline, 0);
 });
 
@@ -970,6 +1002,10 @@ Deno.test("la langue du plan décide de la phrase affichée", () => {
 /** Le minimum que `buildMealPrompt` exige, hors variété. */
 const PROMPT_BASE = {
   firstDayCookable: true,
+  hasFreezer: false,
+  oneCookingSession: false,
+  cookOnlyDay: null,
+  soloBoxes: false,
   contentLocale: "en-US",
   budgetAmount: null,
   dietBlock: "",
@@ -980,7 +1016,9 @@ const PROMPT_BASE = {
   merge: null,
   boxMemberIds: [],
   weighedMemberIds: [],
+  kitchenEquipment: null,
   boxMemberDiets: [],
+  boxMemberExclusions: [],
   protocolBlock: "",
   beliefKeys: [],
   goal: "health" as const,
@@ -998,29 +1036,43 @@ const PROMPT_BASE = {
 };
 
 Deno.test("⛔ LA RÉPONSE D'AXE ATTEINT LE MESSAGE DU MODÈLE — bout à bout", () => {
+  // ⛔ LA CHAÎNE A RACCOURCI AU LOT M5, ET C'EST TOUT LE LOT.
+  //
+  // AVANT: réponse → item retenu → `routeRetainedItems` → `logisticsOverlayFor`
+  // → correctif EN MÉMOIRE au moment de composer → prompt. La colonne n'était
+  // jamais touchée: la personne lisait `some` dans ses réglages et son plan
+  // était fait sur `varied`, sans qu'un écran le dise.
+  //
+  // MAINTENANT: réponse → changement de CHAMP → la colonne → prompt. Deux
+  // maillons de moins, et le champ que le modèle lit est celui que la personne
+  // voit.
+
   // ① La réponse au questionnaire.
   const produced = retainedItemsFromPlanFeedback(
     row({ axisQuestion: "enough_variety", axisAnswer: "no" }),
     { ...CTX, varietyLevel: "some" },
   );
-  assertEquals(produced.items.length, 1);
+  assertEquals(produced.items.length, 0, "un item retenu subsiste");
+  assertEquals(produced.fieldChanges.length, 1);
 
-  // ② Le groupage et le correctif — les fonctions que les deux lanes appellent.
-  const routed = routeRetainedItems(produced.items);
-  assertEquals(routed.logistics.length, 1);
-  const overlay = logisticsOverlayFor({
-    items: routed.logistics,
-    speaksFor: ["household"],
-  });
+  // ② LE PATCH EST CELUI QUI PART EN BASE — plus un correctif de lecture.
+  const patch = patchOf(produced.fieldChanges);
 
-  // ③ LA CLÉ EST CELLE DE LA COLONNE. `variety`, pas `variety_level`: un
-  // correctif posé sur une clé que personne ne lit est un correctif muet.
-  assertEquals(overlay.patch, { variety: "varied" });
-  const pc = { ...{ cooking_time_min: 45 }, ...overlay.patch } as Record<
+  // ③ LA CLÉ EST CELLE DE LA COLONNE. `variety`, pas `variety_level`: une
+  // écriture sur une clé que personne ne lit est une écriture muette.
+  assertEquals(patch, { variety: "varied" });
+  const pc = { ...{ cooking_time_min: 45 }, ...patch } as Record<
     string,
     unknown
   >;
   assertEquals(pc.variety, "varied");
+
+  // ③-bis ET LE GESTE INVERSE EXISTE. C'est la contrepartie de l'écriture: on
+  // ne change un champ que la personne a rempli qu'à condition de savoir le
+  // remettre.
+  const stored = withFieldChanges(pc, produced.fieldChanges);
+  const undone = undoFieldChange(stored, 0);
+  assertEquals(undone?.variety, "some");
 
   // ④ LE MESSAGE ENVOYÉ AU MODÈLE le porte, avec le mot que la personne a
   // déclenché — et un plan sans correctif ne le porte PAS.

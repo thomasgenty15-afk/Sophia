@@ -36,6 +36,10 @@ import { mealBodyContextFrom } from "./student_body_io.ts";
 
 const PROMPT_BASE = {
   firstDayCookable: true,
+  hasFreezer: false,
+  oneCookingSession: false,
+  cookOnlyDay: null,
+  soloBoxes: false,
   contentLocale: "en-US",
   budgetAmount: null,
   dietBlock: "",

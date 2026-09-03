@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Identifiant** | `FF-039-enveloppes-et-verdicts-en-observation` |
-| **Statut** | 🟠 En cours |
+| **Statut** | 🟢 **Livrée** — `_shared/keel/meal_verdict.ts` (683 l., 31 tests), 9 appelants. ⛔ **Mais le titre de la fiche ment maintenant : les verdicts ne sont plus « en observation »** — [FF-040](FF-040-la-boucle-de-correction.md) les actionne en production depuis le 2026-08-23. Voir §3 |
 | **Date** | 2026-08-10 |
 | **Autorité produit** | [MODEL.md](../../keel/MODEL.md) · [CONTRACT.md](../../keel/CONTRACT.md) · [LEGAL.md](../../keel/LEGAL.md) · design d'origine : `scratchpad/DESIGN-UNITES-DE-COMPOSITION.md` (§2.2, §2.3, §2.4, §6 étape 4, arbitrages A1 et A4) |
 | **Dépend de** | [FF-038](FF-038-le-referentiel-de-composition.md) (le référentiel et les quantités) · [FF-037](FF-037-l-ancre-proteique.md) · `meal_body.ts` (`MealBodyContext`) · `student_age.ts` (`AgeBand`) · `restriction_runtime.ts` (`evaluateRestrictionForStudent`) · `tokens.ts` (`GOAL_TOKENS`, `FOOD_GROUP_REFS`) |
@@ -85,10 +85,18 @@ ceinture armée sur un coffre vide.
 
 ### Hors périmètre — engageant
 
-- ❌ **Aucun verdict actionné.** Pas de retry, pas de jeton de correction, pas
+- ~~❌ **Aucun verdict actionné.** Pas de retry, pas de jeton de correction, pas
   une ligne de consigne changée. La sortie de `parseGeneratedMeal` est
   **identique** avec et sans le calcul de verdict, et un test le prouve par
-  égalité profonde.
+  égalité profonde.~~
+  **RENVERSÉ le 2026-08-23 par [FF-040](FF-040-la-boucle-de-correction.md)**, et
+  vérifié dans le code le 2026-09-01 : `_shared/keel/meal_correction.ts` est
+  importée par `generate-meal-v1/index.ts` (l. 274). Les verdicts produisent
+  donc un **jeton de correction** et une relance, en production, pour tout le
+  monde. ⚠️ **Le titre de cette fiche — « en observation » — est devenu faux le
+  même jour**, et il est le premier chose qu'on lit : c'est exactement la forme
+  de mensonge que ce dépôt paie cher, un document qui dit « on mesure sans
+  agir » pendant que le code agit.
 - ❌ **Aucun bump de `MEAL_PROMPT_VERSION`.** La consigne ne change pas : le
   hash de prompt reste identique pour toute la base.
 - ❌ **Aucun chiffre exporté.** Le verdict protéine est `met` / `under` /

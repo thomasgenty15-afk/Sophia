@@ -95,6 +95,11 @@ Deno.test("les cinq genres sont là, et la liste est fermée", () => {
   // (migration 20260811120000, qui remplace 20260808190100). Un genre ajouté
   // ici sans l'être en base est refusé à l'écriture au runtime; ce test le dit
   // avant.
+  // ⚠️ `daily_recommendation` N'A PLUS D'ÉCRIVAIN depuis le 2026-09-01 (FF-028
+  // abandonnée, moteur supprimé) et reste dans la liste: des lignes en base le
+  // portent, et le CHECK a déjà été redéfini trois fois. Le motif complet est
+  // sur la constante. Le retirer d'ici sans toucher au CHECK ne casserait rien
+  // — et c'est bien le problème: la liste cesserait de décrire la base.
   assertEquals([...DAILY_ASK_KINDS], [
     "meal_precision_question",
     "photo_invitation",

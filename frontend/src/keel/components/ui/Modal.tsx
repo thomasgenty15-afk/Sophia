@@ -74,12 +74,35 @@ export interface ModalProps {
    * croix sans nom accessible est un bouton muet pour un lecteur d'écran.
    */
   closeAsIcon?: boolean;
+  /**
+   * LE GESTE QUE LA FENÊTRE PORTE, RÉPÉTÉ EN HAUT DU CADRE.
+   *
+   * ── POURQUOI IL EXISTE (2026-09-01) ────────────────────────────────────
+   * Une fenêtre qui montre quelque chose de LONG — un aperçu de semaine — met
+   * sa décision en pied. Quelqu'un qui a jugé au premier écran doit alors
+   * défiler une semaine entière pour l'accepter, et ce trajet se lit comme
+   * « il faut tout lire d'abord ». Le fronton, lui, ne défile pas: une action
+   * posée ici reste sous la main du début à la fin.
+   *
+   * ⛔ IL NE REMPLACE PAS LE GESTE DU PIED, il le DOUBLE. Deux boutons, un
+   * seul gestionnaire chez l'appelant — jamais deux chemins d'écriture.
+   *
+   * ⚠️ CE QUI EST DIT SOUS LE BOUTON DU PIED DOIT L'ÊTRE AUSSI EN HAUT. Une
+   * fenêtre qui avertit avant le clic (« adopter recompose ») et qui offre
+   * ici un second clic sans l'avertissement aurait retiré l'avertissement à
+   * qui prend le raccourci. C'est la charge de l'appelant, pas de ce
+   * composant, qui ne sait pas ce qu'il monte.
+   *
+   * `undefined` = la fenêtre n'a qu'une sortie, et c'est le cas de presque
+   * toutes.
+   */
+  headerAction?: React.ReactNode;
   size?: ModalSize;
   children: React.ReactNode;
 }
 
 export default function Modal(
-  { open, onClose, title, closeLabel, closeAsIcon, size = "md", children }:
+  { open, onClose, title, closeLabel, closeAsIcon, headerAction, size = "md", children }:
     ModalProps,
 ) {
   // Résolu au RENDU et pas dans la signature: `t()` lit la locale courante à
@@ -149,29 +172,38 @@ export default function Modal(
               display ne descend jamais sous 20. Et pas d'équerre — la signature
               ouvre une SECTION, elle ne redouble pas un titre de dialogue. */}
           <h2 className="text-base font-semibold text-ink">{title}</h2>
-          {closeAsIcon
-            ? (
-              <button
-                type="button"
-                onClick={onClose}
-                aria-label={closeText}
-                // ⚠️ 40px DE CIBLE, pas la taille du glyphe. Une croix dessinée
-                // à 14px est une cible de 14px: sous le minimum tactile, et la
-                // première chose qu'on rate sur un téléphone.
-                className="-mr-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-part text-xl leading-none text-ink-soft hover:bg-fig-50 hover:text-ink"
-              >
-                <span aria-hidden="true">×</span>
-              </button>
-            )
-            : (
-              <button
-                type="button"
-                onClick={onClose}
-                className="rounded-part px-2 py-1 text-sm text-ink-soft underline underline-offset-2 hover:text-ink"
-              >
-                {closeText}
-              </button>
-            )}
+          {/* ⚠️ `min-w-0` ET `flex-wrap` NE SUFFISENT PAS SEULS ICI: un enfant
+              de flex refuse par défaut d'être plus étroit que son contenu, donc
+              un libellé long dans `headerAction` pousserait le titre hors du
+              cadre à 320 px. Le groupe rétrécit, le titre garde sa place.
+              L'ordre est SORTIE PUIS ACTION: la décision est à droite, là où
+              elle est en pied. */}
+          <div className="flex min-w-0 shrink items-center justify-end gap-2">
+            {closeAsIcon
+              ? (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  aria-label={closeText}
+                  // ⚠️ 40px DE CIBLE, pas la taille du glyphe. Une croix dessinée
+                  // à 14px est une cible de 14px: sous le minimum tactile, et la
+                  // première chose qu'on rate sur un téléphone.
+                  className="-mr-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-part text-xl leading-none text-ink-soft hover:bg-fig-50 hover:text-ink"
+                >
+                  <span aria-hidden="true">×</span>
+                </button>
+              )
+              : (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="rounded-part px-2 py-1 text-sm text-ink-soft underline underline-offset-2 hover:text-ink"
+                >
+                  {closeText}
+                </button>
+              )}
+            {headerAction ?? null}
+          </div>
         </div>
 
         {/* LE DÉFILEMENT EST ICI, pas sur la page: une liste de courses ou une

@@ -90,7 +90,14 @@ const PARSE_BASE = {
   // seul GROUPE par repas est donc attendu, et `box_counts.expected` vaut le
   // nombre de contenants qu'une table sans objectif produit.
   weighedMemberIds: [] as readonly string[],
+  kitchenEquipment: null,
+  cookOnlyDay: null,
+  soloBoxes: false,
   boxMemberDiets: MIXED_TABLE,
+  // ⛔ La ceinture des EXCLUSIONS partage la boucle des boîtes depuis le
+  // 2026-09-01. `[]` dit « personne n'a rien exclu » — ces cas-ci mesurent les
+  // RÉGIMES, et les mêler rendrait leur zéro ambigu.
+  boxMemberExclusions: [],
 };
 
 function parse(
@@ -527,6 +534,9 @@ Deno.test("CEINTURE — un régime nommé pour une bouche hors roster se COMPTE"
   // seule preuve serait une ceinture qui n'a jamais rien vu. Elle ne se tait
   // donc pas: elle rend un nombre.
   const meal = parse(twinnedPlan(), {
+    kitchenEquipment: null,
+    cookOnlyDay: null,
+    soloBoxes: false,
     boxMemberDiets: [{ memberId: "someone-else", regime: "vegan" }],
   });
   assertEquals(meal.regime_belt.unknown_mouth, 1);

@@ -58,6 +58,10 @@ function shakerJson(over: Record<string, unknown> = {}) {
  */
 const PROMPT_ARGS = {
   firstDayCookable: true,
+  hasFreezer: false,
+  oneCookingSession: false,
+  cookOnlyDay: null,
+  soloBoxes: false,
   contentLocale: "en-US",
   budgetAmount: null,
   safetyConstraints: null,
@@ -88,7 +92,9 @@ const PROMPT_ARGS = {
   merge: null,
   boxMemberIds: [],
   weighedMemberIds: [],
+  kitchenEquipment: null,
   boxMemberDiets: [],
+  boxMemberExclusions: [],
 };
 
 type Tables = Record<string, Array<Record<string, unknown>>>;

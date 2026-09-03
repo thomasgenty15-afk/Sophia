@@ -427,6 +427,10 @@ Deno.test("l'instruction dit ce qu'il faut FAIRE, et dit qui gagne l'arbitrage",
 
 const PROMPT_ARGS = {
   firstDayCookable: true,
+  hasFreezer: false,
+  oneCookingSession: false,
+  cookOnlyDay: null,
+  soloBoxes: false,
   contentLocale: "en-US",
   budgetAmount: 90,
   dietBlock: "",

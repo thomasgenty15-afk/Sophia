@@ -4,8 +4,32 @@ import { LEGAL_ENTITY, organizationStructuredData } from "../../lib/legalEntity"
 import { PublicFooter, PublicHeader } from "../components/PublicHeader";
 import { ButtonLink } from "../components/ui/Button";
 import { Kicker, PriceCard, SectionTitle } from "../components/ui/Marketing";
+import { AccidentsFigure, FigureHead } from "../components/ui/AccidentsFigure";
+import { OfferLines } from "../components/ui/OfferLines";
+import { StickyCta } from "../components/ui/StickyCta";
+// ⚠️ LES CONSTANTES D'ÉNERGIE VIENNENT DU MOTEUR, ELLES NE SONT PAS RETAPÉES.
+// C'est le même chemin que `api/onboarding.ts` → `student_age.ts`. Une copie de
+// ces nombres dans un composant de page est très exactement la divergence que
+// `energy_target_test.ts` empêche déjà entre le back et `weekInFood.ts` — et
+// celle que le pack français avait laissée s'installer sur les consignes de
+// service, dans l'angle mort d'une garde écrite en anglais seulement.
+import {
+  directedRange,
+  type EnergyTarget,
+  maintenanceRange,
+} from "../../../../supabase/functions/_shared/keel/energy_target.ts";
+import {
+  MAX_DAILY_DEFICIT_KCAL,
+  MAX_SURPLUS_FRACTION,
+} from "../../../../supabase/functions/_shared/keel/meal_envelope.ts";
+import {
+  energyFloorFor,
+  scaleDirectionOf,
+} from "../../../../supabase/functions/_shared/keel/weight_pace.ts";
+import { ACTIVITY_LEVELS } from "../../../../supabase/functions/_shared/keel/tokens.ts";
+import type { ActivityLevel, GoalToken } from "../../../../supabase/functions/_shared/keel/tokens.ts";
 import { en } from "../i18n/en";
-import { formatPrice } from "../i18n/format";
+import { formatNumber, formatPrice } from "../i18n/format";
 import { PRICES } from "../i18n/prices";
 import { t } from "../i18n/t";
 import type { MessageKey } from "../i18n/t";
@@ -107,13 +131,31 @@ export function MealPrepPage() {
       <PublicHeader />
 
       <main>
+        {/* L'ORDRE EST L'ARGUMENT, ET IL A CHANGÉ LE 2026-09-01.
+            1. la charge mentale — ce dont on veut être débarrassé;
+            2. composé pour vous — la raison de ne pas prendre le gratuit;
+            3. l'objectif et son chiffre — le pilotage, une fois qu'on a compris
+               ce qu'on pilote;
+            4. le plan qui encaisse la vraie vie — la garantie;
+            5. le prix.
+            Avant, l'objectif ouvrait et la charge mentale venait après: on
+            vendait le réglage avant l'appareil. */}
+        <Mental />
+        <Composed />
         <Goal />
-        <Week />
         <Moves />
         <Start />
       </main>
 
       <PublicFooter />
+
+      {/* LE GESTE, À PORTÉE SUR TÉLÉPHONE — voir `ui/StickyCta.tsx`.
+          ⚠️ APRÈS `PublicFooter`, ET C'EST MESURÉ. Posé avant, sa réserve de
+          hauteur s'insérait ENTRE le contenu et le pied de page: le pied
+          descendait de 80 px et la barre, elle, continuait de recouvrir ses
+          deux dernières lignes en bas de course — « Contact » et les mentions
+          légales. La réserve ne protège que ce qui la SUIT. */}
+      <StickyCta label={t("mealprep.cta")} />
     </div>
   );
 }
@@ -244,16 +286,109 @@ function readServingDemands(direction: string): Record<Axis, Demand | null> {
 
 // Les clés sont écrites EN TOUTES LETTRES, jamais construites par gabarit: une
 // clé bâtie en `${}` compile et ne prouve plus rien, et le grep « quelles clés
-// cette page consomme » ne la trouve pas. Les six identifiants sont ceux de
-// `MEMBER_GOALS`, dans l'ordre du CHECK `student_goals_goal_check`.
+// cette page consomme » ne la trouve pas.
+// ⚠️ TROIS, ET PLUS SIX, DEPUIS LE 2026-09-01. `MEMBER_GOALS = GOAL_TOKENS`
+// (`household_portions.ts:106`) ne porte plus que `fat_loss`, `maintenance` et
+// `muscle_gain`: les quatre nuances ont été retirées le 2026-08-18 et repliées
+// (`RETIRED_GOAL_TOKENS`). La page en proposait encore six — donc trois choix
+// que le moteur ne sait plus produire, avec une consigne de service inventée
+// pour chacun. Le test de parité ne l'a pas vu: il n'itère que sur les clés
+// de `SERVING_DIRECTION`, qui en a trois.
 const GOALS = [
   { id: "fat_loss", name: "mealprep.goal.fat_loss", direction: "mealprep.dir.fat_loss" },
   { id: "muscle_gain", name: "mealprep.goal.muscle_gain", direction: "mealprep.dir.muscle_gain" },
-  { id: "recomposition", name: "mealprep.goal.recomposition", direction: "mealprep.dir.recomposition" },
-  { id: "performance", name: "mealprep.goal.performance", direction: "mealprep.dir.performance" },
-  { id: "health", name: "mealprep.goal.health", direction: "mealprep.dir.health" },
   { id: "maintenance", name: "mealprep.goal.maintenance", direction: "mealprep.dir.maintenance" },
 ] as const satisfies ReadonlyArray<{ id: string; name: MessageKey; direction: MessageKey }>;
+
+/**
+ * LES QUATRE CRANS D'ACTIVITÉ, dans l'ordre du moteur.
+ *
+ * ⚠️ ON ITÈRE `ACTIVITY_LEVELS`, on ne recopie pas la liste: un cinquième cran
+ * ajouté au moteur doit faire échouer la compilation ici, pas passer inaperçu.
+ * Le `Record` typé sur `ActivityLevel` est ce qui le garantit.
+ */
+const ACTIVITY_LABEL: Record<ActivityLevel, MessageKey> = {
+  sedentary: "mealprep.activity.sedentary",
+  on_feet: "mealprep.activity.on_feet",
+  trains_some: "mealprep.activity.trains_some",
+  trains_hard: "mealprep.activity.trains_hard",
+};
+
+/** Le poids de départ de la démonstration. Un nombre rond, jamais une mesure. */
+/* ⚠️ LES BORNES ET `demoRange` SONT EXPORTÉES POUR ÊTRE TESTÉES, pas pour être
+   réutilisées ailleurs. `mealPrepEnergyDemo.int.test.ts` les compare à
+   `maintenanceRange` du moteur: sans l'export, le test devrait recopier
+   l'arithmétique, c'est-à-dire vérifier une copie contre une autre copie. */
+const DEMO_WEIGHT_KG = 72;
+export const DEMO_WEIGHT_MIN = 45;
+export const DEMO_WEIGHT_MAX = 130;
+
+/**
+ * LA FOURCHETTE DU JOUR — CALCULÉE PAR LE MOTEUR, PAS PAR CETTE PAGE.
+ *
+ * ⚠️ CETTE FONCTION NE FAIT AUCUNE ARITHMÉTIQUE D'ÉNERGIE. Elle appelle
+ * `maintenanceRange` puis `directedRange`, tous deux purs et importés tels
+ * quels. Le décalage, son arrondi à 50, le refus quand la borne basse passerait
+ * sous le plancher: tout ça est le code du moteur, exécuté ici. Une seconde
+ * implémentation dans une page de vente, c'est une divergence programmée — ce
+ * dépôt l'a déjà payée sur les consignes de service.
+ *
+ * ── LES TROIS ENTRÉES, ET D'OÙ ELLES VIENNENT ─────────────────────────────
+ * Le poids et le cran d'activité sont réglés par le lecteur. Le troisième est
+ * l'ÉCART QUOTIDIEN, et c'est le seul endroit où la démonstration doit poser
+ * une hypothèse — parce que dans le produit il vient du RYTHME que la personne
+ * choisit, et qu'une page de vente n'a pas de rythme à demander.
+ *
+ * ⚠️ L'HYPOTHÈSE EST NOMMÉE, ET ELLE EST CELLE DU MOTEUR: on montre l'écart le
+ * PLUS GRAND que la composition accepte d'exécuter, c'est-à-dire le plafond de
+ * `executedPaceFor` — `MAX_DAILY_DEFICIT_KCAL` (500 kcal/j, non débrayable) sur
+ * une perte, `MAX_SURPLUS_FRACTION` (+10 %, dérivé d'`ENERGY_BANDS.muscle_gain`)
+ * sur une prise. Ce ne sont pas des nombres inventés pour la vitrine: ce sont
+ * les bornes qui mordent vraiment. La copie le dit — « au rythme le plus rapide
+ * que Sophia accepte », et on peut toujours aller plus doucement.
+ *
+ * ⛔ ON N'APPELLE PAS `executedPaceFor` LUI-MÊME, et c'est un arbitrage. Il a
+ * besoin d'`estimatedMaintenanceFor`, c'est-à-dire du métabolisme de base
+ * calculé sur le sexe, l'âge et la taille — les trois entrées que cette page
+ * n'a pas et ne demandera pas. On applique donc ses PLAFONDS au milieu de la
+ * fourchette affichée, qui estime la même chose à partir de ce que la page sait
+ * vraiment. L'écart entre les deux estimations est plus petit que la largeur de
+ * la fourchette, ce qui est précisément pourquoi elle est large.
+ */
+export function demoTarget(
+  weightKg: number,
+  activity: ActivityLevel | null,
+  goalId: GoalToken,
+): EnergyTarget {
+  const maintenance = maintenanceRange({
+    weightKg,
+    weightWeekStart: null,
+    activityLevel: activity,
+  });
+  const direction = scaleDirectionOf(goalId);
+  // `null` = le plancher le plus prudent des trois (`other`, 1 350 kcal). La
+  // page ne demande pas le sexe, et deviner celui d'un visiteur pour desserrer
+  // un plancher de sécurité serait le geste inverse de ce que ce plancher est.
+  const energyFloorKcal = energyFloorFor(null);
+
+  let dailyDeltaKcal = 0;
+  if (maintenance.range !== null && direction !== null) {
+    const mid = (maintenance.range.low + maintenance.range.high) / 2;
+    dailyDeltaKcal = direction === "up"
+      ? mid * MAX_SURPLUS_FRACTION
+      // Sur une perte, deux plafonds, et c'est le plus protecteur qui gagne —
+      // même règle que `executedPaceFor`.
+      : Math.max(0, Math.min(MAX_DAILY_DEFICIT_KCAL, mid - energyFloorKcal));
+  }
+
+  return directedRange({
+    maintenance,
+    direction,
+    dailyDeltaKcal,
+    energyFloorKcal,
+    cancelled: null,
+  });
+}
 
 const AXIS_LABEL: Record<Axis, MessageKey> = {
   protein: "mealprep.axis.protein",
@@ -303,6 +438,34 @@ function ServingDemo() {
   const goal = GOALS.find((g) => g.id === goalId) ?? GOALS[0];
   const demands = readServingDemands(en[goal.direction]);
 
+  // LE POIDS ET L'ACTIVITÉ règlent la fourchette d'entretien; l'OBJECTIF la
+  // déplace. Les trois entrent dans `demoTarget`, qui appelle le moteur.
+  const [weightKg, setWeightKg] = React.useState<number>(DEMO_WEIGHT_KG);
+  const [activity, setActivity] = React.useState<ActivityLevel>("on_feet");
+  const target = demoTarget(weightKg, activity, goal.id);
+  const range = target.range;
+
+  /**
+   * ⚠️ LA PORTE « J'AI 18 ANS OU PLUS » A ÉTÉ RETIRÉE LE 2026-09-01, SUR
+   * DÉCISION DU PROPRIÉTAIRE, ET IL FAUT LIRE CE QU'ELLE FAISAIT AVANT DE LA
+   * REMETTRE OU DE LA REGRETTER.
+   *
+   * Elle ne protégeait rien: c'était du code client, personne ne vérifiait
+   * l'âge de qui cliquait. Son travail était de faire dire à la PAGE la même
+   * chose qu'au PRODUIT — `_shared/keel/energy_gate.ts` ferme le chiffre par sa
+   * porte ② pour un mineur et pour tout âge inconnu.
+   *
+   * Ce qui reste, et qui porte maintenant seul cette honnêteté: la RÉSERVE
+   * (`mealprep.energy.reserve`), qui dit que dans l'application le chiffre est
+   * éteint par défaut et reste fermé tant que la date de naissance est
+   * inconnue. ⛔ NE PAS LA RETIRER pour alléger: sans la porte, elle est le
+   * seul endroit où la page ne promet pas un écran que le produit refusera.
+   *
+   * ⚠️ `docs/keel/LEGAL.md` §6.4 bis porte la trace de cette décision et son
+   * point ouvert (CAP Code §13, Royaume-Uni). Le retrait de la porte ne le
+   * ferme pas — il l'agrandit.
+   */
+
   return (
     <div className="mt-10 overflow-hidden rounded-fiche border border-line-strong bg-paper">
       {/* De VRAIS boutons radio: le clavier (flèches), l'état coché et son
@@ -310,7 +473,14 @@ function ServingDemo() {
           n'est jamais seule à dire lequel est courant — la fiche en dessous le
           nomme, et le lecteur d'écran l'entend du groupe lui-même. */}
       <fieldset className="p-5 sm:p-8">
-        <legend className="eq text-label font-semibold uppercase text-ink-soft">{t("mealprep.demo.legend")}</legend>
+        {/* ⚠️ `float-left w-full` N'EST PAS DE LA MISE EN PAGE, C'EST UN CORRECTIF.
+            Un `<legend>` est positionne NATIVEMENT a cheval sur la bordure du
+            `<fieldset>`: le `p-5`/`sm:p-8` du cadre ne s'y applique pas, et
+            l'equerre se retrouvait collee au filet du haut (mesure). Le flotter
+            en pleine largeur le remet dans le flux normal — et garde la
+            semantique fieldset/legend, qui est ce qui fait annoncer le groupe
+            par un lecteur d'ecran. */}
+        <legend className="eq float-left w-full text-label font-semibold uppercase text-ink-soft">{t("mealprep.demo.legend")}</legend>
         <div className="mt-4 flex flex-wrap gap-2">
           {GOALS.map((g) => (
             <label key={g.id} className="cursor-pointer">
@@ -329,6 +499,55 @@ function ServingDemo() {
                   marque (`paper` sur `fig-700`, 9,98:1). */}
               <span className="block rounded-full border border-line-strong px-3 py-1.5 text-sm hover:bg-fig-50 peer-checked:border-fig-700 peer-checked:bg-fig-700 peer-checked:text-paper peer-focus-visible:outline-2 peer-focus-visible:outline-offset-3 peer-focus-visible:outline-fig-600 motion-safe:transition-colors">
                 {t(g.name)}
+              </span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      {/* LE POIDS ET LES JOURNÉES — les deux SEULES entrées de la fourchette.
+          ⚠️ Elles sont ici et pas dans un formulaire caché parce que le panneau
+          « Hypothèses » plus bas promet de dire d'où vient le chiffre: un calcul
+          dont on ne voit pas les entrées n'est pas expliqué, il est affirmé. */}
+      <fieldset className="border-t border-line p-5 sm:p-8">
+        <legend className="eq float-left w-full text-label font-semibold uppercase text-ink-soft">{t("mealprep.demo.body_legend")}</legend>
+        <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-3">
+          {/* ⚠️ `w-full sm:w-auto sm:flex-1` ET PAS `flex-1` SEUL: un enfant de
+              flex a `min-width: auto`, donc un curseur `flex-1` refuse de
+              descendre sous sa largeur intrinsèque et fait défiler la page à
+              320 px. Cicatrice mesurée de ce dépôt. */}
+          <input
+            type="range"
+            aria-label={t("mealprep.demo.body_legend")}
+            min={DEMO_WEIGHT_MIN}
+            max={DEMO_WEIGHT_MAX}
+            step={1}
+            value={weightKg}
+            onChange={(e) => setWeightKg(Number(e.target.value))}
+            className="w-full min-w-0 accent-fig-700 sm:w-auto sm:flex-1"
+          />
+          <output className="whitespace-nowrap text-sm font-medium text-ink">
+            {t("mealprep.demo.weight_value", { kg: String(weightKg) })}
+          </output>
+        </div>
+      </fieldset>
+
+      <fieldset className="border-t border-line p-5 sm:p-8">
+        <legend className="eq float-left w-full text-label font-semibold uppercase text-ink-soft">{t("mealprep.demo.activity_legend")}</legend>
+        {/* ⚠️ ON ITÈRE `ACTIVITY_LEVELS` DU MOTEUR, pas une liste locale: quatre
+            crans ici et cinq là-bas est le genre d'écart que personne ne voit. */}
+        <div className="mt-4 flex flex-wrap gap-2">
+          {ACTIVITY_LEVELS.map((level) => (
+            <label key={level} className="cursor-pointer">
+              <input
+                type="radio"
+                name="mealprep-activity"
+                className="peer sr-only"
+                checked={level === activity}
+                onChange={() => setActivity(level)}
+              />
+              <span className="block rounded-full border border-line-strong px-3 py-1.5 text-sm hover:bg-fig-50 peer-checked:border-fig-700 peer-checked:bg-fig-700 peer-checked:text-paper peer-focus-visible:outline-2 peer-focus-visible:outline-offset-3 peer-focus-visible:outline-fig-600 motion-safe:transition-colors">
+                {t(ACTIVITY_LABEL[level])}
               </span>
             </label>
           ))}
@@ -358,6 +577,82 @@ function ServingDemo() {
           ))}
         </dl>
       </div>
+
+      {/* ══ LA FOURCHETTE DU JOUR ═══════════════════════════════════════════
+          ⚠️ DERRIÈRE UN GESTE, ET LE POURQUOI EST DANS `adultConfirmed`.
+          Avant le geste, la démonstration tourne entièrement — la consigne de
+          service, les trois axes, le poids, les journées. C'est le NOMBRE, et
+          lui seul, qui attend: c'est exactement le périmètre de la porte ② du
+          moteur, qui « ferme le CHIFFRE et ne ferme RIEN d'autre — le plan
+          sort, la conversation continue ». */}
+      <div className="border-t border-line p-5 sm:p-8">
+        <p className="text-label font-semibold uppercase text-ink-soft">{t("mealprep.energy.label")}</p>
+
+        <div role="status" aria-live="polite">
+          {/* ⛔ UNE FOURCHETTE, JAMAIS UN POINT. Ne pas rendre la moyenne, ne
+              pas ajouter de barre, ne pas colorer: « aucun reste, aucun
+              verdict » sont deux des trois interdits du module d'énergie, et ce
+              sont des arguments de vente. */}
+          {/* ⚠️ LE NOMBRE ET SA BASE SONT LE MÊME MESSAGE, et la clé est nommée
+              par la base — la règle d'`energyBasis.int.test.ts`. Conséquence
+              assumée sur la typographie: la ligne n'est plus un `text-4xl` nu,
+              parce qu'un chiffre géant suivi d'une phrase minuscule est
+              exactement la hiérarchie qui invite à retirer la phrase. */}
+          <p className="mt-3 max-w-[24ch] font-display text-title leading-[1.15] text-ink">
+            {range === null
+              ? t("mealprep.energy.no_range")
+              : target.direction === null
+              ? t("mealprep.energy.range_weight", { low: formatNumber(range.low), high: formatNumber(range.high) })
+              : t("mealprep.energy.range_directed", { low: formatNumber(range.low), high: formatNumber(range.high) })}
+          </p>
+
+          {/* CE QUE L'OBJECTIF A FAIT À LA FOURCHETTE — et quand il n'a rien
+              fait, POURQUOI. `directionGap` est nommé par le moteur, jamais
+              déduit ici: `below_energy_floor` veut dire que le déficit aurait
+              poussé la borne basse sous le plancher de ce corps, et le moteur
+              REFUSE plutôt que de raboter. C'est un argument, pas une panne. */}
+          <p className="mt-3 max-w-[52ch] text-[15px] leading-6 text-ink-soft">
+            {/* ⚠️ « L'OBJECTIF A ÉTÉ DEMANDÉ MAIS N'A RIEN DÉPLACÉ » SE LIT SUR
+                DEUX MOTIFS DIFFÉRENTS DU MOTEUR, et il faut les traiter
+                ENSEMBLE — mesuré par le test à 45 kg. Selon l'ordre des
+                garde-fous de `directedRange`, un corps déjà proche de son
+                plancher rend soit `below_energy_floor` (le décalage aurait
+                percé le plancher), soit `no_pace` (l'écart exécutable est déjà
+                tombé à zéro AVANT d'être décalé). Les deux disent la même chose
+                au lecteur, et `keep()` remet `direction` à `null` dans les deux
+                cas: on compare donc la direction DEMANDÉE à celle qui est
+                sortie. Ne pas tester `directionGap` seul — ça laisse le cas
+                `no_pace` tomber dans la phrase neutre, qui ne dit rien à
+                quelqu'un qui vient de choisir « perdre du gras ». */}
+            {scaleDirectionOf(goal.id) !== null && target.direction === null
+              ? t("mealprep.energy.floor_held")
+              : target.direction === "down"
+              ? t("mealprep.energy.moved_down")
+              : target.direction === "up"
+              ? t("mealprep.energy.moved_up")
+              : t("mealprep.energy.basis")}
+          </p>
+
+          {/* ⚠️ LE PANNEAU « D'OÙ VIENT CE CHIFFRE » ET LA RÉSERVE ONT ÉTÉ
+              RETIRÉS LE 2026-09-01, sur décision du propriétaire, en même temps
+              que la porte 18+. Six clés sont parties avec eux.
+
+              ⛔ CE QUI A ÉTÉ SAUVÉ, ET POURQUOI IL NE DOIT PAS PARTIR AUSSI:
+              l'HYPOTHÈSE DE RYTHME est repliée dans la ligne au-dessus
+              (`moved_down` / `moved_up`). Un chiffre montré sans son hypothèse
+              est un chiffre faux — celui-ci est l'écart le PLUS RAPIDE que la
+              composition accepte d'exécuter, pas l'écart moyen, et le lecteur
+              doit pouvoir le savoir sans ouvrir quoi que ce soit.
+
+              ⚠️ CE QUI EST PERDU, ÉCRIT ICI POUR QUE PERSONNE NE LE REDÉCOUVRE:
+              la page ne dit plus que le produit garde ce chiffre ÉTEINT PAR
+              DÉFAUT et FERMÉ tant que la date de naissance est inconnue
+              (`energy_gate.ts`, porte ②, 91 % de la base). Quelqu'un qui
+              s'inscrit après avoir vu cette fourchette peut donc ne jamais la
+              retrouver dans l'application. C'est un écart page/produit assumé,
+              pas un oubli. */}
+        </div>
+      </div>
     </div>
   );
 }
@@ -373,68 +668,162 @@ function ServingDemo() {
  * Elle porte le seul `h1`, la démonstration, et la RÉSERVE sombre — dans cet
  * ordre, parce que la peur du compteur arrive juste après le choix d'objectif.
  */
-function Goal() {
+/**
+ * BANDE 2 — « Est-ce que je mange bien ? »
+ *
+ * ⚠️ BANDE NEUVE (2026-09-01). C'est la deuxième raison d'achat du segment, et
+ * la page ne la disait NULLE PART: elle vendait l'organisation (bande 1) et le
+ * pilotage (bande 3), en sautant la question qui est entre les deux.
+ *
+ * ⛔ ELLE PROMET LA COMPOSITION, JAMAIS LE RÉSULTAT. Pas de « tous les
+ * apports », pas de « à coup sûr », aucun taux de couverture, aucun bilan. Deux
+ * raisons qui se cumulent, et il faut les deux: `LEGAL.md` §6.1 interdit la
+ * promesse de résultat, et `coverage` compte les aliments CONNUS et pas les
+ * PESÉS (69 % contre 96 % mesurés) — un taux affiché serait faux en plus d'être
+ * interdit.
+ *
+ * ⛔ PAS DE FIGURE. Ce qu'il y aurait à dessiner — une part plus grande pour
+ * l'un que pour l'autre — est très exactement « une proportion que le produit
+ * ne calcule pas pour l'écran » (charte §5). La démonstration de la bande 3 le
+ * montre déjà, avec les vraies entrées.
+ */
+function Composed() {
   return (
-    <Band>
-      {/* fact: C13 — onboarding.ts:88 `FunnelBranch` (branche `solo`) */}
-      <Kicker>{t("mealprep.plate.kicker")}</Kicker>
-      <div className="mt-5 grid gap-8 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-16">
-        {/* Le seul h1 de la page. Young Serif n'a qu'une graisse: la hiérarchie
-            se fait à la taille et à l'espace, jamais au gras. */}
-        <h1 className="max-w-[15ch] text-balance font-display text-hero">{t("mealprep.plate.title")}</h1>
-        <div className="lg:border-l lg:border-line lg:pl-10">
-          {/* fact: C4 — household_portions.ts:125 (six directions) · C14:
-              l'objectif est posé à l'entrée (onboarding.ts:97-103 et :211-290) */}
-          <p className="max-w-[62ch] text-lede text-ink-soft">{t("mealprep.plate.lede")}</p>
-          {/* CTA unique de la page, répété une fois en clôture et jamais mis en
-              concurrence avec une seconde offre.
-              fact: §10 — `/start` est la seule porte d'inscription libre */}
-          <p className="mt-6"><ButtonLink to="/start" variant="brand">{t("mealprep.cta")}</ButtonLink></p>
-          {/* fact: C1 — 20260810260000_household_billable_profiles.sql:235-250 */}
-          <p className="mt-4 max-w-[52ch] text-sm text-ink-soft">{t("mealprep.plate.price_note")}</p>
-          {/* fact: §10 — `/start` interroge `keel_free_signup_available`: la porte est
-              fermée tant que le programme du coach maison n'est pas publié. */}
-          <p className="mt-2 max-w-[52ch] text-[13px] leading-5 text-ink-soft">{t("mealprep.plate.reserve")}</p>
+    <Band tone="bg-paper-2">
+      <Kicker>{t("mealprep.composed.kicker")}</Kicker>
+      <SectionTitle>{t("mealprep.composed.title")}</SectionTitle>
+      <div className="mt-8 grid gap-6 sm:mt-10 lg:grid-cols-2 lg:gap-16">
+        {/* fact: la part est composée sur le corps ET l'activité de la personne
+            qui la mange — `household_portions.ts` (l'enveloppe par bouche) et
+            `ACTIVITY_KCAL_PER_KG` (quatre crans, 26 à 36 kcal/kg). */}
+        <div className="min-w-0">
+          {/* L'ÉQUILIBRE D'ABORD — c'est l'argument principal de la bande, et
+              il porte sur la PRÉSENCE des trois composantes.
+              fact: `SERVING_DIRECTION` / `readServingDemands`
+              (`household_portions.ts`): la direction règle la PART de chaque
+              composante, jamais son existence. */}
+          <p className="max-w-[62ch] text-[15px] leading-7 text-ink-soft">{t("mealprep.composed.body")}</p>
+          {/* Puis la TAILLE — l'autre chose que le moteur compose vraiment. */}
+          <p className="mt-4 max-w-[62ch] text-[15px] leading-7 text-ink-soft">{t("mealprep.composed.body_size")}</p>
         </div>
-      </div>
-
-      <ServingDemo />
-      {/* La réserve de la démonstration: ni écran, ni grammes.
-          fact: FF-043 §11 n°1 — les grammes sont calculés, aucun écran ne les rend */}
-      <p className="mt-6 max-w-[62ch] text-ink-soft">{t("mealprep.demo.note")}</p>
-
-      {/* LE BLOC SOMBRE — un seul par page, et il est dépensé ICI, sur la bande
-          qui vient de demander un objectif. Le lecteur a déjà désinstallé un
-          compteur; c'est le moment où il se demande s'il en retrouve un. */}
-      <div className="on-dark mt-10 rounded-fiche bg-fig-950 p-5 text-paper sm:mt-12 sm:p-8">
-        <Kicker onDark>{t("mealprep.quiet.kicker")}</Kicker>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2 sm:gap-10">
-          {/* fact: C15 — components/plan/EnergyReadout.tsx:42-45 + 20260812230000:60 (défaut
-              false) · energy_gate.ts:228-249 (la chaîne de gardes) */}
-          <p className="max-w-[62ch]">{t("mealprep.quiet.numbers")}</p>
-          {/* fact: S9 — l'évaluateur d'adhérence est déprogrammé en 1:N (20260803200000) */}
-          <p className="max-w-[62ch]">{t("mealprep.quiet.ranking")}</p>
+        <div className="min-w-0">
+          <p className="max-w-[62ch] text-[15px] leading-7 text-ink-soft">{t("mealprep.composed.body_2")}</p>
+          {/* La réserve EST l'argument: aucun bilan rendu. Elle se pose sous le
+              claim qu'elle borne, jamais en pied de bande. */}
+          <p className="mt-5 max-w-[62ch] border-t border-line pt-5 text-[15px] leading-7 text-ink">
+            {t("mealprep.composed.note")}
+          </p>
         </div>
       </div>
     </Band>
   );
 }
 
-/**
- * BANDE 2 — « Décider coûte plus cher que cuisiner. »
- *
- * Les sessions de cuisine ET les vagues de courses sont UN SEUL argument: on
- * décide moins. Les deux figures existaient déjà et sont bonnes; ce qui a
- * changé, c'est qu'elles ne portent plus deux sections mais deux moitiés d'une
- * même phrase.
- */
-function Week() {
+function Goal() {
   return (
-    <Band tone="bg-paper-2">
+    <Band>
+      {/* fact: C13 — onboarding.ts:88 `FunnelBranch` (branche `solo`) */}
+      <Kicker>{t("mealprep.plate.kicker")}</Kicker>
+      {/* ⚠️ CE N'EST PLUS LE HÉROS DEPUIS LE 2026-09-01, ET C'EST TOUT LE LOT.
+          L'objectif ouvrait la page; il est descendu en TROISIÈME position, sur
+          l'ordre d'achat du segment: on achète d'abord la fin de la charge
+          mentale (bande 1), puis la certitude que ce qu'on mange est composé
+          pour soi (bande 2), et seulement ensuite le pilotage par l'objectif.
+          Vendre le pilotage à quelqu'un qui n'a pas encore vu à quoi on le
+          soulage, c'est vendre un réglage avant l'appareil.
+          Conséquences: plus de `<h1>` ici (il vit dans `Mental`), et le CTA ne
+          se répète plus dans cette bande — il est en haut et en bas de page. */}
+      <SectionTitle>{t("mealprep.plate.title")}</SectionTitle>
+      {/* fact: C4 — household_portions.ts (les directions de service) · C14:
+          l'objectif est posé à l'entrée (onboarding.ts) */}
+      <p className="mt-5 max-w-[62ch] text-lede text-ink-soft">{t("mealprep.plate.lede")}</p>
+
+      <ServingDemo />
+
+      {/* ══ L'ENCART SOMBRE — CE QUE L'OBJECTIF FAIT VRAIMENT ════════════════
+          ⚠️ LE SEUL BLOC SOMBRE DE LA PAGE. La charte en autorise UN par page;
+          celui-ci le consomme, et il n'y en aura pas d'autre.
+          ⛔ AUCUN LIEN, AUCUN BOUTON À L'INTÉRIEUR: `fig-600` tombe à 2,3:1 sur
+          `on-dark`. Le geste est en haut et en bas de page.
+
+          Il porte les deux faits que la démonstration ne peut pas montrer, et
+          il les porte au mot près:
+
+          1. LE RENVERSEMENT DU 2026-08-18 (`CALORIE_REVERSAL` §7, exécuté par
+             `household_portions.ts`): « la cible contraint les GRAMMAGES, pas
+             le choix des plats ». C'est la moitié qui rassure — on ne se
+             retrouve pas avec une liste d'aliments de régime.
+          2. LE REPAS NON CUISINÉ. Il s'ajoute en photo ou en le décrivant, et
+             il entre dans le JOURNAL (`protocol_events`).
+
+          ⛔ ET CE QU'IL NE DIT PAS, QUI EST LA MOITIÉ QUI COMPTE: que la photo
+          donne des calories. Interdit sans négociation par `LEGAL.md` §6.4 —
+          biais mesuré de −26,6 % sur une photo nue, et du côté flatteur — et
+          structurellement impossible: `api/mealPhoto.ts` ne déclare AUCUN champ
+          numérique, il rend une bande de portion. */}
+      <section className="on-dark mt-12 rounded-fiche bg-fig-950 p-6 sm:mt-14 sm:p-10">
+        <Kicker onDark>{t("mealprep.drive.kicker")}</Kicker>
+        <h3 className="mt-4 max-w-[24ch] font-display text-sub leading-[1.2] text-paper">
+          {t("mealprep.drive.title")}
+        </h3>
+        <div className="mt-6 grid gap-6 lg:grid-cols-2 lg:gap-14">
+          {/* fact: `CALORIE_REVERSAL` §7 — la cible contraint les grammages. */}
+          <p className="max-w-[52ch] text-[15px] leading-7 text-fig-300">{t("mealprep.drive.grams")}</p>
+          {/* fact: `protocol_events` — trois chemins d'entrée écrivent le même
+              journal. ⛔ Aucune calorie ne sort d'une photo. */}
+          <p className="max-w-[52ch] text-[15px] leading-7 text-fig-300">{t("mealprep.drive.logged")}</p>
+        </div>
+      </section>
+
+      {/* ⚠️ LE BLOC « CE QUE TU NE TROUVERAS PAS ICI » A ÉTÉ RETIRÉ LE
+          2026-09-01, et il ne se remet pas. Il vendait « les chiffres sont
+          éteints par défaut » comme une VALEUR — c'est-à-dire la position que
+          `docs/keel/CALORIE_REVERSAL.md` a RENVERSÉE le 2026-08-06: le produit
+          ne refuse plus le chiffre, il refuse le chiffre NU, celui qui voyage
+          sans dire s'il est un calcul (2,3 % d'erreur) ou une estimation photo
+          (−26,6 % de biais). Le code applique encore l'interdiction totale, et
+          c'est volontaire — mais une page de vente ne doit pas faire un
+          argument d'un état transitoire qu'on a décidé de quitter.
+          L'en-tête du hall porte déjà l'interdit: jamais « pas de calories ».
+          ⚠️ La page n'a donc plus de bloc sombre. La charte en autorise UN par
+          page, elle n'en exige aucun. */}
+    </Band>
+  );
+}
+
+/**
+ * BANDE 1, LE HÉROS — « Décider coûte plus cher que cuisiner. »
+ *
+ * ⚠️ CETTE BANDE ÉTAIT LA DEUXIÈME JUSQU'AU 2026-09-01. Elle monte parce que
+ * c'est la douleur n°1 du segment: la charge mentale de l'arbitrage quotidien,
+ * courses comprises. Le propriétaire a posé l'ordre d'achat réel, et il ne
+ * commence pas par l'objectif — il commence par ce dont on veut être débarrassé.
+ *
+ * Elle contenait déjà les deux moitiés de la promesse (la cuisson ET les
+ * courses) et ses deux figures sont bonnes: rien n'a été redessiné, la bande a
+ * gagné un `<h1>`, un chapô, le geste et l'offre.
+ */
+function Mental() {
+  return (
+    <Band>
       <Kicker>{t("mealprep.week.kicker")}</Kicker>
-      {/* fact: C3 — meal_generation.ts:522 `interface CookingSession` */}
-      <SectionTitle>{t("mealprep.week.title")}</SectionTitle>
-      <div className="mt-8 grid gap-6 sm:mt-10 lg:grid-cols-2 lg:gap-10">
+      <div className="mt-3 grid gap-8 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-16">
+        {/* Le seul h1 de la page. Young Serif n'a qu'une graisse: la hiérarchie
+            se fait à la taille et à l'espace, jamais au gras.
+            ⚠️ CE TITRE EST RECOPIÉ MOT POUR MOT SUR LA PORTE DU HALL
+            (`home.door.solo.label`). Une porte qui promet un autre titre que
+            celui de la page derrière ne s'ouvre pas deux fois. */}
+        <h1 className="max-w-[15ch] text-balance font-display text-hero">{t("mealprep.week.title")}</h1>
+        <div className="lg:border-l lg:border-line lg:pl-10">
+          <p className="max-w-[62ch] text-lede text-ink-soft">{t("mealprep.mental.lede")}</p>
+          {/* CTA unique de la page, répété une fois en clôture et jamais mis en
+              concurrence avec une seconde offre.
+              fact: §10 — `/start` est la seule porte d'inscription libre */}
+          <p className="mt-6"><ButtonLink to="/start" variant="brand">{t("mealprep.cta")}</ButtonLink></p>
+          <OfferLines audience="solo" className="mt-4" />
+        </div>
+      </div>
+      <div className="mt-10 grid gap-6 sm:mt-12 lg:grid-cols-2 lg:gap-10">
         <Plate figure={<SessionFigure />}>
           {/* fact: C3 — meal_generation.ts:522 · CookingSessions.tsx:48 */}
           <p className="max-w-[62ch]">{t("mealprep.week.body")}</p>
@@ -442,30 +831,46 @@ function Week() {
         <Plate figure={<WavesFigure />}>
           {/* fact: C5 — meal_generation.ts:730, grocery_waves.ts:211 (MAX_FRIDGE_DAYS = 3) */}
           <p className="max-w-[62ch]">{t("mealprep.week.waves")}</p>
-          {/* La réserve honnête de C5, écrite plutôt que tue: le front MASQUE
-              les vagues quand il n'y en a qu'une (ShoppingListPanel.tsx:128).
-              Promettre « des vagues » à qui n'en verra qu'une ment pour rien. */}
-          <p className="mt-4 max-w-[62ch] text-ink-soft">{t("mealprep.week.reserve")}</p>
         </Plate>
       </div>
     </Band>
   );
 }
 
-/** BANDE 3 — « Un imprévu, et toute la semaine tombe. » */
+/** BANDE 4 — « Un imprévu, et toute la semaine tombe. » */
 function Moves() {
   return (
-    <Band>
+    <Band tone="bg-paper-2">
       <Kicker>{t("mealprep.moves.kicker")}</Kicker>
       {/* fact: C7 — accident.ts:995-1004 `REALIGNMENT_ACTIONS` */}
       <SectionTitle>{t("mealprep.moves.title")}</SectionTitle>
       <div className="mt-8 sm:mt-10">
-        <Plate figure={<MovesFigure />}>
+        <Plate
+          figure={
+            <AccidentsFigure
+              idPrefix="mp-f3"
+              label={t("mealprep.fig.moves.label")}
+              title={t("mealprep.fig.moves.title")}
+              desc={t("mealprep.fig.moves.desc")}
+              mealLabel={t("mealprep.fig.moves.dish")}
+              sessionLabel={t("mealprep.fig.moves.session")}
+              shoppingLabel={t("mealprep.fig.moves.shopping")}
+            />
+          }
+        >
+          {/* DEUX COLONNES, ET LES DEUX TEXTES SONT ÉQUILIBRÉS EXPRÈS.
+              `mealprep.moves.note` (« aucun plat de remplacement n'est choisi à
+              votre place ») a été retirée le 2026-09-01, et la colonne qu'elle
+              laissait vide a été reprise par la SECONDE MOITIÉ de l'argument:
+              à gauche les accidents qui touchent un repas ou une cuisson, à
+              droite celui qui menace la semaine entière.
+              ⚠️ Les deux clés sont de longueur voisine, et doivent le rester —
+              c'est ce qui fait tenir la grille.
+              fact: C7 — `REALIGNMENT_ACTIONS` (accident.ts) + les boutons
+              déterministes du chat. */}
           <div className="grid gap-6 sm:grid-cols-2 sm:gap-12">
-            {/* fact: C7 — accident.ts:995-1004 + chat/deterministic_buttons.ts */}
             <p className="max-w-[62ch]">{t("mealprep.moves.body")}</p>
-            {/* fact: §5.1 — accident.ts:52-55 « aucune fonction d'ici ne choisit un plat » */}
-            <p className="max-w-[62ch] text-ink-soft">{t("mealprep.moves.note")}</p>
+            <p className="max-w-[62ch]">{t("mealprep.moves.body_2")}</p>
           </div>
         </Plate>
       </div>
@@ -473,15 +878,11 @@ function Moves() {
   );
 }
 
-/** BANDE 4 — le prix, et la seule porte. */
+/** BANDE 5 — le prix, et la seule porte. */
 function Start() {
   // Les quatre clés restent LITTÉRALES: écrites en gabarit, un grep « quelles
-  // clés cette page consomme » ne les trouve plus, et le jour où l'une bouge
-  // c'est le rendu qui échoue, pas la compilation.
-  const asks = [t("mealprep.start.ask_name"), t("mealprep.start.ask_birthdate"),
-    t("mealprep.start.ask_goal"), t("mealprep.start.ask_allergies")];
   return (
-    <Band tone="bg-paper-2">
+    <Band>
       <Kicker>{t("mealprep.start.kicker")}</Kicker>
       {/* fact: C1 — 20260810260000_household_billable_profiles.sql:235-250 */}
       <SectionTitle>{t("mealprep.start.title")}</SectionTitle>
@@ -507,19 +908,19 @@ function Start() {
           {/* fact: PIVOT-FOYER §5 + C1 — le maître n'est jamais compté */}
           <p className="max-w-[62ch]">{t("mealprep.start.body")}</p>
 
-          {/* LA FICHE VIERGE — ce qu'on demande à l'entrée, et rien de plus.
-              Aucune durée annoncée: rien ne la mesure dans le dépôt (C14, D5),
-              et « 90 secondes » serait un chiffre sans source. Des libellés en
-              lecture, jamais un formulaire: le compte se crée sur `/start`. */}
-          <div className="mt-8 rounded-fiche border border-line bg-paper p-5 sm:p-6">
-            <p className="eq text-label font-semibold uppercase text-ink-soft">{t("mealprep.start.asks_label")}</p>
-            {/* fact: C14 — onboarding.ts:97-103 et :211-290 */}
-            <ul className="mt-4">
-              {asks.map((ask) => (
-                <li key={ask} className="border-t border-line py-3 text-sm first:border-t-0 first:pt-0">{ask}</li>
-              ))}
-            </ul>
-          </div>
+          {/* ⚠️ LA FICHE « CE QU'ON TE DEMANDE » A ÉTÉ RETIRÉE LE 2026-09-01,
+              AVEC SES CINQ CLÉS (`asks_label`, `ask_name`, `ask_birthdate`,
+              `ask_goal`, `ask_allergies`). Elle annonçait QUATRE champs; le
+              parcours réel en pose treize avant le premier plan en solo, vingt-
+              deux à deux, trente-huit pour une famille de quatre — compté sur
+              les questions `weight: "wrong"` de `api/onboarding.ts`, celles qui
+              rendraient le plan FAUX si elles manquaient. Sous-annoncer
+              l'effort ne réduit pas l'abandon: il le déplace au milieu du
+              formulaire, là où le lecteur a déjà payé de son temps.
+              La décision du propriétaire (2026-09-01) est de ne PAS chiffrer
+              l'effort d'entrée sur les pages de vente — donc on ne le corrige
+              pas, on ne le dit plus. La place revient à l'offre. */}
+          <OfferLines audience="solo" className="mt-8" />
 
           {/* fact: §10 — `/start` interroge `keel_free_signup_available`: aucune
               entrée n'est promise comme immédiate, et le libellé ne chiffre rien */}
@@ -554,14 +955,6 @@ function Start() {
 /** L'équerre et le libellé de la figure, même géométrie pour les trois.
  *  Elle n'encadre pas, elle OUVRE — et elle ne flotte jamais seule: il y a
  *  toujours un mot à sa droite. Une équerre sans libellé est un défaut. */
-function FigureHead({ label }: { label: string }) {
-  return (
-    <>
-      <path d="M 8 32 L 8 16 A 8 8 0 0 1 16 8 L 32 8" fill="none" stroke="var(--ill-fig, #632C4C)" strokeWidth="2" strokeLinecap="round" />
-      <text x="44" y="26" fontSize="11" fontWeight="600" letterSpacing="1.2" fill="var(--ill-ink-soft, #6A5A64)">{label}</text>
-    </>
-  );
-}
 
 /**
  * FIGURE 1 — une session de cuisine, et les repas qu'elle couvre.
@@ -684,64 +1077,12 @@ function WavesFigure() {
  * geste et qui part avec sa session au deuxième. Au troisième, il n'est pas
  * là — et c'est le MOT qui porte l'absence, pas une couleur (F10).
  */
-function MovesFigure() {
-  const soft = "var(--ill-ink-soft, #6A5A64)";
-  const cards: Array<{ x: number; label: string; kind: "dish" | "session" | "none" }> = [
-    { x: 24, label: t("mealprep.fig.moves.dish"), kind: "dish" },
-    { x: 176, label: t("mealprep.fig.moves.session"), kind: "session" },
-    { x: 328, label: t("mealprep.fig.moves.tonight"), kind: "none" },
-  ];
-  return (
-    <svg viewBox="0 0 480 240" role="img" aria-labelledby="mp-f3-t mp-f3-d" className="mx-auto block w-full max-w-[560px]">
-      <title id="mp-f3-t">{t("mealprep.fig.moves.title")}</title>
-      <desc id="mp-f3-d">{t("mealprep.fig.moves.desc")}</desc>
-      <defs>
-        <g id="mp-dish"><rect x="0" y="0" width="32" height="20" rx="4" fill="var(--ill-wash, #EFE0E9)" stroke="var(--ill-fig, #632C4C)" strokeWidth="2" /></g>
-      </defs>
+/* ⚠️ `MovesFigure` ET `wrapLabel` ONT DÉMÉNAGÉ LE 2026-09-01 vers
+   `components/ui/AccidentsFigure.tsx`, et `FigureHead` avec eux. Ce qu'ils
+   dessinent — les trois accidents de `FF-057` — n'appartient à aucune page:
+   `/couples` montre exactement les mêmes. Chaque page garde ses CLÉS i18n et
+   les passe en props. Voir l'en-tête du fichier partagé pour l'arbitrage
+   contre la charte §6. */
 
-      <FigureHead label={t("mealprep.fig.moves.label")} />
-
-      {cards.map((card) => (
-        <g key={card.x} fill="none" stroke={soft} strokeWidth="1">
-          <rect x={card.x} y="52" width="128" height="128" rx="12" fill="var(--ill-paper, #FBF8FA)" />
-          {card.kind === "none"
-            ? (
-              // UN SEUL SOIR, et rien dedans. La carte n'a pas de destination
-              // parce que rien ne se déplace: c'est la STRUCTURE qui porte le
-              // geste, le mot en dessous le nomme, la couleur ne le porte pas.
-              <>
-                <rect x={card.x + 40} y="72" width="48" height="76" rx="4" />
-                <rect x={card.x + 48} y="100" width="32" height="20" rx="4" />
-              </>
-            )
-            : (
-              // DEUX SOIRS: celui qu'on quitte, celui où l'on va. Sans la case
-              // d'arrivée, la flèche pointait hors de la carte, vers rien.
-              <>
-                <rect x={card.x + 12} y="72" width="48" height="76" rx="4" />
-                <rect x={card.x + 68} y="72" width="48" height="76" rx="4" />
-                {card.kind === "session"
-                  ? (
-                    <>
-                      <rect x={card.x + 16} y="92" width="40" height="36" rx="4" />
-                      <rect x={card.x + 72} y="92" width="40" height="36" rx="4" />
-                    </>
-                  )
-                  : <rect x={card.x + 76} y="100" width="32" height="20" rx="4" />}
-                <use href="#mp-dish" x={card.x + 20} y="100" />
-                {/* La flèche est DESSINÉE et non tapée: U+2192 n'a de glyphe
-                    dans aucune des deux familles de la marque (CHARTE §3). */}
-                <g strokeLinecap="round" strokeLinejoin="round">
-                  <path d={`M ${card.x + 40} 164 L ${card.x + 88} 164`} />
-                  <path d={`M ${card.x + 83} 160 L ${card.x + 88} 164 L ${card.x + 83} 168`} />
-                </g>
-              </>
-            )}
-          <text x={card.x + 64} y="206" textAnchor="middle" stroke="none" fontSize="9" fontWeight="600" letterSpacing="1" fill={soft}>{card.label}</text>
-        </g>
-      ))}
-    </svg>
-  );
-}
 
 export default MealPrepPage;

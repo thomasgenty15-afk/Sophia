@@ -562,13 +562,28 @@ export const FUNNEL_QUESTIONS: readonly FunnelQuestion[] = Object.freeze([
     scope: "each_member",
   },
   {
-    // ⚠️ LA CLÉ EST `cook_days`, PAS `cooking_days`. Mesuré dans
-    // `readCookingCapacity` des deux générateurs et dans `CookingCapacityCard`.
+    // ══════════════════════════════════════════════════════════════════════
+    // ⛔ RETIRÉ DU PRODUIT LE 2026-09-01 — l'entrée reste, DÉSARMÉE.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // Le champ « les jours où tu cuisines » n'existe plus sur aucun écran.
+    // `weight: "wrong"` retenait l'étape; il passe à `"better"` et `step` à
+    // `null`, donc plus aucune porte ne le réclame.
+    //
+    // ⚠️ L'ENTRÉE N'EST PAS SUPPRIMÉE, et c'est délibéré: le générateur LIT
+    // toujours `practical_constraints.cook_days` (`readCookingCapacity` des
+    // deux lanes). Retirer la ligne ferait disparaître du registre un champ qui
+    // décide encore des plans des comptes d'avant — exactement l'inverse de ce
+    // que ce registre existe pour montrer. Elle est écrite vide par
+    // `savePlanInputs` et par `savePlanAnswers`.
     id: "cook_days",
     consumer: "supabase/functions/generate-meal-v1/index.ts#cook_days",
-    weight: "wrong",
-    branches: ALL_BRANCHES,
-    step: "request",
+    weight: "better",
+    // ⚠️ `NEVER`, ET LE TEST DU CATALOGUE L'EXIGE: une question `better` ne
+    // vit sur AUCUNE branche, sinon `funnelSteps` la rendrait — c'est-à-dire
+    // afficherait un champ qui n'existe plus.
+    branches: NEVER,
+    step: null,
     scope: "household",
   },
   {
@@ -880,6 +895,88 @@ export const HOUSEHOLD_MAX_MOUTHS = 8;
  * la BASE qui refuse la neuvième bouche (`household_full`), pas cette
  * projection — une limite d'UI n'est pas une limite.
  */
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * COMBIEN DE BOUCHES LA PERSONNE A DÉCLARÉ NOURRIR — LE FAIT, PAS LA DEDUCTION
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ⛔ CE LECTEUR EXISTE PARCE QUE LA BRANCHE NE PEUT PLUS SE DEVINER. Jusqu'au
+ * 2026-09-01 elle se lisait `Math.max(2, household.members.length)`: un foyer
+ * en base répondait « au moins deux », et le solo se reconnaissait à son
+ * ABSENCE de foyer. Ça tenait tant que le solo n'avait pas de ligne membre.
+ *
+ * Il en a une désormais, et il en a besoin: ses dégoûts
+ * (`household_food_restrictions`) et ses habitudes
+ * (`household_member_habits`) sont clés sur `member_id`. Sans ligne, la fiche
+ * de préférences lui cachait deux sections — c'est-à-dire que le produit
+ * n'était pas le même selon le chemin d'entrée.
+ *
+ * ⚠️ LE REPLI EST L'ANCIENNE RÈGLE, MOT POUR MOT, ET IL N'EST PAS FACULTATIF.
+ * Aucune ligne d'avant ce lot ne porte la clé; les lire à leur nombre de
+ * membres ferait basculer en « solo » toute famille dont les bouches n'ont pas
+ * encore été saisies — c'est-à-dire au moment précis où elle en a le plus
+ * besoin. Le repli ne disparaîtra que le jour où la population entière porte
+ * la clé, et ce jour se mesure, il ne se décrète pas.
+ */
+export function declaredHouseholdSize(
+  pc: Record<string, unknown> | null | undefined,
+): number | null {
+  const raw = (pc ?? {})["household_size"];
+  const n = typeof raw === "number" ? raw : Number.NaN;
+  // ⛔ ON N'ACCEPTE QUE CE QUI EST UTILISABLE. `0`, un négatif ou un flottant
+  // ne sont pas des réponses: ils retombent sur le repli, qui est l'ancienne
+  // règle. Un `Number("2")` complaisant ferait entrer une chaîne écrite à la
+  // main par une session de debug dans la branche d'un vrai compte.
+  if (!Number.isInteger(n) || n < 1) return null;
+  return n;
+}
+
+/**
+ * COMBIEN DE BOUCHES L'ENTONNOIR CROIT QUE CETTE PERSONNE NOURRIT.
+ *
+ * `null` = on ne sait pas encore, et l'étape 1 le demande.
+ *
+ * ── LES QUATRE CAS, ET LE TROISIÈME EST CELUI DU LOT ─────────────────────
+ *   ① pas de foyer, pas de ligne d'objectif ⇒ `null` — rien n'a commencé.
+ *   ② pas de foyer mais une ligne d'objectif ⇒ `1`. C'est TOUTE la population
+ *     d'avant le 2026-09-01 qui a répondu « juste moi »: elle n'a pas de ligne
+ *     membre, et elle garde sa branche.
+ *   ③ un foyer, et un nombre DÉCLARÉ ⇒ ce nombre, `1` compris. C'est ce qui
+ *     rend le solo exprimable maintenant qu'il a un foyer d'une bouche.
+ *   ④ un foyer sans nombre déclaré ⇒ `max(2, membres)`, l'ancienne règle.
+ *
+ * ⛔ ④ N'EST PAS DE LA DETTE, C'EST LA GARDE DE COMPATIBILITÉ. Aucune ligne
+ * d'avant ce lot ne porte `household_size`; les lire à leur nombre de membres
+ * ferait basculer en « solo » toute famille dont les bouches ne sont pas
+ * encore saisies — c'est-à-dire au moment précis où elle a besoin de l'écran
+ * qui les demande. Le repli ne se retire que le jour où la population entière
+ * porte la clé, et ce jour se MESURE.
+ *
+ * ⚠️ ET POUR UN SECONDAIRE, LA RÉPONSE EST 1, quel que soit le nombre de
+ * bouches autour de la table. Ce n'est pas une erreur de comptage: la question
+ * de l'étape 1 est « combien de personnes est-ce que TU nourris », et il n'en
+ * nourrit aucune — il ne compose ni n'ajoute personne (`not_owner` aux quatre
+ * gestes). Son entonnoir est celui d'une personne seule, et son plan est
+ * personnel.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function funnelMouths(input: {
+  hasHousehold: boolean;
+  isOwner: boolean;
+  /** Toutes les bouches du foyer, MOI COMPRIS. */
+  memberCount: number;
+  /** `practical_constraints.household_size`, ou `null`. */
+  declared: number | null;
+  /** Une ligne `student_goals` existe-t-elle ? */
+  hasGoalRow: boolean;
+}): number | null {
+  if (input.hasHousehold && input.isOwner) {
+    return input.declared ?? Math.max(2, input.memberCount);
+  }
+  return input.hasHousehold || input.hasGoalRow ? 1 : null;
+}
+
 export function branchForMouths(mouths: number | null): FunnelBranch | null {
   if (mouths === null || !Number.isFinite(mouths) || mouths < 1) return null;
   if (mouths === 1) return "solo";
@@ -899,6 +996,19 @@ function minimumOthers(branch: FunnelBranch): number {
   if (branch === "solo") return 0;
   if (branch === "pair") return 1;
   return 2;
+}
+
+/**
+ * COMBIEN D'AUTRES PERSONNES CETTE BRANCHE PEUT CONTENIR.
+ *
+ * Le couple signifie deux personnes au total, pas « au moins deux ». Sans ce
+ * plafond, son formulaire restait ouvert après le conjoint et permettait de
+ * fabriquer une famille tout en gardant la branche couple.
+ */
+export function maximumOthers(branch: FunnelBranch): number {
+  if (branch === "solo") return 0;
+  if (branch === "pair") return 1;
+  return HOUSEHOLD_MAX_MOUTHS - 1;
 }
 
 /**
@@ -1121,9 +1231,9 @@ function canGenerateMisses(
   // ── ÉTAPE 2b, LES AUTRES ───────────────────────────────────────────────
   if (branch !== "solo") {
     if (state.others.length < minimumOthers(branch)) missing.push("missing_mouths");
-    // MOI COMPRIS dans le plafond: la base compte les BOUCHES, et ma ligne en
-    // est une (`keel_household_create` l'insère).
-    if (state.others.length + 1 > HOUSEHOLD_MAX_MOUTHS) missing.push("too_many_mouths");
+    // Le plafond suit aussi LA BRANCHE: un couple a exactement une autre
+    // personne. La limite absolue de huit reste celle de la famille.
+    if (state.others.length > maximumOthers(branch)) missing.push("too_many_mouths");
     for (const person of state.others) {
       missing.push(
         ...personMisses(
@@ -1150,7 +1260,12 @@ function canGenerateMisses(
   // « ce qu'elle mange déjà » qu'ils dimensionnent — et rien coché veut dire
   // « aux moments de la maison », qui est une réponse par défaut sûre. Retenir
   // quelqu'un dessus faisait un mur sur une question qui a un repli.
-  if (state.plan.cookDays.length === 0) missing.push("cook_days");
+  // ⛔ `cook_days` NE RETIENT PLUS RIEN, ET IL LE FAUT: le champ a été retiré
+  // des deux écrans le 2026-09-01. Laisser la porte armée aurait bloqué
+  // l'entonnoir POUR TOUJOURS — une exigence sur une réponse que plus aucun
+  // écran ne permet de donner. C'est le mode d'échec le plus cher de cette
+  // liste, et il est muet: `nextIncomplete` renverrait indéfiniment à l'étape
+  // « demande » devant un formulaire complet.
   if (
     state.plan.cookingTimeMin === null ||
     !Number.isFinite(state.plan.cookingTimeMin) ||
@@ -1535,6 +1650,22 @@ export interface FunnelFacts {
 }
 
 /**
+ * Projette le choix de l'étape 1 pendant la courte fenêtre où le foyer existe
+ * déjà mais où l'objectif — et donc la ligne `student_goals` — n'existe pas
+ * encore. Aucune autre réponse n'est inventée ou remplacée.
+ */
+export function withPendingHouseholdSize(
+  facts: FunnelFacts,
+  mouths: number,
+): FunnelFacts {
+  return {
+    ...facts,
+    branch: branchForMouths(mouths),
+    state: { ...facts.state, mouths },
+  };
+}
+
+/**
  * L'ÉTAT DE L'ENTONNOIR, DÉRIVÉ DES FAITS EN BASE.
  *
  * ── POURQUOI AUCUN DRAPEAU DE PROGRESSION ─────────────────────────────────
@@ -1674,8 +1805,17 @@ export async function readFunnelFacts(userId: string): Promise<FunnelFacts> {
   // et il n'en nourrit aucune — il ne compose ni n'ajoute personne (`not_owner`
   // aux quatre gestes). Son entonnoir est celui d'une personne seule, et son
   // plan est personnel.
-  const declared = household && isOwner ? Math.max(2, household.members.length) : null;
-  const derived = declared ?? (household !== null || goalRow ? 1 : null);
+  // ⛔ LA RÈGLE EST DANS `funnelMouths`, ET PAS ICI. Elle décide la BRANCHE de
+  // tout l'entonnoir; l'écrire en ligne dans une fonction qui fait six appels
+  // réseau la rendait invérifiable — deux mutations l'ont prouvé le
+  // 2026-09-01, aucune n'a fait rougir un seul test.
+  const derived = funnelMouths({
+    hasHousehold: household !== null,
+    isOwner,
+    memberCount: household?.members.length ?? 0,
+    declared: declaredHouseholdSize(pc),
+    hasGoalRow: Boolean(goalRow),
+  });
 
   const state: FunnelState = {
     mouths: derived,
@@ -2380,8 +2520,10 @@ export async function savePlanAnswers(args: {
     userId: args.userId,
     current: args.current,
     patch: {
-      // L'ORDRE DE LA SEMAINE, pas celui des clics.
-      cook_days: DAY_TOKENS.filter((d) => args.answers.cookDays.includes(d)),
+      // ⛔ ÉCRIT VIDE — voir le pavé de `api/planBudget.ts#savePlanInputs`.
+      // Cesser de l'écrire aurait laissé une contrainte qui décide encore des
+      // plans et que plus aucun écran ne peut lever.
+      cook_days: [],
       cooking_time_min: args.answers.cookingTimeMin,
       budget_amount: args.answers.budgetAmount,
     },

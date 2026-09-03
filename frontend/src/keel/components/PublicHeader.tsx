@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { t, type MessageKey } from "../i18n/t";
 import { ButtonLink } from "./ui/Button";
 import { LocaleSwitch } from "./LocaleSwitch";
+import { isProSurfaceHidden } from "../../security/proSurface";
 
 // KEEL — la chrome publique. L'en-tête est la porte d'entrée du produit:
 // le mot de la marque, le monde qu'on lit, les portes de ce monde, et un geste.
@@ -76,7 +77,7 @@ type Door = { to: string; label: MessageKey };
 // (c'est `?role=coach` qui fait ça, et il n'a pas bougé), et son absence reste
 // un état valide: tous les liens `/auth` déjà en circulation marchent comme
 // avant.
-const WORLDS = [
+const ALL_WORLDS = [
   {
     /** Le hall. `/` est B2C depuis la refonte du 2026-08-12. */
     hub: "/",
@@ -105,7 +106,21 @@ const WORLDS = [
   },
 ] as const;
 
-/** Toutes les portes, les deux mondes confondus — pour le plan du site en pied. */
+// ── LANCEMENT B2C — UN SEUL MONDE, ET C'EST LE SEUL GESTE À FAIRE ──────────
+//
+// `VITE_B2C_ONLY` (voir `security/proSurface.ts`). Retirer le monde pro D'ICI,
+// et pas ailleurs, est le point du fichier: `ALL_DOORS` (le plan du site en
+// pied de page), `WorldTabs` (l'interrupteur des mondes), la sous-navigation
+// des portes et le CTA sont tous DÉRIVÉS de ce tableau. Une seule ligne éteint
+// les quatre — il n'y a aucune copie à chasser, et donc aucune à oublier.
+//
+// `worldOf()` ne résout plus `/pro` ni ses trois portes: leurs routes sont
+// démontées dans `App.tsx`, elles n'atteignent plus cet en-tête.
+const WORLDS = isProSurfaceHidden()
+  ? ALL_WORLDS.filter((world) => world.hub !== "/pro")
+  : [...ALL_WORLDS];
+
+/** Toutes les portes, les mondes ouverts confondus — pour le plan du site en pied. */
 const ALL_DOORS: Door[] = WORLDS.flatMap((world) => [...world.doors]);
 
 /**
@@ -167,6 +182,16 @@ export function PublicHeader({
   // « courant » resterait celui de l'arrivée pour toute la session.
   const { pathname } = useLocation();
   const showWorlds = audience === "coach";
+  // ── UN SEUL MONDE N'EST PAS UN CHOIX ─────────────────────────────────────
+  // Sous `VITE_B2C_ONLY`, `WORLDS` ne contient plus que le foyer. L'onglet
+  // resterait rendu — seul, toujours actif, ne menant qu'à la page qu'on lit
+  // déjà: un interrupteur à une position, c'est-à-dire un élément d'interface
+  // qui promet un ailleurs qui n'existe plus. Il disparaît.
+  // ⚠️ SÉPARÉ DE `showWorlds`, ET C'EST LE POINT: `showWorlds` gate AUSSI les
+  // portes et le GESTE du monde courant. Les confondre retirerait « Commencer »
+  // de toutes les pages de vente — le bouton d'inscription du foyer, sur le
+  // lancement dont c'est précisément le produit.
+  const showWorldTabs = showWorlds && WORLDS.length > 1;
   const current = worldOf(pathname);
   // Sur une page de vente sans monde résolu (cas impossible aujourd'hui, mais
   // une route ajoutée sans entrée ci-dessus le produirait), on retombe sur le
@@ -188,7 +213,7 @@ export function PublicHeader({
               deux onglets réclament 183px et ne tiennent pas à côté de la
               marque. Sous `md` ils occupent la seconde rangée, où il n'y a de
               toute façon aucune porte à leur disputer la place. */}
-          {showWorlds && <WorldTabs world={world} className="ml-4 hidden md:flex" />}
+          {showWorldTabs && <WorldTabs world={world} className="ml-4 hidden md:flex" />}
         </div>
         <nav className="flex shrink-0 items-center gap-2">
           {/* La langue AVANT les gestes commerciaux: un visiteur qui ne lit pas
@@ -293,7 +318,9 @@ export function PublicHeader({
           haut, mondes en bas — c'est-à-dire l'enfant au-dessus du parent. */}
       {showWorlds && (
         <>
-          <WorldTabs world={world} className="mx-auto max-w-6xl px-4 pb-1.5 md:hidden" />
+          {showWorldTabs && (
+            <WorldTabs world={world} className="mx-auto max-w-6xl px-4 pb-1.5 md:hidden" />
+          )}
           <nav
             aria-label={t("public.nav.doors_label")}
             className="mx-auto hidden max-w-6xl items-center gap-1 px-4 pb-1.5 md:flex"
@@ -332,7 +359,7 @@ export function PublicHeader({
  */
 function WorldTabs(
   { world, className = "" }: {
-    world: (typeof WORLDS)[number];
+    world: (typeof ALL_WORLDS)[number];
     className?: string;
   },
 ) {
@@ -376,7 +403,6 @@ export function PublicFooter() {
           <div className="eq font-display text-sm text-ink">
             {t("brand.wordmark")}
           </div>
-          <p className="mt-1 text-sm text-ink-soft">{t("public.footer.tagline")}</p>
         </div>
         <nav className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-ink-soft">
           {/* Les six portes, ici SANS CONDITION d'audience, sans marquage de

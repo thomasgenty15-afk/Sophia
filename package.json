@@ -32,6 +32,6 @@
     "ci:keel": "npm run lint:keel-tokens && npm run lint:i18n && npm run ci:wiring && npm run ci:pixel"
   },
   "devDependencies": {
-    "supabase": "^2.67.1"
+    "supabase": "2.67.1"
   }
 }

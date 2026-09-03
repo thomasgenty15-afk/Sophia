@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Identifiant** | `FF-054-le-retour-de-fin-de-plan` |
-| **Statut** | 🟠 Noyau livré et vert — câblage à faire (§3) |
+| **Statut** | 🟠 Livrée sur ses deux surfaces (écran + conversation), mais **l'ÉMETTEUR de la conversation est à corriger** : il part au message du soir, il doit partir à 22h30 le dernier jour du plan (décision du 2026-09-01, [FF-062](../conversation/FF-062-quand-sophia-parle-la-premiere.md)). Reste aussi le RGPD (§3) |
 | **Date** | 2026-08-11 |
 | **Autorité produit** | [MODEL.md](../../keel/MODEL.md) · [CONTRACT.md](../../keel/CONTRACT.md) · [PLAN-RETOUR-ET-ACTIVITE](../../../scratchpad/PLAN-RETOUR-ET-ACTIVITE.md) |
 | **Dépend de** | `_shared/keel/plan_feedback.ts` (livré) · `meal_plan_window.ts` · `deterministic_buttons.ts` · migration `20260811090000` (appliquée) |
@@ -68,24 +68,74 @@ libellé ne porte un registre de conformité, dans les deux langues.
 - Migration `20260811090000_meal_plan_feedback.sql` — table, `revoke`, RLS en
   lecture seule côté élève, unicité par plan. **Appliquée et ré-appliquée.**
 
+### Livré (2026-08-… ) — L'ÉCRAN
+
+`frontend/src/keel/api/planFeedback.ts` + `components/plan/PlanFeedbackDialog.tsx`,
+ouverts depuis `StudentWeekPlanPage`. Le déclencheur est **paresseux** et
+**jamais bloquant** : `planWindowState === "elapsed"`, non `retired_at`, sans
+ligne de retour. Les trois destinations sont câblées (`cooked` → temps de
+cuisson et difficulté ; `portions` → ré-ancrage de l'enveloppe ;
+`never_again`/`make_again` → `reconcileFoodPreferencesFor`).
+
+### Livré (2026-09-01) — LA CONVERSATION (§3.2)
+
+> ⚠️ **LE VÉHICULE EST À CORRIGER — décision du 2026-09-01, APRÈS le lot.**
+>
+> Ce lot a accroché la première question au **message du soir**
+> (`keel-daily-pulse-v1`, 20h-22h), en remplacement de la bande. C'était le bon
+> arbitrage sous T4 tel qu'il était écrit ce matin-là ; il ne l'est plus.
+>
+> **Le retour de fin de plan part à 22h30, le dernier jour de la fenêtre du
+> plan** — une seule fois, à la fermeture. Deux raisons :
+>
+> 1. un questionnaire de bilan qui arrive à 21h30 se remet à demain, et demain
+>    il entre en concurrence avec le bilan du jour ([FF-061](../suivi-quotidien/FF-061-le-bilan-du-jour.md)) ;
+> 2. T4 a été amendée le même jour ([FF-062](../conversation/FF-062-quand-sophia-parle-la-premiere.md)) :
+>    le budget d'une demande par jour ne s'applique plus aux canaux adossés à un
+>    fait du plan. Le retour n'a donc plus besoin de prendre la place de la
+>    bande — il peut avoir son propre moment.
+>
+> **Ce qui reste juste dans le lot livré** : le vocabulaire de boutons, l'état
+> dérivé de la ligne, l'écriture progressive, le marqueur `answered`, le routage
+> des taps. Seul **l'émetteur** change de moment.
+>
+> 22h30 et pas minuit : « quand la fenêtre s'achève » est une borne de
+> calendrier, pas une heure où l'on pose une question. Et 22h30 est **après** le
+> bilan du jour (20h-22h), donc le dernier soir porte les deux — le bilan ferme
+> la journée, le retour ferme la semaine.
+
+| Morceau | Où |
+|---|---|
+| Le vocabulaire, l'état, le rendu | `_shared/keel/plan_feedback_chat.ts` (PUR) |
+| Les lectures et l'écriture progressive | `_shared/keel/plan_feedback_chat_io.ts` |
+| Le routage des taps | `_shared/chat/plan_feedback_tap.ts` + la 6ᵉ famille (`KEEL_FEEDBACK_`) dans `deterministic_buttons.ts` |
+| L'émission | `keel-daily-pulse-v1` (compteur `feedback_opened`) |
+| Le marqueur `answered` | migration `20260901160000` |
+
+**Une question à la fois, boutons, aucun champ libre.** « Pas maintenant » n'est
+offert que sur la **première** question ⇒ `dismissed_at`, et rien ne revient.
+
+**Ce que la conversation ne pose pas** : « une envie pour la suite ? »
+(`newEnvyIsAsked`) reste à l'écran — elle écrit dans
+`household_envy_submissions`, en **texte libre**, que §3.2 interdit ici.
+
+**Réduction assumée** : un seul plat par question de plat (l'écran en laisse
+cocher plusieurs). Enchaîner « et un autre ? » serait l'interrogatoire que §3.2
+refuse.
+
+**Pourquoi la conversation n'appelle PAS `keel_plan_feedback_submit`** : la RPC
+est gatée sur `auth.uid()`, qui est **NULL en `service_role`** — le chemin
+déterministe du chat y rendrait `not_authenticated` à chaque tap, en silence.
+Elle est aussi `on conflict do nothing`, donc incompatible avec un remplissage
+tap après tap.
+
 ### À câbler
 
-1. **Le déclencheur** — `planWindowState(row, today) === "elapsed"`, non
-   `retired_at`, sans ligne de retour ⇒ `feedbackIsDue`. Deux surfaces, en
-   **paresseux** : à l'ouverture de l'app, et avant la génération suivante.
-   **Pas de cron** (le dépôt a déjà payé « crons KEEL : invoke ≠
-   x-internal-secret, 403 sur chaque envoi »), et **jamais bloquant**.
-2. **Le chat** — via `handleDeterministicButton`
-   (`_shared/chat/deterministic_buttons.ts`). Une question à la fois, boutons,
-   **aucun champ libre** (il inviterait à raconter ce qui a été mangé). Un
-   « pas maintenant » visible dès la première question ⇒ `dismissed_at`.
-3. **Les trois destinations** — c'est ce qui empêche de refaire le point du
-   dimanche, et chacune a un test d'intégration à écrire :
-   - `cooked` → `practical_constraints.cooking_time_min` / `recipe_difficulty`
-   - `portions` → le ré-ancrage de l'enveloppe
-   - `never_again` → `reconcileFoodPreferencesFor` (**pipeline existant**)
-4. **RGPD** — réclamer `meal_plan_feedback` à l'export et à la suppression.
+1. **RGPD** — réclamer `meal_plan_feedback` à l'export et à la suppression.
    Le dépôt a déjà payé « le lifecycle ne réclame pas les tables neuves ».
+2. **Le déclencheur « avant la génération suivante »** — prévu par cette fiche,
+   jamais construit. L'ouverture de l'app et le message du soir le couvrent
+   aujourd'hui.
 
 ### Hors périmètre
 

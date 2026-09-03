@@ -109,7 +109,7 @@ describe("readDishes", () => {
     const [dish] = readDishes([{
       title: "Bowl",
       uses: [
-        { preparation_id: "prep_poulet", servings: 2 },
+        { preparation_id: "prep_poulet", servings: 2, kept: "freezer" },
         { servings: 1 },
         { preparation_id: "prep_riz" },
       ],
@@ -118,10 +118,20 @@ describe("readDishes", () => {
       // ⚠️ `box_id` A QUITTÉ LA REPRISE LE 2026-08-19. Le repas porte sa boîte
       // (`dishes[].box`), plus rien ne la cite: une reprise dit d'où vient le
       // lot, et c'est tout ce qu'elle a jamais eu à dire.
-      { preparation_id: "prep_poulet", servings: 2 },
+      //
+      // ⟳ 2026-09-01 — `kept` L'A REJOINTE, ET CE TEST EST LA GARDE QUI L'A
+      // EXIGÉ. Ce n'est pas une décoration: c'est la CAUSE de l'ouverture de
+      // la fenêtre du cuit, et l'écran s'en sert pour dire « sors-la la
+      // veille ». Une part servie au-delà de trois jours sans ce mot est un
+      // plat qu'on découvre gelé à 19 h.
+      { preparation_id: "prep_poulet", servings: 2, kept: "freezer" },
       // Sans portion nommée, une part: le plat en prélève, la question est
       // combien, et zéro serait un prélèvement qui n'a pas lieu.
-      { preparation_id: "prep_riz", servings: 1 },
+      //
+      // ⚠️ ET SANS `kept`, LE FRIGO: le non-dit est le STRICT, des deux côtés
+      // de la frontière. Un plan écrit avant le champ ne se met pas à annoncer
+      // des décongélations que personne n'a écrites.
+      { preparation_id: "prep_riz", servings: 1, kept: "fridge" },
     ]);
   });
 

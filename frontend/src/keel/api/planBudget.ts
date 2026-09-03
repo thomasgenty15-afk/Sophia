@@ -34,6 +34,7 @@
 
 import { supabase } from "../../lib/supabase";
 import { mergePracticalConstraints } from "./practicalConstraints";
+import type { PracticalConstraints } from "./practicalConstraints";
 
 /**
  * LE PLAFOND DE SAISIE, ET SON AUTORITÉ EST LE SERVEUR.
@@ -131,11 +132,54 @@ export function isUsableBudgetAmount(amount: unknown): amount is number {
  */
 export interface PlanRequestInputs {
   budgetAmount: number | null;
-  cookDays: string[];
   cookingTimeMin: number | null;
 }
 
-export async function readPlanInputs(userId: string): Promise<PlanRequestInputs> {
+/**
+ * CE QUE LA MÊME LECTURE REND EN PLUS — 2026-09-01.
+ *
+ * ⛔ SÉPARÉ DE `PlanRequestInputs`, ET C'EST LA MOITIÉ QUI COMPTE. Les trois
+ * champs du dessus sont ÉCRITS par `savePlanInputs`; l'inventaire de cuisine ne
+ * l'est PAS — il se déclare à l'étape « table » de l'entonnoir
+ * (`KitchenEquipmentCard`), et il est durable. Les fondre dans une seule forme
+ * aurait fait passer, tôt ou tard, un `kitchen_equipment` dans le `patch` de
+ * l'écriture — c'est-à-dire réécrire l'inventaire d'un foyer depuis un
+ * formulaire de plan qui ne l'a jamais demandé.
+ *
+ * ⚠️ C'EST LA MÊME LIGNE DE BASE, PAS UN SECOND ALLER-RETOUR. La colonne est
+ * déjà lue ici; en tirer aussi l'inventaire coûte zéro requête, alors qu'un
+ * lecteur séparé en aurait coûté une par ouverture du formulaire.
+ */
+export interface PlanRequestFacts extends PlanRequestInputs {
+  /**
+   * LA COLONNE, BRUTE — pour ce que l'écran de plan doit LIRE sans l'écrire.
+   *
+   * ⚠️ ELLE EST RENDUE TELLE QUELLE, ET PAS PRÉ-DIGÉRÉE. Deux consommateurs en
+   * ont besoin et ils n'en veulent pas la même chose: la porte de « tout dans
+   * une session » veut l'inventaire PARSÉ (`readKitchenEquipment`), et
+   * `KitchenEquipmentCard` veut la colonne pour PRÉ-COCHER ses pastilles. Poser
+   * ici un champ parsé aurait obligé à en poser un second, brut, à la première
+   * carte montée — c'est-à-dire deux lectures d'une même colonne.
+   *
+   * ⛔ ELLE NE SERT JAMAIS À ÉCRIRE. C'est une photo prise au montage, et
+   * `mergePracticalConstraints` réécrit l'objet EN ENTIER: fusionner sur elle
+   * effacerait tout ce qu'une autre surface a écrit depuis. Cicatrice payée
+   * deux fois, documentée dans `api/kitchenEquipment.ts`.
+   */
+  practicalConstraints: PracticalConstraints;
+  /**
+   * Y A-T-IL UNE LIGNE `student_goals` À METTRE À JOUR ?
+   *
+   * ⚠️ MESURÉ, PAS SUPPOSÉ. `mergePracticalConstraints` refuse un update qui
+   * n'a touché AUCUNE ligne — PostgREST répond 204 sans corps ni erreur, et
+   * l'écran affichait « Enregistré » sur une saisie partie nulle part. Une
+   * carte montée sur cet écran doit pouvoir dire ce qui la lève AVANT le clic,
+   * plutôt que d'échouer après.
+   */
+  hasGoal: boolean;
+}
+
+export async function readPlanInputs(userId: string): Promise<PlanRequestFacts> {
   const { data, error } = await supabase
     .from("student_goals")
     .select("practical_constraints")
@@ -148,8 +192,11 @@ export async function readPlanInputs(userId: string): Promise<PlanRequestInputs>
     budgetAmount: isUsableBudgetAmount(pc.budget_amount)
       ? Number(pc.budget_amount)
       : null,
-    cookDays: Array.isArray(pc.cook_days) ? pc.cook_days.map(String) : [],
     cookingTimeMin: Number.isFinite(time) && time > 0 ? time : null,
+    practicalConstraints: pc as PracticalConstraints,
+    // `data === null` = aucune ligne. `maybeSingle` rend `null` sans erreur, et
+    // c'est le seul endroit où on le sait.
+    hasGoal: data !== null,
   };
 }
 
@@ -175,7 +222,24 @@ export async function savePlanInputs(
     current: (data?.practical_constraints ?? {}) as Record<string, unknown>,
     patch: {
       budget_amount: inputs.budgetAmount,
-      cook_days: inputs.cookDays,
+      // ══════════════════════════════════════════════════════════════════
+      // ⛔ ÉCRIT VIDE, ET C'EST LA MOITIÉ DE LA SUPPRESSION.
+      // ══════════════════════════════════════════════════════════════════
+      //
+      // Le champ « les jours où tu cuisines » a été retiré des deux écrans le
+      // 2026-09-01. Cesser simplement de l'écrire aurait laissé, sur tous les
+      // comptes qui avaient répondu, une valeur qui CONTINUE de décider leurs
+      // plans (`cookDayLines`, `addedCookDays`, `daysOutOfBatchReach` la lisent
+      // en base) et que plus aucun écran ne peut changer. C'est la pire forme
+      // de la cicatrice « port à null = champ incollectable »: pas un champ
+      // qu'on ne peut plus remplir, une contrainte qu'on ne peut plus lever.
+      //
+      // ⚠️ `[]` ET « CLÉ ABSENTE » SONT ÉQUIVALENTS ICI, contrairement à
+      // `kitchen_equipment`: `capacity.cookDays` retombe sur `[]` dans les deux
+      // cas, et `cookDayLines` sort sur `declared.length === 0`. Il n'y a donc
+      // pas de troisième valeur à préserver — écrire `[]` DIT ce que l'absence
+      // dirait, à un endroit où on peut le lire.
+      cook_days: [],
       cooking_time_min: inputs.cookingTimeMin,
     },
     source: "planInputs",

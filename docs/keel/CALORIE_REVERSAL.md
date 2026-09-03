@@ -4,9 +4,13 @@
 chiffre **nu**. Contrat : [CONTRACT.md](CONTRACT.md) amendement non-input #4. Marketing :
 [LEGAL.md](LEGAL.md) §6.4. Mesure : [PHOTO_QUANTIFICATION.md](PHOTO_QUANTIFICATION.md).
 
-Ce document liste ce qu'il reste à écrire, dans l'ordre où il faut l'écrire. **Rien de ce qui suit
-n'est fait.** Le code applique encore l'interdiction totale, et c'est volontaire : ouvrir la vanne
-avant que le marqueur existe, c'est livrer exactement le chiffre nu que la décision interdit.
+> ✅ **EXÉCUTÉ LE 2026-09-01.** Les six étapes sont écrites et éprouvées ; l'encadré au-dessus de
+> l'étape 1 dit où vit chaque fait. Ce qui suit reste le document de référence — il porte les
+> mesures, les arbitrages et l'ordre — mais il ne décrit plus du travail à faire.
+
+Ce document liste les étapes dans l'ordre où il fallait les écrire, et **cet ordre n'était pas
+décoratif** : ouvrir la vanne avant que le marqueur existe, c'était livrer exactement le chiffre nu
+que la décision interdit.
 
 ---
 
@@ -72,6 +76,46 @@ une erreur de citation. Ne pas la propager.)
 
 ~~Tant que ces trois réponses ne sont pas écrites, les étapes 1 à 6 restent fermées.~~
 **Écrites le 2026-08-18** (encadré ci-dessus). Les étapes 1 à 6 sont ouvertes.
+
+### ✅ ÉTAPES 1 À 6 — EXÉCUTÉES LE 2026-09-01
+
+> Ce qui suit décrit ce qui a été **fait**, pas ce qui reste à faire. La chaîne complète tient
+> maintenant en quatre faits, et chacun a son épreuve :
+>
+> | # | Le fait | Où |
+> |---|---|---|
+> | ① | la **porte** se lit AVANT le modèle ; fermée, elle retire le champ du prompt | `energy_gate_io.ts::loadEnergyGate` → `analyze-meal-photo-v1` → `energyGateBlock` |
+> | ② | la **ceinture** efface le chiffre à l'ingestion, et l'effacement est COMPTÉ | `parseMealAnalysis(…, energyAllowed)` → `dropped_measurement_fields` |
+> | ③ | la **base** est une propriété de l'ENTRÉE, pas une déclaration du modèle | `parseEnergyEstimate` (dégrade en `photo_estimate` + `issues`) |
+> | ④ | le **rendu** met le chiffre et sa base dans la MÊME phrase | `renderEnergyLine` (serveur) · `photoEnergyLine` + `photo.energy.<basis>` (écran) |
+>
+> **Le déplacement qui n'était pas un rangement.** `canShowEnergy` n'avait qu'un appelant, et la
+> propriété du harnais l'assertait avec ce message : *« every extra caller is another place the
+> four gates can be assembled wrongly »*. Le chemin photo en avait besoin d'un second. La réponse
+> n'a pas été d'élargir la liste à deux fonctions edge : l'**assemblage** est descendu dans
+> `_shared/keel/energy_gate_io.ts`, d'où `canShowEnergy` garde son appelant unique et où les deux
+> lanes lisent la même chose. Une épreuve neuve lit le **corps** de l'assemblage — pas le fichier —
+> et vérifie que les quatre entrées viennent bien de leur source (cicatrice `mouthTargetFactor`).
+>
+> **Ce qui reste interdit, et n'a pas bougé d'un mot :** les MACROS (LEGAL §6.4), le chiffre en
+> PROSE (un `rationale` qui dit « environ 600 kcal » est toujours rédigé), le POURCENTAGE, et
+> l'**agrégation** — le biais de −26,6 % n'est divisé que par 1,04 en cumul hebdomadaire et les
+> deltas sont 2,5× pires que les niveaux, donc `energy_estimate` est persisté pour être **relu**,
+> jamais sommé.
+>
+> `MEAL_ANALYSIS_PROMPT_VERSION` est passée à `meal_analysis.v5`.
+>
+> ⟳ **2026-09-02 — LA BASE `declared_quantities` A SON PREMIER PRODUCTEUR**, et
+> il n'est pas celui que §1 imaginait. Ce n'est pas un chemin qui donne des
+> grammes: c'est FF-062 R11, où la personne CORRIGE le chiffre affiché sous sa
+> photo. La phrase rendue a donc été corrigée avec — « le chiffre que tu m'as
+> donné », plus « d'après les quantités que tu m'as données ».
+>
+> ⚠️ **Et les 2,3 % de MAPE ne se transportent PAS sur ce geste.** Ils ont été
+> mesurés sur des grammes recalculés par une table. Ce que la correction
+> établit avec certitude est que le chiffre ne vient plus d'une photo — donc que
+> le biais de −26,6 % disparaît. C'est suffisant, et c'est tout ce que le code
+> affirme: aucun chiffre de fiabilité n'y est écrit.
 
 ### 1. Le type
 
@@ -204,9 +248,19 @@ vaut « on ne sait pas » ⇒ **pas de chiffre, jamais de repli**.
 ## Ce qui ne change pas
 
 - **Personne n'est noté.** Un chiffre n'est pas une cible, pas un budget, pas un score.
-  `landing.doctrine.rule1_*` tient, et c'est la règle qui empêche ce chiffre de devenir un tracker.
+  ⚠️ **La preuve citée ici est morte** : `landing.doctrine.rule1_*` n'existe plus — tout le
+  namespace `landing.*` est parti de `i18n/en.ts` (vérifié le 2026-09-01, 0 clé). Ce qui tient
+  la règle aujourd'hui n'est pas de la copy, c'est du code : `energy_gate.ts` (quatre portes
+  dans un ordre contractuel), l'absence de tout reste ou solde, et une **fourchette** au lieu
+  d'un point.
 - **La bande de portion survit.** `small | moderate | large | unclear` reste le socle : c'est ce
   que l'élève peut vérifier d'un coup d'œil, et le chiffre ne le remplace pas.
-- **La copy publique reste au conditionnel** tant que la §0 n'est pas tranchée. `landing.` et
+- ~~**La copy publique reste au conditionnel** tant que la §0 n'est pas tranchée. `landing.` et
   `gyms.doctrine.no_calories_*` disent « where a number **does** appear, it is an estimate and it
-  is labelled as one » — vrai que le produit en affiche un ou non, et aucune promesse de source.
+  is labelled as one » — vrai que le produit en affiche un ou non, et aucune promesse de source.~~
+  **RENVERSÉ le 2026-09-01** par [LEGAL.md](LEGAL.md) §6.4 bis : `/meal-prep` affiche une
+  fourchette **calculée**, sans condition d'accès, qui suit l'objectif choisi. Et les deux clés
+  citées n'existent plus — ni `landing.*` (namespace supprimé), ni `gyms.doctrine.no_calories_*`
+  (le bloc « no calories » a été retiré des pages de vente, et `CommunitiesPage.tsx` porte
+  l'interdit de le faire revenir). **Ce qui reste vrai de la ligne, et qui est le seul morceau
+  à garder : tout chiffre porte sa base** — calculé ou estimé, l'interface le dit.

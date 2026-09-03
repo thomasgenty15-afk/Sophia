@@ -40,7 +40,7 @@ const PREPS = [
 describe("la session d'un plat", () => {
   it("relie le plat à la session qui a cuit son lot", () => {
     const found = sessionForDish(
-      { uses: [{ preparation_id: "prep_chicken", servings: 2 }] },
+      { uses: [{ preparation_id: "prep_chicken", servings: 2, kept: "fridge" as const }] },
       SESSIONS,
       PREPS,
     );
@@ -63,7 +63,7 @@ describe("la session d'un plat", () => {
    */
   it("garde l'identifiant qui a fait le lien", () => {
     const found = sessionForDish(
-      { uses: [{ preparation_id: "prep_chilli", servings: 4 }] },
+      { uses: [{ preparation_id: "prep_chilli", servings: 4, kept: "fridge" as const }] },
       SESSIONS,
       PREPS,
     );
@@ -78,7 +78,7 @@ describe("la session d'un plat", () => {
   it("un lot qu'aucune session ne revendique ne fabrique pas de session", () => {
     expect(
       sessionForDish(
-        { uses: [{ preparation_id: "prep_ghost", servings: 1 }] },
+        { uses: [{ preparation_id: "prep_ghost", servings: 1, kept: "fridge" as const }] },
         SESSIONS,
         PREPS,
       ),
@@ -91,8 +91,8 @@ describe("la session d'un plat", () => {
     const found = sessionForDish(
       {
         uses: [
-          { preparation_id: "prep_chilli", servings: 1 },
-          { preparation_id: "prep_rice", servings: 1 },
+          { preparation_id: "prep_chilli", servings: 1, kept: "fridge" as const },
+          { preparation_id: "prep_rice", servings: 1, kept: "fridge" as const },
         ],
       },
       SESSIONS,
@@ -105,7 +105,7 @@ describe("la session d'un plat", () => {
   it("un lot inconnu de la liste des préparations est écarté, pas rendu tel quel", () => {
     // Afficher `prep_veg` sous un plat ne veut rien dire à table.
     const found = sessionForDish(
-      { uses: [{ preparation_id: "prep_chicken", servings: 2 }] },
+      { uses: [{ preparation_id: "prep_chicken", servings: 2, kept: "fridge" as const }] },
       SESSIONS,
       [{ id: "prep_chicken", title: "Roast chicken thighs" }],
     );
@@ -116,8 +116,8 @@ describe("la session d'un plat", () => {
     const found = sessionForDish(
       {
         uses: [
-          { preparation_id: "prep_ghost", servings: 1 },
-          { preparation_id: "prep_rice", servings: 1 },
+          { preparation_id: "prep_ghost", servings: 1, kept: "fridge" as const },
+          { preparation_id: "prep_rice", servings: 1, kept: "fridge" as const },
         ],
       },
       SESSIONS,

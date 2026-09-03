@@ -27,6 +27,8 @@
 
 import { assertEquals } from "jsr:@std/assert@1";
 
+import { UNANSWERED_EXTRAS_SHARE } from "./meal_extras.ts";
+import { MAX_DISH_BUTTONS } from "./plan_feedback_chat.ts";
 import {
   DENSITY_CEILING_DEFAULT,
   DENSITY_CEILING_FAT_LOSS,
@@ -55,12 +57,25 @@ import { PROTEIN_REFERENCE_CEILING_KG_PER_M2 } from "./protein_reference_weight.
 import {
   ANCHOR_FACTOR_MAX,
   ANCHOR_FACTOR_MIN,
-  COMPOSED_DISH_KCAL,
-  COMPOSED_DISH_MEAL_SHARE,
-  MEAL_COMPONENT_KCAL,
+  COMPOSED_DISH_MIN_MEAL_SHARE,
   MEAL_MAX_GRAMS_PER_KG,
   SLOT_DAY_WEIGHT,
 } from "./mouth_anchor.ts";
+import { FIELD_CHANGES_MAX } from "./field_change.ts";
+import {
+  INDEX_MAX,
+  INDEX_MIN,
+  NOTCHES_PER_ANSWER,
+} from "./feedback_index.ts";
+import { MEMO_LINE_MAX_CHARS, MEMO_MAX_LINES } from "./memo.ts";
+import {
+  WEIGH_IN_INTERVAL_DAYS,
+  WEIGH_IN_WINDOW_END_HOUR,
+  WEIGH_IN_WINDOW_START_HOUR,
+} from "./weigh_in.ts";
+import { SLOT_MEAL_GRACE_HOURS } from "./slot_meal_ask.ts";
+import { ENERGY_KCAL_MAX, ENERGY_KCAL_MIN } from "./meal_analysis.ts";
+import { RETAINED_QUOTE_MAX_CHARS } from "./retained_item.ts";
 
 // ── LE PLAFOND DE DENSITÉ (`meal_envelope.ts`) ───────────────────────────────
 // Déplacées par les lots `L38` et `L9bis`. Une densité plafond qui monte
@@ -163,31 +178,58 @@ Deno.test("épinglage — MEAL_MAX_GRAMS_PER_KG vaut 8 g/kg", () => {
   assertEquals(MEAL_MAX_GRAMS_PER_KG, 8);
 });
 
-Deno.test("épinglage — COMPOSED_DISH_MEAL_SHARE vaut 0,42", () => {
-  assertEquals(COMPOSED_DISH_MEAL_SHARE, 0.42);
+Deno.test("épinglage — le repli d'un moment NON RENSEIGNÉ vaut 0,58", () => {
+  // ⟳ 2026-09-01 — TROIS ÉPINGLES ONT DISPARU D'ICI, ET UNE LES REMPLACE.
+  // `COMPOSED_DISH_MEAL_SHARE` (0,42), `COMPOSED_DISH_KCAL` (300) et
+  // `MEAL_COMPONENT_KCAL` (120/120/80) décrivaient un RATIO — « le plat porte
+  // 42 % du repas » — appliqué à la journée entière. Le forfait, lui, est
+  // retranché en valeur absolue et moment par moment; les kcal viennent
+  // désormais de CIQUAL (`meal_extras.ts`), pas d'une table écrite ici.
+  //
+  // ⛔ CE QUI SURVIT EST LA CONVENTION, PAS SA DÉCOMPOSITION. Une fiche muette
+  // ne dit pas « je ne prends rien »: retrancher zéro multiplierait sa cible
+  // par 2,4. `0,58` est le complément exact de l'ancien `0,42`, et c'est ce qui
+  // rend le lot sans régression sur un déjeuner et un dîner.
+  assertEquals(UNANSWERED_EXTRAS_SHARE, 0.58);
+  assertEquals(Number((1 - UNANSWERED_EXTRAS_SHARE).toFixed(2)), 0.42);
 });
 
-Deno.test("épinglage — COMPOSED_DISH_KCAL vaut 300 kcal", () => {
-  assertEquals(COMPOSED_DISH_KCAL, 300);
-});
-
-// ⚠️ CES DEUX-LÀ SONT DES `Record`, PAS DES SCALAIRES. `assertEquals(X, 42)`
-// ne s'y applique pas: on épingle L'OBJET ENTIER, sinon une clé AJOUTÉE
-// passerait sous le radar — et une clé ajoutée à `MEAL_COMPONENT_KCAL` change
-// la part du plat, donc l'assiette.
-Deno.test("épinglage — MEAL_COMPONENT_KCAL, l'objet ENTIER", () => {
-  assertEquals(MEAL_COMPONENT_KCAL, {
-    dessert: 120,
-    cheese: 120,
-    bread: 80,
-  });
+Deno.test("épinglage — le plat garde au moins 30 % de son repas", () => {
+  // ⚠️ BORNE NEUVE, ET ELLE N'EXISTAIT PAS AVANT: l'ancien ratio ne pouvait
+  // pas descendre sous `300/620 = 0,48` par construction. Une somme de
+  // forfaits, si. Cinq extras sur un petit déjeuner laisseraient 49 kcal au
+  // plat — une cuillère servie comme un repas.
+  assertEquals(COMPOSED_DISH_MIN_MEAL_SHARE, 0.30);
 });
 
 Deno.test("épinglage — SLOT_DAY_WEIGHT, l'objet ENTIER", () => {
+  // ⟳ 2026-09-01 — DE TROIS CLÉS À SEPT, ET CET ÉPINGLAGE A FAIT SON TRAVAIL:
+  // il a arrêté le lot et obligé à écrire pourquoi.
+  //
+  // ⛔ CE QUE LES QUATRE CLÉS NEUVES RÉPARENT. Les trois collations et le jeton
+  // legacy `snack` tombaient sur le `?? 0` de `dayCoverageOf`. Zéro n'est pas
+  // neutre: l'énergie d'une habitude composée à l'après-midi entre au
+  // DÉNOMINATEUR du facteur (`day.kcal`) en comptant pour rien au NUMÉRATEUR,
+  // donc `cible × couverture / livré` rétrécit — systématiquement, dans le sens
+  // qui sous-nourrit.
+  //
+  // ⚠️ LA SOMME NE FAIT PLUS 1, ET C'EST SANS CONSÉQUENCE. `dayCoverageOf` rend
+  // `couvert / total` où le total porte sur les moments DÉCLARÉS: un rapport,
+  // jamais une valeur absolue. Une bouche qui ne déclare que les trois repas
+  // n'atteint aucune clé neuve — sa couverture est identique au bit près, et un
+  // test le tient en premier dans `mouth_anchor_test.ts`.
+  //
+  // ⛔ ET `snack` VAUT 0,10 SANS QU'ON PRÉTENDE SAVOIR QUAND. Il arrive de la
+  // base (`MEAL_SLOTS` l'accepte sur un plat), pas du modèle; le mapper sur le
+  // matin ou l'après-midi inventerait une heure que personne n'a écrite.
   assertEquals(SLOT_DAY_WEIGHT, {
     breakfast: 0.25,
+    snack_am: 0.10,
     lunch: 0.40,
+    snack_pm: 0.10,
     dinner: 0.35,
+    before_bed: 0.10,
+    snack: 0.10,
   });
 });
 
@@ -322,4 +364,186 @@ Deno.test("épinglage — ENERGY_BANDS, les SIX nombres, lus sur le disque", asy
     "low=1.05",
     "high=1.10", // muscle_gain — la seule que `MAX_SURPLUS_FRACTION` ancrait
   ]);
+});
+
+Deno.test("épinglage — MAX_DISH_BUTTONS vaut 8", () => {
+  // FF-054 §3.2 — le nombre de plats proposés dans une question de plat du
+  // questionnaire de fin de plan, dans la conversation.
+  //
+  // ⚠️ CE N'EST PAS UNE MESURE, C'EST UN ARBITRAGE, et il coupe la FIN de la
+  // semaine — celle dont on se souvient le mieux. Le monter fait un mur de
+  // boutons dans une bulle; le descendre retire des plats à nommer. Un plan de
+  // sept jours porte cinq à huit plats distincts, donc 8 ne coupe rien dans le
+  // cas nominal — c'est cette phrase-là qui devient fausse si la fenêtre de
+  // plan s'allonge, et c'est pour ça que la valeur est épinglée ici.
+  assertEquals(MAX_DISH_BUTTONS, 8);
+});
+
+Deno.test("épinglage — FIELD_CHANGES_MAX vaut 20", () => {
+  // LOT M5 — le plafond du journal des champs que l'IA a changés
+  // (`field_change.ts`).
+  //
+  // ⚠️ C'EST UN PLAFOND DE CONSERVATION, PAS D'AFFICHAGE, et c'est ce qui le
+  // rend arbitrable ici. Le fil « ce qui vient de changer » (lot M2) est une
+  // VUE: il coupe l'affichage et rien ne se perd. Ce journal-ci JETTE — il est
+  // la seule chose de ce chantier qui grossisse sans que la personne l'ait
+  // demandé, dans une colonne que cinq lecteurs traversent.
+  //
+  // 20: un bilan produit au plus cinq changements, donc quatre bilans
+  // d'affilée entrent entiers. Ce qui tombe est le plus ANCIEN, et ce qui tombe
+  // n'est plus défaisable EN UN CLIC — la personne garde la porte ② du design:
+  // le champ, qu'elle voit et qu'elle édite. Descendre ce nombre retire des
+  // « défaire »; le monter fait un historique dans un profil.
+  assertEquals(FIELD_CHANGES_MAX, 20);
+});
+
+Deno.test("épinglage — l'échelle de l'indice des portions vaut −2 … +2", () => {
+  // LOT M3 — les bornes de la position accumulée (`feedback_index.ts`).
+  //
+  // ⛔ CES NOMBRES NE SONT PAS CHOISIS, ILS SONT DÉRIVÉS, et c'est ce qui rend
+  // la borne défendable. `INDEX_MAX × PORTION_ADJUST_STEP.slight` = 2 × 0,05 =
+  // 0,10 = `PORTION_ADJUST_STEP.clear`: le pire cas que l'enveloppe servait
+  // DÉJÀ avant l'indice. Changer `INDEX_MAX` sans changer le pas déplacerait ce
+  // pire cas au-delà de tout ce que ce produit a servi — et la borne
+  // deviendrait alors FABRIQUÉE, celle que la cicatrice du facteur composé
+  // interdit en toutes lettres.
+  //
+  // ⚠️ `feedback_index_test.ts` prouve l'ÉGALITÉ (`INDEX_MAX × slight ===
+  // clear`); cette ligne-ci épingle les VALEURS. Les deux sont nécessaires:
+  // l'égalité seule resterait vraie si on doublait les deux ensemble, et le
+  // pire cas aurait quand même bougé.
+  assertEquals(INDEX_MIN, -2);
+  assertEquals(INDEX_MAX, 2);
+  // ⚠️ LA TABLE ENTIÈRE, PAS SES PROPRIÉTÉS. Un troisième cran ajouté au socle
+  // doit faire ROUGIR ici — épingler `slight` et `clear` un par un le laisserait
+  // entrer sans que personne ne lui donne sa valeur en crans.
+  assertEquals(NOTCHES_PER_ANSWER, { slight: 1, clear: 2 });
+});
+
+Deno.test("épinglage — une citation tient 280 caractères", () => {
+  // LOT M2 (`retained_item.ts`). C'est le plafond de la phrase de la personne
+  // qui a causé une ligne — *« sans la citation, "Défaire" est un pari »*.
+  //
+  // ⚠️ IL VAUT CELUI DE LA NOTE DE BROUILLON (`DRAFT_NOTE_MAX_CHARS`), et ce
+  // n'est pas un hasard: la plus longue source légitime d'une citation est la
+  // note elle-même, donc elle doit entrer ENTIÈRE. Le descendre ferait tronquer
+  // dans le cas nominal — et une citation tronquée au milieu d'une phrase se
+  // lit comme une citation déformée.
+  //
+  // ⛔ ET UNE CITATION SE TRONQUE, ELLE NE SE RÉSUME PAS: couper garde des mots
+  // exacts, résumer fabriquerait une phrase que la personne n'a jamais écrite.
+  assertEquals(RETAINED_QUOTE_MAX_CHARS, 280);
+});
+
+Deno.test("épinglage — le mémo tient CINQ lignes", () => {
+  // LOT M4 (`memo.ts`). ⚠️ C'EST UN ARBITRAGE, PAS UNE MESURE, et le dire est la
+  // moitié utile: personne n'a mesuré ce que vaut une cinquième consigne.
+  //
+  // Ce qui est VRAI et vérifiable, c'est ce que le nombre FAIT: à la sixième on
+  // REFUSE, donc la personne doit en retirer une. Le monter rendrait ce refus
+  // indolore — donc inutile —, et le mémo redeviendrait le champ texte sans
+  // plafond que ce lot existe pour empêcher. Le descendre à un en ferait une
+  // case, pas un mémo.
+  //
+  // ⛔ ET LE PLAFOND REFUSE, IL NE JETTE PAS. C'est la différence assumée avec
+  // le journal de M5 (`FIELD_CHANGES_MAX`), qui laisse tomber le plus ancien:
+  // perdre une trace coûte un « défaire », perdre une consigne change
+  // l'assiette.
+  assertEquals(MEMO_MAX_LINES, 5);
+
+  // ⚠️ ET LA LONGUEUR D'UNE LIGNE EST CELLE D'UNE CITATION, PAS UN NOMBRE À
+  // ELLE. Une ligne de mémo est de la prose que la personne relit sur sa carte;
+  // plus longue que la note dont elle sort, ce ne serait plus une ligne mais un
+  // paragraphe injecté à chaque plan. L'égalité est épinglée ici parce que les
+  // deux constantes vivent dans deux fichiers: les laisser diverger ferait un
+  // mémo qui accepte ce qu'aucune citation ne peut porter.
+  assertEquals(MEMO_LINE_MAX_CHARS, 280);
+  assertEquals(MEMO_LINE_MAX_CHARS, RETAINED_QUOTE_MAX_CHARS);
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FF-062 — LES DEUX CANAUX NEUFS (lot 6)
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("épinglage — la cadence de pesée: 2 jours, 2 jours, 5 jours", () => {
+  // C2. ⚠️ CE SONT DES ARBITRAGES ADOSSÉS À UNE MESURE, et la mesure est le
+  // BRUIT DE LA BALANCE. Une perte de 0,5 kg/semaine fait 70 g/jour, soit moins
+  // que `WEIGHT_NOISE_KG`: un point quotidien n'ajoute aucun signal, il ajoute
+  // une question. Deux jours donnent 140 g — encore dans le bruit point à
+  // point, mais assez de POINTS pour qu'une tendance existe.
+  //
+  // La prise de masse avance deux à trois fois plus lentement: cinq jours y
+  // produisent le même signal que deux en perte, pour deux fois et demie moins
+  // de questions.
+  //
+  // ⛔ `maintenance` EST À DEUX JOURS COMME LA PERTE, ET CE N'EST PAS UNE
+  // COPIE PARESSEUSE. La bande de maintien se juge sur la DISPERSION, qui a
+  // besoin de points, pas sur une pente — l'espacer la rendrait illisible.
+  //
+  // Les monter, c'est piloter l'enveloppe sur une valeur périmée (le défaut que
+  // ce canal existe pour fermer: six jours sur sept avant lui). Les descendre,
+  // c'est demander son poids tous les jours à quelqu'un qui perd 70 g — la
+  // forme même du tracker que ce produit refuse d'être.
+  //
+  // ⛔ L'OBJET ENTIER, PAS TROIS ACCÈS. Trois `assertEquals` par clé restent
+  // verts le jour où un QUATRIÈME objectif entre dans `GOAL_TOKENS` avec sa
+  // cadence — c'est-à-dire le jour où un chiffre neuf apparaît sans que
+  // personne l'apprenne. La même règle que `SLOT_DAY_WEIGHT` et
+  // `ACTIVITY_FACTORS` plus haut, pour la même raison.
+  assertEquals(WEIGH_IN_INTERVAL_DAYS, {
+    fat_loss: 2,
+    maintenance: 2,
+    muscle_gain: 5,
+  });
+});
+
+Deno.test("épinglage — la fenêtre de pesée est 17h-19h, bornes comprises/exclue", () => {
+  // C2. ⚠️ CES DEUX NOMBRES SONT UNE DÉCISION DE COORDINATION, pas un goût.
+  // §1 de la fiche nomme le défaut qu'ils évitent: deux canaux se coordonnaient
+  // par une convention écrite dans le commentaire d'UN des deux crons, et un
+  // troisième ajouté sans la connaître produisait deux notifications le même
+  // soir.
+  //
+  // 17h-19h ne croise AUCUN autre canal, et c'est vérifiable: C1 tombe à 10h,
+  // 14h et 21h (heures de repas écoulées), C3 tient 20h-22h. Bouger l'une des
+  // deux bornes recouvre un voisin.
+  //
+  // ⛔ ET PAS LE MATIN. Une pesée se fait au lever: une question posée à 8h
+  // arrive AVANT le geste qu'elle demande. 17h attrape le geste du matin.
+  assertEquals(WEIGH_IN_WINDOW_START_HOUR, 17);
+  assertEquals(WEIGH_IN_WINDOW_END_HOUR, 19);
+});
+
+Deno.test("épinglage — la question d'un créneau se rattrape 2 heures, pas plus", () => {
+  // C1. Le balayage est HORAIRE: sans fenêtre de rattrapage, un tick raté — un
+  // déploiement, un 502 de Kong — perdrait le repas définitivement.
+  //
+  // ⚠️ ET PAS QUATRE. À 18h, un déjeuner demandé n'obtient plus un souvenir mais
+  // une reconstitution — et une reconstitution est précisément ce que la photo
+  // et la déclaration existent pour éviter.
+  //
+  // ⛔ DEUX HEURES NE PEUVENT PAS FAIRE SE CHEVAUCHER DEUX CRÉNEAUX aux heures
+  // de repli (10h, 14h, 21h — quatre heures d'écart au minimum). Le monter à
+  // quatre le pourrait, et la décision « le plus récent gagne » deviendrait
+  // alors le chemin nominal au lieu du cas de bord qu'elle est.
+  assertEquals(SLOT_MEAL_GRACE_HOURS, 2);
+});
+
+Deno.test("épinglage — un repas plausible tient entre 1 et 5 000 kcal", () => {
+  // CALORIE_REVERSAL. ⚠️ CE NE SONT PAS UN JUGEMENT SUR UN REPAS: elles
+  // attrapent une faute de frappe et une unité mal lue, rien d'autre —
+  // volontairement larges, comme `WEIGHT_KG_MIN/MAX` le sont pour un corps.
+  //
+  // Elles bornent DEUX chemins, et c'est pour ça qu'elles sont ici plutôt que
+  // recopiées: `parseEnergyEstimate` (ce que le modèle propose) et
+  // `correctEnergy` (ce que la personne tape, FF-062 R11). Deux jeux de bornes
+  // pour la même grandeur divergeraient, et un chiffre accepté d'un côté puis
+  // refusé de l'autre se lit comme une panne.
+  //
+  // ⛔ ET HORS BORNES = REFUSÉ ET NOMMÉ, jamais ramené au bord. Un 50 000
+  // ramené à 5 000 produit une donnée fausse qui a l'air vraie — et sur le
+  // chemin de la correction, elle remplacerait un chiffre qui était au moins
+  // honnête sur son origine.
+  assertEquals(ENERGY_KCAL_MIN, 1);
+  assertEquals(ENERGY_KCAL_MAX, 5000);
 });

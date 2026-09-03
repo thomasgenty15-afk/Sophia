@@ -17,6 +17,18 @@
   `/join-household`, `/auth`): ce ne sont pas des pages de vente, et `/join`
   porte un jeton. `/legal` reste, c'est une crédential qu'un vérificateur
   cherche.
+
+  ⚠️ LANCEMENT B2C — LES QUATRE URL PROFESSIONNELLES SONT RETIRÉES:
+  `/pro`, `/coaches`, `/gyms` et `/communities`. Leurs ROUTES sont démontées
+  dans `App.tsx` sous `VITE_B2C_ONLY` (voir `src/security/proSurface.ts`), et
+  les pages elles-mêmes sont intactes dans le dépôt — le jour où le monde pro
+  rouvre, ce fichier reprend ses quatre entrées.
+
+  ⚠️ CE FICHIER EST STATIQUE ET NE CONNAÎT AUCUN DRAPEAU. Si `VITE_B2C_ONLY`
+  est levé sans que ces quatre lignes soient remises, le sitemap annonce à
+  Google quatre pages que le routeur ne sert plus: quatre 404 déguisées en 200,
+  puisqu'une SPA rend `index.html` sur tout. `NotFoundPage` se déclare
+  `noindex` précisément pour ce cas.
 -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
@@ -39,30 +51,6 @@
   </url>
   <url>
     <loc>https://sophia-coach.ai/families</loc>
-    <lastmod>2026-08-13</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://sophia-coach.ai/pro</loc>
-    <lastmod>2026-08-13</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
-  </url>
-  <url>
-    <loc>https://sophia-coach.ai/coaches</loc>
-    <lastmod>2026-08-13</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://sophia-coach.ai/gyms</loc>
-    <lastmod>2026-08-13</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://sophia-coach.ai/communities</loc>
     <lastmod>2026-08-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>

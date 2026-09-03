@@ -39,6 +39,7 @@
 // n'importe quel refus — jamais comme un succès.
 
 import type { EatingOccasionSlot } from "./mealGeneration";
+import type { HabitSlotWrite } from "./householdHabits";
 import { supabase } from "../../lib/supabase";
 import { mergePracticalConstraints } from "./practicalConstraints";
 import {
@@ -592,26 +593,37 @@ export interface MouthWriters {
   ) => Promise<RpcResult>;
   setHabits: (
     memberId: string,
-    slots: readonly { slot: string; kind: "own_usual"; usual: string }[],
+    slots: readonly HabitSlotWrite[],
     note: string | null,
   ) => Promise<RpcResult>;
   /**
    * LE SHAKER — REQUIS ET NULLABLE, jamais `?`.
    *
-   * `null` veut dire « cette bouche n'a pas de compte », c'est-à-dire « il n'y
-   * a nulle part où porter un apport fixe ». C'est le SEUL état légitime sans
-   * porte, et le pop-up le tient déjà de son côté (`subject.hasAccount` cache
-   * le champ). Un `?` n'aurait fait remonter AUCUN appelant au compilateur, et
-   * le shaker serait resté ce qu'il était: collecté à l'écran, jeté avant la
-   * base. C'est le mode d'échec que ce lot solde — inutile de le rouvrir par
-   * la porte de la signature.
+   * `null` veut dire « il n'y a nulle part où porter un apport fixe pour ce
+   * sujet ». Un `?` n'aurait fait remonter AUCUN appelant au compilateur, et le
+   * shaker serait resté ce qu'il était: collecté à l'écran, jeté avant la base.
    *
-   * ⚠️ ELLE PREND LE SHAKER SEUL, PAS DE `memberId`: `fixed_intakes` est clé
-   * sur `user_id`. C'est à l'appelant de lier le compte (`ownShakerWriter`), et
-   * cette asymétrie avec les six autres portes est exactement la frontière
-   * qu'elle doit rendre visible.
+   * ⟳ ELLE PREND `memberId` DEPUIS LE 2026-09-01, comme les six autres portes.
+   *
+   * ⛔ L'ASYMÉTRIE QU'ELLE PORTAIT EST PÉRIMÉE, et son ancien commentaire
+   * disait le contraire du produit: « `fixed_intakes` est clé sur `user_id`,
+   * c'est à l'appelant de lier le compte ». C'était vrai jusqu'au 2026-08-19 —
+   * depuis, une bouche SANS compte a son propre stock
+   * (`household_members.fixed_intakes`, migration `20260819170000`), et son
+   * écrivain est `addShakerToMemberIntakes`, qui a besoin du `memberId`. Or
+   * celui d'une bouche qu'on AJOUTE n'existe qu'ici, après la marche 1: sans
+   * ce paramètre, l'appelant ne pouvait pas le connaître, et le shaker d'une
+   * personne ajoutée n'avait aucun chemin vers la base.
+   *
+   * ⚠️ LE TITULAIRE IGNORE CE PREMIER ARGUMENT, et c'est correct: son stock
+   * est clé sur `user_id` (`ownShakerWriter`), pas sur sa ligne membre. Les
+   * deux stocks existent, et le LECTEUR du moteur choisit par `userId` —
+   * écrire un compte sur sa ligne membre serait écrire dans une colonne que
+   * personne ne relit.
    */
-  setShaker: ((shaker: ShakerToWrite) => Promise<RpcResult>) | null;
+  setShaker:
+    | ((memberId: string, shaker: ShakerToWrite) => Promise<RpcResult>)
+    | null;
   addAllergy: (memberId: string, label: string) => Promise<RpcResult>;
   addRestriction: (memberId: string, label: string) => Promise<RpcResult>;
   setDiet: (memberId: string, diet: string | null) => Promise<RpcResult>;
@@ -652,7 +664,12 @@ export interface MouthToPersist {
   paceKgPerWeek: number | null;
   /** Ses moments, ou `null` pour « comme la maison ». Voir `setRhythm`. */
   rhythm: readonly EatingOccasionSlot[] | null;
-  habits: readonly { slot: string; kind: "own_usual"; usual: string }[];
+  /**
+   * ⟳ 2026-09-01 — `kind` N'EST PLUS SEULEMENT `own_usual`. Une entrée qui ne
+   * porte QUE des extras (« le plat de la maison, plus du pain ») n'a pas de
+   * prose, et la porte REFUSE un `own_usual` vide. Voir `HabitSlotWrite`.
+   */
+  habits: readonly HabitSlotWrite[];
   /** L'apport fixe déclaré, ou `null` quand la quantité n'est pas connue. */
   shaker: ShakerToWrite | null;
   allergies: readonly string[];
@@ -767,22 +784,26 @@ export async function persistMouth(
   // une quantité connue qu'elle COMPTE (`user_id`, trois nombres lus sur le
   // pot). D'où deux portes, et une seule ligne de garde entre les deux.
   //
-  // ⚠️ `null` DES DEUX CÔTÉS EST LE CAS NOMINAL — une bouche sans compte, sans
-  // shaker. Un shaker SANS PORTE, en revanche, est une erreur de câblage: le
-  // pop-up ne montre le champ qu'à qui a un compte, donc y arriver veut dire
-  // qu'un écran a monté la fenêtre avec `hasAccount: true` et n'a pas branché
-  // la porte. On LÈVE plutôt que de rendre un refus: c'est un défaut de
+  // ⚠️ `null` DES DEUX CÔTÉS EST LE CAS NOMINAL — personne n'a déclaré de
+  // shaker. Un shaker SANS PORTE, en revanche, est une erreur de câblage: la
+  // fenêtre ne montre le bloc que si `shakerPort.kind !== "none"`, donc y
+  // arriver veut dire qu'un écran a montré le champ et n'a pas branché la
+  // porte. On LÈVE plutôt que de rendre un refus: c'est un défaut de
   // programme, pas une réponse à faire lire à quelqu'un — et surtout ce n'est
   // pas un silence, qui est exactement l'état d'avant ce lot.
+  //
+  // ⟳ 2026-09-01 — LES DEUX STOCKS SONT DÉSORMAIS ATTEIGNABLES D'ICI. Le
+  // commentaire disait « le pop-up ne montre le champ qu'à qui a un compte »:
+  // c'est faux depuis que la fiche d'ajout le collecte.
   if (mouth.shaker !== null) {
     if (writers.setShaker === null) {
       throw new Error(
         "[keel/api] persistMouth: a shaker was declared but no `setShaker` " +
-          "door was wired — `fixed_intakes` is keyed on `user_id`, so this " +
-          "mouth needs an account (see `ownShakerWriter`).",
+          "door was wired — wire `ownShakerWriter` for an account, or " +
+          "`addShakerToMemberIntakes` for a mouth without one.",
       );
     }
-    const shaken = await writers.setShaker(mouth.shaker);
+    const shaken = await writers.setShaker(memberId, mouth.shaker);
     if (!shaken.ok) return shaken;
   }
 

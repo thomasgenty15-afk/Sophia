@@ -3,6 +3,11 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import { MouthsStep, SituateStep } from "./SetupPage";
+import {
+  emptyFunnelState,
+  type FunnelFacts,
+  withPendingHouseholdSize,
+} from "../api/onboarding";
 import { emptyMouthDraft } from "../lib/mouthForm";
 import { en } from "../i18n/en";
 import { setChosenUiLocaleForTest } from "../i18n/runtime";
@@ -41,6 +46,36 @@ import { setChosenUiLocaleForTest } from "../i18n/runtime";
 // ===========================================================================
 
 setChosenUiLocaleForTest("en-GB");
+
+describe("le choix d'un compte neuf avant la création de son objectif", () => {
+  const fresh: FunnelFacts = {
+    branch: "pair",
+    state: emptyFunnelState(),
+    mouths: [],
+    householdId: "household-1",
+    ownMemberId: "member-1",
+    isOwner: true,
+    hasPlan: false,
+    practicalConstraints: null,
+    ownEatingSlots: null,
+    ownAway: [],
+  };
+
+  it("garde la famille choisie sans inventer un objectif provisoire", () => {
+    const projected = withPendingHouseholdSize(fresh, 3);
+    expect(projected.branch).toBe("family");
+    expect(projected.state.mouths).toBe(3);
+    expect(projected.state.self.goal).toBeNull();
+    expect(projected.householdId).toBe(fresh.householdId);
+  });
+
+  it("garde le solo choisi avec zéro personne à ajouter", () => {
+    const projected = withPendingHouseholdSize(fresh, 1);
+    expect(projected.branch).toBe("solo");
+    expect(projected.state.mouths).toBe(1);
+    expect(projected.state.others).toEqual([]);
+  });
+});
 
 function situate(patch: {
   hasHousehold: boolean;
@@ -137,6 +172,7 @@ function mouths(patch: {
   return renderToStaticMarkup(
     createElement(MouthsStep, {
       mouths: [],
+      maxOthers: 7,
       draft: { ...emptyMouthDraft(), firstName: patch.firstName ?? "" },
       onDraftChange: () => {},
       onAdd: () => {},
@@ -229,17 +265,39 @@ describe("la fiche d'ajout se replie", () => {
     // bloc l'allure d'une bouche inscrite.
     expect(html).not.toContain(en["setup.people.first_name"]);
     expect(html).not.toContain(en["household.mouth.preferences_open"].replace(/\{who\}/g, en["household.mouth.who_fallback"]));
-    expect(html).not.toContain(en["setup.mouths.new_card_hint"]);
+    // ⟳ 2026-09-01 — LE TROISIÈME MARQUEUR ÉTAIT `new_card_hint`, LA PHRASE
+    // QUI VIENT D'ÊTRE RETIRÉE. Il est remplacé par la direction, qui est un
+    // champ EN FORME DE PERSONNE — donc du même genre que les deux autres, et
+    // c'est ce que ce test compte: ce qui donnait au bloc replié l'allure
+    // d'une bouche inscrite.
+    expect(html).not.toContain(en["setup.mouths.goal"]);
   });
 
-  it("ouverte, elle dit qu'elle n'est encore personne", () => {
+  /**
+   * ⛔ « OUVERTE, ELLE DIT QU'ELLE N'EST ENCORE PERSONNE » A ÉTÉ RETOURNÉ
+   * (2026-09-01), et c'est un renversement assumé, pas un test réparé.
+   *
+   * Il exigeait `setup.mouths.new_card` (« Une fiche vide ») et
+   * `new_card_hint` (« … il n'y a rien à retirer »), et il exigeait même que
+   * la phrase contienne `nothing to remove`. Demandé à l'écran: « ça sert à
+   * quoi ça ? […] il faut le supprimer. »
+   *
+   * ⚠️ CE QU'ON PEUT RETIRER SANS ROUVRIR LE DÉFAUT, ET POURQUOI. Le
+   * signalement du 2026-08-19 a reçu DEUX remèdes le même jour: cette phrase,
+   * et le bouton « Retirer » rendu INCONDITIONNEL (le test juste en dessous).
+   * Le second rend le premier faux — il y a bien quelque chose à retirer,
+   * c'est la fiche. Ce test-ci garde donc l'ÉTAT D'ARRIVÉE: la phrase est
+   * partie, et le geste qu'elle niait est là.
+   */
+  it("ouverte, elle ne se commente plus — elle offre la sortie", () => {
     const html = mouths({ formOpen: true });
-    expect(html).toContain(en["setup.mouths.new_card"]);
-    expect(html).toContain(en["setup.mouths.new_card_hint"]);
-    // ⚠️ ET LA PHRASE RÉPOND À LA QUESTION POSÉE, mot pour mot: s'il n'y a
-    // personne, il n'y a rien à retirer. Sans ce membre-là, on remet une
-    // étiquette sur le même sosie.
-    expect(en["setup.mouths.new_card_hint"]).toMatch(/nothing to remove/i);
+    expect(html, "la tête « Une fiche vide » est revenue")
+      .not.toContain("An empty card");
+    expect(html, "« il n'y a rien à retirer » est revenu")
+      .not.toMatch(/nothing to remove/i);
+    // LE CAS QUI PASSE, et c'est le remède qui reste: sans lui, une fiche qui
+    // ne rendrait RIEN passerait les deux lignes du dessus.
+    expect(html).toContain(en["setup.mouths.remove"]);
   });
 
   it("ouverte, elle porte « Retirer » MÊME VIDE", () => {
@@ -285,6 +343,7 @@ describe("la fiche d'ajout se replie", () => {
 function withMouth(patch: {
   editing?: boolean;
   onFile?: boolean;
+  maxOthers?: number;
   goal?: "fat_loss" | "maintenance" | null;
   targets?: Map<string, { targetWeightKg: number | null; paceKgPerWeek: number | null }> | null;
 }): string {
@@ -313,6 +372,7 @@ function withMouth(patch: {
   return renderToStaticMarkup(
     createElement(MouthsStep, {
       mouths: [mouth],
+      maxOthers: patch.maxOthers ?? 7,
       draft: emptyMouthDraft(),
       onDraftChange: () => {},
       onAdd: () => {},
@@ -355,6 +415,12 @@ function withMouth(patch: {
 }
 
 describe("une carte inscrite ne s'édite qu'au bouton « Modifier »", () => {
+  it("en couple, la fiche d'ajout disparaît après l'unique autre personne", () => {
+    const html = withMouth({ maxOthers: 1 });
+    expect(html).not.toContain(en["setup.mouths.add"]);
+    expect(html).not.toContain('id="setup-mouth-name"');
+  });
+
   it("au repos: aucun contrôle armé, mais la porte des préférences reste", () => {
     const html = withMouth({});
     expect(html).toContain(en["setup.mouths.edit"]);
@@ -516,6 +582,7 @@ describe("la carte réaffiche ce que la base porte", () => {
 /** Les props inertes de `MouthsStep` — seul ce que le cas mesure est passé. */
 function baseMouthsProps() {
   return {
+    maxOthers: 7,
     draft: emptyMouthDraft(),
     onDraftChange: () => {},
     onAdd: () => {},

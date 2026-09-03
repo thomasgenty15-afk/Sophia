@@ -1,4 +1,5 @@
 import React from "react";
+import { ChevronDown } from "lucide-react";
 
 import { useAuth } from "../../context/AuthContext";
 // ⛔ `AwayMark` ET PLUS `AwayDay` SUR LES ABSENCES — DÉFAUT P1 (L6,
@@ -51,6 +52,15 @@ import { chooseGenerator } from "../api/planRouting";
 // LOT B — le mode de cuisson demandé à la composition.
 import { type CookingShape } from "../api/cookingShape";
 import CookingShapeField from "./CookingShapeField";
+// « TOUT DANS UNE SESSION DE CUISINE » — la case, et la porte qui la conditionne.
+import OneCookingSessionField from "./OneCookingSessionField";
+import CookDayBeforeField from "./CookDayBeforeField";
+import KitchenEquipmentCard from "./KitchenEquipmentCard";
+import {
+  hasFreezerDeclared,
+  readKitchenEquipment,
+} from "../api/kitchenEquipment";
+import type { PracticalConstraints } from "../api/practicalConstraints";
 import { edgeRefusalKey } from "../copy/planRefusals";
 import { t } from "../i18n/t";
 import { formatDate } from "../i18n/format";
@@ -447,7 +457,6 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
    * des entrées de PLAN: elles se redemandent ici, pré-remplies avec la
    * dernière réponse. Voir `api/planBudget.ts`.
    */
-  const [cookDays, setCookDays] = React.useState<string[]>([]);
   const [cookingTime, setCookingTime] = React.useState("");
   /**
    * LOT B — COMMENT ON CUISINE CETTE SEMAINE. `null` = « laisse décider », et
@@ -468,6 +477,48 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
   const [cookingShape, setCookingShape] = React.useState<CookingShape | null>(
     null,
   );
+  /**
+   * « TOUT CUISINER EN UNE SEULE FOIS » — `false` par défaut, et c'est le
+   * comportement d'avant ce lot, au caractère près.
+   *
+   * ⚠️ IL NE SE PRÉ-REMPLIT PAS, exactement comme `cookingShape` juste
+   * au-dessus et pour le même motif: le budget et les jours de cuisine sont des
+   * FAITS de la vie de quelqu'un, dont la dernière réponse est un défaut
+   * raisonnable; celui-ci est un ARBITRAGE de semaine. Le rejouer en silence
+   * serait le réglage de profil que ce produit refuse d'écrire.
+   */
+  const [oneCookingSession, setOneCookingSession] = React.useState(false);
+  /**
+   * « JE CUISINE LA VEILLE DU PREMIER JOUR » — `false` par défaut.
+   *
+   * ⚠️ IL NE SE PRÉ-REMPLIT PAS non plus: c'est un arbitrage de CETTE
+   * semaine-ci (« ce dimanche-là je suis chez moi »), pas un fait durable.
+   */
+  const [cookTheDayBefore, setCookTheDayBefore] = React.useState(false);
+  /**
+   * LA COLONNE `practical_constraints`, TELLE QU'ELLE ÉTAIT AU CHARGEMENT.
+   *
+   * ⚠️ `null` VEUT DIRE « PAS ENCORE LU », ET C'EST UNE PORTE, pas une commodité.
+   * `KitchenEquipmentCard` ne rend aucun contrôle tant qu'elle est `null` —
+   * sinon il afficherait sept cases décochées et les écrirait telles quelles au
+   * premier clic (cicatrice « formulaire figé au montage sans gate »). Et la
+   * porte du congélateur, elle, lit `false` tant qu'on n'a rien lu: la case est
+   * grisée le temps du chargement, jamais proposée à tort.
+   */
+  const [planConstraints, setPlanConstraints] = React.useState<
+    PracticalConstraints | null
+  >(null);
+  const [hasGoalRow, setHasGoalRow] = React.useState(false);
+  /**
+   * CE FOYER A-T-IL DÉCLARÉ UN CONGÉLATEUR ? — la porte de l'option, lue UNE
+   * fois et passée aux deux endroits qui en ont besoin.
+   *
+   * ⛔ `hasFreezerDeclared`, JAMAIS `includes("freezer")` À LA MAIN. « Pas de
+   * congélateur » et « on ne lui a jamais demandé » doivent rendre le même
+   * `false`, et c'est cette fonction-là qui le garantit — en miroir du serveur,
+   * comparé sur les trois états par `api/freezerMirror.int.test.ts`.
+   */
+  const hasFreezer = hasFreezerDeclared(readKitchenEquipment(planConstraints));
   const [pantryText, setPantryText] = React.useState("");
   /** L'envie du moment, reproposée d'une génération à l'autre. */
   const [preferences, setPreferences] = React.useState("");
@@ -545,10 +596,13 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
         const last = await readPlanInputs(userId);
         if (!cancelled) {
           if (last.budgetAmount !== null) setBudget(String(last.budgetAmount));
-          setCookDays([...last.cookDays]);
           if (last.cookingTimeMin !== null) {
             setCookingTime(String(last.cookingTimeMin));
           }
+          // ⛔ LA MÊME LECTURE, PAS UN SECOND ALLER-RETOUR: `readPlanInputs`
+          // ouvre déjà cette colonne pour le budget et les jours de cuisine.
+          setPlanConstraints(last.practicalConstraints);
+          setHasGoalRow(last.hasGoal);
         }
       } catch {
         // Une lecture qui échoue laisse les champs VIDES, jamais des valeurs
@@ -743,10 +797,6 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
     // LES DEUX AUTRES ENTRÉES DE PLAN, RÉCLAMÉES AU MÊME ENDROIT. Sans jour de
     // cuisine, le moteur en invente un; sans durée, il écrit une session de 50
     // minutes à quelqu'un qui en a vingt. Les deux sont mesurés dans ce dépôt.
-    if (cookDays.length === 0) {
-      setError(t("plan.cooking.days_required"));
-      return;
-    }
     if (!Number.isFinite(Number(cookingTime)) || Number(cookingTime) <= 0) {
       setError(t("plan.cooking.time_required"));
       return;
@@ -774,7 +824,6 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
       // l'écran ne montre pas qui gagne.
       await savePlanInputs(userId, {
         budgetAmount,
-        cookDays,
         cookingTimeMin: Number(cookingTime),
       });
 
@@ -802,6 +851,12 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
           // Aucune garde n'est jouée ici — le plafond vit côté serveur, à un
           // seul endroit (`capCookingShape`).
           cookingShape,
+          // ⚠️ LA VALEUR DE L'ÉCRAN, TELLE QUELLE. La porte du congélateur est
+          // tenue par le champ lui-même (il décoche quand elle se ferme) et,
+          // pour de bon, par le serveur. La recopier ici en ferait une
+          // troisième expression de la même règle.
+          oneCookingSession,
+          cookTheDayBefore,
           // ── LOT D · L'ENVIE PART AUSSI QUAND LE MAÎTRE COMPOSE ──────────
           // Le champ « ce dont ils ont envie pour ces repas » est rendu SANS
           // garde de lane (plus bas): un maître de foyer le voit et le
@@ -855,6 +910,13 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
         // lui passe. Un ingrédient serait badgé « You have it » ET listé dans
         // les courses.
         pantry: mode === "from_pantry" ? pantry : [],
+        // ⛔ SUR CETTE LANE AUSSI, ET CE N'EST PAS UNE SYMÉTRIE GRATUITE.
+        // Contrairement au mode de cuisson (qui n'a de sujet qu'à plusieurs
+        // bouches), « tout cuisiner en une fois » est une question de
+        // CONSERVATION: elle se pose exactement pareil à quelqu'un qui mange
+        // seul.
+        oneCookingSession,
+        cookTheDayBefore,
       });
       // On RELIT plutôt que de poser la réponse à la place du plan affiché: une
       // génération peut avoir TRONQUÉ l'autre plan, et seule une relecture rend
@@ -1059,6 +1121,40 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                     </button>
                   )}
                 </Field>
+
+                {/* ══════════════════════════════════════════════════════════
+                    QUAND LA CUISINE A LIEU — LES DEUX SEULES QUESTIONS QUI
+                    RESTENT, ET ELLES VIVENT AVEC LES DATES.
+                    ══════════════════════════════════════════════════════════
+
+                    ⛔ ELLES ONT REMPLACÉ « LES JOURS OÙ TU CUISINES ». Le plan
+                    ne demande plus QUELS jours on cuisine — il pose ses
+                    sessions lui-même — et il ne reste que deux choses que la
+                    personne seule peut savoir: est-ce que tout tient en une
+                    fois, et est-ce qu'elle peut s'y mettre la veille.
+
+                    ⚠️ LEUR PLACE EST ICI PARCE QU'ELLES PARLENT DE CALENDRIER.
+                    « Je cuisine la veille » RECULE le premier jour du champ
+                    juste au-dessus: les séparer ferait lire un décalage de date
+                    sans le geste qui le cause. */}
+                <CookDayBeforeField
+                  id="meals-cook-day-before"
+                  value={cookTheDayBefore}
+                  onChange={setCookTheDayBefore}
+                  disabled={building}
+                  startsOn={windowStart}
+                  durationDays={askedDays.tokens.length}
+                  today={browserLocalDate()}
+                />
+
+                <OneCookingSessionField
+                  id="meals-one-cooking-session"
+                  value={oneCookingSession}
+                  onChange={setOneCookingSession}
+                  disabled={building}
+                  hasFreezer={hasFreezer}
+                />
+
                 {/* ⚠️ « COMBIEN DE PARTS » N'EST PAS UNE QUESTION DE FOYER.
                     Le générateur du foyer DÉDUIT les couverts de la présence,
                     repas par repas: un nombre saisi à côté ferait deux vérités
@@ -1168,34 +1264,78 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                 </Field>
               )}
 
-              {/* ── LES TROIS ENTRÉES DE PLAN, DANS LE FORMULAIRE DE PLAN ──
-                  Jours de cuisine, durée d'une session, budget. Elles vivaient
-                  dans « À propos de toi » — donc décidées une fois et
-                  appliquées à toutes les semaines suivantes, y compris celle
-                  où on travaille le dimanche. Ce sont des propriétés de la
-                  SEMAINE qu'on commande, pas de la personne. */}
-              <Field
-                label={t("plan.cooking.days_label")}
-                hint={t("plan.cooking.days_hint")}
-              >
-                <div className="flex flex-wrap gap-2">
-                  {DAY_TOKENS.map((day) => (
-                    <Button
-                      key={day}
-                      size="sm"
-                      variant={cookDays.includes(day) ? "primary" : "secondary"}
-                      onClick={() =>
-                        setCookDays((prev) =>
-                          prev.includes(day)
-                            ? prev.filter((d) => d !== day)
-                            : [...prev, day]
-                        )}
-                    >
-                      {dishDayLabel(day) ?? day}
-                    </Button>
-                  ))}
+              {/* ══════════════════════════════════════════════════════════
+                  ⛔ « LES JOURS OÙ TU CUISINES » A ÉTÉ RETIRÉ — 2026-09-01
+                  ══════════════════════════════════════════════════════════
+
+                  Décision produit, prise en connaissance de cause: le plan ne
+                  demande plus quels jours on cuisine. Il n'en restait qu'une
+                  question utile — QUAND tombe la session — et elle est posée
+                  au-dessus, avec les dates: « tout cuisiner en une seule fois »
+                  et « je cuisine la veille ».
+
+                  ⚠️ CE QUE ÇA CHANGE POUR LE MOTEUR, ET C'EST VOULU:
+                  `practical_constraints.cook_days` est désormais ÉCRIT VIDE par
+                  `savePlanInputs`. La branche `declared.length === 0` de
+                  `cookDayLines` prend alors la main — le modèle pose ses
+                  sessions lui-même, au plus tôt. Laisser l'ancienne valeur en
+                  base aurait fait pire que la retirer: une contrainte qui
+                  décide encore des plans et que plus aucun écran ne peut
+                  changer. */}
+
+              {/* ══════════════════════════════════════════════════════════
+                  ⛔ L'INVENTAIRE DE CUISINE, COLLECTABLE ICI — ET C'EST LA
+                  CONDITION POUR QUE LA CASE DU DESSUS EXISTE VRAIMENT.
+                  ══════════════════════════════════════════════════════════
+
+                  Cette carte ne vivait QUE dans l'entonnoir (`/app/setup`,
+                  étape « table »), qui n'a aucune entrée de nav. Quelqu'un qui
+                  a un congélateur et n'a jamais vu la question lisait donc, sur
+                  cet écran-ci, « il faut un congélateur » — sans le moindre
+                  endroit atteignable pour le dire. C'est mot pour mot la
+                  cicatrice « port à null = champ incollectable »: la porte
+                  existe, la clé n'est nulle part.
+
+                  ⚠️ REPLIÉE, ET C'EST SA NATURE. Un four ne change pas d'une
+                  semaine à l'autre: la question se pose UNE fois, et déplier ne
+                  sert qu'à celui qui a quelque chose à corriger. `<details>`
+                  natif, pas un état React — il n'y a rien à se rappeler d'un
+                  rendu à l'autre.
+
+                  ⛔ ET C'EST LA MÊME CARTE, jamais une seconde: elle porte sa
+                  garde de chargement (`practicalConstraints === null`), son
+                  refus de sélection vide, et son écriture qui RELIT la colonne
+                  avant de fusionner. Une rangée de pastilles réécrite ici
+                  aurait perdu les trois. */}
+              <details className="group rounded-card border border-line-strong bg-paper p-4">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
+                  <span className="text-label font-semibold uppercase text-ink-soft">
+                    {t("setup.equipment.title")}
+                  </span>
+                  <ChevronDown
+                    aria-hidden
+                    className="h-4 w-4 shrink-0 text-ink-soft transition-transform group-open:rotate-180"
+                  />
+                </summary>
+                <div className="mt-4">
+                  <KitchenEquipmentCard
+                    embedded
+                    practicalConstraints={planConstraints}
+                    hasGoal={hasGoalRow}
+                    // ⚠️ ON RELIT LA COLONNE, on ne devine pas ce qu'elle
+                    // contient maintenant. La carte vient d'y écrire; recopier
+                    // sa sélection dans l'état local d'ici ferait une seconde
+                    // idée de ce que la cuisine possède, et c'est celle qu'on
+                    // regarde le moins qui garderait l'ancienne.
+                    onSaved={async () => {
+                      if (!userId) return;
+                      const fresh = await readPlanInputs(userId);
+                      setPlanConstraints(fresh.practicalConstraints);
+                      setHasGoalRow(fresh.hasGoal);
+                    }}
+                  />
                 </div>
-              </Field>
+              </details>
 
               <Field
                 label={t("plan.cooking.time_label")}

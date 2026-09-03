@@ -66,8 +66,15 @@ import {
   type RetainedSubject,
   VARIETY_LEVELS,
 } from "./retained_item.ts";
-import { effectOf, VARIETY_AXIS_QUESTION } from "./plan_feedback.ts";
+import {
+  effectOf,
+  type FeedbackQuestion,
+  OPTION_LABELS,
+  QUESTION_LABELS,
+  VARIETY_AXIS_QUESTION,
+} from "./plan_feedback.ts";
 import { isFrenchLocale } from "./locale.ts";
+import type { FieldChange, WritableField } from "./field_change.ts";
 
 // ===========================================================================
 // LE JETON DE LA MATRICE — épinglé à son littéral par le test
@@ -268,6 +275,24 @@ export interface PlanFeedbackRetainedRefusals {
 export interface PlanFeedbackRetained {
   /** À passer TEL QUEL à `persistRetainedItemsFor({durable})`. */
   readonly items: readonly RetainedItem[];
+  /**
+   * ── LOT M5 · CE QUI VA DANS LE CHAMP, ET PLUS DANS UN MAGASIN À PART ─────
+   *
+   * `logistics.set` et `rhythm.set` ne sont plus des items retenus: ils
+   * changent le champ que la personne voit dans ses réglages.
+   *
+   * ⛔ LE DÉFAUT QUE ÇA FERME, ET IL ÉTAIT MUET. Un `logistics.set` retenu
+   * n'écrivait rien: les deux générateurs le posaient EN MÉMOIRE juste avant de
+   * composer (`logisticsOverlayFor`). La personne lisait **45 min** dans ses
+   * réglages et son plan était composé sur **35** — une décision du produit
+   * qu'aucun écran ne montrait, et que rien ne pouvait défaire.
+   *
+   * ⚠️ CHAQUE ENTRÉE PORTE `previous`, ET C'EST CE QUI REND LE GESTE INVERSE
+   * POSSIBLE. Un scalaire ne se « retire » pas: sans la valeur d'avant, défaire
+   * voudrait dire « retape ce que tu avais », c'est-à-dire demander à la
+   * personne un nombre que le produit lui a effacé.
+   */
+  readonly fieldChanges: readonly FieldChange[];
   readonly refused: PlanFeedbackRetainedRefusals;
 }
 
@@ -335,6 +360,52 @@ function say(key: keyof typeof TEXTS, locale: string): string {
 }
 
 // ===========================================================================
+// LOT M2 · LA CITATION — ce que la personne a LU, et ce qu'elle a CLIQUÉ
+// ===========================================================================
+
+/**
+ * LA PHRASE SOURCE D'UNE LIGNE ISSUE DU BILAN.
+ *
+ * ── POURQUOI ELLE PORTE LA QUESTION **ET** LA RÉPONSE ─────────────────────
+ * Le bilan répond par des JETONS (`too_much`, `partly`), pas par du texte
+ * libre. Citer le jeton ne citerait personne. Citer la seule réponse
+ * (« Un peu trop ») ne dirait pas trop de QUOI. C'est le couple qui reconstitue
+ * le moment: *« Les portions du plan étaient : » → « Un peu trop »*, et devant
+ * ça la personne sait immédiatement si la ligne dit ce qu'elle voulait dire.
+ *
+ * ⛔ LES LIBELLÉS SONT CEUX DE `plan_feedback.ts`, IMPORTÉS ET JAMAIS RECOPIÉS.
+ * Ce sont **les mots qu'elle a lus sur l'écran**. En écrire une seconde version
+ * ici produirait une citation qui ressemble à ce qu'elle a vu sans en être —
+ * c'est-à-dire une citation fausse, et une citation fausse est pire que pas de
+ * citation: elle lui fait croire qu'elle a dit une chose qu'elle n'a pas dite.
+ * Le dépôt a déjà écrit la règle voisine, mot pour mot: le libellé décrit la
+ * position sur l'échelle affichée, le jeton porte le sens archivé.
+ *
+ * ⚠️ UNE RÉPONSE HORS TABLE SE CITE TELLE QUELLE, et c'est voulu: un titre de
+ * plat (`never_again`, `make_again`) n'est pas une option fermée. On rend donc
+ * ses mots à elle, sans les traduire ni les rapprocher de quoi que ce soit.
+ *
+ * PURE: la langue arrive en paramètre, comme partout dans ce fichier.
+ */
+function quoteOf(
+  question: FeedbackQuestion,
+  answer: string,
+  locale: string,
+): string {
+  const fr = isFrenchLocale(locale);
+  const asked = fr ? QUESTION_LABELS[question].fr : QUESTION_LABELS[question].en;
+  const option = OPTION_LABELS[answer];
+  const said = option ? (fr ? option.fr : option.en) : String(answer ?? "").trim();
+  // ⚠️ LES GUILLEMETS SUIVENT LA LANGUE, EUX AUSSI. `« »` dans une phrase
+  // anglaise se lit comme une citation importée d'ailleurs — le détail est
+  // petit, mais il porte sur la SEULE chose que la personne doit reconnaître
+  // comme sienne. Deux packs entiers, jamais un repli mot à mot: c'est la règle
+  // du dépôt pour tout ce qui sort en deux langues.
+  const [open, close] = fr ? ["« ", " »"] : ["“", "”"];
+  return `${open}${asked}${close} → ${open}${said}${close}`;
+}
+
+// ===========================================================================
 // L'EXTRACTION
 // ===========================================================================
 
@@ -380,6 +451,8 @@ export function retainedItemsFromPlanFeedback(
     malformed: 0,
   };
   const items: RetainedItem[] = [];
+  // LOT M5 — ce qui va dans le CHAMP, à côté de ce qui reste un item retenu.
+  const fieldChanges: FieldChange[] = [];
 
   // ── UN REFUS EST UNE RÉPONSE, ET SA TRADUCTION EST « RIEN » ──────────────
   // Fermer le questionnaire n'est pas « je n'aime rien »: c'est « pas
@@ -387,7 +460,7 @@ export function retainedItemsFromPlanFeedback(
   // geste de sortie.
   if (String(row.dismissedAt ?? "").trim() !== "") {
     counts.dismissed = 1;
-    return { items, refused: withTotal(counts) };
+    return { items, fieldChanges, refused: withTotal(counts) };
   }
 
   // ⚠️ LA SEULE TABLE DE DÉCISION, ET ELLE EXISTAIT DÉJÀ. On ne relit ni
@@ -450,6 +523,15 @@ export function retainedItemsFromPlanFeedback(
         text: title,
         value: null,
         at: ctx.at,
+        // ⚠️ LA QUESTION SUIT LA POLARITÉ. « un plat que tu ne referais pas ? »
+        // et « un plat que tu aimerais revoir ? » sont deux questions
+        // différentes, et citer la mauvaise inverserait le sens de la ligne
+        // sous les yeux de la personne.
+        quote: quoteOf(
+          kind === "food.exclude" ? "never_again" : "make_again",
+          title,
+          ctx.locale,
+        ),
       });
     }
   }
@@ -504,6 +586,10 @@ export function retainedItemsFromPlanFeedback(
         ),
         value: { direction, magnitude },
         at: ctx.at,
+        // ⚠️ LE JETON BRUT (`row.portions`), pas le cran traduit. `OPTION_LABELS`
+        // rend le libellé que la personne a LU sur l'échelle affichée; passer
+        // `magnitude` citerait « slight », un mot qu'elle n'a jamais vu.
+        quote: quoteOf("portions", String(row.portions ?? ""), ctx.locale),
       });
     }
   }
@@ -520,12 +606,16 @@ export function retainedItemsFromPlanFeedback(
       const next = Math.max(COOKING_TIME_FLOOR_MIN, current - effect.easeCookingBy);
       if (next >= current) counts.atFloor += 1;
       else {
-        push(items, counts, {
-          kind: "logistics.set",
-          subject: HOUSEHOLD_SUBJECT,
-          text: say("cooking_time", ctx.locale),
-          value: { field: "cooking_time_min", value: next },
+        // ⛔ LOT M5 — LE CHAMP, PLUS UN ITEM. Avant, cette ligne partait dans
+        // un magasin à part et les générateurs la posaient en mémoire au
+        // moment de composer: la personne lisait `current` dans ses réglages
+        // et son plan était fait sur `next`, sans qu'un écran le dise.
+        pushField(fieldChanges, {
+          field: "cooking_time_min",
+          previous: current,
+          next,
           at: ctx.at,
+          quote: quoteOf("cooked", String(row.cooked ?? ""), ctx.locale),
         });
       }
     }
@@ -541,12 +631,14 @@ export function retainedItemsFromPlanFeedback(
     if (at < 0) counts.noBaseline += 1;
     else if (at === 0) counts.atFloor += 1;
     else {
-      push(items, counts, {
-        kind: "logistics.set",
-        subject: HOUSEHOLD_SUBJECT,
-        text: say("recipe_simpler", ctx.locale),
-        value: { field: "recipe_difficulty", value: RECIPE_DIFFICULTIES[at - 1] },
+      pushField(fieldChanges, {
+        field: "recipe_difficulty",
+        // ⚠️ LA VALEUR RELUE, PAS L'INDEX. `at` est la POSITION dans l'échelle;
+        // ce qu'il faut pouvoir remettre est le cran tel qu'il était écrit.
+        previous: ctx.recipeDifficulty,
+        next: RECIPE_DIFFICULTIES[at - 1],
         at: ctx.at,
+        quote: quoteOf("cooked", String(row.cooked ?? ""), ctx.locale),
       });
     }
   }
@@ -667,17 +759,23 @@ export function retainedItemsFromPlanFeedback(
       const next = at < 0
         ? VARIETY_LEVELS[VARIETY_LEVELS.length - 1]
         : VARIETY_LEVELS[at + 1];
-      push(items, counts, {
-        kind: "logistics.set",
-        subject: HOUSEHOLD_SUBJECT,
-        text: say("variety_more", ctx.locale),
-        value: { field: "variety", value: next },
+      pushField(fieldChanges, {
+        field: "variety",
+        previous: ctx.varietyLevel,
+        next,
         at: ctx.at,
+        // ⚠️ LA QUESTION D'AXE EST CELLE QUI A ÉTÉ POSÉE CE TOUR-LÀ, lue dans
+        // la ligne (`row.axisQuestion`) et pas devinée.
+        quote: quoteOf(
+          (String(row.axisQuestion ?? "") || VARIETY_AXIS_QUESTION) as FeedbackQuestion,
+          String(row.axisAnswer ?? ""),
+          ctx.locale,
+        ),
       });
     }
   }
 
-  return { items, refused: withTotal(counts) };
+  return { items, fieldChanges, refused: withTotal(counts) };
 }
 
 // ---------------------------------------------------------------------------
@@ -724,6 +822,37 @@ function subjectOf(raw: string | null): RetainedSubject | null {
  *   · `confidence: null` — une case cochée n'est pas vraie à 82 %. Le socle
  *     REFUSE une confiance sur autre chose qu'une conversation.
  */
+/**
+ * LOT M5 — POUSSER UN CHANGEMENT DE CHAMP, et non plus un item retenu.
+ *
+ * ⛔ `previous` VIENT DU CONTEXTE, c'est-à-dire de la valeur RELUE en base par
+ * l'appelant juste avant. Le recalculer ici, ou le déduire de `next`, ferait la
+ * cicatrice nommée du dépôt: *« `current` périmé efface l'écriture d'avant »*.
+ *
+ * ⚠️ ET IL EST ÉCRIT MÊME QUAND IL VAUT `null`. « Le champ n'était pas
+ * renseigné » et « je ne sais pas ce qu'il valait » sont deux états différents,
+ * et seul le premier permet de défaire (en RETIRANT la clé).
+ */
+function pushField(
+  out: FieldChange[],
+  draft: {
+    field: WritableField;
+    previous: unknown;
+    next: unknown;
+    at: string;
+    quote: string;
+  },
+): void {
+  out.push({
+    field: draft.field,
+    previous: draft.previous ?? null,
+    next: draft.next,
+    at: draft.at,
+    source: QUESTIONNAIRE_PRODUCER,
+    quote: draft.quote,
+  });
+}
+
 function push(
   out: RetainedItem[],
   counts: Record<string, number>,
@@ -733,6 +862,8 @@ function push(
     text: string;
     value: unknown;
     at: string;
+    /** LOT M2 — ce que la personne a lu et cliqué. Voir `quoteOf`. */
+    quote: string;
   },
 ): void {
   const scope = defaultScopeFor(QUESTIONNAIRE_PRODUCER, draft.kind);
@@ -750,6 +881,11 @@ function push(
     at: draft.at,
     item: "",
     confidence: null,
+    // ── LOT M2 · SANS ELLE, « DÉFAIRE » EST UN PARI ─────────────────────
+    // ⚠️ OBLIGATOIRE À LA PORTE D'ÉCRITURE (`unquoted`), donc obligatoire ici:
+    // un item non cité serait construit, compté « produit », puis refusé plus
+    // loin — et le refus accuserait le port au lieu du producteur.
+    quote: draft.quote,
   });
   if (!item) {
     counts.malformed += 1;

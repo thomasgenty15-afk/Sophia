@@ -591,7 +591,11 @@ Deno.test("la sortie du parseur est IDENTIQUE avec et sans calcul de verdict", (
     merge: null,
     boxMemberIds: [],
     weighedMemberIds: [],
+  kitchenEquipment: null,
+  cookOnlyDay: null,
+  soloBoxes: false,
   boxMemberDiets: [],
+  boxMemberExclusions: [],
   };
   const before = parseGeneratedMeal(structuredClone(payload), args);
   // Le calcul du verdict tourne ICI, entre les deux parses.

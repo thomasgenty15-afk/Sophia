@@ -15,8 +15,11 @@ import { type ShoppingItem } from "../api/mealGeneration";
 // rayable — et qui est le seul endroit où une erreur passerait inaperçue.
 // ===========================================================================
 
+// `food_group: null` — requis depuis le 2026-08-23. Ce fichier ne teste que le
+// GROUPEMENT PAR RAYON, qui ne le lit pas: la valeur est neutre ici, et elle est
+// écrite plutôt qu'omise pour que l'oubli redevienne impossible ailleurs.
 function item(term: string, aisle: string): ShoppingItem {
-  return { term, quantity: null, aisle };
+  return { term, quantity: null, aisle, food_group: null };
 }
 
 describe("groupByAisle", () => {

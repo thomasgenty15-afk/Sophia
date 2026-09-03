@@ -3,11 +3,15 @@ import { assert, assertEquals } from "jsr:@std/assert@1";
 import {
   cookedWindowVerdict,
   emptyFridgeWindowCounts,
+  freezerClaimedWithoutOne,
+  FREEZER_WINDOW_DAYS,
   fridgeWindowChecked,
+  keptWindowDays,
   RAW_WINDOW_DAYS,
   RAW_WINDOW_NEVER_BINDS_FROM,
   rawWindowDaysFor,
 } from "./fridge_window.ts";
+import { MAX_WINDOW_DAYS } from "./meal_plan_window.ts";
 import { FOOD_GROUP_REFS } from "./tokens.ts";
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -161,3 +165,66 @@ Deno.test("au-delà de sept jours, la fenêtre crue ne peut plus mordre", () => 
   }
 });
 
+
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ③ LE CONGÉLATEUR — 2026-09-01
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("`FREEZER_WINDOW_DAYS` vaut 7, et 7 EST le plafond d'un plan", () => {
+  // ⛔ DEUX ASSERTIONS ET PAS UNE. Le littéral épingle la valeur (le module est
+  // PUR et n'importe pas `MAX_WINDOW_DAYS` — c'est ce qui le rend lisible
+  // depuis Vite); la seconde attrape la divergence si le plafond de fenêtre
+  // bouge un jour. Sans elle, un plan de 10 jours rouvrirait des trous au
+  // milieu de la semaine sans qu'aucun rouge ne le dise.
+  assertEquals(FREEZER_WINDOW_DAYS, 7);
+  assertEquals(FREEZER_WINDOW_DAYS, MAX_WINDOW_DAYS);
+});
+
+Deno.test("la fenêtre ne s'ouvre QUE sur la déclaration ET l'équipement", () => {
+  // Les quatre combinaisons, et trois d'entre elles restent au frigo.
+  const at = (kept: "fridge" | "freezer", hasFreezer: boolean) =>
+    keptWindowDays({ kept, hasFreezer, maxFridgeDays: 3 });
+
+  assertEquals(at("freezer", true), 7); // la seule qui ouvre
+  assertEquals(at("freezer", false), 3); // réclamé sans l'appareil
+  assertEquals(at("fridge", true), 3); // avoir un congélateur ne suffit pas
+  assertEquals(at("fridge", false), 3); // le cas nominal
+
+  // ⚠️ `3` EST UN LITTÉRAL, pas `MAX_FRIDGE_DAYS`: un test paramétré par sa
+  // propre constante reste vert quand on la change.
+});
+
+Deno.test("⛔ `hasFreezer` non booléen JETTE — l'ignorance ne s'hérite pas", () => {
+  // La posture de `firstDayCookable` dans `addedCookDays`: un appelant qui n'a
+  // pas lu l'inventaire passe `false`, il ne laisse pas un `undefined` décider
+  // qu'un lot de six jours peut être servi.
+  for (const bad of [undefined, null, "true", 1]) {
+    let threw = false;
+    try {
+      keptWindowDays(
+        { kept: "freezer", hasFreezer: bad, maxFridgeDays: 3 } as never,
+      );
+    } catch {
+      threw = true;
+    }
+    assert(threw, `hasFreezer=${JSON.stringify(bad)} aurait dû jeter`);
+  }
+});
+
+Deno.test("le constat de réclamation est SÉPARÉ de la décision de fenêtre", () => {
+  // Il ne sonne que sur la combinaison « déclaré sans l'appareil ».
+  assertEquals(freezerClaimedWithoutOne({ kept: "freezer", hasFreezer: false }), true);
+  assertEquals(freezerClaimedWithoutOne({ kept: "freezer", hasFreezer: true }), false);
+  assertEquals(freezerClaimedWithoutOne({ kept: "fridge", hasFreezer: false }), false);
+  assertEquals(freezerClaimedWithoutOne({ kept: "fridge", hasFreezer: true }), false);
+});
+
+Deno.test("une part congelée traverse la semaine, une part au frigo non", () => {
+  // Le couple qui a coûté le lot: cuit dimanche (rang 0), mangé samedi (rang 6).
+  assertEquals(cookedWindowVerdict(0, 6, 3), "too_late");
+  assertEquals(cookedWindowVerdict(0, 6, 7), "within");
+  // Et la fenêtre du frigo n'a pas bougé d'un jour: J+2 passe, J+3 non.
+  assertEquals(cookedWindowVerdict(0, 2, 3), "within");
+  assertEquals(cookedWindowVerdict(0, 3, 3), "too_late");
+});

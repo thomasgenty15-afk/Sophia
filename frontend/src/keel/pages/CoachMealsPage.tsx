@@ -316,9 +316,14 @@ export default function CoachMealsPage() {
               </select>
             </Field>
 
-            {/* `food_groups.slug` est le SEUL vocabulaire alimentaire du
-                produit. Pas de grammes, pas de calories — refusé au contrat, et
-                un trigger valide ce tableau contre la table. */}
+            {/* `food_groups.slug` est le SEUL vocabulaire alimentaire de CE
+                FORMULAIRE, et un trigger valide ce tableau contre la table.
+                ⟳ 2026-09-01: le commentaire disait « du produit. Pas de
+                grammes, pas de calories — refusé au contrat ». C'est faux
+                depuis FF-059 et le moteur de grammage: le produit porte des
+                grammes et des kcal, ils ne se saisissent simplement pas ICI.
+                Ce que le coach ne pose pas, c'est une QUANTITÉ — elle est
+                calculée par élève, pas recopiée d'une fiche. */}
             <Field
               label={t("coach.meals.field_groups")}
               hint={t("coach.meals.field_groups_hint")}

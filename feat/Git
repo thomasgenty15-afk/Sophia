@@ -6,7 +6,7 @@ git push origin main
 
 supabase migration up --local
 supabase functions serve --env-file supabase/.env
- npm run functions:deploy:changed -- -- --no-verify-jwt
+ npm run functions:deploy:changed
 
  
  
