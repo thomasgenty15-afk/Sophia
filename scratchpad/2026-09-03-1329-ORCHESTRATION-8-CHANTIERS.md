@@ -1148,3 +1148,46 @@ leur propre programme, `tsconfig.test.json`, seul endroit où ces quatre erreurs
 aux cinq lanes autant qu'à la leur. Ajouté.
 
 **A7 reste bloqué** sur `App.tsx` et `i18n/catalog.ts`, tenus par la session de la vitrine.
+
+## 02:2x — le gate passe, la lane CUISINE a terminé, et A7 attend un humain qui n'est pas le mien
+
+**`4106ba08`** repris (isolable, un seul fichier de test) → **`agent-gate.sh` exit 0** : 2 204 tests front, quatre rouges
+tous tolérés, typage des tests **87 contre 93**, `deno check` vert. **Dix lots fusionnés sur onze.**
+
+### L'attribution dans les DEUX sens, et pourquoi elle vaut mieux que le correctif
+
+Je lui avais demandé d'attribuer plutôt que de supposer. Elle l'a fait **dans les deux sens** : **deux des quatre erreurs
+n'étaient pas de sa lignée** — `BUDGET_MAX` n'a **jamais** été exportée par ce module (`git log --all -S` rend **zéro**
+commit, l'import était déjà faux avant le sien), et les six champs de `FunnelPerson` viennent d'un commit étranger.
+**Elle les a corrigées quand même**, avec le bon motif : les laisser rouges rendrait la porte inutilisable pour la lane
+suivante. C'est le contraire du réflexe habituel, qui est de s'arrêter dès qu'on a prouvé que ce n'est pas à soi.
+
+**Et son correctif est structurel** : la fixture part d'`emptyFunnelPerson()`, la seule définition de « personne complète
+mais vide », donc le **prochain** champ requis y arrivera avec sa valeur neutre au lieu de casser le fichier.
+**C'est la seule réponse qui casse le cycle** — trois lanes, trois fois le même défaut aujourd'hui.
+
+### La porte entière, enfin, et sa symétrie
+
+> `--no-run` vérifiait **la compilation** mais pas ce que les tests **affirment** (les sept épinglages).
+> Les trois contrôles vérifiaient ce que les tests **affirment** mais pas **leur compilation** (les quatre erreurs).
+> **Les deux moitiés se manquaient l'une l'autre**, et il a fallu payer les deux pour voir la porte entière.
+
+**Porte d'annonce complète, pour toute lane** : ① `tsc -b --force` · ② **`tsc -p tsconfig.test.json --noEmit`** ·
+③ `vitest run` en entier · ④ `deno test` **pour de vrai**, tout le répertoire, jamais `--no-run`.
+
+**Arbitrage rendu sur sa réserve** : `scripts/.tsc-test-red-baseline` **est** la baseline nominative, et le gate la lit
+**par fichier**, pas en total — c'est pourquoi il l'a attrapée alors que le total **baissait**. Les 87 restantes sur
+douze fichiers sont donc **tolérées et nommées**, pas ignorées ; ce qui manque est leur **réduction**. Dette portée au
+rapport final, lot de nettoyage, **pas ouverte maintenant**.
+
+### ⏸ A7 est bloqué sur l'utilisateur d'une AUTRE session
+
+La session de la vitrine a **terminé et mesuré vert** (2 205 verts, 4 rouges de baseline, `npm run build` 0), mais
+**elle ne commite que sur demande explicite de son utilisateur** — et c'est la bonne discipline sur un arbre partagé.
+Son lot tient `frontend/src/App.tsx` et `frontend/src/keel/i18n/catalog.ts`, **les deux seuls fichiers** qui bloquent la
+fusion d'A7. Je le lui ai dit sans presser, pour que son utilisateur décide en le sachant plutôt que de l'apprendre après.
+⇒ **La dernière fusion et la passe finale E attendent une décision humaine qui n'est pas celle de mon utilisateur.**
+
+**Et mon avertissement sur les aperçus a changé son lot** : « aucun robot d'aperçu n'exécute le JavaScript » l'a conduite
+à ajouter un **prérendu au build** plutôt que de compter sur un `SEO.tsx` exécuté au runtime. Le défaut aurait été
+**invisible à tous ses tests**, qui exécutent justement le JavaScript. Elle a amendé la mémoire du projet.
