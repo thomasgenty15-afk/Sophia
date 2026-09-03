@@ -21,6 +21,10 @@
  * vient de la BASE (`household_members`), jamais d'une charge de bouton.
  */
 import { assert, assertEquals } from "jsr:@std/assert@^1.0.0";
+import {
+  dishDedicatedTo,
+  dishIsForMouth,
+} from "./planned_dish_match.ts";
 
 import { loadPlannedDishContext, resolvePlanScope } from "./planned_dish_io.ts";
 import { loadStripDishes } from "./evening_strip_io.ts";
@@ -312,5 +316,73 @@ Deno.test("⛔ H2 AU TAP — une charge forgée citant un AUTRE foyer ne rend ri
     }),
     [],
     "aucun titre relu ⇒ le tap est `stale`, et rien ne s'écrit",
+  );
+});
+
+// ---------------------------------------------------------------------------
+// A8.3 — ⛔ SES PLATS SEULEMENT, ET LA RÈGLE EST CELLE DE L'ÉCRAN
+//
+// LE DÉFAUT QUE CES ÉPREUVES FERMENT, ET IL A ÉTÉ VU TOURNER. Run réel du
+// 2026-09-03: la bande du soir de Bo, profil réclamé, portait « Compote pour
+// Cy » — le plat composé pour l'enfant — AVEC SA CASE. La cocher aurait écrit
+// sous SON compte un « j'ai mangé » sur le plat d'un autre: un fait daté,
+// append-only, que rien dans la ligne ne signale comme faux.
+//
+// La règle existait, fermée côté ÉCRAN (`dishIsFor`, LOT C) et ouverte côté
+// SERVEUR. Pire: le type serveur `PlannedDish` ne portait même pas
+// `member_id`, donc aucun typecheck ne pouvait signaler l'absence du filtre.
+// ---------------------------------------------------------------------------
+
+const MOUTH_ME = "aaaa1111-0000-4000-8000-000000000001";
+const MOUTH_KID = "aaaa1111-0000-4000-8000-000000000002";
+
+Deno.test("A8.3 — LE CAS QUI PASSE: le plat de la table est à tout le monde", () => {
+  // Un plat sans `member_id` est le plat commun. Il doit rester chez CHACUN —
+  // y compris chez qui n'a pas de bouche lisible: sans ça, un défaut de
+  // lecture ferait disparaître le dîner de tout le foyer.
+  for (const mouth of [MOUTH_ME, MOUTH_KID, null]) {
+    assertEquals(dishIsForMouth({ member_id: null }, mouth), true);
+    assertEquals(dishIsForMouth({}, mouth), true);
+    // ⚠️ LA CHAÎNE VIDE VAUT « PAS DÉDIÉ ». Le générateur écrit parfois `""`
+    // plutôt que d'omettre la clé, et la lire comme un identifiant rendrait le
+    // plat commun dédié à personne — donc invisible pour tout le monde.
+    assertEquals(dishIsForMouth({ member_id: "" }, mouth), true);
+    assertEquals(dishIsForMouth({ member_id: "   " }, mouth), true);
+  }
+  // Et sa propre part dédiée lui revient bien.
+  assertEquals(dishIsForMouth({ member_id: MOUTH_ME }, MOUTH_ME), true);
+});
+
+Deno.test("A8.3 — ⛔ LE CAS QUI REFUSE: le plat dédié d'un AUTRE n'entre jamais", () => {
+  // Le cas exact du run réel: la compote de Cy, dans la bande de Bo.
+  assertEquals(dishIsForMouth({ member_id: MOUTH_KID }, MOUTH_ME), false);
+  // ⛔ ET UNE BOUCHE INCONNUE FERME LE PLAT DÉDIÉ. `null` veut dire « on n'a
+  // pas su lire quelle bouche est la sienne », pas « il n'en a pas ». Le pire
+  // cas de ce sens-là est une case qui manque un soir; le pire cas de l'autre
+  // est un fait de consommation fabriqué sur le plat d'un tiers.
+  assertEquals(dishIsForMouth({ member_id: MOUTH_KID }, null), false);
+  assertEquals(dishIsForMouth({ member_id: MOUTH_ME }, null), false);
+});
+
+Deno.test("A8.3 — `dishDedicatedTo` nomme la bouche, ou dit `null` sans deviner", () => {
+  assertEquals(dishDedicatedTo({ member_id: MOUTH_KID }), MOUTH_KID);
+  assertEquals(dishDedicatedTo({ member_id: null }), null);
+  assertEquals(dishDedicatedTo({}), null);
+  assertEquals(dishDedicatedTo({ member_id: "  " }), null);
+});
+
+Deno.test("A8.3 — le CHARGEUR filtre, et il ne se contente pas de savoir filtrer", () => {
+  // ⚠️ UNE ÉPREUVE DE CÂBLAGE, ET ELLE EST NÉCESSAIRE. Les trois épreuves
+  // ci-dessus tiennent la RÈGLE; elles resteraient vertes si personne ne
+  // l'appelait — c'est exactement l'état dans lequel le run a trouvé le
+  // produit, la règle écrite côté écran et le serveur qui ne l'appelait pas.
+  const src = Deno.readTextFileSync(
+    new URL("./planned_dish_io.ts", import.meta.url),
+  );
+  assertEquals(src.includes("dishIsForMouth"), true, "le filtre a disparu du chargeur");
+  assertEquals(
+    src.includes("dishes: mine.map("),
+    true,
+    "le contexte rend `today` et non la liste FILTRÉE: le filtre est calculé et jeté",
   );
 });

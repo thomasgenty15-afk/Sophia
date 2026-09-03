@@ -102,6 +102,29 @@ export function boxOptionsFor(input: {
   /** Pour l'éprouver sans dépendre de la constante: elle vaut MAX_FRIDGE_DAYS. */
   maxFridgeDays?: number;
 }): BoxOption[] {
+  // ══════════════════════════════════════════════════════════════════════
+  // ⚠️ CETTE FENÊTRE NE S'ARRÊTE PAS À LA FIN DU PLAN, ET C'EST DÉLIBÉRÉ.
+  //
+  // Mesuré en run réel le 2026-09-03: sur un plan de deux jours qui finit
+  // vendredi, cette liste propose vendredi, SAMEDI et DIMANCHE. Ce n'était
+  // écrit nulle part, et l'attendu du run disait « un seul jour ».
+  //
+  // ── POURQUOI C'EST JUSTE, ET POURQUOI ÇA DIFFÈRE DE `nextFreeDayFor` ────
+  // `nextFreeDayFor` (`accident.ts`) borne par `planEndsOn`, et il a raison:
+  // il déplace un PLAT, et un plat n'existe que dans son plan — le pousser
+  // au-delà de la fenêtre le ferait sortir de ce que le produit sait servir.
+  //
+  // Une BOÎTE n'est pas un plat: c'est de la nourriture dans un frigo. Elle ne
+  // cesse pas d'exister parce que le plan s'arrête, et la borne qui la
+  // gouverne est PHYSIQUE (`MAX_FRIDGE_DAYS`), pas calendaire. Refuser
+  // « garde-la pour dimanche » sur un plan qui finit vendredi obligerait à
+  // jeter une part encore bonne, ou à mentir sur son sort — et « jetée » est
+  // justement l'issue qu'on offre pour ne pas forcer à mentir.
+  //
+  // L'asymétrie est donc voulue. Elle est écrite ICI, à côté de la borne,
+  // parce qu'un lecteur qui compare les deux modules la prendra sinon pour un
+  // oubli — et « corrigera » la seule des deux qui n'avait pas tort.
+  // ══════════════════════════════════════════════════════════════════════
   const window = Math.max(0, input.maxFridgeDays ?? MAX_FRIDGE_DAYS);
   const out: BoxOption[] = [];
   for (let d = 1; d <= window; d++) {

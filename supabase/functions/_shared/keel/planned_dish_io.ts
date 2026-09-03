@@ -27,6 +27,8 @@ import {
   type FoodCatalogueItem,
   type PlannedDish,
   type PlannedPreparation,
+  dishDedicatedTo,
+  dishIsForMouth,
 } from "./planned_dish_match.ts";
 
 /** Structural type: les tests injectent un faux, la prod un SupabaseClient. */
@@ -164,6 +166,31 @@ export async function loadFoodCatalogue(db: Db): Promise<FoodCatalogueItem[]> {
  *   quand il a eu lieu, et deux résolutions du même jour finiraient par
  *   diverger une nuit de changement d'heure.
  */
+/**
+ * MA BOUCHE dans mon foyer, ou `null`.
+ *
+ * ⚠️ FAIL-CLOSED, ET LE SENS COMPTE. Une lecture en panne, une personne sans
+ * foyer, une ligne sans `member_id`: tout rend `null`, et `null` ferme les
+ * plats DÉDIÉS (voir `dishIsForMouth`). Le pire cas est une case qui manque un
+ * soir; le pire cas de l'autre sens est un fait de consommation fabriqué sur le
+ * plat de quelqu'un d'autre, et un fait faux écrit est indélébile.
+ */
+async function mouthOf(db: Db, userId: string): Promise<string | null> {
+  try {
+    const { data, error } = await db
+      .from("household_members")
+      .select("member_id")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (error) throw error;
+    const row = (data ?? null) as { member_id?: unknown } | null;
+    return String(row?.member_id ?? "").trim() || null;
+  } catch (error) {
+    console.warn("[keel/planned_dish] mouth unreadable", error);
+    return null;
+  }
+}
+
 export async function loadPlannedDishContext(
   db: Db,
   args: { userId: string; localDate: string },
@@ -278,13 +305,51 @@ export async function loadPlannedDishContext(
     return { ...EMPTY("no_dish_today"), catalogue };
   }
 
+  // ══════════════════════════════════════════════════════════════════════
+  // A8.3 — SES PLATS SEULEMENT. La règle de l'écran, appliquée ici aussi.
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ LE DÉFAUT QUE ÇA FERME, ET IL A ÉTÉ VU TOURNER. Le mandat A8.1 disait
+  // « sa bande ③ du soir est construite depuis le plan du foyer, SES PLATS
+  // SEULEMENT ». La moitié « ses plats seulement » n'était livrée que côté
+  // ÉCRAN. Run réel du 2026-09-03: la bande du soir de Bo, profil réclamé,
+  // portait « Compote pour Cy » — le plat composé pour l'enfant — avec sa
+  // case. La cocher aurait écrit sous SON compte un « j'ai mangé » sur le plat
+  // d'un autre: un fait daté, append-only, que rien ne signale comme faux.
+  //
+  // C'est le FRÈRE JUMEAU du défaut que le LOT C avait fermé dans
+  // `buildPersonWeek` puis `HouseholdPlanCard`: fermé à un endroit, resté
+  // ouvert à l'autre. La règle n'est pas réécrite ici — c'est `dishIsForMouth`,
+  // le jumeau serveur de `dishIsFor`, appelé.
+  //
+  // ⚠️ LA LECTURE N'A LIEU QUE SI UN PLAT EST DÉDIÉ. Un plan personnel n'en
+  // porte aucun, et ce chargeur tourne pour chaque élève à chaque tick du
+  // soir: une requête de bouche inconditionnelle en ajouterait une par
+  // personne pour un filtre qui ne retire jamais rien.
+  const dedicated = today.some((d) => dishDedicatedTo(d.dish) !== null);
+  // ⚠️ LA BOUCHE EST RÉSOLUE UNE FOIS, HORS DU FILTRE. Un `await` dans le
+  // prédicat de `.filter()` ne s'attend pas — il rendrait une Promise, donc
+  // TOUJOURS vraie, et le filtre ne filtrerait plus rien tout en ayant l'air
+  // écrit. Le compilateur l'a refusé; on le note pour que personne ne le
+  // « répare » en remettant l'appel dedans.
+  const myMouth = dedicated ? await mouthOf(db, userId) : null;
+  const mine = dedicated
+    ? today.filter((d) => dishIsForMouth(d.dish, myMouth))
+    : today;
+  if (mine.length === 0) {
+    // Un plan qui ne porterait QUE des plats dédiés à d'autres n'a rien à dire
+    // à cette personne — et « rien pour toi » n'est pas « rien du tout »: le
+    // motif reste `no_dish_today`, celui que les appelants savent déjà lire.
+    return { ...EMPTY("no_dish_today"), catalogue };
+  }
+
   const preparations = Array.isArray(row.preparations)
     ? (row.preparations as PlannedPreparation[])
     : [];
 
   return {
     mealId: String(row.id ?? "").trim() || null,
-    dishes: today.map((d) => ({ dish: d.dish, dishIndex: d.dishIndex })),
+    dishes: mine.map((d) => ({ dish: d.dish, dishIndex: d.dishIndex })),
     // Sans elles, le rapprochement ne voit que ce que le plat AJOUTE et rate le
     // poulet qui vit dans la préparation — voir `PlannedDish.uses`.
     preparations,

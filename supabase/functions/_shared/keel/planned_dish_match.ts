@@ -66,6 +66,19 @@ export interface FoodCatalogueItem {
 
 /** Un plat de `student_generated_meals.dishes[]`, réduit de même. */
 export interface PlannedDish {
+  /**
+   * ⟳ A8.3 (2026-09-03) — LA BOUCHE À QUI CE PLAT EST DÉDIÉ. `null`/absent = le
+   * plat de la table, celui de tout le monde.
+   *
+   * ⛔ IL MANQUAIT, ET C'EST CE QUI A LAISSÉ FUIR LE PLAT D'UN AUTRE. Le champ
+   * existe dans le `dishes[]` stocké depuis le LOT C, la vue du navigateur le
+   * lit (`HouseholdDishView.memberId`) et le filtre (`dishIsFor`) — mais le
+   * type SERVEUR ne le portait pas, donc aucun lecteur serveur ne pouvait
+   * filtrer, et aucun typecheck ne pouvait le signaler. Mesuré en run réel le
+   * 2026-09-03: la bande du soir d'un profil réclamé nommait « Compote pour
+   * Cy », le plat composé pour l'enfant, avec sa case.
+   */
+  member_id?: string | null;
   title: string;
   /** `breakfast` … `dinner`, ou null quand le plat ne vise aucun créneau. */
   slot: string | null;
@@ -522,4 +535,54 @@ export function matchPlannedDish(args: {
       ? "several_plausible"
       : "partial_cover",
   };
+}
+
+
+// ---------------------------------------------------------------------------
+// A8.3 — À QUI CE PLAT EST-IL DESTINÉ ?
+// ---------------------------------------------------------------------------
+
+/**
+ * La bouche à qui ce plat est DÉDIÉ, ou `null` quand c'est le plat de la table.
+ *
+ * Une chaîne vide vaut `null`: le générateur écrit parfois `""` plutôt que
+ * d'omettre la clé, et lire `""` comme un identifiant de bouche rendrait le
+ * plat commun dédié à personne — donc invisible pour tout le monde.
+ */
+export function dishDedicatedTo(dish: Pick<PlannedDish, "member_id">): string | null {
+  const raw = String(dish?.member_id ?? "").trim();
+  return raw || null;
+}
+
+/**
+ * CE PLAT EST-IL DANS L'ASSIETTE DE CETTE BOUCHE ?
+ *
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⛔ LE JUMEAU SERVEUR DE `dishIsFor` (`frontend/src/keel/lib/planByPersonModel.ts`),
+ *    ET LA MÊME RÈGLE MOT POUR MOT: le plat commun est à tout le monde, le
+ *    plat dédié n'est qu'à sa bouche.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ── CE QUE SON ABSENCE COÛTAIT, MESURÉ ────────────────────────────────────
+ * La règle était fermée côté ÉCRAN (`HouseholdPlanCard`, `MyShareCard`) et
+ * ouverte côté SERVEUR. Un profil réclamé recevait donc dans sa bande du soir
+ * le plat composé pour l'enfant, AVEC SA CASE: en le cochant il écrivait, sous
+ * son propre compte, « j'ai mangé la compote de Cy » — un fait daté,
+ * append-only, dans la table que tout le produit relit. Ce n'est pas R11 (il
+ * écrit bien sous son id), c'est pire à sa façon: le fait est faux, et rien
+ * dans la ligne ne dit qu'il porte sur le plat de quelqu'un d'autre.
+ *
+ * ⚠️ `memberId` À `null` FERME LE PLAT DÉDIÉ, ET C'EST LA BONNE DIRECTION.
+ * `null` veut dire « on n'a pas su lire quelle bouche est la sienne », pas
+ * « il n'en a pas ». Le pire cas de ce sens-là est une case qui manque un
+ * soir; le pire cas de l'autre est un fait de consommation fabriqué sur le
+ * plat d'un tiers — et un fait faux écrit est indélébile.
+ */
+export function dishIsForMouth(
+  dish: Pick<PlannedDish, "member_id">,
+  memberId: string | null,
+): boolean {
+  const owner = dishDedicatedTo(dish);
+  if (owner === null) return true;
+  return memberId !== null && owner === memberId;
 }
