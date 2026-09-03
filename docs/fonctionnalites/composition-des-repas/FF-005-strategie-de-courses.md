@@ -3,12 +3,37 @@
 | | |
 |---|---|
 | **Identifiant** | `FF-005-strategie-de-courses` |
-| **Statut** | 🟡 Spécifiée — arbitrée le 2026-08-07, **révisée le 2026-08-10** (le jumeau front n'existe plus) |
-| **Date** | 2026-08-10 |
+| **Statut** | 🔴 **Abandonnée le 2026-09-03** — remplacée par **P2** (« Combien de courses ? », 1 à 3). Jamais construite : `grocery_strategy` n'a **aucune occurrence** dans le code. |
+| **Date** | 2026-09-03 (abandon) · 2026-08-10 (dernière révision) |
 | **Autorité produit** | [MODEL.md](../../keel/MODEL.md) · [PIVOT-FOYER.md](../../keel/PIVOT-FOYER.md) |
 | **Dépend de** | `_shared/keel/grocery_waves.ts` (**la seule définition**) · `frontend/src/keel/api/groceryWaves.ts` (réexport + adaptateur de types, aucune règle) · `ShoppingListPanel` · [FF-004](FF-004-conservation-et-decongelation.md) |
 | **Effort estimé** | 2 jours |
 
+> ## 🔴 CETTE FICHE EST ABANDONNÉE — 2026-09-03 (décision D1.5 du chantier des huit points)
+>
+> **Ce qu'elle demandait** : un choix `grocery_strategy` = `waves` | `single_run`, et
+> **déduire** de là la stratégie de courses. Elle refusait explicitement (§3) de *déduire* la
+> stratégie d'autre chose que d'un choix nommé.
+>
+> **Ce qui la remplace** : **P2** pose la question autrement — « Combien de courses cette
+> semaine ? » (1, 2 ou 3) — et **en déduit** l'usage du congélateur. Ce n'est pas un renversement
+> de son §3 : P2 ne déduit pas la stratégie d'un signal indirect, il la **demande** en clair et
+> avec un nombre, ce qui est plus proche du geste réel (« je passe au magasin une fois »)
+> qu'un vocabulaire de moteur (`waves` / `single_run`).
+>
+> **Ce qui a été construit d'elle** : rien. `grep -rn grocery_strategy` rend **zéro** occurrence
+> dans `supabase/` et `frontend/` (revérifié le 2026-09-03). Le module des vagues
+> (`_shared/keel/grocery_waves.ts`) existe et vit, mais il n'a jamais lu ce champ : il déduit
+> ses vagues de la **conservation**, pas d'une préférence.
+>
+> **Ce qui reste vrai et qu'on ne jette pas** : §4 (le module des vagues et son unique
+> définition), FF-004 (conservation et décongélation), et le fait que la première vague tombe au
+> rang 0 de la fenêtre — depuis le 2026-09-03, c'est **la veille** (P1, A1).
+>
+> Aucune migration, aucun retrait de code : il n'y avait rien à retirer.
+>
+> ---
+>
 > ⚠️ **CE QUI A CHANGÉ SOUS CETTE FICHE, LE 2026-08-10.** Elle a été écrite dans
 > un monde où la règle des vagues était écrite **deux fois** — une copie serveur
 > et une copie écran, chacune avec son `MAX_FRIDGE_DAYS = 3`. Le lot 8 du
