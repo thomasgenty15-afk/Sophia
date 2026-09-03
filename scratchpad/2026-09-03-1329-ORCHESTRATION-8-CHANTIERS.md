@@ -1191,3 +1191,51 @@ fusion d'A7. Je le lui ai dit sans presser, pour que son utilisateur décide en 
 **Et mon avertissement sur les aperçus a changé son lot** : « aucun robot d'aperçu n'exécute le JavaScript » l'a conduite
 à ajouter un **prérendu au build** plutôt que de compter sur un `SEO.tsx` exécuté au runtime. Le défaut aurait été
 **invisible à tous ses tests**, qui exécutent justement le JavaScript. Elle a amendé la mémoire du projet.
+
+## 02:4x — la troisième auto-correction de la lane, et sa leçon méta
+
+Repris `44cb7732` (son journal seul). Elle avait écrit « la porte ne pourra être bloquante qu'avec une baseline
+nominative » — **faux** : `scripts/.tsc-test-red-baseline` existe depuis le **2026-08-22**, née avec `tsconfig.test.json`
+lui-même, 29 entrées, et `agent-gate.sh:290-297` la lit **par fichier** (« un fichier neuf en erreur, ou un compte qui
+MONTE, fait échouer »). C'est exactement pourquoi il l'a attrapée **alors que le total baissait**.
+**Elle a vérifié avant de me répondre, au lieu de me croire sur parole** — et elle a trouvé qu'elle avait tort.
+
+### ⭐ Sa leçon méta, la plus utile du chantier
+
+> C'est ma **troisième** affirmation d'absence non mesurée. Ma propre règle dit qu'*une affirmation d'absence n'est
+> valide que si la recherche pouvait, en principe, trouver la chose* — et ici **je n'ai rien cherché du tout** : un
+> `ls scripts/.tsc-*` suffisait. **La règle ne vaut que si on l'applique aussi quand on croit ne faire que « signaler ».**
+> C'est en mode « je te remonte juste une observation » que la garde tombe, parce qu'on ne se sent pas en train d'affirmer.
+
+**Cela explique mes six erreurs mieux que tout ce que j'avais écrit** : aucune n'était une conclusion revendiquée. Toutes
+étaient des **transmissions** — une colonne citée de mémoire, une recette de validation reprise, une consigne relayée à
+un agent, un montant repris de l'ANALYSE, une déviation validée sur parole, une règle de runtime notée sur l'autorité
+d'autrui. **On ne se garde pas quand on croit ne faire que passer l'information.**
+Barré, jamais effacé : « une affirmation fausse retirée en silence se relit comme une affirmation qui n'a jamais été faite ».
+
+**Gate vérifié sur worktree détaché à HEAD : exit 0** (87 contre 93). Le rouge vu au commit venait de l'arbre **sale** —
+139 fichiers lus contre 137 — c'est-à-dire des fichiers de test non suivis d'une autre session.
+
+## 02:4x — le chantier voisin a terminé et ne tient plus rien
+
+`sophia-2-59` a fini ses six lots (`3f2af62a`, A, B, `b146b1ee`, `67c878a8`, `9a7d82d1`) et **ne tient plus aucun fichier
+partagé**. Rapport : `scratchpad/2026-09-03-2300-RAPPORT-trois-destinations.md`.
+
+**Deux trous produit qu'elle a MESURÉS et qui dépassent son chantier** — à porter au rapport final, ils concernent la
+ceinture d'exclusion que plusieurs lanes touchent :
+1. **Une exclusion de TABLE n'est pas tenue à zéro** : « pain complet », refusé au bilan du cycle 2, est **resservi aux
+   cycles 3 et 4** après une seule relance. Le produit le **dit** dans l'issue du plan, et le plat part quand même.
+2. **Un aliment à plusieurs mots devient des jetons indépendants** : ce qui mord est « pain », pas « pain complet ».
+   Mesuré **deux fois**. C'est la famille « jamais de matcher maison » (« laitue » attrapé par « lait », 12/12).
+
+**Trois migrations attendent un `db push`** (geste humain) : `20260903120000`, `20260903150000`, `20260903180000` —
+la dernière ferme `keel_household_add_restriction` sur une bouche majeure, et **son bloc de contrôle compte les lignes
+RÉELLES** : sur la base distante il mesurera les siennes, pas celles d'ici. À dire à qui la poussera.
+Plus les trois de mon chantier : `20260903170000`, `20260903172000`, `20260903190000`.
+
+**Et une réparation de fixture qui vaut pour mes lanes** : le plafond de trois sièges du coach de banc se contourne non
+pas en libérant un siège mais en utilisant le **coach MAISON**, exempté du plafond par la base — et de toute façon celui
+d'une inscription B2C. `scripts/2026-09-01-fixture-foyer-retours.ts` prend désormais `--coach`.
+
+**Il ne reste qu'une session à tenir des fichiers** : `sophia-2-51` (vitrine), sur `App.tsx` et `i18n/catalog.ts`,
+lot **terminé et vert** mais **non commité** — son utilisateur décide. A7 et la passe finale E attendent cela.
