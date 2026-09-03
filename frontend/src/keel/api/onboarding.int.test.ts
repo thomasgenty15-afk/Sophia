@@ -7,7 +7,6 @@ import {
   declaredHouseholdSize,
   funnelMouths,
   birthDateAnswer,
-  BUDGET_MAX,
   canGenerate,
   COOKING_SESSION_MINUTES,
   cookingTimeParts,
@@ -27,6 +26,11 @@ import {
   mouthsStillNeeded,
   maximumOthers,
 } from "./onboarding";
+// ⛔ `BUDGET_MAX` VIT DANS `planBudget`, ET IL N'A JAMAIS ÉTÉ EXPORTÉ PAR
+// `onboarding` — l'import était faux depuis toujours, et personne ne le
+// voyait parce que le typage des TESTS n'était lancé par aucune porte:
+// `tsc -b --force` compile l'APPLICATION, pas `tsconfig.test.json`.
+import { BUDGET_MAX } from "./planBudget";
 import { SETUP_MISS_KEYS } from "../copy/setupMisses";
 import { en } from "../i18n/en";
 // ── LES TROIS MODULES DU MOTEUR QUE CE FICHIER LIT POUR DE VRAI ───────────
@@ -116,6 +120,19 @@ function complete(branch: FunnelBranch): FunnelState {
   return {
     mouths: branch === "solo" ? 1 : branch === "pair" ? 2 : 3,
     self: {
+      // ⛔ ON PART DU CONSTRUCTEUR, PAS D'UN LITTÉRAL, ET C'EST LA LEÇON DU
+      // 2026-09-03. Cette fixture énumérait ses champs à la main: le jour où
+      // `FunnelPerson` en a gagné six requis (`dayActivity`, `sportFrequency`,
+      // `takesDessert`, `takesCheese`…), elle a cessé de compiler — et
+      // personne ne l'a vu, parce qu'aucune porte ne typait les tests.
+      // `emptyFunnelPerson()` est la SEULE définition de « une personne
+      // complète mais vide »; partir d'elle fait que le prochain champ requis
+      // arrive ici sans rien casser, avec sa valeur neutre.
+      //
+      // ⚠️ LES SURCHARGES QUI SUIVENT RESTENT EXPLICITES, chacune avec son
+      // motif: ce décor n'est pas « une personne quelconque », c'est une
+      // personne dont chaque valeur a été choisie pour ce que le test prouve.
+      ...emptyFunnelPerson(),
       firstName: "Sam",
       kind: "adult",
       birthDate: "1988-09-12",
@@ -154,6 +171,12 @@ function complete(branch: FunnelBranch): FunnelState {
       cookDays: ["sun", "wed"],
       cookingTimeMin: 45,
       budgetAmount: 90,
+      // ⟳ P2 (2026-09-03) — UN ÉTAT DÉCLARÉ COMPLET LES PORTE, puisqu'elles
+      // sont `wrong` au catalogue: sans elles, `canGenerate` refuserait ce
+      // décor et les dizaines de cas qui s'appuient dessus mesureraient le
+      // refus au lieu du cas nominal.
+      cookingStyle: "balanced",
+      groceryRuns: 2,
     },
   };
 }
@@ -691,7 +714,16 @@ describe("missesForStep", () => {
   it("ne retient personne sur une étape dont toutes les questions sont répondues", () => {
     const state: FunnelState = {
       ...complete("family"),
-      plan: { eatingRhythm: [], cookDays: [], cookingTimeMin: null, budgetAmount: null },
+      // ⟳ P2 — `null` = pas encore répondu, et c'est bien ce que ce décor
+      // décrit: un plan dont AUCUNE question n'a de réponse.
+      plan: {
+        eatingRhythm: [],
+        cookDays: [],
+        cookingTimeMin: null,
+        cookingStyle: null,
+        groceryRuns: null,
+        budgetAmount: null,
+      },
     };
     // ⛔ ET ELLE NE RETIENT PLUS SUR LES MOMENTS NON PLUS (2026-08-19): ce
     // `plan` les laisse vides, et c'est une réponse — « aux moments de la
