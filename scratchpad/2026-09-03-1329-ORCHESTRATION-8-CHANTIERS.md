@@ -1648,3 +1648,42 @@ serveur ne portait pas `member_id`).
 jour du maître (trois surfaces, trois raisons, dont une dans un fichier interdit à sa lane).
 **En attente** : `fc9ba2c2` (cinq fichiers, zéro conflit vérifié à blanc) et le dernier trou ouvert du chantier —
 `grep dishIsForMouth planned_dish_io.ts` → **0**.
+
+## 06:2x — R2 VERT (206 s) : le défaut ③ est mort sur une ligne réelle
+
+« Un juste milieu » + 2 courses, 7 jours : **2 sessions, 2 vagues**, `work_lunch {1,1}` toujours là.
+**Et c'est l'explication rendue qui compte** :
+> • Le plan pose **2 sessions de cuisine : jeudi et dimanche.**
+> • Courses et cuisson **dès le matin**, pour être prêt à midi.
+> • Les courses se font **en 2 fois : jeudi et vendredi.**
+
+**Trois choses prouvées d'un coup** : ① la phrase des sessions **sort au cas nominal** — elle n'existait pas avant le
+correctif, les deux phrases de plafond ne s'allumant que sur un plafond (règle de rang 2 enfin tenue) ; ② elle dit
+« **le plan pose** », et **aucune ligne ne dit « Tu cuisines … et c'est ce qui a été gardé »** : le défaut ③ est mort, la
+personne ne se voit plus attribuer des jours qu'elle n'a pas cochés ; ③ la phrase de timing d'A1 se rend.
+
+**Et une vérification de la dérivation que la lane n'attendait pas si nette** : on est **jeudi**, et les sessions
+tombent **jeudi + dimanche** — exactement `rang 0`, puis `lead + floor(1 × 7 / 2) = index 3`. **Le découpage des jours
+mangés est vérifié en vrai, pas seulement en test.**
+
+### La lane s'était coupée elle-même sans le voir
+
+Elle confirme que l'écriture de `21:29:05` sous `supabase/functions/node_modules` est **très probablement son propre
+`deno test`** lancé depuis l'arbre principal, et non son commit. **Elle avait donc tué un de ses propres runs** — ce que
+ma correction de consigne lui a permis de voir rétrospectivement. Depuis le gel, aucune suite Deno depuis l'arbre servi,
+et **R1 et R2 sont passés du premier coup**.
+
+### ⭐ Sa généralisation de la leçon du compteur, qui va plus loin que le cas
+
+> Des deux compensations, celle qui a tenu est celle qui observe une **SORTIE**, pas celle qui relit une **ENTRÉE**.
+> Mes tests de câblage par lecture de source sont **tous** des relectures d'entrée — et ils ont menti **deux fois**
+> aujourd'hui : le littéral `id`, et l'ancre `setup.plan.time`.
+
+⇒ **Un test de câblage par lecture de source est une relecture d'entrée : il ne peut pas voir que la sortie est vide.**
+C'est la même famille que « un test de source qui recopie le code le photographie », mais dit du côté de ce qu'il
+**ne peut pas** attraper, ce qui est plus utile pour décider quoi écrire.
+
+**R4 en cours** — le dernier : 1 course **sans** congélateur, attendu 2 sessions / 2 vagues / 30 min, l'issue
+`one_cooking_session_refused: no freezer declared`, et **une seule** ligne parlant du congélateur.
+**« Runs finis » suivra**, et la levée avec : fusion de `fc9ba2c2`, puis `keel_gdpr_lifecycle_test.ts` en entier, dans la
+même fenêtre.
