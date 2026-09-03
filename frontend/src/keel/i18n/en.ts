@@ -8036,6 +8036,14 @@ export const en = {
   "tracking.total.assumed":
     "{kcal} kcal, estimated - dishes from your plan you said nothing about are counted as eaten.",
   "tracking.total.empty": "Nothing to add up on this day.",
+  // ⛔ « PAS DE TOTAL » N'EST PAS « RIEN À ADDITIONNER ». Cette phrase-ci dit
+  // qu'on avait quelque chose à compter et qu'on n'a PAS SU: un plat que le
+  // référentiel n'a pas pesé, ou une part de plan de foyer irreconstituable.
+  // Rendre la journée vide à la place ferait lire « tu n'as rien mangé ».
+  // ⚠️ Elle n'écrit AUCUN chiffre — elle n'a donc pas de base à porter, et sa
+  // place n'est pas dans `ENERGY_KEYS_WITH_A_BASIS`.
+  "tracking.total.abstained":
+    "No total for this day: one dish could not be weighed, and a partial sum would read low.",
   "tracking.day.planned": "From your plan",
   "tracking.day.photos": "Your photos",
   "tracking.day.missed": "Nothing recorded",

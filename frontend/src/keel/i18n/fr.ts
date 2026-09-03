@@ -6911,6 +6911,8 @@ export const fr: TranslatedMessages = {
   "tracking.total.assumed":
     "{kcal} kcal, estimé - les plats de ton plan dont tu n'as rien dit sont comptés comme mangés.",
   "tracking.total.empty": "Rien à additionner sur ce jour.",
+  "tracking.total.abstained":
+    "Pas de total sur ce jour : un plat n'a pas pu être pesé, et une somme partielle tirerait vers le bas.",
   "tracking.day.planned": "De ton plan",
   "tracking.day.photos": "Tes photos",
   "tracking.day.missed": "Rien de noté",
