@@ -285,6 +285,19 @@ export interface TrackingMissedSlot {
    * comptée. On offre alors « Décrire » sans chiffre.
    */
   estimate: TrackedEnergy | null;
+  /**
+   * UN FAIT EXISTE SUR CE CRÉNEAU, MAIS IL NE PORTE AUCUN CHIFFRE.
+   *
+   * ⚠️ CE N'EST PAS LA MÊME CHOSE QUE « RIEN », et confondre les deux crée une
+   * incitation perverse. « J'ai mangé du poulet » écrit dans la conversation
+   * dit qu'un repas a eu lieu; il ne dit pas combien. Si un créneau DÉCRIT
+   * perdait son estimation, décrire son repas ferait DISPARAÎTRE le chiffre du
+   * jour — et le produit apprendrait à ses utilisateurs à ne rien déclarer.
+   *
+   * Donc: le repère de répartition reste (`estimate`), et c'est le bouton
+   * « Décrire » qui disparaît — on ne redemande pas ce qui a déjà été dit.
+   */
+  declared: boolean;
 }
 
 export interface TrackingDay {
@@ -292,8 +305,25 @@ export interface TrackingDay {
   planned: TrackingPlannedDish[];
   photos: TrackingPhoto[];
   missed: TrackingMissedSlot[];
-  /** Le total du jour, base la plus faible. `null` si rien à sommer. */
+  /** Le total du jour, base la plus faible. `null` si rien à sommer OU abstention. */
   total: TrackedTotal | null;
+  /**
+   * ⛔ UNE ABSTENTION, ET PAS UN ZÉRO NI UNE SOMME AMPUTÉE.
+   *
+   * `true` quand un plat qui DEVAIT compter (coché, ou silencieux) n'a pas de
+   * chiffre: le référentiel n'a pas su peser un ingrédient, ou le plan est un
+   * plan de FOYER dont on ne sait pas reconstituer la part de ce lecteur.
+   *
+   * C'est la règle de `plan_energy.ts` remontée d'un étage: « `null` ET PAS UNE
+   * SOMME PARTIELLE. Une somme amputée de l'huile a l'air d'un résultat et vaut
+   * plusieurs dizaines de pour cent d'écart, toujours dans le même sens. » Ici
+   * l'écart serait TOUJOURS vers le bas, c'est-à-dire vers « tu manges moins que
+   * tu ne crois » — sur exactement la question qui a motivé le chiffre.
+   *
+   * `total` vaut alors `null`, et l'écran DIT qu'il s'abstient au lieu de
+   * n'afficher rien: une carte vide se lit « je n'ai rien mangé ».
+   */
+  abstained: boolean;
 }
 
 export interface TrackingObjective {
@@ -304,6 +334,12 @@ export interface TrackingObjective {
   week: TrackedTotal | null;
   /** La fenêtre du plan qui contient `today`. `null` si aucun. */
   plan: TrackedTotal | null;
+  /**
+   * L'abstention REMONTE. Un jour qui s'abstient rend la semaine et le plan
+   * incalculables: sommer les autres jours donnerait une semaine amputée d'un
+   * jour entier, ce qui est pire que le trou d'un plat.
+   */
+  abstained: boolean;
 }
 
 export interface TrackingWeightPoint {
@@ -674,11 +710,18 @@ export function buildTrackingReport(input: TrackingInput): TrackingReport {
     // ⚠️ ET PAS LES CINQ MOMENTS HORAIRES. `lib/mealRhythm.ts` range un fait
     // par son heure faute de `slot_key` (NULL sur 71 % des lignes); c'est bon
     // pour dessiner une grille, ce serait faux pour DÉCIDER qu'un repas manque.
-    const covered = new Set<string>();
-    for (const p of planned) if (p.slot) covered.add(p.slot);
+    // Un PLAT du plan couvre son créneau: son énergie est la vraie, exacte.
+    const cookedSlots = new Set<string>();
+    for (const p of planned) if (p.slot) cookedSlots.add(p.slot);
+    // Un fait AVEC chiffre couvre le sien de la même façon.
+    const weighedSlots = new Set<string>();
+    // Un fait SANS chiffre dit qu'un repas a eu lieu, et rien de plus.
+    const declaredSlotsWithoutNumber = new Set<string>();
     for (const f of dayFacts) {
       const s = occasionOf(f.slot);
-      if (s) covered.add(s);
+      if (!s) continue;
+      if (f.energy) weighedSlots.add(s);
+      else declaredSlotsWithoutNumber.add(s);
     }
     /**
      * ⚠️ CE QUE CE MODULE REFUSE DE DEVINER. Un fait sans `slot_key` peut être
@@ -690,7 +733,9 @@ export function buildTrackingReport(input: TrackingInput): TrackingReport {
      */
     const unattributed = dayFacts.some((f) => occasionOf(f.slot) === null);
     const missed: TrackingMissedSlot[] = declared
-      .filter((slot) => !covered.has(slot))
+      // Un créneau que le plan a composé, ou qu'une lecture a pesé, n'a pas
+      // besoin de repère: on a mieux.
+      .filter((slot) => !cookedSlots.has(slot) && !weighedSlots.has(slot))
       // Un créneau du futur n'est pas loupé: il n'est pas encore arrivé.
       .filter(() => date <= input.today)
       .map((slot) => ({
@@ -698,6 +743,7 @@ export function buildTrackingReport(input: TrackingInput): TrackingReport {
         estimate: unattributed
           ? null
           : slotEstimate(input.target, slot, declared),
+        declared: declaredSlotsWithoutNumber.has(slot),
       }));
 
     const parts: TrackedEnergy[] = [
@@ -712,37 +758,66 @@ export function buildTrackingReport(input: TrackingInput): TrackingReport {
       ),
     ];
 
-    return { date, planned, photos, missed, total: sumEnergy(parts) };
+    // ⛔ L'ABSTENTION SE DÉCIDE AVANT LA SOMME. Un plat qui compte mais qu'on
+    // n'a pas su peser rend la journée incalculable — voir `TrackingDay`.
+    const abstained = planned.some((p) =>
+      (p.state === "ticked" || p.state === "silent") && p.energy === null
+    );
+
+    return {
+      date,
+      planned,
+      photos,
+      missed,
+      total: abstained ? null : sumEnergy(parts),
+      abstained,
+    };
   });
 
   const dayTotal = days.find((d) => d.date === input.today)?.total ?? null;
 
+  // Une portée s'abstient dès qu'UN de ses jours s'abstient. Sommer les autres
+  // rendrait une semaine amputée d'un jour, plus faux que le trou d'un plat.
+  const totalOver = (
+    within: (d: TrackingDay) => boolean,
+  ): { total: TrackedTotal | null; abstained: boolean } => {
+    const inScope = days.filter(within);
+    const abstained = inScope.some((d) => d.abstained);
+    if (abstained) return { total: null, abstained: true };
+    return {
+      total: sumEnergy(
+        inScope.filter((d) => d.total !== null).map((d) => d.total as TrackedTotal),
+      ),
+      abstained: false,
+    };
+  };
+
   const weekFrom = addDays(to, -6);
-  const weekParts = days
-    .filter((d) => d.date >= weekFrom && d.total !== null)
-    .map((d) => d.total as TrackedTotal);
-  const week = sumEnergy(weekParts);
+  const weekScope = totalOver((d) => d.date >= weekFrom);
+  const week = weekScope.total;
 
   const livePlan = plans.find((p) =>
     !p.retired && p.startsOn <= input.today && planEndsOn(p) >= input.today
   ) ?? null;
-  const planTotal = livePlan
-    ? sumEnergy(
-      days
-        .filter((d) =>
-          d.date >= livePlan.startsOn && d.date <= planEndsOn(livePlan) &&
-          d.total !== null
-        )
-        .map((d) => d.total as TrackedTotal),
+  const planScope = livePlan
+    ? totalOver((d) =>
+      d.date >= livePlan.startsOn && d.date <= planEndsOn(livePlan)
     )
-    : null;
+    : { total: null, abstained: false };
+  const planTotal = planScope.total;
 
   return {
     window: { from, to },
     floor: false,
     energy,
     permanent,
-    objective: { days, day: dayTotal, week, plan: planTotal },
+    objective: {
+      days,
+      day: dayTotal,
+      week,
+      plan: planTotal,
+      abstained: days.some((d) => d.abstained),
+    },
     weight,
     leftoverBoxes: input.leftoverBoxes,
   };

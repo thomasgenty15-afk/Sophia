@@ -95,6 +95,13 @@ export interface TrackingMissedSlot {
   slot: string;
   /** `null` quand le jour porte un fait sans créneau — voir le module serveur. */
   estimate: TrackedEnergy | null;
+  /**
+   * Un fait EXISTE sur ce créneau, mais il ne porte aucun chiffre. Le repère de
+   * répartition reste; c'est le bouton « Décrire » qui disparaît — on ne
+   * redemande pas ce qui a déjà été dit, et retirer le repère ferait BAISSER le
+   * total de qui déclare.
+   */
+  declared: boolean;
 }
 
 export interface TrackingDay {
@@ -103,6 +110,14 @@ export interface TrackingDay {
   photos: TrackingPhoto[];
   missed: TrackingMissedSlot[];
   total: TrackedTotal | null;
+  /**
+   * ⛔ UNE ABSTENTION, PAS UN ZÉRO. Un plat qui devait compter et qu'on n'a pas
+   * su peser rend la journée incalculable: une somme amputée aurait l'air d'un
+   * résultat, et elle serait fausse dans une seule direction — vers le bas.
+   * `total` vaut alors `null`, et l'écran DIT qu'il s'abstient plutôt que de
+   * n'afficher rien (une carte vide se lit « je n'ai rien mangé »).
+   */
+  abstained: boolean;
 }
 
 export interface TrackingObjective {
@@ -110,6 +125,8 @@ export interface TrackingObjective {
   day: TrackedTotal | null;
   week: TrackedTotal | null;
   plan: TrackedTotal | null;
+  /** L'abstention d'un jour remonte à la semaine et au plan. */
+  abstained: boolean;
 }
 
 export interface TrackingPermanent {

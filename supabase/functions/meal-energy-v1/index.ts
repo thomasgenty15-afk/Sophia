@@ -28,16 +28,17 @@ import {
 import { ACTIVITY_LEVELS, type ActivityLevel } from "../_shared/keel/tokens.ts";
 import { latest, loadStudentBody } from "../_shared/keel/student_body_io.ts";
 import { loadCompositionIndex } from "../_shared/keel/food_composition_io.ts";
+// ⟳ A7 (2026-09-03) — LES QUATRE LECTEURS DE PAYLOAD ONT DESCENDU DANS
+// `_shared/keel/plan_energy_read.ts`. Ce n'est pas un rangement:
+// `keel-tracking-v1` calcule lui aussi une part `plan_quantities`, et une
+// seconde copie de `readIngredient` aurait perdu l'un de ses trois
+// arbitrages sans que le chiffre cesse d'avoir l'air juste. Le code est
+// DÉPLACÉ, pas réécrit — voir l'en-tête du module.
 import {
-  COMPOSITION_STATES,
-  COMPOSITION_UNITS,
-  type CompositionInput,
-  type CompositionState,
-  type CompositionUnit,
-} from "../_shared/keel/food_composition.ts";
+  readDishes,
+  readPreparations,
+} from "../_shared/keel/plan_energy_read.ts";
 import {
-  type EnergyDish,
-  type EnergyPreparation,
   type MemberAddon,
   PLAN_ENERGY_BASIS,
   planEnergy,
@@ -198,87 +199,6 @@ function closed(
   });
 }
 
-/** Une quantité structurée telle que la ligne de plan la porte (FF-038). */
-function readIngredient(raw: unknown): CompositionInput | null {
-  if (!raw || typeof raw !== "object") return null;
-  const i = raw as Record<string, unknown>;
-  const term = String(i.term ?? "").trim();
-  if (!term) return null;
-  const amount = Number(i.amount);
-  const unit = String(i.unit ?? "");
-  const state = String(i.state ?? "");
-  return {
-    term,
-    // `null` PLUTÔT QU'UN DÉFAUT, à chaque champ. Un `state` deviné « raw » sur
-    // du riz vaut un facteur 2,6, et toujours dans le sens qui gonfle. Ce
-    // lecteur ne répare rien: il transmet l'inconnu, et `plan_energy` en fait
-    // une abstention.
-    amount: Number.isFinite(amount) && amount > 0 ? amount : null,
-    unit: (COMPOSITION_UNITS as readonly string[]).includes(unit)
-      ? (unit as CompositionUnit)
-      : null,
-    state: (COMPOSITION_STATES as readonly string[]).includes(state)
-      ? (state as CompositionState)
-      : null,
-    // ══════════════════════════════════════════════════════════════════════
-    // ⟳ LOT `L-1-b` · LA SECONDE COPIE DE LA QUANTITÉ — 2026-08-22
-    // ══════════════════════════════════════════════════════════════════════
-    //
-    // ⛔ TRANSMISE, PAS INTERPRÉTÉE. `resolveIngredients` ne la lit QUE lorsque
-    // la copie structurée ci-dessus a rendu `null`, et la lecture elle-même est
-    // dans `quantity_from_prose.ts`: un nombre suivi d'un symbole de mesure
-    // ancré des deux bouts, ou rien. Aucun mot n'est lu.
-    //
-    // ⛔ C'EST LE CHEMIN QUI FAIT BOUGER LE CORPUS DÉJÀ ÉCRIT. `grams_raw` est
-    // FIGÉ à la génération; cette lane recalcule sur l'index d'aujourd'hui.
-    // Sans cette ligne, 3 833 lignes de plans existants continueraient d'être
-    // comptées « sans quantité » alors que leur masse est écrite en clair.
-    quantity: typeof i.quantity === "string" ? i.quantity : null,
-  };
-}
-
-function readIngredients(raw: unknown): CompositionInput[] {
-  if (!Array.isArray(raw)) return [];
-  const out: CompositionInput[] = [];
-  for (const entry of raw) {
-    const i = readIngredient(entry);
-    if (i) out.push(i);
-  }
-  return out;
-}
-
-function readDishes(raw: unknown): EnergyDish[] {
-  if (!Array.isArray(raw)) return [];
-  return raw.map((entry) => {
-    const d = (entry ?? {}) as Record<string, unknown>;
-    return {
-      day: d.day === null || d.day === undefined ? null : String(d.day),
-      method: String(d.method ?? ""),
-      ingredients: readIngredients(d.ingredients),
-      uses: Array.isArray(d.uses)
-        ? d.uses.map((rawUse) => {
-          const u = (rawUse ?? {}) as Record<string, unknown>;
-          return {
-            preparationId: String(u.preparation_id ?? ""),
-            servings: Number(u.servings) || 1,
-          };
-        }).filter((u) => u.preparationId !== "")
-        : [],
-    };
-  });
-}
-
-function readPreparations(raw: unknown): EnergyPreparation[] {
-  if (!Array.isArray(raw)) return [];
-  return raw.map((entry) => {
-    const p = (entry ?? {}) as Record<string, unknown>;
-    return {
-      id: String(p.id ?? ""),
-      servingsMade: Math.max(1, Number(p.servings_made) || 1),
-      ingredients: readIngredients(p.ingredients),
-    };
-  }).filter((p) => p.id !== "");
-}
 
 interface PlanRow {
   id: string;

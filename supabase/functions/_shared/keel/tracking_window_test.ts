@@ -312,17 +312,61 @@ Deno.test("A7 — une estimation de créneau est arrondie aux 50 et porte `slot_
   );
 });
 
-Deno.test("A7 — un créneau déclaré sans plat ni fait est loupé; un créneau couvert ne l'est pas", () => {
+Deno.test("A7 — un créneau PESÉ est couvert; un créneau seulement DÉCLARÉ garde son repère", () => {
   const report = buildTrackingReport(input({
+    today: "2026-09-02",
+    declaredSlots: ["breakfast", "lunch", "dinner"],
+    facts: [
+      // Un fait SANS chiffre: « j'ai mangé du poulet » dit qu'un repas a eu
+      // lieu, jamais combien.
+      fact({ slot: "lunch", localDate: "2026-09-02" }),
+    ],
+  }));
+  const day = report.objective?.days.find((d) => d.date === "2026-09-02");
+  // `dinner` porte le plat du plan ⇒ couvert. `lunch` porte un fait muet ⇒ il
+  // garde son repère, mais on ne lui redemande pas de décrire. `breakfast` n'a
+  // rien ⇒ loupé, et on le lui propose.
+  assertEquals(day?.missed.map((m) => m.slot), ["breakfast", "lunch"]);
+  assertEquals(day?.missed.map((m) => m.declared), [false, true]);
+  assertEquals(day?.missed[0].estimate?.basis, "slot_estimate");
+  assertEquals(day?.missed[1].estimate?.basis, "slot_estimate");
+});
+
+Deno.test("A7 — un fait AVEC chiffre couvre son créneau: on a mieux qu'un repère", () => {
+  const report = buildTrackingReport(input({
+    today: "2026-09-02",
+    declaredSlots: ["breakfast", "lunch", "dinner"],
+    facts: [
+      fact({
+        slot: "lunch",
+        localDate: "2026-09-02",
+        energy: { kcal: 620, basis: "photo_estimate" },
+      }),
+    ],
+  }));
+  const day = report.objective?.days.find((d) => d.date === "2026-09-02");
+  assertEquals(day?.missed.map((m) => m.slot), ["breakfast"]);
+});
+
+Deno.test("A7 — DÉCRIRE ne fait pas disparaître le chiffre du jour", () => {
+  // ⛔ L'INCITATION PERVERSE QUE CE TEST FERME. Si un créneau décrit perdait
+  // son repère de répartition, décrire son repas ferait BAISSER le total —
+  // et le produit apprendrait à ses utilisateurs à ne rien déclarer.
+  const before = buildTrackingReport(input({
+    today: "2026-09-02",
+    declaredSlots: ["breakfast", "lunch", "dinner"],
+  }));
+  const after = buildTrackingReport(input({
     today: "2026-09-02",
     declaredSlots: ["breakfast", "lunch", "dinner"],
     facts: [fact({ slot: "lunch", localDate: "2026-09-02" })],
   }));
-  const day = report.objective?.days.find((d) => d.date === "2026-09-02");
-  // `dinner` porte le plat du plan, `lunch` porte un fait ⇒ seul le
-  // petit-déjeuner manque.
-  assertEquals(day?.missed.map((m) => m.slot), ["breakfast"]);
-  assertEquals(day?.missed[0].estimate?.basis, "slot_estimate");
+  const d1 = before.objective?.days.find((d) => d.date === "2026-09-02");
+  const d2 = after.objective?.days.find((d) => d.date === "2026-09-02");
+  assertEquals(d1?.total?.kcal, d2?.total?.kcal);
+  // Ce qui change est le BOUTON, pas le chiffre.
+  assertEquals(d1?.missed.every((m) => m.declared === false), true);
+  assertEquals(d2?.missed.some((m) => m.declared), true);
 });
 
 Deno.test("A7 — un jour du FUTUR n'a aucun créneau loupé", () => {
@@ -599,4 +643,86 @@ Deno.test("A7 — PROPRIÉTÉ: aucun chiffre d'énergie du rapport ne sort sans 
       `${leaf.path} porte un kcal sans base`,
     );
   }
+});
+
+// ══════════════════════════════════════════════════════════════════════════
+// ⑧ L'ABSTENTION — un plat qu'on n'a pas su peser n'est pas un plat à zéro
+// ══════════════════════════════════════════════════════════════════════════
+
+Deno.test("A7 — un plat qui compte et qu'on n'a pas su peser abstient LA JOURNÉE", () => {
+  const report = buildTrackingReport(input({
+    today: "2026-09-02",
+    declaredSlots: [],
+    plans: [
+      plan({
+        dishes: [
+          dish({ dishIndex: 0, date: "2026-09-02", kcal: 600 }),
+          // Le référentiel n'a pas su peser celui-ci (ou c'est un plan de
+          // foyer dont la part du lecteur est irreconstituable).
+          dish({ dishIndex: 1, date: "2026-09-02", kcal: null }),
+        ],
+      }),
+    ],
+    facts: [
+      fact({
+        localDate: "2026-09-02",
+        slot: "lunch",
+        energy: { kcal: 450, basis: "photo_estimate" },
+      }),
+    ],
+  }));
+  const day = report.objective?.days.find((d) => d.date === "2026-09-02");
+  assertEquals(day?.abstained, true);
+  // ⛔ ET SURTOUT: pas 1 050. Une somme amputée aurait l'air d'un résultat, et
+  // elle serait fausse dans une seule direction — vers le bas.
+  assertEquals(day?.total, null);
+  assertEquals(report.objective?.abstained, true);
+  assertEquals(report.objective?.week, null);
+});
+
+Deno.test("A7 — un plat DÉCOCHÉ sans chiffre n'abstient rien: il ne devait pas compter", () => {
+  const report = buildTrackingReport(input({
+    today: "2026-09-02",
+    declaredSlots: [],
+    plans: [
+      plan({
+        dishes: [
+          dish({ dishIndex: 0, date: "2026-09-02", kcal: 600 }),
+          dish({ dishIndex: 1, date: "2026-09-02", kcal: null }),
+        ],
+      }),
+    ],
+    facts: [
+      fact({
+        key: "meal_tick:plan-1:1",
+        localDate: "2026-09-02",
+        disqualifiedReason: "ate_other",
+      }),
+    ],
+  }));
+  const day = report.objective?.days.find((d) => d.date === "2026-09-02");
+  assertEquals(day?.abstained, false);
+  assertEquals(day?.total, { kcal: 600, basis: "assumed", parts: 1 });
+});
+
+Deno.test("A7 — l'abstention d'UN jour emporte la semaine et le plan, pas les autres jours", () => {
+  const report = buildTrackingReport(input({
+    window: { from: "2026-09-01", to: "2026-09-03" },
+    today: "2026-09-03",
+    declaredSlots: [],
+    plans: [
+      plan({
+        dishes: [
+          dish({ dishIndex: 0, date: "2026-09-01", kcal: 500 }),
+          dish({ dishIndex: 1, date: "2026-09-03", kcal: null }),
+        ],
+      }),
+    ],
+  }));
+  const d1 = report.objective?.days.find((d) => d.date === "2026-09-01");
+  assertEquals(d1?.total?.kcal, 500);
+  assertEquals(report.objective?.day, null);
+  assertEquals(report.objective?.week, null);
+  assertEquals(report.objective?.plan, null);
+  assertEquals(report.objective?.abstained, true);
 });

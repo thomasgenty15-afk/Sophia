@@ -41,14 +41,33 @@ function totalLine(total: TrackedTotal): string {
   });
 }
 
-function TotalRow({ scope, total }: { scope: "day" | "week" | "plan"; total: TrackedTotal | null }) {
+/**
+ * TROIS SORTIES, ET ELLES NE DISENT PAS LA MÊME CHOSE.
+ *   · un total ................ le chiffre, avec sa base;
+ *   · « rien à additionner » ... la journée est vide, on n'a rien à compter;
+ *   · « pas de total » ......... on avait quelque chose à compter et on N'A PAS
+ *     SU. Confondre les deux derniers ferait lire « tu n'as rien mangé » à
+ *     quelqu'un dont on n'a pas su peser le dîner.
+ */
+function totalText(total: TrackedTotal | null, abstained: boolean): string {
+  if (abstained) return t("tracking.total.abstained");
+  return total === null ? t("tracking.total.empty") : totalLine(total);
+}
+
+function TotalRow(
+  { scope, total, abstained }: {
+    scope: "day" | "week" | "plan";
+    total: TrackedTotal | null;
+    abstained: boolean;
+  },
+) {
   return (
     <div className="border-t border-line py-2 first:border-t-0">
       <p className="text-xs font-medium uppercase tracking-wide text-ink-soft">
         {t(`tracking.scope.${scope}` as MessageKey)}
       </p>
       <p className="mt-1 text-sm leading-6 text-ink break-words">
-        {total === null ? t("tracking.total.empty") : totalLine(total)}
+        {totalText(total, abstained)}
       </p>
     </div>
   );
@@ -147,7 +166,7 @@ function DayBlock(
         {dayName(day.date)}
       </p>
       <p className="mt-1 text-sm leading-6 text-ink break-words">
-        {day.total === null ? t("tracking.total.empty") : totalLine(day.total)}
+        {totalText(day.total, day.abstained)}
       </p>
 
       {day.planned.length > 0
@@ -231,14 +250,21 @@ function DayBlock(
                   </span>
                   {/* La seule ACTION de cette page, donc la seule figue —
                       `ui/Button.tsx` variante `primary`, réduite à la taille
-                      d'une ligne de liste. Cible ≥ 24 px. */}
-                  <button
-                    type="button"
-                    onClick={() => onDescribe(day.date, missed.slot)}
-                    className="mt-1 min-h-[24px] rounded-full bg-fig-700 px-3 py-1 text-xs font-medium text-paper transition-colors hover:bg-fig-800"
-                  >
-                    {t("tracking.describe")}
-                  </button>
+                      d'une ligne de liste. Cible ≥ 24 px.
+                      ⚠️ ABSENTE quand un fait existe déjà sur ce créneau: on ne
+                      redemande pas ce qui a été dit. Le REPÈRE, lui, reste —
+                      le retirer ferait baisser le total de qui déclare. */}
+                  {missed.declared
+                    ? null
+                    : (
+                      <button
+                        type="button"
+                        onClick={() => onDescribe(day.date, missed.slot)}
+                        className="mt-1 min-h-[24px] rounded-full bg-fig-700 px-3 py-1 text-xs font-medium text-paper transition-colors hover:bg-fig-800"
+                      >
+                        {t("tracking.describe")}
+                      </button>
+                    )}
                 </li>
               ))}
             </ul>
@@ -263,9 +289,21 @@ export function TrackingObjectiveCard(
     <Card>
       <SectionLabel>{t("tracking.objective.label")}</SectionLabel>
       <div className="mt-2">
-        <TotalRow scope="day" total={objective.day} />
-        <TotalRow scope="week" total={objective.week} />
-        <TotalRow scope="plan" total={objective.plan} />
+        <TotalRow
+          scope="day"
+          total={objective.day}
+          abstained={objective.abstained}
+        />
+        <TotalRow
+          scope="week"
+          total={objective.week}
+          abstained={objective.abstained}
+        />
+        <TotalRow
+          scope="plan"
+          total={objective.plan}
+          abstained={objective.abstained}
+        />
       </div>
       <div className="mt-4 space-y-3">
         {days.map((day) => (

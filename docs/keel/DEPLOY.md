@@ -340,6 +340,7 @@ get-momentum-trace
 household-merge-notices-v1
 intake-to-transformations-v2
 keel-cards-v1
+keel-tracking-v1
 keel-week-rollover-v1
 meal-photo-upload-v1
 notify-profile-change
