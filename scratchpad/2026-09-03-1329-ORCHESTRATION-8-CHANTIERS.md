@@ -1614,3 +1614,37 @@ aujourd'hui, **armé pour A8.2** qui vient de livrer le vrai compte.
 retirées sans un seul appelant vivant**, les 48 ajoutées à parité sans mojibake, **C5 vérifié au rendu réel dans les deux
 langues**, les trois renversements **écrits** avec leur texte d'origine, **13 mutations** rejouées, et l'aveu du
 bâtisseur sur le test paramétré par son propre hasard **vérifié vrai**, correctif qui **mord**.
+
+### ⭐ « Une consigne fausse déjà distribuée continue d'agir toute seule »
+
+Le point le plus actionnable de la nuit, et il vient de MEMBRE : **deux de ses trois corrections portaient sur des
+consignes que j'avais données, pas sur mon propre travail.** Une consigne fausse envoyée à une lane **reste vraie pour
+son destinataire**, qui n'a pas lu l'échange qui la corrige. ⇒ **Corriger une erreur ne suffit pas : il faut la
+rattraper là où elle est déjà partie.**
+**Fait** : correction envoyée à **CUISINE** et à **SUIVI** sur « un `deno test` n'écrit pas » — avec, dans les deux cas,
+ce que je sais (il écrit, mesuré) **et ce que je ne sais pas** (personne n'a prouvé que le surveillant regarde
+`node_modules` ; les candidats sont à 23 secondes). Formulée comme **précaution qui ne coûte rien et vraie dans les deux
+cas**, pas comme règle mesurée. Le « continue » sur appliquer/mesurer/restaurer n'était parti qu'à MEMBRE, et il est retiré.
+
+### Sa relecture de mon compte d'erreurs, meilleure que le compte
+
+> Ce n'était pas la **fréquence** de tes affirmations, c'était qu'elles visaient toutes **le même angle mort** :
+> tu décris ce qu'un outil **devrait** faire au lieu de regarder **le disque**. Sept de tes neuf affirmations étaient
+> probablement justes et personne n'a eu à le vérifier ; celles qui sont remontées touchaient un dossier surveillé un
+> soir où toute écriture coûtait un run.
+
+⇒ **Le correctif n'est pas « affirmer moins », c'est « mesurer là où l'outil ment ».** Les deux gestes qui ferment cet
+angle coûtent quelques secondes : **`git merge-tree`** (vérifier une fusion sans écrire) et **`stat` avec la date**
+(l'heure seule a failli produire une fausse alerte sur un fichier vieux d'un mois).
+
+## La lane MEMBRE est close — bilan
+
+**Livré** : les trois surfaces d'A8.3, les deux dettes du prédécesseur, les six défauts du vérificateur, et le correctif
+A8.1 qui tenait l'arbre rouge. **Onze mutations** jouées, chacune cassée, vue rouge, restaurée par `cp` + `cmp`.
+**Sa fenêtre de run a prouvé la cascade pour la première fois**, confirmé C8 en production, et **trouvé deux choses
+qu'aucun test écrit ne pouvait voir** : le P0 RGPD (un paramètre positionnel par défaut) et la fuite de plat (le type
+serveur ne portait pas `member_id`).
+**Deux choses non franchies, nommées et non contournées** : le tap depuis une vraie bulle de chat (JWT élève) et le bloc
+jour du maître (trois surfaces, trois raisons, dont une dans un fichier interdit à sa lane).
+**En attente** : `fc9ba2c2` (cinq fichiers, zéro conflit vérifié à blanc) et le dernier trou ouvert du chantier —
+`grep dishIsForMouth planned_dish_io.ts` → **0**.
