@@ -1370,3 +1370,58 @@ cette ligne.** Décision de l'utilisateur : jouer le cas lui-même, ou autoriser
 démarré à 21:05:31, et une session voisine l'a établi ce soir en retrouvant dans une trace des symboles écrits après le
 démarrage). La cicatrice du dépôt vise le cache des **`_shared`** — plus étroite qu'on ne le croyait. Je reste le seul à
 relancer, et seulement si un `_shared` bouge.
+
+## 04:3x — 🔴 LE RUN A TROUVÉ UN P0 RGPD : l'export partait COMPLET, avec zéro ligne d'une table
+
+Repris : **`447a64ad`** (le correctif + le banc) et **`66ce90dc`** (le journal de la fenêtre). Vérifié dans l'arbre :
+`account-export-v1` passe désormais `"answered_at"`.
+
+**Ce que c'était.** L'export d'un compte partait **complet**, avec **zéro ligne** de `meal_share_outcomes`, et un
+drapeau `keelUnavailable` **que personne ne lit**. Chaque déclaration d'une personne sur sa propre part — « je n'ai pas
+mangé », « au congélateur », « jetée » — était **absente de son propre export**.
+**La cause est un défaut par défaut** : `fetchKeelRows` prend la colonne de tri en **7ᵉ position** et elle vaut
+`created_at` ; la table n'a que `answered_at` ; PostgREST rend `42703` ; le `catch` transforme un **refus** en **tableau
+vide**. ⇒ **Trois protections, trois angles morts** : les gardes du lot **lisent le code** et celle-ci ne se voit qu'à
+l'exécution ; le test qui l'aurait vue était **gaté** et n'avait **jamais tourné** ; et le drapeau d'indisponibilité
+n'a aucun lecteur. **Un run l'a trouvé au premier essai.**
+
+**Et il a un frère dans une autre lane** : `student_generated_meals.lead_days` (A1/CUISINE) n'est **ni exportée ni dans
+l'allowlist**. Même famille, même cicatrice déjà écrite au dépôt (« le lifecycle RGPD ne réclame pas les tables neuves »).
+Transmis à CUISINE avec la consigne : l'exporter, **ou** l'inscrire à l'allowlist **avec le motif écrit** — `lead_days`
+est un entier de planification, l'argument est plausible, il doit être **écrit**, pas supposé.
+
+### ⛔ MES DEUX NOMBRES ÉTAIENT FAUX, ET LA LANE LES A MESURÉS AVANT DE LANCER
+
+Je lui avais donné `members_scanned = 3`, `already_student = 7`, « 2 avec un plan vivant ». La base disait **4**, **8**,
+et **aucun**. Je les avais repris d'un rapport de vérificateur **sans les re-mesurer**. C'est la septième fois
+aujourd'hui, et **la première où ça aurait faussé une MESURE** et non un raisonnement : sans sa fixture montée exprès,
+`members_sent` aurait été **0** et le run n'aurait **rien prouvé** tout en paraissant tourné.
+
+### La cascade est PROUVÉE, et c'est la première fois
+
+Bande du membre avant : « Poulet riz et legumes · Compote pour Cy ». Une ligne `cooking_session_states(happened=false)`
+écrite **sous le `user_id` du maître**, re-service du membre → « **Compote pour Cy** » seule. **Le plat qui puise dans la
+préparation a disparu de la bande DU MEMBRE parce que LE MAÎTRE a déclaré la cuisson ratée.** Les deux clés
+(`statesOwnerId` = maître, `userId` = membre) fonctionnent en production — c'est le défaut D1 du vérificateur, tenu en
+test depuis, et vu tourner pour la première fois. **C8** dans le même tick : le maître reçoit ① et ②, le membre non.
+**RLS live** : le maître lit **0** ligne de `meal_share_outcomes`, le membre **1**. Charge **forgée** du maître sur la
+bouche du conjoint → **`not_your_line`**, rien écrit.
+
+### 🔴 Un défaut A8.1 que le run a exposé, non livré
+
+**La bande du soir ne filtre PAS les plats par bouche** : `planned_dish_io.ts` ne connaît ni `dishIsFor` ni `member_id`,
+donc un profil réclamé lit — **et peut cocher** — un plat composé pour l'enfant. Le mandat disait « ses plats
+**seulement** ». **C'est le frère jumeau du défaut qu'A8.1 avait fermé côté écran** : fermé à un endroit, ouvert à
+l'autre. Renvoyé à la lane.
+
+### Deux arrêts justes de la lane, à ne pas transformer en contournement
+
+1. **Le tap depuis une vraie bulle de chat** exige le JWT d'un élève. Elle a appelé **les mêmes fonctions d'I/O que le
+   routeur** sous `service_role`, **en écrivant dans l'en-tête de son banc ce qu'il ne prouve pas** — ni le routage du
+   `button_payload`, ni le rendu. C'est la bonne façon de livrer une preuve **partielle**.
+2. **Le classifieur lui a refusé `git commit`** sur l'arbre principal. Elle a **rendu l'arbre propre** (restauration
+   prouvée par `cmp`, banc retiré) et porté son travail sur sa branche. **Elle n'a pas contourné**, et elle me l'a dit.
+
+**Fixture `qa0903m` laissée vivante en base**, avec ses lignes de run. ⚠️ Pour rejouer un soir dessus, **purger
+`outbound_messages`** pour les deux comptes : c'est le ledger que lit `wasPulseSentToday`, et supprimer les bulles de
+`chat_messages` **ne suffit pas** — ça lui a coûté un run pour rien.
