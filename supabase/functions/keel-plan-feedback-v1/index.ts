@@ -19,6 +19,12 @@ import { persistRetainedItemsFor } from "../_shared/keel/retained_items_io.ts";
 // premier au premier mot changé, et c'est celui qu'on regarde le moins qui
 // finirait par décider.
 import { classifyAndPersistDraftNote } from "../_shared/keel/draft_note_classify_io.ts";
+import {
+  type RecapKept,
+  type RecapLanguage,
+  settingRecapLine,
+} from "../_shared/keel/memory_recap.ts";
+import { notifyMemoryWrite } from "../_shared/keel/memory_clarification_io.ts";
 import { foodTermsOf } from "../_shared/keel/plan_feedback_chat.ts";
 import type { DraftNoteMember } from "../_shared/keel/draft_note_classify.ts";
 import { hasDraftNote, readDraftNote } from "../_shared/keel/plan_draft_note.ts";
@@ -195,6 +201,25 @@ function nullableText(value: unknown): string | null {
  * corps): `sex: null` dit « on ne sait pas », et le prompt du lot A fait alors
  * s'abstenir le modèle sur un mot de parenté ambigu.
  */
+/**
+ * Le prénom d'une bouche, ou `null` = toute la table.
+ *
+ * ⛔ JAMAIS UN IDENTIFIANT DANS UN MESSAGE. Un sujet `member:<uuid>` dont le
+ * prénom n'est pas dans le roster rend `null` — « pour tout le monde » est faux
+ * mais lisible, tandis qu'un uuid dans une bulle ne veut rien dire à personne
+ * et fuite une clé interne.
+ */
+function feedbackWhoOf(
+  subject: string,
+  members: readonly DraftNoteMember[],
+): string | null {
+  const raw = String(subject ?? "");
+  if (!raw.startsWith("member:")) return null;
+  const id = raw.slice(7).trim();
+  const label = members.find((m) => m.memberId === id)?.label ?? "";
+  return label.trim() === "" ? null : label.trim();
+}
+
 async function feedbackMembersOf(
   admin: SupabaseClient,
   userId: string,
@@ -533,6 +558,68 @@ Deno.serve(async (req) => {
       }
 
       // ══════════════════════════════════════════════════════════════════
+      // CE QUI VIENT D'ÊTRE ÉCRIT SE DIT — UNE FOIS, ET TOUT DE SUITE
+      // ══════════════════════════════════════════════════════════════════
+      //
+      // §2.8 de NOMENCLATURE-MEMOIRE.md. Les deux écritures ci-dessus étaient
+      // les plus silencieuses du produit: une exclusion durable et un curseur
+      // de réglage entraient en base sans qu'un seul mot le dise — ni ici, ni
+      // le soir. La personne retrouvait la conséquence trois jours plus tard,
+      // dans un plan, sans moyen de faire le lien avec le bouton qu'elle avait
+      // coché.
+      //
+      // ⚠️ UNE SEULE BULLE POUR LES DEUX MOITIÉS. Le questionnaire écrit
+      // d'abord (ci-dessus), le champ libre ensuite: annoncer chacune ferait
+      // DEUX bulles pour un seul geste, et la seconde désarmerait la première.
+      // C'est pour ça que cette liste ne part pas d'ici quand il y a un texte
+      // libre — elle est confiée au classifieur par `alsoAnnounce`.
+      //
+      // ⚠️ LE ROSTER EST LU **UNE** FOIS, ICI, ET PAS DEUX. L'annonce a besoin
+      // des prénoms (« J'ai noté pour Léa … ») et le classifieur des bouches;
+      // deux lectures du même roster dans le même tour pourraient rendre deux
+      // listes différentes si quelqu'un ajoute une bouche entre les deux.
+      const feedbackMembers = await feedbackMembersOf(admin, userId);
+      const feedbackLanguage: RecapLanguage =
+        /^fr/i.test(String(planRow.content_locale ?? "")) ? "fr" : "en";
+      const announced: RecapKept[] = [];
+      // ⚠️ « ÉCRIT » SE LIT SUR LE COMPTEUR DU PORT, et le port ne rend PAS la
+      // liste de ce qu'il a gardé. Quand il en a gardé au moins un, on annonce
+      // ce qu'on lui a proposé: la dédup a pu en écarter, et dire « j'ai noté »
+      // d'une ligne déjà présente reste VRAI (elle est bien en mémoire). Le
+      // contraire — taire une ligne réellement écrite — ne l'est pas.
+      if (write?.ok && write.durableWritten > 0) {
+        for (const item of retained.items) {
+          announced.push({
+            text: item.text,
+            until: null,
+            // ⚠️ `portion.adjust` EST UN RÉGLAGE, pas un goût: c'est un cran
+            // que la réponse a déplacé, pas une chose qu'on sait de la
+            // personne. Les fondre dirait le contraire du modèle (§2.4).
+            kind: item.kind === "portion.adjust" ? "setting" : "preference",
+            who: feedbackWhoOf(item.subject, feedbackMembers),
+          });
+        }
+      }
+      if (fieldWrite?.ok && fieldWrite.written > 0) {
+        for (const change of retained.fieldChanges) {
+          const line = settingRecapLine(change, feedbackLanguage);
+          // `null` = un champ sans nom lisible sur la carte. On le TAIT plutôt
+          // que d'envoyer la personne sur un écran où sa ligne n'est pas.
+          if (line === null) {
+            console.info(JSON.stringify({
+              tag: "keel/plan_feedback_notice",
+              event: "field_not_announced",
+              user_id: userId,
+              field: change.field,
+              why: "aucun libellé lisible — la carte ne sait pas l'afficher",
+            }));
+            continue;
+          }
+          announced.push({ text: line, until: null, kind: "setting", who: null });
+        }
+      }
+
+      // ══════════════════════════════════════════════════════════════════
       // LOT B · LE CHAMP LIBRE VA AU CLASSIFIEUR DU LOT A
       // ══════════════════════════════════════════════════════════════════
       //
@@ -613,7 +700,7 @@ Deno.serve(async (req) => {
               // ⚠️ LES BOUCHES DU FOYER, pour que « ma fille » se résolve. `[]`
               // dit « personne d'autre à table » — la vérité d'un solo — et
               // `undefined` dirait « je n'ai pas su lire »: le type l'interdit.
-              members: await feedbackMembersOf(admin, userId),
+              members: feedbackMembers,
               contentLocale: String(planRow.content_locale ?? ""),
               // ⚠️ LA MÊME LISTE QUE LES DEUX QUESTIONS DE PLAT (L475), et pas
               // un second calcul: c'est elle que le classifieur proposera en
@@ -622,8 +709,14 @@ Deno.serve(async (req) => {
               // le bilan n'a jamais montré.
               planFoods: foodTermsOf(planRow.dishes, planRow.preparations),
               source: "plan_feedback",
+              // ⚠️ CE QUE LE QUESTIONNAIRE VIENT D'ÉCRIRE, dit dans la MÊME
+              // bulle que ce que le texte libre écrira. Deux bulles pour un
+              // geste, et la seconde désarmerait les boutons de la première.
+              alsoAnnounce: announced,
               requestId,
             });
+            // Le classifieur a porté l'annonce; on ne la redit pas.
+            announced.length = 0;
           }
         } catch (error) {
           // ⛔ JAMAIS VERS L'APPELANT. Le questionnaire est écrit; personne ne
@@ -636,6 +729,34 @@ Deno.serve(async (req) => {
             error: error instanceof Error ? error.message : String(error),
           }));
         }
+      }
+
+      // ── LE REPLI: PAS DE TEXTE LIBRE, DONC PERSONNE POUR PORTER L'ANNONCE ─
+      //
+      // C'est le cas le PLUS FRÉQUENT — la grande majorité des bilans laisse le
+      // champ libre vide — donc c'est ce chemin-ci qui décide si le produit
+      // dit ce qu'il écrit, ou pas. (Il l'est aussi quand le classifieur a levé:
+      // le `catch` ci-dessus n'a alors pas vidé la liste.)
+      if (announced.length > 0) {
+        const notice = await notifyMemoryWrite(admin as never, {
+          userId,
+          kept: announced,
+          language: feedbackLanguage,
+          requestId,
+        });
+        console.info(JSON.stringify({
+          tag: "keel/plan_feedback_notice",
+          event: "notified",
+          user_id: userId,
+          meal_id: mealId,
+          lines: announced.length,
+          delivered: notice.delivered,
+          // ⚠️ LE MOTIF EST LA MOITIÉ QUI COMPTE: un refus de livraison est une
+          // ligne `skipped` SILENCIEUSE côté canal. Sans ce nombre ici, une
+          // bulle qui ne part jamais ressemble trait pour trait à un produit
+          // qui n'a rien eu à dire.
+          reason: notice.reason,
+        }));
       }
 
       // UNE LIGNE, ET ELLE PORTE LES DEUX NOMBRES QUI SE LISENT ENSEMBLE: ce

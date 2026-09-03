@@ -51,6 +51,8 @@
  * PURE MODULE côté décision; la lecture vit dans `disarmed_tap_io.ts`.
  */
 
+import { NAVIGATION_BUTTON_PREFIX } from "../keel/memory_clarification.ts";
+
 /** Les purposes qui ne désarment rien et ne se font jamais désarmer. */
 export const NEVER_DISARMED_PURPOSES: ReadonlySet<string> = new Set([
   "subscription_confirmed",
@@ -102,6 +104,35 @@ export function judgeTapFreshness(args: {
   if (!latest) return { disarmed: false, reason: "no_armed_message" };
   if (latest === replyTo) return { disarmed: false, reason: "current" };
   return { disarmed: true, reason: "superseded", latestId: latest };
+}
+
+/**
+ * CETTE BULLE ARME-T-ELLE UNE QUESTION ?
+ *
+ * ⛔ UN BOUTON QUI NAVIGUE N'EST PAS UNE QUESTION, et sans cette règle il en
+ * ferait une. La bulle « J'ai noté pour Tom : … · Voir » ne demande rien: son
+ * unique bouton ouvre un écran dans le navigateur de la personne et n'atteint
+ * jamais le serveur. La compter comme armée aurait deux effets, tous deux
+ * faux:
+ *
+ *   · elle DÉSARMERAIT la question posée juste avant — la personne verrait
+ *     « Léa / Zoé » et taperait dans le vide;
+ *   · côté front, elle CACHERAIT son propre bouton dès qu'une question suit,
+ *     puisque seul le dernier message armé montre les siens.
+ *
+ * ⚠️ LA RÈGLE EST DANS LE MODULE PUR pour que les deux côtés la partagent: le
+ * serveur juge la fraîcheur avec, le front choisit quels boutons afficher avec.
+ * Deux définitions de « armé » finiraient par diverger, et l'écart serait
+ * exactement un bouton visible qu'un tap refuserait.
+ */
+export function armsQuestion(
+  buttons: ReadonlyArray<{ readonly payload?: unknown }> | null | undefined,
+): boolean {
+  if (!Array.isArray(buttons) || buttons.length === 0) return false;
+  return buttons.some((b) => {
+    const payload = String(b?.payload ?? "").trim();
+    return payload !== "" && !payload.startsWith(NAVIGATION_BUTTON_PREFIX);
+  });
 }
 
 /**

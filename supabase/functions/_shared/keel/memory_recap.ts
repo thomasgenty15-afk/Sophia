@@ -223,3 +223,68 @@ export function buildMemoryRecap(args: {
 
   return blocks.length === 0 ? null : blocks.join("\n\n");
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LA LIGNE D'UN RÉGLAGE QUI A BOUGÉ (2026-09-04)
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Le bilan déplace des curseurs — la difficulté des recettes, le temps de
+// cuisine, la variété — et jusqu'ici c'étaient les SEULES écritures du produit
+// qui ne se disaient nulle part. Un curseur qui bouge sans un mot est
+// exactement ce que « on retient, et on le dit » existe pour empêcher.
+//
+// ⛔ LES MÊMES MOTS QUE LA CARTE (`known.field.*`). Le message dit « ce qui
+// vient de changer » et son bouton mène à l'écran: si le champ y porte un autre
+// nom, la personne ne peut pas faire le lien, et le bouton devient une porte
+// vers une page où elle ne retrouve rien.
+
+/** Le nom d'un champ, dans les deux langues — miroir de `FIELD_TITLE`. */
+const FIELD_TITLE: Readonly<Record<string, { fr: string; en: string }>> = {
+  cook_days: { fr: "Jours de cuisine", en: "Cooking days" },
+  cooking_time_min: { fr: "Temps de cuisine", en: "Cooking time" },
+  budget_amount: { fr: "Budget", en: "Budget" },
+  recipe_difficulty: { fr: "Difficulté des recettes", en: "Recipe difficulty" },
+  variety: { fr: "Variété", en: "Variety" },
+  eating_rhythm: { fr: "Rythme des repas", en: "Meal rhythm" },
+};
+
+const FIELD_MOVED = {
+  fr: (previous: string, next: string) => `de ${previous} à ${next}`,
+  en: (previous: string, next: string) => `from ${previous} to ${next}`,
+} as const;
+
+const FIELD_UNSET = { fr: "rien", en: "nothing" } as const;
+
+/** `null` devient « rien », jamais « 0 »: l'absence n'est pas une déclaration. */
+function showFieldValue(value: unknown, language: RecapLanguage): string {
+  if (value === null || value === undefined) return FIELD_UNSET[language];
+  if (Array.isArray(value)) {
+    return value.length === 0
+      ? FIELD_UNSET[language]
+      : value.map((entry) => String(entry)).join(", ");
+  }
+  return String(value);
+}
+
+/**
+ * La ligne d'un réglage déplacé, ou `null` si ce champ n'a PAS de nom lisible.
+ *
+ * ⛔ `null` PLUTÔT QUE LE SLUG. Un champ que la carte ne sait pas afficher
+ * (`cooking_style` aujourd'hui) enverrait la personne, bouton « Voir » à
+ * l'appui, sur un écran où sa ligne n'est pas — pire que le silence, parce que
+ * ça lui apprend que le bouton ment. L'appelant compte ce qu'il a tu.
+ */
+export function settingRecapLine(
+  change: { field: string; previous: unknown; next: unknown },
+  language: RecapLanguage,
+): string | null {
+  const title = FIELD_TITLE[String(change.field ?? "")];
+  if (!title) return null;
+  const moved = FIELD_MOVED[language](
+    showFieldValue(change.previous, language),
+    showFieldValue(change.next, language),
+  );
+  // L'espace avant le deux-points suit la langue, comme partout ailleurs ici.
+  const colon = language === "fr" ? " : " : ": ";
+  return `${title[language]}${colon}${moved}`;
+}

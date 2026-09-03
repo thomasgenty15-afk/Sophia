@@ -45,6 +45,14 @@ import {
   signMealPhotoUrls,
   uploadMealPhoto,
 } from "../api/mealPhoto";
+import {
+  armsQuestion,
+  isNavigationOnly,
+  memoryViewHref,
+  readMemoryViewToken,
+} from "../api/memoryView";
+import { useNavigate } from "react-router-dom";
+import { browserLocalDate } from "../lib/useMealTicks";
 import { t } from "../i18n/t";
 
 type Status = "connecting" | "live" | "offline";
@@ -472,8 +480,27 @@ export default function ChatPage() {
   // seule catégorie de bouton qui ne va pas droit au serveur, et elle est
   // reconnue par la FORME de son payload — pas par le libellé, qui est de
   // l'affichage et peut être traduit.
+  // Le jour LOCAL de la personne — il sert à surligner, sur la carte, la ligne
+  // qui vient d'être écrite. Lu au rendu et pas au clic: un clic à minuit
+  // passé ouvrirait la carte sur la veille, ce qui est le bon jour pour la
+  // ligne dont on parle.
+  const todayLocalIso = React.useMemo(() => browserLocalDate(), []);
+  const navigate = useNavigate();
+
   const onButton = React.useCallback(
     (payload: string, label: string, messageId: string) => {
+      // ── « VOIR » N'EST PAS UNE RÉPONSE, C'EST UNE PORTE ──────────────────
+      // Ce jeton ouvre « Ce que Sophia sait » sur le bloc qui vient d'être
+      // écrit. Il ne part PAS au serveur: il n'y a rien à y répondre, et un
+      // aller-retour ferait attendre la personne pour une navigation locale.
+      //
+      // ⚠️ EN PREMIER, avant tous les autres: les jetons ci-dessous sont
+      // ancrés, mais l'ordre est ce qui rend l'ancrage inutile à démontrer.
+      const block = readMemoryViewToken(payload);
+      if (block) {
+        navigate(memoryViewHref(block, todayLocalIso));
+        return;
+      }
       if (isWeeklyCheckInToken(payload)) {
         setWeeklyToken(payload);
         return;
@@ -499,7 +526,7 @@ export default function ChatPage() {
       // de refuser un tap sur un message qu'un plus récent a périmé.
       void send({ kind: "button", payload, label }, label, messageId);
     },
-    [send],
+    [send, navigate, todayLocalIso],
   );
 
   const submitWeekly = React.useCallback(
@@ -727,8 +754,13 @@ export default function ChatPage() {
   // les INSERT). Rien à écouter de plus, rien à stocker. Répondre à une
   // question armée plus ancienne en remontant le fil ne doit pas la réactiver :
   // la plus récente gagne (edge case n°3, règle héritée des templates).
+  // ⟳ 2026-09-04 — `armsQuestion` ET PLUS « a des boutons ». Une bulle dont le
+  // seul bouton NAVIGUE (« Voir ») ne pose aucune question: la compter ici
+  // ferait disparaître les boutons de la question posée juste avant, alors que
+  // le serveur, lui, l'accepterait encore. Les deux côtés partagent la règle —
+  // miroir de `_shared/chat/disarmed_tap.ts`.
   const lastAssistantId = [...messages].reverse().find((m) =>
-    m.role === "assistant" && m.buttons.length > 0
+    m.role === "assistant" && armsQuestion(m.buttons)
   )?.id ?? null;
 
   return (
@@ -936,7 +968,13 @@ export default function ChatPage() {
                     {t("chat.error.send")}
                   </p>
                 )}
-                {message.buttons.length > 0 && message.id === lastAssistantId && (
+                {/* ⚠️ UNE BULLE QUI NE FAIT QUE NAVIGUER GARDE SON BOUTON, même
+                quand une question plus récente est arrivée. Rien ne l'expire:
+                « Voir » ouvre un écran, et cet écran existera encore demain.
+                Le désarmement ne concerne que ce qui ATTEND une réponse. */}
+            {message.buttons.length > 0 &&
+              (message.id === lastAssistantId ||
+                isNavigationOnly(message.buttons)) && (
                   <div className="mt-2 flex flex-wrap gap-2">
                     {message.buttons.map((button) => (
                       <Button

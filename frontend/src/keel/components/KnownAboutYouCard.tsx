@@ -279,6 +279,23 @@ export interface KnownAboutYouCardProps {
   roster: readonly PortionAdjustMember[];
   /** `YYYY-MM-DD`, le jour LOCAL de la personne. Ce composant ne lit pas l'heure. */
   today: string;
+  /**
+   * LE BLOC SUR LEQUEL ON ARRIVE, quand on arrive d'une bulle du chat.
+   *
+   * ⚠️ `null` EST LE CAS NORMAL — quelqu'un qui ouvre la page par le menu
+   * n'arrive de nulle part. Ce n'est pas une sélection: rien n'est masqué, la
+   * page défile simplement jusque-là.
+   */
+  focus?: KnownBlock | null;
+  /**
+   * Le jour de la ligne dont la bulle parlait, pour la SURLIGNER.
+   *
+   * ⛔ UN SURLIGNAGE, JAMAIS UN FILTRE. Réduire l'affichage aux lignes de ce
+   * jour ferait disparaître tout le reste de la mémoire au moment précis où la
+   * personne vient vérifier ce qu'on en sait — l'inverse de la promesse de cet
+   * écran.
+   */
+  focusAt?: string | null;
   onSave: (next: {
     items: readonly RetainedItem[];
     nextPlan: readonly NextPlanEntry[];
@@ -722,7 +739,12 @@ export default function KnownAboutYouCard(props: KnownAboutYouCardProps) {
       ? MOVABLE_KINDS
       : [item.kind, ...MOVABLE_KINDS];
     return (
-      <li key={key} className="rounded-card border border-line bg-paper-2 px-3 py-2">
+      <li
+        key={key}
+        className={`rounded-card border border-line bg-paper-2 px-3 py-2${
+          focusRing(item.at)
+        }`}
+      >
         <div className="flex flex-wrap items-start gap-2">
           <div className="min-w-0 flex-1">
             {/* ⛔ LOT M2 — DANS LE FIL, LA LIGNE DIT OÙ ELLE EST ALLÉE.
@@ -865,7 +887,12 @@ export default function KnownAboutYouCard(props: KnownAboutYouCardProps) {
   const fieldLine = (change: FieldChange, index: number) => {
     const key = `field:${index}`;
     return (
-      <li key={key} className="rounded-card border border-line bg-paper-2 px-3 py-2">
+      <li
+        key={key}
+        className={`rounded-card border border-line bg-paper-2 px-3 py-2${
+          focusRing(change.at)
+        }`}
+      >
         <div className="flex flex-wrap items-start gap-2">
           <div className="min-w-0 flex-1">
             <p className="text-xs font-semibold uppercase tracking-wide text-ink-soft">
@@ -959,6 +986,57 @@ export default function KnownAboutYouCard(props: KnownAboutYouCardProps) {
    */
   const unwritable = opaqueStoreRefusal(store) !== null;
 
+  // ── ARRIVER D'UNE BULLE ────────────────────────────────────────────────
+  //
+  // ⚠️ AU MONTAGE SEULEMENT, et sur l'état déjà chargé: la page ne monte cette
+  // carte qu'en `ready`. Défiler avant que les lignes existent viserait une
+  // ancre qui n'est pas encore là.
+  //
+  // ⛔ PAS DE `behavior: "smooth"`. Ce dépôt a mesuré qu'il n'est pas garanti —
+  // il peut être un no-op complet. On ne construit rien dessus, et surtout on
+  // n'attend pas sa fin.
+  React.useEffect(() => {
+    if (!props.focus) return;
+    const anchor = document.getElementById(`known-${props.focus}`);
+    anchor?.scrollIntoView();
+  }, [props.focus]);
+
+  // ── LE SURLIGNAGE S'ÉTEINT ────────────────────────────────────────────
+  //
+  // ⚠️ IL DOIT S'ÉTEINDRE, et pas par élégance. Le jour est une clé GROSSIÈRE:
+  // toutes les lignes écrites le même jour portent le même `at`, donc plusieurs
+  // s'allument ensemble. Laissé en place, ce halo cesserait de dire « c'est là »
+  // pour se lire comme un état de ces lignes — celui-là même que la carte ne
+  // veut pas suggérer, puisqu'elles n'ont rien de différent des autres.
+  //
+  // ⛔ ET IL NE PEUT PAS ÊTRE PLUS FIN QUE LE JOUR. `notifyMemoryWrite` envoie
+  // le jour local, parce que c'est ce que porte `at` en base: il n'existe nulle
+  // part d'identifiant de ligne à mettre dans un bouton.
+  const [focusLive, setFocusLive] = React.useState<boolean>(
+    Boolean(props.focusAt),
+  );
+  React.useEffect(() => {
+    if (!props.focusAt) return;
+    setFocusLive(true);
+    const timer = setTimeout(() => setFocusLive(false), 3000);
+    return () => clearTimeout(timer);
+  }, [props.focusAt]);
+
+  /** Cette ligne est-elle celle dont la bulle parlait ? */
+  const isFocused = (at: string): boolean =>
+    focusLive && props.focusAt !== null && props.focusAt !== undefined &&
+    at === props.focusAt;
+
+  /**
+   * ⚠️ UN ANNEAU, PAS UN FOND. Un fond coloré se lit comme un ÉTAT de la ligne
+   * (« celle-ci est différente »); un anneau se lit comme « c'est là ». La
+   * distinction compte sur un écran dont toutes les lignes se valent.
+   */
+  // `fig-600` est LE jeton d'anneau de focus du dépôt (`tokens.css:134`) — pas
+  // une nuance choisie ici. `fig-500` n'existe pas.
+  const focusRing = (at: string): string =>
+    isFocused(at) ? " ring-2 ring-fig-600" : "";
+
   const duplicates = visibleDuplicates({ items: store.items, memo });
   const preferences = itemsInBlock(store.items, "preferences");
   const settings = itemsInBlock(store.items, "settings");
@@ -1041,7 +1119,7 @@ export default function KnownAboutYouCard(props: KnownAboutYouCardProps) {
           §2.2 ① de la nomenclature. Une PRÉPARATION est une préférence: les
           `method.*` sont dans les mêmes listes que les `food.*`, et il n'y a
           plus à savoir ce que le produit appelle « une méthode ». */}
-      <section>
+      <section id="known-preferences">
         <SectionLabel>{t(BLOCK_TITLE.preferences)}</SectionLabel>
         <p className="mb-2 text-xs text-ink-soft">{t(BLOCK_INTRO.preferences)}</p>
         {preferences.length === 0
@@ -1076,7 +1154,7 @@ export default function KnownAboutYouCard(props: KnownAboutYouCardProps) {
           exactement le magasin que ce chantier supprime, avec un autre chapeau
           — et la chose la plus difficile à déboguer du produit: le jour où un
           plan part de travers, personne ne peut dire pourquoi. */}
-      <section>
+      <section id="known-notes">
         <SectionLabel>{t(BLOCK_TITLE.notes)}</SectionLabel>
         <p className="mb-2 text-xs text-ink-soft">
           {t(BLOCK_INTRO.notes, {
@@ -1101,7 +1179,9 @@ export default function KnownAboutYouCard(props: KnownAboutYouCardProps) {
                     {group.lines.map(({ line, index }) => (
                         <li
                           key={`memo:${index}`}
-                          className="rounded-card border border-line bg-paper-2 px-3 py-2"
+                          className={`rounded-card border border-line bg-paper-2 px-3 py-2${
+                            focusRing(line.at)
+                          }`}
                         >
                           <div className="flex flex-wrap items-start gap-2">
                             <div className="min-w-0 flex-1">
@@ -1144,7 +1224,7 @@ export default function KnownAboutYouCard(props: KnownAboutYouCardProps) {
           sont internes (« pour nous », §2.2 ②); ils sont ici pour le RETOUR EN
           ARRIÈRE, pas pour se lire comme une chose que Sophia sait de vous.
           Confondre les deux était le défaut de l'écran d'avant. */}
-      <section>
+      <section id="known-settings">
         <SectionLabel>{t(BLOCK_TITLE.settings)}</SectionLabel>
         <p className="mb-2 text-xs text-ink-soft">{t(BLOCK_INTRO.settings)}</p>
         {(() => {
@@ -1197,14 +1277,16 @@ export default function KnownAboutYouCard(props: KnownAboutYouCardProps) {
           une réserve qui n'existe pas, sur le seul contenu de cette carte qui
           est censé disparaître tout seul. */}
       {liveNextPlan.length > 0 && (
-        <section>
+        <section id="known-next_plan">
           <SectionLabel>{t(BLOCK_TITLE.next_plan)}</SectionLabel>
           <p className="mb-2 text-xs text-ink-soft">{t(BLOCK_INTRO.next_plan)}</p>
           <ul className="space-y-2">
             {liveNextPlan.map((entry, i) => (
               <li
                 key={`next:${i}`}
-                className="rounded-card border border-line bg-paper-2 px-3 py-2"
+                className={`rounded-card border border-line bg-paper-2 px-3 py-2${
+                  focusRing(entry.item.at)
+                }`}
               >
                 <p className="text-sm text-ink">{entry.item.text}</p>
                 <p className="mt-0.5 text-xs text-ink-soft">
@@ -1241,7 +1323,7 @@ export default function KnownAboutYouCard(props: KnownAboutYouCardProps) {
           jamais à rien, en tête d'un écran qui promet de ne montrer que ce qui
           existe. */}
       {store.legacyNotes.length > 0 && (
-        <section>
+        <section id="known-legacy">
           <SectionLabel>{t("known.legacy.title")}</SectionLabel>
           <p className="mb-2 text-xs text-ink-soft">{t("known.legacy.intro")}</p>
           <ul className="space-y-2">

@@ -9,6 +9,7 @@ import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
 
 import { CHAT_SCOPE } from "./delivery.ts";
 import {
+  armsQuestion,
   type DisarmVerdict,
   judgeTapFreshness,
 } from "./disarmed_tap.ts";
@@ -55,12 +56,19 @@ export async function judgeTap(
       { id?: unknown; metadata?: Record<string, unknown> | null }
     >;
 
-    // Le DERNIER message assistant porteur de boutons. Voir le pavé du module
-    // pur: un proactif SANS boutons ne remplace pas une question — il ne
+    // Le DERNIER message assistant qui ARME une question. Voir le pavé du
+    // module pur: un proactif SANS boutons ne remplace pas une question — il ne
     // demande rien.
+    //
+    // ⟳ 2026-09-04 — `armsQuestion` ET PLUS « a des boutons ». Une bulle dont
+    // le seul bouton NAVIGUE (« Voir », qui ouvre un écran et n'atteint jamais
+    // le serveur) ne demande rien non plus: la compter désarmerait la question
+    // posée juste avant, et la personne taperait dans le vide sur des prénoms
+    // qu'elle voit encore.
     const latestArmed = rows.find((r) =>
-      Array.isArray(r.metadata?.buttons) &&
-      (r.metadata!.buttons as unknown[]).length > 0
+      armsQuestion(
+        (r.metadata?.buttons ?? []) as ReadonlyArray<{ payload?: unknown }>,
+      )
     );
 
     // Le `purpose` de la bulle TAPÉE, pour l'exemption transactionnelle. Elle

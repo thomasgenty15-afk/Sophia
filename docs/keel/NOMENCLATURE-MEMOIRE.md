@@ -214,6 +214,53 @@ attribuée à Sophia.
 ⚠️ Les 7 lignes locales de `household_food_restrictions` ne se migrent pas automatiquement :
 le sens (goût ou interdit) n'est pas déductible. Le lot C les liste ; l'humain tranche.
 
+### 2.8 Le doute ne bloque rien, et l'écriture se dit tout de suite (2026-09-04)
+
+Dans un foyer, **l'ambiguïté est le cas normal** : « ma fille » avec deux filles, « j'ai pas
+aimé la viande » avec deux viandes au plan. Jusqu'ici le produit y répondait par le **silence** —
+le classifieur jetait l'entrée, sans motif, et rien ne pouvait relancer. Deux règles remplacent
+ce silence.
+
+**① Une question, dans le chat, qui ne retient rien.** Quand le classifieur ne peut pas trancher
+**qui** (`about: who`) ou **quoi** (`about: what`), il range l'entrée dans une cinquième liste,
+`clarify`, avec **les candidats copiés** (des `member_id` du roster, ou des aliments **du plan**).
+Le plan se compose quand même — il n'attend **jamais** une réponse. Une bulle part avec les
+prénoms (ou les aliments) en boutons, plus un échappement (« Personne de la liste » /
+« Aucun de ceux-là ») :
+
+| | ce que ça donne |
+|---|---|
+| **un tap** | la ligne s'écrit, avec le producteur `draft_note` et **la phrase de la personne** en citation |
+| **l'échappement** | rien n'est écrit, et la ligne passe `declined` — ce qui la **distingue du silence** |
+| **le silence** | rien n'est écrit ; la ligne expire à 48 h, comptée par la balayeuse du pouls |
+
+⛔ **CE TAP NE FAIT PAS ÉCRIRE LE CHAT** (§2.1 tient : deux sources, le chat n'en est pas une).
+Il complète le **slot manquant** d'une entrée que la personne a écrite elle-même, sur son
+brouillon ou dans le champ libre de son bilan. Le contenu vient d'elle ; le tap ne fournit que
+« laquelle ».
+
+Bornes, parce qu'une question est une sollicitation : **une seule ouverte** à la fois par
+personne (index unique) ; **deux par jour local** au plus (`MEMORY_CLARIFICATION_DAILY_CAP`,
+le jour typique portant deux gestes — le bilan de l'ancien plan, puis le nouveau plan) ; une
+seule question par passe, même si le classifieur en propose deux (la seconde est journalisée,
+pas posée). Ces bulles répondent à un geste : elles portent `isReply`, donc elles passent le
+mode silencieux — couper la parole à quelqu'un qui vient d'écrire serait le punir d'avoir écrit.
+
+**② L'écriture se dit à l'instant où elle se fait.** Chaque fois qu'une ligne entre en mémoire
+par l'une des deux sources, une bulle le dit tout de suite — « J'ai noté pour Tom : « pas de
+poisson » » — avec **un seul bouton, « Voir »**, qui ouvre « Ce que Sophia sait » sur le bloc
+concerné, ligne surlignée.
+
+⚠️ **« VOIR », ET PAS « ANNULER ».** Un « Annuler » dans le chat serait un **second** endroit qui
+écrit dans la mémoire, avec ses propres cas (annuler quoi, si la ligne a été éditée entre-temps
+depuis un autre onglet ?). La carte sait déjà modifier et enlever, et elle gère la concurrence.
+**Le chat dit, l'écran fait.**
+
+Conséquence directe sur le soir : **le récap du pouls ne redit plus la mémoire** (c'était un
+doublon à six heures de distance du geste, sans lien visible avec lui et sans action). Il ne
+garde que la moitié **sécurité** — qui, elle, est écrite sans accord synchrone et doit donc être
+annoncée quoi qu'il arrive (arbitrage du 2026-09-01).
+
 ---
 
 ## 3. La forme écrite
@@ -870,8 +917,13 @@ poisson).
 | 10 | « j'ai envie de fajitas cette semaine » | **encart** (`next_plan`) | `household` | `retained_next_plan` +1 ; l'encart apparaît ; il **meurt** au `validated_at` du plan suivant |
 
 Règle du sujet, relue sur 4, 6, 7, 9 : la phrase nomme quelqu'un ⇒ la ligne porte
-`member:<uuid>` ou **rien** (abstention comptée `unknownMember` / `ambiguous_relative`). Le
-repli sur « tout le monde » est **interdit** quand la phrase nommait quelqu'un.
+`member:<uuid>` ou **rien**. Le repli sur « tout le monde » est **interdit** quand la phrase
+nommait quelqu'un.
+
+⟳ **2026-09-04 — « ou rien » n'est plus du silence.** L'abstention ne se compte plus seulement
+(`unknownMember` / `ambiguous_relative`) : quand plusieurs bouches sont candidates, l'entrée va
+dans `clarify` et la question part (§2.8). L'abstention **muette** reste le sort du cas où
+personne ne colle — pas de celui où deux personnes collent.
 
 ### 8.2 Les cas du bilan (lot B)
 
@@ -891,6 +943,37 @@ repli sur « tout le monde » est **interdit** quand la phrase nommait quelqu'un
 | **L** | `anything_else = "Léa doit bien manger le mardi, elle a danse"` | 1 note mémo sujet Léa `when={tue,dinner}` ; **0** préférence ; **0** indice |
 | **M** | `never_again=[{food:"saumon", subject:"member:Tom"}]` | `food.exclude` durable sujet Tom ; génération suivante : saumon absent des boîtes de Tom, `exclusion_belt` bites=0 |
 | **N** | `anything_else = "on a mangé des pizzas mardi"` | **rien** — `nothing_to_file` : raconter ce qui a été mangé n'a aucune destination (FF-054 : on évalue le plan, jamais la personne) |
+
+### 8.3 Les dix phrases délicates — ce que le banc des clarifications mesure (2026-09-04)
+
+Fixture à **cinq bouches** : Claire (titulaire, F adulte), Marc (M adulte), Tom (M mineur),
+Léa (F mineure), Zoé (F mineure). Sans une **seconde fille** et un **conjoint**, la moitié de
+ces cas n'existe pas — « ma fille » se résoudrait tout seul.
+
+**Source brouillon** (`draft_note` sur une génération) :
+
+| # | phrase | attendu |
+|---|---|---|
+| D1 | « Ma fille n'aime pas le poisson. » | **question QUI**, options = `{Léa, Zoé}` ; tap Léa ⇒ 1 `food.exclude` `member:Léa`, `quote` = la phrase |
+| D2 | « Mon fils n'aime pas le poisson. » | **aucune question** — un seul garçon mineur ; 1 ligne `member:Tom` |
+| D3 | « Les petites ne mangent pas de champignons. » | **aucune question** — 2 lignes, `{Léa, Zoé}`, **jamais** Tom, **jamais** `household` |
+| D4 | « On n'aime pas trop la viande rouge. » | **aucune question** — « on » = la table ; 1 ligne `household` |
+| D5 | « Elle a horreur des épinards. » | **question QUI** (« elle » ≠ celle qui tape) ; échappement ⇒ `declined`, **rien d'écrit** |
+
+**Source bilan** (champ libre `anything_else`) :
+
+| # | phrase | attendu |
+|---|---|---|
+| B1 | « J'ai pas aimé la viande. » | **question QUOI**, options ⊆ les viandes **du plan** ; tap ⇒ 1 ligne `household` portant le terme choisi |
+| B2 | « Le plat de mardi soir, plus jamais. » | **aucune question** — le classifieur a le plan, un seul dîner ce soir-là |
+| B3 | « Zoé a bien mangé cette semaine. » | **rien, et aucune question** — raconter ce qui a été mangé n'a pas de destination (§8.2 cas N) |
+| B4 | « Mon mari trouve qu'il y a trop de riz. » | **rien, et aucune question** — un **degré**, que la question `portions` pose ; demander « lequel » pour une entrée qu'on va sauter est le pire des deux mondes |
+| B5 | « Les enfants ont détesté le X, sauf Tom. » | **aucune question** — l'aliment est **nommé** ; 2 lignes `{Léa, Zoé}` |
+
+Règle que ces dix cas tiennent ensemble, et que le code doit respecter : **un aliment nommé ne
+déclenche jamais de question QUOI** (B5), et **un degré ne déclenche jamais de question du tout**
+(B4). Seule une référence qu'on ne peut pas résoudre — et dont la résolution **écrirait** quelque
+chose — vaut une sollicitation.
 
 ---
 

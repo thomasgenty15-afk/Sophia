@@ -276,3 +276,39 @@ Deno.test("LOT D — les trois blocs existent aussi en anglais", () => {
   assert(out.includes("from your feedback"), "le bloc anglais de l'encart manque");
   assert(out.includes("Tom :"));
 });
+
+// ===========================================================================
+// LE RÉCAP DU SOIR NE DIT PLUS LA MÉMOIRE — 2026-09-04
+// ===========================================================================
+
+Deno.test("l'io du récap ne lit plus les trois magasins de mémoire", async () => {
+  // ⛔ LA PROPRIÉTÉ EST UNE ABSENCE, ET ELLE SE MESURE SUR LA SOURCE. Les
+  // lignes de mémoire sont dites au moment du geste (`notifyMemoryWrite`); les
+  // redire le soir ferait la même annonce deux fois par jour, et la seconde
+  // n'apprendrait rien à personne.
+  const src = (
+    await Deno.readTextFile(new URL("./memory_recap_io.ts", import.meta.url))
+  )
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/(^|[^:])\/\/[^\n]*/g, "$1");
+  for (const store of ["retained_items", "retained_next_plan", "practical_constraints"]) {
+    assertEquals(
+      src.includes(store),
+      false,
+      `le récap du soir lit encore \`${store}\``,
+    );
+  }
+});
+
+Deno.test("LE CAS QUI PASSE — la SÉCURITÉ, elle, se dit toujours le soir", async () => {
+  // ⚠️ SANS CETTE MOITIÉ, le test du dessus serait vert sur un récap devenu
+  // muet. Et la sécurité n'est pas un oubli: l'arbitrage du 2026-09-01 a cessé
+  // d'exiger un consentement synchrone pour écrire une allergie déclarée dans
+  // un retour, et ce qui remplace ce consentement est « on l'écrit, on le DIT,
+  // et ça se défait ». Cette annonce EST la justification de l'écriture.
+  const src = await Deno.readTextFile(
+    new URL("./memory_recap_io.ts", import.meta.url),
+  );
+  assertEquals(src.includes("student_safety_constraints"), true);
+  assertEquals(src.includes("household_member_allergies"), true);
+});

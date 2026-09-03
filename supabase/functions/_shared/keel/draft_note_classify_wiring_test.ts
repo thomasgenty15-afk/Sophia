@@ -360,6 +360,34 @@ function assertWiredCommon(src: string, lane: string): void {
     "userId",
     `lane ${lane}: le classifieur ne reçoit plus le titulaire.`,
   );
+
+  // ── ⑨ LES ALIMENTS DU PLAN, ET LA SOURCE ───────────────────────────────
+  //
+  // ⛔ SANS `planFoods`, LA QUESTION « QUOI » NE PEUT PAS EXISTER (§2.8). Le
+  // modèle ne propose que des aliments COPIÉS de cette liste: passée vide, il
+  // n'a rien à proposer, `readClarify` refuse tout `about: "what"` en
+  // `bad_options`, et « j'ai pas aimé la viande » redevient ce qu'il était —
+  // une exclusion de « viande » pour toute la table, ou rien du tout. Aucun
+  // type ne voit ça: `readonly string[]` accepte `[]` sans un mot.
+  const planFoods = fields.get("planFoods") ?? "";
+  assert(
+    planFoods.includes("foodTermsOf("),
+    `LANE ${lane.toUpperCase()} — LES ALIMENTS DU PLAN N'ATTEIGNENT PLUS LE ` +
+      `CLASSIFIEUR (\`${planFoods}\`). C'est la liste que la question « tu ` +
+      `parlais de quoi ? » propose en boutons, et le SEUL vocabulaire dont un ` +
+      `\`about: "what"\` puisse sortir. Une liste vide ne casse rien, ne lève ` +
+      `rien, et supprime la moitié « quoi » du chantier en silence.`,
+  );
+
+  const source = fields.get("source") ?? "";
+  assert(
+    /^"(draft_note|plan_feedback)"$/.test(source),
+    `LANE ${lane.toUpperCase()} — LA SOURCE N'EST PLUS UN LITTÉRAL DU ` +
+      `VOCABULAIRE (\`${source}\`). Elle est écrite telle quelle dans ` +
+      `\`memory_clarifications.source\`, dont le CHECK ne connaît que ces ` +
+      `deux mots: une autre valeur fait échouer l'insertion, et la question ` +
+      `n'est jamais posée — sans erreur visible ailleurs.`,
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -496,6 +524,16 @@ const CUTS: readonly Cut[] = [
     apply: setField("today", "startsOn"),
   },
   {
+    name: "les aliments du plan deviennent une liste vide",
+    expects: "LES ALIMENTS DU PLAN N'ATTEIGNENT PLUS",
+    apply: setField("planFoods", "[]"),
+  },
+  {
+    name: "la source sort du vocabulaire",
+    expects: "LA SOURCE N'EST PLUS UN LITTÉRAL",
+    apply: setField("source", '"chat"'),
+  },
+  {
     name: "le client de service n'est plus passé",
     expects: "ne reçoit plus le client de service",
     apply: (src) => {
@@ -592,7 +630,175 @@ const HOUSEHOLD: Lane = {
   ],
 };
 
-const LANES: readonly Lane[] = [MEAL, HOUSEHOLD];
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * LA TROISIÈME LANE — le champ libre du BILAN (2026-09-04)
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * ⚠️ ELLE N'ÉTAIT PAS COUVERTE, ET C'EST LE MÊME MODE D'ÉCHEC QUE CELUI QUI A
+ * FAIT NAÎTRE CE FICHIER. `keel-plan-feedback-v1` appelle le MÊME classifieur,
+ * sur le MÊME producteur, depuis le lot B — et on pouvait retirer ce bloc sans
+ * qu'une ligne de ce fichier ne rougisse, parce que `LANES` n'en nommait que
+ * deux. Le champ libre du bilan est la source de la MOITIÉ des cas délicats
+ * du §8.3 (« j'ai pas aimé la viande »).
+ *
+ * ⛔ ELLE NE PASSE PAS PAR `assertWiredCommon`, ET CE N'EST PAS UN RACCOURCI.
+ * Cinq de ses neuf familles n'ont aucun sens ici: il n'y a ni aperçu
+ * (`if (isDraft) return`), ni écriture de plan, ni `startsOn` — le bilan CLÔT
+ * un plan, il n'en compose pas. Les forcer demanderait d'inventer des ancres
+ * dans le produit pour satisfaire un test. Ce qui reste vrai des trois lanes
+ * est asserté ici explicitement.
+ */
+const FEEDBACK: Lane = {
+  lane: "feedback",
+  rel: "keel-plan-feedback-v1/index.ts",
+  assertWired(src) {
+    assert(
+      src.includes(IMPORT_LINE),
+      "LANE FEEDBACK — LE CLASSIFIEUR N'EST PLUS IMPORTÉ. Le champ libre du " +
+        "bilan (`anything_else`) redevient une colonne qu'on écrit et que " +
+        "personne ne lit: sept réponses par plan, rangées, jamais rangeantes.",
+    );
+    const site = src.indexOf(`${CALLEE}(`);
+    assert(
+      site !== -1,
+      "LANE FEEDBACK — LE CLASSIFIEUR N'A PLUS D'APPELANT ICI. C'est la " +
+        "source de la moitié des cas délicats du §8.3, et son retrait " +
+        "laisserait les deux autres lanes vertes.",
+    );
+
+    // ── LA GARDE D'ENTRÉE EST AU-DESSUS, TOUJOURS ─────────────────────────
+    // ⛔ `readDraftNote` porte la cible chiffrée, l'interdit de doctrine et le
+    // plancher TCA. Un appel placé au-dessus de sa porte enverrait au modèle
+    // une phrase que la garde venait de refuser.
+    const gate = src.indexOf("const note = readDraftNote({");
+    assert(gate !== -1, "lane feedback: la garde d'entrée a disparu.");
+    assert(
+      gate < site,
+      "LANE FEEDBACK — LE CLASSIFIEUR EST APPELÉ AVANT SA GARDE D'ENTRÉE. " +
+        "Une clause tombée sous plancher TCA repartirait au modèle par cette " +
+        "porte-ci, sans que la garde de l'autre lane n'y change rien.",
+    );
+
+    // ── LE QUESTIONNAIRE EST ÉCRIT AVANT ──────────────────────────────────
+    const answers = src.indexOf('"keel_plan_feedback_submit"');
+    assert(answers !== -1, "lane feedback: l'écriture du bilan a disparu.");
+    assert(
+      answers < site,
+      "LANE FEEDBACK — LE CLASSIFIEUR TOURNE AVANT L'ÉCRITURE DU BILAN. " +
+        "Personne ne doit perdre ses réponses parce qu'un appel modèle est " +
+        "tombé: l'étage 1 s'écrit d'abord, la classification ensuite.",
+    );
+
+    const fields = callFields(src, "feedback");
+    assertEquals(
+      fields.get("note"),
+      "note",
+      "LANE FEEDBACK — LE CLASSIFIEUR NE REÇOIT PLUS LE VERDICT de " +
+        `\`readDraftNote\` (\`${fields.get("note")}\`). Lui tendre la chaîne ` +
+        "brute rouvre le trou que `plan_draft_note.ts` ferme.",
+    );
+    assertEquals(
+      fields.get("source"),
+      '"plan_feedback"',
+      "LANE FEEDBACK — LA SOURCE N'EST PLUS `plan_feedback` (`" +
+        fields.get("source") +
+        "`). C'est ce mot qui distingue, dans `memory_clarifications`, une " +
+        "question née d'un bilan d'une question née d'un brouillon — la " +
+        "seule chose qui dise, plus tard, d'où venait la phrase citée.",
+    );
+    const planFoods = fields.get("planFoods") ?? "";
+    assert(
+      planFoods.includes("foodTermsOf("),
+      "LANE FEEDBACK — LES ALIMENTS DU PLAN N'ATTEIGNENT PLUS LE CLASSIFIEUR " +
+        `(\`${planFoods}\`). C'est LA lane où la question « quoi » compte: ` +
+        "« j'ai pas aimé la viande » ne peut proposer que des aliments du " +
+        "plan qu'on vient de clore.",
+    );
+    // ── L'ANNONCE DU QUESTIONNAIRE PASSE PAR LE CLASSIFIEUR ───────────────
+    // ⚠️ UNE SEULE BULLE PAR GESTE. Le questionnaire écrit (exclusions, crans
+    // de portion, réglages) PUIS le champ libre écrit: deux annonces feraient
+    // deux bulles, et la seconde désarmerait les boutons de la première.
+    assertEquals(
+      fields.get("alsoAnnounce"),
+      "announced",
+      "LANE FEEDBACK — CE QUE LE QUESTIONNAIRE A ÉCRIT N'EST PLUS CONFIÉ AU " +
+        `CLASSIFIEUR (\`${fields.get("alsoAnnounce")}\`). Il partira alors ` +
+        "dans une bulle à lui, juste avant celle du champ libre — et la " +
+        "seconde désarmera les boutons de la première (le front n'arme que " +
+        "la dernière bulle qui en porte).",
+    );
+    assertEquals(
+      fields.get("admin"),
+      "admin",
+      "lane feedback: le classifieur ne reçoit plus le client de service.",
+    );
+    assertEquals(
+      fields.get("userId"),
+      "userId",
+      "lane feedback: le classifieur ne reçoit plus le titulaire.",
+    );
+
+    // ── LE REPLI EXISTE ───────────────────────────────────────────────────
+    // ⛔ LE CAS LE PLUS FRÉQUENT EST LE CHAMP VIDE. Sans ce second appelant,
+    // le bilan le plus courant — celui où la personne ne tape rien — écrit une
+    // exclusion et un cran de portion sans qu'un mot ne le dise.
+    assert(
+      src.includes("notifyMemoryWrite("),
+      "LANE FEEDBACK — LE REPLI D'ANNONCE A DISPARU. Sans lui, un bilan sans " +
+        "texte libre — le cas le PLUS fréquent — écrit en mémoire et n'en " +
+        "dit rien: exactement le silence que §2.8 ferme.",
+    );
+  },
+  cuts: [
+    {
+      name: "le classifieur n'est plus importé",
+      expects: "N'EST PLUS IMPORTÉ",
+      // ⚠️ RETIRÉ, PAS COMMENTÉ. `// <import>` contient encore la chaîne
+      // cherchée: la mutation serait INOPÉRANTE et le rouge n'arriverait
+      // jamais — la cicatrice « un audit d'appelants doit retirer les
+      // commentaires », dans l'autre sens.
+      apply: (src) => src.replace(IMPORT_LINE, ""),
+    },
+    {
+      // ⚠️ ON DÉPLACE L'APPEL, ON NE SUPPRIME PAS LA GARDE. Retirer
+      // `readDraftNote` ferait mordre « la garde d'entrée a disparu » — un
+      // message différent, sur une propriété différente: la mutation
+      // prouverait alors que le test sait lire un fichier, pas que l'ordre
+      // est tenu.
+      name: "le classifieur tourne avant sa garde d'entrée",
+      expects: "AVANT SA GARDE D'ENTRÉE",
+      apply: (src) =>
+        src.replace(
+          "const note = readDraftNote({",
+          "await classifyAndPersistDraftNote(EARLY);\n          " +
+            "const note = readDraftNote({",
+        ),
+    },
+    {
+      name: "la source du bilan devient celle du brouillon",
+      expects: "LA SOURCE N'EST PLUS `plan_feedback`",
+      apply: setField("source", '"draft_note"'),
+    },
+    {
+      name: "les aliments du plan deviennent une liste vide",
+      expects: "LES ALIMENTS DU PLAN N'ATTEIGNENT PLUS",
+      apply: setField("planFoods", "[]"),
+    },
+    {
+      name: "l'annonce du questionnaire n'est plus confiée au classifieur",
+      expects: "N'EST PLUS CONFIÉ AU CLASSIFIEUR",
+      apply: setField("alsoAnnounce", "[]"),
+    },
+    {
+      name: "le repli d'annonce disparaît",
+      expects: "LE REPLI D'ANNONCE A DISPARU",
+      apply: (src) => src.replaceAll("notifyMemoryWrite(", "notifyNothing("),
+    },
+  ],
+};
+
+const LANES: readonly Lane[] = [MEAL, HOUSEHOLD, FEEDBACK];
 
 // ---------------------------------------------------------------------------
 // LES DEUX APPELS — le vrai fichier, puis la copie amputée

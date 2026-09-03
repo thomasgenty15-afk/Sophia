@@ -1,7 +1,10 @@
 import React from "react";
+import { useSearchParams } from "react-router-dom";
 
 import { useAuth } from "../../context/AuthContext";
 import {
+  type KnownBlock,
+  KNOWN_BLOCKS,
   type KnownMouth,
   type KnownStore,
   loadKnownRoster,
@@ -63,6 +66,17 @@ type LoadState =
   | { kind: "ready"; store: KnownStore; roster: KnownMouth[] };
 
 export default function StudentKnownPage() {
+  const [params] = useSearchParams();
+  // ⛔ VALIDÉS, PAS RECOPIÉS. `focus` est comparé au vocabulaire fermé des
+  // blocs et `at` à la forme d'un jour: ils viennent de l'URL, c'est-à-dire de
+  // la barre d'adresse autant que d'un bouton.
+  const rawFocus = String(params.get("focus") ?? "").trim();
+  const focus = (KNOWN_BLOCKS as readonly string[]).includes(rawFocus)
+    ? rawFocus as KnownBlock
+    : null;
+  const rawAt = String(params.get("at") ?? "").trim();
+  const focusAt = /^\d{4}-\d{2}-\d{2}$/.test(rawAt) ? rawAt : null;
+
   const { user } = useAuth();
   const userId = user?.id ?? "";
 
@@ -148,6 +162,20 @@ export default function StudentKnownPage() {
         members={members}
         roster={roster}
         today={today}
+        // ── D'OÙ ON ARRIVE, QUAND ON ARRIVE D'UNE BULLE ───────────────────
+        //
+        // Le bouton « Voir » d'un message du chat ouvre cette page sur le bloc
+        // qui vient d'être écrit, et surligne la ligne du jour. Sans ça, la
+        // personne arrive en haut d'une page à cinq blocs et cherche ce dont on
+        // vient de lui parler — ce qui est exactement le geste que le bouton
+        // existe pour lui épargner.
+        //
+        // ⚠️ LES DEUX SONT FACULTATIFS ET VALIDÉS. Un `focus` hors du
+        // vocabulaire des blocs, ou un `at` qui n'est pas un jour, ne surligne
+        // rien: ce sont des paramètres d'URL, donc du texte que n'importe qui
+        // peut écrire.
+        focus={focus}
+        focusAt={focusAt}
         // ── LOT M5 · CE QUE L'IA A CHANGÉ DANS LES RÉGLAGES ────────────────
         //
         // ⛔ SANS CE FIL, L'ÉCRITURE DU LOT M5 SERAIT PIRE QUE LE CORRECTIF

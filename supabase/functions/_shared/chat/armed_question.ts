@@ -36,6 +36,7 @@ import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
 
 import { generateWithGemini } from "../gemini.ts";
 import { CHAT_SCOPE } from "./delivery.ts";
+import { armsQuestion } from "./disarmed_tap.ts";
 
 /**
  * Combien de messages entrants une question reste armée. Trois : voir les deux
@@ -155,7 +156,11 @@ export async function resolveArmedQuestion(
       | { id: string; content: string; created_at: string; metadata: unknown }
       | null;
     const buttons = readButtons(row?.metadata);
-    if (row && buttons.length > 0) {
+    // ⟳ 2026-09-04 — `armsQuestion`, ET PLUS « il y a des boutons ». Une bulle
+    // dont le seul bouton NAVIGUE (« Voir ») ne pose aucune question: la
+    // traiter comme armée ferait lire « merci » ou « ok » comme une RÉPONSE, et
+    // le libellé « Voir » tapé au clavier deviendrait un tap.
+    if (row && armsQuestion(buttons)) {
       return {
         messageId: row.id,
         content: cleanText(row.content),
@@ -188,7 +193,7 @@ export async function resolveArmedQuestion(
   const rows = (data ?? []) as Array<
     { id: string; content: string; created_at: string; metadata: unknown }
   >;
-  const armedRow = rows.find((row) => readButtons(row.metadata).length > 0);
+  const armedRow = rows.find((row) => armsQuestion(readButtons(row.metadata)));
   if (!armedRow) return null;
 
   // Combien d'entrants depuis ? Le tour en cours n'est PAS encore journalisé

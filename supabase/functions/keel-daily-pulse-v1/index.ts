@@ -27,6 +27,7 @@ import {
   buildShoppingStep,
 } from "../_shared/keel/evening_strip.ts";
 import { memoryRecapFor } from "../_shared/keel/memory_recap_io.ts";
+import { sweepLapsedClarifications } from "../_shared/keel/memory_clarification_io.ts";
 // FF-061 — la chaîne des trois étapes, et la question de cuisson qui n'avait
 // jusqu'ici AUCUN émetteur: elle ne partait qu'après une décoche.
 import { buildSessionQuestion } from "../_shared/keel/accident.ts";
@@ -137,6 +138,24 @@ Deno.serve(async (req) => {
 
     const admin = adminClient();
     const startedAt = Date.now();
+
+    // ── LE BALAYAGE DES QUESTIONS PÉRIMÉES ────────────────────────────────
+    //
+    // ⚠️ CE N'EST PAS DU MÉNAGE, C'EST LE COMPTEUR DU SILENCE. Une question de
+    // clarification qui n'a jamais été tapée n'écrit rien — voulu. Mais sans
+    // ce balayage, « personne ne répond » et « la question ne part jamais » se
+    // ressemblent trait pour trait, et on ne saurait pas si la relance mérite
+    // d'exister. Son nombre est la seule mesure de ce qu'elle coûte.
+    //
+    // ⚠️ ICI PLUTÔT QUE DANS SON PROPRE CRON: ce job tourne déjà toutes les
+    // heures et voit toute la flotte, y compris les maîtres de foyer que
+    // `keel-proactive-v1` ne balaie pas (`keel_role = 'student'` seulement).
+    // Une fonction de plus pour un `update` serait une fonction de plus à
+    // déployer, à surveiller, et à oublier.
+    //
+    // ⛔ AVANT LA BOUCLE, ET SANS `dry_run`: fermer une ligne morte ne dit rien
+    // à personne et n'envoie rien. Ce qu'un `dry_run` protège est l'ENVOI.
+    await sweepLapsedClarifications(admin, { nowIso: now.toISOString() });
 
     // ── A8.0 · LE CURSEUR PORTE SA PHASE ──────────────────────────────────
     // `after_user_id` seul ne dit pas dans quelle audience on s'est arrêté;

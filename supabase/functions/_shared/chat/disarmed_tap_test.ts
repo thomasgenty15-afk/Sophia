@@ -1,6 +1,7 @@
 import { assert, assertEquals } from "jsr:@std/assert@^1.0.0";
 
 import {
+  armsQuestion,
   judgeTapFreshness,
   NEVER_DISARMED_PURPOSES,
 } from "./disarmed_tap.ts";
@@ -189,4 +190,59 @@ Deno.test("un `reply_to` absent court-circuite avant toute lecture", async () =>
   const verdict = await judgeTap(spy as never, { userId: "u", replyTo: null });
   assertEquals(verdict, { disarmed: false, reason: "no_reply_to" });
   assert(!queried, "aucune lecture ne doit partir sans `reply_to`");
+});
+
+// ===========================================================================
+// UN BOUTON QUI NAVIGUE N'ARME RIEN — 2026-09-04
+//
+// ── LE DÉFAUT QUE CETTE RÈGLE EMPÊCHE ─────────────────────────────────────
+// La bulle « J'ai noté pour Tom : pas de poisson · Voir » ne demande rien: son
+// bouton ouvre un écran dans le navigateur et n'atteint jamais le serveur. Sans
+// cette règle, elle serait « le dernier message porteur de boutons » — donc
+// elle DÉSARMERAIT la question posée juste avant, et la personne verrait
+// « Léa / Zoé » en tapant dans le vide.
+// ===========================================================================
+
+Deno.test("une bulle qui ne porte QUE « Voir » n'arme pas de question", () => {
+  assertEquals(
+    armsQuestion([{ payload: "KEEL_VIEW_ABOUT_YOU|preferences" }]),
+    false,
+  );
+});
+
+Deno.test("une bulle SANS bouton n'arme rien non plus", () => {
+  assertEquals(armsQuestion([]), false);
+  assertEquals(armsQuestion(null), false);
+  assertEquals(armsQuestion(undefined), false);
+});
+
+Deno.test("LE CAS QUI PASSE — une question, elle, arme", () => {
+  // Sans lui, les refus ci-dessus seraient vrais d'une fonction qui rend
+  // toujours `false`: plus rien ne désarmerait jamais rien, et un tap sur une
+  // bulle de la semaine dernière écrirait.
+  assertEquals(
+    armsQuestion([
+      { payload: "KEEL_MEMCLAR_PICK|aaaaaaaa-1111-4111-8111-111111111111|0" },
+    ]),
+    true,
+  );
+  assertEquals(armsQuestion([{ payload: "KEEL_FEEDBACK_x|cooked|yes" }]), true);
+});
+
+Deno.test("⛔ UNE QUESTION QUI PORTE AUSSI « Voir » ARME QUAND MÊME", () => {
+  // La règle porte sur ce que la bulle DEMANDE, pas sur ce qu'elle contient.
+  // Un « au moins un bouton qui n'est pas de navigation » — et non « aucun
+  // bouton de navigation » — parce qu'une question peut légitimement offrir un
+  // raccourci vers l'écran à côté de ses réponses.
+  assertEquals(
+    armsQuestion([
+      { payload: "KEEL_MEMCLAR_NONE|aaaaaaaa-1111-4111-8111-111111111111" },
+      { payload: "KEEL_VIEW_ABOUT_YOU|notes" },
+    ]),
+    true,
+  );
+});
+
+Deno.test("une charge vide ne compte pas comme un bouton", () => {
+  assertEquals(armsQuestion([{ payload: "" }, { payload: "   " }]), false);
 });
