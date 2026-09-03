@@ -107,6 +107,52 @@ sur `meals.loading`.
    lot en vol y ajoute déjà un champ requis. La cicatrice « paramètre optionnel = garde
    désarmée » est compensée **deux fois** : un compteur sort avec le bloc, et un test de câblage
    lit la source de la lane privée de ses commentaires.
+
+   > ### ⚠️ LA RÉSERVE, ÉCRITE PARCE QUE JE VIENS DE PAYER LE DÉFAUT INVERSE
+   >
+   > **Un champ REQUIS rougit tout de suite ; un champ OPTIONNEL ne rougit jamais.** C'est
+   > exactement la différence entre ce champ-ci et `LivePlanSpan.leadDays` d'A1 : celui-là était
+   > requis, donc l'oubli est tombé **chez moi**, au type-check, sur trois fixtures de
+   > `meal_plan_integrity_test.ts` que mon mandat ne nommait même pas. Ici, l'oubli ne tomberait
+   > **nulle part**.
+   >
+   > **Ce qui tomberait en silence si un appelant oubliait `workLunch` :**
+   >
+   > | Ce qui se passerait | Ce qu'on verrait |
+   > |---|---|
+   > | `input.workLunch ?? []` rend `[]` | `workLunchBlock` rend `{block: "", mouths: 0, cold: 0}` |
+   > | aucun bloc n'entre dans le `userSuffix` | **le prompt de v22, au caractère près** |
+   > | le plan sort, complet, plausible | **rien** — pas d'erreur, pas de `issues`, pas de 500 |
+   > | `HOUSEHOLD_PROMPT_VERSION` dit quand même `v23_the_lunchbox_travels` | une ligne étiquetée « la gamelle a une consigne » sur un plan qui n'en a pas reçu |
+   >
+   > La dernière ligne est le vrai coût : la **version de prompt mentirait**. On mesurerait une
+   > population « v23 » dont une partie n'a jamais vu le bloc, et la comparaison v22/v23 — c'est-à-dire
+   > la seule chose que le millésime existe pour permettre — deviendrait fausse **sans rien casser**.
+   >
+   > **Ce que le compteur montre alors, et c'est ce qui le sauve :**
+   > `generated_from.household.work_lunch = {mouths: 0, cold: 0}` est écrit **sur chaque ligne**,
+   > y compris au cas nominal. Un lot débranché se lit donc en une requête :
+   >
+   > ```sql
+   > -- des foyers en v23 où le bloc n'a JAMAIS nommé personne = le câblage est parti
+   > select count(*) filter (where (generated_from->'household'->'work_lunch'->>'mouths')::int > 0)
+   >          as vus,
+   >        count(*) as total
+   >   from public.student_generated_meals
+   >  where plan_kind = 'household'
+   >    and generated_from->>'prompt_version' like '%v26%';
+   > ```
+   >
+   > `vus = 0` sur une population entière n'est **pas** une preuve de débranchement (un foyer où
+   > personne n'emporte de gamelle rend légitimement zéro) — mais `vus = 0` sur **toute** la
+   > population alors que `household_members.work_lunch` porte des `lunchbox` en base l'est. La
+   > requête de contrôle est donc **le compteur croisé avec la colonne**, pas le compteur seul.
+   >
+   > **Quand rendre le champ requis :** dès que le lot voisin qui ajoute `notes` a fusionné, il
+   > n'y a plus de raison de garder le `?`. C'est un geste de dix minutes (65 littéraux, tous des
+   > fixtures) et il remplace deux compensations par une garantie de compilation. **À faire dans
+   > le lot de nettoyage E**, et c'est écrit ici pour que ce ne soit pas moi qui doive m'en
+   > souvenir.
 4. **Les absences ne resserrent pas la cadence de cuisine.** `daysToEat` est la fenêtre mangée,
    pas la présence : quelqu'un qui déjeune dehors le mardi est chez lui le lundi soir. Les
    soustraire poserait une session sur une raison qui n'en est pas une.
