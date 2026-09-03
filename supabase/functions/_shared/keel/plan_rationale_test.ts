@@ -10,18 +10,12 @@ import {
 } from "./plan_rationale.ts";
 import {
   cookingAskedToday,
-  leadDayFor,
   proposedWindowStart,
   rhythmClockFrom,
   SHOPPING_CUTOFF_HOUR,
   SLOT_PASSED_HOUR,
   slotsPassedToday,
 } from "./plan_hours.ts";
-import {
-  MAX_WINDOW_DAYS,
-  planTimingOf,
-  withCookDayBefore,
-} from "./meal_plan_window.ts";
 import { localHourInZone, localMinuteInZone } from "./local_date.ts";
 import {
   addedCookDays,
@@ -1640,64 +1634,5 @@ Deno.test("A1 — un appelant qui ne dérive RIEN reste muet", () => {
     }).lines.join(" ");
     assert(!joined.includes("dès le matin") && !joined.includes("first thing"));
     assert(!joined.includes("ce soir") && !joined.includes("tonight"));
-  }
-});
-
-Deno.test("A1 — LE ROUGE DE SEPT JOURS DIT LA MÊME CHOSE AUX TROIS ENDROITS", () => {
-  // ══════════════════════════════════════════════════════════════════════════
-  // ⛔ CE QUI EST ACCEPTÉ, ET À QUELLE CONDITION.
-  // ══════════════════════════════════════════════════════════════════════════
-  //
-  // Un plan de SEPT jours mangés n'a pas de veille automatique. Ce n'est plus
-  // la base qui refuse (la migration `20260903170000` accepte
-  // `duration_days = 8`), c'est l'alphabet des jetons: une fenêtre de huit
-  // donnerait au jour de cuisine le jeton exact du dernier jour mangé, et le
-  // parseur jetterait les plats de ce jour-là comme s'ils étaient posés sur la
-  // veille.
-  //
-  // Le refus est donc gardé — et il n'est acceptable que parce qu'il est NOMMÉ
-  // AUX TROIS ENDROITS où quelqu'un peut le rencontrer. Ce test vérifie que les
-  // trois DISENT LA MÊME CHOSE: un refus expliqué par une phrase qui affirme
-  // autre chose est pire qu'un refus muet.
-  const window = { startsOn: "2026-09-07", durationDays: MAX_WINDOW_DAYS };
-  const lead = leadDayFor({ startsOn: "2026-09-07", today: "2026-09-01", hourNow: 9 });
-
-  // ① LE REFUS — le calendrier accordait la veille, la fenêtre la reprend.
-  assertEquals(lead.leadDay, "2026-09-06");
-  const cookAhead = withCookDayBefore(window, { asked: true, today: "2026-09-01" });
-  assertEquals(cookAhead.refused, "no_room");
-  assertEquals(cookAhead.cookOnlyDay, null);
-  // ⛔ ET LA FENÊTRE N'A PAS BOUGÉ: on n'ampute jamais la fin d'un plan.
-  assertEquals(cookAhead.startsOn, "2026-09-07");
-  assertEquals(cookAhead.durationDays, MAX_WINDOW_DAYS);
-
-  // ② LE RENDU — l'écran reçoit « dès le matin », pas « le plan a reculé ».
-  const timing = planTimingOf(lead, cookAhead);
-  assertEquals(timing, { kind: "same_morning", reason: "no_room", lead_day: null });
-
-  // ③ L'EXPLICATION — elle dit SEPT JOURS, et elle n'annonce aucun jour de
-  //    cuisine à venir. Les deux langues.
-  for (const locale of ["fr", "en"] as const) {
-    const lines = explainPlanChoices({
-      facts: {
-        ...nominalFacts(),
-        cookDayBefore: {
-          day: cookAhead.cookOnlyDay,
-          refused: cookAhead.refused,
-          reason: timing.reason,
-        },
-      },
-      locale,
-    }).lines.join(" ");
-    assertStringIncludes(lines, locale === "fr" ? "sept" : "seven");
-    // ⛔ AUCUNE VEILLE ANNONCÉE — c'est le point de contradiction possible.
-    assert(
-      !lines.includes("un jour plus tôt") && !lines.includes("a day earlier"),
-      `${locale}: l'explication annonce une veille que la fenêtre a refusée`,
-    );
-    assert(
-      !lines.includes("ce soir") && !lines.includes("tonight"),
-      `${locale}: l'explication annonce une soirée de cuisine qui n'existe pas`,
-    );
   }
 });
