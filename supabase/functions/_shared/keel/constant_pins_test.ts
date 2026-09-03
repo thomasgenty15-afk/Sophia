@@ -33,6 +33,7 @@ import {
   DENSITY_CEILING_DEFAULT,
   DENSITY_CEILING_FAT_LOSS,
   MAX_SURPLUS_FRACTION,
+  ENERGY_DIRECTION_MARGIN,
 } from "./meal_envelope.ts";
 import { KEEL_MINOR_AGE } from "./student_age.ts";
 import { BOX_FACTOR_MAX, BOX_FACTOR_MIN } from "./household_portions.ts";
@@ -570,4 +571,25 @@ Deno.test("épinglage — au plus QUATRE options dans une clarification", () => 
   //
   // Au-delà de quatre ce n'est plus une clarification, c'est un formulaire.
   assertEquals(MEMORY_CLARIFICATION_MAX_OPTIONS, 4);
+});
+
+Deno.test("épinglage — la bande de JUGEMENT est élargie de 10 %, pas plus", () => {
+  // `ENERGY_DIRECTION_MARGIN` (`meal_envelope.ts`). Le verdict ne dit `above` /
+  // `below` qu'au-delà du bord × 1,10, parce qu'en dessous de cet écart
+  // l'incertitude de la maintenance estimée est plus grande que l'écart
+  // lui-même: trancher y serait décider sur du bruit avec l'autorité d'un
+  // calcul.
+  //
+  // ⛔ CE NOMBRE EST LA ZONE DE SILENCE DU PRODUIT, ET ELLE EST LARGE. Sur une
+  // bande 2 414–2 668, il ne dit rien entre 2 195 et 2 935 — 740 kcal/j. Le
+  // monter fait taire le verdict sur des écarts réels; le baisser le fait
+  // trancher sur du bruit. Les deux directions coûtent, et aucune n'est
+  // rattrapée ailleurs.
+  //
+  // ⚠️ IL EST LU PAR `portion_scaling_test.ts` COMME TOLÉRANCE D'ATTERRISSAGE
+  // (B2): un plan qui vise le milieu de bande mais dont le `other` s'écrase à
+  // `MIN_SCALE` pour servir le plancher protéine peut dépasser le plafond de
+  // quelques pour cent. Ce dépassement-là est un arbitrage assumé — le plancher
+  // protéine gagne — et c'est cette marge qui dit jusqu'où il est toléré.
+  assertEquals(ENERGY_DIRECTION_MARGIN, 1.10);
 });

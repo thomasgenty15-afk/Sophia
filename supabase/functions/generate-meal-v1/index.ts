@@ -3179,9 +3179,35 @@ Deno.serve(async (req) => {
               ? offBandCount(after.verdict) < offBandCount(measured.verdict)
               : distOf(retried, after.verdict, idx) <
                 distOf(meal, measured.verdict, idx);
+            // ══════════════════════════════════════════════════════════════
+            // ⛔ B3 — UNE RELANCE NE CHANGE JAMAIS DE CÔTÉ (2026-09-04)
+            // ══════════════════════════════════════════════════════════════
+            //
+            // `offBandDistance` est SYMÉTRIQUE ET MYOPE: elle mesure l'écart au
+            // bord le plus proche, sans regarder de quel côté on est. Chiffré
+            // sur une bande 2 414–2 668:
+            //
+            //     below  à 2 200  →  d = 1 + (2414−2200)/2414 = 1,0886
+            //     above  à 2 900  →  d = 1 + (2900−2668)/2668 = 1,0870
+            //
+            // 1,0870 < 1,0886, donc une relance qui a SAUTÉ la bande est
+            // « meilleure » et se fait adopter. On corrigeait une
+            // sous-nutrition en livrant une sur-nutrition, et la distance
+            // disait que c'était un progrès.
+            //
+            // ⚠️ CE N'EST PAS UN CAS D'ÉCOLE: la boucle ne lève `raise_energy`
+            // que sur `below`, donc toute relance part d'un plan trop léger et
+            // pousse dans une seule direction. Sauter est le mode d'échec
+            // NATUREL de ce chemin, pas son accident.
+            //
+            // ⛔ ET AUCUN TEST NE LE REFUSAIT: les neuf cas de
+            // `meal_correction_distance_test.ts` sont tous `below`. Le cas
+            // `above` n'était jamais construit.
+            const flipped = after !== null &&
+              measured.verdict.energy === "below" && after.verdict.energy === "above";
             if (
               retried.dishes.length >= meal.dishes.length && after !== null &&
-              better
+              better && !flipped
             ) {
               meal = retried;
               measured = after;

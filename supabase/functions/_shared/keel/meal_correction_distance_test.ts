@@ -122,3 +122,42 @@ Deno.test("une enveloppe DÉGRADÉE (plancher TCA) ne fabrique aucune amplitude"
     1,
   );
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// B3 — LE CÔTÉ DE LA BANDE (2026-09-04)
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("⛔ B3 — LA DISTANCE EST SYMÉTRIQUE: un plan qui SAUTE la bande peut la battre", () => {
+  // ⛔ CE TEST NE DÉCRIT PAS UN BUG DE `offBandDistance`, IL DÉCRIT SA LIMITE.
+  // Elle mesure l'écart au bord LE PLUS PROCHE et ne regarde pas de quel côté
+  // on est — c'est écrit dans son en-tête, et c'est juste pour arbitrer deux
+  // plans du même côté. Ce qu'elle ne peut pas faire, c'est refuser un
+  // franchissement: l'appelant doit s'en charger.
+  //
+  // ⚠️ LES NEUF TESTS AU-DESSUS SONT TOUS `below`. Le cas `above` n'était
+  // jamais construit, donc rien dans ce fichier ne disait ce qui suit.
+  //
+  //     below à 2 200 → 1 + (2400−2200)/2400 = 1,08333…
+  //     above à 2 900 → 1 + (2900−2700)/2700 = 1,07407…
+  const below = d(verdict({ energy: "below" }), 2200 * 3, 140 * 3);
+  const above = d(verdict({ energy: "above" }), 2900 * 3, 140 * 3);
+  assert(
+    above < below,
+    `la symétrie a disparu — ce test devient inutile, et B3 avec: ${above} vs ${below}`,
+  );
+
+  // ⛔ DONC LA GARDE NE PEUT PAS VIVRE ICI. Elle vit dans l'adoption
+  // (`generate-meal-v1`, `flipped`), qui compare les deux VERDICTS et refuse
+  // `below → above`. Ce test existe pour que personne ne « répare »
+  // `offBandDistance` en croyant fermer le trou: la rendre asymétrique
+  // changerait le sens de tout arbitrage entre deux plans du même côté.
+});
+
+Deno.test("⚠️ B3 — et un progrès qui reste `above` est toujours un progrès", () => {
+  // La contre-épreuve de la garde: elle refuse le FRANCHISSEMENT, pas le
+  // dépassement. Un plan déjà trop riche qui se rapproche du plafond doit
+  // rester adoptable, sinon la boucle n'aurait plus aucun chemin vers le bas.
+  const loin = d(verdict({ energy: "above" }), 3200 * 3, 140 * 3);
+  const proche = d(verdict({ energy: "above" }), 2800 * 3, 140 * 3);
+  assert(proche < loin, `la relance doit rapprocher: ${proche} vs ${loin}`);
+});

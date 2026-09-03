@@ -9,7 +9,7 @@ import {
   scaleFactorsFor,
   scaleIngredients,
 } from "./portion_scaling.ts";
-import { envelopeFor } from "./meal_envelope.ts";
+import { ENERGY_DIRECTION_MARGIN, envelopeFor } from "./meal_envelope.ts";
 import type { AgeBand } from "./student_age.ts";
 
 function bodyOf(kg: number, cm: number, g: "male" | "female", flag = false) {
@@ -602,4 +602,55 @@ Deno.test("un plan qu'on ne sait pas LIRE ne se met jamais à l'échelle", () =>
   assert(
     scaleFactorFor({ computedKcal: 900, envelope: PER_KG, daysCovered: 1, resolvedShare: 0.8 }) !== null,
   );
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// B2 — OÙ LE PLAN ATTERRIT (2026-09-04)
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("⛔ B2 — LE PLAN MIS À L'ÉCHELLE ATTERRIT DANS SA BANDE", () => {
+  // ⛔ L'ASSERTION QUI N'EXISTAIT NULLE PART. Ce fichier vérifiait que les
+  // facteurs sont bornés, que la protéine grossit plus vite que le reste, que
+  // le `other` recule sous 1 — jamais OÙ LE TOTAL ARRIVE. Un facteur peut être
+  // juste sur chacune de ses contraintes et rendre un plan hors bande: c'est
+  // très exactement ce qui a été mesuré le 2026-09-03, 3 571 kcal/j servis pour
+  // une bande 2 414–2 668.
+  //
+  // ⚠️ LE CANAL EXISTE, MESURÉ ICI: quand `protein` monte pour atteindre son
+  // plancher, le `remaining` laissé au `other` devient négatif et `other`
+  // s'écrase à `MIN_SCALE`. Le total dépasse alors le plafond — 2 444 pour
+  // 2 426 sur le quatrième cas ci-dessous.
+  //
+  // ⛔ ET ÇA NE SE « RÉPARE » PAS PAR UN SECOND RABOT. `other` est DÉJÀ au
+  // plancher: descendre plus violerait `MIN_SCALE`, et la seule autre variable
+  // est la protéine — dont le plancher « est un plancher: il ne se négocie
+  // pas ». Quand les deux contraintes se croisent, le produit choisit la
+  // protéine, délibérément. Ce test garde donc la BANDE DE JUGEMENT
+  // (`ENERGY_DIRECTION_MARGIN`), pas le bord nu: c'est elle qui décide `above`,
+  // et un dépassement de quelques pour cent y reste `within`.
+  //
+  // ⚠️ CE QU'IL ATTRAPERAIT: les 3 571 kcal/j mesurés le 2026-09-03 pour une
+  // bande 2 414–2 668, soit ×1,34 — très au-delà de la marge.
+  const band = PER_KG.mode === "per_kg" ? PER_KG.energy : null;
+  assert(band !== null, "l'enveloppe du banc doit porter une bande");
+
+  const cases = [
+    { computedKcal: 1800, computedProteinG: 90, proteinFoodKcal: 500, otherScalableKcal: 1000, proteinFoodProteinG: 80 },
+    { computedKcal: 1200, computedProteinG: 60, proteinFoodKcal: 400, otherScalableKcal: 700, proteinFoodProteinG: 55 },
+    { computedKcal: 2600, computedProteinG: 150, proteinFoodKcal: 900, otherScalableKcal: 1500, proteinFoodProteinG: 140 },
+    // Le cas qui pousse la protéine au plafond: plancher haut, peu de protéine.
+    { computedKcal: 1500, computedProteinG: 40, proteinFoodKcal: 300, otherScalableKcal: 1100, proteinFoodProteinG: 35 },
+  ];
+  for (const c of cases) {
+    const f = scaleFactorsFor({ ...c, envelope: PER_KG, daysCovered: 1, resolvedShare: 1 });
+    if (f === null) continue;
+    const fixed = c.computedKcal - c.proteinFoodKcal - c.otherScalableKcal;
+    const after = fixed + c.proteinFoodKcal * f.protein + c.otherScalableKcal * f.other;
+    assert(
+      after <= band!.high * ENERGY_DIRECTION_MARGIN,
+      `le plan atterrit à ${Math.round(after)} pour un plafond de ${band!.high} ` +
+        `(marge ×${ENERGY_DIRECTION_MARGIN}, protein ×${f.protein}, ` +
+        `other ×${f.other}, fixe ${Math.round(fixed)})`,
+    );
+  }
 });
