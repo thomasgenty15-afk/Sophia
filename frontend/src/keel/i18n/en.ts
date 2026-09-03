@@ -5057,7 +5057,7 @@ export const en = {
   // répondent à « qu'est-ce que tu aimes » en idéal (« j'aime le poisson »),
   // pas en réalité (une fois par mois). La question porte donc sur l'habitude
   // installée, et le libellé d'exemple est un plat, jamais un goût.
-  "setup.traditions.title": "The days you never move",
+  "setup.traditions.title": "Tradition meals",
   "setup.traditions.hint":
     "Sunday roast, fish on Friday. Tell us and the plan builds around it instead of over it. Two or three is plenty -- three at most.",
   "setup.traditions.weekday": "Day",
@@ -8047,6 +8047,13 @@ export const en = {
   "household.member.frame_preferences_hint":
     "What refines the plan: what they already eat, what they never eat, and what the house does not serve.",
   "household.mouth.frame_loading": "Reading what is already on file…",
+  // ── HOUSEHOLD SETTINGS (A5, mandate point 4) ─────────────────────────────
+  // The section that now holds the kitchen equipment and the tradition meals,
+  // moved out of funnel step 3 — a funnel nobody ever walks twice.
+  "household.settings.title": "Household settings",
+  //   "setup.traditions.title"        — « The days you never move » → « Tradition
+  //                                     meals » (mandate point 4). The KEY does
+  //                                     not move.
   // ── chantier-0903/FOYER — fin ──
 
 } as const

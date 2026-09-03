@@ -2920,7 +2920,7 @@ export const fr: TranslatedMessages = {
   // de personne. Voir le bloc jumeau de `en.ts` pour le pourquoi complet.
   // ② Voir la note d'`en.ts`: deux axes, parce qu'une journée n'est pas un sport.
   // ③ Voir la note d'`en.ts`: on demande ce qui SE FAIT, jamais ce qu'on aime.
-  "setup.traditions.title": "Les jours que vous ne déplacez pas",
+  "setup.traditions.title": "Les repas traditions",
   "setup.traditions.hint":
     "Le rôti du dimanche, le poisson du vendredi. Dites-le et le plan compose autour, au lieu de composer par-dessus. Deux ou trois suffisent — trois au maximum.",
   "setup.traditions.weekday": "Jour",
@@ -6911,6 +6911,14 @@ export const fr: TranslatedMessages = {
   // leurs champs au montage et REMPLACENT à l'enregistrement: un cadre monté
   // sur une lecture non faite affiche du vide non lu, puis l'écrit.
   "household.mouth.frame_loading": "Lecture de ce qui est déjà renseigné…",
+  // ── PARAMÈTRES DU FOYER (A5, mandat point 4) ──────────────────────────────
+  // Le titre de la SECTION qui accueille l'équipement de cuisine et les repas
+  // traditions, déplacés de l'étape 3 de l'entonnoir — qui ne se rejoue jamais.
+  "household.settings.title": "Paramètres du foyer",
+  //   "setup.traditions.title"        — « Les jours que vous ne déplacez pas »
+  //                                     → « Les repas traditions » (mandat point 4).
+  //                                     La CLÉ ne bouge pas: la renommer casserait
+  //                                     la parité et `catalog.ts` pour rien.
   // ── chantier-0903/FOYER — fin ──
 
 };
