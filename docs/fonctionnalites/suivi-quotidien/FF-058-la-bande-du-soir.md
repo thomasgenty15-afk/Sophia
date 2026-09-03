@@ -247,6 +247,8 @@ sans que rien ne le signale.
 | **R12** | Une bouche sans compte n'a **aucune** coche individuelle | personne ne la lit — T1. Le tap du maître dit « fait et servi comme prévu, moi compris », rien de plus |
 | **R13** | Maître `✓` et conjoint `✗` **ne se contredisent pas** | deux faits vrais sur deux personnes ; aucun des deux ne corrige l'autre |
 | **R14** | La vague de courses est **un fait du foyer** : la ligne ne part qu'au maître | même nature que la cuisson (R10). Un profil réclamé n'a pas à savoir si les courses sont faites — et sa réponse serait du bruit |
+| **R15** ⟳ | **« Pas de nouvelles » se LIT, ça ne s'écrit JAMAIS** (D8.2, 2026-09-03, lot A8.2) | **La règle que tout lecteur d'agrégat doit connaître avant de compter.** Le silence des deux — personne ne coche, personne ne décoche — ne produit **aucune ligne**, ni dans `protocol_events` ni dans `meal_share_outcomes`. Ce n'est pas un trou de données : c'est le cas **majoritaire**, et il veut dire « ça s'est passé comme prévu ». C'est au **lecteur** (la page de suivi) de le compter comme mangé, avec la base **`assumed`** — jamais à l'écrivain de poser la coche que personne n'a posée. La cicatrice est chiffrée : une coche automatique écrit un fait **daté, indémentable et faux** dans une table append-only (`auto-tick-writes-undeniable-false-facts`). ⚠️ **Et la base doit VOYAGER avec le chiffre** : « 6 repas suivis » dont 4 supposés et 2 déclarés n'est pas « 6 repas suivis » — un total qui perd sa base est un score d'adhérence déguisé (CALORIE_REVERSAL, FF-059 R3, même famille) |
+| **R16** ⟳ | **Trois surfaces où le membre parle, une quatrième fermée** (A8.2) | sa bande du soir (A8.0), ses coches (A8.1), le sort de sa boîte (A8.2). Le **retour de fin de plan** lui est fermé, par une **propriété** — `meal_plan_feedback` est `unique(meal_id)` — et le motif est écrit dans [FF-054 §11](../composition-des-repas/FF-054-le-retour-de-fin-de-plan.md) : ce retour gouverne la composition suivante, c'est un geste de **celui qui compose** |
 | **R15** | La ligne de courses n'apparaît **que le soir d'un `buyOn`** | sinon c'est un rappel quotidien de corvée, et la bande devient une liste de reproches |
 | **R16** | On écrit **l'état de la vague**, jamais un état par article | personne ne lit une liste à moitié cochée ; T1 |
 | **R17** | On constate, on ne demande rien sur le futur | la date est déjà dans le plan. Ce qu'on fait d'un `Pas encore` se propose (FF-057) — jamais une question ouverte sur une intention |
@@ -388,8 +390,18 @@ garde ses deux autres entrées.
   `.eq("household_id", …)`, jamais le retrait nu du `.eq("user_id")` — run
   adversarial H2). La cascade d'une session déclarée ratée par le maître
   ampute aussi sa bande (`loadSkippedDishIndexes` lit les états sous le compte
-  qui a écrit le plan, les coches sous la personne). Ce qui reste à A8.1 : ses
-  plats **seulement** (`dishIsFor`) et ses cases sur `MyShareCard`.
+  qui a écrit le plan, les coches sous la personne).
+  ✅ **Et ses cases, livrées le même jour (A8.1).** « Ta part » (`MyShareCard`,
+  `/app/plan`) porte désormais une case par plat — **ses** plats seulement
+  (`dishIsFor`, la règle unique), et un ✗ ouvre le formulaire A de §3
+  (`UntickForm`, les mêmes quatre motifs que partout : la liste est fermée et
+  alignée sur la CHECK de la table). La coche s'écrit sous **son** `user_id`
+  avec le plan du **foyer** pour nom de clé — R10 tenu des deux côtés, et
+  `protocol_events` étant unique sur `(user_id, source_message_id)` et
+  owner-only, maître ✓ et membre ✗ coexistent sans se contredire (R12). Les
+  **deux autres** listes du produit ne cochent pas, et le disent : « ce que la
+  maison cuisine » est une lecture, et la vue par personne du maître serait le
+  maître cochant pour un profil réclamé (**R11**).
 - Si un jour la consommation d'un enfant devient lue par quelque chose (un
   coach ? un suivi de croissance ?), R12 se rouvre — **par une décision
   écrite**, pas par un besoin de tableau.

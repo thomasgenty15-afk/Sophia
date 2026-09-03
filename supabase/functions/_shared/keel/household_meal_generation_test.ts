@@ -81,6 +81,7 @@ Deno.test("chaque membre apparaît avec son id EXACT, une fois", () => {
     unmerge: null,
     // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
     dietBlock: "",
+    notes: [],
     voices: [],
   });
   for (const m of [DAD, SON, KID]) {
@@ -120,6 +121,7 @@ Deno.test("LES RÈGLES DE MAISON NE SONT JAMAIS UNE RAISON NUTRITIONNELLE", () =
     unmerge: null,
     // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
     dietBlock: "",
+    notes: [],
     voices: [],
   });
   // NORMALISÉ, parce que le bloc est enroulé pour rester lisible dans le
@@ -157,6 +159,7 @@ Deno.test("les restrictions d'une même personne sont regroupées", () => {
     unmerge: null,
     // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
     dietBlock: "",
+    notes: [],
     voices: [],
     restrictions: [
       { memberId: "m-kid", memberDisplayName: "Léa", label: "nutella" },
@@ -191,6 +194,7 @@ Deno.test("LES RÈGLES DE MAISON PASSENT APRÈS LES ENVIES", () => {
     unmerge: null,
     // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
     dietBlock: "",
+    notes: [],
     voices: [],
     restrictions: [
       { memberId: "m-kid", memberDisplayName: "Léa", label: "nutella" },
@@ -221,6 +225,7 @@ Deno.test("sans restriction, aucun bloc de règles n'apparaît", () => {
     unmerge: null,
     // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
     dietBlock: "",
+    notes: [],
     voices: [],
   });
   assert(!userSuffix.includes("HOUSE RULES"));
@@ -246,6 +251,7 @@ Deno.test("le schéma supplémentaire n'est demandé que côté système", () =>
     unmerge: null,
     // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
     dietBlock: "",
+    notes: [],
     voices: [],
   });
   assert(systemSuffix.includes('"member_portions"'));
@@ -278,6 +284,7 @@ Deno.test("le brief de portions et la ligne d'envies sont tous les deux là", ()
     unmerge: null,
     // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
     dietBlock: "",
+    notes: [],
     voices: [],
   });
   assert(userSuffix.includes("HOUSEHOLD SERVING PLAN"));
@@ -310,6 +317,7 @@ Deno.test("SANS LIGNE D'ENVIES, aucun en-tête d'envies n'apparaît", () => {
     unmerge: null,
     // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
     dietBlock: "",
+    notes: [],
     voices: [],
   });
   assert(!userSuffix.includes("WHAT THIS HOUSEHOLD ASKED FOR"));
@@ -355,6 +363,7 @@ Deno.test("le bloc de présence entre dans le prompt, JUSTE APRÈS le brief de p
     unmerge: null,
     // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
     dietBlock: "",
+    notes: [],
     voices: [],
   });
   assert(userSuffix.includes("WHO IS NOT AT THE TABLE"), userSuffix);
@@ -391,6 +400,7 @@ Deno.test("SANS ABSENCE, aucun en-tête de présence n'apparaît", () => {
     unmerge: null,
     // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
     dietBlock: "",
+    notes: [],
     voices: [],
   });
   assert(!userSuffix.includes("WHO IS NOT AT THE TABLE"), userSuffix);
@@ -482,6 +492,7 @@ Deno.test("CHANGER LES BLOCS SANS BUMPER LA VERSION DOIT ÊTRE ROUGE", () => {
     unmerge: null,
     // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
     dietBlock: "",
+    notes: [],
     voices: [],
   });
 
@@ -590,6 +601,7 @@ Deno.test("SANS FUSION, LE PROMPT EST CELUI D'AVANT L4, À L'OCTET PRÈS", () =>
     unmerge: null,
     // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
     dietBlock: "",
+    notes: [],
     voices: [],
   });
   assert(!userSuffix.includes("BRINGING SOMEONE BACK"));
@@ -634,6 +646,7 @@ Deno.test("le bloc de fusion entre APRÈS la présence et AVANT l'envie", () => 
     unmerge: null,
     // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
     dietBlock: "",
+    notes: [],
     voices: [],
   });
   // L'ORDRE EST UNE CONSIGNE. « Qui revient à table » appartient au groupe des
@@ -691,6 +704,7 @@ Deno.test("O5 — L'ANCRE ARRIVE DANS LE VRAI PROMPT, ET LA VERSION A BOUGÉ", (
     unmerge: null,
     // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
     dietBlock: "",
+    notes: [],
     voices: [],
   });
   assert(
@@ -759,6 +773,7 @@ Deno.test("LE BARREAU DE L'ÉCHELLE CHANGE LA LIGNE « COMBIEN DE PLATS »", () 
       unmerge: null,
       // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
       dietBlock: "",
+      notes: [],
       voices: [],
     }).userSuffix;
 
@@ -810,6 +825,7 @@ Deno.test("SANS DÉFUSION, LE PROMPT EST CELUI D'AVANT L5, À L'OCTET PRÈS", ()
     unmerge: null,
     // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
     dietBlock: "",
+    notes: [],
     voices: [],
   }).userSuffix;
   const merged = buildHouseholdPromptBlocks({
@@ -832,6 +848,7 @@ Deno.test("SANS DÉFUSION, LE PROMPT EST CELUI D'AVANT L5, À L'OCTET PRÈS", ()
     unmerge: null,
     // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
     dietBlock: "",
+    notes: [],
     voices: [],
   }).userSuffix;
   assert(!plain.includes("TAKING SOMEONE BACK OUT"));
@@ -877,6 +894,7 @@ Deno.test("le bloc de défusion entre APRÈS la présence et AVANT l'envie", () 
     unmerge: UNMERGE_PROMPT,
     // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
     dietBlock: "",
+    notes: [],
     voices: [],
   });
   // MÊME PLACE QUE LA FUSION, ET POUR LA MÊME RAISON: « untel ne mange plus
@@ -928,6 +946,7 @@ Deno.test("UNE DÉFUSION NE DEMANDE JAMAIS UN SECOND PLAT", () => {
     unmerge: UNMERGE_PROMPT,
     // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
     dietBlock: "",
+    notes: [],
     voices: [],
   });
   assert(
@@ -974,6 +993,7 @@ Deno.test("SANS VOIX, LE PROMPT EST CELUI D'AVANT L6, À L'OCTET PRÈS", () => {
     unmerge: null,
     // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
     dietBlock: "",
+    notes: [],
   };
   const { userSuffix, voiceIssues, voicesHeard, voiceCounts } =
     buildHouseholdPromptBlocks({ ...base, voices: [] });
@@ -989,6 +1009,7 @@ Deno.test("SANS VOIX, LE PROMPT EST CELUI D'AVANT L6, À L'OCTET PRÈS", () => {
   // EXACTEMENT 0 caractère quand il est vide, et pas « presque rien ».
   const empty = buildHouseholdPromptBlocks({
     ...base,
+    notes: [],
     voices: [{ memberId: "m-dad", displayName: "Marc", lines: [] }],
   });
   assertEquals(
@@ -1006,6 +1027,7 @@ Deno.test("SANS VOIX, LE PROMPT EST CELUI D'AVANT L6, À L'OCTET PRÈS", () => {
   // longueur qu'elle laisserait derrière elle.
   const leaking = buildHouseholdPromptBlocks({
     ...base,
+    notes: [],
     voices: [{
       memberId: "m-dad",
       displayName: "Marc",
@@ -1050,6 +1072,7 @@ Deno.test("le bloc des voix entre APRÈS la tablée et AVANT l'envie", () => {
     unmerge: null,
     // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
     dietBlock: "",
+    notes: [],
     voices: VOICES,
   });
   assertEquals(voicesHeard, 2);
@@ -1116,6 +1139,7 @@ Deno.test("le bloc des voix entre APRÈS la tablée et AVANT l'envie", () => {
     unmerge: null,
     // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
     dietBlock: "",
+    notes: [],
     voices: VOICES,
   }).userSuffix;
   assert(
@@ -1152,6 +1176,7 @@ Deno.test("LA GARDE DE NON-DIVULGATION EST DANS LE CONSTRUCTEUR, PAS EN AMONT", 
     unmerge: null,
     // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
     dietBlock: "",
+    notes: [],
     voices: [
       {
         memberId: "m-son",
@@ -1232,6 +1257,7 @@ Deno.test("C6 — LE COMPTE ET LA MATIÈRE ARRIVENT DANS LE VRAI PROMPT", () => 
     unmerge: null,
     // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
     dietBlock: "",
+    notes: [],
     voices: [],
   });
   assert(
@@ -1292,6 +1318,7 @@ Deno.test("C6 — LE BRIEF DE PORTIONS NE PROMET PLUS « never more than two »"
       unmerge: null,
       // R4 — aucun régime déclaré: le bloc est vide et le prompt est celui d'avant.
       dietBlock: "",
+      notes: [],
       voices: [],
     }).userSuffix;
   for (const shape of ["one_session", "separate_sessions"] as const) {
@@ -1361,6 +1388,7 @@ Deno.test("SANS RÉGIME, LE PROMPT EST CELUI D'AVANT v11, À L'OCTET PRÈS", () 
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
     unmerge: null,
+    notes: [],
     voices: [],
   };
   const silent = buildHouseholdPromptBlocks({ ...base, dietBlock: "" });
@@ -1413,6 +1441,7 @@ Deno.test("le régime passe AVANT les règles de maison, qui restent DERNIÈRES"
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
     unmerge: null,
+    notes: [],
     voices: [],
     dietBlock: householdDietBlock({
       strictest: "vegan",
@@ -1455,6 +1484,7 @@ Deno.test("LOT C — sans porteur, le prompt est BYTE-IDENTIQUE à v11", () => {
     divergingCount: 0, weightGroups: 1,
     unmerge: null,
     dietBlock: "",
+    notes: [],
     voices: [],
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
@@ -1499,6 +1529,7 @@ Deno.test("LOT C — avec un porteur, le bloc nomme la bouche et SON id exact", 
     kitchenEquipment: null,
     unmerge: null,
     dietBlock: "",
+    notes: [],
     voices: [],
   });
   assert(out.systemSuffix.includes("WHOSE DISH IS IT"), out.systemSuffix);
@@ -1539,6 +1570,7 @@ const BEARER_BASE = {
   divergingCount: 1, weightGroups: 1,
   unmerge: null,
   dietBlock: "",
+  notes: [],
   voices: [],
   dedicatedDishesAsked: 3,
   medicalMouths: [], crossContactUnnamedMedical: 0,
@@ -1847,6 +1879,7 @@ const KITCHEN_BASE = {
   dedicatedDishesAsked: 0,
   medicalMouths: [], crossContactUnnamedMedical: 0,
   dietBlock: "",
+  notes: [],
   voices: [],
   kitchenEquipment: null,
   // LOT C ② — personne ne porte de règle: aucun des deux blocs, prompt de v18.
@@ -2215,6 +2248,7 @@ function suffixesFor(members: PortionMember[]) {
     kitchenEquipment: null,
     unmerge: null,
     dietBlock: "",
+    notes: [],
     voices: [],
   });
 }

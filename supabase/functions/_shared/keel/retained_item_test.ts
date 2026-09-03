@@ -544,7 +544,9 @@ Deno.test("la matrice du §5, cellule par cellule", () => {
 
 Deno.test("le `scope` par défaut suit la matrice, et `null` est un refus", () => {
   // Le brouillon parle de CE plan: `next_plan` par défaut.
-  assertEquals(defaultScopeFor("draft_note", "food.exclude"), "next_plan");
+  // LOT A (2026-09-03): le brouillon écrit du DURABLE pour les préférences.
+  assertEquals(defaultScopeFor("draft_note", "food.exclude"), "durable");
+  assertEquals(defaultScopeFor("draft_note", "craving"), "next_plan");
   // Le questionnaire regarde la semaine écoulée pour orienter les suivantes.
   assertEquals(defaultScopeFor("questionnaire", "food.exclude"), "durable");
   // ⛔ LOT M1 — le memorizer n'a plus AUCUNE portée par défaut, parce qu'il n'a

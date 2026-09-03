@@ -26,6 +26,7 @@ import {
 } from "../api/planFeedback";
 import { windowDates, windowDayOrder } from "../api/mealWindow";
 import { selectMyShare } from "../api/myShare";
+import { useAuth } from "../../context/AuthContext";
 import { chooseGenerator } from "../api/planRouting";
 import {
   type ComposeDraftInput,
@@ -1088,6 +1089,19 @@ function PersonalNumbers(props: {
 }
 
 export default function StudentWeekPlanPage() {
+  // A8.1 — LE COMPTE QUI REGARDE. Il servait déjà six fois dans ce fichier,
+  // mais toujours relu au coup par coup (`supabase.auth.getUser()` dans un
+  // gestionnaire). `MyShareCard` en a besoin AU RENDU, pour lier ses coches:
+  // une lecture asynchrone dans un handler ne peut pas alimenter une case.
+  //
+  // ⚠️ EN COMMENTAIRE DE LIGNE, ET PAS EN BLOC `/** */`. Un bloc placé JUSTE
+  // après l'accolade ouvrante de la fonction fait matcher le motif de
+  // dépouillement `{ /* … */ }` que plusieurs tests appliquent à ce fichier
+  // (`mealTicks.int.test.ts`, `dishListByDay.int.test.ts`): la source lue par
+  // le test perdait alors TOUT jusqu'au prochain `*/}`, des centaines de
+  // lignes plus bas, et les épreuves échouaient sur du code bien présent.
+  const { user } = useAuth();
+  const userId = user?.id ?? null;
   const [state, setState] = React.useState<LoadState>({ kind: "loading" });
   const [goal, setGoal] = React.useState<GoalRow | null>(null);
   /**
@@ -1711,7 +1725,6 @@ export default function StudentWeekPlanPage() {
       // `false` ICI AUSSI, et pour la même raison: cette carte n'a pas de
       // formulaire. La case « je cuisine la veille » vit sur l'écran qui
       // COMPOSE, avec les dates qu'elle recule.
-      cookTheDayBefore: false,
       // Les entrées de la lane individuelle. Le budget, les jours de cuisine et
       // le temps disponible ne sont PAS ici: le générateur les relit dans
       // `practical_constraints`, et les passer dans le corps ferait deux
@@ -2516,6 +2529,23 @@ export default function StudentWeekPlanPage() {
             ? windowDayOrder(householdMeal.startsOn, householdMeal.durationDays)
             : []}
           meMemberId={household?.me?.memberId ?? null}
+          /**
+           * A8.1 — SES COCHES SUR LE PLAN DU FOYER.
+           *
+           * ⚠️ `userId` EST LE SIEN. La coche est un fait de PERSONNE
+           * (FF-058 R10): elle s'écrit sous SON compte, jamais sous celui du
+           * maître qui a composé le plan. `householdMealId` ne sert qu'à
+           * NOMMER le plat dans la clé — deux comptes portent la même clé
+           * sans se marcher dessus (`protocol_events` est unique sur
+           * `(user_id, source_message_id)`, RLS owner-only).
+           *
+           * ⚠️ ET LA CARTE NE S'OUVRE PAS AU MAÎTRE POUR AUTANT:
+           * `selectMyShare` refuse déjà `isOwner` juste au-dessus, et c'est
+           * la même règle qui décide de la carte et de ses cases.
+           */
+          userId={userId}
+          householdMealId={householdMeal?.mealId ?? null}
+          planStartsOn={householdMeal?.startsOn ?? null}
           busy={draftBusy}
           onApprove={async () => {}}
           // ── LE POINT DE JONCTION N°2 DE LOT E, MAINTENANT ARMÉ ──────────
@@ -2738,11 +2768,15 @@ export default function StudentWeekPlanPage() {
           ? (
             <PlanFeedbackDialog
               open={feedbackOpen}
-              questions={questionsFor(
-                (goal?.goal ?? null) as never,
-                restricted,
-              )}
-              dishTitles={feedbackPlan.dishTitles}
+              // ⚠️ PLUS D'OBJECTIF — lot B. Les questions ne dépendent plus
+              // de la dynamique: la quatrième question la suivait, et deux de
+              // ses trois axes n'avaient aucun lecteur. Le plancher TCA reste
+              // le seul filtre, et il ne retire plus que `portions`.
+              questions={questionsFor(restricted)}
+              // ⚠️ DES ALIMENTS, PLUS DES TITRES — lot B. Un titre ne dit pas
+              // ce qu'on ne veut plus; ni le générateur ni la ceinture par
+              // bouche ne peuvent filtrer avec.
+              foodTerms={feedbackPlan.foodTerms}
               // ⛔ SEUL LE MAÎTRE D'UN FOYER VOIT LA QUESTION D'ENVIE: c'est le
               // seul compte qui puisse l'écrire dans le canal qui la lit
               // (`keel_household_submit_envy` refuse tout autre membre par
@@ -2783,10 +2817,16 @@ export default function StudentWeekPlanPage() {
                     // questionnaire est son SEUL producteur pour cette raison
                     // exacte: la conversation ne sait pas l'attribuer.
                     portionsSubject: answers.portionsSubject,
-                    neverAgain: answers.neverAgain,
-                    makeAgain: answers.makeAgain,
-                    axisQuestion: answers.axisQuestion,
-                    axisAnswer: answers.axisAnswer,
+                    // ── LOT B · LES QUATRE RÉPONSES NEUVES ─────────────────
+                    // ⛔ `neverAgainFoods` PORTE SON SUJET, et c'est ce qui
+                    // rend la préférence attribuable — donc la ceinture par
+                    // bouche capable de mordre chez la bonne personne.
+                    difficulty: answers.difficulty,
+                    speed: answers.speed,
+                    variety: answers.variety,
+                    neverAgainFoods: answers.neverAgainFoods,
+                    makeAgainFoods: answers.makeAgainFoods,
+                    anythingElse: answers.anythingElse,
                   },
                   // ⚠️ LE JOUR DE LA PERSONNE, PAS CELUI DU SERVEUR. C'est le
                   // `at` de ce qui sera retenu (« je l'ai retenu de mardi »),

@@ -442,7 +442,9 @@ export function defaultScopeFor(
   if (kind === "portion.adjust") return "durable";
   switch (source) {
     case "draft_note":
-      return "next_plan";
+      // LOT A (2026-09-03): le brouillon écrit du DURABLE pour les
+      // préférences; l'encart reçoit ce que la phrase date elle-même.
+      return "durable";
     case "questionnaire":
       return "durable";
     case "conversation":
@@ -1023,6 +1025,13 @@ export interface MemoLine {
   readonly source: "questionnaire" | "draft_note" | "conversation";
   /** ⛔ Les mots de la personne — lot M2. Une ligne sans cause ne se juge pas. */
   readonly quote: string;
+  /**
+   * DE QUI on parle — lot A (2026-09-03). `household` pour une ligne d'avant
+   * le lot: elle était servie à toute la table, et c'est ce qu'elle reste.
+   */
+  readonly subject: RetainedSubject;
+  /** QUAND ça compte — lot A. `null` = tous les jours. Vocabulaire du serveur. */
+  readonly when: { readonly weekday: string | null; readonly slot: string | null } | null;
 }
 
 const MEMO_DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -1050,7 +1059,27 @@ export function parseMemoLine(value: unknown): MemoLine | null {
   ) return null;
   const quote = typeof row.quote === "string" ? row.quote.trim() : "";
   if (!quote) return null;
-  return { text, at, source, quote };
+  // ── LOT A · LE SUJET ET LE `when` — lus, jamais réécrits ─────────────────
+  // Absent = la table (ligne d'avant le lot). Présent et difforme = REFUS,
+  // comme côté serveur: on ne replie jamais un sujet sur toute la table.
+  let subject: RetainedSubject = HOUSEHOLD_SUBJECT;
+  if (row.subject !== undefined && row.subject !== null) {
+    const parsed = parseRetainedSubject(row.subject);
+    if (!parsed) return null;
+    subject = parsed;
+  }
+  let when: MemoLine["when"] = null;
+  if (row.when !== undefined && row.when !== null) {
+    const w = row.when && typeof row.when === "object" && !Array.isArray(row.when)
+      ? row.when as Record<string, unknown>
+      : null;
+    if (!w) return null;
+    const weekday = typeof w.weekday === "string" && w.weekday.trim() ? w.weekday.trim() : null;
+    const slot = typeof w.slot === "string" && w.slot.trim() ? w.slot.trim() : null;
+    if (weekday === null && slot === null) return null;
+    when = { weekday, slot };
+  }
+  return { text, at, source, quote, subject, when };
 }
 
 /**
@@ -1086,11 +1115,17 @@ export function withoutMemoLine(
   if (!Number.isInteger(index) || index < 0 || index >= kept.length) return null;
   return {
     ...(pc ?? {}),
+    // ⛔ LOT A — ON RÉÉCRIT LA LIGNE ENTIÈRE, `subject` ET `when` COMPRIS.
+    // La version d'avant ne recopiait que quatre clés: retirer UNE ligne de
+    // la carte aurait détaché la danse de Léa de Léa sur TOUTES les autres,
+    // sans un mot. Une clé qu'on ne lit pas n'est pas une clé qu'on jette.
     [MEMO_KEY]: kept.filter((_, i) => i !== index).map((line) => ({
       text: line.text,
       at: line.at,
       source: line.source,
       quote: line.quote,
+      subject: line.subject,
+      when: line.when,
     })),
   };
 }

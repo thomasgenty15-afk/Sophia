@@ -99,8 +99,11 @@ export interface SetupDraftPayload {
    * base — le brouillon ne fait que les devancer.
    */
   oneCookingSession: boolean;
-  /** « Je cuisine la veille » — même raison: aucune colonne ne le porte. */
-  cookTheDayBefore: boolean;
+  // ⟳ A1 (2026-09-03) — `cookTheDayBefore` A ÉTÉ RETIRÉ DU BROUILLON.
+  // La veille n'est plus une case: le serveur la dérive de la date de départ
+  // et de l'heure locale. Un brouillon d'avant ce lot porte encore la clé;
+  // elle est simplement ignorée à la relecture — aucun rattrapage, et rien à
+  // reposer à la personne, puisqu'on ne lui demande plus rien.
   /**
    * L'envie, AVEC SA SEMAINE. Elle est écrite par semaine côté serveur
    * (`household_envy_submissions`): restaurer la phrase de la semaine dernière
@@ -125,7 +128,6 @@ export interface StoredSetupDraft {
     householdSize: number | null;
     cookingShape: string | null;
     oneCookingSession: boolean;
-    cookTheDayBefore: boolean;
     envy: string;
     envyWeek: string;
   };
@@ -343,7 +345,6 @@ export function readSetupDraft(
       // ne sont pas des réponses. Un brouillon d'avant ce lot n'a pas la clé, et
       // rend donc `false` — le comportement d'hier.
       oneCookingSession: draft.oneCookingSession === true,
-      cookTheDayBefore: draft.cookTheDayBefore === true,
       envy: typeof draft.envy === "string" ? draft.envy : "",
       envyWeek: typeof draft.envyWeek === "string" ? draft.envyWeek : "",
     },

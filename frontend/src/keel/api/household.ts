@@ -1680,19 +1680,12 @@ export async function generateHouseholdMeal(args: {
    * arbitrage de semaine.
    */
   oneCookingSession: boolean;
-  /**
-   * « JE CUISINE LA VEILLE » — 2026-09-01.
-   *
-   * ⚠️ REQUIS, jamais `?`. Même arbitrage que `oneCookingSession` juste
-   * au-dessus: un champ facultatif n'aurait fait remonter AUCUN appelant au
-   * compilateur, et la case serait construite sans être transmise.
-   *
-   * ⛔ LE SERVEUR TRANCHE LA FAISABILITÉ (`withCookDayBefore`), et il le DIT
-   * quand il refuse. L'écran pose la même porte pour ne pas PROPOSER un geste
-   * qui sera refusé — le corps de la requête est écrit par le réseau, pas par
-   * l'écran.
-   */
-  cookTheDayBefore: boolean;
+  // ⟳ A1 (2026-09-03) — `cookTheDayBefore` A ÉTÉ RETIRÉ D'ICI, ET DU CORPS.
+  // La veille n'est plus une case: `generate-household-meal-v1` la DÉRIVE
+  // (`leadDayFor`) de la date de départ et de l'heure locale du maître,
+  // coupure à 18 h. Le navigateur ne connaît pas l'heure — il ne peut donc pas
+  // rejouer ce verdict, et il ne doit pas essayer. Ce que le serveur rend en
+  // échange est `timing`, que l'écran RÉPÈTE.
 }): Promise<HouseholdMealResult> {
   const { data, error } = await supabase.functions.invoke("generate-household-meal-v1", {
     body: {
@@ -1722,7 +1715,6 @@ export async function generateHouseholdMeal(args: {
       // `body.one_cooking_session === true`; une autre orthographe ici serait
       // une case cochée qui ne part nulle part, et rien ne le dirait.
       one_cooking_session: args.oneCookingSession,
-      cook_the_day_before: args.cookTheDayBefore,
     },
   });
   if (error) throw new Error(await namedEdgeRefusal(error) ?? error.message);
@@ -1760,6 +1752,25 @@ export { type MemberPortionView } from "./mealGeneration";
  * Le titre, le jour et le moment suffisent à « ce que la maison cuisine ».
  */
 export interface HouseholdDishView {
+  /**
+   * ══════════════════════════════════════════════════════════════════════
+   * A8.1 — SA POSITION DANS LE `dishes[]` STOCKÉ. La clé de coche en dépend.
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * `meal_tick:<planId>:<idx>` est POSITIONNEL (`api/mealTicks.ts`), et c'est
+   * la position dans le JSONB de la ligne — pas celle dans cette vue.
+   *
+   * ⛔ LE PIÈGE, ET IL EST À DEUX PAS D'ICI. `readHouseholdDishes` FILTRE les
+   * entrées sans titre. Un plat sans titre en position 2 décale donc tout ce
+   * qui suit d'un cran dans la vue, et un index lu sur la vue écrirait la
+   * coche du membre SUR LE PLAT SUIVANT — un fait faux, daté, indémentable
+   * (cicatrice `auto-tick-writes-undeniable-false-facts`), et invisible: les
+   * deux plats existent, les deux titres sont plausibles.
+   *
+   * D'où: l'index est capturé AVANT le filtre, il voyage avec le plat, et
+   * personne ne le recalcule en aval.
+   */
+  dishIndex: number;
   title: string;
   day: string | null;
   slot: string | null;
@@ -1894,12 +1905,22 @@ export async function loadHouseholdMeal(today: string): Promise<HouseholdMealVie
 /**
  * Les plats d'un plan, réduits à ce qui se dit à table. Voir `HouseholdDishView`
  * pour ce qui est délibérément laissé de côté, et pourquoi.
+ *
+ * ⟳ A8.1 — EXPORTÉE POUR ÊTRE ÉPROUVÉE, et pour une raison précise: depuis que
+ * cette lecture porte `dishIndex`, une erreur d'un cran ici fait écrire la
+ * coche d'un profil réclamé SUR LE PLAT SUIVANT. Le fait serait daté, plausible
+ * et indélébile. Une garde qui ne peut pas s'exécuter contre un tableau brut ne
+ * verrait pas ce décalage — voir `household.int.test.ts`.
  */
-function readHouseholdDishes(raw: unknown): HouseholdDishView[] {
+export function readHouseholdDishes(raw: unknown): HouseholdDishView[] {
   if (!Array.isArray(raw)) return [];
-  return raw.map((entry) => {
+  // ⚠️ L'INDEX EST CELUI DU TABLEAU BRUT, ET IL EST PRIS ICI, AVANT LE
+  // `.filter` de la dernière ligne. Le prendre après ferait une vue dont les
+  // positions ne sont plus celles du plan — voir `HouseholdDishView.dishIndex`.
+  return raw.map((entry, dishIndex) => {
     const d = (entry ?? {}) as Record<string, unknown>;
     return {
+      dishIndex,
       title: String(d.title ?? "").trim(),
       day: typeof d.day === "string" && d.day.trim() ? d.day.trim() : null,
       slot: typeof d.slot === "string" && d.slot.trim() ? d.slot.trim() : null,

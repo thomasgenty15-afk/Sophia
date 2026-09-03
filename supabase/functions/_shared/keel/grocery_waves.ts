@@ -313,8 +313,20 @@ export function planGroceryWaves<T extends WaveItem>(args: {
       // son abstention se COMPTE (`rawWindowCounts`).
       const window = rawWindowDaysFor(item.food_group) ?? MAX_FRIDGE_DAYS;
       const earliest = addDays(cookDate, -window);
+      // ⛔ LA BORNE `startsOn` RESTE, ET ELLE EST JUSTE AVEC LA VEILLE: depuis
+      // le 2026-09-03 (A1), la veille EST `startsOn` — rang 0 de la fenêtre —
+      // donc « jamais avant le début du plan » veut dire « jamais avant la
+      // veille », ce qui est exactement la course de la veille.
       buyOn = earliest > startsOn ? earliest : startsOn;
-      if (buyOn > startsOn) serves = cookDate;
+      // ⟳ A1 (2026-09-03) — `serves` NE DÉPEND PLUS DE `startsOn`. Il se
+      // pose sur toute vague qui n'est pas la PREMIÈRE (voir `firstBuyOn`
+      // sous la boucle): « pour la cuisson de jeudi » est la phrase d'une
+      // vague SUPPLÉMENTAIRE, et la première vague — celle du rang 0 — n'en a
+      // pas besoin. Comparer à `startsOn` laissait la phrase sur une première
+      // vague qui tombe APRÈS le début (tout périssable, cuisson tardive) et
+      // l'invariant C3 (« `servesCookOn` non nul sur les vagues SUIVANTES »)
+      // n'était tenu que par coïncidence — analyse du 03/09 §1.2 pt 3.
+      serves = cookDate;
     }
 
     const bucket = byDate.get(buyOn) ??
@@ -324,20 +336,31 @@ export function planGroceryWaves<T extends WaveItem>(args: {
     if (serves && (!bucket.serves || serves < bucket.serves)) bucket.serves = serves;
     // ⛔ ET ELLE RETIENT TOUTES CELLES QU'ELLE SERT (la décision).
     //
-    // `cookDate` et pas `serves`: `serves` est nul sur la première vague par
-    // construction (`buyOn > startsOn`), et c'est exactement le cas qu'on
-    // cherche à ne plus perdre. Un article périssable dont la cuisson est
-    // connue compte, quelle que soit la date d'achat.
+    // `cookDate` et pas `serves`: `serves` est EFFACÉ sur la première vague
+    // par construction (`buyOn > firstBuyOn`, juste en dessous), et c'est
+    // exactement le cas qu'on cherche à ne plus perdre. Un article périssable
+    // dont la cuisson est connue compte, quelle que soit la date d'achat.
     if (perishable && cookDate) bucket.all.add(cookDate);
     byDate.set(buyOn, bucket);
   }
 
-  return [...byDate.entries()]
-    .sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0))
+  // ── LA PREMIÈRE VAGUE NE PORTE PAS DE PHRASE, LES SUIVANTES TOUJOURS ─────
+  // `servesCookOn` est la phrase d'une vague SUPPLÉMENTAIRE. La première vague
+  // — au rang 0 depuis A1, ou plus tard quand tout est périssable — est la
+  // grosse course; les suivantes doivent dire pour quelle cuisson elles
+  // existent, sinon elles se lisent comme une corvée arbitraire. La règle est
+  // « `buyOn > firstBuyOn` », pas « `buyOn > startsOn` »: c'est la même chose
+  // au cas nominal, et ce n'est PAS la même chose quand la première vague
+  // tombe après le début du plan.
+  const sortedDates = [...byDate.keys()].sort();
+  const firstBuyOn = sortedDates[0] ?? null;
+
+  return sortedDates
+    .map((buyOn) => [buyOn, byDate.get(buyOn)!] as const)
     .map(([buyOn, bucket]) => ({
       buyOn,
       items: bucket.items,
-      servesCookOn: bucket.serves,
+      servesCookOn: firstBuyOn !== null && buyOn > firstBuyOn ? bucket.serves : null,
       // Trié: l'ordre d'itération d'un `Set` suit l'insertion, c'est-à-dire
       // l'ordre de la liste de courses. Un appelant qui prend « la première »
       // prendrait alors un article, pas une date.

@@ -1,4 +1,4 @@
-import { parseAwayMarks } from "../lib/presenceMarks";
+import { parseAwayMarks, type WorkLunch } from "../lib/presenceMarks";
 import React from "react";
 
 import { useAuth } from "../../context/AuthContext";
@@ -104,6 +104,9 @@ import MouthFormDialog, {
 import { householdErrorKey } from "../copy/planRefusals";
 import MealPickerGrid from "../components/MealPickerGrid";
 import HouseholdHabitsCard from "../components/HouseholdHabitsCard";
+import MemberWorkLunchCard from "../components/MemberWorkLunchCard";
+import { loadWorkLunch, setMemberWorkLunch } from "../api/workLunch";
+import { commitWorkLunch, readWorkLunchAnswers } from "../lib/workLunchCommit";
 import HouseholdMergeCard from "../components/HouseholdMergeCard";
 import HouseholdPlanCard from "../components/HouseholdPlanCard";
 import { t } from "../i18n/t";
@@ -272,6 +275,24 @@ export default function HouseholdPage(): React.ReactElement {
     null,
   );
   /**
+   * LE DÉJEUNER EN SEMAINE DE CHAQUE BOUCHE (A6, 2026-09-03), par `member_id`.
+   *
+   * ⚠️ `null` = LA LECTURE N'A PAS EU LIEU, et une `Map` vide = « lu, personne
+   * n'a répondu ». Les deux ne se confondent pas: la carte ne pose aucune
+   * question sur `null` (cicatrice `mount-snapshot-forms-need-a-loading-gate`),
+   * et le repli d'une lecture ratée vit dans `readWorkLunchAnswers` — module
+   * pur, mesuré — jamais dans un `catch` d'ici.
+   *
+   * ⛔ ELLE SE RELIT APRÈS CHAQUE ÉCRITURE, ET AVANT `refresh`. La porte SQL
+   * ré-applique son pré-remplissage à chaque écriture, même identique; la
+   * carte s'en garde en comparant à CE QUI EST ENREGISTRÉ — et « enregistré »
+   * ne redevient vrai que si on relit (`commitWorkLunch`, ordre imposé).
+   */
+  const [workLunch, setWorkLunch] = React.useState<
+    Map<string, WorkLunch | null> | null
+  >(null);
+  const [workLunchError, setWorkLunchError] = React.useState<string | null>(null);
+  /**
    * LE GEL (chantier 3, D4). `null` = pas encore lu.
    *
    * ⚠️ L'ÉCRAN NE DÉCIDE PAS DU GEL, il l'affiche. La règle vit en base
@@ -402,6 +423,31 @@ export default function HouseholdPage(): React.ReactElement {
   React.useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  /**
+   * LES RÉPONSES DU DÉJEUNER — une lecture À PART, pas dans `refresh`.
+   *
+   * `commitWorkLunch` relit les réponses PUIS la page: si cette lecture vivait
+   * dans `refresh`, elle partirait deux fois par geste, et surtout l'ordre
+   * « réarmer la garde avant de relire la page » ne serait plus lisible ici.
+   * On ne remet PAS `workLunch` à `null` sur un échec: ce qui a déjà été lu
+   * reste vrai, et l'erreur se dit à côté de la carte.
+   */
+  const refreshWorkLunch = React.useCallback(async () => {
+    const read = await readWorkLunchAnswers(loadWorkLunch);
+    if (read.answers !== null) setWorkLunch(read.answers);
+    setWorkLunchError(read.error);
+  }, []);
+
+  // CET EFFET LIT, ET C'EST LE SEUL QUI TOUCHE AU DÉJEUNER. Il attend de
+  // savoir qui regarde: seul le maître voit les fiches (`MemberRow`), donc
+  // seul lui a besoin des réponses. Keyé sur le RÔLE, pas sur `household`,
+  // pour ne pas relire à chaque `refresh`.
+  const meRole = household?.me?.role ?? null;
+  React.useEffect(() => {
+    if (meRole !== "owner") return;
+    void refreshWorkLunch();
+  }, [meRole, refreshWorkLunch]);
 
   const run = React.useCallback(
     async (action: () => Promise<{ ok: boolean; reason: string }>): Promise<boolean> => {
@@ -678,6 +724,22 @@ export default function HouseholdPage(): React.ReactElement {
                 awayWindow={awayWindow}
                 bodies={bodies}
                 habits={habits}
+                workLunch={workLunch}
+                workLunchError={workLunchError}
+                // A6 — LE GESTE COMPLET, DANS L'ORDRE QUE `commitWorkLunch`
+                // IMPOSE: écrire, RELIRE LES RÉPONSES (réarmer la garde), puis
+                // relire la page — la porte SQL a aussi écrit `away_days`, et
+                // la grille juste en dessous doit montrer les cinq midis.
+                // Pas par `run`: un refus doit rester SOUS le geste, dans la
+                // carte, pas dans la bannière de la page.
+                onSaveWorkLunch={(memberId, answer) =>
+                  commitWorkLunch({
+                    memberId,
+                    answer,
+                    save: setMemberWorkLunch,
+                    reread: refreshWorkLunch,
+                    onSaved: refresh,
+                  })}
                 // `run` traduit le refus par la liste fermée de
                 // `copy/planRefusals.ts` et rafraîchit — donc le formulaire se
                 // remonte sur ce que le serveur a VRAIMENT gardé, et un
@@ -1376,13 +1438,24 @@ function AddMouthCard(
  * quelle nature est cette contrainte.
  */
 function MembersCard(
-  { household, restrictions, allergies, busy, mutedMembers, rhythm, awayWindow, bodies, habits, onSaveHabits, onSaveDiet, onSaveBody, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction, todayLocalIso }: {
+  { household, restrictions, allergies, busy, mutedMembers, rhythm, awayWindow, bodies, habits, workLunch, workLunchError, onSaveWorkLunch, onSaveHabits, onSaveDiet, onSaveBody, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction, todayLocalIso }: {
     household: HouseholdView;
     restrictions: RestrictionView[];
     allergies: AllergyView[];
     busy: boolean;
     /** `YYYY-MM-DD` local, descendu à chaque ligne — voir `MeCard`. */
     todayLocalIso: string;
+    /**
+     * LE DÉJEUNER EN SEMAINE (A6). `null` = PAS ENCORE LU — la carte ne pose
+     * alors aucune question. Voir l'état de la page.
+     */
+    workLunch: Map<string, WorkLunch | null> | null;
+    workLunchError: string | null;
+    /** Le geste complet d'une bouche: écrire, relire les réponses, relire la page. */
+    onSaveWorkLunch: (
+      memberId: string,
+      answer: WorkLunch,
+    ) => Promise<{ ok: boolean; reason: string | null }>;
     /**
      * CE QUE CHAQUE BOUCHE MANGE D'HABITUDE. `null` = PAS ENCORE LU — et la
      * carte n'affiche alors aucun champ. Voir l'état de la page.
@@ -1505,6 +1578,11 @@ function MembersCard(
             // dessus.
             habitsLoaded={habits !== null}
             habits={habits?.get(m.memberId) ?? null}
+            // A6 — la Map ENTIÈRE descend, `null` compris: c'est la carte qui
+            // distingue « pas lu » de « lu, rien pour cette bouche ».
+            workLunch={workLunch}
+            workLunchError={workLunchError}
+            onSaveWorkLunch={(answer) => onSaveWorkLunch(m.memberId, answer)}
             onSaveHabits={(s, n) => onSaveHabits(m.memberId, s, n)}
             onSaveDiet={(diet) => onSaveDiet(m.memberId, diet)}
             onSaveBody={(h, w, g, extras) => onSaveBody(m.memberId, h, w, g, extras)}
@@ -1753,11 +1831,15 @@ function MemberBadges({ member }: { member: HouseholdMemberView }) {
 }
 
 function MemberRow(
-  { member, isMe, allergies, restrictions, busy, muted, rhythm, awayWindow, body, habits, habitsLoaded, onSaveHabits, onSaveDiet, onSaveBody, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction, todayLocalIso }: {
+  { member, isMe, allergies, restrictions, busy, muted, rhythm, awayWindow, body, habits, habitsLoaded, workLunch, workLunchError, onSaveWorkLunch, onSaveHabits, onSaveDiet, onSaveBody, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction, todayLocalIso }: {
     member: HouseholdMemberView;
     isMe: boolean;
     /** `YYYY-MM-DD` local — l'âge des tuiles se lit sur la date tapée. */
     todayLocalIso: string;
+    /** A6 — les réponses du foyer, `null` = pas lu. La carte filtre les majeurs. */
+    workLunch: Map<string, WorkLunch | null> | null;
+    workLunchError: string | null;
+    onSaveWorkLunch: (answer: WorkLunch) => Promise<{ ok: boolean; reason: string | null }>;
     allergies: AllergyView[];
     restrictions: RestrictionView[];
     busy: boolean;
@@ -2007,6 +2089,32 @@ function MemberRow(
             loaded={habitsLoaded}
             busy={busy}
             onSave={onSaveHabits}
+          />
+
+          {/* ── A6 · LE DÉJEUNER EN SEMAINE (2026-09-03) ──────────────────
+              LA QUESTION VIVAIT À L'ÉTAPE 3 DE L'ENTONNOIR, deux écrans avant
+              la grille que sa réponse pré-remplit. Elle est ici, JUSTE
+              AU-DESSUS de « sa semaine »: la réponse et ce qu'elle coche sur
+              le même écran — « pré-remplir n'est pas décider, la grille
+              gagne » ne se lit que si la grille est à portée de main.
+
+              AUX MAJEURS DU ROSTER, compte ou pas: `member.ageState` est
+              `keel_household_member_age`, l'autorité qui rend `not_adult` à
+              l'écriture — jamais un `kind` à deux valeurs. La carte filtre
+              elle-même et ne rend rien pour un mineur ou un âge inconnu.
+
+              `workLunch` descend ENTIER, `null` compris: c'est la carte qui
+              tient la porte « pas lu » ≠ « lu, rien pour cette bouche ». */}
+          <MemberWorkLunchCard
+            person={{
+              memberId: member.memberId,
+              firstName: member.displayName === "—" ? "" : member.displayName,
+              ageState: member.ageState,
+            }}
+            answers={workLunch}
+            readError={workLunchError}
+            busy={busy}
+            onSave={(_memberId, answer) => onSaveWorkLunch(answer)}
           />
 
           {/* ── D14 · QUAND CETTE BOUCHE N'EST PAS LÀ ──────────────────────

@@ -48,8 +48,28 @@ export const WEEK_TOKENS: readonly DayToken[] = [
   "sun",
 ];
 
-/** Le plafond structurel d'une fenêtre. Voir la migration pour le pourquoi. */
+/**
+ * Le plafond structurel des JOURS MANGÉS d'une fenêtre. Voir la migration
+ * `20260807090000` pour le pourquoi, et `20260903170000` pour ce qui a changé:
+ * depuis le 2026-09-03 la base accepte `duration_days` jusqu'à 8, à condition
+ * que `duration_days - lead_days` reste entre 1 et 7 — la veille (rang 0, jour
+ * de cuisine sans repas) est DANS la fenêtre et HORS des jours mangés.
+ *
+ * ⚠️ `windowDates` / `windowDayOrder` bornent toujours à 7: un plan porte des
+ * JETONS de jour (`mon`…`sun`), et un huitième jour porterait le jeton du
+ * premier. C'est ce qui fait que `withCookDayBefore` refuse encore `no_room` sur
+ * sept jours mangés — voir son en-tête.
+ */
 export const MAX_WINDOW_DAYS = 7;
+
+/**
+ * LE NOMBRE DE JOURS DE VEILLE QU'UNE FENÊTRE PEUT PORTER — 0 ou 1.
+ *
+ * Épinglé (`constant_pins_test.ts`), recopié dans la migration
+ * `20260903170000` (`check (lead_days in (0,1))`). Deux veilles n'ont aucun
+ * sens: on cuisine LA veille, pas l'avant-veille.
+ */
+export const MAX_LEAD_DAYS = 1;
 
 /**
  * Ce qu'une ligne de plan doit porter pour être SITUÉE DANS LE TEMPS.
@@ -307,11 +327,57 @@ export function planOverlapVerdict(
   return "truncated";
 }
 
-/** Une ligne vivante, telle qu'on la relit pour décider AVANT le modèle. */
+/**
+ * Une ligne vivante, telle qu'on la relit pour décider AVANT le modèle.
+ *
+ * ⛔ DEPUIS LE 2026-09-03, C'EST UN SPAN DE JOURS MANGÉS. La règle de
+ * chevauchement (`planOverlapVerdict`) et l'exclusion de la base
+ * (`20260903170000`) portent sur `[starts_on + lead_days, starts_on +
+ * duration_days)`: la veille du plan N+1 a le DROIT d'être le dernier jour
+ * mangé du plan N (on fait les courses dimanche soir pour lundi pendant qu'on
+ * dîne encore la semaine d'avant). Un appelant qui lit une ligne de la base
+ * passe par `eatenSpan` — jamais `starts_on`/`duration_days` nus.
+ */
 export interface LivePlanSpan {
   id: string;
   startsOn: string;
   durationDays: number;
+  /**
+   * LA COLONNE `lead_days` DE LA LIGNE — 0 ou 1, et **jamais optionnelle**.
+   *
+   * ⛔ C'EST LE TYPE QUI TIENT LE `select`. Un appelant qui oublierait
+   * `lead_days` dans sa projection ne compile plus; s'il compilait, il
+   * compterait la veille comme un jour mangé et refuserait ici le plan N+1 que
+   * la base accepte — un 409 fabriqué par nous, sur un geste légitime.
+   */
+  leadDays: number;
+}
+
+/**
+ * LES JOURS MANGÉS D'UNE LIGNE — `starts_on + lead_days`, `duration_days -
+ * lead_days`. C'est la SEULE conversion, et les deux lanes l'appellent.
+ *
+ * ⚠️ `leadDays` est REQUIS, jamais `?`: une ligne relue sans sa colonne
+ * `lead_days` compterait sa veille comme un jour mangé, et refuserait le plan
+ * N+1 que la base accepte — le défaut que ce lot ferme, réintroduit par un
+ * `select` oublié. `null`/`undefined` JETTE.
+ */
+export function eatenSpan(row: {
+  startsOn: string;
+  durationDays: number;
+  leadDays: number;
+}): { startsOn: string; durationDays: number } {
+  const lead = row.leadDays;
+  if (typeof lead !== "number" || !Number.isInteger(lead) || lead < 0 || lead > MAX_LEAD_DAYS) {
+    throw new Error(
+      `[keel/meal_window] eatenSpan: leadDays est REQUIS (0..${MAX_LEAD_DAYS}) — ` +
+        `reçu ${JSON.stringify(lead)}; un select qui oublie \`lead_days\` compte la veille comme un jour mangé`,
+    );
+  }
+  return {
+    startsOn: lead === 0 ? row.startsOn : addDays(row.startsOn, lead),
+    durationDays: row.durationDays - lead,
+  };
 }
 
 /**
@@ -335,6 +401,13 @@ export interface LivePlanSpan {
  *   sous `intent = 'replace_current'`), ou `null`. REQUIS, jamais optionnel:
  *   l'omettre ferait refuser la composition la plus banale du produit —
  *   « remplace le plan courant » commence toujours le même jour que lui.
+ *
+ * ⟳ **2026-09-03 (A1) — LES DEUX CÔTÉS SONT DES JOURS MANGÉS.** Chaque ligne
+ * vivante est pliée par `eatenSpan` avant d'être comparée, exactement comme le
+ * `daterange(starts_on + lead_days, starts_on + duration_days)` de l'exclusion
+ * et de la boucle de `write_student_meal_plan` (migration `20260903170000`).
+ * `args.window` est déjà un span de jours mangés: les deux lanes appellent
+ * cette fonction **avant** `withCookDayBefore`, donc sur la fenêtre saisie.
  */
 export function firstBlockingPlan(args: {
   live: readonly LivePlanSpan[];
@@ -343,7 +416,7 @@ export function firstBlockingPlan(args: {
 }): { plan: LivePlanSpan; verdict: "starts_at_or_after" | "encloses" } | null {
   for (const plan of args.live) {
     if (args.replacesId !== null && plan.id === args.replacesId) continue;
-    const verdict = planOverlapVerdict(plan, args.window);
+    const verdict = planOverlapVerdict(eatenSpan(plan), args.window);
     if (verdict === "starts_at_or_after" || verdict === "encloses") {
       return { plan, verdict };
     }
@@ -467,29 +540,49 @@ export function dayTokenOf(date: string): DayToken {
  *
  * Un plan « lundi→vendredi, je cuisine dimanche » **EST** un plan
  * « dimanche→vendredi » dont le dimanche ne porte aucun repas. C'est la sortie
- * décrite au §3.3 de la synthèse du 2026-09-01, et elle ne demande **aucune
- * migration**: la fenêtre recule d'un jour, ce jour-là est un jour de CUISINE
- * et rien ne s'y mange.
+ * décrite au §3.3 de la synthèse du 2026-09-01: la fenêtre recule d'un jour, ce
+ * jour-là est un jour de CUISINE et rien ne s'y mange.
+ *
+ * ⟳ **2026-09-03 (chantier-0903/CUISINE, A1, P1) — `asked` N'EST PLUS UNE
+ * CASE.** La veille est DÉRIVÉE par `leadDayFor` (`plan_hours.ts`): date de
+ * départ, jour local, heure locale, coupure à 18 h. Les deux lanes passent
+ * `asked = lead.leadDay !== null`, et `cook_the_day_before` n'est plus lu du
+ * corps HTTP. La case `CookDayBeforeField` a été retirée des deux surfaces.
  *
  * ⛔ POURQUOI LE SERVEUR DÉCIDE, ET PAS L'ÉCRAN. L'écran pourrait envoyer
  * `starts_on - 1` lui-même. Il ne le fait pas: la fenêtre serait alors
  * DIFFÉRENTE de celle que la personne a saisie, et le refus `bad_window` (début
  * dans le passé) tomberait sur une date qu'elle n'a jamais choisie, sous un
- * motif qui parle de SA saisie. L'écran envoie une DEMANDE (« si possible, je
- * cuisine la veille »); le serveur tranche, et l'explication le dit.
+ * motif qui parle de SA saisie. Et depuis A1 l'écran ne connaît pas l'heure:
+ * `local_date.ts` refuse tout repli UTC, et un `new Date().getHours()` côté
+ * navigateur est interdit — le serveur tranche, l'explication le dit, et la
+ * réponse porte `timing` pour que l'écran le rende.
  *
  * ── LES DEUX REFUS, ET ILS SONT NOMMÉS ────────────────────────────────────
- *   · `in_the_past` — le plan commence AUJOURD'HUI: la veille est hier, et on
- *     ne compose pas un jour révolu. `resolveRequestedWindow` refuse déjà un
- *     début passé; fabriquer ici une fenêtre qu'elle rejetterait ferait un 400
- *     sur un geste que l'écran vient de proposer.
- *   · `no_room` — la fenêtre fait déjà `MAX_WINDOW_DAYS`: le jour ajouté la
- *     ferait déborder du plafond de la base (`duration_days between 1 and 7`).
+ *   · `in_the_past` — le plan commence AUJOURD'HUI: la veille est hier. Depuis
+ *     A1 ce refus n'est plus ATTEIGNABLE en production (`leadDayFor` rend
+ *     `null` sur un plan qui commence aujourd'hui), mais la garde reste: elle
+ *     protège un appelant qui dériverait autrement.
+ *   · `no_room` — sept jours MANGÉS. ⚠️ CE N'EST PLUS LA BASE QUI REFUSE: la
+ *     migration `20260903170000` accepte `duration_days = 8` avec
+ *     `lead_days = 1` (décision D1.3). Ce qui refuse encore, c'est L'ALPHABET
+ *     DES JETONS: un plan nomme ses jours `mon`…`sun`, et une fenêtre de huit
+ *     jours donnerait au jour de cuisine le jeton exact du dernier jour mangé
+ *     — `windowDates` (un `Record` par jeton) ne saurait plus dater ni la
+ *     session du rang 0, ni les plats du dernier jour, et le parseur jetterait
+ *     les plats du dernier jour comme s'ils étaient posés sur la veille.
+ *     Autoriser 8 ici sans dater les sessions produirait un plan FAUX en
+ *     silence. Le refus est donc gardé, nommé, et rendu comme `same_morning`
+ *     (« courses et cuisson dès le matin ») avec son motif dans
+ *     `plan_rationale`. Ce que ça coûte, écrit pour que personne ne le
+ *     redécouvre: un plan de sept jours mangés n'a pas de veille automatique
+ *     tant que les sessions sont adressées par jeton et non par date. C'est
+ *     consigné ROUGE dans le journal de A1.
  *
  * ⚠️ ON N'AMPUTE JAMAIS LA FIN POUR FAIRE DE LA PLACE. Reculer le début en
  * gardant la durée retirerait un jour de repas que la personne a demandé —
  * c'est-à-dire répondre à « cuisine la veille » par « tu mangeras un jour de
- * moins ». Le refus est plus honnête, et l'écran le dit AVANT en grisant.
+ * moins ».
  *
  * PURE: no I/O, no clock. `today` est PASSÉ, jamais lu ici.
  */
@@ -556,4 +649,66 @@ export function cookDayBeforeAvailable(
   today: string,
 ): boolean {
   return withCookDayBefore(window, { asked: true, today }).refused === null;
+}
+
+// ---------------------------------------------------------------------------
+// LE TIMING QUI SORT — ce que la réponse, `generated_from` et l'écran lisent
+// ---------------------------------------------------------------------------
+
+/**
+ * POURQUOI CE TIMING. Les cinq motifs de `leadDayFor`, plus les deux refus de
+ * `withCookDayBefore` — parce qu'une veille dérivée peut encore être refusée
+ * par la fenêtre (`no_room`, sept jours mangés).
+ */
+export type PlanTimingReason =
+  | "day_before"
+  | "before_cutoff_today"
+  | "after_cutoff"
+  | "starts_today"
+  | "clock_unreadable"
+  | CookDayBeforeRefusal;
+
+/**
+ * CE QUE LA RÉPONSE PORTE (`timing`), CE QUE LA LIGNE GARDE
+ * (`generated_from.timing`), CE QUE L'ÉCRAN REND — une seule forme.
+ *
+ *   · `day_before`   + `lead_day` = la date de la veille (rang 0 de la fenêtre);
+ *   · `same_morning` + `lead_day: null` — « courses et cuisson dès le matin ».
+ *
+ * ⚠️ `snake_case`: c'est un objet de RÉPONSE et de colonne, pas un type interne.
+ */
+export interface PlanTiming {
+  kind: "day_before" | "same_morning";
+  reason: PlanTimingReason;
+  lead_day: string | null;
+}
+
+/**
+ * LE TIMING, ASSEMBLÉ DEPUIS LES DEUX VERDICTS — et à UN seul endroit.
+ *
+ * `leadDayFor` dit si la veille est possible par le CALENDRIER et l'HEURE;
+ * `withCookDayBefore` dit si la FENÊTRE la prend. Les deux lanes appellent
+ * celle-ci après les deux autres; recopier la combinaison dans chacune ferait
+ * deux définitions de « dès le matin ».
+ *
+ * ⛔ SI LA FENÊTRE A REFUSÉ, LE MOTIF EST CELUI DU REFUS, pas celui de
+ * `leadDayFor`: « le plan commence dans deux jours » ne dirait pas pourquoi il
+ * n'a pas de veille quand c'est `no_room` qui a tranché.
+ */
+export function planTimingOf(
+  lead: { leadDay: string | null; reason: PlanTimingReason },
+  cookAhead: {
+    cookOnlyDay: DayToken | null;
+    startsOn: string;
+    refused: CookDayBeforeRefusal | null;
+  },
+): PlanTiming {
+  if (cookAhead.cookOnlyDay !== null) {
+    return { kind: "day_before", reason: lead.reason, lead_day: cookAhead.startsOn };
+  }
+  return {
+    kind: "same_morning",
+    reason: cookAhead.refused ?? lead.reason,
+    lead_day: null,
+  };
 }

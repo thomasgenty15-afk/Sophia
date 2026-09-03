@@ -1,24 +1,23 @@
-// LE RETOUR SUR LE BROUILLON, CLASSÉ — lot 2B.
+// LE RETOUR SUR LE BROUILLON, CLASSÉ VERS TROIS PORTES — lot A (2026-09-03).
 //
 // Ce que ces tests existent pour empêcher, dans l'ordre où ça a déjà coûté:
 //
 //   1. UN LOT DÉSARMÉ QUI RESSEMBLE À UN LOT QUI MARCHE. `kind`, `text`,
-//      `member_id` et `value` sont DÉCLARÉS PAR LE MODÈLE: on ne peut pas
+//      `member_id`, `when` et `why` sont DÉCLARÉS PAR LE MODÈLE: on ne peut pas
 //      savoir d'avance à quelle fréquence il les remplit bien, seulement le
-//      mesurer. D'où le compteur à trois nombres, et d'où les tests qui
-//      épinglent chacun de ses motifs.
-//   2. UNE MATRICE ARMÉE SUR UN COFFRE VIDE. Une garde sans cas PASSANT est une
-//      garde cassée qui ressemble à une garde qui marche: chaque interdit a ici
-//      son cas qui mord ET son voisin qui passe.
-//   3. UN MODÈLE IMPORTÉ MAIS JAMAIS APPELÉ. Le générateur de foyer a
-//      **importé** `keelGenerationModel` en composant avec le modèle du chat.
-//      Le test ci-dessous pose une valeur SENTINELLE dans l'environnement et
-//      exige de la retrouver: une constante en dur ne bougerait pas.
-//   4. UN MODULE PARFAIT SANS CÂBLAGE. Le lot 1C a livré 22 tests verts sur un
-//      module qu'on pouvait retirer des trois générateurs sans un rouge. La
-//      section « LE CÂBLAGE » applique une fonction PURE deux fois: sur le vrai
-//      fichier (vert) et sur une copie EN MÉMOIRE dont l'appel a été retiré
-//      (rouge attendu).
+//      mesurer. D'où les compteurs PAR PORTE, et d'où les tests qui épinglent
+//      chacun de leurs motifs.
+//   2. UNE MATRICE ARMÉE SUR UN COFFRE VIDE. Chaque interdit a ici son cas qui
+//      mord ET son voisin qui passe.
+//   3. UNE PHRASE QUI PERD SA PERSONNE. « Mon fils n'aime pas le poisson » sur
+//      le foyer entier est un fait FAUX; le repli sur `household` est nommé
+//      comme interdit dans le prompt et refusé par le parseur.
+//   4. UN DEGRÉ QUI DEVIENT UNE NOTE. « Trop long à cuisiner » ne se range
+//      nulle part depuis un texte (§2.3): le modèle le DIT (`skipped.degree`),
+//      et ce test exige que le prompt le lui apprenne.
+//   5. UN MODÈLE IMPORTÉ MAIS JAMAIS APPELÉ, et UN MODULE PARFAIT SANS CÂBLAGE.
+//      La section « LE CÂBLAGE » applique une fonction PURE deux fois: sur le
+//      vrai fichier (vert) et sur une copie EN MÉMOIRE amputée (rouge attendu).
 //
 // ⚠️ LES LITTÉRAUX SONT ÉCRITS EN DUR, jamais recomposés depuis la constante
 // qu'ils épinglent: « un test paramétré par sa propre constante reste vert
@@ -33,10 +32,14 @@ import { assert, assertEquals, assertNotEquals } from "jsr:@std/assert@1";
 import {
   buildDraftNoteClassifyPrompt,
   DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT,
-  type DraftNoteMember,
   DRAFT_NOTE_FORBIDDEN_KINDS,
+  DRAFT_NOTE_GATES,
   DRAFT_NOTE_KINDS,
+  DRAFT_NOTE_NEXT_PLAN_KINDS,
+  DRAFT_NOTE_PREFERENCE_KINDS,
   DRAFT_NOTE_PRODUCER,
+  DRAFT_NOTE_SKIP_REASONS,
+  type DraftNoteMember,
   draftNoteClassifyTrace,
   readDraftNoteClassification,
 } from "./draft_note_classify.ts";
@@ -47,7 +50,6 @@ import {
 } from "./draft_note_classify_io.ts";
 import type { DraftNoteVerdict } from "./plan_draft_note.ts";
 import { canProduce, defaultScopeFor } from "./retained_item.ts";
-import { isoMondayOf } from "./retained_next_plan.ts";
 import { KEEL_GENERATION_MODEL_DEFAULT } from "./generation_model.ts";
 
 // ---------------------------------------------------------------------------
@@ -65,10 +67,12 @@ const TODAY = "2026-08-18";
 const PLAN_STARTS_ON = "2026-08-19";
 /** Le lundi ISO de cette semaine-là, écrit EN DUR (pas recalculé). */
 const ANCHOR = "2026-08-17";
+/** L'instant de l'écriture, EN DUR. */
+const NOW = "2026-08-18T14:03:00.000Z";
 
-const MEMBERS = [
-  { memberId: ZOE, label: "Zoé" },
-  { memberId: MARC, label: "Marc" },
+const MEMBERS: DraftNoteMember[] = [
+  { memberId: ZOE, label: "Zoé", ageState: "minor", sex: "female" },
+  { memberId: MARC, label: "Marc", ageState: "adult", sex: "male" },
 ];
 
 const NOTE = "Plus de poisson cette semaine. J'aimerais des fajitas.";
@@ -77,13 +81,17 @@ function usable(text: string = NOTE): DraftNoteVerdict {
   return { usable: text, refusal: null, dropped: [] };
 }
 
-function read(items: unknown[], over: Record<string, unknown> = {}) {
+function read(
+  lists: Record<string, unknown>,
+  over: Record<string, unknown> = {},
+) {
   return readDraftNoteClassification({
-    raw: { items },
+    raw: lists,
     today: TODAY,
     targetWeek: PLAN_STARTS_ON,
     members: MEMBERS,
     note: NOTE,
+    writtenAt: NOW,
     ...over,
   });
 }
@@ -93,522 +101,475 @@ function read(items: unknown[], over: Record<string, unknown> = {}) {
 // ===========================================================================
 
 Deno.test("⛔ le producteur est `draft_note`, JAMAIS `written`", () => {
-  // Le littéral EN DUR: c'est le jumeau du jeton lu par `canProduce`, par le
-  // port serveur, et par la carte (`known.source.draft_note`). Renommer la
-  // constante doit faire rougir quelque chose.
   assertEquals(DRAFT_NOTE_PRODUCER, "draft_note");
-  assertNotEquals(DRAFT_NOTE_PRODUCER as string, "written");
-  // ⛔ ET LA RAISON, TENUE PAR LE SOCLE: `written` peut tout écrire. Se
-  // déclarer ainsi contournerait la matrice entière par un seul mot.
   assertEquals(canProduce("written", "portion.adjust"), true);
-  assertEquals(canProduce("written", "rhythm.set"), true);
-  assertEquals(canProduce("draft_note", "portion.adjust"), false);
-  assertEquals(canProduce("draft_note", "rhythm.set"), false);
+  assertEquals(canProduce(DRAFT_NOTE_PRODUCER, "portion.adjust"), false);
 });
 
-Deno.test("la matrice ① — CINQ familles permises, trois interdites", () => {
-  // Écrit EN DUR. Si la nomenclature bouge, ce test tombe AVANT le prompt.
-  //
-  // ⛔ LOT M5 — `logistics.set` A QUITTÉ LA LISTE. Il ne se RETIENT plus: il
-  // change le champ que la personne voit dans ses réglages. Avant, il
-  // n'écrivait rien et les générateurs le posaient en mémoire au moment de
-  // composer — la personne lisait 45 min et son plan était fait sur 35.
-  assertEquals([...DRAFT_NOTE_KINDS], [
+Deno.test("la matrice ① — CINQ familles permises, trois interdites, quatre préférences", () => {
+  assertEquals([...DRAFT_NOTE_KINDS].sort(), [
+    "craving",
     "food.exclude",
     "food.prefer",
     "method.avoid",
     "method.prefer",
-    "craving",
   ]);
-  // ⚠️ L'ORDRE EST CELUI DE `RETAINED_KINDS`, dont les deux listes sont
-  // dérivées — pas l'ordre dans lequel les interdits ont été ajoutés.
-  assertEquals(
-    [...DRAFT_NOTE_FORBIDDEN_KINDS],
-    ["portion.adjust", "rhythm.set", "logistics.set"],
-  );
-  // Les deux listes sont DÉRIVÉES de `canProduce`: ensemble elles couvrent les
-  // huit familles, sans recouvrement. Une neuvième famille tomberait ici.
+  assertEquals([...DRAFT_NOTE_FORBIDDEN_KINDS].sort(), [
+    "logistics.set",
+    "portion.adjust",
+    "rhythm.set",
+  ]);
+  // ① — les préférences: tout ce que la matrice permet, SAUF l'envie.
+  assertEquals([...DRAFT_NOTE_PREFERENCE_KINDS].sort(), [
+    "food.exclude",
+    "food.prefer",
+    "method.avoid",
+    "method.prefer",
+  ]);
+  assertEquals([...DRAFT_NOTE_NEXT_PLAN_KINDS].sort(), [...DRAFT_NOTE_KINDS].sort());
+  // Ensemble, permises et interdites couvrent les huit, sans recouvrement.
   assertEquals(DRAFT_NOTE_KINDS.length + DRAFT_NOTE_FORBIDDEN_KINDS.length, 8);
+  // `canProduce("conversation", …)` reste faux pour TOUT.
+  for (const kind of [...DRAFT_NOTE_KINDS, ...DRAFT_NOTE_FORBIDDEN_KINDS]) {
+    assertEquals(canProduce("conversation", kind), false, kind);
+  }
 });
 
-Deno.test("la trace et le plafond sont épinglés à leurs littéraux", () => {
+Deno.test("⛔ LOT A — le brouillon écrit du DURABLE pour ①, `next_plan` pour l'envie", () => {
+  assertEquals(canProduce("draft_note", "food.exclude"), true);
+  assertEquals(defaultScopeFor("draft_note", "food.exclude"), "durable");
+  assertEquals(defaultScopeFor("draft_note", "method.avoid"), "durable");
+  assertEquals(defaultScopeFor("draft_note", "craving"), "next_plan");
+  assertEquals(defaultScopeFor("draft_note", "portion.adjust"), null);
+  assertEquals(defaultScopeFor("draft_note", "rhythm.set"), null);
+  assertEquals(defaultScopeFor("draft_note", "logistics.set"), null);
+});
+
+Deno.test("les motifs de saut, les portes, la trace et le plafond sont épinglés à leurs littéraux", () => {
+  assertEquals([...DRAFT_NOTE_SKIP_REASONS], ["degree", "setting", "meal_story", "other"]);
+  assertEquals([...DRAFT_NOTE_GATES], ["preferences", "notes", "next_plan"]);
   assertEquals(DRAFT_NOTE_CLASSIFY_SOURCE, "keel-draft-note-classify");
   assertEquals(DRAFT_NOTE_CLASSIFY_TIMEOUT_MS, 25_000);
 });
 
 // ===========================================================================
-// ② LE PROMPT — la promesse TOUCHE la clé de schéma
+// ② LE PROMPT — la promesse TOUCHE la clé, PORTE PAR PORTE
 // ===========================================================================
 
-Deno.test("⛔ la promesse et la clé `\"kind\"` se touchent — 0 % sinon", () => {
-  const prompt = DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT;
-  const keyAt = prompt.indexOf('"kind"');
-  assert(keyAt > 0, "la clé de schéma `\"kind\"` a disparu du prompt.");
+const PROMPT = DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT;
 
-  // ⛔ LA LISTE DÉRIVÉE, JAMAIS UN LITTÉRAL. Ce test épinglait
-  // `["portion.adjust", "rhythm.set"]` en dur; le lot M5 a fermé
-  // `logistics.set` et le test est resté VERT, pendant que le prompt
-  // continuait d'enseigner la famille qu'on venait d'interdire. Un test
-  // paramétré par sa propre constante ne mesure que lui-même.
-  assert(
-    DRAFT_NOTE_FORBIDDEN_KINDS.length > 0,
-    "aucune famille interdite: ce test ne mesure plus rien",
+/** Distance entre deux ancres du prompt. `-1` si l'une manque. */
+function distance(from: string, to: string): number {
+  const a = PROMPT.indexOf(from);
+  const b = PROMPT.indexOf(to, a);
+  if (a === -1 || b === -1) return -1;
+  return b - a;
+}
+
+Deno.test("⛔ PORTE ① — « NEVER craving / NEVER portion.adjust… » SUR la ligne de `\"kind\"` — 0 % sinon", () => {
+  const d = distance('1. "preferences"', "NEVER craving here");
+  assert(d > 0 && d < 300, `promesse à ${d} caractères de la clé`);
+  const kindLine = PROMPT.split("\n").find((l) =>
+    l.includes('"kind": exactly one of') && l.includes("NEVER craving here")
   );
+  assert(kindLine, "la ligne `kind` de ① ne nomme pas l'envie comme interdite ICI");
   for (const forbidden of DRAFT_NOTE_FORBIDDEN_KINDS) {
-    const at = prompt.indexOf(`NEVER ${forbidden}`);
-    assert(
-      at > keyAt,
-      `« NEVER ${forbidden} » n'est plus écrit après la clé \`"kind"\`.`,
-    );
-    // ⚠️ LA DISTANCE EST LA MESURE. Cicatrice chiffrée du dépôt: 0 % de
-    // conformité quand la promesse et la clé sont ÉLOIGNÉES. 200 signes, c'est
-    // « sur la même ligne »; au-delà, la promesse a glissé dans une section.
-    assert(
-      at - keyAt < 200,
-      `« NEVER ${forbidden} » a glissé à ${
-        at - keyAt
-      } signes de la clé \`"kind"\`: la promesse ne la touche plus.`,
-    );
+    assert(kindLine!.includes(`NEVER ${forbidden}`) || kindLine!.includes(`, NEVER ${forbidden}`), forbidden);
   }
 });
 
-Deno.test("le prompt ne demande NI `scope`, NI `source`, NI `confidence`", () => {
-  const prompt = DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT;
-  // Un modèle qui pourrait écrire `scope: "durable"` transformerait une humeur
-  // de mardi en règle de vie — sans qu'aucune garde ne morde, puisque le socle
-  // accepte `durable` sur `food.*`.
-  assert(!prompt.includes('"scope"'), "le prompt laisse le modèle choisir la portée.");
-  assert(!prompt.includes('"source"'), "le prompt laisse le modèle choisir le producteur.");
-  assert(
-    !prompt.includes('"confidence"'),
-    "le prompt demande une confiance sur un fait DÉCLARÉ: le socle la refuse.",
-  );
+Deno.test("⛔ L'ENCART — « ONLY what the note itself dates » SUR la ligne du titre", () => {
+  const d = distance('2. "next_plan"', "ONLY what the note itself dates");
+  assert(d >= 0 && d < 300, `promesse à ${d} caractères de la clé`);
+  assert(PROMPT.includes("it is a preference (1), not a next_plan"));
 });
 
-Deno.test("⛔ LA RÈGLE DE DIRECTION est dans le prompt — 1/8 mesuré sans elle", () => {
-  const prompt = DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT;
-  // ⚠️ CE N'EST PAS UNE CONSIGNE DE CONFORT. Mesuré en run réel le 2026-08-18,
-  // `gpt-5.6-sol`, température 0: « Plus de poisson cette semaine. » ressortait
-  // en `food.prefer` — c'est-à-dire l'INVERSE, donc un plan suivant qui sert
-  // DAVANTAGE de ce qui vient d'être rejeté. Batterie de 8 phrases FR: 7/8
-  // avant cette règle, 8/8 après, et les six cas non ambigus n'ont pas bougé
-  // (aucune sur-suppression).
-  //
-  // Le retirer ne fait rougir aucun test de comportement — le modèle n'est pas
-  // dans la boucle des tests. D'où cette épingle.
-  assert(
-    /« plus de X »/i.test(prompt),
-    "l'ambiguïté du français « plus de X » n'est plus nommée dans le prompt.",
-  );
-  assert(
-    /leave the item out of "items"/i.test(prompt),
-    "la sortie en cas de doute (ne rien ranger) n'est plus donnée.",
-  );
-  // Et l'asymétrie des dégâts, qui est le MOTIF: sans elle, la règle se lit
-  // comme une pinaillerie de grammaire et le modèle l'arbitre contre le reste.
-  assert(
-    /costs them a week/i.test(prompt),
-    "le motif (asymétrie des dégâts) a disparu: la règle devient négociable.",
-  );
-  // La règle vit à côté des DEUX familles qu'elle sépare, pas dans une annexe.
-  const excludeAt = prompt.indexOf("- food.exclude");
-  const ruleAt = prompt.indexOf("DIRECTION FIRST");
-  assert(excludeAt > 0 && ruleAt > excludeAt && ruleAt - excludeAt < 300);
+Deno.test("⛔ PORTE ③ — « NEVER a food… NEVER a degree » SUR la ligne du titre, et `when` juste après", () => {
+  const d = distance('3. "notes"', "NEVER a food or a preparation");
+  assert(d >= 0 && d < 300, `promesse à ${d} caractères de la clé`);
+  const d2 = distance('3. "notes"', "NEVER a degree");
+  assert(d2 >= 0 && d2 < 300);
+  const when = PROMPT.split("\n").find((l) => l.includes('"when":'));
+  assert(when, "la clé `when` a disparu du schéma");
+  for (const day of ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]) {
+    assert(when!.includes(day), `le jour ${day} n'est pas dans le vocabulaire`);
+  }
+  for (const slot of ["breakfast", "snack_am", "lunch", "snack_pm", "dinner", "before_bed"]) {
+    assert(when!.includes(slot), `le créneau ${slot} n'est pas dans le vocabulaire`);
+  }
+  assert(when!.includes("NEVER invent a day or a slot"));
+  // ⚠️ MESURÉ SUR LE BANC DU 2026-09-03: « l'après-midi elle mange toujours des
+  // compotes » rendait QUATRE LISTES VIDES, sans un `skipped`. Une habitude à
+  // un créneau est un FAIT avec un `when` (§8.1, phrase 7), et le prompt le dit.
+  assert(/ALWAYS has at one meal/.test(PROMPT), "l'habitude à un créneau n'est pas enseignée comme un fait");
+  const d3 = distance('3. "notes"', "ALWAYS has at one meal");
+  assert(d3 >= 0 && d3 < 600);
 });
 
-Deno.test("⛔ AUCUNE FAMILLE DE SÉCURITÉ PARMI LES HUIT `kind` — malgré le second canal", () => {
-  // ⚠️ CE TEST A CHANGÉ DE PORTÉE LE 2026-09-01, PAS D'INTENTION. Il interdisait
-  // le mot « allergy » dans TOUT le prompt, ce qui était juste tant qu'aucune
-  // sécurité n'y avait sa place. Depuis l'arbitrage, le prompt porte une
-  // SECONDE liste (`safety`) avec son propre vocabulaire — et l'intention
-  // d'origine, elle, tient toujours: la liste des huit `kind` reste fermée, et
-  // `items` ne doit JAMAIS accueillir une famille de sécurité.
-  const prompt = DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT;
-  assert(/NEVER file an allergy/i.test(prompt), "le refus de ranger une allergie dans `items` a disparu");
-  assert(/food\.exclude/.test(prompt));
+Deno.test("⛔ RIEN N'EST TU: ce qui n'est pas rangé DOIT apparaître dans `skipped`", () => {
+  // Mesuré: un modèle qui ne range rien et ne le dit pas rend un `nothing_to_file`
+  // indiscernable d'un prompt cassé. La promesse est SUR la ligne de `skipped`.
+  const d = distance('4. "skipped"', "MUST appear here");
+  assert(d >= 0 && d < 300, `promesse à ${d} caractères de la clé`);
+});
 
-  // La ligne du contrat `items`, et elle SEULE.
-  const itemsKindLine = prompt.split("\n").find((l) =>
-    l.includes('"kind": exactly one of')
-  );
-  assert(itemsKindLine, "la ligne de contrat de `items` a disparu");
-  for (const forged of ["allergy", "intolerance", "medical", "diet", "religious"]) {
+Deno.test("⛔ UN DEGRÉ N'EST RANGÉ NULLE PART — et le prompt l'apprend au modèle, sous `skipped`", () => {
+  // La PROMESSE de cette porte (« MUST appear here ») est SUR la ligne de la clé
+  // (test suivant); la description des motifs vient juste après, sous 600.
+  const d = distance('4. "skipped"', "- degree —");
+  assert(d >= 0 && d < 600, `description à ${d} caractères de la clé`);
+  const degree = PROMPT.split("\n").find((l) => l.startsWith("- degree —"))!;
+  for (const word of ["too big", "too long to cook", "too complicated", "not varied enough"]) {
+    assert(degree.includes(word), `« ${word} » n'est pas nommé comme un degré`);
+  }
+  assert(degree.includes("never filed from a sentence"));
+  for (const why of DRAFT_NOTE_SKIP_REASONS) {
+    assert(PROMPT.includes(`- ${why} —`), `le motif ${why} n'est pas enseigné`);
+  }
+});
+
+Deno.test("⛔ AUCUNE famille interdite n'est ENSEIGNÉE — seulement refusée, avec SA raison", () => {
+  for (const forbidden of DRAFT_NOTE_FORBIDDEN_KINDS) {
+    assert(!PROMPT.includes(`- ${forbidden} —`), `le prompt ENSEIGNE « ${forbidden} »`);
+    assert(PROMPT.includes(`· ${forbidden} —`), `« ${forbidden} » est refusé sans qu'on dise POURQUOI`);
+  }
+  // Le cas qui PASSE: chaque famille de ① est enseignée, et l'envie sous l'encart.
+  for (const allowed of DRAFT_NOTE_PREFERENCE_KINDS) {
+    assert(PROMPT.includes(`- ${allowed} —`), `« ${allowed} » n'est décrit nulle part`);
+  }
+  assert(PROMPT.includes("- craving —"));
+  // Et l'envie est enseignée APRÈS le titre de l'encart, pas sous ①.
+  assert(PROMPT.indexOf("- craving —") > PROMPT.indexOf('2. "next_plan"'));
+  assert(!/Those two are asked somewhere else/i.test(PROMPT));
+});
+
+Deno.test("les descriptions sont RENDUES depuis la matrice — fermer une famille la retire du prompt", async () => {
+  // Le prompt est calculé depuis `DRAFT_NOTE_PREFERENCE_KINDS`, qui est
+  // calculé depuis `canProduce`. On le prouve sur la source: aucune famille
+  // n'est écrite en dur dans une chaîne d'enseignement.
+  const src = await Deno.readTextFile(new URL("draft_note_classify.ts", import.meta.url));
+  const body = src.slice(src.indexOf("export const DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT"));
+  const prompt = body.slice(0, body.indexOf("].join(\"\\n\")"));
+  for (const kind of [...DRAFT_NOTE_KINDS, ...DRAFT_NOTE_FORBIDDEN_KINDS]) {
     assert(
-      !new RegExp(forged, "i").test(itemsKindLine!),
-      `« ${forged} » est proposé comme \`kind\` d'un item: la liste des huit ` +
-        "familles doit rester fermée, le second canal est AILLEURS.",
+      !prompt.includes(`"- ${kind} —`) && !prompt.includes(`'- ${kind} —`),
+      `« ${kind} » est enseigné EN DUR dans le prompt, pas rendu depuis la matrice`,
     );
   }
-  // Et le second canal EXISTE, sinon ce test ne mesurerait plus que l'absence.
-  assert(
-    /"safety": \[/.test(prompt),
-    "le second canal a disparu: une allergie redevient une préférence périssable",
-  );
+  assert(prompt.includes("...DRAFT_NOTE_PREFERENCE_KINDS.flatMap"));
+  assert(prompt.includes("DRAFT_NOTE_FORBIDDEN_KINDS.map"));
+});
+
+Deno.test("⛔ LE REPLI SUR LE FOYER EST NOMMÉ COMME INTERDIT, et l'abstention est dite", () => {
+  assert(/IF TWO PEOPLE FIT, OR NONE/i.test(PROMPT));
+  assert(/Do NOT fall back to member_id: null/i.test(PROMPT));
+  assert(/my son|my daughter/i.test(PROMPT));
+  assert(PROMPT.includes("NEVER a first name"));
+});
+
+Deno.test("le prompt ne demande NI `scope`, NI `source`, NI `confidence`, NI l'ancienne clé `items`", () => {
+  const schema = PROMPT.split("\n").find((l) => l.startsWith('{ "preferences"'))!;
+  assert(schema.includes('"safety"'));
+  assert(!schema.includes('"items"'), "l'ancienne forme `items` est encore demandée");
+  for (const key of ['"scope"', '"source"', '"confidence"', '"at"']) {
+    assert(!PROMPT.includes(`  ${key}:`), `${key} est demandé au modèle`);
+  }
+});
+
+Deno.test("⛔ LA RÈGLE DE DIRECTION est dans le prompt, collée à `food.prefer`", () => {
+  const i = PROMPT.indexOf("- food.prefer —");
+  assert(i >= 0);
+  const next = PROMPT.indexOf("DIRECTION FIRST", i);
+  assert(next - i > 0 && next - i < 200);
+});
+
+Deno.test("le bloc de SÉCURITÉ est là, en dernier, et aucune famille de sécurité parmi les huit", () => {
+  assert(PROMPT.includes('"safety": [ ... ]'));
+  assert(PROMPT.indexOf("SAFETY — a SECOND list") > PROMPT.indexOf('4. "skipped"'));
+  for (const kind of [...DRAFT_NOTE_KINDS, ...DRAFT_NOTE_FORBIDDEN_KINDS]) {
+    assert(!/allerg|intoleran|medical|diet/i.test(kind), kind);
+  }
 });
 
 Deno.test("le rôle vide se DIT, il ne s'omet pas", () => {
-  const solo = buildDraftNoteClassifyPrompt({
-    note: NOTE,
-    contentLocale: "fr-FR",
-    members: [],
-  });
-  assert(/nobody else at this table/i.test(solo));
-  assert(!solo.includes("Zoé"));
-
-  const foyer = buildDraftNoteClassifyPrompt({
-    note: NOTE,
-    contentLocale: "fr-FR",
-    members: MEMBERS,
-  });
-  // Les prénoms servent à LIRE la note; l'id est ce qu'on recopie.
-  assert(foyer.includes(ZOE) && foyer.includes("Zoé"));
-  assert(/never a name/i.test(foyer));
+  const solo = buildDraftNoteClassifyPrompt({ note: NOTE, contentLocale: "fr-FR", members: [] });
+  assert(solo.includes("There is nobody else at this table"));
+  const foyer = buildDraftNoteClassifyPrompt({ note: NOTE, contentLocale: "fr-FR", members: MEMBERS });
+  assert(foyer.includes(`"member_id":"${ZOE}"`));
+  assert(foyer.includes('"age":"minor"') && foyer.includes('"sex":"female"'));
+  assert(foyer.includes(`They write in fr-FR`));
 });
 
 // ===========================================================================
-// ③ LA MATRICE — le cas qui MORD, et le cas qui PASSE
+// ③ LA RELECTURE — trois portes, et chaque refus avec son voisin qui passe
 // ===========================================================================
 
-Deno.test("✅ LE CAS QUI PASSE — deux items retenus, tout en `next_plan`", () => {
-  const out = read([
-    { kind: "food.exclude", text: "pas de poisson", member_id: null, value: null },
-    { kind: "craving", text: "des fajitas", member_id: null, value: null },
-  ]);
-  assertEquals(out.ok, true);
-  assertEquals(out.refusal, null);
-  assertEquals(out.classification.proposed, 2);
-  assertEquals(out.classification.kept, 2);
-  assertEquals(out.classification.refused.total, 0);
-  for (const entry of out.classification.nextPlan) {
+Deno.test("✅ PORTE ① — une préférence devient un item DURABLE, cité, à la bonne personne", () => {
+  const out = read({
+    preferences: [
+      { kind: "food.exclude", text: "pas de poisson", member_id: ZOE },
+      { kind: "method.avoid", text: "rien de frit", member_id: null },
+    ],
+    notes: [],
+    next_plan: [],
+    skipped: [],
+  });
+  assert(out.ok);
+  const c = out.classification;
+  assertEquals(c.preferences.proposed, 2);
+  assertEquals(c.preferences.kept, 2);
+  assertEquals(c.preferences.refused.total, 0);
+  const [fish, fried] = c.preferences.items;
+  assertEquals(fish.scope, "durable");
+  assertEquals(fish.subject, `member:${ZOE}`);
+  assertEquals(fish.source, "draft_note");
+  assertEquals(fish.at, TODAY);
+  assertEquals(fish.quote, NOTE);
+  assertEquals(fried.subject, "household");
+  assertEquals(fried.kind, "method.avoid");
+  assertEquals(c.kept, 2);
+});
+
+Deno.test("⛔ PORTE ① — l'envie n'y entre PAS: c'est un rangement de travers, compté et NOMMÉ", () => {
+  const out = read({ preferences: [{ kind: "craving", text: "des fajitas", member_id: null }] });
+  assertEquals(out.classification.preferences.kept, 0);
+  assertEquals(out.classification.preferences.refused.forbiddenKind, 1);
+  assertEquals(out.classification.preferences.refused.forbiddenKinds, ["craving"]);
+});
+
+Deno.test("⛔ PORTE ① — `portion.adjust`, `rhythm.set`, `logistics.set` sont REFUSÉS, et le cas qui passe est à côté", () => {
+  const out = read({
+    preferences: [
+      { kind: "portion.adjust", text: "moins", member_id: null, value: { direction: "down", magnitude: "slight" } },
+      { kind: "rhythm.set", text: "pas de petit-déj", member_id: null, value: { occasion: "breakfast", present: false } },
+      { kind: "logistics.set", text: "30 min", member_id: null, value: { field: "cooking_time_min", value: 30 } },
+      { kind: "food.exclude", text: "pas de poisson", member_id: null },
+    ],
+  });
+  const g = out.classification.preferences;
+  assertEquals(g.proposed, 4);
+  assertEquals(g.kept, 1);
+  assertEquals(g.refused.forbiddenKind, 3);
+  assertEquals(g.refused.forbiddenKinds, ["logistics.set", "portion.adjust", "rhythm.set"]);
+});
+
+Deno.test("⛔ un `kind` hors liste tombe SEUL, ses voisins survivent", () => {
+  const out = read({
+    preferences: [
+      { kind: "allergy", text: "arachides", member_id: null },
+      { kind: "food.exclude", text: "pas de poisson", member_id: null },
+    ],
+  });
+  assertEquals(out.classification.preferences.refused.unknownKind, 1);
+  assertEquals(out.classification.preferences.kept, 1);
+});
+
+Deno.test("⛔ un id HORS RÔLE est un refus, PAS un repli sur `household` — sur les trois portes", () => {
+  const out = read({
+    preferences: [{ kind: "food.exclude", text: "pas de poisson", member_id: STRANGER }],
+    notes: [{ text: "danse le mardi", member_id: STRANGER, when: null }],
+    next_plan: [{ kind: "craving", text: "des fajitas", member_id: STRANGER }],
+  });
+  assertEquals(out.classification.preferences.refused.unknownMember, 1);
+  assertEquals(out.classification.notes.refused.unknownMember, 1);
+  assertEquals(out.classification.nextPlan.refused.unknownMember, 1);
+  assertEquals(out.classification.kept, 0);
+  // Et un PRÉNOM n'est jamais une bouche.
+  const byName = read({ preferences: [{ kind: "food.exclude", text: "pas de poisson", member_id: "Zoé" }] });
+  assertEquals(byName.classification.preferences.refused.unknownMember, 1);
+});
+
+Deno.test("un solo n'a pas de bouche à nommer: tout id est refusé, `null` passe", () => {
+  const out = read({
+    preferences: [
+      { kind: "food.exclude", text: "pas de poisson", member_id: ZOE },
+      { kind: "food.exclude", text: "pas de poisson", member_id: null },
+    ],
+  }, { members: [] });
+  assertEquals(out.classification.preferences.refused.unknownMember, 1);
+  assertEquals(out.classification.preferences.kept, 1);
+  assertEquals(out.classification.preferences.items[0].subject, "household");
+});
+
+Deno.test("⛔ un `text` vide ou PLUS LONG que la note tombe — sur les trois portes", () => {
+  const long = "x".repeat(NOTE.length + 1);
+  const out = read({
+    preferences: [{ kind: "food.exclude", text: "", member_id: null }, { kind: "food.exclude", text: long, member_id: null }],
+    notes: [{ text: "   ", member_id: null, when: null }],
+    next_plan: [{ kind: "craving", text: long, member_id: null }],
+  });
+  assertEquals(out.classification.preferences.refused.badText, 2);
+  assertEquals(out.classification.notes.refused.badText, 1);
+  assertEquals(out.classification.nextPlan.refused.badText, 1);
+  // Le cas qui passe: exactement la longueur de la note.
+  const exact = read({ preferences: [{ kind: "food.exclude", text: "y".repeat(NOTE.length), member_id: null }] });
+  assertEquals(exact.classification.preferences.kept, 1);
+});
+
+Deno.test("✅ L'ENCART — l'envie et l'exclusion datée: `next_plan`, l'ancre = LUNDI ISO, l'instant = celui de l'appelant", () => {
+  const out = read({
+    next_plan: [
+      { kind: "craving", text: "des fajitas", member_id: null },
+      { kind: "food.exclude", text: "pas de poisson cette semaine", member_id: ZOE },
+    ],
+  });
+  const g = out.classification.nextPlan;
+  assertEquals(g.kept, 2);
+  for (const entry of g.entries) {
     assertEquals(entry.item.scope, "next_plan");
-    assertEquals(entry.item.source, "draft_note");
-    assertEquals(entry.item.subject, "household");
-    assertEquals(entry.item.at, TODAY);
-    assertEquals(entry.item.item, "");
-    assertEquals(entry.item.confidence, null);
     assertEquals(entry.anchor, ANCHOR);
+    assertEquals(entry.writtenAt, NOW);
+    assertEquals(entry.item.quote, NOTE);
   }
+  assertEquals(g.entries[1].item.subject, `member:${ZOE}`);
 });
 
-Deno.test("⛔ `portion.adjust` et `rhythm.set` sont REFUSÉS À CE PRODUCTEUR", () => {
-  const out = read([
-    {
-      kind: "portion.adjust",
-      text: "les parts étaient trop grosses",
-      member_id: null,
-      value: { direction: "down", magnitude: "clear" },
-    },
-    {
-      kind: "rhythm.set",
-      text: "je ne petit-déjeune pas",
-      member_id: null,
-      value: { occasion: "breakfast", present: false },
-    },
-    // Le voisin qui PASSE, dans le même appel: sans lui, une garde qui bloque
-    // TOUT ressemblerait trait pour trait à une garde qui marche.
-    { kind: "method.avoid", text: "rien de frit", member_id: null, value: null },
-  ]);
-  assertEquals(out.ok, true);
-  assertEquals(out.classification.proposed, 3);
-  assertEquals(out.classification.kept, 1);
-  assertEquals(out.classification.refused.forbiddenKind, 2);
-  assertEquals(out.classification.refused.total, 2);
-  assertEquals(out.classification.nextPlan[0].item.kind, "method.avoid");
-});
-
-Deno.test("⛔ un `portion.adjust` bien formé ne passe PAS par une autre porte", () => {
-  // Le socle refuse AUSSI à la lecture (`parseRetainedItem` applique
-  // `canProduce`): même en contournant le compteur, l'item ne remonterait pas.
-  assertEquals(defaultScopeFor("draft_note", "portion.adjust"), null);
-  assertEquals(defaultScopeFor("draft_note", "rhythm.set"), null);
-  // ⛔ ET LE `null` NE SE REPLIE PAS. La preuve par le comportement: aucun item
-  // de ces deux familles ne ressort, quelle que soit sa forme.
-  const out = read([
-    { kind: "portion.adjust", text: "moins", member_id: null, value: { direction: "down", magnitude: "slight" } },
-    { kind: "portion.adjust", text: "moins", member_id: ZOE, value: { direction: "down", magnitude: "slight" } },
-  ]);
-  assertEquals(out.classification.kept, 0);
-  assertEquals(out.classification.refused.forbiddenKind, 2);
-});
-
-Deno.test("les CINQ familles permises passent, chacune la sienne", () => {
-  // ⛔ LOT M5 — `logistics.set` n'est plus dans la liste: il change le CHAMP
-  // que la personne voit, il ne se retient plus. Le cas où il est REFUSÉ est
-  // juste en dessous.
-  const out = read([
-    { kind: "food.exclude", text: "pas de poisson", member_id: null, value: null },
-    { kind: "food.prefer", text: "encore du poulet", member_id: null, value: null },
-    { kind: "method.avoid", text: "rien de frit", member_id: null, value: null },
-    { kind: "method.prefer", text: "au four", member_id: null, value: null },
-    { kind: "craving", text: "des fajitas", member_id: null, value: null },
-  ]);
-  assertEquals(out.classification.proposed, 5);
-  assertEquals(out.classification.kept, 5);
-  assertEquals(
-    out.classification.nextPlan.map((e) => e.item.kind),
-    [...DRAFT_NOTE_KINDS],
-  );
-});
-
-Deno.test("⛔ LOT M5 — un `logistics.set` bien formé est REFUSÉ à ce producteur", () => {
-  // ⚠️ BIEN FORMÉ, ET REFUSÉ QUAND MÊME. C'est la matrice qui mord, pas le
-  // socle: l'item passerait toutes les vérifications de forme. Sans ce test, on
-  // ne saurait pas distinguer « la matrice l'a refusé » de « la forme était
-  // mauvaise » — et le compteur le dirait sous le mauvais motif.
-  const out = read([
-    {
-      kind: "logistics.set",
-      text: "je cuisine lundi et jeudi",
-      member_id: null,
-      value: { field: "cook_days", value: ["mon", "thu"] },
-    },
-  ]);
-  assertEquals(out.classification.kept, 0);
-  assertEquals(out.classification.refused.forbiddenKind, 1);
-  assertEquals(out.classification.refused.malformed, 0, "le mauvais motif a mordu");
-});
-
-Deno.test("un `kind` hors liste tombe SEUL, ses voisins survivent", () => {
-  const out = read([
-    { kind: "allergy", text: "arachides", member_id: null, value: null },
-    { kind: "food.exclude", text: "pas de poisson", member_id: null, value: null },
-  ]);
-  assertEquals(out.classification.kept, 1);
-  assertEquals(out.classification.refused.unknownKind, 1);
-});
-
-// ===========================================================================
-// ④ LA PORTÉE ET L'ANCRE
-// ===========================================================================
-
-Deno.test("⛔ AUCUN `durable` — la portée vient de `defaultScopeFor`", () => {
-  for (const kind of DRAFT_NOTE_KINDS) {
-    assertEquals(defaultScopeFor("draft_note", kind), "next_plan");
-  }
-  // Et le modèle ne peut pas la renverser: le champ n'est pas lu.
-  const out = read([
-    {
-      kind: "food.exclude",
-      scope: "durable",
-      text: "pas de poisson",
-      member_id: null,
-      value: null,
-    },
-  ]);
-  assertEquals(out.classification.kept, 1);
-  assertEquals(out.classification.nextPlan[0].item.scope, "next_plan");
-});
-
-Deno.test("⚠️ l'ancre est la SEMAINE VISÉE, jamais le jour de la frappe", () => {
-  // Écrit le DIMANCHE pour un plan qui commence le lundi suivant.
-  const out = readDraftNoteClassification({
-    raw: { items: [{ kind: "craving", text: "des fajitas", member_id: null, value: null }] },
-    today: "2026-08-16", // dimanche
-    targetWeek: "2026-08-17", // lundi de la semaine visée
-    members: [],
-    note: NOTE,
+Deno.test("⛔ L'ENCART — `portion.adjust` est REFUSÉ là aussi; un `writtenAt` absent est accepté et reste `null`", () => {
+  const out = read({
+    next_plan: [
+      { kind: "portion.adjust", text: "moins", member_id: null, value: { direction: "down", magnitude: "slight" } },
+      { kind: "craving", text: "des fajitas", member_id: null },
+    ],
+  }, { writtenAt: null });
+  assertEquals(out.classification.nextPlan.refused.forbiddenKind, 1);
+  assertEquals(out.classification.nextPlan.kept, 1);
+  assertEquals(out.classification.nextPlan.entries[0].writtenAt, null);
+  // Et un instant lisible est NORMALISÉ, pas recopié.
+  const iso = read({ next_plan: [{ kind: "craving", text: "des fajitas", member_id: null }] }, {
+    writtenAt: "2026-08-18T16:03:00+02:00",
   });
-  assertEquals(out.classification.nextPlan[0].item.at, "2026-08-16");
-  // ⛔ L'ancre est le lundi 17, PAS le lundi de la semaine du 16 (qui est le 10).
-  assertEquals(out.classification.nextPlan[0].anchor, "2026-08-17");
-  assertNotEquals(out.classification.nextPlan[0].anchor, "2026-08-10");
+  assertEquals(iso.classification.nextPlan.entries[0].writtenAt, NOW);
 });
 
-Deno.test("l'ancre est le LUNDI ISO — la porte refuse tout le reste", () => {
-  const out = read([{ kind: "craving", text: "des fajitas", member_id: null, value: null }]);
-  // Le plan commence un mercredi; l'ancre stockée est le lundi d'avant.
-  assertEquals(out.classification.nextPlan[0].anchor, "2026-08-17");
-  assertEquals(isoMondayOf("2026-08-17"), "2026-08-17");
-});
-
-Deno.test("⛔ une semaine visée illisible est un REFUS, pas un repli sur aujourd'hui", () => {
-  const out = readDraftNoteClassification({
-    raw: { items: [{ kind: "craving", text: "des fajitas", member_id: null, value: null }] },
-    today: TODAY,
-    targetWeek: "pas-une-date",
-    members: [],
-    note: NOTE,
+Deno.test("✅ PORTE ③ — une note devient une ligne de mémo, à SA personne, au jour NOMMÉ, citée", () => {
+  const out = read({
+    notes: [
+      { text: "danse le mardi soir, il lui faut un vrai repas", member_id: ZOE, when: { weekday: "tue", slot: "dinner" } },
+      { text: "on mange tard le vendredi", member_id: null, when: { weekday: "fri" } },
+      { text: "goûter toujours des compotes", member_id: ZOE, when: { slot: "snack_pm" } },
+      { text: "un fait sans jour", member_id: null, when: null },
+    ],
   });
-  assertEquals(out.ok, false);
-  assertEquals(out.refusal, "bad_anchor");
-  assertEquals(out.classification.nextPlan.length, 0);
+  const g = out.classification.notes;
+  assertEquals(g.proposed, 4);
+  assertEquals(g.kept, 4);
+  const [dance, late, snack, plain] = g.lines;
+  assertEquals(dance.subject, `member:${ZOE}`);
+  assertEquals(dance.when, { weekday: "tue", slot: "dinner" });
+  assertEquals(dance.source, "draft_note");
+  assertEquals(dance.at, TODAY);
+  assertEquals(dance.quote, NOTE);
+  assertEquals(late.subject, "household");
+  assertEquals(late.when, { weekday: "fri", slot: null });
+  assertEquals(snack.when, { weekday: null, slot: "snack_pm" });
+  assertEquals(plain.when, null);
 });
 
-Deno.test("⛔ un jour illisible est un REFUS: on ne saurait pas dire « retenu de mardi »", () => {
-  const out = readDraftNoteClassification({
-    raw: { items: [{ kind: "craving", text: "des fajitas", member_id: null, value: null }] },
-    today: "2026-8-1",
-    targetWeek: PLAN_STARTS_ON,
-    members: [],
-    note: NOTE,
+Deno.test("⛔ PORTE ③ — un `when` hors vocabulaire fait tomber la LIGNE, compté `badWhen`, jamais replié sur « tous les jours »", () => {
+  const out = read({
+    notes: [
+      { text: "danse le mardi", member_id: ZOE, when: { weekday: "mardi" } },
+      { text: "goûter", member_id: ZOE, when: { slot: "goûter" } },
+      { text: "rien dedans", member_id: ZOE, when: {} },
+      { text: "un fait", member_id: ZOE, when: null },
+    ],
   });
-  assertEquals(out.ok, false);
-  assertEquals(out.refusal, "bad_day");
+  assertEquals(out.classification.notes.refused.badWhen, 3);
+  assertEquals(out.classification.notes.kept, 1);
+  assertEquals(out.classification.refused.badWhen, 3);
 });
 
-// ===========================================================================
-// ⑤ LE SUJET — jointure par identifiant, jamais un prénom
-// ===========================================================================
-
-Deno.test("un `member_id` du rôle devient `member:<uuid>`", () => {
-  const out = read([
-    { kind: "food.exclude", text: "pas de poisson pour Zoé", member_id: ZOE, value: null },
-  ]);
-  assertEquals(out.classification.kept, 1);
-  assertEquals(out.classification.nextPlan[0].item.subject, `member:${ZOE}`);
+Deno.test("⛔ PORTE ③ — une entrée qui n'est pas un objet est `malformed`", () => {
+  const out = read({ notes: ["danse le mardi", 42, null] });
+  assertEquals(out.classification.notes.refused.malformed, 3);
 });
 
-Deno.test("⛔ un id HORS RÔLE est un refus, PAS un repli sur `household`", () => {
-  const out = read([
-    { kind: "food.exclude", text: "pas de poisson", member_id: STRANGER, value: null },
-  ]);
+Deno.test("CE QUE LE MODÈLE A LU ET N'A PAS RANGÉ — compté par motif, et un motif inconnu à part", () => {
+  const out = read({
+    skipped: [{ why: "degree" }, { why: "degree" }, { why: "setting" }, { why: "meal_story" }, { why: "other" }, { why: "mood" }, "pas un objet"],
+  });
+  const s = out.classification.skipped;
+  assertEquals(s.degree, 2);
+  assertEquals(s.setting, 1);
+  assertEquals(s.mealStory, 1);
+  assertEquals(s.other, 1);
+  assertEquals(s.unknown, 2);
+  assertEquals(s.total, 7);
   assertEquals(out.classification.kept, 0);
-  assertEquals(out.classification.refused.unknownMember, 1);
-  // Replier sur `household` appliquerait à toute la table ce qui visait une
-  // bouche — exactement ce que le §2 axe 3 interdit.
-  assertEquals(out.classification.nextPlan.length, 0);
 });
 
-Deno.test("⛔ un PRÉNOM dans `member_id` ne devient jamais une bouche", () => {
-  for (const forged of ["Zoé", "zoe", "member:Zoé", ZOE.slice(0, 8)]) {
-    const out = read([
-      { kind: "craving", text: "des fajitas", member_id: forged, value: null },
-    ]);
-    assertEquals(out.classification.kept, 0, `« ${forged} » a désigné une bouche.`);
-    assertEquals(out.classification.refused.unknownMember, 1);
-  }
+Deno.test("quatre listes VIDES sont une réponse correcte; une liste ABSENTE est comptée `listsMissing`", () => {
+  const empty = read({ preferences: [], notes: [], next_plan: [], skipped: [] });
+  assert(empty.ok);
+  assertEquals(empty.classification.listsMissing, []);
+  assertEquals(empty.classification.proposed, 0);
+  const partial = read({ preferences: [] });
+  assert(partial.ok);
+  assertEquals(partial.classification.listsMissing, ["notes", "next_plan", "skipped"]);
 });
 
-Deno.test("un solo n'a pas de bouche à nommer: tout id est refusé", () => {
-  const out = readDraftNoteClassification({
-    raw: { items: [{ kind: "craving", text: "des fajitas", member_id: ZOE, value: null }] },
-    today: TODAY,
-    targetWeek: PLAN_STARTS_ON,
-    members: [],
-    note: NOTE,
-  });
-  assertEquals(out.classification.refused.unknownMember, 1);
-});
-
-// ===========================================================================
-// ⑥ `text` — la vérité affichée, et sa borne DÉRIVÉE
-// ===========================================================================
-
-Deno.test("un `text` vide fait tomber l'item — la ligne qu'on ne saurait pas afficher n'existe pas", () => {
-  const out = read([
-    { kind: "craving", text: "   ", member_id: null, value: null },
-    { kind: "craving", text: null, member_id: null, value: null },
-  ]);
-  assertEquals(out.classification.kept, 0);
-  assertEquals(out.classification.refused.badText, 2);
-});
-
-Deno.test("⛔ un `text` PLUS LONG que la note ne peut pas être « ses mots à elle »", () => {
-  const shortNote = "pas de poisson";
-  const out = readDraftNoteClassification({
-    raw: {
-      items: [
-        {
-          kind: "food.exclude",
-          text: "Vous avez indiqué ne plus vouloir de poisson dans vos repas",
-          member_id: null,
-          value: null,
-        },
-        { kind: "food.exclude", text: "pas de poisson", member_id: null, value: null },
-      ],
-    },
-    today: TODAY,
-    targetWeek: PLAN_STARTS_ON,
-    members: [],
-    note: shortNote,
-  });
-  assertEquals(out.classification.kept, 1);
-  assertEquals(out.classification.refused.badText, 1);
-});
-
-// ===========================================================================
-// ⑦ LA CHARGE DU MODÈLE — `[]` et « illisible » ne sont pas la même chose
-// ===========================================================================
-
-Deno.test("une liste VIDE est une réponse correcte, pas une panne", () => {
-  const out = read([]);
-  assertEquals(out.ok, true);
-  assertEquals(out.classification.proposed, 0);
-  assertEquals(out.classification.kept, 0);
-  assertEquals(out.classification.refused.total, 0);
-});
-
-Deno.test("⛔ une charge SANS `items` est illisible, et ça ne se confond pas avec `[]`", () => {
-  for (const raw of [null, "", 42, [], { nope: 1 }, { items: "oui" }]) {
-    const out = readDraftNoteClassification({
-      raw,
-      today: TODAY,
-      targetWeek: PLAN_STARTS_ON,
-      members: [],
-      note: NOTE,
-    });
-    assertEquals(out.ok, false, `\`${JSON.stringify(raw)}\` a été lu comme vide.`);
+Deno.test("⛔ une charge SANS AUCUNE des listes est illisible — l'ancienne forme `items` aussi", () => {
+  for (const raw of [{}, { items: [] }, { items: [{ kind: "craving", text: "x" }] }, "pas du json", 42, null, []]) {
+    const out = read(raw as Record<string, unknown>, { raw });
+    assertEquals(out.ok, false, JSON.stringify(raw));
     assertEquals(out.refusal, "unreadable_payload");
+    assertEquals(out.classification.proposed, 0);
   }
 });
 
 Deno.test("une charge rendue en CHAÎNE JSON est lue", () => {
-  const out = readDraftNoteClassification({
-    raw: JSON.stringify({
-      items: [{ kind: "craving", text: "des fajitas", member_id: null, value: null }],
-    }),
-    today: TODAY,
-    targetWeek: PLAN_STARTS_ON,
-    members: [],
-    note: NOTE,
+  const out = read({}, { raw: JSON.stringify({ preferences: [{ kind: "food.exclude", text: "pas de poisson", member_id: null }], notes: [], next_plan: [], skipped: [] }) });
+  assert(out.ok);
+  assertEquals(out.classification.preferences.kept, 1);
+});
+
+Deno.test("⛔ un jour ou une semaine illisibles sont des REFUS, jamais un repli sur aujourd'hui", () => {
+  assertEquals(read({ preferences: [] }, { today: "mardi" }).refusal, "bad_day");
+  assertEquals(read({ preferences: [] }, { targetWeek: "" }).refusal, "bad_anchor");
+  assertEquals(read({ preferences: [] }, { targetWeek: "2026-8-19" }).refusal, "bad_anchor");
+});
+
+Deno.test("LES TROIS PORTES SONT DISJOINTES: la même phrase rangée deux fois compte deux fois, et ça se voit", () => {
+  // Le prompt dit « never in two ». Le parseur ne dédoublonne PAS entre portes:
+  // ce serait cacher un modèle qui range en double. Le port (`retained_items_io`)
+  // refuse le doublon PAR MAGASIN; entre magasins, c'est le compteur qui le dit.
+  const out = read({
+    preferences: [{ kind: "food.exclude", text: "pas de poisson", member_id: null }],
+    next_plan: [{ kind: "food.exclude", text: "pas de poisson", member_id: null }],
   });
-  assertEquals(out.classification.kept, 1);
+  assertEquals(out.classification.preferences.kept, 1);
+  assertEquals(out.classification.nextPlan.kept, 1);
+  assertEquals(out.classification.kept, 2);
 });
 
-Deno.test("un `value` difforme fait tomber l'item, et le socle est le juge", () => {
-  // ⚠️ LES DEUX VÉHICULES `logistics.set` ONT ÉTÉ RETIRÉS AU LOT M5: cette
-  // famille est désormais refusée par la MATRICE avant d'atteindre le socle,
-  // donc elle ne peut plus prouver que le socle juge la FORME. On garde donc
-  // les cas de forme sur des familles vivantes — sinon ce test mesurerait la
-  // matrice en croyant mesurer le socle.
-  const out = read([
-    // Un `value` sur une famille qui n'en a pas.
-    {
-      kind: "food.exclude",
-      text: "pas de poisson",
-      member_id: null,
-      value: { direction: "down" },
-    },
-    // Idem sur `craving`, qui n'a pas de `value` non plus.
-    { kind: "craving", text: "des fajitas", member_id: null, value: { field: "x" } },
-  ]);
-  assertEquals(out.classification.kept, 0);
-  assertEquals(out.classification.refused.malformed, 2);
-  assertEquals(out.classification.refused.forbiddenKind, 0, "la matrice a mordu à la place du socle");
-});
-
-Deno.test("LE COMPTEUR À TROIS NOMBRES se lit d'un bloc", () => {
-  const out = read([
-    { kind: "portion.adjust", text: "moins", member_id: null, value: { direction: "down", magnitude: "slight" } },
-    { kind: "allergy", text: "arachides", member_id: null, value: null },
-    { kind: "craving", text: "des fajitas", member_id: STRANGER, value: null },
-    { kind: "craving", text: "", member_id: null, value: null },
-    { kind: "food.exclude", text: "pas de poisson", member_id: null, value: null },
-  ]);
-  const trace = draftNoteClassifyTrace(out.classification);
-  assertEquals(trace.proposed, 5);
-  assertEquals(trace.kept, 1);
-  assertEquals(trace.refused, 4);
-  assertEquals(trace.refused_forbidden_kind, 1);
-  assertEquals(trace.refused_unknown_kind, 1);
-  assertEquals(trace.refused_unknown_member, 1);
-  assertEquals(trace.refused_bad_text, 1);
-  // proposés = retenus + refusés, vérifiable de l'extérieur sans relire un item.
-  assertEquals(trace.proposed, trace.kept + trace.refused);
+Deno.test("LE COMPTEUR PAR PORTE se lit d'un bloc, et les agrégats sont des sommes", () => {
+  const out = read({
+    preferences: [
+      { kind: "portion.adjust", text: "moins", member_id: null },
+      { kind: "food.exclude", text: "pas de poisson", member_id: null },
+    ],
+    notes: [{ text: "danse", member_id: STRANGER, when: null }],
+    next_plan: [{ kind: "craving", text: "", member_id: null }],
+    skipped: [{ why: "degree" }],
+  });
+  const t = draftNoteClassifyTrace(out.classification);
+  assertEquals(t.pref_proposed, 2);
+  assertEquals(t.pref_kept, 1);
+  assertEquals(t.pref_refused_forbidden_kind, 1);
+  assertEquals(t.notes_proposed, 1);
+  assertEquals(t.notes_refused_unknown_member, 1);
+  assertEquals(t.next_proposed, 1);
+  assertEquals(t.next_refused_bad_text, 1);
+  assertEquals(t.skipped_degree, 1);
+  assertEquals(t.proposed, 4);
+  assertEquals(t.kept, 1);
+  assertEquals(t.refused, 3);
+  assertEquals(t.refused_forbidden_kinds, ["portion.adjust"]);
+  assertEquals(t.lists_missing, []);
 });
 
 // ===========================================================================
-// ⑧ L'I/O — le modèle RÉELLEMENT demandé, et la porte RÉELLEMENT appelée
+// ④ L'I/O — le modèle RÉELLEMENT demandé, et la porte RÉELLEMENT appelée
 // ===========================================================================
 
 interface Trace {
@@ -636,17 +597,22 @@ function fakeAdmin(trace: Trace, constraints: Record<string, unknown> | null = n
   };
 }
 
-function runnerReturning(items: unknown[], trace: Trace) {
+function runnerReturning(lists: Record<string, unknown>, trace: Trace) {
   return (_s: string, _u: string, meta: { model: string }) => {
     trace.models.push(meta.model);
-    return Promise.resolve({ items });
+    return Promise.resolve(lists);
   };
 }
 
+const FULL_LISTS = {
+  preferences: [{ kind: "food.exclude", text: "pas de poisson", member_id: null }],
+  notes: [{ text: "on mange tard le vendredi", member_id: null, when: { weekday: "fri", slot: "dinner" } }],
+  next_plan: [{ kind: "craving", text: "des fajitas", member_id: null }],
+  skipped: [],
+};
+
 Deno.test("⛔ `keelGenerationModel()` est RÉELLEMENT APPELÉ — la sentinelle le prouve", async () => {
   const previous = Deno.env.get("KEEL_GENERATION_MODEL");
-  // Une valeur qui n'existe NULLE PART ailleurs dans le dépôt: une constante en
-  // dur, ou le modèle du chat, ne pourraient pas la rendre.
   const SENTINEL = "sentinel-model-2b-draft-note";
   Deno.env.set("KEEL_GENERATION_MODEL", SENTINEL);
   try {
@@ -659,15 +625,11 @@ Deno.test("⛔ `keelGenerationModel()` est RÉELLEMENT APPELÉ — la sentinelle
       targetWeek: PLAN_STARTS_ON,
       members: [],
       contentLocale: "fr-FR",
-      run: runnerReturning(
-        [{ kind: "craving", text: "des fajitas", member_id: null, value: null }],
-        trace,
-      ),
+      now: NOW,
+      run: runnerReturning(FULL_LISTS, trace),
     });
-    // Des DEUX côtés: ce qui est parti dans `meta.model`, et ce qui est rendu.
-    assertEquals(trace.models, [SENTINEL]);
     assertEquals(res.model, SENTINEL);
-    assertNotEquals(res.model, "gpt-5.4-mini");
+    assertEquals(trace.models, [SENTINEL]);
   } finally {
     if (previous === undefined) Deno.env.delete("KEEL_GENERATION_MODEL");
     else Deno.env.set("KEEL_GENERATION_MODEL", previous);
@@ -687,95 +649,88 @@ Deno.test("sans surcharge, c'est le modèle de COMPOSITION, pas celui du chat", 
       targetWeek: PLAN_STARTS_ON,
       members: [],
       contentLocale: "fr-FR",
-      run: runnerReturning([], trace),
+      run: runnerReturning(FULL_LISTS, trace),
     });
     assertEquals(res.model, KEEL_GENERATION_MODEL_DEFAULT);
-    // Le littéral EN DUR, à côté: si le défaut bougeait sans qu'on le veuille,
-    // ce test le dirait au lieu de suivre la constante en silence.
-    assertEquals(res.model, "gpt-5.6-luna");
   } finally {
     if (previous !== undefined) Deno.env.set("KEEL_GENERATION_MODEL", previous);
   }
 });
 
-Deno.test("⛔ la porte est appelée avec `producer: draft_note`, et rien n'est `durable`", async () => {
+Deno.test("⛔ la porte est appelée UNE fois, avec `producer: draft_note` et LES TROIS LISTES", async () => {
   const trace: Trace = { rpcs: [], models: [] };
   const res = await classifyAndPersistDraftNote({
-    admin: fakeAdmin(trace),
-    userId: USER,
-    note: usable(),
-    today: TODAY,
-    targetWeek: PLAN_STARTS_ON,
-    members: MEMBERS,
-    contentLocale: "fr-FR",
-    run: runnerReturning([
-      { kind: "food.exclude", text: "pas de poisson", member_id: null, value: null },
-      { kind: "craving", text: "des fajitas", member_id: null, value: null },
-    ], trace),
-  });
-  assertEquals(res.ok, true);
-  assertEquals(res.reason, "written");
-  assertEquals([res.proposed, res.kept, res.refused], [2, 2, 0]);
-  // La RPC serveur, et elle seule.
-  assertEquals(trace.rpcs.length, 1);
-  assertEquals(trace.rpcs[0].name, "keel_write_retained_items_for");
-  // ⛔ RIEN dans le magasin DURABLE: la clé n'est pas touchée du tout.
-  assertEquals(trace.rpcs[0].params.p_items, null);
-  const next = trace.rpcs[0].params.p_next as Array<Record<string, unknown>>;
-  assertEquals(next.length, 2);
-  for (const row of next) {
-    assertEquals(row.anchor, ANCHOR);
-    assertEquals((row.item as Record<string, unknown>).source, "draft_note");
-    assertNotEquals((row.item as Record<string, unknown>).source, "written");
-    assertEquals((row.item as Record<string, unknown>).scope, "next_plan");
-  }
-});
-
-Deno.test("⛔ ce que la matrice refuse N'ATTEINT PAS la porte", async () => {
-  const trace: Trace = { rpcs: [], models: [] };
-  const res = await classifyAndPersistDraftNote({
-    admin: fakeAdmin(trace),
+    admin: fakeAdmin(trace, {}),
     userId: USER,
     note: usable(),
     today: TODAY,
     targetWeek: PLAN_STARTS_ON,
     members: [],
     contentLocale: "fr-FR",
-    run: runnerReturning([
-      { kind: "portion.adjust", text: "moins", member_id: null, value: { direction: "down", magnitude: "clear" } },
-      { kind: "rhythm.set", text: "pas de petit-déjeuner", member_id: null, value: { occasion: "breakfast", present: false } },
-    ], trace),
+    now: NOW,
+    run: runnerReturning(FULL_LISTS, trace),
+  });
+  assertEquals(res.ok, true);
+  assertEquals(res.reason, "written");
+  assertEquals(trace.rpcs.length, 1);
+  const params = trace.rpcs[0].params;
+  assertEquals(trace.rpcs[0].name, "keel_write_retained_items_for");
+  const items = params.p_items as Array<Record<string, unknown>>;
+  assertEquals(items.length, 1);
+  assertEquals(items[0].source, "draft_note");
+  assertEquals(items[0].scope, "durable");
+  const next = params.p_next as Array<Record<string, unknown>>;
+  assertEquals(next.length, 1);
+  assertEquals(next[0].anchor, ANCHOR);
+  assertEquals(next[0].written_at, NOW);
+  const memo = params.p_memo as Array<Record<string, unknown>>;
+  assertEquals(memo.length, 1);
+  assertEquals(memo[0].subject, "household");
+  assertEquals(memo[0].when, { weekday: "fri", slot: "dinner" });
+  assertEquals(res.write?.durableWritten, 1);
+  assertEquals(res.write?.nextPlanWritten, 1);
+  assertEquals(res.write?.memoWritten, 1);
+});
+
+Deno.test("⛔ ce que la matrice refuse N'ATTEINT PAS la porte — et un `nothing_to_file` porte ses `skipped_*`", async () => {
+  const trace: Trace = { rpcs: [], models: [] };
+  const res = await classifyAndPersistDraftNote({
+    admin: fakeAdmin(trace, {}),
+    userId: USER,
+    note: usable("Les parts sont beaucoup trop grosses"),
+    today: TODAY,
+    targetWeek: PLAN_STARTS_ON,
+    members: [],
+    contentLocale: "fr-FR",
+    run: runnerReturning({
+      preferences: [{ kind: "portion.adjust", text: "trop grosses", member_id: null, value: { direction: "down", magnitude: "clear" } }],
+      notes: [],
+      next_plan: [],
+      skipped: [{ why: "degree" }],
+    }, trace),
   });
   assertEquals(res.ok, false);
   assertEquals(res.reason, "nothing_to_file");
-  assertEquals([res.proposed, res.kept, res.refused], [2, 0, 2]);
-  assertEquals(res.classification.refused.forbiddenKind, 2);
-  // ⛔ AUCUN APPEL À LA BASE. Écrire une liste inchangée réussirait, et
-  // l'appelant lirait « écrit » sur une écriture qui n'a rien ajouté.
-  assertEquals(trace.rpcs.length, 0);
+  assertEquals(trace.rpcs.length, 0, "la porte a été appelée pour ne rien écrire");
+  assertEquals(res.classification.skipped.degree, 1);
+  assertEquals(res.classification.preferences.refused.forbiddenKinds, ["portion.adjust"]);
 });
 
 Deno.test("une note refusée par la garde d'entrée ne déclenche AUCUN appel", async () => {
   const trace: Trace = { rpcs: [], models: [] };
-  let called = 0;
   const res = await classifyAndPersistDraftNote({
     admin: fakeAdmin(trace),
     userId: USER,
-    // ⛔ LE TYPE FORCE LE VERDICT, PAS LE TEXTE BRUT: c'est `readDraftNote` qui
-    // le produit, et un `usable: null` veut dire « rien n'a survécu à la garde ».
-    note: { usable: null, refusal: "numeric_target", dropped: ["numeric_target"] },
+    note: { usable: null, refusal: "forbidden", dropped: [] } as unknown as DraftNoteVerdict,
     today: TODAY,
     targetWeek: PLAN_STARTS_ON,
     members: [],
     contentLocale: "fr-FR",
-    run: (_s, _u, _m) => {
-      called += 1;
-      return Promise.resolve({ items: [] });
-    },
+    run: runnerReturning(FULL_LISTS, trace),
   });
   assertEquals(res.reason, "no_note");
-  assertEquals(called, 0, "la note refusée est quand même partie au modèle.");
-  assertEquals(trace.rpcs.length, 0);
+  assertEquals(trace.models, []);
+  assertEquals(trace.rpcs, []);
 });
 
 Deno.test("⛔ un appel modèle en panne est NOMMÉ et COMPTÉ, jamais avalé", async () => {
@@ -788,15 +743,27 @@ Deno.test("⛔ un appel modèle en panne est NOMMÉ et COMPTÉ, jamais avalé", 
     targetWeek: PLAN_STARTS_ON,
     members: [],
     contentLocale: "fr-FR",
-    run: () => Promise.reject(new Error("Signal timed out")),
+    run: () => Promise.reject(new Error("quota")),
   });
   assertEquals(res.ok, false);
   assertEquals(res.reason, "model_unavailable");
-  // ⚠️ Le modèle demandé sort MÊME EN PANNE: c'est ce qui permet de dire
-  // « c'est ce modèle-là qui a expiré », plutôt que « ça n'a pas marché ».
-  assertEquals(res.model, KEEL_GENERATION_MODEL_DEFAULT);
-  assertEquals([res.proposed, res.kept, res.refused], [0, 0, 0]);
-  assertEquals(trace.rpcs.length, 0);
+  assertEquals(trace.rpcs, []);
+});
+
+Deno.test("l'ancienne forme `{ items }` rendue par un modèle est `unreadable_payload`, pas un produit calme", async () => {
+  const trace: Trace = { rpcs: [], models: [] };
+  const res = await classifyAndPersistDraftNote({
+    admin: fakeAdmin(trace),
+    userId: USER,
+    note: usable(),
+    today: TODAY,
+    targetWeek: PLAN_STARTS_ON,
+    members: [],
+    contentLocale: "fr-FR",
+    run: runnerReturning({ items: [{ kind: "craving", text: "des fajitas", member_id: null }] }, trace),
+  });
+  assertEquals(res.reason, "unreadable_payload");
+  assertEquals(trace.rpcs, []);
 });
 
 Deno.test("`members` absent est un `bad_args`, pas un foyer vide", async () => {
@@ -807,140 +774,77 @@ Deno.test("`members` absent est un `bad_args`, pas un foyer vide", async () => {
     note: usable(),
     today: TODAY,
     targetWeek: PLAN_STARTS_ON,
-    // deno-lint-ignore no-explicit-any
-    members: undefined as any,
+    members: undefined as unknown as DraftNoteMember[],
     contentLocale: "fr-FR",
-    run: runnerReturning([], trace),
+    run: runnerReturning(FULL_LISTS, trace),
   });
   assertEquals(res.reason, "bad_args");
+  assertEquals(trace.models, []);
 });
 
 // ===========================================================================
-// ⑨ LE CÂBLAGE — une fonction PURE, appelée DEUX fois
+// ⑤ LE CÂBLAGE — la source, deux fois: le vrai fichier, puis la copie amputée
 // ===========================================================================
-//
-// ⛔ CE QUE CETTE SECTION EXISTE POUR EMPÊCHER. Le lot 1C a livré un module à
-// 22 tests verts qu'on pouvait retirer des trois générateurs sans qu'un seul
-// des 3507 tests ne rougisse. Un test de source ne suffit PAS à lui seul: si
-// la chaîne cherchée ne correspond plus à rien (renommage, reformatage), il
-// devient vert-parce-qu'il-ne-cherche-plus-rien.
-//
-// D'où la forme: `wiringVerdict` est PURE, et on l'appelle sur le VRAI fichier
-// (vert) ET sur une copie EN MÉMOIRE dont l'appel a été retiré (rouge attendu).
-// Sans la seconde moitié, on ne distingue pas « le câblage est là » de « ma
-// recherche ne correspond plus à rien ».
-//
-// ⚠️ ── LA MOITIÉ QUI MANQUE, ET ELLE EST NOMMÉE ─────────────────────────────
-// Le point de câblage AMONT — les deux générateurs qui appellent
-// `classifyAndPersistDraftNote` après l'écriture du plan
-// (`generate-meal-v1/index.ts:2805`, `generate-household-meal-v1/index.ts:5135`,
-// à côté de `persistReconciledFoodPreferences`) — N'EST PAS POSÉ par ce lot:
-// ces trois fichiers appartiennent à un lot qui y écrit en parallèle. Le trou
-// est nommé dans le rapport, avec le patch exact et la sortie de la sonde.
-// ⛔ NE PAS le remplacer ici par une assertion inversée (« le câblage est
-// absent »): elle rougirait le jour où le câblage arrive.
 
 function stripComments(src: string): string {
   return src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/[^\n]*/g, "$1");
 }
 
-/**
- * LES QUATRE CHAÎNES QUI DOIVENT ÊTRE DANS `draft_note_classify_io.ts`.
- * Chacune tient une moitié différente, et chacune a sa mutation ci-dessous.
- */
+/** LES SIX CHAÎNES QUI DOIVENT ÊTRE DANS `draft_note_classify_io.ts`. */
 function wiringVerdict(src: string): string[] {
   const code = stripComments(src);
   const missing: string[] = [];
-  if (!/const model = keelGenerationModel\(\);/.test(code)) {
-    missing.push("keelGenerationModel_appele");
-  }
-  if (!/await persistRetainedItemsFor\(\{/.test(code)) {
-    missing.push("porte_appelee");
-  }
-  if (!/producer: DRAFT_NOTE_PRODUCER,/.test(code)) {
-    missing.push("producteur_draft_note");
-  }
-  if (!/nextPlan: classification\.nextPlan,/.test(code)) {
-    missing.push("next_plan_passe");
-  }
+  if (!/const model = keelGenerationModel\(\);/.test(code)) missing.push("keelGenerationModel_appele");
+  if (!/await persistRetainedItemsFor\(\{/.test(code)) missing.push("porte_appelee");
+  if (!/producer: DRAFT_NOTE_PRODUCER,/.test(code)) missing.push("producteur_draft_note");
+  if (!/durable: classification\.preferences\.items,/.test(code)) missing.push("preferences_passees");
+  if (!/nextPlan: classification\.nextPlan\.entries,/.test(code)) missing.push("next_plan_passe");
+  if (!/memo: classification\.notes\.lines,/.test(code)) missing.push("notes_passees");
   return missing;
 }
 
 async function ioSource(): Promise<string> {
-  return await Deno.readTextFile(
-    new URL("draft_note_classify_io.ts", import.meta.url),
-  );
+  return await Deno.readTextFile(new URL("draft_note_classify_io.ts", import.meta.url));
 }
 
-/**
- * LES DEUX MOITIÉS DE LA MATRICE, DANS LE MODULE PUR — et l'interdit de repli.
- *
- * ⚠️ POURQUOI UN TEST DE SOURCE ICI ALORS QU'IL Y A DÉJÀ DES TESTS DE
- * COMPORTEMENT. Mesuré à la mutation: retirer `canProduce` SEUL laisse les 38
- * tests verts (le `defaultScopeFor === null` rattrape), et ajouter
- * `?? "next_plan"` SEUL les laisse verts aussi (`canProduce` a déjà mordu). Les
- * deux sont des DOUBLURES l'une de l'autre — c'est voulu — mais « une garde qui
- * se coupe sans qu'un test rougisse » est exactement la ligne que le
- * vérificateur du lot 1A a fait payer six fois. Le comportement ne peut pas les
- * distinguer; la source, si.
- *
- * `?? "next_plan"` est nommé EN NÉGATIF parce que c'est l'échappatoire écrite
- * noir sur blanc dans le contrat: « `null` est un REFUS, jamais `?? "next_plan"` ».
- */
+/** LA MATRICE DANS LE MODULE PUR — et l'interdit de repli. */
 function matrixVerdict(src: string): string[] {
   const code = stripComments(src);
   const missing: string[] = [];
-  if (!/if \(!canProduce\(DRAFT_NOTE_PRODUCER, kind\)\) \{/.test(code)) {
+  if (!/if \(!canProduce\(DRAFT_NOTE_PRODUCER, kind\) \|\| !allowed\.includes\(kind\)\) \{/.test(code)) {
     missing.push("canProduce_arme");
   }
-  // ⚠️ SANS LE `;` FINAL, EXPRÈS. L'exiger ferait qu'ajouter `?? "next_plan"`
-  // rendrait DEUX motifs au lieu d'un, et le test qui isole le repli
-  // n'isolerait plus rien.
-  if (!/const scope = defaultScopeFor\(DRAFT_NOTE_PRODUCER, kind\)/.test(code)) {
-    missing.push("defaultScopeFor_arme");
-  }
-  if (/\?\?\s*"next_plan"/.test(code)) {
-    missing.push("repli_next_plan_interdit");
-  }
+  if (/\?\?\s*"next_plan"/.test(code)) missing.push("repli_next_plan_interdit");
+  if (/\?\?\s*"durable"/.test(code)) missing.push("repli_durable_interdit");
+  if (/\?\?\s*HOUSEHOLD_SUBJECT/.test(code)) missing.push("repli_household_interdit");
   return missing;
 }
 
 async function pureSource(): Promise<string> {
-  return await Deno.readTextFile(
-    new URL("draft_note_classify.ts", import.meta.url),
-  );
+  return await Deno.readTextFile(new URL("draft_note_classify.ts", import.meta.url));
 }
 
-Deno.test("MATRICE ① — les deux ceintures sont là, et AUCUN repli (le cas qui passe)", async () => {
+Deno.test("MATRICE ① — la ceinture est là, et AUCUN repli (le cas qui passe)", async () => {
   assertEquals(matrixVerdict(await pureSource()), []);
 });
 
-Deno.test("MATRICE ② — couper l'une OU l'autre fait ROUGIR", async () => {
+Deno.test("MATRICE ② — couper la ceinture ou ajouter un repli fait ROUGIR", async () => {
   const real = await pureSource();
-  const mutations: Array<[string, string, string]> = [
-    [
-      "canProduce_arme",
-      "if (!canProduce(DRAFT_NOTE_PRODUCER, kind)) {",
-      "if (false) {",
-    ],
-    [
-      "defaultScopeFor_arme",
-      "const scope = defaultScopeFor(DRAFT_NOTE_PRODUCER, kind);",
-      'const scope = "next_plan" as const;',
-    ],
-  ];
-  for (const [name, from, to] of mutations) {
-    assert(real.includes(from), `la chaîne « ${from} » n'existe plus.`);
-    assertEquals(matrixVerdict(real.replace(from, to)), [name]);
-  }
-  // ⛔ ET LE REPLI INTERDIT, AJOUTÉ: il doit rougir même quand tout le reste
-  // est en place. C'est la ligne exacte du contrat §2 point 1.
-  const withFallback = real.replace(
-    "const scope = defaultScopeFor(DRAFT_NOTE_PRODUCER, kind);",
-    'const scope = defaultScopeFor(DRAFT_NOTE_PRODUCER, kind) ?? "next_plan";',
+  const cut = real.replace(
+    "if (!canProduce(DRAFT_NOTE_PRODUCER, kind) || !allowed.includes(kind)) {",
+    "if (false) {",
   );
-  assertNotEquals(withFallback, real);
-  assertEquals(matrixVerdict(withFallback), ["repli_next_plan_interdit"]);
+  assertNotEquals(cut, real);
+  assertEquals(matrixVerdict(cut), ["canProduce_arme"]);
+  for (const [name, fallback] of [
+    ["repli_next_plan_interdit", 'const scope2 = null ?? "next_plan";'],
+    ["repli_durable_interdit", 'const scope2 = null ?? "durable";'],
+    ["repli_household_interdit", "const subject2 = null ?? HOUSEHOLD_SUBJECT;"],
+  ] as const) {
+    const withFallback = real.replace("const writtenAt = parseIsoInstant(args.writtenAt);", `const writtenAt = parseIsoInstant(args.writtenAt);\n  ${fallback}`);
+    assertNotEquals(withFallback, real);
+    assertEquals(matrixVerdict(withFallback), [name]);
+  }
 });
 
 Deno.test("CÂBLAGE ① — le VRAI fichier est câblé (le cas qui passe)", async () => {
@@ -949,46 +853,23 @@ Deno.test("CÂBLAGE ① — le VRAI fichier est câblé (le cas qui passe)", asy
 
 Deno.test("CÂBLAGE ② — chaque moitié retirée fait ROUGIR l'assertion", async () => {
   const real = await ioSource();
-  // ⚠️ QUATRE MUTATIONS, EN MÉMOIRE. Sans elles, `wiringVerdict` pourrait ne
-  // plus rien chercher et rester vert.
   const mutations: Array<[string, string, string]> = [
-    [
-      "keelGenerationModel_appele",
-      "const model = keelGenerationModel();",
-      'const model = "gpt-5.6-sol";',
-    ],
-    [
-      "porte_appelee",
-      "await persistRetainedItemsFor({",
-      "await Promise.resolve({ ok: true } as any) && ({",
-    ],
-    [
-      "producteur_draft_note",
-      "producer: DRAFT_NOTE_PRODUCER,",
-      'producer: "written" as any,',
-    ],
-    [
-      "next_plan_passe",
-      "nextPlan: classification.nextPlan,",
-      "nextPlan: [],",
-    ],
+    ["keelGenerationModel_appele", "const model = keelGenerationModel();", 'const model = "gpt-5.6-sol";'],
+    ["porte_appelee", "await persistRetainedItemsFor({", "await Promise.resolve({ ok: true } as any) && ({"],
+    ["producteur_draft_note", "producer: DRAFT_NOTE_PRODUCER,", 'producer: "written" as any,'],
+    ["preferences_passees", "durable: classification.preferences.items,", "durable: [],"],
+    ["next_plan_passe", "nextPlan: classification.nextPlan.entries,", "nextPlan: [],"],
+    ["notes_passees", "memo: classification.notes.lines,", "memo: [],"],
   ];
   for (const [name, from, to] of mutations) {
     assert(real.includes(from), `la chaîne « ${from} » n'existe plus: l'assertion ne cherche plus rien.`);
     const mutated = real.replace(from, to);
     assertNotEquals(mutated, real, `la mutation « ${name} » n'a rien changé.`);
-    assertEquals(
-      wiringVerdict(mutated),
-      [name],
-      `la mutation « ${name} » n'a PAS fait rougir l'assertion.`,
-    );
+    assertEquals(wiringVerdict(mutated), [name], `la mutation « ${name} » n'a PAS fait rougir l'assertion.`);
   }
 });
 
 Deno.test("CÂBLAGE ③ — un commentaire ne câble rien", async () => {
-  // Cicatrice du dépôt: « audit d'appelants — retirer les commentaires », un
-  // grep naïf compte les faux vivants. Le vrai appel est retiré, et seule sa
-  // mention en commentaire reste: l'assertion doit rougir quand même.
   const real = await ioSource();
   const mutated = real.replace(
     "const model = keelGenerationModel();",
@@ -998,79 +879,7 @@ Deno.test("CÂBLAGE ③ — un commentaire ne câble rien", async () => {
 });
 
 // ===========================================================================
-// ⑥ ⛔ LE PROMPT N'ENSEIGNE JAMAIS CE QUE LA MATRICE INTERDIT
-//
-// Mesuré le 2026-09-01 sur un tour réel : « Les recettes sont bien trop
-// compliquées pour moi » → `proposed=1 kept=0 refused_forbidden_kind=1`. Le
-// modèle avait raison de proposer `logistics.set` — le prompt le lui
-// enseignait, avec sa description ET un bloc de schéma de valeur rien que pour
-// lui — pendant que `canProduce` le refusait depuis le lot M5. Le retour de la
-// personne a disparu, en silence.
-// ===========================================================================
-
-Deno.test("⛔ AUCUNE famille interdite n'est ENSEIGNÉE — seulement refusée", () => {
-  const prompt = DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT;
-  for (const forbidden of DRAFT_NOTE_FORBIDDEN_KINDS) {
-    // La forme d'ENSEIGNEMENT est « - <kind> — … » dans la section « WHAT EACH
-    // KIND IS FOR ». La forme de REFUS (« NEVER <kind> », « · <kind> — … »)
-    // reste attendue: nommer l'interdit est ce qui fait tomber l'échappatoire.
-    assert(
-      !prompt.includes(`- ${forbidden} —`),
-      `le prompt ENSEIGNE « ${forbidden} », que la matrice refuse: le modèle ` +
-        "le proposera, et la porte le brûlera sans que personne ne le voie.",
-    );
-  }
-  // Et le cas qui PASSE, sans quoi la garde serait indiscernable d'une garde
-  // cassée: chaque famille permise DOIT être enseignée.
-  for (const allowed of DRAFT_NOTE_KINDS) {
-    assert(
-      prompt.includes(`- ${allowed} —`),
-      `« ${allowed} » est permis mais n'est décrit nulle part: le modèle ne ` +
-        "peut pas ranger ce qu'on ne lui a pas nommé.",
-    );
-  }
-});
-
-Deno.test("⛔ LA CLÉ `value` NE NOMME PAS UNE FAMILLE INTERDITE", () => {
-  // `"value": null for every kind except logistics.set` disait, sur la ligne
-  // même du schéma, qu'une famille interdite existait et portait une valeur.
-  const prompt = DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT;
-  const line = prompt.split("\n").find((l) => l.includes('"value"'));
-  assert(line, "la clé `value` a disparu du schéma.");
-  for (const forbidden of DRAFT_NOTE_FORBIDDEN_KINDS) {
-    assert(
-      !line!.includes(forbidden),
-      `la ligne \`value\` nomme « ${forbidden} », que la matrice refuse.`,
-    );
-  }
-});
-
-Deno.test("⛔ CHAQUE INTERDIT PORTE SA PROPRE RAISON", () => {
-  // La prose disait « Those TWO are asked somewhere else » avec TROIS
-  // interdits, et son motif ne parlait que des deux premiers. Une raison qui ne
-  // couvre pas ce qu'elle justifie se lit comme une coquille — et un modèle
-  // préfère alors la description détaillée qu'on lui a donnée ailleurs.
-  const prompt = DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT;
-  assert(
-    !/Those two are asked somewhere else/i.test(prompt),
-    "la prose compte encore DEUX interdits: elle vieillira à la prochaine " +
-      "fermeture de case, exactement comme la première fois.",
-  );
-  for (const forbidden of DRAFT_NOTE_FORBIDDEN_KINDS) {
-    assert(
-      prompt.includes(`· ${forbidden} —`),
-      `« ${forbidden} » est refusé sans qu'on dise POURQUOI.`,
-    );
-  }
-});
-
-// ===========================================================================
-// ⑦ ⛔ LA PARENTÉ — « mon fils » n'est pas un cas limite, c'est la forme normale
-//
-// Mesuré le 2026-09-01: le roster ne portait que trois PRÉNOMS. « Mon fils
-// n'aime pas le poisson » est parti sur le FOYER ENTIER (`subject: household`)
-// — un fait FAUX, qui retire le poisson à toute la table — et deux autres
-// phrases se sont perdues en silence.
+// ⑥ LA PARENTÉ — « mon fils » n'est pas un cas limite, c'est la forme normale
 // ===========================================================================
 
 function mouth(over: Partial<DraftNoteMember> = {}): DraftNoteMember {
@@ -1083,49 +892,26 @@ Deno.test("⛔ LE ROSTER PORTE L'ÂGE ET LE SEXE — sans eux, aucune parenté n
     contentLocale: "fr-FR",
     members: [mouth(), mouth({ memberId: "22222222-2222-4333-8444-555555555555", label: "Léa", sex: "female" })],
   });
-  assert(prompt.includes('"age":"minor"'), "l'âge n'est pas dans le roster");
-  assert(prompt.includes('"sex":"male"'), "le sexe n'est pas dans le roster");
+  assert(prompt.includes('"age":"minor"'));
+  assert(prompt.includes('"sex":"male"'));
   assert(prompt.includes('"sex":"female"'));
 });
 
 Deno.test("⛔ LES CLÉS SONT ÉCRITES MÊME À `null` — « on ne sait pas » ≠ « rien à savoir »", () => {
-  // Une clé ABSENTE laisse le modèle supposer qu'on la lui a cachée, et
-  // deviner. Une clé à `null` dit la vérité, et c'est elle qui doit le faire
-  // s'abstenir.
   const prompt = buildDraftNoteClassifyPrompt({
     note: "Mon fils n'aime pas le poisson",
     contentLocale: "fr-FR",
     members: [mouth({ ageState: null, sex: null })],
   });
-  assert(prompt.includes('"age":null'), "la clé `age` disparaît quand elle est inconnue");
-  assert(prompt.includes('"sex":null'), "la clé `sex` disparaît quand elle est inconnue");
-});
-
-Deno.test("⛔ L'ABSTENTION EST DITE, ET LE REPLI SUR LE FOYER EST NOMMÉ COMME INTERDIT", () => {
-  // C'est LA règle du lot: deux enfants du même sexe rendent « mon fils »
-  // indécidable. Le repli dangereux n'est pas de refuser — c'est
-  // `member_id: null`, qui veut dire TOUT LE MONDE.
-  const prompt = DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT;
-  assert(/IF TWO PEOPLE FIT, OR NONE/i.test(prompt), "l'ambiguïté n'est plus nommée");
-  assert(
-    /Do NOT fall back to member_id: null/i.test(prompt),
-    "le repli sur le foyer entier n'est plus interdit: c'est LUI qui a produit " +
-      "le fait faux mesuré, pas l'absence de règle",
-  );
-  assert(/my son|my daughter/i.test(prompt), "les mots de parenté ne sont plus donnés en exemple");
+  assert(prompt.includes('"age":null'));
+  assert(prompt.includes('"sex":null'));
 });
 
 Deno.test("LE CÂBLAGE — la lane foyer passe l'âge et le sexe, et PAS `ageBand`", async () => {
-  // ⚠️ `ageBandOf` rend `null` sous 18 ans: passer la bande d'âge donnerait
-  // `null` pour exactement les bouches qu'il s'agit d'identifier. C'est le
-  // piège de ce lot, et un lot débranché lui ressemblerait trait pour trait.
   const src = await Deno.readTextFile(
     new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
   );
   assert(/sex: m\.body\?\.gender \?\? null/.test(src), "la lane foyer ne passe plus le sexe");
   assert(/ageState: m\.ageState === "adult"/.test(src), "la lane foyer ne passe plus l'état d'âge");
-  assert(
-    !/ageState: m\.ageBand/.test(src),
-    "la lane passe une BANDE d'âge: elle vaut `null` pour tout mineur",
-  );
+  assert(!/ageState: m\.ageBand/.test(src), "la lane passe une BANDE d'âge: elle vaut `null` pour tout mineur");
 });

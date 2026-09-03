@@ -124,7 +124,11 @@ export async function memoryRecapFor(args: {
         if (!item || String(item.at ?? "") !== day) continue;
         const text = String(item.text ?? "").trim();
         if (!text) continue;
-        kept.push({ text, until: lastDayOfNextPlan(entry?.anchor) });
+        // ⚠️ LOT A (2026-09-03, nomenclature §2.5): l'encart ne meurt plus au
+        // calendrier mais à la VALIDATION du plan suivant. « jusqu'au <date> »
+        // serait donc un mensonge daté; on ne dit plus de date. `lastDayOfNextPlan`
+        // reste exporté pour l'ancre affichée, pas pour la mort.
+        kept.push({ text, until: null });
       }
     }
   } catch { /* silence */ }

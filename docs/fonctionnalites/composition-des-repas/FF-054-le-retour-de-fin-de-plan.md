@@ -115,6 +115,61 @@ cuisson et difficulté ; `portions` → ré-ancrage de l'enveloppe ;
 **Une question à la fois, boutons, aucun champ libre.** « Pas maintenant » n'est
 offert que sur la **première** question ⇒ `dismissed_at`, et rien ne revient.
 
+> ### ⚠️ « AUCUN CHAMP LIBRE » — RENVERSÉ POUR L'ÉCRAN SEUL, LE 2026-09-03
+>
+> Lot B du chantier « la mémoire à trois destinations »
+> (`docs/keel/NOMENCLATURE-MEMOIRE.md` §2.1 ②, arbitrage C3 du §9). Une dernière
+> question **facultative** est ajoutée **à l'écran** : `anything_else`,
+> « Quelque chose à retenir pour les prochains ? ».
+>
+> **Ce qui NE change pas, et c'est la moitié qui compte : le CHAT reste à
+> boutons.** La règle ci-dessus reste entière là où elle a été écrite. Deux
+> gardes le tiennent, pas une : `loadChatFeedbackContext` retire la question de
+> la liste, et `renderFeedbackQuestion` rend `null` pour elle (aucune option).
+> Le motif est plus fort qu'un principe : le flux du chat est **déterministe**,
+> et un champ libre y demanderait à la personne de taper un message ordinaire —
+> que le chemin des taps ne capte pas. Elle croirait avoir répondu, et rien ne
+> serait écrit.
+>
+> **Ce qui borne le renversement à l'écran :**
+> ① le **libellé** demande une consigne pour la suite, jamais un récit — « pour
+>   les prochains », et pas « comment ça s'est passé ». Le test lexical de cette
+>   fiche (aucun registre de conformité, deux langues) s'y applique ;
+> ② elle est **facultative** et **dernière** : la laisser vide ferme le
+>   questionnaire, comme avant ;
+> ③ ce qui raconte un repas n'a **aucune destination** : le texte part au
+>   classifieur du lot A, qui le range en `skipped.meal_story` — mesuré au banc,
+>   cas N du §8.2.
+>
+> ⛔ **Et ce n'est pas un second classifieur.** Le texte passe par
+> `readDraftNote` (la garde d'entrée : cible chiffrée, interdit de doctrine,
+> plancher TCA) puis par le prompt du lot A. Un second prompt divergerait du
+> premier au premier mot changé.
+
+> ### ⚠️ LES QUESTIONS ONT CHANGÉ LE 2026-09-03 — lot B
+>
+> · **`hunger_between_meals` et `could_finish` sont RETIRÉES.** Elles étaient
+>   posées et leur seul lecteur nommé (`emphasisHint`) n'a **jamais eu
+>   d'appelant** — ce que `plan_feedback.ts` écrivait en toutes lettres. C'est
+>   très exactement le précédent que cette fiche cite en tête (« le point du
+>   dimanche collectait pour un lecteur qui n'existait pas »), et il valait
+>   pour elle aussi.
+> · **`enough_variety` devient commune** : son champ est lu par les deux lanes
+>   pour tout le monde, et ne la demander qu'à `maintenance` rendait le cran
+>   inatteignable aux deux autres dynamiques.
+> · **`difficulty` et `speed` remplacent une DÉDUCTION.** `cooked` déplaçait
+>   deux réglages tout seul, en décidant lequel des deux problèmes la personne
+>   avait eu. Il est redevenu une garde : on ne pose ces deux questions qu'à qui
+>   a cuisiné au moins en partie.
+> · **`never_again` / `make_again` portent des ALIMENTS avec leur personne**,
+>   dans deux colonnes neuves. Les colonnes de titres restent **lues**.
+>
+> **Ce que ça coûte, et c'est nommé** : six gestes obligatoires au lieu de
+> quatre pour quelqu'un qui a cuisiné. La règle « au-delà de quatre gestes c'est
+> un formulaire » est sous tension ; un test la mesure
+> (`plan_feedback_test.ts`), et l'arbitrage — accepter, ou scinder le
+> questionnaire en deux soirs — est ouvert.
+
 **Ce que la conversation ne pose pas** : « une envie pour la suite ? »
 (`newEnvyIsAsked`) reste à l'écran — elle écrit dans
 `household_envy_submissions`, en **texte libre**, que §3.2 interdit ici.
@@ -264,6 +319,31 @@ la relance, et le produit a déjà retiré ce genre de boucle.
 1. **Où exactement à l'ouverture de l'app ?** Le chat s'impose, mais un plan
    écoulé depuis trois semaines mérite-t-il encore la question ? Un délai de
    péremption (au-delà de X jours, on laisse tomber) n'est pas tranché.
-2. **Le foyer.** Qui répond pour un plan de foyer ? Le compositeur de la
-   session, probablement — mais les portions concernent chaque membre. Non
-   tranché ; à reprendre avec la lane foyer.
+2. ~~**Le foyer.** Qui répond pour un plan de foyer ?~~ ✅ **Tranché le
+   2026-09-03 (chantier P8, lot A8.2), et tranché par une PROPRIÉTÉ, pas par
+   une règle qu'il aurait fallu écrire.**
+
+   `meal_plan_feedback` est `unique(meal_id)` : **il n'y a qu'un retour par
+   plan**, et c'est celui de la personne qui a composé — le **maître**, pour un
+   plan `household`. Un profil réclamé (FF-048) **n'est jamais interrogé** en
+   fin de fenêtre.
+
+   ⚠️ **Ce n'est pas un oubli, et c'est pour ça que ça s'écrit ici.** Depuis
+   A8.0 le membre reçoit sa bande du soir, depuis A8.1 il coche ses plats,
+   depuis A8.2 il déclare le sort de sa boîte : trois surfaces où il parle. La
+   quatrième lui est fermée, et un lecteur qui constate ce silence doit trouver
+   la raison plutôt que de conclure à un trou. La raison est que le retour de
+   fin de plan **gouverne la composition suivante** — il descend le style de
+   cuisine, les rejets, la difficulté (§4). C'est un geste de **celui qui
+   compose**, et « une seule personne gouverne le menu » (le-foyer/README, F1).
+   Interroger le membre produirait soit une réponse qui ne change rien — la
+   pire des questions —, soit un second gouvernail.
+
+   Ce qui **remonte** du membre au plan suivant passe par les faits qu'il écrit
+   pour lui (`protocol_events`, `meal_share_outcomes`), pas par un avis. Un fait
+   n'a pas besoin d'être arbitré.
+
+   ⛔ **Ce qui reste vrai malgré tout** : la contrainte est une propriété du
+   schéma, donc elle tomberait en silence si quelqu'un la retirait. Aucune garde
+   ne la tient aujourd'hui — c'est nommé au rapport A8.2 comme dette, pas
+   comme acquis.

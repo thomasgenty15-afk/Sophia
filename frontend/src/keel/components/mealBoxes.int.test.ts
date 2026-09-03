@@ -340,15 +340,36 @@ describe("readDishes lit les contenants du repas", () => {
     expect(d.title).toBe("T");
   });
 
-  it("un contenant sans bouche, sans item ou sans id ne sort pas", () => {
-    // Un bac pour personne n'est pas une instruction, et « sers-toi » se dit
-    // par l'ABSENCE de contenant — jamais par un contenant vide, qui se lirait
-    // comme une pesée qu'on a oublié de remplir.
+  it("un contenant sans item ou sans id ne sort pas — celui sans bouche, si", () => {
+    // ═══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-01 — LE COUVERCLE ANONYME EST DEVENU LÉGITIME, et ce cas
+    // portait encore la règle d'avant.
+    // ═══════════════════════════════════════════════════════════════════════
+    //
+    // Le motif retiré était : « un bac pour personne n'est pas une instruction,
+    // "sers-toi" se dit par l'ABSENCE de contenant ». Il était vrai tant que
+    // les boîtes n'existaient QUE sur la lane foyer. La lane individuelle a les
+    // siennes depuis ce jour-là, et elles n'ont PAS de nom par construction :
+    // mesuré, un plan solo réel portant onze contenants affichait un dépliant
+    // de session VIDE. Le motif entier vit sur `readBoxV4`
+    // (`api/mealGeneration.ts`).
+    //
+    // ⛔ LA GARDE N'EST PAS PERDUE, elle est REMONTÉE là où la lane est connue :
+    // `parseGeneratedMeal` refuse un couvercle anonyme quand `soloBoxes` est
+    // faux (`_shared/keel/meal_generation.ts:6902`) — `true` chez
+    // `generate-meal-v1`, `false` chez `generate-household-meal-v1`, tenu par
+    // `solo_boxes_test.ts`. Cet écran-ci reçoit une ligne de base sans savoir
+    // d'où elle vient : y refaire la décision, ce serait la prendre à l'aveugle.
+    //
+    // Le cas qui passe vivait déjà dans `oneCookingSessionField.int.test.ts`
+    // (« un contenant solo (aucun nom) est LU, pas jeté ») : les deux tests
+    // affirmaient l'inverse l'un de l'autre, et c'est celui-ci qui était rouge.
     const nobody = readDishes([{
       title: "T",
       boxes: [{ id: "b", member_ids: [], items: [{ term: "rice", grams: 10 }] }],
     }])[0].boxes;
-    expect(nobody).toEqual([]);
+    expect(nobody).toHaveLength(1);
+    expect(nobody[0].member_ids).toEqual([]);
     const nothingIn = readDishes([{
       title: "T",
       boxes: [{ id: "b", member_ids: [CASIMIR_ID], items: [] }],

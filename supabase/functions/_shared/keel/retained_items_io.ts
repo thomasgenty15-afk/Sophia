@@ -131,6 +131,16 @@ import {
   partitionForNextPlanStore,
   withNextPlanEntries,
 } from "./retained_next_plan.ts";
+// LOT A (2026-09-03) — LE TROISIÈME MAGASIN: « ce que Sophia sait ». Même
+// porte que les deux autres, parce qu'un retour sur brouillon range en UN
+// passage une préférence, une envie et une note, et que « les deux moitiés
+// d'un reclassement ne se séparent pas ».
+import {
+  MEMO_KEY,
+  type MemoLine,
+  memoLineToJson,
+  withMemoLine,
+} from "./memo.ts";
 
 // ===========================================================================
 // LE NOM DE LA RPC — épinglé à son littéral SQL par le test
@@ -230,6 +240,15 @@ export interface RetainedWriteRefusals {
   readonly misfiled: number;
   /** Son identifiant `(kind, item)` est déjà dans le magasin. */
   readonly alreadyStored: number;
+  /**
+   * LOT A — une note (③) que le mémo a refusée: la même phrase pour la même
+   * personne y était déjà (`memoDuplicate`), ou cette personne a déjà ses
+   * cinq lignes (`memoFull`). Les deux se lisent séparément: un `memoFull`
+   * qui monte dit qu'une personne doit faire du tri; un `memoDuplicate` dit
+   * qu'un producteur redit la même chose.
+   */
+  readonly memoDuplicate: number;
+  readonly memoFull: number;
 }
 
 /**
@@ -253,6 +272,7 @@ export const RETAINED_WRITE_REASONS = [
   "stale_snapshot",
   "bad_items",
   "bad_next_plan",
+  "bad_memo",
   "unknown",
 ] as const;
 export type RetainedWriteReason = (typeof RETAINED_WRITE_REASONS)[number];
@@ -279,6 +299,9 @@ export interface RetainedWriteOutcome {
    */
   readonly durableStored: number;
   readonly nextPlanStored: number;
+  /** LOT A — les notes (③) entrées dans le mémo, et la taille du mémo après. */
+  readonly memoWritten: number;
+  readonly memoStored: number;
   readonly refused: RetainedWriteRefusals;
 }
 
@@ -316,6 +339,12 @@ export async function persistRetainedItemsFor(args: {
   source: string;
   durable?: readonly RetainedItem[];
   nextPlan?: readonly NextPlanEntry[];
+  /**
+   * LOT A — les notes de ③ neuves. Rien à ajouter ⇒ ne pas passer le champ.
+   * Chaque ligne passe par `withMemoLine` (plafond PAR PERSONNE, doublon par
+   * sujet + texte): ce module ne réécrit aucune de ces règles.
+   */
+  memo?: readonly MemoLine[];
 }): Promise<RetainedWriteOutcome> {
   const source = String(args?.source ?? "").trim() || "unknown_caller";
   const userId = String(args?.userId ?? "").trim();
@@ -354,6 +383,17 @@ export async function persistRetainedItemsFor(args: {
     else if (verdict === "unquoted") unquoted += 1;
     else allowedNextPlan.push(entry);
   }
+  // ── LOT A · LES NOTES: pas de `kind`, donc pas de matrice — mais le
+  // producteur et la citation, si. Une note qui se déclarerait d'une autre
+  // source contournerait le compteur du producteur; une note sans citation est
+  // une phrase libre qui gouverne des assiettes sans cause (M2).
+  const memoIn = args.memo ?? [];
+  const allowedMemo: MemoLine[] = [];
+  for (const line of memoIn) {
+    if (!line || line.source !== producer) foreignSource += 1;
+    else if (String(line.quote ?? "").trim() === "") unquoted += 1;
+    else allowedMemo.push(line);
+  }
 
   // ── ÉTAGE 2 · LE BON MAGASIN, ET UNE ANCRE QUI EST UN LUNDI ─────────────
   // Les filtres appartiennent aux magasins. Ce module ne réécrit ni l'un ni
@@ -362,7 +402,7 @@ export async function persistRetainedItemsFor(args: {
   const nextPlanSplit = partitionForNextPlanStore(allowedNextPlan);
   const misfiled = durableSplit.notDurable.length + nextPlanSplit.misfiled.length;
 
-  const askedTotal = durableIn.length + nextPlanIn.length;
+  const askedTotal = durableIn.length + nextPlanIn.length + memoIn.length;
   if (askedTotal === 0) {
     return refuse("nothing_to_write", source, userId);
   }
@@ -393,15 +433,19 @@ export async function persistRetainedItemsFor(args: {
       unquoted,
       misfiled,
       alreadyStored: 0,
+      memoDuplicate: 0,
+      memoFull: 0,
     });
   }
 
   const storedDurable = storedRowsOf(constraints, RETAINED_ITEMS_KEY);
   const storedNextPlan = storedRowsOf(constraints, NEXT_PLAN_ITEMS_KEY);
+  const storedMemo = storedRowsOf(constraints, MEMO_KEY);
   // ⛔ ON N'ÉCRASE PAS CE QU'ON N'A PAS SU LIRE. Voir l'en-tête.
   if (
     (durableSplit.durable.length > 0 && storedDurable === null) ||
-    (nextPlanSplit.provisional.length > 0 && storedNextPlan === null)
+    (nextPlanSplit.provisional.length > 0 && storedNextPlan === null) ||
+    (allowedMemo.length > 0 && storedMemo === null)
   ) {
     warn("store_unreadable", { source, user_id: userId });
     return refuse("store_unreadable", source, userId, {
@@ -410,6 +454,8 @@ export async function persistRetainedItemsFor(args: {
       unquoted,
       misfiled,
       alreadyStored: 0,
+      memoDuplicate: 0,
+      memoFull: 0,
     });
   }
 
@@ -429,19 +475,43 @@ export async function persistRetainedItemsFor(args: {
   const alreadyStored = (durableSplit.durable.length - durableNew.length) +
     (nextPlanSplit.provisional.length - nextPlanNew.length);
 
+  // ── LOT A · LE MÉMO, LIGNE À LIGNE, PAR LA RÈGLE DU MAGASIN ─────────────
+  // `withMemoLine` tient le plafond PAR PERSONNE et le doublon (sujet + texte);
+  // ce module accumule seulement, et compte ce qu'il refuse. Les lignes
+  // stockées sont relues par le socle POUR DÉCIDER, puis recopiées VERBATIM
+  // dans la charge (un port d'écriture n'est pas un ramasse-miettes): une
+  // ligne illisible en base survit à l'écriture d'une voisine.
+  let memoDuplicate = 0;
+  let memoFull = 0;
+  const memoNewJson: Record<string, unknown>[] = [];
+  let memoView: Record<string, unknown> = { [MEMO_KEY]: storedMemo ?? [] };
+  for (const line of allowedMemo) {
+    const out = withMemoLine(memoView, memoLineToJson(line));
+    if (out.refused === "duplicate") memoDuplicate += 1;
+    else if (out.refused === "full") memoFull += 1;
+    else if (out.refused === "unreadable") unquoted += 1;
+    else {
+      memoNewJson.push(memoLineToJson(out.lines[0]));
+      memoView = { [MEMO_KEY]: out.lines.map(memoLineToJson) };
+    }
+  }
+
   const refused: RetainedWriteRefusals = {
-    total: foreignSource + forbiddenKind + unquoted + misfiled + alreadyStored,
+    total: foreignSource + forbiddenKind + unquoted + misfiled + alreadyStored +
+      memoDuplicate + memoFull,
     foreignSource,
     forbiddenKind,
     unquoted,
     misfiled,
     alreadyStored,
+    memoDuplicate,
+    memoFull,
   };
 
   // RIEN NE SURVIT ⇒ ON N'APPELLE PAS LA BASE, ET ON NE REND PAS `ok`.
   // Écrire la liste inchangée réussirait, et l'appelant lirait « écrit » sur
   // une écriture qui n'a rien ajouté.
-  if (durableNew.length === 0 && nextPlanNew.length === 0) {
+  if (durableNew.length === 0 && nextPlanNew.length === 0 && memoNewJson.length === 0) {
     warn("all_refused", { source, user_id: userId, asked: askedTotal, refused });
     return {
       ok: false,
@@ -450,6 +520,8 @@ export async function persistRetainedItemsFor(args: {
       nextPlanWritten: 0,
       durableStored: (storedDurable ?? []).length,
       nextPlanStored: (storedNextPlan ?? []).length,
+      memoWritten: 0,
+      memoStored: (storedMemo ?? []).length,
       refused,
     };
   }
@@ -484,6 +556,11 @@ export async function persistRetainedItemsFor(args: {
   const expectedNext = touchesNextPlan
     ? (constraints?.[NEXT_PLAN_ITEMS_KEY] ?? null)
     : null;
+  // LOT A — les neuves DEVANT, les stockées VERBATIM derrière (l'ordre de
+  // `withMemoLine`: la carte lit du plus récent au plus ancien).
+  const touchesMemo = memoNewJson.length > 0;
+  const memoPayload = touchesMemo ? [...memoNewJson, ...(storedMemo ?? [])] : null;
+  const expectedMemo = touchesMemo ? (constraints?.[MEMO_KEY] ?? null) : null;
 
   try {
     const { data, error } = await args.admin.rpc(RETAINED_ITEMS_WRITE_RPC, {
@@ -492,6 +569,8 @@ export async function persistRetainedItemsFor(args: {
       p_items: itemsPayload,
       p_expected_next: expectedNext,
       p_next: nextPayload,
+      p_expected_memo: expectedMemo,
+      p_memo: memoPayload,
     });
     if (error) throw new Error(error.message);
     const res = (data ?? {}) as { ok?: boolean; reason?: string };
@@ -511,6 +590,7 @@ export async function persistRetainedItemsFor(args: {
         reason,
         durable: durableNew.length,
         next_plan: nextPlanNew.length,
+        memo: memoNewJson.length,
         refused,
       });
       return {
@@ -520,6 +600,8 @@ export async function persistRetainedItemsFor(args: {
         nextPlanWritten: 0,
         durableStored: (storedDurable ?? []).length,
         nextPlanStored: (storedNextPlan ?? []).length,
+        memoWritten: 0,
+        memoStored: (storedMemo ?? []).length,
         refused,
       };
     }
@@ -531,6 +613,8 @@ export async function persistRetainedItemsFor(args: {
       nextPlanWritten: nextPlanNew.length,
       durableStored: itemsPayload?.length ?? (storedDurable ?? []).length,
       nextPlanStored: nextPayload?.length ?? (storedNextPlan ?? []).length,
+      memoWritten: memoNewJson.length,
+      memoStored: memoPayload?.length ?? (storedMemo ?? []).length,
       refused,
     };
     // UNE SEULE LIGNE, ET ELLE PORTE LES DEUX NOMBRES QUI SE LISENT ENSEMBLE:
@@ -547,12 +631,16 @@ export async function persistRetainedItemsFor(args: {
       next_plan_written: outcome.nextPlanWritten,
       durable_stored: outcome.durableStored,
       next_plan_stored: outcome.nextPlanStored,
+      memo_written: outcome.memoWritten,
+      memo_stored: outcome.memoStored,
       refused_total: refused.total,
       refused_foreign_source: refused.foreignSource,
       refused_forbidden_kind: refused.forbiddenKind,
       refused_unquoted: refused.unquoted,
       refused_misfiled: refused.misfiled,
       refused_already_stored: refused.alreadyStored,
+      refused_memo_duplicate: refused.memoDuplicate,
+      refused_memo_full: refused.memoFull,
     }));
     // ── LOT M7 · LE COMPTEUR DU REPLI DE SÉCURITÉ, CÔTÉ MAGASIN ─────────────
     //
@@ -620,6 +708,8 @@ export async function persistRetainedItemsFor(args: {
       nextPlanWritten: 0,
       durableStored: (storedDurable ?? []).length,
       nextPlanStored: (storedNextPlan ?? []).length,
+      memoWritten: 0,
+      memoStored: (storedMemo ?? []).length,
       refused,
     };
   }
@@ -849,13 +939,16 @@ function refuse(
   const detail: RetainedWriteRefusals = {
     total: refused
       ? refused.foreignSource + refused.forbiddenKind + refused.unquoted +
-        refused.misfiled + refused.alreadyStored
+        refused.misfiled + refused.alreadyStored + refused.memoDuplicate +
+        refused.memoFull
       : 0,
     foreignSource: refused?.foreignSource ?? 0,
     forbiddenKind: refused?.forbiddenKind ?? 0,
     unquoted: refused?.unquoted ?? 0,
     misfiled: refused?.misfiled ?? 0,
     alreadyStored: refused?.alreadyStored ?? 0,
+    memoDuplicate: refused?.memoDuplicate ?? 0,
+    memoFull: refused?.memoFull ?? 0,
   };
   warn("refused", { source, user_id: userId, reason, refused: detail });
   return {
@@ -865,6 +958,8 @@ function refuse(
     nextPlanWritten: 0,
     durableStored: 0,
     nextPlanStored: 0,
+    memoWritten: 0,
+    memoStored: 0,
     refused: detail,
   };
 }

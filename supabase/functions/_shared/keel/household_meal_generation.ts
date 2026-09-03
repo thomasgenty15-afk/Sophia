@@ -882,6 +882,26 @@ export interface HouseholdPromptInput {
    * elle garde.
    */
   voices: readonly RawMemberVoice[];
+  /**
+   * LOT A (2026-09-03) — « CE QUE SOPHIA SAIT », PAR BOUCHE, DÉJÀ RENDU.
+   *
+   * Les notes de la destination ③ des bouches À CETTE TABLE, rendues par
+   * `memo.ts::renderMemoLine` (« Tuesday dinner — Léa: … »). Les notes de la
+   * TABLE (`household`) n'arrivent pas ici: elles entrent par le tronc
+   * (`buildMealPrompt({ memo })`), comme avant le lot.
+   *
+   * ⚠️ REQUIS, `[]` pour « aucune note », jamais `T?`. Un champ facultatif
+   * n'aurait fait remonter aucun appelant au compilateur, et la destination ③
+   * serait construite sans être branchée — le mode d'échec n°1 de ce dépôt.
+   * `[]` rend un prompt byte-identique à celui d'avant le lot.
+   *
+   * ⚠️ PAS PAR LES VOIX. Les voix ne portent que les bouches AVEC compte (D3),
+   * sous un plafond de tokens et une garde de non-divulgation dont le pied de
+   * bloc dit « never say whose line shaped a dish ». Une note dit l'inverse:
+   * « Léa a danse le mardi, il lui faut une grosse part » DOIT désigner Léa
+   * dans l'assiette. Deux natures, deux blocs.
+   */
+  notes: readonly string[];
 }
 
 /** Ce que la fusion apporte au prompt. Décidé ailleurs — voir `household_merge.ts`. */
@@ -1685,6 +1705,11 @@ export interface HouseholdPromptBlocks {
    */
   voiceCounts: VoiceLineCounts;
   /**
+   * LOT A — COMBIEN DE NOTES PAR BOUCHE LE BLOC A ÉCRITES. `0` = aucun bloc.
+   * Rendu par le module qui écrit le bloc, jamais recompté par l'appelant.
+   */
+  notesServed: number;
+  /**
    * L7 ① — CE QUE LE BLOC A RÉELLEMENT INTERDIT, dans l'ordre de la liste.
    *
    * ⚠️ RENDU PAR LE MODULE QUI ÉCRIT LE BLOC, et pas recalculé par l'appelant.
@@ -1737,6 +1762,71 @@ export interface HouseholdPromptBlocks {
   crossContact: CrossContactOutcome;
 }
 
+// ===========================================================================
+// LOT A · « CE QUE SOPHIA SAIT », PAR BOUCHE — le bloc, et sa règle d'exception
+// ===========================================================================
+
+const NOTES_HEADER = [
+  "== FACTS ABOUT THIS WEEK, PER PERSON ==",
+  "What I know about these people that no other field carries — a rehearsal, a",
+  "late dinner, a day that is not like the others. These are not preferences to",
+  'weigh: honour them, or say in the "why" of the dish it affects that you could',
+  "not, and what you did instead.",
+] as const;
+
+/**
+ * ⛔ LA RÈGLE D'EXCEPTION EST DANS LE BLOC, COLLÉE AUX LIGNES. Cicatrice
+ * `named-day-calendar-vs-model-prior`: nommer le jour ne suffit pas, le modèle
+ * lisse les jours quand rien ne lui dit que ce jour-là est l'exception. Elle
+ * est en PIED de bloc, après les lignes, parce que « la contrainte la plus
+ * proche de la fin est lue comme la plus contraignante » — et ici c'est elle
+ * qui doit gagner contre l'a priori d'une semaine régulière.
+ */
+const NOTES_FOOTER = [
+  "When a line names a day or a meal, THAT day or THAT meal is the exception for",
+  "THAT person: compose it differently from their other days — do not flatten it",
+  "into the same box as the rest of the week.",
+] as const;
+
+/**
+ * ⛔ CE QUE CE PIED DE BLOC A ESSAYÉ DE DIRE, ET QUI A ÉTÉ RETIRÉ APRÈS MESURE
+ * (2026-09-03, banc du lot A, deux générations réelles de 7 jours).
+ *
+ * La note « Léa a danse le mardi soir, il lui faut un vrai repas » atteint le
+ * prompt (`served=1`) et change ce que le modèle ÉCRIT — le « pourquoi » du
+ * mardi disait « une soirée qui demande un vrai repas ». Elle ne change PAS les
+ * grammes: Léa mangeait 350 g/bouche le lundi, le mardi et le mercredi.
+ *
+ * On a donc ajouté ici « donne-lui sa PROPRE boîte ce soir-là ». Résultat
+ * mesuré au run suivant: le modèle a bien créé la boîte séparée… à **169 g**,
+ * pendant que la boîte partagée du mercredi donnait **740 g/bouche**. La phrase
+ * a rendu le mardi PLUS PETIT — l'inverse exact de ce que la note demande.
+ *
+ * ⚠️ LE MOTIF EST STRUCTUREL, PAS RÉDACTIONNEL, et c'est pour ça qu'on ne
+ * retente pas une troisième formulation: **les grammes d'une boîte sont écrits
+ * par le modèle**, et rien dans ce produit ne relie une note à un besoin
+ * (cicatrice `grams-were-never-anchored-to-a-need`). Le levier des portions est
+ * l'ENVELOPPE (`meal_envelope.ts`, destination ② de la nomenclature), qui est
+ * par PERSONNE et n'a aucune dimension par JOUR. Une note ne peut donc pas
+ * déplacer un grammage tant que ce levier n'existe pas.
+ *
+ * ⇒ Ce que le bloc tient aujourd'hui, et qui est vérifié: la note est SERVIE,
+ * attribuée à sa personne, au jour nommé, et le modèle compose ce jour-là
+ * différemment. Ce qu'il ne tient pas: le grammage. C'est un trou NOMMÉ
+ * (rapport du lot A, §8.1 phrase 6), pas un lot débranché.
+ */
+
+/** Le bloc des notes par bouche. `""` quand il n'y en a aucune. */
+function notesBlock(notes: readonly string[]): { block: string; served: number } {
+  const lines = (notes ?? []).map((n) => String(n ?? "").trim()).filter((n) => n);
+  if (lines.length === 0) return { block: "", served: 0 };
+  return {
+    block: [...NOTES_HEADER, "", ...lines.map((l) => `- ${l}`), "", ...NOTES_FOOTER]
+      .join("\n"),
+    served: lines.length,
+  };
+}
+
 /**
  * Rend les blocs à greffer sur le prompt existant.
  *
@@ -1750,6 +1840,9 @@ export function buildHouseholdPromptBlocks(
 ): HouseholdPromptBlocks {
   const envyBlock = buildEnvyBlock(input.envyLine);
   const voices = buildHouseholdVoices(input.voices);
+  // LOT A — les notes par bouche, déjà rendues par `memo.ts`. Sa trace
+  // (`served`) sort par le même objet que son texte.
+  const notes = notesBlock(input.notes);
   const dishOwner = dishOwnerSchemaBlock(input.dishBearers);
   // LOT C ② — LES DEUX MOITIÉS, CALCULÉES DEPUIS LA MÊME LISTE. Le patron est
   // celui de `dishOwnerSchemaBlock` / `dedicatedDishBlock`, qui MARCHE en
@@ -1882,6 +1975,13 @@ export function buildHouseholdPromptBlocks(
     // survivre à tout, y compris à une préférence qui la contredirait
     // (« Léa adore le Nutella » face à « on ne sert pas de Nutella à Léa »).
     voices.block,
+    // ── LOT A · JUSTE APRÈS LES VOIX, AVANT L'ENVIE ────────────────────────
+    // Même famille que les voix — ce qu'on sait des gens, durable — donc du
+    // côté de ce qui vaut toutes les semaines, avant « THIS TIME ». Et APRÈS
+    // les voix: leur pied de bloc interdit de dire qui a façonné un plat; une
+    // note, elle, désigne sa personne dans l'assiette. Lue en second, c'est
+    // elle qui l'emporte sur ce point-là.
+    notes.block,
     envyBlock,
     // ── L7 ① · LA CUISINE EST DANS LE GROUPE DES VERROUS, APRÈS L'ENVIE ─────
     // Ce n'est pas une préférence, c'est une impossibilité physique: elle doit
@@ -1994,6 +2094,7 @@ export function buildHouseholdPromptBlocks(
     voiceIssues: voices.issues,
     voicesHeard: voices.heard.length,
     voiceCounts: voices.counts,
+    notesServed: notes.served,
     kitchenMissing: kitchen.missing,
     eatingOut: { mouths: eatingOut.mouths, cells: eatingOut.cells },
     whyRuleHolders: input.ruleHolders.length,

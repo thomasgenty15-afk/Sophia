@@ -27,6 +27,15 @@ export interface LiveHouseholdPlan {
   id: string;
   startsOn: string;
   durationDays: number;
+  /**
+   * ⟳ A1 (2026-09-03) — LA VEILLE DE CETTE LIGNE, 0 ou 1.
+   *
+   * Ajoutée ici et NULLE PART AILLEURS dans la fusion: c'est cette liste que
+   * `generate-household-meal-v1` repasse à `firstBlockingPlan`, dont la règle
+   * compare des JOURS MANGÉS depuis la migration `20260903170000`. Sans elle,
+   * la lane foyer refuserait un plan N+1 que la base accepte.
+   */
+  leadDays: number;
   validatedAt: string | null;
   /** Jetons `mon`..`sun` des sessions de cuisine, sans doublon. */
   cookingDays: string[];
@@ -98,7 +107,7 @@ export async function loadLiveHouseholdPlans(
   const res = await admin
     .from("student_generated_meals")
     .select(
-      "id, starts_on, duration_days, validated_at, cooking_sessions, dishes, generated_from",
+      "id, starts_on, duration_days, lead_days, validated_at, cooking_sessions, dishes, generated_from",
     )
     .eq("user_id", args.ownerUserId)
     .eq("household_id", args.householdId)
@@ -110,6 +119,9 @@ export async function loadLiveHouseholdPlans(
     id: String(row.id),
     startsOn: String(row.starts_on ?? ""),
     durationDays: Number(row.duration_days ?? 0),
+    // `?? 0` — la colonne est `not null default 0`; `null` ne vient que d'une
+    // base non migrée, et « pas de veille » est ce que ces lignes portent.
+    leadDays: Number(row.lead_days ?? 0),
     validatedAt: row.validated_at == null ? null : String(row.validated_at),
     cookingDays: storedCookingDays(row.cooking_sessions),
     dishes: storedDishes(row.dishes),

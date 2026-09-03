@@ -141,10 +141,35 @@ export default function KitchenToday(
 
   const todayTitles = prepTitles(day.cookToday);
 
+  // ── A1 (2026-09-03) · LE TIMING, MAIS SEULEMENT QUAND IL PARLE D'AUJOURD'HUI
+  //
+  // ⛔ PAS TOUS LES JOURS. « Courses et cuisson dimanche, la veille » rendu du
+  // lundi au samedi est du bruit sur l'écran du JOUR: cette carte dit ce qu'il
+  // y a à faire maintenant, et une phrase qui parle d'un autre jour y devient
+  // un meuble qu'on cesse de lire. Deux cas, et deux seulement:
+  //   · la veille EST aujourd'hui — c'est le jour où l'on court au magasin;
+  //   · pas de veille, et le plan commence aujourd'hui — c'est l'avertissement
+  //     « dès le matin », et il n'a de valeur que ce matin-là.
+  const timing = meals.timing ?? null;
+  const timingLine = timing === null
+    ? null
+    : timing.kind === "day_before" && timing.leadDay === todayDate
+    ? mealCopy("meals.timing.day_before", {
+      day: dishDayLabel(dayTokenOf(timing.leadDay)) ?? "",
+    })
+    : timing.kind === "same_morning" && meals.startsOn === todayDate
+    ? mealCopy("meals.timing.same_morning")
+    : null;
+
   return (
     <section>
       <SectionLabel>{mealCopy("meals.today.title")}</SectionLabel>
       <Card>
+        {timingLine === null ? null : (
+          <p className="mb-3 break-words text-sm font-semibold text-ink">
+            {timingLine}
+          </p>
+        )}
         {/* ── CUISINE ─────────────────────────────────────────────────────── */}
         {day.cookToday
           ? (

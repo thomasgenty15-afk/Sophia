@@ -132,7 +132,7 @@ Deno.test("une charge forgée ne devient jamais une réponse", () => {
 // ---------------------------------------------------------------------------
 
 Deno.test("l'état vient de `answered`, PAS des colonnes de plats", () => {
-  const questions = questionsFor("fat_loss", false);
+  const questions = questionsFor(false);
   // Le cas exact du défaut: la ligne existe (premier tap sur `cooked`), donc
   // `never_again` vaut `[]` PAR DÉFAUT en base. Sans le marqueur, cette
   // question serait sautée — et `make_again` avec elle.
@@ -143,7 +143,7 @@ Deno.test("l'état vient de `answered`, PAS des colonnes de plats", () => {
     makeAgain: [],
   });
   assertEquals(
-    nextFeedbackStep({ row: afterFirstTap, questions, subjectDue: false }),
+    nextFeedbackStep({ row: afterFirstTap, questions, subjectDue: false, foodSubjectDue: false }),
     { step: "question", question: "portions" },
   );
 
@@ -153,32 +153,44 @@ Deno.test("l'état vient de `answered`, PAS des colonnes de plats", () => {
     answered: ["cooked", "portions"],
   });
   assertEquals(
-    nextFeedbackStep({ row: afterPortions, questions, subjectDue: false }),
-    { step: "question", question: "never_again" },
-    "sans le marqueur, un `[]` par défaut ferait sauter cette question",
+    nextFeedbackStep({ row: afterPortions, questions, subjectDue: false, foodSubjectDue: false }),
+    // ⚠️ LOT B — `difficulty` VIENT AVANT LES PLATS, et elle n'est posée que
+    // parce que `cooked` vaut `partly` (la garde `cookingQuestionsAreAsked`).
+    { step: "question", question: "difficulty" },
   );
 
   // « Aucun » EST une réponse: le tableau reste vide, le jeton entre.
   const afterNoneTap = row({
     cooked: "partly",
     portions: "right",
-    answered: ["cooked", "portions", "never_again"],
+    difficulty: "fine",
+    speed: "fine",
+    variety: "yes",
+    answered: [
+      "cooked",
+      "portions",
+      "difficulty",
+      "speed",
+      "enough_variety",
+      "never_again",
+    ],
   });
   assertEquals(
-    nextFeedbackStep({ row: afterNoneTap, questions, subjectDue: false }),
+    nextFeedbackStep({ row: afterNoneTap, questions, subjectDue: false, foodSubjectDue: false }),
     { step: "question", question: "make_again" },
+    "sans le marqueur, un `[]` par défaut ferait sauter cette question",
   );
 });
 
 Deno.test("la relance « pour qui ? » suit IMMÉDIATEMENT la portion", () => {
-  const questions = questionsFor("fat_loss", false);
+  const questions = questionsFor(false);
   const answered = row({
     cooked: "yes",
     portions: "too_much",
     answered: ["cooked", "portions"],
   });
   assertEquals(
-    nextFeedbackStep({ row: answered, questions, subjectDue: true }),
+    nextFeedbackStep({ row: answered, questions, subjectDue: true, foodSubjectDue: false }),
     { step: "portions_subject" },
     "une relance posée trois questions plus loin ne se rattache plus à rien",
   );
@@ -188,8 +200,10 @@ Deno.test("la relance « pour qui ? » suit IMMÉDIATEMENT la portion", () => {
       row: { ...answered, portionsSubject: "household" },
       questions,
       subjectDue: true,
+      foodSubjectDue: false,
     }),
-    { step: "question", question: "never_again" },
+    // ⚠️ LOT B — la suite est `difficulty`: `cooked: "yes"` ouvre la garde.
+    { step: "question", question: "difficulty" },
   );
 });
 
@@ -197,9 +211,8 @@ Deno.test("un refus ferme le questionnaire, définitivement", () => {
   assertEquals(
     nextFeedbackStep({
       row: row({ dismissedAt: "2026-09-01T20:10:00.000Z" }),
-      questions: questionsFor("fat_loss", false),
-      subjectDue: false,
-    }),
+      questions: questionsFor(false),
+      subjectDue: false, foodSubjectDue: false }),
     { step: "done" },
     "un « non merci » relancé est du harcèlement",
   );
@@ -208,17 +221,33 @@ Deno.test("un refus ferme le questionnaire, définitivement", () => {
 Deno.test("sous plancher TCA, la liste courte est celle de `questionsFor`", () => {
   // ⛔ CE MODULE NE RE-DÉCIDE RIEN: il consomme la liste. Le test vérifie
   // qu'aucune question retirée par le plancher ne peut réapparaître ici.
-  const restricted = questionsFor("fat_loss", true);
+  const restricted = questionsFor(true);
+  // ⚠️ `portions` N'EST PAS DANS `restricted`, et c'est le point: même en
+  // portant une réponse, elle ne peut pas être reposée ici — ce module
+  // consomme la liste, il ne la re-décide pas.
+  assertEquals(restricted.includes("portions"), false);
   const step = nextFeedbackStep({
     row: row({
       cooked: "yes",
       portions: "right",
-      answered: ["cooked", "portions", "never_again", "make_again"],
+      difficulty: "fine",
+      speed: "fine",
+      variety: "yes",
+      answered: [
+        "cooked",
+        "difficulty",
+        "speed",
+        "enough_variety",
+        "never_again",
+        "make_again",
+        "anything_else",
+      ],
     }),
     questions: restricted,
     subjectDue: false,
+    foodSubjectDue: false,
   });
-  assertEquals(step, { step: "done" }, "aucune question d'axe sous plancher");
+  assertEquals(step, { step: "done" }, "une question retirée par le plancher a réapparu");
 });
 
 // ---------------------------------------------------------------------------
@@ -243,7 +272,7 @@ Deno.test("une question à options rend ses boutons, dans les deux langues", () 
       mealId: MEAL,
       question: "cooked",
       language,
-      dishTitles: [],
+      foodTerms: [],
       offerDismiss: true,
     });
     assert(prompt !== null);
@@ -270,7 +299,7 @@ Deno.test("le « pas maintenant » n'est offert qu'une fois", () => {
     mealId: MEAL,
     question: "portions",
     language: "fr",
-    dishTitles: [],
+    foodTerms: [],
     offerDismiss: false,
   });
   assert(later !== null);
@@ -285,7 +314,7 @@ Deno.test("une question de plat rend les plats PUIS « aucun »", () => {
     mealId: MEAL,
     question: "never_again",
     language: "fr",
-    dishTitles: dishTitlesOf(DISHES),
+    foodTerms: dishTitlesOf(DISHES),
     offerDismiss: false,
   });
   assert(prompt !== null);
@@ -301,7 +330,7 @@ Deno.test("la liste de plats est plafonnée, et un plan sans titre ne pose pas l
     mealId: MEAL,
     question: "make_again",
     language: "en",
-    dishTitles: many,
+    foodTerms: many,
     offerDismiss: false,
   });
   assert(prompt !== null);
@@ -313,7 +342,7 @@ Deno.test("la liste de plats est plafonnée, et un plan sans titre ne pose pas l
       mealId: MEAL,
       question: "make_again",
       language: "en",
-      dishTitles: [],
+      foodTerms: [],
       offerDismiss: false,
     }),
     null,
@@ -356,13 +385,38 @@ Deno.test("la relance « pour qui ? » exige au moins une bouche nommable", () =
 });
 
 Deno.test("toute question du vocabulaire sait se rendre — sinon elle est décorative", () => {
+  // ⛔ `anything_else` EST L'EXCEPTION NOMMÉE, ET ELLE N'EST PAS POSÉE DANS LE
+  // CHAT. Le flux du chat est à BOUTONS (FF-054 §3.2), et un champ libre y
+  // demanderait à la personne de taper un message ordinaire — que le chemin
+  // déterministe ne capte pas. Le renversement du 2026-09-03 est donc borné à
+  // l'ÉCRAN: la règle « aucun champ libre » de §3.2 reste entière ICI.
+  //
+  // ⚠️ ET C'EST LE RENDU QUI LE TIENT: `renderFeedbackQuestion` rend `null`
+  // pour elle (aucune option), et `loadChatFeedbackContext` la retire de la
+  // liste. Deux gardes, parce qu'une seule laisserait une bulle vide sortir le
+  // jour où quelqu'un construirait la liste ailleurs.
+  const NOT_IN_CHAT: readonly string[] = ["anything_else"];
   for (const question of FEEDBACK_QUESTIONS) {
+    if (NOT_IN_CHAT.includes(question)) {
+      assertEquals(
+        renderFeedbackQuestion({
+          mealId: MEAL,
+          question,
+          language: "en",
+          foodTerms: ["Un plat"],
+          offerDismiss: false,
+        }),
+        null,
+        `${question} se rend dans le chat alors qu'elle est à l'écran seulement`,
+      );
+      continue;
+    }
     for (const language of ["en", "fr"] as const) {
       const prompt = renderFeedbackQuestion({
         mealId: MEAL,
         question,
         language,
-        dishTitles: ["Un plat"],
+        foodTerms: ["Un plat"],
         offerDismiss: false,
       });
       assert(

@@ -43,6 +43,20 @@ doctrine du coach** à cette vie-là pour composer ses repas : `generate-meal-v1
 L'autorité du coach n'est pas affaiblie, elle **change de canal** : elle passe par la doctrine
 (interdits inclus, avec leur double verrou) et par le contenu du programme.
 
+### La mémoire du plan a DEUX sources et TROIS destinations (2026-09-03)
+
+Ce que Sophia retient d'une personne pour composer vient de **deux sources** — le retour écrit
+sur le **brouillon** d'un plan, et le **bilan** de fin de plan — et va dans **trois
+destinations** sans recouvrement : les **préférences alimentaires** (par personne : un aliment
+ou une préparation qu'on ne sert plus ou qu'on veut revoir), les **indices** (portion,
+capacité, rapidité, variété — des positions sur des échelles fermées, internes, bougées par une
+question posée et jamais par une phrase), et **« ce que Sophia sait »** (le reste, par
+personne, daté, cité, effaçable). Un encart « pour le prochain plan » vit jusqu'à la
+**validation** du plan suivant. **Le chat ordinaire n'y écrit rien.** La sécurité (allergies,
+régimes, médical) est hors de tout ça, dans ses tables. Autorité :
+**[docs/keel/NOMENCLATURE-MEMOIRE.md](NOMENCLATURE-MEMOIRE.md)** §2 ; les exemples de routage
+que les bancs testent sont au §8.
+
 ### ⚠️ CE QUE LE RETRAIT DE LA LANE DE SEMAINE A COÛTÉ (2026-08-19)
 
 Jusqu'au 2026-08-19, ce paragraphe décrivait une autre chaîne :

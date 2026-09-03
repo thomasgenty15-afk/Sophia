@@ -484,3 +484,68 @@ Deno.test("un groupe non périssable au rayon périssable ne déplace rien", () 
   assertEquals(waves.length, 1);
   assertEquals(waves[0].buyOn, MONDAY, "le rayon `pantry` n'a pas de fenêtre");
 });
+
+// ---------------------------------------------------------------------------
+// A1 (chantier-0903/CUISINE, 2026-09-03) — `servesCookOn` SUR LA PREMIÈRE VAGUE
+// ---------------------------------------------------------------------------
+//
+// ⛔ LE DÉFAUT QUE CES DEUX TESTS FERMENT, ET IL EST SILENCIEUX. `serves` ne se
+// posait que si `buyOn > startsOn`. Avec la veille de A1, `startsOn` EST la
+// veille et la première vague y tombe: la règle marchait par COÏNCIDENCE. Elle
+// se casse dès que la première vague tombe APRÈS le début du plan — tout
+// périssable, cuisson tardive — et alors `servesCookOn` reste `null` PARTOUT,
+// `shiftProposalAfterShoppingLater` (`accident.ts`) ne propose plus rien, et
+// rien ne rougit. La règle est donc `buyOn > firstBuyOn`.
+
+Deno.test("A1 — la PREMIÈRE vague ne porte pas de phrase, même tombée après le début", () => {
+  // Tout est périssable et rien ne se cuisine avant la fin de semaine: la
+  // première vague tombe le MERCREDI 05 (samedi 08 − 3 jours de salade), pas
+  // le lundi.
+  const waves = planGroceryWaves({
+    startsOn: MONDAY,
+    durationDays: 7,
+    shoppingList: [
+      { term: "salade", quantity: null, aisle: "produce", food_group: "leafy_greens" },
+      { term: "poisson", quantity: null, aisle: "protein", food_group: "fish" },
+    ],
+    preparations: [
+      { id: "p1", cookOn: "sat", ingredientTerms: ["salade"] },
+      { id: "p2", cookOn: "sun", ingredientTerms: ["poisson"] },
+    ],
+  });
+  assert(waves.length >= 2, `attendu ≥ 2 vagues, vu ${waves.length}`);
+  // ⛔ LA PREMIÈRE TOMBE APRÈS LE DÉBUT DU PLAN — c'est le cas que l'ancienne
+  // règle ne savait pas voir.
+  assert(waves[0].buyOn > MONDAY, `première vague le ${waves[0].buyOn}`);
+  assertEquals(waves[0].servesCookOn, null);
+  // ⛔ ET TOUTES LES SUIVANTES PORTENT LEUR CUISSON (invariant C3).
+  for (const wave of waves.slice(1)) {
+    assert(
+      wave.servesCookOn !== null,
+      `la vague du ${wave.buyOn} ne dit pas pour quelle cuisson elle existe`,
+    );
+  }
+});
+
+Deno.test("A1 — la vague du RANG 0 (la veille) reste muette, la suivante parle", () => {
+  // La fenêtre servie sous A1: dimanche 02/08 est la veille, on mange du lundi
+  // au dimanche suivant. `startsOn` EST la veille — la borne `.eq(startsOn)`
+  // reste donc juste, et c'est ce que ce test verrouille.
+  const SUNDAY_BEFORE = "2026-08-02";
+  const waves = planGroceryWaves({
+    startsOn: SUNDAY_BEFORE,
+    durationDays: 8,
+    shoppingList: [
+      { term: "lentilles", quantity: null, aisle: "pantry", food_group: null },
+      { term: "poulet", quantity: null, aisle: "protein", food_group: "poultry" },
+    ],
+    preparations: [
+      { id: "p1", cookOn: "sun", ingredientTerms: ["lentilles"] },
+      { id: "p2", cookOn: "fri", ingredientTerms: ["poulet"] },
+    ],
+  });
+  assertEquals(waves.length, 2);
+  assertEquals(waves[0].buyOn, SUNDAY_BEFORE);
+  assertEquals(waves[0].servesCookOn, null);
+  assert(waves[1].servesCookOn !== null);
+});

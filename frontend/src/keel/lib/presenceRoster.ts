@@ -10,7 +10,8 @@ import type { AwayMark } from "./presenceMarks";
 // « la grille du plan gagne toujours sur la réponse hebdomadaire ».
 //
 // ── ⛔ LE DÉFAUT, ET IL CASSAIT LA RÈGLE PRODUIT ─────────────────────────
-// L'étape 3 pose la question du déjeuner AU TITULAIRE AUSSI (`workLunchRoster`,
+// La question du déjeuner se pose AU TITULAIRE AUSSI (`MemberWorkLunchCard` sur
+// `/app/household` depuis A6, 2026-09-03 — à l'étape 3 avant, `workLunchRoster`:
 // « le titulaire, premier et pareil »), et sa réponse PRÉ-REMPLIT cinq midis
 // « dehors » sur SA ligne membre, dans la même transaction. L'étape 4, elle,
 // listait `facts.mouths` — dont `readFunnelFacts` RETIRE le titulaire, exprès,
@@ -31,8 +32,9 @@ import type { AwayMark } from "./presenceMarks";
 //     n'existe QUE pour un midi marqué « dehors » — c'est-à-dire qu'elle
 //     supprimerait la moitié utile du lot pour la personne la plus susceptible
 //     de composer;
-//   · `workLunchRoster` porte en toutes lettres l'arbitrage inverse, pris la
-//     veille et écrit dans son en-tête. Le renverser en passant, depuis un lot
+//   · `MemberWorkLunchCard` porte en toutes lettres l'arbitrage inverse (repris
+//     de `workLunchRoster`, retiré avec l'étape), pris la veille et écrit dans
+//     son en-tête. Le renverser en passant, depuis un lot
 //     d'écran, ferait exactement ce que ce dépôt reproche à ses propres
 //     commentaires: une contrainte qui survit à sa cause, dans l'autre sens.
 //   · la question reste juste: elle décrit une SEMAINE ORDINAIRE. Ce qui
@@ -66,8 +68,8 @@ export interface PresenceSelf {
 /**
  * LES BOUCHES QUI ONT UNE GRILLE, DANS L'ORDRE DE L'ÉCRAN — titulaire d'abord.
  *
- * ⚠️ IL EST EN TÊTE PARCE QU'IL EST LA PREMIÈRE BOUCHE DE SA TABLE, comme à
- * l'étape 3 (`workLunchRoster`) et sur la fiche du foyer (`MeCard`). Trois
+ * ⚠️ IL EST EN TÊTE PARCE QU'IL EST LA PREMIÈRE BOUCHE DE SA TABLE, comme sur
+ * la fiche du foyer (`MeCard`, et le roster de `MembersCard`). Trois
  * écrans qui rangent les mêmes personnes dans trois ordres différents font
  * chercher la sienne à chaque fois.
  *

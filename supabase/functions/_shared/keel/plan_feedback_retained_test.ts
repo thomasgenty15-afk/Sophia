@@ -28,8 +28,7 @@ import {
 } from "./field_change.ts";
 import type { MealBodyContext } from "./meal_body.ts";
 import type { MemberAgeState } from "./household.ts";
-import { questionsFor, VARIETY_AXIS_QUESTION } from "./plan_feedback.ts";
-import { STUDENT_GOALS } from "./week_plan_generation.ts";
+import { questionsFor } from "./plan_feedback.ts";
 import {
   logisticsOverlayFor,
   routeRetainedItems,
@@ -59,6 +58,10 @@ const CTX: PlanFeedbackContext = {
   at: "2026-08-18",
   locale: "en-GB",
   planDishTitles: ["Lentil soup", "Chicken and rice bowls"],
+  // ── LOT B · LES ALIMENTS DU PLAN, la liste fermée des deux questions ────
+  // Les préparations sont pliées dedans par l'appelant (`foodTermsOf`): en
+  // cuisine par lots, la protéine vit dans la préparation, pas dans le plat.
+  planFoodTerms: ["lentils", "chicken", "rice", "salmon"],
   cookingTimeMin: 45,
   recipeDifficulty: "normal",
   // Le cran DU MILIEU: il laisse la place de monter, donc un test qui ne
@@ -73,6 +76,10 @@ function row(patch: Partial<PlanFeedbackRow> = {}): PlanFeedbackRow {
     portionsSubject: null,
     neverAgain: [],
     makeAgain: [],
+    // ── LOT B ─────────────────────────────────────────────────────────────
+    difficulty: null,
+    speed: null,
+    variety: null,
     axisQuestion: null,
     axisAnswer: null,
     dismissedAt: null,
@@ -384,8 +391,19 @@ Deno.test("« ce qu'il fallait » ne retient rien, ET C'EST COMPTÉ", () => {
   assertEquals(out.items.length, 0);
   // Sans ce compteur, une réponse neutre est indiscernable d'une extraction
   // débranchée.
-  assertEquals(out.refused.neutral, 1);
-  assertEquals(out.refused.total, 1);
+  //
+  // ⚠️ `neutral` NE DISTINGUE PAS « répondu neutre » DE « pas posée », ET IL
+  // NE L'A JAMAIS FAIT: `effectOf` rend `null` pour les deux (c'est écrit dans
+  // `feedback_index.ts`, sur la même ambiguïté). Ce que ce compteur garde est
+  // autre chose, et c'est ce que ce test mesure: l'extraction a TOURNÉ et n'a
+  // rien produit — sans lui, ça ne se distingue pas d'une extraction
+  // débranchée.
+  //
+  // ⚠️ LE NOMBRE EST DE DEUX depuis le lot B: la portion neutre ET la variété
+  // non posée. L'épingler à « 1 » aurait fait un test qui casse au premier
+  // indice ajouté, sans rien dire de plus.
+  assert(out.refused.neutral > 0, "l'extraction n'a laissé aucune trace");
+  assertEquals(out.refused.total, out.refused.neutral);
 });
 
 Deno.test("une bouche nommée reste nommée", () => {
@@ -502,42 +520,97 @@ Deno.test("⛔ le même plat dans les deux sens: LES DEUX tombent", () => {
 // `cooked` — LE LECTEUR QUE LA COLONNE SE NOMME À ELLE-MÊME
 // ===========================================================================
 
-Deno.test("« non » allège la session ET simplifie la recette", () => {
-  // ⛔ LOT M5 — CE SONT DES CHANGEMENTS DE CHAMP, PLUS DES ITEMS RETENUS.
-  // Avant, ces deux lignes partaient dans un magasin à part et les générateurs
-  // les posaient EN MÉMOIRE au moment de composer: la personne lisait 45 min
-  // dans ses réglages et son plan était fait sur 30, sans qu'un écran le dise.
+Deno.test("⛔ LOT B — « non » NE DÉPLACE PLUS RIEN: on demande au lieu de deviner", () => {
+  // ── LE DÉFAUT QUE CE TEST GARDE, ET IL A CHANGÉ DE SENS ────────────────
+  // Avant le lot B, « je n'ai pas pu cuisiner » retirait 15 minutes de session
+  // ET simplifiait les recettes d'un cran. Une réponse unique, DEUX
+  // déductions: le produit décidait lequel des deux problèmes la personne
+  // avait eu, et bougeait les deux pour être sûr. Et « 45 − 15 » écrivait 30,
+  // « 60 − 10 » écrivait 50 — un nombre que l'écran ne propose PAS
+  // (`COOKING_SESSION_MINUTES`), donc un réglage introuvable dans son propre
+  // formulaire.
+  //
+  // Deux questions le demandent maintenant, et `cooked` est redevenu la garde
+  // qui décide si on les pose.
   const out = retainedItemsFromPlanFeedback(row({ cooked: "no" }), CTX);
-  assertEquals(out.items.length, 0, "un item retenu subsiste");
-  assertEquals(out.fieldChanges.length, 2);
-  assertEquals(out.fieldChanges[0].field, "cooking_time_min");
-  // 45 − 15 = 30, le plancher. Le nombre vient d'`effectOf`, pas d'ici.
-  assertEquals(out.fieldChanges[0].next, 30);
+  assertEquals(out.items.length, 0);
+  assertEquals(out.fieldChanges.length, 0, "`cooked` déplace encore un champ tout seul");
+
+  // ⛔ ET UNE RÉPONSE DE CUISINE ARRIVÉE SANS SA PRÉMISSE NE DÉPLACE RIEN
+  // NON PLUS — un client cassé ou une charge forgée ne bouge pas un réglage
+  // réel. La base le refuse aussi (`cooking_answer_without_cooking`).
+  const forged = retainedItemsFromPlanFeedback(
+    row({ cooked: "no", difficulty: "too_hard", speed: "too_long" }),
+    CTX,
+  );
+  assertEquals(forged.fieldChanges.length, 0);
+});
+
+Deno.test("LOT B — `difficulty` bouge d'UN CRAN, dans les deux sens, avec sa cause", () => {
+  const down = retainedItemsFromPlanFeedback(
+    row({ cooked: "yes", difficulty: "too_hard" }),
+    CTX,
+  );
+  assertEquals(down.items.length, 0, "un item retenu subsiste");
+  assertEquals(down.fieldChanges.length, 1);
+  assertEquals(down.fieldChanges[0].field, "recipe_difficulty");
+  assertEquals(down.fieldChanges[0].next, "simple");
   // ⛔ `previous` EST CE QUI REND « DÉFAIRE » POSSIBLE. Un scalaire ne se
   // retire pas: sans la valeur d'avant, défaire voudrait dire « retape ce que
   // tu avais », c'est-à-dire réclamer un nombre que le produit vient d'effacer.
-  assertEquals(out.fieldChanges[0].previous, 45);
-  assertEquals(out.fieldChanges[1].field, "recipe_difficulty");
-  assertEquals(out.fieldChanges[1].next, "simple");
-  assertEquals(out.fieldChanges[1].previous, CTX.recipeDifficulty);
-  // Et chacun porte sa cause — la question lue et la réponse cliquée.
-  for (const change of out.fieldChanges) {
-    assertEquals(change.source, "questionnaire");
-    assertEquals(change.quote.length > 0, true, "un changement sans cause");
-  }
+  assertEquals(down.fieldChanges[0].previous, "normal");
+  assertEquals(down.fieldChanges[0].source, "questionnaire");
+  assert(down.fieldChanges[0].quote.length > 0, "un changement sans cause");
+
+  // ⛔ ET LE SENS MONTANT EXISTE — c'est la condition du lot. Un champ qui ne
+  // fait que cliqueter vers le bas finit au plancher et n'en remonte jamais.
+  const up = retainedItemsFromPlanFeedback(
+    row({ cooked: "partly", difficulty: "could_do_more" }),
+    CTX,
+  );
+  assertEquals(up.fieldChanges.length, 1);
+  assertEquals(up.fieldChanges[0].next, "keen");
+  assertEquals(up.fieldChanges[0].previous, "normal");
+
+  // Le cran du milieu est une RÉPONSE: « c'était bien » veut dire « ne change
+  // rien », pas « je n'ai pas répondu ».
+  const fine = retainedItemsFromPlanFeedback(
+    row({ cooked: "yes", difficulty: "fine" }),
+    CTX,
+  );
+  assertEquals(fine.fieldChanges.length, 0);
 });
 
-Deno.test("« en partie » coûte moins cher que « non »", () => {
-  const out = retainedItemsFromPlanFeedback(
-    row({ cooked: "partly" }),
+Deno.test("LOT B — `speed` bouge d'UN BARREAU de l'échelle, jamais d'un delta de minutes", () => {
+  // ⛔ LE POINT DU LOT: 45 − 10 = 35, un nombre que l'écran ne propose pas.
+  // Un barreau de `COOKING_SESSION_MINUTES` = [30, 45, 60, 90, 120, 180], et
+  // la personne le reconnaît dans son formulaire.
+  const down = retainedItemsFromPlanFeedback(
+    row({ cooked: "yes", speed: "too_long" }),
+    CTX,
+  );
+  assertEquals(down.fieldChanges.length, 1);
+  assertEquals(down.fieldChanges[0].field, "cooking_time_min");
+  assertEquals(down.fieldChanges[0].next, 30, "45 doit descendre à 30, pas à 35");
+  assertEquals(down.fieldChanges[0].previous, 45);
+  // ⚠️ UN NOMBRE, PAS UNE CHAÎNE: `parseLogisticsSetValue` refuse une chaîne à
+  // la lecture — la ligne serait écrite puis invisible, le pire des deux.
+  assertEquals(typeof down.fieldChanges[0].next, "number");
+
+  const up = retainedItemsFromPlanFeedback(
+    row({ cooked: "yes", speed: "had_more_time" }),
     { ...CTX, cookingTimeMin: 60 },
   );
-  // 60 − 10, et AUCUNE simplification de recette: « non » veut dire qu'on a été
-  // hors sujet, « en partie » qu'on a été optimiste.
-  assertEquals(out.fieldChanges.length, 1);
-  assertEquals(out.fieldChanges[0].field, "cooking_time_min");
-  assertEquals(out.fieldChanges[0].next, 50);
-  assertEquals(out.fieldChanges[0].previous, 60);
+  assertEquals(up.fieldChanges[0].next, 90, "60 doit monter à 90, le barreau suivant");
+
+  // ⛔ UNE VALEUR HORS ÉCHELLE N'A PAS DE BARREAU VOISIN: on ne devine pas
+  // lequel des six elle vise. C'est `noBaseline`, comme une valeur absente.
+  const offLadder = retainedItemsFromPlanFeedback(
+    row({ cooked: "yes", speed: "too_long" }),
+    { ...CTX, cookingTimeMin: 47 },
+  );
+  assertEquals(offLadder.fieldChanges.length, 0);
+  assertEquals(offLadder.refused.noBaseline, 1);
 });
 
 Deno.test("« oui » ne retient rien", () => {
@@ -545,19 +618,34 @@ Deno.test("« oui » ne retient rien", () => {
   assertEquals(out.items.length, 0);
 });
 
-Deno.test("⛔ on ne descend pas sous le plancher, et on ne suppose pas une valeur", () => {
+Deno.test("⛔ on ne dépasse pas les bords, et on ne suppose pas une valeur", () => {
+  // ⚠️ AU BORD, LA LIGNE DE JOURNAL N'EST PAS ÉCRITE: le vocabulaire est
+  // épuisé. Écrire `previous === next` mettrait dans le fil « ce qui vient de
+  // changer » une ligne qui n'a rien changé, avec un bouton « défaire » qui ne
+  // défait rien.
   const floor = retainedItemsFromPlanFeedback(
-    row({ cooked: "no" }),
+    row({ cooked: "yes", difficulty: "too_hard", speed: "too_long" }),
     { ...CTX, cookingTimeMin: 30, recipeDifficulty: "simple" },
   );
-  assertEquals(floor.items.length, 0);
+  assertEquals(floor.fieldChanges.length, 0);
   assertEquals(floor.refused.atFloor, 2);
 
-  // Sans valeur courante, « alléger de 15 minutes » n'a pas de résultat:
+  // ⚠️ ET LE PLAFOND EST COMPTÉ À PART, pas fondu dans le plancher: « déjà au
+  // plus simple et ça ne suffit pas » et « déjà au maximum du vocabulaire » ne
+  // demandent pas la même chose, et seul le second appelle une décision
+  // produit.
+  const ceiling = retainedItemsFromPlanFeedback(
+    row({ cooked: "yes", difficulty: "could_do_more", speed: "had_more_time" }),
+    { ...CTX, cookingTimeMin: 180, recipeDifficulty: "keen" },
+  );
+  assertEquals(ceiling.fieldChanges.length, 0);
+  assertEquals(ceiling.refused.atCeiling, 2);
+
+  // Sans valeur courante, « un cran plus court » n'a pas de résultat:
   // `logistics.set` porte une valeur ABSOLUE. Supposer 30, 45 ou 60 écrirait
   // un réglage que personne n'a choisi.
   const blind = retainedItemsFromPlanFeedback(
-    row({ cooked: "no" }),
+    row({ cooked: "yes", difficulty: "too_hard", speed: "too_long" }),
     { ...CTX, cookingTimeMin: null, recipeDifficulty: null },
   );
   assertEquals(blind.items.length, 0);
@@ -584,15 +672,22 @@ Deno.test("⛔ FERMER EST UNE RÉPONSE, et sa traduction est RIEN", () => {
   assertEquals(out.refused.dismissed, 1);
 });
 
-Deno.test("⛔ la réponse d'axe ne devient PAS un ajustement de portion", () => {
+Deno.test("⛔ une réponse d'axe HÉRITÉE ne devient PAS un ajustement de portion", () => {
   // « assiettes difficiles à finir » ressemble à « trop », et ce n'est pas la
   // même question: `portions` la pose DÉJÀ, et la compter deux fois retirerait
   // de la nourriture deux fois.
+  //
+  // ⚠️ CETTE QUESTION N'EST PLUS POSÉE DEPUIS LE LOT B — elle n'avait aucun
+  // lecteur — mais des lignes en base la portent, et ce test garde le compteur
+  // qui les rend visibles. Un `axisNotRetained` tombé à zéro partout dirait
+  // « tout est fermé », y compris les deux axes dont le rabattement retirerait
+  // de la nourriture.
   const out = retainedItemsFromPlanFeedback(
     row({ axisQuestion: "could_finish", axisAnswer: "no" }),
     CTX,
   );
   assertEquals(out.items.length, 0);
+  assertEquals(out.fieldChanges.length, 0);
   assertEquals(out.refused.axisNotRetained, 1);
 });
 
@@ -606,7 +701,6 @@ Deno.test("épingle: le jeton de l'axe fermé, et le vocabulaire qu'il écrit", 
   // que les deux générateurs relisent avec leur PROPRE liste en dur
   // (`pick(pc?.variety, ["repeat","some","varied"])`). Littéraux en dur des
   // deux côtés: une constante comparée à elle-même resterait verte.
-  assertEquals(VARIETY_AXIS_QUESTION, "enough_variety");
   assertEquals(VARIETY_LEVELS, ["repeat", "some", "varied"]);
 });
 
@@ -667,21 +761,28 @@ Deno.test("⛔ LES DEUX COMPTEURS DANS LE MÊME TEST: fermé à 0, ouverts à 1"
 });
 
 Deno.test("« oui, assez de variété » ne retient rien — et n'est pas un trou", () => {
-  const out = retainedItemsFromPlanFeedback(
-    row({ axisQuestion: "enough_variety", axisAnswer: "yes" }),
-    CTX,
-  );
-  assertEquals(out.items.length, 0);
-  // ⛔ NI `axisNotRetained` (la question A un lecteur), NI une baisse de
-  // variété: il n'existe aucun `"less"`. « Ça allait » n'est pas « répète
-  // plus ».
-  assertEquals(out.refused.axisNotRetained, 0);
-  // `neutral` est PARTAGÉ avec `portions` (jamais posée ici, donc déjà 1): on
-  // mesure le PAS, pas la valeur absolue — sinon le test dirait « 2 » sans
-  // qu'on sache lequel des deux l'a produit.
-  const withoutAxis = retainedItemsFromPlanFeedback(row({}), CTX);
-  assertEquals(withoutAxis.refused.neutral, 1);
-  assertEquals(out.refused.neutral, 2);
+  // ⚠️ LES DEUX FORMES, et elles doivent dire la même chose: le champ neuf du
+  // lot B, et la colonne héritée d'une ligne écrite avant lui.
+  for (
+    const answered of [
+      row({ variety: "yes" }),
+      row({ axisQuestion: "enough_variety", axisAnswer: "yes" }),
+    ]
+  ) {
+    const out = retainedItemsFromPlanFeedback(answered, CTX);
+    assertEquals(out.items.length, 0);
+    assertEquals(out.fieldChanges.length, 0);
+    // ⛔ NI `axisNotRetained` (la question A un lecteur), NI une baisse de
+    // variété: il n'existe aucun `"less"`. « Ça allait » n'est pas « répète
+    // plus ».
+    assertEquals(out.refused.axisNotRetained, 0);
+    // `neutral` compte la variété satisfaite comme la portion neutre: les deux
+    // sont des réponses. Le nombre est le MÊME que sans réponse du tout, parce
+    // que la variété non posée compte déjà `neutral` — ce qu'on mesure ici,
+    // c'est qu'aucun REFUS ne s'ajoute.
+    const nothing = retainedItemsFromPlanFeedback(row({}), CTX);
+    assertEquals(out.refused.total, nothing.refused.total);
+  }
 });
 
 Deno.test("⛔ on ne monte pas au-dessus du dernier cran", () => {
@@ -805,7 +906,11 @@ Deno.test("⛔ LOT 4C — `noBaseline` compte TOUJOURS la cuisine, et plus la va
   // décision produit — les deux dans le même test, sinon on ne distingue pas
   // « la décision a été appliquée à la variété » de « le compteur est mort ».
   const cooking = retainedItemsFromPlanFeedback(
-    row({ cooked: "no" }),
+    // ⚠️ LOT B — LES DEUX RÉPONSES POSÉES, plus la déduction depuis `cooked`.
+    // Le motif ne change pas: un cran depuis une base inconnue n'est pas
+    // calculable, et supposer une valeur écrirait un réglage que personne n'a
+    // choisi.
+    row({ cooked: "yes", difficulty: "too_hard", speed: "too_long" }),
     { ...CTX, cookingTimeMin: null, recipeDifficulty: null },
   );
   assertEquals(cooking.fieldChanges.length, 0);
@@ -813,7 +918,7 @@ Deno.test("⛔ LOT 4C — `noBaseline` compte TOUJOURS la cuisine, et plus la va
   assertEquals(cooking.refused.noBaseline, 2);
 
   const variety = retainedItemsFromPlanFeedback(
-    row({ axisQuestion: "enough_variety", axisAnswer: "no" }),
+    row({ variety: "no" }),
     { ...CTX, varietyLevel: null },
   );
   assertEquals(variety.fieldChanges.length, 1);
@@ -829,15 +934,20 @@ Deno.test("⛔ sous plancher TCA, AUCUNE 4ᵉ question n'est posée — pour auc
   // être IDENTIQUE à celle d'un élève dont on ne connaît pas la dynamique.
   // Fermer `enough_variety` n'y touche pas — l'axe ne s'ajoute pas sous
   // plancher, donc `axis_question` arrive `null` et le bloc ne s'ouvre jamais.
-  const blind = questionsFor(null, true);
-  assertEquals(blind, ["cooked", "never_again", "make_again"]);
-  for (const goal of STUDENT_GOALS) {
-    assertEquals(
-      questionsFor(goal, true),
-      blind,
-      `${goal} est reconnaissable sous plancher`,
-    );
-  }
+  // ⚠️ LOT B — LA LISTE A CHANGÉ, ET LA PROPRIÉTÉ EST DEVENUE STRUCTURELLE.
+  // `questionsFor` ne prend plus d'objectif: il n'existe PLUS AUCUN couple
+  // (dynamique, plancher) qui puisse diverger. Le plancher ne retire que
+  // `portions` — `hunger_between_meals` n'est plus dans le vocabulaire du tout.
+  assertEquals(questionsFor(true), [
+    "cooked",
+    "difficulty",
+    "speed",
+    "enough_variety",
+    "never_again",
+    "make_again",
+    "anything_else",
+  ]);
+  assertEquals(questionsFor.length, 1, "un objectif est revenu dans la signature");
 });
 
 Deno.test("⛔ une réponse à la question QUE LE PLANCHER RETIRE ne produit RIEN", () => {

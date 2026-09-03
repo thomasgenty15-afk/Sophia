@@ -36,6 +36,7 @@ import {
   renderFeedbackClosing,
   renderFeedbackDismissed,
   renderFeedbackQuestion,
+  renderFoodSubjectQuestion,
   renderPortionSubjectQuestion,
 } from "../keel/plan_feedback_chat.ts";
 import {
@@ -109,6 +110,10 @@ export function nextPromptFor(
       portions: context.row.portions,
       mouths: context.mouths,
     }),
+    // ⚠️ LA MÊME CONDITION QUE LA RELANCE DES PORTIONS, ET POUR LA MÊME
+    // RAISON: un solo n'a aucune bouche à nommer, et lui poser la question
+    // serait un choix à une seule issue.
+    foodSubjectDue: context.mouths > 1,
   });
   if (step.step === "done") return null;
   if (step.step === "portions_subject") {
@@ -118,11 +123,28 @@ export function nextPromptFor(
       members: context.members,
     });
   }
+  // ── LOT B · « POUR QUI ? » SUR L'ALIMENT QUI VIENT D'ÊTRE NOMMÉ ────────
+  if (step.step === "food_subject") {
+    const named = step.question === "never_again"
+      ? context.row.neverAgainFoods
+      : context.row.makeAgainFoods;
+    return renderFoodSubjectQuestion({
+      mealId: context.mealId,
+      question: step.question,
+      language: context.language,
+      // ⚠️ L'ALIMENT VIENT DE LA LIGNE RELUE, pas d'un état de conversation:
+      // c'est la vérité d'exécution du fichier, et c'est ce qui fait qu'un tap
+      // sur un plan repris ailleurs se lit `stale` au lieu de désigner autre
+      // chose.
+      food: String(named[0]?.food ?? ""),
+      members: context.members,
+    });
+  }
   return renderFeedbackQuestion({
     mealId: context.mealId,
     question: step.question,
     language: context.language,
-    dishTitles: context.dishTitles,
+    foodTerms: context.foodTerms,
     // Le « pas maintenant » n'est offert que sur la PREMIÈRE question (§3.2):
     // une fois qu'on a répondu à une question, la porte de sortie est de ne
     // plus taper, et un bouton de refus à chaque étape ressemblerait à une
@@ -183,17 +205,60 @@ export async function handlePlanFeedbackTap(
         // « Aucun » est une RÉPONSE: le tableau vide part avec son jeton, et
         // c'est précisément ce que le marqueur permet de dire.
         patch = question === "never_again"
-          ? { value: { never_again: [] }, marks: "never_again" }
-          : { value: { make_again: [] }, marks: "make_again" };
+          ? { value: { never_again_foods: [] }, marks: "never_again" }
+          : { value: { make_again_foods: [] }, marks: "make_again" };
         break;
       }
-      const title = context.dishTitles[args.reply.dishIndex];
+      // ── LOT B · DES ALIMENTS, PLUS DES TITRES ────────────────────────────
+      const food = context.foodTerms[args.reply.dishIndex];
       // Un index hors liste veut dire que le plan a changé sous le tap. On ne
-      // devine pas quel plat était visé.
-      if (!title) return stale(language);
+      // devine pas quel aliment était visé.
+      if (!food) return stale(language);
+      // ⛔ LE SUJET N'EST PAS ÉCRIT ICI, ET IL VIENDRA PAR SA PROPRE BULLE.
+      // `null` dit « la question ne s'est pas posée »; le pas suivant
+      // (`food_subject`) la pose s'il y a plus d'une bouche, et réécrit la
+      // ligne avec sa personne. Écrire `household` tout de suite ferait de
+      // « on n'a pas encore demandé » une réponse — et retirerait l'aliment à
+      // toute la table si la personne ferme le chat entre les deux bulles.
       patch = question === "never_again"
-        ? { value: { never_again: [title] }, marks: "never_again" }
-        : { value: { make_again: [title] }, marks: "make_again" };
+        ? {
+          value: { never_again_foods: [{ food, subject: null }] },
+          marks: "never_again",
+        }
+        : {
+          value: { make_again_foods: [{ food, subject: null }] },
+          marks: "make_again",
+        };
+      break;
+    }
+    // ── LOT B · « POUR QUI ? » SUR L'ALIMENT QUI VIENT D'ÊTRE NOMMÉ ────────
+    // ⚠️ IL RÉÉCRIT LA LIGNE QU'ON VIENT D'ÉCRIRE, il n'en ajoute pas une: la
+    // question porte sur CET aliment-là, et le chat n'en nomme qu'un par
+    // question (§3.2, « un seul plat par question de plat »).
+    case "food_subject": {
+      const question = args.reply.question;
+      const stored = question === "never_again"
+        ? context.row.neverAgainFoods
+        : context.row.makeAgainFoods;
+      const food = String(
+        ((stored[0] ?? {}) as Record<string, unknown>).food ?? "",
+      ).trim();
+      // Aucun aliment nommé: la relance n'a pas d'objet. Le plan a changé sous
+      // le tap, ou la ligne a été reprise ailleurs.
+      if (!food) return stale(language);
+      patch = question === "never_again"
+        ? {
+          value: {
+            never_again_foods: [{ food, subject: args.reply.subject }],
+          },
+          marks: "never_again",
+        }
+        : {
+          value: {
+            make_again_foods: [{ food, subject: args.reply.subject }],
+          },
+          marks: "make_again",
+        };
       break;
     }
     case "answer": {

@@ -101,6 +101,8 @@ import type { HouseholdDishView, MemberPortionView } from "../../api/household";
 import { sharePresentedTo } from "../../api/myShare";
 import { groupDishListByDay } from "../../lib/dishListByDay";
 import { dishIsFor } from "../../lib/planByPersonModel";
+import { browserLocalDate, useMealTicks } from "../../lib/useMealTicks";
+import { dishDate, stretchDates } from "../../api/mealStretch";
 import { t } from "../../i18n/t";
 import { Button } from "../ui/Button";
 import { Card, SectionLabel } from "../ui/Card";
@@ -122,6 +124,35 @@ export interface MyShareCardProps {
   dishDayOrder: readonly string[];
   /** Ma bouche. REQUIS: sans elle, `mine` ne peut pas être vérifiée. */
   meMemberId: string | null;
+  /**
+   * ══════════════════════════════════════════════════════════════════════
+   * A8.1 — MON COMPTE, ET L'IDENTITÉ DU PLAN DU FOYER. Les deux, ou pas de
+   * case.
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * ⚠️ `userId` EST LE MIEN, JAMAIS CELUI DU MAÎTRE. La coche est un fait de
+   * PERSONNE (FF-058 R10): elle s'écrit sous le compte de qui a mangé. Le
+   * plan, lui, est celui du foyer — écrit sous le `user_id` du maître, et son
+   * identité n'entre dans la clé que comme un NOM
+   * (`meal_tick:<householdMealId>:<idx>`). Les deux comptes peuvent donc
+   * porter la même clé sur le même plat sans collision: `protocol_events` est
+   * unique sur `(user_id, source_message_id)`, et sa RLS est owner-only — le
+   * maître ne lit pas ce que le membre a coché.
+   *
+   * ⛔ AUCUN DES DEUX N'EST OPTIONNEL. Un `?` ferait une carte SANS case qui
+   * ressemble exactement à une carte dont les cases n'ont pas encore chargé.
+   * `null` ferme, et il faut l'écrire.
+   */
+  userId: string | null;
+  /** L'identité du plan du foyer — celle qui entre dans la clé de coche. */
+  householdMealId: string | null;
+  /**
+   * Le premier jour du plan du foyer. REQUIS, et il n'est pas déductible de
+   * `dishDayOrder`: cet ordre porte des JETONS (`wed`, `thu`…), pas des dates,
+   * et un fait doit être daté du jour où il a eu lieu — jamais du jour où on
+   * le tape (`isReportable`, et la garde du futur qui en dépend).
+   */
+  planStartsOn: string | null;
   onApprove: () => Promise<void>;
   onRequestChange: (text: string) => Promise<void>;
   busy: boolean;
@@ -133,6 +164,9 @@ export default function MyShareCard(props: MyShareCardProps): React.ReactElement
     householdDishes,
     dishDayOrder,
     meMemberId,
+    userId,
+    householdMealId,
+    planStartsOn,
     onApprove,
     onRequestChange,
     busy,
@@ -151,6 +185,36 @@ export default function MyShareCard(props: MyShareCardProps): React.ReactElement
    */
   const [changeOpen, setChangeOpen] = React.useState(false);
   const [changeText, setChangeText] = React.useState("");
+
+  /**
+   * ══════════════════════════════════════════════════════════════════════
+   * A8.1 — SES COCHES, SUR LE PLAN DU FOYER. LA MÊME LIAISON QUE PARTOUT.
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * ⚠️ APPELÉ AVANT TOUT `return null`, parce que c'est un hook. La carte se
+   * tait souvent (maître, place non lue, aucune part): la liaison, elle, est
+   * montée à chaque rendu et ne rend simplement aucune case — `useMealTicks`
+   * ferme déjà sur `!userId || !mealId`.
+   *
+   * ⛔ ET AUCUNE ÉCRITURE DANS CE FICHIER. `tickMeal` / `untickMeal` ne sont
+   * pas importés ici et ne doivent pas l'être: `useMealTicks` est la liaison
+   * unique, et `mealTicks.int.test.ts` tient cette liste de surfaces. Deux
+   * câblages pour la même case, c'est le défaut que ce hook existe pour
+   * empêcher — et ici il ferait écrire deux comptes différents sur le même
+   * plat.
+   */
+  const ticks = useMealTicks({
+    userId: userId ?? "",
+    mealId: householdMealId,
+    // ⚠️ VIDE, ET C'EST VOULU. Ce tableau ne sert qu'à `bind`, qui résout la
+    // position par identité d'objet — un `HouseholdDishView` n'y entrerait
+    // jamais. Cette carte passe par `bindAt`, à qui la position est DONNÉE.
+    dishes: [],
+  });
+  const planDates = React.useMemo(
+    () => (planStartsOn ? stretchDates(planStartsOn) : null),
+    [planStartsOn],
+  );
 
   // LA GARDE D'IDENTITÉ, ET ELLE EST AVANT TOUT LE RESTE. Elle vit dans
   // `api/myShare.ts` avec la sélection qui la partage: la règle « jamais la
@@ -231,6 +295,35 @@ export default function MyShareCard(props: MyShareCardProps): React.ReactElement
                 order: dishDayOrder,
                 dishes: myDishes,
               })}
+              /**
+               * A8.1 — LA SEULE DES TROIS LISTES QUI COCHE. Voir
+               * `DishListByDay` pour les deux autres et leur motif.
+               *
+               * ⚠️ LE PLAT EST RETROUVÉ PAR SA POSITION, PAS PAR SON RANG
+               * D'AFFICHAGE. `myDishes` est filtrée (`dishIsFor`) puis
+               * regroupée puis triée par moment: `myDishes[dishIndex]` serait
+               * un AUTRE plat, et la coche porterait le titre de quelqu'un
+               * d'autre dans une ligne datée. On cherche donc la position
+               * telle qu'elle a été capturée à la lecture
+               * (`HouseholdDishView.dishIndex`).
+               *
+               * ⚠️ LA DATE VIENT DU PLAN, jamais du jour du tap. Un plat sans
+               * jour retombe sur aujourd'hui — c'est le seul jour honnête
+               * pour un plat qui ne vise aucun moment de la semaine
+               * (`dishDate`). Et `bindAt` referme sur le FUTUR: la case
+               * n'apparaît pas sous le dîner de vendredi tant qu'on est
+               * mercredi.
+               */
+              bindTick={(dishIndex) => {
+                if (!planDates) return null;
+                const dish = myDishes.find((d) => d.dishIndex === dishIndex);
+                if (!dish) return null;
+                return ticks.bindAt(
+                  { slot: dish.slot, title: dish.title },
+                  dishIndex,
+                  dishDate(dish.day, planDates, browserLocalDate()),
+                );
+              }}
             />
           </div>
         )

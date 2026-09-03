@@ -8,8 +8,10 @@ import {
   nextPlanItemsFor,
   nextPlanItemsWithLifeFor,
   nextPlanLifeOf,
+  parseIsoInstant,
   partitionForNextPlanStore,
   readNextPlanEntries,
+  type ValidatedPlan,
   withNextPlanEntries,
 } from "./retained_next_plan.ts";
 import {
@@ -32,15 +34,18 @@ import { weekStartOf } from "./weekly_flow_io.ts";
 // Pas « la fonction rend un tableau ». Ce qui est testé, ce sont les façons
 // dont le magasin provisoire se trahirait en production:
 //
-//   1. LA FRONTIÈRE D'EXPIRATION, DES DEUX CÔTÉS. La veille du basculement
-//      l'item vit; le jour du basculement il est parti. Une garde sans cas
-//      passant est une garde cassée qui ressemble à une garde qui marche;
+//   1. LA RÈGLE DE VIE, DES DEUX CÔTÉS (lot A, 2026-09-03): un plan validé
+//      APRÈS l'écriture ferme la ligne; un plan validé AVANT ne la ferme pas;
+//      sans plan validé, elle vit — le calendrier ne ferme plus rien. Une
+//      garde sans cas passant est une garde cassée qui ressemble à une garde
+//      qui marche;
 //   2. un `durable` posé dans le magasin provisoire qui remonterait quand même
 //      — il se verrait imprimer une date d'expiration qu'il n'a pas;
 //   3. une ancre lue depuis le JOUR DE LA FRAPPE plutôt que depuis la semaine
 //      visée: l'envie écrite le dimanche mourrait le lendemain matin;
 //   4. une expiration STOCKÉE plutôt que calculée — prouvée par le fait que la
-//      même donnée rend deux verdicts opposés selon `today`, sans écriture;
+//      même donnée rend deux verdicts opposés selon les plans validés, sans
+//      écriture;
 //   5. LA CLÉ DU MAGASIN, DÉCLARÉE DEUX FOIS SANS RIEN QUI LES RELIE. Bretelle
 //      mesurée sur le lot 1A: renommer la constante laissait 86 tests verts
 //      pendant que l'écriture partait dans une clé que plus personne ne lit.
@@ -110,120 +115,107 @@ function draftExclusion(): RetainedItem {
 }
 
 // ===========================================================================
-// 1. LA FRONTIÈRE — LES DEUX CÔTÉS, EN DUR
+// 1. LA RÈGLE DE VIE — la validation du plan suivant, PAS le calendrier
+//    (lot A, 2026-09-03, nomenclature §2.5)
 // ===========================================================================
 
-Deno.test("frontière: le DERNIER jour de la semaine ancrée, l'item VIT", () => {
-  // Ancre lundi 2026-08-17. Dernier jour vivant: dimanche 2026-08-23.
-  assertEquals(
-    isNextPlanItemAlive(craving(), "2026-08-17", "2026-08-23"),
-    true,
-  );
+/** L'enveloppe telle que le producteur l'écrit depuis le lot A. */
+function entry(
+  item: RetainedItem,
+  over: { anchor?: string; writtenAt?: string | null } = {},
+): NextPlanEntry {
+  return {
+    item,
+    anchor: over.anchor ?? "2026-08-17",
+    // Mercredi 2026-08-19 à 10:00 UTC — l'instant de la note. EN DUR.
+    writtenAt: over.writtenAt === undefined ? "2026-08-19T10:00:00.000Z" : over.writtenAt,
+  };
+}
+const validated = (at: string): ValidatedPlan => ({ validatedAt: at });
+
+Deno.test("vie: SANS plan validé, la ligne VIT — quel que soit le jour", () => {
+  assertEquals(isNextPlanItemAlive(entry(craving()), []), true);
 });
 
-Deno.test("frontière: le jour du BASCULEMENT, l'item est PARTI", () => {
-  // Lundi 2026-08-24 — le lundi suivant. C'est le premier jour sans lui.
-  assertEquals(
-    isNextPlanItemAlive(craving(), "2026-08-17", "2026-08-24"),
-    false,
-  );
+Deno.test("vie: un plan validé AVANT l'écriture ne la tue pas", () => {
+  assertEquals(isNextPlanItemAlive(entry(craving()), [validated("2026-08-19T09:59:59.000Z")]), true);
+  // Un plan validé la semaine d'avant non plus.
+  assertEquals(isNextPlanItemAlive(entry(craving()), [validated("2026-08-10T12:00:00.000Z")]), true);
 });
 
-Deno.test("frontière: elle est nommée par des DATES, pas par un booléen", () => {
+Deno.test("vie: un plan validé APRÈS l'écriture la TUE — à la seconde près", () => {
+  assertEquals(isNextPlanItemAlive(entry(craving()), [validated("2026-08-19T10:00:01.000Z")]), false);
+  // La MÊME seconde ne tue pas: « postérieur » est strict.
+  assertEquals(isNextPlanItemAlive(entry(craving()), [validated("2026-08-19T10:00:00.000Z")]), true);
+  // Et un plan validé des semaines plus tard tue aussi: pas de borne haute.
+  assertEquals(isNextPlanItemAlive(entry(craving()), [validated("2026-09-30T08:00:00.000Z")]), false);
+});
+
+Deno.test("vie: UN SEUL plan postérieur suffit, parmi d'autres antérieurs", () => {
+  const plans = [
+    validated("2026-08-01T00:00:00Z"),
+    validated("2026-08-19T18:00:00Z"),
+    validated("2026-08-12T00:00:00Z"),
+  ];
+  assertEquals(isNextPlanItemAlive(entry(craving()), plans), false);
+});
+
+Deno.test("vie: une entrée d'AVANT le lot (sans instant) meurt sur le JOUR, strictement", () => {
+  // `item.at` = 2026-08-19. Le même jour la garde (prudent); le lendemain la tue.
+  const legacy = entry(craving(), { writtenAt: null });
+  assertEquals(isNextPlanItemAlive(legacy, [validated("2026-08-19T23:59:59Z")]), true);
+  assertEquals(isNextPlanItemAlive(legacy, [validated("2026-08-20T00:00:01Z")]), false);
+  assertEquals(isNextPlanItemAlive(legacy, []), true);
+});
+
+Deno.test("vie: la même donnée rend deux verdicts opposés selon les plans validés, SANS écriture", () => {
+  // C'est la preuve, en une assertion, qu'aucun second état n'est nécessaire.
+  const e = entry(craving());
+  assertEquals(isNextPlanItemAlive(e, []), true);
+  assertEquals(isNextPlanItemAlive(e, [validated("2026-08-19T12:00:00Z")]), false);
+  assertEquals(e.item.text, "des fajitas");
+});
+
+// ===========================================================================
+// 2. L'ANCRE RESTE — pour l'affichage, plus pour la mort
+// ===========================================================================
+
+Deno.test("ancre: elle est nommée par des DATES, et c'est ce que l'écran affiche", () => {
   const life = nextPlanLifeOf("2026-08-17");
   assert(life);
   assertEquals(life.anchor, "2026-08-17");
-  // Ce que le lot 1D affiche. Écrit en dur: si la règle change, ce test rougit.
   assertEquals(life.lastDay, "2026-08-23");
   assertEquals(life.expiredFrom, "2026-08-24");
 });
 
-Deno.test("frontière: tous les jours de la semaine ancrée sont vivants", () => {
-  const days = [
-    "2026-08-17",
-    "2026-08-18",
-    "2026-08-19",
-    "2026-08-20",
-    "2026-08-21",
-    "2026-08-22",
-    "2026-08-23",
-  ];
-  for (const day of days) {
-    assertEquals(
-      isNextPlanItemAlive(craving(), "2026-08-17", day),
-      true,
-      `${day} devrait être vivant`,
-    );
-  }
-  // Et la semaine d'après, plus rien — trois jours, pas seulement le premier.
-  for (const day of ["2026-08-24", "2026-08-25", "2026-09-01"]) {
-    assertEquals(
-      isNextPlanItemAlive(craving(), "2026-08-17", day),
-      false,
-      `${day} devrait être expiré`,
-    );
-  }
-});
-
-Deno.test("frontière: la veille de l'ancre, l'item VIT DÉJÀ (pas d'activation)", () => {
-  // Ancre lundi 2026-08-24, on est le dimanche 2026-08-23. « Pour la semaine
-  // prochaine » (§6) doit s'afficher LE JOUR OÙ ON L'ÉCRIT.
-  assertEquals(
-    isNextPlanItemAlive(craving(), "2026-08-24", "2026-08-23"),
-    true,
-  );
-});
-
-// ===========================================================================
-// 2. L'ANCRE EST LA SEMAINE VISÉE, PAS LE JOUR DE LA FRAPPE
-// ===========================================================================
-
-Deno.test("ancre: écrite le DIMANCHE pour la semaine suivante, elle vit 7 jours", () => {
-  // La personne écrit le dimanche 2026-08-23 en visant la semaine du 24.
-  // `at` (le jour où elle l'a dit) est le 23; l'ancre est le 24.
-  const item = craving({ at: "2026-08-23" });
-  assertEquals(isNextPlanItemAlive(item, "2026-08-24", "2026-08-30"), true);
-  assertEquals(isNextPlanItemAlive(item, "2026-08-24", "2026-08-31"), false);
-  // Et si on avait ancré sur `at` — le défaut que ce test ferme — elle serait
-  // morte dès le lundi matin:
-  assertEquals(isNextPlanItemAlive(item, "2026-08-23", "2026-08-24"), false);
-});
-
-Deno.test("ancre: un jour de semaine passé en `writtenAt` est RECALÉ, pas décalé", () => {
-  // Mercredi 2026-08-19 → lundi 2026-08-17. La base garantit déjà un lundi;
-  // cette réparation existe pour un appelant hors RPC.
-  const life = nextPlanLifeOf("2026-08-19");
-  assert(life);
-  assertEquals(life.anchor, "2026-08-17");
-  assertEquals(life.lastDay, "2026-08-23");
-});
-
-Deno.test("ancre: le recalage est IDEMPOTENT sur un lundi", () => {
+Deno.test("ancre: un jour de semaine est RECALÉ sur son lundi, et le recalage est idempotent", () => {
+  assertEquals(nextPlanLifeOf("2026-08-19")?.anchor, "2026-08-17");
   assertEquals(nextPlanLifeOf("2026-08-17")?.anchor, "2026-08-17");
   assertEquals(nextPlanLifeOf("2026-08-24")?.anchor, "2026-08-24");
+  assertEquals(nextPlanLifeOf("2026-02-30"), null);
+});
+
+Deno.test("ancre: le lundi suivant ne tue PLUS la ligne — c'est le point du lot A", () => {
+  // Avant: morte dès le 2026-08-24. Maintenant: vivante tant que rien n'est
+  // validé — un plan de deux jours régénéré trois fois gardait l'envie à
+  // chaque fois, et un plan validé le samedi pour la semaine suivante la
+  // perdait le lundi.
+  assertEquals(isNextPlanItemAlive(entry(craving(), { anchor: "2026-08-17" }), []), true);
 });
 
 // ===========================================================================
 // 3. LE REFUS DU `durable` SUR LE CANAL PROVISOIRE
 // ===========================================================================
 
-Deno.test("scope: un `durable` posé ici ne remonte JAMAIS, même en pleine semaine", () => {
-  assertEquals(
-    isNextPlanItemAlive(durableExclusion(), "2026-08-17", "2026-08-19"),
-    false,
-  );
+Deno.test("scope: un `durable` posé ici ne remonte JAMAIS, même sans plan validé", () => {
+  assertEquals(isNextPlanItemAlive(entry(durableExclusion()), []), false);
 });
 
 Deno.test("scope: la MÊME famille en `next_plan` remonte — la garde a un cas passant", () => {
-  assertEquals(
-    isNextPlanItemAlive(draftExclusion(), "2026-08-17", "2026-08-19"),
-    true,
-  );
+  assertEquals(isNextPlanItemAlive(entry(draftExclusion()), []), true);
 });
 
 Deno.test("scope: `next_plan` n'est PAS réservé au craving", () => {
-  // `food.*` et `method.*` en `next_plan` (retour sur brouillon) doivent vivre
-  // au même titre qu'une envie. Le lot 1B rend TOUTES les familles.
   const method = parseRetainedItem({
     kind: "method.avoid",
     scope: "next_plan",
@@ -236,43 +228,61 @@ Deno.test("scope: `next_plan` n'est PAS réservé au craving", () => {
     confidence: null,
   });
   assert(method);
-  assertEquals(isNextPlanItemAlive(method, "2026-08-17", "2026-08-23"), true);
-  assertEquals(isNextPlanItemAlive(method, "2026-08-17", "2026-08-24"), false);
+  assertEquals(isNextPlanItemAlive(entry(method), []), true);
+  assertEquals(isNextPlanItemAlive(entry(method), [validated("2026-08-20T00:00:00Z")]), false);
 });
 
 // ===========================================================================
 // 4. LES REFUS DE FORME — jamais un repli
 // ===========================================================================
 
-Deno.test("refus: une ancre illisible rend `false`, pas « aujourd'hui »", () => {
-  assertEquals(isNextPlanItemAlive(craving(), "", "2026-08-19"), false);
-  assertEquals(isNextPlanItemAlive(craving(), "2026-8-17", "2026-08-19"), false);
-  assertEquals(isNextPlanItemAlive(craving(), "pas une date", "2026-08-19"), false);
-  assertEquals(nextPlanLifeOf("2026-02-30"), null);
-});
-
-Deno.test("refus: un `today` illisible rend `false`", () => {
-  assertEquals(isNextPlanItemAlive(craving(), "2026-08-17", ""), false);
+Deno.test("refus: un `validated_at` illisible ne TUE pas — on ne ferme pas une envie sur une date qu'on n'a pas lue", () => {
   assertEquals(
-    isNextPlanItemAlive(craving(), "2026-08-17", "2026-08-19T14:00:00Z"),
-    false,
+    isNextPlanItemAlive(entry(craving()), [validated(""), validated("pas une date")]),
+    true,
   );
 });
 
+Deno.test("refus: un `written_at` illisible retombe sur la règle du JOUR", () => {
+  const e = entry(craving(), { writtenAt: "hier" });
+  assertEquals(isNextPlanItemAlive(e, [validated("2026-08-19T23:00:00Z")]), true);
+  assertEquals(isNextPlanItemAlive(e, [validated("2026-08-20T01:00:00Z")]), false);
+});
+
+Deno.test("refus: `parseIsoInstant` normalise en UTC, et rend null sur tout le reste", () => {
+  assertEquals(parseIsoInstant("2026-08-19T10:00:00Z"), "2026-08-19T10:00:00.000Z");
+  assertEquals(parseIsoInstant("2026-08-19T12:00:00+02:00"), "2026-08-19T10:00:00.000Z");
+  for (const bad of ["", "   ", "hier", null, undefined, 42]) {
+    assertEquals(parseIsoInstant(bad), null, String(bad));
+  }
+});
+
 // ===========================================================================
-// 5. L'EXPIRATION EST CALCULÉE, PAS STOCKÉE
+// 5. L'ENVELOPPE PORTE SON INSTANT — et le relit
 // ===========================================================================
 
-Deno.test("calculée: la MÊME donnée rend deux verdicts opposés selon le jour", () => {
-  // C'est la preuve, en une assertion, qu'aucun second état n'est nécessaire:
-  // rien n'est écrit entre les deux appels, et pourtant l'item passe de vivant
-  // à parti. Un drapeau `expired` aurait demandé un écrivain entre les deux.
-  const item = craving();
-  assertEquals(isNextPlanItemAlive(item, "2026-08-17", "2026-08-23"), true);
-  assertEquals(isNextPlanItemAlive(item, "2026-08-17", "2026-08-24"), false);
-  // Et l'item lui-même n'a pas bougé d'un octet.
-  assertEquals(item.scope, "next_plan");
-  assertEquals(item.text, "des fajitas");
+Deno.test("enveloppe: `written_at` fait l'aller-retour, et son absence reste une absence", () => {
+  const stored = withNextPlanEntries(null, [
+    entry(craving()),
+    entry(craving({ text: "d'avant le lot" }), { writtenAt: null }),
+  ]);
+  const rows = stored.retained_next_plan as Record<string, unknown>[];
+  assertEquals(rows[0].written_at, "2026-08-19T10:00:00.000Z");
+  assertEquals(Object.hasOwn(rows[1], "written_at"), false);
+  const readout = readNextPlanEntries(stored);
+  assertEquals(readout.entries[0].writtenAt, "2026-08-19T10:00:00.000Z");
+  assertEquals(readout.entries[1].writtenAt, null);
+});
+
+Deno.test("enveloppe: un `written_at` illisible en base rend `null`, la ligne RESTE", () => {
+  const readout = readNextPlanEntries({
+    retained_next_plan: [
+      { item: retainedItemToJson(craving()), anchor: "2026-08-17", written_at: "hier" },
+    ],
+  });
+  assertEquals(readout.entries.length, 1);
+  assertEquals(readout.entries[0].writtenAt, null);
+  assertEquals(readout.refused.total, 0);
 });
 
 // ===========================================================================
@@ -371,7 +381,7 @@ Deno.test("clé: écrire le provisoire ne touche AUCUNE autre clé", () => {
     cook_days: ["mon", "wed"],
   };
   const after = withNextPlanEntries(before, [
-    { item: craving(), anchor: "2026-08-17" },
+    { item: craving(), anchor: "2026-08-17", writtenAt: null },
   ]);
   assertEquals(after.food_preferences, ["une phrase plate"]);
   assertEquals(after.retained_items, [{ kind: "food.exclude" }]);
@@ -386,7 +396,7 @@ Deno.test("clé: écrire le provisoire ne touche AUCUNE autre clé", () => {
 
 Deno.test("magasin: un aller-retour écrire → lire est une identité", () => {
   const entries: NextPlanEntry[] = [
-    { item: craving(), anchor: "2026-08-17" },
+    { item: craving(), anchor: "2026-08-17", writtenAt: null },
   ];
   const stored = withNextPlanEntries(null, entries);
   const readout = readNextPlanEntries(stored);
@@ -401,13 +411,13 @@ Deno.test("magasin: une ancre qui n'est pas un lundi est REFUSÉE à l'écriture
   // effacerait la seule trace d'un producteur cassé. Même règle que le miroir
   // front du lot 1D.
   const split = partitionForNextPlanStore([
-    { item: craving(), anchor: "2026-08-19" }, // mercredi
-    { item: craving(), anchor: "2026-08-17" }, // lundi
+    { item: craving(), anchor: "2026-08-19", writtenAt: null }, // mercredi
+    { item: craving(), anchor: "2026-08-17", writtenAt: null }, // lundi
   ]);
   assertEquals(split.provisional.length, 1);
   assertEquals(split.misfiled.length, 1);
   const stored = withNextPlanEntries(null, [
-    { item: craving(), anchor: "2026-08-19" },
+    { item: craving(), anchor: "2026-08-19", writtenAt: null },
   ]);
   assertEquals(stored.retained_next_plan, []);
 });
@@ -452,8 +462,8 @@ Deno.test("magasin: un `durable` rangé ici est REFUSÉ et COMPTÉ", () => {
   assertEquals(readout.refused.notNextPlan, 1);
   // Et l'écriture le refuse aussi, en le rendant DICIBLE.
   const split = partitionForNextPlanStore([
-    { item: durableExclusion(), anchor: "2026-08-17" },
-    { item: craving(), anchor: "2026-08-17" },
+    { item: durableExclusion(), anchor: "2026-08-17", writtenAt: null },
+    { item: craving(), anchor: "2026-08-17", writtenAt: null },
   ]);
   assertEquals(split.provisional.length, 1);
   assertEquals(split.misfiled.length, 1);
@@ -488,50 +498,79 @@ Deno.test("magasin: un jsonb qui n'est pas une liste compte pour UNE ligne refus
 type Row = Record<string, unknown>;
 
 /**
- * Un client minimal qui rejoue exactement la chaîne appelée par le module:
+ * Un client minimal qui rejoue exactement les DEUX chaînes appelées:
  *   from("student_goals").select(..).eq("user_id", ..).maybeSingle()
- * Aucune tolérance: un appel non prévu fait échouer le test au lieu de rendre
- * un tableau vide qui ressemblerait à « rien en base ».
+ *   from("student_generated_meals").select("validated_at").eq("user_id", ..)
+ *     .not("validated_at", "is", null)
+ * Aucune tolérance: une table inattendue fait échouer le test au lieu de
+ * rendre un tableau vide qui ressemblerait à « rien en base ».
  */
 function fakeAdmin(opts: {
   constraints?: Row | null;
   noRow?: boolean;
   error?: string;
+  validated?: string[];
+  plansError?: string;
 }) {
   const calls: string[] = [];
   const client = {
     from(table: string) {
       calls.push(table);
-      if (table !== "student_goals") {
-        throw new Error(`table inattendue: ${table}`);
-      }
-      return {
-        select: () => ({
-          eq: () => ({
-            maybeSingle: () =>
-              Promise.resolve(
-                opts.error
-                  ? { data: null, error: { message: opts.error } }
-                  : {
-                    data: opts.noRow
-                      ? null
-                      : { practical_constraints: opts.constraints ?? {} },
-                    error: null,
-                  },
-              ),
+      if (table === "student_goals") {
+        return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: () =>
+                Promise.resolve(
+                  opts.error
+                    ? { data: null, error: { message: opts.error } }
+                    : {
+                      data: opts.noRow
+                        ? null
+                        : { practical_constraints: opts.constraints ?? {} },
+                      error: null,
+                    },
+                ),
+            }),
           }),
-        }),
-      };
+        };
+      }
+      if (table === "student_generated_meals") {
+        return {
+          select: () => ({
+            eq: () => ({
+              not: () =>
+                Promise.resolve(
+                  opts.plansError
+                    ? { data: null, error: { message: opts.plansError } }
+                    : {
+                      data: (opts.validated ?? []).map((v) => ({ validated_at: v })),
+                      error: null,
+                    },
+                ),
+            }),
+          }),
+        };
+      }
+      throw new Error(`table inattendue: ${table}`);
     },
   };
   return { client, calls };
 }
 
-function storedCraving(text: string, anchor: string): Row {
-  return { item: retainedItemToJson(craving({ text })), anchor };
+function storedCraving(
+  text: string,
+  anchor: string,
+  writtenAt: string | null = "2026-08-19T10:00:00Z",
+): Row {
+  return {
+    item: retainedItemToJson(craving({ text })),
+    anchor,
+    ...(writtenAt ? { written_at: writtenAt } : {}),
+  };
 }
 
-Deno.test("lecture: la semaine EN COURS remonte, la PRÉCÉDENTE non", async () => {
+Deno.test("lecture: sans plan validé, TOUT remonte — la semaine passée aussi (le calendrier ne ferme plus)", async () => {
   const { client } = fakeAdmin({
     constraints: {
       retained_next_plan: [
@@ -540,39 +579,51 @@ Deno.test("lecture: la semaine EN COURS remonte, la PRÉCÉDENTE non", async () 
       ],
     },
   });
-  const items = await nextPlanItemsFor({
-    admin: client,
-    userId: "u-1",
-    today: "2026-08-19",
-  });
-  assertEquals(items.map((i) => i.text), ["des fajitas"]);
+  const items = await nextPlanItemsFor({ admin: client, userId: "u-1", today: "2026-08-19" });
+  assertEquals(items.map((i) => i.text), ["des fajitas", "du curry, la semaine passée"]);
 });
 
-Deno.test("lecture: le LUNDI SUIVANT, l'envie de la semaine passée est partie", async () => {
-  const { client } = fakeAdmin({
-    constraints: {
-      retained_next_plan: [storedCraving("des fajitas", "2026-08-17")],
-    },
+Deno.test("lecture: un plan validé APRÈS l'écriture ferme la ligne; validé AVANT, non", async () => {
+  const before = fakeAdmin({
+    constraints: { retained_next_plan: [storedCraving("des fajitas", "2026-08-17")] },
+    validated: ["2026-08-19T09:00:00+00:00"],
   });
-  // Dimanche: encore là.
   assertEquals(
-    (await nextPlanItemsFor({ admin: client, userId: "u-1", today: "2026-08-23" }))
-      .length,
+    (await nextPlanItemsFor({ admin: before.client, userId: "u-1", today: "2026-08-19" })).length,
     1,
   );
-  // Lundi: plus rien. Même donnée, aucune écriture entre les deux.
+  const after = fakeAdmin({
+    constraints: { retained_next_plan: [storedCraving("des fajitas", "2026-08-17")] },
+    validated: ["2026-08-19T09:00:00+00:00", "2026-08-19T11:00:00+00:00"],
+  });
   assertEquals(
-    (await nextPlanItemsFor({ admin: client, userId: "u-1", today: "2026-08-24" }))
-      .length,
+    (await nextPlanItemsFor({ admin: after.client, userId: "u-1", today: "2026-08-19" })).length,
     0,
   );
 });
 
-Deno.test("lecture: la SEMAINE PROCHAINE est déjà visible (§6)", async () => {
+Deno.test("lecture: une entrée d'AVANT le lot meurt sur le JOUR du plan validé, strictement", async () => {
+  const sameDay = fakeAdmin({
+    constraints: { retained_next_plan: [storedCraving("des fajitas", "2026-08-17", null)] },
+    validated: ["2026-08-19T22:00:00+00:00"],
+  });
+  assertEquals(
+    (await nextPlanItemsFor({ admin: sameDay.client, userId: "u-1", today: "2026-08-19" })).length,
+    1,
+  );
+  const nextDay = fakeAdmin({
+    constraints: { retained_next_plan: [storedCraving("des fajitas", "2026-08-17", null)] },
+    validated: ["2026-08-20T07:00:00+00:00"],
+  });
+  assertEquals(
+    (await nextPlanItemsFor({ admin: nextDay.client, userId: "u-1", today: "2026-08-21" })).length,
+    0,
+  );
+});
+
+Deno.test("lecture: la SEMAINE PROCHAINE est déjà visible, avec son ancre (§6)", async () => {
   const { client } = fakeAdmin({
-    constraints: {
-      retained_next_plan: [storedCraving("des fajitas", "2026-08-24")],
-    },
+    constraints: { retained_next_plan: [storedCraving("des fajitas", "2026-08-24")] },
   });
   const dated: DatedNextPlanItem[] = await nextPlanItemsWithLifeFor({
     admin: client,
@@ -580,65 +631,57 @@ Deno.test("lecture: la SEMAINE PROCHAINE est déjà visible (§6)", async () => 
     today: "2026-08-23",
   });
   assertEquals(dated.length, 1);
-  // Ce que 1D imprimera. En dur.
+  assertEquals(dated[0].life.anchor, "2026-08-24");
   assertEquals(dated[0].life.lastDay, "2026-08-30");
-  assertEquals(dated[0].life.expiredFrom, "2026-08-31");
 });
 
-Deno.test("lecture: UNE PERSONNE SEULE est servie comme tout le monde", async () => {
-  // Le défaut qui a fait déménager le magasin: sur le canal d'envies, un solo
-  // (aucun foyer) ne pouvait porter AUCUN next_plan. Ici, une seule clé —
-  // `user_id` — et aucune résolution de foyer sur le chemin.
+Deno.test("lecture: UNE PERSONNE SEULE est servie comme tout le monde — deux tables, aucun foyer", async () => {
   const { client, calls } = fakeAdmin({
-    constraints: {
-      retained_next_plan: [storedCraving("des fajitas", "2026-08-17")],
-    },
+    constraints: { retained_next_plan: [storedCraving("des fajitas", "2026-08-17")] },
   });
-  const items = await nextPlanItemsFor({
-    admin: client,
-    userId: "u-solo",
-    today: "2026-08-19",
-  });
+  const items = await nextPlanItemsFor({ admin: client, userId: "u-solo", today: "2026-08-19" });
   assertEquals(items.map((i) => i.text), ["des fajitas"]);
-  // Une seule table lue, et ce n'est pas le foyer.
+  assertEquals(calls, ["student_goals", "student_generated_meals"]);
+});
+
+Deno.test("lecture: aucune ligne `student_goals` rend `[]` — et ne lit pas les plans", async () => {
+  const { client, calls } = fakeAdmin({ noRow: true });
+  assertEquals(await nextPlanItemsFor({ admin: client, userId: "u-1", today: "2026-08-19" }), []);
   assertEquals(calls, ["student_goals"]);
 });
 
-Deno.test("lecture: aucune ligne `student_goals` rend `[]` — état normal", async () => {
-  const { client } = fakeAdmin({ noRow: true });
-  assertEquals(
-    await nextPlanItemsFor({ admin: client, userId: "u-1", today: "2026-08-19" }),
-    [],
-  );
+Deno.test("lecture: un magasin VIDE ne lit pas les plans non plus", async () => {
+  const { client, calls } = fakeAdmin({ constraints: {} });
+  assertEquals(await nextPlanItemsFor({ admin: client, userId: "u-1", today: "2026-08-19" }), []);
+  assertEquals(calls, ["student_goals"]);
 });
 
-Deno.test("lecture: une panne rend `[]` — un dîner ne dépend pas d'une envie", async () => {
+Deno.test("lecture: une panne sur les objectifs rend `[]` — un dîner ne dépend pas d'une envie", async () => {
   const { client } = fakeAdmin({ error: "boom" });
-  assertEquals(
-    await nextPlanItemsFor({ admin: client, userId: "u-1", today: "2026-08-19" }),
-    [],
-  );
+  assertEquals(await nextPlanItemsFor({ admin: client, userId: "u-1", today: "2026-08-19" }), []);
+});
+
+Deno.test("lecture: une panne sur les PLANS rend `[]` — on ne sert pas une envie sur une lecture ratée", async () => {
+  // Servir quand même reviendrait à décider « aucun plan validé » sur une
+  // erreur, c'est-à-dire ressusciter des lignes qu'une validation a fermées.
+  const { client } = fakeAdmin({
+    constraints: { retained_next_plan: [storedCraving("des fajitas", "2026-08-17")] },
+    plansError: "boom",
+  });
+  assertEquals(await nextPlanItemsFor({ admin: client, userId: "u-1", today: "2026-08-19" }), []);
 });
 
 Deno.test("lecture: un `today` illisible ne touche PAS la base", async () => {
   const { client, calls } = fakeAdmin({ constraints: {} });
-  assertEquals(
-    await nextPlanItemsFor({ admin: client, userId: "u-1", today: "19/08/2026" }),
-    [],
-  );
+  assertEquals(await nextPlanItemsFor({ admin: client, userId: "u-1", today: "19/08/2026" }), []);
   assertEquals(calls, []);
 });
 
 Deno.test("lecture: une entrée sans ancre lisible ne sert rien", async () => {
   const { client } = fakeAdmin({
     constraints: {
-      retained_next_plan: [
-        { item: retainedItemToJson(craving()), anchor: "pas une date" },
-      ],
+      retained_next_plan: [{ item: retainedItemToJson(craving()), anchor: "pas une date" }],
     },
   });
-  assertEquals(
-    await nextPlanItemsFor({ admin: client, userId: "u-1", today: "2026-08-19" }),
-    [],
-  );
+  assertEquals(await nextPlanItemsFor({ admin: client, userId: "u-1", today: "2026-08-19" }), []);
 });

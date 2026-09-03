@@ -67,7 +67,7 @@ import {
   INDEX_MIN,
   NOTCHES_PER_ANSWER,
 } from "./feedback_index.ts";
-import { MEMO_LINE_MAX_CHARS, MEMO_MAX_LINES } from "./memo.ts";
+import { MEMO_LINE_MAX_CHARS, MEMO_MAX_LINES_PER_SUBJECT } from "./memo.ts";
 import {
   WEIGH_IN_INTERVAL_DAYS,
   WEIGH_IN_WINDOW_END_HOUR,
@@ -449,7 +449,7 @@ Deno.test("épinglage — le mémo tient CINQ lignes", () => {
   // le journal de M5 (`FIELD_CHANGES_MAX`), qui laisse tomber le plus ancien:
   // perdre une trace coûte un « défaire », perdre une consigne change
   // l'assiette.
-  assertEquals(MEMO_MAX_LINES, 5);
+  assertEquals(MEMO_MAX_LINES_PER_SUBJECT, 5);
 
   // ⚠️ ET LA LONGUEUR D'UNE LIGNE EST CELLE D'UNE CITATION, PAS UN NOMBRE À
   // ELLE. Une ligne de mémo est de la prose que la personne relit sur sa carte;

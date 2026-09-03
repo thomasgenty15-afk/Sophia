@@ -7,8 +7,9 @@ import type { AwayMark } from "./presenceMarks";
 // ===========================================================================
 // D4 ② — LE TITULAIRE A UNE GRILLE DANS LE TUNNEL.
 //
-// ⛔ LE DÉFAUT. L'étape 3 lui pose la question du déjeuner (`workLunchRoster`,
-// « le titulaire, premier et pareil ») et sa réponse pré-remplit CINQ de ses
+// ⛔ LE DÉFAUT. La fiche du foyer lui pose la question du déjeuner
+// (`MemberWorkLunchCard`; à l'étape 3 avant A6, `workLunchRoster`, « le
+// titulaire, premier et pareil ») et sa réponse pré-remplit CINQ de ses
 // midis « dehors » sur sa ligne membre. L'étape 4 listait `facts.mouths` — dont
 // `readFunnelFacts` le retire. Il pouvait donc voir cinq de ses déjeuners
 // sortir du plan sans trouver, dans tout le tunnel, une seule case pour en

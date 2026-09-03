@@ -624,6 +624,7 @@ function w7Blocks(over: {
     kitchenEquipment: null,
     unmerge: null,
     dietBlock: "",
+    notes: [],
     voices: [],
   });
 }

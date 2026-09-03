@@ -174,8 +174,6 @@ import {
 import MealPickerGrid from "../components/MealPickerGrid";
 import TableStepPlanning from "../components/TableStepPlanning";
 import OneCookingSessionField from "../components/OneCookingSessionField";
-import CookDayBeforeField from "../components/CookDayBeforeField";
-import { workLunchRoster } from "../lib/workLunchRoster";
 import { presenceRoster } from "../lib/presenceRoster";
 import { browserLocalDate, catchUpWindowStart } from "../lib/useMealTicks";
 import { t, type MessageKey } from "../i18n/t";
@@ -924,12 +922,10 @@ export default function SetupPage() {
    * se redemande à chaque composition.
    */
   const [oneCookingSession, setOneCookingSession] = React.useState(false);
-  /**
-   * « JE CUISINE LA VEILLE DU PREMIER JOUR » — `false` par défaut, et il ne
-   * s'écrit nulle part non plus. Il RECULE la fenêtre demandée, donc il vit
-   * avec les dates.
-   */
-  const [cookTheDayBefore, setCookTheDayBefore] = React.useState(false);
+  // ⟳ A1 (2026-09-03) — L'ÉTAT « JE CUISINE LA VEILLE » A DISPARU AVEC SA
+  // CASE. La veille est dérivée côté serveur (`leadDayFor`) de la date de
+  // départ et de l'heure locale, coupure à 18 h; le navigateur ne connaît pas
+  // l'heure et ne doit pas essayer de rejouer ce verdict.
 
   /**
    * SON POIDS VISÉ ET SON RYTHME — LES DEUX SEULES VALEURS GARDÉES ICI.
@@ -1156,7 +1152,6 @@ export default function SetupPage() {
             // ⚠️ PAS DE RELECTURE CONTRE UN VOCABULAIRE: c'est un booléen, et
             // `readSetupDraft` l'a déjà ramené à `true`/`false` par `=== true`.
             setOneCookingSession(kept.draft.oneCookingSession);
-            setCookTheDayBefore(kept.draft.cookTheDayBefore);
           } else {
             setStepIndex(
               step ? Math.max(0, steps.findIndex((s) => s.id === step.id)) : Math.max(0, steps.length - 1),
@@ -1214,7 +1209,6 @@ export default function SetupPage() {
           householdSize: pendingHouseholdSize,
           cookingShape,
           oneCookingSession,
-          cookTheDayBefore,
           envy,
           envyWeek,
         },
@@ -1235,7 +1229,6 @@ export default function SetupPage() {
     // l'onglet rechargé retrouverait la case décochée — un brouillon qui perd
     // la seule réponse qui n'existe nulle part ailleurs.
     oneCookingSession,
-    cookTheDayBefore,
     envy,
     envyWeek,
   ]);
@@ -2919,7 +2912,6 @@ export default function SetupPage() {
       // pose pareil à qui mange seul. Et sans lui à l'adoption, le plan ÉCRIT ne
       // serait pas celui qu'on vient de montrer.
       oneCookingSession,
-      cookTheDayBefore,
       // Les entrées de la lane individuelle, ignorées sur la lane foyer.
       // `to_shop` et pas `from_pantry`: un premier plan n'a pas de garde-manger
       // déclaré, et `from_pantry` sans articles rend `pantry_required`.
@@ -3267,9 +3259,12 @@ export default function SetupPage() {
             ⛔ ET ELLE NE POUVAIT PAS ALLER DANS LA FICHE D'UNE PERSONNE:
             l'équipement est un fait de MAISON. Le poser par bouche le ferait
             demander quatre fois, et rien ne dirait laquelle des quatre réponses
-            compte. Le déjeuner au boulot, lui, est per-personne — mais
-            `WorkLunchCard` les traite déjà TOUS dans une seule carte, ce qui
-            est la même question posée une fois plutôt que N fois. */}
+            compte. Le déjeuner au boulot, lui, est per-personne — et depuis
+            le 2026-09-03 (A6, P6) il vit DANS la fiche de chaque personne, sur
+            `/app/household` (`MemberWorkLunchCard`), juste au-dessus de la
+            grille que sa réponse pré-remplit. L'étape 3 ne le pose plus: la
+            question décrit une SEMAINE ORDINAIRE, pas cette demande-ci, et
+            deux écrans la séparaient de la case où la démentir. */}
         {step.id === "request" ? (
           <TableStepPlanning
             // LA PHOTO DE LA COLONNE, JAMAIS DE QUOI ÉCRIRE. `null` = pas
@@ -3278,27 +3273,6 @@ export default function SetupPage() {
             // premier Enregistrer. L'écrivain, lui, relit la colonne.
             practicalConstraints={facts.practicalConstraints}
             hasGoal={facts.state.self.goal !== null}
-            // LE TITULAIRE EST LA PREMIÈRE BOUCHE, et sans lui la question ne
-            // se poserait jamais à celui qui remplit le formulaire:
-            // `readFunnelFacts` le RETIRE de `mouths` — il vit dans
-            // `state.self`. Sa date à lui est une VRAIE date
-            // (`profiles.birth_date`); celle des autres bouches est une marque
-            // de présence, et `workLunchRoster` sait laquelle est laquelle.
-            people={workLunchRoster({
-              self: {
-                memberId: facts.ownMemberId,
-                firstName: facts.state.self.firstName,
-                birthDate: facts.state.self.birthDate,
-              },
-              mouths: facts.mouths,
-              todayLocalIso: browserLocalDate(),
-            })}
-            busy={busy}
-            // ⚠️ LA PAGE RELIT APRÈS LE DÉJEUNER AUSSI, PAS SEULEMENT APRÈS
-            // L'ÉQUIPEMENT. La porte SQL écrit `away_days` en même temps que
-            // `work_lunch`: sans ce `load`, l'étape 4 monterait sa grille sur
-            // les absences d'AVANT le pré-remplissage, et les cinq midis n'y
-            // seraient pas — alors qu'ils sont en base.
             onSaved={() => load(false)}
           />
         ) : null}
@@ -3329,9 +3303,10 @@ export default function SetupPage() {
             onWindowEnd={setWindowEnd}
             maxEnd={addDays(windowStart, MAX_WINDOW_DAYS - 1)}
             // ── D4 ② · LE TITULAIRE A UNE GRILLE, LUI AUSSI ──────────────
-            // `facts.mouths` le RETIRE (il vit dans `state.self`), et l'étape 3
-            // lui pose pourtant la question du déjeuner: sa réponse coche cinq
-            // de SES midis « dehors ». Sans cette ligne, il ne trouvait nulle
+            // `facts.mouths` le RETIRE (il vit dans `state.self`), et la fiche
+            // du foyer lui pose pourtant la question du déjeuner (A6; l'étape 3
+            // avant): sa réponse coche cinq de SES midis « dehors ». Sans cette
+            // ligne, il ne trouvait nulle
             // part dans le tunnel de quoi en contredire un seul — alors que la
             // règle est « pré-remplir n'est pas décider, la grille gagne ».
             // Le motif complet, et pourquoi on ne retire PAS la question à la
@@ -3354,8 +3329,6 @@ export default function SetupPage() {
             onCookingShape={setCookingShape}
             oneCookingSession={oneCookingSession}
             onOneCookingSession={setOneCookingSession}
-            cookTheDayBefore={cookTheDayBefore}
-            onCookTheDayBefore={setCookTheDayBefore}
             envy={envy}
             onEnvy={setEnvy}
             // LA MÊME QUESTION QUE LE ROUTAGE, POSÉE AU MÊME ENDROIT que la
@@ -6586,8 +6559,6 @@ function RequestStep({
   onCookingShape,
   oneCookingSession,
   onOneCookingSession,
-  cookTheDayBefore,
-  onCookTheDayBefore,
   askCookingShape,
   envy,
   onEnvy,
@@ -6649,13 +6620,6 @@ function RequestStep({
    */
   oneCookingSession: boolean;
   onOneCookingSession: (next: boolean) => void;
-  /**
-   * « JE CUISINE LA VEILLE » — 2026-09-01. REQUIS, jamais `?`: comme la case
-   * du dessus, il ne s'écrit nulle part et un `?` l'aurait laissé se monter
-   * sans être branché.
-   */
-  cookTheDayBefore: boolean;
-  onCookTheDayBefore: (next: boolean) => void;
   /**
    * LA QUESTION A-T-ELLE UN SUJET ? Décidé par l'appelant, qui connaît le
    * roster: « un seul plat pour tout le monde » n'a pas de sens à une bouche,
@@ -6799,16 +6763,6 @@ function RequestStep({
               les séparer ferait lire un décalage de date sans le geste qui le
               cause. Et l'ordre compte — d'abord QUAND commence la cuisine,
               ensuite si elle tient en une fois. */}
-          <CookDayBeforeField
-            id="setup-cook-day-before"
-            value={cookTheDayBefore}
-            onChange={onCookTheDayBefore}
-            disabled={false}
-            startsOn={planWindow.startsOn}
-            durationDays={planWindow.durationDays}
-            today={browserLocalDate()}
-          />
-
           <OneCookingSessionField
             id="setup-one-cooking-session"
             value={oneCookingSession}

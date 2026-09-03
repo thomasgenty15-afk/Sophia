@@ -5647,10 +5647,14 @@ export const en = {
   // ── LE DÉJEUNER DE LA SEMAINE (L6, §2.2) ────────────────────────────────
   // La question ne se pose qu'aux majeurs, et l'âge se DÉDUIT de la date de
   // naissance — aucune de ces phrases ne demande « adulte ou enfant ».
+  // ⚠️ DEPUIS LE 2026-09-03 (A6, P6), LA CARTE VIT SUR /app/household, DANS
+  // LA FICHE DE CHAQUE BOUCHE, juste au-dessus de sa grille — plus à l'étape 3.
+  // Le namespace est GARDÉ (D6.3); les phrases qui disaient « at the next
+  // step » sont réécrites en place (listées dans le bloc chantier-0903/FOYER).
   "setup.work_lunch.title": "Lunch on a working day",
   "setup.work_lunch.intro":
     "Whoever eats away from the kitchen at midday changes what the plan has " +
-    "to cook. Ask now, and the week comes out right the first time.",
+    "to cook. Their week, just below, has the last word.",
   "setup.work_lunch.loading": "Reading what you already told us…",
   "setup.work_lunch.at_work": "During the week, does {name} eat lunch at work?",
   "setup.work_lunch.yes": "Yes",
@@ -5667,11 +5671,11 @@ export const en = {
     "No microwave, so those lunches have to be good cold. The plan cooks them " +
     "that way.",
   "setup.work_lunch.outside_note":
-    "{n} weekday lunches will already be marked “eating out” at the next " +
-    "step. The plan does not cook them — it says what to aim for.",
+    "{n} weekday lunches are marked “eating out” in their week, just below. " +
+    "The plan does not cook them — it says what to aim for.",
   "setup.work_lunch.grid_wins":
-    "Nothing is settled here. The day-by-day grid at the next step wins, " +
-    "meal by meal.",
+    "Nothing is settled here. The day-by-day grid of their week, just below, " +
+    "wins, meal by meal.",
   "setup.request.title": "This plan",
   "setup.request.from": "From",
   "setup.request.to": "To",
@@ -5679,8 +5683,9 @@ export const en = {
     "Seven days at most — that is the ceiling the plan itself carries.",
   "setup.request.presence_title": "Who is here, day by day",
   "setup.request.presence_intro":
-    "Step three said the habit. This is the week: untick the meals someone " +
-    "will actually miss — a trip, a dinner out, a weekend away. Only the days " +
+    "The habit — who eats lunch at work — is set on the Household page, in " +
+    "each person’s sheet. This is the week: untick the meals someone will " +
+    "actually miss — a trip, a dinner out, a weekend away. Only the days " +
     "above are touched.",
   "setup.request.presence_open": "Their week",
   "setup.request.presence_optional": "optional",
@@ -7366,17 +7371,6 @@ export const en = {
   "plan.cooking.one_session_hint":
     "A single cooking session for the whole stretch: whatever is not eaten in " +
     "the days that follow goes in the freezer, and comes out the night before.",
-  "plan.cooking.day_before_label":
-    "I cook the day before it starts",
-  "plan.cooking.day_before_hint":
-    "The plan will start a day earlier, and that day carries no meals: it is " +
-    "the one you cook on for the rest.",
-  "plan.cooking.day_before_starts_today":
-    "This plan starts today, so the day before has already gone. Move the " +
-    "first day later to cook ahead.",
-  "plan.cooking.day_before_no_room":
-    "This plan already covers seven days, the most it can. Shorten it by a " +
-    "day to make room for the session before it.",
   "plan.cooking.one_session_needs_freezer":
     "This needs a freezer: without one, a cooked dish only keeps two more " +
     "days. Tick it under \"What you cook with\" to open this option.",
@@ -7590,6 +7584,8 @@ export const en = {
   "plan.feedback.envy_hint":
     "One line, for the whole table. It goes to next week’s plan.",
   "plan.feedback.envy_placeholder": "Léa wants pasta, Marc is done with chicken",
+  "plan.feedback.anything_else_placeholder":
+    "Léa has dance on Tuesdays, we eat late on Fridays",
   "plan.feedback.send": "Send",
   "plan.feedback.sending": "Sending…",
   "plan.feedback.dismiss": "Not now",
@@ -7983,6 +7979,44 @@ export const en = {
   // Et dans `catalog.ts`: l'entrée `"/app/meals"` de `PAGE_NAMESPACES`. Aucune clé ajoutée.
   // ── chantier-0903/RAPIDE — fin ──
 
+  // ── chantier-0903/FOYER — début ──
+  // A6 · P6, le déjeuner en semaine quitte l'étape 3 (2026-09-03, D6.3). AUCUNE
+  // clé ajoutée, AUCUNE retirée: le namespace `setup.work_lunch.*` est GARDÉ,
+  // déjà déclaré sur /app/household (`catalog.ts`, inchangé). VALEURS CHANGÉES
+  // EN PLACE dans ce pack, parce que la carte vit maintenant dans la fiche de
+  // chaque bouche, juste au-dessus de sa grille, et que « at the next step »
+  // mentait:
+  //   "setup.work_lunch.intro"        — « Ask now, and the week comes out
+  //                                     right » → « Their week, just below,
+  //                                     has the last word »
+  //   "setup.work_lunch.outside_note" — « will already be marked … at the next
+  //                                     step » → « are marked … in their week,
+  //                                     just below »
+  //   "setup.work_lunch.grid_wins"    — « the grid at the next step » → « the
+  //                                     grid of their week, just below »
+  //   "setup.request.presence_intro"  — « Step three said the habit » → the
+  //                                     habit is set on the Household page
+  // ── chantier-0903/FOYER — fin ──
+  // ── chantier-0903/CUISINE — début ──
+  //
+  // ── A1 · LA VEILLE AUTOMATIQUE (P1) ──────────────────────────────────────
+  // Le serveur tranche le timing (`leadDayFor`, coupure à 18 h) et le rend dans
+  // `timing`. L'écran RÉPÈTE, il ne recalcule rien: le navigateur ne connaît
+  // pas l'heure. Deux phrases, une par `kind` — et AUCUNE variante par `reason`:
+  // l'explication complète vit dans `plan_rationale`, côté serveur, et un
+  // second jeu de gabarits ici divergerait au premier ajustement.
+  "meals.timing.day_before":
+    "Shopping and cooking on {day}, the day before: nothing is eaten that day.",
+  "meals.timing.same_morning":
+    "Shopping and cooking first thing in the morning, so it is ready by lunch.",
+  //
+  // RETIRÉES PAR CE LOT (la case « je cuisine la veille » n'existe plus, et
+  // `CookDayBeforeField.tsx` est supprimé — vérifié appelant par appelant):
+  //   · plan.cooking.day_before_label
+  //   · plan.cooking.day_before_hint
+  //   · plan.cooking.day_before_starts_today
+  //   · plan.cooking.day_before_no_room
+  // ── chantier-0903/CUISINE — fin ──
   // ── chantier-0903/SUIVI — début ──
   //
   // A7 — `/app/progress` DEVIENT LE SUIVI. Les mots de la page; les jetons

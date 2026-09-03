@@ -1,5 +1,5 @@
 /// <reference path="../tsserver-shims.d.ts" />
-import { memoLinesForPrompt } from "../_shared/keel/memo.ts";
+import { memoFrom, memoLinesForPrompt } from "../_shared/keel/memo.ts";
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient, type SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
 
@@ -74,6 +74,7 @@ import {
 // CONSTANTES NOMMÉES; aucune n'est recopiée ici.
 import {
   firstWindowDayIsCookable,
+  leadDayFor,
   proposedWindowStart,
   rhythmClockFrom,
   slotsPassedToday,
@@ -112,6 +113,8 @@ import {
 import { loadHungerDays } from "../_shared/keel/hunger_signal_io.ts";
 import {
   firstBlockingPlan,
+  type PlanTiming,
+  planTimingOf,
   type MealWindowRequest,
   dayTokenOf,
   resolveRequestedWindow,
@@ -836,7 +839,7 @@ async function resolveMergeRequest(args: {
   // ce lot ferait grossir la lecture que le chat fait à chaque tour.
   const personalRes = await args.admin
     .from("student_generated_meals")
-    .select("id, starts_on, duration_days, validated_at, cooking_sessions, dishes")
+    .select("id, starts_on, duration_days, lead_days, validated_at, cooking_sessions, dishes")
     .eq("id", best.personal.id)
     .maybeSingle();
   if (personalRes.error) throw personalRes.error;
@@ -876,6 +879,10 @@ async function resolveMergeRequest(args: {
       id: String(personalRow.id),
       startsOn: String(personalRow.starts_on ?? best.personal.startsOn),
       durationDays: Number(personalRow.duration_days ?? best.personal.durationDays),
+      // ⟳ A1 (2026-09-03) — la veille de la ligne PERSONNELLE reprise. Elle
+      // sort du même `select` que le reste (`personalRow`); `?? 0` couvre une
+      // base non migrée, où « pas de veille » est ce que la ligne porte.
+      leadDays: Number(personalRow.lead_days ?? 0),
       validatedAt: personalRow.validated_at == null
         ? null
         : String(personalRow.validated_at),
@@ -1239,16 +1246,21 @@ Deno.serve(async (req) => {
     // de semaine, pas un réglage de profil.
     const askedOneCookingSession = body.one_cooking_session === true;
     // ══════════════════════════════════════════════════════════════════════
-    // « JE CUISINE LA VEILLE » — LA DEMANDE, 2026-09-01.
+    // « JE CUISINE LA VEILLE » — PLUS UNE DEMANDE, UNE DÉRIVATION (A1,
+    // 2026-09-03).
     // ══════════════════════════════════════════════════════════════════════
     //
-    // ⚠️ `=== true`, ET LA COMPARAISON EST LA GARDE. Le corps vient du réseau.
+    // ⛔ `body.cook_the_day_before` N'EST PLUS LU, ET SON RETRAIT EST LE LOT.
+    // Les courses et la cuisson se font la veille, automatiquement; c'est
+    // `leadDayFor` (`plan_hours.ts`) qui tranche, plus bas, quand la date de
+    // départ et l'heure locale sont connues. Un corps qui porte encore la
+    // clé — un onglet ouvert avant le déploiement — est ignoré en silence:
+    // il demandait ce qu'on fait désormais par défaut.
     //
-    // ⛔ CE N'EST PAS ENCORE LA DÉCISION: la faisabilité (un jour avant le
-    // départ, sous le plafond de sept) est tranchée par `withCookDayBefore`,
-    // après que la fenêtre de la personne a été validée telle qu'elle l'a
-    // saisie. Une seule autorité, et elle est PURE.
-    const askedCookTheDayBefore = body.cook_the_day_before === true;
+    // ⚠️ ET LA DÉCISION NE PEUT PAS REMONTER ICI: elle a besoin de `todayDate`
+    // et de l'horloge du fuseau de la personne, résolus quarante lignes plus
+    // bas. La poser ici demanderait de deviner l'heure, et une heure devinée
+    // accorde une veille qui n'existe pas.
     //
     // ── LA REPRISE D'UN APERÇU EST CÂBLÉE, ET PAS ICI ────────────────────
     // Même seam que sur la lane individuelle: `body.draft_note` part au modèle
@@ -1667,6 +1679,10 @@ Deno.serve(async (req) => {
           id: p.id,
           startsOn: p.startsOn,
           durationDays: p.durationDays,
+          // ⟳ A1 (2026-09-03) — la veille de la ligne, projetée par
+          // `loadLiveHouseholdPlans`. `firstBlockingPlan` compare des JOURS
+          // MANGÉS; sans elle on refuserait le plan N+1 que la base accepte.
+          leadDays: p.leadDays,
         })),
         window: { startsOn, durationDays },
         replacesId: intent === "replace_current" ? replaces : null,
@@ -3166,8 +3182,19 @@ Deno.serve(async (req) => {
     // commence aujourd'hui, ou fenêtre déjà à sept jours) sert la fenêtre
     // demandée, et `plan_rationale` dit pourquoi. Rendre 400 transformerait une
     // préférence en mur.
+    // ⟳ A1 (2026-09-03) — `asked` EST DÉRIVÉ, ET C'EST LA MOITIÉ DU LOT.
+    //
+    // `leadDayFor` lit la date de départ, le jour local et l'HEURE locale, avec
+    // la coupure de `SHOPPING_CUTOFF_HOUR`. Ses cinq motifs sont des phrases;
+    // `withCookDayBefore` peut encore refuser la fenêtre (sept jours mangés),
+    // et c'est `planTimingOf` qui tranche lequel des deux explique.
+    //
+    // ⚠️ `hourNow: null` NE DEVIENT JAMAIS MINUIT. Une horloge illisible rend
+    // `clock_unreadable`, donc pas de veille — le produit d'hier, nommé. La
+    // deviner accorderait une veille que personne n'a le temps de cuisiner.
+    const lead = leadDayFor({ startsOn, today: todayDate, hourNow });
     const cookAhead = withCookDayBefore({ startsOn, durationDays }, {
-      asked: askedCookTheDayBefore,
+      asked: lead.leadDay !== null,
       today: todayDate,
     });
     startsOn = cookAhead.startsOn;
@@ -3176,9 +3203,22 @@ Deno.serve(async (req) => {
     if (cookAhead.refused !== null) {
       issues.push(`cook_the_day_before_refused: ${cookAhead.refused}`);
     }
+    // ── CE QUE LA RÉPONSE, LA LIGNE ET L'ÉCRAN LISENT, ASSEMBLÉ UNE FOIS ────
+    // ⛔ UNE SEULE EXPRESSION POUR TROIS DESTINATIONS. `timing` part dans la
+    // réponse (l'aperçu le rend), dans `generated_from` (il reste lisible en
+    // SQL trois jours plus tard) et dans `plan_rationale` (la phrase). Trois
+    // calculs du même fait divergeraient au premier ajustement — c'est la
+    // forme de défaut que ce dépôt a déjà payée sur `usableCookDays`,
+    // `addedCookDays` et `rationaleCookDays`.
+    const planTiming: PlanTiming = planTimingOf(lead, cookAhead);
 
     const capacity = readCookingCapacity(pc);
-    const scope: MealScope = durationDays === 1 ? "day" : "several_days";
+    // ⟳ A1 — `scope` SE DÉRIVE DES JOURS **MANGÉS**. Une fenêtre de deux jours
+    // dont l'un est la veille est un plan D'UN JOUR; la RPC dérive la même
+    // chose de son côté (`20260903170000`), et les deux doivent rester
+    // d'accord.
+    const daysToEat = durationDays - (cookOnlyDay === null ? 0 : 1);
+    const scope: MealScope = daysToEat === 1 ? "day" : "several_days";
     const daysToFill = windowDayOrder(startsOn, durationDays);
 
     // ── D14 · QUI EST LÀ, ET QUAND ────────────────────────────────────────
@@ -4148,9 +4188,35 @@ Deno.serve(async (req) => {
 
     // ⛔ HISSÉ POUR ÊTRE MESURÉ — lot M4, même raison que sur la lane solo:
     // lu en ligne, le mémo ne laissait aucune trace au runtime.
-    const memoLines = memoLinesForPrompt(
-      goalRow.practical_constraints as Record<string, unknown> | null,
-    );
+    //
+    // ── LOT A · PAR SUJET, ET DEUX CHEMINS ─────────────────────────────────
+    // Les notes de LA TABLE (`household`) entrent par le tronc, comme avant.
+    // Les notes D'UNE BOUCHE (« Léa a danse le mardi soir ») vont dans le bloc
+    // par bouche du foyer (`notes` de `buildHouseholdPromptBlocks`), rendues
+    // avec le prénom et le jour: « Tuesday dinner — Léa: … ». Servir la danse
+    // de Léa dans le tronc, sans son nom, donnerait une grosse part à Tom.
+    //
+    // ⚠️ LE RÔLE EST `composedMembers` (L3): une bouche qui a repris la main
+    // n'est pas servie ici, et ses notes non plus — comptées `other_subjects`.
+    const memoConstraints = goalRow.practical_constraints as
+      | Record<string, unknown>
+      | null;
+    const memoLines = memoLinesForPrompt(memoConstraints, {
+      subject: HOUSEHOLD_SUBJECT,
+      who: null,
+    });
+    const memberNoteLines = composedMembers.flatMap((m) => {
+      const subject = memberSubject(m.memberId);
+      if (!subject) return [];
+      return memoLinesForPrompt(memoConstraints, {
+        subject,
+        who: m.displayName,
+      });
+    });
+    const memoOtherSubjects = memoFrom(memoConstraints).filter((line) =>
+      line.subject !== HOUSEHOLD_SUBJECT &&
+      !composedMembers.some((m) => memberSubject(m.memberId) === line.subject)
+    ).length;
     const built = buildMealPrompt({
       // ── FF-030 · LES CONTRAINTES DURES, ICI AUSSI ──────────────────────
       // Cette lane portait exactement le même trou que `generate-meal-v1`:
@@ -4530,6 +4596,10 @@ Deno.serve(async (req) => {
       // ici: filtrer de ce côté-ci ferait une garde qu'un appelant applique,
       // c'est-à-dire une garde que le prochain appelant oublie.
       voices: voices.voices,
+      // ── LOT A · « CE QUE SOPHIA SAIT », PAR BOUCHE, DÉJÀ RENDU ────────────
+      // Voir le bloc du mémo plus haut: les notes de la table sont dans le
+      // tronc, celles d'une bouche entrent ici, avec son prénom et son jour.
+      notes: memberNoteLines,
     });
     // CE QUI A ÉTÉ COUPÉ, DANS LES `issues` DU PLAN. Une troncature muette est
     // un mensonge sur ce que le modèle a vu — et « pourquoi ce plan ignore-t-il
@@ -4709,14 +4779,28 @@ Deno.serve(async (req) => {
     // ── LOT M4 · LE COMPTEUR DU MÉMO — voir la lane solo pour le motif ───
     // `served` lit la chaîne RÉELLEMENT construite, pas le paramètre passé.
     // Dénominateur à chaque génération, `lines: 0` compris.
-    console.log(JSON.stringify({
-      tag: "keel.meal.memo",
-      user_id: userId,
-      lane: "household",
-      lines: memoLines.length,
-      served: memoLines.filter((line) => built.userMessage.includes(line))
-        .length,
-    }));
+    // ── LOT A · LE COMPTEUR DES NOTES — sur la chaîne, PAR SUJET ─────────
+    // `served` lit le message RÉELLEMENT construit: le tronc pour les notes de
+    // la table, le suffixe du foyer pour celles d'une bouche. Dénominateur à
+    // chaque génération, `lines: 0` compris. `other_subjects` dit combien de
+    // notes visent une bouche absente de cette table — un nombre qui monte
+    // est une bouche qui a repris la main avec une note qu'on ne sert plus.
+    {
+      const servedText = `${built.userMessage}${household.userSuffix}`;
+      console.log(JSON.stringify({
+        tag: "keel.household_meal.notes",
+        user_id: userId,
+        household_id: householdId,
+        lines: memoLines.length + memberNoteLines.length,
+        household_lines: memoLines.length,
+        member_lines: memberNoteLines.length,
+        served: [...memoLines, ...memberNoteLines].filter((line) =>
+          servedText.includes(line)
+        ).length,
+        block_served: household.notesServed,
+        other_subjects: memoOtherSubjects,
+      }));
+    }
     const householdUserMessage = (extra: string): string =>
       appendContentLanguageBlock(
         movePrecedenceToTail(
@@ -5914,9 +5998,16 @@ Deno.serve(async (req) => {
           shoppingDays: shoppingDays.map((d) => dayTokenOf(d)) as never,
           // ⛔ `daysNeedingTheirOwnShop`, LA MÊME FONCTION QUE LE CONSTAT.
           shopLaterDays: shopLaterDays as never,
-          cookDayBefore: askedCookTheDayBefore
-            ? { day: cookOnlyDay as never, refused: cookAhead.refused }
-            : null,
+          // ⟳ A1 — LE FAIT EST TOUJOURS LÀ, parce que la veille n'est plus une
+          // case: un plan qui commence un jour plus tôt sans un mot est un plan
+          // dont la personne croit avoir perdu un jour de repas, et un plan
+          // sans veille sans un mot est un plan qu'elle croit pouvoir cuisiner
+          // tranquillement le lendemain midi.
+          cookDayBefore: {
+            day: cookOnlyDay as never,
+            refused: cookAhead.refused,
+            reason: planTiming.reason,
+          },
           oneCookingSession: askedOneCookingSession
             ? {
               day: (oneCookingSession ? rationaleSingleSessionDay : null) as never,
@@ -7142,6 +7233,16 @@ Deno.serve(async (req) => {
         draft: true,
         meal: null,
         window: { starts_on: startsOn, duration_days: durationDays },
+        // ── ⟳ A1 · CE QUE L'ÉCRAN DOIT DIRE SUR LE TIMING ────────────────
+        // `{kind, reason, lead_day}`. `day_before` = la fenêtre a reculé et
+        // `lead_day` porte la date du jour de cuisine; `same_morning` = pas de
+        // veille, et l'écran rend « courses et cuisson dès le matin ».
+        //
+        // ⛔ CALCULÉ ICI ET NULLE PART AILLEURS. Le navigateur ne connaît PAS
+        // l'heure (`local_date.ts` refuse tout repli UTC, et un
+        // `new Date().getHours()` côté front est interdit): un écran qui
+        // referait ce verdict le referait faux, et en silence.
+        timing: planTiming,
         suggested_window: suggestedWindow,
         rationale: { lines: rationaleLines, refusal: rationaleRefusal },
         request_report: { lines: reportLines, refusal: reportRefusal },
@@ -7194,6 +7295,18 @@ Deno.serve(async (req) => {
         p_duration_days: durationDays,
         p_replaces: replaces,
         p_payload: {
+          // ⟳ A1 (2026-09-03) — LA VEILLE VOYAGE DANS LE PAYLOAD, pas dans un
+          // paramètre: ajouter un argument à `write_student_meal_plan` créerait
+          // une SURCHARGE côté Postgres, donc un 300 PostgREST sur chaque
+          // composition. La RPC en tire ses deux bornes, sa boucle de
+          // chevauchement, sa troncature et `scope` (`20260903170000`).
+          //
+          // ⚠️ DÉRIVÉ DE `cookOnlyDay`, JAMAIS DE `lead.leadDay`:
+          // `withCookDayBefore` a le dernier mot — une veille possible au
+          // calendrier peut être refusée par la fenêtre, et écrire `1` sur une
+          // fenêtre qui n'a pas reculé ferait une ligne dont le premier jour
+          // mangé n'existe pas.
+          lead_days: cookOnlyDay === null ? 0 : 1,
           mode: "to_shop",
           meal_slot: null,
           // D14 — CE QUI A ÉTÉ CUISINÉ, donc le même nombre que celui donné au
@@ -7247,6 +7360,12 @@ Deno.serve(async (req) => {
           // aujourd'hui. Leur persistance appartient à FF-043, dont la
           // conception n'est pas finie: l'y ajouter serait décider à sa place.
           generated_from: {
+            // ⟳ A1 — LE TIMING RESTE SUR LA LIGNE. Un journal de runtime
+            // s'efface; le plan reste. Sans cette clé, « pourquoi ce plan
+            // commence-t-il un jour plus tôt » n'est comptable en SQL nulle
+            // part, et un lot débranché serait indiscernable d'un lot qui
+            // marche.
+            timing: planTiming,
             coach_id: doctrine.coachId,
             doctrine_version: doctrine.doctrine?.version ?? null,
             doctrine_reason: doctrine.reason,
@@ -7798,6 +7917,16 @@ Deno.serve(async (req) => {
       ok: true,
       meal: writtenRow ? { id: writtenRow.meal_id } : null,
       window: { starts_on: startsOn, duration_days: durationDays },
+      // ── ⟳ A1 · CE QUE L'ÉCRAN DOIT DIRE SUR LE TIMING ────────────────
+      // `{kind, reason, lead_day}`. `day_before` = la fenêtre a reculé et
+      // `lead_day` porte la date du jour de cuisine; `same_morning` = pas de
+      // veille, et l'écran rend « courses et cuisson dès le matin ».
+      //
+      // ⛔ CALCULÉ ICI ET NULLE PART AILLEURS. Le navigateur ne connaît PAS
+      // l'heure (`local_date.ts` refuse tout repli UTC, et un
+      // `new Date().getHours()` côté front est interdit): un écran qui
+      // referait ce verdict le referait faux, et en silence.
+      timing: planTiming,
       // Une PROPOSITION d'écran, jamais un refus: valeur par défaut du prochain
       // formulaire. `shifted: null` = « rien à déplacer », pas « on n'a pas
       // regardé ».
