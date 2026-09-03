@@ -423,6 +423,7 @@ function blocksWith(ruleHolders: readonly HouseholdRuleHolder[]) {
     medicalMouths: [], crossContactUnnamedMedical: 0,
     dietBlock: "",
     kitchenEquipment: null,
+    notes: [],
     voices: [],
     ruleHolders,
   });

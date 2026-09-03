@@ -7,9 +7,39 @@
  * Socle: `retained_item.ts` — ce fichier ne le modifie pas et n'en réécrit rien.
  *
  * ═══════════════════════════════════════════════════════════════════════════
- * LA DÉCISION QUE CE FICHIER PORTE — « JUSQU'À LA FIN DE LA FENÊTRE DU PLAN »
+ * ⛔ LA RÈGLE DE VIE, DEPUIS LE 2026-09-03 (lot A, nomenclature §2.5):
+ * « JUSQU'À LA VALIDATION DU PLAN SUIVANT » — PAS AU CALENDRIER
  * ═══════════════════════════════════════════════════════════════════════════
- * La nomenclature laissait le choix ouvert entre deux durées. C'est tranché:
+ * Une ligne de l'encart vit tant qu'AUCUN plan de la personne ne porte un
+ * `validated_at` POSTÉRIEUR à l'instant où la ligne a été écrite
+ * (`written_at`, stocké dans l'enveloppe). Elle meurt dès qu'un tel plan
+ * existe: la validation est le fait que la personne PRODUIT, et c'est lui qui
+ * ferme — pas un lundi.
+ *
+ * ── CE QUE « ANCRE + 6 » (ci-dessous) NE TENAIT PAS ───────────────────────
+ * Un plan de deux jours régénéré trois fois dans la semaine gardait l'envie à
+ * chaque fois; un plan validé le samedi pour la semaine suivante la perdait le
+ * lundi. L'ANCRE RESTE STOCKÉE, pour l'affichage (« pour la semaine du … »)
+ * et parce que les trois raisons ci-dessous restent vraies: une donnée, pas
+ * un état; affichable; régénérer sans valider garde l'envie.
+ *
+ * ── `written_at` ET PAS `item.at`, ET C'EST LA PRÉCISION QUI COMPTE ──────
+ * `at` est un JOUR. Un plan composé le matin, annoté à midi et validé le soir
+ * porte trois instants du même jour: comparer des jours ne peut pas dire si la
+ * validation est venue APRÈS la note. Une entrée d'AVANT ce lot n'a pas de
+ * `written_at`: pour elle, la règle retombe sur le jour — morte seulement si
+ * un plan a été validé un jour STRICTEMENT postérieur à `at` (prudent: le
+ * même jour la garde).
+ *
+ * ⚠️ SI AUCUN PLAN N'EST JAMAIS VALIDÉ, LA LIGNE RESTE — et se retire à la
+ * main. Voulu: « une envie qui disparaît sans prévenir se lit comme une perte
+ * de données ». Et nommé: la validation n'a aujourd'hui qu'un appelant
+ * (`TakeTheHandCard`, plans `personal` d'un foyer).
+ *
+ * ═══════════════════════════════════════════════════════════════════════════
+ * (HISTOIRE) LA DÉCISION DU 2026-08-18 — « JUSQU'À LA FIN DE LA FENÊTRE »
+ * ═══════════════════════════════════════════════════════════════════════════
+ * La nomenclature laissait le choix ouvert entre deux durées. C'était tranché:
  *
  *   Un `next_plan` vit **jusqu'à la fin de la semaine à laquelle il est
  *   ancré** — le lundi ISO de son `anchor`. Il est vivant tant que
@@ -165,9 +195,31 @@ type MinimalClient = {
  */
 export type NextPlanEntry = {
   readonly item: RetainedItem;
-  /** Le lundi ISO de la semaine visée. */
+  /** Le lundi ISO de la semaine visée — pour l'AFFICHAGE depuis le lot A. */
   readonly anchor: string;
+  /**
+   * L'INSTANT de l'écriture, ISO 8601 UTC — lot A (2026-09-03). C'est contre
+   * lui que `validated_at` se compare. `null` = entrée d'avant le lot, dont
+   * la vie retombe sur le jour `item.at` (voir l'en-tête).
+   */
+  readonly writtenAt: string | null;
 };
+
+/** Un plan VALIDÉ de la personne, réduit à ce que la règle de vie regarde. */
+export type ValidatedPlan = {
+  /** `student_generated_meals.validated_at`, tel que la base le rend. */
+  readonly validatedAt: string;
+};
+
+/** Un instant ISO lisible, normalisé en UTC, ou `null`. Jamais « maintenant ». */
+export function parseIsoInstant(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const clean = value.trim();
+  if (!clean) return null;
+  const ms = Date.parse(clean);
+  if (!Number.isFinite(ms)) return null;
+  return new Date(ms).toISOString();
+}
 
 // ===========================================================================
 // L'ARITHMÉTIQUE DE LA SEMAINE — recopiée, et PROUVÉE ÉGALE par le test
@@ -274,50 +326,54 @@ export function nextPlanLifeOf(writtenAt: unknown): NextPlanLife | null {
 }
 
 /**
- * CET ITEM EST-IL ENCORE VIVANT ? Module PUR, jumeau exact de la lecture.
+ * CETTE LIGNE EST-ELLE ENCORE VIVANTE ? — la règle de vie, PURE.
  *
- * ⚠️ SIGNATURE FIGÉE par le contrat de phase 0 (§6).
+ * ── LA RÈGLE (lot A, 2026-09-03) ──────────────────────────────────────────
+ * Vivante tant qu'aucun plan validé de la personne n'est POSTÉRIEUR à son
+ * écriture. Concrètement:
+ *   · `writtenAt` présent ⇒ morte dès qu'un `validatedAt > writtenAt`
+ *     (comparaison d'instants, à la milliseconde);
+ *   · `writtenAt` absent (entrée d'avant le lot) ⇒ morte seulement si un
+ *     plan a été validé un JOUR strictement postérieur à `item.at`. Le même
+ *     jour la garde: prudent, et nommé.
  *
- * ── LES TROIS REFUS, ET AUCUN N'EST UN REPLI ──────────────────────────────
- * 1. `scope !== "next_plan"` ⇒ `false`. Ce n'est pas « il n'expire jamais »:
- *    un `durable` posé dans le magasin provisoire est un producteur cassé.
- *    Rendre `true` le pousserait dans la section « Pour la semaine prochaine »,
- *    où l'écran lui imprimerait une date d'expiration qu'il n'a pas, et où 1C
- *    le routerait comme une envie. Même doctrine que `parseRetainedItem`: une
- *    ligne que son producteur n'avait pas le droit d'écrire ne remonte pas.
- *    ⚠️ Le socle garantit déjà `craving ⇒ next_plan` À LA COMPILATION; cette
- *    branche mord sur les CINQ autres familles, dont `food.*` et `method.*`
- *    qui peuvent légitimement être `next_plan` (retour sur brouillon) ou
- *    `durable` (questionnaire). C'est là qu'elle sert.
- * 2. `writtenAt` illisible ⇒ `false`. Voir `nextPlanLifeOf`.
- * 3. `today` illisible ⇒ `false`. L'appelant est cassé; servir une envie sur
- *    une date qu'on n'a pas su lire serait servir n'importe quoi.
+ * ── LES REFUS, ET AUCUN N'EST UN REPLI ────────────────────────────────────
+ * 1. `scope !== "next_plan"` ⇒ `false`. Un `durable` posé dans le magasin
+ *    provisoire est un producteur cassé; le remonter ici le rangerait dans
+ *    l'encart. Même doctrine que `parseRetainedItem`.
+ * 2. Un `validatedAt` illisible est IGNORÉ (il ne tue pas): on ne fait pas
+ *    mourir une envie sur une date qu'on n'a pas su lire.
+ * 3. Un `writtenAt` illisible retombe sur la règle du jour, comme une entrée
+ *    d'avant le lot.
  *
  * ── ⚠️ AUCUNE BORNE BASSE, ET C'EST DÉLIBÉRÉ ──────────────────────────────
- * Un item ancré à la semaine PROCHAINE est vivant AUJOURD'HUI. La règle
- * s'appelle « expiration », pas « activation »: un item écrit d'avance est un
- * item futur, pas un item périmé. Et le §6 nomme la section « **Pour la semaine
- * prochaine** » — la cacher jusqu'au lundi ferait disparaître de l'écran ce que
- * la personne vient d'y déposer, ce qui est le défaut que ce lot existe pour
- * fermer.
+ * Une ligne écrite d'avance est vivante AUJOURD'HUI: la règle s'appelle
+ * « expiration », pas « activation ». La cacher ferait disparaître de l'écran
+ * ce que la personne vient d'y déposer.
  *
- * @param writtenAt l'ANCRE (`NextPlanEntry.anchor`), pas le jour de la frappe.
- * @param today le jour LOCAL de la personne, passé par l'appelant. Ce module ne
- *   lit aucune horloge.
+ * @param entry l'enveloppe stockée — l'item ET son instant d'écriture.
+ * @param validated les plans VALIDÉS de la personne, tous, dans n'importe quel
+ *   ordre. `[]` = personne n'a rien validé ⇒ vivante.
  */
 export function isNextPlanItemAlive(
-  item: RetainedItem,
-  writtenAt: string,
-  today: string,
+  entry: NextPlanEntry,
+  validated: readonly ValidatedPlan[],
 ): boolean {
+  const item = entry?.item;
   if (!item || item.scope !== "next_plan") return false;
-  const life = nextPlanLifeOf(writtenAt);
-  if (!life) return false;
-  const day = parseRetainedDay(today);
-  if (!day) return false;
-  // Comparaison de chaînes: `YYYY-MM-DD` est ordonné lexicographiquement, et
-  // c'est déjà la façon dont `accident.ts` compare ses dates de plan.
-  return day <= life.lastDay;
+  const writtenAt = parseIsoInstant(entry.writtenAt);
+  const at = parseRetainedDay(item.at);
+  for (const plan of validated ?? []) {
+    const validatedAt = parseIsoInstant(plan?.validatedAt);
+    if (!validatedAt) continue;
+    if (writtenAt !== null) {
+      if (Date.parse(validatedAt) > Date.parse(writtenAt)) return false;
+      continue;
+    }
+    // Entrée d'avant le lot: le JOUR, strictement postérieur.
+    if (at && validatedAt.slice(0, 10) > at) return false;
+  }
+  return true;
 }
 
 // ===========================================================================
@@ -402,7 +458,10 @@ export function readNextPlanEntries(
       noAnchor += 1;
       continue;
     }
-    entries.push({ item, anchor });
+    // ⚠️ `written_at` ILLISIBLE ⇒ `null`, PAS UN REFUS: la ligne reste, et sa
+    // vie retombe sur le jour. Refuser ferait tomber une envie réelle pour
+    // un horodatage — l'inverse de « aucun item ne se perd en silence ».
+    entries.push({ item, anchor, writtenAt: parseIsoInstant(env.written_at) });
   }
 
   return {
@@ -476,6 +535,10 @@ export function withNextPlanEntries(
     .map((entry) => ({
       item: retainedItemToJson(entry.item),
       anchor: entry.anchor,
+      // LOT A — l'instant d'écriture, quand le producteur l'a. Une entrée sans
+      // instant est réécrite sans: on n'invente pas « maintenant » à une ligne
+      // qui a été dite avant.
+      ...(entry.writtenAt ? { written_at: entry.writtenAt } : {}),
     }));
   return base;
 }
@@ -531,6 +594,9 @@ export async function nextPlanItemsWithLifeFor(args: {
   userId: string;
   today: string;
 }): Promise<DatedNextPlanItem[]> {
+  // ⚠️ `today` RESTE DANS LA SIGNATURE (contrat de phase 0 §6) et reste
+  // EXIGÉ: un appelant qui ne sait pas quel jour on est est un appelant cassé.
+  // La règle de vie ne le lit plus depuis le lot A (elle lit la validation).
   const today = parseRetainedDay(args.today);
   const userId = String(args.userId ?? "").trim();
   if (!today || !userId) {
@@ -557,31 +623,66 @@ export async function nextPlanItemsWithLifeFor(args: {
   }
 
   const { entries, refused } = readNextPlanEntries(constraints);
+  if (entries.length === 0) {
+    if (refused.total > 0) {
+      console.log(JSON.stringify({
+        tag: "keel/retained_next_plan",
+        event: "read",
+        stored: refused.total,
+        readable: 0,
+        alive: 0,
+        validated_plans: 0,
+        refused_malformed: refused.malformed,
+        refused_no_anchor: refused.noAnchor,
+        refused_not_next_plan: refused.notNextPlan,
+      }));
+    }
+    return [];
+  }
+
+  // ── LOT A · LES PLANS VALIDÉS DE LA PERSONNE — la règle de vie les lit ────
+  // `.eq("user_id")` EXPLICITE, même raison que la lecture des objectifs. Une
+  // panne ici n'est PAS « aucun plan validé »: on ne sert pas une envie sur
+  // une lecture qu'on n'a pas su faire, on la dit et on ne sert rien.
+  let validated: ValidatedPlan[] = [];
+  try {
+    const res = await args.admin
+      .from("student_generated_meals")
+      .select("validated_at")
+      .eq("user_id", userId)
+      .not("validated_at", "is", null);
+    if (res.error) throw new Error(String(res.error.message ?? res.error));
+    validated = ((res.data ?? []) as Record<string, unknown>[])
+      .map((row) => ({ validatedAt: String(row.validated_at ?? "") }))
+      .filter((row) => row.validatedAt !== "");
+  } catch (error) {
+    warn("validated_plans_unreadable", { error: messageOf(error) });
+    return [];
+  }
 
   const out: DatedNextPlanItem[] = [];
   for (const entry of entries) {
     const life = nextPlanLifeOf(entry.anchor);
     if (!life) continue;
-    if (isNextPlanItemAlive(entry.item, entry.anchor, today)) {
+    if (isNextPlanItemAlive(entry, validated)) {
       out.push({ item: entry.item, life });
     }
   }
 
   // AUCUN ITEM NE SE PERD EN SILENCE. Les nombres se lisent ensemble:
   // `refused.total > 0` = un producteur écrit du difforme; `entries > alive` =
-  // de l'expiré, ce qui est le cas NOMINAL et pas un incident.
-  if (entries.length > 0 || refused.total > 0) {
-    console.log(JSON.stringify({
-      tag: "keel/retained_next_plan",
-      event: "read",
-      stored: entries.length + refused.total,
-      readable: entries.length,
-      alive: out.length,
-      refused_malformed: refused.malformed,
-      refused_no_anchor: refused.noAnchor,
-      refused_not_next_plan: refused.notNextPlan,
-    }));
-  }
+  // des lignes que la validation d'un plan a fermées — le cas NOMINAL.
+  console.log(JSON.stringify({
+    tag: "keel/retained_next_plan",
+    event: "read",
+    stored: entries.length + refused.total,
+    readable: entries.length,
+    alive: out.length,
+    validated_plans: validated.length,
+    refused_malformed: refused.malformed,
+    refused_no_anchor: refused.noAnchor,
+    refused_not_next_plan: refused.notNextPlan,
+  }));
   return out;
 }
 

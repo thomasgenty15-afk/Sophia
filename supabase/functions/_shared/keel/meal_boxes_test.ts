@@ -1428,6 +1428,7 @@ Deno.test("LOT 4 — le SCHÉMA des boîtes est côté système, et muet à une 
     dedicatedDishesAsked: 0,
     medicalMouths: [], crossContactUnnamedMedical: 0,
     dietBlock: "",
+    notes: [],
     voices: [],
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,
@@ -1508,6 +1509,7 @@ Deno.test("LOT 4 — le schéma des boîtes ORDONNE, il ne permet pas", () => {
     dedicatedDishesAsked: 0,
     medicalMouths: [], crossContactUnnamedMedical: 0,
     dietBlock: "",
+    notes: [],
     voices: [],
     // L7 ① — jamais demandé: aucun bloc de cuisine, prompt de v15.
     kitchenEquipment: null,

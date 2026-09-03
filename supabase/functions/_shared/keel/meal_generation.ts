@@ -4421,6 +4421,14 @@ export function buildMealPrompt(args: {
             "not preferences to weigh: honour them, or say in the \"why\" of " +
             "the dish it affects that you could not, and what you did instead:",
             ...(args.memo ?? []).map((p) => `- ${p}`),
+            // ⛔ LOT A (2026-09-03) — NOMMER LE JOUR NE SUFFIT PAS, IL FAUT
+            // CONTREDIRE L'A PRIORI. Cicatrice `named-day-calendar-vs-model-prior`:
+            // le modèle lisse les jours quand on lui donne la donnée sans lui
+            // dire que ce jour-là est l'exception. La phrase vit ICI, collée aux
+            // lignes qu'elle gouverne, pas dans une section « règles » plus bas.
+            "when a line names a day or a meal, that day or that meal is the " +
+            "exception: compose it differently from the other days instead of " +
+            "keeping every day the same.",
           ]
           : []),
       ]

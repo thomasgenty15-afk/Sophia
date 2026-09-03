@@ -1962,8 +1962,12 @@ Deno.serve(async (req) => {
     // ⛔ HISSÉ POUR ÊTRE MESURÉ — lot M4. Le mémo était lu en ligne dans
     // l'appel; on ne pouvait donc rien en dire au runtime, et « le mémo est un
     // magasin mort » restait une phrase qu'aucun nombre ne pouvait démentir.
+    // ⛔ LOT A — PAR SUJET. Une personne seule est « la table »: ses notes
+    // portent `household`. Une note attribuée à une bouche d'un foyer ne
+    // concerne pas ce plan-ci, et ne part pas.
     const memoLines = memoLinesForPrompt(
       goalRow.practical_constraints as Record<string, unknown> | null,
+      { subject: HOUSEHOLD_SUBJECT, who: null },
     );
     const built = buildMealPrompt({
       // ── FF-030 · LES CONTRAINTES DURES ENTRENT DANS LA CONSIGNE ────────
@@ -2174,8 +2178,9 @@ Deno.serve(async (req) => {
     // précisément le magasin dont l'en-tête dit qu'il serait « celui qu'on
     // supprime, avec un autre chapeau ».
     console.log(JSON.stringify({
-      tag: "keel.meal.memo",
+      tag: "keel.meal.notes",
       user_id: userId,
+      subject: "household",
       lines: memoLines.length,
       served: memoLines.filter((line) => built.userMessage.includes(line))
         .length,

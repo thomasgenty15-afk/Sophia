@@ -542,10 +542,12 @@ export type PortionAdjustItem = Extract<
  *
  * ── POURQUOI CES TROIS INTERDITS ───────────────────────────────────────────
  * ① LE BROUILLON NE PRODUIT PAS DE `portion.adjust` NI DE `rhythm.set`. Un
- *   retour sur un brouillon parle de CE plan (« pas de poisson cette
- *   semaine »). Or ces deux familles-là sont `durable` ou structurelles par
- *   nature: les laisser naître d'un brouillon transformerait une humeur de
- *   mardi en règle de vie.
+ *   degré (« les parts sont trop grosses ») ne se range nulle part depuis un
+ *   texte libre — un indice se bouge depuis une question fermée du bilan
+ *   (nomenclature §2.3, 2026-09-03) — et un rythme est un réglage visible.
+ *   ⚠️ Depuis le lot A (2026-09-03), le brouillon écrit du DURABLE pour les
+ *   préférences (`defaultScopeFor`), et `next_plan` seulement pour ce que la
+ *   phrase date elle-même.
  * ② LE QUESTIONNAIRE EST LE SEUL PRODUCTEUR DE `portion.adjust`, et c'est le
  *   point central du chantier. Une mesure a besoin d'un sujet, et LA
  *   CONVERSATION NE SAIT PAS L'ATTRIBUER: « les portions étaient trop
@@ -725,9 +727,14 @@ export function defaultScopeFor(
   if (kind === "portion.adjust") return "durable";
   switch (source) {
     case "draft_note":
-      // Un retour sur un brouillon parle de CE plan. Le promouvoir en
-      // permanent transformerait une humeur de mardi en règle de vie.
-      return "next_plan";
+      // ⚠️ RENVERSÉ LE 2026-09-03 (lot A, nomenclature §5 matrice): le
+      // brouillon écrit du DURABLE pour les préférences. « Mon fils n'aime pas
+      // le poisson » n'est pas pour une semaine, et le ranger pour une semaine
+      // obligeait la personne à le redire à chaque plan (mesuré le 01/09).
+      // Ce qui est daté PAR LA PHRASE (« cette semaine ») va dans l'encart:
+      // c'est le classifieur qui passe `next_plan` explicitement pour cette
+      // porte-là, pas ce défaut.
+      return "durable";
     case "questionnaire":
       // Le bilan de fin de plan regarde la semaine ÉCOULÉE pour orienter les
       // suivantes: ce qu'il produit est du durable.

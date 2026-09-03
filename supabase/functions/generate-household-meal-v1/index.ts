@@ -1,5 +1,5 @@
 /// <reference path="../tsserver-shims.d.ts" />
-import { memoLinesForPrompt } from "../_shared/keel/memo.ts";
+import { memoFrom, memoLinesForPrompt } from "../_shared/keel/memo.ts";
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient, type SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
 
@@ -4148,9 +4148,35 @@ Deno.serve(async (req) => {
 
     // ⛔ HISSÉ POUR ÊTRE MESURÉ — lot M4, même raison que sur la lane solo:
     // lu en ligne, le mémo ne laissait aucune trace au runtime.
-    const memoLines = memoLinesForPrompt(
-      goalRow.practical_constraints as Record<string, unknown> | null,
-    );
+    //
+    // ── LOT A · PAR SUJET, ET DEUX CHEMINS ─────────────────────────────────
+    // Les notes de LA TABLE (`household`) entrent par le tronc, comme avant.
+    // Les notes D'UNE BOUCHE (« Léa a danse le mardi soir ») vont dans le bloc
+    // par bouche du foyer (`notes` de `buildHouseholdPromptBlocks`), rendues
+    // avec le prénom et le jour: « Tuesday dinner — Léa: … ». Servir la danse
+    // de Léa dans le tronc, sans son nom, donnerait une grosse part à Tom.
+    //
+    // ⚠️ LE RÔLE EST `composedMembers` (L3): une bouche qui a repris la main
+    // n'est pas servie ici, et ses notes non plus — comptées `other_subjects`.
+    const memoConstraints = goalRow.practical_constraints as
+      | Record<string, unknown>
+      | null;
+    const memoLines = memoLinesForPrompt(memoConstraints, {
+      subject: HOUSEHOLD_SUBJECT,
+      who: null,
+    });
+    const memberNoteLines = composedMembers.flatMap((m) => {
+      const subject = memberSubject(m.memberId);
+      if (!subject) return [];
+      return memoLinesForPrompt(memoConstraints, {
+        subject,
+        who: m.displayName,
+      });
+    });
+    const memoOtherSubjects = memoFrom(memoConstraints).filter((line) =>
+      line.subject !== HOUSEHOLD_SUBJECT &&
+      !composedMembers.some((m) => memberSubject(m.memberId) === line.subject)
+    ).length;
     const built = buildMealPrompt({
       // ── FF-030 · LES CONTRAINTES DURES, ICI AUSSI ──────────────────────
       // Cette lane portait exactement le même trou que `generate-meal-v1`:
@@ -4530,6 +4556,10 @@ Deno.serve(async (req) => {
       // ici: filtrer de ce côté-ci ferait une garde qu'un appelant applique,
       // c'est-à-dire une garde que le prochain appelant oublie.
       voices: voices.voices,
+      // ── LOT A · « CE QUE SOPHIA SAIT », PAR BOUCHE, DÉJÀ RENDU ────────────
+      // Voir le bloc du mémo plus haut: les notes de la table sont dans le
+      // tronc, celles d'une bouche entrent ici, avec son prénom et son jour.
+      notes: memberNoteLines,
     });
     // CE QUI A ÉTÉ COUPÉ, DANS LES `issues` DU PLAN. Une troncature muette est
     // un mensonge sur ce que le modèle a vu — et « pourquoi ce plan ignore-t-il
@@ -4709,14 +4739,28 @@ Deno.serve(async (req) => {
     // ── LOT M4 · LE COMPTEUR DU MÉMO — voir la lane solo pour le motif ───
     // `served` lit la chaîne RÉELLEMENT construite, pas le paramètre passé.
     // Dénominateur à chaque génération, `lines: 0` compris.
-    console.log(JSON.stringify({
-      tag: "keel.meal.memo",
-      user_id: userId,
-      lane: "household",
-      lines: memoLines.length,
-      served: memoLines.filter((line) => built.userMessage.includes(line))
-        .length,
-    }));
+    // ── LOT A · LE COMPTEUR DES NOTES — sur la chaîne, PAR SUJET ─────────
+    // `served` lit le message RÉELLEMENT construit: le tronc pour les notes de
+    // la table, le suffixe du foyer pour celles d'une bouche. Dénominateur à
+    // chaque génération, `lines: 0` compris. `other_subjects` dit combien de
+    // notes visent une bouche absente de cette table — un nombre qui monte
+    // est une bouche qui a repris la main avec une note qu'on ne sert plus.
+    {
+      const servedText = `${built.userMessage}${household.userSuffix}`;
+      console.log(JSON.stringify({
+        tag: "keel.household_meal.notes",
+        user_id: userId,
+        household_id: householdId,
+        lines: memoLines.length + memberNoteLines.length,
+        household_lines: memoLines.length,
+        member_lines: memberNoteLines.length,
+        served: [...memoLines, ...memberNoteLines].filter((line) =>
+          servedText.includes(line)
+        ).length,
+        block_served: household.notesServed,
+        other_subjects: memoOtherSubjects,
+      }));
+    }
     const householdUserMessage = (extra: string): string =>
       appendContentLanguageBlock(
         movePrecedenceToTail(

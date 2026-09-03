@@ -92,7 +92,7 @@ function craving(over: Record<string, unknown> = {}): RetainedItem {
 }
 
 function entry(item: RetainedItem, anchor = "2026-08-17"): NextPlanEntry {
-  return { item, anchor };
+  return { item, anchor, writtenAt: null };
 }
 
 interface Trace {
@@ -837,7 +837,7 @@ Deno.test("épingle: la migration écrit LES DEUX clés, en dur", async () => {
   }
 });
 
-Deno.test("épingle: les cinq paramètres sont ceux que ce module envoie", async () => {
+Deno.test("épingle: les cinq paramètres d'origine sont dans CHAQUE migration du port", async () => {
   // Un nom de paramètre qui bouge d'un seul côté rend `PGRST202` — c'est-à-dire
   // un « ça n'a rien fait » que rien d'autre n'attrape.
   const writers = await writerMigrations();
@@ -853,7 +853,31 @@ Deno.test("épingle: les cinq paramètres sont ceux que ce module envoie", async
   }
 });
 
-Deno.test("épingle: le module envoie EXACTEMENT ces cinq paramètres", async () => {
+Deno.test("épingle: LOT A — la DERNIÈRE migration du port porte les deux paramètres du mémo, et la clé", async () => {
+  // ⚠️ SUR LA DERNIÈRE SEULEMENT: celle du 2026-08-18 définit la surcharge à
+  // cinq, que celle du lot A supprime. Exiger `p_memo` partout ferait rougir
+  // une migration d'histoire; ne l'exiger nulle part laisserait le module
+  // envoyer sept paramètres à une fonction qui en prend cinq — `PGRST202`.
+  const writers = await writerMigrations();
+  assert(writers.length > 0);
+  const latest = writers.map((w) => w.name).sort().at(-1)!;
+  const sql = writers.find((w) => w.name === latest)!.sql;
+  for (const param of ["p_expected_memo", "p_memo"]) {
+    assert(
+      new RegExp(`\\n\\s*${param}\\s+jsonb`).test(sql),
+      `${latest}: le paramètre ${param} n'existe pas dans la migration`,
+    );
+  }
+  assert(sql.includes("array['memo']"), `${latest}: le port n'écrit pas la clé du mémo`);
+  assert(sql.includes("'bad_memo'"), `${latest}: un mémo qui n'est pas une liste n'est pas refusé`);
+  // Et l'ancienne surcharge est SUPPRIMÉE, pas laissée à côté.
+  assert(
+    /drop function if exists public\.keel_write_retained_items_for\(uuid, jsonb, jsonb, jsonb, jsonb\)/.test(sql),
+    `${latest}: la surcharge à cinq arguments n'est pas supprimée`,
+  );
+});
+
+Deno.test("épingle: le module envoie EXACTEMENT ces sept paramètres", async () => {
   const { admin, trace } = fakeAdmin({ constraints: {} });
   await persistRetainedItemsFor({
     admin,
@@ -865,8 +889,173 @@ Deno.test("épingle: le module envoie EXACTEMENT ces cinq paramètres", async ()
   assertEquals(trace.rpcs[0].name, "keel_write_retained_items_for");
   assertEquals(
     Object.keys(trace.rpcs[0].params).sort(),
-    ["p_expected", "p_expected_next", "p_items", "p_next", "p_user"],
+    ["p_expected", "p_expected_memo", "p_expected_next", "p_items", "p_memo", "p_next", "p_user"],
   );
+  // Sans mémo à écrire, la clé du mémo N'EST PAS TOUCHÉE: NULL des deux côtés.
+  assertEquals(trace.rpcs[0].params.p_memo, null);
+  assertEquals(trace.rpcs[0].params.p_expected_memo, null);
+});
+
+// ===========================================================================
+// ⑩ LOT A — LE MÉMO ENTRE PAR LA MÊME PORTE (« ce que Sophia sait »)
+// ===========================================================================
+
+const LEA_SUBJECT = "member:aaaaaaaa-0000-4000-8000-000000000001";
+
+function note(over: Record<string, unknown> = {}) {
+  return {
+    text: "danse le mardi, donc gros repas ce jour-là",
+    at: "2026-09-03",
+    source: "draft_note" as const,
+    quote: "ma fille a danse le mardi soir, il lui faut un vrai repas",
+    subject: LEA_SUBJECT,
+    when: { weekday: "tue" as const, slot: "dinner" as const },
+    ...over,
+  };
+}
+
+Deno.test("mémo: une note part dans la RPC, avec SON témoin, sans toucher les deux autres clés", async () => {
+  const { admin, trace } = fakeAdmin({ constraints: {} });
+  const out = await persistRetainedItemsFor({
+    admin,
+    userId: USER,
+    producer: "draft_note",
+    source: "test",
+    // deno-lint-ignore no-explicit-any
+    memo: [note() as any],
+  });
+  assertEquals(out.ok, true);
+  assertEquals(out.memoWritten, 1);
+  assertEquals(out.memoStored, 1);
+  const params = trace.rpcs[0].params;
+  assertEquals(params.p_items, null, "la clé durable a été touchée");
+  assertEquals(params.p_next, null, "la clé provisoire a été touchée");
+  assertEquals(params.p_expected_memo, null);
+  const memo = params.p_memo as Array<Record<string, unknown>>;
+  assertEquals(memo.length, 1);
+  assertEquals(memo[0].subject, LEA_SUBJECT);
+  assertEquals(memo[0].when, { weekday: "tue", slot: "dinner" });
+  assertEquals(memo[0].quote, "ma fille a danse le mardi soir, il lui faut un vrai repas");
+});
+
+Deno.test("mémo: les neuves DEVANT, les stockées VERBATIM derrière — même une ligne illisible", async () => {
+  const stored = [
+    { text: "d'avant", at: "2026-09-01", source: "draft_note", quote: "…" },
+    "une ligne illisible que le port ne doit PAS jeter",
+  ];
+  const { admin, trace } = fakeAdmin({ constraints: { memo: stored } });
+  const out = await persistRetainedItemsFor({
+    admin,
+    userId: USER,
+    producer: "draft_note",
+    source: "test",
+    // deno-lint-ignore no-explicit-any
+    memo: [note() as any],
+  });
+  assertEquals(out.memoWritten, 1);
+  const params = trace.rpcs[0].params;
+  assertEquals(params.p_expected_memo, stored, "le témoin n'est pas la valeur LUE");
+  const memo = params.p_memo as unknown[];
+  assertEquals(memo.length, 3);
+  assertEquals((memo[0] as Record<string, unknown>).text, "danse le mardi, donc gros repas ce jour-là");
+  assertEquals(memo[1], stored[0]);
+  assertEquals(memo[2], stored[1]);
+});
+
+Deno.test("mémo: la MÊME phrase pour la MÊME personne n'entre pas deux fois — et c'est COMPTÉ", async () => {
+  const { admin, trace } = fakeAdmin({ constraints: { memo: [note()] } });
+  const out = await persistRetainedItemsFor({
+    admin,
+    userId: USER,
+    producer: "draft_note",
+    source: "test",
+    // deno-lint-ignore no-explicit-any
+    memo: [note({ text: "  Danse le MARDI, donc gros repas ce jour-là " }) as any],
+  });
+  assertEquals(out.ok, false);
+  assertEquals(out.reason, "all_refused");
+  assertEquals(out.refused.memoDuplicate, 1);
+  assertEquals(trace.rpcs.length, 0, "une RPC est partie pour ne rien écrire");
+});
+
+Deno.test("mémo: la SIXIÈME pour la même personne est refusée `full` — les cinq restent, la RPC ne part pas", async () => {
+  const five = Array.from({ length: 5 }, (_, i) => note({ text: `consigne n°${i}` }));
+  const { admin, trace } = fakeAdmin({ constraints: { memo: five } });
+  const out = await persistRetainedItemsFor({
+    admin,
+    userId: USER,
+    producer: "draft_note",
+    source: "test",
+    // deno-lint-ignore no-explicit-any
+    memo: [note({ text: "une sixième" }) as any],
+  });
+  assertEquals(out.reason, "all_refused");
+  assertEquals(out.refused.memoFull, 1);
+  assertEquals(trace.rpcs.length, 0);
+});
+
+Deno.test("mémo: le plafond est PAR PERSONNE — cinq pour Léa laissent entrer une note pour la table", async () => {
+  const five = Array.from({ length: 5 }, (_, i) => note({ text: `consigne n°${i}` }));
+  const { admin, trace } = fakeAdmin({ constraints: { memo: five } });
+  const out = await persistRetainedItemsFor({
+    admin,
+    userId: USER,
+    producer: "draft_note",
+    source: "test",
+    // deno-lint-ignore no-explicit-any
+    memo: [note({ text: "on mange tard le vendredi", subject: "household", when: { weekday: "fri", slot: "dinner" } }) as any],
+  });
+  assertEquals(out.ok, true);
+  assertEquals(out.memoWritten, 1);
+  assertEquals((trace.rpcs[0].params.p_memo as unknown[]).length, 6);
+});
+
+Deno.test("mémo: une note d'une AUTRE source que le producteur est refusée `foreign_source`", async () => {
+  const { admin, trace } = fakeAdmin({ constraints: {} });
+  const out = await persistRetainedItemsFor({
+    admin,
+    userId: USER,
+    producer: "draft_note",
+    source: "test",
+    // deno-lint-ignore no-explicit-any
+    memo: [note({ source: "questionnaire" }) as any],
+  });
+  assertEquals(out.reason, "all_refused");
+  assertEquals(out.refused.foreignSource, 1);
+  assertEquals(trace.rpcs.length, 0);
+});
+
+Deno.test("mémo: une préférence ET une note partent dans LE MÊME appel — un reclassement ne se sépare pas", async () => {
+  const { admin, trace } = fakeAdmin({ constraints: {} });
+  const out = await persistRetainedItemsFor({
+    admin,
+    userId: USER,
+    producer: "draft_note",
+    source: "test",
+    durable: [food({ source: "draft_note" })],
+    // deno-lint-ignore no-explicit-any
+    memo: [note() as any],
+  });
+  assertEquals(out.ok, true);
+  assertEquals(out.durableWritten, 1);
+  assertEquals(out.memoWritten, 1);
+  assertEquals(trace.rpcs.length, 1);
+  assertEquals((trace.rpcs[0].params.p_items as unknown[]).length, 1);
+  assertEquals((trace.rpcs[0].params.p_memo as unknown[]).length, 1);
+});
+
+Deno.test("mémo: un magasin `memo` qui n'est pas une liste N'EST PAS écrasé", async () => {
+  const { admin, trace } = fakeAdmin({ constraints: { memo: { broken: true } } });
+  const out = await persistRetainedItemsFor({
+    admin,
+    userId: USER,
+    producer: "draft_note",
+    source: "test",
+    // deno-lint-ignore no-explicit-any
+    memo: [note() as any],
+  });
+  assertEquals(out.reason, "store_unreadable");
+  assertEquals(trace.rpcs.length, 0);
 });
 
 Deno.test("épingle: le port serveur est accordé à service_role SEUL", async () => {
