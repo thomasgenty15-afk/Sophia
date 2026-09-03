@@ -669,3 +669,50 @@ maintenant. À côté de « juste » et « faux », c'est la case où se cachent
 A2 prêt, fusion bloquée) · SUIVI ✅ (A7 prêt, attend un arbre vert) · MEMBRE A8.3 en cours (six défauts à fermer).
 **Bloquants** : l'arbre est rouge au typecheck des tests (fixtures d'A8.1 — correctif possible chez A8.3, demandé s'il
 est isolable) ; la session voisine tient six fichiers ; le disque ; la session navigateur.
+
+## 22:0x — ⛔ MON COMMIT A EMPORTÉ LES SUPPRESSIONS D'UNE AUTRE SESSION
+
+**Le défaut, et il est à moi.** Le commit `089f7fdf`, dont le message ne parle que du journal d'orchestration, contient
+aussi la **suppression de quatre fichiers de la session voisine** : `food_preference_promotion_io.ts` (455 lignes),
+`food_preference_promotion_io_test.ts` (703), `household_voices_io.ts` (204), `household_voices_io_test.ts` (333).
+
+**La cause** : les deux sessions partagent le même arbre de travail, donc **le même index**. `git add <mon journal>` puis
+`git commit -m "…"` valide **l'index entier**, y compris ce que la voisine y avait mis en attente. Je ne regardais que ce
+que j'ajoutais. **Vérifié sur mes vingt commits d'orchestration : c'est le seul** qui emporte quelque chose d'étranger
+(`a948f8a2` porte `launch.json`, qui est à moi et voulu).
+
+**Conséquence** : HEAD porte un `generate-household-meal-v1/index.ts` qui importe deux modules absents (lignes 35 et 47)
+⇒ `deno test _shared/keel` ne compile plus, six erreurs dont deux `TS2307`. **Le gate est rouge, de mon fait.**
+
+**Ce que je ne fais PAS, et pourquoi** : je ne restaure pas les quatre fichiers. La suppression est **voulue** par la
+voisine — son `meal_plan_integrity_test` en vol ajoute même la garde « `household_voices_io.ts` est revenu ». Restaurer
+irait contre son lot et lui créerait un conflit. **Son commit du lot C (annoncé à ~30-45 min) répare HEAD en même temps
+qu'il le complète.** Rien d'autre n'est bloqué par là : mes deux fusions en attente (A2, A7) l'étaient déjà sur ses six
+fichiers partagés.
+
+**Règle changée, définitivement** : sur un arbre partagé, **commiter avec une liste de chemins explicite**
+(`git commit -m "…" -- <chemin>`), qui ignore le reste de l'index. `git add <chemin>` ne protège de rien.
+C'est la **quatrième** erreur de l'orchestrateur aujourd'hui, et la première qui casse l'arbre. Les trois autres :
+la consigne `is_test_persona` (colonne inexistante), la recette de migration en « transaction annulée » (qui appliquait
+pour de vrai), et « monte le modèle sans le réécrire » donné à A8.3 (le modèle ne pouvait pas rendre ce qu'on lui
+demandait). Motif commun : **une affirmation reprise sans être mesurée.**
+
+### Le correctif d'A8.1 est repris, isolé, et il tient
+
+`f8ddedf8` → `9874d0cd` par `cherry-pick` (la lane a confirmé qu'il était isolable, et l'a prouvé : trois fichiers de
+test, aucune source, aucun commit suivant qui en dépende). Mesure après reprise : `planByPersonModel` 13 → **2**
+(baseline 6), `dishListByDay` 8 → **0**, `householdFlatLists` 2 → **0**, total **92 contre 93 tolérées**. Les deux
+restantes sont `eatingSlots` sur `MemberPortionView`, lignée du 13-14 août, **antérieures au chantier**.
+La lane n'a **pas** abaissé la ligne de la baseline : le gate ne fait qu'un `info` sur une baisse, et c'est à E de trancher.
+Avancement A8.3 : **D6 fait et muté** (le modèle porte `generatedMealId` + `dishIndex`, la résolution regroupe par boîte ;
+« regrouper sur `memberId` seul » → 3 rouges) ; **D1 fait et muté** (la mutation `indexOf` du vérificateur → 3 rouges sur 5).
+
+### La réserve de CUISINE sur le champ optionnel a trouvé mieux que ce qu'on cherchait
+
+Écrite en `7b8b8a49`. Le fail-open prévu n'était pas le pire : **`HOUSEHOLD_PROMPT_VERSION` dirait quand même `v23`**.
+On mesurerait une population « v23 » dont une partie n'a jamais vu le bloc, et la comparaison v22/v23 — la seule chose que
+le millésime existe pour permettre — deviendrait fausse **sans rien casser**. ⇒ **Un champ optionnel ne désarme pas
+seulement une garde : il peut faire mentir un instrument de mesure.**
+Et sa réserve à la réserve : `mouths = 0` n'est **pas** une preuve de débranchement (un foyer sans gamelle rend
+légitimement zéro) ; la preuve est zéro **partout alors que** `household_members.work_lunch` porte des `lunchbox`.
+**Le contrôle est le compteur CROISÉ avec la colonne, jamais le compteur seul.** Sortie datée posée pour E.
