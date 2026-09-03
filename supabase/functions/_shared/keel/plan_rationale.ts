@@ -264,6 +264,17 @@ export interface PlanRationaleFacts {
   cookingPlan:
     | {
       readonly sessions: number;
+      /**
+       * LES JOURS OÙ LE PLAN A POSÉ SES SESSIONS — dérivés, jamais cochés.
+       *
+       * ⛔ ILS NE PASSENT PAS PAR `declaredCookDays`, ET C'EST TOUT LE POINT.
+       * Ce fait-là est documenté « les jours que l'élève a COCHÉS », et son
+       * gabarit dit « tu cuisines lundi et jeudi, et c'est ce qui a été
+       * gardé ». Sur des jours DÉRIVÉS, cette phrase attribue à la personne un
+       * choix qu'elle n'a pas fait — mesuré au cas nominal (« juste milieu »,
+       * 2 courses, 7 jours): elle n'avait coché ni lundi ni jeudi.
+       */
+      readonly cookDays: readonly DayToken[];
       /** Les courses demandées que le plan n'utilise pas. `0` = aucune. */
       readonly unusedRuns: number;
       /** Le vocabulaire fermé de `CookingPlanNote`. */
@@ -564,6 +575,18 @@ const COPY = {
     // temps avant la fermeture des magasins: dire « un jour plus tôt » sans
     // dire « ce soir » ferait chercher un jour de cuisine dans le futur alors
     // qu'il est aujourd'hui.
+    // ── A2 · COMBIEN DE FOIS ON CUISINE, ET QUELS JOURS ──────────────────
+    // ⛔ ELLE SORT AU CAS NOMINAL, et c'est la règle de rang 2: rien de dérivé
+    // ne part sans une ligne. Le nombre de sessions était calculé, écrit sur la
+    // ligne, visible dans le plan — et jamais DIT. Les deux phrases de plafond
+    // ne s'allument, elles, que quand quelque chose a été repris.
+    //
+    // ⚠️ ELLE DIT « le plan pose », PAS « tu cuisines ». La seconde
+    // formulation appartient aux jours COCHÉS; celle-ci décrit une dérivation,
+    // et la confondre avec un choix est très exactement le défaut qu'elle
+    // remplace.
+    cookingSessionsPlanned: (n: number, days: string) =>
+      `Le plan pose ${n} sessions de cuisine : ${days}.`,
     // ── A2 · LE STYLE A PLAFONNÉ ─────────────────────────────────────────
     // ⚠️ ELLE DIT LE CHOIX AVANT LA CONSÉQUENCE. « Deux sessions » seul se lit
     // comme une limite subie; « tu as choisi de cuisiner le moins possible »
@@ -760,6 +783,8 @@ const COPY = {
     cookDayBeforeInThePast: () =>
       `Cooking the day before would have started the plan yesterday. It ` +
       `starts on its first day, and the cooking happens there.`,
+    cookingSessionsPlanned: (n: number, days: string) =>
+      `The plan sets ${n} cooking sessions: ${days}.`,
     styleCapsSessions: (runs: number, sessions: number) =>
       `You chose to cook as little as possible: ${sessions} sessions are ` +
       `enough, even with ${runs} shops. The last one is only for the day's ` +
@@ -1067,8 +1092,32 @@ export function explainPlanChoices(input: {
   // fois on cuisine » cadre la semaine, « quel jour la cuisine commence » la
   // situe. Lire le jour d'abord ferait apparaître une session dont on n'a pas
   // encore dit combien il y en a.
+  // ⛔ LE PRÉDICAT DE LA SESSION UNIQUE EST HISSÉ ICI, ET LU DEUX FOIS PLUS BAS.
+  // La phrase des sessions ne doit pas doubler « tout est cuisiné dimanche »:
+  // deux gabarits pour un même fait, c'est la famille de défaut que ce module
+  // corrige depuis `cookDeclaredDropped`. Le recopier ici en ferait deux idées
+  // de « la session unique s'applique ».
+  const singleSession = facts.oneCookingSession;
+  const singleSessionApplied = singleSession !== null &&
+    singleSession.refusedNoFreezer !== true;
+
   const cooking = facts.cookingPlan;
   if (cooking !== null) {
+    // ⛔ RANG 2: LE NOMBRE DE SESSIONS EST DÉRIVÉ, DONC IL SE DIT. Il était
+    // calculé, écrit sur la ligne, visible dans le plan — et jamais énoncé; les
+    // deux phrases de plafond ne s'allument que quand quelque chose a été
+    // repris, c'est-à-dire jamais au cas nominal.
+    //
+    // ⚠️ SAUF QUAND LA SESSION UNIQUE PARLE DÉJÀ: « le plan pose 1 session » à
+    // côté de « tout est cuisiné dimanche » serait deux fois le même fait.
+    if (cooking.cookDays.length > 0 && !(cooking.sessions === 1 && singleSessionApplied)) {
+      lines.push(
+        copy.cookingSessionsPlanned(
+          cooking.sessions,
+          renderDays(cooking.cookDays, input.locale),
+        ),
+      );
+    }
     if (cooking.notes.includes("style_caps_sessions")) {
       lines.push(
         copy.styleCapsSessions(cooking.sessions + cooking.unusedRuns, cooking.sessions),
@@ -1108,9 +1157,6 @@ export function explainPlanChoices(input: {
     }
   }
 
-  const singleSession = facts.oneCookingSession;
-  const singleSessionApplied = singleSession !== null &&
-    singleSession.refusedNoFreezer !== true;
   if (singleSession !== null && singleSession.refusedNoFreezer === true) {
     lines.push(copy.singleSessionNeedsFreezer());
   }

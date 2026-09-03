@@ -424,13 +424,23 @@ export interface ResolvedCookingCapacity extends DeclaredCookingCapacity {
  *     `weeklyCookingMinutes`, endormis depuis que l'écran écrit `[]` (D2.4 —
  *     réveil ASSUMÉ et DIT, pas un nettoyage);
  *   · `cookingTimeMin` devient le budget du style;
- *   · `recipeDifficulty` et `variety` ne bougent PAS, et ce n'est pas un
- *     oubli: ⛔ **aucune des deux n'a de lecteur dans les deux générateurs**
- *     (vérifié le 2026-09-03 — `readCookingCapacity` les calcule et personne
- *     ne les lit; le seul lecteur vivant est `keel-plan-feedback-v1`, qui lit
- *     la COLONNE). Les dériver ici écrirait un réglage que rien ne consomme et
- *     ferait ressembler un lot désarmé à un lot qui marche. Le style les porte
- *     (`COOKING_STYLE_PROFILE`) pour le jour où un lecteur existera.
+ *   · `recipeDifficulty` et `variety` deviennent CELLES DU STYLE.
+ *
+ * ⛔ CES DEUX-LÀ ONT FAILLI NE PAS ÊTRE DÉRIVÉES, SUR UNE AFFIRMATION
+ * D'ABSENCE FAUSSE — et le motif de l'erreur mérite d'être écrit ici, parce
+ * qu'il se reproduira. J'avais écrit « aucune des deux n'a de lecteur dans les
+ * deux générateurs », après avoir cherché `recipeDifficulty` dans les deux
+ * `index.ts`. Zéro occurrence, donc zéro lecteur — sauf que **les deux lanes
+ * nourrissent `buildMealPrompt` par `...capacity`** (`generate-meal-v1:2241`,
+ * `generate-household-meal-v1:4410`), et que le prompt les émet
+ * (`meal_generation.ts:4073-4076`: « recipe level they want: … »,
+ * « repetition they accept: … »).
+ *
+ * ⚠️ **UN `...spread` REND UN CHAMP INVISIBLE À `grep`.** Chercher le NOM d'un
+ * champ ne prouve rien quand il voyage dans un objet: il faut suivre l'OBJET.
+ * Mesuré par sonde sur l'appel réel: +60 octets de consigne. Le coût produit de
+ * l'erreur: qui répond « j'aime cuisiner » obtenait ses 120 minutes et un
+ * prompt MUET sur le niveau de recette et la répétition.
  *
  * @param freezer déjà réduit à un booléen par `hasFreezerDeclared` chez
  *   l'appelant — « pas de congélateur » et « jamais demandé » y rendent le
@@ -464,6 +474,14 @@ export function resolveCookingCapacity(input: {
     ...input.declared,
     cookDays: [...plan.cookDays],
     cookingTimeMin: plan.sessionMinutes,
+    // ⛔ LES DEUX AUTRES LEVIERS DU STYLE, ET ILS ATTEIGNENT LE MODÈLE. Voir
+    // l'en-tête: ils voyagent par `...capacity` jusqu'à `buildMealPrompt`, qui
+    // les émet en toutes lettres. Les laisser déclarés ferait dire au prompt
+    // « recettes simples » à quelqu'un qui vient de répondre « j'aime
+    // cuisiner » — le style et la consigne se contrediraient dans le même
+    // message.
+    recipeDifficulty: COOKING_STYLE_PROFILE[input.style].difficulty,
+    variety: COOKING_STYLE_PROFILE[input.style].variety,
     plan,
     // ⚠️ SUR `runs`, PAS SUR `plan.sessions`. « Une course » est ce que la
     // personne a DEMANDÉ; `plan.sessions` peut déjà valoir 2 parce qu'il n'y a

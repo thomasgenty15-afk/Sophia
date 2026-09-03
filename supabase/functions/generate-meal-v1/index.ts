@@ -3658,10 +3658,20 @@ Deno.serve(async (req) => {
       // `usableCookDays` et `addedCookDays` ont déjà coûtée deux fois.
       ...(cookOnlyDay === null ? [] : [cookOnlyDay]),
       ...usableCookDays({
+        // ⚠️ LES JOURS **SERVIS**, DÉRIVÉS COMPRIS — et surtout PAS la
+        // version vidée qui part aux faits de rationale. Cette liste-ci
+        // nomme le jour de la session unique; la vider ferait nommer une
+        // journée que le modèle n'a pas reçue, ce que le commentaire
+        // ci-dessus interdit depuis le run `af04fd89-…`.
         declared: capacity.cookDays ?? [],
         window: daysToFill,
       }),
       ...addedCookDays({
+        // ⚠️ LES JOURS **SERVIS**, DÉRIVÉS COMPRIS — et surtout PAS la
+        // version vidée qui part aux faits de rationale. Cette liste-ci
+        // nomme le jour de la session unique; la vider ferait nommer une
+        // journée que le modèle n'a pas reçue, ce que le commentaire
+        // ci-dessus interdit depuis le run `af04fd89-…`.
         declared: capacity.cookDays ?? [],
         window: daysToFill,
         firstDayCookable,
@@ -3698,20 +3708,35 @@ Deno.serve(async (req) => {
               measured.verdict.energy === "not_computable"
             ? null
             : measured.verdict.energy === "below",
-          declaredCookDays: (capacity.cookDays ?? []) as never,
+          // ⛔ VIDE QUAND LES JOURS SONT DÉRIVÉS, ET C'EST UN CORRECTIF.
+          //
+          // Ce fait-là est documenté « les jours que l'élève a COCHÉS », et son
+          // gabarit dit « tu cuisines lundi et jeudi, et c'est ce qui a été
+          // gardé ». Depuis A2, `capacity.cookDays` peut être une DÉRIVATION du
+          // style — mesuré au cas nominal (« juste milieu », 2 courses, 7
+          // jours): la personne n'avait coché ni lundi ni jeudi, et
+          // l'explication le lui attribuait quand même.
+          //
+          // ⚠️ LES TROIS FAITS DU MÉCANISME « JOURS COCHÉS » SE TAISENT
+          // ENSEMBLE. `usableCookDays` (« ce qui a été gardé ») et
+          // `addedCookDays` (« ce que le moteur a ajouté ») décrivent le même
+          // mécanisme: n'en vider qu'un ferait dire au plan qu'il a ajouté un
+          // jour à une liste vide. Ce que la dérivation a fait est dit par
+          // `cookingPlan`, avec ses propres mots.
+          declaredCookDays: (capacity.plan === null ? capacity.cookDays ?? [] : []) as never,
           // CE QUE LA FENÊTRE ATTEINT ENCORE. `usableCookDays` est exporté par
           // `meal_generation.ts` exactement pour ça: c'est LA fonction que la
           // consigne appelle. Un filtre réécrit ici ferait dire à l'explication
           // l'inverse de ce que le prompt a demandé — le défaut du 2026-09-01.
           usableCookDays: usableCookDays({
-            declared: capacity.cookDays ?? [],
+            declared: capacity.plan === null ? capacity.cookDays ?? [] : [],
             window: daysToFill,
           }) as never,
           // CE QUE LE MOTEUR A AJOUTÉ. Recalculé de la MÊME façon que
           // `buildMealPrompt`: les jours déclarés qui restent dans la fenêtre,
           // et le premier jour cuisinable quand tous tombent après lui.
           addedCookDays: addedCookDays({
-            declared: capacity.cookDays ?? [],
+            declared: capacity.plan === null ? capacity.cookDays ?? [] : [],
             window: daysToFill,
             firstDayCookable,
           }) as never,
@@ -3786,6 +3811,8 @@ Deno.serve(async (req) => {
           // l'explication d'un compte antérieur ne bouge pas d'un caractère.
           cookingPlan: capacity.plan === null ? null : {
             sessions: capacity.plan.sessions,
+            // LES JOURS DÉRIVÉS, dits avec les mots de la dérivation.
+            cookDays: capacity.plan.cookDays as never,
             unusedRuns: capacity.plan === null || groceryRuns === null
               ? 0
               : unusedGroceryRuns(groceryRuns, capacity.plan),

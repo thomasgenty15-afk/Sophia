@@ -6015,10 +6015,18 @@ Deno.serve(async (req) => {
       // `usableCookDays` et `addedCookDays` ont déjà coûtée deux fois.
       ...(cookOnlyDay === null ? [] : [cookOnlyDay]),
       ...usableCookDays({
+        // ⚠️ LES JOURS **SERVIS**, DÉRIVÉS COMPRIS — et surtout PAS la
+        // version vidée qui part aux faits de rationale. Cette liste-ci
+        // nomme le jour de la session unique; la vider ferait nommer une
+        // journée que le modèle n'a pas reçue.
         declared: capacity.cookDays ?? [],
         window: daysToFill,
       }),
       ...addedCookDays({
+        // ⚠️ LES JOURS **SERVIS**, DÉRIVÉS COMPRIS — et surtout PAS la
+        // version vidée qui part aux faits de rationale. Cette liste-ci
+        // nomme le jour de la session unique; la vider ferait nommer une
+        // journée que le modèle n'a pas reçue.
         declared: capacity.cookDays ?? [],
         window: daysToFill,
         firstDayCookable,
@@ -6047,16 +6055,27 @@ Deno.serve(async (req) => {
           // par bouche, aucune pour la casserole. Elle se taira ici tant que le
           // foyer n'aura pas de verdict de table — c'est le lot du bac.
           energyBelowBand: null,
-          declaredCookDays: (capacity.cookDays ?? []) as never,
+          // ⛔ VIDE QUAND LES JOURS SONT DÉRIVÉS, ET C'EST UN CORRECTIF.
+          //
+          // Ce fait-là est documenté « les jours que l'élève a COCHÉS », et son
+          // gabarit dit « tu cuisines lundi et jeudi, et c'est ce qui a été
+          // gardé ». Depuis A2, `capacity.cookDays` peut être une DÉRIVATION du
+          // style: l'explication attribuait à la personne un choix qu'elle
+          // n'avait pas fait.
+          //
+          // ⚠️ LES TROIS FAITS DU MÉCANISME SE TAISENT ENSEMBLE. `usableCookDays`
+          // et `addedCookDays` le décrivent aussi: n'en vider qu'un ferait dire
+          // au plan qu'il a ajouté un jour à une liste vide.
+          declaredCookDays: (capacity.plan === null ? capacity.cookDays ?? [] : []) as never,
           // LE MÊME CALCUL QUE LA CONSIGNE, pas un second — et c'est vrai des
           // DEUX: `usableCookDays` et `addedCookDays` sont exportés par
           // `meal_generation.ts` exactement pour ça.
           usableCookDays: usableCookDays({
-            declared: capacity.cookDays ?? [],
+            declared: capacity.plan === null ? capacity.cookDays ?? [] : [],
             window: daysToFill,
           }) as never,
           addedCookDays: addedCookDays({
-            declared: capacity.cookDays ?? [],
+            declared: capacity.plan === null ? capacity.cookDays ?? [] : [],
             window: daysToFill,
             firstDayCookable,
           }) as never,
@@ -6130,6 +6149,8 @@ Deno.serve(async (req) => {
           // l'explication d'un compte antérieur ne bouge pas d'un caractère.
           cookingPlan: capacity.plan === null ? null : {
             sessions: capacity.plan.sessions,
+            // LES JOURS DÉRIVÉS, dits avec les mots de la dérivation.
+            cookDays: capacity.plan.cookDays as never,
             unusedRuns: capacity.plan === null || groceryRuns === null
               ? 0
               : unusedGroceryRuns(groceryRuns, capacity.plan),
@@ -7283,6 +7304,19 @@ Deno.serve(async (req) => {
         missing: household.kitchenMissing,
       },
       eating_out: household.eatingOut,
+      // ── ⛔ D6.2 · LE COMPTEUR DE LA GAMELLE, ET IL ÉTAIT LE MAILLON QUI
+      //    MANQUAIT.
+      //
+      // `household.workLunch` était CALCULÉ par le constructeur de prompt et
+      // jeté ici même: la ligne d'à côté portait `eating_out`, pas celle-ci.
+      // Donc `generated_from.household.work_lunch` n'existait sur AUCUNE
+      // ligne — et la requête de contrôle écrite dans ma propre réserve de
+      // journal aurait rendu `NULL` pour toujours.
+      //
+      // ⚠️ C'EST LA MOITIÉ QUI COMPTE D'UN CHAMP OPTIONNEL: le marché passé
+      // pour garder `workLunch` en `?` était un compteur ET un test de
+      // câblage. Le test existait, le compteur n'atteignait rien.
+      work_lunch: household.workLunch,
       // ── LOT C ② · LE `why` ET LA RÈGLE DE QUELQU'UN ───────────────────────
       // TROIS NOMBRES ET LEUR DÉNOMINATEUR, et la forme est celle de `names`
       // au-dessus parce que la cause est la même: `why_rule_of` est un CHAMP

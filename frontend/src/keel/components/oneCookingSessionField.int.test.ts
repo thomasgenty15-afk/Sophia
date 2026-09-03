@@ -404,3 +404,65 @@ describe("⟳ P2 — le style et la cadence de courses, montés aux DEUX endroit
     expect(BUILDER).toMatch(/^\s+groceryRuns,$/m);
   });
 });
+
+describe("⛔ P2 — l'ÉQUIPEMENT vient AVANT le nombre de courses", () => {
+  // ══════════════════════════════════════════════════════════════════════════
+  // LE DÉFAUT QUE CE BLOC FERME, ET IL A ÉTÉ LIVRÉ.
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // Sur `/app/plan`, l'inventaire de cuisine vivait **178 lignes plus bas** que
+  // « combien de courses ». On acceptait donc « une seule course » avant de
+  // savoir s'il y a un congélateur — et « une seule course » ne tient QUE par
+  // le congélateur. La personne répondait, puis découvrait le refus dans
+  // l'explication du plan, pour une question qui était sous ses yeux.
+  //
+  // ⚠️ CE QUE CE TEST NE MESURE PAS, DIT ICI PLUTÔT QUE SOUS-ENTENDU: il lit
+  // la SOURCE, pas le HTML rendu. Monter `MealBuilder` demanderait un client
+  // Supabase vivant (il lit le foyer, les plans, l'inventaire au montage), et
+  // le patron `renderToStaticMarkup` du dépôt ne s'applique qu'aux composants
+  // qui n'en ont pas besoin — `kitchenEquipmentCard.int.test.ts` en est
+  // l'exemple. Ce qui rend la lecture de source SUFFISANTE ici, et seulement
+  // ici: les trois blocs sont des FRÈRES du même parent JSX, sans condition ni
+  // enveloppe entre eux, donc l'ordre du fichier EST l'ordre du DOM. La
+  // seconde assertion vérifie cette prémisse au lieu de la supposer.
+
+  it("sur `/app/plan`, l'inventaire précède le style ET les courses", () => {
+    const equipment = BUILDER.indexOf("<KitchenEquipmentCard");
+    const style = BUILDER.indexOf("<CookingStyleField");
+    const runs = BUILDER.indexOf("<GroceryRunsField");
+    const session = BUILDER.indexOf("<OneCookingSessionField");
+    for (const [name, at] of [["équipement", equipment], ["style", style], ["courses", runs], ["session", session]] as const) {
+      expect(at, `${name} introuvable`).toBeGreaterThan(-1);
+    }
+    expect(equipment, "l'inventaire ne précède plus le style").toBeLessThan(style);
+    expect(style).toBeLessThan(runs);
+    expect(runs).toBeLessThan(session);
+  });
+
+  it("⛔ LA PRÉMISSE: les blocs sont des FRÈRES, donc la source dit le DOM", () => {
+    // Si l'inventaire était rendu dans une branche conditionnelle ou déplacé
+    // par du CSS, l'ordre du fichier ne dirait plus rien du DOM et le test
+    // au-dessus serait une garde désarmée. On vérifie donc que le `<details>`
+    // qui porte l'inventaire est FERMÉ avant que le champ de style ne s'ouvre.
+    const equipment = BUILDER.indexOf("<KitchenEquipmentCard");
+    const closes = BUILDER.indexOf("</details>", equipment);
+    const style = BUILDER.indexOf("<CookingStyleField");
+    expect(closes).toBeGreaterThan(equipment);
+    expect(closes, "le style est DANS le bloc de l'inventaire").toBeLessThan(style);
+    // Et rien n'ouvre de branche entre les deux: pas de `? (` ni de `&&` porté
+    // par une ligne de JSX dans l'intervalle.
+    const between = BUILDER.slice(closes, style);
+    expect(between, `intervalle: ${between.trim().slice(0, 120)}`).not.toMatch(/\{\s*\w+\s*(\?|&&)/);
+  });
+
+  it("dans l'entonnoir aussi, et là c'est l'ÉTAPE qui le garantit", () => {
+    // `/app/setup` pose l'inventaire à l'étape « table » et le style à l'étape
+    // « demande »: l'ordre y est tenu par la machine d'étapes, pas par la
+    // position dans le fichier. On vérifie quand même la position, parce que
+    // les deux cartes vivent dans le même composant.
+    expect(SETUP.indexOf("<KitchenEquipmentCard")).toBeGreaterThan(-1);
+    expect(SETUP.indexOf("<KitchenEquipmentCard")).toBeLessThan(
+      SETUP.indexOf("<CookingStyleField"),
+    );
+  });
+});

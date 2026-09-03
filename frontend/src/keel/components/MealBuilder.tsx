@@ -1169,6 +1169,73 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                     « Je cuisine la veille » RECULE le premier jour du champ
                     juste au-dessus: les séparer ferait lire un décalage de date
                     sans le geste qui le cause. */}
+              {/* ⛔ L'INVENTAIRE DE CUISINE EST REMONTÉ ICI LE 2026-09-03, ET
+                  L'ORDRE EST LA GARDE.
+
+                  Il vivait 178 lignes PLUS BAS, après « combien de courses ».
+                  On acceptait donc « une seule course » avant de savoir s'il y a
+                  un congélateur — et « une seule course » ne tient QUE par le
+                  congélateur. La personne répondait, puis découvrait le refus
+                  dans l'explication du plan, pour une question qui était sous
+                  ses yeux.
+
+                  ⚠️ CE N'EST PAS COSMÉTIQUE: c'est le même ordre que l'entonnoir
+                  (`TableStepPlanning` pose l'équipement à l'étape d'avant), et
+                  il est mesuré sur le HTML RENDU, pas sur la source. */}
+              {/* ══════════════════════════════════════════════════════════
+                  ⛔ L'INVENTAIRE DE CUISINE, COLLECTABLE ICI — ET C'EST LA
+                  CONDITION POUR QUE LA CASE DU DESSUS EXISTE VRAIMENT.
+                  ══════════════════════════════════════════════════════════
+
+                  Cette carte ne vivait QUE dans l'entonnoir (`/app/setup`,
+                  étape « table »), qui n'a aucune entrée de nav. Quelqu'un qui
+                  a un congélateur et n'a jamais vu la question lisait donc, sur
+                  cet écran-ci, « il faut un congélateur » — sans le moindre
+                  endroit atteignable pour le dire. C'est mot pour mot la
+                  cicatrice « port à null = champ incollectable »: la porte
+                  existe, la clé n'est nulle part.
+
+                  ⚠️ REPLIÉE, ET C'EST SA NATURE. Un four ne change pas d'une
+                  semaine à l'autre: la question se pose UNE fois, et déplier ne
+                  sert qu'à celui qui a quelque chose à corriger. `<details>`
+                  natif, pas un état React — il n'y a rien à se rappeler d'un
+                  rendu à l'autre.
+
+                  ⛔ ET C'EST LA MÊME CARTE, jamais une seconde: elle porte sa
+                  garde de chargement (`practicalConstraints === null`), son
+                  refus de sélection vide, et son écriture qui RELIT la colonne
+                  avant de fusionner. Une rangée de pastilles réécrite ici
+                  aurait perdu les trois. */}
+              <details className="group rounded-card border border-line-strong bg-paper p-4">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
+                  <span className="text-label font-semibold uppercase text-ink-soft">
+                    {t("setup.equipment.title")}
+                  </span>
+                  <ChevronDown
+                    aria-hidden
+                    className="h-4 w-4 shrink-0 text-ink-soft transition-transform group-open:rotate-180"
+                  />
+                </summary>
+                <div className="mt-4">
+                  <KitchenEquipmentCard
+                    embedded
+                    practicalConstraints={planConstraints}
+                    hasGoal={hasGoalRow}
+                    // ⚠️ ON RELIT LA COLONNE, on ne devine pas ce qu'elle
+                    // contient maintenant. La carte vient d'y écrire; recopier
+                    // sa sélection dans l'état local d'ici ferait une seconde
+                    // idée de ce que la cuisine possède, et c'est celle qu'on
+                    // regarde le moins qui garderait l'ancienne.
+                    onSaved={async () => {
+                      if (!userId) return;
+                      const fresh = await readPlanInputs(userId);
+                      setPlanConstraints(fresh.practicalConstraints);
+                      setHasGoalRow(fresh.hasGoal);
+                    }}
+                  />
+                </div>
+              </details>
+
                 {/* ⟳ P2 (2026-09-03) — LES DEUX MÊMES COMPOSANTS QUE
                     L'ENTONNOIR, et c'est le point: deux champs écrits
                     séparément divergeraient au premier libellé retouché, et
@@ -1328,59 +1395,6 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                   décide encore des plans et que plus aucun écran ne peut
                   changer. */}
 
-              {/* ══════════════════════════════════════════════════════════
-                  ⛔ L'INVENTAIRE DE CUISINE, COLLECTABLE ICI — ET C'EST LA
-                  CONDITION POUR QUE LA CASE DU DESSUS EXISTE VRAIMENT.
-                  ══════════════════════════════════════════════════════════
-
-                  Cette carte ne vivait QUE dans l'entonnoir (`/app/setup`,
-                  étape « table »), qui n'a aucune entrée de nav. Quelqu'un qui
-                  a un congélateur et n'a jamais vu la question lisait donc, sur
-                  cet écran-ci, « il faut un congélateur » — sans le moindre
-                  endroit atteignable pour le dire. C'est mot pour mot la
-                  cicatrice « port à null = champ incollectable »: la porte
-                  existe, la clé n'est nulle part.
-
-                  ⚠️ REPLIÉE, ET C'EST SA NATURE. Un four ne change pas d'une
-                  semaine à l'autre: la question se pose UNE fois, et déplier ne
-                  sert qu'à celui qui a quelque chose à corriger. `<details>`
-                  natif, pas un état React — il n'y a rien à se rappeler d'un
-                  rendu à l'autre.
-
-                  ⛔ ET C'EST LA MÊME CARTE, jamais une seconde: elle porte sa
-                  garde de chargement (`practicalConstraints === null`), son
-                  refus de sélection vide, et son écriture qui RELIT la colonne
-                  avant de fusionner. Une rangée de pastilles réécrite ici
-                  aurait perdu les trois. */}
-              <details className="group rounded-card border border-line-strong bg-paper p-4">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
-                  <span className="text-label font-semibold uppercase text-ink-soft">
-                    {t("setup.equipment.title")}
-                  </span>
-                  <ChevronDown
-                    aria-hidden
-                    className="h-4 w-4 shrink-0 text-ink-soft transition-transform group-open:rotate-180"
-                  />
-                </summary>
-                <div className="mt-4">
-                  <KitchenEquipmentCard
-                    embedded
-                    practicalConstraints={planConstraints}
-                    hasGoal={hasGoalRow}
-                    // ⚠️ ON RELIT LA COLONNE, on ne devine pas ce qu'elle
-                    // contient maintenant. La carte vient d'y écrire; recopier
-                    // sa sélection dans l'état local d'ici ferait une seconde
-                    // idée de ce que la cuisine possède, et c'est celle qu'on
-                    // regarde le moins qui garderait l'ancienne.
-                    onSaved={async () => {
-                      if (!userId) return;
-                      const fresh = await readPlanInputs(userId);
-                      setPlanConstraints(fresh.practicalConstraints);
-                      setHasGoalRow(fresh.hasGoal);
-                    }}
-                  />
-                </div>
-              </details>
 
               <Field
                 label={t("plan.cooking.time_label")}

@@ -380,7 +380,7 @@ Deno.test("AUCUN gabarit ne culpabilise — la porte 4 ne doit jamais mordre", (
     // ⟳ A2 — ALLUMÉ AUSSI, avec la note qui PRODUIT une phrase: sinon la porte
     // 4 (« aucune phrase ne culpabilise ») ne relirait jamais les deux
     // gabarits de P2.
-    cookingPlan: { sessions: 2, unusedRuns: 1, notes: ["style_caps_sessions"] },
+    cookingPlan: { sessions: 2, cookDays: ["sun", "wed"], unusedRuns: 1, notes: ["style_caps_sessions"] },
     // ALLUMÉE AUSSI: « le plan commence dimanche, un jour plus tôt » est un
     // fait de calendrier, donc parmi les phrases les plus faciles à tourner en
     // reproche si on la réécrit un jour. La porte 4 doit la relire.
@@ -1724,7 +1724,7 @@ Deno.test("A2 — le plafond du style se DIT, et il nomme les deux nombres", () 
     const lines = explainPlanChoices({
       facts: {
         ...nominalFacts(),
-        cookingPlan: { sessions: 2, unusedRuns: 1, notes: ["style_caps_sessions"] },
+        cookingPlan: { sessions: 2, cookDays: ["sun", "wed"], unusedRuns: 1, notes: ["style_caps_sessions"] },
       },
       locale,
     }).lines.join(" ");
@@ -1741,14 +1741,14 @@ Deno.test("A2 — la fenêtre courte se DIT, et ce n'est pas la même phrase", (
     const style = explainPlanChoices({
       facts: {
         ...nominalFacts(),
-        cookingPlan: { sessions: 2, unusedRuns: 1, notes: ["style_caps_sessions"] },
+        cookingPlan: { sessions: 2, cookDays: ["sun", "wed"], unusedRuns: 1, notes: ["style_caps_sessions"] },
       },
       locale,
     }).lines.join(" ");
     const days = explainPlanChoices({
       facts: {
         ...nominalFacts(),
-        cookingPlan: { sessions: 1, unusedRuns: 0, notes: ["days_cap_sessions"] },
+        cookingPlan: { sessions: 1, cookDays: ["sun", "wed"], unusedRuns: 0, notes: ["days_cap_sessions"] },
       },
       locale,
     }).lines.join(" ");
@@ -1767,7 +1767,7 @@ Deno.test("A2 — « une seule course sans congélateur » n'a QU'UNE phrase", (
     const lines = explainPlanChoices({
       facts: {
         ...nominalFacts(),
-        cookingPlan: { sessions: 2, unusedRuns: 0, notes: ["runs_1_needs_freezer"] },
+        cookingPlan: { sessions: 2, cookDays: ["sun", "wed"], unusedRuns: 0, notes: ["runs_1_needs_freezer"] },
         oneCookingSession: { day: null, refusedNoFreezer: true },
       },
       locale,
@@ -1782,6 +1782,75 @@ Deno.test("A2 — « une seule course sans congélateur » n'a QU'UNE phrase", (
 Deno.test("A2 — sans les deux réponses, PAS UNE ligne de plus", () => {
   // Le chemin de tout compte antérieur à P2 — c'est-à-dire, aujourd'hui, tout
   // le monde. Il doit être byte-identique.
+  for (const locale of ["fr", "en"] as const) {
+    const before = explainPlanChoices({ facts: nominalFacts(), locale }).lines;
+    const after = explainPlanChoices({
+      facts: { ...nominalFacts(), cookingPlan: null },
+      locale,
+    }).lines;
+    assertEquals(after, before);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// A2 — LES JOURS DÉRIVÉS NE S'ATTRIBUENT PAS À LA PERSONNE (défaut ③)
+// ---------------------------------------------------------------------------
+
+Deno.test("A2 — le nombre de sessions se DIT au cas nominal", () => {
+  // ⛔ RANG 2, ET IL ÉTAIT VIOLÉ. Le nombre de sessions était calculé, écrit
+  // sur la ligne, visible dans le plan — et jamais énoncé: les deux phrases de
+  // plafond ne s'allument que quand quelque chose a été repris, donc jamais au
+  // cas nominal (« juste milieu », 2 courses, 7 jours).
+  for (const locale of ["fr", "en"] as const) {
+    const lines = explainPlanChoices({
+      facts: {
+        ...nominalFacts(),
+        // ⛔ L'ÉTAT RÉEL D'UN PLAN DÉRIVÉ, et c'est le correctif du défaut ③:
+        // les TROIS faits du mécanisme « jours cochés » se taisent ensemble,
+        // parce que la personne n'a rien coché. Les laisser remplis ici ferait
+        // passer ce test sur la phrase de l'AUTRE mécanisme.
+        declaredCookDays: [],
+        usableCookDays: [],
+        addedCookDays: [],
+        cookingPlan: { sessions: 2, cookDays: ["mon", "thu"], unusedRuns: 0, notes: [] },
+      },
+      locale,
+    }).lines.join(" ");
+    assertStringIncludes(lines, "2");
+    assertStringIncludes(lines, locale === "fr" ? "lundi" : "Monday");
+    assertStringIncludes(lines, locale === "fr" ? "jeudi" : "Thursday");
+    // ⛔ ELLE DIT « le plan pose », JAMAIS « tu cuisines »: la seconde
+    // formulation appartient aux jours COCHÉS, et l'employer sur une
+    // dérivation attribue à la personne un choix qu'elle n'a pas fait.
+    assert(
+      !lines.includes("Tu cuisines") && !lines.includes("You cook"),
+      `${locale}: la phrase attribue les jours dérivés à la personne`,
+    );
+  }
+});
+
+Deno.test("A2 — la session UNIQUE ne se dit pas deux fois", () => {
+  // « Le plan pose 1 session » à côté de « tout est cuisiné dimanche » serait
+  // deux gabarits pour un même fait — la famille de défaut que ce module
+  // corrige depuis `cookDeclaredDropped`.
+  for (const locale of ["fr", "en"] as const) {
+    const lines = explainPlanChoices({
+      facts: {
+        ...nominalFacts(),
+        cookingPlan: { sessions: 1, cookDays: ["sun"], unusedRuns: 0, notes: [] },
+        oneCookingSession: { day: "sun", refusedNoFreezer: false },
+      },
+      locale,
+    }).lines;
+    const planned = lines.filter((l) =>
+      l.includes("Le plan pose") || l.includes("The plan sets")
+    );
+    assertEquals(planned.length, 0, `${locale}: ${planned.join(" | ")}`);
+  }
+});
+
+Deno.test("A2 — sans dérivation, PAS UNE ligne de plus", () => {
+  // La population qui n'a pas répondu à P2: son explication ne bouge pas.
   for (const locale of ["fr", "en"] as const) {
     const before = explainPlanChoices({ facts: nominalFacts(), locale }).lines;
     const after = explainPlanChoices({

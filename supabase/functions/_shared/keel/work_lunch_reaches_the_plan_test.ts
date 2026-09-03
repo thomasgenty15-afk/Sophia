@@ -148,6 +148,23 @@ Deno.test("D6.2 — la lane FOYER passe le champ, et compte ce qu'il a donné", 
   assertStringIncludes(code, "const parsed = parseWorkLunch(row.work_lunch);");
   assertStringIncludes(code, '.select("id, work_lunch")');
   assertStringIncludes(code, "work_lunch_unreadable");
+  // ══════════════════════════════════════════════════════════════════════════
+  // ⛔ ET LE COMPTEUR ATTEINT LA LIGNE. C'ÉTAIT FAUX, ET LIVRÉ.
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // `household.workLunch` était calculé par le constructeur de prompt puis
+  // JETÉ: `promptTrace` portait `eating_out` et pas lui. Le compteur — la
+  // moitié du marché passé pour garder le champ OPTIONNEL — n'existait donc
+  // sur aucune ligne, et la requête de contrôle de mon propre journal aurait
+  // rendu `NULL` pour toujours. Les quatre assertions du dessus ne lisaient
+  // que des chaînes d'ENTRÉE; celle-ci lit la SORTIE.
+  assertStringIncludes(code, "work_lunch: household.workLunch,");
+  // ⚠️ ET IL EST DANS `promptTrace`, pas ailleurs: c'est ce qui le fait
+  // atterrir dans `generated_from` sur la ligne écrite ET dans la réponse de
+  // l'aperçu. Le poser à côté ferait un compteur lisible d'un seul des deux.
+  const trace = code.indexOf("const promptTrace = {");
+  const counter = code.indexOf("work_lunch: household.workLunch,");
+  assert(trace >= 0 && counter > trace, "le compteur n'est pas dans `promptTrace`");
 });
 
 Deno.test("D6.2 — le parseur de la colonne est CELUI du module, pas une relecture", () => {
