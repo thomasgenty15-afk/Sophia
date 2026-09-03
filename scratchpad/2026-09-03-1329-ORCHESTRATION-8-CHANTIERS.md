@@ -792,3 +792,25 @@ C'est le mécanisme exact de la journée, énoncé par celui qui l'a produit. Le
 le bouton impossible ne se confirmaient pas l'un l'autre : **ils descendaient tous de la même source non mesurée**.
 La cohérence entre documents n'est pas une preuve — elle est ce qui rend une erreur difficile à voir.
 Même motif que mes quatre erreurs d'orchestrateur, et que la remontée « `is_test_persona` » : une affirmation reprise.
+
+## 23:0x — simuler une fusion contre du travail NON COMMITÉ, sans toucher à rien
+
+La lane FOYER, plutôt que d'attendre sans rien savoir, a **mesuré** que sa reprise passera : `git merge-file` à trois
+voies **dans son propre scratchpad**, entre (a) la base commune `22cad593:HouseholdPage.tsx` — identique au HEAD de
+l'arbre principal pour ce fichier —, (b) la **copie de travail sale** de la session voisine, et (c) sa version
+`1d8cd8b1`. Résultat : **exit 0, zéro marqueur**, et ses deux garde-fous survivent dans le fichier fusionné
+(`viewerIsOwner={viewerIsOwner}` au montage, et la prop déclarée deux fois).
+
+**Et la raison est vérifiable, pas de la chance** : les hunks ne se recouvrent pas. Ses changements sont à ~1905,
+2341-2406 et 2838 en coordonnées de la base ; les hunks voisins les plus proches sont à 1892 et 1980, puis plus rien
+avant 2591. Le seul contact avec ses symboles est la ligne de déstructuration de `MemberRow`, où la voisine ajoute
+`dislikes` en **gardant** `viewerIsOwner` — et cette ligne vient d'un commit déjà fusionné, pas du correctif.
+
+**La technique est à garder pour ce genre de situation** : deux sessions sur un arbre, l'une qui ne peut pas commiter,
+l'autre qui doit savoir si sa reprise passera. `git merge-file` répond **sans toucher ni l'un ni l'autre arbre**.
+**Sa réserve est juste et je la retiens** : le test vaut pour l'état de la copie **à cet instant**. Le lot C grossit
+(58 fichiers sales à 23:0x contre 22 à 22:4x) — **je refais le test juste avant de reprendre**, ou je lui demande un
+rebase sur leur commit.
+
+**Sa règle, tirée de M21, adoptée pour le chantier** : *un correctif ne se prouve pas par un test vert sur le bon
+comportement, mais par un test qui rougit sur le défaut exact qu'il a laissé passer.*
