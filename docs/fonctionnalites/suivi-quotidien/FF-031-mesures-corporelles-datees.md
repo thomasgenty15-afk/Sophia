@@ -80,10 +80,41 @@ Ce que ça coûte de ne rien faire, dans l'ordre de gravité :
   alimentent `focus_axis`, ils restent sur `weekly_reviews`.
 - ❌ **On ne change pas le contrat de `restriction_guard`.** Ni ses seuils, ni
   la forme de son `RestrictionSnapshot`, ni ses messages d'erreur. §6 R2.
-- ❌ **Aucune nouvelle surface d'affichage.** Pas de graphe quotidien, pas de
-  moyenne mobile montrée à l'élève, aucun chiffre de plus qu'aujourd'hui.
-  `SUPPRESSED_STUDENT_SURFACES` s'applique inchangé : `weight_readout` reste
-  suspendu quand la ceinture est armée.
+- ⟳ **RENVERSÉ LE 2026-09-03 — la moitié « pas de graphe » seulement.**
+  Le texte d'origine, laissé pour qu'on lise ce qui a changé :
+
+  > ❌ **Aucune nouvelle surface d'affichage.** Pas de graphe quotidien, pas de
+  > moyenne mobile montrée à l'élève, aucun chiffre de plus qu'aujourd'hui.
+  > `SUPPRESSED_STUDENT_SURFACES` s'applique inchangé : `weight_readout` reste
+  > suspendu quand la ceinture est armée.
+
+  **Ce qui est renversé** (décision D7.10 du chantier du 3 septembre, lot A7) :
+  `/app/progress` rend une **courbe de poids** — six fenêtres, de la semaine à
+  la création du compte, un `<svg>` sans bibliothèque
+  (`frontend/src/keel/lib/weightCurve.ts`, `components/WeightCurveCard.tsx`).
+
+  **Pourquoi la raison d'origine ne tient plus.** L'interdiction reposait sur un
+  fait qui reste vrai : la variation d'eau quotidienne (±1–2 kg) dépasse le
+  signal hebdomadaire, et le poids est la métrique la plus associée aux troubles
+  alimentaires. Mais l'écran ne rendait pas *rien* — il rendait **un nombre du
+  jour** et un delta. Or un chiffre seul EST la variation d'eau, sans rien
+  autour pour la relativiser : c'est la forme la PIRE de la même information.
+  La courbe est ce qui rend le bruit lisible **comme** du bruit. Et la période
+  est un geste : personne n'est mis devant une pente sans l'avoir demandée.
+
+  **Ce qui N'EST PAS renversé, et se relit avant d'y toucher :**
+  - ⛔ **« pas de moyenne mobile montrée à l'élève » reste vrai.** On rend les
+    pesées, la dernière de chaque jour, et rien de lissé — un lissage est une
+    interprétation, et il ferait disparaître exactement le bruit qu'on veut
+    montrer. Un test relit la source de `weightCurve.ts` pour l'empêcher.
+  - ⛔ **`weight_readout` reste suspendu quand la ceinture est armée** (R12).
+    Et c'est plus fort qu'avant : la suspension n'est plus un `if` dans un
+    composant, c'est le serveur qui rend `weight: null` avant d'avoir lu une
+    seule pesée (`_shared/keel/tracking_window.ts`, sortie sous
+    `restriction_floor`). Un `if` d'affichage se retire par distraction ; une
+    branche qui sort avant la requête, non.
+  - ⛔ **Aucune mesure d'énergie, aucun IMC, aucune cible dérivée** de la courbe.
+  - ⛔ **Aucune nouvelle grandeur** : `weight` et `waist`, comme avant.
 - ❌ **Aucune mesure d'énergie, aucun IMC, aucune cible dérivée.** `CONTRACT.md`
   et l'en-tête de `student_body_io.ts` — « un IMC n'est pas une mesure de
   l'élève, c'est un verdict sur lui ».
@@ -196,7 +227,7 @@ casserait la ceinture en aval au lieu de la nourrir.
 | **R9** | Une panne d'écriture dans la table **ne fait pas échouer** l'écriture miroir, et réciproquement. Chaque échec est journalisé nommément. | Tant que le miroir existe, perdre les deux pour une panne de l'un serait une régression sur un chemin qui marche aujourd'hui. Le contraire — avaler l'erreur en silence — est interdit par R5. |
 | **R10** | `measured_at` et `local_date` viennent de l'**heure locale de l'élève**, résolue par le runtime. Jamais `now()` ni `current_date`. | Un fait dont la date dépend du serveur qui l'a écrit est la famille de bugs nocturnes que ce dépôt a déjà payée (`student_hunger_reports` porte le même commentaire). `local_date` est stockée plutôt que dérivée de `measured_at` pour que la dérivation ne refasse pas, en SQL ou en TS, une conversion de fuseau que l'écrivain avait déjà faite juste. |
 | **R11** | La table entre dans l'**export RGPD** (`account-export-v1`) et dans `PIVOT_TABLES` de `keel_gdpr_lifecycle_test.ts`, dans le même lot que sa création. | Cicatrice connue et déjà payée deux fois : « une table s'ajoute en une migration, et rien dans le dépôt ne la réclame au cycle de vie ». La purge est couverte par `on delete cascade`. |
-| **R12** | Aucune surface d'affichage nouvelle. Le poids reste suspendu (`weight_readout` ∈ `SUPPRESSED_STUDENT_SURFACES`) quand la ceinture est armée, y compris pour les mesures journalières. | Un produit qui refuse de montrer un poids à un élève à risque ne doit pas le lui rendre par la porte d'à côté. La granularité change ; la doctrine d'affichage ne change pas. |
+| **R12** | ⟳ **AMENDÉE LE 2026-09-03 (D7.10).** La surface nouvelle EXISTE : une courbe de poids sur `/app/progress`, six fenêtres, sans lissage. Ce qui ne bouge pas : le poids reste suspendu (`weight_readout` ∈ `SUPPRESSED_STUDENT_SURFACES`) quand la ceinture est armée, y compris pour les mesures journalières — et la suspension est désormais côté SERVEUR (`weight: null` rendu avant toute lecture de pesée), pas dans un composant. | Un produit qui refuse de montrer un poids à un élève à risque ne doit pas le lui rendre par la porte d'à côté. La granularité change ; la doctrine d'affichage ne change pas. Ce que le renversement corrige est ailleurs : l'écran rendait UN NOMBRE DU JOUR, c'est-à-dire la variation d'eau toute nue. La ligne est ce qui la rend lisible comme du bruit. Détail en §3. |
 
 ## 7. Modes de défaillance
 
