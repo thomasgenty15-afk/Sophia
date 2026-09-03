@@ -32,8 +32,18 @@ const ZOE_DISH = "Chicken and rice bowls";
 /** Un titre PROPRE au plat de Zoé, pour compter sans ambiguïté. */
 const ZOE_ONLY = "Greek yogurt bowls with peaches";
 
+/**
+ * ⚠️ `dishIndex` EST DANS LE SOCLE DE LA FIXTURE, ET IL NE PEUT PAS ÊTRE
+ * OPTIONNEL. C'est la POSITION dans le `dishes[]` STOCKÉ, capturée AVANT tout
+ * filtre; ces listes-ci sont filtrées puis regroupées, donc un rang
+ * d'affichage n'est PAS une position. Le rendre optionnel pour faire taire un
+ * test rouvrirait le trou qu'A8.1 a fermé — la coche d'un membre posée sur le
+ * plat suivant. Les cas qui ont besoin d'une autre position la passent par
+ * `over`.
+ */
 function dish(over: Partial<HouseholdDishView> = {}): HouseholdDishView {
   return {
+    dishIndex: 0,
     title: TABLE_DISH,
     day: "mon",
     slot: "dinner",
@@ -111,6 +121,14 @@ function shareText(args: {
     householdDishes: args.dishes,
     dishDayOrder: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"],
     meMemberId: args.meMemberId,
+    // ⚠️ LES TROIS `null` D'A8.1, ÉCRITS ET NON OMIS. Sans compte, sans plan de
+    // foyer et sans premier jour, la carte ne rend AUCUNE case — et c'est ce
+    // que ce fichier mesure: la liste des plats, pas les coches. Un `?` sur ces
+    // props ferait une carte sans case indistinguable d'une carte dont les
+    // cases n'ont pas chargé, ce que l'en-tête de `MyShareCard` refuse.
+    userId: null,
+    householdMealId: null,
+    planStartsOn: null,
     onApprove: async () => {},
     onRequestChange: async () => {},
     busy: false,
