@@ -173,7 +173,7 @@ l'index mais pas l'arbre. Déclaré dans le message du commit, au rapport, et à
 
 ---
 
-## 7. 🔴 Un défaut hors périmètre, trouvé par une session voisine, à traiter en priorité
+## 7. 🔴 Un défaut hors périmètre — CORRIGÉ le 2026-09-04 : le verdict n'est pas faux, il FLATTE UN PLAN TROUÉ
 
 **Le verdict nutritionnel se trompe dans deux directions opposées.** Même analyseur, même fixture, même enveloppe qu'au
 23 août : une journée servie à **3 571 kcal** est jugée **`within`** sur une enveloppe **2 414-2 668**, et une protéine
@@ -190,3 +190,25 @@ non-commentaire** dans le diff et **`SLOT_DAY_WEIGHT` est inchangé**.
 **Une bonne nouvelle du même relevé** : la garde d'allergie **mord**, prouvée par **contrefactuel** — 17 occurrences
 d'« egg » et deux plats sans contrainte, **0** avec une allergie médicale, menu entier reconstruit sur la même fixture.
 C'est la seule forme de preuve qui distingue une garde qui mord d'une garde qui a de la chance.
+
+### ⟳ CORRECTION du §7, 2026-09-04 — la session voisine s'est démentie elle-même, et le vrai défaut est pire
+
+**« Le verdict se trompe dans deux directions » était FAUX.** Sa formule est juste : elle divise l'énergie totale par
+`daysCovered` — la **fenêtre** — et compare à une bande élargie de ±10 %.
+
+**Le vrai défaut est en amont, et il est plus dangereux** : le plan a produit **2 journées de repas pour une fenêtre de
+3 jours**. `suggested_window` **décale le départ** à cause de la coupure de courses **sans décaler la fin** — le premier
+jour reste vide. Le verdict divise donc par 3 une nourriture répartie sur 2, obtient 2 381 kcal/j, et rend
+**`within`** — alors que **chaque jour où le plan nourrit vraiment sert 3 500 kcal contre un plafond à 2 668**.
+
+⇒ **Le verdict n'est pas cassé : il FLATTE un plan troué.** C'est pire qu'un verdict faux, parce qu'il **a raison d'une
+façon qui trompe** : la moyenne est correcte, et elle masque à la fois le trou et le dépassement.
+
+**Ce n'est pas ce chantier, et c'est mesuré au plus près** : `proposedWindowStart` (`plan_hours.ts:166-172`) est
+**byte-identique** avant (`bfecdc28`) et après le chantier — mêmes lignes, même numéro. Elle ne rend qu'un `startsOn`,
+**jamais une durée** : décaler le départ sans toucher la fin est son comportement **d'origine**. Ce que la lane CUISINE
+a ajouté est une fonction **distincte** (`leadDayFor`) et un `eatenSpan` qui **retranche** le jour de veille — l'inverse
+d'un trou.
+⚠️ **Mais c'est le voisinage immédiat du lot A1**, qui a réécrit la dérivation de fenêtre : quiconque reprendra ce
+défaut doit lire les deux ensemble. Et la mémoire du dépôt le dit déjà : **cette suggestion n'est jamais rendue à
+l'écran** — la personne ne voit donc ni le décalage, ni le trou qu'il crée.
