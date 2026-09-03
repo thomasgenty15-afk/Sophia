@@ -94,11 +94,11 @@ sur `meals.loading`.
 
 ### Déviations assumées de §5.6, et leurs motifs
 
-1. **`recipe_difficulty` et `variety` ne sont PAS dérivés du style.** Aucune des deux n'a de
-   lecteur dans les deux générateurs (`readCookingCapacity` les calcule, personne ne les lit ; le
-   seul lecteur vivant est `keel-plan-feedback-v1`, qui lit la colonne). Les dériver écrirait un
-   réglage que rien ne consomme — un lot désarmé qui ressemble à un lot qui marche. Validé par
-   écrit par l'orchestrateur.
+1. ~~**`recipe_difficulty` et `variety` ne sont PAS dérivés du style.**~~ 🔴 **RETIRÉE LE
+   2026-09-03 : L'AFFIRMATION ÉTAIT FAUSSE.** Voir §9 ① — les deux ont un lecteur
+   (`buildMealPrompt`, nourri par `...capacity`), et elles sont maintenant dérivées. Le texte
+   d'origine est laissé barré exprès : une déviation retirée en silence se relit comme une
+   déviation qui n'a jamais existé, et c'est celle-ci qui porte la leçon la plus chère du lot.
 2. **`cooking_style` et `grocery_runs` entrent dans `WRITABLE_FIELDS`, pas dans
    `LOGISTICS_FIELDS`.** Cette liste-là est celle que `parseLogisticsSetValue` sait lire d'une
    note de brouillon et que `draft_note_classify` **énumère au modèle** : y ranger le style
@@ -402,3 +402,112 @@ Pour la première fois, la suite Deno tourne **en entier, sans exclusion** :
 que D2.4 : je ne peux pas réécrire un message en cours de rebase sans `git rebase -i`, indisponible
 sur ce poste. Le message de `b28926aa` le dit en tête. **À corriger par E** s'il fait un
 `rebase -i` de nettoyage, sinon à laisser avec cette note.
+
+---
+
+## 9. LE RAPPORT DU VÉRIFICATEUR — quatre défauts, quatre correctifs
+
+Rapport : `scratchpad/2026-09-03-2140-CUISINE-A2-verification.md`, mesuré sur `7b8b8a49` (avant
+mon rebase). Les quatre portent sur le contenu du lot, qui survit au rebase ; relus contre
+`840995b5`, les quatre étaient encore là. Corrigés par `fdf29f25`.
+
+### ① 🔴 Ma déviation (a) était DÉMENTIE par la mesure
+
+**Ce que j'avais écrit :** « `recipe_difficulty` et `variety` n'ont aucun lecteur dans les deux
+générateurs ». **C'est faux.** `buildMealPrompt` les émet (`meal_generation.ts:4073-4076` :
+« recipe level they want: … », « repetition they accept: … ») et **les deux lanes le nourrissent
+par `...capacity`** (solo `:2241`, foyer `:4410`). Le vérificateur l'a prouvé par une sonde sur
+l'appel réel : **+60 octets de consigne**.
+
+> ### ⚠️ LA LEÇON, ET ELLE EST MÉCANIQUE
+> **Un `...spread` rend un champ INVISIBLE à `grep`.** J'avais cherché `recipeDifficulty` dans les
+> deux `index.ts` : zéro occurrence, donc zéro lecteur. Mais le champ n'y apparaît pas — il voyage
+> **dans un objet**. Chercher le NOM d'un champ ne prouve rien ; il faut **suivre l'OBJET**.
+> Une affirmation d'absence n'est valide que si la recherche pouvait, en principe, trouver la
+> chose. Ici elle ne le pouvait pas.
+
+**Coût produit** : qui répondait « J'aime cuisiner » obtenait bien 120 minutes, et un prompt
+**muet** sur le niveau de recette et la répétition — le style à moitié branché.
+
+**Correctif** : `resolveCookingCapacity` dérive les trois leviers. Deux tests neufs comparent la
+capacité **servie** au profil (avec des valeurs déclarées qui *contredisent* le style, pour qu'une
+égalité par hasard ne passe pas), et la contre-épreuve sans style.
+
+### ② La première des deux compensations du champ optionnel n'existait pas
+
+`household.workLunch` était calculé (`household_meal_generation.ts:2113`) puis **jeté** :
+`promptTrace` portait `eating_out` et pas lui. Donc `generated_from.household.work_lunch` n'était
+sur **aucune** ligne — et **la requête de contrôle que j'avais écrite dans ma propre réserve
+(§ déviation 3) aurait rendu `NULL` pour toujours.** Muté en `{0,0}` : les 4 876 tests restaient
+verts, parce que mon test n'assérait que des chaînes d'**entrée**.
+
+C'est le motif de la journée dans sa forme la plus fine : **j'avais nommé le risque, écrit la
+compensation, et la compensation n'atteignait rien.** Un champ optionnel dont la compensation est
+elle-même débranchée est un champ optionnel nu.
+
+**Correctif** : `work_lunch: household.workLunch` dans `promptTrace`, et le test lit la **sortie**
+— plus sa position dans `promptTrace`, qui est ce qui le fait atterrir à la fois sur la ligne
+écrite et dans la réponse de l'aperçu.
+
+### ③ L'explication attribuait à la personne des jours qu'elle n'avait pas choisis
+
+Les `cookDays` **dérivés** partaient sous `declaredCookDays` — fait documenté « les jours que
+l'élève a **COCHÉS** », gabarit « **Tu cuisines lundi et jeudi, et c'est ce qui a été gardé.** »
+Sonde sur le cas nominal (« juste milieu », 2 courses, 7 jours) : elle n'avait coché ni lundi ni
+jeudi. **Et le nombre de sessions n'était jamais dit** au cas nominal : mes deux phrases ne
+s'allument que sur un plafond.
+
+**Correctif** : les **trois** faits du mécanisme « jours cochés » (`declaredCookDays`,
+`usableCookDays`, `addedCookDays`) se taisent **ensemble** quand les jours sont dérivés — n'en
+vider qu'un ferait dire au plan qu'il a ajouté un jour à une liste vide. La dérivation parle avec
+ses propres mots : « Le plan pose 2 sessions de cuisine : lundi et jeudi. » — « **le plan pose** »,
+jamais « tu cuisines ».
+
+⚠️ **Un piège évité de justesse en corrigeant** : mon `sed` de correction a d'abord touché AUSSI
+les deux `...usableCookDays({` / `...addedCookDays({` de `rationaleCookDays`, qui ne sont pas des
+faits de rationale mais **les jours SERVIS**, utilisés pour nommer le jour de la session unique.
+Les vider aurait fait nommer une journée que le modèle n'a pas reçue — le défaut du run
+`af04fd89-…`, réintroduit par un correctif. Rattrapé en relisant chaque site avant de committer :
+**5 occurrences par lane, dont 2 à ne PAS toucher.**
+
+### ④ « Équipement avant style » n'était ni tenu sur `/app/plan`, ni mesuré
+
+`MealBuilder.tsx` : style → courses → **congélateur 178 lignes plus bas**. On acceptait « 1
+course » avant de savoir s'il y a un congélateur, alors que « 1 course » ne tient QUE par lui.
+
+**Correctif** : le bloc de l'inventaire remonte au-dessus du style. Le test **reste une lecture de
+source, et il le dit** — monter `MealBuilder` demande un client Supabase vivant, et le patron
+`renderToStaticMarkup` du dépôt ne s'applique qu'aux composants qui n'en ont pas besoin. Ce qui
+rend la source suffisante ici est une **prémisse** (les trois blocs sont des frères du même parent,
+sans condition entre eux, donc l'ordre du fichier EST l'ordre du DOM), et un second cas la
+**vérifie** au lieu de la supposer.
+
+### Mutations (4/4 rouges) — et une mutation qui a menti
+
+| Mutation | Rouge |
+|---|---|
+| dérivation difficulté/variété retirée | `les TROIS leviers … atteignent la capacité SERVIE` |
+| `work_lunch` retiré de `promptTrace` | `la lane FOYER passe le champ, et compte ce qu'il a donné` |
+| phrase des sessions muette | `le nombre de sessions se DIT au cas nominal` |
+| inventaire redescendu sous la session | 2 rouges, dont la prémisse |
+
+⚠️ **La quatrième est arrivée VERTE au premier essai.** J'avais muté `<KitchenEquipmentCard` en
+`<KitchenEquipmentCardMUTE` — que `indexOf` retrouve **par préfixe**. La mutation ne mutait rien.
+**Une mutation qui ne rougit pas doit être suspectée avant le test qu'elle prétend éprouver.**
+
+### ⛔ Une corruption que je me suis infligée, en corrigeant
+
+Mes deux sauvegardes de scratch s'appelaient **toutes deux `index.ts.v2`** — `basename` est
+identique pour les deux lanes. La seconde a écrasé la première, et le `cp` de restauration a copié
+la lane **solo** par-dessus la lane **foyer** : 8 160 lignes remplacées par 4 490, **73 rouges**.
+
+Réparée par `git show HEAD:<path>` (le fichier était commité), les quatre correctifs du foyer
+ré-appliqués un par un, et le diff relu ligne à ligne pour vérifier qu'il ne contient QUE les cinq
+changements voulus. C'est la cicatrice « horodater les fichiers d'une lane avant d'y écrire »,
+dans sa version **basename** : deux lanes, deux `index.ts`.
+
+### Suites après correctifs
+
+- Deno `_shared/keel/` **en entier, sans exclusion** : **5 053 passés, 0 échec**.
+- `deno check` vert sur les quatre fonctions · `tsc -b --force` **0**.
+- vitest **2 149 / 2 173**, **quatre** rouges étrangers (coverage-guard ×2, awayFrom ×2).
