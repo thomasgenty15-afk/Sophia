@@ -375,6 +375,81 @@
       "cwd": "frontend",
       "port": 5220,
       "autoPort": false
+    },
+    {
+      "name": "frontend-rapide",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5203",
+        "--strictPort"
+      ],
+      "cwd": "/Users/ahmedamara/Dev/Sophia-2-chantiers/RAPIDE/frontend",
+      "port": 5203,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-foyer",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5204",
+        "--strictPort"
+      ],
+      "cwd": "/Users/ahmedamara/Dev/Sophia-2-chantiers/FOYER/frontend",
+      "port": 5204,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-cuisine",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5206",
+        "--strictPort"
+      ],
+      "cwd": "/Users/ahmedamara/Dev/Sophia-2-chantiers/CUISINE/frontend",
+      "port": 5206,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-membre",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5207",
+        "--strictPort"
+      ],
+      "cwd": "/Users/ahmedamara/Dev/Sophia-2-chantiers/MEMBRE/frontend",
+      "port": 5207,
+      "autoPort": false
+    },
+    {
+      "name": "frontend-suivi",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5208",
+        "--strictPort"
+      ],
+      "cwd": "/Users/ahmedamara/Dev/Sophia-2-chantiers/SUIVI/frontend",
+      "port": 5208,
+      "autoPort": false
     }
   ]
 }
