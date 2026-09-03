@@ -174,9 +174,9 @@ Après restauration : `memberWorkLunchCard` + `tableStepPlanning` = **36/36**. J
 
 | Ordre | Commit | sha | Contenu |
 |---|---|---|---|
-| 1 | lot A6 | _(à compléter)_ | 3 fichiers neufs, 2 suppressions + 1 test supprimé, 7 sources/tests modifiés, ce journal (v1) — `--no-verify`, motif dans le message |
-| 2 | i18n | _(à compléter)_ | `en.ts` + `fr.ts` seulement (4 valeurs en place + bloc délimité) — `--no-verify` |
-| 3 | journal (v2) | _(à compléter)_ | ce fichier, complété des sha et de la suite entière |
+| 1 | lot A6 | **`2f7aa376`** | 3 fichiers neufs, 2 suppressions + 1 test supprimé, 7 sources/tests modifiés, ce journal (v1) — `--no-verify`, motif dans le message |
+| 2 | i18n | **`47c2316c`** | `en.ts` + `fr.ts` seulement (4 valeurs en place + bloc délimité) — `--no-verify` |
+| 3 | journal (v2) | **`(ce commit)`** | ce fichier, complété des sha, de la suite entière et des mutations rejouées (§4.1-4.3) |
 
 Chemins passés **un par un** à `git add` (la bourde zsh de A3 : `$VAR` ne se découpe pas). Aucun `git add -A`, aucun `stash`/`checkout`/`reset`/`restore` ; les restaurations de mutation sont des `cp`.
 
