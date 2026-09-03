@@ -533,14 +533,24 @@ export default function HouseholdPage(): React.ReactElement {
   }, []);
 
   // CET EFFET LIT, ET C'EST LE SEUL QUI TOUCHE AU DÉJEUNER. Il attend de
-  // savoir qui regarde: seul le maître voit les fiches (`MemberRow`), donc
-  // seul lui a besoin des réponses. Keyé sur le RÔLE, pas sur `household`,
-  // pour ne pas relire à chaque `refresh`.
-  const meRole = household?.me?.role ?? null;
+  // savoir QUI regarde, parce que seuls les gens d'un foyer ont des réponses à
+  // lire. Keyé sur le `member_id` et pas sur `household`, pour ne pas relire à
+  // chaque `refresh`.
+  //
+  // ⟳ DETTE D'A6, PAYÉE ICI (A5, point 6). Cet effet était keyé sur
+  // `meRole === "owner"`, et c'était JUSTE tant qu'un non-maître ne voyait
+  // aucune fiche (`MembersCard` lui rendait une liste en lecture seule). Le
+  // point 6 ouvre SA ligne à un membre réclamé: sans ce changement, sa propre
+  // carte « Le déjeuner en semaine » resterait sur « Lecture… » pour toujours —
+  // la lecture n'aurait jamais lieu, et la porte de chargement, qui a raison,
+  // ne rendrait aucune question. La porte d'ÉCRITURE, elle, n'a pas bougé:
+  // `keel_household_set_member_work_lunch` répond `not_your_line` à qui vise
+  // la ligne d'un autre, et c'est elle qui décide.
+  const meMemberId = household?.me?.memberId ?? null;
   React.useEffect(() => {
-    if (meRole !== "owner") return;
+    if (meMemberId === null) return;
     void refreshWorkLunch();
-  }, [meRole, refreshWorkLunch]);
+  }, [meMemberId, refreshWorkLunch]);
 
   const run = React.useCallback(
     async (action: () => Promise<{ ok: boolean; reason: string }>): Promise<boolean> => {
@@ -1702,8 +1712,87 @@ function MembersCard(
     return (
       <Card>
         <SectionLabel>{t("household.members.title")}</SectionLabel>
-        <ul className="mb-3 flex flex-col gap-2">
-          {household.members.map((m) => <MemberBadges key={m.memberId} member={m} />)}
+        {/* ══════════════════════════════════════════════════════════════
+            A5 POINT 6 — SA LIGNE S'ÉDITE, LES AUTRES SE LISENT
+            ══════════════════════════════════════════════════════════════
+
+            ⛔ CE QUI ÉTAIT FAUX: la page entière était en lecture seule pour un
+            profil réclamé — huit pastilles, et rien d'autre. Or il PEUT écrire
+            sur sa propre ligne, et la base le dit: `not_your_line` (et non
+            `not_owner`) garde le prénom, la date de naissance, les habitudes,
+            les absences et le déjeuner de semaine. Un écran qui ne propose pas
+            ce que la base accepte est un écran qui ment par omission, et c'est
+            LUI qui décide de ce que la personne peut dire d'elle-même.
+
+            ⚠️ LES AUTRES LIGNES RESTENT DES PASTILLES: prénom et état d'âge.
+            Pas un cadre vide, JAMAIS — `keel_household_member_bodies` rend zéro
+            ligne à un membre, donc un cadre « personne n'a de corps » affirmerait
+            une absence qu'il n'a pas lue. On ne rend pas ce qu'on ne sait pas.
+
+            ⚠️ ET LA FICHE OUVERTE EST BORNÉE PAR `viewerIsOwner`, pas par une
+            liste de champs recopiée ici: le corps, le régime, les allergies,
+            les règles, l'invitation et les deux retraits ne se rendent pas, un
+            par un, à l'endroit où ils sont écrits. Une seconde liste de droits
+            divergerait de la première au premier champ ajouté. */}
+        <ul className="mb-3 flex flex-col divide-y divide-line">
+          {household.members.map((m) =>
+            m.memberId === me?.memberId
+              ? (
+                <MemberRow
+                  key={m.memberId}
+                  member={m}
+                  todayLocalIso={todayLocalIso}
+                  isMe
+                  viewerIsOwner={false}
+                  allergies={allergies.filter((a) => a.memberId === m.memberId)}
+                  restrictions={restrictions.filter((r) => r.memberId === m.memberId)}
+                  busy={busy}
+                  // Le réglage de fusion est au maître: `null` = on ne montre
+                  // pas un interrupteur dont on ignore la position, et celui-ci
+                  // n'est même pas le sien.
+                  muted={null}
+                  rhythm={rhythm}
+                  awayWindow={awayWindow}
+                  // ⛔ ZÉRO LIGNE POUR LUI, ET LE CADRE NE SE REND PAS: `body`
+                  // reste `null`, mais c'est `viewerIsOwner={false}` qui retire
+                  // le bloc — pas cette valeur, qui voudrait dire « lu, rien ».
+                  body={null}
+                  bodiesLoaded={bodies !== null}
+                  // Il ne voit aucune invitation: `MemberAccess` ne rend rien
+                  // sur sa propre ligne réclamée qu'un état, et le geste qui
+                  // l'inverse est au maître.
+                  invitations={invitations}
+                  onInvited={onInvited}
+                  // ⚠️ MÊME PARTAGE QUE CHEZ LE MAÎTRE: `habitsLoaded` dit si
+                  // la LECTURE a eu lieu, `habits` ce qu'elle a trouvé. Le
+                  // cadre des préférences ne se rend pas tant que le premier
+                  // est faux.
+                  habitsLoaded={habits !== null}
+                  habits={habits?.get(m.memberId) ?? null}
+                  workLunch={workLunch}
+                  workLunchError={workLunchError}
+                  onSaveWorkLunch={(answer) => onSaveWorkLunch(m.memberId, answer)}
+                  onSaveHabits={(sl, n) => onSaveHabits(m.memberId, sl, n)}
+                  onSaveDiet={(diet) => onSaveDiet(m.memberId, diet)}
+                  onSaveBody={(h, w, g, extras) => onSaveBody(m.memberId, h, w, g, extras)}
+                  onMute={(next) => onMute(m.memberId, next)}
+                  onSaveAway={(next) => onSaveAway(m.memberId, next)}
+                  onSave={(patch) => onSave(m, patch)}
+                  // Câblés mais INATTEIGNABLES depuis cette vue: les deux
+                  // boutons ne se rendent pas (`viewerIsOwner={false}`), et la
+                  // base les refuserait (`not_owner`). On ne passe pas `null`:
+                  // une porte facultative est une porte désarmée, et la même
+                  // ligne rendue au maître doit garder ses gestes.
+                  onRemove={() => onRemove(m.memberId)}
+                  onDetach={() => onDetach(m.memberId)}
+                  onAddAllergy={(label) => onAddAllergy(m.memberId, label)}
+                  onRemoveAllergy={onRemoveAllergy}
+                  onAddRestriction={(label) => onAddRestriction(m.memberId, label)}
+                  onRemoveRestriction={onRemoveRestriction}
+                />
+              )
+              : <MemberBadges key={m.memberId} member={m} />
+          )}
         </ul>
         {mine.length > 0 ? (
           <>
@@ -1739,6 +1828,7 @@ function MembersCard(
             member={m}
             todayLocalIso={todayLocalIso}
             isMe={m.memberId === me?.memberId}
+            viewerIsOwner
             allergies={allergies.filter((a) => a.memberId === m.memberId)}
             restrictions={restrictions.filter((r) => r.memberId === m.memberId)}
             busy={busy}
@@ -2348,9 +2438,29 @@ export function SheetFrame(
 }
 
 function MemberRow(
-  { member, isMe, allergies, restrictions, busy, muted, rhythm, awayWindow, body, bodiesLoaded, habits, habitsLoaded, invitations, onInvited, workLunch, workLunchError, onSaveWorkLunch, onSaveHabits, onSaveDiet, onSaveBody, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction, todayLocalIso }: {
+  { member, isMe, viewerIsOwner, allergies, restrictions, busy, muted, rhythm, awayWindow, body, bodiesLoaded, habits, habitsLoaded, invitations, onInvited, workLunch, workLunchError, onSaveWorkLunch, onSaveHabits, onSaveDiet, onSaveBody, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction, todayLocalIso }: {
     member: HouseholdMemberView;
     isMe: boolean;
+    /**
+     * QUI REGARDE — A5 point 6, 2026-09-03. REQUIS, jamais optionnel: non
+     * passé, il vaudrait `undefined`, donc « pas maître », et la fiche du
+     * MAÎTRE perdrait le corps, le régime et les allergies sans que rien ne
+     * casse. Une garde facultative est une garde désarmée.
+     *
+     * ⛔ IL NE DÉCIDE DE RIEN, IL RECOPIE CE QUE LA BASE REFUSE DÉJÀ. Le corps
+     * (`set_member_body`), le régime, les allergies, les règles de maison,
+     * l'invitation et les deux retraits répondent tous `not_owner`; les rendre
+     * à un membre serait poser des contrôles que la base refusera, c'est-à-dire
+     * des boutons morts. Ce qui RESTE à un membre sur sa propre ligne est ce
+     * que la base lui accepte (`not_your_line` et non `not_owner`): son prénom,
+     * sa date, ses habitudes, ses absences, son déjeuner de semaine.
+     *
+     * ⛔ ET IL NE CACHE JAMAIS UN CADRE VIDE: un membre ne voit pas « personne
+     * n'a de corps », il ne voit PAS LE CADRE. `keel_household_member_bodies`
+     * lui rend zéro ligne, donc un cadre monté là-dessus affirmerait une
+     * absence qu'il n'a pas lue.
+     */
+    viewerIsOwner: boolean;
     /** `YYYY-MM-DD` local — l'âge des tuiles se lit sur la date tapée. */
     todayLocalIso: string;
     /** A6 — les réponses du foyer, `null` = pas lu. La carte filtre les majeurs. */
@@ -2639,6 +2749,12 @@ function MemberRow(
               Ce que le formulaire collecte ne ressort JAMAIS: pas au prompt
               pour un mineur, pas dans une consigne de service, pas dans un log
               nominatif. Il entre dans le moteur et en ressort en grammes. */}
+          {/* ⛔ LE CORPS EST AU MAÎTRE (A5 point 6). `set_member_body` répond
+              `not_owner`, et `keel_household_member_bodies` rend ZÉRO LIGNE à
+              un membre: le cadre monté sur cette lecture affirmerait « personne
+              n'a de corps », une absence qu'il n'a pas lue. Il ne le voit donc
+              pas — il ne lit pas « rien ». */}
+          {viewerIsOwner ? (
           <BodyFields
             body={body}
             busy={busy}
@@ -2648,6 +2764,7 @@ function MemberRow(
             needsBirthDate={member.ageState === "unknown"}
             onSave={onSaveBody}
           />
+          ) : null}
 
             <div className="flex flex-wrap items-center gap-2">
             <Button
@@ -2717,6 +2834,11 @@ function MemberRow(
               DIT plutôt que de masquer la ligne, exactement comme l'objectif
               depuis D1: « il n'y a rien ici » et « ça se règle ailleurs » ne
               sont pas la même phrase. */}
+          {/* ⛔ LE RÉGIME AUSSI (A5 point 6): `set_member_diet` répond
+              `not_owner`. Et pour un membre RÉCLAMÉ il répondrait de toute
+              façon `has_account` — son régime vit dans son « about you ». Deux
+              refus pour un contrôle: il ne se rend pas. */}
+          {viewerIsOwner ? (
           <div className="border-t border-line pt-3">
             <Field
               label={t("household.member.diet")}
@@ -2757,6 +2879,7 @@ function MemberRow(
                 )}
             </Field>
           </div>
+          ) : null}
 
           {/* ── CE QUE CETTE BOUCHE MANGE D'HABITUDE (2026-08-14) ──────────
               L'ENDROIT QUI MANQUAIT. Une bouche sans compte n'avait nulle part
@@ -2803,6 +2926,14 @@ function MemberRow(
             onSave={(_memberId, answer) => onSaveWorkLunch(answer)}
           />
 
+          {/* ⛔ LES ALLERGIES ET LES RÈGLES DE MAISON SONT AU MAÎTRE (A5
+              point 6). `add_allergy` / `add_restriction` répondent `not_owner`.
+              ⚠️ CE QUE LE MEMBRE VOIT QUAND MÊME est ailleurs, et c'est la
+              contrepartie du modèle: chaque contrainte reste affichée AVEC QUI
+              L'A POSÉE dans sa vue à lui (`restrictionNotice`). Ce qui
+              distingue ce modèle du contrôle coercitif, c'est que rien n'est
+              secret — pas qu'il puisse tout écrire. */}
+          {viewerIsOwner ? (
           <div className="border-t border-line pt-3">
             <Field
               label={t("household.constraint.kind")}
@@ -2878,6 +3009,7 @@ function MemberRow(
               ))}
             </ul>
           </div>
+          ) : null}
           </SheetFrame>
 
           {/* ── D14 · QUAND CETTE BOUCHE N'EST PAS LÀ ──────────────────────
@@ -2956,7 +3088,7 @@ function MemberRow(
                 DÉTRUIT la ligne, avec sa portion et ses allergies. Il vit donc
                 au fond de la fiche ouverte, derrière une confirmation en deux
                 temps, pas dans un en-tête qu'on parcourt. */}
-            {member.role !== "owner" ? (
+            {viewerIsOwner && member.role !== "owner" ? (
               <Button variant="danger" disabled={busy} onClick={onRemove}>
                 {t("household.member.remove")}
               </Button>
@@ -2964,7 +3096,7 @@ function MemberRow(
           </div>
           {/* Le geste ne se distingue pas par sa couleur: on ÉCRIT ce qu'il
               fait, à côté de lui, au moment de choisir. */}
-          {member.role !== "owner" ? (
+          {viewerIsOwner && member.role !== "owner" ? (
             <p className="text-xs text-ink-soft">
               {t("household.member.remove_hint")}
             </p>
@@ -2987,7 +3119,9 @@ function MemberRow(
               pas de plan à elle (D3), donc rien à proposer, donc rien à taire.
               `muted === null` ⇒ on n'a pas pu lire le réglage: on ne montre
               pas un interrupteur dont on ignore la position. */}
-          {member.role !== "owner" && member.userId && muted !== null ? (
+          {viewerIsOwner && member.role !== "owner" && member.userId &&
+              muted !== null
+            ? (
             <button
               type="button"
               className="self-start text-xs text-ink-soft underline disabled:opacity-50"
@@ -2997,7 +3131,9 @@ function MemberRow(
               {muted ? t("household.merge.unmute") : t("household.merge.mute")}
             </button>
           ) : null}
-          {member.role !== "owner" && member.userId && muted !== null ? (
+          {viewerIsOwner && member.role !== "owner" && member.userId &&
+              muted !== null
+            ? (
             <p className="text-xs text-ink-soft">
               {muted ? t("household.merge.muted") : t("household.merge.mute_hint")}
             </p>
