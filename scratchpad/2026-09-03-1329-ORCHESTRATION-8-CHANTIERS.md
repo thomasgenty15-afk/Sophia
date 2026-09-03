@@ -538,3 +538,22 @@ invitable quand même) — ce qui distingue une fixture d'un décor.
 **État des lanes** : RAPIDE ✅ terminée et vérifiée VERT · FOYER ✅ terminée (A6 vérifié VERT, A5 à vérifier) ·
 MEMBRE A8.0/A8.1/A8.2 fusionnés (A8.0 vérifié après correctif, A8.1+A8.2 en vérification), **A8.3 en cours** ·
 SUIVI ✅ terminée (A7 non fusionné, attend un arbre vert) · CUISINE A1 ✅ fusionné et vert, **A2 en cours**.
+
+## 20:5x — l'espace, repris là où il était vraiment
+
+**4,6 Gi libres** (contre 765 Mi au signalement), sans rien perdre. Ce qui a été rendu, et **pourquoi c'était là** :
+
+La lane FOYER a fait la bonne mesure et s'est arrêtée au bon endroit : son worktree pèse 650 Mo dont **426 Mo de
+`tests/real-personas`** et 73 Mo de `tmp/`, **tous deux SUIVIS PAR GIT** (3 274 et 1 215 fichiers). Ce n'est pas du cache
+de build : les effacer serait une **suppression de contenu commité**, pas un ménage. Elle a refusé, et elle a eu raison.
+
+**Le vrai coût est structurel** : ce demi-gigaoctet de contenu suivi est **dupliqué dans chaque copie de travail**.
+Sept copies (cinq lanes, un worktree de vérification, une sonde de mesure) ⇒ ~3,5 Go pour un seul contenu.
+Retiré, après avoir vérifié **pour chacune** que l'arbre est propre et que `git branch --contains` place tous ses commits
+dans `ff-001-quotidien-du-coach` : les worktrees des **deux lanes terminées** (RAPIDE 694 Mo, FOYER 650 Mo) et la sonde
+de mesure (651 Mo). **Les branches survivent** — un worktree se recrée en une commande, un commit perdu ne se recrée pas.
+Gardés : CUISINE (A2 en vol), MEMBRE (A8.3 en vol), SUIVI (A7 non fusionné), VERIF (vérification en cours).
+
+**Reste un geste humain** : `~/Library/Caches` pèse 12 Go et n'est pas à moi. Et 182 Gi restent occupés sur 228 par du
+contenu hors dépôt. **Aucune fenêtre de run réel ne s'ouvre tant que la marge n'est pas confortable** : un runtime edge,
+une base et un navigateur écrivent tous les trois, et un disque plein en cours de run ne rend pas un échec propre.
