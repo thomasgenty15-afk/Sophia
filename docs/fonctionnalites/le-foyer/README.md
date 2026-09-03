@@ -84,7 +84,7 @@ n'augmente ce qu'il a le droit de dire.
 | Cran | Contenu | Compte requis |
 |---|---|---|
 | **0 — la bouche** | prénom, date de naissance, allergie | **non** |
-| **1 — la direction** | un jeton d'objectif parmi six | **non** |
+| **1 — la direction** | un jeton d'objectif parmi **trois** (`fat_loss`, `maintenance`, `muscle_gain` — repli du 2026-08-18) ; **un seul, `maintenance`, pour un mineur** (2026-08-22), que l'écran libelle « Manger normalement » (2026-09-03) | **non** |
 | **2 — le corps qui DIMENSIONNE** | taille, poids, sexe | **non** (depuis le 2026-08-12) |
 | **3 — le corps qui se DIT** | taille, sexe, date exacte, **série de poids** | **oui** |
 
@@ -157,22 +157,39 @@ lit les trois autres lignes de son foyer. Une colonne `weight_kg` posée là aur
   (`meal_body.ts:247`). ⚠️ **Toujours vrai après le 2026-08-12** : ce jour-là on
   a ouvert la **collecte** du corps d'un mineur, pas son **énonciation**. On
   calcule dans le moteur, on n'émet que des grammes d'aliment.
-  ⚠️ **Et c'est devenu la garde PRINCIPALE le 2026-08-18** : depuis ce jour un
-  mineur porte les **trois** objectifs comme un majeur (voir juste en dessous),
-  donc le silence sur son corps n'est plus une précaution parmi d'autres — c'est
-  ce qui empêche que sa direction se lise à table.
-- ✅ **Un mineur porte les trois objectifs, comme un majeur** — décision humaine
-  du **2026-08-18**, migration `20260818100000`. Elle renverse celle du
-  2026-08-13, qui refusait `fat_loss` et `recomposition` à l'écriture sur les
-  deux portes RPC. **Ce qui protège à la place, et ce n'est plus un refus :**
-  ① l'énergie d'un mineur reste une **maintenance calculée sur son âge**
-  (`childEnvelopeFromBody` ne prend pas de paramètre `goal` — un paramètre qui
-  n'existe pas, pas un `if` qu'on peut oublier) ; ② le **plafond de son rythme**
-  se calcule sur son besoin estimé, pas sur celui de l'adulte
-  (`weight_pace.ts`) ; ③ son **corps n'est jamais énoncé** (ligne ci-dessus).
-  ⚠️ Le défaut corrigé dans le même geste : `servingDirectionFor` écrasait
-  **toujours** la direction d'un mineur, donc « prendre du muscle » posé sur un
-  ado depuis le 13/08 s'écrivait en base et n'atteignait jamais l'assiette.
+  ⚠️ **Elle est devenue la garde PRINCIPALE le 2026-08-18**, quand un mineur a
+  porté les trois objectifs pendant quatre jours (voir juste en dessous) — et
+  elle **le reste après le 2026-08-22** : le refus d'objectif ferme l'entrée,
+  il ne nettoie pas le stock, et une ligne héritée à `fat_loss` existe encore.
+- ⛔ **Un mineur ne porte AUCUN objectif de poids** — décision humaine du
+  **2026-08-21** (« aucun objectif de poids sur un mineur »), migration
+  **`20260822041500`** (lot S4), qui **renverse** celle du 2026-08-18
+  (`20260818100000`, « un mineur porte les trois objectifs comme un majeur »),
+  laquelle renversait celle du 2026-08-13. L'histoire, parce qu'elle se relit
+  mal : refus posé le 13/08 sur deux portes ; **levé** le 18/08 avec trois
+  raisons écrites (l'énergie fermée, le plafond du rythme, le corps jamais
+  énoncé) ; **reposé** le 22/08 sur les **quatre** portes d'écriture après
+  que les quatre ont été mesurées ouvertes en transaction `rollback` — les
+  trois raisons du 18/08 sont renversées nommément dans l'en-tête de la
+  migration, la plus courte étant que « le corps d'un enfant n'est jamais
+  énoncé » (FF-047) **exige** ce refus au lieu de s'y opposer : une cible de
+  poids EST un énoncé du corps. Ce que la base fait : `goal_not_for_minor` sur
+  l'ajout, sur la direction **et sur la date** (« le détour temporel », la
+  garde qui arme les trois autres : objectif d'abord, date ensuite) ;
+  `target_not_for_minor` sur la cible chiffrée. `maintenance` et `null`
+  **passent** — l'énergie d'un mineur EST une maintenance calculée sur son
+  âge, et retirer un objectif est le remède que le refus désigne. Aucun
+  `CHECK` de table ; les lignes existantes ne sont **pas** corrigées.
+  **Depuis le 2026-09-03 (chantier P3, décisions D3.1-D3.3), l'écran suit la
+  base** : `goalsForAge("minor")` ne rend que `maintenance`, libellée
+  « Manger normalement » (registre éducatif, PIVOT-FOYER §8.4) ; un âge
+  `unknown` voit les trois (« je ne sais pas » n'est pas « c'est un enfant ») ;
+  une direction héritée est **pliée** à `maintenance` au rendu et à
+  l'écriture (`goalForAge`, `foldMinorGoal`) **et dite** ; les écrivains
+  posent la direction **avant** la date quand elle ne bouge pas
+  (`persistMouth`, `saveMember`, `writeMouthBirthDate`). L'option vide « Aucune
+  direction particulière » a disparu des cinq sélecteurs : `null` reste valide
+  **en base** (part standard), l'écran ne peut plus le produire.
 - ❌ **Les calories, dans le foyer comme ailleurs.**
   [CONTRACT.md](../../keel/CONTRACT.md) ne bouge pas, et le brief de portions le
   redit en toutes lettres (`household_portions.ts`, `BODY_FACTS_CAVEAT`).

@@ -233,8 +233,10 @@ Deno.serve(async (req) => {
       // dupliquée hors de notre stockage, et un identifiant périssable.
       //
       // L'app a déjà le fichier: il est dans `meal-documents`, la ligne
-      // `student_meal_documents` le référence, et `/app/meals` sait le
-      // télécharger derrière une URL signée. Il n'y a donc RIEN à transporter
+      // `student_meal_documents` le référence, et `ShoppingListPanel` (sur
+      // `/app/plan`, via `api/mealDocument.ts`) sait le télécharger derrière
+      // une URL signée. (Ce commentaire nommait `/app/meals`, qui ne l'a jamais
+      // su et n'existe plus depuis le 2026-09-03.) Il n'y a donc RIEN à transporter
       // — seulement à dire que c'est prêt.
       //
       // L'ordre du fichier reste le contrat: le PDF et sa ligne existent AVANT

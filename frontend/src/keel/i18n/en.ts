@@ -1608,7 +1608,6 @@ export const en = {
 
   // Student app chrome
   "app.nav.today": "Today",
-  "app.nav.meals": "Meal ideas",
   "app.nav.progress": "Progress",
   "app.nav.chat": "Chat",
   "app.nav.health": "Health",
@@ -1618,7 +1617,6 @@ export const en = {
   // Libellés courts: la barre d'onglets du téléphone donne 75 px par colonne,
   // et « My week's plan » y tiendrait sur trois lignes.
   "app.nav.plan.short": "Plan",
-  "app.nav.meals.short": "Meals",
 
   // DE-WHATSAPP — la bulle. C'est LE canal, plus un simulateur: la
   // conversation quotidienne avec Sophia vit ici, dans l'app.
@@ -4193,7 +4191,6 @@ export const en = {
     "The same date as in your About you — filling it here fills it there. Optional, and until we have it you get a standard serving: a direction only applies at a known age.",
   "household.member.goal": "Their direction",
   "household.member.goal_mine": "Your direction",
-  "household.member.goal_none": "No particular direction",
   "household.member.goal_inactive":
     "Saved, and not applied yet: a direction needs an age. Add their date of birth above.",
   // D1 (2026-08-11) — dès qu'une bouche a un compte, son objectif vit dans SON
@@ -5205,7 +5202,6 @@ export const en = {
   // paires étiquetées, donc « all three » n'y désigne plus de groupe.
   "setup.mouths.body_together": "Height, weight and sex go together: all three, or none.",
   "setup.mouths.goal": "What they are after",
-  "setup.mouths.goal_none": "No particular direction",
   "setup.mouths.goal_from_profile":
     "Set in their own profile — it follows them everywhere, not just at this table.",
   "setup.mouths.allergies":
@@ -6470,19 +6466,12 @@ export const en = {
   "meals.shopping.wave_intro":
     "Split by when it has to be fresh: the mid-week meat does not keep from Monday.",
 
-  // ── /app/meals — CE QUE LE COACH A DÉPOSÉ, ET RIEN D'AUTRE ──────────────
-  // La frontière avec `/app/plan`, en une phrase: `/app/plan` montre ce que
-  // l'IA compose POUR l'élève; `/app/meals` montre ce que son COACH a mis à
-  // disposition, tel qu'il l'a écrit. Rien n'y est cochable, badgé ni compté,
-  // et le sous-titre le dit avec des mots.
-  "meals.title": "Meal ideas",
-  "meals.subtitle":
-    "Dishes your coach put up for everyone they work with. Ideas only — nothing here is tracked and none of it counts for or against you.",
-  "meals.list.title": "From your coach",
-  "meals.list.empty":
-    "Your coach has not put any meal ideas up yet. Your week is unaffected — build it from the plan screen.",
+  // ── LA LIGNE D'ATTENTE DU MOTEUR — pas celle de l'écran retiré ─────────
+  // `meals.loading` est rendue par `MealBuilder` et `StudentWeekPlanPage`
+  // (`/app/plan`) pendant que les plans se chargent. Elle vivait sous l'en-tête
+  // `/app/meals`, dont les sept autres clés sont parties le 2026-09-03 (P4);
+  // elle, non: retirée, `tsc` rougit sur ses deux appelants.
   "meals.loading": "Loading…",
-  "meals.error": "These could not be loaded just now.",
 
   // ═════════════════════════════════════════════════════════════════════════
   // /app/health — CE QUE L'ÉLÈVE NE PEUT PAS MANGER
@@ -7991,5 +7980,37 @@ export const en = {
   "known.error.unreadable": "I could not make a line out of that. Nothing was changed.",
   "known.error.generic": "That did not go through.",
   "app.nav.about_you": "What Sophia knows",
+
+  // ── chantier-0903/RAPIDE — début ──
+  // A3 · P3, la 4e option d'objectif (2026-09-03). RETIRÉES EN PLACE dans ce pack:
+  //   "household.member.goal_none"  — l'option vide de `MouthFields` (/app/household)
+  //   "setup.mouths.goal_none"      — l'option vide de l'entonnoir (/app/setup)
+  // AJOUTÉES — namespace `household`, déclaré sur /app/setup ET /app/household.
+  // Registre ÉDUCATIF (PIVOT-FOYER §8.4): « Eat normally », jamais « keep weight ».
+  "household.goal.minor_maintenance": "Eat normally",
+  "household.goal.minor_only": "Under 18, this is the only direction offered.",
+  "household.goal.minor_switched":
+    "Under 18, “{from}” is no longer offered: what gets saved is “Eat normally”.",
+  // Les deux refus S4 (`20260822041500`), nés le 2026-08-22 et arrivés en jeton brut
+  // pendant douze jours. La phrase nomme le remède que la migration désigne.
+  "household.error.goal_not_for_minor":
+    "No weight direction for a child: under 18, only “Eat normally” is accepted. Pick it, then set the date.",
+  "household.error.target_not_for_minor":
+    "No target weight for a child: under 18, nothing is aimed at.",
+  // A4 · P4, les idées de repas (2026-09-03, décision D4.1). RETIRÉES EN PLACE dans
+  // ce pack — SEPT clés de l'écran `/app/meals` (supprimé), et AUCUNE du
+  // vocabulaire du moteur (`meals.slot.*`, `meals.aisle.*`, `meals.tick.*`… restent):
+  //   "app.nav.meals"        — l'onglet « Meal ideas » de la barre du bas (KeelAppShell)
+  //   "app.nav.meals.short"  — sa forme courte « Meals »
+  //   "meals.title"          — « Meal ideas », le titre de la page
+  //   "meals.subtitle"       — « Dishes your coach put up for everyone… »
+  //   "meals.list.title"     — « From your coach »
+  //   "meals.list.empty"     — « Your coach has not put any meal ideas up yet… »
+  //   "meals.error"          — « These could not be loaded just now. »
+  // GARDÉE, contre la liste de huit du mandat: "meals.loading" — deux appelants
+  // vivants sur `/app/plan` (`MealBuilder.tsx`, `StudentWeekPlanPage.tsx`), vus
+  // par `tsc` quand on l'a retirée; redéposée près du moteur, avec sa note.
+  // Et dans `catalog.ts`: l'entrée `"/app/meals"` de `PAGE_NAMESPACES`. Aucune clé ajoutée.
+  // ── chantier-0903/RAPIDE — fin ──
 
 } as const

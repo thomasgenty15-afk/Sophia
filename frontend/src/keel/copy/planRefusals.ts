@@ -317,6 +317,22 @@ export const HOUSEHOLD_REFUSAL_KEYS: Record<string, MessageKey> = {
   bad_target_weight: "household.error.bad_target_weight",
   bad_pace: "household.error.bad_pace",
   target_needs_direction: "household.error.target_needs_direction",
+  // ── S4 (`20260822041500`) · AUCUN OBJECTIF DE POIDS SUR UN MINEUR ────────
+  // EN LITTÉRAL, comme leurs voisins: ce fichier est scanné par
+  // `planRefusals.int.test.ts`, qui ne lit QUE les littéraux.
+  //
+  // ⚠️ NÉS LE 2026-08-22 SUR LES QUATRE PORTES, ARRIVÉS EN JETON BRUT PENDANT
+  // DOUZE JOURS. `goal_not_for_minor` est rendu par l'ajout, par la direction
+  // ET par la date (le détour temporel: poser une date de mineur sur une ligne
+  // qui porte `fat_loss`); `target_not_for_minor` par la cible chiffrée. Depuis
+  // le 2026-09-03 (chantier P3) l'écran ne propose plus à un mineur que
+  // « Manger normalement » et plie une direction héritée AVANT d'écrire la
+  // date — ces deux phrases restent la ceinture pour une course entre deux
+  // onglets, et pour un appel direct de la RPC. La phrase nomme le remède que
+  // la migration désigne (retirer la direction, puis poser la date), pas un
+  // verdict sur un corps: registre éducatif, PIVOT-FOYER §8.4.
+  goal_not_for_minor: "household.error.goal_not_for_minor",
+  target_not_for_minor: "household.error.target_not_for_minor",
   // ── LA RÉPONSE HEBDOMADAIRE DU DÉJEUNER (L6, RPC de L3, 20260818120000) ───
   // EN LITTÉRAL, jamais dans un ternaire: ce fichier est scanné par
   // `planRefusals.int.test.ts`, qui ne lit QUE les littéraux.

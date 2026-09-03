@@ -95,8 +95,10 @@ type NavItem = {
 // student's nav had two entries and the meal week was not one of them. That is
 // the "thirteen unwired modules" failure one layer up — `wiring-check` owns the
 // edge from a module to its caller, and a React route IS a caller, so the check
-// stayed green while the whole screen was unreachable. The entry below is the
-// missing edge.
+// stayed green while the whole screen was unreachable. The `/app/meals` entry
+// that closed that gap was itself REMOVED on 2026-09-03 (P4): the coach's
+// library has no student reader any more, and the bottom bar has four tabs.
+// The rule outlives the screen that taught it.
 const NAV: Record<ShellVariant, NavItem[]> = {
   student: [
     { to: "/app/today", label: () => t("app.nav.today"), bottom: true },
@@ -111,12 +113,6 @@ const NAV: Record<ShellVariant, NavItem[]> = {
       to: "/app/plan",
       label: () => t("app.nav.plan"),
       short: () => t("app.nav.plan.short"),
-      bottom: true,
-    },
-    {
-      to: "/app/meals",
-      label: () => t("app.nav.meals"),
-      short: () => t("app.nav.meals.short"),
       bottom: true,
     },
     { to: "/app/progress", label: () => t("app.nav.progress"), bottom: true },

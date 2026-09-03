@@ -30,7 +30,9 @@ import {
   loadMyHouseholdCoverage,
   loadRestrictions,
   MEMBER_GENDERS,
-  MEMBER_GOALS,
+  goalForAge,
+  isDirectionalGoal,
+  type MemberAgeState,
   type MemberBodyView,
   type MemberGender,
   type MemberGoal,
@@ -84,6 +86,7 @@ import {
   setMemberTarget,
 } from "../api/mouthProfile";
 import {
+  ageStateOfTypedDate,
   draftFromKnown,
   emptyMouthDraft,
   type KnownMouth,
@@ -91,6 +94,7 @@ import {
   type MouthFormDraft,
   mouthToPersist,
 } from "../lib/mouthForm";
+import GoalTiles from "../components/GoalTiles";
 import MouthFormDialog, {
   MouthActivityAxesFields,
   MouthAppetiteFields,
@@ -510,6 +514,10 @@ export default function HouseholdPage(): React.ReactElement {
               {me && ownerGoalRow !== null ? (
                 <MeCard
                   me={me}
+                  // ⚠️ LA DATE LOCALE, CALCULÉE UNE FOIS ET DESCENDUE — l'âge
+                  // qui filtre les directions se lit sur une date TAPÉE, et une
+                  // horloge lue au rendu changerait de réponse à minuit.
+                  todayLocalIso={weekStart}
                   slots={habitSlotsFor(me.eatingSlots, rhythm)}
                   // ⚠️ LA PROMESSE N'EST FAITE QU'À QUI PEUT LA TENIR. « ceci
                   // débloque la composition » est vrai pour le compte maître et
@@ -661,6 +669,7 @@ export default function HouseholdPage(): React.ReactElement {
 
               <MembersCard
                 household={household}
+                todayLocalIso={weekStart}
                 restrictions={restrictions}
                 allergies={allergies}
                 busy={busy}
@@ -809,10 +818,20 @@ export default function HouseholdPage(): React.ReactElement {
    * peut pas la préremplir, et l'envoyer avec le prénom l'effacerait à chaque
    * correction de prénom. D'où la règle d'ici — un champ vide ne s'écrit PAS.
    *
-   * L'ordre compte: la date d'abord, l'objectif ensuite. Un objectif posé sur
-   * une bouche dont l'âge est encore inconnu ne s'applique pas, et le relire
-   * dans la foulée afficherait « enregistré, pas appliqué » alors que la date
-   * vient d'être donnée.
+   * ── ⚠️ L'ORDRE DE LA DATE ET DE L'OBJECTIF DÉPEND DE CE QU'ON ÉCRIT
+   *    (chantier P3, 2026-09-03) ───────────────────────────────────────────
+   * Il était fixe: « la date d'abord, l'objectif ensuite ». Depuis la
+   * migration `20260822041500` (lot S4), deux refus symétriques se regardent
+   * sur la même ligne — `set_member_birth_date(minor)` refuse
+   * `goal_not_for_minor` quand la ligne PORTE `fat_loss`/`muscle_gain`, et
+   * `set_member_goal(fat_loss)` le refuse quand la ligne EST déjà datée
+   * mineure. L'ordre fixe échouait donc sur le cas nominal de ce lot: une
+   * bouche mineure héritée à `fat_loss`, que les tuiles plient à « Manger
+   * normalement » et qu'on enregistre avec sa date.
+   * La règle est celle de `persistMouth`: une direction qui NE bouge PAS
+   * s'écrit D'ABORD (elle passe sur tout âge) et libère la date; une direction
+   * qui bouge s'écrit APRÈS la date (elle n'est acceptée que sur un âge adulte
+   * ou inconnu).
    */
   async function saveMember(
     member: HouseholdMemberView,
@@ -824,7 +843,8 @@ export default function HouseholdPage(): React.ReactElement {
         const named = await setMemberName(member.memberId, patch.firstName.trim());
         if (!named.ok) return named;
       }
-      if (patch.birthDate) {
+      const writeDate = async () => {
+        if (!patch.birthDate) return { ok: true, reason: "" };
         // ── D18 (L9) · MA DATE VA DANS MON PROFIL, PAS SUR MA FICHE ────────
         //
         // Depuis 20260812180000, l'âge d'une bouche QUI A UN COMPTE se résout
@@ -837,21 +857,31 @@ export default function HouseholdPage(): React.ReactElement {
         // pour la date de quelqu'un d'autre — un enfant, un conjoint qui n'est
         // jamais passé par son écran — la fiche reste la seule porte, et le
         // repli SQL la fait compter.
-        const dated = birthDateDoor(member, opts.userId) === "own_profile"
+        return birthDateDoor(member, opts.userId) === "own_profile"
           ? await setOwnBirthDate(opts.userId, patch.birthDate)
           : await setMemberBirthDate(member.memberId, patch.birthDate);
-        if (!dated.ok) return dated;
-      }
+      };
       // D1 (2026-08-11) — `keel_household_set_member_goal` REFUSE désormais
       // toute bouche qui a un compte (`has_account`). L'appeler quand même
       // ferait échouer l'enregistrement du prénom et de la date, qui eux
       // viennent de passer: une carte cassée par un champ qu'on n'aurait pas
       // dû soumettre. Pour un titulaire, la seule écriture d'objectif permise
       // depuis cet écran est la CRÉATION de sa ligne, juste en dessous.
-      if (member.userId === null && patch.goal !== member.goal) {
-        const aimed = await setMemberGoal(member.memberId, patch.goal);
-        if (!aimed.ok) return aimed;
-      }
+      const writeGoal = async () => {
+        if (member.userId !== null || patch.goal === member.goal) {
+          return { ok: true, reason: "" };
+        }
+        return await setMemberGoal(member.memberId, patch.goal);
+      };
+      // L'ordre — voir l'en-tête. `isDirectionalGoal` est la même définition
+      // que la garde SQL (arbitrage ① de `20260822041500`).
+      const [first, second] = isDirectionalGoal(patch.goal)
+        ? [writeDate, writeGoal]
+        : [writeGoal, writeDate];
+      const a = await first();
+      if (!a.ok) return a;
+      const b = await second();
+      if (!b.ok) return b;
       // LA LIGNE QUI SUPPRIME LA FALAISE. Elle n'est écrite QUE si elle
       // n'existe pas: la table porte des CHECK croisés entre l'objectif et les
       // cibles chiffrées, et écraser `goal` ici ferait échouer l'écriture chez
@@ -903,6 +933,13 @@ interface MouthDraft {
   firstName: string;
   /** `""` = « ne touche pas ». Voir `saveMember`: le roster ne rend pas la date. */
   birthDate: string;
+  /**
+   * `""` = RIEN DE COCHÉ — et l'écran ne sait plus rien produire d'autre que
+   * les trois jetons (chantier P3, 2026-09-03: l'option vide « Aucune
+   * direction particulière » est retirée des cinq `<select>`). Une ligne à
+   * `goal = null` en base s'ouvre sur `""` et reste à `""` tant que le maître
+   * ne choisit pas; `null` reste valide EN BASE (part standard, D3.3).
+   */
   goal: MemberGoal | "";
 }
 
@@ -914,11 +951,21 @@ interface MouthDraft {
  * ce qu'on fait d'un champ vide — et personne ne saurait laquelle est la règle.
  */
 function MouthFields(
-  { draft, onChange, mine, showKeptDateHint, goalEditable = true }: {
+  { draft, onChange, mine, showKeptDateHint, goalEditable = true, ageState, radioName }: {
     draft: MouthDraft;
     onChange: (next: MouthDraft) => void;
     /** Change le libellé de l'objectif, rien d'autre. */
     mine?: boolean;
+    /**
+     * L'ÉTAT D'ÂGE QUI FILTRE LES DIRECTIONS — REQUIS, jamais optionnel. C'est
+     * l'appelant qui le dérive (`ageStateOfTypedDate`: la date TAPÉE gagne sur
+     * le roster), parce que ce formulaire ne connaît ni la ligne ni le jour.
+     * Un défaut ici (`"unknown"`) ferait proposer trois directions à un enfant
+     * — exactement l'écran d'avant ce lot.
+     */
+    ageState: MemberAgeState;
+    /** Le `name` des boutons radio — unique par formulaire sur la page. */
+    radioName: string;
     /** Vrai quand la ligne PORTE déjà une date qu'on ne peut pas préremplir. */
     showKeptDateHint?: boolean;
     /**
@@ -974,23 +1021,22 @@ function MouthFields(
       >
         {goalEditable
           ? (
-            <select
-              className={inputClass}
+            // TROIS TUILES, AUCUNE PRÉ-SÉLECTION, ET UNE SEULE POUR UN MINEUR
+            // — le même composant que la fiche et que l'entonnoir.
+            <GoalTiles
+              name={radioName}
+              ariaLabel={mine ? t("household.member.goal_mine") : t("household.member.goal")}
               value={draft.goal}
-              onChange={(e) =>
-                onChange({ ...draft, goal: e.target.value as MemberGoal | "" })}
-            >
-              <option value="">{t("household.member.goal_none")}</option>
-              {MEMBER_GOALS.map((g) => (
-                <option key={g} value={g}>{goalLabel(g)}</option>
-              ))}
-            </select>
+              ageState={ageState}
+              labelOf={goalLabel}
+              onChange={(g) => onChange({ ...draft, goal: g })}
+            />
           )
           : (
             <p className="text-sm text-ink">
-              {draft.goal
-                ? goalLabel(draft.goal as MemberGoal)
-                : t("household.member.goal_none")}
+              {/* « — » ET PLUS « Aucune direction particulière »: une lecture
+                  qui nomme une quatrième direction en fabrique une. */}
+              {draft.goal ? goalLabel(draft.goal) : "—"}
             </p>
           )}
       </Field>
@@ -1013,9 +1059,15 @@ function MouthFields(
  * — ce dépôt en a mesuré deux.
  */
 export function MeCard(
-  { me, slots, needsGoalRow, goalEditable, busy, onSave, sheet }: {
+  { me, slots, needsGoalRow, goalEditable, busy, onSave, sheet, todayLocalIso }: {
     me: HouseholdMemberView;
     needsGoalRow: boolean;
+    /**
+     * `YYYY-MM-DD` LOCAL, REQUIS — jamais une horloge lue ici. L'âge qui
+     * filtre les directions se lit sur la date TAPÉE dans les trois champs en
+     * ligne, et `sheet.todayLocalIso` n'existe que quand la fiche existe.
+     */
+    todayLocalIso: string;
     /**
      * D5 — LA FENÊTRE « UNE BOUCHE » POUR LE MAÎTRE, ou `null`.
      *
@@ -1093,6 +1145,8 @@ export function MeCard(
     setSheetDraft(draftFromKnown(sheet.known));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [knownKey]);
+  // L'ÂGE DES TROIS CHAMPS EN LIGNE: la date tapée gagne sur le roster.
+  const meAge = ageStateOfTypedDate(draft.birthDate, me.ageState, todayLocalIso);
 
   if (sheet !== null) {
     return (
@@ -1163,6 +1217,8 @@ export function MeCard(
         mine
         showKeptDateHint={me.ageState !== "unknown"}
         goalEditable={goalEditable}
+        ageState={meAge}
+        radioName="household-goal-me"
       />
       {/* L'INCITATION À COMPLÉTER EST INTÉGRÉE, et elle est vraie: un objectif
           posé sur une bouche sans âge est enregistré et NON APPLIQUÉ
@@ -1191,7 +1247,8 @@ export function MeCard(
             const ok = await onSave({
               firstName: draft.firstName,
               birthDate: draft.birthDate || null,
-              goal: draft.goal || null,
+              // PLIÉE À L'ÂGE, comme à l'écran: ce qui part est ce qui est coché.
+              goal: goalForAge(draft.goal, meAge) || null,
             });
             setSaved(ok);
             if (ok) setDraft((d) => ({ ...d, birthDate: "" }));
@@ -1319,11 +1376,13 @@ function AddMouthCard(
  * quelle nature est cette contrainte.
  */
 function MembersCard(
-  { household, restrictions, allergies, busy, mutedMembers, rhythm, awayWindow, bodies, habits, onSaveHabits, onSaveDiet, onSaveBody, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction }: {
+  { household, restrictions, allergies, busy, mutedMembers, rhythm, awayWindow, bodies, habits, onSaveHabits, onSaveDiet, onSaveBody, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction, todayLocalIso }: {
     household: HouseholdView;
     restrictions: RestrictionView[];
     allergies: AllergyView[];
     busy: boolean;
+    /** `YYYY-MM-DD` local, descendu à chaque ligne — voir `MeCard`. */
+    todayLocalIso: string;
     /**
      * CE QUE CHAQUE BOUCHE MANGE D'HABITUDE. `null` = PAS ENCORE LU — et la
      * carte n'affiche alors aucun champ. Voir l'état de la page.
@@ -1423,6 +1482,7 @@ function MembersCard(
           <MemberRow
             key={m.memberId}
             member={m}
+            todayLocalIso={todayLocalIso}
             isMe={m.memberId === me?.memberId}
             allergies={allergies.filter((a) => a.memberId === m.memberId)}
             restrictions={restrictions.filter((r) => r.memberId === m.memberId)}
@@ -1693,9 +1753,11 @@ function MemberBadges({ member }: { member: HouseholdMemberView }) {
 }
 
 function MemberRow(
-  { member, isMe, allergies, restrictions, busy, muted, rhythm, awayWindow, body, habits, habitsLoaded, onSaveHabits, onSaveDiet, onSaveBody, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction }: {
+  { member, isMe, allergies, restrictions, busy, muted, rhythm, awayWindow, body, habits, habitsLoaded, onSaveHabits, onSaveDiet, onSaveBody, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction, todayLocalIso }: {
     member: HouseholdMemberView;
     isMe: boolean;
+    /** `YYYY-MM-DD` local — l'âge des tuiles se lit sur la date tapée. */
+    todayLocalIso: string;
     allergies: AllergyView[];
     restrictions: RestrictionView[];
     busy: boolean;
@@ -1742,6 +1804,10 @@ function MemberRow(
   const [kind, setKind] = React.useState<"allergy" | "house_rule">("allergy");
   const [label, setLabel] = React.useState("");
   const [awayOpen, setAwayOpen] = React.useState(false);
+  // L'ÂGE DES TROIS CHAMPS: la date tapée gagne sur ce que le roster a compris.
+  // C'est ce qui fait qu'une date de mineur tapée sur une bouche à `fat_loss`
+  // plie la direction À L'ÉCRAN, avant le Save — et que le Save passe.
+  const rowAge = ageStateOfTypedDate(draft.birthDate, member.ageState, todayLocalIso);
 
   /** Combien de moments sont marqués DANS la fenêtre — pour le bouton. */
   const awayInWindow = React.useMemo(() => {
@@ -1833,6 +1899,8 @@ function MemberRow(
             showKeptDateHint={member.ageState !== "unknown"}
             // D1 — une bouche qui a un compte règle son objectif elle-même.
             goalEditable={member.userId === null}
+            ageState={rowAge}
+            radioName={`household-goal-${member.memberId}`}
           />
           {member.goal && member.ageState === "unknown" ? (
             <p className="text-sm text-amber-800">
@@ -2001,7 +2069,10 @@ function MemberRow(
                 const ok = await onSave({
                   firstName: draft.firstName,
                   birthDate: draft.birthDate || null,
-                  goal: draft.goal || null,
+                  // PLIÉE À L'ÂGE, comme à l'écran: ce qui part est ce qui
+                  // est coché — une bouche mineure héritée à `fat_loss` part
+                  // en `maintenance`, et `saveMember` l'écrit AVANT la date.
+                  goal: goalForAge(draft.goal, rowAge) || null,
                 });
                 if (ok) setDraft((d) => ({ ...d, birthDate: "" }));
               }}

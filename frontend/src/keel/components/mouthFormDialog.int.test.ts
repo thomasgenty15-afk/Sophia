@@ -13,6 +13,7 @@ import {
   emptyMouthDraft,
   missingRequiredBlocks,
   type MouthFormDraft,
+  paceControlFor,
 } from "../lib/mouthForm";
 import { en } from "../i18n/en";
 import { EATING_OCCASIONS, type EatingOccasion } from "../api/mealGeneration";
@@ -1117,10 +1118,17 @@ describe("les deux langues, sur la valeur", () => {
 });
 
 // ---------------------------------------------------------------------------
-// UN MINEUR PORTE LES SIX BLOCS
+// UN MINEUR PORTE LES SIX BLOCS — ET UNE SEULE DIRECTION (2026-09-03)
 // ---------------------------------------------------------------------------
 
-describe("un mineur porte les six blocs, comme les autres", () => {
+/**
+ * ⚠️ RETOURNÉ LE 2026-09-03 (chantier P3, D3.2). Ce bloc affirmait « les TROIS
+ * directions lui sont proposées » — la décision du 18/08. La base l'a renversée
+ * le 22/08 (`20260822041500`, lot S4: `goal_not_for_minor` sur les quatre
+ * portes), et la fiche ne l'a suivie que douze jours plus tard. Les six blocs,
+ * eux, restent rendus pour lui: seul le CONTENU du bloc 3 change.
+ */
+describe("un mineur porte les six blocs, et une seule direction", () => {
   const KID: Partial<MouthFormDraft> = {
     firstName: "Kid",
     birthDate: MINOR_BIRTH,
@@ -1130,10 +1138,19 @@ describe("un mineur porte les six blocs, comme les autres", () => {
     activityLevel: "trains_some",
   };
 
-  it("les TROIS directions lui sont proposées", () => {
+  it("UNE tuile, « Eat normally » — les deux autres ne sont pas dans le HTML", () => {
     const markup = html({ draft: KID });
-    expect(countOf(markup, 'name="mouth-goal"')).toBe(3);
-    for (const token of GOAL_TOKENS) expect(markup).toContain(`value="${token}"`);
+    expect(countOf(markup, 'name="mouth-goal"')).toBe(1);
+    expect(markup).toContain('value="maintenance"');
+    for (const token of ["fat_loss", "muscle_gain"]) {
+      expect(markup, `${token} est encore proposé à un enfant`)
+        .not.toContain(`value="${token}"`);
+    }
+    const body = text(markup);
+    expect(body).toContain(decode(en["household.goal.minor_maintenance"]));
+    expect(body).toContain(decode(en["household.goal.minor_only"]));
+    // Et pas le mot d'adulte sur la même tuile.
+    expect(body).not.toContain(decode(en["household.goal.maintenance"]));
   });
 
   it("aucun bloc n'est masqué pour lui", () => {
@@ -1153,21 +1170,57 @@ describe("un mineur porte les six blocs, comme les autres", () => {
     }
   });
 
-  it("et son curseur est borné sur SON besoin, pas sur celui d'un adulte", () => {
-    const kidMarkup = html({ draft: { ...KID, goal: "fat_loss" } });
-    const adultMarkup = html({
-      draft: { ...KID, birthDate: ADULT_BIRTH, goal: "fat_loss" },
-    });
-    const kidMax = /id="mouth-pace"[^>]*max="([\d.]+)"/.exec(kidMarkup)?.[1] ??
-      /max="([\d.]+)"[^>]*id="mouth-pace"/.exec(kidMarkup)?.[1];
-    const adultMax =
-      /id="mouth-pace"[^>]*max="([\d.]+)"/.exec(adultMarkup)?.[1] ??
-        /max="([\d.]+)"[^>]*id="mouth-pace"/.exec(adultMarkup)?.[1];
-    expect(kidMax).toBeDefined();
-    expect(adultMax).toBeDefined();
-    // Les deux corps sont IDENTIQUES sauf la date de naissance: si les bornes
-    // sont les mêmes, c'est que le plafond pédiatrique n'est pas appliqué.
-    expect(kidMax).not.toBe(adultMax);
+  /**
+   * LE PLI, ET LA PHRASE. Une direction héritée (`fat_loss` sur une bouche
+   * mineure — les lignes d'avant le 22/08, que la migration a laissées
+   * exprès) est rendue comme « Eat normally » COCHÉ, la phrase NOMME la
+   * direction remplacée, et rien ne se déplie dessous: ni poids visé, ni
+   * curseur. C'est aussi ce que `mouthToPersist` écrira.
+   */
+  it("une direction héritée est PLIÉE: « Eat normally » cochée, la phrase la nomme, rien ne se déplie", () => {
+    const markup = html({ draft: { ...KID, goal: "fat_loss" } });
+    // ⚠️ LA BALISE ENTIÈRE: React (SSR) émet `checked=""` AVANT `value="…"`.
+    const goalTags = [...markup.matchAll(/<input[^>]*name="mouth-goal"[^>]*>/g)].map((m) => m[0]);
+    expect(goalTags).toHaveLength(1);
+    expect(goalTags[0]).toContain('value="maintenance"');
+    expect(goalTags[0]).toMatch(/\bchecked(=""|\s|\/)/);
+    expect(text(markup)).toContain(
+      decode(
+        en["household.goal.minor_switched"].replace(
+          "{from}",
+          en["household.goal.fat_loss"],
+        ),
+      ),
+    );
+    expect(markup).not.toContain('id="mouth-pace"');
+    expect(markup).not.toContain('id="mouth-target-weight"');
+    // Et le bouton n'est pas retenu par un bloc « direction » ou « corps »
+    // calculé sur le brouillon BRUT: la lecture est pliée de bout en bout.
+    expect(text(markup)).not.toContain(decode(en["household.mouth.block_direction"]));
+  });
+
+  /**
+   * ⚠️ LE PLAFOND PÉDIATRIQUE DU CURSEUR EXISTE TOUJOURS — DANS LE MODULE,
+   * PLUS À L'ÉCRAN. Ce cas mesurait, sur le HTML, un `max` différent entre un
+   * enfant et un adulte à corps égal. La fiche ne peut plus le rendre: aucune
+   * direction qui bouge n'est proposée à un enfant. La borne, elle, vit dans
+   * `paceControlFor` → `paceCeilingFor` et reste mesurable sur la VALEUR —
+   * c'est la ceinture qui tient une ligne héritée si un écran la lisait brute.
+   */
+  it("et son plafond de rythme reste borné sur SON besoin, dans le module", () => {
+    const kid = paceControlFor({ ...emptyMouthDraft(), ...KID, goal: "fat_loss" }, TODAY);
+    const adult = paceControlFor(
+      { ...emptyMouthDraft(), ...KID, birthDate: ADULT_BIRTH, goal: "fat_loss" },
+      TODAY,
+    );
+    expect(kid.kind).toBe("slider");
+    expect(adult.kind).toBe("slider");
+    if (kid.kind === "slider" && adult.kind === "slider") {
+      // Les deux corps sont IDENTIQUES sauf la date de naissance: si les
+      // bornes sont les mêmes, c'est que le plafond pédiatrique n'est pas
+      // appliqué.
+      expect(kid.max).not.toBe(adult.max);
+    }
   });
 });
 

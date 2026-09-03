@@ -13,7 +13,6 @@ import {
   type GeneratedMealResult,
   generateMeal,
   loadMealPlans,
-  DAY_TOKENS,
   MEAL_SLOTS,
   type MealMode,
 } from "../api/mealGeneration";
@@ -37,7 +36,7 @@ import {
   readPlanInputs,
   savePlanInputs,
 } from "../api/planBudget";
-import { dishDayLabel, mealCopy } from "../api/mealLabels";
+import { mealCopy } from "../api/mealLabels";
 import {
   ENVY_MAX_CHARS,
   generateHouseholdMeal,
@@ -85,8 +84,9 @@ import { Field, inputClass } from "./ui/Field";
 // OÙ IL VIT, ET POURQUOI PAS AILLEURS
 // -----------------------------------
 // Il est monté sur `/app/plan`, l'écran de la SEMAINE. C'est là que l'élève
-// vient chercher ce qu'il va manger. `/app/meals` porte autre chose: les IDÉES
-// que le coach a déposées — sa bibliothèque, pas une génération.
+// vient chercher ce qu'il va manger. (`/app/meals`, qui montrait les IDÉES
+// déposées par le coach — sa bibliothèque, pas une génération — a été retiré
+// le 2026-09-03, P4: elle n'a plus de lecteur élève.)
 //
 // CE QU'IL PRODUIT: des plats. Un titre, un jour, un créneau, des ingrédients
 // avec leur quantité, la méthode en prose. Plus une liste de courses par rayon.

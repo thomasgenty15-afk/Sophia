@@ -54,7 +54,6 @@ import CoachStudentPage from "./keel/pages/CoachStudentPage";
 // typecheckait plus. L'import et la route sont neutralisés ici juste pour que
 // le dépôt compile. C'est le refactor d'autrui — à eux de décider ce qui prend
 // la place de `/coach/clients/:studentId/meals`.
-import StudentMealPlanPage from "./keel/pages/mealPlan/StudentMealPlanPage";
 import { KeelStudentRoute } from "./keel/components/KeelStudentRoute";
 import { KeelHouseholdRoute } from "./keel/components/KeelHouseholdRoute";
 import { KeelOnboardingGate } from "./keel/components/KeelOnboardingGate";
@@ -478,18 +477,14 @@ function App() {
                   theirs. Nothing on this screen is scored: a meal id cannot
                   satisfy commitment_evaluations' foreign key. */}
               {/* Route neutralisée avec l'import ci-dessus — voir la note. */}
-              {/* KEEL — the student READS that week (Q6). Read-only by RLS:
-                  the meal tables carry no student write policy at all. */}
-              <Route
-                path="/app/meals"
-                element={
-                  <KeelStudentRoute>
-                    <KeelOnboardingGate>
-                      <StudentMealPlanPage />
-                    </KeelOnboardingGate>
-                  </KeelStudentRoute>
-                }
-              />
+              {/* `/app/meals` — les idées de repas du coach, côté élève — a été
+                  RETIRÉ le 2026-09-03 (chantier P4, décision D4.1): la bibliothèque
+                  du coach n'entrait nulle part dans la composition, n'écrivait rien
+                  et n'avait aucun aval. Le côté coach (`/coach/meals`) reste; c'est
+                  le LECTEUR élève qui n'existe plus. Un élève qui n'a rien à manger
+                  compose sur `/app/plan`. L'ancienne URL tombe sur la 404 du produit
+                  (catch-all en bas de ce fichier) — ne pas la rebrancher par
+                  symétrie. */}
               <Route path="/le-plan" element={<ProductPlan />} />
               <Route
                 path="/upgrade"

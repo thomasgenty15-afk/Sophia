@@ -167,31 +167,88 @@ describe("le formulaire d'ajout ne demande plus l'âge en toutes lettres", () =>
   });
 });
 
-describe("un mineur porte les trois directions, comme un majeur", () => {
-  /**
-   * LA LISTE NE DÉPEND PLUS DE L'ÂGE — c'est la décision du 2026-08-18, et
-   * elle se lit sur les DEUX dates: une liste plus courte d'un côté serait
-   * exactement l'ancienne règle réintroduite par la porte de derrière.
-   */
-  for (const [label, birthDate] of [["mineur", MINOR_BIRTH], ["majeur", ADULT_BIRTH]] as const) {
-    it(`les ${GOAL_TOKENS.length} directions sont proposées à un ${label}`, () => {
-      const body = decode(html({ birthDate }));
-      for (const goal of GOAL_TOKENS) {
-        expect(body, `la direction ${goal} manque pour un ${label}`).toContain(
-          en[`setup.goal.${goal}` as "setup.goal.fat_loss"],
-        );
-      }
-    });
-  }
+/**
+ * ⚠️ RETOURNÉ LE 2026-09-03 (chantier P3, décision D3.2). Ce bloc affirmait
+ * « les trois directions sont proposées à un mineur » — la décision du 18/08.
+ * La base l'a renversée le 22/08 (`20260822041500`, lot S4: `goal_not_for_minor`
+ * sur les quatre portes), et l'écran ne l'a suivie que douze jours plus tard.
+ *
+ * ⚠️ SUR LA VALEUR RENDUE: on compte les boutons radio du groupe, jamais une
+ * liste dans la source. Une tuile masquée par `display:none` compterait ici —
+ * c'est un FILTRE de liste, et c'est ce que ce bloc mesure.
+ *
+ * ⚠️ ET L'OPTION VIDE EST PARTIE. « Aucune direction particulière » était la
+ * quatrième ligne du `<select>`; les tuiles n'ont ni `<select>`, ni valeur
+ * `""`, ni pré-sélection. Une ligne existante sans direction n'a rien de coché.
+ */
+describe("un mineur ne voit qu'une direction: « Eat normally » (2026-09-03)", () => {
+  // ⚠️ ON LIT LA BALISE ENTIÈRE, PAS UN ORDRE D'ATTRIBUTS: React (SSR) émet
+  // `checked=""` puis `value="…"` EN DERNIER, quel que soit l'ordre des props.
+  const tags = (markup: string) =>
+    [...markup.matchAll(/<input[^>]*name="setup-mouth-goal"[^>]*>/g)].map((m) => m[0]);
+  const valueOf = (tag: string) => /value="([a-z_]*)"/.exec(tag)?.[1] ?? "(sans valeur)";
+  const offered = (markup: string) =>
+    tags(markup).filter((t) => t.includes('type="radio"')).map(valueOf);
+  const checkedValues = (markup: string) =>
+    tags(markup).filter((t) => /\bchecked(=""|\s|\/)/.test(t)).map(valueOf);
+
+  it("un mineur: UNE tuile, et c'est « Eat normally » — pas le mot d'adulte", () => {
+    const markup = html({ birthDate: MINOR_BIRTH });
+    expect(offered(markup)).toEqual(["maintenance"]);
+    const body = decode(markup);
+    expect(body).toContain(en["household.goal.minor_maintenance"]);
+    expect(body).toContain(en["household.goal.minor_only"]);
+    expect(body, "la tuile d'un enfant porte le mot d'un adulte")
+      .not.toContain(en["setup.goal.maintenance"]);
+    for (const goal of ["fat_loss", "muscle_gain"] as const) {
+      expect(body, `la direction ${goal} est encore proposée à un mineur`)
+        .not.toContain(en[`setup.goal.${goal}`]);
+    }
+  });
+
+  it("un majeur: les trois, dans l'ordre du socle, et AUCUNE pré-cochée", () => {
+    const markup = html({ birthDate: ADULT_BIRTH });
+    expect(offered(markup)).toEqual([...GOAL_TOKENS]);
+    expect(checkedValues(markup), "une direction est pré-cochée").toEqual([]);
+    expect(decode(markup)).not.toContain(en["household.goal.minor_only"]);
+  });
 
   /**
-   * L'OBJECTIF SURVIT À LA DATE D'UN ENFANT. Rendu avec une date de mineur ET
-   * une direction déjà choisie, le menu doit la rendre SÉLECTIONNÉE: c'est la
-   * lecture d'écran de « on n'efface plus jamais l'objectif ».
+   * ⚠️ « JE NE SAIS PAS » N'EST PAS « C'EST UN ENFANT ». Sans date, l'âge est
+   * inconnu, et l'inconnu voit les trois — sinon l'objectif de tout adulte
+   * dont on n'a pas encore la date se fermerait, c'est-à-dire le cas courant
+   * de l'entonnoir. Muter `goalsForAge` pour lire `unknown` comme `minor`
+   * tombe ici.
    */
-  it("une direction déjà choisie reste choisie sur une date de mineur", () => {
-    const body = html({ birthDate: MINOR_BIRTH, goal: "fat_loss" });
-    expect(body).toMatch(/<option[^>]*value="fat_loss"[^>]*selected/);
+  it("un âge INCONNU voit les trois", () => {
+    expect(offered(html({ birthDate: "" }))).toEqual([...GOAL_TOKENS]);
+  });
+
+  it("⛔ plus d'option vide: aucun `<select>` de direction, aucune valeur \"\"", () => {
+    const markup = html({ birthDate: ADULT_BIRTH });
+    expect(markup, "le sélecteur déroulant est revenu")
+      .not.toMatch(/<select[^>]*id="setup-mouth-goal"/);
+    expect(offered(markup), "l'option vide est revenue sous forme de tuile")
+      .not.toContain("");
+  });
+
+  /**
+   * LE PLI, ET LA PHRASE. Rendu avec une date de mineur ET `fat_loss` déjà
+   * choisi (une bouche héritée d'avant le 22/08, ou une date qu'on vient de
+   * taper), la tuile « Eat normally » est COCHÉE et la phrase NOMME la
+   * direction remplacée. C'est la lecture d'écran de « on refuse, on n'efface
+   * pas »: le brouillon garde `fat_loss`, l'écran montre ce qui partira.
+   */
+  it("une direction héritée sur une date de mineur est pliée, cochée « Eat normally », et DITE", () => {
+    const markup = html({ birthDate: MINOR_BIRTH, goal: "fat_loss" });
+    expect(offered(markup)).toEqual(["maintenance"]);
+    expect(checkedValues(markup)).toEqual(["maintenance"]);
+    expect(decode(markup)).toContain(
+      en["household.goal.minor_switched"].replace("{from}", en["setup.goal.fat_loss"]),
+    );
+    // Et rien ne se déplie sous une direction repliée.
+    expect(markup).not.toContain('id="setup-mouth-target-weight"');
+    expect(markup).not.toContain('id="setup-mouth-pace"');
   });
 });
 

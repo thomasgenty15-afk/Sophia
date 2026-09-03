@@ -5,8 +5,9 @@
 // (`/join`, `/join-household`, `/app/setup`), depuis le lot 5 CINQ des neuf
 // écrans de l'ESPACE COACH (`/coach`, `/coach/meals`, `/coach/templates`,
 // `/coach/billing`, `/coach/clients/:id`), et depuis le lot 6 LES SEPT ÉCRANS
-// DE L'APP ÉLÈVE — `/app/today`, `/app/chat`, `/app/meals`, `/app/health`,
-// `/app/household` (lot 4), plus `/app/plan` et `/app/progress`.
+// DE L'APP ÉLÈVE — `/app/today`, `/app/chat`, `/app/health`, `/app/household`
+// (lot 4), plus `/app/plan` et `/app/progress`; le septième, `/app/meals`, a
+// été RETIRÉ le 2026-09-03 (P4) et n'a plus d'entrée dans cette table.
 //
 // ⚠️ CES DEUX DERNIÈRES ONT COÛTÉ TROIS `COPY` LOCAUX ET UN LOT DE FORMATAGE,
 // pas de la traduction. `MealBuilder` (44 entrées, sous des noms de clés qui
@@ -227,10 +228,11 @@ export const TRANSLATED_NAMESPACES = [
   "chat",
 
   // ══ L'APP ÉLÈVE (lot 4) ═════════════════════════════════════════════════
-  // ⚠️ `meals` N'EST PAS « L'ÉCRAN /app/meals ». C'est le vocabulaire du
-  // MOTEUR DE REPAS — grille, sessions de cuisine, rayons, énergie, cases —,
-  // et il vivait dans un `COPY` local d'`api/mealLabels.ts`. Cinq écrans le
-  // montent (`/app/meals`, `/app/health` par la coquille, `/app/household`,
+  // ⚠️ `meals` N'EST PAS « L'ÉCRAN /app/meals » — cet écran n'existe d'ailleurs
+  // plus (retiré le 2026-09-03, P4), et le namespace lui survit ENTIER. C'est
+  // le vocabulaire du MOTEUR DE REPAS — grille, sessions de cuisine, rayons,
+  // énergie, cases —, et il vivait dans un `COPY` local d'`api/mealLabels.ts`.
+  // Quatre écrans le montent (`/app/health` par la coquille, `/app/household`,
   // `/app/plan`, `/app/today`), donc aucun d'eux ne pouvait basculer tant
   // qu'il restait hors du seed. C'est le blocage n°1 que le lot 3 avait nommé.
   "meals",
@@ -526,12 +528,6 @@ export const PAGE_NAMESPACES: Readonly<
   // parce que la liste fermée des treize dangers est rendue par son
   // formulaire, via `copy/allergens.ts`.
   "/app/health": ["health", "allergen", "app", "shell", "chat"],
-  // `/app/meals` — la bibliothèque du coach, en lecture seule. `meals` porte
-  // ici les six clés de la page ET tout le vocabulaire du moteur de repas: la
-  // frontière est à la maille du namespace, et le découper aurait demandé deux
-  // mots pour le même créneau (c'est exactement ce que le `COPY` local faisait,
-  // « Morning snack » ici et « Mid-morning » dans la grille).
-  "/app/meals": ["meals", "app", "shell", "chat"],
   // `/app/household` — qui mange ici, ce dont chacun a envie, et ce que la
   // maison ne sert pas à qui. ELLE REVIENT DANS CETTE TABLE, d'où le lot 3
   // l'avait retirée: la raison écrite alors était `api/mealLabels.ts` et ses

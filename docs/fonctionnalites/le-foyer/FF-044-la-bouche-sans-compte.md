@@ -57,7 +57,9 @@ les gens qu'on veut ajouter**.
   propriété optionnelle de la ligne.
 - **Prénom** et **date de naissance** descendent sur la ligne membre, **pour
   tout le monde** — y compris le compte maître.
-- Un **objectif** sur la ligne membre, vocabulaire fermé aux six jetons.
+- Un **objectif** sur la ligne membre, vocabulaire fermé aux **trois** jetons
+  (`GOAL_TOKENS`, repli du 2026-08-18) — et à **un seul**, `maintenance`, pour
+  un mineur (`20260822041500`, 2026-08-22 ; l'écran suit depuis le 2026-09-03).
 - L'**âge à trois états** : `minor` · `adult` · `unknown`.
 - Le retrait du consentement, de `households.kind` et de la colocation.
 - Les quatre fonctions TypeScript devenues sans objet.
@@ -116,7 +118,7 @@ vérifiable d'un coup d'œil.
 | `user_id` | `household_members` | posé à la création (maître) ou à la réclamation | `not null` **retiré** (`:140-141`). NULL = bouche sans compte. |
 | `first_name` | `household_members` | **saisi** | Obligatoire, `CHECK` de longueur. Recopié **une fois** depuis `profiles` à la création du foyer pour le maître, puis indépendant. |
 | `birth_date` | `household_members` | **saisi**, facultatif | Ne sort **jamais** du roster : la corriger passe par une RPC dédiée (voir [FF-045](FF-045-decrire-son-foyer.md) R4). |
-| `goal` | `household_members` | **saisi**, facultatif | Six jetons (`MEMBER_GOALS`). NULL = part standard. |
+| `goal` | `household_members` | **saisi**, facultatif | Trois jetons (`MEMBER_GOALS` = `GOAL_TOKENS`, depuis le 2026-08-18) ; `maintenance` seule sur un mineur (2026-08-22). NULL = part standard — valide en base, plus productible depuis l'écran (2026-09-03). |
 | `age_state` | *dérivé* | `keel_household_member_age(member_id)` (`:216-234`) | **Jamais stocké.** Relu à chaque appel — un enfant grandit, et un booléen figé au jour de l'entrée survivrait à ses dix-huit ans. |
 
 **Supprimés** : `households.kind`, `household_members.restriction_consent_at`,

@@ -152,7 +152,7 @@ e-mail et identifiant Stripe pour afficher un prénom
 | Situation | Comportement attendu |
 |---|---|
 | Aucun foyer | le chat répond comme aujourd'hui, **aucune** mention |
-| Foyer sans plan composé | l'agent le dit et porte vers `/app/meals`. Jamais d'attente d'un tiers |
+| Foyer sans plan composé | l'agent le dit et porte vers `/app/plan`, là où l'on compose (la fiche disait `/app/meals` — les idées du coach, retirées le 2026-09-03, P4 ; la règle R6 n'a jamais été implémentée avec cette cible). Jamais d'attente d'un tiers |
 | Le chargement du foyer échoue | le tour continue **sans** bloc foyer, et l'agent ne prétend pas connaître le plan. Un chargeur qui avale son erreur ferait dire « rien de prévu » à quelqu'un dont le plan existe — donc l'échec est journalisé, et l'agent reste muet sur le plan plutôt que faux |
 | Plan périmé (fenêtre finie hier) | traité comme absent. Un plat d'hier servi ce soir est une erreur silencieuse |
 | Colocataire qui demande la portion d'un autre | l'agent dit qu'il ne la connaît pas — parce qu'il ne l'a **pas** dans son contexte |

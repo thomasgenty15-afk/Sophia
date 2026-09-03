@@ -59,6 +59,9 @@ function render(sheet: KnownMouth | null): string {
   return renderToStaticMarkup(
     createElement(MeCard, {
       me: ME,
+      // L'âge des trois champs en ligne se lit sur la date TAPÉE (P3): la
+      // carte reçoit le jour, elle ne le lit pas.
+      todayLocalIso: "2026-08-18",
       needsGoalRow: false,
       goalEditable: false,
       busy: false,
