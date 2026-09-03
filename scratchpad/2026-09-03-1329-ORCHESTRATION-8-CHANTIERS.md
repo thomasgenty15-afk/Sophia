@@ -1922,3 +1922,61 @@ mode « je ne fais que transmettre »**. Sept corrigées par une lane ou une ses
 **La plus coûteuse** : avoir différé les runs réels une journée entière en les croyant bloqués, alors que
 `supabase migration up` en local était permis depuis le début. **Ce sont ces runs qui ont trouvé les trois seuls défauts
 de production de la journée.**
+
+---
+
+## 2026-09-04 — « corrige le trou de fenêtre et le verdict qui flatte »
+
+**Le trou de fenêtre n'en est pas un, et c'est mesuré.** `proposedWindowStart`
+(`plan_hours.ts:130`) est **octet pour octet identique** avant et après le chantier,
+et sa propre doc dit qu'elle est « APPELÉE POUR REMPLIR UN CHAMP, JAMAIS POUR REFUSER
+UNE REQUÊTE ». Le premier jour vide vient de `slotsPassedToday`
+(`generate-meal-v1/index.ts:1632`), qui retire les moments **déjà passés** du jour
+même — voulu, et juste. Rien à corriger. J'ai interdit d'y toucher dans le mandat.
+
+**Le verdict qui flatte, lui, était réel.** Corrigé par le lot `83aa21af`…`e66a0997`
+(fiche : `scratchpad/2026-09-04-0010-VERDICT-denominateur.md`).
+
+### Ce que j'ai vérifié moi-même, et non pas cru sur parole
+
+| ce que le rapport dit | ce que j'ai mesuré |
+|---|---|
+| table du corpus, 4 verdicts changent | **reproduite à l'identique** (script relancé dans un worktree, corpus réel lié) |
+| suite deno 5 178 / 0 | **5 178 / 0**, typecheck compris, jamais `--no-run` |
+| les deux lanes de génération compilent | `deno check` **rc=0** sur les deux |
+| hunks étrangers exclus du commit | `83aa21af` en porte **0** ; le voisin a commité les siens dans `95adf76e` |
+| mutation 9 ne rougit nulle part | **confirmé**, puis **fermé** — voir ci-dessous |
+
+### La mutation 9, fermée (`24a5867b`)
+
+`verdict_denominator_wiring_test.ts`, 3 cas. Ils assertent **l'absence de la
+mutation**, pas la présence d'une ligne : on compte les alimentations de
+`daysCovered:` et on refuse toute source qui ne soit pas l'appel partagé. Un test
+qui épingle le texte exact rougirait sur un renommage innocent et resterait vert si
+quelqu'un **ajoutait** un cinquième lecteur mal câblé.
+
+Le troisième cas tient le **sens inverse** : la cadence des sentinelles doit rester
+sur la fenêtre. Les deux mutations jouées **dans un worktree**, rouge observé,
+restauration prouvée par `cmp`. Suite complète après : **5 181 / 0**.
+
+### Découverte de bord, non corrigée ici
+
+`windowDays: daysToFill as never` (`index.ts:1828`) éteint la vérification de type
+sur `resolveCookingCapacity`. Cause : l'appelant annote `daysToFill` en `string[]`
+alors que `windowDayOrder` rend déjà `DayToken[]`. **Pas un bug vivant** (les valeurs
+sont de vrais jetons), mais une garde éteinte. Vient de la lane CUISINE, pas de ce
+lot. Posée en tâche à part.
+
+### Ce qui reste ouvert, nommé
+
+- **Aucun run réel** sur le nouveau dénominateur : le lot est du code pur mesuré sur
+  des sorties de modèle déjà capturées. La **boucle complète** — ce que le nouveau
+  dénominateur fait à un plan *après* que l'ancrage l'a corrigé — est mesurable et
+  n'est pas mesurée.
+- **`meal_composition_verdicts` mélange les deux populations.** La table porte
+  `prompt_version` et `doctrine_version` pour séparer les bumps ; ce lot ne bumpe ni
+  l'un ni l'autre, et **il n'existe pas de version du MOTEUR**. Seule `created_at`
+  sépare, et un agrégat à cheval sur le 2026-09-04 compare deux choses différentes.
+- **`Math.max(1, daysCovered)` conservé** : il réintroduit le biais sur une fenêtre
+  d'UN jour. Le corpus n'en porte aucune — le retirer serait un changement non mesuré
+  dans la direction qui rabote.
