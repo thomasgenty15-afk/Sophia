@@ -1425,3 +1425,48 @@ l'autre. Renvoyé à la lane.
 **Fixture `qa0903m` laissée vivante en base**, avec ses lignes de run. ⚠️ Pour rejouer un soir dessus, **purger
 `outbound_messages`** pour les deux comptes : c'est le ledger que lit `wasPulseSentToday`, et supprimer les bulles de
 `chat_messages` **ne suffit pas** — ça lui a coûté un run pour rien.
+
+## 05:0x — ⛔ LE GEL : `functions serve` SURVEILLE `supabase/functions/` ET RECRÉE LE CONTENEUR
+
+**Quatre runs perdus, et la cause était nous.** La lane CUISINE avait mesuré exactement le mécanisme — recréation et non
+redémarrage, `RestartCount=0`, `ExitCode=0`, ni OOM ni disque — et en avait conclu « c'est le poste ». Il manquait le
+**qui**. Corrélation mesurée à la minute :
+
+| écriture sous `supabase/functions/` | recréation du conteneur |
+|---|---|
+| **21:10:52** — la fusion d'A7 (beaucoup de `_shared/keel`) | **21:14:36** |
+| **21:19** — le correctif D6.2 de CUISINE (`90851b5c`) | **21:23:34** |
+| **21:25** — le correctif RGPD de MEMBRE (`447a64ad`) | **21:30:33** |
+| **21:29** — le correctif RGPD de CUISINE (`e3a7bff5`) | **21:31:07** |
+
+**Depuis 21:31, plus une écriture, plus une recréation.** Chaque lane tuait le run de l'autre, et mes propres fusions
+tuaient les deux. ⇒ **GEL décrété** : plus aucune écriture sous `supabase/functions/` jusqu'à la fin des runs — je me
+l'applique le premier, un correctif de MEMBRE (`fc9ba2c2`, quatre fichiers sous ce dossier) **attend**.
+
+### ⭐ Les deux leçons de la lane, qui valent au-delà de ce soir
+
+> **Un diagnostic exact peut rester inutilisable s'il s'arrête au mécanisme.** J'avais raison sur le « comment », et
+> cette exactitude m'a donné **confiance dans une conclusion fausse** — « c'est le poste ». Il manquait le « qui », et
+> c'est la seule moitié qui permettait d'agir. **Chercher le déclencheur, pas seulement le mécanisme.**
+
+> **Un banc qui tourne sur l'arbre que le runtime sert est en concurrence avec tout commit du chantier.** Ce n'est pas
+> propre à ce soir : n'importe quelle lane en run réel aurait été coupée pareil, **sans savoir pourquoi**.
+
+### Le second défaut d'A8.1, fermé — et sa cause était plus profonde que le signalement
+
+Je disais « le filtre manque ». La lane a trouvé que **`PlannedDish`, le type serveur, ne portait pas `member_id`** :
+aucun lecteur serveur ne *pouvait* filtrer, et **aucun typecheck ne pouvait signaler l'absence du filtre**. C'est pour ça
+que le trou a survécu à un lot qui avait fermé **la même règle côté écran**. Le champ posé dans
+`loadPlannedDishContext` ferme **trois** lecteurs d'un coup (bande du soir, dénominateur du récap, rapprochement photo).
+Mesuré avant/après sur la même fixture : « Poulet riz et legumes · **Compote pour Cy** » → « Poulet riz et legumes ».
+**Son épreuve de câblage est la pièce qui compte**, et sa phrase le dit : les deux autres « tiendraient la règle sans que
+personne ne l'appelle, ce qui est exactement l'état dans lequel le run a trouvé le produit ».
+
+### Sur le RGPD, la lane a eu raison contre moi
+
+J'avais suggéré d'exempter `lead_days` « avec le motif écrit » en avançant « entier de planification, plausible ».
+**Plausible et faux.** La fenêtre d'un plan est un **triplet** ; sans `lead_days`, un plan exporté ne dit plus lequel de
+ses jours ne porte **aucun repas** — la personne relirait sept jours mangés là où elle en a mangé six. Ce n'est pas de la
+donnée de service : **c'est ce qui rend les deux autres colonnes lisibles.** Elle l'a **exportée**, `S5` 2/2, mutation
+rougissant sur le nom exact de la colonne. Et sa remarque sur l'échange : *« ton "plausible" m'a fait chercher le motif
+au lieu de l'accepter »* — un mot d'hésitation vaut mieux qu'une consigne fausse assénée.
