@@ -119,6 +119,11 @@ import { HOUSEHOLD_MAX_MOUTHS } from "../api/onboarding";
 import { householdErrorKey } from "../copy/planRefusals";
 import MealPickerGrid from "../components/MealPickerGrid";
 import HouseholdHabitsCard from "../components/HouseholdHabitsCard";
+// A5 point 7 — LES DEUX CARTES DU COMPTE, rapatriées de la fenêtre de réglages
+// de `/app/plan`. Elles écrivent la colonne DE LA SESSION: elles ne se montent
+// que sur `isMe`. `CookingCapacityCard` reste là-bas (lane CUISINE).
+import EatingRhythmCard from "../components/EatingRhythmCard";
+import FoodPreferencesCard from "../components/FoodPreferencesCard";
 import MemberWorkLunchCard from "../components/MemberWorkLunchCard";
 import { loadWorkLunch, setMemberWorkLunch } from "../api/workLunch";
 import { commitWorkLunch, readWorkLunchAnswers } from "../lib/workLunchCommit";
@@ -848,6 +853,22 @@ export default function HouseholdPage(): React.ReactElement {
                 awayWindow={awayWindow}
                 bodies={bodies}
                 habits={habits}
+                practicalConstraints={practicalConstraints}
+                hasGoal={ownerGoalRow === true}
+                // A5 point 7 — LA COLONNE DU COMPTE SE RELIT APRÈS SON
+                // ÉCRITURE: `refresh` ne lit pas `student_goals`, donc sans
+                // ça les deux cartes se remonteraient sur la valeur d'avant —
+                // et la suivante fusionnerait par-dessus.
+                onSavedOwnConstraints={async () => {
+                  if (!userId) return;
+                  try {
+                    setPracticalConstraints(
+                      await loadPracticalConstraints(userId),
+                    );
+                  } catch (e) {
+                    console.error("[household] pc reread failed", e);
+                  }
+                }}
                 invitations={invitations}
                 // A5 §5.5 — RELIRE LES INVITATIONS, PAS SEULEMENT LA PAGE:
                 // `refresh` ne lit pas `household_invitations`, donc sans cette
@@ -1741,7 +1762,7 @@ export function AddMouthForm(
  * quelle nature est cette contrainte.
  */
 function MembersCard(
-  { household, restrictions, allergies, busy, mutedMembers, rhythm, awayWindow, bodies, habits, invitations, onInvited, workLunch, workLunchError, onSaveWorkLunch, onSaveHabits, onSaveDiet, onSaveBody, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction, todayLocalIso }: {
+  { household, restrictions, allergies, busy, mutedMembers, rhythm, awayWindow, bodies, habits, invitations, onInvited, practicalConstraints, hasGoal, onSavedOwnConstraints, workLunch, workLunchError, onSaveWorkLunch, onSaveHabits, onSaveDiet, onSaveBody, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction, todayLocalIso }: {
     household: HouseholdView;
     restrictions: RestrictionView[];
     allergies: AllergyView[];
@@ -1756,6 +1777,10 @@ function MembersCard(
     invitations: Map<string, LiveInvitation> | null;
     /** La page relit ses faits après une invitation créée. REQUIS. */
     onInvited: () => void | Promise<void>;
+    /** A5 point 7 — la colonne DE LA SESSION, `null` = pas lue. */
+    practicalConstraints: PracticalConstraints | null;
+    hasGoal: boolean;
+    onSavedOwnConstraints: () => void | Promise<void>;
     workLunch: Map<string, WorkLunch | null> | null;
     workLunchError: string | null;
     /** Le geste complet d'une bouche: écrire, relire les réponses, relire la page. */
@@ -1882,6 +1907,9 @@ function MembersCard(
                   // l'inverse est au maître.
                   invitations={invitations}
                   onInvited={onInvited}
+                  practicalConstraints={practicalConstraints}
+                  hasGoal={hasGoal}
+                  onSavedOwnConstraints={onSavedOwnConstraints}
                   // ⚠️ MÊME PARTAGE QUE CHEZ LE MAÎTRE: `habitsLoaded` dit si
                   // la LECTURE a eu lieu, `habits` ce qu'elle a trouvé. Le
                   // cadre des préférences ne se rend pas tant que le premier
@@ -1966,6 +1994,9 @@ function MembersCard(
             bodiesLoaded={bodies !== null}
             invitations={invitations}
             onInvited={onInvited}
+            practicalConstraints={practicalConstraints}
+            hasGoal={hasGoal}
+            onSavedOwnConstraints={onSavedOwnConstraints}
             // DEUX `null` QUI NE VEULENT PAS DIRE LA MÊME CHOSE, et c'est le
             // piège du lot. `habitsLoaded` faux = LA LECTURE N'A PAS EU LIEU.
             // `habits` nul avec `habitsLoaded` vrai = LA LECTURE A EU LIEU et
@@ -2557,7 +2588,7 @@ export function SheetFrame(
 }
 
 function MemberRow(
-  { member, isMe, viewerIsOwner, allergies, restrictions, busy, muted, rhythm, awayWindow, body, bodiesLoaded, habits, habitsLoaded, invitations, onInvited, workLunch, workLunchError, onSaveWorkLunch, onSaveHabits, onSaveDiet, onSaveBody, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction, todayLocalIso }: {
+  { member, isMe, viewerIsOwner, allergies, restrictions, busy, muted, rhythm, awayWindow, body, bodiesLoaded, habits, habitsLoaded, invitations, onInvited, practicalConstraints, hasGoal, onSavedOwnConstraints, workLunch, workLunchError, onSaveWorkLunch, onSaveHabits, onSaveDiet, onSaveBody, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction, todayLocalIso }: {
     member: HouseholdMemberView;
     isMe: boolean;
     /**
@@ -2611,6 +2642,17 @@ function MemberRow(
     invitations: Map<string, LiveInvitation> | null;
     /** La page relit ses faits après une invitation créée. REQUIS. */
     onInvited: () => void | Promise<void>;
+    /**
+     * A5 point 7 — `student_goals.practical_constraints` DE LA SESSION.
+     * `null` = pas lu, et les deux cartes du compte ne se montent pas:
+     * `mergePracticalConstraints` FUSIONNE sur ce qu'on lui donne, donc un
+     * objet vide non lu effacerait le rythme et les goûts déjà déclarés.
+     */
+    practicalConstraints: PracticalConstraints | null;
+    /** `false` tant qu'aucune ligne `student_goals` n'existe: rien à écrire. */
+    hasGoal: boolean;
+    /** Relit la colonne du compte après une écriture des deux cartes. REQUIS. */
+    onSavedOwnConstraints: () => void | Promise<void>;
     onSaveHabits: (slots: HabitSlotWrite[], note: string | null) => Promise<boolean>;
     /** Le régime de CETTE bouche. `null` efface. */
     onSaveDiet: (diet: string | null) => Promise<boolean>;
@@ -3130,6 +3172,56 @@ function MemberRow(
           </div>
           ) : null}
           </SheetFrame>
+
+          {/* ══════════════════════════════════════════════════════════════
+              CE QUE LE COMPTE A DÉJÀ DIT — A5 point 7, 2026-09-03
+              ══════════════════════════════════════════════════════════════
+
+              DEUX CARTES QUI VIVAIENT DANS LA FENÊTRE DE RÉGLAGES DE
+              `/app/plan`, et qui parlent de la MÊME personne que cette fiche:
+              son rythme (quand elle mange, et quelle taille de part) et ce que
+              la conversation a retenu de ses goûts.
+
+              ⛔ SUR SA PROPRE LIGNE, ET SEULEMENT LÀ. Les deux écrivent
+              `student_goals.practical_constraints` DE LA SESSION
+              (`auth.user.id`, lu dans la carte elle-même, pas passé en prop):
+              montées sur la ligne de quelqu'un d'autre, elles afficheraient les
+              réponses du lecteur sous le prénom d'un tiers, et le premier
+              enregistrement écrirait la colonne du lecteur en croyant écrire
+              celle de l'autre. `isMe` n'est donc pas un confort d'affichage,
+              c'est la seule chose qui fasse coïncider la ligne et la colonne.
+
+              ⚠️ ET ELLES ATTENDENT LA LECTURE, comme le reste du cadre:
+              `practicalConstraints === null` ⇒ elles ne se montent pas.
+              `mergePracticalConstraints` FUSIONNE sur ce qu'on lui donne —
+              nourri d'un objet vide non lu, il effacerait le rythme et les
+              goûts déjà déclarés, en silence, au premier Enregistrer.
+
+              ⚠️ `CookingCapacityCard` NE VIENT PAS, exprès: elle reste sur
+              `/app/plan` (la lane CUISINE la remplace, mandat point 7). */}
+          {isMe && practicalConstraints !== null ? (
+            <>
+              <div className="border-t border-line pt-3">
+                <SectionLabel>{t("plan.section.day.title")}</SectionLabel>
+                <EatingRhythmCard
+                  embedded
+                  hasGoal={hasGoal}
+                  practicalConstraints={practicalConstraints}
+                  rhythm={rhythm}
+                  onSaved={onSavedOwnConstraints}
+                />
+              </div>
+              <div className="border-t border-line pt-3">
+                <SectionLabel>{t("plan.section.told.title")}</SectionLabel>
+                <FoodPreferencesCard
+                  embedded
+                  hasGoal={hasGoal}
+                  practicalConstraints={practicalConstraints}
+                  onSaved={onSavedOwnConstraints}
+                />
+              </div>
+            </>
+          ) : null}
 
           {/* ── D14 · QUAND CETTE BOUCHE N'EST PAS LÀ ──────────────────────
               LA GRILLE EST CELLE DU CONSTRUCTEUR, pas une seconde. Deux
