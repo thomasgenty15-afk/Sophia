@@ -59,6 +59,88 @@ const EMPTY = (reason: PlannedDishContext["reason"]): PlannedDishContext => ({
   reason,
 });
 
+// ---------------------------------------------------------------------------
+// LE PÉRIMÈTRE DE PLAN D'UNE PERSONNE — le sien, ou celui de son foyer (A8.0)
+// ---------------------------------------------------------------------------
+
+/**
+ * Quels plans une personne a le droit de voir comme LES SIENS, ce jour-là.
+ *
+ * ── LE DÉFAUT QUE CE RÉSOLVEUR FERME (chantier P8, 2026-09-03) ────────────
+ * Un profil RÉCLAMÉ (`household_members.role = 'member'`, `user_id` posé) ne
+ * compose jamais: le plan qu'il mange est le plan `household` de son foyer,
+ * écrit sous le `user_id` du MAÎTRE. Tout lecteur qui ne filtrait que sur
+ * `.eq("user_id", moi)` rendait donc « aucune composition » pour lui — pas de
+ * bande du soir, pas de rapprochement photo, pas de dénominateur du soir. Le
+ * membre n'existait pas pour le produit.
+ *
+ * ── CE QU'ON NE FAIT PAS, ET C'EST MESURÉ (run adversarial H2) ────────────
+ * On ne RETIRE PAS le `.eq("user_id")`. Ces lecteurs tournent sous
+ * `service_role` (la RLS ne s'applique pas) et un `mealId` vient parfois de la
+ * charge d'un bouton, c'est-à-dire d'une chaîne que le client contrôle. Sans
+ * filtre, une charge forgée citant le plan d'un AUTRE foyer faisait écrire chez
+ * l'attaquant une coche portant le titre du plat de la victime. La garde
+ * équivalente pour un membre est `.eq("plan_kind","household")` ET
+ * `.eq("household_id", SON foyer)` — les deux, jamais l'un sans l'autre:
+ * `household_id` seul rendrait aussi le plan PERSONNEL d'un co-membre qui a
+ * pris la main (`household_plan_kind_readers_test.ts`, mesuré deux fois).
+ *
+ * ── L'ORDRE: LE SIEN D'ABORD, LE FOYER ENSUITE ────────────────────────────
+ * Un membre qui a PRIS LA MAIN (L3) porte une ligne `personal` à son nom: c'est
+ * lui qui l'a composée, elle passe avant. Le plan du foyer n'est lu que quand
+ * aucune ligne à son nom ne possède le jour. Le maître, lui, ne passe jamais
+ * par la seconde branche: le plan du foyer est DÉJÀ sous son `user_id`.
+ *
+ * FAIL-CLOSED VERS « LE SIEN SEULEMENT »: une lecture de foyer en panne rend
+ * `own`. Le pire cas est le silence d'avant ce chantier pour un membre ce
+ * soir-là; le pire cas de l'inverse serait de lire un foyer qu'on n'a pas su
+ * vérifier.
+ */
+export type PlanScope =
+  | { kind: "own" }
+  | { kind: "household_member"; householdId: string };
+
+export async function resolvePlanScope(db: Db, userId: string): Promise<PlanScope> {
+  const id = String(userId ?? "").trim();
+  if (!id) return { kind: "own" };
+  try {
+    const { data, error } = await db
+      .from("household_members")
+      .select("role, household_id")
+      .eq("user_id", id)
+      .maybeSingle();
+    if (error) throw error;
+    const row = (data ?? null) as { role?: unknown; household_id?: unknown } | null;
+    const role = String(row?.role ?? "").trim();
+    const householdId = String(row?.household_id ?? "").trim();
+    if (role === "member" && householdId) {
+      return { kind: "household_member", householdId };
+    }
+    return { kind: "own" };
+  } catch (error) {
+    console.warn(JSON.stringify({
+      tag: "keel.planned_dish.scope_unreadable",
+      user_id: id,
+      error: error instanceof Error ? error.message : String(error),
+      effect: "fail-closed: seuls les plans a SON nom sont lus",
+    }));
+    return { kind: "own" };
+  }
+}
+
+/** Le premier candidat dont la fenêtre contient encore `localDate`. */
+function ownerOfDay(
+  candidates: Array<Record<string, unknown>>,
+  localDate: string,
+): Record<string, unknown> | null {
+  return candidates.find((c) => {
+    const startsOn = String(c.starts_on ?? "");
+    const days = Number(c.duration_days);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(startsOn) || !Number.isFinite(days)) return false;
+    return localDate <= addDays(startsOn, Math.max(1, days) - 1);
+  }) ?? null;
+}
+
 /**
  * Le catalogue, en entier. 127 lignes aujourd'hui — assez petit pour être lu
  * d'un coup, et le lire par morceaux introduirait une pagination qui n'a aucune
@@ -132,13 +214,33 @@ export async function loadPlannedDishContext(
     // qu'une pour que la donnée antérieure à la contrainte d'exclusion (des
     // fenêtres qui se chevauchaient) ne fasse pas rendre `null` à tort.
     const candidates = (data ?? []) as Array<Record<string, unknown>>;
-    row = candidates.find((c) => {
-      const startsOn = String(c.starts_on ?? "");
-      const days = Number(c.duration_days);
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(startsOn) || !Number.isFinite(days)) return false;
-      return args.localDate <= addDays(startsOn, Math.max(1, days) - 1);
-    }) ?? null;
+    row = ownerOfDay(candidates, args.localDate);
     candidateCount = candidates.length;
+
+    // ── A8.0 · LE PLAN DU FOYER, POUR UN PROFIL RÉCLAMÉ ─────────────────
+    //
+    // Aucune ligne à SON nom ne possède le jour: si cette personne est un
+    // membre réclamé, le plan qu'elle mange est celui de son foyer. Voir
+    // `resolvePlanScope` — et le `.eq("plan_kind","household")` ET le
+    // `.eq("household_id")` sont tous les deux la garde, pas l'un des deux.
+    if (!row) {
+      const scope = await resolvePlanScope(db, userId);
+      if (scope.kind === "household_member") {
+        const shared = await db
+          .from("student_generated_meals")
+          .select("id, dishes, preparations, starts_on, duration_days, created_at")
+          .eq("plan_kind", "household")
+          .eq("household_id", scope.householdId)
+          .is("retired_at", null)
+          .lte("starts_on", args.localDate)
+          .order("starts_on", { ascending: false })
+          .limit(4);
+        if (shared.error) throw shared.error;
+        const sharedCandidates = (shared.data ?? []) as Array<Record<string, unknown>>;
+        row = ownerOfDay(sharedCandidates, args.localDate);
+        candidateCount += sharedCandidates.length;
+      }
+    }
   } catch (error) {
     console.warn("[keel/planned_dish] composition unreadable", error);
     return EMPTY("load_failed");

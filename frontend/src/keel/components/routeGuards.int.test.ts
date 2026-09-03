@@ -47,14 +47,30 @@ describe("les gardes de route KEEL", () => {
     expect(routeBlock("/app/household")).toContain("<KeelHouseholdRoute>");
   });
 
-  it("garde les écrans de coaching derrière la garde ÉLÈVE", () => {
-    // LE CAS QUI PASSE, et sans lui ce fichier dirait seulement « tout est
-    // ouvert »: `/app/today`, `/app/chat` et `/app/progress` n'ont rien à
-    // montrer à quelqu'un sans coach ni plan prescrit, et c'est le motif écrit
-    // dans `KeelHouseholdRoute` pour ne PAS écrire `keel_role` à la
-    // réclamation. Les élargir serait une décision, pas un oubli.
-    for (const path of ["/app/today", "/app/chat", "/app/progress"]) {
-      expect(routeBlock(path), path).toContain("<KeelStudentRoute>");
+  it("laisse un profil réclamé atteindre /app/chat et /app/progress (A8.0, 2026-09-03)", () => {
+    // ⟳ RENVERSEMENT ÉCRIT (R5 de l'ANALYSE du 2026-09-03). Ce cas affirmait
+    // l'inverse: « `/app/chat` et `/app/progress` n'ont rien à montrer à
+    // quelqu'un sans coach ni plan prescrit ». C'était vrai tant que le membre
+    // n'existait pas pour le produit. Depuis A8.0 le cron du soir l'atteint,
+    // sa bande ③ se construit depuis le plan de SON foyer, et la page de suivi
+    // lit SES faits — deux écrans qui ont quelque chose à lui montrer.
+    //
+    // Ce que ça ne change PAS: `keel_role` n'est toujours pas écrit à la
+    // réclamation (`KeelHouseholdRoute` explique pourquoi), et le chat reste
+    // Sophia → la personne, jamais un canal membre ↔ maître.
+    for (const path of ["/app/chat", "/app/progress"]) {
+      expect(routeBlock(path), path).toContain("<KeelHouseholdRoute>");
+      expect(routeBlock(path), path).not.toContain("<KeelStudentRoute>");
     }
+  });
+
+  it("garde /app/today derrière la garde ÉLÈVE — le cas qui passe", () => {
+    // Sans lui ce fichier dirait seulement « tout est ouvert ». `/app/today`
+    // lit `plan_versions` (le mode 1:1, MODEL.md) et les repas composés PAR la
+    // personne: un profil réclamé n'y a rien — il ne compose pas, et ce n'est
+    // pas un écran du contrat A8.0. L'élargir serait une décision, pas un
+    // oubli.
+    expect(routeBlock("/app/today")).toContain("<KeelStudentRoute>");
+    expect(routeBlock("/app/today")).not.toContain("<KeelHouseholdRoute>");
   });
 });

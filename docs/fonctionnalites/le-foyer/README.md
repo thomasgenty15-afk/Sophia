@@ -138,6 +138,11 @@ lit les trois autres lignes de son foyer. Une colonne `weight_kg` posée là aur
 - ❌ **Aucun canal 1:1 dans le foyer.** Ni message d'un membre au maître, ni
   demande, ni notification « Léa aimerait des pâtes ». L'envie de la semaine
   (FF-050) est **une ligne, écrite par le maître**, et c'est tout.
+  ⚠️ **Ce que ça n'interdit pas, dit depuis le 2026-09-03 (P8, A8.0, D8.1)** :
+  le message du soir de **Sophia → un profil réclamé**, dans son propre
+  `/app/chat`. C'est le produit qui parle à une personne de **ses** repas
+  (③), jamais un membre qui parle à un autre ; le maître ne voit pas ce que le
+  membre a répondu, et le membre ne reçoit ni les courses ni la cuisson.
 - ❌ **Aucun arbitrage entre deux personnes du foyer.** Pas de vote, pas de
   moyenne, pas de « Sophia tranche ». Un désaccord se règle à table.
 - ❌ **La colocation.** `households.kind` a été **supprimée** le 2026-08-10, pas

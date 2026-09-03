@@ -377,10 +377,19 @@ garde ses deux autres entrées.
 
 ## 11. Questions ouvertes
 
-- **La réclamation de profil n'existe pas encore.** Les règles R10–R13 sont
-  écrites maintenant parce qu'elles coûtent zéro à poser et cher à rattraper —
-  mais **la bande d'un profil réclamé ne se construit que le jour où les
-  profils réclamés existent**. Aujourd'hui : une bande, celle du maître.
+- ~~**La réclamation de profil n'existe pas encore.**~~ ✅ **Refermée le
+  2026-09-03 (chantier P8, lot A8.0).** Les règles R10–R13 avaient été
+  écrites d'avance ; la bande d'un profil réclamé se construit désormais :
+  `keel-daily-pulse-v1` sert les membres réclamés par une seconde requête
+  d'audience (`household_members.role='member' and user_id is not null`,
+  jamais `keel_role='student'`), **après** les maîtres du même tick, et
+  `loadPlannedDishContext` / `loadPlanForTick` résolvent pour lui le plan
+  `household` de **son** foyer (`.eq("plan_kind","household")` **et**
+  `.eq("household_id", …)`, jamais le retrait nu du `.eq("user_id")` — run
+  adversarial H2). La cascade d'une session déclarée ratée par le maître
+  ampute aussi sa bande (`loadSkippedDishIndexes` lit les états sous le compte
+  qui a écrit le plan, les coches sous la personne). Ce qui reste à A8.1 : ses
+  plats **seulement** (`dishIsFor`) et ses cases sur `MyShareCard`.
 - Si un jour la consommation d'un enfant devient lue par quelque chose (un
   coach ? un suivi de croissance ?), R12 se rouvre — **par une décision
   écrite**, pas par un besoin de tableau.

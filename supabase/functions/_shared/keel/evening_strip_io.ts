@@ -54,7 +54,7 @@ import {
 import { planGroceryWaves, wavePreparationsFromRows } from "./grocery_waves.ts";
 import { type MealUntickReason, mealTickKey } from "./meal_tick.ts";
 import { isReportable, stretchDates } from "./meal_stretch.ts";
-import { loadPlannedDishContext } from "./planned_dish_io.ts";
+import { loadPlannedDishContext, resolvePlanScope } from "./planned_dish_io.ts";
 import { type StripDish, type StripShoppingWave } from "./evening_strip.ts";
 
 /** Les créneaux que `protocol_events.slot_key` accepte (FK `slot_vocabulary`). */
@@ -231,8 +231,12 @@ export async function loadEveningStripContext(
       // session, n'invalidait rien, et la bande continuait d'annoncer un plat
       // jamais cuisiné — exactement le défaut que FF-057 existe pour corriger.
       // Le filtre était vert, et il ne filtrait rien.
+      // ⚠️ `user_id` EST LÀ POUR A8.0: c'est le compte qui a ÉCRIT le plan,
+      // c'est-à-dire celui sous lequel les états de cuisson et de courses sont
+      // écrits (des faits de FOYER, R10). Pour un profil réclamé, ce n'est pas
+      // le sien — voir `loadSkippedDishIndexes`.
       .select(
-        "dishes, cooking_sessions, shopping_list, preparations, starts_on, duration_days, content_locale",
+        "user_id, dishes, cooking_sessions, shopping_list, preparations, starts_on, duration_days, content_locale",
       )
       .eq("id", planned.mealId)
       .maybeSingle();
@@ -242,6 +246,11 @@ export async function loadEveningStripContext(
     if (error) throw error;
     const row = (data ?? null) as Record<string, unknown> | null;
     if (row) {
+      // Le plan vient de `loadPlannedDishContext`, qui a DÉJÀ vérifié qu'il
+      // est le sien ou celui de son foyer: on peut lire qui l'a écrit. Une
+      // ligne sans `user_id` lisible (base doublée des tests, donnée
+      // ancienne) retombe sur la personne elle-même — le comportement d'avant.
+      const planOwnerId = String(row.user_id ?? "").trim() || args.userId;
       contentLocale = String(row.content_locale ?? "").trim() || null;
       const list = Array.isArray(row.shopping_list)
         ? (row.shopping_list as Array<Record<string, unknown>>).map((item) => ({
@@ -298,8 +307,19 @@ export async function loadEveningStripContext(
           const d = dates[session.day];
           if (d) sessionDatesToday.push(d);
         }
+        // ── A8.0 · LA CASCADE DU MAÎTRE AMPUTE AUSSI LA BANDE DU MEMBRE ───
+        // La cuisson ratée est déclarée par le maître sous SON `user_id`
+        // (`statesOwnerId`); la coche vivante qui fait survivre un plat est
+        // celle de LA PERSONNE (`userId`). Deux clés, parce que ce sont deux
+        // faits de nature différente (FF-058 R10). Le cron sert les maîtres
+        // avant les membres dans le même tick pour que cette lecture voie la
+        // déclaration du soir (FF-061 §11).
         const skipped = new Set(
-          await loadSkippedDishIndexes(admin, { userId: args.userId, plan }),
+          await loadSkippedDishIndexes(admin, {
+            userId: args.userId,
+            statesOwnerId: planOwnerId,
+            plan,
+          }),
         );
         if (skipped.size > 0) {
           for (const i of skipped) hiddenBySkippedSession.push(i);
@@ -478,27 +498,57 @@ interface PlanForTick {
  * C'est la cicatrice `rls-is-not-a-substitute-for-eq-user-id`, exactement:
  * « la ligne d'un élève rendue au coach ». Le filtre est ici, dans le chargeur,
  * plutôt qu'au site d'appel — un second appelant l'oublierait.
+ *
+ * ── A8.0 · UN PROFIL RÉCLAMÉ COCHE SUR LE PLAN DE SON FOYER ───────────────
+ * Le plan `household` est écrit sous le `user_id` du MAÎTRE: pour un membre, le
+ * filtre ci-dessus ne rend rien — et c'est pour ça que sa coche n'existait pas.
+ * La garde ÉQUIVALENTE (pas un retrait) est `.eq("plan_kind","household")` ET
+ * `.eq("household_id", SON foyer)`, résolu par `resolvePlanScope` — jamais par
+ * la charge du bouton. H2 rejoué avec cette forme: une charge citant le plan
+ * d'un AUTRE foyer rend toujours `stale`, puisque le foyer vient de la base,
+ * pas du payload.
  */
 async function loadPlanForTick(
   admin: SupabaseClient,
   mealId: string,
   userId: string,
 ): Promise<PlanForTick | null> {
-  const { data, error } = await admin
+  const own = await admin
     .from("student_generated_meals")
     .select("dishes, starts_on, duration_days, content_locale")
     .eq("id", mealId)
     .eq("user_id", userId)
     .maybeSingle();
-  if (error) {
+  if (own.error) {
     console.warn(JSON.stringify({
       tag: "keel.evening_strip.plan_unreadable",
       meal_id: mealId,
-      error: error.message,
+      error: own.error.message,
     }));
     return null;
   }
-  const row = (data ?? null) as Record<string, unknown> | null;
+  let row = (own.data ?? null) as Record<string, unknown> | null;
+  if (!row) {
+    const scope = await resolvePlanScope(admin, userId);
+    if (scope.kind !== "household_member") return null;
+    const shared = await admin
+      .from("student_generated_meals")
+      .select("dishes, starts_on, duration_days, content_locale")
+      .eq("id", mealId)
+      .eq("plan_kind", "household")
+      .eq("household_id", scope.householdId)
+      .maybeSingle();
+    if (shared.error) {
+      console.warn(JSON.stringify({
+        tag: "keel.evening_strip.plan_unreadable",
+        meal_id: mealId,
+        scope: "household_member",
+        error: shared.error.message,
+      }));
+      return null;
+    }
+    row = (shared.data ?? null) as Record<string, unknown> | null;
+  }
   if (!row) return null;
   const startsOn = String(row.starts_on ?? "");
   if (!/^\d{4}-\d{2}-\d{2}$/.test(startsOn)) return null;
