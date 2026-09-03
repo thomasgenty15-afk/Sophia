@@ -25,6 +25,7 @@ function anchor(over: Partial<AnchorFactor> = {}): AnchorFactor {
     targetKcal: 2400,
     deliveredKcal: 2000,
     structureState: "not_asked",
+    extrasFloored: false,
     ...over,
   };
 }
