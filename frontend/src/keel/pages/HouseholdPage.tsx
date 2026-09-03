@@ -103,13 +103,19 @@ import MouthFormDialog, {
   MouthAppetiteFields,
   type MouthActivityAndStructure,
   MouthCoreFields,
+  MouthPreferencesFields,
 } from "../components/MouthFormDialog";
+import Modal from "../components/ui/Modal";
 import {
   loadPracticalConstraints,
   type PracticalConstraints,
 } from "../api/practicalConstraints";
 import KitchenEquipmentCard from "../components/KitchenEquipmentCard";
 import HouseholdTraditionsCard from "../components/HouseholdTraditionsCard";
+// ⛔ LE PLAFOND, EN UN SEUL EXEMPLAIRE (A5). Il vit en base
+// (`keel_household_max_mouths()`); cette constante ne le décide pas, elle
+// l'ANNONCE avant le clic. Elle était recopiée ici sous un second nom.
+import { HOUSEHOLD_MAX_MOUTHS } from "../api/onboarding";
 import { householdErrorKey } from "../copy/planRefusals";
 import MealPickerGrid from "../components/MealPickerGrid";
 import HouseholdHabitsCard from "../components/HouseholdHabitsCard";
@@ -220,8 +226,20 @@ function goalLabel(goal: MemberGoal): string {
   }
 }
 
-/** Le plafond vit EN BASE (`household_full`). L'écran ne fait que le dire. */
-const HOUSEHOLD_MAX_MEMBERS = 8;
+/**
+ * ⛔ ICI SE TENAIT `HOUSEHOLD_MAX_MEMBERS = 8` — A5 point 6bis, 2026-09-03.
+ *
+ * Le même plafond était écrit DEUX FOIS côté front, sous deux noms:
+ * `HOUSEHOLD_MAX_MOUTHS` (`api/onboarding.ts`, lu par l'entonnoir) et celui-ci
+ * (lu par la carte d'ajout du Foyer). Deux nombres pour une seule règle: le
+ * jour où la base en change un, c'est l'écran qu'on relit le moins qui garde
+ * l'ancien — et il refuse, ou laisse passer, sans que rien ne rougisse.
+ *
+ * ⚠️ ET LE PLAFOND N'EST NI L'UN NI L'AUTRE: il vit EN BASE
+ * (`keel_household_max_mouths()` rend 8, et la porte refuse `household_full`).
+ * Ces constantes ne le décident pas, elles l'ANNONCENT avant le clic — un
+ * bouton qui part pour être refusé est un bouton mort. Une seule suffit donc.
+ */
 
 export default function HouseholdPage(): React.ReactElement {
   const { user } = useAuth();
@@ -1546,7 +1564,7 @@ function AddMouthCard(
   // LE PLAFOND REND SON MOTIF. La limite vit en base (`household_full`) et doit
   // tenir face à un appel direct de la RPC; ici on ne fait que la DIRE, et on
   // la dit AVANT le refus plutôt qu'après.
-  const full = count >= HOUSEHOLD_MAX_MEMBERS;
+  const full = count >= HOUSEHOLD_MAX_MOUTHS;
 
   return (
     <Card>
@@ -1563,52 +1581,153 @@ function AddMouthCard(
         </p>
       ) : (
         <div>
-          {/* ── LA FICHE EST EN LIGNE, LA FENÊTRE NE PORTE QUE LES GOÛTS ────
-              Les trois blocs obligatoires étaient derrière « Ajouter quelqu'un »,
-              donc derrière un clic ET derrière une fenêtre. Ils sont ici, sans
-              clic: c'est ce qui dimensionne les assiettes. Le bouton qui INSCRIT
-              est celui de la fiche, en bas — il retient tant qu'il manque un des
-              trois blocs, et il DIT lesquels. */}
-          <MouthCoreFields
-            draft={draft}
-            onChange={setDraft}
-            // `existing: false` — on l'AJOUTE. `hasAccount: false` — une bouche
-            // qu'on saisit n'a jamais de compte au moment où on la saisit;
-            // elle en gagne un si elle réclame sa place plus tard.
-            subject={{ existing: false, hasAccount: false, isSelf: false }}
-            todayLocalIso={todayLocalIso}
-            busy={busy}
-            failure={failure}
-            onOpenPreferences={() => setOpen(true)}
-            onSubmit={() => {
-              void (async () => {
-                const ok = await onAdd(draft);
-                if (!ok) return;
-                // ON VIDE, ET LA FENÊTRE DES GOÛTS SE REFERME AVEC: le
-                // brouillon suivant est celui de quelqu'un d'autre, et une
-                // fenêtre restée ouverte sur les préférences de la personne
-                // d'avant écrirait dans la fiche de la suivante.
-                setDraft(emptyMouthDraft());
-                setOpen(false);
-              })();
-            }}
-          />
-          <MouthFormDialog
+          {/* ── ⟳ A5 POINT 3 — UNE SEULE FENÊTRE, ET TOUT EST DEDANS ───────
+              La fiche était EN LIGNE sur la page (les trois blocs
+              obligatoires), et les goûts derrière un second écran (`Modal`).
+              Deux surfaces pour une seule personne, dont une qui s'ouvrait
+              par-dessus l'autre.
+
+              Le bouton ouvre maintenant UNE fenêtre qui porte les deux: les
+              blocs obligatoires en ligne, les préférences dans un accordéon
+              DEDANS.
+
+              ⛔ PAS DEUX `Modal` IMBRIQUÉS, et ce n'est pas un goût: `Modal`
+              passe par `createPortal(document.body)`, et deux portails
+              empilés n'ont JAMAIS été essayés dans ce dépôt — ni le piège du
+              focus, ni celui de la touche Échap (laquelle ferme?), ni celui du
+              défilement de fond. L'accordéon (`SheetFrame`, le troisième usage
+              qui le justifie) répond à la même demande sans ouvrir ce
+              chantier-là. */}
+          <Button
+            variant="secondary"
+            disabled={busy}
+            onClick={() => setOpen(true)}
+          >
+            {t("household.add.open")}
+          </Button>
+          <Modal
             open={open}
             onClose={() => setOpen(false)}
-            draft={draft}
-            onChange={setDraft}
-            subject={{ existing: false, hasAccount: false, isSelf: false }}
-            busy={busy}
-            slots={slots}
-            // ⟳ ELLE A BIEN OÙ LE RANGER DEPUIS LE 2026-08-19
-            // (`household_members.fixed_intakes`), et c'est « Ajouter » qui
-            // l'écrit: la ligne membre n'existe qu'après. Voir `ShakerPort`.
-            shakerPort={{ kind: "with_the_card" }}
-          />
+            title={draft.firstName.trim()
+              ? t("household.mouth.preferences_title_named", {
+                name: draft.firstName.trim(),
+              })
+              : t("household.add.title")}
+            size="lg"
+            closeAsIcon
+            closeLabel={t("common.close")}
+          >
+            <AddMouthForm
+              draft={draft}
+              onChange={setDraft}
+              todayLocalIso={todayLocalIso}
+              busy={busy}
+              failure={failure}
+              slots={slots}
+              onSubmit={() => {
+                void (async () => {
+                  const ok = await onAdd(draft);
+                  if (!ok) return;
+                  // ON VIDE ET ON FERME: le brouillon suivant est celui de
+                  // quelqu'un d'autre, et une fenêtre restée ouverte sur les
+                  // préférences de la personne d'avant écrirait dans la fiche
+                  // de la suivante.
+                  setDraft(emptyMouthDraft());
+                  setOpen(false);
+                })();
+              }}
+            />
+          </Modal>
         </div>
       )}
     </Card>
+  );
+}
+
+/**
+ * LE CORPS DE LA FENÊTRE D'AJOUT — A5 point 3, 2026-09-03.
+ *
+ * ⚠️ UN COMPOSANT À PART, ET C'EST UNE CONTRAINTE DE PREUVE, PAS UN GOÛT.
+ * `Modal` passe par `createPortal(…, document.body)`, et `renderToStaticMarkup`
+ * ne rend RIEN d'un portail: monté à travers le chrome, ce formulaire serait
+ * une chaîne vide, et chaque assertion qui le vise serait verte quoi qu'il
+ * arrive. Les tests de ce dépôt montent donc les CORPS, jamais le chrome.
+ *
+ * ⛔ ET IL N'OUVRE PAS DE SECONDE FENÊTRE. Le bouton des préférences (dans
+ * `MouthCoreFields`) bascule l'accordéon qui est JUSTE EN DESSOUS, dans la même
+ * fenêtre — deux `createPortal` empilés n'ont jamais été essayés ici.
+ */
+export function AddMouthForm(
+  { draft, onChange, todayLocalIso, busy, failure, slots, onSubmit }: {
+    draft: MouthFormDraft;
+    onChange: React.Dispatch<React.SetStateAction<MouthFormDraft>>;
+    todayLocalIso: string;
+    busy: boolean;
+    failure: string | null;
+    slots: readonly EatingOccasion[];
+    onSubmit: () => void;
+  },
+) {
+  // OUVERT PAR DÉFAUT? NON — ET C'EST LE SEUL CADRE DE CE LOT QUI NE L'EST PAS.
+  // Les cadres d'une fiche EXISTANTE s'ouvrent parce qu'ils portent des
+  // réponses déjà données, qu'on cacherait sinon. Ici il n'y a encore rien à
+  // cacher: la personne n'existe pas, et les six blocs de goûts au-dessus du
+  // bouton « Ajouter » feraient une fenêtre de trente champs pour quelqu'un qui
+  // veut juste inscrire un prénom. Le récapitulatif dit ce qui s'y trouve.
+  const [prefsOpen, setPrefsOpen] = React.useState(false);
+  const filled = filledPreferenceBlocks(draft);
+  // ⚠️ `existing: false` — on l'AJOUTE. `hasAccount: false` — une bouche qu'on
+  // saisit n'a jamais de compte au moment où on la saisit; elle en gagne un si
+  // elle réclame sa place plus tard.
+  const subject = { existing: false, hasAccount: false, isSelf: false } as const;
+
+  return (
+    <div className="flex flex-col gap-4">
+      <MouthCoreFields
+        draft={draft}
+        onChange={onChange}
+        subject={subject}
+        todayLocalIso={todayLocalIso}
+        busy={busy}
+        failure={failure}
+        // ⛔ IL BASCULE L'ACCORDÉON, IL N'OUVRE PAS UNE FENÊTRE.
+        onOpenPreferences={() => setPrefsOpen((v) => !v)}
+        onSubmit={onSubmit}
+      />
+      <SheetFrame
+        title={t("household.member.frame_preferences")}
+        open={prefsOpen}
+        onToggle={() => setPrefsOpen((v) => !v)}
+        // RIEN À LIRE: ce brouillon n'existe qu'ici, il ne vient d'aucune
+        // lecture. La garde n'a donc rien à retenir — et c'est le seul site du
+        // lot où elle est vraie par construction.
+        loaded
+        summary={filled.length === 0
+          ? t("household.mouth.preferences_empty")
+          : t("household.mouth.preferences_filled", {
+            blocks: blockList(
+              filled.map((b) =>
+                t(`household.mouth.block_${b}` as "household.mouth.block_identity")
+              ),
+            ),
+          })}
+      >
+        <MouthPreferencesFields
+          draft={draft}
+          onChange={onChange}
+          subject={subject}
+          busy={busy}
+          // FERMER L'ACCORDÉON, PAS LA FENÊTRE: la fiche obligatoire est
+          // au-dessus, et refermer la fenêtre entière perdrait le geste.
+          onClose={() => setPrefsOpen(false)}
+          slots={slots}
+          // ⟳ ELLE A BIEN OÙ RANGER SON SHAKER DEPUIS LE 2026-08-19
+          // (`household_members.fixed_intakes`), et c'est « Ajouter » qui
+          // l'écrit: la ligne membre n'existe qu'après. Voir `ShakerPort`.
+          shakerPort={{ kind: "with_the_card" }}
+        />
+      </SheetFrame>
+    </div>
   );
 }
 

@@ -132,7 +132,17 @@ describe("⟳ le repli est payé par ce qu'il montre (D5.1)", () => {
 });
 
 describe("les deux cadres de la fiche, et ce qui reste dehors", () => {
-  const src = source("./HouseholdPage.tsx");
+  /**
+   * ⚠️ ON DÉCOUPE `MemberRow`, ET C'EST DEVENU NÉCESSAIRE (A5 point 3).
+   * La fenêtre d'ajout porte MAINTENANT son propre `SheetFrame` (l'accordéon
+   * des préférences), et il est écrit AVANT `MemberRow` dans le fichier: un
+   * `indexOf("<SheetFrame")` sur le fichier entier viserait le sien. Ce qui est
+   * gardé ici est le partage de la FICHE D'UNE BOUCHE — on lit donc sa
+   * fonction, et rien d'autre.
+   */
+  const whole = source("./HouseholdPage.tsx");
+  const rowAt = whole.indexOf("function MemberRow(");
+  const src = whole.slice(rowAt);
 
   it("« Informations personnelles » est gardé par la lecture des CORPS", () => {
     const i = src.indexOf('t("household.member.frame_identity")');
@@ -158,9 +168,11 @@ describe("les deux cadres de la fiche, et ce qui reste dehors", () => {
    * vides sur une bouche renseignée. `bodiesLoaded` en dérive.
    */
   it("la lecture des corps sait dire qu'elle n'a pas eu lieu", () => {
-    expect(src, "`bodies` est reparti d'une Map vide")
+    // ⚠️ SUR LE FICHIER ENTIER: l'état et son passage vivent dans la PAGE, pas
+    // dans la ligne — `src` est découpé sur `MemberRow`.
+    expect(whole, "`bodies` est reparti d'une Map vide")
       .toMatch(/const \[bodies, setBodies\] = React\.useState<\s*Map<string, MemberBodyView> \| null\s*>\(null\)/);
-    expect(src).toContain("bodiesLoaded={bodies !== null}");
+    expect(whole).toContain("bodiesLoaded={bodies !== null}");
   });
 
   it("les deux cadres s'ouvrent par défaut", () => {
@@ -197,10 +209,12 @@ describe("les deux cadres de la fiche, et ce qui reste dehors", () => {
     const lastFrameEnd = src.lastIndexOf("</SheetFrame>");
     expect(firstFrame, "il n'y a plus de cadre").toBeGreaterThan(0);
     expect(lastFrameEnd).toBeGreaterThan(firstFrame);
+    // ⚠️ « Retirer l'accès » vit dans `MemberAccess`, écrit AVANT `MemberRow`
+    // dans le fichier: il est donc hors de `src` par construction, et le cas
+    // suivant le compte à part. Ici on garde les deux qui vivent DANS la ligne.
     for (
       const key of [
         't("household.away.title")',
-        't("household.member.detach")',
         't("household.member.remove")',
       ]
     ) {
@@ -218,7 +232,7 @@ describe("les deux cadres de la fiche, et ce qui reste dehors", () => {
    * fait par accident au second.
    */
   it("« Retirer l'accès » n'est rendu qu'à un seul endroit", () => {
-    const hits = [...src.matchAll(/t\("household\.member\.detach"\)/g)];
+    const hits = [...whole.matchAll(/t\("household\.member\.detach"\)/g)];
     expect(hits.length, "le geste de détachement est offert deux fois").toBe(1);
   });
 
