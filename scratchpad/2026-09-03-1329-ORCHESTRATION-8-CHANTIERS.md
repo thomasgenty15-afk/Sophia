@@ -229,3 +229,138 @@ Son lot B réécrit `plan_feedback_retained.ts`, qui est la région de **D2.5** 
 **avant** A2 ; CUISINE construit D2.5 par-dessus, changement minimal et localisé. Deux signatures de son lot B
 transmises à CUISINE : `questionsFor(restrictionFlag)` perd `goal`, et `FEEDBACK_QUESTIONS` perd `hunger_between_meals`
 et `could_finish` (`axis_question` / `axis_answer` restent lues).
+
+## 17:4x — A8.0 fusionné : le contrat est réel
+
+- **17:4x** `43a53f49` (journal) puis **fusion de A8.0** : `git merge --no-ff chantier-0903/MEMBRE` (à `31148a5a`) →
+  **`cf2b8558`**, aucun conflit, aucun chevauchement avec les fichiers sales de la session parallèle. Puis `a948f8a2` :
+  un **second** dev server de vérification (`frontend-verif2`, 5211) et un second worktree détaché `VERIF2` — deux lots
+  peuvent être en vérification en même temps, et le worktree du premier vérificateur ne se déplace plus sous ses pieds.
+- A8.0 annonce : audience du cron en deux phases (`pulse_audience.ts`, neuf ; maîtres avant membres ; jamais `keel_role`) ;
+  `resolvePlanScope` dans les deux lecteurs (`.eq("plan_kind","household")` **et** `.eq("household_id")`) ; `/app/chat`
+  et `/app/progress` sous `KeelHouseholdRoute` ; R4, R5 et FF-058 §11 écrits ; `generated_from.shifts[]` apposé par
+  `applyPlanShift` (D7.3). tsc 0, vitest 2 048 verts, 144 tests Deno verts, 5 mutations jouées et restaurées par `cp`+`cmp`.
+  Antériorité des 13 erreurs Deno de `daily_pulse_test` / `daily_pulse_locale_test` prouvée **par identité** (byte-identiques
+  à `31ee930f`) — toutes sur `renderPulseMessage` sans la propriété `memory` (`daily_pulse.ts:655`), ce qui ressemble à
+  une signature élargie par le chantier mémoire de la session parallèle : question posée, personne n'y touche en attendant.
+- **17:4x** Contrat transmis à la lane SUIVI (« A8.0 commité : `31148a5a`, fusionne-le »), avec les précisions qu'il
+  apporte au §5.10 et le rappel que `meal_share_outcomes` n'existe pas encore (⇒ « boîtes restées » = **inconnu**, jamais zéro).
+- **17:4x** Vérificateur A8.0 lancé sur `VERIF2@cf2b8558`. Consignes renforcées, parce que ce lot est un **contrat** :
+  chercher un **troisième** lecteur de `student_generated_meals` que le lot aurait oublié ; rejouer le run adversarial H2
+  **en test** (jamais en réseau : `pulse_audience.ts` est neuf, le runtime ne le sert pas encore et rendrait un faux
+  résultat) ; vérifier que les renversements sont **écrits et datés**, pas seulement effacés ; vérifier lui-même la preuve
+  d'antériorité par identité ; et une section à part pour toute **déviation du contrat §5.10**, plus grave qu'un défaut
+  ordinaire puisqu'une autre lane code dessus.
+
+**État des fusions** : RAPIDE (A3, A4) ✅ vérifiée VERT · A6 ✅ en vérification · A8.0 ✅ en vérification.
+**En cours** : CUISINE A1 · MEMBRE A8.1 · FOYER A5 · SUIVI A7 (front, puis fusion de A8.0 dans sa base).
+
+## 18:0x — A6 vérifié VERT, et le gate de commit réparé
+
+**Vérification A6 : VERT, aucun défaut** (`scratchpad/2026-09-03-1713-FOYER-A6-verification.md`). Le vérificateur a
+rejoué et non cru : 16 fichiers tous au mandat, **0 sous `supabase/`**, `presenceMarks` intact, tsc 0, vitest 2 060/2 085
+avec exactement les 5 rouges étrangers, `pageSeams` et `parity` verts. Les jeux de clés i18n extraits aux deux commits et
+comparés : **aucune clé ajoutée ni retirée**, exactement les 4 valeurs annoncées, pas de mojibake. Les trois gardes lues
+dans le code (garde contre le `saved` **serveur** dans un module pur, relecture câblée avant `onSaved`, `null` ≠ `Map`
+vide aux deux endroits), **zéro `useEffect`**. Les 3 mutations du mandat rougissent au compte exact, **plus deux à lui**
+(filtre `age_state` désarmé → 3 rouges ; carte déplacée sous la grille → 1 rouge), 36/36 restaurations prouvées par `cmp`.
+Correction utile d'un chiffre du mandat : les lignes 144-277 portaient **7** `it`, pas 10 — les 7 sont déplacés avec toutes
+leurs assertions, les 3 autres réécrits, **aucun perdu**. En prime, une lecture SQL montre que la porte
+`keel_away_with_work_lunch` retire puis réécrit les cinq midis à chaque écriture (la garde M1 est bien porteuse) et
+**n'oppose aucun refus `has_account`**, ce qui valide l'arbitrage de ne pas filtrer sur le compte.
+Deux points nommés, non imputables à A6 : les packs i18n commités par la lane (**pour E**), et la dette `meRole === "owner"`
+(**pour A5**), vérifiée « juste aujourd'hui » — un non-maître ne reçoit aucune `MemberRow`, et la porte SQL autorise déjà
+un membre réclamé à écrire sa propre ligne.
+
+### Le gate de commit revient — 18 était un chiffre faux, et la dernière erreur n'était à personne
+
+Mesure sur un **worktree propre détaché** (l'arbre principal est pollué par le lot B en vol : il rendait 54 puis 58) :
+**14 erreurs**, pas 18 — le lot A de la session parallèle en avait déjà réparé 5 (`draft_note_classify_test`).
+Sur ces 14 : **13** sont ses `renderPulseMessage` sans `memory`, qu'elle a réparées ; **la 14e était seule**,
+`pot_demand_test.ts:21` — un aide-test construisant un `AnchorFactor` sans `extrasFloored`, requis depuis que
+`mouth_anchor.ts:661` porte le compteur du plafond des extras. Lignée : `fa422747`, **mon propre instantané** — elle
+n'appartenait à aucun chantier, ce qui explique qu'elle ait survécu à tout le monde.
+Réparée par l'orchestrateur : **`a0eb7b76`**, une ligne, `extrasFloored: false` dans le défaut de l'aide-test — la valeur
+que les trois constructeurs de production posent hors ancrage (`mouth_anchor.ts:788, 809, 848`) et que le commentaire du
+type nomme comme exacte. Aucun test ne la surchargeait ; les 12 du fichier passent.
+**Pourquoi l'orchestrateur et pas une lane** : ce n'est ni un lot ni une lane, c'est le poste. Sans ce geste, huit lots
+commitent `--no-verify` et le gate ne tourne pour personne. Le chiffre « 18 » cité dans tous les prompts de lane est donc
+**périmé** : au prochain commit de la session parallèle, il ne devrait rester **zéro**. À revérifier sur arbre propre.
+
+## 18:0x-18:3x — LE GATE DE COMMIT EST RENDU (`agent-gate.sh` exit 0)
+
+Pour la première fois du chantier. Chemin, en quatre gestes, tous mesurés **sur worktree détaché** — l'arbre principal
+est pollué par le lot B de la session voisine et rendait 54 puis 58 erreurs là où l'arbre propre en rend 93 :
+
+1. **Le chiffre « 18 » était faux.** Sur arbre propre : 14, pas 18 (le lot A de la voisine en avait déjà réparé 5).
+2. **13 étaient à elle** (`renderPulseMessage` sans `memory`) — réparées par elle, `dfb56909`.
+3. **La 14e n'était à personne** : `pot_demand_test.ts:21`, un `AnchorFactor` sans `extrasFloored`. Lignée `fa422747`,
+   mon propre instantané. Réparée : **`a0eb7b76`**. ⇒ `deno test _shared/keel` compile en bloc, **4 996 verts, 0 rouge**.
+4. **Le dernier rouge vitest hors liste n'était pas un défaut mais un test PÉRIMÉ.** `mealBoxes.int.test.ts` exigeait
+   qu'un contenant sans bouche soit jeté ; `readBoxV4` a cessé de le jeter le **2026-09-01**, avec sa mesure (un plan
+   solo réel portant onze contenants affichait un dépliant de session VIDE, la lane individuelle écrivant des boîtes
+   sans nom par construction). La garde n'est pas perdue : elle est **remontée** côté serveur dans `parseGeneratedMeal`
+   sous `soloBoxes` (`meal_generation.ts:6902`), tenue par `solo_boxes_test.ts`. **Deux tests du dépôt affirmaient donc
+   l'inverse l'un de l'autre** — celui-ci rouge, `oneCookingSessionField.int.test.ts` vert. Retourné avec son motif daté,
+   **muté** (remettre la règle d'avant dans le lecteur fait rougir 3 tests) : **`349602a3`**.
+   ⚠️ **J'avais d'abord conclu à un vrai défaut** — le commentaire du code affirmait une garde « remontée » dont je ne
+   trouvais aucune trace. C'était mon `grep` qui échouait (zsh, `--include`). Vérifier avant d'alerter : la garde existe,
+   avec son test dédié. La leçon vaut d'être écrite : une affirmation d'absence se re-vérifie, y compris la mienne.
+5. **Sept lignes de baseline périmées**, remesurées à `bfecdc28` : deux hausses (`mealBoxes` 14→16, `meCardSheet` 9→10),
+   une baisse (`setupMouthsStep` 6→0, rouge réparé par A3, que le fichier demande lui-même d'annoncer), et **quatre
+   fichiers qui manquaient purement à la liste** (`groceryWaves`, `householdHabits`, `planWeekCarriedDays`,
+   `shoppingAisles`, une erreur chacun, identique à la base et à HEAD). Commits `fb686a62` et suivant. Les hausses sont
+   écrites dans le fichier comme **dette à réduire**, pas comme plafond acquis.
+
+**Pourquoi l'orchestrateur et pas E** : un gate qui refuse tout ne dit plus rien, et huit lots commitaient `--no-verify`
+en le citant. Le motif « 18 erreurs à la base » donné dans les cinq prompts de lane est désormais **périmé** ; dit aux lanes.
+`agent-gate.sh` final : `vitest 2086 tests, 4 rouges, 4 tolérés, 0 hors liste` · `typecheck 93/93` · `deno check` vert · **pass**.
+
+### Vérification A8.0 : ROUGE, deux défauts, corrigés dans l'heure
+
+Le vérificateur a trouvé deux gardes **réelles que rien ne tenait** — « la FORME prouvée, pas l'EFFET » :
+**D1** la cascade du maître sur la bande du membre (remettre `args.userId` à la place de `args.statesOwnerId` laissait
+4 936 tests verts) ; **D2** `generated_from.shifts[]` écrit mais sans un seul test (faire rendre `{...base}` à
+`withShiftTrace` laissait tout vert) — **une clause du contrat §5.10**, donc la cicatrice « lecteur sans écrivain »
+réintroduite dans le contrat lui-même. Son propre run adversarial H2, écrit sur le chemin d'**écriture** que le bâtisseur
+n'éprouvait pas, montre en revanche la garde porteuse.
+Correctif MEMBRE `5650ed9d` : un fichier de test neuf, 6 épreuves, **aucun code de production modifié**. La cause de D1
+vaut d'être retenue : **la doublure rendait ses lignes quel que soit le filtre**, ce qui rendait l'échange des deux clés
+structurellement invisible — le défaut était la doublure, pas l'épreuve manquante. Idem D2 : une doublure figée rendait
+`unverified`, un vert de façade sur un chemin qui n'atteint jamais le payload.
+
+### Les numéros de migration ne réservent pas l'avenir
+
+La voisine ayant appliqué `20260903150000`, mes trois réservations (`…140000`, `…141000`, `…142000`) étaient passées
+**sous** la tête du registre : elles auraient été **sautées en silence**. CUISINE l'avait déjà écrite sur le disque.
+Renumérotées : **`20260903170000`** (A1), **`20260903171000`** (A2), **`20260903172000`** (A8.2) ; `20260903180000` et
+au-dessus laissés à la voisine. **Règle posée** : un numéro n'est valide que s'il est supérieur à la tête du registre
+**au moment où il s'applique**, jamais au moment où on le réserve ; la base locale est partagée, personne ne peut
+réserver l'avenir. Chacun relit le registre avant d'appliquer et prévient l'autre.
+
+### Fusions bloquées, et pourquoi je n'insiste pas
+
+CUISINE A1 (`2b57bfa9`) et MEMBRE A8.1 + correctif (`7c403607`, `5650ed9d`) sont prêts. `git merge` refuse : la voisine
+tient sales `i18n/en.ts`, `i18n/fr.ts` et `StudentWeekPlanPage.tsx`, que les deux fusions touchent. Demandé, sans urgence
+artificielle — mieux vaut attendre que d'hériter d'un lot à moitié posé. **Piège de méthode à ne pas répéter** : mon
+premier test de chevauchement pour MEMBRE utilisait `git diff <merge>..<branche>`, qui compare deux états et fait
+apparaître **tout ce que l'arbre principal a en plus** ; le bon test est le diff depuis la **base de fusion**.
+
+### ROUGE produit assumé, remonté par CUISINE (A1)
+
+**Un plan de SEPT jours mangés n'a pas de veille automatique.** Pas à cause de la base (elle accepte `duration_days = 8`)
+mais de l'**alphabet des jetons de jour** : une fenêtre de 8 donnerait au jour de cuisine le jeton du dernier jour mangé,
+et le parseur jetterait les plats de ce jour. Le refus est **nommé**, rendu comme `same_morning`, expliqué dans
+`plan_rationale`. Levée = adresser les sessions par **date** et non par jeton — hors périmètre A1, à nommer au rapport final.
+Deux pièges trouvés par CUISINE, à faire circuler : `plan_kind` est dans la clé de l'exclusion **et** de l'index unique
+depuis `20260811080000` et **non** `20260807090000` comme l'ANALYSE l'affirme (recréer d'après le vieux fichier
+supprimerait la séparation perso/foyer) ; et `eatenSpan` avait été livrée par l'agent tué **sans aucun appelant**,
+documentée « les deux lanes l'appellent » — garde morte, corrigée par un champ requis.
+
+### SUIVI : front prêt, non fusionné exprès
+
+`fd47c04c` — `ProgressPage.tsx` retiré, 36 clés mortes retirées, nav renommée, agrégat pur `tracking_window.ts` (24 tests
+Deno), page complète, A8.0 fusionné dans sa base **sans conflit**. **Non fusionné** : la page appelle `keel-tracking-v1`,
+qui n'existe pas encore, et l'échec est **délibérément fail-closed** (la ceinture TCA vit dans la réponse serveur ;
+l'ancienne lisait `weekly_reviews.risk_band`, colonne morte depuis le 08/08). Fusionner maintenant casserait
+`/app/progress` dans l'arbre principal jusqu'au lot serveur. Attendra son tour, comme prévu.
