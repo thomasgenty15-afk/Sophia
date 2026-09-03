@@ -102,7 +102,28 @@ const HOUSEHOLD_NAME = "Foyer du banc des retours";
  *   select count(*) from coach_clients
  *    where coach_id = '<coach>' and status in ('active','invited');
  */
-const BENCH_COACH_ID = "24e34241-d122-414c-a957-c375651f590e";
+/**
+ * ⟳ 2026-09-03 — LE COACH SE CHOISIT, ET LE DÉFAUT A CHANGÉ DE RAISON.
+ *
+ * Le coach du banc est un coach HUMAIN en essai, donc plafonné à **3 sièges
+ * vivants** (`_trg_coach_clients_enforce_trial_cap`). Ce script a rendu
+ * `keel_trial_seat_limit_reached` sur sa 4ᵉ fixture — mesuré le 2026-09-03,
+ * après `qa-foyer-retours`, `qa-cycles2` et `qa-3portes`.
+ *
+ * ⛔ LA RÉPARATION N'EST PAS DE LIBÉRER UN SIÈGE. Retirer une fixture pour en
+ * poser une autre détruit le banc de quelqu'un d'autre, et le plafond
+ * reviendrait à la suivante.
+ *
+ * Le COACH MAISON (`coach_kind = 'house'`) est exempté du plafond **par la
+ * base**, en toutes lettres: « le plafond existe pour empêcher un coach
+ * d'exploiter un essai gratuit à 40 élèves; appliqué à la maison, il refuse le
+ * 4ᵉ INSCRIT LIBRE ». C'est aussi le coach qu'obtient une inscription B2C
+ * ordinaire — donc, pour un banc de FOYER, il est plus fidèle au produit que
+ * le coach du banc.
+ */
+// Le coach maison, exempté du plafond par la base — à passer en `--coach`.
+export const HOUSE_COACH_ID = "00000000-0000-4000-8000-00000000d15c";
+const BENCH_COACH_ID = arg("coach", "24e34241-d122-414c-a957-c375651f590e");
 
 if (!ANON_KEY) {
   console.error("manque --anon <clé anon>");
