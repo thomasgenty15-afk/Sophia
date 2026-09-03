@@ -499,3 +499,42 @@ le mensonge d'hier »). L'arbitrage 1 est écrit **contre la formule**, pas seul
 requalifié en **non-livraison décrite du côté de la personne** : elle écrit « à peu près 200 g de riz », ses mots sont
 gardés, le chiffre ne bouge pas, et la phrase du total continue de dire qu'un repas « n'a jamais été renseigné » alors
 qu'elle vient de le renseigner. Ce qui rend le trou tenable, et qui est dit : **aucun chiffre faux, aucun total qui baisse.**
+
+## 20:4x — A5 fusionné : la lane FOYER a terminé
+
+**`89e5b805`**, le sha annoncé (`22cad593`), aucun conflit. 13 commits, 5 fichiers de test neufs (63 cas), **20 mutations**
+jouées et restaurées par `cp`+`cmp`, `tsc` 0, vitest 2 119/2 144 avec exactement les 5 rouges étrangers, eslint 0,
+aucun fichier sous `supabase/`. L'étape 2 de l'entonnoir monte enfin `MouthCoreFields` ; `TableStepPlanning` et
+`InviteCard` disparaissent ; le plafond de 8 est lu une seule fois ; un membre réclamé édite sa propre ligne.
+
+### Trois écarts au mandat, tous validés — mais ils ne se valent pas
+
+1. **Les cadres de `MemberRow` montent les contrôles EXISTANTS, pas `MouthCoreFields`.** Motif : `persistMouth` n'a
+   **aucun écrivain pour RETIRER une allergie** (seulement `addAllergy`/`addRestriction`), et basculer aurait perdu ce
+   retrait, qui entre dans l'**union de sécurité** du générateur. Perdre une capacité de sécurité pour gagner une
+   uniformité de formulaire est un mauvais échange : validé. **Mais nommé pour ce qu'il est** — le mandat voulait un seul
+   formulaire dans le dépôt, il en reste deux. La divergence la plus chère (l'étape 2) est fermée ; celle de `MemberRow`
+   reste. **Le vrai correctif, hors périmètre : donner à `persistMouth` un écrivain de retrait.** Au rapport final.
+2. **`KnownAboutYouCard` non montée, `known` non déclaré** : elle réclame quatre lectures que la page ne fait pas, et la
+   monter serait l'interdit « un cadre monté sur une lecture non faite ». La route reste (D5.4) : rien n'est perdu.
+   Validé sans réserve.
+3. **`SelfStep` reste écrite à la main** : ses bornes sont celles de `profiles` (90-250, 25-400), pas celles d'une bouche
+   (30-260, 2-400). Ce n'est pas une duplication, c'est une différence de sujet, et un **cas qui passe mesure les deux
+   jeux** — ce qui empêchera quelqu'un de les fusionner par erreur plus tard.
+
+### ⛔ Une consigne de l'orchestrateur était FAUSSE, et une lane l'a démentie
+
+J'ai demandé aux cinq lanes de marquer leurs fixtures avec `profiles.is_test_persona`. **Cette colonne n'existe dans
+aucune table du schéma `public`** (vérifié : `select count(*) from information_schema.columns where
+column_name='is_test_persona'` → **0**). Je l'avais reprise d'une mémoire du dépôt **sans la vérifier** — exactement le
+geste que ce chantier interdit aux lanes. La lane FOYER l'a mesuré et marque ses comptes par l'adresse. **Corrigé auprès
+des lanes.** À porter au rapport final : une affirmation d'absence *ou de présence* se re-vérifie, y compris la mienne,
+et c'est la deuxième fois aujourd'hui.
+
+**Sa fixture est la seule du chantier jouée DEUX FOIS de suite et vérifiée idempotente**
+(`docs/keel/qa-fixtures/40-foyer-a5.sql`), avec un mineur dedans **comme contre-exemple** (aucune carte de déjeuner, et
+invitable quand même) — ce qui distingue une fixture d'un décor.
+
+**État des lanes** : RAPIDE ✅ terminée et vérifiée VERT · FOYER ✅ terminée (A6 vérifié VERT, A5 à vérifier) ·
+MEMBRE A8.0/A8.1/A8.2 fusionnés (A8.0 vérifié après correctif, A8.1+A8.2 en vérification), **A8.3 en cours** ·
+SUIVI ✅ terminée (A7 non fusionné, attend un arbre vert) · CUISINE A1 ✅ fusionné et vert, **A2 en cours**.
