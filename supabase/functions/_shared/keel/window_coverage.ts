@@ -37,6 +37,31 @@
  *   ② décider qu'un jour SANS AUCUN PLAT ne nourrit rien — voir le bloc dédié;
  *   ③ additionner, et nommer le repli quand la fenêtre entière est illisible.
  *
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⚠️ CE QUE CE MODULE CASSE AILLEURS, ÉCRIT ICI PLUTÔT QUE DÉCOUVERT
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * `below` change de SENS pour tout le produit à partir du 2026-09-04. Les
+ * quatre lecteurs, et ce qu'ils deviennent:
+ *
+ *   · `correctionPlanFor` .......... lève moins de `raise_energy` faux (un plan
+ *     troué ne se lit plus léger) et plus de `reduce_energy` vrais. Mesuré sur
+ *     le corpus: 3 plans passent `within → above`, 1 passe `below → within`.
+ *   · `plan_rationale.energyBelowBand` — la SEULE ligne que l'élève lit. Un plan
+ *     qui n'était léger que par dilution cesse de se déclarer léger. L'autre
+ *     direction reste MUETTE par décision produit (« ton plan est trop gros »
+ *     ne s'écrit pas): le lot ne peut donc ajouter aucune phrase, seulement en
+ *     retirer.
+ *   · `assessCoverage.floorHit` ..... le plancher de 1 550 kcal/jour se franchit
+ *     moins souvent, puisque le kcal/jour monte. Même direction, même raison.
+ *   · `meal_composition_verdicts` ... ⛔ LA POPULATION D'AVANT ET CELLE D'APRÈS
+ *     SE MÉLANGENT DANS LA MÊME COLONNE. La table porte `prompt_version` et
+ *     `doctrine_version` précisément pour séparer les populations d'un bump —
+ *     et ce lot ne bumpe NI l'un NI l'autre, parce qu'il ne touche ni la
+ *     consigne ni la doctrine. Il n'existe pas de version du MOTEUR DE VERDICT.
+ *     Seule la date (`created_at` < 2026-09-04) sépare les deux. Quiconque
+ *     agrège cette table sur une fenêtre à cheval compare deux dénominateurs.
+ *
  * PURE MODULE: no I/O, no clock, no randomness.
  */
 
