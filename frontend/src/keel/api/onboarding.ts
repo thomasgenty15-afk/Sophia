@@ -606,8 +606,22 @@ export const FUNNEL_QUESTIONS: readonly FunnelQuestion[] = Object.freeze([
   // ── CE QUI SE DEMANDE APRÈS LE PLAN ───────────────────────────────────────
   {
     id: "food_preferences",
+    // ⟳ LOT C (2026-09-03) — LE CONSOMMATEUR A CHANGÉ DE MAGASIN, ET LE CHAMP
+    // A CHANGÉ D'ÉCRAN. Cette ligne pointait
+    // `food_preference_promotion_io.ts#reconcileFoodPreferencesFor`: la
+    // réconciliation de la colonne PLATE `food_preferences`, lue par les deux
+    // générateurs à chaque composition. Ce module est SUPPRIMÉ — le magasin
+    // plat n'a plus ni écrivain ni lecteur (nomenclature §2.1, §2.6), et sa
+    // colonne devient une archive lisible sur « Ce que Sophia sait ».
+    //
+    // ⛔ LA LIGNE N'EST PAS SUPPRIMÉE POUR AUTANT, et le choix est délibéré: ce
+    // que la personne n'aime pas EST toujours collecté (le champ « Aliments
+    // refusés » d'une fiche de bouche) et TOUJOURS consommé — par la ceinture
+    // d'exclusion, par bouche, sur le magasin structuré. Retirer la ligne
+    // dirait « on ne demande plus ça », ce qui est faux; c'est le lit qui a
+    // changé, pas la question.
     consumer:
-      "supabase/functions/_shared/keel/food_preference_promotion_io.ts#reconcileFoodPreferencesFor",
+      "supabase/functions/_shared/keel/food_exclusion_belt.ts#exclusionTermsFor",
     weight: "better",
     branches: NEVER,
     step: null,

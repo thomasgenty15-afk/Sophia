@@ -256,6 +256,13 @@ export const HOUSEHOLD_REFUSAL_KEYS: Record<string, MessageKey> = {
   has_account: "household.error.has_account",
   household_full: "household.error.household_full",
   not_owner: "household.error.not_owner",
+  // ── LOT C · PIVOT-FOYER §8.5 RÈGLE 1 ────────────────────────────────────
+  // « Le défaut doit être RESTRICTION IMPOSSIBLE SUR UN MAJEUR. » La règle
+  // était écrite depuis le premier jour du foyer et armée nulle part: mesuré
+  // le 2026-09-03, 6 des 7 restrictions locales visaient une bouche `adult`.
+  // `unknown` (pas de date de naissance) est refusé du même côté — c'est
+  // l'asymétrie des dégâts, et l'écran doit pouvoir dire quoi faire.
+  not_a_minor: "household.error.not_a_minor",
   not_a_member: "household.error.not_a_member",
   not_your_line: "household.error.not_your_line",
   no_household: "household.error.no_household",

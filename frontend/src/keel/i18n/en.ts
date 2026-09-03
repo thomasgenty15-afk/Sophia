@@ -4376,6 +4376,13 @@ export const en = {
   "household.error.household_full":
     "Eight is the most a household can hold. Remove someone first.",
   "household.error.not_owner": "Only the person who runs the household can do this.",
+  // ── LOT C · un interdit de maison ne vise qu'un mineur (§8.5 règle 1) ────
+  // ⚠️ ELLE DIT QUOI FAIRE, parce que les deux causes sont différentes: un
+  // majeur (rien à faire ici, et c'est voulu) ou une bouche sans date de
+  // naissance (il suffit de la renseigner). Un refus qui ne distingue pas les
+  // deux se lit comme une panne.
+  "household.error.not_a_minor":
+    "A house rule can only be set for a child. If this is your child, add their date of birth on their card first.",
   "household.error.not_a_member": "That person is not in your household.",
   "household.error.not_your_line": "You can only change your own line.",
   "household.error.no_household": "You are not in a household.",
@@ -4398,6 +4405,12 @@ export const en = {
   "household.constraint.kind.house_rule": "Something this house does not serve",
   "household.constraint.kind.house_rule_hint":
     "Your call as the household. We keep it, and we never dress it up as health advice.",
+  // ── LOT C · POURQUOI IL N'Y A PAS DE CHOIX ICI (§8.5 règle 1) ────────────
+  // ⚠️ ELLE DIT LA RÈGLE, PAS UN ÉTAT DE CHARGEMENT. Un contrôle qui disparaît
+  // sans un mot se lit comme une panne; celui-ci disparaît pour une raison qui
+  // se défend, et qui protège la personne en face.
+  "household.constraint.house_rule_minor_only":
+    "House rules are for children only. A grown-up at this table decides what they eat.",
   "household.allergy.placeholder": "Peanuts",
   "household.allergy.add": "Add the allergy",
   "household.allergy.remove": "Remove",

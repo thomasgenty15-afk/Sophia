@@ -59,6 +59,11 @@ import {
   MAX_FIXED_INTAKES,
 } from "../../../../supabase/functions/_shared/keel/fixed_intakes.ts";
 
+import {
+  addWrittenFoodExclusions,
+  KnownWriteError,
+} from "./retainedItems";
+
 interface RpcResult {
   ok: boolean;
   reason: string;
@@ -629,7 +634,30 @@ export interface MouthWriters {
     | ((memberId: string, shaker: ShakerToWrite) => Promise<RpcResult>)
     | null;
   addAllergy: (memberId: string, label: string) => Promise<RpcResult>;
-  addRestriction: (memberId: string, label: string) => Promise<RpcResult>;
+  /**
+   * CE QU'ELLE N'AIME PAS — UNE PRÉFÉRENCE, ET PLUS UNE RÈGLE DE MAISON.
+   *
+   * ⟳ LOT C (2026-09-03) — ELLE S'APPELAIT `addRestriction` ET ELLE ÉCRIVAIT
+   * DANS `household_food_restrictions`, la table des INTERDITS domestiques,
+   * celle dont `household_restriction_lock.ts` censure le « pourquoi » des
+   * plats. Un dégoût déclaré par la personne devenait donc une décision qu'il
+   * fallait cacher — et il avait un second lit dans `retained_items`, d'où un
+   * doublon par construction. Elle écrit maintenant un `food.exclude`
+   * `subject=member:<uuid>` `source=written` (nomenclature §2.2 ①).
+   *
+   * ⚠️ LA LISTE ENTIÈRE, PAS UN LABEL. L'ancienne porte était `add_*` en base:
+   * une écriture par mot coûtait un aller-retour, ce qui était sans importance.
+   * La nouvelle est une lecture-modification-écriture avec `expected`: N appels
+   * feraient N conflits potentiels sur le magasin, et le deuxième écraserait
+   * l'attente du premier. Un geste, une écriture.
+   *
+   * ⚠️ ELLE AJOUTE, ELLE NE REMPLACE PAS — comme avant. Le retrait se fait sur
+   * la carte « Ce que Sophia sait », là où la ligne est lisible et datée.
+   */
+  addDislikes: (
+    memberId: string,
+    labels: readonly string[],
+  ) => Promise<RpcResult>;
   setDiet: (memberId: string, diet: string | null) => Promise<RpcResult>;
   /**
    * SES MOMENTS. `null` = « comme la maison », et c'est une ÉCRITURE — la seule
@@ -844,16 +872,26 @@ export async function persistMouth(
     if (!shaken.ok) return shaken;
   }
 
-  // ⚠️ LES ALLERGIES ET LES DÉGOÛTS S'AJOUTENT, ILS NE REMPLACENT PAS. Les deux
-  // portes sont `add_*` / `remove_*`, et il n'existe pas de « poser la liste ».
-  // Le retrait se fait sur la fiche de la personne, pas ici — ce formulaire
-  // AJOUTE ce qu'on vient de dire.
+  // ⚠️ LES ALLERGIES ET LES DÉGOÛTS S'AJOUTENT, ILS NE REMPLACENT PAS, et ce
+  // formulaire AJOUTE ce qu'on vient de dire. Le retrait se fait là où la ligne
+  // est LISIBLE: sa fiche pour une allergie, la carte « Ce que Sophia sait »
+  // pour un dégoût — jamais ici, où l'on ne voit pas ce qu'on efface.
+  //
+  // ⟳ LOT C — LES DEUX N'ONT PLUS LE MÊME LIT NI LA MÊME NATURE. Une allergie
+  // reste une donnée de SÉCURITÉ, dans sa table, avec son consentement; un
+  // dégoût est une PRÉFÉRENCE (nomenclature §2.2 ①). Elles se suivent encore
+  // ici parce que le formulaire les collecte côte à côte, et c'est tout ce
+  // qu'elles ont en commun.
   for (const label of mouth.allergies) {
     const res = await writers.addAllergy(memberId, label);
     if (!res.ok) return res;
   }
-  for (const label of mouth.dislikes) {
-    const res = await writers.addRestriction(memberId, label);
+  // ⚠️ UN SEUL APPEL, ET LA GARDE DE VACUITÉ EST DANS L'APPELANT. Une liste
+  // vide n'est pas « efface ses dégoûts »: cette porte AJOUTE, et l'appeler
+  // pour rien coûterait une lecture-écriture du magasin à chaque enregistrement
+  // de fiche.
+  if (mouth.dislikes.length > 0) {
+    const res = await writers.addDislikes(memberId, mouth.dislikes);
     if (!res.ok) return res;
   }
 
@@ -988,4 +1026,42 @@ export async function loadMemberFixedIntakes(
   if (error) throw new Error(error.message);
   const raw = (data as { fixed_intakes?: unknown } | null)?.fixed_intakes;
   return Array.isArray(raw) ? raw : [];
+}
+
+/**
+ * LA PORTE DES DÉGOÛTS, ADAPTÉE AU CONTRAT DE CET ÉCRAN.
+ *
+ * `addWrittenFoodExclusions` LÈVE — c'est le contrat de `retainedItems.ts`, où
+ * un magasin illisible et un refus nommé de la RPC doivent remonter tels quels.
+ * `persistMouth`, lui, RETOURNE un refus: son appelant enchaîne huit portes et
+ * s'arrête à la première qui dit non, avec le motif sous le bouton pressé.
+ *
+ * ⛔ LE MOTIF NE SE PERD PAS DANS LA TRADUCTION. Un `catch` qui rendrait
+ * `{ ok: false, reason: "error" }` transformerait « ta carte a bougé pendant
+ * que tu écrivais » en « ça n'a pas marché » — et la personne rechargerait une
+ * page qui n'a pas bougé, ou n'en rechargerait aucune. On reporte donc le
+ * `reason` de `KnownWriteError` quand il y en a un.
+ */
+export function writtenDislikeWriter(
+  userId: string,
+  todayLocalIso: string,
+): (memberId: string, labels: readonly string[]) => Promise<RpcResult> {
+  return async (memberId, labels) => {
+    try {
+      await addWrittenFoodExclusions({
+        userId,
+        memberId,
+        foods: labels,
+        todayLocalIso,
+      });
+      return { ok: true, reason: "" };
+    } catch (e) {
+      const reason = e instanceof KnownWriteError
+        ? e.refusal
+        : e instanceof Error
+        ? e.message
+        : "write_failed";
+      return { ok: false, reason };
+    }
+  };
 }

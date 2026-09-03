@@ -27,24 +27,20 @@ import {
   loadStudentSafetyConstraints,
   type StudentSafetyConstraint,
 } from "../_shared/keel/safety_constraints.ts";
-import {
-  // C6 ② — CALCULER ET PERSISTER SONT DEUX GESTES, ET LE SECOND ATTEND QUE
-  //         LA REQUÊTE ABOUTISSE.
-  persistReconciledFoodPreferences,
-  reconcileFoodPreferencesFor,
-} from "../_shared/keel/food_preference_promotion_io.ts";
-// ── D4/L6 · LES MOTS DE CHAQUE TITULAIRE ────────────────────────────────────
-// `foodPreferencesForPrompt` N'EST PLUS IMPORTÉ ICI, et c'est le lot: sur la
-// lane du foyer, les préférences de TOUT LE MONDE — le maître compris — passent
-// désormais par `loadHouseholdVoices` puis `buildHouseholdVoices`, où vivent le
-// plafond par membre et la garde de non-divulgation. Un second chemin, même
-// pour une seule personne, serait un chemin SANS garde, et rien n'échouerait.
-// La lane INDIVIDUELLE, elle, continue de l'appeler: elle n'a qu'un titulaire,
-// et son plan n'est lu par personne d'autre.
-import {
-  loadHouseholdVoices,
-  type VoiceMember,
-} from "../_shared/keel/household_voices_io.ts";
+// ══ LOT C · LES VOIX NE PORTENT PLUS QUE DU STRUCTURÉ ═══════════════════════
+//
+// ⛔ `household_voices_io.ts` A ÉTÉ SUPPRIMÉ, ET CE N'EST PAS UN NETTOYAGE. Ce
+// module existait pour UNE chose: lire la colonne `food_preferences` — le
+// magasin PLAT — de chaque titulaire à table, et la réconcilier contre
+// `memory_items` avant de la donner au modèle. Le magasin plat est fermé
+// (nomenclature §2.1, §2.6): il n'a plus d'écrivain, donc plus rien à lire.
+//
+// ⚠️ CE QUI RESTE, ET C'EST L'ESSENTIEL: le bloc des voix existe toujours, et
+// il porte les items STRUCTURÉS du composeur — `food.exclude`, `method.avoid`,
+// avec leur `kind`, leur sujet et leur date. Le plafond par membre et la garde
+// de non-divulgation vivent toujours dans `buildHouseholdVoices`, et rien ne
+// les contourne: ce lot retire une SOURCE, jamais une garde.
+import type { RawMemberVoice } from "../_shared/keel/household_voices.ts";
 // ══ LOT 1C · LA LECTURE DES ÉLÉMENTS RETENUS ════════════════════════════════
 // `readRetainedItems` et PAS `retainedItemsFrom`: même magasin, même lecture,
 // mais l'enrobage rend en plus le compteur des lignes REFUSÉES — sans lui,
@@ -2725,38 +2721,23 @@ Deno.serve(async (req) => {
       .filter((m) => ruleHolderIds.has(m.memberId))
       .map((m) => ({ memberId: m.memberId, displayName: m.displayName }));
 
-    // ── CE QUE L'ÉLÈVE A DÉMENTI DEPUIS — LE TROISIÈME CHEMIN ─────────────
-    // `generate-meal-v1` porte ce raccord avec cette raison écrite: « Une garde
-    // qui ne couvre qu'un des deux chemins d'un même jsonb est une garde qu'on
-    // croit posée. » Il y a TROIS chemins, et celui-ci était le découvert:
-    // vérifié le 2026-08-08, ce fichier n'importait que le module PUR
-    // (`food_preference_promotion.ts`) et jamais son module d'I/O, donc il
-    // servait `practical_constraints` tel quel.
+    // ⛔ LOT C — LE MAGASIN PLAT N'ATTEINT PLUS LE PROMPT, DONC IL N'Y A PLUS
+    // RIEN À RÉCONCILIER ICI.
     //
-    // Ce que ça coûtait, et c'est exactement FF-026 R3 (« la rétractation est
-    // honorée »): un foyer qui ne compose QUE des repas de foyer ne
-    // réconciliait jamais. La préférence que l'élève a rétractée dans la
-    // conversation — proprement enregistrée par le memorizer en `superseded` —
-    // continuait d'être servie au modèle, sans limite de temps, puisque rien
-    // sur ce chemin ne relit la mémoire. La réconciliation PERSISTE en plus de
-    // corriger, donc poser le raccord ici répare aussi les deux autres.
-    // ⚠️ C6 ② — ON CALCULE ICI, ON ÉCRIT APRÈS LE PLAN. Même défaut, même
-    // correction que sur les deux autres portes: sous cet appel tombent la
-    // garde de fenêtre, le 409 de la base, la panne de modèle et le 503 des
-    // contraintes de sécurité. La correction alimente le prompt comme avant.
-    const foodPreferences = await reconcileFoodPreferencesFor({
-      admin,
-      userId,
-      constraints: (goalRow.practical_constraints ?? {}) as Record<string, unknown>,
-      source: FN_NAME,
-      // C4 — ICI, et ici SEULEMENT sur cette lane, on écrit: `goalRow` est la
-      // ligne du compte AUTHENTIFIÉ (`.eq("user_id", userId)`), c'est-à-dire
-      // celle de la personne qui a appuyé sur le bouton. Les lignes des AUTRES
-      // titulaires sont lues plus bas par `loadHouseholdVoices`, qui passe
-      // `actor: "someone_else"` et n'écrit rien.
-      actor: "row_owner",
-    });
-    goalRow.practical_constraints = foodPreferences.constraints;
+    // Ce bloc appelait `reconcileFoodPreferencesFor`, qui relisait
+    // `memory_items` à CHAQUE génération pour retirer de `food_preferences` ce
+    // que la conversation avait démenti. Il avait été posé le 2026-08-08 parce
+    // que c'était « le troisième chemin découvert » — et la garde était juste:
+    // une préférence rétractée continuait d'être servie au modèle.
+    //
+    // Le lot C ferme le magasin lui-même (nomenclature §2.1 et §2.6): la
+    // colonne n'entre plus dans aucun prompt, ni par le tronc, ni par les voix.
+    // Une préférence rétractée ne peut donc plus être servie — ce que la
+    // réconciliation obtenait par une lecture par génération, la fermeture
+    // l'obtient par construction. FF-026 R3 est tenue plus fort qu'avant.
+    //
+    // ⚠️ ET `memory_items` DISPARAÎT DE CETTE LANE. C'est mesurable, et un test
+    // l'exige: `grep -rn memory_items supabase/functions/generate-*` rend zéro.
 
     // ══ LOT 1C · LA MÉMOIRE STRUCTURÉE ENTRE ICI ═══════════════════════════
     //
@@ -3047,6 +3028,22 @@ Deno.serve(async (req) => {
         retainedLogistics.otherSubjects.length +
         retainedRhythm.otherSubjects.length +
         retainedCravings.otherSubjects.length,
+      // ══ LOT C · LE COMPTEUR DE FIN DE VIE DE DEUX FAMILLES ══════════════
+      //
+      // `rhythm.set` et `logistics.set` N'ONT PLUS D'ÉCRIVAIN: le lot M5 a
+      // retiré la cellule à `questionnaire` et à `draft_note` (le bilan écrit
+      // le CHAMP), et la carte ne les propose plus au « Ranger dans ». Ce
+      // lecteur-ci est gardé UN CYCLE pour les lignes déjà en base.
+      //
+      // ⚠️ CE N'EST PAS UNE TRACE DE PLUS, C'EST LA MESURE QUI DÉCIDE. Zéro sur
+      // la campagne ⇒ les deux lecteurs partent. Sans ce compteur, la question
+      // « est-ce que quelqu'un s'en sert encore ? » n'aurait pour réponse
+      // qu'une intuition, et le chemin resterait pour toujours « au cas où ».
+      //
+      // ⛔ IL COMPTE CE QUI A GAGNÉ, pas ce qui a été lu: une ligne écartée
+      // parce qu'elle parle d'une autre bouche est déjà dans `other_subjects`.
+      rhythm_served: retainedRhythm.served,
+      logistics_served: retainedLogistics.served,
       // ⚠️ LE COMPTEUR A CHANGÉ DE SENS AU LOT 1G, ET C'EST VOLONTAIRE.
       // Il valait `portion_unapplied` — le nombre d'ajustements que
       // l'enveloppe NE recevait pas. Le laisser tel quel maintenant que le
@@ -4070,79 +4067,57 @@ Deno.serve(async (req) => {
     // pas de `student_goals`, pas de mémoire. Le `filter` sur `userId` est donc
     // la règle, pas une précaution.
     //
-    // LE MAÎTRE PASSE SES CONTRAINTES DÉJÀ RÉCONCILIÉES (`pc`): sa ligne est lue
-    // bien plus haut pour le rythme et la capacité, et la re-réconcilier ici
-    // coûterait un second aller-retour vers `memory_items` pour un résultat
-    // identique. `constraints` est REQUIS et nullable côté module, donc aucun
-    // appelant ne peut l'oublier en silence.
-    const voiceMembers: VoiceMember[] = platedMembers
-      .filter((m) => m.userId)
-      .map((m) => ({
-        memberId: m.memberId,
-        userId: m.userId as string,
-        displayName: m.displayName,
-        constraints: m.userId === userId
-          ? ((pc ?? {}) as Record<string, unknown>)
-          : null,
-      }));
-    const loadedVoices = await loadHouseholdVoices(admin, {
-      members: voiceMembers,
-      source: FN_NAME,
-    });
-    // ══ LOT 1C · LES `food.*` / `method.*` RETENUS ENTRENT PAR LES VOIX ════
+    // ══ LOT C · LES VOIX NE PORTENT PLUS QUE DU STRUCTURÉ ═══════════════
     //
-    // ⚠️ PAS PAR LE TRONC, ET C'EST LA RAISON D'ÊTRE DE D4/L6. Le tronc reçoit
-    // `foodPreferences: []` et `writtenInstructions: []` sur cette lane parce
-    // que le plafond par membre ET la garde de non-divulgation vivent dans
-    // `household_voices.ts`. Rouvrir la porte du tronc pour ces lignes-ci
-    // ferait un SECOND chemin, sans garde, et rien n'échouerait le jour où la
-    // garde bougerait. Il n'y a donc qu'une porte, et elle garde.
+    // ⛔ `loadHouseholdVoices` A ÉTÉ RETIRÉE, ET CE N'EST PAS UN NETTOYAGE.
+    // Elle lisait la ligne `student_goals` de CHAQUE titulaire à table pour en
+    // tirer `food_preferences` — le magasin PLAT, alimenté par le bouton
+    // « Keep » depuis les souvenirs du chat, et réconcilié contre
+    // `memory_items` à chaque composition. Ce magasin est fermé (nomenclature
+    // §2.1, §2.6): sans lui, cette fonction n'avait plus rien à lire.
     //
-    // ⚠️ SOUS LE TITULAIRE QUI COMPOSE, par son `member_id`. Ce n'est pas une
-    // attribution neuve: sa colonne `food_preferences` part DÉJÀ dans son
-    // propre bloc de voix depuis D4/L6, et ces items viennent de la même
-    // colonne. Sans `ownerMemberId` (une bouche introuvable), les lignes ne
-    // sont attachées à personne plutôt qu'à quelqu'un au hasard — et le
-    // compteur ci-dessous le dit.
+    // ⚠️ CE QUE ÇA REND, MESURABLE: la lecture de préférences repasse de N à 0
+    // par génération (elle était passée de 1 à N au lot D4), et `memory_items`
+    // disparaît de cette lane. Le compteur ci-dessous le dit.
     //
-    // ELLES PASSENT DEVANT. Le plafond de `buildHouseholdVoices` coupe par la
-    // QUEUE: ce qui tombe est donc la plus vieille phrase plate, jamais un
-    // item structuré. Le §7 de la nomenclature nomme ces phrases « anciennes
-    // notes » — elles n'ont ni `kind`, ni sujet, ni date fiable.
+    // ⚠️ CE QUI RESTE, ET C'EST L'ESSENTIEL: le bloc des voix existe toujours,
+    // et il porte les préférences STRUCTURÉES du titulaire qui compose —
+    // `food.exclude`, `method.avoid`, avec leur `kind`, leur sujet et leur
+    // date. Le plafond par membre et la garde de non-divulgation vivent
+    // toujours dans `buildHouseholdVoices`, et rien ne les contourne.
+    //
+    // ⚠️ ET LE TROU RESTE OUVERT, NOMMÉ: les préférences structurées d'un
+    // SECONDAIRE ne sont lues par personne, parce que `routeRetainedItems` est
+    // appelée avec le seul `userId` du composeur. C'était déjà vrai avant ce
+    // lot; le lot C retire un magasin, il n'en branche pas un second.
+    // ⚠️ LE DÉNOMINATEUR RESTE, ET IL EST LE SUJET. `accountsAtTable` compte les
+    // bouches à cette table qui ONT un compte — donc celles dont on POURRAIT
+    // lire quelque chose. Il ne bouge pas avec ce lot; ce qui passe à zéro est
+    // `reads`. Retirer le dénominateur en même temps que le numérateur rendrait
+    // la fermeture invisible en production: on verrait « 0 lecture » sans
+    // savoir sur combien de bouches.
+    const accountsAtTable = platedMembers.filter((m) => m.userId).length;
+    // ⚠️ LES ITEMS STRUCTURÉS DU COMPOSEUR, dans l'ordre du magasin: ce qu'il a
+    // TAPÉ d'abord (`written`), puis ce que les producteurs ont retenu, daté.
+    // Le plafond de `buildHouseholdVoices` coupe par la QUEUE, donc ce qui
+    // tombe est la plus vieille récolte — jamais une consigne écrite.
     const retainedVoiceLines = [
       ...retainedComposition.written,
       ...retainedComposition.remembered,
     ];
-    const voices = (() => {
-      if (retainedVoiceLines.length === 0 || !ownerMemberId) return loadedVoices;
-      const existing = loadedVoices.voices.find((v) => v.memberId === ownerMemberId);
-      if (existing) {
-        return {
-          ...loadedVoices,
-          voices: loadedVoices.voices.map((v) =>
-            v.memberId === ownerMemberId
-              ? { ...v, lines: [...retainedVoiceLines, ...v.lines] }
-              : v
-          ),
-        };
-      }
-      // Le titulaire n'apparaît pas dans les voix quand sa colonne ne portait
-      // AUCUNE phrase plate (`loadHouseholdVoices` saute les listes vides). Ses
-      // items structurés ne doivent pas disparaître pour autant.
-      const ownerName = members.find((m) => m.memberId === ownerMemberId)
-        ?.displayName ?? "";
-      return {
-        ...loadedVoices,
-        voices: [
-          ...loadedVoices.voices,
-          {
+    const voices: { voices: RawMemberVoice[]; reads: number; issues: string[] } =
+      retainedVoiceLines.length > 0 && ownerMemberId
+        ? {
+          voices: [{
             memberId: ownerMemberId,
-            displayName: ownerName,
+            displayName: members.find((m) => m.memberId === ownerMemberId)
+              ?.displayName ?? "",
             lines: retainedVoiceLines,
-          },
-        ],
-      };
-    })();
+          }],
+          reads: 0,
+          issues: [],
+        }
+        : { voices: [], reads: 0, issues: [] };
     if (retainedVoiceLines.length > 0 && !ownerMemberId) {
       // NOMMÉ: sans cette ligne, des consignes écrites par la personne qui
       // compose seraient tombées sans un mot.
@@ -4157,7 +4132,7 @@ Deno.serve(async (req) => {
       tag: "keel.household_meal.member_voices",
       user_id: userId,
       household_id: householdId,
-      accounts_at_table: voiceMembers.length,
+      accounts_at_table: accountsAtTable,
       with_lines: voices.voices.length,
       // ⚠️ `lines_raw`, ET LE NOM EST LE SUJET. Ce nombre est celui des lignes
       // AVANT les deux gardes — il ne dit PAS ce que le modèle a vu, et il
@@ -7484,7 +7459,7 @@ Deno.serve(async (req) => {
               // d'un lot débranché, et ce dépôt paie en boucle la garde
               // construite puis silencieusement débranchée.
               voices: {
-                accounts_at_table: voiceMembers.length,
+                accounts_at_table: accountsAtTable,
                 heard: household.voicesHeard,
                 lines_in: household.voiceCounts.linesIn,
                 lines_used: household.voiceCounts.linesUsed,
@@ -7861,7 +7836,7 @@ Deno.serve(async (req) => {
     //
     // ⚠️ CELLE DES AUTRES TITULAIRES N'A JAMAIS RIEN À ÉCRIRE (C4): leur
     // `actor` est `someone_else`, donc `pending` y vaut toujours `null`.
-    await persistReconciledFoodPreferences(foodPreferences.pending);
+    // ⛔ LOT C — RIEN À PERSISTER: la réconciliation n'a plus lieu.
 
     // ── LOT 2D · CE QUE LE MAÎTRE A DEMANDÉ SUR SON BROUILLON, RANGÉ ───────
     //

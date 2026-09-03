@@ -65,7 +65,13 @@ function spyWriters(
       setBody: make("setBody") as MouthWriters["setBody"],
       setHabits: make("setHabits") as MouthWriters["setHabits"],
       addAllergy: make("addAllergy") as MouthWriters["addAllergy"],
-      addRestriction: make("addRestriction") as MouthWriters["addRestriction"],
+      // ⟳ LOT C — `addRestriction` EST DEVENUE `addDislikes`, et ce n'est pas
+      // un renommage: elle écrivait dans `household_food_restrictions` (la
+      // table des interdits domestiques, avec son verrou de censure), elle
+      // écrit maintenant un `food.exclude` dans `retained_items`. Elle prend
+      // LA LISTE et plus un libellé — une écriture par mot ferait N
+      // lectures-modifications-écritures qui se disputeraient l'attente.
+      addDislikes: make("addDislikes") as MouthWriters["addDislikes"],
       setDiet: make("setDiet") as MouthWriters["setDiet"],
       // Les moments, depuis le 2026-08-19: la question a quitté l'étape 3 pour
       // la fiche. Branchée par défaut, même raison que le shaker.
@@ -133,7 +139,7 @@ describe("l'ordre des écritures est une garde", () => {
         "setTarget",
         "setHabits",
         "addAllergy",
-        "addRestriction",
+        "addDislikes",
         "setRhythm",
         "setDiet",
       ]);
@@ -298,7 +304,7 @@ describe("la marche 1 bis — une bouche qui EXISTE s'écrit quand même", () =>
       "setTarget",
       "setHabits",
       "addAllergy",
-      "addRestriction",
+      "addDislikes",
       "setRhythm",
       "setDiet",
     ]);

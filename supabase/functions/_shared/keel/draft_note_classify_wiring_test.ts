@@ -217,7 +217,13 @@ const CALL_HEADER = "if (draftNoteVerdict !== null) {";
 const VERDICT_DECL = "let draftNoteVerdict: DraftNoteVerdict | null = null;";
 const VERDICT_ASSIGN = "draftNoteVerdict = note;";
 const REFUSAL_GATE = "if (note.refusal !== null || note.usable === null) {";
-const PERSIST_PREFS = "await persistReconciledFoodPreferences(";
+// ⟳ LOT C — LE JALON DE « APRÈS L'ÉCRITURE » A CHANGÉ, PAS LA PROPRIÉTÉ.
+// C'était `await persistReconciledFoodPreferences(`, l'élagage du magasin plat,
+// qui se trouvait juste après l'écriture du plan. Ce magasin est fermé
+// (nomenclature §2.6) et son écrivain supprimé: le jalon est désormais
+// L'ÉCRITURE DU PLAN ELLE-MÊME, ce qui est plus direct et ne peut plus
+// disparaître sans que le produit disparaisse avec.
+const PLAN_WRITE = '"write_student_meal_plan"';
 const DRAFT_RETURN = "if (isDraft) {";
 
 // ---------------------------------------------------------------------------
@@ -267,18 +273,18 @@ function assertWiredCommon(src: string, lane: string): void {
   );
 
   // ── ④ APRÈS L'ÉCRITURE DU PLAN ─────────────────────────────────────────
-  const persist = src.indexOf(PERSIST_PREFS);
+  const planWrite = src.indexOf(PLAN_WRITE);
   assert(
-    persist !== -1,
-    `lane ${lane}: la réconciliation des goûts a disparu.`,
+    planWrite !== -1,
+    `lane ${lane}: l'écriture du plan a disparu — test à réviser.`,
   );
   assert(
-    persist < site,
+    planWrite < site,
     `LANE ${lane.toUpperCase()} — LE CLASSIFIEUR EST APPELÉ AVANT LA FIN DE ` +
-      `L'ÉCRITURE. Il doit tourner APRÈS L'ÉCRITURE DU PLAN, à côté de ` +
-      `\`persistReconciledFoodPreferences\`: tous les refus — les gardes de ` +
-      `fenêtre, le 409 de la base, une panne du modèle — sortent au-dessus de ` +
-      `ce point, et aucun d'eux ne doit laisser une envie rangée derrière lui.`,
+      `L'ÉCRITURE. Il doit tourner APRÈS L'ÉCRITURE DU PLAN: tous les refus — ` +
+      `les gardes de fenêtre, le 409 de la base, une panne du modèle — sortent ` +
+      `au-dessus de ce point, et aucun d'eux ne doit laisser une envie rangée ` +
+      `derrière lui.`,
   );
 
   const fields = callFields(src, lane);
@@ -439,9 +445,9 @@ const CUTS: readonly Cut[] = [
     apply: moveCallAbove((s) => s.lastIndexOf(DRAFT_RETURN)),
   },
   {
-    name: "l'appel remonte au-dessus de la réconciliation des goûts",
+    name: "l'appel remonte au-dessus de l'écriture du plan",
     expects: "AVANT LA FIN DE L'ÉCRITURE",
-    apply: moveCallAbove((s) => s.indexOf(PERSIST_PREFS)),
+    apply: moveCallAbove((s) => s.indexOf(PLAN_WRITE)),
   },
   {
     // Le contournement que le TYPE interdit, écrit à la main pour que la

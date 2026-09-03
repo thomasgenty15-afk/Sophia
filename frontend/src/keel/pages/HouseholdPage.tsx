@@ -54,6 +54,11 @@ import {
   type LiveInvitation,
 } from "../api/household";
 import { addDays } from "../api/dates";
+// ── LOT C · LE MAGASIN DES PRÉFÉRENCES, EN LECTURE ────────────────────────
+// L'écriture passe par `writtenDislikeWriter` (`api/mouthProfile`), qui adapte
+// le contrat « ça lève » de ce module au contrat « ça rend un refus » de cet
+// écran. La lecture, elle, n'a pas de refus à traduire.
+import { loadWrittenDislikes } from "../api/retainedItems";
 import {
   type AwayDay,
   EATING_OCCASIONS,
@@ -85,6 +90,7 @@ import {
   addShakerToMemberIntakes,
   loadMemberFixedIntakes,
   setMemberTarget,
+  writtenDislikeWriter,
 } from "../api/mouthProfile";
 import {
   ageStateOfTypedDate,
@@ -253,6 +259,17 @@ export default function HouseholdPage(): React.ReactElement {
   const [phase, setPhase] = React.useState<Loading>("loading");
   const [household, setHousehold] = React.useState<HouseholdView | null>(null);
   const [restrictions, setRestrictions] = React.useState<RestrictionView[]>([]);
+  /**
+   * LES DÉGOÛTS PAR BOUCHE — `food.exclude` `source=written`, lot C.
+   *
+   * ⚠️ UNE `Map` VIDE N'EST PAS « PAS LU », et ici ça ne coûte rien: la seule
+   * chose qui en dépend est la valeur SEMÉE d'un champ qui AJOUTE. Semer vide
+   * quelqu'un qui a des dégoûts ne les efface pas — la porte n'écrit que le
+   * delta, et le magasin dédoublonne à sujet égal.
+   */
+  const [dislikes, setDislikes] = React.useState<Map<string, string[]>>(
+    new Map(),
+  );
   const [allergies, setAllergies] = React.useState<AllergyView[]>([]);
   const [meal, setMeal] = React.useState<HouseholdMealView | null>(null);
   // `null` = pas encore lu. C'est la garde de montage: tant qu'on ne SAIT pas
@@ -430,6 +447,19 @@ export default function HouseholdPage(): React.ReactElement {
       setHousehold(hh);
       if (hh) {
         setRestrictions(await loadRestrictions());
+        // ── LOT C · LES DÉGOÛTS, DEPUIS LE MAGASIN DES PRÉFÉRENCES ────────
+        // ⛔ ET SURTOUT PAS DEPUIS `restrictions`. Le brouillon de la fiche
+        // était semé avec les RÈGLES DE MAISON (`restrictions.map(r => r.label)`);
+        // rouvrir la fiche et enregistrer aurait donc RECOPIÉ chaque interdit
+        // parental en préférence — une migration de données faite par accident,
+        // sur un sens (« goût » ou « interdit ») que personne ne peut déduire
+        // d'un libellé. Le sort des lignes existantes est une décision humaine.
+        //
+        // ⚠️ UNE SEULE LECTURE POUR TOUTE LA PAGE: le magasin vit sur la ligne
+        // de la personne qui compose, et le `subject` de chaque item dit de
+        // quelle bouche il parle. RLS ne rend que sa propre ligne, donc un
+        // membre lit `null` — et un membre n'ouvre pas la fiche des autres.
+        setDislikes(await loadWrittenDislikes(userId));
         setAllergies(await loadAllergies());
         setMeal(await loadHouseholdMeal(weekStart));
         setOwnerGoalRow(await hasOwnerGoalRow(userId));
@@ -766,7 +796,13 @@ export default function HouseholdPage(): React.ReactElement {
                             setShaker: (_memberId, shaker) =>
                               ownShakerWriter(userId)(shaker),
                             addAllergy,
-                            addRestriction,
+                            // ⟳ LOT C — LE DÉGOÛT VA DANS `retained_items`,
+                            // plus dans la table des interdits domestiques.
+                            // `userId` EST CELUI DE LA PERSONNE QUI COMPOSE:
+                            // le magasin vit sur SA ligne, et le sujet dit de
+                            // quelle bouche on parle.
+                            addDislikes: (id, labels) =>
+                              writtenDislikeWriter(userId, weekStart)(id, labels),
                             // Jamais appelé: la fenêtre ne montre pas le régime
                             // à qui a un compte, donc `diet` part `null`.
                             setDiet: setMemberDiet,
@@ -835,7 +871,8 @@ export default function HouseholdPage(): React.ReactElement {
                           shaker,
                         }),
                       addAllergy,
-                      addRestriction,
+                      addDislikes: (id, labels) =>
+                        writtenDislikeWriter(userId, weekStart)(id, labels),
                       setDiet: setMemberDiet,
                       setRhythm: setMemberRhythm,
                     }))}
@@ -846,6 +883,7 @@ export default function HouseholdPage(): React.ReactElement {
                 household={household}
                 todayLocalIso={weekStart}
                 restrictions={restrictions}
+                dislikes={dislikes}
                 allergies={allergies}
                 busy={busy}
                 mutedMembers={mutedMembers}
@@ -1762,9 +1800,18 @@ export function AddMouthForm(
  * quelle nature est cette contrainte.
  */
 function MembersCard(
-  { household, restrictions, allergies, busy, mutedMembers, rhythm, awayWindow, bodies, habits, invitations, onInvited, practicalConstraints, hasGoal, onSavedOwnConstraints, workLunch, workLunchError, onSaveWorkLunch, onSaveHabits, onSaveDiet, onSaveBody, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction, todayLocalIso }: {
+  { household, restrictions, dislikes, allergies, busy, mutedMembers, rhythm, awayWindow, bodies, habits, invitations, onInvited, practicalConstraints, hasGoal, onSavedOwnConstraints, workLunch, workLunchError, onSaveWorkLunch, onSaveHabits, onSaveDiet, onSaveBody, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction, todayLocalIso }: {
     household: HouseholdView;
     restrictions: RestrictionView[];
+    /**
+     * ⚠️ CE QUE LA BOUCHE N'AIME PAS — ET CE N'EST PAS `restrictions`.
+     * Une RÈGLE DE MAISON est une décision de la personne qui tient le foyer,
+     * étiquetée « pas servi ici, {prénom} l'a décidé »; un DÉGOÛT est une
+     * préférence de la bouche elle-même. Les confondre était le défaut fermé
+     * par le lot C: la fiche se semait avec les règles, et les réenregistrait
+     * en préférences au premier « Enregistrer ».
+     */
+    dislikes: Map<string, string[]>;
     allergies: AllergyView[];
     busy: boolean;
     /** `YYYY-MM-DD` local, descendu à chaque ligne — voir `MeCard`. */
@@ -1890,6 +1937,7 @@ function MembersCard(
                   viewerIsOwner={false}
                   allergies={allergies.filter((a) => a.memberId === m.memberId)}
                   restrictions={restrictions.filter((r) => r.memberId === m.memberId)}
+                  dislikes={dislikes.get(m.memberId) ?? []}
                   busy={busy}
                   // Le réglage de fusion est au maître: `null` = on ne montre
                   // pas un interrupteur dont on ignore la position, et celui-ci
@@ -1978,6 +2026,7 @@ function MembersCard(
             viewerIsOwner
             allergies={allergies.filter((a) => a.memberId === m.memberId)}
             restrictions={restrictions.filter((r) => r.memberId === m.memberId)}
+            dislikes={dislikes.get(m.memberId) ?? []}
             busy={busy}
             // D17 — `null` tant que le réglage n'est pas lu, et `null` aussi
             // quand la lecture a échoué: on ne montre pas un interrupteur dont
@@ -2588,7 +2637,7 @@ export function SheetFrame(
 }
 
 function MemberRow(
-  { member, isMe, viewerIsOwner, allergies, restrictions, busy, muted, rhythm, awayWindow, body, bodiesLoaded, habits, habitsLoaded, invitations, onInvited, practicalConstraints, hasGoal, onSavedOwnConstraints, workLunch, workLunchError, onSaveWorkLunch, onSaveHabits, onSaveDiet, onSaveBody, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction, todayLocalIso }: {
+  { member, isMe, viewerIsOwner, allergies, restrictions, dislikes, busy, muted, rhythm, awayWindow, body, bodiesLoaded, habits, habitsLoaded, invitations, onInvited, practicalConstraints, hasGoal, onSavedOwnConstraints, workLunch, workLunchError, onSaveWorkLunch, onSaveHabits, onSaveDiet, onSaveBody, onMute, onSaveAway, onSave, onRemove, onDetach, onAddAllergy, onRemoveAllergy, onAddRestriction, onRemoveRestriction, todayLocalIso }: {
     member: HouseholdMemberView;
     isMe: boolean;
     /**
@@ -2619,6 +2668,8 @@ function MemberRow(
     onSaveWorkLunch: (answer: WorkLunch) => Promise<{ ok: boolean; reason: string | null }>;
     allergies: AllergyView[];
     restrictions: RestrictionView[];
+    /** Ses `food.exclude` — voir `MembersCard`: ce n'est PAS `restrictions`. */
+    dislikes: string[];
     busy: boolean;
     /** `null` = rien de saisi. Voir `BodyFields`: la bouche a une part standard. */
     body: MemberBodyView | null;
@@ -2704,6 +2755,31 @@ function MemberRow(
   // LA NATURE EST DEMANDÉE, PAS DEVINÉE. Les deux libellés vont dans deux
   // tables différentes et n'ont pas le même effet sur le repas.
   const [kind, setKind] = React.useState<"allergy" | "house_rule">("allergy");
+  /**
+   * PEUT-ON POSER UN INTERDIT DE MAISON SUR CETTE BOUCHE ? — §8.5 règle 1.
+   *
+   * ⛔ `=== "minor"`, ET SURTOUT PAS `!== "adult"`. `unknown` (aucune date de
+   * naissance) doit être refusé DU CÔTÉ DU MAJEUR: « un produit où un adulte
+   * peut contrôler en silence l'alimentation d'un autre adulte est un outil de
+   * contrôle coercitif ». Un `!== "adult"` rouvrirait la porte sur toute bouche
+   * dont personne n'a tapé l'âge — c'est-à-dire le cas le plus courant, et
+   * exactement la cicatrice « ceinture armée sur coffre vide ».
+   *
+   * ⚠️ CE N'EST PAS LA GARDE, C'EST SON AFFICHAGE. La garde vit dans
+   * `keel_household_add_restriction` (migration `20260903180000`), qui refuse
+   * `not_a_minor`. Un écran qui cache un contrôle ne ferme rien: il rend le
+   * défaut plus difficile à voir. Les deux existent, et le refus a des mots.
+   */
+  const canSetHouseRule = member.ageState === "minor";
+  /**
+   * CE QUE LE BOUTON ÉCRIRA VRAIMENT.
+   *
+   * ⚠️ L'ÉTAT `kind` NE SE REMET PAS À ZÉRO TOUT SEUL quand la fiche change de
+   * bouche. Le dériver ici plutôt que de le corriger dans un effet évite
+   * l'instant — court, mais réel — où le formulaire montre « allergie » et le
+   * gestionnaire de clic tient encore « règle de maison ».
+   */
+  const effectiveKind = canSetHouseRule ? kind : "allergy";
   const [label, setLabel] = React.useState("");
   const [awayOpen, setAwayOpen] = React.useState(false);
   // L'ÂGE DES TROIS CHAMPS: la date tapée gagne sur ce que le roster a compris.
@@ -2743,10 +2819,15 @@ function MemberRow(
         shaker: null,
         allergies: allergies.map((a) => a.label),
         allergiesNone: false,
-        dislikes: restrictions.map((r) => r.label),
+        // ⛔ `dislikes`, JAMAIS `restrictions.map(r => r.label)`. Le brouillon
+        // se semait avec les RÈGLES DE MAISON: rouvrir la fiche et enregistrer
+        // recopiait chaque interdit parental en préférence de la bouche — une
+        // migration de données faite par accident, sur un sens qu'aucun libellé
+        // ne porte (le sort des lignes existantes est une décision humaine).
+        dislikes,
         diet: (member.diet ?? "") as MouthFormDraft["diet"],
       }),
-    [habits, allergies, restrictions, member.diet],
+    [habits, allergies, dislikes, member.diet],
   );
 
   /** Combien de moments sont marqués DANS la fenêtre — pour le bouton. */
@@ -3096,29 +3177,50 @@ function MemberRow(
               secret — pas qu'il puisse tout écrire. */}
           {viewerIsOwner ? (
           <div className="border-t border-line pt-3">
-            <Field
-              label={t("household.constraint.kind")}
-              hint={kind === "allergy"
-                ? t("household.constraint.kind.allergy_hint")
-                : t("household.constraint.kind.house_rule_hint")}
-            >
-              <select
-                className={inputClass}
-                value={kind}
-                onChange={(e) => setKind(e.target.value as "allergy" | "house_rule")}
-              >
-                <option value="allergy">{t("household.constraint.kind.allergy")}</option>
-                <option value="house_rule">
-                  {t("household.constraint.kind.house_rule")}
-                </option>
-              </select>
-            </Field>
+            {/* ── §8.5 RÈGLE 1 · LE CHOIX N'EXISTE QUE SUR UN ENFANT ─────
+                Sur une bouche majeure — ou dont personne n'a tapé la date de
+                naissance — il n'y a plus DEUX natures à distinguer: il n'y a
+                qu'une allergie. Le sélecteur disparaît donc au lieu de proposer
+                une option qui serait refusée par la base, et le champ dit
+                lui-même ce qu'il écrit. */}
+            {canSetHouseRule
+              ? (
+                <Field
+                  label={t("household.constraint.kind")}
+                  hint={kind === "allergy"
+                    ? t("household.constraint.kind.allergy_hint")
+                    : t("household.constraint.kind.house_rule_hint")}
+                >
+                  <select
+                    className={inputClass}
+                    value={kind}
+                    onChange={(e) => setKind(e.target.value as "allergy" | "house_rule")}
+                  >
+                    <option value="allergy">
+                      {t("household.constraint.kind.allergy")}
+                    </option>
+                    <option value="house_rule">
+                      {t("household.constraint.kind.house_rule")}
+                    </option>
+                  </select>
+                </Field>
+              )
+              : (
+                <Field
+                  label={t("household.constraint.kind.allergy")}
+                  hint={t("household.constraint.kind.allergy_hint")}
+                >
+                  <p className="text-xs leading-5 text-ink-soft">
+                    {t("household.constraint.house_rule_minor_only")}
+                  </p>
+                </Field>
+              )}
             <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
               <input
                 className={`${inputClass} min-w-0 flex-1`}
                 value={label}
                 maxLength={120}
-                placeholder={kind === "allergy"
+                placeholder={effectiveKind === "allergy"
                   ? t("household.allergy.placeholder")
                   : t("household.restriction.placeholder")}
                 onChange={(e) => setLabel(e.target.value)}
@@ -3128,11 +3230,17 @@ function MemberRow(
                 onClick={() => {
                   const value = label.trim();
                   setLabel("");
-                  if (kind === "allergy") onAddAllergy(value);
+                  // ⛔ `effectiveKind`, JAMAIS `kind`. L'état survit au
+                  // changement de bouche dans la liste: quelqu'un qui choisit
+                  // « règle de maison » sur son enfant puis ouvre la fiche d'un
+                  // adulte enverrait cette valeur sur la mauvaise porte, et
+                  // lirait un `not_a_minor` sur un formulaire qui ne montre
+                  // plus le choix.
+                  if (effectiveKind === "allergy") onAddAllergy(value);
                   else onAddRestriction(value);
                 }}
               >
-                {kind === "allergy"
+                {effectiveKind === "allergy"
                   ? t("household.allergy.add")
                   : t("household.restriction.add")}
               </Button>

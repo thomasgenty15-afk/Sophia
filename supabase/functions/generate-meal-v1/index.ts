@@ -43,8 +43,6 @@ import {
 import type { MealBodyContext } from "../_shared/keel/meal_body.ts";
 import { type WeeklyAxis, WEEKLY_AXES } from "../_shared/keel/weekly_flow.ts";
 import {
-  foodPreferencesByOrigin,
-  foodPreferencesForPrompt,
   // LOT 1C — `readRetainedItems` et PAS `retainedItemsFrom`: même magasin,
   // même lecture, mais l'enrobage rend en plus le compteur des lignes
   // REFUSÉES. Sans lui, « rien en base » et « rien de lisible » se ressemblent.
@@ -87,12 +85,6 @@ import {
   checkWrittenInstructions,
   silentInstructions,
 } from "../_shared/keel/written_instruction_check.ts";
-import {
-  // C6 ② — CALCULER ET PERSISTER SONT DEUX GESTES, ET LE SECOND ATTEND QUE
-  //         LA REQUÊTE ABOUTISSE.
-  persistReconciledFoodPreferences,
-  reconcileFoodPreferencesFor,
-} from "../_shared/keel/food_preference_promotion_io.ts";
 import {
   dayTokenInZone,
   localDateInZone,
@@ -403,52 +395,52 @@ function readPantry(raw: unknown, issues: string[]): PantryItem[] {
  * de cette phrase. Absent vaut mieux que faux.
  */
 /**
- * Ce que l'élève a dit de sa bouffe, SÉPARÉ PAR PROVENANCE: ce qu'il a tapé
- * lui-même d'un côté, ce que le memorizer a récolté et qu'il a confirmé de
- * l'autre (daté, le plus récent d'abord).
+ * CE QUE LA PERSONNE A DIT DE SA BOUFFE — **le magasin structuré, et lui seul**.
  *
- * La lecture, le tri et le plafond vivent dans `foodPreferencesByOrigin`, avec
- * le générateur de semaine: deux lectures différentes du même jsonb finiraient
- * par diverger, et c'est le genre de divergence qu'on ne voit qu'en relisant
- * deux prompts côte à côte.
- */
-function readFlatFoodPreferences(
-  pc: Record<string, unknown> | null,
-): { written: string[]; remembered: string[] } {
-  return foodPreferencesByOrigin(pc);
-}
-
-/**
- * LES DEUX MAGASINS, EN UNE SEULE LECTURE — lot 1C.
+ * ═══════════════════════════════════════════════════════════════════════════
+ * ⛔ LE MAGASIN PLAT N'ATTEINT PLUS LE PROMPT — lot C, 2026-09-03
+ * ═══════════════════════════════════════════════════════════════════════════
+ * `practical_constraints.food_preferences` était une liste de PHRASES PLATES,
+ * alimentée par le bouton « Keep » de `FoodPreferencesCard` depuis les
+ * souvenirs du chat. C'était une TROISIÈME SOURCE déguisée en bouton, à côté
+ * des deux que le produit reconnaît (le retour sur brouillon, le bilan) —
+ * nomenclature §2.1.
  *
- * ── POURQUOI LA FUSION EST ICI ET PAS AUX TROIS CALL SITES ────────────────
- * Cette fonction est appelée par la consigne, par la ceinture des consignes
- * écrites et par la correction. Fusionner à chaque endroit aurait fait trois
- * fusions à tenir d'accord — et c'est exactement la phrase qui justifie déjà
- * l'existence de cette fonction: « deux lectures différentes du même jsonb
- * finiraient par diverger ». Il y a maintenant deux jsonb; la raison n'a pas
- * changé, elle a doublé.
+ * ── LES TROIS DÉFAUTS MESURÉS QUE ÇA FERME ────────────────────────────────
+ * ① SANS POLARITÉ, SANS SUJET, SANS DATE FIABLE. Le générateur recevait tout
+ *   dans le désordre et devait deviner ce qui était une exclusion. C'est ce
+ *   qui a produit, en run réel, `["Aime le brocoli s'il est rôti.", "N'aime
+ *   pas le brocoli."]` DANS LE MÊME PROMPT.
+ * ② UN DOUBLON PAR CONSTRUCTION. « Je n'aime pas le brocoli » avait DEUX lits
+ *   — cette colonne et `food.exclude` — et les deux partaient au modèle. Deux
+ *   fois la même consigne, dans un prompt, la RENFORCE sans que personne ne
+ *   l'ait demandé.
+ * ③ AUCUNE CEINTURE EN SORTIE. Une phrase plate ne se vérifie pas sur le plan
+ *   rendu; `food_exclusion_belt.ts` ne lit que le magasin structuré, par bouche.
  *
- * ── L'ORDRE: LE STRUCTURÉ DEVANT ──────────────────────────────────────────
- * Le §7 de la nomenclature nomme les phrases plates « anciennes notes »: elles
- * n'ont ni `kind`, ni sujet, ni date fiable, et elles ne se reclassent que
- * quand la personne les édite. Le plafond de `foodPreferencesByOrigin` coupe
- * déjà par la queue AVANT d'arriver ici, donc ce qui tombe reste la plus
- * vieille récolte — jamais un item structuré.
+ * ⚠️ LA COLONNE N'EST NI EFFACÉE NI MIGRÉE, et c'est délibéré: elle reste
+ * LISIBLE sur « Ce que Sophia sait de toi » (section « Anciennes notes »), pour
+ * que la personne la RANGE (en préférence, avec un sujet) ou l'ENLÈVE. On ne
+ * reclasse pas rétroactivement des phrases sans `kind` — ce serait deviner à la
+ * place de quelqu'un qui a écrit pour de vrai (§7 de la nomenclature).
  *
- * ⚠️ `retained` EST REQUIS, JAMAIS OPTIONNEL. « Paramètre de garde optionnel =
- * garde désarmée » est une cicatrice de ce dépôt: facultatif, il aurait laissé
- * un call site oublié rendre exactement le produit d'hier, sans qu'un seul
- * test rougisse.
+ * ── L'ORDRE, INCHANGÉ ─────────────────────────────────────────────────────
+ * `written` (ce que la personne a TAPÉ) et `remembered` (les trois producteurs
+ * automatiques, datés) restent DEUX seaux: `buildMealPrompt` les dit
+ * différemment au modèle, et « une consigne écrite ne s'arbitre pas comme un
+ * goût confirmé d'un bouton ».
+ *
+ * ⚠️ CETTE FONCTION RESTE, ET C'EST VOULU. Elle a trois appelants (la consigne,
+ * la ceinture des consignes écrites, la correction); les faire lire
+ * `retainedComposition` en direct ferait trois lectures à tenir d'accord le jour
+ * où un troisième magasin apparaît.
  */
 function readFoodPreferences(
-  pc: Record<string, unknown> | null,
   retained: CompositionLines,
 ): { written: string[]; remembered: string[] } {
-  const flat = readFlatFoodPreferences(pc);
   return {
-    written: [...retained.written, ...flat.written],
-    remembered: [...retained.remembered, ...flat.remembered],
+    written: [...retained.written],
+    remembered: [...retained.remembered],
   };
 }
 
@@ -865,17 +857,19 @@ Deno.serve(async (req) => {
     // persistance part plus bas, une fois le plan écrit
     // (`persistReconciledFoodPreferences`). Un refus, une panne de modèle ou un
     // 409 de la base laissent désormais la ligne intacte.
-    const foodPreferences = await reconcileFoodPreferencesFor({
-      admin,
-      userId,
-      constraints: (goalRow.practical_constraints ?? {}) as Record<string, unknown>,
-      source: FN_NAME,
-      // C4 — la lane individuelle: `userId` est le compte authentifié et cette
-      // ligne est la sienne. Sa propre correction s'écrit, comme avant — plus
-      // tard, mais elle s'écrit.
-      actor: "row_owner",
-    });
-    goalRow.practical_constraints = foodPreferences.constraints;
+    // ⛔ LOT C — PLUS AUCUNE RÉCONCILIATION DU MAGASIN PLAT ICI.
+    //
+    // `reconcileFoodPreferencesFor` relisait `memory_items` À CHAQUE
+    // GÉNÉRATION pour retirer de `food_preferences` ce que la mémoire avait
+    // démenti. Ce travail n'a plus d'objet: la colonne n'atteint plus le prompt
+    // (voir `readFoodPreferences`), donc il n'y a plus rien à corriger AVANT de
+    // composer — et la lecture de `memory_items` disparaît de cette lane.
+    //
+    // ⚠️ CE QUE ÇA COÛTE, ÉCRIT ICI: la colonne cesse de se nettoyer toute
+    // seule. Elle ne bouge plus que depuis la carte, où la personne la range ou
+    // l'enlève — ce qui est exactement ce que le §7 de la nomenclature prévoit
+    // pour des phrases sans `kind`. Rien ne grossit: plus personne n'y écrit
+    // non plus (le pont « Keep » est démonté au même lot).
 
     // --- LA MÉTHODE DU COACH ----------------------------------------------
     //
@@ -1474,6 +1468,22 @@ Deno.serve(async (req) => {
         retainedLogistics.otherSubjects.length +
         retainedRhythm.otherSubjects.length +
         retainedCravings.otherSubjects.length,
+      // ══ LOT C · LE COMPTEUR DE FIN DE VIE DE DEUX FAMILLES ══════════════
+      //
+      // `rhythm.set` et `logistics.set` N'ONT PLUS D'ÉCRIVAIN: le lot M5 a
+      // retiré la cellule à `questionnaire` et à `draft_note` (le bilan écrit
+      // le CHAMP), et la carte ne les propose plus au « Ranger dans ». Ce
+      // lecteur-ci est gardé UN CYCLE pour les lignes déjà en base.
+      //
+      // ⚠️ CE N'EST PAS UNE TRACE DE PLUS, C'EST LA MESURE QUI DÉCIDE. Zéro sur
+      // la campagne ⇒ les deux lecteurs partent. Sans ce compteur, la question
+      // « est-ce que quelqu'un s'en sert encore ? » n'aurait pour réponse
+      // qu'une intuition, et le chemin resterait pour toujours « au cas où ».
+      //
+      // ⛔ IL COMPTE CE QUI A GAGNÉ, pas ce qui a été lu: une ligne écartée
+      // parce qu'elle parle d'une autre bouche est déjà dans `other_subjects`.
+      rhythm_served: retainedRhythm.served,
+      logistics_served: retainedLogistics.served,
       // ⛔ `next_plan_channel` A ÉTÉ RETIRÉ ICI, PAS CORRIGÉ (lot 1J). Il valait
       // `householdId ? "household" : "none"` et séparait « aucun canal » de
       // « canal vide ». Le déménagement (§7.2) a supprimé le premier cas: un
@@ -2117,10 +2127,7 @@ Deno.serve(async (req) => {
       // LOT 1C — la lecture porte désormais LES DEUX MAGASINS: les phrases
       // plates de la colonne, et les `food.*` / `method.*` retenus. Voir
       // `readFoodPreferences` pour l'ordre et pour le motif.
-      foodPreferences: readFoodPreferences(
-        goalRow.practical_constraints as Record<string, unknown> | null,
-        retainedComposition,
-      ).remembered,
+      foodPreferences: readFoodPreferences(retainedComposition).remembered,
       // CE QU'IL A TAPÉ LUI-MÊME. Séparé, parce que le rang est la moitié du
       // message: une consigne écrite ne s'arbitre pas comme un goût confirmé
       // d'un bouton. Voir le bloc `-- WHAT THEY HAVE TOLD ME --`.
@@ -2128,10 +2135,7 @@ Deno.serve(async (req) => {
       // LOT 1C — même lecture, même ordre: ce que la personne a tapé DANS SA
       // CARTE (`source: "written"`) est une consigne, exactement comme les
       // lignes tapées dans l'ancien champ.
-      writtenInstructions: readFoodPreferences(
-        goalRow.practical_constraints as Record<string, unknown> | null,
-        retainedComposition,
-      ).written,
+      writtenInstructions: readFoodPreferences(retainedComposition).written,
       // ── LOT M4 · LE MÉMO — ce qu'aucune famille ne porte ────────────────
       //
       // ⛔ IL DOIT ATTEINDRE LE PROMPT, sinon c'est un magasin de plus que
@@ -2904,12 +2908,13 @@ Deno.serve(async (req) => {
           // corrigerait CONTRE une exclusion que le prompt vient d'annoncer:
           // c'est exactement le défaut que la ligne au-dessus décrit, sur le
           // second magasin.
+          // ⛔ LOT C — LE MAGASIN PLAT N'ENTRE PLUS. La correction lisait
+          // les deux magasins pour ne pas corriger CONTRE une exclusion que le
+          // prompt venait d'annoncer; le prompt n'annonce plus que le
+          // structuré, donc la correction lit exactement ce qu'il a lu.
           foodPreferences: [
             ...retainedComposition.written,
             ...retainedComposition.remembered,
-            ...foodPreferencesForPrompt(
-              goalRow.practical_constraints as Record<string, unknown> | null,
-            ),
           ],
         },
         coverageFloorHit: measured.coverage.floorHit,
@@ -3213,10 +3218,7 @@ Deno.serve(async (req) => {
     // plan avale en silence doit se compter comme n'importe quelle autre: la
     // servir au modèle sans la vérifier ferait deux régimes de contrôle pour
     // une seule promesse.
-    const writtenForCheck = readFoodPreferences(
-      goalRow.practical_constraints as Record<string, unknown> | null,
-      retainedComposition,
-    ).written;
+    const writtenForCheck = readFoodPreferences(retainedComposition).written;
     if (writtenForCheck.length > 0) {
       const swallowed = silentInstructions(
         checkWrittenInstructions({
@@ -4146,7 +4148,8 @@ Deno.serve(async (req) => {
     // ⚠️ ELLE NE PEUT PAS FAIRE ÉCHOUER LA RÉPONSE: la fonction avale ses
     // erreurs et journalise. Le plan est déjà écrit; personne ne perd son dîner
     // parce qu'une préférence rétractée n'a pas pu être effacée.
-    await persistReconciledFoodPreferences(foodPreferences.pending);
+    // ⛔ LOT C — RIEN À PERSISTER: la réconciliation n'a plus lieu (voir
+    // `readFoodPreferences`). L'appel partait ici, après l'écriture du plan.
 
     // ── LOT 2D · CE QUE LA PERSONNE A DEMANDÉ SUR SON BROUILLON, RANGÉ ─────
     //

@@ -305,6 +305,28 @@ export type RhythmOverlay = {
   readonly absent: readonly RhythmOccasion[];
   /** Les `rhythm.set` d'une bouche dont ce prompt ne parle pas. Comptés. */
   readonly otherSubjects: readonly RetainedItem[];
+  /**
+   * ══ LOT C · LE COMPTEUR DE FIN DE VIE ══════════════════════════════════
+   *
+   * Combien d'items de cette famille ont VRAIMENT changé quelque chose sur ce
+   * tour — pas combien ont été lus, pas combien existent: combien ont GAGNÉ.
+   *
+   * ⚠️ IL N'EST PAS LÀ POUR LA TRACE, IL EST LÀ POUR DÉCIDER. Le lot M5 a
+   * retiré à `questionnaire` et à `draft_note` le droit d'écrire `rhythm.set`
+   * et `logistics.set`: le bilan écrit désormais le CHAMP, et la carte ne
+   * propose plus ces deux familles au « Ranger dans ». Cette famille n'a donc
+   * plus AUCUN écrivain — il ne reste que des lignes déjà en base.
+   *
+   * Ce lecteur est gardé UN CYCLE pour elles. Si ce compteur rend zéro sur la
+   * campagne, il part — et un lecteur retiré sur une mesure vaut mieux qu'un
+   * lecteur gardé « au cas où », qui est la façon dont ce dépôt accumule des
+   * chemins que plus personne n'ose toucher.
+   *
+   * ⛔ `served` NE COMPTE PAS `otherSubjects`: une ligne écartée parce qu'elle
+   * parle d'une autre bouche n'a rien servi. La confondre avec un service
+   * ferait garder le lecteur pour des lignes qu'il n'applique jamais.
+   */
+  readonly served: number;
 };
 
 /**
@@ -357,7 +379,11 @@ export function rhythmOverlayFor(args: {
     if (winner.present) present.push(occasion);
     else absent.push(occasion);
   }
-  return { present, absent, otherSubjects };
+  // ⚠️ `winners.size`, ET PAS `present.length + absent.length`. Les deux sont
+  // égaux aujourd'hui; ils cesseraient de l'être le jour où un moment gagnant
+  // ne tomberait dans aucune des deux listes, et c'est le SERVICE qu'on compte,
+  // pas ce qu'on a réussi à en afficher.
+  return { present, absent, otherSubjects, served: winners.size };
 }
 
 // ===========================================================================
@@ -374,6 +400,8 @@ export type LogisticsOverlay = {
   readonly patch: Readonly<Record<string, unknown>>;
   /** Les `logistics.set` d'une bouche dont ce prompt ne parle pas. Comptés. */
   readonly otherSubjects: readonly RetainedItem[];
+  /** Voir `RhythmOverlay.served` — le compteur de fin de vie du lot C. */
+  readonly served: number;
 };
 
 /**
@@ -425,7 +453,8 @@ export function logisticsOverlayFor(args: {
 
   const patch: Record<string, unknown> = {};
   for (const [field, winner] of winners) patch[field] = winner.value;
-  return { patch, otherSubjects };
+  // Voir `RhythmOverlay.served`: même compteur, même raison, même sort.
+  return { patch, otherSubjects, served: winners.size };
 }
 
 // ===========================================================================

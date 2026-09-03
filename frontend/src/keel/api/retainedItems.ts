@@ -1177,21 +1177,21 @@ export function portionIndexFor(
 }
 
 /**
- * LA PHRASE, ou `null` au milieu.
+ * ⟳ `portionIndexLabelKey` A DÉMÉNAGÉ DANS `KnownAboutYouCard.tsx` (lot C).
  *
- * ⛔ AUCUN CHIFFRE. La personne a dit « un peu trop »; on lui rend un adverbe,
- * pas un pourcentage qu'elle n'a jamais demandé — même règle que le reste de
- * cette carte, où aucun gramme ne passe.
+ * ⚠️ CE N'EST PAS UN RANGEMENT, C'EST UNE COUTURE i18n. Cette fonction était
+ * la SEULE chose de ce module à contenir des clés de traduction
+ * (`known.index.portions.*`). Or `pageSeams.int.test.ts` marche le graphe
+ * d'imports de chaque route et refuse qu'une page ATTEIGNE un namespace
+ * qu'elle n'a pas déclaré — « un namespace atteint mais non déclaré est une
+ * couture EN PUISSANCE ». Le lot C fait importer ce module par `/app/setup` et
+ * `/app/household` (les dégoûts d'une bouche y sont écrits et relus), et les
+ * deux pages se sont donc mises à atteindre `known.*` sans le déclarer.
+ *
+ * Le remède n'est pas de déclarer le namespace sur deux pages qui n'en rendent
+ * aucune clé: c'est de rendre à la CARTE ce qui est de la copie. Un module
+ * d'API porte des faits; il ne porte pas les mots qu'on en dit.
  */
-export function portionIndexLabelKey(index: PortionIndex): string | null {
-  if (index.answers === 0 || index.position === 0) return null;
-  const strong = Math.abs(index.position) >= INDEX_MAX;
-  if (index.position < 0) {
-    return strong ? "known.index.portions.down_strong" : "known.index.portions.down";
-  }
-  return strong ? "known.index.portions.up_strong" : "known.index.portions.up";
-}
-
 /**
  * ⛔ LE CENTRE DE NOTIFICATIONS — lot M2. Et c'est une **VUE**, pas un magasin.
  *
@@ -2283,6 +2283,167 @@ export async function loadKnownRoster(): Promise<KnownMouth[]> {
       displayName: String(row.first_name ?? "").trim() || "—",
       ageState: age === "minor" || age === "adult" ? age : "unknown",
     });
+  }
+  return out;
+}
+
+// ===========================================================================
+// LOT C · LE DÉGOÛT D'UNE BOUCHE S'ÉCRIT ICI, ET PLUS DANS LA TABLE DES RÈGLES
+// ===========================================================================
+
+/**
+ * « Tom n'aime pas le poisson » → un `food.exclude` sur Tom, écrit à la main.
+ *
+ * ── LE DÉFAUT QUE ÇA FERME, ET IL SE LIT DANS LE PLAN ─────────────────────
+ * Le champ « Aliments refusés » de la fiche d'une bouche écrivait dans
+ * `household_food_restrictions` — la table des **règles de maison**, celle dont
+ * `household_restriction_lock.ts` CENSURE le « pourquoi » des plats. C'est-à-
+ * dire qu'un dégoût déclaré par la personne elle-même devenait une décision
+ * domestique qu'il fallait cacher: le plan n'a plus le droit de dire pourquoi
+ * il ne sert pas de poisson, alors que personne n'avait rien à cacher.
+ *
+ * Et il en découlait un DOUBLON par construction: la même phrase pouvait vivre
+ * dans la table des règles ET dans `retained_items` (posée depuis la carte ou
+ * par un bilan), et les deux atteignaient le modèle.
+ *
+ * ── CE QUE ÇA BRANCHE, ET QUI EXISTAIT DÉJÀ ───────────────────────────────
+ * `exclusionTermsFor` (socle) filtre sur `item.subject` et déplie les mots de
+ * CATÉGORIE dans un seul sens: « pas de poisson » mord sur un saumon, « pas de
+ * saumon » ne ferme pas le poisson. La ceinture par bouche était donc armée
+ * AVANT ce lot; il lui manquait l'écrivain que voici.
+ *
+ * ⚠️ `source: "written"` ET PAS `questionnaire`. C'est la personne (ou celle
+ * qui tient la maison) qui TAPE, dans un champ, ce qu'elle veut voir écrit.
+ * `canProduce("written", …)` est vrai pour toute famille — la ligne est donc
+ * légale par la même matrice que la carte, sans exception à écrire.
+ *
+ * ⚠️ `scope` VIENT DE `defaultScopeFor`, jamais d'un littéral: un dégoût est
+ * durable, mais c'est la nomenclature qui le dit, et à un seul endroit.
+ *
+ * ⛔ CE QUI N'EST PAS ÉCRIT ICI: une allergie, une intolérance, un régime, un
+ * interdit médical. Ils ont leur table, leur consentement et leur verrou — la
+ * sécurité reste HORS des trois destinations (nomenclature §2, en tête).
+ */
+export async function addWrittenFoodExclusions(args: {
+  readonly userId: string;
+  readonly memberId: string;
+  readonly foods: readonly string[];
+  readonly todayLocalIso: string;
+}): Promise<void> {
+  const subject = memberSubject(args.memberId);
+  if (subject === null) {
+    throw new Error(
+      "[keel/api] addWrittenFoodExclusions: `memberId` n'est pas un uuid — " +
+        "écrire un sujet difforme rendrait la ligne INVISIBLE à la ceinture, " +
+        "qui compare le sujet caractère par caractère.",
+    );
+  }
+  // ⚠️ ON NORMALISE POUR COMPARER, ON GARDE POUR AFFICHER. Le `text` est ce
+  // que la personne relira sur sa carte; la clé sert au seul dédoublonnage.
+  const wanted = new Map<string, string>();
+  for (const raw of args.foods) {
+    const label = String(raw ?? "").trim();
+    if (label === "") continue;
+    const key = label.toLocaleLowerCase();
+    if (!wanted.has(key)) wanted.set(key, label);
+  }
+  if (wanted.size === 0) return;
+
+  const store = await loadKnownStore(args.userId);
+  if (!store.hasGoal) {
+    throw new Error(
+      "[keel/api] addWrittenFoodExclusions: aucune ligne `student_goals` où " +
+        "écrire. L'appelant doit la créer avant (c'est la ligne de la personne " +
+        "qui compose, pas celle de la bouche).",
+    );
+  }
+  // ⛔ LE REFUS D'UN MAGASIN ILLISIBLE REMONTE, il ne s'écrase pas. Écrire
+  // par-dessus un jsonb qu'on n'a pas su relire détruirait ce qu'il portait.
+  const opaque = opaqueStoreRefusal(store);
+  if (opaque !== null) throw new KnownWriteError("write_failed", opaque);
+
+  // ⚠️ LE DÉDOUBLONNAGE EST UNE ÉGALITÉ, JAMAIS UNE RESSEMBLANCE. « Ne jamais
+  // écrire un matcher maison ici »: « laitue » et « lait » se ressemblent, et
+  // une comparaison approximative avalerait le second en croyant tenir le
+  // premier. On compare donc le texte normalisé, à sujet égal, et rien de plus.
+  const already = new Set(
+    store.items
+      .filter((it) => it.kind === "food.exclude" && it.subject === subject)
+      .map((it) => it.text.trim().toLocaleLowerCase()),
+  );
+  // ⚠️ LA PORTÉE SE DEMANDE, ELLE NE S'ÉCRIT PAS. `null` voudrait dire que
+  // `written × food.exclude` n'est pas une cellule légale — impossible
+  // aujourd'hui (`canProduce("written", …)` est vrai partout), et c'est
+  // précisément pour ça qu'on ne le suppose pas: le jour où la matrice bouge,
+  // cette porte doit s'arrêter, pas écrire une portée inventée.
+  const scope = defaultScopeFor("written", "food.exclude");
+  if (scope === null) {
+    throw new Error(
+      "[keel/api] addWrittenFoodExclusions: `written × food.exclude` n'est " +
+        "plus une cellule productible (nomenclature §5).",
+    );
+  }
+  const additions: RetainedItem[] = [];
+  for (const [key, label] of wanted) {
+    if (already.has(key)) continue;
+    additions.push({
+      kind: "food.exclude",
+      scope,
+      subject,
+      source: "written",
+      text: label,
+      at: args.todayLocalIso,
+      item: "",
+      confidence: null,
+      // `null` — et c'est un des deux cas légitimes nommés par `quote`: le
+      // `text` EST la phrase de la personne, la citer deux fois n'ajoute rien.
+      quote: null,
+      // ⚠️ REQUIS, ET `null` EST SA VALEUR POUR CETTE FAMILLE. Le champ porte
+      // la donnée structurée d'un `portion.adjust` ou d'un `rhythm.set`; une
+      // exclusion n'en a pas, et le type l'exige quand même pour qu'aucune
+      // famille ne puisse en porter une par accident.
+      value: null,
+    });
+  }
+  if (additions.length === 0) return;
+
+  await persistKnownStore({
+    store,
+    items: [...store.items, ...additions],
+    nextPlan: store.nextPlan,
+    // ⛔ `null` — ON NE TOUCHE PAS AUX ANCIENNES NOTES. Le magasin plat est une
+    // archive gelée depuis le lot C; passer un couple ici le réécrirait pour
+    // rien, et un couple incomplet ferait refuser toute l'écriture.
+    notes: null,
+  });
+}
+
+/**
+ * QUI N'AIME PAS QUOI, PAR BOUCHE — la lecture jumelle de
+ * `addWrittenFoodExclusions`.
+ *
+ * ⚠️ TOUTES LES SOURCES, PAS SEULEMENT `written`. La carte d'une bouche montre
+ * ce que Sophia SAIT d'elle; un `food.exclude` posé par un bilan de fin de plan
+ * (lot B) compte autant qu'un mot tapé dans la fiche. Ne rendre que le `written`
+ * ferait réapparaître dans le champ un aliment déjà exclu, et la personne
+ * l'écrirait une seconde fois pour rien.
+ *
+ * ⚠️ RENDU PAR `member_id`, PAS PAR SUJET BRUT. Les lignes de sujet `household`
+ * ne sont PAS ici: elles ne concernent pas une bouche en particulier, et les
+ * semer dans la fiche de chacun ferait croire que tout le monde les a dites.
+ */
+export async function loadWrittenDislikes(
+  userId: string,
+): Promise<Map<string, string[]>> {
+  const store = await loadKnownStore(userId);
+  const out = new Map<string, string[]>();
+  for (const item of store.items) {
+    if (item.kind !== "food.exclude") continue;
+    const memberId = subjectMemberId(item.subject);
+    if (memberId === null) continue;
+    const list = out.get(memberId) ?? [];
+    list.push(item.text);
+    out.set(memberId, list);
   }
   return out;
 }

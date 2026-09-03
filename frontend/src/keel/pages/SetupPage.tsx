@@ -151,6 +151,7 @@ import {
   type MemberTargetView,
   setMemberTarget,
   setOwnTarget,
+  writtenDislikeWriter,
 } from "../api/mouthProfile";
 import { chooseGenerator } from "../api/planRouting";
 import {
@@ -165,7 +166,6 @@ import {
 } from "../api/mealWindow";
 import { type AwayDay, type EatingOccasionSlot } from "../api/mealGeneration";
 import {
-  addRestriction,
   // LE MÊME ÉCRIVAIN QUE `MealBuilder`, appelé — jamais un second.
   ENVY_MAX_CHARS,
   loadEnvyLine,
@@ -1917,12 +1917,19 @@ export default function SetupPage() {
         );
         // ⚠️ LE DELTA, PAS LA LISTE. La porte n'a que `add` — « Continuer »
         // appuyé deux fois écrirait deux fois le même dégoût.
+        // ⟳ LOT C — UNE PRÉFÉRENCE, PLUS UNE RÈGLE DE MAISON, et une seule
+        // écriture au lieu d'une par mot: la porte fait maintenant une
+        // lecture-modification-écriture du magasin avec `expected`, où N
+        // appels se disputeraient l'attente les uns des autres.
         const already = writtenDislikes.current.get(memberId) ?? new Set();
-        for (const label of draft.dislikes) {
-          if (already.has(label)) continue;
-          const res = await addRestriction(memberId, label);
+        const fresh = draft.dislikes.filter((label) => !already.has(label));
+        if (fresh.length > 0) {
+          const res = await writtenDislikeWriter(userId, browserLocalDate())(
+            memberId,
+            fresh,
+          );
           if (!res.ok) throw new Error(res.reason);
-          already.add(label);
+          for (const label of fresh) already.add(label);
         }
         writtenDislikes.current.set(memberId, already);
       }
@@ -2207,12 +2214,17 @@ export default function SetupPage() {
       habits?.get(memberId)?.note ?? null,
     );
     if (!written.ok) throw new Error(written.reason);
+    // ⟳ LOT C — voir `saveSelf`: un `food.exclude` sur cette bouche, écrit sur
+    // la ligne de la personne qui compose, en une seule écriture.
     const already = writtenDislikes.current.get(memberId) ?? new Set<string>();
-    for (const label of draft.dislikes) {
-      if (already.has(label)) continue;
-      const res = await addRestriction(memberId, label);
+    const fresh = draft.dislikes.filter((label) => !already.has(label));
+    if (fresh.length > 0) {
+      const res = await writtenDislikeWriter(userId, browserLocalDate())(
+        memberId,
+        fresh,
+      );
       if (!res.ok) throw new Error(res.reason);
-      already.add(label);
+      for (const label of fresh) already.add(label);
     }
     writtenDislikes.current.set(memberId, already);
     // ⛔ LES DEUX PORTES QUI REFUSENT `has_account` SONT SAUTÉES, PAS TENTÉES.

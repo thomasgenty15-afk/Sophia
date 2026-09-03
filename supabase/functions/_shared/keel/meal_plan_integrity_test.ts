@@ -740,68 +740,110 @@ for (const fn of ["generate-meal-v1", "generate-household-meal-v1"]) {
 // la seule chose qui l'attrape.
 // ===========================================================================
 
+// ⟳ LOT C (2026-09-03) — CE BLOC A CHANGÉ DE PROPRIÉTÉ, ET LA RAISON EST QUE
+// L'ÉCRITURE A DISPARU. C6 ② tenait un ORDRE: la correction de goût se calcule
+// avant le modèle, et se PERSISTE après l'écriture du plan — sans quoi la ligne
+// de la personne bouge sur une requête qu'elle voit échouer.
+//
+// Cette écriture était `persistReconciledFoodPreferences`, l'élagage du magasin
+// PLAT. Le lot C ferme ce magasin (nomenclature §2.1, §2.6): plus aucun
+// générateur n'y écrit, donc l'ordre n'a plus d'objet — et le mode d'échec
+// qu'il gardait devient IMPOSSIBLE, ce qui est plus fort qu'un ordre tenu.
+//
+// ⛔ LE TEST N'EST PAS SUPPRIMÉ AVEC L'ÉCRITURE. Il devient la garde de
+// l'absence: un générateur qui se remet à MUTER `student_goals` rouvrirait
+// exactement le défaut mesuré (« la ligne bouge sur une requête échouée »), et
+// il n'y aurait plus rien pour le dire.
 for (
-  const [fn, planWrite] of [
-    ["generate-meal-v1", '"write_student_meal_plan"'],
-    ["generate-household-meal-v1", '"write_student_meal_plan"'],
-  ] as const
+  const fn of ["generate-meal-v1", "generate-household-meal-v1"] as const
 ) {
-  Deno.test(`C6 ② — la correction de goût s'écrit APRÈS le plan — ${fn}`, async () => {
+  Deno.test(`LOT C — ${fn} LIT \`student_goals\`, IL NE L'ÉCRIT PLUS`, async () => {
     const src = await edgeSource(fn);
 
-    const reconcile = src.indexOf("await reconcileFoodPreferencesFor({");
-    assert(reconcile >= 0, `${fn}: la réconciliation a disparu — test à réviser`);
+    // ⚠️ COMMENTAIRES RETIRÉS POUR CETTE MOITIÉ, ET PAS POUR L'AUTRE.
+    // « Audit d'appelants: retirer les commentaires » est une cicatrice de ce
+    // dépôt — ici elle joue à l'ENVERS: les gros commentaires des deux
+    // générateurs EXPLIQUENT la fermeture et nomment donc les symboles retirés.
+    // Un `includes` sur la source brute rendrait ROUGE un produit correct, et
+    // la réparation évidente serait d'effacer l'explication. Les positions,
+    // elles, se lisent sur la source BRUTE: décaler des index sur une copie
+    // amputée comparerait des offsets de deux fichiers différents.
+    const code = src
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/(^|[^:])\/\/[^\n]*/g, "$1");
+    for (
+      const forbidden of [
+        "persistReconciledFoodPreferences",
+        "reconcileFoodPreferencesFor",
+      ]
+    ) {
+      assert(
+        !code.includes(forbidden),
+        `${fn}: le magasin plat a retrouvé un écrivain (\`${forbidden}\`). ` +
+          `Il est fermé: une phrase sans \`kind\`, sans sujet et sans date ` +
+          `repartirait au modèle à côté de sa jumelle structurée.`,
+      );
+    }
 
-    const persist = src.indexOf("await persistReconciledFoodPreferences(");
+    // ── L'ABSENCE DE MUTATION, MESURÉE SUR CHAQUE ACCÈS ──────────────────
+    // ⚠️ PAS `!src.includes(".update(")`: le générateur écrit BEAUCOUP de
+    // tables (le plan, la trace, les boîtes). Ce qu'on interdit est une
+    // mutation de LA LIGNE DE LA PERSONNE, donc on regarde ce qui suit chaque
+    // accès à cette table-là, et rien d'autre.
+    let accesses = 0;
+    let at = code.indexOf('.from("student_goals")');
+    while (at >= 0) {
+      accesses++;
+      const chain = code.slice(at, at + 400);
+      for (const mutation of [".update(", ".upsert(", ".insert(", ".delete("]) {
+        assert(
+          !chain.includes(mutation),
+          `${fn}: un accès à \`student_goals\` mute la ligne (\`${mutation}\`). ` +
+            `C'est le défaut mesuré de C6 ②: la ligne de la personne bouge sur ` +
+            `une requête qu'elle voit échouer — et cette fois sans même un ` +
+            `ordre à respecter, puisque plus rien ne le vérifie.`,
+        );
+      }
+      at = code.indexOf('.from("student_goals")', at + 1);
+    }
+
+    // LE CAS QUI PASSE. Sans lui, la garde ci-dessus serait verte sur un
+    // générateur qui ne toucherait plus DU TOUT à la ligne de la personne —
+    // c'est-à-dire qui aurait perdu ses contraintes, son objectif et son
+    // rythme, en silence.
     assert(
-      persist >= 0,
-      `${fn}: la correction n'est JAMAIS persistée. La ligne de la personne ` +
-        `garde indéfiniment une préférence qu'elle a démentie — et la carte, ` +
-        `l'export RGPD et les deux autres générateurs continuent de la montrer.`,
+      accesses > 0,
+      `${fn}: la ligne \`student_goals\` n'est plus lue du tout: le plan se ` +
+        `compose sans objectif, sans contraintes et sans rythme.`,
     );
 
-    // ① LE CALCUL RESTE EN AMONT: il alimente le prompt, et il doit précéder
-    //    la construction du prompt comme avant ce lot.
+    // ── ET L'ÉCRITURE DU PLAN EST TOUJOURS EN AVAL DU MODÈLE ─────────────
+    // La moitié de C6 ② qui garde encore quelque chose: le plan s'écrit après
+    // que le modèle a répondu, jamais avant.
     const model = src.indexOf("generateWithGemini(");
+    const write = src.indexOf('"write_student_meal_plan"');
     assert(model >= 0, `${fn}: appel modèle introuvable — test à réviser`);
-    assert(
-      reconcile < model,
-      `${fn}: la réconciliation est passée APRÈS le modèle: le prompt sert de ` +
-        `nouveau une préférence que la personne a rétractée.`,
-    );
-
-    // ② ET L'ÉCRITURE EST EN AVAL DU PLAN. C'est le lot: un refus, une panne
-    //    de modèle ou un 409 de la base laissent `student_goals` intacte.
-    const write = src.indexOf(planWrite);
     assert(write >= 0, `${fn}: écriture du plan introuvable — test à réviser`);
     assert(
-      persist > write,
-      `${fn}: la correction se persiste AVANT que le plan soit écrit. C'est le ` +
-        `défaut mesuré: la ligne bouge sur une requête que l'utilisateur voit ` +
-        `comme échouée.`,
-    );
-    assert(
-      persist > model,
-      `${fn}: la correction se persiste avant même l'appel modèle.`,
+      write > model,
+      `${fn}: le plan s'écrit avant l'appel modèle.`,
     );
   });
 }
 
-Deno.test("C6 ② — C4 TIENT: la lane des VOIX ne persiste rien, et le dit", async () => {
-  // ⚠️ LE PIÈGE SYMÉTRIQUE. Le test ci-dessus exige un appel à la persistance
-  // dans chaque générateur; le copier dans `household_voices_io.ts` — qui lit
-  // la ligne de CHAQUE AUTRE titulaire — écrirait sur la ligne d'un tiers, en
-  // différé, et défairait C4 sans qu'une assertion de C4 ne tombe.
-  const src = (await Deno.readTextFile(
+Deno.test("LOT C — LE CHARGEUR DES VOIX N'EXISTE PLUS, ET C'EST VÉRIFIÉ", async () => {
+  // ⚠️ LE PIÈGE SYMÉTRIQUE, ET IL SURVIT À LA SUPPRESSION. Le test d'à côté
+  // interdit à un générateur de muter `student_goals`; recopier cette écriture
+  // dans un module d'I/O qui lit la ligne de CHAQUE AUTRE titulaire écrirait
+  // sur la ligne d'un tiers, en différé, sans qu'une seule assertion tombe.
+  // C'est très exactement ce que faisait `household_voices_io.ts`, et c'est
+  // pourquoi son absence se vérifie plutôt que de se supposer.
+  const back = await Deno.stat(
     new URL("./household_voices_io.ts", import.meta.url),
-  ))
-    .replace(/\/\*[\s\S]*?\*\//g, "")
-    .replace(/(^|[^:])\/\/[^\n]*/g, "$1");
+  ).then(() => true).catch(() => false);
   assert(
-    !src.includes("persistReconciledFoodPreferences"),
-    "la lane des voix persiste la correction d'un tiers: C4 est défait.",
+    !back,
+    "`household_voices_io.ts` est revenu: il lit et réécrit la ligne " +
+      "`student_goals` d'autres comptes que l'appelant, sous service_role.",
   );
-  // LE CAS QUI PASSE: elle réconcilie toujours, et elle dit toujours pour qui.
-  assert(src.includes("reconcileFoodPreferencesFor("));
-  assert(src.includes('actor: "someone_else"'));
 });

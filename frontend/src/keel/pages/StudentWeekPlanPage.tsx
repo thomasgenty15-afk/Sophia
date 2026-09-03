@@ -53,7 +53,6 @@ import {
 import { browserLocalDate } from "../lib/useMealTicks";
 import EatingRhythmCard from "../components/EatingRhythmCard";
 import CookingCapacityCard from "../components/CookingCapacityCard";
-import FoodPreferencesCard from "../components/FoodPreferencesCard";
 import { parseEatingRhythm } from "../api/mealGeneration";
 // ⛔ `parseAwayMarks` ET SURTOUT PLUS `parseAwayDays` — DÉFAUT P1 (L6,
 // 2026-08-18). Cette page était le QUATRIÈME point de montage de la grille de
@@ -64,7 +63,6 @@ import { parseEatingRhythm } from "../api/mealGeneration";
 // refuse désormais un tableau sans jeton, à la compilation.
 import { type AwayMark, parseAwayMarks } from "../lib/presenceMarks";
 import { dishDayLabel, mealCopy } from "../api/mealLabels";
-import { keptFrom } from "../api/foodPreferences";
 import { mergePracticalConstraints } from "../api/practicalConstraints";
 import { sendChatMessage } from "../api/chat";
 // `weekStartFor` — LOT D: la ligne d'envies est ancrée sur un LUNDI ISO, et la
@@ -1625,16 +1623,6 @@ export default function StudentWeekPlanPage() {
       : named;
   }, [pc.cook_days, pc.cooking_time_min]);
 
-  const preferencesSummary = React.useMemo(() => {
-    const kept = keptFrom(pc);
-    if (kept.length === 0) return null;
-    return plural(
-      kept.length,
-      t("plan.summary.kept_one", { count: kept.length }),
-      t("plan.summary.kept_many", { count: kept.length }),
-    );
-  }, [pc]);
-
   /**
    * TES CHIFFRES, EN UNE LIGNE — la taille, puis le dernier poids.
    *
@@ -2115,7 +2103,12 @@ export default function StudentWeekPlanPage() {
                 ],
                 [t("plan.about.day"), rhythmSummary],
                 [t("plan.about.last_request"), cookingSummary],
-                [t("plan.about.told"), preferencesSummary],
+                // ⛔ LA LIGNE « CE QUE TU M'AS DIT » EST PARTIE AVEC SA
+                // SECTION (lot C). Cette carte est l'INDEX du dialogue: y
+                // laisser une ligne dont la section n'existe plus enverrait
+                // quelqu'un chercher un contrôle absent — et la ligne comptait
+                // des phrases d'un magasin qui n'atteint plus le prompt.
+                // L'archive se lit sur « Ce que Sophia sait de toi ».
               ] as const).map(([label, value]) => (
                 <div key={label} className="flex flex-wrap gap-x-2 text-sm">
                   <dt className="w-20 shrink-0 text-ink-soft">{label}</dt>
@@ -2415,22 +2408,32 @@ export default function StudentWeekPlanPage() {
           />
         </SetupSection>
 
-        {/* CE QU'IL A DIT SUR SA BOUFFE, remonté de la conversation. En DERNIER
-            parce que c'est la couche la plus personnelle — et la seule qu'il
-            n'a pas eu à remplir: elle se remplit à partir de ce qu'il a déjà
-            raconté, et il n'a qu'à confirmer. */}
-        <SetupSection
-          title={t("plan.section.told.title")}
-          intro={t("plan.section.told.intro")}
-          summary={preferencesSummary}
-        >
-          <FoodPreferencesCard
-            embedded
-            hasGoal={goal !== null}
-            practicalConstraints={goal?.practical_constraints ?? {}}
-            onSaved={refresh}
-          />
-        </SetupSection>
+        {/* ══ LOT C (2026-09-03) · LA SECTION « CE QUE TU M'AS DIT » EST
+            DÉMONTÉE, ET CE N'EST PAS UN DÉPLACEMENT ══════════════════════════
+
+            Elle rendait `FoodPreferencesCard`: les souvenirs que le memorizer
+            avait tirés de la CONVERSATION, à confirmer d'un bouton « Keep »,
+            écrits dans `practical_constraints.food_preferences` — le magasin
+            PLAT. C'était une TROISIÈME SOURCE déguisée en bouton, à côté des
+            deux que le produit reconnaît: le retour sur un brouillon, et le
+            bilan de fin de plan (nomenclature §2.1).
+
+            ⚠️ CE QUI LA REND INUTILE N'EST PAS SON ERGONOMIE, C'EST QUE SON
+            MAGASIN N'ATTEINT PLUS LE PROMPT. Les deux générateurs ont cessé de
+            lire `food_preferences` dans ce même lot. Garder la carte aurait
+            laissé un bouton qui range quelque chose que plus personne ne lit —
+            le mode d'échec n°1 de ce dépôt, et cette fois on l'aurait construit
+            exprès.
+
+            ⚠️ CE QUI EST ÉCRIT EN BASE N'EST NI EFFACÉ NI MIGRÉ: il reste
+            LISIBLE sur « Ce que Sophia sait de toi », en « Anciennes notes »,
+            pour que la personne le RANGE (en préférence, avec un sujet) ou
+            l'ENLÈVE. On ne reclasse pas rétroactivement des phrases sans
+            `kind` — ce serait deviner à la place de quelqu'un qui a écrit pour
+            de vrai.
+
+            ⛔ `api/foodPreferences.ts` N'EST PAS SUPPRIMÉ: c'est le lecteur de
+            cette archive, et le lot D s'en sert. */}
         </div>
         </Modal>
 

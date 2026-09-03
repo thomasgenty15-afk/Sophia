@@ -826,7 +826,11 @@ function withoutAlreadyStored<T>(
     // ⚠️ LES DEUX IDENTITÉS, pas l'une OU l'autre: une ligne déjà en base peut
     // porter un uuid pendant que la nouvelle n'en a pas, et inversement.
     const stored = itemOfStoredRow(row);
-    for (const id of [identityOf(stored), contentIdentityOf(stored)]) {
+    // ⚠️ `storedContentIdentityOf` ET PAS `contentIdentityOf`: une ligne
+    // `written` DÉJÀ EN BASE doit bloquer un producteur automatique qui
+    // proposerait la même. Voir le bloc de cette fonction — l'exemption de
+    // `written` protège un geste humain, pas une répétition machine.
+    for (const id of [identityOf(stored), storedContentIdentityOf(stored)]) {
       if (id) known.add(id);
     }
   }
@@ -905,6 +909,46 @@ function contentIdentityOf(value: unknown): string | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const row = value as Record<string, unknown>;
   if (String(row.source ?? "") === "written") return null;
+  return contentKeyOf(row);
+}
+
+/**
+ * ══ LOT C (2026-09-03) · LA MÊME CLÉ, MAIS LUE SUR CE QUI EST DÉJÀ EN BASE ══
+ *
+ * ⚠️ L'EXEMPTION DE `written` A DEUX CÔTÉS, ET UN SEUL EST LÉGITIME.
+ *
+ * `contentIdentityOf` ignore les lignes `written` — « quelqu'un qui réécrit
+ * SCIEMMENT la même ligne sur sa carte a le droit de l'avoir ». C'est vrai de
+ * l'ENTRANT: le geste est humain, délibéré, et refuser serait lui dire non.
+ *
+ * Appliquée au STOCKÉ, la même exemption dit tout autre chose: une ligne que la
+ * personne a TAPÉE ne bloque plus rien, donc un producteur AUTOMATIQUE peut la
+ * réécrire à l'identique. Ce n'est plus « elle a le droit de se répéter », c'est
+ * « la machine a le droit de la répéter à sa place ».
+ *
+ * ── LE CHEMIN QUE LE LOT C OUVRE, ET POURQUOI IL EST NEUF ─────────────────
+ * Jusqu'ici le champ « Aliments refusés » d'une fiche écrivait dans
+ * `household_food_restrictions`: une ligne tapée et une ligne de bilan ne
+ * pouvaient pas se rencontrer, elles n'étaient pas dans le même magasin. Depuis
+ * le lot C elles le sont — `food.exclude` `source=written` d'un côté,
+ * `source=questionnaire` de l'autre. « Saumon » tapé sur la fiche de Tom, puis
+ * « plus jamais » coché sur le bilan: DEUX lignes identiques.
+ *
+ * ⚠️ ET LE COÛT EST CELUI QUE CE FICHIER NOMME DÉJÀ: « le modèle lirait deux
+ * fois la même consigne — ce qui, dans un prompt, la RENFORCE sans que
+ * personne ne l'ait demandé ».
+ *
+ * ⛔ LES FAMILLES-ÉVÉNEMENTS RESTENT EXEMPTÉES DES DEUX CÔTÉS: un
+ * `portion.adjust` déjà en base ne doit JAMAIS bloquer le suivant, sinon
+ * l'indice ne dépasse pas un cran (régression mesurée le 2026-09-01).
+ */
+function storedContentIdentityOf(value: unknown): string | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  return contentKeyOf(value as Record<string, unknown>);
+}
+
+/** La clé elle-même — une seule écriture pour les deux lectures ci-dessus. */
+function contentKeyOf(row: Record<string, unknown>): string | null {
   if (EVENT_KINDS.has(String(row.kind ?? ""))) return null;
   const kind = typeof row.kind === "string" ? row.kind.trim().toLowerCase() : "";
   const subject = String(row.subject ?? "").trim().toLowerCase();

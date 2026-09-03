@@ -2604,6 +2604,8 @@ export const fr: TranslatedMessages = {
   "household.error.household_full":
     "Huit, c’est le maximum d’un foyer. Retire d’abord quelqu’un.",
   "household.error.not_owner": "Seule la personne qui tient le foyer peut faire ça.",
+  "household.error.not_a_minor":
+    "Une règle de maison ne se pose que pour un enfant. Si c'en est un, renseigne d'abord sa date de naissance sur sa fiche.",
   "household.error.not_a_member": "Cette personne n’est pas dans ton foyer.",
   "household.error.not_your_line": "Tu ne peux modifier que ta propre ligne.",
   "household.error.no_household": "Tu n’es dans aucun foyer.",
@@ -2621,6 +2623,8 @@ export const fr: TranslatedMessages = {
   "household.constraint.kind.house_rule": "Quelque chose que cette maison ne sert pas",
   "household.constraint.kind.house_rule_hint":
     "C’est ta décision de foyer. On la tient, et on ne la déguise jamais en conseil de santé.",
+  "household.constraint.house_rule_minor_only":
+    "Les règles de maison ne concernent que les enfants. Un adulte à cette table décide de ce qu'il mange.",
   "household.allergy.placeholder": "Arachides",
   "household.allergy.add": "Ajouter l’allergie",
   "household.allergy.remove": "Retirer",

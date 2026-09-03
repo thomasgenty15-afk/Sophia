@@ -664,15 +664,22 @@ Deno.test("SUR LA LANE FOYER, LES PRÉFÉRENCES N'ONT QU'UN CHEMIN — ET IL GAR
     "le générateur du foyer ne passe plus `foodPreferences: []` au tronc: soit " +
       "les mots du maître ont disparu, soit ils passent deux fois.",
   );
+  // ── LE CAS QUI PASSE, RÉÉCRIT PAR LE LOT C ────────────────────────────────
+  // Il pinnait `loadHouseholdVoices(`, l'appel qui lisait la colonne PLATE de
+  // chaque titulaire. Ce module est SUPPRIMÉ (le magasin plat n'a plus
+  // d'écrivain, nomenclature §2.6), et pinner un appel disparu aurait rendu
+  // ROUGE un produit correct. Ce qu'il faut tenir n'a pas changé: sans une
+  // moitié qui exige qu'on entende QUELQUE CHOSE, les deux assertions du dessus
+  // seraient vertes sur un foyer devenu sourd.
   assert(
-    household.includes("loadHouseholdVoices("),
-    "le générateur du foyer ne charge plus les voix: D4 est débranché, et " +
-      "l'assertion ci-dessus resterait verte sur un produit qui n'écoute plus " +
-      "personne.",
+    /lines: retainedVoiceLines/.test(household),
+    "le générateur du foyer ne construit plus de voix depuis les items " +
+      "RETENUS: D4 est débranché, et les deux gardes du dessus resteraient " +
+      "vertes sur un produit qui n'écoute plus personne.",
   );
   assert(
     /voices: voices\.voices/.test(household),
-    "les voix chargées ne sont plus passées au constructeur de prompt.",
+    "les voix construites ne sont plus passées au constructeur de prompt.",
   );
 });
 
@@ -683,25 +690,27 @@ Deno.test("LA LANE INDIVIDUELLE N'A PAS BOUGÉ — le cas qui passe", async () =
   // membre ni la garde de table n'y ont d'objet, et elle continue donc de
   // passer ses préférences au tronc, exactement comme avant L6.
   const individual = await source("generate-meal-v1/index.ts");
-  // ⚠️ PAS `includes("foodPreferencesForPrompt")`, ET C'EST UNE MUTATION QUI
-  // L'A MONTRÉ. Vider le corps de `readFoodPreferences` (`return [];`) laisse
-  // la LIGNE D'IMPORT intacte: le test restait vert sur une lane individuelle
-  // débranchée. On tient donc les deux bouts — l'appel réel, et le passage au
-  // tronc avec autre chose qu'une liste vide.
+  // ⚠️ PAS `includes("readFoodPreferences")`, ET C'EST UNE MUTATION QUI L'A
+  // MONTRÉ. Vider le corps (`return { written: [], remembered: [] };`) laisse
+  // les APPELS intacts: le test restait vert sur une lane débranchée. On tient
+  // donc les deux bouts — la lecture réelle du magasin, et le passage au tronc.
+  //
+  // ⟳ LOT C: la lecture pinnée était `foodPreferencesByOrigin(`, le magasin
+  // PLAT. Elle est maintenant celle du magasin STRUCTURÉ, seul survivant.
   assert(
-    /return foodPreferencesByOrigin\(/.test(individual),
-    "la lane individuelle ne lit plus les préférences de son titulaire.",
+    /written: \[\.\.\.retained\.written\]/.test(individual),
+    "la lane individuelle ne lit plus les items retenus de son titulaire.",
   );
   assert(
     /foodPreferences: readFoodPreferences\(/.test(individual),
     "la lane individuelle ne passe plus ses préférences au tronc: le test du " +
       "dessus garderait alors un chemin sans destination.",
   );
-  // ⚠️ LES DEUX SEAUX, ET PAS SEULEMENT LE PREMIER. Depuis le 2026-08-13 la
-  // lecture est séparée par provenance; ne pinner que `foodPreferences`
-  // laisserait passer une lane qui lit ce que le memorizer a récolté et JETTE
-  // ce que l'élève a tapé — c'est-à-dire précisément la moitié qui compte le
-  // plus, débranchée sans qu'un seul test rougisse.
+  // ⚠️ LES DEUX SEAUX, ET PAS SEULEMENT LE PREMIER. La lecture est séparée par
+  // provenance; ne pinner que `foodPreferences` laisserait passer une lane qui
+  // lit ce que les producteurs ont retenu et JETTE ce que la personne a tapé —
+  // c'est-à-dire précisément la moitié qui compte le plus, débranchée sans
+  // qu'un seul test rougisse.
   assert(
     /writtenInstructions: readFoodPreferences\(/.test(individual),
     "la lane individuelle ne passe plus les consignes ÉCRITES de son " +
@@ -715,116 +724,139 @@ Deno.test("LA LANE INDIVIDUELLE N'A PAS BOUGÉ — le cas qui passe", async () =
   );
 });
 
-Deno.test("LES VOIX SE LISENT SUR `platedMembers`, PAS SUR TOUT LE ROSTER", async () => {
-  // Les deux filtres du chantier se composent en cascade — L3 (`composedMembers`,
-  // qui a pris la main) puis L2 (`platedMembers`, qui est là). Qui n'est pas à
-  // cette table n'a pas à être lu: faire pencher la casserole du foyer vers le
-  // goût de quelqu'un qui mange son propre plan est exactement le défaut que L3
-  // a fermé sur les portions.
+Deno.test("LES VOIX PARTENT DU COMPOSEUR, ET LE DÉNOMINATEUR DE `platedMembers`", async () => {
+  // ⟳ CE TEST A CHANGÉ DE CIBLE AU LOT C, ET LA PROPRIÉTÉ N'A PAS CHANGÉ: une
+  // bouche qui a pris la main (L3) ou qui est absente toute la fenêtre (L2)
+  // n'est pas lue. Elle était tenue par un FILTRE (`voiceMembers =
+  // platedMembers.filter(...)`); elle l'est maintenant par CONSTRUCTION — la
+  // seule voix est celle du titulaire qui compose, et personne d'autre n'est lu.
+  //
+  // ⚠️ CE QUI RESTE À TENIR, ET POURQUOI. « Par construction » est exactement
+  // le genre d'affirmation que ce dépôt a déjà payée: elle est vraie tant que
+  // la ligne qui l'incarne existe. On pinne donc les DEUX bouts — la voix part
+  // du composeur, et le compte des bouches lisibles part de `platedMembers`.
   const household = await source("generate-household-meal-v1/index.ts");
   assert(
-    /const voiceMembers[^=]*=\s*platedMembers/.test(household),
-    "les voix ne partent plus de `platedMembers`: une bouche qui a pris la " +
-      "main ou qui est absente toute la fenêtre est de nouveau lue.",
+    /memberId: ownerMemberId/.test(household),
+    "la voix du foyer ne s'attache plus au titulaire qui compose: elle est " +
+      "rendue à quelqu'un qui n'a pas écrit ces lignes.",
+  );
+  assert(
+    /const accountsAtTable = platedMembers\.filter\(/.test(household),
+    "le dénominateur des voix ne part plus de `platedMembers`: la trace " +
+      "compterait des bouches qui ne sont pas à cette table.",
+  );
+  assert(
+    !household.includes("loadHouseholdVoices"),
+    "le chargeur des voix est de retour: il lisait le magasin PLAT de chaque " +
+      "titulaire, que le lot C a fermé (nomenclature §2.6).",
   );
 });
 
-Deno.test("LA LECTURE D'UNE LIGNE QUI N'EST PAS CELLE DE L'APPELANT EST SCOPÉE", async () => {
+Deno.test("PLUS AUCUNE LIGNE `student_goals` D'AUTRUI N'EST LUE PAR LA CHAÎNE DES VOIX", async () => {
   // ⚠️ « RLS NE REMPLACE PAS UN `.eq(user_id)` » — ce dépôt a déjà rendu la
-  // ligne d'un élève à son coach. Ce lot lit `student_goals` de personnes qui ne
-  // sont PAS l'appelant, sous `service_role`, donc sans RLS. Le scope est la
-  // seule chose qui tient.
-  const io = await source("_shared/keel/household_voices_io.ts");
+  // ligne d'un élève à son coach. La chaîne des voix lisait `student_goals` de
+  // personnes qui ne sont PAS l'appelant, sous `service_role`, donc sans RLS;
+  // le scope était la seule chose qui tenait.
+  //
+  // ⟳ LOT C: cette lecture N'EXISTE PLUS (`household_voices_io.ts` supprimé).
+  // Le test ne pinne donc plus un scope, il tient l'ABSENCE — et la preuve que
+  // le module est parti, pas juste renommé.
+  const gone = await Deno.stat(
+    new URL("./household_voices_io.ts", import.meta.url),
+  ).then(() => true).catch(() => false);
   assert(
-    /\.in\("user_id", toLoad\)/.test(io),
-    "la lecture des lignes `student_goals` n'est plus scopée sur les comptes " +
-      "du roster: sous service_role, rien d'autre ne la borne.",
+    !gone,
+    "`household_voices_io.ts` est revenu: il lit la ligne `student_goals` " +
+      "d'autres comptes sous service_role, et son scope n'est vérifié par " +
+      "personne dans cette suite.",
   );
-  // UNE SEULE LECTURE DE TABLE DANS CE MODULE, et c'est celle qu'on vient de
-  // vérifier. Une seconde `.from(...)` serait une lecture dont personne n'a
-  // encore regardé le scope — et sous `service_role` c'est tout ce qui sépare
-  // « la ligne du foyer » de « la ligne de n'importe qui ».
+  // LE CAS QUI PASSE: le constructeur des voix est PUR. Sans cette moitié, la
+  // garde ci-dessus serait verte sur une chaîne qui a simplement déménagé sa
+  // lecture ailleurs.
+  const voices = await source("_shared/keel/household_voices.ts");
   assertEquals(
-    io.split(".from(").length - 1,
-    1,
-    "une seconde lecture de table est apparue dans le chargeur des voix: son " +
-      "scope n'est vérifié par personne.",
+    voices.split(".from(").length - 1,
+    0,
+    "une lecture de table est apparue dans le constructeur des voix: sous " +
+      "`service_role`, son scope est tout ce qui sépare « la ligne du foyer » " +
+      "de « la ligne de n'importe qui ».",
   );
 });
 
 Deno.test("AUCUN SECOND PONT VERS LA MÉMOIRE", async () => {
-  // ⚠️ LE PIÈGE NOMMÉ DU LOT. Le pont mémoire → générateurs est unique, il exige
-  // un « Keep » explicite de l'élève et il a cinq clés de domaine. En brancher
-  // un second ici ferait entrer un magasin PROBABILISTE dans la composition —
-  // exactement ce que l'architecture s'interdit (`safety-constraints`, la
-  // cicatrice de l'allergie restée en `candidate`).
-  for (const rel of ["_shared/keel/household_voices.ts", "_shared/keel/household_voices_io.ts"]) {
-    const src = await source(rel);
-    for (const forbidden of ["memory_items", "memory_v2", "recall"]) {
-      assert(
-        !src.includes(forbidden),
-        `${rel} nomme \`${forbidden}\`: c'est un second pont vers la mémoire.`,
-      );
-    }
-  }
-  // LE CAS QUI PASSE: le module d'I/O DOIT passer par le pont existant, sans
-  // quoi la garde ci-dessus serait verte sur un lot qui n'entend personne.
-  const io = await source("_shared/keel/household_voices_io.ts");
-  assert(io.includes("reconcileFoodPreferencesFor("));
-  assert(io.includes("foodPreferencesForPrompt("));
-});
-
-Deno.test("C4 — CHAQUE APPELANT DIT S'IL ÉCRIT, ET LA LANE FOYER DIT NON", async () => {
-  // ⚠️ CE QUE CE TEST TIENT, ET QUE LES TESTS D'I/O NE PEUVENT PAS TENIR: la
-  // RÉPARTITION. `food_preference_promotion_io_test.ts` prouve que la fonction
-  // se comporte bien pour chaque valeur d'`actor`; il ne peut pas dire que la
-  // lane foyer a passé la bonne. Un `"row_owner"` glissé dans
-  // `household_voices_io.ts` rendrait tous ses tests verts, et la ligne d'un
-  // titulaire recommencerait à changer pendant que le maître compose.
+  // ⚠️ LE PIÈGE NOMMÉ DU LOT. Un pont `memory_items` → générateur ferait entrer
+  // un magasin PROBABILISTE dans la composition — exactement ce que
+  // l'architecture s'interdit (`safety-constraints`, la cicatrice de l'allergie
+  // restée en `candidate`).
   //
-  // Les commentaires sont retirés (`stripComments`): ils citent les deux
-  // valeurs, et un grep naïf serait vert sur un produit qui ne les passe pas.
-
-  /** Le bloc d'arguments de l'appel, et lui seul. */
-  function callArgs(src: string, rel: string): string {
-    const at = src.indexOf("reconcileFoodPreferencesFor({");
-    assert(at >= 0, `${rel} n'appelle plus la réconciliation du tout.`);
-    const rest = src.slice(at);
-    const end = rest.indexOf("});");
-    assert(end > 0, `${rel}: appel non refermé, la lecture ci-dessous mentirait.`);
-    return rest.slice(0, end);
-  }
-
-  // ── LES TROIS GÉNÉRATEURS ÉCRIVENT: c'est LEUR ligne, et LEUR geste ──────
-  // Sans cette moitié, la garde d'en dessous serait verte sur un produit où
-  // plus personne ne persiste jamais rien — une préférence rétractée resterait
-  // en base pour toujours, visible dans la carte et dans l'export RGPD.
+  // ⟳ LOT C — LA CIBLE S'ÉLARGIT AUX DEUX GÉNÉRATEURS, et c'est le lot: le
+  // pont vivait dans `household_voices_io.ts` (supprimé) et dans les deux
+  // lanes. Après ce lot, `memory_items` n'apparaît nulle part dans
+  // `generate-*`, commentaires compris.
   for (
     const rel of [
+      "_shared/keel/household_voices.ts",
       "generate-meal-v1/index.ts",
       "generate-household-meal-v1/index.ts",
     ]
   ) {
-    const args = callArgs(await source(rel), rel);
+    const src = await source(rel);
+    for (const forbidden of ["memory_items", "memory_v2", "recall"]) {
+      assert(
+        !src.includes(forbidden),
+        `${rel} nomme \`${forbidden}\`: c'est un pont vers la mémoire, et il ` +
+          `ferait entrer un magasin probabiliste dans la composition.`,
+      );
+    }
+  }
+  // LE CAS QUI PASSE: les deux lanes lisent BIEN le magasin structuré, sans
+  // quoi la garde ci-dessus serait verte sur des générateurs qui n'entendent
+  // plus personne du tout.
+  for (
+    const rel of ["generate-meal-v1/index.ts", "generate-household-meal-v1/index.ts"]
+  ) {
+    const src = await source(rel);
     assert(
-      args.includes('actor: "row_owner"'),
-      `${rel} ne persiste plus la correction sur la ligne de son propre ` +
-        `appelant: le cas qui passe a disparu, et plus rien ne s'écrit jamais.`,
+      src.includes("readRetainedItems("),
+      `${rel} ne lit plus le magasin structuré: la garde du dessus serait ` +
+        `verte sur une lane sourde.`,
     );
   }
+});
 
-  // ── LE CHARGEUR DES VOIX N'ÉCRIT PAS: ce n'est pas SA ligne ──────────────
-  const io = await source("_shared/keel/household_voices_io.ts");
-  const voiceArgs = callArgs(io, "_shared/keel/household_voices_io.ts");
-  assert(
-    voiceArgs.includes('actor: "someone_else"'),
-    "le chargeur des voix réécrit la ligne d'un titulaire qui n'a rien fait: " +
-      "sa préférence disparaît sans geste, et rien ne peut le lui expliquer.",
-  );
-  assert(
-    !voiceArgs.includes('actor: "row_owner"'),
-    "le chargeur des voix se déclare propriétaire de la ligne qu'il lit.",
-  );
+Deno.test("LOT C — AUCUN GÉNÉRATEUR N'ÉCRIT PLUS DANS LE MAGASIN PLAT", async () => {
+  // ⟳ CE TEST REMPLACE « C4 — CHAQUE APPELANT DIT S'IL ÉCRIT », ET LA RAISON
+  // EST LE LOT LUI-MÊME. C4 tenait la RÉPARTITION d'un `actor` entre trois
+  // appelants de `reconcileFoodPreferencesFor`: les générateurs écrivaient sur
+  // LEUR ligne (`row_owner`), le chargeur des voix sur celle d'un autre
+  // (`someone_else`). Cette fonction n'existe plus — le magasin plat n'a plus
+  // d'écrivain du tout — donc la question « qui écrit quoi » a une réponse plus
+  // simple, et plus forte: PERSONNE.
+  //
+  // ⚠️ CE QUE ÇA COÛTE, ÉCRIT ICI. `persistReconciledFoodPreferences` était le
+  // seul écrivain qui ÉLAGUAIT une préférence plate périmée. `food_preferences`
+  // devient une archive GELÉE: personne n'y écrit, personne ne l'élague, et la
+  // carte la rend en lecture seule. C'est le sens de « fermer un magasin ».
+  for (
+    const rel of ["generate-meal-v1/index.ts", "generate-household-meal-v1/index.ts"]
+  ) {
+    const src = await source(rel);
+    for (
+      const forbidden of [
+        "persistReconciledFoodPreferences",
+        "reconcileFoodPreferencesFor",
+        "foodPreferencesForPrompt",
+        "food_preferences",
+      ]
+    ) {
+      assert(
+        !src.includes(forbidden),
+        `${rel} touche encore au magasin plat (\`${forbidden}\`): il a deux ` +
+          `lits pour la même phrase, et les deux partent au modèle.`,
+      );
+    }
+  }
 });
 
 Deno.test("LA GARDE DÉRIVE LA LISTE DES PORTIONS, ELLE N'EN RECOPIE PAS UNE SECONDE", async () => {

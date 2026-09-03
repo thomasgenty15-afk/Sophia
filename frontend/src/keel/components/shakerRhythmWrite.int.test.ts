@@ -169,7 +169,10 @@ describe("2026-09-01 · le shaker d'une bouche a un écrivain sur le chemin de l
     // ⚠️ LES TROIS CAS QUI PASSENT — sans eux, une fonction qui n'écrirait QUE
     // le shaker passerait la ligne du dessus. Ce sont les quatre portes clées
     // sur `member_id` que cette fonction porte déjà.
-    for (const door of ["setMemberHabits", "addRestriction", "setMemberRhythm"]) {
+    // ⟳ LOT C — `addRestriction` est devenue `writtenDislikeWriter`: le champ
+    // « Aliments refusés » écrit une PRÉFÉRENCE (`food.exclude` dans
+    // `retained_items`), plus un interdit de maison.
+    for (const door of ["setMemberHabits", "writtenDislikeWriter", "setMemberRhythm"]) {
       expect(body, `${door} a disparu de l'écrivain des préférences`)
         .toContain(door);
     }

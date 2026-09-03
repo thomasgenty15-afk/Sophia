@@ -487,19 +487,25 @@ const MEAL: Lane = {
     );
     for (const site of sites) {
       const call = mustCall(src, "readFoodPreferences", site);
+      // ⟳ LOT C — UN SEUL ARGUMENT, ET C'EST LE LOT. La fonction en prenait
+      // DEUX: la colonne plate (`pc`) et le magasin structuré. Le magasin plat
+      // est fermé (nomenclature §2.6), donc le paramètre qui le portait a
+      // disparu — et avec lui la façon dont un call site oublié rendait « le
+      // produit d'hier ». Le nombre reste épinglé: un second paramètre qui
+      // réapparaîtrait serait une seconde source, et c'est ce qu'on ferme.
       assertEquals(
         call.args.length,
-        2,
-        "LANE MEAL — un appel à `readFoodPreferences` a perdu son second " +
-          "paramètre. `retained` est REQUIS, jamais optionnel: facultatif, il " +
-          "laisserait un call site oublié rendre exactement le produit d'hier.",
+        1,
+        "LANE MEAL — `readFoodPreferences` a repris un second paramètre: le " +
+          "magasin plat est fermé, et un second argument ici serait une " +
+          "SECONDE source de préférences (nomenclature §2.1).",
       );
       assertEquals(
-        argText(src, call.args[1]),
+        argText(src, call.args[0]),
         "retainedComposition",
         "LANE MEAL — un appel à `readFoodPreferences` ne reçoit plus le " +
-          "magasin structuré: cette lecture-là ne rend que les phrases plates " +
-          "de la colonne, c'est-à-dire le produit d'avant le chantier.",
+          "magasin structuré: c'est le seul qui reste, donc cette lecture-là " +
+          "ne rend plus rien du tout.",
       );
     }
 
@@ -540,14 +546,14 @@ const MEAL: Lane = {
     {
       name: "le 1ᵉʳ des trois `readFoodPreferences` perd le magasin",
       expects: "ne reçoit plus le magasin structuré",
-      apply: (src) => blankArg(src, "readFoodPreferences", 1, " null", 0),
+      apply: (src) => blankArg(src, "readFoodPreferences", 0, " null", 0),
     },
     {
       // LA CEINTURE, et c'est le site qu'on oublie: le modèle recevrait la
       // consigne retenue pendant que le contrôle ne la verrait jamais.
       name: "la ceinture (3ᵉ site) perd le magasin",
       expects: "ne reçoit plus le magasin structuré",
-      apply: (src) => blankArg(src, "readFoodPreferences", 1, " null", 2),
+      apply: (src) => blankArg(src, "readFoodPreferences", 0, " null", 2),
     },
     {
       name: "un site d'appel disparaît",
@@ -555,7 +561,11 @@ const MEAL: Lane = {
       apply: (src) =>
         src.replace(
           "const writtenForCheck = readFoodPreferences(",
-          "const writtenForCheck = readFlatFoodPreferences(",
+          // ⚠️ UN NOM QUI N'EXISTE PAS, EXPRÈS. La mutation ne fait que casser
+          // le COMPTE des sites d'appel; viser un vrai symbole (c'était
+          // `readFlatFoodPreferences`, supprimé au lot C) ferait croire qu'un
+          // second lecteur est encore atteignable.
+          "const writtenForCheck = readFoodPreferencesRENAMED(",
         ),
     },
     {
@@ -617,23 +627,29 @@ const HOUSEHOLD: Lane = {
     // suffisait à la satisfaire, donc l'assertion restait VERTE sur un bloc
     // dont les deux injections avaient été retirées. Une mention n'est pas un
     // câblage.
+    //
+    // ⟳ LOT C — IL Y AVAIT DEUX POINTS D'INJECTION, IL N'EN RESTE QU'UN, ET
+    // C'EST LE LOT. Le bloc fusionnait les items structurés avec les phrases
+    // PLATES que `loadHouseholdVoices` allait chercher sur la ligne de chaque
+    // titulaire (`[...retainedVoiceLines, ...v.lines]`), et un second cas
+    // servait le titulaire qui n'avait AUCUNE phrase plate. Ce chargeur est
+    // supprimé: il n'y a plus de seconde liste avec quoi fusionner, donc plus
+    // qu'un chemin — celui des items structurés.
     const voices = between(
       src,
-      "const voices = (() => {",
+      "const voices: { voices: RawMemberVoice[]",
       "issues.push(...voices.issues);",
     );
     assert(
-      voices.includes("...retainedVoiceLines, ...v.lines"),
+      voices.includes("lines: retainedVoiceLines,"),
       "LANE FOYER — les lignes retenues n'entrent plus dans la voix du " +
-        "titulaire QUI EN A DÉJÀ UNE: elles sont lues, routées, comptées, et " +
-        "le prompt est celui d'avant le chantier.",
+        "titulaire qui compose: elles sont lues, routées, comptées, et le " +
+        "prompt ne les voit jamais.",
     );
     assert(
-      voices.includes("lines: retainedVoiceLines,"),
-      "LANE FOYER — les lignes retenues disparaissent quand le titulaire " +
-        "n'avait AUCUNE phrase plate: `loadHouseholdVoices` saute les listes " +
-        "vides, donc c'est précisément le cas où le magasin structuré est la " +
-        "seule chose qu'il ait dite.",
+      !voices.includes("loadHouseholdVoices"),
+      "LANE FOYER — le chargeur des phrases plates est de retour: c'est une " +
+        "SECONDE source de préférences, celle que le lot C a fermée.",
     );
 
     // ── DESTINATION 2 · LA LIGNE D'ENVIES DU FOYER ───────────────────────
@@ -679,15 +695,20 @@ const HOUSEHOLD: Lane = {
       apply: (src) => src.replace("...retainedComposition.written,", ""),
     },
     {
-      name: "le titulaire qui a déjà une voix n'y reçoit plus rien",
-      expects: "QUI EN A DÉJÀ UNE",
-      apply: (src) =>
-        src.replace("[...retainedVoiceLines, ...v.lines]", "[...v.lines]"),
+      name: "le titulaire qui compose perd ses items structurés",
+      expects: "n'entrent plus dans la voix",
+      apply: (src) => src.replace("lines: retainedVoiceLines,", "lines: [],"),
     },
     {
-      name: "le titulaire sans phrase plate perd ses items structurés",
-      expects: "n'avait AUCUNE phrase plate",
-      apply: (src) => src.replace("lines: retainedVoiceLines,", "lines: [],"),
+      name: "le chargeur des phrases plates revient",
+      expects: "SECONDE source de préférences",
+      apply: (src) =>
+        // ⚠️ UNE MUTATION QUI **AJOUTE**, jamais qui retire: retirer
+        // `lines: retainedVoiceLines` ferait mordre la garde du DESSUS, et le
+        // harnais refuserait (« la mauvaise garde a mordu »). Ce qu'on veut
+        // prouver ici est qu'une SECONDE source rajoutée à côté de la bonne se
+        // fait voir — c'est exactement la forme qu'aurait la régression.
+        src.replace("          reads: 0,", "          reads: loadHouseholdVoices(),"),
     },
     {
       name: "la ligne d'envies perd les `craving`",

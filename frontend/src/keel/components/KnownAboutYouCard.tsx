@@ -4,7 +4,8 @@ import {
   canProduce,
   groupBySubject,
   portionIndexFor,
-  portionIndexLabelKey,
+  INDEX_MAX,
+  type PortionIndex,
   recentlyKept,
   sectionOf,
   HOUSEHOLD_SUBJECT,
@@ -33,6 +34,31 @@ import { type MessageKey, t } from "../i18n/t";
 import { Button } from "./ui/Button";
 import { Card, SectionLabel } from "./ui/Card";
 import { inputClass } from "./ui/Field";
+
+/**
+ * LA PHRASE D'UN INDICE DE PORTION, ou `null` au milieu.
+ *
+ * ⛔ AUCUN CHIFFRE. La personne a dit « un peu trop »; on lui rend un adverbe,
+ * pas un pourcentage qu'elle n'a jamais demandé — même règle que le reste de
+ * cette carte, où aucun gramme ne passe.
+ *
+ * ⟳ ELLE VENAIT DE `api/retainedItems.ts` (lot C). Elle y était la seule chose
+ * à nommer des clés `known.*`, ce qui faisait ATTEINDRE ce namespace à toute
+ * page important ce module — `/app/setup` et `/app/household` depuis le lot C.
+ * Les faits vivent dans l'API, les mots dans la carte qui les rend.
+ */
+// ⛔ NON EXPORTÉE, et ce n'est pas une pudeur: `react-refresh/only-export-components`
+// refuse qu'un fichier de composant exporte autre chose qu'un composant — le
+// rechargement à chaud casse silencieusement sinon. Elle n'a qu'un appelant, et
+// il est dans ce fichier.
+function portionIndexLabelKey(index: PortionIndex): string | null {
+  if (index.answers === 0 || index.position === 0) return null;
+  const strong = Math.abs(index.position) >= INDEX_MAX;
+  if (index.position < 0) {
+    return strong ? "known.index.portions.down_strong" : "known.index.portions.down";
+  }
+  return strong ? "known.index.portions.up_strong" : "known.index.portions.up";
+}
 
 // « CE QUE SOPHIA SAIT DE TOI » — la surface de transparence, §6 de
 // `docs/keel/NOMENCLATURE-MEMOIRE.md`.

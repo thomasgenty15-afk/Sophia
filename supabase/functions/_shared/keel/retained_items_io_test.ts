@@ -627,10 +627,27 @@ Deno.test("fusion: deux fois le même identifiant DANS LE MÊME APPEL", async ()
   assertEquals(out.refused.alreadyStored, 1);
 });
 
-Deno.test("fusion: une ligne SANS identifiant n'est jamais collisionnée", async () => {
-  // `written` impose `item: ""` — donc une ligne tapée par la personne n'a pas
-  // d'identifiant, donc aucune collision ne la désigne. « `item` vide protège
-  // l'entrée » tient aussi ici.
+Deno.test("fusion: une ligne TAPÉE n'est jamais touchée, et elle bloque sa copie", async () => {
+  // ⟳ CE TEST A ÉTÉ RENVERSÉ PAR LE LOT C (2026-09-03), ET LE RENVERSEMENT EST
+  // LA MOITIÉ QUI COMPTE. Il exigeait `items.length === 2`: une ligne
+  // `questionnaire` identique à une ligne TAPÉE s'ajoutait à côté d'elle, au
+  // motif que « `item` vide protège l'entrée ».
+  //
+  // Ce motif reste vrai, et il est tenu ci-dessous: la ligne tapée est TOUJOURS
+  // là, intacte, à sa place. Ce qui a changé est l'autre moitié — elle bloque
+  // maintenant sa propre copie automatique.
+  //
+  // ── POURQUOI MAINTENANT, ET PAS AVANT ────────────────────────────────────
+  // Jusqu'au lot C, le champ « Aliments refusés » d'une fiche de bouche
+  // écrivait dans `household_food_restrictions`: une ligne tapée et une ligne
+  // de bilan ne pouvaient PAS porter le même aliment dans le même magasin. Le
+  // lot C les y met toutes les deux, et le doublon devient atteignable par le
+  // geste le plus ordinaire du produit — taper « saumon » sur la fiche de son
+  // fils, puis cocher « plus jamais » sur le bilan du plan.
+  //
+  // ⚠️ LE COÛT, dans les mots de ce fichier: « le modèle lirait deux fois la
+  // même consigne — ce qui, dans un prompt, la RENFORCE sans que personne ne
+  // l'ait demandé ».
   const mine = {
     kind: "food.exclude",
     scope: "durable",
@@ -650,11 +667,24 @@ Deno.test("fusion: une ligne SANS identifiant n'est jamais collisionnée", async
     source: "test",
     durable: [food()],
   });
-  assertEquals(out.ok, true);
-  assertEquals(out.refused.alreadyStored, 0);
-  const items = trace.rpcs[0].params.p_items as unknown[];
-  assertEquals(items.length, 2);
-  assertEquals(items[0], mine);
+  assertEquals(
+    out.refused.alreadyStored,
+    1,
+    "le producteur a recopié une ligne que la personne avait tapée",
+  );
+  assertEquals(out.durableWritten, 0);
+  // ⛔ ET LA SIENNE EST INTACTE — PAR CONSTRUCTION, pas par chance. Il n'y
+  // avait plus rien à écrire, donc la porte n'a pas été ouverte du tout: aucune
+  // écriture ne peut avoir remplacé sa phrase par celle d'une machine. C'est
+  // plus fort qu'une comparaison de contenu, qui ne dirait rien du jour où le
+  // module réécrirait la colonne pour rien.
+  assertEquals(
+    trace.rpcs.length,
+    0,
+    "une écriture est partie alors que tout était refusé: la colonne de la " +
+      "personne bouge sur un tour qui n'ajoute rien",
+  );
+  assertEquals(out.reason, "all_refused");
 });
 
 // ===========================================================================
@@ -1248,4 +1278,124 @@ Deno.test("⛔ ET LE DÉDOUBLONNAGE MORD TOUJOURS SUR LES AUTRES FAMILLES", asyn
   // ⚠️ ET LA CHUTE EST COMPTÉE. `produced=1 written=0 refused=0` — trois
   // nombres qui ne s'additionnent pas — se lisait « la porte a échoué ».
   assertEquals(out.refused.alreadyStored, 1);
+});
+
+// ===========================================================================
+// LOT C · UNE LIGNE TAPÉE PAR LA PERSONNE BLOQUE LA MÊME LIGNE AUTOMATIQUE
+//
+// ── LE CHEMIN QUE LE LOT C OUVRE ──────────────────────────────────────────
+// Jusqu'au 2026-09-03, le champ « Aliments refusés » d'une fiche de bouche
+// écrivait dans `household_food_restrictions`: une ligne TAPÉE et une ligne de
+// BILAN ne pouvaient pas se rencontrer, elles n'étaient pas dans le même
+// magasin. Le lot C les met dans le même (`retained_items`), et l'exemption de
+// `written` — écrite pour protéger un geste humain délibéré — laissait alors un
+// producteur AUTOMATIQUE recopier ce que la personne avait tapé.
+//
+// ⚠️ LE COÛT EST DANS LE PROMPT: deux `food.exclude` sur le saumon pèsent plus
+// lourd qu'un, et personne n'a demandé ce poids.
+// ===========================================================================
+
+Deno.test("LOT C — un `written` DÉJÀ EN BASE bloque le même item d'un producteur", async () => {
+  const typed = {
+    ...food({ text: "saumon", subject: "member:11111111-1111-4111-8111-111111111111" }),
+    source: "written",
+    quote: null,
+  };
+  const { admin } = fakeAdmin({ constraints: { retained_items: [typed] } });
+  const out = await persistRetainedItemsFor({
+    admin,
+    userId: USER,
+    producer: "questionnaire",
+    source: "test",
+    // LE MÊME ALIMENT, LA MÊME BOUCHE, une casse et des espaces différents —
+    // c'est la normalisation qui est en jeu, pas l'égalité de chaîne.
+    durable: [food({
+      text: "  Saumon  ",
+      subject: "member:11111111-1111-4111-8111-111111111111",
+    })],
+  });
+  assertEquals(
+    out.durableWritten,
+    0,
+    "le bilan a recopié une ligne que la personne avait tapée: le modèle lit " +
+      "deux fois la même consigne, ce qui la renforce sans qu'on l'ait demandé",
+  );
+  assertEquals(out.refused.alreadyStored, 1);
+});
+
+Deno.test("LOT C — …ET IL NE BLOQUE QUE CE QU'IL DIT VRAIMENT", async () => {
+  // ⛔ LA MOITIÉ QUI EMPÊCHE LA GARDE DE DEVENIR UN MUR. Sans elle, une clé
+  // fabriquée trop large — sur le seul `kind`, ou sur le seul sujet — rendrait
+  // le test du dessus vert en bloquant TOUT ce qui suit une ligne tapée. La
+  // clé est `(kind, sujet, texte normalisé)`, et chacun des trois compte.
+  //
+  // ⛔ ET « ÉGALITÉ, JAMAIS RESSEMBLANCE »: « laitue » ≠ « lait », douze faux
+  // positifs sur douze mesurés dans ce dépôt. Deux aliments différents sont
+  // deux lignes, même quand ils se ressemblent.
+  const typed = {
+    ...food({ text: "saumon", subject: "member:11111111-1111-4111-8111-111111111111" }),
+    source: "written",
+    quote: null,
+  };
+  const { admin } = fakeAdmin({ constraints: { retained_items: [typed] } });
+  const out = await persistRetainedItemsFor({
+    admin,
+    userId: USER,
+    producer: "questionnaire",
+    source: "test",
+    durable: [
+      // un AUTRE aliment, la même bouche
+      food({
+        text: "cabillaud",
+        subject: "member:11111111-1111-4111-8111-111111111111",
+      }),
+      // le même aliment, une AUTRE bouche
+      food({
+        text: "saumon",
+        subject: "member:22222222-2222-4222-8222-222222222222",
+      }),
+      // le même aliment, la même bouche, une AUTRE famille
+      food({
+        kind: "food.prefer",
+        text: "saumon",
+        subject: "member:11111111-1111-4111-8111-111111111111",
+      }),
+    ],
+  });
+  assertEquals(
+    out.durableWritten,
+    3,
+    "la garde du lot C bloque plus que ce qu'elle nomme: une ligne tapée fait " +
+      "taire des lignes qui parlent d'autre chose, d'une autre bouche ou " +
+      "d'une autre polarité",
+  );
+  assertEquals(out.refused.alreadyStored, 0);
+});
+
+Deno.test("LOT C — un `portion.adjust` en base ne bloque toujours RIEN", async () => {
+  // ⛔ LA RÉGRESSION DU 2026-09-01, QUI NE DOIT PAS REVENIR PAR CE LOT. Les
+  // familles-événements sont exemptées DES DEUX CÔTÉS: deux bilans qui disent
+  // « un peu trop » doivent faire AVANCER l'indice, pas se fondre en un.
+  const stored = {
+    kind: "portion.adjust",
+    scope: "durable",
+    subject: "household",
+    text: "des portions un peu trop grosses",
+    value: { direction: "down", magnitude: "slight" },
+    source: "questionnaire",
+    at: "2026-08-18",
+    item: "",
+    confidence: null,
+    quote: "un peu trop grosses",
+  };
+  const { admin } = fakeAdmin({ constraints: { retained_items: [stored] } });
+  const out = await persistRetainedItemsFor({
+    admin,
+    userId: USER,
+    producer: "questionnaire",
+    source: "test",
+    durable: [{ ...stored, at: "2026-08-25" } as unknown as RetainedItem],
+  });
+  assertEquals(out.durableWritten, 1);
+  assertEquals(out.refused.alreadyStored, 0);
 });

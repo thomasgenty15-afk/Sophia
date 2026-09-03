@@ -1773,12 +1773,24 @@ describe("⛔ AUCUN REPLI DE PORTÉE — l'aveu, et ce qui l'épingle", () => {
     // d'appel. La branche est morte aujourd'hui (voir l'aveu écrit à côté), mais
     // le repli, lui, réarmerait l'interdit en silence le jour où elle revit.
     expect(CODE).not.toMatch(/defaultScopeFor\([^)]*\)\s*\?\?/);
-    // LE CAS QUI PASSE: le module APPELLE bien `defaultScopeFor` deux fois et
-    // LIT son refus deux fois. Sans ces deux comptes, la négation ci-dessus
-    // serait verte sur un module qui aurait retiré la garde entière.
-    expect([...CODE.matchAll(/=\s*defaultScopeFor\(/g)]).toHaveLength(2);
-    expect([...CODE.matchAll(/if \(scope === null\) return null;/g)])
-      .toHaveLength(2);
+    // LE CAS QUI PASSE: le module APPELLE bien `defaultScopeFor` et LIT son
+    // refus à CHAQUE appel. Sans ces deux comptes, la négation ci-dessus serait
+    // verte sur un module qui aurait retiré la garde entière.
+    //
+    // ⟳ LOT C — TROIS APPELS, ET LE TROISIÈME NE REND PAS `null`. Les deux
+    // premiers sont des parseurs: une cellule interdite y fait rendre `null`,
+    // c'est-à-dire « cette ligne n'existe pas ». Le troisième est un ÉCRIVAIN
+    // (`addWrittenFoodExclusions`, le champ « Aliments refusés » d'une fiche):
+    // rendre `null` y voudrait dire « je n'écris rien », ce qui est le silence
+    // que ce dépôt paie en boucle. Il LÈVE. Les deux formes sont comptées, et
+    // la somme épinglée: c'est le refus lu qui compte, pas sa forme.
+    const calls = [...CODE.matchAll(/=\s*defaultScopeFor\(/g)];
+    expect(calls).toHaveLength(3);
+    const returnsNull = [...CODE.matchAll(/if \(scope === null\) return null;/g)];
+    const throws = [...CODE.matchAll(/if \(scope === null\) \{\n\s*throw new Error\(/g)];
+    expect(returnsNull).toHaveLength(2);
+    expect(throws).toHaveLength(1);
+    expect(returnsNull.length + throws.length).toBe(calls.length);
   });
 
   it("le port d'écriture ne prononce PAS `stale_snapshot`", () => {
