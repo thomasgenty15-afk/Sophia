@@ -42,6 +42,10 @@ import type { EatingOccasionSlot } from "./mealGeneration";
 import type { HabitSlotWrite } from "./householdHabits";
 import { supabase } from "../../lib/supabase";
 import { mergePracticalConstraints } from "./practicalConstraints";
+// LA SEULE DÉFINITION DE « DIRECTIONNEL », lue ici pour décider l'ORDRE de
+// deux écritures (voir la marche 1 bis). Une fonction, pas un import de
+// module lourd: `household.ts` n'importe pas ce fichier, pas de cycle.
+import { isDirectionalGoal } from "./household";
 import {
   type ActivityLevel,
   type AppetiteLevel,
@@ -729,11 +733,44 @@ export async function persistMouth(
     const named = await writers.setName(memberId, mouth.firstName);
     if (!named.ok) return named;
 
-    const dated = await writers.setBirthDate(memberId, mouth.birthDate);
-    if (!dated.ok) return dated;
-
-    const aimed = await writers.setGoal(memberId, mouth.goal);
-    if (!aimed.ok) return aimed;
+    // ── S4 (2026-08-22) · L'ORDRE DE LA DATE ET DE LA DIRECTION DÉPEND DE CE
+    //    QU'ON ÉCRIT — chantier P3, 2026-09-03 ───────────────────────────────
+    //
+    // La migration `20260822041500` a posé DEUX refus symétriques sur la même
+    // ligne, et ils se regardent l'un l'autre:
+    //   · `set_member_birth_date(minor)` refuse `goal_not_for_minor` quand la
+    //     ligne PORTE `fat_loss` ou `muscle_gain` (le détour temporel);
+    //   · `set_member_goal(fat_loss)` refuse `goal_not_for_minor` quand la
+    //     ligne EST déjà datée mineure.
+    // Un ordre fixe échoue donc toujours d'un côté. L'ordre d'avant (date, puis
+    // direction) rendait `goal_not_for_minor` sur le cas nominal de ce lot —
+    // une bouche mineure héritée à `fat_loss`, que la fiche plie à
+    // `maintenance` (`foldMinorGoal`) et qu'on enregistre avec sa date.
+    //
+    // La règle: une direction qui NE bouge PAS (`maintenance`, `null`) passe
+    // sur n'importe quel âge, donc elle s'écrit D'ABORD et libère la date; une
+    // direction qui bouge n'est acceptée que sur un âge adulte ou inconnu, donc
+    // la date s'écrit D'ABORD et libère la direction. `isDirectionalGoal` est
+    // la même définition que la garde SQL (arbitrage ① de la migration).
+    //
+    // ⚠️ `const` LOCAUX, PAS `writers.x` DANS LES CLÔTURES: la garde du `throw`
+    // ci-dessus a rétréci `writers.setBirthDate` et `writers.setGoal` à
+    // non-nul sur CETTE ligne de flux, et un accès de propriété dans une
+    // fonction fléchée perdrait ce rétrécissement.
+    const setBirthDate = writers.setBirthDate;
+    const setGoal = writers.setGoal;
+    // Même raison pour `memberId`: un `let` rétréci à `string` sur cette ligne
+    // de flux, que les clôtures reliraient en `string | null`.
+    const id: string = memberId;
+    const writeDate = () => setBirthDate(id, mouth.birthDate);
+    const writeGoal = () => setGoal(id, mouth.goal);
+    const [first, second] = isDirectionalGoal(mouth.goal)
+      ? [writeDate, writeGoal]
+      : [writeGoal, writeDate];
+    const a = await first();
+    if (!a.ok) return a;
+    const b = await second();
+    if (!b.ok) return b;
   }
 
   const body = await writers.setBody(

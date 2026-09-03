@@ -70,6 +70,13 @@ import {
   type SportFrequency,
 } from "../../../../supabase/functions/_shared/keel/tokens.ts";
 import type { MemberGender, MemberGoal } from "../api/household";
+// ⚠️ UN IMPORT DE VALEUR, ET IL EST NOMMÉ. `goalForAge` est la règle « ce
+// qu'un mineur peut porter », et elle vit dans `api/household.ts` parce que
+// c'est l'adresse où la décision du 2026-09-03 est écrite — à côté de
+// `goalsForAge`, que les six sélecteurs appellent. Ce module est pur; cette
+// fonction l'est aussi (aucun réseau, aucune horloge). `api/mealGeneration`
+// entre déjà ici par la même porte (`EATING_OCCASIONS`).
+import { goalForAge } from "../api/household";
 // ⚠️ `import type` ET RIEN D'AUTRE. `api/mouthProfile` tire le client Supabase;
 // un import de VALEUR mettrait du réseau dans un module qui se déclare pur.
 // Le type, lui, est effacé à l'exécution — et le partager est ce qui empêche
@@ -542,10 +549,75 @@ export function ageStateOfDraft(
   draft: MouthFormDraft,
   todayLocalIso: string,
 ): MouthAgeState {
-  const verdict = assessBirthDate(draft.birthDate, todayLocalIso);
+  return ageStateOfTypedDate(draft.birthDate, "unknown", todayLocalIso);
+}
+
+/**
+ * L'ÉTAT D'ÂGE D'UNE LIGNE QU'ON CORRIGE — LA DATE TAPÉE GAGNE SUR LE ROSTER.
+ *
+ * Deux écrans corrigent une bouche qui EXISTE avec un champ de date qui part
+ * VIDE (le roster ne rend jamais la date d'une bouche, seulement son état
+ * d'âge): `/app/household` (`MouthFields`) et la ligne d'une bouche inscrite
+ * dans l'entonnoir. Tant que rien n'est tapé, l'âge est celui que la base a
+ * compris; dès qu'une date est tapée, c'est ELLE qui décide — et c'est
+ * exactement le cas que la migration `20260822041500` ferme (« cette bouche
+ * est en fait une enfant » PENDANT qu'une direction est posée sur elle).
+ *
+ * ⚠️ `unknown` SUR UNE DATE ILLISIBLE, JAMAIS `minor`: même règle que
+ * `ageStateOfDraft`, et pour la même raison.
+ */
+export function ageStateOfTypedDate(
+  typedBirthDate: string,
+  fromRoster: MouthAgeState,
+  todayLocalIso: string,
+): MouthAgeState {
+  if (typedBirthDate.trim() === "") return fromRoster;
+  const verdict = assessBirthDate(typedBirthDate, todayLocalIso);
   if (verdict.status === "minor") return "minor";
   if (verdict.status === "adult") return "adult";
   return "unknown";
+}
+
+/**
+ * LE BROUILLON, PLIÉ À CE QUE SON ÂGE PEUT PORTER — chantier P3, 2026-09-03.
+ *
+ * ── CE QUE C'EST ─────────────────────────────────────────────────────────
+ * Une règle de LECTURE, appliquée à deux endroits et à deux seulement: par la
+ * fiche au rendu (ce que les tuiles montrent, ce que le curseur déplie, ce que
+ * le bouton retient) et par `mouthToPersist` (ce qui part en base). Le
+ * brouillon, lui, garde ce qui a été tapé: une date corrigée vers un âge
+ * adulte fait réapparaître la direction d'origine — « on refuse, on n'efface
+ * pas » (arbitrage ② de `20260822041500`), transposé à l'écran.
+ *
+ * ── CE QU'IL PLIE ────────────────────────────────────────────────────────
+ * `goal` par `goalForAge` (la règle vit dans `api/household.ts`, à côté de
+ * `goalsForAge`); et quand la direction change, la cible et le rythme
+ * PARTENT avec elle — les deux n'ont de sens que sous la direction qui les a
+ * produits, et `household_members_target_needs_direction_check` refuse une
+ * cible sur `maintenance`. C'est le même geste que le `onChange` des tuiles.
+ *
+ * ⚠️ `switchedFrom` EST CE QUE LA PHRASE DIT. Une bascule muette serait
+ * exactement le renversement silencieux que ce dépôt refuse: la personne qui
+ * relit la fiche doit lire QUELLE direction a été remplacée, et pourquoi.
+ */
+export interface FoldedMouthDraft {
+  draft: MouthFormDraft;
+  /** La direction que le pli a remplacée, ou `null` quand rien n'a bougé. */
+  switchedFrom: MemberGoal | null;
+}
+
+export function foldMinorGoal(
+  draft: MouthFormDraft,
+  todayLocalIso: string,
+): FoldedMouthDraft {
+  const shown = goalForAge(draft.goal, ageStateOfDraft(draft, todayLocalIso));
+  if (shown === draft.goal || draft.goal === "") {
+    return { draft, switchedFrom: null };
+  }
+  return {
+    draft: { ...draft, goal: shown, targetWeightKg: "", paceKgPerWeek: "" },
+    switchedFrom: draft.goal,
+  };
 }
 
 /**
@@ -1075,10 +1147,15 @@ export interface MouthPersistPayload {
 }
 
 export function mouthToPersist(
-  draft: MouthFormDraft,
+  typed: MouthFormDraft,
   todayLocalIso: string,
   memberId: string | null = null,
 ): MouthPersistPayload {
+  // ⚠️ PLIÉ AVANT TOUT, ET C'EST LA MOITIÉ QUI ÉCRIT. La fiche montre déjà la
+  // direction pliée (voir `foldMinorGoal`); si ce traducteur relisait le
+  // brouillon BRUT, l'écran dirait « Manger normalement » et la base recevrait
+  // `fat_loss` — c'est-à-dire `goal_not_for_minor`, loin du geste.
+  const draft = foldMinorGoal(typed, todayLocalIso).draft;
   const target = targetPayloadOf(draft, todayLocalIso);
   return {
     memberId,

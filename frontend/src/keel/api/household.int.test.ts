@@ -5,7 +5,9 @@ import { resolve } from "node:path";
 import {
   awayFrom,
   claimableMembers,
+  goalForAge,
   goalsForAge,
+  isDirectionalGoal,
   type HouseholdMemberView,
   type HouseholdView,
   MEMBER_GOALS,
@@ -334,33 +336,90 @@ describe("awayFrom — les deux sources d'une absence, séparées (D14)", () => 
 // ───────────────────────────────────────────────────────────────────────────
 
 /**
- * ⚠️ CE BLOC A ÉTÉ RENVERSÉ LE 2026-08-18, ET IL GARDAIT L'ANCIENNE RÈGLE.
+ * ⚠️ CE BLOC A ÉTÉ RETOURNÉ DEUX FOIS, ET IL GARDE LES DEUX DATES.
  *
- * Il vérifiait que `fat_loss` et `recomposition` étaient refusés à un mineur,
- * et il confrontait TROIS copies de cette liste sur le disque (écran, moteur,
- * migration) pour qu'aucune ne dérive en silence. Décision humaine du
- * 2026-08-18: un mineur porte LES TROIS objectifs, comme un majeur. Les trois
- * copies sont supprimées ensemble, dans le même commit — c'était très
- * exactement le mode d'échec que ce test existait pour empêcher, et il le
- * mesure encore, dans l'autre sens.
+ * Le 2026-08-18 il affirmait « la même liste pour un adulte et un enfant »
+ * (renversement de la règle du 13/08, trois copies supprimées ensemble). Le
+ * 2026-09-03 (chantier P3, décision D3.2) il affirme l'inverse — parce que la
+ * BASE a changé d'avis entre les deux, le 2026-08-22 (`20260822041500`, lot
+ * S4, « aucun objectif de poids sur un mineur »): les QUATRE portes d'écriture
+ * refusent `fat_loss` et `muscle_gain` sur une bouche mineure, et pendant
+ * douze jours l'écran a proposé à un enfant deux directions que la base
+ * refusait, avec le refus en jeton brut.
  *
- * ⚠️ CE QUI PROTÈGE À LA PLACE N'EST PAS UN REFUS D'OBJECTIF, et n'est donc
- * pas testable ici. La raison écrite le 13/08 n'était pas « pas de direction »,
- * c'était « pas de direction qui fasse d'un enfant une cible de poids ». Trois
- * gardes la tiennent, chacune testée dans son module Deno:
- *   1. `childEnvelopeFromBody` ne prend pas de `goal` (`meal_envelope_test`);
- *   2. `paceCeilingFor` borne un mineur sur son besoin (`weight_pace_test`);
- *   3. le corps d'un enfant n'est jamais énoncé (FF-047, `meal_body_test`).
+ * ⚠️ CE QUE LA LISTE D'UN MINEUR CONTIENT EST LU SUR LE DISQUE, DANS LA
+ * MIGRATION — jamais recopié: ce qui lui est retiré est ce que la garde SQL
+ * nomme. Un test qui recopierait `["maintenance"]` resterait vert le jour où
+ * la base rouvrirait `muscle_gain` — la cicatrice
+ * `test-parameterized-by-its-own-constant`, prise par l'autre bout.
+ *
+ * ⚠️ CE QUI PROTÈGE EN PLUS N'EST PAS UN REFUS D'OBJECTIF, et n'est donc pas
+ * testable ici — l'énergie d'un mineur reste une maintenance calculée sur son
+ * âge (`meal_envelope_test`), et son corps n'est jamais énoncé (FF-047,
+ * `meal_body_test`).
  */
-describe("les directions qu'un mineur porte, depuis le 2026-08-18", () => {
+describe("les directions qu'un mineur porte, depuis le 2026-09-03", () => {
   const ROOT = resolve(__dirname, "../../../..");
+  const S4 =
+    "supabase/migrations/20260822041500_aucun_objectif_de_poids_sur_un_mineur.sql";
 
-  it("propose EXACTEMENT la même liste à un adulte et à un enfant", () => {
-    expect([...goalsForAge("adult")]).toEqual([...MEMBER_GOALS]);
-    expect([...goalsForAge("child")]).toEqual([...MEMBER_GOALS]);
-    // Sans cette ligne, un `goalsForAge` qui rendrait `[]` des deux côtés
-    // passerait l'égalité ci-dessus.
-    expect(goalsForAge("child").length).toBeGreaterThan(0);
+  it("un mineur ne voit que `maintenance`; un adulte ET un âge INCONNU voient les trois", () => {
+    expect([...goalsForAge("minor")]).toEqual(["maintenance"]);
+    expect([...goalsForAge("adult")]).toEqual([
+      "fat_loss",
+      "maintenance",
+      "muscle_gain",
+    ]);
+    // ⚠️ `unknown` N'EST PAS `minor`: « je ne sais pas » n'est pas « c'est
+    // un enfant ». Lire l'inconnu comme un mineur fermerait l'objectif de
+    // tout adulte dont on n'a pas encore la date — le cas courant de
+    // l'entonnoir. La migration le dit mot pour mot.
+    expect([...goalsForAge("unknown")]).toEqual([
+      "fat_loss",
+      "maintenance",
+      "muscle_gain",
+    ]);
+  });
+
+  it("ce qui est retiré à un mineur est EXACTEMENT ce que la garde SQL refuse", () => {
+    const sql = readFileSync(resolve(ROOT, S4), "utf8");
+    // Les trois portes d'objectif nomment la même liste — deux formes, une
+    // sur la variable d'entrée, une sur la ligne relue.
+    const lists = [
+      ...sql.matchAll(/(?:p_goal|v_target\.goal) in \(([^)]*)\)/g),
+    ].map((m) => [...m[1].matchAll(/'([a-z_]+)'/g)].map((x) => x[1]).sort());
+    expect(lists.length, "la garde d'âge a disparu de la migration")
+      .toBeGreaterThanOrEqual(3);
+    for (const l of lists) expect(l).toEqual(lists[0]);
+    const refused = lists[0];
+    expect(refused.length).toBeGreaterThan(0);
+    // Ce que l'écran propose à un mineur = le vocabulaire MOINS la garde.
+    const kept = ["fat_loss", "maintenance", "muscle_gain"].filter((g) =>
+      !refused.includes(g)
+    );
+    expect([...goalsForAge("minor")]).toEqual(kept);
+    // Et « directionnel » est la même définition des deux côtés.
+    for (const g of refused) expect(isDirectionalGoal(g), g).toBe(true);
+    for (const g of kept) expect(isDirectionalGoal(g), g).toBe(false);
+  });
+
+  it("`goalForAge` plie une direction refusée à cet âge en `maintenance`, et rien d'autre", () => {
+    expect(goalForAge("fat_loss", "minor")).toBe("maintenance");
+    expect(goalForAge("muscle_gain", "minor")).toBe("maintenance");
+    expect(goalForAge("maintenance", "minor")).toBe("maintenance");
+    // « Rien de coché » reste rien de coché: le pli ne fabrique pas un choix.
+    expect(goalForAge("", "minor")).toBe("");
+    expect(goalForAge("fat_loss", "adult")).toBe("fat_loss");
+    expect(goalForAge("fat_loss", "unknown")).toBe("fat_loss");
+  });
+
+  it("`isDirectionalGoal` — le CHECK, et rien pour un jeton hors vocabulaire", () => {
+    expect(isDirectionalGoal("fat_loss")).toBe(true);
+    expect(isDirectionalGoal("muscle_gain")).toBe(true);
+    expect(isDirectionalGoal("maintenance")).toBe(false);
+    expect(isDirectionalGoal(null)).toBe(false);
+    // Retiré le 18/08: jamais écrit (`bad_goal`), donc jamais refusé pour l'âge.
+    expect(isDirectionalGoal("recomposition")).toBe(false);
   });
 
   it("le moteur n'a plus AUCUNE liste d'objectifs interdits aux mineurs", () => {
@@ -379,12 +438,13 @@ describe("les directions qu'un mineur porte, depuis le 2026-08-18", () => {
     expect(deno).toContain("2026-08-18");
   });
 
-  it("la base a LEVÉ la garde sur LES DEUX portes, pas sur une seule", () => {
-    // ⚠️ C'EST LA MOITIÉ QUI SE RATE. Les deux RPC écrivent la même colonne;
-    // une garde levée sur une seule laisserait l'autre fermée, et c'est
-    // toujours celle qu'on n'a pas regardée qui sert. La migration du 18/08
-    // réécrit les DEUX fonctions et ne doit plus contenir le refus.
-    const sql = readFileSync(
+  it("la base a LEVÉ la garde le 18/08 sur LES DEUX portes, puis l'a REPOSÉE le 22/08 sur les QUATRE", () => {
+    // ⚠️ LES DEUX MOITIÉS DE L'HISTOIRE, PARCE QU'ELLE SE RELIT MAL. Le 18/08
+    // réécrit les deux portes SANS le refus (`p_goal not in (…)` deux fois,
+    // jamais `goal_not_for_minor` en `return`); le 22/08 le repose sur trois
+    // portes et pose `target_not_for_minor` sur la quatrième. Un test qui ne
+    // lirait qu'un des deux fichiers conclurait le contraire de la vérité.
+    const lifted = readFileSync(
       resolve(
         ROOT,
         "supabase/migrations/20260818100000_three_directions_and_a_collected_activity.sql",
@@ -395,17 +455,23 @@ describe("les directions qu'un mineur porte, depuis le 2026-08-18", () => {
       "keel_household_set_member_goal",
       "keel_household_add_member",
     ]) {
-      expect(sql).toContain(`create or replace function public.${door}`);
+      expect(lifted).toContain(`create or replace function public.${door}`);
     }
-    // Le refus n'existe plus qu'en COMMENTAIRE — la trace de ce qui a été
-    // levé — jamais dans un `return jsonb_build_object`.
-    expect(sql).not.toContain("'reason', 'goal_not_for_minor'");
-    // Et le vocabulaire des deux portes est celui d'aujourd'hui.
-    // `p_goal not in (…)`, et pas le simple `not in (…)`: la validation des
-    // PORTÉES de doctrine utilise la même liste sur une autre variable, et la
-    // compter ferait passer ce test avec une seule porte réécrite.
-    const doors = sql.split("p_goal not in ('fat_loss', 'maintenance', 'muscle_gain')");
+    expect(lifted).not.toContain("'reason', 'goal_not_for_minor'");
+    const doors = lifted.split("p_goal not in ('fat_loss', 'maintenance', 'muscle_gain')");
     expect(doors.length - 1).toBe(2);
+
+    const reposed = readFileSync(resolve(ROOT, S4), "utf8");
+    expect(reposed.split("'reason', 'goal_not_for_minor'").length - 1).toBe(3);
+    expect(reposed.split("'reason', 'target_not_for_minor'").length - 1).toBe(1);
+    for (const door of [
+      "keel_household_add_member",
+      "keel_household_set_member_goal",
+      "keel_household_set_member_birth_date",
+      "keel_household_set_member_target",
+    ]) {
+      expect(reposed).toContain(`create or replace function public.${door}`);
+    }
   });
 });
 
@@ -446,9 +512,11 @@ describe("le vocabulaire d'objectifs du front est celui de la base", () => {
       "maintenance",
       "muscle_gain",
     ]);
-    // Et l'enfant reçoit la même chose, littéralement — pas « la même que
-    // l'adulte », qui resterait vrai si les deux devenaient fausses ensemble.
-    expect([...goalsForAge("child")]).toEqual([
+    // Et l'âge INCONNU reçoit la même chose, littéralement — pas « la même
+    // que l'adulte », qui resterait vrai si les deux devenaient fausses
+    // ensemble. (L'enfant, lui, n'en reçoit qu'une depuis le 2026-09-03:
+    // voir le bloc juste au-dessus.)
+    expect([...goalsForAge("unknown")]).toEqual([
       "fat_loss",
       "maintenance",
       "muscle_gain",

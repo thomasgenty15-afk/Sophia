@@ -7,7 +7,8 @@ import { SectionLabel } from "./ui/Card";
 import { allergenLabel, ALLERGEN_OPTIONS } from "../copy/allergens";
 import { type MessageKey, t } from "../i18n/t";
 import { uiLocale } from "../i18n/runtime";
-import { MEMBER_GENDERS, MEMBER_GOALS } from "../api/household";
+import { MEMBER_GENDERS } from "../api/household";
+import GoalTiles from "./GoalTiles";
 import type { MemberGender, MemberGoal } from "../api/household";
 import { DIET_ANSWERS } from "../api/onboarding";
 import {
@@ -31,6 +32,7 @@ import {
   shakerIsForeground,
   submitIsHeld,
   targetWeightStateFor,
+  foldMinorGoal,
 } from "../lib/mouthForm";
 import {
   MEAL_EXTRAS,
@@ -101,14 +103,18 @@ import { PACE_WARNING_LABELS } from "../../../../supabase/functions/_shared/keel
 // endroit où l'âge entre est `ageStateOfDraft`. Poser la question en plus
 // ouvrirait deux réponses qui se contredisent.
 //
-// ── ⚠️ ET UN MINEUR PORTE LES SIX BLOCS, COMME LES AUTRES ────────────────
-// Renversement du 2026-08-18. Aucun bloc n'est masqué pour lui: la liste
-// d'objectifs est la même (`goalsForAge` rend `MEMBER_GOALS` des deux côtés),
-// et ce qui le protège n'est pas à l'écran — l'énergie d'un mineur reste une
-// maintenance calculée sur son âge, le plafond de son rythme se calcule sur son
-// besoin, et son corps n'est jamais ÉNONCÉ. Le SEUL écart visible ici est le
-// poids visé, que `targetWeightRefusal` laisse passer sans plancher adulte
-// parce que sa garde est ailleurs.
+// ── ⚠️ ET UN MINEUR PORTE LES SIX BLOCS — MAIS UNE SEULE DIRECTION ───────
+// Les six blocs sont rendus pour lui comme pour les autres (renversement du
+// 2026-08-18, toujours vrai: aucun bloc n'est masqué). Ce qui a changé le
+// 2026-09-03 (chantier P3, décision D3.2) est le CONTENU du bloc 3:
+// `goalsForAge("minor")` ne rend que `maintenance`, libellée « Manger
+// normalement » — parce que depuis le 2026-08-22 (`20260822041500`, lot S4)
+// les quatre portes d'écriture refusent `fat_loss` et `muscle_gain` sur un
+// mineur, et qu'un écran qui propose ce que la base refuse rend un jeton brut.
+// Une direction héritée est PLIÉE à `maintenance` par `foldMinorGoal` — au
+// rendu ET à l'écriture — et la fiche le DIT (`household.goal.minor_switched`).
+// Ce qui le protège en plus n'est pas à l'écran: l'énergie d'un mineur reste
+// une maintenance calculée sur son âge, et son corps n'est jamais ÉNONCÉ.
 // ═══════════════════════════════════════════════════════════════════════════
 
 /**
@@ -732,7 +738,14 @@ export function MouthCoreFields(
   // LA VOIX, ET CE QUE `{who}` VAUT — voir `lib/mouthVoice.ts`.
   const voice: MouthVoice = props.subject.isSelf ? "self" : "other";
   const who = whoOf(props.draft.firstName, t("household.mouth.who_fallback"));
-  const { draft, onChange, subject, todayLocalIso } = props;
+  const { onChange, subject, todayLocalIso } = props;
+  // ── LE BROUILLON PLIÉ À SON ÂGE (chantier P3, 2026-09-03) ───────────────
+  // Tout ce que cette fiche LIT passe par le pli — les tuiles, le curseur, ce
+  // qui retient le bouton, l'`aria-required` de l'activité; tout ce qu'elle
+  // ÉCRIT (`set`) va dans le brouillon BRUT de l'appelant. Le seul lecteur du
+  // brouillon brut est `GoalTiles`, qui a besoin de la direction d'origine
+  // pour NOMMER celle que le pli a remplacée. Voir `foldMinorGoal`.
+  const draft = foldMinorGoal(props.draft, todayLocalIso).draft;
   // ⚠️ MISE À JOUR FONCTIONNELLE. React groupe les mises à jour d'un même tick:
   // deux champs touchés coup sur coup partiraient sinon du MÊME état de départ,
   // et le second effacerait le premier. Mesuré sur `SetupPage` le 2026-08-12.
@@ -949,34 +962,31 @@ export function MouthCoreFields(
           title={t("household.mouth.direction")}
           hint={t("household.mouth.direction_hint")}
         >
-          {/* TROIS CHOIX, PAS SIX. L'axe qui fait bifurquer un plan est la
-              DIRECTION DE LA BALANCE: descend, monte, ne bouge pas. La liste
-              vient de `GOAL_TOKENS` par `MEMBER_GOALS` — une seule liste, trois
-              lecteurs, et un test la confronte au CHECK de la base. */}
-          <div className="flex flex-col gap-2" role="radiogroup" aria-label={t("household.mouth.direction")}>
-            {MEMBER_GOALS.map((g) => (
-              <label
-                key={g}
-                className="flex cursor-pointer items-center gap-3 rounded-card border border-line-strong bg-paper px-3 py-2.5 text-sm text-ink"
-              >
-                <input
-                  type="radio"
-                  name="mouth-goal"
-                  value={g}
-                  checked={draft.goal === g}
-                  onChange={() =>
-                    // CHANGER DE DIRECTION VIDE LA CIBLE ET LE RYTHME. Les deux
-                    // n'ont de sens que sous la direction qui les a produits, et
-                    // `household_members_target_needs_direction_check` refuse
-                    // une cible sur `maintenance`. Les garder en mémoire les
-                    // ferait repartir au prochain basculement, vers une
-                    // violation de contrainte.
-                    set({ goal: g, targetWeightKg: "", paceKgPerWeek: "" })}
-                />
-                <span>{goalLabel(g)}</span>
-              </label>
-            ))}
-          </div>
+          {/* TROIS CHOIX, PAS SIX — ET UN SEUL POUR UN MINEUR (2026-09-03).
+              L'axe qui fait bifurquer un plan est la DIRECTION DE LA BALANCE:
+              descend, monte, ne bouge pas. La liste vient de `goalsForAge`,
+              dérivée de `GOAL_TOKENS` — une seule liste, six sélecteurs, et un
+              test la confronte au CHECK de la base ET à la garde d'âge lue sur
+              le disque. Les tuiles sont le MÊME composant que les cinq autres
+              sites (`GoalTiles`): aucune pré-sélection, aucune option vide.
+
+              ⚠️ `value` EST LE BROUILLON BRUT, EXPRÈS: c'est la seule lecture
+              non pliée de cette fiche, parce que la phrase de bascule doit
+              nommer la direction d'ORIGINE. Le pli, lui, est dans `checked`. */}
+          <GoalTiles
+            name="mouth-goal"
+            ariaLabel={t("household.mouth.direction")}
+            value={props.draft.goal}
+            ageState={ageState}
+            labelOf={goalLabel}
+            // CHANGER DE DIRECTION VIDE LA CIBLE ET LE RYTHME. Les deux
+            // n'ont de sens que sous la direction qui les a produits, et
+            // `household_members_target_needs_direction_check` refuse
+            // une cible sur `maintenance`. Les garder en mémoire les
+            // ferait repartir au prochain basculement, vers une
+            // violation de contrainte.
+            onChange={(g) => set({ goal: g, targetWeightKg: "", paceKgPerWeek: "" })}
+          />
 
           {/* ── LES DEUX CHAMPS QUI SE DÉPLIENT ─────────────────────────
               Ils sont un COMPOSANT À PART depuis le 2026-08-18, parce que
@@ -1668,7 +1678,14 @@ export function MouthPreferencesFields(
  * raison.
  */
 export function TargetAndPaceFields(
-  { draft, onChange, todayLocalIso, idPrefix, voice, who }: {
+  // ⚠️ `voice` ET `who` RESTENT DANS LE CONTRAT, ET NE SONT PLUS DESTRUCTURÉS
+  // (2026-09-03). Les deux `hint` qui les lisaient sont partis le 2026-09-01
+  // (voir les deux « PAS DE `hint` ICI » plus bas), et le lint rendait depuis
+  // « defined but never used » sur un fichier que personne ne modifiait — donc
+  // que le gate ne lintait jamais. Les six appelants les passent encore, et
+  // le prochain texte voisé les relira: on ne retire pas une prop du contrat
+  // pour faire taire une règle.
+  { draft, onChange, todayLocalIso, idPrefix }: {
     draft: MouthFormDraft;
     onChange: React.Dispatch<React.SetStateAction<MouthFormDraft>>;
     todayLocalIso: string;

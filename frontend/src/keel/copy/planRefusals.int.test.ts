@@ -434,6 +434,48 @@ describe("les refus des deux RPC de réglage de fusion", () => {
   });
 });
 
+/**
+ * ── S4 (`20260822041500`) · LES QUATRE PORTES D'UNE BOUCHE, CONFRONTÉES À LEUR
+ *    SOURCE SQL — chantier P3, 2026-09-03 ──────────────────────────────────
+ *
+ * ⚠️ LE TROU QUE CE BLOC BOUCHE. `goal_not_for_minor` et `target_not_for_minor`
+ * sont nés le 2026-08-22 sur les quatre portes d'écriture d'une bouche, et
+ * aucune table ne les nommait: pendant douze jours, poser une date de mineur
+ * sur une bouche à `fat_loss` rendait le jeton BRUT sous un formulaire
+ * d'accueil. On lit la migration plutôt que de recopier sa liste: un cinquième
+ * refus ajouté là-bas sans étiquette ici fera rougir la suite.
+ */
+describe("les quatre portes d'une bouche (S4) ont des mots", () => {
+  const MIGRATION =
+    "supabase/migrations/20260822041500_aucun_objectif_de_poids_sur_un_mineur.sql";
+
+  function doorReasons(): string[] {
+    const sql = source(MIGRATION);
+    // Les `return jsonb_build_object('ok', false, 'reason', '…')` des quatre
+    // corps. Les commentaires SQL (`--`) et les `comment on function` citent
+    // les jetons entre accents graves, jamais sous cette forme.
+    const reasons = [...sql.matchAll(/'reason',\s*'([a-z_]+)'/g)].map((m) => m[1]);
+    expect(reasons.length, "aucun refus lu dans la migration").toBeGreaterThan(10);
+    return [...new Set(reasons)];
+  }
+
+  it("chaque motif des quatre portes arrive en mots sur /app/household", () => {
+    const reasons = doorReasons();
+    expect(reasons.filter((r) => householdErrorKey(r) === null)).toEqual([]);
+  });
+
+  it("nomme les deux motifs qui sont arrivés en jargon pendant douze jours", () => {
+    // LE CAS QUI PASSE, et il est nominatif — un test qui ne dirait que
+    // « tout est couvert » resterait vert le jour où le scan cesse de lire.
+    const reasons = doorReasons();
+    for (const token of ["goal_not_for_minor", "target_not_for_minor"]) {
+      expect(reasons, `${token} n'est plus rendu par la migration`).toContain(token);
+      expect(householdRefusalKey(token), token)
+        .toBe(`household.error.${token}`);
+    }
+  });
+});
+
 describe("la liste fermée des refus de foyer", () => {
   it("ne perd aucun motif au passage de `HouseholdPage` au module partagé", () => {
     // La table VIENT d'un `switch` privé de l'écran du foyer. Une ligne oubliée

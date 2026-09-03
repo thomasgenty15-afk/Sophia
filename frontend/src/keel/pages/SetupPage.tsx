@@ -32,8 +32,8 @@ import {
   inviteToHousehold,
   MEMBER_GENDERS,
   type MemberGender,
-  goalsForAge,
-  MEMBER_GOALS,
+  goalForAge,
+  isDirectionalGoal,
   type MemberGoal,
   removeHouseholdMember,
   setMemberBirthDate,
@@ -56,6 +56,7 @@ import {
   type CookingShape,
 } from "../api/cookingShape";
 import CookingShapeField from "../components/CookingShapeField";
+import GoalTiles from "../components/GoalTiles";
 import PlanDraftDialog from "../components/plan/PlanDraftDialog";
 import {
   EATING_OCCASIONS,
@@ -128,7 +129,11 @@ import MouthFormDialog, {
   TargetAndPaceFields,
 } from "../components/MouthFormDialog";
 import {
+  ageStateOfDraft,
+  ageStateOfTypedDate,
   emptyMouthDraft as emptyMouthFormDraft,
+  foldMinorGoal,
+  type MouthAgeState,
   type MouthFormDraft,
   type ShakerDraft,
   shakerCanBeSaved,
@@ -336,6 +341,16 @@ interface SelfDraft {
  *      `servingDirectionFor` côté moteur, `goalsForAge` rend la même liste des
  *      deux côtés). Cet écran était le dernier endroit à l'appliquer.
  *
+ *      ⟳ 2026-09-03 (chantier P3, D3.2): la liste n'est PLUS la même des deux
+ *      côtés — `goalsForAge("minor")` ne rend que `maintenance` (« Manger
+ *      normalement ») depuis que la base refuse `fat_loss` et `muscle_gain`
+ *      sur un mineur (`20260822041500`, lot S4, quatre portes). Mais rien ici
+ *      n'EFFACE une direction, et c'est ce que le point 2 garde: une date qui
+ *      rend quelqu'un mineur PLIE sa direction à « Manger normalement » à la
+ *      lecture et à l'écriture (`goalForAge`, `foldMinorGoal`), et l'écran le
+ *      dit. Le brouillon garde ce qui a été tapé — corriger la date vers un
+ *      âge adulte fait réapparaître la direction d'origine.
+ *
  * ⛔ NE PAS LE RÉINTRODUIRE. Ce que `MouthFormDialog` dit déjà de son côté vaut
  * ici mot pour mot: « on ne demande jamais adulte ou enfant ».
  */
@@ -432,6 +447,30 @@ const OCCASION_KEYS: Record<string, MessageKey> = {
 
 function goalLabel(goal: MemberGoal): string {
   return t(GOAL_KEYS[goal]);
+}
+
+/**
+ * L'ÉTAT D'ÂGE D'UNE BOUCHE INSCRITE, VU DE SA LIGNE — trois valeurs, jamais
+ * deux (chantier P3, 2026-09-03).
+ *
+ * `kind` n'en porte que deux, et `unknown` y devient `adult` DÉLIBÉRÉMENT
+ * (voir `api/onboarding.ts`: ne pas savoir n'est pas savoir que c'est un
+ * enfant). `birthDate`, lui, dit si une date EXISTE (`null` = âge inconnu).
+ * Les deux ensemble rendent l'état à trois valeurs que `goalsForAge` réclame
+ * — et une date TAPÉE dans la carte gagne sur les deux, parce que c'est elle
+ * que le prochain blur va écrire.
+ */
+function funnelMouthAgeState(
+  m: FunnelMouth,
+  typedDate: string,
+  todayLocalIso: string,
+): MouthAgeState {
+  const fromRoster: MouthAgeState = m.kind === "child"
+    ? "minor"
+    : m.birthDate === null
+    ? "unknown"
+    : "adult";
+  return ageStateOfTypedDate(typedDate, fromRoster, todayLocalIso);
 }
 
 /**
@@ -1769,7 +1808,18 @@ export default function SetupPage() {
         if (!written.ok) throw new Error(t("setup.people.birth_date_error"));
       }
       if (draft.goal) {
-        await saveOwnGoal(userId, draft.goal);
+        // ⚠️ PLIÉE À L'ÂGE (chantier P3, 2026-09-03). `student_goals` ne porte
+        // pas la garde S4 — elle vit sur les quatre portes de
+        // `household_members` —, donc ce pli est la seule chose qui tienne
+        // « un mineur ne porte que "Manger normalement" » sur la ligne du
+        // titulaire. La même règle, au même endroit que pour une bouche.
+        await saveOwnGoal(
+          userId,
+          goalForAge(
+            draft.goal,
+            ageStateOfTypedDate(draft.birthDate, "unknown", browserLocalDate()),
+          ),
+        );
         // L'objectif vient de créer la ligne sur un compte neuf. La taille peut
         // enfin rejoindre `practical_constraints`, dans l'ordre imposé par le
         // schéma. Le second terme récupère aussi les comptes restés entre les
@@ -1803,7 +1853,12 @@ export default function SetupPage() {
       // une cible qui n'a jamais existé est un succès, et le refuser ferait
       // échouer « Continuer » exactement une fois, sur le premier passage.
       if (selfMouthDraft !== null) {
-        const payload = targetPayloadOf(selfMouthDraft, browserLocalDate());
+        // Pliée à l'âge, comme la direction juste au-dessus: une cible ne part
+        // jamais sur une direction que le pli vient de replier.
+        const payload = targetPayloadOf(
+          foldMinorGoal(selfMouthDraft, browserLocalDate()).draft,
+          browserLocalDate(),
+        );
         const written = await setOwnTarget(
           userId,
           payload.targetWeightKg,
@@ -2000,12 +2055,13 @@ export default function SetupPage() {
       const result = await addHouseholdMember(
         name,
         birth,
-        // UN ENFANT PORTE SA DIRECTION DEPUIS LE 2026-08-13, ET LES TROIS
-        // DEPUIS LE 2026-08-18. Le filtre `goal_not_for_minor` a été retiré des
-        // deux portes d'écriture (migration `20260818100000`): l'écran propose
-        // la même liste à tout le monde, et la base accepte la même. Rien à
-        // trier ici — ce qu'on envoie est ce qui a été choisi.
-        draft.goal || null,
+        // ⟳ UN MINEUR NE PORTE PLUS `fat_loss` NI `muscle_gain` DEPUIS LE
+        // 2026-08-22 (`20260822041500`, lot S4): cette porte — date et
+        // direction dans le MÊME appel, c'est celle que la migration cite —
+        // refuse `goal_not_for_minor`. Ce qu'on envoie est ce qui est COCHÉ:
+        // les tuiles ne proposent que « Manger normalement » à un mineur, et
+        // une direction héritée est pliée par la même règle (`goalForAge`).
+        goalForAge(draft.goal, ageStateOfDraft(draft, browserLocalDate())) || null,
       );
       if (!result.ok) throw new Error(result.reason);
       const memberId = String(result.member_id ?? "");
@@ -2064,7 +2120,12 @@ export default function SetupPage() {
         // `(null, null)` est donc un no-op qui coûte un aller-retour et évite
         // une branche qui, elle, se périmerait le jour où cette fonction
         // servira aussi à REPRENDRE une fiche.
-        const targetPayload = targetPayloadOf(draft, browserLocalDate());
+        const targetPayload = targetPayloadOf(
+          // Pliée à l'âge: rien ne part sur une direction que le pli replie
+          // (`target_not_for_minor` sinon, loin du geste).
+          foldMinorGoal(draft, browserLocalDate()).draft,
+          browserLocalDate(),
+        );
         const aimed = await setMemberTarget(
           memberId,
           targetPayload.targetWeightKg,
@@ -2579,8 +2640,7 @@ export default function SetupPage() {
       if (fields.birthDate.trim() !== "") {
         const answer = birthDateAnswer(fields.birthDate, browserLocalDate());
         if (!answer) throw new Error(t("setup.people.birth_date_error"));
-        const dated = await setMemberBirthDate(target.memberId!, answer.date);
-        if (!dated.ok) throw new Error(dated.reason);
+        await writeMouthBirthDate(target, answer.date);
       }
       const h = Number(fields.heightCm);
       const w = Number(fields.weightKg);
@@ -2611,7 +2671,13 @@ export default function SetupPage() {
       const payload = targetPayloadOf(
         {
           ...emptyMouthFormDraft(),
-          goal: target.goal ?? "",
+          // PLIÉE À L'ÂGE DE LA LIGNE, date tapée comprise: une cible ne part
+          // jamais sur une direction que les tuiles viennent de replier
+          // (`target_not_for_minor` sinon, loin du geste).
+          goal: goalForAge(
+            target.goal ?? "",
+            funnelMouthAgeState(target, fields.birthDate, browserLocalDate()),
+          ),
           targetWeightKg: fields.targetWeightKg,
           paceKgPerWeek: fields.paceKgPerWeek,
         },
@@ -2643,9 +2709,9 @@ export default function SetupPage() {
      `setMemberDiet` désormais. `TableStep` reste exporté pour son harnais, qui
      lui passe ses propres bouchons. */
 
-  function saveMouthGoal(target: FunnelMouth, goal: MemberGoal | ""): Promise<void> {
+  function saveMouthGoal(target: FunnelMouth, goal: MemberGoal): Promise<void> {
     return (async () => {
-      const result = await setMemberGoal(target.memberId!, goal || null);
+      const result = await setMemberGoal(target.memberId!, goal);
       if (!result.ok) throw new Error(result.reason);
       await load(false);
     })();
@@ -2726,12 +2792,39 @@ export default function SetupPage() {
     })();
   }
 
+  /**
+   * LA DATE D'UNE BOUCHE INSCRITE — ET LA DIRECTION AVANT ELLE QUAND IL LE
+   * FAUT (chantier P3, 2026-09-03).
+   *
+   * Depuis `20260822041500` (lot S4), `keel_household_set_member_birth_date`
+   * refuse `goal_not_for_minor` quand la date rend la bouche mineure PENDANT
+   * que sa ligne porte `fat_loss` ou `muscle_gain` — « le détour temporel »,
+   * la garde qui arme les trois autres. La migration nomme le remède: retirer
+   * la direction, puis poser la date. L'écran l'applique dans le sens de
+   * D3.2: la direction devient `maintenance` (« Manger normalement »), ce que
+   * les tuiles montrent déjà pour cette date-là, et la date s'écrit ensuite.
+   * Même règle que `persistMouth` et `saveMember`, au même endroit du geste.
+   *
+   * ⚠️ UN SEUL ÉCRIVAIN pour les deux chemins qui posent une date (le champ
+   * seul, et la carte « tout ce qui est prêt »): deux copies divergeraient au
+   * premier ajustement, et c'est celle qu'on regarde le moins qui refuserait.
+   */
+  async function writeMouthBirthDate(target: FunnelMouth, isoDate: string): Promise<void> {
+    const becomesMinor =
+      ageStateOfTypedDate(isoDate, "unknown", browserLocalDate()) === "minor";
+    if (becomesMinor && isDirectionalGoal(target.goal)) {
+      const folded = await setMemberGoal(target.memberId!, "maintenance");
+      if (!folded.ok) throw new Error(folded.reason);
+    }
+    const dated = await setMemberBirthDate(target.memberId!, isoDate);
+    if (!dated.ok) throw new Error(dated.reason);
+  }
+
   function saveMouthBirthDate(target: FunnelMouth, raw: string): Promise<void> {
     return (async () => {
       const answer = birthDateAnswer(raw, browserLocalDate());
       if (!answer) throw new Error(t("setup.people.birth_date_error"));
-      const result = await setMemberBirthDate(target.memberId!, answer.date);
-      if (!result.ok) throw new Error(result.reason);
+      await writeMouthBirthDate(target, answer.date);
       await load(false);
     })();
   }
@@ -4348,20 +4441,22 @@ export function SelfStep(props: {
           </Field>
         </div>
 
+        {/* ── TROIS TUILES, AUCUNE PRÉ-SÉLECTION (chantier P3, 2026-09-03) ──
+            L'option vide « — » est partie avec les quatre autres `<select>`
+            du dépôt: elle se lisait comme une quatrième direction. L'`id` du
+            groupe garde le nom du champ d'avant, parce que c'est lui que le
+            harnais de cette carte mesure pour l'ORDRE (corps, puis direction,
+            puis cible). */}
         <Field label={t("setup.people.goal")} htmlFor="setup-goal">
-          <select
+          <GoalTiles
             id="setup-goal"
+            name="setup-goal"
+            ariaLabel={t("setup.people.goal")}
             value={draft.goal}
-            onChange={(e) => set({ goal: e.target.value as MemberGoal })}
-            className={inputClass}
-          >
-            <option value="">—</option>
-            {MEMBER_GOALS.map((g) => (
-              <option key={g} value={g}>
-                {goalLabel(g)}
-              </option>
-            ))}
-          </select>
+            ageState={ageStateOfTypedDate(draft.birthDate, "unknown", browserLocalDate())}
+            labelOf={goalLabel}
+            onChange={(g) => set({ goal: g })}
+          />
         </Field>
 
         {/* ── OÙ VA LA BALANCE, ET À QUELLE VITESSE — JUSTE SOUS LA DIRECTION
@@ -4388,7 +4483,8 @@ export function SelfStep(props: {
             prop. */}
         {target !== null ? (
           <TargetAndPaceFields
-            draft={target.draft}
+            // Pliée à l'âge: sous une direction repliée, rien ne se déplie.
+            draft={foldMinorGoal(target.draft, target.todayLocalIso).draft}
             onChange={target.onChange}
             todayLocalIso={target.todayLocalIso}
             // ⚠️ PRÉFIXE PROPRE À CETTE CARTE. La bouche qu'on ajoute porte les
@@ -4520,7 +4616,7 @@ export function MouthsStep(props: {
   formOpen: boolean;
   /** La déplie. REQUIS, même raison: c'est la seule porte d'entrée. */
   onOpenForm: () => void;
-  onGoal: (mouth: FunnelMouth, goal: MemberGoal | "") => void;
+  onGoal: (mouth: FunnelMouth, goal: MemberGoal) => void;
   onBirthDate: (mouth: FunnelMouth, date: string) => void;
   onAllergyAnswer: (mouth: FunnelMouth, labels: string[]) => void;
   /** Ouvre la fenêtre sur le brouillon d'AJOUT. REQUIS — seule porte. */
@@ -4901,34 +4997,35 @@ export function MouthsStep(props: {
             {t("setup.mouths.body_together")}
           </p>
 
-          {/* ── LA MÊME LISTE POUR TOUT LE MONDE (2026-08-18) ───────────────
-              Le champ était réservé aux adultes: `PIVOT-FOYER.md` §8.4 disait
-              qu'un mineur n'a « jamais d'objectif nutritionnel individuel ».
-              Décision humaine renversée le 2026-08-13 — la règle était plus
-              large que sa raison, qui est « jamais CORRECTIF SUR LE CORPS:
-              aucune mention de poids, de silhouette, de restriction ».
+          {/* ── LA LISTE SUIT L'ÂGE, ET L'ÂGE VIENT DE LA DATE (2026-09-03) ──
+              Du 2026-08-18 au 2026-09-03 ce champ déroulait `MEMBER_GOALS` à
+              tout le monde, plus une option vide « Aucune direction
+              particulière » que l'utilisateur a lue comme une quatrième
+              direction. Or depuis le 2026-08-22 (`20260822041500`, lot S4) la
+              porte d'ajout — date et direction dans le MÊME appel — refuse
+              `fat_loss` et `muscle_gain` sur un mineur: l'écran proposait ce
+              que la base refusait, et le refus arrivait en jeton brut.
 
-              La liste est `MEMBER_GOALS`, sans détour: `goalsForAge`
-              demanderait un `kind` qu'on ne collecte plus, et le fabriquer à
-              partir de la date de naissance juste pour l'ignorer serait un
-              paramètre inventé. Ce qui protège un mineur n'est PAS à l'écran —
-              son énergie reste une maintenance calculée sur son âge, le plafond
-              de son rythme se calcule sur son besoin, et son corps n'est jamais
-              énoncé (FF-047). */}
+              `goalsForAge(ageStateOfDraft(draft))` filtre enfin: un mineur ne
+              voit que « Manger normalement », un âge inconnu voit les trois,
+              et rien n'est pré-coché. Le `kind` d'avant n'est pas revenu: la
+              date tapée trois champs plus haut est la seule source de l'âge.
+              Ce qui protège un mineur EN PLUS n'est pas à l'écran — son
+              énergie reste une maintenance calculée sur son âge, et son corps
+              n'est jamais énoncé (FF-047). */}
           <Field label={t("setup.mouths.goal")} htmlFor="setup-mouth-goal">
-            <select
+            <GoalTiles
               id="setup-mouth-goal"
+              name="setup-mouth-goal"
+              ariaLabel={t("setup.mouths.goal")}
               value={draft.goal}
-              onChange={(e) => set({ goal: e.target.value as MemberGoal })}
-              className={inputClass}
-            >
-              <option value="">{t("setup.mouths.goal_none")}</option>
-              {MEMBER_GOALS.map((g) => (
-                <option key={g} value={g}>
-                  {goalLabel(g)}
-                </option>
-              ))}
-            </select>
+              ageState={ageStateOfDraft(draft, browserLocalDate())}
+              labelOf={goalLabel}
+              // Changer de direction vide la cible et le rythme — même geste
+              // que la fiche: les deux n'ont de sens que sous la direction qui
+              // les a produits.
+              onChange={(g) => set({ goal: g, targetWeightKg: "", paceKgPerWeek: "" })}
+            />
           </Field>
 
           {/* ── OÙ VA SA BALANCE, ET À QUELLE VITESSE ─────────────────────
@@ -4950,7 +5047,8 @@ export function MouthsStep(props: {
             // « cette personne » plutôt qu'un pronom deviné.
             voice="other"
             who={draft.firstName.trim() || t("household.mouth.who_fallback")}
-            draft={draft}
+            // Pliée à l'âge: sous une direction repliée, rien ne se déplie.
+            draft={foldMinorGoal(draft, browserLocalDate()).draft}
             onChange={props.onDraftChange}
             todayLocalIso={browserLocalDate()}
             // ⚠️ PRÉFIXE DISTINCT DE CELUI DU TITULAIRE. Les deux jeux de
@@ -5134,7 +5232,9 @@ function MouthRowSummary(
     },
     {
       label: t("setup.mouths.goal"),
-      value: mouth.goal ? goalLabel(mouth.goal) : t("setup.mouths.goal_none"),
+      // « — » ET PLUS « Aucune direction particulière » (2026-09-03): un
+      // résumé qui nomme une quatrième direction en fabrique une.
+      value: mouth.goal ? goalLabel(mouth.goal) : dash,
     },
     {
       label: t("setup.mouths.body"),
@@ -5215,7 +5315,7 @@ function mouthDraftFromRow(
 
 function MouthRow(props: {
   mouth: FunnelMouth;
-  onGoal: (goal: MemberGoal | "") => void;
+  onGoal: (goal: MemberGoal) => void;
   onBirthDate: (date: string) => void;
   onAllergyAnswer: (labels: string[]) => void;
   /** Le brouillon de préférences de CETTE ligne — vide si elle n'est pas celle
@@ -5430,6 +5530,16 @@ function MouthRow(props: {
     setSeededFrom(targetSeed);
     setTargetDraft(mouthDraftFromRow(m, props.target));
   }
+  // ── L'ÂGE DE CETTE LIGNE, DATE TAPÉE COMPRISE (chantier P3) ──────────────
+  // C'est lui qui filtre les tuiles et qui replie la cible: le brouillon de
+  // cible ne porte PAS la date (le roster ne la rend jamais, voir
+  // `mouthDraftFromRow`), donc `foldMinorGoal` y serait aveugle — on plie ici,
+  // sur l'état d'âge que la ligne connaît, avec la même règle (`goalForAge`).
+  const rowAge = funnelMouthAgeState(m, date, browserLocalDate());
+  const rowShownGoal = goalForAge(m.goal ?? "", rowAge);
+  const rowTargetDraft: MouthFormDraft = rowShownGoal === targetDraft.goal
+    ? targetDraft
+    : { ...targetDraft, goal: rowShownGoal, targetWeightKg: "", paceKgPerWeek: "" };
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -5583,7 +5693,14 @@ function MouthRow(props: {
           un mineur déjà inscrit, l'écran ne rendait RIEN — ni le champ, ni la
           phrase qui dit où il vit. C'est l'ancienne règle « un mineur n'a pas
           d'objectif », renversée le 2026-08-18, et c'était en plus le pire des
-          deux mondes: un blanc ne dit pas « ça se règle ailleurs ». */}
+          deux mondes: un blanc ne dit pas « ça se règle ailleurs ».
+
+          ⟳ 2026-09-03 (chantier P3): les tuiles remplacent le `<select>` et son
+          option vide. Un mineur SANS compte ne voit qu'une tuile, « Manger
+          normalement » (`goalsForAge` — la base refuse le reste depuis
+          `20260822041500`); son âge vient de `funnelMouthAgeState`, date tapée
+          comprise, et une direction héritée est pliée et DITE. Un clic écrit
+          tout de suite (`onGoal`), donc il n'y a plus rien à « dé-choisir ». */}
       {(
         m.claimed ? (
           // ⚠️ D1 DU CHANTIER FOYER: dès qu'une bouche a un compte, son objectif
@@ -5592,20 +5709,16 @@ function MouthRow(props: {
           <p className="text-xs text-ink-soft">{t("setup.mouths.goal_from_profile")}</p>
         ) : (
           <Field label={t("setup.mouths.goal")} htmlFor={`setup-mouth-g-${m.memberId}`}>
-            <select
+            <GoalTiles
               id={`setup-mouth-g-${m.memberId}`}
+              name={`setup-mouth-g-${m.memberId}`}
+              ariaLabel={t("setup.mouths.goal")}
               value={m.goal ?? ""}
+              ageState={rowAge}
               disabled={props.busy}
-              onChange={(e) => props.onGoal(e.target.value as MemberGoal | "")}
-              className={inputClass}
-            >
-              <option value="">{t("setup.mouths.goal_none")}</option>
-              {goalsForAge(m.kind).map((g) => (
-                <option key={g} value={g}>
-                  {goalLabel(g)}
-                </option>
-              ))}
-            </select>
+              labelOf={goalLabel}
+              onChange={(g) => props.onGoal(g)}
+            />
           </Field>
         )
       )}
@@ -5723,7 +5836,8 @@ function MouthRow(props: {
               <TargetAndPaceFields
                 voice="other"
                 who={m.firstName.trim() || t("household.mouth.who_fallback")}
-                draft={targetDraft}
+                // Pliée à l'âge de la ligne — voir `rowTargetDraft`.
+                draft={rowTargetDraft}
                 onChange={setTargetDraft}
                 todayLocalIso={browserLocalDate()}
                 // ⚠️ PRÉFIXE PAR MEMBRE. Trois cartes peuvent être à l'écran,

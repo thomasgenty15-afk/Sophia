@@ -111,10 +111,10 @@ Aucune colonne neuve pour cette fiche : elle est la **surface** du modèle de
 
 | Écriture | RPC | Note |
 |---|---|---|
-| Ajouter une bouche | `keel_household_add_member(text, date, text)` (`20260810260000:126`) | Maître seul, plafond cité, valide prénom / objectif / date |
+| Ajouter une bouche | `keel_household_add_member(text, date, text)` (`20260810260000:126`, réécrite `20260822041500`) | Maître seul, plafond cité, valide prénom / objectif / date. **Refuse `goal_not_for_minor`** sur `fat_loss`/`muscle_gain` avec une date de mineur — date et direction dans le **même** appel, c'est la porte que l'écran utilise |
 | Corriger le prénom | `keel_household_set_member_name(uuid, text)` (`20260810170000:292`) | Autorité identique à `set_member_goal`, **mot pour mot** |
-| Corriger la date | `keel_household_set_member_birth_date(uuid, date)` (`20260810170000:352`) | RPC **séparée** — voir R4 |
-| Poser son objectif | `keel_household_set_member_goal(uuid, text)` (`20260811070000`) | Bouches **sans compte** uniquement. Refuse `has_account` sinon — y compris au maître pour lui-même (D1, voir R9) |
+| Corriger la date | `keel_household_set_member_birth_date(uuid, date)` (`20260810170000:352`, réécrite `20260822041500`) | RPC **séparée** — voir R4. **Refuse `goal_not_for_minor`** quand la date rend mineure une ligne qui porte `fat_loss`/`muscle_gain` (« le détour temporel ») : l'écran écrit la direction **avant** la date (R10) |
+| Poser son objectif | `keel_household_set_member_goal(uuid, text)` (`20260811070000`, réécrite `20260822041500`) | Bouches **sans compte** uniquement. Refuse `has_account` sinon — y compris au maître pour lui-même (D1, voir R9). **Refuse `goal_not_for_minor`** sur une ligne datée mineure ; `maintenance` et `null` passent |
 | Ligne du maître | `createOwnerGoalRow` (`frontend/src/keel/api/household.ts`) | `upsert … ignoreDuplicates: true` : n'écrase **jamais** une ligne existante |
 
 ## 6. Règles et garanties
@@ -129,6 +129,7 @@ Aucune colonne neuve pour cette fiche : elle est la **surface** du modèle de
 | R6 | **Le plafond de 8 vit en base**, et l'écran ne fait que le dire | Une limite d'UI n'est pas une limite : le plafond doit tenir face à un appel direct de la RPC. Il existe à cause du **coût LLM** — 8 bouches, ce sont 8 consignes de service à chaque génération. `keel_household_max_mouths()` (`20260810260000:101`) le nomme, `keel_household_add_member` le **cite** au lieu de le recopier. |
 | R7 | **Tout refus porte un motif nommé, traduit par une liste fermée** | Afficher `household_full` à quelqu'un n'est pas une information ; afficher « une erreur est survenue » non plus. Un motif inconnu est rendu tel quel — le silence forcerait à tolérer l'étiquette manquante au lieu de l'ajouter. |
 | R8 | **Le plafond compte les BOUCHES, pas les comptes** | Il n'a rien à voir avec ce qui est facturé. Les confondre ferait facturer des enfants — voir [FF-049](FF-049-le-prix-du-foyer.md) R1. |
+| R10 | **Un mineur ne porte que « Manger normalement », et l'écran ne propose que ce que la base accepte** | Ajoutée le 2026-09-03 (chantier P3, D3.1-D3.3). Depuis `20260822041500` (lot S4) la base refuse `fat_loss` et `muscle_gain` sur un mineur ; du 22/08 au 03/09 l'écran les proposait quand même, et le refus arrivait en **jeton brut**. `goalsForAge(ageState)` filtre enfin — `minor` → `maintenance` seule, `unknown` → les trois — sur les **six** sélecteurs du dépôt (un seul composant, `GoalTiles`, trois tuiles, **aucune pré-sélection**, plus d'option vide). Une direction héritée est **pliée** à `maintenance` au rendu et à l'écriture, **et dite** (`household.goal.minor_switched`). L'ordre d'écriture suit la garde : une direction qui ne bouge pas s'écrit **avant** la date, une qui bouge **après** (`persistMouth`, `saveMember`, `writeMouthBirthDate`). Les deux refus sont traduits (`planRefusals.ts`). |
 | R9 | **Un objectif ne vit qu'à UN endroit, et lequel dépend du compte** | Ajoutée le 2026-08-11 (D1). Bouche **sans** compte → `household_members.goal`, posé par le maître. Bouche **avec** compte → son « about you » (`student_goals`), et `keel_household_set_member_goal` refuse `has_account` — y compris au maître pour lui-même. Deux sources qui peuvent diverger sans que rien ne dise laquelle gagne, c'est le doublon qui produit un bug six mois plus tard : quelqu'un change son objectif dans son profil et son assiette ne bouge pas. La résolution est faite **une seule fois**, dans `keel_household_roster_for` (`20260811070000`) : les trois lecteurs — générateur, contexte de tour du chat, écran — passent tous par là, donc aucun ne peut l'oublier. **Conséquence à l'écran :** le sélecteur d'objectif disparaît dès que la bouche a un compte, remplacé par la valeur en lecture et la phrase qui dit où la changer. Un contrôle qui échoue à tous les coups est pire qu'un contrôle absent. |
 
 ## 7. Modes de défaillance
@@ -139,7 +140,9 @@ Aucune colonne neuve pour cette fiche : elle est la **surface** du modèle de
 | Neuvième bouche | Refus `household_full`, phrase traduite, foyer inchangé. Vrai aussi sur un appel direct de la RPC. |
 | Prénom vide ou > 40 caractères | Refus `bad_first_name`. La ligne n'entre pas. |
 | Date de naissance dans le futur | Refus `bad_birth_date` à l'ajout ; et si une date aberrante existait déjà, `keel_household_member_age` la lit `unknown` (jamais `adult`). |
-| Objectif hors des six jetons | Refus `bad_goal`. |
+| Objectif hors des trois jetons | Refus `bad_goal`. |
+| `fat_loss` / `muscle_gain` sur une bouche mineure — à l'ajout, à la direction, ou par la **date** qui la rend mineure | Refus `goal_not_for_minor` (`20260822041500`), traduit. L'écran ne le produit plus depuis le 2026-09-03 : un mineur ne voit que « Manger normalement », et une direction héritée est pliée **avant** la date (R10). Reste atteignable par une course entre deux onglets, ou par un appel direct. |
+| Cible chiffrée sur une bouche mineure | Refus `target_not_for_minor` (`20260822041500`), traduit. Effacer une cible (`null, null`) reste ouvert. |
 | Un non-maître ouvre l'écran | `AddMouthCard` n'est pas rendue. Et la RPC refuse `not_owner` de toute façon. |
 | Le maître tente de se retirer | `cannot_remove_owner` — sans cette garde, un foyer se retrouve sans personne pour composer, et ses bouches sans compte n'ont par construction personne pour reprendre la main. |
 

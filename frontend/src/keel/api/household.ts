@@ -44,6 +44,12 @@ import {
   assessBirthDate,
   birthDateWritable,
 } from "../../../../supabase/functions/_shared/keel/student_age.ts";
+// LA SEULE DÉFINITION DE « DIRECTIONNEL » DU DÉPÔT, LUE ET PAS RECOPIÉE. C'est
+// elle que `household_members_target_needs_direction_check` reflète en base et
+// que la migration `20260822041500` nomme (arbitrage ①): `fat_loss` et
+// `muscle_gain` font bouger la balance, `maintenance` non. Une seconde liste
+// ici serait le doublon de constante que ce dépôt passe son temps à réparer.
+import { scaleDirectionOf } from "../../../../supabase/functions/_shared/keel/weight_pace.ts";
 // ⚠️ `tokens.ts` ET SURTOUT PAS `activity_floor.ts`, QUI PORTE UN AUTRE
 // VOCABULAIRE (`lightly_active` / `active` / `very_active`). C'est celui-ci qui
 // a la contrainte CHECK en base avec lui (`20260818100000`): son `parse` rendrait
@@ -86,7 +92,7 @@ export interface HouseholdMemberView {
   displayName: string;
   role: HouseholdRole;
   ageState: MemberAgeState;
-  /** Six jetons, ou `null` = part standard. */
+  /** Trois jetons (`MEMBER_GOALS`), ou `null` = part standard. */
   goal: string | null;
   /**
    * CE QUE LE MAÎTRE A MARQUÉ (D14) — et c'est CELA que la grille modifie.
@@ -235,39 +241,102 @@ export const MEMBER_GOALS = GOAL_TOKENS;
 export type MemberGoal = (typeof MEMBER_GOALS)[number];
 
 /**
+ * UNE DIRECTION QUI FAIT BOUGER LA BALANCE — `fat_loss` ou `muscle_gain`.
+ *
+ * `string | null` en entrée, parce que c'est ce que la base rend (`goal` de
+ * `HouseholdMemberView`, `MouthToPersist.goal`) et ce que trois écrivains
+ * relisent avant d'écrire. Un jeton hors vocabulaire n'est PAS directionnel:
+ * il ne sera jamais écrit (`bad_goal`), donc il ne peut pas être refusé pour
+ * l'âge.
+ */
+export function isDirectionalGoal(goal: string | null | undefined): boolean {
+  if (goal === null || goal === undefined) return false;
+  const known = MEMBER_GOALS.find((g) => g === goal);
+  return known !== undefined && scaleDirectionOf(known) !== null;
+}
+
+/**
  * LES DIRECTIONS QU'ON PROPOSE À CETTE BOUCHE-LÀ.
  *
- * ── ⚠️ RENVERSÉ LE 2026-08-18: LA MÊME LISTE POUR TOUT LE MONDE ──────────
- * Cette fonction filtrait `MINOR_FORBIDDEN_GOALS` (`fat_loss`,
- * `recomposition`) pour un enfant. Décision humaine du 2026-08-18: un mineur
- * porte LES TROIS objectifs, exactement comme un majeur — les deux portes
- * d'écriture en base sont ouvertes (migration `20260818100000`) et la lecture
- * (`goalApplies`) ne refuse plus que l'âge INCONNU.
+ * ── ⛔ RENVERSÉ LE 2026-09-03 (chantier P3, décisions D3.1-D3.3): UN MINEUR
+ *    NE VOIT QUE « MANGER NORMALEMENT » ─────────────────────────────────────
+ * Du 2026-08-18 au 2026-09-03, cette fonction rendait la même liste à tout le
+ * monde, et son paramètre n'était pas lu (`void kind`). La base, elle, avait
+ * changé d'avis le 2026-08-22 (migration `20260822041500`, lot S4, décision
+ * humaine « aucun objectif de poids sur un mineur »): les QUATRE portes
+ * d'écriture refusent `fat_loss` et `muscle_gain` sur une bouche dont
+ * `keel_age_state` vaut `minor` — `goal_not_for_minor` sur l'ajout, sur la
+ * direction et sur la DATE (le détour temporel), `target_not_for_minor` sur la
+ * cible chiffrée. Pendant douze jours, l'écran a donc proposé à un enfant deux
+ * directions que la base refusait, et le refus arrivait en jeton brut.
  *
- * La constante `MINOR_FORBIDDEN_GOALS` est SUPPRIMÉE des trois copies (ici,
- * `_shared/keel/household.ts`, et les deux RPC), pas vidée: une liste vide
- * encore consultée est une branche morte que le prochain lecteur reremplit au
- * hasard.
+ * ⚠️ LE PARAMÈTRE EST L'ÉTAT D'ÂGE À TROIS VALEURS, PAS UN `kind` À DEUX.
+ * `unknown` N'EST PAS `minor`: « je ne sais pas » et « c'est un enfant » ne
+ * sont pas la même phrase. La migration le dit mot pour mot (« refuser sur
+ * `unknown` fermerait l'objectif de tout adulte dont on n'a pas encore la
+ * date — c'est-à-dire le cas courant de l'entonnoir »), et `goalApplies` rend
+ * déjà `false` pour un âge inconnu. Un `unknown` voit donc les trois.
  *
- * ⚠️ CE QUI PROTÈGE À LA PLACE, ET CE N'EST PAS À L'ÉCRAN. La raison écrite le
- * 13/08 n'était pas « pas de direction », c'était « pas de direction qui fasse
- * d'un enfant une cible de poids ». Trois choses la tiennent:
- *   1. l'énergie d'un mineur reste une MAINTENANCE calculée sur son âge
- *      (`childEnvelopeFromBody` ne prend pas de paramètre `goal`);
- *   2. le plafond de son rythme se calcule sur son besoin (`paceCeilingFor`);
- *   3. son corps n'est jamais ÉNONCÉ (FF-047) — ni au prompt, ni à table.
+ * ⚠️ C'EST UN FILTRE DE LISTE, TESTÉ SUR LA VALEUR RENDUE — jamais une tuile
+ * masquée par `display:none`. Ce qui n'est pas proposé n'est pas dans le HTML.
  *
- * ⚠️ LA SIGNATURE GARDE SON PARAMÈTRE, ET IL N'EST PLUS LU. C'est lui qui
- * recensera les appelants le jour où les deux listes redivergeraient — et
- * `goalsForAge(kind)` reste plus honnête à l'appel que `MEMBER_GOALS` nu, qui
- * ne dit pas qu'une décision a été prise ici. Il est nommé, pas préfixé d'un
- * souligné: un `_kind` se lit comme un oubli, et le lint le refuse.
+ * ⚠️ `maintenance` RESTE OUVERT SUR UN MINEUR, exprès (arbitrage ① de la
+ * migration): l'énergie d'un mineur EST une maintenance calculée sur son âge
+ * (`childEnvelopeFromBody` ne prend pas de paramètre `goal`), donc écrire
+ * `maintenance` sur sa ligne n'ajoute rien à ce qui se passe déjà — et une
+ * garde qui refuse l'inoffensif se fait retirer. L'écran le libelle « Manger
+ * normalement » (`household.goal.minor_maintenance`), registre éducatif
+ * (PIVOT-FOYER §8.4), jamais « maintenir un poids ».
+ *
+ * ⚠️ LA LISTE EST DÉRIVÉE, PAS RECOPIÉE: ce qui est retiré à un mineur est ce
+ * que `scaleDirectionOf` dit faire bouger la balance — la même définition que
+ * le CHECK `household_members_target_needs_direction_check` et que la garde
+ * SQL. `household.int.test.ts` la confronte à la migration lue sur le disque.
  */
-export function goalsForAge(kind: "adult" | "child"): readonly MemberGoal[] {
-  // La même liste des deux côtés depuis le 2026-08-18. `void` plutôt qu'un
-  // paramètre non lu: il rend la non-lecture DÉLIBÉRÉE et visible.
-  void kind;
+export function goalsForAge(ageState: MemberAgeState): readonly MemberGoal[] {
+  if (ageState === "minor") {
+    return MEMBER_GOALS.filter((g) => !isDirectionalGoal(g));
+  }
   return MEMBER_GOALS;
+}
+
+/**
+ * LA DIRECTION QUE L'ÉCRAN MONTRE ET ÉCRIT POUR CETTE BOUCHE-LÀ.
+ *
+ * C'est le pli: une direction que `goalsForAge` ne propose plus à cet âge
+ * devient `maintenance` — jamais `""` (« rien de coché »), parce que la
+ * personne AVAIT choisi, et parce que `maintenance` est exactement ce que la
+ * base accepte à sa place. Deux cas l'atteignent, et ils partagent cette
+ * seule ligne:
+ *
+ *   · une bouche mineure qui porte `fat_loss` EN BASE (les lignes d'avant le
+ *     2026-08-22, que la migration a laissées exprès — « la garde ferme
+ *     l'ENTRÉE, elle ne nettoie pas le stock »): l'écran montre « Manger
+ *     normalement » coché et la phrase qui dit pourquoi
+ *     (`household.goal.minor_switched`), et le Save écrit `maintenance`;
+ *   · une date de naissance TAPÉE qui rend quelqu'un mineur pendant qu'une
+ *     direction est posée sur lui: même bascule, même phrase, et
+ *     `persistMouth` écrit la direction AVANT la date — sinon
+ *     `keel_household_set_member_birth_date` refuse `goal_not_for_minor`.
+ *
+ * ⚠️ LE BROUILLON GARDE CE QUI A ÉTÉ TAPÉ. Le pli est une règle de LECTURE
+ * (ce qui est rendu, ce qui part en base), pas une écriture dans l'état: une
+ * date corrigée vers un âge adulte fait donc réapparaître la direction
+ * d'origine, sans qu'on l'ait perdue — « on refuse, on n'efface pas »
+ * (arbitrage ② de la migration), transposé à l'écran.
+ */
+export function goalForAge(goal: MemberGoal, ageState: MemberAgeState): MemberGoal;
+export function goalForAge(
+  goal: MemberGoal | "",
+  ageState: MemberAgeState,
+): MemberGoal | "";
+export function goalForAge(
+  goal: MemberGoal | "",
+  ageState: MemberAgeState,
+): MemberGoal | "" {
+  if (goal === "") return "";
+  if (goalsForAge(ageState).includes(goal)) return goal;
+  return "maintenance";
 }
 
 // ───────────────────────────────────────────────────────────────────────────

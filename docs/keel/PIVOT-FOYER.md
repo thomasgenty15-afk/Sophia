@@ -502,6 +502,23 @@ et c'est une contrainte de produit, pas une politesse.
 > demandé. Et un **âge inconnu** ne reçoit aucune direction, pas même celles qu'un enfant
 > peut porter : « je ne sais pas » n'est pas « c'est un enfant ».
 
+> **Re-tranché deux fois depuis, et l'état en vigueur est le dernier.** Le paragraphe
+> ci-dessus décrit le **13/08**. Le **2026-08-18** (`20260818100000`) l'a renversé : un
+> mineur portait les **trois** directions comme un majeur, `recomposition` n'existant plus
+> (repli à trois jetons) et `MINOR_FORBIDDEN_GOALS` étant supprimée des trois copies. Le
+> **2026-08-22** (lot S4, migration `20260822041500`, décision humaine du 21/08 : « aucun
+> objectif de poids sur un mineur ») l'a refermé — sur les **quatre** portes d'écriture
+> cette fois, y compris la **date** (« le détour temporel » : poser une date de mineur sur
+> une ligne qui porte `fat_loss` est refusé `goal_not_for_minor`) et la **cible chiffrée**
+> (`target_not_for_minor`). Ce qui reste ouvert à un mineur est **`maintenance` seule** —
+> l'énergie d'un enfant EST une maintenance calculée sur son âge. La définition de
+> « directionnel » est unique : `scaleDirectionOf` (`weight_pace.ts`), la même que le
+> CHECK `household_members_target_needs_direction_check` et que la garde SQL.
+> **Depuis le 2026-09-03 (chantier P3), l'écran suit la base** : un mineur ne voit
+> qu'une tuile, « **Manger normalement** » (le registre éducatif de cette section, jamais
+> « maintenir un poids »), et une direction héritée est pliée à `maintenance` **et dite**.
+> Autorité de l'état courant : [le-foyer/README.md](../fonctionnalites/le-foyer/README.md).
+
 **Le conseil ne rend jamais « impossible ».** Quatre personnes, des envies contradictoires,
 des objectifs divergents : il sort toujours un plan, et il **dit ce qu'il a arbitré**. Un
 générateur qui renvoie une erreur à une famille le samedi soir est un produit mort.

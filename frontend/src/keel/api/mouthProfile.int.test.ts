@@ -11,6 +11,7 @@ import {
 import {
   draftFromKnown,
   emptyMouthDraft,
+  foldMinorGoal,
   type MouthFormDraft,
   mouthToPersist,
 } from "../lib/mouthForm";
@@ -286,6 +287,9 @@ describe("la marche 1 bis — une bouche qui EXISTE s'écrit quand même", () =>
       // remonterait en erreur PostgreSQL brute au milieu du formulaire.
       "setTarget",
       "setName",
+      // ⚠️ DATE PUIS DIRECTION PARCE QUE `fat_loss` BOUGE (S4, 2026-08-22).
+      // L'ordre n'est plus fixe depuis le 2026-09-03: voir le bloc « l'ordre
+      // de la date et de la direction dépend de ce qu'on écrit » plus bas.
       "setBirthDate",
       "setGoal",
       "setBody",
@@ -309,6 +313,60 @@ describe("la marche 1 bis — une bouche qui EXISTE s'écrit quand même", () =>
     // disparaîtrait dans le geste censé l'enregistrer.
     expect(targets[0].args).toEqual(["m-9", null, null]);
     expect(targets[1].args).toEqual(["m-9", 55, 0.45]);
+  });
+
+  /**
+   * ── S4 (2026-08-22) · L'ORDRE DE LA DATE ET DE LA DIRECTION DÉPEND DE CE
+   *    QU'ON ÉCRIT — chantier P3, 2026-09-03 ───────────────────────────────
+   *
+   * La migration `20260822041500` a posé DEUX refus symétriques sur la même
+   * ligne: `set_member_birth_date(minor)` refuse `goal_not_for_minor` quand la
+   * ligne PORTE `fat_loss`/`muscle_gain`; `set_member_goal(fat_loss)` le refuse
+   * quand la ligne EST déjà datée mineure. Un ordre fixe échoue donc toujours
+   * d'un côté, et l'ordre d'avant (date, puis direction) échouait sur le cas
+   * nominal de ce lot: une bouche mineure héritée à `fat_loss`, pliée à
+   * `maintenance` par la fiche, enregistrée avec sa date.
+   */
+  it("⛔ S4 — une direction qui NE bouge PAS s'écrit AVANT la date", async () => {
+    for (const goal of ["maintenance", null]) {
+      const { writers, seen } = argSpy();
+      const res = await persistMouth(
+        { ...EXISTING, birthDate: "2016-05-04", goal },
+        writers,
+      );
+      expect(res.ok).toBe(true);
+      const doors = seen.map((c) => c.door);
+      expect(doors.indexOf("setGoal"), String(goal))
+        .toBeLessThan(doors.indexOf("setBirthDate"));
+      // Et le reste de la marche 1 bis ne bouge pas: la cible effacée d'abord,
+      // le prénom avant les deux.
+      expect(doors.indexOf("setTarget")).toBe(0);
+      expect(doors.indexOf("setName")).toBeLessThan(doors.indexOf("setGoal"));
+    }
+  });
+
+  it("…et une direction qui BOUGE s'écrit APRÈS la date — le cas symétrique", async () => {
+    // Une bouche datée mineure hier, majeure aujourd'hui (date corrigée), qui
+    // prend `muscle_gain`: `set_member_goal(muscle_gain)` sur une ligne ENCORE
+    // datée mineure serait refusé; la date d'abord libère la direction.
+    const { writers, seen } = argSpy();
+    await persistMouth({ ...EXISTING, goal: "muscle_gain" }, writers);
+    const doors = seen.map((c) => c.door);
+    expect(doors.indexOf("setBirthDate")).toBeLessThan(doors.indexOf("setGoal"));
+  });
+
+  it("le refus de la porte écrite EN PREMIER arrête la chaîne, dans les deux ordres", async () => {
+    // Une garde a besoin d'un cas qui refuse: sinon un ordre inversé qui
+    // avalerait le refus ressemblerait à un ordre qui marche.
+    const goalFirst = spyWriters({ setGoal: { ok: false, reason: "goal_not_for_minor" } });
+    const r1 = await persistMouth({ ...EXISTING, goal: "maintenance" }, goalFirst.writers);
+    expect(r1).toEqual({ ok: false, reason: "goal_not_for_minor" });
+    expect(goalFirst.calls).not.toContain("setBirthDate");
+
+    const dateFirst = spyWriters({ setBirthDate: { ok: false, reason: "goal_not_for_minor" } });
+    const r2 = await persistMouth({ ...EXISTING, goal: "fat_loss" }, dateFirst.writers);
+    expect(r2).toEqual({ ok: false, reason: "goal_not_for_minor" });
+    expect(dateFirst.calls).not.toContain("setGoal");
   });
 
   it("⛔ SANS PORTE, ON LÈVE — jamais un champ collecté puis jeté", async () => {
@@ -838,5 +896,57 @@ describe("le shaker saisi ARRIVE à la porte, tel qu'il a été tapé", () => {
     // Les marches d'après ne partent PAS: une fiche à moitié écrite dont
     // personne ne sait ce qui manque est ce que l'arrêt évite.
     expect(calls).not.toContain("addAllergy");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// LE PLI À L'ÂGE — `foldMinorGoal`, et ce que `mouthToPersist` en fait
+// (chantier P3, 2026-09-03)
+// ---------------------------------------------------------------------------
+
+describe("le pli à l'âge: ce qui part en base est ce que la fiche montre", () => {
+  /** Une enfant héritée d'avant le 22/08: `fat_loss` ET une cible sur sa ligne. */
+  const KID: MouthFormDraft = draftOf({
+    firstName: "Kid",
+    birthDate: "2016-05-04",
+    goal: "fat_loss",
+    targetWeightKg: "30",
+    paceKgPerWeek: "0.1",
+    heightCm: "140",
+    weightKg: "35",
+    gender: "male",
+    activityLevel: "trains_some",
+  });
+
+  it("une direction refusée à cet âge part en `maintenance`, SANS cible", () => {
+    const p = mouthToPersist(KID, TODAY);
+    expect(p.goal).toBe("maintenance");
+    // `target_not_for_minor` sinon — et `target_needs_direction` avant lui.
+    expect(p.targetWeightKg).toBeNull();
+    expect(p.paceKgPerWeek).toBeNull();
+    expect(foldMinorGoal(KID, TODAY).switchedFrom).toBe("fat_loss");
+  });
+
+  it("le brouillon GARDE ce qui a été tapé: la même date corrigée vers un âge adulte rend la direction", () => {
+    // « On refuse, on n'efface pas » (arbitrage ② de `20260822041500`),
+    // transposé à l'écran: le pli est une règle de lecture, pas une écriture.
+    expect(KID.goal).toBe("fat_loss");
+    const adult = { ...KID, birthDate: ADULT_BIRTH };
+    expect(foldMinorGoal(adult, TODAY).switchedFrom).toBeNull();
+    expect(mouthToPersist(adult, TODAY).goal).toBe("fat_loss");
+    expect(mouthToPersist(adult, TODAY).targetWeightKg).toBe(30);
+  });
+
+  it("un âge INCONNU ne plie rien — « je ne sais pas » n'est pas « c'est un enfant »", () => {
+    const unknown = { ...KID, birthDate: "" };
+    expect(foldMinorGoal(unknown, TODAY).switchedFrom).toBeNull();
+    expect(mouthToPersist(unknown, TODAY).goal).toBe("fat_loss");
+  });
+
+  it("`maintenance` et « rien de coché » traversent tels quels", () => {
+    expect(foldMinorGoal({ ...KID, goal: "maintenance" }, TODAY).switchedFrom).toBeNull();
+    expect(mouthToPersist({ ...KID, goal: "maintenance" }, TODAY).goal).toBe("maintenance");
+    expect(foldMinorGoal({ ...KID, goal: "" }, TODAY).switchedFrom).toBeNull();
+    expect(mouthToPersist({ ...KID, goal: "" }, TODAY).goal).toBeNull();
   });
 });
