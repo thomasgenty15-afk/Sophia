@@ -2152,7 +2152,7 @@ export const SOLO_BOX_BLOCK = [
   'on the day has no "boxes": nothing was weighed ahead for it.',
 ].join("\n");
 
-export const MEAL_PROMPT_VERSION = "meal.en.v24_raw_keeping_reaches_the_model";
+export const MEAL_PROMPT_VERSION = "meal.en.v25_the_day_before_is_derived";
 
 /**
  * ③ — CE QUE `severity` VEUT DIRE, posé JUSTE SOUS la liste qui le porte.

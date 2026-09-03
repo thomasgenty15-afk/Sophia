@@ -10,6 +10,7 @@ import {
   emptySlotsIn,
   MEAL_PROMPT_VERSION,
 } from "./meal_generation.ts";
+import { HOUSEHOLD_PROMPT_VERSION } from "./household_meal_generation.ts";
 import {
   cookDayBeforeAvailable,
   eatenSpan,
@@ -239,7 +240,22 @@ Deno.test("⛔ LE JOUR DE CUISINE NE COMPTE AUCUNE CASE VIDE", () => {
 });
 
 Deno.test("la version de prompt a bougé avec ce lot", () => {
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v24_raw_keeping_reaches_the_model");
+  // ⟳ A1 (2026-09-03) — v24 → v25. LA CONSIGNE ELLE-MÊME N'A PAS CHANGÉ D'UN
+  // CARACTÈRE; c'est la POPULATION qui la reçoit qui change, et c'est très
+  // exactement ce que la version mesure (règle transverse n°8): jusqu'ici
+  // `cookOnlyDay` n'était posé que sur les plans dont quelqu'un avait coché une
+  // case, désormais il l'est par défaut. Comparer les plans d'avant et d'après
+  // sous une même version rendrait la mesure fausse.
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v25_the_day_before_is_derived");
+});
+
+Deno.test("A1 — l'enveloppe du FOYER ne bouge pas d'un octet", () => {
+  // ⛔ UN BUMP PAR LOT, ET UN TEST POUR LA LANE QUI NE BOUGE PAS. A1 ne touche
+  // ni `buildHouseholdPromptBlocks` ni aucun de ses blocs: le foyer reçoit la
+  // même enveloppe qu'hier, et sa version doit donc rester à l'identique.
+  // Bumper les deux « par symétrie » ferait croire à une population de foyer
+  // qui a changé de consigne alors qu'elle n'a rien vu.
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v22_precedence_in_tail");
 });
 
 // ---------------------------------------------------------------------------
@@ -252,14 +268,36 @@ const LANES: readonly [string, string][] = [
 ];
 
 for (const [name, rel] of LANES) {
-  Deno.test(`la lane ${name} LIT \`cook_the_day_before\` et RECULE la fenêtre`, async () => {
+  Deno.test(`la lane ${name} DÉRIVE la veille et ne lit plus le corps HTTP`, async () => {
+    // ⟳ A1 (2026-09-03) — CE TEST S'EST RETOURNÉ, IL NE S'EST PAS SUPPRIMÉ.
+    // Il exigeait `const askedCookTheDayBefore = body.cook_the_day_before ===
+    // true;`. La veille n'est plus une case: ce qu'il faut tenir maintenant,
+    // c'est que la lane DÉRIVE (`leadDayFor`) et que le corps HTTP ne peut plus
+    // décider.
     const src = await Deno.readTextFile(new URL(rel, import.meta.url));
     assertStringIncludes(
       src,
-      "const askedCookTheDayBefore = body.cook_the_day_before === true;",
+      "const lead = leadDayFor({ startsOn, today: todayDate, hourNow });",
     );
-    assertStringIncludes(src, "const cookAhead = withCookDayBefore({ startsOn, durationDays }, {");
+    assertStringIncludes(
+      src,
+      "const cookAhead = withCookDayBefore({ startsOn, durationDays }, {\n      asked: lead.leadDay !== null,",
+    );
+    assertStringIncludes(src, "const planTiming: PlanTiming = planTimingOf(lead, cookAhead);");
     assertStringIncludes(src, "cook_the_day_before_refused:");
+    // ⛔ ET LE CORPS N'EST PLUS LU — MESURÉ SUR LA SOURCE SANS SES COMMENTAIRES.
+    // Le retrait est raconté DANS un commentaire qui nomme le champ; un grep
+    // naïf y verrait un appelant vivant et ce test resterait vert le jour où
+    // quelqu'un rebranche la case. (Leçon « audit d'appelants: retirer les
+    // commentaires », déjà payée par ce dépôt.)
+    const code = src
+      .split("\n")
+      .map((line) => (line.trimStart().startsWith("//") ? "" : line))
+      .join("\n");
+    assert(
+      !code.includes("body.cook_the_day_before"),
+      `${name}: le corps HTTP décide encore de la veille`,
+    );
   });
 
   Deno.test(`la lane ${name} recule AVANT de calculer \`daysToFill\``, async () => {
