@@ -450,6 +450,21 @@
       "cwd": ".worktrees/SUIVI/frontend",
       "port": 5208,
       "autoPort": false
+    },
+    {
+      "name": "frontend-verif",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5209",
+        "--strictPort"
+      ],
+      "cwd": ".worktrees/VERIF/frontend",
+      "port": 5209,
+      "autoPort": false
     }
   ]
 }
