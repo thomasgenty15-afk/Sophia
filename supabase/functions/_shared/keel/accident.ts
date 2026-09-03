@@ -1134,13 +1134,21 @@ export function shiftPlanDates(
 /**
  * LES ACTIONS DE V2. LISTE FERMÉE.
  *
- * ⚠️ `leftover` (« signaler un reste disponible pour demain ») N'EST PAS ICI,
- * et c'est une décision documentée au rapport, pas un oubli: elle n'a AUCUN
- * consommateur en aval — aucune table ne porte un reste, aucun générateur ne le
- * lit, aucun écran ne l'affiche. L'écrire violerait la règle mère T1 (« on ne
- * collecte une donnée que si quelque chose en aval la consomme ») dans la fiche
- * qui la cite. Le jour où un lecteur existe, l'action rentre ici en trois
- * lignes.
+ * ⟳ 2026-09-03 (A8.2) — `leftover` EST ENTRÉE, ET LA CONDITION QUI LA RETENAIT
+ * EST REMPLIE, PAS CONTOURNÉE.
+ *
+ * Ce commentaire disait: « elle n'a AUCUN consommateur en aval — aucune table
+ * ne porte un reste, aucun générateur ne le lit, aucun écran ne l'affiche.
+ * L'écrire violerait T1 (on ne collecte une donnée que si quelque chose en aval
+ * la consomme). Le jour où un lecteur existe, l'action rentre ici en trois
+ * lignes. » Le lecteur existe: `meal_share_outcomes` (migration 20260903172000)
+ * porte le reste, et `boxStillWaiting` (`meal_share_outcome.ts`) le lit.
+ *
+ * ⛔ ET CE N'EST PAS UN GLISSEMENT (D8.4). `shift_dish` déplace le PLAT pour
+ * tout le monde; `leftover` ne déplace RIEN — elle ouvre la question du sort
+ * d'UNE part, dont la réponse s'écrit dans une table à part. Le dîner a eu lieu
+ * pour les autres; réécrire la semaine du foyer pour une boîte serait la
+ * réparation la plus chère du produit pour le plus petit des faits.
  */
 export const REALIGNMENT_ACTIONS = [
   /** Décaler UN plat non cuisiné, si la fenêtre frigo le permet. */
@@ -1149,6 +1157,12 @@ export const REALIGNMENT_ACTIONS = [
   "no_cook",
   /** Décaler la session ET ce qui en dépend (le glissement de §C). */
   "shift_session",
+  /**
+   * A8.2 — LE SORT D'UNE PART RESTÉE. Ouvre la question « ta boîte de {jour} :
+   * {jour+n} ? / au congélateur / jetée » (`boxOptionsFor`), dont la réponse
+   * s'écrit dans `meal_share_outcomes`. NE DÉPLACE AUCUN PLAT.
+   */
+  "leftover",
   /** ⚠️ NE RIEN FAIRE, ET LE DIRE. R4: c'est une BONNE FIN, pas un échec. */
   "nothing_to_change",
 ] as const;
@@ -1183,6 +1197,16 @@ export function buildRealignmentSpace(args: {
   /** Le glissement calculé pour cette session, quand il y en a un. */
   shift: ShiftOutcome | null;
   maxFridgeDays: number;
+  /**
+   * A8.2 — LA BOUCHE DONT LA PART EST RESTÉE, ou `null`.
+   *
+   * ⛔ REQUIS, ET PAS OPTIONNEL. Un `?` aurait fermé `leftover` par défaut chez
+   * tous les appelants existants sans que rien ne le dise — et une action qui
+   * n'apparaît jamais est indistinguable d'une action qui n'existe pas
+   * (cicatrice `optional-gate-params-are-disarmed-gates`). `null` est une
+   * réponse: « aucune part nommée ici », donc pas de boîte à ranger.
+   */
+  shareOf: string | null;
 }): RealignmentAction[] {
   const out: RealignmentAction[] = [];
   const { plan } = args;
@@ -1206,6 +1230,24 @@ export function buildRealignmentSpace(args: {
   // exactement ce que « l'espace pré-calculé » existe pour empêcher.
   if (args.shift?.ok) {
     out.push({ id: "shift_session", detail: args.shift.newCookOn });
+  }
+
+  // ── A8.2 · LE SORT D'UNE PART RESTÉE ─────────────────────────────────────
+  //
+  // ⛔ RÉSERVÉE À UNE PART, DONC À UNE BOUCHE NOMMÉE. `shareOf` est le
+  // `member_id` de la personne dont la part est restée; sans lui il n'y a pas
+  // de « sa boîte », il y a une casserole — et une casserole se répare par
+  // `shift_dish`, qui est au-dessus et qui appartient au maître.
+  //
+  // ⚠️ ET SEULEMENT SUR UN PLAT DÉSIGNÉ. Une boîte est le reste d'UN plat: sans
+  // index, la question n'aurait pas de sujet et la ligne écrite n'aurait pas de
+  // clé (`meal_share_outcomes` est unique sur le plat).
+  //
+  // Elle n'exclut pas `shift_dish`: chez un maître dont la casserole entière
+  // est restée, les deux sont vraies — il choisit. C'est l'espace qui est
+  // fermé, pas la réponse.
+  if (args.shareOf !== null && args.dishIndex !== null) {
+    out.push({ id: "leftover", detail: args.shareOf });
   }
 
   out.push({ id: "nothing_to_change" });
