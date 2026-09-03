@@ -879,3 +879,50 @@ correction que la personne ne peut ni comprendre ni défaire), la façon de l'é
 
 **Fusions faites** : RAPIDE · A6 · A8.0 (+correctif) · A1 (+2 correctifs) · A8.1 · A8.2 · A5 (+correctif) · A8.3.
 **En attente** : A2 (rebase lane) · A7 (lot D voisin).
+
+## 00:0x — le piège git de mon `revert`, et une déviation que j'avais validée deux fois
+
+### ⛔ « Le commit est dans l'histoire » ne prouve pas « son contenu est dans l'arbre »
+
+La lane CUISINE l'a trouvé en rebasant, et c'est **de mon fait**. Mon `git revert -m 1` de la fusion accidentelle
+(`a92c167b`) a défait le **contenu** apporté par la branche, mais ses commits restent **ancêtres**. Donc
+`git merge-base --is-ancestor f89f760f b146b1ee` répond **oui**, `git rebase` **saute** le commit
+(« skipped previously applied commit »), et **personne ne le revoit**. Quatre fichiers étaient revenus à leur état
+d'avant, dont **le fichier de migration entier, 325 lignes**.
+**C'est le pire des deux mondes** : sans la relecture de la lane, A2 repartait avec une migration inexistante et un port
+qui refuse ses deux clés — D2.5 mort à l'arrivée **une seconde fois, et cette fois sans erreur de compilation pour le
+dire**. Elle a restauré les quatre après avoir vérifié que la voisine n'en avait touché aucun.
+**La vérification n'est pas `--is-ancestor`, c'est `git diff <commit>^ <HEAD> -- <ses fichiers>`.**
+**Appliquée par l'orchestrateur aux neuf lots déjà fusionnés : aucun autre n'est touché** — seul A2 était passé par le
+`revert`. Le `revert -m 1` ne défait que ce que le **second parent** apportait, donc A8.2 et le correctif A1 étaient saufs.
+
+### Vérification A2 : ROUGE, quatre défauts — dont un que j'avais validé deux fois
+
+**Défaut 1 — la déviation (a) est DÉMENTIE par la mesure, et la faute est partagée.** « `recipe_difficulty` et `variety`
+n'ont aucun lecteur dans les deux générateurs » est **faux** : `buildMealPrompt` les **émet dans le prompt**
+(`meal_generation.ts:4073-4076`) et les deux lanes le nourrissent par `...capacity`. Sonde jetable sur l'appel réel :
+**+60 octets de consigne modèle**. Qui répond « J'aime cuisiner » obtient 120 minutes mais un prompt **muet** sur le
+niveau de recette et la répétition.
+**J'avais écrit deux fois « validée » sur une affirmation d'absence que je n'ai pas mesurée** — la cinquième erreur de
+l'orchestrateur, et la plus caractéristique : j'ai félicité la lane pour un raisonnement dont je n'ai pas vérifié la
+prémisse. **Valider une déviation, c'est en mesurer le motif, pas en apprécier la formulation.**
+
+**Défaut 2 — la compensation nommée n'atteint rien.** `household.workLunch` est calculé puis **jeté** : `promptTrace` ne
+porte pas `work_lunch`, donc `generated_from.household.work_lunch` n'est sur **aucune ligne**, et **la requête de contrôle
+que la lane a écrite dans sa propre réserve rendrait `NULL` pour toujours**. Muté en `{0,0}` : 4 876 tests restent verts.
+C'est le motif du jour dans sa forme la plus fine : **le risque nommé, la compensation écrite, et la compensation vide.**
+
+**Défaut 3 — la rationale attribue à la personne des jours qu'elle n'a pas choisis.** Les `cookDays` **dérivés** partent
+sous le fait `declaredCookDays` (« les jours que l'élève a COCHÉS ») : « Tu cuisines lundi et jeudi, et c'est ce qui a été
+gardé » — elle n'a coché ni l'un ni l'autre. Et le **nombre de sessions n'est jamais dit** au cas nominal.
+Rang 2 violé dans sa seconde moitié : une phrase qui affirme autre chose que ce que le calcul a fait est pire qu'aucune.
+
+**Défaut 4 — « équipement avant style » n'est ni tenu sur `/app/plan` ni mesuré** : style `:1181`, courses `:1188`,
+congélateur `:1366` — on accepte « 1 course » avant de savoir s'il y a un congélateur. Le seul test d'ordre compare du
+**texte source**, jamais le HTML rendu.
+
+**Vert et confirmé** : `tsc` 0, Deno 4 876/0, deux bumps d'un cran, **treize épinglages vivants, aucun périmé**, les
+interdits tenus dont le test comparant les deux `readCookingCapacity`, et les déviations **(b)** et **(d)** vérifiées exactes.
+
+**Et le lot C voisin a réparé les cinq derniers fichiers rouges au type-check** : la suite Deno tourne pour la première
+fois **en entier, sans exclusion** — **5 048 / 5 048** sur la branche rebasée d'A2.
