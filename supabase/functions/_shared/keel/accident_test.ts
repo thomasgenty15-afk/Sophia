@@ -1055,13 +1055,70 @@ Deno.test("un titre interrogatif est neutralisé, le formulaire survit", () => {
 // R3/R4 — L'ESPACE D'ACTION
 // ---------------------------------------------------------------------------
 
-Deno.test("R3 — l'espace d'action est une liste FERMÉE de quatre", () => {
+Deno.test("R3 — l'espace d'action est une liste FERMÉE de cinq", () => {
+  // ⟳ A8.2 (2026-09-03) — `leftover` EST ENTRÉE. Elle était retenue par une
+  // condition écrite dans `accident.ts`: « elle n'a AUCUN consommateur en aval
+  // […] le jour où un lecteur existe, l'action rentre ici en trois lignes ».
+  // Le lecteur existe (`meal_share_outcomes`, `boxStillWaiting`), donc la
+  // condition est REMPLIE, pas contournée — et l'ordre la place AVANT
+  // `nothing_to_change`, qui reste la dernière sortie (R4).
   assertEquals([...REALIGNMENT_ACTIONS], [
     "shift_dish",
     "no_cook",
     "shift_session",
+    "leftover",
     "nothing_to_change",
   ]);
+});
+
+Deno.test("⛔ A8.2 · LE CAS QUI PASSE — une part nommée sur un plat ouvre `leftover`", () => {
+  // La part d'UNE bouche est restée sur le plat 2. C'est une boîte, et la
+  // question de son sort a désormais une table où atterrir.
+  const space = buildRealignmentSpace({
+    plan: planOf(),
+    today: "2026-08-12",
+    dishIndex: 2,
+    skippedSessionOn: null,
+    shift: null,
+    maxFridgeDays: MAX_FRIDGE_DAYS,
+    shareOf: "m-spouse",
+  });
+  const leftover = space.find((a) => a.id === "leftover");
+  assert(leftover, "`leftover` n'entre pas dans l'espace");
+  assertEquals(leftover.detail, "m-spouse", "la boîte doit nommer SA bouche");
+  // ⚠️ ELLE N'EXCLUT PAS `shift_dish`: chez un maître dont la casserole entière
+  // est restée, les deux sont vraies — c'est l'ESPACE qui est fermé, pas la
+  // réponse. Et `nothing_to_change` reste la dernière (R4).
+  assertEquals(space[space.length - 1].id, "nothing_to_change");
+});
+
+Deno.test("⛔ A8.2 · LE CAS QUI REFUSE — sans bouche nommée, pas de boîte", () => {
+  // ══════════════════════════════════════════════════════════════════════
+  // Sans `shareOf` il n'y a pas « sa boîte », il y a une CASSEROLE — et une
+  // casserole se répare par `shift_dish`, qui appartient au maître. Sans
+  // `dishIndex` la question n'aurait pas de sujet, et la ligne écrite pas de
+  // clé (`meal_share_outcomes` est unique sur le plat).
+  //
+  // MUTATION QUI DOIT ROUGIR: pousser `leftover` inconditionnellement, ou
+  // n'exiger qu'une des deux conditions.
+  // ══════════════════════════════════════════════════════════════════════
+  const at = (dishIndex: number | null, shareOf: string | null) =>
+    buildRealignmentSpace({
+      plan: planOf(),
+      today: "2026-08-12",
+      dishIndex,
+      skippedSessionOn: null,
+      shift: null,
+      maxFridgeDays: MAX_FRIDGE_DAYS,
+      shareOf,
+    }).map((a) => a.id);
+
+  assertEquals(at(2, null).includes("leftover"), false, "plat sans bouche nommée");
+  assertEquals(at(null, "m-spouse").includes("leftover"), false, "bouche sans plat");
+  assertEquals(at(null, null).includes("leftover"), false, "ni l'un ni l'autre");
+  // ET LE CAS QUI PASSE, RELU ICI: sans lui les trois refus ci-dessus seraient
+  // vrais parce que `leftover` n'entre JAMAIS.
+  assertEquals(at(2, "m-spouse").includes("leftover"), true);
 });
 
 Deno.test("R4 — « ne rien faire » est TOUJOURS la dernière sortie, et parfois la seule", () => {
@@ -1072,6 +1129,7 @@ Deno.test("R4 — « ne rien faire » est TOUJOURS la dernière sortie, et parfo
     skippedSessionOn: null,
     shift: null,
     maxFridgeDays: MAX_FRIDGE_DAYS,
+    shareOf: null,
   });
   assertEquals(space.map((a) => a.id), ["nothing_to_change"]);
 });
@@ -1088,6 +1146,7 @@ Deno.test("§8 — « décaler » sort de l'espace quand la fenêtre frigo est d
       skippedSessionOn: null,
       shift: null,
       maxFridgeDays,
+      shareOf: null,
     }).map((a) => a.id);
 
   // dishIndex 2 = mercredi, cuit lundi. +1 jour ⇒ jeudi ⇒ J+3, ça tient.
@@ -1114,6 +1173,7 @@ Deno.test("R3 — un glissement REFUSÉ n'entre jamais dans l'espace", () => {
     skippedSessionOn: "2026-08-10",
     shift: refused,
     maxFridgeDays: MAX_FRIDGE_DAYS,
+    shareOf: null,
   });
   assertEquals(space.map((a) => a.id), ["no_cook", "nothing_to_change"]);
 });

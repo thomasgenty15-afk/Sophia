@@ -402,6 +402,13 @@ async function handleFormAnswer(
     skippedSessionOn: null,
     shift: null,
     maxFridgeDays: MAX_FRIDGE_DAYS,
+    // A8.2 — `null` POUR L'INSTANT, ET C'EST ÉCRIT PLUTÔT QUE SUBI. `leftover`
+    // existe et sa table aussi, mais ce chemin-ci ne sait pas encore DE QUELLE
+    // bouche la part est restée: il faudrait le `member_id` du répondant, que
+    // la charge du tap ne porte pas. Proposer « ta boîte » sans savoir à qui
+    // elle est écrirait une ligne sans sujet. Le câblage est nommé ROUGE au
+    // journal A8.2; il n'est pas oublié.
+    shareOf: null,
   });
   // R4 — « NE RIEN FAIRE » EST UNE BONNE FIN, et on le DIT. Un flow qui trouve
   // toujours quelque chose à réparer transforme chaque écart en incident.
@@ -649,6 +656,11 @@ async function handleSessionAnswer(
     skippedSessionOn: reply.cookOn,
     shift,
     maxFridgeDays: MAX_FRIDGE_DAYS,
+    // A8.2 — et ici `null` est DÉFINITIF, pas provisoire: une session tombée
+    // n'a pas de plat désigné (`dishIndex: null`), donc pas de boîte. Une
+    // casserole qui n'a pas été faite ne laisse aucun reste — il n'y a rien à
+    // ranger, il y a à recomposer, et c'est `no_cook` / `shift_session`.
+    shareOf: null,
   });
   const head = renderCascadeOutcome({ cascade, language, space });
 
