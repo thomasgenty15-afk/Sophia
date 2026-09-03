@@ -2717,18 +2717,35 @@ export interface SizableItem {
 export interface SizableMeal {
   boxId: string;
   /**
-   * ⛔ LE NOMBRE DE NOMS DÉCIDE SI CE CONTENANT SE DIMENSIONNE (v4, 2026-08-20).
+   * ⛔ LE NOMBRE DE NOMS DÉCIDE CE QUE SES GRAMMES VEULENT DIRE (v4, 2026-08-20).
    *
-   *   · **un seul** → une PRESCRIPTION. Le facteur de cette bouche s'y applique:
-   *     c'est très exactement ce que la cible achète.
-   *   · **plusieurs** → une QUANTITÉ DE BAC. ⛔ AUCUN FACTEUR NE S'Y APPLIQUE, et
-   *     ce n'est pas un oubli: le bac n'est la portion de personne, donc il n'y
-   *     a personne dont la cible pourrait le redimensionner. Multiplier un bac
-   *     par le facteur de l'un de ses mangeurs ferait payer aux autres
-   *     l'arithmétique d'un tiers — le défaut « une ceinture posée sur l'un
-   *     retire à l'autre », repris par l'autre bout.
+   *   · **un seul** → une PRESCRIPTION. C'est très exactement ce que la cible
+   *     de cette bouche achète.
+   *   · **plusieurs** → une QUANTITÉ DE BAC. Le bac n'est la portion de
+   *     personne: aucun facteur d'UNE de ses bouches ne peut le redimensionner,
+   *     parce que ce serait faire payer aux autres l'arithmétique d'un tiers —
+   *     le défaut « une ceinture posée sur l'un retire à l'autre », repris par
+   *     l'autre bout.
+   *
+   * ⟳ 2026-09-04 — CE CHAMP NE DÉCIDE PLUS RIEN **ICI**. La règle n'a pas
+   * changé, son lieu si: `resolveBoxFactors` la tient désormais, et cette
+   * fonction ne fait qu'appliquer le facteur qu'on lui donne pour ce contenant.
+   * La distinction reste comptée (`counts.common`). Le déplacement est ce qui
+   * rend possible un facteur de BAC calculé sur la somme des besoins de ses
+   * mangeurs — un nombre qui n'est celui d'aucun d'eux, donc que ce champ ne
+   * pouvait pas exprimer.
    */
   memberIds: readonly string[];
+  /**
+   * LE JOUR DE CE CONTENANT (`mon`..`sun`), ou `null` pour un plat sans jour.
+   *
+   * ⛔ REQUIS, JAMAIS `?`. L'ancrage rend un facteur par (bouche, JOUR) — il l'a
+   * calculé sur l'énergie, les moments et la masse de CE jour-là. Sans le jour
+   * ici, l'appelant devait en choisir UN pour toute la fenêtre, et il prenait
+   * « le plus proche de 1 » faute de mieux: un pansement de prudence sur une
+   * approximation. Le champ est ce qui retire les deux.
+   */
+  day: string | null;
   /**
    * ⚠️ L'ORDRE EST LE CONTRAT. Le résultat rend les nouveaux grammes indexés sur
    * CETTE liste: l'appelant doit réécrire dans le même tableau, dans le même
@@ -2837,6 +2854,100 @@ export interface BoxSizingResult {
 export const BOX_MIN_SIZED_GRAMS = 1;
 
 /**
+ * D'OÙ VIENT LE FACTEUR D'UN CONTENANT. Fermé, et nommé pour la même raison que
+ * tous les vocabulaires de ce fichier: `anchor` et `relative` ne se réparent pas
+ * au même endroit, et un compteur qui les fondrait enverrait au mauvais.
+ */
+export const BOX_FACTOR_SOURCES = Object.freeze(
+  [
+    /** L'ancrage absolu de CE jour a tiré (`anchored` ou `clamped`). */
+    "anchor",
+    /** La part relative de la table — un RAPPORT, qui ne décide pas du niveau. */
+    "relative",
+    /** Rien à appliquer: le contenant sort tel que le modèle l'a écrit. */
+    "none",
+  ] as const,
+);
+export type BoxFactorSource = (typeof BOX_FACTOR_SOURCES)[number];
+
+export interface BoxFactor {
+  factor: number;
+  source: BoxFactorSource;
+}
+
+/**
+ * QUEL FACTEUR POUR QUEL CONTENANT — l'unique autorité, et une BASCULE.
+ *
+ * ── ⛔ JAMAIS LE PRODUIT DES DEUX COUCHES ─────────────────────────────────
+ * L'ancrage REMPLACE le relatif, il ne le multiplie pas. C'est la décision du
+ * chantier grammage (« ancrage tiré → son facteur REMPLACE le relatif; sinon le
+ * relatif reste, seul »), et la raison est un double comptage mesuré sur trois
+ * runs: le modèle découpait par classe, le moteur multipliait par-dessus, et
+ * l'ado de 70 kg dont le corps demande 2,03x la part de l'adulte de 47 kg en
+ * recevait 1,02x.
+ *
+ * ── ⟳ CE QUI CHANGE LE 2026-09-04: LA GRANULARITÉ ────────────────────────
+ * La bascule se faisait PAR BOUCHE, sur un facteur élu parmi ses jours ancrés —
+ * « le plus proche de 1 gagne ». Cette prudence n'existait que parce qu'UN
+ * facteur servait toute la fenêtre: l'ancrage avait calculé pour un jour précis
+ * (son énergie, ses moments, sa masse), et l'appliquer à un autre jour était
+ * l'approximation que la prudence pansait. La bascule est désormais par
+ * (bouche, JOUR), donc chaque contenant reçoit le facteur qui a été calculé
+ * pour lui. Il n'y a plus d'élection, donc plus rien à panser.
+ *
+ * ⚠️ UNE BOUCHE DANS UN BAC N'EST PAS UNE BOUCHE SANS FACTEUR. Elle rend `none`
+ * ici — c'est-à-dire « ce contenant-là ne se dimensionne pas sur elle » — et sa
+ * boîte à un nom du même jour, si elle en a une, garde le sien. Le silence est
+ * porté par le CONTENANT, jamais par la personne.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function resolveBoxFactors(args: {
+  boxes: readonly {
+    boxId: string;
+    memberIds: readonly string[];
+    day: string | null;
+  }[];
+  /**
+   * L'ancrage absolu, clé `<memberId> <day>` — la clé de `householdAnchors`.
+   *
+   * ⚠️ TYPE STRUCTUREL, PAS `AnchorFactor` IMPORTÉ. `mouth_anchor.ts` importe ce
+   * fichier; l'importer en retour ferait un cycle. C'est le même patron que
+   * `PotDraw` dans `pot_demand.ts`, et pour la même raison.
+   */
+  anchors: ReadonlyMap<string, { factor: number; reason: string }>;
+  /** La part relative, par `member_id`. */
+  relative: ReadonlyMap<string, number>;
+}): Map<string, BoxFactor> {
+  const out = new Map<string, BoxFactor>();
+  for (const box of args.boxes) {
+    // ⛔ UN BAC N'A PAS DE FACTEUR ICI, ET CE N'EST PAS UN OUBLI. Le facteur
+    // d'un contenant partagé est la somme des besoins de ses mangeurs — un
+    // nombre qui n'appartient à aucun d'eux, donc qu'aucune des deux tables de
+    // cette fonction ne porte. Il arrive avec `potFactorFor` (A2); jusque-là un
+    // bac sort exactement tel que le modèle l'a écrit, comme avant ce lot.
+    if (box.memberIds.length !== 1) {
+      out.set(box.boxId, { factor: 1, source: "none" });
+      continue;
+    }
+    const memberId = box.memberIds[0];
+    const anchor = args.anchors.get(`${memberId} ${box.day ?? ""}`);
+    if (anchor && (anchor.reason === "anchored" || anchor.reason === "clamped")) {
+      out.set(box.boxId, { factor: anchor.factor, source: "anchor" });
+      continue;
+    }
+    const relative = args.relative.get(memberId);
+    out.set(
+      box.boxId,
+      relative === undefined || relative === 1
+        ? { factor: 1, source: "none" }
+        : { factor: relative, source: "relative" },
+    );
+  }
+  return out;
+}
+
+/**
  * LES PARTS, REDIMENSIONNÉES SUR LA CIBLE DE CHAQUE BOUCHE.
  *
  * ── POURQUOI C'EST DÉTERMINISTE ET APRÈS LE PARSEUR ───────────────────────
@@ -2881,14 +2992,28 @@ export function sizeBoxesFromTarget(
   meals: readonly SizableMeal[],
   preparations: readonly SizablePreparation[],
   /**
-   * Le facteur de CHAQUE bouche, par `member_id`. Une bouche absente de la table
-   * vaut `1` — c'est-à-dire « on n'a rien à lui appliquer », le cas nominal.
+   * Le facteur de CHAQUE CONTENANT, par `boxId`. Un contenant absent de la table
+   * vaut `1` — « on n'a rien à lui appliquer », le cas nominal.
+   *
+   * ⟳ 2026-09-04 — PAR CONTENANT, ET PLUS PAR BOUCHE. Trois raisons mesurées:
+   *
+   *   1. L'ancrage rend un facteur par (bouche, JOUR); une table par bouche
+   *      forçait l'appelant à en élire un pour toute la fenêtre. Il prenait « le
+   *      plus proche de 1 » — un pansement de prudence sur une approximation.
+   *   2. Une bouche peut avoir une boîte à elle à midi et une part de bac le
+   *      soir. Un seul nombre pour les deux est faux dans les deux sens.
+   *   3. Un BAC a besoin d'un facteur qui n'est celui d'aucun de ses mangeurs
+   *      (la somme de leurs besoins). Une table par bouche ne peut pas le dire.
+   *
+   * ⛔ CETTE FONCTION NE DÉCIDE PLUS QUI REÇOIT QUOI. Elle applique. Le choix
+   * — ancrage, relatif, bac, ou rien — est à `resolveBoxFactors`, et l'y avoir
+   * remonté est ce qui garde UNE seule autorité sur le facteur d'un contenant.
    *
    * ⚠️ REQUIS, JAMAIS `?`. Un paramètre facultatif ferait de « aucune cible » le
    * défaut silencieux de tous les appelants, et le lot serait construit,
    * branché, désarmé — le mode d'échec n°1 de ce fichier.
    */
-  factors: ReadonlyMap<string, number>,
+  factorsByBox: ReadonlyMap<string, number>,
   /** La tolérance de somme, reprise du parseur. REQUISE pour la même raison. */
   sumToleranceRatio: number,
 ): BoxSizingResult {
@@ -2919,12 +3044,14 @@ export function sizeBoxesFromTarget(
     counts.boxes++;
     const next = new Map<number, number>();
     candidate.set(meal.boxId, next);
-    if (meal.memberIds.length !== 1) {
-      counts.common++;
-      counts.items += meal.items.length;
-      continue;
-    }
-    const factor = factors.get(meal.memberIds[0]) ?? 1;
+    // ⚠️ COMPTÉ, PLUS SAUTÉ. Un bac reste un bac — `common` dit combien il y en
+    // a, et c'est le nombre qui empêche de lire `sized: 0` comme un lot désarmé
+    // là où toute la table est dans un contenant partagé. Mais il traverse
+    // désormais la même boucle que les autres: sans facteur, il en ressort
+    // identique au gramme près, et avec un facteur de BAC (A2) il se
+    // dimensionne. Le `continue` d'avant rendait le second cas inexprimable.
+    if (meal.memberIds.length !== 1) counts.common++;
+    const factor = factorsByBox.get(meal.boxId) ?? 1;
     let anySized = false;
     for (const [index, item] of meal.items.entries()) {
       counts.items++;

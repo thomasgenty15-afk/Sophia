@@ -28,6 +28,7 @@ import {
   householdMouthFactors,
   mouthTargetFactor,
   type PortionMember,
+  resolveBoxFactors,
   sizeBoxesFromTarget,
 } from "./household_portions.ts";
 import type { MouthBody } from "./meal_envelope.ts";
@@ -138,6 +139,7 @@ Deno.test("⛔ LE CAS QUI PASSE — un AUTRE condition_ref rend une boîte BYTE-
     {
       boxId: "b1",
       memberIds: ["m-her"],
+      day: "thu",
       items: [{ preparationId: "p1", grams: 320 }, { preparationId: null, grams: 90 }],
       uses: [{ preparationId: "p1", servings: 1 }],
     },
@@ -146,9 +148,25 @@ Deno.test("⛔ LE CAS QUI PASSE — un AUTRE condition_ref rend une boîte BYTE-
 
   const boxesFor = (conditionRefs: readonly string[]): string => {
     const factors = householdMouthFactors(table(conditionRefs), "no_position");
-    const flat = new Map<string, number>();
-    for (const [id, f] of factors) flat.set(id, f.factor);
-    return JSON.stringify(sizeBoxesFromTarget(meals, preparations, flat, 0.05));
+    const relative = new Map<string, number>();
+    for (const [id, f] of factors) relative.set(id, f.factor);
+    // ⟳ 2026-09-04 — PAR CONTENANT. `sizeBoxesFromTarget` lit une table par
+    // `boxId`; passer la table par `member_id` compilerait (les deux sont des
+    // `Map<string, number>`) et rendrait silencieusement 1 partout, donc des
+    // boîtes identiques quel que soit le `condition_ref` — ce test passerait au
+    // vert en n'éprouvant plus rien. On traverse le résolveur, comme la
+    // production.
+    const byBox = resolveBoxFactors({
+      boxes: meals,
+      anchors: new Map(),
+      relative,
+    });
+    return JSON.stringify(sizeBoxesFromTarget(
+      meals,
+      preparations,
+      new Map([...byBox].map(([id, r]) => [id, r.factor])),
+      0.05,
+    ));
   };
 
   const nu = boxesFor([]);

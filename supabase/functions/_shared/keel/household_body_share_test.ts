@@ -999,16 +999,49 @@ Deno.test("⛔ LE GÉNÉRATEUR DIMENSIONNE LES REPAS, ET MESURE LA PHRASE SANS C
   //    2026-08-19: une boîte pend au plat. Un générateur resté sur
   //    `meal.preparations` rendrait une table de parts VIDE, et le lot serait
   //    construit-branché-désarmé — le mode d'échec n°1 de ce dépôt.
-  const sizing = src.slice(src.indexOf("sizeBoxesFromTarget("));
-  const call = sizing.slice(0, sizing.indexOf("\n    );") + 8);
-  assert(call.includes("meal.dishes"), `le dimensionnement ne lit pas les repas:\n${call}`);
+  //
+  // ⟳ 2026-09-04 — LA CHAÎNE A UN MAILLON DE PLUS, ET LA GARDE LE SUIT. La
+  // liste des contenants est hissée en `const sizableBoxes` (le résolveur et le
+  // dimensionneur doivent lire LA MÊME), et les facteurs traversent
+  // `resolveBoxFactors` avant d'atteindre le dimensionneur. Chercher
+  // `meal.dishes` DANS l'appel ne prouvait plus rien — c'est le maillon, pas la
+  // propriété, qui avait bougé. On éprouve donc les trois jointures.
+  const boxes = src.slice(src.indexOf("const sizableBoxes"));
+  const built = boxes.slice(0, boxes.indexOf("\n    );") + 8);
+  assert(built.includes("meal.dishes"), `le dimensionnement ne lit pas les repas:\n${built}`);
   assert(
-    call.includes("dish.boxes"),
-    `le dimensionnement ne lit pas les contenants du repas:\n${call}`,
+    built.includes("dish.boxes"),
+    `le dimensionnement ne lit pas les contenants du repas:\n${built}`,
+  );
+  // ⚠️ ET LE JOUR DESCEND AVEC EUX. Sans lui, le résolveur ne peut pas retrouver
+  // l'ancrage de CE jour-là et retomberait sur le relatif pour tout le monde:
+  // le lot serait construit, branché, désarmé.
+  assert(built.includes("day: dish.day"), `le contenant ne porte pas son jour:\n${built}`);
+
+  const resolve = src.slice(src.indexOf("resolveBoxFactors({"));
+  const resolved = resolve.slice(0, resolve.indexOf("\n    });") + 8);
+  assert(
+    resolved.includes("boxes: sizableBoxes"),
+    `le résolveur ne lit pas la MÊME liste que le dimensionneur:\n${resolved}`,
   );
   assert(
-    call.includes("sizingFactors"),
-    `le dimensionnement tourne sans les facteurs:\n${call}`,
+    resolved.includes("anchors: mouthAnchors"),
+    `la bascule tourne sans l'ancrage absolu:\n${resolved}`,
+  );
+  assert(
+    resolved.includes("relative: sizingFactors"),
+    `la bascule tourne sans la couche relative:\n${resolved}`,
+  );
+
+  const sizing = src.slice(src.indexOf("sizeBoxesFromTarget("));
+  const call = sizing.slice(0, sizing.indexOf("\n    );") + 8);
+  assert(
+    call.includes("sizableBoxes"),
+    `le dimensionnement ne lit pas les contenants résolus:\n${call}`,
+  );
+  assert(
+    call.includes("boxFactors"),
+    `le dimensionnement tourne sans les facteurs résolus:\n${call}`,
   );
 
   // ② LA PART REDIMENSIONNÉE EST RECOPIÉE SUR LA BOÎTE. Sans ce report, la

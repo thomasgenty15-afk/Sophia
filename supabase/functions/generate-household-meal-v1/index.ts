@@ -360,10 +360,12 @@ import {
   countPortionNoteDrift,
   bodyShareFactors,
   type BodyShareReason,
+  BOX_FACTOR_SOURCES,
   BOX_SIZING_REASONS,
   type BoxSizingReason,
   householdMouthFactors,
   type MouthRestrictionState,
+  resolveBoxFactors,
   sizeBoxesFromTarget,
   householdAppetite,
   weighedPortionMembers,
@@ -6812,23 +6814,17 @@ Deno.serve(async (req) => {
         dayEnergy,
         coachCounting,
       );
-      const best = new Map<string, number>();
-      for (const [key, anchor] of anchors) {
+      // ⟳ 2026-09-04 — L'ÉLECTION `best` A DISPARU. Elle gardait, par bouche, le
+      // facteur ancré « le plus proche de 1 » parmi ses jours. Cette prudence
+      // n'existait que parce qu'UN facteur servait toute la fenêtre: l'ancrage
+      // avait calculé pour un jour précis — son énergie, ses moments, sa masse —
+      // et l'étendre aux autres jours était l'approximation que la prudence
+      // pansait. La bascule se fait maintenant par (bouche, jour), dans
+      // `resolveBoxFactors`, donc chaque contenant reçoit le facteur qui a été
+      // calculé POUR LUI. Il n'y a plus d'élection, donc plus rien à panser.
+      for (const anchor of anchors.values()) {
         anchorReasons[anchor.reason] = (anchorReasons[anchor.reason] ?? 0) + 1;
         if (anchor.extrasFloored) extrasFloored++;
-        if (anchor.reason !== "anchored" && anchor.reason !== "clamped") continue;
-        const memberId = key.slice(0, key.lastIndexOf(" "));
-        const current = best.get(memberId);
-        if (current === undefined || Math.abs(anchor.factor - 1) < Math.abs(current - 1)) {
-          best.set(memberId, anchor.factor);
-        }
-      }
-      for (const [memberId, factor] of best) {
-        anchorApplied++;
-        // LE REMPLACEMENT, et c'est tout le geste: `set` écrase la valeur que
-        // la chaîne relative avait posée, il ne la multiplie pas.
-        if (factor === 1) sizingFactors.delete(memberId);
-        else sizingFactors.set(memberId, factor);
       }
       dayEnergyRows = dayEnergy;
       mouthAnchors = anchors;
@@ -6880,20 +6876,41 @@ Deno.serve(async (req) => {
     // plus haut écrirait des grammes sur des boîtes que personne ne garde. C'est
     // la cicatrice du `current` périmé, mesurée sur dix-huit parts orphelines le
     // 2026-08-17, et elle vaut ici mot pour mot.
+    // LES REPAS EN BOÎTE, TELS QUE LE PARSEUR LES A GARDÉS. `uses` descend avec
+    // eux parce que le plafond du récipient se pose casserole par casserole, et
+    // qu'une boîte de repas mélange les casseroles: c'est la fonction qui fait
+    // le prorata, pas cet appelant — un second calcul ici finirait par diverger
+    // de celui du parseur.
+    //
+    // ⟳ HISSÉ EN `const`: le résolveur et le dimensionneur lisent la MÊME liste.
+    // Deux constructions du même tableau divergeraient au premier champ ajouté,
+    // et c'est le facteur d'un contenant qui se tromperait de contenant.
+    const sizableBoxes = meal.dishes.flatMap((dish) =>
+      dish.boxes.map((box) => ({
+        boxId: box.id,
+        memberIds: box.memberIds,
+        day: dish.day,
+        items: box.items,
+        uses: dish.uses,
+      }))
+    );
+    // ── QUEL FACTEUR POUR QUEL CONTENANT — l'unique autorité ───────────────
+    // La bascule ancrage/relatif vit ici, par (bouche, jour). `sizingFactors`
+    // n'est plus passé au dimensionneur: il entre dans le résolveur comme la
+    // couche RELATIVE, et l'ancrage la remplace quand il a tiré pour ce jour-là.
+    const boxFactors = resolveBoxFactors({
+      boxes: sizableBoxes,
+      anchors: mouthAnchors,
+      relative: sizingFactors,
+    });
+    const boxFactorSources: Record<string, number> = {};
+    for (const source of BOX_FACTOR_SOURCES) boxFactorSources[source] = 0;
+    for (const resolved of boxFactors.values()) {
+      boxFactorSources[resolved.source] += 1;
+      if (resolved.source === "anchor") anchorApplied++;
+    }
     const boxSizing = sizeBoxesFromTarget(
-      // LES REPAS EN BOÎTE, TELS QUE LE PARSEUR LES A GARDÉS. `uses` descend avec
-      // eux parce que le plafond du récipient se pose casserole par casserole, et
-      // qu'une boîte de repas mélange les casseroles: c'est la fonction qui fait
-      // le prorata, pas cet appelant — un second calcul ici finirait par diverger
-      // de celui du parseur.
-      meal.dishes.flatMap((dish) =>
-        dish.boxes.map((box) => ({
-          boxId: box.id,
-          memberIds: box.memberIds,
-          items: box.items,
-          uses: dish.uses,
-        }))
-      ),
+      sizableBoxes,
       meal.preparations.map((prep) => ({
         id: prep.id,
         servingsMade: prep.servingsMade,
@@ -6904,7 +6921,7 @@ Deno.serve(async (req) => {
           ? preparationReadyGrams(prep.ingredients, composition)
           : null,
       })),
-      sizingFactors,
+      new Map([...boxFactors].map(([boxId, r]) => [boxId, r.factor])),
       BOX_SUM_TOLERANCE_RATIO,
     );
     for (const dish of meal.dishes) {
@@ -7013,6 +7030,7 @@ Deno.serve(async (req) => {
       share_clamped: shareClamped,
       anchor: anchorReasons,
       anchor_applied: anchorApplied,
+      box_factor_source: boxFactorSources,
       unmet: unmetCauses,
       unmet_band: unmetBand,
       extras_floored: extrasFloored,

@@ -48,6 +48,7 @@ import {
   type PortionMember,
   type SizableMeal,
   type SizablePreparation,
+  resolveBoxFactors,
   sizeBoxesFromTarget,
 } from "./household_portions.ts";
 import { ageStateFromVerdict, type MemberAgeState } from "./household.ts";
@@ -530,7 +531,20 @@ const BOX = (
   uses: Array<{ preparationId: string; servings: number }> = [
     { preparationId: "prep_rice", servings: 1 },
   ],
-): SizableMeal => ({ boxId, memberIds, items, uses });
+  day: string | null = null,
+): SizableMeal => ({ boxId, memberIds, day, items, uses });
+
+/**
+ * LES FACTEURS, PAR CONTENANT — le raccourci des tests qui n'éprouvent pas la
+ * résolution elle-même.
+ *
+ * ⚠️ IL EXISTE PARCE QUE LA CLÉ A CHANGÉ DE SENS. `sizeBoxesFromTarget` lisait
+ * une table par `member_id`; elle lit une table par `boxId`. Les deux sont des
+ * `Map<string, number>`, donc le compilateur ne voit RIEN — c'est le seul
+ * endroit de ce lot où une erreur passerait au vert. Ce helper nomme la clé.
+ */
+const BY_BOX = (...pairs: Array<[string, number]>): Map<string, number> =>
+  new Map(pairs);
 
 /** Le raccourci du cas majoritaire: un nom, un composant, du riz. */
 const RICE_BOX = (
@@ -552,7 +566,7 @@ Deno.test("L8 ① — LE CAS QUI PASSE: deux bouches, deux facteurs, deux gramma
       RICE_BOX("box_thu_lunch_marc", "marc", 200),
     ],
     RICE,
-    new Map([["zoe", 0.8], ["marc", 1.1]]),
+    BY_BOX(["box_thu_lunch_zoe", 0.8], ["box_thu_lunch_marc", 1.1]),
     TOL,
   );
   assertEquals(out.items.get("box_thu_lunch_zoe")?.get(0), 160);
@@ -576,12 +590,32 @@ Deno.test("⛔ v4 — UN BAC À PLUSIEURS NOMS NE SE DIMENSIONNE PAS DU TOUT", (
   // de l'un de ses mangeurs ferait payer aux autres l'arithmétique d'un tiers —
   // le défaut « une ceinture posée sur l'un retire à l'autre », par l'autre bout.
   //
-  // MUTATION LA PLUS RENTABLE DE CE TEST: faire lire au sizing le facteur de
-  // `memberIds[0]`. Elle rendrait 320 g au lieu de 400 g, et ce test rougirait.
+  // ⟳ 2026-09-04 — LA GARDE A DÉMÉNAGÉ, PAS DISPARU. `sizeBoxesFromTarget`
+  // applique désormais le facteur qu'on lui donne pour un contenant, quel que
+  // soit le nombre de noms sur son couvercle; c'est `resolveBoxFactors` qui
+  // décide qu'un bac n'en reçoit aucun. Ce test suit la garde: sans ça, il
+  // continuerait de passer en éprouvant une fonction qui ne la porte plus.
+  //
+  // MUTATION LA PLUS RENTABLE: faire rendre au résolveur le facteur de
+  // `memberIds[0]` pour un bac. Elle rendrait 0,8 au lieu de 1, et donc 320 g.
+  const resolved = resolveBoxFactors({
+    boxes: [{ boxId: "box_common", memberIds: ["zoe", "marc"], day: "thu" }],
+    anchors: new Map([
+      // ⚠️ ET MÊME ANCRÉES. Un ancrage tiré pour zoe ce jour-là ne descend pas
+      // sur le bac: il a été calculé sur SA journée à elle, pas sur ce que le
+      // récipient doit contenir pour trois.
+      ["zoe thu", { factor: 0.8, reason: "anchored" }],
+    ]),
+    relative: new Map([["zoe", 0.8], ["marc", 1.1]]),
+  });
+  assertEquals(resolved.get("box_common")?.factor, 1);
+  assertEquals(resolved.get("box_common")?.source, "none");
+
+  // ⚠️ ET LA CONSÉQUENCE, BOUT À BOUT: le bac ne bouge pas d'un gramme.
   const out = sizeBoxesFromTarget(
     [BOX("box_common", ["zoe", "marc"], [{ preparationId: "prep_rice", grams: 400 }])],
     RICE,
-    new Map([["zoe", 0.8], ["marc", 1.1]]),
+    new Map([...resolved].map(([id, r]) => [id, r.factor])),
     TOL,
   );
   assertEquals(out.items.size, 0, "un bac commun a été redimensionné");
@@ -592,6 +626,45 @@ Deno.test("⛔ v4 — UN BAC À PLUSIEURS NOMS NE SE DIMENSIONNE PAS DU TOUT", (
   assertEquals(out.issues, []);
 });
 
+Deno.test("⛔ LA BASCULE EST EXCLUSIVE, ET PAR (BOUCHE, JOUR)", () => {
+  // ⛔ JAMAIS LE PRODUIT DES DEUX COUCHES. L'ancrage REMPLACE le relatif. La
+  // mutation qui compte: rendre `anchor.factor * relative` — 1,2 × 0,9 = 1,08
+  // au lieu de 1,2. C'est le double comptage mesuré sur trois runs, où l'ado de
+  // 70 kg dont le corps demande 2,03x la part de l'adulte de 47 kg en recevait
+  // 1,02x.
+  //
+  // ⚠️ ET LE JOUR DÉCIDE. `a` est ancrée JEUDI et pas vendredi: sa boîte de
+  // jeudi prend l'ancrage, celle de vendredi retombe sur le relatif. Avant ce
+  // lot un seul facteur — « le plus proche de 1 » — servait les deux.
+  const resolved = resolveBoxFactors({
+    boxes: [
+      { boxId: "b_thu", memberIds: ["a"], day: "thu" },
+      { boxId: "b_fri", memberIds: ["a"], day: "fri" },
+      { boxId: "b_sat", memberIds: ["a"], day: "sat" },
+    ],
+    anchors: new Map([
+      ["a thu", { factor: 1.2, reason: "anchored" }],
+      // ⚠️ UN MOTIF QUI N'EST PAS `anchored`/`clamped` NE DESCEND PAS. C'est la
+      // garde « on n'ancre jamais sur une journée incomplète », vue d'ici.
+      ["a sat", { factor: 3.0, reason: "day_incomplete" }],
+    ]),
+    relative: new Map([["a", 0.9]]),
+  });
+  assertEquals(resolved.get("b_thu"), { factor: 1.2, source: "anchor" });
+  assertEquals(resolved.get("b_fri"), { factor: 0.9, source: "relative" });
+  assertEquals(resolved.get("b_sat"), { factor: 0.9, source: "relative" });
+
+  // ⚠️ ET `1` N'EST PAS UNE SOURCE. Une bouche dont le relatif vaut exactement 1
+  // n'a rien à appliquer: la dire `relative` ferait compter une couche qui n'a
+  // rien fait, et l'histogramme mentirait sur ce qui dimensionne.
+  const flat = resolveBoxFactors({
+    boxes: [{ boxId: "b", memberIds: ["a"], day: "thu" }],
+    anchors: new Map(),
+    relative: new Map([["a", 1]]),
+  });
+  assertEquals(flat.get("b"), { factor: 1, source: "none" });
+});
+
 Deno.test("⛔ v4 — `common` DISTINGUE « aucune cible » DE « QUE des bacs communs »", () => {
   // ⛔ SANS CE NOMBRE, un plan où tout le monde partage rendrait `sized: 0` —
   // exactement ce que rend un lot débranché. Le zéro ambigu, pour la n-ième
@@ -599,7 +672,7 @@ Deno.test("⛔ v4 — `common` DISTINGUE « aucune cible » DE « QUE des bacs c
   const allCommon = sizeBoxesFromTarget(
     [BOX("b1", ["a", "b"], [{ preparationId: "prep_rice", grams: 400 }])],
     RICE,
-    new Map([["a", 1.2], ["b", 1.2]]),
+    BY_BOX(),
     TOL,
   );
   const noTarget = sizeBoxesFromTarget(
@@ -655,7 +728,7 @@ Deno.test("⛔ L8 ① — LE FACTEUR NE FAIT PAS APPARAÎTRE DE LA NOURRITURE", 
       RICE_BOX("b3", "c", 200),
     ],
     [PREP("prep_rice", 500)],
-    new Map([["a", 1.2], ["b", 1.2], ["c", 1.2]]),
+    BY_BOX(["b1", 1.2], ["b2", 1.2], ["b3", 1.2]),
     TOL,
   );
   let sum = 0;
@@ -696,7 +769,7 @@ Deno.test("⛔ v4 — LE PLAFOND RABOTE LE COMPOSANT QUI DÉBORDE, ET LUI SEUL",
       { preparationId: "prep_sauce", servings: 1 },
     ]),
   ];
-  const factors = new Map([["a", 1.2], ["c", 1.2], ["d", 1.2]]);
+  const factors = BY_BOX(["box_full", 1.2], ["box_sauce_1", 1.2], ["box_sauce_2", 1.2]);
   const out = sizeBoxesFromTarget(
     meals,
     [PREP("prep_rice", 1000), PREP("prep_sauce", 100)],
@@ -749,7 +822,7 @@ Deno.test("LOT 3 — LE RABOT SORT DE LA FONCTION, CASSEROLE PAR CASSEROLE", () 
       ]),
     ],
     [PREP("prep_rice", 1000), PREP("prep_sauce", 100)],
-    new Map([["a", 1.2], ["c", 1.2], ["d", 1.2]]),
+    BY_BOX(["box_full", 1.2], ["box_sauce_1", 1.2], ["box_sauce_2", 1.2]),
     TOL,
   );
 
@@ -793,7 +866,7 @@ Deno.test("⛔ v4 — UN COMPOSANT AJOUTÉ FRAIS N'EST BORNÉ PAR AUCUNE CASSERO
       { preparationId: null, grams: 100 },
     ])],
     [PREP("prep_rice", 100)],
-    new Map([["a", 1.2]]),
+    BY_BOX(["b1", 1.2]),
     TOL,
   );
   assertEquals(out.counts.capped_by_pot, 1);
@@ -806,7 +879,7 @@ Deno.test("L8 ① — le rapport entre DEUX cibles différentes survit au plafon
   const out = sizeBoxesFromTarget(
     [RICE_BOX("b1", "a", 200), RICE_BOX("b2", "b", 200)],
     [PREP("prep_rice", 300)],
-    new Map([["a", 0.8], ["b", 1.2]]),
+    BY_BOX(["b1", 0.8], ["b2", 1.2]),
     TOL,
   );
   const a = out.items.get("b1")!.get(0)!;
@@ -820,7 +893,7 @@ Deno.test("L8 ① — une production non reconstructible se redimensionne SANS v
   const out = sizeBoxesFromTarget(
     [RICE_BOX("b1", "a", 200)],
     [PREP("prep_rice", null)],
-    new Map([["a", 1.2]]),
+    BY_BOX(["b1", 1.2]),
     TOL,
   );
   assertEquals(out.items.get("b1")?.get(0), 240);
@@ -844,7 +917,7 @@ Deno.test("⛔ v4 — UNE CASSEROLE INCONNUE N'EMPÊCHE PLUS DE VÉRIFIER SA VOI
       { preparationId: "prep_sauce", servings: 1 },
     ])],
     [PREP("prep_rice", 10), PREP("prep_sauce", null)],
-    new Map([["a", 1.2]]),
+    BY_BOX(["b1", 1.2]),
     TOL,
   );
   assertEquals(out.counts.unverifiable, 1, "la sauce seule est invérifiable");
@@ -868,7 +941,7 @@ Deno.test("⛔ L8 ① — UN COMPOSANT NE DESCEND JAMAIS À ZÉRO, et le seul ch
     [RICE_BOX("b1", "a", 400), RICE_BOX("b2", "b", 400)],
     // 1 g produit: le rabotage vaut ~0,0014.
     [PREP("prep_rice", 1)],
-    new Map([["a", 0.8], ["b", 1.2]]),
+    BY_BOX(["b1", 0.8], ["b2", 1.2]),
     TOL,
   );
   assertEquals(out.counts.capped_by_pot, 1);
@@ -900,9 +973,9 @@ Deno.test("L8 ① — PROPRIÉTÉ: sized + unchanged === items, toujours", () =>
   for (
     const factors of [
       new Map<string, number>(),
-      new Map([["a", 0.9]]),
-      new Map([["a", 0.9], ["b", 0.9], ["c", 0.9]]),
-      new Map([["a", 1.2], ["b", 0.8], ["c", 1.1], ["d", 0.85]]),
+      BY_BOX(["b1", 0.9]),
+      BY_BOX(["b1", 0.9], ["b2", 0.9], ["b3", 0.9]),
+      BY_BOX(["b1", 1.2], ["b2", 0.8], ["b3", 1.1]),
     ]
   ) {
     const out = sizeBoxesFromTarget(meals, preps, factors, TOL);
