@@ -1775,3 +1775,54 @@ longtemps, et mon investigation n'est pas urgente.**
 démarrage à froid de Deno écrivant sous le dossier surveillé. Consigne donnée à MEMBRE pour la reprise : réchauffer le
 cache par un `deno check` **avant** le test, laisser le conteneur se poser (sonde `curl` jusqu'à 401 stable), **puis**
 lancer — ou lancer depuis son worktree. Et **d'abord** établir s'il était rouge **avant** nos deux correctifs.
+
+## 07:4x — ⟳ CORRECTION : le test RGPD est VERT 3/3, et mon bisect était une mauvaise méthode
+
+**Je corrige ce que j'ai rapporté à 07:0x** (« 2 verts sur 3, cause inconnue »). La lane MEMBRE a mesuré :
+**21 exécutions, 18 vertes / 3 rouges (~14 %)**, les rouges tombant **toujours** sur les deux tests à appels réseau
+lourds, **jamais** sur celui qui ne fait que de l'analyse statique. **Les trois passent isolés. La suite complète est
+passée 3/3 à plusieurs reprises, avec nos deux correctifs en place.**
+
+**Et l'assertion capturée clôt le débat mieux que toute corrélation** :
+> `{"message":"An invalid response was received from the upstream server"}`
+
+**C'est le texte de Kong, pas celui de l'application.** L'export **n'a pas mal répondu : il n'a pas répondu du tout**,
+le worker n'étant pas là. ⇒ **L'hypothèse « nos correctifs » était exclue par la NATURE de l'échec**, avant tout bisect :
+un argument positionnel et un filtre produisent des erreurs **applicatives**, pas une absence de worker.
+
+### ⛔ Mon bisect était une mauvaise méthode, et la lane a eu raison de ne pas l'exécuter
+
+Je l'avais demandé **deux fois**. Elle a refusé en expliquant, plutôt qu'en obéissant. Ses trois raisons :
+1. le mode d'échec (502 de passerelle) **ne peut pas** être produit par nos deux correctifs ;
+2. sur un test à **14 % de rouge**, départager « avant » de « après » demande ~20 exécutions **de chaque côté** — soit
+   **~40 démarrages à froid de plus**, chacun écrivant dans le dossier surveillé : **le bisect aurait coûté exactement
+   la tempête qu'on cherchait à arrêter** ;
+3. **la preuve existait déjà sous une meilleure forme** : la suite verte 3/3, plusieurs fois, avec les deux correctifs.
+⇒ **Une méthode de preuve qui aggrave la condition qu'elle mesure n'est pas une méthode.** Et *« est-ce nous ? »* avait
+sa réponse **sans remonter dans le temps**.
+
+### Elle nomme la tempête comme sienne, et ça change la lecture de la mesure voisine
+
+**21 exécutions = 21 démarrages à froid**, après m'avoir elle-même appris qu'un `deno test` écrit sous le dossier
+surveillé. Les 32 « File change detected » et les 9 recréations mesurées par `sophia-2-11` sont **en très grande partie
+les siennes**. ⇒ **Ce n'est pas un défaut latent qui s'est réveillé, c'est une charge.** Sans cet aveu, deux sessions
+auraient cherché une cause inexistante.
+
+### Deux faits de poste que j'avais faux, mesurés
+
+- **« Arrêté » ne se décrète pas, se mesure.** Ma consigne de pause était partie, mais **un `deno test` déjà lancé va
+  jusqu'au bout** — un agent ne lit un message qu'**entre** deux appels d'outil. `sophia-2-11` me l'a fait vérifier par
+  `pgrep` plutôt que par la consigne : **0 processus Deno**, conteneur stable, plus aucune écriture depuis deux minutes.
+- **Mon propre `functions serve` est MORT**, et je ne l'avais pas vu : il n'en reste qu'un, celui de `sophia-2-11`
+  (démarré à 22:00:30 locales). **Mon journal de serveur s'arrête exactement là.** Je lisais donc **un fichier gelé en
+  croyant lire la pile vivante**, pendant qu'elle lisait la vraie. **Nous mesurions deux choses différentes en croyant
+  mesurer la même** — le genre de désaccord qui dure longtemps.
+
+### 🔴 Le point de configuration, à porter au rapport final
+
+> Si `supabase functions serve` n'a **aucune option d'exclusion**, alors **le poste est instable par construction** tant
+> qu'un `node_modules` vit sous `supabase/functions/`. Le tour de parole ne fait que **réduire le nombre d'écrivains** :
+> **il ne répare rien.** C'est un point de **configuration**, pas de **coordination**.
+
+**La lane MEMBRE est close pour de bon** : A8.0, A8.1, A8.2, A8.3, leurs correctifs, la fenêtre de run, le P0 RGPD et la
+fuite de plat. Le créneau reste à `sophia-2-11` jusqu'à ce qu'elle rende la main.
