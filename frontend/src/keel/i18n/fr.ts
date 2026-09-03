@@ -6418,21 +6418,6 @@ export const fr: TranslatedMessages = {
   // nomme pas sa condition se lit comme un bouton mort — cicatrice mesurée
   // trois fois sur l'écran de réglages.
   // ── « JE CUISINE LA VEILLE » (2026-09-01) ────────────────────────────
-  // ⚠️ LE LIBELLÉ DIT LE GESTE, pas le mécanisme. « La fenêtre recule d'un
-  // jour » est du vocabulaire de moteur; ce qui se passe dans la cuisine,
-  // c'est qu'on cuisine la veille du premier jour.
-  "plan.cooking.day_before_label":
-    "Je cuisine la veille du premier jour",
-  "plan.cooking.day_before_hint":
-    "Le plan commencera un jour plus tôt, et ce jour-là ne portera aucun " +
-    "repas : c'est celui où tu cuisines pour la suite.",
-  // ⛔ DEUX REFUS, DEUX PHRASES — ils se réparent par des gestes OPPOSÉS.
-  "plan.cooking.day_before_starts_today":
-    "Ce plan commence aujourd'hui : la veille est déjà passée. Décale le " +
-    "premier jour pour cuisiner avant.",
-  "plan.cooking.day_before_no_room":
-    "Ce plan couvre déjà sept jours, le maximum. Raccourcis-le d'un jour " +
-    "pour faire de la place à la session de la veille.",
   "plan.cooking.one_session_needs_freezer":
     "Il faut un congélateur pour ça : sans lui, un plat cuisiné ne tient que " +
     "deux jours de plus. Coche-le dans « Avec quoi vous cuisinez » pour ouvrir " +
@@ -6872,5 +6857,26 @@ export const fr: TranslatedMessages = {
   // par `tsc` quand on l'a retirée; redéposée près du moteur, avec sa note.
   // Et dans `catalog.ts`: l'entrée `"/app/meals"` de `PAGE_NAMESPACES`. Aucune clé ajoutée.
   // ── chantier-0903/RAPIDE — fin ──
+
+  // ── chantier-0903/CUISINE — début ──
+  //
+  // ── A1 · LA VEILLE AUTOMATIQUE (P1) ──────────────────────────────────────
+  // Le serveur tranche le timing (`leadDayFor`, coupure à 18 h) et le rend dans
+  // `timing`. L'écran RÉPÈTE, il ne recalcule rien: le navigateur ne connaît
+  // pas l'heure. Deux phrases, une par `kind` — et AUCUNE variante par `reason`:
+  // l'explication complète vit dans `plan_rationale`, côté serveur, et un
+  // second jeu de gabarits ici divergerait au premier ajustement.
+  "meals.timing.day_before":
+    "Courses et cuisson {day}, la veille : rien ne se mange ce jour-là.",
+  "meals.timing.same_morning":
+    "Courses et cuisson dès le matin, pour être prêt à midi.",
+  //
+  // RETIRÉES PAR CE LOT (la case « je cuisine la veille » n'existe plus, et
+  // `CookDayBeforeField.tsx` est supprimé — vérifié appelant par appelant):
+  //   · plan.cooking.day_before_label
+  //   · plan.cooking.day_before_hint
+  //   · plan.cooking.day_before_starts_today
+  //   · plan.cooking.day_before_no_room
+  // ── chantier-0903/CUISINE — fin ──
 
 };
