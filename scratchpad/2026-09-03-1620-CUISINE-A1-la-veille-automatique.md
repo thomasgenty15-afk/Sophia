@@ -27,7 +27,49 @@ Le `.eq` sur `startsOn` a bien été **gardé** (interdit du mandat respecté) :
 
 | # | sha | Contenu |
 |---|---|---|
-| 1 | `<à remplir>` | la veille dérivée : modules purs + `eatenSpan` branché + tests |
+| 1 | `7c5128ad` | la veille dérivée : modules purs + `eatenSpan` branché + tests |
+| 2 | `<à remplir>` | migration `20260903140000` + son bloc de contrôle (6/6) |
+
+### Suites du commit 1
+
+`deno check` **vert** sur les deux lanes. Deno : `cook_the_day_before_test` 26/26,
+`grocery_waves_test` 29/29, `meal_plan_window_test` + `household_merge_test` +
+`constant_pinning_gate_test` 155/155, `wave_cascade` + `accident` + `evening_strip` +
+`day_review` + `plan_rationale` + `meal_pdf_locale` + `fridge_window` 239/239.
+
+### La migration `20260903140000` — contrôle et mutations
+
+Validée **en transaction annulée** (`begin; …; rollback;` via `docker exec -i psql`), base laissée
+intacte (colonne absente, 0 ligne, CHECK d'origine en place — vérifié après coup).
+
+**Contrôle en fin de fichier : 6/6.** ① 7 jours mangés + veille = fenêtre de 8, acceptée ·
+② la veille de N+1 sur le dernier jour mangé de N, acceptée · ③ un jour mangé partagé, refusé ·
+④ 8 jours **mangés**, refusés (`bad_eaten_days`) · ⑤ veille de 2 jours, refusée (`bad_lead_days`) ·
+⑥ la veille de B sur le **premier** jour de A **tronque** A à 1 jour, elle ne refuse pas.
+
+**Quatre mutations, quatre rouges** (jouées sur des copies de scratch, jamais sur le fichier) :
+
+| Mutation | Rouge |
+|---|---|
+| exclusion remise sur `daterange(starts_on, …)` | ② « la veille du plan N+1 … a été refusée : conflicting key value violates exclusion constraint » |
+| boucle ① remise sur `v_clash.starts_on >= p_starts_on` | ⑥ « … a été refusée au lieu de tronquer : plan_overlaps_existing » |
+| `check (… between 1 and 8)` + borne des repas désarmée | ④ « huit jours MANGÉS ont été acceptés » |
+| coupe remise sur `p_starts_on` au lieu de `v_eats_from` | ⑥ « violates check constraint …_duration_days_check » |
+
+⚠️ **La mutation ② est arrivée VERTE au premier jet** : les cinq premiers cas de contrôle ne
+distinguaient pas l'ancienne condition de la nouvelle. Le cas ⑥ a été écrit **pour ça**, et c'est
+lui seul qui arme la boucle plpgsql.
+
+### ⛔ Deux pièges trouvés en écrivant la migration, qui auraient cassé le produit en silence
+
+1. **`plan_kind` est dans la clé de l'exclusion ET de l'index unique** — ajouté par
+   `20260811080000`, **pas** par `20260807090000` (le fichier que l'analyse cite). Recréer les
+   deux d'après `20260807090000` aurait **supprimé la séparation perso / foyer** : le maître ne
+   pourrait plus tenir son plan perso et le plan commun sur la même semaine. Mesuré sur la base
+   locale, où cette paire existe (`53fb05ba…`, 22/08 perso + 22/08 commun) : la contrainte a
+   **refusé de se créer**, ce qui est la seule raison pour laquelle le piège a été vu.
+2. **`scope` se dérivait de `duration_days`** : une fenêtre de deux jours dont l'un est la veille
+   est un plan **d'un jour**. La RPC et la lane le dérivent maintenant des jours **mangés**.
 
 ---
 
