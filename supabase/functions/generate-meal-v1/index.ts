@@ -1562,10 +1562,56 @@ Deno.serve(async (req) => {
     // pour la même raison: la valeur passée au prompt et celle passée au
     // parseur doivent être LA MÊME lecture, pas deux relectures à tenir
     // d'accord.
-    const declaredAway = parseAwayDays(
-      (goalRow.practical_constraints as Record<string, unknown> | null)
-        ?.away_days,
-    );
+    // ══════════════════════════════════════════════════════════════════════
+    // D6.1 (2026-09-03) — LE ROSTER COMPTE AUSSI, SUR CETTE LANE-CI.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ LE DÉFAUT QUE ÇA FERME, ET IL RENDAIT UNE QUESTION ENTIÈRE
+    // DÉCORATIVE. « Le déjeuner en semaine » (`work_lunch`) écrit cinq midis
+    // `eating_out` dans `household_members.away_days`, par la RPC
+    // `keel_household_set_member_work_lunch`. Cette lane ne lisait QUE
+    // `student_goals.practical_constraints.away_days` — et depuis le
+    // 2026-09-01 un solo A un foyer d'une bouche et compose avec cette lane.
+    // Sa réponse n'avait donc **aucun effet sur son plan**: le moteur lui
+    // composait cinq déjeuners qu'il ne mangeait pas chez lui.
+    //
+    // ⚠️ UNION, PAS REMPLACEMENT, et `parseAwayDays` EST l'opérateur d'union
+    // (la lane foyer s'appuie sur la même propriété). Les deux sources disent
+    // des choses différentes: la colonne du profil porte ce que la personne a
+    // écrit pour elle-même, la ligne de membre porte ce que le foyer a posé.
+    // En préférer une effacerait l'autre en silence.
+    //
+    // ⚠️ FAIL-OPEN NOMMÉ. Une lecture en panne rend la liste d'AVANT ce lot —
+    // le pire cas est le comportement d'hier, jamais un plan faux — et
+    // l'incident est tracé sur la ligne (`issues`), sinon un câblage débranché
+    // serait indiscernable d'une personne qui n'a rien déclaré.
+    let rosterAway: unknown[] = [];
+    if (householdId && !householdLookupFailed) {
+      try {
+        const memberRes = await admin
+          .from("household_members")
+          .select("away_days")
+          .eq("household_id", householdId)
+          .eq("user_id", userId)
+          .maybeSingle();
+        if (memberRes.error) throw memberRes.error;
+        const raw = (memberRes.data as { away_days?: unknown } | null)?.away_days;
+        rosterAway = Array.isArray(raw) ? raw : [];
+      } catch (error) {
+        console.warn(`[${FN_NAME}] roster away days unreadable`, error);
+        issues.push("roster_away_days_unreadable");
+      }
+    }
+    const declaredAway = parseAwayDays([
+      ...(Array.isArray(
+          (goalRow.practical_constraints as Record<string, unknown> | null)
+            ?.away_days,
+        )
+        ? ((goalRow.practical_constraints as Record<string, unknown>)
+          .away_days as unknown[])
+        : []),
+      ...rosterAway,
+    ]);
 
     // ── LA JOURNÉE DÉJÀ ENTAMÉE ────────────────────────────────────────────
     //

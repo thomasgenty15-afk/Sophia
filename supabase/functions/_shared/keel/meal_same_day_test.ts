@@ -566,7 +566,13 @@ Deno.test("LOT 2 — le TRONC bumpe, l'enveloppe FOYER ne bouge pas", () => {
   // avait coché une case; ils le portent désormais par défaut, dès que le
   // calendrier et l'heure le permettent. Comparer les plans d'avant et d'après
   // sous un même millésime rendrait la mesure fausse.
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v25_the_day_before_is_derived");
+  // ⚠️ v26 (2026-09-03, A2/P2) — LE STYLE DE CUISINE POSE LES SESSIONS.
+  // Population qui voit une consigne différente: celle qui a répondu aux DEUX
+  // questions de P2 (`cooking_style` + `grocery_runs`). Pour elle, `cook_days`
+  // et le plafond de temps de session ne viennent plus de la colonne mais de
+  // la dérivation; pour tous les autres, la consigne est celle de v25 au
+  // caractère près, et un test de rationale le tient ligne à ligne.
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v26_the_cooking_style_sets_the_sessions");
   // ⚠️ D1b (2026-08-18) — UN SEUL AXE BOUGE, ET C'EST L'ENVELOPPE FOYER.
   // `v17_what_each_mouth_already_has`: la lane foyer passait `fixedIntakes: []`
   // EN DUR sur ses trois sites, donc le shaker qu'une bouche déclare
@@ -591,7 +597,11 @@ Deno.test("LOT 2 — le TRONC bumpe, l'enveloppe FOYER ne bouge pas", () => {
   // ferme. Population concernée: tous les foyers. Le TRONC ne bouge pas — le
   // texte de la lane SOLO a survécu octet pour octet, mesuré sur 243 prompts
   // archivés.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v22_precedence_in_tail");
+  // ⚠️ v23 (2026-09-03, D6.2) — LA GAMELLE A UNE CONSIGNE. Population qui
+  // voit une consigne différente: les foyers où au moins une bouche emporte
+  // son déjeuner de semaine. Ailleurs, l'enveloppe est celle de v22 au
+  // caractère près, et un test le tient.
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v23_the_lunchbox_travels");
 });
 
 // ---------------------------------------------------------------------------

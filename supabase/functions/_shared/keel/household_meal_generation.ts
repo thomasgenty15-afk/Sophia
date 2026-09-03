@@ -625,7 +625,11 @@ import {
 // ⚠️ `MEAL_PROMPT_VERSION` NE BOUGE PAS, et c'est mesuré, pas supposé: le texte
 // de la lane SOLO a survécu octet pour octet au déménagement de `D3′` vers
 // `precedence_tail.ts` — 243 `user_message` archivés sur 243 le confirment.
-export const HOUSEHOLD_PROMPT_VERSION = "v22_precedence_in_tail";
+// ⟳ v23 (2026-09-03, D6.2) — LA GAMELLE A UNE CONSIGNE. Population qui voit
+// une consigne différente: les foyers où au moins une bouche adulte a
+// répondu « gamelle » au déjeuner de semaine. Les autres reçoivent v22 au
+// caractère près, et un test le tient.
+export const HOUSEHOLD_PROMPT_VERSION = "v23_the_lunchbox_travels";
 
 export interface HouseholdRestriction {
   memberId: string;
@@ -635,6 +639,29 @@ export interface HouseholdRestriction {
 
 export interface HouseholdPromptInput {
   members: readonly PortionMember[];
+  /**
+   * D6.2 (2026-09-03) — CE QUE CHAQUE BOUCHE FAIT DE SON MIDI DE SEMAINE.
+   *
+   * ⚠️ OPTIONNEL, ET C'EST UNE EXCEPTION ARGUMENTÉE À LA DOCTRINE DE CE
+   * FICHIER (« la casse de compilation est le mécanisme qui recense les
+   * appelants »). Ce type est construit par **65 littéraux** dont l'immense
+   * majorité sont des fixtures de test, et un lot en vol y ajoute déjà un
+   * champ requis: deux champs requis simultanés se paieraient en conflits, pas
+   * en sécurité.
+   *
+   * ⛔ ET LA CICATRICE « paramètre de garde optionnel = garde désarmée » EST
+   * COMPENSÉE DEUX FOIS, parce qu'un `?` seul ne suffit jamais ici:
+   *   · un COMPTEUR sort avec le bloc (`workLunchMouths`, `workLunchCold`),
+   *     donc un câblage débranché est visible en SQL sur la ligne du plan;
+   *   · un test de CÂBLAGE PAR LECTURE DE SOURCE vérifie que la lane foyer
+   *     passe bien ce champ (`household_meal_generation_test.ts`).
+   * Omis ⇒ aucun bloc, et le prompt est celui de v22 au caractère près.
+   */
+  workLunch?: ReadonlyArray<{
+    memberId: string;
+    mode: string | null;
+    microwave: boolean | null;
+  }>;
   /**
    * ③ LES JOURS QUE LE FOYER NE DÉPLACE PAS (2026-08-20).
    *
@@ -1660,6 +1687,75 @@ function eatingOutBlock(
   return { block, mouths: lines.length, cells };
 }
 
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * D6.2 (2026-09-03) — LA GAMELLE DOIT SE TRANSPORTER, ET TENIR FROIDE.
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * ── LA PROMESSE QUI N'ÉTAIT PAS TENUE ─────────────────────────────────────
+ * « Le déjeuner en semaine » demande trois choses: au bureau ? gamelle ou
+ * dehors ? micro-ondes ? La branche `outside` a un effet (cinq midis
+ * `eating_out`, écrits par la porte SQL). **`lunchbox` et `microwave` n'en
+ * avaient AUCUN** — zéro lecteur, vérifié le 2026-09-03 — pendant que trois
+ * commentaires du dépôt promettaient « le repas doit être transportable, et
+ * bon froid s'il n'y a pas de micro-ondes ». Une question posée dont la
+ * réponse ne change rien est pire qu'une question absente: elle apprend que
+ * répondre ne sert à rien.
+ *
+ * ── CE QUE LE BLOC DIT, ET CE QU'IL NE DIT PAS ────────────────────────────
+ * Il pose une contrainte de COMPOSITION sur un repas que le plan compose
+ * quand même. Il ne retire aucun repas, ne change ni `servings` ni la
+ * présence — la gamelle EST un déjeuner à la maison, préparé la veille.
+ *
+ * ⚠️ `microwave: null` N'EST PAS « non ». Sans réponse, on ne promet pas un
+ * plat froid: on dit seulement qu'il doit se transporter. Fabriquer « bon
+ * froid » sur un silence poserait une contrainte que personne n'a exprimée —
+ * la même règle que `parseWorkLunch` applique déjà à la lecture.
+ *
+ * ⚠️ VIDE QUAND PERSONNE N'EMPORTE DE GAMELLE — le cas nominal, et le prompt
+ * est alors celui de v22 au caractère près.
+ */
+export function workLunchBlock(
+  members: readonly PortionMember[],
+  workLunch: ReadonlyArray<{
+    memberId: string;
+    mode: string | null;
+    microwave: boolean | null;
+  }>,
+): { block: string; mouths: number; cold: number } {
+  const nothing = { block: "", mouths: 0, cold: 0 };
+  if (workLunch.length === 0) return nothing;
+  const nameOf = new Map(members.map((m) => [m.memberId, m.displayName]));
+  const lines: string[] = [];
+  let cold = 0;
+  for (const entry of workLunch) {
+    if (entry.mode !== "lunchbox") continue;
+    // UNE BOUCHE QUI N'EST PAS DANS CE PROMPT N'EST PAS NOMMÉE — même règle
+    // que `eatingOutBlock`: écrire un identifiant nu ferait citer au modèle un
+    // id qu'il ne peut rapprocher de rien.
+    const name = nameOf.get(entry.memberId);
+    if (!name) continue;
+    if (entry.microwave === false) {
+      cold += 1;
+      lines.push(`- ${name}: carried, and eaten COLD (no microwave there).`);
+    } else {
+      lines.push(`- ${name}: carried to work.`);
+    }
+  }
+  if (lines.length === 0) return nothing;
+  const block = [
+    "== SOME WEEKDAY LUNCHES TRAVEL ==",
+    "These people take their weekday lunch with them. Compose it as usual --",
+    "it is still a meal from this plan -- but it has to survive the trip:",
+    ...lines,
+    "So for those lunches: nothing that must be assembled at the last minute,",
+    "nothing that wilts or goes soggy in a box, and nothing that only works",
+    "straight out of the pan. Where the line says COLD, the dish must be good",
+    "cold: do not write a method that ends in reheating.",
+  ].join("\n");
+  return { block, mouths: lines.length, cold };
+}
+
 export interface HouseholdPromptBlocks {
   /** À concaténer au `userMessage` de `buildMealPrompt`. */
   userSuffix: string;
@@ -1734,6 +1830,16 @@ export interface HouseholdPromptBlocks {
    * `{mouths: 0, cells: 0}` ⇒ aucun bloc servi.
    */
   eatingOut: { mouths: number; cells: number };
+  /**
+   * D6.2 — LE COMPTEUR DU BLOC DE LA GAMELLE, ET IL EST LA MOITIÉ DU LOT.
+   *
+   * `mouths` = les bouches NOMMÉES dans le bloc; `cold` = celles pour qui le
+   * plat doit être bon froid (micro-ondes déclaré ABSENT). Comptés sur les
+   * lignes ÉCRITES, pas sur l'entrée: c'est ce qui empêche la mesure de
+   * mentir sur ce que le prompt a réellement dit — et c'est ce qui rend
+   * visible un champ `workLunch` que l'appelant aurait oublié de passer.
+   */
+  workLunch: { mouths: number; cold: number };
   /**
    * LOT C ② — COMBIEN DE BOUCHES LE BLOC DES `why` A NOMMÉES.
    *
@@ -1867,6 +1973,9 @@ export function buildHouseholdPromptBlocks(
   // le prompt a réellement dit.
   const kitchen = kitchenBlock(input.kitchenEquipment);
   const eatingOut = eatingOutBlock(input.members, input.presence.eatingOut);
+  // D6.2 — `?? []` = le champ n'a pas été passé, donc aucun bloc: le prompt
+  // est celui de v22 au caractère près, et le compteur le dit (0 / 0).
+  const workLunch = workLunchBlock(input.members, input.workLunch ?? []);
   // ③ — LE BLOC EST CALCULÉ PAR LE MODULE QUI PORTE LA RÈGLE, jamais écrit ici.
   // Sa trace (`cells`) sort par le même objet que son texte: c'est ce qui
   // empêche la mesure de mentir sur ce que le prompt a réellement dit.
@@ -1938,6 +2047,11 @@ export function buildHouseholdPromptBlocks(
     // 3C, où une promesse et sa clé séparées par le prompt ont rendu zéro
     // déclaration sur 291 plats.
     eatingOut.block,
+    // D6.2 — APRÈS le bloc « dehors », et c'est l'ordre du sens: on dit
+    // d'abord quels repas ne se composent PAS, ensuite lesquels se composent
+    // autrement. L'inverse ferait poser une contrainte de transport sur un
+    // déjeuner qu'on annonce ensuite ne pas préparer.
+    workLunch.block,
     // ── ③ · COLLÉ AU BLOC « DEHORS », ET LA POSITION EST LA MOITIÉ DU LOT ───
     // Les deux parlent de la MÊME chose et d'aucune autre: ce qu'une case
     // précise de la grille porte. Le voisin du dessus dit « ne compose RIEN
@@ -2097,6 +2211,7 @@ export function buildHouseholdPromptBlocks(
     notesServed: notes.served,
     kitchenMissing: kitchen.missing,
     eatingOut: { mouths: eatingOut.mouths, cells: eatingOut.cells },
+    workLunch: { mouths: workLunch.mouths, cold: workLunch.cold },
     whyRuleHolders: input.ruleHolders.length,
     // C1 — LA TRACE SORT PAR LE MÊME OBJET QUE LE TEXTE. Voir `crossContact`
     // dans `HouseholdPromptBlocks`: `emitted` compte une phrase envoyée.

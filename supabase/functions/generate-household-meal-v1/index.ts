@@ -161,6 +161,7 @@ import {
   type MemberAway,
   memberMealCells,
   parseMemberAway,
+  parseWorkLunch,
   resolveWindowPresence,
 } from "../_shared/keel/household_presence.ts";
 import {
@@ -4465,7 +4466,53 @@ Deno.serve(async (req) => {
       contentLocale: householdContentLocale,
     });
 
+    // ══════════════════════════════════════════════════════════════════════
+    // D6.2 (2026-09-03) — CE QUE CHAQUE BOUCHE FAIT DE SON MIDI DE SEMAINE.
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ⛔ UNE LECTURE À PART, ET C'EST ASSUMÉ. `work_lunch` ne sort PAS de la
+    // RPC du roster: l'y ajouter demanderait une migration de la fonction, et
+    // ce lot n'en a pas besoin — la colonne se lit directement, sur les mêmes
+    // `member_id` que ceux qu'on compose.
+    //
+    // ⚠️ FAIL-OPEN NOMMÉ: une lecture en panne rend `[]`, donc aucun bloc,
+    // donc le prompt de v22 — le comportement d'hier, jamais un plan faux. Et
+    // l'incident est tracé, sinon un câblage débranché serait indiscernable
+    // d'un foyer où personne n'emporte de gamelle.
+    const workLunchRows: Array<{
+      memberId: string;
+      mode: string | null;
+      microwave: boolean | null;
+    }> = [];
+    try {
+      const wlRes = await admin
+        .from("household_members")
+        .select("id, work_lunch")
+        .eq("household_id", householdId);
+      if (wlRes.error) throw wlRes.error;
+      for (const row of (wlRes.data ?? []) as Array<Record<string, unknown>>) {
+        // ⛔ `parseWorkLunch` ET PAS UNE LECTURE EN LIGNE. Il porte les trois
+        // états du formulaire déplié (`at_work` illisible ⇒ `null`, pas
+        // `false`; `microwave` seulement sur la gamelle), et une seconde
+        // lecture de cette forme divergerait au premier ajustement.
+        const parsed = parseWorkLunch(row.work_lunch);
+        if (parsed === null || !parsed.atWork) continue;
+        workLunchRows.push({
+          memberId: String(row.id),
+          mode: parsed.mode,
+          microwave: parsed.microwave,
+        });
+      }
+    } catch (error) {
+      console.warn(`[${FN_NAME}] work lunch unreadable`, error);
+      issues.push("work_lunch_unreadable");
+    }
+
     const household = buildHouseholdPromptBlocks({
+      // D6.2 — la réponse hebdomadaire de chaque bouche, telle qu'elle est
+      // écrite. Le bloc ne sort que pour les gamelles; `outside` a déjà son
+      // effet par les cinq midis `eating_out` que la porte SQL a posés.
+      workLunch: workLunchRows,
       // ── G4 · LA GARDE DE TEXTE DES HABITUDES, EN UN SEUL ENDROIT ───────
       //
       // ⚠️ C'EST ICI ET NULLE PART AILLEURS. Les habitudes sont lues BRUTES

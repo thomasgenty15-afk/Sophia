@@ -246,7 +246,13 @@ Deno.test("la version de prompt a bougé avec ce lot", () => {
   // `cookOnlyDay` n'était posé que sur les plans dont quelqu'un avait coché une
   // case, désormais il l'est par défaut. Comparer les plans d'avant et d'après
   // sous une même version rendrait la mesure fausse.
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v25_the_day_before_is_derived");
+  // ⚠️ v26 (2026-09-03, A2/P2) — LE STYLE DE CUISINE POSE LES SESSIONS.
+  // Population qui voit une consigne différente: celle qui a répondu aux DEUX
+  // questions de P2 (`cooking_style` + `grocery_runs`). Pour elle, `cook_days`
+  // et le plafond de temps de session ne viennent plus de la colonne mais de
+  // la dérivation; pour tous les autres, la consigne est celle de v25 au
+  // caractère près, et un test de rationale le tient ligne à ligne.
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v26_the_cooking_style_sets_the_sessions");
 });
 
 Deno.test("A1 — l'enveloppe du FOYER ne bouge pas d'un octet", () => {
@@ -255,7 +261,11 @@ Deno.test("A1 — l'enveloppe du FOYER ne bouge pas d'un octet", () => {
   // même enveloppe qu'hier, et sa version doit donc rester à l'identique.
   // Bumper les deux « par symétrie » ferait croire à une population de foyer
   // qui a changé de consigne alors qu'elle n'a rien vu.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v22_precedence_in_tail");
+  // ⟳ A2 (2026-09-03) — L'ENVELOPPE BOUGE MAINTENANT, ET POUR SON PROPRE
+  // MOTIF: D6.2 y pose la consigne de la gamelle (v22 → v23). Ce cas ne
+  // disparaît pas pour autant — il devient la garde que l'enveloppe ne
+  // bouge QUE quand un lot la touche, et il nomme lequel.
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v23_the_lunchbox_travels");
 });
 
 // ---------------------------------------------------------------------------
