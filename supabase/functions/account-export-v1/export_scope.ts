@@ -323,9 +323,22 @@ export const SCOPE = {
   // ⚠️ `member_portions` RESTE DEHORS, et c'est une décision, pas un oubli: ce
   // sont les parts des AUTRES bouches du foyer. Même règle que
   // `householdMembers` — l'export RGPD de l'un ne divulgue pas les autres.
+  //
+  // ⟳ 2026-09-03 (A1, P1) — `lead_days` SORT, ET AVEC LE RESTE DE SA FENÊTRE.
+  // La colonne est née avec `20260903170000`; elle n'était NI exportée NI
+  // nommée comme exclue, c'est-à-dire hors du périmètre sans que rien ne le
+  // dise. Le contrôle qui l'aurait vu (`S5`) est gaté et n'avait jamais tourné.
+  //
+  // ⛔ ELLE EST EXPORTÉE, PAS EXCLUE, et le motif n'est pas « dans le doute ».
+  // La fenêtre d'un plan est un TRIPLET: `starts_on`, `duration_days` et
+  // `lead_days`. Les deux premiers sortent déjà; sans le troisième, un plan
+  // exporté ne dit plus lequel de ses jours est le jour de CUISINE SANS REPAS
+  // — la personne relirait une semaine de sept jours mangés là où elle en a
+  // mangé six. Ce n'est pas un entier de service: c'est ce qui rend les deux
+  // autres colonnes lisibles.
   studentGeneratedMeals:
     "id,scope,mode,meal_slot,servings,context,pantry,preferences,dishes,preparations," +
-    "cooking_sessions,shopping_list,plan_kind,starts_on,duration_days,ends_on," +
+    "cooking_sessions,shopping_list,plan_kind,starts_on,duration_days,lead_days,ends_on," +
     "composition_unknowns,composition_energy_sources,generated_from,validated_at," +
     "retired_at,content_locale,created_at,updated_at",
   // `storage_path` sort aussi: c'est ce qui relie la ligne au PDF joint dans
