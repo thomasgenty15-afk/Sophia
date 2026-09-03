@@ -1,7 +1,7 @@
 # CUISINE — A1 · la veille automatique (P1)
 
 **Worktree** `/Users/ahmedamara/Dev/Sophia-2-chantiers/CUISINE` · branche `chantier-0903/CUISINE`
-· base `31ee930f` · **migration réservée** `20260903140000` · tag QA `qa0903c`
+· base `31ee930f` · **migration réservée** `20260903170000` · tag QA `qa0903c`
 · **Mandat** MASTER §5.5 · ANALYSE §1 · décisions D1.1 → D1.6 par défaut.
 
 > Journal écrit **au fil de l'eau** (règle §2.3-25). Un rapport écrit à la fin n'existe pas.
@@ -28,7 +28,7 @@ Le `.eq` sur `startsOn` a bien été **gardé** (interdit du mandat respecté) :
 | # | sha | Contenu |
 |---|---|---|
 | 1 | `7c5128ad` | la veille dérivée : modules purs + `eatenSpan` branché + tests |
-| 2 | `5ba7f237` | migration `20260903140000` + son bloc de contrôle (6/6) |
+| 2 | `5ba7f237` | migration `20260903170000` + son bloc de contrôle (6/6) |
 | 3 | `e09d15b3` | les deux lanes dérivent, écrivent `timing`, et le DISENT ; bump v24→v25 |
 | 4 | `b089f28d` | la case retirée (11 sites) ; `timing` rendu ; ligne PDF |
 | 5 | `e201cc60` | i18n chantier-0903/CUISINE (A1) |
@@ -106,7 +106,7 @@ zéro occurrence dans `catalog.ts`).
 `constant_pinning_gate_test` 155/155, `wave_cascade` + `accident` + `evening_strip` +
 `day_review` + `plan_rationale` + `meal_pdf_locale` + `fridge_window` 239/239.
 
-### La migration `20260903140000` — contrôle et mutations
+### La migration `20260903170000` — contrôle et mutations
 
 Validée **en transaction annulée** (`begin; …; rollback;` via `docker exec -i psql`), base laissée
 intacte (colonne absente, 0 ligne, CHECK d'origine en place — vérifié après coup).

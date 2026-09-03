@@ -3215,7 +3215,7 @@ Deno.serve(async (req) => {
     const capacity = readCookingCapacity(pc);
     // ⟳ A1 — `scope` SE DÉRIVE DES JOURS **MANGÉS**. Une fenêtre de deux jours
     // dont l'un est la veille est un plan D'UN JOUR; la RPC dérive la même
-    // chose de son côté (`20260903140000`), et les deux doivent rester
+    // chose de son côté (`20260903170000`), et les deux doivent rester
     // d'accord.
     const daysToEat = durationDays - (cookOnlyDay === null ? 0 : 1);
     const scope: MealScope = daysToEat === 1 ? "day" : "several_days";
@@ -7255,7 +7255,7 @@ Deno.serve(async (req) => {
           // paramètre: ajouter un argument à `write_student_meal_plan` créerait
           // une SURCHARGE côté Postgres, donc un 300 PostgREST sur chaque
           // composition. La RPC en tire ses deux bornes, sa boucle de
-          // chevauchement, sa troncature et `scope` (`20260903140000`).
+          // chevauchement, sa troncature et `scope` (`20260903170000`).
           //
           // ⚠️ DÉRIVÉ DE `cookOnlyDay`, JAMAIS DE `lead.leadDay`:
           // `withCookDayBefore` a le dernier mot — une veille possible au

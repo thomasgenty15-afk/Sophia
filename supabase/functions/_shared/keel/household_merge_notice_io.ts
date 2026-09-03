@@ -32,7 +32,7 @@ export interface LiveHouseholdPlan {
    *
    * Ajoutée ici et NULLE PART AILLEURS dans la fusion: c'est cette liste que
    * `generate-household-meal-v1` repasse à `firstBlockingPlan`, dont la règle
-   * compare des JOURS MANGÉS depuis la migration `20260903140000`. Sans elle,
+   * compare des JOURS MANGÉS depuis la migration `20260903170000`. Sans elle,
    * la lane foyer refuserait un plan N+1 que la base accepte.
    */
   leadDays: number;

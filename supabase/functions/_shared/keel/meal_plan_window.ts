@@ -50,7 +50,7 @@ export const WEEK_TOKENS: readonly DayToken[] = [
 
 /**
  * Le plafond structurel des JOURS MANGÉS d'une fenêtre. Voir la migration
- * `20260807090000` pour le pourquoi, et `20260903140000` pour ce qui a changé:
+ * `20260807090000` pour le pourquoi, et `20260903170000` pour ce qui a changé:
  * depuis le 2026-09-03 la base accepte `duration_days` jusqu'à 8, à condition
  * que `duration_days - lead_days` reste entre 1 et 7 — la veille (rang 0, jour
  * de cuisine sans repas) est DANS la fenêtre et HORS des jours mangés.
@@ -66,7 +66,7 @@ export const MAX_WINDOW_DAYS = 7;
  * LE NOMBRE DE JOURS DE VEILLE QU'UNE FENÊTRE PEUT PORTER — 0 ou 1.
  *
  * Épinglé (`constant_pins_test.ts`), recopié dans la migration
- * `20260903140000` (`check (lead_days in (0,1))`). Deux veilles n'ont aucun
+ * `20260903170000` (`check (lead_days in (0,1))`). Deux veilles n'ont aucun
  * sens: on cuisine LA veille, pas l'avant-veille.
  */
 export const MAX_LEAD_DAYS = 1;
@@ -332,7 +332,7 @@ export function planOverlapVerdict(
  *
  * ⛔ DEPUIS LE 2026-09-03, C'EST UN SPAN DE JOURS MANGÉS. La règle de
  * chevauchement (`planOverlapVerdict`) et l'exclusion de la base
- * (`20260903140000`) portent sur `[starts_on + lead_days, starts_on +
+ * (`20260903170000`) portent sur `[starts_on + lead_days, starts_on +
  * duration_days)`: la veille du plan N+1 a le DROIT d'être le dernier jour
  * mangé du plan N (on fait les courses dimanche soir pour lundi pendant qu'on
  * dîne encore la semaine d'avant). Un appelant qui lit une ligne de la base
@@ -405,7 +405,7 @@ export function eatenSpan(row: {
  * ⟳ **2026-09-03 (A1) — LES DEUX CÔTÉS SONT DES JOURS MANGÉS.** Chaque ligne
  * vivante est pliée par `eatenSpan` avant d'être comparée, exactement comme le
  * `daterange(starts_on + lead_days, starts_on + duration_days)` de l'exclusion
- * et de la boucle de `write_student_meal_plan` (migration `20260903140000`).
+ * et de la boucle de `write_student_meal_plan` (migration `20260903170000`).
  * `args.window` est déjà un span de jours mangés: les deux lanes appellent
  * cette fonction **avant** `withCookDayBefore`, donc sur la fenêtre saisie.
  */
@@ -564,7 +564,7 @@ export function dayTokenOf(date: string): DayToken {
  *     `null` sur un plan qui commence aujourd'hui), mais la garde reste: elle
  *     protège un appelant qui dériverait autrement.
  *   · `no_room` — sept jours MANGÉS. ⚠️ CE N'EST PLUS LA BASE QUI REFUSE: la
- *     migration `20260903140000` accepte `duration_days = 8` avec
+ *     migration `20260903170000` accepte `duration_days = 8` avec
  *     `lead_days = 1` (décision D1.3). Ce qui refuse encore, c'est L'ALPHABET
  *     DES JETONS: un plan nomme ses jours `mon`…`sun`, et une fenêtre de huit
  *     jours donnerait au jour de cuisine le jeton exact du dernier jour mangé

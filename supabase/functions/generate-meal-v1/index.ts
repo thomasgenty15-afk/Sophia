@@ -1232,7 +1232,7 @@ Deno.serve(async (req) => {
         // ⟳ A1 (2026-09-03) — `lead_days` EST DANS LA PROJECTION, ET C'EST LE
         // TYPE QUI L'EXIGE. La boucle de la RPC compare des JOURS MANGÉS
         // (`daterange(starts_on + lead_days, starts_on + duration_days)`,
-        // migration `20260903140000`); relire une ligne sans sa veille
+        // migration `20260903170000`); relire une ligne sans sa veille
         // compterait celle-ci comme un jour mangé et refuserait ICI le plan
         // N+1 que la base accepte — un 409 fabriqué par nous, sur le geste le
         // plus banal qui soit (« je compose la semaine prochaine »).
@@ -1350,7 +1350,7 @@ Deno.serve(async (req) => {
     // l'un est la veille est un plan D'UN JOUR: `daysToFill` n'en porte qu'un,
     // et l'appeler `several_days` ferait dire à la consigne le contraire de ce
     // qu'elle demande. La RPC dérive la MÊME chose de son côté
-    // (`20260903140000`) — les deux doivent rester d'accord.
+    // (`20260903170000`) — les deux doivent rester d'accord.
     const daysToEat = durationDays - (cookOnlyDay === null ? 0 : 1);
     const scope: MealScope = daysToEat === 1 ? "day" : "several_days";
     const daysToFill: string[] = windowDayOrder(startsOn, durationDays);
@@ -3889,7 +3889,7 @@ Deno.serve(async (req) => {
           // paramètre: ajouter un argument à `write_student_meal_plan` créerait
           // une SURCHARGE côté Postgres, donc un 300 PostgREST sur chaque
           // composition. La RPC en tire ses deux bornes, sa boucle de
-          // chevauchement, sa troncature et `scope` (`20260903140000`).
+          // chevauchement, sa troncature et `scope` (`20260903170000`).
           //
           // ⚠️ DÉRIVÉ DE `cookOnlyDay`, JAMAIS DE `lead.leadDay`:
           // `withCookDayBefore` a le dernier mot — une veille possible au
