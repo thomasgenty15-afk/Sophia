@@ -7310,8 +7310,9 @@ export const en = {
   "meals.form.cancel": "Cancel",
   "meals.form.pantry_required": "Add what you have in, or switch to «I will shop for it».",
   "meals.result.title": "Your meals",
+  // ⚠️ ELLE NOMMAIT UN CHAMP QUI N'EXISTE PLUS — voir la note d’`fr.ts`.
   "meals.result.empty":
-    "Nothing built yet. Tell me where to start above and I will put a few meals together.",
+    "Nothing built yet. Tell me which days, above, and I will put a few meals together.",
   "meals.result.shopping_title": "Shopping list",
   "meals.result.shopping_close": "Hide shopping list",
   // Deux repères, et rien de plus. « Demain », « dans 3 jours » seraient des
@@ -7989,7 +7990,6 @@ export const en = {
   "known.error.generic": "That did not go through.",
   "app.nav.about_you": "What Sophia knows",
 
-  // ── chantier-0903/RAPIDE — début ──
   // A3 · P3, la 4e option d'objectif (2026-09-03). RETIRÉES EN PLACE dans ce pack:
   //   "household.member.goal_none"  — l'option vide de `MouthFields` (/app/household)
   //   "setup.mouths.goal_none"      — l'option vide de l'entonnoir (/app/setup)
@@ -8019,9 +8019,7 @@ export const en = {
   // vivants sur `/app/plan` (`MealBuilder.tsx`, `StudentWeekPlanPage.tsx`), vus
   // par `tsc` quand on l'a retirée; redéposée près du moteur, avec sa note.
   // Et dans `catalog.ts`: l'entrée `"/app/meals"` de `PAGE_NAMESPACES`. Aucune clé ajoutée.
-  // ── chantier-0903/RAPIDE — fin ──
 
-  // ── chantier-0903/FOYER — début ──
   // A6 · P6, le déjeuner en semaine quitte l'étape 3 (2026-09-03, D6.3). AUCUNE
   // clé ajoutée, AUCUNE retirée: le namespace `setup.work_lunch.*` est GARDÉ,
   // déjà déclaré sur /app/household (`catalog.ts`, inchangé). VALEURS CHANGÉES
@@ -8074,8 +8072,7 @@ export const en = {
   // The button that opens it. One window now carries both the required blocks
   // and the preferences, the latter in an accordion (⛔ never two nested modals).
   "household.add.open": "Add someone",
-  // ── chantier-0903/FOYER — fin ──
-  // ── chantier-0903/CUISINE — début ──
+
   //
   // ── A1 · LA VEILLE AUTOMATIQUE (P1) ──────────────────────────────────────
   // Le serveur tranche le timing (`leadDayFor`, coupure à 18 h) et le rend dans
@@ -8118,8 +8115,7 @@ export const en = {
   "plan.cooking.runs_three": "Three times",
   "setup.missing.cooking_style": "Tell us how you want to cook",
   "setup.missing.grocery_runs": "Tell us how many food shops you are up for",
-  // ── chantier-0903/CUISINE — fin ──
-  // ── chantier-0903/MEMBRE — début ──
+
   //
   // A8.3 — LE LECTEUR DU RESTE. La boîte d'une part non mangée, rendue là où la
   // part se lit: la carte du réclamé et le bloc jour du maître.
@@ -8135,8 +8131,7 @@ export const en = {
   // clé avec un `{name}` vide dirait « la boîte de , encore au frigo ».
   "plan.box.still_fridge": "Your box from {day}, still in the fridge",
   "plan.box.still_fridge_named": "{name} — box from {day}, still in the fridge",
-  // ── chantier-0903/MEMBRE — fin ──
-  // ── chantier-0903/SUIVI — début ──
+
   //
   // A7 — `/app/progress` DEVIENT LE SUIVI. Les mots de la page; les jetons
   // ASCII (bases, portées, états d'un plat) vivent dans `api/tracking.ts`.
@@ -8245,6 +8240,5 @@ export const en = {
     "Recorded. This meal no longer counts as missed. The day's number does not move yet - we keep your words, not your quantities.",
   "tracking.describe.error": "That did not save - {message}",
   "tracking.describe.cancel": "Cancel",
-  // ── chantier-0903/SUIVI — fin ──
 
 } as const

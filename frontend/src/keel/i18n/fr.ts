@@ -6377,8 +6377,12 @@ export const fr: TranslatedMessages = {
   "meals.form.pantry_required":
     "Dis ce que tu as sous la main, ou passe à «J’irai faire les courses».",
   "meals.result.title": "Tes repas",
+  // ⚠️ ELLE NOMMAIT UN CHAMP QUI N'EXISTE PLUS. « d’où on part » était
+  // le menu « On part d’où », retiré le 2026-09-03 avec l’alignement sur
+  // l’étape 3. Une phrase vide qui envoie chercher un contrôle absent est
+  // pire qu’une phrase vide: elle fait douter de ses yeux.
   "meals.result.empty":
-    "Rien de composé pour l’instant. Dis-moi d’où on part, ci-dessus, et je t’assemble quelques repas.",
+    "Rien de composé pour l’instant. Dis-moi quels jours, ci-dessus, et je t’assemble quelques repas.",
   "meals.result.shopping_title": "Liste de courses",
   "meals.result.shopping_close": "Masquer la liste de courses",
   "meals.rebuild.button": "Composer un autre plan",
@@ -6876,7 +6880,6 @@ export const fr: TranslatedMessages = {
   "known.error.generic": "Ça n'est pas passé, et rien n'a bougé.",
   "app.nav.about_you": "Ce que Sophia sait",
 
-  // ── chantier-0903/RAPIDE — début ──
   // A3 · P3, la 4e option d'objectif (2026-09-03). RETIRÉES EN PLACE dans ce pack:
   //   "household.member.goal_none"  — l'option vide de `MouthFields` (/app/household)
   //   "setup.mouths.goal_none"      — l'option vide de l'entonnoir (/app/setup)
@@ -6906,9 +6909,7 @@ export const fr: TranslatedMessages = {
   // vivants sur `/app/plan` (`MealBuilder.tsx`, `StudentWeekPlanPage.tsx`), vus
   // par `tsc` quand on l'a retirée; redéposée près du moteur, avec sa note.
   // Et dans `catalog.ts`: l'entrée `"/app/meals"` de `PAGE_NAMESPACES`. Aucune clé ajoutée.
-  // ── chantier-0903/RAPIDE — fin ──
 
-  // ── chantier-0903/FOYER — début ──
   // A6 · P6, le déjeuner en semaine quitte l'étape 3 (2026-09-03, D6.3). AUCUNE
   // clé ajoutée, AUCUNE retirée : le namespace `setup.work_lunch.*` est GARDÉ,
   // déjà déclaré sur /app/household (`catalog.ts`, inchangé). VALEURS CHANGÉES
@@ -6970,8 +6971,7 @@ export const fr: TranslatedMessages = {
   // derrière un second écran: une seule fenêtre les porte maintenant tous les
   // deux, les préférences en accordéon dedans (⛔ jamais deux `Modal` imbriqués).
   "household.add.open": "Ajouter une personne",
-  // ── chantier-0903/FOYER — fin ──
-  // ── chantier-0903/CUISINE — début ──
+
   //
   // ── A1 · LA VEILLE AUTOMATIQUE (P1) ──────────────────────────────────────
   // Le serveur tranche le timing (`leadDayFor`, coupure à 18 h) et le rend dans
@@ -7014,15 +7014,13 @@ export const fr: TranslatedMessages = {
   "plan.cooking.runs_three": "Trois fois",
   "setup.missing.cooking_style": "Dis-nous comment tu veux cuisiner",
   "setup.missing.grocery_runs": "Dis-nous combien de courses tu acceptes",
-  // ── chantier-0903/CUISINE — fin ──
-  // ── chantier-0903/MEMBRE — début ──
+
   //
   // A8.3 — LE LECTEUR DU RESTE. Voir le bloc jumeau d'`en.ts` pour le motif des
   // deux clés: la personne concernée change la phrase.
   "plan.box.still_fridge": "Ta boîte de {day}, encore au frigo",
   "plan.box.still_fridge_named": "{name} — boîte de {day}, encore au frigo",
-  // ── chantier-0903/MEMBRE — fin ──
-  // ── chantier-0903/SUIVI — début ──
+
   //
   // A7 — `/app/progress` DEVIENT LE SUIVI. Voir la note jumelle dans `en.ts`:
   // elle porte les retraits, les valeurs changées et la règle des six clés qui
@@ -7089,6 +7087,5 @@ export const fr: TranslatedMessages = {
     "Enregistré. Ce repas n'est plus compté comme oublié. Le chiffre du jour, lui, ne bouge pas encore - on garde tes mots, pas encore tes quantités.",
   "tracking.describe.error": "Ça n'a pas été enregistré - {message}",
   "tracking.describe.cancel": "Annuler",
-  // ── chantier-0903/SUIVI — fin ──
 
 };
