@@ -259,18 +259,30 @@ question_bubble() {
 
 # TOUTES les bulles d'annonce depuis un instant.
 #
-# ⚠️ DEUX PURPOSES, ET C'EST UNE FAUTE DE BANC PAYÉE AU PREMIER RUN. Une
-# écriture s'annonce par `keel_memory_written` quand elle vient du classifieur,
-# et par `keel_memory_clarification_ack` quand elle vient d'un TAP — le
-# répondeur de bouton porte son accusé lui-même, avec le même corps et le même
-# « Voir ». N'en compter qu'un faisait rendre `n_count: 0` sur un D1 par
-# ailleurs parfait: le produit avait bien parlé, le banc regardait ailleurs.
+# ⛔ UNE ANNONCE EST UNE BULLE QUI PORTE « VOIR » — pas un `purpose`.
+#
+# Deux fautes de banc successives, sur la même fonction, et la seconde est née
+# de la correction de la première:
+#
+#   ① N'avoir compté que `keel_memory_written` rendait `n_count: 0` sur un D1
+#      par ailleurs PARFAIT: quand l'écriture vient d'un TAP, c'est le répondeur
+#      de bouton qui porte l'accusé (`keel_memory_clarification_ack`), avec le
+#      même corps et le même « Voir ».
+#   ② Ajouter ce second purpose a fait compter l'accusé d'un REFUS (« D'accord,
+#      je n'ai rien noté. ») comme une annonce — et D5, dont tout l'objet est
+#      qu'on n'annonce RIEN, est passé de PASS à FAIL.
+#
+# Le critère juste n'est ni l'un ni l'autre: une annonce est une bulle qui DIT
+# OÙ ALLER VOIR ce qui vient d'être écrit. S'il n'y a pas de « Voir », il n'y a
+# rien eu à écrire.
 notice_bubbles() {
   psql "select coalesce(json_agg(json_build_object('id',id,'content',content,'buttons',metadata->'buttons') order by created_at)::text,'[]')
         from chat_messages
         where user_id='$USER_ID' and role='assistant' and scope='app'
-          and metadata->>'purpose' in ('keel_memory_written','keel_memory_clarification_ack')
-          and created_at > '$1';"
+          and created_at > '$1'
+          and exists (
+            select 1 from jsonb_array_elements(coalesce(metadata->'buttons','[]'::jsonb)) b
+            where b->>'payload' like 'KEEL_VIEW_ABOUT_YOU|%');"
 }
 
 # Le LEDGER: c'est ici qu'une bulle disparaît SANS erreur.
@@ -376,7 +388,13 @@ PY
 pulse_body() {
   python3 - "$1" <<'PY'
 import json, sys
-print(json.dumps({"now": sys.argv[1].strip().replace(" ", "T") + "Z", "dry_run": True}))
+# ⚠️ LA CHAÎNE ARRIVE DÉJÀ EN ISO-8601 UTC. On ne la RÉPARE pas ici: une
+# réparation silencieuse est très exactement ce qui a fait passer un horodatage
+# invalide pour une heure valide.
+now = sys.argv[1].strip()
+if not now.endswith("Z") or " " in now:
+    raise SystemExit(f"horodatage non ISO-8601 UTC: {now!r}")
+print(json.dumps({"now": now, "dry_run": True}))
 PY
 }
 
@@ -799,16 +817,46 @@ print('')" "$q")
 run_B1() {
   head_of B1 "« J'ai pas aimé la viande. » — la question QUOI, sur les viandes du plan"
   local meal="$BILAN_MEAL"
+  # ── ON PRÉPARE LE TERRAIN, ET ON LE DIT ────────────────────────────────
+  # ⚠️ AVANT LA GARDE « pas de plan », et c'est une faute déjà commise: placée
+  # après, la préparation n'était jamais atteinte quand B1 tournait SEUL sur un
+  # compte neuf — le cas sortait sur « pas de plan à commenter » sans jamais
+  # créer celui dont il avait besoin.
+  #
+  # ⚠️ « J'ai pas aimé la viande » n'est AMBIGU que si le plan porte au moins
+  # deux viandes — sinon le classifieur a raison de trancher, et le cas n'a
+  # rien à mesurer. Un foyer nu rend spontanément des plans presque
+  # végétariens: mesuré deux fois, deux INCONCLUSIVE. On demande donc un plan
+  # qui en porte, par une note de brouillon ORDINAIRE.
+  #
+  # ⛔ CE N'EST PAS TRUQUER LE RÉSULTAT: cette note pose une envie (encart),
+  # elle n'écrit aucune préférence et ne touche à aucune question. Le
+  # `before` du cas est pris APRÈS elle, donc les deltas restent propres.
+  if [ "${BANC_B1_SETUP:-1}" = "1" ]; then
+    gen B1setup "On aimerait du poulet et du bœuf cette semaine." 3
+    meal=$(last_meal); BILAN_MEAL="$meal"
+  fi
   [ -n "$meal" ] || { echo "${YEL}   pas de plan à commenter${OFF}"; return; }
   # ⛔ LA PRÉCONDITION DU CAS, ET ELLE EST DURE: sans DEUX viandes au plan,
   # « la viande » n'est pas ambiguë et le classifieur a RAISON de trancher.
   # Un banc qui ne la vérifie pas compte un PASS pour un plan végétarien.
+  # ⛔ LES PRÉPARATIONS SONT PLIÉES, ET C'EST LA CICATRICE MAISON QUE CE BANC A
+  # RECOMMISE. Premier tir: « 0 viande » sur un plan dont un plat s'appelait
+  # « Poulet rôti, riz, salade et haricots verts » — parce qu'en cuisine par
+  # lots, le kilo de cuisses vit dans `preparations`, pas dans les ingrédients
+  # du plat. Ne scanner que les plats manque très exactement la protéine.
   local meats
   meats=$(psql "
-    select coalesce(string_agg(distinct i->>'term', ', '), '') from student_generated_meals m,
-      jsonb_array_elements(m.dishes) d, jsonb_array_elements(d->'ingredients') i
-    where m.id='$meal' and (
-      i->>'term' ~* '(boeuf|bœuf|veau|agneau|porc|poulet|dinde|canard|jambon|steak|lardon|saucisse|viande|escalope|merguez|chipolata|bacon|rôti|roti)');")
+    select coalesce(string_agg(distinct t, ', '), '') from (
+      select i->>'term' as t from student_generated_meals m,
+        jsonb_array_elements(m.dishes) d, jsonb_array_elements(d->'ingredients') i
+      where m.id='$meal'
+      union all
+      select i->>'term' from student_generated_meals m,
+        jsonb_array_elements(m.preparations) pr, jsonb_array_elements(pr->'ingredients') i
+      where m.id='$meal'
+    ) x
+    where t ~* '(boeuf|bœuf|veau|agneau|porc|poulet|dinde|canard|jambon|steak|lardon|saucisse|viande|escalope|merguez|chipolata|bacon|rôti|roti)';")
   local nmeats
   nmeats=$(python3 -c "
 import sys
@@ -887,7 +935,23 @@ run_P() {
   "d_items": 0, "d_memo": 0, "d_encart": 0, $INVARIANTS }
 EOF
   SINCE=$(now_iso); snapshot > "$OUT/P.before.json"
-  echo "   questions déjà posées aujourd'hui ($(local_day)): $(psql "select count(*) from meal_precision_questions where user_id='$USER_ID' and ask_kind='memory_clarification' and local_date='$(local_day)';" | tr -d ' ') / $CAP"
+  # ⛔ LA PRÉCONDITION DE CE CAS EST QUE LE PLAFOND SOIT DÉJÀ ATTEINT, et elle
+  # dépend des cas d'avant. Mesuré: une fois D3 corrigé, il ne pose plus de
+  # question — le compte du jour est tombé à 1, et P mesurait alors une question
+  # NORMALE en croyant mesurer un refus. Un FAIL aurait accusé le plafond de ne
+  # pas mordre, alors qu'on ne lui avait rien demandé.
+  local asked
+  asked=$(psql "select count(*) from meal_precision_questions where user_id='$USER_ID' and ask_kind='memory_clarification' and local_date='$(local_day)';" | tr -d ' ')
+  echo "   questions déjà posées aujourd'hui ($(local_day)): $asked / $CAP"
+  if [ "${asked:-0}" -lt "$CAP" ]; then
+    python3 -c "
+import json,sys
+print(json.dumps({'_inconclusive':
+  'le plafond n\'est pas atteint (%s/%s posées aujourd\'hui): ce cas mesure un '
+  'REFUS, et il n\'y a rien à refuser. Les cas d\'avant en ont posé moins que '
+  'prévu.' % (sys.argv[1], sys.argv[2])}))" "$asked" "$CAP" > "$OUT/P.obtenu.json"
+    echo '{}' > "$OUT/P.attendu.json"; judge P "$OUT/P.attendu.json"; return
+  fi
   gen P "Ma fille adore les pâtes." 3
   BILAN_MEAL=$(last_meal)
   collect P "$SINCE"; judge P "$OUT/P.attendu.json"
@@ -952,16 +1016,44 @@ import sys
 print({'mon':'lundi','tue':'mardi','wed':'mercredi','thu':'jeudi','fri':'vendredi',
        'sat':'samedi','sun':'dimanche'}.get(sys.argv[1].lower(), sys.argv[1]))" "$day")
   echo "   jour visé: $day → « $fr » (1 dîner)"
+  # ⟳ ATTENDU CORRIGÉ APRÈS LE PREMIER RUN — et c'est le DOC qui avait tort.
+  # §8.3 disait « aucune question, le classifieur a le plan ». Il ne l'a pas: il
+  # reçoit une liste PLATE de termes, SANS JOUR NI MOMENT. « Vendredi soir » lui
+  # est réellement irrésolvable, et demander est la bonne réponse. Ce qui était
+  # cassé, c'était le CONTENU des options — des ingrédients pour une phrase qui
+  # désigne un plat. Le cas mesure donc désormais la QUALITÉ de la question.
   expect B2 <<EOF
 { "http": 200,
-  "clarify_kept": 0, "pref_kept": 1,
-  "clar_created": 0, "q_count": 0,
-  "n_count": 1, "n_view_buttons": 1,
-  "d_items": 1, "added": {"contains": ["household"]},
-  "d_memo": 0, $INVARIANTS }
+  "clarify_proposed": 1, "clarify_kept": 1, "clarify_ask_reason": "asked",
+  "clar_created": 1, "clar_about": {"set": ["what"]},
+  "q_count": 1, "q_payloads_ok": true,
+  "n_count": 0,
+  "d_items": 0, "d_memo": 0, $INVARIANTS }
 EOF
   SINCE=$(now_iso); snapshot > "$OUT/B2.before.json"
   feedback B2 "$meal" "$(body_of "$meal" "$(local_day)" "Le plat de $fr soir, plus jamais.")"
+  # ⛔ LE VERDICT SUR LE CONTENU DES BOUTONS EST ICI, PAS DANS LE JUGE: il faut
+  # la liste des TITRES DE PLATS du plan pour dire qu'un ingrédient proposé est
+  # un échec — et c'est très exactement le défaut mesuré au premier run.
+  local titles
+  titles=$(psql "select coalesce(string_agg(distinct d->>'title', ' ⏐ '), '')
+                 from student_generated_meals m, jsonb_array_elements(m.dishes) d
+                 where m.id='$meal';")
+  python3 - "$(question_bubble "$SINCE")" "$titles" <<'PY'
+import json, sys
+raw = sys.argv[1].strip()
+q = json.loads(raw) if raw not in ("", "null") else None
+titles = {t.strip().lower() for t in sys.argv[2].split(" ⏐ ") if t.strip()}
+if not q:
+    print("   ⚠️ aucune bulle de question"); raise SystemExit
+labels = [b.get("label", "") for b in q.get("buttons") or []]
+picks = [l for l in labels if l not in ("Aucun de ceux-là", "Personne de la liste")]
+bad = [l for l in picks if l.lower() not in titles]
+print(f"   boutons: {picks}")
+print("   ✓ tous sont des PLATS du plan" if picks and not bad
+      else f"   ✗ PAS des plats du plan: {bad} — une phrase qui désigne un plat "
+           "ne peut pas se répondre par un ingrédient")
+PY
   collect B2 "$SINCE"; judge B2 "$OUT/B2.attendu.json"
 }
 
@@ -1046,8 +1138,15 @@ run_I() {
     echo '{"_inconclusive":"aucune question ouverte à balayer — les cas précédents les ont toutes fermées"}' > "$OUT/I.obtenu.json"
     echo '{}' > "$OUT/I.attendu.json"; judge I "$OUT/I.attendu.json"; return
   fi
+  # ⛔ EN ISO-8601 AVEC UN SEUL FUSEAU, ET C'EST UNE FAUTE DÉJÀ COMMISE ICI.
+  # `now()::text` de Postgres rend « 2026-09-06 01:23:45.678+00 » — avec un
+  # DÉCALAGE. Remplacer l'espace par un « T » et coller un « Z » donnait
+  # « …+00Z », que `new Date()` refuse; le pouls retombait alors sur l'heure
+  # RÉELLE, ne balayait rien, et rendait quand même **HTTP 200**. Le cas
+  # échouait donc en accusant la balayeuse de ne pas balayer.
   local FUTURE
-  FUTURE=$(psql "select (now() + interval '49 hours')::text;")
+  FUTURE=$(psql "select to_char((now() + interval '49 hours') at time zone 'UTC', 'YYYY-MM-DD\"T\"HH24:MI:SS\"Z\"');")
+  echo "   horloge simulée: $FUTURE"
   : > "$OUT/I.pulse.log"
   docker logs --since 0m -f supabase_edge_runtime_Sophia_2 > "$OUT/I.pulse.log" 2>&1 &
   local LP=$!
@@ -1057,8 +1156,13 @@ run_I() {
     -H "Content-Type: application/json" \
     -d "$(pulse_body "$FUTURE")" --max-time 300
   sleep 3; kill $LP 2>/dev/null; wait $LP 2>/dev/null
-  grep -o '{"tag":"keel.memory_clarification"[^}]*swept[^}]*}' "$OUT/I.pulse.log" | tail -1
-  grep -o '"event":"swept"[^,]*,"expired":[0-9]*' "$OUT/I.pulse.log" | tail -1
+  # ⛔ LA LIGNE DE JOURNAL EST LA PREUVE QUE LA BALAYEUSE A TOURNÉ. Sans elle,
+  # « rien n'a expiré » et « la balayeuse n'a jamais été appelée » se
+  # ressemblent trait pour trait — et le pouls rend 200 dans les deux cas.
+  local SWEPT
+  SWEPT=$(grep -o '"tag":"keel.memory_clarification"[^}]*' "$OUT/I.pulse.log" | grep swept | tail -1)
+  if [ -n "$SWEPT" ]; then echo "   journal: {$SWEPT}"; else
+    echo "${YEL}   ⚠️ aucune ligne « swept » dans le journal du pouls${OFF}"; fi
   local open_after expired_after
   open_after=$(psql "select count(*) from memory_clarifications where user_id='$USER_ID' and status='open';" | tr -d ' ')
   expired_after=$(psql "select count(*) from memory_clarifications where user_id='$USER_ID' and status='expired';" | tr -d ' ')
@@ -1088,8 +1192,35 @@ run_V() {
 # ---------------------------------------------------------------------------
 # LE DÉROULÉ
 # ---------------------------------------------------------------------------
+# ── LE SECRET DES FONCTIONS INTERNES ──────────────────────────────────────
+#
+# ⛔ CE N'EST **PAS** LA `Secret Key` DE `supabase status`. Mesuré: elle rend
+# **403** sur `keel-daily-pulse-v1` comme sur `keel-proactive-v1`, et les cas S
+# et I sont morts dessus. `ensureInternalRequest` ne retombe sur `SECRET_KEY`
+# que si `INTERNAL_FUNCTION_SECRET` est ABSENT de l'environnement — or
+# `supabase functions serve supabase/.env` le charge. C'est donc ce fichier-là
+# qui fait foi, et le banc le lit lui-même plutôt que d'attendre qu'on devine.
 SECRET="${BANC_INTERNAL_SECRET:-}"
-[ -n "$SECRET" ] || echo "${YEL}⚠️ BANC_INTERNAL_SECRET absent: les cas S et I seront INCONCLUSIVE${OFF}"
+if [ -z "$SECRET" ] && [ -f supabase/.env ]; then
+  SECRET=$(grep "^INTERNAL_FUNCTION_SECRET=" supabase/.env | head -1 | cut -d= -f2- | tr -d "\"' \r")
+  [ -n "$SECRET" ] && echo "   ✓ secret interne lu dans supabase/.env"
+fi
+if [ -n "$SECRET" ]; then
+  PROBE=$(curl -s -o /dev/null -w "%{http_code}" -X POST \
+    "$URL/functions/v1/keel-daily-pulse-v1" -H "apikey: $ANON" \
+    -H "x-internal-secret: $SECRET" -H "Content-Type: application/json" \
+    -d '{"dry_run":true}' --max-time 120)
+  # ⚠️ SONDÉ, PAS SUPPOSÉ. Un 403 silencieux fait rendre INCONCLUSIVE aux cas S
+  # et I pour une raison qui n'a rien à voir avec eux — mesuré.
+  if [ "$PROBE" != "200" ]; then
+    echo "${YEL}   ⚠️ le secret interne est REFUSÉ (HTTP $PROBE): S et I seront INCONCLUSIVE${OFF}"
+    SECRET=""
+  else
+    echo "   ✓ secret interne accepté par le pouls"
+  fi
+else
+  echo "${YEL}⚠️ aucun secret interne: les cas S et I seront INCONCLUSIVE${OFF}"
+fi
 
 echo
 echo "════════ BANC DES CLARIFICATIONS · $EMAIL ════════"
