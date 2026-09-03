@@ -841,3 +841,41 @@ Trois formulations à garder ensemble, toutes nées d'un défaut réel de cette 
 2. une **mutation qui ne rougit pas** est un signal, pas un soulagement — deux gardes qui se recouvrent en laissent une
    « crue tenue » (M18) ;
 3. la **proximité au code fait la crédibilité, pas la vérité** — et le remède est de rendre, pas de mieux rédiger.
+
+## 23:4x — le lot C voisin est commité (`b146b1ee`) : deux fusions passent, une est renvoyée
+
+**HEAD est réparé** : la voisine a commité en `git commit -F <msg> -- <27 chemins>` — la précaution que je lui avais
+recommandée après ma propre erreur — donc rien de mes lanes n'a pu être emporté. `deno check` de
+`generate-household-meal-v1` passe, `_shared/keel` rend 5 028 verts.
+
+### ✅ Correctif A5 repris (`65c83992`) et A8.3 fusionné (`576efd09`)
+
+`cherry-pick` du correctif : **aucun conflit**, `HouseholdPage.tsx` auto-fusionné — la simulation `git merge-file` de la
+lane avait vu juste. Les deux couches de garde sont là (20 occurrences de `viewerIsOwner`) et le test nomme désormais
+**les deux retraits**, avec le motif écrit : « `detach` n'était donc gardé nulle part ».
+A8.3 : **aucun conflit**, avec ses trois arbitrages portés au message de fusion.
+
+**`agent-gate.sh` : exit 0.** vitest **2 188 tests, 4 rouges tous tolérés, 0 hors liste** ; typage des tests 89 contre 93
+tolérées ; `deno check` vert. Le gate signale que `planByPersonModel` est descendu à 2 (toléré 6) et demande d'abaisser
+sa ligne : **laissé à E**, comme la lane l'avait proposé — un `info`, pas un échec.
+
+### ⛔ A2 renvoyé à sa lane : D2.5 vise un champ que le lot C a supprimé
+
+Neuf conflits. **Huit résolus** : sept fichiers d'épinglage (la branche porte v26 et contient déjà le correctif
+`7863c897`, donc **ses deux renommages de tests survivent** — relu), plus un ajout pur de test dans `plan_rationale_test`.
+**Le neuvième est une décision de conception, pas d'arbitrage de fusion**, et je ne l'ai pas prise à la place de la lane :
+`plan_feedback_retained.ts` dans `b146b1ee` contient **zéro occurrence de `easeCookingBy`** — le lot C l'a remplacé par
+`difficultyStep` et `speedStep`, qui **disent** lequel des deux leviers bouge au lieu de le deviner. Le `if
+(effect.easeCookingBy > 0)` de D2.5 ne compilerait pas.
+La lane m'avait écrit ne dépendre ni de `hunger_between_meals`, ni de `could_finish`, ni du paramètre `goal` : c'était
+vrai, **et la dépendance était ailleurs**. Aucun des deux ne pouvait le voir sans tenter la fusion.
+⇒ **`git merge --abort`**, et rebase demandé sur `b146b1ee` avec la question posée en clair : « pas eu le temps » porte-t-il
+désormais sur la difficulté, sur la vitesse, ou sur les deux ? Son motif d'origine tient (une correction invisible est une
+correction que la personne ne peut ni comprendre ni défaire), la façon de l'écrire a changé sous elle.
+
+### A7 reste bloqué
+
+`api/retainedItems.ts` est de nouveau sale : le **lot D** de la voisine a commencé. Seul chevauchement, une fusion en attente.
+
+**Fusions faites** : RAPIDE · A6 · A8.0 (+correctif) · A1 (+2 correctifs) · A8.1 · A8.2 · A5 (+correctif) · A8.3.
+**En attente** : A2 (rebase lane) · A7 (lot D voisin).
