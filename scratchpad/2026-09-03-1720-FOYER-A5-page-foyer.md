@@ -157,3 +157,106 @@ forgé. Geste humain requis, sur un onglet **déjà connecté** à un maître :
 **étiquettes**, la phrase « Taille, poids et sexe vont ensemble », l'appétit et les trois cases du
 repas, la retenue « Il manque encore : … », puis « Ajouter ». À 320 px et 1280 px, deux langues,
 `document.scrollWidth` = largeur de fenêtre : **non mesuré**.
+
+---
+
+## 5. Lot 2 — les deux cadres de la fiche (mandat §5.4 point 2)
+
+**Commits** : `c4aa7197` (lot) · `da9f91e2` (i18n).
+
+### 5.1 Ce qui a été fait
+
+`MemberRow` était un accordéon **à un niveau** : identité, corps, régime, habitudes, déjeuner
+(A6), présence, retraits, réglage de fusion, allergies et règles de maison — huit sujets à la
+suite, sans qu'aucun titre ne dise où l'un finit, dans une liste qui peut porter huit personnes.
+Elle porte maintenant **deux cadres nommés** (`SheetFrame`) :
+
+- **« Informations personnelles »** — `MouthFields` + `BodyFields` + le bouton « Enregistrer »
+  (prénom / date / direction), gardé par `bodiesLoaded` ;
+- **« Préférences alimentaires »** — régime, `HouseholdHabitsCard`, `MemberWorkLunchCard` (A6),
+  allergies et règles de maison, gardé par `habitsLoaded`, avec le **récapitulatif visible replié**.
+
+**Restent dehors, et ce n'est pas un oubli** : la fenêtre de présence (« quand cette bouche n'est
+pas là » est une **date**, pas un trait de la personne — elle change et se relit chaque semaine),
+« Retirer l'accès » / « Retirer du foyer » (deux irréversibles distincts, `cannot_detach_owner` /
+`cannot_remove_owner` côté base) et le réglage de fusion. Un cas le **mesure par position** dans la
+source. Les ranger sous un titre de formulaire ferait d'un geste brutal une case à cocher.
+
+### 5.2 Le renversement D5.1 — écrit là où vit la phrase inverse
+
+`components/MouthFormDialog.tsx` porte le pavé « **RENVERSEMENT PARTIEL — A5 (D5.1)** », et il dit
+ce qu'il **ne** renverse **pas** : `MouthPreferencesFields` garde ses six blocs ouverts, parce que
+cette fenêtre-là n'a **aucun récapitulatif** sous ses blocs — le repli y redeviendrait ce qu'il
+était le 2026-08-19, « une réponse invisible ». Les trois motifs de 08-19 sont repris un par un :
+deux ne s'appliquent pas à une ligne (titres anonymes ; état chez l'appelant), le troisième est
+**payé** par le récapitulatif + l'ouverture par défaut.
+
+### 5.3 ⚠️ Un défaut trouvé et corrigé au passage — `bodies` partait de `new Map()`
+
+« Pas encore lu » et « lu, personne n'a de corps » étaient le **même état**, alors que `BodyFields`
+fige ses trois champs **au montage** et que le panneau se monte **au clic**. Une ligne ouverte avant
+le retour de `loadMemberBodies()` affichait donc trois champs vides sur une bouche renseignée.
+L'état devient `Map | null`, `bodiesLoaded` en dérive, et le cadre ne rend **aucun champ** tant
+que c'est `null`. Cicatrice `mount-snapshot-forms-need-a-loading-gate`, prise avant qu'elle morde.
+
+### 5.4 ⛔ Ce que le lot ne fait PAS, et le motif est mécanique
+
+Le mandat écrit « « Informations personnelles » = `MouthCoreFields` ; « Préférences alimentaires »
+= `MouthPreferencesFields` ». **Les cadres montent les contrôles existants, pas ces deux
+composants**, et deux raisons l'imposent — les deux vérifiées dans le code, pas supposées :
+
+1. **`persistMouth` n'a AUCUN écrivain pour RETIRER une allergie** — seulement `addAllergy` /
+   `addRestriction` (`api/mouthProfile.ts:631-632, 852-856`). `MemberRow` porte aujourd'hui un
+   bouton « retirer » **par allergie**. Basculer ce cadre sur `MouthPreferencesFields` + `persistMouth`
+   ferait perdre le retrait d'une allergie — et une allergie entre dans **l'union de sécurité** du
+   générateur. C'est une régression de sécurité, pas de confort.
+2. **Les contrôles de `MemberRow` écrivent IMMÉDIATEMENT, champ par champ, par des portes
+   différentes** (`set_member_diet` refuse `has_account`, `set_member_body` refuse `not_owner`,
+   le nom/la date refusent `not_your_line`), quand `persistMouth` est un geste **tout-ou-rien qui
+   REMPLACE** (`setHabits` prend la liste complète, `setTarget` efface à `(null, null)`).
+
+**Ce qu'il faudrait pour tenir la lettre du mandat**, écrit ici pour ne pas être redécouvert : un
+écrivain `removeAllergy` / `removeRestriction` dans `MouthWriters`, **et** les deux lectures
+manquantes par bouche sur `/app/household` (`loadMemberTargets`, `loadMemberBirthDates` existent
+dans `api/` et ne sont lues que par `SetupPage`) — sans elles, monter `MouthCoreFields` sur une
+bouche existante **effacerait sa cible au premier Enregistrer**, ce que l'interdit « un cadre monté
+sur une lecture non faite » vise exactement.
+
+### 5.5 Tests et mutations du lot 2
+
+`pages/memberSheetFrames.int.test.ts` (**neuf, 17 cas**) : la garde de chargement (+ son cas qui
+passe), le repli payé (contenu démonté / récapitulatif présent / `aria-expanded`), la source
+(quel cadre reçoit quelle lecture, `bodies` en `Map | null`, l'ouverture par défaut, le compteur et
+les phrases réutilisés, `blockList` partagé), la position (présence et retraits **hors** cadre ;
+déjeuner **dans** le cadre et **au-dessus** de la grille), le renversement écrit dans
+`MouthFormDialog.tsx`, et les 5 clés dans les deux packs.
+
+| # | Mutation | Rouge vu (sur 17) | Restauration |
+|---|---|---|---|
+| M7 | `SheetFrame` : `!loaded` → `false` (garde désarmée) | **2** | `cp` + `cmp` OK |
+| M8 | `bodies` repart de `new Map()` | **1** | `cp` + `cmp` OK |
+| M9 | le cadre replié perd son récapitulatif | **1** | `cp` + `cmp` OK |
+
+### 5.6 Preuve du lot 2
+
+tsc **exit 0** ; eslint 0 sur les 3 fichiers ; suite **entière 2 078 / 2 103**, `5 failed` = les 5
+rouges étrangers connus **et eux seuls**.
+
+### 5.7 i18n du lot 2
+
+**5 clés ajoutées**, bloc délimité, deux packs : `household.member.frame_identity`,
+`…_identity_hint`, `household.member.frame_preferences`, `…_preferences_hint`,
+`household.mouth.frame_loading`. **Aucune clé de récapitulatif ajoutée** : réutilisation de
+`household.mouth.preferences_filled` / `_empty`. `catalog.ts` inchangé.
+
+⚠️ **Incident, réparé** : une substitution d'échappements `\uXXXX` → UTF-8 a touché **six lignes de
+commentaire de `en.ts` hors de mon bloc** (~5804). Restaurées à l'identique **par numéro de ligne**
+(jamais `git checkout`) ; le diff des deux packs ne porte plus que des **insertions**. C'est
+exactement le piège `never-unicode-escape-when-inserting-i18n`, pris par l'autre bout.
+
+### 5.8 ROUGE du lot 2 — non vu au navigateur
+
+`/app/household` → « Modifier » sur une ligne → **deux cadres ouverts**, titrés ; replier
+« Préférences alimentaires » → la phrase « Déjà renseigné : … » reste ; recharger et ouvrir une
+ligne **avant** la fin des lectures → « Lecture de ce qui est déjà renseigné… », **aucun champ
+vide**. 320 px / 1280 px, deux langues : **non mesuré**.
