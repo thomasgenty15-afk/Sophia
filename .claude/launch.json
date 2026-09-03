@@ -387,7 +387,7 @@
         "5203",
         "--strictPort"
       ],
-      "cwd": "/Users/ahmedamara/Dev/Sophia-2-chantiers/RAPIDE/frontend",
+      "cwd": ".worktrees/RAPIDE/frontend",
       "port": 5203,
       "autoPort": false
     },
@@ -402,7 +402,7 @@
         "5204",
         "--strictPort"
       ],
-      "cwd": "/Users/ahmedamara/Dev/Sophia-2-chantiers/FOYER/frontend",
+      "cwd": ".worktrees/FOYER/frontend",
       "port": 5204,
       "autoPort": false
     },
@@ -417,7 +417,7 @@
         "5206",
         "--strictPort"
       ],
-      "cwd": "/Users/ahmedamara/Dev/Sophia-2-chantiers/CUISINE/frontend",
+      "cwd": ".worktrees/CUISINE/frontend",
       "port": 5206,
       "autoPort": false
     },
@@ -432,7 +432,7 @@
         "5207",
         "--strictPort"
       ],
-      "cwd": "/Users/ahmedamara/Dev/Sophia-2-chantiers/MEMBRE/frontend",
+      "cwd": ".worktrees/MEMBRE/frontend",
       "port": 5207,
       "autoPort": false
     },
@@ -447,7 +447,7 @@
         "5208",
         "--strictPort"
       ],
-      "cwd": "/Users/ahmedamara/Dev/Sophia-2-chantiers/SUIVI/frontend",
+      "cwd": ".worktrees/SUIVI/frontend",
       "port": 5208,
       "autoPort": false
     }
