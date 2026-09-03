@@ -1608,7 +1608,6 @@ export const en = {
 
   // Student app chrome
   "app.nav.today": "Today",
-  "app.nav.meals": "Meal ideas",
   "app.nav.progress": "Progress",
   "app.nav.chat": "Chat",
   "app.nav.health": "Health",
@@ -1618,7 +1617,6 @@ export const en = {
   // Libellés courts: la barre d'onglets du téléphone donne 75 px par colonne,
   // et « My week's plan » y tiendrait sur trois lignes.
   "app.nav.plan.short": "Plan",
-  "app.nav.meals.short": "Meals",
 
   // DE-WHATSAPP — la bulle. C'est LE canal, plus un simulateur: la
   // conversation quotidienne avec Sophia vit ici, dans l'app.
@@ -6468,19 +6466,12 @@ export const en = {
   "meals.shopping.wave_intro":
     "Split by when it has to be fresh: the mid-week meat does not keep from Monday.",
 
-  // ── /app/meals — CE QUE LE COACH A DÉPOSÉ, ET RIEN D'AUTRE ──────────────
-  // La frontière avec `/app/plan`, en une phrase: `/app/plan` montre ce que
-  // l'IA compose POUR l'élève; `/app/meals` montre ce que son COACH a mis à
-  // disposition, tel qu'il l'a écrit. Rien n'y est cochable, badgé ni compté,
-  // et le sous-titre le dit avec des mots.
-  "meals.title": "Meal ideas",
-  "meals.subtitle":
-    "Dishes your coach put up for everyone they work with. Ideas only — nothing here is tracked and none of it counts for or against you.",
-  "meals.list.title": "From your coach",
-  "meals.list.empty":
-    "Your coach has not put any meal ideas up yet. Your week is unaffected — build it from the plan screen.",
+  // ── LA LIGNE D'ATTENTE DU MOTEUR — pas celle de l'écran retiré ─────────
+  // `meals.loading` est rendue par `MealBuilder` et `StudentWeekPlanPage`
+  // (`/app/plan`) pendant que les plans se chargent. Elle vivait sous l'en-tête
+  // `/app/meals`, dont les sept autres clés sont parties le 2026-09-03 (P4);
+  // elle, non: retirée, `tsc` rougit sur ses deux appelants.
   "meals.loading": "Loading…",
-  "meals.error": "These could not be loaded just now.",
 
   // ═════════════════════════════════════════════════════════════════════════
   // /app/health — CE QUE L'ÉLÈVE NE PEUT PAS MANGER
@@ -8006,6 +7997,20 @@ export const en = {
     "No weight direction for a child: under 18, only “Eat normally” is accepted. Pick it, then set the date.",
   "household.error.target_not_for_minor":
     "No target weight for a child: under 18, nothing is aimed at.",
+  // A4 · P4, les idées de repas (2026-09-03, décision D4.1). RETIRÉES EN PLACE dans
+  // ce pack — SEPT clés de l'écran `/app/meals` (supprimé), et AUCUNE du
+  // vocabulaire du moteur (`meals.slot.*`, `meals.aisle.*`, `meals.tick.*`… restent):
+  //   "app.nav.meals"        — l'onglet « Meal ideas » de la barre du bas (KeelAppShell)
+  //   "app.nav.meals.short"  — sa forme courte « Meals »
+  //   "meals.title"          — « Meal ideas », le titre de la page
+  //   "meals.subtitle"       — « Dishes your coach put up for everyone… »
+  //   "meals.list.title"     — « From your coach »
+  //   "meals.list.empty"     — « Your coach has not put any meal ideas up yet… »
+  //   "meals.error"          — « These could not be loaded just now. »
+  // GARDÉE, contre la liste de huit du mandat: "meals.loading" — deux appelants
+  // vivants sur `/app/plan` (`MealBuilder.tsx`, `StudentWeekPlanPage.tsx`), vus
+  // par `tsc` quand on l'a retirée; redéposée près du moteur, avec sa note.
+  // Et dans `catalog.ts`: l'entrée `"/app/meals"` de `PAGE_NAMESPACES`. Aucune clé ajoutée.
   // ── chantier-0903/RAPIDE — fin ──
 
 } as const
