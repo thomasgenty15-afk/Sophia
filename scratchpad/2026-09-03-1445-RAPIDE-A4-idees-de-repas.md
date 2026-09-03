@@ -95,7 +95,7 @@ Après restauration : `cmp` des trois fichiers contre les copies prises avant le
   - **320 px** : `location.pathname = /app/meals`, titre « Page not found | Sophia », `h1` « This page does not exist. », le texte porte « 404 », `document.documentElement.scrollWidth = 320 = innerWidth` (aucun débordement), capture à scroll 0.
   - **1280 px** : idem, `scrollWidth = 1280`, `meta robots = noindex,nofollow` (la 404 du produit, `NotFoundPage`, pas un écran blanc ni une redirection).
   - **Contraste** : `http://localhost:5203/app/plan` pour le même visiteur → redirigé vers `/auth` (« Vous revoilà. »). Une route qui existe envoie à la porte ; `/app/meals` n'existe plus et tombe sur la 404 **avant** toute garde.
-  - Console : `[vite] Failed to reload /src/keel/pages/mealPlan/StudentMealPlanPage.tsx` — un reliquat HMR du serveur **réutilisé** (module chargé avant le `git rm`) ; un chargement frais de `/app/meals` ne demande **aucune** ressource `mealPlan` (vérifié sur les requêtes réseau).
+  - Console : `[vite] Failed to reload /src/keel/pages/mealPlan/StudentMealPlanPage.tsx` — un reliquat HMR du serveur **réutilisé** (module chargé avant le `git rm`) ; un chargement frais de `/app/meals` ne demande **aucune** ressource sous `pages/mealPlan/` (vérifié sur les requêtes réseau : seul `api/mealPlanModel.ts` est chargé — importé par `CoachMealsPage`, normal).
 
 ### ROUGE — geste humain requis : connexion à une fixture
 
@@ -140,6 +140,6 @@ Après restauration : `cmp` des trois fichiers contre les copies prises avant le
 | 2 | i18n | `86dac467` | `en.ts` + `fr.ts` + `catalog.ts` seulement — `--no-verify` |
 | 3 | journal (v2) | _(le commit qui suit)_ | ce fichier, complété des sha |
 
-Ordre choisi exprès : **lot d'abord** (seul, `tsc` reste vert ; `pageSeams` et le test neuf rougissent sur l'entrée de catalogue encore présente), **i18n ensuite** (l'inverse aurait rendu `tsc` rouge sur `t("meals.title")`). L'arbre de travail vérifié en §4 porte les **deux** ; c'est la tête de branche qui est verte, pas chaque commit pris seul.
+Ordre choisi exprès : **lot d'abord**, **i18n ensuite** (l'inverse aurait rendu `tsc` rouge sur `t("meals.title")`). **Mesuré** sur un worktree détaché à `abbd9d8d` (le lot seul, node_modules liés, retiré ensuite) : `tsc -b --force` **exit 0** ; `mealIdeasRemoved` + `pageSeams` → **3 rouges / 8** (les deux cas du test neuf qui lisent le catalogue et les packs, et « chaque chemin déclaré correspond à une <Route> » de `pageSeams`) — exactement les rouges qu'un catalogue et des packs pas encore commités produisent. L'arbre de travail vérifié en §4 porte les **deux** commits ; c'est la tête de branche qui est verte, pas le lot pris seul.
 
 Chemins passés **un par un** à `git add` (la bourde zsh de A3 : `$VAR` ne se découpe pas). Aucun `git add -A`, aucun `stash`/`checkout`/`reset`/`restore` ; les restaurations de mutation sont des `cp`.
