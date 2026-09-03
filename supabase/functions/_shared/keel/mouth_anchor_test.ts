@@ -113,7 +113,7 @@ const THREE_MEALS_SHARE = 0.565;
 const EXTRA_SLOT_SHARE = 0.42;
 
 function day(over: Partial<MouthDayEnergy> & { memberId: string }): MouthDayEnergy {
-  return {
+  const base: MouthDayEnergy = {
     day: "thu",
     kcal: 2000,
     basis: "plan_quantities",
@@ -123,6 +123,7 @@ function day(over: Partial<MouthDayEnergy> & { memberId: string }): MouthDayEner
     unattributedDishes: 0,
     subject: "the_day",
     slots: ["breakfast", "dinner", "lunch"],
+    ownSlots: [],
     // ⚠️ VOLONTAIREMENT BAS: le plafond de vraisemblance physique dépend de
     // `grams`, et un banc qui le déclencherait partout empêcherait de tester
     // quoi que ce soit d'autre. Les tests qui veulent l'éprouver le passent
@@ -131,7 +132,16 @@ function day(over: Partial<MouthDayEnergy> & { memberId: string }): MouthDayEner
     maxMealGrams: 250,
     gaps: [],
     ...over,
-  } as MouthDayEnergy;
+  };
+  // ⚠️ `ownSlots` SUIT `slots` PAR DÉFAUT, ET C'EST LE CAS NOMINAL DU BANC: une
+  // bouche seule sur ses couvercles. Un test qui veut un bac le dit
+  // explicitement (`ownSlots: []` ou un sous-ensemble), ce qui rend la
+  // divergence LISIBLE à l'endroit où elle est éprouvée.
+  //
+  // ⛔ ET LE `as MouthDayEnergy` A DISPARU. C'est lui qui a laissé `ownSlots`
+  // absent traverser ce fichier sans qu'un compilateur le dise — la cicatrice
+  // « `as` sur un type étranger désarme le typecheck », payée ici même.
+  return { ...base, ownSlots: over.ownSlots ?? base.slots };
 }
 
 // ---------------------------------------------------------------------------
@@ -444,6 +454,58 @@ Deno.test("⛔ un plat SANS COUVERCLE ne bloque pas — sa cible a déjà été 
   assert(got.raw !== null);
   // La cible est celle du seul moment couvert, pas celle de la journée.
   assert(got.targetKcal! < mouthTargetKcal(IKU, "no_position").kcal!);
+});
+
+Deno.test("⛔ UN BAC AU DÉJEUNER NE BLOQUE PLUS SON DÎNER À ELLE", () => {
+  // ⟳ 2026-09-04 — `common_pot` BLOQUAIT, ET SA RAISON A ÉTÉ RÉPARÉE. Un bac
+  // laissait le MOMENT dans `slots` — elle a bien mangé ce midi — pendant qu'il
+  // ne rendait aucun kcal: un seul côté du rapport baissait, donc `cible/livré`
+  // gonflait. `ownSlots` fait baisser l'autre, et c'est l'argument exact qui a
+  // exempté `no_box` juste au-dessus.
+  //
+  // LE DÉCOR: elle déclare et mange trois moments; midi est un bac partagé,
+  // matin et soir sont à elle. On sait donc lire deux tiers de sa journée.
+  const got = anchorFactorFor(
+    IKU,
+    day({
+      memberId: "m_iku",
+      kcal: 900,
+      complete: false,
+      slots: ["breakfast", "dinner", "lunch"],
+      ownSlots: ["breakfast", "dinner"],
+      gaps: ["common_pot"],
+    }),
+    "no_position",
+  );
+  assertEquals(got.reason, "anchored");
+  assert(got.raw !== null);
+
+  // ⛔ ET LA CIBLE NE PORTE QUE SES DEUX MOMENTS. Le déjeuner reste au
+  // DÉNOMINATEUR de la journée (elle l'a mangé) mais sort du NUMÉRATEUR (on ne
+  // sait pas ce qu'il pesait). Sans cette moitié, le test passerait aussi bien
+  // sur une exemption qui demanderait la journée entière à deux repas — très
+  // exactement le 6,28 de Christèle, par un autre chemin.
+  const whole = mouthTargetKcal(IKU, "no_position").kcal!;
+  assert(
+    got.targetKcal! < whole,
+    `la cible n'a pas été réduite: ${got.targetKcal} pour une journée de ${whole}`,
+  );
+
+  // ⚠️ ET UNE JOURNÉE ENTIÈREMENT EN BAC NE PASSE TOUJOURS PAS. C'est la garde
+  // qui compte 24 bouches sur 36; l'exemption ne doit pas l'emporter avec elle.
+  const allPot = anchorFactorFor(
+    IKU,
+    day({
+      memberId: "m_iku",
+      kcal: null,
+      complete: false,
+      ownSlots: [],
+      gaps: ["common_pot"],
+    }),
+    "no_position",
+  );
+  assertEquals(allPot.reason, "common_pot_day");
+  assertEquals(allPot.factor, 1);
 });
 
 Deno.test("mais une lacune de LECTURE bloque toujours, même mélangée à `no_box`", () => {

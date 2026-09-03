@@ -861,14 +861,25 @@ export function anchorFactorFor(
   // s'appliquait jamais. Une garde qui se referme sur la population entière
   // n'est plus une garde, c'est un interrupteur ouvert.
   //
-  // ⛔ `common_pot` BLOQUE, LUI, ET C'EST L'INVERSE EXACT DE `no_box` (v4,
-  // 2026-08-20). Un bac commun laisse le MOMENT du plat dans `day.slots` — la
-  // bouche a bien mangé ce midi — pendant qu'il ne rend aucun kcal. Un seul des
-  // deux côtés du rapport baisse, donc `cible / livré` gonfle, et on servirait
-  // davantage à quelqu'un parce que ses grammes décrivaient un récipient.
-  // Il tombe donc dans `blocking` par simple absence de l'exemption, et ce
-  // commentaire est là pour que personne ne l'y « ajoute » par symétrie.
-  const blocking = day.gaps.filter((g) => g !== "no_box");
+  // ⟳ 2026-09-04 — `common_pot` CESSE DE BLOQUER, ET LA RAISON DE SON BLOCAGE
+  // EST CE QUI A ÉTÉ RÉPARÉ. Il bloquait parce qu'un bac laissait le MOMENT du
+  // plat dans `day.slots` — la bouche a bien mangé ce midi — pendant qu'il ne
+  // rendait aucun kcal: un seul des deux côtés du rapport baissait, donc
+  // `cible / livré` gonflait, et on aurait servi davantage à quelqu'un parce que
+  // ses grammes décrivaient un récipient.
+  //
+  // ⛔ CE N'EST PAS UNE SYMÉTRIE AVEC `no_box`, C'EST SON ARGUMENT. La cible est
+  // désormais réduite à `day.ownSlots` — les moments où elle est SEULE sur un
+  // couvercle — pendant que `day.kcal` ne compte, lui aussi, que ces
+  // contenants-là (`dishSlices` rend `null` sur un bac, et la ligne l'écarte
+  // avant d'additionner). Les deux côtés baissent ensemble, exactement comme
+  // pour `no_box`. Ce qui restait vrai du blocage ne l'est plus.
+  //
+  // ⚠️ ET UNE JOURNÉE ENTIÈREMENT EN BAC NE PASSE PAS POUR AUTANT: `ownSlots`
+  // est alors vide, `planTarget` vaut 0, et le chemin `common_pot_day` ci-dessus
+  // a déjà rendu — `day.kcal` est `null` quand aucun contenant à un nom n'a
+  // nourri. C'est la garde qui compte 24 bouches sur 36, et elle est intacte.
+  const blocking = day.gaps.filter((g) => g !== "no_box" && g !== "common_pot");
   if (blocking.length > 0) {
     return {
       factor: 1,
@@ -905,7 +916,18 @@ export function anchorFactorFor(
   // ⛔ MAIS SUR LES AUTRES MOMENTS, IL LE PORTE. Le plan compose ce que la
   // personne a déclaré y prendre; en retrancher quoi que ce soit compterait
   // deux fois. C'est le défaut ② de l'épitaphe.
-  const covered = new Set(day.slots);
+  // ⛔ `ownSlots` AU NUMÉRATEUR, `slots` AU DÉNOMINATEUR, ET LES DEUX SONT
+  // JUSTES (2026-09-04). Ce qu'on demande au plan de fournir est la part de sa
+  // journée qui tombe sur les moments dont on sait LIRE le livré — ceux où elle
+  // est seule sur un couvercle. Mais la journée, elle, reste entière: un repas
+  // pris dans un bac est un repas qu'elle a mangé, et l'exclure du dénominateur
+  // ferait porter à ses deux autres moments l'énergie des trois.
+  //
+  // ⚠️ INTERVERTIR LES DEUX EST LA MUTATION LA PLUS CHÈRE DE CETTE FONCTION.
+  // `covered = day.slots` remet le défaut d'avant (un côté du rapport baisse
+  // seul); `whole` sur `ownSlots` gonfle la part de chaque moment restant et
+  // sert le dîner d'une journée entière — 6,28 mesuré sur Christèle.
+  const covered = new Set(day.ownSlots);
   const whole = [...new Set([...mouth.declaredSlots, ...day.slots])]
     .reduce((n, slot) => n + slotWeight(slot), 0);
   let planTarget = 0;

@@ -43,6 +43,12 @@ function day(
     unattributedDishes: 0,
     subject: "the_day",
     slots: ["dinner"],
+    // ⚠️ LE DÉFAUT EST « SEULE SUR SON COUVERCLE », parce que c'est le cas
+    // nominal d'une fixture: une bouche qui a un dîner composé et dont on sait
+    // le lire. Un défaut vide ferait s'abstenir l'ancrage sur toutes les
+    // fixtures de ce fichier, et les tests passeraient en n'éprouvant plus le
+    // chemin qu'ils nomment.
+    ownSlots: ["dinner"],
     grams: 0,
     maxMealGrams: 0,
     gaps: [],

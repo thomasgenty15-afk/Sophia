@@ -188,6 +188,23 @@ export interface MouthDayEnergy {
    */
   slots: string[];
   /**
+   * LES MOMENTS DE CE JOUR OÙ CETTE BOUCHE EST **SEULE SUR UN COUVERCLE**.
+   *
+   * ⛔ SOUS-ENSEMBLE DE `slots`, ET LA DIFFÉRENCE EST LE SUJET. `slots` dit ce
+   * que le plan a composé POUR elle; `ownSlots` dit ce dont il peut rendre
+   * compte — un bac partagé nourrit sans qu'on sache combien.
+   *
+   * C'est le dénominateur honnête de `anchorFactorFor`: comparer une cible de
+   * JOURNÉE ENTIÈRE à ce qu'un seul moment livre rend un facteur absurde (6,28
+   * mesuré, c'est-à-dire une assiette de deux kilos). Réduire la cible aux
+   * moments dont on sait lire le livré fait baisser les DEUX côtés du rapport
+   * ensemble — le même argument qui a exempté `no_box`.
+   *
+   * `[]` = toute sa journée est en bac commun. L'ancrage s'abstient alors, et le
+   * dit (`common_pot_day`).
+   */
+  ownSlots: string[];
+  /**
    * LES GRAMMES QUE CETTE BOUCHE PREND CE JOUR-LÀ, tous plats confondus.
    *
    * Le dénominateur du plafond de PLAUSIBILITÉ PHYSIQUE: un facteur peut être
@@ -315,6 +332,7 @@ export function mouthDayEnergy(args: {
         unattributedDishes: 0,
         subject: "the_day",
         slots: [],
+        ownSlots: [],
         grams: 0,
         maxMealGrams: 0,
         gaps: [],
@@ -363,6 +381,15 @@ export function mouthDayEnergy(args: {
         if (g > 0) {
           row.grams += g;
           if (g > row.maxMealGrams) row.maxMealGrams = g;
+        }
+        // ⚠️ UN MOMENT « À ELLE », ET C'EST LA MÊME CONDITION QUE LES GRAMMES —
+        // un seul nom sur le couvercle. Elle est ici, dans la boucle qui
+        // distingue déjà ce cas, plutôt qu'ailleurs: deux lectures de « ce
+        // contenant est-il sa portion » finiraient par diverger, et c'est le
+        // dénominateur d'un ancrage qui se tromperait.
+        if (dish.slot !== null && !row.ownSlots.includes(dish.slot)) {
+          row.ownSlots.push(dish.slot);
+          row.ownSlots.sort();
         }
       }
       // ⚠️ LE MOMENT EST ENREGISTRÉ MÊME QUAND L'ÉNERGIE MANQUE: « le plan a
