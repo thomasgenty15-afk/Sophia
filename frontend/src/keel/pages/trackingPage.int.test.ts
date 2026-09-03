@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 
 import { en } from "../i18n/en";
 import { fr } from "../i18n/fr";
+import { TRACKING_BASES } from "../api/tracking";
 
 /**
  * A7 (2026-09-03, décisions D7.1 et D7.12) — `/app/progress` EST « LE SUIVI »,
@@ -41,6 +42,9 @@ import { fr } from "../i18n/fr";
 const DEAD_PAGE = resolve(__dirname, "./ProgressPage.tsx");
 const LIVE_PAGE = resolve(__dirname, "./StudentProgressPage.tsx");
 const SHELL = resolve(__dirname, "../components/KeelAppShell.tsx");
+/** Le module de poids que la courbe remplace, et son test. */
+const OLD_WEIGHT = resolve(__dirname, "./studentProgressWeight.ts");
+const OLD_WEIGHT_TEST = resolve(__dirname, "./studentProgressWeight.int.test.ts");
 
 /** Même blanchiment que `pageSeams` / `mealIdeasRemoved`: une note n'est pas du code. */
 function stripComments(source: string): string {
@@ -52,6 +56,7 @@ function stripComments(source: string): string {
 }
 
 const shell = stripComments(readFileSync(SHELL, "utf8"));
+const page = stripComments(readFileSync(LIVE_PAGE, "utf8"));
 
 /** Le tableau `student: [ … ]` de `NAV`, jusqu'à `coach: [`. */
 function studentNav(): string {
@@ -189,5 +194,88 @@ describe("A7 — `/app/progress` s'appelle « Suivi », et l'écran mort est par
       "/app/progress",
     ]);
     expect(nav).toContain('"/app/health"');
+  });
+});
+
+describe("A7 — la ceinture TCA a changé de côté, et la courbe a remplacé le nombre", () => {
+  it("la page ne lit plus `weekly_reviews.risk_band` — la colonne morte a quitté le client", () => {
+    // ⛔ LE DÉFAUT QUE CE TEST FERME. La garde lisait `risk_band`, une colonne
+    // SANS ÉCRIVAIN depuis le 2026-08-08: une ceinture armée sur un coffre
+    // vide, qui ne s'est jamais levée pour personne et qui RESSEMBLAIT à une
+    // garde qui marche. Les commentaires sont blanchis avant lecture — la note
+    // qui raconte le retrait cite le nom de la colonne, et ne doit pas compter
+    // comme une lecture.
+    expect(page).not.toContain("risk_band");
+    expect(page).not.toContain("weekly_reviews");
+  });
+
+  it("la page demande la porte au serveur, et le plancher vient de LÀ", () => {
+    // LE CAS QUI PASSE: sans ces deux lignes, le test du dessus resterait vert
+    // sur une page qui ne garde plus rien du tout.
+    expect(page).toContain("loadTracking(");
+    expect(page).toContain("report.floor");
+  });
+
+  it("la carte de poids d'avant est partie, avec son module et son test", () => {
+    expect(page).not.toContain("displayWeights");
+    expect(existsSync(OLD_WEIGHT)).toBe(false);
+    expect(existsSync(OLD_WEIGHT_TEST)).toBe(false);
+    // `datedMeasures` reste chez `api/bodyMeasures.ts`, avec la leçon
+    // écrivain/lecteur de `outcomes.weight_7d_avg` — c'est le MODULE de
+    // façade qui part, pas la connaissance.
+    expect(
+      existsSync(resolve(__dirname, "../api/bodyMeasures.ts")),
+    ).toBe(true);
+  });
+
+  it("les quatre surfaces neuves sont montées par la page", () => {
+    for (const mounted of [
+      "<TrackingSummaryCard",
+      "<TrackingObjectiveCard",
+      "<WeightCurveCard",
+      "<TrackingDescribeDialog",
+    ]) {
+      expect(page, `${mounted} n'est pas monté`).toContain(mounted);
+    }
+  });
+});
+
+describe("A7 — chaque base a sa phrase, dans les deux langues", () => {
+  it("les cinq bases portent un total, et il n'en manque aucune", () => {
+    // ⛔ LE DÉFAUT QUE CE TEST FERME: une base sans phrase rendrait un total
+    // avec une clé manquante — c'est-à-dire un chiffre affiché sans sa base,
+    // exactement ce que `CALORIE_REVERSAL.md` §5 interdit. Le total est nommé
+    // PAR sa base, donc l'inventaire doit être complet des DEUX côtés.
+    for (const [name, pack] of [["en", en], ["fr", fr]] as const) {
+      for (const basis of TRACKING_BASES) {
+        const key = `tracking.total.${basis}`;
+        const value = (pack as Record<string, string>)[key];
+        expect(value, `${name}/${key} manque`).toBeTruthy();
+        expect(value, `${name}/${key} n'interpole pas le nombre`).toContain(
+          "{kcal}",
+        );
+      }
+      // Et l'estimation d'un créneau, la sixième phrase qui écrit un kcal.
+      expect(
+        (pack as Record<string, string>)["tracking.energy.slot_estimate"],
+      ).toContain("{kcal}");
+    }
+  });
+
+  it("aucune phrase du suivi n'affiche un pourcentage ni un reste-à-manger", () => {
+    // FF-059 R10 (« sommer les comptes est un score d'adhérence déguisé ») et
+    // l'interdit « il te reste X kcal ». Les deux se voient dans le PACK, où
+    // ils survivraient à une refonte du composant.
+    const offenders: string[] = [];
+    for (const [name, pack] of [["en", en], ["fr", fr]] as const) {
+      for (const [key, value] of Object.entries(pack)) {
+        if (!key.startsWith("tracking.")) continue;
+        if (typeof value !== "string") continue;
+        if (/%|\bremaining\b|\bleft to eat\b|\bil te reste\b|\brestant/i.test(value)) {
+          offenders.push(`${name}/${key}: ${value}`);
+        }
+      }
+    }
+    expect(offenders).toEqual([]);
   });
 });

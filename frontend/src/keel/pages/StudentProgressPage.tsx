@@ -3,7 +3,6 @@ import { supabase } from "../../lib/supabase";
 import { KeelAppShell } from "../components/KeelAppShell";
 import { Badge, type BadgeTone } from "../components/ui/Badge";
 import { Card, SectionLabel } from "../components/ui/Card";
-import { displayWeights, type ReviewRow } from "./studentProgressWeight";
 import {
   aggregateWeekInFood,
   type FoodEventRow,
@@ -16,6 +15,13 @@ import {
   type RhythmEventRow,
 } from "../lib/mealRhythm";
 import { signMealPhotoUrls } from "../api/mealPhoto";
+import { loadTracking, type TrackingReport } from "../api/tracking";
+import {
+  TrackingObjectiveCard,
+  TrackingSummaryCard,
+} from "../components/TrackingCards";
+import { WeightCurveCard } from "../components/WeightCurveCard";
+import { TrackingDescribeDialog } from "../components/TrackingDescribeDialog";
 import { ActivitySessionsCard } from "../components/ActivitySessionsCard";
 import { formatWeekday } from "../i18n/format";
 import { plural } from "../i18n/plural";
@@ -172,7 +178,22 @@ export default function StudentProgressPage() {
   // C8: la fenêtre PRÉCÉDENTE, uniquement pour donner une direction («more
   // vegetables than the week before») — jamais affichée en tant que telle.
   const [prevEvents, setPrevEvents] = React.useState<FoodEventRow[]>([]);
-  const [reviews, setReviews] = React.useState<ReviewRow[]>([]);
+  /**
+   * LE RAPPORT DE SUIVI — une passe serveur, et la PORTE de l'énergie avec.
+   * `null` tant qu'il n'est pas lu; l'écran ne rend alors aucun bloc chiffré.
+   */
+  const [report, setReport] = React.useState<TrackingReport | null>(null);
+  /** Le créneau qu'on est en train de décrire. `null` = dialogue fermé. */
+  const [describing, setDescribing] = React.useState<
+    { date: string; slot: string } | null
+  >(null);
+  /**
+   * Le compteur de rechargement. Un enregistrement change les CHIFFRES du
+   * serveur, pas l'état local: la seule façon honnête de les remettre à jour
+   * est de redemander la passe. Recalculer un total ici serait exactement le
+   * chemin par lequel un kcal perdrait sa base.
+   */
+  const [reload, setReload] = React.useState(0);
   /** chemin de bucket -> URL signée, pour les vignettes du journal. */
   const [photoUrls, setPhotoUrls] = React.useState<Record<string, string>>({});
   /**
@@ -224,21 +245,43 @@ export default function StudentProgressPage() {
         // `windowStart`.
         const until = isoDaysAgo(0, tz);
 
-        // Le garde TCA d'abord. Si un drapeau est levé, on ne lit même pas le
-        // reste: l'écran ne doit pas exister pour cet élève cette semaine.
-        const flagRes = await supabase
-          .from("weekly_reviews")
-          .select("risk_band, week_start_date")
-          .order("week_start_date", { ascending: false })
-          .limit(1);
-        if (flagRes.error) throw new Error(flagRes.error.message);
-        const latest = (flagRes.data ?? [])[0] as { risk_band?: string } | undefined;
-        if (latest?.risk_band === "restriction_flag") {
+        // ══════════════════════════════════════════════════════════════════
+        // A7 (2026-09-03) — LE GARDE TCA A CHANGÉ DE CÔTÉ, ET CE N'EST PAS UN
+        // RANGEMENT.
+        // ══════════════════════════════════════════════════════════════════
+        //
+        // Il lisait ICI `weekly_reviews.risk_band` et basculait l'écran en
+        // « restricted » sur `risk_band === "restriction_flag"`. Cette colonne
+        // n'a PLUS AUCUN ÉCRIVAIN depuis le 2026-08-08
+        // (`20260808200000_weekly_reviews_risk_band_orphaned.sql`): la ceinture
+        // était armée sur un coffre vide, et elle ne s'est jamais levée pour
+        // personne. Ce n'était pas une garde qui protégeait mal — c'était une
+        // garde qui ne pouvait pas se déclencher, et qui RESSEMBLAIT à une
+        // garde qui marche.
+        //
+        // Le signal vivant est `evaluateRestrictionForStudent`, atteint par
+        // `loadEnergyGate`, et il n'est pas lisible depuis un navigateur: il
+        // demande la doctrine publiée du coach et le service_role. La porte est
+        // donc désormais la PREMIÈRE instruction de `keel-tracking-v1`, et
+        // c'est sa réponse qui décide.
+        //
+        // ⛔ ET L'ÉCHEC DE CET APPEL EST UN ÉCHEC DE PAGE, pas une dégradation.
+        // Rendre les blocs « au cas où » quand la porte est illisible, c'est
+        // refaire exactement le défaut qu'on vient de retirer.
+        const report = await loadTracking({ from: since, to: until });
+        if (cancelled) return;
+        setReport(report);
+        if (report.floor) {
           if (!cancelled) setState({ kind: "restricted" });
           return;
         }
 
-        const [pulseRes, eventRes, reviewRes] = await Promise.all([
+        // ⟳ A7 — LA REQUÊTE `weekly_reviews` A QUITTÉ CETTE PAGE avec la carte
+        // de poids qu'elle servait. Elle lisait `outcomes` / `biofeedback` pour
+        // rendre UN nombre et un delta; la courbe le remplace, et sa source est
+        // `student_body_measures` (FF-031), servie par l'agrégat. Deux sources
+        // de poids sur le même écran auraient fini par se contredire.
+        const [pulseRes, eventRes] = await Promise.all([
           supabase
             .from("student_daily_checkins")
             .select("local_date, overall, axis")
@@ -279,15 +322,9 @@ export default function StudentProgressPage() {
             // comparaison déborde d'un jour pour tout élève décalé.
             .gte("local_date", range === "week" ? isoDaysAgo(13, tz) : since)
             .lte("local_date", until),
-          supabase
-            .from("weekly_reviews")
-            .select("week_start_date, outcomes, biofeedback")
-            .gte("week_start_date", since)
-            .order("week_start_date", { ascending: true }),
         ]);
         if (pulseRes.error) throw new Error(pulseRes.error.message);
         if (eventRes.error) throw new Error(eventRes.error.message);
-        if (reviewRes.error) throw new Error(reviewRes.error.message);
 
         if (cancelled) return;
         setPulses((pulseRes.data ?? []) as PulseRow[]);
@@ -307,7 +344,6 @@ export default function StudentProgressPage() {
         setPrevEvents(
           range === "week" ? allEvents.filter((e) => e.local_date < since) : [],
         );
-        setReviews((reviewRes.data ?? []) as ReviewRow[]);
         setState({ kind: "ready" });
       } catch (err) {
         if (!cancelled) {
@@ -316,7 +352,7 @@ export default function StudentProgressPage() {
       }
     })();
     return () => { cancelled = true; };
-  }, [range]);
+  }, [range, reload]);
 
   const total = daysBack(range);
 
@@ -410,11 +446,19 @@ export default function StudentProgressPage() {
   // l'écran entier pour une image serait le mauvais arbitrage.
   React.useEffect(() => {
     const paths = [
-      ...new Set(
-        loggedDaysDetail.flatMap((d) =>
+      ...new Set([
+        ...loggedDaysDetail.flatMap((d) =>
           d.entries.flatMap((e) => e.cell!.mediaPaths)
         ),
-      ),
+        // A7 — les vignettes du bloc objectif passent par la MÊME signature.
+        // Une seconde chaîne de signature sur le même écran, c'est deux
+        // budgets de 100 chemins et deux façons d'échouer.
+        ...(report?.objective?.days ?? []).flatMap((d) =>
+          d.photos.map((ph) => ph.mediaPath).filter((x): x is string =>
+            typeof x === "string" && x.length > 0
+          )
+        ),
+      ]),
     ].filter((p) => !(p in photoUrls));
     if (paths.length === 0) return;
     let cancelled = false;
@@ -429,12 +473,7 @@ export default function StudentProgressPage() {
       }
     })();
     return () => { cancelled = true; };
-  }, [loggedDaysDetail, photoUrls]);
-
-  // 4. POIDS — la pesée du point du dimanche. Voir `displayWeights`.
-  const weights = displayWeights(reviews);
-  const firstWeight = weights[0] ?? null;
-  const lastWeight = weights.length > 0 ? weights[weights.length - 1] : null;
+  }, [loggedDaysDetail, photoUrls, report]);
 
   if (state.kind === "loading") {
     return (
@@ -504,6 +543,22 @@ export default function StudentProgressPage() {
             </button>
           ))}
         </div>
+
+        {/* 0. CE QUI A ÉTÉ FAIT — A7, le bloc permanent, pour TOUS les
+            objectifs. Il ne porte aucun chiffre d'énergie: des plans menés au
+            bout, des repas décidés, des séances de cuisine. Il passe avant la
+            régularité parce qu'il décrit ce que le PRODUIT a fait, quand tout
+            le reste de la page décrit ce que la PERSONNE a fait — et qu'on ne
+            met pas quelqu'un devant son propre bilan sans lui avoir d'abord
+            rendu ce qu'il a acheté. */}
+        {report?.permanent
+          ? (
+            <TrackingSummaryCard
+              permanent={report.permanent}
+              leftoverBoxes={report.leftoverBoxes}
+            />
+          )
+          : null}
 
         {/* 1. LA RÉGULARITÉ — la seule métrique dont on a la preuve qu'elle prédit. */}
         <Card>
@@ -902,6 +957,25 @@ export default function StudentProgressPage() {
           )}
         </Card>
 
+        {/* 3ter. L'OBJECTIF, JOUR PAR JOUR — A7, et le SEUL bloc de cette page
+            qui porte un chiffre d'énergie. Il n'existe que si la direction est
+            posée ET si les cinq portes ont ouvert: c'est le serveur qui en
+            décide, `report.objective` vaut `null` sinon.
+            ⚠️ IL EST ICI, ET PAS EN TÊTE. Un total de calories qui ouvre la
+            page ferait de l'écran un compteur — et la régularité, seule
+            métrique dont ce dépôt ait la preuve qu'elle prédit, passerait
+            derrière un chiffre dont le biais est connu. */}
+        {report?.objective
+          ? (
+            <TrackingObjectiveCard
+              objective={report.objective}
+              dayName={dayName}
+              photoUrls={photoUrls}
+              onDescribe={(date, slot) => setDescribing({ date, slot })}
+            />
+          )
+          : null}
+
         {/* 4. LES SÉANCES — L2b, 2026-08-18. Le consommateur VIVANT de
             `student_activity_sessions`, et sa surface de saisie.
             ⚠️ ELLE N'EST RENDUE QU'AVEC UN `userId`, et ce n'est pas de la
@@ -922,35 +996,32 @@ export default function StudentProgressPage() {
           )
           : null}
 
-        {/* 5. LE POIDS, EN DERNIER. Une pesée par semaine, lue comme une
-            tendance: le chiffre du jour n'est pas l'information. */}
-        <Card>
-          <SectionLabel>{t("student_progress.weight.label")}</SectionLabel>
-          {lastWeight === null ? (
-            <p className="mt-2 text-sm text-ink-soft">
-              {t("student_progress.weight.empty")}
-            </p>
-          ) : (
-            <>
-              <p className="mt-2 text-3xl font-semibold text-ink">
-                {lastWeight.toFixed(1)}
-                <span className="text-lg text-ink-soft"> {t("unit.kg")}</span>
-              </p>
-              {firstWeight !== null && weights.length > 1 ? (
-                <p className="mt-1 text-sm text-ink">
-                  {t("student_progress.weight.delta", {
-                    delta: `${lastWeight - firstWeight >= 0 ? "+" : ""}${
-                      (lastWeight - firstWeight).toFixed(1)
-                    }`,
-                  })}
-                </p>
-              ) : null}
-              <p className="mt-2 text-xs leading-5 text-ink-soft">
-                {t("student_progress.weight.footnote")}
-              </p>
-            </>
-          )}
-        </Card>
+        {/* 5. LE POIDS, EN DERNIER — et c'est maintenant une COURBE.
+            La carte d'avant rendait un nombre et un delta, lus dans
+            `weekly_reviews`. Le nombre du jour EST la variation d'eau; la ligne
+            est ce qui la rend lisible comme telle. Le renversement de
+            FF-031 §3 est écrit dans `lib/weightCurve.ts`, avec ce qui ne change
+            pas: sous plancher TCA, le serveur rend `weight: null` et cette
+            carte n'est pas montée. */}
+        {report?.weight && report.weight.length > 0
+          ? (
+            <WeightCurveCard
+              points={report.weight}
+              today={isoDaysAgo(0, profileTimeZone)}
+            />
+          )
+          : null}
+
+        {/* ⚠️ MONTÉ EN PERMANENCE, fermé par `open`. `Modal` rend `null` fermé
+            SANS DÉMONTER: le démonter à chaque fermeture perdrait le texte en
+            cours dès qu'un rechargement de la page passe. */}
+        <TrackingDescribeDialog
+          open={describing !== null}
+          localDate={describing?.date ?? ""}
+          slot={describing?.slot ?? ""}
+          onClose={() => setDescribing(null)}
+          onRecorded={() => setReload((n) => n + 1)}
+        />
       </div>
     </KeelAppShell>
   );
