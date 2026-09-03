@@ -597,6 +597,26 @@ async function buildExportPayload(
       "declared_by",
       user.id,
       keelUnavailable,
+      // ⚠️ `answered_at`, ET IL DOIT ÊTRE PASSÉ — MESURÉ EN RUN RÉEL LE
+      // 2026-09-03, AU PREMIER PASSAGE DE `keel_gdpr_lifecycle_test.ts`.
+      //
+      // Le 7e paramètre vaut `created_at` PAR DÉFAUT, et cette table n'a pas
+      // cette colonne: son horodatage s'appelle `answered_at`. PostgREST
+      // rendait donc `42703 column meal_share_outcomes.created_at does not
+      // exist`, `fetchKeelRows` attrapait l'erreur, poussait la table dans
+      // `keelUnavailable` et rendait `[]`.
+      //
+      // ⛔ ET L'EXPORT NE TOMBAIT PAS. Il partait COMPLET, avec zéro ligne de
+      // `sort_de_mes_parts` et un drapeau que personne ne lit: chaque
+      // déclaration qu'une personne a faite sur SA propre part était
+      // silencieusement absente de son export RGPD. C'est la cicatrice
+      // `gdpr-lifecycle-does-not-claim-new-tables` sous une forme neuve — la
+      // table est bien réclamée par le CODE, et vide par un défaut de
+      // paramètre positionnel.
+      //
+      // Le lot A8.2 avait nommé ce test ROUGE (« jamais joué, gaté par
+      // SKIP_INTEGRATION »). Il est joué depuis, et c'est ce qu'il a trouvé.
+      "answered_at",
     ),
     // `recurring_meals` et `student_facts` ont été DROPPÉES par le pivot
     // nutrition (le memorizer fait cette couche souple). Les sonder à chaque
