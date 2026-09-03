@@ -981,3 +981,40 @@ portant pas `work_lunch`.
 **Le quatrième piège, transmis aux quatre sessions** : `git revert -m 1` d'une fusion défait le **contenu** mais laisse
 les commits **ancêtres** ; un rebase ultérieur les saute en silence et le contenu ne revient jamais.
 **La vérification n'est pas `--is-ancestor`, c'est `git diff <commit>^ <HEAD> -- <ses fichiers>`.**
+
+## 00:5x — la lane se nomme, répare, et affine ma règle de commit
+
+**`sophia-2-51` s'est nommée** : les ~30 rouges sont **réparés**, rien ne sera inscrit en baseline. **Sa cause racine
+vaut au-delà de son lot** : les trois fichiers de test posaient `pathname: "/"` **parce que c'était un chemin où le choix
+du visiteur gagnait** — une propriété du produit, pas un détail de fixture. En épinglant `/` au français pour rendre
+`hreflang` possible, elle a retiré cette propriété, et les tests ont eu raison de tomber. Elle les a corrigés **à la
+source**, en les pointant sur `/start` (déclarée, traduite, non routée par langue), **au lieu d'ajuster leurs attentes** :
+elle a déplacé le test sur un chemin qui porte encore la propriété qu'il vérifie. C'est le motif de la journée dans
+l'autre sens — ici on ne retourne pas un test périmé, on lui rend son sujet.
+
+### ⭐ Ma règle de commit était à moitié fausse, et deux sessions me l'ont corrigée
+
+J'avais posé : « sur un arbre partagé, commiter avec une liste de chemins explicite ». **Insuffisant.**
+**Le pathspec protège l'INDEX, pas l'ARBRE** : `git commit -- <fichier>` commite le **fichier entier**, **hunks étrangers
+compris**. Sur un arbre à quatre sessions, cela peut emporter le travail en vol d'un autre **dans un fichier que je crois
+mien**. La règle complète, en deux temps :
+1. liste de chemins explicite au commit (protège de ce qui est **stagé** par d'autres) ;
+2. **relecture de `git diff` fichier par fichier** avant de commiter (protège de ce qui est **modifié** par d'autres dans
+   les mêmes fichiers).
+J'ai payé la première moitié ce soir (`089f7fdf`, quatre suppressions emportées). `sophia-2-11` et `sophia-2-51` m'ont
+évité de payer la seconde. **Mes commits de journal restent sûrs** : le fichier n'est touché par personne d'autre.
+
+### Réponse mesurée à la session beta : mes lots ne touchent NI le gel NI Stripe
+
+Mesuré sur les cinq branches (`free_until`, `STRIPE_PRICE_ID`, `billing-tier`, `access_tier`, `402`) : **zéro occurrence
+dans le code de production**. ⚠️ **Faux ami signalé** : la lane MEMBRE porte beaucoup de `frozen` — `meal_frozen_portion`,
+`meal_share_outcome`, `share_step` — **c'est le CONGÉLATEUR, pas le gel de compte** (le sort d'une boîte non mangée).
+Qui grepperait `frozen` pour mesurer le gel compterait ces lignes-là.
+**En revanche l'entonnoir a beaucoup bougé**, et je l'ai dit : plus de durée de session ni de case « la veille », deux
+questions neuves, la carte du déjeuner déménagée, l'étape 2 unifiée, l'option vide d'objectif retirée des six sélecteurs,
+`TableStepPlanning` et `InviteCard` supprimés, et un profil réclamé qui atteint désormais le chat et le suivi.
+**Tout compteur d'entonnoir par écran ou par question n'est plus comparable à hier.**
+Son diagnostic — le tunnel de paiement du foyer échoue faute des deux prix Stripe, donc tout foyer gèle à J+7 **sans
+chemin de dégel** — est cohérent avec ce que ce chantier a laissé de côté **explicitement** (les cinq gestes Stripe de
+FF-049, hors périmètre, et le montant non tranché : 1,99 € sur le site contre 2,00 € dans la fiche). **C'est un trou réel
+que je n'ai pas comblé**, et il rejoint les trois décisions produit portées à l'humain.
