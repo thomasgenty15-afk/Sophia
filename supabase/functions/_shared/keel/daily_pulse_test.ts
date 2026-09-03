@@ -430,15 +430,15 @@ Deno.test("no buttons without a question, no question without buttons", () => {
   // wants none. A question with no buttons is worse: `readPulseReply` only ever
   // reads button ids, so a typed reply goes to the dispatcher and the day is
   // never measured at all.
-  const factOnly = renderPulseMessage({ recapBody: "Ticked off today: Oats.", ask: false, strip: null, locale: "en-US", });
+  const factOnly = renderPulseMessage({ memory: null, recapBody: "Ticked off today: Oats.", ask: false, strip: null, locale: "en-US", });
   assertEquals(factOnly.buttons.length, 0);
   assertEquals(factOnly.body, "Ticked off today: Oats.");
 
-  const askOnly = renderPulseMessage({ recapBody: null, ask: true, strip: null, locale: "en-US", });
+  const askOnly = renderPulseMessage({ memory: null, recapBody: null, ask: true, strip: null, locale: "en-US", });
   assertEquals(askOnly.buttons.length, 3);
   assertEquals(askOnly.body, "How was today?");
 
-  const both = renderPulseMessage({ recapBody: "Ticked off today: Oats.", ask: true, strip: null, locale: "en-US", });
+  const both = renderPulseMessage({ memory: null, recapBody: "Ticked off today: Oats.", ask: true, strip: null, locale: "en-US", });
   assertEquals(both.buttons.length, 3);
   // The blank line is load-bearing, not cosmetic: run together, the count reads
   // as the preamble to the question, which is the measurement bias the recap
@@ -451,7 +451,7 @@ Deno.test("neither ground nor ask cannot be rendered — the decider already ref
   // caller that reaches the renderer without it has bypassed the decision.
   let threw = false;
   try {
-    renderPulseMessage({ recapBody: null, ask: false, strip: null, locale: "en-US", });
+    renderPulseMessage({ memory: null, recapBody: null, ask: false, strip: null, locale: "en-US", });
   } catch {
     threw = true;
   }
@@ -459,7 +459,7 @@ Deno.test("neither ground nor ask cannot be rendered — the decider already ref
   // Whitespace is not a fact either.
   let threwOnBlank = false;
   try {
-    renderPulseMessage({ recapBody: "   \n ", ask: false, strip: null, locale: "en-US", });
+    renderPulseMessage({ memory: null, recapBody: "   \n ", ask: false, strip: null, locale: "en-US", });
   } catch {
     threwOnBlank = true;
   }
@@ -656,6 +656,7 @@ Deno.test("FF-058 — the strip NEVER overrides a guard that comes before it", (
 
 Deno.test("FF-058 — the order is fact, strip, question — and the buttons follow it", () => {
   const all = renderPulseMessage({
+    memory: null,
     recapBody: "Ticked off today: Oats.",
     ask: true,
     strip: STRIP, locale: "en-US",
@@ -677,6 +678,7 @@ Deno.test("FF-058 — the order is fact, strip, question — and the buttons fol
 
 Deno.test("FF-058 — the strip can carry the message alone, with no question and no buttons of the pulse", () => {
   const stripOnly = renderPulseMessage({
+    memory: null,
     recapBody: null,
     ask: false,
     strip: STRIP, locale: "en-US",
@@ -690,6 +692,7 @@ Deno.test("FF-058 — the strip can carry the message alone, with no question an
 Deno.test("FF-058 — a null strip renders EXACTLY the message of before, byte for byte", () => {
   // La contre-épreuve du lot: l'ajout est additif, jamais régressif.
   const before = renderPulseMessage({
+    memory: null,
     recapBody: "Ticked off today: Oats.",
     ask: true,
     strip: null, locale: "en-US",
@@ -697,7 +700,7 @@ Deno.test("FF-058 — a null strip renders EXACTLY the message of before, byte f
   assertEquals(before.body, "Ticked off today: Oats.\n\nHow was today?");
   assertEquals(before.buttons.length, 3);
   assertEquals(
-    renderPulseMessage({ recapBody: "Ticked off today: Oats.", ask: false, strip: null, locale: "en-US", })
+    renderPulseMessage({ memory: null, recapBody: "Ticked off today: Oats.", ask: false, strip: null, locale: "en-US", })
       .buttons.length,
     0,
   );

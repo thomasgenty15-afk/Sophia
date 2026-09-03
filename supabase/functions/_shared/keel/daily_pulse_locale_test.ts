@@ -130,6 +130,7 @@ Deno.test("le message du soir français ne recolle pas la question anglaise", ()
   // (`composeRecapBody` et `buildEveningStrip` reçoivent la locale), et la
   // question se collait en anglais entre eux. Un seul message, deux langues.
   const fr = renderPulseMessage({
+    memory: null,
     recapBody: "Coché aujourd'hui : flocons d'avoine.",
     ask: true,
     strip: null,
@@ -142,6 +143,7 @@ Deno.test("le message du soir français ne recolle pas la question anglaise", ()
   assertEquals(fr.buttons.map((b) => b.title), ["Ça va", "Bof", "Dur"]);
 
   const en = renderPulseMessage({
+    memory: null,
     recapBody: "Ticked off today: Oats.",
     ask: true,
     strip: null,
@@ -159,6 +161,7 @@ Deno.test("sans question, la locale ne change rien au corps — elle ne s'invite
   const body = "Coché aujourd'hui : flocons d'avoine.";
   for (const locale of ["en-US", "fr-FR"]) {
     const out = renderPulseMessage({
+      memory: null,
       recapBody: body,
       ask: false,
       strip: null,
@@ -214,6 +217,7 @@ Deno.test("R7 — une langue sans pack jette plutôt que de rendre un message mi
   assertThrows(() => renderPulseAck("good", null, "de-DE"));
   assertThrows(() =>
     renderPulseMessage({
+      memory: null,
       recapBody: "x",
       ask: true,
       strip: null,
