@@ -61,8 +61,19 @@ s'engage. C'est l'inverse d'un déblocage : c'est une punition.
 ### Hors périmètre — engageant
 - ❌ **Composer, ajouter, retirer, restreindre.** Une seule personne gouverne le
   menu (F1). Les quatre refus sont prouvés.
-- ❌ **Le chat, et les mesures corporelles, dans cette version.** Ils viendront
-  quand quelqu'un les demandera.
+- ~~❌ **Le chat, et les mesures corporelles, dans cette version.**~~
+  ⟳ **RENVERSÉ le 2026-09-03 pour le chat (chantier P8, lot A8.0, décision
+  D8.1)** — et c'est un renversement écrit ici parce que c'est ici que la
+  phrase inverse vivait. Un profil réclamé reçoit désormais **son** message
+  du soir dans `/app/chat` : la bande ③ des repas, bâtie depuis le plan
+  `household` de **son** foyer, et jamais ① les courses ni ② la cuisson, qui
+  restent au maître (FF-058 R10, FF-061 R9). Le cron `keel-daily-pulse-v1` le
+  sert par une **seconde requête d'audience** (`household_members.role =
+  'member' and user_id is not null`), **après** les maîtres du même tick, et
+  sans jamais lui écrire `keel_role` (R14 tient). Ce chat est **Sophia → la
+  personne** ; il n'ouvre **aucun** canal membre ↔ maître — « aucun canal 1:1
+  dans le foyer » (README) reste vrai. Les mesures corporelles restent hors
+  périmètre de cette fiche (FF-047).
 - ❌ **Choisir sa ligne au moment de rejoindre.** Ça ferait d'un lien qui fuite
   le droit de se **déclarer n'importe qui** du foyer (R2).
 - ❌ **Écraser le prénom avec `profiles.full_name`.** Voir R3.
@@ -178,7 +189,7 @@ Aucune ligne n'est créée par la réclamation. C'est l'invariant de la fiche.
 | R11 | **La réclamation est RÉVOCABLE par le maître, et détacher ≠ retirer** | Conséquence directe de D2, et elle doit être **dite** : qui paie l'accès peut le retirer. `keel_household_detach_member` remet `user_id` à NULL et **la ligne reste** ; `keel_household_remove_member` **détruit la bouche**. Deux gestes, deux libellés à l'écran, jamais un seul bouton ambigu — le raccourci coûte les données de quelqu'un qui dîne encore là. Le maître, lui, ne se détache pas lui-même (`cannot_detach_owner`) : un foyer dont le compte maître n'a plus d'accès n'a plus personne pour composer, **par construction**. |
 | R12 | **Créer un compte ici EXIGE le pays, et la réclamation exige une SESSION** | Deux gardes à deux moments, parce qu'une seule laisse un contournement. À la **création** : sans pays bien formé, `handle_new_user()` **lève** et annule la transaction de signup (`20260811060000:397`) — vérifié en HTTP réel, `POST /auth/v1/signup` rend 500 et `auth.users` reste à zéro ligne. À la **réclamation** : `country_required` (`:157`), et c'est celle-là qui ferme « je crée un compte par une autre porte, puis je viens réclamer ». La réclamation n'est **pas** faite dans le trigger de signup : l'aperçu `anon` rend l'adresse invitée, donc un voleur de lien s'inscrirait à cette adresse et raflerait la place sans jamais ouvrir la boîte mail. |
 | R13 | **Deux arités sont deux fonctions** | `keel_household_join(text)` est **droppée** (`20260811060000:77`), pas laissée à côté de sa remplaçante `(p_token, p_country)` (`:79`). Garder la première laisserait une porte **sans pays** juste à côté de la porte gardée — le trou le plus invisible qui soit. |
-| R14 | **Le palier posé à l'arrivée est `household_member`, jamais `student`** | `student` ouvre `/app/today`, `/app/chat` et `/app/progress` : trois écrans vides pour qui n'a ni coach ni plan. Le lot 6 avait déjà posé `KeelHouseholdRoute` pour cette raison. |
+| R14 | **Le palier posé à l'arrivée est `household_member`, jamais `student`** | `student` décrit une relation avec un coach qui n'existe pas ici, et ouvre `/app/today` (le mode 1:1, les repas composés par la personne) : un écran vide pour qui ne compose pas. Le lot 6 avait déjà posé `KeelHouseholdRoute` pour cette raison. ⟳ **Depuis le 2026-09-03 (A8.0)**, `/app/chat` et `/app/progress` sont eux aussi sous `KeelHouseholdRoute` : ce qui s'est élargi est la **porte**, pas le rôle — `keel_role` reste NULL, et `routeGuards.int.test.ts` tient les deux moitiés (les deux écrans ouverts au foyer, `/app/today` toujours élève). |
 
 ## 7. Modes de défaillance
 
