@@ -212,6 +212,74 @@ const MOUTHS: Mouth[] = [
 ];
 
 // ---------------------------------------------------------------------------
+// ⟳ 2026-09-04 · LE FOYER À CINQ BOUCHES — `--roster cinq`
+// ---------------------------------------------------------------------------
+//
+// ⛔ SANS UNE **SECONDE FILLE** ET UN **CONJOINT**, LA MOITIÉ DES AMBIGUÏTÉS
+// N'EXISTE PAS. Le trio d'origine résout « ma fille » tout seul (Léa est la
+// seule) et n'a aucun adulte masculin, donc « mon mari » ne désigne rien. Le
+// banc des clarifications a besoin des deux cas où le classifieur DOIT hésiter
+// (« ma fille », « elle ») et des deux où il ne doit PAS (« mon fils »,
+// « mon mari ») — c'est leur COEXISTENCE qui prouve que la question est posée
+// au bon moment, et pas systématiquement.
+//
+// ⚠️ LE DÉFAUT RESTE `trois`, ET CE N'EST PAS DE LA TIMIDITÉ. Les bancs frères
+// (`2026-09-01`, `2026-09-03`) épinglent des attendus qui SUPPOSENT une fille
+// unique: « ma fille » y va chez Léa sans hésiter. Basculer le défaut les
+// rendrait tous faux d'un coup, et leurs verdicts ressembleraient à des
+// régressions du produit.
+//
+// ⚠️ CHAQUE CORPS PORTE UN `gender`. Le classifieur S'ABSTIENT sur un sexe
+// `null` (`draft_note_classify.ts`): une bouche sans corps rendrait « mon
+// mari » indécidable pour la mauvaise raison — pas parce que deux personnes
+// collent, mais parce qu'aucune n'est lisible.
+const EXTRA_MOUTHS: Mouth[] = [
+  {
+    firstName: "Marc",
+    birthDate: "1986-09-02",
+    goal: "maintenance",
+    role:
+      "ADULTE MASCULIN — « mon mari » ne doit JAMAIS poser de question: il " +
+      "est le seul homme adulte de la table",
+    body: {
+      heightCm: 181,
+      weightKg: 79,
+      gender: "male",
+      activityLevel: "trains_some",
+      dayActivity: "seated",
+      sportFrequency: "1_2",
+      appetite: "average",
+    },
+  },
+  {
+    firstName: "Zoé",
+    birthDate: "2018-06-21",
+    goal: "maintenance",
+    role:
+      "SECONDE MINEURE FÉMININE — c'est ELLE qui rend « ma fille » et " +
+      "« elle » ambigus, et « les petites » un pluriel à deux sujets",
+    body: {
+      heightCm: 122,
+      weightKg: 24,
+      gender: "female",
+      activityLevel: "on_feet",
+      dayActivity: "on_feet",
+      sportFrequency: "none",
+      appetite: "small",
+    },
+  },
+];
+
+const ROSTER = arg("roster", "trois");
+if (ROSTER !== "trois" && ROSTER !== "cinq") {
+  console.error(
+    `--roster « ${ROSTER} » inconnu. Deux valeurs: trois (défaut) | cinq.`,
+  );
+  Deno.exit(2);
+}
+if (ROSTER === "cinq") MOUTHS.push(...EXTRA_MOUTHS);
+
+// ---------------------------------------------------------------------------
 // Le transport
 // ---------------------------------------------------------------------------
 
