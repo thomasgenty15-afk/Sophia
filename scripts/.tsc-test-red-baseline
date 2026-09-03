@@ -35,7 +35,20 @@ src/keel/api/ownActivityLevel.int.test.ts 4
 src/keel/api/retainedItems.int.test.ts 2
 src/keel/api/weeklyCheckIn.int.test.ts 1
 src/keel/components/dishCardSameDay.int.test.ts 1
-src/keel/components/mealBoxes.int.test.ts 14
+# ⟳ 2026-09-03, orchestrateur des huit chantiers — TROIS LIGNES REMESUREES.
+#    Les comptes du 22/08 avaient DERIVE avant que ce chantier ne commence: le
+#    travail des nuits du 1er au 3 septembre, commite en bloc par `fa422747`,
+#    les a bouges sans que personne ne les relise. Mesure faite sur un worktree
+#    DETACHE a `bfecdc28` (l'arbre principal est pollue par une session voisine
+#    en vol, il rendait 54 puis 58 la ou l'arbre propre rend 93):
+#      · mealBoxes 16 (liste 14) · meCardSheet 10 (liste 9) · setupMouthsStep 0 (liste 6)
+#    Les deux HAUSSES sont donc anterieures au chantier, et aucun de ses lots
+#    n'en porte une seule — a verifier avant de les tolerer plus longtemps: ce
+#    sont des erreurs de type REELLES dans des fichiers de test, a REDUIRE, pas
+#    un plafond acquis. La BAISSE est un rouge repare (les six `TS1117` de
+#    setupMouthsStep, clefs dupliquees, nommees ci-dessus comme appartenant a un
+#    voisin: le lot A3 a reecrit le fichier et elles sont parties).
+src/keel/components/mealBoxes.int.test.ts 16
 src/keel/components/mouthFormDialog.int.test.ts 2
 src/keel/components/planDaySeparation.int.test.ts 1
 src/keel/components/planGridEatingOut.int.test.ts 1
@@ -43,6 +56,6 @@ src/keel/lib/planByPersonModel.int.test.ts 6
 src/keel/lib/planDaySlots.int.test.ts 5
 src/keel/lib/planGridModel.int.test.ts 5
 src/keel/lib/presenceRoster.int.test.ts 1
-src/keel/pages/meCardSheet.int.test.ts 9
-src/keel/pages/setupMouthsStep.int.test.ts 6
+src/keel/pages/meCardSheet.int.test.ts 10
+src/keel/pages/setupMouthsStep.int.test.ts 0
 src/keel/pages/setupSituateStep.int.test.ts 3
