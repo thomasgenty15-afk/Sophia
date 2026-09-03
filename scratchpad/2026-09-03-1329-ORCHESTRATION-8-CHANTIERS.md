@@ -814,3 +814,30 @@ rebase sur leur commit.
 
 **Sa règle, tirée de M21, adoptée pour le chantier** : *un correctif ne se prouve pas par un test vert sur le bon
 comportement, mais par un test qui rougit sur le défaut exact qu'il a laissé passer.*
+
+## 23:2x — la lane FOYER a terminé ; son worktree rendu (650 Mo), la branche gardée
+
+Correctif `1d8cd8b1` + journal `02351083`, **prêt à reprendre**. Worktree retiré après avoir vérifié, plutôt que supposé,
+que le correctif vit **sur la branche** (`git cat-file -e chantier-0903/FOYER:<fichier>` → accessible) et pas seulement
+dans la copie de travail : **un `cherry-pick` lit la branche, pas le worktree**. Disque : **3,8 Gi**.
+
+**La recette de recréation est écrite** (§10.6 de son journal) plutôt que redécouverte, avec le piège qui coûte le plus :
+la branche survit à la suppression, **les `node_modules` non** — et sans eux `npx tsc` répond *« This is not the tsc
+command you are looking for »*, ce qui **ressemble à une panne d'outil et n'en est pas une**. Les **lier** vers l'arbre
+principal coûte 0 octet, les réinstaller 215 Mo.
+
+### Le corollaire, plus actionnable que la formule
+
+La lane a précisé ce qu'elle avait nommé, et c'est la version à retenir :
+
+> La cohérence entre documents ne prouve rien, mais elle a un signe distinctif : **plus un texte est proche du code, plus
+> il est crédible, sans être plus vrai pour autant.** Mon journal était le plus proche des trois, et c'est exactement ce
+> qui l'a rendu le plus difficile à mettre en doute. **Le remède n'est pas de mieux écrire les rapports : c'est de monter
+> le composant et de lire ce qui sort.**
+
+Trois formulations à garder ensemble, toutes nées d'un défaut réel de cette journée :
+1. un **correctif** ne se prouve pas par un test vert sur le bon comportement, mais par un test qui **rougit sur le
+   défaut exact** qu'il a laissé passer (M21) ;
+2. une **mutation qui ne rougit pas** est un signal, pas un soulagement — deux gardes qui se recouvrent en laissent une
+   « crue tenue » (M18) ;
+3. la **proximité au code fait la crédibilité, pas la vérité** — et le remède est de rendre, pas de mieux rédiger.
