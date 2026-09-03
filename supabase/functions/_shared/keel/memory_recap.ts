@@ -52,11 +52,28 @@ export interface RecapSafety {
   readonly who: string | null;
 }
 
-/** Une ligne de mémoire souple écrite aujourd'hui. */
+/**
+ * Une ligne de mémoire souple écrite aujourd'hui.
+ *
+ * ⟳ LOT D (2026-09-03) — ELLE PORTE MAINTENANT SA DESTINATION ET SA BOUCHE.
+ *
+ * Le récap n'annonçait QUE l'encart (`retained_next_plan`). Or les deux sources
+ * du modèle écrivent aussi une PRÉFÉRENCE durable et une NOTE — et le modèle
+ * dit, en toutes lettres, qu'on retient ET qu'on le dit. Une préférence écrite
+ * en silence est exactement le magasin invisible que ce chantier ferme.
+ *
+ * ⚠️ ET LE SUJET, PARCE QU'IL CHANGE LE SENS. « J'ai noté : pas de poisson » et
+ * « J'ai noté pour Tom : pas de poisson » ne disent pas la même chose à un
+ * foyer de trois personnes; la première se lit comme une règle de table.
+ */
 export interface RecapKept {
   readonly text: string;
-  /** Le dernier jour où elle vit (`ancre + 6`), ou `null` si durable. */
+  /** Le dernier jour où elle vit, ou `null` — l'encart ne meurt plus par date. */
   readonly until: string | null;
+  /** Où c'est rangé. Vocabulaire FERMÉ: trois destinations, pas une de plus. */
+  readonly kind: "preference" | "note" | "next_plan";
+  /** Le prénom de la bouche, ou `null` = toute la table. */
+  readonly who: string | null;
 }
 
 const COPY = {
@@ -76,6 +93,12 @@ const COPY = {
     keptOne: "J'ai aussi gardé ça de ton retour :",
     until: (day: string) => `jusqu'au ${day}`,
     quote: (t: string) => `« ${t} »`,
+    // ⟳ LOT D — LES TROIS DESTINATIONS SE NOMMENT. Un seul « j'ai gardé ça »
+    // pour trois magasins laissait la personne sans moyen de savoir OÙ aller
+    // le corriger — et la carte a trois blocs distincts.
+    keptPreference: "J'ai noté ce que tu veux (ou pas) dans l'assiette :",
+    keptNote: "J'ai retenu ça :",
+    keptFor: (who: string) => ` pour ${who}`,
   },
   en: {
     safetyOne: (what: string) => `I've recorded ${what}.`,
@@ -91,6 +114,9 @@ const COPY = {
     undo: "If I got that wrong, you can remove it in your health details.",
     undoMany: "If I got those wrong, you can remove them in your health details.",
     keptOne: "I've also kept this from your feedback:",
+    keptPreference: "I've noted what you do (and don't) want on the plate:",
+    keptNote: "I've kept this:",
+    keptFor: (who: string) => ` for ${who}`,
     until: (day: string) => `until ${day}`,
     // ⚠️ LES GUILLEMETS SUIVENT LA LANGUE. Ils étaient en dur en français des
     // deux côtés — une ligne anglaise citée « comme ça » se lit comme un
@@ -143,17 +169,36 @@ export function buildMemoryRecap(args: {
   }
 
   const kept = (args.kept ?? []).filter((k) => String(k?.text ?? "").trim() !== "");
-  if (kept.length > 0) {
-    const lines = kept.map((k) => {
+  // ⚠️ UN BLOC PAR DESTINATION, DANS L'ORDRE DE LA CARTE. Fondre les trois
+  // sous « j'ai gardé ça » laissait la personne sans moyen de savoir OÙ aller
+  // le corriger; la carte a trois blocs, le message en a trois.
+  //
+  // ⛔ L'ORDRE EST CELUI DE `KNOWN_BLOCKS` CÔTÉ FRONT, et ce n'est pas une
+  // coquetterie: le message renvoie vers l'écran, et deux ordres différents
+  // pour les mêmes trois choses se lisent comme deux listes différentes.
+  const INTRO = {
+    preference: copy.keptPreference,
+    note: copy.keptNote,
+    next_plan: copy.keptOne,
+  } as const;
+  for (const destination of ["preference", "note", "next_plan"] as const) {
+    const rows = kept.filter((k) => k.kind === destination);
+    if (rows.length === 0) continue;
+    const lines = rows.map((k) => {
       const text = String(k.text).trim();
       const until = String(k.until ?? "").trim();
+      const who = String(k.who ?? "").trim();
+      // ⚠️ LE SUJET COLLE À LA LIGNE, PAS À L'INTRO: deux bouches peuvent
+      // apparaître dans le même bloc, et une intro « pour Tom » suivie d'une
+      // ligne qui parle de Léa serait un fait faux, pas une approximation.
+      const head = who ? `· ${who} :` : "·";
       // §6 de la nomenclature: « avec sa date d'expiration affichée ». Une
       // règle dont la date ne se voit pas se découvre morte un lundi matin.
       return until
-        ? `· ${copy.quote(text)} (${copy.until(until)})`
-        : `· ${copy.quote(text)}`;
+        ? `${head} ${copy.quote(text)} (${copy.until(until)})`
+        : `${head} ${copy.quote(text)}`;
     });
-    blocks.push([copy.keptOne, ...lines].join("\n"));
+    blocks.push([INTRO[destination], ...lines].join("\n"));
   }
 
   return blocks.length === 0 ? null : blocks.join("\n\n");

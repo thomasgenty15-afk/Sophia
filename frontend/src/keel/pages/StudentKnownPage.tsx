@@ -39,12 +39,23 @@ import { t } from "../i18n/t";
 // enverrait `[]` et effacerait tout ce que la personne avait déclaré. La carte
 // n'est donc montée QUE sur l'état `ready`.
 //
-// ── ⚠️ CE QUE CET ÉCRAN NE PERSISTE PAS ENCORE ────────────────────────────
-// Le port d'écriture est une RPC dont la migration est ÉCRITE et NON LANCÉE
-// (`20260818240000_a_write_port_for_what_sophia_knows.sql`). Tant qu'un humain
-// ne l'a pas passée, chaque enregistrement rend le refus NOMMÉ
-// `no_write_port`, affiché sous le bouton qu'on vient d'appuyer. C'est un
-// partiel, et il se voit — pas un « Saved » posé sur un 204 silencieux.
+// ── ⟳ LE PORT D'ÉCRITURE EST POSÉ (corrigé le 2026-09-03) ─────────────────
+// Ce bloc disait: « la migration est ÉCRITE et NON LANCÉE, chaque
+// enregistrement rend `no_write_port` ». C'était vrai le jour où il a été
+// écrit, et faux depuis: `20260818240000_a_write_port_for_what_sophia_knows.sql`
+// est au registre, et cet écran enregistre pour de bon.
+//
+// ⚠️ CE QUI RESTE VRAI, ET QU'ON NE RETIRE PAS AVEC LA PHRASE PÉRIMÉE: le refus
+// `no_write_port` EXISTE toujours et se rend toujours sous le bouton pressé. Il
+// est la réponse d'un déploiement où le front est plus neuf que la base — le
+// cas le plus courant d'un déploiement en deux temps. Un refus nommé, sous le
+// geste, plutôt qu'un « Saved » posé sur un 204 silencieux.
+//
+// ⚠️ ET LA LEÇON GÉNÉRALE, PARCE QU'ELLE A COÛTÉ: une phrase de commentaire qui
+// décrit un ÉTAT (« pas encore lancée ») survit à sa cause et se met à mentir.
+// Ce dépôt en porte la cicatrice — « une contrainte documentée survit à sa
+// cause ». Ce qui décrit une RÈGLE vieillit bien; ce qui décrit un état du
+// jour, non.
 
 type LoadState =
   | { kind: "loading" }

@@ -6,18 +6,16 @@ import {
   portionIndexFor,
   INDEX_MAX,
   type PortionIndex,
-  recentlyKept,
-  sectionOf,
   HOUSEHOLD_SUBJECT,
   isNextPlanItemAlive,
-  itemsInSection,
-  KNOWN_SECTIONS,
-  type KnownSection,
+  itemsInBlock,
+  visibleDuplicates,
+  preferenceSideOf,
+  type KnownBlock,
   type KnownStore,
   KnownWriteError,
   type KnownWriteRefusal,
   type NextPlanEntry,
-  nextPlanLifeOf,
   opaqueStoreRefusal,
   type PortionAdjustMember,
   type RetainedItem,
@@ -29,7 +27,7 @@ import {
 } from "../api/retainedItems";
 import type { FieldChange } from "../api/fieldChanges";
 import { MEMO_MAX_LINES, type MemoLine } from "../api/retainedItems";
-import { formatDateLong, formatWeekday } from "../i18n/format";
+import { formatWeekday } from "../i18n/format";
 import { type MessageKey, t } from "../i18n/t";
 import { Button } from "./ui/Button";
 import { Card, SectionLabel } from "./ui/Card";
@@ -103,14 +101,43 @@ function portionIndexLabelKey(index: PortionIndex): string | null {
 // nommée sur la section concernée: `portion.adjust` n'atteint pas encore
 // l'enveloppe. On l'écrit sur l'écran plutôt que de laisser croire.
 
-const SECTION_TITLE: Readonly<Record<KnownSection, MessageKey>> = {
+/**
+ * ⟳ LOT D — LES SIX SECTIONS PAR FAMILLE SONT DEVENUES CINQ BLOCS PAR
+ * DESTINATION. `no_more` et `again` sont maintenant les DEUX LISTES d'un seul
+ * bloc (une préparation est une préférence); `portions`, `rhythm` et `kitchen`
+ * sont fondus dans « Réglages ajustés », la seule face visible de la
+ * destination ②; `next_week` devient l'encart, qui meurt au prochain plan
+ * VALIDÉ et non plus au calendrier.
+ */
+const BLOCK_TITLE: Readonly<Record<KnownBlock, MessageKey>> = {
+  preferences: "known.block.preferences.title",
+  notes: "known.block.notes.title",
+  settings: "known.block.settings.title",
+  next_plan: "known.block.next_plan.title",
+  legacy: "known.legacy.title",
+};
+
+const BLOCK_INTRO: Readonly<Record<KnownBlock, MessageKey>> = {
+  preferences: "known.block.preferences.intro",
+  notes: "known.block.notes.intro",
+  settings: "known.block.settings.intro",
+  next_plan: "known.block.next_plan.intro",
+  legacy: "known.legacy.intro",
+};
+
+const BLOCK_EMPTY: Readonly<Record<KnownBlock, MessageKey>> = {
+  preferences: "known.block.preferences.empty",
+  notes: "known.block.notes.empty",
+  settings: "known.block.settings.empty",
+  next_plan: "known.block.next_plan.empty",
+  legacy: "known.legacy.empty",
+};
+
+/** Les deux listes du bloc ①, dans l'ordre de lecture. */
+const PREFERENCE_SIDE_TITLE = {
   no_more: "known.section.no_more.title",
   again: "known.section.again.title",
-  portions: "known.section.portions.title",
-  rhythm: "known.section.rhythm.title",
-  kitchen: "known.section.kitchen.title",
-  next_week: "known.section.next_week.title",
-};
+} as const;
 
 /**
  * LE NOM DU CHAMP, TEL QUE LA PERSONNE LE LIT DANS SES RÉGLAGES — lot M5.
@@ -146,15 +173,6 @@ function showFieldValue(value: unknown): string {
   }
   return String(value);
 }
-
-const SECTION_EMPTY: Readonly<Record<KnownSection, MessageKey>> = {
-  no_more: "known.section.no_more.empty",
-  again: "known.section.again.empty",
-  portions: "known.section.portions.empty",
-  rhythm: "known.section.rhythm.empty",
-  kitchen: "known.section.kitchen.empty",
-  next_week: "known.section.next_week.empty",
-};
 
 /**
  * ⚠️ LES LIBELLÉS DE MOMENT VIENNENT DE `slot.*`, PAS D'UN CATALOGUE LOCAL.
@@ -695,12 +713,7 @@ export default function KnownAboutYouCard(props: KnownAboutYouCardProps) {
     </div>
   );
 
-  const itemLine = (
-    item: RetainedItem,
-    index: number,
-    /** LOT M2 — dans le fil, la ligne nomme sa destination. Voir plus bas. */
-    inFeed = false,
-  ) => {
+  const itemLine = (item: RetainedItem, index: number) => {
     const key = `item:${index}`;
     const open = editing?.at === "item" && editing.index === index;
     const detail = detailLine(item);
@@ -718,11 +731,6 @@ export default function KnownAboutYouCard(props: KnownAboutYouCardProps) {
                 sans dire ce qui a changé, et la personne doit chercher la
                 ligne dans six sections pour comprendre. Sous une section, ce
                 serait redondant: le titre est juste au-dessus. */}
-            {inFeed && (
-              <p className="text-xs font-semibold uppercase tracking-wide text-ink-soft">
-                {t(SECTION_TITLE[sectionOf(item)])}
-              </p>
-            )}
             <p className="text-sm text-ink">{item.text}</p>
             {detail && <p className="mt-0.5 text-xs text-ink">{detail}</p>}
             {excluded && (
@@ -894,11 +902,22 @@ export default function KnownAboutYouCard(props: KnownAboutYouCardProps) {
     );
   };
 
-  /** Les sections 3 et 4 sont GROUPÉES PAR BOUCHE (§6). */
-  const groupedSection = (section: KnownSection) => {
-    const rows = itemsInSection(store.items, section);
-    const groups = groupBySubject(rows);
-    return groups.map((group) => (
+  /**
+   * ⟳ LOT D — TOUT SE GROUPE PAR BOUCHE, plus seulement deux sections.
+   *
+   * ── LE DÉFAUT QUE ÇA FERME ────────────────────────────────────────────
+   * Il fallait lire SIX listes et repérer un prénom dans chacune pour savoir ce
+   * que Sophia sait de Léa. Le groupement est donc la personne, et les blocs
+   * sont les trois DESTINATIONS — ce qui rend visible la frontière que la
+   * nomenclature pose et que l'écran effaçait: un INDICE (« pour nous ») ne se
+   * lit plus comme un SAVOIR.
+   *
+   * ⚠️ UNE BOUCHE SANS LIGNE N'A PAS D'EN-TÊTE. `groupBySubject` ne rend que
+   * les sujets PRÉSENTS: un en-tête vide par personne ferait lire « Sophia ne
+   * sait rien de Léa » là où la vérité est « Léa n'a rien dit ».
+   */
+  const groupedItems = (rows: readonly RetainedItem[]) =>
+    groupBySubject(rows).map((group) => (
       <div key={group.subject} className="mt-3">
         <p className="text-xs font-semibold text-ink-soft">
           {nameOf(group.subject)}
@@ -908,6 +927,23 @@ export default function KnownAboutYouCard(props: KnownAboutYouCardProps) {
         </ul>
       </div>
     ));
+
+  /**
+   * LE MÉMO D'UNE BOUCHE — destination ③, groupée comme les deux autres.
+   *
+   * ⚠️ LE `when` EST RENDU, PAS SEULEMENT STOCKÉ. « Le mardi soir » est ce qui
+   * distingue un fait durable d'un fait DATÉ, et une note dont le moment reste
+   * invisible se lit comme une règle permanente — c'est le lot A qui a posé ce
+   * champ, et l'écran est le seul endroit où la personne peut le démentir.
+   */
+  const memoWhen = (line: MemoLine): string | null => {
+    if (!line.when) return null;
+    const day = line.when.weekday === null ? null : DAY_KEY[line.when.weekday];
+    const slot = line.when.slot === null ? null : OCCASION_KEY[line.when.slot];
+    if (!day && !slot) return null;
+    return [day ? t(day) : null, slot ? t(slot) : null]
+      .filter((x): x is string => x !== null)
+      .join(" · ");
   };
 
   const liveNextPlan = store.nextPlan.filter((entry) =>
@@ -923,22 +959,59 @@ export default function KnownAboutYouCard(props: KnownAboutYouCardProps) {
    */
   const unwritable = opaqueStoreRefusal(store) !== null;
 
-  /**
-   * ⛔ LE CENTRE DE NOTIFICATIONS — LOT M2, ET IL EST EN TÊTE.
-   *
-   * ── POURQUOI EN PREMIER ──────────────────────────────────────────────────
-   * Les six sections répondent à « qu'est-ce que Sophia sait de moi ? ». Le fil
-   * répond à une autre question, et c'est celle qui presse: **« qu'est-ce qui
-   * vient de changer sans que je le demande ? »**. Enterré sous six sections,
-   * il ne serait lu par personne — et une notification que personne ne lit est
-   * une notification qui n'existe pas.
-   *
-   * ⚠️ IL NE DEMANDE RIEN. Pas de confirmation bloquante: quelqu'un de pressé
-   * dit oui à tout, et on retomberait sur de l'opt-out avec des étapes en plus.
-   * Le fil montre, cite, et laisse défaire.
-   */
-  const recent = recentlyKept(store.items);
+  const duplicates = visibleDuplicates({ items: store.items, memo });
+  const preferences = itemsInBlock(store.items, "preferences");
+  const settings = itemsInBlock(store.items, "settings");
 
+  /**
+   * LE MÉMO, GROUPÉ PAR BOUCHE — et l'INDEX D'ORIGINE voyage avec la ligne.
+   *
+   * ⛔ ÉCRIT À LA MAIN, ET SURTOUT PAS `groupBySubject(memo as never)`. Un
+   * `as` sur un type étranger désarme le typecheck en silence — la cicatrice
+   * est chiffrée dans ce dépôt (« 200 en log, null en silence »): `MemoLine`
+   * n'est pas un `RetainedItem`, et le jour où l'un des deux gagne un champ, le
+   * cast rendrait un objet à moitié construit sans qu'une ligne rougisse.
+   *
+   * ⚠️ L'INDEX EST CELUI DU MAGASIN, PAS CELUI DU GROUPE. `onRemoveMemoLine`
+   * retire par POSITION dans la liste d'origine: passer l'index du groupe
+   * effacerait la ligne de quelqu'un d'autre.
+   *
+   * ⚠️ « TOUTE LA TABLE » EN PREMIER, comme `groupBySubject`. Deux ordres
+   * différents sur le même écran se lisent comme deux écrans.
+   */
+  const memoGroups = (() => {
+    const bySubject = new Map<string, Array<{ line: MemoLine; index: number }>>();
+    memo.forEach((line, index) => {
+      const list = bySubject.get(line.subject) ?? [];
+      list.push({ line, index });
+      bySubject.set(line.subject, list);
+    });
+    const out: Array<{ subject: string; lines: Array<{ line: MemoLine; index: number }> }> = [];
+    const shared = bySubject.get(HOUSEHOLD_SUBJECT);
+    if (shared) out.push({ subject: HOUSEHOLD_SUBJECT, lines: shared });
+    for (const [subject, lines] of bySubject) {
+      if (subject === HOUSEHOLD_SUBJECT) continue;
+      out.push({ subject, lines });
+    }
+    return out;
+  })();
+
+  /**
+   * ⟳ LE FIL « CE QUI VIENT DE CHANGER » A ÉTÉ RETIRÉ (lot D), ET CE N'EST PAS
+   * UNE SIMPLIFICATION.
+   *
+   * Il rejouait, en tête, des lignes qui figurent DÉJÀ dans leur bloc — un
+   * doublon visible assumé, au moment précis où cette carte a pour promesse
+   * qu'un même fait n'apparaît qu'une fois. Ce qu'il apportait vraiment — QUAND
+   * c'est arrivé, et POURQUOI — n'est pas perdu: chaque ligne porte sa date, sa
+   * provenance et la phrase qui l'a causée, dans son bloc.
+   *
+   * ⚠️ CE QUI ÉTAIT SA VRAIE RAISON D'ÊTRE RESTE, ET IL A CHANGÉ DE PLACE: les
+   * `field_changes` — les réglages bougés sans que la personne les ait touchés
+   * — sont maintenant EN TÊTE du bloc « Réglages ajustés », avec leur
+   * « Défaire ». C'était le seul contenu du fil qui n'existait nulle part
+   * ailleurs.
+   */
   return (
     <div className="space-y-8">
       {unwritable && (
@@ -946,185 +1019,236 @@ export default function KnownAboutYouCard(props: KnownAboutYouCardProps) {
           <p className="text-sm text-amber-900">{t("known.store_unreadable")}</p>
         </Card>
       )}
-      {(recent.length > 0 || fieldChanges.length > 0) && (
-        <section>
-          <SectionLabel>{t("known.recent.title")}</SectionLabel>
-          <p className="mb-2 text-xs text-ink-soft">{t("known.recent.intro")}</p>
-          <ul className="space-y-2">
-            {/* ⚠️ LES CHANGEMENTS DE CHAMP D'ABORD. Ils portent sur des réglages
-                que la personne a elle-même remplis: c'est le changement le plus
-                surprenant du fil, donc celui qu'elle doit voir en premier. */}
-            {fieldChanges.map((change, index) => fieldLine(change, index))}
-            {recent.map((item) =>
-              itemLine(item, store.items.indexOf(item), true)
-            )}
-          </ul>
-        </section>
-      )}
-      {KNOWN_SECTIONS.map((section) => {
-        const grouped = section === "portions" || section === "rhythm";
-        const rows = section === "next_week"
-          ? []
-          : itemsInSection(store.items, section);
-        const count = section === "next_week" ? liveNextPlan.length : rows.length;
-        return (
-          <section key={section}>
-            <SectionLabel>{t(SECTION_TITLE[section])}</SectionLabel>
-            {section === "portions" && (() => {
-              // ⛔ LOT M3 — CETTE PHRASE DISAIT UNE LIMITE QUI N'EXISTAIT PLUS.
-              // Elle annonçait « les ajustements de portion n'atteignent pas
-              // encore le calcul des parts » alors que l'enveloppe les reçoit
-              // depuis le lot 1G — elle SOUS-promettait, ce qui est un mensonge
-              // dans l'autre sens. Son propre commentaire disait qu'elle devait
-              // disparaître le jour où elle cesserait d'être vraie.
-              //
-              // À la place: la POSITION, c'est-à-dire ce que le générateur fait
-              // vraiment de ces réponses. *« Si c'est faux, un geste corrige,
-              // au lieu d'attendre cinq plans que ça redérive. »*
-              //
-              // ⚠️ PAR BOUCHE, JAMAIS AGRÉGÉE. Un indice appartient à qui
-              // mange; en faire une moyenne de foyer servirait à tout le monde
-              // une part que personne n'a demandée.
-              const groups = groupBySubject(itemsInSection(store.items, section));
-              const lines = groups
-                .map((group) => ({
-                  subject: group.subject,
-                  key: portionIndexLabelKey(portionIndexFor(group.items)),
-                }))
-                .filter((row) => row.key !== null);
-              if (lines.length === 0) return null;
-              return (
-                <div className="mb-2 space-y-1">
-                  {lines.map((row) => (
-                    <p key={row.subject} className="text-xs text-ink-soft">
-                      {t(row.key as MessageKey, { who: nameOf(row.subject) })}
-                    </p>
-                  ))}
-                </div>
-              );
-            })()}
-            {count === 0
-              ? (
-                <Card tone="dashed">
-                  <p className="text-sm text-ink-soft">{t(SECTION_EMPTY[section])}</p>
-                </Card>
-              )
-              : section === "next_week"
-              ? (
-                <ul className="space-y-2">
-                  {liveNextPlan.map((entry, i) => {
-                    const life = nextPlanLifeOf(entry.anchor);
-                    return (
-                      <li
-                        key={`next:${i}`}
-                        className="rounded-card border border-line bg-paper-2 px-3 py-2"
-                      >
-                        <p className="text-sm text-ink">{entry.item.text}</p>
-                        <p className="mt-0.5 text-xs text-ink-soft">
-                          {sourceLine(entry.item)}
-                        </p>
-                        {/* ⚠️ L'EXPIRATION EST AFFICHÉE, ET C'EST LA RÈGLE DU
-                            §6: « une envie qui disparaît sans prévenir se lit
-                            comme une perte de données; une envie datée se lit
-                            comme une envie. » */}
-                        {life && (
-                          <p className="mt-0.5 text-xs text-ink">
-                            {t("known.section.next_week.expires", {
-                              date: formatDateLong(life.lastDay),
-                            })}
-                          </p>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ul>
-              )
-              : grouped
-              ? <>{groupedSection(section)}</>
-              : (
-                <ul className="space-y-2">
-                  {rows.map((item) => itemLine(item, store.items.indexOf(item)))}
-                </ul>
-              )}
-            {section === "next_week" && count > 0 && (
-              // ⚠️ TROU NOMMÉ PLUTÔT QUE MASQUÉ: le magasin provisoire n'a pas
-              // encore de geste d'édition sur cet écran. Ces lignes s'en vont
-              // toutes seules, à la date affichée — mais on ne fait pas semblant
-              // d'offrir un bouton qui n'écrit rien.
-              <p className="mt-2 text-xs text-ink-soft">
-                {t("known.section.next_week.read_only")}
-              </p>
-            )}
-          </section>
-        );
-      })}
 
-      {/* ── LOT M4 · LE MÉMO — « ce que Sophia a retenu d'autre » ──────────
+      {/* ══ LOT D · LA MÊME CHOSE DITE DEUX FOIS ════════════════════════════
+          ⛔ ON LA NOMME, ON NE LA CACHE PAS. Masquer la seconde ligne ferait
+          disparaître de l'écran quelque chose qui EXISTE en base et qui atteint
+          le prompt — le contraire exact de la promesse de cette carte. Un
+          doublon entre le magasin structuré et le mémo est un défaut du
+          classifieur (§2.3: les trois destinations sont sans recouvrement), et
+          la personne est la seule à pouvoir dire laquelle des deux compte. */}
+      {duplicates.length > 0 && (
+        <Card tone="warning">
+          <p className="text-sm text-amber-900">
+            {t("known.duplicate.body", {
+              lines: duplicates.map((d) => d.text).join(" · "),
+            })}
+          </p>
+        </Card>
+      )}
+
+      {/* ══ ① LES PRÉFÉRENCES ALIMENTAIRES — par personne, deux listes ═══════
+          §2.2 ① de la nomenclature. Une PRÉPARATION est une préférence: les
+          `method.*` sont dans les mêmes listes que les `food.*`, et il n'y a
+          plus à savoir ce que le produit appelle « une méthode ». */}
+      <section>
+        <SectionLabel>{t(BLOCK_TITLE.preferences)}</SectionLabel>
+        <p className="mb-2 text-xs text-ink-soft">{t(BLOCK_INTRO.preferences)}</p>
+        {preferences.length === 0
+          ? (
+            <Card tone="dashed">
+              <p className="text-sm text-ink-soft">{t(BLOCK_EMPTY.preferences)}</p>
+            </Card>
+          )
+          : (
+            <>
+              {(["no_more", "again"] as const).map((side) => {
+                const rows = preferences.filter(
+                  (item) => preferenceSideOf(item) === side,
+                );
+                if (rows.length === 0) return null;
+                return (
+                  <div key={side} className="mt-3">
+                    <p className="text-sm font-semibold text-ink">
+                      {t(PREFERENCE_SIDE_TITLE[side])}
+                    </p>
+                    {groupedItems(rows)}
+                  </div>
+                );
+              })}
+            </>
+          )}
+      </section>
+
+      {/* ══ ③ CE QUE JE SAIS D'AUTRE — le mémo, par personne, daté ═══════════
           ⛔ IL SE VOIT, ET C'EST UNE CONDITION D'EXISTENCE, pas un ornement.
           Un champ texte caché, sans plafond, injecté dans chaque prompt est
           exactement le magasin que ce chantier supprime, avec un autre chapeau
           — et la chose la plus difficile à déboguer du produit: le jour où un
-          plan part de travers, personne ne peut dire pourquoi.
+          plan part de travers, personne ne peut dire pourquoi. */}
+      <section>
+        <SectionLabel>{t(BLOCK_TITLE.notes)}</SectionLabel>
+        <p className="mb-2 text-xs text-ink-soft">
+          {t(BLOCK_INTRO.notes, {
+            used: String(memo.length),
+            max: String(MEMO_MAX_LINES),
+          })}
+        </p>
+        {memo.length === 0
+          ? (
+            <Card tone="dashed">
+              <p className="text-sm text-ink-soft">{t(BLOCK_EMPTY.notes)}</p>
+            </Card>
+          )
+          : (
+            <>
+              {memoGroups.map((group) => (
+                <div key={group.subject} className="mt-3">
+                  <p className="text-xs font-semibold text-ink-soft">
+                    {nameOf(group.subject)}
+                  </p>
+                  <ul className="mt-1 space-y-2">
+                    {group.lines.map(({ line, index }) => (
+                        <li
+                          key={`memo:${index}`}
+                          className="rounded-card border border-line bg-paper-2 px-3 py-2"
+                        >
+                          <div className="flex flex-wrap items-start gap-2">
+                            <div className="min-w-0 flex-1">
+                              <p className="text-sm text-ink">{line.text}</p>
+                              {memoWhen(line) && (
+                                <p className="mt-0.5 text-xs text-ink">
+                                  {memoWhen(line)}
+                                </p>
+                              )}
+                              <p className="mt-0.5 text-xs italic text-ink-soft">
+                                {t("known.quote", { quote: line.quote })}
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              disabled={busy}
+                              onClick={() =>
+                                void commitMemoRemove(`memo:${index}`, index)}
+                              className="shrink-0 text-xs text-fig-700 underline hover:text-fig-800"
+                            >
+                              {t("known.remove")}
+                            </button>
+                          </div>
+                          {error?.key === `memo:${index}` && (
+                            <p className="mt-2 text-sm text-red-700">
+                              {error.message}
+                            </p>
+                          )}
+                        </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </>
+          )}
+      </section>
 
-          ⚠️ EN QUEUE DES SIX SECTIONS. C'est le RÉSIDU: ce qu'aucune famille ne
-          porte. Le mettre devant lui donnerait le rang d'une catégorie, alors
-          qu'il est ce qui reste quand aucune n'a convenu. */}
-      {memo.length > 0 && (
+      {/* ══ ② LES RÉGLAGES AJUSTÉS — la seule face visible des indices ═══════
+          ⚠️ CE BLOC N'EST PAS UN « SAVOIR », ET SON INTRO LE DIT. Les indices
+          sont internes (« pour nous », §2.2 ②); ils sont ici pour le RETOUR EN
+          ARRIÈRE, pas pour se lire comme une chose que Sophia sait de vous.
+          Confondre les deux était le défaut de l'écran d'avant. */}
+      <section>
+        <SectionLabel>{t(BLOCK_TITLE.settings)}</SectionLabel>
+        <p className="mb-2 text-xs text-ink-soft">{t(BLOCK_INTRO.settings)}</p>
+        {(() => {
+          // ⚠️ PAR BOUCHE, JAMAIS AGRÉGÉE. Un indice appartient à qui mange;
+          // en faire une moyenne de foyer servirait à tout le monde une part
+          // que personne n'a demandée.
+          const lines = groupBySubject(
+            settings.filter((item) => item.kind === "portion.adjust"),
+          )
+            .map((group) => ({
+              subject: group.subject,
+              key: portionIndexLabelKey(portionIndexFor(group.items)),
+            }))
+            .filter((row) => row.key !== null);
+          if (lines.length === 0) return null;
+          return (
+            <div className="mb-2 space-y-1">
+              {lines.map((row) => (
+                <p key={row.subject} className="text-xs text-ink-soft">
+                  {t(row.key as MessageKey, { who: nameOf(row.subject) })}
+                </p>
+              ))}
+            </div>
+          );
+        })()}
+        {fieldChanges.length === 0 && settings.length === 0
+          ? (
+            <Card tone="dashed">
+              <p className="text-sm text-ink-soft">{t(BLOCK_EMPTY.settings)}</p>
+            </Card>
+          )
+          : (
+            <>
+              {/* ⚠️ LES CHANGEMENTS DE CHAMP EN PREMIER. Ils portent sur des
+                  réglages que la personne a elle-même remplis: c'est le
+                  changement le plus surprenant, donc celui qu'elle doit voir
+                  d'abord — et le seul qui porte « Défaire ». */}
+              {fieldChanges.length > 0 && (
+                <ul className="space-y-2">
+                  {fieldChanges.map((change, index) => fieldLine(change, index))}
+                </ul>
+              )}
+              {groupedItems(settings)}
+            </>
+          )}
+      </section>
+
+      {/* ══ L'ENCART — « pour le prochain plan », et il meurt à la VALIDATION ═
+          ⚠️ RENDU SEULEMENT S'IL EST NON VIDE (§7.1). Un bloc vide annoncerait
+          une réserve qui n'existe pas, sur le seul contenu de cette carte qui
+          est censé disparaître tout seul. */}
+      {liveNextPlan.length > 0 && (
         <section>
-          <SectionLabel>{t("known.memo.title")}</SectionLabel>
-          <p className="mb-2 text-xs text-ink-soft">
-            {t("known.memo.intro", {
-              used: String(memo.length),
-              max: String(MEMO_MAX_LINES),
-            })}
-          </p>
+          <SectionLabel>{t(BLOCK_TITLE.next_plan)}</SectionLabel>
+          <p className="mb-2 text-xs text-ink-soft">{t(BLOCK_INTRO.next_plan)}</p>
           <ul className="space-y-2">
-            {memo.map((line, index) => (
+            {liveNextPlan.map((entry, i) => (
               <li
-                key={`memo:${index}`}
+                key={`next:${i}`}
                 className="rounded-card border border-line bg-paper-2 px-3 py-2"
               >
-                <div className="flex flex-wrap items-start gap-2">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm text-ink">{line.text}</p>
-                    <p className="mt-0.5 text-xs italic text-ink-soft">
-                      {t("known.quote", { quote: line.quote })}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => void commitMemoRemove(`memo:${index}`, index)}
-                    className="shrink-0 text-xs text-fig-700 underline hover:text-fig-800"
-                  >
-                    {t("known.remove")}
-                  </button>
-                </div>
-                {error?.key === `memo:${index}` && (
-                  <p className="mt-2 text-sm text-red-700">{error.message}</p>
-                )}
+                <p className="text-sm text-ink">{entry.item.text}</p>
+                <p className="mt-0.5 text-xs text-ink-soft">
+                  {sourceLine(entry.item)}
+                </p>
+                {/* ⟳ LOT A — L'ENCART NE MEURT PLUS AU CALENDRIER. Cette ligne
+                    annonçait une DATE (« bon jusqu'au 7 septembre »), et c'était
+                    faux depuis que sa durée de vie est le prochain plan VALIDÉ:
+                    une envie pouvait survivre à sa date, ou mourir avant. On
+                    annonce donc l'ÉVÉNEMENT, qui est ce qui la tue vraiment. */}
+                <p className="mt-0.5 text-xs text-ink">
+                  {t("known.block.next_plan.until")}
+                </p>
               </li>
             ))}
           </ul>
         </section>
       )}
 
-      {/* ── §7 · LES ANCIENNES NOTES ─────────────────────────────────────── */}
-      <section>
-        <SectionLabel>{t("known.legacy.title")}</SectionLabel>
-        <p className="mb-2 text-xs text-ink-soft">{t("known.legacy.intro")}</p>
-        {store.legacyNotes.length === 0
-          ? (
-            <Card tone="dashed">
-              <p className="text-sm text-ink-soft">{t("known.legacy.empty")}</p>
-            </Card>
-          )
-          : (
-            <ul className="space-y-2">
-              {store.legacyNotes.map((text) => noteLine(text))}
-            </ul>
-          )}
-      </section>
+      {/* ══ LES ANCIENNES NOTES — TANT QU'IL EN RESTE ═══════════════════════
+          ⟳ LOT C/D — ELLES N'ATTEIGNENT PLUS LE PLAN, ET L'INTRO LE DIT. Ces
+          phrases plates vivaient dans `practical_constraints.food_preferences`,
+          que les deux générateurs lisaient à chaque composition. Le lot C a
+          fermé ce magasin: il n'a plus d'écrivain, plus de lecteur, et plus
+          personne ne l'élague. Il reste ici en LECTURE pour que la personne le
+          RANGE (en préférence, avec un sujet) ou l'ENLÈVE.
+
+          ⛔ ON NE RECLASSE RIEN À SA PLACE. Une phrase sans `kind` ne dit pas
+          si elle est un goût, une méthode ou un fait; deviner écrirait une
+          règle que personne n'a demandée.
+
+          ⚠️ LE BLOC DISPARAÎT QUAND IL EST VIDE, et c'est le lot D: un cadre
+          « Aucune » sur une archive fermée est un cadre qui ne servira plus
+          jamais à rien, en tête d'un écran qui promet de ne montrer que ce qui
+          existe. */}
+      {store.legacyNotes.length > 0 && (
+        <section>
+          <SectionLabel>{t("known.legacy.title")}</SectionLabel>
+          <p className="mb-2 text-xs text-ink-soft">{t("known.legacy.intro")}</p>
+          <ul className="space-y-2">
+            {store.legacyNotes.map((text) => noteLine(text))}
+          </ul>
+        </section>
+      )}
 
       {/* ── CE QUE LA LECTURE A REFUSÉ ───────────────────────────────────── */}
       {(store.refused.total > 0 || store.nextPlanRefused.total > 0) && (

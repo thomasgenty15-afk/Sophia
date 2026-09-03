@@ -61,9 +61,11 @@ import {
   defaultScopeFor,
   groupBySubject,
   HOUSEHOLD_SUBJECT,
-  itemsInSection,
-  KNOWN_SECTIONS,
-  type KnownSection,
+  itemsInBlock,
+  preferenceSideOf,
+  blockOf,
+  KNOWN_BLOCKS,
+  type KnownBlock,
   LOGISTICS_FIELDS,
   isNextPlanItemAlive,
   isoMondayOf,
@@ -103,7 +105,6 @@ import {
   rewriteRetainedItem,
   withNextPlanEntries,
   RHYTHM_OCCASIONS,
-  sectionOf,
   VARIETY_LEVELS,
   withRetainedItems,
 } from "./retainedItems";
@@ -721,28 +722,39 @@ describe("§7 — les anciennes notes se lisent, elles ne se devinent pas", () =
 
 // ===========================================================================
 
-describe("§6 — les six sections, dans l'ordre, et le `next_plan` gagne", () => {
-  it("l'ordre des sections est celui de la nomenclature", () => {
-    expect([...KNOWN_SECTIONS]).toEqual([
-      "no_more",
-      "again",
-      "portions",
-      "rhythm",
-      "kitchen",
-      "next_week",
+describe("§6 — les CINQ BLOCS, dans l'ordre, et le `next_plan` gagne", () => {
+  // ⟳ LOT D (2026-09-03) — SIX SECTIONS PAR FAMILLE SONT DEVENUES CINQ BLOCS
+  // PAR DESTINATION. Ce n'est pas un rangement: les trois destinations de la
+  // nomenclature (§2.2) n'avaient AUCUNE frontière visible à l'écran, et un
+  // INDICE interne (« pour nous ») se lisait comme un SAVOIR. Le groupement est
+  // désormais la personne, et les blocs sont les destinations.
+  it("l'ordre des blocs est celui de la nomenclature", () => {
+    expect([...KNOWN_BLOCKS]).toEqual([
+      "preferences",
+      "notes",
+      "settings",
+      "next_plan",
+      "legacy",
     ]);
   });
 
-  it("chaque famille tombe dans la section que le §6 lui donne", () => {
-    const expected: Array<[RetainedKind, KnownSection]> = [
-      ["food.exclude", "no_more"],
-      ["method.avoid", "no_more"],
-      ["food.prefer", "again"],
-      ["method.prefer", "again"],
-      ["portion.adjust", "portions"],
-      ["rhythm.set", "rhythm"],
-      ["logistics.set", "kitchen"],
-      ["craving", "next_week"],
+  it("chaque famille tombe dans le bloc que le §6 lui donne", () => {
+    const expected: Array<[RetainedKind, KnownBlock]> = [
+      // ⚠️ UNE PRÉPARATION EST UNE PRÉFÉRENCE: `method.*` et `food.*` partagent
+      // un bloc. Deux sections séparées demandaient à la personne de savoir ce
+      // que le produit appelle « une méthode ».
+      ["food.exclude", "preferences"],
+      ["method.avoid", "preferences"],
+      ["food.prefer", "preferences"],
+      ["method.prefer", "preferences"],
+      // ⛔ `rhythm.set` ET `logistics.set` NE DISPARAISSENT PAS AVEC LEURS
+      // SECTIONS. Des lignes de ces deux familles existent en base, et une
+      // ligne qui quitte l'écran sans un mot est une perte de données pour qui
+      // la relit. Ce sont des RÉGLAGES: c'est leur bloc.
+      ["portion.adjust", "settings"],
+      ["rhythm.set", "settings"],
+      ["logistics.set", "settings"],
+      ["craving", "next_plan"],
     ];
     const valueFor = (kind: RetainedKind): unknown => {
       if (kind === "portion.adjust") return { direction: "up", magnitude: "slight" };
@@ -750,7 +762,7 @@ describe("§6 — les six sections, dans l'ordre, et le `next_plan` gagne", () =
       if (kind === "logistics.set") return { field: "variety", value: "varied" };
       return null;
     };
-    for (const [kind, section] of expected) {
+    for (const [kind, block] of expected) {
       const item = itemOf(
         memory(kind, {
           source: "written",
@@ -760,11 +772,39 @@ describe("§6 — les six sections, dans l'ordre, et le `next_plan` gagne", () =
           value: valueFor(kind),
         }),
       );
-      expect(sectionOf(item), kind).toBe(section);
+      expect(blockOf(item), kind).toBe(block);
     }
   });
 
-  it("une exclusion posée pour la semaine prochaine se lit sous la section 6", () => {
+  it("les deux listes du bloc ① séparent la polarité, et elles seules", () => {
+    // ⛔ SANS CE TEST, `preferenceSideOf` pourrait rendre « no_more » pour tout
+    // le monde et le bloc serait vert: les quatre familles y sont, mais la
+    // moitié « à revoir » serait vide sur un magasin qui la remplit.
+    const sideOf = (kind: RetainedKind) =>
+      preferenceSideOf(
+        itemOf(memory(kind, { source: "written", item: "", confidence: null })),
+      );
+    expect(sideOf("food.exclude")).toBe("no_more");
+    expect(sideOf("method.avoid")).toBe("no_more");
+    expect(sideOf("food.prefer")).toBe("again");
+    expect(sideOf("method.prefer")).toBe("again");
+    // Ce qui n'est pas une préférence n'a pas de côté — et rend `null`, pas
+    // « no_more » par défaut: un repli rangerait un réglage dans les goûts.
+    expect(
+      preferenceSideOf(
+        itemOf(
+          memory("portion.adjust", {
+            source: "written",
+            item: "",
+            confidence: null,
+            value: { direction: "up", magnitude: "slight" },
+          }),
+        ),
+      ),
+    ).toBeNull();
+  });
+
+  it("une exclusion posée pour le prochain plan se lit sous l'encart", () => {
     // Le §6 dit « TOUT le `next_plan` », pas « les envies ». La ranger avec les
     // durables la ferait passer pour une propriété permanente — la frontière
     // que le dépôt a déjà tranchée une fois (`situation` / `context`).
@@ -776,9 +816,21 @@ describe("§6 — les six sections, dans l'ordre, et le `next_plan` gagne", () =
         scope: "next_plan",
       }),
     );
-    expect(sectionOf(weekly)).toBe("next_week");
-    expect(itemsInSection([weekly], "no_more")).toEqual([]);
-    expect(itemsInSection([weekly], "next_week")).toEqual([weekly]);
+    expect(blockOf(weekly)).toBe("next_plan");
+    expect(itemsInBlock([weekly], "preferences")).toEqual([]);
+    expect(itemsInBlock([weekly], "next_plan")).toEqual([weekly]);
+  });
+
+  it("`notes` et `legacy` ne portent AUCUN `RetainedItem`", () => {
+    // ⛔ LA MOITIÉ QUI EMPÊCHE UN BLOC FANTÔME. Les deux existent à l'écran
+    // mais lisent d'autres magasins (le mémo, les phrases plates). Si
+    // `itemsInBlock` leur rendait des items, la carte afficherait la même ligne
+    // DEUX fois — exactement le doublon visible que le lot D ferme.
+    const item = itemOf(
+      memory("food.exclude", { source: "written", item: "", confidence: null }),
+    );
+    expect(itemsInBlock([item], "notes")).toEqual([]);
+    expect(itemsInBlock([item], "legacy")).toEqual([]);
   });
 
   it("les portions et le rythme se groupent par BOUCHE, `household` en tête", () => {

@@ -959,43 +959,68 @@ export function retainedItemFromLegacyNote(args: {
 }
 
 // ===========================================================================
-// LES SIX SECTIONS — §6 de la nomenclature, DANS L'ORDRE
+// LES CINQ BLOCS DE LA CARTE — §6 de la nomenclature (lot D, 2026-09-03)
+//
+// ⟳ IL Y AVAIT SIX SECTIONS PAR FAMILLE (`no_more`, `again`, `portions`,
+// `rhythm`, `kitchen`, `next_week`), ET C'ÉTAIT LE DÉFAUT. Quelqu'un qui veut
+// savoir ce que Sophia sait DE LÉA devait lire six listes et repérer son prénom
+// dans chacune. Surtout, les trois destinations n'avaient aucune frontière
+// visible: un INDICE (destination ②, interne, « pour nous ») se lisait comme un
+// SAVOIR (destination ③), et la personne ne pouvait pas distinguer ce qu'elle
+// a dit de ce que le produit en a déduit.
+//
+// Les blocs sont donc les DESTINATIONS, et le groupement est la PERSONNE.
 // ===========================================================================
 
-export const KNOWN_SECTIONS = [
-  "no_more",
-  "again",
-  "portions",
-  "rhythm",
-  "kitchen",
-  "next_week",
+export const KNOWN_BLOCKS = [
+  /** ① Ce qu'elle veut manger, ou pas. Deux listes, une seule section. */
+  "preferences",
+  /** ③ Ce que Sophia sait d'autre — le mémo, daté, avec sa citation. */
+  "notes",
+  /** ② Les réglages ajustés. La seule face visible des indices. */
+  "settings",
+  /** L'encart, qui meurt au prochain plan VALIDÉ. */
+  "next_plan",
+  /** Les phrases plates d'avant le lot C. N'atteignent plus le prompt. */
+  "legacy",
 ] as const;
-export type KnownSection = (typeof KNOWN_SECTIONS)[number];
+export type KnownBlock = (typeof KNOWN_BLOCKS)[number];
 
 /**
- * À quelle section va une ligne.
+ * À quel bloc va une ligne du magasin structuré.
  *
- * ⚠️ LE `scope` GAGNE SUR LE `kind`, ET C'EST LE §6 QUI LE DIT: la section 6
- * est « TOUT le `next_plan` », pas « les envies ». Une exclusion posée pour la
- * semaine prochaine se lit sous « Pour la semaine prochaine », avec sa date —
- * la ranger avec les durables la ferait passer pour une propriété permanente,
- * ce qui est la frontière que le dépôt a déjà tranchée une fois.
+ * ⚠️ LE `scope` GAGNE SUR LE `kind`, ET C'EST LE §6 QUI LE DIT: le bloc de
+ * l'encart est « TOUT le `next_plan` », pas « les envies ». Une exclusion posée
+ * pour le prochain plan se lit sous l'encart — la ranger avec les durables la
+ * ferait passer pour une propriété permanente, ce qui est la frontière que ce
+ * dépôt a déjà tranchée une fois.
+ *
+ * ⛔ `rhythm.set` ET `logistics.set` VONT DANS `settings`, ILS NE DISPARAISSENT
+ * PAS. Le lot D retire les sections « Ton rythme » et « Ta cuisine »; il ne
+ * retire pas les LIGNES, qui existent en base et dont le lot C vient de poser
+ * le compteur de fin de vie. Une ligne qui quitte l'écran sans un mot est une
+ * perte de données pour qui la relit — et ces deux familles SONT des réglages.
+ *
+ * ⛔ AUCUN BLOC POUR `legacy` ICI: les anciennes notes ne sont pas des
+ * `RetainedItem`, elles n'ont ni `kind` ni sujet. Elles ont un bloc à l'écran,
+ * pas une branche dans cette fonction — et c'est exactement pour ça qu'on ne
+ * les reclasse pas: on ne devine pas à la place de quelqu'un qui a écrit.
  */
-export function sectionOf(item: RetainedItem): KnownSection {
-  if (item.scope === "next_plan") return "next_week";
+export function blockOf(item: RetainedItem): Exclude<KnownBlock, "legacy" | "notes"> {
+  if (item.scope === "next_plan") return "next_plan";
   switch (item.kind) {
+    // ⚠️ UNE PRÉPARATION EST UNE PRÉFÉRENCE. `method.*` rejoint `food.*` dans
+    // le même bloc: deux listes séparées demandaient à la personne de savoir ce
+    // que le produit appelle « une méthode ».
     case "food.exclude":
-    case "method.avoid":
-      return "no_more";
     case "food.prefer":
+    case "method.avoid":
     case "method.prefer":
-      return "again";
+      return "preferences";
     case "portion.adjust":
-      return "portions";
     case "rhythm.set":
-      return "rhythm";
     case "logistics.set":
-      return "kitchen";
+      return "settings";
     // ⚠️ PAS DE BRANCHE `craving`, ET CE N'EST PAS UN OUBLI: l'union porte
     // `scope: "next_plan"` LITTÉRAL sur cette famille, donc le retour du dessus
     // l'a DÉJÀ retirée du type. En écrire une ne compile pas — l'invariant du
@@ -1003,12 +1028,28 @@ export function sectionOf(item: RetainedItem): KnownSection {
   }
 }
 
-/** Les lignes d'une section, dans l'ordre de lecture. */
-export function itemsInSection(
+/**
+ * LA POLARITÉ D'UNE PRÉFÉRENCE — les deux listes du bloc ①.
+ *
+ * ⚠️ RENDUE PAR UNE FONCTION ET PAS PAR UN `includes` À L'ÉCRAN: la carte a
+ * DEUX listes à remplir, et un filtre recopié des deux côtés diverge au premier
+ * `kind` ajouté — la moitié des lignes tomberait alors dans aucune des deux.
+ */
+export function preferenceSideOf(item: RetainedItem): "no_more" | "again" | null {
+  if (blockOf(item) !== "preferences") return null;
+  return item.kind === "food.exclude" || item.kind === "method.avoid"
+    ? "no_more"
+    : "again";
+}
+
+/** Les lignes d'un bloc, dans l'ordre de lecture. */
+export function itemsInBlock(
   items: readonly RetainedItem[],
-  section: KnownSection,
+  block: KnownBlock,
 ): RetainedItem[] {
-  return items.filter((item) => sectionOf(item) === section);
+  // `legacy` et `notes` ne portent pas de `RetainedItem` — voir `blockOf`.
+  if (block === "legacy" || block === "notes") return [];
+  return items.filter((item) => blockOf(item) === block);
 }
 
 // ===========================================================================
@@ -2444,6 +2485,62 @@ export async function loadWrittenDislikes(
     const list = out.get(memberId) ?? [];
     list.push(item.text);
     out.set(memberId, list);
+  }
+  return out;
+}
+
+// ===========================================================================
+// LOT D · LA RÈGLE ANTI-DOUBLON A UN LECTEUR, PAS SEULEMENT UNE PHRASE
+// ===========================================================================
+
+/** Une chose dite deux fois: la bouche, et le texte. */
+export interface VisibleDuplicate {
+  readonly subject: RetainedSubject;
+  readonly text: string;
+}
+
+/**
+ * LE MÊME FAIT, POUR LA MÊME BOUCHE, DANS DEUX BLOCS DE LA CARTE.
+ *
+ * ── POURQUOI ÇA EXISTE ────────────────────────────────────────────────────
+ * La nomenclature (§2.3) pose que les trois destinations sont SANS
+ * RECOUVREMENT: une phrase va dans exactement une. Pour les items, la règle est
+ * tenue par le TYPE — `blockOf` rend un bloc et un seul. Entre le magasin
+ * structuré et le MÉMO, elle n'est tenue par rien: ce sont deux magasins, et
+ * c'est le classifieur qui décide lequel reçoit. Un classifieur qui hésite
+ * écrirait « pas de saumon pour Tom » des deux côtés, et la personne lirait la
+ * même chose deux fois sans savoir laquelle compte.
+ *
+ * ⛔ ON NE MASQUE PAS LA LIGNE EN DOUBLE, ON LA NOMME. Cacher la seconde ferait
+ * disparaître de l'écran une ligne qui EXISTE en base et qui atteint le prompt —
+ * c'est-à-dire le contraire exact de la promesse de cette carte (« rien
+ * d'opaque »). L'écran dit qu'il y a un doublon; la personne en retire un.
+ *
+ * ⚠️ ÉGALITÉ, JAMAIS RESSEMBLANCE. Même normalisation qu'ailleurs (casse et
+ * espaces) et rien de plus: « laitue » n'est pas « lait », douze faux positifs
+ * sur douze mesurés dans ce dépôt.
+ */
+export function visibleDuplicates(args: {
+  readonly items: readonly RetainedItem[];
+  readonly memo: readonly MemoLine[];
+}): VisibleDuplicate[] {
+  const norm = (text: string) =>
+    text.trim().toLocaleLowerCase().replace(/\s+/g, " ");
+  const inItems = new Map<string, { subject: RetainedSubject; text: string }>();
+  for (const item of args.items ?? []) {
+    inItems.set(`${item.subject} ${norm(item.text)}`, {
+      subject: item.subject,
+      text: item.text,
+    });
+  }
+  const out: VisibleDuplicate[] = [];
+  const seen = new Set<string>();
+  for (const line of args.memo ?? []) {
+    const key = `${line.subject} ${norm(line.text)}`;
+    const hit = inItems.get(key);
+    if (!hit || seen.has(key)) continue;
+    seen.add(key);
+    out.push(hit);
   }
   return out;
 }

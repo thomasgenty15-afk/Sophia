@@ -13,7 +13,7 @@
 
 import { assert, assertEquals } from "jsr:@std/assert@1";
 
-import { buildMemoryRecap } from "./memory_recap.ts";
+import { buildMemoryRecap, type RecapKept } from "./memory_recap.ts";
 
 Deno.test("⛔ LA SÉCURITÉ SORT MÊME SEULE, avec son « défaire »", () => {
   const fr = buildMemoryRecap({
@@ -40,7 +40,7 @@ Deno.test("une bouche nommée est NOMMÉE — pas « quelqu'un »", () => {
 Deno.test("⛔ LA DATE D'EXPIRATION EST DITE — §6", () => {
   const fr = buildMemoryRecap({
     safety: [],
-    kept: [{ text: "Je n'aime pas le poulet", until: "dimanche 6" }],
+    kept: [{ text: "Je n'aime pas le poulet", until: "dimanche 6", kind: "next_plan" as const, who: null }],
     language: "fr",
   })!;
   assert(fr.includes("Je n'aime pas le poulet"));
@@ -48,7 +48,7 @@ Deno.test("⛔ LA DATE D'EXPIRATION EST DITE — §6", () => {
   // Une ligne durable n'invente pas de date.
   const durable = buildMemoryRecap({
     safety: [],
-    kept: [{ text: "plus de fenouil", until: null }],
+    kept: [{ text: "plus de fenouil", until: null, kind: "next_plan" as const, who: null }],
     language: "fr",
   })!;
   assert(!/jusqu/i.test(durable), "une date a été inventée pour une ligne durable");
@@ -67,7 +67,7 @@ Deno.test("⛔ UN `kind` INCONNU NE FABRIQUE PAS DE PHRASE", () => {
 Deno.test("les deux langues, et elles diffèrent", () => {
   const args = {
     safety: [{ kind: "allergy", ref: "peanut", who: null }],
-    kept: [] as { text: string; until: string | null }[],
+    kept: [] as RecapKept[],
   };
   const fr = buildMemoryRecap({ ...args, language: "fr" })!;
   const en = buildMemoryRecap({ ...args, language: "en" })!;
@@ -79,7 +79,7 @@ Deno.test("⛔ LES GUILLEMETS SUIVENT LA LANGUE", () => {
   // Ils étaient en dur en français des deux côtés: une ligne anglaise citée
   // « comme ça » se lit comme un copier-coller raté — sur le message même qui
   // annonce une allergie.
-  const kept = [{ text: "no fish", until: null }];
+  const kept = [{ text: "no fish", until: null, kind: "next_plan" as const, who: null }];
   const fr = buildMemoryRecap({ safety: [], kept, language: "fr" })!;
   const en = buildMemoryRecap({ safety: [], kept, language: "en" })!;
   assert(fr.includes("« no fish »"), "les guillemets français ont changé");
@@ -166,4 +166,113 @@ Deno.test("⛔ LE RÉCAP TIENT SEUL dans le message du soir", async () => {
   });
   assert(out.body.includes("peanut"), "le récap seul ne produit aucun message");
   assertEquals(out.buttons.length, 0, "le récap a fabriqué un bouton");
+});
+
+// ===========================================================================
+// LOT D · LE RÉCAP DIT LES TROIS DESTINATIONS, ET DIT POUR QUI
+//
+// ── LE DÉFAUT QUE CES TESTS FERMENT ───────────────────────────────────────
+// Le récap n'annonçait QUE l'encart (`retained_next_plan`) — c'est-à-dire le
+// magasin PROVISOIRE, celui qui meurt au plan suivant. Les deux sources du
+// modèle écrivent aussi une préférence DURABLE, qui gouverne toutes les
+// semaines à venir, et une NOTE. On prévenait donc pour le provisoire et on se
+// taisait sur le permanent, ce qui est l'inverse de ce qu'il faut.
+//
+// ⚠️ « ON RETIENT, ET ON LE DIT » est la moitié du modèle qui rend la mémoire
+// acceptable. Une préférence durable écrite en silence est exactement le
+// magasin invisible que ce chantier existe pour fermer.
+// ===========================================================================
+
+Deno.test("LOT D — une PRÉFÉRENCE et une NOTE ont chacune leur bloc", () => {
+  const out = buildMemoryRecap({
+    safety: [],
+    kept: [
+      { text: "pas de saumon", until: null, kind: "preference", who: "Tom" },
+      { text: "danse le mardi soir", until: null, kind: "note", who: "Léa" },
+      { text: "des fajitas", until: null, kind: "next_plan", who: null },
+    ],
+    language: "fr",
+  });
+  assert(out !== null);
+  // Les trois intros sont là, et elles sont DIFFÉRENTES: fondre les trois sous
+  // « j'ai gardé ça » laisserait la personne sans moyen de savoir où corriger.
+  assert(out.includes("dans l'assiette"), "le bloc des préférences manque");
+  assert(out.includes("J'ai retenu"), "le bloc des notes manque");
+  assert(out.includes("de ton retour"), "le bloc de l'encart manque");
+  // ⚠️ LE SUJET COLLE À LA LIGNE. Deux bouches dans le même message: une intro
+  // « pour Tom » suivie d'une ligne qui parle de Léa serait un fait FAUX.
+  assert(out.includes("Tom :"), "la préférence ne dit pas de qui elle parle");
+  assert(out.includes("Léa :"), "la note ne dit pas de qui elle parle");
+});
+
+Deno.test("LOT D — l'ordre des blocs est celui de la carte", () => {
+  // ⛔ CE N'EST PAS UNE COQUETTERIE. Le message renvoie vers l'écran, et deux
+  // ordres différents pour les mêmes trois choses se lisent comme deux listes
+  // différentes — la personne cherche alors ce qu'elle vient de lire.
+  const out = buildMemoryRecap({
+    safety: [],
+    kept: [
+      { text: "des fajitas", until: null, kind: "next_plan", who: null },
+      { text: "j'ai retenu ceci", until: null, kind: "note", who: null },
+      { text: "pas de saumon", until: null, kind: "preference", who: null },
+    ],
+    language: "fr",
+  });
+  assert(out !== null);
+  const prefs = out.indexOf("dans l'assiette");
+  const notes = out.indexOf("J'ai retenu");
+  const next = out.indexOf("de ton retour");
+  assert(prefs >= 0 && notes >= 0 && next >= 0);
+  assert(prefs < notes, "les préférences ne passent plus avant les notes");
+  assert(notes < next, "les notes ne passent plus avant l'encart");
+});
+
+Deno.test("LOT D — une bouche sans prénom sort SANS prénom, pas avec un uuid", () => {
+  // Un identifiant dans un message du soir n'est pas une information, c'est une
+  // fuite de plomberie. `who: null` est la bonne réponse quand le roster n'a
+  // pas pu être lu — et le récap sort quand même.
+  const out = buildMemoryRecap({
+    safety: [],
+    kept: [{ text: "pas de saumon", until: null, kind: "preference", who: null }],
+    language: "fr",
+  });
+  assert(out !== null);
+  assert(out.includes("pas de saumon"));
+  assert(!out.includes("member:"), "un identifiant de membre a fuité");
+});
+
+Deno.test("LOT D — un bloc VIDE ne sort pas son intro", () => {
+  // ⛔ SANS CE CAS, LES TROIS INTROS SORTIRAIENT TOUJOURS, et le message du soir
+  // annoncerait deux listes vides sur une seule chose retenue. T4 protège ce
+  // message de l'encombrement; trois titres pour une ligne est de
+  // l'encombrement.
+  const out = buildMemoryRecap({
+    safety: [],
+    kept: [{ text: "pas de saumon", until: null, kind: "preference", who: null }],
+    language: "fr",
+  });
+  assert(out !== null);
+  assert(out.includes("dans l'assiette"));
+  assert(!out.includes("J'ai retenu ça"), "le bloc des notes est sorti à vide");
+  assert(!out.includes("de ton retour"), "le bloc de l'encart est sorti à vide");
+});
+
+Deno.test("LOT D — les trois blocs existent aussi en anglais", () => {
+  // ⚠️ LA PARITÉ EST MESURÉE, PAS SUPPOSÉE. Ce dépôt a déjà livré une doctrine
+  // française qui sortait en anglais; une copie ajoutée d'un seul côté est la
+  // même faute, en plus petit.
+  const out = buildMemoryRecap({
+    safety: [],
+    kept: [
+      { text: "no salmon", until: null, kind: "preference", who: "Tom" },
+      { text: "dance on Tuesdays", until: null, kind: "note", who: "Lea" },
+      { text: "fajitas", until: null, kind: "next_plan", who: null },
+    ],
+    language: "en",
+  });
+  assert(out !== null);
+  assert(out.includes("on the plate"), "le bloc anglais des préférences manque");
+  assert(out.includes("I've kept this"), "le bloc anglais des notes manque");
+  assert(out.includes("from your feedback"), "le bloc anglais de l'encart manque");
+  assert(out.includes("Tom :"));
 });

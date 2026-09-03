@@ -116,6 +116,25 @@ export async function memoryRecapFor(args: {
       .maybeSingle();
     const pc = (goals?.data as Record<string, unknown> | null)
       ?.practical_constraints as Record<string, unknown> | null;
+    // ── LES PRÉNOMS, LUS UNE FOIS ─────────────────────────────────────────
+    // ⚠️ UN SUJET SANS PRÉNOM SORT SANS PRÉNOM, il ne sort pas « pour
+    // member:e53d… ». Un identifiant dans un message du soir n'est pas une
+    // information, c'est une fuite de plomberie.
+    const names = new Map<string, string>();
+    try {
+      const roster = await args.admin
+        .from("household_members")
+        .select("member_id,first_name");
+      for (const row of (roster?.data ?? []) as Record<string, unknown>[]) {
+        const id = String(row.member_id ?? "").trim();
+        const name = String(row.first_name ?? "").trim();
+        if (id && name) names.set(`member:${id}`, name);
+      }
+    } catch { /* silence — le récap sort sans prénom plutôt que pas du tout */ }
+    const whoOf = (subject: unknown): string | null =>
+      names.get(String(subject ?? "").trim()) ?? null;
+
+    // ── ① L'ENCART ────────────────────────────────────────────────────────
     const rows = pc?.retained_next_plan;
     if (Array.isArray(rows)) {
       for (const row of rows) {
@@ -128,7 +147,62 @@ export async function memoryRecapFor(args: {
         // calendrier mais à la VALIDATION du plan suivant. « jusqu'au <date> »
         // serait donc un mensonge daté; on ne dit plus de date. `lastDayOfNextPlan`
         // reste exporté pour l'ancre affichée, pas pour la mort.
-        kept.push({ text, until: null });
+        kept.push({
+          text,
+          until: null,
+          kind: "next_plan",
+          who: whoOf(item.subject),
+        });
+      }
+    }
+
+    // ── ② LES PRÉFÉRENCES DURABLES ÉCRITES AUJOURD'HUI — lot D ────────────
+    //
+    // ⛔ ELLES MANQUAIENT, ET C'EST LA MOITIÉ « ON LE DIT » DU MODÈLE. Les deux
+    // sources écrivent une préférence DURABLE — celle qui gouverne toutes les
+    // semaines à venir — et le récap n'annonçait que l'encart, celui qui meurt
+    // au plan suivant. On prévenait donc pour le provisoire et on se taisait
+    // sur le permanent, ce qui est l'inverse de ce qu'il faut.
+    //
+    // ⛔ `written` EST EXCLU, ET CE N'EST PAS UN OUBLI: c'est la personne qui
+    // vient de le taper dans sa fiche. Le lui annoncer le soir même serait lui
+    // répéter ce qu'elle a fait — le bruit dont T4 protège ce message.
+    const durable = pc?.retained_items;
+    if (Array.isArray(durable)) {
+      for (const row of durable) {
+        const item = row as Record<string, unknown> | null;
+        if (!item || String(item.at ?? "") !== day) continue;
+        if (String(item.source ?? "") === "written") continue;
+        const kind = String(item.kind ?? "");
+        // Seules les FAMILLES DE GOÛT: un `portion.adjust` ou un
+        // `logistics.set` est un RÉGLAGE (destination ②, interne), et le
+        // récap ne parle pas de ce qui ne se dit pas.
+        if (!kind.startsWith("food.") && !kind.startsWith("method.")) continue;
+        const text = String(item.text ?? "").trim();
+        if (!text) continue;
+        kept.push({
+          text,
+          until: null,
+          kind: "preference",
+          who: whoOf(item.subject),
+        });
+      }
+    }
+
+    // ── ③ LES NOTES ÉCRITES AUJOURD'HUI — destination ③ ───────────────────
+    const memo = pc?.memo;
+    if (Array.isArray(memo)) {
+      for (const row of memo) {
+        const line = row as Record<string, unknown> | null;
+        if (!line || String(line.at ?? "") !== day) continue;
+        const text = String(line.text ?? "").trim();
+        if (!text) continue;
+        kept.push({
+          text,
+          until: null,
+          kind: "note",
+          who: whoOf(line.subject),
+        });
       }
     }
   } catch { /* silence */ }
