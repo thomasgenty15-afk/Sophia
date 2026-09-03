@@ -108,7 +108,13 @@ Deno.test("② une date illisible ne fabrique pas un refus", () => {
 // ③ — LA RÈGLE D'ÉCRITURE DE LA BASE, LUE AVANT LE MODÈLE
 // ---------------------------------------------------------------------------
 
-const HOUSE = { startsOn: "2026-08-10", durationDays: 7 } as const; // lun → dim
+// ⟳ A1 (2026-09-03) — `leadDays: 0` EST ÉCRIT, PAS OMIS. Depuis que la
+// fenêtre peut porter un jour de CUISINE SANS REPAS en tête, `LivePlanSpan`
+// exige la colonne `lead_days`: le champ est REQUIS pour qu'un `select` qui
+// l'oublie ne compile pas — il compterait la veille comme un jour mangé et
+// refuserait un plan N+1 que la base accepte. Ces fixtures-ci décrivent des
+// plans SANS veille, et zéro est exactement ce qu'ils portent.
+const HOUSE = { startsOn: "2026-08-10", durationDays: 7, leadDays: 0 } as const; // lun → dim
 
 Deno.test("③ les quatre verdicts de la boucle de chevauchement", () => {
   // ① « commence le même jour ou après » ⇒ refus.
@@ -156,7 +162,7 @@ Deno.test("③ la fenêtre ENGLOBÉE est refusée même en remplaçant une AUTRE
   // mord. Retirer la mauvaise ligne du calcul rendrait le refus muet.
   const live = [
     { id: "current", ...HOUSE },
-    { id: "next", startsOn: NEXT_MON, durationDays: 7 },
+    { id: "next", startsOn: NEXT_MON, durationDays: 7, leadDays: 0 },
   ];
   const blocking = firstBlockingPlan({
     live,
