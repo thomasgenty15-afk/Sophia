@@ -631,3 +631,41 @@ vitest 2 050/2 075 avec les rouges étrangers connus, `tsc` 0. Annonce formelle 
 **Vérification A5 lancée** sur `VERIF` (détaché sur HEAD), avec deux consignes de contexte : **n'ouvrir aucun worktree**
 (disque à 4,6 Gi), et **vérifier les MOTIFS des trois écarts**, pas seulement les faits — un motif faux transforme un
 écart assumé en défaut. Le précédent est frais : la vérification d'A8.2 a démenti une excuse en la mesurant.
+
+## 21:4x — la lane CUISINE a terminé : quatre lanes sur cinq sont livrées
+
+**A2 `08dfa9be` annoncé. Fusion BLOQUÉE** : la session voisine tient sales **six** fichiers du lot (`en.ts`, `fr.ts`,
+`SetupPage.tsx`, `meal_plan_integrity_test.ts`, les deux `generate-*-v1`). Elle est prévenue, sans urgence artificielle.
+Je l'ai aussi avertie que **`HouseholdPage.tsx` et `SetupPage.tsx` ont été profondément réécrits par A5 pendant qu'elle
+les tenait ouverts** (`TableStepPlanning` et `InviteCard` n'existent plus, l'étape 2 monte `MouthCoreFields`) : mieux
+vaut qu'elle rebase **avant** d'écrire son lot C que de le découvrir après.
+
+**Bilan de la lane** : `MEAL_PROMPT_VERSION` v24 → v25 → v26, `HOUSEHOLD_PROMPT_VERSION` v22 → v23, **dix-huit
+épinglages suivis** (la leçon des sept, retenue) ; deux migrations validées **sur des copies privées de leur
+`begin;`/`commit;`** — la méthode que je n'ai désignée comme la seule sûre qu'après coup, et qu'elle appliquait déjà ;
+sept mutations, sept rouges ; Deno **pour de vrai** 4 876/4 876.
+
+### Quatre déviations de §5.6, toutes validées — et la deuxième est la meilleure du chantier
+
+1. `recipe_difficulty` et `variety` non dérivés : aucun lecteur dans les deux générateurs (déjà validé).
+2. ⭐ **Les deux clés entrent dans `WRITABLE_FIELDS` mais PAS dans `LOGISTICS_FIELDS`** — parce que cette seconde liste
+   est celle que `draft_note_classify` **énumère au modèle**, et qu'y ranger le style de cuisine lui apprendrait à poser
+   un **réglage durable depuis une phrase libre**. C'est la cicatrice « le prompt enseigne un kind interdit », vue avant
+   d'être payée. Personne ne l'avait demandé : ça ne se découvre qu'en lisant **à quoi la liste sert**.
+3. `HouseholdPromptInput.workLunch` **optionnel** (65 littéraux, et un lot voisin ajoute déjà un champ requis au même
+   type), compensé par un compteur et un test de câblage. Validé **avec réserve écrite** : un champ requis rougit tout de
+   suite chez celui qui le pose (c'est ce qui a sauvé `LivePlanSpan`), un champ optionnel ne rougit **jamais**. Demandé :
+   écrire au journal ce qui tomberait en silence si un appelant l'oubliait.
+4. Les absences ne resserrent pas la cadence de cuisine — « quelqu'un qui déjeune dehors le mardi est chez lui le lundi
+   soir ». Une absence de bouche n'est pas une absence de cuisinier.
+
+### L'état repris par la lane, qui vaut comme enseignement
+
+**« Juste mais non prouvé »** est une troisième catégorie qu'elle a nommée et que je retiens : la règle `firstBuyOn` de
+`grocery_waves.ts` était correcte, mais **aucun test ne la distinguait de l'ancienne** — deux tests les séparent
+maintenant. À côté de « juste » et « faux », c'est la case où se cachent les régressions futures.
+
+**État du chantier** : RAPIDE ✅ vérifiée VERT · FOYER ✅ (A6 VERT, A5 en vérification) · CUISINE ✅ (A1 fusionné et vert,
+A2 prêt, fusion bloquée) · SUIVI ✅ (A7 prêt, attend un arbre vert) · MEMBRE A8.3 en cours (six défauts à fermer).
+**Bloquants** : l'arbre est rouge au typecheck des tests (fixtures d'A8.1 — correctif possible chez A8.3, demandé s'il
+est isolable) ; la session voisine tient six fichiers ; le disque ; la session navigateur.
