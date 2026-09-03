@@ -132,3 +132,61 @@ fiche portaient encore 2,00 €, **dont le geste qui dit quoi taper dans Stripe*
 - Un **diagnostic exact** peut rester **inutilisable** s'il s'arrête au mécanisme : chercher **le déclencheur**.
 - Et **deux personnes peuvent mesurer deux choses différentes en croyant mesurer la même** — j'ai lu un journal de
   serveur figé en croyant lire la pile vivante.
+
+---
+
+## 6. La passe finale de cohérence (E) — et ce qu'elle a démenti
+
+**Gate final : exit 0.** `5 119` tests serveur / 0 échec · `2 249` tests front, 4 rouges tous en baseline, **0 hors
+liste** · **`87 erreurs tolérées pour 87 réelles`** — la tolérance vaut désormais **exactement** le réel, les deux
+avertissements « abaisse cette ligne » ont disparu. Les cinq blocs délimités du chantier sont **consolidés** : zéro
+délimiteur, tous les motifs gardés (retraits listés, valeurs changées, renversements datés).
+
+**La grille des huit invariants : 28 clauses — 19 prouvées, 6 non prouvées, 3 DÉMENTIES.**
+
+| | verdict |
+|---|---|
+| **C1** la fenêtre | 2/3 — la branche « veille » a **0 ligne en base** (`lead_days = 0` sur 254/254) |
+| **C2** la jointure cuisine | 2/3 — 4 runs, aucune préparation orpheline, aucune consommée avant cuisson |
+| **C3** les courses | 3/4 — **« vagues = sessions » DÉMENTI**, retrouvé indépendamment |
+| **C4** les personnes | 2/3 — part et coches du réclamé prouvées en SQL sur run réel |
+| **C5** les ceintures | 2/4 — deux clauses prouvées **bilingues** ; une n'a **aucun test de rendu** |
+| **C6** les deux surfaces | 🔴 **DÉMENTIE** — le cadenas nommé ne lit qu'une des deux |
+| **C7** l'entonnoir | **5/5** — réserve : `canGenerate` n'est armée par **aucun test** |
+| **C8** le foyer à deux comptes | 3/5 — trois clauses prouvées sur run réel, une démentie |
+
+**Quatre défauts neufs, nommés et non réparés** (les lanes étaient closes) :
+- **D-E-1** — `buildSessionQuestion` n'a **pas** de garde « maître seulement », et son **troisième appelant** n'est pas
+  gardé : la question de cuisson peut atteindre un membre, ce que D8.6 interdit.
+- **D-E-2** — l'invariant C6 : le cadenas censé garantir que l'aperçu et le plan validé rendent la même chose **ne lit
+  qu'une des deux surfaces**.
+- **D-E-3** — des clés de durée orphelines, sans garde d'absence.
+- **D-E-4** — `lint:i18n` rouge à 94, **antérieur mesuré des deux côtés**, hors du gate, **~91 faux positifs**.
+
+**Et deux fois où l'agent s'est trompé puis s'est refermé par la mesure** : un rabotage de fenêtre qu'il croyait
+possible (le code refuse, et **son commentaire nommait déjà son raisonnement**), et un compteur à zéro qu'il croyait
+mort (la clé n'est demandée que sous régime déclaré).
+
+**Une réserve de poste, déclarée plutôt que tue** : le commit de consolidation i18n **emporte neuf lignes** du lot
+« envie » d'une session voisine — **indissociables** d'un commit de ces deux fichiers, puisqu'un pathspec protège
+l'index mais pas l'arbre. Déclaré dans le message du commit, au rapport, et à la session concernée.
+
+---
+
+## 7. 🔴 Un défaut hors périmètre, trouvé par une session voisine, à traiter en priorité
+
+**Le verdict nutritionnel se trompe dans deux directions opposées.** Même analyseur, même fixture, même enveloppe qu'au
+23 août : une journée servie à **3 571 kcal** est jugée **`within`** sur une enveloppe **2 414-2 668**, et une protéine
+à **175 g** est jugée **`under`** sur un plancher à **131 g**.
+**Et la sous-nutrition d'août n'a pas été corrigée — elle a été REMPLACÉE par une sur-nutrition de 34 %.**
+Second symptôme, même chaîne, même soir : une fenêtre de **3 jours** ne produit que **2 journées** de repas (août :
+3/3), à résolution 79/79 — pas un artefact.
+⇒ **Une garde qui rend le mauvais verdict est pire qu'une garde absente, parce qu'elle rassure.**
+
+**Ce n'est pas ce chantier, et c'est mesuré** : zéro occurrence de `verdictFor`, `meal_verdict`, `meal_envelope` ou
+`portion_scaling` sur les cinq branches ; le seul fichier proche ouvert (`mouth_anchor.ts`) ne porte **aucune ligne
+non-commentaire** dans le diff et **`SLOT_DAY_WEIGHT` est inchangé**.
+
+**Une bonne nouvelle du même relevé** : la garde d'allergie **mord**, prouvée par **contrefactuel** — 17 occurrences
+d'« egg » et deux plats sans contrainte, **0** avec une allergie médicale, menu entier reconstruit sur la même fixture.
+C'est la seule forme de preuve qui distingue une garde qui mord d'une garde qui a de la chance.
