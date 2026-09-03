@@ -8035,6 +8035,18 @@ export const en = {
   //                                     grid of their week, just below »
   //   "setup.request.presence_intro"  — « Step three said the habit » → the
   //                                     habit is set on the Household page
+
+  // ── A5 · the Household page (2026-09-03) ─────────────────────────────────
+  // The two named frames of a mouth's sheet (D5.1). The collapsed frame's
+  // recap REUSES the add sheet's keys (`household.mouth.preferences_filled` /
+  // `_empty`) — the same fact said with the same words in both places.
+  "household.member.frame_identity": "Personal details",
+  "household.member.frame_identity_hint":
+    "What sizes their serving: who they are, their body, and which way their scale should go.",
+  "household.member.frame_preferences": "Food preferences",
+  "household.member.frame_preferences_hint":
+    "What refines the plan: what they already eat, what they never eat, and what the house does not serve.",
+  "household.mouth.frame_loading": "Reading what is already on file…",
   // ── chantier-0903/FOYER — fin ──
 
 } as const

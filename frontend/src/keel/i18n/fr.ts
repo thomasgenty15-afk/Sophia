@@ -6894,6 +6894,23 @@ export const fr: TranslatedMessages = {
   //                                     « la grille … de sa semaine, juste en dessous »
   //   "setup.request.presence_intro"  — « L'étape trois disait l'habitude » →
   //                                     l'habitude se règle sur la page Foyer
+
+  // ── A5 · la page Foyer (2026-09-03) ──────────────────────────────────────
+  // LES DEUX CADRES NOMMÉS d'une fiche de bouche (D5.1, renversement du
+  // 2026-08-19 écrit dans `MouthFormDialog.tsx`). Le récapitulatif du cadre
+  // replié, lui, REPREND les clés de la fiche d'ajout
+  // (`household.mouth.preferences_filled` / `_empty`): le même fait se dit du
+  // même mot aux deux endroits.
+  "household.member.frame_identity": "Informations personnelles",
+  "household.member.frame_identity_hint":
+    "Ce qui dimensionne son assiette : qui c’est, son corps, et où va sa balance.",
+  "household.member.frame_preferences": "Préférences alimentaires",
+  "household.member.frame_preferences_hint":
+    "Ce qui affine le plan : ce qu’elle mange déjà, ce qu’elle ne mange jamais, et ce que la maison ne sert pas.",
+  // ⛔ « LECTURE… », PAS UN CADRE VIDE. Les formulaires de cette page figent
+  // leurs champs au montage et REMPLACENT à l'enregistrement: un cadre monté
+  // sur une lecture non faite affiche du vide non lu, puis l'écrit.
+  "household.mouth.frame_loading": "Lecture de ce qui est déjà renseigné…",
   // ── chantier-0903/FOYER — fin ──
 
 };
