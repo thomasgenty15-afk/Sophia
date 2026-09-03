@@ -131,7 +131,10 @@ import {
 // un SECOND appel modèle le trou que `readDraftNote` ferme (cible chiffrée,
 // interdit de doctrine, plancher TCA). Le type l'interdit; ne pas le contourner.
 import { classifyAndPersistDraftNote } from "../_shared/keel/draft_note_classify_io.ts";
-import { foodTermsOf } from "../_shared/keel/plan_feedback_chat.ts";
+import {
+  foodTermsOf,
+  planVocabularyOf,
+} from "../_shared/keel/plan_feedback_chat.ts";
 // C3 ① — LE DROIT D'ACCÈS EST LU, JAMAIS APPLIQUÉ ICI. Voir l'en-tête du
 // module: aucune règle de facturation n'existe pour un compte sans foyer, et en
 // inventer une couperait des clients qui paient.
@@ -4431,7 +4434,7 @@ Deno.serve(async (req) => {
         // pas d'objet (une seule bouche), mais la question QUOI en a une:
         // « j'ai pas aimé la viande » est la même phrase, quel que soit le
         // nombre de convives.
-        planFoods: foodTermsOf(dishesWritten, preparationsWritten),
+        planFoods: planVocabularyOf(dishesWritten, preparationsWritten),
         source: "draft_note",
         requestId,
       });

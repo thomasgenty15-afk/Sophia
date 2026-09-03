@@ -25,7 +25,10 @@ import {
   settingRecapLine,
 } from "../_shared/keel/memory_recap.ts";
 import { notifyMemoryWrite } from "../_shared/keel/memory_clarification_io.ts";
-import { foodTermsOf } from "../_shared/keel/plan_feedback_chat.ts";
+import {
+  foodTermsOf,
+  planVocabularyOf,
+} from "../_shared/keel/plan_feedback_chat.ts";
 import type { DraftNoteMember } from "../_shared/keel/draft_note_classify.ts";
 import { hasDraftNote, readDraftNote } from "../_shared/keel/plan_draft_note.ts";
 import { loadPublishedDoctrine } from "../_shared/keel/doctrine_loader.ts";
@@ -707,7 +710,7 @@ Deno.serve(async (req) => {
               // boutons si « j'ai pas aimé la viande » ne désigne rien. Deux
               // listes pour la même question feraient proposer un aliment que
               // le bilan n'a jamais montré.
-              planFoods: foodTermsOf(planRow.dishes, planRow.preparations),
+              planFoods: planVocabularyOf(planRow.dishes, planRow.preparations),
               source: "plan_feedback",
               // ⚠️ CE QUE LE QUESTIONNAIRE VIENT D'ÉCRIRE, dit dans la MÊME
               // bulle que ce que le texte libre écrira. Deux bulles pour un

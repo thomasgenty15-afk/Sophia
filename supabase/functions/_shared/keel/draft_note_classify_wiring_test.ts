@@ -370,13 +370,21 @@ function assertWiredCommon(src: string, lane: string): void {
   // une exclusion de « viande » pour toute la table, ou rien du tout. Aucun
   // type ne voit ça: `readonly string[]` accepte `[]` sans un mot.
   const planFoods = fields.get("planFoods") ?? "";
+  // ⟳ 2026-09-04 — `planVocabularyOf`, ET PLUS `foodTermsOf`. Mesuré au banc:
+  // « Le plat de vendredi soir, plus jamais » proposait « filets de saumon ·
+  // cuisses de poulet · lentilles · œufs » — des INGRÉDIENTS pour une phrase
+  // qui désigne un PLAT. Aucune réponse à cette question n'était juste. Le
+  // vocabulaire met les TITRES DE PLATS en tête; épingler l'ancien nom ferait
+  // revenir le défaut sans un rouge.
   assert(
-    planFoods.includes("foodTermsOf("),
-    `LANE ${lane.toUpperCase()} — LES ALIMENTS DU PLAN N'ATTEIGNENT PLUS LE ` +
+    planFoods.includes("planVocabularyOf("),
+    `LANE ${lane.toUpperCase()} — LE VOCABULAIRE DU PLAN N'ATTEINT PLUS LE ` +
       `CLASSIFIEUR (\`${planFoods}\`). C'est la liste que la question « tu ` +
       `parlais de quoi ? » propose en boutons, et le SEUL vocabulaire dont un ` +
       `\`about: "what"\` puisse sortir. Une liste vide ne casse rien, ne lève ` +
-      `rien, et supprime la moitié « quoi » du chantier en silence.`,
+      `rien, et supprime la moitié « quoi » du chantier en silence. Et une ` +
+      `liste d'INGRÉDIENTS seuls (\`foodTermsOf\`) rend la question ` +
+      `irrépondable dès que la personne désigne un PLAT.`,
   );
 
   const source = fields.get("source") ?? "";
@@ -525,8 +533,20 @@ const CUTS: readonly Cut[] = [
   },
   {
     name: "les aliments du plan deviennent une liste vide",
-    expects: "LES ALIMENTS DU PLAN N'ATTEIGNENT PLUS",
+    expects: "LE VOCABULAIRE DU PLAN N'ATTEINT PLUS",
     apply: setField("planFoods", "[]"),
+  },
+  {
+    // ⚠️ LA MOITIÉ NEUVE, ET ELLE NE SE VOIT PAS AUTREMENT. `foodTermsOf` est
+    // une fonction RÉELLE, qui rend une liste NON VIDE: revenir à elle ne casse
+    // ni le typage, ni un test, ni un run — la question part, avec des
+    // ingrédients pour une phrase qui désigne un plat. Sans cette mutation,
+    // l'assertion d'à côté serait vraie pour la seule raison que le mot a
+    // changé, et n'aurait rien à voir avec ce qu'on veut tenir.
+    name: "le vocabulaire redevient les ingrédients seuls",
+    expects: "LE VOCABULAIRE DU PLAN N'ATTEINT PLUS",
+    apply: (src) =>
+      src.replace(/planFoods: planVocabularyOf\(/, "planFoods: foodTermsOf("),
   },
   {
     name: "la source sort du vocabulaire",
@@ -709,11 +729,12 @@ const FEEDBACK: Lane = {
     );
     const planFoods = fields.get("planFoods") ?? "";
     assert(
-      planFoods.includes("foodTermsOf("),
-      "LANE FEEDBACK — LES ALIMENTS DU PLAN N'ATTEIGNENT PLUS LE CLASSIFIEUR " +
+      planFoods.includes("planVocabularyOf("),
+      "LANE FEEDBACK — LE VOCABULAIRE DU PLAN N'ATTEINT PLUS LE CLASSIFIEUR " +
         `(\`${planFoods}\`). C'est LA lane où la question « quoi » compte: ` +
-        "« j'ai pas aimé la viande » ne peut proposer que des aliments du " +
-        "plan qu'on vient de clore.",
+        "« j'ai pas aimé la viande » et « le plat de vendredi soir » ne " +
+        "peuvent proposer que ce que le plan qu'on vient de clore contient — " +
+        "ses PLATS d'abord, ses aliments ensuite.",
     );
     // ── L'ANNONCE DU QUESTIONNAIRE PASSE PAR LE CLASSIFIEUR ───────────────
     // ⚠️ UNE SEULE BULLE PAR GESTE. Le questionnaire écrit (exclusions, crans
@@ -776,13 +797,19 @@ const FEEDBACK: Lane = {
         ),
     },
     {
+      name: "le vocabulaire du bilan redevient les ingrédients seuls",
+      expects: "LE VOCABULAIRE DU PLAN N'ATTEINT PLUS",
+      apply: (src) =>
+        src.replace(/planFoods: planVocabularyOf\(/, "planFoods: foodTermsOf("),
+    },
+    {
       name: "la source du bilan devient celle du brouillon",
       expects: "LA SOURCE N'EST PLUS `plan_feedback`",
       apply: setField("source", '"draft_note"'),
     },
     {
       name: "les aliments du plan deviennent une liste vide",
-      expects: "LES ALIMENTS DU PLAN N'ATTEIGNENT PLUS",
+      expects: "LE VOCABULAIRE DU PLAN N'ATTEINT PLUS",
       apply: setField("planFoods", "[]"),
     },
     {

@@ -258,11 +258,19 @@ question_bubble() {
 }
 
 # TOUTES les bulles d'annonce depuis un instant.
+#
+# ⚠️ DEUX PURPOSES, ET C'EST UNE FAUTE DE BANC PAYÉE AU PREMIER RUN. Une
+# écriture s'annonce par `keel_memory_written` quand elle vient du classifieur,
+# et par `keel_memory_clarification_ack` quand elle vient d'un TAP — le
+# répondeur de bouton porte son accusé lui-même, avec le même corps et le même
+# « Voir ». N'en compter qu'un faisait rendre `n_count: 0` sur un D1 par
+# ailleurs parfait: le produit avait bien parlé, le banc regardait ailleurs.
 notice_bubbles() {
   psql "select coalesce(json_agg(json_build_object('id',id,'content',content,'buttons',metadata->'buttons') order by created_at)::text,'[]')
         from chat_messages
         where user_id='$USER_ID' and role='assistant' and scope='app'
-          and metadata->>'purpose'='keel_memory_written' and created_at > '$1';"
+          and metadata->>'purpose' in ('keel_memory_written','keel_memory_clarification_ack')
+          and created_at > '$1';"
 }
 
 # Le LEDGER: c'est ici qu'une bulle disparaît SANS erreur.
@@ -270,7 +278,7 @@ ledger() {
   psql "select coalesce(json_agg(json_build_object('purpose',metadata->>'purpose','status',status,'reason',metadata->>'delivery_reason') order by created_at)::text,'[]')
         from outbound_messages
         where user_id='$USER_ID' and created_at > '$1'
-          and metadata->>'purpose' in ('keel_memory_clarification','keel_memory_written');"
+          and metadata->>'purpose' in ('keel_memory_clarification','keel_memory_written','keel_memory_clarification_ack');"
 }
 
 now_iso() { psql "select now()::text;"; }
@@ -295,18 +303,38 @@ else: b['intent']='prepare_next'
 if text: b['draft_note']=text
 print(json.dumps(b))" "$(last_meal)" "$text" "$days")
 
-  : > "$OUT/$case.gen.log"
-  docker logs --since 0m -f supabase_edge_runtime_Sophia_2 > "$OUT/$case.gen.log" 2>&1 &
-  local LP=$!
-  local t0=$(date +%s)
-  code=$(curl -s -o "$OUT/$case.gen.json" -w "%{http_code}" -X POST \
-    "$URL/functions/v1/generate-household-meal-v1" \
-    -H "apikey: $ANON" -H "Authorization: Bearer $JWT" \
-    -H "Content-Type: application/json" -d "$body" --max-time 800)
-  local dt=$(( $(date +%s) - t0 ))
-  sleep 3; kill $LP 2>/dev/null; wait $LP 2>/dev/null
+  local try dt=0
+  for try in 1 2 3; do
+    : > "$OUT/$case.gen.log"
+    docker logs --since 0m -f supabase_edge_runtime_Sophia_2 > "$OUT/$case.gen.log" 2>&1 &
+    local LP=$!
+    local t0=$(date +%s)
+    code=$(curl -s -o "$OUT/$case.gen.json" -w "%{http_code}" -X POST \
+      "$URL/functions/v1/generate-household-meal-v1" \
+      -H "apikey: $ANON" -H "Authorization: Bearer $JWT" \
+      -H "Content-Type: application/json" -d "$body" --max-time 800)
+    dt=$(( $(date +%s) - t0 ))
+    sleep 3; kill $LP 2>/dev/null; wait $LP 2>/dev/null
+    after=$(plans)
+    [ "$code" = "200" ] && break
+    # ⛔ ON NE REJOUE QUE SI LE COMPTE PROUVE QUE RIEN N'A ÉTÉ ÉCRIT. C'est la
+    # règle entière: un 502 de Kong ou un runtime qui redémarre coupe la
+    # RÉPONSE, pas la fonction — elle peut très bien avoir fini derrière. Un
+    # rejeu aveugle écrit un SECOND plan, et le second efface la question du
+    # premier (une seule ouverte par personne).
+    if [ "$after" -ne "$before" ]; then
+      echo "   ${YEL}HTTP $code mais le plan a été ÉCRIT (Δ=$((after-before))): on n'insiste pas${OFF}"
+      break
+    fi
+    [ "$try" -lt 3 ] && {
+      echo "   HTTP $code en ${dt}s, rien d'écrit — reprise ($try/3)"
+      # Le runtime redémarre par salves sur un arbre partagé: on lui laisse le
+      # temps de revenir plutôt que de le frapper pendant qu'il tombe.
+      sleep 20
+      JWT=$(login)
+    }
+  done
 
-  after=$(plans)
   GEN_HTTP="$code"; GEN_DELTA=$(( after - before )); GEN_SECS="$dt"
   echo "   plan · HTTP $code en ${dt}s · plans ${before}→${after} (Δ=$GEN_DELTA)"
 }
@@ -323,6 +351,33 @@ feedback() {
     -H "Content-Type: application/json" -d "$json" --max-time 600)
   sleep 3; kill $LP 2>/dev/null; wait $LP 2>/dev/null
   echo "   bilan · HTTP $FB_HTTP"
+}
+
+# ── LE CORPS D'UN BILAN, FABRIQUÉ PAR UNE FONCTION ────────────────────────
+#
+# ⛔ JAMAIS DU PYTHON MULTILIGNE IMBRIQUÉ DANS UN `"$(…)"`. Mesuré ici, et le
+# symptôme est trompeur: bash a fait de la DÉVELOPPEMENT D'ACCOLADES sur le
+# dictionnaire python (`{'a':1,'b':2}` → deux mots), et le script a lancé
+# python DEUX FOIS avec une moitié de source chacune. Le bilan est quand même
+# parti (HTTP 200) — avec un corps VIDE — et le cas a rendu INCONCLUSIVE pour
+# une raison qui n'avait rien à voir avec le produit. Une fonction à part, avec
+# un heredoc cité, ferme le trou pour de bon.
+body_of() {
+  python3 - "$1" "$2" "$3" <<'PY'
+import json, sys
+meal, today, note = sys.argv[1], sys.argv[2], sys.argv[3]
+body = {"meal_id": meal, "today": today, "cooked": "yes"}
+if note:
+    body["anything_else"] = note
+print(json.dumps(body, ensure_ascii=False))
+PY
+}
+
+pulse_body() {
+  python3 - "$1" <<'PY'
+import json, sys
+print(json.dumps({"now": sys.argv[1].strip().replace(" ", "T") + "Z", "dry_run": True}))
+PY
 }
 
 # `tap` — un bouton. ⚠️ `reply_to` OBLIGATOIRE: sans lui la fraîcheur est
@@ -553,7 +608,17 @@ local_day() { psql "select (now() at time zone (select timezone from profiles wh
 # LES CAS — l'attendu est ÉCRIT AVANT LE TIR, dans `$OUT/<cas>.attendu.json`
 # ---------------------------------------------------------------------------
 expect() { cat > "$OUT/$1.attendu.json"; }
-want() { [ -z "$ONLY" ] || [ "$ONLY" = "$1" ]; }
+# ⚠️ UNE LISTE, PAS UN SEUL CAS — et c'est le PLAFOND qui l'impose. Deux
+# questions par jour local, deux jours locaux disponibles à un instant donné
+# (les fuseaux vont de UTC−12 à UTC+12): le banc ne peut poser que QUATRE
+# questions par compte et par passe. Les cas S et I en demandent une de plus,
+# donc ils se rejouent sur un SECOND compte, ensemble:
+#
+#   BANC_EMAIL=qa-mois-20260904@keeltest.dev ./banc.sh <anon> "S I"
+#
+# Ensemble, parce que I balaie la question que S laisse ouverte: les séparer
+# rendrait I INCONCLUSIVE par construction.
+want() { [ -z "$ONLY" ] || [[ " $ONLY " == *" $1 "* ]]; }
 head_of() { echo; echo "── $1 ─── $2"; }
 
 # Les invariants que TOUS les cas portent, ajoutés à chaque attendu.
@@ -594,10 +659,7 @@ EOF
   SINCE=$(now_iso); snapshot > "$OUT/B3.before.json"
   local meal="$BILAN_MEAL"
   [ -n "$meal" ] || { echo "${YEL}   pas de plan à commenter${OFF}"; return; }
-  feedback B3 "$meal" "$(python3 -c "
-import json,sys
-print(json.dumps({'meal_id':sys.argv[1],'today':sys.argv[2],'cooked':'yes',
-                  'anything_else':'Zoé a bien mangé cette semaine.'}))" "$meal" "$(local_day)")"
+  feedback B3 "$meal" "$(body_of "$meal" "$(local_day)" "Zoé a bien mangé cette semaine.")"
   collect B3 "$SINCE"; judge B3 "$OUT/B3.attendu.json"
 }
 
@@ -630,10 +692,7 @@ EOF
   SINCE=$(now_iso); snapshot > "$OUT/B4.before.json"
   local meal="$BILAN_MEAL"
   [ -n "$meal" ] || { echo "${YEL}   pas de plan à commenter${OFF}"; return; }
-  feedback B4 "$meal" "$(python3 -c "
-import json,sys
-print(json.dumps({'meal_id':sys.argv[1],'today':sys.argv[2],'cooked':'yes',
-                  'anything_else':\"Mon mari trouve qu'il y a trop de riz.\"}))" "$meal" "$(local_day)")"
+  feedback B4 "$meal" "$(body_of "$meal" "$(local_day)" "Mon mari trouve qu'il y a trop de riz.")"
   collect B4 "$SINCE"; judge B4 "$OUT/B4.attendu.json"
 }
 
@@ -685,11 +744,7 @@ run_B5() {
   $INVARIANTS }
 EOF
   SINCE=$(now_iso); snapshot > "$OUT/B5.before.json"
-  feedback B5 "$meal" "$(python3 -c "
-import json,sys
-print(json.dumps({'meal_id':sys.argv[1],'today':sys.argv[2],'cooked':'yes',
-                  'anything_else':'Les enfants ont détesté le %s, sauf Tom.' % sys.argv[3]}))" \
-    "$meal" "$(local_day)" "$food")"
+  feedback B5 "$meal" "$(body_of "$meal" "$(local_day)" "Les enfants ont détesté le $food, sauf Tom.")"
   collect B5 "$SINCE"; judge B5 "$OUT/B5.attendu.json"
 }
 
@@ -778,10 +833,7 @@ print(json.dumps({'_inconclusive':'le plan ne porte que %s viande(s) (%s): « la
   "d_memo": 0, "d_encart": 0, $INVARIANTS }
 EOF
   SINCE=$(now_iso); snapshot > "$OUT/B1.before.json"
-  feedback B1 "$meal" "$(python3 -c "
-import json,sys
-print(json.dumps({'meal_id':sys.argv[1],'today':sys.argv[2],'cooked':'yes',
-                  'anything_else':\"J'ai pas aimé la viande.\"}))" "$meal" "$(local_day)")"
+  feedback B1 "$meal" "$(body_of "$meal" "$(local_day)" "J'ai pas aimé la viande.")"
 
   local q
   q=$(question_bubble "$SINCE")
@@ -909,11 +961,7 @@ print({'mon':'lundi','tue':'mardi','wed':'mercredi','thu':'jeudi','fri':'vendred
   "d_memo": 0, $INVARIANTS }
 EOF
   SINCE=$(now_iso); snapshot > "$OUT/B2.before.json"
-  feedback B2 "$meal" "$(python3 -c "
-import json,sys
-print(json.dumps({'meal_id':sys.argv[1],'today':sys.argv[2],'cooked':'yes',
-                  'anything_else':'Le plat de %s soir, plus jamais.' % sys.argv[3]}))" \
-    "$meal" "$(local_day)" "$fr")"
+  feedback B2 "$meal" "$(body_of "$meal" "$(local_day)" "Le plat de $fr soir, plus jamais.")"
   collect B2 "$SINCE"; judge B2 "$OUT/B2.attendu.json"
 }
 
@@ -1007,9 +1055,7 @@ run_I() {
     "$URL/functions/v1/keel-daily-pulse-v1" \
     -H "apikey: $ANON" -H "x-internal-secret: $SECRET" \
     -H "Content-Type: application/json" \
-    -d "$(python3 -c "
-import json,sys
-print(json.dumps({'now': sys.argv[1].replace(' ', 'T') + 'Z', 'dry_run': True}))" "$FUTURE")" --max-time 300
+    -d "$(pulse_body "$FUTURE")" --max-time 300
   sleep 3; kill $LP 2>/dev/null; wait $LP 2>/dev/null
   grep -o '{"tag":"keel.memory_clarification"[^}]*swept[^}]*}' "$OUT/I.pulse.log" | tail -1
   grep -o '"event":"swept"[^,]*,"expired":[0-9]*' "$OUT/I.pulse.log" | tail -1
@@ -1057,13 +1103,18 @@ RT_START="$RT_AT"
 
 # ⚠️ LE JETON EXPIRE. Une heure de banc dépasse la durée d'un JWT: on relogue
 # entre les journées plutôt que de lire un 401 comme un refus du produit.
-for c in D2 B3 D4 B4 D3 B5 D1 B1 P; do
+# ⚠️ L'ORDRE N'EST PAS COSMÉTIQUE, ET LE PREMIER JET S'EST TROMPÉ. B1 demande
+# un plan portant AU MOINS DEUX VIANDES; or D4 (« on n'aime pas trop la viande
+# rouge ») et D2 (« pas de poisson ») s'accumulent, et le générateur avait rendu
+# un plan ENTIÈREMENT végétarien — B1 devenait INCONCLUSIVE par la faute des cas
+# d'avant, pas du produit. B1 passe donc AVANT les exclusions qui vident le plan.
+for c in D2 B1 B3 D4 B4 D3 B5 D1 P; do
   want "$c" || continue
   JWT=$(login)
   "run_$c"
 done
 
-if want D5 || want B2 || want S; then
+if want D5 || want B2; then
   echo
   echo "── BASCULE DE JOURNÉE ────────────────────────────────────"
   JWT=$(login)

@@ -299,6 +299,43 @@ export function foodTermsOf(dishes: unknown, preparations: unknown): string[] {
 }
 
 /**
+ * LE VOCABULAIRE D'UN PLAN — ses PLATS d'abord, puis ses aliments.
+ *
+ * ⛔ C'EST CETTE LISTE QUE LA QUESTION « TU PARLAIS DE QUOI ? » PROPOSE, et
+ * les ingrédients seuls ne suffisent pas. Mesuré au banc du 2026-09-04:
+ * « Le plat de vendredi soir, plus jamais. » a rendu les quatre boutons
+ * « filets de saumon · cuisses de poulet désossées · lentilles vertes sèches ·
+ * œufs » — des INGRÉDIENTS pour une phrase qui désigne un PLAT. Taper l'un
+ * d'eux aurait écrit « plus jamais de filets de saumon » alors que la personne
+ * voulait retirer le plat entier: une question à laquelle aucune réponse n'est
+ * juste est pire qu'une absence de question.
+ *
+ * ⚠️ LES PLATS EN PREMIER, ET L'ORDRE COMPTE. Le modèle copie ses options
+ * depuis cette liste; ce qu'il lit d'abord est ce qu'il propose d'abord, et une
+ * référence à un plat doit rencontrer des plats avant de rencontrer des
+ * légumes.
+ *
+ * ⚠️ CE QU'ELLE NE RÉSOUT PAS, ET IL FAUT LE SAVOIR: elle ne porte NI JOUR NI
+ * MOMENT. « Le plat de vendredi soir » reste donc une question — le modèle ne
+ * peut pas savoir lequel des plats tombe le vendredi. Ce qui change est la
+ * QUALITÉ de la question: on propose des plats, pas des ingrédients.
+ */
+export function planVocabularyOf(
+  dishes: unknown,
+  preparations: unknown,
+): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const term of [...dishTitlesOf(dishes), ...foodTermsOf(dishes, preparations)]) {
+    const key = term.trim().toLowerCase();
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    out.push(term.trim());
+  }
+  return out;
+}
+
+/**
  * Les titres DISTINCTS d'un plan, dans l'ordre.
  *
  * ⚠️ LE DÉDOUBLONNAGE N'EST PAS COSMÉTIQUE. Le moteur étend un plat en lot sur

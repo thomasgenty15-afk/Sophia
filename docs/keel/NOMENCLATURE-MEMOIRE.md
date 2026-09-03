@@ -956,7 +956,7 @@ ces cas n'existe pas — « ma fille » se résoudrait tout seul.
 |---|---|---|
 | D1 | « Ma fille n'aime pas le poisson. » | **question QUI**, options = `{Léa, Zoé}` ; tap Léa ⇒ 1 `food.exclude` `member:Léa`, `quote` = la phrase |
 | D2 | « Mon fils n'aime pas le poisson. » | **aucune question** — un seul garçon mineur ; 1 ligne `member:Tom` |
-| D3 | « Les petites ne mangent pas de champignons. » | **aucune question** — 2 lignes, `{Léa, Zoé}`, **jamais** Tom, **jamais** `household` |
+| D3 | « Les petites ne mangent pas de champignons. » | **aucune question** — 2 lignes, `{Léa, Zoé}`, **jamais** Tom, **jamais** `household` ⟳ |
 | D4 | « On n'aime pas trop la viande rouge. » | **aucune question** — « on » = la table ; 1 ligne `household` |
 | D5 | « Elle a horreur des épinards. » | **question QUI** (« elle » ≠ celle qui tape) ; échappement ⇒ `declined`, **rien d'écrit** |
 
@@ -965,7 +965,7 @@ ces cas n'existe pas — « ma fille » se résoudrait tout seul.
 | # | phrase | attendu |
 |---|---|---|
 | B1 | « J'ai pas aimé la viande. » | **question QUOI**, options ⊆ les viandes **du plan** ; tap ⇒ 1 ligne `household` portant le terme choisi |
-| B2 | « Le plat de mardi soir, plus jamais. » | **aucune question** — le classifieur a le plan, un seul dîner ce soir-là |
+| B2 | « Le plat de mardi soir, plus jamais. » | **question QUOI**, options = les PLATS du plan ⟳ |
 | B3 | « Zoé a bien mangé cette semaine. » | **rien, et aucune question** — raconter ce qui a été mangé n'a pas de destination (§8.2 cas N) |
 | B4 | « Mon mari trouve qu'il y a trop de riz. » | **rien, et aucune question** — un **degré**, que la question `portions` pose ; demander « lequel » pour une entrée qu'on va sauter est le pire des deux mondes |
 | B5 | « Les enfants ont détesté le X, sauf Tom. » | **aucune question** — l'aliment est **nommé** ; 2 lignes `{Léa, Zoé}` |
@@ -974,6 +974,28 @@ Règle que ces dix cas tiennent ensemble, et que le code doit respecter : **un a
 déclenche jamais de question QUOI** (B5), et **un degré ne déclenche jamais de question du tout**
 (B4). Seule une référence qu'on ne peut pas résoudre — et dont la résolution **écrirait** quelque
 chose — vaut une sollicitation.
+
+#### ⟳ Ce que le premier run réel a corrigé dans ce tableau (2026-09-04)
+
+**D3 — un PLURIEL n'est pas une ambiguïté.** Le premier tir a posé la question
+« champignons — c'est pour qui ? · Léa · Zoé », **à laquelle aucune réponse n'est juste** :
+en taper une jette l'autre. La cause était dans `WHO_RULES`, qui donnait « the kids » en
+exemple de mot à résoudre puis exigeait qu'**une seule** personne corresponde — condition
+qu'un pluriel ne satisfait jamais. Tous les pluriels tombaient donc dans « deux candidats
+⇒ demande ». La règle nomme désormais le pluriel **avant** celle des deux candidats, et
+dit quoi en faire : **une ligne par bouche**, jamais `household`, jamais `clarify`.
+
+**B2 — l'attendu du doc était faux, pas le produit.** On avait écrit « le classifieur a le
+plan ». Il ne l'a pas : il reçoit une **liste plate** de termes, **sans jour ni moment**.
+« Le plat de vendredi soir » est donc réellement irrésolvable pour lui, et demander est la
+bonne réponse. Ce que le run a montré de vraiment cassé, c'est le CONTENU des options :
+`filets de saumon · cuisses de poulet · lentilles · œufs` — des **ingrédients** pour une
+phrase qui désigne un **plat**. `planVocabularyOf` met désormais les **titres de plats**
+en tête de la liste proposée.
+
+⚠️ **Ce qui reste ouvert** : la liste ne porte toujours ni jour ni moment. « Le plat de
+vendredi soir » restera une question tant que le classifieur ne verra pas le calendrier du
+plan. On a amélioré la question, pas supprimé le besoin de la poser.
 
 ---
 

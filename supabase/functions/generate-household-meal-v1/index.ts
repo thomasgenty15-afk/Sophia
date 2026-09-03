@@ -100,7 +100,10 @@ import {
 // un SECOND appel modèle le trou que `readDraftNote` ferme (cible chiffrée,
 // interdit de doctrine, plancher TCA). Le type l'interdit; ne pas le contourner.
 import { classifyAndPersistDraftNote } from "../_shared/keel/draft_note_classify_io.ts";
-import { foodTermsOf } from "../_shared/keel/plan_feedback_chat.ts";
+import {
+  foodTermsOf,
+  planVocabularyOf,
+} from "../_shared/keel/plan_feedback_chat.ts";
 import {
   countHungerDays,
   type HungerWindowSignal,
@@ -8341,7 +8344,7 @@ Deno.serve(async (req) => {
         // ⚠️ LES DEUX LISTES, dishes ET preparations: en cuisine par lots, une
         // part de la protéine vit dans les préparations, et un banc de ce dépôt
         // a déjà mesuré 51 % de la protéine hors du verdict pour cette raison.
-        planFoods: foodTermsOf(dishes, preparationsWritten),
+        planFoods: planVocabularyOf(dishes, preparationsWritten),
         source: "draft_note",
         requestId,
       });

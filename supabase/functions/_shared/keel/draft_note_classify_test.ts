@@ -1247,6 +1247,51 @@ Deno.test("⑤ la règle QUI nomme `clarify` À CÔTÉ de son cas", () => {
   assert(clarify - twoFit < 300, "`clarify` est trop loin de son cas");
 });
 
+Deno.test("⑤ UN PLURIEL N'EST PAS UNE AMBIGUÏTÉ — la règle, et sa place", () => {
+  // ── LE CAS MESURÉ QUI A FAIT NAÎTRE CETTE RÈGLE ───────────────────────
+  // Banc du 2026-09-04, cas D3: « Les petites ne mangent pas de champignons. »
+  // dans un foyer à deux filles. Le modèle a posé la question « c'est pour
+  // qui ? » avec {Léa, Zoé} — et cette question NE PEUT PAS avoir de bonne
+  // réponse: en taper une jette l'autre. La phrase nommait les DEUX.
+  //
+  // ⛔ ET LA RÈGLE D'AVANT LE DISAIT ELLE-MÊME: elle donnait « the kids » en
+  // exemple de mot à résoudre, puis exigeait qu'EXACTEMENT UNE personne
+  // corresponde — ce qui ne peut jamais arriver pour un pluriel. Elle
+  // envoyait donc mécaniquement tous les pluriels vers `clarify`.
+  const p = DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT;
+  const plural = p.indexOf("A PLURAL IS NOT AN AMBIGUITY");
+  assert(plural >= 0, "la règle du pluriel a disparu du prompt");
+
+  // Elle nomme ce qu'il faut FAIRE, pas seulement ce qu'il ne faut pas.
+  assert(
+    /ONE ENTRY PER PERSON/.test(p.slice(plural, plural + 700)),
+    "la règle du pluriel ne dit pas d'écrire une ligne PAR personne",
+  );
+  // Et elle interdit les deux replis qui la trahissent.
+  const body = p.slice(plural, plural + 700);
+  assert(/member_id: null/.test(body), "elle n'interdit pas le repli sur la table");
+  assert(/NEVER "clarify"/.test(body), "elle n'interdit pas la question");
+
+  // ── ADJACENCE: elle doit être AVANT la règle des deux candidats ────────
+  // ⚠️ L'ORDRE EST LA MOITIÉ QUI COMPTE. « si deux personnes correspondent,
+  // demande » lue en premier avale le pluriel avant que l'exception n'arrive.
+  const twoFit = p.indexOf("IF TWO PEOPLE FIT");
+  assert(twoFit >= 0, "la règle des deux candidats a disparu");
+  assert(
+    plural < twoFit,
+    "LE PLURIEL EST DÉCLARÉ APRÈS LA RÈGLE QUI L'AVALE. Un modèle applique la " +
+      "première consigne qui colle: « deux personnes correspondent » colle à " +
+      "« les petites », et l'exception arrive trop tard.",
+  );
+
+  // ── ET LA SUITE DIT EXPLICITEMENT QUE L'AMBIGUÏTÉ EST *SINGULIÈRE* ─────
+  assert(
+    /SINGULAR word that fits more than one person/.test(p),
+    "rien ne dit que l'ambiguïté vise un mot SINGULIER — sans ça, les deux " +
+      "règles se contredisent et le modèle en choisit une au hasard.",
+  );
+});
+
 Deno.test("⑤ la règle QUOI interdit de deviner un aliment nommé", () => {
   const p = DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT;
   assert(p.includes("WHAT — on the same three drawers"));
