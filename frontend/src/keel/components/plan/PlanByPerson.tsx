@@ -454,7 +454,12 @@ function OnePerson(
             réclamé à sa place — or la consommation est un fait de PERSONNE.
             La garde est double et le dit deux fois: `buildPersonWeek` n'émet
             aucune position (`dishIndex: null`), et ce montage passe `null`. */}
-        <DishListByDay groups={week} bindTick={null} />
+        {/* ⛔ NI CASE NI BOÎTE (A8.1, A8.3), ET C'EST LA MÊME CAUSE:
+            `buildPersonWeek` n'émet AUCUNE position (`dishIndex: null`), donc
+            ni la coche ni la boîte n'auraient de plat où s'attacher. Les
+            fermer explicitement plutôt que par omission: un `?` ferait de cet
+            oubli-là un silence. */}
+        <DishListByDay groups={week} bindTick={null} boxNotes={null} />
       </div>
     </div>
   );

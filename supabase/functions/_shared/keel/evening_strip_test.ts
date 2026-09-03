@@ -18,6 +18,25 @@ import { mealTickKey, parseMealTickKey } from "./meal_tick.ts";
 import { readPulseReply } from "./daily_pulse.ts";
 import { planGroceryWaves } from "./grocery_waves.ts";
 import { readRecommendationReply } from "./daily_recommendation.ts";
+// A8.3 — les etapes du sort d'une part sont des reponses a un tap de CETTE
+// bande: leurs epreuves vivent donc ici, avec ce qui les ouvre.
+import {
+  boxOptionsFor,
+  boxStillWaiting,
+  resolveShareOutcomes,
+  whoDidNotEatOptions,
+} from "./meal_share_outcome.ts";
+import {
+  buildBoxStep,
+  buildMouthPickStep,
+  buildWhoStep,
+  readShareReply,
+  renderShareAck,
+  renderStillWaiting,
+  SHARE_BUTTON_PREFIX,
+  shareBoxId,
+  shareWhoId,
+} from "./share_step.ts";
 
 const MEAL = "11111111-2222-3333-4444-555555555555";
 
@@ -527,4 +546,384 @@ Deno.test("§7 — two waves cannot fall on the same day: the calculation bucket
   const buyDays = new Set(waves.map((w) => w.buyOn));
   assertEquals(buyDays.size, waves.length, JSON.stringify(waves));
   assertEquals(waves.filter((w) => w.buyOn === "2026-08-10").length, 1);
+});
+
+// ---------------------------------------------------------------------------
+// A8.3 — L'ÉTAPE « QUI N'A PAS MANGÉ ? », ET LE SORT D'UNE BOÎTE
+//
+// ⚠️ CES ÉPREUVES VIVENT ICI, ET PAS DANS UN FICHIER À PART, PARCE QUE CES
+// ÉTAPES SONT DES RÉPONSES À UN TAP DE LA BANDE. Un `✗` de la bande du soir est
+// leur seule entrée; les éprouver ailleurs les couperait de ce qui les ouvre,
+// et c'est exactement ce que A8.2 avait laissé rouge — la dérivation était
+// tenue « sur le modèle, pas sur la bande ».
+// ---------------------------------------------------------------------------
+
+const MOUTH_KID = "aaaaaaaa-0000-4000-8000-000000000001";
+const MOUTH_ADULT = "aaaaaaaa-0000-4000-8000-000000000002";
+const MOUTH_OWNER = "aaaaaaaa-0000-4000-8000-000000000003";
+
+/** Un foyer de trois bouches: le maître, un profil RÉCLAMÉ, un enfant. */
+const MOUTHS = [
+  { memberId: MOUTH_OWNER, firstName: "Ada", userId: "u-owner" },
+  { memberId: MOUTH_ADULT, firstName: "Bo", userId: "u-member" },
+  { memberId: MOUTH_KID, firstName: "Cy", userId: null },
+];
+
+Deno.test("A8.3 — LE CAS QUI PASSE: un maître avec une bouche SANS COMPTE reçoit l'étape « qui »", () => {
+  const step = buildWhoStep({
+    mealId: MEAL,
+    dishIndex: 2,
+    step: whoDidNotEatOptions({ isOwner: true, mouths: MOUTHS }),
+    language: "fr",
+  });
+  if (!step) throw new Error("l'étape « qui » devait être posée");
+  assertEquals(step.buttons.map((b) => b.title), [
+    "La mienne",
+    "Tout le foyer",
+    "Choisir…",
+  ]);
+  // La charge se relit, et elle porte le plat — sans quoi la réponse n'aurait
+  // pas de sujet et la ligne écrite pas de clé.
+  const reply = readShareReply(step.buttons[2].id);
+  assertEquals(reply.kind, "who");
+  if (reply.kind !== "who") throw new Error("unreachable");
+  assertEquals(reply.mealId, MEAL);
+  assertEquals(reply.dishIndex, 2);
+  assertEquals(reply.choice, "pick");
+});
+
+Deno.test("A8.3 — ⛔ LE CAS QUI REFUSE: pas d'étape « qui » sans bouche sans compte, ni chez un membre", () => {
+  // 1. Un maître dont TOUTES les bouches ont un compte. `[Choisir…]` n'aurait
+  //    rien à choisir, et les deux autres boutons n'apprendraient rien de plus
+  //    que le ✗ qui vient d'être tapé.
+  assertEquals(
+    buildWhoStep({
+      mealId: MEAL,
+      dishIndex: 0,
+      step: whoDidNotEatOptions({
+        isOwner: true,
+        mouths: MOUTHS.filter((m) => m.userId !== null),
+      }),
+      language: "fr",
+    }),
+    null,
+  );
+  // 2. Un MEMBRE, même dans un foyer qui compte un enfant. R11: il n'a qu'une
+  //    bouche à décrire, et « qui ? » lui offrirait une réponse qu'il n'a pas
+  //    le droit de donner.
+  assertEquals(
+    buildWhoStep({
+      mealId: MEAL,
+      dishIndex: 0,
+      step: whoDidNotEatOptions({ isOwner: false, mouths: MOUTHS }),
+      language: "fr",
+    }),
+    null,
+  );
+  // 3. Un foyer sans aucune bouche lue (lecture en panne, personne seule).
+  assertEquals(
+    buildWhoStep({
+      mealId: MEAL,
+      dishIndex: 0,
+      step: whoDidNotEatOptions({ isOwner: true, mouths: [] }),
+      language: "fr",
+    }),
+    null,
+  );
+  // 4. ⚠️ ET `asked` EST GARDÉ À PART, SUR UNE ENTRÉE QUE LE MODÈLE NE PRODUIT
+  //    PAS AUJOURD'HUI. Mesuré: retirer `if (!args.step.asked) return null;`
+  //    laissait les 35 épreuves VERTES, parce que `whoDidNotEatOptions` rend
+  //    aussi `choosable: []` à un membre — les deux conditions se recouvrent, et
+  //    une garde recouverte par une autre est une garde qu'on croit tenue.
+  //    Elles sont pourtant INDÉPENDANTES à la frontière de cette fonction: le
+  //    jour où la dérivation rendrait la liste des bouches à un membre (pour la
+  //    réutiliser ailleurs), `asked` serait la SEULE chose entre lui et une
+  //    réponse qu'il n'a pas le droit de donner (R11). On l'éprouve donc
+  //    directement, avec l'entrée qu'un tel changement produirait.
+  assertEquals(
+    buildWhoStep({
+      mealId: MEAL,
+      dishIndex: 0,
+      step: {
+        asked: false,
+        choosable: [{ memberId: MOUTH_KID, firstName: "Cy" }],
+      },
+      language: "fr",
+    }),
+    null,
+  );
+});
+
+Deno.test("A8.3 — ⛔ R11 À L'ÉCRAN: `[Choisir…]` ne propose QUE les bouches sans compte", () => {
+  const options = whoDidNotEatOptions({ isOwner: true, mouths: MOUTHS });
+  const step = buildMouthPickStep({
+    mealId: MEAL,
+    dishIndex: 0,
+    mouths: options.choosable,
+    language: "fr",
+  });
+  if (!step) throw new Error("la liste des bouches devait être posée");
+  // UNE bouche, et c'est l'enfant. Le conjoint parle pour lui-même depuis A8.0.
+  assertEquals(step.buttons.length, 1);
+  assertEquals(step.buttons[0].title, "Cy");
+  const reply = readShareReply(step.buttons[0].id);
+  if (reply.kind !== "mouth") throw new Error("expected a mouth reply");
+  assertEquals(reply.memberId, MOUTH_KID);
+  // ⛔ ET AUCUN BOUTON NE PORTE LA BOUCHE DU CONJOINT. La porte SQL le refuse
+  // (`not_your_line`); l'écran ne doit pas l'offrir, sans quoi le refus serait
+  // une surprise devant quelqu'un.
+  assertEquals(step.buttons.some((b) => b.id.includes(MOUTH_ADULT)), false);
+});
+
+Deno.test("A8.3 — LE CAS QUI PASSE: la boîte se propose dans la fenêtre frigo, et « jetée » y est toujours", () => {
+  const step = buildBoxStep({
+    mealId: MEAL,
+    dishIndex: 1,
+    memberId: MOUTH_ADULT,
+    dishDate: "2026-09-01", // un mardi
+    options: boxOptionsFor({
+      dishDate: "2026-09-01",
+      today: "2026-09-01",
+      hasFreezer: true,
+    }),
+    mouthName: null,
+    language: "fr",
+  });
+  if (!step) throw new Error("le sort de la boîte devait être proposé");
+  assertEquals(step.body, "Ta boîte de mardi.");
+  assertEquals(step.buttons.map((b) => b.title), [
+    "La garder pour mercredi",
+    "La garder pour jeudi",
+    "La garder pour vendredi",
+    "Au congélateur",
+    "Jetée",
+  ]);
+  const kept = readShareReply(step.buttons[0].id);
+  if (kept.kind !== "box") throw new Error("expected a box reply");
+  assertEquals(kept.outcome, "shifted");
+  assertEquals(kept.day, "2026-09-02");
+  assertEquals(kept.memberId, MOUTH_ADULT);
+  const thrown = readShareReply(step.buttons[4].id);
+  if (thrown.kind !== "box") throw new Error("expected a box reply");
+  assertEquals(thrown.outcome, "discarded");
+  assertEquals(thrown.day, null);
+});
+
+Deno.test("A8.3 — ⛔ LE CAS QUI REFUSE: sans congélateur déclaré, et sans jour proposable, l'étape se ferme", () => {
+  // 1. Le congélateur ne s'invente pas: « on ne lui a jamais demandé » et « il
+  //    n'en a pas » rendent le même refus.
+  const noFreezer = buildBoxStep({
+    mealId: MEAL,
+    dishIndex: 1,
+    memberId: MOUTH_ADULT,
+    dishDate: "2026-09-01",
+    options: boxOptionsFor({
+      dishDate: "2026-09-01",
+      today: "2026-09-01",
+      hasFreezer: false,
+    }),
+    mouthName: null,
+    language: "fr",
+  });
+  if (!noFreezer) throw new Error("l'étape devait rester ouverte");
+  assertEquals(noFreezer.buttons.some((b) => b.title === "Au congélateur"), false);
+  // 2. Une liste VIDE ne fait pas une étape vide: elle n'en fait aucune. Un
+  //    espace sans sortie serait un bouton mort, et un bouton mort se lit comme
+  //    une panne.
+  assertEquals(
+    buildBoxStep({
+      mealId: MEAL,
+      dishIndex: 1,
+      memberId: MOUTH_ADULT,
+      dishDate: "2026-09-01",
+      options: [],
+      mouthName: null,
+      language: "fr",
+    }),
+    null,
+  );
+});
+
+Deno.test("A8.3 — la boîte d'une bouche SANS COMPTE porte son prénom, celle du répondant non", () => {
+  const options = boxOptionsFor({
+    dishDate: "2026-09-01",
+    today: "2026-09-01",
+    hasFreezer: false,
+  });
+  const mine = buildBoxStep({
+    mealId: MEAL,
+    dishIndex: 0,
+    memberId: MOUTH_ADULT,
+    dishDate: "2026-09-01",
+    options,
+    mouthName: null,
+    language: "en",
+  });
+  const kid = buildBoxStep({
+    mealId: MEAL,
+    dishIndex: 0,
+    memberId: MOUTH_KID,
+    dishDate: "2026-09-01",
+    options,
+    mouthName: "Cy",
+    language: "en",
+  });
+  assertEquals(mine?.body, "Your box from Tuesday.");
+  // Sans le nom, le maître rangerait une boîte sans savoir laquelle: deux
+  // enfants ont deux boîtes.
+  assertEquals(kid?.body, "Cy's box from Tuesday.");
+});
+
+Deno.test("A8.3 — R2 TIENT: aucune de ces étapes n'est une question, dans les deux langues", () => {
+  for (const language of ["fr", "en"] as const) {
+    const who = buildWhoStep({
+      mealId: MEAL,
+      dishIndex: 0,
+      step: whoDidNotEatOptions({ isOwner: true, mouths: MOUTHS }),
+      language,
+    });
+    const box = buildBoxStep({
+      mealId: MEAL,
+      dishIndex: 0,
+      memberId: MOUTH_KID,
+      dishDate: "2026-09-01",
+      options: boxOptionsFor({
+        dishDate: "2026-09-01",
+        today: "2026-09-01",
+        hasFreezer: true,
+      }),
+      mouthName: "Cy",
+      language,
+    });
+    for (const step of [who, box]) {
+      if (!step) throw new Error(`étape absente en ${language}`);
+      // La MÊME ceinture que la bande, appliquée au texte exact — pas une
+      // consigne de rédaction. `banNumbers: false`: un nom de jour n'est pas un
+      // chiffre, et la ligne qui nomme a le droit d'en porter.
+      assertEquals(
+        acceptStripText([step.body, ...step.buttons.map((b) => b.title)].join("\n"), false),
+        { ok: true },
+        `${language}: ${step.body}`,
+      );
+    }
+    // Et l'accusé, lui, refuse EN PLUS les chiffres: un accusé qui compte est
+    // un score qui commence.
+    assertEquals(acceptStripText(renderShareAck("noted", language), true), { ok: true });
+  }
+});
+
+Deno.test("A8.3 — la ceinture MORD sur ces étapes: un libellé interrogatif ferme l'étape", () => {
+  // On ne peut pas atteindre `guarded` par les tables de mots (elles sont
+  // fermées et vertes): on prouve donc que la ceinture qu'elles traversent
+  // refuse bien les formulations que cette famille pourrait un jour prendre.
+  assertEquals(acceptStripText("Qui n'a pas mangé ?", false).ok, false);
+  assertEquals(acceptStripText("Tu as mange ta part", false).ok, false);
+  assertEquals(acceptStripText("Did you eat your share", false).ok, false);
+  // Et la formulation LÉGITIME, elle, passe — une garde qu'on ne sait pas faire
+  // dire « oui » bloque tout en ressemblant à une garde qui marche.
+  assertEquals(acceptStripText("Cette part n'a pas été mangée.", false).ok, true);
+});
+
+Deno.test("A8.3 — le vocabulaire de la part ne croise AUCUN des cinq autres", () => {
+  const who = shareWhoId(MEAL, 0, "me");
+  assertEquals(who.startsWith(SHARE_BUTTON_PREFIX), true);
+  // ⚠️ LA COLLISION QU'ON CHERCHE EST CELLE DES PRÉFIXES: les deux lecteurs se
+  // décident par `startsWith`, donc un préfixe qui en contiendrait un autre
+  // ferait répondre deux routeurs au même tap, et le premier gagnerait en
+  // silence.
+  assertEquals(SHARE_BUTTON_PREFIX.startsWith(STRIP_BUTTON_PREFIX), false);
+  assertEquals(STRIP_BUTTON_PREFIX.startsWith(SHARE_BUTTON_PREFIX), false);
+  assertEquals(readStripReply(who).kind, "none");
+  assertEquals(readPulseReply(who).kind, "none");
+  assertEquals(readRecommendationReply(who).kind, "none");
+  assertEquals(readShareReply(stripAllId(MEAL, [0, 1])).kind, "none");
+  assertEquals(readShareReply("KEEL_PULSE_GOOD").kind, "none");
+  assertEquals(readShareReply(stripTickId(MEAL, 0)).kind, "none");
+});
+
+Deno.test("A8.3 — une charge malformée ne se relit JAMAIS comme le plat n° 0", () => {
+  // Cicatrice de la bande: `Number("")` vaut 0 et `Number.isInteger(0)` vaut
+  // `true` — une charge tronquée s'y relisait comme « le plat n° 0 », donc
+  // écrivait une ligne. Ici l'arité est comptée et chaque segment vérifié.
+  for (
+    const bad of [
+      `KEEL_SHARE_WHO|${MEAL}|`,
+      `KEEL_SHARE_WHO|${MEAL}|0`,
+      `KEEL_SHARE_WHO|${MEAL}|0|nobody`,
+      `KEEL_SHARE_WHO||0|me`,
+      `KEEL_SHARE_MOUTH|${MEAL}|0|`,
+      `KEEL_SHARE_BOX|${MEAL}|0|${MOUTH_KID}|composted|-`,
+      // ⛔ LES DEUX SENS DU CHECK DE LA TABLE, relus AVANT toute écriture: un
+      // `shifted` sans jour ne dit rien, un `discarded` daté décrit deux sorts.
+      `KEEL_SHARE_BOX|${MEAL}|0|${MOUTH_KID}|shifted|-`,
+      `KEEL_SHARE_BOX|${MEAL}|0|${MOUTH_KID}|discarded|2026-09-02`,
+      `KEEL_SHARE_BOX|${MEAL}|0|${MOUTH_KID}|shifted|demain`,
+      "KEEL_SHARE_SOMETHING_ELSE|x|0",
+    ]
+  ) {
+    assertEquals(readShareReply(bad).kind, "none", bad);
+  }
+  // Et la construction refuse les mêmes incohérences AVANT de fabriquer un
+  // bouton: un bouton qu'on sait refusé ne s'affiche pas.
+  assertThrows(() =>
+    shareBoxId({
+      mealId: MEAL,
+      dishIndex: 0,
+      memberId: MOUTH_KID,
+      outcome: "shifted",
+      day: null,
+    })
+  );
+  assertThrows(() =>
+    shareBoxId({
+      mealId: MEAL,
+      dishIndex: 0,
+      memberId: MOUTH_KID,
+      outcome: "frozen",
+      day: "2026-09-02",
+    })
+  );
+});
+
+Deno.test("A8.3 — « encore au frigo » se DIT par le lecteur, et il a une fin", () => {
+  const resolved = resolveShareOutcomes({
+    rows: [
+      // La ligne du MAÎTRE sur la bouche du conjoint (impossible par la porte,
+      // jouée ici pour prouver l'arbitrage), puis celle du conjoint lui-même.
+      {
+        generatedMealId: MEAL,
+        dishIndex: 1,
+        memberId: MOUTH_ADULT,
+        declaredBy: "u-owner",
+        outcome: "discarded",
+        shiftedToDay: null,
+        answeredLocalDate: "2026-09-02",
+      },
+      {
+        generatedMealId: MEAL,
+        dishIndex: 1,
+        memberId: MOUTH_ADULT,
+        declaredBy: "u-member",
+        outcome: "shifted",
+        shiftedToDay: "2026-09-03",
+        answeredLocalDate: "2026-09-01",
+      },
+    ],
+    mouthOwner: { [MOUTH_ADULT]: "u-member" },
+  });
+  // D8.3 — par AUTORITÉ, jamais par date: la plus RÉCENTE est celle du maître.
+  assertEquals(resolved.length, 1);
+  assertEquals(resolved[0].authority, "self");
+  assertEquals(resolved[0].outcome, "shifted");
+  // La phrase que la vue de la part rend, dans les deux langues.
+  assertEquals(boxStillWaiting(resolved[0], "2026-09-03"), true);
+  assertEquals(renderStillWaiting("2026-09-01", "fr"), "Boîte de mardi, encore au frigo");
+  assertEquals(
+    renderStillWaiting("2026-09-01", "en"),
+    "Box from Tuesday, still in the fridge",
+  );
+  // ⛔ ET ELLE DISPARAÎT quand le jour visé est dépassé: une boîte reportée à
+  // un jour passé n'est plus une boîte, et l'annoncer serait le mensonge exact
+  // que FF-057 existe pour corriger.
+  assertEquals(boxStillWaiting(resolved[0], "2026-09-04"), false);
 });

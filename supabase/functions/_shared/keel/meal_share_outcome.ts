@@ -196,6 +196,22 @@ export function whoDidNotEatOptions(input: {
 // ---------------------------------------------------------------------------
 
 export interface ShareOutcomeRow {
+  /**
+   * ⟳ 2026-09-03 (A8.3, défaut D6) — LA BOÎTE EST IDENTIFIÉE PAR LE PLAT, PAS
+   * PAR LA BOUCHE.
+   *
+   * Ces deux champs manquaient, et leur absence était un défaut de CONCEPTION,
+   * pas d'écriture: la table porte UNE LIGNE PAR BOÎTE
+   * (`generated_meal_id, dish_index, member_id, declared_by`), et la résolution
+   * regroupait sur `memberId` SEUL. Deux boîtes d'une même personne — celle de
+   * mardi et celle de jeudi — s'effondraient donc en une, et la dernière lue
+   * effaçait l'autre. La vue de la part ne pouvait structurellement pas rendre
+   * « boîte de mardi » et « boîte de jeudi » côte à côte, ce qui est
+   * exactement ce que le lecteur du reste doit faire.
+   */
+  generatedMealId: string;
+  /** La position dans le `dishes[]` STOCKÉ. La même clé que la coche. */
+  dishIndex: number;
   memberId: string;
   /** Le compte qui a déclaré. */
   declaredBy: string;
@@ -205,6 +221,9 @@ export interface ShareOutcomeRow {
 }
 
 export interface ResolvedShare {
+  /** Voir `ShareOutcomeRow`: une boîte est identifiée par SON plat. */
+  generatedMealId: string;
+  dishIndex: number;
   memberId: string;
   outcome: ShareOutcome;
   shiftedToDay: string | null;
@@ -241,18 +260,31 @@ export function resolveShareOutcomes(input: {
   rows: readonly ShareOutcomeRow[];
   mouthOwner: Readonly<Record<string, string | null>>;
 }): ResolvedShare[] {
-  const byMouth = new Map<string, ResolvedShare>();
+  // ⚠️ LA CLÉ DE REGROUPEMENT EST CELLE DE LA TABLE, MOINS `declared_by`.
+  //
+  // `declared_by` est justement la colonne sur laquelle on ARBITRE: la retirer
+  // de la clé de regroupement est ce qui fait se rencontrer les deux
+  // déclarations. Les TROIS autres restent — regrouper sur `memberId` seul
+  // effondrait la boîte de mardi et celle de jeudi l'une dans l'autre (défaut
+  // D6, mesuré le 2026-09-03).
+  const keyOf = (row: { generatedMealId: string; dishIndex: number; memberId: string }) =>
+    `${row.generatedMealId}\u0000${row.dishIndex}\u0000${row.memberId}`;
+
+  const byBox = new Map<string, ResolvedShare>();
   for (const row of input.rows) {
     const owner = input.mouthOwner[row.memberId] ?? null;
     const authority: "self" | "owner" = owner !== null && owner === row.declaredBy
       ? "self"
       : "owner";
-    const current = byMouth.get(row.memberId);
+    const key = keyOf(row);
+    const current = byBox.get(key);
     // `self` bat `owner`. Deux lignes de même autorité ne peuvent pas exister
-    // sur la même bouche: la clé porte `declared_by`, et un maître est unique.
+    // sur la même boîte: la clé porte `declared_by`, et un maître est unique.
     if (current && current.authority === "self") continue;
     if (current && authority !== "self") continue;
-    byMouth.set(row.memberId, {
+    byBox.set(key, {
+      generatedMealId: row.generatedMealId,
+      dishIndex: row.dishIndex,
       memberId: row.memberId,
       outcome: row.outcome,
       shiftedToDay: row.shiftedToDay,
@@ -264,10 +296,11 @@ export function resolveShareOutcomes(input: {
   const seen: ResolvedShare[] = [];
   const done = new Set<string>();
   for (const row of input.rows) {
-    if (done.has(row.memberId)) continue;
-    const resolved = byMouth.get(row.memberId);
+    const key = keyOf(row);
+    if (done.has(key)) continue;
+    const resolved = byBox.get(key);
     if (!resolved) continue;
-    done.add(row.memberId);
+    done.add(key);
     seen.push(resolved);
   }
   return seen;

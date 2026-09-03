@@ -8096,5 +8096,22 @@ export const en = {
   //   · plan.cooking.day_before_starts_today
   //   · plan.cooking.day_before_no_room
   // ── chantier-0903/CUISINE — fin ──
+  // ── chantier-0903/MEMBRE — début ──
+  //
+  // A8.3 — LE LECTEUR DU RESTE. La boîte d'une part non mangée, rendue là où la
+  // part se lit: la carte du réclamé et le bloc jour du maître.
+  //
+  // ⚠️ AUCUNE DE CES DEUX PHRASES NE S'AFFICHE SUR UNE SUPPOSITION. C'est
+  // `boxStillWaiting` qui décide, et il refuse un `not_eaten` sans suite comme
+  // un jour de report DÉPASSÉ — « on ne sait pas » n'est pas « elle t'attend »,
+  // et une boîte reportée à hier n'est plus une boîte. Les rendre sans passer
+  // par cette décision serait le mensonge exact que FF-057 existe pour corriger.
+  //
+  // ⚠️ DEUX CLÉS ET PAS UNE, parce que la personne concernée change la phrase:
+  // le maître lit « la boîte de Cy », la personne lit « ta boîte ». Une seule
+  // clé avec un `{name}` vide dirait « la boîte de , encore au frigo ».
+  "plan.box.still_fridge": "Your box from {day}, still in the fridge",
+  "plan.box.still_fridge_named": "{name} — box from {day}, still in the fridge",
+  // ── chantier-0903/MEMBRE — fin ──
 
 } as const

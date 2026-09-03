@@ -213,8 +213,17 @@ const MOUTH_OWNER = {
   "m-kid": null,
 } as const;
 
+/**
+ * ⚠️ `generatedMealId` ET `dishIndex` SONT DANS LE SOCLE, ET ILS NE PEUVENT PAS
+ * ÊTRE OPTIONNELS (défaut D6, 2026-09-03). La table porte UNE LIGNE PAR BOÎTE:
+ * sans eux, la résolution regroupait sur la bouche seule et la boîte de mardi
+ * effaçait celle de jeudi. Les cas qui parlent de DEUX boîtes passent un autre
+ * `dishIndex` par `over`.
+ */
 function row(over: Partial<ShareOutcomeRow>): ShareOutcomeRow {
   return {
+    generatedMealId: "11111111-2222-3333-4444-555555555555",
+    dishIndex: 0,
     memberId: "m-spouse",
     declaredBy: "u-spouse",
     outcome: "frozen",
@@ -261,6 +270,8 @@ Deno.test("sur une bouche SANS COMPTE, la ligne du maître fait autorité (D8.5)
     mouthOwner: MOUTH_OWNER,
   });
   assertEquals(resolved, [{
+    generatedMealId: "11111111-2222-3333-4444-555555555555",
+    dishIndex: 0,
     memberId: "m-kid",
     outcome: "discarded",
     shiftedToDay: null,
@@ -312,7 +323,12 @@ Deno.test("une bouche inconnue du foyer ne devient pas `self` par accident", () 
 // ═══════════════════════════════════════════════════════════════════════════
 
 Deno.test("⛔ « ENCORE AU FRIGO » A UNE FIN", () => {
-  const base = { memberId: "m-spouse", authority: "self" as const };
+  const base = {
+    generatedMealId: "11111111-2222-3333-4444-555555555555",
+    dishIndex: 0,
+    memberId: "m-spouse",
+    authority: "self" as const,
+  };
   // Reportée à demain: elle attend.
   assert(boxStillWaiting(
     { ...base, outcome: "shifted", shiftedToDay: "2026-03-12" },
@@ -337,4 +353,74 @@ Deno.test("⛔ « ENCORE AU FRIGO » A UNE FIN", () => {
   // `not_eaten` sans suite: on ne sait pas ce qu'elle est devenue, et « on ne
   // sait pas » n'est pas « elle t'attend ».
   assert(!boxStillWaiting({ ...base, outcome: "not_eaten", shiftedToDay: null }, "2026-03-11"));
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⛔ D6 (2026-09-03) — DEUX BOÎTES D'UNE MÊME PERSONNE NE S'EFFONDRENT PAS
+//
+// LE DÉFAUT MESURÉ, ET IL ÉTAIT DE CONCEPTION. `ShareOutcomeRow` ne portait ni
+// `generatedMealId` ni `dishIndex`, et `resolveShareOutcomes` regroupait sur
+// `memberId` SEUL. La table, elle, porte UNE LIGNE PAR BOÎTE. Deux boîtes de la
+// même personne — celle de mardi et celle de jeudi — se rencontraient donc sur
+// la même clé, et la seconde lue effaçait la première EN SILENCE. La vue de la
+// part ne pouvait structurellement pas les rendre côte à côte.
+//
+// MUTATION QUI DOIT ROUGIR: ramener la clé de regroupement à `row.memberId`.
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("⛔ D6 — LE CAS QUI PASSE: deux boîtes de la MÊME personne restent DEUX", () => {
+  const tuesday = row({ dishIndex: 3, outcome: "shifted", shiftedToDay: "2026-03-12" });
+  const thursday = row({ dishIndex: 9, outcome: "frozen" });
+  const resolved = resolveShareOutcomes({
+    rows: [tuesday, thursday],
+    mouthOwner: MOUTH_OWNER,
+  });
+  assertEquals(resolved.length, 2);
+  assertEquals(resolved.map((r) => [r.dishIndex, r.outcome]), [
+    [3, "shifted"],
+    [9, "frozen"],
+  ]);
+});
+
+Deno.test("⛔ D6 — deux PLANS différents ne se confondent pas non plus", () => {
+  // Le plan courant et le plan suivant coexistent, et leurs plats portent les
+  // mêmes positions. Sans `generatedMealId` dans la clé, la boîte du plat n° 0
+  // du plan de la semaine prochaine effacerait celle de cette semaine — le
+  // « 5 des 3 » que `meal_tick.ts` documente, sur une autre table.
+  const thisWeek = row({ dishIndex: 0, outcome: "frozen" });
+  const nextWeek = row({
+    generatedMealId: "99999999-8888-7777-6666-555555555555",
+    dishIndex: 0,
+    outcome: "discarded",
+  });
+  const resolved = resolveShareOutcomes({
+    rows: [thisWeek, nextWeek],
+    mouthOwner: MOUTH_OWNER,
+  });
+  assertEquals(resolved.length, 2);
+  assertEquals(resolved.map((r) => r.outcome), ["frozen", "discarded"]);
+});
+
+Deno.test("⛔ D6 — et l'arbitrage D8.3 continue de mordre BOÎTE PAR BOÎTE", () => {
+  // La quatrième colonne de la clé (`declared_by`) est celle sur laquelle on
+  // arbitre: elle sort du regroupement, les trois autres y restent. Ici la même
+  // bouche a DEUX boîtes, et sur CHACUNE le maître a parlé aussi. Chaque boîte
+  // doit rendre la ligne de la personne — pas une seule pour les deux.
+  const rows = [
+    row({ dishIndex: 3, declaredBy: "u-owner", outcome: "discarded" }),
+    row({ dishIndex: 3, declaredBy: "u-spouse", outcome: "frozen" }),
+    row({ dishIndex: 9, declaredBy: "u-owner", outcome: "discarded" }),
+    row({
+      dishIndex: 9,
+      declaredBy: "u-spouse",
+      outcome: "shifted",
+      shiftedToDay: "2026-03-14",
+    }),
+  ];
+  const resolved = resolveShareOutcomes({ rows, mouthOwner: MOUTH_OWNER });
+  assertEquals(resolved.length, 2);
+  assertEquals(resolved.map((r) => [r.dishIndex, r.outcome, r.authority]), [
+    [3, "frozen", "self"],
+    [9, "shifted", "self"],
+  ]);
 });

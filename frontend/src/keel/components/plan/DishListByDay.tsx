@@ -55,15 +55,49 @@ import { t } from "../../i18n/t";
  * ce plat vit dans le plan », et une case sans position écrirait un fait sur
  * un plat au hasard.
  */
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * A8.3 — LES BOÎTES ENCORE VIVANTES, SOUS LEUR PLAT.
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * Une part non mangée est une BOÎTE dans le frigo, et elle se lit là où le plat
+ * se lit — pas dans un écran séparé qu'il faudrait penser à ouvrir.
+ *
+ * ⛔ `boxNotes` EST REQUIS, ET `null` EST UNE RÉPONSE À ÉCRIRE. Même motif que
+ * `bindTick`: un `?` aurait fermé la ligne par défaut chez les trois montages
+ * sans que rien ne le dise, et une ligne qui n'apparaît jamais est
+ * indistinguable d'une ligne qui n'existe pas.
+ *
+ * ⚠️ CE COMPOSANT NE DÉCIDE PAS QU'UNE BOÎTE ATTEND. Il rend ce que le monteur
+ * lui donne, et le monteur l'obtient de `boxNotesByDish`, qui passe par
+ * `boxStillWaiting` — lequel refuse un `not_eaten` sans suite et un jour de
+ * report DÉPASSÉ. Décider ici serait la seconde version d'une règle qui a déjà
+ * son module et ses épreuves.
+ *
+ * `name: null` = c'est MA boîte; un prénom = celle d'une bouche sans compte que
+ * le maître a rangée (la RLS ne lui rend rien d'autre). Deux phrases, parce que
+ * « la boîte de , encore au frigo » est ce qu'une seule clé produirait.
+ */
+export interface DishBoxNote {
+  memberId: string;
+  name: string | null;
+}
+
 export default function DishListByDay(props: {
   groups: readonly DayListGroup[];
   bindTick: ((dishIndex: number) => DishTick | null) | null;
+  boxNotes: ((dishIndex: number) => readonly DishBoxNote[]) | null;
 }): React.ReactElement | null {
-  const { bindTick } = props;
+  const { bindTick, boxNotes } = props;
   if (props.groups.length === 0) return null;
   return (
     <ul className="flex flex-col gap-3">
-      {props.groups.map((group) => (
+      {props.groups.map((group) => {
+        // Le mot du jour, résolu UNE fois par groupe: chaque boîte du groupe
+        // parle du même jour, et le recalculer par plat ferait dépendre le
+        // rendu du nombre de plats.
+        const dayWord = dishDayLabel(group.day) ?? group.day ?? "";
+        return (
         <li key={group.day ?? "undated"}>
           {/* Le groupe SANS jour n'a pas de titre: lui inventer « lundi »
               serait une prescription d'horaire que le moteur n'a pas faite. */}
@@ -80,6 +114,12 @@ export default function DishListByDay(props: {
               const tick = bindTick !== null && dish.dishIndex !== null
                 ? bindTick(dish.dishIndex)
                 : null;
+              // ⚠️ LA MÊME GARDE DE POSITION QUE LA CASE. Une boîte est le
+              // reste d'UN plat: sans position, on ne sait pas duquel, et la
+              // rendre sous le plat suivant serait un fait faux affiché.
+              const boxes = boxNotes !== null && dish.dishIndex !== null
+                ? boxNotes(dish.dishIndex)
+                : [];
               return (
                 // La clé porte l'INDEX en plus du reste: deux jours peuvent
                 // servir le même plat, et deux `<li>` de même clé perdent
@@ -104,12 +144,31 @@ export default function DishListByDay(props: {
                     ? <span className="block pl-4 text-ink-soft">{dish.note}</span>
                     : null}
                   {tick ? <DishTickBox tick={tick} /> : null}
+                  {/* ── A8.3 · « ENCORE AU FRIGO » ────────────────────────
+                      SOUS la case, jamais au-dessus: la case dit ce qui s'est
+                      passé, la boîte dit ce qu'il en reste. Et le jour est
+                      celui du PLAT — c'est de cette boîte-là qu'on parle,
+                      même quand la liste est lue un autre jour. */}
+                  {boxes.map((box) => (
+                    <span
+                      key={`box:${box.memberId}`}
+                      className="block pl-4 text-ink-soft break-words"
+                    >
+                      {box.name
+                        ? t("plan.box.still_fridge_named", {
+                          name: box.name,
+                          day: dayWord,
+                        })
+                        : t("plan.box.still_fridge", { day: dayWord })}
+                    </span>
+                  ))}
                 </li>
               );
             })}
           </ul>
         </li>
-      ))}
+        );
+      })}
     </ul>
   );
 }

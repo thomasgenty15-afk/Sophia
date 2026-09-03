@@ -343,7 +343,19 @@ la relance, et le produit a déjà retiré ce genre de boucle.
    pour lui (`protocol_events`, `meal_share_outcomes`), pas par un avis. Un fait
    n'a pas besoin d'être arbitré.
 
-   ⛔ **Ce qui reste vrai malgré tout** : la contrainte est une propriété du
-   schéma, donc elle tomberait en silence si quelqu'un la retirait. Aucune garde
-   ne la tient aujourd'hui — c'est nommé au rapport A8.2 comme dette, pas
-   comme acquis.
+   ✅ **La dette est fermée (2026-09-03, lot A8.3).** A8.2 laissait écrit que
+   « la contrainte est une propriété du schéma, donc elle tomberait en silence si
+   quelqu'un la retirait ». Elle est désormais tenue par
+   **`supabase/functions/_shared/keel/meal_plan_feedback_unique_test.sql`**, qui
+   REJOUE le geste au lieu de lire la migration : un test qui vérifie que
+   `unique (meal_id)` est écrit quelque part sur le disque prouve qu'une chaîne
+   existe, jamais que la base refuse la seconde ligne — et une migration
+   ultérieure qui la retirerait le laisserait vert, puisque la ligne d'origine
+   reste dans son fichier.
+
+   Le cas qui compte est le **troisième** : un **autre compte** essaie d'écrire
+   un retour sur le même plan. C'est lui, et lui seul, qui distingue
+   `unique (meal_id)` de `unique (user_id, meal_id)` — c'est-à-dire la décision
+   ci-dessus de son renversement. Mutation jouée : la contrainte remplacée par
+   `(user_id, meal_id)`, dans une transaction annulée, fait tomber ce cas-là et
+   aucun autre.

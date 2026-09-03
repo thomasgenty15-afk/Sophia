@@ -6952,5 +6952,12 @@ export const fr: TranslatedMessages = {
   //   · plan.cooking.day_before_starts_today
   //   · plan.cooking.day_before_no_room
   // ── chantier-0903/CUISINE — fin ──
+  // ── chantier-0903/MEMBRE — début ──
+  //
+  // A8.3 — LE LECTEUR DU RESTE. Voir le bloc jumeau d'`en.ts` pour le motif des
+  // deux clés: la personne concernée change la phrase.
+  "plan.box.still_fridge": "Ta boîte de {day}, encore au frigo",
+  "plan.box.still_fridge_named": "{name} — boîte de {day}, encore au frigo",
+  // ── chantier-0903/MEMBRE — fin ──
 
 };

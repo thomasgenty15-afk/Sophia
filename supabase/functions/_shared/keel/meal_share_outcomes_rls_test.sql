@@ -104,6 +104,12 @@ values
   ('a8020000-0000-4000-8000-000000000002','a802_member@example.com',
    '00000000-0000-0000-0000-000000000000','authenticated','authenticated'),
   ('a8020000-0000-4000-8000-000000000003','a802_stranger@example.com',
+   '00000000-0000-0000-0000-000000000000','authenticated','authenticated'),
+  -- A8.3 (D4) — LE COMPTE QUI RÉCLAMERA UNE BOUCHE. Il n'a AUCUNE ligne de
+  -- foyer au départ, et c'est obligatoire: `household_members_one_per_user`
+  -- refuse un second siège, donc réutiliser l'intrus ferait échouer la
+  -- réclamation pour une raison qui n'est pas celle qu'on mesure.
+  ('a8020000-0000-4000-8000-000000000004','a802_claimer@example.com',
    '00000000-0000-0000-0000-000000000000','authenticated','authenticated');
 
 -- Le foyer du maître, et celui du voisin. Deux foyers: sans le second, « un
@@ -298,6 +304,194 @@ exception
     raise notice 'OK  09b aucun TRUNCATE';
 end;
 $$;
+
+-- ===========================================================================
+-- ⛔ D3 (2026-09-03) — LES DEUX CHECK DE LA TABLE, TENUS SUR DES LIGNES RÉELLES
+--
+-- LE DÉFAUT MESURÉ, ET L'EXCUSE QUI ÉTAIT FAUSSE. Les contrôles (e) et (f) du
+-- bloc `do $$` de la migration interceptent `foreign_key_violation` EN PLUS de
+-- `check_violation`, parce que leurs uuid bidons ne référencent rien: la FK
+-- tombe AVANT le CHECK, et neutraliser le CHECK ne fait pas rougir le bloc. Le
+-- journal d'A8.2 disait « ce que ces deux CHECK gardent est tenu par le test
+-- RLS » — c'est FAUX, et le vérificateur l'a mesuré: les deux CHECK neutralisés
+-- laissaient 18/18 assertions vertes, parce que la PORTE refuse avant que la
+-- table ne soit touchée. Le CHECK `shifted ⟺ shifted_to_day` n'était donc tenu
+-- par RIEN.
+--
+-- ⚠️ ON ÉCRIT DONC EN DIRECT, SOUS `postgres`, ET C'EST LE SEUL ENDROIT DU
+-- FICHIER QUI LE FAIT. Le but n'est pas de tester la porte (elle a ses propres
+-- cas): c'est d'atteindre la TABLE avec des clés étrangères qui RÉSOLVENT, pour
+-- que le CHECK soit la seule chose qui puisse tomber. La FK ne peut plus mordre
+-- puisque le plan, la bouche et le compte existent tous les trois.
+--
+-- ⚠️ ET LE SQLSTATE EST VÉRIFIÉ NOMMÉMENT (`23514`, pas `23503`): un contrôle
+-- qui attrape deux erreurs différentes ne prouve pas laquelle a mordu — c'est
+-- exactement la faute qu'on répare ici, et l'attraper au sens large la
+-- reproduirait.
+-- ===========================================================================
+
+select pg_temp.become_super();
+
+-- 13. LE VOCABULAIRE EST FERMÉ EN BASE, et pas seulement dans la porte. Une
+--     écriture serveur qui contournerait la RPC doit tomber aussi.
+do $$
+begin
+  insert into public.meal_share_outcomes (
+    generated_meal_id, dish_index, member_id, declared_by,
+    outcome, shifted_to_day, answered_local_date
+  ) values (
+    'a8023333-0000-4000-8000-000000000001', 7,
+    'a8022222-0000-4000-8000-000000000003',   -- une bouche RÉELLE
+    'a8020000-0000-4000-8000-000000000001',   -- un compte RÉEL
+    'eaten_somewhere_else', null, current_date);
+  raise exception '13 CHECK: un `outcome` hors vocabulaire a été ACCEPTÉ';
+exception
+  when sqlstate '23514' then
+    raise notice 'OK  13 le CHECK du vocabulaire a mordu (23514)';
+  when sqlstate '23503' then
+    raise exception '13 la CLÉ ÉTRANGÈRE a mordu avant le CHECK — la fixture '
+      'ne référence pas des lignes réelles, ce contrôle ne prouve rien';
+end;
+$$;
+
+-- 14. LA DATE ET LE SORT SE TIENNENT, DANS LES DEUX SENS. Une ligne
+--     `discarded` datée décrirait deux sorts pour la même boîte, et le lecteur
+--     devrait deviner; un `shifted` sans date ne dit pas à quel jour, donc ne
+--     dit rien. C'est LE CHECK que rien ne tenait.
+do $$
+begin
+  insert into public.meal_share_outcomes (
+    generated_meal_id, dish_index, member_id, declared_by,
+    outcome, shifted_to_day, answered_local_date
+  ) values (
+    'a8023333-0000-4000-8000-000000000001', 8,
+    'a8022222-0000-4000-8000-000000000003',
+    'a8020000-0000-4000-8000-000000000001',
+    'discarded', current_date + 1, current_date);
+  raise exception '14a CHECK: une boîte `discarded` a PU porter un jour de report';
+exception
+  when sqlstate '23514' then
+    raise notice 'OK  14a `discarded` + une date est refusé (23514)';
+  when sqlstate '23503' then
+    raise exception '14a la CLÉ ÉTRANGÈRE a mordu avant le CHECK';
+end;
+$$;
+
+do $$
+begin
+  insert into public.meal_share_outcomes (
+    generated_meal_id, dish_index, member_id, declared_by,
+    outcome, shifted_to_day, answered_local_date
+  ) values (
+    'a8023333-0000-4000-8000-000000000001', 9,
+    'a8022222-0000-4000-8000-000000000003',
+    'a8020000-0000-4000-8000-000000000001',
+    'shifted', null, current_date);
+  raise exception '14b CHECK: un `shifted` a PU ne porter aucun jour';
+exception
+  when sqlstate '23514' then
+    raise notice 'OK  14b `shifted` sans date est refusé (23514)';
+  when sqlstate '23503' then
+    raise exception '14b la CLÉ ÉTRANGÈRE a mordu avant le CHECK';
+end;
+$$;
+
+-- 15. ⚠️ LE CAS QUI PASSE, ET IL EST OBLIGATOIRE. Sans lui, les trois refus
+--     ci-dessus seraient verts sur une table qui refuse TOUT — une garde qu'on
+--     ne sait pas faire dire « oui » bloque tout en ressemblant à une garde qui
+--     marche.
+insert into public.meal_share_outcomes (
+  generated_meal_id, dish_index, member_id, declared_by,
+  outcome, shifted_to_day, answered_local_date
+) values (
+  'a8023333-0000-4000-8000-000000000001', 7,
+  'a8022222-0000-4000-8000-000000000003',
+  'a8020000-0000-4000-8000-000000000001',
+  'shifted', current_date + 1, current_date);
+select pg_temp.assert_eq('15 le CHECK laisse passer une ligne cohérente',
+  (select count(*) from public.meal_share_outcomes
+    where dish_index = 7), 1);
+
+-- ===========================================================================
+-- ⛔ D4 (2026-09-03) — CE QUE LA 4ᵉ COLONNE DE LA CLÉ ACHÈTE VRAIMENT
+--
+-- LE DÉFAUT MESURÉ. Le cas 11 comptait deux lignes sur DEUX BOUCHES
+-- DIFFÉRENTES: une clé à TROIS colonnes (sans `declared_by`) les autorise tout
+-- autant. Ramener la clé à trois laissait donc 18/18 vertes, et la décision
+-- centrale du lot n'avait aucune épreuve qui morde.
+--
+-- ── LE CAS QUI LA DISTINGUE, ET C'EST LE VRAI SCÉNARIO PRODUIT ─────────────
+-- La MÊME bouche, le MÊME plat, DEUX déclarants. La porte l'interdit tant que
+-- la bouche a un compte (`not_your_line`), donc il n'existe qu'un chemin par
+-- lequel les deux lignes se rencontrent — et c'est le chemin NORMAL du produit:
+--
+--   1. la bouche n'a PAS de compte, le maître range sa boîte (D8.5);
+--   2. plus tard, la personne RÉCLAME ce profil (`user_id` posé — c'est ce que
+--      fait `keel_household_claim_member`);
+--   3. elle déclare à son tour sur SA boîte.
+--
+-- Avec quatre colonnes, les deux lignes COEXISTENT et `resolveShareOutcomes`
+-- tranche par AUTORITÉ (D8.3: la sienne gagne). Avec trois, la seconde écrase
+-- la première — et l'arbitrage n'a plus rien à arbitrer, en silence.
+--
+-- MUTATION QUI DOIT ROUGIR: retirer `declared_by` de la clé primaire ET du
+-- `on conflict` de la porte.
+-- ===========================================================================
+
+select pg_temp.become_super();
+
+-- 16a. Le maître range la boîte de l'enfant, sur un plat neuf.
+select pg_temp.assert_ok('16a le maître range la boîte d''une bouche sans compte',
+  public.keel_household_declare_share_outcome_for(
+    'a8020000-0000-4000-8000-000000000001',
+    'a8023333-0000-4000-8000-000000000001',
+    5,
+    'a8022222-0000-4000-8000-000000000003',
+    'discarded', null, current_date));
+
+-- 16b. LA BOUCHE EST RÉCLAMÉE. On pose le `user_id` comme le fait la
+--      réclamation: la bouche existait déjà, elle gagne un compte.
+update public.household_members
+   set user_id = 'a8020000-0000-4000-8000-000000000004'
+ where member_id = 'a8022222-0000-4000-8000-000000000003';
+-- ⚠️ ET SON FOYER RESTE LE MÊME. On ne déplace personne: la personne réclame
+-- une bouche de CE foyer, sinon la porte rendrait `not_a_member` et l'épreuve
+-- passerait pour une autre raison que celle qu'on mesure.
+
+-- 16c. Elle déclare à son tour, sur SA boîte, sur LE MÊME PLAT.
+select pg_temp.assert_ok('16c la personne déclare sur SA boîte, même plat',
+  public.keel_household_declare_share_outcome_for(
+    'a8020000-0000-4000-8000-000000000004',
+    'a8023333-0000-4000-8000-000000000001',
+    5,
+    'a8022222-0000-4000-8000-000000000003',
+    'frozen', null, current_date));
+
+-- 16d. ⛔ L'ÉPREUVE. MÊME plat, MÊME bouche, DEUX déclarants, DEUX lignes.
+--      Une clé à trois colonnes en laisserait UNE.
+select pg_temp.assert_eq(
+  '16d ⛔ même bouche + même plat + deux déclarants = DEUX lignes',
+  (select count(*) from public.meal_share_outcomes
+    where generated_meal_id = 'a8023333-0000-4000-8000-000000000001'
+      and dish_index = 5
+      and member_id = 'a8022222-0000-4000-8000-000000000003'), 2);
+
+-- 16e. Et les deux SORTS sont distincts: sans ça, « deux lignes » pourrait
+--      être deux fois la même chose, et D8.3 n'aurait rien à trancher.
+select pg_temp.assert_eq('16e les deux lignes disent des choses DIFFÉRENTES',
+  (select count(distinct outcome) from public.meal_share_outcomes
+    where generated_meal_id = 'a8023333-0000-4000-8000-000000000001'
+      and dish_index = 5
+      and member_id = 'a8022222-0000-4000-8000-000000000003'), 2);
+
+-- 16f. ⛔ ET LA LIGNE DU MAÎTRE N'A PAS ÉTÉ CORRIGÉE. Une déclaration est un
+--      fait; un fait ne se réécrit pas parce qu'un autre le contredit. C'est
+--      le LECTEUR qui choisit (`resolveShareOutcomes`), pas la base.
+select pg_temp.assert_eq('16f la ligne du maître est intacte',
+  (select count(*) from public.meal_share_outcomes
+    where dish_index = 5
+      and declared_by = 'a8020000-0000-4000-8000-000000000001'
+      and outcome = 'discarded'), 1);
 
 select pg_temp.become_super();
 rollback;
