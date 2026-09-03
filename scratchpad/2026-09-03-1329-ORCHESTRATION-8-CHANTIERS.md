@@ -1046,3 +1046,30 @@ reprise sans être mesurée*. Ce chantier l'a interdit aux lanes toute la journ�
 sur trois points distincts en trois heures — la règle de commit par pathspec (incomplète : **le `--` protège l'index, pas
 l'arbre**), l'identification de la lane par les **horodatages** plutôt que par `git status`, et ce montant. Aucune n'avait
 de raison de regarder ; toutes ont mesuré avant de parler.
+
+## 01:3x — le runtime edge est périmé de 28 heures, et personne ne l'avait mesuré
+
+Une session voisine l'a mesuré et a demandé la voie avant de relancer : `supabase functions serve` démarré le
+**2 septembre à 15:20:46**, `generate-meal-v1/index.ts` et `generate-household-meal-v1/index.ts` réécrits le
+**3 septembre à 19:29:47** par mon chantier. **Un fichier modifié n'est pas rechargé** : le runtime sert donc encore les
+deux générateurs dans leur version d'avant-hier.
+
+**Sa formulation du danger est la meilleure que j'aie lue, et je la garde** :
+> *Le résultat attendu — une sous-nutrition de l'enveloppe autour de 65 % — est exactement ce que l'ancien code produit,
+> donc la fausse mesure serait indiscernable d'une vraie.*
+
+**Un instrument cassé qui rend une valeur plausible.** Même famille que mes six erreurs (« une affirmation reprise sans
+être mesurée »), en pire : ici c'est l'**instrument** qui ment. **Un run qui échoue se voit ; un run qui réussit sur du
+code d'avant-hier ne se voit pas.**
+
+**Vérifié, et rien n'est contaminé** : mes **six** rapports de vérification portent **zéro** appel HTTP au runtime — ni
+`curl`, ni `functions/v1`, ni `127.0.0.1:54321`. Le run réel était interdit dans chaque mandat de vérificateur, et
+chacun le dit. Ce que le rapport d'A2 appelle « sonde sur l'appel réel » est une **sonde en processus** : un fichier de
+test jetable écrit, exécuté, supprimé — et un `renderToStaticMarkup` sous vitest pour le HTML. **Les quatre défauts d'A2
+tiennent.**
+
+**Ce que ça change pour mes fenêtres** : « relancer avant chaque fenêtre » était noté depuis le lot 0, **sans que
+personne ait mesuré la dérive**. Elle est de 28 heures, sur les deux fichiers que ce chantier a le plus réécrits.
+⇒ **Relancer `functions serve` est le PREMIER geste d'une fenêtre, pas une précaution facultative.** Jamais
+`docker restart` sous `functions serve` (boucle de recréation et 502 qui ressemblent à des pannes).
+Voie libérée à la session voisine ; aucun run de mon côté avant les deux gestes humains.
