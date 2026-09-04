@@ -157,9 +157,7 @@ les plats — tout ce qui était déjà vert en unitaire — mais pas la phrase.
 
 ## 9. ⛔ Ce qui n'est PAS mesuré, nommé
 1. ~~La lane foyer n'est pas touchée.~~ **FAIT — voir §11.**
-2. **Un seul fuseau tardif éprouvé.** `America/Sao_Paulo` à 22 h fait tomber les trois
-   moments. Le cas où **un seul** moment reste à venir (donc `slots_remain`) n'a pas été
-   joué en run réel — il l'est en unitaire.
+2. ~~Le cas où un seul moment reste à venir n'a pas été joué en run réel.~~ **FAIT — §12.**
 3. ~~Le refus `cook_day` n'a pas été vu en run réel.~~ **FAIT — voir §10.**
 4. **Aucune migration, aucun déploiement.** Rien n'est poussé.
 
@@ -277,3 +275,57 @@ l'empreinte avant/après, j'aurais cherché le défaut chez moi.
 ⛔ **La règle, une fois de plus** : celui qui génère l'**annonce**, les autres n'écrivent pas
 sous `supabase/functions/` pendant ce temps, et le créneau se termine à un **signal**, jamais
 à l'estime. Je ne l'avais annoncé qu'à une seule des trois sessions vivantes.
+
+---
+
+## 12. ⟳ UN SEUL MOMENT RESTE À VENIR — la garde s'abstient, et c'est prouvé
+
+**Le dernier trou nommé est fermé.** `plan-UNSEUL-20260904-040331.json`, HTTP 200, empreinte
+du code inchangée.
+
+### La frontière, simulée avant de dépenser l'appel
+
+    h=19  passés=[breakfast,lunch]  reste=[dinner]  →  slots_remain, fenêtre 3 jours
+    h=20  passés=[breakfast,lunch]  reste=[dinner]  →  slots_remain, fenêtre 3 jours
+    h=21  passés=[breakfast,lunch,dinner]  reste=[]  →  RETRAIT, fenêtre 2 jours
+
+La bascule est **exactement** à 21 h — l'heure où `SLOT_PASSED_HOUR` fait tomber le dîner.
+
+### La mesure — `America/Los_Angeles`, 19 h 03
+
+| | |
+|---|---|
+| fenêtre | **3 jours, 2026-09-03 → 09-05** — elle n'a **pas** bougé |
+| `timing.kind` | `same_morning`, `starts_today` |
+| `issues` | **aucune trace `spent_first_day`** — le cas ordinaire est **muet**, comme voulu |
+| jeudi (aujourd'hui) | **`['dinner']` seulement** — petit-déjeuner et déjeuner retirés |
+| vendredi, samedi | les trois moments |
+
+**C'est la démonstration la plus tranchante du lot** : il est 19 h, deux moments sur trois
+sont passés, et **la fenêtre est intacte** parce que le dîner est encore devant. La garde ne
+mord pas par excès, et elle ne dit rien quand elle n'a rien à dire.
+
+⚠️ Et la phrase reste juste : « For today, breakfast and lunch are off the plan: the day is
+already under way. » Cette ligne-là **doit** sortir ici — c'est le cas qu'elle décrit
+vraiment. Le lot ne l'a pas fait taire partout, seulement là où le premier jour a été retiré.
+
+### Ce que je n'ai PAS refait, et pourquoi
+
+**Ce cas n'est pas rejoué sur la lane foyer.** C'est le **même appel à la même fonction
+pure**, et le câblage foyer est déjà prouvé par ses trois runs du §11. Une génération de
+plus pour re-mesurer une fonction identique serait un appel modèle dépensé pour rien.
+
+---
+
+## ✅ ÉTAT FINAL — les quatre états de la garde, tous vus en run réel
+
+| état | ce qui se passe | vu où |
+|---|---|---|
+| `slots_remain` | rien ne bouge, **muet** | §12 (solo 19 h), §8 témoin, §11 ① |
+| retrait | fenêtre raccourcie, fin gardée, **dit** | §8 cas, §11 ② |
+| `cook_day` | veille **sauvée**, **dit** | §10 (solo), §11 ③ |
+| `single_day` | fenêtre d'un jour gardée, **dit** | ⛔ **jamais vu en run réel** |
+
+**Le seul état jamais atteint en conditions réelles est `single_day`** : il demande une
+fenêtre d'UN jour dont tous les moments sont passés, c'est-à-dire quelqu'un qui demande un
+plan pour aujourd'hui après son dernier repas. Tenu par l'unitaire et par mutation.
