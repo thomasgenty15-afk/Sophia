@@ -518,3 +518,45 @@ Deno.test("CÂBLAGE — CE QUE LA PERSONNE A ÉCRIT SURVIT AU REFUS", async () =
     "la source n'est plus déclarée sur le chemin du refus",
   );
 });
+
+Deno.test("CÂBLAGE — LA RELANCE COMPTE SES TENTATIVES, PAS SEULEMENT SES SUCCÈS", async () => {
+  const src = await generatorSource();
+  // ── LE DÉFAUT, MESURÉ SUR DEUX FOYERS INDÉPENDANTS (2026-09-04) ───────
+  // `unfedRetried` n'était posé que dans la branche d'acceptation. Il rendait
+  // donc `false` dans deux états opposés: « aucune relance tentée » et
+  // « relance tentée, revenue, puis REJETÉE ». Un tir réel affichait
+  // `{missing: 12, missing_before: 12, retried: false}` pendant que le journal
+  // du modèle portait un `unfed_retry` bien parti.
+  //
+  // ⛔ CE QU'UN BOOLÉEN NE PEUT PAS DIRE est exactement l'état intéressant:
+  // « j'ai essayé deux fois et j'ai tout rejeté ». Il distingue une relance
+  // INUTILE d'une relance NON APPELÉE, et les deux demandent l'inverse l'un de
+  // l'autre.
+  assert(
+    /unfedRetryAttempts \+= 1;/.test(src),
+    "les tentatives de relance ne sont plus comptées: un booléen ne peut pas " +
+      "distinguer « pas tentée » de « tentée puis rejetée »",
+  );
+  assert(
+    /unfedRetryAccepted \+= 1;/.test(src),
+    "les relances ACCEPTÉES ne sont plus comptées à part",
+  );
+  // ⛔ ET LA TENTATIVE SE COMPTE AVANT LE VERDICT. Posée dans la branche
+  // d'acceptation, elle recréerait le défaut sous un autre nom.
+  const attempt = src.indexOf("unfedRetryAttempts += 1;");
+  const verdict = src.indexOf("after.missing < delivered.missing");
+  assert(attempt > 0 && verdict > attempt, "la tentative est comptée après son verdict");
+  // Les deux nombres sortent, dans le journal ET dans l'archive.
+  assertEquals(
+    (src.match(/retry_attempts: unfedRetryAttempts,/g) || []).length,
+    2,
+    "les tentatives ne sortent pas sur les deux surfaces (journal et archive)",
+  );
+  // ⛔ ET SUR QUELLE CAUSE. « La relance a échoué » ne dit pas quoi faire;
+  // « elle échoue systématiquement sur les trous de RÉGIME » désigne le geste.
+  assertEquals(
+    (src.match(/retry_on: unfedRetryOn,/g) || []).length,
+    2,
+    "la cause sur laquelle la relance a été dépensée ne sort pas",
+  );
+});

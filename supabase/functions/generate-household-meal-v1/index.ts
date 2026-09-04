@@ -5963,7 +5963,29 @@ Deno.serve(async (req) => {
       }));
     let delivered = mealsDelivered(deliveredViewOf(meal), mouthCells);
     const unfedBefore = delivered.missing;
-    let unfedRetried = false;
+    // ⛔ DEUX NOMBRES, PAS UN BOOLÉEN — ET C'EST UN DÉFAUT MESURÉ (2026-09-04).
+    //
+    // `unfedRetried` n'était posé QUE dans la branche d'acceptation. Il rendait
+    // donc `false` dans DEUX états très différents: « aucune relance tentée » et
+    // « relance tentée, réussie, puis REJETÉE parce qu'elle n'améliorait pas ».
+    //
+    // Vu sur un tir réel: `{missing: 12, missing_before: 12, retried: false}` se
+    // lit « on n'a pas essayé », alors que le journal du modèle portait bien un
+    // `unfed_retry` parti et revenu. Une session voisine l'a trouvé de son côté
+    // en croisant `llm_usage_events` — deux foyers, même conclusion.
+    //
+    // ⚠️ L'ÉTAT INTÉRESSANT EST PRÉCISÉMENT CELUI QU'UN BOOLÉEN NE PEUT PAS
+    // DIRE: « j'ai essayé deux fois et j'ai tout rejeté ». C'est lui qui dit si
+    // la relance est inutile ou si elle n'a pas été appelée, et les deux
+    // demandent des gestes opposés.
+    let unfedRetryAttempts = 0;
+    let unfedRetryAccepted = 0;
+    // ⛔ ET SUR QUELLE CAUSE ON A DÉPENSÉ CET APPEL. « La relance a échoué » ne
+    // dit pas quoi faire; « la relance échoue systématiquement sur les trous de
+    // RÉGIME » désigne le geste. Cumulé sur les tentatives: une relance lancée
+    // sur dix trous de régime compte dix, et c'est la forme qui se compare d'un
+    // foyer à l'autre.
+    const unfedRetryOn: Record<string, number> = {};
     let unfedRestored = 0;
 
     // ── ① LA RELANCE CIBLÉE, QUI NOMME LA BOUCHE ET LE REMÈDE ────────────
@@ -6006,6 +6028,13 @@ Deno.serve(async (req) => {
               reasoningEffort: PLAN_REASONING_EFFORT,
             },
           );
+          // ⚠️ COMPTÉE ICI, AVANT TOUT VERDICT: une tentative qui revient et
+          // qu'on rejette reste une minute de modèle dépensée, et c'est ce que
+          // ce nombre existe pour dire.
+          unfedRetryAttempts += 1;
+          for (const [cause, count] of Object.entries(delivered.byCause)) {
+            if (count > 0) unfedRetryOn[cause] = (unfedRetryOn[cause] ?? 0) + count;
+          }
           if (typeof retryResult === "string") {
             const retried = parseGeneratedMeal(retryResult, parseArgs);
             const after = mealsDelivered(deliveredViewOf(retried), mouthCells);
@@ -6023,7 +6052,7 @@ Deno.serve(async (req) => {
               // les parts de la réponse d'AVANT.
               mealSourceText = retryResult;
               delivered = after;
-              unfedRetried = true;
+              unfedRetryAccepted += 1;
             } else {
               // ⛔ UN TOUR QUI N'AMÉLIORE RIEN ARRÊTE LA SÉRIE. Insister sur un
               // modèle qui vient de rendre pire ou pareil dépense une minute
@@ -6091,7 +6120,10 @@ Deno.serve(async (req) => {
       ...delivered.byCause,
       cells_without_dish: delivered.cellsWithoutDish,
       unplaced_dishes: delivered.unplacedDishes,
-      retried: unfedRetried,
+      retried: unfedRetryAccepted > 0,
+      retry_attempts: unfedRetryAttempts,
+      retry_accepted: unfedRetryAccepted,
+      retry_on: unfedRetryOn,
       restored: unfedRestored,
     }));
 
@@ -8099,7 +8131,10 @@ Deno.serve(async (req) => {
         missing: delivered.missing,
         by_cause: delivered.byCause,
         cells_without_dish: delivered.cellsWithoutDish,
-        retried: unfedRetried,
+        retried: unfedRetryAccepted > 0,
+        retry_attempts: unfedRetryAttempts,
+        retry_accepted: unfedRetryAccepted,
+        retry_on: unfedRetryOn,
         restored: unfedRestored,
         rows: delivered.mouths
           .filter((m) => m.missing.length > 0)
