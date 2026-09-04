@@ -219,17 +219,34 @@ manquait la moitié qui dit qu'un pluriel n'est pas un doute.
 (l'ordre est la moitié qui compte — un modèle applique la première consigne qui
 colle), et un test qui tient les deux : le texte de la règle, et sa position.
 
+**Confirmé DEUX FOIS, sur deux phrases différentes** — et c'est ce qui distingue
+un correctif d'une coïncidence :
+
+| phrase | verbe | famille | résultat |
+|---|---|---|---|
+| « Les petites ne mangent pas de champignons. » | négatif | `food.exclude` | **2 lignes** `{Léa, Zoé}`, 0 question |
+| « Les petites adorent les pâtes. » | positif | `food.prefer` | **2 lignes** `{Léa, Zoé}`, 0 question |
+
+La seconde vient de la **campagne, cycle 3** — un autre compte, un autre plan,
+une autre famille de préférence.
+
 ### 3.2 Le texte d'une préférence est parfois une phrase, pas une chose
 
 Non corrigé — **c'est le prompt du lot A, pas celui-ci**, et le changer déplace
 le comportement du modèle sur toutes les lanes d'un coup. Mais la carte le montre,
 et la carte est l'écran que « Voir » ouvre :
 
-| ce qui est écrit en base | ce que la carte affiche sous « Ce que tu ne veux plus » |
+| ce qui est écrit en base | ce que la carte affiche |
 |---|---|
 | `Mon fils n'aime pas le poisson.` | Tom → « Mon fils n'aime pas le poisson. » |
+| `Mon mari n'aime pas les lentilles.` | Marc → « Mon mari n'aime pas les lentilles. » |
 | `ont détesté le skyr nature` | Léa → « **ont détesté le skyr nature** » |
-| `le poisson` *(venu d'un tap de clarification)* | Léa → « le poisson » |
+| `le poisson` *(venu d'un tap de clarification)* | Zoé → « le poisson » |
+| `les pâtes` | Léa → « les pâtes » |
+
+⚠️ **Les deux formes cohabitent sur le MÊME compte** (campagne, cycles 1–3) :
+« Mon mari n'aime pas les lentilles. » et « les pâtes ». Ce n'est donc ni une
+question de langue ni de famille — c'est le modèle qui coupe où il veut.
 
 La troisième ligne est la bonne, et elle vient du **chemin de la question** :
 `resolveClarification` met le TERME dans `text`. Le chemin direct recopie la
