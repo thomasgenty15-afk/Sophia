@@ -12,6 +12,7 @@ import {
   PROTEIN_CEILING_RATIO,
   servedDensityOf,
   VEG_FLOOR_RATIO,
+  weighedReadyGrams,
 } from "./box_densify.ts";
 import { buildCompositionIndex, type CompositionRef } from "./food_composition.ts";
 
@@ -279,4 +280,46 @@ Deno.test("CÂBLAGE — le générateur densifie APRÈS unmetDemand, sur les seu
   const potAt = src.indexOf("potRoom: (() => {");
   assert(potAt > densifyAt && potAt < logAt, "la marge des casseroles n'est pas passée à la densification");
   assert(/room\.set\(prep\.id, ready - \(drawn\.get\(prep\.id\) \?\? 0\)\);/.test(src), "la marge n'est plus « prêt moins déjà tiré »");
+});
+
+Deno.test("⛔ ⟳ UNE PINCÉE DE SEL NE REND PAS LA DENSITÉ D'UNE CASSEROLE INCONNUE", () => {
+  // Mesuré sur le premier tir réel: « cuisses de poulet 2 720 g » + « 1 pincée
+  // de sel » ⇒ `no_density`, rien déplacé. Toutes les vraies casseroles ont
+  // une pincée de quelque chose.
+  const index = buildCompositionIndex(
+    [
+      ref({ slug: "poulet", energyKcal: 200, foodGroupRef: "poultry", yieldClass: "meat_shrinks" }),
+      // Une pincée: `condimentGrams` porte sa masse conventionnelle.
+      ref({ slug: "sel", energyKcal: 0, foodGroupRef: "sauce_dressing" as never, condimentGrams: 1 } as never),
+      // Une huile non pesée: `energyDense`, refusée par `condimentMassFor`.
+      ref({ slug: "huile d olive", energyKcal: 900, foodGroupRef: "olive_oil", energyDense: true, condimentGrams: 5 } as never),
+    ],
+    [],
+  );
+  // `state: "raw"` sur le pesé: sans état, une viande n'a pas de grammes crus.
+  const ing = (term: string, gramsRaw: number | null, amount: number | null, unit: "g" | null) => ({
+    term, quantity: null, in_pantry: false, amount, unit, state: gramsRaw === null ? null : "raw", gramsRaw, quantitySource: null,
+  }) as never;
+  const prep = {
+    id: "prep_chicken",
+    method: "Rôtir.",
+    ingredients: [ing("poulet", 600, 600, "g"), ing("sel", null, null, null)],
+  };
+  // Les grammes prêts: 600 g crus × 0,7, plus la masse CONVENTIONNELLE du sel (1 g).
+  assertEquals(weighedReadyGrams(prep.ingredients, index), 421);
+  const densityOf = densityFromComposition(index, [prep]);
+  const d = densityOf({ term: "poulet rôti", grams: 300, preparationId: "prep_chicken" });
+  assertEquals(d.reason, "resolved", "une pincée de sel a rendu la casserole inconnue");
+  assertEquals(d.group, "poultry");
+  assert(d.kcalPerGram !== null && d.kcalPerGram > 0, JSON.stringify(d));
+  // ⛔ UNE HUILE NON PESÉE rend la casserole INCONNUE — pas « mesurée sur son
+  // poulet seul », ce qui la ferait paraître moins dense qu'elle n'est et
+  // ferait déplacer PLUS de grammes que nécessaire, sans qu'aucun compteur ne
+  // le voie. C'est la contre-épreuve de `condimentMassFor`, réutilisée ici.
+  const oily = { id: "prep_oily", method: "Rôtir.", ingredients: [ing("poulet", 600, 600, "g"), ing("huile d olive", null, null, null)] };
+  assertEquals(densityFromComposition(index, [oily])({ term: "poulet rôti", grams: 300, preparationId: "prep_oily" }).kcalPerGram, null);
+  // Sans AUCUN ingrédient résolu (un terme que le référentiel ignore), on ne sait toujours pas.
+  const dark = { id: "prep_dark", method: "", ingredients: [ing("chose inconnue", null, null, null)] };
+  assertEquals(weighedReadyGrams(dark.ingredients, index), null);
+  assertEquals(densityFromComposition(index, [dark])({ term: "x", grams: 1, preparationId: "prep_dark" }).kcalPerGram, null);
 });

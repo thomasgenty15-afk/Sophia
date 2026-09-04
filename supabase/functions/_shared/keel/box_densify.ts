@@ -57,10 +57,9 @@
  * relance du modèle ou un extra déclaré ont un sens.
  */
 import type { CompositionIndex, CompositionRef } from "./food_composition.ts";
-import { resolveIngredient, YIELD_FACTORS } from "./food_composition.ts";
+import { condimentMassFor, resolveIngredient, YIELD_FACTORS } from "./food_composition.ts";
 import type { FoodGroupRef } from "./tokens.ts";
 import { dishEnergy } from "./plan_energy.ts";
-import { preparationReadyGrams } from "./meal_generation.ts";
 import type { DishIngredient } from "./meal_generation.ts";
 
 export const VEG_FLOOR_RATIO = 0.7;
@@ -286,6 +285,38 @@ export function densifyBoxes(args: {
   };
 }
 
+/**
+ * Les grammes PRÊTS des seuls ingrédients pesés ET résolus d'une casserole.
+ * `null` s'il n'y en a aucun. Ce n'est pas `preparationReadyGrams`, qui rend
+ * `null` au premier ingrédient non pesé — juste pour une masse, faux pour une
+ * densité (voir `densityFromComposition`).
+ */
+export function weighedReadyGrams(
+  ingredients: readonly DishIngredient[],
+  index: CompositionIndex,
+): number | null {
+  let total = 0;
+  let any = false;
+  for (const ing of ingredients) {
+    const ref = resolveIngredient(index, ing.term);
+    if (!ref) continue;
+    // ⛔ UN INGRÉDIENT NON PESÉ N'EST PAS ÉCARTÉ, IL EST JUGÉ PAR `condimentMassFor`:
+    // une pincée de sel reçoit sa masse conventionnelle et entre au dénominateur
+    // (comme au numérateur, par `dishEnergy`); une huile non pesée est REFUSÉE
+    // par cette même fonction (`energyDense`), et `dishEnergy` marque alors la
+    // casserole incomplète — la densité reste `null`. Écarter les non-pesés des
+    // deux côtés aurait mesuré une casserole à l'huile non pesée sur son riz
+    // seul: moins dense qu'elle n'est, donc un écart cru plus grand, donc PLUS
+    // de grammes déplacés — le défaut n°1 de `food_composition.ts`, par la
+    // porte de derrière. On réutilise la règle qui a déjà sa contre-épreuve.
+    const g = ing.gramsRaw !== null && ing.gramsRaw > 0 ? ing.gramsRaw : condimentMassFor(ref);
+    if (g === null || !(g > 0)) continue;
+    total += g * YIELD_FACTORS[ref.yieldClass];
+    any = true;
+  }
+  return any ? total : null;
+}
+
 /** kcal par gramme SERVI d'une fiche du référentiel — l'énergie est donnée par 100 g CRUS. */
 export function servedDensityOf(ref: CompositionRef): number {
   return (ref.energyKcal * ref.atwaterDiscount / 100) / YIELD_FACTORS[ref.yieldClass];
@@ -306,7 +337,17 @@ export function densityFromComposition(
   const byPrep = new Map<string, ItemDensity>();
   for (const prep of preparations) {
     const energy = dishEnergy(index, { method: prep.method, ingredients: prep.ingredients });
-    const ready = preparationReadyGrams(prep.ingredients, index);
+    // ── ⟳ 2026-09-04 — LES GRAMMES PRÊTS DES INGRÉDIENTS PESÉS ET RÉSOLUS ──
+    // `preparationReadyGrams` rend `null` dès qu'UN ingrédient n'a pas de
+    // `gramsRaw`: juste pour la MASSE d'une casserole, faux pour sa DENSITÉ.
+    // Mesuré sur le premier tir réel du lot: « cuisses de poulet 2 720 g » +
+    // « 1 pincée de sel » + « 1 pincée de poivre » ⇒ densité inconnue,
+    // `no_density`, rien déplacé. Toutes les vraies casseroles ont une pincée de
+    // quelque chose: tel quel, aucun item citant une casserole n'aurait jamais
+    // été densifié. Une pincée vaut sa masse conventionnelle (`condimentMassFor`,
+    // des deux côtés); une huile non pesée rend la casserole incomplète, et la
+    // densité `null`, comme avant. Aucun ingrédient pesé ou conventionnel ⇒ `null`.
+    const ready = weighedReadyGrams(prep.ingredients, index);
     if (!energy.complete || energy.kcal === null || ready === null || !(ready > 0)) {
       byPrep.set(prep.id, { kcalPerGram: null, group: null, reason: "prep_incomplete" });
       continue;
