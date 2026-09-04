@@ -3904,6 +3904,10 @@ Deno.serve(async (req) => {
           }) as never,
           window: { startsOn, durationDays },
           requestedWindow: requestedWindowFacts,
+          // ⛔ LE MÊME OBJET QUE LE TIMING, pas une seconde dérivation. Deux
+          // calculs du « premier jour retiré » divergeraient au premier
+          // ajustement, et c'est la phrase de l'élève qui garderait l'ancien.
+          spentFirstDay: spentFirstDay.dropped,
           today: { localDate: todayDate, dayToken: todayToken as never },
           localMinuteOfDay,
           slotsDroppedToday,

@@ -6123,6 +6123,10 @@ Deno.serve(async (req) => {
           }) as never,
           window: { startsOn, durationDays },
           requestedWindow: requestedWindowFacts,
+          // ⛔ `null` EST UN AVEU, comme le `{ dropped: null }` du timing plus
+          // haut: cette lane ne retire pas encore la journée dépensée. Un champ
+          // REQUIS plutôt qu'optionnel, pour que l'absence soit visible.
+          spentFirstDay: null,
           today: { localDate: todayDate, dayToken: todayToken as never },
           localMinuteOfDay,
           slotsDroppedToday,

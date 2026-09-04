@@ -144,6 +144,21 @@ export interface PlanRationaleFacts {
   /** Ce que l'élève a DEMANDÉ, avant résolution. Sert à dire ce qui a été coupé. */
   requestedWindow: { startsOn: string; durationDays: number } | null;
   /**
+   * LE PREMIER JOUR RETIRÉ PARCE QU'IL ÉTAIT DÉJÀ DÉPENSÉ, ou `null`.
+   *
+   * ⛔ CE CHAMP EXISTE PARCE QU'UN RUN RÉEL A MONTRÉ DEUX PHRASES FAUSSES.
+   * Le 2026-09-04, un plan rétréci par `withoutSpentFirstDay` a rendu « la
+   * semaine se termine avant » — la seule cause de raccourcissement qui
+   * existait quand cette phrase a été écrite — puis « courses et cuisson dès le
+   * matin » sur un plan qui commence DEMAIN. Les deux prémisses étaient vraies
+   * à l'écriture et sont devenues fausses le jour où une seconde cause est
+   * apparue.
+   *
+   * ⚠️ AUCUN TEST UNITAIRE NE POUVAIT LE VOIR: la chaîne n'était rendue par
+   * aucun d'eux. C'est le run réel qui l'a dit, et c'est à ça qu'il sert.
+   */
+  spentFirstDay: DayToken | null;
+  /**
    * LE JOUR LOCAL DE L'ÉLÈVE et son jeton — `localDateInZone` / `dayTokenInZone`.
    * REQUIS: sans lui, « ton plan commence aujourd'hui » est indécidable, et le
    * fuseau du SERVEUR classerait un dîner la veille (`local_date.ts:8-12`).
@@ -485,6 +500,11 @@ const COPY = {
         : `Ce plan couvre ${n} jours, à partir de ${day} ${date}.`,
     windowShortened: (asked: number, kept: number) =>
       `Tu en avais demandé ${asked} : la semaine se termine avant, il en reste ${kept}.`,
+    // ⛔ Voir le commentaire jumeau côté `en`: la cause n'est pas la même, donc
+    // la phrase non plus.
+    windowShortenedSpentDay: (asked: number, kept: number, day: string) =>
+      `Tu en avais demandé ${asked} : ${day} était déjà entamé, le plan ` +
+      `commence donc demain et en couvre ${kept}.`,
     cookDeclaredKept: (days: string) => `Tu cuisines ${days}, et c'est ce qui a été gardé.`,
     // ── LES JOURS DE CUISINE QUE LA FENÊTRE N'ATTEINT PAS (2026-09-01) ────
     // DEUX GABARITS ET PAS UN AVEC UNE LISTE FACULTATIVE: « les sessions sont
@@ -748,6 +768,12 @@ const COPY = {
         : `This plan covers ${n} days, starting ${day} ${date}.`,
     windowShortened: (asked: number, kept: number) =>
       `You asked for ${asked}: the week ends before that, so ${kept} are left.`,
+    // ⛔ LA SECONDE CAUSE DE RACCOURCISSEMENT, ET ELLE A SON PROPRE MOTIF.
+    // Réutiliser la phrase du dessus dirait « la semaine se termine avant » à
+    // quelqu'un dont la semaine ne se termine pas — mesuré en run réel.
+    windowShortenedSpentDay: (asked: number, kept: number, day: string) =>
+      `You asked for ${asked}: ${day} was already under way, so the plan ` +
+      `starts tomorrow and covers ${kept}.`,
     cookDeclaredKept: (days: string) => `You cook on ${days}, and that is what was kept.`,
     cookDeclaredDroppedAll: (dropped: string) =>
       `You cook on ${dropped}, but this plan does not reach that far: the ` +
@@ -966,6 +992,7 @@ const REQUIRED_FACTS: readonly (keyof PlanRationaleFacts)[] = [
   "addedCookDays",
   "window",
   "requestedWindow",
+  "spentFirstDay",
   "today",
   "localMinuteOfDay",
   "slotsDroppedToday",
@@ -1057,9 +1084,23 @@ export function explainPlanChoices(input: {
     // a été coupée, donc on ne le dit pas. `resolveRequestedWindow` coupe la
     // forme `until_sunday` à dimanche, et l'élève qui a cliqué « ma semaine »
     // un vendredi reçoit trois jours sans jamais savoir pourquoi.
+    //
+    // ⟳ 2026-09-04 — DEUX CAUSES, DEUX PHRASES. `until_sunday` coupe à
+    // dimanche; `withoutSpentFirstDay` retire un premier jour déjà dépensé. La
+    // seconde n'existait pas quand la première phrase a été écrite, et la lui
+    // faire porter a produit « la semaine se termine avant » sur un plan
+    // rétréci un jeudi — mesuré en run réel, pas supposé.
     const asked = facts.requestedWindow;
     if (asked && Number.isFinite(asked.durationDays) && asked.durationDays > duration) {
-      lines.push(copy.windowShortened(asked.durationDays, duration));
+      lines.push(
+        facts.spentFirstDay === null
+          ? copy.windowShortened(asked.durationDays, duration)
+          : copy.windowShortenedSpentDay(
+            asked.durationDays,
+            duration,
+            renderDays([facts.spentFirstDay], input.locale),
+          ),
+      );
     }
   }
 
@@ -1149,10 +1190,16 @@ export function explainPlanChoices(input: {
           ? copy.cookDayBeforeTonight(renderDays([dayBefore.day], input.locale))
           : copy.cookDayBeforeGranted(renderDays([dayBefore.day], input.locale)),
       );
-    } else if (dayBefore.reason !== null) {
+    } else if (dayBefore.reason !== null && facts.spentFirstDay === null) {
       // ⟳ A1 — L'AVERTISSEMENT « DÈS LE MATIN ». Il ne sort QUE sur une veille
       // dérivée et écartée (`after_cutoff`, `starts_today`, `clock_unreadable`);
       // un appelant qui ne dérive rien passe `reason: null` et reste muet.
+      //
+      // ⛔ ET IL SE TAIT QUAND LE PREMIER JOUR A ÉTÉ RETIRÉ. « Dès le matin »
+      // parle du matin d'AUJOURD'HUI; sur un plan qui commence demain c'est un
+      // fait faux, rendu en run réel le 2026-09-04. Les lignes de fenêtre
+      // au-dessus disent déjà quand il commence, et la ligne de courses dit
+      // déjà quel jour on achète: se taire ne perd aucune information.
       lines.push(copy.cookSameMorning());
     }
   }

@@ -50,6 +50,7 @@ function nominalFacts(): PlanRationaleFacts {
     addedCookDays: [],
     window: { startsOn: "2026-08-13", durationDays: 5 },
     requestedWindow: null,
+    spentFirstDay: null,
     today: { localDate: "2026-08-13", dayToken: "thu" },
     localMinuteOfDay: 9 * 60,
     slotsDroppedToday: [],
@@ -209,6 +210,64 @@ Deno.test("la fenêtre RACCOURCIE se dit, et seulement si on sait qu'elle l'a é
   assert(dit.lines.some((l) => l.includes("7") && l.includes("5")));
 });
 
+/**
+ * ⛔ CES DEUX CAS VIENNENT D'UN RUN RÉEL, PAS D'UNE RELECTURE.
+ * Le 2026-09-04, un plan rétréci par `withoutSpentFirstDay` a rendu, à l'écran:
+ *   « You asked for 3: THE WEEK ENDS BEFORE THAT, so 2 are left. »
+ *   « Shopping and cooking FIRST THING IN THE MORNING, so it is ready by lunch. »
+ * La première donne une cause qui n'est pas la sienne; la seconde parle du matin
+ * d'AUJOURD'HUI sur un plan qui commence demain. Les deux prémisses étaient
+ * vraies quand les phrases ont été écrites — une seconde cause les a rendues
+ * fausses, et AUCUN test unitaire ne pouvait le voir puisque aucun ne rendait la
+ * chaîne sur un plan rétréci.
+ */
+Deno.test("la journée dépensée donne SA cause, pas celle de la semaine", () => {
+  const out = explainPlanChoices({
+    facts: {
+      ...nominalFacts(),
+      requestedWindow: { startsOn: "2026-08-13", durationDays: 7 },
+      spentFirstDay: "thu",
+    },
+    locale: "fr",
+  });
+  const texte = out.lines.join(" ");
+  assert(texte.includes("déjà entamé"), `la cause réelle manque: ${texte}`);
+  assert(
+    !texte.includes("la semaine se termine avant"),
+    `la cause d'une AUTRE coupure est rendue: ${texte}`,
+  );
+});
+
+Deno.test("« dès le matin » se tait quand le plan commence DEMAIN", () => {
+  // ⚠️ `cookDayBefore.reason` DOIT ÊTRE POSÉ: c'est lui qui arme la phrase.
+  // Le fixture nominal le laisse à `null` — sans ce réglage, le test serait vert
+  // parce que la phrase ne sort JAMAIS, pas parce que le retrait la fait taire.
+  const veilleDérivée = { day: null, refused: null, reason: "starts_today" } as const;
+  const rétréci = explainPlanChoices({
+    facts: {
+      ...nominalFacts(),
+      cookDayBefore: veilleDérivée,
+      requestedWindow: { startsOn: "2026-08-13", durationDays: 7 },
+      spentFirstDay: "thu",
+    },
+    locale: "fr",
+  });
+  assert(
+    !rétréci.lines.join(" ").includes("dès le matin"),
+    "« dès le matin » parle d'aujourd'hui sur un plan qui commence demain",
+  );
+  // ⛔ ET LE CAS QUI PASSE, sinon on aurait remplacé un fait faux par une garde
+  // morte: sans retrait, la phrase doit toujours sortir.
+  const normal = explainPlanChoices({
+    facts: { ...nominalFacts(), cookDayBefore: veilleDérivée },
+    locale: "fr",
+  });
+  assert(
+    normal.lines.join(" ").includes("dès le matin"),
+    "la phrase a disparu même sans retrait — la garde est trop large",
+  );
+});
+
 Deno.test("une fenêtre qui ne démarre pas aujourd'hui porte SON jour et SA date", () => {
   const out = explainPlanChoices({
     facts: { ...nominalFacts(), window: { startsOn: "2026-08-17", durationDays: 3 } },
@@ -351,6 +410,14 @@ Deno.test("AUCUN gabarit ne culpabilise — la porte 4 ne doit jamais mordre", (
     addedCookDays: ["thu"],
     window: { startsOn: "2026-08-13", durationDays: 4 },
     requestedWindow: { startsOn: "2026-08-13", durationDays: 7 },
+    // ⛔ ALLUMÉ, ET C'EST LE POINT DE CE TEST. `windowShortenedSpentDay` est un
+    // gabarit qui dit à quelqu'un que sa journée est « déjà entamée »: c'est
+    // très exactement la forme de phrase qui peut tourner au reproche, et la
+    // porte anti-culpabilisation doit la relire comme les autres.
+    //
+    // ⚠️ EN CONTREPARTIE, `cookSameMorning` se tait ici — il est muet dès qu'un
+    // jour a été retiré. Il reste lu par la porte via les autres cas du fichier.
+    spentFirstDay: "thu",
     today: { localDate: "2026-08-13", dayToken: "thu" },
     localMinuteOfDay: 20 * 60 + 30,
     slotsDroppedToday: ["breakfast", "lunch"],
