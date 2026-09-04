@@ -223,6 +223,36 @@ day »), donc ce n'est pas silencieux — mais ce n'est pas mesuré ici.
 
 ---
 
+## 10 bis. ⟳ LA GARDE `cook_day` EST TENUE PAR UN SECOND BANC (2026-09-04)
+
+Une session voisine a cru — et écrit — que cette garde était « une seconde ceinture » : que
+`withCookDayBefore` et `withoutSpentFirstDay` s'excluraient **par construction**, puisque la
+veille se refuse `in_the_past` dès que `startsOn === today`.
+
+⛔ **C'est faux, et c'est le genre d'erreur qui fait SUPPRIMER une garde.** Son raisonnement
+porte sur la fenêtre **saisie** ; le retrait s'exécute sur la fenêtre **servie**. Quand la
+veille est accordée, **c'est elle qui amène `startsOn` sur aujourd'hui** (`index.ts:1359-1360`
+réassigne `startsOn` et `durationDays`) : l'état réputé impossible est précisément celui
+qu'elle crée.
+
+Elle a vérifié, retiré sa phrase, et **mesuré le contrefactuel dans un seul processus**, ma
+garde neutralisée par `cookOnlyDay: null` :
+
+    veille accordée : startsOn=2026-09-04, durationDays=5, cookOnlyDay="fri"
+    AVEC garde  → refused="cook_day", durée 5
+    SANS garde  → refused=null,       durée 4, dropped="fri"
+
+**`dropped === cookOnlyDay`** : sans la garde, le jour retiré est **exactement le jour de
+cuisine**. C'est plus net que ma mutation, qui prouvait que la garde mord sans nommer le
+dommage.
+
+⇒ **`cooking_plan_test.ts` épingle désormais cette garde depuis un autre lot** : son
+invariant d'offre de courses en dépend, et si quelqu'un la retire, deux bancs rougissent au
+lieu d'un. La leçon qu'elle en tire vaut d'être gardée : *une dépendance qu'on n'éprouve pas
+est une dépendance qu'on retire par mégarde.*
+
+---
+
 ## 11. ⟳ LA LANE FOYER — portée, et prouvée sur les trois cas
 
 **L'aveu est levé.** Elle recevait `{ dropped: null }` et `spentFirstDay: null` **en dur**.
