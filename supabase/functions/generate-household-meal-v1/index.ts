@@ -5618,11 +5618,33 @@ Deno.serve(async (req) => {
     // tôt jugerait un plan que la suite modifie encore.
     //
     // ── LE DÉNOMINATEUR EST CELUI DE LA COMPOSITION, PAS UN SECOND ────────
-    // `memberMealCells` avec le rythme de la maison et `away.effective` — le
-    // MÊME appel que `compositionEaterCells`. `away.effective` porte déjà les
-    // absences ET les repas pris dehors, donc une bouche qui déjeune au
-    // restaurant n'est pas attendue à midi. Deux idées de « qui mange ici »
-    // finiraient par diverger, et c'est l'invariant qui aurait tort.
+    // `memberMealCells` avec `away.effective` — qui porte déjà les absences ET
+    // les repas pris dehors, donc une bouche qui déjeune au restaurant n'est
+    // pas attendue à midi. Deux idées de « qui mange ici » finiraient par
+    // diverger, et c'est l'invariant qui aurait tort.
+    //
+    // ── ⛔ LE RYTHME EST CELUI DE LA BOUCHE, PAS CELUI DE LA MAISON ───────
+    // ⟳ 2026-09-04 — CORRIGÉ. Ce bloc passait `eatingRhythm`, qui est une
+    // UNION (voir sa construction: le réglage du foyer PLUS les `eatingSlots`
+    // de chaque bouche). Donner l'union à tout le monde attend chacun aux
+    // moments de TOUS: qu'une seule bouche déclare un goûter, et la table
+    // entière devient `not_named` sur ce goûter — alors que le brief lui a dit,
+    // à voix haute, « eats at breakfast, lunch, dinner **only** ».
+    //
+    // La suite était mesurée et complète: `unfedRetryInstruction` demandait au
+    // modèle de nommer des gens sur un plat qui n'est pas le leur, et le second
+    // tour rendait 422 `mouth_unfed`. **13 foyers sur 52 y sont exposés en
+    // base** (mesuré ce jour), dont un avec une union de quatre moments.
+    //
+    // ⛔ ET SURTOUT PAS `ownMealSlots(m.habits)`, qui ressemble au bon filtre.
+    // Celui-là dit « à quelles cases faut-il lui cuisiner un plat à ELLE »,
+    // jamais « à quelles cases mange-t-elle ». S'en servir ici ferait tomber le
+    // dénominateur d'une bouche à ses seules habitudes déclarées: on ne verrait
+    // plus jamais ses autres repas manquer. La garde s'éteindrait au lieu de se
+    // corriger — et resterait verte, faute de cas d'échec.
+    //
+    // `null` sur la ligne veut dire « cette bouche mange aux moments de la
+    // maison »; c'est le seul cas où le repli de maison est juste.
     //
     // ⚠️ SUR LES DEUX LANES. Ce code est commun à la composition et à la
     // fusion: `platedMembers` est la table dans les deux cas.
@@ -5633,7 +5655,7 @@ Deno.serve(async (req) => {
       memberId: m.memberId,
       cells: memberMealCells({
         away: m.away.effective,
-        rhythm: houseRhythmForCells,
+        rhythm: m.eatingSlots ?? houseRhythmForCells,
         windowDays: daysToFill,
       }),
     }));
@@ -6606,11 +6628,22 @@ Deno.serve(async (req) => {
       // pleine — ce sont des midis. Une famille armée sur la journée pleine ne
       // mordrait jamais, et une famille qui ne mord jamais est indiscernable
       // d'une famille débranchée.
-      const rhythmForPresence = eatingRhythm.length > 0
+      // ⟳ 2026-09-04 — LE RYTHME EST CELUI DE LA BOUCHE, pas l'union de la
+      // maison. Même correction, même raison que `mouthCells`: l'union attend
+      // chacun aux moments de tous, et une bouche qui mange trois fois serait
+      // dite « il lui manque un repas » chaque jour où quelqu'un d'autre prend
+      // un goûter. Ici la phrase part À L'ÉCRAN, donc l'erreur se lisait à voix
+      // haute à table.
+      const houseRhythmForPresence = eatingRhythm.length > 0
         ? eatingRhythm
         : DEFAULT_EATING_RHYTHM;
       const awayMouths = composedMembers
         .map((m) => {
+          // ⚠️ UNE SEULE LECTURE, DEUX USAGES. Ce rythme sert aux cases ET de
+          // DÉNOMINATEUR juste en dessous (`< rhythmForPresence.length`). Deux
+          // sources différentes rendraient un jour « incomplet » pour une
+          // bouche dont toutes les cases sont pourtant remplies.
+          const rhythmForPresence = m.eatingSlots ?? houseRhythmForPresence;
           const cells = memberMealCells({
             away: m.away.effective,
             rhythm: rhythmForPresence,

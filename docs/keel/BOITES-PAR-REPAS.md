@@ -197,9 +197,33 @@ deux causes pour une bouche compteraient deux repas manqués là où il n'y en a
 qu'un.
 
 Le dénominateur est **celui de la composition**, pas un second :
-`memberMealCells` avec le rythme de la maison et `away.effective`, le même appel
-que `compositionEaterCells`. `away.effective` porte déjà les absences et les
-repas pris dehors.
+`memberMealCells` avec **le rythme de la bouche** et `away.effective`.
+`away.effective` porte déjà les absences et les repas pris dehors.
+
+> ⟳ **2026-09-04 — « avec le rythme de la maison » était FAUX, et corrigé.**
+> Le rythme du foyer est une **union** : le réglage de la maison plus les
+> moments déclarés de chaque bouche. Le donner à tout le monde attend chacun aux
+> moments de **tous** — qu'une seule personne déclare un goûter, et la table
+> entière devient `not_named` sur ce goûter, pendant que le brief lui a dit
+> « eats at breakfast, lunch, dinner **only** ». La suite était complète : la
+> relance demandait au modèle de nommer des gens sur un plat qui n'est pas le
+> leur, puis le second tour rendait **422 `mouth_unfed`**.
+>
+> Mesuré ce jour-là : **13 foyers sur 52** portent au moins une bouche dont le
+> rythme n'est pas celui des autres, dont un avec une union de quatre moments.
+> Le défaut dormait parce que les fixtures d'essai n'ont aucun rythme
+> individuel — **la forme qui mord n'était pas dans le banc.**
+>
+> ⛔ **Et surtout pas `ownMealSlots(m.habits)`**, qui ressemble au bon filtre.
+> Celui-là dit « à quelles cases faut-il lui cuisiner un plat à **elle** »,
+> jamais « à quelles cases mange-t-elle ». S'en servir ferait tomber le
+> dénominateur d'une bouche à ses seules habitudes déclarées : on ne verrait
+> plus jamais ses autres repas manquer. La garde s'éteindrait au lieu de se
+> corriger, **et resterait verte faute de cas d'échec.**
+>
+> La garde de câblage ne nommait que deux de ses trois entrées (`away`,
+> `windowDays`), donc le rythme pouvait redevenir l'union sans qu'une ligne
+> bouge. Elle nomme les trois depuis.
 
 ⛔ **Et le compteur ne creuse plus le trou avant de le mesurer.** Le bloc
 « sans boîte » sautait les bouches retirées, et retranchait même leur part de

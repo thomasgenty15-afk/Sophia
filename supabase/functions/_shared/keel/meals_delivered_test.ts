@@ -5,6 +5,8 @@ import {
   restoreHeldOff,
   unfedRetryInstruction,
 } from "./meals_delivered.ts";
+import { memberMealCells } from "./household_presence.ts";
+import type { EatingOccasion } from "./meal_generation.ts";
 
 const CLAIRE = "m-claire";
 const MARC = "m-marc";
@@ -321,6 +323,53 @@ Deno.test("CÂBLAGE — le dénominateur est celui de la composition, pas un sec
   assert(
     block.includes("windowDays: daysToFill"),
     "les cases ne suivent plus la fenêtre du plan",
+  );
+  // ── ⛔ LE RYTHME EST CELUI DE LA BOUCHE (2026-09-04) ────────────────────
+  // Cette garde nommait DEUX de ses trois entrées, donc elle n'en gardait que
+  // deux: le rythme pouvait redevenir l'union sans qu'une ligne bouge. C'est
+  // exactement ce qui était arrivé — « une liste-garde nommée ne garde que ce
+  // qu'elle nomme ».
+  assert(
+    block.includes("rhythm: m.eatingSlots ??"),
+    "les cases reprennent le rythme de la MAISON: l'union attend chaque bouche " +
+      "aux moments de toutes, donc un goûter déclaré par une seule rend la " +
+      "table entière `not_named` — puis 422 `mouth_unfed`",
+  );
+  assert(
+    !block.includes("ownMealSlots"),
+    "les cases filtrent sur les HABITUDES: `ownMealSlots` dit à quelles cases " +
+      "il faut cuisiner un plat à elle, jamais à quelles cases elle mange — la " +
+      "garde s'éteindrait au lieu de se corriger, et resterait verte",
+  );
+});
+
+Deno.test("⛔ LE CAS QUI MORD — une bouche n'est PAS attendue au goûter d'une autre", () => {
+  // La forme mesurée en base le 2026-09-04: 13 foyers sur 52 portent au moins
+  // une bouche dont le rythme n'est pas celui des autres.
+  const window = ["mon", "tue"] as const;
+  const rythme = (...slots: EatingOccasion[]) =>
+    slots.map((slot) => ({ slot, size: null }));
+  const troisRepas = rythme("breakfast", "lunch", "dinner");
+  const avecGouter = rythme("breakfast", "lunch", "snack_pm", "dinner");
+
+  const sansGouter = memberMealCells({
+    away: [],
+    rhythm: troisRepas,
+    windowDays: [...window],
+  });
+  const gourmande = memberMealCells({
+    away: [],
+    rhythm: avecGouter,
+    windowDays: [...window],
+  });
+
+  // ⚠️ LES DEUX DÉNOMINATEURS DIFFÈRENT, ET C'EST TOUT LE LOT. Si un jour ce
+  // test devient `assertEquals`, c'est que l'union est revenue.
+  assertEquals(sansGouter.length, 6);
+  assertEquals(gourmande.length, 8);
+  assert(
+    !sansGouter.some((c) => c.slot === "snack_pm"),
+    "une bouche qui mange trois fois est attendue au goûter d'une autre",
   );
 });
 
