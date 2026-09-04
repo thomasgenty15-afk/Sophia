@@ -2079,7 +2079,11 @@ Deno.test("PERSONNE SANS REPAS — une part RENDUE ne se dit pas comme un trou",
   const kept = explainPlanChoices({ facts: facts(true), locale: "fr" }).lines.join(" ");
   const hole = explainPlanChoices({ facts: facts(false), locale: "fr" }).lines.join(" ");
   assert(kept.includes("garde sa part"), kept);
-  assert(kept.includes("c'était ça ou pas de repas"), kept);
+  // ⛔ ⟳ 2026-09-04 — « c'était ça ou pas de repas » a DISPARU: un repas était
+  // composé, et une relance en avait parfois composé un meilleur. Mesuré faux
+  // deux fois sur un tir réel.
+  assert(!kept.includes("pas de repas"), "la phrase affirme de nouveau une impossibilité fabriquée:\n" + kept);
+  assert(kept.includes("garde sa part") && kept.includes("noté comme évité"), kept);
   assert(!hole.includes("garde sa part"), hole);
   assertEquals(kept === hole, false, "un pis-aller assumé et un trou se disent pareil");
 });
@@ -2160,4 +2164,37 @@ Deno.test("⛔ RUN RÉEL 2026-09-04 — DEUX BOUCHES RENDUES SONT DEUX PHRASES, 
   }).lines.join(" ");
   assert(text.includes("Tom garde sa part"), text);
   assert(text.includes("Zoé garde sa part"), text);
+});
+
+Deno.test("⟳ le REPLI sur la boîte de table a sa propre phrase, et ne prétend aucune impossibilité", () => {
+  // Le plan vivant disait « Tom mange le plat commun samedi au dîner » DEUX FOIS: la
+  // seconde était Zoé. Le générateur repliait toutes les parts rendues sous la
+  // première bouche. Dire à quelqu'un qu'il a mangé ce qu'il évite, alors que
+  // c'est quelqu'un d'autre, est pire qu'une phrase absente.
+  const text = explainPlanChoices({
+    facts: {
+      ...nominalFacts(),
+      mouthsServed: 5,
+      mealsDelivered: {
+        allFed: false,
+        mouths: [
+          {
+            name: "Tom",
+            expected: 0,
+            fed: 0,
+            missing: [{ day: "sat" as const, slot: "dinner", cause: "held_off_exclusion" as const, restored: true, fallback: true }],
+          },
+          {
+            name: "Zoé",
+            expected: 0,
+            fed: 0,
+            missing: [{ day: "sat" as const, slot: "dinner", cause: "held_off_exclusion" as const, restored: true, fallback: true }],
+          },
+        ],
+      },
+    },
+    locale: "fr",
+  }).lines.join(" ");
+  assert(text.includes("Tom mange le plat commun"), text);
+  assert(text.includes("Zoé mange le plat commun"), text);
 });

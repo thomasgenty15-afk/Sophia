@@ -391,23 +391,78 @@ export function unfedRetryInstruction(
  * ⚠️ IL NE CRÉE AUCUNE BOÎTE. Composer un contenant demande de savoir ce qu'on
  * y met, et c'est une décision de composition — elle appartient au modèle.
  */
+export interface RestoreOutcome {
+  /** Remis sur la boîte même dont la ceinture l'avait retiré. */
+  readonly restored: number;
+  /**
+   * ⟳ 2026-09-04 — REMIS SUR LA BOÎTE DE TABLE DU MÊME PLAT, parce que la
+   * sienne n'existe plus. Mesuré en réel: Zoé (courgettes) avait SA boîte au
+   * dîner — items propres — mais un item citait « Semoule aux courgettes »; la
+   * ceinture l'a retirée, la boîte s'est vidée de son seul nom, et le parseur
+   * l'a jetée. Le recours cherchait alors une boîte absente, rendait 0, et le
+   * plan partait en refus `mouth_unfed` pour trois cases de DÉGOÛT — la cause
+   * que le produit a décidé de ne jamais refuser. Quand la boîte enregistrée
+   * manque, la bouche revient sur la boîte de TABLE du même plat, à la même
+   * case: c'est le même recours (« sur la boîte commune, et on le dit »),
+   * appliqué au cas où sa boîte à elle a disparu. Compté à part, parce que ce
+   * n'est pas le même geste: l'un annule un retrait, l'autre remplace une boîte.
+   */
+  readonly fallback: number;
+  /** Le sort de chaque ligne de `restores`, dans l'ordre — pour la phrase et l'archive. */
+  readonly rows: readonly ("restored" | "fallback" | "none")[];
+}
+
 export function restoreHeldOff(
-  dishes: readonly { readonly boxes: readonly { readonly id: string; memberIds: string[] }[] }[],
-  restores: readonly { readonly memberId: string; readonly boxId: string }[],
-): number {
+  dishes: readonly {
+    readonly day?: string | null;
+    readonly slot?: string | null;
+    readonly memberId?: string | null;
+    readonly boxes: readonly { readonly id: string; memberIds: string[] }[];
+  }[],
+  restores: readonly {
+    readonly memberId: string;
+    readonly boxId: string;
+    readonly day?: string | null;
+    readonly slot?: string | null;
+  }[],
+): RestoreOutcome {
   let restored = 0;
+  let fallback = 0;
+  const rows: ("restored" | "fallback" | "none")[] = [];
   for (const restore of restores ?? []) {
+    rows.push("none");
     const memberId = String(restore?.memberId ?? "").trim();
     const boxId = String(restore?.boxId ?? "").trim();
     if (!memberId || !boxId) continue;
+    let found = false;
     for (const dish of dishes) {
       for (const box of dish.boxes) {
         if (box.id !== boxId) continue;
+        found = true;
         if (box.memberIds.includes(memberId)) continue;
         box.memberIds.push(memberId);
         restored++;
+        rows[rows.length - 1] = "restored";
       }
     }
+    if (found) continue;
+    // ── LA BOÎTE A ÉTÉ JETÉE: la boîte de TABLE du même plat, à la même case ──
+    const day = String(restore?.day ?? "").trim();
+    const slot = String(restore?.slot ?? "").trim();
+    if (!day || !slot) continue;
+    let target: { readonly id: string; memberIds: string[] } | null = null;
+    for (const dish of dishes) {
+      if (dish.memberId) continue; // un plat dédié à quelqu'un d'autre n'est pas sa table
+      if (String(dish.day ?? "") !== day || String(dish.slot ?? "") !== slot) continue;
+      for (const box of dish.boxes) {
+        if (box.memberIds.includes(memberId)) { target = null; break; }
+        if (target === null || box.memberIds.length > target.memberIds.length) target = box;
+      }
+    }
+    if (target === null) continue;
+    target.memberIds.push(memberId);
+    fallback++;
+    rows[rows.length - 1] = "fallback";
   }
-  return restored;
+  return { restored, fallback, rows };
 }

@@ -5991,6 +5991,8 @@ Deno.serve(async (req) => {
     // foyer à l'autre.
     const unfedRetryOn: Record<string, number> = {};
     let unfedRestored = 0;
+    let unfedRestoredFallback = 0;
+    let restoredFate = new Map<string, "restored" | "fallback" | "none">();
 
     // ── ① LA RELANCE CIBLÉE, QUI NOMME LA BOUCHE ET LE REMÈDE ────────────
     // ⛔ PAS SUR L'ADOPTION D'UN APERÇU. `adoptingDraft` reprend un plan que la
@@ -6093,17 +6095,26 @@ Deno.serve(async (req) => {
         m.cause === "held_off_exclusion" && typeof m.boxId === "string"
       );
     if (restorable.length > 0) {
-      unfedRestored = restoreHeldOff(
+      // ⟳ 2026-09-04: `day`/`slot` passés pour le repli sur la boîte de TABLE
+      // quand la boîte enregistrée a été jetée (voir `RestoreOutcome.fallback`).
+      const outcome = restoreHeldOff(
         meal.dishes,
-        restorable.map((m) => ({ memberId: m.memberId, boxId: m.boxId })),
+        restorable.map((m) => ({ memberId: m.memberId, boxId: m.boxId, day: m.day, slot: m.slot })),
       );
-      for (const m of restorable) {
+      unfedRestored = outcome.restored;
+      unfedRestoredFallback = outcome.fallback;
+      // ⛔ AUCUNE PHRASE NE PRÉTEND QU'AUCUN AUTRE REPAS N'ÉTAIT POSSIBLE: un repas
+      // ÉTAIT composé (la boîte existait), et une relance en avait parfois
+      // composé un meilleur. On dit le geste, pas une impossibilité.
+      for (const [i, m] of restorable.entries()) {
+        const fate = outcome.rows[i] ?? "none";
         issues.push(
           `${m.day}/${m.slot}: ${JSON.stringify(m.memberId)} kept on the shared ` +
             `box although it carries what they avoid -- no other meal could be ` +
             `composed for them there`,
         );
       }
+      restoredFate = new Map(restorable.map((m, i) => [`${m.memberId}/${m.day}/${m.slot}`, outcome.rows[i] ?? "none"]));
       delivered = mealsDelivered(deliveredViewOf(meal), mouthCells);
     }
 
@@ -6132,6 +6143,7 @@ Deno.serve(async (req) => {
       retry_accepted: unfedRetryAccepted,
       retry_on: unfedRetryOn,
       restored: unfedRestored,
+      restored_fallback: unfedRestoredFallback,
     }));
 
     // ══════════════════════════════════════════════════════════════════════
@@ -6215,11 +6227,13 @@ Deno.serve(async (req) => {
           fed: 0,
           missing: restorable
             .filter((m) => m.memberId === memberId)
+            .filter((m) => restoredFate.get(`${m.memberId}/${m.day}/${m.slot}`) !== "none")
             .map((m) => ({
               day: m.day as "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun",
               slot: m.slot,
               cause: m.cause,
               restored: true,
+              fallback: restoredFate.get(`${m.memberId}/${m.day}/${m.slot}`) === "fallback",
             })),
         })),
       ].filter((row) => row.name !== "" && row.missing.length > 0),
@@ -8219,6 +8233,7 @@ Deno.serve(async (req) => {
         retry_accepted: unfedRetryAccepted,
         retry_on: unfedRetryOn,
         restored: unfedRestored,
+        restored_fallback: unfedRestoredFallback,
         rows: delivered.mouths
           .filter((m) => m.missing.length > 0)
           .map((m) => ({

@@ -258,17 +258,42 @@ Deno.test("LE DERNIER RECOURS remet la bouche sur SA boîte, et sur elle seule",
     ],
   }];
   const restored = restoreHeldOff(dishes, [{ memberId: MARC, boxId: "box_table" }]);
-  assertEquals(restored, 1);
+  assertEquals(restored, { restored: 1, fallback: 0, rows: ["restored"] });
   assertEquals(dishes[0].boxes[0].memberIds, [CLAIRE, MARC]);
   assertEquals(dishes[0].boxes[1].memberIds, [LEA], "une autre boîte a été touchée");
 });
 
 Deno.test("LE DERNIER RECOURS ne remet pas deux fois, et ne crée aucune boîte", () => {
   const dishes = [{ boxes: [{ id: "box_table", memberIds: [CLAIRE, MARC] }] }];
-  assertEquals(restoreHeldOff(dishes, [{ memberId: MARC, boxId: "box_table" }]), 0);
-  assertEquals(restoreHeldOff(dishes, [{ memberId: MARC, boxId: "box_absent" }]), 0);
+  assertEquals(restoreHeldOff(dishes, [{ memberId: MARC, boxId: "box_table" }]), { restored: 0, fallback: 0, rows: ["none"] });
+  // Sans jour ni moment, une boîte absente ne se remplace pas: on ne devine pas la case.
+  assertEquals(restoreHeldOff(dishes, [{ memberId: MARC, boxId: "box_absent" }]), { restored: 0, fallback: 0, rows: ["none"] });
   assertEquals(dishes[0].boxes.length, 1);
   assertEquals(dishes[0].boxes[0].memberIds, [CLAIRE, MARC]);
+});
+
+Deno.test("⟳ LE DERNIER RECOURS remplace une boîte JETÉE par la boîte de table du même plat, et le compte à part", () => {
+  // Le cas réel: Zoé avait sa boîte, la ceinture l'a retirée, la boîte s'est
+  // vidée et a été jetée. Le recours ne trouve plus `box_zoe`: il la remet sur
+  // la boîte de table de ce plat, à cette case — jamais sur un plat dédié à
+  // quelqu'un d'autre, jamais sur une autre case.
+  const dishes = [
+    { day: "sun", slot: "dinner", memberId: null, boxes: [{ id: "box_table", memberIds: [CLAIRE, MARC] }, { id: "box_lea", memberIds: [LEA] }] },
+    { day: "sun", slot: "dinner", memberId: CLAIRE, boxes: [{ id: "box_claire_own", memberIds: [CLAIRE] }] },
+    { day: "mon", slot: "lunch", memberId: null, boxes: [{ id: "box_mon", memberIds: [CLAIRE, MARC, LEA] }] },
+  ];
+  const out = restoreHeldOff(dishes, [{ memberId: "m-zoe", boxId: "box_zoe", day: "sun", slot: "dinner" }]);
+  assertEquals(out, { restored: 0, fallback: 1, rows: ["fallback"] });
+  assertEquals(dishes[0].boxes[0].memberIds, [CLAIRE, MARC, "m-zoe"], "pas sur la boîte de table la plus large");
+  assertEquals(dishes[0].boxes[1].memberIds, [LEA]);
+  assertEquals(dishes[1].boxes[0].memberIds, [CLAIRE], "un plat dédié à quelqu'un d'autre a été pris pour sa table");
+  assertEquals(dishes[2].boxes[0].memberIds, [CLAIRE, MARC, LEA], "une autre case a été touchée");
+  // Une bouche DÉJÀ nommée sur une boîte de cette case n'est pas doublée.
+  const twice = restoreHeldOff(dishes, [{ memberId: "m-zoe", boxId: "box_zoe", day: "sun", slot: "dinner" }]);
+  assertEquals(twice, { restored: 0, fallback: 0, rows: ["none"] });
+  // Sans plat de table à cette case, rien — et c'est dit par le zéro.
+  const none = restoreHeldOff(dishes, [{ memberId: "m-zoe", boxId: "box_zoe", day: "tue", slot: "dinner" }]);
+  assertEquals(none, { restored: 0, fallback: 0, rows: ["none"] });
 });
 
 // ---------------------------------------------------------------------------
@@ -585,4 +610,7 @@ Deno.test("CÂBLAGE — LA RELANCE COMPTE SES TENTATIVES, PAS SEULEMENT SES SUCC
     2,
     "la cause sur laquelle la relance a été dépensée ne sort pas",
   );
+  // ⟳ 2026-09-04 — ET LE REPLI SUR LA BOÎTE DE TABLE est compté à part, sur les deux surfaces.
+  assertEquals((src.match(/restored_fallback: unfedRestoredFallback,/g) || []).length, 2, "le repli n'est pas compté sur le journal ET l'archive");
+  assert(/boxId: m\.boxId, day: m\.day, slot: m\.slot/.test(src), "le recours ne reçoit plus la case: il ne peut plus remplacer une boîte jetée");
 });

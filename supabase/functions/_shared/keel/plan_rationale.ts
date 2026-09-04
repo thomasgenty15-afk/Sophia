@@ -400,6 +400,8 @@ export interface PlanRationaleFacts {
             | "not_named"
             | "double";
           readonly restored: boolean;
+          /** ⟳ 2026-09-04 — remise sur la boîte de TABLE parce que la sienne a été jetée. */
+          readonly fallback?: boolean;
         }[];
       }[];
     }
@@ -808,9 +810,14 @@ const COPY = {
       not_named: "aucune boîte ne porte ce nom",
       double: "ce nom est sur deux boîtes du même repas",
     } as Record<string, string>,
+    // ⛔ PLUS DE « c'était ça ou pas de repas »: un repas ÉTAIT composé, et une
+    // relance en avait parfois composé un meilleur. On dit le geste, pas une
+    // impossibilité — mesuré faux deux fois sur un tir réel (2026-09-04).
     mealRestored: (name: string, where: string) =>
-      `${name} garde sa part ${where} : le plat contient un aliment noté comme ` +
-      `évité, et c'était ça ou pas de repas.`,
+      `${name} garde sa part ${where} : le plat contient un aliment noté comme évité.`,
+    mealRestoredFallback: (name: string, where: string) =>
+      `${name} mange le plat commun ${where} : sa boîte à part n'a pas pu être gardée, ` +
+      `et ce plat contient un aliment noté comme évité.`,
   },
   en: {
     days: {
@@ -990,8 +997,10 @@ const COPY = {
       double: "that name is on two boxes of the same meal",
     } as Record<string, string>,
     mealRestored: (name: string, where: string) =>
-      `${name} keeps their share ${where}: the dish carries a food noted as ` +
-      `avoided, and it was that or no meal.`,
+      `${name} keeps their share ${where}: the dish carries a food noted as avoided.`,
+    mealRestoredFallback: (name: string, where: string) =>
+      `${name} eats the shared dish ${where}: their own box could not be kept, ` +
+      `and that dish carries a food noted as avoided.`,
   },
 } as const;
 
@@ -1621,7 +1630,9 @@ export function explainPlanChoices(input: {
             ? `${day} à la ${slot.slice(3)}`
             : `${day} à ${slot}`;
           if (miss.restored) {
-            lines.push(copy.mealRestored(name, where));
+            lines.push(
+              miss.fallback ? copy.mealRestoredFallback(name, where) : copy.mealRestored(name, where),
+            );
             continue;
           }
           lines.push(copy.mealMissing(
