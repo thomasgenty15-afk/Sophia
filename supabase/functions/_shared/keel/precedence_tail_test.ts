@@ -111,7 +111,7 @@ Deno.test("② bis — le rang 1 du foyer NOMME les trois en-têtes de verrou", 
   const foyer = buildPrecedenceBlock("household").replace(/\s+/g, " ");
   for (
     const h of [
-      "WHAT THE SHARED DISH MUST RESPECT",
+      "WHAT THE SHARED BASE MUST RESPECT",
       "HOUSE RULES",
       "THE SAME KITCHEN, TWO DISHES",
     ]

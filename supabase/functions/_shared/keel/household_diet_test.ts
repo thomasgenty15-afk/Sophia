@@ -197,10 +197,66 @@ Deno.test("le bloc nomme qui porte la ligne, et interdit d'en faire une raison",
   assert(block.includes("Christèle"));
   // La ligne d'encadrement dit que ce qui suit gouverne LE PLAT PARTAGÉ — sans
   // elle, « This student is VEGETARIAN » ferait croire à une seule personne.
-  assert(block.includes("SHARED DISH"));
+  // ⟳ 2026-09-04 — LA BASE, PLUS LE PLAT ENTIER. Sans cette ligne
+  // d'encadrement, « This student is VEGETARIAN » ferait croire à une seule
+  // personne; et « DISH » ferait descendre toute l'assiette au plus strict,
+  // ce qui est précisément ce que la boîte d'échange corrige.
+  assert(block.includes("SHARED BASE"));
   assert(block.includes("Never write it as a reason"));
-  // Et le divergent est nommé, avec ce que son plat a le droit de contenir.
-  assert(block.includes("Thomas cannot be served from that shared dish"));
+  // Et le divergent est nommé — il porte désormais un repas À LUI (habitude
+  // déclarée), plus une divergence de régime: celle-là se règle par une boîte.
+  assert(block.includes("Thomas eat a dish of their OWN"));
+});
+
+Deno.test("⟳ 2026-09-04 — LE COMPOSANT QUI SÉPARE EST SERVI PAR BOÎTE, ET LA CLÉ EST À CÔTÉ", () => {
+  const block = householdDietBlock({
+    strictest: "vegetarian" as DietaryRegime,
+    heldBy: ["Léa"],
+    divergingNames: [],
+  });
+
+  // ⚠️ LES PHRASES SE LISENT SUR LE TEXTE MIS À PLAT, pas sur le brut: le bloc
+  // est enroulé à ~76 colonnes, et « never a dish of its own » tombe à cheval
+  // sur deux lignes. Un test qui dépend de l'endroit du retour à la ligne
+  // rougit au premier mot ajouté ailleurs, sans qu'aucune règle n'ait bougé.
+  // Même geste que `precedence_tail_test`.
+  const flat = block.replace(/\s+/g, " ");
+
+  // ⛔ LA PROMESSE. Sans elle, un seul végétarien fait manger végétarien à six
+  // personnes — mesuré, et c'est le défaut que ce lot ferme.
+  // ⛔ LA PHRASE ELLE-MÊME DIT « BASE », pas seulement l'en-tête. C'est tout le
+  // lot: descendre la BASE au plus strict est la sécurité, descendre le PLAT
+  // ENTIER fait manger végétarien à six personnes parce qu'une bouche l'est.
+  assert(flat.includes("The BASE the table shares"), block);
+  assert(
+    !flat.includes("The dish the table shares"),
+    "la règle est revenue au plat entier",
+  );
+  assert(flat.includes("served PER BOX"), block);
+  assert(flat.includes("replacement of the same role"), block);
+  // ⛔ ET DANS LES DEUX SENS: « one box for everyone else with the original »
+  // est la moitié qui sert l'omnivore seul parmi des végétariens. Sans elle, la
+  // règle ne ferait que remplacer une majorité qui gagne par une autre.
+  assert(
+    flat.includes("one box for everyone else with the original"),
+    block,
+  );
+  // La table entière au même régime ne paie pas une seconde boîte.
+  assert(flat.includes("one box"), block);
+
+  // ⛔ LA CLÉ DE SCHÉMA EST ADJACENTE À LA PROMESSE. Cicatrice du dépôt: une
+  // promesse dont la clé vit cent lignes plus loin est tenue 0 % du temps, et
+  // un « ci-dessus » ne traverse pas la frontière système↔utilisateur.
+  const promise = block.indexOf("served PER BOX");
+  const key = block.indexOf('"boxes"', promise);
+  assert(promise >= 0 && key > promise, block);
+  assert(key - promise < 300, `clé à ${key - promise} caractères de la promesse`);
+
+  // ⛔ ET L'ÉCHAPPATOIRE EST NOMMÉE. Le modèle écrit la divergence dans
+  // `member_portions` dès qu'on lui interdit sans nommer la sortie qu'il prend
+  // à la place — onze fois sur douze quand le plat dédié a été introduit.
+  assert(flat.includes("never a portion_note"), block);
+  assert(flat.includes("never a dish of its own"), block);
 });
 
 Deno.test("AUCUN NOM DE RÉGIME NE PART SEUL: la ligne du moteur porte l'expansion", () => {

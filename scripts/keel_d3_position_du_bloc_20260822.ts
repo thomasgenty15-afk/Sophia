@@ -53,7 +53,7 @@ const MEAL_TOKEN_FIELDS: readonly string[] = ["day"];
 // littéral est l'EN-TÊTE, pas le bloc: s'il diverge, le pilote rend
 // `precedence: absent` et se dénonce lui-même au lieu de mentir.
 const PRECEDENCE_HEADER = "-- WHEN TWO OF THE LINES ABOVE WANT DIFFERENT THINGS --";
-const DIET_HEADER = "== WHAT THE SHARED DISH MUST RESPECT ==";
+const DIET_HEADER = "== WHAT THE SHARED BASE MUST RESPECT ==";
 
 // ⛔ DEUX EN-TÊTES DU DÉPÔT NE SONT PAS DÉLIMITÉS PAR `==`, et les rater
 // SOUS-COMPTERAIT le bloc le plus important de tous — les règles de maison.
@@ -317,7 +317,7 @@ for (const c of cases) {
   console.log(
     `    le rang 1 cite: ${
       [
-        "WHAT THE SHARED DISH MUST RESPECT",
+        "WHAT THE SHARED BASE MUST RESPECT",
         "HOUSE RULES",
         "THE SAME KITCHEN, TWO DISHES",
       ].filter((h) => flat.includes(`"${h}"`) || flat.includes(`\u201c${h}`)).length

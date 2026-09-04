@@ -310,7 +310,7 @@ import {
  * différente »), et elle décrit ici DEUX populations, toutes deux neuves:
  *
  *   · LES FOYERS OÙ AU MOINS UNE BOUCHE PORTE UN RÉGIME. Leur prompt gagne le
- *     bloc `WHAT THE SHARED DISH MUST RESPECT`. Aucun foyer ne l'avait avant le
+ *     bloc `WHAT THE SHARED BASE MUST RESPECT`. Aucun foyer ne l'avait avant le
  *     2026-08-14, pour une raison simple et mesurée: ce fichier ne portait
  *     AUCUNE occurrence du mot « diet », et le régime d'un maître végane
  *     n'atteignait jamais la lane du foyer.
@@ -629,7 +629,7 @@ import {
 // une consigne différente: les foyers où au moins une bouche adulte a
 // répondu « gamelle » au déjeuner de semaine. Les autres reçoivent v22 au
 // caractère près, et un test le tient.
-export const HOUSEHOLD_PROMPT_VERSION = "v23_the_lunchbox_travels";
+export const HOUSEHOLD_PROMPT_VERSION = "v24_the_swap_box";
 
 export interface HouseholdRestriction {
   memberId: string;
@@ -1202,8 +1202,31 @@ function boxSchemaBlock(
     // on retire un nom est un bac mal composé, et le parseur ne sait pas
     // fabriquer celui qui manque (il faudrait décider si ce qui reste est un
     // repas ou une assiette de riz).
+    // ⟳ 2026-09-04 — LA BOÎTE D'ÉCHANGE, DITE EN ENTIER.
+    //
+    // L'ancienne paire disait « that person gets their own box for it too » —
+    // vrai, et insuffisant: elle ne disait pas ce qu'il y a DEDANS. Le modèle
+    // écrivait donc une seconde boîte au même contenu, ou pas de seconde boîte
+    // du tout, et la ceinture retirait le nom. Mesuré: cinq repas sur douze où
+    // la même bouche n'avait aucun contenant.
+    //
+    // ⚠️ LES DEUX ALIMENTS DANS `ingredients`, ET C'EST LA MOITIÉ QU'ON OUBLIE:
+    // les COURSES portent les deux. Un plat qui ne liste que le poulet fait
+    // acheter du poulet pour quelqu'un qui mange du tofu.
+    //
+    // ⚠️ LE TITRE NEUTRE EST UNE CONSÉQUENCE DU RENDU, PAS UN GOÛT: le
+    // couvercle d'une boîte porte le TITRE DU PLAT (`mealBoxes.ts`,
+    // `boxLidLabel`). « Léa — jeudi soir — Riz au poulet » au-dessus d'une boîte
+    // de tofu contredit son propre contenu, et c'est la cicatrice exacte de
+    // « la phrase de table contredit le couvercle ».
     "If a dish carries something one person's food line refuses, that person gets",
-    "their own box for it too. If nothing clashes, everyone shares the same one.",
+    "their own box of the SAME dish: same base, same cooking, and that one",
+    "component swapped for one of the same role (tofu or beans where the others",
+    "have chicken). Its items name the replacement, never the original; the",
+    "dish's ingredients list BOTH, so the shopping carries both. The dish title",
+    "names the base, never the swapped component (\"Rice bowl\", not \"Chicken",
+    "rice\"): one title, two boxes.",
+    "If nothing clashes, everyone shares the same one.",
     // ⚠️ « carries », JAMAIS « may carry ». La formulation permissive a été
     // mesurée le 2026-08-17 comme une permission qu'on décline — zéro
     // déclaration sur douze runs — et un test de ce fichier interdit désormais

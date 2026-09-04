@@ -305,11 +305,49 @@ export function householdDietBlock(args: {
   if (args.strictest === null) return "";
   const held = args.heldBy.filter((n) => String(n ?? "").trim().length > 0);
   const lines = [
-    "== WHAT THE SHARED DISH MUST RESPECT ==",
-    // R4, DIT AU MODÈLE COMME UNE RÈGLE DE CASSEROLE ET PAS COMME UNE OPINION.
-    "The dish the table shares follows the STRICTEST line declared at this",
-    "table. The next sentence is about that SHARED DISH, not about one person:",
+    "== WHAT THE SHARED BASE MUST RESPECT ==",
+    // ⟳ 2026-09-04 — R4 NE DESCEND PLUS LE PLAT ENTIER, ELLE DESCEND LA BASE.
+    //
+    // ── CE QUE L'ANCIENNE RÈGLE FAISAIT, ET POURQUOI ELLE ÉTAIT INSUFFISANTE
+    // « The dish the table shares follows the STRICTEST line » est vrai pour la
+    // SÉCURITÉ et faux pour le repas: un seul végétarien faisait manger
+    // végétarien à six personnes, en silence, et l'omnivore ne recevait un plat
+    // à lui que si sa demande en protéines dépassait `full` — c'est-à-dire
+    // presque jamais. La table entière suivait la ligne la plus stricte pour
+    // une raison qui ne concernait qu'une bouche.
+    //
+    // ── CE QUE LA BOÎTE D'ÉCHANGE CHANGE, ET DANS LES DEUX SENS ───────────
+    // La BASE — grains, sauces, fonds, matières grasses, légumes, tout ce qui
+    // va dans CHAQUE boîte du repas — suit toujours le plus strict. C'est la
+    // sécurité, et elle ne bouge pas: une casserole peut toujours en donner
+    // moins, jamais plus qu'elle n'en contient.
+    //
+    // Le composant qui SÉPARE — la protéine — est servi par BOÎTE. Un
+    // végétarien parmi des omnivores reçoit sa boîte de tofu; un omnivore parmi
+    // des végétariens reçoit sa boîte de poulet. La règle est symétrique, et
+    // c'est ce qui la rend juste: elle ne fait pas gagner la majorité, ni la
+    // minorité — elle sert à chacun ce qu'il mange.
+    "The BASE the table shares -- grains, sauces, stocks, fats, vegetables,",
+    "everything that goes in every box of a meal -- follows the STRICTEST line",
+    "declared at this table. The next sentence is about that SHARED BASE, not",
+    "about one person:",
     dietaryRegimePromptLine(args.strictest),
+    // ⚠️ LA CLÉ EST NOMMÉE À CÔTÉ DE LA PROMESSE (`"boxes"`, `"items"`), et
+    // c'est la doctrine de ce dépôt: une promesse dont la clé de schéma vit
+    // cent lignes plus loin est tenue 0 % du temps. Un « ci-dessus » ne
+    // traverse pas la frontière système↔utilisateur.
+    //
+    // ⚠️ ET L'ÉCHAPPATOIRE EST NOMMÉE. Sans « never a portion_note, never a
+    // dish of its own », le modèle écrit la divergence dans `member_portions` —
+    // c'est ce qu'il a fait onze fois sur douze quand le plat dédié a été
+    // introduit, et une consigne qui interdit sans nommer la sortie qu'on prend
+    // à sa place est une consigne qu'on reprend.
+    "The one component that line refuses is served PER BOX: a second entry in",
+    "that dish's \"boxes\", with its own \"items\" -- never a portion_note, never a",
+    "dish of its own. One box for the people that line binds, carrying a",
+    "replacement of the same role (a plant protein where the others have meat,",
+    "poultry or fish); one box for everyone else with the original. When nobody",
+    "at this table is bound differently, one box.",
   ];
   if (held.length > 0) {
     // LE FAIT, PAS LE REPROCHE — et il sert à quelque chose: sans le nom, le
@@ -323,9 +361,9 @@ export function householdDietBlock(args: {
   }
   if (args.divergingNames.length > 0) {
     lines.push(
-      `${args.divergingNames.join(", ")} cannot be served from that shared dish`,
-      "(their line above says so): their OWN dish is not bound by the sentence",
-      "above, and may use what the shared dish leaves out.",
+      `${args.divergingNames.join(", ")} eat a dish of their OWN at some meals`,
+      "(see A DISH OF THEIR OWN): that dish is not bound by the sentence above,",
+      "and may use what the shared base leaves out.",
     );
     // ══ L'EXCEPTION À « NEVER NONE », NOMMÉE — ET ELLE EST LA CAUSE ═══════
     //

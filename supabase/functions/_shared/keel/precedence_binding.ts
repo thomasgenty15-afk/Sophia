@@ -68,6 +68,16 @@ export const HOUSEHOLD_ARBITRATION_BY_VERSION: Readonly<Record<string, string>> 
   // est donc l'affirmation exacte — « la précédence est celle de v22 » —
   // et une entrée ABSENTE ferait tomber la garde sur un texte inchangé.
   v23_the_lunchbox_travels: "349e5ec42ade5d7f27eb53412252d4e53fb25d07d3f39aa3906aff9a01c0f011",
+  // ⟳ 2026-09-04 — EMPREINTE NEUVE, ET J'AVAIS ÉCRIT LE CONTRAIRE.
+  //
+  // En posant cette ligne j'ai d'abord recopié l'empreinte de v23, en pensant
+  // que la boîte d'échange ne touchait que le bloc de RÉGIME et celui des
+  // BOÎTES. C'était faux, et c'est ce test qui l'a dit: le rang 1 du bloc
+  // d'arbitrage CITE les en-têtes des verrous en toutes lettres, et l'un
+  // d'eux vient d'être renommé (« WHAT THE SHARED DISH » → « SHARED BASE »).
+  // Le texte servi a donc bougé, et une empreinte recopiée aurait fait
+  // ressembler deux textes différents à un seul millésime.
+  v24_the_swap_box: "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
 };
 
 /** SHA-256 hexadécimal — `crypto.subtle`, standard web, présent en edge. */

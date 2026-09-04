@@ -4978,7 +4978,7 @@ Deno.serve(async (req) => {
     //
     // ⛔ ET LE PIRE N'ÉTAIT PAS LA POSITION. Le rang 1 du bloc disait « the
     // hard constraints and the diet at the VERY TOP of this message », alors
-    // que `== WHAT THE SHARED DISH MUST RESPECT ==` et `HOUSE RULES` sont 63 à
+    // que `== WHAT THE SHARED BASE MUST RESPECT ==` et `HOUSE RULES` sont 63 à
     // 101 lignes PLUS BAS. Le bloc envoyait le modèle chercher le régime là où
     // il n'est pas. La variante foyer nomme désormais ses blocs de verrou.
     //

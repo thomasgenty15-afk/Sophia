@@ -643,3 +643,38 @@ Deno.test("ce qui n'est pas un tableau rend `{}`, jamais une exception", () => {
   }
   assertEquals(parseMemberExtras([{ slot: "lunch", extras: "bread" }]), {});
 });
+
+// ---------------------------------------------------------------------------
+// ⟳ 2026-09-04 · LE BRIEF DE SERVICE N'INVITE PLUS À ÉCRIRE UN ÉCHANGE
+// ---------------------------------------------------------------------------
+
+Deno.test("⛔ le brief ne dit plus « the swaps »: un échange est une BOÎTE", () => {
+  // ── POURQUOI CE MOT NE PEUT PAS RESTER ────────────────────────────────
+  // Le bloc de régime ordonne désormais qu'un échange soit une seconde entrée
+  // dans `boxes`, et dit en toutes lettres « never a portion_note, never a dish
+  // of its own ». Cette ligne-ci invitait le modèle à écrire « the swaps » DANS
+  // l'instruction de service, c'est-à-dire dans `member_portions` — exactement
+  // l'échappatoire que l'autre bloc ferme.
+  //
+  // ⛔ DEUX ORDRES CONTRADICTOIRES DANS UN SEUL PROMPT: ce dépôt a mesuré
+  // lequel gagne, et c'est toujours celui qu'on ne relit pas. Le plat dédié en
+  // a fait les frais onze fois sur douze.
+  //
+  // ⚠️ LA BRANCHE N'EST ATTEINTE QU'À PARTIR DE DEUX GROUPES PESÉS
+  // (`weightGroups >= 2`): c'est là que le moteur dimensionne, donc là que la
+  // phrase remplace le gramme. Un `1` ne rend pas ces lignes du tout — et une
+  // assertion posée sur un brief à un seul groupe resterait verte quoi qu'on
+  // écrive dans la branche.
+  const sized = buildPortionBrief([MERE, FILS], "one_dish", 0, 2);
+  assert(
+    sized.includes("the manner, the order, the sides and the care"),
+    "la branche des deux groupes n'a pas été atteinte: le test ne mesure rien\n" +
+      sized,
+  );
+  assertEquals(
+    sized.includes("the swaps"),
+    false,
+    "le brief de service réinvite le modèle à écrire les échanges dans " +
+      "`member_portions`, pendant que le bloc de régime les lui interdit",
+  );
+});

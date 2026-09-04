@@ -19,7 +19,7 @@
  * ⛔ LA PHRASE DE RANG 1 ÉTAIT FACTUELLEMENT FAUSSE SUR LA LANE FOYER.
  *
  * Elle disait: « The hard constraints and the diet at the VERY TOP of this
- * message ». Or sur la lane foyer, le régime (`== WHAT THE SHARED DISH MUST
+ * message ». Or sur la lane foyer, le régime (`== WHAT THE SHARED BASE MUST
  * RESPECT ==`), les règles de maison (`HOUSE RULES —`) et la contamination
  * croisée (`== THE SAME KITCHEN, TWO DISHES ==`) sont **SOUS** ce bloc:
  * mesuré à 63 lignes plus bas sur un foyer nominal, 101 sur un foyer complet
@@ -188,7 +188,7 @@ const SOLO_LINES: readonly string[] = [
  * (`ranksWithoutObject`), et c'est sa raison d'être.
  */
 export const HOUSEHOLD_LOCK_HEADERS: readonly string[] = [
-  "WHAT THE SHARED DISH MUST RESPECT",
+  "WHAT THE SHARED BASE MUST RESPECT",
   "HOUSE RULES",
   "THE SAME KITCHEN, TWO DISHES",
 ];
@@ -208,7 +208,7 @@ const HOUSEHOLD_LINES: readonly string[] = [
   "1. Every hard constraint and every declared diet in this message, WHEREVER",
   "   it sits. They are NOT all at the top: the allergies and the medical",
   "   lines are near the beginning, and the blocks headed \"WHAT THE SHARED",
-  "   DISH MUST RESPECT\", \"HOUSE RULES\" and \"THE SAME KITCHEN, TWO DISHES\"",
+  "   BASE MUST RESPECT\", \"HOUSE RULES\" and \"THE SAME KITCHEN, TWO DISHES\"",
   "   are further down, between that beginning and this line. All of them are",
   "   absolute. No craving, no coach line, no budget and no cooking time ever",
   "   touches them, and \"a small amount\" is not an exception.",

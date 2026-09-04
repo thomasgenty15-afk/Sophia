@@ -601,7 +601,7 @@ Deno.test("LOT 2 — le TRONC bumpe, l'enveloppe FOYER ne bouge pas", () => {
   // voit une consigne différente: les foyers où au moins une bouche emporte
   // son déjeuner de semaine. Ailleurs, l'enveloppe est celle de v22 au
   // caractère près, et un test le tient.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v23_the_lunchbox_travels");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v24_the_swap_box");
 });
 
 // ---------------------------------------------------------------------------

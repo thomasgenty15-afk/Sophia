@@ -1392,7 +1392,7 @@ Deno.test("SANS RÉGIME, LE PROMPT EST CELUI D'AVANT v11, À L'OCTET PRÈS", () 
     voices: [],
   };
   const silent = buildHouseholdPromptBlocks({ ...base, dietBlock: "" });
-  assert(!silent.userSuffix.includes("WHAT THE SHARED DISH MUST RESPECT"));
+  assert(!silent.userSuffix.includes("WHAT THE SHARED BASE MUST RESPECT"));
   assert(!silent.userSuffix.includes("VEGETARIAN"));
   assert(!silent.userSuffix.includes("VEGAN"));
 
@@ -1413,7 +1413,7 @@ Deno.test("SANS RÉGIME, LE PROMPT EST CELUI D'AVANT v11, À L'OCTET PRÈS", () 
       divergingNames: [],
     }),
   });
-  assert(declared.userSuffix.includes("WHAT THE SHARED DISH MUST RESPECT"));
+  assert(declared.userSuffix.includes("WHAT THE SHARED BASE MUST RESPECT"));
   assert(declared.userSuffix.length > silent.userSuffix.length);
 });
 
@@ -1449,7 +1449,7 @@ Deno.test("le régime passe AVANT les règles de maison, qui restent DERNIÈRES"
       divergingNames: [],
     }),
   });
-  const diet = userSuffix.indexOf("WHAT THE SHARED DISH MUST RESPECT");
+  const diet = userSuffix.indexOf("WHAT THE SHARED BASE MUST RESPECT");
   const envy = userSuffix.indexOf("bœuf bourguignon");
   const house = userSuffix.indexOf("pas de Nutella");
   assert(diet > 0 && envy > 0 && house > 0, userSuffix);
@@ -1859,7 +1859,7 @@ Deno.test("LOT 4 — la version de la lane foyer a bougé d'UN cran", () => {
   // « transportable, et bon froid sans micro-ondes ». Population qui voit
   // une consigne différente: les foyers où au moins une bouche emporte sa
   // gamelle. Ailleurs, prompt byte-identique à v22, et un test le tient.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v23_the_lunchbox_travels");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v24_the_swap_box");
 });
 
 // ===========================================================================
@@ -1996,7 +1996,7 @@ Deno.test("L7 ① — la cuisine est APRÈS l'envie, et AVANT le régime et les 
   const out = buildHouseholdPromptBlocks({
     ...KITCHEN_BASE,
     kitchenEquipment: ["stovetop"],
-    dietBlock: "WHAT THE SHARED DISH MUST RESPECT\n- no meat",
+    dietBlock: "WHAT THE SHARED BASE MUST RESPECT\n- no meat",
     restrictions: [{
       memberId: "m-son",
       memberDisplayName: "Tom",
@@ -2006,7 +2006,7 @@ Deno.test("L7 ① — la cuisine est APRÈS l'envie, et AVANT le régime et les 
   const order = [
     "WHAT THIS HOUSEHOLD ASKED FOR",
     "== THIS KITCHEN ==",
-    "WHAT THE SHARED DISH MUST RESPECT",
+    "WHAT THE SHARED BASE MUST RESPECT",
     "HOUSE RULES",
   ];
   let cursor = -1;

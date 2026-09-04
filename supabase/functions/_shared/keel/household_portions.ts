@@ -1335,7 +1335,11 @@ export function buildPortionBrief(
         "Never describe the size of anyone's share: not bigger, not smaller, not",
         "larger, not standard, not normal, not child-sized, not the same as",
         "someone else's. How much each person takes is settled by this plan. Say",
-        "the manner, the order, the swaps and the care -- what only you know.",
+        // ⟳ 2026-09-04 — « the swaps » RETIRÉ D'ICI. Un échange est désormais
+        // une BOÎTE (voir le bloc de régime), et laisser le mot dans la consigne
+        // de service rouvrait exactement l'échappatoire que ce bloc-là ferme:
+        // écrire la divergence dans `member_portions` au lieu d'un contenant.
+        "the manner, the order, the sides and the care -- what only you know.",
       ]
       : [
         "Every one of those instructions carries a number and a unit: 150 g of the",

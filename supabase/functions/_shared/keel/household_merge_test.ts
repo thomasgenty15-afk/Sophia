@@ -3029,7 +3029,7 @@ Deno.test("C8 ③ — LA LANE INDIVIDUELLE GARDE SA VERSION DE PROMPT", () => {
   // tient par égalité de chaîne.
   // ⚠️ v11 DEPUIS LE RÉGIME À TABLE (2026-08-14), ET LE TRONC NE BOUGE
   // TOUJOURS PAS. Deux populations neuves, encore: les foyers où au moins une
-  // bouche porte un régime — ils gagnent le bloc `WHAT THE SHARED DISH MUST
+  // bouche porte un régime — ils gagnent le bloc `WHAT THE SHARED BASE MUST
   // RESPECT`, qu'AUCUN foyer n'avait avant, puisque ce fichier ne portait pas
   // une seule occurrence du mot « diet » — et ceux qui atteignent le barreau ②
   // par le régime plutôt que par la direction de service. Tous les autres
@@ -3092,7 +3092,7 @@ Deno.test("C8 ③ — LA LANE INDIVIDUELLE GARDE SA VERSION DE PROMPT", () => {
   // voit une consigne différente: les foyers où au moins une bouche emporte
   // son déjeuner de semaine. Ailleurs, l'enveloppe est celle de v22 au
   // caractère près, et un test le tient.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v23_the_lunchbox_travels");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v24_the_swap_box");
 });
 
 Deno.test("C7 ③ — LA LIGNE DE COURSES D'UN PLAT JETÉ NE PART PLUS AU MAGASIN", () => {

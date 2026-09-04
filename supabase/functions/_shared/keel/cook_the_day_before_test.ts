@@ -265,7 +265,7 @@ Deno.test("A1 — l'enveloppe du FOYER ne bouge pas d'un octet", () => {
   // MOTIF: D6.2 y pose la consigne de la gamelle (v22 → v23). Ce cas ne
   // disparaît pas pour autant — il devient la garde que l'enveloppe ne
   // bouge QUE quand un lot la touche, et il nomme lequel.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v23_the_lunchbox_travels");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v24_the_swap_box");
 });
 
 // ---------------------------------------------------------------------------

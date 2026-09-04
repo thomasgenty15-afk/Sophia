@@ -1130,7 +1130,7 @@ Deno.test("les deux axes de version ont bougé, chacun pour SA population", () =
   // voit une consigne différente: les foyers où au moins une bouche emporte
   // son déjeuner de semaine. Ailleurs, l'enveloppe est celle de v22 au
   // caractère près, et un test le tient.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v23_the_lunchbox_travels");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v24_the_swap_box");
 });
 
 // ---------------------------------------------------------------------------
@@ -1462,6 +1462,32 @@ Deno.test("LOT 4 — le SCHÉMA des boîtes est côté système, et muet à une 
   );
   assert(two.systemSuffix.includes('"member_ids"'), two.systemSuffix);
   assert(two.systemSuffix.includes('"items"'), two.systemSuffix);
+  // ── ⟳ 2026-09-04 · LA BOÎTE D'ÉCHANGE, DITE EN ENTIER ──────────────────
+  // ⛔ « that person gets their own box » NE SUFFIT PAS, et c'est mesuré: la
+  // consigne ne disait pas ce qu'il y a DEDANS. Le modèle écrivait une seconde
+  // boîte au même contenu, ou pas de seconde boîte du tout — cinq repas sur
+  // douze où la même bouche n'avait aucun contenant.
+  const flatBox = two.systemSuffix.replace(/\s+/g, " ");
+  assert(
+    flatBox.includes("swapped for one of the same role"),
+    "l'échange ne dit plus qu'il REMPLACE: une boîte dont le composant est " +
+      "simplement retiré n'est pas un repas",
+  );
+  // ⛔ LES DEUX ALIMENTS AUX COURSES. Un plat qui ne liste que le poulet fait
+  // acheter du poulet pour quelqu'un qui mange du tofu.
+  assert(
+    flatBox.includes("ingredients list BOTH"),
+    "les courses ne portent plus les deux aliments de l'échange",
+  );
+  // ⛔ LE TITRE NEUTRE N'EST PAS UN GOÛT, C'EST UNE CONSÉQUENCE DU RENDU: le
+  // couvercle d'une boîte porte le TITRE DU PLAT (`mealBoxes.ts`,
+  // `boxLidLabel`). « Léa — jeudi soir — Riz au poulet » au-dessus d'une boîte
+  // de tofu contredit son propre contenu.
+  assert(
+    flatBox.includes("one title, two boxes"),
+    "le titre peut de nouveau nommer le composant échangé: le couvercle " +
+      "contredira son contenu",
+  );
   // ⛔ LA PHRASE DE v3 A DISPARU, MOT POUR MOT: elle disait que les portions des
   // autres ne sont « jamais pesées, jamais nommées, jamais écrites », et v4 leur
   // donne un contenant nommé.

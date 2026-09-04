@@ -2367,7 +2367,7 @@ const SEVERITY_READING_BLOCK = [
  *
  * ⛔ ET LE RANG 1 Y ÉTAIT FACTUELLEMENT FAUX. « The hard constraints and the
  * diet at the VERY TOP of this message » envoyait le modèle chercher le régime
- * en tête, alors que `== WHAT THE SHARED DISH MUST RESPECT ==` est 63 à 101
+ * en tête, alors que `== WHAT THE SHARED BASE MUST RESPECT ==` est 63 à 101
  * lignes PLUS BAS. La lane foyer a donc sa propre variante, qui NOMME ses
  * blocs de verrou au lieu de désigner une position.
  *
