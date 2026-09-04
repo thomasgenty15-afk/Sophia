@@ -465,6 +465,53 @@ disait « la viande ».
 
 ---
 
+### ⛔ LA TROUVAILLE DU MOIS : cinq souvenirs sur six n'atteignent jamais le plan
+
+Le cycle 4 a tourné après la réparation du disque. Son intérêt n'est pas son
+propre geste (le second tour a rendu `502` deux fois puis `500`, et l'échappatoire
+n'a pas été exercée) : c'est que la mémoire du mois est enfin ASSEZ GROSSE pour
+qu'on la passe dans le routeur et qu'on regarde ce qui en sort.
+
+**Mesuré**, en passant les six souvenirs réels de `retained_items` à
+`compositionLinesFor()` (`scratchpad/probe.ts`, pas un run modèle) :
+
+```
+APPLIQUÉ                 : 2026-09-11 — Poulet rôti, légumes, laitue et pain
+COMPTÉ, JAMAIS APPLIQUÉ  : le poisson          (Tom)
+                           le poisson          (Zoé)
+                           les lentilles       (Marc)
+                           les pâtes           (Léa)
+                           les pâtes           (Zoé)
+```
+
+**Un seul des six atteint le plan du foyer — et c'est le FAUX.** Celui qui passe
+est né de « J'ai pas aimé la viande. » et exclut le repas ENTIER (le poulet, les
+légumes, la laitue ET le pain) pour tout le monde. Les cinq qui sont justes —
+dont les deux que la règle du pluriel réparée a produits — sont comptés, puis
+jetés.
+
+**Ce n'est pas une panne.** `generate-household-meal-v1` (index.ts:2866) pose
+
+    const retainedSpeaksFor = ownerSubject ? [HOUSEHOLD_SUBJECT, ownerSubject]
+                                           : [HOUSEHOLD_SUBJECT];
+
+et le commentaire juste au-dessus dit pourquoi : « appliquer la règle d'une
+bouche à la table entière est exactement ce que l'axe 3 interdit ». La garde est
+LÉGITIME — on ne retire pas le poisson à toute la maison parce qu'une bouche n'en
+veut pas.
+
+**Ce qui ne l'est pas, c'est le silence.** La carte affiche
+« Marc — Mon mari n'aime pas les lentilles. », et le plan vivant sert
+`bol de lentilles`, `lentilles à la tomate`, `salade de lentilles` et
+`tartines de lentilles`. Quatre fois. Rien, nulle part, ne dit à la personne que
+ce qu'elle vient de préciser ne changera pas son plan.
+
+⚠️ **Et le sens est inversé** : plus la clarification est PRÉCISE (« c'est Zoé,
+pas Tom »), moins le plan peut s'en servir — un sujet nommé sort du périmètre.
+Le seul souvenir qui agit est celui dont personne n'a demandé le sujet. Tout le
+chantier des clarifications pousse dans la direction que le générateur du foyer
+ignore.
+
 ## 5. Ce que ces bancs NE prouvent PAS
 
 Écrit ici pour que personne ne lise ce rapport comme une garantie.
