@@ -4920,6 +4920,9 @@ export const en = {
   // c'est la première peur de quelqu'un qui vient de cliquer sur un aperçu.
   "plan.refusal.draft_not_composed":
     "The preview didn't come through. Nothing was saved and your plan is untouched.",
+  // ⛔ Voir le commentaire jumeau dans `fr.ts`: la cause ET la sortie.
+  "plan.refusal.day_already_spent":
+    "Your day is done: every meal for today has already gone by. Ask for a plan starting tomorrow.",
   "plan.refusal.note_unusable":
     "I can't work from that sentence. Say again what you want changed in the plan.",
 

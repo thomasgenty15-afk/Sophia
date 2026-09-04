@@ -2879,6 +2879,11 @@ export const fr: TranslatedMessages = {
   // Les deux refus du brouillon. Ils disent d'abord ce qui n'a PAS bougé.
   "plan.refusal.draft_not_composed":
     "L’aperçu n’a pas abouti. Rien n’a été enregistré, ton plan n’a pas bougé.",
+  // ⛔ ELLE DIT LA CAUSE **ET** LA SORTIE. « L'aperçu n'a pas abouti » ne disait
+  // ni l'une ni l'autre: la personne réessayait, obtenait la même chose, et
+  // concluait que le produit était cassé.
+  "plan.refusal.day_already_spent":
+    "Ta journée est finie : tous tes repas d’aujourd’hui sont passés. Demande un plan à partir de demain.",
   "plan.refusal.note_unusable":
     "Je ne peux pas repartir de cette phrase-là. Reformule ce que tu veux changer dans le plan.",
   "plan.validate.error.not_authenticated": "Tu n’es plus connecté.",

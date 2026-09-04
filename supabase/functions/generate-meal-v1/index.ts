@@ -3720,6 +3720,31 @@ Deno.serve(async (req) => {
         issues: [...issues, ...meal.issues],
         request_id: requestId,
       };
+      // ⛔ UNE CAUSE CONNUE MÉRITE SON PROPRE MOT (2026-09-04, mesuré en run
+      //    réel) ─────────────────────────────────────────────────────────────
+      //
+      // Une fenêtre d'UN jour dont tous les moments sont passés ne peut rien
+      // composer, et `withoutSpentFirstDay` le sait: elle refuse `single_day`
+      // plutôt que de vider la fenêtre. Mais l'élève lisait « L'aperçu n'a pas
+      // abouti. Rien n'a été enregistré » — un message de PANNE TECHNIQUE pour
+      // une situation parfaitement connue, dont il ne peut rien faire. Mesuré
+      // le 2026-09-04 (`plan-SINGLEDAY-20260904-144343.json`): 422 en 3,8 s, la
+      // cause dans `issues`, et pas un mot à l'écran.
+      //
+      // ⚠️ IL VA AVANT LES DEUX AUTRES: `isDraft` et l'écriture réelle posent
+      // la même question à l'élève quand sa journée est finie, et la réponse
+      // est la même — demande demain.
+      //
+      // ⛔ UN TROISIÈME LITTÉRAL, JAMAIS UN TERNAIRE dans la clé:
+      // `planRefusals.int.test.ts` SCANNE ce fichier à la recherche de
+      // `error: "…"` littéraux, et un jeton calculé y devient invisible — le
+      // mot disparaîtrait de l'écran sans qu'aucun test ne rougisse.
+      if (spentFirstDay.refused === "single_day") {
+        return jsonResponse(req, {
+          error: "day_already_spent",
+          ...emptyBody,
+        }, { status: 422 });
+      }
       if (isDraft) {
         return jsonResponse(req, {
           error: "draft_not_composed",

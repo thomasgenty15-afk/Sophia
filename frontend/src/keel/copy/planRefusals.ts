@@ -120,6 +120,12 @@ export const EDGE_REFUSAL_KEYS: Record<string, MessageKey> = {
   // ligne, le refus atteindrait l'écran sans phrase — et `planRefusals.int.test`
   // scanne les littéraux `error:` du générateur pour l'empêcher.
   mouth_unfed: "plan.refusal.mouth_unfed",
+  // ⛔ LA JOURNÉE EST FINIE (2026-09-04). Une fenêtre d'UN jour dont tous les
+  // moments sont passés ne compose rien. Elle rendait `draft_not_composed`,
+  // c'est-à-dire « l'aperçu n'a pas abouti » — la phrase d'une panne, pour une
+  // cause connue dont la personne PEUT faire quelque chose. Un seul `error:`
+  // servait deux causes; il en sert désormais une chacune.
+  day_already_spent: "plan.refusal.day_already_spent",
 
   // ── LES ONZE REFUS DE FUSION (L4/D6, D15, D16) ──────────────────────────
   merge_member_required: "plan.refusal.merge_member_required",
