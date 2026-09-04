@@ -2,6 +2,7 @@ import { assert, assertEquals } from "jsr:@std/assert@1";
 
 import {
   buildHouseholdVoices,
+  VOICE_REACH_MARK,
   estimateVoiceTokens,
   FORBIDDEN_VOICE_TERMS,
   VOICE_DISCLOSURE_TERMS,
@@ -671,11 +672,15 @@ Deno.test("SUR LA LANE FOYER, LES PRÉFÉRENCES N'ONT QU'UN CHEMIN — ET IL GAR
   // ROUGE un produit correct. Ce qu'il faut tenir n'a pas changé: sans une
   // moitié qui exige qu'on entende QUELQUE CHOSE, les deux assertions du dessus
   // seraient vertes sur un foyer devenu sourd.
+  // ⟳ 2026-09-04: c'était `lines: retainedVoiceLines`, la liste UNIQUE empilée
+  // sous le composeur. Le générateur construit maintenant une voix PAR bouche;
+  // ce qu'il faut tenir est le même — qu'il entende QUELQUE CHOSE, sans quoi
+  // les deux gardes du dessus resteraient vertes sur un foyer devenu sourd.
   assert(
-    /lines: retainedVoiceLines/.test(household),
+    /lines: \[\.\.\.v\.written, \.\.\.v\.remembered\]/.test(household),
     "le générateur du foyer ne construit plus de voix depuis les items " +
-      "RETENUS: D4 est débranché, et les deux gardes du dessus resteraient " +
-      "vertes sur un produit qui n'écoute plus personne.",
+      "RETENUS: le chemin est débranché, et les deux gardes du dessus " +
+      "resteraient vertes sur un produit qui n'écoute plus personne.",
   );
   assert(
     /voices: voices\.voices/.test(household),
@@ -736,10 +741,31 @@ Deno.test("LES VOIX PARTENT DU COMPOSEUR, ET LE DÉNOMINATEUR DE `platedMembers`
   // la ligne qui l'incarne existe. On pinne donc les DEUX bouts — la voix part
   // du composeur, et le compte des bouches lisibles part de `platedMembers`.
   const household = await source("generate-household-meal-v1/index.ts");
+  // ⟳ 2026-09-04 — LA PROPRIÉTÉ N'A PAS CHANGÉ, SON PORTEUR SI.
+  //
+  // Elle était tenue « par construction »: une seule voix, celle du composeur.
+  // Ce dépôt savait déjà ce que vaut cette formule — elle est vraie tant que la
+  // ligne qui l'incarne existe. Elle vient d'être remplacée, et le test avec.
+  //
+  // Il y a désormais une voix par bouche, et c'est un FILTRE qui tient la
+  // propriété: seules les bouches À TABLE sont servies au modèle. Une bouche
+  // absente toute la fenêtre ne mange pas ce plan.
   assert(
-    /memberId: ownerMemberId/.test(household),
-    "la voix du foyer ne s'attache plus au titulaire qui compose: elle est " +
-      "rendue à quelqu'un qui n'a pas écrit ces lignes.",
+    /\.filter\(\(v\) => platedIds\.has\(v\.memberId\)\)/.test(household),
+    "les voix ne sont plus filtrées sur les bouches à table: le modèle " +
+      "composerait pour quelqu'un qui n'est pas là.",
+  );
+  assert(
+    /const platedIds = new Set\(platedMembers\.map/.test(household),
+    "`platedIds` ne part plus de `platedMembers`: le filtre ci-dessus garde " +
+      "une liste qui ne veut plus dire « à cette table ».",
+  );
+  // ⛔ ET LE COMPTAGE DU SILENCE RESTE. Une bouche lue et non servie doit
+  // laisser une trace: sans elle, « absente » et « oubliée » se ressemblent.
+  assert(
+    /retained_voice_away:/.test(household),
+    "une bouche dont la ligne existe mais qui n'est pas à table disparaît " +
+      "sans un mot.",
   );
   assert(
     /const accountsAtTable = platedMembers\.filter\(/.test(household),
@@ -934,4 +960,57 @@ Deno.test("LES NOMBRES DE LA TRACE NE SE REDÉRIVENT PAS DES `issues`", async ()
     "le détail par bouche a disparu: « son about-you n'a servi à rien » et " +
       "« il n'avait rien confirmé » redeviennent la même trace.",
   );
+});
+
+// ---------------------------------------------------------------------------
+// LA RÈGLE DE PORTÉE — elle sort avec la marque, et seulement avec elle
+// ---------------------------------------------------------------------------
+
+Deno.test("⛔ UNE LIGNE MARQUÉE FAIT SORTIR LA RÈGLE, ET LA RÈGLE DIT LA HIÉRARCHIE", () => {
+  const out = buildHouseholdVoices([{
+    memberId: "m-marc",
+    displayName: "Marc",
+    lines: [`2026-09-01 — les lentilles -- ${VOICE_REACH_MARK}: keep it out of the shared dish, or swap it in their box`],
+  }]);
+  const flat = out.block.replace(/\s+/g, " ");
+
+  assert(flat.includes("A line marked THIS PERSON ONLY never becomes a rule for the table"), flat);
+  // ⛔ LES TROIS CANAUX NOMMÉS PAR LEUR EN-TÊTE RÉEL. « Si la table l'a
+  // demandé » ne veut rien dire pour un modèle qui lit dix blocs: il faut lui
+  // dire OÙ regarder, sinon il arbitre au jugé.
+  assert(flat.includes("WHAT THIS HOUSEHOLD ASKED FOR THIS WEEK"), flat);
+  assert(flat.includes("REACH FOR THESE FIRST"), flat);
+  assert(flat.includes("a liking written under a name WITHOUT that mark"), flat);
+  // ⛔ LES DEUX INTERDICTIONS, ET ELLES SONT L'AXE 3.
+  assert(flat.includes("Never a separate dish for a dislike"), flat);
+  assert(flat.includes("never a ban for everyone"), flat);
+  // ⛔ ET LE REMÈDE EST LA BOÎTE, jamais une note de portion.
+  assert(flat.includes("a box of the SAME dish where that component is replaced"), flat);
+});
+
+Deno.test("⛔ SANS LIGNE MARQUÉE, LE BLOC EST CELUI D'AVANT — À L'OCTET PRÈS", () => {
+  // La contre-épreuve, et elle est obligatoire: un foyer dont personne n'a de
+  // ligne nommée ne paie pas huit lignes de prompt pour une règle sans objet.
+  const plain = buildHouseholdVoices([{
+    memberId: "m-claire",
+    displayName: "Claire",
+    lines: ["2026-09-01 — plus de plats en sauce"],
+  }]);
+  assertEquals(plain.block.includes("THIS PERSON ONLY"), false, plain.block);
+  assertEquals(plain.block.includes("never becomes a rule"), false, plain.block);
+});
+
+Deno.test("⛔ LE PIED DE NON-DIVULGATION RESTE LE DERNIER, MARQUE OU PAS", () => {
+  // La règle de portée s'insère ENTRE le corps et le pied. Si elle passait
+  // après, la dernière chose lue ne serait plus « ne dis jamais de qui vient
+  // cette ligne » — et c'est la garde qui a été posée après qu'un modèle a
+  // écrit « pour respecter le régime de X » dans une phrase lue à table.
+  const out = buildHouseholdVoices([{
+    memberId: "m-marc",
+    displayName: "Marc",
+    lines: [`les lentilles -- ${VOICE_REACH_MARK}: keep it out of the shared dish`],
+  }]);
+  const rule = out.block.indexOf("never becomes a rule for the table");
+  const footer = out.block.indexOf("NEVER quote, repeat or allude");
+  assert(rule > 0 && footer > rule, out.block);
 });

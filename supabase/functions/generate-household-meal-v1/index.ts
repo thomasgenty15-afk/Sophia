@@ -53,7 +53,7 @@ import {
 } from "../_shared/keel/retained_item.ts";
 import { nextPlanItemsFor } from "../_shared/keel/retained_next_plan.ts";
 import {
-  compositionLinesFor,
+  compositionLinesByMouth,
   cravingLinesFor,
   logisticsOverlayFor,
   portionAdjustsFor,
@@ -2954,9 +2954,34 @@ Deno.serve(async (req) => {
       items: routedRetained.rhythm,
       speaksFor: retainedSpeaksFor,
     });
-    const retainedComposition = compositionLinesFor({
+    // ══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-04 — LA COMPOSITION N'A PLUS D'AUDIENCE: ELLE A UN ROSTER
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // C'était `compositionLinesFor({ speaksFor: retainedSpeaksFor })`, donc
+    // `[household, titulaire]`, donc tout ce qui portait le nom d'une AUTRE
+    // bouche partait dans `otherSubjects`: compté, jamais servi au modèle.
+    //
+    // Deux plans vivants l'ont payé. « Mon mari n'aime pas les lentilles »
+    // noté pour Marc, et quatre plats de lentilles. Puis Tom et Zoé, tous deux
+    // « pas de poisson », servis en cabillaud — la ceinture les a retirés du
+    // bac, le dernier recours les y a remis, et ils ont mangé ce qu'ils
+    // évitent. Le modèle n'a rien violé: il n'a jamais lu la ligne.
+    //
+    // ⛔ L'AXE 3 TIENT TOUJOURS, ET IL TIENT MIEUX. Il ne tient plus par
+    // l'ABSENCE de la ligne mais par sa FORME: elle sort marquée
+    // `THIS PERSON ONLY`, et la règle qui accompagne la marque
+    // (`household_voices.ts`) dit la hiérarchie — hors du plat commun quand
+    // rien ne l'appelle, une boîte d'échange quand la table l'a demandé,
+    // jamais un plat dédié pour un goût, jamais une interdiction pour tous.
+    //
+    // ⚠️ `retainedSpeaksFor` RESTE, et gouverne toujours logistique, rythme et
+    // envies: celles-là parlent du PLAN, pas d'une assiette, et une bouche
+    // nommée n'a pas à décider des jours de courses de la maison.
+    const retainedComposition = compositionLinesByMouth({
       items: routedRetained.composition,
-      speaksFor: retainedSpeaksFor,
+      mouths: members,
+      ownerMemberId,
     });
     const retainedCravings = cravingLinesFor({
       items: routedRetained.craving,
@@ -4526,27 +4551,41 @@ Deno.serve(async (req) => {
     // TAPÉ d'abord (`written`), puis ce que les producteurs ont retenu, daté.
     // Le plafond de `buildHouseholdVoices` coupe par la QUEUE, donc ce qui
     // tombe est la plus vieille récolte — jamais une consigne écrite.
-    const retainedVoiceLines = [
-      ...retainedComposition.written,
-      ...retainedComposition.remembered,
-    ];
-    const voices: { voices: RawMemberVoice[]; reads: number; issues: string[] } =
-      retainedVoiceLines.length > 0 && ownerMemberId
-        ? {
-          voices: [{
-            memberId: ownerMemberId,
-            displayName: members.find((m) => m.memberId === ownerMemberId)
-              ?.displayName ?? "",
-            lines: retainedVoiceLines,
-          }],
-          reads: 0,
-          issues: [],
-        }
-        : { voices: [], reads: 0, issues: [] };
-    if (retainedVoiceLines.length > 0 && !ownerMemberId) {
-      // NOMMÉ: sans cette ligne, des consignes écrites par la personne qui
-      // compose seraient tombées sans un mot.
-      issues.push(`retained_lines_unattached:${retainedVoiceLines.length}`);
+    // ⟳ 2026-09-04 — UNE VOIX PAR BOUCHE, PLUS UNE POUR TOUT LE MONDE.
+    //
+    // Ce bloc construisait UNE voix, celle du composeur, et y empilait tout ce
+    // que `compositionLinesFor` avait bien voulu rendre. `buildHouseholdVoices`
+    // sait pourtant en servir N depuis le début, avec son plafond PAR bouche et
+    // sa garde de non-divulgation — le chemin était construit et débranché.
+    //
+    // ⚠️ SEULEMENT LES BOUCHES À TABLE. Une bouche absente toute la fenêtre ne
+    // mange pas ce plan; nommer sa ligne au modèle lui ferait composer pour
+    // quelqu'un qui n'est pas là. Comptée, jamais servie — même posture que
+    // `otherSubjects`.
+    const platedIds = new Set(platedMembers.map((m) => m.memberId));
+    const voices: { voices: RawMemberVoice[]; reads: number; issues: string[] } = {
+      voices: retainedComposition.byMouth
+        .filter((v) => platedIds.has(v.memberId))
+        .map((v) => ({
+          memberId: v.memberId,
+          displayName: members.find((m) => m.memberId === v.memberId)
+            ?.displayName ?? "",
+          lines: [...v.written, ...v.remembered],
+        })),
+      reads: 0,
+      issues: [],
+    };
+    for (const v of retainedComposition.byMouth) {
+      if (!platedIds.has(v.memberId)) {
+        issues.push(`retained_voice_away:${v.memberId}`);
+      }
+    }
+    if (retainedComposition.householdUnattached.length > 0) {
+      // NOMMÉ: sans cette ligne, des consignes écrites POUR LA TABLE seraient
+      // tombées sans un mot, faute de bouche pour les porter.
+      issues.push(
+        `retained_lines_unattached:${retainedComposition.householdUnattached.length}`,
+      );
     }
     issues.push(...voices.issues);
     // LE COÛT, OBSERVABLE EN PRODUCTION. Même raison que le log des corps juste

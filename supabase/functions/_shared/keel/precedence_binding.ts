@@ -78,6 +78,12 @@ export const HOUSEHOLD_ARBITRATION_BY_VERSION: Readonly<Record<string, string>> 
   // Le texte servi a donc bougé, et une empreinte recopiée aurait fait
   // ressembler deux textes différents à un seul millésime.
   v24_the_swap_box: "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
+  // ⟳ 2026-09-04 — MÊME EMPREINTE QUE v24, ET CETTE FOIS C'EST VÉRIFIÉ, PAS
+  // SUPPOSÉ. La voix par bouche change le bloc DES VOIX; le bloc d'arbitrage,
+  // lui, ne cite que les en-têtes des VERROUS, et aucun n'a bougé. Au lot
+  // précédent j'avais recopié une empreinte en le croyant, et c'était faux —
+  // ce test l'avait dit.
+  v25_every_mouth_has_a_voice: "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
 };
 
 /** SHA-256 hexadécimal — `crypto.subtle`, standard web, présent en edge. */

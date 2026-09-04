@@ -1861,7 +1861,7 @@ Deno.test("LOT 4 — la version de la lane foyer a bougé d'UN cran", () => {
   // « transportable, et bon froid sans micro-ondes ». Population qui voit
   // une consigne différente: les foyers où au moins une bouche emporte sa
   // gamelle. Ailleurs, prompt byte-identique à v22, et un test le tient.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v24_the_swap_box");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v25_every_mouth_has_a_voice");
 });
 
 // ===========================================================================

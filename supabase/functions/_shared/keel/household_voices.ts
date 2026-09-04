@@ -61,6 +61,15 @@ import { FORBIDDEN_PORTION_TERMS } from "./household_portions.ts";
  * `student_goals`, pas de mémoire, donc pas de ligne. C'est D3, et ce n'est pas
  * un manque (`docs/keel/CHANTIER-PLANS-INDIVIDUELS-ET-FUSION.md`).
  */
+/**
+ * LA MARQUE DE PORTÉE, IMPORTÉE ET JAMAIS RÉÉCRITE. Deux littéraux — celui qui
+ * marque la ligne et celui qui déclenche la règle — divergeraient au premier
+ * changement de formulation, et la règle sortirait sans les lignes qu'elle
+ * gouverne, ou l'inverse.
+ */
+import { VOICE_REACH_MARK } from "./retained_items_routing.ts";
+export { VOICE_REACH_MARK };
+
 export interface RawMemberVoice {
   /** L'identité de la BOUCHE, pas du compte — comme partout dans cette lane. */
   memberId: string;
@@ -530,6 +539,45 @@ const VOICE_HEADER = [
  * contrainte la plus proche de la fin comme la plus contraignante — c'est le
  * motif que `buildPortionBrief` et les règles de maison appliquent déjà.
  */
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⛔ CE QU'UNE LIGNE MARQUÉE AUTORISE, ET CE QU'ELLE N'AUTORISE PAS
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ── POURQUOI CETTE RÈGLE EXISTE ──────────────────────────────────────────
+ * Jusqu'au 2026-09-04, la lane foyer ne servait au modèle que les lignes de la
+ * TABLE et celles du composeur. Celles d'une bouche nommée étaient comptées et
+ * jetées — la garde était juste (« la règle d'une bouche n'est pas celle de la
+ * table »), sa conséquence ne l'était pas: mesuré sur deux plans vivants,
+ * quatre plats de lentilles pour quelqu'un qui les évite, puis du cabillaud
+ * pour deux bouches qui évitent le poisson.
+ *
+ * Maintenant la ligne SORT, marquée. L'axe 3 tient toujours — mais par la
+ * FORME de la ligne, pas par son absence.
+ *
+ * ── LA HIÉRARCHIE, DITE UNE FOIS ET PAS SUR CHAQUE LIGNE ────────────────
+ * Le plafond par bouche coupe par la queue: recopier la hiérarchie sur chaque
+ * ligne mangerait le budget et ferait tomber les plus anciennes. Elle est donc
+ * ici, une fois, et le suffixe de chaque ligne n'en porte que le pointeur.
+ *
+ * ⚠️ ELLE NOMME LES TROIS CANAUX PAR LEUR EN-TÊTE RÉEL. « Si la table l'a
+ * demandé » ne veut rien dire pour un modèle qui lit dix blocs: il faut lui
+ * dire OÙ regarder, sinon il arbitre au jugé.
+ *
+ * ⚠️ ET ELLE NE SORT QUE S'IL Y A UNE LIGNE MARQUÉE. Un foyer dont personne
+ * n'a de ligne nommée reçoit le bloc d'avant ce lot, à l'octet près.
+ */
+const VOICE_REACH_RULE = [
+  "A line marked THIS PERSON ONLY never becomes a rule for the table. When it",
+  "refuses a food: leave that food out of the shared dish if nothing else calls",
+  "for it. If the table asked for it -- the \"WHAT THIS HOUSEHOLD ASKED FOR THIS",
+  "WEEK\" line, a liking written under a name WITHOUT that mark, or the coach's",
+  "\"REACH FOR THESE FIRST\" list -- serve it to the table and give that one",
+  "person a box of the SAME dish where that component is replaced. Never a",
+  "separate dish for a dislike, never a ban for everyone. A liking marked THIS",
+  "PERSON ONLY is a hint for that person's box, nothing more.",
+] as const;
+
 const VOICE_FOOTER = [
   "NEVER quote, repeat or allude to any of these lines in what you write, and",
   "never say whose line shaped a dish. This plan is read out loud by the whole",
@@ -712,8 +760,19 @@ export function buildHouseholdVoices(
     for (const line of voice.lines) body.push(renderLine(line));
   }
 
+  // ⚠️ ENTRE LE CORPS ET LE PIED, JAMAIS APRÈS. Le pied de non-divulgation
+  // reste la DERNIÈRE chose lue — c'est sa place depuis qu'un modèle a écrit
+  // « pour respecter le régime de X » dans une phrase lue à voix haute.
+  const marked = body.some((line) => line.includes(VOICE_REACH_MARK));
   return {
-    block: [...VOICE_HEADER, "", ...body, "", ...VOICE_FOOTER].join("\n"),
+    block: [
+      ...VOICE_HEADER,
+      "",
+      ...body,
+      ...(marked ? ["", ...VOICE_REACH_RULE] : []),
+      "",
+      ...VOICE_FOOTER,
+    ].join("\n"),
     heard,
     issues,
     counts,

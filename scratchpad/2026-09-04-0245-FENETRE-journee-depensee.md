@@ -324,8 +324,53 @@ plus pour re-mesurer une fonction identique serait un appel modèle dépensé po
 | `slots_remain` | rien ne bouge, **muet** | §12 (solo 19 h), §8 témoin, §11 ① |
 | retrait | fenêtre raccourcie, fin gardée, **dit** | §8 cas, §11 ② |
 | `cook_day` | veille **sauvée**, **dit** | §10 (solo), §11 ③ |
-| `single_day` | fenêtre d'un jour gardée, **dit** | ⛔ **jamais vu en run réel** |
+| `single_day` | fenêtre d'un jour gardée, **dit** | §13 (solo 22 h 43) |
 
-**Le seul état jamais atteint en conditions réelles est `single_day`** : il demande une
-fenêtre d'UN jour dont tous les moments sont passés, c'est-à-dire quelqu'un qui demande un
-plan pour aujourd'hui après son dernier repas. Tenu par l'unitaire et par mutation.
+**Les quatre états sont vus en conditions réelles.** Aucun n'est plus tenu par la seule
+simulation.
+
+---
+
+## 13. ⟳ `single_day` — le quatrième état, et une question produit qu'il pose
+
+`plan-SINGLEDAY-20260904-144343.json` · `Australia/Sydney`, **22 h 43** · fenêtre demandée :
+**1 jour** · empreinte du code inchangée.
+
+### La frontière, simulée avant l'appel
+
+    fenêtre=1j  h=22  passés=3/3  →  single_day    · fenêtre gardée à 1 jour
+    fenêtre=1j  h=19  passés=2/3  →  slots_remain  · le dîner est devant
+    fenêtre=2j  h=22  passés=3/3  →  RETRAIT       · il reste 1 jour
+
+La troisième ligne est celle qui rend le refus nécessaire : une fenêtre de **deux** jours
+peut rétrécir à un ; une fenêtre d'**un** jour ne le peut pas sans devenir vide.
+
+### Ce que le serveur a rendu
+
+```json
+{ "error": "draft_not_composed", "lock": "disarmed_empty_text",
+  "issues": ["spent_first_day_kept: single_day"] }
+```
+
+**HTTP 422, en 3,8 s, sans appeler le modèle.** La garde a tiré **et l'a dit** — et c'est
+précisément le compteur ajouté plus tôt qui rend ce refus prouvable : sans lui, ce 422 ne
+porterait aucune preuve du code qui a tourné.
+
+### ⚠️ CE QUE ÇA POSE, ET QUI N'EST PAS DE CE LOT
+
+La personne qui demande un plan **pour aujourd'hui** à 22 h 43 lit :
+
+> « L'aperçu n'a pas abouti. Rien n'a été enregistré, ton plan n'a pas bougé. »
+
+**C'est un message de panne technique pour une situation parfaitement connue.** La vraie
+phrase serait « ta journée est finie, demande demain ». Telle quelle, la personne va
+réessayer, obtenir la même chose, et conclure que le produit est cassé.
+
+⛔ **Ce n'est pas une régression de ce lot, et le raisonnement est vérifiable** : sans le
+retrait, `slotsDroppedToday` retirait déjà les trois moments d'une fenêtre d'un jour qui
+commence aujourd'hui — même composition vide, même 422, même phrase. **La seule chose que ce
+lot ajoute à cette réponse est la trace `spent_first_day_kept: single_day`**, c'est-à-dire
+la seule information qui permette aujourd'hui de savoir POURQUOI l'aperçu n'a pas abouti.
+
+**Nommé, pas corrigé** : donner sa vraie phrase à ce refus est un arbitrage de copie, et il
+appartient à qui décide ce que l'élève lit. Le serveur, lui, sait déjà tout ce qu'il faut.

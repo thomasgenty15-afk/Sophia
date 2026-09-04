@@ -537,6 +537,153 @@ export function compositionLinesFor(args: {
   };
 }
 
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ⛔ LA LIGNE D'UNE BOUCHE ATTEINT SA VOIX — une par bouche, pas une pour tous
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ── LE DÉFAUT QUE CETTE FONCTION FERME, MESURÉ DEUX FOIS ─────────────────
+ * `compositionLinesFor` prend UNE audience (`speaksFor`), et la lane foyer lui
+ * passait `[household, titulaire]`. Tout ce qui portait le nom d'une AUTRE
+ * bouche tombait dans `otherSubjects`: compté, jamais servi au modèle.
+ *
+ * Sur un plan vivant (2026-09-04): « Mon mari n'aime pas les lentilles » noté
+ * pour Marc, et quatre plats de lentilles dans la semaine. Puis, après le lot
+ * de la boîte d'échange: Tom et Zoé, tous deux « pas de poisson » en mémoire,
+ * servis en cabillaud — la ceinture les a retirés du bac, le dernier recours
+ * les y a remis, et ils ont mangé ce qu'ils évitent.
+ *
+ * Dans les deux cas le modèle n'a rien violé: il n'a jamais lu la ligne.
+ *
+ * ── CE QUI CHANGE, ET CE QUI NE CHANGE PAS ───────────────────────────────
+ * Chaque bouche du roster reçoit SES lignes, sous SON nom. Ce qui appartient à
+ * la table (`household`) reste porté par le titulaire, comme avant.
+ *
+ * ⛔ ET LA LIGNE D'UNE BOUCHE NE DEVIENT PAS UNE RÈGLE DE TABLE. C'est l'axe 3,
+ * et il tient — pas par l'ABSENCE de la ligne, mais par sa FORME: elle sort
+ * marquée, et la règle qui accompagne la marque dit la hiérarchie (hors du plat
+ * commun quand rien ne l'appelle; une boîte d'échange quand la table l'a
+ * demandé; jamais un plat dédié pour un goût, jamais une interdiction pour
+ * tous).
+ *
+ * ⚠️ `compositionLinesFor` RESTE, et la lane individuelle continue de l'appeler:
+ * quelqu'un qui compose seul n'a qu'une bouche, et une audience suffit.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export const VOICE_REACH_MARK = "THIS PERSON ONLY";
+
+/** Ce qu'une bouche a dit, prêt pour `buildHouseholdVoices`. */
+export interface MouthCompositionLines {
+  readonly memberId: string;
+  readonly written: readonly string[];
+  readonly remembered: readonly string[];
+}
+
+export interface CompositionLinesByMouth {
+  /** Dans l'ordre du roster. Une bouche sans ligne n'y figure PAS. */
+  readonly byMouth: readonly MouthCompositionLines[];
+  /** Les lignes de la table quand personne ne peut les porter. */
+  readonly householdUnattached: readonly string[];
+  /** Les lignes d'un sujet hors roster — une bouche partie. Comptées. */
+  readonly otherSubjects: readonly RetainedItem[];
+}
+
+/**
+ * LE SUFFIXE QUI DIT LA PORTÉE, ET IL EST COURT EXPRÈS.
+ *
+ * `buildHouseholdVoices` coupe par la queue à 150 jetons par bouche: une
+ * hiérarchie complète recopiée sur chaque ligne mangerait le plafond et ferait
+ * tomber les lignes anciennes. La règle est dite UNE fois, dans le bloc.
+ */
+function reachSuffix(kind: RetainedItem["kind"]): string {
+  if (kind === "food.exclude") {
+    return ` -- ${VOICE_REACH_MARK}: keep it out of the shared dish, or swap it in their box`;
+  }
+  if (kind === "food.prefer") {
+    return ` -- ${VOICE_REACH_MARK}: a hint for their own box, never a rule for the table`;
+  }
+  return ` -- ${VOICE_REACH_MARK}`;
+}
+
+export function compositionLinesByMouth(args: {
+  items: readonly RetainedItem[];
+  /** Le roster, DANS SON ORDRE. L'ordre de sortie est le sien. */
+  mouths: readonly { readonly memberId: string }[];
+  /** Qui porte les lignes de la table. `null` = personne à cette table. */
+  ownerMemberId: string | null;
+}): CompositionLinesByMouth {
+  const roster: string[] = [];
+  for (const m of args.mouths ?? []) {
+    const id = String(m?.memberId ?? "").trim();
+    if (id && !roster.includes(id)) roster.push(id);
+  }
+  const owner = String(args.ownerMemberId ?? "").trim();
+
+  const written = new Map<string, string[]>();
+  const remembered = new Map<string, { at: string; text: string; index: number }[]>();
+  const householdUnattached: string[] = [];
+  const otherSubjects: RetainedItem[] = [];
+
+  let index = 0;
+  for (const item of args.items ?? []) {
+    index += 1;
+    if (
+      item.kind !== "food.exclude" && item.kind !== "food.prefer" &&
+      item.kind !== "method.avoid" && item.kind !== "method.prefer"
+    ) {
+      continue;
+    }
+    const subject = String(item.subject ?? "");
+    let to: string | null = null;
+    let text = item.text;
+    if (subject === HOUSEHOLD_SUBJECT) {
+      // ⚠️ LA LIGNE DE LA TABLE SORT INCHANGÉE, à l'octet près: elle vaut pour
+      // tout le monde, et lui coller une marque de portée la rétrécirait.
+      to = owner || null;
+      if (to === null) {
+        householdUnattached.push(text);
+        continue;
+      }
+    } else {
+      const named = subject.startsWith("member:") ? subject.slice(7) : "";
+      if (!named || !roster.includes(named)) {
+        otherSubjects.push(item);
+        continue;
+      }
+      to = named;
+      text = `${item.text}${reachSuffix(item.kind)}`;
+    }
+    if (item.source === "written") {
+      const bag = written.get(to) ?? [];
+      bag.push(text);
+      written.set(to, bag);
+      continue;
+    }
+    const bag = remembered.get(to) ?? [];
+    bag.push({ at: item.at, text, index });
+    remembered.set(to, bag);
+  }
+
+  const byMouth: MouthCompositionLines[] = [];
+  for (const memberId of roster) {
+    const w = written.get(memberId) ?? [];
+    const r = (remembered.get(memberId) ?? []).slice();
+    if (w.length === 0 && r.length === 0) continue;
+    // LE PLUS RÉCENT D'ABORD, à égalité l'ordre d'arrivée — le même tri que
+    // `compositionLinesFor`, et pour la même raison mesurée.
+    r.sort((a, b) => a.at === b.at ? a.index - b.index : (a.at < b.at ? 1 : -1));
+    byMouth.push({
+      memberId,
+      written: w,
+      remembered: r.map((x) => `${x.at} — ${x.text}`),
+    });
+  }
+
+  return { byMouth, householdUnattached, otherSubjects };
+}
+
 // ===========================================================================
 // ⑤ `craving` → LE BLOC D'ENVIES
 // ===========================================================================

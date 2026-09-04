@@ -629,7 +629,7 @@ import {
 // une consigne différente: les foyers où au moins une bouche adulte a
 // répondu « gamelle » au déjeuner de semaine. Les autres reçoivent v22 au
 // caractère près, et un test le tient.
-export const HOUSEHOLD_PROMPT_VERSION = "v24_the_swap_box";
+export const HOUSEHOLD_PROMPT_VERSION = "v25_every_mouth_has_a_voice";
 
 export interface HouseholdRestriction {
   memberId: string;

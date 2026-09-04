@@ -614,12 +614,37 @@ const HOUSEHOLD: Lane = {
     // La porte des `food.*` / `method.*` de cette lane est le bloc DES VOIX
     // (D4/L6): le plafond par membre et la garde de non-divulgation y vivent.
     // Les faire entrer par le tronc ferait un SECOND chemin, sans garde.
-    const lines = between(src, "const retainedVoiceLines = [", "];");
+    // ⟳ 2026-09-04 — LA COMPOSITION N'A PLUS D'AUDIENCE, ELLE A UN ROSTER.
+    //
+    // C'était `compositionLinesFor({ speaksFor })`, donc `[household,
+    // titulaire]`, donc tout ce qui portait le nom d'une AUTRE bouche partait
+    // dans `otherSubjects` — compté, jamais servi. Deux plans vivants l'ont
+    // payé: quatre plats de lentilles pour qui les évite, puis du cabillaud
+    // pour deux bouches qui évitent le poisson.
+    //
+    // ⛔ ON ÉPINGLE LES DEUX ENTRÉES, PAS L'APPEL. `compositionLinesByMouth(`
+    // seul resterait vert sur un appel qui ne passerait qu'une bouche — c'est
+    // très exactement la mutation qui a montré que « une mention n'est pas un
+    // câblage », deux paragraphes plus bas.
+    const lines = between(src, "const retainedComposition = compositionLinesByMouth({", "});");
     assert(
-      lines.includes("retainedComposition.written") &&
-        lines.includes("retainedComposition.remembered"),
-      "LANE FOYER — `retainedVoiceLines` ne porte plus les deux rangs de la " +
-        "composition retenue.",
+      lines.includes("items: routedRetained.composition"),
+      "LANE FOYER — la composition retenue n'entre plus dans les voix.",
+    );
+    assert(
+      lines.includes("mouths: members"),
+      "LANE FOYER — LES VOIX NE PARTENT PLUS DU ROSTER ENTIER. Une bouche " +
+        "nommée redevient invisible au modèle, et sa ligne n'est plus " +
+        "appliquée que par la ceinture, APRÈS coup.",
+    );
+    assert(
+      lines.includes("ownerMemberId"),
+      "LANE FOYER — personne ne porte plus les lignes de la TABLE.",
+    );
+    assert(
+      !src.includes("compositionLinesFor("),
+      "LANE FOYER — le lecteur à audience UNIQUE est revenu: il ne rend que " +
+        "les lignes de la table et du composeur.",
     );
     // ⚠️ LES DEUX POINTS D'INJECTION, PAS UNE MENTION. Un premier jet
     // n'exigeait que « le bloc `voices` parle de `retainedVoiceLines` »: la
@@ -640,11 +665,28 @@ const HOUSEHOLD: Lane = {
       "const voices: { voices: RawMemberVoice[]",
       "issues.push(...voices.issues);",
     );
+    // ⟳ 2026-09-04 — UNE VOIX PAR BOUCHE, PLUS UNE POUR TOUT LE MONDE.
+    // C'était `lines: retainedVoiceLines`, la liste unique empilée sous le
+    // composeur. Ce qu'il faut tenir n'a pas changé — que les lignes lues,
+    // routées et comptées atteignent VRAIMENT le prompt.
     assert(
-      voices.includes("lines: retainedVoiceLines,"),
-      "LANE FOYER — les lignes retenues n'entrent plus dans la voix du " +
-        "titulaire qui compose: elles sont lues, routées, comptées, et le " +
-        "prompt ne les voit jamais.",
+      voices.includes("lines: [...v.written, ...v.remembered],"),
+      "LANE FOYER — les lignes retenues n'entrent plus dans les voix: elles " +
+        "sont lues, routées, comptées, et le prompt ne les voit jamais.",
+    );
+    assert(
+      voices.includes("retainedComposition.byMouth"),
+      "LANE FOYER — les voix ne partent plus des lignes PAR BOUCHE: une " +
+        "bouche nommée redevient muette pour le modèle.",
+    );
+    // ⛔ ET LE FILTRE DES BOUCHES À TABLE RESTE. Sans lui, le modèle compose
+    // pour quelqu'un qui n'est pas là.
+    // ⚠️ LE FILTRE ENTIER, PAS LE PRÉDICAT. `platedIds.has(v.memberId)` apparaît
+    // AUSSI dans la boucle qui compte les bouches absentes, deux lignes plus
+    // bas: chercher le prédicat seul laissait la coupe verte — mesuré.
+    assert(
+      voices.includes(".filter((v) => platedIds.has(v.memberId))"),
+      "LANE FOYER — les voix ne sont plus bornées aux bouches à table.",
     );
     assert(
       !voices.includes("loadHouseholdVoices"),
@@ -690,14 +732,48 @@ const HOUSEHOLD: Lane = {
       ),
     },
     {
-      name: "`retainedVoiceLines` ne porte plus la composition",
-      expects: "ne porte plus les deux rangs",
-      apply: (src) => src.replace("...retainedComposition.written,", ""),
+      // ⟳ 2026-09-04 — LA COUPE VISE MAINTENANT LE ROSTER, pas une liste
+      // unique. `mouths: []` est la forme exacte de la régression: le lecteur
+      // est appelé, il rend une structure valide, et elle est VIDE — donc plus
+      // aucune bouche nommée n'atteint le prompt, en silence.
+      name: "les voix ne partent plus du roster entier",
+      expects: "NE PARTENT PLUS DU ROSTER ENTIER",
+      apply: (src) => src.replace("mouths: members,", "mouths: [],"),
     },
     {
-      name: "le titulaire qui compose perd ses items structurés",
-      expects: "n'entrent plus dans la voix",
-      apply: (src) => src.replace("lines: retainedVoiceLines,", "lines: [],"),
+      name: "le lecteur à audience unique revient",
+      expects: "le lecteur à audience UNIQUE est revenu",
+      apply: (src) =>
+        // ⚠️ UNE MUTATION QUI **AJOUTE**: on rouvre le chemin d'avant à côté du
+        // bon. Le retirer ferait mordre une autre garde, et le harnais refuse
+        // qu'une mutation soit attrapée par la mauvaise.
+        // ⚠️ SUR PLUSIEURS LIGNES, ET C'EST OBLIGATOIRE. `assertSpeaksForIsNeverEmpty`
+        // capture `/speaksFor:\s*([^,\n]+)/`: écrit sur une seule ligne, l'appel
+        // rendrait « retainedSpeaksFor });\u0020» et ferait mordre CETTE garde-là.
+        // Le harnais refuse alors la mutation — « la mauvaise garde a mordu » —
+        // et il a raison: une mutation doit prouver UNE assertion, pas une autre.
+        src.replace(
+          "    const retainedCravings = cravingLinesFor({",
+          "    const legacyLines = compositionLinesFor({\n" +
+            "      items: [],\n" +
+            "      speaksFor: retainedSpeaksFor,\n" +
+            "    });\n" +
+            "    const retainedCravings = cravingLinesFor({",
+        ),
+    },
+    {
+      name: "les bouches perdent leurs lignes dans la voix",
+      expects: "n'entrent plus dans les voix",
+      apply: (src) =>
+        src.replace("lines: [...v.written, ...v.remembered],", "lines: [],"),
+    },
+    {
+      // ⛔ LA GARDE DU FILTRE. Sans elle, une bouche absente toute la fenêtre
+      // serait servie au modèle, qui composerait pour quelqu'un qui n'est pas là.
+      name: "les voix ne sont plus bornées aux bouches à table",
+      expects: "plus bornées aux bouches à table",
+      apply: (src) =>
+        src.replace(".filter((v) => platedIds.has(v.memberId))", ""),
     },
     {
       name: "le chargeur des phrases plates revient",
@@ -708,7 +784,7 @@ const HOUSEHOLD: Lane = {
         // harnais refuserait (« la mauvaise garde a mordu »). Ce qu'on veut
         // prouver ici est qu'une SECONDE source rajoutée à côté de la bonne se
         // fait voir — c'est exactement la forme qu'aurait la régression.
-        src.replace("          reads: 0,", "          reads: loadHouseholdVoices(),"),
+        src.replace("      reads: 0,", "      reads: loadHouseholdVoices(),"),
     },
     {
       name: "la ligne d'envies perd les `craving`",

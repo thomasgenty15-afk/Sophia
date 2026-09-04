@@ -1,5 +1,6 @@
 import { assert, assertEquals } from "jsr:@std/assert@^1.0.0";
 import {
+  compositionLinesByMouth,
   compositionLinesFor,
   cravingLinesFor,
   logisticsOverlayFor,
@@ -9,6 +10,7 @@ import {
   routedItemCount,
   routeRetainedItems,
   routingTrace,
+  VOICE_REACH_MARK,
 } from "./retained_items_routing.ts";
 import {
   HOUSEHOLD_SUBJECT,
@@ -618,4 +620,164 @@ Deno.test("la trace compte les seaux et nomme les bouches retirées, par id", ()
   // `generated_from`, que d'autres relisent. Les mots appartiennent à la
   // personne, ils vivent dans sa carte.
   assert(!JSON.stringify(trace).includes("ligne food.exclude"));
+});
+
+// ---------------------------------------------------------------------------
+// LA LIGNE D'UNE BOUCHE ATTEINT SA VOIX (2026-09-04)
+//
+// ⛔ CE QUE CES TESTS FERMENT, ET IL A ÉTÉ MESURÉ DEUX FOIS EN RUN RÉEL:
+//   · « Mon mari n'aime pas les lentilles » noté pour Marc, quatre plats de
+//     lentilles dans la semaine;
+//   · Tom et Zoé, tous deux « pas de poisson », servis en cabillaud.
+// Dans les deux cas le modèle n'a rien violé — il n'a jamais lu la ligne.
+// ---------------------------------------------------------------------------
+
+const MOUTHS = [{ memberId: ADULT }, { memberId: MINOR }, { memberId: UNKNOWN_AGE }];
+
+function foodLine(kind: RetainedKind, subject: string, text: string, at = "2026-09-01") {
+  return mk({
+    kind,
+    scope: "durable",
+    subject,
+    text,
+    value: null,
+    source: "draft_note",
+    at,
+    item: "",
+    confidence: null,
+  });
+}
+
+Deno.test("CHAQUE BOUCHE DU ROSTER REÇOIT SES LIGNES, le titulaire porte celles de la table", () => {
+  const out = compositionLinesByMouth({
+    items: [
+      foodLine("food.exclude", HOUSEHOLD_SUBJECT, "plus de plats en sauce"),
+      foodLine("food.exclude", `member:${MINOR}`, "le poisson"),
+    ],
+    mouths: MOUTHS,
+    ownerMemberId: ADULT,
+  });
+
+  assertEquals(out.byMouth.map((m) => m.memberId), [ADULT, MINOR]);
+  assertEquals(out.otherSubjects.length, 0);
+  assertEquals(out.householdUnattached, []);
+  // La bouche sans ligne n'a PAS de voix vide: un nom suivi de rien ferait
+  // croire au modèle qu'elle n'a rien à dire, ce qui est vrai, mais lui coûte
+  // des jetons pour le dire.
+  assertEquals(out.byMouth.length, 2);
+});
+
+Deno.test("⛔ LA LIGNE D'UNE BOUCHE PORTE SA MARQUE, CELLE DE LA TABLE N'EN PORTE PAS", () => {
+  const out = compositionLinesByMouth({
+    items: [
+      foodLine("food.exclude", HOUSEHOLD_SUBJECT, "plus de plats en sauce"),
+      foodLine("food.exclude", `member:${MINOR}`, "le poisson"),
+      foodLine("food.prefer", `member:${UNKNOWN_AGE}`, "les pâtes"),
+    ],
+    mouths: MOUTHS,
+    ownerMemberId: ADULT,
+  });
+  const of = (id: string) => out.byMouth.find((m) => m.memberId === id);
+
+  // ⛔ LA LIGNE DE LA TABLE SORT À L'OCTET PRÈS. Lui coller une marque de
+  // portée la rétrécirait à une personne — l'inverse de ce qu'elle dit.
+  assertEquals(of(ADULT)?.remembered, ["2026-09-01 — plus de plats en sauce"]);
+
+  // Un dégoût nommé dit son remède, et il n'est pas « n'en sers plus jamais ».
+  assertEquals(
+    of(MINOR)?.remembered,
+    [
+      `2026-09-01 — le poisson -- ${VOICE_REACH_MARK}: keep it out of the ` +
+      `shared dish, or swap it in their box`,
+    ],
+  );
+  // Un goût nommé n'est pas une commande pour la table.
+  assert(of(UNKNOWN_AGE)?.remembered[0].includes("never a rule for the table"));
+});
+
+Deno.test("⛔ UNE BOUCHE PARTIE EST COMPTÉE, JAMAIS SERVIE", () => {
+  const out = compositionLinesByMouth({
+    items: [foodLine("food.exclude", `member:${GONE}`, "le poisson")],
+    mouths: MOUTHS,
+    ownerMemberId: ADULT,
+  });
+  assertEquals(out.byMouth, []);
+  assertEquals(out.otherSubjects.length, 1);
+});
+
+Deno.test("⛔ SANS TITULAIRE À TABLE, LES LIGNES DE LA TABLE NE TOMBENT PAS EN SILENCE", () => {
+  const out = compositionLinesByMouth({
+    items: [foodLine("food.exclude", HOUSEHOLD_SUBJECT, "plus de plats en sauce")],
+    mouths: MOUTHS,
+    ownerMemberId: null,
+  });
+  assertEquals(out.byMouth, []);
+  assertEquals(out.householdUnattached, ["plus de plats en sauce"]);
+});
+
+Deno.test("PROPRIÉTÉ — conservation: rien ne se perd entre les trois sorties", () => {
+  const items = [
+    foodLine("food.exclude", HOUSEHOLD_SUBJECT, "a"),
+    foodLine("food.exclude", `member:${MINOR}`, "b"),
+    foodLine("food.prefer", `member:${GONE}`, "c"),
+    foodLine("method.avoid", `member:${ADULT}`, "d"),
+    // Une famille qui n'appartient pas à la composition: ignorée des trois.
+    portionAdjust({ direction: "down" }) as unknown as RetainedItem,
+  ];
+  const out = compositionLinesByMouth({ items, mouths: MOUTHS, ownerMemberId: ADULT });
+  const served = out.byMouth.reduce(
+    (n, m) => n + m.written.length + m.remembered.length,
+    0,
+  );
+  assertEquals(served + out.householdUnattached.length + out.otherSubjects.length, 4);
+});
+
+Deno.test("L'ORDRE EST CELUI DU ROSTER, pas celui du magasin", () => {
+  const out = compositionLinesByMouth({
+    items: [
+      foodLine("food.exclude", `member:${UNKNOWN_AGE}`, "z"),
+      foodLine("food.exclude", `member:${MINOR}`, "y"),
+      foodLine("food.exclude", HOUSEHOLD_SUBJECT, "x"),
+    ],
+    mouths: MOUTHS,
+    ownerMemberId: ADULT,
+  });
+  assertEquals(out.byMouth.map((m) => m.memberId), [ADULT, MINOR, UNKNOWN_AGE]);
+});
+
+Deno.test("LE PLUS RÉCENT D'ABORD, par bouche — le même tri que l'audience unique", () => {
+  const out = compositionLinesByMouth({
+    items: [
+      foodLine("food.exclude", `member:${MINOR}`, "vieux", "2026-08-01"),
+      foodLine("food.exclude", `member:${MINOR}`, "neuf", "2026-09-01"),
+    ],
+    mouths: MOUTHS,
+    ownerMemberId: ADULT,
+  });
+  const lines = out.byMouth[0].remembered;
+  assert(lines[0].includes("neuf"), lines.join(" | "));
+  assert(lines[1].includes("vieux"), lines.join(" | "));
+});
+
+Deno.test("⛔ CE QUE LA PERSONNE A TAPÉ N'EST PAS DATÉ, et reste séparé", () => {
+  const typed = mk({
+    kind: "food.exclude",
+    scope: "durable",
+    subject: `member:${MINOR}`,
+    text: "le poisson",
+    value: null,
+    source: "written",
+    at: "2026-09-01",
+    item: "",
+    confidence: null,
+  });
+  const out = compositionLinesByMouth({
+    items: [typed],
+    mouths: MOUTHS,
+    ownerMemberId: ADULT,
+  });
+  assertEquals(out.byMouth[0].remembered, []);
+  assertEquals(out.byMouth[0].written.length, 1);
+  // La marque est là aussi: c'est la PORTÉE qui la commande, pas la source.
+  assert(out.byMouth[0].written[0].includes(VOICE_REACH_MARK));
 });
