@@ -251,6 +251,27 @@ invariant d'offre de courses en dépend, et si quelqu'un la retire, deux bancs r
 lieu d'un. La leçon qu'elle en tire vaut d'être gardée : *une dépendance qu'on n'éprouve pas
 est une dépendance qu'on retire par mégarde.*
 
+### ⟳ CORRECTION — « le code invite à faire cette erreur » était faux
+
+J'avais écrit ici que deux sessions ayant commis la même erreur, c'était le signe que le code
+y invitait. **C'est faux, et la même session me l'a démontré :** le bloc de documentation
+juste au-dessus de `withoutSpentFirstDay` (`meal_plan_window.ts:714-724`) nomme le piège en
+toutes lettres — la réassignation, la condition qui devient vraie, et « sans elle, ce lot
+casse la fonctionnalité livrée la veille ».
+
+⛔ **Et ce bloc est le mien** : il est arrivé avec `4e2719d9`, le premier commit du lot. J'ai
+écrit l'avertissement, puis accusé le code de s'être tu.
+
+**La leçon qui tient est autre, et elle est plus utile** : dans ce dépôt, **l'invariant vit
+dans l'EN-TÊTE, pas dans la signature**. L'erreur n'a pas été de tomber dans un piège du
+code, elle a été de **déduire une exclusivité depuis des signatures et un ordre d'appel sans
+lire le bloc de doc au-dessus de la fonction**. Lire les corps (`in_the_past`,
+`startsOn !== today`) donnait deux conditions vraies et une conclusion fausse.
+
+⚠️ **Pourquoi la correction compte, au-delà de l'exactitude** : « le code invite à l'erreur »
+appelle à retoucher un module déjà juste, et un futur lecteur pourrait « clarifier » ce
+paragraphe alors qu'il est ce qui aurait dû nous arrêter tous les deux.
+
 ---
 
 ## 11. ⟳ LA LANE FOYER — portée, et prouvée sur les trois cas
