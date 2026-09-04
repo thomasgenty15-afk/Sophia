@@ -3092,7 +3092,7 @@ Deno.test("C8 ③ — LA LANE INDIVIDUELLE GARDE SA VERSION DE PROMPT", () => {
   // voit une consigne différente: les foyers où au moins une bouche emporte
   // son déjeuner de semaine. Ailleurs, l'enveloppe est celle de v22 au
   // caractère près, et un test le tient.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v25_every_mouth_has_a_voice");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v27_the_swap_cooks_apart");
 });
 
 Deno.test("C7 ③ — LA LIGNE DE COURSES D'UN PLAT JETÉ NE PART PLUS AU MAGASIN", () => {

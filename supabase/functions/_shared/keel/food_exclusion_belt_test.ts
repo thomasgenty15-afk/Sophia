@@ -203,7 +203,10 @@ Deno.test("⛔ LE PARSEUR RETIRE LA BOUCHE, jamais le plat ni le plan", async ()
   // ⛔ ET IL NE JETTE PAS LE PLAT. `continue` retire la bouche de la boîte;
   // un `return` ou un `throw` ici rendrait `422 empty_meal` au foyer entier.
   const at = src.indexOf("exclusionBelt.refused++");
-  const after = src.slice(at, at + 700);
+  // ⟳ 2026-09-04: 1 200 et non 700 — le `push` du retrait dit désormais PAR OÙ
+  // la morsure est passée (`via`, `preparationId`, `matched`), et le
+  // `continue` a reculé d'autant. Le geste n'a pas changé.
+  const after = src.slice(at, at + 1200);
   assert(/continue;/.test(after), "le retrait est devenu un refus du plat");
   assert(!/throw |empty_meal/.test(after), "une morsure fait tomber le plan");
 });

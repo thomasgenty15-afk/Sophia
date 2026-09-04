@@ -70,6 +70,9 @@ export interface DeliveredDish {
     readonly memberId: string;
     readonly cause: "regime" | "exclusion";
     readonly boxId: string;
+    readonly via: "items" | "preparation";
+    readonly preparationId: string | null;
+    readonly matched: string | null;
   }[];
 }
 
@@ -88,6 +91,10 @@ export interface UnfedRow {
   /** La boîte dont le nom a été retiré — `null` quand rien ne l'a été. */
   readonly boxId: string | null;
   readonly dish: string | null;
+  /** ⟳ 2026-09-04 — par où la ceinture est passée (voir `BoxHeldOff.via`). */
+  readonly via: "items" | "preparation" | null;
+  readonly preparationId: string | null;
+  readonly matched: string | null;
 }
 
 export interface MealsDelivered {
@@ -194,6 +201,9 @@ export function mealsDelivered(
           cause: "not_named",
           boxId: null,
           dish: here[0]?.title ?? null,
+          via: null,
+          preparationId: null,
+          matched: null,
         });
         byCause.not_named++;
         missing++;
@@ -225,6 +235,9 @@ export function mealsDelivered(
       ) ?? table[0];
       let cause: UnfedCause;
       let boxId: string | null = null;
+      let via: UnfedRow["via"] = null;
+      let preparationId: string | null = null;
+      let matched: string | null = null;
       if (lids > 1) {
         cause = "double";
       } else {
@@ -235,17 +248,28 @@ export function mealsDelivered(
         );
         const byRegime = held.find((h) => h.cause === "regime");
         const byTaste = held.find((h) => h.cause === "exclusion");
-        if (byRegime) {
-          cause = "held_off_regime";
-          boxId = byRegime.boxId;
-        } else if (byTaste) {
-          cause = "held_off_exclusion";
-          boxId = byTaste.boxId;
-        } else {
-          cause = "not_named";
+        const chosen = byRegime ?? byTaste ?? null;
+        if (byRegime) cause = "held_off_regime";
+        else if (byTaste) cause = "held_off_exclusion";
+        else cause = "not_named";
+        if (chosen) {
+          boxId = chosen.boxId;
+          via = chosen.via;
+          preparationId = chosen.preparationId;
+          matched = chosen.matched;
         }
       }
-      row.missing.push({ memberId, day, slot, cause, boxId, dish: dishHere?.title ?? null });
+      row.missing.push({
+        memberId,
+        day,
+        slot,
+        cause,
+        boxId,
+        dish: dishHere?.title ?? null,
+        via,
+        preparationId,
+        matched,
+      });
       byCause[cause]++;
       missing++;
     }
@@ -273,6 +297,10 @@ export interface UnfedRetryRow {
   readonly slot: string;
   readonly cause: UnfedCause;
   readonly dish: string | null;
+  /** Optionnels: absents, la relance dit le remède générique de la cause. */
+  readonly via?: "items" | "preparation" | null;
+  readonly preparationId?: string | null;
+  readonly matched?: string | null;
 }
 
 /**
@@ -312,6 +340,27 @@ export function unfedRetryInstruction(
   const lines = clean.map((r) => {
     const where = `${r.day} ${r.slot}`;
     const dish = r.dish ? ` "${r.dish}"` : "";
+    // ── ⟳ 2026-09-04 — LE LIEN FAUTIF EST NOMMÉ, PAS LA BOÎTE ──────────────
+    // Sur 60 refus sur 89 mesurés, la boîte EXISTAIT et ses items étaient
+    // propres: c'est l'item qui citait la préparation du poulet. Demander
+    // « écris-lui une boîte » à un modèle qui l'a déjà écrite le fait tout
+    // réécrire, et chaque réécriture régresse autrement (mesuré: sans boîte →
+    // cite le poulet → sur la boîte commune, une régression par relance). On
+    // lui dit le geste exact, et on lui interdit le reste. Vaut pour les DEUX
+    // ceintures: un dégoût (raviolis aux champignons ET aux épinards dans une
+    // seule fiche) produit exactement le même retrait — mesuré sur un 4e foyer.
+    if (
+      (r.cause === "held_off_regime" || r.cause === "held_off_exclusion") &&
+      r.via === "preparation" && r.preparationId
+    ) {
+      const carries = r.matched ? ` (it carries ${JSON.stringify(r.matched)})` : "";
+      return `- ${r.name} (${r.memberId}), ${where},${dish}: their box is already ` +
+        `there and its items are fine -- but one of its items cites preparation ` +
+        `${JSON.stringify(r.preparationId)}${carries}, which they do not eat. ` +
+        `Give that swapped component a preparation of its OWN (or cite none), ` +
+        `cooked apart from the original; keep their box and its items exactly ` +
+        `as they are, and change nothing else on that dish.`;
+    }
     return `- ${r.name} (${r.memberId}), ${where},${dish}: ${remedy[r.cause]}.`;
   });
 

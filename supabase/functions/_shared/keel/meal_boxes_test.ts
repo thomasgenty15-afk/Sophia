@@ -1130,7 +1130,7 @@ Deno.test("les deux axes de version ont bougé, chacun pour SA population", () =
   // voit une consigne différente: les foyers où au moins une bouche emporte
   // son déjeuner de semaine. Ailleurs, l'enveloppe est celle de v22 au
   // caractère près, et un test le tient.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v25_every_mouth_has_a_voice");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v27_the_swap_cooks_apart");
 });
 
 // ---------------------------------------------------------------------------
@@ -1487,6 +1487,15 @@ Deno.test("LOT 4 — le SCHÉMA des boîtes est côté système, et muet à une 
     flatBox.includes("one title, two boxes"),
     "le titre peut de nouveau nommer le composant échangé: le couvercle " +
       "contredira son contenu",
+  );
+  // ⛔ ⟳ 2026-09-04 — LA PRÉPARATION À PART. Rejoué sur quatre refus réels:
+  // 60 boîtes de tofu sur 89 citaient la fiche du poulet, parce que le modèle
+  // cuisait les deux protéines dans UNE préparation. La boîte existait, ses
+  // items étaient propres, et la ceinture la retirait quand même.
+  assert(
+    flatBox.includes("preparation of its OWN") &&
+      flatBox.includes("never inside the preparation that carries the original"),
+    "le composant échangé peut de nouveau être cuit DANS la fiche de l'original",
   );
   // ⛔ LA PHRASE DE v3 A DISPARU, MOT POUR MOT: elle disait que les portions des
   // autres ne sont « jamais pesées, jamais nommées, jamais écrites », et v4 leur

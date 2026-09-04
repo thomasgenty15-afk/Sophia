@@ -986,6 +986,13 @@ Deno.test("⛔ UNE LIGNE MARQUÉE FAIT SORTIR LA RÈGLE, ET LA RÈGLE DIT LA HI�
   assert(flat.includes("never a ban for everyone"), flat);
   // ⛔ ET LE REMÈDE EST LA BOÎTE, jamais une note de portion.
   assert(flat.includes("a box of the SAME dish where that component is replaced"), flat);
+  // ⛔ ⟳ 2026-09-04 — ET LE COMPOSANT ÉCHANGÉ EST CUIT À PART. Mesuré sur un
+  // dégoût (raviolis aux champignons ET aux épinards dans UNE fiche): la boîte
+  // sans champignons citait la fiche qui en porte, et la ceinture la retirait.
+  assert(
+    flat.includes("cooked in a preparation of its own, never inside the one that carries the original"),
+    flat,
+  );
 });
 
 Deno.test("⛔ SANS LIGNE MARQUÉE, LE BLOC EST CELUI D'AVANT — À L'OCTET PRÈS", () => {

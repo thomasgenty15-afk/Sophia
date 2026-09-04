@@ -573,8 +573,9 @@ const VOICE_REACH_RULE = [
   "for it. If the table asked for it -- the \"WHAT THIS HOUSEHOLD ASKED FOR THIS",
   "WEEK\" line, a liking written under a name WITHOUT that mark, or the coach's",
   "\"REACH FOR THESE FIRST\" list -- serve it to the table and give that one",
-  "person a box of the SAME dish where that component is replaced. Never a",
-  "separate dish for a dislike, never a ban for everyone. A liking marked THIS",
+  "person a box of the SAME dish where that component is replaced -- cooked in",
+  "a preparation of its own, never inside the one that carries the original.",
+  "Never a separate dish for a dislike, never a ban for everyone. A liking marked THIS",
   "PERSON ONLY is a hint for that person's box, nothing more.",
 ] as const;
 

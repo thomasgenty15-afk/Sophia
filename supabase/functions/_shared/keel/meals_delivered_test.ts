@@ -76,7 +76,7 @@ Deno.test("⛔ RETIRÉE PAR SON RÉGIME: la cause est nommée, et la boîte auss
   const out = mealsDelivered([
     dish({
       boxes: [{ id: "box_table", memberIds: [CLAIRE, MARC] }],
-      heldOff: [{ memberId: LEA, cause: "regime", boxId: "box_table" }],
+      heldOff: [{ memberId: LEA, cause: "regime", boxId: "box_table", via: "items", preparationId: null, matched: null }],
     }),
   ], mouths([CLAIRE, MARC, LEA]));
 
@@ -92,6 +92,9 @@ Deno.test("⛔ RETIRÉE PAR SON RÉGIME: la cause est nommée, et la boîte auss
     cause: "held_off_regime",
     boxId: "box_table",
     dish: "Rice bowl",
+    via: "items",
+    preparationId: null,
+    matched: null,
   });
 });
 
@@ -99,7 +102,7 @@ Deno.test("⛔ RETIRÉE PAR UN DÉGOÛT: autre cause, autre recours", () => {
   const out = mealsDelivered([
     dish({
       boxes: [{ id: "box_table", memberIds: [CLAIRE, LEA] }],
-      heldOff: [{ memberId: MARC, cause: "exclusion", boxId: "box_table" }],
+      heldOff: [{ memberId: MARC, cause: "exclusion", boxId: "box_table", via: "items", preparationId: null, matched: null }],
     }),
   ], mouths([CLAIRE, MARC, LEA]));
 
@@ -113,8 +116,8 @@ Deno.test("⛔ LE RÉGIME PRIME sur le dégoût quand les deux ont mordu", () =>
     dish({
       boxes: [{ id: "box_table", memberIds: [CLAIRE] }],
       heldOff: [
-        { memberId: MARC, cause: "exclusion", boxId: "box_table" },
-        { memberId: MARC, cause: "regime", boxId: "box_table" },
+        { memberId: MARC, cause: "exclusion", boxId: "box_table", via: "items", preparationId: null, matched: null },
+        { memberId: MARC, cause: "regime", boxId: "box_table", via: "items", preparationId: null, matched: null },
       ],
     }),
   ], mouths([CLAIRE, MARC]));
@@ -177,7 +180,7 @@ Deno.test("PROPRIÉTÉ — attendu = nourri + manquant, sur chaque bouche et sur
   const out = mealsDelivered([
     dish({
       boxes: [{ id: "box_table", memberIds: [CLAIRE] }],
-      heldOff: [{ memberId: LEA, cause: "regime", boxId: "box_table" }],
+      heldOff: [{ memberId: LEA, cause: "regime", boxId: "box_table", via: "items", preparationId: null, matched: null }],
     }),
     dish({ day: "thu", boxes: [{ id: "box_thu", memberIds: [CLAIRE, LEA] }] }),
   ], mouths([CLAIRE, MARC, LEA], [WED_DINNER, THU_DINNER]));
@@ -205,6 +208,29 @@ Deno.test("LA RELANCE nomme la bouche, la case, le plat, la cause ET le remède"
     text.includes("do NOT shorten the plan"),
     "rien n'interdit de réparer en retirant des journées",
   );
+});
+
+Deno.test("⟳ LA RELANCE NOMME LE LIEN FAUTIF quand la boîte existe déjà", () => {
+  // Le cas mesuré 60 fois sur 89: la boîte de tofu est là, ses items sont
+  // propres, et un item cite `prep_chicken`. « Écris-lui une boîte » ferait
+  // tout réécrire; on nomme la préparation et on interdit le reste.
+  const text = unfedRetryInstruction([
+    {
+      name: "Léa", memberId: LEA, day: "wed", slot: "dinner", cause: "held_off_regime",
+      dish: "Rice bowl", via: "preparation", preparationId: "prep_chicken", matched: "chicken",
+    },
+  ]);
+  assert(text !== null);
+  assert(text.includes('"prep_chicken"'), "la préparation fautive n'est pas nommée:\n" + text);
+  assert(text.includes("preparation of its OWN"), text);
+  assert(text.includes("keep their box and its items exactly as they are"), "rien n'interdit de réécrire la boîte qui existe:\n" + text);
+  assert(text.includes('"chicken"'), "le terme mordu n'est pas dit:\n" + text);
+  assert(!text.includes("write them a box of their OWN"), "on redemande une boîte qui existe déjà:\n" + text);
+  // Et le remède générique reste celui des items qui mordent EUX-MÊMES.
+  const items = unfedRetryInstruction([
+    { name: "Léa", memberId: LEA, day: "wed", slot: "dinner", cause: "held_off_regime", dish: "Rice bowl", via: "items", preparationId: null, matched: "chicken" },
+  ]);
+  assert(items !== null && items.includes("box of their OWN"), items ?? "null");
 });
 
 Deno.test("LA RELANCE dit un remède DIFFÉRENT par cause", () => {

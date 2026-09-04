@@ -37,7 +37,7 @@ import {
   ANCHOR_FACTOR_MIN,
   type AnchorFactor,
   type AnchorMouth,
-  MEAL_MAX_GRAMS_PER_KG,
+  mealMassCapGrams,
   mouthTargetKcal,
   slotPlanTargets,
 } from "./mouth_anchor.ts";
@@ -258,9 +258,12 @@ export function potFactorFor(args: {
     // vaut dans sa journée, donc on ne prétend pas le savoir pour la casserole.
     if (mealKcal === undefined || !(mealKcal > 0)) return nothing("pot_mouth_unknown");
     needed += mealKcal;
-    const weightKg = Number(eater.mouth.body?.weightKg ?? 0);
-    if (!Number.isFinite(weightKg) || weightKg <= 0) return nothing("pot_mouth_unknown");
-    massCeilingGrams += weightKg * MEAL_MAX_GRAMS_PER_KG;
+    // ⟳ 2026-09-04: le plafond de masse du bac est la somme de ce que porte le
+    // besoin de chaque bouche à la densité d'un plat ordinaire — plus le kilo
+    // (voir `mealMassCapGrams` dans `mouth_anchor.ts`, et pourquoi).
+    const cap = mealMassCapGrams(mealKcal);
+    if (cap === null) return nothing("pot_mouth_unknown");
+    massCeilingGrams += cap;
   }
   if (!(needed > 0)) return nothing("pot_mouth_unknown");
 

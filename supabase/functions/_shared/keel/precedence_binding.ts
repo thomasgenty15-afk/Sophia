@@ -84,6 +84,10 @@ export const HOUSEHOLD_ARBITRATION_BY_VERSION: Readonly<Record<string, string>> 
   // précédent j'avais recopié une empreinte en le croyant, et c'était faux —
   // ce test l'avait dit.
   v25_every_mouth_has_a_voice: "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
+  // v27 (2026-09-04): la préparation à part pour le composant échangé, dans le
+  // bloc SCHÉMA des boîtes — le bloc d'arbitrage ne bouge pas, même empreinte.
+  v27_the_swap_cooks_apart:
+    "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
 };
 
 /** SHA-256 hexadécimal — `crypto.subtle`, standard web, présent en edge. */

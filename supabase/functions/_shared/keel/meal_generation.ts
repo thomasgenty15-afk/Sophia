@@ -1029,6 +1029,25 @@ export interface BoxHeldOff {
   readonly memberId: string;
   readonly cause: "regime" | "exclusion";
   readonly boxId: string;
+  /**
+   * ⟳ 2026-09-04 — PAR OÙ LA MORSURE EST PASSÉE, ET C'EST CE QUI REND LA
+   * RELANCE CHIRURGICALE.
+   *
+   * Rejoué sur les sorties brutes de quatre refus (`llm_raw_response_events`):
+   * sur 89 boîtes à la végétarienne seule, 4 portaient un terme carné dans
+   * leurs items, et **60** étaient PROPRES mais citaient une préparation qui
+   * porte le poulet — le modèle avait cuit le tofu DANS la fiche du poulet.
+   * Trois foyers indépendants, même cause. « Écris-lui une boîte à elle » ne
+   * répare pas ça: la boîte existe. Ce qu'il faut dire, c'est « ton item de
+   * tofu cite `prep_chicken` ».
+   *
+   * ⚠️ APPROXIMATION ASSUMÉE: quand les items ET une préparation mordent, on
+   * nomme la préparation. Le remède est le même dans les deux cas (une
+   * préparation à part, ET des items propres), et la phrase le dit.
+   */
+  readonly via: "items" | "preparation";
+  readonly preparationId: string | null;
+  readonly matched: string | null;
 }
 
 export interface BoxItem {
@@ -6971,7 +6990,14 @@ export function parseGeneratedMeal(
             boxNamesRefused++;
             heldOffHere = true;
             if (!boxHeldOff.some((h) => h.memberId === memberId)) {
-              boxHeldOff.push({ memberId, cause: "regime", boxId });
+              boxHeldOff.push({
+                memberId,
+                cause: "regime",
+                boxId,
+                via: breach.preparationIds.length > 0 ? "preparation" : "items",
+                preparationId: breach.preparationIds[0] ?? null,
+                matched: breach.matched,
+              });
             }
             issues.push(
               `${where}: ${JSON.stringify(memberId)} is ${regime} and "${title}" ` +
@@ -7026,7 +7052,14 @@ export function parseGeneratedMeal(
             boxNamesRefused++;
             heldOffHere = true;
             if (!boxHeldOff.some((h) => h.memberId === memberId)) {
-              boxHeldOff.push({ memberId, cause: "exclusion", boxId });
+              boxHeldOff.push({
+                memberId,
+                cause: "exclusion",
+                boxId,
+                via: bite.preparationIds.length > 0 ? "preparation" : "items",
+                preparationId: bite.preparationIds[0] ?? null,
+                matched: bite.matched,
+              });
             }
             issues.push(
               `${where}: ${JSON.stringify(memberId)} asked to avoid ` +

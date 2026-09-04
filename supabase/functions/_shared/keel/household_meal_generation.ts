@@ -629,7 +629,7 @@ import {
 // une consigne différente: les foyers où au moins une bouche adulte a
 // répondu « gamelle » au déjeuner de semaine. Les autres reçoivent v22 au
 // caractère près, et un test le tient.
-export const HOUSEHOLD_PROMPT_VERSION = "v25_every_mouth_has_a_voice";
+export const HOUSEHOLD_PROMPT_VERSION = "v27_the_swap_cooks_apart";
 
 export interface HouseholdRestriction {
   memberId: string;
@@ -1226,6 +1226,16 @@ function boxSchemaBlock(
     "dish's ingredients list BOTH, so the shopping carries both. The dish title",
     "names the base, never the swapped component (\"Rice bowl\", not \"Chicken",
     "rice\"): one title, two boxes.",
+    // ⟳ 2026-09-04 — LA PRÉPARATION À PART, ET POURQUOI C'EST UNE RÈGLE DE
+    // CUISINE AVANT D'ÊTRE UNE RÈGLE DE SCANNER. Rejoué sur quatre refus: 60
+    // boîtes de tofu sur 89 citaient la fiche du poulet — le modèle cuisait les
+    // deux protéines dans UNE préparation, et l'item de tofu pointait dessus.
+    // Pour un végétarien strict, du tofu cuit dans la fiche du poulet ne
+    // convient pas; c'est la raison retenue (l'autre voie, faire taire la
+    // ceinture quand les items sont propres, a été écartée pour ça).
+    "The swapped component is cooked in a preparation of its OWN, or in none:",
+    "never inside the preparation that carries the original. The box item for",
+    "the swap cites that own preparation, or no preparation at all.",
     "If nothing clashes, everyone shares the same one.",
     // ⚠️ « carries », JAMAIS « may carry ». La formulation permissive a été
     // mesurée le 2026-08-17 comme une permission qu'on décline — zéro

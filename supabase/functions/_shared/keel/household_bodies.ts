@@ -188,13 +188,31 @@ export async function loadHouseholdMemberBodies(
   // l'en-tête, et elle reste valable — c'est la conclusion qui était fausse.
   let fichesEnEchec = false;
   const sansCompte = params.members.filter((m) => !m.userId).map((m) => m.memberId);
+  // ── ⟳ 2026-09-04 — LA FICHE SERT AUSSI LE TITULAIRE DONT LA SÉRIE EST VIDE ──
+  //
+  // Une bouche AVEC un compte ne recevait JAMAIS le relais de la fiche: son
+  // corps devait venir de sa propre série de pesées. Mesuré en base: 15
+  // titulaires sur 38 qui portent une fiche n'ont AUCUNE ligne de série. Leur
+  // poids est écrit, stocké, rendu par `keel_household_bodies_for` — et
+  // invisible au dimensionnement, qui les sert « comme la table ».
+  //
+  // ⛔ LA SÉRIE VIDE N'EST PAS LA LECTURE RATÉE. Le `null` fail-closed d'un
+  // compte dont la lecture a ÉCHOUÉ reste `null`: la fiche ne répare pas une
+  // panne, et ce cas-là garde son test. Ici on ne prend que le compte dont la
+  // lecture a RÉUSSI et n'a rien rendu (`body` présent, `latestWeight` null).
+  // Le poids part par `declaredWeightKg`, jamais par `latestWeight`: une fiche
+  // n'est pas une série, et la ligne rendue dit « as stated on their sheet ».
+  const serieVide = loaded
+    .filter((e) => e.member.userId && e.body !== null && e.body.latestWeight === null)
+    .map((e) => e.member.memberId);
+  const fichesVoulues = [...sansCompte, ...serieVide];
   const fiches = new Map<string, { h: number | null; w: number | null; g: string | null }>();
-  if (sansCompte.length > 0) {
+  if (fichesVoulues.length > 0) {
     try {
       const res = await counted
         .from("household_member_bodies")
         .select("member_id, height_cm, weight_kg, gender")
-        .in("member_id", sansCompte);
+        .in("member_id", fichesVoulues);
       if (res.error) throw res.error;
       for (const row of (res.data ?? []) as Array<Record<string, unknown>>) {
         const id = String(row.member_id ?? "").trim();
@@ -229,7 +247,20 @@ export async function loadHouseholdMemberBodies(
   if (fichesEnEchec) issues.push("sheet_bodies_unreadable");
   for (const entry of loaded) {
     if (entry.body) {
-      byMember.set(entry.member.memberId, entry.body);
+      let body = entry.body;
+      if (entry.member.userId && body.latestWeight === null) {
+        const fiche = fiches.get(entry.member.memberId);
+        if (fiche && fiche.w !== null) {
+          body = {
+            ...body,
+            declaredWeightKg: fiche.w,
+            heightCm: body.heightCm ?? fiche.h,
+            gender: body.gender ?? (fiche.g as MealBodyContext["gender"]),
+          };
+          issues.push(`body_from_sheet:${entry.member.memberId}`);
+        }
+      }
+      byMember.set(entry.member.memberId, body);
       issues.push(...entry.issues);
       continue;
     }

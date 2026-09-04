@@ -15,6 +15,7 @@ import { assert, assertEquals } from "jsr:@std/assert@1";
 
 import {
   ANCHOR_FACTOR_MAX,
+  MEAL_KCAL_PER_G_COMPOSED,
   MEAL_MAX_GRAMS_PER_KG,
   ANCHOR_FACTOR_MIN,
   ANCHOR_REASONS,
@@ -617,11 +618,85 @@ Deno.test("⛔ AUCUNE part servie ne dépasse ce qu'un repas peut peser — le 1
     const slots = mouth === CHR ? { slots: ["dinner"] } : {};
     const got = anchorFactorFor(mouth, day({ memberId: mouth.memberId, ...starved, ...slots }), "no_position");
     const biggestServed = 400 * got.factor;
+    // ⟳ 2026-09-04: la borne est celle que l'ancre REND (`capGrams`, dérivée de
+    // la cible du repas), plus `8 g/kg` — voir `mealMassCapGrams`. Le 1,2 kg
+    // reste mort: un adulte à 200 kcal livrées ne reçoit pas 1 200 g.
+    assert(got.capGrams !== null && got.capGrams > 0, `${mouth.memberId}: aucun plafond rendu`);
     assert(
-      biggestServed <= MEAL_MAX_GRAMS_PER_KG * kg + 1,
-      `${mouth.memberId}: ${Math.round(biggestServed)} g dans une boîte`,
+      biggestServed <= got.capGrams + 1,
+      `${mouth.memberId}: ${Math.round(biggestServed)} g dans une boîte pour un plafond de ${got.capGrams} g (${kg} kg)`,
+    );
+    // ⛔ UN REPAS NE PORTE JAMAIS LA JOURNÉE: c'est le 1,2 kg d'origine — un
+    // dîner qui portait toute la masse du jour pendant que la borne journalière
+    // laissait passer. Le plafond d'un repas est STRICTEMENT sous la masse du jour.
+    assert(
+      got.targetKcal !== null && got.capGrams < got.targetKcal / MEAL_KCAL_PER_G_COMPOSED,
+      `${mouth.memberId}: le plafond d'un repas (${got.capGrams} g) porte la journée entière`,
     );
   }
+  // ⛔ ET L'IKU RÉEL DU 2026-08-20 — 73 kg, entretien, un dîner — reste loin du
+  // 1 232 g vu à l'écran. Ce n'est pas l'IKU en prise de masse de la fixture
+  // (3 925 kcal sur trois moments, qui PÈSE ce qu'il pèse), c'est le corps
+  // qui a produit le défaut.
+  const ikuMaint: AnchorMouth = { ...IKU, direction: null, paceKgPerWeek: null };
+  const dinner = anchorFactorFor(
+    ikuMaint,
+    day({ memberId: "m_iku", kcal: 200, grams: 1200, maxMealGrams: 1200, slots: ["breakfast", "lunch", "dinner"], ownSlots: ["dinner"] }),
+    "no_position",
+  );
+  const dinnerServed = 1200 * dinner.factor;
+  // Un entretien de ~3 570 kcal (187 cm, 73 kg, `trains_hard`) met ~1 250 kcal
+  // au dîner, soit ~925 g à 1,35 kcal/g: c'est ce que PÈSE ce besoin, et le
+  // plafond le dit. Le 1 232 g d'origine portait la masse d'une JOURNÉE dans
+  // un dîner; il reste refusé, et la réparation d'un dîner de 925 g est de
+  // composer plus dense, pas de servir moins.
+  assert(dinner.capGrams !== null && dinner.targetKcal !== null);
+  assert(dinnerServed <= dinner.capGrams + 1, `le dîner d'iku (${Math.round(dinnerServed)} g) dépasse son plafond (${dinner.capGrams} g)`);
+  assertEquals(dinner.capGrams, Math.round(dinner.targetKcal / MEAL_KCAL_PER_G_COMPOSED));
+  assert(dinnerServed < 1232, `le dîner d'iku pèse ${Math.round(dinnerServed)} g: le 1,2 kg est revenu`);
+});
+
+Deno.test("⛔ ⟳ 2026-09-04 — une ENFANT de 36 kg qui s'entraîne ne perd plus sa boîte au kilo", () => {
+  // MESURÉ SUR `qa-mois-20260904`: Léa, 12 ans, 36 kg, `trains_hard`. Le modèle
+  // avait écrit 500 g pour son dîner; `8 g/kg` faisait 288 g; le moteur a
+  // RÉDUIT la boîte à 300 g, puis compté qu'elle manque de ≥ 200 kcal. Il
+  // créait le manque qu'il rapportait — `anchored: 0`, `clamped: 5/5`.
+  const LEA: AnchorMouth = {
+    memberId: "m_lea",
+    ageState: "minor",
+    restriction: "no_account",
+    body: {
+      appetite: null,
+      heightCm: 145,
+      weightKg: 36,
+      gender: "female",
+      ageYears: 12,
+      activityLevel: "trains_hard",
+      activityAxes: { day: null, sport: null, asked: false },
+    },
+    direction: null,
+    paceKgPerWeek: null,
+    conditionRefs: [],
+    declaredSlots: ["breakfast", "lunch", "dinner"],
+    slotExtraKcal: null,
+  };
+  // Un dîner de 500 g peu dense (1,0 kcal/g): 500 kcal livrées à sa seule boîte.
+  const got = anchorFactorFor(
+    LEA,
+    day({ memberId: "m_lea", kcal: 500, grams: 500, maxMealGrams: 500, slots: ["dinner"], ownSlots: ["dinner"] }),
+    "no_position",
+  );
+  assert(got.targetKcal !== null && got.targetKcal > 0, JSON.stringify(got));
+  assert(got.capGrams !== null, "aucun plafond rendu");
+  // ⛔ LA MUTATION QUI COMPTE: revenir à `8 g/kg` rend 288 g, et ce test rougit.
+  assert(
+    got.capGrams > MEAL_MAX_GRAMS_PER_KG * 36,
+    `le plafond est retombé au kilo: ${got.capGrams} g pour 36 kg`,
+  );
+  // Le plafond est la cible du repas à la densité d'un plat ordinaire.
+  assertEquals(got.capGrams, Math.round(got.targetKcal / MEAL_KCAL_PER_G_COMPOSED));
+  // Et la boîte de 500 g n'est plus RÉDUITE: le facteur ne descend pas sous 1.
+  assert(got.factor >= 1, `la boîte d'une enfant est encore rabotée: ×${got.factor}`);
 });
 
 Deno.test("⟳ le plat composé PORTE son repas entier — sauf ce qui est DÉCLARÉ à côté", () => {

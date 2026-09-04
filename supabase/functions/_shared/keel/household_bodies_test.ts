@@ -414,3 +414,66 @@ Deno.test("⚠️ LE CAS QUI PASSE — sans fiche, aucun corps inventé", async 
   });
   assertEquals(out.byMember.get(LEO_MEMBER), undefined);
 });
+
+// ── ⟳ 2026-09-04 — LE TITULAIRE DONT LA SÉRIE EST VIDE ───────────────────────
+// Mesuré en base: 15 titulaires sur 38 qui portent une fiche n'ont aucune ligne
+// de série. `if (entry.member.userId) continue;` les laissait sans corps: écrit,
+// stocké, rendu par la RPC — et servi « comme la table ».
+const OWNER = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
+const OWNER_MEMBER = "44444444-4444-4444-8444-444444444444";
+
+Deno.test("⛔ un TITULAIRE sans pesée reçoit le poids de sa fiche", async () => {
+  const db = stubDb(tables({
+    profiles: [{ id: OWNER, birth_date: "1988-04-12", timezone: "Europe/Paris", height_cm: 167, gender: "female" }],
+    weekly_reviews: [],
+    household_member_bodies: [
+      { member_id: OWNER_MEMBER, height_cm: 167, weight_kg: 62, gender: "female" },
+    ],
+  }));
+  const out = await loadHouseholdMemberBodies(db, {
+    members: [{ memberId: OWNER_MEMBER, userId: OWNER }],
+    todayLocalDate: TODAY,
+  });
+  const owner = out.byMember.get(OWNER_MEMBER);
+  assert(owner, "le titulaire n'a aucun corps");
+  // ⚠️ `declaredWeightKg`, PAS `latestWeight`: une fiche n'est pas une série.
+  assertEquals(owner.declaredWeightKg, 62);
+  assertEquals(owner.latestWeight, null);
+  assertEquals(owner.heightCm, 167);
+  assert(out.issues.includes(`body_from_sheet:${OWNER_MEMBER}`), "le relais n'est pas dit");
+});
+
+Deno.test("⛔ mais une SÉRIE présente garde la main sur la fiche", async () => {
+  // Le compte d'Ana pèse 84 kg dans ses bilans; sa fiche dirait 70. La série
+  // est la vérité datée, la fiche ne la contredit pas.
+  const db = stubDb(tables({
+    household_member_bodies: [
+      { member_id: ANA_MEMBER, height_cm: 186, weight_kg: 70, gender: "female" },
+    ],
+  }));
+  const out = await loadHouseholdMemberBodies(db, {
+    members: MIXED_HOUSEHOLD,
+    todayLocalDate: TODAY,
+  });
+  const ana = out.byMember.get(ANA_MEMBER);
+  assert(ana);
+  assert(ana.latestWeight !== null, "la série d'Ana a disparu");
+  assertEquals(ana.declaredWeightKg, null, "la fiche a écrasé une série présente");
+});
+
+Deno.test("⛔ et une lecture RATÉE reste fail-closed: la fiche ne répare pas une panne", async () => {
+  const db = stubDb(
+    tables({
+      household_member_bodies: [
+        { member_id: OWNER_MEMBER, height_cm: 167, weight_kg: 62, gender: "female" },
+      ],
+    }),
+    { failOn: "profiles" },
+  );
+  const out = await loadHouseholdMemberBodies(db, {
+    members: [{ memberId: OWNER_MEMBER, userId: OWNER }],
+    todayLocalDate: TODAY,
+  });
+  assertEquals(out.byMember.get(OWNER_MEMBER), undefined, "une panne de lecture a été comblée par la fiche");
+  assert(out.issues.some((i) => i.startsWith("body_unreadable:")), "la panne n'est plus dite");
+});

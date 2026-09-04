@@ -906,6 +906,15 @@ Deno.test("ÉCHANGE — une boîte de tofu qui PUISE dans la casserole de poulet
     ),
     meal.issues.join("\n"),
   );
+  // ⛔ ⟳ 2026-09-04 — ET LE RETRAIT DIT PAR OÙ IL EST PASSÉ. C'est le cas mesuré
+  // 60 fois sur 89: items propres, préparation citée carnée. Sans `via`, la
+  // relance redemande une boîte qui existe déjà, et le modèle réécrit tout.
+  const held = meal.dishes[0].heldOff;
+  assertEquals(held.length, 1, JSON.stringify(held));
+  assertEquals(held[0].memberId, THEODULE);
+  assertEquals(held[0].via, "preparation");
+  assertEquals(held[0].preparationId, "prep_chicken");
+  assert(typeof held[0].matched === "string" && held[0].matched.length > 0, "le terme mordu n'est pas dit");
 });
 
 Deno.test("ÉCHANGE — le TERME d'un item mord À LUI SEUL, sans casserole derrière", () => {

@@ -47,26 +47,11 @@
  * `targetKcal: null` ferme donc tout ici, sans une ligne de garde de plus.
  */
 
-import { MEAL_MAX_GRAMS_PER_KG } from "./mouth_anchor.ts";
+import { MEAL_KCAL_PER_G_COMPOSED, MEAL_MAX_GRAMS_PER_KG } from "./mouth_anchor.ts";
 
-/**
- * CE QUE PÈSE UN PLAT CUISINÉ, EN KCAL PAR GRAMME.
- *
- * ⚠️ MESURÉE, PAS CHOISIE. Sur les trois journées du run du 2026-09-04, les
- * assiettes réellement servies pesaient 1,13 · 1,56 · 1,35 kcal/g. La valeur
- * retenue est celle du milieu, et elle tombe dans la fourchette que le pavé de
- * `MEAL_MAX_GRAMS_PER_KG` cite déjà pour en DÉRIVER le 8 (« un plat mixte
- * cuisiné pèse 1,3–1,6 kcal/g »). Les deux constantes disent donc la même
- * chose sur le même monde, et c'est voulu: si l'une bouge, l'autre doit être
- * relue.
- *
- * ⛔ CE N'EST PAS `DENSITY_CEILING_DEFAULT` (1,8, `meal_envelope.ts`). Celui-là
- * est un PLAFOND de verdict — « au-dessus, le plan est trop dense ». Prendre un
- * plafond pour une moyenne ferait croire qu'une assiette ordinaire porte un
- * tiers d'énergie de plus qu'elle n'en porte, et le compte de moments serait
- * systématiquement trop bas, dans le sens qui sous-nourrit.
- */
-export const MEAL_KCAL_PER_G_COMPOSED = 1.35;
+// ⟳ 2026-09-04: `MEAL_KCAL_PER_G_COMPOSED` vit désormais dans `mouth_anchor.ts`,
+// où elle borne un repas; ré-exportée ici pour ses lecteurs.
+export { MEAL_KCAL_PER_G_COMPOSED };
 
 /** Ce qu'un seul repas peut porter pour ce corps, en kcal. */
 export function mealMaxKcalFor(weightKg: number): number {

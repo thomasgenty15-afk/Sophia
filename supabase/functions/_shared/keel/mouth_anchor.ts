@@ -231,6 +231,57 @@ export const ANCHOR_FACTOR_MIN = 0.60;
 export const MEAL_MAX_GRAMS_PER_KG = 8;
 
 /**
+ * CE QUE PÈSE UN PLAT CUISINÉ, EN KCAL PAR GRAMME.
+ *
+ * ⚠️ MESURÉE, PAS CHOISIE. Sur les trois journées du run du 2026-09-04, les
+ * assiettes réellement servies pesaient 1,13 · 1,56 · 1,35 kcal/g. La valeur
+ * retenue est celle du milieu, et elle tombe dans la fourchette que le pavé de
+ * `MEAL_MAX_GRAMS_PER_KG` cite pour en DÉRIVER le 8. Elle vivait dans
+ * `eating_structure.ts`, qui la ré-exporte; elle est ici parce que c'est ICI
+ * qu'elle borne un repas (voir `mealMassCapGrams`).
+ *
+ * ⛔ CE N'EST PAS `DENSITY_CEILING_DEFAULT` (1,8, `meal_envelope.ts`). Celui-là
+ * est un PLAFOND de verdict — « au-dessus, le plan est trop dense ». Prendre un
+ * plafond pour une moyenne ferait croire qu'une assiette ordinaire porte un
+ * tiers d'énergie de plus qu'elle n'en porte.
+ */
+export const MEAL_KCAL_PER_G_COMPOSED = 1.35;
+
+/**
+ * ⟳ 2026-09-04 — LE PLAFOND D'UN REPAS SUIT LE BESOIN, PLUS LE KILO.
+ *
+ * `8 g/kg` a été DÉRIVÉ, dans le pavé ci-dessus, d'un entretien ADULTE: 35 % de
+ * 2 400–3 000 kcal à 1,3–1,6 kcal/g. Appliqué tel quel à une enfant de 36 kg
+ * qui s'entraîne, il rend 288 g par repas — et le moteur a RÉDUIT la boîte de
+ * 500 g que le modèle avait écrite à 300 g, avant de compter qu'elle manque de
+ * 200 kcal. Il créait le manque qu'il rapportait. Mesuré sur le foyer
+ * `qa-mois-20260904`: `anchored: 0`, `clamped: 5/5`, `unmet gte_200: 5/5`.
+ *
+ * Le besoin par kilo n'est pas linéaire entre une enfant et un adulte; le
+ * plafond ne peut donc pas l'être. Ce que la dérivation disait VRAIMENT, c'est:
+ * « le plus gros repas plausible pèse ce que porte son énergie à la densité
+ * d'un plat ordinaire ». On le calcule donc pour CE corps, depuis SA cible de
+ * repas — la même cible que l'ancre poursuit — au lieu de le figer sur le
+ * kilo d'un adulte.
+ *
+ * ⚠️ CE QUE ÇA GARDE: quand le plat est PEU DENSE (soupe, légumes à l'eau),
+ * la cible n'est pas atteinte dans ce volume, le facteur bute, et l'écart part
+ * dans `unmetDemand` — la réparation reste de composer plus dense, jamais de
+ * servir un volume que personne ne finit. Le 1,2 kg reste mort, et son test
+ * aussi.
+ *
+ * ⚠️ `MEAL_MAX_GRAMS_PER_KG` RESTE pour `eating_structure.ts`: « combien de
+ * moments une journée doit ouvrir » a besoin d'une borne PHYSIQUE indépendante
+ * de la cible, sinon la question devient circulaire (un repas porterait ce
+ * qu'il doit porter). Les deux constantes ne disent donc plus le même monde:
+ * l'une borne le nombre de moments, l'autre ne borne plus rien ici.
+ */
+export function mealMassCapGrams(mealTargetKcal: number): number | null {
+  if (!Number.isFinite(mealTargetKcal) || mealTargetKcal <= 0) return null;
+  return mealTargetKcal / MEAL_KCAL_PER_G_COMPOSED;
+}
+
+/**
  * CE QUE CHAQUE MOMENT PORTE À CÔTÉ DU PLAT, EN KCAL — ou `null`.
  *
  * ⛔ TROIS ÉTATS, ET LA DIFFÉRENCE EST LE LOT ENTIER. `null` = jamais demandé.
@@ -719,6 +770,13 @@ export interface AnchorFactor {
   /** Ce que la journée livre à cette bouche, en kcal. `null` si inconnu. */
   deliveredKcal: number | null;
   /**
+   * ⟳ 2026-09-04 — CE QUE LE PLUS GROS REPAS DE CETTE BOUCHE PEUT PESER, en
+   * grammes: sa cible de repas à la densité d'un plat ordinaire
+   * (`mealMassCapGrams`). `null` quand aucune cible n'existe. Rendu pour que
+   * l'archive puisse dire « sa boîte est bornée à 519 g » au lieu de « clamped ».
+   */
+  capGrams: number | null;
+  /**
    * D'OÙ VIENT LA PART DU PLAT — le compteur du LOT ①, rendu par bouche-jour.
    *
    * ⚠️ RENDU MÊME QUAND LE FACTEUR N'EST PAS CALCULÉ. Un compteur qui ne
@@ -868,6 +926,7 @@ export function anchorFactorFor(
       reason: target.reason,
       targetKcal: null,
       deliveredKcal: day?.kcal ?? null,
+      capGrams: null,
       structureState,
       extrasFloored: false,
     };
@@ -889,6 +948,7 @@ export function anchorFactorFor(
       reason: deliveryCauseOf(day) === "common_pot_only" ? "common_pot_day" : "no_delivery",
       targetKcal: target.kcal,
       deliveredKcal: null,
+      capGrams: null,
       structureState,
       extrasFloored: false,
     };
@@ -938,6 +998,7 @@ export function anchorFactorFor(
       reason: "day_incomplete",
       targetKcal: target.kcal,
       deliveredKcal: day.kcal,
+      capGrams: null,
       structureState,
       // Aucun repas dimensionné sur ce chemin: rien n'a pu être raboté.
       extrasFloored: false,
@@ -1006,9 +1067,30 @@ export function anchorFactorFor(
   // Le facteur est UN par bouche et s'applique à toutes ses parts: c'est donc
   // sa PLUS GROSSE part qui décide du plafond. Borner le total du jour a été
   // mesuré faux (1 232 g dans une boîte, journée « plausible »).
-  const weightKg = Number(mouth.body?.weightKg ?? 0);
-  const physicalMax = weightKg > 0 && day.maxMealGrams > 0
-    ? (MEAL_MAX_GRAMS_PER_KG * weightKg) / day.maxMealGrams
+  // ⟳ 2026-09-04: le plafond du plus gros repas se dérive de SA cible, pas du
+  // kilo (voir `mealMassCapGrams`). `bySlot` ne porte que les moments couverts
+  // par une boîte à cette bouche — c'est bien le plus gros de CES repas-là que
+  // `day.maxMealGrams` mesure.
+  // ⚠️ SANS BOÎTE À ELLE (`ownSlots` vide), la cible est celle du JOUR entier:
+  // le plafond est alors le plus gros moment plausible de ce jour, jamais le
+  // jour entier — c'est très exactement le 1,2 kg d'un dîner qui portait la
+  // journée, et il reste mort.
+  const wholeSlots = [
+    ...new Set([
+      ...(mouth.declaredSlots.length > 0 ? mouth.declaredSlots : HOUSE_DEFAULT_SLOTS),
+      ...day.slots,
+    ]),
+  ];
+  const wholeWeight = wholeSlots.reduce((n, slot) => n + slotWeight(slot), 0);
+  const biggestWeight = Math.max(0, ...wholeSlots.map(slotWeight));
+  const biggestMealKcal = shared.bySlot.size > 0
+    ? Math.max(0, ...shared.bySlot.values())
+    : wholeWeight > 0
+    ? effectiveTarget * (biggestWeight / wholeWeight)
+    : 0;
+  const capGrams = mealMassCapGrams(biggestMealKcal);
+  const physicalMax = capGrams !== null && day.maxMealGrams > 0
+    ? capGrams / day.maxMealGrams
     : Infinity;
   const bounded = Math.min(raw, physicalMax);
   const { factor, clamped } = clampAnchor(bounded);
@@ -1021,6 +1103,7 @@ export function anchorFactorFor(
     // manque qui n'existe pas, et c'est `pot_demand` qui la relit.
     targetKcal: Math.round(effectiveTarget),
     deliveredKcal: day.kcal,
+    capGrams: capGrams === null ? null : Math.round(capGrams),
     structureState,
     extrasFloored,
   };

@@ -6007,6 +6007,9 @@ Deno.serve(async (req) => {
             slot: miss.slot,
             cause: miss.cause,
             dish: miss.dish,
+            via: miss.via,
+            preparationId: miss.preparationId,
+            matched: miss.matched,
           }))
         ),
       );
@@ -8192,6 +8195,13 @@ Deno.serve(async (req) => {
         // chiffre corporel dans une colonne lisible par tout le foyer.
         anchor: anchorReasons,
         anchor_applied: anchorApplied,
+        // ⟳ 2026-09-04: L'ÉCART SORT AUSSI DANS L'ARCHIVE. Il ne sortait que par
+        // le journal, et une mesure qui ne survit pas à la génération n'est
+        // lisible que par qui regardait au bon moment. Mesuré sur deux foyers:
+        // 8 journées-bouche sur 10 à ≥ 200 kcal, et personne pour le voir.
+        // Histogrammes de motifs, comme leurs voisins: aucun kcal par bouche.
+        unmet: unmetCauses,
+        unmet_band: unmetBand,
         extras_floored: extrasFloored,
         // ── LES DEUX LOTS DU 2026-08-20, COMPTÉS À PART L'UN DE L'AUTRE ───
         // ⚠️ TROIS HISTOGRAMMES ET PAS UN. `activity` dit ce que la fiche

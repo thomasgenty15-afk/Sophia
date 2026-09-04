@@ -11,7 +11,13 @@
 
 import { assert, assertEquals } from "jsr:@std/assert@1";
 
-import type { AnchorFactor, AnchorMouth } from "./mouth_anchor.ts";
+import {
+  type AnchorFactor,
+  type AnchorMouth,
+  mealMassCapGrams,
+  mouthTargetKcal,
+  slotPlanTargets,
+} from "./mouth_anchor.ts";
 import type { MouthDayEnergy } from "./mouth_energy.ts";
 import {
   neededPotFactor,
@@ -30,6 +36,7 @@ function anchor(over: Partial<AnchorFactor> = {}): AnchorFactor {
     reason: "anchored",
     targetKcal: 2400,
     deliveredKcal: 2000,
+    capGrams: null,
     structureState: "not_asked",
     extrasFloored: false,
     ...over,
@@ -324,12 +331,29 @@ Deno.test("⛔ A2 — UN PLAT ILLISIBLE NE SE DIVISE PAS", () => {
   assertEquals(got.factor, 1);
 });
 
-Deno.test("⛔ A2 — LE PLAFOND DE MASSE EST LA SOMME DES CORPS, ET IL SE COMPTE", () => {
-  // Deux corps de 70 kg autorisent 2 × 8 × 70 = 1 120 g dans le récipient. Un
-  // bac de 1 000 g ne peut donc pas plus que ×1,12, quelle que soit la demande.
+Deno.test("⛔ A2 — LE PLAFOND DE MASSE EST LA SOMME DES BESOINS, ET IL SE COMPTE", () => {
+  // ⟳ 2026-09-04: la somme des CORPS (2 × 8 × 70 = 1 120 g) est devenue la
+  // somme de ce que porte le BESOIN de chaque bouche à ce moment, à la densité
+  // d'un plat ordinaire — `mealMassCapGrams`, et pourquoi le kilo a été
+  // abandonné, dans `mouth_anchor.ts`. Deux bouches identiques: deux fois le
+  // même plafond. Un bac de 1 000 g ne peut pas plus que ce rapport, quelle
+  // que soit la demande.
   //
-  // ⛔ LA MUTATION: lire le plafond sur UN corps. Elle rendrait 0,56 et
+  // ⛔ LA MUTATION: lire le plafond sur UNE bouche. Elle rendrait la moitié et
   // raboterait une casserole légitime de moitié.
+  const one = eater({ memberId: "a" });
+  const target = mouthTargetKcal({ ...one.mouth, direction: null }, "no_position").kcal;
+  assert(target !== null && target > 0, "la fixture n'a plus de cible");
+  const lunch = slotPlanTargets({
+    targetKcal: target,
+    coveredSlots: ["lunch"],
+    wholeSlots: [...one.mouth.declaredSlots, ...one.daySlots],
+    slotExtraKcal: one.mouth.slotExtraKcal,
+  }).bySlot.get("lunch");
+  assert(lunch !== undefined && lunch > 0, "le déjeuner n'a pas de part");
+  const capEach = mealMassCapGrams(lunch);
+  assert(capEach !== null);
+  const expected = (2 * capEach) / 1000;
   const got = potFactorFor({
     slot: "lunch",
     grams: 1000,
@@ -340,9 +364,11 @@ Deno.test("⛔ A2 — LE PLAFOND DE MASSE EST LA SOMME DES CORPS, ET IL SE COMPT
   });
   assertEquals(got.reason, "pot_clamped");
   assert(
-    Math.abs(got.factor - 1.12) < 1e-9,
-    `le plafond de masse n'est pas la somme des corps: ${got.factor}`,
+    Math.abs(got.factor - expected) < 1e-9,
+    `le plafond de masse n'est pas la somme des besoins: ${got.factor} pour ${expected}`,
   );
+  // Et ce n'est plus le kilo: deux corps de 70 kg à 8 g/kg feraient 1,12.
+  assert(Math.abs(got.factor - 1.12) > 1e-3, "le plafond du bac est retombé au kilo");
   assert(got.raw! > got.factor, "le brut n'a pas été gardé à côté du raboté");
 });
 
