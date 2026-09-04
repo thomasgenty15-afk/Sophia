@@ -8137,10 +8137,24 @@ export function parseGeneratedMeal(
   let boxMouthSlots = 0;
   let boxMouthsUnboxed = 0;
   let boxMouthsDouble = 0;
+  // ══════════════════════════════════════════════════════════════════════════
+  // ⛔ UNE BOUCHE TENUE DEHORS EST UNE BOUCHE SANS BOÎTE (2026-09-04)
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // Ce bloc SAUTAIT les bouches que la ceinture avait retirées, et retranchait
+  // même leur part du dénominateur (`mouth_slots`). L'intention était bonne: ne
+  // pas accuser le modèle d'un trou que le moteur venait de creuser.
+  //
+  // Sa conséquence ne l'était pas. Mesuré le 2026-09-04 sur un plan vivant:
+  // cinq repas où la même bouche n'avait AUCUNE boîte — quatre plats de
+  // lentilles qu'elle avait demandé d'éviter — et `mouths_unboxed: 0`. Le trou
+  // existait, dans l'assiette de quelqu'un, et le plan se lisait vert.
+  //
+  // La cause N'EXCUSE PLUS, elle S'ÉCRIT à côté du constat. Qui répare est une
+  // autre question, et elle a désormais son module (`meals_delivered.ts`).
   for (const [key, cellState] of boxedCells) {
-    boxMouthSlots += Math.max(0, boxMembers.size - cellState.heldOff.size);
+    boxMouthSlots += boxMembers.size;
     for (const memberId of boxMembers) {
-      if (cellState.heldOff.has(memberId)) continue;
       const inBoxes = cellState.byMouth.get(memberId) ?? 0;
       if (inBoxes === 1) continue;
       // ⚠️ L'IDENTIFIANT, PAS LE PRÉNOM, et c'est un choix mesuré: ce parseur ne
@@ -8151,7 +8165,12 @@ export function parseGeneratedMeal(
       // display_name` se fait en SQL.
       if (inBoxes === 0) {
         boxMouthsUnboxed++;
-        issues.push(`${key}: ${JSON.stringify(memberId)} has no box at that meal`);
+        issues.push(
+          `${key}: ${JSON.stringify(memberId)} has no box at that meal` +
+            (cellState.heldOff.has(memberId)
+              ? " -- held off it by their declared line"
+              : ""),
+        );
         continue;
       }
       boxMouthsDouble++;

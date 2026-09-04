@@ -115,6 +115,11 @@ export const EDGE_REFUSAL_KEYS: Record<string, MessageKey> = {
   plan_not_written: "plan.refusal.plan_not_written",
   plan_adoption_timed_out: "plan.refusal.plan_adoption_timed_out",
   house_rule_violated: "plan.refusal.house_rule_violated",
+  // ⛔ PERSONNE SANS REPAS (2026-09-04). Le générateur refuse plutôt que
+  // d'écrire un plan où quelqu'un n'a rien à manger à un repas. Sans cette
+  // ligne, le refus atteindrait l'écran sans phrase — et `planRefusals.int.test`
+  // scanne les littéraux `error:` du générateur pour l'empêcher.
+  mouth_unfed: "plan.refusal.mouth_unfed",
 
   // ── LES ONZE REFUS DE FUSION (L4/D6, D15, D16) ──────────────────────────
   merge_member_required: "plan.refusal.merge_member_required",

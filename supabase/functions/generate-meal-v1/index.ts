@@ -4044,6 +4044,10 @@ Deno.serve(async (req) => {
           // jamais posé la question. « pour 1 personne » serait une réponse à
           // une question que personne n'a posée.
           mouthsServed: null,
+          // ⛔ `null` ET C'EST DÉFINITIF, comme `mouthsServed` au-dessus.
+          // Quelqu'un qui mange seul a tous ses repas par construction: il n'y
+          // a pas de couvercle à ne pas porter son nom.
+          mealsDelivered: null,
           handTakenBy: [],
           mergedIn: [],
           // G5 — `null`, ET C'EST DÉFINITIF SUR CETTE LANE. Le seuil hebdomadaire

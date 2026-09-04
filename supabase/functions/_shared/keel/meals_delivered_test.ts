@@ -1,0 +1,403 @@
+import { assert, assertEquals } from "jsr:@std/assert@1";
+
+import {
+  mealsDelivered,
+  restoreHeldOff,
+  unfedRetryInstruction,
+} from "./meals_delivered.ts";
+
+const CLAIRE = "m-claire";
+const MARC = "m-marc";
+const LEA = "m-lea";
+
+const WED_DINNER = { day: "wed", slot: "dinner" } as const;
+const THU_DINNER = { day: "thu", slot: "dinner" } as const;
+
+type Dish = Parameters<typeof mealsDelivered>[0][number];
+
+function dish(over: Partial<Dish> = {}): Dish {
+  return {
+    title: "Rice bowl",
+    day: "wed",
+    slot: "dinner",
+    memberId: null,
+    boxes: [{ id: "box_table", memberIds: [CLAIRE, MARC, LEA] }],
+    heldOff: [],
+    ...over,
+  };
+}
+
+type Cell = { day: string; slot: string };
+
+function mouths(ids: readonly string[], cells: readonly Cell[] = [WED_DINNER]) {
+  return ids.map((memberId) => ({ memberId, cells: [...cells] }));
+}
+
+Deno.test("une boîte commune nourrit tout le monde", () => {
+  const out = mealsDelivered([dish()], mouths([CLAIRE, MARC, LEA]));
+  assertEquals(out.expected, 3);
+  assertEquals(out.fed, 3);
+  assertEquals(out.missing, 0);
+  assertEquals(out.allFed, true);
+  assertEquals(out.mouths.every((m) => m.missing.length === 0), true);
+});
+
+Deno.test("DEUX BOÎTES sur un plat: l'échange nourrit les deux groupes", () => {
+  const out = mealsDelivered([
+    dish({
+      boxes: [
+        { id: "box_table", memberIds: [CLAIRE, MARC] },
+        { id: "box_lea", memberIds: [LEA] },
+      ],
+    }),
+  ], mouths([CLAIRE, MARC, LEA]));
+  assertEquals(out.allFed, true);
+  assertEquals(out.fed, 3);
+});
+
+Deno.test("un plat SANS boîte nourrit tout le monde: rien n'a été pesé d'avance", () => {
+  const out = mealsDelivered([dish({ boxes: [] })], mouths([CLAIRE, MARC]));
+  assertEquals(out.allFed, true);
+  assertEquals(out.expected, 2);
+});
+
+Deno.test("un plat DÉDIÉ nourrit son propriétaire, et lui seul", () => {
+  const out = mealsDelivered([
+    dish({ boxes: [{ id: "box_table", memberIds: [CLAIRE, MARC] }] }),
+    dish({ title: "Salade de thon", memberId: LEA, boxes: [{ id: "box_lea", memberIds: [LEA] }] }),
+  ], mouths([CLAIRE, MARC, LEA]));
+  assertEquals(out.allFed, true);
+  assertEquals(out.fed, 3);
+});
+
+Deno.test("⛔ RETIRÉE PAR SON RÉGIME: la cause est nommée, et la boîte aussi", () => {
+  const out = mealsDelivered([
+    dish({
+      boxes: [{ id: "box_table", memberIds: [CLAIRE, MARC] }],
+      heldOff: [{ memberId: LEA, cause: "regime", boxId: "box_table" }],
+    }),
+  ], mouths([CLAIRE, MARC, LEA]));
+
+  assertEquals(out.missing, 1);
+  assertEquals(out.allFed, false);
+  assertEquals(out.byCause.held_off_regime, 1);
+  const lea = out.mouths.find((m) => m.memberId === LEA);
+  assertEquals(lea?.fed, 0);
+  assertEquals(lea?.missing[0], {
+    memberId: LEA,
+    day: "wed",
+    slot: "dinner",
+    cause: "held_off_regime",
+    boxId: "box_table",
+    dish: "Rice bowl",
+  });
+});
+
+Deno.test("⛔ RETIRÉE PAR UN DÉGOÛT: autre cause, autre recours", () => {
+  const out = mealsDelivered([
+    dish({
+      boxes: [{ id: "box_table", memberIds: [CLAIRE, LEA] }],
+      heldOff: [{ memberId: MARC, cause: "exclusion", boxId: "box_table" }],
+    }),
+  ], mouths([CLAIRE, MARC, LEA]));
+
+  assertEquals(out.byCause.held_off_exclusion, 1);
+  assertEquals(out.byCause.held_off_regime, 0);
+  assertEquals(out.mouths.find((m) => m.memberId === MARC)?.missing[0].boxId, "box_table");
+});
+
+Deno.test("⛔ LE RÉGIME PRIME sur le dégoût quand les deux ont mordu", () => {
+  const out = mealsDelivered([
+    dish({
+      boxes: [{ id: "box_table", memberIds: [CLAIRE] }],
+      heldOff: [
+        { memberId: MARC, cause: "exclusion", boxId: "box_table" },
+        { memberId: MARC, cause: "regime", boxId: "box_table" },
+      ],
+    }),
+  ], mouths([CLAIRE, MARC]));
+  assertEquals(out.byCause.held_off_regime, 1);
+  assertEquals(out.byCause.held_off_exclusion, 0);
+});
+
+Deno.test("⛔ OUBLIÉE PAR LE MODÈLE: personne ne l'a retirée, elle n'est nulle part", () => {
+  const out = mealsDelivered([
+    dish({ boxes: [{ id: "box_table", memberIds: [CLAIRE, MARC] }] }),
+  ], mouths([CLAIRE, MARC, LEA]));
+  assertEquals(out.byCause.not_named, 1);
+  assertEquals(out.mouths.find((m) => m.memberId === LEA)?.missing[0].boxId, null);
+});
+
+Deno.test("⛔ SUR DEUX BOÎTES d'un même repas: deux contenants pour une personne", () => {
+  const out = mealsDelivered([
+    dish({
+      boxes: [
+        { id: "box_a", memberIds: [CLAIRE, MARC] },
+        { id: "box_b", memberIds: [MARC] },
+      ],
+    }),
+  ], mouths([CLAIRE, MARC]));
+  assertEquals(out.byCause.double, 1);
+  assertEquals(out.allFed, false);
+});
+
+Deno.test("une case SANS aucun plat n'est pas un repas manqué: c'est un trou du plan", () => {
+  const out = mealsDelivered([dish()], mouths([CLAIRE], [WED_DINNER, THU_DINNER]));
+  assertEquals(out.expected, 1, "la case sans plat a été comptée comme attendue");
+  assertEquals(out.missing, 0);
+  assertEquals(out.cellsWithoutDish, 1);
+  assertEquals(out.allFed, true);
+});
+
+Deno.test("une bouche ABSENTE à une case n'y est pas attendue", () => {
+  const out = mealsDelivered(
+    [dish(), dish({ day: "thu" })],
+    [
+      { memberId: CLAIRE, cells: [WED_DINNER, THU_DINNER] },
+      { memberId: MARC, cells: [WED_DINNER] },
+    ],
+  );
+  assertEquals(out.expected, 3);
+  assertEquals(out.missing, 0);
+});
+
+Deno.test("un plat sans jour ou sans moment est compté à part, jamais nourrissant", () => {
+  const out = mealsDelivered([
+    dish({ day: null }),
+    dish({ slot: null }),
+  ], mouths([CLAIRE]));
+  assertEquals(out.unplacedDishes, 2);
+  assertEquals(out.cellsWithoutDish, 1);
+  assertEquals(out.expected, 0);
+});
+
+Deno.test("PROPRIÉTÉ — attendu = nourri + manquant, sur chaque bouche et sur le total", () => {
+  const out = mealsDelivered([
+    dish({
+      boxes: [{ id: "box_table", memberIds: [CLAIRE] }],
+      heldOff: [{ memberId: LEA, cause: "regime", boxId: "box_table" }],
+    }),
+    dish({ day: "thu", boxes: [{ id: "box_thu", memberIds: [CLAIRE, LEA] }] }),
+  ], mouths([CLAIRE, MARC, LEA], [WED_DINNER, THU_DINNER]));
+
+  assertEquals(out.expected, out.fed + out.missing);
+  for (const m of out.mouths) assertEquals(m.expected, m.fed + m.missing.length);
+  assertEquals(
+    Object.values(out.byCause).reduce((a, b) => a + b, 0),
+    out.missing,
+  );
+});
+
+Deno.test("LA RELANCE nomme la bouche, la case, le plat, la cause ET le remède", () => {
+  const text = unfedRetryInstruction([
+    { name: "Léa", memberId: LEA, day: "wed", slot: "dinner", cause: "held_off_regime", dish: "Rice bowl" },
+  ]);
+  assert(text !== null);
+  assert(text.includes("Léa"), text);
+  assert(text.includes(LEA), "l'id exact manque: le modèle ne peut pas écrire le couvercle");
+  assert(text.includes("wed") && text.includes("dinner"), text);
+  assert(text.includes("Rice bowl"), text);
+  assert(text.includes("box of their OWN"), text);
+  assert(text.includes("swapped"), text);
+  assert(
+    text.includes("do NOT shorten the plan"),
+    "rien n'interdit de réparer en retirant des journées",
+  );
+});
+
+Deno.test("LA RELANCE dit un remède DIFFÉRENT par cause", () => {
+  const named = unfedRetryInstruction([
+    { name: "Léa", memberId: LEA, day: "wed", slot: "dinner", cause: "not_named", dish: "Rice bowl" },
+  ]);
+  const twice = unfedRetryInstruction([
+    { name: "Marc", memberId: MARC, day: "wed", slot: "dinner", cause: "double", dish: "Rice bowl" },
+  ]);
+  assert(named !== null && twice !== null);
+  assert(named.includes("exactly one box"), named);
+  assert(twice.includes("ONE box only"), twice);
+  assert(!named.includes("swapped"), "un oubli n'appelle pas un échange");
+});
+
+Deno.test("LA RELANCE ne dit rien quand il n'y a rien à dire", () => {
+  assertEquals(unfedRetryInstruction([]), null);
+});
+
+Deno.test("LE DERNIER RECOURS remet la bouche sur SA boîte, et sur elle seule", () => {
+  const dishes = [{
+    boxes: [
+      { id: "box_table", memberIds: [CLAIRE] },
+      { id: "box_other", memberIds: [LEA] },
+    ],
+  }];
+  const restored = restoreHeldOff(dishes, [{ memberId: MARC, boxId: "box_table" }]);
+  assertEquals(restored, 1);
+  assertEquals(dishes[0].boxes[0].memberIds, [CLAIRE, MARC]);
+  assertEquals(dishes[0].boxes[1].memberIds, [LEA], "une autre boîte a été touchée");
+});
+
+Deno.test("LE DERNIER RECOURS ne remet pas deux fois, et ne crée aucune boîte", () => {
+  const dishes = [{ boxes: [{ id: "box_table", memberIds: [CLAIRE, MARC] }] }];
+  assertEquals(restoreHeldOff(dishes, [{ memberId: MARC, boxId: "box_table" }]), 0);
+  assertEquals(restoreHeldOff(dishes, [{ memberId: MARC, boxId: "box_absent" }]), 0);
+  assertEquals(dishes[0].boxes.length, 1);
+  assertEquals(dishes[0].boxes[0].memberIds, [CLAIRE, MARC]);
+});
+
+// ---------------------------------------------------------------------------
+// LE CÂBLAGE — un module pur que personne n'appelle est un module mort
+// ---------------------------------------------------------------------------
+
+/**
+ * ⛔ CE BLOC EXISTE PARCE QUE LES DIX-HUIT TESTS AU-DESSUS PASSERAIENT ENCORE
+ * SI LE GÉNÉRATEUR N'APPELAIT JAMAIS CE MODULE.
+ *
+ * C'est la cicatrice la plus chère de ce dépôt: un moteur écrit, juste, testé,
+ * et débranché. Le défaut que ce lot ferme en est lui-même un exemple — le
+ * compteur « sans boîte » existait, il tournait, et il sautait justement les
+ * cas qui comptaient.
+ */
+/**
+ * ⚠️ LES COMMENTAIRES SONT RETIRÉS, ET C'EST UNE CICATRICE DU DÉPÔT: un grep
+ * naïf compte un appel cité dans un pavé d'explication comme un appel VIVANT.
+ * Un module débranché dont le commentaire dit « appelé ici » passerait ces
+ * gardes sans qu'une seule ligne ne tourne.
+ */
+function stripComments(src: string): string {
+  return src
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .split("\n")
+    .map((line) => line.replace(/(^|\s)\/\/.*$/, "$1"))
+    .join("\n");
+}
+
+async function generatorSource(): Promise<string> {
+  return stripComments(
+    await Deno.readTextFile(
+      new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
+    ),
+  );
+}
+
+Deno.test("CÂBLAGE — la lane foyer APPELLE l'invariant, et avant d'écrire", async () => {
+  const src = await generatorSource();
+
+  // ⛔ TOUS LES APPELS, PAS LE PREMIER TROUVÉ. Le patron est celui de
+  // `assertSpeaksForIsNeverEmpty`: un `mealsDelivered([])` compile, ne casse
+  // rien, ne journalise rien, et rend « tout le monde est servi » sur un plan
+  // qu'il n'a pas regardé. Chercher UNE occurrence valide laisserait passer
+  // exactement ça, parce qu'un autre appel plus bas répondrait pour elle.
+  const calls = [...src.matchAll(/mealsDelivered\(([^,]+),/g)].map((m) =>
+    m[1].trim()
+  );
+  assert(calls.length >= 2, `${calls.length} appel(s) à l'invariant, 2 attendus`);
+  for (const arg of calls) {
+    assert(
+      arg.startsWith("deliveredViewOf("),
+      `un appel à l'invariant ne lit pas les plats du plan (\`${arg}\`)`,
+    );
+  }
+  const call = src.indexOf("mealsDelivered(");
+
+  // ⚠️ AVANT LA RATIONALE ET AVANT L'ARCHIVE. Un invariant posé après ce qui
+  // lit le plan juge un plan que la suite modifie encore.
+  const rationale = src.indexOf("explainPlanChoices(");
+  assert(rationale > call, "l'invariant passe APRÈS la phrase servie à l'écran");
+  const trace = src.indexOf("const boxTrace = {");
+  assert(trace > call, "l'invariant passe APRÈS l'archive");
+});
+
+Deno.test("CÂBLAGE — le dénominateur est celui de la composition, pas un second", async () => {
+  const src = await generatorSource();
+  const block = src.slice(
+    src.indexOf("const mouthCells = platedMembers.map"),
+    src.indexOf("const deliveredViewOf"),
+  );
+  assert(block.length > 0, "le bloc des cases a disparu");
+  assert(
+    block.includes("away: m.away.effective"),
+    "les cases ignorent les absences et les repas pris dehors: une bouche au " +
+      "restaurant serait comptée comme sans repas",
+  );
+  assert(
+    block.includes("windowDays: daysToFill"),
+    "les cases ne suivent plus la fenêtre du plan",
+  );
+});
+
+Deno.test("CÂBLAGE — la relance remplace le TEXTE SOURCE en même temps que le plan", async () => {
+  const src = await generatorSource();
+  // ⛔ LA CICATRICE, ET ELLE EST RÉELLE: la relance d'exclusion faisait
+  // `meal = retried` sans `mealSourceText = retryResult`, et `reconcilePortions`
+  // relisait les parts de la réponse d'AVANT. Les deux vont ensemble.
+  const block = src.slice(
+    src.indexOf("unfed retry failed") - 3000,
+    src.indexOf("unfed retry failed"),
+  );
+  assert(block.includes("meal = retried;"), "la relance n'adopte plus son plan");
+  assert(
+    block.includes("mealSourceText = retryResult;"),
+    "la relance adopte le plan sans son texte source: les parts réconciliées " +
+      "seront celles de la réponse d'avant",
+  );
+  assert(
+    block.includes("retried.dishes.length >= meal.dishes.length"),
+    "rien n'empêche la relance de « nourrir tout le monde » en retirant des jours",
+  );
+});
+
+Deno.test("CÂBLAGE — le refus existe, et il ne tombe pas sur un aperçu", async () => {
+  const src = await generatorSource();
+  assert(
+    src.includes('error: "mouth_unfed"'),
+    "le refus a disparu: un plan où quelqu'un ne mange pas s'écrirait en base",
+  );
+  const block = src.slice(
+    src.indexOf("const stillUnfed ="),
+    src.indexOf("const stillUnfed =") + 900,
+  );
+  assert(
+    block.includes("!isDraft"),
+    "le refus tombe aussi sur un aperçu: l'écran ne pourrait plus montrer le trou",
+  );
+});
+
+Deno.test("CÂBLAGE — le dernier recours ne rend son repas QUE pour un dégoût", async () => {
+  const src = await generatorSource();
+  const block = src.slice(
+    src.indexOf("const restorable ="),
+    src.indexOf("const restorable =") + 700,
+  );
+  assert(block.includes('m.cause === "held_off_exclusion"'), block);
+  assert(
+    !block.includes('m.cause === "held_off_regime"'),
+    "le recours rend son repas à quelqu'un en lui servant ce que son régime " +
+      "interdit: ce n'est pas un recours, c'est le défaut d'origine",
+  );
+});
+
+Deno.test("CÂBLAGE — le journal part AVANT tout refus", async () => {
+  const src = await generatorSource();
+  const log = src.indexOf('tag: "keel.household_meal.meals_delivered"');
+  const refusal = src.indexOf('error: "mouth_unfed"');
+  assert(log > 0 && refusal > 0, "le journal ou le refus a disparu");
+  assert(
+    log < refusal,
+    "un refus qui sort sans avoir journalisé rend le défaut invisible au " +
+      "moment précis où il compte le plus",
+  );
+});
+
+Deno.test("CÂBLAGE — le compteur « sans boîte » ne saute plus les bouches retirées", async () => {
+  const src = stripComments(
+    await Deno.readTextFile(new URL("./meal_generation.ts", import.meta.url)),
+  );
+  assert(
+    !/heldOff\.has\(memberId\)\) continue/.test(src),
+    "la sortie est revenue: une bouche retirée redevient invisible au compteur, " +
+      "et c'est très exactement le défaut du 2026-09-04",
+  );
+  assert(
+    src.includes("boxMouthSlots += boxMembers.size;"),
+    "le dénominateur se creuse encore de la part des bouches retirées",
+  );
+});

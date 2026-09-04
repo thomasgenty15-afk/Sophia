@@ -439,16 +439,39 @@ Deno.test("CEINTURE — une boîte dont TOUTES les bouches sont tenues dehors to
 // 3 — LE COMPTEUR VOISIN N'EST PAS POLLUÉ
 // ---------------------------------------------------------------------------
 
-Deno.test("CEINTURE — une bouche tenue dehors n'est PAS une bouche « sans boîte »", () => {
+Deno.test("⟳ 2026-09-04 — une bouche tenue dehors EST une bouche SANS BOÎTE, et la cause est dite", () => {
+  // ── CE TEST A ÉTÉ RETOURNÉ, ET VOICI CE QUI L'A RETOURNÉ ────────────────
+  // Il affirmait l'inverse: une bouche que la ceinture retire n'était pas
+  // comptée « sans boîte », et sa part sortait même du dénominateur. L'idée
+  // était de ne pas accuser le modèle d'un trou que le moteur venait de
+  // creuser — et elle est juste sur la RESPONSABILITÉ.
+  //
+  // Elle était fausse sur le FAIT. Mesuré le 2026-09-04 sur un plan vivant:
+  // cinq repas où la même bouche n'avait aucune boîte, dont quatre plats de
+  // lentilles qu'elle avait demandé d'éviter, et `mouths_unboxed: 0`. Le
+  // compteur disait « tout le monde a son contenant » pendant que quelqu'un
+  // n'avait rien à manger.
+  //
+  // Le constat s'écrit donc toujours; c'est la CAUSE qui est ajoutée à côté,
+  // et c'est `meals_delivered.ts` qui décide quoi en faire.
   // ⛔ SANS CETTE SORTIE, LE COMPTEUR GROSSIRAIT EXACTEMENT QUAND LA CEINTURE
   // PROTÈGE LE MIEUX: `mouths_unboxed` compterait Théodule sur la casserole de
   // bœuf, c'est-à-dire lirait un défaut sur l'état correct.
   const meal = parse(twinnedPlan());
-  assertEquals(meal.box_counts.mouths_unboxed, 0);
+  assertEquals(meal.box_counts.mouths_unboxed, 1);
+  assert(
+    meal.issues.some((i) =>
+      i.includes(THEODULE) && i.includes("has no box at that meal") &&
+      i.includes("held off it by their declared line")
+    ),
+    "le constat sort sans sa cause: on ne saura pas si c'est un oubli du modèle " +
+      "ou un retrait du moteur\n" + meal.issues.join("\n"),
+  );
   assertEquals(meal.box_counts.mouths_double, 0);
-  // ⚠️ ET LE DÉNOMINATEUR SUIT, DES DEUX CÔTÉS DE LA FRACTION. Deux CASES en
-  // boîte × quatre bouches = 8, moins la bouche végane au dîner de bœuf = 7.
-  assertEquals(meal.box_counts.mouth_slots, 7);
+  // ⚠️ ET LE DÉNOMINATEUR NE SE CREUSE PLUS. Deux CASES en boîte × quatre
+  // bouches = 8, la bouche végane comprise: elle est attendue au dîner de bœuf,
+  // elle n'y est simplement pas servie.
+  assertEquals(meal.box_counts.mouth_slots, 8);
   assertEquals(meal.box_counts.names, 7);
   // ⚠️ ET LES DEUX REPAS ONT BIEN LEUR CONTENANT: c'est le compteur obligatoire
   // (`with_box / meals`), et une ceinture qui retire une PART ne doit jamais
@@ -467,10 +490,22 @@ Deno.test("CEINTURE — la garde « exactement une boîte » mord TOUJOURS aille
     id !== MARCELINE
   );
   const meal = parse(plan);
-  assertEquals(meal.box_counts.mouths_unboxed, 1);
+  // ⟳ 2026-09-04 — DEUX, ET C'EST LE POINT DU TEST. Le plan porte maintenant
+  // les DEUX sortes de trou dans une seule mesure: Théodule, que la ceinture a
+  // retiré du bœuf, et Marceline, que le modèle a simplement oubliée. Les deux
+  // comptent; seule la PHRASE les distingue.
+  assertEquals(meal.box_counts.mouths_unboxed, 2);
   assert(
-    meal.issues.some((i) => i.includes(MARCELINE) && i.includes("has no box at that meal")),
-    meal.issues.join("\n"),
+    meal.issues.some((i) =>
+      i.includes(MARCELINE) && i.includes("has no box at that meal") &&
+      !i.includes("held off")
+    ),
+    "l'oubli du modèle a hérité d'une cause qu'il n'a pas\n" +
+      meal.issues.join("\n"),
+  );
+  assert(
+    meal.issues.some((i) => i.includes(THEODULE) && i.includes("held off")),
+    "le retrait du moteur ne dit plus qu'il en est un\n" + meal.issues.join("\n"),
   );
 });
 

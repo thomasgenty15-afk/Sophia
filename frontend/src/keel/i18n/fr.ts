@@ -2847,6 +2847,8 @@ export const fr: TranslatedMessages = {
     "L’enregistrement a pris trop de temps et a été arrêté. Aucun plan incomplet n’a été enregistré — réessaie.",
   "plan.refusal.house_rule_violated":
     "Ce qui est revenu enfreignait une des règles de ce foyer, donc ça n’a pas été gardé.",
+  "plan.refusal.mouth_unfed":
+    "Dans ce qui est revenu, quelqu’un n’avait rien à manger à un repas, donc ça n’a pas été gardé. Ton plan précédent est intact — relance, ou allège une contrainte.",
   "plan.refusal.merge_member_required": "Ce geste n’a pas dit quel plan replier.",
   "plan.refusal.merge_member_not_in_household": "Cette personne n’est pas dans ce foyer.",
   "plan.refusal.merge_member_is_owner":

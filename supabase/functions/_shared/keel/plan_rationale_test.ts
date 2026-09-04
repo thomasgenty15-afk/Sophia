@@ -80,6 +80,10 @@ function nominalFacts(): PlanRationaleFacts {
     sessionOverruns: [],
     budgetAmount: null,
     mouthsServed: null,
+    // ⚠️ `null` DANS LA FIXTURE NOMINALE: sans fait de livraison, la phrase ne
+    // sort pas — c'est la lane individuelle. Les cas qui la mesurent le posent
+    // explicitement.
+    mealsDelivered: null,
     handTakenBy: [],
     mergedIn: [],
     // G5 — `null` = « on n'a pas lu le temps de cuisine ». Le cas nominal est
@@ -459,6 +463,23 @@ Deno.test("AUCUN gabarit ne culpabilise — la porte 4 ne doit jamais mordre", (
     sessionOverruns: [{ day: "wed", minutes: 75, declared: 30 }],
     budgetAmount: 120,
     mouthsServed: 4,
+    // ⛔ ALLUMÉ, ET AVEC UN TROU: c'est la phrase la plus exposée du lot après
+    // celle de l'énergie — elle dit à quelqu'un qu'il manque un repas — et la
+    // porte anti-culpabilisation DOIT la relire.
+    mealsDelivered: {
+      allFed: false,
+      mouths: [{
+        name: "Marc",
+        expected: 10,
+        fed: 9,
+        missing: [{
+          day: "thu" as const,
+          slot: "dinner",
+          cause: "held_off_exclusion" as const,
+          restored: false,
+        }],
+      }],
+    },
     handTakenBy: ["Zoé"],
     mergedIn: ["Tom"],
     // 60 min < 90: le seuil mord, et la phrase de forme entre dans le lot que
@@ -1926,4 +1947,135 @@ Deno.test("A2 — sans dérivation, PAS UNE ligne de plus", () => {
     }).lines;
     assertEquals(after, before);
   }
+});
+
+// ---------------------------------------------------------------------------
+// PERSONNE SANS REPAS — la phrase, dans les deux sens (2026-09-04)
+// ---------------------------------------------------------------------------
+
+Deno.test("PERSONNE SANS REPAS — le cas NOMINAL se dit aussi", () => {
+  // ⛔ LA RAISON D'ÊTRE DE CE TEST. Une garde qui répare en silence est
+  // indiscernable d'une garde absente: on la redécouvre en SQL, des jours plus
+  // tard. C'est exactement ce qui est arrivé au défaut que ce lot ferme.
+  for (const locale of ["fr", "en"] as const) {
+    const out = explainPlanChoices({
+      facts: {
+        ...nominalFacts(),
+        mouthsServed: 3,
+        mealsDelivered: { allFed: true, mouths: [] },
+      },
+      locale,
+    });
+    const text = out.lines.join(" ");
+    assert(
+      locale === "fr"
+        ? text.includes("Chaque personne a chacun de ses repas.")
+        : text.includes("Everyone has every one of their meals."),
+      `${locale}: ${text}`,
+    );
+  }
+});
+
+Deno.test("PERSONNE SANS REPAS — un trou NOMME la bouche, la case et la cause", () => {
+  const out = explainPlanChoices({
+    facts: {
+      ...nominalFacts(),
+      mouthsServed: 4,
+      mealsDelivered: {
+        allFed: false,
+        mouths: [{
+          name: "Marc",
+          expected: 10,
+          fed: 9,
+          missing: [{
+            day: "thu",
+            slot: "dinner",
+            cause: "held_off_exclusion",
+            restored: false,
+          }],
+        }],
+      },
+    },
+    locale: "fr",
+  });
+  const text = out.lines.join(" ");
+  assert(text.includes("Marc"), text);
+  assert(text.includes("9 repas sur 10"), text);
+  assert(text.includes("jeudi"), text);
+  assert(text.includes("dîner"), text);
+  assert(text.includes("ce qu'elle évite"), text);
+  assert(
+    !text.includes("Chaque personne a chacun de ses repas."),
+    "la phrase du cas nominal sort en même temps qu'un trou",
+  );
+});
+
+Deno.test("PERSONNE SANS REPAS — chaque cause a SA phrase", () => {
+  const said = new Set<string>();
+  for (
+    const cause of [
+      "held_off_regime",
+      "held_off_exclusion",
+      "not_named",
+      "double",
+    ] as const
+  ) {
+    const out = explainPlanChoices({
+      facts: {
+        ...nominalFacts(),
+        mouthsServed: 4,
+        mealsDelivered: {
+          allFed: false,
+          mouths: [{
+            name: "Marc",
+            expected: 10,
+            fed: 9,
+            missing: [{ day: "thu", slot: "dinner", cause, restored: false }],
+          }],
+        },
+      },
+      locale: "fr",
+    });
+    said.add(out.lines.join(" "));
+  }
+  // ⛔ QUATRE PHRASES DISTINCTES. Une cause qui hériterait de la phrase d'une
+  // autre enverrait la personne chercher un défaut qui n'existe pas.
+  assertEquals(said.size, 4);
+});
+
+Deno.test("PERSONNE SANS REPAS — une part RENDUE ne se dit pas comme un trou", () => {
+  const facts = (restored: boolean) => ({
+    ...nominalFacts(),
+    mouthsServed: 4,
+    mealsDelivered: {
+      allFed: false,
+      mouths: [{
+        name: "Marc",
+        expected: 10,
+        fed: 10,
+        missing: [{
+          day: "thu" as const,
+          slot: "dinner",
+          cause: "held_off_exclusion" as const,
+          restored,
+        }],
+      }],
+    },
+  });
+  const kept = explainPlanChoices({ facts: facts(true), locale: "fr" }).lines.join(" ");
+  const hole = explainPlanChoices({ facts: facts(false), locale: "fr" }).lines.join(" ");
+  assert(kept.includes("garde sa part"), kept);
+  assert(kept.includes("c'était ça ou pas de repas"), kept);
+  assert(!hole.includes("garde sa part"), hole);
+  assertEquals(kept === hole, false, "un pis-aller assumé et un trou se disent pareil");
+});
+
+Deno.test("PERSONNE SANS REPAS — `null` ne dit RIEN: c'est la lane individuelle", () => {
+  const out = explainPlanChoices({
+    facts: { ...nominalFacts(), mealsDelivered: null },
+    locale: "fr",
+  });
+  const text = out.lines.join(" ");
+  assert(!text.includes("repas sur"), text);
+  assert(!text.includes("Chaque personne"), text);
 });

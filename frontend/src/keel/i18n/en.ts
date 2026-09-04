@@ -4882,6 +4882,8 @@ export const en = {
     "Saving took too long and was stopped. No incomplete plan was saved — try again.",
   "plan.refusal.house_rule_violated":
     "What came back broke one of this household's rules, so it was not kept.",
+  "plan.refusal.mouth_unfed":
+    "In what came back, somebody had nothing to eat at a meal, so it was not kept. Your previous plan is intact — try again, or ease one constraint.",
   // ── LES ONZE REFUS DE FUSION (L4) ───────────────────────────────────────
   "plan.refusal.merge_member_required": "That gesture did not say whose plan to fold in.",
   "plan.refusal.merge_member_not_in_household": "That person is not in this household.",

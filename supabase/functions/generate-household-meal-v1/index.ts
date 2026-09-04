@@ -238,6 +238,18 @@ import {
   type MemberAgeState,
 } from "../_shared/keel/household.ts";
 import { applyHouseRuleLock } from "../_shared/keel/household_restriction_lock.ts";
+// ══ PERSONNE SANS REPAS — l'invariant, sa relance, son dernier recours ══════
+//
+// Mesuré le 2026-09-04 sur un plan vivant: cinq repas où la même bouche n'avait
+// AUCUNE boîte, dont quatre plats de lentilles qu'elle avait demandé d'éviter.
+// Le compteur qui aurait dû le dire sautait justement les bouches que la
+// ceinture avait retirées.
+import {
+  mealsDelivered,
+  restoreHeldOff,
+  type UnfedRow,
+  unfedRetryInstruction,
+} from "../_shared/keel/meals_delivered.ts";
 // ── LE RÉGIME À TABLE (R4/R5) — LE DÉFAUT ① DE LA SPEC ─────────────────────
 // Avant le 2026-08-14, ce fichier ne portait AUCUNE occurrence du mot « diet »:
 // un maître végane recevait de la viande. Le moteur qui sait ce qu'un régime
@@ -5589,6 +5601,230 @@ Deno.serve(async (req) => {
     }
 
     // ══════════════════════════════════════════════════════════════════════
+    // ⛔ PERSONNE SANS REPAS (2026-09-04)
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ── OÙ, ET POURQUOI ICI ───────────────────────────────────────────────
+    // APRÈS les deux ceintures et la relance d'exclusion — donc sur le plan
+    // qu'on va vraiment écrire, retraits compris — et AVANT tout ce qui le lit
+    // (`fillPlanComposition`, la rationale, l'archive). Un invariant posé plus
+    // tôt jugerait un plan que la suite modifie encore.
+    //
+    // ── LE DÉNOMINATEUR EST CELUI DE LA COMPOSITION, PAS UN SECOND ────────
+    // `memberMealCells` avec le rythme de la maison et `away.effective` — le
+    // MÊME appel que `compositionEaterCells`. `away.effective` porte déjà les
+    // absences ET les repas pris dehors, donc une bouche qui déjeune au
+    // restaurant n'est pas attendue à midi. Deux idées de « qui mange ici »
+    // finiraient par diverger, et c'est l'invariant qui aurait tort.
+    //
+    // ⚠️ SUR LES DEUX LANES. Ce code est commun à la composition et à la
+    // fusion: `platedMembers` est la table dans les deux cas.
+    const houseRhythmForCells = eatingRhythm.length > 0
+      ? eatingRhythm
+      : DEFAULT_EATING_RHYTHM;
+    const mouthCells = platedMembers.map((m) => ({
+      memberId: m.memberId,
+      cells: memberMealCells({
+        away: m.away.effective,
+        rhythm: houseRhythmForCells,
+        windowDays: daysToFill,
+      }),
+    }));
+    // ⚠️ `ReturnType` ET PAS `typeof meal`: `meal` est un `let` réassigné par
+    // les relances, et son type inféré ne traverse pas la fermeture.
+    type ParsedMealForDelivery = ReturnType<typeof parseGeneratedMeal>;
+    const deliveredViewOf = (m: ParsedMealForDelivery) =>
+      m.dishes.map((d) => ({
+        title: d.title,
+        day: d.day,
+        slot: d.slot,
+        memberId: d.memberId,
+        boxes: d.boxes.map((b) => ({ id: b.id, memberIds: b.memberIds })),
+        heldOff: d.heldOff,
+      }));
+    let delivered = mealsDelivered(deliveredViewOf(meal), mouthCells);
+    const unfedBefore = delivered.missing;
+    let unfedRetried = false;
+    let unfedRestored = 0;
+
+    // ── ① LA RELANCE CIBLÉE, QUI NOMME LA BOUCHE ET LE REMÈDE ────────────
+    // ⛔ PAS SUR L'ADOPTION D'UN APERÇU. `adoptingDraft` reprend un plan que la
+    // personne a DÉJÀ vu; le régénérer lui rendrait autre chose que ce qu'elle
+    // a accepté. Même arbitrage que les deux relances au-dessus.
+    if (!delivered.allFed && !adoptingDraft) {
+      const instruction = unfedRetryInstruction(
+        delivered.mouths.flatMap((row) =>
+          row.missing.map((miss) => ({
+            name: nameOf.get(miss.memberId) ?? "",
+            memberId: miss.memberId,
+            day: miss.day,
+            slot: miss.slot,
+            cause: miss.cause,
+            dish: miss.dish,
+          }))
+        ),
+      );
+      if (instruction) {
+        try {
+          const retryResult = await generateWithGemini(
+            built.systemPrompt + household.systemSuffix,
+            householdUserMessage(`\n\n${instruction}`),
+            0.6,
+            true,
+            [],
+            "auto",
+            {
+              source: `${FN_NAME}.unfed_retry`,
+              requestId,
+              userId,
+              model: keelGenerationModel(),
+              httpTimeoutMs: PLAN_HTTP_TIMEOUT_MS,
+              reasoningEffort: PLAN_REASONING_EFFORT,
+            },
+          );
+          if (typeof retryResult === "string") {
+            const retried = parseGeneratedMeal(retryResult, parseArgs);
+            const after = mealsDelivered(deliveredViewOf(retried), mouthCells);
+            // ⛔ TROIS CONDITIONS, LA PREMIÈRE EST LA PLUS IMPORTANTE: une
+            // relance qui RACCOURCIT le plan a « nourri tout le monde » en
+            // retirant des journées. Même garde-fou que les deux autres
+            // relances, et pour la même raison.
+            if (
+              retried.dishes.length >= meal.dishes.length &&
+              after.missing < delivered.missing
+            ) {
+              meal = retried;
+              // ⚠️ LES DEUX ENSEMBLE. `mealSourceText` est relu plus bas par
+              // `reconcilePortions`: le remplacer sans lui ferait réconcilier
+              // les parts de la réponse d'AVANT.
+              mealSourceText = retryResult;
+              delivered = after;
+              unfedRetried = true;
+            }
+          }
+        } catch (error) {
+          console.warn(`[${FN_NAME}] unfed retry failed`, error);
+        }
+      }
+    }
+
+    // ── ② LE DERNIER RECOURS, ET IL DÉPEND DE LA CAUSE ───────────────────
+    // ⛔ UN GOÛT N'EST PAS UNE SÉCURITÉ. Quand la relance n'a pas su composer
+    // la boîte d'échange, on ANNULE le geste du moteur: le nom sur le couvercle
+    // était la déclaration du modèle, le retrait était notre geste. La personne
+    // retrouve son repas, avec l'aliment qu'elle n'aime pas — et c'est DIT, ici
+    // et dans la rationale.
+    //
+    // ⛔ ET SEULEMENT POUR UN GOÛT. Rendre son repas à quelqu'un en lui servant
+    // ce que son régime lui interdit n'est pas un recours, c'est le défaut
+    // d'origine. Un régime resté sans repas va au refus, plus bas.
+    const restorable = delivered.mouths
+      .flatMap((row) => row.missing)
+      .filter((m): m is UnfedRow & { boxId: string } =>
+        m.cause === "held_off_exclusion" && typeof m.boxId === "string"
+      );
+    if (restorable.length > 0) {
+      unfedRestored = restoreHeldOff(
+        meal.dishes,
+        restorable.map((m) => ({ memberId: m.memberId, boxId: m.boxId })),
+      );
+      for (const m of restorable) {
+        issues.push(
+          `${m.day}/${m.slot}: ${JSON.stringify(m.memberId)} kept on the shared ` +
+            `box although it carries what they avoid -- no other meal could be ` +
+            `composed for them there`,
+        );
+      }
+      delivered = mealsDelivered(deliveredViewOf(meal), mouthCells);
+    }
+
+    // ⚠️ LE JOURNAL PART AVANT TOUT `return`, comme la ceinture de régime: un
+    // refus qui sort sans avoir journalisé rend le défaut invisible au moment
+    // précis où il compte le plus.
+    console.log(JSON.stringify({
+      tag: "keel.household_meal.meals_delivered",
+      user_id: userId,
+      household_id: householdId,
+      request_id: requestId,
+      mouths: mouthCells.length,
+      expected: delivered.expected,
+      fed: delivered.fed,
+      missing: delivered.missing,
+      missing_before: unfedBefore,
+      ...delivered.byCause,
+      cells_without_dish: delivered.cellsWithoutDish,
+      unplaced_dishes: delivered.unplacedDishes,
+      retried: unfedRetried,
+      restored: unfedRestored,
+    }));
+
+    // ── LE FAIT SERVI À L'ÉCRAN, CONSTRUIT UNE FOIS ──────────────────────
+    // ⚠️ ICI, à côté de l'invariant, et pas deux fois plus bas aux deux sites
+    // de la rationale. Deux constructions de la même phrase divergeraient, et
+    // c'est celle que la personne LIT qui aurait tort.
+    //
+    // ⚠️ `restored` EST PORTÉ PAR LIGNE. Une part rendue et une part manquante
+    // ne se disent pas pareil — l'une est un pis-aller assumé, l'autre un trou.
+    // Le calculer ici est la seule façon de le savoir: après la seconde passe
+    // de `mealsDelivered`, une bouche restaurée a simplement disparu de la
+    // liste, et son histoire avec elle.
+    const restoredKeys = new Set(
+      restorable.map((m) => `${m.memberId}/${m.day}/${m.slot}`),
+    );
+    const deliveredRationale = {
+      allFed: delivered.allFed && restoredKeys.size === 0,
+      mouths: [
+        ...delivered.mouths.map((row) => ({
+          name: nameOf.get(row.memberId) ?? "",
+          expected: row.expected,
+          fed: row.fed,
+          missing: row.missing.map((m) => ({
+            // ⚠️ Le jour vient du parseur, qui n'a gardé que des jetons
+            // `mon`..`sun`; c'est le type du fait qui le contraint côté
+            // rationale, pas une seconde validation écrite ici.
+            day: m.day as "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun",
+            slot: m.slot,
+            cause: m.cause,
+            restored: false,
+          })),
+        })),
+        ...(restorable.length > 0
+          ? [{
+            name: nameOf.get(restorable[0].memberId) ?? "",
+            expected: 0,
+            fed: 0,
+            missing: restorable.map((m) => ({
+              day: m.day as "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun",
+              slot: m.slot,
+              cause: m.cause,
+              restored: true,
+            })),
+          }]
+          : []),
+      ].filter((row) => row.name !== "" && row.missing.length > 0),
+    };
+
+    // ── ③ LE REFUS, QUAND IL RESTE UNE BOUCHE SANS REPAS ─────────────────
+    // ⛔ SUR UN APERÇU, ON GARDE ET ON MONTRE. L'écran affiche le trou et sa
+    // raison; refuser priverait la personne de la seule vue qui le lui dirait.
+    // Sur une composition ou une ADOPTION, on refuse: persister un plan où
+    // quelqu'un ne mange pas, c'est écrire le défaut en base.
+    const stillUnfed = delivered.mouths.flatMap((row) => row.missing);
+    if (stillUnfed.length > 0 && !isDraft) {
+      return jsonResponse(req, {
+        error: "mouth_unfed",
+        detail: stillUnfed.map((m) => ({
+          member_id: m.memberId,
+          day: m.day,
+          slot: m.slot,
+          cause: m.cause,
+        })),
+        issues: [...issues, ...meal.issues],
+        request_id: requestId,
+      }, { status: 422 });
+    }
+
+    // ══════════════════════════════════════════════════════════════════════
     // LOT 18 · L'INGRÉDIENT INCONNU NE CONDAMNE PLUS LA JOURNÉE
     // ══════════════════════════════════════════════════════════════════════
     //
@@ -6270,6 +6506,11 @@ Deno.serve(async (req) => {
           // D14 — LA CASSEROLE, et pas le foyer. C'est le nombre qui a
           // réellement dimensionné les quantités.
           mouthsServed: Math.min(12, Math.max(1, presence.servings)),
+          // ⛔ PERSONNE SANS REPAS — LA MÊME EXPRESSION AUX DEUX SITES.
+          // `deliveredRationale` est calculé une fois, plus haut, à côté de
+          // l'invariant lui-même: deux constructions divergeraient, et c'est la
+          // phrase servie à l'écran qui aurait tort.
+          mealsDelivered: deliveredRationale,
           // DES PRÉNOMS, jamais des identifiants: la phrase se lit à voix haute
           // à table. Une bouche dont le nom n'a pas pu être résolu est ÉCARTÉE
           // plutôt que rendue en uuid.
@@ -7476,6 +7717,41 @@ Deno.serve(async (req) => {
       // ⛔ LA CEINTURE DES EXCLUSIONS PAR BOUCHE — sans ses nombres, une
       // exclusion inerte et une exclusion honorée se lisent pareil.
       exclusion_belt: meal.exclusion_belt,
+      // ══════════════════════════════════════════════════════════════════════
+      // ⛔ PERSONNE SANS REPAS — LE COMPTEUR OBLIGATOIRE (2026-09-04)
+      // ══════════════════════════════════════════════════════════════════════
+      //
+      // Le défaut qui l'impose a été trouvé en SQL, sur un plan déjà en base,
+      // des jours après: cinq repas où la même bouche n'avait aucune boîte. Ni
+      // `issue`, ni compteur, ni journal ne le disaient. Ce nombre est ce qui
+      // rend la question posable sans relire un `jsonb` à la main.
+      //
+      // ⚠️ `expected` AVANT `missing`, et `mouths` avant les deux: `missing: 0`
+      // seul rend le même zéro pour « tout le monde est servi » et pour « on n'a
+      // regardé personne ». Sur l'aperçu comme sur la ligne écrite, par la même
+      // expression.
+      meals_delivered: {
+        mouths: mouthCells.length,
+        expected: delivered.expected,
+        fed: delivered.fed,
+        missing: delivered.missing,
+        by_cause: delivered.byCause,
+        cells_without_dish: delivered.cellsWithoutDish,
+        retried: unfedRetried,
+        restored: unfedRestored,
+        rows: delivered.mouths
+          .filter((m) => m.missing.length > 0)
+          .map((m) => ({
+            member_id: m.memberId,
+            expected: m.expected,
+            fed: m.fed,
+            missing: m.missing.map((x) => ({
+              day: x.day,
+              slot: x.slot,
+              cause: x.cause,
+            })),
+          })),
+      },
       // ══════════════════════════════════════════════════════════════════════
       // L8 — CE QUE LA CIBLE A RÉELLEMENT DIMENSIONNÉ.
       // ══════════════════════════════════════════════════════════════════════

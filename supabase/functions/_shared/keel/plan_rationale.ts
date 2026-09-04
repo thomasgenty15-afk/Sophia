@@ -371,6 +371,40 @@ export interface PlanRationaleFacts {
    */
   mouthsServed: number | null;
   /**
+   * ⛔ PERSONNE SANS REPAS — CE QUE CHAQUE BOUCHE A REÇU (2026-09-04).
+   *
+   * `null` sur la lane individuelle: on ne compte pas les repas de quelqu'un
+   * qui mange seul, il les a tous par construction.
+   *
+   * ⚠️ REQUIS ET NULLABLE. Le défaut qui impose cette phrase a vécu cinq repas
+   * sur douze dans le silence: la personne n'avait aucune boîte, le plan était
+   * vert, et rien à l'écran ne l'aurait dit. Une garde qui répare sans le dire
+   * est une garde qu'on redécouvre en SQL, des jours plus tard.
+   *
+   * ⚠️ DES PRÉNOMS, JAMAIS D'IDENTIFIANTS: la phrase se lit à voix haute à
+   * table, comme `handTakenBy` et `mergedIn`.
+   */
+  mealsDelivered:
+    | {
+      readonly allFed: boolean;
+      readonly mouths: readonly {
+        readonly name: string;
+        readonly expected: number;
+        readonly fed: number;
+        readonly missing: readonly {
+          readonly day: DayToken;
+          readonly slot: string;
+          readonly cause:
+            | "held_off_regime"
+            | "held_off_exclusion"
+            | "not_named"
+            | "double";
+          readonly restored: boolean;
+        }[];
+      }[];
+    }
+    | null;
+  /**
    * QUI A PRIS LA MAIN, et donc ne mange pas ce plan. `[]` = personne.
    * Prénoms, jamais d'identifiants: la phrase se lit à voix haute à table.
    */
@@ -740,6 +774,22 @@ const COPY = {
       vegan: "végane",
       pescatarian: "pescétarien",
     } as Record<string, string>,
+    // ── PERSONNE SANS REPAS ─────────────────────────────────────────────
+    // ⚠️ LE CAS NOMINAL SE DIT AUSSI. Ne parler que des trous ferait du silence
+    // une réponse ambiguë: « rien n'est dit » se lirait « rien n'a été vérifié »
+    // aussi bien que « tout va bien ».
+    allFed: "Chaque personne a chacun de ses repas.",
+    mealMissing: (name: string, fed: number, expected: number, where: string, why: string) =>
+      `${name} : ${fed} repas sur ${expected}. ${where}, ${why}.`,
+    mealMissingWhy: {
+      held_off_regime: "le plat ne suit pas sa ligne et rien d'autre ne lui a été composé",
+      held_off_exclusion: "le plat contient ce qu'elle évite",
+      not_named: "aucune boîte ne porte son nom",
+      double: "elle est sur deux boîtes du même repas",
+    } as Record<string, string>,
+    mealRestored: (name: string, where: string) =>
+      `${name} garde sa part ${where} bien que le plat contienne ce qu'elle ` +
+      `évite : c'était ça ou pas de repas.`,
   },
   en: {
     days: {
@@ -902,6 +952,18 @@ const COPY = {
       vegan: "vegan",
       pescatarian: "pescatarian",
     } as Record<string, string>,
+    allFed: "Everyone has every one of their meals.",
+    mealMissing: (name: string, fed: number, expected: number, where: string, why: string) =>
+      `${name}: ${fed} meals out of ${expected}. ${where}, ${why}.`,
+    mealMissingWhy: {
+      held_off_regime: "the dish does not follow their line and nothing else was cooked for them",
+      held_off_exclusion: "the dish carries what they avoid",
+      not_named: "no box carries their name",
+      double: "they are on two boxes of the same meal",
+    } as Record<string, string>,
+    mealRestored: (name: string, where: string) =>
+      `${name} keeps their share ${where} even though the dish carries what ` +
+      `they avoid: it was that or no meal.`,
   },
 } as const;
 
@@ -1007,6 +1069,7 @@ const REQUIRED_FACTS: readonly (keyof PlanRationaleFacts)[] = [
   "sessionOverruns",
   "budgetAmount",
   "mouthsServed",
+  "mealsDelivered",
   "handTakenBy",
   "mergedIn",
   "weeklyCookingMinutes",
@@ -1485,6 +1548,49 @@ export function explainPlanChoices(input: {
   const merged = facts.mergedIn.map((n) => String(n ?? "").trim()).filter(Boolean);
   if (merged.length > 0) {
     lines.push(copy.mergedIn(joinList(merged, input.locale)));
+  }
+
+  // ── ⑨ PERSONNE SANS REPAS, ET ON LE DIT DANS LES DEUX SENS ─────────────
+  //
+  // ⛔ LE CAS NOMINAL SE DIT AUSSI, et c'est délibéré. Le dépôt sait ce que
+  // coûte une garde qui répare en silence: elle est indiscernable d'une garde
+  // absente, et on la redécouvre en SQL des jours plus tard. « Chaque personne
+  // a chacun de ses repas » est la seule phrase qui rende la question posable.
+  //
+  // ⚠️ APRÈS LES BOUCHES ET LES FUSIONS, jamais avant: elle parle de gens que
+  // les phrases précédentes viennent de nommer.
+  //
+  // ⚠️ LA PHRASE DIT LE FAIT, PAS LE COUPABLE. Ni « le modèle a oublié », ni
+  // « ta contrainte empêche » — la porte anti-culpabilisation
+  // (`findGuiltTripping`) tourne sur l'assemblage complet quelques lignes plus
+  // bas, et une phrase qui reproche à quelqu'un ce qu'il a écrit la ferait
+  // sonner à juste titre.
+  const deliveredFacts = facts.mealsDelivered;
+  if (deliveredFacts !== null) {
+    if (deliveredFacts.allFed) {
+      lines.push(copy.allFed);
+    } else {
+      for (const mouth of deliveredFacts.mouths) {
+        const name = String(mouth?.name ?? "").trim();
+        if (!name || mouth.missing.length === 0) continue;
+        for (const miss of mouth.missing) {
+          const where = `${renderDays([miss.day], input.locale)} ${
+            renderSlots([miss.slot], input.locale)
+          }`;
+          if (miss.restored) {
+            lines.push(copy.mealRestored(name, where));
+            continue;
+          }
+          lines.push(copy.mealMissing(
+            name,
+            mouth.fed,
+            mouth.expected,
+            where,
+            copy.mealMissingWhy[miss.cause] ?? miss.cause,
+          ));
+        }
+      }
+    }
   }
 
   if (lines.length === 0) {
