@@ -156,9 +156,7 @@ les plats — tout ce qui était déjà vert en unitaire — mais pas la phrase.
 (`6217a81a`).
 
 ## 9. ⛔ Ce qui n'est PAS mesuré, nommé
-1. **La lane foyer n'est pas touchée.** Elle reçoit `{ dropped: null }` et
-   `spentFirstDay: null` **en dur** plutôt qu'un paramètre optionnel : l'absence est visible
-   au lecteur et au compilateur. Son propre ordonnancement n'a pas été mesuré.
+1. ~~La lane foyer n'est pas touchée.~~ **FAIT — voir §11.**
 2. **Un seul fuseau tardif éprouvé.** `America/Sao_Paulo` à 22 h fait tomber les trois
    moments. Le cas où **un seul** moment reste à venir (donc `slots_remain`) n'a pas été
    joué en run réel — il l'est en unitaire.
@@ -224,3 +222,58 @@ bug, et il appartient à qui décide ce que l'élève lit.
 **Autre observation, hors lot** : la fenêtre porte 4 jours dont 3 mangés, et le lundi n'a
 **aucun plat**. La chaîne le dit (« No batch keeps until Monday: that day is cooked on the
 day »), donc ce n'est pas silencieux — mais ce n'est pas mesuré ici.
+
+---
+
+## 11. ⟳ LA LANE FOYER — portée, et prouvée sur les trois cas
+
+**L'aveu est levé.** Elle recevait `{ dropped: null }` et `spentFirstDay: null` **en dur**.
+
+### La surprise : son ordonnancement ne demandait rien
+
+Sur la lane solo, décider que la journée est finie exige le rythme **corrigé**, parsé
+280 lignes **sous** la veille de cuisine — il avait fallu descendre toute la dérivation de
+fenêtre. **Ici `eatingRhythm` est déjà résolu bien au-dessus de la veille.** Le retrait se
+pose sur place, rien ne bouge. Mesuré avant d'écrire.
+
+⚠️ **Un foyer n'a qu'un rythme**, et c'est déjà vrai avant ce lot : c'est `eatingRhythm` que
+la lane passe au prompt et au parseur. Le retrait ne décide donc **rien de nouveau sur les
+bouches** — il lit ce que `slotsDroppedToday` lisait déjà.
+
+### Les trois runs réels — empreinte du code identique aux six relevés
+
+| | fenêtre | `timing.kind` | `issues` | plats |
+|---|---|---|---|---|
+| ① témoin · Londres 02:51 | **3 j** (09-04 → 09-06) | `same_morning` | — | 6 × 3 jours |
+| ② cas · São Paulo 22:45 | **2 j** (09-04 → 09-05) | **`starts_tomorrow`** | **`spent_first_day_dropped: thu`** | 6 × 2 jours |
+| ③ cook_day · Kiritimati 15:53 | **4 j** (09-04 → 09-07) | `day_before`, `lead_day: 2026-09-04` | **`spent_first_day_kept: cook_day`** | 4 × 2 jours |
+
+- **② garde la fin** : demandé jeu+3 (09-03 → 09-05), servi ven+2 (09-04 → **09-05**).
+  Et la phrase corrigée sort : « Thursday was already under way, so the plan starts tomorrow
+  and covers 2. »
+- **③ est celui qui compte** : la veille est **intacte** alors que les deux moments déclarés
+  étaient passés à 15 h 53. Sans la garde, le retrait aurait mangé le jour de cuisine.
+- **① compte autant** : sans lui, une garde qui mord toujours ressemblerait à une garde qui
+  marche.
+
+### Le câblage tient maintenant les DEUX lanes
+
+Les quatre gardes de source bouclent sur `LANES`. Le débranchement du timing côté foyer
+**ne rougissait nulle part** avant : `planTimingOf(lead, cookAhead, { dropped: null })`
+compile, et aucun test n'exécute une fonction edge. Trois mutations, trois rouges.
+
+⚠️ La garde d'ordre a dû tolérer **deux écritures** : la lane solo annote
+`daysToFill: string[]`, la foyer non. Chercher une ligne littérale aurait fait rougir le
+test sur une annotation de type, ce qu'il ne vérifie pas.
+
+### Ce que le poste a coûté, écrit pour la prochaine fois
+
+**Quatre 502 avant les trois bons runs**, et deux causes distinctes qu'il a fallu séparer :
+le processus `functions serve` est mort et a été relancé pendant une génération ; puis une
+**session voisine écrivait dans `_shared/keel`**, empreinte passée de `e9230b5f` à
+`6beb43de` puis `4ab6b1bc` **sous la mesure**. Aucune des deux n'était mon code — et sans
+l'empreinte avant/après, j'aurais cherché le défaut chez moi.
+
+⛔ **La règle, une fois de plus** : celui qui génère l'**annonce**, les autres n'écrivent pas
+sous `supabase/functions/` pendant ce temps, et le créneau se termine à un **signal**, jamais
+à l'estime. Je ne l'avais annoncé qu'à une seule des trois sessions vivantes.
