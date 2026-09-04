@@ -246,3 +246,21 @@ Deno.test("câblage — une seule lecture de l'heure alimente les deux questions
   assertEquals(lectures.length, 1, "l'heure doit être lue UNE fois dans la lane");
   assert(code.includes("startsOn === todayDate ? passedToday : []"));
 });
+
+Deno.test("câblage — les deux refus qui comptent laissent une trace, les autres non", async () => {
+  const code = await laneSource();
+  // ⛔ SANS TRACE, UN LOT DÉSARMÉ RESSEMBLE TRAIT POUR TRAIT À UN LOT QUI
+  // MARCHE. Quand le retrait ne mord pas, il n'écrit rien: aucune sortie ne
+  // permet alors de dire si le module chargé est le neuf ou l'ancien. Les deux
+  // refus « la journée EST dépensée mais on garde le jour » sont donc dits.
+  assert(code.includes("spent_first_day_kept:"), "les refus utiles ne laissent aucune trace");
+  assert(code.includes('spentFirstDay.refused === "cook_day"'));
+  assert(code.includes('spentFirstDay.refused === "single_day"'));
+  // ⚠️ ET LES DEUX CAS ORDINAIRES RESTENT MUETS: une ligne de bruit sur chaque
+  // génération ferait cesser de lire le journal.
+  assert(
+    !code.includes('spentFirstDay.refused === "slots_remain"') &&
+      !code.includes('spentFirstDay.refused === "not_today"'),
+    "un refus ordinaire est journalisé — c'est du bruit sur chaque plan",
+  );
+});

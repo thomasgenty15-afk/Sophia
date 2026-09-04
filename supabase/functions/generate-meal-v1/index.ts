@@ -1598,6 +1598,22 @@ Deno.serve(async (req) => {
     durationDays = spentFirstDay.durationDays;
     if (spentFirstDay.dropped !== null) {
       issues.push(`spent_first_day_dropped: ${spentFirstDay.dropped}`);
+    } else if (
+      // ⛔ LES DEUX REFUS QUI MÉRITENT D'ÊTRE DITS, ET SEULEMENT EUX.
+      //
+      // `cook_day` et `single_day` veulent dire « la journée EST dépensée, et
+      // on a gardé le jour quand même » — ce sont précisément les deux cas où
+      // quelqu'un demandera plus tard pourquoi son plan est court ou vide, et
+      // où l'absence de trace enverrait chercher un défaut ailleurs.
+      //
+      // ⚠️ `slots_remain` ET `not_today` RESTENT MUETS, exprès: ce sont les cas
+      // ORDINAIRES (il reste des moments à venir, ou le plan commence demain).
+      // Les journaliser mettrait une ligne de bruit sur CHAQUE génération, et
+      // un journal que tout le monde cesse de lire ne garde plus rien.
+      spentFirstDay.refused === "cook_day" ||
+      spentFirstDay.refused === "single_day"
+    ) {
+      issues.push(`spent_first_day_kept: ${spentFirstDay.refused}`);
     }
 
     // ── CE QUE LA RÉPONSE, LA LIGNE ET L'ÉCRAN LISENT, ASSEMBLÉ UNE FOIS ────
