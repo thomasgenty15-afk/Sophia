@@ -422,7 +422,37 @@ export function scaleFactorsFor(args: {
   // être RECOMPOSÉE — plus de protéine, moins de féculent, même énergie.
   //
   // On ne renonce donc que lorsque les DEUX sont en ordre.
-  const proteinShort = proteinPerDay > 0 && proteinPerDay < floor * (1 - SCALE_DEAD_ZONE);
+  //
+  // ══════════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-04 — LA ZONE MORTE SORT DU PLANCHER, ET C'ÉTAIT UNE BANDE MORTE
+  // ══════════════════════════════════════════════════════════════════════════
+  //
+  // Ce test portait `floor * (1 - SCALE_DEAD_ZONE)`. Il accordait donc au
+  // plancher une remise de 12 % — sur la grandeur dont la ligne au-dessus dit
+  // qu'elle « est un plancher ». Deux seuils en résultaient, et ils ne se
+  // parlaient pas:
+  //
+  //     le correcteur agissait sous  131 × 0,88 = 115,3 g
+  //     le verdict échouait sous     131 g       (aucune marge, `meal_verdict`)
+  //
+  // ⇒ ENTRE LES DEUX, UNE BANDE DE 15,7 g OÙ LE PLAN EST JUGÉ `under` ET N'EST
+  //   JAMAIS CORRIGÉ. Personne ne ment, personne n'agit.
+  //
+  // MESURÉ SUR TROIS RUNS RÉELS (2026-09-04, fixture S1, plancher 131 g):
+  // 139 g · 126 g · 126 g. La protéine ENJAMBE le seuil — un tirage passe, les
+  // deux autres tombent dans la bande et repartent intacts, avec
+  // `abstained: "no_factor"` au journal. Ce n'était pas la variance du modèle:
+  // c'était un trou entre deux constantes.
+  //
+  // ⛔ LA RÈGLE QUI TRANCHE EST DÉJÀ ÉCRITE DANS CE DÉPÔT: « le produit ne doit
+  // pas juger sur un nombre et corriger sur un autre » (`meal_verdict.ts`, à
+  // propos de `daysCovered`, et elle a son test). Le correcteur doit donc agir
+  // exactement quand le verdict échouerait — ni avant, ni après.
+  //
+  // ⚠️ ET LA ZONE MORTE GARDE TOUT SON SENS SUR L'ÉNERGIE, qui est une BANDE:
+  // on ne réécrit pas un plan pour ±3 % autour d'une cible large. Un plancher
+  // n'est pas une bande. Être 4 % sous un plancher, c'est être dessous.
+  const proteinShort = proteinPerDay > 0 && proteinPerDay < floor;
   if (base === null && !proteinShort) return null;
 
   // Sans protéine mesurée ou sans aliment protéique pesable, il n'y a rien à

@@ -211,6 +211,7 @@ import { rawWindowCounts } from "../_shared/keel/grocery_waves.ts";
 // que dans un script de QA. `portion_scaling_inputs.ts` les produit maintenant
 // une seule fois, pour la lane et pour la mesure.
 import {
+  MAX_SINGLE_INGREDIENT_G,
   scaleFactorsFor,
   scaleIngredients,
   scaleShoppingList,
@@ -3416,23 +3417,58 @@ Deno.serve(async (req) => {
           scaling,
           isProteinFood,
         );
-        const p = scaleIngredients(
-          meal.preparations.flatMap((x) => x.ingredients),
-          scaling,
-          isProteinFood,
-        );
+        // ══════════════════════════════════════════════════════════════════
+        // ⛔ UNE CASSEROLE PAR CASSEROLE, ET C'EST LE PLANCHER PROTÉINE QUI
+        //    L'EXIGE (2026-09-04, mesuré)
+        // ══════════════════════════════════════════════════════════════════
+        //
+        // Les préparations étaient aplaties en UN tableau et mises à l'échelle
+        // sous le plafond d'ASSIETTE (500 g). Or une préparation est un LOT:
+        // `prep_roast_chicken_veg`, `servings_made: 3`, portait 600 g de cuisses
+        // de poulet — la principale source de protéine du plan.
+        //
+        // ⛔ ET LA RÈGLE « le plafond peut refuser de grandir, jamais
+        // rapetisser » LE GÈLE: `next = max(amount, 500)` rend 600 pour un
+        // ingrédient déjà à 600, donc `next === amount`, donc il ne bouge pas
+        // ET n'est même pas compté dans `capped`. Le facteur protéine ×1,393
+        // a été calculé, appliqué partout ailleurs, et silencieusement écarté
+        // là où il comptait le plus.
+        //
+        // MESURÉ SUR DEUX RUNS RÉELS: 139 g puis 126 g pour un plancher de 131.
+        // La protéine ENJAMBE le seuil — un tirage passe, l'autre non — et le
+        // journal disait `applied: true` dans les deux cas.
+        //
+        // ⚠️ LE PLAFOND EST DONC CELUI DE LA FOURNÉE, `500 × servings_made`,
+        // et il reste un plafond: `servings_made` est borné à 21 au parse
+        // (`meal_generation.ts`), donc il ne peut pas s'évaporer. C'est la même
+        // correction que la lane FOYER a reçue (A3); le commentaire d'origine
+        // disait « faute de savoir ici combien de bouches un ingrédient sert »
+        // — on le sait, c'est `servings_made`.
+        //
+        // ⛔ LES PLATS GARDENT LE PLAFOND D'ASSIETTE. Un plat de cette lane est
+        // la portion d'une personne: 500 g y bornent bien ce qu'ils doivent
+        // borner.
+        let prepChanged = 0;
+        const prepCapped: string[] = [];
+        for (const prep of meal.preparations) {
+          const scaled = scaleIngredients(
+            prep.ingredients,
+            scaling,
+            isProteinFood,
+            MAX_SINGLE_INGREDIENT_G * Math.max(1, prep.servingsMade),
+          );
+          prep.ingredients = scaled.items;
+          prepChanged += scaled.changed;
+          prepCapped.push(...scaled.capped);
+        }
         // Les tableaux rendus sont NEUFS et dans l'ordre d'entrée: on les
         // replace ligne à ligne, sans recalculer aucune frontière.
         let di = 0;
         for (const dish of meal.dishes) {
           dish.ingredients = dish.ingredients.map(() => d.items[di++]);
         }
-        let pi = 0;
-        for (const prep of meal.preparations) {
-          prep.ingredients = prep.ingredients.map(() => p.items[pi++]);
-        }
-        scaledChanged = d.changed + p.changed;
-        scaledCapped = [...d.capped, ...p.capped];
+        scaledChanged = d.changed + prepChanged;
+        scaledCapped = [...d.capped, ...prepCapped];
 
         // ══════════════════════════════════════════════════════════════════
         // ⛔ ET LA LISTE DE COURSES SUIT — sinon le plan cesse d'être ACHETABLE.

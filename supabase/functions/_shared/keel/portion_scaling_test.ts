@@ -654,3 +654,108 @@ Deno.test("⛔ B2 — LE PLAN MIS À L'ÉCHELLE ATTERRIT DANS SA BANDE", () => {
     );
   }
 });
+
+Deno.test("⛔ UN INGRÉDIENT DÉJÀ AU-DESSUS DU PLAFOND EST GELÉ — et c'est le plancher protéine qui le paie", () => {
+  // ⛔ LE DÉFAUT MESURÉ SUR DEUX RUNS RÉELS (2026-09-04). La règle « le plafond
+  // peut refuser de grandir, jamais rapetisser » est juste, et son effet de
+  // bord ne l'était pas: `next = max(amount, plafond)` rend `amount` pour un
+  // ingrédient DÉJÀ au-dessus. Il ne bouge pas, et il n'est même pas compté
+  // dans `capped` — donc rien ne le dit.
+  //
+  // Sur `prep_roast_chicken_veg` (`servings_made: 3`), 600 g de cuisses de
+  // poulet: le facteur protéine ×1,393 a été calculé, appliqué partout
+  // ailleurs, et silencieusement écarté sur la PRINCIPALE source de protéine
+  // du plan. Résultat: 139 g puis 126 g pour un plancher de 131 — la protéine
+  // enjambe le seuil, un tirage passe et l'autre non.
+  const frozen = scaleIngredients(
+    [ing({ term: "chicken thighs", amount: 600, unit: "g", quantity: "600 g" })],
+    1.393,
+  );
+  assertEquals(frozen.items[0].amount, 600, "il a bougé sous le plafond d'assiette");
+  assertEquals(frozen.changed, 0);
+  // ⚠️ ET LE SILENCE EST LA MOITIÉ DU DÉFAUT: il n'apparaît nulle part.
+  assertEquals(frozen.capped, [], "le gel s'est mis à se compter — relire le test");
+
+  // ── LA RÉPARATION: LE PLAFOND DE LA FOURNÉE ─────────────────────────────
+  // Une préparation est un LOT. `500 × servings_made` est la borne qui a du
+  // sens, et elle reste une borne — `servings_made` est plafonné à 21 au parse.
+  const thawed = scaleIngredients(
+    [ing({ term: "chicken thighs", amount: 600, unit: "g", quantity: "600 g" })],
+    1.393,
+    undefined,
+    MAX_SINGLE_INGREDIENT_G * 3,
+  );
+  assertEquals(thawed.items[0].amount, 835);
+  assertEquals(thawed.items[0].quantity, "835 g");
+  assertEquals(thawed.changed, 1);
+  assertEquals(thawed.capped, []);
+
+  // ⛔ ET LA BORNE MORD TOUJOURS, PLUS HAUT. Sans cette moitié, le test
+  // passerait aussi bien sur un plafond retiré.
+  const still = scaleIngredients(
+    [ing({ term: "chicken thighs", amount: 1200, unit: "g", quantity: "1200 g" })],
+    1.393,
+    undefined,
+    MAX_SINGLE_INGREDIENT_G * 3,
+  );
+  assertEquals(still.items[0].amount, 1500);
+  assertEquals(still.capped, ["chicken thighs"]);
+});
+
+Deno.test("⛔ LE CORRECTEUR AGIT EXACTEMENT QUAND LE VERDICT ÉCHOUERAIT — pas 12 % plus bas", () => {
+  // ⛔ LA BANDE MORTE, MESURÉE SUR TROIS RUNS RÉELS (2026-09-04, fixture S1).
+  // Le test du plancher portait `floor * (1 - SCALE_DEAD_ZONE)`, donc une
+  // remise de 12 % sur une grandeur qui est un PLANCHER. Deux seuils en
+  // résultaient:
+  //
+  //     le correcteur agissait sous  131 × 0,88 = 115,3 g
+  //     le verdict échouait sous     131 g       (aucune marge)
+  //
+  // Entre les deux, 15,7 g où le plan est jugé `under` et repart intact
+  // (`abstained: "no_factor"`). Mesuré: 139 · 126 · 126 g pour un plancher de
+  // 131 — la protéine ENJAMBE le seuil selon le tirage.
+  //
+  // LA RÈGLE: « le produit ne doit pas juger sur un nombre et corriger sur un
+  // autre » — déjà écrite dans `meal_verdict.ts` à propos de `daysCovered`.
+  const band = PER_KG.mode === "per_kg" ? PER_KG.energy : null;
+  assert(band !== null);
+  const floor = PER_KG.mode === "per_kg" ? PER_KG.proteinFloorG : 0;
+  assert(floor > 0);
+
+  // L'ÉNERGIE EST PARFAITE — au centre exact de la bande, donc zone morte.
+  const perfectKcal = (band!.low + band!.high) / 2;
+  // La protéine est DANS l'ancienne bande morte: sous le plancher, mais de
+  // moins de 12 %. C'est le cas des deux runs à 126 g.
+  const inTheBand = floor * 0.96;
+
+  const f = scaleFactorsFor({
+    computedKcal: perfectKcal,
+    computedProteinG: inTheBand,
+    proteinFoodKcal: 600,
+    otherScalableKcal: 900,
+    proteinFoodProteinG: inTheBand * 0.9,
+    envelope: PER_KG,
+    daysCovered: 1,
+    resolvedShare: 1,
+  });
+  assert(
+    f !== null,
+    "le correcteur s'abstient sur une protéine sous son plancher — la bande morte est revenue",
+  );
+  assert(f!.protein > 1, `la protéine doit grossir: ×${f!.protein}`);
+
+  // ⚠️ ET LA ZONE MORTE GARDE SON SENS SUR L'ÉNERGIE. Sans cette moitié, le
+  // test passerait aussi bien sur une zone morte retirée partout — et chaque
+  // génération serait réécrite pour ±3 %.
+  const bothFine = scaleFactorsFor({
+    computedKcal: perfectKcal,
+    computedProteinG: floor * 1.05,
+    proteinFoodKcal: 600,
+    otherScalableKcal: 900,
+    proteinFoodProteinG: floor,
+    envelope: PER_KG,
+    daysCovered: 1,
+    resolvedShare: 1,
+  });
+  assertEquals(bothFine, null, "un plan déjà juste sur les deux axes a été remué");
+});
