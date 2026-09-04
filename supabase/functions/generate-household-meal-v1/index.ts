@@ -7869,6 +7869,30 @@ Deno.serve(async (req) => {
           )
           .map((row) => ({ memberId: row.memberId, day: row.day, unmetKcal: row.unmetKcal ?? 0 })),
         densityOf: densityFromComposition(composition, meal.preparations),
+        // ⛔ CE QU'IL RESTE DANS CHAQUE CASSEROLE, toutes boîtes déjà servies —
+        // `box_counts.sum_over` a rendu son verdict AVANT ce point, sur les
+        // grammes du modèle; sans cette borne, un déplacement pourrait sur-tirer
+        // une casserole sans qu'aucun compteur ne le voie.
+        potRoom: (() => {
+          const drawn = new Map<string, number>();
+          for (const dish of meal.dishes) {
+            for (const box of dish.boxes) {
+              for (const item of box.items) {
+                if (item.preparationId === null) continue;
+                const g = Number(item.grams);
+                if (!Number.isFinite(g) || g <= 0) continue;
+                drawn.set(item.preparationId, (drawn.get(item.preparationId) ?? 0) + g);
+              }
+            }
+          }
+          const room = new Map<string, number>();
+          for (const prep of meal.preparations) {
+            const ready = preparationReadyGrams(prep.ingredients, composition);
+            if (ready === null) continue;
+            room.set(prep.id, ready - (drawn.get(prep.id) ?? 0));
+          }
+          return room;
+        })(),
       })
       : null;
     if (densify !== null) {

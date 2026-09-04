@@ -36,6 +36,18 @@
  *   · MASSE CONSERVÉE, à l'octet: la boîte pèse après ce qu'elle pesait avant.
  *     C'est la propriété testée en premier, parce qu'elle dit que ce module ne
  *     contourne pas le plafond qu'il complète.
+ *   · LA CASSEROLE N'EST PAS SUR-TIRÉE (2026-09-04, relecture d'une session
+ *     voisine): la masse d'une boîte est conservée, mais un gramme déplacé des
+ *     légumes vers le couscous TIRE davantage sur la casserole de couscous — et
+ *     102 boîtes sur 187 mesurées portent deux casseroles ou plus. Or le compteur
+ *     qui verrait un dépassement (`box_counts.sum_over`, tronc) tourne AVANT ce
+ *     module, sur les grammes du modèle: une mutation en aval de son compteur ne
+ *     rougit jamais. Chaque déplacement vers un item qui cite une casserole est
+ *     donc borné par ce qu'il RESTE dans cette casserole (`potRoom`, grammes
+ *     prêts moins ce que toutes les boîtes en tirent déjà); une casserole déjà
+ *     sur-tirée (marge ≤ 0) n'est jamais une cible, et l'arrêt se compte
+ *     (`pot_exhausted`). Mesuré au nominal: 4 casseroles sur 6 déjà en
+ *     dépassement sur un plan — ce module n'y ajoute rien.
  *
  * ⛔ CE QUE CE MODULE NE FAIT PAS: il n'AJOUTE rien (pas de pain, pas d'huile
  * que la personne n'a pas déclarés), il ne change pas les ingrédients, il ne
@@ -105,7 +117,7 @@ export interface DensifyDeficit {
 }
 
 export const DENSIFY_STOPS = Object.freeze(
-  ["closed", "floor", "ceiling", "no_dense_target", "no_box", "no_density"] as const,
+  ["closed", "floor", "ceiling", "pot_exhausted", "no_dense_target", "no_box", "no_density"] as const,
 );
 export type DensifyStop = (typeof DENSIFY_STOPS)[number];
 
@@ -146,7 +158,19 @@ export function densifyBoxes(args: {
   boxes: readonly DensifyBox[];
   deficits: readonly DensifyDeficit[];
   densityOf: DensityOf;
+  /**
+   * Ce qu'il RESTE dans chaque casserole, en grammes prêts, toutes boîtes
+   * déjà servies. Absente ou sans entrée pour une casserole: pas de borne
+   * (on ne sait pas), comme aujourd'hui. Une marge ≤ 0 ferme la cible.
+   */
+  potRoom?: ReadonlyMap<string, number>;
 }): DensifyResult {
+  const potRoom = new Map<string, number>(args.potRoom ?? []);
+  const roomOf = (item: DensifyItem): number => {
+    if (item.preparationId === null) return Number.POSITIVE_INFINITY;
+    const r = potRoom.get(item.preparationId);
+    return r === undefined ? Number.POSITIVE_INFINITY : r;
+  };
   const moves: DensifyMove[] = [];
   const gramsOut = new Map<string, number[]>();
   const remaining: DensifyDeficit[] = [];
@@ -195,20 +219,24 @@ export function densifyBoxes(args: {
         let best: { src: number; dst: number; gain: number; room: number } | null = null;
         let floorBlocked = false;
         let ceilingBlocked = false;
+        let potBlocked = false;
         for (const [src, ds] of p.dens.entries()) {
           if (ds.kcalPerGram === null) continue;
           const srcRoom = p.grams[src] - floorOf(original[src], ds.group);
           for (const [dst, dd] of p.dens.entries()) {
             if (dst === src || dd.kcalPerGram === null || dd.kcalPerGram <= ds.kcalPerGram) continue;
             const dstRoom = ceilingOf(original[dst], dd.group) - p.grams[dst];
+            const potLeft = roomOf(p.box.items[dst]);
             if (srcRoom <= 0) { floorBlocked = true; continue; }
             if (dstRoom <= 0) { ceilingBlocked = true; continue; }
+            if (potLeft <= 0) { potBlocked = true; continue; }
             const gain = dd.kcalPerGram - ds.kcalPerGram;
-            if (best === null || gain > best.gain) best = { src, dst, gain, room: Math.min(srcRoom, dstRoom) };
+            const room = Math.min(srcRoom, dstRoom, Math.floor(potLeft));
+            if (best === null || gain > best.gain) best = { src, dst, gain, room };
           }
         }
         if (best === null) {
-          stop = floorBlocked ? "floor" : ceilingBlocked ? "ceiling" : "no_dense_target";
+          stop = floorBlocked ? "floor" : ceilingBlocked ? "ceiling" : potBlocked ? "pot_exhausted" : "no_dense_target";
           break;
         }
         const g = Math.min(Math.ceil(left / best.gain), best.room);
@@ -221,6 +249,11 @@ export function densifyBoxes(args: {
         }
         p.grams[best.src] -= g;
         p.grams[best.dst] += g;
+        // La casserole cible est tirée de g de plus, la source de g de moins.
+        const dstPrep = p.box.items[best.dst].preparationId;
+        const srcPrep = p.box.items[best.src].preparationId;
+        if (dstPrep !== null && potRoom.has(dstPrep)) potRoom.set(dstPrep, potRoom.get(dstPrep)! - g);
+        if (srcPrep !== null && potRoom.has(srcPrep)) potRoom.set(srcPrep, potRoom.get(srcPrep)! + g);
         left -= g * best.gain;
         movedG += g;
         closedKcal += g * best.gain;

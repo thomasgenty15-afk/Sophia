@@ -109,6 +109,42 @@ Deno.test("⛔ UN ITEM NON RÉSOLU N'EST NI SOURCE NI CIBLE — l'énergie invis
   assert(out.moves.every((m) => m.fromIndex !== 0 && m.toIndex !== 0));
 });
 
+Deno.test("⛔ LA CASSEROLE N'EST PAS SUR-TIRÉE: un déplacement est borné par ce qu'il reste dans la casserole cible", () => {
+  // Le riz cite `prep_rice`, dont il ne reste que 20 g toutes boîtes servies.
+  // Sans la borne, 60 kcal / 0,9 = 67 g partiraient des légumes vers le riz —
+  // et mercredi il manquerait du riz que lundi a pris. Avec: 20 g, et l'arrêt
+  // se nomme `pot_exhausted`.
+  const b: DensifyBox = {
+    boxId: "b", memberId: LEA, day: "fri", slot: "dinner",
+    items: [
+      { term: "légumes rôtis", grams: 300, preparationId: "prep_veg" },
+      { term: "riz complet", grams: 200, preparationId: "prep_rice" },
+    ],
+  };
+  const out = densifyBoxes({
+    boxes: [b], deficits: [{ memberId: LEA, day: "fri", unmetKcal: 60 }], densityOf,
+    potRoom: new Map([["prep_rice", 20], ["prep_veg", 500]]),
+  });
+  const after = out.grams.get("b")!;
+  assertEquals(after[1], 220, "le riz a tiré plus que ce qu'il reste dans sa casserole");
+  assertEquals(mass(after), 500);
+  assertEquals(out.counts.stopped.pot_exhausted, 1);
+  assert(out.remaining[0].unmetKcal > 0);
+  // Une casserole déjà SUR-TIRÉE (marge ≤ 0) n'est jamais une cible.
+  const over = densifyBoxes({
+    boxes: [b], deficits: [{ memberId: LEA, day: "fri", unmetKcal: 60 }], densityOf,
+    potRoom: new Map([["prep_rice", -35]]),
+  });
+  assertEquals(over.moves, []);
+  assertEquals(over.counts.stopped.pot_exhausted, 1);
+  // Une casserole INCONNUE de la carte n'est pas bornée: on ne sait pas, comme avant.
+  const unknown = densifyBoxes({
+    boxes: [b], deficits: [{ memberId: LEA, day: "fri", unmetKcal: 60 }], densityOf,
+    potRoom: new Map([["prep_other", 1]]),
+  });
+  assert(unknown.grams.get("b")![1] > 220, "une casserole inconnue a été bornée");
+});
+
 Deno.test("sans item plus dense, rien ne bouge — et c'est DIT (`no_dense_target`)", () => {
   const b = box([["riz complet", 200], ["couscous cuit", 200]]);
   const out = densifyBoxes({ boxes: [b], deficits: [{ memberId: LEA, day: "fri", unmetKcal: 100 }], densityOf });
@@ -238,4 +274,9 @@ Deno.test("CÂBLAGE — le générateur densifie APRÈS unmetDemand, sur les seu
   // Compté sur les deux surfaces, même à zéro.
   assertEquals((src.match(/densify: densifyCounts,/g) || []).length, 2, "le compteur ne sort pas sur le journal ET l'archive");
   assert(/skipped: "no_composition"/.test(src), "« pas de référentiel » ne se distingue plus de « rien à faire »");
+  // ⛔ ET LA CASSEROLE EST BORNÉE PAR CE QU'IL EN RESTE, toutes boîtes servies:
+  // `sum_over` a rendu son verdict avant, sur les grammes du modèle.
+  const potAt = src.indexOf("potRoom: (() => {");
+  assert(potAt > densifyAt && potAt < logAt, "la marge des casseroles n'est pas passée à la densification");
+  assert(/room\.set\(prep\.id, ready - \(drawn\.get\(prep\.id\) \?\? 0\)\);/.test(src), "la marge n'est plus « prêt moins déjà tiré »");
 });
