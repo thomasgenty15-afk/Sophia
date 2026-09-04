@@ -239,3 +239,67 @@ Deno.test("les deux vocabulaires sont clos", () => {
 Deno.test("l'ordre d'ouverture et l'ordre du jour portent les MÊMES six moments", () => {
   assertEquals([...SLOT_OPENING_ORDER].sort(), [...SLOT_DAY_ORDER].sort());
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CÂBLAGE — la dérivation est BRANCHÉE, et au bon endroit
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// ⚠️ CES TESTS LISENT LA SOURCE DU GÉNÉRATEUR. C'est le seul moyen d'attraper
+// un débranchement: une fonction pure parfaitement testée que plus personne
+// n'appelle reste verte pour toujours — « un paramètre de garde optionnel est
+// une garde désarmée », et une garde non appelée l'est encore plus.
+
+function stripComments(src: string): string {
+  return src.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/.*$/gm, "$1");
+}
+
+async function householdSource(): Promise<string> {
+  return stripComments(
+    await Deno.readTextFile(
+      new URL("../../generate-household-meal-v1/index.ts", import.meta.url),
+    ),
+  );
+}
+
+Deno.test("CÂBLAGE — la lane foyer DÉRIVE les moments, et écrit le résultat", async () => {
+  const src = await householdSource();
+  assert(
+    src.includes("eatingStructureFor({"),
+    "la dérivation n'est plus appelée: le module resterait vert et le produit " +
+      "servirait trois assiettes à qui en a besoin de cinq",
+  );
+  assert(
+    src.includes("m.eatingSlots = structure.slots.map"),
+    "la dérivation est calculée puis JETÉE: rien ne propage les moments ouverts",
+  );
+});
+
+Deno.test("⛔ CÂBLAGE — la dérivation passe AVANT l'union, et après le corps", async () => {
+  const src = await householdSource();
+  const pace = src.indexOf("const paceByMember = new Map");
+  const derive = src.indexOf("eatingStructureFor({");
+  const union = src.indexOf("const eatingRhythm = ((): EatingOccasionSlot[]");
+  const prompt = src.indexOf("buildMealPrompt(");
+
+  assert(pace > 0 && derive > 0 && union > 0 && prompt > 0, "un repère a disparu");
+  // Le cran de rythme AVANT: sans lui, `mouthTargetKcal` retombe sur le rythme
+  // par défaut et ouvre un moment de moins que ce que le plan servira.
+  assert(pace < derive, "le cran de rythme est lu APRÈS la dérivation");
+  // L'union APRÈS: ce qu'on ouvre doit entrer dans la grille du plan.
+  assert(derive < union, "la dérivation passe après l'union: rien n'est composé");
+  // Et tout cela avant que le brief ne soit écrit.
+  assert(union < prompt, "l'union passe après le prompt");
+});
+
+Deno.test("⛔ CÂBLAGE — la trace de structure ne porte ni kcal ni identifiant", async () => {
+  const src = await householdSource();
+  const i = src.indexOf('tag: "keel.household_meal.structure"');
+  assert(i > 0, "la trace de la dérivation a disparu");
+  const block = src.slice(i - 400, i + 300);
+  for (const interdit of ["kcal", "target", "memberId", "member_id"]) {
+    assert(
+      !block.includes(interdit),
+      `la trace porte \`${interdit}\`: un chiffre sur la personne sort du moteur`,
+    );
+  }
+});

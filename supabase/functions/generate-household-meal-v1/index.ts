@@ -410,7 +410,12 @@ import {
   MEAL_STRUCTURE_STATES,
   type SlotExtraKcal,
   mealStructureState,
+  mouthTargetKcal,
 } from "../_shared/keel/mouth_anchor.ts";
+import {
+  type EatingStructure,
+  eatingStructureFor,
+} from "../_shared/keel/eating_structure.ts";
 import {
   boxEnergies,
   type MouthDayEnergy,
@@ -2386,11 +2391,63 @@ Deno.serve(async (req) => {
       if (m.body === null || m.body.restrictionFlag === null) return "unreadable";
       return m.body.restrictionFlag ? "raised" : "clear";
     };
+    // ⟳ 2026-09-04 — LE CRAN DE RYTHME EST HISSÉ ICI, ET C'EST FF-060 QUI
+    // L'EXIGE. Il vivait 4 400 lignes plus bas, après le modèle, parce que son
+    // seul lecteur était le dimensionnement des boîtes. La dérivation des
+    // moments (`eatingStructureFor`) le lit AVANT le prompt: sans lui,
+    // `mouthTargetKcal` retombe sur `DEFAULT_PACE_KG_PER_WEEK`, et une bouche
+    // en prise rapide se verrait ouvrir UN MOMENT DE MOINS que ce que son plan
+    // lui servira. Deux comptes du même besoin, à deux endroits.
+    //
+    // ⚠️ IL NE DÉPEND QUE DE `members` ET DE `householdId`, tous deux résolus
+    // bien avant. Le déplacer ne change aucune valeur — seulement le moment où
+    // elle est connue.
+    const paceByMember = new Map<string, number>();
+    {
+      const linePaces = await admin
+        .from("household_members")
+        .select("member_id, target_pace_kg_per_week")
+        .eq("household_id", householdId);
+      // Une lecture EN ÉCHEC ne fait pas tomber un dîner: elle laisse la table
+      // vide, donc tous les facteurs à 1, donc le plan d'hier. Se fermer rend le
+      // produit d'avant; lever ferait perdre la cuisson du samedi soir pour un
+      // curseur que personne n'a réglé.
+      for (const row of (linePaces.data ?? []) as Array<Record<string, unknown>>) {
+        const id = String(row.member_id ?? "").trim();
+        const pace = Number(row.target_pace_kg_per_week);
+        if (id && Number.isFinite(pace) && pace > 0) paceByMember.set(id, pace);
+      }
+
+      const accountIdsForPace = members
+        .map((m) => m.userId)
+        .filter((id): id is string => typeof id === "string" && id.length > 0);
+      if (accountIdsForPace.length > 0) {
+        const goalPaces = await admin
+          .from("student_goals")
+          .select("user_id, target_pace_kg_per_week")
+          .in("user_id", accountIdsForPace);
+
+      for (const row of (goalPaces.data ?? []) as Array<Record<string, unknown>>) {
+          const uid = String(row.user_id ?? "").trim();
+          const member = members.find((m) => m.userId === uid);
+          if (!member) continue;
+          const pace = Number(row.target_pace_kg_per_week);
+          // ⚠️ UN `null` CÔTÉ COMPTE N'EFFACE PAS LA LIGNE. « Cette personne n'a
+          // rien réglé dans son about you » et « elle a réglé zéro » ne sont pas
+          // la même phrase; seule une valeur utilisable prend la main.
+          if (Number.isFinite(pace) && pace > 0) paceByMember.set(member.memberId, pace);
+        }
+      }
+    }
+
     // COMBIEN DE POIDS DIFFÉRENTS LA TABLE SERT — le seul résultat du moteur
     // qui entre dans le prompt, et il n'y entre que comme un NOMBRE DE BOÎTES.
-    // ⚠️ Le cran de rythme (`paceByMember`) n'est lu qu'APRÈS le modèle: ce
-    // compte porte donc la part de FICHE seule. Il ne peut être que bas d'une
-    // unité, jamais haut — voir `weightGroupCount`.
+    // ⚠️ Le cran de rythme (`paceByMember`) N'ENTRE PAS dans ce compte, et ce
+    // n'est plus parce qu'il est inconnu ici — ⟳ 2026-09-04, il est désormais lu
+    // juste au-dessus. C'est un choix: ce compte part au PROMPT, et l'y faire
+    // dépendre du curseur changerait le brief d'une population qui n'a rien
+    // changé à sa fiche. Il porte donc la part de FICHE seule, et ne peut être
+    // que bas d'une unité, jamais haut — voir `weightGroupCount`.
     const promptWeightGroups = weightGroupCount(
       bodyShareFactors(
         members.map((m) => ({
@@ -3215,6 +3272,104 @@ Deno.serve(async (req) => {
     // de la maison, sans que personne l'ait dit. Ce que la taille d'une bouche
     // gouverne est SA part, et c'est `buildPortionBrief` qui l'écrit, ligne par
     // ligne.
+    // ══════════════════════════════════════════════════════════════════════
+    // FF-060 — LES MOMENTS SUIVENT LE BESOIN DU CORPS
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // Fiche: `docs/fonctionnalites/composition-des-repas/FF-060-...md`
+    //
+    // ── POURQUOI ICI, ENTRE LE CORPS ET L'UNION ──────────────────────────
+    // Après `lineBodies`, `restrictionOf`, `conditionRefsOf` et `paceByMember`
+    // (hissé pour ça) — donc la cible est calculable. AVANT l'union, parce que
+    // ce qu'on ouvre doit entrer dans la grille du plan. Tout ce qui suit lit
+    // `m.eatingSlots`: l'union juste en dessous, la ligne « eats at … only » du
+    // brief, `member_portions.eating_slots` servi à l'écran, `mouthCells`, et
+    // `declaredSlots` de l'ancre. **Un seul acte, et ils suivent tous.**
+    //
+    // ── DEUX PASSES, POUR ROMPRE UN CYCLE ────────────────────────────────
+    // La base d'une bouche à `null` est « les moments de la maison », donc
+    // l'union — qui dépend de la dérivation. On calcule donc d'abord ce que la
+    // maison DÉCLARE (sans rien d'ouvert), puis on dérive par bouche.
+    //
+    // ⛔ `blockedSlots` GAGNE TOUJOURS. Ce que la personne a nommé absent n'est
+    // jamais rouvert: on prend le moment suivant. Le précédent est mesuré
+    // (`skills/weight_divergence`) — le produit a déjà proposé une collation
+    // l'après-midi à quelqu'un dont le problème était le matin, et ça s'appelle
+    // « se tromper deux fois et perdre sa confiance ».
+    const houseDeclaredSlots: string[] = (() => {
+      const bySlot = new Set<string>(
+        parseEatingRhythm([
+          ...(Array.isArray(pc?.eating_rhythm) ? pc!.eating_rhythm as unknown[] : []),
+          ...members.flatMap((m) => (m.eatingSlots ?? []).map((o) => o.slot)),
+        ]).map((o) => o.slot),
+      );
+      for (const occasion of retainedRhythm.present) bySlot.add(occasion);
+      for (const occasion of retainedRhythm.absent) bySlot.delete(occasion);
+      return bySlot.size > 0
+        ? EATING_OCCASIONS.filter((s) => bySlot.has(s))
+        : [...DEFAULT_EATING_RHYTHM.map((o) => o.slot)];
+    })();
+
+    const structureTally = {
+      derived: 0,
+      capped: 0,
+      no_target: 0,
+      no_body: 0,
+      opened_total: 0,
+      mouths_opened: 0,
+    };
+    const structureByMember = new Map<string, EatingStructure>();
+    for (const m of members) {
+      const body = lineBodies.get(m.memberId) ?? null;
+      const target = mouthTargetKcal({
+        memberId: m.memberId,
+        ageState: m.ageState,
+        restriction: restrictionOf(m),
+        body,
+        direction: m.goal === null ? null : scaleDirectionOf(m.goal),
+        paceKgPerWeek: paceByMember.get(m.memberId) ?? null,
+        // ⚠️ CE QUE LA BOUCHE A DÉCLARÉ, PAS CE QU'ON S'APPRÊTE À OUVRIR: la
+        // cible d'une JOURNÉE ne dépend pas du nombre de moments qui la
+        // portent. La confondre ferait monter le besoin avec le remède.
+        declaredSlots: (m.eatingSlots ?? []).map((o) => o.slot),
+        slotExtraKcal: null,
+        conditionRefs: conditionRefsOf(m.memberId),
+      }, coachCounting);
+      const structure = eatingStructureFor({
+        targetKcal: target.kcal,
+        weightKg: body?.weightKg ?? null,
+        declaredSlots: m.eatingSlots === null
+          ? houseDeclaredSlots
+          : m.eatingSlots.map((o) => o.slot),
+        blockedSlots: retainedRhythm.absent,
+      });
+      structureByMember.set(m.memberId, structure);
+      structureTally[structure.reason] += 1;
+      if (structure.opened.length === 0) continue;
+      structureTally.opened_total += structure.opened.length;
+      structureTally.mouths_opened += 1;
+      // ⛔ ON RÉÉCRIT L'OBJET MEMBRE, ET C'EST CE QUI PROPAGE. `resolveHandOff`
+      // pousse LES MÊMES objets dans `composedMembers` et `platedMembers`: une
+      // seule affectation atteint donc tous les lecteurs, sans qu'aucun d'eux
+      // ait à connaître FF-060.
+      //
+      // ⚠️ LES TAILLES DÉJÀ DÉCLARÉES SURVIVENT. Un moment ouvert n'a pas de
+      // taille (`null`), comme un `rhythm.set`: on sait qu'il existe, jamais
+      // ce qu'il pèse.
+      const held = new Map<string, EatingOccasionSlot>();
+      for (const o of m.eatingSlots ?? []) held.set(o.slot, o);
+      m.eatingSlots = structure.slots.map((slot) =>
+        held.get(slot) ?? { slot: slot as EatingOccasion, size: null }
+      );
+    }
+    // ⚠️ DES HISTOGRAMMES, JAMAIS UN KCAL NI UN IDENTIFIANT. La cicatrice est
+    // écrite ailleurs dans ce fichier: une trace nominative sur l'énergie de
+    // quelqu'un est un chiffre sur la personne, et il ne sort pas du moteur.
+    console.log(JSON.stringify({
+      tag: "keel.household_meal.structure",
+      ...structureTally,
+    }));
+
     const eatingRhythm = ((): EatingOccasionSlot[] => {
       const union = parseEatingRhythm([
         ...(Array.isArray(pc?.eating_rhythm) ? pc!.eating_rhythm as unknown[] : []),
@@ -6846,44 +7001,6 @@ Deno.serve(async (req) => {
     // valent donc `1`, et le plan produit est byte-identique à celui d'hier.
     // C'est le cas NOMINAL de ce lot le jour de sa livraison, pas une panne —
     // et c'est très exactement pourquoi les compteurs ci-dessous existent.
-    const paceByMember = new Map<string, number>();
-    {
-      const linePaces = await admin
-        .from("household_members")
-        .select("member_id, target_pace_kg_per_week")
-        .eq("household_id", householdId);
-      // Une lecture EN ÉCHEC ne fait pas tomber un dîner: elle laisse la table
-      // vide, donc tous les facteurs à 1, donc le plan d'hier. Se fermer rend le
-      // produit d'avant; lever ferait perdre la cuisson du samedi soir pour un
-      // curseur que personne n'a réglé.
-      for (const row of (linePaces.data ?? []) as Array<Record<string, unknown>>) {
-        const id = String(row.member_id ?? "").trim();
-        const pace = Number(row.target_pace_kg_per_week);
-        if (id && Number.isFinite(pace) && pace > 0) paceByMember.set(id, pace);
-      }
-
-      const accountIdsForPace = members
-        .map((m) => m.userId)
-        .filter((id): id is string => typeof id === "string" && id.length > 0);
-      if (accountIdsForPace.length > 0) {
-        const goalPaces = await admin
-          .from("student_goals")
-          .select("user_id, target_pace_kg_per_week")
-          .in("user_id", accountIdsForPace);
-
-      for (const row of (goalPaces.data ?? []) as Array<Record<string, unknown>>) {
-          const uid = String(row.user_id ?? "").trim();
-          const member = members.find((m) => m.userId === uid);
-          if (!member) continue;
-          const pace = Number(row.target_pace_kg_per_week);
-          // ⚠️ UN `null` CÔTÉ COMPTE N'EFFACE PAS LA LIGNE. « Cette personne n'a
-          // rien réglé dans son about you » et « elle a réglé zéro » ne sont pas
-          // la même phrase; seule une valeur utilisable prend la main.
-          if (Number.isFinite(pace) && pace > 0) paceByMember.set(member.memberId, pace);
-        }
-      }
-    }
-
       // ══════════════════════════════════════════════════════════════════
     // CE QUE CHAQUE BOUCHE PREND À CÔTÉ DU PLAT, EN KCAL PAR MOMENT
     // ══════════════════════════════════════════════════════════════════
