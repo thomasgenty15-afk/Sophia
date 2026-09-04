@@ -372,5 +372,45 @@ commence aujourd'hui — même composition vide, même 422, même phrase. **La s
 lot ajoute à cette réponse est la trace `spent_first_day_kept: single_day`**, c'est-à-dire
 la seule information qui permette aujourd'hui de savoir POURQUOI l'aperçu n'a pas abouti.
 
-**Nommé, pas corrigé** : donner sa vraie phrase à ce refus est un arbitrage de copie, et il
-appartient à qui décide ce que l'élève lit. Le serveur, lui, sait déjà tout ce qu'il faut.
+### ⟳ CORRIGÉ — `day_already_spent` (`eee96226`)
+
+J'avais écrit « nommé, pas corrigé : c'est un arbitrage de copie ». Une session voisine m'a
+montré que le dépôt a **déjà la forme exacte** et qu'elle venait de l'appliquer deux fois la
+même nuit (`mouth_unfed`, plutôt que réutiliser `empty_meal`). La décision tient en une
+question — *est-ce que la personne doit lire autre chose ?* — et ici la réponse est oui :
+la phrase actuelle est de la même famille que les deux que ce lot a déjà corrigées.
+
+**Trois fichiers, la forme du précédent** : un `error:` neuf côté serveur, une ligne dans
+`EDGE_REFUSAL_KEYS`, deux clés i18n.
+
+> « Ta journée est finie : tous tes repas d'aujourd'hui sont passés. **Demande un plan à
+> partir de demain.** »
+
+Elle dit la **cause** et la **sortie** — la précédente ne disait ni l'une ni l'autre.
+
+⛔ **Un troisième littéral, jamais un ternaire dans la clé.** `planRefusals.int.test.ts`
+scanne le générateur à la recherche de `error: "…"` **littéraux** : un jeton calculé y
+devient invisible, et le mot disparaîtrait de l'écran sans qu'aucun test ne rougisse. Le
+pavé sur place l'écrivait déjà.
+
+**Deux mutations, deux rouges, dans les deux sens** : le serveur qui cesse d'émettre le mot
+rend la clé **orpheline** ; la table qui perd le mot laisse le refus arriver **sans phrase**.
+
+**Confirmé en run réel** : Sydney 22 h 59, fenêtre d'un jour, HTTP 422 en 3,3 s sans appeler
+le modèle, `error: "day_already_spent"`, empreinte du code inchangée.
+
+### ⚠️ Et ce commit a demandé une chirurgie d'index — la leçon du jour
+
+`fr.ts` et `en.ts` portaient **trois hunks d'une troisième session** (cadences de courses,
+congélateur, rythme dérivé, shaker). Retirés de l'index par **patch inverse**, contenu
+vérifié intact dans l'arbre après coup.
+
+⛔ **Le compte de fichiers ne l'aurait PAS montré** : l'index annonçait exactement mes quatre
+chemins. C'est le **compte de lignes** qui a trahi — `+53` et `+88` là où mon ajout fait six
+lignes — puis la lecture des **clés** ajoutées. Les deux pièges de l'arbre partagé sont à des
+niveaux différents, et il faut les deux lectures :
+
+| niveau | ce qui arrive | ce qui l'attrape |
+|---|---|---|
+| **fichier** | un voisin a stagé SES fichiers dans l'index partagé | `git diff --cached --stat` : plus de fichiers que de chemins nommés |
+| **contenu** | un de MES fichiers porte AUSSI ses lignes | le compte de **lignes**, puis la relecture hunk par hunk |
