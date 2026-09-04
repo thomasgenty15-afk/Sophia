@@ -250,6 +250,10 @@ import {
   type UnfedRow,
   unfedRetryInstruction,
 } from "../_shared/keel/meals_delivered.ts";
+import {
+  densifyBoxes,
+  densityFromComposition,
+} from "../_shared/keel/box_densify.ts";
 // ── LE RÉGIME À TABLE (R4/R5) — LE DÉFAUT ① DE LA SPEC ─────────────────────
 // Avant le 2026-08-14, ce fichier ne portait AUCUNE occurrence du mot « diet »:
 // un maître végane recevait de la viande. Le moteur qui sait ce qu'un régime
@@ -7834,6 +7838,57 @@ Deno.serve(async (req) => {
       if (row.unmetKcal < 200) unmetBand.lt_200 += 1;
       else unmetBand.gte_200 += 1;
     }
+    // ── ⟳ 2026-09-04 — DENSIFIER DANS LA BOÎTE, quand le plafond a mordu ──────
+    // Le plafond de masse a raison de ne pas servir plus de volume; mais
+    // personne ne faisait l'autre geste. À masse constante, des grammes passent
+    // des items les moins denses vers les plus denses de la boîte de cette
+    // bouche (`box_densify.ts`, et pourquoi c'est l'algo et pas le modèle).
+    // Seuls les écarts `factor_clamped` / `both` — un écart `pot_ceiling` est
+    // celui d'un bac partagé, sans besoin unique à fermer.
+    const densify = composition
+      ? densifyBoxes({
+        boxes: meal.dishes.flatMap((dish) =>
+          dish.boxes
+            .filter((box) => box.memberIds.length === 1)
+            .map((box) => ({
+              boxId: box.id,
+              memberId: box.memberIds[0],
+              day: dish.day,
+              slot: dish.slot,
+              items: box.items.map((item) => ({
+                term: item.term,
+                grams: item.grams,
+                preparationId: item.preparationId,
+              })),
+            }))
+        ),
+        deficits: unmet
+          .filter((row) =>
+            (row.cause === "factor_clamped" || row.cause === "both") &&
+            row.unmetKcal !== null && row.unmetKcal > 0
+          )
+          .map((row) => ({ memberId: row.memberId, day: row.day, unmetKcal: row.unmetKcal ?? 0 })),
+        densityOf: densityFromComposition(composition, meal.preparations),
+      })
+      : null;
+    if (densify !== null) {
+      for (const dish of meal.dishes) {
+        for (const box of dish.boxes) {
+          const next = densify.grams.get(box.id);
+          if (!next) continue;
+          for (const [index, item] of box.items.entries()) {
+            const grams = next[index];
+            if (grams !== undefined) item.grams = grams;
+          }
+        }
+      }
+    }
+    // Compté MÊME À ZÉRO, et « pas de référentiel » se distingue de « rien à faire ».
+    const densifyCounts = densify === null ? { skipped: "no_composition" } : {
+      ...densify.counts,
+      remaining_lt_200: densify.remaining.filter((r) => r.unmetKcal < 200).length,
+      remaining_gte_200: densify.remaining.filter((r) => r.unmetKcal >= 200).length,
+    };
 
     // ══════════════════════════════════════════════════════════════════════
     // ⛔ LE MÊME OBJET, JOURNALISÉ — PARCE QUE `generated_from` N'EXISTE QUE
@@ -7868,6 +7923,7 @@ Deno.serve(async (req) => {
       pot_growth: growth,
       unmet: unmetCauses,
       unmet_band: unmetBand,
+      densify: densifyCounts,
       extras_floored: extrasFloored,
       activity: activityAnswers,
       activity_source: activitySources,
@@ -8202,6 +8258,7 @@ Deno.serve(async (req) => {
         // Histogrammes de motifs, comme leurs voisins: aucun kcal par bouche.
         unmet: unmetCauses,
         unmet_band: unmetBand,
+        densify: densifyCounts,
         extras_floored: extrasFloored,
         // ── LES DEUX LOTS DU 2026-08-20, COMPTÉS À PART L'UN DE L'AUTRE ───
         // ⚠️ TROIS HISTOGRAMMES ET PAS UN. `activity` dit ce que la fiche
