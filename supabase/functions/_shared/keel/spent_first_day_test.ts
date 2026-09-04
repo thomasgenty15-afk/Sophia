@@ -193,13 +193,20 @@ Deno.test("sans retrait, le timing d'avant ce lot ne bouge pas", () => {
  * (c'est arrivé à `cook_the_day_before_test.ts` le jour même) et ça reste vert
  * si quelqu'un ajoute un cinquième lecteur mal câblé.
  */
-async function laneSource(): Promise<string> {
-  // SANS SES COMMENTAIRES: ce fichier RACONTE le défaut qu'il ferme en nommant
-  // `dropped` et `planTimingOf` dans des pavés entiers. Un grep naïf y verrait
-  // le câblage qu'il cherche et resterait vert le jour où il part.
-  const src = await Deno.readTextFile(
-    new URL("../../generate-meal-v1/index.ts", import.meta.url),
-  );
+const LANES: readonly [string, string][] = [
+  ["solo", "../../generate-meal-v1/index.ts"],
+  // ⟳ 2026-09-04 — LA LANE FOYER EST ENTRÉE. Elle passait `{ dropped: null }`
+  // en dur, ce que le commentaire d'alors appelait « un aveu ». L'aveu est levé;
+  // les mêmes gardes de câblage la tiennent maintenant, et si quelqu'un la
+  // débranche c'est cette liste qui le dira.
+  ["foyer", "../../generate-household-meal-v1/index.ts"],
+];
+
+async function laneSource(rel: string): Promise<string> {
+  // SANS SES COMMENTAIRES: ces fichiers RACONTENT le défaut qu'ils ferment en
+  // nommant `dropped` et `planTimingOf` dans des pavés entiers. Un grep naïf y
+  // verrait le câblage qu'il cherche et resterait vert le jour où il part.
+  const src = await Deno.readTextFile(new URL(rel, import.meta.url));
   return src
     .split("\n")
     .map((l) => (l.trimStart().startsWith("//") ? "" : l))
@@ -207,60 +214,62 @@ async function laneSource(): Promise<string> {
     .replace(/\/\*[\s\S]*?\*\//g, "");
 }
 
-Deno.test("câblage — la lane solo passe son RETRAIT au timing, pas un zéro", async () => {
-  const code = await laneSource();
-  const appels = [...code.matchAll(/planTimingOf\(([^;]*?)\)/gs)];
-  assertEquals(appels.length, 1, "un seul appel attendu dans la lane solo");
-  const args = appels[0][1];
-  assert(
-    args.includes("spentFirstDay"),
-    `planTimingOf ne reçoit pas le retrait: ${args.trim()}`,
-  );
-  assert(
-    !/\{\s*dropped:\s*null\s*\}/.test(args),
-    "la lane solo passe un retrait en dur — c'est le débranchement",
-  );
-});
+for (const [nom, rel] of LANES) {
+  Deno.test(`câblage ${nom} — la lane passe son RETRAIT au timing, pas un zéro`, async () => {
+    const code = await laneSource(rel);
+    const appels = [...code.matchAll(/planTimingOf\(([^;]*?)\)/gs)];
+    assertEquals(appels.length, 1, `un seul appel attendu dans la lane ${nom}`);
+    const args = appels[0][1];
+    assert(
+      args.includes("spentFirstDay"),
+      `planTimingOf ne reçoit pas le retrait: ${args.trim()}`,
+    );
+    assert(
+      !/\{\s*dropped:\s*null\s*\}/.test(args),
+      `la lane ${nom} passe un retrait en dur — c'est le débranchement`,
+    );
+  });
 
-Deno.test("câblage — `daysToFill` se dérive APRÈS le retrait, jamais avant", async () => {
-  const code = await laneSource();
-  const retrait = code.indexOf("withoutSpentFirstDay({");
-  const derivation = code.indexOf("const daysToFill: string[] = windowDayOrder(");
-  assert(retrait > 0, "`withoutSpentFirstDay` n'est plus appelé dans la lane");
-  assert(derivation > 0, "`daysToFill` ne se dérive plus de `windowDayOrder`");
-  // ⛔ L'ORDRE EST LE CÂBLAGE. Dérivé avant, `daysToFill` porterait la fenêtre
-  // DEMANDÉE pendant que le verdict compterait la fenêtre RETENUE: deux vérités
-  // dans le même plan, et c'est très exactement le défaut qu'on ferme.
-  assert(
-    derivation > retrait,
-    "`daysToFill` est dérivé AVANT le retrait — la fenêtre annoncée et la fenêtre servie divergent",
-  );
-});
+  Deno.test(`câblage ${nom} — \`daysToFill\` se dérive APRÈS le retrait`, async () => {
+    const code = await laneSource(rel);
+    const retrait = code.indexOf("withoutSpentFirstDay({");
+    // ⚠️ LES DEUX LANES N'ÉCRIVENT PAS LA MÊME LIGNE: la solo annote
+    // `: string[]`, la foyer non. Chercher une ligne littérale ferait rougir ce
+    // test sur une annotation de type, ce qui n'est pas ce qu'il vérifie.
+    const derivation = code.search(/daysToFill(: string\[\])? = windowDayOrder\(/);
+    assert(retrait > 0, `\`withoutSpentFirstDay\` n'est plus appelé dans ${nom}`);
+    assert(derivation > 0, "`daysToFill` ne se dérive plus de `windowDayOrder`");
+    // ⛔ L'ORDRE EST LE CÂBLAGE. Dérivé avant, `daysToFill` porterait la fenêtre
+    // DEMANDÉE pendant que le verdict compterait la fenêtre RETENUE: deux
+    // vérités dans le même plan, et c'est le défaut qu'on ferme.
+    assert(
+      derivation > retrait,
+      `${nom}: \`daysToFill\` est dérivé AVANT le retrait — la fenêtre annoncée et la servie divergent`,
+    );
+  });
 
-Deno.test("câblage — une seule lecture de l'heure alimente les deux questions", async () => {
-  const code = await laneSource();
-  const lectures = [...code.matchAll(/slotsPassedToday\(\{/g)];
-  // Deux appels pourraient diverger, et c'est celui qu'on regarde le moins qui
-  // garderait l'ancien état. `passedToday` sert au retrait ET au retrait des
-  // moments passés plus bas.
-  assertEquals(lectures.length, 1, "l'heure doit être lue UNE fois dans la lane");
-  assert(code.includes("startsOn === todayDate ? passedToday : []"));
-});
+  Deno.test(`câblage ${nom} — une seule lecture de l'heure pour deux questions`, async () => {
+    const code = await laneSource(rel);
+    const lectures = [...code.matchAll(/slotsPassedToday\(\{/g)];
+    // Deux appels pourraient diverger, et c'est celui qu'on regarde le moins
+    // qui garderait l'ancien état.
+    assertEquals(lectures.length, 1, `l'heure doit être lue UNE fois dans ${nom}`);
+    assert(code.includes("startsOn === todayDate ? passedToday : []"));
+  });
 
-Deno.test("câblage — les deux refus qui comptent laissent une trace, les autres non", async () => {
-  const code = await laneSource();
-  // ⛔ SANS TRACE, UN LOT DÉSARMÉ RESSEMBLE TRAIT POUR TRAIT À UN LOT QUI
-  // MARCHE. Quand le retrait ne mord pas, il n'écrit rien: aucune sortie ne
-  // permet alors de dire si le module chargé est le neuf ou l'ancien. Les deux
-  // refus « la journée EST dépensée mais on garde le jour » sont donc dits.
-  assert(code.includes("spent_first_day_kept:"), "les refus utiles ne laissent aucune trace");
-  assert(code.includes('spentFirstDay.refused === "cook_day"'));
-  assert(code.includes('spentFirstDay.refused === "single_day"'));
-  // ⚠️ ET LES DEUX CAS ORDINAIRES RESTENT MUETS: une ligne de bruit sur chaque
-  // génération ferait cesser de lire le journal.
-  assert(
-    !code.includes('spentFirstDay.refused === "slots_remain"') &&
-      !code.includes('spentFirstDay.refused === "not_today"'),
-    "un refus ordinaire est journalisé — c'est du bruit sur chaque plan",
-  );
-});
+  Deno.test(`câblage ${nom} — les deux refus qui comptent laissent une trace`, async () => {
+    const code = await laneSource(rel);
+    // ⛔ SANS TRACE, UN LOT DÉSARMÉ RESSEMBLE À UN LOT QUI MARCHE: quand le
+    // retrait ne mord pas, aucune sortie ne dit quel module a été chargé.
+    assert(code.includes("spent_first_day_kept:"), `${nom}: aucun refus tracé`);
+    assert(code.includes('spentFirstDay.refused === "cook_day"'));
+    assert(code.includes('spentFirstDay.refused === "single_day"'));
+    // ⚠️ ET LES DEUX CAS ORDINAIRES RESTENT MUETS.
+    assert(
+      !code.includes('spentFirstDay.refused === "slots_remain"') &&
+        !code.includes('spentFirstDay.refused === "not_today"'),
+      `${nom}: un refus ordinaire est journalisé — du bruit sur chaque plan`,
+    );
+  });
+}
+

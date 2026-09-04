@@ -120,6 +120,7 @@ import {
   resolveRequestedWindow,
   withCookDayBefore,
   windowDayOrder,
+  withoutSpentFirstDay,
   windowStartsBeyondDayTokens,
 } from "../_shared/keel/meal_plan_window.ts";
 import {
@@ -3265,6 +3266,62 @@ Deno.serve(async (req) => {
     if (cookAhead.refused !== null) {
       issues.push(`cook_the_day_before_refused: ${cookAhead.refused}`);
     }
+
+    // ══ LA JOURNÉE DÉJÀ DÉPENSÉE SORT DE LA FENÊTRE (2026-09-04) ══════════
+    //
+    // Le même geste que la lane solo: trois jours demandés un jeudi à 20 h
+    // font un plan de DEUX jours, vendredi et samedi. On garde la fin, on ne
+    // rallonge jamais au bout. La nourriture servie ne bouge pas — les moments
+    // passés étaient déjà retirés de la composition; c'est la COMPTABILITÉ de
+    // la fenêtre et la franchise de l'écran qui se corrigent.
+    //
+    // ⚠️ ICI L'ORDRE NE POSE AUCUN PROBLÈME, et c'est la différence avec la
+    // lane solo. Là-bas, le rythme est parsé 280 lignes SOUS la veille et il a
+    // fallu descendre la dérivation. Ici `eatingRhythm` est déjà résolu bien
+    // au-dessus: on le lit sur place, rien ne bouge. Mesuré, pas supposé.
+    //
+    // ⛔ UNE SEULE LECTURE DE L'HEURE POUR DEUX QUESTIONS. `passedToday` sert à
+    // décider le retrait ET, plus bas, à retirer les moments passés du prompt.
+    // Deux appels à `slotsPassedToday` pourraient diverger, et c'est celui
+    // qu'on regarde le moins qui garderait l'ancien état.
+    //
+    // ⚠️ UN FOYER N'A QU'UN RYTHME, et c'est déjà vrai avant ce lot: c'est
+    // `eatingRhythm` que la lane passe au prompt et au parseur. Le retrait ne
+    // décide donc rien de nouveau sur les bouches — il lit la même chose que
+    // `slotsDroppedToday` lisait déjà.
+    const passedToday = startsOn === todayDate
+      ? slotsPassedToday({
+        hourNow,
+        rhythm: eatingRhythm.length > 0 ? eatingRhythm : DEFAULT_EATING_RHYTHM,
+        declaredHours: rhythmClockFrom(
+          Array.isArray(pc?.eating_rhythm) ? pc!.eating_rhythm : [],
+        ),
+      })
+      : [];
+    const spentFirstDay = withoutSpentFirstDay({ startsOn, durationDays }, {
+      today: todayDate,
+      // ⛔ LA GARDE DU PIÈGE. Si la veille de cuisine a reculé la fenêtre,
+      // aujourd'hui est un jour où l'on CUISINE et non où l'on mange: tous ses
+      // moments sont trivialement « passés », et le retirer mangerait la veille
+      // que le foyer vient de demander.
+      cookOnlyDay,
+      declaredSlots: (eatingRhythm.length > 0 ? eatingRhythm : DEFAULT_EATING_RHYTHM)
+        .map((r) => r.slot),
+      passedSlots: passedToday,
+    });
+    startsOn = spentFirstDay.startsOn;
+    durationDays = spentFirstDay.durationDays;
+    if (spentFirstDay.dropped !== null) {
+      issues.push(`spent_first_day_dropped: ${spentFirstDay.dropped}`);
+    } else if (
+      // Les deux refus qui veulent dire « la journée EST dépensée et on a gardé
+      // le jour quand même ». Les deux cas ORDINAIRES restent muets: une ligne
+      // sur chaque génération ferait cesser de lire le journal.
+      spentFirstDay.refused === "cook_day" ||
+      spentFirstDay.refused === "single_day"
+    ) {
+      issues.push(`spent_first_day_kept: ${spentFirstDay.refused}`);
+    }
     // ── CE QUE LA RÉPONSE, LA LIGNE ET L'ÉCRAN LISENT, ASSEMBLÉ UNE FOIS ────
     // ⛔ UNE SEULE EXPRESSION POUR TROIS DESTINATIONS. `timing` part dans la
     // réponse (l'aperçu le rend), dans `generated_from` (il reste lisible en
@@ -3272,14 +3329,7 @@ Deno.serve(async (req) => {
     // calculs du même fait divergeraient au premier ajustement — c'est la
     // forme de défaut que ce dépôt a déjà payée sur `usableCookDays`,
     // `addedCookDays` et `rationaleCookDays`.
-    // ⛔ `{ dropped: null }` EST UN AVEU, PAS UN DÉFAUT. Le retrait de la
-    // journée déjà dépensée (`withoutSpentFirstDay`, 2026-09-04) n'est posé que
-    // sur la lane SOLO: il demande le rythme corrigé au bon endroit du fichier,
-    // et cette lane-ci a son propre ordre que personne n'a mesuré. Le passer en
-    // dur ici rend l'absence VISIBLE au lecteur et au compilateur — un
-    // paramètre optionnel l'aurait rendue silencieuse, et un lot désarmé
-    // ressemble trait pour trait à un lot qui marche.
-    const planTiming: PlanTiming = planTimingOf(lead, cookAhead, { dropped: null });
+    const planTiming: PlanTiming = planTimingOf(lead, cookAhead, spentFirstDay);
 
     const declaredCapacity = readCookingCapacity(pc);
     // ⟳ A1 — `scope` SE DÉRIVE DES JOURS **MANGÉS**. Une fenêtre de deux jours
@@ -3390,15 +3440,12 @@ Deno.serve(async (req) => {
     // ⚠️ LE RYTHME PASSÉ EST LE RYTHME RÉSOLU, comme pour `resolveWindowPresence`
     // juste au-dessus: raisonner sur le brut ferait tomber des moments que la
     // consigne ne nomme pas.
-    const slotsDroppedToday = startsOn === todayDate
-      ? slotsPassedToday({
-        hourNow,
-        rhythm: eatingRhythm.length > 0 ? eatingRhythm : DEFAULT_EATING_RHYTHM,
-        declaredHours: rhythmClockFrom(
-          Array.isArray(pc?.eating_rhythm) ? pc!.eating_rhythm : [],
-        ),
-      })
-      : [];
+    //
+    // ⟳ 2026-09-04 — LA MÊME LECTURE QUE LE RETRAIT, pas une seconde. Et la
+    // condition reste `startsOn === todayDate` APRÈS le retrait: quand la
+    // journée dépensée a été retirée, la fenêtre ne commence plus aujourd'hui
+    // et il n'y a plus rien à retirer — `[]` est alors la bonne réponse.
+    const slotsDroppedToday = startsOn === todayDate ? passedToday : [];
     const awayDays = slotsDroppedToday.length === 0 ? declaredAway : (() => {
       const row = declaredAway.find((a) => a.day === todayToken);
       if (row && row.slots.length === 0) return declaredAway;
@@ -6123,10 +6170,8 @@ Deno.serve(async (req) => {
           }) as never,
           window: { startsOn, durationDays },
           requestedWindow: requestedWindowFacts,
-          // ⛔ `null` EST UN AVEU, comme le `{ dropped: null }` du timing plus
-          // haut: cette lane ne retire pas encore la journée dépensée. Un champ
-          // REQUIS plutôt qu'optionnel, pour que l'absence soit visible.
-          spentFirstDay: null,
+          // LE MÊME OBJET QUE LE TIMING, pas une seconde dérivation.
+          spentFirstDay: spentFirstDay.dropped,
           today: { localDate: todayDate, dayToken: todayToken as never },
           localMinuteOfDay,
           slotsDroppedToday,
