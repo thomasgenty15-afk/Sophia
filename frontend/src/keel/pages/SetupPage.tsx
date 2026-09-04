@@ -1,4 +1,4 @@
-import { parseAwayMarks } from "../lib/presenceMarks";
+import { type AwayMark, parseAwayMarks } from "../lib/presenceMarks";
 import React from "react";
 import { ChevronDown, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -179,6 +179,7 @@ import { presenceRoster } from "../lib/presenceRoster";
 import { browserLocalDate, catchUpWindowStart } from "../lib/useMealTicks";
 import { t, type MessageKey } from "../i18n/t";
 import { habitSlotsFor } from "../lib/habitSlots";
+import { useEatingStructure } from "../lib/useEatingStructure";
 import { formatDate } from "../i18n/format";
 // ⚠️ `HouseholdHabitsCard` N'EST PLUS MONTÉE ICI (2026-08-14). Elle reste le
 // bon écran pour RELIRE ce qu'une bouche mange, sur `/app/household`; dans
@@ -712,6 +713,25 @@ export default function SetupPage() {
   /** La bouche dont la grille de présence est ouverte. */
   const [awayFor, setAwayFor] = React.useState<string | null>(null);
   const [awayBusy, setAwayBusy] = React.useState(false);
+  /**
+   * « CHOISIR LES REPAS » — LA GRILLE DU TITULAIRE, OUVERTE OU NON.
+   *
+   * ⛔ C'EST UN ÉTAT À PART DE `awayFor`, ET LA COLONNE EN EST LA RAISON. Les
+   * deux ouvrent la MÊME grille et n'écrivent pas au même endroit: `awayFor`
+   * vise une ligne de `household_members` (la source `household`, ce que le
+   * maître déclare pour quelqu'un), celle-ci vise
+   * `student_goals.practical_constraints.away_days` (ce que la personne dit
+   * d'elle-même, la source que `/app/plan` écrit). D14 les tient séparées, et
+   * un seul état les aurait recollées au premier `setAwayFor(ownMemberId)`.
+   *
+   * ⚠️ ET C'EST LA SEULE QU'UN COMPTE SOLO PUISSE AVOIR. Sans foyer,
+   * `ownMemberId` est `null` — il n'existe aucune ligne membre où écrire, et
+   * `presenceRoster` refuse à juste titre de lui fabriquer une grille. Le
+   * tunnel n'avait donc AUCUN moyen de dire « ce midi-là je ne mange pas ici »
+   * avant son premier plan, alors que `/app/plan` le propose sous les dates
+   * depuis le premier jour.
+   */
+  const [selfPickerOpen, setSelfPickerOpen] = React.useState(false);
 
   // Le début pousse la fin devant lui, et la borne de sept jours la retient.
   // Même garde que `MealBuilder`: une fin AVANT le début est refusée par
@@ -1234,6 +1254,79 @@ export default function SetupPage() {
     envyWeek,
   ]);
 
+  // ⟳ 2026-09-04 — `selfMouthDraft` EST REMONTÉ AVEC LE CROCHET QUI LE LIT.
+  // C'est une valeur DÉRIVÉE de `self` et `selfTarget`, tous deux résolus bien
+  // au-dessus: la remonter ne change aucune valeur, seulement le moment où elle
+  // est connue. Elle devait suivre, parce qu'un crochet ne peut pas vivre plus
+  // haut que ce qu'il lit.
+  const selfMouthDraft: MouthFormDraft | null = self === null ||
+      selfTarget === null
+    ? null
+    : {
+      ...emptyMouthFormDraft(),
+      firstName: self.firstName,
+      birthDate: self.birthDate,
+      goal: self.goal,
+      heightCm: self.heightCm,
+      weightKg: self.weightKg,
+      gender: self.gender,
+      // `null` (personne n'a répondu) devient `""` dans ce vocabulaire-ci:
+      // les deux disent la même chose, et `tokens.ts` refuse un jeton
+      // d'ignorance des deux côtés.
+      activityLevel: self.activityLevel ?? "",
+      targetWeightKg: selfTarget.targetWeightKg,
+      paceKgPerWeek: selfTarget.paceKgPerWeek,
+      // ── ET CE QUI SE SAISIT DERRIÈRE LE BOUTON (2026-08-18) ──────────────
+      // Les blocs 4-6 de la fenêtre éditent CE brouillon-ci. Sans ces quatre
+      // lignes ils recevraient le vide de `emptyMouthFormDraft()` à chaque
+      // rendu, c'est-à-dire un formulaire qui oublie ce qu'on vient d'y taper.
+      allergies: self.allergies,
+      allergiesNone: self.allergiesNone,
+      habits: self.habits,
+      extras: self.extras,
+      dislikes: self.dislikes,
+      shaker: self.shaker,
+      diet: self.diet,
+      rhythm: self.rhythm,
+      // ── ① ET ⑤ — ILS MANQUAIENT, ET LES SIX CONTRÔLES ÉTAIENT INERTES ────
+      //
+      // « J'arrive pas à cocher les choix » (2026-08-24). Sans ces quatre
+      // lignes, la fenêtre recevait le vide d'`emptyMouthFormDraft()` à chaque
+      // rendu: un radio qu'on coche remonte dans `self`, `selfMouthDraft` se
+      // recalcule, et il rend `null`/`""` — donc le radio se décoche dans la
+      // même image. Exactement le défaut du RÉGIME, quatre jours plus tard.
+      //
+      // ⚠️ `null` ET `""` DISENT « PAS RÉPONDU » DANS LES DEUX VOCABULAIRES.
+      // On ne les traduit pas en « non »: `false` est une RÉPONSE qui fait
+      // monter la part du plat, et l'inventer écrirait un fait que personne
+      // n'a donné — cicatrice `auto-tick-writes-undeniable-false-facts`.
+      takesDessert: self.takesDessert,
+      takesCheese: self.takesCheese,
+      takesBread: self.takesBread,
+      appetite: self.appetite,
+    };
+
+  // ⚠️ AU-DESSUS DE LA PORTE DE MONTAGE, ET C'EST UNE RÈGLE DE REACT, PAS UN
+  // GOÛT. `useEatingStructure` est un crochet: appelé APRÈS le `return` de
+  // chargement, il ne s'exécute pas au premier rendu et l'ordre des crochets
+  // change d'un rendu à l'autre. `react-hooks/rules-of-hooks` l'a refusé au
+  // commit — la garde a fait exactement son travail.
+  //
+  // ⛔ IL SUPPORTE `null` PARTOUT: `prefsFor`, `self` et `plan` peuvent ne pas
+  // être lus ici. C'est la condition pour qu'il vive au-dessus de la porte.
+  const prefsDraft: MouthFormDraft | null = prefsFor === null
+    ? null
+    : prefsFor.kind === "self"
+    ? selfMouthDraft
+    : prefsFor.kind === "new"
+    ? mouth
+    : (memberPrefs?.draft ?? null);
+  const prefsStructure = useEatingStructure({
+    draft: prefsDraft,
+    active: prefsFor !== null,
+    todayLocalIso: browserLocalDate(),
+  });
+
   // ── LA PORTE DE MONTAGE ──────────────────────────────────────────────────
   // Aucun formulaire avant la fin de la lecture. Voir la règle 2 de l'en-tête:
   // un écran qui affiche du vide non lu finit toujours par le faire écrire.
@@ -1333,52 +1426,6 @@ export default function SetupPage() {
    * `null` tant que la lecture de la cible n'a pas eu lieu — la carte ne rend
    * alors rien du tout.
    */
-  const selfMouthDraft: MouthFormDraft | null = self === null ||
-      selfTarget === null
-    ? null
-    : {
-      ...emptyMouthFormDraft(),
-      firstName: self.firstName,
-      birthDate: self.birthDate,
-      goal: self.goal,
-      heightCm: self.heightCm,
-      weightKg: self.weightKg,
-      gender: self.gender,
-      // `null` (personne n'a répondu) devient `""` dans ce vocabulaire-ci:
-      // les deux disent la même chose, et `tokens.ts` refuse un jeton
-      // d'ignorance des deux côtés.
-      activityLevel: self.activityLevel ?? "",
-      targetWeightKg: selfTarget.targetWeightKg,
-      paceKgPerWeek: selfTarget.paceKgPerWeek,
-      // ── ET CE QUI SE SAISIT DERRIÈRE LE BOUTON (2026-08-18) ──────────────
-      // Les blocs 4-6 de la fenêtre éditent CE brouillon-ci. Sans ces quatre
-      // lignes ils recevraient le vide de `emptyMouthFormDraft()` à chaque
-      // rendu, c'est-à-dire un formulaire qui oublie ce qu'on vient d'y taper.
-      allergies: self.allergies,
-      allergiesNone: self.allergiesNone,
-      habits: self.habits,
-      extras: self.extras,
-      dislikes: self.dislikes,
-      shaker: self.shaker,
-      diet: self.diet,
-      rhythm: self.rhythm,
-      // ── ① ET ⑤ — ILS MANQUAIENT, ET LES SIX CONTRÔLES ÉTAIENT INERTES ────
-      //
-      // « J'arrive pas à cocher les choix » (2026-08-24). Sans ces quatre
-      // lignes, la fenêtre recevait le vide d'`emptyMouthFormDraft()` à chaque
-      // rendu: un radio qu'on coche remonte dans `self`, `selfMouthDraft` se
-      // recalcule, et il rend `null`/`""` — donc le radio se décoche dans la
-      // même image. Exactement le défaut du RÉGIME, quatre jours plus tard.
-      //
-      // ⚠️ `null` ET `""` DISENT « PAS RÉPONDU » DANS LES DEUX VOCABULAIRES.
-      // On ne les traduit pas en « non »: `false` est une RÉPONSE qui fait
-      // monter la part du plat, et l'inventer écrirait un fait que personne
-      // n'a donné — cicatrice `auto-tick-writes-undeniable-false-facts`.
-      takesDessert: self.takesDessert,
-      takesCheese: self.takesCheese,
-      takesBread: self.takesBread,
-      appetite: self.appetite,
-    };
 
   /**
    * CE QUE LA FENÊTRE ÉCRIT DANS LE BROUILLON DU TITULAIRE — ET OÙ ÇA VA.
@@ -1389,6 +1436,15 @@ export default function SetupPage() {
    * l'autre ferait, dans un sens, une seconde copie du corps qui se périme, et
    * dans l'autre, une cible écrasée à la prochaine relecture.
    */
+  // ══════════════════════════════════════════════════════════════════════
+  // FF-060 — CE QUE LE CORPS DE CETTE FICHE EXIGE
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // ⛔ AUCUN CALCUL ICI. `useEatingStructure` APPELLE le serveur, qui appelle
+  // le MÊME module pur que le générateur. Le jour où l'écran dériverait son
+  // propre compte, l'écran et le plan diraient deux choses différentes — et le
+  // désaccord serait invisible, parce que chacun aurait raison chez lui.
+
   const setSelfMouthDraft: React.Dispatch<
     React.SetStateAction<MouthFormDraft>
   > = (next) => {
@@ -1642,6 +1698,43 @@ export default function SetupPage() {
       patch: { household_size: mouths },
       source: "setup.chooseSize",
     });
+  }
+
+  /**
+   * CE QUE LE TITULAIRE DIT DE SA PROPRE SEMAINE — « Choisir les repas ».
+   *
+   * ⛔ LA MÊME COLONNE QUE `/app/plan`, JAMAIS UNE SECONDE.
+   * `StudentWeekPlanPage#saveAwayDays` écrit exactement ceci
+   * (`practical_constraints.away_days`, par `mergePracticalConstraints`), et le
+   * générateur la relit là. Passer par `setMemberAway` aurait rangé la réponse
+   * dans la colonne du FOYER — celle que le maître remplit POUR quelqu'un — et
+   * un compte solo n'y a même pas de ligne.
+   *
+   * ⚠️ ET ELLE ATTEINT LES DEUX GÉNÉRATEURS, ce qui n'est pas évident et se
+   * vérifie en SQL. `generate-meal-v1` la lit directement. Côté foyer,
+   * `generate-household-meal-v1` ne lit PLUS `practical_constraints` (il a
+   * cessé le jour de D14) — mais le roster la lui rend quand même: la vue
+   * concatène `keel_away_tagged(sg.practical_constraints -> 'away_days',
+   * 'self') || keel_away_tagged(hm.away_days, 'household')` sur la ligne
+   * membre du titulaire (`20260812130000_household_presence.sql`, l. 209).
+   * Sa déclaration compte donc pour LUI SEUL, jamais pour la table — ce que
+   * FF-002 §9 exige.
+   *
+   * ⚠️ LA PHOTO EST PRISE ICI, JUSTE AVANT. `mergePracticalConstraints` réécrit
+   * l'objet EN ENTIER: partir de `facts.practicalConstraints`, lu au montage de
+   * la page, effacerait tout ce qu'une autre carte de l'entonnoir y a écrit
+   * depuis — le régime, l'équipement, le rythme. Cicatrice « `current` périmé
+   * efface l'écriture d'avant », payée deux fois sur cette colonne.
+   */
+  async function saveSelfAway(next: AwayMark[]): Promise<void> {
+    const fresh = await readFunnelFacts(userId);
+    await mergePracticalConstraints({
+      userId,
+      current: fresh.practicalConstraints,
+      patch: { away_days: next },
+      source: "setup.mealPicker",
+    });
+    await load(false);
   }
 
   /**
@@ -3356,6 +3449,24 @@ export default function SetupPage() {
             awayFor={awayFor}
             onAwayFor={setAwayFor}
             awayBusy={awayBusy}
+            // ── « CHOISIR LES REPAS » — LE MÊME LIEN QUE `/app/plan` ───────
+            // ⚠️ LU DANS LA COLONNE QU'IL ÉCRIT, et pas dans le roster: c'est
+            // `practical_constraints.away_days`, la source que la personne
+            // déclare pour elle-même. La lire ailleurs ferait une grille qui
+            // montre autre chose que ce qu'elle enregistre.
+            selfAway={parseAwayMarks(facts.practicalConstraints?.away_days)}
+            selfPickerOpen={selfPickerOpen}
+            onSelfPicker={setSelfPickerOpen}
+            onSelfAwaySaved={(next) =>
+              guard(async () => {
+                setAwayBusy(true);
+                try {
+                  await saveSelfAway(next);
+                  setSelfPickerOpen(false);
+                } finally {
+                  setAwayBusy(false);
+                }
+              })}
             rhythm={plan.eatingRhythm}
             cookingShape={cookingShape}
             onCookingShape={setCookingShape}
@@ -3547,6 +3658,11 @@ export default function SetupPage() {
 
             ⚠️ `Modal` REND `null` FERMÉ SANS DÉMONTER SES ENFANTS: on la monte
             une fois, et le bloc déplié survit à une fermeture. */}
+        {/* ⚠️ FF-060 — LE BROUILLON EST NOMMÉ UNE FOIS. Il servait dans deux
+            expressions ternaires identiques (le `draft` et le calcul de
+            structure); deux copies auraient divergé au premier `kind` ajouté,
+            et le verrou aurait alors porté sur un autre corps que celui qu'on
+            édite. */}
         {prefsFor !== null && (
           prefsFor.kind === "self"
             ? selfMouthDraft !== null
@@ -3592,11 +3708,13 @@ export default function SetupPage() {
                 if (m && d) void guardMouth(() => saveMouthPreferences(m, d));
               }
             }}
-            draft={prefsFor.kind === "self"
-              ? selfMouthDraft!
-              : prefsFor.kind === "new"
-              ? mouth
-              : memberPrefs!.draft}
+            draft={prefsDraft!}
+            // ⚠️ FF-060 — CE QUE LE CORPS EXIGE, calculé sur le BROUILLON.
+            // Pas sur la ligne en base: au moment où on remplit, rien n'y est
+            // encore, et attendre l'enregistrement montrerait le verrou au
+            // RETOUR sur la fiche — trop tard pour expliquer ce qui vient
+            // d'être décidé.
+            structure={prefsStructure}
             onChange={prefsFor.kind === "self"
               ? setSelfMouthDraft
               : prefsFor.kind === "new"
@@ -6372,6 +6490,10 @@ function RequestStep({
   awayBusy,
   rhythm,
   onAwaySaved,
+  selfAway,
+  selfPickerOpen,
+  onSelfPicker,
+  onSelfAwaySaved,
   cookingShape,
   onCookingShape,
   oneCookingSession,
@@ -6402,6 +6524,25 @@ function RequestStep({
   awayBusy: boolean;
   rhythm: readonly EatingOccasionSlot[];
   onAwaySaved: (mouth: FunnelMouth, next: AwayDay[]) => void;
+  /**
+   * ── « CHOISIR LES REPAS » — CE QUE LE TITULAIRE DIT DE SA SEMAINE ────────
+   *
+   * ⛔ CE N'EST PAS `mouths[0].away`, ET LES DEUX NE SE REMPLACENT PAS. Ce qui
+   * arrive ici est `practical_constraints.away_days` — la source que la
+   * personne déclare pour ELLE-MÊME, celle que `/app/plan` écrit sous les
+   * dates. La liste des bouches, elle, porte la colonne du FOYER. D14 tient
+   * les deux séparées; les confondre ferait recopier la déclaration de
+   * quelqu'un dans la colonne du maître, où elle survivrait à sa rétractation.
+   *
+   * ⚠️ REQUIS, jamais `?`. Un champ optionnel ici n'aurait fait remonter aucun
+   * site de montage au compilateur, et le lien se serait construit sans être
+   * branché — « paramètre de garde optionnel = garde désarmée », payé sept
+   * fois par ce dépôt.
+   */
+  selfAway: readonly AwayMark[];
+  selfPickerOpen: boolean;
+  onSelfPicker: (open: boolean) => void;
+  onSelfAwaySaved: (next: AwayMark[]) => void;
   /**
    * LOT B — LE MODE DE CUISSON DEMANDÉ. `null` = « laisse décider », le défaut.
    *
@@ -6479,6 +6620,31 @@ function RequestStep({
   const [endDraft, setEndDraft] = React.useState(windowEnd);
   React.useEffect(() => setStartDraft(windowStart), [windowStart]);
   React.useEffect(() => setEndDraft(windowEnd), [windowEnd]);
+
+  /**
+   * COMBIEN DE MOMENTS SONT DÉJÀ ÉCARTÉS **DANS CETTE FENÊTRE** — le compte du
+   * lien, et rien d'autre.
+   *
+   * ⚠️ IL SE CALCULE SUR LES JOURS DEMANDÉS, PAS SUR TOUTE LA COLONNE. Une
+   * absence posée pour la semaine prochaine ne se voit pas dans un plan qui
+   * s'arrête dimanche: l'annoncer ferait lire « · 3 » au-dessus d'une grille
+   * où rien n'est coché. Même formule que `MealBuilder#awayInWindow`, au jeton
+   * près — deux comptes écrits séparément finiraient par afficher deux
+   * nombres pour la même semaine.
+   *
+   * ⚠️ `slots: []` VEUT DIRE « TOUTE LA JOURNÉE », pas « rien »: c'est la
+   * convention de la colonne, et elle compte donc pour autant de moments que
+   * la maison en a.
+   */
+  const selfAwayInWindow = React.useMemo(() => {
+    const inWindow = new Set<string>(planWindow.tokens);
+    return selfAway
+      .filter((a) => inWindow.has(a.day))
+      .reduce(
+        (n, a) => n + (a.slots.length === 0 ? rhythm.length : a.slots.length),
+        0,
+      );
+  }, [planWindow.tokens, rhythm.length, selfAway]);
 
   return (
     <>
@@ -6565,28 +6731,68 @@ function RequestStep({
           </div>
 
           {/* ══════════════════════════════════════════════════════════════
-              QUAND LA CUISINE A LIEU — LES DEUX SEULES QUESTIONS QUI RESTENT,
-              ET ELLES VIVENT AVEC LES DATES.
+              « CHOISIR LES REPAS » — LE MÊME LIEN QUE `/app/plan`, ET IL
+              MANQUAIT ICI.
               ══════════════════════════════════════════════════════════════
 
-              ⛔ ELLES ONT REMPLACÉ « LES JOURS OÙ TU CUISINES » (retiré le
-              2026-09-01). Le plan ne demande plus QUELS jours on cuisine — il
-              pose ses sessions lui-même — et il ne reste que deux choses que
-              la personne seule peut savoir: est-ce que tout tient en une fois,
-              et est-ce qu'elle peut s'y mettre la veille.
+              ── CE QU'IL FERME ────────────────────────────────────────────
+              L'entonnoir n'avait AUCUN moyen de dire « ce midi-là je ne mange
+              pas ici » avant son premier plan. La grille existait, mais elle
+              est per-BOUCHE (`presenceRoster`) et un compte solo n'a pas de
+              ligne membre: pas de foyer ⇒ `ownMemberId` à `null` ⇒ pas de
+              grille du tout. La première composition d'une personne seule
+              partait donc avec vingt-et-un repas à la maison, quoi qu'elle
+              vive.
 
-              ⚠️ LEUR PLACE EST ICI PARCE QU'ELLES PARLENT DE CALENDRIER.
-              « Je cuisine la veille » RECULE la date de début juste au-dessus:
-              les séparer ferait lire un décalage de date sans le geste qui le
-              cause. Et l'ordre compte — d'abord QUAND commence la cuisine,
-              ensuite si elle tient en une fois. */}
-          <OneCookingSessionField
-            id="setup-one-cooking-session"
-            value={oneCookingSession}
-            onChange={onOneCookingSession}
-            disabled={false}
-            hasFreezer={hasFreezer}
-          />
+              ⛔ ET IL N'EST PAS UN DOUBLON DE LA LISTE DÉPLIABLE. Les deux
+              ouvrent la même grille et n'écrivent PAS au même endroit: celle
+              d'en dessous vise `household_members.away_days` (ce que le maître
+              déclare POUR quelqu'un, source `household`), celle-ci vise
+              `practical_constraints.away_days` (ce que la personne dit
+              d'elle-même). D14 tient les deux sources séparées, et c'est la
+              seconde que `/app/plan` écrit depuis le premier jour.
+
+              ⚠️ MÊME CLÉ, MÊME PLACE, MÊME COMPTE. `meals.picker.open` — pas
+              un second libellé: `/app/setup` déclare déjà le namespace
+              `meals` (il monte `MealPickerGrid`), et deux textes écrits
+              séparément divergent au premier retouché. Sous les dates, parce
+              que la grille est DIMENSIONNÉE par elles. */}
+          {rhythm.length > 0 && (
+            <div>
+              <button
+                type="button"
+                onClick={() => onSelfPicker(true)}
+                // UN LIEN, DONC LA MARQUE (charte §2). `fig-700`/`paper` = 9,98:1.
+                className="text-xs font-medium text-fig-700 underline underline-offset-2 hover:text-fig-800"
+              >
+                {t("meals.picker.open")}
+                {selfAwayInWindow > 0 && (
+                  <span className="ml-1 font-normal text-ink-soft">
+                    · {selfAwayInWindow}
+                  </span>
+                )}
+              </button>
+              {/* MONTÉE MÊME FERMÉE — `Modal` rend `null` sans démonter — donc
+                  une grille modifiée survit à une fermeture accidentelle. Même
+                  posture que les trois autres écrans qui la montent.
+
+                  ⚠️ LE RYTHME EST CELUI DE LA MAISON, et c'est bien celui du
+                  titulaire: `plan.eatingRhythm` est SA réponse de l'étape 3.
+                  Passer `[]` rendrait une grille SANS LIGNE — un contrôle qu'on
+                  ne peut pas utiliser —, donc le lien ne s'affiche que quand il
+                  y a des moments à décocher. */}
+              <MealPickerGrid
+                open={selfPickerOpen}
+                onClose={() => onSelfPicker(false)}
+                days={planWindow.tokens}
+                dates={planWindow.dates}
+                rhythm={rhythm}
+                away={selfAway}
+                busy={awayBusy}
+                onSave={(next) => onSelfAwaySaved(next)}
+              />
+            </div>
+          )}
 
           {/* ── QUI EST LÀ, JOUR PAR JOUR — CONTRE LES DATES, ET REPLIÉ ─────
               L'étape 3 dit l'HABITUDE; ceci dit LA SEMAINE. C'est le tableau
@@ -6705,9 +6911,10 @@ function RequestStep({
               qui ne sort jamais, c'est-à-dire un lot désarmé qui ressemble à un
               lot qui marche.
 
-              Ce qui reste de la question — QUAND tombe la cuisine — est posé
-              plus haut, avec les dates: « tout cuisiner en une seule fois » et
-              « je cuisine la veille ».
+              Ce qui reste de la question — COMBIEN DE FOIS on cuisine — est
+              posé plus bas, sous le sélecteur de style: « tout cuisiner en une
+              seule fois » (« je cuisine la veille » a disparu le 2026-09-03,
+              le serveur la dérive).
 
               ⚠️ CÔTÉ MOTEUR RIEN N'EST RETIRÉ. `daysOutOfBatchReach` reste
               appelé par les deux lanes et par l'explication; il se tait
@@ -6757,12 +6964,60 @@ function RequestStep({
             disabled={false}
           />
 
+          {/* ══════════════════════════════════════════════════════════════
+              « TOUT CUISINER EN UNE SEULE FOIS » — SOUS LE SÉLECTEUR QU'ELLE
+              PRÉCISE, ET EN PLUS PETIT.
+              ══════════════════════════════════════════════════════════════
+
+              ⟳ 2026-09-04 — ELLE VIVAIT AVEC LES DATES, au motif que « quand
+              la cuisine a lieu » est une question de calendrier. Le motif se
+              défendait tant que « je cuisine la veille » était la case d'à
+              côté; celle-là a été retirée le 2026-09-03 (le serveur DÉRIVE la
+              veille), et il ne restait qu'une case isolée à trois champs de la
+              seule question qu'elle précise.
+
+              ⚠️ CE QU'ELLE PRÉCISE, ET C'EST ÉCRIT DANS L'AIDE DU SÉLECTEUR:
+              le style décide « du nombre de fois où le plan vous demande de
+              cuisiner » (`plan.cooking.style_hint`). Cette case en est le cas
+              extrême — une seule fois. Deux questions sur le même réglage, à
+              deux endroits de l'écran, se répondent en se contredisant.
+
+              ⛔ ET ELLE PASSE AVANT « COMBIEN DE COURSES », pas après. Une
+              seule course IMPLIQUE la session unique (`readGroceryRuns === 1`
+              entre par la même porte côté moteur): lire la cadence de courses
+              avant de savoir qu'on cuisine une seule fois ferait répondre deux
+              fois à la même chose.
+
+              ⚠️ LE MÊME COMPOSANT ET LE MÊME ORDRE QUE `/app/plan`. Deux
+              écrans qui posent la même question dans deux ordres se relisent
+              comme deux formulaires; `oneCookingSessionField.int.test.ts` lit
+              les deux sources et refuse l'écart. */}
+          <OneCookingSessionField
+            id="setup-one-cooking-session"
+            value={oneCookingSession}
+            onChange={onOneCookingSession}
+            disabled={false}
+            hasFreezer={hasFreezer}
+          />
+
+          {/* ⟳ 2026-09-04 — CE CHAMP NE PROPOSE PLUS CE QUE LE PLAN NE FERA
+              PAS, et les trois entrées de sa règle sont les trois champs qui
+              le précèdent à l'écran: le style juste au-dessus, la case « une
+              seule fois » entre les deux, et la fenêtre en haut de l'étape.
+              L'ordre du formulaire EST l'ordre de la dérivation — c'est
+              pourquoi on lit ses causes avant de lire son effet. */}
           <GroceryRunsField
             id="setup-grocery-runs"
             value={draft.groceryRuns}
             onChange={(next) =>
               onChange((prev) => prev === null ? prev : { ...prev, groceryRuns: next })}
             disabled={false}
+            style={draft.cookingStyle}
+            oneCookingSession={oneCookingSession}
+            // ⚠️ LA FENÊTRE DEMANDÉE (`durationDays`), pas le nombre de dates
+            // rendues: c'est la même borne que le serveur reçoit, et elle est
+            // déjà écrêtée à `MAX_WINDOW_DAYS`.
+            daysToEat={planWindow.durationDays}
           />
 
           {/* ── UN CHIFFRE, ET PLUS TROIS PASTILLES ────────────────────────

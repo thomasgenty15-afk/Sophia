@@ -6461,11 +6461,18 @@ export const fr: TranslatedMessages = {
   // ⛔ ELLE DIT CE QUI MANQUE ET OÙ, jamais « indisponible ». Un refus qui ne
   // nomme pas sa condition se lit comme un bouton mort — cicatrice mesurée
   // trois fois sur l'écran de réglages.
-  // ── « JE CUISINE LA VEILLE » (2026-09-01) ────────────────────────────
+  //
+  // ⟳ 2026-09-04 — UN FRAGMENT DE PARENTHÈSE, plus une phrase. Il se rend
+  // ENTRE PARENTHÈSES à côté du libellé (`CheckboxField#note`), et disparaît
+  // dès que le congélateur est déclaré. Ce qu'il perd (« sans lui, un plat ne
+  // tient que deux jours de plus ») est le POURQUOI; ce qu'il garde est ce que
+  // le refus doit dire pour se lever: quoi cocher, et où.
+  //
+  // ⛔ PAS DE PARENTHÈSES DANS LA CHAÎNE, ni de majuscule, ni de point final.
+  // Elles sont dans la markup: une chaîne qui les porterait se retrouverait un
+  // jour au milieu d'une phrase qui n'en veut pas.
   "plan.cooking.one_session_needs_freezer":
-    "Il faut un congélateur pour ça : sans lui, un plat cuisiné ne tient que " +
-    "deux jours de plus. Coche-le dans « Avec quoi vous cuisinez » pour ouvrir " +
-    "cette option.",
+    "nécessite de cocher le congélateur dans « Avec quoi vous cuisinez »",
   "plan.cooking.time_minutes": "{n} min",
   "plan.cooking.time_hours": "{n} h",
   "plan.cooking.time_required": "Dis combien de temps peut durer une session.",
@@ -7031,6 +7038,61 @@ export const fr: TranslatedMessages = {
   "plan.cooking.runs_one": "Une fois",
   "plan.cooking.runs_two": "Deux fois",
   "plan.cooking.runs_three": "Trois fois",
+  // ── L'OFFRE (2026-09-04) — CE QU'ON NE PROPOSE PAS, ET POURQUOI ───────
+  // ⛔ CHAQUE PHRASE EST UN MOTIF, JAMAIS « indisponible ». Une option qui
+  // disparaît sans raison se lit comme une panne, et la personne cherche le
+  // réglage manquant dans le mauvais écran.
+  //
+  // ⚠️ LES DEUX PREMIÈRES REMPLACENT LE CONTRÔLE, elles ne l'accompagnent pas:
+  // quand il n'y a qu'une réponse possible, il n'y a plus de question — on DIT
+  // ce qui va se passer. Les deux suivantes s'affichent SOUS la liste courte,
+  // à la place de l'aide générale.
+  //
+  // ⚠️ UN SEUL NOMBRE EST ÉCRIT EN TOUTES LETTRES dans tout ce bloc — le
+  // « Deux » de `runs_capped_days` —, et un test tient qu'il ne sort que
+  // lorsqu'il reste exactement deux cadences. Tous les autres sont interpolés
+  // ou absents: un plafond de moteur recopié dans une phrase est un mensonge
+  // qui attend qu'on retouche la constante.
+  "plan.cooking.runs_only_one_session":
+    "Une seule course : tu cuisines tout en une seule fois.",
+  // ⟳ 2026-09-04 (soir) — CES DEUX PHRASES DISAIENT LE MAUVAIS PLAFOND. Elles
+  // comptaient les JOURS (« ce plan ne couvre que deux jours »), c'est-à-dire
+  // combien de courses TIENNENT dans la fenêtre. La vraie question est combien
+  // il en FAUT, et c'est la conservation qui tranche: un lot couvre trois
+  // jours. Deux jours ⇒ UNE course, et l'écran en proposait deux.
+  "plan.cooking.runs_only_one_batch":
+    "Une seule course : ce que tu cuisines au départ tient jusqu'à la fin de " +
+    "ce plan.",
+  // ⚠️ « DEUX » EST LE SEUL NOMBRE ÉCRIT ICI, et il est tenu par un test: ce
+  // motif ne sort QUE lorsqu'il reste exactement deux cadences. Les deux
+  // autres nombres sont interpolés — la conservation est un paramètre, pas une
+  // constante de ce module.
+  "plan.cooking.runs_capped_days":
+    "Deux courses suffisent pour {n} jours : un plat cuisiné en tient {d}.",
+  // ══════════════════════════════════════════════════════════════════════
+  // ⟳ 2026-09-04 (soir) — ELLE COMPTAIT AU LIEU D'EXPLIQUER.
+  // ══════════════════════════════════════════════════════════════════════
+  //
+  // Elle disait « le plan ne cuisine pas trois fois : une troisième course
+  // n'aurait rien à acheter ». Le nombre n'intéresse personne — ce qui manque
+  // à la personne, c'est de savoir CE QU'EST une session de cuisine, parce que
+  // c'est l'unité sur laquelle toute la question repose. Elle ne l'a jamais
+  // été dite nulle part dans cet écran.
+  //
+  // ⛔ ELLE NE CITE PLUS AUCUN NOMBRE, ET C'EST VOULU: le seul qui comptait
+  // (« trois ») était le plafond du style, une valeur de moteur. La phrase dit
+  // maintenant le MÉCANISME — cuisiner d'avance, une course par session —, et
+  // elle reste vraie quel que soit le plafond.
+  //
+  // ⚠️ ELLE NOMME LA RÉPONSE CHOISIE, mot pour mot le libellé de l'option
+  // (`plan.cooking.style_minimal`). Un test tient cette jointure: le jour où
+  // l'option est renommée, la phrase qui la cite ne doit pas rester seule avec
+  // l'ancien mot.
+  "plan.cooking.runs_capped_style":
+    "Une session de cuisine, c'est un moment où tu cuisines plusieurs jours " +
+    "d'avance — et chacune commence par des courses. Avec « le moins " +
+    "possible », le plan en pose moins, donc il y a moins de passages au " +
+    "magasin.",
   "setup.missing.cooking_style": "Dis-nous comment tu veux cuisiner",
   "setup.missing.grocery_runs": "Dis-nous combien de courses tu acceptes",
 
@@ -7106,5 +7168,18 @@ export const fr: TranslatedMessages = {
     "Enregistré. Ce repas n'est plus compté comme oublié. Le chiffre du jour, lui, ne bouge pas encore - on garde tes mots, pas encore tes quantités.",
   "tracking.describe.error": "Ça n'a pas été enregistré - {message}",
   "tracking.describe.cancel": "Annuler",
+
+  // ── chantier-0904/FF-060 — les plages suivent le besoin — début ──
+  "household.mouth.rhythm_derived":
+    "D'après ce que tu as renseigné — le corps et l'activité de {who} — il faut {count} moments par jour. Ceux qui sont cochés ont été ajoutés et ne peuvent pas être retirés ici.",
+  "household.mouth.rhythm_derived_you":
+    "D'après ce que tu as renseigné — ton corps et ton activité — il te faut {count} moments par jour. Ceux qui sont cochés ont été ajoutés et ne peuvent pas être retirés ici.",
+  "household.mouth.rhythm_derived_why":
+    "Une assiette ne peut pas tout porter. C'est en répartissant la journée sur plus de moments qu'elle tient.",
+  "household.mouth.shake_composed":
+    "Le plan composera un shaker à boire l'après-midi pour {who}. Si {who} a déjà le sien, ajoute-le ci-dessous et le plan n'y touchera pas.",
+  "household.mouth.shake_composed_you":
+    "Le plan te composera un shaker à boire l'après-midi. Si tu as déjà le tien, ajoute-le ci-dessous et le plan n'y touchera pas.",
+  // ── chantier-0904/FF-060 — fin ──
 
 };

@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
+import type { EatingStructure } from "../api/eatingStructure";
 import { readFileSync } from "node:fs";
 
 import MouthFormDialog, {
@@ -108,6 +109,8 @@ function scene(args: {
    * autres champs de la scène, pas seulement de celui-là.
    */
   memberScoped?: boolean;
+  /** FF-060 — ce que le corps exige. `undefined` = pas de verrou. */
+  structure?: EatingStructure | null;
 }) {
   // `uiLocale()` lit le CHEMIN COURANT — la langue d'une page dépend de la
   // page, pas seulement du visiteur —, donc un rendu sans `location` sort en
@@ -158,6 +161,10 @@ function prefsHtml(args: Parameters<typeof scene>[0]): string {
       onClose: () => {},
       slots: s.slots ?? [...EATING_OCCASIONS],
       shakerPort: s.shakerPort,
+      // ⚠️ `null` PAR DÉFAUT — aucun verrou. C'est l'état de tous les cas déjà
+      // écrits ici, et la direction d'échec choisie: une structure absente ne
+      // désactive rien. Les cas de FF-060 la passent explicitement.
+      structure: args.structure ?? null,
       // ⚠️ `true` PARCE QUE C'EST LE CAS NOMINAL DE CETTE FENÊTRE: elle
       // s'ouvre sur `/app/household`, donc il y a un foyer, donc une ligne
       // membre. `false` est l'état d'un compte SOLO, et il a son propre cas
@@ -2335,5 +2342,182 @@ describe("les bulles de ce qui est pris à côté du plat", () => {
     expect(body).not.toContain(decode(en["household.mouth.takes_bread"]));
     // ⚠️ LE CAS QUI PASSE, à côté: la section qui les REMPLACE, elle, est là.
     expect(body).toContain(decode(en["household.mouth.extras_field"]));
+  });
+});
+
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FF-060 — LES PLAGES QUE LE CORPS EXIGE SONT COCHÉES, ET NE SE DÉCOCHENT PAS
+// ═══════════════════════════════════════════════════════════════════════════
+
+/** Une structure qui ouvre `snack_pm`, comme le serveur la rend. */
+const OPENED: EatingStructure = {
+  requiredCount: 4,
+  slots: ["breakfast", "lunch", "snack_pm", "dinner"],
+  opened: ["snack_pm"],
+  shake: "not_applicable",
+  reason: "derived",
+};
+
+describe("FF-060 — le verrou est un PLANCHER DE COMPTE, pas des moments nommés", () => {
+  // ⛔ CE QUI ÉTAIT FAUX AU PREMIER JET, MESURÉ À L'ÉCRAN LE 2026-09-04. Le
+  // verrou portait sur `structure.opened`. Sur une fiche où rien n'est coché,
+  // la dérivation ouvre les quatre moments depuis rien — donc les quatre se
+  // verrouillaient, et la personne ne pouvait PLUS JAMAIS dire qu'elle saute le
+  // petit-déjeuner. Un produit qui interdit de décrire ses propres repas a
+  // cessé d'être un produit.
+  //
+  // La contrainte réelle a toujours été « au moins N moments », jamais « ces
+  // N-là »: lesquels reste le choix de la personne.
+
+  const rythme = (...slots: EatingOccasion[]) =>
+    slots.map((slot) => ({ slot, size: null }));
+
+  it("au plancher, les moments cochés se verrouillent", () => {
+    const h = prefsHtml({
+      draft: { rhythm: rythme("breakfast", "lunch", "snack_pm", "dinner") },
+      structure: { ...OPENED, requiredCount: 4 },
+      locale: "fr",
+    });
+    expect(h).toContain('data-mouth-slot-locked="breakfast"');
+    expect(h).toContain('data-mouth-slot-locked="snack_pm"');
+  });
+
+  it("⛔ UN MOMENT NON COCHÉ N'EST JAMAIS VERROUILLÉ — on peut toujours en AJOUTER", () => {
+    const h = prefsHtml({
+      draft: { rhythm: rythme("breakfast", "lunch", "snack_pm", "dinner") },
+      structure: { ...OPENED, requiredCount: 4 },
+      locale: "fr",
+    });
+    expect(h).not.toContain('data-mouth-slot-locked="before_bed"');
+    const bloc = h.slice(h.indexOf("mouth-rhythm-before_bed"));
+    expect(bloc.slice(0, bloc.indexOf(">"))).not.toContain("disabled");
+  });
+
+  it("⛔ AU-DESSUS DU PLANCHER, TOUT SE DÉVERROUILLE — l'ÉCHANGE est permis", () => {
+    // Cinq cochés pour quatre requis: la personne peut retirer celui qu'elle
+    // veut. C'est exactement le geste que le premier jet interdisait.
+    const h = prefsHtml({
+      draft: {
+        rhythm: rythme("breakfast", "snack_am", "lunch", "snack_pm", "dinner"),
+      },
+      structure: { ...OPENED, requiredCount: 4 },
+      locale: "fr",
+    });
+    expect(h).not.toContain("data-mouth-slot-locked");
+  });
+
+  it("⛔ SANS STRUCTURE, AUCUNE CASE N'EST DÉSACTIVÉE", () => {
+    // La direction d'échec: une panne du serveur ne doit pas laisser quelqu'un
+    // avec un moment qu'il ne peut pas retirer et que personne n'explique.
+    const h = prefsHtml({
+      draft: { rhythm: rythme("breakfast", "lunch", "dinner") },
+      structure: null,
+      locale: "fr",
+    });
+    expect(h).not.toContain("data-mouth-slot-locked");
+  });
+
+  it("⛔ FERMÉ VEUT DIRE AUCUN VERROU — `unavailable` ne bloque rien", () => {
+    const h = prefsHtml({
+      draft: { rhythm: rythme("breakfast", "lunch", "dinner") },
+      structure: {
+        requiredCount: null,
+        slots: [],
+        opened: [],
+        shake: "not_applicable",
+        reason: "unavailable",
+      },
+      locale: "fr",
+    });
+    expect(h).not.toContain("data-mouth-slot-locked");
+  });
+
+  it("la phrase DIT le compte, et pourquoi", () => {
+    const h = prefsHtml({
+      draft: { rhythm: rythme("breakfast", "lunch", "snack_pm", "dinner") },
+      structure: OPENED,
+      locale: "fr",
+    });
+    expect(h).toContain("4 moments par jour");
+    expect(h).toContain("Une assiette ne peut pas tout porter");
+  });
+
+  it("⛔ LA PHRASE N'ÉCRIT JAMAIS UN KCAL", () => {
+    // Un compte de moments est une STRUCTURE, pas une mesure de quelqu'un: il
+    // ne traverse aucune des quatre portes de l'énergie, et il ne doit donc
+    // jamais s'accompagner d'un chiffre sur le corps.
+    for (const locale of ["fr", "en"] as const) {
+      const h = prefsHtml({
+        draft: { rhythm: rythme("breakfast", "lunch", "snack_pm", "dinner") },
+        structure: { ...OPENED, shake: "compose" },
+        locale,
+      });
+      for (const mot of ["kcal", "calorie", "calories", " kg", "poids"]) {
+        expect(h.toLowerCase()).not.toContain(mot);
+      }
+    }
+  });
+
+  it("le shaker composé s'annonce, et POINTE le bloc où le déclarer", () => {
+    const h = prefsHtml({
+      draft: { rhythm: rythme("breakfast", "lunch", "snack_pm", "dinner") },
+      structure: { ...OPENED, shake: "compose" },
+      locale: "fr",
+    });
+    // ⚠️ PAS D'APOSTROPHE DANS L'ASSERTION: `renderToStaticMarkup` l'échappe
+    // en `&#x27;`, et un test qui la cherche telle quelle rougit sur une
+    // différence d'encodage plutôt que sur une différence de produit.
+    expect(h).toContain("shaker à boire l");
+    expect(h).toContain("après-midi");
+    expect(h).toContain("ci-dessous");
+  });
+
+  it("⛔ UN SHAKER DÉJÀ DÉCLARÉ NE S'ANNONCE PAS", () => {
+    const h = prefsHtml({
+      draft: { rhythm: rythme("breakfast", "lunch", "snack_pm", "dinner") },
+      structure: { ...OPENED, shake: "declared" },
+      locale: "fr",
+    });
+    expect(h).not.toContain("shaker à boire");
+  });
+
+  it("⛔ LA PHRASE SUIT LE VERROU, PAS `opened` — défaut vu à l'écran", () => {
+    // ⚠️ CE QUI ÉTAIT FAUX: la phrase était conditionnée à `opened.length > 0`.
+    // `opened` est ce que le SERVEUR ajoute AUX moments déclarés — dès que la
+    // personne coche ce qu'on lui propose, elle les déclare, `opened` retombe à
+    // zéro, et il restait QUATRE CASES GRISÉES SANS AUCUNE PHRASE pour les
+    // expliquer. Mesuré dans le navigateur le 2026-09-04.
+    const h = prefsHtml({
+      draft: { rhythm: rythme("breakfast", "lunch", "snack_pm", "dinner") },
+      structure: { ...OPENED, opened: [], requiredCount: 4 },
+      locale: "fr",
+    });
+    expect(h).toContain("data-mouth-slot-locked");
+    expect(h).toContain("4 moments par jour");
+  });
+
+  it("⛔ AU-DESSUS DU PLANCHER, PLUS DE VERROU ET PLUS DE PHRASE", () => {
+    // Rien ne mord: il n'y a rien à expliquer, et une phrase qui resterait
+    // dirait une contrainte que l'écran n'applique plus.
+    const h = prefsHtml({
+      draft: {
+        rhythm: rythme("breakfast", "snack_am", "lunch", "snack_pm", "dinner"),
+      },
+      structure: { ...OPENED, requiredCount: 4 },
+      locale: "fr",
+    });
+    expect(h).not.toContain("data-mouth-slot-locked");
+    expect(h).not.toContain("moments par jour");
+  });
+
+  it("la voix suit le sujet: « toi » sur sa propre fiche", () => {
+    const h = prefsHtml({
+      draft: { rhythm: rythme("breakfast", "lunch", "snack_pm", "dinner") },
+      structure: OPENED,
+      locale: "fr",
+      subject: { existing: true, hasAccount: true, isSelf: true },
+    });
+    expect(h).toContain("ton corps");
   });
 });

@@ -138,6 +138,20 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       "get-memory-trace",
       "get-momentum-scorecard",
       "get-momentum-trace",
+      // ⟳ 2026-09-04 — ACQUITTÉE APRÈS DEUX SEMAINES DE ROUGE. Elle existait
+      // déjà quand ce garde a été branché sur le front (2026-08-22) et n'y
+      // figurait pas: le rouge a été TOLÉRÉ nominativement
+      // (`scripts/.vitest-red-baseline`) au motif que son lot était « en vol ».
+      // Il a été commité depuis, et un garde qu'on excuse ne garde plus rien —
+      // c'est le motif écrit huit lignes plus bas pour les huit fonctions du
+      // pivot nutrition, et il s'est reproduit à l'identique.
+      //
+      // La fusion de deux foyers, côté avis: elle NOTIFIE, elle ne fusionne
+      // pas. Couverte par _shared/keel/household_merge_notice_test.ts (le
+      // texte et son destinataire), household_merge_quota_test.ts (le plafond
+      // de fusions), household_freeze_test.ts (ce que le gel interdit) et
+      // frontend/src/keel/api/householdMerge.int.test.ts (le câblage écran).
+      "household-merge-notices-v1",
       // `keel-cards-v1` est partie avec le retrait des résidus grand public
       // (2026-08-08, 0 utilisateur confirmé): tables card_* droppées par
       // 20260808070000, fonction et écran supprimés.
@@ -151,6 +165,16 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       // chantier de-whatsapp elles livrent dans la bulle; couvertes par
       // _shared/chat/proactive_int_test.ts (9 cas contre le vrai cron).
       "keel-daily-pulse-v1",
+      // ⟳ 2026-09-04 — ACQUITTÉE APRÈS DEUX SEMAINES DE ROUGE, même motif que
+      // `household-merge-notices-v1` ci-dessus.
+      //
+      // Le retour de fin de plan: ce que la personne dit d'une semaine écoulée,
+      // et ce que le produit en RETIENT. Couverte par
+      // _shared/keel/plan_feedback_retained_test.ts (ce qui survit au tour et
+      // ce qui est jeté), draft_note_classify_wiring_test.ts (le classement de
+      // la note libre est bien BRANCHÉ, pas seulement écrit) et
+      // frontend/src/keel/api/planFeedback.int.test.ts (le câblage écran).
+      "keel-plan-feedback-v1",
       // `keel-meal-plan-v1` a disparu avec la composition 1:1 de la semaine de
       // repas (20260804210000): le coach n'épingle plus une recette sur le jour
       // et le créneau d'un élève nommé — il écrit une bibliothèque, et l'élève
@@ -222,6 +246,18 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       // whatsapp-webhook. Couvert par chat-inbound-v1/chat_inbound_int_test.ts
       // (9 cas HTTP) et par src/edge/chat.int.test.ts côté frontend.
       "chat-inbound-v1",
+      // FF-060 — COMBIEN DE MOMENTS CETTE JOURNÉE DOIT PORTER.
+      //
+      // ⛔ ELLE NE REND AUCUN KCAL, et c'est sa raison d'être: un compte de
+      // moments est une STRUCTURE, pas une mesure de quelqu'un. Elle ne
+      // traverse donc pas les quatre portes de `energy_gate.ts` — mais elle
+      // appelle `mouthTargetKcal`, dont les portes ① ② ③ ferment tout en amont
+      // par `targetKcal: null`.
+      //
+      // Couverte par _shared/keel/eating_structure_test.ts (33 cas: le tableau
+      // des corps, les 256 combinaisons de régime et d'allergène du shaker, et
+      // trois gardes lues sur la source du générateur).
+      "eating-structure-v1",
       "notify-profile-change",
       "plan-import-v1",
       // KEEL W6.2 — template -> clone+diff -> published plan_version. Sole
@@ -327,6 +363,16 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       // CHECK ne peut pas compter les lignes voisines, d'où le trigger.
       // Il n'écrit aucun `protocol_event` et ne touche à aucune autre table:
       // il LÈVE, ou il laisse passer.
+      // ⟳ 2026-09-04 — ACQUITTÉ APRÈS DEUX SEMAINES DE ROUGE (voir les deux
+      // fonctions edge plus haut). Le corps d'une bouche du foyer
+      // (20260812220000): simple horodatage de `updated_at` par
+      // `keel_household_body_touch()` — aucune règle métier dedans. Les vraies
+      // gardes de cette table sont ailleurs: l'écriture réservée au compte
+      // maître est affirmée en base, pas par ce trigger. Acquitté ici pour la
+      // raison qui vaut pour `student_coach_notes_touch_updated_at` plus bas:
+      // ce garde existe pour qu'aucun trigger n'arrive sans que quelqu'un l'ait
+      // regardé, pas parce que celui-ci mérite une discussion.
+      "household_member_bodies_touch",
       "household_traditions_cap",
       // `student_cards_render` est mort avec sa table (20260808070000, retrait
       // résidus grand public) — le nom reste ici parce que le scanner lit le
@@ -338,6 +384,13 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       // garde-fou existe pour qu'aucun trigger n'arrive sans que quelqu'un l'ait
       // regardé, pas parce que celui-ci mérite une discussion.
       "student_coach_notes_touch_updated_at",
+      // ⟳ 2026-09-04 — ACQUITTÉ APRÈS DEUX SEMAINES DE ROUGE. FF-028, les
+      // recommandations proposées à un élève (20260808170000): horodatage de
+      // `updated_at` par le `tg_set_updated_at()` PARTAGÉ, donc pas même une
+      // fonction à lui. Le sort d'une proposition (acceptée, refusée, le
+      // cooldown) est décidé par le code applicatif et par les index de la
+      // table, jamais par ce trigger.
+      "student_daily_recommendations_set_updated_at",
       // `/app/health` (20260804190000): l'élève peut RETIRER une contrainte
       // qu'il a déclarée, et rien d'autre. Une policy RLS porte sur des lignes,
       // pas sur des colonnes — sans ce trigger, un `update` autorisé laissait

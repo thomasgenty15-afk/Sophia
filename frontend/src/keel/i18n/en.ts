@@ -7401,9 +7401,12 @@ export const en = {
   "plan.cooking.one_session_hint":
     "A single cooking session for the whole stretch: whatever is not eaten in " +
     "the days that follow goes in the freezer, and comes out the night before.",
+  // ⟳ 2026-09-04 — UN FRAGMENT DE PARENTHÈSE, plus une phrase: il se rend entre
+  // parenthèses à côté du libellé, et disparaît dès que le congélateur est
+  // déclaré. Ni parenthèses, ni majuscule, ni point final dans la chaîne —
+  // elles sont dans la markup.
   "plan.cooking.one_session_needs_freezer":
-    "This needs a freezer: without one, a cooked dish only keeps two more " +
-    "days. Tick it under \"What you cook with\" to open this option.",
+    "requires ticking the freezer under \"What you cook with\"",
   "plan.cooking.time_minutes": "{n} min",
   "plan.cooking.time_hours": "{n} hr",
   "plan.cooking.time_required": "Say how long a cooking session can last.",
@@ -8123,6 +8126,29 @@ export const en = {
   "plan.cooking.runs_one": "Once",
   "plan.cooking.runs_two": "Twice",
   "plan.cooking.runs_three": "Three times",
+  // ── L'OFFRE (2026-09-04) — chaque phrase est un MOTIF, jamais
+  // « indisponible ». Les deux premières REMPLACENT le contrôle (une seule
+  // réponse possible = plus de question); les deux suivantes s'affichent sous
+  // la liste courte, à la place de l'aide générale.
+  "plan.cooking.runs_only_one_session":
+    "One food shop: you are cooking everything in one go.",
+  // ⟳ 2026-09-04 (soir) — le plafond n'est pas le nombre de JOURS mais la
+  // CONSERVATION: un lot couvre trois jours, donc deux jours ne demandent
+  // qu'une course. « Two » est le seul nombre écrit, et un test le tient.
+  "plan.cooking.runs_only_one_batch":
+    "One food shop: what you cook at the start keeps until the end of this " +
+    "plan.",
+  "plan.cooking.runs_capped_days":
+    "Two food shops cover {n} days: a cooked dish keeps for {d}.",
+  // ⟳ 2026-09-04 (soir) — elle COMPTAIT au lieu d'expliquer. Le nombre
+  // n'intéresse personne; ce qui manque, c'est ce QU'EST une session de
+  // cuisine — l'unité sur laquelle toute la question repose, et qui n'était
+  // dite nulle part dans cet écran. Plus aucun nombre: la phrase dit le
+  // mécanisme, et reste vraie quel que soit le plafond.
+  "plan.cooking.runs_capped_style":
+    "A cooking session is one stretch where you cook several days ahead — and " +
+    "each one starts with a food shop. With \"as little as possible\", the " +
+    "plan uses fewer of them, so there are fewer trips to the shop.",
   "setup.missing.cooking_style": "Tell us how you want to cook",
   "setup.missing.grocery_runs": "Tell us how many food shops you are up for",
 
@@ -8250,5 +8276,25 @@ export const en = {
     "Recorded. This meal no longer counts as missed. The day's number does not move yet - we keep your words, not your quantities.",
   "tracking.describe.error": "That did not save - {message}",
   "tracking.describe.cancel": "Cancel",
+
+  // ── chantier-0904/FF-060 — les plages suivent le besoin — début ──
+  //
+  // ⛔ AUCUNE DE CES CLÉS N'ÉCRIT UN KCAL, et c'est délibéré: un compte de
+  // moments est une STRUCTURE, pas une mesure de quelqu'un. Elles n'entrent
+  // donc pas dans `ENERGY_KEYS_WITH_A_BASIS`, et le test négatif qui balaie les
+  // deux packs le vérifie.
+  //
+  // ⚠️ ET ON NE COCHE JAMAIS UN MOMENT SANS LE DIRE — même règle que le shaker.
+  "household.mouth.rhythm_derived":
+    "From what you entered — {who}'s body and activity — {count} moments a day are needed. The ticked ones were added and can't be removed here.",
+  "household.mouth.rhythm_derived_you":
+    "From what you entered — your body and your activity — {count} moments a day are needed. The ticked ones were added and can't be removed here.",
+  "household.mouth.rhythm_derived_why":
+    "One plate can only hold so much. Spreading the day over more moments is what makes it fit.",
+  "household.mouth.shake_composed":
+    "The plan will build {who} a drinkable shake in the afternoon. If {who} already has their own, add it below and the plan will leave it alone.",
+  "household.mouth.shake_composed_you":
+    "The plan will build you a drinkable shake in the afternoon. If you already have your own, add it below and the plan will leave it alone.",
+  // ── chantier-0904/FF-060 — fin ──
 
 } as const

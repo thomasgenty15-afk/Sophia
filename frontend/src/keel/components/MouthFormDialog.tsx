@@ -35,6 +35,7 @@ import {
   targetWeightStateFor,
   foldMinorGoal,
 } from "../lib/mouthForm";
+import type { EatingStructure } from "../api/eatingStructure";
 import {
   MEAL_EXTRAS,
   slotBearsExtras,
@@ -288,6 +289,24 @@ export interface MouthPreferencesFieldsProps {
    */
   shakerPort: ShakerPort;
   /**
+   * CE QUE LE CORPS EXIGE — ou `null` quand on ne sait pas encore.
+   *
+   * Autorité: `docs/fonctionnalites/composition-des-repas/FF-060-...md`
+   *
+   * ── ⛔ `null` NE VERROUILLE RIEN, ET C'EST LA DIRECTION D'ÉCHEC CHOISIE ──
+   * Pas encore calculée, appel en vol, serveur muet: dans les trois cas aucune
+   * case n'est désactivée. Une panne qui cocherait-désactiverait un moment
+   * laisserait quelqu'un avec un repas qu'il ne peut pas retirer et dont
+   * personne ne sait dire d'où il vient. **On perd l'explication, jamais la
+   * main.**
+   *
+   * ⚠️ REQUISE, JAMAIS OPTIONNELLE. Un défaut à `null` ferait qu'un appelant
+   * distrait n'afficherait simplement jamais le verrou — et l'écran promettrait
+   * une composition que le plan fait quand même, ce qui est le pire des deux
+   * mensonges: celui qui ne se voit pas.
+   */
+  structure: EatingStructure | null;
+  /**
    * ⟳ 2026-09-01 — `memberScoped` A ÉTÉ RETIRÉ, ET IL NE DOIT PAS REVENIR.
    *
    * Il cachait deux sections — « ce que tu n'aimes pas » et « quand tu manges,
@@ -536,6 +555,8 @@ export default function MouthFormDialog(
       closeAsIcon
       closeLabel={t("common.close")}
     >
+      {/* `{...props}` porte déjà `structure`: la nommer une seconde fois la
+          ferait écraser par l'étalement, en silence. */}
       <MouthPreferencesFields {...props} />
     </Modal>
   );
@@ -1174,6 +1195,55 @@ export function MouthPreferencesFields(
   const who = whoOf(draft.firstName, t("household.mouth.who_fallback"));
 
   /**
+   * ══════════════════════════════════════════════════════════════════════
+   * FF-060 — LES MOMENTS DÉRIVÉS SONT PROPOSÉS COCHÉS, UNE SEULE FOIS
+   * ══════════════════════════════════════════════════════════════════════
+   *
+   * ⚠️ CE N'EST PAS INVENTER UNE RÉPONSE: c'est MONTRER celle que le plan
+   * appliquera de toute façon. Le générateur ouvre ces moments avec ou sans
+   * cet écran; les laisser vides ferait composer une journée en cinq temps à
+   * quelqu'un dont la fiche en montre trois — et le désaccord se découvrirait
+   * au plan, c'est-à-dire trop tard.
+   *
+   * ⛔ SEULEMENT QUAND RIEN N'EST DÉCLARÉ (`rhythm === null`). Une personne qui
+   * a coché ses moments a répondu: on ne réécrit pas sa réponse, on verrouille
+   * seulement son plancher. Et comme la condition tombe dès qu'on a écrit, cet
+   * effet ne peut pas boucler.
+   */
+  /**
+   * ⛔ LA PHRASE SUIT LE VERROU, PAS `opened` — ET C'EST UN DÉFAUT MESURÉ.
+   *
+   * Elle était conditionnée à `structure.opened.length > 0`. Or `opened` est ce
+   * que le SERVEUR a ajouté par rapport aux moments déclarés: dès que la
+   * personne coche ce qu'on lui propose, elle déclare ces moments, le serveur
+   * n'a plus rien à ajouter, et `opened` retombe à zéro — pendant que le
+   * plancher, lui, verrouille toujours ses quatre cases.
+   *
+   * Vu à l'écran le 2026-09-04: quatre cases grisées et **aucune phrase pour
+   * les expliquer**. C'est très exactement ce que ce lot s'interdisait.
+   *
+   * La condition est donc CELLE DU VERROU: dès qu'un plancher peut mordre, il
+   * se dit.
+   */
+  const floorCount = props.structure?.requiredCount ?? 0;
+  const tickedCount = (draft.rhythm ?? []).length;
+  const floorBinds = floorCount > 0 && tickedCount <= floorCount;
+  const openedKey = (props.structure?.opened ?? []).join(",");
+  React.useEffect(() => {
+    if (draft.rhythm !== null) return;
+    if (openedKey.length === 0) return;
+    const slots = openedKey.split(",") as EatingOccasion[];
+    onChange((prev) =>
+      prev.rhythm !== null ? prev : {
+        ...prev,
+        rhythm: EATING_OCCASIONS
+          .filter((s) => slots.includes(s))
+          .map((s) => ({ slot: s, size: null })),
+      }
+    );
+  }, [openedKey, draft.rhythm, onChange]);
+
+  /**
    * ⟳ `declaredSlots` A ÉTÉ RETIRÉ LE 2026-09-01 — IL N'AVAIT PLUS DE LECTEUR.
    *
    * Il portait la cascade « les moments cochés, sinon ceux de la maison, sinon
@@ -1479,6 +1549,27 @@ export function MouthPreferencesFields(
               // il vit dans un bloc à part et la journée se lit à deux endroits.
               const shakerHere = draft.shaker !== null &&
                 draft.shaker.slot === slot;
+              // ══════════════════════════════════════════════════════════
+              // FF-060 — ON VERROUILLE UN COMPTE, PAS DES MOMENTS NOMMÉS
+              // ══════════════════════════════════════════════════════════
+              //
+              // ⛔ CE QUI ÉTAIT FAUX AU PREMIER JET, ET MESURÉ À L'ÉCRAN. Je
+              // verrouillais `structure.opened`. Sur une fiche où rien n'est
+              // encore coché, la dérivation ouvre les quatre moments depuis
+              // rien — donc les QUATRE se verrouillaient, et la personne ne
+              // pouvait plus jamais dire qu'elle saute le petit-déjeuner.
+              // Un produit qui interdit de décrire ses propres repas a cessé
+              // d'être un produit.
+              //
+              // La contrainte réelle n'a jamais été « CES moments-là »: c'est
+              // « au moins N moments », parce qu'une assiette a un plafond de
+              // masse. Lesquels reste le choix de la personne.
+              //
+              // ⇒ ON PEUT ÉCHANGER, ON NE PEUT PAS DESCENDRE. Un moment coché
+              // se verrouille seulement quand en retirer un ferait passer sous
+              // le compte requis. Cocher `before_bed` libère aussitôt les
+              // autres, et le petit-déjeuner redevient décochable.
+              const locked = on && floorBinds;
               return (
                 <li
                   key={slot}
@@ -1495,7 +1586,8 @@ export function MouthPreferencesFields(
                       type="checkbox"
                       className="h-4 w-4 shrink-0 accent-ink"
                       checked={on}
-                      disabled={props.busy}
+                      disabled={props.busy || locked}
+                      data-mouth-slot-locked={locked ? slot : undefined}
                       onChange={() => {
                         const current = draft.rhythm ?? [];
                         const next: EatingOccasionSlot[] = on
@@ -1642,6 +1734,30 @@ export function MouthPreferencesFields(
               {t(voiced("household.mouth.rhythm_house", voice), { who })}
             </p>
           ) : null}
+          {/* ⚠️ ON NE COCHE JAMAIS UN MOMENT SANS LE DIRE — la règle est déjà
+              écrite pour le shaker, et elle vaut ici pour la même raison: un
+              moment apparu tout seul, sans phrase, se lit comme un bug. */}
+          {floorBinds
+            ? (
+              <p className="text-xs leading-5 text-ink-soft">
+                {t(voiced("household.mouth.rhythm_derived", voice), {
+                  who,
+                  count: String(floorCount),
+                })}
+                {" "}
+                {t("household.mouth.rhythm_derived_why")}
+              </p>
+            )
+            : null}
+          {/* LE SHAKER COMPOSÉ — et la phrase POINTE le bloc du dessous, qui
+              est sa sortie: déclarer le sien fait que le plan n'y touche pas. */}
+          {props.structure?.shake === "compose"
+            ? (
+              <p className="text-xs leading-5 text-ink-soft">
+                {t(voiced("household.mouth.shake_composed", voice), { who })}
+              </p>
+            )
+            : null}
         </Section>
 
       {/* ══════════════════════════════════════════════════════════════════

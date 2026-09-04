@@ -57,6 +57,9 @@ export type VoicedKey =
   | "household.mouth.habits_hint"
   | "household.mouth.eating"
   | "household.mouth.eating_hint"
+  // ── chantier-0904/FF-060 ──
+  | "household.mouth.rhythm_derived"
+  | "household.mouth.shake_composed"
   | "household.mouth.habit_shaker_here"
   | "household.mouth.shaker_at"
   | "household.mouth.rhythm"
@@ -89,6 +92,8 @@ const YOU: Record<VoicedKey, MessageKey> = {
   // clés — les retirer casserait des appelants qui ne sont pas dans ce lot.
   "household.mouth.eating": "household.mouth.eating_you",
   "household.mouth.eating_hint": "household.mouth.eating_hint_you",
+  "household.mouth.rhythm_derived": "household.mouth.rhythm_derived_you",
+  "household.mouth.shake_composed": "household.mouth.shake_composed_you",
   "household.mouth.habit_shaker_here": "household.mouth.habit_shaker_here_you",
   "household.mouth.shaker_at": "household.mouth.shaker_at_you",
   "household.mouth.habits_hint": "household.mouth.habits_hint_you",

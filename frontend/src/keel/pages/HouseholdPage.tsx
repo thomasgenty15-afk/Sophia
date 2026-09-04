@@ -103,6 +103,7 @@ import {
   type MouthFormDraft,
   mouthToPersist,
 } from "../lib/mouthForm";
+import { useEatingStructure } from "../lib/useEatingStructure";
 import GoalTiles from "../components/GoalTiles";
 import MouthFormDialog, {
   MouthActivityAxesFields,
@@ -1462,6 +1463,15 @@ export function MeCard(
    * `known` ne touche à rien, donc une saisie en cours survit à tout ce qui
    * n'est pas une lecture différente.
    */
+  // ⚠️ FF-060 — le compte de moments que le corps de cette fiche exige. Voir
+  // `useEatingStructure`: aucun calcul ici, c'est le serveur qui répond avec le
+  // MÊME module pur que le générateur.
+  const sheetStructure = useEatingStructure({
+    draft: sheetDraft,
+    active: open,
+    todayLocalIso: sheet?.todayLocalIso ?? "",
+  });
+
   const knownKey = JSON.stringify(sheet?.known ?? null);
   React.useEffect(() => {
     if (sheet === null) return;
@@ -1505,6 +1515,11 @@ export function MeCard(
           onClose={() => setOpen(false)}
           draft={sheetDraft}
           onChange={setSheetDraft}
+          // ⚠️ FF-060 — MÊME VERROU QU'À L'INSCRIPTION, ET C'EST LA RAISON DE
+          // LE POSER ICI AUSSI. Sans lui, cette carte laisserait décocher un
+          // moment que le parcours d'inscription venait de verrouiller: deux
+          // écrans, deux réponses, et celui qui ment est le second.
+          structure={sheetStructure}
           // `/app/household` ne rend cette fiche QUE pour le compte courant.
           subject={{ existing: true, hasAccount: true, isSelf: true }}
           busy={busy}
@@ -1739,6 +1754,15 @@ export function AddMouthForm(
   // saisit n'a jamais de compte au moment où on la saisit; elle en gagne un si
   // elle réclame sa place plus tard.
   const subject = { existing: false, hasAccount: false, isSelf: false } as const;
+  // ⚠️ FF-060 — CE FORMULAIRE CALCULE LE SIEN. Il a le brouillon et la date
+  // locale; lui faire descendre la structure en prop l'aurait couplé à un
+  // parent qui n'a pas besoin de la connaître, et le troisième site de montage
+  // aurait fini par l'oublier.
+  const structure = useEatingStructure({
+    draft,
+    active: prefsOpen,
+    todayLocalIso,
+  });
 
   return (
     <div className="flex flex-col gap-4">
@@ -1776,6 +1800,7 @@ export function AddMouthForm(
           onChange={onChange}
           subject={subject}
           busy={busy}
+          structure={structure}
           // FERMER L'ACCORDÉON, PAS LA FENÊTRE: la fiche obligatoire est
           // au-dessus, et refermer la fenêtre entière perdrait le geste.
           onClose={() => setPrefsOpen(false)}
