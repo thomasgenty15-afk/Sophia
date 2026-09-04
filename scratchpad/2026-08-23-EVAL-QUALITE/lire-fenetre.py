@@ -24,6 +24,12 @@ def lire(f):
         "fichier": os.path.basename(f),
         "starts_on": s, "duration_days": n, "dernier_jour_servi": fin,
         "timing.kind": (d.get("timing") or {}).get("kind"),
+        # ⚠️ LA CLÉ EST `rationale`, PAS `plan_rationale`. Le module s'appelle
+        # `plan_rationale.ts`, la clé de réponse non — une première lecture a
+        # rendu « aucune phrase » sur deux plans qui en portaient trois.
+        # ⛔ ET C'EST LA SEULE CHOSE QUE LA PERSONNE LIT: les deux phrases
+        # fausses du 2026-09-04 n'ont été vues que parce qu'on l'a regardée.
+        "phrases": (d.get("rationale") or {}).get("lines", []),
         "timing.reason": (d.get("timing") or {}).get("reason"),
         "issues fenêtre": [i for i in (d.get("issues") or [])
                            if "spent_first_day" in str(i) or "cook_the_day" in str(i)],
