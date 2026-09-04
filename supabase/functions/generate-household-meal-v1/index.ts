@@ -415,6 +415,9 @@ import {
 import {
   type EatingStructure,
   eatingStructureFor,
+  shakeDecisionFor,
+  shakeHabitTextFor,
+  SHAKE_TEXT_PREFIX,
 } from "../_shared/keel/eating_structure.ts";
 import {
   boxEnergies,
@@ -436,6 +439,7 @@ import {
 } from "../_shared/keel/portion_scaling.ts";
 // LA DIRECTION D'UN OBJECTIF, LUE UNE SEULE FOIS DANS LE DÉPÔT.
 import { scaleDirectionOf } from "../_shared/keel/weight_pace.ts";
+import { excludedGroupsFor } from "../_shared/keel/dietary_regime.ts";
 // L8 — LA POSITION DU COACH SUR `counting`, REDUITE. C'est une LECTURE de
 // doctrine, pas la porte: elle ne decide rien seule, elle rend l'un des trois
 // etats que le module pur fera passer par `energySafetyGates`.
@@ -3766,6 +3770,80 @@ Deno.serve(async (req) => {
     });
     const fixedIntakes = fixedIntakeLoad.intakes;
     issues.push(...fixedIntakeLoad.issues);
+
+    // ══════════════════════════════════════════════════════════════════════
+    // FF-060 — LE SHAKER QUE LE PLAN COMPOSE, QUAND IL N'Y EN A PAS DÉJÀ UN
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ── POURQUOI ICI, ET PAS AVEC LA DÉRIVATION ──────────────────────────
+    // « A-t-elle déjà son shaker » se lit dans `fixed_intakes`, qui ne se
+    // charge qu'après l'union des moments — laquelle dépend de la dérivation.
+    // Les deux décisions ne peuvent donc pas tenir dans le même appel, et les
+    // fondre forcerait à mentir sur l'une pour obtenir l'autre.
+    //
+    // ── CE QU'ON POSE, ET CE QU'ON NE POSE PAS ───────────────────────────
+    // Une habitude `own_usual`, pas une ligne de prompt. Elle traverse la
+    // chaîne du PLAT DÉDIÉ qui existe déjà (`ownMealSlots` →
+    // `dishBearingMembers` → le bloc du brief → `dishBearerIds` du parseur →
+    // une boîte à son nom). Écrire un bloc neuf aurait demandé une version, une
+    // population et des bancs à l'octet, pour dire ce qu'une habitude dit déjà.
+    //
+    // ⛔ ET ON NE PIÉTINE JAMAIS UNE HABITUDE EXISTANTE. Si la bouche a déjà
+    // dit ce qu'elle prend à ce moment-là, c'est SA phrase qui gouverne: la
+    // nôtre est un défaut, pas une correction.
+    const shakeTally = { compose: 0, declared: 0, not_applicable: 0, taken: 0 };
+    const shakeHabitFor = (m: typeof members[number]): MemberHabit | null => {
+      const structure = structureByMember.get(m.memberId);
+      const state = shakeDecisionFor({
+        direction: m.goal === null ? null : scaleDirectionOf(m.goal),
+        requiredCount: structure?.requiredCount ?? null,
+        hasFixedIntake: (fixedIntakeLoad.byMouth[m.memberId] ?? 0) > 0,
+      });
+      if (state !== "compose") return null;
+      // Le premier moment OUVERT qui porte une collation. Jamais un repas: on
+      // ne remplace pas un dîner par un verre.
+      const slot = (structure?.opened ?? []).find((s) =>
+        s === "snack_pm" || s === "snack_am" || s === "before_bed"
+      );
+      if (slot === undefined) return null;
+      if ((m.habits ?? []).some((h) => h.slot === slot)) return null;
+      return {
+        slot: slot as EatingOccasion,
+        kind: "own_usual" as const,
+        usual: shakeHabitTextFor({
+          // LE RÉGIME DE LA BOUCHE, pas celui de la table: un plat dédié « may
+          // use what the shared base leaves out ».
+          excludedGroups: m.diet ? excludedGroupsFor(m.diet) : [],
+          // LES ALLERGÈNES DE LA TABLE: le parseur vérifie le plat dédié contre
+          // l'union de sécurité du foyer. Proposer une purée de noix là où
+          // quelqu'un réagit ferait retirer la boîte, et la bouche perdrait son
+          // moment — mieux vaut écrire d'emblée ce qui passe.
+          tableAllergens: constraints
+            .map((c) => c.allergenRef)
+            .filter((r): r is string => typeof r === "string" && r.length > 0),
+        }),
+      };
+    };
+    for (const m of members) {
+      const structure = structureByMember.get(m.memberId);
+      const state = shakeDecisionFor({
+        direction: m.goal === null ? null : scaleDirectionOf(m.goal),
+        requiredCount: structure?.requiredCount ?? null,
+        hasFixedIntake: (fixedIntakeLoad.byMouth[m.memberId] ?? 0) > 0,
+      });
+      shakeTally[state] += 1;
+      const habit = shakeHabitFor(m);
+      if (habit === null) continue;
+      m.habits = [...(m.habits ?? []), habit];
+      shakeTally.taken += 1;
+    }
+    if (shakeTally.compose > 0 || shakeTally.declared > 0) {
+      // Histogramme. Ni kcal, ni identifiant.
+      console.log(JSON.stringify({
+        tag: "keel.household_meal.shake",
+        ...shakeTally,
+      }));
+    }
     // LE COÛT ET CE QU'ON A RETIRÉ, SUR LA MÊME LIGNE. `demoted` est le seul
     // champ que ce chargeur enlève à une déclaration; sans compteur, « personne
     // n'a rien déclaré » et « on a désarmé trois remplacements » laisseraient
@@ -4822,6 +4900,24 @@ Deno.serve(async (req) => {
             household_id: householdId,
             member_id: m.memberId,
             issues: gated.issues,
+          }));
+        }
+        // ⚠️ FF-060 — SI LE GATE RETIRE LE SHAKER QU'ON A COMPOSÉ, ON LE DIT.
+        // Le porteur de plat (`ownMealBearers`) est calculé AVANT ce gate: une
+        // phrase retirée ici laisserait donc le prompt réclamer un plat dédié
+        // dont il ne dit plus rien. Le gate a raison de mordre — c'est la
+        // doctrine d'un coach —, mais une garde qui retire en silence est
+        // indiscernable d'une garde qui n'a rien vu.
+        const shakeDropped = (m.habits ?? []).some((h) =>
+          h.usual.startsWith(SHAKE_TEXT_PREFIX)
+        ) && !gated.kept.some((h) => h.usual.startsWith(SHAKE_TEXT_PREFIX));
+        if (shakeDropped) {
+          console.log(JSON.stringify({
+            tag: "keel.household_meal.shake_withheld",
+            user_id: userId,
+            household_id: householdId,
+            member_id: m.memberId,
+            effect: "plat dédié demandé sans sa description",
           }));
         }
         return { ...m, habits: gated.kept, habitNote: gated.note };

@@ -254,3 +254,75 @@ export function shakeDecisionFor(args: {
   }
   return args.hasFixedIntake ? "declared" : "compose";
 }
+
+/**
+ * LE SHAKER QUE LE PLAN COMPOSE — sa phrase, et les deux choses qu'elle évite.
+ *
+ * ⛔ CE N'EST PAS UNE CONSIGNE DE PROMPT NEUVE, ET C'EST LE POINT. Le texte
+ * rendu ici devient une habitude `own_usual` sur la bouche, et traverse la
+ * chaîne du PLAT DÉDIÉ qui existe déjà: `ownMealSlots` → `dishBearingMembers`
+ * → le bloc du brief → `dishBearerIds` du parseur → une boîte à son nom.
+ * Écrire un nouveau bloc de prompt aurait demandé une population, une version,
+ * et des bancs à l'octet — pour dire ce qu'une habitude dit déjà.
+ *
+ * ── LES DEUX CEINTURES, ET POURQUOI ELLES SONT DANS LA PHRASE ─────────────
+ * · **Le régime de LA BOUCHE**, pas celui de la table. Un plat dédié « may use
+ *   what the shared base leaves out » (`household_diet.ts`): c'est sa ligne à
+ *   elle qui décide. Un shaker au lait de vache chez une bouche végane, c'est
+ *   l'enfant végane et le ragoût.
+ * · **Les allergènes de LA TABLE.** Le parseur vérifie le plat dédié contre
+ *   l'union de sécurité du foyer: proposer une purée d'oléagineux là où
+ *   quelqu'un réagit aux fruits à coque ferait retirer la boîte par la
+ *   ceinture, et la bouche se retrouverait sans son moment. On écrit donc
+ *   d'emblée ce qui passe.
+ *
+ * ⚠️ AUCUN NOMBRE, ET AUCUN MOT DE CORPS. Ni « dense », ni « prise de masse »,
+ * ni un gramme: `FORBIDDEN_PORTION_TERMS` mord sur la prose servie, et la
+ * contrainte du propriétaire est que **le prompt dit QUOI, le calcul d'après
+ * dit COMBIEN**. La quantité de ce shaker est ancrée comme celle de tout plat.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function shakeHabitTextFor(args: {
+  /** Les groupes que le régime de CETTE bouche exclut (`excludedGroupsFor`). */
+  excludedGroups: readonly string[];
+  /** Les allergènes de la TABLE, en jetons du catalogue (`tree_nut`, `soy`…). */
+  tableAllergens: readonly string[];
+}): string {
+  const excluded = new Set(args.excludedGroups);
+  const allergens = new Set(args.tableAllergens);
+
+  const noDairy = excluded.has("dairy_yogurt") || excluded.has("dairy_cheese") ||
+    allergens.has("dairy");
+  const noSoy = allergens.has("soy");
+  const noNuts = allergens.has("tree_nut") || allergens.has("peanut");
+  const noSesame = allergens.has("sesame");
+  const noGluten = allergens.has("gluten") || allergens.has("wheat");
+
+  const base = noDairy
+    ? (noSoy ? "oat milk" : "soy milk or a soy yogurt")
+    : "milk or skyr";
+  const grain = noGluten ? "cooked rice flakes" : "oats";
+  // ⚠️ SI TOUT EST EXCLU, ON N'INVENTE PAS. La banane seule reste un shaker
+  // buvable; c'est au calcul d'après de le dimensionner, pas à cette phrase de
+  // trouver une matière grasse à tout prix.
+  const fat = noNuts
+    ? (noSesame ? null : "a seed butter")
+    : "a nut or seed butter";
+
+  const parts = [base, grain, "a banana", fat].filter((p): p is string =>
+    p !== null
+  );
+  return `a drinkable shake, one tall glass, no plate: ${parts.join(", ")}`;
+}
+
+/**
+ * LE DÉBUT DE LA PHRASE DU SHAKER — pour la RECONNAÎTRE plus tard.
+ *
+ * ⚠️ EXPORTÉ, ET PAS RECOPIÉ CHEZ L'APPELANT. Le générateur doit savoir, après
+ * la garde de texte du coach, si c'est NOTRE phrase qui vient d'être retirée:
+ * le porteur de plat est décidé avant cette garde, donc une phrase retirée
+ * laisse le prompt réclamer un plat dédié dont il ne dit plus rien. Deux
+ * littéraux identiques à deux endroits divergeraient au premier mot changé.
+ */
+export const SHAKE_TEXT_PREFIX = "a drinkable shake";

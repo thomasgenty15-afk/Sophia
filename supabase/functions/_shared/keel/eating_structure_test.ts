@@ -16,6 +16,7 @@ import {
   MEAL_KCAL_PER_G_COMPOSED,
   mealMaxKcalFor,
   shakeDecisionFor,
+  shakeHabitTextFor,
   SHAKE_STATES,
   SLOT_DAY_ORDER,
   SLOT_OPENING_ORDER,
@@ -301,5 +302,88 @@ Deno.test("⛔ CÂBLAGE — la trace de structure ne porte ni kcal ni identifian
       !block.includes(interdit),
       `la trace porte \`${interdit}\`: un chiffre sur la personne sort du moteur`,
     );
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LE SHAKER COMPOSÉ — sa phrase traverse les ceintures, ou elle n'existe pas
+// ═══════════════════════════════════════════════════════════════════════════
+
+Deno.test("le cas nominal: du lait, des flocons, une banane, une purée", () => {
+  const t = shakeHabitTextFor({ excludedGroups: [], tableAllergens: [] });
+  assertEquals(
+    t,
+    "a drinkable shake, one tall glass, no plate: milk or skyr, oats, a banana, a nut or seed butter",
+  );
+});
+
+Deno.test("⛔ UNE BOUCHE VÉGANE NE REÇOIT PAS DE LAIT DE VACHE", () => {
+  // C'est l'enfant végane et le ragoût, transposé au shaker.
+  const t = shakeHabitTextFor({
+    excludedGroups: ["dairy_yogurt", "dairy_cheese"],
+    tableAllergens: [],
+  });
+  assert(!t.includes("milk or skyr"), `du laitier a traversé: ${t}`);
+  assert(t.includes("soy"), `aucun substitut nommé: ${t}`);
+});
+
+Deno.test("⛔ UNE TABLE ALLERGIQUE AUX FRUITS À COQUE N'A PAS DE PURÉE DE NOIX", () => {
+  const t = shakeHabitTextFor({ excludedGroups: [], tableAllergens: ["tree_nut"] });
+  assert(!t.includes("nut butter"), `une purée de noix a traversé: ${t}`);
+  assert(t.includes("seed butter"), `aucune matière grasse de repli: ${t}`);
+});
+
+Deno.test("l'arachide ferme la même porte que le fruit à coque", () => {
+  const t = shakeHabitTextFor({ excludedGroups: [], tableAllergens: ["peanut"] });
+  assert(!t.includes("nut butter"), t);
+});
+
+Deno.test("noix ET sésame: on n'invente pas une matière grasse", () => {
+  // ⚠️ La phrase RÉTRÉCIT plutôt que d'aller chercher un aliment que personne
+  // n'a validé. Un shaker sans purée reste buvable; c'est le calcul d'après qui
+  // le dimensionne.
+  const t = shakeHabitTextFor({
+    excludedGroups: [],
+    tableAllergens: ["tree_nut", "sesame"],
+  });
+  assert(!t.includes("butter"), t);
+  assert(t.includes("a banana"), t);
+});
+
+Deno.test("végane ET allergie au soja: il reste le lait d'avoine", () => {
+  const t = shakeHabitTextFor({
+    excludedGroups: ["dairy_yogurt", "dairy_cheese"],
+    tableAllergens: ["soy"],
+  });
+  assert(t.includes("oat milk"), t);
+  assert(!t.includes("soy"), t);
+});
+
+Deno.test("le gluten remplace les flocons, il ne les retire pas", () => {
+  const t = shakeHabitTextFor({ excludedGroups: [], tableAllergens: ["gluten"] });
+  assert(!t.includes("oats"), t);
+  assert(t.includes("rice flakes"), t);
+});
+
+Deno.test("⛔ AUCUN NOMBRE, AUCUN MOT DE CORPS, DANS TOUTES LES COMBINAISONS", () => {
+  // `FORBIDDEN_PORTION_TERMS` mord sur la prose servie; et la contrainte du
+  // propriétaire est que le prompt dit QUOI, jamais COMBIEN.
+  const jetons = ["dairy_yogurt", "dairy_cheese"];
+  const allergenes = ["tree_nut", "peanut", "sesame", "soy", "gluten", "dairy"];
+  const interdits = [
+    /\d/, /kcal/i, /calorie/i, /gram/i, /\bg\b/, /weight/i, /poids/i,
+    /dense/i, /\bgain\b/i, /bulk/i, /mass\b/i, /protein/i,
+  ];
+  for (let i = 0; i < 1 << jetons.length; i++) {
+    for (let j = 0; j < 1 << allergenes.length; j++) {
+      const t = shakeHabitTextFor({
+        excludedGroups: jetons.filter((_, k) => i & (1 << k)),
+        tableAllergens: allergenes.filter((_, k) => j & (1 << k)),
+      });
+      for (const motif of interdits) {
+        assert(!motif.test(t), `« ${t} » contient ${motif}`);
+      }
+      assert(t.startsWith("a drinkable shake"), t);
+    }
   }
 });

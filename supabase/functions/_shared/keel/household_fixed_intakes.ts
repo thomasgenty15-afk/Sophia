@@ -94,6 +94,20 @@ export interface HouseholdFixedIntakes {
   issues: string[];
   /** LE COÛT, compté et non supposé. Un vrai décompte d'allers-retours. */
   reads: number;
+  /**
+   * COMBIEN D'APPORTS CHAQUE BOUCHE A DÉCLARÉS — par `member_id`.
+   *
+   * ⟳ 2026-09-04, pour FF-060. `intakes` est une liste À PLAT, entrelacée sous
+   * le plafond du prompt: elle dit ce que la TABLE a déclaré, jamais QUI. Or la
+   * question « le plan doit-il composer un shaker pour cette bouche-ci ? » se
+   * pose bouche par bouche — et sa réponse est « non » dès qu'elle a le sien.
+   *
+   * ⚠️ COMPTÉ AVANT LE PLAFOND, ET C'EST VOULU. Une bouche dont l'apport a été
+   * écarté faute de place au prompt (`dropped`) A QUAND MÊME DÉCLARÉ le sien;
+   * lui en composer un serait servir deux fois ce qu'elle a pris la peine
+   * d'écrire, pour une raison qui ne la regarde pas.
+   */
+  byMouth: Readonly<Record<string, number>>;
 }
 
 function counting(
@@ -290,6 +304,10 @@ export async function loadHouseholdFixedIntakes(
   const { intakes, dropped } = interleaveUnderCeiling(
     loaded.map((entry) => entry.intakes),
   );
+  const byMouth: Record<string, number> = {};
+  for (const entry of loaded) {
+    byMouth[entry.mouth.memberId] = entry.intakes.length;
+  }
   return {
     intakes,
     discarded: loaded.reduce((n, e) => n + e.discarded, 0),
@@ -297,5 +315,6 @@ export async function loadHouseholdFixedIntakes(
     dropped,
     issues: loaded.flatMap((e) => e.issues),
     reads: tally.reads,
+    byMouth,
   };
 }
