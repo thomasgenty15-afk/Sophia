@@ -57,6 +57,28 @@ régimes, médical) est hors de tout ça, dans ses tables. Autorité :
 **[docs/keel/NOMENCLATURE-MEMOIRE.md](NOMENCLATURE-MEMOIRE.md)** §2 ; les exemples de routage
 que les bancs testent sont au §8.
 
+### Personne ne reste sans repas (2026-09-04)
+
+Un plan de foyer n'est pas une liste de plats : c'est une promesse par **bouche** et par
+**repas**. Chaque personne présente à une case est nommée sur exactement un contenant, ou
+reçoit un plat à elle, ou mange un plat que rien n'a mis en boîte. Le moteur le **vérifie**,
+le relance une fois en nommant la personne et le remède, et **refuse d'écrire** un plan où
+quelqu'un n'aurait rien à manger.
+
+Ce n'est pas une précaution théorique. Sur un plan vivant, une bouche du foyer n'avait aucun
+contenant à **cinq repas sur douze** — la ceinture l'avait retirée des plats portant un
+aliment qu'elle avait demandé d'éviter, et le compteur qui aurait dû le dire sautait
+justement les bouches retirées. Le plan se lisait vert.
+
+Deux conséquences qui tiennent le reste :
+
+- **Une garde qui répare en silence est indiscernable d'une garde absente.** Le cas nominal
+  se dit donc aussi, à l'écran : « Chaque personne a chacun de ses repas. »
+- **Le recours dépend de la cause.** Un dégoût peut céder — on rend son repas à la personne
+  avec l'aliment qu'elle n'aime pas, et on le lui dit. Un régime, jamais.
+
+Autorité : **[docs/keel/BOITES-PAR-REPAS.md](BOITES-PAR-REPAS.md)**.
+
 ### ⚠️ CE QUE LE RETRAIT DE LA LANE DE SEMAINE A COÛTÉ (2026-08-19)
 
 Jusqu'au 2026-08-19, ce paragraphe décrivait une autre chaîne :

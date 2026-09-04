@@ -512,6 +512,41 @@ Le seul souvenir qui agit est celui dont personne n'a demandé le sujet. Tout le
 chantier des clarifications pousse dans la direction que le générateur du foyer
 ignore.
 
+### ⟳ RÉ-POINTÉ LE 2026-09-04 — la garde était juste, sa conséquence ne l'était pas
+
+En relisant le plan vivant pour ce constat, un second fait est sorti, plus grave
+que le premier :
+
+| | |
+|---|---|
+| Repas mis en boîte | 12 |
+| Repas où Marc est nommé sur un couvercle | 7 |
+| Repas où Marc n'a **aucune** boîte | **5**, dont 4 plats de lentilles |
+| `box_counts.mouths_unboxed` | **0** |
+
+Marc n'était pas seulement mal servi : à cinq repas sur douze, il n'avait **rien
+à manger**. La ceinture par bouche appliquait bien sa ligne — elle retirait son
+nom des couvercles portant des lentilles — mais personne ne composait la
+suite. Et le compteur qui aurait dû le dire sautait explicitement les bouches
+retirées, avec une bonne intention (ne pas accuser le modèle d'un trou que le
+moteur venait de creuser) et un mauvais effet.
+
+**Le diagnostic du §4 bis reste vrai, sa conclusion était trop douce.** Ce
+n'était pas « le produit reste silencieux sur un souvenir qui n'agit pas ».
+C'était « le produit retire quelqu'un de la table sans le dire ».
+
+Fermé par deux lots du 2026-09-04 :
+
+- **la ceinture lit le contenant**, plus le plat — une boîte d'échange (même
+  plat, un composant remplacé) cesse d'être mordue par les ingrédients de
+  l'autre boîte ;
+- **personne sans repas** — l'invariant, sa relance ciblée, son dernier recours
+  par cause, et le refus `422 mouth_unfed` plutôt qu'un plan troué en base.
+
+Autorité : **[docs/keel/BOITES-PAR-REPAS.md](../docs/keel/BOITES-PAR-REPAS.md)**.
+Reste ouvert : faire ENTRER la ligne d'une bouche nommée dans le prompt, pour
+que le modèle compose l'échange au lieu que la ceinture le rattrape.
+
 ## 5. Ce que ces bancs NE prouvent PAS
 
 Écrit ici pour que personne ne lise ce rapport comme une garantie.

@@ -127,6 +127,112 @@ marche.
 
 ---
 
+## ⟳ 2026-09-04 — LA CEINTURE LIT LE CONTENANT, ET PERSONNE NE RESTE SANS REPAS
+
+### Le défaut, mesuré sur un plan vivant
+
+Foyer de cinq bouches, « Mon mari n'aime pas les lentilles » noté pour Marc :
+
+| | |
+|---|---|
+| Repas mis en boîte | 12 |
+| Repas où Marc est nommé sur un couvercle | 7 |
+| Repas où Marc n'a **aucune** boîte | **5**, dont 4 plats de lentilles |
+| `exclusion_belt` | `{mouths: 3, checked: 35, kept: 31, refused: 4}` |
+| `box_counts.mouths_unboxed` | **0** |
+
+La dernière ligne est le défaut. Le compteur disait « tout le monde a son
+contenant » pendant que quelqu'un n'avait rien à manger cinq fois dans la
+semaine.
+
+### La surface d'une boîte est ce qu'il y a DEDANS
+
+Les deux ceintures — régime et dégoût — jugeaient un couvercle sur le **plat**.
+C'était juste tant qu'un plat n'avait qu'un contenu. Ça ne l'est plus dès qu'un
+plat porte deux boîtes : « riz poulet » pour la table, « riz tofu » pour la
+bouche végétarienne. Le titre est neutre, mais la méthode explique les deux et
+les `ingredients` listent les deux — **parce que les courses portent les deux**.
+Juger la boîte de tofu là-dessus la fait mordre à tous les coups.
+
+> Une boîte qui déclare des `items` est jugée sur **ses items** et sur les
+> casseroles qu'ils citent. Ni le titre, ni la méthode, ni les `ingredients` du
+> plat.
+
+Une boîte sans items (repli v2, `shares`) retombe sur le plat, octet pour octet
+comme avant. `box_scoped` dit lequel des deux régimes de lecture a tourné :
+sans lui, les deux rendent le même `refused: 0`.
+
+⚠️ **Trou résiduel, nommé plutôt que deviné.** Un item `{term, preparation_id:
+null}` — un aliment ajouté frais le jour même — sous une méthode au poulet ne
+mord pas. On ne le devine pas, on compte la population où la garde s'exerce.
+
+### « Séparé » se lit sur le geste de la ceinture, pas sur la présence du nom
+
+`separated` / `not_separated` demandaient : *le modèle a-t-il nommé cette bouche
+sur ce plat ?* Sous la boîte d'échange, la réponse est **oui dans le cas
+nominal** — la végétarienne est nommée, sur SA boîte. L'ancienne lecture aurait
+compté chaque échange réussi comme un échec de séparation.
+
+La question juste est : **la ceinture a-t-elle dû retirer ce nom ?** Et
+`exclusion_belt` gagne la même triade, qu'elle n'avait pas : un modèle qui ne
+compose jamais la boîte d'échange rendait le même compte qu'un foyer où
+personne n'évite rien.
+
+### L'invariant : personne sans repas
+
+Autorité : `_shared/keel/meals_delivered.ts`. Par bouche et par case —
+
+| Situation | Verdict |
+|---|---|
+| Aucun plat sur la case | Hors dénominateur : c'est un trou du **plan** (`empty_slots`) |
+| Un plat dédié à elle | Nourrie |
+| Un plat de table sans aucune boîte | Nourrie (rien n'a été pesé, tout le monde mange) |
+| Nommée sur **exactement** une boîte | Nourrie |
+| Nommée sur deux boîtes ou plus | `double` |
+| Sur aucune, et retirée | `held_off_regime` \| `held_off_exclusion` |
+| Sur aucune, sans retrait | `not_named` |
+
+Le régime prime sur le dégoût quand les deux ont mordu, comme à la ceinture :
+deux causes pour une bouche compteraient deux repas manqués là où il n'y en a
+qu'un.
+
+Le dénominateur est **celui de la composition**, pas un second :
+`memberMealCells` avec le rythme de la maison et `away.effective`, le même appel
+que `compositionEaterCells`. `away.effective` porte déjà les absences et les
+repas pris dehors.
+
+⛔ **Et le compteur ne creuse plus le trou avant de le mesurer.** Le bloc
+« sans boîte » sautait les bouches retirées, et retranchait même leur part de
+`mouth_slots`. L'intention était bonne — ne pas accuser le modèle d'un trou que
+le moteur venait de creuser — mais la personne n'avait quand même rien à manger.
+La cause n'excuse plus : elle s'écrit à côté du constat.
+
+### Trois gestes, dans cet ordre
+
+1. **Une relance ciblée** qui nomme la bouche, la case, le plat, la cause **et le
+   remède** — différent par cause. « Quelqu'un manque à un repas » n'est pas une
+   consigne : le modèle ne sait pas s'il doit ajouter une boîte, en retirer une,
+   ou réécrire le plat. Elle interdit de raccourcir le plan : réparer en
+   supprimant des journées est la sortie facile, et elle passe toutes les autres
+   gardes.
+2. **Un dernier recours qui dépend de la cause.** Pour un **dégoût**, on annule
+   le geste du moteur : le nom sur le couvercle était la déclaration du modèle,
+   le retrait était le nôtre. La personne retrouve son repas avec l'aliment
+   qu'elle n'aime pas, et c'est **dit**. Pour un **régime**, jamais — lui servir
+   ce que sa ligne interdit n'est pas un recours, c'est le défaut d'origine.
+3. **Un refus `422 mouth_unfed`** sur une composition ou une adoption, jamais sur
+   un aperçu : l'écran doit pouvoir montrer le trou. Le journal part **avant** le
+   refus.
+
+### Et ça se dit, dans les deux sens
+
+« Chaque personne a chacun de ses repas » sort aussi, et c'est délibéré : une
+garde qui répare en silence est indiscernable d'une garde absente — on la
+redécouvre en SQL, des jours plus tard. C'est exactement comment ce défaut-ci a
+été trouvé.
+
+---
+
 ## La forme
 
 Un plat porte **ses** contenants — pluriel, un par groupe :
