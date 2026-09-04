@@ -1680,7 +1680,7 @@ Deno.test("A1 — LE ROUGE DE SEPT JOURS DIT LA MÊME CHOSE AUX TROIS ENDROITS",
   assertEquals(cookAhead.durationDays, MAX_WINDOW_DAYS);
 
   // ② LE RENDU — l'écran reçoit « dès le matin », pas « le plan a reculé ».
-  const timing = planTimingOf(lead, cookAhead);
+  const timing = planTimingOf(lead, cookAhead, { dropped: null });
   assertEquals(timing, { kind: "same_morning", reason: "no_room", lead_day: null });
 
   // ③ L'EXPLICATION — elle dit SEPT JOURS, et elle n'annonce aucun jour de

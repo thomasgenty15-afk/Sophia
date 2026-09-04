@@ -8084,6 +8084,11 @@ export const en = {
     "Shopping and cooking on {day}, the day before: nothing is eaten that day.",
   "meals.timing.same_morning":
     "Shopping and cooking first thing in the morning, so it is ready by lunch.",
+  // ⟳ 2026-09-04 — voir le commentaire jumeau dans `fr.ts`: la phrase dit les
+  // DEUX faits (elle commence demain, elle est plus courte d'un jour) et ne
+  // reproche jamais une absence.
+  "meals.timing.starts_tomorrow":
+    "Your day is already under way: this plan starts tomorrow, and covers one day less than you asked for.",
   //
   // RETIRÉES PAR CE LOT (la case « je cuisine la veille » n'existe plus, et
   // `CookDayBeforeField.tsx` est supprimé — vérifié appelant par appelant):

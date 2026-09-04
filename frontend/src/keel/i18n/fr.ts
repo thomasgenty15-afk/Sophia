@@ -6983,6 +6983,18 @@ export const fr: TranslatedMessages = {
     "Courses et cuisson {day}, la veille : rien ne se mange ce jour-là.",
   "meals.timing.same_morning":
     "Courses et cuisson dès le matin, pour être prêt à midi.",
+  // ⟳ 2026-09-04 — LA JOURNÉE DÉJÀ ENTAMÉE.
+  //
+  // ⛔ ELLE DIT LES DEUX FAITS, et le second est le plus important: le plan
+  // commence demain ET il couvre un jour de moins que demandé. Ne dire que le
+  // premier laisserait croire qu'on a décalé les trois jours, alors qu'on en a
+  // retiré un.
+  //
+  // ⛔ ELLE NE DIT JAMAIS « TU N'ÉTAIS PAS LÀ ». Le serveur sépare exprès les
+  // moments passés des absences déclarées pour que cette phrase ne puisse pas
+  // reprocher une absence à quelqu'un qui n'a rien déclaré.
+  "meals.timing.starts_tomorrow":
+    "Ta journée est déjà entamée : ce plan commence demain, et il couvre un jour de moins que demandé.",
   //
   // RETIRÉES PAR CE LOT (la case « je cuisine la veille » n'existe plus, et
   // `CookDayBeforeField.tsx` est supprimé — vérifié appelant par appelant):

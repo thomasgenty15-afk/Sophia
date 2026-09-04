@@ -168,6 +168,7 @@ import {
   resolveRequestedWindow,
   withCookDayBefore,
   windowDayOrder,
+  withoutSpentFirstDay,
   windowStartsBeyondDayTokens,
 } from "../_shared/keel/meal_plan_window.ts";
 import {
@@ -1360,26 +1361,17 @@ Deno.serve(async (req) => {
     if (cookAhead.refused !== null) {
       issues.push(`cook_the_day_before_refused: ${cookAhead.refused}`);
     }
-    // ── CE QUE LA RÉPONSE, LA LIGNE ET L'ÉCRAN LISENT, ASSEMBLÉ UNE FOIS ────
-    // ⛔ UNE SEULE EXPRESSION POUR TROIS DESTINATIONS. `timing` part dans la
-    // réponse (l'aperçu le rend), dans `generated_from` (il reste lisible en
-    // SQL trois jours plus tard) et dans `plan_rationale` (la phrase). Trois
-    // calculs du même fait divergeraient au premier ajustement — c'est la
-    // forme de défaut que ce dépôt a déjà payée sur `usableCookDays`,
-    // `addedCookDays` et `rationaleCookDays`.
-    const planTiming: PlanTiming = planTimingOf(lead, cookAhead);
-
-    // `scope` est DÉRIVÉ de la durée et n'est plus reçu: une ligne `scope='day'`
-    // portant une fenêtre de sept jours n'est plus exprimable.
+    // ⟳ 2026-09-04 — LE TIMING ET LA DÉRIVATION DE FENÊTRE ONT DESCENDU.
     //
-    // ⟳ A1 — IL SE DÉRIVE DES JOURS **MANGÉS**. Une fenêtre de deux jours dont
-    // l'un est la veille est un plan D'UN JOUR: `daysToFill` n'en porte qu'un,
-    // et l'appeler `several_days` ferait dire à la consigne le contraire de ce
-    // qu'elle demande. La RPC dérive la MÊME chose de son côté
-    // (`20260903170000`) — les deux doivent rester d'accord.
-    const daysToEat = durationDays - (cookOnlyDay === null ? 0 : 1);
-    const scope: MealScope = daysToEat === 1 ? "day" : "several_days";
-    const daysToFill: string[] = windowDayOrder(startsOn, durationDays);
+    // Ils vivaient ici. Ils sont maintenant SOUS le parse du rythme, parce que
+    // `withoutSpentFirstDay` a besoin du rythme CORRIGÉ pour dire si la journée
+    // est finie, et que `daysToFill` doit se dériver sur la fenêtre d'APRÈS ce
+    // retrait. Les laisser ici en aurait fait deux vérités: une fenêtre
+    // annoncée de trois jours, et une composition de deux.
+    //
+    // ⚠️ MESURÉ AVANT DE DÉPLACER: entre cette ligne et le parse du rythme,
+    // RIEN ne lit `startsOn`, `durationDays`, `daysToFill`, `daysToEat` ni
+    // `scope`. Le déplacement ne traverse donc aucun lecteur.
 
     // ══ LOT 1C · LA MÉMOIRE STRUCTURÉE ENTRE ICI ═══════════════════════════
     //
@@ -1563,6 +1555,77 @@ Deno.serve(async (req) => {
       // fusion des absences plus bas (`EATING_OCCASIONS.filter`).
       return EATING_OCCASIONS.filter((s) => bySlot.has(s)).map((s) => bySlot.get(s)!);
     })();
+
+    // ══ LA JOURNÉE DÉJÀ DÉPENSÉE SORT DE LA FENÊTRE ═══════════════════════
+    //
+    // Trois jours demandés un lundi à 20 h font un plan de DEUX jours, mardi et
+    // mercredi — on garde la fin, on retire le début. La nourriture servie ne
+    // bouge pas d'un gramme (c'était déjà mardi et mercredi qui étaient
+    // composés): ce qui change est la comptabilité de la fenêtre, et le fait
+    // qu'on le DISE.
+    //
+    // ⛔ ICI, ET PAS AU-DESSUS. Décider que la journée est finie demande le
+    // rythme, et le rythme n'est corrigé (`rhythm.set`) que vingt lignes plus
+    // haut. Poser ce calcul plus tôt le ferait travailler sur les horaires
+    // d'AVANT la correction — un plan rétréci sur un rythme que la personne
+    // vient précisément de changer.
+    //
+    // ⛔ UNE SEULE LECTURE DE L'HEURE POUR DEUX QUESTIONS. `passedToday` sert à
+    // décider le retrait ET à retirer les moments passés plus bas. Deux appels
+    // à `slotsPassedToday` pourraient diverger, et c'est celui qu'on regarde le
+    // moins qui garderait l'ancien état.
+    const passedToday = startsOn === todayDate
+      ? slotsPassedToday({
+        hourNow: localMinuteOfDay === null ? null : Math.floor(localMinuteOfDay / 60),
+        rhythm: eatingRhythm.length > 0 ? eatingRhythm : DEFAULT_EATING_RHYTHM,
+        declaredHours: rhythmClockFrom(
+          (goalRow.practical_constraints as Record<string, unknown> | null)
+            ?.eating_rhythm,
+        ),
+      })
+      : [];
+    const spentFirstDay = withoutSpentFirstDay({ startsOn, durationDays }, {
+      today: todayDate,
+      // ⛔ LA GARDE DU PIÈGE PASSE PAR ICI. Si la veille de cuisine a reculé la
+      // fenêtre, aujourd'hui est un jour où l'on CUISINE et non où l'on mange:
+      // le retirer mangerait la veille que la personne a demandée.
+      cookOnlyDay,
+      declaredSlots: (eatingRhythm.length > 0 ? eatingRhythm : DEFAULT_EATING_RHYTHM)
+        .map((r) => r.slot),
+      passedSlots: passedToday,
+    });
+    startsOn = spentFirstDay.startsOn;
+    durationDays = spentFirstDay.durationDays;
+    if (spentFirstDay.dropped !== null) {
+      issues.push(`spent_first_day_dropped: ${spentFirstDay.dropped}`);
+    }
+
+    // ── CE QUE LA RÉPONSE, LA LIGNE ET L'ÉCRAN LISENT, ASSEMBLÉ UNE FOIS ────
+    // ⛔ UNE SEULE EXPRESSION POUR TROIS DESTINATIONS. `timing` part dans la
+    // réponse (l'aperçu le rend), dans `generated_from` (il reste lisible en
+    // SQL trois jours plus tard) et dans `plan_rationale` (la phrase). Trois
+    // calculs du même fait divergeraient au premier ajustement — c'est la
+    // forme de défaut que ce dépôt a déjà payée sur `usableCookDays`,
+    // `addedCookDays` et `rationaleCookDays`.
+    const planTiming: PlanTiming = planTimingOf(lead, cookAhead, spentFirstDay);
+
+    // `scope` est DÉRIVÉ de la durée et n'est plus reçu: une ligne `scope='day'`
+    // portant une fenêtre de sept jours n'est plus exprimable.
+    //
+    // ⟳ A1 — IL SE DÉRIVE DES JOURS **MANGÉS**. Une fenêtre de deux jours dont
+    // l'un est la veille est un plan D'UN JOUR: `daysToFill` n'en porte qu'un,
+    // et l'appeler `several_days` ferait dire à la consigne le contraire de ce
+    // qu'elle demande. La RPC dérive la MÊME chose de son côté
+    // (`20260903170000`) — les deux doivent rester d'accord.
+    //
+    // ⟳ 2026-09-04 — ET ILS LE RESTENT APRÈS LE RETRAIT. Le retrait décrémente
+    // `durationDays` sans toucher à la veille (il se refuse quand elle existe),
+    // donc `duration_days - lead_days` reste dans `[1, 7]` et `duration_days`
+    // dans `[1, 8]`: les trois CHECK de `20260903170000` tiennent sans
+    // migration. C'est vérifié, pas supposé.
+    const daysToEat = durationDays - (cookOnlyDay === null ? 0 : 1);
+    const scope: MealScope = daysToEat === 1 ? "day" : "several_days";
+    const daysToFill: string[] = windowDayOrder(startsOn, durationDays);
     // LES MOMENTS OÙ IL NE MANGE PAS ICI. Même `const` hissé que le rythme, et
     // pour la même raison: la valeur passée au prompt et celle passée au
     // parseur doivent être LA MÊME lecture, pas deux relectures à tenir
@@ -1634,16 +1697,13 @@ Deno.serve(async (req) => {
     // la même liste avant d'avoir été comptées: `plan_rationale` doit pouvoir
     // dire « la journée est déjà entamée » sans jamais dire « tu avais marqué
     // que tu n'étais pas là » à quelqu'un qui n'a rien marqué.
-    const slotsDroppedToday = startsOn === todayDate
-      ? slotsPassedToday({
-        hourNow: localMinuteOfDay === null ? null : Math.floor(localMinuteOfDay / 60),
-        rhythm: eatingRhythm.length > 0 ? eatingRhythm : DEFAULT_EATING_RHYTHM,
-        declaredHours: rhythmClockFrom(
-          (goalRow.practical_constraints as Record<string, unknown> | null)
-            ?.eating_rhythm,
-        ),
-      })
-      : [];
+    //
+    // ⟳ 2026-09-04 — LA MÊME LECTURE QUE LE RETRAIT, pas une seconde. Et la
+    // condition reste `startsOn === todayDate` APRÈS le retrait: quand la
+    // journée dépensée a été retirée, la fenêtre ne commence plus aujourd'hui
+    // et il n'y a plus rien à retirer — `[]` est alors la bonne réponse, pas
+    // un repli.
+    const slotsDroppedToday = startsOn === todayDate ? passedToday : [];
     // LA FUSION DES DEUX SOURCES, une seule fois, ici. Le jour d'aujourd'hui
     // porte l'union; les autres jours ne bougent pas. Une entrée `slots: []`
     // (journée entière) l'emporte et n'est pas rouverte.

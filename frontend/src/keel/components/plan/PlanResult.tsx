@@ -295,7 +295,17 @@ export default function PlanResult(props: PlanResultProps) {
         ? mealCopy("meals.timing.same_morning")
         : mealCopy("meals.timing.day_before", { day: label });
     })()
-    : mealCopy("meals.timing.same_morning");
+    // ⛔ CE REPLI DISAIT UN FAIT FAUX, et le parseur l'avait écrit noir sur
+    // blanc vingt lignes plus loin: « l'avertissement "dès le matin" sur un plan
+    // qui a bien reculé d'un jour est un fait FAUX, et il est indémentable pour
+    // qui le lit ». Le `else` rendait `same_morning` pour TOUT ce qui n'est pas
+    // `day_before` — donc, depuis le 2026-09-04, pour un plan qui commence
+    // DEMAIN. Chaque cas se nomme désormais, et l'inconnu ne dit rien.
+    : timing.kind === "starts_tomorrow"
+    ? mealCopy("meals.timing.starts_tomorrow")
+    : timing.kind === "same_morning"
+    ? mealCopy("meals.timing.same_morning")
+    : null;
 
   return (
     <div className="space-y-6">

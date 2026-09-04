@@ -652,6 +652,138 @@ export function cookDayBeforeAvailable(
 }
 
 // ---------------------------------------------------------------------------
+// LA JOURNÉE DÉJÀ DÉPENSÉE — on garde la FIN, on retire le DÉBUT
+// ---------------------------------------------------------------------------
+
+/**
+ * POURQUOI CE REFUS EST NOMMÉ PLUTÔT QUE BOOLÉEN.
+ *
+ * Quatre raisons distinctes empêchent de retirer le premier jour, et trois
+ * d'entre elles doivent pouvoir être DITES à la personne ou lues en SQL trois
+ * jours plus tard. Un `false` les confondrait toutes avec « la journée n'est
+ * pas finie », qui est le cas ordinaire.
+ *
+ *   · `not_today` ...... la fenêtre ne commence pas aujourd'hui: rien à retirer.
+ *   · `cook_day` ....... aujourd'hui est le jour de CUISINE SEULE. Voir le bloc
+ *                        ⛔ ci-dessous — c'est le piège de ce lot.
+ *   · `slots_remain` ... il reste au moins un moment déclaré à venir. Le cas
+ *                        ordinaire, et celui qui doit rester silencieux.
+ *   · `single_day` ..... la journée est bien dépensée, mais la fenêtre n'a
+ *                        qu'un jour: la retirer la viderait.
+ */
+export type SpentFirstDayRefusal =
+  | "not_today"
+  | "cook_day"
+  | "slots_remain"
+  | "single_day";
+
+export interface WindowWithoutSpentDay {
+  startsOn: string;
+  durationDays: number;
+  /** Le jour RETIRÉ, pour que l'écran puisse le nommer. `null` si rien n'a bougé. */
+  dropped: DayToken | null;
+  refused: SpentFirstDayRefusal | null;
+}
+
+/**
+ * ═══════════════════════════════════════════════════════════════════════════
+ * TROIS JOURS DEMANDÉS À 20 H FONT UN PLAN DE DEUX JOURS, ET ON LE DIT.
+ * ═══════════════════════════════════════════════════════════════════════════
+ *
+ * ── LE DÉFAUT, ET CE QU'IL N'EST PAS ──────────────────────────────────────
+ * Une fenêtre qui commence aujourd'hui ne compose PAS les moments déjà passés
+ * (`slotsPassedToday`). C'est juste: on ne planifie pas un déjeuner à 22 h pour
+ * le jour même. Mais la fenêtre, elle, continuait de COMPTER ce jour-là. Une
+ * personne qui demandait lundi-mardi-mercredi un lundi à 20 h recevait donc
+ * deux journées de repas dans un plan qui s'annonçait de trois, et rien ne le
+ * lui disait.
+ *
+ * ⛔ CE N'EST PAS UN DÉFAUT DE COMPOSITION. Les plats servis ne changent pas
+ * d'un gramme: c'était déjà mardi et mercredi qui étaient composés. Ce qui
+ * change ici est la COMPTABILITÉ de la fenêtre et la FRANCHISE de l'écran.
+ *
+ * ── LA RÈGLE, DÉCIDÉE ─────────────────────────────────────────────────────
+ * On garde la FIN et on retire le début dépensé. Lundi 20 h + trois jours
+ * demandés ⇒ un plan de DEUX jours, mardi et mercredi.
+ *
+ * ⛔ ON NE VA PAS CHERCHER UN JOUR AU BOUT. La formule « trois demandés =
+ * trois nourris » a été explicitement écartée: elle ferait déborder le plan sur
+ * un jeudi que personne n'a demandé, et elle heurterait `MAX_WINDOW_DAYS` sur
+ * une fenêtre de sept. Le plan assume d'être plus court.
+ *
+ * ══ ⛔ LE PIÈGE, ET C'EST TOUT L'INTÉRÊT DE LA GARDE `cook_day` ════════════
+ *
+ * `withCookDayBefore` décale `startsOn` EN ARRIÈRE. Donc quelqu'un qui a
+ * demandé la veille de cuisine se retrouve avec `startsOn === today` ET
+ * `cookOnlyDay === today` — la condition « la fenêtre commence aujourd'hui »
+ * devient vraie, et tous les moments d'aujourd'hui sont « passés » puisque
+ * AUJOURD'HUI ON NE MANGE PAS, ON CUISINE.
+ *
+ * Rétrécir là mangerait très exactement la veille que la personne vient de
+ * demander. La garde n'est donc pas une précaution: sans elle, ce lot casse la
+ * fonctionnalité livrée la veille.
+ *
+ * ── CE QUE LA FONCTION NE FAIT PAS ────────────────────────────────────────
+ * Elle ne lit ni horloge, ni base, ni rythme. `passedSlots` lui est DONNÉ, et
+ * il vient de l'unique lecteur d'heure de la lane (`slotsPassedToday`). Un
+ * second calcul de « quels moments sont passés » divergerait du premier, et
+ * c'est la forme de défaut que ce dépôt paie en boucle.
+ */
+export function withoutSpentFirstDay(
+  window: { startsOn: string; durationDays: number },
+  input: {
+    today: string;
+    /**
+     * ⚠️ `string | null` ET PAS `DayToken | null`, DÉLIBÉRÉMENT. Cette fonction
+     * ne fait qu'UNE chose de ce champ: tester s'il est nul. Exiger le type
+     * étroit obligerait l'appelant à rétrécir une valeur qu'il porte déjà en
+     * `string | null` — et la façon dont on rétrécit sans réfléchir, dans ce
+     * dépôt, s'écrit `as never`, ce qui éteint la vérification pour de bon.
+     * Une signature ne demande pas une précision qu'elle n'utilise pas.
+     */
+    cookOnlyDay: string | null;
+    declaredSlots: readonly string[];
+    passedSlots: readonly string[];
+  },
+): WindowWithoutSpentDay {
+  const untouched = {
+    startsOn: window.startsOn,
+    durationDays: window.durationDays,
+    dropped: null,
+  } as const;
+  if (window.startsOn !== input.today) {
+    return { ...untouched, refused: "not_today" };
+  }
+  // ⛔ LA GARDE DU PIÈGE, ET ELLE PASSE AVANT LES MOMENTS. Un jour de cuisine
+  // seule n'a aucun moment à manger: le tester après ferait tomber ce cas dans
+  // `slots_remain` par accident, c'est-à-dire pour la mauvaise raison.
+  if (input.cookOnlyDay !== null) {
+    return { ...untouched, refused: "cook_day" };
+  }
+  // ⚠️ FAIL-CLOSED SUR UN RYTHME ILLISIBLE. Aucun moment déclaré ⇒ on ne sait
+  // pas dire que la journée est finie, donc on ne retire rien. Le comportement
+  // d'avant ce lot, exactement.
+  const declared = new Set(input.declaredSlots);
+  if (declared.size === 0) return { ...untouched, refused: "slots_remain" };
+  const passed = new Set(input.passedSlots);
+  for (const slot of declared) {
+    if (!passed.has(slot)) return { ...untouched, refused: "slots_remain" };
+  }
+  // ⛔ UNE FENÊTRE D'UN JOUR NE SE RÉTRÉCIT PAS: elle deviendrait vide. Générer
+  // zéro jour est pire que générer un plan court — on sert la fenêtre demandée
+  // et le motif dit pourquoi elle est déjà entamée.
+  if (window.durationDays <= 1) {
+    return { ...untouched, refused: "single_day" };
+  }
+  return {
+    startsOn: addDays(window.startsOn, 1),
+    durationDays: window.durationDays - 1,
+    dropped: dayTokenOf(window.startsOn),
+    refused: null,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // LE TIMING QUI SORT — ce que la réponse, `generated_from` et l'écran lisent
 // ---------------------------------------------------------------------------
 
@@ -665,6 +797,10 @@ export type PlanTimingReason =
   | "before_cutoff_today"
   | "after_cutoff"
   | "starts_today"
+  // La journée est déjà entamée et le plan commence demain — voir
+  // `withoutSpentFirstDay`. C'est le SEUL motif de ce fichier qui parle d'un
+  // jour RETIRÉ plutôt que d'un jour ajouté.
+  | "today_already_spent"
   | "clock_unreadable"
   | CookDayBeforeRefusal;
 
@@ -674,11 +810,15 @@ export type PlanTimingReason =
  *
  *   · `day_before`   + `lead_day` = la date de la veille (rang 0 de la fenêtre);
  *   · `same_morning` + `lead_day: null` — « courses et cuisson dès le matin ».
+ *   · `starts_tomorrow` + `lead_day: null` — la journée d'aujourd'hui était
+ *     déjà dépensée, elle a été RETIRÉE de la fenêtre. ⚠️ Ce cas n'ajoute pas
+ *     un jour au bout: le plan est plus COURT que ce qui a été demandé, et
+ *     c'est très exactement ce que l'écran doit dire.
  *
  * ⚠️ `snake_case`: c'est un objet de RÉPONSE et de colonne, pas un type interne.
  */
 export interface PlanTiming {
-  kind: "day_before" | "same_morning";
+  kind: "day_before" | "same_morning" | "starts_tomorrow";
   reason: PlanTimingReason;
   lead_day: string | null;
 }
@@ -702,9 +842,23 @@ export function planTimingOf(
     startsOn: string;
     refused: CookDayBeforeRefusal | null;
   },
+  /**
+   * ⛔ REQUIS, ET PAS OPTIONNEL. Un paramètre de garde optionnel est une garde
+   * désarmée: l'appelant qui l'oublie obtient silencieusement l'ancien texte
+   * (« dès le matin ») sur un plan qui commence DEMAIN. Ce dépôt a déjà payé
+   * cette forme-là — `safetyBand` jamais passé — et la règle qui en est sortie
+   * est qu'une garde se rend obligatoire par le compilateur.
+   */
+  spent: { dropped: DayToken | null },
 ): PlanTiming {
   if (cookAhead.cookOnlyDay !== null) {
     return { kind: "day_before", reason: lead.reason, lead_day: cookAhead.startsOn };
+  }
+  // ⚠️ APRÈS LA VEILLE, ET LES DEUX NE SE CROISENT JAMAIS. `withoutSpentFirstDay`
+  // refuse `cook_day` quand une veille existe: si `dropped` est renseigné, c'est
+  // qu'il n'y avait pas de veille. L'ordre est donc une ceinture, pas un choix.
+  if (spent.dropped !== null) {
+    return { kind: "starts_tomorrow", reason: "today_already_spent", lead_day: null };
   }
   return {
     kind: "same_morning",

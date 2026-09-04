@@ -3272,7 +3272,14 @@ Deno.serve(async (req) => {
     // calculs du même fait divergeraient au premier ajustement — c'est la
     // forme de défaut que ce dépôt a déjà payée sur `usableCookDays`,
     // `addedCookDays` et `rationaleCookDays`.
-    const planTiming: PlanTiming = planTimingOf(lead, cookAhead);
+    // ⛔ `{ dropped: null }` EST UN AVEU, PAS UN DÉFAUT. Le retrait de la
+    // journée déjà dépensée (`withoutSpentFirstDay`, 2026-09-04) n'est posé que
+    // sur la lane SOLO: il demande le rythme corrigé au bon endroit du fichier,
+    // et cette lane-ci a son propre ordre que personne n'a mesuré. Le passer en
+    // dur ici rend l'absence VISIBLE au lecteur et au compilateur — un
+    // paramètre optionnel l'aurait rendue silencieuse, et un lot désarmé
+    // ressemble trait pour trait à un lot qui marche.
+    const planTiming: PlanTiming = planTimingOf(lead, cookAhead, { dropped: null });
 
     const declaredCapacity = readCookingCapacity(pc);
     // ⟳ A1 — `scope` SE DÉRIVE DES JOURS **MANGÉS**. Une fenêtre de deux jours

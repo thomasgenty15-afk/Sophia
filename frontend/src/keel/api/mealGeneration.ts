@@ -1332,6 +1332,12 @@ export const MEAL_COLUMNS =
  *   · `day_before`   — la fenêtre a reculé d'un jour; `leadDay` porte la date
  *                      de ce jour de cuisine, où rien ne se mange;
  *   · `same_morning` — pas de veille. L'écran rend l'avertissement.
+ *   · `starts_tomorrow` — la journée d'aujourd'hui était déjà dépensée (tous
+ *                      ses moments passés) et elle a été RETIRÉE de la fenêtre.
+ *                      ⚠️ Le plan est donc plus COURT que ce qui a été demandé:
+ *                      aucun jour n'est ajouté au bout pour compenser. L'écran
+ *                      doit dire les deux choses — il commence demain, et il
+ *                      couvre un jour de moins.
  *
  * `reason` est le motif du serveur (`day_before`, `before_cutoff_today`,
  * `after_cutoff`, `starts_today`, `clock_unreadable`, `no_room`,
@@ -1340,7 +1346,7 @@ export const MEAL_COLUMNS =
  * gabarits ici divergerait au premier ajustement.
  */
 export interface PlanTimingView {
-  kind: "day_before" | "same_morning";
+  kind: "day_before" | "same_morning" | "starts_tomorrow";
   reason: string;
   leadDay: string | null;
 }
@@ -1356,7 +1362,9 @@ export interface PlanTimingView {
 export function readPlanTiming(raw: unknown): PlanTimingView | null {
   const t = (raw ?? {}) as Record<string, unknown>;
   const kind = String(t.kind ?? "");
-  if (kind !== "day_before" && kind !== "same_morning") return null;
+  if (
+    kind !== "day_before" && kind !== "same_morning" && kind !== "starts_tomorrow"
+  ) return null;
   const leadDay = String(t.lead_day ?? "").trim();
   return {
     kind,

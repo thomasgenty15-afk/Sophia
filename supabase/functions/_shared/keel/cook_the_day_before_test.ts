@@ -293,7 +293,12 @@ for (const [name, rel] of LANES) {
       src,
       "const cookAhead = withCookDayBefore({ startsOn, durationDays }, {\n      asked: lead.leadDay !== null,",
     );
-    assertStringIncludes(src, "const planTiming: PlanTiming = planTimingOf(lead, cookAhead);");
+    // ⟳ 2026-09-04 — le troisième argument est le retrait de la journée
+    // dépensée. On n'épingle plus la ligne ENTIÈRE: photographier un appel fait
+    // rougir ce test au premier argument ajouté, ce qui vient d'arriver. On
+    // épingle les deux faits qui comptent — l'appel existe, et il reçoit les
+    // deux verdicts dans cet ordre.
+    assertStringIncludes(src, "planTimingOf(lead, cookAhead");
     assertStringIncludes(src, "cook_the_day_before_refused:");
     // ⛔ ET LE CORPS N'EST PLUS LU — MESURÉ SUR LA SOURCE SANS SES COMMENTAIRES.
     // Le retrait est raconté DANS un commentaire qui nomme le champ; un grep
@@ -446,6 +451,7 @@ Deno.test("A1 — `planTimingOf`: la fenêtre a le dernier mot sur le motif", ()
   const kept = planTimingOf(
     { leadDay: "2026-09-01", reason: "before_cutoff_today" },
     { cookOnlyDay: "tue", startsOn: "2026-09-01", refused: null },
+    { dropped: null },
   );
   assertEquals(kept, {
     kind: "day_before",
@@ -458,12 +464,14 @@ Deno.test("A1 — `planTimingOf`: la fenêtre a le dernier mot sur le motif", ()
   const refused = planTimingOf(
     { leadDay: "2026-09-09", reason: "day_before" },
     { cookOnlyDay: null, startsOn: "2026-09-10", refused: "no_room" },
+    { dropped: null },
   );
   assertEquals(refused, { kind: "same_morning", reason: "no_room", lead_day: null });
   // Pas de veille au calendrier, pas de refus de fenêtre: le motif de l'horloge.
   const morning = planTimingOf(
     { leadDay: null, reason: "after_cutoff" },
     { cookOnlyDay: null, startsOn: "2026-09-02", refused: null },
+    { dropped: null },
   );
   assertEquals(morning, { kind: "same_morning", reason: "after_cutoff", lead_day: null });
 });

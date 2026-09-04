@@ -159,6 +159,14 @@ export default function KitchenToday(
     })
     : timing.kind === "same_morning" && meals.startsOn === todayDate
     ? mealCopy("meals.timing.same_morning")
+    // ⟳ 2026-09-04 — LA JOURNÉE ÉTAIT DÉJÀ ENTAMÉE, LE PLAN COMMENCE DEMAIN.
+    //
+    // ⚠️ ET CETTE PHRASE-CI SE DIT AUJOURD'HUI, pas demain: c'est aujourd'hui
+    // que la personne cherche à comprendre pourquoi son plan de trois jours en
+    // couvre deux. Demain, la fenêtre commence et la phrase n'a plus d'objet —
+    // d'où la borne sur `startsOn`, la même forme que les deux cas au-dessus.
+    : timing.kind === "starts_tomorrow" && meals.startsOn > todayDate
+    ? mealCopy("meals.timing.starts_tomorrow")
     : null;
 
   return (
