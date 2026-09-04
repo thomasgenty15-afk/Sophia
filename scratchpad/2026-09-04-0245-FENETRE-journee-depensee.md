@@ -162,7 +162,65 @@ les plats — tout ce qui était déjà vert en unitaire — mais pas la phrase.
 2. **Un seul fuseau tardif éprouvé.** `America/Sao_Paulo` à 22 h fait tomber les trois
    moments. Le cas où **un seul** moment reste à venir (donc `slots_remain`) n'a pas été
    joué en run réel — il l'est en unitaire.
-3. **Le refus `cook_day` n'a pas été vu en run réel.** C'est la garde la plus importante du
-   lot, et elle exige une veille de cuisine accordée : il faut une fenêtre qui démarre
-   demain, que le harnais ne demande pas.
+3. ~~Le refus `cook_day` n'a pas été vu en run réel.~~ **FAIT — voir §10.**
 4. **Aucune migration, aucun déploiement.** Rien n'est poussé.
+
+
+---
+
+## 10. ⟳ LE REFUS `cook_day` EN RUN RÉEL — la garde la plus importante du lot
+
+**Elle est prouvée.** `plan-COOKDAY-20260904-032948.json`, HTTP 200, empreinte du code
+inchangée avant/après.
+
+### ⛔ Pourquoi ce cas est difficile à atteindre, et pourquoi c'est ça qui compte
+
+La garde ne **change** le résultat que si, sans elle, le retrait aurait mordu — donc si tous
+les moments déclarés sont passés. Or deux constantes du dépôt s'y opposent :
+
+- la veille de cuisine est **refusée après 18 h** (`SHOPPING_CUTOFF_HOUR`) ;
+- le dîner ne « passe » qu'à **21 h** (`SLOT_PASSED_HOUR`).
+
+**Avec les trois repas par défaut, les deux conditions s'excluent.** Il faut donc un rythme
+sans repas tardif — quelqu'un qui ne dîne pas — et une heure locale entre 14 h et 17 h.
+Vérifié par **simulation des trois fonctions pures avant de dépenser un appel modèle** :
+à 15 h avec trois repas, la garde tire mais ne change rien (`slots_remain` aurait suffi) ;
+à 15 h sans dîner, elle change tout ; à 22 h, la veille est refusée et on retombe sur
+`not_today`.
+
+### La mesure
+
+Fixture `eval0823.solo@keeltest.dev`, **deux** écritures lues avant et restaurées après,
+vérifiées dans les deux sens : fuseau `Europe/London` → `Pacific/Kiritimati` (UTC+14, il y
+est 15 h 29), rythme trois repas → **petit-déjeuner + déjeuner**.
+
+| | |
+|---|---|
+| demandé | départ **2026-09-05** + 3 jours |
+| servi | **2026-09-04 + 4 jours** → la veille a bien reculé la fenêtre sur aujourd'hui |
+| `timing.kind` | **`day_before`**, `lead_day: 2026-09-04` — **la veille est INTACTE** |
+| `issues` | **`spent_first_day_kept: cook_day`** — la garde tire, et elle le dit |
+
+Sans elle : `startsOn === today`, petit-déjeuner et déjeuner tous deux passés à 15 h 29 ⇒
+le retrait aurait mangé le 2026-09-04, **c'est-à-dire le jour de cuisine lui-même**.
+
+### ⚠️ Ce que le run a montré en passant, et qui n'est PAS de ce lot
+
+La chaîne rend, sur le même jour, **deux raisons concurrentes** :
+
+> « Everything is cooked tonight, Friday: the plan starts a day earlier, and **nothing is
+> eaten on that day**. »
+> « For today, breakfast and lunch are off the plan: **the day is already under way**. »
+
+La première est la vraie : ce jour est un jour de cuisine, rien n'y est mangé **par
+conception**. La seconde donne une raison d'horloge pour une journée vide **par nature**, et
+un lecteur ne peut pas savoir laquelle compte.
+
+⛔ **Ce n'est pas une régression de ce lot** : `slotsDroppedToday` se calcule dès que la
+fenêtre commence aujourd'hui, ce qui est exactement le cas d'une veille accordée, et c'était
+déjà vrai avant le 2026-09-04. **Nommé, pas corrigé** — c'est un arbitrage de copie, pas un
+bug, et il appartient à qui décide ce que l'élève lit.
+
+**Autre observation, hors lot** : la fenêtre porte 4 jours dont 3 mangés, et le lundi n'a
+**aucun plat**. La chaîne le dit (« No batch keeps until Monday: that day is cooked on the
+day »), donc ce n'est pas silencieux — mais ce n'est pas mesuré ici.
