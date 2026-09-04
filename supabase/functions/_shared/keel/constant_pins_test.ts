@@ -27,7 +27,7 @@
 
 import { assertEquals } from "jsr:@std/assert@1";
 
-import { UNANSWERED_EXTRAS_SHARE } from "./meal_extras.ts";
+import { UNANSWERED_EXTRAS_KCAL } from "./meal_extras.ts";
 import { MAX_DISH_BUTTONS } from "./plan_feedback_chat.ts";
 import {
   DENSITY_CEILING_DEFAULT,
@@ -189,12 +189,24 @@ Deno.test("épinglage — le repli d'un moment NON RENSEIGNÉ vaut 0,58", () => 
   // retranché en valeur absolue et moment par moment; les kcal viennent
   // désormais de CIQUAL (`meal_extras.ts`), pas d'une table écrite ici.
   //
-  // ⛔ CE QUI SURVIT EST LA CONVENTION, PAS SA DÉCOMPOSITION. Une fiche muette
-  // ne dit pas « je ne prends rien »: retrancher zéro multiplierait sa cible
-  // par 2,4. `0,58` est le complément exact de l'ancien `0,42`, et c'est ce qui
-  // rend le lot sans régression sur un déjeuner et un dîner.
-  assertEquals(UNANSWERED_EXTRAS_SHARE, 0.58);
-  assertEquals(Number((1 - UNANSWERED_EXTRAS_SHARE).toFixed(2)), 0.42);
+  // ⟳ 2026-09-04 — LE REPLI EST PASSÉ DE 0,58 À 0, ET C'EST UN RENVERSEMENT
+  // ASSUMÉ. L'ancien épinglage disait: « une fiche muette ne dit pas *je ne
+  // prends rien*: retrancher zéro multiplierait sa cible par 2,4. » Juste en
+  // logique, et faux en population.
+  //
+  // ⛔ MESURÉ EN BASE LE 2026-09-04: **4 bouches sur 143** ont déclaré un extra
+  // au déjeuner ou au dîner. Le « repli » couvrait donc 97 % des gens — il
+  // n'arbitrait plus une incertitude, il ÉTAIT le produit. Traduit en pain
+  // (278 kcal/100 g), il supposait 376 g/jour hors plan pour un adulte à
+  // 2 400 kcal et 704 g pour un corps à 4 501. Une baguette pèse 250 g.
+  //
+  // ⚠️ ET L'UNITÉ ÉTAIT L'ERREUR DE FOND: un extra DÉCLARÉ vaut des kcal, un
+  // extra SUPPOSÉ valait une fraction du besoin. En pourcentage, plus quelqu'un
+  // avait besoin de manger, plus on supposait qu'il mangeait ailleurs.
+  //
+  // Ce qui NE change pas: une fiche qui a répondu garde son retrait au kcal
+  // près (`extrasOf`). Le renversement ne touche que le silence.
+  assertEquals(UNANSWERED_EXTRAS_KCAL, 0);
 });
 
 Deno.test("épinglage — le plat garde au moins 30 % de son repas", () => {

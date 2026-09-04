@@ -874,7 +874,8 @@ const SENTINELLES: readonly string[] = [
   // `composedDishShare`; les enlever d'ici sans remplaçant aurait rendu ce
   // méta-test aveugle à DEUX causes de cécité, en silence — exactement ce qu'il
   // existe pour empêcher. On garde donc une constante de chaque FORME.
-  "UNANSWERED_EXTRAS_SHARE", // scalaire décimal, le cœur de la cicatrice
+  "UNANSWERED_EXTRAS_KCAL", // ⟳ 2026-09-04: était `_SHARE` (0,58). Le retrait
+  // supposé est passé d'une FRACTION à zéro — rien d'indiqué, rien de retiré.
   "SLOT_DAY_WEIGHT", // `Record` numérique épinglé en entier
   "BOX_FACTOR_MAX", // module `M`, épinglé depuis un fichier NEUF
   // ⟳ LOT `X2″` (2026-08-23) — UNE SENTINELLE PAR CAUSE DE CÉCITÉ REFERMÉE.

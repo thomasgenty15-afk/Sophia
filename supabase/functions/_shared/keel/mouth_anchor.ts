@@ -79,7 +79,7 @@ import type { MouthDayEnergy } from "./mouth_energy.ts";
 import {
   EXTRA_BEARING_SLOTS,
   slotBearsExtras,
-  UNANSWERED_EXTRAS_SHARE,
+  UNANSWERED_EXTRAS_KCAL,
 } from "./meal_extras.ts";
 
 /**
@@ -235,7 +235,7 @@ export const MEAL_MAX_GRAMS_PER_KG = 8;
  *
  * ⛔ TROIS ÉTATS, ET LA DIFFÉRENCE EST LE LOT ENTIER. `null` = jamais demandé.
  * Clé absente = ce moment-là n'a pas été renseigné. Clé à `0` = renseigné, rien
- * à côté du plat. Les deux premiers retombent sur `UNANSWERED_EXTRAS_SHARE`;
+ * à côté du plat. Les deux premiers retombent sur `UNANSWERED_EXTRAS_KCAL`;
  * le troisième laisse le plat porter tout son repas.
  *
  * ⚠️ `Record<string, number>` ET PAS `Record<ExtraBearingSlot, number>`: la clé
@@ -309,9 +309,13 @@ function extrasKcalFor(
   if (!slotBearsExtras(slot)) return { kcal: 0, floored: false };
   const answered = extras !== null &&
     Object.prototype.hasOwnProperty.call(extras, slot);
+  // ⟳ 2026-09-04 — LES DEUX BRANCHES ONT ENFIN LA MÊME UNITÉ. La branche
+  // supposée valait `mealKcal * 0,58`, une FRACTION du besoin, quand la branche
+  // déclarée vaut des kcal. Du pain reste du pain: en pourcentage, plus
+  // quelqu'un avait besoin de manger, plus on supposait qu'il mangeait ailleurs.
   const raw = answered
     ? Math.max(0, Number(extras[slot]) || 0)
-    : mealKcal * UNANSWERED_EXTRAS_SHARE;
+    : UNANSWERED_EXTRAS_KCAL;
   const ceiling = mealKcal * (1 - COMPOSED_DISH_MIN_MEAL_SHARE);
   // ⛔ LE RABOTAGE SE DIT, IL NE SE DEVINE PAS. Une borne qui mord en silence
   // est indistinguable d'une borne qui ne mord jamais — et la seule chose
@@ -974,10 +978,22 @@ export function anchorFactorFor(
   // `covered = day.slots` remet le défaut d'avant (un côté du rapport baisse
   // seul); `whole` sur `ownSlots` gonfle la part de chaque moment restant et
   // sert le dîner d'une journée entière — 6,28 mesuré sur Christèle.
+  // ⛔ LE REPLI DES TROIS REPAS QUAND RIEN N'EST DÉCLARÉ — LE MÊME QUE
+  // `dayCoverageOf` (`declaredSlots.length > 0 ? … : HOUSE_DEFAULT_SLOTS`).
+  //
+  // ⚠️ SON ABSENCE ÉTAIT MASQUÉE PAR LE RETRAIT SUPPOSÉ, et le retrait de
+  // celui-ci l'a révélée (2026-09-04). Sans ce repli, une bouche qui n'a rien
+  // déclaré et dont le plan ne compose QUE le dîner voit sa journée entière
+  // ramenée sur ce seul dîner: `whole` vaut alors le poids du dîner, la part
+  // vaut 1, et on demande 3 900 kcal à une assiette. C'est le 6,28 de Christèle
+  // par un autre chemin — celui qui nourrit trop.
   const shared = slotPlanTargets({
     targetKcal: target.kcal,
     coveredSlots: day.ownSlots,
-    wholeSlots: [...mouth.declaredSlots, ...day.slots],
+    wholeSlots: [
+      ...(mouth.declaredSlots.length > 0 ? mouth.declaredSlots : HOUSE_DEFAULT_SLOTS),
+      ...day.slots,
+    ],
     slotExtraKcal: mouth.slotExtraKcal,
   });
   const extrasFloored = shared.floored;

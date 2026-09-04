@@ -14,7 +14,7 @@ import {
   type MealExtra,
   resolveSlotExtras,
   slotBearsExtras,
-  UNANSWERED_EXTRAS_SHARE,
+  UNANSWERED_EXTRAS_KCAL,
 } from "./meal_extras.ts";
 
 // ===========================================================================
@@ -149,15 +149,37 @@ Deno.test("⛔ DEUX MOMENTS PORTENT DES EXTRAS, ET PAS SIX", () => {
   }
 });
 
-Deno.test("⛔ LE REPLI DE LA FICHE MUETTE N'EST PAS ZÉRO", () => {
-  // Le nombre le plus dangereux du module. Retrancher zéro affirmerait que le
-  // plat porte 100 % du déjeuner — soit ×2,4 sur la cible de toute la
-  // population qui n'a jamais vu la question.
-  assertEquals(UNANSWERED_EXTRAS_SHARE, 0.58);
-  // ⚠️ ET IL EST LE COMPLÉMENT EXACT DE LA CONVENTION D'HIER (0,42), littéral
-  // des deux côtés: un test paramétré par la constante qu'il vérifie resterait
-  // vert quand on la change.
-  assertEquals(Number((1 - UNANSWERED_EXTRAS_SHARE).toFixed(2)), 0.42);
+Deno.test("⛔ LE REPLI DE LA FICHE MUETTE EST ZÉRO — RIEN DE DÉCLARÉ, RIEN À RETRANCHER", () => {
+  // ⟳ 2026-09-04 — CE TEST EST LE RENVERSEMENT DE CELUI D'AVANT, qui épinglait
+  // 0,58 en écrivant « retrancher zéro affirmerait que le plat porte 100 % du
+  // déjeuner ». Le raisonnement supposait que le silence est RARE.
+  //
+  // ⛔ MESURÉ EN BASE: 4 bouches sur 143 ont déclaré un extra au déjeuner ou au
+  // dîner. Une valeur par défaut qui couvre 97 % d'une population n'arbitre
+  // plus une incertitude — elle EST le produit.
+  //
+  // Traduit en pain (278 kcal/100 g): 58 % supposait 376 g/jour hors plan pour
+  // un adulte à 2 400 kcal, et 704 g pour un corps à 4 501. Une baguette pèse
+  // 250 g.
+  assertEquals(UNANSWERED_EXTRAS_KCAL, 0);
+});
+
+Deno.test("⛔ ET UNE FICHE QUI A RÉPONDU GARDE SON RETRAIT, AU KCAL PRÈS", () => {
+  // ⚠️ LA MOITIÉ QUI NE CHANGE PAS, et sans elle le renversement se lirait
+  // « les extras n'existent plus ». Ils existent: ils sont juste DÉCLARÉS
+  // plutôt que supposés, et sommés extra par extra sur des portions réelles du
+  // référentiel — pain + fromage + yaourt + fruit + dessert.
+  //
+  // C'est cette branche-là qui portait déjà la bonne unité: un nombre de kcal,
+  // pas une fraction du besoin. Du pain reste du pain quel que soit le gabarit
+  // de qui le mange.
+  const un = extrasOf(INDEX, ["bread"]).nutrients.energyKcal;
+  const deux = extrasOf(INDEX, ["bread", "cheese"]).nutrients.energyKcal;
+  assert(un > 0, "un extra déclaré ne coûte rien");
+  assert(
+    deux > un,
+    `deux extras doivent s'additionner: ${un} puis ${deux}`,
+  );
 });
 
 Deno.test("les cinq portions nomment un aliment RÉEL du référentiel", () => {

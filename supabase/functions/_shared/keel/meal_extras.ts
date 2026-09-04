@@ -252,26 +252,112 @@ function sum(a: number | null, b: number | null): number | null {
  * CE QU'ON RETRANCHE QUAND PERSONNE N'A RÉPONDU
  * ══════════════════════════════════════════════════════════════════════════
  *
- * ⛔ CE N'EST PAS ZÉRO, ET C'EST LE NOMBRE LE PLUS DANGEREUX DE CE MODULE.
+ * ⟳ 2026-09-04 — C'EST ZÉRO. LA DÉCISION D'AVANT EST RENVERSÉE, MESURE À L'APPUI.
  *
- * Une fiche muette ne dit pas « je ne prends rien à côté »: elle ne dit RIEN.
- * Retrancher zéro affirmerait que le plat porte 100 % du déjeuner — c'est-à-dire
- * multiplier la cible par 1/0,42 ≈ 2,4 pour toute la population qui n'a jamais
- * vu la question. C'est la cicatrice « coche auto = faits faux indémentables »,
- * dans le sens qui nourrit trop.
+ * ── CE QUI ÉTAIT ÉCRIT ICI, ET POURQUOI ÇA NE TIENT PLUS ──────────────────
+ * « Une fiche muette ne dit pas *je ne prends rien à côté*: elle ne dit RIEN.
+ * Retrancher zéro affirmerait que le plat porte 100 % du déjeuner. » Le
+ * raisonnement est juste en logique. Il suppose que le silence est RARE — que
+ * la valeur par défaut arbitre quelques cas pendant que la population répond.
  *
- * On garde donc la convention d'hier, EXACTEMENT: un déjeuner ou un dîner non
- * renseigné vaut `1 − 0,42 = 58 %` d'extras. `COMPOSED_DISH_MEAL_SHARE` ne
- * meurt pas, elle change de rôle — de clé de répartition appliquée à la journée
- * entière, elle devient le repli d'UN moment non renseigné.
+ * ⛔ MESURÉ LE 2026-09-04, EN BASE: **4 bouches sur 143** ont déclaré un extra
+ * au déjeuner ou au dîner. 97 % de la population reçoit donc ce « repli ».
+ * Quand une valeur par défaut couvre 97 % des cas, elle n'arbitre plus une
+ * incertitude: **elle EST le produit**, et sa prudence devient la règle.
  *
- * ⚠️ ET C'EST CE QUI REND LE LOT SANS RÉGRESSION POUR LA FICHE MUETTE SUR SES
- * DEUX REPAS: le déjeuner et le dîner d'une fiche vide gardent leur part au
- * bit près. Ce qui change pour elle est le petit-déjeuner, qui cesse d'être
- * amputé d'une convention de dîner — c'est le défaut ② de l'en-tête, et c'est
- * voulu.
+ * ── CE QUE 58 % VOULAIT DIRE DANS UNE ASSIETTE ────────────────────────────
+ * Le retrait était un POURCENTAGE de la cible, donc il grandissait avec le
+ * corps. Traduit en pain blanc (278 kcal/100 g), sur des cibles réelles:
+ *
+ *     adulte à 2 400 kcal/j  →  376 g de pain/jour supposés hors plan
+ *     corps à 4 501 kcal/j   →  704 g/jour, dont 376 g au seul déjeuner
+ *
+ * Une baguette pèse 250 g. Le produit supposait qu'un adulte ordinaire mangeait
+ * une baguette et demie par jour à côté de ses plats, sans le lui avoir
+ * demandé — et près de trois pour un grand gabarit.
+ *
+ * ⛔ ET L'UNITÉ ÉTAIT L'ERREUR DE FOND. Un extra DÉCLARÉ vaut un nombre de kcal
+ * (`extrasOf`, additionné sur pain + fromage + yaourt + fruit + dessert). Un
+ * extra SUPPOSÉ valait une fraction du besoin. Du pain reste du pain: sa
+ * quantité ne dépend pas du gabarit de qui le mange. En pourcentage, le
+ * mécanisme faisait l'inverse de la réalité — **plus quelqu'un a besoin de
+ * manger, plus on supposait qu'il mangeait ailleurs, donc moins on le servait.**
+ *
+ * ── CE QUE ZÉRO DIT, ET CE QU'IL NE DIT PAS ───────────────────────────────
+ * Il ne dit pas « cette personne ne prend rien à côté ». Il dit **« le plan
+ * porte ce qu'il promet de porter »**. Rien de déclaré ⇒ rien à retrancher:
+ * c'est la promesse du produit, et c'est déjà, mot pour mot, ce que fait la
+ * lane SOLO — elle n'a jamais lu ce module (zéro occurrence). Les deux lanes
+ * servaient deux promesses différentes à la même personne selon qu'elle
+ * cuisinait seule ou en foyer; elles n'en servent plus qu'une.
+ *
+ * ⚠️ CE QUI EST GARDÉ, ET C'EST L'ESSENTIEL: **une fiche qui A répondu garde
+ * son retrait, au kcal près**. `extrasOf` somme les portions réelles du
+ * référentiel, extra par extra. Le renversement ne touche QUE le silence.
+ *
+ * ⚠️ ET LE GARDE-FOU CONTRE L'ASSIETTE ABSURDE N'EST PAS CELUI-CI. C'est
+ * `MEAL_MAX_GRAMS_PER_KG` (8 g/kg par repas, `mouth_anchor.ts`), qui borne une
+ * masse et non une cible — il tenait déjà, indépendamment de ce nombre.
+ *
+ * ── LA DÉCISION DU PROPRIÉTAIRE, 2026-09-04 ──────────────────────────────
+ * **Rien d'indiqué ⇒ rien de retiré.** Le plan promet de nourrir; il porte donc
+ * ce qu'il promet tant que personne n'a dit le contraire.
+ *
+ * ⚠️ CE QUE ÇA DÉPLACE, ÉCRIT ICI POUR QUE PERSONNE NE LE REDÉCOUVRE. Le
+ * propriétaire avait noté le 2026-08-20, et c'était vérifié: sur le plan servi
+ * ce jour-là, **neuf plats sur neuf sont des plats principaux — aucun pain,
+ * aucun fromage, aucun dessert**. Le modèle ne compose pas les à-côtés. Sans
+ * retrait, la cible d'un repas repose donc entièrement sur le plat, et c'est le
+ * plafond de masse (`MEAL_MAX_GRAMS_PER_KG`) qui borne l'assiette.
+ *
+ * ⇒ LA SUITE COHÉRENTE, si l'assiette gonfle: demander au modèle de composer le
+ * repas ENTIER (pain, dessert compris) plutôt que le seul plat. C'est le lot
+ * qui rend cette décision complète; ce module ne le fait pas.
  */
-export const UNANSWERED_EXTRAS_SHARE = 0.58;
+
+
+/**
+ * CE QU'ON RETRANCHE À UN DÉJEUNER OU UN DÎNER NON RENSEIGNÉ : **RIEN**.
+ *
+ * ⛔ DÉCISION DU PROPRIÉTAIRE, 2026-09-04, ET ELLE EST SANS AMBIGUÏTÉ:
+ * **rien d'indiqué ⇒ rien de retiré.** Le plan promet de nourrir; il porte donc
+ * ce qu'il promet tant que personne n'a dit le contraire.
+ *
+ * ── CE QUI VIVAIT ICI, ET POURQUOI C'EST TOMBÉ ───────────────────────────
+ * `UNANSWERED_EXTRAS_SHARE = 0,58`: une FRACTION de la cible, retranchée du
+ * déjeuner et du dîner de qui n'avait rien déclaré. Deux défauts, mesurés:
+ *
+ *   ① **4 bouches sur 143** ont déclaré un extra à ces deux moments. Un
+ *      « repli » qui couvre 97 % d'une population n'arbitre plus une
+ *      incertitude — il EST le produit, et sa prudence devient la règle.
+ *   ② **L'unité était fausse.** Un extra DÉCLARÉ vaut des kcal (`extrasOf`
+ *      somme des portions réelles); un extra SUPPOSÉ valait une part du besoin.
+ *      Du pain reste du pain. En pourcentage, plus quelqu'un avait besoin de
+ *      manger, plus on supposait qu'il mangeait ailleurs — donc moins on le
+ *      servait. Traduit: 376 g de pain/jour supposés hors plan pour un adulte à
+ *      2 400 kcal, **704 g** pour un corps à 4 501. Une baguette pèse 250 g.
+ *
+ * ⚠️ CE QUI NE CHANGE PAS, ET C'EST L'ESSENTIEL: **une fiche qui A répondu garde
+ * son retrait, au kcal près.** `extrasOf` somme pain + fromage + yaourt + fruit
+ * + dessert sur des portions réelles du référentiel. Ce zéro ne touche QUE le
+ * silence.
+ *
+ * ⚠️ ET CE QUE ÇA DÉPLACE, ÉCRIT POUR QUE PERSONNE NE LE REDÉCOUVRE. Le
+ * propriétaire avait noté le 2026-08-20, vérifié: sur le plan servi ce jour-là,
+ * **neuf plats sur neuf sont des plats principaux — aucun pain, aucun fromage,
+ * aucun dessert**. Le modèle ne compose pas les à-côtés. La cible d'un repas
+ * repose donc désormais entièrement sur le plat, et c'est le plafond de masse
+ * (`MEAL_MAX_GRAMS_PER_KG`, 8 g/kg par repas) qui borne l'assiette.
+ *
+ * ⇒ LA SUITE COHÉRENTE, si l'assiette gonfle: demander au modèle de composer le
+ * repas ENTIER, pain et dessert compris. C'est un lot à part; ce module ne le
+ * fait pas et ne prétend pas le faire.
+ *
+ * ⚠️ LA CONSTANTE SURVIT À ZÉRO PLUTÔT QUE DE DISPARAÎTRE, pour que la décision
+ * reste NOMMÉE et épinglable. Un `0` littéral au fond d'un `?:` serait la même
+ * règle, illisible et non testable.
+ */
+export const UNANSWERED_EXTRAS_KCAL = 0;
 
 /** Ce que la précédence a tranché, moment par moment, et d'où ça vient. */
 export interface ResolvedExtras {
