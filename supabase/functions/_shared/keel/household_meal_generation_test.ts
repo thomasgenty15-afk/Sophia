@@ -1410,6 +1410,7 @@ Deno.test("SANS RÉGIME, LE PROMPT EST CELUI D'AVANT v11, À L'OCTET PRÈS", () 
     dietBlock: householdDietBlock({
       strictest: "vegetarian",
       heldBy: ["Christèle"],
+      freeNames: [],
       divergingNames: [],
     }),
   });
@@ -1446,6 +1447,7 @@ Deno.test("le régime passe AVANT les règles de maison, qui restent DERNIÈRES"
     dietBlock: householdDietBlock({
       strictest: "vegan",
       heldBy: ["Christèle"],
+      freeNames: [],
       divergingNames: [],
     }),
   });

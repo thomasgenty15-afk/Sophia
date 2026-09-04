@@ -489,7 +489,7 @@ Deno.test("AUCUN gabarit ne culpabilise — la porte 4 ne doit jamais mordre", (
     // le lot que la porte anti-culpabilisation relit. « c'est ce que X et Y
     // mangent » est un gabarit distinct de son singulier, et une porte qui
     // n'aurait vu que l'un des deux ne l'aurait vérifié qu'à moitié.
-    sharedDishRegime: { regime: "vegan", heldBy: ["Christèle", "Léa"] },
+    sharedDishRegime: { regime: "vegan", heldBy: ["Christèle", "Léa"], swapped: true },
     // LOT B — LE PLAFOND QUI MORD, AU PLURIEL. Ce gabarit-ci est celui qui dit
     // à quelqu'un que sa part ne sort pas du plat commun: s'il existe un
     // gabarit de ce module capable de culpabiliser, c'est celui-là. Il DOIT
@@ -2001,9 +2001,23 @@ Deno.test("PERSONNE SANS REPAS — un trou NOMME la bouche, la case et la cause"
   const text = out.lines.join(" ");
   assert(text.includes("Marc"), text);
   assert(text.includes("9 repas sur 10"), text);
-  assert(text.includes("jeudi"), text);
-  assert(text.includes("dîner"), text);
-  assert(text.includes("ce qu'elle évite"), text);
+  // ⛔ « jeudi À le dîner » SERAIT AUSSI FAUX. Le premier run réel a servi
+  // « vendredi le déjeuner »: les libellés de moment portent leur article, et
+  // la préposition manquait. On épingle la forme entière, pas ses morceaux.
+  // ⛔ LES DEUX FAUTES DÉJÀ FAITES ICI, ÉPINGLÉES ENSEMBLE: « jeudi le dîner »
+  // (article collé, mesuré en run réel) puis « jeudi à le dîner » (préposition
+  // non contractée, faite en le réparant).
+  assert(text.includes("jeudi au dîner"), text);
+  for (const faute of ["jeudi le dîner", "jeudi à le dîner"]) {
+    assert(!text.includes(faute), `« ${faute} » : ${text}`);
+  }
+  // ⛔ AUCUN PRONOM GENRÉ. Le gabarit reçoit n'importe quel prénom et le
+  // produit ne connaît le genre de personne — le premier run réel a dit
+  // « ce qu'ELLE évite » sur Marc.
+  assert(text.includes("un aliment noté comme évité"), text);
+  for (const genre of ["qu'elle", "qu'il", "elle est", "il est"]) {
+    assert(!text.includes(genre), `la phrase genre quelqu'un (« ${genre} ») : ${text}`);
+  }
   assert(
     !text.includes("Chaque personne a chacun de ses repas."),
     "la phrase du cas nominal sort en même temps qu'un trou",
@@ -2078,4 +2092,72 @@ Deno.test("PERSONNE SANS REPAS — `null` ne dit RIEN: c'est la lane individuell
   const text = out.lines.join(" ");
   assert(!text.includes("repas sur"), text);
   assert(!text.includes("Chaque personne"), text);
+});
+
+Deno.test("⛔ RUN RÉEL 2026-09-04 — LA LIGNE DU RÉGIME NE MENT PLUS SUR LE PLAT COMMUN", () => {
+  // ── CE QUE LE PLAN VIVANT `b3b0a1dc` A SERVI ──────────────────────────
+  // Quatre bouches mangeaient « Bœuf, haricots rouges et riz », Léa du tofu, et
+  // la phrase disait : « Le plat commun est végétarien : c'est ce que Léa
+  // mange. » Les DEUX moitiés étaient fausses.
+  const swap = explainPlanChoices({
+    facts: {
+      ...nominalFacts(),
+      mouthsServed: 5,
+      sharedDishRegime: { regime: "vegetarian", heldBy: ["Léa"], swapped: true },
+    },
+    locale: "fr",
+  }).lines.join(" ");
+  assert(swap.includes("La base du plat commun est végétarien"), swap);
+  assert(swap.includes("sa boîte"), swap);
+  assert(
+    !swap.includes("Le plat commun est végétarien"),
+    "la phrase d'avant la boîte d'échange est revenue : elle dit que la table " +
+      "entière mange végétarien\n" + swap,
+  );
+
+  // ⛔ LA CONTRE-ÉPREUVE. Une table entièrement végétarienne n'a pas de boîte
+  // d'échange, et la phrase d'origine reste la vraie.
+  const all = explainPlanChoices({
+    facts: {
+      ...nominalFacts(),
+      mouthsServed: 3,
+      sharedDishRegime: { regime: "vegan", heldBy: ["Léa", "Claire"], swapped: false },
+    },
+    locale: "fr",
+  }).lines.join(" ");
+  assert(all.includes("Le plat commun est végane"), all);
+  assert(!all.includes("La base du plat commun"), all);
+});
+
+Deno.test("⛔ RUN RÉEL 2026-09-04 — DEUX BOUCHES RENDUES SONT DEUX PHRASES, PAS DEUX FOIS LA MÊME", () => {
+  // Le plan vivant disait « Tom garde sa part samedi au dîner » DEUX FOIS: la
+  // seconde était Zoé. Le générateur repliait toutes les parts rendues sous la
+  // première bouche. Dire à quelqu'un qu'il a mangé ce qu'il évite, alors que
+  // c'est quelqu'un d'autre, est pire qu'une phrase absente.
+  const text = explainPlanChoices({
+    facts: {
+      ...nominalFacts(),
+      mouthsServed: 5,
+      mealsDelivered: {
+        allFed: false,
+        mouths: [
+          {
+            name: "Tom",
+            expected: 0,
+            fed: 0,
+            missing: [{ day: "sat" as const, slot: "dinner", cause: "held_off_exclusion" as const, restored: true }],
+          },
+          {
+            name: "Zoé",
+            expected: 0,
+            fed: 0,
+            missing: [{ day: "sat" as const, slot: "dinner", cause: "held_off_exclusion" as const, restored: true }],
+          },
+        ],
+      },
+    },
+    locale: "fr",
+  }).lines.join(" ");
+  assert(text.includes("Tom garde sa part"), text);
+  assert(text.includes("Zoé garde sa part"), text);
 });

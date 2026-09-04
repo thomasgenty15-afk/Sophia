@@ -164,7 +164,7 @@ Deno.test("le bloc est VIDE quand personne n'a rien déclaré", () => {
   // C'est le désarmement, et c'est ce qui rend le prompt byte-identique à celui
   // d'avant le lot pour tout le foyer d'hier.
   assertEquals(
-    householdDietBlock({ strictest: null, heldBy: ["Thomas"], divergingNames: [] }),
+    householdDietBlock({ strictest: null, heldBy: ["Thomas"], divergingNames: [], freeNames: [] }),
     "",
   );
 });
@@ -179,6 +179,7 @@ Deno.test("la consigne du bloc est CELLE DU MOTEUR, mot pour mot", () => {
     const block = householdDietBlock({
       strictest: regime,
       heldBy: ["Christèle"],
+      freeNames: [],
       divergingNames: [],
     });
     assert(
@@ -192,6 +193,7 @@ Deno.test("le bloc nomme qui porte la ligne, et interdit d'en faire une raison",
   const block = householdDietBlock({
     strictest: "vegetarian" as DietaryRegime,
     heldBy: ["Christèle"],
+    freeNames: [],
     divergingNames: ["Thomas"],
   });
   assert(block.includes("Christèle"));
@@ -212,6 +214,7 @@ Deno.test("⟳ 2026-09-04 — LE COMPOSANT QUI SÉPARE EST SERVI PAR BOÎTE, ET 
   const block = householdDietBlock({
     strictest: "vegetarian" as DietaryRegime,
     heldBy: ["Léa"],
+    freeNames: [],
     divergingNames: [],
   });
 
@@ -267,9 +270,58 @@ Deno.test("AUCUN NOM DE RÉGIME NE PART SEUL: la ligne du moteur porte l'expansi
   const block = householdDietBlock({
     strictest: "vegan",
     heldBy: [],
+    freeNames: [],
     divergingNames: [],
   });
   assert(block.includes("no eggs"));
   assert(block.includes("no dairy"));
   assert(block.includes("fish sauce"));
+});
+
+Deno.test("⛔ RUN RÉEL 2026-09-04 — LE BLOC DIT QUE LES AUTRES MANGENT ENCORE DE LA VIANDE", () => {
+  // ── LE DÉFAUT, MESURÉ DEUX FOIS EN CONDITIONS RÉELLES ─────────────────
+  // Foyer de cinq, UNE bouche végétarienne. Les deux tirs ont rendu un plan
+  // **entièrement végétarien** — `regime_belt.bites = 0`, une seule boîte par
+  // repas, les cinq noms dessus. Le second portait pourtant une envie écrite:
+  // « On a envie de poulet et de bœuf cette semaine. »
+  //
+  // Le modèle n'a rien violé. Le bloc décrivait comment SÉPARER un composant
+  // quand le plat en porte un, sans jamais dire qu'il devait y en avoir un —
+  // et la ligne du moteur juste au-dessus dit « choose a different dish rather
+  // than a version that omits it ». Il a choisi d'autres plats.
+  const mixed = householdDietBlock({
+    strictest: "vegetarian" as DietaryRegime,
+    heldBy: ["Léa"],
+    freeNames: ["Claire", "Marc", "Tom", "Zoé"],
+    divergingNames: [],
+  }).replace(/\s+/g, " ");
+
+  assert(mixed.includes("Claire, Marc, Tom, Zoé are not bound by that line"), mixed);
+  assert(mixed.includes("they still eat meat, poultry and fish"), mixed);
+  // ⛔ LES DEUX INTERDICTIONS NOMMÉES. « ne retire pas » et « ne remplace pas
+  // pour tout le monde » sont deux fautes distinctes, et c'est la seconde que
+  // les deux runs ont produite.
+  assert(mixed.includes("Do NOT drop the animal protein"), mixed);
+  assert(mixed.includes("do NOT replace it for everyone"), mixed);
+
+  // ⛔ ET ELLE VIENT AVANT LA MÉCANIQUE: dire comment séparer ne sert à rien
+  // tant que le modèle ne sait pas qu'il y a quelque chose à séparer.
+  assert(
+    mixed.indexOf("still eat meat") < mixed.indexOf("served PER BOX"),
+    "la mécanique de l'échange précède la raison de l'échanger",
+  );
+});
+
+Deno.test("⛔ UN FOYER ENTIÈREMENT VÉGÉTARIEN NE PAIE PAS CETTE PHRASE", () => {
+  // La contre-épreuve, et elle est obligatoire: `freeNames: []` veut dire
+  // « personne ici ne mange en dehors de cette ligne ». Lui servir « les autres
+  // mangent encore de la viande » serait lui demander d'en cuisiner.
+  const all = householdDietBlock({
+    strictest: "vegan" as DietaryRegime,
+    heldBy: ["Léa", "Claire"],
+    freeNames: [],
+    divergingNames: [],
+  });
+  assertEquals(all.includes("still eat meat"), false, all);
+  assertEquals(all.includes("not bound by that line"), false, all);
 });

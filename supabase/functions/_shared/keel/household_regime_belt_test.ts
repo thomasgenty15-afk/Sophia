@@ -688,6 +688,7 @@ Deno.test("PROMPT — sans plat dédié, le bloc de régime est byte-identique",
   const block = householdDietBlock({
     strictest: "vegan",
     heldBy: ["Theodule"],
+    freeNames: [],
     divergingNames: [],
   });
   assertEquals(block.includes("never none"), false);
@@ -702,6 +703,7 @@ Deno.test("PROMPT — sous plat dédié, l'exception est nommée LITTÉRALEMENT"
   const block = householdDietBlock({
     strictest: "vegan",
     heldBy: ["Theodule"],
+    freeNames: [],
     divergingNames: ["Aurele", "Marceline", "Solveig"],
   });
   assert(block.includes("Theodule take no box and no share"), block);
@@ -717,6 +719,7 @@ Deno.test("PROMPT — aucun régime déclaré: pas un octet", () => {
     householdDietBlock({
       strictest: null,
       heldBy: ["Theodule"],
+      freeNames: [],
       divergingNames: ["Aurele"],
     }),
     "",

@@ -450,7 +450,19 @@ export interface PlanRationaleFacts {
    * mange seul: il n'y a pas de commun. La prémisse ci-dessous l'exige de toute
    * façon — la phrase ne sort qu'au-dessus d'une bouche.
    */
-  sharedDishRegime: { regime: string; heldBy: readonly string[] } | null;
+  sharedDishRegime: {
+    regime: string;
+    heldBy: readonly string[];
+    /**
+     * ⛔ VRAI DÈS QU'UNE BOUCHE DE CETTE TABLE N'EST PAS LIÉE PAR CETTE LIGNE.
+     *
+     * Depuis la boîte d'échange (2026-09-04), le plat commun n'EST plus au
+     * régime le plus strict: sa BASE l'est, et la protéine est servie par
+     * boîte. Dire « le plat commun est végétarien » à une table qui mange du
+     * bœuf est faux des deux côtés — mesuré sur un plan vivant.
+     */
+    swapped: boolean;
+  } | null;
   /**
    * LE MODE DE CUISSON DEMANDÉ À LA COMPOSITION, ET CE QU'IL A DONNÉ.
    * `null` = rien n'a été demandé, et la phrase ne sort pas.
@@ -746,6 +758,14 @@ const COPY = {
       `Le plat commun est ${regime} : c'est ce que ${names} mange.`,
     sharedRegimeMany: (regime: string, names: string) =>
       `Le plat commun est ${regime} : c'est ce que ${names} mangent.`,
+    // ── LA MÊME TABLE, MAIS AVEC UNE BOÎTE D'ÉCHANGE ────────────────────
+    // Un fait, jamais un reproche, et surtout jamais « grâce à » ou « malgré ».
+    sharedRegimeSwap: (regime: string, names: string) =>
+      `La base du plat commun est ${regime} : c'est la ligne de ${names}, ` +
+      `qui a sa boîte. Le reste de la table garde la sienne.`,
+    sharedRegimeSwapMany: (regime: string, names: string) =>
+      `La base du plat commun est ${regime} : c'est la ligne de ${names}, ` +
+      `qui ont leur boîte. Le reste de la table garde la sienne.`,
     // ── LE MODE DE CUISSON DEMANDÉ, ET CE QU'IL A COÛTÉ ──────────────────
     //
     // ⚠️ UN FAIT, JAMAIS UN REPROCHE, ET JAMAIS UNE SUGGESTION. « Tu aurais dû
@@ -780,16 +800,17 @@ const COPY = {
     // aussi bien que « tout va bien ».
     allFed: "Chaque personne a chacun de ses repas.",
     mealMissing: (name: string, fed: number, expected: number, where: string, why: string) =>
-      `${name} : ${fed} repas sur ${expected}. ${where}, ${why}.`,
+      `${name} : ${fed} repas sur ${expected}. Il manque ${where} — ${why}.`,
     mealMissingWhy: {
-      held_off_regime: "le plat ne suit pas sa ligne et rien d'autre ne lui a été composé",
-      held_off_exclusion: "le plat contient ce qu'elle évite",
-      not_named: "aucune boîte ne porte son nom",
-      double: "elle est sur deux boîtes du même repas",
+      held_off_regime:
+        "le plat ne suit pas la ligne déclarée, et rien d'autre n'a été composé",
+      held_off_exclusion: "le plat contient un aliment noté comme évité",
+      not_named: "aucune boîte ne porte ce nom",
+      double: "ce nom est sur deux boîtes du même repas",
     } as Record<string, string>,
     mealRestored: (name: string, where: string) =>
-      `${name} garde sa part ${where} bien que le plat contienne ce qu'elle ` +
-      `évite : c'était ça ou pas de repas.`,
+      `${name} garde sa part ${where} : le plat contient un aliment noté comme ` +
+      `évité, et c'était ça ou pas de repas.`,
   },
   en: {
     days: {
@@ -933,6 +954,12 @@ const COPY = {
       `The shared dish is ${regime}: that is what ${names} eats.`,
     sharedRegimeMany: (regime: string, names: string) =>
       `The shared dish is ${regime}: that is what ${names} eat.`,
+    sharedRegimeSwap: (regime: string, names: string) =>
+      `The shared base is ${regime}: that is ${names}'s line, and they have ` +
+      `their own box. The rest of the table keeps theirs.`,
+    sharedRegimeSwapMany: (regime: string, names: string) =>
+      `The shared base is ${regime}: that is the line of ${names}, and they ` +
+      `have their own box. The rest of the table keeps theirs.`,
     // Même posture qu'en français: un fait, jamais un reproche, jamais une
     // suggestion — et jamais la raison pour laquelle quelqu'un ne sort pas de
     // la casserole commune.
@@ -954,16 +981,17 @@ const COPY = {
     } as Record<string, string>,
     allFed: "Everyone has every one of their meals.",
     mealMissing: (name: string, fed: number, expected: number, where: string, why: string) =>
-      `${name}: ${fed} meals out of ${expected}. ${where}, ${why}.`,
+      `${name}: ${fed} meals out of ${expected}. ${where} is missing — ${why}.`,
     mealMissingWhy: {
-      held_off_regime: "the dish does not follow their line and nothing else was cooked for them",
-      held_off_exclusion: "the dish carries what they avoid",
-      not_named: "no box carries their name",
-      double: "they are on two boxes of the same meal",
+      held_off_regime:
+        "the dish does not follow the declared line, and nothing else was cooked",
+      held_off_exclusion: "the dish carries a food noted as avoided",
+      not_named: "no box carries that name",
+      double: "that name is on two boxes of the same meal",
     } as Record<string, string>,
     mealRestored: (name: string, where: string) =>
-      `${name} keeps their share ${where} even though the dish carries what ` +
-      `they avoid: it was that or no meal.`,
+      `${name} keeps their share ${where}: the dish carries a food noted as ` +
+      `avoided, and it was that or no meal.`,
   },
 } as const;
 
@@ -1465,9 +1493,13 @@ export function explainPlanChoices(input: {
       if (label && names.length > 0) {
         const rendered = joinList(names, input.locale);
         lines.push(
-          names.length === 1
-            ? copy.sharedRegime(label, rendered)
-            : copy.sharedRegimeMany(label, rendered),
+          regime.swapped
+            ? (names.length === 1
+              ? copy.sharedRegimeSwap(label, rendered)
+              : copy.sharedRegimeSwapMany(label, rendered))
+            : (names.length === 1
+              ? copy.sharedRegime(label, rendered)
+              : copy.sharedRegimeMany(label, rendered)),
         );
       }
     }
@@ -1574,9 +1606,20 @@ export function explainPlanChoices(input: {
         const name = String(mouth?.name ?? "").trim();
         if (!name || mouth.missing.length === 0) continue;
         for (const miss of mouth.missing) {
-          const where = `${renderDays([miss.day], input.locale)} ${
-            renderSlots([miss.slot], input.locale)
-          }`;
+          // ⚠️ UNE PRÉPOSITION, ET ELLE SE CONTRACTE. Les libellés de moment
+          // portent leur article en français (« le déjeuner », « la collation
+          // du matin »). Les coller au jour donne « vendredi le déjeuner » —
+          // mesuré sur le premier run réel — et un « à » nu donne « à le
+          // dîner ». Les deux fautes ont été faites ici, dans cet ordre.
+          const day = renderDays([miss.day], input.locale);
+          const slot = renderSlots([miss.slot], input.locale);
+          const where = input.locale !== "fr"
+            ? `${day} ${slot}`
+            : slot.startsWith("le ")
+            ? `${day} au ${slot.slice(3)}`
+            : slot.startsWith("la ")
+            ? `${day} à la ${slot.slice(3)}`
+            : `${day} à ${slot}`;
           if (miss.restored) {
             lines.push(copy.mealRestored(name, where));
             continue;

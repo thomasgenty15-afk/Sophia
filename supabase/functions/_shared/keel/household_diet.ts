@@ -299,6 +299,29 @@ export function householdDietBlock(args: {
   strictest: DietaryRegime | null;
   /** Les prénoms des bouches qui portent le régime le plus strict. */
   heldBy: readonly string[];
+  /**
+   * ⛔ LES BOUCHES QUE CETTE LIGNE NE LIE PAS — et la moitié qui manquait.
+   *
+   * ── MESURÉ EN CONDITIONS RÉELLES, DEUX FOIS (2026-09-04) ────────────────
+   * Foyer de cinq, une seule bouche végétarienne, style `balanced`, fenêtre de
+   * trois jours. Résultat des deux tirs: **zéro protéine animale dans tout le
+   * plan** (`regime_belt.bites = 0`), une seule boîte par repas, les cinq noms
+   * dessus. Le second tir portait pourtant une envie écrite en toutes lettres:
+   * « On a envie de poulet et de bœuf cette semaine. »
+   *
+   * ── POURQUOI, ET CE N'EST PAS UNE DÉSOBÉISSANCE ────────────────────────
+   * Le bloc décrivait comment SÉPARER un composant quand le plat en porte un —
+   * « a box for everyone else with the original ». Il ne disait jamais qu'il
+   * DEVAIT y en avoir un. Et la ligne du moteur juste au-dessus, écrite pour la
+   * lane individuelle, dit « If a dish only works with one of these, choose a
+   * different dish rather than a version that omits it ». Le modèle a suivi la
+   * consigne la plus explicite: il a choisi d'autres plats. Il n'a rien violé —
+   * la consigne manquait.
+   *
+   * `[]` = personne ici ne mange en dehors de cette ligne, et la phrase ne sort
+   * pas: un foyer entièrement végétarien ne paie pas une seconde boîte.
+   */
+  freeNames: readonly string[];
   /** Les prénoms des bouches qui reçoivent leur plat à elles (R5). */
   divergingNames: readonly string[];
 }): string {
@@ -342,6 +365,18 @@ export function householdDietBlock(args: {
     // c'est ce qu'il a fait onze fois sur douze quand le plat dédié a été
     // introduit, et une consigne qui interdit sans nommer la sortie qu'on prend
     // à sa place est une consigne qu'on reprend.
+    ...(args.freeNames.filter((n) => String(n ?? "").trim()).length > 0
+      ? [
+        // ⛔ LA PHRASE QUI MANQUAIT, ET ELLE PRÉCÈDE LA MÉCANIQUE. Dire
+        // comment séparer ne sert à rien tant que le modèle ne sait pas qu'il
+        // y a quelque chose à séparer.
+        `${args.freeNames.join(", ")} are not bound by that line: they still eat`,
+        "meat, poultry and fish this week, in normal amounts. Do NOT drop the",
+        "animal protein from the plan and do NOT replace it for everyone -- that",
+        "is the single most common way to get this wrong, and it silently makes",
+        "the whole table follow one person's line.",
+      ]
+      : []),
     "The one component that line refuses is served PER BOX: a second entry in",
     "that dish's \"boxes\", with its own \"items\" -- never a portion_note, never a",
     "dish of its own. One box for the people that line binds, carrying a",

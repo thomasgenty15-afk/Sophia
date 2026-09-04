@@ -4728,6 +4728,13 @@ Deno.serve(async (req) => {
       dietBlock: householdDietBlock({
         strictest: strictestRegime,
         heldBy: strictestHeldBy,
+        // ⚠️ LE COMPLÉMENT EXACT DE `strictestHeldBy`, sur la MÊME liste et au
+        // même endroit: deux calculs de « qui n'est pas lié » divergeraient, et
+        // c'est la phrase servie au modèle qui aurait tort.
+        freeNames: strictestRegime === null ? [] : platedMembers
+          .filter((m) => m.diet !== strictestRegime)
+          .map((m) => String(m.displayName ?? "").trim())
+          .filter(Boolean),
         // LES MÊMES BOUCHES QUE `divergingCount`, et pas un second calcul: la
         // ligne de forme promet un plat de plus à N personnes, ce bloc dit
         // lesquelles. Deux listes divergentes feraient promettre un plat à
@@ -5788,19 +5795,19 @@ Deno.serve(async (req) => {
             restored: false,
           })),
         })),
-        ...(restorable.length > 0
-          ? [{
-            name: nameOf.get(restorable[0].memberId) ?? "",
-            expected: 0,
-            fed: 0,
-            missing: restorable.map((m) => ({
+        ...[...new Set(restorable.map((m) => m.memberId))].map((memberId) => ({
+          name: nameOf.get(memberId) ?? "",
+          expected: 0,
+          fed: 0,
+          missing: restorable
+            .filter((m) => m.memberId === memberId)
+            .map((m) => ({
               day: m.day as "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun",
               slot: m.slot,
               cause: m.cause,
               restored: true,
             })),
-          }]
-          : []),
+        })),
       ].filter((row) => row.name !== "" && row.missing.length > 0),
     };
 
@@ -6532,7 +6539,15 @@ Deno.serve(async (req) => {
           // végétarien pendant que la casserole ne l'est pas.
           sharedDishRegime: strictestRegime === null
             ? null
-            : { regime: strictestRegime, heldBy: strictestHeldBy },
+            : {
+              regime: strictestRegime,
+              heldBy: strictestHeldBy,
+              // ⚠️ LA MÊME EXPRESSION QUE `freeNames` DU PROMPT. Deux façons de
+              // dire « quelqu'un ici n'est pas lié par cette ligne »
+              // divergeraient, et la phrase servie à l'écran contredirait le
+              // plan servi en dessous.
+              swapped: platedMembers.some((m) => m.diet !== strictestRegime),
+            },
           // ── LOT B · LE MODE DEMANDÉ, ET CE QU'IL A DONNÉ ─────────────────
           //
           // ⚠️ LES DEUX BOOLÉENS VIENNENT DE `capCookingShape`, JAMAIS D'UNE

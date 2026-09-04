@@ -116,6 +116,7 @@ const NOBODY_AWAY: WindowPresence = resolveWindowPresence({
 const DIET_BLOCK = householdDietBlock({
   strictest: "vegan",
   heldBy: ["Malo"],
+  freeNames: [],
   divergingNames: [],
 });
 
