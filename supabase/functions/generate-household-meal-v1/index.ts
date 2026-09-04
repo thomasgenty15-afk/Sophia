@@ -5970,7 +5970,12 @@ Deno.serve(async (req) => {
     // ⛔ PAS SUR L'ADOPTION D'UN APERÇU. `adoptingDraft` reprend un plan que la
     // personne a DÉJÀ vu; le régénérer lui rendrait autre chose que ce qu'elle
     // a accepté. Même arbitrage que les deux relances au-dessus.
-    if (!delivered.allFed && !adoptingDraft) {
+    const UNFED_RETRIES_MAX = 2;
+    for (
+      let attempt = 1;
+      attempt <= UNFED_RETRIES_MAX && !delivered.allFed && !adoptingDraft;
+      attempt++
+    ) {
       const instruction = unfedRetryInstruction(
         delivered.mouths.flatMap((row) =>
           row.missing.map((miss) => ({
@@ -6019,11 +6024,20 @@ Deno.serve(async (req) => {
               mealSourceText = retryResult;
               delivered = after;
               unfedRetried = true;
+            } else {
+              // ⛔ UN TOUR QUI N'AMÉLIORE RIEN ARRÊTE LA SÉRIE. Insister sur un
+              // modèle qui vient de rendre pire ou pareil dépense une minute
+              // pour la même réponse — et le plafond n'est pas une garantie de
+              // progrès, seulement une borne de coût.
+              break;
             }
           }
         } catch (error) {
           console.warn(`[${FN_NAME}] unfed retry failed`, error);
+          break;
         }
+      } else {
+        break;
       }
     }
 
@@ -6057,6 +6071,10 @@ Deno.serve(async (req) => {
       delivered = mealsDelivered(deliveredViewOf(meal), mouthCells);
     }
 
+    // ⚠️ RÉSOLUE AVANT LE JOURNAL, parce que DEUX choses en dépendent: le
+    // refus lui-même, et la classification de la note qui doit lui survivre.
+    const stillUnfedBeforeRefusal = delivered.mouths.flatMap((row) => row.missing);
+
     // ⚠️ LE JOURNAL PART AVANT TOUT `return`, comme la ceinture de régime: un
     // refus qui sort sans avoir journalisé rend le défaut invisible au moment
     // précis où il compte le plus.
@@ -6076,6 +6094,51 @@ Deno.serve(async (req) => {
       retried: unfedRetried,
       restored: unfedRestored,
     }));
+
+    // ══════════════════════════════════════════════════════════════════════
+    // ⛔ CE QUE LA PERSONNE A ÉCRIT SURVIT AU REFUS (2026-09-04)
+    // ══════════════════════════════════════════════════════════════════════
+    //
+    // ── LE DÉFAUT, MESURÉ AU PREMIER TIR D'UNE CAMPAGNE ──────────────────
+    // Le refus `mouth_unfed` sortait ICI, et la note de brouillon n'était
+    // classée que ~2800 lignes plus bas, après l'écriture du plan. Donc: la
+    // personne écrit « mon fils n'aime pas le poisson », le plan est refusé
+    // pour une raison SANS RAPPORT — une bouche mal servie par le modèle — et
+    // sa phrase est perdue. Pas de mémoire, pas de notification, pas de
+    // question. Elle a parlé dans le vide.
+    //
+    // ⛔ CE QU'ELLE A DIT NE DÉPEND PAS DE CE QUE LE MODÈLE A RENDU. Le plan
+    // peut échouer; la phrase reste vraie.
+    //
+    // ⚠️ `planFoods: []` ICI, ET C'EST LA DIFFÉRENCE AVEC L'AUTRE SITE. La
+    // liste des aliments du plan sert à demander « laquelle des viandes ? ».
+    // Sur un refus il n'y a AUCUN plan servi: proposer des aliments d'un plan
+    // que la personne ne verra jamais serait lui demander d'arbitrer sur du
+    // vide. La liste vide dit au classifieur de ne jamais poser de question
+    // QUOI — les questions QUI et les écritures directes, elles, marchent.
+    if (stillUnfedBeforeRefusal.length > 0 && !isDraft && draftNoteVerdict !== null) {
+      await classifyAndPersistDraftNote({
+        admin,
+        userId,
+        note: draftNoteVerdict,
+        today: todayDate,
+        targetWeek: startsOn,
+        members: composedMembers.map((m) => ({
+          memberId: m.memberId,
+          label: m.displayName,
+          ageState: m.ageState === "adult"
+            ? "adult" as const
+            : m.ageState === "minor"
+            ? "minor" as const
+            : null,
+          sex: m.body?.gender ?? null,
+        })),
+        contentLocale: built.contentLocale,
+        planFoods: [],
+        source: "draft_note",
+        requestId,
+      });
+    }
 
     // ── LE FAIT SERVI À L'ÉCRAN, CONSTRUIT UNE FOIS ──────────────────────
     // ⚠️ ICI, à côté de l'invariant, et pas deux fois plus bas aux deux sites
@@ -6128,11 +6191,10 @@ Deno.serve(async (req) => {
     // raison; refuser priverait la personne de la seule vue qui le lui dirait.
     // Sur une composition ou une ADOPTION, on refuse: persister un plan où
     // quelqu'un ne mange pas, c'est écrire le défaut en base.
-    const stillUnfed = delivered.mouths.flatMap((row) => row.missing);
-    if (stillUnfed.length > 0 && !isDraft) {
+    if (stillUnfedBeforeRefusal.length > 0 && !isDraft) {
       return jsonResponse(req, {
         error: "mouth_unfed",
-        detail: stillUnfed.map((m) => ({
+        detail: stillUnfedBeforeRefusal.map((m) => ({
           member_id: m.memberId,
           day: m.day,
           slot: m.slot,

@@ -230,14 +230,26 @@ const DRAFT_RETURN = "if (isDraft) {";
 // LES ASSERTIONS COMMUNES AUX DEUX LANES
 // ---------------------------------------------------------------------------
 
-function callFields(src: string, lane: string): Map<string, string> {
-  const span = callArgSpan(src, CALLEE);
+/**
+ * ⟳ 2026-09-04 — LES CHAMPS DU SITE NOMINAL, PAS DU PREMIER TROUVÉ.
+ *
+ * Il y a deux appels depuis que la note doit survivre au refus, et ils NE
+ * PASSENT PAS LA MÊME CHOSE: celui du refus passe `planFoods: []`, parce qu'il
+ * n'y a aucun plan servi dont on pourrait proposer les aliments. Lire le
+ * premier site ferait donc échouer la garde du vocabulaire sur un produit
+ * correct — et, pire, elle passerait si les deux étaient un jour inversés.
+ *
+ * On lit celui qui suit l'écriture du plan: c'est le site NOMINAL, celui dont
+ * toutes les assertions de ce fichier parlent.
+ */
+function callFields(src: string, lane: string, from = 0): Map<string, string> {
+  const span = callArgSpan(src.slice(from), CALLEE);
   assert(
     span !== null,
     `LANE ${lane.toUpperCase()} — L'APPEL EST LÀ MAIS ILLISIBLE: ` +
       `\`${CALLEE}(\` n'est pas refermé.`,
   );
-  return objectFields(src.slice(span.start, span.end));
+  return objectFields(src.slice(from + span!.start, from + span!.end));
 }
 
 function assertWiredCommon(src: string, lane: string): void {
@@ -251,9 +263,80 @@ function assertWiredCommon(src: string, lane: string): void {
   );
 
   // ── ② IL EST APPELÉ ────────────────────────────────────────────────────
-  const site = src.indexOf(`${CALLEE}(`);
+  //
+  // ⟳ 2026-09-04 — IL PEUT Y AVOIR DEUX SITES, ET LA PROPRIÉTÉ CHANGE DE
+  // PORTEUR. Le second sert le chemin du REFUS: un plan refusé ne doit pas
+  // emporter avec lui ce que la personne a écrit — mesuré au premier tir d'une
+  // campagne de trois mois, où « mon fils n'aime pas le poisson » était perdu
+  // parce que le plan avait été refusé pour une bouche mal servie.
+  //
+  // ⛔ CE QUE LES POSITIONS TENAIENT, UNE CONDITION LE TIENT MAINTENANT: le
+  // site du refus est gardé par `!isDraft`, donc il ne tourne JAMAIS sur un
+  // aperçu. On vérifie donc la garde elle-même, pas seulement l'ordre — et
+  // c'est plus fort, parce qu'une position se déplace en silence.
+  const sites = [...src.matchAll(new RegExp(`${CALLEE}\\(`, "g"))].map((m) => m.index ?? -1);
+  const planWrite = src.indexOf(PLAN_WRITE);
   assert(
-    site !== -1,
+    planWrite !== -1,
+    `lane ${lane}: l'écriture du plan a disparu — test à réviser.`,
+  );
+  // ⚠️ N'IMPORTE LEQUEL SUFFIT ICI: « il y a un appelant » est la propriété de
+  // cette assertion-là. Les DEUX suivantes disent ce que chaque site a le
+  // droit de faire, et c'est là que la distinction se joue.
+  const site = sites.length > 0 ? sites[sites.length - 1] : -1;
+  // ── ③ APRÈS LA SORTIE DES APERÇUS ──────────────────────────────────────
+  const draftReturn = src.lastIndexOf(DRAFT_RETURN);
+  assert(draftReturn !== -1, `lane ${lane}: plus aucune sortie d'aperçu.`);
+  for (const at of sites) {
+    if (at > draftReturn) continue;
+    // ⛔ UN SITE PLUS HAUT N'EST TOLÉRÉ QUE S'IL EST GARDÉ PAR `!isDraft`, et
+    // la garde doit être VISIBLE dans les 600 caractères qui le précèdent —
+    // pas quelque part dans la fonction.
+    const before = src.slice(Math.max(0, at - 600), at);
+    assert(
+      /!isDraft/.test(before),
+      `LANE ${lane.toUpperCase()} — LE CLASSIFIEUR EST APPELÉ AVANT LA SORTIE ` +
+        `DES APERÇUS, ET SANS GARDE \`!isDraft\`. Sur \`intent: "draft"\` il n'y ` +
+        `a pas encore de plan: on écrirait une mémoire pour un geste qui n'a ` +
+        `pas eu lieu, et la personne retrouverait la semaine suivante une ` +
+        `envie qu'elle a abandonnée.`,
+    );
+  }
+
+  // ── ④ CE QUI TOURNE AVANT L'ÉCRITURE NE RANGE QUE DES MOTS ────────────
+  //
+  // ⟳ 2026-09-04 — CETTE GARDE DISAIT « aucun refus ne doit laisser une envie
+  // rangée derrière lui », et c'était vrai tant qu'il n'y avait qu'un site.
+  // Elle est maintenant TROP LARGE: le refus `mouth_unfed` DOIT ranger ce que
+  // la personne a écrit, sinon sa phrase est perdue avec le plan — mesuré au
+  // premier tir d'une campagne de trois mois.
+  //
+  // Ce qui reste vrai, et qu'on tient ici: un site AVANT l'écriture ne peut
+  // pas proposer les aliments d'un plan qui n'existe pas. `planFoods: []` est
+  // la seule forme acceptable — elle ferme les questions QUOI et laisse
+  // passer les questions QUI.
+  for (const at of sites) {
+    if (at > planWrite) continue;
+    const span = callArgSpan(src.slice(at), CALLEE);
+    const args = span ? src.slice(at + span.start, at + span.end) : "";
+    assert(
+      /planFoods:\s*\[\]/.test(args),
+      `LANE ${lane.toUpperCase()} — UN APPEL AVANT LA FIN DE L'ÉCRITURE DU ` +
+        `PLAN PROPOSE LES ALIMENTS D'UN PLAN QUI N'EXISTE PAS. Sur un refus, ` +
+        `la personne ne verra jamais ces plats: lui demander « lequel ? » est ` +
+        `une question sur du vide. Le seul appel toléré au-dessus de ce point ` +
+        `est celui qui range ses MOTS, avec \`planFoods: []\`.`,
+    );
+  }
+
+  // ⟳ 2026-09-04 — EN DERNIER, ET C'EST L'ORDRE QUI DÉCIDE. Les deux
+  // assertions du dessus disent ce qu'un site MAL PLACÉ n'a pas le droit de
+  // faire; celle-ci dit qu'il en reste un BIEN placé. Posée en premier, elle
+  // mordait à la place des autres — un `site` introuvable après l'écriture
+  // ressemble à un appelant disparu, et le harnais refusait la mutation avec
+  // « la mauvaise garde a mordu ».
+  assert(
+    sites.some((at) => at > planWrite),
     `LANE ${lane.toUpperCase()} — LE CLASSIFIEUR N'A PLUS D'APPELANT. ` +
       `Retirer ce bloc laissait la suite ENTIÈREMENT verte avant ce test: ` +
       `mesuré au lot 1C (3507 verts sur un module débranché). Ce que la ` +
@@ -261,33 +344,7 @@ function assertWiredCommon(src: string, lane: string): void {
       `jamais rangé.`,
   );
 
-  // ── ③ APRÈS LA SORTIE DES APERÇUS ──────────────────────────────────────
-  const draftReturn = src.lastIndexOf(DRAFT_RETURN);
-  assert(draftReturn !== -1, `lane ${lane}: plus aucune sortie d'aperçu.`);
-  assert(
-    draftReturn < site,
-    `LANE ${lane.toUpperCase()} — LE CLASSIFIEUR EST APPELÉ AVANT LA SORTIE ` +
-      `DES APERÇUS. Sur \`intent: "draft"\` il n'y a pas encore de plan: on ` +
-      `écrirait une mémoire pour un geste qui n'a pas eu lieu, et la personne ` +
-      `retrouverait la semaine suivante une envie qu'elle a abandonnée.`,
-  );
-
-  // ── ④ APRÈS L'ÉCRITURE DU PLAN ─────────────────────────────────────────
-  const planWrite = src.indexOf(PLAN_WRITE);
-  assert(
-    planWrite !== -1,
-    `lane ${lane}: l'écriture du plan a disparu — test à réviser.`,
-  );
-  assert(
-    planWrite < site,
-    `LANE ${lane.toUpperCase()} — LE CLASSIFIEUR EST APPELÉ AVANT LA FIN DE ` +
-      `L'ÉCRITURE. Il doit tourner APRÈS L'ÉCRITURE DU PLAN: tous les refus — ` +
-      `les gardes de fenêtre, le 409 de la base, une panne du modèle — sortent ` +
-      `au-dessus de ce point, et aucun d'eux ne doit laisser une envie rangée ` +
-      `derrière lui.`,
-  );
-
-  const fields = callFields(src, lane);
+  const fields = callFields(src, lane, planWrite);
 
   // ── ⑤ C'EST LE VERDICT QUI ENTRE, PAS LA CHAÎNE ────────────────────────
   assertEquals(
@@ -396,6 +453,39 @@ function assertWiredCommon(src: string, lane: string): void {
       `deux mots: une autre valeur fait échouer l'insertion, et la question ` +
       `n'est jamais posée — sans erreur visible ailleurs.`,
   );
+
+  // ── ④bis · CE QUE CHAQUE APPEL PASSE, QUEL QUE SOIT LE CHEMIN ─────────
+  //
+  // ⟳ 2026-09-04 — DEPUIS QU'IL Y A DEUX APPELS, une garde qui ne lit que le
+  // nominal laisse l'autre dériver en silence. Deux champs valent pour les
+  // DEUX chemins, et ce sont ceux qui décident du contenu de la mémoire:
+  //
+  //   · `note` — le VERDICT, jamais le texte brut de la requête. Lui tendre le
+  //     brut rouvre la cible chiffrée, l'interdit de doctrine et le plancher
+  //     TCA, sur la moitié du produit qu'on ne regarde pas.
+  //   · `source` — sans elle, une ligne rangée par le chemin du refus serait
+  //     indiscernable d'une ligne écrite par un questionnaire.
+  //
+  // ⚠️ PAR REGEX, ET PAS PAR LE PARSEUR D'OBJET. On lit ici le TEXTE d'un
+  // argument, pas sa structure: c'est plus grossier, et ça suffit — les deux
+  // champs sont des littéraux d'une seule ligne.
+  for (const at of sites) {
+    const span = callArgSpan(src.slice(at), CALLEE);
+    const args = span ? src.slice(at + span.start, at + span.end) : "";
+    assert(
+      /\bnote:\s*draftNoteVerdict\b/.test(args),
+      `LANE ${lane.toUpperCase()} — UN APPEL NE REÇOIT PLUS LE VERDICT de ` +
+        `\`readDraftNote\`. La note repart dans un SECOND appel modèle: lui ` +
+        `tendre le texte brut rouvre exactement le trou que ` +
+        `\`plan_draft_note.ts\` ferme.`,
+    );
+    assert(
+      /\bsource:\s*"draft_note"/.test(args),
+      `LANE ${lane.toUpperCase()} — UN APPEL NE DÉCLARE PLUS SA SOURCE: la ` +
+        `ligne rangée deviendrait indiscernable d'un questionnaire.`,
+    );
+  }
+
 }
 
 // ---------------------------------------------------------------------------
@@ -427,7 +517,14 @@ type Cut = {
  */
 function setField(key: string, value: string): (src: string) => string {
   return (src) => {
-    const call = callArgSpan(src, CALLEE);
+    // ⚠️ LE SITE NOMINAL, celui qui suit l'écriture du plan. Frapper le
+    // premier appel venu toucherait le site du REFUS, que les gardes de champ
+    // ne lisent pas — la mutation resterait verte en prouvant autre chose.
+    const from = Math.max(0, src.indexOf(PLAN_WRITE));
+    const rel = callArgSpan(src.slice(from), CALLEE);
+    const call = rel === null
+      ? null
+      : { start: from + rel.start, end: from + rel.end };
     if (call === null) throw new Error(`appel introuvable: ${CALLEE}(`);
     const text = src.slice(call.start, call.end);
     const field = objectFieldSpans(text).get(key);
@@ -557,11 +654,15 @@ const CUTS: readonly Cut[] = [
     name: "le client de service n'est plus passé",
     expects: "ne reçoit plus le client de service",
     apply: (src) => {
-      const span = callArgSpan(src, CALLEE);
-      if (span === null) throw new Error(`appel introuvable: ${CALLEE}(`);
-      const text = src.slice(span.start, span.end);
-      return src.slice(0, span.start) + text.replace(/\n\s*admin,/, "") +
-        src.slice(span.end);
+      // ⚠️ LE SITE NOMINAL, comme `setField`: depuis qu'il y a deux appels, le
+      // premier venu est celui du REFUS, que la garde des champs ne lit pas.
+      const from = Math.max(0, src.indexOf(PLAN_WRITE));
+      const rel = callArgSpan(src.slice(from), CALLEE);
+      if (rel === null) throw new Error(`appel introuvable: ${CALLEE}(`);
+      const start = from + rel.start, end = from + rel.end;
+      const text = src.slice(start, end);
+      return src.slice(0, start) + text.replace(/\n\s*admin,/, "") +
+        src.slice(end);
     },
   },
 ];
@@ -616,7 +717,11 @@ const HOUSEHOLD: Lane = {
     // ⚠️ `composedMembers`, PAS `members` (L3). Une bouche qui a repris la
     // main sur son plan personnel n'est pas à cette table: lui attribuer une
     // envie la rangerait chez quelqu'un d'absent.
-    const roster = callFields(src, "household").get("members") ?? "";
+    // ⚠️ LE SITE NOMINAL: le premier appel est celui du refus depuis le
+    // 2026-09-04, et il porte le MÊME roster — mais lire le premier venu
+    // ferait passer la mutation à côté de la garde qu'elle vise.
+    const roster =
+      callFields(src, "household", src.indexOf(PLAN_WRITE)).get("members") ?? "";
     assert(
       roster.includes("composedMembers"),
       "LANE HOUSEHOLD — LE RÔLE DU FOYER A DISPARU DE L'APPEL (`" + roster +
@@ -644,8 +749,11 @@ const HOUSEHOLD: Lane = {
     {
       name: "le rôle perd le prénom que le modèle lit",
       expects: "NE PORTE PLUS LE COUPLE",
+      // ⚠️ `replaceAll`: la propriété vaut pour CHAQUE appel, et il y en a deux
+      // depuis le 2026-09-04. Ne muter que le premier laisserait la garde
+      // verte sur le site qu'elle lit.
       apply: (src) =>
-        src.replace("label: m.displayName,", "label: m.memberId,"),
+        src.replaceAll("label: m.displayName,", "label: m.memberId,"),
     },
   ],
 };

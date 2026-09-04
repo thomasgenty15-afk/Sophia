@@ -400,9 +400,12 @@ Deno.test("CÂBLAGE — le refus existe, et il ne tombe pas sur un aperçu", asy
     src.includes('error: "mouth_unfed"'),
     "le refus a disparu: un plan où quelqu'un ne mange pas s'écrirait en base",
   );
+  // ⟳ 2026-09-04 : la liste est résolue plus haut (`stillUnfedBeforeRefusal`),
+  // parce que la classification de la note en dépend AUSSI — elle doit
+  // survivre au refus.
   const block = src.slice(
-    src.indexOf("const stillUnfed ="),
-    src.indexOf("const stillUnfed =") + 900,
+    src.indexOf("const stillUnfedBeforeRefusal ="),
+    src.indexOf('error: "mouth_unfed"') + 400,
   );
   assert(
     block.includes("!isDraft"),
@@ -448,5 +451,70 @@ Deno.test("CÂBLAGE — le compteur « sans boîte » ne saute plus les bouches 
   assert(
     src.includes("boxMouthSlots += boxMembers.size;"),
     "le dénominateur se creuse encore de la part des bouches retirées",
+  );
+});
+
+// ---------------------------------------------------------------------------
+// ⟳ 2026-09-04 · CE QUE LA CAMPAGNE DE TROIS MOIS A TROUVÉ AU PREMIER TIR
+// ---------------------------------------------------------------------------
+
+Deno.test("CÂBLAGE — la relance INSISTE, et elle s'arrête quand elle n'améliore plus", async () => {
+  const src = await generatorSource();
+  // ── LE FAIT MESURÉ ────────────────────────────────────────────────────
+  // Fenêtre de cinq jours, foyer de cinq bouches: `missing_before: 6` →
+  // `missing: 5` après UNE relance, puis 422. Une relance réécrit le plan
+  // ENTIER: elle répare des cases et en casse d'autres. Il faut insister sur
+  // ce qui manque ENCORE.
+  assert(
+    /const UNFED_RETRIES_MAX = 2;/.test(src),
+    "la relance ne fait plus qu'un tour: sur cinq jours, un tour ne suffit pas",
+  );
+  assert(
+    /attempt <= UNFED_RETRIES_MAX && !delivered\.allFed/.test(src),
+    "la boucle ne s'arrête plus dès que tout le monde est servi: elle " +
+      "dépenserait un appel modèle pour rien",
+  );
+  // ⛔ ET LE PLAFOND N'EST PAS UNE GARANTIE DE PROGRÈS. Un tour qui n'améliore
+  // rien doit couper la série, sinon on paie une minute pour la même réponse.
+  const block = src.slice(
+    src.indexOf("const UNFED_RETRIES_MAX"),
+    src.indexOf("LE DERNIER RECOURS, ET IL DÉPEND DE LA CAUSE"),
+  );
+  assertEquals(
+    (block.match(/\n\s+break;/g) || []).length >= 3,
+    true,
+    "la boucle n'a plus ses trois sorties (pas d'amélioration, exception, " +
+      "instruction vide)\n" + block.slice(-400),
+  );
+});
+
+Deno.test("CÂBLAGE — CE QUE LA PERSONNE A ÉCRIT SURVIT AU REFUS", async () => {
+  const src = await generatorSource();
+  // ── LE DÉFAUT, ET IL ÉTAIT PIRE QUE LE PLAN REFUSÉ ────────────────────
+  // Le refus sortait ~2800 lignes AVANT la classification de la note. Donc la
+  // personne écrit « mon fils n'aime pas le poisson », le plan est refusé pour
+  // une raison sans rapport, et sa phrase est perdue: pas de mémoire, pas de
+  // notification, pas de question. Elle a parlé dans le vide.
+  const refusal = src.indexOf('error: "mouth_unfed"');
+  const rescue = src.indexOf("stillUnfedBeforeRefusal.length > 0 && !isDraft && draftNoteVerdict");
+  assert(rescue > 0, "la note n'est plus classée sur le chemin du refus");
+  assert(
+    rescue < refusal,
+    "la note est classée APRÈS le refus: le `return` part avant, et la phrase " +
+      "de la personne est perdue",
+  );
+
+  // ⛔ `planFoods: []` SUR CE CHEMIN, ET C'EST LA DIFFÉRENCE QUI COMPTE.
+  // Proposer les aliments d'un plan que la personne ne verra jamais serait lui
+  // demander d'arbitrer sur du vide. La liste vide ferme les questions QUOI et
+  // laisse passer les questions QUI.
+  const block = src.slice(rescue, rescue + 1400);
+  assert(
+    /planFoods: \[\],/.test(block),
+    "le chemin du refus propose les aliments d'un plan qui n'existe pas\n" + block,
+  );
+  assert(
+    /source: "draft_note",/.test(block),
+    "la source n'est plus déclarée sur le chemin du refus",
   );
 });
