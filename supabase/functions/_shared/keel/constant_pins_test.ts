@@ -28,6 +28,10 @@
 import { assertEquals } from "jsr:@std/assert@1";
 
 import { UNANSWERED_EXTRAS_KCAL } from "./meal_extras.ts";
+import {
+  MAX_DAY_SLOTS,
+  MEAL_KCAL_PER_G_COMPOSED,
+} from "./eating_structure.ts";
 import { MAX_DISH_BUTTONS } from "./plan_feedback_chat.ts";
 import {
   DENSITY_CEILING_DEFAULT,
@@ -175,6 +179,27 @@ Deno.test("épinglage — ANCHOR_FACTOR_MIN vaut 0,60", () => {
 
 Deno.test("épinglage — ANCHOR_FACTOR_MAX vaut 3,00", () => {
   assertEquals(ANCHOR_FACTOR_MAX, 3.00);
+});
+
+/**
+ * ⚠️ CELLE-CI ET `MEAL_MAX_GRAMS_PER_KG` DISENT LE MÊME MONDE, ET SE RELISENT
+ * ENSEMBLE. Le pavé du plafond de masse DÉRIVE son 8 en citant « un plat mixte
+ * cuisiné pèse 1,3-1,6 kcal/g »; cette constante-ci est la valeur mesurée dans
+ * cette fourchette (1,13 · 1,35 · 1,56 sur les trois journées du run réel du
+ * 2026-09-04). Si l'une bouge, l'autre est fausse.
+ */
+Deno.test("épinglage — MEAL_KCAL_PER_G_COMPOSED vaut 1,35 kcal/g", () => {
+  assertEquals(MEAL_KCAL_PER_G_COMPOSED, 1.35);
+});
+
+/**
+ * ⚠️ SIX, ET C'EST `EATING_OCCASIONS`, PAS `SLOT_DAY_WEIGHT`. Le second en pèse
+ * SEPT — il porte le jeton legacy `snack`. Épingler la mauvaise source ferait
+ * ouvrir à une personne un moment qu'aucun écran ne lui propose, donc qu'elle ne
+ * pourrait ni comprendre ni décocher.
+ */
+Deno.test("épinglage — MAX_DAY_SLOTS vaut 6 moments", () => {
+  assertEquals(MAX_DAY_SLOTS, 6);
 });
 
 Deno.test("épinglage — MEAL_MAX_GRAMS_PER_KG vaut 8 g/kg", () => {
