@@ -109,17 +109,60 @@ FAUX, et il est indémentable pour qui le lit ». Chaque cas se nomme désormais
 | `tsc -p tsconfig.test.json` | **87 / liste 87** |
 | `vitest run` | **2 249 verts, 4 rouges — les 4 de la baseline, étrangers** |
 
-## 8. ⛔ Ce qui n'est PAS mesuré, nommé
+## 8. ⟳ LE RUN RÉEL A EU LIEU — et il a trouvé deux phrases fausses
 
-1. **Aucun run réel n'a vu le rétrécissement mordre, et ce n'est pas un oubli.** À 2 h du
-   matin aucun moment n'est passé — mesuré par une session voisine sur son propre run :
-   `suggested_window: {shifted: null}`, trois journées pleines. Le voir exigerait de forcer
-   l'horloge d'une pile partagée. La garde est prouvée par unité et par mutation.
-2. **Et un run maintenant ne prouverait pas ce qu'il semble prouver** : `meal_plan_window.ts`
-   est un fichier **modifié**, et le runtime edge ne recharge pas un `_shared` modifié sans
-   redémarrage — cicatrice connue du dépôt. Il faudrait redémarrer `functions serve`, qui
-   appartient à une autre session.
-3. **La lane foyer n'est pas touchée.** Elle reçoit `{ dropped: null }` **en dur** plutôt
-   qu'un paramètre optionnel : l'absence est visible au lecteur et au compilateur. Son propre
-   ordonnancement n'a pas été mesuré.
+**Le §8 disait « aucun run réel n'a vu le rétrécissement mordre ». C'est faux depuis
+03:13.** Deux runs, témoin et cas, empreinte du code **identique aux quatre relevés** —
+donc les deux plans comparent deux fuseaux et non deux codes.
+
+Le fuseau de la fixture `eval0823.solo@keeltest.dev` est passé de `Europe/London` à
+`America/Sao_Paulo` le temps du second run, **lu avant, restauré après, vérifié**. Ce n'est
+pas une horloge forcée : c'est un élève brésilien qui compose à 22 h, cas produit ordinaire.
+Le dîner « passe » à 21 h (`SLOT_PASSED_HOUR`).
+
+| | témoin — Londres, 02:11 | cas — São Paulo, 22:13 |
+|---|---|---|
+| fenêtre | **3 jours**, 2026-09-04 → 09-06 | **2 jours**, 2026-09-04 → 09-05 |
+| demandé | jeu+3 (09-04 → 09-06) | jeu+3 (**09-03** → 09-05) |
+| dernier jour servi | 09-06 | **09-05 — la fin demandée** |
+| `timing.kind` | `same_morning` | **`starts_tomorrow`** |
+| `issues` | `[]` | **`spent_first_day_dropped: thu`** |
+| plats | 9 (3/jour) | 6 (3/jour) — **aucun perdu** |
+
+Le témoin compte autant que le cas : une garde qui mord toujours ressemble à une garde qui
+marche. Et aucune trace du jeudi retiré ne subsiste dans les sessions de cuisine, la liste
+de courses ni les plats — vérifié, pas supposé.
+
+### ⛔ CE QUE LE RUN A TROUVÉ, ET QU'AUCUN TEST NE POUVAIT VOIR
+
+Le premier run a rendu à la personne :
+
+> « You asked for 3: **the week ends before that**, so 2 are left. »
+> « Shopping and cooking **first thing in the morning**, so it is ready by lunch. »
+
+La première donne **une cause qui n'est pas la sienne** — `until_sunday` était la seule
+façon de raccourcir une fenêtre quand cette phrase a été écrite. La seconde parle du matin
+d'**aujourd'hui** sur un plan qui commence demain : le fait faux et indémentable que le
+parseur du front nomme déjà en toutes lettres, et que j'avais corrigé côté écran **sans voir
+que le serveur avait sa propre copie**.
+
+Les deux prémisses étaient vraies à l'écriture ; une seconde cause les a rendues fausses.
+**Aucun test unitaire ne pouvait le dire : aucun ne rendait la chaîne sur un plan rétréci.**
+Corrigé (`82e18366`), `spentFirstDay` devenant un fait **requis** de la chaîne. Confirmé au
+second run : la bonne cause sort, « dès le matin » se tait, et la ligne de courses reste.
+
+⚠️ **Et mon instrument regardait à côté** : le comparateur montrait la fenêtre, le timing et
+les plats — tout ce qui était déjà vert en unitaire — mais pas la phrase. Corrigé aussi
+(`6217a81a`).
+
+## 9. ⛔ Ce qui n'est PAS mesuré, nommé
+1. **La lane foyer n'est pas touchée.** Elle reçoit `{ dropped: null }` et
+   `spentFirstDay: null` **en dur** plutôt qu'un paramètre optionnel : l'absence est visible
+   au lecteur et au compilateur. Son propre ordonnancement n'a pas été mesuré.
+2. **Un seul fuseau tardif éprouvé.** `America/Sao_Paulo` à 22 h fait tomber les trois
+   moments. Le cas où **un seul** moment reste à venir (donc `slots_remain`) n'a pas été
+   joué en run réel — il l'est en unitaire.
+3. **Le refus `cook_day` n'a pas été vu en run réel.** C'est la garde la plus importante du
+   lot, et elle exige une veille de cuisine accordée : il faut une fenêtre qui démarre
+   demain, que le harnais ne demande pas.
 4. **Aucune migration, aucun déploiement.** Rien n'est poussé.
