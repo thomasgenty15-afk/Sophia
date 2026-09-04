@@ -62,6 +62,10 @@ function dish(over: Partial<GeneratedDish> = {}): GeneratedDish {
     // cas d'un plat qui ne prélève sur aucun lot. Le PDF de courses ne lit pas
     // ce champ: on achète du CRU, et une boîte porte du PRÊT.
     boxes: [],
+    // ÉCHANGE — aucune bouche retirée d'un couvercle: le PDF de courses ne lit
+    // pas ce champ (il achète du CRU pour la maison), mais il est REQUIS, et
+    // une fixture qui l'omettrait ne compilerait pas.
+    heldOff: [],
     // LOT C — `null` = le plat de la table, et c'est le cas nominal. Le PDF de
     // courses ne lit pas ce champ: on achète pour la maison, pas par bouche.
     memberId: null,

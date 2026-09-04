@@ -46,6 +46,8 @@ import {
   reconcilePortions,
 } from "./household_portions.ts";
 import { householdDietBlock } from "./household_diet.ts";
+import { exclusionTermsFor } from "./food_exclusion_belt.ts";
+import type { RetainedItem } from "./retained_item.ts";
 
 // Les quatre bouches du foyer réel, ids raccourcis mais distincts.
 const AURELE = "c278b5dc-680f-43f1-b54f-f9da630fcb2f";
@@ -97,7 +99,13 @@ const PARSE_BASE = {
   // ⛔ La ceinture des EXCLUSIONS partage la boucle des boîtes depuis le
   // 2026-09-01. `[]` dit « personne n'a rien exclu » — ces cas-ci mesurent les
   // RÉGIMES, et les mêler rendrait leur zéro ambigu.
-  boxMemberExclusions: [],
+  // ⚠️ TYPÉ, ET PAS `[]` NU. Un tableau vide s'infère `never[]`, et le cas
+  // d'échange qui en pose un plus bas ne compilerait pas — la fixture aurait
+  // fermé la porte au seul test qui s'en sert.
+  boxMemberExclusions: [] as readonly {
+    memberId: string;
+    terms: ReturnType<typeof exclusionTermsFor>;
+  }[],
 };
 
 function parse(
@@ -220,6 +228,10 @@ Deno.test("CEINTURE — personne n'a déclaré: rien ne bouge, et le compteur le
     not_separated: 0,
     silenced: 0,
     unknown_mouth: 0,
+    // ── ÉCHANGE (2026-09-04) · SUR QUELLE SURFACE ───────────────────────
+    // Zéro parce qu'aucune bouche ne porte de ligne: la ceinture n'a lu aucun
+    // couvercle, donc ni sur la boîte ni sur le plat.
+    box_scoped: 0,
     // ── LE GROUPE DÉCLARÉ (2026-08-19), ET SES SIX ZÉROS ────────────────
     // Ce plan ne porte aucun `group` sur ses ingrédients, donc les trois
     // premiers sont à zéro; et aucune bouche n'a de régime, donc la ceinture
@@ -708,4 +720,372 @@ Deno.test("BRANCHEMENT — la lane foyer passe les VRAIS régimes, pas un tablea
     "le compteur ne sort plus dans la trace: un run vert et un run qui sert " +
       "de la viande à un enfant végane redeviennent le même run",
   );
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LA BOÎTE D'ÉCHANGE — LA CEINTURE LIT LE CONTENANT, PAS LE PLAT
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// ── LE DÉFAUT MESURÉ, SUR UN PLAN RÉEL (2026-09-04) ───────────────────────
+// Foyer de cinq, « Mon mari n'aime pas les lentilles » noté pour Marc: 12
+// repas mis en boîte, Marc nommé sur 7 couvercles, **aucune boîte à 5 repas**,
+// dont 4 plats de lentilles. `exclusion_belt {checked: 35, refused: 4}`. La
+// ceinture retirait son nom, et le compteur « sans boîte » sautait justement
+// les bouches retirées: la personne était sans repas, et rien ne le disait.
+//
+// ── CE QUE CE LOT CHANGE ─────────────────────────────────────────────────
+// Une boîte qui déclare des `items` est jugée sur SES items et sur les
+// casseroles qu'ils citent — jamais sur le titre, la méthode ou les
+// `ingredients` DU PLAT. Sous l'échange, ces trois-là décrivent les DEUX
+// boîtes (le plat liste poulet ET tofu, parce que les courses portent les
+// deux): les scanner mordrait chaque boîte d'échange, c'est-à-dire recréerait
+// le défaut que ce lot ferme.
+//
+// ⚠️ LE REPLI v2 (`box` singulier, `shares`) N'A PAS D'ITEMS: il reste jugé
+// sur le plat, octet pour octet comme avant.
+//
+// ⚠️ TROU RÉSIDUEL, NOMMÉ: un item `{term: "stew", preparation_id: null}` sous
+// une méthode au poulet ne mord pas. On ne le devine pas — on le COMPTE
+// (`box_scoped`), pour savoir sur quelle population la garde s'exerce.
+
+/**
+ * LE PLAN DE RÉFÉRENCE DE L'ÉCHANGE. Un plat, une base commune (le riz), deux
+ * boîtes: la table prend le poulet, THEODULE (végane) prend le tofu.
+ *
+ * ⚠️ LES `ingredients` DU PLAT PORTENT LES DEUX. C'est la consigne (« the
+ * dish's ingredients list BOTH, so the shopping carries both »), et c'est
+ * exactement ce qui fait mordre un scan au niveau plat.
+ */
+function swapPlan() {
+  return {
+    preparations: [
+      {
+        id: "prep_chicken",
+        title: "Roast chicken thighs",
+        servings_made: 3,
+        method: "Roast them until the skin crisps.",
+        active_minutes: 15,
+        total_minutes: 45,
+        cook_on: "wed",
+        ingredients: [{ term: "chicken thighs", quantity: "600 g" }],
+      },
+      {
+        id: "prep_tofu",
+        title: "Marinated tofu",
+        // ⚠️ 2, JAMAIS 1. Une préparation à une seule part est refusée par le
+        // parseur (`servings_made must be > 1`) — elle part, ses items avec, et
+        // la boîte survit quand même grâce au riz: le test resterait VERT en
+        // ayant mesuré une boîte sans tofu. C'est pour ça que
+        // `preparations.length` est épinglé plus bas.
+        servings_made: 2,
+        method: "Marinate, then bake.",
+        active_minutes: 10,
+        total_minutes: 30,
+        cook_on: "wed",
+        ingredients: [{ term: "firm tofu", quantity: "200 g" }],
+      },
+      {
+        id: "prep_rice",
+        title: "Steamed rice",
+        servings_made: 4,
+        method: "Steam it.",
+        active_minutes: 5,
+        total_minutes: 20,
+        cook_on: "wed",
+        ingredients: [{ term: "rice", quantity: "400 g" }],
+      },
+    ],
+    dishes: [{
+      title: "Rice bowl",
+      day: "wed",
+      slot: "dinner",
+      method: "Fill each bowl from its own box.",
+      why: "Because it works.",
+      ingredients: [
+        { term: "chicken thighs", quantity: "600 g" },
+        { term: "firm tofu", quantity: "200 g" },
+      ],
+      uses: [
+        { preparation_id: "prep_chicken", servings: 3 },
+        { preparation_id: "prep_tofu", servings: 1 },
+        { preparation_id: "prep_rice", servings: 4 },
+      ],
+      boxes: [
+        {
+          id: "box_table",
+          member_ids: [AURELE, SOLVEIG, MARCELINE],
+          items: [
+            { preparation_id: "prep_chicken", term: "roast chicken", grams: 450 },
+            { preparation_id: "prep_rice", term: "rice", grams: 300 },
+          ],
+        },
+        {
+          id: "box_theodule",
+          member_ids: [THEODULE],
+          items: [
+            { preparation_id: "prep_tofu", term: "marinated tofu", grams: 150 },
+            { preparation_id: "prep_rice", term: "rice", grams: 100 },
+          ],
+        },
+      ],
+    }],
+    shopping_list: [],
+  };
+}
+
+Deno.test("ÉCHANGE — la boîte de tofu GARDE la bouche végane sous un plat au poulet", () => {
+  const meal = parse(swapPlan());
+
+  assertEquals(meal.dishes.length, 1, meal.issues.join("\n"));
+  // ⛔ LES TROIS CASSEROLES ONT SURVÉCU. Sans cette ligne, une préparation
+  // refusée en silence laisserait la boîte de tofu debout (le riz suffit) et le
+  // test mesurerait un échange qui n'a pas eu lieu.
+  assertEquals(meal.preparations.length, 3, meal.issues.join("\n"));
+  assertEquals(meal.dishes[0].boxes.length, 2, meal.issues.join("\n"));
+  assertEquals(meal.dishes[0].boxes[1]?.memberIds, [THEODULE]);
+  assertEquals(meal.regime_belt.refused, 0, meal.issues.join("\n"));
+  assertEquals(meal.regime_belt.kept, 1);
+  // La MORSURE existe toujours — le plat porte du poulet. Ce qui change, c'est
+  // qu'elle est SÉPARÉE: le modèle a composé la boîte, la ceinture n'a rien eu
+  // à retirer.
+  assertEquals(meal.regime_belt.bites, 1);
+  assertEquals(meal.regime_belt.separated, 1);
+  assertEquals(meal.regime_belt.not_separated, 0);
+  assertEquals(meal.box_counts.mouths_unboxed, 0, meal.issues.join("\n"));
+  assertEquals(meal.box_counts.mouths_double, 0);
+});
+
+Deno.test("ÉCHANGE — une boîte de tofu qui PUISE dans la casserole de poulet fait tomber la bouche", () => {
+  const plan = swapPlan();
+  plan.dishes[0].boxes[1].items[0].preparation_id = "prep_chicken";
+  const meal = parse(plan);
+
+  assertEquals(meal.regime_belt.refused, 1, meal.issues.join("\n"));
+  assertEquals(meal.regime_belt.not_separated, 1);
+  assert(
+    meal.issues.some((i) =>
+      i.includes(THEODULE) && i.includes("mouth dropped from the box")
+    ),
+    meal.issues.join("\n"),
+  );
+});
+
+Deno.test("ÉCHANGE — le TERME d'un item mord À LUI SEUL, sans casserole derrière", () => {
+  // ⛔ LE CAS QUI PROUVE QUE LES ITEMS SONT LUS. Partout ailleurs, le signal
+  // arrive par la CASSEROLE que l'item cite — vider les termes ne changerait
+  // rien et la garde serait à moitié désarmée sans que personne le voie.
+  // Ici l'item n'en cite aucune (`preparation_id: null`, l'aliment est ajouté
+  // frais le jour même): son `term` est la seule chose à lire.
+  const plan = swapPlan();
+  plan.dishes[0].boxes[1].items = [
+    { preparation_id: null, term: "roast chicken thigh", grams: 150 },
+  ] as never;
+  const meal = parse(plan);
+
+  assertEquals(meal.regime_belt.refused, 1, meal.issues.join("\n"));
+  assertEquals(meal.regime_belt.not_separated, 1);
+  assert(
+    meal.issues.some((i) => i.includes(THEODULE) && i.includes("mouth dropped")),
+    meal.issues.join("\n"),
+  );
+});
+
+Deno.test("ÉCHANGE — un TERME évité mord aussi à lui seul, côté dégoût", () => {
+  const terms = exclusionTermsFor({
+    items: [{
+      kind: "food.exclude",
+      scope: "durable",
+      subject: `member:${MARCELINE}`,
+      text: "Mon mari n'aime pas les lentilles.",
+      value: null,
+      source: "written",
+      at: "2026-09-01",
+      item: "",
+      confidence: null,
+      quote: "Mon mari n'aime pas les lentilles.",
+    } as unknown as RetainedItem],
+    subject: `member:${MARCELINE}`,
+  });
+  const plan = swapPlan();
+  plan.dishes[0].boxes[0].member_ids = [AURELE, SOLVEIG, MARCELINE] as never;
+  plan.dishes[0].boxes[0].items = [
+    { preparation_id: null, term: "lentilles mijotées", grams: 300 },
+  ] as never;
+  const meal = parse(plan, {
+    boxMemberDiets: NOBODY_DECLARED,
+    boxMemberExclusions: [{ memberId: MARCELINE, terms }],
+  });
+
+  assertEquals(meal.exclusion_belt.refused, 1, meal.issues.join("\n"));
+  assert(
+    meal.issues.some((i) => i.includes(MARCELINE) && i.includes("asked to avoid")),
+    meal.issues.join("\n"),
+  );
+});
+
+Deno.test("ÉCHANGE — le TITRE et la MÉTHODE du plat ne mordent pas une boîte qui a des items", () => {
+  const plan = swapPlan();
+  plan.dishes[0].title = "Chicken rice night";
+  plan.dishes[0].method = "Roast the chicken, then fill each bowl.";
+  const meal = parse(plan);
+
+  assertEquals(meal.regime_belt.refused, 0, meal.issues.join("\n"));
+  assertEquals(meal.dishes[0].boxes[1]?.memberIds, [THEODULE]);
+});
+
+Deno.test("ÉCHANGE — une bouche sur une boîte SANS item est jugée sur le PLAT", () => {
+  const plan = swapPlan();
+  // Le repli v2: pas d'`items`, des `shares`. Aucune surface de contenant à
+  // lire — la ceinture retombe sur le plat, et le poulet mord.
+  const legacy = {
+    preparations: plan.preparations,
+    dishes: [{
+      ...plan.dishes[0],
+      boxes: undefined,
+      box: {
+        id: "box_legacy",
+        shares: [
+          { member_id: AURELE, grams: 400 },
+          { member_id: THEODULE, grams: 350 },
+        ],
+      },
+    }],
+    shopping_list: [],
+  };
+  const meal = parse(legacy as unknown as Record<string, unknown>);
+
+  assertEquals(meal.regime_belt.refused, 1, meal.issues.join("\n"));
+  assertEquals(meal.dishes[0].boxes[0]?.memberIds, [AURELE]);
+});
+
+Deno.test("ÉCHANGE — la boîte de pois chiches GARDE Marc sous un plat aux lentilles", () => {
+  const terms = exclusionTermsFor({
+    items: [{
+      kind: "food.exclude",
+      scope: "durable",
+      subject: `member:${MARCELINE}`,
+      text: "Mon mari n'aime pas les lentilles.",
+      value: null,
+      source: "written",
+      at: "2026-09-01",
+      item: "",
+      confidence: null,
+      quote: "Mon mari n'aime pas les lentilles.",
+    } as unknown as RetainedItem],
+    subject: `member:${MARCELINE}`,
+  });
+
+  const meal = parse({
+    preparations: [
+      {
+        id: "prep_lentils",
+        title: "Lentilles mijotées",
+        servings_made: 3,
+        method: "Mijoter les lentilles.",
+        active_minutes: 10,
+        total_minutes: 40,
+        cook_on: "wed",
+        ingredients: [{ term: "lentilles vertes", quantity: "300 g" }],
+      },
+      {
+        id: "prep_chickpeas",
+        title: "Pois chiches rôtis",
+        servings_made: 2,
+        method: "Rôtir les pois chiches.",
+        active_minutes: 5,
+        total_minutes: 25,
+        cook_on: "wed",
+        ingredients: [{ term: "pois chiches", quantity: "150 g" }],
+      },
+    ],
+    dishes: [{
+      title: "Bol de légumineuses",
+      day: "wed",
+      slot: "dinner",
+      method: "Servir chaque bol depuis sa boîte.",
+      why: "Because it works.",
+      ingredients: [
+        { term: "lentilles vertes", quantity: "300 g" },
+        { term: "pois chiches", quantity: "150 g" },
+      ],
+      uses: [
+        { preparation_id: "prep_lentils", servings: 3 },
+        { preparation_id: "prep_chickpeas", servings: 1 },
+      ],
+      boxes: [
+        {
+          id: "box_table_lentils",
+          member_ids: [AURELE, SOLVEIG, THEODULE],
+          items: [{ preparation_id: "prep_lentils", term: "lentilles mijotées", grams: 600 }],
+        },
+        {
+          id: "box_marceline",
+          member_ids: [MARCELINE],
+          items: [{ preparation_id: "prep_chickpeas", term: "pois chiches rôtis", grams: 200 }],
+        },
+      ],
+    }],
+    shopping_list: [],
+  }, {
+    boxMemberDiets: NOBODY_DECLARED,
+    boxMemberExclusions: [{ memberId: MARCELINE, terms }],
+  });
+
+  assertEquals(meal.preparations.length, 2, meal.issues.join("\n"));
+  assertEquals(meal.dishes[0].boxes.length, 2, meal.issues.join("\n"));
+  assertEquals(meal.dishes[0].boxes[1]?.memberIds, [MARCELINE]);
+  assertEquals(meal.exclusion_belt.refused, 0, meal.issues.join("\n"));
+  assertEquals(meal.exclusion_belt.kept, 1);
+  assertEquals(meal.exclusion_belt.bites, 1);
+  assertEquals(meal.exclusion_belt.separated, 1);
+  assertEquals(meal.exclusion_belt.not_separated, 0);
+  assertEquals(meal.box_counts.mouths_unboxed, 0, meal.issues.join("\n"));
+
+  // ⛔ ET LE DÉNOMINATEUR CONNAÎT CETTE BOÎTE-LÀ. Deux groupes: ceux qui
+  // mangent les lentilles, et Marceline qui les évite. Sans cette moitié, la
+  // boîte que la consigne réclame arrive EN TROP (2 rendues pour 1 attendue) et
+  // un plan correct se lit comme un modèle qui sur-produit.
+  assertEquals(meal.box_counts.expected, 2, meal.issues.join("\n"));
+  assertEquals(meal.box_counts.boxes, 2);
+});
+
+Deno.test("ÉCHANGE — la somme de la ceinture d'exclusion est une propriété, elle aussi", () => {
+  const meal = parse(swapPlan());
+  assertEquals(
+    meal.exclusion_belt.bites,
+    meal.exclusion_belt.separated + meal.exclusion_belt.not_separated,
+  );
+  assertEquals(
+    meal.regime_belt.bites,
+    meal.regime_belt.separated + meal.regime_belt.not_separated,
+  );
+});
+
+Deno.test("ÉCHANGE — le compteur dit sur quelle SURFACE chaque couvercle a été jugé", () => {
+  const swapped = parse(swapPlan());
+  // Quatre noms sur des couvercles à items, une seule bouche déclarée: la
+  // ceinture de régime n'a lu qu'un couvercle, et elle l'a lu sur la BOÎTE.
+  assertEquals(swapped.regime_belt.checked, 1);
+  assertEquals(swapped.regime_belt.box_scoped, 1);
+
+  // Le repli v2 (`box` + `shares`) n'offre aucune surface de contenant: tout
+  // est jugé sur le plat, et le compteur le dit en restant à zéro.
+  const plan = swapPlan();
+  const legacy = parse({
+    preparations: plan.preparations,
+    dishes: [{
+      ...plan.dishes[0],
+      boxes: undefined,
+      box: {
+        id: "box_legacy_scoped",
+        shares: [
+          { member_id: AURELE, grams: 400 },
+          { member_id: THEODULE, grams: 350 },
+        ],
+      },
+    }],
+    shopping_list: [],
+  } as unknown as Record<string, unknown>);
+  assertEquals(legacy.regime_belt.checked, 1);
+  assertEquals(legacy.regime_belt.box_scoped, 0);
 });

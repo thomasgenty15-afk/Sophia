@@ -136,6 +136,7 @@ import {
 // Aucun cycle: `dietary_regime.ts` n'importe que `tokens.ts` et
 // `forbidden_matcher.ts`.
 import {
+  type DeclaredFood,
   type DietaryRegime,
   scanDietaryRegime,
 } from "./dietary_regime.ts";
@@ -776,6 +777,18 @@ export interface GeneratedDish {
    */
   boxes: MealBox[];
   /**
+   * ÉCHANGE · LES BOUCHES QUE LA CEINTURE A RETIRÉES DES COUVERCLES DE CE PLAT.
+   *
+   * ⚠️ INTERNE: ce champ ne part PAS en base — `mealDishesPayload` recopie
+   * champ par champ et ne le nomme pas. Il existe pour que l'invariant
+   * « personne sans repas » sache qu'une bouche absente d'un couvercle en a été
+   * RETIRÉE, et par quoi. Sans lui, une bouche retirée et une bouche que le
+   * modèle a simplement oubliée se ressemblent — c'est très exactement le
+   * défaut mesuré le 2026-09-04 (5 repas sur 12 sans boîte pour la même
+   * personne, sans une seule ligne pour le dire).
+   */
+  heldOff: BoxHeldOff[];
+  /**
    * LOT C — LA BOUCHE À QUI CE PLAT EST DÉDIÉ. `null` = le plat de la table.
    *
    * ⛔ `null` EST LE CAS NOMINAL, et il ne veut PAS dire « on ne sait pas ». La
@@ -1003,6 +1016,21 @@ export interface MealBox {
  * frais le jour même (le pain), donc hors du contrôle de fournée. Le `term` ne
  * sert **jamais** à retrouver quoi que ce soit — « jamais de matcher maison ».
  */
+/**
+ * ÉCHANGE · UNE BOUCHE QUE LA CEINTURE A RETIRÉE D'UN COUVERCLE, ET POURQUOI.
+ *
+ * ⛔ LA CAUSE EST PORTÉE, PAS DEVINÉE. Un régime est une ligne qu'on ne
+ * franchit pas; un dégoût est un goût. L'invariant « personne sans repas » ne
+ * leur doit pas le même dernier recours, et il ne peut pas le retrouver après
+ * coup: un nom absent d'un couvercle ne dit ni qu'il en a été retiré, ni par
+ * quoi. `boxId` dit DE QUELLE boîte — c'est ce qui rend le geste annulable.
+ */
+export interface BoxHeldOff {
+  readonly memberId: string;
+  readonly cause: "regime" | "exclusion";
+  readonly boxId: string;
+}
+
 export interface BoxItem {
   preparationId: string | null;
   term: string;
@@ -1549,6 +1577,16 @@ export interface GeneratedMeal {
     silenced: number;
     unknown_mouth: number;
     /**
+     * ÉCHANGE · COMBIEN DE COUVERCLES ONT ÉTÉ JUGÉS SUR LA BOÎTE, pas sur le
+     * plat (2026-09-04).
+     *
+     * Une boîte qui déclare des `items` est jugée sur SES items et sur les
+     * casseroles qu'ils citent; une boîte sans items (repli v2) retombe sur le
+     * plat. Sans ce nombre, les deux régimes de lecture rendent le même
+     * `refused: 0` et rien ne dit lequel a tourné.
+     */
+    box_scoped: number;
+    /**
      * ── LE GROUPE ALIMENTAIRE DÉCLARÉ, EN SIX NOMBRES (2026-08-19) ────────
      *
      * Les trois premiers disent si le MODÈLE obéit; les trois suivants, ce que
@@ -1583,6 +1621,21 @@ export interface GeneratedMeal {
     checked: number;
     kept: number;
     refused: number;
+    /**
+     * ÉCHANGE · LA MÊME TRIADE QUE LA CEINTURE DE RÉGIME (2026-09-04), et pour
+     * la même raison: sans elle, un modèle qui ne compose JAMAIS la boîte
+     * d'échange — donc une ceinture qui retire à chaque fois — est
+     * indiscernable d'un foyer où personne n'évite rien.
+     *
+     *   · `bites`         — combien de PLATS mordent la ligne d'une bouche.
+     *   · `separated`     — combien le modèle avait déjà séparés en boîtes.
+     *   · `not_separated` — combien la ceinture a dû retirer elle-même.
+     *   · `box_scoped`    — combien de couvercles jugés sur la boîte.
+     */
+    bites: number;
+    separated: number;
+    not_separated: number;
+    box_scoped: number;
   };
   /**
    * CE QUE LA CEINTURE A RETIRÉ, PAR PRÉPARATION — pour l'AUTRE surface.
@@ -4935,11 +4988,28 @@ export function preparationReadyGrams(
  *
  * PURE: no I/O, no clock, no randomness.
  */
-function scanMealForRegime(
+/**
+ * ── ÉCHANGE · UNE SURFACE DE LECTURE, ET RIEN D'AUTRE (2026-09-04) ────────
+ *
+ * Ce qu'une ceinture regarde: de la prose (titre, méthode) et des aliments
+ * déclarés. Le PLAT en produit une par casserole plus la sienne; une BOÎTE en
+ * produit une par casserole que ses items citent, plus ses items.
+ */
+interface RegimeScanSource {
+  readonly prepId: string | null;
+  readonly prose: readonly string[];
+  readonly items: readonly DeclaredFood[];
+}
+
+/**
+ * ⛔ LE SCAN, UNE FOIS, POUR LES DEUX SURFACES. Extrait de `scanMealForRegime`
+ * le 2026-09-04 sans changer une ligne de son corps: la boîte d'échange avait
+ * besoin de le rappeler sur d'autres sources, et une seconde copie aurait
+ * divergé au premier aliment ajouté — la cicatrice de ce dépôt.
+ */
+function scanRegimeSources(
   regime: DietaryRegime,
-  dish: { title: string; method: string; ingredients: readonly DishIngredient[] },
-  uses: readonly { preparationId: string }[],
-  preparationById: ReadonlyMap<string, MealPreparation>,
+  sources: readonly RegimeScanSource[],
 ): {
   matched: string | null;
   preparationIds: string[];
@@ -4954,15 +5024,6 @@ function scanMealForRegime(
   let groupExcluded = 0;
   let groupPlantOnly = 0;
   let groupUndecided = 0;
-  const sources: { prepId: string | null; prose: string[]; items: DishIngredient[] }[] = [
-    { prepId: null, prose: [dish.title, dish.method], items: [...dish.ingredients] },
-  ];
-  for (const use of uses) {
-    const prep = preparationById.get(use.preparationId);
-    if (!prep) continue;
-    if (sources.some((src) => src.prepId === prep.id)) continue;
-    sources.push({ prepId: prep.id, prose: [prep.title, prep.method], items: [...prep.ingredients] });
-  }
   for (const source of sources) {
     const scan = scanDietaryRegime(regime, {
       prose: source.prose.filter((text) => text.trim() !== ""),
@@ -4979,6 +5040,84 @@ function scanMealForRegime(
     if (source.prepId !== null) preparationIds.push(source.prepId);
   }
   return { matched, preparationIds, silenced, groupExcluded, groupPlantOnly, groupUndecided };
+}
+
+/** LE PLAT COMME SURFACE: sa prose, ses ingrédients, et chaque casserole qu'il utilise. */
+function dishScanSources(
+  dish: { title: string; method: string; ingredients: readonly DishIngredient[] },
+  uses: readonly { preparationId: string }[],
+  preparationById: ReadonlyMap<string, MealPreparation>,
+): RegimeScanSource[] {
+  const sources: RegimeScanSource[] = [
+    { prepId: null, prose: [dish.title, dish.method], items: [...dish.ingredients] },
+  ];
+  for (const use of uses) {
+    const prep = preparationById.get(use.preparationId);
+    if (!prep) continue;
+    if (sources.some((src) => src.prepId === prep.id)) continue;
+    sources.push({
+      prepId: prep.id,
+      prose: [prep.title, prep.method],
+      items: [...prep.ingredients],
+    });
+  }
+  return sources;
+}
+
+function scanMealForRegime(
+  regime: DietaryRegime,
+  dish: { title: string; method: string; ingredients: readonly DishIngredient[] },
+  uses: readonly { preparationId: string }[],
+  preparationById: ReadonlyMap<string, MealPreparation>,
+): ReturnType<typeof scanRegimeSources> {
+  return scanRegimeSources(regime, dishScanSources(dish, uses, preparationById));
+}
+
+/**
+ * ══════════════════════════════════════════════════════════════════════════
+ * ÉCHANGE · CE QU'IL Y A DANS UNE BOÎTE — LA SURFACE D'UN CONTENANT
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * ── POURQUOI UNE BOÎTE NE SE JUGE PAS SUR SON PLAT ────────────────────────
+ * Sous la boîte d'échange, un seul plat porte DEUX contenants: « riz poulet »
+ * pour la table, « riz tofu » pour la bouche végétarienne. Le titre est neutre
+ * (« Rice bowl »), mais la méthode explique les deux, et les `ingredients` du
+ * plat listent poulet ET tofu — c'est la consigne, parce que les COURSES
+ * portent les deux. Juger le couvercle de tofu sur cette surface-là le fait
+ * mordre à tous les coups: c'est exactement le défaut que le lot ferme.
+ *
+ * ⚠️ NULL N'EST PAS « RIEN À LIRE », c'est « pas de surface propre »: le repli
+ * v2 (`box` + `shares`) ne déclare aucun item, et retombe sur le plat, octet
+ * pour octet comme avant ce lot.
+ *
+ * ⚠️ TROU RÉSIDUEL, NOMMÉ ET COMPTÉ. Un item `{term: "stew"}` sans
+ * `preparation_id` sous une méthode au poulet ne mord pas. On ne le devine
+ * pas — `box_scoped` dit sur quelle population la garde s'exerce.
+ *
+ * PURE: aucune validation, aucun refus. Les cinq portes de `takeBox` restent
+ * seules à décider ce qui entre dans le plan.
+ */
+export function boxScanSurface(
+  raw: unknown,
+  preparationById: ReadonlyMap<string, unknown>,
+): { terms: string[]; prepIds: string[] } | null {
+  if (raw === null || raw === undefined || typeof raw !== "object") return null;
+  const bx = raw as Record<string, unknown>;
+  const entries = Array.isArray(bx.items) ? bx.items : [];
+  if (entries.length === 0) return null;
+  const terms: string[] = [];
+  const prepIds: string[] = [];
+  for (const entry of entries) {
+    const it = (entry && typeof entry === "object" ? entry : {}) as Record<string, unknown>;
+    const term = String(it.term ?? "").trim();
+    if (term) terms.push(term);
+    const prep = String(it.preparation_id ?? it.preparationId ?? "").trim();
+    if (prep && preparationById.has(prep) && !prepIds.includes(prep)) prepIds.push(prep);
+  }
+  // Une boîte dont aucun item ne NOMME rien n'a pas de surface: elle sera
+  // refusée par la porte des items, et d'ici là c'est le plat qui répond.
+  if (terms.length === 0) return null;
+  return { terms, prepIds };
 }
 
 /**
@@ -5606,6 +5745,14 @@ export function parseGeneratedMeal(
     checked: 0,
     kept: 0,
     refused: 0,
+    // ── ÉCHANGE · LE MÊME COUPLE QUE LE RÉGIME (2026-09-04) ──────────────
+    // Le défaut mesuré: 4 refus d'exclusion sur un plan réel, et une bouche
+    // sans aucune boîte à 5 repas sur 12. `refused` seul ne disait pas si le
+    // modèle avait ESSAYÉ de séparer.
+    bites: 0,
+    separated: 0,
+    not_separated: 0,
+    box_scoped: 0,
   };
   const regimeBelt = {
     mouths: mouthRegimes.size,
@@ -5621,6 +5768,8 @@ export function parseGeneratedMeal(
     not_separated: 0,
     silenced: 0,
     unknown_mouth: regimeUnknownMouth,
+    // ÉCHANGE · sur quelle SURFACE les couvercles ont été jugés.
+    box_scoped: 0,
     // ── LES TROIS NOMBRES DU CHAMP DÉCLARÉ (2026-08-19) ──────────────────
     // Comptés sur TOUS les ingrédients du plan, pas seulement sur ceux qu'une
     // bouche à régime finit par regarder: un modèle qui n'écrit jamais le
@@ -5824,7 +5973,7 @@ export function parseGeneratedMeal(
    * produit qui vient de faire son travail. La compter ferait grossir le défaut
    * exactement quand la ceinture protège le mieux.
    */
-  const keptBoxHeldOff: string[][] = [];
+  const keptBoxHeldOff: BoxHeldOff[][] = [];
   /**
    * L7 ③ — CE QUE SON `name` A COÛTÉ, pour le plat GARDÉ.
    *
@@ -6664,10 +6813,17 @@ export function parseGeneratedMeal(
     // le bac. On REFUSE UNE DÉCLARATION, exactement comme la porte ② refuse un
     // `member_id` qui n'est pas du foyer; on ne réécrit pas la sortie du modèle.
     const boxes: MealBox[] = [];
-    /** Les bouches que leur ligne déclarée tient hors de CE repas. */
-    const boxHeldOff: string[] = [];
-    /** Les bouches que le modèle a nommées sur un couvercle de CE plat. */
-    const namedOnThisDish = new Set<string>();
+    /**
+     * Les bouches que leur ligne déclarée tient hors de CE repas, AVEC LA
+     * CAUSE et le contenant dont le nom a été retiré (2026-09-04).
+     *
+     * ⛔ LA CAUSE N'EST PAS COSMÉTIQUE. Un régime est une ligne qu'on ne
+     * franchit pas; un dégoût est un goût. L'invariant « personne sans repas »
+     * ne leur doit pas le même dernier recours, et il ne peut pas le deviner
+     * après coup: un nom absent d'un couvercle ne dit pas s'il en a été retiré
+     * ni par quoi.
+     */
+    const boxHeldOff: BoxHeldOff[] = [];
     /** Vrai dès qu'un contenant a été DÉCLARÉ sur ce plat, gardé ou non. */
     let declaredABox = false;
     // ── LA MORSURE DE CE PLAT, LUE UNE FOIS PAR LIGNE DÉCLARÉE ─────────────
@@ -6677,17 +6833,44 @@ export function parseGeneratedMeal(
     // de qui la porte. Deux véganes à la même table rendraient deux fois le même
     // verdict, et le second est du temps perdu sur une lane qui frôle déjà le
     // mur de quatre minutes du worker.
-    const biteByRegime = new Map<DietaryRegime, MealRegimeBite>();
-    const biteFor = (regime: DietaryRegime): MealRegimeBite => {
-      const seen = biteByRegime.get(regime);
+    //
+    // ⟳ ÉCHANGE (2026-09-04) — LA CLÉ PORTE AUSSI LA SURFACE. Un plat a
+    // désormais plusieurs surfaces de lecture: la sienne, et une par boîte qui
+    // déclare des items. Mémoïser par régime seul ferait répondre la première
+    // boîte lue pour toutes les autres — et l'échange composé correctement se
+    // ferait refuser parce qu'une AUTRE boîte du même plat porte du poulet.
+    const biteByRegime = new Map<string, MealRegimeBite>();
+    const biteFor = (
+      regime: DietaryRegime,
+      surface: { terms: string[]; prepIds: string[] } | null,
+      boxId: string,
+    ): MealRegimeBite => {
+      const key = `${regime}::${surface === null ? "dish" : boxId}`;
+      const seen = biteByRegime.get(key);
       if (seen) return seen;
-      const breach = scanMealForRegime(
-        regime,
-        { title, method, ingredients },
-        uses,
-        preparationById,
-      );
-      biteByRegime.set(regime, breach);
+      const breach = surface === null
+        ? scanMealForRegime(
+          regime,
+          { title, method, ingredients },
+          uses,
+          preparationById,
+        )
+        : scanRegimeSources(regime, [
+          {
+            prepId: null,
+            prose: [],
+            items: surface.terms.map((term) => ({ term, group: null })),
+          },
+          ...surface.prepIds.flatMap((id) => {
+            const prep = preparationById.get(id);
+            return prep === undefined ? [] : [{
+              prepId: prep.id,
+              prose: [prep.title, prep.method],
+              items: [...prep.ingredients],
+            }];
+          }),
+        ]);
+      biteByRegime.set(key, breach);
       return breach;
     };
 
@@ -6717,6 +6900,11 @@ export function parseGeneratedMeal(
         return;
       }
       const where = `dishes[${i}].boxes[${JSON.stringify(boxId)}]`;
+      // ⚠️ CALCULÉE AVANT LA BOUCLE DES NOMS, ET SUR LE BRUT. Les items ne
+      // sont validés que plus bas (portes ③ et ④); les ceintures, elles, se
+      // prononcent AVANT. Attendre la validation ferait juger le couvercle sur
+      // le plat pendant que la boîte, elle, dit autre chose.
+      const surface = legacy ? null : boxScanSurface(bx, preparationById);
       // ══ PORTE ② · LES NOMS SUR LE COUVERCLE ═══════════════════════════════
       //
       // ⚠️ LE REPLI v2 LIT SES NOMS DANS `shares[]`. Un plan écrit avant ce lot
@@ -6757,7 +6945,6 @@ export function parseGeneratedMeal(
           continue;
         }
         seenMouths.add(memberId);
-        namedOnThisDish.add(memberId);
         // ══ PORTE ②bis · LA LIGNE DÉCLARÉE DE CETTE BOUCHE ══════════════════
         //
         // ⛔ CE N'EST PAS UNE RÉÉCRITURE DE LA SORTIE DU MODÈLE. Rien de la
@@ -6772,8 +6959,9 @@ export function parseGeneratedMeal(
         // existe pour protéger.
         const regime = mouthRegimes.get(memberId);
         if (regime) {
-          const breach = biteFor(regime);
+          const breach = biteFor(regime, surface, boxId);
           regimeBelt.checked++;
+          if (surface !== null) regimeBelt.box_scoped++;
           regimeBelt.silenced += breach.silenced;
           regimeBelt.group_excluded += breach.groupExcluded;
           regimeBelt.group_plant_only += breach.groupPlantOnly;
@@ -6782,7 +6970,9 @@ export function parseGeneratedMeal(
             regimeBelt.refused++;
             boxNamesRefused++;
             heldOffHere = true;
-            if (!boxHeldOff.includes(memberId)) boxHeldOff.push(memberId);
+            if (!boxHeldOff.some((h) => h.memberId === memberId)) {
+              boxHeldOff.push({ memberId, cause: "regime", boxId });
+            }
             issues.push(
               `${where}: ${JSON.stringify(memberId)} is ${regime} and "${title}" ` +
                 `breaks that line (${breach.matched}) -- mouth dropped from the box`,
@@ -6805,19 +6995,39 @@ export function parseGeneratedMeal(
         // aliment.
         const exclusions = mouthExclusions.get(memberId);
         if (exclusions) {
-          const bite = dishBitesExclusion({
-            dish: { title, method, ingredients },
-            uses,
-            preparationById,
-            terms: exclusions,
-            surface: "ingredients",
-          });
+          const bite = surface === null
+            ? dishBitesExclusion({
+              dish: { title, method, ingredients },
+              uses,
+              preparationById,
+              terms: exclusions,
+              surface: "ingredients",
+            })
+            : dishBitesExclusion({
+              // ⚠️ TITRE ET MÉTHODE VIDES, ET C'EST LE POINT. `surface:
+              // "ingredients"` ne lisait déjà pas la prose du plat; ici on ne
+              // lui en donne même pas, et les « ingrédients » sont les items du
+              // CONTENANT. Ce que la boîte porte, plus ce que ses casseroles
+              // portent — rien du plat.
+              dish: {
+                title: "",
+                method: "",
+                ingredients: surface.terms.map((term) => ({ term })),
+              },
+              uses: surface.prepIds.map((preparationId) => ({ preparationId })),
+              preparationById,
+              terms: exclusions,
+              surface: "ingredients",
+            });
           exclusionBelt.checked++;
+          if (surface !== null) exclusionBelt.box_scoped++;
           if (bite.matched !== null) {
             exclusionBelt.refused++;
             boxNamesRefused++;
             heldOffHere = true;
-            if (!boxHeldOff.includes(memberId)) boxHeldOff.push(memberId);
+            if (!boxHeldOff.some((h) => h.memberId === memberId)) {
+              boxHeldOff.push({ memberId, cause: "exclusion", boxId });
+            }
             issues.push(
               `${where}: ${JSON.stringify(memberId)} asked to avoid ` +
                 `${JSON.stringify(bite.because ?? bite.matched)} and "${title}" ` +
@@ -6975,8 +7185,27 @@ export function parseGeneratedMeal(
     // non. C'est un fait de CASSEROLE, pas de couvercle: une bouche dont la
     // ligne refuse cette préparation ne doit pas en recevoir une part dans
     // `member_portions`, que le modèle l'ait sortie du bac ou non.
+    // ⟳ ÉCHANGE (2026-09-04) — « SÉPARÉ » SE LIT SUR LE GESTE DE LA CEINTURE,
+    // PLUS SUR LA PRÉSENCE DU NOM.
+    //
+    // Ce compteur lisait `namedOnThisDish`: le modèle a-t-il nommé cette bouche
+    // sur ce plat? Sous la boîte d'échange, la réponse est OUI dans le cas
+    // NOMINAL — la végétarienne est nommée, sur SA boîte de tofu. L'ancienne
+    // lecture aurait compté chaque échange réussi comme un échec de séparation,
+    // c'est-à-dire fait mentir le seul nombre qui dit si la consigne porte.
+    //
+    // La question juste est: la ceinture a-t-elle dû retirer ce nom? Si oui, le
+    // modèle n'avait pas séparé et le moteur a rattrapé. Si non — nommée sur sa
+    // propre boîte, ou pas nommée du tout — la composition a fait son travail.
+    const heldOffByRegime = new Set(
+      boxHeldOff.filter((h) => h.cause === "regime").map((h) => h.memberId),
+    );
     for (const [memberId, regime] of mouthRegimes) {
-      const breach = biteFor(regime);
+      // ⚠️ LA SURFACE DU PLAT, ICI, ET C'EST VOULU: cette boucle demande « ce
+      // PLAT mord-il cette ligne? », pas « ce contenant la mord-il? ». C'est
+      // elle qui alimente `regime_refusals`, dont la seconde surface
+      // (`preparation_shares`) ne connaît aucune boîte.
+      const breach = biteFor(regime, null, "");
       if (breach.matched === null) continue;
       for (const prepId of breach.preparationIds) {
         const seen = regimeRefusedByPreparation.get(prepId) ?? new Set<string>();
@@ -6985,8 +7214,29 @@ export function parseGeneratedMeal(
       }
       if (!declaredABox) continue;
       regimeBelt.bites++;
-      if (namedOnThisDish.has(memberId)) regimeBelt.not_separated++;
+      if (heldOffByRegime.has(memberId)) regimeBelt.not_separated++;
       else regimeBelt.separated++;
+    }
+    // ── LOT C · LA MÊME MESURE, POUR LES DÉGOÛTS ─────────────────────────
+    // Elle n'existait pas: `exclusion_belt` ne portait que `refused`, et un
+    // modèle qui ne compose JAMAIS la boîte d'échange rendait le même compte
+    // qu'un foyer où personne n'évite rien.
+    const heldOffByExclusion = new Set(
+      boxHeldOff.filter((h) => h.cause === "exclusion").map((h) => h.memberId),
+    );
+    for (const [memberId, terms] of mouthExclusions) {
+      const bite = dishBitesExclusion({
+        dish: { title, method, ingredients },
+        uses,
+        preparationById,
+        terms,
+        surface: "ingredients",
+      });
+      if (bite.matched === null) continue;
+      if (!declaredABox) continue;
+      exclusionBelt.bites++;
+      if (heldOffByExclusion.has(memberId)) exclusionBelt.not_separated++;
+      else exclusionBelt.separated++;
     }
 
     // ── C7 ② · LE SURPLUS TOMBE MAINTENANT, ET PAS AVANT ────────────────
@@ -7181,6 +7431,10 @@ export function parseGeneratedMeal(
       // LES CONTENANTS DU REPAS, POSÉS À LA CRÉATION comme `memberId` et
       // `sameDay`.
       boxes,
+      // ÉCHANGE — ce que la ceinture a retiré des couvercles de CE plat, posé
+      // à la création comme le reste. Interne: `mealDishesPayload` ne le
+      // recopie pas, la base n'en voit rien.
+      heldOff: boxHeldOff,
       memberId,
       sameDay,
     });
@@ -7672,9 +7926,9 @@ export function parseGeneratedMeal(
   // règle qui ne vit que dans un prompt régresse sans que personne le voie.
   //
   // ⚠️ POURQUOI ICI ET PAS DANS `takeBox`. La porte ② refuse un nom deux fois
-  // sur le MÊME couvercle (`seenMouths`) et `namedOnThisDish` est par PLAT; le
-  // doublon, lui, se forme à cheval sur DEUX plats de la même case — le plat de
-  // la table et le plat dédié. Il n'est visible qu'une fois tous les plats
+  // sur le MÊME couvercle (`seenMouths`), et rien de plus; le doublon, lui, se
+  // forme à cheval sur DEUX plats de la même case — le plat de la table et le
+  // plat dédié, ou les deux boîtes d'un échange mal composé. Il n'est visible qu'une fois tous les plats
   // gardés, donc après la boucle, et avant tout ce qui lit `dish.boxes`: la
   // réconciliation des grammes juste en dessous compterait sinon deux fois la
   // même part contre la même casserole.
@@ -7877,7 +8131,7 @@ export function parseGeneratedMeal(
         cellState.byMouth.set(memberId, (cellState.byMouth.get(memberId) ?? 0) + 1);
       }
     }
-    for (const memberId of keptBoxHeldOff[d] ?? []) cellState.heldOff.add(memberId);
+    for (const held of keptBoxHeldOff[d] ?? []) cellState.heldOff.add(held.memberId);
     boxedCells.set(key, cellState);
   }
   let boxMouthSlots = 0;
@@ -8142,20 +8396,56 @@ export function parseGeneratedMeal(
       // ⚠️ LA PARTITION EST CELLE DE **CE PLAT**. Un végétarien et un omnivore
       // qui mangent le même dahl sont dans le MÊME bac: c'est le plat qui
       // décide, jamais l'étiquette de la personne.
+      //
+      // ⟳ ÉCHANGE (2026-09-04) — LE DÉGOÛT PARTITIONNE AUSSI. Un régime n'est pas
+      // la seule ligne qui sépare un bac: « Marc n'aime pas les lentilles »
+      // demande à Marc son propre contenant sur un plat de lentilles, exactement
+      // comme un régime. Sans cette moitié, la boîte d'échange que la consigne
+      // réclame arrivait EN TROP au dénominateur, et un plan correct se lisait
+      // comme un modèle qui sur-produit.
+      //
+      // ⚠️ LA CLÉ EST LA RÈGLE, PAS LA BOUCHE. Deux personnes qui évitent la
+      // même chose partagent un bac; deux personnes qui évitent des choses
+      // différentes en ont deux. `because` porte le texte de la règle, donc il
+      // groupe exactement comme il faut.
+      //
+      // ⚠️ LE RÉGIME PRIME, comme à la ceinture: elle le vérifie en premier et
+      // sort avant l'exclusion. Deux clés pour une seule bouche compteraient un
+      // bac fantôme.
       const lines = new Set<string>();
       for (const memberId of restMembers) {
         const regime = mouthRegimes.get(memberId);
-        if (!regime) {
-          lines.add("");
-          continue;
+        if (regime) {
+          const breach = scanMealForRegime(
+            regime,
+            { title: dish.title, method: dish.method, ingredients: dish.ingredients },
+            dish.uses,
+            preparationById,
+          );
+          if (breach.matched !== null) {
+            lines.add(regime);
+            continue;
+          }
         }
-        const breach = scanMealForRegime(
-          regime,
-          { title: dish.title, method: dish.method, ingredients: dish.ingredients },
-          dish.uses,
-          preparationById,
-        );
-        lines.add(breach.matched === null ? "" : regime);
+        const avoided = mouthExclusions.get(memberId);
+        if (avoided) {
+          const bite = dishBitesExclusion({
+            dish: {
+              title: dish.title,
+              method: dish.method,
+              ingredients: dish.ingredients,
+            },
+            uses: dish.uses,
+            preparationById,
+            terms: avoided,
+            surface: "ingredients",
+          });
+          if (bite.matched !== null) {
+            lines.add(`avoid:${bite.because ?? bite.matched}`);
+            continue;
+          }
+        }
+        lines.add("");
       }
       let weighedHere = 0;
       for (const memberId of weighedMembers) if (fed.has(memberId)) weighedHere++;
