@@ -101,6 +101,11 @@ export const HOUSEHOLD_ARBITRATION_BY_VERSION: Readonly<Record<string, string>> 
   // système, à côté de la clé "boxes"); le bloc d'arbitrage ne bouge pas.
   v28_the_table_keeps_its_meat:
     "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
+  // ⟳ 2026-09-05: v29 — le style atteint le brief (variety, recipeDifficulty),
+  // la boîte de la bouche liée ne cite jamais le composant, l'envie se sert
+  // telle quelle. Le bloc d'arbitrage ne bouge pas.
+  v29_the_style_reaches_the_brief:
+    "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
 };
 
 /** SHA-256 hexadécimal — `crypto.subtle`, standard web, présent en edge. */

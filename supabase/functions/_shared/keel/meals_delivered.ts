@@ -74,12 +74,23 @@ export interface DeliveredDish {
     readonly preparationId: string | null;
     readonly matched: string | null;
   }[];
+  /**
+   * ⟳ 2026-09-05 — LES RÉGIMES QUE LA SURFACE DU PLAT MORD (posé par la
+   * ceinture, `regimeBites`). Sert au seul cas où la ceinture par boîte n'a
+   * rien pu retirer: un plat SANS boîte. Sonde R2-D: une relance « Poulet,
+   * riz » rendue sans boîtes faisait passer une végétarienne de manquante à
+   * nourrie. Absent (lecteur ancien): la règle d'hier, le plat nourrit tout
+   * le monde.
+   */
+  readonly regimeBites?: readonly string[];
 }
 
 /** Une bouche, et les cases où elle mange ICI sur cette fenêtre. */
 export interface DeliveredMouth {
   readonly memberId: string;
   readonly cells: readonly { readonly day: string; readonly slot: string }[];
+  /** La ligne de la bouche, pour le plat sans boîte. Absent = aucune. */
+  readonly regime?: string | null;
 }
 
 /** Un repas qui manque à quelqu'un, avec de quoi le réparer. */
@@ -167,6 +178,7 @@ export function mealsDelivered(
     if (!memberId) continue;
     const row = { memberId, expected: 0, fed: 0, missing: [] as UnfedRow[] };
 
+    const regime = mouth.regime ?? null;
     for (const cell of mouth.cells ?? []) {
       const day = String(cell?.day ?? "").trim();
       const slot = String(cell?.slot ?? "").trim();
@@ -212,11 +224,19 @@ export function mealsDelivered(
 
       // ③ UN PLAT SANS AUCUNE BOÎTE NOURRIT TOUT LE MONDE. Rien n'a été pesé
       //    d'avance pour ce repas: il n'y a pas de contenant à ne pas avoir.
-      if (table.some((d) => d.boxes.length === 0)) {
+      //    ⟳ 2026-09-05 — SAUF la bouche dont la ligne mord ce plat (R2-D): un
+      //    « Poulet, riz » sans boîte ne nourrit pas la végétarienne. La
+      //    ceinture par boîte n'a rien pu retirer; l'invariant le voit ici.
+      const open = table.filter((d) => d.boxes.length === 0);
+      const openSafe = open.filter((d) =>
+        regime === null || !(d.regimeBites ?? []).includes(regime)
+      );
+      if (openSafe.length > 0) {
         row.fed++;
         fed++;
         continue;
       }
+      const openBites = open.length > 0;
 
       let lids = 0;
       for (const d of table) {
@@ -232,7 +252,7 @@ export function mealsDelivered(
 
       const dishHere = table.find((d) =>
         d.heldOff.some((h) => h.memberId === memberId)
-      ) ?? table[0];
+      ) ?? (openBites ? open[0] : table[0]);
       let cause: UnfedCause;
       let boxId: string | null = null;
       let via: UnfedRow["via"] = null;
@@ -249,7 +269,7 @@ export function mealsDelivered(
         const byRegime = held.find((h) => h.cause === "regime");
         const byTaste = held.find((h) => h.cause === "exclusion");
         const chosen = byRegime ?? byTaste ?? null;
-        if (byRegime) cause = "held_off_regime";
+        if (byRegime || openBites) cause = "held_off_regime";
         else if (byTaste) cause = "held_off_exclusion";
         else cause = "not_named";
         if (chosen) {

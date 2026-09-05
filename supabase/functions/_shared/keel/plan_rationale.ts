@@ -484,8 +484,16 @@ export interface PlanRationaleFacts {
      * régime le plus strict: sa BASE l'est, et la protéine est servie par
      * boîte. Dire « le plat commun est végétarien » à une table qui mange du
      * bœuf est faux des deux côtés — mesuré sur un plan vivant.
+     *
+     * ⟳ 2026-09-05 — TROIS ÉTATS, LUS SUR LE PLAN CUISINÉ (`swap_presence`),
+     * plus un booléen lu sur le roster. `none`: personne ici n'est libre de
+     * cette ligne. `boxes`: des bouches libres, et des repas principaux où
+     * leur composant existe. `whole_table`: des bouches libres, et AUCUN repas
+     * principal ne le porte — la table entière suit la ligne, et la phrase le
+     * dit au lieu de promettre une boîte qui n'existe pas (C06: « le reste de
+     * la table garde la sienne » sur 42 plats sans viande).
      */
-    swapped: boolean;
+    swap: "none" | "boxes" | "whole_table";
   } | null;
   /**
    * LE MODE DE CUISSON DEMANDÉ À LA COMPOSITION, ET CE QU'IL A DONNÉ.
@@ -808,6 +816,9 @@ const COPY = {
     sharedRegimeSwapMany: (regime: string, names: string) =>
       `La base du plat commun est ${regime} : c'est la ligne de ${names}, ` +
       `qui ont leur boîte. Le reste de la table garde la sienne.`,
+    // ── TOUTE LA TABLE SUIT LA LIGNE — un fait, dit tel quel ─────────────
+    sharedRegimeWholeTable: (regime: string, names: string) =>
+      `Cette semaine, toute la table mange ${regime} : c'est la ligne de ${names}.`,
     // ── LE MODE DE CUISSON DEMANDÉ, ET CE QU'IL A COÛTÉ ──────────────────
     //
     // ⚠️ UN FAIT, JAMAIS UN REPROCHE, ET JAMAIS UNE SUGGESTION. « Tu aurais dû
@@ -1017,6 +1028,8 @@ const COPY = {
     sharedRegimeSwapMany: (regime: string, names: string) =>
       `The shared base is ${regime}: that is the line of ${names}, and they ` +
       `have their own box. The rest of the table keeps theirs.`,
+    sharedRegimeWholeTable: (regime: string, names: string) =>
+      `This week the whole table eats ${regime}: that is the line of ${names}.`,
     // Même posture qu'en français: un fait, jamais un reproche, jamais une
     // suggestion — et jamais la raison pour laquelle quelqu'un ne sort pas de
     // la casserole commune.
@@ -1581,7 +1594,9 @@ export function explainPlanChoices(input: {
       if (label && names.length > 0) {
         const rendered = joinList(names, input.locale);
         lines.push(
-          regime.swapped
+          regime.swap === "whole_table"
+            ? copy.sharedRegimeWholeTable(label, rendered)
+            : regime.swap === "boxes"
             ? (names.length === 1
               ? copy.sharedRegimeSwap(label, rendered)
               : copy.sharedRegimeSwapMany(label, rendered))

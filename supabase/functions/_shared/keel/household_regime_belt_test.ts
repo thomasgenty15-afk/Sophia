@@ -244,6 +244,7 @@ Deno.test("CEINTURE — personne n'a déclaré: rien ne bouge, et le compteur le
     // Zéro parce qu'aucune bouche ne porte de ligne: la ceinture n'a lu aucun
     // couvercle, donc ni sur la boîte ni sur le plat.
     box_scoped: 0,
+    citation_repaired: 0,
     // ── LE GROUPE DÉCLARÉ (2026-08-19), ET SES SIX ZÉROS ────────────────
     // Ce plan ne porte aucun `group` sur ses ingrédients, donc les trois
     // premiers sont à zéro; et aucune bouche n'a de régime, donc la ceinture
@@ -905,11 +906,27 @@ Deno.test("ÉCHANGE — la boîte de tofu GARDE la bouche végane sous un plat a
   assertEquals(meal.box_counts.mouths_double, 0);
 });
 
-Deno.test("ÉCHANGE — une boîte de tofu qui PUISE dans la casserole de poulet fait tomber la bouche", () => {
+Deno.test("ÉCHANGE — une boîte de tofu qui PUISE dans la casserole de poulet: la citation est RÉ-ADRESSÉE au tofu à part qui attend", () => {
+  // ⟳ 2026-09-05 (C07 v28): le modèle cuit le tofu POUR la bouche liée et fait
+  // citer le poulet par sa boîte; le tofu n'est cité par personne. Avant, la
+  // bouche tombait (11/11 sur C07) et deux relances resservaient 8 cellules.
   const plan = swapPlan();
   plan.dishes[0].boxes[1].items[0].preparation_id = "prep_chicken";
   const meal = parse(plan);
+  assertEquals(meal.regime_belt.citation_repaired, 1, meal.issues.join("\n"));
+  assertEquals(meal.regime_belt.refused, 0, meal.issues.join("\n"));
+  assertEquals(meal.dishes[0].boxes[1]?.memberIds, [THEODULE]);
+  assertEquals(meal.dishes[0].boxes[1]?.items[0]?.preparationId, "prep_tofu");
+});
 
+Deno.test("ÉCHANGE — une boîte de tofu qui PUISE dans la casserole de poulet SANS tofu à part qui attende fait tomber la bouche", () => {
+  const plan = swapPlan();
+  plan.dishes[0].boxes[1].items[0].preparation_id = "prep_chicken";
+  // Le tofu est cité ailleurs (par la boîte de table): il n'attend personne.
+  plan.dishes[0].boxes[0].items.push({ preparation_id: "prep_tofu", term: "marinated tofu", grams: 100 });
+  const meal = parse(plan);
+
+  assertEquals(meal.regime_belt.citation_repaired, 0, meal.issues.join("\n"));
   assertEquals(meal.regime_belt.refused, 1, meal.issues.join("\n"));
   assertEquals(meal.regime_belt.not_separated, 1);
   assert(
@@ -1147,4 +1164,52 @@ Deno.test("ÉCHANGE — le compteur dit sur quelle SURFACE chaque couvercle a é
   } as unknown as Record<string, unknown>);
   assertEquals(legacy.regime_belt.checked, 1);
   assertEquals(legacy.regime_belt.box_scoped, 0);
+});
+
+// ⟳ 2026-09-05 — LA CITATION SE RÉPARE (C07 v28). Le modèle cuit le tofu pour
+// la bouche liée et fait citer le poulet par sa boîte; le tofu n'est cité par
+// personne. La ceinture ré-adresse la citation au lieu de retirer la bouche.
+function miscitedPlan(term = "marinated tofu", extra: Record<string, unknown> = {}) {
+  const plan = swapPlan();
+  const dish = plan.dishes[0] as Record<string, unknown>;
+  (dish.boxes as Record<string, unknown>[])[1] = {
+    id: "box_theodule",
+    member_ids: [THEODULE],
+    items: [
+      { preparation_id: "prep_chicken", term, grams: 150 },
+      { preparation_id: "prep_rice", term: "rice", grams: 100 },
+    ],
+    ...extra,
+  };
+  return plan;
+}
+
+Deno.test("⟳ RÉPARATION — la boîte de la bouche liée cite le poulet, son tofu du même jour attend: la citation est ré-adressée, la bouche reste", () => {
+  const meal = parse(miscitedPlan());
+  assertEquals(meal.regime_belt.citation_repaired, 1, meal.issues.join("\n"));
+  assertEquals(meal.regime_belt.refused, 0, meal.issues.join("\n"));
+  const box = meal.dishes[0].boxes.find((b) => b.id === "box_theodule")!;
+  assertEquals(box.memberIds, [THEODULE]);
+  assertEquals(box.items.map((it) => it.preparationId), ["prep_tofu", "prep_rice"]);
+  assert(meal.issues.some((i) => i.includes("re-pointed to \"prep_tofu\"")), meal.issues.join("\n"));
+});
+
+Deno.test("⟳ RÉPARATION — pas quand l'item lui-même mord (« roast chicken »): c'est un poulet voulu, la bouche tombe", () => {
+  const meal = parse(miscitedPlan("roast chicken"));
+  assertEquals(meal.regime_belt.citation_repaired, 0);
+  assertEquals(meal.regime_belt.refused, 1, meal.issues.join("\n"));
+});
+
+Deno.test("⟳ RÉPARATION — pas sans casserole orpheline du même jour qui convienne", () => {
+  const plan = miscitedPlan();
+  (plan.preparations[1] as Record<string, unknown>).cook_on = "thu"; // le tofu cuit un autre jour
+  const meal = parse(plan);
+  assertEquals(meal.regime_belt.citation_repaired, 0);
+  assertEquals(meal.regime_belt.refused, 1, meal.issues.join("\n"));
+});
+
+Deno.test("⟳ RÉPARATION — jamais sur un couvercle partagé avec une bouche que la ligne ne lie pas: on ne change pas l'assiette d'un omnivore", () => {
+  const meal = parse(miscitedPlan("marinated tofu", { member_ids: [THEODULE, AURELE] }));
+  assertEquals(meal.regime_belt.citation_repaired, 0);
+  assertEquals(meal.regime_belt.refused, 1, meal.issues.join("\n"));
 });

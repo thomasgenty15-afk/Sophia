@@ -44,6 +44,9 @@ Deno.test("le bloc interdit de répondre « impossible »", () => {
   // produit mort (PIVOT-FOYER §8.4).
   const got = buildEnvyBlock("n'importe quoi");
   assert(got.includes("Never answer that the week is impossible."));
+  // ⟳ 2026-09-05: l'envie se sert telle quelle, pas en version « plus légère ».
+  assert(got.includes("Serve it AS ASKED: a pizza is a pizza"), got);
+  assert(got.includes("never for a lighter or healthier"), got);
 });
 
 Deno.test("une ligne trop longue est BORNÉE, pas rejetée", () => {

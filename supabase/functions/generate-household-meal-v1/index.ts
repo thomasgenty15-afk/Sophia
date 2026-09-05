@@ -5672,6 +5672,17 @@ Deno.serve(async (req) => {
       daysToFill,
       awayDays,
       cookingTimeMin: capacity.cookingTimeMin,
+      // ⟳ 2026-09-05 — LE STYLE ATTEINT ENFIN LE BRIEF. Mesuré sur un foyer
+      // « keen » (120 min, recettes soignées, variété): 3 casseroles pour 13
+      // repas principaux, le même plat six fois, des sessions de 55 minutes.
+      // La lane ne passait NI `recipeDifficulty` NI `variety` à
+      // `buildMealPrompt`: les lignes « recipe level they want » et
+      // « repetition they accept » n'étaient jamais émises, quel que soit le
+      // style. Les valeurs viennent de `resolveCookingCapacity`, qui les
+      // dérive du style (`COOKING_STYLE_PROFILE`), et pas de la colonne brute
+      // que l'écran n'écrit plus.
+      recipeDifficulty: capacity.recipeDifficulty,
+      variety: capacity.variety,
       // ── L'INVENTAIRE, ET C'EST LA MÊME VALEUR QUE LA CONSIGNE ─────────
       // « La consigne le dit, le parseur le tient », septième application. Le
       // prompt annonce ce que cette cuisine n'a pas; le parseur décide, avec
@@ -6155,6 +6166,9 @@ Deno.serve(async (req) => {
         memberId: d.memberId,
         boxes: d.boxes.map((b) => ({ id: b.id, memberIds: b.memberIds })),
         heldOff: d.heldOff,
+        // ⟳ 2026-09-05 (R2-D): le plat sans boîte ne nourrit pas la bouche
+        // dont la ligne le mord — l'invariant lit les morsures de la ceinture.
+        regimeBites: d.regimeBites,
       }));
     const swapViewOf = (m: ParsedMealForDelivery) =>
       m.dishes.map((d) => ({
@@ -6298,6 +6312,10 @@ Deno.serve(async (req) => {
                 renamed: merge.renamed,
                 shopping_added: merge.shoppingAdded,
                 sessions_imported: merge.sessionsImported,
+                preparations_pruned: merge.preparationsPruned,
+                sessions_dropped: merge.sessionsDropped,
+                shopping_pruned: merge.shoppingPruned,
+                shopping_conflicts: merge.shoppingConflicts,
               }));
             }
           }
@@ -6404,6 +6422,7 @@ Deno.serve(async (req) => {
     console.info(JSON.stringify({
       tag: "keel.household_meal.swap_presence",
       request_id: requestId,
+      user_id: userId,
       ...swap.counters,
       absent_cells: swap.absentCells.map((c) => `${c.day}/${c.slot}`),
       retry_attempts: swapRetryAttempts,
@@ -7325,11 +7344,19 @@ Deno.serve(async (req) => {
             : {
               regime: strictestRegime,
               heldBy: strictestHeldBy,
-              // ⚠️ LA MÊME EXPRESSION QUE `freeNames` DU PROMPT. Deux façons de
-              // dire « quelqu'un ici n'est pas lié par cette ligne »
-              // divergeraient, et la phrase servie à l'écran contredirait le
-              // plan servi en dessous.
-              swapped: platedMembers.some((m) => m.diet !== strictestRegime),
+              // ⟳ 2026-09-05 — CE QUI A ÉTÉ CUISINÉ, PAS CE QUI ÉTAIT POSSIBLE.
+              // « Le reste de la table garde la sienne » sortait dès qu'une
+              // bouche n'était pas liée — y compris sur un plan sans une
+              // casserole carnée (C06: 42 plats, zéro viande). La phrase lit
+              // maintenant le compteur `swap`: des bouches libres ET des
+              // cellules qui portent → boîtes; des bouches libres et AUCUNE
+              // cellule qui porte → toute la table suit la ligne, et on le dit.
+              swap: !platedMembers.some((m) => m.diet !== strictestRegime)
+                ? "none"
+                : (swap.counters.cells_checked > 0 &&
+                    swap.counters.cells_carrying === 0)
+                ? "whole_table"
+                : "boxes",
             },
           // ── LOT B · LE MODE DEMANDÉ, ET CE QU'IL A DONNÉ ─────────────────
           //

@@ -492,7 +492,7 @@ Deno.test("AUCUN gabarit ne culpabilise — la porte 4 ne doit jamais mordre", (
     // le lot que la porte anti-culpabilisation relit. « c'est ce que X et Y
     // mangent » est un gabarit distinct de son singulier, et une porte qui
     // n'aurait vu que l'un des deux ne l'aurait vérifié qu'à moitié.
-    sharedDishRegime: { regime: "vegan", heldBy: ["Christèle", "Léa"], swapped: true },
+    sharedDishRegime: { regime: "vegan", heldBy: ["Christèle", "Léa"], swap: "boxes" },
     // LOT B — LE PLAFOND QUI MORD, AU PLURIEL. Ce gabarit-ci est celui qui dit
     // à quelqu'un que sa part ne sort pas du plat commun: s'il existe un
     // gabarit de ce module capable de culpabiliser, c'est celui-là. Il DOIT
@@ -2111,7 +2111,7 @@ Deno.test("⛔ RUN RÉEL 2026-09-04 — LA LIGNE DU RÉGIME NE MENT PLUS SUR LE 
     facts: {
       ...nominalFacts(),
       mouthsServed: 5,
-      sharedDishRegime: { regime: "vegetarian", heldBy: ["Léa"], swapped: true },
+      sharedDishRegime: { regime: "vegetarian", heldBy: ["Léa"], swap: "boxes" },
     },
     locale: "fr",
   }).lines.join(" ");
@@ -2129,7 +2129,7 @@ Deno.test("⛔ RUN RÉEL 2026-09-04 — LA LIGNE DU RÉGIME NE MENT PLUS SUR LE 
     facts: {
       ...nominalFacts(),
       mouthsServed: 3,
-      sharedDishRegime: { regime: "vegan", heldBy: ["Léa", "Claire"], swapped: false },
+      sharedDishRegime: { regime: "vegan", heldBy: ["Léa", "Claire"], swap: "none" },
     },
     locale: "fr",
   }).lines.join(" ");
@@ -2298,4 +2298,28 @@ Deno.test("⛔ LOT C — pas deux phrases pour le même fait quand le STYLE a d�
     locale: "fr",
   }).lines;
   assertEquals(lines.filter((l) => l.includes("courses")).length, 1, lines.join("\n"));
+});
+
+// ⟳ 2026-09-05 — CE QUI A ÉTÉ CUISINÉ, PAS CE QUI ÉTAIT POSSIBLE. Mesuré sur
+// C06 (cinq bouches, Léa végétarienne, 42 plats sans une casserole carnée): la
+// rationale disait « le reste de la table garde la sienne ». Il n'y avait rien
+// à garder. Le fait porte maintenant trois états, lus sur le plan cuisiné.
+Deno.test("LA RATIONALE dit « toute la table mange végétarien » quand aucun repas ne porte la viande — FR et EN", () => {
+  const lines = (swap: "none" | "boxes" | "whole_table", locale: "fr" | "en") =>
+    explainPlanChoices({
+      facts: {
+        ...nominalFacts(),
+        mouthsServed: 5,
+        sharedDishRegime: { regime: "vegetarian", heldBy: ["Léa"], swap },
+      },
+      locale,
+    }).lines.join(" ");
+  const whole = lines("whole_table", "fr");
+  assert(whole.includes("Cette semaine, toute la table mange végétarien : c'est la ligne de Léa."), whole);
+  assert(!whole.includes("garde la sienne"), "la promesse d'une boîte qui n'existe pas: " + whole);
+  assert(lines("boxes", "fr").includes("Le reste de la table garde la sienne."), lines("boxes", "fr"));
+  assert(lines("none", "fr").includes("Le plat commun est végétarien : c'est ce que Léa mange."), lines("none", "fr"));
+  const en = lines("whole_table", "en");
+  assert(en.includes("This week the whole table eats vegetarian: that is the line of Léa."), en);
+  assert(!en.includes("keeps theirs"), en);
 });

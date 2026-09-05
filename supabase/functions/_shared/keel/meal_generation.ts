@@ -1641,6 +1641,7 @@ export interface GeneratedMeal {
      * `refused: 0` et rien ne dit lequel a tourné.
      */
     box_scoped: number;
+    citation_repaired: number;
     /**
      * ── LE GROUPE ALIMENTAIRE DÉCLARÉ, EN SIX NOMBRES (2026-08-19) ────────
      *
@@ -3369,6 +3370,28 @@ export function addedCookDays(input: {
   return earliest > window.indexOf(first) ? [first] : [];
 }
 
+/**
+ * ⟳ 2026-09-05 — LE MOT SEUL NE SUFFISAIT PAS. « repetition they accept:
+ * varied » est un mot; ce que le modèle en fait dépend de ce qu'on lui décrit.
+ * Mesuré: un foyer keen/varied servi avec le même plat six fois et une seule
+ * casserole par session. La consigne dit désormais le compromis attendu, et
+ * nomme celui qu'on refuse.
+ */
+const RECIPE_LEVEL_HINT: Record<string, string> = {
+  simple: " -- few steps, everyday ingredients, nothing that needs watching.",
+  normal: " -- ordinary home cooking.",
+  keen: " -- they LIKE cooking: real technique is welcome, and a session may " +
+    "use its full time.",
+};
+const VARIETY_HINT: Record<string, string> = {
+  repeat: " -- the same main dish may come back several times in the week; " +
+    "fewer preparations is the right trade.",
+  some: " -- a main dish may come back once or twice, never three days in a row.",
+  varied: " -- no main dish twice in the week, and each cooking session makes " +
+    "at least two different preparations; one pot eaten six times is the " +
+    "wrong trade here.",
+};
+
 export function buildMealPrompt(args: {
   /**
    * FF-030 — LES CONTRAINTES DURES DE L'ÉLÈVE. `null` quand la lecture a
@@ -4179,9 +4202,17 @@ export function buildMealPrompt(args: {
       ]
       : []),
     ...(args.recipeDifficulty
-      ? [`recipe level they want: ${args.recipeDifficulty}`]
+      ? [
+        `recipe level they want: ${args.recipeDifficulty}` +
+        (RECIPE_LEVEL_HINT[args.recipeDifficulty] ?? ""),
+      ]
       : []),
-    ...(args.variety ? [`repetition they accept: ${args.variety}`] : []),
+    ...(args.variety
+      ? [
+        `repetition they accept: ${args.variety}` +
+        (VARIETY_HINT[args.variety] ?? ""),
+      ]
+      : []),
     // LE BUDGET EST UN PLAFOND CHIFFRÉ, PAS UNE AMBIANCE.
     //
     // La monnaie n'est pas nommée: `country` est deux lignes plus haut dans ce
@@ -5852,6 +5883,7 @@ export function parseGeneratedMeal(
     unknown_mouth: regimeUnknownMouth,
     // ÉCHANGE · sur quelle SURFACE les couvercles ont été jugés.
     box_scoped: 0,
+    citation_repaired: 0,
     // ── LES TROIS NOMBRES DU CHAMP DÉCLARÉ (2026-08-19) ──────────────────
     // Comptés sur TOUS les ingrédients du plan, pas seulement sur ceux qu'une
     // bouche à régime finit par regarder: un modèle qui n'écrit jamais le
@@ -6347,6 +6379,24 @@ export function parseGeneratedMeal(
   }
 
   const rawDishes = Array.isArray(root.dishes) ? root.dishes : [];
+  // ⟳ 2026-09-05 — CE QUE LE PLAN CITE, LU UNE FOIS SUR LE BRUT: sert à la
+  // réparation de citation (une casserole qu'AUCUNE boîte d'AUCUN plat ne
+  // cite est celle que le modèle a cuite pour quelqu'un sans la lui donner).
+  // ⚠️ LES BOÎTES SEULEMENT, pas `uses`: un plan bien formé liste dans `uses`
+  // toutes ses casseroles, y compris celle qu'aucune boîte ne sert. C'est la
+  // citation par une BOÎTE qui dit « quelqu'un mange ça ».
+  const citedAnywhereRaw = new Set<string>();
+  for (const rd of rawDishes) {
+    const d = (rd && typeof rd === "object" ? rd : {}) as Record<string, unknown>;
+    for (const b of (Array.isArray(d.boxes) ? d.boxes : [])) {
+      const bb = (b && typeof b === "object" ? b : {}) as Record<string, unknown>;
+      for (const it of (Array.isArray(bb.items) ? bb.items : [])) {
+        const ii = (it && typeof it === "object" ? it : {}) as Record<string, unknown>;
+        const id = cleanText(ii.preparation_id) || cleanText(ii.preparationId);
+        if (id) citedAnywhereRaw.add(id);
+      }
+    }
+  }
   for (const [i, entry] of rawDishes.entries()) {
     const d = (entry && typeof entry === "object" ? entry : {}) as Record<string, unknown>;
     const title = cleanText(d.title);
@@ -6986,7 +7036,7 @@ export function parseGeneratedMeal(
       // sont validés que plus bas (portes ③ et ④); les ceintures, elles, se
       // prononcent AVANT. Attendre la validation ferait juger le couvercle sur
       // le plat pendant que la boîte, elle, dit autre chose.
-      const surface = legacy ? null : boxScanSurface(bx, preparationById);
+      let surface = legacy ? null : boxScanSurface(bx, preparationById);
       // ══ PORTE ② · LES NOMS SUR LE COUVERCLE ═══════════════════════════════
       //
       // ⚠️ LE REPLI v2 LIT SES NOMS DANS `shares[]`. Un plan écrit avant ce lot
@@ -7041,7 +7091,65 @@ export function parseGeneratedMeal(
         // existe pour protéger.
         const regime = mouthRegimes.get(memberId);
         if (regime) {
-          const breach = biteFor(regime, surface, boxId);
+          let breach = biteFor(regime, surface, boxId);
+          // ⟳ 2026-09-05 — LA CITATION SE RÉPARE AVANT QUE LA BOUCHE NE TOMBE.
+          // Mesuré (C07, v28): le modèle cuit un pot de tofu POUR Léa, et sa
+          // boîte cite le pot de poulet — le tofu n'est cité par personne. La
+          // ceinture la retirait 11 fois sur 11; deux relances et une fusion
+          // en resservaient 8; trois repas restaient sans elle. Ici, quand
+          // l'item de sa boîte est propre (le terme ne mord pas) et que seule la
+          // casserole citée mord, on cherche la casserole ORPHELINE du même
+          // jour que sa ligne accepte, et on ré-adresse la citation. Strict:
+          // toutes les bouches du couvercle portent cette ligne (on ne change
+          // pas l'assiette d'un omnivore), une seule candidate, comptée.
+          if (
+            breach.matched !== null && surface !== null &&
+            breach.preparationIds.length > 0 &&
+            rawNames.every((n) => !n || mouthRegimes.get(n) === regime) &&
+            biteFor(regime, { terms: surface.terms, prepIds: [] }, `${boxId}#terms`)
+                .matched === null
+          ) {
+            const biting = new Set(breach.preparationIds);
+            const sameDay = new Set(
+              [...biting].map((id) => preparationById.get(id)?.cookOn ?? null),
+            );
+            // Candidate: cuite le même jour, citée par AUCUNE boîte ni aucun
+            // `uses` du plan brut (le pot que personne ne mange), qui porte
+            // une protéine (le rôle du composant échangé), et que la ligne
+            // accepte. Un pot de riz orphelin n'est pas une candidate.
+            const candidates = [...preparationById.values()].filter((p) =>
+              !biting.has(p.id) && !citedAnywhereRaw.has(p.id) &&
+              sameDay.has(p.cookOn ?? null) &&
+              detectProteinAnchor(p.ingredients) &&
+              biteFor(regime, { terms: [], prepIds: [p.id] }, `${boxId}#cand:${p.id}`)
+                  .matched === null
+            );
+            if (candidates.length === 1) {
+              const target = candidates[0].id;
+              const rawItems = Array.isArray(bx.items) ? bx.items : [];
+              for (const entry of rawItems) {
+                const it = (entry && typeof entry === "object" ? entry : null) as Record<string, unknown> | null;
+                if (!it) continue;
+                const cited = cleanText(it.preparation_id) || cleanText(it.preparationId);
+                if (biting.has(cited)) {
+                  it.preparation_id = target;
+                  delete it.preparationId;
+                }
+              }
+              const repaired = boxScanSurface(bx, preparationById);
+              const again = repaired === null ? breach : biteFor(regime, repaired, `${boxId}#repaired`);
+              if (again.matched === null) {
+                surface = repaired;
+                breach = again;
+                regimeBelt.citation_repaired++;
+                issues.push(
+                  `${where}: ${JSON.stringify(memberId)} is ${regime} and the box cited ` +
+                    `${JSON.stringify([...biting][0])} -- re-pointed to ${JSON.stringify(target)}, ` +
+                    `cooked the same day and cited by no box of this plan`,
+                );
+              }
+            }
+          }
           regimeBelt.checked++;
           if (surface !== null) regimeBelt.box_scoped++;
           regimeBelt.silenced += breach.silenced;

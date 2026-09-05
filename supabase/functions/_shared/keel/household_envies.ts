@@ -78,6 +78,14 @@ export function buildEnvyBlock(line: string | null | undefined): string {
     // L'arbitrage: obligatoire, et DIT. Sans cette consigne, un modèle qui
     // rencontre « pas de poulet » et une règle de maison contradictoire choisit
     // en silence, et le foyer ne sait pas ce qui a été sacrifié.
+    // ⟳ 2026-09-05 — SERVIE TELLE QUELLE. Mesuré (C06, C07): « pizza » devenait
+    // « un dîner de tofu, plus léger », « raviolis aux champignons » devenait
+    // « pizza végétale et tofu » — troqués sans qu'aucune règle ne l'impose.
+    // L'envie est la seule ligne où la personne dit ce qu'elle VEUT; on la sert
+    // comme elle est dite, et on ne troque que contre une règle nommée.
+    "Serve it AS ASKED: a pizza is a pizza, ravioli are ravioli. Trade it away",
+    "only when a rule below forbids it -- never for a lighter or healthier",
+    "version nobody asked for.",
     "This line may contradict itself, or contradict the house rules below.",
     "Compose ONE plan anyway and say plainly, in one short sentence, what you",
     "traded off and for whom.",

@@ -88,7 +88,9 @@ Deno.test("⛔ UN ID DÉJÀ PRIS AVEC UN AUTRE CONTENU EST RENOMMÉ, et les plat
   const sat = out.meal.dishes.find((d) => d.day === "sat")!;
   assertEquals(sat.uses.map((u) => u.preparationId), ["prep_chicken__r", "prep_tofu"]);
   assertEquals(sat.boxes[0].items[0].preparationId, "prep_chicken__r");
-  assert(out.meal.preparations.some((p) => p.id === "prep_chicken" && p.method === "Préparer Poulet rôti."), "la casserole de base a été écrasée");
+  // ⟳ 2026-09-05 (R2-A): la casserole de base n'est plus citée par personne (samedi est remplacé): elle SORT, elle n'est pas écrasée.
+  assert(!out.meal.preparations.some((p) => p.id === "prep_chicken"), "la casserole orpheline de base est restée");
+  assertEquals(out.preparationsPruned, ["prep_chicken"]);
   assert(out.meal.cooking_sessions.find((s) => s.day === "sat")!.preparationIds.includes("prep_chicken__r"));
 });
 
@@ -129,9 +131,82 @@ Deno.test("CÂBLAGE — la fusion par cellule est la SECONDE voie d'acceptation,
   const whole = src.indexOf("after.missing < delivered.missing");
   const merge = src.indexOf("mergeRetryByCell({ base: meal, retry: retried, before: delivered, after })");
   assert(whole > 0 && merge > whole, "la fusion ne vient pas APRÈS l'acceptation entière: une relance meilleure en entier doit remplacer, pas fusionner");
+  // ⟳ 2026-09-05 (R2, mutation W2): la CONDITION du tout-ou-rien, pas sa
+  // seule présence dans le fichier — un `false &&` devant restait vert.
+  assert(
+    /if \(\s*retried\.dishes\.length >= meal\.dishes\.length &&\s*after\.missing < delivered\.missing\s*\) \{/.test(src),
+    "le tout-ou-rien n'est plus la condition telle quelle: une relance meilleure en entier ne remplacerait plus",
+  );
   const branch = src.slice(merge, src.indexOf("unfedRetryMergedCells += merge.cells.length"));
   assert(!/mealSourceText = /.test(branch), "la fusion remplace le texte source: les portions par bouche liraient un autre plan");
   assert(/const merged = mealsDelivered\(deliveredViewOf\(merge\.meal\), mouthCells\);/.test(src), "le plan fusionné n'est pas recompté");
   assert(/if \(!\(merged\.missing < delivered\.missing\)\) break;/.test(src), "une fusion qui n'améliore pas serait acceptée");
   assertEquals((src.match(/retry_merged_cells: unfedRetryMergedCells,/g) || []).length, 2, "les cellules fusionnées ne se comptent pas sur le journal ET l'archive");
+});
+
+// ⟳ 2026-09-05 — CE QUE LA FUSION DÉFAIT (relecture R2). Le plat de samedi
+// est REMPLACÉ (poulet → tofu, casserole à part): la casserole du poulet ne
+// doit rester ni dans le plan, ni dans la session, ni aux courses.
+function retryReplacing(tofuCookOn = "sat") {
+  return meal({
+    dishes: [
+      dish("sat", "dinner", "Tofu, riz", [{ id: "b_sat", memberIds: [CLAIRE, LEA, ZOE], items: [{ term: "tofu", grams: 300, preparationId: "prep_tofu" }] }], ["prep_tofu"]),
+      dish("sun", "lunch", "Lentilles, carottes", [{ id: "b_sun", memberIds: [CLAIRE, LEA] , items: [{ term: "lentilles", grams: 300, preparationId: "prep_lentils" }] }], ["prep_lentils"], [{ memberId: ZOE, boxId: "b_sun" }]),
+    ],
+    preparations: [prep("prep_tofu", "Tofu rôti", tofuCookOn), prep("prep_lentils", "Lentilles", "sun")],
+    cooking_sessions: [{ day: tofuCookOn, preparationIds: ["prep_tofu"], runThrough: "", totalMinutes: 25 }, { day: "sun", preparationIds: ["prep_lentils"], runThrough: "", totalMinutes: 30 }] as never,
+    shopping_list: [{ term: "tofu rôti", quantity: "500 g", aisle: "dairy" }, { term: "riz", quantity: "1 kg", aisle: "dry" }, { term: "lentilles", quantity: "500 g", aisle: "dry" }] as never,
+  });
+}
+const merge = (b: GeneratedMeal, r: GeneratedMeal) =>
+  mergeRetryByCell({ base: b, retry: r, before: mealsDelivered(view(b), MOUTHS), after: mealsDelivered(view(r), MOUTHS) });
+
+Deno.test("⛔ R2-A — LA CASSEROLE DU PLAT REMPLACÉ SORT: du plan, de sa session, et des courses", () => {
+  const out = merge(base(), retryReplacing());
+  assertEquals(out.cells, ["sat/dinner"]);
+  assertEquals(out.preparationsPruned, ["prep_chicken"], "on cuirait un poulet que personne ne mange");
+  assertEquals(out.meal.preparations.map((p) => p.id).sort(), ["prep_lentils", "prep_tofu"]);
+  const sat = out.meal.cooking_sessions.find((s) => s.day === "sat")!;
+  assertEquals(sat.preparationIds, ["prep_tofu"], "la session de samedi cuit encore le poulet");
+  assert(!out.meal.shopping_list.some((l) => l.term === "poulet rôti"), "on achète le poulet d'un plat qui n'existe plus");
+  assertEquals(out.shoppingPruned, 1);
+  assert(out.meal.shopping_list.some((l) => l.term === "tofu rôti"), "le tofu n'est pas aux courses");
+  // Le riz de la relance n'est réclamé par aucun plat ni casserole de la fixture: il n'entre pas.
+  assert(!out.meal.shopping_list.some((l) => l.term === "riz"), out.meal.shopping_list.map((l) => l.term).join(","));
+  assertEquals(out.shoppingConflicts, 0);
+});
+
+Deno.test("⛔ R2-E — MÊME FICHE, AUTRE JOUR DE CUISSON: ce n'est PAS la même casserole, elle est importée sous un autre nom", () => {
+  const r = retryReplacing();
+  // La relance cuit SES lentilles samedi et le dîner de samedi les cite.
+  r.preparations[1] = prep("prep_lentils", "Lentilles", "sat");
+  r.dishes[0].uses.push({ preparationId: "prep_lentils", servings: 1, kept: "fridge" } as never);
+  r.cooking_sessions[0].preparationIds.push("prep_lentils");
+  const out = merge(base(), r);
+  assertEquals(out.renamed, { prep_lentils: "prep_lentils__r" });
+  assert(out.importedPreparations.includes("prep_lentils__r"));
+  const satDish = out.meal.dishes.find((d) => d.day === "sat")!;
+  assert(satDish.uses.some((u) => u.preparationId === "prep_lentils__r"), "le dîner de samedi cite encore la casserole de dimanche");
+  const sat = out.meal.cooking_sessions.find((s) => s.day === "sat")!;
+  assert(sat.preparationIds.includes("prep_lentils__r"), "les lentilles de samedi ne cuisent dans aucune session");
+  // Et la casserole de dimanche reste à dimanche, pour le plat de dimanche.
+  assertEquals(out.meal.preparations.find((p) => p.id === "prep_lentils")!.cookOn, "sun");
+});
+
+Deno.test("les courses déjà présentes à une AUTRE quantité gardent la base, et l'écart se compte", () => {
+  const r = retryReplacing();
+  r.preparations[1] = prep("prep_lentils", "Lentilles", "sat");
+  r.dishes[0].uses.push({ preparationId: "prep_lentils", servings: 1, kept: "fridge" } as never);
+  r.shopping_list = [...r.shopping_list.filter((l) => l.term !== "lentilles"), { term: "lentilles", quantity: "1 kg", aisle: "dry" }] as never;
+  const out = merge(base(), r);
+  assertEquals(out.shoppingConflicts, 1);
+  assertEquals(out.meal.shopping_list.find((l) => l.term === "lentilles")!.quantity, "500 g", "la base a été requantifiée sans modèle de quantités");
+});
+
+Deno.test("une session vidée par l'élagage disparaît; la casserole importée cuit un autre jour reçoit SA session", () => {
+  const out = merge(base(), retryReplacing("fri"));
+  assert(!out.meal.cooking_sessions.some((s) => s.day === "sat"), "une session qui ne cuit rien est restée");
+  assertEquals(out.sessionsDropped, 1);
+  assertEquals(out.sessionsImported, 1);
+  assertEquals(out.meal.cooking_sessions.find((s) => s.day === "fri")!.preparationIds, ["prep_tofu"]);
 });

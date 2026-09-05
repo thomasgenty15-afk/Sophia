@@ -635,7 +635,7 @@ import {
 // distinguer, pas deux: v25, v26 SANS les faits (le bloc utilisateur est vide,
 // le prompt est celui de v25 plus le schéma), et v26 AVEC. Le compteur
 // `explanation.asked` sépare les deux dernières.
-export const HOUSEHOLD_PROMPT_VERSION = "v28_the_table_keeps_its_meat";
+export const HOUSEHOLD_PROMPT_VERSION = "v29_the_style_reaches_the_brief";
 
 export interface HouseholdRestriction {
   memberId: string;
@@ -1400,6 +1400,12 @@ function boxSchemaBlock(
     "preparation, and the component it refuses is ONE MORE preparation, cited",
     "only by the boxes of the people who eat it, at most lunches and dinners.",
     "A week without it for them is a mistake.",
+    // ⟳ v29 — mesuré sur C07 (v28): le modèle a cuit le tofu pour Léa et fait
+    // citer le POULET par sa boîte, onze fois sur onze. La phrase disait à qui
+    // servir le composant; elle ne disait pas à qui ne PAS le servir.
+    "That preparation is NEVER cited by the box of the person that line binds:",
+    "their box cites its own preparation (the tofu, the beans) and nothing that",
+    "carries what their line refuses.",
     // ⚠️ « carries », JAMAIS « may carry ». La formulation permissive a été
     // mesurée le 2026-08-17 comme une permission qu'on décline — zéro
     // déclaration sur douze runs — et un test de ce fichier interdit désormais

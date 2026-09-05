@@ -644,3 +644,26 @@ Deno.test("CÂBLAGE — LA RELANCE COMPTE SES TENTATIVES, PAS SEULEMENT SES SUCC
   assertEquals((src.match(/restored_fallback: unfedRestoredFallback,/g) || []).length, 2, "le repli n'est pas compté sur le journal ET l'archive");
   assert(/boxId: m\.boxId, day: m\.day, slot: m\.slot/.test(src), "le recours ne reçoit plus la case: il ne peut plus remplacer une boîte jetée");
 });
+
+// ⟳ 2026-09-05 — R2-D. Une relance « Poulet, riz » rendue SANS boîtes faisait
+// passer la végétarienne de manquante à nourrie: la ceinture par boîte n'avait
+// rien à retirer, et la règle ③ nourrissait tout le monde.
+Deno.test("⛔ UN PLAT SANS BOÎTE NE NOURRIT PAS LA BOUCHE DONT LA LIGNE LE MORD", () => {
+  const chicken = dish({ title: "Poulet, riz", boxes: [], regimeBites: ["vegetarian"] });
+  const table = [
+    { memberId: CLAIRE, cells: [WED_DINNER], regime: null },
+    { memberId: LEA, cells: [WED_DINNER], regime: "vegetarian" },
+  ];
+  const out = mealsDelivered([chicken], table);
+  assertEquals(out.fed, 1, "Claire mange le poulet");
+  assertEquals(out.missing, 1, "Léa devant un poulet sans boîte n'est pas nourrie");
+  const lea = out.mouths.find((m) => m.memberId === LEA)!;
+  assertEquals(lea.missing[0].cause, "held_off_regime");
+  assertEquals(lea.missing[0].dish, "Poulet, riz");
+  assertEquals(lea.missing[0].boxId, null);
+  // Un second plat sans boîte que sa ligne ne mord pas la nourrit.
+  const withRice = mealsDelivered([chicken, dish({ title: "Riz aux légumes", boxes: [], regimeBites: [] })], table);
+  assertEquals(withRice.missing, 0);
+  // Et sans `regimeBites` (lecteur ancien), la règle d'hier: tout le monde.
+  assertEquals(mealsDelivered([dish({ boxes: [] })], table).missing, 0);
+});

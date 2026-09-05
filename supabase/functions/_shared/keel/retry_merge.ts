@@ -58,6 +58,24 @@ export interface MergeOutcome {
   readonly renamed: Readonly<Record<string, string>>;
   readonly shoppingAdded: number;
   readonly sessionsImported: number;
+  /**
+   * ⟳ 2026-09-05 — CE QUE LA FUSION DÉFAIT, PAS SEULEMENT CE QU'ELLE AJOUTE.
+   * Relecture R2 (sonde R2-A): le plat de samedi remplacé poulet→tofu laissait
+   * `prep_chicken` dans les casseroles ET dans la session de samedi (on cuit
+   * un poulet que personne ne mange), et ses deux lignes de poulet aux
+   * courses (on l'achète). L'élagage des orphelines vivait dans le parseur
+   * seulement, jamais rejoué sur le plan fusionné.
+   */
+  readonly preparationsPruned: readonly string[];
+  readonly sessionsDropped: number;
+  readonly shoppingPruned: number;
+  /**
+   * Une ligne de courses présente des deux côtés à des quantités différentes
+   * (le plat importé veut 1 kg de riz, la base en a 500 g). On garde la base
+   * et on COMPTE: requantifier demanderait le modèle de quantités du
+   * parseur, et un compteur à zéro qui ment est pire qu'un compteur absent.
+   */
+  readonly shoppingConflicts: number;
 }
 
 const cellKey = (d: { day: string | null; slot: string | null }): string =>
@@ -72,10 +90,19 @@ function missingCells(delivered: MealsDelivered): Set<string> {
 }
 
 function samePreparation(a: MealPreparation, b: MealPreparation): boolean {
+  // ⟳ 2026-09-05 — LE JOUR DE CUISSON ET LE NOMBRE DE PARTS FONT PARTIE DE
+  // L'IDENTITÉ. Sonde R2-E: la relance cuisait ses lentilles SAMEDI pour le
+  // dîner de samedi; la base avait la même fiche cuite DIMANCHE. Réutilisée
+  // sans regarder le jour: mangée samedi, cuite dimanche, et tirée à 1 200 g
+  // sur une fiche de 500 g — sans qu'aucun compteur ne le voie, parce que
+  // ces gardes vivent dans le parseur. Deux fiches au même contenu mais pas
+  // au même jour sont deux casseroles.
   const norm = (p: MealPreparation) =>
     JSON.stringify({
       t: p.title,
       m: p.method,
+      c: p.cookOn,
+      s: p.servingsMade,
       i: p.ingredients.map((x) => [x.term, x.quantity, x.amount, x.unit, x.state]),
     });
   return norm(a) === norm(b);
@@ -96,7 +123,18 @@ export function mergeRetryByCell(args: {
   const retryCells = new Set(args.retry.dishes.map(cellKey));
   const cells = [...wasMissing].filter((c) => !stillMissing.has(c) && retryCells.has(c)).sort();
   if (cells.length === 0) {
-    return { meal: args.base, cells: [], importedPreparations: [], renamed: {}, shoppingAdded: 0, sessionsImported: 0 };
+    return {
+      meal: args.base,
+      cells: [],
+      importedPreparations: [],
+      renamed: {},
+      shoppingAdded: 0,
+      sessionsImported: 0,
+      preparationsPruned: [],
+      sessionsDropped: 0,
+      shoppingPruned: 0,
+      shoppingConflicts: 0,
+    };
   }
   const taken = new Set(cells);
   const meal: GeneratedMeal = structuredClone(args.base);
@@ -144,6 +182,26 @@ export function mergeRetryByCell(args: {
   }
   meal.dishes = [...keptDishes, ...importedDishes];
 
+  // ── LES CASSEROLES QU'AUCUN PLAT NE CITE PLUS SORTENT, ET DE LEUR SESSION ──
+  // (R2-A). Après l'import: les casseroles importées sont citées, celles du
+  // plat remplacé ne le sont plus par personne.
+  const citedAll = new Set<string>();
+  for (const d of meal.dishes) {
+    for (const u of d.uses) citedAll.add(u.preparationId);
+    for (const b of d.boxes) for (const it of b.items) if (it.preparationId) citedAll.add(it.preparationId);
+  }
+  const preparationsPruned = meal.preparations
+    .filter((p) => !citedAll.has(p.id))
+    .map((p) => p.id);
+  if (preparationsPruned.length > 0) {
+    const gone = new Set(preparationsPruned);
+    meal.preparations = meal.preparations.filter((p) => !gone.has(p.id));
+    for (const id of preparationsPruned) baseById.delete(id);
+    for (const s of meal.cooking_sessions) {
+      s.preparationIds = s.preparationIds.filter((id) => !gone.has(id));
+    }
+  }
+
   // ── LES SESSIONS: chaque casserole importée cuit quelque part ─────────────
   let sessionsImported = 0;
   for (const id of importedPreparations) {
@@ -159,19 +217,51 @@ export function mergeRetryByCell(args: {
     }
     if (!session.preparationIds.includes(id)) session.preparationIds.push(id);
   }
+  // Une session qui ne cuit plus rien n'est pas une session.
+  const sessionsBefore = meal.cooking_sessions.length;
+  meal.cooking_sessions = meal.cooking_sessions.filter((s) => s.preparationIds.length > 0);
+  const sessionsDropped = sessionsBefore - meal.cooking_sessions.length;
 
   // ── LES COURSES: les lignes de la relance que les plats importés réclament ──
   const claimed = new Set<string>();
   for (const d of importedDishes) for (const ing of d.ingredients) claimed.add(normalizePantryTerm(ing.term));
   for (const id of importedPreparations) for (const ing of baseById.get(id)!.ingredients) claimed.add(normalizePantryTerm(ing.term));
-  const already = new Set(meal.shopping_list.map((l) => normalizePantryTerm(l.term)));
+  const already = new Map(meal.shopping_list.map((l) => [normalizePantryTerm(l.term), l]));
   let shoppingAdded = 0;
+  let shoppingConflicts = 0;
   for (const line of retry.shopping_list) {
     const key = normalizePantryTerm(line.term);
-    if (!claimed.has(key) || already.has(key)) continue;
+    if (!claimed.has(key)) continue;
+    const present = already.get(key);
+    if (present) {
+      // Même ingrédient, deux quantités: la base reste, l'écart se compte.
+      if (String(present.quantity ?? "").trim() !== String(line.quantity ?? "").trim()) shoppingConflicts++;
+      continue;
+    }
     meal.shopping_list.push(line as ShoppingItem);
-    already.add(key);
+    already.set(key, line as ShoppingItem);
     shoppingAdded++;
   }
-  return { meal, cells, importedPreparations, renamed, shoppingAdded, sessionsImported };
+  // ── LES LIGNES QUE PLUS AUCUN PLAT NI CASSEROLE NE RÉCLAME SORTENT (R2-A) ──
+  // La même règle que le parseur (« bought for a dish that is not in the
+  // plan »), rejouée sur le plan FUSIONNÉ: le poulet du plat remplacé n'est
+  // plus à acheter.
+  const claimedAll = new Set<string>();
+  for (const d of meal.dishes) for (const ing of d.ingredients) claimedAll.add(normalizePantryTerm(ing.term));
+  for (const p of meal.preparations) for (const ing of p.ingredients) claimedAll.add(normalizePantryTerm(ing.term));
+  const shoppingBefore = meal.shopping_list.length;
+  meal.shopping_list = meal.shopping_list.filter((l) => claimedAll.has(normalizePantryTerm(l.term)));
+  const shoppingPruned = shoppingBefore - meal.shopping_list.length;
+  return {
+    meal,
+    cells,
+    importedPreparations,
+    renamed,
+    shoppingAdded,
+    sessionsImported,
+    preparationsPruned,
+    sessionsDropped,
+    shoppingPruned,
+    shoppingConflicts,
+  };
 }
