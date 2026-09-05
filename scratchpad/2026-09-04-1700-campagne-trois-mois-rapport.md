@@ -454,3 +454,69 @@ bloque aussi l'ancrage d'énergie de tout plat au bœuf (`day_incomplete`).
 **Corrections de la journée hors lot initial** : `1718a377` (repli du dernier recours + phrase
 fausse retirée), `55afbbfb` / `5a676578` (densifier, borné par la casserole), `4b115c1c`
 (densité adossée à `condimentMassFor`).
+
+---
+
+## 10. ⟳ « Améliore ça » — ce qui a été fait après le bilan (commit `6c001880`)
+
+**Le bœuf est dans le référentiel.** Le référentiel portait 288 lignes de viande rouge et 78
+alias « boeuf … », tous aux formes LONGUES de CIQUAL que le modèle n'écrit jamais. Les
+modificateurs que `candidateForms` retire sont anglais : « rôti », « émincé », « cuit » ne
+réduisent rien. La voie du dépôt est l'alias vérifié, jamais une règle de grammaire :
+dix-sept alias vers des lignes existantes — huit formes de bœuf, `poulet`/`poulet rôti`,
+poisson blanc, tomate concassée/passata, compote sans sucre, fromage frais — pris pour moitié
+dans le haut du sas des inconnus. Refusés exprès : « tofu soyeux » (le ferme fait trois fois
+son énergie), « salsa de tomates », « galettes de blé complet » (aucune ligne). Appliqué en
+local ; le `db push` distant reste à ta main.
+
+**La boîte réelle de Marc bouge en rejeu.** Poulet 1,89 kcal/g, bœuf **1,71** (était inconnu),
+86 g déplacés du bœuf vers le poulet, +15 kcal, arrêt sur le plafond de protéine. Peu de
+gain — deux protéines de densité voisine — mais le mécanisme s'exécute de bout en bout sur
+des données réelles, chaque garde comptée.
+
+⚠️ **Fait mesuré par une autre session (`sophia-2-74`), à connaître avant tout commit :** HEAD
+est déjà incohérent, indépendamment de mes lots — `SetupPage.tsx` a été commité le 04/09 à
+15:06 (`d33aae13`) en passant des props (`style`, `oneCookingSession`, `daysToEat`) qui ne
+vivent que dans le `GroceryRunsField.tsx` NON commité du lot « offre de courses ». `tsc` sur
+HEAD nu échoue sur cette ligne, et trois tests vitest sont rouges dans HEAD nu. Le hook ne le
+voit pas parce qu'il gate l'arbre de travail, où les deux moitiés sont présentes. Ni à moi, ni
+à elle ; le propriétaire de ce lot n'est plus joignable.
+
+### 10.1 ⟳ Le premier plan réel densifié a menti, et le compteur l'a dit
+
+Le tir de 16 h 13 (coupé en 504 par Kong, dont le délai était retombé à 150 s avec le
+redémarrage de la pile) a quand même écrit son plan, `161a04de`. Densification exercée sur
+trois journées-bouche, deux boîtes touchées — et **`moved_g: 25`, `closed_kcal: 393`**.
+Vingt-cinq grammes ne ferment pas 393 kcal ; une densité mentait.
+
+La cause, lue dans l'archive : **la lane foyer ne remplit pas `gramsRaw`** (nul sur vingt
+ingrédients sur quarante-trois, « tofu ferme 370 g » compris), pendant que `dishEnergy`
+recalcule ses grammes depuis quantité, unité et état. Mon dénominateur lisait le champ : il ne
+voyait que l'huile convertie et les condiments — une casserole de tofu rapportée à quinze
+grammes, ~50 kcal/g. Mon rejeu hors ligne ne pouvait pas le voir : il reconstruisait
+`gramsRaw` avec la fonction même du numérateur. **Un rejeu qui remplit un champ que le runtime
+laisse vide prouve le rejeu, pas le runtime.**
+
+**Corrigé** : le dénominateur passe par `resolveIngredients`, la règle d'admission du
+numérateur ; un test rejoue le cas du runtime (`gramsRaw` nul partout) et tient
+`closed_kcal ≤ moved_g × 4`. Mutation : le dénominateur qui exige `gramsRaw` → rouge.
+
+**Biais connu, non traité** : l'eau de cuisson d'un riz compte dans les grammes prêts alors que
+le rendement du grain l'absorbe déjà — un riz sort à 0,77 kcal/g au lieu de ~1,3. C'est aussi
+`preparationReadyGrams`. Un lot à part.
+
+**Après le correctif (`567585ae`), tir DENS-9** : `200`, 5 jours, 0 sans repas, `restored: 2`.
+Densification exercée sur une journée-bouche — la boîte de Marc, samedi soir, un seul item
+(« pain complet 240 g ») — et arrêtée sur `no_dense_target`, `closed_kcal: 0`. Les compteurs
+disent vrai : rien à déplacer dans une boîte à un item. **La densification n'a pas encore
+déplacé de grammes sur un plan réel avec des nombres justes** ; il faut une boîte à un nom,
+plafonnée, à deux items résolus — le bœuf désormais connu rend ce cas possible, et le rejeu
+sur la boîte de Marc de la veille le montre (86 g, +15 kcal, arrêt sur le plafond de protéine).
+
+### Ce que « améliore ça » n'a PAS fait
+
+- **Le taux de tenue de « tofu cuit à part »** (2 tirs sur 5) : non amélioré. Les deux leviers
+  identifiés — la consigne dans le bloc des préparations, et l'acceptation PAR PARTIES d'une
+  relance qui répare trois cases et en casse deux — sont nommés, pas faits.
+- **La question de clarification** quand une note hésite entre rythme et régime : non faite.
+- **Le déploiement** et le `db push` de la migration des alias : à ta main.
