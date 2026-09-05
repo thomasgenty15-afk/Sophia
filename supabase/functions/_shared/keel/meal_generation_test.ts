@@ -22,6 +22,7 @@ import {
   DISH_NAME_MAX_CHARS,
   isInPantry,
   MEAL_SCOPES,
+  MEAL_PROMPT_VERSION,
   MEAL_SYSTEM_PROMPT,
   MEAL_TOKEN_FIELDS,
   MEAL_TRANSLATABLE_FIELDS,
@@ -1395,4 +1396,29 @@ Deno.test("⚠️ LE CAS QUI PASSE — un déroulé sans chiffre ne déclenche r
     !out.issues.some((i: string) => i.includes("run_through carry a weight")),
     `un déroulé propre a été compté: ${JSON.stringify(out.issues)}`,
   );
+});
+
+Deno.test("le prompt système dit ce que PÈSE un repas complet — plus une paume et un poing (lot G, 2026-09-05)", () => {
+  // Mesuré sur C03 (quatre bouches, 7 jours): 3 192 kcal/jour servis pour une
+  // table qui en demande 8 571 — la boîte de Paul, 652 g, pile au plafond de
+  // masse, portait 386 kcal. « A palm of protein, a fist of starch » composait
+  // un tiers de repas à 0,6 kcal/g, et aucun étage aval (ancre bornée par la
+  // masse, densifieur à plancher légumes) ne répare une assiette d'eau.
+  assertStringIncludes(MEAL_SYSTEM_PROMPT, "roughly 600 to 750 g of cooked food");
+  assertStringIncludes(MEAL_SYSTEM_PROMPT, "about 200 to 250 g of cooked grains");
+  assertStringIncludes(MEAL_SYSTEM_PROMPT, "about 120 to 180 g of the protein food");
+  assertStringIncludes(MEAL_SYSTEM_PROMPT, "vegetables ON TOP of it, never instead of it");
+  // Une méthode sans féculent déplace le poids, elle ne le retire pas — sinon la
+  // consigne recréerait l'assiette d'eau chez tout coach low-carb.
+  assertStringIncludes(MEAL_SYSTEM_PROMPT, "it does not vanish");
+  assert(!MEAL_SYSTEM_PROMPT.includes("a fist of starch"), "la paume et le poing composaient un tiers de repas");
+  // En GRAMMES, jamais en kcal: clause C5 du contrat TCA, le prompt ne porte
+  // aucune énergie chiffrée. Bornée à la section, pour rougir sur CE paragraphe.
+  const from = MEAL_SYSTEM_PROMPT.indexOf("== A PORTION IS ONE PERSON'S PLATE ==");
+  const to = MEAL_SYSTEM_PROMPT.indexOf("== THE STRETCH STARTS TODAY ==");
+  assert(from >= 0 && to > from, "sections déplacées");
+  assert(!/\bkcal\b|calorie/i.test(MEAL_SYSTEM_PROMPT.slice(from, to)), "un kcal dans la consigne de taille");
+  // La version AVANCE avec le texte: un cache qui servirait v26 sous ce nom
+  // servirait la paume à un élève de plus.
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v27_a_plate_weighs_what_it_feeds");
 });

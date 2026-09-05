@@ -1116,7 +1116,7 @@ Deno.test("les deux axes de version ont bougé, chacun pour SA population", () =
   // et le plafond de temps de session ne viennent plus de la colonne mais de
   // la dérivation; pour tous les autres, la consigne est celle de v25 au
   // caractère près, et un test de rationale le tient ligne à ligne.
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v26_the_cooking_style_sets_the_sessions");
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v27_a_plate_weighs_what_it_feeds");
   // ⚠️ D3′-c (2026-08-23) — `v22_precedence_in_tail`, ET LE BUMP EST EN RETARD
   // D'UN JOUR. `D3′` (2026-08-22 18:51) a réécrit le bloc d'arbitrage de la lane
   // foyer — passé en QUEUE du message, rang 1 qui NOMME ses trois blocs de

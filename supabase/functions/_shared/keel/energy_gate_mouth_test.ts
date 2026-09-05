@@ -798,6 +798,15 @@ Deno.test("⛔ LOT F — câblage: `meal-energy-v1` ne rend une boîte que par l
   assertStringIncludes(src, 'viewer: args.viewerMemberId === null');
   assertStringIncludes(src, 'mouths.some((m) => m.memberId === args.viewerMemberId) ? "member" : "not_member"');
   assertStringIncludes(src, "await readFloor(m.userId);");
+  // ⟳ R1 — POUR UN COMPTE, L'AUTORITÉ EST SON PROFIL, pas la copie du roster.
+  assertStringIncludes(src, 'from("profiles").select("id, birth_date").in("id", accountIds)');
+  assertStringIncludes(src, 'from("student_goals").select("user_id, goal").in("user_id", accountIds)');
+  // ⟳ R1 — R7 DANS LE FILET DU GATE. `keel_properties/` n'est pas lancé par le
+  // gate; la garde vivait donc là seulement. Ici aussi: la fermeture douce ne
+  // s'ouvre que sur `no_direction`, jamais sur `explicit_off`.
+  const cond = src.slice(src.indexOf("const readerClosedByDefault ="), src.indexOf(";", src.indexOf("const readerClosedByDefault =")));
+  assertStringIncludes(cond, 'readerSwitchSource === "no_direction"');
+  assertEquals(cond.includes("explicit_off"), false, cond);
   const pure = await Deno.readTextFile(new URL("./box_energy_decision.ts", import.meta.url));
   assertStringIncludes(pure, "canEmitBoxEnergy({");
   // ⛔ UN NOM, ET UN SEUL: la ligne exacte qui écarte le bac partagé.

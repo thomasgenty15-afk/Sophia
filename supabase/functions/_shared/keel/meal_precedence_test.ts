@@ -131,7 +131,7 @@ Deno.test("v15 — la version de prompt suit l'octet: elle a bougé avec ce lot"
   // et le plafond de temps de session ne viennent plus de la colonne mais de
   // la dérivation; pour tous les autres, la consigne est celle de v25 au
   // caractère près, et un test de rationale le tient ligne à ligne.
-  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v26_the_cooking_style_sets_the_sessions");
+  assertEquals(MEAL_PROMPT_VERSION, "meal.en.v27_a_plate_weighs_what_it_feeds");
 });
 
 Deno.test("① l'ordre est ÉCRIT, et il est écrit pour TOUT LE MONDE", () => {

@@ -540,12 +540,47 @@ async function boxEnergyByPlan(args: {
       .from("household_members")
       .select("member_id, user_id, birth_date, goal")
       .eq("household_id", row.household_id);
-    const mouths = (membersRes.error ? [] : ((membersRes.data ?? []) as HouseholdMouthRow[])).map((m) => ({
-      memberId: String(m.member_id),
-      userId: m.user_id ? String(m.user_id) : null,
-      birthDate: m.birth_date === null || m.birth_date === undefined ? null : String(m.birth_date),
-      goal: m.goal === null || m.goal === undefined ? null : String(m.goal),
-    }));
+    const rawMouths = membersRes.error ? [] : ((membersRes.data ?? []) as HouseholdMouthRow[]);
+    // ⟳ R1 (2026-09-05) — POUR UNE BOUCHE AVEC COMPTE, L'AUTORITÉ EST SON PROFIL.
+    // `household_members.goal` et `.birth_date` sont des COPIES prises à la
+    // réclamation, jamais resynchronisées: l'autorité SQL dit `student_goals.goal`
+    // (20260814110000) et `profiles.birth_date` (20260812180000), et c'est ce
+    // que lit le générateur. Lu sur la copie, un titulaire passé en maintenance
+    // sur son compte gardait sa boîte chiffrée; un mineur par profil, adulte par
+    // fiche, recevait un kcal. Relecture croisée R1, point 1.
+    const accountIds = rawMouths.map((m) => m.user_id).filter((u): u is string => !!u);
+    const profileByUser = new Map<string, { birth_date: string | null }>();
+    const goalByUser = new Map<string, string | null>();
+    if (accountIds.length > 0) {
+      const [profRes, goalRes] = await Promise.all([
+        args.admin.from("profiles").select("id, birth_date").in("id", accountIds),
+        args.admin.from("student_goals").select("user_id, goal").in("user_id", accountIds),
+      ]);
+      for (const p of (profRes.error ? [] : (profRes.data ?? [])) as Array<Record<string, unknown>>) {
+        profileByUser.set(String(p.id), { birth_date: p.birth_date === null || p.birth_date === undefined ? null : String(p.birth_date) });
+      }
+      for (const g of (goalRes.error ? [] : (goalRes.data ?? [])) as Array<Record<string, unknown>>) {
+        goalByUser.set(String(g.user_id), g.goal === null || g.goal === undefined ? null : String(g.goal));
+      }
+    }
+    const mouths = rawMouths.map((m) => {
+      const userId = m.user_id ? String(m.user_id) : null;
+      const fromRoster = {
+        birthDate: m.birth_date === null || m.birth_date === undefined ? null : String(m.birth_date),
+        goal: m.goal === null || m.goal === undefined ? null : String(m.goal),
+      };
+      if (userId === null) return { memberId: String(m.member_id), userId, ...fromRoster };
+      // ⛔ UN COMPTE DONT LE PROFIL N'A PAS ÉTÉ LU SE FERME: `birthDate: null` ⇒
+      // `age_unknown`. On ne retombe pas sur la copie de la fiche — c'est
+      // exactement la source que ce correctif retire.
+      const prof = profileByUser.get(userId);
+      return {
+        memberId: String(m.member_id),
+        userId,
+        birthDate: prof ? prof.birth_date : null,
+        goal: goalByUser.has(userId) ? goalByUser.get(userId) ?? null : null,
+      };
+    });
     for (const m of mouths) {
       if (m.userId) {
         await readFloor(m.userId);
