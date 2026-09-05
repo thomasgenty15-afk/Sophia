@@ -519,6 +519,7 @@ out = {
   "clarify_kept": trace.get("clarify_kept"),
   "clarify_refused_bad_options": trace.get("clarify_refused_bad_options"),
   "clarify_ask_reason": trace.get("clarify_ask_reason"),
+  "clarify_scope": trace.get("clarify_scope"),
   "pref_kept": trace.get("pref_kept"),
   "notes_kept": trace.get("notes_kept"),
   "next_kept": trace.get("next_kept"),
@@ -1192,6 +1193,156 @@ run_V() {
 # ---------------------------------------------------------------------------
 # LE DÉROULÉ
 # ---------------------------------------------------------------------------
+# ═══════════════════════════════════════════════════════════════════════════
+# ⟳ 2026-09-05 — SC : LA PORTÉE D'UN RÉGIME (arbitrage 7, moitié « écriture »)
+#
+# Cinq phrases, trois sorties. Autorité : NOMENCLATURE-MEMOIRE.md §2.8 (tableau
+# des trois cas) et §8.3. Ce que le banc mesure, et qu'aucun test unitaire ne
+# peut : le modèle pose-t-il la question QUAND il faut — jamais sur « je suis
+# végétarienne » (sécurité directe), jamais sur « le lundi soir » (une note avec
+# son when), toujours sur « on mange végétarien » sans plus — et RIEN n'est-il
+# écrit avant la réponse ? Le premier tir réel du 05/09 a montré le modèle
+# poser la question ET écrire la contrainte : la garde `held_for_scope` existe
+# pour ça, et c'est SC1 qui la tient en réel.
+#
+# ⚠️ TROIS QUESTIONS, DONC DEUX JOURS LOCAUX (plafond 2/jour) : SC1 et SC2 sur
+# la journée 1, SC5 après la bascule. À jouer sur un compte à part :
+#   BANC_EMAIL=qa-scope-20260905@keeltest.dev ./banc.sh <anon> SC
+# (fixture : deno run --allow-net --allow-env scripts/2026-09-01-fixture-foyer-retours.ts
+#  avec cet e-mail — un foyer, la titulaire omnivore, AUCUNE contrainte active).
+#
+# ⛔ SC1 et SC3 ÉCRIVENT UNE CONTRAINTE STRICTE SUR LA TITULAIRE, qui gouverne
+# tout le foyer à chaque repas : elle est RÉTRACTÉE juste après la mesure
+# (`status='retracted'`, motif écrit — jamais `delete`, cicatrice du 04/09).
+# ═══════════════════════════════════════════════════════════════════════════
+
+# Rétracte les contraintes actives écrites depuis un instant, et le dit.
+retract_safety_since() {
+  local n
+  n=$(psql "update student_safety_constraints
+              set status='retracted', retracted_at=now(),
+                  retracted_reason='banc SC 2026-09-05 : ligne de mesure, fixture rendue'
+            where user_id='$USER_ID' and status='active' and created_at > '$1'
+            returning 1;" | grep -c '^1$')
+  echo "   ⤺ contraintes rétractées après mesure : $n"
+}
+
+# Tape un bouton de la dernière question par son LIBELLÉ. Rend 1 si non tapé.
+tap_by_label() {
+  local case="$1" since="$2" label="$3"
+  local q payload bid
+  q=$(question_bubble "$since")
+  payload=$(python3 -c "
+import json,sys
+q=json.loads(sys.argv[1]); want=sys.argv[2]
+if not q: print(''); raise SystemExit
+for b in q.get('buttons') or []:
+    if b.get('label') == want: print(b['payload']); raise SystemExit
+print('')" "$q" "$label")
+  if [ -z "$payload" ]; then
+    echo "${YEL}   aucun bouton « $label » — le tap n'a pas lieu${OFF}"
+    return 1
+  fi
+  bid=$(python3 -c "import json,sys;print(json.loads(sys.argv[1])['id'])" "$q")
+  tap "$case" "$bid" "$payload" "$label"
+}
+
+run_SC3() {
+  head_of SC3 "« Je suis végétarienne. » — dit pour de bon : SÉCURITÉ directe, aucune question"
+  expect SC3 <<EOF
+{ "http": 200, "plans_delta": 1,
+  "clarify_proposed": 0, "clarify_scope": 0, "pref_kept": 0, "notes_kept": 0,
+  "clar_created": 0, "q_count": 0,
+  "d_items": 0, "d_memo": 0, "d_encart": 0,
+  "allergies_bouge": false, "restrictions_bouge": false, "regimes_bouge": false, "ledger_skipped": 0,
+  "securite_bouge": true }
+EOF
+  SINCE=$(now_iso); snapshot > "$OUT/SC3.before.json"
+  gen SC3 "Je suis végétarienne." 3
+  collect SC3 "$SINCE"; judge SC3 "$OUT/SC3.attendu.json"
+  retract_safety_since "$SINCE"
+}
+
+run_SC4() {
+  head_of SC4 "« On mange végétarien le lundi soir. » — un RYTHME : une note avec son when, aucune contrainte, aucune question"
+  expect SC4 <<EOF
+{ "http": 200, "plans_delta": 1,
+  "clarify_proposed": 0, "clarify_scope": 0, "notes_kept": 1, "pref_kept": 0,
+  "clar_created": 0, "q_count": 0,
+  "n_count": 1, "n_text": {"contains": ["végétarien"]},
+  "d_items": 0, "d_memo": 1, "d_encart": 0, $INVARIANTS }
+EOF
+  SINCE=$(now_iso); snapshot > "$OUT/SC4.before.json"
+  gen SC4 "On mange végétarien le lundi soir." 3
+  collect SC4 "$SINCE"; judge SC4 "$OUT/SC4.attendu.json"
+}
+
+run_SC1() {
+  head_of SC1 "« On mange végétarien. » — sans portée : QUESTION, rien d'écrit, puis « Oui, tous mes repas » ⇒ contrainte par la porte de sécurité"
+  expect SC1 <<EOF
+{ "http": 200, "plans_delta": 1,
+  "clarify_proposed": 1, "clarify_kept": 1, "clarify_scope": 1, "pref_kept": 0, "notes_kept": 0,
+  "clarify_ask_reason": "asked",
+  "clar_created": 1, "clar_about": {"set": ["scope"]}, "clar_status": {"set": ["answered"]},
+  "q_count": 1, "q_labels": {"set": ["Oui, tous mes repas", "Non, pas toujours", "Passer"]},
+  "q_payloads_ok": true,
+  "tap_http": 200, "tap_handled": "keel_memory_clarification_answered",
+  "n_view_buttons": 0,
+  "d_items": 0, "d_memo": 0, "d_encart": 0,
+  "allergies_bouge": false, "restrictions_bouge": false, "regimes_bouge": false, "ledger_skipped": 0,
+  "securite_bouge": true }
+EOF
+  SINCE=$(now_iso); snapshot > "$OUT/SC1.before.json"
+  gen SC1 "On mange végétarien." 3
+  # ⛔ RIEN N'EST ÉCRIT AVANT LE TAP — c'est le défaut du premier tir réel.
+  local sec_now sec_before
+  sec_before=$(python3 -c "import json,sys;print(json.load(open(sys.argv[1]))['securite'])" "$OUT/SC1.before.json")
+  sec_now=$(psql "select count(*) from student_safety_constraints where user_id='$USER_ID';")
+  if [ "$sec_now" != "$sec_before" ]; then
+    echo "${RED}   ⛔ une contrainte a été écrite AVANT la réponse ($sec_before → $sec_now) — la garde held_for_scope n'a pas mordu${OFF}"
+  else
+    echo "   contraintes avant le tap : inchangées ✓"
+  fi
+  tap_by_label SC1 "$SINCE" "Oui, tous mes repas" || true
+  collect SC1 "$SINCE"; judge SC1 "$OUT/SC1.attendu.json"
+  retract_safety_since "$SINCE"
+}
+
+run_SC2() {
+  head_of SC2 "« On essaie de manger vegan en ce moment. » — QUESTION, puis « Non, pas toujours » ⇒ une note, aucune contrainte"
+  expect SC2 <<EOF
+{ "http": 200, "plans_delta": 1,
+  "clarify_proposed": 1, "clarify_kept": 1, "clarify_scope": 1, "pref_kept": 0,
+  "clarify_ask_reason": "asked",
+  "clar_created": 1, "clar_about": {"set": ["scope"]}, "clar_status": {"set": ["answered"]},
+  "q_count": 1, "q_labels": {"set": ["Oui, tous mes repas", "Non, pas toujours", "Passer"]},
+  "tap_http": 200, "tap_handled": "keel_memory_clarification_answered",
+  "n_view_buttons": 1,
+  "d_items": 0, "d_memo": 1, "d_encart": 0, $INVARIANTS }
+EOF
+  SINCE=$(now_iso); snapshot > "$OUT/SC2.before.json"
+  gen SC2 "On essaie de manger vegan en ce moment." 3
+  tap_by_label SC2 "$SINCE" "Non, pas toujours" || true
+  collect SC2 "$SINCE"; judge SC2 "$OUT/SC2.attendu.json"
+}
+
+run_SC5() {
+  head_of SC5 "« On est plutôt végé. » — QUESTION, puis « Passer » ⇒ declined, rien d'écrit"
+  expect SC5 <<EOF
+{ "http": 200, "plans_delta": 1,
+  "clarify_proposed": 1, "clarify_kept": 1, "clarify_scope": 1,
+  "clarify_ask_reason": "asked",
+  "clar_created": 1, "clar_about": {"set": ["scope"]}, "clar_status": {"set": ["declined"]},
+  "q_count": 1,
+  "tap_http": 200, "tap_handled": "keel_memory_clarification_declined",
+  "d_items": 0, "d_memo": 0, "d_encart": 0, $INVARIANTS }
+EOF
+  SINCE=$(now_iso); snapshot > "$OUT/SC5.before.json"
+  gen SC5 "On est plutôt végé." 3
+  tap_by_label SC5 "$SINCE" "Passer" || true
+  collect SC5 "$SINCE"; judge SC5 "$OUT/SC5.attendu.json"
+}
+
 # ── LE SECRET DES FONCTIONS INTERNES ──────────────────────────────────────
 #
 # ⛔ CE N'EST **PAS** LA `Secret Key` DE `supabase status`. Mesuré: elle rend
@@ -1267,6 +1418,29 @@ for c in D5 B2 S I; do
 done
 
 want V && run_V
+
+# ── ⟳ 2026-09-05 — LE GROUPE SC, sur son propre compte (voir l'en-tête SC) ──
+# `SC` joue les cinq ; un cas nommé (`"SC3 SC2"`) ne joue que lui. Les cas de la
+# seconde journée (SC2 quand SC3 a déjà posé sa question, SC5) passent après
+# la bascule, pour que le plafond de deux par jour ne fasse pas le verdict.
+if want SC || want SC1 || want SC2 || want SC3 || want SC4 || want SC5; then
+  for c in SC3 SC4 SC1; do
+    { want SC || want "$c"; } || continue
+    JWT=$(login); "run_$c"
+  done
+  echo; echo "── BASCULE DE JOURNÉE (SC) ─────────────────────────────────"
+  JWT=$(login); DAY1=$(local_day)
+  for tz in Etc/GMT+12 Etc/GMT-12; do
+    set_timezone "$tz" || continue
+    [ "$(local_day)" != "$DAY1" ] && break
+  done
+  [ "$(local_day)" = "$DAY1" ] && echo "${YEL}   aucun autre jour local : SC2/SC5 partagent le plafond de la journée 1 (attendu daily_cap)${OFF}"
+  for c in SC2 SC5; do
+    { want SC || want "$c"; } || continue
+    JWT=$(login); "run_$c"
+  done
+  JWT=$(login); set_timezone "Europe/Paris" || true
+fi
 
 # ⛔ LE FUSEAU EST REMIS. Le laisser décalé ferait mentir tous les bancs
 # suivants sur le même compte — et le décalage est invisible en base.

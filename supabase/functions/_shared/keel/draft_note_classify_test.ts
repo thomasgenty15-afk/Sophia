@@ -1573,3 +1573,16 @@ Deno.test("⛔ ⑤ PORTÉE — une allergie au MÊME ref qu'une question de port
   assertEquals(out.safety?.length, 1);
   assertEquals((out.safety![0] as Record<string, unknown>).kind, "allergy");
 });
+
+
+Deno.test("⑤ PORTÉE — ⟳ banc SC3 : « je suis végétarienne » est nommé comme JAMAIS une question, sur la ligne de la règle", () => {
+  // Mesuré au banc SC du 2026-09-05 : sur « Je suis végétarienne. », le modèle a
+  // posé la question de portée au lieu d'écrire le régime — une question de
+  // trop, qui a consommé le plafond du jour et perdu la phrase suivante. Le
+  // contre-exemple à la première personne, en français ET en anglais, est
+  // maintenant SUR la ligne de la règle SCOPE, pas trois lignes plus bas.
+  const line = DRAFT_NOTE_CLASSIFY_SYSTEM_PROMPT.split("\n").find((l) => l.includes("SCOPE — ONLY"));
+  assert(line, "la règle SCOPE a perdu son « ONLY »");
+  assert(/NEVER "scope" for "I am vegetarian", "je suis végétarienne"/.test(line!), line);
+  assert(/has said it for good/.test(line!), line);
+});

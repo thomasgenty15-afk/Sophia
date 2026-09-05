@@ -1006,6 +1006,23 @@ déclenche jamais de question QUOI** (B5), et **un degré ne déclenche jamais d
 (B4). Seule une référence qu'on ne peut pas résoudre — et dont la résolution **écrirait** quelque
 chose — vaut une sollicitation.
 
+**Source brouillon, la portée d'un régime** (⟳ 2026-09-05, groupe `SC` du banc, sur son propre
+compte — trois questions, donc deux jours locaux) :
+
+| # | phrase | attendu |
+|---|---|---|
+| SC3 | « Je suis végétarienne. » | **aucune question** — dit pour de bon : `safety` direct, contrainte écrite (puis rétractée par le banc) ; 0 préférence, 0 note |
+| SC4 | « On mange végétarien le lundi soir. » | **aucune question** — un rythme : 1 **③ note** avec `when = {mon, dinner}` ; `securite_bouge: false` |
+| SC1 | « On mange végétarien. » | **question `scope`**, options `Oui, tous mes repas · Non, pas toujours · Passer` ; **rien d'écrit avant le tap** (la garde `held_for_scope`) ; tap « Oui » ⇒ contrainte par la porte de sécurité, `answered`, accusé sans « Voir » ; 0 item, 0 mémo |
+| SC2 | « On essaie de manger vegan en ce moment. » | **question `scope`** ; tap « Non, pas toujours » ⇒ 1 **③ note** (sans `when`), « Voir » vers les notes ; `securite_bouge: false` |
+| SC5 | « On est plutôt végé. » | **question `scope`** ; tap « Passer » ⇒ `declined`, **rien** d'écrit |
+
+Règle que ces cinq tiennent ensemble : **la question ne part que sur une phrase qui nomme un régime
+sans dire s'il tient toujours** ; « pour de bon » va en sécurité, « un jour / un moment / une
+fréquence » va en note. Et **une question de portée retient la déclaration du même sujet** tant
+qu'elle est ouverte — mesuré nécessaire au premier tir réel, où le modèle a posé la question ET
+écrit la contrainte.
+
 #### ⟳ Ce que le premier run réel a corrigé dans ce tableau (2026-09-04)
 
 **D3 — un PLURIEL n'est pas une ambiguïté.** Le premier tir a posé la question
