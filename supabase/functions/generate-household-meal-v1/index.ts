@@ -260,6 +260,7 @@ import {
   densifyBoxes,
   densityFromComposition,
 } from "../_shared/keel/box_densify.ts";
+import { mergeRetryByCell } from "../_shared/keel/retry_merge.ts";
 // ── LE RÉGIME À TABLE (R4/R5) — LE DÉFAUT ① DE LA SPEC ─────────────────────
 // Avant le 2026-08-14, ce fichier ne portait AUCUNE occurrence du mot « diet »:
 // un maître végane recevait de la viande. Le moteur qui sait ce qu'un régime
@@ -6166,6 +6167,10 @@ Deno.serve(async (req) => {
     // demandent des gestes opposés.
     let unfedRetryAttempts = 0;
     let unfedRetryAccepted = 0;
+    // ⟳ 2026-09-05 — LES CELLULES PRISES À UNE RELANCE PAR PARTIES (voir
+    // `retry_merge.ts`): une relance qui répare trois cases et en casse deux
+    // était rejetée EN ENTIER. Compté même à zéro.
+    let unfedRetryMergedCells = 0;
     // ⛔ ET SUR QUELLE CAUSE ON A DÉPENSÉ CET APPEL. « La relance a échoué » ne
     // dit pas quoi faire; « la relance échoue systématiquement sur les trous de
     // RÉGIME » désigne le geste. Cumulé sur les tentatives: une relance lancée
@@ -6245,11 +6250,32 @@ Deno.serve(async (req) => {
               delivered = after;
               unfedRetryAccepted += 1;
             } else {
-              // ⛔ UN TOUR QUI N'AMÉLIORE RIEN ARRÊTE LA SÉRIE. Insister sur un
-              // modèle qui vient de rendre pire ou pareil dépense une minute
-              // pour la même réponse — et le plafond n'est pas une garantie de
-              // progrès, seulement une borne de coût.
-              break;
+              // ── ⟳ 2026-09-05 — PAR PARTIES: on garde ce que la relance a réussi ──
+              // Le plan entier n'est pas meilleur; les cellules passées de
+              // « quelqu'un manque » à « nourrie » le sont, elles. On les prend
+              // avec leurs casseroles, leurs sessions et leurs courses, et on
+              // garde tout le reste — texte source compris: ses lecteurs
+              // (portions par bouche, explication) ne sont pas par plat.
+              const merge = mergeRetryByCell({ base: meal, retry: retried, before: delivered, after });
+              // ⛔ UN TOUR QUI N'AMÉLIORE RIEN — ni en entier ni par parties —
+              // ARRÊTE LA SÉRIE. Insister sur un modèle qui vient de rendre pire
+              // ou pareil dépense une minute pour la même réponse.
+              if (merge.cells.length === 0) break;
+              const merged = mealsDelivered(deliveredViewOf(merge.meal), mouthCells);
+              if (!(merged.missing < delivered.missing)) break;
+              meal = merge.meal;
+              delivered = merged;
+              unfedRetryAccepted += 1;
+              unfedRetryMergedCells += merge.cells.length;
+              console.info(JSON.stringify({
+                tag: "keel.household_meal.unfed_retry_merged",
+                request_id: requestId,
+                cells: merge.cells,
+                imported_preparations: merge.importedPreparations,
+                renamed: merge.renamed,
+                shopping_added: merge.shoppingAdded,
+                sessions_imported: merge.sessionsImported,
+              }));
             }
           }
         } catch (error) {
@@ -6327,6 +6353,7 @@ Deno.serve(async (req) => {
       retried: unfedRetryAccepted > 0,
       retry_attempts: unfedRetryAttempts,
       retry_accepted: unfedRetryAccepted,
+      retry_merged_cells: unfedRetryMergedCells,
       retry_on: unfedRetryOn,
       restored: unfedRestored,
       restored_fallback: unfedRestoredFallback,
@@ -8445,6 +8472,7 @@ Deno.serve(async (req) => {
         retried: unfedRetryAccepted > 0,
         retry_attempts: unfedRetryAttempts,
         retry_accepted: unfedRetryAccepted,
+        retry_merged_cells: unfedRetryMergedCells,
         retry_on: unfedRetryOn,
         restored: unfedRestored,
         restored_fallback: unfedRestoredFallback,

@@ -1,0 +1,177 @@
+/**
+ * LA RELANCE PAR CELLULE — on garde ce que la relance a réussi, on jette ce qu'elle a cassé.
+ *
+ * ── LE DÉFAUT, MESURÉ (2026-09-04, tir DENS-2 ter) ─────────────────────────
+ * Une relance « personne sans repas » réécrit le plan ENTIER. Le deuxième essai
+ * avait composé la bonne chose pour Zoé (une semoule sans courgettes), et il a
+ * été rejeté parce qu'il remettait Léa sur la boîte au poulet: `after.missing`
+ * n'était pas strictement plus petit. Une acceptation tout-ou-rien fait payer la
+ * partie juste par la partie fautive — et sur trois foyers mesurés, c'est la
+ * moitié des refus `mouth_unfed`.
+ *
+ * ── CE QUE FAIT CE MODULE ───────────────────────────────────────────────────
+ * Quand le plan relancé n'est pas meilleur EN ENTIER, on en prend les seules
+ * CELLULES (jour × moment) qui sont passées de « quelqu'un manque » à « tout le
+ * monde est nourri » — avec leurs plats et les casseroles qu'ils citent — et on
+ * garde tout le reste du plan de base. Pur: il rend un plan neuf, ne mute rien.
+ *
+ * ── CE QU'IL DOIT RESPECTER, ET COMMENT ─────────────────────────────────────
+ *   · UNE CASSEROLE IMPORTÉE A UNE SESSION: elle rejoint la session de base du
+ *     jour où elle cuit (`cookOn`); sans session ce jour-là, la session de la
+ *     relance pour ce jour est importée. Une casserole sans session serait
+ *     « un jour de batch sans session », que le parseur constate sans réparer.
+ *   · UN ID DE CASSEROLE DÉJÀ PRIS AVEC UN AUTRE CONTENU EST RENOMMÉ (`__r`),
+ *     et les plats importés sont réécrits pour le citer. Le même id avec le même
+ *     contenu (titre, méthode, ingrédients) est réutilisé, pas dupliqué.
+ *   · LES COURSES SUIVENT LES CASSEROLES: la liste de courses est une sortie du
+ *     modèle, et le parseur retire les lignes orphelines sans jamais en AJOUTER
+ *     (« kept, not guessed »). Un plat importé sans ses courses ferait acheter
+ *     moins qu'il ne faut, en silence. On importe donc les lignes de la relance
+ *     dont le terme réclame un ingrédient des plats ou casseroles importés, et
+ *     qui ne sont pas déjà sur la liste de base — ce sont les lignes du modèle,
+ *     pas les nôtres.
+ *   · LE TEXTE SOURCE RESTE CELUI DU PLAN DE BASE: ses lecteurs (portions par
+ *     bouche, explication) ne sont pas par plat. L'appelant ne le remplace que
+ *     sur une acceptation entière.
+ *
+ * ⛔ CE QUE ÇA NE FAIT PAS: ça ne rend pas le modèle meilleur, ça arrête de jeter
+ * ce qu'il a réussi. Une cellule que la relance n'a pas nourrie reste celle du
+ * plan de base, avec ses manques — la relance suivante ou le dernier recours la
+ * traitent comme avant.
+ */
+import type {
+  CookingSession,
+  GeneratedDish,
+  GeneratedMeal,
+  MealPreparation,
+  ShoppingItem,
+} from "./meal_generation.ts";
+import { normalizePantryTerm } from "./meal_generation.ts";
+import type { MealsDelivered } from "./meals_delivered.ts";
+
+export interface MergeOutcome {
+  readonly meal: GeneratedMeal;
+  /** Les cellules prises à la relance, `day/slot`, dans l'ordre du plan. */
+  readonly cells: readonly string[];
+  readonly importedPreparations: readonly string[];
+  /** ancien id → nouvel id, quand l'id existait avec un autre contenu. */
+  readonly renamed: Readonly<Record<string, string>>;
+  readonly shoppingAdded: number;
+  readonly sessionsImported: number;
+}
+
+const cellKey = (d: { day: string | null; slot: string | null }): string =>
+  `${d.day ?? ""}/${d.slot ?? ""}`;
+
+function missingCells(delivered: MealsDelivered): Set<string> {
+  const out = new Set<string>();
+  for (const mouth of delivered.mouths) {
+    for (const m of mouth.missing) out.add(`${m.day}/${m.slot}`);
+  }
+  return out;
+}
+
+function samePreparation(a: MealPreparation, b: MealPreparation): boolean {
+  const norm = (p: MealPreparation) =>
+    JSON.stringify({
+      t: p.title,
+      m: p.method,
+      i: p.ingredients.map((x) => [x.term, x.quantity, x.amount, x.unit, x.state]),
+    });
+  return norm(a) === norm(b);
+}
+
+/**
+ * Prend à `retry` les cellules que `before` donnait manquantes et que `after`
+ * donne nourries. Rend le plan de base quand il n'y en a aucune (`cells: []`).
+ */
+export function mergeRetryByCell(args: {
+  base: GeneratedMeal;
+  retry: GeneratedMeal;
+  before: MealsDelivered;
+  after: MealsDelivered;
+}): MergeOutcome {
+  const wasMissing = missingCells(args.before);
+  const stillMissing = missingCells(args.after);
+  const retryCells = new Set(args.retry.dishes.map(cellKey));
+  const cells = [...wasMissing].filter((c) => !stillMissing.has(c) && retryCells.has(c)).sort();
+  if (cells.length === 0) {
+    return { meal: args.base, cells: [], importedPreparations: [], renamed: {}, shoppingAdded: 0, sessionsImported: 0 };
+  }
+  const taken = new Set(cells);
+  const meal: GeneratedMeal = structuredClone(args.base);
+  const retry: GeneratedMeal = structuredClone(args.retry);
+
+  // ── LES PLATS: ceux de base sortent des cellules prises, ceux de la relance entrent ──
+  const keptDishes = meal.dishes.filter((d) => !taken.has(cellKey(d)));
+  const importedDishes: GeneratedDish[] = retry.dishes.filter((d) => taken.has(cellKey(d)));
+
+  // ── LES CASSEROLES CITÉES: réutilisées, importées, ou renommées ──────────
+  const baseById = new Map(meal.preparations.map((p) => [p.id, p]));
+  const retryById = new Map(retry.preparations.map((p) => [p.id, p]));
+  const renamed: Record<string, string> = {};
+  const importedPreparations: string[] = [];
+  const cited = new Set<string>();
+  for (const d of importedDishes) {
+    for (const u of d.uses) cited.add(u.preparationId);
+    for (const b of d.boxes) for (const it of b.items) if (it.preparationId) cited.add(it.preparationId);
+  }
+  const nameFor = (id: string): string => {
+    const src = retryById.get(id);
+    if (!src) return id; // citation inconnue: le parseur l'a déjà constatée sur la relance
+    const existing = baseById.get(id);
+    if (existing && samePreparation(existing, src)) return id;
+    if (!existing) return id;
+    let candidate = `${id}__r`;
+    let n = 2;
+    while (baseById.has(candidate) || retryById.has(candidate)) candidate = `${id}__r${n++}`;
+    return candidate;
+  };
+  for (const id of cited) {
+    const src = retryById.get(id);
+    if (!src) continue;
+    const target = nameFor(id);
+    if (target !== id) renamed[id] = target;
+    if (baseById.has(target)) continue; // même id, même contenu: réutilisée
+    const copy: MealPreparation = { ...src, id: target };
+    meal.preparations.push(copy);
+    baseById.set(target, copy);
+    importedPreparations.push(target);
+  }
+  for (const d of importedDishes) {
+    for (const u of d.uses) if (renamed[u.preparationId]) u.preparationId = renamed[u.preparationId];
+    for (const b of d.boxes) for (const it of b.items) if (it.preparationId && renamed[it.preparationId]) it.preparationId = renamed[it.preparationId];
+  }
+  meal.dishes = [...keptDishes, ...importedDishes];
+
+  // ── LES SESSIONS: chaque casserole importée cuit quelque part ─────────────
+  let sessionsImported = 0;
+  for (const id of importedPreparations) {
+    const prep = baseById.get(id)!;
+    const day = prep.cookOn;
+    if (!day) continue;
+    let session: CookingSession | undefined = meal.cooking_sessions.find((s) => s.day === day);
+    if (!session) {
+      const fromRetry = retry.cooking_sessions.find((s) => s.day === day);
+      session = fromRetry ? { ...fromRetry, preparationIds: [] } : { day, preparationIds: [], runThrough: "", totalMinutes: null } as CookingSession;
+      meal.cooking_sessions.push(session);
+      sessionsImported++;
+    }
+    if (!session.preparationIds.includes(id)) session.preparationIds.push(id);
+  }
+
+  // ── LES COURSES: les lignes de la relance que les plats importés réclament ──
+  const claimed = new Set<string>();
+  for (const d of importedDishes) for (const ing of d.ingredients) claimed.add(normalizePantryTerm(ing.term));
+  for (const id of importedPreparations) for (const ing of baseById.get(id)!.ingredients) claimed.add(normalizePantryTerm(ing.term));
+  const already = new Set(meal.shopping_list.map((l) => normalizePantryTerm(l.term)));
+  let shoppingAdded = 0;
+  for (const line of retry.shopping_list) {
+    const key = normalizePantryTerm(line.term);
+    if (!claimed.has(key) || already.has(key)) continue;
+    meal.shopping_list.push(line as ShoppingItem);
+    already.add(key);
+    shoppingAdded++;
+  }
+  return { meal, cells, importedPreparations, renamed, shoppingAdded, sessionsImported };
+}

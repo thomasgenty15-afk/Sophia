@@ -531,12 +531,17 @@ Deno.test("CÂBLAGE — la relance INSISTE, et elle s'arrête quand elle n'amél
     src.indexOf("const UNFED_RETRIES_MAX"),
     src.indexOf("LE DERNIER RECOURS, ET IL DÉPEND DE LA CAUSE"),
   );
+  // ⟳ 2026-09-05: `break;` en fin de ligne aussi — la fusion par parties a deux
+  // sorties sur une ligne (`if (…) break;`). Quatre sorties désormais: rien à
+  // fusionner, fusion qui n'améliore pas, exception, instruction vide.
   assertEquals(
-    (block.match(/\n\s+break;/g) || []).length >= 3,
+    (block.match(/\bbreak;/g) || []).length >= 4,
     true,
-    "la boucle n'a plus ses trois sorties (pas d'amélioration, exception, " +
-      "instruction vide)\n" + block.slice(-400),
+    "la boucle n'a plus ses quatre sorties (rien à fusionner, fusion sans gain, " +
+      "exception, instruction vide)\n" + block.slice(-400),
   );
+  assert(/if \(merge\.cells\.length === 0\) break;/.test(block), "la sortie « rien à fusionner » a disparu");
+  assert(/if \(!\(merged\.missing < delivered\.missing\)\) break;/.test(block), "la sortie « fusion sans gain » a disparu");
 });
 
 Deno.test("CÂBLAGE — CE QUE LA PERSONNE A ÉCRIT SURVIT AU REFUS", async () => {
