@@ -8112,7 +8112,7 @@ Deno.serve(async (req) => {
         [...boxFactors].map(([boxId, r]) => [boxId, { raw: r.factor, factor: r.factor }]),
       ),
     );
-    const growth = { scaled: 0, capped: 0, shopping: 0, unrewritable: 0 };
+    const growth = { scaled: 0, capped: 0, shopping: 0, unrewritable: 0, regrammed: 0 };
     for (const prep of meal.preparations) {
       const factor = potGrowth.get(prep.id) ?? 1;
       if (!(factor > 1)) continue;
@@ -8130,6 +8130,14 @@ Deno.serve(async (req) => {
       growth.capped += grown.capped.length;
       prep.ingredients.splice(0, prep.ingredients.length, ...grown.items);
     }
+    // ⟳ 2026-09-05 — REGRAMMER APRÈS AVOIR GROSSI. `scaleIngredients` remet
+    // `gramsRaw` à null PAR CONTRAT (« c'est le résolveur qui sait le faire »,
+    // portion_scaling.ts) et personne ne le refaisait: mesuré sur C03, 13
+    // lignes de casserole sur 16 sans grammes crus après croissance, les trois
+    // qui survivaient étant celles d'un pot non grossi. Tout lecteur strict du
+    // champ (`preparationReadyGrams`, le plafond de pot) lisait du vide. Le
+    // premier `regramMeal` tourne avant la croissance; celui-ci la suit.
+    growth.regrammed = growth.scaled > 0 ? regramMeal(meal, composition) : 0;
     if (growth.scaled > 0 && meal.shopping_list.length > 0) {
       // ⚠️ LES COURSES SUIVENT AU FACTEUR MOYEN DES CASSEROLES QUI ONT GROSSI.
       // Une attribution ligne-à-casserole n'existe pas dans ce plan
