@@ -1643,6 +1643,7 @@ export interface GeneratedMeal {
      */
     box_scoped: number;
     citation_repaired: number;
+    item_repaired: number;
     /**
      * ── LE GROUPE ALIMENTAIRE DÉCLARÉ, EN SIX NOMBRES (2026-08-19) ────────
      *
@@ -5903,6 +5904,7 @@ export function parseGeneratedMeal(
     // ÉCHANGE · sur quelle SURFACE les couvercles ont été jugés.
     box_scoped: 0,
     citation_repaired: 0,
+    item_repaired: 0,
     // ── LES TROIS NOMBRES DU CHAMP DÉCLARÉ (2026-08-19) ──────────────────
     // Comptés sur TOUS les ingrédients du plan, pas seulement sur ceux qu'une
     // bouche à régime finit par regarder: un modèle qui n'écrit jamais le
@@ -7123,14 +7125,16 @@ export function parseGeneratedMeal(
           // pas l'assiette d'un omnivore), une seule candidate, comptée.
           if (
             breach.matched !== null && surface !== null &&
-            breach.preparationIds.length > 0 &&
-            rawNames.every((n) => !n || mouthRegimes.get(n) === regime) &&
-            biteFor(regime, { terms: surface.terms, prepIds: [] }, `${boxId}#terms`)
-                .matched === null
+            rawNames.every((n) => !n || mouthRegimes.get(n) === regime)
           ) {
+            // ⟳ 2026-09-05 soir (C03): le TERME peut mordre aussi — « saumon »
+            // dans la boîte de la végane, pendant que son pot de tofu du jour
+            // n'est cité par personne. Même évidence: on réécrit l'item
+            // (terme + citation), compté à part (`item_repaired`).
             const biting = new Set(breach.preparationIds);
+            const dayRefs = biting.size > 0 ? [...biting] : surface.prepIds;
             const sameDay = new Set(
-              [...biting].map((id) => preparationById.get(id)?.cookOn ?? null),
+              dayRefs.map((id) => preparationById.get(id)?.cookOn ?? null),
             );
             // Candidate: cuite le même jour, citée par AUCUNE boîte ni aucun
             // `uses` du plan brut (le pot que personne ne mange), qui porte
@@ -7146,21 +7150,31 @@ export function parseGeneratedMeal(
             if (candidates.length === 1) {
               const target = candidates[0].id;
               const rawItems = Array.isArray(bx.items) ? bx.items : [];
-              for (const entry of rawItems) {
+              let termsRewritten = 0;
+              let citationsRewritten = 0;
+              for (const [k, entry] of rawItems.entries()) {
                 const it = (entry && typeof entry === "object" ? entry : null) as Record<string, unknown> | null;
                 if (!it) continue;
                 const cited = cleanText(it.preparation_id) || cleanText(it.preparationId);
-                if (biting.has(cited)) {
-                  it.preparation_id = target;
-                  delete it.preparationId;
+                const term = cleanText(it.term);
+                const termBites = term !== "" &&
+                  biteFor(regime, { terms: [term], prepIds: [] }, `${boxId}#term:${k}`).matched !== null;
+                if (!biting.has(cited) && !termBites) continue;
+                if (termBites) {
+                  it.term = candidates[0].title.toLowerCase();
+                  termsRewritten++;
                 }
+                if (cited !== target) citationsRewritten++;
+                it.preparation_id = target;
+                delete it.preparationId;
               }
               const repaired = boxScanSurface(bx, preparationById);
               const again = repaired === null ? breach : biteFor(regime, repaired, `${boxId}#repaired`);
               if (again.matched === null) {
                 surface = repaired;
                 breach = again;
-                regimeBelt.citation_repaired++;
+                if (citationsRewritten > 0) regimeBelt.citation_repaired++;
+                if (termsRewritten > 0) regimeBelt.item_repaired++;
                 issues.push(
                   `${where}: ${JSON.stringify(memberId)} is ${regime} and the box cited ` +
                     `${JSON.stringify([...biting][0])} -- re-pointed to ${JSON.stringify(target)}, ` +

@@ -245,6 +245,7 @@ Deno.test("CEINTURE — personne n'a déclaré: rien ne bouge, et le compteur le
     // couvercle, donc ni sur la boîte ni sur le plat.
     box_scoped: 0,
     citation_repaired: 0,
+    item_repaired: 0,
     // ── LE GROUPE DÉCLARÉ (2026-08-19), ET SES SIX ZÉROS ────────────────
     // Ce plan ne porte aucun `group` sur ses ingrédients, donc les trois
     // premiers sont à zéro; et aucune bouche n'a de régime, donc la ceinture
@@ -1194,10 +1195,15 @@ Deno.test("⟳ RÉPARATION — la boîte de la bouche liée cite le poulet, son 
   assert(meal.issues.some((i) => i.includes("re-pointed to \"prep_tofu\"")), meal.issues.join("\n"));
 });
 
-Deno.test("⟳ RÉPARATION — pas quand l'item lui-même mord (« roast chicken »): c'est un poulet voulu, la bouche tombe", () => {
+Deno.test("⟳ RÉPARATION — quand l'item lui-même mord (« roast chicken ») et que le tofu du jour attend: l'ITEM est réécrit, compté à part", () => {
+  // ⟳ 2026-09-05 soir (C03): « saumon » dans la boîte de la végane, son pot de
+  // tofu du jour cité par personne — huit repas manquants sans ça.
   const meal = parse(miscitedPlan("roast chicken"));
-  assertEquals(meal.regime_belt.citation_repaired, 0);
-  assertEquals(meal.regime_belt.refused, 1, meal.issues.join("\n"));
+  assertEquals(meal.regime_belt.item_repaired, 1, meal.issues.join("\n"));
+  assertEquals(meal.regime_belt.refused, 0, meal.issues.join("\n"));
+  const box = meal.dishes[0].boxes.find((b) => b.id === "box_theodule")!;
+  assertEquals(box.items[0].term, "marinated tofu");
+  assertEquals(box.items[0].preparationId, "prep_tofu");
 });
 
 Deno.test("⟳ RÉPARATION — pas sans casserole orpheline du même jour qui convienne", () => {
