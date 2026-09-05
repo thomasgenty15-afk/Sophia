@@ -19,6 +19,7 @@ import {
   reconcileKeptPreferences,
   saveFoodPreferences,
 } from "../api/foodPreferences";
+import { addWrittenFoodLines, type RetainedSubject } from "../api/retainedItems";
 
 // CE QUE TU M'AS DIT SUR TA BOUFFE — la carte qui ferme la boucle.
 //
@@ -72,6 +73,13 @@ export interface FoodPreferencesCardProps {
   onSaved: () => void | Promise<void>;
   /** Dans la fenêtre de réglages: sans cadre, sans titre, sans repli. */
   embedded?: boolean;
+  /**
+   * ⟳ 2026-09-06 — ARBITRAGE 2. Quand la page le donne, « Garder » écrit une
+   * ligne RETENUE (j'aime / à éviter) au sujet de cette bouche, par la porte
+   * de l'écran « Ce que Sophia sait » — ce que le générateur lit. Sans lui,
+   * l'ancien geste (liste `food_preferences`, que plus rien ne lit) reste.
+   */
+  keepAs?: { readonly subject: RetainedSubject; readonly todayLocalIso: string };
 }
 
 export default function FoodPreferencesCard(props: FoodPreferencesCardProps) {
@@ -212,6 +220,35 @@ export default function FoodPreferencesCard(props: FoodPreferencesCardProps) {
   // Et quand la proposition REMPLACE une ligne gardée, elle la retire dans la
   // même écriture. Ajouter à côté serait garder les deux moitiés d'une
   // contradiction et les servir ensemble au générateur.
+  // ⟳ 2026-09-06 (arbitrage 2): la proposition devient une ligne retenue, classée
+  // par la personne. La proposition sort de la liste (écartée), le souvenir du
+  // chat est confirmé, et `food_preferences` n'est plus écrit.
+  const keepAsRetained = async (
+    p: FoodPreferenceProposal,
+    kind: "food.prefer" | "food.exclude",
+  ) => {
+    if (!props.keepAs) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const { data: auth } = await supabase.auth.getUser();
+      const uid = auth.user?.id;
+      if (!uid) return;
+      await addWrittenFoodLines({
+        userId: uid,
+        subject: props.keepAs.subject,
+        kind,
+        foods: [p.text],
+        todayLocalIso: props.keepAs.todayLocalIso,
+      });
+      void confirmMemoryItem(p.memoryItemId);
+      await persist(kept, [...dismissed, p.memoryItemId]);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
   const keepProposal = (p: FoodPreferenceProposal) => {
     const without = p.replaces
       ? kept.filter((k) => k.toLowerCase() !== p.replaces!.toLowerCase())
@@ -312,13 +349,33 @@ export default function FoodPreferencesCard(props: FoodPreferencesCardProps) {
                           </span>
                         )}
                       </span>
-                      <Button
-                        size="sm"
-                        disabled={busy}
-                        onClick={() => void keepProposal(p)}
-                      >
-                        {p.replaces ? t("plan.told.update") : t("plan.told.keep")}
-                      </Button>
+                      {props.keepAs ? (
+                        <>
+                          <Button
+                            size="sm"
+                            disabled={busy}
+                            onClick={() => void keepAsRetained(p, "food.prefer")}
+                          >
+                            {t("plan.told.keep_like")}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            disabled={busy}
+                            onClick={() => void keepAsRetained(p, "food.exclude")}
+                          >
+                            {t("plan.told.keep_avoid")}
+                          </Button>
+                        </>
+                      ) : (
+                        <Button
+                          size="sm"
+                          disabled={busy}
+                          onClick={() => void keepProposal(p)}
+                        >
+                          {p.replaces ? t("plan.told.update") : t("plan.told.keep")}
+                        </Button>
+                      )}
                       <button
                         type="button"
                         disabled={busy}

@@ -1838,13 +1838,18 @@ describe("⛔ AUCUN REPLI DE PORTÉE — l'aveu, et ce qui l'épingle", () => {
     // rendre `null` y voudrait dire « je n'écris rien », ce qui est le silence
     // que ce dépôt paie en boucle. Il LÈVE. Les deux formes sont comptées, et
     // la somme épinglée: c'est le refus lu qui compte, pas sa forme.
+    // ⟳ 2026-09-06 (arbitrage 2): le troisième appel vit désormais dans le
+    // helper pur `writtenFoodLine` (qui rend `null` sur refus), et c'est
+    // l'ÉCRIVAIN `addWrittenFoodLines` qui LÈVE sur ce `null` — le refus reste
+    // lu, sa forme a changé de ligne. Épinglé en dessous.
     const calls = [...CODE.matchAll(/=\s*defaultScopeFor\(/g)];
     expect(calls).toHaveLength(3);
     const returnsNull = [...CODE.matchAll(/if \(scope === null\) return null;/g)];
-    const throws = [...CODE.matchAll(/if \(scope === null\) \{\n\s*throw new Error\(/g)];
-    expect(returnsNull).toHaveLength(2);
-    expect(throws).toHaveLength(1);
-    expect(returnsNull.length + throws.length).toBe(calls.length);
+    expect(returnsNull).toHaveLength(3);
+    expect(returnsNull.length).toBe(calls.length);
+    const writer = CODE.slice(CODE.indexOf("export async function addWrittenFoodLines"), CODE.indexOf("export async function loadWrittenDislikes"));
+    expect(writer).toMatch(/const line = writtenFoodLine\(/);
+    expect(writer).toMatch(/if \(line === null\) \{\n\s*throw new Error\(/);
   });
 
   it("le port d'écriture ne prononce PAS `stale_snapshot`", () => {

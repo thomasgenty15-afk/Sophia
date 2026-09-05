@@ -60,6 +60,15 @@ chose se pose. ⛔ Le pont « Keep » (`memory_items` → `food_preferences` par
 `FoodPreferencesCard`, relu **à chaque génération** par `reconcileFoodPreferencesFor`) était
 une **troisième source déguisée en bouton** : elle est **fermée au lot C** (§2.6).
 
+> ⟳ **2026-09-06 (arbitrage 2 du 05/09)** — « Garder » est **rebranché**, pas sur
+> `food_preferences` (que plus rien ne lit) mais sur les **lignes retenues** : la carte
+> propose une phrase venue du chat, la PERSONNE la confirme et la classe (« j'aime » →
+> `food.prefer`, « à éviter » → `food.exclude`), et la ligne s'écrit `written × food.*`,
+> sujet = sa bouche, par `keel_write_retained_items` — la même porte que l'écran « Ce que
+> Sophia sait ». Ce n'est pas une troisième source : le chat ne fait que proposer, l'écran
+> écrit. `food_preferences` reste lisible sur la carte sous « Anciennes notes » et n'atteint
+> toujours pas le prompt.
+
 ⚠️ **Une phrase de retour agit deux fois, et c'est voulu.** Elle compose d'abord le plan
 qu'elle annote (`plan_draft_note.ts::draftNoteInstruction`, avec la requête), puis elle est
 **classée** pour les plans suivants. Un texte que le classifieur ne range nulle part
@@ -191,7 +200,7 @@ son retrait ne change rien sous plancher, et il ne touche pas à `questionsFor` 
 
 | fermé | lot | ce qui le remplace |
 |---|---|---|
-| le pont chat → `food_preferences` : « Keep », `FoodPreferencesCard` sur `/app/plan`, `foodPreferencesForPrompt` / `reconcileFoodPreferencesFor` dans les deux générateurs et `household_voices_io.ts` | **C** | rien : le chat renvoie (M1). `food_preferences` reste **lisible** sur la carte (« Anciennes notes ») pour être rangé ou enlevé, et **n'atteint plus le prompt** ; `grep -rn memory_items supabase/functions/generate-*` rend zéro, tenu par un test |
+| le pont chat → `food_preferences` (⟳ 06/09 : « Garder » réécrit vers les lignes retenues, voir §2.1) : « Keep », `FoodPreferencesCard` sur `/app/plan`, `foodPreferencesForPrompt` / `reconcileFoodPreferencesFor` dans les deux générateurs et `household_voices_io.ts` | **C** | rien : le chat renvoie (M1). `food_preferences` reste **lisible** sur la carte (« Anciennes notes ») pour être rangé ou enlevé, et **n'atteint plus le prompt** ; `grep -rn memory_items supabase/functions/generate-*` rend zéro, tenu par un test |
 | `rhythm.set`, `logistics.set` comme familles retenues | déjà M5 ; le lecteur (`rhythmOverlayFor`, `logisticsOverlayFor`) reste **un cycle** avec un compteur `served`, puis se retire s'il rend 0 | le bilan écrit le champ ; la carte ne les propose plus au « Ranger dans » |
 | `craving` comme **section** de la carte | **D** | une ligne d'encart |
 | `method.*` comme **sections** séparées | **D** | une préférence, au même rang qu'un aliment |

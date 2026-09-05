@@ -2452,6 +2452,52 @@ export async function addWrittenFoodExclusions(args: {
         "qui compare le sujet caractère par caractère.",
     );
   }
+  await addWrittenFoodLines({ ...args, subject, kind: "food.exclude" });
+}
+
+/** La ligne qu'un « Garder » écrit — la même forme que l'écran « Ce que Sophia sait ». */
+export function writtenFoodLine(args: {
+  readonly text: string;
+  readonly kind: "food.prefer" | "food.exclude";
+  readonly subject: RetainedSubject;
+  readonly todayLocalIso: string;
+}): RetainedItem | null {
+  const scope = defaultScopeFor("written", args.kind);
+  if (scope === null) return null;
+  const label = String(args.text ?? "").trim();
+  if (label === "") return null;
+  return {
+    kind: args.kind,
+    scope,
+    subject: args.subject,
+    source: "written",
+    text: label,
+    at: args.todayLocalIso,
+    item: "",
+    confidence: null,
+    quote: null,
+    value: null,
+  };
+}
+
+/**
+ * ⟳ 2026-09-06 — ARBITRAGE 2 : « Garder » sur la carte « Ce que tu m'as dit »
+ * écrit une LIGNE RETENUE (`written × food.prefer | food.exclude`), par la même
+ * porte que l'écran (`keel_write_retained_items`), au sujet de la bouche du
+ * titulaire. Avant, il écrivait `practical_constraints.food_preferences`, que
+ * plus aucun générateur ne lit depuis le lot C (2026-09-03) : la personne
+ * gardait, rien n'atteignait un plan, et l'écran promettait le contraire.
+ * Ce n'est pas une troisième source : la phrase vient du chat, mais c'est la
+ * personne qui la confirme et la classe (j'aime / à éviter) sur l'écran.
+ */
+export async function addWrittenFoodLines(args: {
+  readonly userId: string;
+  readonly subject: RetainedSubject;
+  readonly kind: "food.prefer" | "food.exclude";
+  readonly foods: readonly string[];
+  readonly todayLocalIso: string;
+}): Promise<void> {
+  const subject = args.subject;
   // ⚠️ ON NORMALISE POUR COMPARER, ON GARDE POUR AFFICHER. Le `text` est ce
   // que la personne relira sur sa carte; la clé sert au seul dédoublonnage.
   const wanted = new Map<string, string>();
@@ -2482,42 +2528,20 @@ export async function addWrittenFoodExclusions(args: {
   // premier. On compare donc le texte normalisé, à sujet égal, et rien de plus.
   const already = new Set(
     store.items
-      .filter((it) => it.kind === "food.exclude" && it.subject === subject)
+      .filter((it) => it.kind === args.kind && it.subject === subject)
       .map((it) => it.text.trim().toLocaleLowerCase()),
   );
-  // ⚠️ LA PORTÉE SE DEMANDE, ELLE NE S'ÉCRIT PAS. `null` voudrait dire que
-  // `written × food.exclude` n'est pas une cellule légale — impossible
-  // aujourd'hui (`canProduce("written", …)` est vrai partout), et c'est
-  // précisément pour ça qu'on ne le suppose pas: le jour où la matrice bouge,
-  // cette porte doit s'arrêter, pas écrire une portée inventée.
-  const scope = defaultScopeFor("written", "food.exclude");
-  if (scope === null) {
-    throw new Error(
-      "[keel/api] addWrittenFoodExclusions: `written × food.exclude` n'est " +
-        "plus une cellule productible (nomenclature §5).",
-    );
-  }
   const additions: RetainedItem[] = [];
   for (const [key, label] of wanted) {
     if (already.has(key)) continue;
-    additions.push({
-      kind: "food.exclude",
-      scope,
-      subject,
-      source: "written",
-      text: label,
-      at: args.todayLocalIso,
-      item: "",
-      confidence: null,
-      // `null` — et c'est un des deux cas légitimes nommés par `quote`: le
-      // `text` EST la phrase de la personne, la citer deux fois n'ajoute rien.
-      quote: null,
-      // ⚠️ REQUIS, ET `null` EST SA VALEUR POUR CETTE FAMILLE. Le champ porte
-      // la donnée structurée d'un `portion.adjust` ou d'un `rhythm.set`; une
-      // exclusion n'en a pas, et le type l'exige quand même pour qu'aucune
-      // famille ne puisse en porter une par accident.
-      value: null,
-    });
+    const line = writtenFoodLine({ text: label, kind: args.kind, subject, todayLocalIso: args.todayLocalIso });
+    if (line === null) {
+      throw new Error(
+        `[keel/api] addWrittenFoodLines: \`written × ${args.kind}\` n'est ` +
+          "plus une cellule productible (nomenclature §5).",
+      );
+    }
+    additions.push(line);
   }
   if (additions.length === 0) return;
 

@@ -58,7 +58,10 @@ import { addDays } from "../api/dates";
 // L'écriture passe par `writtenDislikeWriter` (`api/mouthProfile`), qui adapte
 // le contrat « ça lève » de ce module au contrat « ça rend un refus » de cet
 // écran. La lecture, elle, n'a pas de refus à traduire.
-import { loadWrittenDislikes } from "../api/retainedItems";
+import { loadWrittenDislikes,
+  HOUSEHOLD_SUBJECT,
+  memberSubject,
+} from "../api/retainedItems";
 import {
   type AwayDay,
   EATING_OCCASIONS,
@@ -3404,6 +3407,12 @@ function MemberRow(
                   hasGoal={hasGoal}
                   practicalConstraints={practicalConstraints}
                   onSaved={onSavedOwnConstraints}
+                  // ⟳ 2026-09-06 (arbitrage 2): « Garder » écrit une ligne retenue au
+                  // sujet de CETTE bouche — la sienne, puisque `isMe`.
+                  keepAs={{
+                    subject: memberSubject(member.memberId) ?? HOUSEHOLD_SUBJECT,
+                    todayLocalIso,
+                  }}
                 />
               </div>
             </>

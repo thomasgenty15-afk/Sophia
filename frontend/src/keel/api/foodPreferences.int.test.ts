@@ -127,3 +127,46 @@ describe("le pont mémoire → plan ne peut pas dériver entre les deux runtimes
     expect(MAX_DISMISSED).toBe(backendNumber("MAX_DISMISSED"));
   });
 });
+
+// ⟳ 2026-09-06 — ARBITRAGE 2 : « Garder » écrit une LIGNE RETENUE, plus la liste
+// `food_preferences` que plus aucun générateur ne lit depuis le lot C.
+import { writtenFoodLine } from "./retainedItems";
+
+describe("« Garder » → ligne retenue (arbitrage 2)", () => {
+  const src = (p: string) => readFileSync(resolve(__dirname, p), "utf8");
+
+  it("la ligne écrite a la forme de l'écran « Ce que Sophia sait » : written, durable, le sujet donné, le texte tel quel", () => {
+    const like = writtenFoodLine({ text: "  le saumon fumé ", kind: "food.prefer", subject: "member:11111111-1111-4111-8111-111111111111", todayLocalIso: "2026-09-06" });
+    expect(like).toMatchObject({ kind: "food.prefer", source: "written", scope: "durable", text: "le saumon fumé", at: "2026-09-06", subject: "member:11111111-1111-4111-8111-111111111111", item: "", quote: null, value: null });
+    const avoid = writtenFoodLine({ text: "champignons", kind: "food.exclude", subject: "household", todayLocalIso: "2026-09-06" });
+    expect(avoid?.kind).toBe("food.exclude");
+    expect(writtenFoodLine({ text: "   ", kind: "food.prefer", subject: "household", todayLocalIso: "2026-09-06" })).toBeNull();
+  });
+
+  it("CÂBLAGE — la carte écrit par la porte des lignes retenues, dans les DEUX sens, et n'écrit plus food_preferences sur ce geste", () => {
+    const card = src("../components/FoodPreferencesCard.tsx");
+    expect(card).toMatch(/import \{ addWrittenFoodLines, type RetainedSubject \} from "\.\.\/api\/retainedItems"/);
+    expect(card).toMatch(/keepAsRetained\(p, "food\.prefer"\)/);
+    expect(card).toMatch(/keepAsRetained\(p, "food\.exclude"\)/);
+    const fn = card.slice(card.indexOf("const keepAsRetained = async ("), card.indexOf("const keepProposal = "));
+    expect(fn).toMatch(/await addWrittenFoodLines\(\{/);
+    expect(fn).toMatch(/kind,/);
+    expect(fn).not.toMatch(/saveFoodPreferences\(/);
+    // L'ancien geste ne survit que sans `keepAs`.
+    expect(card).toMatch(/props\.keepAs \? \(/);
+  });
+
+  it("CÂBLAGE — la page foyer donne le sujet de la bouche du titulaire et le jour", () => {
+    const page = src("../pages/HouseholdPage.tsx");
+    expect(page).toMatch(/keepAs=\{\{\s*subject: memberSubject\(member\.memberId\) \?\? HOUSEHOLD_SUBJECT,\s*todayLocalIso,\s*\}\}/);
+  });
+
+  it("les deux boutons ont leur copie dans les deux langues, et les anciennes notes se disent anciennes", () => {
+    for (const lang of ["fr", "en"]) {
+      const i18n = src(`../i18n/${lang}.ts`);
+      expect(i18n).toMatch(/"plan\.told\.keep_like": "/);
+      expect(i18n).toMatch(/"plan\.told\.keep_avoid": "/);
+      expect(i18n).not.toMatch(/"plan\.told\.yours": "(Dans ton plan|In your plan)"/);
+    }
+  });
+});
