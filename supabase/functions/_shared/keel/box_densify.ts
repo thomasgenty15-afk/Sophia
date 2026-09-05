@@ -57,7 +57,7 @@
  * relance du modèle ou un extra déclaré ont un sens.
  */
 import type { CompositionIndex, CompositionRef } from "./food_composition.ts";
-import { condimentMassFor, resolveIngredient, YIELD_FACTORS } from "./food_composition.ts";
+import { resolveIngredient, resolveIngredients, YIELD_FACTORS } from "./food_composition.ts";
 import type { FoodGroupRef } from "./tokens.ts";
 import { dishEnergy } from "./plan_energy.ts";
 import type { DishIngredient } from "./meal_generation.ts";
@@ -295,23 +295,22 @@ export function weighedReadyGrams(
   ingredients: readonly DishIngredient[],
   index: CompositionIndex,
 ): number | null {
+  // ⛔ LA MÊME RÉSOLUTION QUE LE NUMÉRATEUR, PAS LE CHAMP `gramsRaw`. Mesuré sur le
+  // premier plan réel densifié (2026-09-05, `161a04de`): la lane foyer ne remplit
+  // JAMAIS `gramsRaw` — tous nuls dans l'archive, « 2 720 g » compris — pendant
+  // que `dishEnergy` recalcule ses grammes depuis `amount`/`unit`/`state`. Le
+  // dénominateur ne comptait donc que les condiments conventionnels: une
+  // casserole entière rapportée à trois grammes de sel, des densités de
+  // plusieurs centaines de kcal par gramme, et 25 g déplacés qui « fermaient »
+  // 393 kcal. Un rejeu hors ligne qui reconstruisait `gramsRaw` ne pouvait pas
+  // le voir. `resolveIngredients` est la règle d'admission du numérateur
+  // (prose, puis unités, puis `condimentMassFor`): on lui prend ses grammes.
+  const r = resolveIngredients(index, ingredients);
   let total = 0;
   let any = false;
-  for (const ing of ingredients) {
-    const ref = resolveIngredient(index, ing.term);
-    if (!ref) continue;
-    // ⛔ UN INGRÉDIENT NON PESÉ N'EST PAS ÉCARTÉ, IL EST JUGÉ PAR `condimentMassFor`:
-    // une pincée de sel reçoit sa masse conventionnelle et entre au dénominateur
-    // (comme au numérateur, par `dishEnergy`); une huile non pesée est REFUSÉE
-    // par cette même fonction (`energyDense`), et `dishEnergy` marque alors la
-    // casserole incomplète — la densité reste `null`. Écarter les non-pesés des
-    // deux côtés aurait mesuré une casserole à l'huile non pesée sur son riz
-    // seul: moins dense qu'elle n'est, donc un écart cru plus grand, donc PLUS
-    // de grammes déplacés — le défaut n°1 de `food_composition.ts`, par la
-    // porte de derrière. On réutilise la règle qui a déjà sa contre-épreuve.
-    const g = ing.gramsRaw !== null && ing.gramsRaw > 0 ? ing.gramsRaw : condimentMassFor(ref);
-    if (g === null || !(g > 0)) continue;
-    total += g * YIELD_FACTORS[ref.yieldClass];
+  for (const { ref, gramsRaw } of r.resolved) {
+    if (!(gramsRaw > 0)) continue;
+    total += gramsRaw * YIELD_FACTORS[ref.yieldClass];
     any = true;
   }
   return any ? total : null;

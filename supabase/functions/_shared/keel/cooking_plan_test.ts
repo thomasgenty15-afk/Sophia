@@ -220,14 +220,10 @@ Deno.test("A2 — « le moins possible » PLAFONNE les sessions à deux, jamais 
   assertEquals(unusedGroceryRuns(3, keen), 0);
 });
 
-Deno.test("LOT C — « une seule course » exige le congélateur, et pousse les COURSES", () => {
-  // ⟳ RENVERSÉ LE 2026-09-04. Avant, l'absence de congélateur poussait les
-  // SESSIONS de 1 à 2. Elle pousse maintenant les COURSES, et les sessions ne
-  // dépendent plus de la cadence de courses du tout.
+Deno.test("A2 — « une seule course » EXIGE le congélateur, et le refus est nommé", () => {
   for (const freezer of [false, null] as const) {
     const out = plan({ runs: 1, freezer });
-    assertEquals(out.runs, 2, `freezer=${freezer}: il faut y retourner`);
-    assertEquals(out.sessions, 3, `freezer=${freezer}: le style décide, pas les courses`);
+    assertEquals(out.sessions, 2, String(freezer));
     assert(
       out.notes.includes("runs_1_needs_freezer"),
       `freezer=${freezer}: le refus doit être nommé`,
@@ -236,86 +232,23 @@ Deno.test("LOT C — « une seule course » exige le congélateur, et pousse les
   }
   // ⛔ `null` REFUSE COMME `false`. « On ne sait pas s'il en a un » n'est pas
   // une raison de lui promettre une semaine au congélateur.
-  //
-  // ⛔ ET VOICI LA CONFIGURATION QUE LE LOT EXISTE POUR OUVRIR: une course,
-  // trois sessions. On achète tout le dimanche, on congèle ce dont les sessions
-  // suivantes auront besoin. Elle était INATTEIGNABLE avant ce lot.
   const ok = plan({ runs: 1, freezer: true });
-  assertEquals(ok.runs, 1);
-  assertEquals(ok.sessions, 3);
+  assertEquals(ok.sessions, 1);
   assertEquals(ok.notes, []);
-  // « Le plan s'appuie sur le congélateur »: on fait les courses moins souvent
-  // qu'on ne cuisine, donc du cru est acheté d'avance.
   assertEquals(ok.usesFreezer, true);
-  // Le budget ne double que sur une session UNIQUE, et il n'y en a plus ici.
-  assertEquals(ok.sessionMinutes, 60);
-  assertEquals(plan({ style: "keen", runs: 1, freezer: true }).sessionMinutes, 120);
-  assertEquals(plan({ style: "minimal", runs: 1, freezer: true }).sessionMinutes, 30);
-});
-
-Deno.test("⛔ LOT C — L'INVARIANT `runs <= sessions`, par ÉNUMÉRATION", () => {
-  // La règle tranchée par l'utilisateur: on ne va pas au magasin plus souvent
-  // qu'on ne cuisine. Elle doit tenir sur TOUTE la table, pas sur trois cas.
-  for (const days of [1, 2, 3, 4, 5, 6, 7]) {
-    for (const runs of [1, 2, 3] as const) {
-      for (const style of COOKING_STYLES) {
-        for (const freezer of [true, false, null] as const) {
-          const window = NO_LEAD.slice(0, days) as DayToken[];
-          const out = deriveCookingPlan({
-            style,
-            runs,
-            freezer,
-            windowDays: window,
-            leadDay: false,
-            daysToEat: days,
-          });
-          const où = `${style}/${days}j/${runs}c/freezer=${freezer}`;
-          assert(out.runs <= out.sessions, `${où}: ${out.runs} courses > ${out.sessions} sessions`);
-          assert(out.runs >= 1, `${où}: au moins une course`);
-          assert(out.sessions >= 1, `${où}: au moins une session`);
-          // ⛔ ET LA CAUSE EST TOUJOURS NOMMÉE quand le plan rabote.
-          if (out.runs < runs && !out.notes.includes("runs_1_needs_freezer")) {
-            assert(
-              out.notes.includes("runs_capped_by_sessions"),
-              `${où}: raboté de ${runs} à ${out.runs} sans le dire`,
-            );
-          }
-        }
-      }
-    }
-  }
-});
-
-Deno.test("⛔ LOT C — les COURSES ne décident plus des sessions", () => {
-  // C'est le défaut que le lot ferme, dit en une ligne: à style et fenêtre
-  // égaux, changer le nombre de courses ne doit RIEN changer aux sessions.
-  const une = plan({ runs: 1, freezer: true });
-  const deux = plan({ runs: 2, freezer: true });
-  const trois = plan({ runs: 3, freezer: true });
-  assertEquals(une.sessions, deux.sessions);
-  assertEquals(deux.sessions, trois.sessions);
-  assertEquals(une.cookDays, trois.cookDays);
+  // Une seule session tient toute la fenêtre: son budget double, sous 240.
+  assertEquals(ok.sessionMinutes, 120);
+  assertEquals(plan({ style: "keen", runs: 1, freezer: true }).sessionMinutes, 240);
+  assertEquals(plan({ style: "minimal", runs: 1, freezer: true }).sessionMinutes, 60);
 });
 
 Deno.test("A2 — l'écart de courses ne compte PAS le congélateur manquant", () => {
-  // ⚠️ « Une course demandée, deux servies » a son propre nom
+  // ⚠️ « Une course demandée, deux sessions servies » a son propre nom
   // (`runs_1_needs_freezer`). Le compter comme une course inutilisée dirait
   // « une course de trop » à quelqu'un qui en avait demandé UNE SEULE.
   const out = plan({ runs: 1, freezer: false });
-  assertEquals(out.runs, 2);
-  assertEquals(unusedGroceryRuns(1, out), 0);
-});
-
-Deno.test("LOT C — l'écart compte ce que le PLAN organise, pas les sessions", () => {
-  // « Le moins possible » plafonne à 2 sessions; trois courses demandées sont
-  // donc ramenées à deux vagues, et la troisième reste POSSIBLE — c'est du
-  // frais du jour, et la rationale doit le dire au lieu de l'interdire.
-  const out = plan({ style: "minimal", runs: 3, freezer: true });
   assertEquals(out.sessions, 2);
-  assertEquals(out.runs, 2);
-  assert(out.notes.includes("runs_capped_by_sessions"));
-  assert(out.notes.includes("style_caps_sessions"));
-  assertEquals(unusedGroceryRuns(3, out), 1);
+  assertEquals(unusedGroceryRuns(1, out), 0);
 });
 
 // ---------------------------------------------------------------------------
@@ -335,15 +268,12 @@ Deno.test("A2 — la PREMIÈRE session est au rang 0, donc la VEILLE quand il y 
 });
 
 Deno.test("A2 — les sessions suivantes découpent les jours MANGÉS", () => {
-  // ⟳ LOT C — LE STYLE CHOISIT LE NOMBRE DE SESSIONS, plus les courses.
-  // `minimal` porte 2, `keen` en porte 3: c'est par là qu'on sélectionne la
-  // découpe à éprouver.
-  const two = plan({ style: "minimal" });
+  const two = plan({ runs: 2, style: "balanced" });
   assertEquals(two.sessions, 2);
   // Fenêtre `sun mon tue wed thu fri sat sun`, veille au rang 0, 7 jours
   // mangés: la seconde session tombe au rang 1 + floor(7/2) = 4, soit jeudi.
   assertEquals(two.cookDays, ["sun", "thu"]);
-  const three = plan({ style: "keen" });
+  const three = plan({ runs: 3, style: "keen" });
   assertEquals(three.sessions, 3);
   // Rangs 0, 1 + floor(7/3) = 3, 1 + floor(14/3) = 5 → dimanche, mercredi, vendredi.
   assertEquals(three.cookDays, ["sun", "wed", "fri"]);
@@ -396,14 +326,11 @@ Deno.test("A2 — une fenêtre trop courte plafonne les sessions, et le DIT", ()
 });
 
 Deno.test("A2 — `longestFridgeStretch` mesure la découpe, il ne la juge pas", () => {
-  const two = plan({ style: "minimal" });
+  const two = plan({ runs: 2, style: "balanced" });
   // `sun` au rang 0, `thu` au rang 4, fenêtre de 8: le plus long écart est
   // 8 − 4 = 4 jours après la dernière session.
   assertEquals(longestFridgeStretch(two, WITH_LEAD), 4);
-  // ⟳ LOT C — UNE SESSION UNIQUE VIENT MAINTENANT DE LA FENÊTRE, pas des
-  // courses: un seul jour mangé ne peut porter qu'une séance de cuisine.
-  const one = plan({ daysToEat: 1, freezer: true });
-  assertEquals(one.sessions, 1);
+  const one = plan({ runs: 1, freezer: true });
   assertEquals(longestFridgeStretch(one, WITH_LEAD), 8);
 });
 

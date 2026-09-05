@@ -323,3 +323,35 @@ Deno.test("⛔ ⟳ UNE PINCÉE DE SEL NE REND PAS LA DENSITÉ D'UNE CASSEROLE IN
   assertEquals(weighedReadyGrams(dark.ingredients, index), null);
   assertEquals(densityFromComposition(index, [dark])({ term: "x", grams: 1, preparationId: "prep_dark" }).kcalPerGram, null);
 });
+
+Deno.test("⛔ ⟳ LE RUNTIME NE REMPLIT PAS `gramsRaw` — la densité se calcule quand même, et reste sensée", () => {
+  // Mesuré sur le premier plan réel densifié: `grams_raw` nul sur TOUS les
+  // ingrédients, « 2 720 g » compris. Le dénominateur ne voyait que le sel:
+  // densités de plusieurs centaines de kcal/g, 25 g « fermaient » 393 kcal.
+  const index = buildCompositionIndex(
+    [
+      ref({ slug: "poulet", energyKcal: 200, foodGroupRef: "poultry", yieldClass: "meat_shrinks" }),
+      ref({ slug: "sel", energyKcal: 0, foodGroupRef: "sauce_dressing" as never, condimentGrams: 1 } as never),
+    ],
+    [],
+  );
+  const runtimeIng = (term: string, amount: number | null, unit: "g" | null) => ({
+    term, quantity: amount === null ? "1 pincée" : `${amount} g`, in_pantry: false, amount, unit,
+    state: amount === null ? null : "raw", gramsRaw: null, quantitySource: "structured",
+  }) as never;
+  const prep = { id: "prep_chicken", method: "Rôtir.", ingredients: [runtimeIng("poulet", 2720, "g"), runtimeIng("sel", null, null)] };
+  // Le numérateur et le dénominateur passent par la MÊME résolution: 2 720 g crus × 0,7 + 1 g.
+  assertEquals(weighedReadyGrams(prep.ingredients, index), 2720 * 0.7 + 1);
+  const d = densityFromComposition(index, [prep])({ term: "poulet rôti", grams: 300, preparationId: "prep_chicken" });
+  assert(d.kcalPerGram !== null && d.kcalPerGram > 1 && d.kcalPerGram < 4, `densité aberrante: ${JSON.stringify(d)}`);
+  // Et le module, sur cette boîte, ne « ferme » pas plus que ce que les grammes portent.
+  const legumes = ref({ slug: "courgette", energyKcal: 17, foodGroupRef: "non_starchy_veg", yieldClass: "veg_shrinks" });
+  const index2 = buildCompositionIndex([index.bySlug.get("poulet")!, index.bySlug.get("sel")!, legumes], []);
+  const densityOf = densityFromComposition(index2, [prep]);
+  const out = densifyBoxes({
+    boxes: [{ boxId: "b", memberId: LEA, day: "fri", slot: "dinner", items: [{ term: "courgette", grams: 300, preparationId: null }, { term: "poulet rôti", grams: 200, preparationId: "prep_chicken" }] }],
+    deficits: [{ memberId: LEA, day: "fri", unmetKcal: 400 }],
+    densityOf,
+  });
+  assert(out.counts.closed_kcal <= out.counts.moved_g * 4, `${out.counts.closed_kcal} kcal fermés avec ${out.counts.moved_g} g: une densité ment`);
+});
