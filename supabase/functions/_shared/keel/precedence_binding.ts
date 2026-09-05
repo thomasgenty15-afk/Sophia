@@ -97,6 +97,10 @@ export const HOUSEHOLD_ARBITRATION_BY_VERSION: Readonly<Record<string, string>> 
   // bloc SCHÉMA des boîtes — le bloc d'arbitrage ne bouge pas, même empreinte.
   v27_the_swap_cooks_apart:
     "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
+  // ⟳ 2026-09-05: v28 ferme l'échappatoire « nothing clashes » (suffixe
+  // système, à côté de la clé "boxes"); le bloc d'arbitrage ne bouge pas.
+  v28_the_table_keeps_its_meat:
+    "2e4fef9a623b4843dd8613e1ba00062aa2498f51257bc61ffad32751d363ffe1",
 };
 
 /** SHA-256 hexadécimal — `crypto.subtle`, standard web, présent en edge. */

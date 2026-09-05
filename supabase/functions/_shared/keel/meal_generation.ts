@@ -789,6 +789,16 @@ export interface GeneratedDish {
    */
   heldOff: BoxHeldOff[];
   /**
+   * ⟳ 2026-09-05 — LES RÉGIMES QUE LA SURFACE DU PLAT MORD (titre, méthode,
+   * ingrédients, casseroles citées par toutes ses boîtes). Ce n'est pas un
+   * refus: c'est le DÉNOMINATEUR de la ceinture. Un plat dont la surface mord
+   * la ligne végétarienne PORTE le composant carné que les omnivores attendent;
+   * un plan où aucun plat ne la mord a mis la table entière au régime de la
+   * minorité, avec `bites: 0` pour tout journal (C06/C07). Lu par
+   * `swap_presence.ts`.
+   */
+  regimeBites: DietaryRegime[];
+  /**
    * LOT C — LA BOUCHE À QUI CE PLAT EST DÉDIÉ. `null` = le plat de la table.
    *
    * ⛔ `null` EST LE CAS NOMINAL, et il ne veut PAS dire « on ne sait pas ». La
@@ -7288,12 +7298,18 @@ export function parseGeneratedMeal(
     const heldOffByRegime = new Set(
       boxHeldOff.filter((h) => h.cause === "regime").map((h) => h.memberId),
     );
+    const dishRegimeBites: DietaryRegime[] = [];
     for (const [memberId, regime] of mouthRegimes) {
       // ⚠️ LA SURFACE DU PLAT, ICI, ET C'EST VOULU: cette boucle demande « ce
       // PLAT mord-il cette ligne? », pas « ce contenant la mord-il? ». C'est
       // elle qui alimente `regime_refusals`, dont la seconde surface
       // (`preparation_shares`) ne connaît aucune boîte.
       const breach = biteFor(regime, null, "");
+      // ⟳ 2026-09-05: la morsure au niveau PLAT est aussi le dénominateur —
+      // « ce plat porte ce que cette ligne refuse » (voir `regimeBites`).
+      if (breach.matched !== null && !dishRegimeBites.includes(regime)) {
+        dishRegimeBites.push(regime);
+      }
       if (breach.matched === null) continue;
       for (const prepId of breach.preparationIds) {
         const seen = regimeRefusedByPreparation.get(prepId) ?? new Set<string>();
@@ -7523,6 +7539,7 @@ export function parseGeneratedMeal(
       // à la création comme le reste. Interne: `mealDishesPayload` ne le
       // recopie pas, la base n'en voit rien.
       heldOff: boxHeldOff,
+      regimeBites: dishRegimeBites,
       memberId,
       sameDay,
     });

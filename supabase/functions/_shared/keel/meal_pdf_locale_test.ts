@@ -66,6 +66,7 @@ function dish(over: Partial<GeneratedDish> = {}): GeneratedDish {
     // pas ce champ (il achète du CRU pour la maison), mais il est REQUIS, et
     // une fixture qui l'omettrait ne compilerait pas.
     heldOff: [],
+    regimeBites: [],
     // LOT C — `null` = le plat de la table, et c'est le cas nominal. Le PDF de
     // courses ne lit pas ce champ: on achète pour la maison, pas par bouche.
     memberId: null,

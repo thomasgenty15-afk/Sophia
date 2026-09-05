@@ -233,6 +233,31 @@ Deno.test("⟳ LA RELANCE NOMME LE LIEN FAUTIF quand la boîte existe déjà", (
   assert(items !== null && items.includes("box of their OWN"), items ?? "null");
 });
 
+Deno.test("⟳ LA RELANCE PARTIELLE ne demande QUE les cellules nommées, et seulement quand on le lui demande", () => {
+  // Mesuré: 36 relances réelles à 10–12 k jetons et 85 s chacune pour changer
+  // une ou deux cases. La fusion par parties sait prendre les seules cellules
+  // réparées; la relance n'a plus à rendre le reste.
+  const row = { name: "Léa", memberId: LEA, day: "wed", slot: "dinner", cause: "held_off_regime" as const, dish: "Rice bowl" };
+  const whole = unfedRetryInstruction([row]);
+  const partial = unfedRetryInstruction([row], { partial: true });
+  assert(whole !== null && partial !== null);
+  assert(!whole.includes("RETURN ONLY"), "sans option, la relance demande déjà un plan partiel");
+  assert(partial.includes("RETURN ONLY THE MEALS NAMED ABOVE"), partial);
+  assert(partial.includes('"dishes" holds ONLY the dishes of those day/slot cells'), partial);
+  assert(partial.includes("FULL recipes"), "une préparation partielle sans recette serait une casserole vide");
+  assert(partial.includes("cooked apart"), "la préparation à part ne survit pas au bloc partiel");
+  assert(partial.includes("will be discarded"), partial);
+  // Le bloc vient APRÈS les lignes par bouche: la consigne d'abord, le format ensuite.
+  assert(partial.indexOf("Léa") < partial.indexOf("RETURN ONLY"), partial);
+});
+
+Deno.test("CÂBLAGE — la relance est PARTIELLE dans le générateur", async () => {
+  const src = await generatorSource();
+  const at = src.indexOf("const instruction = unfedRetryInstruction(");
+  const call = src.slice(at, src.indexOf(");", at) + 2);
+  assert(/\{ partial: true \}/.test(call), "la relance rend encore un plan entier: 85 s et 12 k jetons par tour\n" + call);
+});
+
 Deno.test("LA RELANCE dit un remède DIFFÉRENT par cause", () => {
   const named = unfedRetryInstruction([
     { name: "Léa", memberId: LEA, day: "wed", slot: "dinner", cause: "not_named", dish: "Rice bowl" },
@@ -517,8 +542,8 @@ Deno.test("CÂBLAGE — la relance INSISTE, et elle s'arrête quand elle n'amél
   // ENTIER: elle répare des cases et en casse d'autres. Il faut insister sur
   // ce qui manque ENCORE.
   assert(
-    /const UNFED_RETRIES_MAX = 2;/.test(src),
-    "la relance ne fait plus qu'un tour: sur cinq jours, un tour ne suffit pas",
+    /const UNFED_RETRIES_MAX = 3;/.test(src),
+    "la relance ne fait plus ses trois tours: une relance partielle est bon marché, un refus non",
   );
   assert(
     /attempt <= UNFED_RETRIES_MAX && !delivered\.allFed/.test(src),

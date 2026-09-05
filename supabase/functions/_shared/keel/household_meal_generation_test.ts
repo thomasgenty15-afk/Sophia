@@ -1870,7 +1870,7 @@ Deno.test("LOT 4 — la version de la lane foyer a bougé d'UN cran", () => {
   //   · v26 AVEC `decided` — les faits déjà tranchés partent aussi.
   // Le compteur `explanation.asked` sépare les deux dernières, et un test plus
   // bas tient l'identité du `userSuffix` sans les faits.
-  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v27_the_swap_cooks_apart");
+  assertEquals(HOUSEHOLD_PROMPT_VERSION, "v28_the_table_keeps_its_meat");
 });
 
 // ===========================================================================

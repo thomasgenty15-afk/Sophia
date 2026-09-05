@@ -314,8 +314,36 @@ export interface UnfedRetryRow {
  * deux relances qui existent déjà: réparer en supprimant des journées est la
  * sortie la plus facile, et elle passe toutes les autres gardes.
  */
+/**
+ * ⟳ 2026-09-05 — LA RELANCE NE REND QUE LES CELLULES À RÉPARER.
+ *
+ * Mesuré sur 36 relances réelles: chaque relance rendait un plan ENTIER —
+ * 10 à 12 k jetons de sortie, 85 s en médiane — pour changer une ou deux
+ * cases, et réécrivait tout le reste, souvent en le cassant. Depuis la fusion
+ * par parties (`retry_merge.ts`), l'appelant sait prendre les seules cellules
+ * réparées; la relance n'a donc plus besoin de rendre le reste. Le bloc
+ * ci-dessous le lui dit: mêmes clés JSON, `dishes` limité aux cases nommées,
+ * `preparations` à ce qu'elles citent, sessions et courses idem. Un modèle
+ * qui rend quand même le plan entier n'est pas puni: la fusion en prend ce
+ * qu'il faut, et le coût est celui d'hier.
+ */
+export const UNFED_RETRY_PARTIAL_BLOCK = [
+  "⛔ RETURN ONLY THE MEALS NAMED ABOVE. Keep the same JSON shape, but:",
+  "- \"dishes\" holds ONLY the dishes of those day/slot cells -- every dish of each",
+  "  named cell (the table's dish with all its boxes, and any dish of someone's own",
+  "  at that cell), nothing from any other day or slot;",
+  "- \"preparations\" holds ONLY the preparations those dishes cite, as FULL recipes",
+  "  (title, method, ingredients with quantities, cook_on) -- a swapped component",
+  "  gets its own preparation, cooked apart;",
+  "- \"cooking_sessions\" holds only the sessions those preparations cook in;",
+  "- \"shopping_list\" holds only the lines those preparations need;",
+  "- \"member_portions\" may be empty.",
+  "Rewriting the rest of the plan is a mistake: it will be discarded.",
+].join("\n");
+
 export function unfedRetryInstruction(
   rows: readonly UnfedRetryRow[],
+  options: { readonly partial?: boolean } = {},
 ): string | null {
   const clean = (rows ?? []).filter((r) =>
     r && String(r.name ?? "").trim() && String(r.memberId ?? "").trim()
@@ -372,6 +400,7 @@ export function unfedRetryInstruction(
     "Everyone eating a meal must be named on exactly one box of it. Do NOT drop " +
     "a dish, do NOT shorten the plan, and do NOT mention any of this in a " +
     "\"why\" -- what somebody eats is nobody's business but theirs.",
+    ...(options.partial ? [UNFED_RETRY_PARTIAL_BLOCK] : []),
   ].join("\n");
 }
 

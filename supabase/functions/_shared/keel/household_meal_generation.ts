@@ -635,7 +635,7 @@ import {
 // distinguer, pas deux: v25, v26 SANS les faits (le bloc utilisateur est vide,
 // le prompt est celui de v25 plus le schéma), et v26 AVEC. Le compteur
 // `explanation.asked` sépare les deux dernières.
-export const HOUSEHOLD_PROMPT_VERSION = "v27_the_swap_cooks_apart";
+export const HOUSEHOLD_PROMPT_VERSION = "v28_the_table_keeps_its_meat";
 
 export interface HouseholdRestriction {
   memberId: string;
@@ -1385,7 +1385,21 @@ function boxSchemaBlock(
     "The swapped component is cooked in a preparation of its OWN, or in none:",
     "never inside the preparation that carries the original. The box item for",
     "the swap cites that own preparation, or no preparation at all.",
-    "If nothing clashes, everyone shares the same one.",
+    // ⟳ 2026-09-05 — L'ÉCHAPPATOIRE, FERMÉE EN NOMMANT LA SORTIE. Mesuré deux
+    // fois (C06/C07): « if nothing clashes, everyone shares the same one » a
+    // été lu comme « fais en sorte que rien ne clashe » — 42 plats sans
+    // viande pour quatre omnivores et une végétarienne. Le brief interdisait
+    // déjà de retirer la protéine animale; l'interdit seul n'a pas suffi. On
+    // décrit la structure attendue, celle que les foyers justes produisent
+    // d'eux-mêmes: base commune + UNE casserole de plus, citée par les seules
+    // boîtes des bouches libres.
+    "If nothing clashes, everyone shares the same one -- but nothing clashing",
+    "BECAUSE THE WHOLE PLAN AVOIDS what one line refuses is not sharing, it is",
+    "putting the table on one person's line. When someone at the table is not",
+    "bound by the strictest line, the base that follows it is the shared",
+    "preparation, and the component it refuses is ONE MORE preparation, cited",
+    "only by the boxes of the people who eat it, at most lunches and dinners.",
+    "A week without it for them is a mistake.",
     // ⚠️ « carries », JAMAIS « may carry ». La formulation permissive a été
     // mesurée le 2026-08-17 comme une permission qu'on décline — zéro
     // déclaration sur douze runs — et un test de ce fichier interdit désormais

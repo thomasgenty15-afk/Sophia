@@ -257,6 +257,10 @@ import {
   unfedRetryInstruction,
 } from "../_shared/keel/meals_delivered.ts";
 import {
+  swapPresence,
+  swapRetryInstruction,
+} from "../_shared/keel/swap_presence.ts";
+import {
   densifyBoxes,
   densityFromComposition,
 } from "../_shared/keel/box_densify.ts";
@@ -6130,6 +6134,10 @@ Deno.serve(async (req) => {
       : DEFAULT_EATING_RHYTHM;
     const mouthCells = platedMembers.map((m) => ({
       memberId: m.memberId,
+      // ⟳ 2026-09-05: le régime de la bouche voyage avec ses cellules — c'est
+      // ce qui sépare « liée par la ligne la plus stricte » de « libre » dans
+      // `swapPresence`, sur la MÊME liste que `freeNames` du prompt.
+      regime: m.diet,
       cells: memberMealCells({
         away: m.away.effective,
         rhythm: m.eatingSlots ?? houseRhythmForCells,
@@ -6147,6 +6155,13 @@ Deno.serve(async (req) => {
         memberId: d.memberId,
         boxes: d.boxes.map((b) => ({ id: b.id, memberIds: b.memberIds })),
         heldOff: d.heldOff,
+      }));
+    const swapViewOf = (m: ParsedMealForDelivery) =>
+      m.dishes.map((d) => ({
+        day: d.day,
+        slot: d.slot,
+        memberId: d.memberId,
+        regimeBites: d.regimeBites,
       }));
     let delivered = mealsDelivered(deliveredViewOf(meal), mouthCells);
     const unfedBefore = delivered.missing;
@@ -6185,7 +6200,11 @@ Deno.serve(async (req) => {
     // ⛔ PAS SUR L'ADOPTION D'UN APERÇU. `adoptingDraft` reprend un plan que la
     // personne a DÉJÀ vu; le régénérer lui rendrait autre chose que ce qu'elle
     // a accepté. Même arbitrage que les deux relances au-dessus.
-    const UNFED_RETRIES_MAX = 2;
+    // ⟳ 2026-09-05: trois tours, pas deux — une relance PARTIELLE (voir
+    // `UNFED_RETRY_PARTIAL_BLOCK`) coûte une fraction d'un plan entier, et un
+    // tour de plus vaut moins qu'un refus. La série s'arrête toujours dès
+    // qu'un tour n'améliore rien, en entier ou par parties.
+    const UNFED_RETRIES_MAX = 3;
     for (
       let attempt = 1;
       attempt <= UNFED_RETRIES_MAX && !delivered.allFed && !adoptingDraft;
@@ -6205,6 +6224,10 @@ Deno.serve(async (req) => {
             matched: miss.matched,
           }))
         ),
+        // ⟳ 2026-09-05: la relance ne rend que les cellules nommées; la fusion
+        // par parties (`retry_merge.ts`) les prend. Un plan entier rendu quand
+        // même passe par la même voie: rien n'est perdu, seulement le temps.
+        { partial: true },
       );
       if (instruction) {
         try {
@@ -6297,6 +6320,96 @@ Deno.serve(async (req) => {
     // ⛔ ET SEULEMENT POUR UN GOÛT. Rendre son repas à quelqu'un en lui servant
     // ce que son régime lui interdit n'est pas un recours, c'est le défaut
     // d'origine. Un régime resté sans repas va au refus, plus bas.
+    // ═══════════════════════════════════════════════════════════════════════
+    // ⟳ 2026-09-05 — LA TABLE ENTIÈRE AU RÉGIME DE LA MINORITÉ (C06/C07)
+    // ═══════════════════════════════════════════════════════════════════════
+    // Mesuré deux fois: cinq bouches, une végétarienne, et le modèle compose
+    // une semaine sans une casserole carnée — 42 plats, zéro viande, zéro
+    // poisson — avec `bites: 0, refused: 0, missing: 0`: le journal d'un plan
+    // parfait, parce qu'il n'y avait plus rien à mordre. Le bloc régime lui
+    // disait pourtant « do NOT drop the animal protein »; il a pris
+    // l'échappatoire « if nothing clashes ». Ici: le dénominateur, par
+    // cellule, et une relance sur le SEUL cas mesuré, le flagrant (zéro
+    // cellule à composant sur toute la fenêtre). Un ratio partiel se mesure
+    // d'abord (`swap.cells_swap_absent`), il ne se répare pas encore.
+    let swap = swapPresence({
+      dishes: swapViewOf(meal),
+      mouths: mouthCells,
+      strictest: strictestRegime,
+    });
+    let swapRetryAttempts = 0;
+    let swapRetryAccepted = 0;
+    if (swap.counters.flagrant && !adoptingDraft && strictestRegime !== null) {
+      const names = (ids: readonly string[]) =>
+        ids.map((id) => String(nameOf.get(id) ?? "").trim()).filter(Boolean);
+      const instruction = swapRetryInstruction({
+        strictest: strictestRegime,
+        freeNames: names(swap.freeMemberIds),
+        boundNames: names(swap.boundMemberIds),
+        cellsChecked: swap.counters.cells_checked,
+      });
+      if (instruction) {
+        try {
+          const retryResult = await generateWithGemini(
+            built.systemPrompt + household.systemSuffix,
+            householdUserMessage(`\n\n${instruction}`),
+            0.6,
+            true,
+            [],
+            "auto",
+            {
+              source: `${FN_NAME}.swap_retry`,
+              requestId,
+              userId,
+              model: keelGenerationModel(),
+              httpTimeoutMs: PLAN_HTTP_TIMEOUT_MS,
+              reasoningEffort: PLAN_REASONING_EFFORT,
+            },
+          );
+          swapRetryAttempts += 1;
+          if (typeof retryResult === "string") {
+            const retried = parseGeneratedMeal(retryResult, parseArgs);
+            const after = swapPresence({
+              dishes: swapViewOf(retried),
+              mouths: mouthCells,
+              strictest: strictestRegime,
+            });
+            const afterDelivered = mealsDelivered(deliveredViewOf(retried), mouthCells);
+            // Accepté si des cellules portent ENFIN le composant, sans qu'une
+            // bouche perde un repas ni que la ceinture refuse davantage: la
+            // relance ne doit pas acheter la viande des uns avec l'assiette
+            // des autres.
+            if (
+              retried.dishes.length >= meal.dishes.length &&
+              after.counters.cells_carrying > swap.counters.cells_carrying &&
+              afterDelivered.missing <= delivered.missing &&
+              retried.regime_belt.refused <= meal.regime_belt.refused
+            ) {
+              meal = retried;
+              mealSourceText = retryResult;
+              delivered = afterDelivered;
+              swap = after;
+              swapRetryAccepted += 1;
+            }
+          }
+        } catch (e) {
+          console.warn(JSON.stringify({
+            tag: "keel.household_meal.swap_retry_failed",
+            request_id: requestId,
+            error: String(e),
+          }));
+        }
+      }
+    }
+    console.info(JSON.stringify({
+      tag: "keel.household_meal.swap_presence",
+      request_id: requestId,
+      ...swap.counters,
+      absent_cells: swap.absentCells.map((c) => `${c.day}/${c.slot}`),
+      retry_attempts: swapRetryAttempts,
+      retry_accepted: swapRetryAccepted,
+    }));
+
     const restorable = delivered.mouths
       .flatMap((row) => row.missing)
       .filter((m): m is UnfedRow & { boxId: string } =>
@@ -8448,6 +8561,15 @@ Deno.serve(async (req) => {
       // ligne; `mouths: 0` le dit. Même discipline que les cinq compteurs
       // au-dessus, et que `dish_owners` avant eux.
       regime_belt: meal.regime_belt,
+      // ⟳ 2026-09-05: le DÉNOMINATEUR de la ceinture — voir `swap_presence.ts`.
+      // Sans lui, un plan qui met la table au régime de la minorité et un plan
+      // parfait rendent le même `bites: 0`.
+      swap: {
+        ...swap.counters,
+        absent_cells: swap.absentCells.map((c) => `${c.day}/${c.slot}`),
+        retry_attempts: swapRetryAttempts,
+        retry_accepted: swapRetryAccepted,
+      },
       // ⛔ LA CEINTURE DES EXCLUSIONS PAR BOUCHE — sans ses nombres, une
       // exclusion inerte et une exclusion honorée se lisent pareil.
       exclusion_belt: meal.exclusion_belt,
