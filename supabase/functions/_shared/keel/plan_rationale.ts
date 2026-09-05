@@ -303,6 +303,15 @@ export interface PlanRationaleFacts {
        * 2 courses, 7 jours): elle n'avait coché ni lundi ni jeudi.
        */
       readonly cookDays: readonly DayToken[];
+      /**
+       * ⟳ LOT C (2026-09-05) — LES COURSES QUE LE PLAN ORGANISE. REQUIS.
+       * Depuis le renversement (`runs <= sessions`), ce nombre peut être plus
+       * petit que ce que la personne a demandé; `unusedRuns` porte l'écart. La
+       * phrase qui le dit a besoin des DEUX: « tu avais prévu 3, le plan en
+       * organise 2 ». Sans ce champ, elle devrait déduire le demandé des
+       * sessions — faux dès que la fenêtre plafonne.
+       */
+      readonly runs: number;
       /** Les courses demandées que le plan n'utilise pas. `0` = aucune. */
       readonly unusedRuns: number;
       /** Le vocabulaire fermé de `CookingPlanNote`. */
@@ -680,6 +689,16 @@ const COPY = {
     daysCapSessions: (sessions: number) =>
       `Cette fenêtre est courte : ${sessions} session de cuisine, pas plus — ` +
       `deux le même jour ne feraient qu'une.`,
+    // ── ⟳ LOT C · LES COURSES RABOTÉES PAR LES SESSIONS ─────────────────
+    // La règle tranchée par l'utilisateur, dite en une phrase : on ne va pas
+    // au magasin plus souvent qu'on ne cuisine. Un fait sur le PLAN, jamais un
+    // reproche — la personne garde le droit d'y retourner pour du frais, et la
+    // phrase le dit pour que « le plan n'en organise que 2 » ne se lise pas
+    // comme une interdiction.
+    runsCappedBySessions: (asked: number, runs: number) =>
+      `Tu avais prévu ${asked} courses ; le plan n'en organise que ${runs}, ` +
+      `une par session de cuisine — on ne va pas au magasin plus souvent qu'on ` +
+      `ne cuisine. Rien ne t'empêche d'y retourner pour du frais.`,
     cookDayBeforeTonight: (day: string) =>
       `Tout est cuisiné ce soir, ${day} : le plan commence un jour plus tôt, ` +
       `et rien ne se mange ce jour-là.`,
@@ -917,6 +936,10 @@ const COPY = {
     daysCapSessions: (sessions: number) =>
       `This window is short: ${sessions} cooking session, no more — two on ` +
       `the same day would only be one.`,
+    runsCappedBySessions: (asked: number, runs: number) =>
+      `You planned ${asked} shops; the plan organises ${runs}, one per cooking ` +
+      `session — nobody shops more often than they cook. You can still go ` +
+      `back for fresh food.`,
     cookDayBeforeTonight: (day: string) =>
       `Everything is cooked tonight, ${day}: the plan starts a day earlier, ` +
       `and nothing is eaten on that day.`,
@@ -1294,6 +1317,17 @@ export function explainPlanChoices(input: {
     }
     if (cooking.notes.includes("days_cap_sessions")) {
       lines.push(copy.daysCapSessions(cooking.sessions));
+    }
+    // ⟳ LOT C — ET LE RABOTAGE DES COURSES, QUAND LE STYLE N'A PAS DÉJÀ PARLÉ.
+    // `styleCapsSessions` dit déjà « N sessions suffisent, même avec R courses »
+    // quand c'est le STYLE qui borne ; en redire une phrase serait deux fois le
+    // même fait. Celle-ci ne sort que sur l'autre cause — la fenêtre — où sans
+    // elle « cette fenêtre est courte » ne dirait rien des courses perdues.
+    if (
+      cooking.notes.includes("runs_capped_by_sessions") &&
+      !cooking.notes.includes("style_caps_sessions")
+    ) {
+      lines.push(copy.runsCappedBySessions(cooking.runs + cooking.unusedRuns, cooking.runs));
     }
     // ⛔ `runs_1_needs_freezer` N'A PAS DE PHRASE ICI, ET CE N'EST PAS UN OUBLI:
     // « une seule course » entre par la porte `one_cooking_session`, et son

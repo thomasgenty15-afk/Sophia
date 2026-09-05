@@ -769,6 +769,24 @@ Deno.test("PROPERTY: a closed gate sends no number at all", () => {
   // guard that never ran.
   assertStringIncludes(body, "show: false");
   assertStringIncludes(body, "reason");
+  // ⟳ LOT F (2026-09-05) — LA SEULE FERMETURE QUI PORTE QUELQUE CHOSE, gardée
+  // à part. Quand le lecteur est fermé PAR DÉFAUT (maintenance, rien choisi),
+  // la réponse porte les boîtes des bouches à objectif — et RIEN du lecteur:
+  // ni plat, ni jour, ni cible, ni base. Cette branche ne passe pas par
+  // `closed()`, donc le garde ci-dessus ne la voyait pas (relecture croisée).
+  const soft = fn.indexOf("if (readerClosedByDefault) {");
+  assertEquals(soft >= 0, true, "la fermeture douce a bougé — relis ce garde");
+  const softBody = fn.slice(soft, fn.indexOf("\n    }\n", soft));
+  for (const banned of ["dishes:", "days:", "target:", "basis:", "kcal:", "_kcal", "eating_out_advice"]) {
+    assertEquals(softBody.includes(banned), false, `la fermeture douce porte "${banned}"`);
+  }
+  assertStringIncludes(softBody, "boxes:");
+  assertStringIncludes(softBody, "boxes_gate:");
+  // ⛔ ET ELLE NE S'OUVRE QUE SUR LA FERMETURE PAR DÉFAUT — jamais sur un
+  // lecteur qui a EXPLICITEMENT éteint (R7). Mutation M4 de la relecture.
+  const cond = fn.slice(fn.indexOf("const readerClosedByDefault ="), fn.indexOf(";", fn.indexOf("const readerClosedByDefault =")));
+  assertStringIncludes(cond, 'readerSwitchSource === "no_direction"');
+  assertEquals(cond.includes("explicit_off"), false, `la fermeture douce laisse passer un lecteur qui a éteint: ${cond}`);
 });
 
 Deno.test("PROPERTY: the target reaches a generator ONLY through the gate, and only as grams (R6, retourné le 2026-08-18)", () => {
@@ -990,7 +1008,12 @@ Deno.test("PROPERTY: the shared assembler really reads all four gates", () => {
       // ③ la position du coach vient du jeton de sa doctrine publiée.
       ["coachCounting", "coachCounting"],
       // ④ l'interrupteur passe par la réduction tri-état, jamais par `=== true`.
-      ["studentSwitch", "energySwitchFrom({"],
+      // ⟳ LOT F (2026-09-05) — LA RÉDUCTION PEUT ÊTRE HISSÉE. `energy_gate_io.ts`
+      // réduit l'interrupteur UNE fois dans `const displaySwitch = energySwitchFrom({`
+      // et passe `displaySwitch.on`, parce que l'appelant a aussi besoin de sa
+      // `.source`. Le garde accepte cette forme si et seulement si la variable
+      // vient bien de `energySwitchFrom` — vérifié juste après la boucle.
+      ["studentSwitch", "displaySwitch.on"],
     ] as const
   ) {
     // ⚠️ `${key}:` NE MARCHE PAS: deux des quatre entrées sont écrites en
@@ -1012,6 +1035,8 @@ Deno.test("PROPERTY: the shared assembler really reads all four gates", () => {
   // `evaluateRestrictionForStudent` rendrait `restriction_flag` indéfini —
   // c'est-à-dire `false`, c'est-à-dire la porte ① ouverte pour tout le monde.
   assertStringIncludes(io, "await evaluateRestrictionForStudent(");
+  // ⟳ LOT F — la variable hissée vient de la SEULE écriture de la règle.
+  assertStringIncludes(io, "const displaySwitch = energySwitchFrom({");
   // ⚠️ ET LE FAIL-CLOSED N'EST PAS UN `catch` QUI REND UNE PORTE OUVERTE. Ce
   // module JETTE; si quelqu'un y ajoute un `catch` qui rend un verdict, c'est
   // ici qu'il faut relire la direction de l'échec.

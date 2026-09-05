@@ -4148,6 +4148,8 @@ Deno.serve(async (req) => {
             sessions: capacity.plan.sessions,
             // LES JOURS DÉRIVÉS, dits avec les mots de la dérivation.
             cookDays: capacity.plan.cookDays as never,
+            // ⟳ LOT C — ce que le PLAN organise, à côté de l'écart avec le demandé.
+            runs: capacity.plan.runs,
             unusedRuns: capacity.plan === null || groceryRuns === null
               ? 0
               : unusedGroceryRuns(groceryRuns, capacity.plan),

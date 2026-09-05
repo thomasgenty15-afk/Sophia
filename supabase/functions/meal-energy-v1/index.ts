@@ -6,16 +6,18 @@ import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import {
-  BOX_ENERGY_REASONS,
-  canEmitBoxEnergy,
   canShowEnergy,
   canShowTarget,
   type CountingStance,
   type EnergyGateReason,
   type EnergySwitchSource,
-  energySafetyGates,
-  energySwitchFrom,
 } from "../_shared/keel/energy_gate.ts";
+import {
+  type BoxGateCounts,
+  boxGateZero,
+  decideBoxEnergy,
+  type EmittedBox,
+} from "../_shared/keel/box_energy_decision.ts";
 import { loadEnergyGate, readTriState } from "../_shared/keel/energy_gate_io.ts";
 import { boxEnergies } from "../_shared/keel/mouth_energy.ts";
 import { evaluateRestrictionForStudent } from "../_shared/keel/restriction_runtime.ts";
@@ -33,7 +35,7 @@ import {
   cancelsEnergyDeficit,
   conditionGatePopulationOf,
 } from "../_shared/keel/condition_energy_gate.ts";
-import { ACTIVITY_LEVELS, type ActivityLevel, GOAL_TOKENS } from "../_shared/keel/tokens.ts";
+import { ACTIVITY_LEVELS, type ActivityLevel } from "../_shared/keel/tokens.ts";
 import { latest, loadStudentBody } from "../_shared/keel/student_body_io.ts";
 import { loadCompositionIndex } from "../_shared/keel/food_composition_io.ts";
 // ⟳ A7 (2026-09-03) — LES QUATRE LECTEURS DE PAYLOAD ONT DESCENDU DANS
@@ -87,7 +89,7 @@ import {
   type ScaleDirection,
   scaleDirectionOf,
 } from "../_shared/keel/weight_pace.ts";
-import { assessBirthDate, type BirthDateVerdict, usableAge } from "../_shared/keel/student_age.ts";
+import { type BirthDateVerdict, usableAge } from "../_shared/keel/student_age.ts";
 
 /**
  * `meal-energy-v1` — FF-059, LE CHIFFRE AFFICHÉ.
@@ -463,33 +465,17 @@ function adviceForPlan(
 // ═══════════════════════════════════════════════════════════════════════════
 
 /**
- * LE COMPTEUR DE LA PORTE PAR BOÎTE — écrit même à zéro, sur chaque plan.
+ * ⟳ RELECTURE (2026-09-05) — LA LANE LIT, LE MODULE DÉCIDE. La décision par
+ * boîte vit dans `box_energy_decision.ts` (pure, testée, mutée). Ici on ne fait
+ * que résoudre ce qu'elle exige: le roster du foyer, les planchers et les
+ * interrupteurs des bouches qui ont un compte — en cache dans la requête —, et
+ * l'appartenance du LECTEUR à ce foyer.
  *
- * ⛔ SANS LUI, UN LOT DÉSARMÉ RESSEMBLE À UN LOT QUI MARCHE: zéro boîte rendue
- * peut vouloir dire « aucune bouche n'a d'objectif » (le cas de la majorité),
- * « toutes les bouches sont mineures », ou « la porte jette tout ». Trois états
- * qui ne se réparent pas pareil et rendraient le même `boxes: []`.
- *
- *   · `single`       — les contenants à UN nom, la seule population jugée.
- *   · `unreadable`   — le plat ne se calcule pas (`dish_incomplete`, `empty_box`):
- *                      ce n'est pas un refus de la porte, c'est un manque du plan.
- *   · `unknown_mouth`— le nom du couvercle n'est pas dans le roster du foyer.
- *   · `emitted`      — un chiffre est sorti.
- *   · `refused`      — par motif de `canEmitBoxEnergy`, tous présents même à 0.
+ * ⛔ `viewerIsMember` EST LE FAIT DE LECTURE DE LA RELECTURE: le roster se lit
+ * sur `row.household_id`, et un lecteur sorti du foyer qui garde une ligne non
+ * retirée recevait les kcal de ses anciens co-membres. Rien ne sort s'il n'est
+ * pas (plus) membre, et le compteur le dit.
  */
-type BoxGateCounts = {
-  single: number;
-  unreadable: number;
-  unknown_mouth: number;
-  emitted: number;
-  refused: Record<string, number>;
-};
-function boxGateZero(): BoxGateCounts {
-  const refused: Record<string, number> = {};
-  for (const r of BOX_ENERGY_REASONS) if (r !== "open") refused[r] = 0;
-  return { single: 0, unreadable: 0, unknown_mouth: 0, emitted: 0, refused };
-}
-
 interface HouseholdMouthRow {
   member_id: string;
   user_id: string | null;
@@ -497,43 +483,21 @@ interface HouseholdMouthRow {
   goal: string | null;
 }
 
-/**
- * LES BOÎTES À UN NOM DE CHAQUE PLAN, ET LEUR KCAL QUAND LA BOUCHE Y A DROIT.
- *
- * ── LA CEINTURE EST CELLE DE LA BOUCHE, PAS DU LECTEUR ────────────────────
- *   ① le plancher TCA — évalué sur SON compte quand elle en a un; une bouche
- *     sans compte n'a déclaré aucune restriction nulle part, donc `false`.
- *     ⚠️ Une lecture EN PANNE vaut `true`: fail-closed, même arbitrage que
- *     `loadEnergyGate`.
- *   ② son âge — `household_members.birth_date`, jugé par `assessBirthDate`.
- *     Pas de date ⇒ `age_unknown` ⇒ fermé. Un mineur ⇒ fermé, objectif ou pas.
- *   ③ la doctrine — celle du foyer, prêtée par `loadEnergyGate`.
- *   ④ son interrupteur — sa colonne `energy_display_enabled` quand elle a un
- *     compte (`null` sinon), réduit par `energySwitchFrom` avec SA direction
- *     (`household_members.goal` → `scaleDirectionOf`). Maintenance ⇒ rien.
- *
- * ⛔ UN BAC PARTAGÉ N'ENTRE JAMAIS ICI (`memberIds.length !== 1`): ses grammes
- * sont une quantité de bac, pas la portion de quelqu'un (BOITES-PAR-REPAS.md,
- * « l'énergie par bouche s'arrête où la division s'arrête »).
- *
- * ⚠️ LES LECTURES PAR COMPTE SONT MISES EN CACHE DANS LA REQUÊTE: un foyer de
- * cinq bouches dont deux ont un compte lit deux planchers, pas cinq fois deux.
- */
 async function boxEnergyByPlan(args: {
   admin: SupabaseClient;
   rows: readonly PlanRow[];
   index: Awaited<ReturnType<typeof loadCompositionIndex>>;
   today: string;
   coachCounting: CountingStance;
+  viewerMemberId: string | null;
   requestId: string;
-}): Promise<Map<string, { boxes: Array<Record<string, unknown>>; gate: BoxGateCounts }>> {
-  const out = new Map<string, { boxes: Array<Record<string, unknown>>; gate: BoxGateCounts }>();
-  const floorByUser = new Map<string, boolean>();
-  const switchByUser = new Map<string, boolean | null>();
+}): Promise<Map<string, { boxes: EmittedBox[]; gate: BoxGateCounts }>> {
+  const out = new Map<string, { boxes: EmittedBox[]; gate: BoxGateCounts }>();
+  const floors = new Map<string, boolean>();
+  const switches = new Map<string, boolean | null>();
 
-  const floorFor = async (userId: string): Promise<boolean> => {
-    const known = floorByUser.get(userId);
-    if (known !== undefined) return known;
+  const readFloor = async (userId: string) => {
+    if (floors.has(userId)) return;
     let flag = true; // fail-closed tant qu'on n'a pas LU
     try {
       const floor = await evaluateRestrictionForStudent(args.admin as never, {
@@ -549,11 +513,10 @@ async function boxEnergyByPlan(args: {
         metadata: { source: "box_gate_floor" },
       });
     }
-    floorByUser.set(userId, flag);
-    return flag;
+    floors.set(userId, flag);
   };
-  const switchFor = async (userId: string): Promise<boolean | null> => {
-    if (switchByUser.has(userId)) return switchByUser.get(userId) ?? null;
+  const readSwitch = async (userId: string) => {
+    if (switches.has(userId)) return;
     const res = await args.admin
       .from("profiles")
       .select("energy_display_enabled")
@@ -562,78 +525,59 @@ async function boxEnergyByPlan(args: {
     // ⚠️ UNE LECTURE EN PANNE VAUT « ÉTEINT », pas « personne n'a choisi »:
     // `null` laisserait la direction rallumer un interrupteur qu'on n'a pas su
     // lire — la mauvaise direction d'erreur.
-    const stored = res.error
-      ? false
-      : readTriState((res.data as Record<string, unknown> | null)?.energy_display_enabled);
-    switchByUser.set(userId, stored);
-    return stored;
+    switches.set(
+      userId,
+      res.error ? false : readTriState((res.data as Record<string, unknown> | null)?.energy_display_enabled),
+    );
   };
 
   for (const row of args.rows) {
-    const gate = boxGateZero();
-    const boxes: Array<Record<string, unknown>> = [];
-    if (row.plan_kind === "household" && row.household_id) {
-      const membersRes = await args.admin
-        .from("household_members")
-        .select("member_id, user_id, birth_date, goal")
-        .eq("household_id", row.household_id);
-      const members = new Map<string, HouseholdMouthRow>();
-      if (!membersRes.error) {
-        for (const m of (membersRes.data ?? []) as HouseholdMouthRow[]) {
-          members.set(String(m.member_id), m);
-        }
+    if (row.plan_kind !== "household" || !row.household_id) {
+      out.set(row.id, { boxes: [], gate: boxGateZero() });
+      continue;
+    }
+    const membersRes = await args.admin
+      .from("household_members")
+      .select("member_id, user_id, birth_date, goal")
+      .eq("household_id", row.household_id);
+    const mouths = (membersRes.error ? [] : ((membersRes.data ?? []) as HouseholdMouthRow[])).map((m) => ({
+      memberId: String(m.member_id),
+      userId: m.user_id ? String(m.user_id) : null,
+      birthDate: m.birth_date === null || m.birth_date === undefined ? null : String(m.birth_date),
+      goal: m.goal === null || m.goal === undefined ? null : String(m.goal),
+    }));
+    for (const m of mouths) {
+      if (m.userId) {
+        await readFloor(m.userId);
+        await readSwitch(m.userId);
       }
-      const perBox = boxEnergies({
+    }
+    const decided = decideBoxEnergy({
+      perBox: boxEnergies({
         index: args.index,
         dishes: readEnergyBoxDishes(row.dishes),
         preparations: readPreparations(row.preparations),
-      });
-      for (const box of perBox) {
-        // ⛔ UN NOM, ET UN SEUL. Le bac de la table n'a pas de kcal par personne.
-        if (box.memberIds.length !== 1) continue;
-        gate.single++;
-        if (box.kcal === null) {
-          gate.unreadable++;
-          continue;
-        }
-        const memberId = box.memberIds[0];
-        const mouth = members.get(memberId);
-        if (!mouth) {
-          gate.unknown_mouth++;
-          continue;
-        }
-        const goal = String(mouth.goal ?? "").trim();
-        const direction = (GOAL_TOKENS as readonly string[]).includes(goal)
-          ? scaleDirectionOf(goal as (typeof GOAL_TOKENS)[number])
-          : null;
-        const userId = mouth.user_id ? String(mouth.user_id) : null;
-        const verdict = canEmitBoxEnergy({
-          safety: energySafetyGates({
-            restrictionFlag: userId ? await floorFor(userId) : false,
-            ageVerdict: assessBirthDate(mouth.birth_date, args.today),
-            coachCounting: args.coachCounting,
-          }),
-          mouthSwitch: energySwitchFrom({
-            stored: userId ? await switchFor(userId) : null,
-            direction,
-          }),
-        });
-        if (!verdict.emit) {
-          gate.refused[verdict.reason] = (gate.refused[verdict.reason] ?? 0) + 1;
-          continue;
-        }
-        gate.emitted++;
-        boxes.push({
-          box_id: box.boxId,
-          member_id: memberId,
-          kcal: Math.round(box.kcal),
-          // La base part avec le nombre: ce sont les kcal des QUANTITÉS DU PLAN,
-          // au prorata des grammes du contenant. Jamais un besoin, jamais un corps.
-          basis: PLAN_ENERGY_BASIS,
-        });
-      }
-    }
-    out.set(row.id, { boxes, gate });
+      }),
+      mouths,
+      floors,
+      switches,
+      coachCounting: args.coachCounting,
+      today: args.today,
+      viewer: args.viewerMemberId === null
+        ? "unattached"
+        : (mouths.some((m) => m.memberId === args.viewerMemberId) ? "member" : "not_member"),
+    });
+    // ⟳ RELECTURE — LE COMPTEUR SE JOURNALISE. Un champ déclaré a besoin d'un
+    // compteur, et un compteur a besoin d'un lecteur: sans cette ligne,
+    // `boxes_gate` n'était lu par personne, et deux mutations dessus restaient
+    // vertes.
+    console.log(JSON.stringify({
+      tag: "keel.meal_energy.box_gate",
+      request_id: args.requestId,
+      plan_id: row.id,
+      ...decided.gate,
+    }));
+    out.set(row.id, decided);
   }
   return out;
 }
@@ -778,7 +722,13 @@ Deno.serve(async (req) => {
       .in("id", planIds);
     if (plansRes.error) throw plansRes.error;
     const rows = (plansRes.data ?? []) as PlanRow[];
-    if (rows.length === 0) return closed(req, requestId, "no_plan");
+    // ⟳ RELECTURE — SANS PLAN, LE MOTIF DU LECTEUR SURVIT. Avant le lot F, un
+    // lecteur fermé par défaut rendait `student_off` AVANT la lecture des plans,
+    // donc `switch_offerable: true`, et l'écran lui offrait l'interrupteur.
+    // Rendre `no_plan` ici le lui aurait retiré en silence.
+    if (rows.length === 0) {
+      return closed(req, requestId, readerClosedByDefault ? "student_off" : "no_plan");
+    }
 
     // ── QUELLE BOUCHE EST LE LECTEUR, DANS SON FOYER ──────────────────────
     //
@@ -813,6 +763,7 @@ Deno.serve(async (req) => {
       index,
       today,
       coachCounting,
+      viewerMemberId,
       requestId,
     });
     if (readerClosedByDefault) {

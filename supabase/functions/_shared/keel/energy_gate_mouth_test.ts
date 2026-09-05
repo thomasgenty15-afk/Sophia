@@ -583,11 +583,11 @@ Deno.test("L4 — les trois portes neuves n'ont QUE les appelants qu'on a relus"
     "energySafetyGates(": [
       "keel/household_portions.ts",
       "keel/mouth_anchor.ts",
-      // ⟳ LOT F (2026-09-04) — RELU: la lane d'énergie juge chaque boîte à un
-      // nom sous la chaîne ①②③ de SA bouche (`boxEnergyByPlan`), puis
-      // `canEmitBoxEnergy`. C'est le seul endroit où un kcal PAR BOUCHE sort
-      // vers un écran, et il ne sort que par cette porte.
-      "meal-energy-v1/index.ts",
+      // ⟳ LOT F (2026-09-04, déplacé le 05) — RELU: la décision par boîte vit
+      // dans `box_energy_decision.ts`, pure et mutée; c'est elle qui appelle la
+      // chaîne ①②③ sur la bouche, puis `canEmitBoxEnergy`. La lane d'énergie ne
+      // l'appelle plus directement.
+      "keel/box_energy_decision.ts",
     ],
     "canSizeFromTarget(": [
       "keel/household_portions.ts",
@@ -790,11 +790,22 @@ Deno.test("⛔ LOT F — câblage: `meal-energy-v1` ne rend une boîte que par l
   const src = await Deno.readTextFile(
     new URL("../../meal-energy-v1/index.ts", import.meta.url),
   );
-  assertStringIncludes(src, "canEmitBoxEnergy({");
+  // ⟳ RELECTURE (2026-09-05) — LA DÉCISION EST DANS LE MODULE PUR, la lane
+  // ne fait que la nourrir. Ce qu'on épingle ici est le CÂBLAGE: la lane
+  // appelle le module, lui passe l'appartenance du lecteur en trois états, et
+  // lit le roster par compte avant d'appeler.
+  assertStringIncludes(src, "decideBoxEnergy({");
+  assertStringIncludes(src, 'viewer: args.viewerMemberId === null');
+  assertStringIncludes(src, 'mouths.some((m) => m.memberId === args.viewerMemberId) ? "member" : "not_member"');
+  assertStringIncludes(src, "await readFloor(m.userId);");
+  const pure = await Deno.readTextFile(new URL("./box_energy_decision.ts", import.meta.url));
+  assertStringIncludes(pure, "canEmitBoxEnergy({");
   // ⛔ UN NOM, ET UN SEUL: la ligne exacte qui écarte le bac partagé.
-  assertStringIncludes(src, "if (box.memberIds.length !== 1) continue;");
-  // La ceinture est celle de la BOUCHE: son âge lu sur sa ligne de foyer.
-  assertStringIncludes(src, "ageVerdict: assessBirthDate(mouth.birth_date, args.today),");
+  assertStringIncludes(pure, "if (box.memberIds.length !== 1) continue;");
+  // La ceinture est celle de la BOUCHE: son âge lu sur sa ligne de foyer, son
+  // plancher lu sur SON compte — jamais un `false` en dur (mutation M7).
+  assertStringIncludes(pure, "ageVerdict: assessBirthDate(mouth.birthDate, args.today),");
+  assertStringIncludes(pure, "args.floors.get(userId) ?? true");
   // Le compteur sort sur CHAQUE plan, même à zéro — les deux branches.
   assertEquals(src.split("boxes_gate: boxesByPlan.get(row.id)?.gate ?? boxGateZero(),").length - 1, 3);
   // Et la fermeture PAR DÉFAUT du lecteur est la seule qui laisse passer.
