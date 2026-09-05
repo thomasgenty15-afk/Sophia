@@ -419,6 +419,7 @@ import {
 // ══════════════════════════════════════════════════════════════════════════
 import {
   ANCHOR_REASONS,
+  MEAL_CAP_BITS,
   type AnchorFactor,
   type AnchorMouth,
   householdAnchors,
@@ -7784,6 +7785,10 @@ Deno.serve(async (req) => {
     // lot qui fera descendre `sizeBoxesFromTarget` au niveau du repas.
     const anchorReasons: Record<string, number> = {};
     for (const reason of ANCHOR_REASONS) anchorReasons[reason] = 0;
+    const anchorCap: Record<string, number> = {};
+    for (const bit of MEAL_CAP_BITS) anchorCap[bit] = 0;
+    const potCap: Record<string, number> = {};
+    for (const bit of MEAL_CAP_BITS) potCap[bit] = 0;
     let anchorApplied = 0;
     // ⛔ LE PLANCHER DU PLAT, COMPTÉ — dénominateur `anchorReasons` (il se lève
     // sur les mêmes bouches-jours). `COMPOSED_DISH_MIN_MEAL_SHARE` existe pour
@@ -7943,6 +7948,9 @@ Deno.serve(async (req) => {
       // calculé POUR LUI. Il n'y a plus d'élection, donc plus rien à panser.
       for (const anchor of anchors.values()) {
         anchorReasons[anchor.reason] = (anchorReasons[anchor.reason] ?? 0) + 1;
+        // ⟳ ARBITRAGE 1 — quelle borne a décidé : le compteur avant/après du
+        // plafond par densité mesurée. Un histogramme, jamais un kcal.
+        anchorCap[anchor.capBit] = (anchorCap[anchor.capBit] ?? 0) + 1;
         if (anchor.extrasFloored) extrasFloored++;
       }
       dayEnergyRows = dayEnergy;
@@ -8060,7 +8068,7 @@ Deno.serve(async (req) => {
         // n'en connaît que deux, c'est sous-remplir en ayant l'air d'avoir
         // calculé — et l'erreur irait dans la direction qui nourrit trop peu.
         const pot = eaters.length !== box.memberIds.length
-          ? { factor: 1, raw: null, reason: "pot_mouth_unknown" as const }
+          ? { factor: 1, raw: null, reason: "pot_mouth_unknown" as const, capBit: "none" as const }
           : potFactorFor({
             slot: box.slot,
             grams: box.grams,
@@ -8069,6 +8077,7 @@ Deno.serve(async (req) => {
             coachCounting,
           });
         potReasons[pot.reason] += 1;
+        potCap[pot.capBit] = (potCap[pot.capBit] ?? 0) + 1;
         if (pot.factor !== 1) potFactors.set(box.boxId, pot.factor);
       }
     }
@@ -8384,10 +8393,12 @@ Deno.serve(async (req) => {
       share: shareReasons,
       share_clamped: shareClamped,
       anchor: anchorReasons,
+      anchor_cap: anchorCap,
       anchor_applied: anchorApplied,
       pot_attribution: potAttribution,
       box_factor_source: boxFactorSources,
       pot: potReasons,
+      pot_cap: potCap,
       pot_growth: growth,
       unmet: unmetCauses,
       unmet_band: unmetBand,
@@ -8729,6 +8740,7 @@ Deno.serve(async (req) => {
         // deux voisins. Une cible en kcal dans `generated_from` serait un
         // chiffre corporel dans une colonne lisible par tout le foyer.
         anchor: anchorReasons,
+        anchor_cap: anchorCap,
         anchor_applied: anchorApplied,
         pot_attribution: potAttribution,
         // ⟳ 2026-09-04: L'ÉCART SORT AUSSI DANS L'ARCHIVE. Il ne sortait que par

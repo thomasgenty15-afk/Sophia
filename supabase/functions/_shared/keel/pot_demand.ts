@@ -37,7 +37,8 @@ import {
   ANCHOR_FACTOR_MIN,
   type AnchorFactor,
   type AnchorMouth,
-  mealMassCapGrams,
+  mealMassCapFor,
+  type MealCapBit,
   mouthTargetKcal,
   slotPlanTargets,
 } from "./mouth_anchor.ts";
@@ -188,6 +189,8 @@ export const POT_REASONS = Object.freeze(
 export type PotReason = (typeof POT_REASONS)[number];
 
 export interface PotFactor {
+  /** ⟳ ARBITRAGE 1 (2026-09-06) — la borne qui a décidé du facteur (`density`, `physical`, `assumed_density`, `factor_bound`, `none`). */
+  capBit: MealCapBit;
   factor: number;
   /** Le facteur AVANT rabotage. `null` quand rien n'a été calculé. */
   raw: number | null;
@@ -233,7 +236,7 @@ export function potFactorFor(args: {
   eaters: readonly PotEater[];
   coachCounting: CountingStance;
 }): PotFactor {
-  const nothing = (reason: PotReason): PotFactor => ({ factor: 1, raw: null, reason });
+  const nothing = (reason: PotReason): PotFactor => ({ factor: 1, raw: null, reason, capBit: "none" });
   if (args.slot === null) return nothing("pot_incomplete");
   if (args.eaters.length === 0) return nothing("pot_mouth_unknown");
   if (args.deliveredKcal === null || args.deliveredKcal <= 0) {
@@ -243,6 +246,8 @@ export function potFactorFor(args: {
 
   let needed = 0;
   let massCeilingGrams = 0;
+  let anyFloor = false;
+  let anyAssumed = false;
   for (const eater of args.eaters) {
     // ⛔ `direction: null` — L'ENTRETIEN, PAS LA CIBLE. Voir l'en-tête du bloc.
     const target = mouthTargetKcal({ ...eater.mouth, direction: null }, args.coachCounting);
@@ -259,11 +264,18 @@ export function potFactorFor(args: {
     if (mealKcal === undefined || !(mealKcal > 0)) return nothing("pot_mouth_unknown");
     needed += mealKcal;
     // ⟳ 2026-09-04: le plafond de masse du bac est la somme de ce que porte le
-    // besoin de chaque bouche à la densité d'un plat ordinaire — plus le kilo
-    // (voir `mealMassCapGrams` dans `mouth_anchor.ts`, et pourquoi).
-    const cap = mealMassCapGrams(mealKcal);
-    if (cap === null) return nothing("pot_mouth_unknown");
-    massCeilingGrams += cap;
+    // besoin de chaque bouche — ⟳ ARBITRAGE 1 (2026-09-06) : à la densité
+    // MESURÉE du bac (ce qu'il livre par gramme), bornée entre le plancher de
+    // densité et 1,35 (`mealMassCapFor`, et pourquoi le kilo ne revient pas).
+    const cap = mealMassCapFor({
+      mealKcal,
+      deliveredKcal: args.deliveredKcal,
+      deliveredGrams: args.grams,
+    });
+    if (cap.grams === null) return nothing("pot_mouth_unknown");
+    massCeilingGrams += cap.grams;
+    if (cap.source === "density_floor") anyFloor = true;
+    if (cap.source === "assumed_density") anyAssumed = true;
   }
   if (!(needed > 0)) return nothing("pot_mouth_unknown");
 
@@ -279,7 +291,12 @@ export function potFactorFor(args: {
   // borne qu'on croit inerte — et si elle mord sur la population entière, elle
   // n'est plus une borne de plausibilité, elle EST le calcul. Ce dépôt l'a
   // mesuré trois fois (`BOX_FACTOR_MIN`, `ANCHOR_FACTOR_MAX`).
-  return { factor, raw, reason: factor === raw ? "pot_sized" : "pot_clamped" };
+  const capBit: MealCapBit = bounded !== raw
+    ? (anyFloor ? "density_floor" : anyAssumed ? "assumed_density" : "density")
+    : factor !== raw
+    ? "factor_bound"
+    : "none";
+  return { factor, raw, reason: factor === raw ? "pot_sized" : "pot_clamped", capBit };
 }
 
 /** Ce qu'un repas prélève sur une casserole, réduit à ce qui compte ici. */

@@ -15,6 +15,7 @@ import {
   type AnchorFactor,
   type AnchorMouth,
   mealMassCapGrams,
+  mealMassCapFor,
   mouthTargetKcal,
   slotPlanTargets,
 } from "./mouth_anchor.ts";
@@ -37,6 +38,7 @@ function anchor(over: Partial<AnchorFactor> = {}): AnchorFactor {
     targetKcal: 2400,
     deliveredKcal: 2000,
     capGrams: null,
+    capBit: "none",
     structureState: "not_asked",
     extrasFloored: false,
     ...over,
@@ -351,7 +353,11 @@ Deno.test("⛔ A2 — LE PLAFOND DE MASSE EST LA SOMME DES BESOINS, ET IL SE COM
     slotExtraKcal: one.mouth.slotExtraKcal,
   }).bySlot.get("lunch");
   assert(lunch !== undefined && lunch > 0, "le déjeuner n'a pas de part");
-  const capEach = mealMassCapGrams(lunch);
+  // ⟳ ARBITRAGE 1 (2026-09-06) : le plafond de chaque bouche se calcule à la
+  // densité MESURÉE du bac (50 kcal / 1 000 g ici), borné par son physique —
+  // plus la constante 1,35. La propriété éprouvée est inchangée : la SOMME des
+  // deux plafonds, jamais celui d'une seule bouche.
+  const capEach = mealMassCapFor({ mealKcal: lunch, deliveredKcal: 50, deliveredGrams: 1000 }).grams;
   assert(capEach !== null);
   const expected = (2 * capEach) / 1000;
   const got = potFactorFor({
@@ -402,4 +408,27 @@ Deno.test("un pot déjà plus petit que ses tirages grossit de l'écart ENTIER, 
   assertEquals(neededPotFactor(meals, new Map([[KEY, anchor({ factor: 1.2, raw: 1.2 })]]), new Map([["p", 1000]])).get("p"), 1.8);
   assertEquals(neededPotFactor(meals, anchors, new Map([["p", null]])).get("p"), 1);
   assertEquals(neededPotFactor(meals, anchors, new Map([["p", 0]])).get("p"), 1);
+});
+
+// ⟳ ARBITRAGE 1 (2026-09-06) — le plafond du BAC suit la densité mesurée du bac.
+Deno.test("ARBITRAGE 1 — un bac à 0,5 kcal/g est borné par le PLANCHER de densité, pas par 1,35, et ça se compte", () => {
+  const got = potFactorFor({
+    slot: "lunch",
+    grams: 1000,
+    deliveredKcal: 500,
+    eaters: [eater({ memberId: "a" }), eater({ memberId: "b" })],
+    coachCounting: "no_position",
+  });
+  assert(got.raw !== null);
+  assertEquals(got.capBit, "density_floor");
+  assertEquals(got.reason, "pot_clamped");
+  // À 1,2 kcal/g, le même bac suit sa densité : plafond = cible / 1,2, plus de grammes qu'à 1,35.
+  const dense = potFactorFor({
+    slot: "lunch",
+    grams: 1000,
+    deliveredKcal: 1200,
+    eaters: [eater({ memberId: "a" }), eater({ memberId: "b" })],
+    coachCounting: "no_position",
+  });
+  assert(dense.capBit === "none" || dense.capBit === "density" || dense.capBit === "factor_bound", dense.capBit);
 });

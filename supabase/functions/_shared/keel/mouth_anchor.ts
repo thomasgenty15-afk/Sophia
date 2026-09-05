@@ -281,6 +281,94 @@ export function mealMassCapGrams(mealTargetKcal: number): number | null {
   return mealTargetKcal / MEAL_KCAL_PER_G_COMPOSED;
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ ARBITRAGE 1 (2026-09-06) — LE PLAFOND DE MASSE SUIT LA DENSITÉ MESURÉE
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Décision produit du 2026-09-05 (`scratchpad/2026-09-05-1930-ARBITRAGES-PRODUIT.md`,
+// n° 1) : « une assiette peut peser plus si elle est dense ; le plafond se
+// calcule sur la densité réelle du plat, pas sur un chiffre fixe ».
+//
+// Mesuré avant : sur C03 (quatre bouches), la boîte de Paul pesait EXACTEMENT
+// 880 / 1,35 = 652 g — le plafond supposait 1,35 kcal/g sur une assiette
+// mesurée à 0,59, puis 0,80 après v27 — et portait 386 kcal pour 880 visés.
+// Le moteur créait le manque qu'il rapportait (`clamped` 12/12, `unmet
+// gte_200` 12/12), exactement le défaut que le pavé « 8 g/kg » ci-dessus
+// décrivait pour une enfant de 36 kg, pris par l'autre bout.
+//
+// ── LA RÈGLE ──────────────────────────────────────────────────────────────
+//   · la densité de la JOURNÉE de cette bouche est ce que ses boîtes à un nom
+//     ont livré : `kcal / grammes` (`MouthDayEnergy.kcal`, `.grams`) — depuis le
+//     lot 0, ces kcal suivent les grammes tirés, donc la densité est celle des
+//     casseroles et du frais réellement dans la boîte ;
+//   · le plafond du plus gros repas = `kcal du repas / densité retenue`, où la
+//     densité retenue est la densité mesurée **bornée** entre
+//     `MEAL_KCAL_PER_G_FLOOR` et `MEAL_KCAL_PER_G_COMPOSED` : une assiette moins
+//     dense qu'un plat ordinaire PEUT peser plus (c'est la décision), jusqu'au
+//     plancher ; une assiette plus dense n'est jamais bornée plus serré qu'hier
+//     (sinon un dîner plus lourd que le déjeuner serait raboté pour avoir été
+//     composé dense — le plafond est une garde de VOLUME, pas un dosage) ;
+//   · sous le plancher (soupe, légumes à l'eau : 0,2 kcal/g), c'est le plancher
+//     qui borne, et ça se compte `density_floor` : la réparation est de composer
+//     plus dense (densifieur), jamais de servir un seau ;
+//   · sans grammes lisibles, on retombe sur 1,35 (`assumed_density`), et ça se
+//     compte.
+//
+// ⛔ PAS DE RETOUR AU KILO. `MEAL_MAX_GRAMS_PER_KG` a été retiré du plafond de
+// repas le 2026-09-04 (une enfant de 36 kg qui s'entraîne perdait sa boîte à
+// 288 g) et deux tests le tiennent ; il reste à `eating_structure.ts`. Le
+// plancher de densité est la borne physique de CE plafond.
+//
+// ⚠️ COMPTEUR OBLIGATOIRE (`capBit`) : quelle borne a décidé du facteur —
+// `density`, `density_floor`, `assumed_density`, `factor_bound`
+// (ANCHOR_FACTOR_MIN/MAX) ou `none`. Sans lui, un plafond qui ne mord plus
+// jamais et un plafond qui mord partout rendraient le même `clamped`.
+
+/**
+ * LA DENSITÉ LA PLUS BASSE QU'UNE ASSIETTE PEUT AVOIR POUR QUE SON VOLUME SUIVE
+ * SON BESOIN. Mesuré le 2026-09-05 (lecture 74, lot 1) : après attribution par
+ * grammes tirés, les foyers de quatre servaient 1,57–1,69 kcal/g, les duos
+ * 0,84–1,02 ; les assiettes d'avant v27 étaient à 0,59–0,62. La borne basse du
+ * « plat ordinaire » mesuré le 2026-09-04 était 1,13. Sous 1,0 kcal/g, une
+ * assiette ne grossit plus vers son besoin : elle se densifie (`box_densify`),
+ * et le compteur `density_floor` dit combien de fois c'est arrivé.
+ */
+export const MEAL_KCAL_PER_G_FLOOR = 1.0;
+
+export const MEAL_CAP_BITS = Object.freeze(
+  ["none", "density", "density_floor", "assumed_density", "factor_bound"] as const,
+);
+export type MealCapBit = (typeof MEAL_CAP_BITS)[number];
+
+/**
+ * LE PLAFOND DE MASSE D'UN REPAS, À LA DENSITÉ MESURÉE — et la borne qui l'a fixé.
+ *
+ * `grams` est `null` quand le repas n'a pas de cible lisible.
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function mealMassCapFor(args: {
+  mealKcal: number;
+  /** Ce que la bouche (ou la casserole) a livré, pour la densité. */
+  deliveredKcal: number | null;
+  deliveredGrams: number | null;
+}): { grams: number | null; source: Exclude<MealCapBit, "none" | "factor_bound"> } {
+  if (!Number.isFinite(args.mealKcal) || args.mealKcal <= 0) {
+    return { grams: null, source: "assumed_density" };
+  }
+  const measured = args.deliveredKcal !== null && args.deliveredGrams !== null &&
+      args.deliveredKcal > 0 && args.deliveredGrams > 0
+    ? args.deliveredKcal / args.deliveredGrams
+    : null;
+  if (measured === null) {
+    return { grams: args.mealKcal / MEAL_KCAL_PER_G_COMPOSED, source: "assumed_density" };
+  }
+  if (measured < MEAL_KCAL_PER_G_FLOOR) {
+    return { grams: args.mealKcal / MEAL_KCAL_PER_G_FLOOR, source: "density_floor" };
+  }
+  // Jamais plus serré qu'hier : au-dessus de 1,35, c'est 1,35 qui reste.
+  return { grams: args.mealKcal / Math.min(measured, MEAL_KCAL_PER_G_COMPOSED), source: "density" };
+}
+
 /**
  * CE QUE CHAQUE MOMENT PORTE À CÔTÉ DU PLAT, EN KCAL — ou `null`.
  *
@@ -776,6 +864,8 @@ export interface AnchorFactor {
    * l'archive puisse dire « sa boîte est bornée à 519 g » au lieu de « clamped ».
    */
   capGrams: number | null;
+  /** ⟳ ARBITRAGE 1 (2026-09-06) — la borne qui a décidé du facteur (voir `MEAL_CAP_BITS`). */
+  capBit: MealCapBit;
   /**
    * D'OÙ VIENT LA PART DU PLAT — le compteur du LOT ①, rendu par bouche-jour.
    *
@@ -927,6 +1017,7 @@ export function anchorFactorFor(
       targetKcal: null,
       deliveredKcal: day?.kcal ?? null,
       capGrams: null,
+      capBit: "none",
       structureState,
       extrasFloored: false,
     };
@@ -949,6 +1040,7 @@ export function anchorFactorFor(
       targetKcal: target.kcal,
       deliveredKcal: null,
       capGrams: null,
+      capBit: "none",
       structureState,
       extrasFloored: false,
     };
@@ -999,6 +1091,7 @@ export function anchorFactorFor(
       targetKcal: target.kcal,
       deliveredKcal: day.kcal,
       capGrams: null,
+      capBit: "none",
       structureState,
       // Aucun repas dimensionné sur ce chemin: rien n'a pu être raboté.
       extrasFloored: false,
@@ -1088,12 +1181,20 @@ export function anchorFactorFor(
     : wholeWeight > 0
     ? effectiveTarget * (biggestWeight / wholeWeight)
     : 0;
-  const capGrams = mealMassCapGrams(biggestMealKcal);
+  // ⟳ ARBITRAGE 1 — à la densité MESURÉE de ce que la bouche a livré, bornée
+  // par le physique ; 1,35 seulement quand les grammes ne se lisent pas.
+  const cap = mealMassCapFor({
+    mealKcal: biggestMealKcal,
+    deliveredKcal: day.kcal,
+    deliveredGrams: day.grams,
+  });
+  const capGrams = cap.grams;
   const physicalMax = capGrams !== null && day.maxMealGrams > 0
     ? capGrams / day.maxMealGrams
     : Infinity;
   const bounded = Math.min(raw, physicalMax);
   const { factor, clamped } = clampAnchor(bounded);
+  const capBit: MealCapBit = bounded !== raw ? cap.source : clamped ? "factor_bound" : "none";
   return {
     factor,
     raw,
@@ -1104,6 +1205,7 @@ export function anchorFactorFor(
     targetKcal: Math.round(effectiveTarget),
     deliveredKcal: day.kcal,
     capGrams: capGrams === null ? null : Math.round(capGrams),
+    capBit,
     structureState,
     extrasFloored,
   };

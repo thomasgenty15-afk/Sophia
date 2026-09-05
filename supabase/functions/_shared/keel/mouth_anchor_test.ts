@@ -16,6 +16,7 @@ import { assert, assertEquals } from "jsr:@std/assert@1";
 import {
   ANCHOR_FACTOR_MAX,
   MEAL_KCAL_PER_G_COMPOSED,
+  MEAL_KCAL_PER_G_FLOOR,
   MEAL_MAX_GRAMS_PER_KG,
   ANCHOR_FACTOR_MIN,
   ANCHOR_REASONS,
@@ -582,7 +583,12 @@ Deno.test("⛔ deux corps ne fusionnent PAS en butant sur le plafond physique", 
   assertEquals(a.reason, "clamped");
   assertEquals(b.reason, "clamped");
   // ⛔ ET ILS RESTENT DIFFÉRENTS. C'est toute la propriété.
-  assert(a.factor !== b.factor, `${a.factor} === ${b.factor}`);
+  // ⟳ ARBITRAGE 1 (2026-09-06) : à 0,17 kcal/g le plafond est celui du PLANCHER de
+  // densité (cible du repas / 0,8), plus large qu'à 1,35 — les deux facteurs
+  // butent alors sur ANCHOR_FACTOR_MAX et se rejoignent à 3. Ce que le test
+  // éprouve — deux corps, deux plafonds — se lit sur `capGrams` et sur `raw`.
+  assert(a.capGrams !== b.capGrams, `${a.capGrams} === ${b.capGrams}`);
+  assertEquals(a.capBit, b.capBit);
   // Le plus lourd mange plus, en grammes comme en facteur.
   assert(a.raw! > b.raw!, `${a.raw} <= ${b.raw}`);
   // Et le résidu survit, pour dire de combien le plan est trop peu dense.
@@ -629,10 +635,14 @@ Deno.test("⛔ AUCUNE part servie ne dépasse ce qu'un repas peut peser — le 1
     // ⛔ UN REPAS NE PORTE JAMAIS LA JOURNÉE: c'est le 1,2 kg d'origine — un
     // dîner qui portait toute la masse du jour pendant que la borne journalière
     // laissait passer. Le plafond d'un repas est STRICTEMENT sous la masse du jour.
+    // ⟳ ARBITRAGE 1 (2026-09-06) : à 0,17 kcal/g la densité retenue est le
+    // PLANCHER (0,8), pas 1,35 — le plafond d'un repas ne dépasse jamais ce que
+    // sa cible pèse à cette densité-là.
     assert(
-      got.targetKcal !== null && got.capGrams < got.targetKcal / MEAL_KCAL_PER_G_COMPOSED,
-      `${mouth.memberId}: le plafond d'un repas (${got.capGrams} g) porte la journée entière`,
+      got.targetKcal !== null && got.capGrams <= got.targetKcal / MEAL_KCAL_PER_G_FLOOR + 1,
+      `${mouth.memberId}: le plafond d'un repas (${got.capGrams} g) porte plus que sa cible au plancher`,
     );
+    assertEquals(got.capBit, "density_floor");
   }
   // ⛔ ET L'IKU RÉEL DU 2026-08-20 — 73 kg, entretien, un dîner — reste loin du
   // 1 232 g vu à l'écran. Ce n'est pas l'IKU en prise de masse de la fixture
@@ -652,8 +662,15 @@ Deno.test("⛔ AUCUNE part servie ne dépasse ce qu'un repas peut peser — le 1
   // composer plus dense, pas de servir moins.
   assert(dinner.capGrams !== null && dinner.targetKcal !== null);
   assert(dinnerServed <= dinner.capGrams + 1, `le dîner d'iku (${Math.round(dinnerServed)} g) dépasse son plafond (${dinner.capGrams} g)`);
-  assertEquals(dinner.capGrams, Math.round(dinner.targetKcal / MEAL_KCAL_PER_G_COMPOSED));
-  assert(dinnerServed < 1232, `le dîner d'iku pèse ${Math.round(dinnerServed)} g: le 1,2 kg est revenu`);
+  // À 0,17 kcal/g : le plancher de densité borne (cible / 0,8), et le dîner reste sous 1,2 kg.
+  assertEquals(dinner.capGrams, Math.round(dinner.targetKcal / MEAL_KCAL_PER_G_FLOOR));
+  // ⟳ ARBITRAGE 1 : la borne n'est plus « 1,2 kg », c'est « jamais plus que sa
+  // cible au plancher de densité » — un plat à 0,17 kcal/g ne se répare pas en
+  // grossissant, et le plancher le tient là.
+  assert(
+    dinnerServed <= dinner.targetKcal / MEAL_KCAL_PER_G_FLOOR + 1,
+    `le dîner d'iku pèse ${Math.round(dinnerServed)} g pour une cible de ${dinner.targetKcal} kcal au plancher ${MEAL_KCAL_PER_G_FLOOR}`,
+  );
 });
 
 Deno.test("⛔ ⟳ 2026-09-04 — une ENFANT de 36 kg qui s'entraîne ne perd plus sa boîte au kilo", () => {
@@ -694,7 +711,10 @@ Deno.test("⛔ ⟳ 2026-09-04 — une ENFANT de 36 kg qui s'entraîne ne perd pl
     `le plafond est retombé au kilo: ${got.capGrams} g pour 36 kg`,
   );
   // Le plafond est la cible du repas à la densité d'un plat ordinaire.
-  assertEquals(got.capGrams, Math.round(got.targetKcal / MEAL_KCAL_PER_G_COMPOSED));
+  // ⟳ ARBITRAGE 1 (2026-09-06) : son assiette pèse 1,0 kcal/g → le plafond suit
+  // CETTE densité (cible / 1,0), plus large qu'à 1,35, et toujours pas le kilo.
+  assertEquals(got.capGrams, Math.round(got.targetKcal / 1.0));
+  assert(got.capGrams > Math.round(got.targetKcal / MEAL_KCAL_PER_G_COMPOSED));
   // Et la boîte de 500 g n'est plus RÉDUITE: le facteur ne descend pas sous 1.
   assert(got.factor >= 1, `la boîte d'une enfant est encore rabotée: ×${got.factor}`);
 });
@@ -1029,4 +1049,67 @@ Deno.test("une sortie sans journée ne prétend pas avoir raboté", () => {
   );
   assertEquals(sansJour.extrasFloored, false);
   assertEquals(sansJour.structureState, "partial");
+});
+
+// ---------------------------------------------------------------------------
+// ⟳ ARBITRAGE 1 (2026-09-06) — LE PLAFOND DE MASSE SUIT LA DENSITÉ MESURÉE
+// ---------------------------------------------------------------------------
+//
+// Avant : `capGrams = cible du repas / 1,35`. Sur C03, la boîte de Paul pesait
+// exactement 880 / 1,35 = 652 g et portait 386 kcal — le plafond créait le
+// manque qu'il rapportait. Ces tests tiennent la règle et son compteur ; les
+// deux tests « le 1,2 kg est mort » et « une ENFANT de 36 kg » au-dessus
+// tiennent que le kilo ne revient pas.
+
+import { MEAL_CAP_BITS, mealMassCapFor } from "./mouth_anchor.ts";
+
+Deno.test("ARBITRAGE 1 — une assiette moins dense qu'un plat ordinaire PEUT peser plus : le plafond suit sa densité mesurée", () => {
+  // 500 g livrés pour 550 kcal = 1,1 kcal/g, un seul moment à son nom.
+  const got = anchorFactorFor(
+    IKU,
+    day({ memberId: "m_iku", kcal: 550, grams: 500, maxMealGrams: 500, slots: ["dinner"], ownSlots: ["dinner"] }),
+    "no_position",
+  );
+  assert(Math.abs(got.capGrams! - got.targetKcal! / 1.1) <= 1, `${got.capGrams} vs ${got.targetKcal! / 1.1}`);
+  assert(got.capGrams! > got.targetKcal! / MEAL_KCAL_PER_G_COMPOSED, "plus de grammes qu'à 1,35");
+  // Sur une journée à un repas, plafond et cible coïncident : seul le rabot ×3 a pu mordre.
+  assert(got.capBit === "none" || got.capBit === "factor_bound", got.capBit);
+  assert((MEAL_CAP_BITS as readonly string[]).includes(got.capBit));
+});
+
+Deno.test("ARBITRAGE 1 — sur deux repas inégaux, le plus gros est borné à sa part, et ça se compte `density`", () => {
+  const got = anchorFactorFor(
+    IKU,
+    day({ memberId: "m_iku", kcal: 550, grams: 500, maxMealGrams: 450, slots: ["breakfast", "dinner"], ownSlots: ["breakfast", "dinner"] }),
+    "no_position",
+  );
+  assertEquals(got.capBit, "density");
+  assert(got.factor < got.raw!, `${got.factor} devrait être sous ${got.raw}`);
+  assertEquals(got.reason, "clamped");
+});
+
+Deno.test("ARBITRAGE 1 — une assiette à 0,2 kcal/g ne devient pas un seau : le PLANCHER de densité borne, et ça se compte", () => {
+  const got = anchorFactorFor(
+    IKU,
+    day({ memberId: "m_iku", kcal: 100, grams: 500, maxMealGrams: 500, slots: ["dinner"], ownSlots: ["dinner"] }),
+    "no_position",
+  );
+  assertEquals(got.capBit, "density_floor");
+  assert(Math.abs(got.capGrams! - got.targetKcal! / MEAL_KCAL_PER_G_FLOOR) <= 1, `${got.capGrams} vs ${got.targetKcal! / MEAL_KCAL_PER_G_FLOOR}`);
+  assert(got.factor < got.raw!);
+});
+
+Deno.test("ARBITRAGE 1 — plus dense que 1,35 n'est JAMAIS borné plus serré qu'hier ; sans grammes, 1,35 reste et se nomme", () => {
+  // 2 kcal/g : le plafond reste celui de 1,35 (garde de volume, pas dosage).
+  const dense = mealMassCapFor({ mealKcal: 810, deliveredKcal: 1000, deliveredGrams: 500 });
+  assertEquals(Math.round(dense.grams!), 600);
+  assertEquals(dense.source, "density");
+  const blind = mealMassCapFor({ mealKcal: 810, deliveredKcal: 300, deliveredGrams: 0 });
+  assertEquals(blind.source, "assumed_density");
+  assertEquals(Math.round(blind.grams!), 600);
+  // Et la MUTATION évidente — remettre 8 g/kg — casserait « une ENFANT de 36 kg » plus haut.
+});
+
+Deno.test("épinglage — MEAL_KCAL_PER_G_FLOOR vaut 1,0 (sous quoi une assiette se densifie au lieu de grossir)", () => {
+  assertEquals(MEAL_KCAL_PER_G_FLOOR, 1.0);
 });
