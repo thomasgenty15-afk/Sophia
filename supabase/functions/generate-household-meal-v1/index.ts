@@ -438,6 +438,7 @@ import {
   boxEnergies,
   type MouthDayEnergy,
   mouthDayEnergy,
+  potAttributionGap,
 } from "../_shared/keel/mouth_energy.ts";
 import {
   neededPotFactor,
@@ -7874,6 +7875,9 @@ Deno.serve(async (req) => {
           id: prep.id,
           servingsMade: prep.servingsMade,
           ingredients: prep.ingredients,
+          // ⟳ LOT 0 (2026-09-06) — la méthode nourrit la densité de la casserole,
+          // calculée par le même `dishEnergy` que le densifieur.
+          method: prep.method,
         })),
       });
       // ⟳ HISSÉ EN `const` (A2): le dimensionnement d'un BAC a besoin des MÊMES
@@ -8347,6 +8351,29 @@ Deno.serve(async (req) => {
     // mêmes histogrammes que `generated_from`, pas une seconde surface. Les
     // deux lisent les MÊMES variables — les recalculer ici en ferait deux
     // mesures qui divergent.
+    // ⟳ LOT 0 (2026-09-06) — CE QUE LES BOÎTES TIRENT DES CASSEROLES CONTRE CE
+    // QUE `uses.servings` LEUR ATTRIBUE. Mesuré ×5,9 sur un foyer de cinq (M07,
+    // campagne du 05/09) : le modèle écrit `servings: 1` quel que soit le nombre
+    // de bouches. L'énergie des boîtes ne dépend plus de ce champ (mouth_energy,
+    // lot 0) ; le verdict de plan si — ce compteur dit de combien il se trompe.
+    // Grammes prêts et un rapport, jamais un kcal ni un identifiant.
+    const potAttribution = composition === null ? null : potAttributionGap({
+      index: composition,
+      dishes: meal.dishes.map((dish) => ({
+        day: dish.day,
+        method: dish.method,
+        slot: dish.slot,
+        ingredients: dish.ingredients,
+        uses: dish.uses,
+        boxes: dish.boxes,
+      })),
+      preparations: meal.preparations.map((prep) => ({
+        id: prep.id,
+        servingsMade: prep.servingsMade,
+        ingredients: prep.ingredients,
+        method: prep.method,
+      })),
+    });
     console.log(JSON.stringify({
       tag: "keel.household_meal.box_sizing",
       user_id: userId,
@@ -8358,6 +8385,7 @@ Deno.serve(async (req) => {
       share_clamped: shareClamped,
       anchor: anchorReasons,
       anchor_applied: anchorApplied,
+      pot_attribution: potAttribution,
       box_factor_source: boxFactorSources,
       pot: potReasons,
       pot_growth: growth,
@@ -8702,6 +8730,7 @@ Deno.serve(async (req) => {
         // chiffre corporel dans une colonne lisible par tout le foyer.
         anchor: anchorReasons,
         anchor_applied: anchorApplied,
+        pot_attribution: potAttribution,
         // ⟳ 2026-09-04: L'ÉCART SORT AUSSI DANS L'ARCHIVE. Il ne sortait que par
         // le journal, et une mesure qui ne survit pas à la génération n'est
         // lisible que par qui regardait au bon moment. Mesuré sur deux foyers:

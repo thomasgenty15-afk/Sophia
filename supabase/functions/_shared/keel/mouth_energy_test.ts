@@ -463,3 +463,170 @@ Deno.test("le module est PUR: même entrée, même sortie, entrée intacte", () 
   assertEquals(JSON.stringify(a), JSON.stringify(b));
   assertEquals(JSON.stringify(args.dishes) + JSON.stringify(args.preparations), before);
 });
+
+// ---------------------------------------------------------------------------
+// ⟳ LOT 0 (2026-09-06) — L'ÉNERGIE D'UNE BOÎTE SUIT SES GRAMMES TIRÉS
+// ---------------------------------------------------------------------------
+//
+// Mesuré sur M07 (campagne du 05/09, cinq bouches) : `uses.servings: 1` sur des
+// casseroles de 10–15 parts, 34 417 g tirés par les boîtes contre 5 826 g
+// attribués par le pliage (×5,9), 0,2 kcal/g lu. Ces tests tiennent la règle
+// et sa mutation évidente (revenir au pliage rougit le premier).
+
+import { boxEnergies, boxKcalByItems, potAttributionGap, potDensities } from "./mouth_energy.ts";
+
+// Une casserole de 1 500 g de « plain food » (100 kcal/100 g, rendement neutre)
+// = 1 500 kcal pour 1 500 g prêts → 1 kcal/g. Le modèle dit qu'elle fait 15 parts
+// et que le plat n'en prend qu'UNE.
+const POT_1500 = {
+  id: "pot",
+  servingsMade: 15,
+  method: "roast",
+  ingredients: [{ term: "plain food", amount: 1500, unit: "g" as const, state: "raw" as const }],
+};
+
+Deno.test("LOT 0 — une boîte qui cite une casserole vaut ses grammes × la densité de la casserole, pas 1/15 du pot", () => {
+  const dish = {
+    day: "thu",
+    slot: "dinner",
+    method: "reheat",
+    ingredients: [],
+    uses: [{ preparationId: "pot", servings: 1 }],
+    boxes: [
+      { memberIds: [IKU], items: [{ grams: 600, preparationId: "pot" }], legacyTotalGrams: null },
+      { memberIds: [CHR], items: [{ grams: 400, preparationId: "pot" }], legacyTotalGrams: null },
+    ],
+  };
+  const rows = mouthDayEnergy({ index: INDEX, preparations: [POT_1500], dishes: [dish] });
+  const iku = rows.find((r) => r.memberId === IKU)!;
+  const chr = rows.find((r) => r.memberId === CHR)!;
+  // Le pliage aurait donné 100 kcal (1/15 de 1 500) à partager : 60 et 40.
+  assertEquals(iku.kcal, 600);
+  assertEquals(chr.kcal, 400);
+  assert(iku.complete && chr.complete);
+  // Et `uses.servings` ne change plus rien : 1 ou 5, la boîte pèse ce qu'elle pèse.
+  const five = mouthDayEnergy({
+    index: INDEX,
+    preparations: [POT_1500],
+    dishes: [{ ...dish, uses: [{ preparationId: "pot", servings: 5 }] }],
+  });
+  assertEquals(five.find((r) => r.memberId === IKU)!.kcal, 600);
+});
+
+Deno.test("LOT 0 — le frais du plat se partage au prorata des grammes FRAIS des boîtes, la casserole au prorata des grammes tirés", () => {
+  const dish = {
+    day: "thu",
+    slot: "dinner",
+    method: "roast",
+    // 200 g de frais pour tout le plat = 200 kcal.
+    ingredients: PLAIN_200,
+    uses: [{ preparationId: "pot", servings: 1 }],
+    boxes: [
+      { memberIds: [IKU], items: [{ grams: 300, preparationId: "pot" }, { grams: 150, preparationId: null }], legacyTotalGrams: null },
+      { memberIds: [CHR], items: [{ grams: 300, preparationId: "pot" }, { grams: 50, preparationId: null }], legacyTotalGrams: null },
+    ],
+  };
+  const per = boxKcalByItems(INDEX, dish, potDensities(INDEX, [POT_1500]))!;
+  // Casserole : 300 kcal chacune. Frais : 200 × 150/200 = 150 et 200 × 50/200 = 50.
+  assertEquals(Math.round(per[0].kcal!), 450);
+  assertEquals(Math.round(per[1].kcal!), 350);
+  // Rien ne se crée : la somme est casserole tirée + frais du plat.
+  assertEquals(Math.round(per[0].kcal! + per[1].kcal!), 600 + 200);
+});
+
+Deno.test("LOT 0 — une casserole illisible rend `dish_incomplete` sur les boîtes qui la citent, jamais zéro", () => {
+  const rows = mouthDayEnergy({
+    index: INDEX,
+    preparations: [{
+      id: "mystery",
+      servingsMade: 4,
+      method: "roast",
+      ingredients: [{ term: "something the referential does not know", amount: 500, unit: "g", state: "raw" }],
+    }],
+    dishes: [{
+      day: "thu",
+      slot: "dinner",
+      method: "reheat",
+      ingredients: [],
+      uses: [{ preparationId: "mystery", servings: 1 }],
+      boxes: [{ memberIds: [IKU], items: [{ grams: 300, preparationId: "mystery" }], legacyTotalGrams: null }],
+    }],
+  });
+  assertEquals(rows[0].kcal, null);
+  assertEquals(rows[0].complete, false);
+  assert(rows[0].gaps.includes("dish_incomplete"));
+});
+
+Deno.test("LOT 0 — sans `preparationId` sur les items (archive d'avant v4), le pliage s'applique comme avant", () => {
+  // Le même décor que « un plat de REPRISE… » : 800 g, 1 part sur 4 → 200 kcal.
+  const rows = mouthDayEnergy({
+    index: INDEX,
+    preparations: [{
+      id: "prep",
+      servingsMade: 4,
+      ingredients: [{ term: "plain food", amount: 800, unit: "g", state: "raw" }],
+    }],
+    dishes: [{
+      day: "thu",
+      slot: "dinner",
+      method: "reheat",
+      ingredients: [],
+      uses: [{ preparationId: "prep", servings: 1 }],
+      boxes: [{ memberIds: [IKU], items: [{ grams: 200 }], legacyTotalGrams: null }],
+    }],
+  });
+  assertEquals(rows[0].kcal, 200);
+  // Et `boxKcalByItems` dit explicitement qu'il ne s'applique pas.
+  assertEquals(
+    boxKcalByItems(INDEX, {
+      day: "thu",
+      slot: "dinner",
+      method: "reheat",
+      ingredients: [],
+      uses: [],
+      boxes: [{ memberIds: [IKU], items: [{ grams: 200 }], legacyTotalGrams: null }],
+    }, new Map()),
+    null,
+  );
+});
+
+Deno.test("LOT 0 — `boxEnergies` (l'écran) lit la même règle que l'ancre", () => {
+  const per = boxEnergies({
+    index: INDEX,
+    preparations: [POT_1500],
+    dishes: [{
+      day: "thu",
+      slot: "dinner",
+      method: "reheat",
+      ingredients: [],
+      uses: [{ preparationId: "pot", servings: 1 }],
+      boxes: [{ id: "b1", memberIds: [IKU], items: [{ grams: 600, preparationId: "pot" }], legacyTotalGrams: null }],
+    }],
+  });
+  assertEquals(per[0].boxId, "b1");
+  assertEquals(Math.round(per[0].kcal!), 600);
+  assertEquals(per[0].gap, null);
+});
+
+Deno.test("LOT 0 — le compteur d'attribution dit de combien `uses.servings` se trompe", () => {
+  const gap = potAttributionGap({
+    index: INDEX,
+    preparations: [POT_1500],
+    dishes: [{
+      day: "thu",
+      slot: "dinner",
+      method: "reheat",
+      ingredients: [],
+      uses: [{ preparationId: "pot", servings: 1 }],
+      boxes: [
+        { memberIds: [IKU], items: [{ grams: 600, preparationId: "pot" }], legacyTotalGrams: null },
+        { memberIds: [CHR], items: [{ grams: 400, preparationId: "pot" }], legacyTotalGrams: null },
+      ],
+    }],
+  });
+  // Tiré 1 000 g ; attribué 1 500 × 1/15 = 100 g → ×10.
+  assertEquals(gap.drawnGrams, 1000);
+  assertEquals(gap.attributedGrams, 100);
+  assertEquals(gap.ratio, 10);
+  assertEquals(gap.potsUnreadable, 0);
+});

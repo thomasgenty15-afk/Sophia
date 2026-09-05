@@ -60,6 +60,11 @@ import {
 // celle-ci au premier ajustement, et c'est celle qu'on relit le moins qui
 // rendrait un chiffre faux.
 import { foldPreparationsIntoDishes } from "./meal_verdict.ts";
+// ⟳ LOT 0 (2026-09-06) — LA MÊME MASSE PRÊTE QUE LE DENSIFIEUR ET LA CROISSANCE
+// DES CASSEROLES (`weighedReadyGrams` : eau de cuisson exclue quand un grain
+// absorbe). Une casserole doit avoir UNE densité dans tout le moteur ; la
+// recalculer ici avec une autre règle en ferait deux.
+import { weighedReadyGrams } from "./box_densify.ts";
 
 /**
  * POURQUOI UNE BOUCHE N'A PAS SON CHIFFRE SUR UN PLAT. Nommé, jamais un `null`
@@ -139,7 +144,14 @@ export interface MouthEnergyDish {
    */
   boxes: readonly {
     memberIds: readonly string[];
-    items: readonly { grams: number }[];
+    /**
+     * ⟳ LOT 0 (2026-09-06) — `preparationId` OUVRE L'ATTRIBUTION PAR GRAMMES
+     * TIRÉS. Un item qui cite une casserole vaut `grams × densité(casserole)` ;
+     * un item sans casserole (`null`) est une part du frais du plat. Quand
+     * AUCUN item ne porte la clé (`undefined` partout : archives d'avant v4,
+     * bancs anciens), le pliage par `uses.servings` s'applique comme avant.
+     */
+    items: readonly { grams: number; preparationId?: string | null }[];
     /** La somme d'un `box` v2 replié. `null` sur v4 — le total vient des items. */
     legacyTotalGrams: number | null;
   }[];
@@ -288,6 +300,192 @@ export function dishSlices(
 }
 
 /** CE QU'UN CONTENANT PORTE — son poids, son énergie, et ses mangeurs. */
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ LOT 0 (2026-09-06) — L'ÉNERGIE D'UNE BOÎTE SUIT SES GRAMMES TIRÉS, PAS
+// `uses.servings`
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Mesuré sur la campagne du 2026-09-05 (lot 1, M07, cinq bouches) : les boîtes
+// tiraient 34 417 g des casseroles pendant que le pliage n'en attribuait que
+// 5 826 g aux plats (×5,9). Le modèle écrit `uses.servings: 1` sur des
+// casseroles de 10–15 parts, quel que soit le nombre de bouches (36/39 plats de
+// M05, 44/44 de M06, 11/11 de M11, 19/19 de M12), et `share = servings /
+// servingsMade` donnait 1/15 de casserole à un repas de 3 kg — 0,2 kcal/g lu.
+// L'ancre lisait ce chiffre (`day.kcal`), rabotait ×3 partout, et le
+// densifieur ne trouvait « rien de dense ». Le déficit était une convention
+// d'écriture du modèle, pas l'assiette.
+//
+// ── LA RÈGLE ──────────────────────────────────────────────────────────────
+//   · un item de boîte qui cite une casserole vaut `grams × kcal/g de la
+//     casserole` — la densité est `dishEnergy(casserole) / weighedReadyGrams`,
+//     la MÊME que celle du densifieur (`densityFromComposition`) et de la
+//     croissance des casseroles ;
+//   · un item sans casserole est une part du FRAIS du plat (`dish.ingredients`),
+//     partagée entre les boîtes au prorata de leurs grammes frais — et, si
+//     aucune boîte ne porte de frais (mangé à table, jamais mis en boîte), au
+//     prorata des grammes totaux, comme avant ;
+//   · une casserole dont la densité est illisible rend `dish_incomplete` sur
+//     les boîtes qui la citent — jamais zéro (voir « un plat dont l'énergie
+//     est inconnue N'EST PAS compté comme zéro »).
+//
+// ⚠️ LE PLIAGE RESTE POUR CE QUI N'A PAS D'ITEM CITANT : archives d'avant v4 et
+// bancs qui ne posent pas `preparationId`. La bascule est décidée par la
+// PRÉSENCE de la clé, pas par sa valeur : `null` = frais, `undefined` = legacy.
+//
+// ⛔ `uses.servings` N'EST PAS RÉÉCRIT ICI. Le verdict de plan (`meal_verdict`)
+// le lit toujours ; le compteur `potAttributionGap` dit de combien il se
+// trompe, plan par plan, et c'est ce compteur qui décidera s'il faut le
+// dériver des boîtes.
+
+/**
+ * kcal PAR GRAMME PRÊT de chaque casserole, ou `null` quand le référentiel ne
+ * sait pas la lire (énergie incomplète ou masse prête inconnue).
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function potDensities(
+  index: CompositionIndex,
+  preparations: readonly EnergyPreparation[],
+): ReadonlyMap<string, number | null> {
+  const out = new Map<string, number | null>();
+  for (const prep of preparations) {
+    const energy = dishEnergy(index, { method: prep.method ?? "", ingredients: prep.ingredients });
+    const ready = weighedReadyGrams(prep.ingredients, index);
+    out.set(
+      prep.id,
+      energy.complete && energy.kcal !== null && ready !== null && ready > 0
+        ? energy.kcal / ready
+        : null,
+    );
+  }
+  return out;
+}
+
+/** Une boîte porte-t-elle la clé `preparationId` (v4) ? `undefined` partout = legacy. */
+function boxesCarryPreparationIds(dish: MouthEnergyDish): boolean {
+  return dish.boxes.some((box) => box.items.some((item) => item.preparationId !== undefined));
+}
+
+function boxGramsOf(box: MouthEnergyDish["boxes"][number]): number {
+  let sum = 0;
+  for (const item of box.items) {
+    const g = Number(item.grams);
+    if (Number.isFinite(g) && g > 0) sum += g;
+  }
+  if (sum > 0) return sum;
+  const legacy = Number(box.legacyTotalGrams);
+  return Number.isFinite(legacy) && legacy > 0 ? legacy : 0;
+}
+
+/**
+ * L'ÉNERGIE DE CHAQUE BOÎTE D'UN PLAT PAR SES ITEMS — ou `null` si le plat
+ * n'a aucun item citant (legacy : l'appelant retombe sur le pliage).
+ *
+ * Rend une entrée PAR BOÎTE, dans l'ordre de `dish.boxes`.
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function boxKcalByItems(
+  index: CompositionIndex,
+  dish: MouthEnergyDish,
+  densities: ReadonlyMap<string, number | null>,
+): Array<{ kcal: number | null; gap: MouthEnergyGap | null }> | null {
+  if (dish.boxes.length === 0 || !boxesCarryPreparationIds(dish)) return null;
+  const totalGrams = dish.boxes.reduce((n, b) => n + boxGramsOf(b), 0);
+  const freshGrams = dish.boxes.map((box) =>
+    box.items.reduce((n, item) => {
+      const g = Number(item.grams);
+      return item.preparationId === null && Number.isFinite(g) && g > 0 ? n + g : n;
+    }, 0)
+  );
+  const freshTotal = freshGrams.reduce((a, b) => a + b, 0);
+  // Le frais du plat : ses ingrédients PROPRES, jamais ceux des casseroles.
+  const own = dish.ingredients.length > 0
+    ? dishEnergy(index, { method: dish.method, ingredients: dish.ingredients })
+    : null;
+  return dish.boxes.map((box, i) => {
+    const grams = boxGramsOf(box);
+    if (grams <= 0 || totalGrams <= 0) return { kcal: null, gap: "empty_box" as const };
+    let kcal = 0;
+    for (const item of box.items) {
+      const g = Number(item.grams);
+      if (!Number.isFinite(g) || g <= 0) continue;
+      if (typeof item.preparationId !== "string") continue;
+      const density = densities.get(item.preparationId);
+      if (density === null || density === undefined) {
+        return { kcal: null, gap: "dish_incomplete" as const };
+      }
+      kcal += g * density;
+    }
+    if (own !== null) {
+      if (!own.complete || own.kcal === null) return { kcal: null, gap: "dish_incomplete" as const };
+      const share = freshTotal > 0 ? freshGrams[i] / freshTotal : grams / totalGrams;
+      kcal += own.kcal * share;
+    }
+    return { kcal, gap: null };
+  });
+}
+
+/** Les tranches par bouche à partir d'une énergie PAR BOÎTE (même forme que `dishSlices`). */
+function slicesFromBoxKcal(
+  dish: MouthEnergyDish,
+  perBox: ReadonlyArray<{ kcal: number | null; gap: MouthEnergyGap | null }>,
+): MouthSlice[] {
+  const out: MouthSlice[] = [];
+  for (const [i, box] of dish.boxes.entries()) {
+    if (box.memberIds.length !== 1) {
+      for (const memberId of box.memberIds) out.push({ memberId, kcal: null, gap: "common_pot" });
+      continue;
+    }
+    out.push({ memberId: box.memberIds[0], kcal: perBox[i].kcal, gap: perBox[i].gap });
+  }
+  return out;
+}
+
+/**
+ * LE COMPTEUR DU LOT 0 : ce que les boîtes TIRENT des casseroles, contre ce que
+ * le pliage par `uses.servings` leur ATTRIBUE — en grammes prêts, par plan.
+ *
+ * `ratio` = tiré / attribué ; `null` quand l'un des deux est nul. Sur M07 il
+ * valait 5,9 ; sur M05 1,1. C'est ce nombre qui dit si `uses.servings` ment,
+ * et de combien — avant de décider s'il faut le dériver des boîtes.
+ *
+ * PURE: no I/O, no clock, no randomness.
+ */
+export function potAttributionGap(args: {
+  index: CompositionIndex;
+  dishes: readonly MouthEnergyDish[];
+  preparations: readonly EnergyPreparation[];
+}): { drawnGrams: number; attributedGrams: number; ratio: number | null; potsUnreadable: number } {
+  const ready = new Map<string, { grams: number | null; servingsMade: number }>();
+  let potsUnreadable = 0;
+  for (const prep of args.preparations) {
+    const g = weighedReadyGrams(prep.ingredients, args.index);
+    if (g === null) potsUnreadable++;
+    ready.set(prep.id, { grams: g, servingsMade: Math.max(1, Number(prep.servingsMade) || 1) });
+  }
+  let drawn = 0;
+  let attributed = 0;
+  for (const dish of args.dishes) {
+    for (const box of dish.boxes) {
+      for (const item of box.items) {
+        const g = Number(item.grams);
+        if (typeof item.preparationId === "string" && Number.isFinite(g) && g > 0) drawn += g;
+      }
+    }
+    for (const use of dish.uses) {
+      const pot = ready.get(use.preparationId);
+      if (!pot || pot.grams === null) continue;
+      attributed += pot.grams * ((Number(use.servings) || 1) / pot.servingsMade);
+    }
+  }
+  return {
+    drawnGrams: Math.round(drawn),
+    attributedGrams: Math.round(attributed),
+    ratio: drawn > 0 && attributed > 0 ? Math.round((drawn / attributed) * 100) / 100 : null,
+    potsUnreadable,
+  };
+}
+
 export interface BoxEnergy {
   boxId: string;
   day: string | null;
@@ -324,11 +522,23 @@ export interface BoxEnergy {
  *
  * PURE: no I/O, no clock, no randomness.
  */
+/**
+ * Un plat dont les contenants portent leur `id` — ce que l'écran a besoin de
+ * relier. ⟳ LOT 0 : un type nommé plutôt qu'une intersection de tableaux, qui
+ * perdait la face `{ id }` à l'itération et refusait `preparationId` aux items.
+ */
+export interface BoxedMouthEnergyDish extends MouthEnergyDish {
+  boxes: readonly {
+    id: string;
+    memberIds: readonly string[];
+    items: readonly { grams: number; preparationId?: string | null }[];
+    legacyTotalGrams: number | null;
+  }[];
+}
+
 export function boxEnergies(args: {
   index: CompositionIndex;
-  dishes: readonly (MouthEnergyDish & {
-    boxes: readonly { id: string }[];
-  })[];
+  dishes: readonly BoxedMouthEnergyDish[];
   preparations: readonly EnergyPreparation[];
 }): BoxEnergy[] {
   const folded = foldPreparationsIntoDishes({
@@ -341,6 +551,7 @@ export function boxEnergies(args: {
     preparations: args.preparations,
   });
   const out: BoxEnergy[] = [];
+  const densities = potDensities(args.index, args.preparations);
   for (const [i, dish] of args.dishes.entries()) {
     const gramsOf = (box: MouthEnergyDish["boxes"][number]): number => {
       let sum = 0;
@@ -358,10 +569,12 @@ export function boxEnergies(args: {
       method: dish.method,
       ingredients: folded[i].ingredients,
     });
-    for (const box of dish.boxes) {
+    // ⟳ LOT 0 — par items quand la boîte cite ses casseroles, pliage sinon.
+    const byItems = boxKcalByItems(args.index, dish, densities);
+    for (const [j, box] of dish.boxes.entries()) {
       const grams = gramsOf(box);
       const common = {
-        boxId: (box as { id: string }).id,
+        boxId: box.id,
         day: dish.day,
         slot: dish.slot,
         memberIds: box.memberIds,
@@ -369,6 +582,10 @@ export function boxEnergies(args: {
       };
       if (total <= 0 || grams <= 0) {
         out.push({ ...common, kcal: null, gap: "empty_box" as const });
+        continue;
+      }
+      if (byItems !== null) {
+        out.push({ ...common, kcal: byItems[j].kcal, gap: byItems[j].gap });
         continue;
       }
       if (!energy.complete || energy.kcal === null) {
@@ -407,6 +624,7 @@ export function mouthDayEnergy(args: {
   });
 
   const out: MouthDayEnergy[] = [];
+  const densities = potDensities(args.index, args.preparations);
   const byKey = new Map<string, MouthDayEnergy>();
   /** Les plats non attribués, par jour: ils touchent TOUTES les bouches du jour. */
   const unattributedByDay = new Map<string, number>();
@@ -445,7 +663,9 @@ export function mouthDayEnergy(args: {
       method: dish.method,
       ingredients: folded[i].ingredients,
     });
-    const slices = dishSlices(energy, dish);
+    // ⟳ LOT 0 — par items quand la boîte cite ses casseroles, pliage sinon.
+    const byItems = boxKcalByItems(args.index, dish, densities);
+    const slices = byItems !== null ? slicesFromBoxKcal(dish, byItems) : dishSlices(energy, dish);
     if (slices.length === 0) {
       unattributedByDay.set(dayKey, (unattributedByDay.get(dayKey) ?? 0) + 1);
       continue;

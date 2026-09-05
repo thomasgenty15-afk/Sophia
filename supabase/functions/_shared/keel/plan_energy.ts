@@ -378,6 +378,14 @@ export interface EnergyPreparation {
   id: string;
   servingsMade: number;
   ingredients: readonly EnergyIngredient[];
+  /**
+   * ⟳ LOT 0 (2026-09-06) — la méthode de la casserole, pour que sa DENSITÉ
+   * (`potDensities`, `mouth_energy.ts`) soit calculée par le même `dishEnergy`
+   * que le densifieur (`densityFromComposition`) : une casserole, une densité.
+   * Optionnelle : les lecteurs d'archives antérieures ne la portent pas, et une
+   * méthode vide ne change que le facteur de friture.
+   */
+  method?: string;
 }
 
 // ---------------------------------------------------------------------------

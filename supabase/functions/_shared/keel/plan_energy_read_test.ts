@@ -1,4 +1,4 @@
-import { assertEquals } from "jsr:@std/assert@1";
+import { assert, assertEquals } from "jsr:@std/assert@1";
 import { readDishes, readEnergyBoxDishes } from "./plan_energy_read.ts";
 
 // ⟳ LOT F (2026-09-04) — LE LECTEUR DES PLATS AVEC LEURS CONTENANTS.
@@ -26,9 +26,16 @@ Deno.test("LOT F — readEnergyBoxDishes lit les contenants tels que le plan les
   assertEquals(dish.boxes.length, 2, "un contenant sans id ne se lit pas");
   assertEquals(dish.boxes[0].id, "box_sat_lunch_marc");
   assertEquals(dish.boxes[0].memberIds, ["m-marc"]);
-  assertEquals(dish.boxes[0].items, [{ grams: 350 }]);
+  // ⟳ LOT 0 (2026-09-06) — la clé de casserole VOYAGE avec l'item : c'est elle
+  // qui ouvre l'énergie par grammes tirés (`boxKcalByItems`). Le terme, lui,
+  // reste dehors : l'énergie d'un item de boîte ne se résout jamais par son nom.
+  assertEquals(dish.boxes[0].items, [{ grams: 350, preparationId: "prep_chicken" }]);
   assertEquals(dish.boxes[0].legacyTotalGrams, null);
   assertEquals(dish.boxes[1].memberIds, ["m-julie", "m-tom"]);
+  // Un item écrit SANS la clé (archive d'avant v4) ne la reçoit pas en `null` :
+  // `undefined` = pliage legacy, `null` = frais. Les deux ne se confondent pas.
+  assertEquals(dish.boxes[1].items, [{ grams: 700 }]);
+  assert(!("preparationId" in dish.boxes[1].items[0]));
 });
 
 Deno.test("⛔ LOT F — il S'APPUIE sur readDishes pour ce qu'ils ont en commun", () => {

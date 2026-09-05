@@ -28,7 +28,7 @@
 // S'ABSTIENT sur un plan de foyer, ce qui est le comportement que
 // `meal-energy-v1` a lui-même choisi quand la trace lui manque.
 
-import type { MouthEnergyDish } from "./mouth_energy.ts";
+import type { MouthEnergyDish, BoxedMouthEnergyDish } from "./mouth_energy.ts";
 import {
   COMPOSITION_STATES,
   COMPOSITION_UNITS,
@@ -122,14 +122,10 @@ export function readDishes(raw: unknown): EnergyDish[] {
  * ⚠️ IL S'APPUIE SUR `readDishes` pour tout ce qu'ils ont en commun: deux
  * lectures de `uses` ou de `ingredients` divergeraient au premier champ ajouté.
  */
-export interface EnergyBoxDish extends MouthEnergyDish {
-  boxes: readonly {
-    id: string;
-    memberIds: readonly string[];
-    items: readonly { grams: number }[];
-    legacyTotalGrams: number | null;
-  }[];
-}
+// ⟳ LOT 0 (2026-09-06) — la forme est celle que `boxEnergies` attend, définie
+// UNE fois côté moteur (`BoxedMouthEnergyDish`) ; les items portent la clé de
+// casserole quand l'archive l'a écrite.
+export type EnergyBoxDish = BoxedMouthEnergyDish;
 
 export function readEnergyBoxDishes(raw: unknown): EnergyBoxDish[] {
   if (!Array.isArray(raw)) return [];
@@ -149,9 +145,19 @@ export function readEnergyBoxDishes(raw: unknown): EnergyBoxDish[] {
           memberIds: Array.isArray(b.member_ids)
             ? b.member_ids.map((m) => String(m ?? "").trim()).filter(Boolean)
             : [],
-          items: items.map((rawItem) => ({
-            grams: Number((rawItem as Record<string, unknown> | null)?.grams) || 0,
-          })),
+          items: items.map((rawItem) => {
+            const it = (rawItem as Record<string, unknown> | null) ?? {};
+            const prep = it.preparation_id;
+            return {
+              grams: Number(it.grams) || 0,
+              // ⟳ LOT 0 — la clé est portée telle qu'écrite : une chaîne cite une
+              // casserole, `null` dit « frais », et une archive d'avant v4 qui ne
+              // la porte pas rend `undefined` (pliage legacy). Ne pas « réparer »
+              // l'absence en `null` : ce serait promettre du frais à ce qui n'a
+              // jamais été décrit.
+              ...(prep === undefined ? {} : { preparationId: typeof prep === "string" && prep !== "" ? prep : null }),
+            };
+          }),
           legacyTotalGrams: Number.isFinite(legacy) && legacy > 0 ? legacy : null,
         };
       }).filter((b) => b.id !== ""),
@@ -167,6 +173,8 @@ export function readPreparations(raw: unknown): EnergyPreparation[] {
       id: String(p.id ?? ""),
       servingsMade: Math.max(1, Number(p.servings_made) || 1),
       ingredients: readIngredients(p.ingredients),
+      // ⟳ LOT 0 — la méthode nourrit la densité de la casserole (`potDensities`).
+      method: String(p.method ?? ""),
     };
   }).filter((p) => p.id !== "");
 }

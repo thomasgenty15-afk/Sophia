@@ -56,7 +56,7 @@
  * s'arrête et le DIT (`no_dense_target`): c'est là, et seulement là, qu'une
  * relance du modèle ou un extra déclaré ont un sens.
  */
-import type { CompositionIndex, CompositionRef } from "./food_composition.ts";
+import type { CompositionIndex, CompositionInput, CompositionRef } from "./food_composition.ts";
 import { resolveIngredient, resolveIngredients, YIELD_FACTORS } from "./food_composition.ts";
 import type { FoodGroupRef } from "./tokens.ts";
 import { dishEnergy } from "./plan_energy.ts";
@@ -292,7 +292,12 @@ export function densifyBoxes(args: {
  * densité (voir `densityFromComposition`).
  */
 export function weighedReadyGrams(
-  ingredients: readonly DishIngredient[],
+  // ⟳ LOT 0 (2026-09-06) — ÉLARGI À `CompositionInput` : cette fonction ne lit
+  // que ce que `resolveIngredients` lit (terme, quantité, unité, état), jamais
+  // `gramsRaw` ni `in_pantry`. `mouth_energy.ts` l'appelle sur des
+  // `EnergyIngredient` pour que la casserole ait UNE densité dans tout le
+  // moteur ; un `DishIngredient` reste accepté tel quel.
+  ingredients: readonly CompositionInput[],
   index: CompositionIndex,
 ): number | null {
   // ⛔ LA MÊME RÉSOLUTION QUE LE NUMÉRATEUR, PAS LE CHAMP `gramsRaw`. Mesuré sur le
