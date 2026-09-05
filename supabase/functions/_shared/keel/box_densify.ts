@@ -306,10 +306,18 @@ export function weighedReadyGrams(
   // le voir. `resolveIngredients` est la règle d'admission du numérateur
   // (prose, puis unités, puis `condimentMassFor`): on lui prend ses grammes.
   const r = resolveIngredients(index, ingredients);
+  // ⟳ 2026-09-05 — L'EAU DE CUISSON NE COMPTE PAS DEUX FOIS. Mesuré sur les
+  // plans réels du jour: 4 casseroles de grain sur 13 listent « eau » (1,7 à
+  // 3,7 L). `grain_absorbs` (×2,6) porte déjà cette eau dans les grammes
+  // prêts; la ligne d'eau l'ajoutait une seconde fois — un riz à 0,77 kcal/g
+  // au lieu de ~1,3, donc plus de grammes déplacés pour la même énergie.
+  // L'eau d'une soupe (sans grain absorbant) reste dans la masse.
+  const absorbs = r.resolved.some(({ ref }) => ref.yieldClass === "grain_absorbs");
   let total = 0;
   let any = false;
   for (const { ref, gramsRaw } of r.resolved) {
     if (!(gramsRaw > 0)) continue;
+    if (absorbs && ref.foodGroupRef === "water") continue;
     total += gramsRaw * YIELD_FACTORS[ref.yieldClass];
     any = true;
   }

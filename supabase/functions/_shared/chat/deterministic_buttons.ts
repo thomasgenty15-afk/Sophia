@@ -276,6 +276,8 @@ async function ack(
     body: string;
     buttons?: { payload: string; label: string }[];
     purpose: string;
+    /** ⟳ 2026-09-05 — ce que la bulle sait d'elle-même (les lignes écrites, pour « Voir »). */
+    metadata?: Record<string, unknown>;
   },
 ): Promise<void> {
   await deliverChatMessage(admin, {
@@ -284,6 +286,7 @@ async function ack(
     isReply: true,
     purpose: args.purpose,
     buttons: args.buttons ?? [],
+    ...(args.metadata ? { metadata: args.metadata } : {}),
     requestId: args.requestId,
   });
 }
@@ -1727,6 +1730,10 @@ export async function handleDeterministicButton(
       purpose: "keel_memory_clarification_ack",
       body: result.body,
       buttons: result.buttons,
+      // ⟳ 2026-09-05: « Voir » allume la ligne écrite, comme sur l'accusé.
+      ...(result.memoryLines
+        ? { metadata: { keel_memory_lines: [...result.memoryLines] } }
+        : {}),
     });
     return handled(result.handledAs);
   }

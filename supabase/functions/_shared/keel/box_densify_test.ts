@@ -355,3 +355,21 @@ Deno.test("⛔ ⟳ LE RUNTIME NE REMPLIT PAS `gramsRaw` — la densité se calcu
   });
   assert(out.counts.closed_kcal <= out.counts.moved_g * 4, `${out.counts.closed_kcal} kcal fermés avec ${out.counts.moved_g} g: une densité ment`);
 });
+
+// ⟳ 2026-09-05 — L'EAU DE CUISSON D'UN GRAIN NE COMPTE PAS DEUX FOIS.
+Deno.test("weighedReadyGrams: l'eau listée à côté d'un riz est déjà dans le ×2,6 — elle ne s'ajoute pas", () => {
+  const index = buildCompositionIndex(
+    [
+      ref({ slug: "riz", energyKcal: 350, yieldClass: "grain_absorbs" }),
+      ref({ slug: "eau", energyKcal: 0, foodGroupRef: "water" as never }),
+      ref({ slug: "carotte", energyKcal: 35, foodGroupRef: "non_starchy_veg" }),
+    ],
+    [],
+  );
+  const ing = (term: string, gramsRaw: number) =>
+    ({ term, quantity: `${gramsRaw} g`, in_pantry: false, amount: gramsRaw, unit: "g", state: "raw", gramsRaw, quantitySource: "structured" }) as never;
+  // Riz 100 g cru → 260 g prêts; 300 g d'eau listés n'ajoutent rien.
+  assertEquals(weighedReadyGrams([ing("riz", 100), ing("eau", 300)], index), 260);
+  // Sans grain absorbant, l'eau d'une soupe reste dans la masse.
+  assertEquals(weighedReadyGrams([ing("carotte", 100), ing("eau", 300)], index), 400);
+});

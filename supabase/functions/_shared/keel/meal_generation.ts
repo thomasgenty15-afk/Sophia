@@ -77,6 +77,7 @@ import {
   COMPOSITION_STATES,
   COMPOSITION_UNITS,
   type CompositionIndex,
+  type CompositionRef,
   type CompositionState,
   type CompositionUnit,
   gramsRawOf,
@@ -2261,7 +2262,7 @@ export const SOLO_BOX_BLOCK = [
   'on the day has no "boxes": nothing was weighed ahead for it.',
 ].join("\n");
 
-export const MEAL_PROMPT_VERSION = "meal.en.v26_the_cooking_style_sets_the_sessions";
+export const MEAL_PROMPT_VERSION = "meal.en.v27_a_plate_weighs_what_it_feeds";
 
 /**
  * ③ — CE QUE `severity` VEUT DIRE, posé JUSTE SOUS la liste qui le porte.
@@ -2905,10 +2906,19 @@ fillets, 500 g potatoes" written for ONE person eating ONE dinner. That is three
 dinners on a plate. If a quantity only makes sense because the dish is cooked in
 a batch, then say so in \`batch\` — do not silently inflate a single plate.
 
-Sanity, before you write a quantity: one adult portion is roughly a palm of
-protein, a fist of starch, and vegetables on top. Scale from there. You never
-tell the student those figures; you use them so the numbers you DO write are
-believable.
+Sanity, before you write a quantity: a full lunch or dinner for one adult is a
+plate of roughly 600 to 750 g of cooked food, and most of that weight is food
+that carries energy — about 200 to 250 g of cooked grains, pasta, potatoes or
+pulses, about 120 to 180 g of the protein food, and a fat (oil, butter, cheese,
+nuts, avocado) — with vegetables ON TOP of it, never instead of it. Breakfast is
+about two thirds of that. Measured failure, and it is the quiet one: a palm of
+chicken on a bed of courgettes and salad looks like a meal and carries a third
+of one — a whole week composed that way left the table hungry. If the method
+takes the starch off the plate, that weight moves to the protein food, the
+pulses and the fat; it does not vanish. Scale from there for children and for
+what you are told about the person. You never tell the student those figures;
+you use them so the numbers you DO write are believable — each named portion is
+sized afterwards by the app, from these.
 
 ${PROTEIN_ANCHOR_PROMPT_LINE}
 
@@ -3440,7 +3450,8 @@ export function buildMealPrompt(args: {
    * lui).
    *
    * C'est ce qui dimensionne une portion. Le prompt système DEMANDE de
-   * dimensionner (« one adult portion is roughly a palm of protein ») et rien
+   * dimensionner (« a full lunch or dinner for one adult is a plate of roughly
+   * 600 to 750 g ») et rien
    * ne lui disait de qui: `height_cm` avait un écran, une colonne, une
    * contrainte de bornes et zéro lecteur.
    *
@@ -4324,8 +4335,8 @@ export function buildMealPrompt(args: {
     //
     // Le constat tient: pour un compte neuf, la section entière disparaît, et
     // rien ne dit au modèle qu'il ne sait rien — pendant que le prompt système
-    // lui DEMANDE de dimensionner (« one adult portion is roughly a palm of
-    // protein ») sans jamais dire de qui.
+    // lui DEMANDE de dimensionner (« a full lunch or dinner for one adult is a
+    // plate of roughly 600 to 750 g ») sans jamais dire de qui.
     //
     // ⚠️ ET LA LIGNE QUI LE DIRAIT EST INTERDITE PAR UNE RAISON DE SÉCURITÉ,
     // pas par du goût. `meal_body_test.ts::"un corps entièrement inconnu SOUS
@@ -5039,12 +5050,20 @@ export function preparationReadyGrams(
   composition: CompositionIndex | null,
 ): number | null {
   if (composition === null || ingredients.length === 0) return null;
-  let total = 0;
+  // ⟳ 2026-09-05 — même règle que `weighedReadyGrams` (`box_densify.ts`): l'eau
+  // listée à côté d'un grain absorbant est déjà dans le facteur ×2,6.
+  const refs: { ref: CompositionRef; gramsRaw: number }[] = [];
   for (const ing of ingredients) {
     if (ing.gramsRaw === null) return null;
     const ref = resolveIngredient(composition, ing.term);
     if (!ref) return null;
-    total += ing.gramsRaw * YIELD_FACTORS[ref.yieldClass];
+    refs.push({ ref, gramsRaw: ing.gramsRaw });
+  }
+  const absorbs = refs.some(({ ref }) => ref.yieldClass === "grain_absorbs");
+  let total = 0;
+  for (const { ref, gramsRaw } of refs) {
+    if (absorbs && ref.foodGroupRef === "water") continue;
+    total += gramsRaw * YIELD_FACTORS[ref.yieldClass];
   }
   return total;
 }

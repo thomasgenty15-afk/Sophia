@@ -224,6 +224,9 @@ Deno.test("tap: la ligne s'écrit, la question se ferme, l'accusé ouvre la cart
   assert(out.body.includes("Léa"), `l'accusé ne nomme pas la bouche: ${out.body}`);
   assertEquals(out.buttons.length, 1);
   assertEquals(out.buttons[0].payload, "KEEL_VIEW_ABOUT_YOU|preferences");
+  // ⟳ 2026-09-05: la bulle porte la ligne écrite, et c'est celle que le récap cite.
+  assertEquals(out.memoryLines?.length, 1, JSON.stringify(out));
+  assert(out.body.includes(out.memoryLines![0]), out.body);
 });
 
 Deno.test("tap: le second bouton écrit la SECONDE bouche", async () => {

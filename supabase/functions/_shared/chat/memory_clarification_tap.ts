@@ -57,6 +57,13 @@ export interface MemoryClarificationTapResult {
   readonly body: string;
   readonly buttons: { payload: string; label: string }[];
   readonly handledAs: string;
+  /**
+   * ⟳ 2026-09-05 — LES TEXTES ÉCRITS, pour que « Voir » allume la ligne et
+   * plus toutes celles du jour (`metadata.keel_memory_lines`, la même clé que
+   * la bulle d'accusé de `memory_clarification_io.ts`). Absent quand rien
+   * n'a été écrit.
+   */
+  readonly memoryLines?: readonly string[];
 }
 
 function log(event: string, extra: Record<string, unknown>): void {
@@ -305,5 +312,6 @@ export async function handleMemoryClarificationTap(
       label: clarificationViewLabel(args.language),
     }],
     handledAs: "keel_memory_clarification_answered",
+    memoryLines: [kept.text],
   };
 }
