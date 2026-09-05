@@ -7357,6 +7357,10 @@ Deno.serve(async (req) => {
                     swap.counters.cells_carrying === 0)
                 ? "whole_table"
                 : "boxes",
+              carrying: {
+                cells: swap.counters.cells_carrying,
+                checked: swap.counters.cells_checked,
+              },
             },
           // ── LOT B · LE MODE DEMANDÉ, ET CE QU'IL A DONNÉ ─────────────────
           //

@@ -494,6 +494,13 @@ export interface PlanRationaleFacts {
      * la table garde la sienne » sur 42 plats sans viande).
      */
     swap: "none" | "boxes" | "whole_table";
+    /**
+     * ⟳ 2026-09-05 soir — LE RATIO, quand il est partiel. Mesuré: C03 3
+     * repas principaux sur 8 portent le composant carné pour les omnivores,
+     * C06 9 sur 11. « Le reste de la table garde la sienne » tout court
+     * serait vrai à 3/8. `null` = non mesuré (lane solo, entrée ancienne).
+     */
+    carrying?: { readonly cells: number; readonly checked: number } | null;
   } | null;
   /**
    * LE MODE DE CUISSON DEMANDÉ À LA COMPOSITION, ET CE QU'IL A DONNÉ.
@@ -819,6 +826,9 @@ const COPY = {
     // ── TOUTE LA TABLE SUIT LA LIGNE — un fait, dit tel quel ─────────────
     sharedRegimeWholeTable: (regime: string, names: string) =>
       `Cette semaine, toute la table mange ${regime} : c'est la ligne de ${names}.`,
+    // ── LE RATIO PARTIEL, dit en repas principaux ─────────────────────────
+    sharedRegimeSwapPartial: (cells: number, checked: number) =>
+      ` Le reste de la table garde la sienne à ${cells} repas principaux sur ${checked}.`,
     // ── LE MODE DE CUISSON DEMANDÉ, ET CE QU'IL A COÛTÉ ──────────────────
     //
     // ⚠️ UN FAIT, JAMAIS UN REPROCHE, ET JAMAIS UNE SUGGESTION. « Tu aurais dû
@@ -1030,6 +1040,8 @@ const COPY = {
       `have their own box. The rest of the table keeps theirs.`,
     sharedRegimeWholeTable: (regime: string, names: string) =>
       `This week the whole table eats ${regime}: that is the line of ${names}.`,
+    sharedRegimeSwapPartial: (cells: number, checked: number) =>
+      ` The rest of the table keeps theirs at ${cells} main meals out of ${checked}.`,
     // Même posture qu'en français: un fait, jamais un reproche, jamais une
     // suggestion — et jamais la raison pour laquelle quelqu'un ne sort pas de
     // la casserole commune.
@@ -1193,6 +1205,21 @@ const REQUIRED_FACTS: readonly (keyof PlanRationaleFacts)[] = [
  * ce qu'on écrit. On coupe TOUT et on trace — copie exacte de la porte 4 de
  * `gateRequestReport` (`request_report_gate.ts:236-249`).
  */
+/**
+ * ⟳ 2026-09-05 — « Le reste de la table garde la sienne » devient chiffré quand
+ * le ratio est partiel: la phrase entière garde son sens (la boîte existe), le
+ * nombre dit à combien de repas. Ratio plein ou non mesuré: la phrase d'hier.
+ */
+function partialSwapLine(
+  line: string,
+  carrying: { readonly cells: number; readonly checked: number } | null,
+  partial: (cells: number, checked: number) => string,
+): string {
+  if (!carrying || carrying.checked <= 0 || carrying.cells >= carrying.checked) return line;
+  const tail = / Le reste de la table garde la sienne\.$| The rest of the table keeps theirs\.$/;
+  return tail.test(line) ? line.replace(tail, partial(carrying.cells, carrying.checked)) : line;
+}
+
 export function explainPlanChoices(input: {
   facts: PlanRationaleFacts;
   locale: RationaleLocale;
@@ -1597,9 +1624,13 @@ export function explainPlanChoices(input: {
           regime.swap === "whole_table"
             ? copy.sharedRegimeWholeTable(label, rendered)
             : regime.swap === "boxes"
-            ? (names.length === 1
-              ? copy.sharedRegimeSwap(label, rendered)
-              : copy.sharedRegimeSwapMany(label, rendered))
+            ? partialSwapLine(
+              names.length === 1
+                ? copy.sharedRegimeSwap(label, rendered)
+                : copy.sharedRegimeSwapMany(label, rendered),
+              regime.carrying ?? null,
+              copy.sharedRegimeSwapPartial,
+            )
             : (names.length === 1
               ? copy.sharedRegime(label, rendered)
               : copy.sharedRegimeMany(label, rendered)),

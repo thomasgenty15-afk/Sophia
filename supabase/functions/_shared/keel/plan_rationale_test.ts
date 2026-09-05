@@ -2323,3 +2323,19 @@ Deno.test("LA RATIONALE dit « toute la table mange végétarien » quand aucun 
   assert(en.includes("This week the whole table eats vegetarian: that is the line of Léa."), en);
   assert(!en.includes("keeps theirs"), en);
 });
+
+Deno.test("LA RATIONALE chiffre le ratio partiel: « garde la sienne à 3 repas principaux sur 8 » — FR et EN, et pas quand c'est plein", () => {
+  const lines = (carrying: { cells: number; checked: number } | null, locale: "fr" | "en") =>
+    explainPlanChoices({
+      facts: {
+        ...nominalFacts(),
+        mouthsServed: 4,
+        sharedDishRegime: { regime: "vegan", heldBy: ["Nora"], swap: "boxes", carrying },
+      },
+      locale,
+    }).lines.join(" ");
+  assert(lines({ cells: 3, checked: 8 }, "fr").includes("Le reste de la table garde la sienne à 3 repas principaux sur 8."), lines({ cells: 3, checked: 8 }, "fr"));
+  assert(lines({ cells: 8, checked: 8 }, "fr").includes("Le reste de la table garde la sienne."), lines({ cells: 8, checked: 8 }, "fr"));
+  assert(lines(null, "fr").includes("Le reste de la table garde la sienne."), lines(null, "fr"));
+  assert(lines({ cells: 3, checked: 8 }, "en").includes("The rest of the table keeps theirs at 3 main meals out of 8."), lines({ cells: 3, checked: 8 }, "en"));
+});
