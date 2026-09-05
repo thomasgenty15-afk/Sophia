@@ -1,4 +1,5 @@
 import { mealCopy } from "../../api/mealLabels";
+import type { BoxEnergyView } from "../../api/mealEnergy";
 import type { BoxLine } from "../../lib/mealBoxes";
 
 // LE BOXING — UNE LIGNE PAR CONTENANT, C'EST-À-DIRE PAR REPAS **ET** PAR GROUPE.
@@ -23,9 +24,26 @@ import type { BoxLine } from "../../lib/mealBoxes";
 //
 // ⛔ AUCUN POURQUOI, ET C'EST STRUCTUREL. Ce composant ne reçoit que des
 // prénoms, un libellé de repas, des termes et des grammes (`BoxLine`): il n'a
-// aucun champ où un objectif, un poids ou une calorie pourrait entrer. Les
-// grammes qu'il rend sont des grammes d'ALIMENT — la même famille que « 400 g
-// de cuisses de poulet » sur une liste de courses (F7/F8, FF-047).
+// aucun champ où un objectif ou un poids pourrait entrer. Les grammes qu'il
+// rend sont des grammes d'ALIMENT — la même famille que « 400 g de cuisses de
+// poulet » sur une liste de courses (F7/F8, FF-047).
+//
+// ── ⟳ 2026-09-04 · LE KCAL D'UNE BOÎTE À UN NOM, ET POURQUOI CE N'EST PAS UN
+// POURQUOI ─────────────────────────────────────────────────────────────────
+// Décision de l'utilisateur: « dès qu'il y a un objectif de perte ou de gain de
+// poids, c'est affiché, peu importe qui regarde ». Ce composant peut donc
+// recevoir, par `boxEnergy`, le kcal d'un contenant à UN nom — et il le rend
+// sur cette ligne-là seulement. Ce n'est pas une brèche de la phrase au-dessus:
+// ce kcal est une QUANTITÉ DU PLAN (`plan_quantities`, les kcal du plat au
+// prorata des grammes de la boîte), de la même famille que les grammes. Il ne
+// dit ni le poids, ni la taille, ni le besoin de personne. Ce qu'il révèle —
+// qu'une bouche a un objectif — est assumé par la décision.
+// ⛔ JAMAIS SUR UN BAC PARTAGÉ: ses grammes sont une quantité de bac, pas la
+// portion de quelqu'un, et un kcal dessus aurait l'air personnel sans l'être.
+// Le serveur ne rend d'ailleurs jamais de chiffre pour un couvercle à
+// plusieurs noms (`canEmitBoxEnergy`, docs/keel/BOITES-PAR-REPAS.md).
+// ⛔ CE COMPOSANT NE DÉCIDE PAS DU DROIT DE VOIR. Il rend ce qu'on lui donne;
+// quand la porte d'une bouche est fermée, il n'y a rien à lui donner.
 //
 // ⛔ AUCUNE COULEUR D'ÉTAT. Une pesée n'est ni un verdict ni une alerte: c'est
 // une donnée, comme un jour de cuisine et une durée. La frontière est portée par
@@ -43,8 +61,14 @@ import type { BoxLine } from "../../lib/mealBoxes";
 // diverger, et ici la divergence se paierait sur des grammes.
 
 export function BoxTable(
-  { lines, context }: {
+  { lines, context, boxEnergy }: {
     lines: readonly BoxLine[];
+    /**
+     * ⟳ 2026-09-04 — le kcal d'un contenant à UN nom, quand sa bouche y a
+     * droit. `undefined` = aucune énergie n'a voyagé (porte fermée ou écran qui
+     * ne la charge pas): rien ne se rend, et rien ne le signale.
+     */
+    boxEnergy?: (boxId: string) => BoxEnergyView | null;
     /**
      * ══════════════════════════════════════════════════════════════════════
      * OÙ CETTE TABLE EST POSÉE — et donc CE QU'ELLE A LE DROIT DE DIRE.
@@ -152,7 +176,16 @@ export function BoxTable(
           l'idiome de la charte (§2: la frontière est portée par le filet et
           l'espace, jamais par un remplissage de plus). */}
       <ul className="mt-2 flex flex-col">
-        {lines.map((line) => <BoxRow key={line.id} line={line} context={context} />)}
+        {lines.map((line) => (
+          <BoxRow
+            key={line.id}
+            line={line}
+            context={context}
+            // ⛔ LA LIGNE À UN NOM SEULEMENT. Un bac partagé ne demande jamais
+            // son chiffre, même quand la fonction le connaîtrait.
+            energy={!line.shared && boxEnergy ? boxEnergy(line.id) : null}
+          />
+        ))}
       </ul>
     </div>
   );
@@ -173,7 +206,11 @@ export function BoxTable(
  * fait RECONNAÎTRE.
  */
 function BoxRow(
-  { line, context }: { line: BoxLine; context: "session" | "dish" },
+  { line, context, energy }: {
+    line: BoxLine;
+    context: "session" | "dish";
+    energy: BoxEnergyView | null;
+  },
 ) {
   return (
     <li
@@ -192,6 +229,15 @@ function BoxRow(
             volontairement minuscule: un badge ou une couleur en ferait un
             statut. Absent sur un contenant à un seul nom — son couvercle suffit
             à dire que c'est une portion. */}
+        {/* ⟳ 2026-09-04 — LE CHIFFRE DU CONTENANT, SUR LA LIGNE À UN NOM.
+            Même cran et même gris que « · pour n »: c'est une précision de
+            lecture, pas un statut. Le nombre sort d'un champ typé et entre
+            dans un `<span>` — jamais dans une phrase composée (R4). */}
+        {energy !== null && (
+          <span className="text-label tabular-nums text-ink-soft">
+            {mealCopy("meals.boxes.energy", { n: energy.kcal })}
+          </span>
+        )}
         {line.shared && (
           <span className="text-label tabular-nums text-ink-soft">
             {mealCopy("meals.boxes.for_n", { n: line.eaterCount })}

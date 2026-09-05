@@ -18,16 +18,23 @@
 //     qu'un plancher TCA existe.
 //   * UN CHIFFRE NE SORT QUE POUR LA BOUCHE QUI LE DEMANDE. `other_mouth`
 //     répond à la question §11 n°4 de FF-059, restée ouverte depuis le 12/08.
+//     ⟳ 2026-09-04 — CETTE RÈGLE NE VAUT PLUS QUE POUR LE CONSEIL DU MIDI. Le
+//     kcal d'une BOÎTE à un nom passe par une porte À CÔTÉ, `canEmitBoxEnergy`,
+//     sous la ceinture de la bouche et plus du lecteur (décision de
+//     l'utilisateur, « peu importe qui regarde »). Le bloc en fin de fichier
+//     l'éprouve; les tests `other_mouth` ci-dessous restent VRAIS pour C9.
 //   * AUCUN PARAMÈTRE OPTIONNEL. « Un paramètre de garde optionnel est une
 //     garde désarmée » (`safetyBand: null` de `keel-reengage-v1`). Les tests
 //     de source refusent un `?` dans les trois entrées neuves.
 //   * CHAQUE GARDE A SON CAS QUI PASSE. Une garde qui refuse tout bloque tout
 //     et ressemble trait pour trait à une garde qui marche.
 
-import { assert, assertEquals, assertThrows } from "jsr:@std/assert@1";
+import { assert, assertEquals, assertStringIncludes, assertThrows } from "jsr:@std/assert@1";
 import { fromFileUrl } from "https://deno.land/std@0.208.0/path/mod.ts";
 
 import {
+  BOX_ENERGY_REASONS,
+  canEmitBoxEnergy,
   canEmitMouthEnergy,
   canShowEnergy,
   canShowTarget,
@@ -37,7 +44,9 @@ import {
   ENERGY_GATE_REASONS,
   ENERGY_SAFETY_INPUT_KEYS,
   ENERGY_SAFETY_REASONS,
+  ENERGY_SWITCH_SOURCES,
   energySafetyGates,
+  energySwitchFrom,
   type EnergyGateReason,
   type EnergySafetyInput,
   MOUTH_ENERGY_REASONS,
@@ -574,6 +583,11 @@ Deno.test("L4 — les trois portes neuves n'ont QUE les appelants qu'on a relus"
     "energySafetyGates(": [
       "keel/household_portions.ts",
       "keel/mouth_anchor.ts",
+      // ⟳ LOT F (2026-09-04) — RELU: la lane d'énergie juge chaque boîte à un
+      // nom sous la chaîne ①②③ de SA bouche (`boxEnergyByPlan`), puis
+      // `canEmitBoxEnergy`. C'est le seul endroit où un kcal PAR BOUCHE sort
+      // vers un écran, et il ne sort que par cette porte.
+      "meal-energy-v1/index.ts",
     ],
     "canSizeFromTarget(": [
       "keel/household_portions.ts",
@@ -636,4 +650,153 @@ Deno.test("L4 — les trois portes neuves n'ont QUE les appelants qu'on a relus"
         `pas la garde depuis là`,
     );
   }
+});
+
+// ---------------------------------------------------------------------------
+// ⟳ LOT F (2026-09-04) — LA PORTE PAR BOÎTE, SOUS LA CEINTURE DE LA BOUCHE
+//
+// Décision: « dès qu'il y a un objectif de perte ou de gain de poids, c'est
+// affiché, peu importe qui regarde ». Ce bloc éprouve la porte qui la porte, et
+// d'abord SON CAS QUI PASSE — une garde qui refuse tout ressemble trait pour
+// trait à une garde qui marche.
+// ---------------------------------------------------------------------------
+function mouthSafety(over: Partial<Parameters<typeof energySafetyGates>[0]> = {}) {
+  return energySafetyGates({
+    restrictionFlag: false,
+    ageVerdict: ADULT,
+    coachCounting: "no_position",
+    ...over,
+  });
+}
+
+Deno.test("LOT F — boîte: LE CAS QUI PASSE — une bouche adulte SANS compte, en perte de poids", () => {
+  // C'est le mari de la décision: pas de compte, donc `stored: null`, et c'est
+  // sa DIRECTION qui ouvre. Personne n'a regardé qui lit.
+  assertEquals(
+    canEmitBoxEnergy({
+      safety: mouthSafety(),
+      mouthSwitch: energySwitchFrom({ stored: null, direction: "down" }),
+    }),
+    { emit: true, reason: "open" },
+  );
+  // Et une prise de poids ouvre pareil.
+  assertEquals(
+    canEmitBoxEnergy({
+      safety: mouthSafety(),
+      mouthSwitch: energySwitchFrom({ stored: null, direction: "up" }),
+    }).emit,
+    true,
+  );
+});
+
+Deno.test("⛔ LOT F — boîte: la MAINTENANCE n'ouvre rien, et le motif le dit", () => {
+  // « peu importe qui regarde » ne veut pas dire « tout le monde »: sans
+  // objectif, il n'y a rien à ouvrir, et `no_direction` n'est pas `student_off`
+  // — l'un ne se répare pas, l'autre se rallume.
+  assertEquals(
+    canEmitBoxEnergy({
+      safety: mouthSafety(),
+      mouthSwitch: energySwitchFrom({ stored: null, direction: null }),
+    }),
+    { emit: false, reason: "no_direction" },
+  );
+});
+
+Deno.test("⛔ LOT F — boîte: la SÉCURITÉ DE LA BOUCHE ferme d'abord, objectif ou pas", () => {
+  // Le plancher, l'âge et le coach de CETTE bouche. Un enfant en prise de
+  // poids n'a jamais de kcal sur sa boîte; une bouche sans date non plus.
+  for (
+    const [over, reason] of [
+      [{ restrictionFlag: true }, "restriction_floor"],
+      [{ ageVerdict: AGE_VERDICTS[1].verdict }, "minor"],
+      [{ ageVerdict: AGE_VERDICTS[2].verdict }, "age_unknown"],
+      [{ ageVerdict: AGE_VERDICTS[3].verdict }, "age_unknown"],
+      [{ coachCounting: "no_counting" }, "doctrine_no_counting"],
+    ] as const
+  ) {
+    assertEquals(
+      canEmitBoxEnergy({
+        safety: mouthSafety(over as Partial<Parameters<typeof energySafetyGates>[0]>),
+        mouthSwitch: energySwitchFrom({ stored: null, direction: "down" }),
+      }),
+      { emit: false, reason },
+      String(reason),
+    );
+  }
+});
+
+Deno.test("⛔ LOT F — boîte: une bouche AVEC compte qui a éteint reste éteinte (R7)", () => {
+  // Son `explicit_off` gagne sur sa direction, pour toujours. Un objectif
+  // changé ne rallume pas ce qu'elle a éteint.
+  assertEquals(
+    canEmitBoxEnergy({
+      safety: mouthSafety(),
+      mouthSwitch: energySwitchFrom({ stored: false, direction: "down" }),
+    }),
+    { emit: false, reason: "student_off" },
+  );
+  // Et `explicit_on` ouvre même en maintenance: elle l'a demandé.
+  assertEquals(
+    canEmitBoxEnergy({
+      safety: mouthSafety(),
+      mouthSwitch: energySwitchFrom({ stored: true, direction: null }),
+    }),
+    { emit: true, reason: "open" },
+  );
+});
+
+Deno.test("⛔ LOT F — boîte: les entrées sont REQUISES et validées", () => {
+  const ok = { safety: mouthSafety(), mouthSwitch: energySwitchFrom({ stored: null, direction: "down" }) };
+  const bad: unknown[] = [
+    undefined,
+    null,
+    {},
+    { safety: ok.safety },
+    { mouthSwitch: ok.mouthSwitch },
+    { safety: undefined, mouthSwitch: ok.mouthSwitch },
+    { safety: ok.safety, mouthSwitch: undefined },
+    { safety: { open: true }, mouthSwitch: ok.mouthSwitch },
+    { safety: { open: true, reason: "other_mouth" }, mouthSwitch: ok.mouthSwitch },
+    { safety: ok.safety, mouthSwitch: { on: true } },
+    { safety: ok.safety, mouthSwitch: { on: true, source: "guess" } },
+    { safety: ok.safety, mouthSwitch: { on: "true", source: "direction" } },
+  ];
+  for (const args of bad) {
+    assertThrows(
+      () => canEmitBoxEnergy(args as Parameters<typeof canEmitBoxEnergy>[0]),
+      Error,
+      undefined,
+      `${JSON.stringify(args)} aurait dû lever`,
+    );
+  }
+});
+
+Deno.test("LOT F — boîte: le vocabulaire est FERMÉ, et `other_mouth` n'en fait pas partie", () => {
+  // Il n'y a plus d'« autre » ici: chaque bouche est jugée pour elle-même.
+  assertEquals(
+    [...BOX_ENERGY_REASONS].sort(),
+    [...ENERGY_SAFETY_REASONS, "student_off", "no_direction"].sort(),
+  );
+  assert(!(BOX_ENERGY_REASONS as readonly string[]).includes("other_mouth"));
+  // Et chaque source d'interrupteur a un verdict, pas un trou.
+  for (const source of ENERGY_SWITCH_SOURCES) {
+    const on = source === "explicit_on" || source === "direction";
+    const verdict = canEmitBoxEnergy({ safety: mouthSafety(), mouthSwitch: { on, source } });
+    assertEquals(verdict.emit, on, source);
+  }
+});
+
+Deno.test("⛔ LOT F — câblage: `meal-energy-v1` ne rend une boîte que par la porte, et jamais un bac", async () => {
+  const src = await Deno.readTextFile(
+    new URL("../../meal-energy-v1/index.ts", import.meta.url),
+  );
+  assertStringIncludes(src, "canEmitBoxEnergy({");
+  // ⛔ UN NOM, ET UN SEUL: la ligne exacte qui écarte le bac partagé.
+  assertStringIncludes(src, "if (box.memberIds.length !== 1) continue;");
+  // La ceinture est celle de la BOUCHE: son âge lu sur sa ligne de foyer.
+  assertStringIncludes(src, "ageVerdict: assessBirthDate(mouth.birth_date, args.today),");
+  // Le compteur sort sur CHAQUE plan, même à zéro — les deux branches.
+  assertEquals(src.split("boxes_gate: boxesByPlan.get(row.id)?.gate ?? boxGateZero(),").length - 1, 3);
+  // Et la fermeture PAR DÉFAUT du lecteur est la seule qui laisse passer.
+  assertStringIncludes(src, 'readerSwitchSource === "no_direction"');
 });

@@ -216,6 +216,10 @@ describe("pack français de la vitrine", () => {
       // international, identiques au singulier comme au pluriel.
       "unit.one.kcal",
       "unit.many.kcal",
+      // ⟳ LOT F (2026-09-04) — « · {n} kcal » sur le couvercle d'une boîte à un
+      // nom: un séparateur, un nombre, un symbole SI. Même nature que
+      // `meals.boxes.grams` (« {n} g »), identique par construction.
+      "meals.boxes.energy",
       "unit.one.g",
       "unit.many.g",
       "unit.one.mg",

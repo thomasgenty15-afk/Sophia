@@ -6106,6 +6106,7 @@ export const en = {
   // entre les deux grammes, et elle reste minuscule — un badge ou une couleur en
   // ferait un statut, alors que c'est une précision de lecture.
   "meals.boxes.for_n": "· for {n}",
+  "meals.boxes.energy": "· {n} kcal",
   // Au-delà de quatre prénoms, le couvercle dit combien ils sont: six noms ne se
   // lisent ni sur un bac ni sur un téléphone à 320 px.
   "meals.boxes.rest_of_table": "The rest of the table ({n})",

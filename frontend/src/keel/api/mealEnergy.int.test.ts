@@ -4,6 +4,8 @@ import {
   attachEatingOutAdvice,
   dayEnergySubjectClause,
   finiteEnergyNumber,
+  readBox,
+  readBoxes,
   readDay,
   readDish,
   readTarget,
@@ -438,5 +440,31 @@ describe("readDish — le chiffre d'un plat", () => {
   it("LE CAS QUI PASSE: un plat compté traverse", () => {
     expect(readDish({ kcal: 115, complete: true, basis: "plan_quantities", gaps: [] }))
       .toEqual({ kcal: 115, basis: "plan_quantities", complete: true, gaps: [] });
+  });
+});
+
+// ⟳ LOT F (2026-09-04) — LE KCAL D'UN CONTENANT À UN NOM, LU TOUT-OU-RIEN.
+describe("readBox — le chiffre d'un contenant à un nom", () => {
+  it("lit une boîte complète, arrondie, avec sa base", () => {
+    expect(readBox({ box_id: "box_sat_lunch_marc", member_id: "m-marc", kcal: 612.4, basis: "plan_quantities" }))
+      .toEqual({ boxId: "box_sat_lunch_marc", memberId: "m-marc", kcal: 612, basis: "plan_quantities" });
+  });
+  it("⛔ TOUT OU RIEN: sans id, sans bouche ou sans nombre, rien — jamais un zéro", () => {
+    // Un kcal qu'on ne saurait pas poser sur un couvercle précis atterrirait
+    // sur le mauvais. Et `null` n'est pas 0 (cicatrice `finiteEnergyNumber`).
+    expect(readBox({ member_id: "m", kcal: 300 })).toBeNull();
+    expect(readBox({ box_id: "b", kcal: 300 })).toBeNull();
+    expect(readBox({ box_id: "b", member_id: "m", kcal: null })).toBeNull();
+    expect(readBox({ box_id: "b", member_id: "m", kcal: "n/a" })).toBeNull();
+    expect(readBox(null)).toBeNull();
+  });
+  it("readBoxes garde les lignes lisibles et jette les autres, sans décaler", () => {
+    const out = readBoxes([
+      { box_id: "a", member_id: "m1", kcal: 100 },
+      { box_id: "", member_id: "m2", kcal: 200 },
+      { box_id: "c", member_id: "m3", kcal: 300 },
+    ]);
+    expect(out.map((b) => b.boxId)).toEqual(["a", "c"]);
+    expect(readBoxes(undefined)).toEqual([]);
   });
 });

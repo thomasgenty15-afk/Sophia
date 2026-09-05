@@ -306,6 +306,7 @@ function OwnDay({
                     dish={dish}
                     tick={ticks.bind(dish, todayDate)}
                     energy={energy.showing ? energy.forDish(dish) : null}
+                    boxEnergy={energy.hasBoxEnergy ? ((id) => energy.forBox(id)) : undefined}
                     // ── LE COUVERCLE, LE JOUR OÙ ON L'OUVRE ─────────────────
                     // C'est l'écran du jour J: la boîte de ce repas est ce qu'on
                     // sort du frigo, et c'est là qu'on lit sa part. Résolue ici
@@ -342,6 +343,7 @@ function OwnDay({
                     dish={dish}
                     tick={ticks.bind(dish, todayDate)}
                     energy={energy.showing ? energy.forDish(dish) : null}
+                    boxEnergy={energy.hasBoxEnergy ? ((id) => energy.forBox(id)) : undefined}
                     // Le couvercle, comme sur la liste du jour juste au-dessus.
                     boxes={boxLinesForDish(dish, meals?.memberPortions ?? [])}
                     // Liste plate, comme celle du jour juste au-dessus.
@@ -354,6 +356,14 @@ function OwnDay({
           {/* D'OÙ VIENT LE CHIFFRE. Une fois par écran, et seulement s'il y en
               a un: sans elle, rien ne distingue ce CALCUL d'une estimation par
               photo — que le produit refuse précisément d'afficher. */}
+          {/* ⟳ 2026-09-04 — LE LECTEUR N'A PAS SON CHIFFRE, MAIS UNE BOÎTE EN A
+              UN: la base se dit quand même, sans la cible ni la bascule, qui
+              sont à lui et qu'il n'a pas demandées. */}
+          {!energy.showing && energy.hasBoxEnergy && (
+            <div className="mt-4">
+              <EnergyBasisNote />
+            </div>
+          )}
           {energy.showing && (
             <div className="mt-4 space-y-2">
               <EnergyTargetNote target={energy.target} />

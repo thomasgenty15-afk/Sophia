@@ -7,7 +7,7 @@ import type {
   MemberPortionView,
   ShoppingItem,
 } from "../../api/mealGeneration";
-import type { DayEnergyView, DishEnergyView } from "../../api/mealEnergy";
+import type { BoxEnergyView, DayEnergyView, DishEnergyView } from "../../api/mealEnergy";
 import type { WaveAssignment } from "../../api/groceryWaves";
 import { aisleLabel, dishDayLabel, dishSlotLabel, mealCopy } from "../../api/mealLabels";
 import { DayEnergyLine } from "./EnergyReadout";
@@ -103,6 +103,8 @@ export interface PlanDayBlockProps {
   tick?: (dish: GeneratedDish, date: string | null) => DishTick | null;
   energy?: (dish: GeneratedDish) => DishEnergyView | null;
   dayEnergy?: (day: string | null) => DayEnergyView | null;
+  /** ⟳ 2026-09-04 — le kcal d'un contenant à UN nom, pour le Boxing de la session et la carte. */
+  boxEnergy?: (boxId: string) => BoxEnergyView | null;
 }
 
 export default function PlanDayBlock(props: PlanDayBlockProps) {
@@ -198,6 +200,7 @@ export default function PlanDayBlock(props: PlanDayBlockProps) {
             // juste en dessous (`props.portions`): une seule liste de bouches
             // pour tout ce bloc, jamais deux.
             portions={props.portions}
+            boxEnergy={props.boxEnergy}
           />
         ))}
         {/* ── LOT 3 · LES PLATS, MOMENT PAR MOMENT ───────────────────────────
@@ -282,6 +285,7 @@ export default function PlanDayBlock(props: PlanDayBlockProps) {
                   boxes={boxLinesForDish(dish, props.portions)}
                   tick={props.tick?.(dish, date)}
                   energy={props.energy?.(dish) ?? null}
+                  boxEnergy={props.boxEnergy}
                   // ── LA SESSION QUI A FAIT SON LOT (2026-08-14) ─────────────
                   // RÉSOLUE ICI, comme `sources` juste au-dessus, et pour la
                   // même raison: le plat ne porte que des `id`, et une carte
@@ -365,6 +369,8 @@ export default function PlanDayBlock(props: PlanDayBlockProps) {
  * jamais sur la carte d'un plat.
  */
 function DaySessionCard(props: {
+  /** ⟳ 2026-09-04 — le kcal d'un contenant à UN nom, pour le Boxing de la session. */
+  boxEnergy?: (boxId: string) => BoxEnergyView | null;
   session: CookingSession;
   preparations: readonly MealPreparation[];
   allDishes: readonly GeneratedDish[];
@@ -504,6 +510,7 @@ function DaySessionCard(props: {
       <BoxTable
         lines={boxLinesForSession(session.preparation_ids, props.allDishes, props.portions)}
         context="session"
+        boxEnergy={props.boxEnergy}
       />
       {open && session.run_through && (
         <p id={panelId} className="mt-2 text-sm leading-6 text-ink">

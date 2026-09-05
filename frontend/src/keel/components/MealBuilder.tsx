@@ -1737,6 +1737,9 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                 portions={place?.isOwner === true ? (result?.memberPortions ?? []) : []}
                 open={sessionsOpen}
                 onClose={() => setSessionsOpen(false)}
+                // ⟳ 2026-09-04 — même règle que sur `PlanResult`: pas gardé par
+                // `showing`, le serveur a tranché qui a droit à quoi.
+                boxEnergy={energy.hasBoxEnergy ? ((id) => energy.forBox(id)) : undefined}
               />
             </>
           )}
@@ -1861,7 +1864,12 @@ export default function MealBuilder(props: MealBuilderProps = {}) {
                 // base à afficher, ni rien à chercher. La garde n'est pas un
                 // `if` d'affichage: c'est une prop qui n'existe pas.
                 energy={energy.showing ? ((dish) => energy.forDish(dish)) : undefined}
+                boxEnergy={energy.hasBoxEnergy ? ((id) => energy.forBox(id)) : undefined}
                 dayEnergy={energy.showing ? ((day) => energy.forDay(day)) : undefined}
+                // ⟳ 2026-09-04 — PAS gardé par `showing`: le kcal d'une boîte
+                // à un nom sort aussi quand le LECTEUR est fermé par défaut
+                // (maintenance, rien choisi). Le serveur a déjà tranché qui y a
+                // droit; `forBox` ne fait que lire ce qui a voyagé.
               />
             )}
           {/* FF-059 LOT 3 · LA FOURCHETTE. Sous les plats, avec la note de

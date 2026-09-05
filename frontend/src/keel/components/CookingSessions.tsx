@@ -12,7 +12,9 @@ import { boxLinesForSession } from "../lib/mealBoxes";
 import { daysFedBy } from "../lib/planGridModel";
 import { Card } from "./ui/Card";
 import Modal from "./ui/Modal";
+import type { BoxEnergyView } from "../api/mealEnergy";
 import { BoxTable } from "./plan/BoxTable";
+import { EnergyBasisNote } from "./plan/EnergyReadout";
 
 // LES SESSIONS DE CUISINE — quand on cuisine, et dans quel ordre.
 //
@@ -70,7 +72,7 @@ import { BoxTable } from "./plan/BoxTable";
 // `docs/keel/CHARTE-VITRINE.md` §2.
 
 export default function CookingSessions(
-  { sessions, preparations, dishes, portions, open, onClose }: {
+  { sessions, preparations, dishes, portions, open, onClose, boxEnergy }: {
     sessions: readonly CookingSession[];
     preparations: readonly MealPreparation[];
     /**
@@ -132,6 +134,8 @@ export default function CookingSessions(
      */
     open: boolean;
     onClose: () => void;
+    /** ⟳ 2026-09-04 — le kcal d'un contenant à UN nom, rendu par `BoxTable`. */
+    boxEnergy?: (boxId: string) => BoxEnergyView | null;
   },
 ) {
   // Les recettes ouvertes, par `id` de préparation. Un `Set` et pas un booléen
@@ -216,10 +220,14 @@ export default function CookingSessions(
               <BoxTable
                 lines={boxLinesForSession(session.preparation_ids, dishes, portions)}
                 context="session"
-      />
+                boxEnergy={boxEnergy}
+              />
             </Card>
           );
         })}
+        {/* ⟳ 2026-09-04 — UN KCAL DE BOÎTE NE S'AFFICHE JAMAIS SANS SA BASE.
+            L'appelant ne passe `boxEnergy` que s'il y a au moins un chiffre. */}
+        {boxEnergy && <EnergyBasisNote />}
       </div>
     </Modal>
   );

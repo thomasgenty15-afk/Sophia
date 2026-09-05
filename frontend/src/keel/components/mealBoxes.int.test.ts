@@ -13,7 +13,7 @@ import type {
   MemberPortionView,
 } from "../api/mealGeneration";
 import { readDishes, readPreparations } from "../api/mealGeneration";
-import { boxLidLabel, boxLinesForDish, boxLinesForSession } from "../lib/mealBoxes";
+import { type BoxLine, boxLidLabel, boxLinesForDish, boxLinesForSession } from "../lib/mealBoxes";
 import { en } from "../i18n/en";
 import { fr } from "../i18n/fr";
 
@@ -1060,5 +1060,34 @@ describe("le Boxing dit ce qui part au congélateur", () => {
     // ⚠️ mais PAS le compte: sur une carte de repas les contenants sont deux au
     // plus et ils sont sous les yeux.
     expect(html).not.toContain(en["meals.boxes.freeze_count"].replace("{n}", "2"));
+  });
+});
+
+// ⟳ LOT F (2026-09-04) — LE KCAL SUR LE COUVERCLE À UN NOM, ET NULLE PART AILLEURS.
+describe("BoxTable — le kcal d'un contenant à un nom", () => {
+  const lines: BoxLine[] = [
+    { id: "box_marc", eaters: ["Marc"], eatersLabel: "Marc", eaterCount: 1, shared: false, lid: "Marc", meal: "sam. midi", dish: "Poulet", items: [], total: 350, frozen: false } as unknown as BoxLine,
+    { id: "box_table", eaters: ["Julie", "Tom"], eatersLabel: "Julie, Tom", eaterCount: 2, shared: true, lid: "La table", meal: "sam. midi", dish: "Poulet", items: [], total: 700, frozen: false } as unknown as BoxLine,
+  ];
+  const energy = (id: string) =>
+    id === "box_marc" || id === "box_table"
+      ? { boxId: id, memberId: "m", kcal: 612, basis: "plan_quantities" }
+      : null;
+
+  it("rend le chiffre sur la ligne à UN nom", () => {
+    const html = markup(createElement(BoxTable, { lines, context: "session", boxEnergy: energy }));
+    expect(html).toContain("612");
+  });
+  it("⛔ JAMAIS sur le bac partagé, même quand la fonction le connaîtrait", () => {
+    // Ses grammes sont une quantité de bac, pas la portion de quelqu'un: un
+    // kcal dessus aurait l'air personnel sans l'être.
+    const html = markup(createElement(BoxTable, { lines: [lines[1]], context: "session", boxEnergy: energy }));
+    expect(html).not.toContain("612");
+  });
+  it("⛔ RIEN sans énergie: ni chiffre, ni espace réservé", () => {
+    // Une porte fermée ne se signale pas — de l'extérieur, une panne et un
+    // refus doivent se ressembler.
+    const html = markup(createElement(BoxTable, { lines, context: "session" }));
+    expect(html).not.toContain("kcal");
   });
 });

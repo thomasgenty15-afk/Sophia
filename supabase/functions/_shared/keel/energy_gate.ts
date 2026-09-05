@@ -765,3 +765,104 @@ export function canEmitMouthEnergy(args: {
   if (!args.mouthIsReader) return { emit: false, reason: "other_mouth" };
   return { emit: true, reason: "open" };
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ⟳ LOT F (2026-09-04) — LE KCAL D'UNE BOÎTE À UN NOM, SOUS LA CEINTURE DE
+// **CETTE** BOUCHE — et plus sous celle du lecteur.
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// ── LA DÉCISION, MOT POUR MOT ────────────────────────────────────────────
+// « C'est affiché pour les personnes qui ont l'objectif de prendre ou perdre
+// du poids. Si le maître est la femme et que c'est le mari qui veut perdre du
+// poids, alors ça affiche le nombre de calories sur le compte du maître. Dès
+// qu'il y a un objectif de perte ou gain de poids c'est affiché, peu importe
+// qui regarde. » (2026-09-04)
+//
+// ── CE QU'ELLE RENVERSE, ET COMMENT ON RÉPOND À CHACUNE DES TROIS RAISONS ─
+// `canEmitMouthEnergy` (au-dessus) dit NON à la question §11 n°4: un chiffre ne
+// sort que pour la bouche qui le demande. Ses trois raisons étaient justes le
+// jour où elles ont été écrites, et cette porte-ci répond à chacune plutôt que
+// de retourner un booléen:
+//
+//   1. « Les cinq états sont clés sur auth.users, pas sur member_id. » — Cette
+//      porte NE LIT PAS la ceinture du lecteur. Elle prend la chaîne de
+//      sécurité ①②③ **de la bouche** (`energySafetyGates`, avec SON âge lu sur
+//      `household_members.birth_date`, SON plancher quand elle a un compte, la
+//      doctrine du foyer) et SON interrupteur ④ (`energySwitchFrom` avec SA
+//      direction, lue sur `household_members.goal`). Le chiffre sort sous la
+//      ceinture de celui qu'il concerne.
+//   2. « Une bouche sans compte ne peut rien éteindre. » — Vrai, et assumé par
+//      la décision: le maître qui a ouvert le foyer peut retirer l'objectif de
+//      la bouche, et c'est ce qui éteint. La bouche n'est pas nommée à côté
+//      d'un corps: le kcal d'une boîte est une QUANTITÉ DU PLAN
+//      (`plan_quantities`), au prorata de ses grammes — jamais un poids, une
+//      taille ou un besoin.
+//   3. « Ce qui touche le corps est à soi. » — Le corps reste à soi. Ce qui
+//      sort est ce que pèse une boîte de nourriture, pas ce que pèse quelqu'un.
+//
+// ⛔ CE QUE CETTE PORTE NE FAIT PAS. Elle ne touche PAS `canEmitMouthEnergy`,
+// qui reste la règle du CONSEIL DU MIDI (`eatingOutAdvice`, C9): un conseil
+// est une consigne adressée à quelqu'un, et il ne s'adresse qu'à qui le
+// demande. Un kcal sur un couvercle n'est pas une consigne.
+//
+// ⛔ LE PLANCHER, L'ÂGE ET LE COACH FERMENT TOUJOURS, pour cette bouche-là. Un
+// mineur du foyer n'a JAMAIS de kcal sur sa boîte, objectif ou pas; une bouche
+// sans date de naissance non plus (`age_unknown`, fail-closed).
+//
+// ⚠️ LE LECTEUR GARDE UN DROIT: le sien. Voir `meal-energy-v1`: si le lecteur
+// a EXPLICITEMENT éteint son chiffre (`explicit_off`), rien ne sort sur son
+// écran, boîtes des autres comprises — R7, « un chiffre qu'on ne peut pas faire
+// taire est un tracker ». Seule une fermeture PAR DÉFAUT du lecteur
+// (`no_direction`: il est en maintenance et n'a rien choisi) laisse passer les
+// boîtes des bouches à objectif. C'est là que « peu importe qui regarde »
+// s'arrête, et c'est écrit.
+
+/** Les motifs de l'émission par BOÎTE. La chaîne de sécurité, plus les deux
+ *  états de l'interrupteur de la bouche. Jamais `other_mouth`: il n'y a plus
+ *  d'« autre » ici, chaque bouche est jugée pour elle-même. */
+export const BOX_ENERGY_REASONS = Object.freeze(
+  [...ENERGY_SAFETY_REASONS, "student_off", "no_direction"] as const,
+);
+export type BoxEnergyReason = (typeof BOX_ENERGY_REASONS)[number];
+
+export function canEmitBoxEnergy(args: {
+  /** La chaîne ①②③ **de la bouche** — `energySafetyGates` sur SES entrées. REQUIS. */
+  safety: EnergySafetyResult;
+  /** L'interrupteur ④ **de la bouche** — `energySwitchFrom` sur SA direction. REQUIS. */
+  mouthSwitch: { on: boolean; source: EnergySwitchSource };
+}): { emit: boolean; reason: BoxEnergyReason } {
+  if (args === null || typeof args !== "object") {
+    fail("canEmitBoxEnergy requires an input object");
+  }
+  const bag = args as unknown as Record<string, unknown>;
+  for (const key of ["safety", "mouthSwitch"]) {
+    if (!Object.hasOwn(bag, key) || bag[key] === undefined) {
+      fail(`missing required box gate input: ${key} — an absent gate is a disarmed gate`);
+    }
+  }
+  if (
+    typeof args.safety !== "object" || args.safety === null ||
+    typeof args.safety.open !== "boolean" ||
+    !(ENERGY_SAFETY_REASONS as readonly string[]).includes(args.safety.reason)
+  ) {
+    fail("safety must be the result of energySafetyGates");
+  }
+  if (
+    typeof args.mouthSwitch !== "object" || args.mouthSwitch === null ||
+    typeof args.mouthSwitch.on !== "boolean" ||
+    !(ENERGY_SWITCH_SOURCES as readonly string[]).includes(args.mouthSwitch.source)
+  ) {
+    fail("mouthSwitch must be the result of energySwitchFrom");
+  }
+  // LA SÉCURITÉ D'ABORD, ET SON MOTIF SURVIT TEL QUEL — même ordre que partout.
+  if (!args.safety.open) return { emit: false, reason: args.safety.reason };
+  if (!args.mouthSwitch.on) {
+    return {
+      emit: false,
+      // Deux silences différents: « elle a éteint » se répare en rallumant,
+      // « elle n'a pas d'objectif » ne se répare pas — il n'y a rien à ouvrir.
+      reason: args.mouthSwitch.source === "explicit_off" ? "student_off" : "no_direction",
+    };
+  }
+  return { emit: true, reason: "open" };
+}

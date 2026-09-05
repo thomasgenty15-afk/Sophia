@@ -443,6 +443,37 @@ share = grams / total   →   kcal * share
 
 > **Un kcal par bouche n'existe que pour un contenant à UN nom.**
 
+### ⟳ Amendement du 2026-09-04 — le kcal d'une boîte à un nom **s'affiche**, pour une bouche à objectif, quel que soit le lecteur
+
+Décision de l'utilisateur, mot pour mot : *« C'est affiché pour les personnes
+qui ont l'objectif de prendre ou perdre du poids. Si le maître est la femme et
+que c'est le mari qui veut perdre du poids, alors ça affiche le nombre de
+calories sur le compte du maître. Dès qu'il y a un objectif de perte ou gain de
+poids c'est affiché, peu importe qui regarde. »*
+
+Ce que ça change, et ce que ça ne change pas :
+
+| | avant | depuis le 2026-09-04 |
+|---|---|---|
+| kcal sur une boîte à UN nom | jamais rendu (`canEmitMouthEnergy` : `other_mouth`) | rendu si la bouche a une **direction** (`fat_loss`/`muscle_gain`) et passe **sa** chaîne ①②③ |
+| kcal sur un bac partagé | jamais | **jamais** — inchangé, `common_pot` |
+| la ceinture qui décide | celle du **lecteur** | celle de **la bouche** : son âge (`household_members.birth_date`), son plancher si elle a un compte, la doctrine du foyer, son interrupteur ou sa direction |
+| un mineur du foyer | rien | **rien**, objectif ou pas |
+| le lecteur a **explicitement** éteint | rien | **rien** — R7 gagne, boîtes des autres comprises |
+| le lecteur est en maintenance et n'a rien choisi | rien | les boîtes des bouches à objectif **sortent** sur son écran |
+| le conseil du midi (C9) | pour le lecteur seul | **inchangé** — un conseil est une consigne, il ne s'adresse qu'à qui la demande |
+
+**Pourquoi ce n'est pas une brèche de F7/F8.** Le kcal d'une boîte est une
+quantité **du plan** (`plan_quantities`) : les kcal du plat au prorata des
+grammes du contenant. Il ne dit ni le poids, ni la taille, ni le besoin de
+personne. Ce qu'il révèle, et c'est assumé par la décision, c'est qu'une bouche
+**a** un objectif — le nombre apparaît sur sa boîte et pas sur celle du voisin.
+
+Porte : `canEmitBoxEnergy` (`energy_gate.ts`). Lane : `meal-energy-v1`, section
+`boxes[]` par plan, avec son compteur `boxes_gate`. Écran : `BoxTable`, ligne à
+un nom seulement.
+
+
 Pour un bac commun, `dishSlices` rend un **silence nommé** (`gap: "common_pot"`),
 jamais une division. Diviser le bac par le nombre de mangeurs ferait revenir par
 la porte de l'énergie exactement la division que v3 et v4 existent pour

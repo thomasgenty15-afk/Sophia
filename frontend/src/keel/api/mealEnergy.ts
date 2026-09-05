@@ -177,6 +177,42 @@ export interface EatingOutAdviceView {
 }
 
 /** Ce qu'un plan rend, quand les quatre portes sont ouvertes. */
+/**
+ * ⟳ LOT F (2026-09-04) — LE KCAL D'UN CONTENANT À UN NOM.
+ *
+ * Décision: « dès qu'il y a un objectif de perte ou de gain de poids, c'est
+ * affiché, peu importe qui regarde ». Le serveur ne rend une ligne ici QUE pour
+ * une boîte à UN nom dont la bouche a une direction et passe SA chaîne de
+ * sécurité (`canEmitBoxEnergy`). Un bac partagé n'a jamais de kcal: ses grammes
+ * sont une quantité de bac, pas la portion de quelqu'un.
+ *
+ * ⚠️ `kcal` EST TOUJOURS UN NOMBRE ICI: le serveur ne rend pas les boîtes
+ * refusées. L'absence d'une boîte dans cette liste est un silence, jamais un 0.
+ */
+export interface BoxEnergyView {
+  boxId: string;
+  memberId: string;
+  kcal: number;
+  basis: string;
+}
+
+export function readBox(raw: unknown): BoxEnergyView | null {
+  const b = (raw ?? {}) as Record<string, unknown>;
+  const boxId = String(b.box_id ?? "").trim();
+  const memberId = String(b.member_id ?? "").trim();
+  const kcal = finiteEnergyNumber(b.kcal);
+  // ⛔ TOUT OU RIEN. Une boîte sans id, sans bouche ou sans nombre ne se rend
+  // pas: un kcal qu'on ne saurait pas poser sur un couvercle précis est un
+  // chiffre qui atterrirait sur le mauvais.
+  if (!boxId || !memberId || kcal === null) return null;
+  return { boxId, memberId, kcal: Math.round(kcal), basis: String(b.basis ?? PLAN_ENERGY_BASIS) };
+}
+
+/** ⟳ LOT F — les boîtes d'un plan, telles que le serveur les rend. Tout ou rien par ligne. */
+export function readBoxes(raw: unknown): BoxEnergyView[] {
+  return Array.isArray(raw) ? raw.map(readBox).filter((b): b is BoxEnergyView => b !== null) : [];
+}
+
 export interface PlanEnergyView {
   planId: string;
   /**
@@ -191,6 +227,8 @@ export interface PlanEnergyView {
   abstention: string | null;
   dishes: DishEnergyView[];
   days: DayEnergyView[];
+  /** ⟳ LOT F — les contenants à un nom dont la bouche a droit à son chiffre. */
+  boxes: BoxEnergyView[];
 }
 
 /**
@@ -289,11 +327,21 @@ export type EnergyReading =
      * protègent — leur montrer une bascule serait déjà leur parler du sujet.
      */
     switchOfferable: boolean;
+    /**
+     * ⟳ LOT F — LES BOÎTES DES BOUCHES À OBJECTIF, MÊME QUAND LE LECTEUR EST
+     * FERMÉ PAR DÉFAUT. Non vide seulement quand le lecteur est en maintenance
+     * et n'a rien choisi (`student_off` par `no_direction`): les boîtes de ceux
+     * qui visent une perte ou une prise sortent quand même sur son écran —
+     * c'est la décision « peu importe qui regarde ». Un lecteur qui a
+     * EXPLICITEMENT éteint ne reçoit rien ici (R7). Un lecteur fermé par le
+     * plancher, l'âge ou son coach non plus. Le serveur décide; ici on lit.
+     */
+    boxes: Array<{ planId: string; boxes: BoxEnergyView[] }>;
   };
 
 /** Un refus, sans un chiffre. La forme de repli de TOUTE erreur de ce module. */
 function closed(reason: Exclude<EnergyReason, "open">): EnergyReading {
-  return { show: false, reason, switchOfferable: false };
+  return { show: false, reason, switchOfferable: false, boxes: [] };
 }
 
 /**
@@ -593,6 +641,15 @@ export async function loadMealEnergy(
       show: false,
       reason: known === "open" ? "unavailable" : known,
       switchOfferable: row.switch_offerable === true && known === "student_off",
+      // ⟳ LOT F — les boîtes des bouches à objectif voyagent sur une fermeture
+      // PAR DÉFAUT du lecteur, et sur elle seule. Le serveur ne les envoie que
+      // dans ce cas; on ne fait ici que les lire.
+      boxes: known === "student_off" && Array.isArray(row.plans)
+        ? row.plans.map((entry) => {
+          const p = (entry ?? {}) as Record<string, unknown>;
+          return { planId: String(p.plan_id ?? ""), boxes: readBoxes(p.boxes) };
+        }).filter((p) => p.planId !== "" && p.boxes.length > 0)
+        : [],
     };
   }
 
@@ -613,6 +670,10 @@ export async function loadMealEnergy(
         computable,
         abstention: computable ? null : String(p.abstention ?? "") || null,
         dishes: computable && Array.isArray(p.dishes) ? p.dishes.map(readDish) : [],
+        // ⟳ LOT F — INDÉPENDANT DE `computable`: l'abstention du foyer porte sur
+        // l'assiette du LECTEUR (add-ons manquants). Une boîte à un nom, elle, a
+        // son kcal par ses propres grammes, sans add-on.
+        boxes: readBoxes(p.boxes),
         // ① LES CONSEILS SE RANGENT SUR LEURS JOURS ICI, et jamais sur un plan
         // qu'on vient de déclarer incalculable: un ordre de grandeur posé sur
         // une journée dont on refuse de dire le total serait le seul chiffre de

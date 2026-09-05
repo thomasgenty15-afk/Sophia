@@ -42,6 +42,8 @@ import {
   countingStanceFrom,
   type EnergyGateResult,
   energySwitchFrom,
+  type CountingStance,
+  type EnergySwitchSource,
 } from "./energy_gate.ts";
 import { evaluateRestrictionForStudent } from "./restriction_runtime.ts";
 import { loadPublishedDoctrine } from "./doctrine_loader.ts";
@@ -80,6 +82,21 @@ export interface EnergyGateLoad {
   direction: ScaleDirection | null;
   /** La ligne d'objectif, lue UNE fois et prêtée à l'appelant. */
   goalsRow: Record<string, unknown> | null;
+  /**
+   * ⟳ LOT F — LA POSITION DU COACH, PRÊTÉE À L'APPELANT. La porte par BOÎTE
+   * (`canEmitBoxEnergy`) juge chaque bouche du foyer sous la même doctrine —
+   * le coach est celui du foyer — et la redériver là-bas ferait une seconde
+   * lecture de la même doctrine.
+   */
+  coachCounting: CountingStance;
+  /**
+   * ⟳ LOT F — POURQUOI l'interrupteur d'affichage du lecteur est dans l'état
+   * où il est. `explicit_off` et `no_direction` ferment tous deux la porte ④,
+   * et ne se traitent pas pareil: le premier est un choix (R7, il gagne sur
+   * tout), le second un défaut (il laisse passer les boîtes des bouches à
+   * objectif). Sans ce champ, `meal-energy-v1` ne pourrait pas les distinguer.
+   */
+  switchSource: EnergySwitchSource;
   /**
    * L'état de l'interrupteur de CIBLE.
    *
@@ -175,6 +192,13 @@ export async function loadEnergyGate(
     ? scaleDirectionOf(goalToken as (typeof GOAL_TOKENS)[number])
     : null;
 
+  // ⟳ LOT F — RÉDUIT UNE FOIS, LU DEUX FOIS (`.on` pour la porte, `.source`
+  // pour l'appelant). Deux appels à `energySwitchFrom` seraient deux idées du
+  // même interrupteur.
+  const displaySwitch = energySwitchFrom({
+    stored: readTriState(profile.energy_display_enabled),
+    direction,
+  });
   const gate = canShowEnergy({
     restrictionFlag: floor.restriction_flag === true,
     ageVerdict,
@@ -187,10 +211,7 @@ export async function loadEnergyGate(
     // ⛔ ET LA DÉRIVATION N'EST PAS ÉCRITE ICI. `energySwitchFrom` est la seule
     // écriture de la règle; deux `??` posés dans deux fonctions edge
     // divergeraient au premier jeton d'objectif ajouté.
-    studentSwitch: energySwitchFrom({
-      stored: readTriState(profile.energy_display_enabled),
-      direction,
-    }).on,
+    studentSwitch: displaySwitch.on,
   });
 
   return {
@@ -199,6 +220,8 @@ export async function loadEnergyGate(
     ageVerdict,
     direction,
     goalsRow,
+    coachCounting,
+    switchSource: displaySwitch.source,
     targetSwitchOn: energySwitchFrom({
       stored: readTriState(profile.energy_target_enabled),
       direction,

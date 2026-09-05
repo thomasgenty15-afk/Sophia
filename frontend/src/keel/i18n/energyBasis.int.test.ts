@@ -109,6 +109,13 @@ describe("un kcal affiché porte sa base", () => {
     "meals.energy.day_partial",
     "meals.energy.day_with_addon",
     "meals.energy.dish",
+    // ⟳ LOT F (2026-09-04) — LE KCAL D'UN CONTENANT À UN NOM, base
+    // `plan_quantities` comme `meals.energy.dish`: les kcal du plat au prorata
+    // des grammes de la boîte, épinglés côté serveur par `PLAN_ENERGY_BASIS`
+    // et rendus sous la même `EnergyBasisNote`. Décision « peu importe qui
+    // regarde »; porte `canEmitBoxEnergy`. C'est exactement le geste que cet
+    // inventaire existe pour forcer: dire à quelle base la clé appartient.
+    "meals.boxes.energy",
     // ⟳ chantier-0903/SUIVI (A7) — LES SIX PHRASES DU SUIVI, NOMMÉES PAR LEUR
     // BASE, comme `photo.energy.*`. `/app/progress` somme désormais une journée
     // (D7.5 renverse « un kcal photo ne se somme JAMAIS »), et la condition du

@@ -4448,6 +4448,7 @@ export const fr: TranslatedMessages = {
   // ⛔ Ce qui dit que le nombre décrit un BAC et non une personne. Seulement sur
   // un contenant à plusieurs noms: à un seul nom, la boîte EST la portion.
   "meals.boxes.for_n": "· pour {n}",
+  "meals.boxes.energy": "· {n} kcal",
   // Au-delà de quatre prénoms, le couvercle dit combien ils sont.
   "meals.boxes.rest_of_table": "Le reste de la table ({n})",
   // Le couvercle sans nom: un plan relu sans ses parts n'a aucun prénom à

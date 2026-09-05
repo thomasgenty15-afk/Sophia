@@ -2,6 +2,7 @@ import React from "react";
 
 import {
   type DayEnergyView,
+  type BoxEnergyView,
   type DishEnergyView,
   type EnergyReading,
   type EnergyTargetView,
@@ -68,6 +69,20 @@ export interface MealEnergy {
   forDish: (dish: GeneratedDish) => DishEnergyView | null;
   /** Le total de ce jour, ou `null`. */
   forDay: (day: string | null) => DayEnergyView | null;
+  /**
+   * ⟳ LOT F — LE KCAL D'UN CONTENANT À UN NOM, ou `null`. Il répond même quand
+   * `showing` est faux: un lecteur en maintenance qui n'a rien choisi voit les
+   * boîtes des bouches à objectif (« peu importe qui regarde »). Le serveur a
+   * déjà tranché qui a droit à quoi; cette fonction ne fait que lire.
+   */
+  forBox: (boxId: string) => BoxEnergyView | null;
+  /**
+   * ⟳ LOT F — VRAI quand au moins un contenant porte un chiffre. C'est ce qui
+   * arme la note de base (`EnergyBasisNote`) sur un écran où le LECTEUR n'a pas
+   * son propre chiffre: un kcal de boîte ne s'affiche jamais sans dire d'où il
+   * vient, et une note sans aucun chiffre serait un espace réservé.
+   */
+  hasBoxEnergy: boolean;
   /** Bascule la porte ④. Recharge derrière: c'est le serveur qui décide. */
   toggle: (next: boolean) => Promise<void>;
   /** Une bascule qui n'a pas pris se dit, elle ne se tait pas. */
@@ -143,7 +158,7 @@ export function useMealEnergy(args: {
       if (!planId) {
         // PAS de `setReading(null)` déguisé en refus: sans plan il n'y a rien à
         // demander, et l'état « pas prêt » est exact.
-        if (!cancelled) setReading({ show: false, reason: "no_plan", switchOfferable: false });
+        if (!cancelled) setReading({ show: false, reason: "no_plan", switchOfferable: false, boxes: [] });
         return;
       }
       const next = await loadMealEnergy([planId]);
@@ -157,6 +172,20 @@ export function useMealEnergy(args: {
   const plan = reading?.show === true
     ? reading.plans.find((p) => p.planId === planId) ?? null
     : null;
+
+  // ⟳ LOT F — LA TABLE CONTENANT → CHIFFRE, clée sur l'id du couvercle. Elle se
+  // remplit sur une lecture OUVERTE (le plan porte ses boîtes) ET sur une
+  // fermeture par défaut du lecteur (les boîtes voyagent seules). Jamais sur
+  // une fermeture de sécurité: le serveur n'en envoie alors aucune.
+  const byBox = React.useMemo(() => {
+    const map = new Map<string, BoxEnergyView>();
+    if (!reading) return map;
+    const source = reading.show === true
+      ? (plan?.boxes ?? [])
+      : (reading.boxes.find((p) => p.planId === planId)?.boxes ?? []);
+    for (const box of source) map.set(box.boxId, box);
+    return map;
+  }, [reading, plan, planId]);
 
   // LA TABLE PLAT → CHIFFRE, clée sur la RÉFÉRENCE de l'objet plat.
   const byDish = React.useMemo(() => {
@@ -221,6 +250,8 @@ export function useMealEnergy(args: {
     abstention: plan?.abstention ?? null,
     forDish: (dish) => byDish.get(dish) ?? null,
     forDay: (day) => byDay.get(day) ?? null,
+    forBox: (boxId) => byBox.get(boxId) ?? null,
+    hasBoxEnergy: byBox.size > 0,
     toggle,
     error,
     target: reading?.show === true ? reading.target : null,

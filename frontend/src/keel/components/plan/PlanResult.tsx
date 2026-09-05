@@ -12,7 +12,7 @@ import type {
   PlanFixedIntake,
   ShoppingItem,
 } from "../../api/mealGeneration";
-import type { DayEnergyView, DishEnergyView } from "../../api/mealEnergy";
+import type { BoxEnergyView, DayEnergyView, DishEnergyView } from "../../api/mealEnergy";
 import { waveAssignments } from "../../api/groceryWaves";
 import { dishDayLabel, mealCopy } from "../../api/mealLabels";
 import { EnergyBasisNote } from "./EnergyReadout";
@@ -159,6 +159,8 @@ export interface PlanResultProps {
    * donc aucun droit à oublier de tester.
    */
   energy?: (dish: GeneratedDish) => DishEnergyView | null;
+  /** ⟳ 2026-09-04 — descend tel quel jusqu'au Boxing. */
+  boxEnergy?: (boxId: string) => BoxEnergyView | null;
   /** Le total d'un jour. `null` = pas de chiffre pour ce jour. */
   dayEnergy?: (day: string | null) => DayEnergyView | null;
   /**
@@ -431,13 +433,18 @@ export default function PlanResult(props: PlanResultProps) {
           tick={props.tick}
           energy={props.energy}
           dayEnergy={props.dayEnergy}
+          boxEnergy={props.boxEnergy}
         />
       ))}
       {/* D'OÙ VIENT LE CHIFFRE — une fois, en bas, et seulement s'il y en a un.
           Sans cette ligne, rien ne distingue à l'écran ce CALCUL d'une
           estimation par photo, que le produit refuse précisément d'afficher
           (−26,6 % de biais, systématique). */}
-      {props.energy && <EnergyBasisNote />}
+      {/* ⟳ 2026-09-04 — ET AUSSI QUAND SEULES LES BOÎTES PORTENT UN CHIFFRE:
+          sur un lecteur fermé par défaut, `energy` est absent mais un kcal de
+          boîte peut s'afficher, et il ne s'affiche jamais sans sa base. Les
+          appelants ne passent `boxEnergy` que s'il y a au moins un chiffre. */}
+      {(props.energy || props.boxEnergy) && <EnergyBasisNote />}
     </div>
   );
 }

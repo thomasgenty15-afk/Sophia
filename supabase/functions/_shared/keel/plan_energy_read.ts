@@ -28,6 +28,7 @@
 // S'ABSTIENT sur un plan de foyer, ce qui est le comportement que
 // `meal-energy-v1` a lui-même choisi quand la trace lui manque.
 
+import type { MouthEnergyDish } from "./mouth_energy.ts";
 import {
   COMPOSITION_STATES,
   COMPOSITION_UNITS,
@@ -103,6 +104,57 @@ export function readDishes(raw: unknown): EnergyDish[] {
           };
         }).filter((u) => u.preparationId !== "")
         : [],
+    };
+  });
+}
+
+/**
+ * ⟳ LOT F (2026-09-04) — LES PLATS **AVEC LEURS CONTENANTS**, tels que
+ * `boxEnergies` les attend.
+ *
+ * ⛔ UN SECOND LECTEUR À CÔTÉ DE `readDishes`, ET C'EST VOULU. `readDishes`
+ * nourrit `planEnergy` — l'assiette DU LECTEUR, tronc + add-ons — et n'a rien à
+ * savoir des couvercles. Celui-ci nourrit le kcal PAR CONTENANT, qui a besoin
+ * du `slot`, des `member_ids` et des grammes de chaque item. Les faire porter
+ * par un seul type obligerait l'un des deux appelants à ignorer des champs, et
+ * c'est le champ ignoré qui se perd en silence (cicatrice `ingredientPayload`).
+ *
+ * ⚠️ IL S'APPUIE SUR `readDishes` pour tout ce qu'ils ont en commun: deux
+ * lectures de `uses` ou de `ingredients` divergeraient au premier champ ajouté.
+ */
+export interface EnergyBoxDish extends MouthEnergyDish {
+  boxes: readonly {
+    id: string;
+    memberIds: readonly string[];
+    items: readonly { grams: number }[];
+    legacyTotalGrams: number | null;
+  }[];
+}
+
+export function readEnergyBoxDishes(raw: unknown): EnergyBoxDish[] {
+  if (!Array.isArray(raw)) return [];
+  const common = readDishes(raw);
+  return raw.map((entry, i) => {
+    const d = (entry ?? {}) as Record<string, unknown>;
+    const boxes = Array.isArray(d.boxes) ? d.boxes : [];
+    return {
+      ...common[i],
+      slot: d.slot === null || d.slot === undefined ? null : String(d.slot),
+      boxes: boxes.map((rawBox) => {
+        const b = (rawBox ?? {}) as Record<string, unknown>;
+        const items = Array.isArray(b.items) ? b.items : [];
+        const legacy = Number(b.legacy_total_grams);
+        return {
+          id: String(b.id ?? ""),
+          memberIds: Array.isArray(b.member_ids)
+            ? b.member_ids.map((m) => String(m ?? "").trim()).filter(Boolean)
+            : [],
+          items: items.map((rawItem) => ({
+            grams: Number((rawItem as Record<string, unknown> | null)?.grams) || 0,
+          })),
+          legacyTotalGrams: Number.isFinite(legacy) && legacy > 0 ? legacy : null,
+        };
+      }).filter((b) => b.id !== ""),
     };
   });
 }

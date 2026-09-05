@@ -1,7 +1,7 @@
 import React from "react";
 
 import { type DishSameDay, type GeneratedDish } from "../api/mealGeneration";
-import { type DishEnergyView } from "../api/mealEnergy";
+import { type BoxEnergyView, type DishEnergyView } from "../api/mealEnergy";
 import { dishDayLabel, dishSlotLabel, mealCopy } from "../api/mealLabels";
 import { MEAL_UNTICK_FORM_REASONS } from "../api/mealTicks";
 import { type DishSessionView } from "../lib/dishSession";
@@ -85,6 +85,7 @@ export default function DishCard(
     servedFrom = null,
     sources = [],
     energy = null,
+    boxEnergy,
     session = null,
     slotBadge,
     boxes = [],
@@ -192,6 +193,8 @@ export default function DishCard(
      * la prop existe, la donnée non.
      */
     energy?: DishEnergyView | null;
+    /** ⟳ 2026-09-04 — le kcal d'un contenant à UN nom, rendu par `BoxTable`. */
+    boxEnergy?: (boxId: string) => BoxEnergyView | null;
   },
 ) {
   // CE PLAT PUISE-T-IL DANS UNE PRÉPARATION ?
@@ -380,7 +383,7 @@ export default function DishCard(
           prénoms — la carte n'a structurellement aucun champ où un objectif
           pourrait entrer. `member_portions` est lisible par tout le foyer, et
           une raison y divulguerait l'objectif d'un membre à ses colocataires. */}
-      <BoxTable lines={boxes} context="dish" />
+      <BoxTable lines={boxes} context="dish" boxEnergy={boxEnergy} />
       {/* ══════════════════════════════════════════════════════════════════
           QUI MANGE ÇA — quand aucun couvercle ne l'a déjà dit.
           ══════════════════════════════════════════════════════════════════
