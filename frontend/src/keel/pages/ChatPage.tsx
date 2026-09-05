@@ -141,6 +141,10 @@ function SettingSwitch({
 export default function ChatPage() {
   const { user } = useAuth();
   const [messages, setMessages] = React.useState<ChatMessage[]>([]);
+  // ⟳ 2026-09-05 — « Voir » relit la bulle tapée (ses `memoryLines`) sans
+  // recréer `onButton` à chaque message: la référence suit l'état.
+  const messagesRef = React.useRef<ChatMessage[]>([]);
+  messagesRef.current = messages;
   const [draft, setDraft] = React.useState("");
   const [sending, setSending] = React.useState(false);
   const [thinking, setThinking] = React.useState(false);
@@ -498,7 +502,12 @@ export default function ChatPage() {
       // ancrés, mais l'ordre est ce qui rend l'ancrage inutile à démontrer.
       const block = readMemoryViewToken(payload);
       if (block) {
-        navigate(memoryViewHref(block, todayLocalIso));
+        // ⟳ 2026-09-05: les lignes que CETTE bulle a écrites, si elle les
+        // porte — la carte allume celles-là, pas toutes celles du jour.
+        const memoryLines =
+          messagesRef.current.find((m) => m.id === messageId)?.memoryLines ??
+            [];
+        navigate(memoryViewHref(block, todayLocalIso, memoryLines));
         return;
       }
       if (isWeeklyCheckInToken(payload)) {

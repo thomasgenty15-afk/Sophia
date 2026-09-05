@@ -74,8 +74,71 @@ export function isNavigationOnly(
 }
 
 /** L'adresse que « Voir » ouvre. `at` sert à surligner la ligne du jour. */
-export function memoryViewHref(block: KnownBlock, at: string): string {
+export function memoryViewHref(
+  block: KnownBlock,
+  at: string,
+  lines: readonly string[] = [],
+): string {
   const params = new URLSearchParams({ focus: block });
   if (at) params.set("at", at);
+  // ⟳ 2026-09-05 — LES LIGNES ÉCRITES, quand la bulle les porte. Sans elles,
+  // le jour reste la clé (grossière: toutes les lignes du jour s'allument).
+  for (const line of normalizeFocusLines(lines)) params.append("line", line);
   return `/app/about-you?${params.toString()}`;
+}
+
+/**
+ * ⟳ 2026-09-05 — LA LIGNE, PAS LE JOUR.
+ *
+ * Mesuré: « Voir » ouvrait la carte avec `at=<jour du tap>` et la carte
+ * allumait TOUTES les lignes de ce jour — trois préférences notées le matin
+ * s'allumaient sous une note du soir, et un tap le lendemain n'allumait rien.
+ * La bulle sait pourtant ce qu'elle a écrit: `memory_clarification_io.ts` pose
+ * les textes dans `metadata.keel_memory_lines`, la bulle les remet dans
+ * l'adresse (`line=`), et la carte allume les lignes dont le texte est nommé.
+ *
+ * ⛔ LE TEXTE EST L'IDENTITÉ, faute d'un identifiant de ligne en base
+ * (`retained_items` est un tableau JSON sans clé par ligne). Une ligne
+ * réécrite entre l'accusé et le tap ne s'allume plus — et c'est juste: ce
+ * n'est plus la ligne dont la bulle parlait.
+ */
+export const MEMORY_FOCUS_LINES_MAX = 12;
+
+/** Validation d'une liste de textes venue d'une metadata ou d'une adresse. */
+export function normalizeFocusLines(values: unknown): readonly string[] {
+  if (!Array.isArray(values)) return [];
+  const out: string[] = [];
+  for (const v of values) {
+    if (typeof v !== "string") continue;
+    const s = v.trim();
+    if (s === "" || out.includes(s)) continue;
+    out.push(s);
+    if (out.length >= MEMORY_FOCUS_LINES_MAX) break;
+  }
+  return out;
+}
+
+/** Les textes que la bulle a écrits, tels que le serveur les a posés. */
+export function readMemoryLines(
+  metadata: Record<string, unknown> | null | undefined,
+): readonly string[] {
+  return normalizeFocusLines(metadata?.keel_memory_lines);
+}
+
+/**
+ * Cette ligne est-elle une de celles dont la bulle parlait ? Quand l'adresse
+ * NOMME des lignes, seules celles-là comptent — une ligne du même jour qui
+ * n'est pas nommée ne s'allume pas. Sans lignes nommées, le jour décide.
+ */
+export function isFocusedLine(args: {
+  readonly focusAt: string | null | undefined;
+  readonly focusLines: readonly string[] | null | undefined;
+  readonly at: string;
+  readonly text?: string | null;
+}): boolean {
+  const lines = args.focusLines ?? [];
+  if (lines.length > 0) {
+    return typeof args.text === "string" && lines.includes(args.text.trim());
+  }
+  return Boolean(args.focusAt) && args.at === args.focusAt;
 }

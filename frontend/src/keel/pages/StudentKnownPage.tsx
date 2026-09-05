@@ -16,6 +16,7 @@ import {
   saveUndoneFieldChanges,
   undoFieldChange,
 } from "../api/fieldChanges";
+import { normalizeFocusLines } from "../api/memoryView";
 import { memoFrom, withoutMemoLine } from "../api/retainedItems";
 import { localDateIn } from "../api/dates";
 import { supabase } from "../../lib/supabase";
@@ -76,6 +77,13 @@ export default function StudentKnownPage() {
     : null;
   const rawAt = String(params.get("at") ?? "").trim();
   const focusAt = /^\d{4}-\d{2}-\d{2}$/.test(rawAt) ? rawAt : null;
+  // ⟳ 2026-09-05 — `line` répète le texte de chaque ligne que la bulle a
+  // écrite: la carte allume celles-là. Validé (textes non vides, plafonné) et
+  // mémoïsé: un tableau neuf à chaque rendu relancerait le surlignage.
+  const focusLines = React.useMemo(
+    () => normalizeFocusLines(params.getAll("line")),
+    [params],
+  );
 
   const { user } = useAuth();
   const userId = user?.id ?? "";
@@ -176,6 +184,7 @@ export default function StudentKnownPage() {
         // peut écrire.
         focus={focus}
         focusAt={focusAt}
+        focusLines={focusLines}
         // ── LOT M5 · CE QUE L'IA A CHANGÉ DANS LES RÉGLAGES ────────────────
         //
         // ⛔ SANS CE FIL, L'ÉCRITURE DU LOT M5 SERAIT PIRE QUE LE CORRECTIF

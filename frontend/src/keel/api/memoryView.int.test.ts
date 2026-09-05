@@ -22,8 +22,12 @@ import { describe, expect, it } from "vitest";
 
 import {
   armsQuestion,
+  isFocusedLine,
   isNavigationOnly,
+  MEMORY_FOCUS_LINES_MAX,
   memoryViewHref,
+  normalizeFocusLines,
+  readMemoryLines,
   readMemoryViewToken,
 } from "./memoryView";
 import { KNOWN_BLOCKS } from "./retainedItems";
@@ -34,6 +38,10 @@ const readSource = (path: string): string =>
 const CHAT_PAGE = readSource("../pages/ChatPage.tsx");
 const KNOWN_PAGE = readSource("../pages/StudentKnownPage.tsx");
 const CARD = readSource("../components/KnownAboutYouCard.tsx");
+const CHAT_API = readSource("./chat.ts");
+const DENO_IO = readSource(
+  "../../../../supabase/functions/_shared/keel/memory_clarification_io.ts",
+);
 const DENO_TAP = readSource(
   "../../../../supabase/functions/_shared/chat/disarmed_tap.ts",
 );
@@ -188,5 +196,78 @@ describe("④ l'écran vise une ancre qui existe", () => {
     expect(CARD).not.toMatch(/scrollIntoView\(\{[^}]*smooth/);
     // Le surlignage s'éteint: le jour est une clé grossière.
     expect(CARD).toMatch(/setFocusLive\(false\), 3000\)/);
+  });
+});
+
+// ⟳ 2026-09-05 — LA LIGNE, PAS LE JOUR. Mesuré: « Voir » ouvrait la carte sur
+// `at=<jour du tap>` et la carte allumait TOUTES les lignes de ce jour; un tap
+// le lendemain n'allumait rien. La bulle sait ce qu'elle a écrit: elle le
+// remet dans l'adresse, et la carte allume ces lignes-là.
+describe("⑤ la ligne, pas le jour", () => {
+  it("l'adresse porte les lignes écrites, une par `line`, validées", () => {
+    expect(
+      memoryViewHref("preferences", "2026-09-05", [
+        "pas de poisson pour Tom",
+        " ",
+        "pas de poisson pour Tom",
+        "lentilles: jamais",
+      ]),
+    ).toBe(
+      "/app/about-you?focus=preferences&at=2026-09-05" +
+        "&line=pas+de+poisson+pour+Tom&line=lentilles%3A+jamais",
+    );
+  });
+  it("sans lignes, l'adresse est celle d'hier — octet pour octet", () => {
+    expect(memoryViewHref("preferences", "2026-09-05", [])).toBe(
+      "/app/about-you?focus=preferences&at=2026-09-05",
+    );
+  });
+  it("les lignes viennent de la metadata de la bulle, validées, et de rien d'autre", () => {
+    expect(readMemoryLines({ keel_memory_lines: ["a", 3, "", " b "] }))
+      .toEqual(["a", "b"]);
+    expect(readMemoryLines({ keel_memory_lines: "a" })).toEqual([]);
+    expect(readMemoryLines(null)).toEqual([]);
+    expect(readMemoryLines({ keel_memory_written: 2 })).toEqual([]);
+  });
+  it("la liste est plafonnée: une adresse n'est pas un export", () => {
+    const many = Array.from(
+      { length: MEMORY_FOCUS_LINES_MAX + 5 },
+      (_, i) => `ligne ${i}`,
+    );
+    expect(normalizeFocusLines(many)).toHaveLength(MEMORY_FOCUS_LINES_MAX);
+  });
+  it("LE CAS QUI COMPTE: deux lignes du même jour, une seule nommée — une seule s'allume", () => {
+    const focus = { focusAt: "2026-09-05", focusLines: ["pas de poisson pour Tom"] };
+    expect(isFocusedLine({ ...focus, at: "2026-09-05", text: "pas de poisson pour Tom" }))
+      .toBe(true);
+    expect(isFocusedLine({ ...focus, at: "2026-09-05", text: "lentilles: jamais" }))
+      .toBe(false);
+    // Un réglage (pas de texte) ne s'allume pas quand des lignes sont nommées.
+    expect(isFocusedLine({ ...focus, at: "2026-09-05" })).toBe(false);
+  });
+  it("sans lignes nommées, le jour décide — le repli d'hier, intact", () => {
+    expect(isFocusedLine({ focusAt: "2026-09-05", focusLines: [], at: "2026-09-05", text: "x" }))
+      .toBe(true);
+    expect(isFocusedLine({ focusAt: "2026-09-05", focusLines: null, at: "2026-09-04", text: "x" }))
+      .toBe(false);
+    expect(isFocusedLine({ focusAt: null, focusLines: [], at: "2026-09-05" })).toBe(false);
+  });
+  it("CÂBLAGE — la bulle lit ses lignes, le bouton les remet dans l'adresse", () => {
+    expect(CHAT_API).toMatch(/readMemoryLines\(row\.metadata\)/);
+    expect(CHAT_PAGE).toMatch(/m\.id === messageId\)\?\.memoryLines/);
+    expect(CHAT_PAGE).toMatch(/memoryViewHref\(block, todayLocalIso, memoryLines\)/);
+  });
+  it("CÂBLAGE — la page lit `line`, la carte allume par TEXTE sur ses trois listes", () => {
+    expect(KNOWN_PAGE).toMatch(/normalizeFocusLines\(params\.getAll\("line"\)\)/);
+    expect(KNOWN_PAGE).toMatch(/focusLines=\{focusLines\}/);
+    expect(CARD).toMatch(/isFocusedLine\(\{/);
+    expect(CARD).toMatch(/focusRing\(item\.at, item\.text\)/);
+    expect(CARD).toMatch(/focusRing\(line\.at, line\.text\)/);
+    expect(CARD).toMatch(/focusRing\(entry\.item\.at, entry\.item\.text\)/);
+  });
+  it("CÂBLAGE — le serveur pose les textes écrits à côté du bouton « Voir »", () => {
+    // Sans cette moitié, `memoryLines` n'est jamais rempli et la carte retombe
+    // sur le jour partout: un lecteur sans écrivain.
+    expect(DENO_IO).toMatch(/keel_memory_lines: kept\.map\(\(k\) => k\.text\)/);
   });
 });

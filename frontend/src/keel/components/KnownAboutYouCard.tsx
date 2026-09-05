@@ -26,6 +26,7 @@ import {
   subjectsForPortionAdjust,
 } from "../api/retainedItems";
 import type { FieldChange } from "../api/fieldChanges";
+import { isFocusedLine } from "../api/memoryView";
 import { MEMO_MAX_LINES, type MemoLine } from "../api/retainedItems";
 import { formatWeekday } from "../i18n/format";
 import { type MessageKey, t } from "../i18n/t";
@@ -296,6 +297,12 @@ export interface KnownAboutYouCardProps {
    * écran.
    */
   focusAt?: string | null;
+  /**
+   * ⟳ 2026-09-05 — Les TEXTES des lignes que la bulle a écrites. Quand il y en
+   * a, seules ces lignes s'allument; `focusAt` ne sert plus que de repli pour
+   * une bulle qui ne les porte pas. Voir `isFocusedLine`.
+   */
+  focusLines?: readonly string[] | null;
   onSave: (next: {
     items: readonly RetainedItem[];
     nextPlan: readonly NextPlanEntry[];
@@ -742,7 +749,7 @@ export default function KnownAboutYouCard(props: KnownAboutYouCardProps) {
       <li
         key={key}
         className={`rounded-card border border-line bg-paper-2 px-3 py-2${
-          focusRing(item.at)
+          focusRing(item.at, item.text)
         }`}
       >
         <div className="flex flex-wrap items-start gap-2">
@@ -1009,23 +1016,29 @@ export default function KnownAboutYouCard(props: KnownAboutYouCardProps) {
   // pour se lire comme un état de ces lignes — celui-là même que la carte ne
   // veut pas suggérer, puisqu'elles n'ont rien de différent des autres.
   //
-  // ⛔ ET IL NE PEUT PAS ÊTRE PLUS FIN QUE LE JOUR. `notifyMemoryWrite` envoie
-  // le jour local, parce que c'est ce que porte `at` en base: il n'existe nulle
-  // part d'identifiant de ligne à mettre dans un bouton.
-  const [focusLive, setFocusLive] = React.useState<boolean>(
-    Boolean(props.focusAt),
-  );
+  // ⛔ IL ÉTAIT PLUS GROSSIER QUE LA LIGNE, et ce n'est plus vrai depuis le
+  // 2026-09-05: la bulle porte les TEXTES qu'elle a écrits (`focusLines`), et
+  // c'est le texte qui sert d'identité — il n'existe toujours pas
+  // d'identifiant de ligne en base. Le jour reste le repli d'une bulle qui ne
+  // les porte pas.
+  const focusArmed = Boolean(props.focusAt) ||
+    (props.focusLines?.length ?? 0) > 0;
+  const [focusLive, setFocusLive] = React.useState<boolean>(focusArmed);
   React.useEffect(() => {
-    if (!props.focusAt) return;
+    if (!focusArmed) return;
     setFocusLive(true);
     const timer = setTimeout(() => setFocusLive(false), 3000);
     return () => clearTimeout(timer);
-  }, [props.focusAt]);
+  }, [focusArmed, props.focusAt, props.focusLines]);
 
   /** Cette ligne est-elle celle dont la bulle parlait ? */
-  const isFocused = (at: string): boolean =>
-    focusLive && props.focusAt !== null && props.focusAt !== undefined &&
-    at === props.focusAt;
+  const isFocused = (at: string, text?: string | null): boolean =>
+    focusLive && isFocusedLine({
+      focusAt: props.focusAt,
+      focusLines: props.focusLines,
+      at,
+      text,
+    });
 
   /**
    * ⚠️ UN ANNEAU, PAS UN FOND. Un fond coloré se lit comme un ÉTAT de la ligne
@@ -1034,8 +1047,8 @@ export default function KnownAboutYouCard(props: KnownAboutYouCardProps) {
    */
   // `fig-600` est LE jeton d'anneau de focus du dépôt (`tokens.css:134`) — pas
   // une nuance choisie ici. `fig-500` n'existe pas.
-  const focusRing = (at: string): string =>
-    isFocused(at) ? " ring-2 ring-fig-600" : "";
+  const focusRing = (at: string, text?: string | null): string =>
+    isFocused(at, text) ? " ring-2 ring-fig-600" : "";
 
   const duplicates = visibleDuplicates({ items: store.items, memo });
   const preferences = itemsInBlock(store.items, "preferences");
@@ -1180,7 +1193,7 @@ export default function KnownAboutYouCard(props: KnownAboutYouCardProps) {
                         <li
                           key={`memo:${index}`}
                           className={`rounded-card border border-line bg-paper-2 px-3 py-2${
-                            focusRing(line.at)
+                            focusRing(line.at, line.text)
                           }`}
                         >
                           <div className="flex flex-wrap items-start gap-2">
@@ -1285,7 +1298,7 @@ export default function KnownAboutYouCard(props: KnownAboutYouCardProps) {
               <li
                 key={`next:${i}`}
                 className={`rounded-card border border-line bg-paper-2 px-3 py-2${
-                  focusRing(entry.item.at)
+                  focusRing(entry.item.at, entry.item.text)
                 }`}
               >
                 <p className="text-sm text-ink">{entry.item.text}</p>

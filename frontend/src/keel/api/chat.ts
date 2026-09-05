@@ -21,6 +21,7 @@
 //    rechargement contredit l'écran (edge case n°1).
 
 import { supabase } from "../../lib/supabase";
+import { readMemoryLines } from "./memoryView";
 
 /** Le scope du canal in-app. Doit correspondre à `CHAT_SCOPE` côté serveur. */
 export const CHAT_SCOPE = "app";
@@ -61,6 +62,14 @@ export type ChatMessage = {
    * sens était perdu entre la base et l'œil.
    */
   proactive: boolean;
+  /**
+   * ⟳ 2026-09-05 — Les TEXTES que cette bulle a écrits en mémoire
+   * (`metadata.keel_memory_lines`, posé par le serveur avec le bouton
+   * « Voir »). La bulle les remet dans l'adresse de la carte, qui allume ces
+   * lignes-là et pas toutes celles du jour. Absent quand la bulle n'en porte
+   * pas: la carte retombe sur le jour.
+   */
+  memoryLines?: readonly string[];
   /** La photo de ce message, quand il en porte une. */
   media?: ChatMedia;
   /** `true` tant que le serveur n'a pas confirmé l'écriture. */
@@ -121,6 +130,9 @@ export function toChatMessage(row: ChatMessageRow): ChatMessage {
   // visibles qu'à l'exécution » de ce dépôt, appliqué au front.
   const clientMessageId = String(row.metadata?.client_message_id ?? "").trim();
   const media = readMedia(row.metadata);
+  const memoryLines = row.role === "assistant"
+    ? readMemoryLines(row.metadata)
+    : [];
   return {
     id: row.id,
     role: row.role === "assistant" ? "assistant" : "user",
@@ -132,6 +144,7 @@ export function toChatMessage(row: ChatMessageRow): ChatMessage {
     // que les sortants. Le lire sur un entrant serait lire un champ qui n'a
     // pas de sens de ce côté-là.
     proactive: row.role === "assistant" && row.metadata?.is_proactive === true,
+    ...(memoryLines.length > 0 ? { memoryLines } : {}),
     ...(media ? { media } : {}),
     ...(clientMessageId ? { clientMessageId } : {}),
   };

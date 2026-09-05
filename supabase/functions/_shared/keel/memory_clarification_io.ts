@@ -164,7 +164,14 @@ export async function notifyMemoryWrite(
         payload: `${MEMORY_VIEW_BUTTON_PAYLOAD_PREFIX}${block}`,
         label: clarificationViewLabel(args.language),
       }],
-      metadata: { keel_memory_written: kept.length },
+      // ⟳ 2026-09-05 — LES TEXTES ÉCRITS voyagent avec le bouton « Voir »: la
+      // bulle les remet dans l'adresse de la carte (`line=`), qui allume ces
+      // lignes-là et plus toutes celles du jour. Le texte est l'identité,
+      // faute d'un identifiant de ligne en base.
+      metadata: {
+        keel_memory_written: kept.length,
+        keel_memory_lines: kept.map((k) => k.text),
+      },
       requestId: args.requestId,
       now: args.now,
     });
